@@ -671,4 +671,6 @@ export interface ExtractedQrls {
   segments: Segment[];
   moduleDeclarations: ModuleDeclaration[];
   invalidBoundaries: Array<{ range: SourceRange; message: string }>;
+  /** Auto-lowered module helpers (specs/02 §defs), set by the transform before lowering. */
+  moduleDefs?: readonly import('./defs-lower').ModuleDef[];
 }

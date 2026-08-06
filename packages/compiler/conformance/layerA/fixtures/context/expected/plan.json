@@ -225,7 +225,8 @@
           "binding": 4,
           "name": "theme"
         }
-      ]
+      ],
+      "defs": []
     }
   ],
   "unresolved": []

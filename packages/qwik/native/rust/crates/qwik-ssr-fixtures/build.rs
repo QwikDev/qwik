@@ -23,6 +23,7 @@ const READY_FIXTURES: &[&str] = &[
 	"context",
 	"static-attrs",
 	"suspense-stream",
+	"def-helper",
 ];
 
 fn main() {
@@ -66,6 +67,13 @@ fn main() {
 		for index in 0..component_count {
 			component_code.push_str(
 				&qwik_ssr_gen::generate_component(&plan, index)
+					.unwrap_or_else(|reason| panic!("fixture {name}: {reason}")),
+			);
+		}
+		let module_count = plan["modules"].as_array().expect("modules").len();
+		for module_index in 0..module_count {
+			component_code.push_str(
+				&qwik_ssr_gen::generate_defs(&plan, module_index)
 					.unwrap_or_else(|reason| panic!("fixture {name}: {reason}")),
 			);
 		}

@@ -23,6 +23,7 @@ export const enum ValueIrKind {
   Array = 'array',
   Object = 'object',
   Call = 'call',
+  DefCall = 'def-call',
 }
 
 export type ValueIR =
@@ -73,6 +74,12 @@ export type ValueIR =
       readonly fn: string;
       readonly recv: ValueIR | null;
       readonly args: readonly (ValueIR | LambdaIR)[];
+    }
+  | {
+      readonly k: ValueIrKind.DefCall;
+      /** Index into the module's `defs` table. */
+      readonly def: number;
+      readonly args: readonly ValueIR[];
     };
 
 /** Restricted lambda: only as a direct argument to a higher-order op; pure by construction. */

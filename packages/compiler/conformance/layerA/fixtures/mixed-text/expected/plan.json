@@ -188,7 +188,8 @@
           ]
         }
       ],
-      "contexts": []
+      "contexts": [],
+      "defs": []
     }
   ],
   "unresolved": []

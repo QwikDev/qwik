@@ -19,6 +19,8 @@ import {
   renderSsrAttr,
   renderSsrBranch,
   renderSsrCollection,
+  renderSsrContent,
+  escapeSsrContent,
   renderSsrTextExpression,
   renderSsrSlot,
   renderSsrTextNode,
@@ -577,6 +579,32 @@ export async function buildInterpretedRoot(
           );
           return maybeThen(pendingSlot, (rendered) => {
             parts.push(rendered);
+          });
+        }
+        case 'content': {
+          const op2 = op as { segment: string; root: boolean };
+          if (op2.root) {
+            throw new Error('interpreter cannot render root content ops yet');
+          }
+          const id = ctx.nextId();
+          const rendered = invoke(invokeCtx, () => {
+            const captureValues = (captureLists.get(op2.segment) ?? []).map((binding) =>
+              locals.get(binding)
+            );
+            for (const captureValue of captureValues) {
+              ctx.addRoot(captureValue);
+            }
+            return renderSsrContent(
+              ctx as never,
+              id,
+              captureValues as never,
+              qrls.get(op2.segment) as never
+            );
+          });
+          return maybeThen(rendered, (output) => {
+            parts.push(createSsrRecord('<!d=', createSsrNodeId(id), '>'));
+            parts.push(escapeSsrContent(output as never));
+            parts.push('<!/d>');
           });
         }
         case 'collection': {

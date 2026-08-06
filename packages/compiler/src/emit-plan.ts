@@ -32,6 +32,14 @@ export interface QwikModulePlan {
   readonly imports: readonly PlanImportMeta[];
   /** Module-level `createContextId` declarations: binding → serialized context name. */
   readonly contexts: readonly PlanContextMeta[];
+  /** Auto-lowered module helpers (specs/02 §defs), invoked via `def-call` by table index. */
+  readonly defs: readonly PlanDefMeta[];
+}
+
+export interface PlanDefMeta {
+  readonly name: string;
+  readonly params: readonly number[];
+  readonly body: ValueIR;
 }
 
 export interface PlanContextMeta {
@@ -197,7 +205,8 @@ export function emitModulePlan(
   path: string,
   returnMode: import('./plan-ssr').SsrComponentReturnModeResolver,
   imports: readonly PlanImportMeta[] = [],
-  contexts: readonly PlanContextMeta[] = []
+  contexts: readonly PlanContextMeta[] = [],
+  defs: readonly PlanDefMeta[] = []
 ): QwikModulePlan {
   const slice = (range: SourceRange) => source.slice(range[0], range[1]);
 
@@ -400,5 +409,6 @@ export function emitModulePlan(
     })),
     imports,
     contexts,
+    defs,
   };
 }

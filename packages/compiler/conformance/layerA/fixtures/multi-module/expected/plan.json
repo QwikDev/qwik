@@ -310,12 +310,14 @@
           ]
         }
       ],
-      "contexts": []
+      "contexts": [],
+      "defs": []
     },
     {
       "path": "src/input.tsx",
       "segments": [],
-      "contexts": []
+      "contexts": [],
+      "defs": []
     }
   ],
   "unresolved": []

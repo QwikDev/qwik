@@ -114,6 +114,60 @@ struct ComponentGenerator<'plan> {
 	uses_slots: bool,
 }
 
+/// Emits the module's auto-lowered helper functions (`defs`, specs/02).
+pub fn generate_defs(plan: &Json, module_index: usize) -> Result<String, String> {
+	let Some(defs) = plan["modules"][module_index]["defs"].as_array() else {
+		return Ok(String::new());
+	};
+	let mut output = String::new();
+	for (index, def) in defs.iter().enumerate() {
+		let mut generator = ComponentGenerator {
+			plan,
+			module_index,
+			body: String::new(),
+			statics: String::new(),
+			locals: HashMap::new(),
+			local_kinds: HashMap::new(),
+			computed_bodies: HashMap::new(),
+			pending_row_root: false,
+			pending_use_on: Vec::new(),
+			provided_contexts: Vec::new(),
+			element_ids: HashMap::new(),
+			temp_counter: 0,
+			uses_ctx: false,
+			uses_props: false,
+			uses_slots: false,
+		};
+		let mut params_signature = String::new();
+		for (position, binding) in def["params"]
+			.as_array()
+			.ok_or("def params missing")?
+			.iter()
+			.enumerate()
+		{
+			let binding = binding.as_u64().ok_or("def param binding not a number")?;
+			let variable = format!("def_param_{position}");
+			generator.locals.insert(binding, variable.clone());
+			generator.local_kinds.insert(binding, LocalKind::PlainValue);
+			write!(
+				params_signature,
+				"{variable}: &std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>, "
+			)
+			.unwrap();
+		}
+		let body = generator.ir_expression(&def["body"], "&mut def_tracked")?;
+		write!(
+			output,
+			"fn def_{module_index}_{index}({params_signature}) -> std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue> {{\n    \
+			 let mut def_tracked: Vec<std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>> = Vec::new();\n    \
+			 let _ = &mut def_tracked;\n    \
+			 {body}\n}}\n"
+		)
+		.unwrap();
+	}
+	Ok(output)
+}
+
 /// Emits `pub fn render_<name>(ctx, out[, props])` for one component of a linked plan.
 pub fn generate_component(plan: &Json, component_index: usize) -> Result<String, String> {
 	let component = plan["components"]
@@ -1559,6 +1613,14 @@ impl ComponentGenerator<'_> {
 				Ok(format!(
 					"qwik_ssr_std::call({fn_id:?}, &{recv_expression}, &[{args}])"
 				))
+			}
+			"def-call" => {
+				let def = ir["def"].as_u64().ok_or("def-call has no def index")?;
+				let mut args = String::new();
+				for arg in ir["args"].as_array().ok_or("def-call args missing")? {
+					write!(args, "&{}, ", self.ir_expression(arg, tracked)?).unwrap();
+				}
+				Ok(format!("def_{}_{def}({args})", self.module_index))
 			}
 			kind => Err(format!("ir kind {kind:?} not supported yet")),
 		}

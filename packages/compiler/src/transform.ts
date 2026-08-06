@@ -27,6 +27,7 @@ import { createComponentDefinition, discoverComponentCandidates } from './discov
 import { emitCsrModule, emitCsrSegmentRender } from './emit-csr';
 import { emitModulePlan, type PlanImportMeta } from './emit-plan';
 import { validateNativeReadiness } from './validate-native';
+import { collectModuleDefs } from './defs-lower';
 import type { EmittedModule } from './emitted-module';
 import { TargetImportResolver } from './emit-qrl';
 import {
@@ -103,6 +104,23 @@ export function transformModule(ctx: CompilerContext): TransformResult {
   }
   const analysis = analyzeModule(program);
   const extractedQrls = extractQrls(program, ctx.input.path, analysis, ctx.options.scope);
+  extractedQrls.moduleDefs = collectModuleDefs(program, analysis, {
+    bindingIdAt: (range) =>
+      range === null
+        ? null
+        : (analysis.references.find(
+            (reference) => reference.range[0] === range[0] && reference.range[1] === range[1]
+          )?.bindingId ??
+          analysis.bindings.find(
+            (binding) =>
+              binding.declarationRange !== null &&
+              binding.declarationRange[0] === range[0] &&
+              binding.declarationRange[1] === range[1]
+          )?.id ??
+          null),
+    isSourceBinding: () => false,
+    isFunctionBinding: () => false,
+  });
   const candidates = discoverComponentCandidates(program, analysis);
   if (analysis.moduleJsxRange !== null) {
     return {
@@ -579,7 +597,12 @@ export function transformModule(ctx: CompilerContext): TransformResult {
                 ctx.input.path,
                 componentReturnMode,
                 collectPlanImports(analysis),
-                collectPlanContexts(program, analysis)
+                collectPlanContexts(program, analysis),
+                (extractedQrls.moduleDefs ?? []).map((def) => ({
+                  name: def.name,
+                  params: [...def.params],
+                  body: def.body,
+                }))
               ),
               null,
               2

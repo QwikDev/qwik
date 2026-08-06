@@ -305,7 +305,8 @@
           ]
         }
       ],
-      "contexts": []
+      "contexts": [],
+      "defs": []
     }
   ],
   "unresolved": []

@@ -340,7 +340,8 @@
           ]
         }
       ],
-      "contexts": []
+      "contexts": [],
+      "defs": []
     }
   ],
   "unresolved": []

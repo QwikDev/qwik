@@ -160,7 +160,9 @@ interface DefEntry {
 ```
 
 Constraints: acyclic call graph, no state writes, no captures beyond module-scope constants that
-themselves fold. This is what keeps realistic apps pluginless — helper patterns like
+themselves fold. **Implemented** (`src/defs-lower.ts`, v0 scope): simple identifier params,
+`return expr` or expression-arrow bodies, reads restricted to params and earlier defs; module
+plans carry a per-module `defs` table and `def-call` resolves by table index. This is what keeps realistic apps pluginless — helper patterns like
 `visibleTodos(todos, filter)` or predicate tables (`FILTERS[todos.filter]` passed to
 `qwik:array.filter`) lower without any user plugin. Multi-statement helpers remain
 plugin-or-fallback.

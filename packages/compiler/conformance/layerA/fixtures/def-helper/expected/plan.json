@@ -11,22 +11,22 @@
         "setup": [
           {
             "op": "signal",
-            "local": 2,
+            "local": 6,
             "init": {
               "k": "lit",
-              "v": "world"
+              "v": 3
             }
           }
         ],
         "directSegmentIds": [],
         "usedSegmentIds": [
-          "segment_0"
+          "semantic_expression_190_208"
         ],
         "ops": [
           {
             "o": "el",
             "tag": "p",
-            "id": 0,
+            "id": null,
             "void": false,
             "styleScopedId": null,
             "targetUses": 0,
@@ -34,27 +34,22 @@
             "propsEffect": null,
             "children": [
               {
-                "o": "dyn",
-                "output": "text",
+                "o": "content",
+                "segment": "semantic_expression_190_208",
+                "root": false,
                 "value": {
-                  "src": "`Hello ${name.value}!`",
+                  "src": "label(count.value)",
                   "ir": {
-                    "k": "template",
-                    "parts": [
-                      "Hello ",
+                    "k": "def-call",
+                    "def": 1,
+                    "args": [
                       {
                         "k": "signal-read",
-                        "binding": 2
-                      },
-                      "!"
+                        "binding": 6
+                      }
                     ]
                   },
-                  "segment": "segment_0"
-                },
-                "synchronous": false,
-                "target": {
-                  "kind": "element",
-                  "id": 0
+                  "segment": "semantic_expression_190_208"
                 }
               }
             ]
@@ -70,10 +65,10 @@
       "setup": [
         {
           "op": "signal",
-          "local": 2,
+          "local": 6,
           "init": {
             "k": "lit",
-            "v": "world"
+            "v": 3
           }
         }
       ],
@@ -85,21 +80,20 @@
           "children": [
             {
               "n": "dyn",
-              "output": "text",
+              "output": "content",
               "value": {
-                "src": "`Hello ${name.value}!`",
+                "src": "label(count.value)",
                 "ir": {
-                  "k": "template",
-                  "parts": [
-                    "Hello ",
+                  "k": "def-call",
+                  "def": 1,
+                  "args": [
                     {
                       "k": "signal-read",
-                      "binding": 2
-                    },
-                    "!"
+                      "binding": 6
+                    }
                   ]
                 },
-                "segment": "segment_0"
+                "segment": "semantic_expression_190_208"
               }
             }
           ]
@@ -117,16 +111,16 @@
       "path": "src/input.tsx",
       "segments": [
         {
-          "id": "segment_0",
-          "symbolName": "input_text_segment_0_3k1cvwun49quc",
-          "chunk": "./input.tsx_input_text_segment_0_3k1cvwun49quc",
+          "id": "semantic_expression_190_208",
+          "symbolName": "semantic_expression_190_208_2rn1mt69fmwdx",
+          "chunk": "./input.tsx_semantic_expression_190_208_2rn1mt69fmwdx",
           "kind": "expression",
           "resolved": true,
           "qrl": null,
           "captures": [
             {
-              "binding": 2,
-              "name": "name",
+              "binding": 6,
+              "name": "count",
               "source": "local",
               "access": "direct"
             }
@@ -134,7 +128,48 @@
         }
       ],
       "contexts": [],
-      "defs": []
+      "defs": [
+        {
+          "name": "double",
+          "params": [
+            4
+          ],
+          "body": {
+            "k": "bin",
+            "op": "*",
+            "a": {
+              "k": "binding-read",
+              "binding": 4
+            },
+            "b": {
+              "k": "lit",
+              "v": 2
+            }
+          }
+        },
+        {
+          "name": "label",
+          "params": [
+            5
+          ],
+          "body": {
+            "k": "template",
+            "parts": [
+              "value ",
+              {
+                "k": "def-call",
+                "def": 0,
+                "args": [
+                  {
+                    "k": "binding-read",
+                    "binding": 5
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
     }
   ],
   "unresolved": []

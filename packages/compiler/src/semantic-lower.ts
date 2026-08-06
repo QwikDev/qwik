@@ -1409,6 +1409,10 @@ class SemanticLowerer {
     bindingIdAt: (range) => this.bindingIdAt(range),
     isSourceBinding: (binding) => this.sourceOutputs.has(binding),
     isFunctionBinding: (binding) => this.functionBindings.has(binding),
+    defIndex: (binding) => {
+      const index = this.extracted.moduleDefs?.findIndex((def) => def.binding === binding) ?? -1;
+      return index < 0 ? null : index;
+    },
   };
 
   private readonly setupLowerFacts: SetupLowerFacts = {

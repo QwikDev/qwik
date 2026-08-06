@@ -17,6 +17,8 @@ export interface ExprLowerFacts {
   isSourceBinding(binding: BindingId): boolean;
   /** Function-valued bindings read as values are call-shaped territory — not lowerable yet. */
   isFunctionBinding(binding: BindingId): boolean;
+  /** Index into the module defs table when the binding is an auto-lowered helper. */
+  defIndex?(binding: BindingId): number | null;
 }
 
 export interface ValueIrCoverage {
@@ -354,8 +356,14 @@ function lowerCall(node: AstNode, facts: ExprLowerFacts): ValueIR | null {
   }
   // bare global call: String(x), parseInt(x), ...
   if (callee.type === 'Identifier') {
-    if (facts.bindingIdAt(getRange(callee)) !== null) {
-      return null; // user function — plugin territory
+    const calleeBinding = facts.bindingIdAt(getRange(callee));
+    if (calleeBinding !== null) {
+      const def = facts.defIndex?.(calleeBinding) ?? null;
+      if (def === null) {
+        return null; // user function — plugin territory
+      }
+      const args = lowerArgs(call.arguments, facts, null);
+      return args === null ? null : { k: ValueIrKind.DefCall, def, args: args as ValueIR[] };
     }
     const op = GLOBAL_OPS.get(getIdentifierName(callee) ?? '');
     if (op === undefined) {

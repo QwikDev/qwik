@@ -30,6 +30,7 @@ export interface LinkedModule {
   readonly path: string;
   readonly segments: readonly PlanSegmentMeta[];
   readonly contexts: readonly { readonly binding: number; readonly name: string }[];
+  readonly defs: QwikModulePlan['defs'];
 }
 
 export interface LinkedComponent {
@@ -283,6 +284,7 @@ export function linkSsrPlan(
       path: plan.path,
       segments: plan.segments,
       contexts: plan.contexts,
+      defs: plan.defs,
     })),
     unresolved,
   };

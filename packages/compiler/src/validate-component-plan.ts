@@ -422,11 +422,9 @@ class ComponentPlanValidator {
     if (
       render.kind === 'local-jsx' ||
       render.kind === 'embedded-jsx' ||
-      render.kind === 'local-component'
+      (render.kind === 'local-component' && render.segmentId === null)
     ) {
-      if (render.segmentId !== null) {
-        this.issue(`${path}.segmentId`, 'inline JSX render functions cannot have a segment');
-      }
+      // inline render functions carry no segment; lifted local components carry their chunk's
     } else if (render.segmentId === null || !this.segments.has(render.segmentId)) {
       this.issue(`${path}.segmentId`, `references unknown segment "${render.segmentId}"`);
     }

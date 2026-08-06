@@ -91,6 +91,8 @@ export interface PlanLocalComponent {
   readonly op: SetupOpKind.LocalComponent;
   readonly name: string;
   readonly binding: number;
+  /** Backing chunk segment id when lifted (captured across a lazy boundary). */
+  readonly segment?: string;
   /** Destructured props as prop-key → binding pairs, or the whole-props identifier binding. */
   readonly props:
     | {
@@ -396,10 +398,15 @@ export function emitModulePlan(
   const directSegmentIds = new Set(
     components.flatMap((component) => component.ssr?.directSegmentIds ?? [])
   );
+  const localComponentSegmentIds = new Set(
+    segments.filter((segment) => segment.kind === 'localComponent').map((segment) => segment.id)
+  );
   const resolvesEagerly = (segment: SegmentPlan): boolean =>
     segment.qrl?.kind !== 'sync' &&
     !isModuleStyleBoundary(segment) &&
-    (segment.parentId === null || directSegmentIds.has(segment.id)) &&
+    (segment.parentId === null ||
+      directSegmentIds.has(segment.id) ||
+      localComponentSegmentIds.has(segment.parentId)) &&
     shouldResolveSsrSegment(segment);
 
   // inline collection rows never become chunks — drop their table entries (no QRL exists)

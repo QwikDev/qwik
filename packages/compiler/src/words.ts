@@ -18,6 +18,7 @@ export const enum QwikWord {
   ReadTrackedSourceValue = 'readTrackedSourceValue',
   ReadExpression = 'readExpression',
   CreateComponent = 'createComponent',
+  MarkComponent = '_markComponent',
   CreatePropsProxy = 'createPropsProxy',
   CreateSlotScope = 'createSlotScope',
   RegisterProjection = 'registerProjection',

@@ -22,7 +22,8 @@ export type SegmentKind =
   | 'forRender'
   | 'suspenseRender'
   | 'slotRender'
-  | 'collectionRender';
+  | 'collectionRender'
+  | 'localComponent';
 export type SegmentCaptureSource = 'local' | 'param' | 'loop';
 
 export interface ImportBinding {
@@ -171,6 +172,8 @@ export interface LocalComponentSetupPlan {
   readonly parameter: ComponentParameterPlan | null;
   /** Object-pattern prop keys parallel to `parameter.bindingIds`; empty for identifier params. */
   readonly propNames: readonly string[];
+  /** Backing chunk segment when the component is captured across a lazy boundary (lifted). */
+  readonly segment: string | null;
   readonly render: RenderFunctionPlan;
 }
 

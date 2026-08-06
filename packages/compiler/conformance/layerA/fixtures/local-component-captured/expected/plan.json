@@ -1,0 +1,435 @@
+{
+  "format": "qwik/ssr-plan",
+  "version": 0,
+  "entry": 0,
+  "components": [
+    {
+      "name": "App",
+      "module": 0,
+      "propsBindings": [],
+      "ssr": {
+        "setup": [
+          {
+            "op": "store",
+            "local": 3,
+            "init": {
+              "k": "object",
+              "entries": [
+                [
+                  "filter",
+                  {
+                    "k": "lit",
+                    "v": "all"
+                  }
+                ],
+                [
+                  "count",
+                  {
+                    "k": "lit",
+                    "v": 2
+                  }
+                ]
+              ]
+            },
+            "deep": true
+          },
+          {
+            "op": "signal",
+            "local": 4,
+            "init": {
+              "k": "lit",
+              "v": true
+            }
+          },
+          {
+            "op": "local-component",
+            "name": "Filter",
+            "binding": 5,
+            "segment": "local_component_169_410",
+            "props": {
+              "kind": "object",
+              "bindings": [
+                {
+                  "b": 6,
+                  "name": "name"
+                }
+              ]
+            },
+            "render": {
+              "setup": [
+                {
+                  "op": "const",
+                  "local": 7,
+                  "init": {
+                    "k": "call",
+                    "fn": "qwik:string.toLowerCase",
+                    "recv": {
+                      "k": "binding-read",
+                      "binding": 6
+                    },
+                    "args": []
+                  }
+                }
+              ],
+              "ops": [
+                {
+                  "o": "el",
+                  "tag": "li",
+                  "id": null,
+                  "void": false,
+                  "styleScopedId": null,
+                  "targetUses": 0,
+                  "props": [],
+                  "propsEffect": null,
+                  "children": [
+                    {
+                      "o": "el",
+                      "tag": "a",
+                      "id": 0,
+                      "void": false,
+                      "styleScopedId": null,
+                      "targetUses": 1,
+                      "props": [
+                        {
+                          "p": "dynamic",
+                          "name": "class",
+                          "value": {
+                            "src": "{ selected: todos.filter == lower }",
+                            "ir": {
+                              "k": "object",
+                              "entries": [
+                                [
+                                  "selected",
+                                  {
+                                    "k": "bin",
+                                    "op": "==",
+                                    "a": {
+                                      "k": "member",
+                                      "obj": {
+                                        "k": "binding-read",
+                                        "binding": 3
+                                      },
+                                      "name": "filter"
+                                    },
+                                    "b": {
+                                      "k": "binding-read",
+                                      "binding": 7
+                                    }
+                                  }
+                                ]
+                              ]
+                            },
+                            "segment": "segment_0"
+                          },
+                          "compilerString": false
+                        },
+                        {
+                          "p": "event",
+                          "name": "q-e:click",
+                          "handlers": [
+                            {
+                              "value": {
+                                "src": "() => {\n\t\t\ttodos.filter = lower;\n\t\t}",
+                                "segment": "segment_1"
+                              }
+                            }
+                          ]
+                        }
+                      ],
+                      "propsEffect": null,
+                      "children": [
+                        {
+                          "o": "content",
+                          "segment": "semantic_expression_362_380",
+                          "root": false,
+                          "value": {
+                            "src": "name.toUpperCase()",
+                            "ir": {
+                              "k": "call",
+                              "fn": "qwik:string.toUpperCase",
+                              "recv": {
+                                "k": "binding-read",
+                                "binding": 6
+                              },
+                              "args": []
+                            },
+                            "segment": "semantic_expression_362_380"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "synchronous": false,
+              "needsRootRange": false
+            }
+          }
+        ],
+        "directSegmentIds": [],
+        "usedSegmentIds": [
+          "segment_2",
+          "segment_3",
+          "segment_0",
+          "segment_1",
+          "semantic_expression_362_380",
+          "local_component_169_410"
+        ],
+        "ops": [
+          {
+            "o": "el",
+            "tag": "ul",
+            "id": null,
+            "void": false,
+            "styleScopedId": null,
+            "targetUses": 0,
+            "props": [],
+            "propsEffect": null,
+            "children": [
+              {
+                "o": "branch",
+                "condition": "segment_2",
+                "conditionIr": {
+                  "k": "signal-read",
+                  "binding": 4
+                },
+                "root": false,
+                "idBase": null,
+                "then": {
+                  "segment": "segment_3",
+                  "setup": [],
+                  "ops": [
+                    {
+                      "o": "component",
+                      "target": "Filter",
+                      "returnMode": "maybe-promise",
+                      "props": [
+                        {
+                          "p": "static",
+                          "name": "name",
+                          "value": "All"
+                        }
+                      ],
+                      "propsSource": null,
+                      "idBase": null,
+                      "blockingSuspense": false,
+                      "slots": []
+                    }
+                  ],
+                  "synchronous": false,
+                  "needsRootRange": false
+                },
+                "else": null
+              }
+            ]
+          }
+        ],
+        "synchronous": false,
+        "staticRoot": false,
+        "needsRootRange": false,
+        "needsId": false,
+        "idBase": "qApp-",
+        "flushTasks": false
+      },
+      "setup": [
+        {
+          "op": "store",
+          "local": 3,
+          "init": {
+            "k": "object",
+            "entries": [
+              [
+                "filter",
+                {
+                  "k": "lit",
+                  "v": "all"
+                }
+              ],
+              [
+                "count",
+                {
+                  "k": "lit",
+                  "v": 2
+                }
+              ]
+            ]
+          },
+          "deep": true
+        },
+        {
+          "op": "signal",
+          "local": 4,
+          "init": {
+            "k": "lit",
+            "v": true
+          }
+        },
+        {
+          "op": "js",
+          "src": "function Filter({ name }) {\n\t\tconst lower = name.toLowerCase();\n\t\treturn <li>\n        <a class={{ selected: todos.filter == lower }} onClick$={() => {\n\t\t\ttodos.filter = lower;\n\t\t}}>\n          {name.toUpperCase()}\n        </a>\n      </li>;\n\t}"
+        }
+      ],
+      "render": [
+        {
+          "n": "el",
+          "tag": "ul",
+          "props": [],
+          "children": [
+            {
+              "n": "branch",
+              "condition": {
+                "src": "",
+                "segment": "segment_2",
+                "ir": {
+                  "k": "signal-read",
+                  "binding": 4
+                }
+              },
+              "then": {
+                "setup": [],
+                "render": [
+                  {
+                    "n": "component",
+                    "target": 5,
+                    "props": [
+                      {
+                        "p": "static",
+                        "name": "name",
+                        "value": "All"
+                      }
+                    ],
+                    "slots": []
+                  }
+                ]
+              },
+              "else": null
+            }
+          ]
+        }
+      ],
+      "needsId": false,
+      "idBase": "qApp-",
+      "styleScope": null,
+      "providesContext": false,
+      "hasCustomHook": false
+    }
+  ],
+  "modules": [
+    {
+      "path": "src/input.tsx",
+      "segments": [
+        {
+          "id": "segment_0",
+          "symbolName": "input_class_segment_0_1bbn4mgjg897b",
+          "chunk": "./input.tsx_input_class_segment_0_1bbn4mgjg897b",
+          "kind": "expression",
+          "resolved": true,
+          "qrl": null,
+          "captures": [
+            {
+              "binding": 3,
+              "name": "todos",
+              "source": "local",
+              "access": "direct"
+            },
+            {
+              "binding": 7,
+              "name": "lower",
+              "source": "local",
+              "access": "direct"
+            }
+          ]
+        },
+        {
+          "id": "segment_1",
+          "symbolName": "input_q_e_click_segment_1_18mo7akddhd9s",
+          "chunk": "./input.tsx_input_q_e_click_segment_1_18mo7akddhd9s",
+          "kind": "event",
+          "resolved": false,
+          "qrl": null,
+          "captures": [
+            {
+              "binding": 3,
+              "name": "todos",
+              "source": "local",
+              "access": "direct"
+            },
+            {
+              "binding": 7,
+              "name": "lower",
+              "source": "local",
+              "access": "direct"
+            }
+          ]
+        },
+        {
+          "id": "segment_2",
+          "symbolName": "input_branch_condition_segment_2_m6ib4jy2qjar",
+          "chunk": "./input.tsx_input_branch_condition_segment_2_m6ib4jy2qjar",
+          "kind": "branchCondition",
+          "resolved": true,
+          "qrl": null,
+          "captures": [
+            {
+              "binding": 4,
+              "name": "show",
+              "source": "local",
+              "access": "direct"
+            }
+          ]
+        },
+        {
+          "id": "segment_3",
+          "symbolName": "input_branch_then_segment_3_3n2t9khkamtyc",
+          "chunk": "./input.tsx_input_branch_then_segment_3_3n2t9khkamtyc",
+          "kind": "branchRender",
+          "resolved": false,
+          "qrl": null,
+          "captures": [
+            {
+              "binding": 5,
+              "name": "Filter",
+              "source": "local",
+              "access": "direct"
+            }
+          ]
+        },
+        {
+          "id": "semantic_expression_362_380",
+          "symbolName": "semantic_expression_362_380_36mr2npiuck15",
+          "chunk": "./input.tsx_semantic_expression_362_380_36mr2npiuck15",
+          "kind": "expression",
+          "resolved": true,
+          "qrl": null,
+          "captures": [
+            {
+              "binding": 6,
+              "name": "name",
+              "source": "param",
+              "access": "direct"
+            }
+          ]
+        },
+        {
+          "id": "local_component_169_410",
+          "symbolName": "local_component_169_410_1hq4clnyzxq86",
+          "chunk": "./input.tsx_local_component_169_410_1hq4clnyzxq86",
+          "kind": "localComponent",
+          "resolved": false,
+          "qrl": null,
+          "captures": [
+            {
+              "binding": 3,
+              "name": "todos",
+              "source": "local",
+              "access": "direct"
+            }
+          ]
+        }
+      ],
+      "contexts": [],
+      "defs": []
+    }
+  ],
+  "unresolved": []
+}

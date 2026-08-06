@@ -2070,7 +2070,9 @@ class SemanticLowerer {
     lifetimeId: LifetimeId,
     parameterBindingIds: readonly BindingId[],
     render: RenderFunctionPlan | null,
-    async: boolean
+    async: boolean,
+    /** The segment function's own name binding — declared in-range but owned by the outer scope. */
+    excludeBindingId: BindingId | null = null
   ): SegmentPlan {
     const references = this.analysis.references.filter((reference) =>
       rangeContains(functionRange, reference.range)
@@ -2078,7 +2080,9 @@ class SemanticLowerer {
     const parameterSet = new Set(parameterBindingIds);
     const localOwnerIds = new Set(
       this.analysis.bindings.flatMap((binding) =>
-        binding.declarationRange !== null && rangeContains(functionRange, binding.declarationRange)
+        binding.id !== excludeBindingId &&
+        binding.declarationRange !== null &&
+        rangeContains(functionRange, binding.declarationRange)
           ? [binding.ownerId]
           : []
       )
@@ -2710,7 +2714,12 @@ class SemanticLowerer {
     const functionRange = getRange(fn) ?? range;
     this.classifySetupBindings(shape.setup);
     const childLifetime = this.allocateLifetime(lifetimeId, 'render-function', 'atomic-range');
-    const setup = this.lowerSetup(childLifetime, shape.setup);
+    // captured across a lazy boundary → lifted: the body compiles into its own chunk, so
+    // segments referenced inside parent to it (the chunk hoists their QRLs)
+    const isCaptured = this.extracted.segments.some((segment) =>
+      segment.captures.some((capture) => capture.bindingId === bindingId)
+    );
+    const segmentId = isCaptured ? `local_component_${functionRange[0]}_${functionRange[1]}` : null;
     const expression = findNodeByRange(this.owner.body, shape.returnExpression);
     if (expression === null) {
       this.fail(
@@ -2720,11 +2729,19 @@ class SemanticLowerer {
       );
       return null;
     }
-    const effects: RenderEffectPlan[] = [];
-    const render: RenderPlan = {
-      roots: this.lowerExpression(expression, { lifetimeId: childLifetime, effects }),
-      effects,
+    const lowerChild = (): { setup: SetupPlan[]; render: RenderPlan } => {
+      const setup = this.lowerSetup(childLifetime, shape.setup);
+      const effects: RenderEffectPlan[] = [];
+      return {
+        setup,
+        render: {
+          roots: this.lowerExpression(expression, { lifetimeId: childLifetime, effects }),
+          effects,
+        },
+      };
     };
+    const { setup, render } =
+      segmentId === null ? lowerChild() : this.withRenderSegment(segmentId, lowerChild);
     const needsId = setup.some((item) => item.kind === 'statement' && item.useIds.length > 0);
     const renderFunction: RenderFunctionPlan = {
       kind: 'local-component',
@@ -2750,6 +2767,23 @@ class SemanticLowerer {
       runtimeStyleScope: this.hasCustomHook,
       runtimeStyleScopeName: this.hasCustomHook ? this.runtimeStyleScopeName() : null,
     };
+    // lifted: back the value with a chunk segment so it serializes as a QRL
+    // (the inline function stays for direct synchronous calls)
+    if (segmentId !== null) {
+      const plan = this.createSyntheticSegment(
+        segmentId,
+        'localComponent',
+        functionRange,
+        functionRange,
+        childLifetime,
+        shape.parameter?.bindingIds ?? [],
+        // the segment's copy is owned by the segment; the inline entry keeps segmentId null
+        { ...renderFunction, segmentId },
+        false,
+        bindingId
+      );
+      this.syntheticSegments.push({ ...plan, componentParameter: shape.parameter });
+    }
     return {
       kind: 'local-component',
       range,
@@ -2758,6 +2792,7 @@ class SemanticLowerer {
       name: binding.name,
       parameter: shape.parameter,
       propNames,
+      segment: segmentId,
       render: renderFunction,
     };
   }

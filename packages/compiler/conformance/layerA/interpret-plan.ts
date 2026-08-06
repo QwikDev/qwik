@@ -35,6 +35,7 @@ import {
   useOn,
   createVisibleTaskHandlerQrl,
   inlinedQrl,
+  _markComponent,
   _chk,
   _props,
   _wrapArray,
@@ -319,6 +320,13 @@ export async function buildInterpretedRoot(
       }
     }
 
+    // lifted local components mark after all setup, like the emitted modules
+    for (const entry of ssr.setup as readonly (SetupOp | PlanLocalComponent)[]) {
+      if (entry.op === 'local-component' && entry.segment !== undefined) {
+        _markComponent(locals.get(entry.binding) as never, qrlWithCaptures(entry.segment) as never);
+      }
+    }
+
     const localSignal = (ir: ValueIR | undefined, site: string): unknown => {
       // signal-read is the proven .value fast path; binding-read of a signal-valued
       // local (bare identifier, e.g. bind:value={text}) yields the signal object itself
@@ -552,6 +560,14 @@ export async function buildInterpretedRoot(
           const pendingBranch = invoke(invokeCtx, () => {
             for (const captureBinding of captureLists.get(op.condition) ?? []) {
               ctx.addRoot(locals.get(captureBinding));
+            }
+            // emitted prep also roots the arm captures (rootSegments([then, else]))
+            for (const armSegment of [thenSegment, elseSegment]) {
+              if (armSegment !== undefined) {
+                for (const captureBinding of captureLists.get(armSegment) ?? []) {
+                  ctx.addRoot(locals.get(captureBinding));
+                }
+              }
             }
             return renderSsrBranch(
               ctx as never,

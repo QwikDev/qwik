@@ -507,6 +507,13 @@ function emitSegmentCode(
     case 'forKey':
       functionHead = `(${usedParameterNames.join(', ')}) => `;
       break;
+    case 'localComponent':
+      functionHead = `(${
+        segment.componentParameter?.kind === 'identifier'
+          ? (segment.componentParameter.param.name ?? generatedNames.props)
+          : generatedNames.props
+      }, ${generatedNames.ctx}) => `;
+      break;
     case 'forRender':
     case 'collectionRender': {
       functionHead = `(${[
@@ -572,6 +579,9 @@ export function shouldResolveSsrSegment(segment: SegmentPlan): boolean {
     case 'slotRender':
     case 'suspenseRender':
       return true;
+    case 'localComponent':
+      // the parent module keeps the inline function; the chunk exists for the client only
+      return false;
   }
 }
 
@@ -688,7 +698,12 @@ function emitComponentPropsSetup(
   generatedNames: GeneratedNames
 ): string {
   const parameter = segment.componentParameter;
-  if (
+  if (segment.kind === 'localComponent') {
+    // lifted local component: destructure its props exactly like the inline emit
+    if (parameter?.kind !== 'object' || parameter.param.bindingRange === null) {
+      return '';
+    }
+  } else if (
     parameter?.kind !== 'object' ||
     !segment.captures.some((capture) => capture.access === 'component-prop') ||
     parameter.param.bindingRange === null

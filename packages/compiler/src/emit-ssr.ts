@@ -274,12 +274,18 @@ export function emitSsrModule(
   hoists.push(...emittedFunctions.hoists);
   const localImports: string[] = [];
   const emittedSegmentIds = new Set<string>();
+  // lifted local components duplicate their body inline — the parent needs their children too
+  const localComponentSegmentIds = new Set(
+    segments.filter((segment) => segment.kind === 'localComponent').map((segment) => segment.id)
+  );
   for (const segment of segments) {
     if (
       emittedSegmentIds.has(segment.id) ||
       segment.qrl?.kind === 'sync' ||
       isModuleStyleBoundary(segment) ||
-      (segment.parentId !== null && !directSegmentIds.has(segment.id))
+      (segment.parentId !== null &&
+        !directSegmentIds.has(segment.id) &&
+        !localComponentSegmentIds.has(segment.parentId))
     ) {
       continue;
     }
@@ -560,6 +566,8 @@ function emitSetup(
 ): SsrSetup | null {
   const imports = new Set<string>();
   const statements: string[] = [];
+  // lifted local components mark after all setup: captures may be declared below the function
+  const pendingComponentMarks: string[] = [];
 
   if (flushTasks) {
     imports.add(QwikWord.GetActiveInvokeContextOrNull);
@@ -651,6 +659,16 @@ function emitSetup(
       statements.push(
         `function ${operation.name}(${propsName}, ${generatedNames.ctx}) {\n${body}\n}`
       );
+      if (operation.segment !== null) {
+        const liftedSegment = segments.get(operation.segment);
+        if (liftedSegment === undefined) {
+          return null;
+        }
+        imports.add(QwikWord.MarkComponent);
+        pendingComponentMarks.push(
+          `${QwikWord.MarkComponent}(${operation.name}, ${qrlReference(liftedSegment, undefined, generatedNames)});`
+        );
+      }
       continue;
     }
     if (operation.kind === 'style') {
@@ -737,6 +755,7 @@ function emitSetup(
     }
   }
 
+  statements.push(...pendingComponentMarks);
   return { imports: [...imports], statements, flushTasks };
 }
 

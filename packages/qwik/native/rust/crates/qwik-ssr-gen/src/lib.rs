@@ -470,6 +470,18 @@ impl ComponentGenerator<'_> {
 					.ok_or("local component has no name")?;
 				self.local_components
 					.insert(name.to_string(), entry.clone());
+				// lifted: the binding's value is the backing QRL, so captures serialize it
+				if let Some(segment_id) = entry["segment"].as_str() {
+					let binding = entry["binding"]
+						.as_u64()
+						.ok_or("local component has no binding")?;
+					let segment_id = segment_id.to_string();
+					let qrl = self.qrl_expression(&segment_id, true)?;
+					let variable = format!("local_{binding}");
+					writeln!(self.body, "    let {variable} = {qrl};").unwrap();
+					self.locals.insert(binding, variable);
+					self.local_kinds.insert(binding, LocalKind::PlainValue);
+				}
 				Ok(())
 			}
 			"yield" => Ok(()),
@@ -1023,6 +1035,10 @@ impl ComponentGenerator<'_> {
 		let saved_local_components = self.local_components.clone();
 		let saved_elements = std::mem::take(&mut self.element_ids);
 		let render = entry["render"].clone();
+		// createComponent gives the call its own lazily-materialized owner: effects created
+		// inside collect into one item of the enclosing owner (single items stay unwrapped)
+		let owner_temp = self.next_temp();
+		writeln!(self.body, "    ctx.push_owner();").unwrap();
 		let mut expand = || -> Result<(), String> {
 			for setup_entry in render["setup"].as_array().ok_or("render setup missing")? {
 				self.write_setup(setup_entry)?;
@@ -1035,6 +1051,16 @@ impl ComponentGenerator<'_> {
 			Ok(())
 		};
 		let result = expand();
+		writeln!(
+			self.body,
+			"    let mut component_owner_{owner_temp} = ctx.pop_owner();\n    \
+			 if component_owner_{owner_temp}.len() == 1 {{\n        \
+			 ctx.push_owner_item(component_owner_{owner_temp}.pop().unwrap());\n    \
+			 }} else if !component_owner_{owner_temp}.is_empty() {{\n        \
+			 ctx.push_owner_item(std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Array(component_owner_{owner_temp})));\n    \
+			 }}"
+		)
+		.unwrap();
 		self.element_ids = saved_elements;
 		self.local_components = saved_local_components;
 		self.expansion_stack.pop();
@@ -1120,6 +1146,20 @@ impl ComponentGenerator<'_> {
 				"    ctx.serializer.add_root(std::rc::Rc::clone(&{capture}));"
 			)
 			.unwrap();
+		}
+		// emitted prep also roots the arm captures (rootSegments([then, else]))
+		let mut arm_segments = vec![then_segment.clone()];
+		if let Some(else_segment) = else_fn["segment"].as_str() {
+			arm_segments.push(else_segment.to_string());
+		}
+		for arm_segment in &arm_segments {
+			for capture in self.segment_captures(arm_segment)? {
+				writeln!(
+					self.body,
+					"    ctx.serializer.add_root(std::rc::Rc::clone(&{capture}));"
+				)
+				.unwrap();
+			}
 		}
 		let condition_expression = self.ir_expression(condition_ir, &format!("&mut {tracked}"))?;
 		let condition_qrl = self.qrl_expression(condition_segment, true)?;

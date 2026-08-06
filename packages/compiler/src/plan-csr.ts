@@ -148,6 +148,7 @@ export type CsrSetupPlan =
       readonly bindingId: BindingId;
       readonly parameter: ComponentParameterPlan | null;
       readonly propNames: readonly string[];
+      readonly segment: string | null;
       readonly render: CsrPlan;
     }
   | Extract<SetupPlan, { kind: 'style' }>;
@@ -612,6 +613,7 @@ class CsrPlanner {
           bindingId: item.bindingId,
           parameter: item.parameter,
           propNames: item.propNames,
+          segment: item.segment,
           render,
         });
         continue;

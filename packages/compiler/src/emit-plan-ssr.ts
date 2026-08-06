@@ -261,6 +261,7 @@ export function emitSsrOpPlan(
           op: SetupOpKind.LocalComponent,
           name: entry.name,
           binding: entry.bindingId,
+          ...(entry.segment === null ? {} : { segment: entry.segment }),
           props:
             parameter === null
               ? null

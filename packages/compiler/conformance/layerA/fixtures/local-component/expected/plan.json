@@ -37,6 +37,7 @@
             "op": "local-component",
             "name": "Filter",
             "binding": 3,
+            "segment": "local_component_127_491",
             "props": {
               "kind": "object",
               "bindings": [
@@ -257,7 +258,8 @@
           "segment_1",
           "segment_2",
           "semantic_expression_443_461",
-          "segment_0"
+          "segment_0",
+          "local_component_127_491"
         ],
         "ops": [
           {
@@ -568,6 +570,22 @@
               "binding": 4,
               "name": "name",
               "source": "param",
+              "access": "direct"
+            }
+          ]
+        },
+        {
+          "id": "local_component_127_491",
+          "symbolName": "local_component_127_491_3m6x6tvxuyt5f",
+          "chunk": "./input.tsx_local_component_127_491_3m6x6tvxuyt5f",
+          "kind": "localComponent",
+          "resolved": false,
+          "qrl": null,
+          "captures": [
+            {
+              "binding": 2,
+              "name": "todos",
+              "source": "local",
               "access": "direct"
             }
           ]

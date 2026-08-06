@@ -1318,6 +1318,8 @@ function emitCsrSetup(
   const segmentById = new Map(plan.segments.map((segment) => [segment.id, segment]));
   const statements: string[] = [];
   const hoists: string[] = [];
+  // lifted local components mark after all setup: captures may be declared below the function
+  const pendingComponentMarks: string[] = [];
   for (const setup of plan.setup) {
     if (setup.kind === 'render-value') {
       const render = emitCsrPlan(
@@ -1368,6 +1370,26 @@ function emitCsrSetup(
         .map((statement) => `  ${statement}`)
         .join('\n');
       statements.push(`function ${setup.name}(${propsName}, ${generatedNames.ctx}) {\n${body}\n}`);
+      if (setup.segment !== null) {
+        const liftedSegment = segmentById.get(setup.segment);
+        if (liftedSegment === undefined) {
+          return null;
+        }
+        const path = getSegmentImportPath(inputPath, liftedSegment, explicitExtensions);
+        imports.add(QwikWord.QrlWithChunk);
+        imports.add(QwikWord.MarkComponent);
+        hoists.push(
+          `const q_${liftedSegment.symbolName} = /*#__PURE__*/ ${QwikWord.QrlWithChunk}(${JSON.stringify(
+            path
+          )}, () => import(${JSON.stringify(path)}), ${JSON.stringify(liftedSegment.symbolName)});`
+        );
+        pendingComponentMarks.push(
+          `${QwikWord.MarkComponent}(${setup.name}, ${emitCapturedQrlReference(
+            liftedSegment.symbolName,
+            liftedSegment.captures.map((capture) => capture.name)
+          )});`
+        );
+      }
       continue;
     }
     if (setup.kind === 'style') {
@@ -1416,6 +1438,7 @@ function emitCsrSetup(
     }
     statements.push(applyReplacements(source, setup.range, replacements).trim());
   }
+  statements.push(...pendingComponentMarks);
   if (plan.initializeRuntimeStyleScope) {
     const name = plan.runtimeStyleScopeName;
     if (name === null) {

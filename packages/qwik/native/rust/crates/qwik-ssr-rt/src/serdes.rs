@@ -592,14 +592,15 @@ impl Serializer {
 				let target_root = self.promote_to_root(&raw);
 				let mut pairs = Vec::new();
 				push_pair(&mut pairs, (TYPE_PLAIN, Payload::Num(target_root as f64)));
-				push_pair(
-					&mut pairs,
-					self.write(
-						&Rc::new(SerdesValue::String(prop.clone())),
-						current_root,
-						path,
-					),
+				// the prop key is element 1 — its first-seen path must include the step
+				path.push(1);
+				let prop_pair = self.write(
+					&Rc::new(SerdesValue::String(prop.clone())),
+					current_root,
+					path,
 				);
+				path.pop();
+				push_pair(&mut pairs, prop_pair);
 				(TYPE_STORE_PROP, Payload::Arr(pairs))
 			}
 			SerdesValue::ContextScope(state) => {

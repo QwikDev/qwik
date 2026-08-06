@@ -58,6 +58,22 @@ pub fn render_function_name(plan: &Json, component_index: usize) -> Result<Strin
 	Ok(format!("render_{}", name.to_lowercase()))
 }
 
+/// True when the component's render surface contains a `slot` op (grows a `slots` parameter).
+fn component_uses_slots(plan: &Json, component_index: usize) -> bool {
+	fn ops_contain_slot(ops: &[Json]) -> bool {
+		ops.iter().any(|op| match op["o"].as_str() {
+			Some("slot") => true,
+			Some("el") => op["children"]
+				.as_array()
+				.is_some_and(|children| ops_contain_slot(children)),
+			_ => false,
+		})
+	}
+	plan["components"][component_index]["ssr"]["ops"]
+		.as_array()
+		.is_some_and(|ops| ops_contain_slot(ops))
+}
+
 fn component_has_props(plan: &Json, component_index: usize) -> bool {
 	plan["components"][component_index]["propsBindings"]
 		.as_array()
@@ -76,6 +92,7 @@ struct ComponentGenerator<'plan> {
 	temp_counter: usize,
 	uses_ctx: bool,
 	uses_props: bool,
+	uses_slots: bool,
 }
 
 /// Emits `pub fn render_<name>(ctx, out[, props])` for one component of a linked plan.
@@ -102,6 +119,7 @@ pub fn generate_component(plan: &Json, component_index: usize) -> Result<String,
 		temp_counter: 0,
 		uses_ctx: false,
 		uses_props: false,
+		uses_slots: false,
 	};
 	let props_bindings = component["propsBindings"]
 		.as_array()
@@ -132,9 +150,18 @@ pub fn generate_component(plan: &Json, component_index: usize) -> Result<String,
 			String::new(),
 		)
 	};
+	let slots_param = if !component_uses_slots(plan, component_index) {
+		String::new()
+	} else if generator.uses_slots {
+		", slots: &mut [(&str, &mut dyn FnMut(&mut qwik_ssr_rt::render::SsrContext, &mut String))]"
+			.to_string()
+	} else {
+		", _slots: &mut [(&str, &mut dyn FnMut(&mut qwik_ssr_rt::render::SsrContext, &mut String))]"
+			.to_string()
+	};
 	let function_name = render_function_name(plan, component_index)?;
 	Ok(format!(
-		"pub fn {function_name}({ctx_param}: &mut qwik_ssr_rt::render::SsrContext, out: &mut String{props_param}) {{\n{props_rebind}{}}}\n",
+		"pub fn {function_name}({ctx_param}: &mut qwik_ssr_rt::render::SsrContext, out: &mut String{props_param}{slots_param}) {{\n{props_rebind}{}}}\n",
 		generator.body
 	))
 }
@@ -200,6 +227,7 @@ impl ComponentGenerator<'_> {
 				"el" => self.write_element(op, target)?,
 				"dyn" => self.write_dynamic(op, target)?,
 				"component" => self.write_component(op, target)?,
+				"slot" => self.write_slot(op, target)?,
 				kind => return Err(format!("op {kind:?} not supported yet")),
 			}
 		}
@@ -432,11 +460,58 @@ impl ComponentGenerator<'_> {
 
 		let child_function = render_function_name(self.plan, reference)?;
 		let child_takes_props = component_has_props(self.plan, reference);
+		let child_takes_slots = component_uses_slots(self.plan, reference);
 		let target_argument = if target == "out" {
 			"out".to_string()
 		} else {
 			format!("&mut {target}")
 		};
+
+		// slot scope + projections root first, then each slot's captures
+		let slots = op["slots"].as_array().ok_or("component slots missing")?;
+		let mut slot_closures: Vec<(String, String)> = Vec::new();
+		if !slots.is_empty() {
+			let scope_variable = format!("slot_scope_{}", self.next_temp());
+			let mut projection_entries = String::new();
+			for slot in slots {
+				if !slot["idBase"].is_null() {
+					return Err("slot idBase not supported yet".to_string());
+				}
+				let slot_name = slot["name"].as_str().ok_or("slot has no name")?;
+				let segment_id = slot["render"]["segment"]
+					.as_str()
+					.ok_or("slot render without a segment")?;
+				let render_qrl = self.qrl_expression(segment_id, true)?;
+				write!(
+					projection_entries,
+					"({slot_name:?}.to_string(), vec![std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Projection(qwik_ssr_rt::serdes::ProjectionValue {{ render_qrl: {render_qrl}, slot_scope: None, id_base: String::new() }}))]), "
+				)
+				.unwrap();
+			}
+			writeln!(
+				self.body,
+				"    let {scope_variable} = std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::SlotScope(\n        std::cell::RefCell::new(qwik_ssr_rt::serdes::SlotScopeState {{ projections: vec![{projection_entries}] }}),\n    ));\n    \
+				 ctx.serializer.add_root(std::rc::Rc::clone(&{scope_variable}));"
+			)
+			.unwrap();
+			for slot in slots {
+				let segment_id = slot["render"]["segment"].as_str().unwrap();
+				for capture in self.segment_captures(segment_id)? {
+					writeln!(
+						self.body,
+						"    ctx.serializer.add_root(std::rc::Rc::clone(&{capture}));"
+					)
+					.unwrap();
+				}
+				let slot_name = slot["name"].as_str().unwrap().to_string();
+				let ops = slot["render"]["ops"]
+					.as_array()
+					.ok_or("slot render ops missing")?
+					.clone();
+				let closure_body = self.render_fn_body(&ops)?;
+				slot_closures.push((slot_name, closure_body));
+			}
+		}
 
 		// dynamic prop sources become state roots when the component is created
 		for signal in &source_locals {
@@ -446,8 +521,28 @@ impl ComponentGenerator<'_> {
 			)
 			.unwrap();
 		}
+		let mut slots_argument = String::new();
+		if child_takes_slots {
+			let mut table = String::new();
+			for (slot_name, closure_body) in &slot_closures {
+				let closure_variable = format!("slot_fn_{}", self.next_temp());
+				writeln!(
+					self.body,
+					"    let mut {closure_variable} = |ctx: &mut qwik_ssr_rt::render::SsrContext, out: &mut String| {{\n{closure_body}    }};"
+				)
+				.unwrap();
+				write!(table, "({slot_name:?}, &mut {closure_variable} as &mut dyn FnMut(&mut qwik_ssr_rt::render::SsrContext, &mut String)), ").unwrap();
+			}
+			slots_argument = format!(", &mut [{table}]");
+		} else if !slot_closures.is_empty() {
+			return Err("slots passed to a component without slot ops".to_string());
+		}
 		if !child_takes_props {
-			writeln!(self.body, "    {child_function}(ctx, {target_argument});").unwrap();
+			writeln!(
+				self.body,
+				"    {child_function}(ctx, {target_argument}{slots_argument});"
+			)
+			.unwrap();
 			return Ok(());
 		}
 		let props_variable = format!("props_{}", self.next_temp());
@@ -467,10 +562,55 @@ impl ComponentGenerator<'_> {
 		}
 		writeln!(
 			self.body,
-			"    {child_function}(ctx, {target_argument}, &{props_variable});"
+			"    {child_function}(ctx, {target_argument}, &{props_variable}{slots_argument});"
 		)
 		.unwrap();
 		Ok(())
+	}
+
+	fn write_slot(&mut self, op: &Json, target: &str) -> Result<(), String> {
+		if !op["fallback"].is_null() {
+			return Err("slot fallback not supported yet".to_string());
+		}
+		if !op["idBase"].is_null() {
+			return Err("slot idBase not supported yet".to_string());
+		}
+		let name = op["name"].as_str().ok_or("slot has no name")?;
+		self.uses_ctx = true;
+		self.uses_slots = true;
+		self.flush_statics(target);
+		let range = format!("slot_range_{}", self.next_temp());
+		let out_argument = if target == "out" {
+			"out".to_string()
+		} else {
+			format!("&mut {target}")
+		};
+		writeln!(
+			self.body,
+			"    let {range} = ctx.next_id();\n    \
+			 {target}.push_str(&format!(\"<!s={{}}>\", {range}));\n    \
+			 if let Some((_, render_slot)) = slots.iter_mut().find(|(name, _)| *name == {name:?}) {{\n        \
+			 render_slot(ctx, {out_argument});\n    \
+			 }}\n    \
+			 {target}.push_str(\"<!/s>\");"
+		)
+		.unwrap();
+		Ok(())
+	}
+
+	/// Generate a nested render function's body (slot projections) in a fresh element scope.
+	fn render_fn_body(&mut self, ops: &[Json]) -> Result<String, String> {
+		let saved_body = std::mem::take(&mut self.body);
+		let saved_statics = std::mem::take(&mut self.statics);
+		let saved_elements = std::mem::take(&mut self.element_ids);
+		let result = self.write_ops(ops, "out").map(|()| {
+			self.flush_statics("out");
+			self.body.clone()
+		});
+		self.body = saved_body;
+		self.statics = saved_statics;
+		self.element_ids = saved_elements;
+		result
 	}
 
 	fn write_dynamic(&mut self, op: &Json, target: &str) -> Result<(), String> {

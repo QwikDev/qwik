@@ -38,6 +38,22 @@ pub enum SerdesValue {
 		store: Rc<SerdesValue>,
 		prop: String,
 	},
+	SlotScope(RefCell<SlotScopeState>),
+	Projection(ProjectionValue),
+}
+
+/// Slot scope: projection lists keyed by slot name (TypeId 44, flat pairs on the wire).
+#[derive(Debug)]
+pub struct SlotScopeState {
+	pub projections: Vec<(String, Vec<Rc<SerdesValue>>)>,
+}
+
+/// One projected slot render (TypeId 45): `[renderQrl, slotScope, idBase]`.
+#[derive(Debug)]
+pub struct ProjectionValue {
+	pub render_qrl: Rc<SerdesValue>,
+	pub slot_scope: Option<Rc<SerdesValue>>,
+	pub id_base: String,
 }
 
 /// Deep store: raw target object plus per-prop source records with their subscribers.
@@ -113,6 +129,8 @@ const TYPE_SIGNAL: u8 = 30;
 const TYPE_PROPS: u8 = 39;
 const TYPE_STORE: u8 = 35;
 const TYPE_STORE_PROP: u8 = 47;
+const TYPE_SLOT_SCOPE: u8 = 44;
+const TYPE_PROJECTION: u8 = 45;
 const TYPE_EFFECT_SUBSCRIPTION: u8 = 41;
 const TYPE_SET: u8 = 25;
 const TYPE_MAP: u8 = 26;
@@ -434,6 +452,47 @@ impl Serializer {
 					),
 				);
 				(TYPE_STORE_PROP, Payload::Arr(pairs))
+			}
+			SerdesValue::SlotScope(state) => {
+				let state = state.borrow();
+				let mut pairs = Vec::new();
+				for (position, (name, projections)) in state.projections.iter().enumerate() {
+					path.push(position * 2);
+					let name_pair = self.write(
+						&Rc::new(SerdesValue::String(name.clone())),
+						current_root,
+						path,
+					);
+					push_pair(&mut pairs, name_pair);
+					*path.last_mut().unwrap() = position * 2 + 1;
+					let list_pair = self.write_value_list(projections, current_root, path);
+					push_pair(&mut pairs, list_pair);
+					path.pop();
+				}
+				(TYPE_SLOT_SCOPE, Payload::Arr(pairs))
+			}
+			SerdesValue::Projection(projection) => {
+				let mut pairs = Vec::new();
+				path.push(0);
+				let qrl_pair = self.write(&projection.render_qrl, current_root, path);
+				push_pair(&mut pairs, qrl_pair);
+				match &projection.slot_scope {
+					Some(scope) => {
+						*path.last_mut().unwrap() = 1;
+						let scope_pair = self.write(scope, current_root, path);
+						push_pair(&mut pairs, scope_pair);
+					}
+					None => push_pair(&mut pairs, (TYPE_CONSTANT, Payload::Num(CONST_NULL))),
+				}
+				*path.last_mut().unwrap() = 2;
+				let base_pair = self.write(
+					&Rc::new(SerdesValue::String(projection.id_base.clone())),
+					current_root,
+					path,
+				);
+				push_pair(&mut pairs, base_pair);
+				path.pop();
+				(TYPE_PROJECTION, Payload::Arr(pairs))
 			}
 			// state form: `${chunkRootId}#${symbolRootId - chunkRootId}[#deltas]`, chunk and
 			// symbol strings appended to the root worklist; first delta rebased on symbolRootId

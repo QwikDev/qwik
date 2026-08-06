@@ -9,6 +9,7 @@ import type {
 import {
   planSsr,
   planSsrRenderFunction,
+  planSsrSegmentRender,
   type SsrComponentReturnModeResolver,
   type SsrOperation,
   type SsrPropOperation,
@@ -144,6 +145,8 @@ export type PlanSsrOp =
       readonly o: SsrOpKind.Suspense;
       readonly content: PlanSsrRenderFn;
       readonly fallback: PlanValue | null;
+      /** Structural fallback plan (native engines render this; the QRL stays for resume). */
+      readonly fallbackRender?: PlanSsrRenderFn;
       readonly delay: PlanValue | null;
       readonly inOrder: readonly PlanSsrOp[] | null;
     }
@@ -354,14 +357,29 @@ export function emitSsrOpPlan(
           then: renderFnBlock(operation.then),
           else: operation.else === null ? null : renderFnBlock(operation.else),
         };
-      case 'suspense':
+      case 'suspense': {
+        const fallbackValue = operation.fallback;
+        const fallbackSegment =
+          fallbackValue !== null && fallbackValue.kind === 'segment'
+            ? segments.find((candidate) => candidate.id === fallbackValue.segment.segmentId)
+            : undefined;
+        const fallbackTarget =
+          fallbackSegment === undefined
+            ? null
+            : planSsrSegmentRender(fallbackSegment, segments, returnMode);
         return {
           o: SsrOpKind.Suspense,
           content: renderFnBlock(operation.content),
           fallback: operation.fallback === null ? null : planValue(operation.fallback),
+          ...(fallbackTarget === null
+            ? {}
+            : {
+                fallbackRender: { segment: fallbackSegment!.id, ...targetBlock(fallbackTarget) },
+              }),
           delay: operation.delay === null ? null : planValue(operation.delay),
           inOrder: operation.inOrder === null ? null : operation.inOrder.map(op),
         };
+      }
       case 'slot':
         return {
           o: SsrOpKind.Slot,

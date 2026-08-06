@@ -230,6 +230,9 @@ export function linkSsrPlan(
           return {
             ...op,
             content: linkSsrFn(op.content),
+            ...(op.fallbackRender === undefined
+              ? {}
+              : { fallbackRender: linkSsrFn(op.fallbackRender) }),
             inOrder: op.inOrder === null ? null : linkSsrOps(op.inOrder),
           };
         case SsrOpKind.Slot:

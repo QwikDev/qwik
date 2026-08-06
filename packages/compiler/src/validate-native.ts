@@ -129,11 +129,12 @@ export function validateNativeReadiness(
           break;
         case 'suspense':
           requireIr(node.delay, 'Suspense delay');
-          if (node.fallback !== null) {
+          // segment fallbacks plan structurally (fallbackRender); anything else cannot render
+          if (node.fallback !== null && node.fallback.kind !== 'segment') {
             report(
               node.fallback.expression,
               TransformDiagnosticCode.NativeExpression,
-              `Suspense fallback$ has no structural plan yet and cannot render on a native target.`
+              `Suspense fallback$ has no structural plan and cannot render on a native target.`
             );
           }
           validateRenderFn(node.content);

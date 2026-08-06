@@ -56,8 +56,43 @@ export function lowerSetupOp(statement: AstNode, facts: SetupLowerFacts): SetupO
     if (expression?.type === 'CallExpression') {
       return lowerStatementCall(expression, facts);
     }
+    if (expression?.type === 'AwaitExpression') {
+      return lowerAwaitStatement(expression, facts);
+    }
   }
   return null;
+}
+
+/** Only `await Promise.resolve()` lowers: pure microtask timing with no native analogue. */
+function lowerAwaitStatement(expression: AstNode, facts: SetupLowerFacts): SetupOp | null {
+  const awaited = unwrapExpression((expression as { argument: unknown }).argument);
+  if (awaited?.type !== 'CallExpression') {
+    return null;
+  }
+  const call = awaited as { callee: unknown; arguments: unknown[] };
+  if (call.arguments.length !== 0) {
+    return null;
+  }
+  const callee = unwrapExpression(call.callee);
+  if (callee?.type !== 'MemberExpression') {
+    return null;
+  }
+  const member = callee as { object: unknown; property: unknown; computed: boolean };
+  if (member.computed) {
+    return null;
+  }
+  const object = unwrapExpression(member.object);
+  const objectName = object?.type === 'Identifier' ? getIdentifierName(object) : null;
+  const methodName = getIdentifierName(member.property);
+  // Promise must be the true global, not a shadowing binding
+  if (
+    objectName !== 'Promise' ||
+    methodName !== 'resolve' ||
+    facts.bindingIdAt(getRange(object!)) !== null
+  ) {
+    return null;
+  }
+  return { op: SetupOpKind.Yield };
 }
 
 function lowerDeclaration(statement: AstNode, facts: SetupLowerFacts): SetupOp | null {

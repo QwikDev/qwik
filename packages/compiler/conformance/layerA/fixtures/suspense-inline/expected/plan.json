@@ -10,8 +10,7 @@
       "ssr": {
         "setup": [
           {
-            "op": "js",
-            "src": "await Promise.resolve();"
+            "op": "yield"
           }
         ],
         "directSegmentIds": [],
@@ -43,8 +42,7 @@
       },
       "setup": [
         {
-          "op": "js",
-          "src": "await Promise.resolve();"
+          "op": "yield"
         }
       ],
       "render": [
@@ -113,6 +111,30 @@
                 "fallback": {
                   "src": "() => <em>waiting</em>",
                   "segment": "segment_0"
+                },
+                "fallbackRender": {
+                  "segment": "segment_0",
+                  "setup": [],
+                  "ops": [
+                    {
+                      "o": "el",
+                      "tag": "em",
+                      "id": null,
+                      "void": false,
+                      "styleScopedId": null,
+                      "targetUses": 0,
+                      "props": [],
+                      "propsEffect": null,
+                      "children": [
+                        {
+                          "o": "static",
+                          "html": "waiting"
+                        }
+                      ]
+                    }
+                  ],
+                  "synchronous": true,
+                  "needsRootRange": false
                 },
                 "delay": null,
                 "inOrder": null

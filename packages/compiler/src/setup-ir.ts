@@ -21,6 +21,7 @@ export const enum SetupOpKind {
   VisibleTask = 'visible-task',
   Style = 'style',
   Js = 'js',
+  Yield = 'yield',
 }
 
 export const enum TaskStepKind {
@@ -41,6 +42,8 @@ export type SetupOp =
     }
   | { readonly op: SetupOpKind.Const; readonly local: BindingId; readonly init: ValueIR }
   | { readonly op: SetupOpKind.UseId; readonly local: BindingId }
+  /** `await Promise.resolve()` — a pure microtask yield; native engines skip it. */
+  | { readonly op: SetupOpKind.Yield }
   | { readonly op: SetupOpKind.ContextRead; readonly local: BindingId; readonly context: BindingId }
   | {
       readonly op: SetupOpKind.ContextProvider;

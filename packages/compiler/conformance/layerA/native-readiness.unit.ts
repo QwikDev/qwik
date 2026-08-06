@@ -10,11 +10,7 @@ import { transformModules } from '../../src/index';
  * except the listed known gaps. Shrinking this map is the migration metric; a fixture regressing
  * INTO it fails loudly.
  */
-const KNOWN_GAPS: Record<string, string[]> = {
-  // async component bodies (`await` setup statement) and fallback$ structural plans
-  'suspense-inline': ['native-setup-statement', 'native-expression'],
-  'suspense-stream': ['native-setup-statement', 'native-expression'],
-};
+const KNOWN_GAPS: Record<string, string[]> = {};
 
 const fixturesDir = join(dirname(fileURLToPath(import.meta.url)), 'fixtures');
 

@@ -22,6 +22,7 @@ type SetupOp =
   | { op: 'const'; local: LocalId; init: ValueIR } // useConstant + plain const
   | { op: 'computed'; local: LocalId; body: ValueIR; qrl: QrlRef } // useComputed$
   | { op: 'use-id'; local: LocalId; ordinal: number } // useId — instance id string (idBase + 'u' + ordinal)
+  | { op: 'yield' } // `await Promise.resolve()` — pure microtask timing; native engines skip it
   | { op: 'task'; body: TaskBody; qrl: QrlRef } // useTask$ — RUNS server-side
   | {
       op: 'visible-task'; // attribute carrier only, never runs server-side

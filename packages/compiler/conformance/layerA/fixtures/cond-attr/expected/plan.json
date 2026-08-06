@@ -1,0 +1,305 @@
+{
+  "format": "qwik/ssr-plan",
+  "version": 0,
+  "entry": 0,
+  "components": [
+    {
+      "name": "App",
+      "module": 0,
+      "propsBindings": [],
+      "props": null,
+      "ssr": {
+        "setup": [
+          {
+            "op": "signal",
+            "local": 2,
+            "init": {
+              "k": "lit",
+              "v": false
+            }
+          },
+          {
+            "op": "signal",
+            "local": 3,
+            "init": {
+              "k": "lit",
+              "v": "on"
+            }
+          }
+        ],
+        "directSegmentIds": [],
+        "usedSegmentIds": [
+          "segment_0",
+          "segment_1",
+          "segment_2"
+        ],
+        "ops": [
+          {
+            "o": "el",
+            "tag": "main",
+            "id": null,
+            "void": false,
+            "styleScopedId": null,
+            "targetUses": 0,
+            "props": [],
+            "propsEffect": null,
+            "children": [
+              {
+                "o": "el",
+                "tag": "button",
+                "id": 0,
+                "void": false,
+                "styleScopedId": null,
+                "targetUses": 1,
+                "props": [
+                  {
+                    "p": "static",
+                    "name": "id",
+                    "value": "row"
+                  },
+                  {
+                    "p": "dynamic",
+                    "name": "class",
+                    "value": {
+                      "src": "selected.value ? \"danger\" : \"\"",
+                      "ir": {
+                        "k": "cond",
+                        "test": {
+                          "k": "signal-read",
+                          "binding": 2
+                        },
+                        "then": {
+                          "k": "lit",
+                          "v": "danger"
+                        },
+                        "else": {
+                          "k": "lit",
+                          "v": ""
+                        }
+                      },
+                      "segment": "segment_0"
+                    },
+                    "compilerString": false
+                  },
+                  {
+                    "p": "event",
+                    "name": "q-e:click",
+                    "handlers": [
+                      {
+                        "value": {
+                          "src": "() => selected.value = !selected.value",
+                          "segment": "segment_1"
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "propsEffect": null,
+                "children": [
+                  {
+                    "o": "dyn",
+                    "output": "text",
+                    "value": {
+                      "src": "selected.value ? label.value : \"off\"",
+                      "ir": {
+                        "k": "cond",
+                        "test": {
+                          "k": "signal-read",
+                          "binding": 2
+                        },
+                        "then": {
+                          "k": "signal-read",
+                          "binding": 3
+                        },
+                        "else": {
+                          "k": "lit",
+                          "v": "off"
+                        }
+                      },
+                      "segment": "segment_2"
+                    },
+                    "synchronous": false,
+                    "target": {
+                      "kind": "element",
+                      "id": 0
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "synchronous": false,
+        "staticRoot": false,
+        "needsRootRange": false,
+        "needsId": false,
+        "idBase": "qApp-",
+        "flushTasks": false
+      },
+      "setup": [
+        {
+          "op": "signal",
+          "local": 2,
+          "init": {
+            "k": "lit",
+            "v": false
+          }
+        },
+        {
+          "op": "signal",
+          "local": 3,
+          "init": {
+            "k": "lit",
+            "v": "on"
+          }
+        }
+      ],
+      "render": [
+        {
+          "n": "el",
+          "tag": "main",
+          "props": [],
+          "children": [
+            {
+              "n": "el",
+              "tag": "button",
+              "props": [
+                {
+                  "p": "static",
+                  "name": "id",
+                  "value": "row"
+                },
+                {
+                  "p": "dynamic",
+                  "name": "class",
+                  "value": {
+                    "src": "selected.value ? \"danger\" : \"\"",
+                    "ir": {
+                      "k": "cond",
+                      "test": {
+                        "k": "signal-read",
+                        "binding": 2
+                      },
+                      "then": {
+                        "k": "lit",
+                        "v": "danger"
+                      },
+                      "else": {
+                        "k": "lit",
+                        "v": ""
+                      }
+                    },
+                    "segment": "segment_0"
+                  }
+                },
+                {
+                  "p": "event",
+                  "name": "onClick$",
+                  "passive": false,
+                  "value": {
+                    "src": "() => selected.value = !selected.value",
+                    "segment": "segment_1"
+                  }
+                }
+              ],
+              "children": [
+                {
+                  "n": "dyn",
+                  "output": "text",
+                  "value": {
+                    "src": "selected.value ? label.value : \"off\"",
+                    "ir": {
+                      "k": "cond",
+                      "test": {
+                        "k": "signal-read",
+                        "binding": 2
+                      },
+                      "then": {
+                        "k": "signal-read",
+                        "binding": 3
+                      },
+                      "else": {
+                        "k": "lit",
+                        "v": "off"
+                      }
+                    },
+                    "segment": "segment_2"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "needsId": false,
+      "idBase": "qApp-",
+      "styleScope": null,
+      "providesContext": false,
+      "hasCustomHook": false
+    }
+  ],
+  "modules": [
+    {
+      "path": "src/input.tsx",
+      "segments": [
+        {
+          "id": "segment_0",
+          "symbolName": "input_class_segment_0_1bbn4mgjg897b",
+          "chunk": "./input.tsx_input_class_segment_0_1bbn4mgjg897b",
+          "kind": "expression",
+          "resolved": true,
+          "qrl": null,
+          "captures": [
+            {
+              "binding": 2,
+              "name": "selected",
+              "source": "local",
+              "access": "direct"
+            }
+          ]
+        },
+        {
+          "id": "segment_1",
+          "symbolName": "input_q_e_click_segment_1_18mo7akddhd9s",
+          "chunk": "./input.tsx_input_q_e_click_segment_1_18mo7akddhd9s",
+          "kind": "event",
+          "resolved": false,
+          "qrl": null,
+          "captures": [
+            {
+              "binding": 2,
+              "name": "selected",
+              "source": "local",
+              "access": "direct"
+            }
+          ]
+        },
+        {
+          "id": "segment_2",
+          "symbolName": "input_text_segment_2_3k1cwowuxxuve",
+          "chunk": "./input.tsx_input_text_segment_2_3k1cwowuxxuve",
+          "kind": "expression",
+          "resolved": true,
+          "qrl": null,
+          "captures": [
+            {
+              "binding": 2,
+              "name": "selected",
+              "source": "local",
+              "access": "direct"
+            },
+            {
+              "binding": 3,
+              "name": "label",
+              "source": "local",
+              "access": "direct"
+            }
+          ]
+        }
+      ],
+      "contexts": [],
+      "defs": []
+    }
+  ],
+  "unresolved": []
+}

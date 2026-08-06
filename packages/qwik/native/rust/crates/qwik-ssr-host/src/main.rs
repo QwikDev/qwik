@@ -72,7 +72,10 @@ fn load_apps(apps_dir: &std::path::Path) -> Host {
 			render: entry.render.expect("render present when no error"),
 			client_dir,
 			chunk_map,
-			manifest_hash: manifest["manifestHash"].as_str().unwrap_or("native").to_string(),
+			manifest_hash: manifest["manifestHash"]
+				.as_str()
+				.unwrap_or("native")
+				.to_string(),
 		});
 	}
 	Host { apps, failed }

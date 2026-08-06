@@ -1384,7 +1384,8 @@ class SemanticLowerer {
         kind: 'segment',
         expression: range,
         segment: this.referenceSegment(segment, lifetimeId),
-        ...(event ? {} : this.valueIr(expression)),
+        // event functions have no value IR; non-function handlers (props.onClick$) do
+        ...(functionRange !== null ? {} : this.valueIr(expression)),
       };
     }
     if (allowRenderValue) {

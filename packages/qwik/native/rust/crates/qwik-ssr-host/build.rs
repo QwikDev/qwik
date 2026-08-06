@@ -19,7 +19,10 @@ fn generate_app(plan_text: &str) -> Result<(String, String), String> {
 	let entry = plan["entry"].as_u64().ok_or("plan is missing entry")? as usize;
 	let entry_function = qwik_ssr_gen::render_function_name(&plan, entry)?;
 	let mut code = String::new();
-	let component_count = plan["components"].as_array().ok_or("plan components")?.len();
+	let component_count = plan["components"]
+		.as_array()
+		.ok_or("plan components")?
+		.len();
 	for index in 0..component_count {
 		code.push_str(
 			&qwik_ssr_gen::generate_component(&plan, index)

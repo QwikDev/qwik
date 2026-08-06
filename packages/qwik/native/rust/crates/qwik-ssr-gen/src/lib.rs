@@ -871,7 +871,13 @@ impl ComponentGenerator<'_> {
 		};
 		self.uses_ctx = true;
 		let qrl = if let Some(segment_id) = handler["value"]["segment"].as_str() {
-			self.qrl_expression(segment_id, true)?
+			let segment_id = segment_id.to_string();
+			if self.segment(&segment_id)?["kind"].as_str() == Some("expression") {
+				// non-function handler (props.onClick$): evaluate the expression for the QRL
+				let ir = handler["value"]["ir"].clone();
+				return self.write_event_expression(attr_name, &segment_id, &ir, target);
+			}
+			self.qrl_expression(&segment_id, true)?
 		} else if handler["bind"].is_string() {
 			// bind rides the built-in _val/_chk handler capturing the bound signal
 			let symbol = if attr_name == "q-e:input" {
@@ -890,6 +896,48 @@ impl ComponentGenerator<'_> {
 		writeln!(
 			self.body,
 			"    {target}.push_str(&ctx.event_attr({attr_name:?}, {qrl}));"
+		)
+		.unwrap();
+		Ok(())
+	}
+
+	/// Evaluate an expression-kind event handler (renderSsrEvent semantics): the tracked
+	/// evaluation yields the handler QRL value; null/undefined renders no attribute.
+	fn write_event_expression(
+		&mut self,
+		attr_name: &str,
+		segment_id: &str,
+		ir: &Json,
+		target: &str,
+	) -> Result<(), String> {
+		if ir.is_null() {
+			return Err(format!("event handler expression {segment_id} has no ir"));
+		}
+		for capture in self.segment_captures(segment_id)? {
+			writeln!(
+				self.body,
+				"    ctx.serializer.add_root(std::rc::Rc::clone(&{capture}));"
+			)
+			.unwrap();
+		}
+		let temp = self.next_temp();
+		let tracked = format!("tracked_{temp}");
+		let expression = self.ir_expression(ir, &format!("&mut {tracked}"))?;
+		writeln!(
+			self.body,
+			"    let mut {tracked}: Vec<std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>> = Vec::new();"
+		)
+		.unwrap();
+		self.track_destructured_props(segment_id, &format!("&mut {tracked}"))?;
+		writeln!(
+			self.body,
+			"    let event_value_{temp} = {expression};\n    \
+			 if !{tracked}.is_empty() {{\n        \
+			 panic!(\"tracked event handler expressions not supported yet\");\n    \
+			 }}\n    \
+			 if !matches!(&*event_value_{temp}, qwik_ssr_rt::serdes::SerdesValue::Undefined | qwik_ssr_rt::serdes::SerdesValue::Null) {{\n        \
+			 {target}.push_str(&ctx.event_attr({attr_name:?}, event_value_{temp}));\n    \
+			 }}"
 		)
 		.unwrap();
 		Ok(())
@@ -945,6 +993,22 @@ impl ComponentGenerator<'_> {
 					)
 					.unwrap();
 					source_locals.push(signal);
+				}
+				"event" => {
+					// event props pass the handler QRL as a plain prop value (q_….w(captures))
+					let name = prop["name"].as_str().ok_or("event prop has no name")?;
+					let handlers = prop["handlers"]
+						.as_array()
+						.ok_or("event handlers missing")?;
+					let [handler] = handlers.as_slice() else {
+						return Err("multi-handler component event props not supported yet".into());
+					};
+					let segment_id = handler["value"]["segment"]
+						.as_str()
+						.ok_or("component event prop without a segment")?
+						.to_string();
+					let qrl = self.qrl_expression(&segment_id, true)?;
+					write!(statics_entries, "({name:?}.to_string(), {qrl}), ").unwrap();
 				}
 				kind => return Err(format!("component prop {kind:?} not supported yet")),
 			}
@@ -2555,6 +2619,15 @@ impl ComponentGenerator<'_> {
 					)),
 					op => Err(format!("logic operator {op:?} not supported yet")),
 				}
+			}
+			"cond" => {
+				let test = self.ir_expression(&ir["test"], tracked)?;
+				// branches evaluate lazily — only the taken side's tracked reads register
+				let then = self.ir_expression(&ir["then"], tracked)?;
+				let otherwise = self.ir_expression(&ir["else"], tracked)?;
+				Ok(format!(
+					"{{ if qwik_ssr_rt::render::truthy(&{test}) {{ {then} }} else {{ {otherwise} }} }}"
+				))
 			}
 			"template" => {
 				let mut parts = String::new();

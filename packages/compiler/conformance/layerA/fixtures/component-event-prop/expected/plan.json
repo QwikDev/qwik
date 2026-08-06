@@ -1,0 +1,439 @@
+{
+  "format": "qwik/ssr-plan",
+  "version": 0,
+  "entry": 1,
+  "components": [
+    {
+      "name": "Button",
+      "module": 0,
+      "propsBindings": [
+        4
+      ],
+      "props": {
+        "kind": "identifier",
+        "binding": 4
+      },
+      "ssr": {
+        "setup": [],
+        "directSegmentIds": [],
+        "usedSegmentIds": [
+          "segment_0",
+          "segment_1"
+        ],
+        "ops": [
+          {
+            "o": "el",
+            "tag": "button",
+            "id": 0,
+            "void": false,
+            "styleScopedId": null,
+            "targetUses": 2,
+            "props": [
+              {
+                "p": "dynamic",
+                "name": "id",
+                "value": {
+                  "src": "props.id",
+                  "ir": {
+                    "k": "member",
+                    "obj": {
+                      "k": "binding-read",
+                      "binding": 4
+                    },
+                    "name": "id"
+                  },
+                  "segment": "segment_0"
+                },
+                "compilerString": false
+              },
+              {
+                "p": "static",
+                "name": "type",
+                "value": "button"
+              },
+              {
+                "p": "static",
+                "name": "stoppropagation:click",
+                "value": true
+              },
+              {
+                "p": "event",
+                "name": "q-e:click",
+                "handlers": [
+                  {
+                    "value": {
+                      "src": "props.onClick$",
+                      "ir": {
+                        "k": "member",
+                        "obj": {
+                          "k": "binding-read",
+                          "binding": 4
+                        },
+                        "name": "onClick$"
+                      },
+                      "segment": "segment_1"
+                    }
+                  }
+                ]
+              }
+            ],
+            "propsEffect": null,
+            "children": [
+              {
+                "o": "slot",
+                "name": "",
+                "idBase": null,
+                "fallback": null
+              }
+            ]
+          }
+        ],
+        "synchronous": false,
+        "staticRoot": false,
+        "needsRootRange": false,
+        "needsId": false,
+        "idBase": "qButton-",
+        "flushTasks": false
+      },
+      "setup": [],
+      "render": [
+        {
+          "n": "el",
+          "tag": "button",
+          "props": [
+            {
+              "p": "dynamic",
+              "name": "id",
+              "value": {
+                "src": "props.id",
+                "ir": {
+                  "k": "member",
+                  "obj": {
+                    "k": "binding-read",
+                    "binding": 4
+                  },
+                  "name": "id"
+                },
+                "segment": "segment_0"
+              }
+            },
+            {
+              "p": "static",
+              "name": "type",
+              "value": "button"
+            },
+            {
+              "p": "static",
+              "name": "stoppropagation:click",
+              "value": true
+            },
+            {
+              "p": "event",
+              "name": "onClick$",
+              "passive": false,
+              "value": {
+                "src": "props.onClick$",
+                "ir": {
+                  "k": "member",
+                  "obj": {
+                    "k": "binding-read",
+                    "binding": 4
+                  },
+                  "name": "onClick$"
+                },
+                "segment": "segment_1"
+              }
+            }
+          ],
+          "children": [
+            {
+              "n": "slot",
+              "name": "",
+              "fallback": null
+            }
+          ]
+        }
+      ],
+      "needsId": false,
+      "idBase": "qButton-",
+      "styleScope": null,
+      "providesContext": false,
+      "hasCustomHook": false
+    },
+    {
+      "name": "App",
+      "module": 0,
+      "propsBindings": [],
+      "props": null,
+      "ssr": {
+        "setup": [
+          {
+            "op": "signal",
+            "local": 5,
+            "init": {
+              "k": "lit",
+              "v": 0
+            }
+          }
+        ],
+        "directSegmentIds": [],
+        "usedSegmentIds": [
+          "segment_2",
+          "segment_3"
+        ],
+        "ops": [
+          {
+            "o": "el",
+            "tag": "main",
+            "id": null,
+            "void": false,
+            "styleScopedId": null,
+            "targetUses": 0,
+            "props": [],
+            "propsEffect": null,
+            "children": [
+              {
+                "o": "component",
+                "target": {
+                  "ref": 0
+                },
+                "returnMode": "maybe-promise",
+                "props": [
+                  {
+                    "p": "static",
+                    "name": "id",
+                    "value": "inc"
+                  },
+                  {
+                    "p": "event",
+                    "name": "onClick$",
+                    "handlers": [
+                      {
+                        "value": {
+                          "src": "() => count.value += 2",
+                          "segment": "segment_2"
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "propsSource": null,
+                "idBase": null,
+                "blockingSuspense": false,
+                "slots": [
+                  {
+                    "name": "",
+                    "idBase": null,
+                    "render": {
+                      "segment": "segment_3",
+                      "setup": [],
+                      "ops": [
+                        {
+                          "o": "static",
+                          "html": "Add"
+                        }
+                      ],
+                      "synchronous": true,
+                      "needsRootRange": false
+                    }
+                  }
+                ]
+              },
+              {
+                "o": "el",
+                "tag": "span",
+                "id": 0,
+                "void": false,
+                "styleScopedId": null,
+                "targetUses": 0,
+                "props": [
+                  {
+                    "p": "static",
+                    "name": "id",
+                    "value": "value"
+                  }
+                ],
+                "propsEffect": null,
+                "children": [
+                  {
+                    "o": "dyn",
+                    "output": "text",
+                    "value": {
+                      "src": "count.value",
+                      "ir": {
+                        "k": "signal-read",
+                        "binding": 5
+                      }
+                    },
+                    "synchronous": false,
+                    "target": {
+                      "kind": "element",
+                      "id": 0
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "synchronous": false,
+        "staticRoot": false,
+        "needsRootRange": false,
+        "needsId": false,
+        "idBase": "qApp-",
+        "flushTasks": false
+      },
+      "setup": [
+        {
+          "op": "signal",
+          "local": 5,
+          "init": {
+            "k": "lit",
+            "v": 0
+          }
+        }
+      ],
+      "render": [
+        {
+          "n": "el",
+          "tag": "main",
+          "props": [],
+          "children": [
+            {
+              "n": "component",
+              "target": {
+                "ref": 0
+              },
+              "props": [
+                {
+                  "p": "static",
+                  "name": "id",
+                  "value": "inc"
+                },
+                {
+                  "p": "event",
+                  "name": "onClick$",
+                  "passive": false,
+                  "value": {
+                    "src": "() => count.value += 2",
+                    "segment": "segment_2"
+                  }
+                }
+              ],
+              "slots": [
+                {
+                  "name": "",
+                  "render": {
+                    "setup": [],
+                    "render": [
+                      {
+                        "n": "text",
+                        "value": "Add"
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "n": "el",
+              "tag": "span",
+              "props": [
+                {
+                  "p": "static",
+                  "name": "id",
+                  "value": "value"
+                }
+              ],
+              "children": [
+                {
+                  "n": "dyn",
+                  "output": "text",
+                  "value": {
+                    "src": "count.value",
+                    "ir": {
+                      "k": "signal-read",
+                      "binding": 5
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "needsId": false,
+      "idBase": "qApp-",
+      "styleScope": null,
+      "providesContext": false,
+      "hasCustomHook": false
+    }
+  ],
+  "modules": [
+    {
+      "path": "src/input.tsx",
+      "segments": [
+        {
+          "id": "segment_0",
+          "symbolName": "input_id_segment_0_3ggk8z7rac452",
+          "chunk": "./input.tsx_input_id_segment_0_3ggk8z7rac452",
+          "kind": "expression",
+          "resolved": true,
+          "qrl": null,
+          "captures": [
+            {
+              "binding": 4,
+              "name": "props",
+              "source": "param",
+              "access": "direct"
+            }
+          ]
+        },
+        {
+          "id": "segment_1",
+          "symbolName": "input_onClick$_segment_1_362nee3foxj9x",
+          "chunk": "./input.tsx_input_onClick$_segment_1_362nee3foxj9x",
+          "kind": "expression",
+          "resolved": true,
+          "qrl": null,
+          "captures": [
+            {
+              "binding": 4,
+              "name": "props",
+              "source": "param",
+              "access": "direct"
+            }
+          ]
+        },
+        {
+          "id": "segment_2",
+          "symbolName": "input_q_e_click_segment_2_18mo8gnp3zjbd",
+          "chunk": "./input.tsx_input_q_e_click_segment_2_18mo8gnp3zjbd",
+          "kind": "event",
+          "resolved": false,
+          "qrl": null,
+          "captures": [
+            {
+              "binding": 5,
+              "name": "count",
+              "source": "local",
+              "access": "direct"
+            }
+          ]
+        },
+        {
+          "id": "segment_3",
+          "symbolName": "input_slot_render_segment_3_1eefzjmwyzk3n",
+          "chunk": "./input.tsx_input_slot_render_segment_3_1eefzjmwyzk3n",
+          "kind": "slotRender",
+          "resolved": true,
+          "qrl": null,
+          "captures": []
+        }
+      ],
+      "contexts": [],
+      "defs": []
+    }
+  ],
+  "unresolved": []
+}

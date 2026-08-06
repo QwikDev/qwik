@@ -18,6 +18,7 @@ import {
   maybeThen,
   renderSsrAttr,
   renderSsrAttrExpression,
+  renderSsrEvent,
   renderSsrBranch,
   renderSsrCollection,
   renderSsrContent,
@@ -79,6 +80,7 @@ export async function buildInterpretedRoot(
   // segment ids are module-scoped — each component resolves qrls in its own module's table
   const moduleQrls: Map<string, QrlLike>[] = [];
   const moduleCaptureLists: Map<string, number[]>[] = [];
+  const moduleSegmentKinds: Map<string, string>[] = [];
   for (const linkedModule of plan.modules) {
     const qrls = new Map<string, QrlLike>();
     for (const segment of linkedModule.segments) {
@@ -104,6 +106,9 @@ export async function buildInterpretedRoot(
           segment.captures.map((capture) => capture.binding),
         ])
       )
+    );
+    moduleSegmentKinds.push(
+      new Map(linkedModule.segments.map((segment) => [segment.id, segment.kind]))
     );
   }
 
@@ -144,6 +149,7 @@ export async function buildInterpretedRoot(
     }
     const qrls = moduleQrls[interpreted.module];
     const captureLists = moduleCaptureLists[interpreted.module];
+    const segmentKinds = moduleSegmentKinds[interpreted.module];
     const invokeCtx = getActiveInvokeContextOrNull();
     const locals = nested === undefined ? new Map<number, unknown>() : nested.initialLocals;
     const localComponentBindings = new Map<string, number>(
@@ -478,15 +484,41 @@ export async function buildInterpretedRoot(
           open.push('>');
           return maybeThen(interpretOps(op.children), (childParts) => {
             for (const deferred of deferredEvents) {
-              open[deferred.slot] =
-                deferred.bind !== undefined
-                  ? ctx.eventAttr(
+              if (deferred.bind !== undefined) {
+                open[deferred.slot] = ctx.eventAttr(
+                  deferred.name,
+                  deferred.bind.name === 'value'
+                    ? inlinedQrl(_val, '_val', [deferred.bind.signal])
+                    : inlinedQrl(_chk, '_chk', [deferred.bind.signal])
+                );
+              } else if (segmentKinds.get(deferred.segment!) === 'expression') {
+                // handler is an expression (e.g. props.onClick$) — evaluate it like the
+                // emitted renderSsrEvent call instead of pointing at the segment itself
+                open[deferred.slot] = invoke(invokeCtx, () => {
+                  const captureValues = (captureLists.get(deferred.segment!) ?? []).map((binding) =>
+                    locals.get(binding)
+                  );
+                  for (const captureValue of captureValues) {
+                    ctx.addRoot(captureValue);
+                  }
+                  return (
+                    renderSsrEvent(
+                      createSsrElementTarget(id!),
                       deferred.name,
-                      deferred.bind.name === 'value'
-                        ? inlinedQrl(_val, '_val', [deferred.bind.signal])
-                        : inlinedQrl(_chk, '_chk', [deferred.bind.signal])
-                    )
-                  : ctx.eventAttr(deferred.name, qrlWithCaptures(deferred.segment!));
+                      captureValues as never,
+                      qrls.get(deferred.segment!) as never,
+                      ctx.eventAttr,
+                      [],
+                      []
+                    ) ?? ''
+                  );
+                });
+              } else {
+                open[deferred.slot] = ctx.eventAttr(
+                  deferred.name,
+                  qrlWithCaptures(deferred.segment!)
+                );
+              }
             }
             parts.push(createSsrElementRecord(op.tag, ...(open as never[])));
             if (innerHtmlContent !== null) {
@@ -678,6 +710,17 @@ export async function buildInterpretedRoot(
                 });
                 sources[dynamic.name] = signal;
               }
+            } else if (prop.p === 'event') {
+              // event props pass the handler QRL as a plain prop value (q_….w(captures))
+              const event = prop as {
+                name: string;
+                handlers: readonly { value?: { segment?: string } }[];
+              };
+              const segmentId = event.handlers[0]?.value?.segment;
+              if (event.handlers.length !== 1 || segmentId === undefined) {
+                throw new Error(`component event prop ${event.name} needs a single segment`);
+              }
+              literal[event.name] = qrlWithCaptures(segmentId);
             } else {
               throw new Error(`interpreter cannot pass component prop kind "${prop.p}" yet`);
             }

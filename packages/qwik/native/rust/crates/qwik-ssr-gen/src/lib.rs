@@ -449,15 +449,28 @@ impl ComponentGenerator<'_> {
 					.as_u64()
 					.ok_or("context-provider has no context binding")?;
 				let name = self.context_name(context)?;
-				let value_ir = &entry["value"];
-				if value_ir["k"].as_str() != Some("binding-read") {
-					return Err("context-provider values must be binding reads".to_string());
-				}
-				let value = self.local(
-					value_ir["binding"]
-						.as_u64()
-						.ok_or("context value has no binding")?,
-				)?;
+				let value_ir = entry["value"].clone();
+				let value = if value_ir["k"].as_str() == Some("binding-read") {
+					self.local(
+						value_ir["binding"]
+							.as_u64()
+							.ok_or("context value has no binding")?,
+					)?
+				} else {
+					// evaluated once at provide time, like the emitted argument expression
+					let temp = self.next_temp();
+					let tracked = format!("context_tracked_{temp}");
+					let expression = self.ir_expression(&value_ir, &format!("&mut {tracked}"))?;
+					let variable = format!("context_value_{temp}");
+					writeln!(
+						self.body,
+						"    let mut {tracked}: Vec<std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>> = Vec::new();\n    \
+						 let {variable} = {expression};\n    \
+						 let _ = {tracked};"
+					)
+					.unwrap();
+					variable
+				};
 				self.provided_contexts.push((name, value));
 				Ok(())
 			}
@@ -1399,13 +1412,38 @@ impl ComponentGenerator<'_> {
 		{
 			child.write_setup(setup_entry)?;
 		}
+		// a providing block wraps its output in a context-scope range, like a provider component
+		let provided = std::mem::take(&mut child.provided_contexts);
+		if !provided.is_empty() {
+			let mut entries = String::new();
+			for (name, value) in &provided {
+				write!(
+					entries,
+					"({name:?}.to_string(), std::rc::Rc::clone(&{value})), "
+				)
+				.unwrap();
+			}
+			child.uses_ctx = true;
+			writeln!(
+				child.body,
+				"    let context_scope = std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::ContextScope(\n        std::cell::RefCell::new(qwik_ssr_rt::serdes::ContextScopeState {{ parent: ctx.current_context(), entries: vec![{entries}] }}),\n    ));\n    \
+				 let context_scope_root = ctx.serializer.add_root(std::rc::Rc::clone(&context_scope));\n    \
+				 ctx.push_context(context_scope);\n    \
+				 out.push_str(&format!(\"<!c={{}}>\", context_scope_root));"
+			)
+			.unwrap();
+		}
 		child.write_ops(
 			render_fn["ops"].as_array().ok_or("render ops missing")?,
 			"out",
 		)?;
 		child.flush_statics("out");
-		if !child.provided_contexts.is_empty() {
-			return Err("context providers in segment fns not supported yet".to_string());
+		if !provided.is_empty() {
+			writeln!(
+				child.body,
+				"    out.push_str(\"<!/c>\");\n    ctx.pop_context();"
+			)
+			.unwrap();
 		}
 		if !child.pending_use_on.is_empty() {
 			return Err("pending use-on in segment fns not supported yet".to_string());

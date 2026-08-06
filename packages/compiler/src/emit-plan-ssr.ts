@@ -262,6 +262,7 @@ export function emitSsrOpPlan(
           name: entry.name,
           binding: entry.bindingId,
           segment: entry.segment,
+          ...(entry.providesContext ? { providesContext: true } : {}),
           props:
             parameter === null
               ? null

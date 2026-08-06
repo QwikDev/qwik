@@ -87,6 +87,7 @@ export type SsrSetupOperation =
       readonly parameter: ComponentParameterPlan | null;
       readonly propNames: readonly string[];
       readonly segment: string;
+      readonly providesContext: boolean;
       readonly target: SsrRenderFunctionTargetPlan;
     }
   | Extract<SetupPlan, { kind: 'style' }>;
@@ -484,6 +485,7 @@ class SsrPlanner {
         parameter: setup.parameter,
         propNames: setup.propNames,
         segment: setup.segment,
+        providesContext: setup.providesContext,
         target,
       };
     }

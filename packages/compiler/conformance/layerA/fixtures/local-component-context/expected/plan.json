@@ -1,0 +1,247 @@
+{
+  "format": "qwik/ssr-plan",
+  "version": 0,
+  "entry": 0,
+  "components": [
+    {
+      "name": "App",
+      "module": 0,
+      "propsBindings": [],
+      "props": null,
+      "ssr": {
+        "setup": [
+          {
+            "op": "local-component",
+            "name": "Label",
+            "binding": 5,
+            "segment": "local_component_154_248",
+            "props": null,
+            "render": {
+              "setup": [
+                {
+                  "op": "context-read",
+                  "local": 7,
+                  "context": 3
+                }
+              ],
+              "ops": [
+                {
+                  "o": "el",
+                  "tag": "b",
+                  "id": 0,
+                  "void": false,
+                  "styleScopedId": null,
+                  "targetUses": 0,
+                  "props": [],
+                  "propsEffect": null,
+                  "children": [
+                    {
+                      "o": "dyn",
+                      "output": "text",
+                      "value": {
+                        "src": "theme.color",
+                        "ir": {
+                          "k": "member",
+                          "obj": {
+                            "k": "binding-read",
+                            "binding": 7
+                          },
+                          "name": "color"
+                        },
+                        "segment": "segment_0"
+                      },
+                      "synchronous": false,
+                      "target": {
+                        "kind": "element",
+                        "id": 0
+                      }
+                    }
+                  ]
+                }
+              ],
+              "synchronous": false,
+              "needsRootRange": false
+            }
+          },
+          {
+            "op": "local-component",
+            "name": "Section",
+            "binding": 6,
+            "segment": "local_component_250_384",
+            "providesContext": true,
+            "props": {
+              "kind": "object",
+              "bindings": [
+                {
+                  "b": 8,
+                  "name": "color"
+                }
+              ]
+            },
+            "render": {
+              "setup": [
+                {
+                  "op": "context-provider",
+                  "context": 3,
+                  "value": {
+                    "k": "object",
+                    "entries": [
+                      [
+                        "color",
+                        {
+                          "k": "binding-read",
+                          "binding": 8
+                        }
+                      ]
+                    ]
+                  }
+                }
+              ],
+              "ops": [
+                {
+                  "o": "el",
+                  "tag": "section",
+                  "id": null,
+                  "void": false,
+                  "styleScopedId": null,
+                  "targetUses": 0,
+                  "props": [],
+                  "propsEffect": null,
+                  "children": [
+                    {
+                      "o": "component",
+                      "target": "Label",
+                      "returnMode": "maybe-promise",
+                      "props": [],
+                      "propsSource": null,
+                      "idBase": null,
+                      "blockingSuspense": false,
+                      "slots": []
+                    }
+                  ]
+                }
+              ],
+              "synchronous": false,
+              "needsRootRange": false
+            }
+          }
+        ],
+        "directSegmentIds": [],
+        "usedSegmentIds": [
+          "segment_0",
+          "local_component_154_248",
+          "local_component_250_384"
+        ],
+        "ops": [
+          {
+            "o": "component",
+            "target": "Section",
+            "returnMode": "maybe-promise",
+            "props": [
+              {
+                "p": "static",
+                "name": "color",
+                "value": "red"
+              }
+            ],
+            "propsSource": null,
+            "idBase": null,
+            "blockingSuspense": false,
+            "slots": []
+          }
+        ],
+        "synchronous": false,
+        "staticRoot": false,
+        "needsRootRange": false,
+        "needsId": false,
+        "idBase": "qApp-",
+        "flushTasks": false
+      },
+      "setup": [
+        {
+          "op": "js",
+          "src": "function Label() {\n\t\tconst theme = useContext(ThemeContext);\n\t\treturn <b>{theme.color}</b>;\n\t}"
+        },
+        {
+          "op": "js",
+          "src": "function Section({ color }) {\n\t\tuseContextProvider(ThemeContext, { color });\n\t\treturn <section>\n        <Label />\n      </section>;\n\t}"
+        }
+      ],
+      "render": [
+        {
+          "n": "component",
+          "target": 6,
+          "props": [
+            {
+              "p": "static",
+              "name": "color",
+              "value": "red"
+            }
+          ],
+          "slots": []
+        }
+      ],
+      "needsId": false,
+      "idBase": "qApp-",
+      "styleScope": null,
+      "providesContext": false,
+      "hasCustomHook": false
+    }
+  ],
+  "modules": [
+    {
+      "path": "src/input.tsx",
+      "segments": [
+        {
+          "id": "segment_0",
+          "symbolName": "input_text_segment_0_3k1cvwun49quc",
+          "chunk": "./input.tsx_input_text_segment_0_3k1cvwun49quc",
+          "kind": "expression",
+          "resolved": true,
+          "qrl": null,
+          "captures": [
+            {
+              "binding": 7,
+              "name": "theme",
+              "source": "local",
+              "access": "direct"
+            }
+          ]
+        },
+        {
+          "id": "local_component_154_248",
+          "symbolName": "local_component_154_248_35dnpj6w9t2rd",
+          "chunk": "./input.tsx_local_component_154_248_35dnpj6w9t2rd",
+          "kind": "localComponent",
+          "resolved": false,
+          "qrl": null,
+          "captures": []
+        },
+        {
+          "id": "local_component_250_384",
+          "symbolName": "local_component_250_384_1t7s51befrr83",
+          "chunk": "./input.tsx_local_component_250_384_1t7s51befrr83",
+          "kind": "localComponent",
+          "resolved": false,
+          "qrl": null,
+          "captures": [
+            {
+              "binding": 5,
+              "name": "Label",
+              "source": "local",
+              "access": "direct"
+            }
+          ]
+        }
+      ],
+      "contexts": [
+        {
+          "binding": 3,
+          "name": "theme"
+        }
+      ],
+      "defs": []
+    }
+  ],
+  "unresolved": []
+}

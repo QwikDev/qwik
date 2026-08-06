@@ -2787,6 +2787,7 @@ class SemanticLowerer {
       parameter: shape.parameter,
       propNames,
       segment: segmentId,
+      providesContext: this.setupProvidesContext(shape.setup),
       render: renderFunction,
     };
   }
@@ -3390,9 +3391,14 @@ class SemanticLowerer {
   }
 
   private providesContext(): boolean {
-    return this.owner.setup.some((range) => {
+    return this.setupProvidesContext(this.owner.setup);
+  }
+
+  /** Providers inside local component declarations belong to the local component, not the owner. */
+  private setupProvidesContext(ranges: readonly SourceRange[]): boolean {
+    return ranges.some((range) => {
       const setup = findNodeByRange(this.owner.body, range);
-      return setup !== null && this.containsContextProviderCall(setup);
+      return setup !== null && !isFunctionLike(setup) && this.containsContextProviderCall(setup);
     });
   }
 

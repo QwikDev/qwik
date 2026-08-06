@@ -126,6 +126,8 @@ export async function buildInterpretedRoot(
     readonly propsPlan: PlanLocalComponent['props'];
     /** Positional values for `paramBindings` (inline collection rows). */
     readonly paramValues?: readonly unknown[];
+    /** The block wraps its output in a context-scope range, like a provider component. */
+    readonly providesContext?: boolean;
   }
 
   function interpretComponent(
@@ -232,6 +234,7 @@ export async function buildInterpretedRoot(
           initialLocals: new Map(locals),
           initialLocalComponentBindings: new Map(localComponentBindings),
           propsPlan: entry.props,
+          providesContext: entry.providesContext === true,
         });
     // function declarations hoist above the setup consts in the emitted module
     for (const entry of ssr.setup as readonly (SetupOp | PlanLocalComponent)[]) {
@@ -276,10 +279,7 @@ export async function buildInterpretedRoot(
           if (context === undefined) {
             throw new Error(`context binding ${op.context} missing from the module contexts`);
           }
-          if (op.value.k !== 'binding-read') {
-            throw new Error('interpreter supports binding-read context values only');
-          }
-          useContextProvider(context as never, locals.get(op.value.binding) as never);
+          useContextProvider(context as never, evalIr(op.value) as never);
           break;
         }
         case 'context-read': {
@@ -853,7 +853,9 @@ export async function buildInterpretedRoot(
     };
 
     const run = () => {
-      if (nested !== undefined || !interpreted.providesContext) {
+      const providesContext =
+        nested === undefined ? interpreted.providesContext : nested.providesContext === true;
+      if (!providesContext) {
         return interpretOps(ssr.ops);
       }
       // provider components wrap their output in a context-scope range (root-ref id)

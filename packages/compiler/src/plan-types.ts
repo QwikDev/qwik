@@ -174,6 +174,7 @@ export interface LocalComponentSetupPlan {
   readonly propNames: readonly string[];
   /** Backing chunk segment — every local component is chunk-backed, like any component. */
   readonly segment: string;
+  readonly providesContext: boolean;
   readonly render: RenderFunctionPlan;
 }
 

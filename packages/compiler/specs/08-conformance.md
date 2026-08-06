@@ -110,7 +110,11 @@ Slot fallbacks render through their segment fn when no projection is registered 
 unconditionally like the emitted prep; nothing about the fallback serializes). A sole spread
 (`<Badge {...shared} />`) passes the object through as the props value, mirroring
 `createComponent(shared, …)`; mixing a spread with other props stays a loud gate in every
-engine until a fixture defines the merge contract. Module components
+engine until a fixture defines the merge contract. Context providers work inside local
+component bodies: provision belongs to the declaring local component (never the owner — a
+provider inside a nested function must not mark the outer component), whose output wraps in
+the `<!c=…>` context-scope range; provider values may be any lowerable expression, evaluated
+once at provide time. Module components
 with destructured props rebind values at fn start while `component-prop` captures keep passing
 the props object — the chunk destructures it. Still inline by design: static-collection rows
 (no QRL exists), `forKey` expressions, and slot projection closures. Attr routing rule both non-JS engines share: a `binding-read` attr value

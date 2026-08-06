@@ -104,6 +104,7 @@ export interface PlanLocalComponent {
   readonly binding: number;
   /** Backing chunk segment id — the component value's serialization identity. */
   readonly segment: string;
+  readonly providesContext?: boolean;
   readonly props: PlanComponentProps;
   readonly render: PlanSsrRenderFn;
 }

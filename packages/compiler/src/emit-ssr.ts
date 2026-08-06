@@ -637,7 +637,7 @@ function emitSetup(
         rootAttribute: null,
         rowMarkerId: null,
         slotMarkerId: null,
-        contextBoundary: false,
+        contextBoundary: operation.providesContext,
         structuredRoot: !operation.target.render.staticRoot,
       });
       if (render === null) {

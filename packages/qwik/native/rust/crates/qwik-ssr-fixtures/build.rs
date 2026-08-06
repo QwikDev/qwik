@@ -30,6 +30,7 @@ const READY_FIXTURES: &[&str] = &[
 	"local-component-props",
 	"local-component-slots",
 	"local-component-signal-props",
+	"slot-fallback",
 ];
 
 fn main() {

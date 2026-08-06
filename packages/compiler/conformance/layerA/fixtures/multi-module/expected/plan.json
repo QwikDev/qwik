@@ -9,6 +9,10 @@
       "propsBindings": [
         2
       ],
+      "props": {
+        "kind": "identifier",
+        "binding": 2
+      },
       "ssr": {
         "setup": [
           {
@@ -172,6 +176,7 @@
       "name": "App",
       "module": 1,
       "propsBindings": [],
+      "props": null,
       "ssr": {
         "setup": [],
         "directSegmentIds": [],

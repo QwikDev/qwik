@@ -54,12 +54,23 @@ export interface PlanImportMeta {
   readonly export: string;
 }
 
+/** Destructured props as prop-key → binding pairs, or the whole-props identifier binding. */
+export type PlanComponentProps =
+  | {
+      readonly kind: 'object';
+      readonly bindings: readonly { readonly b: number; readonly name: string }[];
+    }
+  | { readonly kind: 'identifier'; readonly binding: number }
+  | null;
+
 export interface PlanComponent {
   readonly name: string;
   /** Module-scoped binding id; the link step resolves component targets against it. */
   readonly binding: number | null;
   /** Props parameter binding ids (identifier param: one; object pattern: one per alias). */
   readonly propsBindings: readonly number[];
+  /** Props parameter shape; object names assume shorthand patterns (binding name = prop key). */
+  readonly props: PlanComponentProps;
   /** SSR-structural ops — the byte-parity layer engines render from; null when unplannable. */
   readonly ssr: PlanSsrComponent | null;
   readonly setup: readonly PlanSetupEntry[];
@@ -93,14 +104,7 @@ export interface PlanLocalComponent {
   readonly binding: number;
   /** Backing chunk segment id — the component value's serialization identity. */
   readonly segment: string;
-  /** Destructured props as prop-key → binding pairs, or the whole-props identifier binding. */
-  readonly props:
-    | {
-        readonly kind: 'object';
-        readonly bindings: readonly { readonly b: number; readonly name: string }[];
-      }
-    | { readonly kind: 'identifier'; readonly binding: number }
-    | null;
+  readonly props: PlanComponentProps;
   readonly render: PlanSsrRenderFn;
 }
 
@@ -228,7 +232,8 @@ export function emitModulePlan(
   returnMode: import('./plan-ssr').SsrComponentReturnModeResolver,
   imports: readonly PlanImportMeta[] = [],
   contexts: readonly PlanContextMeta[] = [],
-  defs: readonly PlanDefMeta[] = []
+  defs: readonly PlanDefMeta[] = [],
+  bindingName: (binding: number) => string | null = () => null
 ): QwikModulePlan {
   const slice = (range: SourceRange) => source.slice(range[0], range[1]);
 
@@ -381,10 +386,23 @@ export function emitModulePlan(
     }
   };
 
+  const componentProps = (
+    parameter: ComponentOutput['result']['shape']['parameter']
+  ): PlanComponentProps =>
+    parameter === null
+      ? null
+      : parameter.kind === 'identifier'
+        ? { kind: 'identifier', binding: parameter.bindingIds[0] }
+        : {
+            kind: 'object',
+            bindings: parameter.bindingIds.map((b) => ({ b, name: bindingName(b) ?? '' })),
+          };
+
   const components = outputs.map((output) => ({
     name: output.component.exportName ?? '',
     binding: output.component.bindingId,
     propsBindings: output.result.shape.parameter?.bindingIds ?? [],
+    props: componentProps(output.result.shape.parameter),
     ssr: emitSsrOpPlan(output.result, output.result.segments, returnMode, source),
     setup: planSetup(output.result.setup),
     render: output.result.render.roots.map(planNode),

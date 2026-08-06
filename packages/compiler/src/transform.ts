@@ -602,7 +602,9 @@ export function transformModule(ctx: CompilerContext): TransformResult {
                   name: def.name,
                   params: [...def.params],
                   body: def.body,
-                }))
+                })),
+                (binding) =>
+                  analysis.bindings.find((candidate) => candidate.id === binding)?.name ?? null
               ),
               null,
               2

@@ -7,6 +7,7 @@
       "name": "Delayed",
       "module": 0,
       "propsBindings": [],
+      "props": null,
       "ssr": {
         "setup": [
           {
@@ -68,6 +69,7 @@
       "name": "App",
       "module": 0,
       "propsBindings": [],
+      "props": null,
       "ssr": {
         "setup": [],
         "directSegmentIds": [],

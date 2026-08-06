@@ -39,6 +39,7 @@ export interface LinkedComponent {
   /** Index into `modules`; segment ids in this component's ops resolve there. */
   readonly module: number;
   readonly propsBindings: readonly number[];
+  readonly props: QwikModulePlan['components'][number]['props'];
   readonly ssr: QwikModulePlan['components'][number]['ssr'];
   readonly setup: QwikModulePlan['components'][number]['setup'];
   readonly render: readonly PlanNode[];
@@ -318,6 +319,7 @@ export function linkSsrPlan(
         name: component.name,
         module: moduleIndex,
         propsBindings: component.propsBindings,
+        props: component.props,
         ssr: component.ssr === null ? null : linkSsrComponent(component.ssr),
         setup: component.setup,
         render: linkNodes(component.render),

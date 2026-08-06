@@ -248,9 +248,36 @@ pub fn generate_component(plan: &Json, component_index: usize) -> Result<String,
 		.as_array()
 		.ok_or("propsBindings missing")?
 		.clone();
-	for binding in &props_bindings {
-		let binding = binding.as_u64().ok_or("props binding not a number")?;
-		generator.locals.insert(binding, "props".to_string());
+	// destructured props rebind their values at fn start, like the emitted `const { x } = props`;
+	// identifier form binds the props object itself. Captures keep passing the object
+	// (`component-prop` access) — see segment_captures.
+	let props_plan = &component["props"];
+	if props_plan["kind"].as_str() == Some("object") {
+		for binding_entry in props_plan["bindings"]
+			.as_array()
+			.ok_or("component props bindings missing")?
+		{
+			let binding = binding_entry["b"]
+				.as_u64()
+				.ok_or("prop binding not a number")?;
+			let prop_name = binding_entry["name"]
+				.as_str()
+				.ok_or("prop binding has no name")?;
+			let variable = format!("prop_{binding}");
+			writeln!(
+				generator.body,
+				"    let {variable} = qwik_ssr_rt::render::props_value(&props, {prop_name:?});"
+			)
+			.unwrap();
+			generator.uses_props = true;
+			generator.locals.insert(binding, variable);
+			generator.local_kinds.insert(binding, LocalKind::PlainValue);
+		}
+	} else {
+		for binding in &props_bindings {
+			let binding = binding.as_u64().ok_or("props binding not a number")?;
+			generator.locals.insert(binding, "props".to_string());
+		}
 	}
 	for entry in ssr["setup"].as_array().ok_or("ssr.setup missing")? {
 		generator.write_setup(entry)?;
@@ -1429,9 +1456,6 @@ impl ComponentGenerator<'_> {
 	}
 
 	fn write_slot(&mut self, op: &Json, target: &str) -> Result<(), String> {
-		if !op["fallback"].is_null() {
-			return Err("slot fallback not supported yet".to_string());
-		}
 		if !op["idBase"].is_null() {
 			return Err("slot idBase not supported yet".to_string());
 		}
@@ -1439,11 +1463,39 @@ impl ComponentGenerator<'_> {
 		self.uses_ctx = true;
 		self.uses_slots = true;
 		self.flush_statics(target);
-		let range = format!("slot_range_{}", self.next_temp());
+		let temp = self.next_temp();
+		let range = format!("slot_range_{temp}");
 		let out_argument = if target == "out" {
 			"out".to_string()
 		} else {
 			format!("&mut {target}")
+		};
+		// fallback: captures root unconditionally (emitted prep); the content renders only
+		// when no projection is registered, and nothing about it serializes
+		let fallback_call = if op["fallback"].is_null() {
+			String::new()
+		} else {
+			let fallback_segment = op["fallback"]["segment"]
+				.as_str()
+				.ok_or("slot fallback has no segment")?
+				.to_string();
+			for capture in self.segment_captures(&fallback_segment)? {
+				writeln!(
+					self.body,
+					"    ctx.serializer.add_root(std::rc::Rc::clone(&{capture}));"
+				)
+				.unwrap();
+			}
+			let fallback_qrl = self.qrl_expression(&fallback_segment, true)?;
+			let fallback_symbol = self.generate_segment_fn(
+				&fallback_segment,
+				&op["fallback"].clone(),
+				SegmentFnKind::BranchArm,
+			)?;
+			writeln!(self.body, "    let fallback_qrl_{temp} = {fallback_qrl};").unwrap();
+			format!(
+				" else {{\n        {fallback_symbol}(ctx, {out_argument}, qwik_ssr_rt::render::qrl_captures(&fallback_qrl_{temp}));\n    }}"
+			)
 		};
 		writeln!(
 			self.body,
@@ -1451,7 +1503,7 @@ impl ComponentGenerator<'_> {
 			 {target}.push_str(&format!(\"<!s={{}}>\", {range}));\n    \
 			 if let Some((_, render_slot)) = slots.iter_mut().find(|(name, _)| *name == {name:?}) {{\n        \
 			 render_slot(ctx, {out_argument});\n    \
-			 }}\n    \
+			 }}{fallback_call}\n    \
 			 {target}.push_str(\"<!/s>\");"
 		)
 		.unwrap();
@@ -2127,15 +2179,33 @@ impl ComponentGenerator<'_> {
 	}
 
 	fn segment_captures(&mut self, segment_id: &str) -> Result<Vec<String>, String> {
-		let bindings: Vec<u64> = self.segment(segment_id)?["captures"]
+		let captures: Vec<(u64, bool)> = self.segment(segment_id)?["captures"]
 			.as_array()
 			.ok_or("segment captures missing")?
 			.iter()
-			.map(|capture| capture["binding"].as_u64().ok_or("capture has no binding"))
+			.map(|capture| {
+				capture["binding"]
+					.as_u64()
+					.ok_or("capture has no binding")
+					.map(|binding| {
+						(
+							binding,
+							capture["access"].as_str() == Some("component-prop"),
+						)
+					})
+			})
 			.collect::<Result<_, _>>()?;
-		bindings
+		captures
 			.into_iter()
-			.map(|binding| self.local(binding))
+			.map(|(binding, is_component_prop)| {
+				// component-prop captures pass the props object — the chunk destructures it
+				if is_component_prop {
+					self.uses_props = true;
+					Ok("props".to_string())
+				} else {
+					self.local(binding)
+				}
+			})
 			.collect()
 	}
 

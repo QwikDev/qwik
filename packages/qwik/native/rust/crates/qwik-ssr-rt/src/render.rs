@@ -317,6 +317,22 @@ impl SsrContext {
 		}
 	}
 
+	/// A component call materializes its own lazily-created owner (`createComponent`).
+	pub fn push_component_owner(&mut self) {
+		self.push_owner();
+	}
+
+	/// Collapse the call's owner into one item of the enclosing collector; single items stay
+	/// unwrapped, mirroring the runtime `Owner.items` single-vs-array shape.
+	pub fn pop_component_owner(&mut self) {
+		let mut items = self.pop_owner();
+		match items.len() {
+			0 => {}
+			1 => self.push_owner_item(items.pop().expect("single owner item")),
+			_ => self.push_owner_item(Rc::new(SerdesValue::Array(items))),
+		}
+	}
+
 	/// Branch effect, registered before its arm renders so subscriber order matches the JS
 	/// engine; owner items stream into it while the arm renders.
 	pub fn create_branch_effect(
@@ -761,6 +777,33 @@ pub fn value_text(value: &SerdesValue) -> String {
 
 /// Tracked member read: props sources and store props record their tracked dep (auto-track);
 /// statics and plain objects read untracked. Missing keys read `undefined`.
+/// Captures slice of a QRL value — the environment a QRL invocation runs with.
+pub fn qrl_captures(qrl: &Rc<SerdesValue>) -> &[Rc<SerdesValue>] {
+	match &**qrl {
+		SerdesValue::Qrl(value) => &value.captures,
+		other => panic!("qrl_captures expects a Qrl, got {other:?}"),
+	}
+}
+
+/// Untracked prop read for component-parameter destructuring (`const { name } = props`).
+pub fn props_value(props: &Rc<SerdesValue>, name: &str) -> Rc<SerdesValue> {
+	match &**props {
+		SerdesValue::Object(entries) => entries
+			.iter()
+			.find(|(key, _)| key == name)
+			.map(|(_, item)| Rc::clone(item))
+			.unwrap_or_else(|| Rc::new(SerdesValue::Undefined)),
+		SerdesValue::Props(value) => value
+			.statics
+			.iter()
+			.chain(value.sources.iter())
+			.find(|(key, _)| key == name)
+			.map(|(_, item)| Rc::clone(item))
+			.unwrap_or_else(|| Rc::new(SerdesValue::Undefined)),
+		other => panic!("props_value expects Object or Props, got {other:?}"),
+	}
+}
+
 pub fn member_read(
 	object: &Rc<SerdesValue>,
 	name: &str,

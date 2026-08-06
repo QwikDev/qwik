@@ -109,7 +109,8 @@ struct ComponentGenerator<'plan> {
 	/// Lexically visible local components: name -> local-component setup entry.
 	local_components: HashMap<String, Json>,
 	/// Local components currently expanding inline (recursion guard).
-	expansion_stack: Vec<String>,
+	/// Standalone fns for local components declared in this scope (QRL invocation convention).
+	pending_local_fns: Vec<String>,
 	/// Plan element id → generated runtime-id variable name.
 	element_ids: HashMap<u64, String>,
 	temp_counter: usize,
@@ -137,7 +138,7 @@ pub fn generate_defs(plan: &Json, module_index: usize) -> Result<String, String>
 			pending_use_on: Vec::new(),
 			provided_contexts: Vec::new(),
 			local_components: HashMap::new(),
-			expansion_stack: Vec::new(),
+			pending_local_fns: Vec::new(),
 			element_ids: HashMap::new(),
 			temp_counter: 0,
 			uses_ctx: false,
@@ -200,7 +201,7 @@ pub fn generate_component(plan: &Json, component_index: usize) -> Result<String,
 		pending_use_on: Vec::new(),
 		provided_contexts: Vec::new(),
 		local_components: HashMap::new(),
-		expansion_stack: Vec::new(),
+		pending_local_fns: Vec::new(),
 		element_ids: HashMap::new(),
 		temp_counter: 0,
 		uses_ctx: false,
@@ -273,8 +274,9 @@ pub fn generate_component(plan: &Json, component_index: usize) -> Result<String,
 			.to_string()
 	};
 	let function_name = render_function_name(plan, component_index)?;
+	let local_fns = generator.pending_local_fns.join("");
 	Ok(format!(
-		"pub fn {function_name}({ctx_param}: &mut qwik_ssr_rt::render::SsrContext, out: &mut String{props_param}{slots_param}) {{\n{props_rebind}{}}}\n",
+		"pub fn {function_name}({ctx_param}: &mut qwik_ssr_rt::render::SsrContext, out: &mut String{props_param}{slots_param}) {{\n{props_rebind}{}}}\n{local_fns}",
 		generator.body
 	))
 }
@@ -470,19 +472,20 @@ impl ComponentGenerator<'_> {
 					.ok_or("local component has no name")?;
 				self.local_components
 					.insert(name.to_string(), entry.clone());
-				// lifted: the binding's value is the backing QRL, so captures serialize it
-				if let Some(segment_id) = entry["segment"].as_str() {
-					let binding = entry["binding"]
-						.as_u64()
-						.ok_or("local component has no binding")?;
-					let segment_id = segment_id.to_string();
-					let qrl = self.qrl_expression(&segment_id, true)?;
-					let variable = format!("local_{binding}");
-					writeln!(self.body, "    let {variable} = {qrl};").unwrap();
-					self.locals.insert(binding, variable);
-					self.local_kinds.insert(binding, LocalKind::PlainValue);
-				}
-				Ok(())
+				// the binding's value is the backing QRL — captures serialize it, calls invoke it
+				let binding = entry["binding"]
+					.as_u64()
+					.ok_or("local component has no binding")?;
+				let segment_id = entry["segment"]
+					.as_str()
+					.ok_or("local component has no segment")?
+					.to_string();
+				let qrl = self.qrl_expression(&segment_id, true)?;
+				let variable = format!("local_{binding}");
+				writeln!(self.body, "    let {variable} = {qrl};").unwrap();
+				self.locals.insert(binding, variable);
+				self.local_kinds.insert(binding, LocalKind::PlainValue);
+				self.generate_local_component_fn(&entry.clone())
 			}
 			"yield" => Ok(()),
 			op => Err(format!("setup op {op:?} not supported yet")),
@@ -928,7 +931,9 @@ impl ComponentGenerator<'_> {
 		if !child_takes_props {
 			writeln!(
 				self.body,
-				"    {child_function}(ctx, {target_argument}{slots_argument});"
+				"    ctx.push_component_owner();\n    \
+				 {child_function}(ctx, {target_argument}{slots_argument});\n    \
+				 ctx.pop_component_owner();"
 			)
 			.unwrap();
 			return Ok(());
@@ -950,7 +955,9 @@ impl ComponentGenerator<'_> {
 		}
 		writeln!(
 			self.body,
-			"    {child_function}(ctx, {target_argument}, &{props_variable}{slots_argument});"
+			"    ctx.push_component_owner();\n    \
+			 {child_function}(ctx, {target_argument}, &{props_variable}{slots_argument});\n    \
+			 ctx.pop_component_owner();"
 		)
 		.unwrap();
 		Ok(())
@@ -962,16 +969,12 @@ impl ComponentGenerator<'_> {
 	fn write_local_component_call(&mut self, op: &Json, target: &str) -> Result<(), String> {
 		let name = op["target"]
 			.as_str()
-			.ok_or("local component target is not a name")?
-			.to_string();
+			.ok_or("local component target is not a name")?;
 		let entry = self
 			.local_components
-			.get(&name)
+			.get(name)
 			.cloned()
 			.ok_or_else(|| format!("local component {name:?} is not in scope"))?;
-		if self.expansion_stack.contains(&name) {
-			return Err(format!("recursive local component {name:?} not supported"));
-		}
 		if !op["propsSource"].is_null() {
 			return Err("local component propsSource not supported yet".to_string());
 		}
@@ -988,83 +991,155 @@ impl ComponentGenerator<'_> {
 		}
 		self.flush_statics(target);
 		self.uses_ctx = true;
-		let call_props = op["props"].as_array().ok_or("component props missing")?;
-		let empty = Vec::new();
-		let prop_bindings = if props_plan.is_null() {
-			&empty
-		} else {
-			props_plan["bindings"]
-				.as_array()
-				.ok_or("local component props bindings missing")?
-		};
-		// destructure order: each prop binding reads its value once at expansion start
-		for binding_entry in prop_bindings {
-			let binding = binding_entry["b"]
-				.as_u64()
-				.ok_or("prop binding not a number")?;
-			let prop_name = binding_entry["name"]
-				.as_str()
-				.ok_or("prop binding has no name")?;
-			let call_prop = call_props
-				.iter()
-				.find(|prop| prop["name"].as_str() == Some(prop_name));
-			let value = match call_prop {
-				None => "std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Undefined)".to_string(),
-				Some(prop) => match prop["p"].as_str().ok_or("prop has no kind")? {
-					"static" => format!(
-						"std::rc::Rc::new({})",
-						json_literal_expression(&prop["value"])?
-					),
-					"dynamic" => {
-						let ir = &prop["value"]["ir"];
-						if ir["k"].as_str() != Some("binding-read") {
-							return Err(format!("local component prop ir {ir} not supported yet"));
-						}
-						let source = self.local(ir["binding"].as_u64().ok_or("no binding")?)?;
-						format!("std::rc::Rc::clone(&{source})")
+		let binding = entry["binding"]
+			.as_u64()
+			.ok_or("local component has no binding")?;
+		let segment_id = entry["segment"]
+			.as_str()
+			.ok_or("local component has no segment")?;
+		let symbol = self.segment(segment_id)?["symbolName"]
+			.as_str()
+			.ok_or("segment has no symbol")?
+			.to_string();
+		// the props object mirrors the emitted literal: values evaluate here, reads stay plain
+		let mut entries = String::new();
+		for prop in op["props"].as_array().ok_or("component props missing")? {
+			let prop_name = prop["name"].as_str().ok_or("prop has no name")?;
+			let value = match prop["p"].as_str().ok_or("prop has no kind")? {
+				"static" => format!(
+					"std::rc::Rc::new({})",
+					json_literal_expression(&prop["value"])?
+				),
+				"dynamic" => {
+					let ir = &prop["value"]["ir"];
+					if ir["k"].as_str() != Some("binding-read") {
+						return Err(format!("local component prop ir {ir} not supported yet"));
 					}
-					kind => return Err(format!("local component prop {kind:?} not supported yet")),
-				},
+					let source = self.local(ir["binding"].as_u64().ok_or("no binding")?)?;
+					format!("std::rc::Rc::clone(&{source})")
+				}
+				kind => return Err(format!("local component prop {kind:?} not supported yet")),
 			};
-			let variable = format!("prop_{binding}");
-			writeln!(self.body, "    let {variable} = {value};").unwrap();
-			self.locals.insert(binding, variable);
-			self.local_kinds.insert(binding, LocalKind::PlainValue);
+			write!(entries, "({prop_name:?}.to_string(), {value}), ").unwrap();
 		}
-		self.expansion_stack.push(name);
-		let saved_local_components = self.local_components.clone();
-		let saved_elements = std::mem::take(&mut self.element_ids);
-		let render = entry["render"].clone();
-		// createComponent gives the call its own lazily-materialized owner: effects created
-		// inside collect into one item of the enclosing owner (single items stay unwrapped)
-		let owner_temp = self.next_temp();
-		writeln!(self.body, "    ctx.push_owner();").unwrap();
-		let mut expand = || -> Result<(), String> {
-			for setup_entry in render["setup"].as_array().ok_or("render setup missing")? {
-				self.write_setup(setup_entry)?;
-			}
-			self.write_ops(
-				render["ops"].as_array().ok_or("render ops missing")?,
-				target,
-			)?;
-			self.flush_statics(target);
-			Ok(())
+		let temp = self.next_temp();
+		let qrl_local = self.local(binding)?;
+		let target_argument = if target == "out" {
+			"out".to_string()
+		} else {
+			format!("&mut {target}")
 		};
-		let result = expand();
+		// invoke through the QRL value: the component value carries its captures
 		writeln!(
 			self.body,
-			"    let mut component_owner_{owner_temp} = ctx.pop_owner();\n    \
-			 if component_owner_{owner_temp}.len() == 1 {{\n        \
-			 ctx.push_owner_item(component_owner_{owner_temp}.pop().unwrap());\n    \
-			 }} else if !component_owner_{owner_temp}.is_empty() {{\n        \
-			 ctx.push_owner_item(std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Array(component_owner_{owner_temp})));\n    \
-			 }}"
+			"    let props_{temp} = std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Object(vec![{entries}]));\n    \
+			 ctx.push_component_owner();\n    \
+			 {symbol}(ctx, {target_argument}, &props_{temp}, qwik_ssr_rt::render::qrl_captures(&{qrl_local}));\n    \
+			 ctx.pop_component_owner();"
 		)
 		.unwrap();
-		self.element_ids = saved_elements;
-		self.local_components = saved_local_components;
-		self.expansion_stack.pop();
-		result
+		Ok(())
+	}
+
+	/// Generate the standalone fn for a local component: same body machinery as any component,
+	/// with capture rebinds mirroring the JS chunk's `const x = _captures[i]` preamble.
+	fn generate_local_component_fn(&mut self, entry: &Json) -> Result<(), String> {
+		let segment_id = entry["segment"]
+			.as_str()
+			.ok_or("local component has no segment")?
+			.to_string();
+		let segment = self.segment(&segment_id)?.clone();
+		let symbol = segment["symbolName"]
+			.as_str()
+			.ok_or("segment has no symbol")?
+			.to_string();
+		let props_plan = &entry["props"];
+		if !props_plan.is_null() && props_plan["kind"].as_str() != Some("object") {
+			return Err("identifier props on local components not supported yet".to_string());
+		}
+		let mut child = ComponentGenerator {
+			plan: self.plan,
+			module_index: self.module_index,
+			body: String::new(),
+			statics: String::new(),
+			locals: HashMap::new(),
+			local_kinds: HashMap::new(),
+			computed_bodies: HashMap::new(),
+			pending_row_root: false,
+			pending_use_on: Vec::new(),
+			provided_contexts: Vec::new(),
+			local_components: self.local_components.clone(),
+			pending_local_fns: Vec::new(),
+			element_ids: HashMap::new(),
+			temp_counter: 0,
+			uses_ctx: false,
+			uses_props: false,
+			uses_slots: false,
+		};
+		for (position, capture) in segment["captures"]
+			.as_array()
+			.ok_or("segment captures missing")?
+			.iter()
+			.enumerate()
+		{
+			let binding = capture["binding"]
+				.as_u64()
+				.ok_or("capture has no binding")?;
+			let name = capture["name"].as_str().ok_or("capture has no name")?;
+			let variable = format!("capture_{name}");
+			writeln!(
+				child.body,
+				"    let {variable} = std::rc::Rc::clone(&captures[{position}]);"
+			)
+			.unwrap();
+			child.locals.insert(binding, variable);
+			if let Some(kind) = self.local_kinds.get(&binding) {
+				child.local_kinds.insert(binding, *kind);
+			}
+		}
+		if let Some(bindings) = props_plan["bindings"].as_array() {
+			for binding_entry in bindings {
+				let binding = binding_entry["b"]
+					.as_u64()
+					.ok_or("prop binding not a number")?;
+				let prop_name = binding_entry["name"]
+					.as_str()
+					.ok_or("prop binding has no name")?;
+				let variable = format!("prop_{binding}");
+				writeln!(
+					child.body,
+					"    let {variable} = qwik_ssr_rt::render::props_value(props, {prop_name:?});"
+				)
+				.unwrap();
+				child.locals.insert(binding, variable);
+				child.local_kinds.insert(binding, LocalKind::PlainValue);
+			}
+		}
+		for setup_entry in entry["render"]["setup"]
+			.as_array()
+			.ok_or("render setup missing")?
+		{
+			child.write_setup(setup_entry)?;
+		}
+		child.write_ops(
+			entry["render"]["ops"]
+				.as_array()
+				.ok_or("render ops missing")?,
+			"out",
+		)?;
+		child.flush_statics("out");
+		if !child.provided_contexts.is_empty() {
+			return Err("context providers in local components not supported yet".to_string());
+		}
+		if !child.pending_use_on.is_empty() {
+			return Err("pending use-on in local components not supported yet".to_string());
+		}
+		let body = child.body;
+		self.pending_local_fns.extend(child.pending_local_fns);
+		self.pending_local_fns.push(format!(
+			"fn {symbol}(ctx: &mut qwik_ssr_rt::render::SsrContext, out: &mut String, props: &std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>, captures: &[std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>]) {{\n{body}}}\n"
+		));
+		Ok(())
 	}
 
 	fn write_slot(&mut self, op: &Json, target: &str) -> Result<(), String> {

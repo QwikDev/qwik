@@ -96,9 +96,11 @@ stdout. No FFI anywhere; any language qualifies by producing one binary.
 **Rust status**: **all 21 Layer-A fixtures render byte-exact** (`cargo test` in
 `packages/qwik/native/rust`). The generator covers statics, signals/stores/computeds/tasks,
 events and bind QRLs, component composition (incl. cross-module), local components at any
-nesting level (inline call-site expansion, each call collecting into its own owner item like
-`createComponent`), lifted local components captured across lazy boundaries (the binding holds
-the backing QRL value so branch captures serialize it), slots, branches, collections with rows
+nesting level under the QRL invocation convention ([07](./07-native-engine-architecture.md)):
+one symbol-named fn per local component with a `captures` slice rebound like the JS chunk's
+`_captures`, call sites invoking through the QRL value, and every component call collecting
+into its own owner item like `createComponent`. Branch captures serialize the binding's QRL
+value. Also covered: slots, branches, collections with rows
 and index signals plus static direct-array collections, content effects via `qwik:` internal
 plugins, and suspense in both in-order and out-of-order modes (eager content render, fallback
 ranges, template packets, the `_qwikS` runtime blob). Known cap: for streaming fixtures the Rust runner byte-compares the

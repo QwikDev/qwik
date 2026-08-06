@@ -5,7 +5,7 @@ import type { PlaywrightTestConfig } from '@playwright/test';
 //   cargo build --manifest-path packages/qwik/native/rust/Cargo.toml -p qwik-ssr-host
 const config: PlaywrightTestConfig = {
   use: {
-    baseURL: 'http://127.0.0.1:3312/',
+    baseURL: 'http://127.0.0.1:3312/native-counter/',
     viewport: { width: 520, height: 600 },
   },
   testMatch: 'native-counter.e2e.ts',

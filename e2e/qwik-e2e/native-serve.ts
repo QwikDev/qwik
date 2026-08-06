@@ -1,37 +1,46 @@
-// `pnpm serve.native [app] [port]` — vite-build the e2e app, then serve it from the Rust
-// SSR host. cargo rebuilds only when the plan bytes change (build.rs rerun-if-changed).
+// `pnpm serve.native [port]` — build every vdomless e2e app (vite → q-ssr-plan.json +
+// q-manifest.json), then hand off to `cargo run -p qwik-ssr-host`: build.rs compiles every
+// built plan into one multi-app binary and Rust serves everything. Node never serves a request.
 /* eslint-disable no-console */
 
 import { spawnSync } from 'node:child_process';
+import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const repoRoot = resolve(__dirname, '..', '..');
-const appName = process.argv[2] ?? 'native-counter';
-const port = process.argv[3] ?? '3310';
-const appDir = join(__dirname, 'apps', appName);
+const appsDir = join(__dirname, 'apps');
+const port = process.argv[2] ?? '3310';
 
-const buildResult = spawnSync(
-  process.execPath,
-  ['--require', './scripts/runBefore.ts', 'e2e/qwik-e2e/native-build.ts', appName],
-  { cwd: repoRoot, stdio: 'inherit' }
+const isVdomless = (name: string): boolean => {
+  try {
+    const pkg = JSON.parse(readFileSync(join(appsDir, name, 'package.json'), 'utf-8'));
+    return !!pkg.__qwik__?.vdomless;
+  } catch {
+    return false;
+  }
+};
+const appNames = readdirSync(appsDir).filter(
+  (name) => statSync(join(appsDir, name)).isDirectory() && isVdomless(name)
 );
-if (buildResult.status !== 0) {
-  process.exit(buildResult.status ?? 1);
+
+for (const appName of appNames) {
+  console.log(`\n🏗️  ${appName}: vite build`);
+  const build = spawnSync(
+    process.execPath,
+    ['--require', './scripts/runBefore.ts', 'e2e/qwik-e2e/native-build.ts', appName],
+    { cwd: repoRoot, stdio: 'inherit' }
+  );
+  if (build.status !== 0) {
+    console.error(`❌ ${appName}: vite build failed — it will be missing from the host`);
+  }
 }
 
-const serveResult = spawnSync(
+console.log('\n🦀  cargo run -p qwik-ssr-host (node is done — Rust serves from here)\n');
+const serve = spawnSync(
   'cargo',
   ['run', '--manifest-path', 'packages/qwik/native/rust/Cargo.toml', '-p', 'qwik-ssr-host', port],
-  {
-    cwd: repoRoot,
-    stdio: 'inherit',
-    env: {
-      ...process.env,
-      QWIK_SSR_PLAN: join(appDir, 'server', 'q-ssr-plan.json'),
-      QWIK_CLIENT_DIR: join(appDir, 'dist', 'client'),
-    },
-  }
+  { cwd: repoRoot, stdio: 'inherit' }
 );
-process.exit(serveResult.status ?? 0);
+process.exit(serve.status ?? 0);

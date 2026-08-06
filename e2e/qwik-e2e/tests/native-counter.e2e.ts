@@ -4,7 +4,8 @@ import { expect, test } from '@playwright/test';
 // native-rendered HTML through manifest-mapped production chunks.
 test.describe('native counter (rust ssr host)', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
+    // './' resolves against the baseURL path; '/' would hit the host homepage
+    await page.goto('./');
   });
 
   test('renders the server state', async ({ page }) => {

@@ -93,12 +93,13 @@ target's generator over ALL fixture plans once and compiles a single fixture-run
 it: `plan name + request.json` on stdin, length-framed output segments (shell, packets, end) on
 stdout. No FFI anywhere; any language qualifies by producing one binary.
 
-**Rust status**: **all 19 Layer-A fixtures render byte-exact** (`cargo test` in
+**Rust status**: **all 20 Layer-A fixtures render byte-exact** (`cargo test` in
 `packages/qwik/native/rust`). The generator covers statics, signals/stores/computeds/tasks,
-events and bind QRLs, component composition (incl. cross-module), slots, branches, collections
-with rows and index signals, content effects via `qwik:` internal plugins, and suspense in both
-in-order and out-of-order modes (eager content render, fallback ranges, template packets, the
-`_qwikS` runtime blob). Known cap: for streaming fixtures the Rust runner byte-compares the
+events and bind QRLs, component composition (incl. cross-module), local components at any
+nesting level (inline call-site expansion), slots, branches, collections with rows and index
+signals plus static direct-array collections, content effects via `qwik:` internal plugins, and
+suspense in both in-order and out-of-order modes (eager content render, fallback ranges,
+template packets, the `_qwikS` runtime blob). Known cap: for streaming fixtures the Rust runner byte-compares the
 **concatenated** stream (`shell.html`) — per-chunk boundaries (`stream.json`) are not yet
 modeled natively.
 

@@ -88,8 +88,14 @@ path never regresses.
 The first tranche is **implemented** in `src/validate-native.ts` (wired in `transform.ts`, gated
 on the `nativeTarget` option, `ssr` target only): `native-expression` (values without `ir`,
 branch conditions, collection sources/keys, Suspense `fallback$` pending a structural plan),
-`native-setup-statement`, `native-custom-hook`, and `native-component-unplannable`. Plugin-related
-codes land with the plugin system.
+`native-setup-statement`, `native-custom-hook`, and `native-component-unplannable`. Validation
+recurses into `local-component` setup entries, so local component bodies are held to the same
+bar as component bodies. Plugin-related codes land with the plugin system.
+
+Local components compile in place today (specs/03 `local-component`); capturing one across a
+lazy QRL boundary (e.g. inside an extracted branch arm) still fails at SSR serialization with a
+runtime error, exactly as the raw-function passthrough did before — lifting captured local
+components to `componentQrl`-backed chunks is the planned fix.
 
 | code                           | severity | fires when                                                                                                                          |
 | ------------------------------ | -------- | ----------------------------------------------------------------------------------------------------------------------------------- |

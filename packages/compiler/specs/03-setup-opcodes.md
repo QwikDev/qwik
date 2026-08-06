@@ -32,6 +32,16 @@ type SetupOp =
     }
   | { op: 'context-provider'; context: number; value: ValueIR } // useContextProvider
   | { op: 'context-read'; local: LocalId; context: number } // useContext
+  | {
+      op: 'local-component'; // setup-scope function component, compiled in place
+      name: string; // lexical name — component-op string targets resolve against these scopes
+      binding: LocalId;
+      props: // destructured prop keys → bindings, or the whole-props identifier binding
+        | { kind: 'object'; bindings: { b: LocalId; name: string }[] }
+        | { kind: 'identifier'; binding: LocalId }
+        | null;
+      render: PlanSsrRenderFn; // full nested block (setup + ops) — nests to any depth
+    }
   | { op: 'server-data'; local: LocalId; key: ValueIR; fallback: ValueIR | null } // useServerData
   | { op: 'style'; styleId: string; scoped: boolean } // useStyles(Scoped)$ — css in plan styles table
   | { op: 'use-on'; target: 'element' | 'document' | 'window'; event: string; qrl: QrlRef }

@@ -130,7 +130,13 @@ type PlanOp =
 
 type ComponentTarget =
   | { kind: 'ref'; ref: ComponentRef } // linked form
-  | { kind: 'import'; module: string; export: string }; // module-plan form only
+  | { kind: 'import'; module: string; export: string } // module-plan form only
+  | { kind: 'local'; name: string }; // lexical reference to a `local-component` setup op in scope
+
+// Local components (specs/03 `local-component` op) survive linking as string targets: the
+// linker resolves them against the lexical chain of local-component declarations before
+// module/import resolution, so they never appear in `unresolved`. Inline collection rows have
+// no chunk and therefore no segments-table entry; their blocks carry `paramBindings` instead.
 
 type PlanProp =
   | { kind: 'static'; name: string; value: string | number | boolean | null }

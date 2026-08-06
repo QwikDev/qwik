@@ -138,6 +138,8 @@ export interface SsrContentOperation {
   readonly kind: 'content-effect';
   readonly segment: SegmentReferencePlan;
   readonly root: boolean;
+  /** Source value; its `ir` is what native engines evaluate server-side. */
+  readonly value: ValuePlan | null;
 }
 
 export interface SsrComponentOperation {
@@ -526,7 +528,7 @@ class SsrPlanner {
             const reference = node.value.segment;
             const segment = this.segments.find((candidate) => candidate.id === reference.segmentId);
             if (segment?.initialOnly !== true) {
-              return { kind: 'content-effect', segment: reference, root: false };
+              return { kind: 'content-effect', segment: reference, root: false, value: node.value };
             }
           }
           return {

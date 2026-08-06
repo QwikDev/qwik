@@ -54,9 +54,19 @@ export function App() {
 }
 `;
 
+const METHOD_CALL_CONTENT = `
+export function App(props: { name: string }) {
+  return <p>{props.name.toUpperCase()}</p>;
+}
+`;
+
 describe('native target readiness', () => {
   test('fully lowerable component produces no diagnostics', async () => {
     expect(await compile(LOWERABLE, 'rust')).toEqual([]);
+  });
+
+  test('qwik: method calls lower in content position', async () => {
+    expect(await compile(METHOD_CALL_CONTENT, 'rust')).toEqual([]);
   });
 
   test('unlowerable expression errors only under a native target', async () => {

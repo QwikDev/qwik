@@ -108,7 +108,12 @@ export type PlanSsrOp =
         | { readonly kind: 'range'; readonly id: number | null; readonly marker: number }
         | null;
     }
-  | { readonly o: SsrOpKind.Content; readonly segment: string; readonly root: boolean }
+  | {
+      readonly o: SsrOpKind.Content;
+      readonly segment: string;
+      readonly root: boolean;
+      readonly value?: PlanValue;
+    }
   | {
       readonly o: SsrOpKind.Component;
       /** Module plans carry the tag source; the linker resolves to `{ ref }`. */
@@ -307,7 +312,12 @@ export function emitSsrOpPlan(
                   },
         };
       case 'content-effect':
-        return { o: SsrOpKind.Content, segment: operation.segment.segmentId, root: operation.root };
+        return {
+          o: SsrOpKind.Content,
+          segment: operation.segment.segmentId,
+          root: operation.root,
+          ...(operation.value === null ? {} : { value: planValue(operation.value) }),
+        };
       case 'component':
         return {
           o: SsrOpKind.Component,

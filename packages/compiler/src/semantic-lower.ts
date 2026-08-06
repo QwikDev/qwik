@@ -1390,6 +1390,7 @@ class SemanticLowerer {
         kind: 'segment',
         expression: range,
         segment: this.createSyntheticValueSegment(expression, lifetimeId),
+        ...this.valueIr(expression),
       };
     }
     return {

@@ -225,7 +225,20 @@
                                     {
                                       "o": "content",
                                       "segment": "semantic_expression_497_515",
-                                      "root": false
+                                      "root": false,
+                                      "value": {
+                                        "src": "item.toUpperCase()",
+                                        "ir": {
+                                          "k": "call",
+                                          "fn": "qwik:string.toUpperCase",
+                                          "recv": {
+                                            "k": "binding-read",
+                                            "binding": 7
+                                          },
+                                          "args": []
+                                        },
+                                        "segment": "semantic_expression_497_515"
+                                      }
                                     }
                                   ]
                                 }
@@ -487,6 +500,15 @@
                                   "output": "content",
                                   "value": {
                                     "src": "item.toUpperCase()",
+                                    "ir": {
+                                      "k": "call",
+                                      "fn": "qwik:string.toUpperCase",
+                                      "recv": {
+                                        "k": "binding-read",
+                                        "binding": 7
+                                      },
+                                      "args": []
+                                    },
                                     "segment": "semantic_expression_497_515"
                                   }
                                 }

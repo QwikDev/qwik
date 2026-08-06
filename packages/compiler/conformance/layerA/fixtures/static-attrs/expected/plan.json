@@ -1,0 +1,189 @@
+{
+  "format": "qwik/ssr-plan",
+  "version": 0,
+  "entry": 0,
+  "components": [
+    {
+      "name": "App",
+      "module": 0,
+      "propsBindings": [],
+      "ssr": {
+        "setup": [],
+        "directSegmentIds": [],
+        "usedSegmentIds": [],
+        "ops": [
+          {
+            "o": "el",
+            "tag": "form",
+            "id": null,
+            "void": false,
+            "styleScopedId": null,
+            "targetUses": 0,
+            "props": [
+              {
+                "p": "static",
+                "name": "aria-hidden",
+                "value": false
+              },
+              {
+                "p": "static",
+                "name": "draggable",
+                "value": true
+              },
+              {
+                "p": "static",
+                "name": "spellcheck",
+                "value": false
+              }
+            ],
+            "propsEffect": null,
+            "children": [
+              {
+                "o": "el",
+                "tag": "input",
+                "id": null,
+                "void": true,
+                "styleScopedId": null,
+                "targetUses": 0,
+                "props": [
+                  {
+                    "p": "static",
+                    "name": "disabled",
+                    "value": true
+                  },
+                  {
+                    "p": "static",
+                    "name": "readOnly",
+                    "value": false
+                  },
+                  {
+                    "p": "static",
+                    "name": "aria-label",
+                    "value": "Name field"
+                  },
+                  {
+                    "p": "static",
+                    "name": "data-step",
+                    "value": 3
+                  }
+                ],
+                "propsEffect": null,
+                "children": []
+              },
+              {
+                "o": "el",
+                "tag": "textarea",
+                "id": null,
+                "void": false,
+                "styleScopedId": null,
+                "targetUses": 0,
+                "props": [
+                  {
+                    "p": "static",
+                    "name": "contentEditable",
+                    "value": "true"
+                  },
+                  {
+                    "p": "static",
+                    "name": "hidden",
+                    "value": false
+                  }
+                ],
+                "propsEffect": null,
+                "children": []
+              }
+            ]
+          }
+        ],
+        "synchronous": true,
+        "staticRoot": true,
+        "needsRootRange": false,
+        "needsId": false,
+        "idBase": "qApp-",
+        "flushTasks": false
+      },
+      "setup": [],
+      "render": [
+        {
+          "n": "el",
+          "tag": "form",
+          "props": [
+            {
+              "p": "static",
+              "name": "aria-hidden",
+              "value": false
+            },
+            {
+              "p": "static",
+              "name": "draggable",
+              "value": true
+            },
+            {
+              "p": "static",
+              "name": "spellcheck",
+              "value": false
+            }
+          ],
+          "children": [
+            {
+              "n": "el",
+              "tag": "input",
+              "props": [
+                {
+                  "p": "static",
+                  "name": "disabled",
+                  "value": true
+                },
+                {
+                  "p": "static",
+                  "name": "readOnly",
+                  "value": false
+                },
+                {
+                  "p": "static",
+                  "name": "aria-label",
+                  "value": "Name field"
+                },
+                {
+                  "p": "static",
+                  "name": "data-step",
+                  "value": 3
+                }
+              ],
+              "children": []
+            },
+            {
+              "n": "el",
+              "tag": "textarea",
+              "props": [
+                {
+                  "p": "static",
+                  "name": "contentEditable",
+                  "value": "true"
+                },
+                {
+                  "p": "static",
+                  "name": "hidden",
+                  "value": false
+                }
+              ],
+              "children": []
+            }
+          ]
+        }
+      ],
+      "needsId": false,
+      "idBase": "qApp-",
+      "styleScope": null,
+      "providesContext": false,
+      "hasCustomHook": false
+    }
+  ],
+  "modules": [
+    {
+      "path": "src/input.tsx",
+      "segments": []
+    }
+  ],
+  "unresolved": []
+}

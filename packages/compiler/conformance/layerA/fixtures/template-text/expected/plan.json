@@ -1,0 +1,139 @@
+{
+  "format": "qwik/ssr-plan",
+  "version": 0,
+  "entry": 0,
+  "components": [
+    {
+      "name": "App",
+      "module": 0,
+      "propsBindings": [],
+      "ssr": {
+        "setup": [
+          {
+            "op": "signal",
+            "local": 2,
+            "init": {
+              "k": "lit",
+              "v": "world"
+            }
+          }
+        ],
+        "directSegmentIds": [],
+        "usedSegmentIds": [
+          "segment_0"
+        ],
+        "ops": [
+          {
+            "o": "el",
+            "tag": "p",
+            "id": 0,
+            "void": false,
+            "styleScopedId": null,
+            "targetUses": 0,
+            "props": [],
+            "propsEffect": null,
+            "children": [
+              {
+                "o": "dyn",
+                "output": "text",
+                "value": {
+                  "src": "`Hello ${name.value}!`",
+                  "ir": {
+                    "k": "template",
+                    "parts": [
+                      "Hello ",
+                      {
+                        "k": "signal-read",
+                        "binding": 2
+                      },
+                      "!"
+                    ]
+                  },
+                  "segment": "segment_0"
+                },
+                "synchronous": false,
+                "target": {
+                  "kind": "element",
+                  "id": 0
+                }
+              }
+            ]
+          }
+        ],
+        "synchronous": false,
+        "staticRoot": false,
+        "needsRootRange": false,
+        "needsId": false,
+        "idBase": "qApp-",
+        "flushTasks": false
+      },
+      "setup": [
+        {
+          "op": "signal",
+          "local": 2,
+          "init": {
+            "k": "lit",
+            "v": "world"
+          }
+        }
+      ],
+      "render": [
+        {
+          "n": "el",
+          "tag": "p",
+          "props": [],
+          "children": [
+            {
+              "n": "dyn",
+              "output": "text",
+              "value": {
+                "src": "`Hello ${name.value}!`",
+                "ir": {
+                  "k": "template",
+                  "parts": [
+                    "Hello ",
+                    {
+                      "k": "signal-read",
+                      "binding": 2
+                    },
+                    "!"
+                  ]
+                },
+                "segment": "segment_0"
+              }
+            }
+          ]
+        }
+      ],
+      "needsId": false,
+      "idBase": "qApp-",
+      "styleScope": null,
+      "providesContext": false,
+      "hasCustomHook": false
+    }
+  ],
+  "modules": [
+    {
+      "path": "src/input.tsx",
+      "segments": [
+        {
+          "id": "segment_0",
+          "symbolName": "input_text_segment_0_3k1cvwun49quc",
+          "chunk": "./input.tsx_input_text_segment_0_3k1cvwun49quc",
+          "kind": "expression",
+          "resolved": true,
+          "qrl": null,
+          "captures": [
+            {
+              "binding": 2,
+              "name": "name",
+              "source": "local",
+              "access": "direct"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "unresolved": []
+}

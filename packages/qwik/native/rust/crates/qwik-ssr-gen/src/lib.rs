@@ -1293,6 +1293,23 @@ impl ComponentGenerator<'_> {
 				};
 				Ok(format!("qwik_ssr_rt::render::{helper}(&{left}, &{right})"))
 			}
+			"template" => {
+				let mut parts = String::new();
+				for part in ir["parts"].as_array().ok_or("template parts missing")? {
+					if let Some(text) = part.as_str() {
+						write!(parts, "qwik_ssr_rt::render::TemplatePart::Text({text:?}), ")
+							.unwrap();
+					} else {
+						let expression = self.ir_expression(part, tracked)?;
+						write!(
+							parts,
+							"qwik_ssr_rt::render::TemplatePart::Value({expression}), "
+						)
+						.unwrap();
+					}
+				}
+				Ok(format!("qwik_ssr_rt::render::js_template(&[{parts}])"))
+			}
 			"call" => {
 				let fn_id = ir["fn"].as_str().ok_or("call has no fn")?;
 				let recv = &ir["recv"];

@@ -627,6 +627,24 @@ pub fn tracked_signal_value(
 	signal_value(signal)
 }
 
+/// One segment of a template literal: raw text or an interpolated value.
+pub enum TemplatePart {
+	Text(&'static str),
+	Value(Rc<SerdesValue>),
+}
+
+/// Template literal interpolation: each hole goes through JS ToString.
+pub fn js_template(parts: &[TemplatePart]) -> Rc<SerdesValue> {
+	let mut output = String::new();
+	for part in parts {
+		match part {
+			TemplatePart::Text(text) => output.push_str(text),
+			TemplatePart::Value(value) => output.push_str(&js_string(value)),
+		}
+	}
+	Rc::new(SerdesValue::String(output))
+}
+
 /// JS `+` (specs/06): string operand → concatenation, else numeric addition.
 pub fn js_add(left: &Rc<SerdesValue>, right: &Rc<SerdesValue>) -> Rc<SerdesValue> {
 	match (&**left, &**right) {

@@ -239,6 +239,14 @@ export async function buildInterpretedRoot(
           for (const prop of op.props as readonly PlanSsrProp[]) {
             if (prop.p === 'static') {
               const staticProp = prop as { name: string; value: unknown };
+              // aria-*/spellcheck/draggable/contenteditable stringify booleans (html-utils.ts)
+              const stringifiesBooleans =
+                staticProp.name.startsWith('aria-') ||
+                ['spellcheck', 'draggable', 'contenteditable'].includes(staticProp.name);
+              if (typeof staticProp.value === 'boolean' && stringifiesBooleans) {
+                open.push(` ${staticProp.name}="${staticProp.value}"`);
+                continue;
+              }
               if (staticProp.value === false || staticProp.value == null) {
                 continue;
               }

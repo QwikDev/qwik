@@ -15,6 +15,8 @@ const READY_FIXTURES: &[&str] = &[
 	"slot-projection",
 	"branch-collection",
 	"suspense-inline",
+	"template-text",
+	"static-attrs",
 	"suspense-stream",
 ];
 

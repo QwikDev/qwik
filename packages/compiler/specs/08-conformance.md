@@ -45,6 +45,12 @@ defined in `corpora.ts` (`TaggedValue`) so native harnesses can reconstruct the 
 An engine must pass Layer 0 before any rendering work — these corpora exist so per-language
 rewrites cannot silently diverge on the three classically divergent areas.
 
+**Rust status** (`native/qwik-ssr-rs`, crate `qwik-ssr-rt`): `numbers`, `tofixed`,
+`json-bytes`, `escape`, and `coerce` pass byte-exact (`cargo test`). Number formatting uses
+`ryu-js` (ECMAScript Number::toString); `toFixed` is exact big-integer decimal expansion with
+the spec's ties-toward-larger-n rule; JSON bytes come from an own writer over the `Value`
+model (serde_json's bytes differ). `serdes` awaits the state serializer.
+
 ## Layer A — plan-in / bytes-out fixtures
 
 **Phase-0 scaffold implemented** at `packages/compiler/conformance/layerA/`: fixture dirs

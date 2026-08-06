@@ -66,7 +66,14 @@ The native engine does NOT:
 - resolve or bundle chunks beyond the manifest `hash → chunk` lookup;
 - implement `routeLoader$`/`routeAction$`/middleware bodies (host territory, see
   [09](./09-compiler-plugins.md));
-- render CSR or produce client JS of any kind.
+- render CSR or produce client JS of any kind;
+- implement reactivity. SSR is single-pass: signals/stores/computeds are a **data model**
+  (current value, tracked reads, subscriber records for serialization, one-shot computed
+  caching) — invalidation, propagation, and effect scheduling exist only in the browser
+  client. Proven by the Rust runtime passing Layer A with exactly this model. Consequence:
+  the eventual JS _server_ runtime needs the same lean model, not the client core — the
+  Phase-8 end state where the JS backend is just another engine sheds the client's reactive
+  machinery from server bundles entirely.
 
 ## Independent implementations
 

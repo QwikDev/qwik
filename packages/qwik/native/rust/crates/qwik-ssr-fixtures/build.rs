@@ -5,7 +5,13 @@
 use std::fmt::Write as _;
 use std::path::PathBuf;
 
-const READY_FIXTURES: &[&str] = &["static-page", "signal-counter", "mixed-text"];
+const READY_FIXTURES: &[&str] = &[
+	"static-page",
+	"signal-counter",
+	"mixed-text",
+	"child-props",
+	"multi-module",
+];
 
 fn main() {
 	let repo_root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../../../../..");
@@ -41,12 +47,16 @@ fn main() {
 		.expect("request is valid JSON");
 
 		let entry = plan["entry"].as_u64().expect("plan entry") as usize;
-		let entry_name = plan["components"][entry]["name"]
-			.as_str()
-			.expect("entry component name")
-			.to_lowercase();
-		let component_code = qwik_ssr_gen::generate_component(&plan, entry)
+		let entry_function = qwik_ssr_gen::render_function_name(&plan, entry)
 			.unwrap_or_else(|reason| panic!("fixture {name}: {reason}"));
+		let component_count = plan["components"].as_array().expect("components").len();
+		let mut component_code = String::new();
+		for index in 0..component_count {
+			component_code.push_str(
+				&qwik_ssr_gen::generate_component(&plan, index)
+					.unwrap_or_else(|reason| panic!("fixture {name}: {reason}")),
+			);
+		}
 
 		let module_name = name.replace('-', "_");
 		let container_tag = request["containerTagName"].as_str().unwrap_or("html");
@@ -70,7 +80,7 @@ fn main() {
                          }},\n            \
                          qwik_loader: crate::QWIK_LOADER.to_string(),\n        \
                      }},\n        \
-                     render_{entry_name},\n    \
+                     {entry_function},\n    \
                  )\n}}\n}}"
 		)
 		.unwrap();

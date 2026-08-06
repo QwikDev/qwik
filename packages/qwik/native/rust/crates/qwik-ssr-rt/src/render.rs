@@ -167,6 +167,41 @@ pub fn value_text(value: &SerdesValue) -> String {
 	}
 }
 
+/// Tracked member read on component props: sources yield the signal's value and record the
+/// tracked source (auto-track); statics read untracked. Missing keys read `undefined`.
+pub fn props_member(
+	props: &Rc<SerdesValue>,
+	name: &str,
+	tracked: &mut Vec<Rc<SerdesValue>>,
+) -> Rc<SerdesValue> {
+	match &**props {
+		SerdesValue::Props(value) => {
+			if let Some((_, source)) = value.sources.iter().find(|(key, _)| key == name) {
+				tracked.push(Rc::clone(source));
+				return signal_value(source);
+			}
+			match value.statics.iter().find(|(key, _)| key == name) {
+				Some((_, item)) => Rc::clone(item),
+				None => Rc::new(SerdesValue::Undefined),
+			}
+		}
+		SerdesValue::Object(entries) => match entries.iter().find(|(key, _)| key == name) {
+			Some((_, item)) => Rc::clone(item),
+			None => Rc::new(SerdesValue::Undefined),
+		},
+		other => panic!("props_member on {other:?} not supported yet"),
+	}
+}
+
+/// Tracked signal `.value` read (auto-track).
+pub fn tracked_signal_value(
+	signal: &Rc<SerdesValue>,
+	tracked: &mut Vec<Rc<SerdesValue>>,
+) -> Rc<SerdesValue> {
+	tracked.push(Rc::clone(signal));
+	signal_value(signal)
+}
+
 /// JS `+` (specs/06): string operand → concatenation, else numeric addition.
 pub fn js_add(left: &Rc<SerdesValue>, right: &Rc<SerdesValue>) -> Rc<SerdesValue> {
 	match (&**left, &**right) {

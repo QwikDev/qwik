@@ -28,6 +28,14 @@ pub enum SerdesValue {
 	Bytes(Vec<u8>),
 	Signal(RefCell<SignalState>),
 	Qrl(QrlValue),
+	Props(PropsValue),
+}
+
+/// Component props with reactive sources (`_props`): statics read directly, sources track.
+#[derive(Debug)]
+pub struct PropsValue {
+	pub statics: Vec<(String, Rc<SerdesValue>)>,
+	pub sources: Vec<(String, Rc<SerdesValue>)>,
 }
 
 #[derive(Debug)]
@@ -76,6 +84,7 @@ const TYPE_REGEX: u8 = 8;
 const TYPE_QRL: u8 = 9;
 const TYPE_BIGINT: u8 = 12;
 const TYPE_SIGNAL: u8 = 30;
+const TYPE_PROPS: u8 = 39;
 const TYPE_EFFECT_SUBSCRIPTION: u8 = 41;
 const TYPE_SET: u8 = 25;
 const TYPE_MAP: u8 = 26;
@@ -312,6 +321,26 @@ impl Serializer {
 				}
 				path.pop();
 				(TYPE_SIGNAL, Payload::Arr(pairs))
+			}
+			SerdesValue::Props(props) => {
+				let mut statics_pairs = Vec::new();
+				for (position, (key, item)) in props.statics.iter().enumerate() {
+					push_pair(&mut statics_pairs, write_object_key(key));
+					path.push(position * 2 + 1);
+					push_pair(&mut statics_pairs, self.write(item, current_root, path));
+					path.pop();
+				}
+				let mut sources_pairs = Vec::new();
+				for (position, (key, source)) in props.sources.iter().enumerate() {
+					push_pair(&mut sources_pairs, write_object_key(key));
+					path.push(position * 2 + 1);
+					push_pair(&mut sources_pairs, self.write(source, current_root, path));
+					path.pop();
+				}
+				let mut pairs = Vec::new();
+				push_pair(&mut pairs, (TYPE_ARRAY, Payload::Arr(statics_pairs)));
+				push_pair(&mut pairs, (TYPE_OBJECT, Payload::Arr(sources_pairs)));
+				(TYPE_PROPS, Payload::Arr(pairs))
 			}
 			// state form: `${chunkRootId}#${symbolRootId - chunkRootId}[#deltas]`, chunk and
 			// symbol strings appended to the root worklist; first delta rebased on symbolRootId

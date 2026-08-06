@@ -89,6 +89,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "qwik-ssr-fixtures"
+version = "0.0.0"
+dependencies = [
+ "qwik-ssr-gen",
+ "qwik-ssr-rt",
+ "serde_json",
+]
+
+[[package]]
+name = "qwik-ssr-gen"
+version = "0.0.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
 name = "qwik-ssr-rt"
 version = "0.0.0"
 dependencies = [

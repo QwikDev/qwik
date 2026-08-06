@@ -93,6 +93,12 @@ target's generator over ALL fixture plans once and compiles a single fixture-run
 it: `plan name + request.json` on stdin, length-framed output segments (shell, packets, end) on
 stdout. No FFI anywhere; any language qualifies by producing one binary.
 
+**Rust status**: the pipeline exists cargo-natively — `qwik-ssr-gen` generates render functions
+from linked plans, `qwik-ssr-fixtures/build.rs` is the run-generator-over-all-plans step (an
+explicit `READY_FIXTURES` allowlist, currently `static-page`), and its test byte-compares each
+rendered shell against `expected/shell.html`. The generator is fail-closed: any unsupported op,
+prop, or setup entry aborts the build with a named reason.
+
 ## Layer B — source-in cross-check (and golden generation)
 
 The harness compiles fixture TSX through `transformModules`, renders with the **emitted-JS

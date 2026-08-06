@@ -7,10 +7,14 @@ this workspace hosts the Rust one.
 ## Crates
 
 - `qwik-ssr-rt` — runtime core: the JS-semantics profile (number formatting, JSON bytes,
-  escaping, coercion, value model) and, next, the `qwik/state` serializer and output writer.
+  escaping, coercion, value model), the `qwik/state` serializer, and the container writer.
+- `qwik-ssr-gen` — the plan → Rust source generator. Fail-closed: unsupported plan constructs
+  abort generation with a named reason.
+- `qwik-ssr-fixtures` — Layer-A fixture runner: `build.rs` runs the generator over the linked
+  plans of the fixtures in its explicit `READY_FIXTURES` allowlist; tests byte-compare the
+  rendered shells against the JS engine's goldens. Growing the allowlist is the progress metric.
 
-Planned per spec 07: `qwik-ssr-std` (internal `qwik:` plugins) and `qwik-ssr-gen` (the plan →
-Rust source generator).
+Planned per spec 07: `qwik-ssr-std` (internal `qwik:` plugins).
 
 ## Verify
 

@@ -7,5 +7,6 @@ pub mod coerce;
 pub mod escape;
 pub mod json;
 pub mod number;
+pub mod render;
 pub mod serdes;
 pub mod value;

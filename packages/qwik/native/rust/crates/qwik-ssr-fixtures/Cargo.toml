@@ -1,0 +1,12 @@
+[package]
+name = "qwik-ssr-fixtures"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+qwik-ssr-rt = { path = "../qwik-ssr-rt" }
+
+[build-dependencies]
+qwik-ssr-gen = { path = "../qwik-ssr-gen" }
+serde_json = { version = "1", features = ["preserve_order"] }

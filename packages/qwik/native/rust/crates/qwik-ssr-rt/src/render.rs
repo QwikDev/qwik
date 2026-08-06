@@ -27,6 +27,13 @@ pub struct PageOptions {
 	pub container: ContainerOptions,
 	/// Exact minified qwikloader bytes (the JS engine embeds `dist/qwikloader.js`).
 	pub qwik_loader: String,
+	/// Out-of-order streaming (`renderToStream`) — suspense boundaries defer to packets.
+	pub streaming: bool,
+}
+
+/// `emitSuspenseRuntime` — the `_qwikS` client blob, byte-for-byte.
+fn suspense_runtime(instance_hash: &str) -> String {
+	format!("((w)=>{{w._qwikS=(s,i,u,o)=>w._qwikSP=Promise.resolve(w._qwikSP).then(async()=>{{const t=s.previousElementSibling,c=t.closest('[q\\\\:container]'),x=c&&c._ctx,z=n=>{{let p=n.parentElement;while(p&&!p.hasAttribute('q:container'))p=p.parentElement;return p===c}},h=async(r,m)=>{{if(r<0)return;const e=[...c.querySelectorAll('script[type=\"qwik/state\"]')].filter(z);for(let j=0;j<e.length;j++){{const b=+e[j].getAttribute('q:base'),l=+e[j].getAttribute('q:len');if(r>=b&&r<b+l){{const q=e[j].getAttribute('q:dispose');e[j].setAttribute('q:dispose',q?q+' '+r:''+r);break}}}}if(x)m?x.discardRoot(r):await x.disposeRoot(r)}},e=[...c.querySelectorAll('script[type=\"qwik/state\"][q\\\\:s=\"'+i+'\"]')].filter(z);if(x)x.registerStateScripts(e);await h(o,0);const k=document.createTreeWalker(c,128);let a,n,d=0;while(n=k.nextNode()){{if(!z(n))continue;const v=n.data;if(!a){{if(v==='d='+i)a=n}}else if(v.startsWith('d='))d++;else if(v==='/d'){{if(d)d--;else break}}}}if(!a||!n){{await h(u,1);t.remove();s.remove();return}}const r=document.createRange();r.setStartAfter(a);r.setEndBefore(n);r.deleteContents();r.insertNode(t.content);if(x&&u>=0)await x.prepareRoot(u);t.remove();s.remove()}});(w._qwikEv||(w._qwikEv=[])).push(0,\"{instance_hash}\")}})(window)")
 }
 
 pub struct SsrContext {
@@ -37,6 +44,17 @@ pub struct SsrContext {
 	/// Owner collectors: every effect created while a collector is open is appended to it
 	/// (branch ownerItems, per-row effect arrays).
 	owner_stack: Vec<Vec<Rc<SerdesValue>>>,
+	/// Out-of-order streaming mode (`renderToStream`); suspense boundaries defer.
+	pub streaming: bool,
+	deferred: Vec<DeferredBoundary>,
+}
+
+/// A deferred suspense boundary awaiting its post-shell template packet.
+struct DeferredBoundary {
+	boundary_id: u32,
+	content: String,
+	content_root: usize,
+	fallback_root: i64,
 }
 
 impl Default for SsrContext {
@@ -52,6 +70,8 @@ impl SsrContext {
 			next_id: 0,
 			event_names: Vec::new(),
 			owner_stack: Vec::new(),
+			streaming: false,
+			deferred: Vec::new(),
 		}
 	}
 
@@ -300,6 +320,7 @@ impl SsrContext {
 		deps: Vec<Rc<SerdesValue>>,
 		args: Vec<Rc<SerdesValue>>,
 		qrl: Rc<SerdesValue>,
+		context_arg: bool,
 	) -> Rc<SerdesValue> {
 		let dep_list = deps.clone();
 		self.attach_effect(
@@ -309,9 +330,57 @@ impl SsrContext {
 				deps,
 				args,
 				qrl,
-				context_arg: false,
+				context_arg,
 			}),
 		)
+	}
+
+	/// Suspense boundary: content renders eagerly; streaming wraps the fallback in nested
+	/// ranges and queues a template packet, in-order emits the content inline.
+	#[allow(clippy::too_many_arguments)]
+	pub fn suspense(
+		&mut self,
+		out: &mut String,
+		content_range: u32,
+		content: String,
+		content_qrl: Rc<SerdesValue>,
+		fallback_qrl: Option<Rc<SerdesValue>>,
+		render_fallback: impl FnOnce(&mut Self, &mut String),
+	) {
+		let content_effect =
+			self.create_content_effect(content_range, Vec::new(), Vec::new(), content_qrl, true);
+		let content_root = self.serializer.add_root(content_effect);
+		if !self.streaming {
+			out.push_str(&format!("<!d={content_range}>"));
+			out.push_str(&content);
+			out.push_str("<!/d>");
+			return;
+		}
+		let boundary_id = self.deferred.len() as u32;
+		let mut fallback_root = -1i64;
+		let mut fallback_output = String::new();
+		if let Some(fallback_qrl) = fallback_qrl {
+			let fallback_range = self.next_id();
+			render_fallback(self, &mut fallback_output);
+			let fallback_effect = self.create_content_effect(
+				fallback_range,
+				Vec::new(),
+				Vec::new(),
+				fallback_qrl,
+				true,
+			);
+			fallback_root = self.serializer.add_root(fallback_effect) as i64;
+			fallback_output = format!("<!d={fallback_range}>{fallback_output}<!/d>");
+		}
+		out.push_str(&format!("<!d={content_range}>"));
+		out.push_str(&fallback_output);
+		out.push_str("<!/d>");
+		self.deferred.push(DeferredBoundary {
+			boundary_id,
+			content,
+			content_root,
+			fallback_root,
+		});
 	}
 
 	/// Run a task body during setup: tracked reads become deps, the Task subscribes to them.
@@ -583,6 +652,7 @@ pub fn render_page(
 	root: impl FnOnce(&mut SsrContext, &mut String),
 ) -> String {
 	let mut ctx = SsrContext::new();
+	ctx.streaming = options.streaming;
 	let mut body = String::new();
 	root(&mut ctx, &mut body);
 
@@ -611,23 +681,41 @@ pub fn render_page(
 
 	let has_roots = ctx.serializer.root_count() > 0;
 	let has_events = !ctx.event_names.is_empty();
+	let has_deferred = !ctx.deferred.is_empty();
 	if has_roots {
 		output.push_str(&ctx.serializer.emit_state_scripts());
 	}
-	if has_events {
+	if has_events || has_deferred {
 		output.push_str("<script id=\"qwikloader\" async type=\"module\">");
 		output.push_str(&options.qwik_loader);
 		output.push_str("</script>");
-		output.push_str("<script>(window._qwikEv||(window._qwikEv=[])).push(");
-		for (position, event_name) in ctx.event_names.iter().enumerate() {
-			if position > 0 {
-				output.push(',');
+		if has_events {
+			output.push_str("<script>(window._qwikEv||(window._qwikEv=[])).push(");
+			for (position, event_name) in ctx.event_names.iter().enumerate() {
+				if position > 0 {
+					output.push(',');
+				}
+				output.push('"');
+				output.push_str(event_name);
+				output.push('"');
 			}
-			output.push('"');
-			output.push_str(event_name);
-			output.push('"');
+			output.push_str(")</script>");
 		}
-		output.push_str(")</script>");
+	}
+	if has_deferred {
+		output.push_str("<script>");
+		output.push_str(&suspense_runtime(&container.instance_hash));
+		output.push_str("</script>");
+		for boundary in &ctx.deferred {
+			output.push_str(&format!(
+				"<template q:s=\"{}\">{}</template><script>window._qwikS(document.currentScript,{},{},{})</script>",
+				boundary.boundary_id,
+				boundary.content,
+				boundary.boundary_id,
+				boundary.content_root,
+				boundary.fallback_root
+			));
+		}
 	}
 	output.push_str("</");
 	output.push_str(&container.tag);

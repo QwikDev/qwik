@@ -270,6 +270,8 @@ impl ComponentGenerator<'_> {
 				.unwrap();
 				Ok(())
 			}
+			// pure microtask timing (`await Promise.resolve()`) — nothing to do natively
+			"yield" => Ok(()),
 			op => Err(format!("setup op {op:?} not supported yet")),
 		}
 	}
@@ -289,6 +291,7 @@ impl ComponentGenerator<'_> {
 				"branch" => self.write_branch(op, target)?,
 				"collection" => self.write_collection(op, target)?,
 				"content" => self.write_content(op, target)?,
+				"suspense" => self.write_suspense(op, target)?,
 				kind => return Err(format!("op {kind:?} not supported yet")),
 			}
 		}
@@ -860,6 +863,72 @@ impl ComponentGenerator<'_> {
 		Ok(())
 	}
 
+	fn write_suspense(&mut self, op: &Json, target: &str) -> Result<(), String> {
+		if !op["inOrder"].is_null() {
+			return Err("inOrder suspense not supported yet".to_string());
+		}
+		if !op["delay"].is_null() {
+			return Err("suspense delay not supported yet".to_string());
+		}
+		let content_segment = op["content"]["segment"]
+			.as_str()
+			.ok_or("suspense content has no segment")?
+			.to_string();
+		let fallback_render = &op["fallbackRender"];
+		if !op["fallback"].is_null() && fallback_render.is_null() {
+			return Err("suspense fallback without a structural plan".to_string());
+		}
+		self.uses_ctx = true;
+		self.flush_statics(target);
+		let temp = self.next_temp();
+		let range = format!("suspense_range_{temp}");
+		let buffer = format!("suspense_content_{temp}");
+		writeln!(self.body, "    let {range} = ctx.next_id();").unwrap();
+		writeln!(self.body, "    let mut {buffer} = String::new();").unwrap();
+		self.write_render_fn_ops(&op["content"], &buffer)?;
+		let content_qrl = self.qrl_expression(&content_segment, true)?;
+		let (fallback_qrl, fallback_closure) = if fallback_render.is_null() {
+			("None".to_string(), "|_ctx, _out| {}".to_string())
+		} else {
+			let fallback_segment = fallback_render["segment"]
+				.as_str()
+				.ok_or("fallback render has no segment")?
+				.to_string();
+			let qrl = self.qrl_expression(&fallback_segment, true)?;
+			let saved_body = std::mem::take(&mut self.body);
+			let saved_statics = std::mem::take(&mut self.statics);
+			let saved_elements = std::mem::take(&mut self.element_ids);
+			let result = self.write_ops(
+				&fallback_render["ops"]
+					.as_array()
+					.ok_or("fallback render ops missing")?
+					.clone(),
+				"out",
+			);
+			self.flush_statics("out");
+			let closure_body = self.body.clone();
+			self.body = saved_body;
+			self.statics = saved_statics;
+			self.element_ids = saved_elements;
+			result?;
+			(
+				format!("Some({qrl})"),
+				format!("|#[allow(unused_variables)] ctx: &mut qwik_ssr_rt::render::SsrContext, out: &mut String| {{\n{closure_body}    }}"),
+			)
+		};
+		let out_argument = if target == "out" {
+			"out".to_string()
+		} else {
+			format!("&mut {target}")
+		};
+		writeln!(
+			self.body,
+			"    ctx.suspense({out_argument}, {range}, {buffer}, {content_qrl}, {fallback_qrl}, {fallback_closure});"
+		)
+		.unwrap();
+		Ok(())
+	}
+
 	fn write_content(&mut self, op: &Json, target: &str) -> Result<(), String> {
 		let segment_id = op["segment"].as_str().ok_or("content op has no segment")?;
 		let ir = &op["value"]["ir"];
@@ -898,7 +967,7 @@ impl ComponentGenerator<'_> {
 			self.body,
 			"    let mut {tracked}: Vec<std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>> = Vec::new();\n    \
 			 let content_value_{temp} = {expression};\n    \
-			 ctx.create_content_effect({range}, {tracked}, vec![{args}], {qrl});\n    \
+			 ctx.create_content_effect({range}, {tracked}, vec![{args}], {qrl}, false);\n    \
 			 {target}.push_str(&qwik_ssr_rt::render::escape_ssr_content(&content_value_{temp}));"
 		)
 		.unwrap();

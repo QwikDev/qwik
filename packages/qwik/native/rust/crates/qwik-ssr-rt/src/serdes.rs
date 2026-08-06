@@ -776,7 +776,14 @@ impl Serializer {
 				plain!(7u8);
 				plain!(content.range_id);
 				list!(&content.deps);
-				list!(&content.args);
+				// args are a literal array in the emitted code — never the EMPTY_ARRAY flyweight
+				{
+					path.push(logical);
+					let pair = self.write_value_list(&content.args, current_root, path);
+					path.pop();
+					push_pair(&mut pairs, pair);
+					logical += 1;
+				}
 				child!(&content.qrl);
 				constant!(CONST_EMPTY_ARRAY); // ownerItems
 				constant!(CONST_NULL); // slotScope

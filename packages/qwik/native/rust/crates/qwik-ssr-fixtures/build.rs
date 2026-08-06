@@ -14,6 +14,8 @@ const READY_FIXTURES: &[&str] = &[
 	"store-bind",
 	"slot-projection",
 	"branch-collection",
+	"suspense-inline",
+	"suspense-stream",
 ];
 
 fn main() {
@@ -64,6 +66,7 @@ fn main() {
 		let module_name = name.replace('-', "_");
 		let container_tag = request["containerTagName"].as_str().unwrap_or("html");
 		let instance_hash = request["instanceHash"].as_str().expect("instanceHash");
+		let streaming = request["stream"].as_bool() == Some(true);
 		// non-request values mirror the JS conformance harness: dev renderToString defaults
 		// with the build-stamped q:version normalized to "conformance"
 		writeln!(
@@ -81,7 +84,8 @@ fn main() {
                              manifest_hash: String::new(),\n                \
                              instance_hash: {instance_hash:?}.to_string(),\n            \
                          }},\n            \
-                         qwik_loader: crate::QWIK_LOADER.to_string(),\n        \
+                         qwik_loader: crate::QWIK_LOADER.to_string(),\n            \
+                         streaming: {streaming},\n        \
                      }},\n        \
                      {entry_function},\n    \
                  )\n}}\n}}"

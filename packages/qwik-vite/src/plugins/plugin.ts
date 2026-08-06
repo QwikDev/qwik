@@ -1,5 +1,6 @@
 import type { DevEnvironment, HotUpdateOptions, Plugin, Rollup, ViteDevServer } from 'vite';
 import { transformModules as transformCompilerModules } from '@qwik.dev/compiler';
+import { createSsrPlanCollector } from './ssr-plan';
 import { hashCode } from '../../../qwik/src/core/shared/utils/hash_code';
 import { generateManifestFromBundles, getValidManifest } from '../manifest';
 import type {
@@ -94,6 +95,8 @@ export enum ExperimentalFeatures {
   insights = 'insights',
   /** Enable the `blockSSR: false` route loader option */
   blockSSR = 'blockSSR',
+  /** Emit and link the native SSR plan (`q-ssr-plan.json`) during SSR builds */
+  ssrPlan = 'ssrPlan',
 }
 
 export interface QwikPackages {
@@ -1056,6 +1059,9 @@ export function createQwikPlugin(
         transformOpts.regCtxName = REG_CTX_NAME;
       }
 
+      if (isServer && opts.experimental?.[ExperimentalFeatures.ssrPlan]) {
+        (transformOpts as { emitPlan?: boolean }).emitPlan = true;
+      }
       const now = Date.now();
       const resumeTransform = await testResume?.transform(
         transformOpts,
@@ -1065,6 +1071,10 @@ export function createQwikPlugin(
         normalizePath
       );
       const newOutput = resumeTransform?.output ?? (await transformCompilerModules(transformOpts));
+      if (isServer && opts.experimental?.[ExperimentalFeatures.ssrPlan]) {
+        // module plans are build metadata, never rollup modules
+        newOutput.modules = ssrPlanCollector.collect(newOutput.modules);
+      }
       debug(`transform(${count})`, `done in ${Date.now() - now}ms`);
       if (devPath) {
         const resolveWorkerChunkPath = createDevWorkerQrlChunkResolver(devPath);
@@ -1247,6 +1257,8 @@ export function createQwikPlugin(
   };
 
   const getOptions = () => opts;
+  const ssrPlanCollector = createSsrPlanCollector();
+  const getSsrPlanCollector = () => ssrPlanCollector;
 
   const getTransformedOutputs = () => {
     return Array.from(clientTransformedOutputs.values()).map((t) => {
@@ -1475,6 +1487,7 @@ export const isDev = ${JSON.stringify(isDev)};
     getPath,
     getSys,
     getTransformedOutputs,
+    getSsrPlanCollector,
     init,
     load,
     debug,

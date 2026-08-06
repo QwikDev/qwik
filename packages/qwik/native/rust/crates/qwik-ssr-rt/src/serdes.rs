@@ -4,6 +4,7 @@
 
 use crate::number::to_js_string;
 use crate::value::array_index_of;
+use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
@@ -25,7 +26,38 @@ pub enum SerdesValue {
 	Map(Vec<(Rc<SerdesValue>, Rc<SerdesValue>)>),
 	Set(Vec<Rc<SerdesValue>>),
 	Bytes(Vec<u8>),
+	Signal(RefCell<SignalState>),
+	Qrl(QrlValue),
 }
+
+#[derive(Debug)]
+pub struct SignalState {
+	pub value: Rc<SerdesValue>,
+	pub subs: Vec<EffectSubscription>,
+}
+
+#[derive(Debug)]
+pub struct QrlValue {
+	/// Chunk specifier with any `./` prefix already stripped.
+	pub chunk: String,
+	pub symbol: String,
+	pub captures: Vec<Rc<SerdesValue>>,
+}
+
+/// Scalar-shaped effect subscription (specs/04 sub-table, kinds 0/1/2/4/8).
+#[derive(Debug)]
+pub struct EffectSubscription {
+	pub kind: u8,
+	pub target_kind: u8,
+	pub target_id: u32,
+	/// Present only when `target_kind` is RangeText — shifts later fields by one.
+	pub marker_index: Option<u32>,
+	pub deps: Vec<Rc<SerdesValue>>,
+}
+
+pub const EFFECT_KIND_TEXT_NODE: u8 = 0;
+pub const EFFECT_TARGET_ELEMENT_TEXT: u8 = 0;
+pub const EFFECT_TARGET_RANGE_TEXT: u8 = 1;
 
 // TypeIds (serdes/type-id.ts) — only the ids this serializer emits.
 const TYPE_PLAIN: u8 = 0;
@@ -36,7 +68,10 @@ const TYPE_OBJECT: u8 = 5;
 const TYPE_URL: u8 = 6;
 const TYPE_DATE: u8 = 7;
 const TYPE_REGEX: u8 = 8;
+const TYPE_QRL: u8 = 9;
 const TYPE_BIGINT: u8 = 12;
+const TYPE_SIGNAL: u8 = 30;
+const TYPE_EFFECT_SUBSCRIPTION: u8 = 41;
 const TYPE_SET: u8 = 25;
 const TYPE_MAP: u8 = 26;
 const TYPE_UINT8ARRAY: u8 = 27;
@@ -142,6 +177,10 @@ impl Serializer {
 			index: HashMap::new(),
 			seen_paths: HashMap::new(),
 		}
+	}
+
+	pub fn root_count(&self) -> usize {
+		self.roots.len()
 	}
 
 	/// Register a root; identical values (SameValueZero) reuse the existing root id.
@@ -256,7 +295,69 @@ impl Serializer {
 				(TYPE_SET, Payload::Arr(pairs))
 			}
 			SerdesValue::Bytes(bytes) => (TYPE_UINT8ARRAY, Payload::Str(base64_no_pad(bytes))),
+			SerdesValue::Signal(state) => {
+				let state = state.borrow();
+				let mut pairs = Vec::new();
+				path.push(0);
+				push_pair(&mut pairs, self.write(&state.value, current_root, path));
+				for (position, subscription) in state.subs.iter().enumerate() {
+					*path.last_mut().unwrap() = position + 1;
+					let payload = self.write_subscription(subscription, current_root, path);
+					push_pair(&mut pairs, (TYPE_EFFECT_SUBSCRIPTION, payload));
+				}
+				path.pop();
+				(TYPE_SIGNAL, Payload::Arr(pairs))
+			}
+			// state form: `${chunkRootId}#${symbolRootId - chunkRootId}[#deltas]`, chunk and
+			// symbol strings appended to the root worklist; first delta rebased on symbolRootId
+			SerdesValue::Qrl(qrl) => {
+				let chunk_id =
+					self.add_root(Rc::new(SerdesValue::String(qrl.chunk.clone()))) as i64;
+				let symbol_id =
+					self.add_root(Rc::new(SerdesValue::String(qrl.symbol.clone()))) as i64;
+				let mut encoded = format!("{chunk_id}#{}", symbol_id - chunk_id);
+				let mut previous = symbol_id;
+				for (position, capture) in qrl.captures.iter().enumerate() {
+					let capture_id = self.add_root(Rc::clone(capture)) as i64;
+					encoded.push(if position == 0 { '#' } else { ' ' });
+					encoded.push_str(&(capture_id - previous).to_string());
+					previous = capture_id;
+				}
+				(TYPE_QRL, Payload::Str(encoded))
+			}
 		}
+	}
+
+	fn write_subscription(
+		&mut self,
+		subscription: &EffectSubscription,
+		current_root: usize,
+		path: &mut Vec<usize>,
+	) -> Payload {
+		let mut pairs = Vec::new();
+		push_pair(
+			&mut pairs,
+			(TYPE_PLAIN, Payload::Num(subscription.kind as f64)),
+		);
+		push_pair(
+			&mut pairs,
+			(TYPE_PLAIN, Payload::Num(subscription.target_kind as f64)),
+		);
+		push_pair(
+			&mut pairs,
+			(TYPE_PLAIN, Payload::Num(subscription.target_id as f64)),
+		);
+		if let Some(marker_index) = subscription.marker_index {
+			push_pair(&mut pairs, (TYPE_PLAIN, Payload::Num(marker_index as f64)));
+		}
+		let mut dep_pairs = Vec::new();
+		for (position, dep) in subscription.deps.iter().enumerate() {
+			path.push(position);
+			push_pair(&mut dep_pairs, self.write(dep, current_root, path));
+			path.pop();
+		}
+		push_pair(&mut pairs, (TYPE_ARRAY, Payload::Arr(dep_pairs)));
+		Payload::Arr(pairs)
 	}
 
 	fn write_array(

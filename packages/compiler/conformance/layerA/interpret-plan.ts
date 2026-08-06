@@ -407,36 +407,35 @@ export async function buildInterpretedRoot(
                 throw new Error('dynamic prop on an untargeted element');
               }
               const irKind = dynamic.value.ir?.k;
-              const attr =
-                irKind === 'signal-read' || irKind === 'binding-read'
-                  ? invoke(invokeCtx, () => {
-                      const signal = localSignal(dynamic.value.ir, `attr ${dynamic.name}`);
-                      ctx.addRoot(signal);
-                      return renderSsrAttr(
-                        createSsrElementTarget(id),
-                        dynamic.name,
-                        signal as never
-                      );
-                    })
-                  : invoke(invokeCtx, () => {
-                      // expression attrs (class objects etc.) render via their segment
-                      const segmentId = dynamic.value.segment;
-                      if (segmentId === undefined) {
-                        throw new Error(`attr ${dynamic.name} has no expression segment`);
-                      }
-                      const captureValues = (captureLists.get(segmentId) ?? []).map((binding) =>
-                        locals.get(binding)
-                      );
-                      for (const captureValue of captureValues) {
-                        ctx.addRoot(captureValue);
-                      }
-                      return renderSsrAttrExpression(
-                        createSsrElementTarget(id),
-                        dynamic.name,
-                        captureValues as never,
-                        qrls.get(segmentId) as never
-                      );
-                    });
+              // binding reads with a segment are expression attrs (plain values, e.g. props)
+              const isSignalAttr =
+                irKind === 'signal-read' ||
+                (irKind === 'binding-read' && dynamic.value.segment === undefined);
+              const attr = isSignalAttr
+                ? invoke(invokeCtx, () => {
+                    const signal = localSignal(dynamic.value.ir, `attr ${dynamic.name}`);
+                    ctx.addRoot(signal);
+                    return renderSsrAttr(createSsrElementTarget(id), dynamic.name, signal as never);
+                  })
+                : invoke(invokeCtx, () => {
+                    // expression attrs (class objects etc.) render via their segment
+                    const segmentId = dynamic.value.segment;
+                    if (segmentId === undefined) {
+                      throw new Error(`attr ${dynamic.name} has no expression segment`);
+                    }
+                    const captureValues = (captureLists.get(segmentId) ?? []).map((binding) =>
+                      locals.get(binding)
+                    );
+                    for (const captureValue of captureValues) {
+                      ctx.addRoot(captureValue);
+                    }
+                    return renderSsrAttrExpression(
+                      createSsrElementTarget(id),
+                      dynamic.name,
+                      captureValues as never,
+                      qrls.get(segmentId) as never
+                    );
+                  });
               open.push(
                 attr === null
                   ? ''

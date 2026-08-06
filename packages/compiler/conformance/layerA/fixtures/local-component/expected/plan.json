@@ -545,22 +545,6 @@
           ]
         },
         {
-          "id": "segment_5",
-          "symbolName": "input_name_segment_5_hgnkoe8ys0r",
-          "chunk": "./input.tsx_input_name_segment_5_hgnkoe8ys0r",
-          "kind": "expression",
-          "resolved": false,
-          "qrl": null,
-          "captures": [
-            {
-              "binding": 8,
-              "name": "f",
-              "source": "loop",
-              "access": "direct"
-            }
-          ]
-        },
-        {
           "id": "local_component_193_284",
           "symbolName": "local_component_193_284_sgejdibpyok",
           "chunk": "./input.tsx_local_component_193_284_sgejdibpyok",

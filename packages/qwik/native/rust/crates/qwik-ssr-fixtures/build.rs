@@ -27,6 +27,8 @@ const READY_FIXTURES: &[&str] = &[
 	"class-object",
 	"local-component",
 	"local-component-captured",
+	"local-component-props",
+	"local-component-slots",
 ];
 
 fn main() {

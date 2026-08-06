@@ -592,7 +592,7 @@ export function transformModule(ctx: CompilerContext): TransformResult {
             code: JSON.stringify(
               emitModulePlan(
                 outputs,
-                allSegments,
+                segments,
                 ctx.input.code,
                 ctx.input.path,
                 componentReturnMode,

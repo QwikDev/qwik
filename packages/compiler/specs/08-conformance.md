@@ -102,7 +102,12 @@ suspense content/fallbacks, branch conditions, derived sources, and computed bod
 generate one symbol-named fn with a trailing `captures` slice rebound like the JS chunk's
 `_captures`; call sites invoke through the QRL value, and every component call collects into
 its own owner item like `createComponent`. Branch captures serialize the binding's QRL value.
-Still inline by design: static-collection rows (no QRL exists) and `forKey` expressions.
+Local components take slots (slot scope + projection closures through the same call machinery
+as module components) and whole-object identifier props (`member_read` on the props value).
+Still inline by design: static-collection rows (no QRL exists), `forKey` expressions, and slot
+projection closures. Attr routing rule both non-JS engines share: a `binding-read` attr value
+**with a segment** is an expression attr (plain value, no subscription unless a tracked read
+occurs); only segment-less reads are signal attrs.
 Also covered: slots, branches, collections with rows
 and index signals plus static direct-array collections, content effects via `qwik:` internal
 plugins, and suspense in both in-order and out-of-order modes (eager content render, fallback

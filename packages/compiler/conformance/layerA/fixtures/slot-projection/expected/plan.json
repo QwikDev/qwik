@@ -322,22 +322,6 @@
               "access": "direct"
             }
           ]
-        },
-        {
-          "id": "segment_2",
-          "symbolName": "input_text_segment_2_3k1cwowuxxuve",
-          "chunk": "./input.tsx_input_text_segment_2_3k1cwowuxxuve",
-          "kind": "expression",
-          "resolved": false,
-          "qrl": null,
-          "captures": [
-            {
-              "binding": 5,
-              "name": "count",
-              "source": "local",
-              "access": "direct"
-            }
-          ]
         }
       ],
       "contexts": [],

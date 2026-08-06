@@ -143,6 +143,8 @@ struct ComponentGenerator<'plan> {
 	/// Local components currently expanding inline (recursion guard).
 	/// Standalone fns for local components declared in this scope (QRL invocation convention).
 	pending_segment_fns: Vec<String>,
+	/// Generated segment fns that render slots and take the slots-table parameter.
+	segment_fn_takes_slots: HashMap<String, bool>,
 	/// Plan element id → generated runtime-id variable name.
 	element_ids: HashMap<u64, String>,
 	temp_counter: usize,
@@ -171,6 +173,7 @@ pub fn generate_defs(plan: &Json, module_index: usize) -> Result<String, String>
 			provided_contexts: Vec::new(),
 			local_components: HashMap::new(),
 			pending_segment_fns: Vec::new(),
+			segment_fn_takes_slots: HashMap::new(),
 			element_ids: HashMap::new(),
 			temp_counter: 0,
 			uses_ctx: false,
@@ -234,6 +237,7 @@ pub fn generate_component(plan: &Json, component_index: usize) -> Result<String,
 		provided_contexts: Vec::new(),
 		local_components: HashMap::new(),
 		pending_segment_fns: Vec::new(),
+		segment_fn_takes_slots: HashMap::new(),
 		element_ids: HashMap::new(),
 		temp_counter: 0,
 		uses_ctx: false,
@@ -732,7 +736,11 @@ impl ComponentGenerator<'_> {
 		let ir = &prop["value"]["ir"];
 		self.uses_ctx = true;
 		self.flush_statics(target);
-		if matches!(ir["k"].as_str(), Some("binding-read") | Some("signal-read")) {
+		// binding reads with a segment are expression attrs (plain values, e.g. props)
+		let is_signal_attr = matches!(ir["k"].as_str(), Some("signal-read"))
+			|| (matches!(ir["k"].as_str(), Some("binding-read"))
+				&& prop["value"]["segment"].is_null());
+		if is_signal_attr {
 			let signal = self.signal_local(ir)?;
 			writeln!(
 				self.body,
@@ -1012,17 +1020,6 @@ impl ComponentGenerator<'_> {
 		if !op["propsSource"].is_null() {
 			return Err("local component propsSource not supported yet".to_string());
 		}
-		if !op["slots"]
-			.as_array()
-			.ok_or("component slots missing")?
-			.is_empty()
-		{
-			return Err("local component slots not supported yet".to_string());
-		}
-		let props_plan = &entry["props"];
-		if !props_plan.is_null() && props_plan["kind"].as_str() != Some("object") {
-			return Err("identifier props on local components not supported yet".to_string());
-		}
 		self.flush_statics(target);
 		self.uses_ctx = true;
 		let binding = entry["binding"]
@@ -1031,10 +1028,77 @@ impl ComponentGenerator<'_> {
 		let segment_id = entry["segment"]
 			.as_str()
 			.ok_or("local component has no segment")?;
-		let symbol = self.segment(segment_id)?["symbolName"]
-			.as_str()
-			.ok_or("segment has no symbol")?
-			.to_string();
+		let symbol = rust_fn_name(
+			self.segment(segment_id)?["symbolName"]
+				.as_str()
+				.ok_or("segment has no symbol")?,
+		);
+		let takes_slots = *self
+			.segment_fn_takes_slots
+			.get(&symbol)
+			.ok_or_else(|| format!("local component fn {symbol:?} not generated"))?;
+		// slot scope + projections mirror write_component; closures render the projected children
+		let slots = op["slots"].as_array().ok_or("component slots missing")?;
+		if !slots.is_empty() && !takes_slots {
+			return Err("slots passed to a local component without slot ops".to_string());
+		}
+		let mut slot_closures: Vec<(String, String)> = Vec::new();
+		if !slots.is_empty() {
+			let scope_variable = format!("slot_scope_{}", self.next_temp());
+			let mut projection_entries = String::new();
+			for slot in slots {
+				if !slot["idBase"].is_null() {
+					return Err("slot idBase not supported yet".to_string());
+				}
+				let slot_name = slot["name"].as_str().ok_or("slot has no name")?;
+				let projection_segment = slot["render"]["segment"]
+					.as_str()
+					.ok_or("slot render without a segment")?;
+				let render_qrl = self.qrl_expression(projection_segment, true)?;
+				write!(
+					projection_entries,
+					"({slot_name:?}.to_string(), vec![std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Projection(qwik_ssr_rt::serdes::ProjectionValue {{ render_qrl: {render_qrl}, slot_scope: None, id_base: String::new() }}))]), "
+				)
+				.unwrap();
+			}
+			writeln!(
+				self.body,
+				"    let {scope_variable} = std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::SlotScope(\n        std::cell::RefCell::new(qwik_ssr_rt::serdes::SlotScopeState {{ projections: vec![{projection_entries}] }}),\n    ));\n    \
+				 ctx.serializer.add_root(std::rc::Rc::clone(&{scope_variable}));"
+			)
+			.unwrap();
+			for slot in slots {
+				let projection_segment = slot["render"]["segment"].as_str().unwrap();
+				for capture in self.segment_captures(projection_segment)? {
+					writeln!(
+						self.body,
+						"    ctx.serializer.add_root(std::rc::Rc::clone(&{capture}));"
+					)
+					.unwrap();
+				}
+				let slot_name = slot["name"].as_str().unwrap().to_string();
+				let ops = slot["render"]["ops"]
+					.as_array()
+					.ok_or("slot render ops missing")?
+					.clone();
+				let closure_body = self.render_fn_body(&ops)?;
+				slot_closures.push((slot_name, closure_body));
+			}
+		}
+		let mut slots_argument = String::new();
+		if takes_slots {
+			let mut table = String::new();
+			for (slot_name, closure_body) in &slot_closures {
+				let closure_variable = format!("slot_fn_{}", self.next_temp());
+				writeln!(
+					self.body,
+					"    let mut {closure_variable} = |ctx: &mut qwik_ssr_rt::render::SsrContext, out: &mut String| {{\n{closure_body}    }};"
+				)
+				.unwrap();
+				write!(table, "({slot_name:?}, &mut {closure_variable} as &mut dyn FnMut(&mut qwik_ssr_rt::render::SsrContext, &mut String)), ").unwrap();
+			}
+			slots_argument = format!(", &mut [{table}]");
+		}
 		// the props object mirrors the emitted literal: values evaluate here, reads stay plain
 		let mut entries = String::new();
 		for prop in op["props"].as_array().ok_or("component props missing")? {
@@ -1068,7 +1132,7 @@ impl ComponentGenerator<'_> {
 			self.body,
 			"    let props_{temp} = std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Object(vec![{entries}]));\n    \
 			 ctx.push_component_owner();\n    \
-			 {symbol}(ctx, {target_argument}, &props_{temp}, qwik_ssr_rt::render::qrl_captures(&{qrl_local}));\n    \
+			 {symbol}(ctx, {target_argument}, &props_{temp}{slots_argument}, qwik_ssr_rt::render::qrl_captures(&{qrl_local}));\n    \
 			 ctx.pop_component_owner();"
 		)
 		.unwrap();
@@ -1083,9 +1147,6 @@ impl ComponentGenerator<'_> {
 			.ok_or("local component has no segment")?
 			.to_string();
 		let props_plan = &entry["props"];
-		if !props_plan.is_null() && props_plan["kind"].as_str() != Some("object") {
-			return Err("identifier props on local components not supported yet".to_string());
-		}
 		self.generate_segment_fn(
 			&segment_id,
 			&entry["render"].clone(),
@@ -1121,6 +1182,7 @@ impl ComponentGenerator<'_> {
 			provided_contexts: Vec::new(),
 			local_components: self.local_components.clone(),
 			pending_segment_fns: Vec::new(),
+			segment_fn_takes_slots: self.segment_fn_takes_slots.clone(),
 			element_ids: HashMap::new(),
 			temp_counter: 0,
 			uses_ctx: false,
@@ -1149,6 +1211,19 @@ impl ComponentGenerator<'_> {
 			}
 		}
 		if let SegmentFnKind::LocalComponent(props_plan) = &kind {
+			if props_plan["kind"].as_str() == Some("identifier") {
+				// whole-object form: the binding is the props value itself
+				let binding = props_plan["binding"]
+					.as_u64()
+					.ok_or("identifier props without a binding")?;
+				writeln!(
+					child.body,
+					"    let props_local = std::rc::Rc::clone(props);"
+				)
+				.unwrap();
+				child.locals.insert(binding, "props_local".to_string());
+				child.local_kinds.insert(binding, LocalKind::PlainValue);
+			}
 			if let Some(bindings) = props_plan["bindings"].as_array() {
 				for binding_entry in bindings {
 					let binding = binding_entry["b"]
@@ -1223,9 +1298,19 @@ impl ComponentGenerator<'_> {
 		}
 		let body = child.body;
 		self.pending_segment_fns.extend(child.pending_segment_fns);
+		if child.uses_slots && !matches!(kind, SegmentFnKind::LocalComponent(_)) {
+			return Err("slots outside a local component body not supported yet".to_string());
+		}
+		let slots_param = if child.uses_slots {
+			", slots: &mut [(&str, &mut dyn FnMut(&mut qwik_ssr_rt::render::SsrContext, &mut String))]"
+		} else {
+			""
+		};
+		self.segment_fn_takes_slots
+			.insert(symbol.clone(), child.uses_slots);
 		let head = match &kind {
 			SegmentFnKind::LocalComponent(_) => format!(
-				"fn {symbol}(ctx: &mut qwik_ssr_rt::render::SsrContext, out: &mut String, props: &std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>, captures: &[std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>])"
+				"fn {symbol}(ctx: &mut qwik_ssr_rt::render::SsrContext, out: &mut String, props: &std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>{slots_param}, captures: &[std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>])"
 			),
 			SegmentFnKind::BranchArm => format!(
 				"fn {symbol}(ctx: &mut qwik_ssr_rt::render::SsrContext, out: &mut String, captures: &[std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>])"
@@ -1270,6 +1355,7 @@ impl ComponentGenerator<'_> {
 			provided_contexts: Vec::new(),
 			local_components: self.local_components.clone(),
 			pending_segment_fns: Vec::new(),
+			segment_fn_takes_slots: self.segment_fn_takes_slots.clone(),
 			element_ids: HashMap::new(),
 			temp_counter: 0,
 			uses_ctx: false,

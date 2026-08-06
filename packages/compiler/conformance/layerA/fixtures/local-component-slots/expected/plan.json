@@ -1,0 +1,260 @@
+{
+  "format": "qwik/ssr-plan",
+  "version": 0,
+  "entry": 0,
+  "components": [
+    {
+      "name": "App",
+      "module": 0,
+      "propsBindings": [],
+      "ssr": {
+        "setup": [
+          {
+            "op": "signal",
+            "local": 3,
+            "init": {
+              "k": "lit",
+              "v": "Hello"
+            }
+          },
+          {
+            "op": "local-component",
+            "name": "Card",
+            "binding": 4,
+            "segment": "local_component_110_197",
+            "props": {
+              "kind": "object",
+              "bindings": [
+                {
+                  "b": 5,
+                  "name": "kind"
+                }
+              ]
+            },
+            "render": {
+              "setup": [],
+              "ops": [
+                {
+                  "o": "el",
+                  "tag": "div",
+                  "id": 0,
+                  "void": false,
+                  "styleScopedId": null,
+                  "targetUses": 1,
+                  "props": [
+                    {
+                      "p": "dynamic",
+                      "name": "class",
+                      "value": {
+                        "src": "kind",
+                        "ir": {
+                          "k": "binding-read",
+                          "binding": 5
+                        },
+                        "segment": "segment_0"
+                      },
+                      "compilerString": false
+                    }
+                  ],
+                  "propsEffect": null,
+                  "children": [
+                    {
+                      "o": "slot",
+                      "name": "",
+                      "idBase": null,
+                      "fallback": null
+                    }
+                  ]
+                }
+              ],
+              "synchronous": false,
+              "needsRootRange": false
+            }
+          }
+        ],
+        "directSegmentIds": [],
+        "usedSegmentIds": [
+          "segment_1",
+          "segment_0",
+          "local_component_110_197"
+        ],
+        "ops": [
+          {
+            "o": "component",
+            "target": "Card",
+            "returnMode": "maybe-promise",
+            "props": [
+              {
+                "p": "static",
+                "name": "kind",
+                "value": "box"
+              }
+            ],
+            "propsSource": null,
+            "idBase": null,
+            "blockingSuspense": false,
+            "slots": [
+              {
+                "name": "",
+                "idBase": null,
+                "render": {
+                  "segment": "segment_1",
+                  "setup": [],
+                  "ops": [
+                    {
+                      "o": "el",
+                      "tag": "p",
+                      "id": 0,
+                      "void": false,
+                      "styleScopedId": null,
+                      "targetUses": 0,
+                      "props": [],
+                      "propsEffect": null,
+                      "children": [
+                        {
+                          "o": "dyn",
+                          "output": "text",
+                          "value": {
+                            "src": "title.value",
+                            "ir": {
+                              "k": "signal-read",
+                              "binding": 3
+                            }
+                          },
+                          "synchronous": false,
+                          "target": {
+                            "kind": "element",
+                            "id": 0
+                          }
+                        }
+                      ]
+                    }
+                  ],
+                  "synchronous": false,
+                  "needsRootRange": false
+                }
+              }
+            ]
+          }
+        ],
+        "synchronous": false,
+        "staticRoot": false,
+        "needsRootRange": false,
+        "needsId": false,
+        "idBase": "qApp-",
+        "flushTasks": false
+      },
+      "setup": [
+        {
+          "op": "signal",
+          "local": 3,
+          "init": {
+            "k": "lit",
+            "v": "Hello"
+          }
+        },
+        {
+          "op": "js",
+          "src": "function Card({ kind }) {\n\t\treturn <div class={kind}>\n        <Slot />\n      </div>;\n\t}"
+        }
+      ],
+      "render": [
+        {
+          "n": "component",
+          "target": 4,
+          "props": [
+            {
+              "p": "static",
+              "name": "kind",
+              "value": "box"
+            }
+          ],
+          "slots": [
+            {
+              "name": "",
+              "render": {
+                "setup": [],
+                "render": [
+                  {
+                    "n": "el",
+                    "tag": "p",
+                    "props": [],
+                    "children": [
+                      {
+                        "n": "dyn",
+                        "output": "text",
+                        "value": {
+                          "src": "title.value",
+                          "ir": {
+                            "k": "signal-read",
+                            "binding": 3
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "needsId": false,
+      "idBase": "qApp-",
+      "styleScope": null,
+      "providesContext": false,
+      "hasCustomHook": false
+    }
+  ],
+  "modules": [
+    {
+      "path": "src/input.tsx",
+      "segments": [
+        {
+          "id": "segment_0",
+          "symbolName": "input_class_segment_0_1bbn4mgjg897b",
+          "chunk": "./input.tsx_input_class_segment_0_1bbn4mgjg897b",
+          "kind": "expression",
+          "resolved": true,
+          "qrl": null,
+          "captures": [
+            {
+              "binding": 5,
+              "name": "kind",
+              "source": "param",
+              "access": "direct"
+            }
+          ]
+        },
+        {
+          "id": "segment_1",
+          "symbolName": "input_slot_render_segment_1_1eeg0bp4sno4p",
+          "chunk": "./input.tsx_input_slot_render_segment_1_1eeg0bp4sno4p",
+          "kind": "slotRender",
+          "resolved": true,
+          "qrl": null,
+          "captures": [
+            {
+              "binding": 3,
+              "name": "title",
+              "source": "local",
+              "access": "direct"
+            }
+          ]
+        },
+        {
+          "id": "local_component_110_197",
+          "symbolName": "local_component_110_197_33qgedkh5hp60",
+          "chunk": "./input.tsx_local_component_110_197_33qgedkh5hp60",
+          "kind": "localComponent",
+          "resolved": false,
+          "qrl": null,
+          "captures": []
+        }
+      ],
+      "contexts": [],
+      "defs": []
+    }
+  ],
+  "unresolved": []
+}

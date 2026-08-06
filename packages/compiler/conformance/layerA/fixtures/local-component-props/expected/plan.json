@@ -1,0 +1,260 @@
+{
+  "format": "qwik/ssr-plan",
+  "version": 0,
+  "entry": 0,
+  "components": [
+    {
+      "name": "App",
+      "module": 0,
+      "propsBindings": [],
+      "ssr": {
+        "setup": [
+          {
+            "op": "signal",
+            "local": 2,
+            "init": {
+              "k": "lit",
+              "v": 2
+            }
+          },
+          {
+            "op": "local-component",
+            "name": "Badge",
+            "binding": 3,
+            "segment": "local_component_98_212",
+            "props": {
+              "kind": "identifier",
+              "binding": 4
+            },
+            "render": {
+              "setup": [],
+              "ops": [
+                {
+                  "o": "el",
+                  "tag": "b",
+                  "id": 0,
+                  "void": false,
+                  "styleScopedId": null,
+                  "targetUses": 1,
+                  "props": [
+                    {
+                      "p": "dynamic",
+                      "name": "class",
+                      "value": {
+                        "src": "props.kind",
+                        "ir": {
+                          "k": "member",
+                          "obj": {
+                            "k": "binding-read",
+                            "binding": 4
+                          },
+                          "name": "kind"
+                        },
+                        "segment": "segment_0"
+                      },
+                      "compilerString": false
+                    }
+                  ],
+                  "propsEffect": null,
+                  "children": [
+                    {
+                      "o": "dyn",
+                      "output": "text",
+                      "value": {
+                        "src": "props.label",
+                        "ir": {
+                          "k": "member",
+                          "obj": {
+                            "k": "binding-read",
+                            "binding": 4
+                          },
+                          "name": "label"
+                        },
+                        "segment": "segment_1"
+                      },
+                      "synchronous": false,
+                      "target": {
+                        "kind": "range",
+                        "id": 0,
+                        "marker": 0
+                      }
+                    },
+                    {
+                      "o": "dyn",
+                      "output": "text",
+                      "value": {
+                        "src": "count.value",
+                        "ir": {
+                          "k": "signal-read",
+                          "binding": 2
+                        }
+                      },
+                      "synchronous": false,
+                      "target": {
+                        "kind": "range",
+                        "id": 0,
+                        "marker": 1
+                      }
+                    }
+                  ]
+                }
+              ],
+              "synchronous": false,
+              "needsRootRange": false
+            }
+          }
+        ],
+        "directSegmentIds": [],
+        "usedSegmentIds": [
+          "segment_0",
+          "segment_1",
+          "local_component_98_212"
+        ],
+        "ops": [
+          {
+            "o": "el",
+            "tag": "div",
+            "id": null,
+            "void": false,
+            "styleScopedId": null,
+            "targetUses": 0,
+            "props": [],
+            "propsEffect": null,
+            "children": [
+              {
+                "o": "component",
+                "target": "Badge",
+                "returnMode": "maybe-promise",
+                "props": [
+                  {
+                    "p": "static",
+                    "name": "label",
+                    "value": "hi"
+                  },
+                  {
+                    "p": "static",
+                    "name": "kind",
+                    "value": "tag"
+                  }
+                ],
+                "propsSource": null,
+                "idBase": null,
+                "blockingSuspense": false,
+                "slots": []
+              }
+            ]
+          }
+        ],
+        "synchronous": false,
+        "staticRoot": false,
+        "needsRootRange": false,
+        "needsId": false,
+        "idBase": "qApp-",
+        "flushTasks": false
+      },
+      "setup": [
+        {
+          "op": "signal",
+          "local": 2,
+          "init": {
+            "k": "lit",
+            "v": 2
+          }
+        },
+        {
+          "op": "js",
+          "src": "function Badge(props) {\n\t\treturn <b class={props.kind}>\n        {props.label}\n        {count.value}\n      </b>;\n\t}"
+        }
+      ],
+      "render": [
+        {
+          "n": "el",
+          "tag": "div",
+          "props": [],
+          "children": [
+            {
+              "n": "component",
+              "target": 3,
+              "props": [
+                {
+                  "p": "static",
+                  "name": "label",
+                  "value": "hi"
+                },
+                {
+                  "p": "static",
+                  "name": "kind",
+                  "value": "tag"
+                }
+              ],
+              "slots": []
+            }
+          ]
+        }
+      ],
+      "needsId": false,
+      "idBase": "qApp-",
+      "styleScope": null,
+      "providesContext": false,
+      "hasCustomHook": false
+    }
+  ],
+  "modules": [
+    {
+      "path": "src/input.tsx",
+      "segments": [
+        {
+          "id": "segment_0",
+          "symbolName": "input_class_segment_0_1bbn4mgjg897b",
+          "chunk": "./input.tsx_input_class_segment_0_1bbn4mgjg897b",
+          "kind": "expression",
+          "resolved": true,
+          "qrl": null,
+          "captures": [
+            {
+              "binding": 4,
+              "name": "props",
+              "source": "param",
+              "access": "direct"
+            }
+          ]
+        },
+        {
+          "id": "segment_1",
+          "symbolName": "input_text_segment_1_3k1cwavr13suv",
+          "chunk": "./input.tsx_input_text_segment_1_3k1cwavr13suv",
+          "kind": "expression",
+          "resolved": true,
+          "qrl": null,
+          "captures": [
+            {
+              "binding": 4,
+              "name": "props",
+              "source": "param",
+              "access": "direct"
+            }
+          ]
+        },
+        {
+          "id": "local_component_98_212",
+          "symbolName": "local_component_98_212_ujmaxe7vlws9",
+          "chunk": "./input.tsx_local_component_98_212_ujmaxe7vlws9",
+          "kind": "localComponent",
+          "resolved": false,
+          "qrl": null,
+          "captures": [
+            {
+              "binding": 2,
+              "name": "count",
+              "source": "local",
+              "access": "direct"
+            }
+          ]
+        }
+      ],
+      "contexts": [],
+      "defs": []
+    }
+  ],
+  "unresolved": []
+}

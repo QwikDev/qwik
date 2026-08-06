@@ -886,10 +886,32 @@ impl ComponentGenerator<'_> {
 		self.flush_statics(target);
 		self.uses_ctx = true;
 
+		// a sole spread passes the object through, like the emitted `createComponent(shared, …)`
+		let call_props = op["props"].as_array().ok_or("component props missing")?;
+		let spread_local = if call_props
+			.iter()
+			.any(|prop| prop["p"].as_str() == Some("spread"))
+		{
+			if call_props.len() != 1 {
+				return Err("spread props mixed with other props not supported yet".to_string());
+			}
+			let ir = &call_props[0]["value"]["ir"];
+			if ir["k"].as_str() != Some("binding-read") {
+				return Err(format!("spread props ir {ir} not supported yet"));
+			}
+			Some(self.local(ir["binding"].as_u64().ok_or("no binding")?)?)
+		} else {
+			None
+		};
 		let mut statics_entries = String::new();
 		let mut sources_entries = String::new();
 		let mut source_locals = Vec::new();
-		for prop in op["props"].as_array().ok_or("component props missing")? {
+		let no_props: Vec<Json> = Vec::new();
+		for prop in if spread_local.is_some() {
+			&no_props
+		} else {
+			call_props
+		} {
 			match prop["p"].as_str().ok_or("prop has no kind")? {
 				"static" => {
 					let name = prop["name"].as_str().ok_or("static prop has no name")?;
@@ -1008,7 +1030,13 @@ impl ComponentGenerator<'_> {
 			return Ok(());
 		}
 		let props_variable = format!("props_{}", self.next_temp());
-		if source_locals.is_empty() {
+		if let Some(spread) = &spread_local {
+			writeln!(
+				self.body,
+				"    let {props_variable} = std::rc::Rc::clone(&{spread});"
+			)
+			.unwrap();
+		} else if source_locals.is_empty() {
 			// static-only props pass as a bare object literal (no Props record)
 			writeln!(
 				self.body,
@@ -1128,10 +1156,31 @@ impl ComponentGenerator<'_> {
 		}
 		// props mirror the emitted literal: plain values inline; signal reads become sources
 		// (`_props(literal, sources)`), rooted like any component call's reactive props
+		let call_props = op["props"].as_array().ok_or("component props missing")?;
+		let spread_local = if call_props
+			.iter()
+			.any(|prop| prop["p"].as_str() == Some("spread"))
+		{
+			if call_props.len() != 1 {
+				return Err("spread props mixed with other props not supported yet".to_string());
+			}
+			let ir = &call_props[0]["value"]["ir"];
+			if ir["k"].as_str() != Some("binding-read") {
+				return Err(format!("spread props ir {ir} not supported yet"));
+			}
+			Some(self.local(ir["binding"].as_u64().ok_or("no binding")?)?)
+		} else {
+			None
+		};
 		let mut entries = String::new();
 		let mut sources_entries = String::new();
 		let mut source_locals = Vec::new();
-		for prop in op["props"].as_array().ok_or("component props missing")? {
+		let no_props: Vec<Json> = Vec::new();
+		for prop in if spread_local.is_some() {
+			&no_props
+		} else {
+			call_props
+		} {
 			let prop_name = prop["name"].as_str().ok_or("prop has no name")?;
 			match prop["p"].as_str().ok_or("prop has no kind")? {
 				"static" => {
@@ -1183,7 +1232,9 @@ impl ComponentGenerator<'_> {
 			format!("&mut {target}")
 		};
 		// static-only props pass as a bare object literal; sources promote to a Props record
-		let props_value = if source_locals.is_empty() {
+		let props_value = if let Some(spread) = &spread_local {
+			format!("std::rc::Rc::clone(&{spread})")
+		} else if source_locals.is_empty() {
 			format!("std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Object(vec![{entries}]))")
 		} else {
 			format!(

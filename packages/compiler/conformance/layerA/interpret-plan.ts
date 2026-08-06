@@ -603,7 +603,20 @@ export async function buildInterpretedRoot(
           }
           const literal: Record<string, unknown> = {};
           const sources: Record<string, unknown> = {};
-          for (const prop of op.props as readonly PlanSsrProp[]) {
+          // a sole spread passes the object through, like the emitted `createComponent(shared, …)`
+          let spreadProps: unknown;
+          const propList = op.props as readonly PlanSsrProp[];
+          if (propList.some((prop) => prop.p === 'spread')) {
+            if (propList.length !== 1) {
+              throw new Error('interpreter cannot merge spread props with other props yet');
+            }
+            const spread = propList[0] as { value: { ir?: ValueIR } };
+            if (spread.value.ir?.k !== 'binding-read' || !locals.has(spread.value.ir.binding)) {
+              throw new Error('spread props need a local binding read');
+            }
+            spreadProps = locals.get(spread.value.ir.binding);
+          }
+          for (const prop of spreadProps === undefined ? propList : []) {
             if (prop.p === 'static') {
               const staticProp = prop as { name: string; value: unknown };
               literal[staticProp.name] = staticProp.value;
@@ -657,7 +670,11 @@ export async function buildInterpretedRoot(
             }
             // static-only props pass as a bare literal, matching emitted serialization
             const componentProps =
-              Object.keys(sources).length > 0 ? (_props(literal, sources) as never) : literal;
+              spreadProps !== undefined
+                ? (spreadProps as never)
+                : Object.keys(sources).length > 0
+                  ? (_props(literal, sources) as never)
+                  : literal;
             const renderer =
               renderTarget ?? ((childProps: unknown) => interpretComponent(ref!, childProps, ctx));
             return op.slots.length > 0

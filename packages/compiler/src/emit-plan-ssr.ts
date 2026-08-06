@@ -4,6 +4,7 @@ import type {
   OrderedPropPlan,
   RenderFunctionPlan,
   SegmentPlan,
+  SetupPlan,
   ValuePlan,
 } from './plan-types';
 import {
@@ -17,7 +18,7 @@ import {
   type SsrSegmentRenderTargetPlan,
   type SsrSetupOperation,
 } from './plan-ssr';
-import { SetupOpKind } from './setup-ir';
+import { SetupOpKind, type SetupOp } from './setup-ir';
 import type { SourceRange } from './types';
 
 /**
@@ -215,6 +216,20 @@ export function emitSsrOpPlan(
     ...(value.kind === 'segment' ? { segment: value.segment.segmentId } : {}),
   });
 
+  // statement ops live in the semantic setup tree, including local-component nesting
+  const setupOpByRange = new Map<string, SetupOp>();
+  const collectSetupOps = (setup: readonly SetupPlan[]): void => {
+    for (const item of setup) {
+      if (item.kind === 'statement' && item.op !== undefined) {
+        setupOpByRange.set(`${item.range[0]}:${item.range[1]}`, item.op);
+      }
+      if (item.kind === 'local-component' || item.kind === 'render-value') {
+        collectSetupOps(item.render.setup);
+      }
+    }
+  };
+  collectSetupOps(component.setup);
+
   const setupEntries = (setup: readonly SsrSetupOperation[]): PlanSetupEntry[] =>
     setup.map((entry) => {
       if (entry.kind === 'style') {
@@ -233,16 +248,33 @@ export function emitSsrOpPlan(
         };
       }
       if (entry.kind === 'statement') {
-        const planned = component.setup.find(
-          (item) =>
-            item.kind === 'statement' &&
-            item.range[0] === entry.range[0] &&
-            item.range[1] === entry.range[1]
+        return (
+          setupOpByRange.get(`${entry.range[0]}:${entry.range[1]}`) ?? {
+            op: SetupOpKind.Js,
+            src: slice(entry.range),
+          }
         );
-        if (planned !== undefined && planned.kind === 'statement' && planned.op !== undefined) {
-          return planned.op;
-        }
-        return { op: SetupOpKind.Js, src: slice(entry.range) };
+      }
+      if (entry.kind === 'local-component') {
+        const parameter = entry.parameter;
+        return {
+          op: SetupOpKind.LocalComponent,
+          name: entry.name,
+          binding: entry.bindingId,
+          props:
+            parameter === null
+              ? null
+              : parameter.kind === 'identifier'
+                ? { kind: 'identifier', binding: parameter.bindingIds[0] }
+                : {
+                    kind: 'object',
+                    bindings: parameter.bindingIds.map((b, index) => ({
+                      b,
+                      name: entry.propNames[index],
+                    })),
+                  },
+          render: targetBlock(entry.target),
+        };
       }
       return { op: SetupOpKind.Js, src: slice([0, 0]) };
     });

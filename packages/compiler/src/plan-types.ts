@@ -169,6 +169,8 @@ export interface LocalComponentSetupPlan {
   readonly bindingId: BindingId;
   readonly name: string;
   readonly parameter: ComponentParameterPlan | null;
+  /** Object-pattern prop keys parallel to `parameter.bindingIds`; empty for identifier params. */
+  readonly propNames: readonly string[];
   readonly render: RenderFunctionPlan;
 }
 

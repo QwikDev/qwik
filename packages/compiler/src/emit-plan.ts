@@ -1,4 +1,4 @@
-import { emitSsrOpPlan, type PlanSsrComponent } from './emit-plan-ssr';
+import { emitSsrOpPlan, type PlanSsrComponent, type PlanSsrRenderFn } from './emit-plan-ssr';
 import { isModuleStyleBoundary } from './emit-qrl';
 import { shouldResolveSsrSegment } from './emit-segment';
 import type { ValueIR } from './expr-ir';
@@ -80,7 +80,27 @@ export type PlanSetupEntry =
       /** Inlined static CSS (specs/01 `styles`); absent when the argument is dynamic. */
       readonly css?: string;
     }
-  | { readonly op: SetupOpKind.Js; readonly src: string };
+  | { readonly op: SetupOpKind.Js; readonly src: string }
+  | PlanLocalComponent;
+
+/**
+ * A setup-scope component compiled in place. Component-op string targets resolve against the
+ * lexical chain of these declarations before module/import resolution; nests via `render.setup`.
+ */
+export interface PlanLocalComponent {
+  readonly op: SetupOpKind.LocalComponent;
+  readonly name: string;
+  readonly binding: number;
+  /** Destructured props as prop-key → binding pairs, or the whole-props identifier binding. */
+  readonly props:
+    | {
+        readonly kind: 'object';
+        readonly bindings: readonly { readonly b: number; readonly name: string }[];
+      }
+    | { readonly kind: 'identifier'; readonly binding: number }
+    | null;
+  readonly render: PlanSsrRenderFn;
+}
 
 /** Server evaluates `ir` when present; `segment` is the client-resume QRL; `src` the JS fallback. */
 export interface PlanValue {

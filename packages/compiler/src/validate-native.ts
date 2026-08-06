@@ -76,6 +76,9 @@ export function validateNativeReadiness(
       if (entry.kind === 'render-value') {
         validateNodes(entry.render.render.roots);
       }
+      if (entry.kind === 'local-component') {
+        validateRenderFn(entry.render);
+      }
     }
   };
 

@@ -176,7 +176,9 @@ function lowerHookInit(call: AstNode, local: BindingId, facts: SetupLowerFacts):
     }
     return { op: SetupOpKind.Computed, local, segment, body: callbackBodyIr(args[0], facts) };
   }
-  return null;
+  // non-hook calls lower like any expression; only pure qwik: ops and defs qualify
+  const value = lowerValueIr(call, facts);
+  return value === null ? null : { op: SetupOpKind.Const, local, init: value };
 }
 
 /** Statement-position hooks: providers, tasks, visible tasks. */

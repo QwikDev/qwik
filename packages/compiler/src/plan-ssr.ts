@@ -85,6 +85,7 @@ export type SsrSetupOperation =
       readonly name: string;
       readonly bindingId: BindingId;
       readonly parameter: ComponentParameterPlan | null;
+      readonly propNames: readonly string[];
       readonly target: SsrRenderFunctionTargetPlan;
     }
   | Extract<SetupPlan, { kind: 'style' }>;
@@ -480,6 +481,7 @@ class SsrPlanner {
         name: setup.name,
         bindingId: setup.bindingId,
         parameter: setup.parameter,
+        propNames: setup.propNames,
         target,
       };
     }

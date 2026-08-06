@@ -47,6 +47,7 @@ import type {
   FunctionRenderPlan,
   RenderNodePlan,
   ComponentDefinition,
+  ComponentParameterPlan,
   ComponentShape,
   ModuleBoundaryPlan,
   Segment,
@@ -2702,6 +2703,10 @@ class SemanticLowerer {
       return null;
     }
     const shape = shapeResult.shape;
+    const propNames = localComponentPropNames(fn, shape.parameter);
+    if (propNames === null) {
+      return null;
+    }
     const functionRange = getRange(fn) ?? range;
     this.classifySetupBindings(shape.setup);
     const childLifetime = this.allocateLifetime(lifetimeId, 'render-function', 'atomic-range');
@@ -2752,6 +2757,7 @@ class SemanticLowerer {
       bindingId,
       name: binding.name,
       parameter: shape.parameter,
+      propNames,
       render: renderFunction,
     };
   }
@@ -3453,6 +3459,41 @@ class SemanticLowerer {
       this.initialOnlyBindings.delete(bindingId);
     }
   }
+}
+
+/**
+ * Prop keys for a local component's parameter, parallel to `parameter.bindingIds`. Only shorthand
+ * object patterns (defaults allowed) qualify — renamed, nested, or rest patterns would break the
+ * plan's name-based prop mapping, so they return null and the function stays a raw statement.
+ */
+function localComponentPropNames(
+  fn: AstFunction,
+  parameter: ComponentParameterPlan | null
+): string[] | null {
+  if (parameter === null || parameter.kind === 'identifier') {
+    return [];
+  }
+  let pattern = unwrapExpression(fn.params[0]);
+  if (pattern?.type === 'AssignmentPattern') {
+    pattern = unwrapExpression(pattern.left);
+  }
+  if (pattern?.type !== 'ObjectPattern') {
+    return null;
+  }
+  const names: string[] = [];
+  for (const property of pattern.properties as AstNode[]) {
+    if (property.type !== 'Property') {
+      return null;
+    }
+    const key = unwrapExpression(property.key);
+    const value = unwrapExpression(property.value);
+    const target = value?.type === 'AssignmentPattern' ? unwrapExpression(value.left) : value;
+    if (key?.type !== 'Identifier' || target?.type !== 'Identifier' || key.name !== target.name) {
+      return null;
+    }
+    names.push(key.name);
+  }
+  return names.length === parameter.bindingIds.length ? names : null;
 }
 
 function getCallbackReturn(

@@ -8,6 +8,7 @@ import type {
 import { PlanNodeKind } from './emit-plan';
 import type { PlanSsrComponent, PlanSsrOp, PlanSsrRenderFn } from './emit-plan-ssr';
 import { SsrOpKind } from './emit-plan-ssr';
+import { SetupOpKind } from './setup-ir';
 
 /**
  * Links per-module plans into one entry-rooted `qwik/ssr-plan` (specs/01). Version 0 mirrors the
@@ -146,6 +147,23 @@ export function linkSsrPlan(
         : resolveImportedComponent(modulePlan.path, importMeta);
     };
 
+    // module-flat identities for the informational semantic tree; SSR ops link scope-accurately
+    const moduleLocalComponents = new Set<number | string>();
+    const collectLocalComponents = (setup: QwikModulePlan['components'][number]['setup']): void => {
+      for (const entry of setup) {
+        if (entry.op === SetupOpKind.LocalComponent) {
+          moduleLocalComponents.add(entry.binding);
+          moduleLocalComponents.add(entry.name);
+          collectLocalComponents(entry.render.setup);
+        }
+      }
+    };
+    for (const component of modulePlan.components) {
+      if (component.ssr !== null) {
+        collectLocalComponents(component.ssr.setup);
+      }
+    }
+
     const linkNodes = (nodes: readonly PlanNode[]): PlanNode[] => nodes.map(linkNode);
     const linkRenderFn = (fn: PlanRenderFn): PlanRenderFn => ({
       setup: fn.setup,
@@ -159,6 +177,15 @@ export function linkSsrPlan(
           const target = node.target;
           if (typeof target === 'object') {
             return node; // already linked
+          }
+          if (moduleLocalComponents.has(target)) {
+            return {
+              ...node,
+              slots: node.slots.map((slot) => ({
+                name: slot.name,
+                render: linkRenderFn(slot.render),
+              })),
+            };
           }
           const resolved =
             typeof target === 'number' ? resolveBindingTarget(target) : resolveNameTarget(target);
@@ -195,10 +222,29 @@ export function linkSsrPlan(
     };
 
     const linkSsrOps = (ops: readonly PlanSsrOp[]): PlanSsrOp[] => ops.map(linkSsrOp);
-    const linkSsrFn = (fn: PlanSsrRenderFn): PlanSsrRenderFn => ({
-      ...fn,
-      ops: linkSsrOps(fn.ops),
-    });
+    // lexical scopes of local-component names; string targets resolve here before modules/imports
+    const localComponentScopes: string[][] = [];
+    const isLocalComponentName = (name: string): boolean =>
+      localComponentScopes.some((scope) => scope.includes(name));
+    const linkSetup = (
+      setup: QwikModulePlan['components'][number]['setup']
+    ): QwikModulePlan['components'][number]['setup'] => {
+      // declarations hoist: every sibling is visible before any nested block links
+      localComponentScopes.push(
+        setup.flatMap((entry) => (entry.op === SetupOpKind.LocalComponent ? [entry.name] : []))
+      );
+      return setup.map((entry) =>
+        entry.op === SetupOpKind.LocalComponent
+          ? { ...entry, render: linkSsrFn(entry.render) }
+          : entry
+      );
+    };
+    const linkSsrFn = (fn: PlanSsrRenderFn): PlanSsrRenderFn => {
+      const setup = linkSetup(fn.setup);
+      const linked = { ...fn, setup, ops: linkSsrOps(fn.ops) };
+      localComponentScopes.pop();
+      return linked;
+    };
     const linkSsrOp = (op: PlanSsrOp): PlanSsrOp => {
       switch (op.o) {
         case SsrOpKind.Element:
@@ -207,6 +253,13 @@ export function linkSsrPlan(
           const target = op.target;
           if (typeof target !== 'string') {
             return op; // already linked
+          }
+          if (isLocalComponentName(target)) {
+            // lexical reference — engines resolve through the local-component scope chain
+            return {
+              ...op,
+              slots: op.slots.map((slot) => ({ ...slot, render: linkSsrFn(slot.render) })),
+            };
           }
           const resolved = resolveNameTarget(target);
           if (resolved === null) {
@@ -253,10 +306,12 @@ export function linkSsrPlan(
           return op;
       }
     };
-    const linkSsrComponent = (ssr: PlanSsrComponent): PlanSsrComponent => ({
-      ...ssr,
-      ops: linkSsrOps(ssr.ops),
-    });
+    const linkSsrComponent = (ssr: PlanSsrComponent): PlanSsrComponent => {
+      const setup = linkSetup(ssr.setup);
+      const linked = { ...ssr, setup, ops: linkSsrOps(ssr.ops) };
+      localComponentScopes.pop();
+      return linked;
+    };
 
     for (const component of modulePlan.components) {
       components.push({

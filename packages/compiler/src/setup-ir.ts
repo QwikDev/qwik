@@ -23,6 +23,7 @@ export const enum SetupOpKind {
   Js = 'js',
   Yield = 'yield',
   QrlConst = 'qrl-const',
+  LocalComponent = 'local-component',
 }
 
 export const enum TaskStepKind {

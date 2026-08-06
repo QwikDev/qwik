@@ -327,6 +327,24 @@ describe('lowerSetupOp', () => {
     ).toEqual({ op: 'visible-task', segment: 'segment_0', strategy: 'document-idle' });
   });
 
+  test('non-hook call inits lower as const via expression IR', () => {
+    const methodCall = {
+      type: 'CallExpression',
+      callee: {
+        type: 'MemberExpression',
+        object: at(20, { type: 'Identifier', name: 'name' }),
+        property: { type: 'Identifier', name: 'toLowerCase' },
+        computed: false,
+      },
+      arguments: [],
+    };
+    expect(lowerSetupOp(constDecl(methodCall), facts)).toMatchObject({
+      op: 'const',
+      local: LOCAL,
+      init: { k: 'call', fn: 'qwik:string.toLowerCase' },
+    });
+  });
+
   test('unsupported statements stay verbatim', () => {
     // user hook call
     expect(lowerSetupOp(constDecl(hookCall(50, [lit(1)])), facts)).toBeNull();

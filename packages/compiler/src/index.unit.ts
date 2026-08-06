@@ -234,6 +234,41 @@ export default value;
     });
   });
 
+  test('local components compile at every nesting level', async () => {
+    const { ssr, csr } = await testInput('local_component', {
+      code: `import { useStore } from '@qwik.dev/core';
+
+export function App() {
+  const todos = useStore({ filter: 'all' });
+  function Filter({ name }: { name: string }) {
+    const lower = name.toLowerCase();
+    function Star({ on }: { on: boolean }) {
+      return <b class={{ on: on && todos.filter == lower }}>*</b>;
+    }
+    return (
+      <li>
+        <a onClick$={() => { todos.filter = lower; }}>
+          <Star on={true} />
+          {name.toUpperCase()}
+        </a>
+      </li>
+    );
+  }
+  return <ul><Filter name="All" /></ul>;
+}
+`,
+    });
+    for (const result of [ssr, csr]) {
+      const entry = result.modules.find((module) => module.path === 'src/component.tsx');
+      expect(entry).toBeDefined();
+      // both levels compile in place — no raw JSX or $-props survive into the emitted module
+      expect(entry!.code).toContain('function Filter(props, ctx)');
+      expect(entry!.code).toContain('function Star(props, ctx)');
+      expect(entry!.code).not.toContain('<Star');
+      expect(entry!.code).not.toContain('onClick$');
+    }
+  });
+
   test('simple default function component', async () => {
     await testInput('simple_default_function_component', {
       code: `export default function App() {

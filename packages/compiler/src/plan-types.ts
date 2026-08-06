@@ -99,6 +99,8 @@ export interface ModuleAnalysis {
   readonly items: readonly ModuleItemPlan[];
   readonly moduleJsxRange: SourceRange | null;
   readonly jsxFunctionRanges: readonly SourceRange[];
+  /** Bindings referenced as JSX component tags anywhere in the module. */
+  readonly jsxTagBindingIds: readonly BindingId[];
 }
 
 export type QrlBoundaryPlan =
@@ -156,7 +158,19 @@ export type SetupPlan =
       readonly name: string;
       readonly render: RenderFunctionPlan;
     }
+  | LocalComponentSetupPlan
   | StyleSetupPlan;
+
+/** A setup-scope function component compiled in place; nests to any depth via `render.setup`. */
+export interface LocalComponentSetupPlan {
+  readonly kind: 'local-component';
+  readonly range: SourceRange;
+  readonly lifetimeId: LifetimeId;
+  readonly bindingId: BindingId;
+  readonly name: string;
+  readonly parameter: ComponentParameterPlan | null;
+  readonly render: RenderFunctionPlan;
+}
 
 export interface UseIdPlan {
   readonly range: SourceRange;
@@ -518,6 +532,7 @@ export interface RenderFunctionPlan {
     | 'slot'
     | 'collection-row'
     | 'local-jsx'
+    | 'local-component'
     | 'qrl'
     | 'embedded-jsx';
   readonly collectionSourceKind: CollectionSourcePlan['kind'] | null;

@@ -1,5 +1,9 @@
 import type { SourceRange } from './types';
-import { emitComponentFunction, emitComponentRangeReplacement } from './emit-component';
+import {
+  emitComponentFunction,
+  emitComponentParamSetup,
+  emitComponentRangeReplacement,
+} from './emit-component';
 import type { EmittedComponentCode, EmittedModule } from './emitted-module';
 import {
   appendCsrQrlReplacements,
@@ -1335,6 +1339,35 @@ function emitCsrSetup(
         .map((statement) => `  ${statement}`)
         .join('\n');
       statements.push(`const ${setup.name} = ${render.async ? 'async ' : ''}() => {\n${body}\n};`);
+      continue;
+    }
+    if (setup.kind === 'local-component') {
+      const render = emitCsrPlan(
+        setup.name,
+        setup.render,
+        source,
+        inputPath,
+        explicitExtensions,
+        imports,
+        qrlImports,
+        localImplementationSource,
+        generatedNames
+      );
+      if (render === null) {
+        return null;
+      }
+      hoists.push(...render.hoists);
+      const param = setup.parameter?.param ?? null;
+      const propsName = param?.name ?? generatedNames.props;
+      const paramSetup = emitComponentParamSetup(param, propsName, source);
+      const body = [
+        ...(paramSetup === null ? [] : [paramSetup]),
+        ...render.statements,
+        `return ${render.value};`,
+      ]
+        .map((statement) => `  ${statement}`)
+        .join('\n');
+      statements.push(`function ${setup.name}(${propsName}, ${generatedNames.ctx}) {\n${body}\n}`);
       continue;
     }
     if (setup.kind === 'style') {

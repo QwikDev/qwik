@@ -114,6 +114,7 @@ class ModuleAnalyzer {
       items: this.classifyModuleItems(),
       moduleJsxRange: jsxOwners.moduleRange,
       jsxFunctionRanges: jsxOwners.functionRanges,
+      jsxTagBindingIds: [...this.jsxTagBindings],
     };
   }
 

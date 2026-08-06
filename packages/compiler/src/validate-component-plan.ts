@@ -72,7 +72,7 @@ class ComponentPlanValidator {
       if (setup.lifetimeId !== componentLifetime.id) {
         this.issue(`setup[${index}].lifetimeId`, 'must belong to the component lifetime');
       }
-      if (setup.kind === 'render-value') {
+      if (setup.kind === 'render-value' || setup.kind === 'local-component') {
         this.requireBinding(setup.bindingId, `setup[${index}].bindingId`);
         this.validateRenderFunction(setup.render, `setup[${index}].render`, componentLifetime.id);
       } else {
@@ -419,7 +419,11 @@ class ComponentPlanValidator {
     } else if (expectedParentId !== undefined && lifetime.parentId !== expectedParentId) {
       this.issue(`${path}.lifetimeId`, `must be owned by lifetime ${expectedParentId}`);
     }
-    if (render.kind === 'local-jsx' || render.kind === 'embedded-jsx') {
+    if (
+      render.kind === 'local-jsx' ||
+      render.kind === 'embedded-jsx' ||
+      render.kind === 'local-component'
+    ) {
       if (render.segmentId !== null) {
         this.issue(`${path}.segmentId`, 'inline JSX render functions cannot have a segment');
       }
@@ -449,6 +453,14 @@ class ComponentPlanValidator {
             bindingId,
             `${path}.setup[${index}].referenceBindingIds[${bindingIndex}]`
           )
+        );
+      }
+      if (setup.kind === 'local-component') {
+        this.requireBinding(setup.bindingId, `${path}.setup[${index}].bindingId`);
+        this.validateRenderFunction(
+          setup.render,
+          `${path}.setup[${index}].render`,
+          render.lifetimeId
         );
       }
     }

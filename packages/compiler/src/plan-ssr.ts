@@ -5,6 +5,7 @@ import { jsxEventToHtmlAttribute } from './ast-utils';
 import { hasInitialTask } from './plan-types';
 import type {
   BindingId,
+  ComponentParameterPlan,
   ComponentPlan,
   ComponentOutput,
   OrderedPropPlan,
@@ -78,6 +79,13 @@ export type SsrSetupOperation =
       readonly name: string;
       readonly bindingId: BindingId;
       readonly render: SsrRenderBlockPlan;
+    }
+  | {
+      readonly kind: 'local-component';
+      readonly name: string;
+      readonly bindingId: BindingId;
+      readonly parameter: ComponentParameterPlan | null;
+      readonly target: SsrRenderFunctionTargetPlan;
     }
   | Extract<SetupPlan, { kind: 'style' }>;
 
@@ -460,6 +468,19 @@ class SsrPlanner {
         name: setup.name,
         bindingId: setup.bindingId,
         render,
+      };
+    }
+    if (setup.kind === 'local-component') {
+      const target = planSsrRenderFunction(setup.render, this.segments, this.componentReturnMode);
+      if (target === null) {
+        return null;
+      }
+      return {
+        kind: 'local-component',
+        name: setup.name,
+        bindingId: setup.bindingId,
+        parameter: setup.parameter,
+        target,
       };
     }
     if (setup.kind === 'style') {
@@ -885,11 +906,17 @@ function setupSegmentIds(operation: SsrSetupOperation): readonly string[] {
     ? operation.segmentIds
     : operation.kind === 'render-value'
       ? operation.render.usedSegmentIds
-      : [];
+      : operation.kind === 'local-component'
+        ? operation.target.usedSegmentIds
+        : [];
 }
 
 function setupDirectSegmentIds(operation: SsrSetupOperation): readonly string[] {
-  return operation.kind === 'render-value' ? operation.render.directSegmentIds : [];
+  return operation.kind === 'render-value'
+    ? operation.render.directSegmentIds
+    : operation.kind === 'local-component'
+      ? operation.target.directSegmentIds
+      : [];
 }
 
 function sameRange(left: SourceRange, right: SourceRange): boolean {

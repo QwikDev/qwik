@@ -87,7 +87,7 @@ function emitComponentFunctionMode(
   return `${emitFunctionHead(component, async, mode)}(${params}) {\n${body}\n}`;
 }
 
-function emitComponentParamSetup(
+export function emitComponentParamSetup(
   param: ComponentDefinition['params'][number] | null,
   props: string,
   source: string

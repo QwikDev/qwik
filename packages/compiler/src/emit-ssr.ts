@@ -1,5 +1,9 @@
 import type { SourceRange } from './types';
-import { emitComponentFunction, emitComponentRangeReplacement } from './emit-component';
+import {
+  emitComponentFunction,
+  emitComponentParamSetup,
+  emitComponentRangeReplacement,
+} from './emit-component';
 import type { EmittedComponentCode, EmittedModule } from './emitted-module';
 import {
   applyReplacements,
@@ -413,7 +417,9 @@ function emitSsrRenderTarget(
     source,
     segmentById,
     qrlImports,
-    getInputImportPath(inputPath, explicitExtensions)
+    getInputImportPath(inputPath, explicitExtensions),
+    false,
+    generatedNames
   );
   if (setup === null) {
     return null;
@@ -463,7 +469,8 @@ function emitComponentRender(
     segments,
     qrlImports,
     localImplementationSource,
-    plan.flushTasks
+    plan.flushTasks,
+    generatedNames
   );
   if (setup === null) {
     return null;
@@ -548,7 +555,8 @@ function emitSetup(
   segments: ReadonlyMap<string, SegmentPlan>,
   qrlImports: TargetImportResolver,
   localImplementationSource: string | null,
-  flushTasks = false
+  flushTasks = false,
+  generatedNames: GeneratedNames = DEFAULT_GENERATED_NAMES
 ): SsrSetup | null {
   const imports = new Set<string>();
   const statements: string[] = [];
@@ -588,6 +596,61 @@ function emitSetup(
         .map((statement) => `  ${statement}`)
         .join('\n');
       statements.push(`const ${operation.name} = () => {\n${body}\n};`);
+      continue;
+    }
+    if (operation.kind === 'local-component') {
+      const useIdSetup = operation.target.setup.some(
+        (item) => item.kind === 'statement' && item.useIds.length > 0
+      );
+      if (useIdSetup) {
+        return null; // useId() inside local components needs idBase plumbing
+      }
+      const childSetup = emitSetup(
+        { setup: operation.target.setup },
+        source,
+        segments,
+        qrlImports,
+        localImplementationSource,
+        false,
+        generatedNames
+      );
+      if (childSetup === null) {
+        return null;
+      }
+      const render = new SsrEmitter(
+        source,
+        segments,
+        [],
+        qrlImports,
+        localImplementationSource,
+        generatedNames
+      ).emit(operation.target.render, {
+        surroundingRangeId: null,
+        rootAttribute: null,
+        rowMarkerId: null,
+        slotMarkerId: null,
+        contextBoundary: false,
+        structuredRoot: !operation.target.render.staticRoot,
+      });
+      if (render === null) {
+        return null;
+      }
+      childSetup.imports.forEach((name) => imports.add(name));
+      render.imports.forEach((name) => imports.add(name));
+      const param = operation.parameter?.param ?? null;
+      const propsName = param?.name ?? generatedNames.props;
+      const paramSetup = emitComponentParamSetup(param, propsName, source);
+      const body = [
+        ...(paramSetup === null ? [] : [paramSetup]),
+        ...childSetup.statements,
+        ...render.statements,
+        `return ${render.value};`,
+      ]
+        .map((statement) => `  ${statement}`)
+        .join('\n');
+      statements.push(
+        `function ${operation.name}(${propsName}, ${generatedNames.ctx}) {\n${body}\n}`
+      );
       continue;
     }
     if (operation.kind === 'style') {
@@ -1413,7 +1476,9 @@ class SsrEmitter {
       this.source,
       this.segments,
       this.qrlImports,
-      this.localImplementationSource
+      this.localImplementationSource,
+      false,
+      this.generatedNames
     );
     if (setup === null) {
       return null;
@@ -1898,7 +1963,9 @@ class SsrEmitter {
       this.source,
       this.segments,
       this.qrlImports,
-      this.localImplementationSource
+      this.localImplementationSource,
+      false,
+      this.generatedNames
     );
     if (setup === null) {
       return null;

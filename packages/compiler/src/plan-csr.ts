@@ -5,6 +5,7 @@ import { escapeAttr, escapeText, serializeAttrValue } from './html-utils';
 import { hasInitialTask } from './plan-types';
 import type {
   BindingId,
+  ComponentParameterPlan,
   ComponentPlan,
   OrderedPropPlan,
   RenderFunctionPlan,
@@ -139,6 +140,13 @@ export type CsrSetupPlan =
       readonly kind: 'render-value';
       readonly name: string;
       readonly bindingId: BindingId;
+      readonly render: CsrPlan;
+    }
+  | {
+      readonly kind: 'local-component';
+      readonly name: string;
+      readonly bindingId: BindingId;
+      readonly parameter: ComponentParameterPlan | null;
       readonly render: CsrPlan;
     }
   | Extract<SetupPlan, { kind: 'style' }>;
@@ -568,6 +576,40 @@ class CsrPlanner {
           kind: 'render-value',
           name: item.name,
           bindingId: item.bindingId,
+          render,
+        });
+        continue;
+      }
+      if (item.kind === 'local-component') {
+        const render = new CsrPlanner(
+          this.segments,
+          this.source,
+          this.componentCardinality,
+          this.generatedNames,
+          item.render.styleScope,
+          item.render.runtimeStyleScopeName
+        ).plan(
+          item.render.render,
+          item.render.setup,
+          item.render.segmentId,
+          item.render.async,
+          item.render.needsId,
+          ''
+        );
+        if (render === null) {
+          return null;
+        }
+        for (const segmentId of render.directSegmentIds) {
+          this.directSegmentIds.add(segmentId);
+        }
+        for (const segmentId of render.usedSegmentIds) {
+          this.usedSegmentIds.add(segmentId);
+        }
+        plannedSetup.push({
+          kind: 'local-component',
+          name: item.name,
+          bindingId: item.bindingId,
+          parameter: item.parameter,
           render,
         });
         continue;

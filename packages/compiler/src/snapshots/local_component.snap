@@ -1,0 +1,407 @@
+==INPUT==
+
+import { useStore } from '@qwik.dev/core';
+
+export function App() {
+  const todos = useStore({ filter: 'all' });
+  function Filter({ name }: { name: string }) {
+    const lower = name.toLowerCase();
+    function Star({ on }: { on: boolean }) {
+      return <b class={{ on: on && todos.filter == lower }}>*</b>;
+    }
+    return (
+      <li>
+        <a onClick$={() => { todos.filter = lower; }}>
+          <Star on={true} />
+          {name.toUpperCase()}
+        </a>
+      </li>
+    );
+  }
+  return <ul><Filter name="All" /></ul>;
+}
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useStore,
+  createSsrNodeId,
+  createSsrElementTarget,
+  renderSsrAttrExpression,
+  escapeHTML,
+  createSsrElementRecord,
+  maybeThen,
+  createSsrRecord,
+  createComponent,
+  renderSsrContent,
+  escapeSsrContent,
+  getActiveInvokeContextOrNull,
+  invoke,
+  _qrlWithChunk,
+} from '@qwik.dev/core';
+import { component_class_segment_0_3htuygud1guoj } from './component.tsx_component_class_segment_0_3htuygud1guoj';
+import { semantic_expression_384_402_2ufkztrrdwur1 } from './component.tsx_semantic_expression_384_402_2ufkztrrdwur1';
+
+const q_component_class_segment_0_3htuygud1guoj = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_class_segment_0_3htuygud1guoj',
+  () => import('./component.tsx_component_class_segment_0_3htuygud1guoj'),
+  'component_class_segment_0_3htuygud1guoj'
+);
+q_component_class_segment_0_3htuygud1guoj.s(component_class_segment_0_3htuygud1guoj);
+const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg',
+  () => import('./component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg'),
+  'component_q_e_click_segment_1_2xwyfnber1kpg'
+);
+const q_semantic_expression_384_402_2ufkztrrdwur1 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_semantic_expression_384_402_2ufkztrrdwur1',
+  () => import('./component.tsx_semantic_expression_384_402_2ufkztrrdwur1'),
+  'semantic_expression_384_402_2ufkztrrdwur1'
+);
+q_semantic_expression_384_402_2ufkztrrdwur1.s(semantic_expression_384_402_2ufkztrrdwur1);
+export function App(props, ctx) {
+  const todos = useStore({ filter: 'all' });
+  function Filter(props, ctx) {
+    const { name } = props;
+    const lower = name.toLowerCase();
+    function Star(props, ctx) {
+      const { on } = props;
+      const id0 = ctx.nextId();
+      ctx.addRoot(on);
+      ctx.addRoot(todos);
+      ctx.addRoot(lower);
+      const attr1 = renderSsrAttrExpression(
+        createSsrElementTarget(id0),
+        'class',
+        [on, todos, lower],
+        q_component_class_segment_0_3htuygud1guoj
+      );
+      return maybeThen(attr1, (attr1) => [
+        createSsrElementRecord(
+          'b',
+          '<b q:id="',
+          createSsrNodeId(id0),
+          '"',
+          attr1 === null ? '' : ' class' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
+          '>'
+        ),
+        '*</b>',
+      ]);
+    }
+    let contentId1;
+    const invokeCtx3 = getActiveInvokeContextOrNull();
+    const component0 = createComponent({ on: true }, (props) => Star(props, ctx));
+    const content2 = () =>
+      invoke(invokeCtx3, () => {
+        contentId1 ??= ctx.nextId();
+        ctx.addRoot(name);
+        return renderSsrContent(
+          ctx,
+          contentId1,
+          [name],
+          q_semantic_expression_384_402_2ufkztrrdwur1
+        );
+      });
+    return maybeThen(component0, (component0) =>
+      maybeThen(content2(), (content2) => [
+        createSsrElementRecord('li', '<li', '>'),
+        createSsrRecord(
+          '<a',
+          ctx.eventAttr(
+            'q-e:click',
+            q_component_q_e_click_segment_1_2xwyfnber1kpg.w([todos, lower])
+          ),
+          '>'
+        ),
+        component0,
+        createSsrRecord('<!d=', createSsrNodeId(contentId1), '>'),
+        escapeSsrContent(content2),
+        '<!/d></a></li>',
+      ])
+    );
+  }
+  const component0 = createComponent({ name: 'All' }, (props) => Filter(props, ctx));
+  return maybeThen(component0, (component0) => [
+    createSsrElementRecord('ul', '<ul', '>'),
+    component0,
+    '</ul>',
+  ]);
+}
+============================= src/component.tsx_component_class_segment_0_3htuygud1guoj.js (ENTRY POINT)==
+
+export const component_class_segment_0_3htuygud1guoj = (on, todos, lower) => {
+  return { on: on && todos.filter == lower };
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_class_segment_0_3htuygud1guoj",
+  "entry": null,
+  "displayName": "component_class_segment_0",
+  "hash": "3htuygud1guoj",
+  "canonicalFilename": "component.tsx_component_class_segment_0_3htuygud1guoj",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "class",
+  "captures": true,
+  "loc": [
+    222,
+    257
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "on",
+    "todos",
+    "lower"
+  ]
+}
+*/
+============================= src/component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
+  const todos = _captures[0],
+    lower = _captures[1];
+  todos.filter = lower;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_1_2xwyfnber1kpg",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_1",
+  "hash": "2xwyfnber1kpg",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    295,
+    342
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "todos",
+    "lower"
+  ]
+}
+*/
+============================= src/component.tsx_semantic_expression_384_402_2ufkztrrdwur1.js (ENTRY POINT)==
+
+export const semantic_expression_384_402_2ufkztrrdwur1 = (name) => {
+  return name.toUpperCase();
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "semantic_expression_384_402_2ufkztrrdwur1",
+  "entry": null,
+  "displayName": "semantic_expression_384_402",
+  "hash": "2ufkztrrdwur1",
+  "canonicalFilename": "component.tsx_semantic_expression_384_402_2ufkztrrdwur1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "expression",
+  "captures": true,
+  "loc": [
+    384,
+    402
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "name"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useStore,
+  _first,
+  createAttrExpressionEffect,
+  createTemplate,
+  _next,
+  setEvent,
+  createComponent,
+  _toNodes,
+  maybeThen,
+  createContentBlock,
+} from '@qwik.dev/core';
+import { component_class_segment_0_3htuygud1guoj } from './component.tsx_component_class_segment_0_3htuygud1guoj';
+import { component_q_e_click_segment_1_2xwyfnber1kpg } from './component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg';
+import { semantic_expression_384_402_2ufkztrrdwur1 } from './component.tsx_semantic_expression_384_402_2ufkztrrdwur1';
+
+const Star_tmpl0 = createTemplate('<b>*</b>');
+const Filter_tmpl0 = createTemplate('<li><a><!----><!----><!----><!----></a></li>');
+const App_tmpl0 = createTemplate('<ul><!----><!----></ul>');
+export function App(props, ctx) {
+  const todos = useStore({ filter: 'all' });
+  function Filter(props, ctx) {
+    const { name } = props;
+    const lower = name.toLowerCase();
+    function Star(props, ctx) {
+      const { on } = props;
+      const fragment0 = Star_tmpl0(ctx.document);
+      const el0 = _first(fragment0);
+      const effect0 = createAttrExpressionEffect(
+        el0,
+        'class',
+        [on, todos, lower],
+        component_class_segment_0_3htuygud1guoj,
+        ctx.scheduler
+      );
+      ctx.scheduler.notify(effect0);
+      return el0;
+    }
+    const fragment0 = Filter_tmpl0(ctx.document);
+    const el0 = _first(fragment0);
+    const el1 = _first(el0);
+    const start0 = _first(el1);
+    const end0 = _next(start0);
+    const start1 = _next(end0);
+    const end1 = _next(start1);
+    setEvent(el1, 'q-e:click', component_q_e_click_segment_1_2xwyfnber1kpg, [todos, lower]);
+    ctx.scheduler.waitFor(
+      maybeThen(
+        createComponent({ on: true }, (props) => Star(props, ctx)),
+        (component0) => {
+          const nodes0 = _toNodes(component0);
+          for (const node of nodes0) end0.parentNode.insertBefore(node, end0);
+          start0.remove();
+          end0.remove();
+        }
+      )
+    );
+    const content0 = createContentBlock(
+      ctx,
+      start1,
+      end1,
+      [name],
+      semantic_expression_384_402_2ufkztrrdwur1
+    );
+    ctx.scheduler.notify(content0);
+    return el0;
+  }
+  const fragment0 = App_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  const start0 = _first(el0);
+  const end0 = _next(start0);
+  ctx.scheduler.waitFor(
+    maybeThen(
+      createComponent({ name: 'All' }, (props) => Filter(props, ctx)),
+      (component0) => {
+        const nodes0 = _toNodes(component0);
+        for (const node of nodes0) end0.parentNode.insertBefore(node, end0);
+        start0.remove();
+        end0.remove();
+      }
+    )
+  );
+  return el0;
+}
+============================= src/component.tsx_component_class_segment_0_3htuygud1guoj.js (ENTRY POINT)==
+
+export const component_class_segment_0_3htuygud1guoj = (on, todos, lower) => {
+  return { on: on && todos.filter == lower };
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_class_segment_0_3htuygud1guoj",
+  "entry": null,
+  "displayName": "component_class_segment_0",
+  "hash": "3htuygud1guoj",
+  "canonicalFilename": "component.tsx_component_class_segment_0_3htuygud1guoj",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "class",
+  "captures": true,
+  "loc": [
+    222,
+    257
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "on",
+    "todos",
+    "lower"
+  ]
+}
+*/
+============================= src/component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
+  const todos = _captures[0],
+    lower = _captures[1];
+  todos.filter = lower;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_1_2xwyfnber1kpg",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_1",
+  "hash": "2xwyfnber1kpg",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    295,
+    342
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "todos",
+    "lower"
+  ]
+}
+*/
+============================= src/component.tsx_semantic_expression_384_402_2ufkztrrdwur1.js (ENTRY POINT)==
+
+export const semantic_expression_384_402_2ufkztrrdwur1 = (name) => {
+  return name.toUpperCase();
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "semantic_expression_384_402_2ufkztrrdwur1",
+  "entry": null,
+  "displayName": "semantic_expression_384_402",
+  "hash": "2ufkztrrdwur1",
+  "canonicalFilename": "component.tsx_semantic_expression_384_402_2ufkztrrdwur1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "expression",
+  "captures": true,
+  "loc": [
+    384,
+    402
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "name"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

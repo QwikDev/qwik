@@ -17,16 +17,16 @@ const CLEAN: string[] = [
   'e2e/qwik-e2e/apps/todo-test/src/components/body/body.tsx',
   // `$()`-consts lower via qrl-const setup ops
   'starters/apps/playground/src/components/starter/counter/counter.tsx',
+  // local Filter compiles as a local-component setup entry
+  'e2e/qwik-e2e/apps/todo-test/src/components/footer/footer.tsx',
 ];
 
 /**
  * Known gaps with exact expected codes — shrink these lists as coverage grows. Current gap
- * categories: `$()`-wrapped consts in setup, local helper functions (specs/02 `defs`,
- * unimplemented), and router loaders/actions (specs/09 host-registered tier).
+ * categories: router loaders/actions (specs/09 host-registered tier) and pre-existing scoped-style
+ * handling.
  */
 const GAPS: Record<string, string[]> = {
-  // function Filter({ filter }) { … } — a local render helper (defs territory)
-  'e2e/qwik-e2e/apps/todo-test/src/components/footer/footer.tsx': ['native-setup-statement'],
   // useListLoader()/useAddToListAction() — router loaders are host-registered under native
   'starters/apps/playground/src/routes/demo/todolist/index.tsx': [
     'native-custom-hook',

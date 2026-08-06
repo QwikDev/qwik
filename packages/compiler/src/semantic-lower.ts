@@ -66,6 +66,7 @@ import { lowerSetupOp, reportSetupOpSite, type SetupLowerFacts } from './setup-l
 import { QWIK_CORE_IMPORT, QWIK_IMPORT, QwikAttributes, QwikHooks } from './words';
 import { createSegmentSymbolName } from './segment-identity';
 import { createExtractedSegmentPlan } from './segment-plan';
+import { analyzeComponentShape } from './shape';
 
 export type SemanticLowerFailureCode =
   | 'unsupported-syntax'
@@ -2534,9 +2535,12 @@ class SemanticLowerer {
     return this.referencesIn(range).every((id) => this.initialOnlyBindings.has(id));
   }
 
-  private lowerSetup(lifetimeId: LifetimeId): SetupPlan[] {
+  private lowerSetup(
+    lifetimeId: LifetimeId,
+    ranges: readonly SourceRange[] = this.owner.setup
+  ): SetupPlan[] {
     const setup: SetupPlan[] = [];
-    for (const range of this.owner.setup) {
+    for (const range of ranges) {
       const statement = findNodeByRange(this.owner.body, range);
       const style = statement === null ? null : this.lowerStyleSetup(statement, range, lifetimeId);
       if (style !== null) {
@@ -2549,6 +2553,16 @@ class SemanticLowerer {
           range,
           'Style hooks must be standalone calls or single const initializers in linear setup.'
         );
+        continue;
+      }
+      const failureBeforeLocalComponent = this.failure;
+      const localComponent =
+        statement === null ? null : this.lowerLocalComponentSetup(statement, range, lifetimeId);
+      if (localComponent !== null) {
+        setup.push(localComponent);
+        continue;
+      }
+      if (this.failure !== failureBeforeLocalComponent) {
         continue;
       }
       const jsxDeclaration =
@@ -2639,6 +2653,107 @@ class SemanticLowerer {
       });
     }
     return setup;
+  }
+
+  /**
+   * A setup-scope function whose binding is used as a JSX tag compiles like a component — props
+   * become parameter bindings, leading statements become nested setup (recursing for deeper local
+   * components), and the returned JSX lowers to a render plan. Returns null when the statement is
+   * not a local component; once the shape qualifies, lowering failures fail the owner like any
+   * component body.
+   */
+  private lowerLocalComponentSetup(
+    statement: AstNode,
+    range: SourceRange,
+    lifetimeId: LifetimeId
+  ): SetupPlan | null {
+    let fn: AstFunction | null = null;
+    let nameRange: SourceRange | null = null;
+    if (statement.type === 'FunctionDeclaration' && statement.id != null) {
+      fn = statement as unknown as AstFunction;
+      nameRange = getRange(statement.id);
+    } else if (
+      statement.type === 'VariableDeclaration' &&
+      statement.kind === 'const' &&
+      statement.declarations.length === 1
+    ) {
+      const declaration = statement.declarations[0];
+      const init = unwrapExpression(declaration.init);
+      const id = unwrapExpression(declaration.id);
+      if (isFunctionLike(init) && id?.type === 'Identifier') {
+        fn = init;
+        nameRange = getRange(id);
+      }
+    }
+    if (fn === null || fn.async === true || fn.generator === true) {
+      return null;
+    }
+    const bindingId = this.bindingIdAt(nameRange);
+    const binding = this.binding(bindingId);
+    if (
+      bindingId === null ||
+      binding === null ||
+      !this.analysis.jsxTagBindingIds.includes(bindingId)
+    ) {
+      return null;
+    }
+    const shapeResult = analyzeComponentShape(fn, bindingId, this.analysis);
+    if (shapeResult.kind === 'failure') {
+      return null;
+    }
+    const shape = shapeResult.shape;
+    const functionRange = getRange(fn) ?? range;
+    this.classifySetupBindings(shape.setup);
+    const childLifetime = this.allocateLifetime(lifetimeId, 'render-function', 'atomic-range');
+    const setup = this.lowerSetup(childLifetime, shape.setup);
+    const expression = findNodeByRange(this.owner.body, shape.returnExpression);
+    if (expression === null) {
+      this.fail(
+        'unsupported-syntax',
+        shape.returnExpression,
+        'The local component return expression could not be located.'
+      );
+      return null;
+    }
+    const effects: RenderEffectPlan[] = [];
+    const render: RenderPlan = {
+      roots: this.lowerExpression(expression, { lifetimeId: childLifetime, effects }),
+      effects,
+    };
+    const needsId = setup.some((item) => item.kind === 'statement' && item.useIds.length > 0);
+    const renderFunction: RenderFunctionPlan = {
+      kind: 'local-component',
+      collectionSourceKind: null,
+      range: functionRange,
+      segmentId: null,
+      lifetimeId: childLifetime,
+      async: false,
+      pure: isPureRenderFunction(
+        render,
+        setup,
+        false,
+        this.lifecycleSegmentsIn(functionRange),
+        needsId
+      ),
+      setup,
+      parameterBindingIds: shape.parameter?.bindingIds ?? [],
+      render,
+      referenceBindingIds: this.renderReferenceBindingIds(render, setup),
+      lifecycleSegmentIds: this.lifecycleSegmentsIn(functionRange),
+      needsId,
+      styleScope: this.styleScopes.length === 0 ? null : this.styleScopes.join(' '),
+      runtimeStyleScope: this.hasCustomHook,
+      runtimeStyleScopeName: this.hasCustomHook ? this.runtimeStyleScopeName() : null,
+    };
+    return {
+      kind: 'local-component',
+      range,
+      lifetimeId,
+      bindingId,
+      name: binding.name,
+      parameter: shape.parameter,
+      render: renderFunction,
+    };
   }
 
   private collectUseIds(range: SourceRange) {

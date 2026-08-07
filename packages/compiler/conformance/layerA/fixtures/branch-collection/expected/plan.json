@@ -125,8 +125,7 @@
                     "kind": "signal-read",
                     "binding": 5
                   }
-                },
-                "compilerString": false
+                }
               }
             ],
             "propsEffect": null,

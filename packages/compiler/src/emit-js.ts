@@ -241,6 +241,8 @@ class JsComponentGenerator {
   private didEmitRoot = false;
   /** Bindings declared as reactive sources (signal/store/computed) — prop getters track them. */
   private sourceKinds = new Set<number>();
+  /** Use-id locals — reads of these are compile-time-proven stable strings. */
+  private useIdBindings = new Set<number>();
   /** Element id placeholders: resolved at first claiming step (eager const / lazy let). */
   private readonly idState = new Map<string, 'placeholder' | 'eager' | 'lazy'>();
   /** Pending async steps — the return value chains maybeThen over them in order. */
@@ -802,6 +804,7 @@ class JsComponentGenerator {
         return;
       }
       case 'use-id': {
+        this.useIdBindings.add(entry.binding as number);
         const variable = this.declare(entry.binding as number, entry.name as string | undefined);
         this.statements.push(
           `const ${variable} = (_id + 'u${(entry.ordinal as number | undefined) ?? 0}');`
@@ -1707,15 +1710,16 @@ class JsComponentGenerator {
         return true;
       }
       case 'dynamic': {
-        const item = prop as {
-          name: string;
-          value: { segment?: string; ir?: ValueIR };
-          compilerString: boolean;
-        };
+        const item = prop as { name: string; value: unknown };
         const segmentId = valueSegment(item.value);
-        if (item.compilerString) {
-          // compile-time strings render inline; the planner keeps these initial-only
-          const ir = valueIr(item.value);
+        const propIr = valueIr(item.value);
+        // proven stable string: a bare read of a use-id local — derived, not a wire flag
+        const isProvenString =
+          propIr !== undefined &&
+          propIr.kind === 'binding-read' &&
+          this.useIdBindings.has((propIr as { binding: number }).binding);
+        if (isProvenString) {
+          const ir = propIr;
           if (ir === undefined || idVariable !== null) {
             return false;
           }

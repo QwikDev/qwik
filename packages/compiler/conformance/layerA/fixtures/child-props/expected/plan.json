@@ -204,8 +204,7 @@
                         "kind": "signal-read",
                         "binding": 4
                       }
-                    },
-                    "compilerString": false
+                    }
                   }
                 ],
                 "propsSource": null,

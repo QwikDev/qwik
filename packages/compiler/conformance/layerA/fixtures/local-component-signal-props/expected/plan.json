@@ -107,8 +107,7 @@
                         "kind": "signal-read",
                         "binding": 2
                       }
-                    },
-                    "compilerString": false
+                    }
                   }
                 ],
                 "propsSource": null,

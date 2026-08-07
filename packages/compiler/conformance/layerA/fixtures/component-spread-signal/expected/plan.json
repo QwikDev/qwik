@@ -55,8 +55,7 @@
                     "binding": 3
                   },
                   "segment": "segment_0"
-                },
-                "compilerString": false
+                }
               }
             ],
             "propsEffect": null,
@@ -240,8 +239,7 @@
                         "kind": "signal-read",
                         "binding": 6
                       }
-                    },
-                    "compilerString": false
+                    }
                   }
                 ],
                 "propsSource": null,

@@ -163,8 +163,7 @@
                         "kind": "signal-read",
                         "binding": 6
                       }
-                    },
-                    "compilerString": false
+                    }
                   }
                 ],
                 "propsEffect": null,
@@ -191,8 +190,7 @@
                         "kind": "binding-read",
                         "binding": 6
                       }
-                    },
-                    "compilerString": false
+                    }
                   },
                   {
                     "kind": "static",

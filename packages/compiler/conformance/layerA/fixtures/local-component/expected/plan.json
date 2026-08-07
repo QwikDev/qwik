@@ -128,8 +128,7 @@
                                 ]
                               },
                               "segment": "segment_0"
-                            },
-                            "compilerString": false
+                            }
                           }
                         ],
                         "propsEffect": null,
@@ -195,8 +194,7 @@
                               ]
                             },
                             "segment": "segment_1"
-                          },
-                          "compilerString": false
+                          }
                         },
                         {
                           "kind": "event",
@@ -314,8 +312,7 @@
                               "kind": "binding-read",
                               "binding": 8
                             }
-                          },
-                          "compilerString": false
+                          }
                         }
                       ],
                       "propsSource": null,

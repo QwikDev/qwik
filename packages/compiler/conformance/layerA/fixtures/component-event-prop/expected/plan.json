@@ -43,8 +43,7 @@
                     "name": "id"
                   },
                   "segment": "segment_0"
-                },
-                "compilerString": false
+                }
               },
               {
                 "kind": "static",

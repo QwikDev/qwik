@@ -82,7 +82,6 @@ export type PlanSsrProp =
       readonly kind: 'dynamic';
       readonly name: string;
       readonly value: PlanValue;
-      readonly compilerString: boolean;
     }
   | { readonly kind: 'spread'; readonly value: PlanValue }
   | { readonly kind: 'ref'; readonly value: PlanValue }
@@ -383,7 +382,6 @@ export function emitSsrOpPlan(
           kind: 'dynamic',
           name: item.name,
           value: planValue(item.value),
-          compilerString: item.compilerString,
         };
       case 'spread':
         return { kind: 'spread', value: planValue(item.value) };
@@ -420,7 +418,6 @@ export function emitSsrOpPlan(
           kind: 'dynamic',
           name: item.name,
           value: planValue(item.value),
-          compilerString: false,
         };
       case 'spread':
         return { kind: 'spread', value: planValue(item.value) };

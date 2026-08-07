@@ -37,10 +37,8 @@
           {
             "kind": "element",
             "tag": "ul",
-            "id": null,
             "voidTag": false,
             "styleScopedId": null,
-            "targetUses": 0,
             "props": [],
             "propsEffect": null,
             "children": [
@@ -99,10 +97,8 @@
                       {
                         "kind": "element",
                         "tag": "li",
-                        "id": 0,
                         "voidTag": false,
                         "styleScopedId": null,
-                        "targetUses": 0,
                         "props": [],
                         "propsEffect": null,
                         "children": [
@@ -123,7 +119,11 @@
                               "id": 0
                             }
                           }
-                        ]
+                        ],
+                        "ssr": {
+                          "id": 0,
+                          "targetUses": 0
+                        }
                       }
                     ],
                     "ssr": {
@@ -140,7 +140,11 @@
                 "idBase": null,
                 "rowShape": 0
               }
-            ]
+            ],
+            "ssr": {
+              "id": null,
+              "targetUses": 0
+            }
           }
         ],
         "ssr": {

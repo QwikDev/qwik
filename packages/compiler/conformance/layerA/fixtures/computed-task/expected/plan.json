@@ -86,10 +86,8 @@
           {
             "kind": "element",
             "tag": "p",
-            "id": 0,
             "voidTag": false,
             "styleScopedId": null,
-            "targetUses": 1,
             "props": [
               {
                 "kind": "dynamic",
@@ -108,10 +106,8 @@
               {
                 "kind": "element",
                 "tag": "output",
-                "id": 1,
                 "voidTag": false,
                 "styleScopedId": null,
-                "targetUses": 0,
                 "props": [],
                 "propsEffect": null,
                 "children": [
@@ -131,9 +127,17 @@
                       "id": 1
                     }
                   }
-                ]
+                ],
+                "ssr": {
+                  "id": 1,
+                  "targetUses": 0
+                }
               }
-            ]
+            ],
+            "ssr": {
+              "id": 0,
+              "targetUses": 1
+            }
           }
         ],
         "ssr": {

@@ -25,10 +25,8 @@
           {
             "kind": "element",
             "tag": "p",
-            "id": null,
             "voidTag": false,
             "styleScopedId": null,
-            "targetUses": 0,
             "props": [],
             "propsEffect": null,
             "children": [
@@ -36,7 +34,11 @@
                 "kind": "static",
                 "html": "Loaded!"
               }
-            ]
+            ],
+            "ssr": {
+              "id": null,
+              "targetUses": 0
+            }
           }
         ],
         "ssr": {
@@ -80,10 +82,8 @@
           {
             "kind": "element",
             "tag": "section",
-            "id": null,
             "voidTag": false,
             "styleScopedId": null,
-            "targetUses": 0,
             "props": [],
             "propsEffect": null,
             "children": [
@@ -118,10 +118,8 @@
                     {
                       "kind": "element",
                       "tag": "em",
-                      "id": null,
                       "voidTag": false,
                       "styleScopedId": null,
-                      "targetUses": 0,
                       "props": [],
                       "propsEffect": null,
                       "children": [
@@ -129,7 +127,11 @@
                           "kind": "static",
                           "html": "waiting"
                         }
-                      ]
+                      ],
+                      "ssr": {
+                        "id": null,
+                        "targetUses": 0
+                      }
                     }
                   ],
                   "ssr": {
@@ -141,7 +143,11 @@
                 "delay": null,
                 "inOrder": null
               }
-            ]
+            ],
+            "ssr": {
+              "id": null,
+              "targetUses": 0
+            }
           }
         ],
         "ssr": {

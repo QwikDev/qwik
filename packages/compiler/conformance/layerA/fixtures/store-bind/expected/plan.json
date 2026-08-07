@@ -42,20 +42,16 @@
           {
             "kind": "element",
             "tag": "form",
-            "id": null,
             "voidTag": false,
             "styleScopedId": null,
-            "targetUses": 0,
             "props": [],
             "propsEffect": null,
             "children": [
               {
                 "kind": "element",
                 "tag": "input",
-                "id": 0,
                 "voidTag": true,
                 "styleScopedId": null,
-                "targetUses": 1,
                 "props": [
                   {
                     "kind": "dynamic",
@@ -79,15 +75,17 @@
                   }
                 ],
                 "propsEffect": null,
-                "children": []
+                "children": [],
+                "ssr": {
+                  "id": 0,
+                  "targetUses": 1
+                }
               },
               {
                 "kind": "element",
                 "tag": "output",
-                "id": 1,
                 "voidTag": false,
                 "styleScopedId": null,
-                "targetUses": 0,
                 "props": [],
                 "propsEffect": null,
                 "children": [
@@ -112,9 +110,17 @@
                       "id": 1
                     }
                   }
-                ]
+                ],
+                "ssr": {
+                  "id": 1,
+                  "targetUses": 0
+                }
               }
-            ]
+            ],
+            "ssr": {
+              "id": null,
+              "targetUses": 0
+            }
           }
         ],
         "ssr": {

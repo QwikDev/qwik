@@ -14,10 +14,8 @@
           {
             "kind": "element",
             "tag": "main",
-            "id": null,
             "voidTag": false,
             "styleScopedId": null,
-            "targetUses": 0,
             "props": [
               {
                 "kind": "static",
@@ -30,10 +28,8 @@
               {
                 "kind": "element",
                 "tag": "h1",
-                "id": null,
                 "voidTag": false,
                 "styleScopedId": null,
-                "targetUses": 0,
                 "props": [],
                 "propsEffect": null,
                 "children": [
@@ -41,15 +37,17 @@
                     "kind": "static",
                     "html": "Static page"
                   }
-                ]
+                ],
+                "ssr": {
+                  "id": null,
+                  "targetUses": 0
+                }
               },
               {
                 "kind": "element",
                 "tag": "p",
-                "id": null,
                 "voidTag": false,
                 "styleScopedId": null,
-                "targetUses": 0,
                 "props": [],
                 "propsEffect": null,
                 "children": [
@@ -57,9 +55,17 @@
                     "kind": "static",
                     "html": "No state, no handlers."
                   }
-                ]
+                ],
+                "ssr": {
+                  "id": null,
+                  "targetUses": 0
+                }
               }
-            ]
+            ],
+            "ssr": {
+              "id": null,
+              "targetUses": 0
+            }
           }
         ],
         "ssr": {

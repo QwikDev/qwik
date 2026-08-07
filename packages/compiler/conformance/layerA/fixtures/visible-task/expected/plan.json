@@ -29,10 +29,8 @@
           {
             "kind": "element",
             "tag": "output",
-            "id": 0,
             "voidTag": false,
             "styleScopedId": null,
-            "targetUses": 0,
             "props": [],
             "propsEffect": null,
             "children": [
@@ -52,7 +50,11 @@
                   "id": 0
                 }
               }
-            ]
+            ],
+            "ssr": {
+              "id": 0,
+              "targetUses": 0
+            }
           }
         ],
         "ssr": {

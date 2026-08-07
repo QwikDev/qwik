@@ -24,10 +24,8 @@
           {
             "kind": "element",
             "tag": "a",
-            "id": 0,
             "voidTag": false,
             "styleScopedId": null,
-            "targetUses": 1,
             "props": [
               {
                 "kind": "dynamic",
@@ -70,7 +68,11 @@
                 "kind": "static",
                 "html": "link"
               }
-            ]
+            ],
+            "ssr": {
+              "id": 0,
+              "targetUses": 1
+            }
           }
         ],
         "ssr": {

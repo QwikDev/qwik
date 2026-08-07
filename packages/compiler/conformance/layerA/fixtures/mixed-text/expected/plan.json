@@ -24,10 +24,8 @@
           {
             "kind": "element",
             "tag": "p",
-            "id": 0,
             "voidTag": false,
             "styleScopedId": null,
-            "targetUses": 0,
             "props": [],
             "propsEffect": null,
             "children": [
@@ -86,7 +84,11 @@
                 "kind": "static",
                 "html": ")"
               }
-            ]
+            ],
+            "ssr": {
+              "id": 0,
+              "targetUses": 0
+            }
           }
         ],
         "ssr": {

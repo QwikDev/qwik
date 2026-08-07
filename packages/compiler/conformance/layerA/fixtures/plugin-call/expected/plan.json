@@ -30,20 +30,16 @@
           {
             "kind": "element",
             "tag": "main",
-            "id": null,
             "voidTag": false,
             "styleScopedId": null,
-            "targetUses": 0,
             "props": [],
             "propsEffect": null,
             "children": [
               {
                 "kind": "element",
                 "tag": "b",
-                "id": null,
                 "voidTag": false,
                 "styleScopedId": null,
-                "targetUses": 0,
                 "props": [
                   {
                     "kind": "static",
@@ -65,15 +61,17 @@
                     },
                     "root": false
                   }
-                ]
+                ],
+                "ssr": {
+                  "id": null,
+                  "targetUses": 0
+                }
               },
               {
                 "kind": "element",
                 "tag": "button",
-                "id": null,
                 "voidTag": false,
                 "styleScopedId": null,
-                "targetUses": 0,
                 "props": [
                   {
                     "kind": "static",
@@ -99,9 +97,17 @@
                     "kind": "static",
                     "html": "shout"
                   }
-                ]
+                ],
+                "ssr": {
+                  "id": null,
+                  "targetUses": 0
+                }
               }
-            ]
+            ],
+            "ssr": {
+              "id": null,
+              "targetUses": 0
+            }
           }
         ],
         "ssr": {

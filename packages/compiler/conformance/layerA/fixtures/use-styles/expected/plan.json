@@ -30,10 +30,8 @@
           {
             "kind": "element",
             "tag": "p",
-            "id": 0,
             "voidTag": false,
             "styleScopedId": null,
-            "targetUses": 0,
             "props": [
               {
                 "kind": "static",
@@ -59,7 +57,11 @@
                   "id": 0
                 }
               }
-            ]
+            ],
+            "ssr": {
+              "id": 0,
+              "targetUses": 0
+            }
           }
         ],
         "ssr": {

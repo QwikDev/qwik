@@ -14,10 +14,8 @@
           {
             "kind": "element",
             "tag": "form",
-            "id": null,
             "voidTag": false,
             "styleScopedId": null,
-            "targetUses": 0,
             "props": [
               {
                 "kind": "static",
@@ -40,10 +38,8 @@
               {
                 "kind": "element",
                 "tag": "input",
-                "id": null,
                 "voidTag": true,
                 "styleScopedId": null,
-                "targetUses": 0,
                 "props": [
                   {
                     "kind": "static",
@@ -67,15 +63,17 @@
                   }
                 ],
                 "propsEffect": null,
-                "children": []
+                "children": [],
+                "ssr": {
+                  "id": null,
+                  "targetUses": 0
+                }
               },
               {
                 "kind": "element",
                 "tag": "textarea",
-                "id": null,
                 "voidTag": false,
                 "styleScopedId": null,
-                "targetUses": 0,
                 "props": [
                   {
                     "kind": "static",
@@ -89,9 +87,17 @@
                   }
                 ],
                 "propsEffect": null,
-                "children": []
+                "children": [],
+                "ssr": {
+                  "id": null,
+                  "targetUses": 0
+                }
               }
-            ]
+            ],
+            "ssr": {
+              "id": null,
+              "targetUses": 0
+            }
           }
         ],
         "ssr": {

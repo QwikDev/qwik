@@ -114,15 +114,18 @@ export type PlanSsrOp =
   | {
       readonly kind: SsrOpKind.Element;
       readonly tag: string;
-      readonly id: number | null;
       readonly voidTag: boolean;
       readonly styleScopedId: string | null;
-      readonly runtimeScope?: true;
-      readonly targetUses: number;
       readonly props: readonly PlanSsrProp[];
       readonly propsEffect: string | null;
       readonly propsEffectRef?: true;
       readonly children: readonly PlanSsrOp[];
+      readonly ssr: {
+        /** Planned `q:id` target; null = untargeted. CSR addresses by tree path instead. */
+        readonly id: number | null;
+        readonly targetUses: number;
+        readonly runtimeScope?: true;
+      };
     }
   | {
       readonly kind: SsrOpKind.Dynamic;
@@ -487,17 +490,19 @@ export function emitSsrOpPlan(
         return {
           kind: SsrOpKind.Element,
           tag: operation.tag,
-          id: operation.targetId,
           voidTag: operation.void,
           styleScopedId: operation.styleScopedId,
-          ...(operation.runtimeStyleScope ? { runtimeScope: true as const } : {}),
-          targetUses: operation.elementTargetUses,
           props: operation.props.map(ssrProp),
           propsEffect: operation.propsEffect === null ? null : operation.propsEffect.segmentId,
           ...(operation.propsEffect !== null && operation.propsEffectRef
             ? { propsEffectRef: true as const }
             : {}),
           children: operation.children.map(op),
+          ssr: {
+            id: operation.targetId,
+            targetUses: operation.elementTargetUses,
+            ...(operation.runtimeStyleScope ? { runtimeScope: true as const } : {}),
+          },
         };
       case 'dynamic':
         return {

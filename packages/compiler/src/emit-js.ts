@@ -1460,10 +1460,10 @@ class JsComponentGenerator {
       return false;
     }
     if (
-      operation.id !== null ||
+      operation.ssr.id !== null ||
       operation.propsEffect !== null ||
       operation.styleScopedId !== null ||
-      operation.runtimeScope === true
+      operation.ssr.runtimeScope === true
     ) {
       return false;
     }
@@ -1483,7 +1483,7 @@ class JsComponentGenerator {
   ): void {
     let innerHtml: string | null = null;
     let innerHtmlExpr: string | null = null;
-    const idVariable = operation.id === null ? null : `id_${operation.id}`;
+    const idVariable = operation.ssr.id === null ? null : `id_${operation.ssr.id}`;
     if (idVariable !== null) {
       this.statements.push(`__ID_DECL__${idVariable}`);
       this.idState.set(idVariable, 'placeholder');
@@ -1516,7 +1516,7 @@ class JsComponentGenerator {
     }
     const scope: JsStyleScope = {
       staticId: operation.styleScopedId,
-      runtimeName: operation.runtimeScope === true ? this.runtimeScopeName : null,
+      runtimeName: operation.ssr.runtimeScope === true ? this.runtimeScopeName : null,
     };
     if (operation.propsEffect !== null) {
       // whole-element props effect: attrs, ref, and innerHTML ride one renderSsrProps step

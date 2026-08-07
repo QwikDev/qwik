@@ -30,10 +30,8 @@
                 {
                   "kind": "element",
                   "tag": "b",
-                  "id": 0,
                   "voidTag": false,
                   "styleScopedId": null,
-                  "targetUses": 0,
                   "props": [],
                   "propsEffect": null,
                   "children": [
@@ -58,7 +56,11 @@
                         "id": 0
                       }
                     }
-                  ]
+                  ],
+                  "ssr": {
+                    "id": 0,
+                    "targetUses": 0
+                  }
                 }
               ],
               "ssr": {
@@ -106,10 +108,8 @@
                 {
                   "kind": "element",
                   "tag": "section",
-                  "id": null,
                   "voidTag": false,
                   "styleScopedId": null,
-                  "targetUses": 0,
                   "props": [],
                   "propsEffect": null,
                   "children": [
@@ -123,7 +123,11 @@
                       "blockingSuspense": false,
                       "slots": []
                     }
-                  ]
+                  ],
+                  "ssr": {
+                    "id": null,
+                    "targetUses": 0
+                  }
                 }
               ],
               "ssr": {

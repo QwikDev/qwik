@@ -29,10 +29,8 @@
           {
             "kind": "element",
             "tag": "button",
-            "id": 0,
             "voidTag": false,
             "styleScopedId": null,
-            "targetUses": 0,
             "props": [
               {
                 "kind": "event",
@@ -92,7 +90,11 @@
                   "marker": 1
                 }
               }
-            ]
+            ],
+            "ssr": {
+              "id": 0,
+              "targetUses": 0
+            }
           }
         ],
         "ssr": {
@@ -136,20 +138,16 @@
           {
             "kind": "element",
             "tag": "main",
-            "id": null,
             "voidTag": false,
             "styleScopedId": null,
-            "targetUses": 0,
             "props": [],
             "propsEffect": null,
             "children": [
               {
                 "kind": "element",
                 "tag": "h1",
-                "id": null,
                 "voidTag": false,
                 "styleScopedId": null,
-                "targetUses": 0,
                 "props": [],
                 "propsEffect": null,
                 "children": [
@@ -157,7 +155,11 @@
                     "kind": "static",
                     "html": "Cross-module"
                   }
-                ]
+                ],
+                "ssr": {
+                  "id": null,
+                  "targetUses": 0
+                }
               },
               {
                 "kind": "component",
@@ -177,7 +179,11 @@
                 "blockingSuspense": false,
                 "slots": []
               }
-            ]
+            ],
+            "ssr": {
+              "id": null,
+              "targetUses": 0
+            }
           }
         ],
         "ssr": {

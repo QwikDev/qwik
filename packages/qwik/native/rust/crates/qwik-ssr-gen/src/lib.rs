@@ -666,10 +666,10 @@ impl ComponentGenerator<'_> {
 			|| props.iter().any(|prop| prop["kind"].as_str() == Some("event"));
 
 		let row_root = std::mem::take(&mut self.pending_row_root);
-		let id_variable = if op["id"].is_null() {
+		let id_variable = if op["ssr"]["id"].is_null() {
 			None
 		} else {
-			let plan_id = op["id"].as_u64().ok_or("element id not a number")?;
+			let plan_id = op["ssr"]["id"].as_u64().ok_or("element id not a number")?;
 			// unique suffix: plan ids restart per nested block, and inline expansion shares scope
 			let variable = format!("element_id_{plan_id}_{}", self.next_temp());
 			self.uses_ctx = true;

@@ -19,10 +19,8 @@
           {
             "kind": "element",
             "tag": "button",
-            "id": 0,
             "voidTag": false,
             "styleScopedId": null,
-            "targetUses": 2,
             "props": [
               {
                 "kind": "dynamic",
@@ -79,7 +77,11 @@
                 "idBase": null,
                 "fallback": null
               }
-            ]
+            ],
+            "ssr": {
+              "id": 0,
+              "targetUses": 2
+            }
           }
         ],
         "ssr": {
@@ -124,10 +126,8 @@
           {
             "kind": "element",
             "tag": "main",
-            "id": null,
             "voidTag": false,
             "styleScopedId": null,
-            "targetUses": 0,
             "props": [],
             "propsEffect": null,
             "children": [
@@ -184,10 +184,8 @@
               {
                 "kind": "element",
                 "tag": "span",
-                "id": 0,
                 "voidTag": false,
                 "styleScopedId": null,
-                "targetUses": 0,
                 "props": [
                   {
                     "kind": "static",
@@ -213,9 +211,17 @@
                       "id": 0
                     }
                   }
-                ]
+                ],
+                "ssr": {
+                  "id": 0,
+                  "targetUses": 0
+                }
               }
-            ]
+            ],
+            "ssr": {
+              "id": null,
+              "targetUses": 0
+            }
           }
         ],
         "ssr": {

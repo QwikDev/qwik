@@ -431,9 +431,9 @@ export async function buildInterpretedRoot(
           parts.push(op.html);
           break;
         case 'element': {
-          const id = op.id === null ? null : ctx.nextId();
-          if (op.id !== null && id !== null) {
-            runtimeIds.set(op.id, id);
+          const id = op.ssr.id === null ? null : ctx.nextId();
+          if (op.ssr.id !== null && id !== null) {
+            runtimeIds.set(op.ssr.id, id);
           }
           const open: unknown[] = [`<${op.tag}`];
           let innerHtmlContent: string | null = null;

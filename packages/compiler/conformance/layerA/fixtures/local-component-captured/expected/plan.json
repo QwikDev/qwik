@@ -80,20 +80,16 @@
                 {
                   "kind": "element",
                   "tag": "li",
-                  "id": null,
                   "voidTag": false,
                   "styleScopedId": null,
-                  "targetUses": 0,
                   "props": [],
                   "propsEffect": null,
                   "children": [
                     {
                       "kind": "element",
                       "tag": "a",
-                      "id": 0,
                       "voidTag": false,
                       "styleScopedId": null,
-                      "targetUses": 1,
                       "props": [
                         {
                           "kind": "dynamic",
@@ -159,9 +155,17 @@
                           },
                           "root": false
                         }
-                      ]
+                      ],
+                      "ssr": {
+                        "id": 0,
+                        "targetUses": 1
+                      }
                     }
-                  ]
+                  ],
+                  "ssr": {
+                    "id": null,
+                    "targetUses": 0
+                  }
                 }
               ],
               "ssr": {
@@ -175,10 +179,8 @@
           {
             "kind": "element",
             "tag": "ul",
-            "id": null,
             "voidTag": false,
             "styleScopedId": null,
-            "targetUses": 0,
             "props": [],
             "propsEffect": null,
             "children": [
@@ -219,7 +221,11 @@
                 },
                 "else": null
               }
-            ]
+            ],
+            "ssr": {
+              "id": null,
+              "targetUses": 0
+            }
           }
         ],
         "ssr": {

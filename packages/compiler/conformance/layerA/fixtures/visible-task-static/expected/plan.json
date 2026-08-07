@@ -29,10 +29,8 @@
           {
             "kind": "element",
             "tag": "div",
-            "id": null,
             "voidTag": false,
             "styleScopedId": null,
-            "targetUses": 0,
             "props": [],
             "propsEffect": null,
             "children": [
@@ -40,7 +38,11 @@
                 "kind": "static",
                 "html": "hi"
               }
-            ]
+            ],
+            "ssr": {
+              "id": null,
+              "targetUses": 0
+            }
           }
         ],
         "ssr": {

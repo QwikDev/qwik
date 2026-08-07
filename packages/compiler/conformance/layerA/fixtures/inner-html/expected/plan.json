@@ -14,20 +14,16 @@
           {
             "kind": "element",
             "tag": "article",
-            "id": null,
             "voidTag": false,
             "styleScopedId": null,
-            "targetUses": 0,
             "props": [],
             "propsEffect": null,
             "children": [
               {
                 "kind": "element",
                 "tag": "div",
-                "id": null,
                 "voidTag": false,
                 "styleScopedId": null,
-                "targetUses": 0,
                 "props": [
                   {
                     "kind": "inner-html",
@@ -35,9 +31,17 @@
                   }
                 ],
                 "propsEffect": null,
-                "children": []
+                "children": [],
+                "ssr": {
+                  "id": null,
+                  "targetUses": 0
+                }
               }
-            ]
+            ],
+            "ssr": {
+              "id": null,
+              "targetUses": 0
+            }
           }
         ],
         "ssr": {

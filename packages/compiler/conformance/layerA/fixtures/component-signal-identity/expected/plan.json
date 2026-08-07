@@ -50,10 +50,8 @@
           {
             "kind": "element",
             "tag": "p",
-            "id": null,
             "voidTag": false,
             "styleScopedId": null,
-            "targetUses": 0,
             "props": [],
             "propsEffect": null,
             "children": [
@@ -61,7 +59,11 @@
                 "kind": "static",
                 "html": "child"
               }
-            ]
+            ],
+            "ssr": {
+              "id": null,
+              "targetUses": 0
+            }
           }
         ],
         "ssr": {
@@ -126,20 +128,16 @@
           {
             "kind": "element",
             "tag": "div",
-            "id": null,
             "voidTag": false,
             "styleScopedId": null,
-            "targetUses": 0,
             "props": [],
             "propsEffect": null,
             "children": [
               {
                 "kind": "element",
                 "tag": "span",
-                "id": 0,
                 "voidTag": false,
                 "styleScopedId": null,
-                "targetUses": 1,
                 "props": [
                   {
                     "kind": "dynamic",
@@ -159,7 +157,11 @@
                     "kind": "static",
                     "html": "ready"
                   }
-                ]
+                ],
+                "ssr": {
+                  "id": 0,
+                  "targetUses": 1
+                }
               },
               {
                 "kind": "component",
@@ -190,7 +192,11 @@
                 "blockingSuspense": false,
                 "slots": []
               }
-            ]
+            ],
+            "ssr": {
+              "id": null,
+              "targetUses": 0
+            }
           }
         ],
         "ssr": {

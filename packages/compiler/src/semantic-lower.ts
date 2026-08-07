@@ -1420,6 +1420,12 @@ class SemanticLowerer {
     importOf: (binding) => this.binding(binding)?.import ?? null,
   };
 
+  /** Render-position values may carry render-arg placeholders; plan emission resolves them. */
+  private readonly renderValueLowerFacts: ExprLowerFacts = {
+    ...this.exprLowerFacts,
+    allowRenderArgs: true,
+  };
+
   private readonly setupLowerFacts: SetupLowerFacts = {
     ...this.exprLowerFacts,
     isHook: (callee, hook) => this.isSparkHook(callee, hook) || this.isQwikHook(callee, hook),
@@ -1431,7 +1437,9 @@ class SemanticLowerer {
   };
 
   private valueIr(expression: AstNode): { ir?: ValueIR } {
-    return this.namedValueIr('ir', expression);
+    const ir = lowerValueIr(expression, this.renderValueLowerFacts);
+    reportValueIrSite(ir !== null);
+    return ir === null ? {} : { ir };
   }
 
   private namedValueIr<K extends string>(key: K, expression: AstNode): { [P in K]?: ValueIR } {

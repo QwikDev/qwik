@@ -68,22 +68,22 @@ describe('emitModulePlan', () => {
   });
 });
 
-describe('hook capability metadata', () => {
-  async function planFor(files: Record<string, string>) {
-    const result = await transformModules({
-      input: Object.entries(files).map(([path, code]) => ({ path, code })),
-      srcDir: 'src',
-      sourceMaps: false,
-      transpileTs: true,
-      transpileJsx: true,
-      isServer: true,
-      emitPlan: true,
-    } as TransformModulesOptions & { emitPlan: boolean });
-    return result.modules
-      .filter((module) => module.path.endsWith('.plan.json'))
-      .map((module) => JSON.parse(module.code));
-  }
+async function planFor(files: Record<string, string>) {
+  const result = await transformModules({
+    input: Object.entries(files).map(([path, code]) => ({ path, code })),
+    srcDir: 'src',
+    sourceMaps: false,
+    transpileTs: true,
+    transpileJsx: true,
+    isServer: true,
+    emitPlan: true,
+  } as TransformModulesOptions & { emitPlan: boolean });
+  return result.modules
+    .filter((module) => module.path.endsWith('.plan.json'))
+    .map((module) => JSON.parse(module.code));
+}
 
+describe('hook capability metadata', () => {
   test('exported hooks record capabilities and nested custom-hook calls', async () => {
     const [plan] = await planFor({
       'src/hooks.ts': [
@@ -123,6 +123,69 @@ describe('hook capability metadata', () => {
       ].join('\n'),
     });
     expect(plan.components[0].hookCalls).toEqual([{ module: './theme', name: 'useTheme' }]);
+  });
+});
+
+/** All `{kind:'render-arg'}` records anywhere in the plan JSON. */
+function findRenderArgs(node: unknown, found: Record<string, unknown>[] = []) {
+  if (Array.isArray(node)) {
+    node.forEach((item) => findRenderArgs(item, found));
+  } else if (typeof node === 'object' && node !== null) {
+    if ((node as { kind?: string }).kind === 'render-arg') {
+      found.push(node as Record<string, unknown>);
+    }
+    Object.values(node).forEach((value) => findRenderArgs(value, found));
+  }
+  return found;
+}
+
+describe('render-arg wire hygiene', () => {
+  test('framework imports never lower to plugin-calls', async () => {
+    const [plan] = await planFor({
+      'src/view.tsx': [
+        `import { inlinedQrl, useSignal } from '@qwik.dev/core';`,
+        `export function App() {`,
+        `  const count = useSignal(0);`,
+        `  const handler = inlinedQrl(() => count.value++, 'App_handler', [count]);`,
+        `  return <button onClick$={handler}>increment</button>;`,
+        `}`,
+      ].join('\n'),
+    });
+    expect(JSON.stringify(plan)).not.toContain('plugin:@qwik.dev');
+  });
+
+  test('unresolvable render callbacks never leak placeholders onto the wire', async () => {
+    const [plan] = await planFor({
+      'src/view.tsx': [
+        `import { makeHandler } from './handlers';`,
+        `import { useSignal } from '@qwik.dev/core';`,
+        `export function App() {`,
+        `  const count = useSignal(0);`,
+        `  const handler = makeHandler(() => count.value++);`,
+        `  return <button onClick$={handler}>{count.value}</button>;`,
+        `}`,
+      ].join('\n'),
+      'src/handlers.ts': `export const makeHandler = (fn) => fn;`,
+    });
+    expect(findRenderArgs(plan)).toEqual([]);
+  });
+
+  test('render-position callbacks resolve to inline render blocks', async () => {
+    const [plan] = await planFor({
+      'src/view.tsx': [
+        `import { runLater } from './scheduler';`,
+        `export function App(props) {`,
+        `  return <main>{runLater(() => <span>{props.label}</span>)}</main>;`,
+        `}`,
+      ].join('\n'),
+      'src/scheduler.ts': `export const runLater = (fn) => fn();`,
+    });
+    const renderArgs = findRenderArgs(plan);
+    expect(renderArgs.length).toBeGreaterThan(0);
+    for (const arg of renderArgs) {
+      expect(arg.render).toBeDefined();
+      expect(arg.range).toBeUndefined();
+    }
   });
 });
 

@@ -28,6 +28,8 @@ export interface ExprLowerFacts {
   defIndex?(binding: BindingId): number | null;
   /** The binding's import metadata, for plugin claim matching (specs/09). */
   importOf?(binding: BindingId): ImportBinding | null;
+  /** Only render-position values may carry render-arg placeholders — plan emission resolves them. */
+  allowRenderArgs?: true;
 }
 
 /** User compiler plugin (specs/09): claims imported symbols, provides per-target sources. */
@@ -93,8 +95,13 @@ function pluginFnNativeName(fnId: string): string {
  * never gate lowering; they only register per-target implementations for the registry.
  */
 function claimPluginCall(imported: ImportBinding, argCount: number): string | null {
-  // dollar exports are QRL boundaries owned by the $ transform, not plugin-calls
-  if (imported.typeOnly || imported.importedName === '*' || imported.importedName.endsWith('$')) {
+  // dollar exports ($ transform) and framework exports have compiler-owned semantics
+  if (
+    imported.typeOnly ||
+    imported.importedName === '*' ||
+    imported.importedName.endsWith('$') ||
+    imported.source.startsWith('@qwik.dev/')
+  ) {
     return null;
   }
   const fnId = `plugin:${imported.source}:${imported.importedName}`;
@@ -567,7 +574,7 @@ function lowerArgs(
         args.push(lambda);
         continue;
       }
-      if (pluginArgs) {
+      if (pluginArgs && facts.allowRenderArgs === true) {
         // render-bodied callback: a range placeholder the plan emitter resolves against
         // the value's embedded renders — or fails the whole lowering if none matches
         const range = getRange(argument);

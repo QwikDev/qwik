@@ -1429,6 +1429,23 @@ class SemanticLowerer {
             (segment) =>
               segment.kind === 'pluginCallback' && sameRange(segment.functionRange, range)
           )?.id ?? null),
+    findImplicitQrlCall: (range) => {
+      if (range === null) {
+        return null;
+      }
+      const segment = this.extracted.segments.find(
+        (candidate) =>
+          candidate.kind === 'qrl' &&
+          candidate.qrl?.kind === 'implicit' &&
+          sameRange(candidate.range, range)
+      );
+      const boundary = segment?.qrl;
+      // local dollar exports have no addressable module — fail closed
+      if (segment === undefined || boundary?.kind !== 'implicit' || boundary.source === null) {
+        return null;
+      }
+      return { segment: segment.id, source: boundary.source, qrlName: `${boundary.baseName}Qrl` };
+    },
   };
 
   /** Render-position values may carry render-arg placeholders; plan emission resolves them. */

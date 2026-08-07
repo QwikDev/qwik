@@ -33,6 +33,10 @@ export interface ExprLowerFacts {
   allowRenderArgs?: true;
   /** Extracted segment backing a plugin-call callback, by the callback's source range. */
   findFnArgSegmentId?(range: SourceRange | null): string | null;
+  /** Implicit-dollar boundary at this call range: the extracted segment plus the Qrl rewrite. */
+  findImplicitQrlCall?(
+    range: SourceRange | null
+  ): { readonly segment: string; readonly source: string; readonly qrlName: string } | null;
 }
 
 /** User compiler plugin (specs/09): claims imported symbols, provides per-target sources. */
@@ -485,6 +489,34 @@ function lowerCall(node: AstNode, facts: ExprLowerFacts): ValueIR | null {
       const def = facts.defIndex?.(calleeBinding) ?? null;
       if (def === null) {
         const imported = facts.importOf?.(calleeBinding) ?? null;
+        if (imported !== null && imported.importedName.endsWith('$')) {
+          // dollar-rewritten call: the Qrl variant is the addressable export, the
+          // extracted boundary rides as a qrl-arg (specs/09 sketch)
+          const rewrite = facts.findImplicitQrlCall?.(getRange(node)) ?? null;
+          if (rewrite === null) {
+            return null;
+          }
+          const fnId = claimPluginCall(
+            {
+              source: rewrite.source,
+              importedName: rewrite.qrlName,
+              typeOnly: false,
+              attributes: [],
+            },
+            call.arguments.length
+          );
+          if (fnId === null) {
+            return null;
+          }
+          const rest = lowerArgs(call.arguments.slice(1), facts, null, true);
+          return rest === null
+            ? null
+            : {
+                kind: ValueIrKind.PluginCall,
+                fnId,
+                args: [{ kind: 'qrl-arg', segment: rewrite.segment }, ...rest],
+              };
+        }
         const fnId = imported === null ? null : claimPluginCall(imported, call.arguments.length);
         if (fnId === null) {
           return null; // unaddressable callee (component-local fn)

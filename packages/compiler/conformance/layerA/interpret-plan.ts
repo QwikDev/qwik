@@ -70,6 +70,32 @@ function valueIr(value: unknown): ValueIR | undefined {
   return wire.kind === 'ir' ? wire.ir : undefined;
 }
 
+/** Segment ids of qrl-arg/fn-arg records anywhere in this IR, in traversal order. */
+function collectSegmentArgIds(node: unknown, found: string[] = []): string[] {
+  if (Array.isArray(node)) {
+    node.forEach((item) => collectSegmentArgIds(item, found));
+  } else if (typeof node === 'object' && node !== null) {
+    const record = node as { kind?: string; segment?: string };
+    if ((record.kind === 'qrl-arg' || record.kind === 'fn-arg') && record.segment !== undefined) {
+      found.push(record.segment);
+    }
+    Object.values(record).forEach((value) => collectSegmentArgIds(value, found));
+  }
+  return found;
+}
+
+/** Deep check mirroring the generator's irReadsSignal: reactive values need tracked emission. */
+function irContainsSignalRead(node: unknown): boolean {
+  if (Array.isArray(node)) {
+    return node.some(irContainsSignalRead);
+  }
+  if (typeof node !== 'object' || node === null) {
+    return false;
+  }
+  const record = node as Record<string, unknown>;
+  return record.kind === 'signal-read' || Object.values(record).some(irContainsSignalRead);
+}
+
 function valueSegment(value: unknown): string | undefined {
   const wire = value as WireValue;
   return wire.kind === 'ir' || wire.kind === 'segment' ? wire.segment : undefined;
@@ -308,6 +334,10 @@ export async function buildInterpretedRoot(
             throw new Error(`plugin fn ${ir.fnId} has no implementation`);
           }
           const argValues = ir.args.map((argument) => {
+            if ((argument as { kind?: string }).kind === 'qrl-arg') {
+              // the dollar-rewritten call takes the QRL itself
+              return qrlWithCaptures((argument as { segment: string }).segment);
+            }
             if ((argument as { kind?: string }).kind === 'fn-arg') {
               // qrl-backed callback: the eagerly resolved segment fn with captures bound
               const segmentId = (argument as { segment: string }).segment;
@@ -884,6 +914,26 @@ export async function buildInterpretedRoot(
                 Object.defineProperty(literal, dynamic.name, {
                   enumerable: true,
                   get: () => plain,
+                });
+              } else if (
+                ir !== undefined &&
+                ir.kind !== 'signal-read' &&
+                !irContainsSignalRead(ir)
+              ) {
+                // segment-backed args root their captures before the component call
+                for (const segmentId of collectSegmentArgIds(ir)) {
+                  for (const captureBinding of captureLists.get(segmentId) ?? []) {
+                    ctx.addRoot(
+                      destructuredPropValues.has(captureBinding)
+                        ? destructuredPropValues.get(captureBinding)
+                        : locals.get(captureBinding)
+                    );
+                  }
+                }
+                // non-reactive expression props read through a plain evaluating getter
+                Object.defineProperty(literal, dynamic.name, {
+                  enumerable: true,
+                  get: () => evalIr(ir),
                 });
               } else {
                 const signal = localSignal(ir, `component prop ${dynamic.name}`);

@@ -164,6 +164,54 @@ describe('qrl prop spellings', () => {
   });
 });
 
+describe('named dollar-import calls', () => {
+  test('transform$(fn) rides as a plugin-call on the Qrl variant with a qrl-arg', async () => {
+    const [plan] = await planFor({
+      'src/view.tsx': [
+        `import { transform$ } from './api';`,
+        `import { useSignal } from '@qwik.dev/core';`,
+        `function Child() { return <p>Child</p>; }`,
+        `export function App() {`,
+        `  const count = useSignal(1);`,
+        `  return <Child implicit={transform$(() => count.value)} />;`,
+        `}`,
+      ].join('\n'),
+      'src/api.ts': [
+        `export const transformQrl = (qrl) => qrl;`,
+        `export const transform$ = (fn) => fn;`,
+      ].join('\n'),
+    });
+    const app = plan.components.find((c: { name: string }) => c.name === 'App');
+    const prop = app.ssr.ops[0].props[0];
+    expect(prop.value.kind).toBe('ir');
+    expect(prop.value.ir.kind).toBe('plugin-call');
+    expect(prop.value.ir.fnId).toBe('plugin:./api:transformQrl');
+    expect(prop.value.ir.args[0]).toEqual({
+      kind: 'qrl-arg',
+      segment: expect.stringMatching(/^segment_/),
+    });
+  });
+
+  test('unlowerable rest args keep the whole call a source hole', async () => {
+    const [plan] = await planFor({
+      'src/view.tsx': [
+        `import { transform$ } from './api';`,
+        `import { useSignal } from '@qwik.dev/core';`,
+        `function Child() { return <p>Child</p>; }`,
+        `export function App() {`,
+        `  const count = useSignal(1);`,
+        `  const opts = { flag: true };`,
+        `  return <Child implicit={transform$(() => count.value, { ...opts })} />;`,
+        `}`,
+      ].join('\n'),
+      'src/api.ts': `export const transform$ = (fn) => fn;`,
+    });
+    const app = plan.components.find((c: { name: string }) => c.name === 'App');
+    const prop = app.ssr.ops[0].props[0];
+    expect(prop.value.kind).toBe('js');
+  });
+});
+
 describe('render-arg wire hygiene', () => {
   test('framework imports never lower to plugin-calls', async () => {
     const [plan] = await planFor({

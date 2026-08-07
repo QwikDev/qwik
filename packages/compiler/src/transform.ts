@@ -437,14 +437,29 @@ export function transformModule(ctx: CompilerContext): TransformResult {
         ? info.name
         : null;
     },
-    importLocalName: (module, exportName) =>
-      analysis.bindings.find(
+    importLocalName: (module, exportName) => {
+      const original = analysis.bindings.find(
         (candidate) =>
           candidate.import !== null &&
           candidate.import.source === module &&
           candidate.import.importedName === exportName &&
           !candidate.import.typeOnly
-      )?.name ?? null,
+      )?.name;
+      if (original !== undefined) {
+        return original;
+      }
+      // dollar markers retarget to their Qrl variant in the emitted module
+      for (const [binding, retarget] of markerRetargets) {
+        if (retarget.targetName !== exportName) {
+          continue;
+        }
+        const info = analysis.bindings.find((candidate) => candidate.id === binding);
+        if (info?.import?.source === module) {
+          return retarget.localName;
+        }
+      }
+      return null;
+    },
   };
   const emittedMain = emitModule(
     ctx,

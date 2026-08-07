@@ -86,12 +86,21 @@ export type ValueIR =
       readonly kind: ValueIrKind.PluginCall;
       /** `plugin:<module>:<export>` — user-plugin fn id (specs/09). */
       readonly fnId: string;
-      readonly args: readonly (ValueIR | LambdaIR | RenderArgIR | FnArgIR)[];
+      readonly args: readonly (ValueIR | LambdaIR | RenderArgIR | FnArgIR | QrlArgIR)[];
     };
 
 /** A QRL-backed callback argument: emitted as the resolved segment fn with its captures. */
 export interface FnArgIR {
   readonly kind: 'fn-arg';
+  readonly segment: string;
+}
+
+/**
+ * The QRL of a dollar-rewritten call argument: SSR targets pass `q_sym.w([caps])` to the Qrl
+ * variant; the CSR fast path strips the fnId's `Qrl` suffix and passes the resolved fn instead.
+ */
+export interface QrlArgIR {
+  readonly kind: 'qrl-arg';
   readonly segment: string;
 }
 

@@ -28,6 +28,7 @@ const FULLY_GENERATED = new Set([
   'def-helper',
   'deferred-collection',
   'derived-collection',
+  'implicit-dollar-call',
   'imported-callback',
   'inner-html',
   'local-component',

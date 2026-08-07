@@ -11,7 +11,10 @@ import { readFixturePlugins } from './harness';
  * except the listed known gaps. Shrinking this map is the migration metric; a fixture regressing
  * INTO it fails loudly.
  */
-const KNOWN_GAPS: Record<string, string[]> = {};
+const KNOWN_GAPS: Record<string, string[]> = {
+  // transformQrl runs natively only once a native$ registration exists (task #23)
+  'implicit-dollar-call': ['native-expression'],
+};
 
 const fixturesDir = join(dirname(fileURLToPath(import.meta.url)), 'fixtures');
 

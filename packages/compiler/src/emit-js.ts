@@ -371,6 +371,10 @@ class JsComponentGenerator {
       });
       return `(${names.join(', ')}) => ${this.irJs(lambda.body, lambdaScope)}`;
     }
+    if (tagged.kind === 'qrl-arg') {
+      // the dollar-rewritten call takes the QRL itself
+      return this.qrlExpression(this.segment((argument as { segment: string }).segment));
+    }
     if (tagged.kind === 'fn-arg') {
       const meta = this.segment((argument as { segment: string }).segment);
       if (!meta.resolved) {
@@ -1393,6 +1397,16 @@ class JsComponentGenerator {
           if (reactiveComposite) {
             markUngeneratable(); // reactive expression without a backing segment
           }
+          // segment-backed args root their captures before the component call (walker parity)
+          for (const segmentId of collectSegmentArgIds(ir)) {
+            for (const capture of this.segment(segmentId).captures) {
+              const captured =
+                capture.access === 'component-prop'
+                  ? this.names.props
+                  : this.local(capture.binding);
+              prepStatements.push(`${this.names.ctx}.addRoot(${captured});`);
+            }
+          }
           // non-reactive expressions read through a plain getter
           literalRun().push(`get ${JSON.stringify(item.name)}() { return ${this.irJs(ir)}; }`);
           continue;
@@ -2337,6 +2351,20 @@ function templateLiteral(text: string): string {
 interface JsStyleScope {
   readonly staticId: string | null;
   readonly runtimeName: string | null;
+}
+
+/** Segment ids of qrl-arg/fn-arg records anywhere in this IR, in traversal order. */
+function collectSegmentArgIds(node: unknown, found: string[] = []): string[] {
+  if (Array.isArray(node)) {
+    node.forEach((item) => collectSegmentArgIds(item, found));
+  } else if (typeof node === 'object' && node !== null) {
+    const record = node as { kind?: string; segment?: string };
+    if ((record.kind === 'qrl-arg' || record.kind === 'fn-arg') && record.segment !== undefined) {
+      found.push(record.segment);
+    }
+    Object.values(record).forEach((value) => collectSegmentArgIds(value, found));
+  }
+  return found;
 }
 
 /** Deep check: does this IR read any signal source? Reactive values need tracked emission. */

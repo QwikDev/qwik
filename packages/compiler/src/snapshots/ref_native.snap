@@ -72,30 +72,30 @@ function Child(props, ctx) {
 }
 export function App(props0, ctx) {
   const { forwarded, rest } = props0;
-  const signalRef = useSignal();
+  const signalRef = useSignal(undefined);
   const elements = [];
   const namedRef = (element) => elements.push(element);
-  const id0 = ctx.nextId();
-  const id1 = ctx.nextId();
-  const id2 = ctx.nextId();
-  const id3 = ctx.nextId();
-  const id4 = ctx.nextId();
-  const id5 = ctx.nextId();
-  ctx.setRef(signalRef, id0);
-  ctx.setRef((element) => elements.push(element), id1);
-  ctx.setRef(namedRef, id2);
-  ctx.setRef(forwarded, id3);
-  ctx.setRef(signalRef, id4);
-  const invokeCtx8 = getActiveInvokeContextOrNull();
+  const id_0 = ctx.nextId();
+  ctx.setRef(signalRef, id_0);
+  const id_1 = ctx.nextId();
+  ctx.setRef((element) => elements.push(element), id_1);
+  const id_2 = ctx.nextId();
+  ctx.setRef(namedRef, id_2);
+  const id_3 = ctx.nextId();
+  ctx.setRef(forwarded, id_3);
+  const id_4 = ctx.nextId();
+  ctx.setRef(signalRef, id_4);
+  const id_5 = ctx.nextId();
   ctx.addRoot(props0);
-  const props6 = renderSsrProps(
-    createSsrElementTarget(id5),
+  const props_0 = renderSsrProps(
+    createSsrElementTarget(id_5),
     [props0],
     q_component_props_segment_4_208nzmc6ba85l,
     ctx.eventAttr
   );
-  const component7 = () =>
-    invoke(invokeCtx8, () => {
+  const invokeCtx = getActiveInvokeContextOrNull();
+  const component_1 = () =>
+    invoke(invokeCtx, () => {
       return createComponent(
         {
           get ref() {
@@ -105,24 +105,24 @@ export function App(props0, ctx) {
         (props) => Child(props, ctx)
       );
     });
-  return maybeThen(props6, (props6) => {
-    props6.ref !== undefined && ctx.setRef(props6.ref, id5);
-    return maybeThen(component7(), (component7) => [
+  return maybeThen(props_0, (props_0) => {
+    props_0.ref !== undefined && ctx.setRef(props_0.ref, id_5);
+    return maybeThen(component_1(), (component_1) => [
       createSsrElementRecord('section', '<section', '>'),
-      createSsrRecord('<div q:id="', createSsrNodeId(id0), '">'),
+      createSsrRecord('<div q:id="', createSsrNodeId(id_0), '">'),
       'Signal</div>',
-      createSsrRecord('<div q:id="', createSsrNodeId(id1), '">'),
+      createSsrRecord('<div q:id="', createSsrNodeId(id_1), '">'),
       'Inline</div>',
-      createSsrRecord('<div q:id="', createSsrNodeId(id2), '">'),
+      createSsrRecord('<div q:id="', createSsrNodeId(id_2), '">'),
       'Named</div>',
-      createSsrRecord('<div q:id="', createSsrNodeId(id3), '">'),
+      createSsrRecord('<div q:id="', createSsrNodeId(id_3), '">'),
       'Forwarded</div>',
-      createSsrRecord('<div q:id="', createSsrNodeId(id4), '">'),
+      createSsrRecord('<div q:id="', createSsrNodeId(id_4), '">'),
       'Spread</div>',
-      createSsrRecord('<div q:id="', createSsrNodeId(id5), '"', ...props6.attrs, '>'),
-      props6.innerHTML ?? 'Opaque',
+      createSsrRecord('<div q:id="', createSsrNodeId(id_5), '"', ...props_0.attrs, '>'),
+      props_0.innerHTML ?? 'Opaque',
       '</div>',
-      component7,
+      component_1,
       '</section>',
     ]);
   });

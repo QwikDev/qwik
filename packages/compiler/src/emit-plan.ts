@@ -138,6 +138,8 @@ export interface PlanValue {
   readonly src: string;
   readonly ir?: ValueIR;
   readonly segment?: string;
+  /** Src has no QRL boundaries or embedded JSX — generators may embed it verbatim. */
+  readonly raw?: true;
 }
 
 export interface PlanRenderFn {

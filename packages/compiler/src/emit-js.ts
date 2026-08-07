@@ -708,7 +708,10 @@ class JsComponentGenerator {
             usedNames: this.usedNames,
             localComponents: this.localComponents,
             sourceKinds: this.sourceKinds,
-          }
+          },
+          this.moduleBindingName,
+          this.coreAlias,
+          this.sourceBindingName
         );
         this.statements.push(
           child.generateFn(
@@ -1163,13 +1166,18 @@ class JsComponentGenerator {
           sourceEntries.push(`${JSON.stringify(item.name)}: ${qrlName}`);
           continue;
         }
-        if (ir === undefined || (ir.k !== 'signal-read' && ir.k !== 'binding-read')) {
+        if (ir === undefined) {
           markUngeneratable();
+        }
+        if (ir.k !== 'signal-read' && ir.k !== 'binding-read') {
+          // arbitrary expressions read live through a plain getter
+          literalRun().push(`get ${JSON.stringify(item.name)}() { return ${this.irJs(ir)}; }`);
+          continue;
         }
         const binding = (ir as { binding: number }).binding;
         const value = this.local(binding);
         // binding-read passes the local raw — a signal prop keeps its identity
-        if (ir!.k === 'signal-read' && this.sourceKinds.has(binding)) {
+        if (ir.k === 'signal-read' && this.sourceKinds.has(binding)) {
           this.imports.add('readTrackedSourceValue');
           literalRun().push(
             `get ${JSON.stringify(item.name)}() { return readTrackedSourceValue(${value}); }`
@@ -1196,11 +1204,11 @@ class JsComponentGenerator {
       } else if (prop.p === 'spread') {
         const item = prop as { value: { ir?: ValueIR } };
         const ir = item.value.ir;
-        if (ir === undefined || ir.k !== 'binding-read') {
+        if (ir === undefined) {
           markUngeneratable();
         }
         closeRun();
-        runSegments.push(this.local(ir.binding));
+        runSegments.push(ir.k === 'binding-read' ? this.local(ir.binding) : `(${this.irJs(ir)})`);
       } else {
         markUngeneratable();
       }
@@ -1592,11 +1600,13 @@ class JsComponentGenerator {
         return true;
       }
       case 'ref': {
-        const ir = (prop as { value: { ir?: ValueIR } }).value.ir;
-        if (ir === undefined || idVariable === null) {
+        const value = (prop as { value: { ir?: ValueIR; src?: string; raw?: true } }).value;
+        const ir = value.ir;
+        if (idVariable === null || (ir === undefined && value.raw !== true)) {
           return false;
         }
-        const expression = `${this.names.ctx}.setRef(${this.irJs(ir)}, ${idVariable})`;
+        const refValue = ir === undefined ? `(${value.src})` : this.irJs(ir);
+        const expression = `${this.names.ctx}.setRef(${refValue}, ${idVariable})`;
         if (this.asyncSteps.length === 0) {
           this.statements.push(`${this.claimId(idVariable)}${expression};`);
           return true;
@@ -1868,17 +1878,25 @@ class JsComponentGenerator {
       parts.push(`escapeHTML(String((${this.irJs(ir)}) ?? ''))`);
       return;
     }
+    const value = operation.value as { src: string; raw?: true };
     if (operation.synchronous) {
-      if (ir === undefined) {
+      if (ir === undefined && value.raw !== true) {
         markUngeneratable(operation);
       }
-      parts.push(`(${this.irJs(ir)})`);
+      parts.push(ir === undefined ? `(${value.src})` : `(${this.irJs(ir)})`);
       return;
     }
     // deferred content: the render segment fn is called directly with its captures
     const segmentId = operation.value.segment;
     if (segmentId === undefined) {
-      markUngeneratable(operation);
+      if (value.raw !== true) {
+        markUngeneratable(operation);
+      }
+      // no segment: the raw source expression evaluates as its own step
+      const step = `content_${this.nextTemp++}`;
+      this.pushStep(step, [], `(${value.src})`);
+      parts.push(step);
+      return;
     }
     const meta = this.segment(segmentId);
     const captures = meta.captures.map((capture) =>

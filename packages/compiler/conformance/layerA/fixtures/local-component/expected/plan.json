@@ -313,7 +313,8 @@
                             "ir": {
                               "k": "binding-read",
                               "binding": 8
-                            }
+                            },
+                            "raw": true
                           },
                           "compilerString": false
                         }

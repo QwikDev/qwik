@@ -228,7 +228,8 @@
                       "ir": {
                         "k": "binding-read",
                         "binding": 7
-                      }
+                      },
+                      "raw": true
                     }
                   },
                   {

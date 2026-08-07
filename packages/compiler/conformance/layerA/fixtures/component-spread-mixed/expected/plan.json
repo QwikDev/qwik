@@ -182,7 +182,8 @@
                       "ir": {
                         "k": "binding-read",
                         "binding": 4
-                      }
+                      },
+                      "raw": true
                     }
                   },
                   {
@@ -215,7 +216,8 @@
                       "ir": {
                         "k": "binding-read",
                         "binding": 4
-                      }
+                      },
+                      "raw": true
                     }
                   }
                 ],

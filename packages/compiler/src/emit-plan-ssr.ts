@@ -229,6 +229,12 @@ export function emitSsrOpPlan(
     src: slice(value.expression),
     ...(value.kind !== 'render-value' && value.ir !== undefined ? { ir: value.ir } : {}),
     ...(value.kind === 'segment' ? { segment: value.segment.segmentId } : {}),
+    // pure sources embed verbatim; boundary/JSX-bearing ones need their replacements
+    ...(value.kind === 'expression' &&
+    value.boundaries.length === 0 &&
+    value.embeddedRenders.length === 0
+      ? { raw: true as const }
+      : {}),
   });
 
   // statement ops live in the semantic setup tree, including local-component nesting

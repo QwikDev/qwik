@@ -45,6 +45,7 @@ const FULLY_GENERATED = new Set([
   'template-text',
   'use-styles',
   'visible-task',
+  'visible-task-static',
 ]);
 
 const fixturesDir = join(dirname(fileURLToPath(import.meta.url)), '../conformance/layerA/fixtures');

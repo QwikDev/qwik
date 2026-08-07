@@ -26,6 +26,7 @@ const READY_FIXTURES = [
   'store-bind',
   'use-styles',
   'visible-task',
+  'visible-task-static',
   'plugin-call',
   'computed-task',
   'child-props',

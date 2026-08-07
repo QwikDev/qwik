@@ -1,0 +1,122 @@
+{
+  "format": "qwik/ssr-plan",
+  "version": 0,
+  "entry": 0,
+  "components": [
+    {
+      "name": "App",
+      "module": 0,
+      "propsBindings": [],
+      "props": null,
+      "ssr": {
+        "setup": [
+          {
+            "op": "signal",
+            "local": 3,
+            "init": {
+              "k": "lit",
+              "v": "waiting"
+            },
+            "name": "status"
+          },
+          {
+            "op": "visible-task",
+            "segment": "segment_0",
+            "strategy": "intersection-observer"
+          }
+        ],
+        "directSegmentIds": [],
+        "usedSegmentIds": [
+          "segment_0"
+        ],
+        "ops": [
+          {
+            "o": "el",
+            "tag": "div",
+            "id": null,
+            "void": false,
+            "styleScopedId": null,
+            "targetUses": 0,
+            "props": [],
+            "propsEffect": null,
+            "children": [
+              {
+                "o": "static",
+                "html": "hi"
+              }
+            ]
+          }
+        ],
+        "synchronous": true,
+        "staticRoot": false,
+        "needsRootRange": false,
+        "needsId": false,
+        "idBase": "qApp-",
+        "flushTasks": false
+      },
+      "setup": [
+        {
+          "op": "signal",
+          "local": 3,
+          "init": {
+            "k": "lit",
+            "v": "waiting"
+          }
+        },
+        {
+          "op": "visible-task",
+          "segment": "segment_0",
+          "strategy": "intersection-observer"
+        }
+      ],
+      "render": [
+        {
+          "n": "el",
+          "tag": "div",
+          "props": [],
+          "children": [
+            {
+              "n": "text",
+              "value": "hi"
+            }
+          ]
+        }
+      ],
+      "needsId": false,
+      "idBase": "qApp-",
+      "styleScope": null,
+      "providesContext": false,
+      "hasCustomHook": false
+    }
+  ],
+  "modules": [
+    {
+      "path": "src/input.tsx",
+      "segments": [
+        {
+          "id": "segment_0",
+          "symbolName": "input_useVisibleTask$_segment_0_122jnpeifwxyl",
+          "chunk": "./input.tsx_input_useVisibleTask$_segment_0_122jnpeifwxyl",
+          "kind": "qrl",
+          "resolved": true,
+          "qrl": {
+            "kind": "implicit",
+            "role": "visible-task"
+          },
+          "captures": [
+            {
+              "binding": 3,
+              "name": "status",
+              "source": "local",
+              "access": "direct"
+            }
+          ]
+        }
+      ],
+      "contexts": [],
+      "defs": []
+    }
+  ],
+  "unresolved": [],
+  "pluginFns": []
+}

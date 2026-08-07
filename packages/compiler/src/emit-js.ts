@@ -200,6 +200,8 @@ class JsComponentGenerator {
   private invokeCtxDeclared = false;
   /** Wire-proven synchronous render: steps stay eager and the value skips maybeThen. */
   private synchronous = false;
+  /** Pending element attrs (useOn/visible tasks) need the first element kept as a record. */
+  private pendingAttrAnchor = false;
   /** Bindings declared as reactive sources (signal/store/computed) — prop getters track them. */
   private sourceKinds = new Set<number>();
   /** Element id placeholders: resolved at first claiming step (eager const / lazy let). */
@@ -657,6 +659,7 @@ class JsComponentGenerator {
               ? 'qidle'
               : 'qvisible';
         const useOn = strategy.startsWith('document-') ? 'useOnDocument' : 'useOn';
+        this.pendingAttrAnchor = true;
         this.imports.add(useOn);
         this.imports.add('createVisibleTaskHandlerQrl');
         this.statements.push(
@@ -1140,6 +1143,9 @@ class JsComponentGenerator {
         open.push(JSON.stringify(text));
       }
     };
+    // the first element after a useOn registration anchors the pending attr injection
+    const anchorsPendingAttrs = this.pendingAttrAnchor;
+    this.pendingAttrAnchor = false;
     pushOpen(`<${operation.tag}`);
     if (idVariable !== null) {
       this.imports.add('createSsrNodeId');
@@ -1160,7 +1166,12 @@ class JsComponentGenerator {
         markUngeneratable();
       }
     }
-    if (idVariable === null && open.length === 1 && isStringLiteral(open[0])) {
+    if (
+      idVariable === null &&
+      open.length === 1 &&
+      isStringLiteral(open[0]) &&
+      !anchorsPendingAttrs
+    ) {
       open[0] = JSON.stringify((JSON.parse(open[0]) as string) + '>');
     } else {
       open.push(JSON.stringify('>'));

@@ -129,6 +129,10 @@ function emitJsRenderForComponent(
   planData: SsrPlanData,
   importNames: { readonly core: ReadonlySet<string>; readonly taken: ReadonlySet<string> }
 ): (SsrRender & { readonly setup: SsrSetup }) | null {
+  // oracle mode: regenerate goldens from the legacy emitter alone
+  if (process.env.QWIK_JSGEN_DISABLE === '1') {
+    return null;
+  }
   const wire = emitSsrOpPlan(
     output.result,
     output.result.segments,

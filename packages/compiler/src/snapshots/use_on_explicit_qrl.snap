@@ -21,8 +21,8 @@ import {
   createSsrNodeId,
   createSsrElementRecord,
   createSsrElementTextTarget,
-  renderSsrTextNode,
   escapeHTML,
+  renderSsrTextNode,
   maybeThen,
   _qrlWithChunk,
 } from '@qwik.dev/core';
@@ -43,12 +43,12 @@ export function App(props, ctx) {
     capture: true,
     preventdefault: true,
   });
-  const id0 = ctx.nextId();
+  const id_0 = ctx.nextId();
   ctx.addRoot(count);
-  const text1 = renderSsrTextNode(createSsrElementTextTarget(id0), count);
-  return maybeThen(text1, (text1) => [
-    createSsrElementRecord('button', '<button q:id="', createSsrNodeId(id0), '"', '>'),
-    escapeHTML(text1),
+  const text_0 = renderSsrTextNode(createSsrElementTextTarget(id_0), count);
+  return maybeThen(text_0, (text_0) => [
+    createSsrElementRecord('button', '<button q:id="', createSsrNodeId(id_0), '"', '>'),
+    escapeHTML(text_0),
     '</button>',
   ]);
 }

@@ -98,7 +98,13 @@ export type PlanSetupEntry =
       /** Inlined static CSS (specs/01 `styles`); absent when the argument is dynamic. */
       readonly css?: string;
     }
-  | { readonly op: SetupOpKind.Js; readonly src: string }
+  | {
+      readonly op: SetupOpKind.Js;
+      readonly src: string;
+      /** Production seam: src already carries the QRL/useId rewrites, generators emit verbatim. */
+      readonly final?: true;
+      readonly imports?: readonly string[];
+    }
   | PlanLocalComponent;
 
 /**

@@ -13,11 +13,11 @@ export function App() {
 import { useTaskQrl } from 'third-party-library';
 import {
   getActiveInvokeContextOrNull,
-  maybeThen,
-  invoke,
+  getActiveInvokeContext,
   escapeHTML,
   createSsrElementRecord,
-  getActiveInvokeContext,
+  maybeThen,
+  invoke,
   _qrlWithChunk,
 } from '@qwik.dev/core';
 import { component_useTask$_segment_0_12v231gyiwsit } from './component.tsx_component_useTask$_segment_0_12v231gyiwsit';
@@ -33,12 +33,12 @@ export function App(props, ctx) {
   useTaskQrl(q_component_useTask$_segment_0_12v231gyiwsit);
   return maybeThen(ctx.scheduler.flush(), () =>
     invoke(invokeCtx, () => {
-      const styleScope0 = getActiveInvokeContext().styleScopes?.join(' ');
+      const style_scope_0 = getActiveInvokeContext().styleScopes?.join(' ');
       return [
         createSsrElementRecord(
           'main',
           '<main',
-          styleScope0 ? ' class="' + escapeHTML(styleScope0) + '"' : '',
+          style_scope_0 ? ' class="' + escapeHTML(style_scope_0) + '"' : '',
           '>'
         ),
         'Ready</main>',

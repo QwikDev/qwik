@@ -50,6 +50,8 @@ export interface PlanSsrComponent {
   readonly needsId: boolean;
   readonly idBase: string;
   readonly flushTasks: boolean;
+  /** Custom-hook components render under a runtime style scope from the invoke context. */
+  readonly runtimeScope?: true;
 }
 
 export interface PlanSsrRenderFn {
@@ -98,6 +100,7 @@ export type PlanSsrOp =
       readonly id: number | null;
       readonly void: boolean;
       readonly styleScopedId: string | null;
+      readonly runtimeScope?: true;
       readonly targetUses: number;
       readonly props: readonly PlanSsrProp[];
       readonly propsEffect: string | null;
@@ -202,12 +205,17 @@ const staticStyleCss = (source: string): string | null => {
 
 const UNPLANNABLE = Symbol('ssr-unplannable');
 
+export type JsStatementRewriter = (
+  operation: Extract<SsrSetupOperation, { kind: 'statement' }>
+) => { readonly src: string; readonly imports: readonly string[] } | 'skip' | null;
+
 export function emitSsrOpPlan(
   component: ComponentPlan,
   segments: readonly SegmentPlan[],
   returnMode: SsrComponentReturnModeResolver,
   source: string,
-  bindingName: (binding: number) => string | null = () => null
+  bindingName: (binding: number) => string | null = () => null,
+  rewriteJsStatement?: JsStatementRewriter
 ): PlanSsrComponent | null {
   const slice = (range: SourceRange) => source.slice(range[0], range[1]);
 
@@ -232,7 +240,7 @@ export function emitSsrOpPlan(
   collectSetupOps(component.setup);
 
   const setupEntries = (setup: readonly SsrSetupOperation[]): PlanSetupEntry[] =>
-    setup.map((entry) => {
+    setup.flatMap((entry): PlanSetupEntry[] => {
       if (entry.kind === 'style') {
         const planned = component.setup.find(
           (item) => item.kind === 'style' && item.styleId === entry.styleId
@@ -241,47 +249,70 @@ export function emitSsrOpPlan(
           planned !== undefined && planned.kind === 'style'
             ? staticStyleCss(slice(planned.argumentRange))
             : null;
-        return {
-          op: SetupOpKind.Style,
-          styleId: entry.styleId,
-          scoped: entry.scoped,
-          ...(css === null ? {} : { css }),
-        };
+        return [
+          {
+            op: SetupOpKind.Style,
+            styleId: entry.styleId,
+            scoped: entry.scoped,
+            ...(css === null ? {} : { css }),
+          },
+        ];
       }
       if (entry.kind === 'statement') {
-        const op = setupOpByRange.get(`${entry.range[0]}:${entry.range[1]}`) ?? {
+        let op: PlanSetupEntry = setupOpByRange.get(`${entry.range[0]}:${entry.range[1]}`) ?? {
           op: SetupOpKind.Js,
           src: slice(entry.range),
         };
+        if (op.op === SetupOpKind.UseId) {
+          // useId ordinals span the whole component, including ids inside js statements
+          op = { ...op, ordinal: entry.useIds[0]?.ordinal ?? 0 } as typeof op;
+        }
+        if (op.op === SetupOpKind.Js && rewriteJsStatement !== undefined) {
+          // production seam: QRL/useId rewrites applied now so generators emit src verbatim
+          const rewritten = rewriteJsStatement(entry);
+          if (rewritten === 'skip') {
+            return [];
+          }
+          if (rewritten !== null) {
+            op = {
+              op: SetupOpKind.Js,
+              src: rewritten.src,
+              final: true,
+              imports: rewritten.imports,
+            };
+          }
+        }
         // declared binding names are semantic metadata — generators may reuse them
         const local = (op as { local?: number }).local;
         const name = local === undefined ? null : bindingName(local);
-        return name === null ? op : { ...op, name };
+        return [name === null ? op : ({ ...op, name } as unknown as PlanSetupEntry)];
       }
       if (entry.kind === 'local-component') {
         const parameter = entry.parameter;
-        return {
-          op: SetupOpKind.LocalComponent,
-          name: entry.name,
-          binding: entry.bindingId,
-          segment: entry.segment,
-          ...(entry.providesContext ? { providesContext: true } : {}),
-          props:
-            parameter === null
-              ? null
-              : parameter.kind === 'identifier'
-                ? { kind: 'identifier', binding: parameter.bindingIds[0] }
-                : {
-                    kind: 'object',
-                    bindings: parameter.bindingIds.map((b, index) => ({
-                      b,
-                      name: entry.propNames[index],
-                    })),
-                  },
-          render: targetBlock(entry.target),
-        };
+        return [
+          {
+            op: SetupOpKind.LocalComponent,
+            name: entry.name,
+            binding: entry.bindingId,
+            segment: entry.segment,
+            ...(entry.providesContext ? { providesContext: true } : {}),
+            props:
+              parameter === null
+                ? null
+                : parameter.kind === 'identifier'
+                  ? { kind: 'identifier', binding: parameter.bindingIds[0] }
+                  : {
+                      kind: 'object',
+                      bindings: parameter.bindingIds.map((b, index) => ({
+                        b,
+                        name: entry.propNames[index],
+                      })),
+                    },
+            render: targetBlock(entry.target),
+          },
+        ];
       }
-      return { op: SetupOpKind.Js, src: slice([0, 0]) };
+      return [{ op: SetupOpKind.Js, src: slice([0, 0]) }];
     });
 
   const ssrProp = (item: SsrPropOperation): PlanSsrProp => {
@@ -380,6 +411,7 @@ export function emitSsrOpPlan(
           id: operation.targetId,
           void: operation.void,
           styleScopedId: operation.styleScopedId,
+          ...(operation.runtimeStyleScope ? { runtimeScope: true as const } : {}),
           targetUses: operation.elementTargetUses,
           props: operation.props.map(ssrProp),
           propsEffect: operation.propsEffect === null ? null : operation.propsEffect.segmentId,
@@ -525,6 +557,7 @@ export function emitSsrOpPlan(
       needsId: planned.needsId,
       idBase: planned.idBase,
       flushTasks: planned.flushTasks,
+      ...(planned.runtimeStyleScopeName !== null ? { runtimeScope: true as const } : {}),
     };
   } catch (error) {
     if (error === UNPLANNABLE) {

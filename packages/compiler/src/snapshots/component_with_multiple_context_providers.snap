@@ -15,16 +15,16 @@ export function App() {
 
 ============================= src/component.tsx ==
 
-import { createContextId, createSsrElementRecord, createSsrRecord } from '@qwik.dev/core';
+import { createContextId, createSsrRecord, createSsrElementRecord } from '@qwik.dev/core';
 import { useContextProvider } from '@qwik.dev/core';
 export function App(props, ctx) {
   const firstContext = createContextId('first');
   const secondContext = createContextId('second');
   useContextProvider(firstContext, 'one');
   useContextProvider(secondContext, 2);
-  const contextScope0 = ctx.contextScopeRef();
+  const context_scope_0 = ctx.contextScopeRef();
   return [
-    createSsrRecord('<!c=', contextScope0, '>'),
+    createSsrRecord('<!c=', context_scope_0, '>'),
     createSsrElementRecord('p', '<p', '>'),
     'Provided</p><!/c>',
   ];

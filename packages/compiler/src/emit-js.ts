@@ -204,6 +204,8 @@ class JsComponentGenerator {
   private staticRoot = false;
   /** Pending element attrs (useOn/visible tasks) need the first element kept as a record. */
   private pendingAttrAnchor = false;
+  /** Runtime style scope local (custom-hook components); null when the render has none. */
+  private runtimeScopeName: string | null = null;
   /** Bindings declared as reactive sources (signal/store/computed) — prop getters track them. */
   private sourceKinds = new Set<number>();
   /** Element id placeholders: resolved at first claiming step (eager const / lazy let). */
@@ -234,7 +236,7 @@ class JsComponentGenerator {
     this.chunkImports = shared.chunkImports;
     this.hoists = shared.hoists;
     this.hoistedSegments = shared.hoistedSegments;
-    this.usedNames = new Set([this.names.props, this.names.ctx, this.names.invokeCtx]);
+    this.usedNames = new Set([this.names.props, this.names.ctx, this.names.invokeCtx, '_id']);
     if (seed !== undefined) {
       this.locals = new Map(seed.locals);
       this.usedNames = new Set(seed.usedNames);
@@ -248,6 +250,19 @@ class JsComponentGenerator {
   }
 
   /** Production body pieces: like generateFn but without the head — emitComponent adds it. */
+
+  /** Custom-hook renders resolve the ambient style scope once, before any parts. */
+  private beginRuntimeScope(ssr: PlanSsrComponent): void {
+    if ((ssr as { runtimeScope?: true }).runtimeScope !== true) {
+      return;
+    }
+    this.runtimeScopeName = `style_scope_${this.nextTemp++}`;
+    this.imports.add('getActiveInvokeContext');
+    this.statements.push(
+      `const ${this.runtimeScopeName} = getActiveInvokeContext().styleScopes?.join(' ');`
+    );
+  }
+
   generateProduction(
     name: string,
     ssr: PlanSsrComponent,
@@ -277,6 +292,7 @@ class JsComponentGenerator {
       );
     }
     const setupStatements = this.finalizeIds(this.statements.splice(0));
+    this.beginRuntimeScope(ssr);
     let contextScope: string | null = null;
     if (providesContext) {
       contextScope = `context_scope_${this.nextTemp++}`;
@@ -314,13 +330,17 @@ class JsComponentGenerator {
     for (const binding of component.propsBindings) {
       this.locals.set(binding, this.names.props);
     }
+    // standalone heads mirror emitComponentFunction: needsId components take the _id param
+    const signature = component.needsId
+      ? `(${this.names.props}, ${this.names.ctx}, _id = ${JSON.stringify(component.idBase)})`
+      : undefined;
     return this.generateFn(
       component.name,
       component.ssr!,
       component.props as PropsShape,
       component.providesContext,
       true,
-      undefined,
+      signature,
       component.async === true
     );
   }
@@ -400,6 +420,7 @@ class JsComponentGenerator {
       );
     }
     const setupStatements = this.statements.splice(0);
+    this.beginRuntimeScope(ssr as PlanSsrComponent);
     let contextScope: string | null = null;
     if (providesContext) {
       contextScope = `context_scope_${this.nextTemp++}`;
@@ -632,6 +653,38 @@ class JsComponentGenerator {
         this.imports.add('_markComponent');
         // captures may be declared below the fn — the QRL resolves at mark-flush time
         this.pendingMarks.push(local.name);
+        return;
+      }
+      case 'js': {
+        // only seam-rewritten statements are emittable; raw src still gates generation
+        if (entry.final !== true) {
+          markUngeneratable();
+        }
+        for (const name of (entry.imports as readonly string[] | undefined) ?? []) {
+          this.imports.add(name);
+        }
+        this.statements.push(entry.src as string);
+        return;
+      }
+      case 'use-id': {
+        const variable = this.declare(entry.local as number, entry.name as string | undefined);
+        this.statements.push(
+          `const ${variable} = (_id + 'u${(entry.ordinal as number | undefined) ?? 0}');`
+        );
+        return;
+      }
+      case 'qrl-const': {
+        const variable = this.declare(entry.local as number, entry.name as string | undefined);
+        const meta = this.segment(entry.segment as string);
+        this.statements.push(`const ${variable} = ${this.qrlExpression(meta)};`);
+        return;
+      }
+      case 'server-data': {
+        const variable = this.declare(entry.local as number, entry.name as string | undefined);
+        this.imports.add('useServerData');
+        const key = this.irJs(entry.key as ValueIR);
+        const fallback = entry.fallback == null ? '' : `, ${this.irJs(entry.fallback as ValueIR)}`;
+        this.statements.push(`const ${variable} = useServerData(${key}${fallback});`);
         return;
       }
       case 'const': {
@@ -1150,7 +1203,7 @@ class JsComponentGenerator {
       operation.id !== null ||
       operation.propsEffect !== null ||
       operation.styleScopedId !== null ||
-      (operation as { runtimeScope?: true }).runtimeScope === true
+      operation.runtimeScope === true
     ) {
       return false;
     }
@@ -1200,6 +1253,20 @@ class JsComponentGenerator {
       pushOpen(` q:id="`);
       open.push(`createSsrNodeId(${idVariable})`);
       pushOpen(`"`);
+    }
+    if (operation.runtimeScope === true && this.runtimeScopeName !== null) {
+      // class-prop merging with the runtime scope is not generated yet
+      if (
+        operation.props.some(
+          (prop) => prop.p === 'spread' || (prop as { name?: string }).name === 'class'
+        )
+      ) {
+        markUngeneratable();
+      }
+      this.imports.add('escapeHTML');
+      open.push(
+        `(${this.runtimeScopeName} ? ' class="' + escapeHTML(${this.runtimeScopeName}) + '"' : '')`
+      );
     }
     for (const prop of operation.props) {
       const handled = this.prop(

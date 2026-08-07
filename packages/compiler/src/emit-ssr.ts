@@ -16,6 +16,7 @@ import {
 } from './emit-qrl';
 import { emitFunctionRenders } from './emit-function';
 import { emitSsrOpPlan } from './emit-plan-ssr';
+import type { JsStatementRewriter } from './emit-plan-ssr';
 import { emitJsProductionRender } from './emit-js';
 import {
   getSegmentImportPath,
@@ -127,7 +128,8 @@ function emitJsRenderForComponent(
   componentReturnMode: SsrComponentReturnModeResolver,
   generatedNames: GeneratedNames,
   planData: SsrPlanData,
-  importNames: { readonly core: ReadonlySet<string>; readonly taken: ReadonlySet<string> }
+  importNames: { readonly core: ReadonlySet<string>; readonly taken: ReadonlySet<string> },
+  rewriteJsStatement?: JsStatementRewriter
 ): (SsrRender & { readonly setup: SsrSetup }) | null {
   // oracle mode: regenerate goldens from the legacy emitter alone
   if (process.env.QWIK_JSGEN_DISABLE === '1') {
@@ -138,7 +140,8 @@ function emitJsRenderForComponent(
     output.result.segments,
     componentReturnMode,
     source,
-    planData.bindingName
+    planData.bindingName,
+    rewriteJsStatement
   );
   if (wire === null) {
     if (jsGenCoverage !== null) {
@@ -405,7 +408,15 @@ export function emitSsrModule(
         componentReturnMode,
         generatedNames,
         planData,
-        importNames
+        importNames,
+        (operation) =>
+          rewriteJsSetupStatement(
+            operation,
+            source,
+            componentSegments,
+            qrlImports,
+            localImplementationSource
+          )
       ) ??
       emitComponentRender(
         planned,
@@ -728,6 +739,87 @@ function emitComponent(
   );
 }
 
+/**
+ * Applies the source-level QRL/useId rewrites to one raw setup statement. Returned src is final
+ * generator-ready JS. 'skip' drops the statement (standalone useId / empty); null bails.
+ */
+export function rewriteJsSetupStatement(
+  operation: {
+    readonly range: SourceRange;
+    readonly segmentIds: readonly string[];
+    readonly useIds: readonly { range: SourceRange; ordinal: number; standalone: boolean }[];
+  },
+  source: string,
+  segments: ReadonlyMap<string, SegmentPlan>,
+  qrlImports: TargetImportResolver,
+  localImplementationSource: string | null
+): { readonly src: string; readonly imports: readonly string[] } | 'skip' | null {
+  const imports = new Set<string>();
+  const operationSegments = operation.segmentIds.flatMap((id) => {
+    const segment = segments.get(id);
+    return segment === undefined ? [] : [segment];
+  });
+  if (
+    operationSegments.length === 0 &&
+    operation.useIds.length === 1 &&
+    operation.useIds[0].standalone
+  ) {
+    return 'skip';
+  }
+  const replacements: { range: SourceRange; value: string }[] = operation.useIds.map((useId) => ({
+    range: useId.range,
+    value: `(_id + 'u${useId.ordinal}')`,
+  }));
+  for (const segment of operationSegments) {
+    const boundary = segment.qrl;
+    if (boundary?.kind === 'implicit' && boundary.role === 'visible-task') {
+      const documentEvent =
+        segment.visibleTaskStrategy === 'document-ready' ||
+        segment.visibleTaskStrategy === 'document-idle';
+      const event =
+        segment.visibleTaskStrategy === 'document-ready'
+          ? 'qinit'
+          : segment.visibleTaskStrategy === 'document-idle'
+            ? 'qidle'
+            : 'qvisible';
+      const useOn = documentEvent ? QwikHooks.UseOnDocument : QwikHooks.UseOn;
+      imports.add(useOn);
+      imports.add(QwikWord.CreateVisibleTaskHandlerQrl);
+      replacements.push({
+        range: segment.range,
+        value: `${useOn}(${JSON.stringify(event)}, ${QwikWord.CreateVisibleTaskHandlerQrl}(${qrlReference(segment)}))`,
+      });
+    } else if (boundary?.kind === 'explicit') {
+      replacements.push({ range: segment.range, value: qrlReference(segment) });
+    } else if (boundary?.kind === 'sync') {
+      const firstArg = segment.argumentRanges[0];
+      if (firstArg === null || firstArg === undefined) {
+        return null;
+      }
+      const callee = getNamedTargetImport(boundary.source, '_qrlSync', [], qrlImports);
+      const value = source.slice(firstArg[0], firstArg[1]);
+      replacements.push({
+        range: segment.range,
+        value: `${callee}(${value})`,
+      });
+    } else if (boundary?.kind === 'implicit' && segment.calleeRange !== null) {
+      const callee = getTargetCallee(segment, 'ssr', qrlImports, localImplementationSource);
+      if (callee === null) {
+        return null;
+      }
+      replacements.push(
+        { range: segment.calleeRange, value: callee },
+        { range: segment.functionRange, value: qrlReference(segment) }
+      );
+    }
+  }
+  const statement = applyReplacements(source, operation.range, replacements).trim();
+  if (statement === '' || statement === 'undefined;') {
+    return 'skip';
+  }
+  return { src: statement, imports: [...imports] };
+}
+
 function emitSetup(
   plan: Pick<SsrPlan, 'setup'>,
   source: string,
@@ -861,69 +953,23 @@ function emitSetup(
       );
       continue;
     }
-    const operationSegments = operation.segmentIds.flatMap((id) => {
-      const segment = segments.get(id);
-      return segment === undefined ? [] : [segment];
-    });
-    if (
-      operationSegments.length === 0 &&
-      operation.useIds.length === 1 &&
-      operation.useIds[0].standalone
-    ) {
+    const rewritten = rewriteJsSetupStatement(
+      operation,
+      source,
+      segments,
+      qrlImports,
+      localImplementationSource
+    );
+    if (rewritten === null) {
+      return null;
+    }
+    if (rewritten === 'skip') {
       continue;
     }
-
-    const replacements: { range: SourceRange; value: string }[] = operation.useIds.map((useId) => ({
-      range: useId.range,
-      value: `(_id + 'u${useId.ordinal}')`,
-    }));
-    for (const segment of operationSegments) {
-      const boundary = segment.qrl;
-      if (boundary?.kind === 'implicit' && boundary.role === 'visible-task') {
-        const documentEvent =
-          segment.visibleTaskStrategy === 'document-ready' ||
-          segment.visibleTaskStrategy === 'document-idle';
-        const event =
-          segment.visibleTaskStrategy === 'document-ready'
-            ? 'qinit'
-            : segment.visibleTaskStrategy === 'document-idle'
-              ? 'qidle'
-              : 'qvisible';
-        const useOn = documentEvent ? QwikHooks.UseOnDocument : QwikHooks.UseOn;
-        imports.add(useOn);
-        imports.add(QwikWord.CreateVisibleTaskHandlerQrl);
-        replacements.push({
-          range: segment.range,
-          value: `${useOn}(${JSON.stringify(event)}, ${QwikWord.CreateVisibleTaskHandlerQrl}(${qrlReference(segment)}))`,
-        });
-      } else if (boundary?.kind === 'explicit') {
-        replacements.push({ range: segment.range, value: qrlReference(segment) });
-      } else if (boundary?.kind === 'sync') {
-        const firstArg = segment.argumentRanges[0];
-        if (firstArg === null || firstArg === undefined) {
-          return null;
-        }
-        const callee = getNamedTargetImport(boundary.source, '_qrlSync', [], qrlImports);
-        const value = source.slice(firstArg[0], firstArg[1]);
-        replacements.push({
-          range: segment.range,
-          value: `${callee}(${value})`,
-        });
-      } else if (boundary?.kind === 'implicit' && segment.calleeRange !== null) {
-        const callee = getTargetCallee(segment, 'ssr', qrlImports, localImplementationSource);
-        if (callee === null) {
-          return null;
-        }
-        replacements.push(
-          { range: segment.calleeRange, value: callee },
-          { range: segment.functionRange, value: qrlReference(segment) }
-        );
-      }
+    for (const name of rewritten.imports) {
+      imports.add(name);
     }
-    const statement = applyReplacements(source, operation.range, replacements).trim();
-    if (statement !== '' && statement !== 'undefined;') {
-      statements.push(statement);
-    }
+    statements.push(rewritten.src);
   }
 
   statements.push(...pendingComponentMarks);

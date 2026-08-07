@@ -16,12 +16,12 @@ export const App = () => {
 
 import {
   createContextId,
+  createSsrRecord,
   createSsrNodeId,
   createSsrElementRecord,
   createSsrElementTextTarget,
-  renderSsrTextNode,
   escapeHTML,
-  createSsrRecord,
+  renderSsrTextNode,
   maybeThen,
 } from '@qwik.dev/core';
 import { useContextProvider, useSignal } from '@qwik.dev/core';
@@ -29,14 +29,14 @@ export const App = (props, ctx) => {
   const contextId = createContextId('context');
   const source = useSignal('hello');
   useContextProvider(contextId, source);
-  const id0 = ctx.nextId();
-  const contextScope2 = ctx.contextScopeRef();
+  const context_scope_0 = ctx.contextScopeRef();
+  const id_0 = ctx.nextId();
   ctx.addRoot(source);
-  const text1 = renderSsrTextNode(createSsrElementTextTarget(id0), source);
-  return maybeThen(text1, (text1) => [
-    createSsrRecord('<!c=', contextScope2, '>'),
-    createSsrElementRecord('p', '<p q:id="', createSsrNodeId(id0), '"', '>'),
-    escapeHTML(text1),
+  const text_1 = renderSsrTextNode(createSsrElementTextTarget(id_0), source);
+  return maybeThen(text_1, (text_1) => [
+    createSsrRecord('<!c=', context_scope_0, '>'),
+    createSsrElementRecord('p', '<p q:id="', createSsrNodeId(id_0), '"', '>'),
+    escapeHTML(text_1),
     '</p><!/c>',
   ]);
 };

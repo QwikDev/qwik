@@ -171,7 +171,7 @@ class JsComponentGenerator {
       pushOpen(`"`);
     }
     for (const prop of operation.props) {
-      const handled = this.prop(prop, pushOpen, open, (html) => (innerHtml = html));
+      const handled = this.prop(prop, pushOpen, open, (html) => (innerHtml = html), idVariable);
       if (!handled) {
         throw UNGENERATABLE;
       }
@@ -201,7 +201,8 @@ class JsComponentGenerator {
     prop: PlanSsrProp,
     pushOpen: (text: string) => void,
     open: string[],
-    setInnerHtml: (html: string) => void
+    setInnerHtml: (html: string) => void,
+    idVariable: string | null
   ): boolean {
     switch (prop.p) {
       case 'static': {
@@ -226,6 +227,37 @@ class JsComponentGenerator {
       case 'inner-html': {
         const html = (prop as { html: string | number | boolean | null }).html;
         setInnerHtml(html == null ? '' : String(html));
+        return true;
+      }
+      case 'dynamic': {
+        const item = prop as {
+          name: string;
+          value: { segment?: string };
+          compilerString: boolean;
+        };
+        const segmentId = item.value.segment;
+        // expression attrs only — signal attrs join with a fixture that gates them
+        if (segmentId === undefined || item.compilerString || idVariable === null) {
+          return false;
+        }
+        const meta = this.segment(segmentId);
+        const captures = meta.captures.map((capture) =>
+          capture.access === 'component-prop' ? 'props' : this.local(capture.binding)
+        );
+        const step = `attr_${this.nextTemp++}`;
+        this.imports.add('createSsrElementTarget');
+        this.imports.add('renderSsrAttrExpression');
+        this.imports.add('escapeHTML');
+        for (const capture of captures) {
+          this.statements.push(`ctx.addRoot(${capture});`);
+        }
+        this.statements.push(
+          `const ${step} = renderSsrAttrExpression(createSsrElementTarget(${idVariable}), ${JSON.stringify(item.name)}, [${captures.join(', ')}], ${this.qrlExpression(meta, false)});`
+        );
+        this.asyncSteps.push({ name: step, expr: step });
+        open.push(
+          `(${step} === null ? '' : ${JSON.stringify(` ${item.name}`)} + (${step} === '' ? '' : '="' + escapeHTML(${step}) + '"'))`
+        );
         return true;
       }
       case 'event': {

@@ -20,6 +20,8 @@ const READY_FIXTURES = [
   'signal-counter',
   'mixed-text',
   'template-text',
+  'class-object',
+  'cond-attr',
 ];
 
 const layerADir = dirname(fileURLToPath(import.meta.url));

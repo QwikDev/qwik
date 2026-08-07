@@ -22,8 +22,8 @@ import {
   createSsrNodeId,
   createSsrElementRecord,
   createSsrElementTextTarget,
-  renderSsrTextNode,
   escapeHTML,
+  renderSsrTextNode,
   maybeThen,
   _qrlWithChunk,
 } from '@qwik.dev/core';
@@ -40,12 +40,12 @@ export function App(props, ctx) {
   const data = useAsyncQrl(q_component_useAsync$_segment_0_1yzaaw1sggq4w.w([count]), {
     initial: 0,
   });
-  const id0 = ctx.nextId();
+  const id_0 = ctx.nextId();
   ctx.addRoot(data);
-  const text1 = renderSsrTextNode(createSsrElementTextTarget(id0), data);
-  return maybeThen(text1, (text1) => [
-    createSsrElementRecord('button', '<button q:id="', createSsrNodeId(id0), '"', '>'),
-    escapeHTML(text1),
+  const text_0 = renderSsrTextNode(createSsrElementTextTarget(id_0), data);
+  return maybeThen(text_0, (text_0) => [
+    createSsrElementRecord('button', '<button q:id="', createSsrNodeId(id_0), '"', '>'),
+    escapeHTML(text_0),
     '</button>',
   ]);
 }

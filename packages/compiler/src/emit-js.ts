@@ -96,7 +96,8 @@ export function emitJsProductionRender(
   pluginFns: QwikSsrPlan['pluginFns'],
   names: { props: string; ctx: string; invokeCtx: string },
   moduleBindingName?: (binding: number) => string | null,
-  coreAlias?: (importedName: string) => string | null
+  coreAlias?: (importedName: string) => string | null,
+  sourceBindingName?: (binding: number) => string | null
 ): JsRenderPieces | null {
   const shared: ModuleState = {
     imports: new Set(),
@@ -120,7 +121,8 @@ export function emitJsProductionRender(
       names,
       undefined,
       moduleBindingName,
-      coreAlias
+      coreAlias,
+      sourceBindingName
     );
     for (const binding of component.propsBindings) {
       generator.bindProps(binding);
@@ -242,7 +244,9 @@ class JsComponentGenerator {
     /** Production only: module-scope bindings resolve to their surviving source names. */
     private readonly moduleBindingName?: (binding: number) => string | null,
     /** Production only: aliased core imports keep the module's local name. */
-    private readonly coreAlias?: (importedName: string) => string | null
+    private readonly coreAlias?: (importedName: string) => string | null,
+    /** Production only: js-statement-declared locals keep their source names verbatim. */
+    private readonly sourceBindingName?: (binding: number) => string | null
   ) {
     this.imports = shared.imports;
     this.chunkImports = shared.chunkImports;
@@ -1767,6 +1771,13 @@ class JsComponentGenerator {
     const moduleName = this.moduleBindingName?.(binding);
     if (moduleName != null) {
       return moduleName;
+    }
+    // locals declared inside verbatim js statements exist under their source names
+    const sourceName = this.sourceBindingName?.(binding);
+    if (sourceName != null && !this.usedNames.has(sourceName)) {
+      this.usedNames.add(sourceName);
+      this.locals.set(binding, sourceName);
+      return sourceName;
     }
     markUngeneratable();
   }

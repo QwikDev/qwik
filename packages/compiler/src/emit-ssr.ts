@@ -220,7 +220,8 @@ function emitJsRenderForComponent(
       invokeCtx: generatedNames.invokeCtx,
     },
     planData.moduleBindingName,
-    (importedName) => importNames.aliases?.get(importedName) ?? null
+    (importedName) => importNames.aliases?.get(importedName) ?? null,
+    planData.bindingName
   );
   if (pieces === null) {
     if (jsGenCoverage !== null) {

@@ -1300,8 +1300,22 @@ class JsComponentGenerator {
           segmentId !== undefined &&
           (ir === undefined || ir.kind === 'call' || reactiveComposite)
         ) {
-          // derived prop: the QRL rides the sources map so resume rebuilds the getter
           const meta = this.segment(segmentId);
+          if (meta.kind === 'qrl') {
+            // the prop value IS the QRL — pass it through, rooting its captures
+            for (const capture of meta.captures) {
+              const captured =
+                capture.access === 'component-prop'
+                  ? this.names.props
+                  : this.local(capture.binding);
+              prepStatements.push(`${this.names.ctx}.addRoot(${captured});`);
+            }
+            literalRun().push(
+              `get ${JSON.stringify(item.name)}() { return ${this.qrlExpression(meta)}; }`
+            );
+            continue;
+          }
+          // derived prop: the QRL rides the sources map so resume rebuilds the getter
           const qrlName = `prop_qrl_${this.nextTemp++}`;
           for (const capture of meta.captures) {
             const captured =

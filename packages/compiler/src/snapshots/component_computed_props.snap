@@ -28,10 +28,10 @@ import {
   _props,
   createComponent,
   readExpression,
-  renderSsrCollection,
   getActiveInvokeContextOrNull,
   invoke,
   maybeThen,
+  renderSsrCollection,
   _qrlWithChunk,
 } from '@qwik.dev/core';
 import { Child, IMPORTED } from './child';
@@ -77,28 +77,8 @@ q_component_active_segment_12_1kya7ncf5yzsc.s(component_active_segment_12_1kya7n
 export function App(props, ctx) {
   const selected = useSignal(1);
   const CONST = 10;
-  function component_for_render_segment_9_asyppzxs5k8c(ctx, __rangeId, __rowId, value) {
-    ctx.addRoot(selected);
-    ctx.addRoot(value);
-    const propQrl0 = q_component_active_segment_12_1kya7ncf5yzsc.w([selected, value]);
-    return createComponent(
-      _props(
-        {
-          get value() {
-            return value;
-          },
-          get active() {
-            return readExpression(propQrl0);
-          },
-        },
-        { active: propQrl0 }
-      ),
-      (props) => Child(props, ctx)
-    );
-  }
-  const invokeCtx8 = getActiveInvokeContextOrNull();
   ctx.addRoot(selected);
-  const component0 = createComponent(
+  const component_0 = createComponent(
     _props(
       {
         a: 'static',
@@ -113,46 +93,45 @@ export function App(props, ctx) {
     ),
     (props) => Child(props, ctx)
   );
-  const component3 = () =>
-    invoke(invokeCtx8, () => {
-      const propQrl1 = q_component_active_segment_2_2hs32stx99tk3.w([selected]);
-      const propQrl2 = q_component_label_segment_3_871s51a2ly5o.w([selected]);
+  const invokeCtx = getActiveInvokeContextOrNull();
+  const component_3 = () =>
+    invoke(invokeCtx, () => {
+      ctx.addRoot(selected);
+      const prop_qrl_1 = q_component_active_segment_2_2hs32stx99tk3.w([selected]);
+      ctx.addRoot(selected);
+      const prop_qrl_2 = q_component_label_segment_3_871s51a2ly5o.w([selected]);
       return createComponent(
         _props(
           {
             get active() {
-              return readExpression(propQrl1);
+              return readExpression(prop_qrl_1);
             },
             get label() {
-              return readExpression(propQrl2);
+              return readExpression(prop_qrl_2);
             },
           },
-          { active: propQrl1, label: propQrl2 }
+          { active: prop_qrl_1, label: prop_qrl_2 }
         ),
         (props) => Child(props, ctx)
       );
     });
-  const component5 = () =>
-    invoke(invokeCtx8, () => {
-      ctx.addRoot(CONST);
-      const propQrl4 = q_component_initial_segment_4_3ga3f7w1o8xxv.w([CONST]);
+  const component_4 = () =>
+    invoke(invokeCtx, () => {
       return createComponent(
-        _props(
-          {
-            get initial() {
-              return readExpression(propQrl4);
-            },
-            get imported() {
-              return IMPORTED + 1;
-            },
+        {
+          get initial() {
+            return CONST * 2;
           },
-          { initial: propQrl4 }
-        ),
+          get imported() {
+            return IMPORTED + 1;
+          },
+        },
         (props) => Child(props, ctx)
       );
     });
-  const component6 = () =>
-    invoke(invokeCtx8, () => {
+  const component_5 = () =>
+    invoke(invokeCtx, () => {
+      ctx.addRoot(selected);
       return createComponent(
         {
           get qrl() {
@@ -163,8 +142,29 @@ export function App(props, ctx) {
         (props) => Child(props, ctx)
       );
     });
-  const collectionResult7 = () =>
-    invoke(invokeCtx8, () => {
+  function component_for_render_segment_9_asyppzxs5k8c(ctx, __rangeId, __rowId, row_p0) {
+    ctx.addRoot(selected);
+    ctx.addRoot(row_p0);
+    const prop_qrl_0 = q_component_active_segment_12_1kya7ncf5yzsc.w([selected, row_p0]);
+    const component_1 = createComponent(
+      _props(
+        {
+          get value() {
+            return row_p0;
+          },
+          get active() {
+            return readExpression(prop_qrl_0);
+          },
+        },
+        { active: prop_qrl_0 }
+      ),
+      (props) => Child(props, ctx)
+    );
+    return maybeThen(component_1, (component_1) => component_1);
+  }
+
+  const collection_result_6 = () =>
+    invoke(invokeCtx, () => {
       return renderSsrCollection(
         ctx,
         undefined,
@@ -177,17 +177,17 @@ export function App(props, ctx) {
         3
       );
     });
-  return maybeThen(component0, (component0) =>
-    maybeThen(component3(), (component3) =>
-      maybeThen(component5(), (component5) =>
-        maybeThen(component6(), (component6) =>
-          maybeThen(collectionResult7(), (collectionResult7) => [
+  return maybeThen(component_0, (component_0) =>
+    maybeThen(component_3(), (component_3) =>
+      maybeThen(component_4(), (component_4) =>
+        maybeThen(component_5(), (component_5) =>
+          maybeThen(collection_result_6(), (collection_result_6) => [
             createSsrElementRecord('main', '<main', '>'),
-            component0,
-            component3,
-            component5,
-            component6,
-            collectionResult7,
+            component_0,
+            component_3,
+            component_4,
+            component_5,
+            collection_result_6,
             '</main>',
           ])
         )

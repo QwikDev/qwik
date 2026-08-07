@@ -279,6 +279,18 @@ export function emitSsrOpPlan(
   };
 
   const planValue = (value: ValuePlan): PlanValue => {
+    // a direct `$()` value IS its QRL — the segment form carries it holelessly
+    if (value.kind === 'expression' && value.boundaries.length === 1) {
+      const boundary = segments.find((candidate) => candidate.id === value.boundaries[0].segmentId);
+      if (
+        boundary?.kind === 'qrl' &&
+        boundary.qrl?.kind === 'explicit' &&
+        boundary.range[0] === value.expression[0] &&
+        boundary.range[1] === value.expression[1]
+      ) {
+        return { kind: 'segment', segment: boundary.id };
+      }
+    }
     if (value.kind !== 'render-value' && value.ir !== undefined) {
       try {
         return {

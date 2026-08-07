@@ -1389,9 +1389,6 @@ class JsComponentGenerator {
     pushStatic: (text: string) => void,
     topLevel = false
   ): void {
-    if (operation.propsEffect !== null) {
-      markUngeneratable();
-    }
     let innerHtml: string | null = null;
     let innerHtmlExpr: string | null = null;
     const idVariable = operation.id === null ? null : `id_${operation.id}`;
@@ -1429,13 +1426,42 @@ class JsComponentGenerator {
       staticId: operation.styleScopedId,
       runtimeName: operation.runtimeScope === true ? this.runtimeScopeName : null,
     };
-    const hasClassProp = operation.props.some(
-      (prop) => prop.p === 'spread' || (prop as { name?: string }).name === 'class'
-    );
-    if ((scope.staticId !== null || scope.runtimeName !== null) && !hasClassProp) {
-      this.pushScopeOnlyClass(scope, pushOpen, open);
+    if (operation.propsEffect !== null) {
+      // whole-element props effect: attrs, ref, and innerHTML ride one renderSsrProps step
+      if (idVariable === null) {
+        markUngeneratable(operation);
+      }
+      const meta = this.segment(operation.propsEffect);
+      const captures = meta.captures.map((capture) =>
+        capture.access === 'component-prop' ? this.names.props : this.local(capture.binding)
+      );
+      const step = `props_${this.nextTemp++}`;
+      const scopeArgs =
+        scope.staticId === null && scope.runtimeName === null
+          ? ''
+          : `, undefined, ${scopeClassExpression(scope, null)}`;
+      this.imports.add('renderSsrProps');
+      this.imports.add('createSsrElementTarget');
+      this.pushStep(
+        step,
+        captures,
+        `renderSsrProps(createSsrElementTarget(${idVariable}), [${captures.join(', ')}], ${this.qrlExpression(meta, false)}, ${this.names.ctx}.eventAttr${scopeArgs})`,
+        this.claimId(idVariable),
+        operation.propsEffectRef === true
+          ? `${step}.ref !== undefined && ${this.names.ctx}.setRef(${step}.ref, ${idVariable});`
+          : undefined
+      );
+      open.push(`...${step}.attrs`);
+      innerHtmlExpr = `${step}.innerHTML`;
+    } else {
+      const hasClassProp = operation.props.some(
+        (prop) => prop.p === 'spread' || (prop as { name?: string }).name === 'class'
+      );
+      if ((scope.staticId !== null || scope.runtimeName !== null) && !hasClassProp) {
+        this.pushScopeOnlyClass(scope, pushOpen, open);
+      }
     }
-    for (const prop of operation.props) {
+    for (const prop of operation.propsEffect === null ? operation.props : []) {
       const handled = this.prop(
         prop,
         pushOpen,
@@ -2020,6 +2046,13 @@ class JsComponentGenerator {
         });
         return `{ ${entries.join(', ')} }`;
       }
+      case 'member': {
+        const item = ir as unknown as { obj: ValueIR; name: string };
+        const objExpr = this.irJs(item.obj, scope);
+        return /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(item.name)
+          ? `${objExpr}.${item.name}`
+          : `${objExpr}[${JSON.stringify(item.name)}]`;
+      }
       case 'plugin-call': {
         // the claimed import is the JS implementation — import it back and call it
         const pluginFn = this.pluginFns.find((candidate) => candidate.fnId === ir.fnId);
@@ -2036,7 +2069,7 @@ class JsComponentGenerator {
         return `${pluginFn.exportName}(${args.join(', ')})`;
       }
       default:
-        markUngeneratable();
+        markUngeneratable(ir);
     }
   }
 }

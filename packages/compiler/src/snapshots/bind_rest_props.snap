@@ -37,13 +37,13 @@ import {
   createSsrNodeId,
   createSsrElementRecord,
   createSsrRangeTextTarget,
-  renderSsrTextExpression,
   escapeHTML,
+  renderSsrTextExpression,
   renderSsrProps,
   createSsrElementTarget,
-  createSsrRecord,
   getActiveInvokeContextOrNull,
   invoke,
+  createSsrRecord,
   maybeThen,
   _qrlWithChunk,
 } from '@qwik.dev/core';
@@ -65,34 +65,36 @@ q_component_props_segment_1_208o0sfi1se76.s(component_props_segment_1_208o0sfi1s
 
 export function Field(props, ctx) {
   const { label, ...rest } = props;
-  const id0 = ctx.nextId();
-  let id2;
-  const invokeCtx4 = getActiveInvokeContextOrNull();
+  const id_0 = ctx.nextId();
   ctx.addRoot(props);
-  const text1 = renderSsrTextExpression(
-    createSsrRangeTextTarget(id0, 0),
+  const text_0 = renderSsrTextExpression(
+    createSsrRangeTextTarget(id_0, 0),
     [props],
     q_component_text_segment_0_1fh10fbkzokfc
   );
-  const props3 = () =>
-    invoke(invokeCtx4, () => {
-      id2 ??= ctx.nextId();
+  let id_1;
+  const invokeCtx = getActiveInvokeContextOrNull();
+  const props_1 = () =>
+    invoke(invokeCtx, () => {
+      id_1 ??= ctx.nextId();
+      ctx.addRoot(props);
       return renderSsrProps(
-        createSsrElementTarget(id2),
+        createSsrElementTarget(id_1),
         [props],
         q_component_props_segment_1_208o0sfi1se76,
         ctx.eventAttr
       );
     });
-  return maybeThen(text1, (text1) =>
-    maybeThen(props3(), (props3) => {
-      props3.ref !== undefined && ctx.setRef(props3.ref, id2);
+  return maybeThen(text_0, (text_0) =>
+    maybeThen(props_1(), (props_1) => {
+      props_1.ref !== undefined && ctx.setRef(props_1.ref, id_1);
       return [
-        createSsrElementRecord('label', '<label q:id="', createSsrNodeId(id0), '"', '>'),
+        createSsrElementRecord('label', '<label q:id="', createSsrNodeId(id_0), '"', '>'),
         '<!t>',
-        escapeHTML(text1),
+        escapeHTML(text_0),
         '<!/t>',
-        createSsrRecord('<input q:id="', createSsrNodeId(id2), '"', ...props3.attrs, '>'),
+        createSsrRecord('<input q:id="', createSsrNodeId(id_1), '"', ...props_1.attrs, '>'),
+        props_1.innerHTML ?? '',
         '</label>',
       ];
     })

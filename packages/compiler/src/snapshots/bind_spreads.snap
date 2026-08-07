@@ -26,9 +26,9 @@ import {
   _val,
   createSsrElementRecord,
   renderSsrProps,
-  createSsrRecord,
   getActiveInvokeContextOrNull,
   invoke,
+  createSsrRecord,
   maybeThen,
   _qrlWithChunk,
 } from '@qwik.dev/core';
@@ -50,52 +50,58 @@ q_component_props_segment_1_208o0sfi1se76.s(component_props_segment_1_208o0sfi1s
 export function App(props, ctx) {
   const first = useSignal('first');
   const second = useSignal('second');
-  const id0 = ctx.nextId();
-  let id2;
-  let id4;
-  const invokeCtx6 = getActiveInvokeContextOrNull();
+  const id_0 = ctx.nextId();
   ctx.addRoot(first);
-  const attr1 = renderSsrAttr(createSsrElementTarget(id0), 'value', first);
-  const props3 = () =>
-    invoke(invokeCtx6, () => {
-      id2 ??= ctx.nextId();
+  const attr_0 = renderSsrAttr(createSsrElementTarget(id_0), 'value', first);
+  let id_1;
+  const invokeCtx = getActiveInvokeContextOrNull();
+  const props_1 = () =>
+    invoke(invokeCtx, () => {
+      id_1 ??= ctx.nextId();
+      ctx.addRoot(first);
       ctx.addRoot(props);
       return renderSsrProps(
-        createSsrElementTarget(id2),
+        createSsrElementTarget(id_1),
         [first, props],
         q_component_props_segment_0_208o16glymg7p,
         ctx.eventAttr
       );
     });
-  const props5 = () =>
-    invoke(invokeCtx6, () => {
-      id4 ??= ctx.nextId();
+  let id_2;
+  const props_2 = () =>
+    invoke(invokeCtx, () => {
+      id_2 ??= ctx.nextId();
+      ctx.addRoot(props);
       ctx.addRoot(second);
       return renderSsrProps(
-        createSsrElementTarget(id4),
+        createSsrElementTarget(id_2),
         [props, second],
         q_component_props_segment_1_208o0sfi1se76,
         ctx.eventAttr
       );
     });
-  return maybeThen(attr1, (attr1) =>
-    maybeThen(props3(), (props3) => {
-      props3.ref !== undefined && ctx.setRef(props3.ref, id2);
-      return maybeThen(props5(), (props5) => {
-        props5.ref !== undefined && ctx.setRef(props5.ref, id4);
+  return maybeThen(attr_0, (attr_0) =>
+    maybeThen(props_1(), (props_1) => {
+      props_1.ref !== undefined && ctx.setRef(props_1.ref, id_1);
+      return maybeThen(props_2(), (props_2) => {
+        props_2.ref !== undefined && ctx.setRef(props_2.ref, id_2);
         return [
           createSsrElementRecord(
             'input',
             '<input q:id="',
-            createSsrNodeId(id0),
+            createSsrNodeId(id_0),
             '"',
-            attr1 === null ? '' : ' value' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
+            attr_0 === null
+              ? ''
+              : ' value' + (attr_0 === '' ? '' : '="' + escapeHTML(attr_0) + '"'),
             ctx.eventAttr('q-e:input', inlinedQrl(_val, '_val', [first])),
             ' title="known"',
             '>'
           ),
-          createSsrRecord('<input q:id="', createSsrNodeId(id2), '"', ...props3.attrs, '>'),
-          createSsrRecord('<input q:id="', createSsrNodeId(id4), '"', ...props5.attrs, '>'),
+          createSsrRecord('<input q:id="', createSsrNodeId(id_1), '"', ...props_1.attrs, '>'),
+          props_1.innerHTML ?? '',
+          createSsrRecord('<input q:id="', createSsrNodeId(id_2), '"', ...props_2.attrs, '>'),
+          props_2.innerHTML ?? '',
         ];
       });
     })

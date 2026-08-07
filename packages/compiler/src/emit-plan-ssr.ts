@@ -109,6 +109,7 @@ export type PlanSsrOp =
       readonly targetUses: number;
       readonly props: readonly PlanSsrProp[];
       readonly propsEffect: string | null;
+      readonly propsEffectRef?: true;
       readonly children: readonly PlanSsrOp[];
     }
   | {
@@ -463,6 +464,9 @@ export function emitSsrOpPlan(
           targetUses: operation.elementTargetUses,
           props: operation.props.map(ssrProp),
           propsEffect: operation.propsEffect === null ? null : operation.propsEffect.segmentId,
+          ...(operation.propsEffect !== null && operation.propsEffectRef
+            ? { propsEffectRef: true as const }
+            : {}),
           children: operation.children.map(op),
         };
       case 'dynamic':

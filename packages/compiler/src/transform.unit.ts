@@ -403,7 +403,7 @@ export function App() {
     expect(ssr.diagnostics).toEqual([]);
     expect(csr.modules[0]?.code).toMatch(/patchAttrValue\(el0, ["']hidden["'], id\.length === 0\)/);
     expect(ssr.modules[0]?.code).toMatch(
-      /\.\.\.renderDomPropsToString\(\{ ["']hidden["']: id\.length === 0 \}\)\.attrs/
+      /\.\.\.renderDomPropsToString\(\{ ["']hidden["']: \(?id\.length === 0\)? \}\)\.attrs/
     );
   });
 

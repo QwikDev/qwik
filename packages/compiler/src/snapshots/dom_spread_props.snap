@@ -39,20 +39,27 @@ export function App(props, ctx) {
     className: { active: true },
   });
   const title = useSignal('final');
-  const id0 = ctx.nextId();
+  const id_0 = ctx.nextId();
   ctx.addRoot(attrs);
   ctx.addRoot(title);
-  const props1 = renderSsrProps(
-    createSsrElementTarget(id0),
+  const props_0 = renderSsrProps(
+    createSsrElementTarget(id_0),
     [attrs, title],
     q_component_props_segment_0_208o16glymg7p,
     ctx.eventAttr
   );
-  return maybeThen(props1, (props1) => {
-    props1.ref !== undefined && ctx.setRef(props1.ref, id0);
+  return maybeThen(props_0, (props_0) => {
+    props_0.ref !== undefined && ctx.setRef(props_0.ref, id_0);
     return [
-      createSsrElementRecord('div', '<div q:id="', createSsrNodeId(id0), '"', ...props1.attrs, '>'),
-      props1.innerHTML ?? 'Child',
+      createSsrElementRecord(
+        'div',
+        '<div q:id="',
+        createSsrNodeId(id_0),
+        '"',
+        ...props_0.attrs,
+        '>'
+      ),
+      props_0.innerHTML ?? 'Child',
       '</div>',
     ];
   });

@@ -206,7 +206,8 @@ export function emitSsrOpPlan(
   component: ComponentPlan,
   segments: readonly SegmentPlan[],
   returnMode: SsrComponentReturnModeResolver,
-  source: string
+  source: string,
+  bindingName: (binding: number) => string | null = () => null
 ): PlanSsrComponent | null {
   const slice = (range: SourceRange) => source.slice(range[0], range[1]);
 
@@ -248,12 +249,14 @@ export function emitSsrOpPlan(
         };
       }
       if (entry.kind === 'statement') {
-        return (
-          setupOpByRange.get(`${entry.range[0]}:${entry.range[1]}`) ?? {
-            op: SetupOpKind.Js,
-            src: slice(entry.range),
-          }
-        );
+        const op = setupOpByRange.get(`${entry.range[0]}:${entry.range[1]}`) ?? {
+          op: SetupOpKind.Js,
+          src: slice(entry.range),
+        };
+        // declared binding names are semantic metadata — generators may reuse them
+        const local = (op as { local?: number }).local;
+        const name = local === undefined ? null : bindingName(local);
+        return name === null ? op : { ...op, name };
       }
       if (entry.kind === 'local-component') {
         const parameter = entry.parameter;

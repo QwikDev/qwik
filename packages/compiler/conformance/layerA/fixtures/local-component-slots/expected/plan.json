@@ -16,7 +16,8 @@
             "init": {
               "k": "lit",
               "v": "Hello"
-            }
+            },
+            "name": "title"
           },
           {
             "op": "local-component",

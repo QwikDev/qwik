@@ -16,7 +16,8 @@
             "init": {
               "k": "lit",
               "v": false
-            }
+            },
+            "name": "selected"
           },
           {
             "op": "signal",
@@ -24,7 +25,8 @@
             "init": {
               "k": "lit",
               "v": "on"
-            }
+            },
+            "name": "label"
           }
         ],
         "directSegmentIds": [],

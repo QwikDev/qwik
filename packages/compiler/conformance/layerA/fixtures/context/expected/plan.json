@@ -13,7 +13,8 @@
           {
             "op": "context-read",
             "local": 7,
-            "context": 4
+            "context": 4,
+            "name": "theme"
           }
         ],
         "directSegmentIds": [],
@@ -113,7 +114,8 @@
             "init": {
               "k": "lit",
               "v": "dark"
-            }
+            },
+            "name": "theme"
           },
           {
             "op": "context-provider",

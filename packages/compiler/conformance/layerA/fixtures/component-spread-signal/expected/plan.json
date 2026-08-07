@@ -173,7 +173,8 @@
             "init": {
               "k": "lit",
               "v": 3
-            }
+            },
+            "name": "count"
           },
           {
             "op": "const",
@@ -196,7 +197,8 @@
                   }
                 ]
               ]
-            }
+            },
+            "name": "shared"
           }
         ],
         "directSegmentIds": [],

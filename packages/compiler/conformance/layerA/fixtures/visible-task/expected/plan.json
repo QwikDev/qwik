@@ -16,7 +16,8 @@
             "init": {
               "k": "lit",
               "v": "waiting"
-            }
+            },
+            "name": "status"
           },
           {
             "op": "visible-task",

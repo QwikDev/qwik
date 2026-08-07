@@ -39,6 +39,7 @@ class JsComponentGenerator {
   private readonly hoistedSegments = new Set<string>();
   private readonly statements: string[] = [];
   private readonly locals = new Map<number, string>();
+  private readonly usedNames = new Set<string>(['props', 'ctx']);
   private nextTemp = 0;
   /** Pending async step names — the return value chains maybeThen over them. */
   private readonly asyncSteps: string[] = [];
@@ -82,10 +83,9 @@ class JsComponentGenerator {
     switch (entry.op) {
       case 'signal': {
         const binding = entry.local as number;
-        const variable = `local_${binding}`;
+        const variable = this.declare(binding, entry.name as string | undefined);
         this.imports.add('useSignal');
         this.statements.push(`const ${variable} = useSignal(${this.irJs(entry.init as ValueIR)});`);
-        this.locals.set(binding, variable);
         return;
       }
       default:
@@ -283,6 +283,17 @@ class JsComponentGenerator {
       capture.access === 'component-prop' ? 'props' : this.local(capture.binding)
     );
     return captures.length === 0 ? qrl : `${qrl}.w([${captures.join(', ')}])`;
+  }
+
+  /** Plan binding names are reused when they are safe identifiers; `local_<id>` otherwise. */
+  private declare(binding: number, name: string | undefined): string {
+    const preferred =
+      name !== undefined && /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(name) && !this.usedNames.has(name)
+        ? name
+        : `local_${binding}`;
+    this.usedNames.add(preferred);
+    this.locals.set(binding, preferred);
+    return preferred;
   }
 
   private local(binding: number): string {

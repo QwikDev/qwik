@@ -16,7 +16,8 @@
             "init": {
               "k": "lit",
               "v": 2
-            }
+            },
+            "name": "count"
           },
           {
             "op": "local-component",

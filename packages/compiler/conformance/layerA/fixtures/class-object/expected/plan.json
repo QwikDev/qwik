@@ -16,7 +16,8 @@
             "init": {
               "k": "lit",
               "v": true
-            }
+            },
+            "name": "active"
           }
         ],
         "directSegmentIds": [],

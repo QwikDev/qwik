@@ -16,7 +16,8 @@
             "init": {
               "k": "lit",
               "v": "world"
-            }
+            },
+            "name": "name"
           }
         ],
         "directSegmentIds": [],

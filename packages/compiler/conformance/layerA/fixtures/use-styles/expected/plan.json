@@ -22,7 +22,8 @@
             "init": {
               "k": "lit",
               "v": "styled"
-            }
+            },
+            "name": "label"
           }
         ],
         "directSegmentIds": [],

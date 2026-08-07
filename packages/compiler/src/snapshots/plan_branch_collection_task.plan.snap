@@ -25,7 +25,8 @@
                   "v": "b"
                 }
               ]
-            }
+            },
+            "name": "items"
           },
           {
             "op": "signal",
@@ -33,7 +34,8 @@
             "init": {
               "k": "lit",
               "v": "idle"
-            }
+            },
+            "name": "label"
           },
           {
             "op": "computed",
@@ -54,7 +56,8 @@
                 "k": "lit",
                 "v": 2
               }
-            }
+            },
+            "name": "total"
           },
           {
             "op": "task",

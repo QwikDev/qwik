@@ -32,7 +32,8 @@
                 ]
               ]
             },
-            "deep": true
+            "deep": true,
+            "name": "todos"
           },
           {
             "op": "local-component",
@@ -61,7 +62,8 @@
                       "binding": 4
                     },
                     "args": []
-                  }
+                  },
+                  "name": "lower"
                 },
                 {
                   "op": "local-component",

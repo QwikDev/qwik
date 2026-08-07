@@ -132,7 +132,8 @@
             "init": {
               "k": "lit",
               "v": "Hi"
-            }
+            },
+            "name": "title"
           }
         ],
         "directSegmentIds": [],

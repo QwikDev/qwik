@@ -408,7 +408,7 @@ export function emitModulePlan(
     binding: output.component.bindingId,
     propsBindings: output.result.shape.parameter?.bindingIds ?? [],
     props: componentProps(output.result.shape.parameter),
-    ssr: emitSsrOpPlan(output.result, output.result.segments, returnMode, source),
+    ssr: emitSsrOpPlan(output.result, output.result.segments, returnMode, source, bindingName),
     setup: planSetup(output.result.setup),
     render: output.result.render.roots.map(planNode),
     needsId: output.result.needsId,

@@ -16,7 +16,8 @@
             "init": {
               "k": "lit",
               "v": "hi"
-            }
+            },
+            "name": "text"
           },
           {
             "op": "store",
@@ -33,7 +34,8 @@
                 ]
               ]
             },
-            "deep": true
+            "deep": true,
+            "name": "form"
           }
         ],
         "directSegmentIds": [],

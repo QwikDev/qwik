@@ -22,7 +22,8 @@
                   "v": "qwik"
                 }
               ]
-            }
+            },
+            "name": "greeting"
           }
         ],
         "directSegmentIds": [],

@@ -166,7 +166,8 @@
             "init": {
               "k": "lit",
               "v": 3
-            }
+            },
+            "name": "count"
           }
         ],
         "directSegmentIds": [],

@@ -21,7 +21,8 @@
                 {
                   "op": "context-read",
                   "local": 7,
-                  "context": 3
+                  "context": 3,
+                  "name": "theme"
                 }
               ],
               "ops": [

@@ -29,7 +29,8 @@
                   "v": "gamma"
                 }
               ]
-            }
+            },
+            "name": "words"
           }
         ],
         "directSegmentIds": [],

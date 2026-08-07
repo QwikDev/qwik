@@ -151,7 +151,8 @@
                   }
                 ]
               ]
-            }
+            },
+            "name": "shared"
           }
         ],
         "directSegmentIds": [],

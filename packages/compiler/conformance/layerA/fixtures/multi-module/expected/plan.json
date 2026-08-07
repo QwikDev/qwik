@@ -21,7 +21,8 @@
             "init": {
               "k": "lit",
               "v": 1
-            }
+            },
+            "name": "count"
           }
         ],
         "directSegmentIds": [],

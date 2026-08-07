@@ -173,7 +173,8 @@
             "init": {
               "k": "lit",
               "v": 0
-            }
+            },
+            "name": "count"
           }
         ],
         "directSegmentIds": [],

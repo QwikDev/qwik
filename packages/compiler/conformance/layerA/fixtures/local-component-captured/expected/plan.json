@@ -32,7 +32,8 @@
                 ]
               ]
             },
-            "deep": true
+            "deep": true,
+            "name": "todos"
           },
           {
             "op": "signal",
@@ -40,7 +41,8 @@
             "init": {
               "k": "lit",
               "v": true
-            }
+            },
+            "name": "show"
           },
           {
             "op": "local-component",
@@ -69,7 +71,8 @@
                       "binding": 6
                     },
                     "args": []
-                  }
+                  },
+                  "name": "lower"
                 }
               ],
               "ops": [

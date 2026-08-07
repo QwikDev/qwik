@@ -21,7 +21,7 @@ export const enum SetupOpKind {
   VisibleTask = 'visible-task',
   Style = 'style',
   Js = 'js',
-  Yield = 'yield',
+  Statement = 'statement',
   QrlConst = 'qrl-const',
   LocalComponent = 'local-component',
   RenderValue = 'render-value',
@@ -45,8 +45,8 @@ export type SetupOp =
     }
   | { readonly kind: SetupOpKind.Const; readonly binding: BindingId; readonly init: ValueIR }
   | { readonly kind: SetupOpKind.UseId; readonly binding: BindingId }
-  /** `await Promise.resolve()` — a pure microtask yield; native engines skip it. */
-  | { readonly kind: SetupOpKind.Yield; readonly value: ValueIR }
+  /** Evaluate-and-discard expression statement; `await: true` marks awaited ones. */
+  | { readonly kind: SetupOpKind.Statement; readonly value: ValueIR; readonly await?: true }
   /** `const fn = $(…)` — the local holds the segment's QRL value. */
   | { readonly kind: SetupOpKind.QrlConst; readonly binding: BindingId; readonly segment: string }
   | {

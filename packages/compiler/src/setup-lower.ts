@@ -70,7 +70,7 @@ function lowerAwaitStatement(expression: AstNode, facts: SetupLowerFacts): Setup
     return null;
   }
   const value = lowerValueIr(awaited, facts);
-  return value === null ? null : { kind: SetupOpKind.Yield, value };
+  return value === null ? null : { kind: SetupOpKind.Statement, value, await: true };
 }
 
 function lowerDeclaration(statement: AstNode, facts: SetupLowerFacts): SetupOp | null {

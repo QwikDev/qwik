@@ -11,13 +11,14 @@
       "ssr": {
         "setup": [
           {
-            "kind": "yield",
+            "kind": "statement",
             "value": {
               "kind": "call",
               "fn": "qwik:promise.resolve",
               "receiver": null,
               "args": []
-            }
+            },
+            "await": true
           }
         ],
         "directSegmentIds": [],
@@ -49,13 +50,14 @@
       },
       "setup": [
         {
-          "kind": "yield",
+          "kind": "statement",
           "value": {
             "kind": "call",
             "fn": "qwik:promise.resolve",
             "receiver": null,
             "args": []
-          }
+          },
+          "await": true
         }
       ],
       "render": [

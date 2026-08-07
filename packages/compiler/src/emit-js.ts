@@ -845,9 +845,10 @@ class JsComponentGenerator {
         );
         return;
       }
-      case 'yield': {
-        // the awaited expression is ordinary IR; the async head comes from the component flag
-        this.statements.push(`await ${this.irJs(entry.value as ValueIR)};`);
+      case 'statement': {
+        // evaluate-and-discard; the async head comes from the component flag
+        const prefix = entry.await === true ? 'await ' : '';
+        this.statements.push(`${prefix}${this.irJs(entry.value as ValueIR)};`);
         return;
       }
       case 'visible-task': {

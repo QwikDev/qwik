@@ -74,7 +74,7 @@ export type ValueIR =
        */
       readonly fn: string;
       readonly receiver: ValueIR | null;
-      readonly args: readonly (ValueIR | LambdaIR)[];
+      readonly args: readonly (ValueIR | LambdaIR | RenderArgIR | FnArgIR)[];
     }
   | {
       readonly kind: ValueIrKind.DefCall;

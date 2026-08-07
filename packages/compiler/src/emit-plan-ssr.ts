@@ -27,6 +27,35 @@ import type { SourceRange } from './types';
  * render from — pre-merged statics, `q:id` targets, marker decisions, return modes. The semantic
  * `render` tree stays beside it for linking/analysis; this section is the byte-parity contract.
  */
+/**
+ * Proof that a dollar-prop expression evaluates to a QRL: every leaf must be a qrl-const read (or
+ * an absent-fallback literal); selectors branch, tests may be any lowered value.
+ */
+function irProvesQrl(
+  ir: import('./expr-ir').ValueIR,
+  qrlConsts: ReadonlyMap<number, string>,
+  qrlValued: ReadonlySet<number>
+): boolean {
+  switch (ir.kind) {
+    case 'binding-read':
+      return qrlConsts.has(ir.binding) || qrlValued.has(ir.binding);
+    case 'undef':
+      return true;
+    case 'lit':
+      return ir.value === null;
+    case 'cond':
+      return (
+        irProvesQrl(ir.then, qrlConsts, qrlValued) && irProvesQrl(ir.else, qrlConsts, qrlValued)
+      );
+    case 'logic':
+      return (
+        irProvesQrl(ir.left, qrlConsts, qrlValued) && irProvesQrl(ir.right, qrlConsts, qrlValued)
+      );
+    default:
+      return false;
+  }
+}
+
 export const enum SsrOpKind {
   Static = 'static',
   Element = 'element',
@@ -177,6 +206,8 @@ export type PlanSsrOp =
       readonly content: PlanSsrRenderFn;
       /** Renderable QRL: segment for resume identity; `ops` absent = resume-only. */
       readonly fallback: PlanSsrRenderFn | null;
+      /** Runtime-selected fallback: IR whose leaves are proven QRLs; engines evaluate it. */
+      readonly fallbackValue?: PlanValue;
       readonly delay: PlanValue | null;
       readonly inOrder: readonly PlanSsrOp[] | null;
     }
@@ -381,6 +412,16 @@ export function emitSsrOpPlan(
   };
   collectSetupOps(component.setup);
   collectRenderNodes(component.render.roots);
+
+  // proven QRL locals: `const x = $(...)` setup entries, binding → segment
+  const qrlConstSegments = new Map<number, string>();
+  for (const setupOp of setupOpByRange.values()) {
+    if (setupOp.kind === SetupOpKind.QrlConst) {
+      qrlConstSegments.set(setupOp.binding, setupOp.segment);
+    }
+  }
+  // extraction-proven QRL consts (selectors over qrl factories) without their own setup op
+  const qrlValuedBindings = new Set<number>(component.qrlValuedBindings ?? []);
 
   const setupEntries = (setup: readonly SsrSetupOperation[]): PlanSetupEntry[] =>
     setup.flatMap((entry): PlanSetupEntry[] => {
@@ -667,10 +708,28 @@ export function emitSsrOpPlan(
           ssr: { root: operation.root, idBase: operation.idBase },
         };
       case 'suspense': {
-        const fallbackValue = operation.fallback;
+        let fallbackValue = operation.fallback;
+        let selectedFallback: PlanValue | undefined;
         if (fallbackValue !== null && fallbackValue.kind !== 'segment') {
-          // fallback$ must be a QRL; value fallbacks are unplannable (compile error eventually)
-          throw UNPLANNABLE;
+          const ir = fallbackValue.kind === 'render-value' ? undefined : fallbackValue.ir;
+          // a `*$` prop is a QRL no matter what: a bare qrl-const read resolves to its
+          // segment; a composite must prove every leaf QRL-valued or the compile fails
+          const direct =
+            ir !== undefined && ir.kind === 'binding-read'
+              ? qrlConstSegments.get(ir.binding)
+              : undefined;
+          if (direct !== undefined) {
+            fallbackValue = {
+              kind: 'segment',
+              expression: fallbackValue.expression,
+              segment: { segmentId: direct, captureBindingIds: [], componentPropBindingIds: [] },
+            };
+          } else if (ir !== undefined && irProvesQrl(ir, qrlConstSegments, qrlValuedBindings)) {
+            selectedFallback = planValue(fallbackValue);
+            fallbackValue = null;
+          } else {
+            throw UNPLANNABLE;
+          }
         }
         const fallbackSegment =
           fallbackValue !== null && fallbackValue.kind === 'segment'
@@ -697,6 +756,7 @@ export function emitSsrOpPlan(
                     ssr: { syncRender: false, needsRootRange: false },
                   }
                 : { segment: fallbackSegment.id, ...targetBlock(fallbackTarget) },
+          ...(selectedFallback === undefined ? {} : { fallbackValue: selectedFallback }),
           delay: operation.delay === null ? null : planValue(operation.delay),
           inOrder: operation.inOrder === null ? null : operation.inOrder.map(op),
         };

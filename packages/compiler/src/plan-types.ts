@@ -230,6 +230,8 @@ export interface ComponentPlan {
   readonly referenceBindingIds: readonly BindingId[];
   readonly segments: readonly SegmentPlan[];
   readonly lifetimes: readonly LifetimePlan[];
+  /** Const bindings statically proven QRL-valued — dollar-prop values may read them. */
+  readonly qrlValuedBindings: readonly BindingId[];
 }
 
 export interface ComponentCapturePlan {
@@ -693,6 +695,8 @@ export interface ExtractedQrls {
   segments: Segment[];
   moduleDeclarations: ModuleDeclaration[];
   invalidBoundaries: Array<{ range: SourceRange; message: string }>;
+  /** Const bindings statically proven QRL-valued (qrl factories and selectors over them). */
+  qrlValuedBindings: ReadonlySet<BindingId>;
   /** Auto-lowered module helpers (specs/02 §defs), set by the transform before lowering. */
   moduleDefs?: readonly import('./defs-lower').ModuleDef[];
 }

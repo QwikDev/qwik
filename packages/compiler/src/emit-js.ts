@@ -89,6 +89,7 @@ export function emitJsProductionRender(
     readonly propsBindings: readonly number[];
     readonly props: unknown;
     readonly providesContext: boolean;
+    readonly captures?: readonly { readonly bindingId: number; readonly name: string }[];
   },
   segments: readonly SegmentMeta[],
   defs: readonly DefMeta[],
@@ -128,6 +129,10 @@ export function emitJsProductionRender(
     );
     for (const binding of component.propsBindings) {
       generator.bindProps(binding);
+    }
+    // the component fn head declares `const <name> = _captures[i];` for each capture
+    for (const capture of component.captures ?? []) {
+      generator.declare(capture.bindingId, capture.name);
     }
     return generator.generateProduction(
       component.name,
@@ -194,12 +199,16 @@ interface ModuleState {
 
 /** Debug-only: stack captured at the most recent UNGENERATABLE throw. */
 let UNGENERATABLE_SITE = '';
+let UNGENERATABLE_DETAIL = '';
 export function markUngeneratable(detail?: unknown): never {
   UNGENERATABLE_SITE = new Error('ungeneratable').stack ?? '';
-  // TEMP census logging — remove before walker deletion
-  // eslint-disable-next-line
-  (globalThis as any).__qwikJsgenCensus?.(UNGENERATABLE_SITE, detail);
+  UNGENERATABLE_DETAIL = detail === undefined ? '' : JSON.stringify(detail);
   throw UNGENERATABLE;
+}
+
+/** Detail recorded by the most recent `markUngeneratable`, for compile diagnostics. */
+export function lastUngeneratableDetail(): string {
+  return UNGENERATABLE_DETAIL;
 }
 
 /** Tagged PlanValue form accessors — see emit-plan `PlanValue`. */
@@ -1076,7 +1085,6 @@ class JsComponentGenerator {
         return;
       }
       case SsrOpKind.Collection: {
-        // eager position only — deferred collections have unproven statement ordering
         const row = operation.row as {
           readonly symbolName?: string;
           readonly segment?: { readonly segment?: string };
@@ -1088,8 +1096,7 @@ class JsComponentGenerator {
         if (
           operation.source.kind === 'direct-array' ||
           row.symbolName !== undefined ||
-          row.segment?.segment === undefined ||
-          (this.asyncSteps.length > 0 && operation.source.kind !== 'direct-reactive')
+          row.segment?.segment === undefined
         ) {
           markUngeneratable({
             steps: this.asyncSteps.length,
@@ -1114,6 +1121,44 @@ class JsComponentGenerator {
         this.imports.add('createSsrRecord');
         this.imports.add('createSsrNodeId');
         // deferred position: the whole render runs in a chained thunk with a lazy id claim
+        if (this.asyncSteps.length > 0 && operation.source.kind === 'derived') {
+          const source = this.segment(operation.source.segment);
+          const deferredKeyMeta = operation.key === null ? null : this.segment(operation.key);
+          const deferredRowMeta = this.segment(row.segment.segment);
+          const inner: string[] = [`${idVariable} ??= ${this.names.ctx}.nextId();`];
+          const rootCapturesInner = (meta: SegmentMeta): void => {
+            for (const capture of meta.captures) {
+              const name =
+                capture.access === 'component-prop'
+                  ? this.names.props
+                  : this.local(capture.binding);
+              inner.push(`${this.names.ctx}.addRoot(${name});`);
+            }
+          };
+          rootCapturesInner(source);
+          if (deferredKeyMeta !== null) {
+            rootCapturesInner(deferredKeyMeta);
+          }
+          rootCapturesInner(deferredRowMeta);
+          this.imports.add('_wrapArray');
+          inner.push(
+            `const ${wrapped} = _wrapArray(${this.qrlExpression(source)}${operation.source.keepSource === true ? ', true' : ''});`,
+            `if (!Array.isArray(${wrapped})) ${this.names.ctx}.addRoot(${wrapped});`,
+            `return renderSsrCollection(${this.names.ctx}, ${idVariable}, ${wrapped}, ${operation.key === null ? 'undefined' : this.qrlExpression(deferredKeyMeta!)}, ${this.qrlExpression(deferredRowMeta)}, ${operation.usesIndexSignal}, ${operation.ssr.idBase === null ? "''" : operation.ssr.idBase}, ${operation.ssr.usesRowId}, ${operation.ssr.rowShape});`
+          );
+          const invokeCtx = this.invokeCtx();
+          this.imports.add('invoke');
+          this.imports.add('renderSsrCollection');
+          this.statements.push(`let ${idVariable};`);
+          this.statements.push(
+            `const ${step} = () => invoke(${invokeCtx}, () => { ${inner.join(' ')} });`
+          );
+          this.asyncSteps.push({ name: step, expr: `${step}()` });
+          parts.push(`createSsrRecord('<!f=', createSsrNodeId(${idVariable}), '>')`);
+          parts.push(step);
+          pushStatic('<!/f>');
+          return;
+        }
         if (this.asyncSteps.length > 0) {
           const ir = operation.source.ir;
           if (ir === undefined) {
@@ -1211,6 +1256,13 @@ class JsComponentGenerator {
             markUngeneratable(operation);
           }
           fallbackQrl = this.qrlExpression(this.segment(operation.fallback.segment));
+        } else if (operation.fallbackValue !== undefined) {
+          // runtime-selected fallback: proven-QRL IR evaluates in place
+          const ir = valueIr(operation.fallbackValue);
+          if (ir === undefined) {
+            markUngeneratable(operation);
+          }
+          fallbackQrl = this.irJs(ir);
         }
         let delayExpr = '0';
         if (operation.delay !== null) {
@@ -1760,9 +1812,6 @@ class JsComponentGenerator {
         }
       };
       for (const child of operation.children) {
-        if (!this.isFoldableStatic(child)) {
-          markUngeneratable(child);
-        }
         this.op(child, childParts, pushChildStatic);
       }
       const fallback =
@@ -2262,7 +2311,16 @@ class JsComponentGenerator {
       case 'signal-read':
         return `${scope?.get(ir.binding) ?? this.local(ir.binding)}.value`;
       case 'bin':
+      case 'logic':
         return `(${this.irJs(ir.left, scope)} ${ir.op} ${this.irJs(ir.right, scope)})`;
+      case 'cond':
+        return `(${this.irJs(ir.test, scope)} ? ${this.irJs(ir.then, scope)} : ${this.irJs(ir.else, scope)})`;
+      case 'unary': {
+        const operand = this.irJs(ir.operand, scope);
+        return ir.op === 'typeof' ? `(typeof ${operand})` : `(${ir.op}${operand})`;
+      }
+      case 'index':
+        return `${this.irJs(ir.obj, scope)}${ir.optional === true ? '?.' : ''}[${this.irJs(ir.key, scope)}]`;
       case 'template': {
         const chunks = ir.parts.map((part) =>
           typeof part === 'string'
@@ -2273,12 +2331,7 @@ class JsComponentGenerator {
       }
       case 'call': {
         // qwik: namespaced ops are plain JS calls — method on the receiver or a global
-        const args = ir.args.map((argument) => {
-          if ((argument as { kind?: string }).kind === 'lambda') {
-            markUngeneratable();
-          }
-          return this.irJs(argument as ValueIR, scope);
-        });
+        const args = ir.args.map((argument) => this.pluginArgJs(argument, scope));
         const method = ir.fn.slice(ir.fn.lastIndexOf('.') + 1);
         if (ir.receiver !== null) {
           return `${this.irJs(ir.receiver, scope)}.${method}(${args.join(', ')})`;

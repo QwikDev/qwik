@@ -192,23 +192,33 @@ describe('named dollar-import calls', () => {
     });
   });
 
-  test('unlowerable rest args keep the whole call a source hole', async () => {
-    const [plan] = await planFor({
-      'src/view.tsx': [
-        `import { transform$ } from './api';`,
-        `import { useSignal } from '@qwik.dev/core';`,
-        `function Child() { return <p>Child</p>; }`,
-        `export function App() {`,
-        `  const count = useSignal(1);`,
-        `  const opts = { flag: true };`,
-        `  return <Child implicit={transform$(() => count.value, { ...opts })} />;`,
-        `}`,
-      ].join('\n'),
-      'src/api.ts': `export const transform$ = (fn) => fn;`,
-    });
-    const app = plan.components.find((c: { name: string }) => c.name === 'App');
-    const prop = app.ssr.ops[0].props[0];
-    expect(prop.value.kind).toBe('js');
+  test('unlowerable rest args fail the compile loudly', async () => {
+    const result = await transformModules({
+      input: [
+        {
+          path: 'src/view.tsx',
+          code: [
+            `import { transform$ } from './api';`,
+            `import { useSignal } from '@qwik.dev/core';`,
+            `function Child() { return <p>Child</p>; }`,
+            `export function App() {`,
+            `  const count = useSignal(1);`,
+            `  const opts = { flag: true };`,
+            `  return <Child implicit={transform$(() => count.value, { ...opts })} />;`,
+            `}`,
+          ].join('\n'),
+        },
+        { path: 'src/api.ts', code: `export const transform$ = (fn) => fn;` },
+      ],
+      srcDir: 'src',
+      sourceMaps: false,
+      transpileTs: true,
+      transpileJsx: true,
+      isServer: true,
+    } as TransformModulesOptions);
+    expect(result.diagnostics.map((diagnostic) => diagnostic.message)).toEqual([
+      expect.stringContaining('cannot emit'),
+    ]);
   });
 });
 

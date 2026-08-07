@@ -351,6 +351,7 @@ class SemanticLowerer {
         referenceBindingIds,
         segments,
         lifetimes: this.lifetimes,
+        qrlValuedBindings: [...this.extracted.qrlValuedBindings],
       },
     };
   }

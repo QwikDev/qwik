@@ -228,7 +228,12 @@ const METHOD_OPS: ReadonlyMap<string, string> = new Map([
   // date
   ['toISOString', 'qwik:date.toISOString'],
   ['getTime', 'qwik:date.getTime'],
+  // promise
+  ['then', 'qwik:promise.then'],
 ]);
+
+/** Method ops whose fn arguments may be render callbacks or QRL-backed fns. */
+const CALLBACK_OPS: ReadonlySet<string> = new Set(['qwik:promise.then']);
 
 /** Higher-order array ops whose single callback argument may be a restricted lambda. */
 const HIGHER_ORDER_OPS: ReadonlyMap<string, string> = new Map([
@@ -579,9 +584,12 @@ function lowerCall(node: AstNode, facts: ExprLowerFacts): ValueIR | null {
   if (receiver === null) {
     return null;
   }
-  const args = lowerArgs(call.arguments, facts, higherOrder !== undefined ? 0 : null) as
-    | (ValueIR | LambdaIR)[]
-    | null;
+  const args = lowerArgs(
+    call.arguments,
+    facts,
+    higherOrder !== undefined ? 0 : null,
+    CALLBACK_OPS.has(op)
+  );
   return args === null ? null : { kind: ValueIrKind.Call, fn: op, receiver, args };
 }
 

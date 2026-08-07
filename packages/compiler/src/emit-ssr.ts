@@ -17,7 +17,7 @@ import {
 import { emitFunctionRenders } from './emit-function';
 import { emitSsrOpPlan } from './emit-plan-ssr';
 import type { JsStatementRewriter } from './emit-plan-ssr';
-import { emitJsProductionRender } from './emit-js';
+import { emitJsProductionRender, lastUngeneratableDetail } from './emit-js';
 import {
   getSegmentImportPath,
   shouldResolveSsrSegment,
@@ -115,19 +115,13 @@ const EMPTY_PLAN_DATA: SsrPlanData = {
   importLocalName: () => null,
 };
 
-let jsGenCoverage: { generated: number; fallback: number } | null = null;
-
-/** Test-only tap: counts components emitted from the wire plan vs the legacy fallback. */
-export function startJsGenCoverage(): { generated: number; fallback: number } {
-  jsGenCoverage = { generated: 0, fallback: 0 };
-  return jsGenCoverage;
+/** Why the last component failed to emit — surfaces in the compile diagnostic. */
+let ungeneratedReason = '';
+export function lastUngeneratedReason(): string {
+  return ungeneratedReason;
 }
 
-export function stopJsGenCoverage(): void {
-  jsGenCoverage = null;
-}
-
-/** Plan-first production emission for one component; null falls back to the legacy walker. */
+/** Plan-first production emission for one component; null fails the compile loudly. */
 function emitJsRenderForComponent(
   output: ComponentOutput,
   source: string,
@@ -141,10 +135,6 @@ function emitJsRenderForComponent(
   },
   rewriteJsStatement?: JsStatementRewriter
 ): (SsrRender & { readonly setup: SsrSetup }) | null {
-  // oracle mode: regenerate goldens from the legacy emitter alone
-  if (process.env.QWIK_JSGEN_DISABLE === '1') {
-    return null;
-  }
   const wire = emitSsrOpPlan(
     output.result,
     output.result.segments,
@@ -154,9 +144,7 @@ function emitJsRenderForComponent(
     rewriteJsStatement
   );
   if (wire === null) {
-    if (jsGenCoverage !== null) {
-      jsGenCoverage.fallback++;
-    }
+    ungeneratedReason = 'its render structure has no SSR plan';
     return null;
   }
   const parameter = output.result.shape.parameter;
@@ -172,13 +160,8 @@ function emitJsRenderForComponent(
               name: planData.bindingName(b) ?? '',
             })),
           };
-  // captured (inline) components get a _captures prelude the generator does not model yet
-  if (output.result.captures.length > 0) {
-    if (jsGenCoverage !== null) {
-      jsGenCoverage.fallback++;
-    }
-    return null;
-  }
+  // captured (inline) components read their `_captures` prelude locals by name
+  ungeneratedReason = '';
   const pieces = emitJsProductionRender(
     wire,
     {
@@ -186,6 +169,7 @@ function emitJsRenderForComponent(
       propsBindings: parameter?.kind === 'identifier' ? parameter.bindingIds : [],
       props,
       providesContext: output.result.providesContext,
+      captures: output.result.captures,
     },
     output.result.segments.map((segment) => ({
       id: segment.id,
@@ -233,9 +217,10 @@ function emitJsRenderForComponent(
     planData.importLocalName
   );
   if (pieces === null) {
-    if (jsGenCoverage !== null) {
-      jsGenCoverage.fallback++;
-    }
+    const detail = lastUngeneratableDetail();
+    ungeneratedReason = `it uses a construct the compiler cannot lower yet${
+      detail === '' ? '' : ` (${detail})`
+    }`;
     return null;
   }
   // names the module already imports from core need no re-import; other collisions bail
@@ -245,15 +230,10 @@ function emitJsRenderForComponent(
       continue;
     }
     if (importNames.taken.has(name)) {
-      if (jsGenCoverage !== null) {
-        jsGenCoverage.fallback++;
-      }
+      ungeneratedReason = `the local name "${name}" collides with a compiler runtime import`;
       return null;
     }
     neededImports.push(name);
-  }
-  if (jsGenCoverage !== null) {
-    jsGenCoverage.generated++;
   }
   return {
     imports: neededImports,
@@ -422,32 +402,25 @@ export function emitSsrModule(
     // plan-first: the wire plan is the cross-engine contract; generated bodies replace the
     // legacy tree walk per component, with the legacy path as fallback. Rendered bytes are
     // held identical by the Layer-A goldens and e2e suites.
-    const render =
-      emitJsRenderForComponent(
-        output,
-        source,
-        componentReturnMode,
-        generatedNames,
-        planData,
-        importNames,
-        (operation) =>
-          rewriteJsSetupStatement(
-            operation,
-            source,
-            componentSegments,
-            qrlImports,
-            localImplementationSource
-          )
-      ) ??
-      emitComponentRender(
-        planned,
-        source,
-        componentSegments,
-        qrlImports,
-        localImplementationSource,
-        generatedNames
-      );
+    const render = emitJsRenderForComponent(
+      output,
+      source,
+      componentReturnMode,
+      generatedNames,
+      planData,
+      importNames,
+      (operation) =>
+        rewriteJsSetupStatement(
+          operation,
+          source,
+          componentSegments,
+          qrlImports,
+          localImplementationSource
+        )
+    );
     if (render === null) {
+      const name = output.component.exportName ?? output.component.localName ?? 'component';
+      ungeneratedReason = `"${String(name)}": ${lastUngeneratedReason()}`;
       return null;
     }
     for (const name of render.imports) {
@@ -663,63 +636,6 @@ function emitSsrRenderTarget(
     hoists: qrlImports.declarations({ source: QWIK_IMPORT, names: imports }),
     statements: [...setup.statements, ...emitted.statements],
     value: emitted.value,
-  };
-}
-
-function emitComponentRender(
-  plan: SsrPlan,
-  source: string,
-  segments: ReadonlyMap<string, SegmentPlan>,
-  qrlImports: TargetImportResolver,
-  localImplementationSource: string | null,
-  generatedNames: GeneratedNames
-): (SsrRender & { readonly setup: SsrSetup }) | null {
-  const setup = emitSetup(
-    plan,
-    source,
-    segments,
-    qrlImports,
-    localImplementationSource,
-    plan.flushTasks,
-    generatedNames
-  );
-  if (setup === null) {
-    return null;
-  }
-  const render = new SsrEmitter(
-    source,
-    segments,
-    [],
-    qrlImports,
-    localImplementationSource,
-    generatedNames
-  ).emit(plan.render, {
-    surroundingRangeId: null,
-    rootAttribute: null,
-    rowMarkerId: null,
-    slotMarkerId: null,
-    contextBoundary: plan.providesContext,
-    structuredRoot: !plan.render.staticRoot,
-  });
-  if (render === null) {
-    return null;
-  }
-  const runtimeScopeName = plan.runtimeStyleScopeName;
-  const runtimeScopeStatement =
-    runtimeScopeName === null
-      ? []
-      : [
-          `const ${runtimeScopeName} = ${QwikWord.GetActiveInvokeContext}().styleScopes?.join(' ');`,
-        ];
-  return {
-    imports: [
-      ...setup.imports,
-      ...render.imports,
-      ...(runtimeScopeName === null ? [] : [QwikWord.GetActiveInvokeContext]),
-    ],
-    setup,
-    statements: [...runtimeScopeStatement, ...render.statements],
-    value: render.value,
   };
 }
 

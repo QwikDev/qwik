@@ -103,6 +103,7 @@ class QrlExtractor {
       segments: this.segments,
       moduleDeclarations: this.moduleDeclarations,
       invalidBoundaries: this.invalidBoundaries,
+      qrlValuedBindings: this.fixedEventBindings,
     };
   }
 
@@ -305,8 +306,7 @@ class QrlExtractor {
         node.kind === 'const' &&
         identifier?.type === 'Identifier' &&
         identifierRange !== null &&
-        initializer?.type === 'CallExpression' &&
-        this.isQrlFactoryCall(initializer)
+        this.isFixedQrlInit(initializer)
       ) {
         const binding = findBindingByDeclaration(this.analysis, identifier.name, identifierRange);
         if (binding !== null) {
@@ -611,6 +611,27 @@ class QrlExtractor {
         element === null ||
         (element.type !== 'SpreadElement' && this.isFixedEventExpression(element))
     );
+  }
+
+  /** Statically QRL-valued init: qrl factory calls, selectors over them, or fixed reads. */
+  private isFixedQrlInit(expression: AstNode | null | undefined): boolean {
+    const value = unwrapExpression(expression);
+    if (value === null || value === undefined) {
+      return false;
+    }
+    if (value.type === 'CallExpression') {
+      return this.isQrlFactoryCall(value);
+    }
+    if (value.type === 'ConditionalExpression') {
+      return this.isFixedQrlInit(value.consequent) && this.isFixedQrlInit(value.alternate);
+    }
+    if (value.type === 'LogicalExpression') {
+      return this.isFixedQrlInit(value.left) && this.isFixedQrlInit(value.right);
+    }
+    if (value.type === 'Identifier') {
+      return this.fixedEventBindings.has(this.bindingForReference(value)?.id ?? -1);
+    }
+    return false;
   }
 
   private isQrlFactoryCall(expression: Extract<AstNode, { type: 'CallExpression' }>): boolean {

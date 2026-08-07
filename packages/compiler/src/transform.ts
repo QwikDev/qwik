@@ -44,7 +44,12 @@ import {
   type SegmentComponentImport,
   shouldEmitSegmentModule,
 } from './emit-segment';
-import { emitSsrModule, emitSsrSegmentRender, type SsrPlanData } from './emit-ssr';
+import {
+  emitSsrModule,
+  emitSsrSegmentRender,
+  lastUngeneratedReason,
+  type SsrPlanData,
+} from './emit-ssr';
 import { extractQrls, isSetupQrlSegment } from './extract';
 import {
   createCsrComponentCardinalityResolver,
@@ -477,7 +482,14 @@ export function transformModule(ctx: CompilerContext): TransformResult {
     planData
   );
   if (emittedMain === null) {
-    return transformFailure(ctx, null, 'The compiler could not emit the qualified module.');
+    const reason = lastUngeneratedReason();
+    return transformFailure(
+      ctx,
+      null,
+      reason === ''
+        ? 'The compiler could not emit the qualified module.'
+        : `The compiler cannot emit ${reason}. Deliver the construct as a plugin or rewrite it.`
+    );
   }
   const main = assembleMainModule(
     ctx,
@@ -533,7 +545,9 @@ export function transformModule(ctx: CompilerContext): TransformResult {
       return transformFailure(
         ctx,
         component.output.component.functionRange,
-        `The compiler could not emit component "${component.name}".`
+        lastUngeneratedReason() === ''
+          ? `The compiler could not emit component "${component.name}".`
+          : `The compiler cannot emit ${lastUngeneratedReason()}. Deliver the construct as a plugin or rewrite it.`
       );
     }
     const imports = [

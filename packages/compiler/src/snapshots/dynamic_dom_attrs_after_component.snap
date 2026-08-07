@@ -26,7 +26,6 @@ import {
   createSsrElementTarget,
   renderSsrAttrExpression,
   escapeHTML,
-  createSsrRecord,
   getActiveInvokeContextOrNull,
   invoke,
   maybeThen,
@@ -45,29 +44,30 @@ function Child(props, ctx) {
 }
 export function App(props, ctx) {
   const count = useSignal(0);
-  let id1;
-  const invokeCtx3 = getActiveInvokeContextOrNull();
-  const component0 = createComponent({}, (props) => Child(props, ctx));
-  const attr2 = () =>
-    invoke(invokeCtx3, () => {
-      id1 ??= ctx.nextId();
+  const component_0 = createComponent({}, (props) => Child(props, ctx));
+  let id_0;
+  const invokeCtx = getActiveInvokeContextOrNull();
+  const attr_1 = () =>
+    invoke(invokeCtx, () => {
+      id_0 ??= ctx.nextId();
       ctx.addRoot(count);
       return renderSsrAttrExpression(
-        createSsrElementTarget(id1),
+        createSsrElementTarget(id_0),
         'style',
         [count],
         q_component_style_segment_0_cgm2y3mz6tq2
       );
     });
-  return maybeThen(component0, (component0) =>
-    maybeThen(attr2(), (attr2) => [
+  return maybeThen(component_0, (component_0) =>
+    maybeThen(attr_1(), (attr_1) => [
       createSsrElementRecord('main', '<main', '>'),
-      component0,
-      createSsrRecord(
+      component_0,
+      createSsrElementRecord(
+        'p',
         '<p q:id="',
-        createSsrNodeId(id1),
+        createSsrNodeId(id_0),
         '"',
-        attr2 === null ? '' : ' style' + (attr2 === '' ? '' : '="' + escapeHTML(attr2) + '"'),
+        attr_1 === null ? '' : ' style' + (attr_1 === '' ? '' : '="' + escapeHTML(attr_1) + '"'),
         '>'
       ),
       'After</p></main>',

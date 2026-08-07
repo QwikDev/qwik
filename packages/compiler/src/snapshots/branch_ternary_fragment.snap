@@ -35,7 +35,7 @@ import { Child } from './component.tsx_component_Child';
 export { Child };
 export function App(props, ctx) {
   const component_0 = createComponent({}, (props) => Child(props, ctx));
-  return maybeThen(component_0, (component_0) => [component_0]);
+  return maybeThen(component_0, (component_0) => component_0);
 }
 ============================= src/component.tsx_component_Child.js (ENTRY POINT)==
 

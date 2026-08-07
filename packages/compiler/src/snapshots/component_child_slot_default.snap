@@ -38,7 +38,7 @@ export function Parent(props, ctx) {
   const component_1 = createComponent({}, (props) => Wrapper(props, ctx), {
     slotScope: slot_scope_0,
   });
-  return maybeThen(component_1, (component_1) => [component_1]);
+  return maybeThen(component_1, (component_1) => component_1);
 }
 ============================= src/component.tsx_component_Wrapper.js (ENTRY POINT)==
 

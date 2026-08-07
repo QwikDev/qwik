@@ -34,7 +34,7 @@ export function App(props0, ctx) {
     },
     (props) => Pager(props, ctx)
   );
-  return maybeThen(component_0, (component_0) => [component_0]);
+  return maybeThen(component_0, (component_0) => component_0);
 }
 ============================= src/component.tsx_component_Pager.js (ENTRY POINT)==
 

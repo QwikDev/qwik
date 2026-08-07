@@ -33,7 +33,7 @@ export function Parent(props, ctx) {
     }),
     (props) => Button(props, ctx)
   );
-  return maybeThen(component_0, (component_0) => [component_0]);
+  return maybeThen(component_0, (component_0) => component_0);
 }
 ============================= src/component.tsx_component_Button.js (ENTRY POINT)==
 

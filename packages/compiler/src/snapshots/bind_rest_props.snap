@@ -29,7 +29,7 @@ export function App(props, ctx) {
     },
     (props) => Field(props, ctx)
   );
-  return maybeThen(component_0, (component_0) => [component_0]);
+  return maybeThen(component_0, (component_0) => component_0);
 }
 ============================= src/component.tsx_component_Field.js (ENTRY POINT)==
 

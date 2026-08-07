@@ -353,8 +353,7 @@ class JsComponentGenerator {
         parts.push(JSON.stringify('<!/c>'));
       }
     }
-    const value =
-      parts.length === 1 && isStringLiteral(parts[0]) ? parts[0] : `[${parts.join(', ')}]`;
+    const value = parts.length === 1 ? parts[0] : `[${parts.join(', ')}]`;
     const statements = this.finalizeIds(this.statements.splice(0));
     const chainValue = this.wrapAsyncValue(value);
     if (ssr.flushTasks === true) {
@@ -482,8 +481,7 @@ class JsComponentGenerator {
         parts.push(JSON.stringify('<!/c>'));
       }
     }
-    const value =
-      parts.length === 1 && isStringLiteral(parts[0]) ? parts[0] : `[${parts.join(', ')}]`;
+    const value = parts.length === 1 ? parts[0] : `[${parts.join(', ')}]`;
     const returnStatement = this.wrapAsync(value);
     let bodyStatements: string[];
     const finalizedStatements = this.finalizeIds(this.statements);
@@ -884,7 +882,14 @@ class JsComponentGenerator {
           row.segment?.segment === undefined ||
           operation.key === null
         ) {
-          markUngeneratable();
+          markUngeneratable({
+            steps: this.asyncSteps.length,
+            source: operation.source.kind,
+            idBase: operation.idBase,
+            symbolName: row.symbolName,
+            rowSegment: row.segment?.segment,
+            key: operation.key,
+          });
         }
         const source = this.segment(operation.source.segment);
         const sourceCaptures = source.captures.map((capture) =>
@@ -987,13 +992,8 @@ class JsComponentGenerator {
     parts: string[]
   ): void {
     const target = operation.target;
-    if (
-      operation.propsSource !== null ||
-      operation.idBase !== null ||
-      operation.blockingSuspense ||
-      operation.returnMode !== 'maybe-promise'
-    ) {
-      markUngeneratable();
+    if (operation.returnMode !== 'maybe-promise' && operation.returnMode !== 'sync') {
+      markUngeneratable(operation.returnMode);
     }
     let childName: string;
     if (typeof target === 'string') {
@@ -1046,6 +1046,7 @@ class JsComponentGenerator {
     let literalEntries: string[] | null = null;
     const sourceEntries: string[] = [];
     const sourceLocals: string[] = [];
+    const prepStatements: string[] = [];
     const literalRun = (): string[] => {
       if (literalEntries === null) {
         literalEntries = [];
@@ -1065,7 +1066,25 @@ class JsComponentGenerator {
         literalRun().push(`${JSON.stringify(item.name)}: ${JSON.stringify(item.value)}`);
       } else if (prop.p === 'dynamic') {
         const item = prop as { name: string; value: { segment?: string; ir?: ValueIR } };
+        const segmentId = item.value.segment;
         const ir = item.value.ir;
+        if (segmentId !== undefined && (ir === undefined || ir.k === 'call')) {
+          // derived prop: the QRL rides the sources map so resume rebuilds the getter
+          const meta = this.segment(segmentId);
+          const qrlName = `prop_qrl_${this.nextTemp++}`;
+          for (const capture of meta.captures) {
+            const captured =
+              capture.access === 'component-prop' ? this.names.props : this.local(capture.binding);
+            prepStatements.push(`${this.names.ctx}.addRoot(${captured});`);
+          }
+          prepStatements.push(`const ${qrlName} = ${this.qrlExpression(meta)};`);
+          this.imports.add('readExpression');
+          literalRun().push(
+            `get ${JSON.stringify(item.name)}() { return readExpression(${qrlName}); }`
+          );
+          sourceEntries.push(`${JSON.stringify(item.name)}: ${qrlName}`);
+          continue;
+        }
         if (ir === undefined || (ir.k !== 'signal-read' && ir.k !== 'binding-read')) {
           markUngeneratable();
         }
@@ -1110,7 +1129,18 @@ class JsComponentGenerator {
     }
     closeRun();
     let propsExpr: string;
-    if (runSegments.length === 0) {
+    if (operation.propsSource !== null) {
+      // whole-object computed props resume through their QRL-backed proxy
+      const meta = this.segment(operation.propsSource);
+      for (const capture of meta.captures) {
+        const captured =
+          capture.access === 'component-prop' ? this.names.props : this.local(capture.binding);
+        prepStatements.push(`${this.names.ctx}.addRoot(${captured});`);
+      }
+      this.imports.add('createPropsProxy');
+      this.imports.add('useComputedQrl');
+      propsExpr = `createPropsProxy(useComputedQrl(${this.qrlExpression(meta)}))`;
+    } else if (runSegments.length === 0) {
       propsExpr = '{}';
     } else if (runSegments.length === 1) {
       propsExpr = runSegments[0];
@@ -1118,18 +1148,33 @@ class JsComponentGenerator {
       this.imports.add('mergeProps');
       propsExpr = `mergeProps(${runSegments.join(', ')})`;
     }
-    if (sourceEntries.length > 0) {
+    if (operation.propsSource === null && sourceEntries.length > 0) {
       this.imports.add('_props');
       propsExpr = `_props(${propsExpr}, { ${sourceEntries.join(', ')} })`;
     }
-    const step = `component_${this.nextTemp++}`;
     this.imports.add('createComponent');
     const options = slotScope === null ? '' : `, { slotScope: ${slotScope} }`;
-    this.pushStep(
-      step,
-      sourceLocals,
-      `createComponent(${propsExpr}, (props) => ${childName}(props, ${this.names.ctx})${options})`
-    );
+    const childContext = operation.blockingSuspense
+      ? `${this.names.ctx}.inOrder()`
+      : this.names.ctx;
+    const childArgs = `props, ${childContext}${operation.idBase === null ? '' : `, ${operation.idBase}`}`;
+    const call = `createComponent(${propsExpr}, (props) => ${childName}(${childArgs})${options})`;
+    if (operation.returnMode === 'sync' && this.synchronous) {
+      // sync child in a sync block renders inline, matching the legacy direct path
+      this.statements.push(...prepStatements);
+      for (const local of sourceLocals) {
+        this.statements.push(`${this.names.ctx}.addRoot(${local});`);
+      }
+      parts.push(call);
+      return;
+    }
+    const step = `component_${this.nextTemp++}`;
+    if (this.asyncSteps.length === 0 || this.synchronous) {
+      this.statements.push(...prepStatements);
+      this.pushStep(step, sourceLocals, call);
+    } else {
+      this.pushStep(step, sourceLocals, call, prepStatements.join(' '));
+    }
     parts.push(step);
   }
 

@@ -39,7 +39,7 @@ export function Parent(props0, ctx) {
     ),
     (props) => Child(props, ctx)
   );
-  return maybeThen(component_0, (component_0) => [component_0]);
+  return maybeThen(component_0, (component_0) => component_0);
 }
 ============================= src/component.tsx_component_Child.js (ENTRY POINT)==
 

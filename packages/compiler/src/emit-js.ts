@@ -35,14 +35,16 @@ type PlanSsrComponent = NonNullable<QwikSsrPlan['components'][number]['ssr']>;
 
 class JsComponentGenerator {
   private readonly imports = new Set<string>();
+  private readonly chunkImports: string[] = [];
   private readonly hoists: string[] = [];
   private readonly hoistedSegments = new Set<string>();
   private readonly statements: string[] = [];
   private readonly locals = new Map<number, string>();
-  private readonly usedNames = new Set<string>(['props', 'ctx']);
+  private readonly usedNames = new Set<string>(['props', 'ctx', 'invokeCtx']);
   private nextTemp = 0;
-  /** Pending async step names — the return value chains maybeThen over them. */
-  private readonly asyncSteps: string[] = [];
+  private invokeCtxDeclared = false;
+  /** Pending async steps — the return value chains maybeThen over them in order. */
+  private readonly asyncSteps: { name: string; expr: string }[] = [];
 
   constructor(private readonly segments: readonly SegmentMeta[]) {}
 
@@ -58,25 +60,34 @@ class JsComponentGenerator {
       parts.length === 1 && isStringLiteral(parts[0]) ? parts[0] : `[${parts.join(', ')}]`;
     const returnStatement = this.wrapAsync(value);
     const header =
-      this.imports.size === 0
+      (this.imports.size === 0
         ? ''
-        : `import { ${[...this.imports].sort().join(', ')} } from "@qwik.dev/core";\n`;
+        : `import { ${[...this.imports].sort().join(', ')} } from "@qwik.dev/core";\n`) +
+      this.chunkImports.map((line) => `${line}\n`).join('');
     const body = [...this.statements, returnStatement].map((line) => `  ${line}`).join('\n');
     return `${header}${this.hoists.join('\n')}${this.hoists.length > 0 ? '\n' : ''}export function ${name}(props, ctx) {\n${body}\n}\n`;
   }
 
   /** MaybeThen chain over async steps, innermost carrying the parts value. */
   private wrapAsync(value: string): string {
-    this.imports.add('maybeThen');
-    let wrapped = `return ${value};`;
     if (this.asyncSteps.length === 0) {
       return `return ${value};`;
     }
-    wrapped = `return ${this.asyncSteps.reduceRight(
-      (inner, step) => `maybeThen(${step}, (${step}) => ${inner})`,
+    this.imports.add('maybeThen');
+    return `return ${this.asyncSteps.reduceRight(
+      (inner, step) => `maybeThen(${step.expr}, (${step.name}) => ${inner})`,
       value
     )};`;
-    return wrapped;
+  }
+
+  /** Ambient invoke context, captured once before any async boundary. */
+  private invokeCtx(): string {
+    if (!this.invokeCtxDeclared) {
+      this.invokeCtxDeclared = true;
+      this.imports.add('getActiveInvokeContextOrNull');
+      this.statements.push('const invokeCtx = getActiveInvokeContextOrNull();');
+    }
+    return 'invokeCtx';
   }
 
   private setupOp(entry: { op: string } & Record<string, unknown>): void {
@@ -122,7 +133,7 @@ class JsComponentGenerator {
         this.element(operation, parts, pushStatic);
         return;
       case SsrOpKind.Dynamic:
-        this.dynamicText(operation, parts);
+        this.dynamicText(operation, parts, pushStatic);
         return;
       default:
         throw UNGENERATABLE;
@@ -244,30 +255,62 @@ class JsComponentGenerator {
 
   private dynamicText(
     operation: Extract<PlanSsrOp, { o: SsrOpKind.Dynamic }>,
-    parts: string[]
+    parts: string[],
+    pushStatic: (text: string) => void
   ): void {
-    if (operation.output !== 'text' || operation.target?.kind !== 'element') {
+    const target = operation.target;
+    if (operation.output !== 'text' || target === null) {
       throw UNGENERATABLE;
     }
-    const ir = operation.value.ir;
-    if (ir === undefined || ir.k !== 'signal-read') {
+    if (target.kind === 'range' && target.id === null) {
       throw UNGENERATABLE;
     }
-    const signal = this.local((ir as { binding: number }).binding);
-    const idVariable = `id_${operation.target.id}`;
-    const step = `text_${this.nextTemp++}`;
-    this.imports.add('renderSsrTextNode');
-    this.imports.add('createSsrElementTextTarget');
-    this.imports.add('escapeHTML');
-    this.statements.push(
-      `ctx.addRoot(${signal});`,
-      `const ${step} = renderSsrTextNode(createSsrElementTextTarget(${idVariable}), ${signal});`
+    const targetExpr =
+      target.kind === 'element'
+        ? `createSsrElementTextTarget(id_${target.id})`
+        : `createSsrRangeTextTarget(id_${target.id}, ${target.marker})`;
+    this.imports.add(
+      target.kind === 'element' ? 'createSsrElementTextTarget' : 'createSsrRangeTextTarget'
     );
-    this.asyncSteps.push(step);
-    parts.push(`escapeHTML(${step})`);
+    this.imports.add('escapeHTML');
+    const step = `text_${this.nextTemp++}`;
+    const ir = operation.value.ir;
+    const segmentId = operation.value.segment;
+    if (segmentId !== undefined) {
+      // expression text: the segment fn evaluates with captures under the invoke context
+      const meta = this.segment(segmentId);
+      const captures = meta.captures.map((capture) =>
+        capture.access === 'component-prop' ? 'props' : this.local(capture.binding)
+      );
+      const invokeCtx = this.invokeCtx();
+      this.imports.add('invoke');
+      this.imports.add('renderSsrTextExpression');
+      const roots = captures.map((capture) => `ctx.addRoot(${capture}); `).join('');
+      this.statements.push(
+        `const ${step} = () => invoke(${invokeCtx}, () => { ${roots}return renderSsrTextExpression(${targetExpr}, [${captures.join(', ')}], ${this.qrlExpression(meta, false)}); });`
+      );
+      this.asyncSteps.push({ name: step, expr: `${step}()` });
+    } else if (ir !== undefined && ir.k === 'signal-read') {
+      const signal = this.local((ir as { binding: number }).binding);
+      this.imports.add('renderSsrTextNode');
+      this.statements.push(
+        `ctx.addRoot(${signal});`,
+        `const ${step} = renderSsrTextNode(${targetExpr}, ${signal});`
+      );
+      this.asyncSteps.push({ name: step, expr: step });
+    } else {
+      throw UNGENERATABLE;
+    }
+    if (target.kind === 'range') {
+      pushStatic('<!t>');
+      parts.push(`escapeHTML(${step})`);
+      pushStatic('<!/t>');
+    } else {
+      parts.push(`escapeHTML(${step})`);
+    }
   }
 
-  private qrlExpression(meta: SegmentMeta): string {
+  private qrlExpression(meta: SegmentMeta, withCaptures = true): string {
     const qrl = `q_${meta.symbolName}`;
     if (!this.hoistedSegments.has(meta.id)) {
       this.hoistedSegments.add(meta.id);
@@ -276,8 +319,13 @@ class JsComponentGenerator {
         `const ${qrl} = /*#__PURE__*/ _qrlWithChunk(${JSON.stringify(meta.chunk)}, () => import(${JSON.stringify(meta.chunk)}), ${JSON.stringify(meta.symbolName)});`
       );
       if (meta.resolved) {
-        throw UNGENERATABLE; // `.s()` resolution needs the chunk import — next slice
+        // eagerly resolved segments import the symbol and settle at module load
+        this.chunkImports.push(`import { ${meta.symbolName} } from ${JSON.stringify(meta.chunk)};`);
+        this.hoists.push(`${qrl}.s(${meta.symbolName});`);
       }
+    }
+    if (!withCaptures) {
+      return qrl;
     }
     const captures = meta.captures.map((capture) =>
       capture.access === 'component-prop' ? 'props' : this.local(capture.binding)

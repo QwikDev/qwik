@@ -13,7 +13,13 @@ import type { SsrRenderRoot } from '../../../qwik/src/server/ssr-render';
  * the legacy emitter produces. Growing this list is the migration metric — when every fixture
  * renders from generated JS, the legacy source-replay emitter can be deleted.
  */
-const READY_FIXTURES = ['static-page', 'static-attrs', 'inner-html', 'signal-counter'];
+const READY_FIXTURES = [
+  'static-page',
+  'static-attrs',
+  'inner-html',
+  'signal-counter',
+  'mixed-text',
+];
 
 const layerADir = dirname(fileURLToPath(import.meta.url));
 

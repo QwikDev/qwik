@@ -60,3 +60,4 @@ visualizer.html
 
 # Layer-A conformance harness scratch output
 packages/compiler/conformance/layerA/.generated
+packages/compiler/conformance/layerA/.generated-js

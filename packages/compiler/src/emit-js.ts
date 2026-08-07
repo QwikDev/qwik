@@ -16,9 +16,9 @@ export function emitJsModule(plan: QwikSsrPlan, componentIndex = plan.entry): st
   if (component === undefined || component.ssr === null) {
     return null;
   }
-  const segments = plan.modules[component.module].segments;
+  const componentModule = plan.modules[component.module];
   try {
-    const generator = new JsComponentGenerator(segments);
+    const generator = new JsComponentGenerator(componentModule.segments, componentModule.defs);
     return generator.generate(component.name, component.ssr);
   } catch (error) {
     if (error === UNGENERATABLE) {
@@ -31,6 +31,7 @@ export function emitJsModule(plan: QwikSsrPlan, componentIndex = plan.entry): st
 const UNGENERATABLE = Symbol('js-ungeneratable');
 
 type SegmentMeta = QwikSsrPlan['modules'][number]['segments'][number];
+type DefMeta = QwikSsrPlan['modules'][number]['defs'][number];
 type PlanSsrComponent = NonNullable<QwikSsrPlan['components'][number]['ssr']>;
 
 class JsComponentGenerator {
@@ -46,11 +47,27 @@ class JsComponentGenerator {
   /** Pending async steps — the return value chains maybeThen over them in order. */
   private readonly asyncSteps: { name: string; expr: string }[] = [];
 
-  constructor(private readonly segments: readonly SegmentMeta[]) {}
+  constructor(
+    private readonly segments: readonly SegmentMeta[],
+    private readonly defs: readonly DefMeta[]
+  ) {}
 
   generate(name: string, ssr: PlanSsrComponent): string {
     if (ssr.flushTasks) {
       throw UNGENERATABLE;
+    }
+    // defs regenerate from IR and export under their names — chunks import them back
+    for (const def of this.defs) {
+      this.usedNames.add(def.name);
+    }
+    for (const def of this.defs) {
+      const params = new Map(def.params.map((binding, index) => [binding, `p${index}`]));
+      this.hoists.push(
+        `function ${def.name}(${[...params.values()].join(', ')}) { return ${this.irJs(def.body, params)}; }`
+      );
+    }
+    if (this.defs.length > 0) {
+      this.hoists.push(`export { ${this.defs.map((def) => def.name).join(', ')} };`);
     }
     for (const entry of ssr.setup) {
       this.setupOp(entry as { op: string } & Record<string, unknown>);
@@ -135,9 +152,44 @@ class JsComponentGenerator {
       case SsrOpKind.Dynamic:
         this.dynamicText(operation, parts, pushStatic);
         return;
+      case SsrOpKind.Content:
+        this.content(operation, parts, pushStatic);
+        return;
       default:
         throw UNGENERATABLE;
     }
+  }
+
+  /** Content effect: the segment fn renders inside `<!d=N>` fences, re-runnable on resume. */
+  private content(
+    operation: Extract<PlanSsrOp, { o: SsrOpKind.Content }>,
+    parts: string[],
+    pushStatic: (text: string) => void
+  ): void {
+    if (operation.root) {
+      throw UNGENERATABLE;
+    }
+    const meta = this.segment(operation.segment);
+    const captures = meta.captures.map((capture) =>
+      capture.access === 'component-prop' ? 'props' : this.local(capture.binding)
+    );
+    const idVariable = `content_id_${this.nextTemp}`;
+    const step = `content_${this.nextTemp++}`;
+    this.imports.add('renderSsrContent');
+    this.imports.add('createSsrRecord');
+    this.imports.add('createSsrNodeId');
+    this.imports.add('escapeSsrContent');
+    this.statements.push(`const ${idVariable} = ctx.nextId();`);
+    for (const capture of captures) {
+      this.statements.push(`ctx.addRoot(${capture});`);
+    }
+    this.statements.push(
+      `const ${step} = renderSsrContent(ctx, ${idVariable}, [${captures.join(', ')}], ${this.qrlExpression(meta, false)});`
+    );
+    this.asyncSteps.push({ name: step, expr: step });
+    parts.push(`createSsrRecord('<!d=', createSsrNodeId(${idVariable}), '>')`);
+    parts.push(`escapeSsrContent(${step})`);
+    pushStatic('<!/d>');
   }
 
   private element(
@@ -392,12 +444,37 @@ class JsComponentGenerator {
     return meta;
   }
 
-  private irJs(ir: ValueIR): string {
+  private irJs(ir: ValueIR, scope?: ReadonlyMap<number, string>): string {
     switch (ir.k) {
       case 'lit':
         return JSON.stringify(ir.v);
       case 'undef':
         return 'undefined';
+      case 'binding-read': {
+        const scoped = scope?.get(ir.binding) ?? this.locals.get(ir.binding);
+        if (scoped === undefined) {
+          throw UNGENERATABLE;
+        }
+        return scoped;
+      }
+      case 'bin':
+        return `(${this.irJs(ir.a, scope)} ${ir.op} ${this.irJs(ir.b, scope)})`;
+      case 'template': {
+        const chunks = ir.parts.map((part) =>
+          typeof part === 'string'
+            ? part.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$\{/g, '\\${')
+            : `\${${this.irJs(part, scope)}}`
+        );
+        return `\`${chunks.join('')}\``;
+      }
+      case 'def-call': {
+        const def = this.defs[ir.def];
+        if (def === undefined) {
+          throw UNGENERATABLE;
+        }
+        const args = ir.args.map((argument) => this.irJs(argument, scope));
+        return `${def.name}(${args.join(', ')})`;
+      }
       default:
         throw UNGENERATABLE;
     }

@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { cpSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, test } from 'vitest';
@@ -22,6 +22,7 @@ const READY_FIXTURES = [
   'template-text',
   'class-object',
   'cond-attr',
+  'def-helper',
 ];
 
 const layerADir = dirname(fileURLToPath(import.meta.url));
@@ -34,12 +35,16 @@ describe('layerA js-generator parity', () => {
       const code = emitJsModule(plan);
       expect(code, `emit-js could not generate ${name}`).not.toBeNull();
 
+      // the generated module STANDS IN as input.tsx in its own tree, so chunks that import
+      // "./input" (defs, captures) resolve to generated exports — never the legacy module
       const entryName = plan.components[plan.entry].name;
-      const file = join(layerADir, '.generated', name, 'src', 'js-gen-app.tsx');
-      mkdirSync(dirname(file), { recursive: true });
+      const standInDir = join(layerADir, '.generated-js', name);
+      rmSync(standInDir, { recursive: true, force: true });
+      cpSync(join(layerADir, '.generated', name), standInDir, { recursive: true });
+      const file = join(standInDir, 'src', 'input.tsx');
       writeFileSync(file, code!);
       const version = createHash('sha256').update(code!).digest('hex').slice(0, 12);
-      const module = await import(`./.generated/${name}/src/js-gen-app.tsx?v=${version}`);
+      const module = await import(`./.generated-js/${name}/src/input.tsx?v=${version}`);
       const root = module[entryName] as SsrRenderRoot;
       expect(root, `generated module exports ${entryName}`).toBeDefined();
 

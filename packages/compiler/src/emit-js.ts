@@ -69,8 +69,9 @@ class JsComponentGenerator {
   ) {}
 
   generate(name: string, ssr: PlanSsrComponent): string {
+    // task flush: setup runs first, then the render replays under the captured invoke context
     if (ssr.flushTasks) {
-      markUngeneratable();
+      this.invokeCtx();
     }
     // defs regenerate from IR and export under their names — chunks import them back
     for (const def of this.defs) {
@@ -88,16 +89,29 @@ class JsComponentGenerator {
     for (const entry of ssr.setup) {
       this.setupOp(entry as { op: string } & Record<string, unknown>);
     }
+    const setupStatements = this.statements.splice(0);
     const parts = this.ops(ssr.ops);
     const value =
       parts.length === 1 && isStringLiteral(parts[0]) ? parts[0] : `[${parts.join(', ')}]`;
     const returnStatement = this.wrapAsync(value);
+    let bodyStatements: string[];
+    if (ssr.flushTasks) {
+      this.imports.add('maybeThen');
+      this.imports.add('invoke');
+      const inner = [...this.statements, returnStatement].map((line) => `  ${line}`).join('\n');
+      bodyStatements = [
+        ...setupStatements,
+        `return maybeThen(ctx.scheduler.flush(), () => invoke(invokeCtx, () => {\n${inner}\n  }));`,
+      ];
+    } else {
+      bodyStatements = [...setupStatements, ...this.statements, returnStatement];
+    }
     const header =
       (this.imports.size === 0
         ? ''
         : `import { ${[...this.imports].sort().join(', ')} } from "@qwik.dev/core";\n`) +
       this.chunkImports.map((line) => `${line}\n`).join('');
-    const body = [...this.statements, returnStatement].map((line) => `  ${line}`).join('\n');
+    const body = bodyStatements.map((line) => `  ${line}`).join('\n');
     return `${header}${this.hoists.join('\n')}${this.hoists.length > 0 ? '\n' : ''}export function ${name}(props, ctx) {\n${body}\n}\n`;
   }
 
@@ -151,6 +165,20 @@ class JsComponentGenerator {
         this.statements.push(
           `useStyles(${templateLiteral(css)}, ${JSON.stringify(entry.styleId)});`
         );
+        return;
+      }
+      case 'computed': {
+        const binding = entry.local as number;
+        const variable = this.declare(binding, entry.name as string | undefined);
+        const meta = this.segment(entry.segment as string);
+        this.imports.add('useComputedQrl');
+        this.statements.push(`const ${variable} = useComputedQrl(${this.qrlExpression(meta)});`);
+        return;
+      }
+      case 'task': {
+        const meta = this.segment(entry.segment as string);
+        this.imports.add('useTaskQrl');
+        this.statements.push(`useTaskQrl(${this.qrlExpression(meta)});`);
         return;
       }
       case 'visible-task': {
@@ -580,6 +608,8 @@ class JsComponentGenerator {
         const args = ir.args.map((argument) => this.irJs(argument, scope));
         return `${def.name}(${args.join(', ')})`;
       }
+      case 'array':
+        return `[${ir.items.map((item) => this.irJs(item, scope)).join(', ')}]`;
       case 'object': {
         const entries = ir.entries.map(([key, item]) => {
           const safeKey = /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(key) ? key : JSON.stringify(key);

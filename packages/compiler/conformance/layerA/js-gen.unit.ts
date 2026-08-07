@@ -27,6 +27,7 @@ const READY_FIXTURES = [
   'use-styles',
   'visible-task',
   'plugin-call',
+  'computed-task',
 ];
 
 const layerADir = dirname(fileURLToPath(import.meta.url));

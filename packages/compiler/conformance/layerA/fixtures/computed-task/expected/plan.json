@@ -1,0 +1,323 @@
+{
+  "format": "qwik/ssr-plan",
+  "version": 0,
+  "entry": 0,
+  "components": [
+    {
+      "name": "App",
+      "module": 0,
+      "propsBindings": [],
+      "props": null,
+      "ssr": {
+        "setup": [
+          {
+            "op": "signal",
+            "local": 4,
+            "init": {
+              "k": "lit",
+              "v": 2
+            },
+            "name": "count"
+          },
+          {
+            "op": "signal",
+            "local": 5,
+            "init": {
+              "k": "lit",
+              "v": "idle"
+            },
+            "name": "label"
+          },
+          {
+            "op": "computed",
+            "local": 6,
+            "segment": "segment_0",
+            "body": {
+              "k": "bin",
+              "op": "*",
+              "a": {
+                "k": "signal-read",
+                "binding": 4
+              },
+              "b": {
+                "k": "lit",
+                "v": 2
+              }
+            },
+            "name": "doubled"
+          },
+          {
+            "op": "task",
+            "segment": "segment_1",
+            "body": {
+              "steps": [
+                {
+                  "s": "if",
+                  "test": {
+                    "k": "bin",
+                    "op": "===",
+                    "a": {
+                      "k": "signal-read",
+                      "binding": 4
+                    },
+                    "b": {
+                      "k": "lit",
+                      "v": 2
+                    }
+                  },
+                  "then": [
+                    {
+                      "s": "set-signal",
+                      "binding": 5,
+                      "value": {
+                        "k": "lit",
+                        "v": "ready"
+                      }
+                    }
+                  ],
+                  "else": []
+                }
+              ],
+              "async": false
+            }
+          }
+        ],
+        "directSegmentIds": [],
+        "usedSegmentIds": [
+          "segment_0",
+          "segment_1"
+        ],
+        "ops": [
+          {
+            "o": "el",
+            "tag": "p",
+            "id": 0,
+            "void": false,
+            "styleScopedId": null,
+            "targetUses": 1,
+            "props": [
+              {
+                "p": "dynamic",
+                "name": "title",
+                "value": {
+                  "src": "label.value",
+                  "ir": {
+                    "k": "signal-read",
+                    "binding": 5
+                  }
+                },
+                "compilerString": false
+              }
+            ],
+            "propsEffect": null,
+            "children": [
+              {
+                "o": "el",
+                "tag": "output",
+                "id": 1,
+                "void": false,
+                "styleScopedId": null,
+                "targetUses": 0,
+                "props": [],
+                "propsEffect": null,
+                "children": [
+                  {
+                    "o": "dyn",
+                    "output": "text",
+                    "value": {
+                      "src": "doubled.value",
+                      "ir": {
+                        "k": "signal-read",
+                        "binding": 6
+                      }
+                    },
+                    "synchronous": false,
+                    "target": {
+                      "kind": "element",
+                      "id": 1
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "synchronous": false,
+        "staticRoot": false,
+        "needsRootRange": false,
+        "needsId": false,
+        "idBase": "qApp-",
+        "flushTasks": true
+      },
+      "setup": [
+        {
+          "op": "signal",
+          "local": 4,
+          "init": {
+            "k": "lit",
+            "v": 2
+          }
+        },
+        {
+          "op": "signal",
+          "local": 5,
+          "init": {
+            "k": "lit",
+            "v": "idle"
+          }
+        },
+        {
+          "op": "computed",
+          "local": 6,
+          "segment": "segment_0",
+          "body": {
+            "k": "bin",
+            "op": "*",
+            "a": {
+              "k": "signal-read",
+              "binding": 4
+            },
+            "b": {
+              "k": "lit",
+              "v": 2
+            }
+          }
+        },
+        {
+          "op": "task",
+          "segment": "segment_1",
+          "body": {
+            "steps": [
+              {
+                "s": "if",
+                "test": {
+                  "k": "bin",
+                  "op": "===",
+                  "a": {
+                    "k": "signal-read",
+                    "binding": 4
+                  },
+                  "b": {
+                    "k": "lit",
+                    "v": 2
+                  }
+                },
+                "then": [
+                  {
+                    "s": "set-signal",
+                    "binding": 5,
+                    "value": {
+                      "k": "lit",
+                      "v": "ready"
+                    }
+                  }
+                ],
+                "else": []
+              }
+            ],
+            "async": false
+          }
+        }
+      ],
+      "render": [
+        {
+          "n": "el",
+          "tag": "p",
+          "props": [
+            {
+              "p": "dynamic",
+              "name": "title",
+              "value": {
+                "src": "label.value",
+                "ir": {
+                  "k": "signal-read",
+                  "binding": 5
+                }
+              }
+            }
+          ],
+          "children": [
+            {
+              "n": "el",
+              "tag": "output",
+              "props": [],
+              "children": [
+                {
+                  "n": "dyn",
+                  "output": "text",
+                  "value": {
+                    "src": "doubled.value",
+                    "ir": {
+                      "k": "signal-read",
+                      "binding": 6
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "needsId": false,
+      "idBase": "qApp-",
+      "styleScope": null,
+      "providesContext": false,
+      "hasCustomHook": false
+    }
+  ],
+  "modules": [
+    {
+      "path": "src/input.tsx",
+      "segments": [
+        {
+          "id": "segment_0",
+          "symbolName": "input_useComputed$_segment_0_1njp779gwswof",
+          "chunk": "./input.tsx_input_useComputed$_segment_0_1njp779gwswof",
+          "kind": "qrl",
+          "resolved": true,
+          "qrl": {
+            "kind": "implicit",
+            "role": "generic"
+          },
+          "captures": [
+            {
+              "binding": 4,
+              "name": "count",
+              "source": "local",
+              "access": "direct"
+            }
+          ]
+        },
+        {
+          "id": "segment_1",
+          "symbolName": "input_useTask$_segment_1_2ngp3wzswnn6e",
+          "chunk": "./input.tsx_input_useTask$_segment_1_2ngp3wzswnn6e",
+          "kind": "qrl",
+          "resolved": true,
+          "qrl": {
+            "kind": "implicit",
+            "role": "task"
+          },
+          "captures": [
+            {
+              "binding": 4,
+              "name": "count",
+              "source": "local",
+              "access": "direct"
+            },
+            {
+              "binding": 5,
+              "name": "label",
+              "source": "local",
+              "access": "direct"
+            }
+          ]
+        }
+      ],
+      "contexts": [],
+      "defs": []
+    }
+  ],
+  "unresolved": [],
+  "pluginFns": []
+}

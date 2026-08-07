@@ -61,9 +61,7 @@
         "needsRootRange": false,
         "needsId": false,
         "idBase": "qApp-",
-        "flushTasks": false,
-        "providesContext": false,
-        "runtimeStyleScopeName": null
+        "flushTasks": false
       },
       "setup": [
         {

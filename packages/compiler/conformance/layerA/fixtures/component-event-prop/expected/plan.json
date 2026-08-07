@@ -93,9 +93,7 @@
         "needsRootRange": false,
         "needsId": false,
         "idBase": "qButton-",
-        "flushTasks": false,
-        "providesContext": false,
-        "runtimeStyleScopeName": null
+        "flushTasks": false
       },
       "setup": [],
       "render": [
@@ -267,7 +265,6 @@
                         "binding": 5
                       }
                     },
-                    "sourceSrc": "count",
                     "synchronous": false,
                     "target": {
                       "kind": "element",
@@ -284,9 +281,7 @@
         "needsRootRange": false,
         "needsId": false,
         "idBase": "qApp-",
-        "flushTasks": false,
-        "providesContext": false,
-        "runtimeStyleScopeName": null
+        "flushTasks": false
       },
       "setup": [
         {

@@ -56,7 +56,7 @@
                       "kind": "dynamic",
                       "output": "text",
                       "value": {
-                        "src": "n",
+                        "kind": "ir",
                         "ir": {
                           "kind": "binding-read",
                           "binding": 4
@@ -102,12 +102,11 @@
                     "kind": "dynamic",
                     "name": "n",
                     "value": {
-                      "src": "count.value",
+                      "kind": "ir",
                       "ir": {
                         "kind": "signal-read",
                         "binding": 2
-                      },
-                      "raw": true
+                      }
                     },
                     "compilerString": false
                   }
@@ -155,7 +154,7 @@
                   "p": "dynamic",
                   "name": "n",
                   "value": {
-                    "src": "count.value",
+                    "kind": "ir",
                     "ir": {
                       "kind": "signal-read",
                       "binding": 2

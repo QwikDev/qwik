@@ -40,7 +40,7 @@
                 "segment": "semantic_expression_190_208",
                 "root": false,
                 "value": {
-                  "src": "label(count.value)",
+                  "kind": "ir",
                   "ir": {
                     "kind": "def-call",
                     "def": 1,
@@ -84,7 +84,7 @@
               "n": "dyn",
               "output": "content",
               "value": {
-                "src": "label(count.value)",
+                "kind": "ir",
                 "ir": {
                   "kind": "def-call",
                   "def": 1,

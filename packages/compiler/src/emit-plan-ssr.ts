@@ -225,19 +225,26 @@ export function emitSsrOpPlan(
 ): PlanSsrComponent | null {
   const slice = (range: SourceRange) => source.slice(range[0], range[1]);
 
-  const planValue = (value: ValuePlan): PlanValue => ({
-    src: slice(value.expression),
-    ...(value.kind !== 'render-value' && value.ir !== undefined ? { ir: value.ir } : {}),
-    ...(value.kind === 'segment' ? { segment: value.segment.segmentId } : {}),
-    // pure sources embed verbatim; boundary/JSX-bearing ones need their replacements
-    ...((value.kind === 'expression' &&
-      value.boundaries.length === 0 &&
-      value.embeddedRenders.length === 0) ||
-    value.kind === 'source' ||
-    value.kind === 'render-value'
-      ? { raw: true as const }
-      : {}),
-  });
+  const planValue = (value: ValuePlan): PlanValue => {
+    if (value.kind !== 'render-value' && value.ir !== undefined) {
+      return {
+        kind: 'ir',
+        ir: value.ir,
+        ...(value.kind === 'segment' ? { segment: value.segment.segmentId } : {}),
+      };
+    }
+    if (value.kind === 'segment') {
+      return { kind: 'segment', segment: value.segment.segmentId };
+    }
+    // transitional js form; pure = no QRL boundaries or embedded JSX, embeddable verbatim
+    const pure =
+      (value.kind === 'expression' &&
+        value.boundaries.length === 0 &&
+        value.embeddedRenders.length === 0) ||
+      value.kind === 'source' ||
+      value.kind === 'render-value';
+    return { kind: 'js', src: slice(value.expression), ...(pure ? { pure: true as const } : {}) };
+  };
 
   // statement ops live in the semantic setup tree, including local-component nesting
   const setupOpByRange = new Map<string, SetupOp>();

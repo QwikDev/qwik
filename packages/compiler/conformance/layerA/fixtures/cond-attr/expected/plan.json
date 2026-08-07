@@ -63,7 +63,7 @@
                     "kind": "dynamic",
                     "name": "class",
                     "value": {
-                      "src": "selected.value ? \"danger\" : \"\"",
+                      "kind": "ir",
                       "ir": {
                         "kind": "cond",
                         "test": {
@@ -89,7 +89,7 @@
                     "handlers": [
                       {
                         "value": {
-                          "src": "() => selected.value = !selected.value",
+                          "kind": "segment",
                           "segment": "segment_1"
                         }
                       }
@@ -102,7 +102,7 @@
                     "kind": "dynamic",
                     "output": "text",
                     "value": {
-                      "src": "selected.value ? label.value : \"off\"",
+                      "kind": "ir",
                       "ir": {
                         "kind": "cond",
                         "test": {
@@ -175,7 +175,7 @@
                   "p": "dynamic",
                   "name": "class",
                   "value": {
-                    "src": "selected.value ? \"danger\" : \"\"",
+                    "kind": "ir",
                     "ir": {
                       "kind": "cond",
                       "test": {
@@ -199,7 +199,7 @@
                   "name": "onClick$",
                   "passive": false,
                   "value": {
-                    "src": "() => selected.value = !selected.value",
+                    "kind": "segment",
                     "segment": "segment_1"
                   }
                 }
@@ -209,7 +209,7 @@
                   "n": "dyn",
                   "output": "text",
                   "value": {
-                    "src": "selected.value ? label.value : \"off\"",
+                    "kind": "ir",
                     "ir": {
                       "kind": "cond",
                       "test": {

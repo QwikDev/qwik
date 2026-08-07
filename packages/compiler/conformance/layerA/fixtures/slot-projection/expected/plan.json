@@ -50,7 +50,7 @@
                     "kind": "dynamic",
                     "output": "text",
                     "value": {
-                      "src": "props.title",
+                      "kind": "ir",
                       "ir": {
                         "kind": "member",
                         "obj": {
@@ -107,7 +107,7 @@
                   "n": "dyn",
                   "output": "text",
                   "value": {
-                    "src": "props.title",
+                    "kind": "ir",
                     "ir": {
                       "kind": "member",
                       "obj": {
@@ -199,12 +199,11 @@
                           "kind": "dynamic",
                           "output": "text",
                           "value": {
-                            "src": "count.value",
+                            "kind": "ir",
                             "ir": {
                               "kind": "signal-read",
                               "binding": 5
-                            },
-                            "raw": true
+                            }
                           },
                           "synchronous": false,
                           "target": {
@@ -272,7 +271,7 @@
                         "n": "dyn",
                         "output": "text",
                         "value": {
-                          "src": "count.value",
+                          "kind": "ir",
                           "ir": {
                             "kind": "signal-read",
                             "binding": 5

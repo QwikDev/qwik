@@ -43,7 +43,7 @@
                       "kind": "dynamic",
                       "name": "class",
                       "value": {
-                        "src": "props.kind",
+                        "kind": "ir",
                         "ir": {
                           "kind": "member",
                           "obj": {
@@ -63,7 +63,7 @@
                       "kind": "dynamic",
                       "output": "text",
                       "value": {
-                        "src": "props.label",
+                        "kind": "ir",
                         "ir": {
                           "kind": "member",
                           "obj": {
@@ -85,12 +85,11 @@
                       "kind": "dynamic",
                       "output": "text",
                       "value": {
-                        "src": "count.value",
+                        "kind": "ir",
                         "ir": {
                           "kind": "signal-read",
                           "binding": 2
-                        },
-                        "raw": true
+                        }
                       },
                       "synchronous": false,
                       "target": {

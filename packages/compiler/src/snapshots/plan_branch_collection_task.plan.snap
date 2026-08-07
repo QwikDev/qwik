@@ -120,12 +120,11 @@
                 "kind": "dynamic",
                 "name": "title",
                 "value": {
-                  "src": "label.value",
+                  "kind": "ir",
                   "ir": {
                     "kind": "signal-read",
                     "binding": 5
-                  },
-                  "raw": true
+                  }
                 },
                 "compilerString": false
               }
@@ -225,7 +224,7 @@
                                       "kind": "dynamic",
                                       "output": "text",
                                       "value": {
-                                        "src": "index + 1",
+                                        "kind": "ir",
                                         "ir": {
                                           "kind": "bin",
                                           "op": "+",
@@ -256,7 +255,7 @@
                                       "segment": "semantic_expression_475_493",
                                       "root": false,
                                       "value": {
-                                        "src": "item.toUpperCase()",
+                                        "kind": "ir",
                                         "ir": {
                                           "kind": "call",
                                           "fn": "qwik:string.toUpperCase",
@@ -306,12 +305,11 @@
                     "kind": "dynamic",
                     "output": "text",
                     "value": {
-                      "src": "total.value",
+                      "kind": "ir",
                       "ir": {
                         "kind": "signal-read",
                         "binding": 6
-                      },
-                      "raw": true
+                      }
                     },
                     "synchronous": false,
                     "target": {
@@ -427,7 +425,7 @@
               "p": "dynamic",
               "name": "title",
               "value": {
-                "src": "label.value",
+                "kind": "ir",
                 "ir": {
                   "kind": "signal-read",
                   "binding": 5
@@ -439,8 +437,7 @@
             {
               "n": "branch",
               "condition": {
-                "src": "",
-                "segment": "segment_3",
+                "kind": "ir",
                 "ir": {
                   "kind": "bin",
                   "op": "===",
@@ -456,7 +453,8 @@
                     "kind": "lit",
                     "value": 0
                   }
-                }
+                },
+                "segment": "segment_3"
               },
               "then": {
                 "setup": [],
@@ -490,12 +488,12 @@
                           "signal": "items"
                         },
                         "key": {
-                          "src": "",
-                          "segment": "segment_7",
+                          "kind": "ir",
                           "ir": {
                             "kind": "binding-read",
                             "binding": 7
-                          }
+                          },
+                          "segment": "segment_7"
                         },
                         "row": {
                           "setup": [],
@@ -509,7 +507,7 @@
                                   "n": "dyn",
                                   "output": "text",
                                   "value": {
-                                    "src": "index + 1",
+                                    "kind": "ir",
                                     "ir": {
                                       "kind": "bin",
                                       "op": "+",
@@ -533,7 +531,7 @@
                                   "n": "dyn",
                                   "output": "content",
                                   "value": {
-                                    "src": "item.toUpperCase()",
+                                    "kind": "ir",
                                     "ir": {
                                       "kind": "call",
                                       "fn": "qwik:string.toUpperCase",
@@ -566,7 +564,7 @@
                   "n": "dyn",
                   "output": "text",
                   "value": {
-                    "src": "total.value",
+                    "kind": "ir",
                     "ir": {
                       "kind": "signal-read",
                       "binding": 6

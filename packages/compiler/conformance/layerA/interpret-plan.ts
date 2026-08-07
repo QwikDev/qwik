@@ -58,6 +58,22 @@ import type { SsrRenderRoot } from '../../../qwik/src/server/ssr-render';
  * addRoot before each dynamic use, `.w(captures)` arrays, `.s()` for direct segments. Testing tool
  * only; unsupported constructs throw so gaps stay loud.
  */
+
+type WireValue =
+  | { readonly kind: 'ir'; readonly ir: ValueIR; readonly segment?: string }
+  | { readonly kind: 'segment'; readonly segment: string }
+  | { readonly kind: 'js'; readonly src: string; readonly pure?: true };
+
+function valueIr(value: unknown): ValueIR | undefined {
+  const wire = value as WireValue;
+  return wire.kind === 'ir' ? wire.ir : undefined;
+}
+
+function valueSegment(value: unknown): string | undefined {
+  const wire = value as WireValue;
+  return wire.kind === 'ir' || wire.kind === 'segment' ? wire.segment : undefined;
+}
+
 export interface SegmentModuleLoader {
   (chunkFile: string): Promise<Record<string, unknown>>;
 }
@@ -457,20 +473,20 @@ export async function buildInterpretedRoot(
               if (id === null) {
                 throw new Error('dynamic prop on an untargeted element');
               }
-              const irKind = dynamic.value.ir?.kind;
+              const irKind = valueIr(dynamic.value)?.kind;
               // binding reads with a segment are expression attrs (plain values, e.g. props)
               const isSignalAttr =
                 irKind === 'signal-read' ||
-                (irKind === 'binding-read' && dynamic.value.segment === undefined);
+                (irKind === 'binding-read' && valueSegment(dynamic.value) === undefined);
               const attr = isSignalAttr
                 ? invoke(invokeCtx, () => {
-                    const signal = localSignal(dynamic.value.ir, `attr ${dynamic.name}`);
+                    const signal = localSignal(valueIr(dynamic.value), `attr ${dynamic.name}`);
                     ctx.addRoot(signal);
                     return renderSsrAttr(createSsrElementTarget(id), dynamic.name, signal as never);
                   })
                 : invoke(invokeCtx, () => {
                     // expression attrs (class objects etc.) render via their segment
-                    const segmentId = dynamic.value.segment;
+                    const segmentId = valueSegment(dynamic.value);
                     if (segmentId === undefined) {
                       throw new Error(`attr ${dynamic.name} has no expression segment`);
                     }
@@ -505,7 +521,11 @@ export async function buildInterpretedRoot(
               const slot = open.length;
               open.push(null);
               if (event.handlers.length === 1 && handler.value?.segment !== undefined) {
-                deferredEvents.push({ slot, name: event.name, segment: handler.value.segment });
+                deferredEvents.push({
+                  slot,
+                  name: event.name,
+                  segment: valueSegment(handler.value),
+                });
               } else if (event.handlers.length === 1 && handler.bind !== undefined) {
                 // bind handlers reuse the sibling dynamic prop's signal for _val/_chk
                 const bindName = event.name === 'q-e:input' ? 'value' : 'checked';
@@ -514,7 +534,10 @@ export async function buildInterpretedRoot(
                     candidate.kind === 'dynamic' &&
                     (candidate as { name: string }).name === bindName
                 ) as { value: { ir?: ValueIR } } | undefined;
-                const signal = localSignal(sibling?.value.ir, `bind:${bindName}`);
+                const signal = localSignal(
+                  sibling === undefined ? undefined : valueIr(sibling.value),
+                  `bind:${bindName}`
+                );
                 deferredEvents.push({ slot, name: event.name, bind: { name: bindName, signal } });
               } else {
                 throw new Error('interpreter supports single segment or bind event handlers only');
@@ -589,7 +612,7 @@ export async function buildInterpretedRoot(
             planTarget.kind === 'element'
               ? createSsrElementTextTarget(runtimeId)
               : createSsrRangeTextTarget(runtimeId, planTarget.marker);
-          const ir = op.value.ir;
+          const ir = valueIr(op.value);
           let pendingText: unknown;
           if (ir !== undefined && ir.kind === 'signal-read') {
             const signal = localSignal(ir, 'dynamic text');
@@ -597,8 +620,8 @@ export async function buildInterpretedRoot(
               ctx.addRoot(signal);
               return renderSsrTextNode(target, signal as never);
             });
-          } else if (op.value.segment !== undefined) {
-            const segmentId = op.value.segment;
+          } else if (valueSegment(op.value) !== undefined) {
+            const segmentId = valueSegment(op.value);
             const captureValues = (captureLists.get(segmentId) ?? []).map((binding) => {
               if (!locals.has(binding)) {
                 throw new Error(`expression capture ${binding} has no interpreted local`);
@@ -693,13 +716,18 @@ export async function buildInterpretedRoot(
               if (prop.kind === 'spread') {
                 const spread = prop as { value: { ir?: ValueIR } };
                 if (
-                  spread.value.ir?.kind !== 'binding-read' ||
-                  !locals.has(spread.value.ir.binding)
+                  valueIr(spread.value)?.kind !== 'binding-read' ||
+                  !locals.has((valueIr(spread.value) as { binding: number }).binding)
                 ) {
                   throw new Error('spread props need a local binding read');
                 }
                 literalRun = null;
-                segments.push(locals.get(spread.value.ir.binding) as Record<string, unknown>);
+                segments.push(
+                  locals.get((valueIr(spread.value) as { binding: number }).binding) as Record<
+                    string,
+                    unknown
+                  >
+                );
               } else if (prop.kind === 'static') {
                 const staticProp = prop as { name: string; value: unknown };
                 if (literalRun === null) {
@@ -709,11 +737,14 @@ export async function buildInterpretedRoot(
                 literalRun[staticProp.name] = staticProp.value;
               } else if (
                 prop.kind === 'dynamic' &&
-                (prop as { value: { ir?: ValueIR } }).value.ir?.kind === 'signal-read'
+                valueIr((prop as { value: unknown }).value)?.kind === 'signal-read'
               ) {
                 // signal reads merge as live getters, then _props records their sources
                 const dynamic = prop as { name: string; value: { ir?: ValueIR } };
-                const signal = localSignal(dynamic.value.ir, `component prop ${dynamic.name}`);
+                const signal = localSignal(
+                  valueIr(dynamic.value),
+                  `component prop ${dynamic.name}`
+                );
                 if (literalRun === null) {
                   literalRun = {};
                   segments.push(literalRun);
@@ -741,7 +772,7 @@ export async function buildInterpretedRoot(
               literal[staticProp.name] = staticProp.value;
             } else if (prop.kind === 'dynamic') {
               const dynamic = prop as { name: string; value: { ir?: ValueIR } };
-              const ir = dynamic.value.ir;
+              const ir = valueIr(dynamic.value);
               if (ir !== undefined && ir.kind === 'binding-read') {
                 // plain value read — emitted getters return the local directly, no rooting
                 if (!locals.has(ir.binding)) {

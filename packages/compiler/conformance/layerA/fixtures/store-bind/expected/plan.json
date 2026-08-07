@@ -65,12 +65,11 @@
                     "kind": "dynamic",
                     "name": "value",
                     "value": {
-                      "src": "text",
+                      "kind": "ir",
                       "ir": {
                         "kind": "binding-read",
                         "binding": 3
-                      },
-                      "raw": true
+                      }
                     },
                     "compilerString": false
                   },
@@ -101,7 +100,7 @@
                     "kind": "dynamic",
                     "output": "text",
                     "value": {
-                      "src": "form.sent",
+                      "kind": "ir",
                       "ir": {
                         "kind": "member",
                         "obj": {
@@ -171,7 +170,7 @@
                   "p": "bind",
                   "name": "value",
                   "value": {
-                    "src": "text",
+                    "kind": "ir",
                     "ir": {
                       "kind": "binding-read",
                       "binding": 3
@@ -190,7 +189,7 @@
                   "n": "dyn",
                   "output": "text",
                   "value": {
-                    "src": "form.sent",
+                    "kind": "ir",
                     "ir": {
                       "kind": "member",
                       "obj": {

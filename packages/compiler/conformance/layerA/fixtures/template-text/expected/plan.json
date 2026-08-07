@@ -39,7 +39,7 @@
                 "kind": "dynamic",
                 "output": "text",
                 "value": {
-                  "src": "`Hello ${name.value}!`",
+                  "kind": "ir",
                   "ir": {
                     "kind": "template",
                     "parts": [
@@ -89,7 +89,7 @@
               "n": "dyn",
               "output": "text",
               "value": {
-                "src": "`Hello ${name.value}!`",
+                "kind": "ir",
                 "ir": {
                   "kind": "template",
                   "parts": [

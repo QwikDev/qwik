@@ -41,7 +41,7 @@
                 "kind": "dynamic",
                 "output": "text",
                 "value": {
-                  "src": "props.label",
+                  "kind": "ir",
                   "ir": {
                     "kind": "member",
                     "obj": {
@@ -67,7 +67,7 @@
                 "kind": "dynamic",
                 "output": "text",
                 "value": {
-                  "src": "props.count",
+                  "kind": "ir",
                   "ir": {
                     "kind": "member",
                     "obj": {
@@ -112,7 +112,7 @@
               "n": "dyn",
               "output": "text",
               "value": {
-                "src": "props.label",
+                "kind": "ir",
                 "ir": {
                   "kind": "member",
                   "obj": {
@@ -132,7 +132,7 @@
               "n": "dyn",
               "output": "text",
               "value": {
-                "src": "props.count",
+                "kind": "ir",
                 "ir": {
                   "kind": "member",
                   "obj": {
@@ -199,12 +199,11 @@
                     "kind": "dynamic",
                     "name": "count",
                     "value": {
-                      "src": "count.value",
+                      "kind": "ir",
                       "ir": {
                         "kind": "signal-read",
                         "binding": 4
-                      },
-                      "raw": true
+                      }
                     },
                     "compilerString": false
                   }
@@ -255,7 +254,7 @@
                   "p": "dynamic",
                   "name": "count",
                   "value": {
-                    "src": "count.value",
+                    "kind": "ir",
                     "ir": {
                       "kind": "signal-read",
                       "binding": 4

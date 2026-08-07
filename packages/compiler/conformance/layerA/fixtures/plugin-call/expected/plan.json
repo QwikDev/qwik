@@ -63,7 +63,7 @@
                     "segment": "segment_0",
                     "root": false,
                     "value": {
-                      "src": "greeting.value",
+                      "kind": "ir",
                       "ir": {
                         "kind": "signal-read",
                         "binding": 3
@@ -92,7 +92,7 @@
                     "handlers": [
                       {
                         "value": {
-                          "src": "() => greeting.value = greeting.value.toUpperCase()",
+                          "kind": "segment",
                           "segment": "segment_1"
                         }
                       }
@@ -154,7 +154,7 @@
                   "n": "dyn",
                   "output": "content",
                   "value": {
-                    "src": "greeting.value",
+                    "kind": "ir",
                     "ir": {
                       "kind": "signal-read",
                       "binding": 3
@@ -178,7 +178,7 @@
                   "name": "onClick$",
                   "passive": false,
                   "value": {
-                    "src": "() => greeting.value = greeting.value.toUpperCase()",
+                    "kind": "segment",
                     "segment": "segment_1"
                   }
                 }

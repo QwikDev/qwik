@@ -44,12 +44,11 @@
                 "kind": "dynamic",
                 "output": "text",
                 "value": {
-                  "src": "status.value",
+                  "kind": "ir",
                   "ir": {
                     "kind": "signal-read",
                     "binding": 3
-                  },
-                  "raw": true
+                  }
                 },
                 "synchronous": false,
                 "target": {
@@ -92,7 +91,7 @@
               "n": "dyn",
               "output": "text",
               "value": {
-                "src": "status.value",
+                "kind": "ir",
                 "ir": {
                   "kind": "signal-read",
                   "binding": 3

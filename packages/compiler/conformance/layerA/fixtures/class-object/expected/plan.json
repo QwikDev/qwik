@@ -37,7 +37,7 @@
                 "kind": "dynamic",
                 "name": "class",
                 "value": {
-                  "src": "{\n\t\tselected: active.value,\n\t\tmuted: false,\n\t\twide: true\n\t}",
+                  "kind": "ir",
                   "ir": {
                     "kind": "object",
                     "entries": [
@@ -104,7 +104,7 @@
               "p": "dynamic",
               "name": "class",
               "value": {
-                "src": "{\n\t\tselected: active.value,\n\t\tmuted: false,\n\t\twide: true\n\t}",
+                "kind": "ir",
                 "ir": {
                   "kind": "object",
                   "entries": [

@@ -33,7 +33,7 @@
                 "kind": "dynamic",
                 "name": "id",
                 "value": {
-                  "src": "props.id",
+                  "kind": "ir",
                   "ir": {
                     "kind": "member",
                     "obj": {
@@ -62,7 +62,7 @@
                 "handlers": [
                   {
                     "value": {
-                      "src": "props.onClick$",
+                      "kind": "ir",
                       "ir": {
                         "kind": "member",
                         "obj": {
@@ -105,7 +105,7 @@
               "p": "dynamic",
               "name": "id",
               "value": {
-                "src": "props.id",
+                "kind": "ir",
                 "ir": {
                   "kind": "member",
                   "obj": {
@@ -132,7 +132,7 @@
               "name": "onClick$",
               "passive": false,
               "value": {
-                "src": "props.onClick$",
+                "kind": "ir",
                 "ir": {
                   "kind": "member",
                   "obj": {
@@ -211,7 +211,7 @@
                     "handlers": [
                       {
                         "value": {
-                          "src": "() => count.value += 2",
+                          "kind": "segment",
                           "segment": "segment_2"
                         }
                       }
@@ -260,12 +260,11 @@
                     "kind": "dynamic",
                     "output": "text",
                     "value": {
-                      "src": "count.value",
+                      "kind": "ir",
                       "ir": {
                         "kind": "signal-read",
                         "binding": 5
-                      },
-                      "raw": true
+                      }
                     },
                     "synchronous": false,
                     "target": {
@@ -317,7 +316,7 @@
                   "name": "onClick$",
                   "passive": false,
                   "value": {
-                    "src": "() => count.value += 2",
+                    "kind": "segment",
                     "segment": "segment_2"
                   }
                 }
@@ -352,7 +351,7 @@
                   "n": "dyn",
                   "output": "text",
                   "value": {
-                    "src": "count.value",
+                    "kind": "ir",
                     "ir": {
                       "kind": "signal-read",
                       "binding": 5

@@ -98,7 +98,7 @@
                           "kind": "dynamic",
                           "name": "class",
                           "value": {
-                            "src": "{ selected: todos.filter == lower }",
+                            "kind": "ir",
                             "ir": {
                               "kind": "object",
                               "entries": [
@@ -133,7 +133,7 @@
                           "handlers": [
                             {
                               "value": {
-                                "src": "() => {\n\t\t\ttodos.filter = lower;\n\t\t}",
+                                "kind": "segment",
                                 "segment": "segment_1"
                               }
                             }
@@ -147,7 +147,7 @@
                           "segment": "semantic_expression_362_380",
                           "root": false,
                           "value": {
-                            "src": "name.toUpperCase()",
+                            "kind": "ir",
                             "ir": {
                               "kind": "call",
                               "fn": "qwik:string.toUpperCase",
@@ -282,12 +282,12 @@
             {
               "n": "branch",
               "condition": {
-                "src": "",
-                "segment": "segment_2",
+                "kind": "ir",
                 "ir": {
                   "kind": "signal-read",
                   "binding": 4
-                }
+                },
+                "segment": "segment_2"
               },
               "then": {
                 "setup": [],

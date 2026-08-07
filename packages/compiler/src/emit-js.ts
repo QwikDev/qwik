@@ -174,6 +174,27 @@ export function markUngeneratable(detail?: unknown): never {
   throw UNGENERATABLE;
 }
 
+/** Tagged PlanValue form accessors — see emit-plan `PlanValue`. */
+type WireValue =
+  | { readonly kind: 'ir'; readonly ir: ValueIR; readonly segment?: string }
+  | { readonly kind: 'segment'; readonly segment: string }
+  | { readonly kind: 'js'; readonly src: string; readonly pure?: true };
+
+function valueIr(value: unknown): ValueIR | undefined {
+  const wire = value as WireValue;
+  return wire.kind === 'ir' ? wire.ir : undefined;
+}
+
+function valueSegment(value: unknown): string | undefined {
+  const wire = value as WireValue;
+  return wire.kind === 'ir' || wire.kind === 'segment' ? wire.segment : undefined;
+}
+
+function valueJs(value: unknown): { src: string; pure: boolean } | undefined {
+  const wire = value as WireValue;
+  return wire.kind === 'js' ? { src: wire.src, pure: wire.pure === true } : undefined;
+}
+
 const UNGENERATABLE = Symbol('js-ungeneratable');
 
 type SegmentMeta = QwikSsrPlan['modules'][number]['segments'][number];
@@ -289,6 +310,16 @@ class JsComponentGenerator {
     pushOpen(' class="');
     open.push(`escapeHTML(${scopeClassExpression(scope, null)})`);
     pushOpen('"');
+  }
+
+  /** Expression text for a value: IR preferred; pure js src embeds verbatim; null otherwise. */
+  private valueExpression(value: unknown): string | null {
+    const ir = valueIr(value);
+    if (ir !== undefined) {
+      return this.irJs(ir);
+    }
+    const js = valueJs(value);
+    return js !== undefined && js.pure ? `(${js.src})` : null;
   }
 
   /** Core helper reference: reuses the module's import alias when one exists. */
@@ -1016,32 +1047,24 @@ class JsComponentGenerator {
         const contentQrl = this.qrlExpression(this.segment(operation.content.segment));
         let fallbackQrl = 'undefined';
         if (operation.fallback !== null) {
-          const fallbackValue = operation.fallback as {
-            segment?: string;
-            ir?: ValueIR;
-            raw?: true;
-            src: string;
-          };
-          if (fallbackValue.segment === undefined) {
-            if (fallbackValue.ir === undefined && fallbackValue.raw !== true) {
+          const fallbackSegment = valueSegment(operation.fallback);
+          if (fallbackSegment === undefined) {
+            const expression = this.valueExpression(operation.fallback);
+            if (expression === null) {
               markUngeneratable();
             }
-            fallbackQrl =
-              fallbackValue.ir === undefined
-                ? `(${fallbackValue.src})`
-                : this.irJs(fallbackValue.ir);
+            fallbackQrl = expression;
           } else {
-            fallbackQrl = this.qrlExpression(this.segment(fallbackValue.segment));
+            fallbackQrl = this.qrlExpression(this.segment(fallbackSegment));
           }
         }
-        const delayValue = operation.delay as { ir?: ValueIR; raw?: true; src: string } | null;
         let delayExpr = '0';
-        if (delayValue !== null) {
-          if (delayValue.ir === undefined && delayValue.raw !== true) {
+        if (operation.delay !== null) {
+          const expression = this.valueExpression(operation.delay);
+          if (expression === null) {
             markUngeneratable(operation);
           }
-          delayExpr =
-            delayValue.ir === undefined ? `(${delayValue.src})` : this.irJs(delayValue.ir);
+          delayExpr = expression;
         }
         const contentMeta = this.segment(operation.content.segment);
         const contentRoots = contentMeta.captures.map((capture) =>
@@ -1174,8 +1197,8 @@ class JsComponentGenerator {
         literalRun().push(`${JSON.stringify(item.name)}: ${JSON.stringify(item.value)}`);
       } else if (prop.kind === 'dynamic') {
         const item = prop as { name: string; value: { segment?: string; ir?: ValueIR } };
-        const segmentId = item.value.segment;
-        const ir = item.value.ir;
+        const segmentId = valueSegment(item.value);
+        const ir = valueIr(item.value);
         if (segmentId !== undefined && (ir === undefined || ir.kind === 'call')) {
           // derived prop: the QRL rides the sources map so resume rebuilds the getter
           const meta = this.segment(segmentId);
@@ -1230,7 +1253,7 @@ class JsComponentGenerator {
         );
       } else if (prop.kind === 'spread') {
         const item = prop as { value: { ir?: ValueIR } };
-        const ir = item.value.ir;
+        const ir = valueIr(item.value);
         if (ir === undefined) {
           markUngeneratable();
         }
@@ -1586,7 +1609,7 @@ class JsComponentGenerator {
         if (idVariable === null || setInnerHtmlExpr === undefined) {
           return false;
         }
-        const segmentId = item.value.segment;
+        const segmentId = valueSegment(item.value);
         const step = `props_${this.nextTemp++}`;
         const scopeArgs =
           scope.staticId === null && scope.runtimeName === null
@@ -1608,7 +1631,7 @@ class JsComponentGenerator {
             after
           );
         } else {
-          const ir = item.value.ir;
+          const ir = valueIr(item.value);
           if (ir === undefined) {
             return false;
           }
@@ -1630,12 +1653,10 @@ class JsComponentGenerator {
         return true;
       }
       case 'ref': {
-        const value = (prop as { value: { ir?: ValueIR; src?: string; raw?: true } }).value;
-        const ir = value.ir;
-        if (idVariable === null || (ir === undefined && value.raw !== true)) {
+        const refValue = this.valueExpression((prop as { value: unknown }).value);
+        if (idVariable === null || refValue === null) {
           return false;
         }
-        const refValue = ir === undefined ? `(${value.src})` : this.irJs(ir);
         const expression = `${this.names.ctx}.setRef(${refValue}, ${idVariable})`;
         if (this.asyncSteps.length === 0) {
           this.statements.push(`${this.claimId(idVariable)}${expression};`);
@@ -1690,10 +1711,10 @@ class JsComponentGenerator {
           value: { segment?: string; ir?: ValueIR };
           compilerString: boolean;
         };
-        const segmentId = item.value.segment;
+        const segmentId = valueSegment(item.value);
         if (item.compilerString) {
           // compile-time strings render inline; the planner keeps these initial-only
-          const ir = item.value.ir;
+          const ir = valueIr(item.value);
           if (ir === undefined || idVariable !== null) {
             return false;
           }
@@ -1704,7 +1725,7 @@ class JsComponentGenerator {
           return true;
         }
         if (idVariable === null) {
-          const ir = item.value.ir;
+          const ir = valueIr(item.value);
           if (ir === undefined || segmentId !== undefined) {
             return false;
           }
@@ -1721,7 +1742,7 @@ class JsComponentGenerator {
         }
         if (segmentId === undefined) {
           // signal attr: segment-less signal/binding read subscribes the attribute directly
-          const ir = item.value.ir as ValueIR | undefined;
+          const ir = valueIr(item.value);
           if (ir === undefined || (ir.kind !== 'signal-read' && ir.kind !== 'binding-read')) {
             return false;
           }
@@ -1776,27 +1797,27 @@ class JsComponentGenerator {
             this.imports.add(symbol);
             return `inlinedQrl(${symbol}, ${JSON.stringify(symbol)}, [${handler.bind}])`;
           }
-          const segmentId = handler.value?.segment;
+          const segmentId = handler.value === undefined ? undefined : valueSegment(handler.value);
           if (segmentId !== undefined) {
             const meta = this.segment(segmentId);
             return meta.kind === 'expression' ? null : this.qrlExpression(meta);
           }
-          const ir = handler.value?.ir;
+          const ir = handler.value === undefined ? undefined : valueIr(handler.value);
           return ir === undefined ? null : this.irJs(ir);
         };
         const dynamicIndex = event.handlers.findIndex(
           (handler) =>
             !('bind' in handler) &&
-            handler.value?.segment !== undefined &&
-            this.segment(handler.value.segment).kind === 'expression'
+            (handler.value === undefined ? undefined : valueSegment(handler.value)) !== undefined &&
+            this.segment(valueSegment(handler.value)!).kind === 'expression'
         );
         if (dynamicIndex !== -1) {
           // non-function handler (props.onClick$): evaluate via renderSsrEvent
           if (idVariable === null) {
             return false;
           }
-          const dynamic = event.handlers[dynamicIndex] as { value: { segment: string } };
-          const meta = this.segment(dynamic.value.segment);
+          const dynamic = event.handlers[dynamicIndex] as { value: unknown };
+          const meta = this.segment(valueSegment(dynamic.value)!);
           const captures = meta.captures.map((capture) =>
             capture.access === 'component-prop' ? this.names.props : this.local(capture.binding)
           );
@@ -1862,8 +1883,8 @@ class JsComponentGenerator {
     );
     this.imports.add('escapeHTML');
     const step = `text_${this.nextTemp++}`;
-    const ir = operation.value.ir;
-    const segmentId = operation.value.segment;
+    const ir = valueIr(operation.value);
+    const segmentId = valueSegment(operation.value);
     const idPrelude = this.claimId(`id_${target.id}`);
     if (segmentId !== undefined) {
       // expression text: the segment fn evaluates with captures under the invoke context
@@ -1899,7 +1920,7 @@ class JsComponentGenerator {
     operation: Extract<PlanSsrOp, { kind: SsrOpKind.Dynamic }>,
     parts: string[]
   ): void {
-    const ir = operation.value.ir;
+    const ir = valueIr(operation.value);
     if (operation.output === 'text') {
       if (ir === undefined) {
         markUngeneratable(operation);
@@ -1908,23 +1929,24 @@ class JsComponentGenerator {
       parts.push(`escapeHTML(String((${this.irJs(ir)}) ?? ''))`);
       return;
     }
-    const value = operation.value as { src: string; raw?: true };
     if (operation.synchronous) {
-      if (ir === undefined && value.raw !== true) {
+      const expression = this.valueExpression(operation.value);
+      if (expression === null) {
         markUngeneratable(operation);
       }
-      parts.push(ir === undefined ? `(${value.src})` : `(${this.irJs(ir)})`);
+      parts.push(`(${expression})`);
       return;
     }
     // deferred content: the render segment fn is called directly with its captures
-    const segmentId = operation.value.segment;
+    const segmentId = valueSegment(operation.value);
     if (segmentId === undefined) {
-      if (value.raw !== true) {
+      const expression = this.valueExpression(operation.value);
+      if (expression === null) {
         markUngeneratable(operation);
       }
-      // no segment: the raw source expression evaluates as its own step
+      // no segment: the expression evaluates as its own step
       const step = `content_${this.nextTemp++}`;
-      this.pushStep(step, [], `(${value.src})`);
+      this.pushStep(step, [], expression);
       parts.push(step);
       return;
     }

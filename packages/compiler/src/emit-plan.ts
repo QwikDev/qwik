@@ -133,14 +133,17 @@ export interface PlanLocalComponent {
   readonly render: PlanSsrRenderFn;
 }
 
-/** Server evaluates `ir` when present; `segment` is the client-resume QRL; `src` the JS fallback. */
-export interface PlanValue {
-  readonly src: string;
-  readonly ir?: ValueIR;
-  readonly segment?: string;
-  /** Src has no QRL boundaries or embedded JSX — generators may embed it verbatim. */
-  readonly raw?: true;
-}
+/**
+ * A value in render position, in one of three explicit forms:
+ *
+ * - `ir`: the universal form; optional `segment` is the client-resume QRL.
+ * - `segment`: the value IS a QRL-backed fn (expression texts, keys, derived sources).
+ * - `js`: transitional src carrier (dies with full lowering); `pure` = embeddable verbatim.
+ */
+export type PlanValue =
+  | { readonly kind: 'ir'; readonly ir: ValueIR; readonly segment?: string }
+  | { readonly kind: 'segment'; readonly segment: string }
+  | { readonly kind: 'js'; readonly src: string; readonly pure?: true };
 
 export interface PlanRenderFn {
   readonly setup: readonly PlanSetupEntry[];
@@ -269,11 +272,19 @@ export function emitModulePlan(
 ): QwikModulePlan {
   const slice = (range: SourceRange) => source.slice(range[0], range[1]);
 
-  const planValue = (value: ValuePlan): PlanValue => ({
-    src: slice(value.expression),
-    ...(value.kind !== 'render-value' && value.ir !== undefined ? { ir: value.ir } : {}),
-    ...(value.kind === 'segment' ? { segment: value.segment.segmentId } : {}),
-  });
+  const planValue = (value: ValuePlan): PlanValue => {
+    if (value.kind !== 'render-value' && value.ir !== undefined) {
+      return {
+        kind: 'ir',
+        ir: value.ir,
+        ...(value.kind === 'segment' ? { segment: value.segment.segmentId } : {}),
+      };
+    }
+    if (value.kind === 'segment') {
+      return { kind: 'segment', segment: value.segment.segmentId };
+    }
+    return { kind: 'js', src: slice(value.expression) };
+  };
 
   const planSetup = (setup: readonly SetupPlan[]): PlanSetupEntry[] =>
     setup.map((entry) => {
@@ -378,11 +389,10 @@ export function emitModulePlan(
         return {
           n: PlanNodeKind.Branch,
           // src stays empty: the JS engine evaluates branch conditions via the segment
-          condition: {
-            src: '',
-            segment: node.condition.segmentId,
-            ...(node.conditionIr !== undefined ? { ir: node.conditionIr } : {}),
-          },
+          condition:
+            node.conditionIr !== undefined
+              ? { kind: 'ir', ir: node.conditionIr, segment: node.condition.segmentId }
+              : { kind: 'segment', segment: node.condition.segmentId },
           then: planRenderFn(node.then),
           else: node.else === null ? null : planRenderFn(node.else),
         };
@@ -407,11 +417,9 @@ export function emitModulePlan(
           key:
             node.key === null
               ? null
-              : {
-                  src: '',
-                  segment: node.key.segmentId,
-                  ...(node.keyIr !== undefined ? { ir: node.keyIr } : {}),
-                },
+              : node.keyIr !== undefined
+                ? { kind: 'ir', ir: node.keyIr, segment: node.key.segmentId }
+                : { kind: 'segment', segment: node.key.segmentId },
           row: planRenderFn(node.row),
           usesIndexSignal: node.usesIndexSignal,
         };

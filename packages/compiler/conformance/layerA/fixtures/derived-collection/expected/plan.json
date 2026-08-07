@@ -116,7 +116,7 @@
                             "kind": "dynamic",
                             "output": "text",
                             "value": {
-                              "src": "word",
+                              "kind": "ir",
                               "ir": {
                                 "kind": "binding-read",
                                 "binding": 4
@@ -226,12 +226,12 @@
                 }
               },
               "key": {
-                "src": "",
-                "segment": "segment_1",
+                "kind": "ir",
                 "ir": {
                   "kind": "binding-read",
                   "binding": 4
-                }
+                },
+                "segment": "segment_1"
               },
               "row": {
                 "setup": [],
@@ -245,7 +245,7 @@
                         "n": "dyn",
                         "output": "text",
                         "value": {
-                          "src": "word",
+                          "kind": "ir",
                           "ir": {
                             "kind": "binding-read",
                             "binding": 4

@@ -94,7 +94,7 @@
                             "kind": "dynamic",
                             "name": "class",
                             "value": {
-                              "src": "{ on: on && todos.filter == lower }",
+                              "kind": "ir",
                               "ir": {
                                 "kind": "object",
                                 "entries": [
@@ -169,7 +169,7 @@
                           "kind": "dynamic",
                           "name": "class",
                           "value": {
-                            "src": "{ selected: todos.filter == lower }",
+                            "kind": "ir",
                             "ir": {
                               "kind": "object",
                               "entries": [
@@ -204,7 +204,7 @@
                           "handlers": [
                             {
                               "value": {
-                                "src": "() => {\n\t\t\ttodos.filter = lower;\n\t\t}",
+                                "kind": "segment",
                                 "segment": "segment_2"
                               }
                             }
@@ -234,7 +234,7 @@
                           "segment": "semantic_expression_443_461",
                           "root": false,
                           "value": {
-                            "src": "name.toUpperCase()",
+                            "kind": "ir",
                             "ir": {
                               "kind": "call",
                               "fn": "qwik:string.toUpperCase",
@@ -309,12 +309,11 @@
                           "kind": "dynamic",
                           "name": "name",
                           "value": {
-                            "src": "f",
+                            "kind": "ir",
                             "ir": {
                               "kind": "binding-read",
                               "binding": 8
-                            },
-                            "raw": true
+                            }
                           },
                           "compilerString": false
                         }
@@ -436,7 +435,7 @@
                         "p": "dynamic",
                         "name": "name",
                         "value": {
-                          "src": "f",
+                          "kind": "ir",
                           "ir": {
                             "kind": "binding-read",
                             "binding": 8

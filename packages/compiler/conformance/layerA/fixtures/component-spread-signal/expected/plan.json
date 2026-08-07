@@ -49,7 +49,7 @@
                 "kind": "dynamic",
                 "name": "class",
                 "value": {
-                  "src": "kind",
+                  "kind": "ir",
                   "ir": {
                     "kind": "binding-read",
                     "binding": 3
@@ -65,7 +65,7 @@
                 "kind": "dynamic",
                 "output": "text",
                 "value": {
-                  "src": "label",
+                  "kind": "ir",
                   "ir": {
                     "kind": "binding-read",
                     "binding": 4
@@ -83,7 +83,7 @@
                 "kind": "dynamic",
                 "output": "text",
                 "value": {
-                  "src": "n",
+                  "kind": "ir",
                   "ir": {
                     "kind": "binding-read",
                     "binding": 5
@@ -117,7 +117,7 @@
               "p": "dynamic",
               "name": "class",
               "value": {
-                "src": "kind",
+                "kind": "ir",
                 "ir": {
                   "kind": "binding-read",
                   "binding": 3
@@ -131,7 +131,7 @@
               "n": "dyn",
               "output": "text",
               "value": {
-                "src": "label",
+                "kind": "ir",
                 "ir": {
                   "kind": "binding-read",
                   "binding": 4
@@ -143,7 +143,7 @@
               "n": "dyn",
               "output": "text",
               "value": {
-                "src": "n",
+                "kind": "ir",
                 "ir": {
                   "kind": "binding-read",
                   "binding": 5
@@ -224,24 +224,22 @@
                   {
                     "kind": "spread",
                     "value": {
-                      "src": "shared",
+                      "kind": "ir",
                       "ir": {
                         "kind": "binding-read",
                         "binding": 7
-                      },
-                      "raw": true
+                      }
                     }
                   },
                   {
                     "kind": "dynamic",
                     "name": "n",
                     "value": {
-                      "src": "count.value",
+                      "kind": "ir",
                       "ir": {
                         "kind": "signal-read",
                         "binding": 6
-                      },
-                      "raw": true
+                      }
                     },
                     "compilerString": false
                   }
@@ -309,7 +307,7 @@
                 {
                   "p": "spread",
                   "value": {
-                    "src": "shared",
+                    "kind": "ir",
                     "ir": {
                       "kind": "binding-read",
                       "binding": 7
@@ -320,7 +318,7 @@
                   "p": "dynamic",
                   "name": "n",
                   "value": {
-                    "src": "count.value",
+                    "kind": "ir",
                     "ir": {
                       "kind": "signal-read",
                       "binding": 6

@@ -39,7 +39,7 @@
                 "handlers": [
                   {
                     "value": {
-                      "src": "() => count.value++",
+                      "kind": "segment",
                       "segment": "segment_0"
                     }
                   }
@@ -52,12 +52,11 @@
                 "kind": "dynamic",
                 "output": "text",
                 "value": {
-                  "src": "count.value",
+                  "kind": "ir",
                   "ir": {
                     "kind": "signal-read",
                     "binding": 2
-                  },
-                  "raw": true
+                  }
                 },
                 "synchronous": false,
                 "target": {
@@ -95,7 +94,7 @@
               "name": "onClick$",
               "passive": false,
               "value": {
-                "src": "() => count.value++",
+                "kind": "segment",
                 "segment": "segment_0"
               }
             }
@@ -105,7 +104,7 @@
               "n": "dyn",
               "output": "text",
               "value": {
-                "src": "count.value",
+                "kind": "ir",
                 "ir": {
                   "kind": "signal-read",
                   "binding": 2

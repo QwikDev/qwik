@@ -158,12 +158,11 @@
                     "kind": "dynamic",
                     "name": "title",
                     "value": {
-                      "src": "value.value",
+                      "kind": "ir",
                       "ir": {
                         "kind": "signal-read",
                         "binding": 6
-                      },
-                      "raw": true
+                      }
                     },
                     "compilerString": false
                   }
@@ -187,12 +186,11 @@
                     "kind": "dynamic",
                     "name": "value",
                     "value": {
-                      "src": "value",
+                      "kind": "ir",
                       "ir": {
                         "kind": "binding-read",
                         "binding": 6
-                      },
-                      "raw": true
+                      }
                     },
                     "compilerString": false
                   },
@@ -241,7 +239,7 @@
                   "p": "dynamic",
                   "name": "title",
                   "value": {
-                    "src": "value.value",
+                    "kind": "ir",
                     "ir": {
                       "kind": "signal-read",
                       "binding": 6
@@ -266,7 +264,7 @@
                   "p": "dynamic",
                   "name": "value",
                   "value": {
-                    "src": "value",
+                    "kind": "ir",
                     "ir": {
                       "kind": "binding-read",
                       "binding": 6

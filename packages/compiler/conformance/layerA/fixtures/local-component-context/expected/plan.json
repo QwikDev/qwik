@@ -40,7 +40,7 @@
                       "kind": "dynamic",
                       "output": "text",
                       "value": {
-                        "src": "theme.color",
+                        "kind": "ir",
                         "ir": {
                           "kind": "member",
                           "obj": {

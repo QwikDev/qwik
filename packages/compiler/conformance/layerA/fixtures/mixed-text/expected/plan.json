@@ -43,12 +43,11 @@
                 "kind": "dynamic",
                 "output": "text",
                 "value": {
-                  "src": "count.value",
+                  "kind": "ir",
                   "ir": {
                     "kind": "signal-read",
                     "binding": 2
-                  },
-                  "raw": true
+                  }
                 },
                 "synchronous": false,
                 "target": {
@@ -65,7 +64,7 @@
                 "kind": "dynamic",
                 "output": "text",
                 "value": {
-                  "src": "count.value + 7",
+                  "kind": "ir",
                   "ir": {
                     "kind": "bin",
                     "op": "+",
@@ -125,7 +124,7 @@
               "n": "dyn",
               "output": "text",
               "value": {
-                "src": "count.value",
+                "kind": "ir",
                 "ir": {
                   "kind": "signal-read",
                   "binding": 2
@@ -140,7 +139,7 @@
               "n": "dyn",
               "output": "text",
               "value": {
-                "src": "count.value + 7",
+                "kind": "ir",
                 "ir": {
                   "kind": "bin",
                   "op": "+",

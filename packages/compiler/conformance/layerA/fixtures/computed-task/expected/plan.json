@@ -100,12 +100,11 @@
                 "kind": "dynamic",
                 "name": "title",
                 "value": {
-                  "src": "label.value",
+                  "kind": "ir",
                   "ir": {
                     "kind": "signal-read",
                     "binding": 5
-                  },
-                  "raw": true
+                  }
                 },
                 "compilerString": false
               }
@@ -126,12 +125,11 @@
                     "kind": "dynamic",
                     "output": "text",
                     "value": {
-                      "src": "doubled.value",
+                      "kind": "ir",
                       "ir": {
                         "kind": "signal-read",
                         "binding": 6
-                      },
-                      "raw": true
+                      }
                     },
                     "synchronous": false,
                     "target": {
@@ -230,7 +228,7 @@
               "p": "dynamic",
               "name": "title",
               "value": {
-                "src": "label.value",
+                "kind": "ir",
                 "ir": {
                   "kind": "signal-read",
                   "binding": 5
@@ -248,7 +246,7 @@
                   "n": "dyn",
                   "output": "text",
                   "value": {
-                    "src": "doubled.value",
+                    "kind": "ir",
                     "ir": {
                       "kind": "signal-read",
                       "binding": 6

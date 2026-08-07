@@ -33,6 +33,10 @@ const READY_FIXTURES = [
   'slot-projection',
   'slot-fallback',
   'context',
+  'local-component-props',
+  'local-component-signal-props',
+  'local-component-slots',
+  'local-component-context',
 ];
 
 const layerADir = dirname(fileURLToPath(import.meta.url));

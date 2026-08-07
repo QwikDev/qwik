@@ -86,6 +86,22 @@ export function markUngeneratable(): never {
 const UNGENERATABLE = Symbol('js-ungeneratable');
 
 type SegmentMeta = QwikSsrPlan['modules'][number]['segments'][number];
+type PropsShape =
+  | null
+  | undefined
+  | { kind: 'identifier'; binding: number }
+  | { kind: 'object'; bindings: readonly { b: number; name: string }[] };
+interface LocalComponentEntry {
+  readonly name: string;
+  readonly binding: number;
+  readonly segment: string;
+  readonly providesContext?: boolean;
+  readonly props: PropsShape;
+  readonly render: {
+    readonly setup: readonly unknown[];
+    readonly ops: readonly PlanSsrOp[];
+  };
+}
 type DefMeta = QwikSsrPlan['modules'][number]['defs'][number];
 
 class JsComponentGenerator {
@@ -94,8 +110,11 @@ class JsComponentGenerator {
   private readonly hoists: string[];
   private readonly hoistedSegments: Set<string>;
   private readonly statements: string[] = [];
-  private readonly locals = new Map<number, string>();
-  private readonly usedNames = new Set<string>(['props', 'ctx', 'invokeCtx']);
+  private locals = new Map<number, string>();
+  private usedNames = new Set<string>(['props', 'ctx', 'invokeCtx']);
+  private localComponents = new Map<string, LocalComponentEntry>();
+  /** `_markComponent` marks flushed after the owning scope's setup completes. */
+  private readonly pendingMarks: string[] = [];
   private nextTemp = 0;
   private invokeCtxDeclared = false;
   /** Pending async steps — the return value chains maybeThen over them in order. */
@@ -107,35 +126,62 @@ class JsComponentGenerator {
     private readonly segments: readonly SegmentMeta[],
     private readonly defs: readonly DefMeta[],
     private readonly contexts: QwikSsrPlan['modules'][number]['contexts'],
-    private readonly pluginFns: QwikSsrPlan['pluginFns']
+    private readonly pluginFns: QwikSsrPlan['pluginFns'],
+    seed?: {
+      readonly locals: ReadonlyMap<number, string>;
+      readonly usedNames: ReadonlySet<string>;
+      readonly localComponents: ReadonlyMap<string, LocalComponentEntry>;
+    }
   ) {
     this.imports = shared.imports;
     this.chunkImports = shared.chunkImports;
     this.hoists = shared.hoists;
     this.hoistedSegments = shared.hoistedSegments;
+    if (seed !== undefined) {
+      this.locals = new Map(seed.locals);
+      this.usedNames = new Set(seed.usedNames);
+      this.localComponents = new Map(seed.localComponents);
+    }
   }
 
   generate(component: QwikSsrPlan['components'][number]): string {
-    const name = component.name;
-    const ssr = component.ssr!;
-    // props param bindings: identifier form aliases props; object form destructures by name
     for (const binding of component.propsBindings) {
       this.locals.set(binding, 'props');
     }
-    const propsShape = component.props as
-      | null
-      | { kind: 'identifier'; binding: number }
-      | { kind: 'object'; bindings: readonly { b: number; name: string }[] };
+    return this.generateFn(
+      component.name,
+      component.ssr!,
+      component.props as PropsShape,
+      component.providesContext,
+      true
+    );
+  }
+
+  private generateFn(
+    name: string,
+    ssr: {
+      readonly setup: readonly unknown[];
+      readonly ops: readonly PlanSsrOp[];
+      readonly flushTasks?: boolean;
+    },
+    propsShape: PropsShape,
+    providesContext: boolean,
+    exported: boolean
+  ): string {
+    // props param bindings: identifier form aliases props; object form destructures by name
     if (propsShape !== null && propsShape !== undefined) {
       if (propsShape.kind === 'identifier') {
         this.locals.set(propsShape.binding, 'props');
       } else {
         const names: string[] = [];
         for (const item of propsShape.bindings) {
-          if (!/^[A-Za-z_$][A-Za-z0-9_$]*$/.test(item.name)) {
+          // shorthand destructure requires the declared name to be the prop name
+          if (
+            !/^[A-Za-z_$][A-Za-z0-9_$]*$/.test(item.name) ||
+            this.declare(item.b, item.name) !== item.name
+          ) {
             markUngeneratable();
           }
-          this.declare(item.b, item.name);
           names.push(item.name);
         }
         if (names.length > 0) {
@@ -144,8 +190,14 @@ class JsComponentGenerator {
       }
     }
     // task flush: setup runs first, then the render replays under the captured invoke context
-    if (ssr.flushTasks) {
+    if (ssr.flushTasks === true) {
       this.invokeCtx();
+    }
+    // local-component declarations hoist: siblings are callable before their statement
+    for (const entry of ssr.setup as ({ op: string } & Record<string, unknown>)[]) {
+      if (entry.op === 'local-component') {
+        this.localComponents.set(entry.name as string, entry as unknown as LocalComponentEntry);
+      }
     }
     // defs regenerate from IR and export under their names — chunks import them back
     for (const def of this.defs) {
@@ -180,9 +232,15 @@ class JsComponentGenerator {
     for (const entry of ssr.setup) {
       this.setupOp(entry as { op: string } & Record<string, unknown>);
     }
+    for (const markName of this.pendingMarks.splice(0)) {
+      const entry = this.localComponents.get(markName)!;
+      this.statements.push(
+        `_markComponent(${markName}, ${this.qrlExpression(this.segment(entry.segment))});`
+      );
+    }
     const setupStatements = this.statements.splice(0);
     let contextScope: string | null = null;
-    if (component.providesContext) {
+    if (providesContext) {
       contextScope = `context_scope_${this.nextTemp++}`;
       this.statements.push(`const ${contextScope} = ctx.contextScopeRef();`);
       this.imports.add('createSsrRecord');
@@ -202,7 +260,7 @@ class JsComponentGenerator {
       parts.length === 1 && isStringLiteral(parts[0]) ? parts[0] : `[${parts.join(', ')}]`;
     const returnStatement = this.wrapAsync(value);
     let bodyStatements: string[];
-    if (ssr.flushTasks) {
+    if (ssr.flushTasks === true) {
       this.imports.add('maybeThen');
       this.imports.add('invoke');
       const inner = [...this.statements, returnStatement].map((line) => `  ${line}`).join('\n');
@@ -214,7 +272,7 @@ class JsComponentGenerator {
       bodyStatements = [...setupStatements, ...this.statements, returnStatement];
     }
     const body = bodyStatements.map((line) => `  ${line}`).join('\n');
-    return `export function ${name}(props, ctx) {\n${body}\n}\n`;
+    return `${exported ? 'export ' : ''}function ${name}(props, ctx) {\n${body}\n}\n`;
   }
 
   /** MaybeThen chain over async steps, innermost carrying the parts value. */
@@ -234,7 +292,12 @@ class JsComponentGenerator {
    * its statement (ambient context still active), every later step defers into an invoke thunk so
    * capture rooting happens in chain order.
    */
-  private pushStep(step: string, roots: readonly string[], callExpr: string): void {
+  private pushStep(
+    step: string,
+    roots: readonly string[],
+    callExpr: string,
+    thunkPrelude = ''
+  ): void {
     if (this.asyncSteps.length === 0) {
       for (const root of roots) {
         this.statements.push(`ctx.addRoot(${root});`);
@@ -247,7 +310,7 @@ class JsComponentGenerator {
     this.imports.add('invoke');
     const rootStatements = roots.map((root) => `ctx.addRoot(${root}); `).join('');
     this.statements.push(
-      `const ${step} = () => invoke(${invokeCtx}, () => { ${rootStatements}return ${callExpr}; });`
+      `const ${step} = () => invoke(${invokeCtx}, () => { ${thunkPrelude}${rootStatements}return ${callExpr}; });`
     );
     this.asyncSteps.push({ name: step, expr: `${step}()` });
   }
@@ -304,6 +367,41 @@ class JsComponentGenerator {
         const meta = this.segment(entry.segment as string);
         this.imports.add('useTaskQrl');
         this.statements.push(`useTaskQrl(${this.qrlExpression(meta)});`);
+        return;
+      }
+      case 'local-component': {
+        const local = entry as unknown as LocalComponentEntry;
+        const child = new JsComponentGenerator(
+          this.plan,
+          this.shared,
+          this.segments,
+          this.defs,
+          this.contexts,
+          this.pluginFns,
+          {
+            locals: this.locals,
+            usedNames: this.usedNames,
+            localComponents: this.localComponents,
+          }
+        );
+        this.statements.push(
+          child.generateFn(
+            local.name,
+            local.render,
+            local.props,
+            local.providesContext === true,
+            false
+          )
+        );
+        this.imports.add('_markComponent');
+        // captures may be declared below the fn — the QRL resolves at mark-flush time
+        this.pendingMarks.push(local.name);
+        return;
+      }
+      case 'const': {
+        const binding = entry.local as number;
+        const variable = this.declare(binding, entry.name as string | undefined);
+        this.statements.push(`const ${variable} = ${this.irJs(entry.init as ValueIR)};`);
         return;
       }
       case 'context-provider': {
@@ -423,7 +521,6 @@ class JsComponentGenerator {
   ): void {
     const target = operation.target;
     if (
-      typeof target === 'string' ||
       operation.propsSource !== null ||
       operation.idBase !== null ||
       operation.blockingSuspense ||
@@ -431,11 +528,21 @@ class JsComponentGenerator {
     ) {
       markUngeneratable();
     }
-    const child = this.plan.components[target.ref];
-    if (child === undefined) {
-      markUngeneratable();
+    let childName: string;
+    if (typeof target === 'string') {
+      // lexical reference to a local component in scope
+      if (!this.localComponents.has(target)) {
+        markUngeneratable();
+      }
+      childName = target;
+    } else {
+      const child = this.plan.components[target.ref];
+      if (child === undefined) {
+        markUngeneratable();
+      }
+      this.shared.queue.push(target.ref);
+      childName = child.name;
     }
-    this.shared.queue.push(target.ref);
     let slotScope: string | null = null;
     if (operation.slots.length > 0) {
       // slot prep is statement-level; inside a deferred step its root order is unproven
@@ -497,7 +604,7 @@ class JsComponentGenerator {
     this.pushStep(
       step,
       sourceLocals,
-      `createComponent(${propsExpr}, (props) => ${child.name}(props, ctx)${options})`
+      `createComponent(${propsExpr}, (props) => ${childName}(props, ctx)${options})`
     );
     parts.push(step);
   }
@@ -521,11 +628,18 @@ class JsComponentGenerator {
     this.imports.add('createSsrRecord');
     this.imports.add('createSsrNodeId');
     this.imports.add('escapeSsrContent');
-    this.statements.push(`const ${idVariable} = ctx.nextId();`);
+    const deferred = this.asyncSteps.length > 0;
+    if (deferred) {
+      // deferred content allocates its id when the step runs, keeping q:id chain order
+      this.statements.push(`let ${idVariable};`);
+    } else {
+      this.statements.push(`const ${idVariable} = ctx.nextId();`);
+    }
     this.pushStep(
       step,
       captures,
-      `renderSsrContent(ctx, ${idVariable}, [${captures.join(', ')}], ${this.qrlExpression(meta, false)})`
+      `renderSsrContent(ctx, ${idVariable}, [${captures.join(', ')}], ${this.qrlExpression(meta, false)})`,
+      deferred ? `${idVariable} ??= ctx.nextId(); ` : undefined
     );
     parts.push(`createSsrRecord('<!d=', createSsrNodeId(${idVariable}), '>')`);
     parts.push(`escapeSsrContent(${step})`);
@@ -813,10 +927,21 @@ class JsComponentGenerator {
 
   private local(binding: number): string {
     const variable = this.locals.get(binding);
-    if (variable === undefined) {
-      markUngeneratable();
+    if (variable !== undefined) {
+      return variable;
     }
-    return variable;
+    // module-scope context ids are referencable like locals
+    const context = this.contexts.find((candidate) => candidate.binding === binding);
+    if (context?.declaredName !== undefined) {
+      return context.declaredName;
+    }
+    // local components captured as values reference their fn name
+    for (const [name, entry] of this.localComponents) {
+      if (entry.binding === binding) {
+        return name;
+      }
+    }
+    markUngeneratable();
   }
 
   private contextVar(binding: number): string {
@@ -857,6 +982,33 @@ class JsComponentGenerator {
             : `\${${this.irJs(part, scope)}}`
         );
         return `\`${chunks.join('')}\``;
+      }
+      case 'call': {
+        // qwik: namespaced ops are plain JS calls — method on the receiver or a global
+        const args = ir.args.map((argument) => {
+          if ((argument as { kind?: string }).kind === 'lambda') {
+            markUngeneratable();
+          }
+          return this.irJs(argument as ValueIR, scope);
+        });
+        const method = ir.fn.slice(ir.fn.lastIndexOf('.') + 1);
+        if (ir.recv !== null) {
+          return `${this.irJs(ir.recv, scope)}.${method}(${args.join(', ')})`;
+        }
+        const namespace = ir.fn.slice(ir.fn.indexOf(':') + 1, ir.fn.lastIndexOf('.'));
+        const globals: Record<string, string> = {
+          math: 'Math',
+          object: 'Object',
+          json: 'JSON',
+          array: 'Array',
+          number: 'Number',
+          date: 'Date',
+        };
+        const owner = globals[namespace];
+        if (owner === undefined) {
+          markUngeneratable();
+        }
+        return `${owner}.${method}(${args.join(', ')})`;
       }
       case 'def-call': {
         const def = this.defs[ir.def];

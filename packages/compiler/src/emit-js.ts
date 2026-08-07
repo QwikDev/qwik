@@ -152,6 +152,71 @@ export function emitJsProductionRender(
   }
 }
 
+/**
+ * Chunk body for a segment-backed render block: statements + value with chunk-local QRL hoists and
+ * imports. Heads, capture preludes, and module wrappers stay in `emit-segment`.
+ */
+export function emitJsSegmentBlock(
+  block: PlanSsrComponent,
+  segments: readonly SegmentMeta[],
+  defs: readonly DefMeta[],
+  contexts: QwikSsrPlan['modules'][number]['contexts'],
+  pluginFns: QwikSsrPlan['pluginFns'],
+  names: { props: string; ctx: string; invokeCtx: string },
+  seeds: readonly { readonly binding: number; readonly name: string }[],
+  moduleBindingName?: (binding: number) => string | null,
+  sourceBindingName?: (binding: number) => string | null,
+  importLocalName?: (module: string, exportName: string) => string | null
+): {
+  imports: string[];
+  chunkImports: string[];
+  hoists: string[];
+  statements: string[];
+  value: string;
+} | null {
+  const shared: ModuleState = {
+    imports: new Set(),
+    chunkImports: [],
+    hoists: [],
+    hoistedSegments: new Set(),
+    componentFns: [],
+    generated: new Set(),
+    queue: [],
+  };
+  try {
+    const generator = new JsComponentGenerator(
+      { components: [], modules: [], pluginFns } as unknown as QwikSsrPlan,
+      shared,
+      segments,
+      defs,
+      contexts,
+      pluginFns,
+      names,
+      undefined,
+      moduleBindingName,
+      undefined,
+      sourceBindingName,
+      importLocalName
+    );
+    for (const seed of seeds) {
+      generator.declare(seed.binding, seed.name);
+    }
+    const pieces = generator.generateProduction('', block, null, false);
+    return {
+      imports: [...shared.imports, ...pieces.imports],
+      chunkImports: shared.chunkImports,
+      hoists: shared.hoists,
+      statements: [...pieces.setupStatements, ...pieces.statements],
+      value: pieces.value,
+    };
+  } catch (error) {
+    if (error === UNGENERATABLE) {
+      return null;
+    }
+    throw error;
+  }
+}
+
 type PlanSsrComponent = {
   readonly setup: readonly unknown[];
   readonly ops: readonly PlanSsrOp[];

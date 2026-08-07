@@ -901,7 +901,10 @@ export async function buildInterpretedRoot(
           });
         }
         case 'content': {
-          const op2 = op as { segment: string; root: boolean };
+          const op2 = {
+            segment: valueSegment((op as { value: unknown }).value)!,
+            root: (op as { root: boolean }).root,
+          };
           if (op2.root) {
             throw new Error('interpreter cannot render root content ops yet');
           }

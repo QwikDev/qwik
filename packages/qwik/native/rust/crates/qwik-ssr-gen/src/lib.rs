@@ -2222,7 +2222,9 @@ impl ComponentGenerator<'_> {
 	}
 
 	fn write_content(&mut self, op: &Json, target: &str) -> Result<(), String> {
-		let segment_id = op["segment"].as_str().ok_or("content op has no segment")?;
+		let segment_id = op["value"]["segment"]
+			.as_str()
+			.ok_or("content op has no segment")?;
 		let ir = &op["value"]["ir"];
 		if ir.is_null() {
 			return Err(format!("content op {segment_id:?} without a lowered value"));

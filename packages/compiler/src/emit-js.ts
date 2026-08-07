@@ -1391,7 +1391,11 @@ class JsComponentGenerator {
     if (operation.root) {
       markUngeneratable();
     }
-    const meta = this.segment(operation.segment);
+    const contentSegment = valueSegment(operation.value);
+    if (contentSegment === undefined) {
+      markUngeneratable(operation);
+    }
+    const meta = this.segment(contentSegment);
     const captures = meta.captures.map((capture) =>
       capture.access === 'component-prop' ? this.names.props : this.local(capture.binding)
     );

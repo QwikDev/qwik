@@ -124,9 +124,9 @@ export type PlanSsrOp =
     }
   | {
       readonly kind: SsrOpKind.Content;
-      readonly segment: string;
+      /** Always segment-bearing: the `<!d=` region re-renders by resuming this QRL. */
+      readonly value: PlanValue;
       readonly root: boolean;
-      readonly value?: PlanValue;
     }
   | {
       readonly kind: SsrOpKind.Component;
@@ -502,9 +502,11 @@ export function emitSsrOpPlan(
       case 'content-effect':
         return {
           kind: SsrOpKind.Content,
-          segment: operation.segment.segmentId,
+          value:
+            operation.value === null
+              ? { kind: 'segment', segment: operation.segment.segmentId }
+              : planValue(operation.value),
           root: operation.root,
-          ...(operation.value === null ? {} : { value: planValue(operation.value) }),
         };
       case 'component':
         return {

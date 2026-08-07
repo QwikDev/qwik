@@ -144,8 +144,6 @@
                       "children": [
                         {
                           "kind": "content",
-                          "segment": "semantic_expression_362_380",
-                          "root": false,
                           "value": {
                             "kind": "ir",
                             "ir": {
@@ -158,7 +156,8 @@
                               "args": []
                             },
                             "segment": "semantic_expression_362_380"
-                          }
+                          },
+                          "root": false
                         }
                       ]
                     }

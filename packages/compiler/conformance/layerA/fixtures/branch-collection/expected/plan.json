@@ -251,8 +251,6 @@
                                     },
                                     {
                                       "kind": "content",
-                                      "segment": "semantic_expression_497_515",
-                                      "root": false,
                                       "value": {
                                         "kind": "ir",
                                         "ir": {
@@ -265,7 +263,8 @@
                                           "args": []
                                         },
                                         "segment": "semantic_expression_497_515"
-                                      }
+                                      },
+                                      "root": false
                                     }
                                   ]
                                 }

@@ -60,8 +60,6 @@
                 "children": [
                   {
                     "kind": "content",
-                    "segment": "segment_0",
-                    "root": false,
                     "value": {
                       "kind": "ir",
                       "ir": {
@@ -69,7 +67,8 @@
                         "binding": 3
                       },
                       "segment": "segment_0"
-                    }
+                    },
+                    "root": false
                   }
                 ]
               },

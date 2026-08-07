@@ -37,8 +37,6 @@
             "children": [
               {
                 "kind": "content",
-                "segment": "semantic_expression_190_208",
-                "root": false,
                 "value": {
                   "kind": "ir",
                   "ir": {
@@ -52,7 +50,8 @@
                     ]
                   },
                   "segment": "semantic_expression_190_208"
-                }
+                },
+                "root": false
               }
             ]
           }

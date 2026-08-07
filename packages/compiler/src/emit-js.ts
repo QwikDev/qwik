@@ -568,13 +568,28 @@ class JsComponentGenerator {
         );
       }
     }
-    const literalEntries: string[] = [];
+    // mergeProps segments: literal runs grouped between spreads, in source order
+    const runSegments: string[] = [];
+    let literalEntries: string[] | null = null;
     const sourceEntries: string[] = [];
     const sourceLocals: string[] = [];
+    const literalRun = (): string[] => {
+      if (literalEntries === null) {
+        literalEntries = [];
+        runSegments.push('');
+      }
+      return literalEntries;
+    };
+    const closeRun = (): void => {
+      if (literalEntries !== null) {
+        runSegments[runSegments.length - 1] = `{ ${literalEntries.join(', ')} }`;
+        literalEntries = null;
+      }
+    };
     for (const prop of operation.props) {
       if (prop.p === 'static') {
         const item = prop as { name: string; value: unknown };
-        literalEntries.push(`${JSON.stringify(item.name)}: ${JSON.stringify(item.value)}`);
+        literalRun().push(`${JSON.stringify(item.name)}: ${JSON.stringify(item.value)}`);
       } else if (prop.p === 'dynamic') {
         const item = prop as { name: string; value: { segment?: string; ir?: ValueIR } };
         const ir = item.value.ir;
@@ -583,20 +598,49 @@ class JsComponentGenerator {
         }
         const signal = this.local((ir as { binding: number }).binding);
         this.imports.add('readTrackedSourceValue');
-        literalEntries.push(
+        literalRun().push(
           `get ${JSON.stringify(item.name)}() { return readTrackedSourceValue(${signal}); }`
         );
         sourceEntries.push(`${JSON.stringify(item.name)}: ${signal}`);
         sourceLocals.push(signal);
+      } else if (prop.p === 'event') {
+        const event = prop as {
+          name: string;
+          handlers: readonly { value?: { segment?: string } }[];
+        };
+        const segmentId = event.handlers[0]?.value?.segment;
+        if (event.handlers.length !== 1 || segmentId === undefined) {
+          markUngeneratable();
+        }
+        // event props pass the handler QRL as a plain prop value
+        literalRun().push(
+          `${JSON.stringify(event.name)}: ${this.qrlExpression(this.segment(segmentId))}`
+        );
+      } else if (prop.p === 'spread') {
+        const item = prop as { value: { ir?: ValueIR } };
+        const ir = item.value.ir;
+        if (ir === undefined || ir.k !== 'binding-read') {
+          markUngeneratable();
+        }
+        closeRun();
+        runSegments.push(this.local(ir.binding));
       } else {
         markUngeneratable();
       }
     }
-    const literal = `{ ${literalEntries.join(', ')} }`;
-    let propsExpr = literal;
+    closeRun();
+    let propsExpr: string;
+    if (runSegments.length === 0) {
+      propsExpr = '{}';
+    } else if (runSegments.length === 1) {
+      propsExpr = runSegments[0];
+    } else {
+      this.imports.add('mergeProps');
+      propsExpr = `mergeProps(${runSegments.join(', ')})`;
+    }
     if (sourceEntries.length > 0) {
       this.imports.add('_props');
-      propsExpr = `_props(${literal}, { ${sourceEntries.join(', ')} })`;
+      propsExpr = `_props(${propsExpr}, { ${sourceEntries.join(', ')} })`;
     }
     const step = `component_${this.nextTemp++}`;
     this.imports.add('createComponent');
@@ -829,6 +873,25 @@ class JsComponentGenerator {
           return false;
         }
         const meta = this.segment(segmentId);
+        if (meta.kind === 'expression') {
+          // non-function handler (props.onClick$): evaluate via renderSsrEvent
+          if (idVariable === null) {
+            return false;
+          }
+          const captures = meta.captures.map((capture) =>
+            capture.access === 'component-prop' ? 'props' : this.local(capture.binding)
+          );
+          const step = `event_${this.nextTemp++}`;
+          this.imports.add('renderSsrEvent');
+          this.imports.add('createSsrElementTarget');
+          this.pushStep(
+            step,
+            captures,
+            `renderSsrEvent(createSsrElementTarget(${idVariable}), ${JSON.stringify(event.name)}, [${captures.join(', ')}], ${this.qrlExpression(meta, false)}, ctx.eventAttr, [], [])`
+          );
+          open.push(`(${step} ?? '')`);
+          return true;
+        }
         if (meta.kind !== 'event') {
           return false;
         }

@@ -37,6 +37,10 @@ const READY_FIXTURES = [
   'local-component-signal-props',
   'local-component-slots',
   'local-component-context',
+  'component-spread-props',
+  'component-spread-mixed',
+  'component-spread-signal',
+  'component-event-prop',
 ];
 
 const layerADir = dirname(fileURLToPath(import.meta.url));

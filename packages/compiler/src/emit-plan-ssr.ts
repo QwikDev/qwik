@@ -246,13 +246,52 @@ export function emitSsrOpPlan(
 ): PlanSsrComponent | null {
   const slice = (range: SourceRange) => source.slice(range[0], range[1]);
 
+  /** Resolves render-arg placeholders against the value's embedded renders, or fails. */
+  const resolveRenderArgs = (ir: unknown, value: ValuePlan): unknown => {
+    if (ir === null || typeof ir !== 'object') {
+      return ir;
+    }
+    if (Array.isArray(ir)) {
+      return ir.map((item) => resolveRenderArgs(item, value));
+    }
+    const record = ir as Record<string, unknown>;
+    if (record.kind === 'render-arg') {
+      const range = record.range as readonly [number, number] | undefined;
+      const embedded =
+        value.kind === 'expression' && range !== undefined
+          ? value.embeddedRenders.find(
+              (candidate) => candidate.range[0] >= range[0] && candidate.range[1] <= range[1]
+            )
+          : undefined;
+      if (embedded === undefined) {
+        throw UNPLANNABLE;
+      }
+      const block = renderFnBlock(embedded);
+      // the callback's result is a runtime renderable: the root must stay a record
+      const ssr = { syncRender: block.ssr.syncRender, needsRootRange: block.ssr.needsRootRange };
+      return { kind: 'render-arg', params: record.params, render: { ...block, ssr } };
+    }
+    const resolved: Record<string, unknown> = {};
+    for (const [key, entry] of Object.entries(record)) {
+      resolved[key] = resolveRenderArgs(entry, value);
+    }
+    return resolved;
+  };
+
   const planValue = (value: ValuePlan): PlanValue => {
     if (value.kind !== 'render-value' && value.ir !== undefined) {
-      return {
-        kind: 'ir',
-        ir: value.ir,
-        ...(value.kind === 'segment' ? { segment: value.segment.segmentId } : {}),
-      };
+      try {
+        return {
+          kind: 'ir',
+          ir: resolveRenderArgs(value.ir, value) as typeof value.ir,
+          ...(value.kind === 'segment' ? { segment: value.segment.segmentId } : {}),
+        };
+      } catch (error) {
+        if (error !== UNPLANNABLE) {
+          throw error;
+        }
+        // unresolved render-arg: fall through to the transitional js form
+      }
     }
     if (value.kind === 'segment') {
       return { kind: 'segment', segment: value.segment.segmentId };

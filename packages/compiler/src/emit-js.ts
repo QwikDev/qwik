@@ -354,6 +354,67 @@ class JsComponentGenerator {
     return js !== undefined && js.pure ? `(${js.src})` : null;
   }
 
+  /** Plugin-call argument: plain IR, pure expression lambda, or a render-bodied callback. */
+  private pluginArgJs(argument: unknown, scope?: ReadonlyMap<number, string>): string {
+    const tagged = argument as { kind?: string };
+    if (tagged.kind === 'lambda') {
+      const lambda = argument as {
+        params: readonly { name: string; binding: number | null }[];
+        body: ValueIR;
+      };
+      const lambdaScope = new Map(scope);
+      const names = lambda.params.map((param) => {
+        if (param.binding !== null) {
+          lambdaScope.set(param.binding, param.name);
+        }
+        return param.name;
+      });
+      return `(${names.join(', ')}) => ${this.irJs(lambda.body, lambdaScope)}`;
+    }
+    if (tagged.kind === 'render-arg') {
+      const renderArg = argument as {
+        params: readonly { name: string; binding: number | null }[];
+        render?: LocalComponentEntry['render'];
+      };
+      if (renderArg.render === undefined) {
+        markUngeneratable('unresolved render-arg');
+      }
+      // the callback re-enters the captured invoke context when its host eventually calls it
+      const invokeCtx = this.invokeCtx();
+      this.imports.add('invoke');
+      const seedLocals = new Map(this.locals);
+      const paramNames = renderArg.params.map((param) => {
+        if (param.binding !== null) {
+          seedLocals.set(param.binding, param.name);
+        }
+        return param.name;
+      });
+      const child = new JsComponentGenerator(
+        this.plan,
+        this.shared,
+        this.segments,
+        this.defs,
+        this.contexts,
+        this.pluginFns,
+        this.names,
+        {
+          locals: seedLocals,
+          usedNames: this.usedNames,
+          localComponents: this.localComponents,
+          sourceKinds: this.sourceKinds,
+        },
+        this.moduleBindingName,
+        this.coreAlias,
+        this.sourceBindingName,
+        this.importLocalName
+      );
+      const fn = child.generateFn('__render_arg', renderArg.render, null, false, false, '()');
+      const body = fn.slice(fn.indexOf('{') + 1, fn.lastIndexOf('}'));
+      return `(${paramNames.join(', ')}) => invoke(${invokeCtx}, () => (() => {${body}})())`;
+    }
+    return this.irJs(argument as ValueIR, scope as Map<number, string> | undefined);
+  }
+
   /** Core helper reference: reuses the module's import alias when one exists. */
   private coreName(importedName: string): string {
     const alias = this.coreAlias?.(importedName);
@@ -2168,20 +2229,19 @@ class JsComponentGenerator {
           markUngeneratable(ir.fnId);
         }
         const [, module, exportName] = match;
+        const args = ir.args.map((argument) => this.pluginArgJs(argument, scope));
         if (this.shared.production) {
           // production modules keep the user's own import — reference it by local name
           const localName = this.importLocalName?.(module, exportName);
           if (localName == null) {
             markUngeneratable(ir.fnId);
           }
-          const args = ir.args.map((argument) => this.irJs(argument, scope));
           return `${localName}(${args.join(', ')})`;
         }
         const importLine = `import { ${exportName} } from ${JSON.stringify(module)};`;
         if (!this.chunkImports.includes(importLine)) {
           this.chunkImports.push(importLine);
         }
-        const args = ir.args.map((argument) => this.irJs(argument, scope));
         return `${exportName}(${args.join(', ')})`;
       }
       default:

@@ -1,6 +1,13 @@
 import { getIdentifierName, getRange, unwrapExpression } from './ast-utils';
 import { ValueIrKind } from './expr-ir';
-import type { LambdaIR, ValueIR, ValueIrBinOp, ValueIrLogicOp, ValueIrUnaryOp } from './expr-ir';
+import type {
+  LambdaIR,
+  RenderArgIR,
+  ValueIR,
+  ValueIrBinOp,
+  ValueIrLogicOp,
+  ValueIrUnaryOp,
+} from './expr-ir';
 import type { BindingId, ImportBinding } from './plan-types';
 import type { SourceRange } from './types';
 import type { AstNode } from './types';
@@ -86,7 +93,8 @@ function pluginFnNativeName(fnId: string): string {
  * never gate lowering; they only register per-target implementations for the registry.
  */
 function claimPluginCall(imported: ImportBinding, argCount: number): string | null {
-  if (imported.typeOnly || imported.importedName === '*') {
+  // dollar exports are QRL boundaries owned by the $ transform, not plugin-calls
+  if (imported.typeOnly || imported.importedName === '*' || imported.importedName.endsWith('$')) {
     return null;
   }
   const fnId = `plugin:${imported.source}:${imported.importedName}`;
@@ -469,21 +477,19 @@ function lowerCall(node: AstNode, facts: ExprLowerFacts): ValueIR | null {
         const imported = facts.importOf?.(calleeBinding) ?? null;
         const fnId = imported === null ? null : claimPluginCall(imported, call.arguments.length);
         if (fnId === null) {
-          return null; // unclaimed user function
+          return null; // unaddressable callee (component-local fn)
         }
-        const args = lowerArgs(call.arguments, facts, null);
-        return args === null
-          ? null
-          : { kind: ValueIrKind.PluginCall, fnId, args: args as ValueIR[] };
+        const args = lowerArgs(call.arguments, facts, null, true);
+        return args === null ? null : { kind: ValueIrKind.PluginCall, fnId, args };
       }
-      const args = lowerArgs(call.arguments, facts, null);
-      return args === null ? null : { kind: ValueIrKind.DefCall, def, args: args as ValueIR[] };
+      const args = lowerArgs(call.arguments, facts, null) as ValueIR[] | null;
+      return args === null ? null : { kind: ValueIrKind.DefCall, def, args };
     }
     const op = GLOBAL_OPS.get(getIdentifierName(callee) ?? '');
     if (op === undefined) {
       return null;
     }
-    const args = lowerArgs(call.arguments, facts, null);
+    const args = lowerArgs(call.arguments, facts, null) as (ValueIR | LambdaIR)[] | null;
     return args === null ? null : { kind: ValueIrKind.Call, fn: op, receiver: null, args };
   }
   if (callee.type !== 'MemberExpression') {
@@ -516,7 +522,9 @@ function lowerCall(node: AstNode, facts: ExprLowerFacts): ValueIR | null {
     if (op === 'qwik:json.stringify' && call.arguments.length !== 1) {
       return null; // 1-arg form only (specs/02)
     }
-    const args = lowerArgs(call.arguments, facts, op === 'qwik:array.from' ? 1 : null);
+    const args = lowerArgs(call.arguments, facts, op === 'qwik:array.from' ? 1 : null) as
+      | (ValueIR | LambdaIR)[]
+      | null;
     return args === null ? null : { kind: ValueIrKind.Call, fn: op, receiver: null, args };
   }
   // method op: x.trim(), rows.filter(fn), ... — receiver must itself lower
@@ -529,7 +537,9 @@ function lowerCall(node: AstNode, facts: ExprLowerFacts): ValueIR | null {
   if (receiver === null) {
     return null;
   }
-  const args = lowerArgs(call.arguments, facts, higherOrder !== undefined ? 0 : null);
+  const args = lowerArgs(call.arguments, facts, higherOrder !== undefined ? 0 : null) as
+    | (ValueIR | LambdaIR)[]
+    | null;
   return args === null ? null : { kind: ValueIrKind.Call, fn: op, receiver, args };
 }
 
@@ -537,9 +547,10 @@ function lowerCall(node: AstNode, facts: ExprLowerFacts): ValueIR | null {
 function lowerArgs(
   argumentNodes: unknown[],
   facts: ExprLowerFacts,
-  lambdaAt: number | null
-): (ValueIR | LambdaIR)[] | null {
-  const args: (ValueIR | LambdaIR)[] = [];
+  lambdaAt: number | null,
+  pluginArgs = false
+): (ValueIR | LambdaIR | RenderArgIR)[] | null {
+  const args: (ValueIR | LambdaIR | RenderArgIR)[] = [];
   for (let i = 0; i < argumentNodes.length; i++) {
     const argument = unwrapExpression(argumentNodes[i]);
     if (argument === null || argument === undefined) {
@@ -548,13 +559,25 @@ function lowerArgs(
     if (argument.type === 'SpreadElement') {
       return null;
     }
-    if (i === lambdaAt && argument.type === 'ArrowFunctionExpression') {
+    const isFn =
+      argument.type === 'ArrowFunctionExpression' || argument.type === 'FunctionExpression';
+    if ((i === lambdaAt || pluginArgs) && isFn) {
       const lambda = lowerLambda(argument, facts);
-      if (lambda === null) {
-        return null;
+      if (lambda !== null) {
+        args.push(lambda);
+        continue;
       }
-      args.push(lambda);
-      continue;
+      if (pluginArgs) {
+        // render-bodied callback: a range placeholder the plan emitter resolves against
+        // the value's embedded renders — or fails the whole lowering if none matches
+        const range = getRange(argument);
+        const params = lambdaParams(argument, facts);
+        if (range !== null && params !== null) {
+          args.push({ kind: 'render-arg', params, range: [range[0], range[1]] });
+          continue;
+        }
+      }
+      return null;
     }
     const value = lowerValueIr(argument, facts);
     if (value === null) {
@@ -565,13 +588,11 @@ function lowerArgs(
   return args;
 }
 
-function lowerLambda(node: AstNode, facts: ExprLowerFacts): LambdaIR | null {
-  const arrow = node as {
-    params: unknown[];
-    body: unknown;
-    async?: boolean;
-    generator?: boolean;
-  };
+function lambdaParams(
+  node: AstNode,
+  facts: ExprLowerFacts
+): { name: string; binding: BindingId | null }[] | null {
+  const arrow = node as { params: unknown[]; async?: boolean; generator?: boolean };
   if (arrow.async === true || arrow.generator === true) {
     return null;
   }
@@ -583,9 +604,18 @@ function lowerLambda(node: AstNode, facts: ExprLowerFacts): LambdaIR | null {
     }
     params.push({ name, binding: facts.bindingIdAt(getRange(param)) });
   }
+  return params;
+}
+
+function lowerLambda(node: AstNode, facts: ExprLowerFacts): LambdaIR | null {
+  const arrow = node as { body: unknown };
+  const params = lambdaParams(node, facts);
+  if (params === null) {
+    return null;
+  }
   const body = unwrapExpression(arrow.body) ?? arrow.body;
   const bodyExpression = singleReturnExpression(body as AstNode) ?? body;
-  const lowered = lowerValueIr(bodyExpression, facts);
+  const lowered = lowerValueIr(bodyExpression as AstNode, facts);
   return lowered === null ? null : { kind: 'lambda', params, body: lowered };
 }
 

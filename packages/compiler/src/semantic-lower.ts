@@ -1258,6 +1258,7 @@ class SemanticLowerer {
           compilerString: false,
           boundaries: this.referenceInlineBoundaries(range, lifetimeId),
           embeddedRenders: inlineEmbeddedRenders,
+          ...this.valueIr(expression),
         }
       : this.createValue(
           expression,

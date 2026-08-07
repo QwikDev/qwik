@@ -86,8 +86,21 @@ export type ValueIR =
       readonly kind: ValueIrKind.PluginCall;
       /** `plugin:<module>:<export>` — user-plugin fn id (specs/09). */
       readonly fnId: string;
-      readonly args: readonly ValueIR[];
+      readonly args: readonly (ValueIR | LambdaIR | RenderArgIR)[];
     };
+
+/**
+ * A render-bodied callback argument: the callback renders a block. Lowering emits a range
+ * placeholder; plan emission resolves it to the embedded render's structural block (`render`).
+ */
+export interface RenderArgIR {
+  readonly kind: 'render-arg';
+  readonly params: readonly { readonly name: string; readonly binding: BindingId | null }[];
+  /** Resolution-stage only: the callback's source range, matched against embeddedRenders. */
+  readonly range?: readonly [number, number];
+  /** The planned block, inline on the wire after resolution. */
+  readonly render?: unknown;
+}
 
 /** Restricted lambda: only as a direct argument to a higher-order op; pure by construction. */
 export interface LambdaIR {

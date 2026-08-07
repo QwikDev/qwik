@@ -3,16 +3,7 @@ import { isModuleStyleBoundary } from './emit-qrl';
 import type { PluginFnPlan } from './expr-lower';
 import { shouldResolveSsrSegment } from './emit-segment';
 import type { ValueIR } from './expr-ir';
-import type {
-  CollectionPlan,
-  ComponentOutput,
-  OrderedPropPlan,
-  RenderFunctionPlan,
-  RenderNodePlan,
-  SegmentPlan,
-  SetupPlan,
-  ValuePlan,
-} from './plan-types';
+import type { ComponentOutput, SegmentPlan, SetupPlan } from './plan-types';
 import { SetupOpKind } from './setup-ir';
 import type { SetupOp } from './setup-ir';
 import type { SourceRange } from './types';
@@ -79,7 +70,6 @@ export interface PlanComponent {
   /** SSR-structural ops — the byte-parity layer engines render from; null when unplannable. */
   readonly ssr: PlanSsrComponent | null;
   readonly setup: readonly PlanSetupEntry[];
-  readonly render: readonly PlanNode[];
   readonly needsId: boolean;
   readonly idBase: string;
   readonly styleScope: string | null;
@@ -140,95 +130,6 @@ export type PlanValue =
   | { readonly kind: 'segment'; readonly segment: string }
   | { readonly kind: 'js'; readonly src: string; readonly pure?: true };
 
-export interface PlanRenderFn {
-  readonly setup: readonly PlanSetupEntry[];
-  readonly render: readonly PlanNode[];
-}
-
-export const enum PlanNodeKind {
-  Text = 'text',
-  Element = 'el',
-  Dynamic = 'dyn',
-  Component = 'component',
-  Branch = 'branch',
-  Suspense = 'suspense',
-  Slot = 'slot',
-  Collection = 'collection',
-}
-
-export const enum PlanPropKind {
-  Static = 'static',
-  Dynamic = 'dynamic',
-  Spread = 'spread',
-  Event = 'event',
-  Bind = 'bind',
-}
-
-export type PlanNode =
-  | { readonly n: PlanNodeKind.Text; readonly value: string }
-  | {
-      readonly n: PlanNodeKind.Element;
-      readonly tag: string;
-      readonly props: readonly PlanProp[];
-      readonly children: readonly PlanNode[];
-    }
-  | {
-      readonly n: PlanNodeKind.Dynamic;
-      readonly output: 'text' | 'content';
-      readonly value: PlanValue;
-    }
-  | {
-      readonly n: PlanNodeKind.Component;
-      /** Module plans emit a binding id or tag source; the linker resolves to `{ ref }`. */
-      readonly target: number | string | { readonly ref: number };
-      readonly props: readonly PlanProp[];
-      readonly slots: readonly { readonly name: string; readonly render: PlanRenderFn }[];
-    }
-  | {
-      readonly n: PlanNodeKind.Branch;
-      readonly condition: PlanValue;
-      readonly then: PlanRenderFn;
-      readonly else: PlanRenderFn | null;
-    }
-  | {
-      readonly n: PlanNodeKind.Suspense;
-      readonly content: PlanRenderFn;
-      readonly fallback: PlanValue | null;
-      readonly delay: PlanValue | null;
-      readonly blocking: boolean;
-    }
-  | { readonly n: PlanNodeKind.Slot; readonly name: string; readonly fallback: PlanRenderFn | null }
-  | {
-      readonly n: PlanNodeKind.Collection;
-      readonly source: PlanCollectionSource;
-      readonly key: PlanValue | null;
-      readonly row: PlanRenderFn;
-      readonly usesIndexSignal: boolean;
-    };
-
-export type PlanCollectionSource =
-  | { readonly kind: 'direct-array'; readonly src: string; readonly ir?: ValueIR }
-  | { readonly kind: 'direct-reactive'; readonly src: string; readonly signal: string }
-  | {
-      readonly kind: 'derived';
-      readonly src: string;
-      readonly segment: string;
-      readonly ir?: ValueIR;
-    };
-
-export type PlanProp =
-  | { readonly p: PlanPropKind.Static; readonly name: string; readonly value: unknown }
-  | { readonly p: PlanPropKind.Dynamic; readonly name: string; readonly value: PlanValue }
-  | { readonly p: PlanPropKind.Spread; readonly value: PlanValue }
-  | {
-      readonly p: PlanPropKind.Event;
-      readonly name: string;
-      readonly passive: boolean;
-      readonly value: PlanValue;
-    }
-  | { readonly p: PlanPropKind.Bind; readonly name: 'value' | 'checked'; readonly value: PlanValue }
-  | { readonly p: string; readonly src: string };
-
 export interface PlanSegmentMeta {
   readonly id: string;
   readonly symbolName: string;
@@ -267,20 +168,6 @@ export function emitModulePlan(
 ): QwikModulePlan {
   const slice = (range: SourceRange) => source.slice(range[0], range[1]);
 
-  const planValue = (value: ValuePlan): PlanValue => {
-    if (value.kind !== 'render-value' && value.ir !== undefined) {
-      return {
-        kind: 'ir',
-        ir: value.ir,
-        ...(value.kind === 'segment' ? { segment: value.segment.segmentId } : {}),
-      };
-    }
-    if (value.kind === 'segment') {
-      return { kind: 'segment', segment: value.segment.segmentId };
-    }
-    return { kind: 'js', src: slice(value.expression) };
-  };
-
   const planSetup = (setup: readonly SetupPlan[]): PlanSetupEntry[] =>
     setup.map((entry) => {
       if (entry.kind === 'style') {
@@ -308,119 +195,6 @@ export function emitModulePlan(
       return { kind: SetupOpKind.Js, src: slice(entry.range) };
     });
 
-  const planRenderFn = (fn: RenderFunctionPlan): PlanRenderFn => ({
-    setup: planSetup(fn.setup),
-    render: fn.render.roots.map(planNode),
-  });
-
-  const planProp = (prop: OrderedPropPlan): PlanProp => {
-    switch (prop.kind) {
-      case 'static':
-        return { p: PlanPropKind.Static, name: prop.name, value: prop.value };
-      case 'dynamic':
-        return { p: PlanPropKind.Dynamic, name: prop.name, value: planValue(prop.value) };
-      case 'spread':
-        return { p: PlanPropKind.Spread, value: planValue(prop.value) };
-      case 'event':
-        return {
-          p: PlanPropKind.Event,
-          name: prop.name,
-          passive: prop.passive,
-          value: planValue(prop.value),
-        };
-      case 'bind':
-        return { p: PlanPropKind.Bind, name: prop.name, value: planValue(prop.value) };
-      default:
-        return { p: prop.kind, src: slice(prop.range) };
-    }
-  };
-
-  const planCollectionSource = (collection: CollectionPlan): PlanCollectionSource => {
-    const collectionSource = collection.source;
-    switch (collectionSource.kind) {
-      case 'direct-array':
-        return {
-          kind: 'direct-array',
-          src: slice(collectionSource.expression),
-          ...(collectionSource.ir !== undefined ? { ir: collectionSource.ir } : {}),
-        };
-      case 'direct-reactive':
-        return {
-          kind: 'direct-reactive',
-          src: slice(collectionSource.expression),
-          signal: slice(collectionSource.source),
-        };
-      case 'derived':
-        return {
-          kind: 'derived',
-          src: slice(collectionSource.expression),
-          segment: collectionSource.segment.segmentId,
-          ...(collectionSource.ir !== undefined ? { ir: collectionSource.ir } : {}),
-        };
-    }
-  };
-
-  const planNode = (node: RenderNodePlan): PlanNode => {
-    switch (node.kind) {
-      case 'static-text':
-        return { n: PlanNodeKind.Text, value: node.value };
-      case 'element':
-        return {
-          n: PlanNodeKind.Element,
-          tag: node.tag,
-          props: node.props.map(planProp),
-          children: node.children.map(planNode),
-        };
-      case 'dynamic-value':
-        return { n: PlanNodeKind.Dynamic, output: node.output, value: planValue(node.value) };
-      case 'component':
-        return {
-          n: PlanNodeKind.Component,
-          target: node.bindingId ?? slice(node.tagRange),
-          props: node.props.map(planProp),
-          slots: node.slots.map((slot) => ({ name: slot.name, render: planRenderFn(slot.render) })),
-        };
-      case 'branch':
-        return {
-          n: PlanNodeKind.Branch,
-          // src stays empty: the JS engine evaluates branch conditions via the segment
-          condition:
-            node.conditionIr !== undefined
-              ? { kind: 'ir', ir: node.conditionIr, segment: node.condition.segmentId }
-              : { kind: 'segment', segment: node.condition.segmentId },
-          then: planRenderFn(node.then),
-          else: node.else === null ? null : planRenderFn(node.else),
-        };
-      case 'suspense':
-        return {
-          n: PlanNodeKind.Suspense,
-          content: planRenderFn(node.content),
-          fallback: node.fallback === null ? null : planValue(node.fallback),
-          delay: node.delay === null ? null : planValue(node.delay),
-          blocking: node.blocking,
-        };
-      case 'slot':
-        return {
-          n: PlanNodeKind.Slot,
-          name: node.name,
-          fallback: node.fallback === null ? null : planRenderFn(node.fallback),
-        };
-      case 'collection':
-        return {
-          n: PlanNodeKind.Collection,
-          source: planCollectionSource(node),
-          key:
-            node.key === null
-              ? null
-              : node.keyIr !== undefined
-                ? { kind: 'ir', ir: node.keyIr, segment: node.key.segmentId }
-                : { kind: 'segment', segment: node.key.segmentId },
-          row: planRenderFn(node.row),
-          usesIndexSignal: node.usesIndexSignal,
-        };
-    }
-  };
-
   const componentProps = (
     parameter: ComponentOutput['result']['shape']['parameter']
   ): PlanComponentProps =>
@@ -440,7 +214,6 @@ export function emitModulePlan(
     props: componentProps(output.result.shape.parameter),
     ssr: emitSsrOpPlan(output.result, output.result.segments, returnMode, source, bindingName),
     setup: planSetup(output.result.setup),
-    render: output.result.render.roots.map(planNode),
     needsId: output.result.needsId,
     idBase: output.result.idBase,
     styleScope: output.result.styleScope,

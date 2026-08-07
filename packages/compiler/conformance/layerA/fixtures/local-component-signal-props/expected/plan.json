@@ -140,33 +140,6 @@
           "src": "function Badge({ n }) {\n\t\treturn <b class=\"badge\">{n}</b>;\n\t}"
         }
       ],
-      "render": [
-        {
-          "n": "el",
-          "tag": "div",
-          "props": [],
-          "children": [
-            {
-              "n": "component",
-              "target": 3,
-              "props": [
-                {
-                  "p": "dynamic",
-                  "name": "n",
-                  "value": {
-                    "kind": "ir",
-                    "ir": {
-                      "kind": "signal-read",
-                      "binding": 2
-                    }
-                  }
-                }
-              ],
-              "slots": []
-            }
-          ]
-        }
-      ],
       "needsId": false,
       "idBase": "qApp-",
       "styleScope": null,

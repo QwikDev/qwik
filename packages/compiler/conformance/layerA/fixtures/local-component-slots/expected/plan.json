@@ -160,47 +160,6 @@
           "src": "function Card({ kind }) {\n\t\treturn <div class={kind}>\n        <Slot />\n      </div>;\n\t}"
         }
       ],
-      "render": [
-        {
-          "n": "component",
-          "target": 4,
-          "props": [
-            {
-              "p": "static",
-              "name": "kind",
-              "value": "box"
-            }
-          ],
-          "slots": [
-            {
-              "name": "",
-              "render": {
-                "setup": [],
-                "render": [
-                  {
-                    "n": "el",
-                    "tag": "p",
-                    "props": [],
-                    "children": [
-                      {
-                        "n": "dyn",
-                        "output": "text",
-                        "value": {
-                          "kind": "ir",
-                          "ir": {
-                            "kind": "signal-read",
-                            "binding": 3
-                          }
-                        }
-                      }
-                    ]
-                  }
-                ]
-              }
-            }
-          ]
-        }
-      ],
       "needsId": false,
       "idBase": "qApp-",
       "styleScope": null,

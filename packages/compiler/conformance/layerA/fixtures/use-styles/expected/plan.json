@@ -87,32 +87,6 @@
           }
         }
       ],
-      "render": [
-        {
-          "n": "el",
-          "tag": "p",
-          "props": [
-            {
-              "p": "static",
-              "name": "class",
-              "value": "card"
-            }
-          ],
-          "children": [
-            {
-              "n": "dyn",
-              "output": "text",
-              "value": {
-                "kind": "ir",
-                "ir": {
-                  "kind": "signal-read",
-                  "binding": 3
-                }
-              }
-            }
-          ]
-        }
-      ],
       "needsId": false,
       "idBase": "qApp-",
       "styleScope": null,

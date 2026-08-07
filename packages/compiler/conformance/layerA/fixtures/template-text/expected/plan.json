@@ -79,34 +79,6 @@
           }
         }
       ],
-      "render": [
-        {
-          "n": "el",
-          "tag": "p",
-          "props": [],
-          "children": [
-            {
-              "n": "dyn",
-              "output": "text",
-              "value": {
-                "kind": "ir",
-                "ir": {
-                  "kind": "template",
-                  "parts": [
-                    "Hello ",
-                    {
-                      "kind": "signal-read",
-                      "binding": 2
-                    },
-                    "!"
-                  ]
-                },
-                "segment": "segment_0"
-              }
-            }
-          ]
-        }
-      ],
       "needsId": false,
       "idBase": "qApp-",
       "styleScope": null,

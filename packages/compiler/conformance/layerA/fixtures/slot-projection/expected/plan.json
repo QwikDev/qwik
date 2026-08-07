@@ -86,49 +86,6 @@
         "flushTasks": false
       },
       "setup": [],
-      "render": [
-        {
-          "n": "el",
-          "tag": "article",
-          "props": [
-            {
-              "p": "static",
-              "name": "class",
-              "value": "card"
-            }
-          ],
-          "children": [
-            {
-              "n": "el",
-              "tag": "h2",
-              "props": [],
-              "children": [
-                {
-                  "n": "dyn",
-                  "output": "text",
-                  "value": {
-                    "kind": "ir",
-                    "ir": {
-                      "kind": "member",
-                      "obj": {
-                        "kind": "binding-read",
-                        "binding": 4
-                      },
-                      "name": "title"
-                    },
-                    "segment": "segment_0"
-                  }
-                }
-              ]
-            },
-            {
-              "n": "slot",
-              "name": "",
-              "fallback": null
-            }
-          ]
-        }
-      ],
       "needsId": false,
       "idBase": "qCard-",
       "styleScope": null,
@@ -237,53 +194,6 @@
             "kind": "lit",
             "value": 3
           }
-        }
-      ],
-      "render": [
-        {
-          "n": "component",
-          "target": {
-            "ref": 0
-          },
-          "props": [
-            {
-              "p": "static",
-              "name": "title",
-              "value": "totals"
-            }
-          ],
-          "slots": [
-            {
-              "name": "",
-              "render": {
-                "setup": [],
-                "render": [
-                  {
-                    "n": "el",
-                    "tag": "p",
-                    "props": [],
-                    "children": [
-                      {
-                        "n": "text",
-                        "value": "Count is "
-                      },
-                      {
-                        "n": "dyn",
-                        "output": "text",
-                        "value": {
-                          "kind": "ir",
-                          "ir": {
-                            "kind": "signal-read",
-                            "binding": 5
-                          }
-                        }
-                      }
-                    ]
-                  }
-                ]
-              }
-            }
-          ]
         }
       ],
       "needsId": false,

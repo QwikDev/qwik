@@ -218,45 +218,6 @@
           }
         }
       ],
-      "render": [
-        {
-          "n": "el",
-          "tag": "p",
-          "props": [
-            {
-              "p": "dynamic",
-              "name": "title",
-              "value": {
-                "kind": "ir",
-                "ir": {
-                  "kind": "signal-read",
-                  "binding": 5
-                }
-              }
-            }
-          ],
-          "children": [
-            {
-              "n": "el",
-              "tag": "output",
-              "props": [],
-              "children": [
-                {
-                  "n": "dyn",
-                  "output": "text",
-                  "value": {
-                    "kind": "ir",
-                    "ir": {
-                      "kind": "signal-read",
-                      "binding": 6
-                    }
-                  }
-                }
-              ]
-            }
-          ]
-        }
-      ],
       "needsId": false,
       "idBase": "qApp-",
       "styleScope": null,

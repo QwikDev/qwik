@@ -1,12 +1,5 @@
-import type {
-  PlanImportMeta,
-  PlanNode,
-  PlanRenderFn,
-  PlanSegmentMeta,
-  QwikModulePlan,
-} from './emit-plan';
+import type { PlanImportMeta, PlanSegmentMeta, QwikModulePlan } from './emit-plan';
 import type { PluginFnPlan } from './expr-lower';
-import { PlanNodeKind } from './emit-plan';
 import type { PlanSsrComponent, PlanSsrOp, PlanSsrRenderFn } from './emit-plan-ssr';
 import { SsrOpKind } from './emit-plan-ssr';
 import { SetupOpKind } from './setup-ir';
@@ -49,7 +42,6 @@ export interface LinkedComponent {
   readonly props: QwikModulePlan['components'][number]['props'];
   readonly ssr: QwikModulePlan['components'][number]['ssr'];
   readonly setup: QwikModulePlan['components'][number]['setup'];
-  readonly render: readonly PlanNode[];
   readonly needsId: boolean;
   readonly idBase: string;
   readonly styleScope: string | null;
@@ -123,28 +115,11 @@ export function linkSsrPlan(
 
   modulePlans.forEach((modulePlan, moduleIndex) => {
     const offset = componentOffsets[moduleIndex];
-    const componentIndexByBinding = new Map<number, number>();
-    modulePlan.components.forEach((component, index) => {
-      if (component.binding !== null) {
-        componentIndexByBinding.set(component.binding, offset + index);
-      }
-    });
     const componentIndexByName = new Map(
       modulePlan.components.map((component, index) => [component.name, offset + index] as const)
     );
-    const importByBinding = new Map(modulePlan.imports.map((entry) => [entry.binding, entry]));
     const importByName = new Map(modulePlan.imports.map((entry) => [entry.name, entry]));
 
-    const resolveBindingTarget = (binding: number): number | null => {
-      const local = componentIndexByBinding.get(binding);
-      if (local !== undefined) {
-        return local;
-      }
-      const importMeta = importByBinding.get(binding);
-      return importMeta === undefined
-        ? null
-        : resolveImportedComponent(modulePlan.path, importMeta);
-    };
     const resolveNameTarget = (name: string): number | null => {
       const local = componentIndexByName.get(name);
       if (local !== undefined) {
@@ -172,63 +147,6 @@ export function linkSsrPlan(
         collectLocalComponents(component.ssr.setup);
       }
     }
-
-    const linkNodes = (nodes: readonly PlanNode[]): PlanNode[] => nodes.map(linkNode);
-    const linkRenderFn = (fn: PlanRenderFn): PlanRenderFn => ({
-      setup: fn.setup,
-      render: linkNodes(fn.render),
-    });
-    const linkNode = (node: PlanNode): PlanNode => {
-      switch (node.n) {
-        case PlanNodeKind.Element:
-          return { ...node, children: linkNodes(node.children) };
-        case PlanNodeKind.Component: {
-          const target = node.target;
-          if (typeof target === 'object') {
-            return node; // already linked
-          }
-          if (moduleLocalComponents.has(target)) {
-            return {
-              ...node,
-              slots: node.slots.map((slot) => ({
-                name: slot.name,
-                render: linkRenderFn(slot.render),
-              })),
-            };
-          }
-          const resolved =
-            typeof target === 'number' ? resolveBindingTarget(target) : resolveNameTarget(target);
-          if (resolved === null) {
-            unresolved.push(target);
-          }
-          return {
-            ...node,
-            target: resolved !== null ? { ref: resolved } : target,
-            slots: node.slots.map((slot) => ({
-              name: slot.name,
-              render: linkRenderFn(slot.render),
-            })),
-          };
-        }
-        case PlanNodeKind.Branch:
-          return {
-            ...node,
-            then: linkRenderFn(node.then),
-            else: node.else === null ? null : linkRenderFn(node.else),
-          };
-        case PlanNodeKind.Suspense:
-          return { ...node, content: linkRenderFn(node.content) };
-        case PlanNodeKind.Slot:
-          return {
-            ...node,
-            fallback: node.fallback === null ? null : linkRenderFn(node.fallback),
-          };
-        case PlanNodeKind.Collection:
-          return { ...node, row: linkRenderFn(node.row) };
-        default:
-          return node;
-      }
-    };
 
     const linkSsrOps = (ops: readonly PlanSsrOp[]): PlanSsrOp[] => ops.map(linkSsrOp);
     // lexical scopes of local-component names; string targets resolve here before modules/imports
@@ -330,7 +248,6 @@ export function linkSsrPlan(
         props: component.props,
         ssr: component.ssr === null ? null : linkSsrComponent(component.ssr),
         setup: component.setup,
-        render: linkNodes(component.render),
         needsId: component.needsId,
         idBase: component.idBase,
         styleScope: component.styleScope,

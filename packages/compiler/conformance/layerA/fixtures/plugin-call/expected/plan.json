@@ -132,66 +132,6 @@
           }
         }
       ],
-      "render": [
-        {
-          "n": "el",
-          "tag": "main",
-          "props": [],
-          "children": [
-            {
-              "n": "el",
-              "tag": "b",
-              "props": [
-                {
-                  "p": "static",
-                  "name": "id",
-                  "value": "text"
-                }
-              ],
-              "children": [
-                {
-                  "n": "dyn",
-                  "output": "content",
-                  "value": {
-                    "kind": "ir",
-                    "ir": {
-                      "kind": "signal-read",
-                      "binding": 3
-                    },
-                    "segment": "segment_0"
-                  }
-                }
-              ]
-            },
-            {
-              "n": "el",
-              "tag": "button",
-              "props": [
-                {
-                  "p": "static",
-                  "name": "id",
-                  "value": "shout"
-                },
-                {
-                  "p": "event",
-                  "name": "onClick$",
-                  "passive": false,
-                  "value": {
-                    "kind": "segment",
-                    "segment": "segment_1"
-                  }
-                }
-              ],
-              "children": [
-                {
-                  "n": "text",
-                  "value": "shout"
-                }
-              ]
-            }
-          ]
-        }
-      ],
       "needsId": false,
       "idBase": "qApp-",
       "styleScope": null,

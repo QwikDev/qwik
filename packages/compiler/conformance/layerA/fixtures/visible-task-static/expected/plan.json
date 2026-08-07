@@ -69,19 +69,6 @@
           "strategy": "intersection-observer"
         }
       ],
-      "render": [
-        {
-          "n": "el",
-          "tag": "div",
-          "props": [],
-          "children": [
-            {
-              "n": "text",
-              "value": "hi"
-            }
-          ]
-        }
-      ],
       "needsId": false,
       "idBase": "qApp-",
       "styleScope": null,

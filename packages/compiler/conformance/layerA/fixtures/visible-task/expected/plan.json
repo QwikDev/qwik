@@ -81,26 +81,6 @@
           "strategy": "intersection-observer"
         }
       ],
-      "render": [
-        {
-          "n": "el",
-          "tag": "output",
-          "props": [],
-          "children": [
-            {
-              "n": "dyn",
-              "output": "text",
-              "value": {
-                "kind": "ir",
-                "ir": {
-                  "kind": "signal-read",
-                  "binding": 3
-                }
-              }
-            }
-          ]
-        }
-      ],
       "needsId": false,
       "idBase": "qApp-",
       "styleScope": null,

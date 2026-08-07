@@ -97,19 +97,6 @@
           }
         }
       ],
-      "render": [
-        {
-          "n": "el",
-          "tag": "p",
-          "props": [],
-          "children": [
-            {
-              "n": "text",
-              "value": "child"
-            }
-          ]
-        }
-      ],
       "needsId": false,
       "idBase": "qChild-",
       "styleScope": null,
@@ -221,63 +208,6 @@
             "kind": "lit",
             "value": "initial"
           }
-        }
-      ],
-      "render": [
-        {
-          "n": "el",
-          "tag": "div",
-          "props": [],
-          "children": [
-            {
-              "n": "el",
-              "tag": "span",
-              "props": [
-                {
-                  "p": "dynamic",
-                  "name": "title",
-                  "value": {
-                    "kind": "ir",
-                    "ir": {
-                      "kind": "signal-read",
-                      "binding": 6
-                    }
-                  }
-                }
-              ],
-              "children": [
-                {
-                  "n": "text",
-                  "value": "ready"
-                }
-              ]
-            },
-            {
-              "n": "component",
-              "target": {
-                "ref": 0
-              },
-              "props": [
-                {
-                  "p": "dynamic",
-                  "name": "value",
-                  "value": {
-                    "kind": "ir",
-                    "ir": {
-                      "kind": "binding-read",
-                      "binding": 6
-                    }
-                  }
-                },
-                {
-                  "p": "static",
-                  "name": "final",
-                  "value": "final"
-                }
-              ],
-              "slots": []
-            }
-          ]
         }
       ],
       "needsId": false,

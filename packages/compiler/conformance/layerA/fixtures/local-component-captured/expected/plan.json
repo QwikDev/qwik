@@ -272,44 +272,6 @@
           "src": "function Filter({ name }) {\n\t\tconst lower = name.toLowerCase();\n\t\treturn <li>\n        <a class={{ selected: todos.filter == lower }} onClick$={() => {\n\t\t\ttodos.filter = lower;\n\t\t}}>\n          {name.toUpperCase()}\n        </a>\n      </li>;\n\t}"
         }
       ],
-      "render": [
-        {
-          "n": "el",
-          "tag": "ul",
-          "props": [],
-          "children": [
-            {
-              "n": "branch",
-              "condition": {
-                "kind": "ir",
-                "ir": {
-                  "kind": "signal-read",
-                  "binding": 4
-                },
-                "segment": "segment_2"
-              },
-              "then": {
-                "setup": [],
-                "render": [
-                  {
-                    "n": "component",
-                    "target": 5,
-                    "props": [
-                      {
-                        "p": "static",
-                        "name": "name",
-                        "value": "All"
-                      }
-                    ],
-                    "slots": []
-                  }
-                ]
-              },
-              "else": null
-            }
-          ]
-        }
-      ],
       "needsId": false,
       "idBase": "qApp-",
       "styleScope": null,

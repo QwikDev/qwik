@@ -155,56 +155,6 @@
           "deep": true
         }
       ],
-      "render": [
-        {
-          "n": "el",
-          "tag": "form",
-          "props": [],
-          "children": [
-            {
-              "n": "el",
-              "tag": "input",
-              "props": [
-                {
-                  "p": "bind",
-                  "name": "value",
-                  "value": {
-                    "kind": "ir",
-                    "ir": {
-                      "kind": "binding-read",
-                      "binding": 3
-                    }
-                  }
-                }
-              ],
-              "children": []
-            },
-            {
-              "n": "el",
-              "tag": "output",
-              "props": [],
-              "children": [
-                {
-                  "n": "dyn",
-                  "output": "text",
-                  "value": {
-                    "kind": "ir",
-                    "ir": {
-                      "kind": "member",
-                      "obj": {
-                        "kind": "binding-read",
-                        "binding": 4
-                      },
-                      "name": "sent"
-                    },
-                    "segment": "segment_1"
-                  }
-                }
-              ]
-            }
-          ]
-        }
-      ],
       "needsId": false,
       "idBase": "qApp-",
       "styleScope": null,

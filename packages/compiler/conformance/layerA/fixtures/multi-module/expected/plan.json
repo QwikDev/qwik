@@ -117,56 +117,6 @@
           }
         }
       ],
-      "render": [
-        {
-          "n": "el",
-          "tag": "button",
-          "props": [
-            {
-              "p": "event",
-              "name": "onClick$",
-              "passive": false,
-              "value": {
-                "kind": "segment",
-                "segment": "segment_0"
-              }
-            }
-          ],
-          "children": [
-            {
-              "n": "dyn",
-              "output": "text",
-              "value": {
-                "kind": "ir",
-                "ir": {
-                  "kind": "member",
-                  "obj": {
-                    "kind": "binding-read",
-                    "binding": 2
-                  },
-                  "name": "label"
-                },
-                "segment": "segment_1"
-              }
-            },
-            {
-              "n": "text",
-              "value": ": "
-            },
-            {
-              "n": "dyn",
-              "output": "text",
-              "value": {
-                "kind": "ir",
-                "ir": {
-                  "kind": "signal-read",
-                  "binding": 3
-                }
-              }
-            }
-          ]
-        }
-      ],
       "needsId": false,
       "idBase": "qCounter-",
       "styleScope": null,
@@ -238,40 +188,6 @@
         "flushTasks": false
       },
       "setup": [],
-      "render": [
-        {
-          "n": "el",
-          "tag": "main",
-          "props": [],
-          "children": [
-            {
-              "n": "el",
-              "tag": "h1",
-              "props": [],
-              "children": [
-                {
-                  "n": "text",
-                  "value": "Cross-module"
-                }
-              ]
-            },
-            {
-              "n": "component",
-              "target": {
-                "ref": 0
-              },
-              "props": [
-                {
-                  "p": "static",
-                  "name": "label",
-                  "value": "hits"
-                }
-              ],
-              "slots": []
-            }
-          ]
-        }
-      ],
       "needsId": false,
       "idBase": "qApp-",
       "styleScope": null,

@@ -84,36 +84,6 @@
           }
         }
       ],
-      "render": [
-        {
-          "n": "el",
-          "tag": "button",
-          "props": [
-            {
-              "p": "event",
-              "name": "onClick$",
-              "passive": false,
-              "value": {
-                "kind": "segment",
-                "segment": "segment_0"
-              }
-            }
-          ],
-          "children": [
-            {
-              "n": "dyn",
-              "output": "text",
-              "value": {
-                "kind": "ir",
-                "ir": {
-                  "kind": "signal-read",
-                  "binding": 2
-                }
-              }
-            }
-          ]
-        }
-      ],
       "needsId": false,
       "idBase": "qApp-",
       "styleScope": null,

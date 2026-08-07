@@ -73,33 +73,6 @@
           }
         }
       ],
-      "render": [
-        {
-          "n": "el",
-          "tag": "p",
-          "props": [],
-          "children": [
-            {
-              "n": "dyn",
-              "output": "content",
-              "value": {
-                "kind": "ir",
-                "ir": {
-                  "kind": "def-call",
-                  "def": 1,
-                  "args": [
-                    {
-                      "kind": "signal-read",
-                      "binding": 6
-                    }
-                  ]
-                },
-                "segment": "semantic_expression_190_208"
-              }
-            }
-          ]
-        }
-      ],
       "needsId": false,
       "idBase": "qApp-",
       "styleScope": null,

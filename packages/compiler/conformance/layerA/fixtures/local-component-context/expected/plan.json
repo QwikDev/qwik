@@ -170,20 +170,6 @@
           "src": "function Section({ color }) {\n\t\tuseContextProvider(ThemeContext, { color });\n\t\treturn <section>\n        <Label />\n      </section>;\n\t}"
         }
       ],
-      "render": [
-        {
-          "n": "component",
-          "target": 6,
-          "props": [
-            {
-              "p": "static",
-              "name": "color",
-              "value": "red"
-            }
-          ],
-          "slots": []
-        }
-      ],
       "needsId": false,
       "idBase": "qApp-",
       "styleScope": null,

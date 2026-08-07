@@ -94,54 +94,6 @@
           }
         }
       ],
-      "render": [
-        {
-          "n": "el",
-          "tag": "a",
-          "props": [
-            {
-              "p": "dynamic",
-              "name": "class",
-              "value": {
-                "kind": "ir",
-                "ir": {
-                  "kind": "object",
-                  "entries": [
-                    [
-                      "selected",
-                      {
-                        "kind": "signal-read",
-                        "binding": 2
-                      }
-                    ],
-                    [
-                      "muted",
-                      {
-                        "kind": "lit",
-                        "value": false
-                      }
-                    ],
-                    [
-                      "wide",
-                      {
-                        "kind": "lit",
-                        "value": true
-                      }
-                    ]
-                  ]
-                },
-                "segment": "segment_0"
-              }
-            }
-          ],
-          "children": [
-            {
-              "n": "text",
-              "value": "link"
-            }
-          ]
-        }
-      ],
       "needsId": false,
       "idBase": "qApp-",
       "styleScope": null,

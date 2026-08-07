@@ -168,32 +168,6 @@
           "src": "function Badge(props) {\n\t\treturn <b class={props.kind}>\n        {props.label}\n        {count.value}\n      </b>;\n\t}"
         }
       ],
-      "render": [
-        {
-          "n": "el",
-          "tag": "div",
-          "props": [],
-          "children": [
-            {
-              "n": "component",
-              "target": 3,
-              "props": [
-                {
-                  "p": "static",
-                  "name": "label",
-                  "value": "hi"
-                },
-                {
-                  "p": "static",
-                  "name": "kind",
-                  "value": "tag"
-                }
-              ],
-              "slots": []
-            }
-          ]
-        }
-      ],
       "needsId": false,
       "idBase": "qApp-",
       "styleScope": null,

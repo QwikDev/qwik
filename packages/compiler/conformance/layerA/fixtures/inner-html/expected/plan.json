@@ -50,26 +50,6 @@
         "flushTasks": false
       },
       "setup": [],
-      "render": [
-        {
-          "n": "el",
-          "tag": "article",
-          "props": [],
-          "children": [
-            {
-              "n": "el",
-              "tag": "div",
-              "props": [
-                {
-                  "p": "inner-html",
-                  "src": "dangerouslySetInnerHTML=\"<b>bold &amp; raw</b>\""
-                }
-              ],
-              "children": []
-            }
-          ]
-        }
-      ],
       "needsId": false,
       "idBase": "qApp-",
       "styleScope": null,

@@ -247,13 +247,22 @@
         }
       ],
       "contexts": [],
-      "defs": []
+      "defs": [],
+      "imports": []
     },
     {
       "path": "src/input.tsx",
       "segments": [],
       "contexts": [],
-      "defs": []
+      "defs": [],
+      "imports": [
+        {
+          "binding": 0,
+          "name": "Counter",
+          "module": "./child",
+          "export": "Counter"
+        }
+      ]
     }
   ],
   "unresolved": [],

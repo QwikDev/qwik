@@ -93,10 +93,24 @@ export async function buildInterpretedRoot(
     throw new Error(`entry component "${component.name}" has no ssr plan`);
   }
 
+  // fixture modules load by relative specifier with the compiled extension candidates
+  const loadFixtureModule = async (module: string): Promise<Record<string, unknown>> => {
+    const spec = module.replace(/^\.\//, '');
+    for (const candidate of [`${spec}.tsx`, `${spec}.ts`, `${spec}.js`, spec]) {
+      try {
+        return await loadSegment(candidate);
+      } catch {
+        // try the next extension
+      }
+    }
+    throw new Error(`fixture module "${module}" not loadable`);
+  };
+
   // segment ids are module-scoped — each component resolves qrls in its own module's table
   const moduleQrls: Map<string, QrlLike>[] = [];
   const moduleCaptureLists: Map<string, number[]>[] = [];
   const moduleSegmentKinds: Map<string, string>[] = [];
+  const moduleImportValues: Map<number, unknown>[] = [];
   for (const linkedModule of plan.modules) {
     const qrls = new Map<string, QrlLike>();
     for (const segment of linkedModule.segments) {
@@ -126,22 +140,23 @@ export async function buildInterpretedRoot(
     moduleSegmentKinds.push(
       new Map(linkedModule.segments.map((segment) => [segment.id, segment.kind]))
     );
+    // module-scope import values: IR binding-reads of imports resolve to the real export
+    const importValues = new Map<number, unknown>();
+    for (const importMeta of linkedModule.imports ?? []) {
+      if (!importMeta.module.startsWith('.')) {
+        continue;
+      }
+      const loaded = await loadFixtureModule(importMeta.module);
+      importValues.set(importMeta.binding, loaded[importMeta.export]);
+    }
+    moduleImportValues.push(importValues);
   }
 
   // plugin fns run their real JS implementation — the authored module is the JS target,
   // whether or not a native$ registration exists
   const pluginImpls = new Map<string, (...args: unknown[]) => unknown>();
   const loadPluginImpl = async (module: string, exportName: string): Promise<void> => {
-    const spec = module.replace(/^\.\//, '');
-    let loaded: Record<string, unknown> | null = null;
-    for (const candidate of [`${spec}.tsx`, `${spec}.ts`, `${spec}.js`, spec]) {
-      try {
-        loaded = await loadSegment(candidate);
-        break;
-      } catch {
-        // try the next extension
-      }
-    }
+    const loaded = await loadFixtureModule(module).catch(() => null);
     const impl = loaded?.[exportName];
     if (typeof impl !== 'function') {
       throw new Error(`plugin module "${module}" has no ${exportName} export`);
@@ -216,6 +231,7 @@ export async function buildInterpretedRoot(
     const qrls = moduleQrls[interpreted.module];
     const captureLists = moduleCaptureLists[interpreted.module];
     const segmentKinds = moduleSegmentKinds[interpreted.module];
+    const importValues = moduleImportValues[interpreted.module];
     const invokeCtx = getActiveInvokeContextOrNull();
     const locals = nested === undefined ? new Map<number, unknown>() : nested.initialLocals;
     const localComponentBindings = new Map<string, number>(
@@ -270,11 +286,21 @@ export async function buildInterpretedRoot(
           if (destructuredPropValues.has(ir.binding)) {
             return destructuredPropValues.get(ir.binding);
           }
-          if (!locals.has(ir.binding)) {
-            throw new Error(`setup ir reads unknown binding ${ir.binding}`);
+          if (locals.has(ir.binding)) {
+            return locals.get(ir.binding);
           }
-          return locals.get(ir.binding);
+          if (importValues.has(ir.binding)) {
+            return importValues.get(ir.binding);
+          }
+          throw new Error(`setup ir reads unknown binding ${ir.binding}`);
         }
+        // proven signal binding: the emitted JS reads `<local>.value`
+        case 'signal-read':
+          return (
+            evalIr({ kind: 'binding-read', binding: ir.binding } as ValueIR) as {
+              value: unknown;
+            }
+          ).value;
         case 'plugin-call': {
           const impl = pluginImpls.get(ir.fnId);
           if (impl === undefined) {
@@ -282,19 +308,40 @@ export async function buildInterpretedRoot(
           }
           return impl(...ir.args.map(evalIr));
         }
+        case 'member': {
+          const obj = evalIr(ir.obj) as Record<string, unknown> | null | undefined;
+          return ir.optional === true ? obj?.[ir.name] : obj![ir.name];
+        }
         case 'call': {
-          const receiver = ir.receiver === null ? null : evalIr(ir.receiver);
-          // mirror the emitted method call exactly — no coercion
-          switch (ir.fn) {
-            case 'qwik:string.toLowerCase':
-              return (receiver as string).toLowerCase();
-            case 'qwik:string.toUpperCase':
-              return (receiver as string).toUpperCase();
-            case 'qwik:string.trim':
-              return (receiver as string).trim();
-            default:
-              throw new Error(`interpreter cannot evaluate call op "${ir.fn}" in setup yet`);
+          // mirror the emitted call exactly — method on the receiver or a true global
+          const args = ir.args.map((argument) => {
+            if ((argument as { kind?: string }).kind === 'lambda') {
+              throw new Error('interpreter cannot evaluate lambda args in setup yet');
+            }
+            return evalIr(argument as ValueIR);
+          });
+          const method = ir.fn.slice(ir.fn.lastIndexOf('.') + 1);
+          if (ir.receiver !== null) {
+            const receiver = evalIr(ir.receiver) as Record<string, (...a: unknown[]) => unknown>;
+            return receiver[method](...args);
           }
+          const namespace = ir.fn.slice(ir.fn.indexOf(':') + 1, ir.fn.lastIndexOf('.'));
+          const globalOwners: Record<string, object> = {
+            promise: Promise,
+            math: Math,
+            object: Object,
+            json: JSON,
+            array: Array,
+            number: Number,
+            date: Date,
+          };
+          const owner = globalOwners[namespace] as
+            | Record<string, (...a: unknown[]) => unknown>
+            | undefined;
+          if (owner === undefined) {
+            throw new Error(`interpreter cannot evaluate call op "${ir.fn}" in setup yet`);
+          }
+          return owner[method](...args);
         }
         default:
           throw new Error(`interpreter cannot evaluate ir kind "${ir.kind}" in setup yet`);

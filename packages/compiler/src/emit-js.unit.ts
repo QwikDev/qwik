@@ -27,6 +27,7 @@ const FULLY_GENERATED = new Set([
   'context',
   'def-helper',
   'derived-collection',
+  'imported-callback',
   'inner-html',
   'local-component',
   'local-component-captured',

@@ -1293,7 +1293,13 @@ class JsComponentGenerator {
         const item = prop as { name: string; value: { segment?: string; ir?: ValueIR } };
         const segmentId = valueSegment(item.value);
         const ir = valueIr(item.value);
-        if (segmentId !== undefined && (ir === undefined || ir.kind === 'call')) {
+        // composite reactive expressions need the QRL so resume rebuilds the subscription
+        const reactiveComposite =
+          ir !== undefined && ir.kind !== 'signal-read' && irReadsSignal(ir);
+        if (
+          segmentId !== undefined &&
+          (ir === undefined || ir.kind === 'call' || reactiveComposite)
+        ) {
           // derived prop: the QRL rides the sources map so resume rebuilds the getter
           const meta = this.segment(segmentId);
           const qrlName = `prop_qrl_${this.nextTemp++}`;
@@ -1314,7 +1320,10 @@ class JsComponentGenerator {
           markUngeneratable();
         }
         if (ir.kind !== 'signal-read' && ir.kind !== 'binding-read') {
-          // arbitrary expressions read live through a plain getter
+          if (reactiveComposite) {
+            markUngeneratable(); // reactive expression without a backing segment
+          }
+          // non-reactive expressions read through a plain getter
           literalRun().push(`get ${JSON.stringify(item.name)}() { return ${this.irJs(ir)}; }`);
           continue;
         }
@@ -2151,12 +2160,12 @@ class JsComponentGenerator {
       case 'undef':
         return 'undefined';
       case 'binding-read': {
-        const scoped = scope?.get(ir.binding) ?? this.locals.get(ir.binding);
-        if (scoped === undefined) {
-          markUngeneratable();
-        }
-        return scoped;
+        // lambda scope wins; local() covers locals, contexts, and module-scope bindings
+        return scope?.get(ir.binding) ?? this.local(ir.binding);
       }
+      // proven signal binding: the current value reads as `<local>.value`
+      case 'signal-read':
+        return `${scope?.get(ir.binding) ?? this.local(ir.binding)}.value`;
       case 'bin':
         return `(${this.irJs(ir.left, scope)} ${ir.op} ${this.irJs(ir.right, scope)})`;
       case 'template': {
@@ -2258,6 +2267,18 @@ function templateLiteral(text: string): string {
 interface JsStyleScope {
   readonly staticId: string | null;
   readonly runtimeName: string | null;
+}
+
+/** Deep check: does this IR read any signal source? Reactive values need tracked emission. */
+function irReadsSignal(node: unknown): boolean {
+  if (Array.isArray(node)) {
+    return node.some(irReadsSignal);
+  }
+  if (typeof node !== 'object' || node === null) {
+    return false;
+  }
+  const record = node as Record<string, unknown>;
+  return record.kind === 'signal-read' || Object.values(record).some(irReadsSignal);
 }
 
 /** Trailing `, undefined, <scope>` args for attr render calls; empty when unscoped. */

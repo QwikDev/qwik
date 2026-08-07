@@ -67,7 +67,8 @@
       "path": "src/input.tsx",
       "segments": [],
       "contexts": [],
-      "defs": []
+      "defs": [],
+      "imports": []
     }
   ],
   "unresolved": [],

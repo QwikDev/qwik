@@ -25,10 +25,10 @@ import {
   createComponent,
   readTrackedSourceValue,
   _props,
-  createPropsProxy,
-  useComputedQrl,
   getActiveInvokeContextOrNull,
   invoke,
+  createPropsProxy,
+  useComputedQrl,
   maybeThen,
   _qrlWithChunk,
 } from '@qwik.dev/core';
@@ -64,10 +64,10 @@ q_component_componentProps_segment_5_1y122wpzrogxn.s(
 export function App(props, ctx) {
   const count = useSignal(1);
   const attributes = useSignal({ title: 'spread' });
-  const invokeCtx5 = getActiveInvokeContextOrNull();
-  const component0 = createComponent(importedAttrs, (props) => Child(props, ctx));
-  const component1 = () =>
-    invoke(invokeCtx5, () => {
+  const component_0 = createComponent(importedAttrs, (props) => Child(props, ctx));
+  const invokeCtx = getActiveInvokeContextOrNull();
+  const component_1 = () =>
+    invoke(invokeCtx, () => {
       ctx.addRoot(count);
       return createComponent(
         _props(
@@ -81,8 +81,8 @@ export function App(props, ctx) {
         (props) => Child(props, ctx)
       );
     });
-  const component2 = () =>
-    invoke(invokeCtx5, () => {
+  const component_2 = () =>
+    invoke(invokeCtx, () => {
       ctx.addRoot(attributes);
       return createComponent(
         createPropsProxy(
@@ -91,8 +91,11 @@ export function App(props, ctx) {
         (props) => Child(props, ctx)
       );
     });
-  const component3 = () =>
-    invoke(invokeCtx5, () => {
+  const component_3 = () =>
+    invoke(invokeCtx, () => {
+      ctx.addRoot(attributes);
+      ctx.addRoot(count);
+      ctx.addRoot(count);
       return createComponent(
         createPropsProxy(
           useComputedQrl(q_component_componentProps_segment_3_1y1258wn8ot0t.w([attributes, count]))
@@ -100,8 +103,9 @@ export function App(props, ctx) {
         (props) => Child(props, ctx)
       );
     });
-  const component4 = () =>
-    invoke(invokeCtx5, () => {
+  const component_4 = () =>
+    invoke(invokeCtx, () => {
+      ctx.addRoot(count);
       return createComponent(
         createPropsProxy(
           useComputedQrl(q_component_componentProps_segment_5_1y122wpzrogxn.w([count]))
@@ -109,17 +113,17 @@ export function App(props, ctx) {
         (props) => Child(props, ctx)
       );
     });
-  return maybeThen(component0, (component0) =>
-    maybeThen(component1(), (component1) =>
-      maybeThen(component2(), (component2) =>
-        maybeThen(component3(), (component3) =>
-          maybeThen(component4(), (component4) => [
+  return maybeThen(component_0, (component_0) =>
+    maybeThen(component_1(), (component_1) =>
+      maybeThen(component_2(), (component_2) =>
+        maybeThen(component_3(), (component_3) =>
+          maybeThen(component_4(), (component_4) => [
             createSsrElementRecord('main', '<main', '>'),
-            component0,
-            component1,
-            component2,
-            component3,
-            component4,
+            component_0,
+            component_1,
+            component_2,
+            component_3,
+            component_4,
             '</main>',
           ])
         )

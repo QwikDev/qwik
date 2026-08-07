@@ -32,6 +32,7 @@ export interface LinkedModule {
     readonly declaredName?: string;
   }[];
   readonly defs: QwikModulePlan['defs'];
+  readonly imports: QwikModulePlan['imports'];
 }
 
 export interface LinkedComponent {
@@ -341,6 +342,7 @@ export function linkSsrPlan(
       segments: plan.segments,
       contexts: plan.contexts,
       defs: plan.defs,
+      imports: plan.imports,
     })),
     unresolved,
     pluginFns: [...pluginFns.values()],

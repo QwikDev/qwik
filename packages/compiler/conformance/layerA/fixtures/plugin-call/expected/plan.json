@@ -186,7 +186,15 @@
         }
       ],
       "contexts": [],
-      "defs": []
+      "defs": [],
+      "imports": [
+        {
+          "binding": 1,
+          "name": "makeGreeting",
+          "module": "./greeting",
+          "export": "makeGreeting"
+        }
+      ]
     }
   ],
   "unresolved": [],

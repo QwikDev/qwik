@@ -1523,7 +1523,6 @@ class JsComponentGenerator {
     const sourceIr = (operation.source as { ir?: ValueIR }).ir;
     if (
       operation.key !== null ||
-      operation.ssr.idBase !== null ||
       operation.usesIndexSignal ||
       row.rowRoot ||
       row.rowMarker ||
@@ -1550,6 +1549,8 @@ class JsComponentGenerator {
     );
     const params = (row.paramBindings ?? []).slice(0, row.params);
     const paramNames = params.map((binding, index) => child.declare(binding, `row_p${index}`));
+    // rows that derive ids take the runtime-provided index and id base as trailing params
+    const idBaseParams = operation.ssr.idBase === null ? '' : ', __qwikIndex, _id';
     this.statements.push(
       child.generateFn(
         row.symbolName,
@@ -1557,7 +1558,7 @@ class JsComponentGenerator {
         null,
         false,
         false,
-        `(${this.names.ctx}, __rangeId, __rowId${paramNames.map((name) => `, ${name}`).join('')})`
+        `(${this.names.ctx}, __rangeId, __rowId${paramNames.map((name) => `, ${name}`).join('')}${idBaseParams})`
       )
     );
     const step = `collection_result_${this.nextTemp++}`;
@@ -1565,7 +1566,7 @@ class JsComponentGenerator {
     this.pushStep(
       step,
       [],
-      `renderSsrCollection(${this.names.ctx}, undefined, ${this.irJs(sourceIr)}, undefined, ${row.symbolName}, ${operation.usesIndexSignal}, '', ${operation.ssr.usesRowId}, ${operation.ssr.rowShape})`
+      `renderSsrCollection(${this.names.ctx}, undefined, ${this.irJs(sourceIr)}, undefined, ${row.symbolName}, ${operation.usesIndexSignal}, ${operation.ssr.idBase ?? "''"}, ${operation.ssr.usesRowId}, ${operation.ssr.rowShape})`
     );
     parts.push(step);
   }
@@ -1907,8 +1908,18 @@ class JsComponentGenerator {
           this.useIdBindings.has((propIr as { binding: number }).binding);
         if (isProvenString) {
           const ir = propIr;
-          if (ir === undefined || idVariable !== null) {
+          if (ir === undefined) {
             return false;
+          }
+          if (idVariable !== null) {
+            // targeted elements serialize through a plain value step, null-guarded
+            const step = `attr_${this.nextTemp++}`;
+            this.imports.add('escapeHTML');
+            this.pushStep(step, [], this.irJs(ir), this.claimId(idVariable));
+            open.push(
+              `(${step} === null ? '' : ${JSON.stringify(` ${item.name}`)} + (${step} === '' ? '' : '="' + escapeHTML(${step}) + '"'))`
+            );
+            return true;
           }
           this.imports.add('escapeHTML');
           pushOpen(` ${item.name}="`);

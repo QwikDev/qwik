@@ -332,6 +332,7 @@ export function emitSsrOpPlan(
   };
 
   // statement ops live in the semantic setup tree, including local-component nesting
+  // and every nested render fn (rows, arms, slots, projections)
   const setupOpByRange = new Map<string, SetupOp>();
   const collectSetupOps = (setup: readonly SetupPlan[]): void => {
     for (const item of setup) {
@@ -339,11 +340,47 @@ export function emitSsrOpPlan(
         setupOpByRange.set(`${item.range[0]}:${item.range[1]}`, item.op);
       }
       if (item.kind === 'local-component' || item.kind === 'render-value') {
-        collectSetupOps(item.render.setup);
+        collectRenderFnOps(item.render);
+      }
+    }
+  };
+  const collectRenderFnOps = (fn: RenderFunctionPlan): void => {
+    collectSetupOps(fn.setup);
+    collectRenderNodes(fn.render.roots);
+  };
+  const collectRenderNodes = (nodes: RenderFunctionPlan['render']['roots']): void => {
+    for (const node of nodes) {
+      switch (node.kind) {
+        case 'element':
+          collectRenderNodes(node.children);
+          break;
+        case 'component':
+          node.slots.forEach((slot) => collectRenderFnOps(slot.render));
+          break;
+        case 'branch':
+          collectRenderFnOps(node.then);
+          if (node.else !== null) {
+            collectRenderFnOps(node.else);
+          }
+          break;
+        case 'suspense':
+          collectRenderFnOps(node.content);
+          break;
+        case 'slot':
+          if (node.fallback !== null) {
+            collectRenderFnOps(node.fallback);
+          }
+          break;
+        case 'collection':
+          collectRenderFnOps(node.row);
+          break;
+        default:
+          break;
       }
     }
   };
   collectSetupOps(component.setup);
+  collectRenderNodes(component.render.roots);
 
   const setupEntries = (setup: readonly SsrSetupOperation[]): PlanSetupEntry[] =>
     setup.flatMap((entry): PlanSetupEntry[] => {

@@ -876,44 +876,64 @@ class JsComponentGenerator {
         }
         if (
           this.asyncSteps.length > 0 ||
-          operation.source.kind !== 'derived' ||
-          operation.idBase !== null ||
+          operation.source.kind === 'direct-array' ||
           row.symbolName !== undefined ||
-          row.segment?.segment === undefined ||
-          operation.key === null
+          row.segment?.segment === undefined
         ) {
           markUngeneratable({
             steps: this.asyncSteps.length,
             source: operation.source.kind,
-            idBase: operation.idBase,
             symbolName: row.symbolName,
             rowSegment: row.segment?.segment,
-            key: operation.key,
           });
         }
-        const source = this.segment(operation.source.segment);
-        const sourceCaptures = source.captures.map((capture) =>
-          capture.access === 'component-prop' ? this.names.props : this.local(capture.binding)
-        );
+        const rootCaptures = (meta: SegmentMeta): void => {
+          for (const capture of meta.captures) {
+            this.statements.push(
+              `${this.names.ctx}.addRoot(${capture.access === 'component-prop' ? this.names.props : this.local(capture.binding)});`
+            );
+          }
+        };
         const idVariable = `collection_id_${this.nextTemp}`;
         const wrapped = `collection_${this.nextTemp}`;
         const step = `collection_result_${this.nextTemp++}`;
-        this.imports.add('_wrapArray');
+        const keyMeta = operation.key === null ? null : this.segment(operation.key);
+        const rowMeta = this.segment(row.segment.segment);
         this.imports.add('renderSsrCollection');
         this.imports.add('createSsrRecord');
         this.imports.add('createSsrNodeId');
         this.statements.push(`const ${idVariable} = ${this.names.ctx}.nextId();`);
-        for (const capture of sourceCaptures) {
-          this.statements.push(`${this.names.ctx}.addRoot(${capture});`);
+        let collectionValue: string;
+        if (operation.source.kind === 'derived') {
+          const source = this.segment(operation.source.segment);
+          rootCaptures(source);
+          if (keyMeta !== null) {
+            rootCaptures(keyMeta);
+          }
+          rootCaptures(rowMeta);
+          this.imports.add('_wrapArray');
+          this.statements.push(
+            `const ${wrapped} = _wrapArray(${this.qrlExpression(source)}${operation.source.keepSource === true ? ', true' : ''});`,
+            `if (!Array.isArray(${wrapped})) ${this.names.ctx}.addRoot(${wrapped});`
+          );
+          collectionValue = wrapped;
+        } else {
+          // direct-reactive: the source expression roots and streams as-is
+          const ir = operation.source.ir;
+          if (ir === undefined) {
+            markUngeneratable(operation.source);
+          }
+          collectionValue = this.irJs(ir);
+          this.statements.push(`${this.names.ctx}.addRoot(${collectionValue});`);
+          if (keyMeta !== null) {
+            rootCaptures(keyMeta);
+          }
+          rootCaptures(rowMeta);
         }
+        const keyQrl = keyMeta === null ? 'undefined' : this.qrlExpression(keyMeta);
+        const renderQrl = this.qrlExpression(rowMeta);
         this.statements.push(
-          `const ${wrapped} = _wrapArray(${this.qrlExpression(source)}${(operation.source as { keepSource?: boolean }).keepSource === true ? ', true' : ''});`,
-          `if (!Array.isArray(${wrapped})) ${this.names.ctx}.addRoot(${wrapped});`
-        );
-        const keyQrl = this.qrlExpression(this.segment(operation.key));
-        const renderQrl = this.qrlExpression(this.segment(row.segment.segment));
-        this.statements.push(
-          `const ${step} = renderSsrCollection(${this.names.ctx}, ${idVariable}, ${wrapped}, ${keyQrl}, ${renderQrl}, ${operation.usesIndexSignal}, '', ${operation.usesRowId}, ${operation.rowShape});`
+          `const ${step} = renderSsrCollection(${this.names.ctx}, ${idVariable}, ${collectionValue}, ${keyQrl}, ${renderQrl}, ${operation.usesIndexSignal}, ${operation.idBase === null ? "''" : operation.idBase}, ${operation.usesRowId}, ${operation.rowShape});`
         );
         this.asyncSteps.push({ name: step, expr: step });
         parts.push(`createSsrRecord('<!f=', createSsrNodeId(${idVariable}), '>')`);

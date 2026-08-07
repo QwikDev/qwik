@@ -21,10 +21,10 @@ export function App() {
 
 import {
   createSsrElementRecord,
-  _wrapArray,
   renderSsrCollection,
   createSsrRecord,
   createSsrNodeId,
+  _wrapArray,
   maybeThen,
   _qrlWithChunk,
 } from '@qwik.dev/core';

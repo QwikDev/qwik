@@ -54,18 +54,12 @@ const q_component_for_key_segment_1_24ursak4wzpxf = /*#__PURE__*/ _qrlWithChunk(
 );
 q_component_for_key_segment_1_24ursak4wzpxf.s(component_for_key_segment_1_24ursak4wzpxf);
 export function App(props, ctx) {
-  const rows = useSignal([
-    {
-      id: 1,
-      label: 'Alpha',
-      selected: false,
-    },
-  ]);
-  const collectionId0 = ctx.nextId();
+  const rows = useSignal([{ id: 1, label: 'Alpha', selected: false }]);
+  const collection_id_0 = ctx.nextId();
   ctx.addRoot(rows);
-  const collectionResult1 = renderSsrCollection(
+  const collection_result_0 = renderSsrCollection(
     ctx,
-    collectionId0,
+    collection_id_0,
     rows,
     q_component_for_key_segment_1_24ursak4wzpxf,
     q_component_for_render_segment_0_asyt89wzo2d3,
@@ -74,11 +68,11 @@ export function App(props, ctx) {
     false,
     0
   );
-  return maybeThen(collectionResult1, (collectionResult1) => [
+  return maybeThen(collection_result_0, (collection_result_0) => [
     createSsrElementRecord('table', '<table', '>'),
-    '<tbody>',
-    createSsrRecord('<!f=', createSsrNodeId(collectionId0), '>'),
-    collectionResult1,
+    createSsrElementRecord('tbody', '<tbody', '>'),
+    createSsrRecord('<!f=', createSsrNodeId(collection_id_0), '>'),
+    collection_result_0,
     '<!/f></tbody></table>',
   ]);
 }

@@ -117,6 +117,8 @@ class JsComponentGenerator {
   private readonly pendingMarks: string[] = [];
   private nextTemp = 0;
   private invokeCtxDeclared = false;
+  /** Element id placeholders: resolved at first claiming step (eager const / lazy let). */
+  private readonly idState = new Map<string, 'placeholder' | 'eager' | 'lazy'>();
   /** Pending async steps — the return value chains maybeThen over them in order. */
   private readonly asyncSteps: { name: string; expr: string }[] = [];
 
@@ -260,6 +262,8 @@ class JsComponentGenerator {
       parts.length === 1 && isStringLiteral(parts[0]) ? parts[0] : `[${parts.join(', ')}]`;
     const returnStatement = this.wrapAsync(value);
     let bodyStatements: string[];
+    const finalizedStatements = this.finalizeIds(this.statements);
+    this.statements.splice(0, this.statements.length, ...finalizedStatements);
     if (ssr.flushTasks === true) {
       this.imports.add('maybeThen');
       this.imports.add('invoke');
@@ -313,6 +317,44 @@ class JsComponentGenerator {
       `const ${step} = () => invoke(${invokeCtx}, () => { ${thunkPrelude}${rootStatements}return ${callExpr}; });`
     );
     this.asyncSteps.push({ name: step, expr: `${step}()` });
+  }
+
+  /**
+   * Claims an element id for a step: the first claim decides allocation — eager `const` at the
+   * element's position when the step is eager, otherwise a lazy `??=` inside the thunk, so `q:id`
+   * numbering follows chain order. Unclaimed ids finalize as eager.
+   */
+  private claimId(idVariable: string): string {
+    const state = this.idState.get(idVariable);
+    if (state === undefined || state === 'eager') {
+      return '';
+    }
+    if (state === 'lazy') {
+      return `${idVariable} ??= ctx.nextId(); `;
+    }
+    const placeholder = `__ID_DECL__${idVariable}`;
+    const index = this.statements.indexOf(placeholder);
+    if (this.asyncSteps.length === 0) {
+      if (index >= 0) {
+        this.statements[index] = `const ${idVariable} = ctx.nextId();`;
+      }
+      this.idState.set(idVariable, 'eager');
+      return '';
+    }
+    if (index >= 0) {
+      this.statements[index] = `let ${idVariable};`;
+    }
+    this.idState.set(idVariable, 'lazy');
+    return `${idVariable} ??= ctx.nextId(); `;
+  }
+
+  /** Unclaimed ids allocate eagerly at their element's position. */
+  private finalizeIds(statements: string[]): string[] {
+    return statements.map((statement) =>
+      statement.startsWith('__ID_DECL__')
+        ? `const ${statement.slice('__ID_DECL__'.length)} = ctx.nextId();`
+        : statement
+    );
   }
 
   /** Ambient invoke context, captured once before any async boundary. */
@@ -480,6 +522,93 @@ class JsComponentGenerator {
       case SsrOpKind.Component:
         this.componentCall(operation, parts);
         return;
+      case SsrOpKind.Branch: {
+        if (operation.idBase !== null || operation.then.segment === undefined) {
+          markUngeneratable();
+        }
+        const condition = this.segment(operation.condition);
+        const captureName = (capture: SegmentMeta['captures'][number]): string =>
+          capture.access === 'component-prop' ? 'props' : this.local(capture.binding);
+        const stepRoots = condition.captures.map(captureName);
+        const thenMeta = this.segment(operation.then.segment);
+        const thenQrl = this.qrlExpression(thenMeta);
+        // arm captures root at the branch site — captured local components serialize as QRLs
+        stepRoots.push(...thenMeta.captures.map(captureName));
+        let elseQrl = 'undefined';
+        if (operation.else !== null) {
+          if (operation.else.segment === undefined) {
+            markUngeneratable();
+          }
+          const elseMeta = this.segment(operation.else.segment);
+          elseQrl = this.qrlExpression(elseMeta);
+          stepRoots.push(...elseMeta.captures.map(captureName));
+        }
+        const idVariable = `branch_id_${this.nextTemp}`;
+        const step = `branch_${this.nextTemp++}`;
+        this.imports.add('renderSsrBranch');
+        this.imports.add('createSsrRecord');
+        this.imports.add('createSsrNodeId');
+        const deferred = this.asyncSteps.length > 0;
+        this.statements.push(
+          deferred ? `let ${idVariable};` : `const ${idVariable} = ctx.nextId();`
+        );
+        this.pushStep(
+          step,
+          stepRoots,
+          `renderSsrBranch(ctx, ${idVariable}, ${this.qrlExpression(condition)}, ${thenQrl}, ${elseQrl}${operation.root ? ", '', true" : ''})`,
+          deferred ? `${idVariable} ??= ctx.nextId(); ` : undefined
+        );
+        parts.push(`createSsrRecord('<!b=', createSsrNodeId(${idVariable}), '>')`);
+        parts.push(step);
+        pushStatic('<!/b>');
+        return;
+      }
+      case SsrOpKind.Collection: {
+        // eager position only — deferred collections have unproven statement ordering
+        const row = operation.row as {
+          readonly symbolName?: string;
+          readonly segment?: { readonly segment?: string };
+        };
+        if (
+          this.asyncSteps.length > 0 ||
+          operation.source.kind !== 'derived' ||
+          operation.idBase !== null ||
+          row.symbolName !== undefined ||
+          row.segment?.segment === undefined ||
+          operation.key === null
+        ) {
+          markUngeneratable();
+        }
+        const source = this.segment(operation.source.segment);
+        const sourceCaptures = source.captures.map((capture) =>
+          capture.access === 'component-prop' ? 'props' : this.local(capture.binding)
+        );
+        const idVariable = `collection_id_${this.nextTemp}`;
+        const wrapped = `collection_${this.nextTemp}`;
+        const step = `collection_result_${this.nextTemp++}`;
+        this.imports.add('_wrapArray');
+        this.imports.add('renderSsrCollection');
+        this.imports.add('createSsrRecord');
+        this.imports.add('createSsrNodeId');
+        this.statements.push(`const ${idVariable} = ctx.nextId();`);
+        for (const capture of sourceCaptures) {
+          this.statements.push(`ctx.addRoot(${capture});`);
+        }
+        this.statements.push(
+          `const ${wrapped} = _wrapArray(${this.qrlExpression(source)});`,
+          `if (!Array.isArray(${wrapped})) ctx.addRoot(${wrapped});`
+        );
+        const keyQrl = this.qrlExpression(this.segment(operation.key));
+        const renderQrl = this.qrlExpression(this.segment(row.segment.segment));
+        this.statements.push(
+          `const ${step} = renderSsrCollection(ctx, ${idVariable}, ${wrapped}, ${keyQrl}, ${renderQrl}, ${operation.usesIndexSignal}, '', ${operation.usesRowId}, ${operation.rowShape});`
+        );
+        this.asyncSteps.push({ name: step, expr: step });
+        parts.push(`createSsrRecord('<!f=', createSsrNodeId(${idVariable}), '>')`);
+        parts.push(step);
+        pushStatic('<!/f>');
+        return;
+      }
       case SsrOpKind.Slot: {
         if (operation.idBase !== null) {
           markUngeneratable();
@@ -701,7 +830,8 @@ class JsComponentGenerator {
     let innerHtml: string | null = null;
     const idVariable = operation.id === null ? null : `id_${operation.id}`;
     if (idVariable !== null) {
-      this.statements.push(`const ${idVariable} = ctx.nextId();`);
+      this.statements.push(`__ID_DECL__${idVariable}`);
+      this.idState.set(idVariable, 'placeholder');
     }
     // open tag: static attrs fold at generation time; dynamic pieces become record parts
     const open: string[] = [];
@@ -815,7 +945,8 @@ class JsComponentGenerator {
           this.pushStep(
             step,
             [signal],
-            `renderSsrAttr(createSsrElementTarget(${idVariable}), ${JSON.stringify(item.name)}, ${signal})`
+            `renderSsrAttr(createSsrElementTarget(${idVariable}), ${JSON.stringify(item.name)}, ${signal})`,
+            this.claimId(idVariable)
           );
           open.push(
             `(${step} === null ? '' : ${JSON.stringify(` ${item.name}`)} + (${step} === '' ? '' : '="' + escapeHTML(${step}) + '"'))`
@@ -833,7 +964,8 @@ class JsComponentGenerator {
         this.pushStep(
           step,
           captures,
-          `renderSsrAttrExpression(createSsrElementTarget(${idVariable}), ${JSON.stringify(item.name)}, [${captures.join(', ')}], ${this.qrlExpression(meta, false)})`
+          `renderSsrAttrExpression(createSsrElementTarget(${idVariable}), ${JSON.stringify(item.name)}, [${captures.join(', ')}], ${this.qrlExpression(meta, false)})`,
+          this.claimId(idVariable)
         );
         open.push(
           `(${step} === null ? '' : ${JSON.stringify(` ${item.name}`)} + (${step} === '' ? '' : '="' + escapeHTML(${step}) + '"'))`
@@ -887,7 +1019,8 @@ class JsComponentGenerator {
           this.pushStep(
             step,
             captures,
-            `renderSsrEvent(createSsrElementTarget(${idVariable}), ${JSON.stringify(event.name)}, [${captures.join(', ')}], ${this.qrlExpression(meta, false)}, ctx.eventAttr, [], [])`
+            `renderSsrEvent(createSsrElementTarget(${idVariable}), ${JSON.stringify(event.name)}, [${captures.join(', ')}], ${this.qrlExpression(meta, false)}, ctx.eventAttr, [], [])`,
+            this.claimId(idVariable)
           );
           open.push(`(${step} ?? '')`);
           return true;
@@ -926,6 +1059,7 @@ class JsComponentGenerator {
     const step = `text_${this.nextTemp++}`;
     const ir = operation.value.ir;
     const segmentId = operation.value.segment;
+    const idPrelude = this.claimId(`id_${target.id}`);
     if (segmentId !== undefined) {
       // expression text: the segment fn evaluates with captures under the invoke context
       const meta = this.segment(segmentId);
@@ -936,12 +1070,13 @@ class JsComponentGenerator {
       this.pushStep(
         step,
         captures,
-        `renderSsrTextExpression(${targetExpr}, [${captures.join(', ')}], ${this.qrlExpression(meta, false)})`
+        `renderSsrTextExpression(${targetExpr}, [${captures.join(', ')}], ${this.qrlExpression(meta, false)})`,
+        idPrelude
       );
     } else if (ir !== undefined && ir.k === 'signal-read') {
       const signal = this.local((ir as { binding: number }).binding);
       this.imports.add('renderSsrTextNode');
-      this.pushStep(step, [signal], `renderSsrTextNode(${targetExpr}, ${signal})`);
+      this.pushStep(step, [signal], `renderSsrTextNode(${targetExpr}, ${signal})`, idPrelude);
     } else {
       markUngeneratable();
     }

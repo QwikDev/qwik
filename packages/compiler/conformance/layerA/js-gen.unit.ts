@@ -41,6 +41,9 @@ const READY_FIXTURES = [
   'component-spread-mixed',
   'component-spread-signal',
   'component-event-prop',
+  'branch-collection',
+  'derived-collection',
+  'local-component-captured',
 ];
 
 const layerADir = dirname(fileURLToPath(import.meta.url));

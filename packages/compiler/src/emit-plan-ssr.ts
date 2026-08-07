@@ -267,6 +267,78 @@ export type JsStatementRewriter = (
   operation: Extract<SsrSetupOperation, { kind: 'statement' }>
 ) => { readonly src: string; readonly imports: readonly string[] } | 'skip' | null;
 
+/**
+ * Finds the serialized wire block backing a segment inside a component's wire plan — the same block
+ * nested emission consumes, reused for standalone chunk generation (rows, arms, slots).
+ */
+export function findWireBlock(
+  wire: PlanSsrComponent,
+  segmentId: string
+): PlanSsrRenderFn | PlanSsrRow | undefined {
+  let found: PlanSsrRenderFn | PlanSsrRow | undefined;
+  const visitFn = (fn: PlanSsrRenderFn | PlanSsrRow | undefined | null): void => {
+    if (found !== undefined || fn === undefined || fn === null) {
+      return;
+    }
+    if (fn.segment === segmentId && fn.ops !== undefined) {
+      found = fn;
+      return;
+    }
+    visitSetup(fn.setup);
+    if (fn.ops !== undefined) {
+      fn.ops.forEach(visitOp);
+    }
+  };
+  const visitSetup = (setup: readonly PlanSetupEntry[]): void => {
+    for (const entry of setup) {
+      if ((entry as { kind?: string }).kind === 'render-fn') {
+        visitFn((entry as { render: PlanSsrRenderFn }).render);
+      }
+    }
+  };
+  const visitOp = (operation: PlanSsrOp): void => {
+    if (found !== undefined) {
+      return;
+    }
+    switch (operation.kind) {
+      case SsrOpKind.Element:
+        operation.children.forEach(visitOp);
+        break;
+      case SsrOpKind.Component:
+        operation.slots.forEach((slot) => visitFn(slot.render));
+        break;
+      case SsrOpKind.Branch:
+        visitFn(operation.then);
+        visitFn(operation.else);
+        break;
+      case SsrOpKind.Suspense:
+        visitFn(operation.content);
+        visitFn(operation.fallback);
+        if (operation.inOrder !== null) {
+          operation.inOrder.forEach(visitOp);
+        }
+        break;
+      case SsrOpKind.Slot:
+        visitFn(operation.fallback);
+        break;
+      case SsrOpKind.Collection: {
+        const row = operation.row;
+        if (typeof (row as { symbolName?: unknown }).symbolName === 'string') {
+          visitFn(row as PlanSsrRow);
+        } else {
+          visitFn((row as { segment: PlanSsrRenderFn }).segment);
+        }
+        break;
+      }
+      default:
+        break;
+    }
+  };
+  visitSetup(wire.setup);
+  wire.ops.forEach(visitOp);
+  return found;
+}
+
 export function emitSsrOpPlan(
   component: ComponentPlan,
   segments: readonly SegmentPlan[],

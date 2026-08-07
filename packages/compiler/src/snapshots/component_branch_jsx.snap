@@ -15,6 +15,7 @@ export function App(props: { enabled: boolean; alternate: boolean }) {
 ============================= src/component.tsx ==
 
 import {
+  createSsrElementRecord,
   renderSsrBranch,
   createSsrRecord,
   createSsrNodeId,
@@ -117,7 +118,7 @@ export function App(props, ctx) {
   return maybeThen(branch_0, (branch_0) =>
     maybeThen(branch_1(), (branch_1) =>
       maybeThen(branch_2(), (branch_2) => [
-        '<main>',
+        createSsrElementRecord('main', '<main', '>'),
         createSsrRecord('<!b=', createSsrNodeId(branch_id_0), '>'),
         branch_0,
         '<!/b>',

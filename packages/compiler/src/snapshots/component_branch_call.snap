@@ -11,6 +11,7 @@ export function App(props: { enabled: boolean; value: string }) {
 ============================= src/component.tsx ==
 
 import {
+  createSsrElementRecord,
   renderSsrBranch,
   createSsrRecord,
   createSsrNodeId,
@@ -50,7 +51,8 @@ export function App(props, ctx) {
     q_component_branch_else_segment_2_19dvu7nugnvkl.w([props])
   );
   return maybeThen(branch_0, (branch_0) => [
-    '<section><b>Before</b>',
+    createSsrElementRecord('section', '<section', '>'),
+    '<b>Before</b>',
     createSsrRecord('<!b=', createSsrNodeId(branch_id_0), '>'),
     branch_0,
     '<!/b><i>After</i></section>',

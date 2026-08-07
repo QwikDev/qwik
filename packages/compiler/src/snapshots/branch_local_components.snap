@@ -112,7 +112,7 @@ export function App(props, ctx) {
     q_component_branch_else_segment_4_19dvrvh6znjhf.w([count])
   );
   return maybeThen(branch_0, (branch_0) => [
-    '<section>',
+    createSsrElementRecord('section', '<section', '>'),
     createSsrRecord('<!b=', createSsrNodeId(branch_id_0), '>'),
     branch_0,
     '<!/b></section>',

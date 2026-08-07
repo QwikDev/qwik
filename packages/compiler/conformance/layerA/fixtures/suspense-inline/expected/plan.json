@@ -75,7 +75,8 @@
       "idBase": "qDelayed-",
       "styleScope": null,
       "providesContext": false,
-      "hasCustomHook": false
+      "hasCustomHook": false,
+      "async": true
     },
     {
       "name": "App",

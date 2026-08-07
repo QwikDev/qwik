@@ -119,7 +119,7 @@ export function App(props, ctx) {
       });
     return maybeThen(component_0, (component_0) =>
       maybeThen(content_1(), (content_1) => [
-        '<li>',
+        createSsrElementRecord('li', '<li', '>'),
         createSsrElementRecord(
           'a',
           '<a',
@@ -139,7 +139,11 @@ export function App(props, ctx) {
 
   _markComponent(Filter, q_local_component_112_432_9mplpu2ebao3.w([todos]));
   const component_0 = createComponent({ name: 'All' }, (props) => Filter(props, ctx));
-  return maybeThen(component_0, (component_0) => ['<ul>', component_0, '</ul>']);
+  return maybeThen(component_0, (component_0) => [
+    createSsrElementRecord('ul', '<ul', '>'),
+    component_0,
+    '</ul>',
+  ]);
 }
 ============================= src/component.tsx_component_class_segment_0_3htuygud1guoj.js (ENTRY POINT)==
 

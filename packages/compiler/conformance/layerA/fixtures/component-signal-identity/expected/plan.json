@@ -1,0 +1,328 @@
+{
+  "format": "qwik/ssr-plan",
+  "version": 0,
+  "entry": 1,
+  "components": [
+    {
+      "name": "Child",
+      "module": 0,
+      "propsBindings": [
+        4,
+        5
+      ],
+      "props": {
+        "kind": "object",
+        "bindings": [
+          {
+            "b": 4,
+            "name": "value"
+          },
+          {
+            "b": 5,
+            "name": "final"
+          }
+        ]
+      },
+      "ssr": {
+        "setup": [
+          {
+            "op": "task",
+            "segment": "segment_0",
+            "body": {
+              "steps": [
+                {
+                  "s": "set-store",
+                  "binding": 4,
+                  "path": [
+                    "value"
+                  ],
+                  "value": {
+                    "k": "binding-read",
+                    "binding": 5
+                  }
+                }
+              ],
+              "async": false
+            }
+          }
+        ],
+        "directSegmentIds": [],
+        "usedSegmentIds": [
+          "segment_0"
+        ],
+        "ops": [
+          {
+            "o": "el",
+            "tag": "p",
+            "id": null,
+            "void": false,
+            "styleScopedId": null,
+            "targetUses": 0,
+            "props": [],
+            "propsEffect": null,
+            "children": [
+              {
+                "o": "static",
+                "html": "child"
+              }
+            ]
+          }
+        ],
+        "synchronous": true,
+        "staticRoot": false,
+        "needsRootRange": false,
+        "needsId": false,
+        "idBase": "qChild-",
+        "flushTasks": true
+      },
+      "setup": [
+        {
+          "op": "task",
+          "segment": "segment_0",
+          "body": {
+            "steps": [
+              {
+                "s": "set-store",
+                "binding": 4,
+                "path": [
+                  "value"
+                ],
+                "value": {
+                  "k": "binding-read",
+                  "binding": 5
+                }
+              }
+            ],
+            "async": false
+          }
+        }
+      ],
+      "render": [
+        {
+          "n": "el",
+          "tag": "p",
+          "props": [],
+          "children": [
+            {
+              "n": "text",
+              "value": "child"
+            }
+          ]
+        }
+      ],
+      "needsId": false,
+      "idBase": "qChild-",
+      "styleScope": null,
+      "providesContext": false,
+      "hasCustomHook": false
+    },
+    {
+      "name": "App",
+      "module": 0,
+      "propsBindings": [],
+      "props": null,
+      "ssr": {
+        "setup": [
+          {
+            "op": "signal",
+            "local": 6,
+            "init": {
+              "k": "lit",
+              "v": "initial"
+            },
+            "name": "value"
+          }
+        ],
+        "directSegmentIds": [],
+        "usedSegmentIds": [],
+        "ops": [
+          {
+            "o": "el",
+            "tag": "div",
+            "id": null,
+            "void": false,
+            "styleScopedId": null,
+            "targetUses": 0,
+            "props": [],
+            "propsEffect": null,
+            "children": [
+              {
+                "o": "el",
+                "tag": "span",
+                "id": 0,
+                "void": false,
+                "styleScopedId": null,
+                "targetUses": 1,
+                "props": [
+                  {
+                    "p": "dynamic",
+                    "name": "title",
+                    "value": {
+                      "src": "value.value",
+                      "ir": {
+                        "k": "signal-read",
+                        "binding": 6
+                      }
+                    },
+                    "compilerString": false
+                  }
+                ],
+                "propsEffect": null,
+                "children": [
+                  {
+                    "o": "static",
+                    "html": "ready"
+                  }
+                ]
+              },
+              {
+                "o": "component",
+                "target": {
+                  "ref": 0
+                },
+                "returnMode": "maybe-promise",
+                "props": [
+                  {
+                    "p": "dynamic",
+                    "name": "value",
+                    "value": {
+                      "src": "value",
+                      "ir": {
+                        "k": "binding-read",
+                        "binding": 6
+                      }
+                    },
+                    "compilerString": false
+                  },
+                  {
+                    "p": "static",
+                    "name": "final",
+                    "value": "final"
+                  }
+                ],
+                "propsSource": null,
+                "idBase": null,
+                "blockingSuspense": false,
+                "slots": []
+              }
+            ]
+          }
+        ],
+        "synchronous": false,
+        "staticRoot": false,
+        "needsRootRange": false,
+        "needsId": false,
+        "idBase": "qApp-",
+        "flushTasks": false
+      },
+      "setup": [
+        {
+          "op": "signal",
+          "local": 6,
+          "init": {
+            "k": "lit",
+            "v": "initial"
+          }
+        }
+      ],
+      "render": [
+        {
+          "n": "el",
+          "tag": "div",
+          "props": [],
+          "children": [
+            {
+              "n": "el",
+              "tag": "span",
+              "props": [
+                {
+                  "p": "dynamic",
+                  "name": "title",
+                  "value": {
+                    "src": "value.value",
+                    "ir": {
+                      "k": "signal-read",
+                      "binding": 6
+                    }
+                  }
+                }
+              ],
+              "children": [
+                {
+                  "n": "text",
+                  "value": "ready"
+                }
+              ]
+            },
+            {
+              "n": "component",
+              "target": {
+                "ref": 0
+              },
+              "props": [
+                {
+                  "p": "dynamic",
+                  "name": "value",
+                  "value": {
+                    "src": "value",
+                    "ir": {
+                      "k": "binding-read",
+                      "binding": 6
+                    }
+                  }
+                },
+                {
+                  "p": "static",
+                  "name": "final",
+                  "value": "final"
+                }
+              ],
+              "slots": []
+            }
+          ]
+        }
+      ],
+      "needsId": false,
+      "idBase": "qApp-",
+      "styleScope": null,
+      "providesContext": false,
+      "hasCustomHook": false
+    }
+  ],
+  "modules": [
+    {
+      "path": "src/input.tsx",
+      "segments": [
+        {
+          "id": "segment_0",
+          "symbolName": "input_useTask$_segment_0_2ngp4b0wthp6x",
+          "chunk": "./input.tsx_input_useTask$_segment_0_2ngp4b0wthp6x",
+          "kind": "qrl",
+          "resolved": true,
+          "qrl": {
+            "kind": "implicit",
+            "role": "task"
+          },
+          "captures": [
+            {
+              "binding": 4,
+              "name": "value",
+              "source": "param",
+              "access": "direct"
+            },
+            {
+              "binding": 5,
+              "name": "final",
+              "source": "param",
+              "access": "direct"
+            }
+          ]
+        }
+      ],
+      "contexts": [],
+      "defs": []
+    }
+  ],
+  "unresolved": [],
+  "pluginFns": []
+}

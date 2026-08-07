@@ -12,6 +12,7 @@ export function App() {
 
 import {
   useSignal,
+  createSsrElementRecord,
   renderSsrBranch,
   createSsrRecord,
   createSsrNodeId,
@@ -46,7 +47,7 @@ export function App(props, ctx) {
     undefined
   );
   return maybeThen(branch_0, (branch_0) => [
-    '<p>',
+    createSsrElementRecord('p', '<p', '>'),
     createSsrRecord('<!b=', createSsrNodeId(branch_id_0), '>'),
     branch_0,
     '<!/b></p>',

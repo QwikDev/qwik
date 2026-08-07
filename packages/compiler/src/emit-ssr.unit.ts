@@ -341,8 +341,9 @@ export function App() {
     expect(parseSync('inner-html.js', main, { lang: 'js', sourceType: 'module' }).errors).toEqual(
       []
     );
-    // fully-static elements may fold into a string run; the normalized attrs must survive
-    expect(main).toContain('<label class=\\"field\\" for=\\"input\\">');
+    expect(main).toContain(
+      'createSsrElementRecord("label", "<label class=\\"field\\" for=\\"input\\"", ">")'
+    );
     expect(main).toContain('Name</label>');
     expect(main).not.toContain('.innerHTML');
   });

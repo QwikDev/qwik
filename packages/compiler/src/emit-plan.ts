@@ -85,6 +85,8 @@ export interface PlanComponent {
   readonly styleScope: string | null;
   readonly providesContext: boolean;
   readonly hasCustomHook: boolean;
+  /** The component function is async (its setup may yield). */
+  readonly async?: true;
 }
 
 export type PlanSetupEntry =
@@ -418,6 +420,7 @@ export function emitModulePlan(
     styleScope: output.result.styleScope,
     providesContext: output.result.providesContext,
     hasCustomHook: output.result.hasCustomHook,
+    ...(output.component.shape.async ? { async: true as const } : {}),
   }));
   // same eligibility as the emit-ssr hoist loop, so `resolved` matches the emitted `.s()` calls
   const directSegmentIds = new Set(

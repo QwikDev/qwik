@@ -55,6 +55,7 @@ export interface LinkedComponent {
   readonly styleScope: string | null;
   readonly providesContext: boolean;
   readonly hasCustomHook: boolean;
+  readonly async?: true;
 }
 
 export function linkSsrPlan(
@@ -335,6 +336,7 @@ export function linkSsrPlan(
         styleScope: component.styleScope,
         providesContext: component.providesContext,
         hasCustomHook: component.hasCustomHook,
+        ...(component.async === true ? { async: true as const } : {}),
       });
     }
   });

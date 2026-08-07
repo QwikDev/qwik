@@ -30,6 +30,7 @@ const READY_FIXTURES = [
   'plugin-call',
   'computed-task',
   'child-props',
+  'component-signal-identity',
   'multi-module',
   'slot-projection',
   'slot-fallback',

@@ -11,6 +11,7 @@ export function App(props: { value: string }) {
 ============================= src/component.tsx ==
 
 import {
+  createSsrElementRecord,
   renderSsrContent,
   createSsrRecord,
   createSsrNodeId,
@@ -36,7 +37,8 @@ export function App(props, ctx) {
     q_semantic_expression_104_127_3po7a59ojefo5
   );
   return maybeThen(content_0, (content_0) => [
-    '<section><b>Before</b>',
+    createSsrElementRecord('section', '<section', '>'),
+    '<b>Before</b>',
     createSsrRecord('<!d=', createSsrNodeId(content_id_0), '>'),
     escapeSsrContent(content_0),
     '<!/d><i>After</i></section>',

@@ -200,6 +200,8 @@ class JsComponentGenerator {
   private invokeCtxDeclared = false;
   /** Wire-proven synchronous render: steps stay eager and the value skips maybeThen. */
   private synchronous = false;
+  /** Wire staticRoot: the whole render folds to strings; otherwise top-level ops keep parts. */
+  private staticRoot = false;
   /** Pending element attrs (useOn/visible tasks) need the first element kept as a record. */
   private pendingAttrAnchor = false;
   /** Bindings declared as reactive sources (signal/store/computed) — prop getters track them. */
@@ -254,6 +256,7 @@ class JsComponentGenerator {
   ): JsRenderPieces {
     void name;
     this.synchronous = (ssr as { synchronous?: boolean }).synchronous === true;
+    this.staticRoot = (ssr as { staticRoot?: boolean }).staticRoot === true;
     // the emitted head owns the param destructure — bind locals only, emit no statement
     this.bindPropsShape(propsShape, false);
     if (ssr.flushTasks === true) {
@@ -316,7 +319,9 @@ class JsComponentGenerator {
       component.ssr!,
       component.props as PropsShape,
       component.providesContext,
-      true
+      true,
+      undefined,
+      component.async === true
     );
   }
 
@@ -330,9 +335,12 @@ class JsComponentGenerator {
     propsShape: PropsShape,
     providesContext: boolean,
     exported: boolean,
-    signature?: string
+    signature?: string,
+    isAsync = false
   ): string {
     signature ??= `(${this.names.props}, ${this.names.ctx})`;
+    this.synchronous = (ssr as { synchronous?: boolean }).synchronous === true;
+    this.staticRoot = (ssr as { staticRoot?: boolean }).staticRoot === true;
     this.bindPropsShape(propsShape);
     // task flush: setup runs first, then the render replays under the captured invoke context
     if (ssr.flushTasks === true) {
@@ -427,7 +435,7 @@ class JsComponentGenerator {
       bodyStatements = [...setupStatements, ...this.statements, returnStatement];
     }
     const body = bodyStatements.map((line) => `  ${line}`).join('\n');
-    return `${exported ? 'export ' : ''}function ${name}${signature} {\n${body}\n}\n`;
+    return `${exported ? 'export ' : ''}${isAsync ? 'async ' : ''}function ${name}${signature} {\n${body}\n}\n`;
   }
 
   /** Props param bindings: identifier form aliases props; object form destructures by name. */
@@ -649,6 +657,11 @@ class JsComponentGenerator {
         );
         return;
       }
+      case 'yield': {
+        // the awaited expression is ordinary IR; the async head comes from the component flag
+        this.statements.push(`await ${this.irJs(entry.value as ValueIR)};`);
+        return;
+      }
       case 'visible-task': {
         const meta = this.segment(entry.segment as string);
         const strategy = entry.strategy as string;
@@ -687,18 +700,23 @@ class JsComponentGenerator {
       }
     };
     for (const operation of operations) {
-      this.op(operation, parts, pushStatic);
+      this.op(operation, parts, pushStatic, true);
     }
     return parts;
   }
 
-  private op(operation: PlanSsrOp, parts: string[], pushStatic: (text: string) => void): void {
+  private op(
+    operation: PlanSsrOp,
+    parts: string[],
+    pushStatic: (text: string) => void,
+    topLevel = false
+  ): void {
     switch (operation.o) {
       case SsrOpKind.Static:
         pushStatic(operation.html);
         return;
       case SsrOpKind.Element:
-        this.element(operation, parts, pushStatic);
+        this.element(operation, parts, pushStatic, topLevel);
         return;
       case SsrOpKind.Dynamic:
         this.dynamicText(operation, parts, pushStatic);
@@ -955,7 +973,8 @@ class JsComponentGenerator {
         }
         const binding = (ir as { binding: number }).binding;
         const value = this.local(binding);
-        if (this.sourceKinds.has(binding)) {
+        // binding-read passes the local raw — a signal prop keeps its identity
+        if (ir!.k === 'signal-read' && this.sourceKinds.has(binding)) {
           this.imports.add('readTrackedSourceValue');
           literalRun().push(
             `get ${JSON.stringify(item.name)}() { return readTrackedSourceValue(${value}); }`
@@ -1119,10 +1138,35 @@ class JsComponentGenerator {
     pushStatic('<!/d>');
   }
 
+  /** Fully static, id-less, effect-free subtrees are the only fold candidates. */
+  private isFoldableStatic(operation: PlanSsrOp): boolean {
+    if (operation.o === SsrOpKind.Static) {
+      return true;
+    }
+    if (operation.o !== SsrOpKind.Element) {
+      return false;
+    }
+    if (
+      operation.id !== null ||
+      operation.propsEffect !== null ||
+      operation.styleScopedId !== null ||
+      (operation as { runtimeScope?: true }).runtimeScope === true
+    ) {
+      return false;
+    }
+    for (const prop of operation.props) {
+      if (prop.p !== 'static' && prop.p !== 'inner-html') {
+        return false;
+      }
+    }
+    return operation.children.every((child) => this.isFoldableStatic(child));
+  }
+
   private element(
     operation: Extract<PlanSsrOp, { o: SsrOpKind.Element }>,
     parts: string[],
-    pushStatic: (text: string) => void
+    pushStatic: (text: string) => void,
+    topLevel = false
   ): void {
     if (operation.propsEffect !== null || operation.styleScopedId !== null) {
       markUngeneratable();
@@ -1146,6 +1190,10 @@ class JsComponentGenerator {
     // the first element after a useOn registration anchors the pending attr injection
     const anchorsPendingAttrs = this.pendingAttrAnchor;
     this.pendingAttrAnchor = false;
+    // legacy part boundaries are chunk boundaries in streaming: only child subtrees fold,
+    // unless the wire proves the whole render static
+    const foldable =
+      (this.staticRoot || !topLevel) && !anchorsPendingAttrs && this.isFoldableStatic(operation);
     pushOpen(`<${operation.tag}`);
     if (idVariable !== null) {
       this.imports.add('createSsrNodeId');
@@ -1166,17 +1214,12 @@ class JsComponentGenerator {
         markUngeneratable();
       }
     }
-    if (
-      idVariable === null &&
-      open.length === 1 &&
-      isStringLiteral(open[0]) &&
-      !anchorsPendingAttrs
-    ) {
+    if (foldable && open.length === 1 && isStringLiteral(open[0])) {
       open[0] = JSON.stringify((JSON.parse(open[0]) as string) + '>');
     } else {
       open.push(JSON.stringify('>'));
     }
-    if (idVariable === null && open.length === 1) {
+    if (foldable && open.length === 1) {
       // fully static element folds into the surrounding run
       pushStatic(JSON.parse(open[0]) as string);
     } else {
@@ -1505,6 +1548,7 @@ class JsComponentGenerator {
         }
         const namespace = ir.fn.slice(ir.fn.indexOf(':') + 1, ir.fn.lastIndexOf('.'));
         const globals: Record<string, string> = {
+          promise: 'Promise',
           math: 'Math',
           object: 'Object',
           json: 'JSON',

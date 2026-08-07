@@ -40,6 +40,7 @@ export function App(props, ctx) {
 ============================= src/component.tsx_component_Child.js (ENTRY POINT)==
 
 import {
+  createSsrElementRecord,
   renderSsrBranch,
   createSsrRecord,
   createSsrNodeId,
@@ -80,7 +81,7 @@ export function Child(props, ctx) {
     q_component_branch_else_segment_2_19dvu7nugnvkl
   );
   return maybeThen(branch_0, (branch_0) => [
-    '<div>',
+    createSsrElementRecord('div', '<div', '>'),
     createSsrRecord('<!b=', createSsrNodeId(branch_id_0), '>'),
     branch_0,
     '<!/b></div>',

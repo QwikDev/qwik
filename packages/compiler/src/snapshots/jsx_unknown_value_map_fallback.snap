@@ -20,6 +20,7 @@ export function App() {
 ============================= src/component.tsx ==
 
 import {
+  createSsrElementRecord,
   _wrapArray,
   renderSsrCollection,
   createSsrRecord,
@@ -79,7 +80,7 @@ export function App(props, ctx) {
     0
   );
   return maybeThen(collection_result_0, (collection_result_0) => [
-    '<ul>',
+    createSsrElementRecord('ul', '<ul', '>'),
     createSsrRecord('<!f=', createSsrNodeId(collection_id_0), '>'),
     collection_result_0,
     '<!/f></ul>',

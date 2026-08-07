@@ -175,9 +175,20 @@ export async function buildInterpretedRoot(
     const localComponentBindings = new Map<string, number>(
       nested?.initialLocalComponentBindings ?? []
     );
+    // render-site reads of destructured props capture the props object (expression segments),
+    // but setup IR reads the alias's read-once value, like the emitted destructure const
+    const destructuredPropValues = new Map<number, unknown>();
     if (nested === undefined) {
       for (const propsBinding of interpreted.propsBindings) {
         locals.set(propsBinding, componentProps);
+      }
+      if (interpreted.props?.kind === 'object') {
+        for (const prop of interpreted.props.bindings) {
+          destructuredPropValues.set(
+            prop.b,
+            (componentProps as Record<string, unknown>)[prop.name]
+          );
+        }
       }
     } else if (nested.propsPlan !== null) {
       // destructure reads each prop getter once at function start, like the emitted const
@@ -210,6 +221,9 @@ export async function buildInterpretedRoot(
           return value;
         }
         case 'binding-read': {
+          if (destructuredPropValues.has(ir.binding)) {
+            return destructuredPropValues.get(ir.binding);
+          }
           if (!locals.has(ir.binding)) {
             throw new Error(`setup ir reads unknown binding ${ir.binding}`);
           }
@@ -252,6 +266,9 @@ export async function buildInterpretedRoot(
       }
       return qrl.w(
         captures.map((binding) => {
+          if (destructuredPropValues.has(binding)) {
+            return destructuredPropValues.get(binding);
+          }
           if (!locals.has(binding)) {
             throw new Error(`capture binding ${binding} has no interpreted local`);
           }

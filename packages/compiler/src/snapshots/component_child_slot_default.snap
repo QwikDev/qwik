@@ -42,11 +42,20 @@ export function Parent(props, ctx) {
 }
 ============================= src/component.tsx_component_Wrapper.js (ENTRY POINT)==
 
-import { renderSsrSlot, getActiveInvokeContextOrNull, maybeThen } from '@qwik.dev/core';
+import {
+  createSsrElementRecord,
+  renderSsrSlot,
+  getActiveInvokeContextOrNull,
+  maybeThen,
+} from '@qwik.dev/core';
 
 export function Wrapper(props, ctx) {
   const slot_0 = renderSsrSlot(ctx, '', undefined, getActiveInvokeContextOrNull());
-  return maybeThen(slot_0, (slot_0) => ['<section>', slot_0, '</section>']);
+  return maybeThen(slot_0, (slot_0) => [
+    createSsrElementRecord('section', '<section', '>'),
+    slot_0,
+    '</section>',
+  ]);
 }
 /*
 {

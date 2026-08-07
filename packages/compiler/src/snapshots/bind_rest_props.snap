@@ -15,28 +15,18 @@ export function App() {
 
 ============================= src/component.tsx ==
 
-import {
-  useSignal,
-  readTrackedSourceValue,
-  _props,
-  createComponent,
-  maybeThen,
-} from '@qwik.dev/core';
+import { useSignal, createComponent, maybeThen } from '@qwik.dev/core';
 import { Field } from './component.tsx_component_Field';
 export { Field };
 export function App(props, ctx) {
   const value = useSignal('');
-  ctx.addRoot(value);
   const component_0 = createComponent(
-    _props(
-      {
-        label: 'Name',
-        get 'bind:value'() {
-          return readTrackedSourceValue(value);
-        },
+    {
+      label: 'Name',
+      get 'bind:value'() {
+        return value;
       },
-      { 'bind:value': value }
-    ),
+    },
     (props) => Field(props, ctx)
   );
   return maybeThen(component_0, (component_0) => [component_0]);

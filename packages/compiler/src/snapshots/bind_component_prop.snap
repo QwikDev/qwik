@@ -15,35 +15,23 @@ export function App() {
 
 ============================= src/component.tsx ==
 
-import {
-  useSignal,
-  readTrackedSourceValue,
-  _props,
-  createComponent,
-  maybeThen,
-} from '@qwik.dev/core';
+import { useSignal, createComponent, maybeThen } from '@qwik.dev/core';
 import { Pager } from './component.tsx_component_Pager';
 export { Pager };
 export function App(props0, ctx) {
   const page = useSignal(1);
-  ctx.addRoot(page);
-  ctx.addRoot(page);
-  ctx.addRoot(page);
   const component_0 = createComponent(
-    _props(
-      {
-        get 'bind:page'() {
-          return readTrackedSourceValue(page);
-        },
-        get 'bind:value'() {
-          return readTrackedSourceValue(page);
-        },
-        get 'bind:checked'() {
-          return readTrackedSourceValue(page);
-        },
+    {
+      get 'bind:page'() {
+        return page;
       },
-      { 'bind:page': page, 'bind:value': page, 'bind:checked': page }
-    ),
+      get 'bind:value'() {
+        return page;
+      },
+      get 'bind:checked'() {
+        return page;
+      },
+    },
     (props) => Pager(props, ctx)
   );
   return maybeThen(component_0, (component_0) => [component_0]);

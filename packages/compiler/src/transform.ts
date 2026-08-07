@@ -26,6 +26,7 @@ import {
 } from './transform-diagnostics';
 import { createComponentDefinition, discoverComponentCandidates } from './discover';
 import { emitCsrModule, emitCsrSegmentRender } from './emit-csr';
+import { emitSsrOpPlan, findWireBlock, type PlanSsrComponent } from './emit-plan-ssr';
 import {
   emitModulePlan,
   type PlanHookCall,
@@ -587,6 +588,29 @@ export function transformModule(ctx: CompilerContext): TransformResult {
     );
   }
 
+  // chunk emission reuses the owning component's wire block when one exists
+  const wireCache = new Map<ComponentOutput, PlanSsrComponent | null>();
+  const allOutputs = [...mainOutputs, ...componentModules.map((component) => component.output)];
+  const findSegmentWireBlock = (segmentId: string) => {
+    const owner = allOutputs.find((output) =>
+      output.result.segments.some((candidate) => candidate.id === segmentId)
+    );
+    if (owner === undefined) {
+      return undefined;
+    }
+    let wire = wireCache.get(owner);
+    if (wire === undefined) {
+      wire = emitSsrOpPlan(
+        owner.result,
+        owner.result.segments,
+        componentReturnMode,
+        ctx.input.code,
+        planData.bindingName
+      );
+      wireCache.set(owner, wire);
+    }
+    return wire === null ? undefined : findWireBlock(wire, segmentId);
+  };
   const emittedSegments = segments.filter((segment) =>
     shouldEmitSegmentModule(segment, ctx.emitTarget)
   );
@@ -608,7 +632,8 @@ export function transformModule(ctx: CompilerContext): TransformResult {
             inputPath,
             explicitExtensions,
             generatedNames,
-            componentReturnMode
+            componentReturnMode,
+            findSegmentWireBlock(segment.id)
           )
       : (segment, source, imports, segments, inputPath, explicitExtensions, generatedNames) =>
           emitCsrSegmentRender(

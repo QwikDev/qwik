@@ -503,7 +503,8 @@ export function emitSsrSegmentRender(
   inputPath = '',
   explicitExtensions = false,
   generatedNames = DEFAULT_GENERATED_NAMES,
-  componentReturnMode?: SsrComponentReturnModeResolver
+  componentReturnMode?: SsrComponentReturnModeResolver,
+  wireBlock?: import('./emit-plan-ssr').PlanSsrRenderFn | import('./emit-plan-ssr').PlanSsrRow
 ): {
   hoists: string[];
   statements: string[];

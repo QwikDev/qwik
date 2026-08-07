@@ -99,6 +99,8 @@ export type PlanSetupEntry =
       readonly css?: string;
       /** The hook's return value is consumed by the component (destructured scopeId etc.). */
       readonly resultUsed?: true;
+      /** Full statement JS hole for dynamic css / consumed results. */
+      readonly src?: string;
     }
   | {
       readonly op: SetupOpKind.Js;
@@ -107,7 +109,14 @@ export type PlanSetupEntry =
       readonly final?: true;
       readonly imports?: readonly string[];
     }
-  | PlanLocalComponent;
+  | PlanLocalComponent
+  | {
+      /** Setup-scope render fn: `const view = () => <jsx/>` invoked from render values. */
+      readonly op: SetupOpKind.RenderValue;
+      readonly name: string;
+      readonly binding: number;
+      readonly render: PlanSsrRenderFn;
+    };
 
 /**
  * A setup-scope component compiled in place. Component-op string targets resolve against the

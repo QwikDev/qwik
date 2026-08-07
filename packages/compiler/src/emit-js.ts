@@ -646,10 +646,16 @@ class JsComponentGenerator {
       }
       case 'style': {
         const css = entry.css as string | undefined;
-        if (css === undefined || entry.resultUsed === true) {
-          markUngeneratable();
-        }
         const helper = entry.scoped === true ? 'useStylesScoped' : 'useStyles';
+        if (css === undefined || entry.resultUsed === true) {
+          const src = entry.src as string | undefined;
+          if (src === undefined) {
+            markUngeneratable();
+          }
+          this.imports.add(helper);
+          this.statements.push(src);
+          return;
+        }
         this.imports.add(helper);
         this.statements.push(
           `${helper}(${templateLiteral(css)}, ${JSON.stringify(entry.styleId)});`
@@ -700,6 +706,38 @@ class JsComponentGenerator {
         this.imports.add('_markComponent');
         // captures may be declared below the fn — the QRL resolves at mark-flush time
         this.pendingMarks.push(local.name);
+        return;
+      }
+      case 'render-value': {
+        const item = entry as unknown as {
+          name: string;
+          binding: number;
+          render: LocalComponentEntry['render'];
+        };
+        const name = this.declare(item.binding, item.name);
+        const child = new JsComponentGenerator(
+          this.plan,
+          this.shared,
+          this.segments,
+          this.defs,
+          this.contexts,
+          this.pluginFns,
+          this.names,
+          {
+            locals: this.locals,
+            usedNames: this.usedNames,
+            localComponents: this.localComponents,
+            sourceKinds: this.sourceKinds,
+          },
+          this.moduleBindingName,
+          this.coreAlias,
+          this.sourceBindingName
+        );
+        // zero-arg render fn: `const view = () => { ...; return parts; }`
+        const fn = child.generateFn(name, item.render, null, false, false, '()');
+        this.statements.push(
+          fn.replace(`function ${name}()`, `const ${name} = () =>`).replace(/\}\n$/, '};')
+        );
         return;
       }
       case 'js': {

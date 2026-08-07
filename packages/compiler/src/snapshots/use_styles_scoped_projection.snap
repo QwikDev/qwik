@@ -26,6 +26,7 @@ import {
   createSlotScope,
   registerProjection,
   createComponent,
+  maybeThen,
   _qrlWithChunk,
 } from '@qwik.dev/core';
 import { use_styles_scoped_projection_slot_render_segment_2_ltuwbe4740jy } from './use-styles-scoped-projection.tsx_use_styles_scoped_projection_slot_render_segment_2_ltuwbe4740jy';
@@ -44,14 +45,17 @@ q_use_styles_scoped_projection_slot_render_segment_2_ltuwbe4740jy.s(
 export { Child };
 export function App(props, ctx) {
   useStylesScoped(parentStyles, 'gtgvab-0');
-  const slotScope0 = createSlotScope();
-  ctx.addRoot(slotScope0);
+  const slot_scope_0 = createSlotScope();
+  ctx.addRoot(slot_scope_0);
   registerProjection(
-    slotScope0,
+    slot_scope_0,
     '',
     q_use_styles_scoped_projection_slot_render_segment_2_ltuwbe4740jy
   );
-  return createComponent({}, (props) => Child(props, ctx), { slotScope: slotScope0 });
+  const component_1 = createComponent({}, (props) => Child(props, ctx), {
+    slotScope: slot_scope_0,
+  });
+  return maybeThen(component_1, (component_1) => component_1);
 }
 ============================= src/use-styles-scoped-projection.tsx_component_Child.js (ENTRY POINT)==
 
@@ -66,10 +70,10 @@ import childStyles from './child.css?inline';
 
 export function Child(props, ctx) {
   useStylesScoped(childStyles, 'hnnps2-0');
-  const slot0 = renderSsrSlot(ctx, '', undefined, getActiveInvokeContextOrNull());
-  return maybeThen(slot0, (slot0) => [
+  const slot_0 = renderSsrSlot(ctx, '', undefined, getActiveInvokeContextOrNull());
+  return maybeThen(slot_0, (slot_0) => [
     createSsrElementRecord('section', '<section class="⚡️hnnps2-0 child"', '>'),
-    slot0,
+    slot_0,
     '</section>',
   ]);
 }

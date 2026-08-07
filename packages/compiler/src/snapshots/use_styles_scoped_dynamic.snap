@@ -46,23 +46,21 @@ const q_use_styles_scoped_dynamic_q_e_click_segment_2_29fz3rp7gjtvv = /*#__PURE_
 export function App(props, ctx) {
   useStylesScoped(styles, 'gtgvab-0');
   const active = useSignal(false);
-  const id0 = ctx.nextId();
+  const id_0 = ctx.nextId();
   ctx.addRoot(active);
-  const attr1 = renderSsrAttrExpression(
-    createSsrElementTarget(id0),
+  const attr_0 = renderSsrAttrExpression(
+    createSsrElementTarget(id_0),
     'class',
     [active],
-    q_use_styles_scoped_dynamic_class_segment_1_3grhh2wv1i202,
-    undefined,
-    '⚡️gtgvab-0'
+    q_use_styles_scoped_dynamic_class_segment_1_3grhh2wv1i202
   );
-  return maybeThen(attr1, (attr1) => [
+  return maybeThen(attr_0, (attr_0) => [
     createSsrElementRecord(
       'button',
       '<button q:id="',
-      createSsrNodeId(id0),
+      createSsrNodeId(id_0),
       '"',
-      attr1 === null ? '' : ' class' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
+      attr_0 === null ? '' : ' class' + (attr_0 === '' ? '' : '="' + escapeHTML(attr_0) + '"'),
       ctx.eventAttr(
         'q-e:click',
         q_use_styles_scoped_dynamic_q_e_click_segment_2_29fz3rp7gjtvv.w([active])

@@ -24,6 +24,7 @@ export const enum SetupOpKind {
   Yield = 'yield',
   QrlConst = 'qrl-const',
   LocalComponent = 'local-component',
+  RenderValue = 'render-value',
 }
 
 export const enum TaskStepKind {

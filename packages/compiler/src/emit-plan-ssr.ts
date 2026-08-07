@@ -1,4 +1,5 @@
 import type { PlanSetupEntry, PlanValue } from './emit-plan';
+import { applyReplacements } from './emit-qrl';
 import type {
   ComponentPlan,
   OrderedPropPlan,
@@ -250,6 +251,24 @@ export function emitSsrOpPlan(
           planned !== undefined && planned.kind === 'style'
             ? staticStyleCss(slice(planned.argumentRange))
             : null;
+        // dynamic css or consumed results keep the full statement as a JS hole
+        let src: string | undefined;
+        if (
+          planned !== undefined &&
+          planned.kind === 'style' &&
+          (css === null || planned.resultUsed)
+        ) {
+          const helper = entry.scoped ? 'useStylesScoped' : 'useStyles';
+          const call = `${helper}(${slice(planned.argumentRange)}, ${JSON.stringify(entry.styleId)})`;
+          src = applyReplacements(source, planned.range, [
+            {
+              range: planned.callRange,
+              value: planned.resultUsed
+                ? `({ ${entry.scoped ? 'scopeId' : 'styleId'}: ${call} })`
+                : call,
+            },
+          ]).trim();
+        }
         return [
           {
             op: SetupOpKind.Style,
@@ -259,6 +278,7 @@ export function emitSsrOpPlan(
             ...(planned !== undefined && planned.kind === 'style' && planned.resultUsed
               ? { resultUsed: true as const }
               : {}),
+            ...(src === undefined ? {} : { src }),
           },
         ];
       }
@@ -313,6 +333,22 @@ export function emitSsrOpPlan(
                       })),
                     },
             render: targetBlock(entry.target),
+          },
+        ];
+      }
+      if (entry.kind === 'render-value') {
+        return [
+          {
+            op: SetupOpKind.RenderValue,
+            name: entry.name,
+            binding: entry.bindingId,
+            render: {
+              setup: [],
+              ops: entry.render.operations.map(op),
+              synchronous: entry.render.synchronous,
+              needsRootRange: entry.render.needsRootRange,
+              ...(entry.render.staticRoot ? { staticRoot: true } : {}),
+            } as PlanSsrRenderFn,
           },
         ];
       }

@@ -264,7 +264,20 @@ export function emitSsrOpPlan(
             )
           : undefined;
       if (embedded === undefined) {
-        throw UNPLANNABLE;
+        // no render body: the callback's extracted segment carries it as a QRL-backed fn
+        const fnSegment =
+          range === undefined
+            ? undefined
+            : segments.find(
+                (candidate) =>
+                  candidate.kind === 'pluginCallback' &&
+                  candidate.functionRange[0] === range[0] &&
+                  candidate.functionRange[1] === range[1]
+              );
+        if (fnSegment === undefined) {
+          throw UNPLANNABLE;
+        }
+        return { kind: 'fn-arg', segment: fnSegment.id };
       }
       const block = renderFnBlock(embedded);
       // the callback's result is a runtime renderable: the root must stay a record

@@ -1422,6 +1422,13 @@ class SemanticLowerer {
       return index < 0 ? null : index;
     },
     importOf: (binding) => this.binding(binding)?.import ?? null,
+    findFnArgSegmentId: (range) =>
+      range === null
+        ? null
+        : (this.extracted.segments.find(
+            (segment) =>
+              segment.kind === 'pluginCallback' && sameRange(segment.functionRange, range)
+          )?.id ?? null),
   };
 
   /** Render-position values may carry render-arg placeholders; plan emission resolves them. */

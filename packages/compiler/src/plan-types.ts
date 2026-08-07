@@ -23,7 +23,8 @@ export type SegmentKind =
   | 'suspenseRender'
   | 'slotRender'
   | 'collectionRender'
-  | 'localComponent';
+  | 'localComponent'
+  | 'pluginCallback';
 export type SegmentCaptureSource = 'local' | 'param' | 'loop';
 
 export interface ImportBinding {

@@ -548,6 +548,7 @@ function emitSegmentCode(
     }
     case 'event':
     case 'qrl':
+    case 'pluginCallback':
       if (segment.embeddedRenderContext === 'trailing') {
         functionHead = `${segment.async ? 'async ' : ''}(${[
           ...segment.paramRanges.map((range) => source.slice(range[0], range[1])),
@@ -593,6 +594,9 @@ export function shouldResolveSsrSegment(segment: SegmentPlan): boolean {
       return true;
     case 'qrl':
       return segment.qrl?.kind === 'implicit';
+    case 'pluginCallback':
+      // plugin-call callbacks run during setup — the fn must be resolved at load
+      return true;
     case 'branchRender':
     case 'event':
       return false;

@@ -397,6 +397,7 @@ class QrlExtractor {
 
     this.visit(node.callee);
     const iteration = isIterationCall(node);
+    const pluginCallee = this.getPluginCallee(node.callee);
     for (let i = 0; i < node.arguments.length; i++) {
       const argument = node.arguments[i];
       const expression = unwrapExpression(
@@ -404,10 +405,52 @@ class QrlExtractor {
       );
       if (i === 0 && iteration && isFunctionLike(expression)) {
         this.visitFunction(expression);
+      } else if (
+        pluginCallee !== null &&
+        argument.type !== 'SpreadElement' &&
+        isFunctionLike(expression)
+      ) {
+        // plugin-call callbacks become QRL-backed segments (specs/09): the emitted
+        // call passes the resolved fn with `_captures` when the lambda cannot lower
+        const segment = this.createSegment(
+          pluginCallee,
+          expression,
+          expression,
+          null,
+          null,
+          [],
+          null,
+          'pluginCallback'
+        );
+        if (segment !== null) {
+          this.visitFunction(expression, segment);
+        } else {
+          this.visit(argument);
+        }
       } else {
         this.visit(argument);
       }
     }
+  }
+
+  /** Local name of an imported plugin-addressable callee (mirrors claimPluginCall rules). */
+  private getPluginCallee(callee: unknown): string | null {
+    const expression = unwrapExpression(callee);
+    if (getIdentifierName(expression) === null) {
+      return null;
+    }
+    const imported = this.bindingForReference(expression)?.import ?? null;
+    if (
+      imported === null ||
+      imported.typeOnly ||
+      imported.importedName === '*' ||
+      imported.importedName === 'default' ||
+      imported.importedName.endsWith('$') ||
+      imported.source.startsWith('@qwik.dev/')
+    ) {
+      return null;
+    }
+    return imported.importedName;
   }
 
   private visitJsxAttribute(node: JSXAttributeItem) {
@@ -843,7 +886,8 @@ class QrlExtractor {
     eventName: string | null,
     callee: unknown = null,
     args: readonly unknown[] = [],
-    qrl: QrlBoundaryPlan | null = null
+    qrl: QrlBoundaryPlan | null = null,
+    kind?: Segment['kind']
   ): Segment | null {
     const range = getRange(boundary);
     const functionRange = getRange(fn);
@@ -856,7 +900,7 @@ class QrlExtractor {
       id,
       parentId: this.segmentStack[this.segmentStack.length - 1]?.segment.id ?? null,
       name: createSegmentName(this.path, this.sourceIdentity, eventName ?? ctxName, id),
-      kind: eventName === null ? 'qrl' : 'event',
+      kind: kind ?? (eventName === null ? 'qrl' : 'event'),
       ctxName,
       qrl,
       payload: 'function',

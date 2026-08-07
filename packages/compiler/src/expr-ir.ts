@@ -86,8 +86,14 @@ export type ValueIR =
       readonly kind: ValueIrKind.PluginCall;
       /** `plugin:<module>:<export>` — user-plugin fn id (specs/09). */
       readonly fnId: string;
-      readonly args: readonly (ValueIR | LambdaIR | RenderArgIR)[];
+      readonly args: readonly (ValueIR | LambdaIR | RenderArgIR | FnArgIR)[];
     };
+
+/** A QRL-backed callback argument: emitted as the resolved segment fn with its captures. */
+export interface FnArgIR {
+  readonly kind: 'fn-arg';
+  readonly segment: string;
+}
 
 /**
  * A render-bodied callback argument: the callback renders a block. Lowering emits a range

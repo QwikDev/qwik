@@ -179,7 +179,7 @@ describe('render-arg wire hygiene', () => {
     expect(JSON.stringify(plan)).not.toContain('plugin:@qwik.dev');
   });
 
-  test('unresolvable render callbacks never leak placeholders onto the wire', async () => {
+  test('impure callbacks ride as qrl-backed fn-args, never raw placeholders', async () => {
     const [plan] = await planFor({
       'src/view.tsx': [
         `import { makeHandler } from './handlers';`,
@@ -193,6 +193,15 @@ describe('render-arg wire hygiene', () => {
       'src/handlers.ts': `export const makeHandler = (fn) => fn;`,
     });
     expect(findRenderArgs(plan)).toEqual([]);
+    const setup = plan.components[0].ssr.setup;
+    const handlerConst = setup.find(
+      (entry: { kind: string; name?: string }) => entry.name === 'handler'
+    );
+    expect(handlerConst.init.kind).toBe('plugin-call');
+    expect(handlerConst.init.args[0]).toEqual({
+      kind: 'fn-arg',
+      segment: expect.stringMatching(/^segment_/),
+    });
   });
 
   test('render-position callbacks resolve to inline render blocks', async () => {

@@ -40,6 +40,7 @@ import {
   mergeProps,
   _chk,
   _props,
+  _withCaptures,
   _wrapArray,
   _qrlWithChunk,
   _val,
@@ -306,7 +307,31 @@ export async function buildInterpretedRoot(
           if (impl === undefined) {
             throw new Error(`plugin fn ${ir.fnId} has no implementation`);
           }
-          return impl(...ir.args.map(evalIr));
+          const argValues = ir.args.map((argument) => {
+            if ((argument as { kind?: string }).kind === 'fn-arg') {
+              // qrl-backed callback: the eagerly resolved segment fn with captures bound
+              const segmentId = (argument as { segment: string }).segment;
+              const resolved = (qrls.get(segmentId) as { resolved?: unknown } | undefined)
+                ?.resolved;
+              if (typeof resolved !== 'function') {
+                throw new Error(`fn-arg segment "${segmentId}" is not eagerly resolved`);
+              }
+              const captures = captureLists.get(segmentId) ?? [];
+              if (captures.length === 0) {
+                return resolved;
+              }
+              return _withCaptures(
+                resolved as (...fnArgs: unknown[]) => unknown,
+                captures.map((binding) =>
+                  destructuredPropValues.has(binding)
+                    ? destructuredPropValues.get(binding)
+                    : locals.get(binding)
+                )
+              );
+            }
+            return evalIr(argument as ValueIR);
+          });
+          return impl(...argValues);
         }
         case 'member': {
           const obj = evalIr(ir.obj) as Record<string, unknown> | null | undefined;

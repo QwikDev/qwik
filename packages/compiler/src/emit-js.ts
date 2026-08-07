@@ -371,6 +371,22 @@ class JsComponentGenerator {
       });
       return `(${names.join(', ')}) => ${this.irJs(lambda.body, lambdaScope)}`;
     }
+    if (tagged.kind === 'fn-arg') {
+      const meta = this.segment((argument as { segment: string }).segment);
+      if (!meta.resolved) {
+        markUngeneratable(meta.id); // the callback runs during render — it must resolve eagerly
+      }
+      // register the qrl (and its eager chunk import) so the symbol is in scope
+      this.qrlExpression(meta, false);
+      const captures = meta.captures.map((capture) =>
+        capture.access === 'component-prop' ? this.names.props : this.local(capture.binding)
+      );
+      if (captures.length === 0) {
+        return meta.symbolName;
+      }
+      this.imports.add('_withCaptures');
+      return `_withCaptures(${meta.symbolName}, [${captures.join(', ')}])`;
+    }
     if (tagged.kind === 'render-arg') {
       const renderArg = argument as {
         params: readonly { name: string; binding: number | null }[];

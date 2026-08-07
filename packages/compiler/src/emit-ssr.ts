@@ -192,7 +192,12 @@ function emitJsRenderForComponent(
       symbolName: segment.symbolName,
       chunk: '',
       kind: segment.kind,
-      resolved: false,
+      // mirrors the module's own `.s()` hoist eligibility for parentless segments
+      resolved:
+        segment.parentId === null &&
+        segment.qrl?.kind !== 'sync' &&
+        !isModuleStyleBoundary(segment) &&
+        shouldResolveSsrSegment(segment),
       qrl:
         segment.qrl === null
           ? null

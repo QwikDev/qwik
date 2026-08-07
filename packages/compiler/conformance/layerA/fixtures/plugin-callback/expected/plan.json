@@ -1,0 +1,163 @@
+{
+  "format": "qwik/ssr-plan",
+  "version": 1,
+  "entry": 0,
+  "components": [
+    {
+      "name": "App",
+      "module": 0,
+      "propsBindings": [],
+      "props": null,
+      "ssr": {
+        "setup": [
+          {
+            "kind": "signal",
+            "binding": 3,
+            "init": {
+              "kind": "lit",
+              "value": 4
+            },
+            "name": "count"
+          },
+          {
+            "kind": "const",
+            "binding": 4,
+            "init": {
+              "kind": "plugin-call",
+              "fnId": "plugin:./compute:compute",
+              "args": [
+                {
+                  "kind": "fn-arg",
+                  "segment": "segment_0"
+                }
+              ]
+            },
+            "name": "label"
+          }
+        ],
+        "ops": [
+          {
+            "kind": "element",
+            "tag": "p",
+            "voidTag": false,
+            "styleScopedId": null,
+            "props": [],
+            "propsEffect": null,
+            "children": [
+              {
+                "kind": "content",
+                "value": {
+                  "kind": "ir",
+                  "ir": {
+                    "kind": "binding-read",
+                    "binding": 4
+                  },
+                  "segment": "segment_1"
+                },
+                "ssr": {
+                  "root": false
+                }
+              }
+            ],
+            "ssr": {
+              "id": null,
+              "targetUses": 0
+            }
+          }
+        ],
+        "ssr": {
+          "syncRender": false,
+          "staticRoot": false,
+          "needsRootRange": false,
+          "needsId": false,
+          "idBase": "qApp-",
+          "flushTasks": false,
+          "directSegments": [],
+          "usedSegments": [
+            "segment_1",
+            "segment_0"
+          ]
+        }
+      },
+      "setup": [
+        {
+          "kind": "signal",
+          "binding": 3,
+          "init": {
+            "kind": "lit",
+            "value": 4
+          }
+        },
+        {
+          "kind": "const",
+          "binding": 4,
+          "init": {
+            "kind": "plugin-call",
+            "fnId": "plugin:./compute:compute",
+            "args": [
+              {
+                "kind": "fn-arg",
+                "segment": "segment_0"
+              }
+            ]
+          }
+        }
+      ],
+      "needsId": false,
+      "idBase": "qApp-",
+      "providesContext": false,
+      "runtimeStyleScope": false
+    }
+  ],
+  "modules": [
+    {
+      "path": "src/input.tsx",
+      "segments": [
+        {
+          "id": "segment_0",
+          "symbolName": "input_compute_segment_0_it321ma0o70e",
+          "chunk": "./input.tsx_input_compute_segment_0_it321ma0o70e",
+          "kind": "pluginCallback",
+          "resolved": true,
+          "qrl": null,
+          "captures": [
+            {
+              "binding": 3,
+              "name": "count",
+              "source": "local",
+              "access": "direct"
+            }
+          ]
+        },
+        {
+          "id": "segment_1",
+          "symbolName": "input_text_segment_1_3k1cwavr13suv",
+          "chunk": "./input.tsx_input_text_segment_1_3k1cwavr13suv",
+          "kind": "expression",
+          "resolved": true,
+          "qrl": null,
+          "captures": [
+            {
+              "binding": 4,
+              "name": "label",
+              "source": "local",
+              "access": "direct"
+            }
+          ]
+        }
+      ],
+      "contexts": [],
+      "defs": [],
+      "imports": [
+        {
+          "binding": 1,
+          "name": "compute",
+          "module": "./compute",
+          "export": "compute"
+        }
+      ]
+    }
+  ],
+  "unresolved": [],
+  "pluginFns": []
+}

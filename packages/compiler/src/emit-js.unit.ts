@@ -39,6 +39,7 @@ const FULLY_GENERATED = new Set([
   'mixed-text',
   'multi-module',
   'plugin-call',
+  'plugin-callback',
   'signal-counter',
   'slot-fallback',
   'slot-projection',

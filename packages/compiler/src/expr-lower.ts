@@ -3,6 +3,7 @@ import { ValueIrKind } from './expr-ir';
 import type {
   LambdaIR,
   RenderArgIR,
+  FnArgIR,
   ValueIR,
   ValueIrBinOp,
   ValueIrLogicOp,
@@ -30,6 +31,8 @@ export interface ExprLowerFacts {
   importOf?(binding: BindingId): ImportBinding | null;
   /** Only render-position values may carry render-arg placeholders — plan emission resolves them. */
   allowRenderArgs?: true;
+  /** Extracted segment backing a plugin-call callback, by the callback's source range. */
+  findFnArgSegmentId?(range: SourceRange | null): string | null;
 }
 
 /** User compiler plugin (specs/09): claims imported symbols, provides per-target sources. */
@@ -556,8 +559,8 @@ function lowerArgs(
   facts: ExprLowerFacts,
   lambdaAt: number | null,
   pluginArgs = false
-): (ValueIR | LambdaIR | RenderArgIR)[] | null {
-  const args: (ValueIR | LambdaIR | RenderArgIR)[] = [];
+): (ValueIR | LambdaIR | RenderArgIR | FnArgIR)[] | null {
+  const args: (ValueIR | LambdaIR | RenderArgIR | FnArgIR)[] = [];
   for (let i = 0; i < argumentNodes.length; i++) {
     const argument = unwrapExpression(argumentNodes[i]);
     if (argument === null || argument === undefined) {
@@ -576,11 +579,19 @@ function lowerArgs(
       }
       if (pluginArgs && facts.allowRenderArgs === true) {
         // render-bodied callback: a range placeholder the plan emitter resolves against
-        // the value's embedded renders — or fails the whole lowering if none matches
+        // the value's embedded renders — falls through to the qrl-backed form otherwise
         const range = getRange(argument);
         const params = lambdaParams(argument, facts);
         if (range !== null && params !== null) {
           args.push({ kind: 'render-arg', params, range: [range[0], range[1]] });
+          continue;
+        }
+      }
+      if (pluginArgs) {
+        // impure callback: its extracted segment carries it as a QRL-backed fn
+        const segment = facts.findFnArgSegmentId?.(getRange(argument)) ?? null;
+        if (segment !== null) {
+          args.push({ kind: 'fn-arg', segment });
           continue;
         }
       }

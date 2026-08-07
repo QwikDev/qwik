@@ -32,6 +32,7 @@ const READY_FIXTURES = [
   'multi-module',
   'slot-projection',
   'slot-fallback',
+  'context',
 ];
 
 const layerADir = dirname(fileURLToPath(import.meta.url));

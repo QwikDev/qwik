@@ -42,6 +42,7 @@ export function emitJsModule(plan: QwikSsrPlan, componentIndex = plan.entry): st
         shared,
         componentModule.segments,
         componentModule.defs,
+        componentModule.contexts,
         plan.pluginFns ?? []
       );
       shared.componentFns.push(generator.generate(component));
@@ -105,6 +106,7 @@ class JsComponentGenerator {
     private readonly shared: ModuleState,
     private readonly segments: readonly SegmentMeta[],
     private readonly defs: readonly DefMeta[],
+    private readonly contexts: QwikSsrPlan['modules'][number]['contexts'],
     private readonly pluginFns: QwikSsrPlan['pluginFns']
   ) {
     this.imports = shared.imports;
@@ -149,6 +151,22 @@ class JsComponentGenerator {
     for (const def of this.defs) {
       this.usedNames.add(def.name);
     }
+    if (this.contexts.length > 0 && !this.shared.hoistedSegments.has('__contexts__')) {
+      this.shared.hoistedSegments.add('__contexts__');
+      this.imports.add('createContextId');
+      for (const context of this.contexts) {
+        if (context.declaredName === undefined) {
+          markUngeneratable();
+        }
+        this.usedNames.add(context.declaredName);
+        this.hoists.push(
+          `const ${context.declaredName} = createContextId(${JSON.stringify(context.name)});`
+        );
+      }
+      this.hoists.push(
+        `export { ${this.contexts.map((context) => context.declaredName).join(', ')} };`
+      );
+    }
     if (this.defs.length > 0 && !this.shared.hoistedSegments.has('__defs__')) {
       this.shared.hoistedSegments.add('__defs__');
       for (const def of this.defs) {
@@ -163,7 +181,23 @@ class JsComponentGenerator {
       this.setupOp(entry as { op: string } & Record<string, unknown>);
     }
     const setupStatements = this.statements.splice(0);
+    let contextScope: string | null = null;
+    if (component.providesContext) {
+      contextScope = `context_scope_${this.nextTemp++}`;
+      this.statements.push(`const ${contextScope} = ctx.contextScopeRef();`);
+      this.imports.add('createSsrRecord');
+    }
     const parts = this.ops(ssr.ops);
+    if (contextScope !== null) {
+      // provider output wraps in a context scope range
+      parts.unshift(`createSsrRecord('<!c=', ${contextScope}, '>')`);
+      const last = parts[parts.length - 1];
+      if (last !== undefined && isStringLiteral(last)) {
+        parts[parts.length - 1] = JSON.stringify((JSON.parse(last) as string) + '<!/c>');
+      } else {
+        parts.push(JSON.stringify('<!/c>'));
+      }
+    }
     const value =
       parts.length === 1 && isStringLiteral(parts[0]) ? parts[0] : `[${parts.join(', ')}]`;
     const returnStatement = this.wrapAsync(value);
@@ -270,6 +304,23 @@ class JsComponentGenerator {
         const meta = this.segment(entry.segment as string);
         this.imports.add('useTaskQrl');
         this.statements.push(`useTaskQrl(${this.qrlExpression(meta)});`);
+        return;
+      }
+      case 'context-provider': {
+        const contextVar = this.contextVar(entry.context as number);
+        this.imports.add('useContextProvider');
+        this.statements.push(
+          `useContextProvider(${contextVar}, ${this.irJs(entry.value as ValueIR)});`
+        );
+        return;
+      }
+      case 'context-read': {
+        const binding = entry.local as number;
+        const variable = this.declare(binding, entry.name as string | undefined);
+        this.imports.add('useContext');
+        this.statements.push(
+          `const ${variable} = useContext(${this.contextVar(entry.context as number)});`
+        );
         return;
       }
       case 'visible-task': {
@@ -766,6 +817,14 @@ class JsComponentGenerator {
       markUngeneratable();
     }
     return variable;
+  }
+
+  private contextVar(binding: number): string {
+    const context = this.contexts.find((candidate) => candidate.binding === binding);
+    if (context === undefined || context.declaredName === undefined) {
+      markUngeneratable();
+    }
+    return context.declaredName;
   }
 
   private segment(segmentId: string): SegmentMeta {

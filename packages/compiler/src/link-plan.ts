@@ -33,7 +33,11 @@ export interface QwikSsrPlan {
 export interface LinkedModule {
   readonly path: string;
   readonly segments: readonly PlanSegmentMeta[];
-  readonly contexts: readonly { readonly binding: number; readonly name: string }[];
+  readonly contexts: readonly {
+    readonly binding: number;
+    readonly name: string;
+    readonly declaredName?: string;
+  }[];
   readonly defs: QwikModulePlan['defs'];
 }
 

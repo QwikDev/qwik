@@ -1918,8 +1918,8 @@ function createComponentAnalysis(
 function collectPlanContexts(
   program: Program,
   analysis: ModuleAnalysis
-): { binding: BindingId; name: string }[] {
-  const contexts: { binding: BindingId; name: string }[] = [];
+): { binding: BindingId; name: string; declaredName: string }[] {
+  const contexts: { binding: BindingId; name: string; declaredName: string }[] = [];
   visit(program, (node) => {
     if (node.type !== 'VariableDeclarator') {
       return;
@@ -1956,7 +1956,7 @@ function collectPlanContexts(
         binding.declarationRange[1] === idRange[1]
     );
     if (declared !== undefined) {
-      contexts.push({ binding: declared.id, name: argument.value });
+      contexts.push({ binding: declared.id, name: argument.value, declaredName: declared.name });
     }
   });
   return contexts;

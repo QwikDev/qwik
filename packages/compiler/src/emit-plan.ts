@@ -48,6 +48,8 @@ export interface PlanDefMeta {
 export interface PlanContextMeta {
   readonly binding: number;
   readonly name: string;
+  /** Declared variable name — chunks import the context id by it. */
+  readonly declaredName?: string;
 }
 
 export interface PlanImportMeta {

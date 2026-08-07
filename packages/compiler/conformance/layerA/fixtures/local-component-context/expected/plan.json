@@ -238,7 +238,8 @@
       "contexts": [
         {
           "binding": 3,
-          "name": "theme"
+          "name": "theme",
+          "declaredName": "ThemeContext"
         }
       ],
       "defs": []

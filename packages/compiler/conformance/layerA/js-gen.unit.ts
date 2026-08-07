@@ -19,6 +19,7 @@ const READY_FIXTURES = [
   'inner-html',
   'signal-counter',
   'mixed-text',
+  'template-text',
 ];
 
 const layerADir = dirname(fileURLToPath(import.meta.url));

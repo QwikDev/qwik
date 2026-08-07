@@ -44,6 +44,7 @@ const READY_FIXTURES = [
   'branch-collection',
   'derived-collection',
   'local-component-captured',
+  'local-component',
 ];
 
 const layerADir = dirname(fileURLToPath(import.meta.url));

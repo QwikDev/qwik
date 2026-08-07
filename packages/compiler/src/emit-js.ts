@@ -117,6 +117,8 @@ class JsComponentGenerator {
   private readonly pendingMarks: string[] = [];
   private nextTemp = 0;
   private invokeCtxDeclared = false;
+  /** Bindings declared as reactive sources (signal/store/computed) — prop getters track them. */
+  private sourceKinds = new Set<number>();
   /** Element id placeholders: resolved at first claiming step (eager const / lazy let). */
   private readonly idState = new Map<string, 'placeholder' | 'eager' | 'lazy'>();
   /** Pending async steps — the return value chains maybeThen over them in order. */
@@ -133,6 +135,7 @@ class JsComponentGenerator {
       readonly locals: ReadonlyMap<number, string>;
       readonly usedNames: ReadonlySet<string>;
       readonly localComponents: ReadonlyMap<string, LocalComponentEntry>;
+      readonly sourceKinds: ReadonlySet<number>;
     }
   ) {
     this.imports = shared.imports;
@@ -143,6 +146,7 @@ class JsComponentGenerator {
       this.locals = new Map(seed.locals);
       this.usedNames = new Set(seed.usedNames);
       this.localComponents = new Map(seed.localComponents);
+      this.sourceKinds = new Set(seed.sourceKinds);
     }
   }
 
@@ -159,7 +163,7 @@ class JsComponentGenerator {
     );
   }
 
-  private generateFn(
+  generateFn(
     name: string,
     ssr: {
       readonly setup: readonly unknown[];
@@ -168,7 +172,8 @@ class JsComponentGenerator {
     },
     propsShape: PropsShape,
     providesContext: boolean,
-    exported: boolean
+    exported: boolean,
+    signature = '(props, ctx)'
   ): string {
     // props param bindings: identifier form aliases props; object form destructures by name
     if (propsShape !== null && propsShape !== undefined) {
@@ -276,7 +281,7 @@ class JsComponentGenerator {
       bodyStatements = [...setupStatements, ...this.statements, returnStatement];
     }
     const body = bodyStatements.map((line) => `  ${line}`).join('\n');
-    return `${exported ? 'export ' : ''}function ${name}(props, ctx) {\n${body}\n}\n`;
+    return `${exported ? 'export ' : ''}function ${name}${signature} {\n${body}\n}\n`;
   }
 
   /** MaybeThen chain over async steps, innermost carrying the parts value. */
@@ -371,6 +376,7 @@ class JsComponentGenerator {
     switch (entry.op) {
       case 'signal': {
         const binding = entry.local as number;
+        this.sourceKinds.add(binding);
         const variable = this.declare(binding, entry.name as string | undefined);
         this.imports.add('useSignal');
         this.statements.push(`const ${variable} = useSignal(${this.irJs(entry.init as ValueIR)});`);
@@ -381,6 +387,7 @@ class JsComponentGenerator {
           markUngeneratable();
         }
         const binding = entry.local as number;
+        this.sourceKinds.add(binding);
         const variable = this.declare(binding, entry.name as string | undefined);
         this.imports.add('useStore');
         this.statements.push(`const ${variable} = useStore(${this.irJs(entry.init as ValueIR)});`);
@@ -399,6 +406,7 @@ class JsComponentGenerator {
       }
       case 'computed': {
         const binding = entry.local as number;
+        this.sourceKinds.add(binding);
         const variable = this.declare(binding, entry.name as string | undefined);
         const meta = this.segment(entry.segment as string);
         this.imports.add('useComputedQrl');
@@ -424,6 +432,7 @@ class JsComponentGenerator {
             locals: this.locals,
             usedNames: this.usedNames,
             localComponents: this.localComponents,
+            sourceKinds: this.sourceKinds,
           }
         );
         this.statements.push(
@@ -569,6 +578,10 @@ class JsComponentGenerator {
           readonly symbolName?: string;
           readonly segment?: { readonly segment?: string };
         };
+        if (operation.source.kind === 'direct-array' && row.symbolName !== undefined) {
+          this.inlineCollection(operation, parts);
+          return;
+        }
         if (
           this.asyncSteps.length > 0 ||
           operation.source.kind !== 'derived' ||
@@ -725,13 +738,19 @@ class JsComponentGenerator {
         if (ir === undefined || (ir.k !== 'signal-read' && ir.k !== 'binding-read')) {
           markUngeneratable();
         }
-        const signal = this.local((ir as { binding: number }).binding);
-        this.imports.add('readTrackedSourceValue');
-        literalRun().push(
-          `get ${JSON.stringify(item.name)}() { return readTrackedSourceValue(${signal}); }`
-        );
-        sourceEntries.push(`${JSON.stringify(item.name)}: ${signal}`);
-        sourceLocals.push(signal);
+        const binding = (ir as { binding: number }).binding;
+        const value = this.local(binding);
+        if (this.sourceKinds.has(binding)) {
+          this.imports.add('readTrackedSourceValue');
+          literalRun().push(
+            `get ${JSON.stringify(item.name)}() { return readTrackedSourceValue(${value}); }`
+          );
+          sourceEntries.push(`${JSON.stringify(item.name)}: ${value}`);
+          sourceLocals.push(value);
+        } else {
+          // plain values (row params, consts) close over the local without tracking
+          literalRun().push(`get ${JSON.stringify(item.name)}() { return ${value}; }`);
+        }
       } else if (prop.p === 'event') {
         const event = prop as {
           name: string;
@@ -778,6 +797,71 @@ class JsComponentGenerator {
       step,
       sourceLocals,
       `createComponent(${propsExpr}, (props) => ${childName}(props, ctx)${options})`
+    );
+    parts.push(step);
+  }
+
+  /** Direct-array collections expand their row inline: a local fn, no QRL, no fences. */
+  private inlineCollection(
+    operation: Extract<PlanSsrOp, { o: SsrOpKind.Collection }>,
+    parts: string[]
+  ): void {
+    const row = operation.row as unknown as {
+      readonly symbolName: string;
+      readonly params: number;
+      readonly paramBindings?: readonly number[];
+      readonly rowRoot: boolean;
+      readonly rowMarker: boolean;
+      readonly slotMarker: boolean;
+      readonly usesRowId: boolean;
+      readonly setup: readonly unknown[];
+      readonly ops: readonly PlanSsrOp[];
+    };
+    const sourceIr = (operation.source as { ir?: ValueIR }).ir;
+    if (
+      operation.key !== null ||
+      operation.idBase !== null ||
+      operation.usesIndexSignal ||
+      row.rowRoot ||
+      row.rowMarker ||
+      row.slotMarker ||
+      row.usesRowId ||
+      sourceIr === undefined
+    ) {
+      markUngeneratable();
+    }
+    const child = new JsComponentGenerator(
+      this.plan,
+      this.shared,
+      this.segments,
+      this.defs,
+      this.contexts,
+      this.pluginFns,
+      {
+        locals: this.locals,
+        usedNames: this.usedNames,
+        localComponents: this.localComponents,
+        sourceKinds: this.sourceKinds,
+      }
+    );
+    const params = (row.paramBindings ?? []).slice(0, row.params);
+    const paramNames = params.map((binding, index) => child.declare(binding, `row_p${index}`));
+    this.statements.push(
+      child.generateFn(
+        row.symbolName,
+        { setup: row.setup, ops: row.ops },
+        null,
+        false,
+        false,
+        `(ctx, __rangeId, __rowId${paramNames.map((name) => `, ${name}`).join('')})`
+      )
+    );
+    const step = `collection_result_${this.nextTemp++}`;
+    this.imports.add('renderSsrCollection');
+    this.pushStep(
+      step,
+      [],
+      `renderSsrCollection(ctx, undefined, ${this.irJs(sourceIr)}, undefined, ${row.symbolName}, ${operation.usesIndexSignal}, '', ${operation.usesRowId}, ${operation.rowShape})`
     );
     parts.push(step);
   }
@@ -1113,7 +1197,7 @@ class JsComponentGenerator {
   }
 
   /** Plan binding names are reused when they are safe identifiers; `local_<id>` otherwise. */
-  private declare(binding: number, name: string | undefined): string {
+  declare(binding: number, name: string | undefined): string {
     const preferred =
       name !== undefined && /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(name) && !this.usedNames.has(name)
         ? name

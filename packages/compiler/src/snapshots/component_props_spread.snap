@@ -25,26 +25,26 @@ const q_component_props_segment_0_208o16glymg7p = /*#__PURE__*/ _qrlWithChunk(
 );
 q_component_props_segment_0_208o16glymg7p.s(component_props_segment_0_208o16glymg7p);
 export function App(props, ctx) {
-  const id0 = ctx.nextId();
+  const id_0 = ctx.nextId();
   ctx.addRoot(props);
-  const props1 = renderSsrProps(
-    createSsrElementTarget(id0),
+  const props_0 = renderSsrProps(
+    createSsrElementTarget(id_0),
     [props],
     q_component_props_segment_0_208o16glymg7p,
     ctx.eventAttr
   );
-  return maybeThen(props1, (props1) => {
-    props1.ref !== undefined && ctx.setRef(props1.ref, id0);
+  return maybeThen(props_0, (props_0) => {
+    props_0.ref !== undefined && ctx.setRef(props_0.ref, id_0);
     return [
       createSsrElementRecord(
         'button',
         '<button q:id="',
-        createSsrNodeId(id0),
+        createSsrNodeId(id_0),
         '"',
-        ...props1.attrs,
+        ...props_0.attrs,
         '>'
       ),
-      props1.innerHTML ?? 'Save',
+      props_0.innerHTML ?? 'Save',
       '</button>',
     ];
   });

@@ -221,7 +221,7 @@ class JsComponentGenerator {
   /** Element id placeholders: resolved at first claiming step (eager const / lazy let). */
   private readonly idState = new Map<string, 'placeholder' | 'eager' | 'lazy'>();
   /** Pending async steps — the return value chains maybeThen over them in order. */
-  private readonly asyncSteps: { name: string; expr: string }[] = [];
+  private readonly asyncSteps: { name: string; expr: string; after?: string }[] = [];
 
   constructor(
     private readonly plan: QwikSsrPlan,
@@ -542,7 +542,10 @@ class JsComponentGenerator {
     }
     this.imports.add('maybeThen');
     return this.asyncSteps.reduceRight(
-      (inner, step) => `maybeThen(${step.expr}, (${step.name}) => ${inner})`,
+      (inner, step) =>
+        step.after === undefined
+          ? `maybeThen(${step.expr}, (${step.name}) => ${inner})`
+          : `maybeThen(${step.expr}, (${step.name}) => {\n  ${step.after}\n  return ${inner};\n})`,
       value
     );
   }
@@ -556,14 +559,21 @@ class JsComponentGenerator {
     step: string,
     roots: readonly string[],
     callExpr: string,
-    thunkPrelude = ''
+    thunkPrelude = '',
+    after?: string
   ): void {
     if (this.asyncSteps.length === 0 || this.synchronous) {
       for (const root of roots) {
         this.statements.push(`${this.names.ctx}.addRoot(${root});`);
       }
       this.statements.push(`const ${step} = ${callExpr};`);
-      this.asyncSteps.push({ name: step, expr: step });
+      if (after !== undefined && this.synchronous) {
+        // no chain in sync renders: the side effect runs as a plain statement
+        this.statements.push(after);
+        this.asyncSteps.push({ name: step, expr: step });
+        return;
+      }
+      this.asyncSteps.push({ name: step, expr: step, ...(after === undefined ? {} : { after }) });
       return;
     }
     const invokeCtx = this.invokeCtx();
@@ -572,7 +582,11 @@ class JsComponentGenerator {
     this.statements.push(
       `const ${step} = () => invoke(${invokeCtx}, () => { ${thunkPrelude}${rootStatements}return ${callExpr}; });`
     );
-    this.asyncSteps.push({ name: step, expr: `${step}()` });
+    this.asyncSteps.push({
+      name: step,
+      expr: `${step}()`,
+      ...(after === undefined ? {} : { after }),
+    });
   }
 
   /**
@@ -1377,6 +1391,7 @@ class JsComponentGenerator {
       markUngeneratable();
     }
     let innerHtml: string | null = null;
+    let innerHtmlExpr: string | null = null;
     const idVariable = operation.id === null ? null : `id_${operation.id}`;
     if (idVariable !== null) {
       this.statements.push(`__ID_DECL__${idVariable}`);
@@ -1424,7 +1439,8 @@ class JsComponentGenerator {
         (html) => (innerHtml = html),
         idVariable,
         operation.props,
-        scope
+        scope,
+        (expr) => (innerHtmlExpr = expr)
       );
       if (!handled) {
         markUngeneratable(prop);
@@ -1442,7 +1458,31 @@ class JsComponentGenerator {
       this.imports.add('createSsrElementRecord');
       parts.push(`createSsrElementRecord(${JSON.stringify(operation.tag)}, ${open.join(', ')})`);
     }
-    if (innerHtml !== null) {
+    if (innerHtmlExpr !== null) {
+      // spread innerHTML falls back to the static children when absent
+      const childParts: string[] = [];
+      const pushChildStatic = (text: string): void => {
+        const last = childParts[childParts.length - 1];
+        if (last !== undefined && isStringLiteral(last)) {
+          childParts[childParts.length - 1] = JSON.stringify(JSON.parse(last) + text);
+        } else {
+          childParts.push(JSON.stringify(text));
+        }
+      };
+      for (const child of operation.children) {
+        if (!this.isFoldableStatic(child)) {
+          markUngeneratable(child);
+        }
+        this.op(child, childParts, pushChildStatic);
+      }
+      const fallback =
+        childParts.length === 0
+          ? "''"
+          : childParts.length === 1
+            ? childParts[0]
+            : `[${childParts.join(', ')}]`;
+      parts.push(`${innerHtmlExpr} ?? ${fallback}`);
+    } else if (innerHtml !== null) {
       pushStatic(innerHtml);
     } else {
       for (const child of operation.children) {
@@ -1462,9 +1502,58 @@ class JsComponentGenerator {
     setInnerHtml: (html: string) => void,
     idVariable: string | null,
     elementProps: readonly PlanSsrProp[],
-    scope: JsStyleScope = { staticId: null, runtimeName: null }
+    scope: JsStyleScope = { staticId: null, runtimeName: null },
+    setInnerHtmlExpr?: (expr: string) => void
   ): boolean {
     switch (prop.p) {
+      case 'spread': {
+        const item = prop as { value: { segment?: string; ir?: ValueIR } };
+        if (idVariable === null || setInnerHtmlExpr === undefined) {
+          return false;
+        }
+        const segmentId = item.value.segment;
+        const step = `props_${this.nextTemp++}`;
+        const scopeArgs =
+          scope.staticId === null && scope.runtimeName === null
+            ? ''
+            : `, undefined, ${scopeClassExpression(scope, null)}`;
+        const after = `${step}.ref !== undefined && ${this.names.ctx}.setRef(${step}.ref, ${idVariable});`;
+        if (segmentId !== undefined) {
+          const meta = this.segment(segmentId);
+          const captures = meta.captures.map((capture) =>
+            capture.access === 'component-prop' ? this.names.props : this.local(capture.binding)
+          );
+          this.imports.add('renderSsrProps');
+          this.imports.add('createSsrElementTarget');
+          this.pushStep(
+            step,
+            captures,
+            `renderSsrProps(createSsrElementTarget(${idVariable}), [${captures.join(', ')}], ${this.qrlExpression(meta, false)}, ${this.names.ctx}.eventAttr${scopeArgs})`,
+            this.claimId(idVariable),
+            after
+          );
+        } else {
+          const ir = item.value.ir;
+          if (ir === undefined) {
+            return false;
+          }
+          this.imports.add('renderDomPropsToString');
+          const scopeValue =
+            scope.staticId === null && scope.runtimeName === null
+              ? 'undefined'
+              : scopeClassExpression(scope, null);
+          this.pushStep(
+            step,
+            [],
+            `renderDomPropsToString(${this.irJs(ir)}, ${this.names.ctx}.eventAttr, ${scopeValue})`,
+            this.claimId(idVariable),
+            after
+          );
+        }
+        open.push(`...${step}.attrs`);
+        setInnerHtmlExpr(`${step}.innerHTML`);
+        return true;
+      }
       case 'ref': {
         const ir = (prop as { value: { ir?: ValueIR } }).value.ir;
         if (ir === undefined || idVariable === null) {

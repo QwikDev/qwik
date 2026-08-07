@@ -128,10 +128,11 @@ export async function buildInterpretedRoot(
     );
   }
 
-  // plugin-claimed fns run their real JS implementation — the authored module is the JS target
+  // plugin fns run their real JS implementation — the authored module is the JS target,
+  // whether or not a native$ registration exists
   const pluginImpls = new Map<string, (...args: unknown[]) => unknown>();
-  for (const pluginFn of plan.pluginFns ?? []) {
-    const spec = pluginFn.module.replace(/^\.\//, '');
+  const loadPluginImpl = async (module: string, exportName: string): Promise<void> => {
+    const spec = module.replace(/^\.\//, '');
     let loaded: Record<string, unknown> | null = null;
     for (const candidate of [`${spec}.tsx`, `${spec}.ts`, `${spec}.js`, spec]) {
       try {
@@ -141,11 +142,40 @@ export async function buildInterpretedRoot(
         // try the next extension
       }
     }
-    const impl = loaded?.[pluginFn.exportName];
+    const impl = loaded?.[exportName];
     if (typeof impl !== 'function') {
-      throw new Error(`plugin module "${pluginFn.module}" has no ${pluginFn.exportName} export`);
+      throw new Error(`plugin module "${module}" has no ${exportName} export`);
     }
-    pluginImpls.set(pluginFn.fnId, impl as (...args: unknown[]) => unknown);
+    pluginImpls.set(`plugin:${module}:${exportName}`, impl as (...args: unknown[]) => unknown);
+  };
+  for (const pluginFn of plan.pluginFns ?? []) {
+    await loadPluginImpl(pluginFn.module, pluginFn.exportName);
+  }
+  // unclaimed plugin-calls: preload every import-addressable fn referenced by any module plan
+  const referencedFnIds = new Set<string>();
+  const collectFnIds = (node: unknown): void => {
+    if (node === null || typeof node !== 'object') {
+      return;
+    }
+    if (Array.isArray(node)) {
+      node.forEach(collectFnIds);
+      return;
+    }
+    const record = node as Record<string, unknown>;
+    if (record.kind === 'plugin-call' && typeof record.fnId === 'string') {
+      referencedFnIds.add(record.fnId);
+    }
+    Object.values(record).forEach(collectFnIds);
+  };
+  collectFnIds(plan.components);
+  for (const fnId of referencedFnIds) {
+    if (pluginImpls.has(fnId)) {
+      continue;
+    }
+    const match = /^plugin:(.*):([^:]+)$/.exec(fnId);
+    if (match !== null) {
+      await loadPluginImpl(match[1], match[2]);
+    }
   }
 
   // module-scoped context objects keyed by (module, binding)

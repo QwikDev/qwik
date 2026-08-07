@@ -97,7 +97,8 @@ export function emitJsProductionRender(
   names: { props: string; ctx: string; invokeCtx: string },
   moduleBindingName?: (binding: number) => string | null,
   coreAlias?: (importedName: string) => string | null,
-  sourceBindingName?: (binding: number) => string | null
+  sourceBindingName?: (binding: number) => string | null,
+  importLocalName?: (module: string, exportName: string) => string | null
 ): JsRenderPieces | null {
   const shared: ModuleState = {
     imports: new Set(),
@@ -122,7 +123,8 @@ export function emitJsProductionRender(
       undefined,
       moduleBindingName,
       coreAlias,
-      sourceBindingName
+      sourceBindingName,
+      importLocalName
     );
     for (const binding of component.propsBindings) {
       generator.bindProps(binding);
@@ -297,7 +299,9 @@ class JsComponentGenerator {
     /** Production only: aliased core imports keep the module's local name. */
     private readonly coreAlias?: (importedName: string) => string | null,
     /** Production only: js-statement-declared locals keep their source names verbatim. */
-    private readonly sourceBindingName?: (binding: number) => string | null
+    private readonly sourceBindingName?: (binding: number) => string | null,
+    /** Production only: local name of an import by (module, export) — plugin-call resolution. */
+    private readonly importLocalName?: (module: string, exportName: string) => string | null
   ) {
     this.imports = shared.imports;
     this.chunkImports = shared.chunkImports;
@@ -778,7 +782,8 @@ class JsComponentGenerator {
             },
             this.moduleBindingName,
             this.coreAlias,
-            this.sourceBindingName
+            this.sourceBindingName,
+            this.importLocalName
           );
           // zero-arg render fn: `const view = () => { ...; return parts; }`
           const fn = child.generateFn(name, item.render, null, false, false, '()');
@@ -804,7 +809,8 @@ class JsComponentGenerator {
           },
           this.moduleBindingName,
           this.coreAlias,
-          this.sourceBindingName
+          this.sourceBindingName,
+          this.importLocalName
         );
         this.statements.push(
           child.generateFn(
@@ -2156,19 +2162,27 @@ class JsComponentGenerator {
           : `${objExpr}[${JSON.stringify(item.name)}]`;
       }
       case 'plugin-call': {
-        // the claimed import is the JS implementation — import it back and call it
-        const pluginFn = this.pluginFns.find((candidate) => candidate.fnId === ir.fnId);
-        if (pluginFn === undefined) {
-          markUngeneratable();
+        // the source import IS the JS implementation, claimed or not — import it and call it
+        const match = /^plugin:(.*):([^:]+)$/.exec(ir.fnId);
+        if (match === null) {
+          markUngeneratable(ir.fnId);
         }
-        if (!this.shared.production) {
-          const importLine = `import { ${pluginFn.exportName} } from ${JSON.stringify(pluginFn.module)};`;
-          if (!this.chunkImports.includes(importLine)) {
-            this.chunkImports.push(importLine);
+        const [, module, exportName] = match;
+        if (this.shared.production) {
+          // production modules keep the user's own import — reference it by local name
+          const localName = this.importLocalName?.(module, exportName);
+          if (localName == null) {
+            markUngeneratable(ir.fnId);
           }
+          const args = ir.args.map((argument) => this.irJs(argument, scope));
+          return `${localName}(${args.join(', ')})`;
+        }
+        const importLine = `import { ${exportName} } from ${JSON.stringify(module)};`;
+        if (!this.chunkImports.includes(importLine)) {
+          this.chunkImports.push(importLine);
         }
         const args = ir.args.map((argument) => this.irJs(argument, scope));
-        return `${pluginFn.exportName}(${args.join(', ')})`;
+        return `${exportName}(${args.join(', ')})`;
       }
       default:
         markUngeneratable(ir);

@@ -64,6 +64,11 @@ export function setActivePlugins(plugins: readonly QwikCompilerPlugin[] | undefi
   claimedFns = new Map();
 }
 
+/** Registry peek: does this fnId have a registered implementation for `target`? */
+export function hasPluginTarget(fnId: string, target: string): boolean {
+  return claimedFns.get(fnId)?.targets[target] !== undefined;
+}
+
 /** Claimed fns collected since the last `setActivePlugins`, in first-claim order. */
 export function drainClaimedPluginFns(): PluginFnPlan[] {
   const drained = [...claimedFns.values()];
@@ -76,10 +81,15 @@ function pluginFnNativeName(fnId: string): string {
   return `plugin_${sanitized}`;
 }
 
+/**
+ * Every identifiable imported fn is plugin-call-addressable — the fnId is module + export. Claims
+ * never gate lowering; they only register per-target implementations for the registry.
+ */
 function claimPluginCall(imported: ImportBinding, argCount: number): string | null {
   if (imported.typeOnly || imported.importedName === '*') {
     return null;
   }
+  const fnId = `plugin:${imported.source}:${imported.importedName}`;
   for (const plugin of activePlugins) {
     for (const claim of plugin.claims) {
       if (claim.module !== imported.source) {
@@ -88,7 +98,6 @@ function claimPluginCall(imported: ImportBinding, argCount: number): string | nu
       if (claim.exports !== '*' && !claim.exports.includes(imported.importedName)) {
         continue;
       }
-      const fnId = `plugin:${imported.source}:${imported.importedName}`;
       if (!claimedFns.has(fnId)) {
         const site: PluginClaimSite = {
           fnId,
@@ -110,10 +119,9 @@ function claimPluginCall(imported: ImportBinding, argCount: number): string | nu
           targets,
         });
       }
-      return fnId;
     }
   }
-  return null;
+  return fnId;
 }
 
 export interface ValueIrCoverage {

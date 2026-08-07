@@ -11,6 +11,7 @@ import type {
 import { planSsr, type SsrComponentReturnModeResolver } from './plan-ssr';
 import { locatedDiagnostic, TransformDiagnosticCode } from './transform-diagnostics';
 import type { SourceRange } from './types';
+import { hasPluginTarget } from './expr-lower';
 
 /**
  * Native target readiness (specs/09): every site an engine must evaluate server-side needs a
@@ -32,8 +33,50 @@ export function validateNativeReadiness(
     diagnostics.push(locatedDiagnostic(file, source, range, code, message).diagnostic);
   };
 
+  const findUnimplementedPluginCall = (ir: unknown): string | null => {
+    if (ir === null || typeof ir !== 'object') {
+      return null;
+    }
+    if (Array.isArray(ir)) {
+      for (const item of ir) {
+        const found = findUnimplementedPluginCall(item);
+        if (found !== null) {
+          return found;
+        }
+      }
+      return null;
+    }
+    const record = ir as Record<string, unknown>;
+    if (
+      record.kind === 'plugin-call' &&
+      typeof record.fnId === 'string' &&
+      !hasPluginTarget(record.fnId, 'rust')
+    ) {
+      return record.fnId;
+    }
+    for (const value of Object.values(record)) {
+      const found = findUnimplementedPluginCall(value);
+      if (found !== null) {
+        return found;
+      }
+    }
+    return null;
+  };
+
   const requireIr = (value: ValuePlan | null, site: string): void => {
-    if (value === null || value.kind === 'render-value' || value.ir !== undefined) {
+    if (value === null || value.kind === 'render-value') {
+      return;
+    }
+    if (value.ir !== undefined) {
+      const fnId = findUnimplementedPluginCall(value.ir);
+      if (fnId !== null) {
+        report(
+          value.expression,
+          TransformDiagnosticCode.NativeExpression,
+          `${site} \`${snippet(value.expression)}\` calls ${fnId} which has no native ` +
+            `implementation. Provide one with native$ (compiler plugin).`
+        );
+      }
       return;
     }
     report(

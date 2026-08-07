@@ -437,6 +437,14 @@ export function transformModule(ctx: CompilerContext): TransformResult {
         ? info.name
         : null;
     },
+    importLocalName: (module, exportName) =>
+      analysis.bindings.find(
+        (candidate) =>
+          candidate.import !== null &&
+          candidate.import.source === module &&
+          candidate.import.importedName === exportName &&
+          !candidate.import.typeOnly
+      )?.name ?? null,
   };
   const emittedMain = emitModule(
     ctx,

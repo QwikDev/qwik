@@ -187,7 +187,18 @@ function lowerStatementCall(call: AstNode, facts: SetupLowerFacts): SetupOp | nu
     const strategy = args.length === 2 ? visibleTaskStrategy(args[1]) : 'intersection-observer';
     return strategy === null ? null : { kind: SetupOpKind.VisibleTask, segment, strategy };
   }
-  return null;
+  // any other bare call — custom hooks included — is evaluate-and-discard when its IR lowers.
+  // Framework calls stay out: unrecognized @qwik.dev hooks have statement semantics of their own.
+  const calleeNode = unwrapExpression(callee);
+  if (calleeNode?.type === 'Identifier') {
+    const calleeBinding = facts.bindingIdAt(getRange(calleeNode));
+    const imported = calleeBinding === null ? null : (facts.importOf?.(calleeBinding) ?? null);
+    if (imported !== null && imported.source.startsWith('@qwik.dev/')) {
+      return null;
+    }
+  }
+  const value = lowerValueIr(call, facts);
+  return value === null ? null : { kind: SetupOpKind.Statement, value };
 }
 
 function callbackSegmentId(args: unknown[], facts: SetupLowerFacts): string | null {

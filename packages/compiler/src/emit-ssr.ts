@@ -102,6 +102,8 @@ export interface SsrPlanData {
   readonly bindingName: (binding: number) => string | null;
   /** Names for module-scope bindings only (imports, top-level consts) — safe to reference. */
   readonly moduleBindingName: (binding: number) => string | null;
+  /** Local name of an import by (module, export) — plugin-call resolution. */
+  readonly importLocalName: (module: string, exportName: string) => string | null;
 }
 
 const EMPTY_PLAN_DATA: SsrPlanData = {
@@ -110,6 +112,7 @@ const EMPTY_PLAN_DATA: SsrPlanData = {
   pluginFns: [],
   bindingName: () => null,
   moduleBindingName: () => null,
+  importLocalName: () => null,
 };
 
 let jsGenCoverage: { generated: number; fallback: number } | null = null;
@@ -221,7 +224,8 @@ function emitJsRenderForComponent(
     },
     planData.moduleBindingName,
     (importedName) => importNames.aliases?.get(importedName) ?? null,
-    planData.bindingName
+    planData.bindingName,
+    planData.importLocalName
   );
   if (pieces === null) {
     if (jsGenCoverage !== null) {

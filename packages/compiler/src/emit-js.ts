@@ -622,6 +622,37 @@ class JsComponentGenerator {
         pushStatic('<!/f>');
         return;
       }
+      case SsrOpKind.Suspense: {
+        if (operation.inOrder !== null || operation.delay !== null) {
+          markUngeneratable();
+        }
+        if (operation.content.segment === undefined) {
+          markUngeneratable();
+        }
+        const contentQrl = this.qrlExpression(this.segment(operation.content.segment));
+        let fallbackQrl = 'undefined';
+        if (operation.fallback !== null) {
+          if (operation.fallback.segment === undefined) {
+            markUngeneratable();
+          }
+          fallbackQrl = this.qrlExpression(this.segment(operation.fallback.segment));
+        }
+        const idVariable = `suspense_id_${this.nextTemp}`;
+        const step = `suspense_${this.nextTemp++}`;
+        this.imports.add('createSsrSuspense');
+        const deferred = this.asyncSteps.length > 0;
+        this.statements.push(
+          deferred ? `let ${idVariable};` : `const ${idVariable} = ctx.nextId();`
+        );
+        this.pushStep(
+          step,
+          [],
+          `createSsrSuspense(ctx, ${idVariable}, ${contentQrl}, ${fallbackQrl}, 0)`,
+          deferred ? `${idVariable} ??= ctx.nextId(); ` : undefined
+        );
+        parts.push(step);
+        return;
+      }
       case SsrOpKind.Slot: {
         if (operation.idBase !== null) {
           markUngeneratable();

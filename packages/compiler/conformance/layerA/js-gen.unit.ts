@@ -45,6 +45,8 @@ const READY_FIXTURES = [
   'derived-collection',
   'local-component-captured',
   'local-component',
+  'suspense-inline',
+  'suspense-stream',
 ];
 
 const layerADir = dirname(fileURLToPath(import.meta.url));
@@ -70,10 +72,15 @@ describe('layerA js-generator parity', () => {
       const root = module[entryName] as SsrRenderRoot;
       expect(root, `generated module exports ${entryName}`).toBeDefined();
 
-      const { html } = await renderFixtureRoot(root, readFixtureRequest(name));
+      const { html, chunks } = await renderFixtureRoot(root, readFixtureRequest(name));
       expect(html + '\n').toBe(
         readFileSync(join(layerADir, 'fixtures', name, 'expected', 'shell.html'), 'utf-8')
       );
+      if (chunks !== undefined) {
+        expect(JSON.stringify(chunks, null, 2) + '\n').toBe(
+          readFileSync(join(layerADir, 'fixtures', name, 'expected', 'stream.json'), 'utf-8')
+        );
+      }
     });
   }
 });

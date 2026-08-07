@@ -184,8 +184,8 @@ export function App() {
     expect(main).toContain('createSsrRecord');
     // The scope is read into a local while the provider's invoke context is still active, because
     // the marker itself is emitted after the children resolve.
-    expect(main).toContain('const contextScope0 = ctx.contextScopeRef();');
-    expect(main).toContain("createSsrRecord('<!c=', contextScope0, '>')");
+    expect(main).toContain('const context_scope_0 = ctx.contextScopeRef();');
+    expect(main).toContain("createSsrRecord('<!c=', context_scope_0, '>')");
     expect(main).not.toContain('maybeThen');
     expect(main).toContain('createSsrElementRecord("p", "<p", ">")');
     expect(main).toContain('"Provided</p><!/c>"');

@@ -425,6 +425,12 @@ export function transformModule(ctx: CompilerContext): TransformResult {
     pluginFns: claimedPluginFns,
     bindingName: (binding) =>
       analysis.bindings.find((candidate) => candidate.id === binding)?.name ?? null,
+    moduleBindingName: (binding) => {
+      const info = analysis.bindings.find((candidate) => candidate.id === binding);
+      return info !== undefined && (info.kind === 'import' || info.kind === 'module')
+        ? info.name
+        : null;
+    },
   };
   const emittedMain = emitModule(
     ctx,
@@ -855,6 +861,16 @@ function emitModule(
       .filter((binding) => !coreNames.has(binding.name))
       .map((binding) => binding.name)
   );
+  // aliased core imports: generated calls reuse the module's local name
+  const coreAliases = new Map<string, string>();
+  for (const binding of analysis.bindings) {
+    if (
+      binding.import?.source.startsWith('@qwik.dev/') === true &&
+      binding.import.importedName !== binding.name
+    ) {
+      coreAliases.set(binding.import.importedName, binding.name);
+    }
+  }
   if (localImplementationSource === null) {
     for (const segment of segments) {
       if (segment.parentId !== null) {
@@ -919,7 +935,7 @@ function emitModule(
         moduleRoots,
         inlineComponents,
         planData,
-        { core: coreNames, taken: takenNames }
+        { core: coreNames, taken: takenNames, aliases: coreAliases }
       )
     : emitCsrModule(
         outputs,

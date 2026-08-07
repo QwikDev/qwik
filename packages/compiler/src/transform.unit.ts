@@ -101,7 +101,7 @@ export function App() { const element = useSignal(); return <div ref={element}>t
     expect(ssr.diagnostics).toEqual([]);
     expect(csr.modules[0]?.code).toContain('(element).value = el0;');
     expect(csr.modules[0]?.code).not.toContain('setRef');
-    expect(ssr.modules[0]?.code).toContain('ctx.setRef(element, id0)');
+    expect(ssr.modules[0]?.code).toContain('ctx.setRef(element, id_0)');
     expect(ssr.modules[0]?.code).not.toContain('maybeThen');
   });
 

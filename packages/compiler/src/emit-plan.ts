@@ -97,6 +97,8 @@ export type PlanSetupEntry =
       readonly scoped: boolean;
       /** Inlined static CSS (specs/01 `styles`); absent when the argument is dynamic. */
       readonly css?: string;
+      /** The hook's return value is consumed by the component (destructured scopeId etc.). */
+      readonly resultUsed?: true;
     }
   | {
       readonly op: SetupOpKind.Js;
@@ -230,6 +232,10 @@ export interface PlanSegmentMeta {
    */
   readonly resolved: boolean;
   readonly qrl: { readonly kind: string; readonly role?: string } | null;
+  /** Client resume strategy for visible tasks (qvisible/qinit/qidle attribute choice). */
+  readonly visibleTaskStrategy?: string;
+  /** Value never updates after first render — deferred content steps skip capture rooting. */
+  readonly initialOnly?: true;
   readonly captures: readonly {
     readonly binding: number;
     readonly name: string;

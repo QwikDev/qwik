@@ -84,6 +84,7 @@ export type PlanSsrProp =
       readonly compilerString: boolean;
     }
   | { readonly p: 'spread'; readonly value: PlanValue }
+  | { readonly p: 'ref'; readonly value: PlanValue }
   | { readonly p: 'inner-html'; readonly html: string | number | boolean | null }
   | {
       readonly p: 'event';
@@ -255,6 +256,9 @@ export function emitSsrOpPlan(
             styleId: entry.styleId,
             scoped: entry.scoped,
             ...(css === null ? {} : { css }),
+            ...(planned !== undefined && planned.kind === 'style' && planned.resultUsed
+              ? { resultUsed: true as const }
+              : {}),
           },
         ];
       }
@@ -328,6 +332,8 @@ export function emitSsrOpPlan(
         };
       case 'spread':
         return { p: 'spread', value: planValue(item.value) };
+      case 'ref':
+        return { p: 'ref', value: planValue(item.value) };
       case 'event':
         return {
           p: 'event',
@@ -343,8 +349,6 @@ export function emitSsrOpPlan(
         if (typeof item.value !== 'object' || item.value === null) {
           return { p: 'inner-html', html: item.value };
         }
-        return { p: item.kind, src: slice(item.range) };
-      default:
         return { p: item.kind, src: slice(item.range) };
     }
   };
@@ -362,6 +366,8 @@ export function emitSsrOpPlan(
         };
       case 'spread':
         return { p: 'spread', value: planValue(item.value) };
+      case 'ref':
+        return { p: 'ref', value: planValue(item.value) };
       case 'event':
         return { p: 'event', name: item.name, handlers: [{ value: planValue(item.value) }] };
       default:

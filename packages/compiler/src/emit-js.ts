@@ -94,7 +94,9 @@ export function emitJsProductionRender(
   defs: readonly DefMeta[],
   contexts: QwikSsrPlan['modules'][number]['contexts'],
   pluginFns: QwikSsrPlan['pluginFns'],
-  names: { props: string; ctx: string; invokeCtx: string }
+  names: { props: string; ctx: string; invokeCtx: string },
+  moduleBindingName?: (binding: number) => string | null,
+  coreAlias?: (importedName: string) => string | null
 ): JsRenderPieces | null {
   const shared: ModuleState = {
     imports: new Set(),
@@ -115,7 +117,10 @@ export function emitJsProductionRender(
       defs,
       contexts,
       pluginFns,
-      names
+      names,
+      undefined,
+      moduleBindingName,
+      coreAlias
     );
     for (const binding of component.propsBindings) {
       generator.bindProps(binding);
@@ -159,8 +164,11 @@ interface ModuleState {
 
 /** Debug-only: stack captured at the most recent UNGENERATABLE throw. */
 let UNGENERATABLE_SITE = '';
-export function markUngeneratable(): never {
+export function markUngeneratable(detail?: unknown): never {
   UNGENERATABLE_SITE = new Error('ungeneratable').stack ?? '';
+  // TEMP census logging — remove before walker deletion
+  // eslint-disable-next-line
+  (globalThis as any).__qwikJsgenCensus?.(UNGENERATABLE_SITE, detail);
   throw UNGENERATABLE;
 }
 
@@ -230,7 +238,11 @@ class JsComponentGenerator {
       readonly usedNames: ReadonlySet<string>;
       readonly localComponents: ReadonlyMap<string, LocalComponentEntry>;
       readonly sourceKinds: ReadonlySet<number>;
-    }
+    },
+    /** Production only: module-scope bindings resolve to their surviving source names. */
+    private readonly moduleBindingName?: (binding: number) => string | null,
+    /** Production only: aliased core imports keep the module's local name. */
+    private readonly coreAlias?: (importedName: string) => string | null
   ) {
     this.imports = shared.imports;
     this.chunkImports = shared.chunkImports;
@@ -250,6 +262,38 @@ class JsComponentGenerator {
   }
 
   /** Production body pieces: like generateFn but without the head — emitComponent adds it. */
+
+  /** Mirrors the legacy scope-only class emission (static id literal / runtime conditional). */
+  private pushScopeOnlyClass(
+    scope: JsStyleScope,
+    pushOpen: (text: string) => void,
+    open: string[]
+  ): void {
+    if (scope.runtimeName === null && scope.staticId !== null) {
+      pushOpen(` class="${escapeAttr(scope.staticId)}"`);
+      return;
+    }
+    this.imports.add('escapeHTML');
+    if (scope.staticId === null && scope.runtimeName !== null) {
+      open.push(
+        `(${scope.runtimeName} ? ' class="' + escapeHTML(${scope.runtimeName}) + '"' : '')`
+      );
+      return;
+    }
+    pushOpen(' class="');
+    open.push(`escapeHTML(${scopeClassExpression(scope, null)})`);
+    pushOpen('"');
+  }
+
+  /** Core helper reference: reuses the module's import alias when one exists. */
+  private coreName(importedName: string): string {
+    const alias = this.coreAlias?.(importedName);
+    if (alias != null) {
+      return alias;
+    }
+    this.imports.add(importedName);
+    return importedName;
+  }
 
   /** Custom-hook renders resolve the ambient style scope once, before any parts. */
   private beginRuntimeScope(ssr: PlanSsrComponent): void {
@@ -600,12 +644,13 @@ class JsComponentGenerator {
       }
       case 'style': {
         const css = entry.css as string | undefined;
-        if (css === undefined || entry.scoped === true) {
+        if (css === undefined || entry.resultUsed === true) {
           markUngeneratable();
         }
-        this.imports.add('useStyles');
+        const helper = entry.scoped === true ? 'useStylesScoped' : 'useStyles';
+        this.imports.add(helper);
         this.statements.push(
-          `useStyles(${templateLiteral(css)}, ${JSON.stringify(entry.styleId)});`
+          `${helper}(${templateLiteral(css)}, ${JSON.stringify(entry.styleId)});`
         );
         return;
       }
@@ -681,10 +726,10 @@ class JsComponentGenerator {
       }
       case 'server-data': {
         const variable = this.declare(entry.local as number, entry.name as string | undefined);
-        this.imports.add('useServerData');
+        const callee = this.coreName('useServerData');
         const key = this.irJs(entry.key as ValueIR);
         const fallback = entry.fallback == null ? '' : `, ${this.irJs(entry.fallback as ValueIR)}`;
-        this.statements.push(`const ${variable} = useServerData(${key}${fallback});`);
+        this.statements.push(`const ${variable} = ${callee}(${key}${fallback});`);
         return;
       }
       case 'const': {
@@ -1221,7 +1266,7 @@ class JsComponentGenerator {
     pushStatic: (text: string) => void,
     topLevel = false
   ): void {
-    if (operation.propsEffect !== null || operation.styleScopedId !== null) {
+    if (operation.propsEffect !== null) {
       markUngeneratable();
     }
     let innerHtml: string | null = null;
@@ -1254,19 +1299,15 @@ class JsComponentGenerator {
       open.push(`createSsrNodeId(${idVariable})`);
       pushOpen(`"`);
     }
-    if (operation.runtimeScope === true && this.runtimeScopeName !== null) {
-      // class-prop merging with the runtime scope is not generated yet
-      if (
-        operation.props.some(
-          (prop) => prop.p === 'spread' || (prop as { name?: string }).name === 'class'
-        )
-      ) {
-        markUngeneratable();
-      }
-      this.imports.add('escapeHTML');
-      open.push(
-        `(${this.runtimeScopeName} ? ' class="' + escapeHTML(${this.runtimeScopeName}) + '"' : '')`
-      );
+    const scope: JsStyleScope = {
+      staticId: operation.styleScopedId,
+      runtimeName: operation.runtimeScope === true ? this.runtimeScopeName : null,
+    };
+    const hasClassProp = operation.props.some(
+      (prop) => prop.p === 'spread' || (prop as { name?: string }).name === 'class'
+    );
+    if ((scope.staticId !== null || scope.runtimeName !== null) && !hasClassProp) {
+      this.pushScopeOnlyClass(scope, pushOpen, open);
     }
     for (const prop of operation.props) {
       const handled = this.prop(
@@ -1275,10 +1316,11 @@ class JsComponentGenerator {
         open,
         (html) => (innerHtml = html),
         idVariable,
-        operation.props
+        operation.props,
+        scope
       );
       if (!handled) {
-        markUngeneratable();
+        markUngeneratable(prop);
       }
     }
     if (foldable && open.length === 1 && isStringLiteral(open[0])) {
@@ -1312,9 +1354,25 @@ class JsComponentGenerator {
     open: string[],
     setInnerHtml: (html: string) => void,
     idVariable: string | null,
-    elementProps: readonly PlanSsrProp[]
+    elementProps: readonly PlanSsrProp[],
+    scope: JsStyleScope = { staticId: null, runtimeName: null }
   ): boolean {
     switch (prop.p) {
+      case 'ref': {
+        const ir = (prop as { value: { ir?: ValueIR } }).value.ir;
+        if (ir === undefined || idVariable === null) {
+          return false;
+        }
+        const expression = `${this.names.ctx}.setRef(${this.irJs(ir)}, ${idVariable})`;
+        if (this.asyncSteps.length === 0) {
+          this.statements.push(`${this.claimId(idVariable)}${expression};`);
+          return true;
+        }
+        const step = `ref_${this.nextTemp++}`;
+        this.pushStep(step, [], `(${expression}, '')`, this.claimId(idVariable));
+        open.push(step);
+        return true;
+      }
       case 'static': {
         const item = prop as { name: string; value: unknown };
         const stringifiesBooleans =
@@ -1324,13 +1382,27 @@ class JsComponentGenerator {
           pushOpen(` ${item.name}="${item.value}"`);
           return true;
         }
+        if (item.name === 'class' && scope.runtimeName !== null) {
+          const serialized = item.value === false || item.value == null ? null : String(item.value);
+          if (serialized === null && scope.staticId === null) {
+            this.pushScopeOnlyClass(scope, pushOpen, open);
+            return true;
+          }
+          this.imports.add('escapeHTML');
+          pushOpen(' class="');
+          open.push(`escapeHTML(${scopeClassExpression(scope, serialized)})`);
+          pushOpen('"');
+          return true;
+        }
         if (item.value === false || item.value == null) {
           return true;
         }
+        const merged =
+          item.name === 'class' && scope.staticId !== null
+            ? `${scope.staticId} ${String(item.value)}`
+            : item.value;
         pushOpen(
-          item.value === true
-            ? ` ${item.name}`
-            : ` ${item.name}="${escapeAttr(String(item.value))}"`
+          merged === true ? ` ${item.name}` : ` ${item.name}="${escapeAttr(String(merged))}"`
         );
         return true;
       }
@@ -1346,8 +1418,33 @@ class JsComponentGenerator {
           compilerString: boolean;
         };
         const segmentId = item.value.segment;
-        if (item.compilerString || idVariable === null) {
-          return false;
+        if (item.compilerString) {
+          // compile-time strings render inline; the planner keeps these initial-only
+          const ir = item.value.ir;
+          if (ir === undefined || idVariable !== null) {
+            return false;
+          }
+          this.imports.add('escapeHTML');
+          pushOpen(` ${item.name}="`);
+          open.push(`escapeHTML(${this.irJs(ir)})`);
+          pushOpen('"');
+          return true;
+        }
+        if (idVariable === null) {
+          const ir = item.value.ir;
+          if (ir === undefined || segmentId !== undefined) {
+            return false;
+          }
+          // initial-only plain values normalize through the DOM-props renderer
+          this.imports.add('renderDomPropsToString');
+          const scopeArg =
+            scope.staticId === null && scope.runtimeName === null
+              ? ''
+              : `, undefined, ${scopeClassExpression(scope, null)}`;
+          open.push(
+            `...renderDomPropsToString({ ${JSON.stringify(item.name)}: ${this.irJs(ir)} }${scopeArg}).attrs`
+          );
+          return true;
         }
         if (segmentId === undefined) {
           // signal attr: segment-less signal/binding read subscribes the attribute directly
@@ -1462,8 +1559,12 @@ class JsComponentGenerator {
     pushStatic: (text: string) => void
   ): void {
     const target = operation.target;
-    if (operation.output !== 'text' || target === null) {
-      markUngeneratable();
+    if (target === null) {
+      this.targetlessDynamic(operation, parts);
+      return;
+    }
+    if (operation.output !== 'text') {
+      markUngeneratable(operation);
     }
     if (target.kind === 'range' && target.id === null) {
       markUngeneratable();
@@ -1507,6 +1608,45 @@ class JsComponentGenerator {
     } else {
       parts.push(`escapeHTML(${step})`);
     }
+  }
+
+  /** Target-less dynamic values render inline: plain text escapes, content flows as parts. */
+  private targetlessDynamic(
+    operation: Extract<PlanSsrOp, { o: SsrOpKind.Dynamic }>,
+    parts: string[]
+  ): void {
+    const ir = operation.value.ir;
+    if (operation.output === 'text') {
+      if (ir === undefined) {
+        markUngeneratable(operation);
+      }
+      this.imports.add('escapeHTML');
+      parts.push(`escapeHTML(String((${this.irJs(ir)}) ?? ''))`);
+      return;
+    }
+    if (operation.synchronous) {
+      if (ir === undefined) {
+        markUngeneratable(operation);
+      }
+      parts.push(`(${this.irJs(ir)})`);
+      return;
+    }
+    // deferred content: the render segment fn is called directly with its captures
+    const segmentId = operation.value.segment;
+    if (segmentId === undefined) {
+      markUngeneratable(operation);
+    }
+    const meta = this.segment(segmentId);
+    const captures = meta.captures.map((capture) =>
+      capture.access === 'component-prop' ? this.names.props : this.local(capture.binding)
+    );
+    const step = `content_${this.nextTemp++}`;
+    this.pushStep(
+      step,
+      meta.initialOnly === true ? [] : captures,
+      `${meta.symbolName}(${captures.join(', ')})`
+    );
+    parts.push(step);
   }
 
   private qrlExpression(meta: SegmentMeta, withCaptures = true): string {
@@ -1559,12 +1699,21 @@ class JsComponentGenerator {
         return name;
       }
     }
+    const moduleName = this.moduleBindingName?.(binding);
+    if (moduleName != null) {
+      return moduleName;
+    }
     markUngeneratable();
   }
 
   private contextVar(binding: number): string {
     const context = this.contexts.find((candidate) => candidate.binding === binding);
     if (context === undefined || context.declaredName === undefined) {
+      // imported or aliased contexts keep their module-scope name in production
+      const moduleName = this.moduleBindingName?.(binding);
+      if (moduleName != null) {
+        return moduleName;
+      }
       markUngeneratable();
     }
     return context.declaredName;
@@ -1673,4 +1822,27 @@ function isStringLiteral(expression: string): boolean {
 
 function templateLiteral(text: string): string {
   return `\`${text.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$\{/g, '\\${')}\``;
+}
+
+interface JsStyleScope {
+  readonly staticId: string | null;
+  readonly runtimeName: string | null;
+}
+
+/** Mirrors legacy scopeExpression: merges static scope id, runtime scope, and class value. */
+function scopeClassExpression(scope: JsStyleScope, className: string | null): string {
+  const staticId = scope.staticId;
+  const fallback = [staticId, className]
+    .filter((value) => value !== null && value !== '')
+    .join(' ');
+  const runtime = scope.runtimeName;
+  if (runtime === null) {
+    return JSON.stringify(fallback);
+  }
+  if (staticId === null && (className === null || className === '')) {
+    return `(${runtime} ?? '')`;
+  }
+  return `${runtime} ? ${
+    staticId === null ? '' : `${JSON.stringify(`${staticId} `)} + `
+  }${runtime}${className === null || className === '' ? '' : ` + ${JSON.stringify(` ${className}`)}`} : ${JSON.stringify(fallback)}`;
 }

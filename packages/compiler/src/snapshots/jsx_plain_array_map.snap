@@ -13,8 +13,8 @@ import {
   createSsrElementRecord,
   createSsrNodeId,
   createSsrRangeTextTarget,
-  renderSsrTextExpression,
   escapeHTML,
+  renderSsrTextExpression,
   maybeThen,
   renderSsrCollection,
   _qrlWithChunk,
@@ -34,40 +34,35 @@ const q_component_text_segment_3_1fh11lewq6qgx = /*#__PURE__*/ _qrlWithChunk(
 q_component_text_segment_3_1fh11lewq6qgx.s(component_text_segment_3_1fh11lewq6qgx);
 export function App(props, ctx) {
   const items = [
-    {
-      id: 'a',
-      label: 'Alpha',
-    },
-    {
-      id: 'b',
-      label: 'Beta',
-    },
+    { id: 'a', label: 'Alpha' },
+    { id: 'b', label: 'Beta' },
   ];
-  function component_for_render_segment_0_asyt89wzo2d3(ctx, __rangeId, __rowId, item, index) {
-    const id0 = ctx.nextId();
-    ctx.addRoot(item);
-    const text1 = renderSsrTextExpression(
-      createSsrRangeTextTarget(id0, 0),
-      [item],
+  function component_for_render_segment_0_asyt89wzo2d3(ctx, __rangeId, __rowId, row_p0, row_p1) {
+    const id_0 = ctx.nextId();
+    ctx.addRoot(row_p0);
+    const text_0 = renderSsrTextExpression(
+      createSsrRangeTextTarget(id_0, 0),
+      [row_p0],
       q_component_text_segment_3_1fh11lewq6qgx
     );
-    return maybeThen(text1, (text1) => [
+    return maybeThen(text_0, (text_0) => [
       createSsrElementRecord(
         'li',
         '<li q:id="',
-        createSsrNodeId(id0),
+        createSsrNodeId(id_0),
         '"',
-        ctx.eventAttr('q-e:click', q_component_q_e_click_segment_2_2xwygteqhjqr1.w([index])),
+        ctx.eventAttr('q-e:click', q_component_q_e_click_segment_2_2xwygteqhjqr1.w([row_p1])),
         '>'
       ),
       '<!t>',
-      escapeHTML(text1),
+      escapeHTML(text_0),
       '<!/t>:',
-      escapeHTML(String(index ?? '')),
+      escapeHTML(String(row_p1 ?? '')),
       '</li>',
     ]);
   }
-  const collectionResult0 = renderSsrCollection(
+
+  const collection_result_0 = renderSsrCollection(
     ctx,
     undefined,
     items,
@@ -78,9 +73,9 @@ export function App(props, ctx) {
     false,
     0
   );
-  return maybeThen(collectionResult0, (collectionResult0) => [
+  return maybeThen(collection_result_0, (collection_result_0) => [
     createSsrElementRecord('ul', '<ul', '>'),
-    collectionResult0,
+    collection_result_0,
     '</ul>',
   ]);
 }

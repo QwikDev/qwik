@@ -78,7 +78,7 @@ export default defineConfig({
       '!qwik-router/src/runtime/src/link-component.unit.tsx',
       '!qwik/src/testing/resume-session.unit.tsx',
     ],
-    setupFiles: [fromRoot('./vitest-setup.ts')],
+    setupFiles: [fromRoot('./vitest-setup.ts'), fromRoot('./census-setup.ts')],
     projects: ['..', renderProject('csr'), renderProject('resume'), renderProject('ssr')],
     testTimeout: 10000,
   },

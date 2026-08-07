@@ -100,6 +100,8 @@ export interface SsrPlanData {
     readonly exportName: string;
   }[];
   readonly bindingName: (binding: number) => string | null;
+  /** Names for module-scope bindings only (imports, top-level consts) — safe to reference. */
+  readonly moduleBindingName: (binding: number) => string | null;
 }
 
 const EMPTY_PLAN_DATA: SsrPlanData = {
@@ -107,6 +109,7 @@ const EMPTY_PLAN_DATA: SsrPlanData = {
   contexts: [],
   pluginFns: [],
   bindingName: () => null,
+  moduleBindingName: () => null,
 };
 
 let jsGenCoverage: { generated: number; fallback: number } | null = null;
@@ -128,7 +131,11 @@ function emitJsRenderForComponent(
   componentReturnMode: SsrComponentReturnModeResolver,
   generatedNames: GeneratedNames,
   planData: SsrPlanData,
-  importNames: { readonly core: ReadonlySet<string>; readonly taken: ReadonlySet<string> },
+  importNames: {
+    readonly core: ReadonlySet<string>;
+    readonly taken: ReadonlySet<string>;
+    readonly aliases?: ReadonlyMap<string, string>;
+  },
   rewriteJsStatement?: JsStatementRewriter
 ): (SsrRender & { readonly setup: SsrSetup }) | null {
   // oracle mode: regenerate goldens from the legacy emitter alone
@@ -199,6 +206,7 @@ function emitJsRenderForComponent(
       ...(segment.visibleTaskStrategy == null
         ? {}
         : { visibleTaskStrategy: segment.visibleTaskStrategy }),
+      ...(segment.initialOnly ? { initialOnly: true as const } : {}),
     })),
     planData.defs as never,
     planData.contexts,
@@ -210,7 +218,9 @@ function emitJsRenderForComponent(
         generatedNames.props,
       ctx: generatedNames.ctx,
       invokeCtx: generatedNames.invokeCtx,
-    }
+    },
+    planData.moduleBindingName,
+    (importedName) => importNames.aliases?.get(importedName) ?? null
   );
   if (pieces === null) {
     if (jsGenCoverage !== null) {
@@ -260,6 +270,7 @@ export function emitSsrModule(
   importNames: {
     readonly core: ReadonlySet<string>;
     readonly taken: ReadonlySet<string>;
+    readonly aliases?: ReadonlyMap<string, string>;
   } = { core: new Set(), taken: new Set() }
 ): EmittedModule | null {
   const imports = new Set<string>();

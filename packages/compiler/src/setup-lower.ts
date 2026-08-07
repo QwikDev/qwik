@@ -63,36 +63,14 @@ export function lowerSetupOp(statement: AstNode, facts: SetupLowerFacts): SetupO
   return null;
 }
 
-/** Only `await Promise.resolve()` lowers: pure microtask timing with no native analogue. */
+/** `await <expr>` lowers like any call: the awaited expression rides the yield op as IR. */
 function lowerAwaitStatement(expression: AstNode, facts: SetupLowerFacts): SetupOp | null {
   const awaited = unwrapExpression((expression as { argument: unknown }).argument);
-  if (awaited?.type !== 'CallExpression') {
+  if (awaited == null) {
     return null;
   }
-  const call = awaited as { callee: unknown; arguments: unknown[] };
-  if (call.arguments.length !== 0) {
-    return null;
-  }
-  const callee = unwrapExpression(call.callee);
-  if (callee?.type !== 'MemberExpression') {
-    return null;
-  }
-  const member = callee as { object: unknown; property: unknown; computed: boolean };
-  if (member.computed) {
-    return null;
-  }
-  const object = unwrapExpression(member.object);
-  const objectName = object?.type === 'Identifier' ? getIdentifierName(object) : null;
-  const methodName = getIdentifierName(member.property);
-  // Promise must be the true global, not a shadowing binding
-  if (
-    objectName !== 'Promise' ||
-    methodName !== 'resolve' ||
-    facts.bindingIdAt(getRange(object!)) !== null
-  ) {
-    return null;
-  }
-  return { op: SetupOpKind.Yield };
+  const value = lowerValueIr(awaited, facts);
+  return value === null ? null : { op: SetupOpKind.Yield, value };
 }
 
 function lowerDeclaration(statement: AstNode, facts: SetupLowerFacts): SetupOp | null {

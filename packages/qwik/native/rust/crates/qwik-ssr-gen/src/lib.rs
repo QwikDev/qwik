@@ -603,7 +603,23 @@ impl ComponentGenerator<'_> {
 				self.local_kinds.insert(binding, LocalKind::PlainValue);
 				self.generate_local_component_fn(&entry.clone())
 			}
-			"yield" => Ok(()),
+			"yield" => {
+				// inert awaits (bare Promise.resolve) have no native effect; plugin-claimed
+				// awaits evaluate synchronously; anything else must claim a plugin
+				let ir = entry["value"].clone();
+				let is_inert = ir["k"].as_str() == Some("call")
+					&& ir["fn"].as_str() == Some("qwik:promise.resolve")
+					&& ir["args"].as_array().is_some_and(|args| args.is_empty());
+				if is_inert {
+					return Ok(());
+				}
+				if ir["k"].as_str() == Some("plugin-call") {
+					let call = self.plugin_call_expression(&ir)?;
+					writeln!(self.body, "    let _ = {call};").unwrap();
+					return Ok(());
+				}
+				Err(format!("awaited expression {ir} requires a plugin claim"))
+			}
 			op => Err(format!("setup op {op:?} not supported yet")),
 		}
 	}

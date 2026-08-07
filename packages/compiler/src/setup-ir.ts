@@ -45,7 +45,7 @@ export type SetupOp =
   | { readonly op: SetupOpKind.Const; readonly local: BindingId; readonly init: ValueIR }
   | { readonly op: SetupOpKind.UseId; readonly local: BindingId }
   /** `await Promise.resolve()` — a pure microtask yield; native engines skip it. */
-  | { readonly op: SetupOpKind.Yield }
+  | { readonly op: SetupOpKind.Yield; readonly value: ValueIR }
   /** `const fn = $(…)` — the local holds the segment's QRL value. */
   | { readonly op: SetupOpKind.QrlConst; readonly local: BindingId; readonly segment: string }
   | { readonly op: SetupOpKind.ContextRead; readonly local: BindingId; readonly context: BindingId }

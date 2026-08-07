@@ -212,6 +212,7 @@ const HIGHER_ORDER_OPS: ReadonlyMap<string, string> = new Map([
 
 /** `<Global>.<method>()` ops — the global identifier must be unbound (a true global). */
 const STATIC_OPS: ReadonlyMap<string, ReadonlyMap<string, string>> = new Map([
+  ['Promise', new Map([['resolve', 'qwik:promise.resolve']])],
   [
     'Math',
     new Map([

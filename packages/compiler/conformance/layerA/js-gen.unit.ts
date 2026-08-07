@@ -23,6 +23,10 @@ const READY_FIXTURES = [
   'class-object',
   'cond-attr',
   'def-helper',
+  'store-bind',
+  'use-styles',
+  'visible-task',
+  'plugin-call',
 ];
 
 const layerADir = dirname(fileURLToPath(import.meta.url));

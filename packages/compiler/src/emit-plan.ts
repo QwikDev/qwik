@@ -517,7 +517,9 @@ function collectInlineRowSymbols(components: readonly PlanComponent[]): Set<stri
   };
   const walkFn = (fn: PlanSsrRenderFn): void => {
     walkSetup(fn.setup);
-    walkOps(fn.ops);
+    if (fn.ops !== undefined) {
+      walkOps(fn.ops);
+    }
   };
   const walkOps = (ops: PlanSsrComponent['ops']): void => {
     for (const op of ops) {
@@ -536,8 +538,8 @@ function collectInlineRowSymbols(components: readonly PlanComponent[]): Set<stri
           break;
         case 'suspense':
           walkFn(op.content);
-          if (op.fallbackRender !== undefined) {
-            walkFn(op.fallbackRender);
+          if (op.fallback !== null) {
+            walkFn(op.fallback);
           }
           if (op.inOrder !== null) {
             walkOps(op.inOrder);

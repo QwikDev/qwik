@@ -61,7 +61,8 @@ export interface PlanSsrRenderFn {
   /** Render-parameter binding ids (segment rows: item, index). */
   readonly paramBindings?: readonly number[];
   readonly setup: readonly PlanSetupEntry[];
-  readonly ops: readonly PlanSsrOp[];
+  /** Absent = resume-only: renderable solely via the segment QRL; native engines gate. */
+  readonly ops?: readonly PlanSsrOp[];
   readonly synchronous: boolean;
   readonly needsRootRange: boolean;
 }
@@ -154,9 +155,8 @@ export type PlanSsrOp =
   | {
       readonly kind: SsrOpKind.Suspense;
       readonly content: PlanSsrRenderFn;
-      readonly fallback: PlanValue | null;
-      /** Structural fallback plan (native engines render this; the QRL stays for resume). */
-      readonly fallbackRender?: PlanSsrRenderFn;
+      /** Renderable QRL: segment for resume identity; `ops` absent = resume-only. */
+      readonly fallback: PlanSsrRenderFn | null;
       readonly delay: PlanValue | null;
       readonly inOrder: readonly PlanSsrOp[] | null;
     }
@@ -532,10 +532,17 @@ export function emitSsrOpPlan(
         };
       case 'suspense': {
         const fallbackValue = operation.fallback;
+        if (fallbackValue !== null && fallbackValue.kind !== 'segment') {
+          // fallback$ must be a QRL; value fallbacks are unplannable (compile error eventually)
+          throw UNPLANNABLE;
+        }
         const fallbackSegment =
           fallbackValue !== null && fallbackValue.kind === 'segment'
             ? segments.find((candidate) => candidate.id === fallbackValue.segment.segmentId)
             : undefined;
+        if (fallbackValue !== null && fallbackSegment === undefined) {
+          throw UNPLANNABLE;
+        }
         const fallbackTarget =
           fallbackSegment === undefined
             ? null
@@ -543,12 +550,18 @@ export function emitSsrOpPlan(
         return {
           kind: SsrOpKind.Suspense,
           content: renderFnBlock(operation.content),
-          fallback: operation.fallback === null ? null : planValue(operation.fallback),
-          ...(fallbackTarget === null
-            ? {}
-            : {
-                fallbackRender: { segment: fallbackSegment!.id, ...targetBlock(fallbackTarget) },
-              }),
+          fallback:
+            fallbackSegment === undefined
+              ? null
+              : fallbackTarget === null
+                ? // resume-only: the QRL renders it, no structural ops
+                  {
+                    segment: fallbackSegment.id,
+                    setup: [],
+                    synchronous: false,
+                    needsRootRange: false,
+                  }
+                : { segment: fallbackSegment.id, ...targetBlock(fallbackTarget) },
           delay: operation.delay === null ? null : planValue(operation.delay),
           inOrder: operation.inOrder === null ? null : operation.inOrder.map(op),
         };

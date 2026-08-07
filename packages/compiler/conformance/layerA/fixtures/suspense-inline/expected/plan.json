@@ -126,10 +126,6 @@
                   "needsRootRange": false
                 },
                 "fallback": {
-                  "kind": "segment",
-                  "segment": "segment_0"
-                },
-                "fallbackRender": {
                   "segment": "segment_0",
                   "setup": [],
                   "ops": [

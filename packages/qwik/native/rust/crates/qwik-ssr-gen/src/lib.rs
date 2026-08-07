@@ -2165,8 +2165,8 @@ impl ComponentGenerator<'_> {
 			.as_str()
 			.ok_or("suspense content has no segment")?
 			.to_string();
-		let fallback_render = &op["fallbackRender"];
-		if !op["fallback"].is_null() && fallback_render.is_null() {
+		let fallback_render = &op["fallback"];
+		if !fallback_render.is_null() && fallback_render["ops"].is_null() {
 			return Err("suspense fallback without a structural plan".to_string());
 		}
 		self.uses_ctx = true;

@@ -250,7 +250,7 @@ export function linkSsrPlan(
     };
     const linkSsrFn = (fn: PlanSsrRenderFn): PlanSsrRenderFn => {
       const setup = linkSetup(fn.setup);
-      const linked = { ...fn, setup, ops: linkSsrOps(fn.ops) };
+      const linked = { ...fn, setup, ...(fn.ops === undefined ? {} : { ops: linkSsrOps(fn.ops) }) };
       localComponentScopes.pop();
       return linked;
     };
@@ -294,9 +294,7 @@ export function linkSsrPlan(
           return {
             ...op,
             content: linkSsrFn(op.content),
-            ...(op.fallbackRender === undefined
-              ? {}
-              : { fallbackRender: linkSsrFn(op.fallbackRender) }),
+            fallback: op.fallback === null ? null : linkSsrFn(op.fallback),
             inOrder: op.inOrder === null ? null : linkSsrOps(op.inOrder),
           };
         case SsrOpKind.Slot:

@@ -1051,16 +1051,11 @@ class JsComponentGenerator {
         const contentQrl = this.qrlExpression(this.segment(operation.content.segment));
         let fallbackQrl = 'undefined';
         if (operation.fallback !== null) {
-          const fallbackSegment = valueSegment(operation.fallback);
-          if (fallbackSegment === undefined) {
-            const expression = this.valueExpression(operation.fallback);
-            if (expression === null) {
-              markUngeneratable();
-            }
-            fallbackQrl = expression;
-          } else {
-            fallbackQrl = this.qrlExpression(this.segment(fallbackSegment));
+          // fallback is a renderable QRL: its segment resumes it, ops (if any) serve native
+          if (operation.fallback.segment === undefined) {
+            markUngeneratable(operation);
           }
+          fallbackQrl = this.qrlExpression(this.segment(operation.fallback.segment));
         }
         let delayExpr = '0';
         if (operation.delay !== null) {

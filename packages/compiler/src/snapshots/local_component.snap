@@ -34,9 +34,9 @@ import {
   createSsrElementRecord,
   maybeThen,
   _markComponent,
+  createSsrRecord,
   createComponent,
   renderSsrContent,
-  createSsrRecord,
   escapeSsrContent,
   getActiveInvokeContextOrNull,
   invoke,
@@ -120,8 +120,7 @@ export function App(props, ctx) {
     return maybeThen(component_0, (component_0) =>
       maybeThen(content_1(), (content_1) => [
         createSsrElementRecord('li', '<li', '>'),
-        createSsrElementRecord(
-          'a',
+        createSsrRecord(
           '<a',
           ctx.eventAttr(
             'q-e:click',

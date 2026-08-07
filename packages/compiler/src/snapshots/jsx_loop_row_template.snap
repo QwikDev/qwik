@@ -70,7 +70,7 @@ export function App(props, ctx) {
   );
   return maybeThen(collection_result_0, (collection_result_0) => [
     createSsrElementRecord('table', '<table', '>'),
-    createSsrElementRecord('tbody', '<tbody', '>'),
+    '<tbody>',
     createSsrRecord('<!f=', createSsrNodeId(collection_id_0), '>'),
     collection_result_0,
     '<!/f></tbody></table>',

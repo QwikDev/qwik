@@ -68,10 +68,9 @@ export function Wrapper(props, ctx) {
   return maybeThen(slot_0, (slot_0) =>
     maybeThen(slot_1(), (slot_1) => [
       createSsrElementRecord('section', '<section', '>'),
-      createSsrElementRecord('header', '<header', '>'),
+      '<header>',
       slot_0,
-      '</header>',
-      createSsrElementRecord('main', '<main', '>'),
+      '</header><main>',
       slot_1,
       '</main></section>',
     ])

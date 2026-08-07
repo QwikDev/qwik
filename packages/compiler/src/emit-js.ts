@@ -216,6 +216,8 @@ class JsComponentGenerator {
   private pendingAttrAnchor = false;
   /** Runtime style scope local (custom-hook components); null when the render has none. */
   private runtimeScopeName: string | null = null;
+  /** Only the first element of a structured render keeps the tagged element record. */
+  private didEmitRoot = false;
   /** Bindings declared as reactive sources (signal/store/computed) — prop getters track them. */
   private sourceKinds = new Set<number>();
   /** Element id placeholders: resolved at first claiming step (eager const / lazy let). */
@@ -1410,6 +1412,8 @@ class JsComponentGenerator {
     // the first element after a useOn registration anchors the pending attr injection
     const anchorsPendingAttrs = this.pendingAttrAnchor;
     this.pendingAttrAnchor = false;
+    const isRootElement = !this.didEmitRoot && !this.staticRoot;
+    this.didEmitRoot = true;
     // legacy part boundaries are chunk boundaries in streaming: only child subtrees fold,
     // unless the wire proves the whole render static
     const foldable =
@@ -1446,17 +1450,24 @@ class JsComponentGenerator {
         markUngeneratable(prop);
       }
     }
-    if (foldable && open.length === 1 && isStringLiteral(open[0])) {
-      open[0] = JSON.stringify((JSON.parse(open[0]) as string) + '>');
-    } else {
+    if (isRootElement || anchorsPendingAttrs) {
+      // injectable element records keep the closing bracket as its own part
       open.push(JSON.stringify('>'));
+    } else {
+      pushOpen('>');
     }
-    if (foldable && open.length === 1) {
+    if (foldable && open.length === 1 && isStringLiteral(open[0])) {
       // fully static element folds into the surrounding run
       pushStatic(JSON.parse(open[0]) as string);
-    } else {
+    } else if (isRootElement || anchorsPendingAttrs) {
       this.imports.add('createSsrElementRecord');
       parts.push(`createSsrElementRecord(${JSON.stringify(operation.tag)}, ${open.join(', ')})`);
+    } else if (open.length === 1 && isStringLiteral(open[0])) {
+      // non-root static open tags fold like any literal run
+      pushStatic(JSON.parse(open[0]) as string);
+    } else {
+      this.imports.add('createSsrRecord');
+      parts.push(`createSsrRecord(${open.join(', ')})`);
     }
     if (innerHtmlExpr !== null) {
       // spread innerHTML falls back to the static children when absent
@@ -1686,62 +1697,73 @@ class JsComponentGenerator {
       case 'event': {
         const event = prop as {
           name: string;
-          handlers: readonly ({ value?: { segment?: string } } | { bind: string })[];
+          handlers: readonly (
+            | { value?: { segment?: string; ir?: ValueIR } }
+            | { bind: string; checked?: true }
+          )[];
         };
-        const [handler] = event.handlers;
-        if (event.handlers.length !== 1 || handler === undefined) {
-          return false;
-        }
-        if ('bind' in handler) {
-          // bind rides the built-in _val/_chk handler capturing the sibling prop's signal
-          const bindName = event.name === 'q-e:input' ? 'value' : 'checked';
-          const sibling = elementProps.find(
-            (candidate) =>
-              candidate.p === 'dynamic' && (candidate as { name: string }).name === bindName
-          ) as { value: { ir?: ValueIR } } | undefined;
-          const ir = sibling?.value.ir;
-          if (ir === undefined || (ir.k !== 'signal-read' && ir.k !== 'binding-read')) {
-            return false;
+        const handlerValue = (handler: (typeof event.handlers)[number]): string | null => {
+          if ('bind' in handler) {
+            // bind rides the built-in _val/_chk handler capturing the bound signal
+            const symbol = handler.checked === true ? '_chk' : '_val';
+            this.imports.add('inlinedQrl');
+            this.imports.add(symbol);
+            return `inlinedQrl(${symbol}, ${JSON.stringify(symbol)}, [${handler.bind}])`;
           }
-          const symbol = bindName === 'value' ? '_val' : '_chk';
-          this.imports.add('inlinedQrl');
-          this.imports.add(symbol);
-          open.push(
-            `${this.names.ctx}.eventAttr(${JSON.stringify(event.name)}, inlinedQrl(${symbol}, ${JSON.stringify(symbol)}, [${this.local(ir.binding)}]))`
-          );
-          return true;
-        }
-        const segmentId = handler.value?.segment;
-        if (segmentId === undefined) {
-          return false;
-        }
-        const meta = this.segment(segmentId);
-        if (meta.kind === 'expression') {
+          const segmentId = handler.value?.segment;
+          if (segmentId !== undefined) {
+            const meta = this.segment(segmentId);
+            return meta.kind === 'expression' ? null : this.qrlExpression(meta);
+          }
+          const ir = handler.value?.ir;
+          return ir === undefined ? null : this.irJs(ir);
+        };
+        const dynamicIndex = event.handlers.findIndex(
+          (handler) =>
+            !('bind' in handler) &&
+            handler.value?.segment !== undefined &&
+            this.segment(handler.value.segment).kind === 'expression'
+        );
+        if (dynamicIndex !== -1) {
           // non-function handler (props.onClick$): evaluate via renderSsrEvent
           if (idVariable === null) {
             return false;
           }
+          const dynamic = event.handlers[dynamicIndex] as { value: { segment: string } };
+          const meta = this.segment(dynamic.value.segment);
           const captures = meta.captures.map((capture) =>
             capture.access === 'component-prop' ? this.names.props : this.local(capture.binding)
           );
+          const before = event.handlers.slice(0, dynamicIndex).map(handlerValue);
+          const afterHandlers = event.handlers.slice(dynamicIndex + 1).map(handlerValue);
+          if (
+            before.some((value) => value === null) ||
+            afterHandlers.some((value) => value === null)
+          ) {
+            return false;
+          }
           const step = `event_${this.nextTemp++}`;
           this.imports.add('renderSsrEvent');
           this.imports.add('createSsrElementTarget');
           this.pushStep(
             step,
             captures,
-            `renderSsrEvent(createSsrElementTarget(${idVariable}), ${JSON.stringify(event.name)}, [${captures.join(', ')}], ${this.qrlExpression(meta, false)}, ${this.names.ctx}.eventAttr, [], [])`,
+            `renderSsrEvent(createSsrElementTarget(${idVariable}), ${JSON.stringify(event.name)}, [${captures.join(', ')}], ${this.qrlExpression(meta, false)}, ${this.names.ctx}.eventAttr, [${before.join(', ')}], [${afterHandlers.join(', ')}])`,
             this.claimId(idVariable)
           );
           open.push(`(${step} ?? '')`);
           return true;
         }
-        if (meta.kind !== 'event') {
-          return false;
+        const values: string[] = [];
+        for (const handler of event.handlers) {
+          const value = handlerValue(handler);
+          if (value === null) {
+            return false;
+          }
+          values.push(value);
         }
-        open.push(
-          `${this.names.ctx}.eventAttr(${JSON.stringify(event.name)}, ${this.qrlExpression(meta)})`
-        );
+        const value = values.length === 1 ? values[0] : `[${values.join(', ')}]`;
+        open.push(`${this.names.ctx}.eventAttr(${JSON.stringify(event.name)}, ${value})`);
         return true;
       }
       default:

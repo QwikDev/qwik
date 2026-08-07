@@ -25,9 +25,9 @@ import {
   _val,
   createSsrElementRecord,
   _chk,
-  createSsrRecord,
   getActiveInvokeContextOrNull,
   invoke,
+  createSsrRecord,
   maybeThen,
   _qrlWithChunk,
 } from '@qwik.dev/core';
@@ -44,25 +44,25 @@ const q_component_q_e_input_segment_2_2g2zxvycvpkld = /*#__PURE__*/ _qrlWithChun
 export function App(props, ctx) {
   const value = useSignal('');
   const checked = useSignal(false);
-  const id0 = ctx.nextId();
-  let id2;
-  const invokeCtx4 = getActiveInvokeContextOrNull();
+  const id_0 = ctx.nextId();
   ctx.addRoot(value);
-  const attr1 = renderSsrAttr(createSsrElementTarget(id0), 'value', value);
-  const attr3 = () =>
-    invoke(invokeCtx4, () => {
-      id2 ??= ctx.nextId();
+  const attr_0 = renderSsrAttr(createSsrElementTarget(id_0), 'value', value);
+  let id_1;
+  const invokeCtx = getActiveInvokeContextOrNull();
+  const attr_1 = () =>
+    invoke(invokeCtx, () => {
+      id_1 ??= ctx.nextId();
       ctx.addRoot(checked);
-      return renderSsrAttr(createSsrElementTarget(id2), 'checked', checked);
+      return renderSsrAttr(createSsrElementTarget(id_1), 'checked', checked);
     });
-  return maybeThen(attr1, (attr1) =>
-    maybeThen(attr3(), (attr3) => [
+  return maybeThen(attr_0, (attr_0) =>
+    maybeThen(attr_1(), (attr_1) => [
       createSsrElementRecord(
         'input',
         '<input q:id="',
-        createSsrNodeId(id0),
+        createSsrNodeId(id_0),
         '"',
-        attr1 === null ? '' : ' value' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
+        attr_0 === null ? '' : ' value' + (attr_0 === '' ? '' : '="' + escapeHTML(attr_0) + '"'),
         ctx.eventAttr('q-e:input', [
           inlinedQrl(_val, '_val', [value]),
           q_component_q_e_input_segment_1_2g2zwpv157ejs,
@@ -71,13 +71,13 @@ export function App(props, ctx) {
       ),
       createSsrRecord(
         '<input q:id="',
-        createSsrNodeId(id2),
+        createSsrNodeId(id_1),
         '"',
         ctx.eventAttr('q-e:input', [
           q_component_q_e_input_segment_2_2g2zxvycvpkld,
           inlinedQrl(_chk, '_chk', [checked]),
         ]),
-        attr3 === null ? '' : ' checked' + (attr3 === '' ? '' : '="' + escapeHTML(attr3) + '"'),
+        attr_1 === null ? '' : ' checked' + (attr_1 === '' ? '' : '="' + escapeHTML(attr_1) + '"'),
         '>'
       ),
     ])

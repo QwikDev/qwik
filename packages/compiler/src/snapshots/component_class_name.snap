@@ -17,6 +17,7 @@ import {
   createSsrElementTarget,
   renderSsrAttr,
   escapeHTML,
+  createSsrRecord,
   maybeThen,
 } from '@qwik.dev/core';
 export function App(props, ctx) {
@@ -26,8 +27,7 @@ export function App(props, ctx) {
   const attr_0 = renderSsrAttr(createSsrElementTarget(id_0), 'class', classes);
   return maybeThen(attr_0, (attr_0) => [
     createSsrElementRecord('main', '<main class="shell"', '>'),
-    createSsrElementRecord(
-      'button',
+    createSsrRecord(
       '<button q:id="',
       createSsrNodeId(id_0),
       '"',

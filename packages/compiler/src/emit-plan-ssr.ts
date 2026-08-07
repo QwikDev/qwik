@@ -90,7 +90,10 @@ export type PlanSsrProp =
   | {
       readonly p: 'event';
       readonly name: string;
-      readonly handlers: readonly ({ readonly value: PlanValue } | { readonly bind: string })[];
+      readonly handlers: readonly (
+        | { readonly value: PlanValue }
+        | { readonly bind: string; readonly checked?: true }
+      )[];
     }
   | { readonly p: string; readonly src: string };
 
@@ -377,7 +380,10 @@ export function emitSsrOpPlan(
           handlers: item.handlers.map((handler) =>
             handler.kind === 'value'
               ? { value: planValue(handler.value) }
-              : { bind: slice(handler.signal) }
+              : {
+                  bind: slice(handler.signal),
+                  ...(handler.name === 'checked' ? { checked: true as const } : {}),
+                }
           ),
         };
       case 'inner-html':

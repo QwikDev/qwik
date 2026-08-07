@@ -28,6 +28,7 @@ import {
   escapeHTML,
   getActiveInvokeContextOrNull,
   invoke,
+  createSsrRecord,
   maybeThen,
   _qrlWithChunk,
 } from '@qwik.dev/core';
@@ -62,8 +63,7 @@ export function App(props, ctx) {
     maybeThen(attr_1(), (attr_1) => [
       createSsrElementRecord('main', '<main', '>'),
       component_0,
-      createSsrElementRecord(
-        'p',
+      createSsrRecord(
         '<p q:id="',
         createSsrNodeId(id_0),
         '"',

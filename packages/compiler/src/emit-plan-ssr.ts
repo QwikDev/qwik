@@ -209,9 +209,11 @@ export type PlanSsrOp =
       readonly keyIr?: import('./expr-ir').ValueIR;
       readonly row: PlanSsrRow | { readonly segment: PlanSsrRenderFn };
       readonly usesIndexSignal: boolean;
-      readonly usesRowId: boolean;
-      readonly idBase: string | null;
-      readonly rowShape: 0 | 1 | 2 | 3;
+      readonly ssr: {
+        readonly usesRowId: boolean;
+        readonly idBase: string | null;
+        readonly rowShape: 0 | 1 | 2 | 3;
+      };
     };
 
 /** Static style CSS from its argument source: quoted/backticked literal, no interpolation. */
@@ -643,9 +645,11 @@ export function emitSsrOpPlan(
                   operation.row.usedParameterCount
                 ),
           usesIndexSignal: operation.usesIndexSignal,
-          usesRowId: operation.usesRowId,
-          idBase: operation.idBase,
-          rowShape: operation.rowShape,
+          ssr: {
+            usesRowId: operation.usesRowId,
+            idBase: operation.idBase,
+            rowShape: operation.rowShape,
+          },
         };
     }
   };

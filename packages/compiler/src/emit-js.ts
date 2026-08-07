@@ -1057,7 +1057,7 @@ class JsComponentGenerator {
         const keyQrl = keyMeta === null ? 'undefined' : this.qrlExpression(keyMeta);
         const renderQrl = this.qrlExpression(rowMeta);
         this.statements.push(
-          `const ${step} = renderSsrCollection(${this.names.ctx}, ${idVariable}, ${collectionValue}, ${keyQrl}, ${renderQrl}, ${operation.usesIndexSignal}, ${operation.idBase === null ? "''" : operation.idBase}, ${operation.usesRowId}, ${operation.rowShape});`
+          `const ${step} = renderSsrCollection(${this.names.ctx}, ${idVariable}, ${collectionValue}, ${keyQrl}, ${renderQrl}, ${operation.usesIndexSignal}, ${operation.ssr.idBase === null ? "''" : operation.ssr.idBase}, ${operation.ssr.usesRowId}, ${operation.ssr.rowShape});`
         );
         this.asyncSteps.push({ name: step, expr: step });
         parts.push(`createSsrRecord('<!f=', createSsrNodeId(${idVariable}), '>')`);
@@ -1363,7 +1363,7 @@ class JsComponentGenerator {
     const sourceIr = (operation.source as { ir?: ValueIR }).ir;
     if (
       operation.key !== null ||
-      operation.idBase !== null ||
+      operation.ssr.idBase !== null ||
       operation.usesIndexSignal ||
       row.rowRoot ||
       row.rowMarker ||
@@ -1405,7 +1405,7 @@ class JsComponentGenerator {
     this.pushStep(
       step,
       [],
-      `renderSsrCollection(${this.names.ctx}, undefined, ${this.irJs(sourceIr)}, undefined, ${row.symbolName}, ${operation.usesIndexSignal}, '', ${operation.usesRowId}, ${operation.rowShape})`
+      `renderSsrCollection(${this.names.ctx}, undefined, ${this.irJs(sourceIr)}, undefined, ${row.symbolName}, ${operation.usesIndexSignal}, '', ${operation.ssr.usesRowId}, ${operation.ssr.rowShape})`
     );
     parts.push(step);
   }

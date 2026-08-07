@@ -138,9 +138,11 @@
                   }
                 },
                 "usesIndexSignal": false,
-                "usesRowId": false,
-                "idBase": null,
-                "rowShape": 0
+                "ssr": {
+                  "usesRowId": false,
+                  "idBase": null,
+                  "rowShape": 0
+                }
               }
             ],
             "ssr": {

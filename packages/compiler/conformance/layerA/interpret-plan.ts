@@ -965,9 +965,9 @@ export async function buildInterpretedRoot(
                 undefined as never,
                 rowFn as never,
                 false,
-                op.idBase ?? '',
-                op.usesRowId,
-                op.rowShape
+                op.ssr.idBase ?? '',
+                op.ssr.usesRowId,
+                op.ssr.rowShape
               )
             );
             return maybeThen(rendered, (output) => {
@@ -1000,9 +1000,9 @@ export async function buildInterpretedRoot(
               qrlWithCaptures(keySegment) as never,
               qrlWithCaptures(rowSegment) as never,
               op.usesIndexSignal,
-              op.idBase ?? '',
-              op.usesRowId,
-              op.rowShape
+              op.ssr.idBase ?? '',
+              op.ssr.usesRowId,
+              op.ssr.rowShape
             );
           });
           return maybeThen(rendered, (output) => {

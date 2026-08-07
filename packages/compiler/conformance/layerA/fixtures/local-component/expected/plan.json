@@ -343,9 +343,11 @@
                   "surroundingRangeId": "rowId"
                 },
                 "usesIndexSignal": false,
-                "usesRowId": false,
-                "idBase": null,
-                "rowShape": 3
+                "ssr": {
+                  "usesRowId": false,
+                  "idBase": null,
+                  "rowShape": 3
+                }
               },
               {
                 "kind": "component",

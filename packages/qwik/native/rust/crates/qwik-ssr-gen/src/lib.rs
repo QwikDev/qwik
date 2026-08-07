@@ -1998,10 +1998,10 @@ impl ComponentGenerator<'_> {
 	}
 
 	fn write_collection(&mut self, op: &Json, target: &str) -> Result<(), String> {
-		if !op["idBase"].is_null() {
+		if !op["ssr"]["idBase"].is_null() {
 			return Err("collection idBase not supported yet".to_string());
 		}
-		if op["usesRowId"].as_bool() == Some(true) {
+		if op["ssr"]["usesRowId"].as_bool() == Some(true) {
 			return Err("row-id collections not supported yet".to_string());
 		}
 		let source = &op["source"];
@@ -2022,7 +2022,7 @@ impl ComponentGenerator<'_> {
 			return Err("inline collection rows not supported yet".to_string());
 		}
 		let uses_index_signal = op["usesIndexSignal"].as_bool() == Some(true);
-		let row_shape = op["rowShape"]
+		let row_shape = op["ssr"]["rowShape"]
 			.as_u64()
 			.ok_or("collection rowShape missing")?;
 		let param_bindings: Vec<u64> = row["paramBindings"]

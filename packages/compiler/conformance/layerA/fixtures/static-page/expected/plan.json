@@ -10,8 +10,6 @@
       "props": null,
       "ssr": {
         "setup": [],
-        "directSegmentIds": [],
-        "usedSegmentIds": [],
         "ops": [
           {
             "kind": "element",
@@ -64,12 +62,16 @@
             ]
           }
         ],
-        "synchronous": true,
-        "staticRoot": true,
-        "needsRootRange": false,
-        "needsId": false,
-        "idBase": "qApp-",
-        "flushTasks": false
+        "ssr": {
+          "syncRender": true,
+          "staticRoot": true,
+          "needsRootRange": false,
+          "needsId": false,
+          "idBase": "qApp-",
+          "flushTasks": false,
+          "directSegments": [],
+          "usedSegments": []
+        }
       },
       "setup": [],
       "needsId": false,

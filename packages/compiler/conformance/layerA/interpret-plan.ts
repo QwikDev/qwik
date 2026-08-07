@@ -1030,7 +1030,7 @@ export async function buildInterpretedRoot(
         '<!/c>',
       ]);
     };
-    return ssr.flushTasks
+    return (nested === undefined ? interpreted.ssr!.ssr.flushTasks : false)
       ? maybeThen(ctx.scheduler.flush(), () => invoke(invokeCtx, run))
       : invoke(invokeCtx, run);
   }

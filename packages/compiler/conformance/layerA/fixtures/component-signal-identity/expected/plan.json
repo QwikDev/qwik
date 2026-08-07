@@ -46,10 +46,6 @@
             }
           }
         ],
-        "directSegmentIds": [],
-        "usedSegmentIds": [
-          "segment_0"
-        ],
         "ops": [
           {
             "kind": "element",
@@ -68,12 +64,18 @@
             ]
           }
         ],
-        "synchronous": true,
-        "staticRoot": false,
-        "needsRootRange": false,
-        "needsId": false,
-        "idBase": "qChild-",
-        "flushTasks": true
+        "ssr": {
+          "syncRender": true,
+          "staticRoot": false,
+          "needsRootRange": false,
+          "needsId": false,
+          "idBase": "qChild-",
+          "flushTasks": true,
+          "directSegments": [],
+          "usedSegments": [
+            "segment_0"
+          ]
+        }
       },
       "setup": [
         {
@@ -120,8 +122,6 @@
             "name": "value"
           }
         ],
-        "directSegmentIds": [],
-        "usedSegmentIds": [],
         "ops": [
           {
             "kind": "element",
@@ -193,12 +193,16 @@
             ]
           }
         ],
-        "synchronous": false,
-        "staticRoot": false,
-        "needsRootRange": false,
-        "needsId": false,
-        "idBase": "qApp-",
-        "flushTasks": false
+        "ssr": {
+          "syncRender": false,
+          "staticRoot": false,
+          "needsRootRange": false,
+          "needsId": false,
+          "idBase": "qApp-",
+          "flushTasks": false,
+          "directSegments": [],
+          "usedSegments": []
+        }
       },
       "setup": [
         {

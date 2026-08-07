@@ -164,19 +164,12 @@
                   ]
                 }
               ],
-              "synchronous": false,
-              "needsRootRange": false
+              "ssr": {
+                "syncRender": false,
+                "needsRootRange": false
+              }
             }
           }
-        ],
-        "directSegmentIds": [],
-        "usedSegmentIds": [
-          "segment_2",
-          "segment_3",
-          "segment_0",
-          "segment_1",
-          "semantic_expression_362_380",
-          "local_component_169_410"
         ],
         "ops": [
           {
@@ -219,20 +212,33 @@
                       "slots": []
                     }
                   ],
-                  "synchronous": false,
-                  "needsRootRange": false
+                  "ssr": {
+                    "syncRender": false,
+                    "needsRootRange": false
+                  }
                 },
                 "else": null
               }
             ]
           }
         ],
-        "synchronous": false,
-        "staticRoot": false,
-        "needsRootRange": false,
-        "needsId": false,
-        "idBase": "qApp-",
-        "flushTasks": false
+        "ssr": {
+          "syncRender": false,
+          "staticRoot": false,
+          "needsRootRange": false,
+          "needsId": false,
+          "idBase": "qApp-",
+          "flushTasks": false,
+          "directSegments": [],
+          "usedSegments": [
+            "segment_2",
+            "segment_3",
+            "segment_0",
+            "segment_1",
+            "semantic_expression_362_380",
+            "local_component_169_410"
+          ]
+        }
       },
       "setup": [
         {

@@ -26,8 +26,6 @@
             "name": "label"
           }
         ],
-        "directSegmentIds": [],
-        "usedSegmentIds": [],
         "ops": [
           {
             "kind": "element",
@@ -64,12 +62,16 @@
             ]
           }
         ],
-        "synchronous": false,
-        "staticRoot": false,
-        "needsRootRange": false,
-        "needsId": false,
-        "idBase": "qApp-",
-        "flushTasks": false
+        "ssr": {
+          "syncRender": false,
+          "staticRoot": false,
+          "needsRootRange": false,
+          "needsId": false,
+          "idBase": "qApp-",
+          "flushTasks": false,
+          "directSegments": [],
+          "usedSegments": []
+        }
       },
       "setup": [
         {

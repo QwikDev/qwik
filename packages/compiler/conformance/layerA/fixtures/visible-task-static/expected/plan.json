@@ -25,10 +25,6 @@
             "strategy": "intersection-observer"
           }
         ],
-        "directSegmentIds": [],
-        "usedSegmentIds": [
-          "segment_0"
-        ],
         "ops": [
           {
             "kind": "element",
@@ -47,12 +43,18 @@
             ]
           }
         ],
-        "synchronous": true,
-        "staticRoot": false,
-        "needsRootRange": false,
-        "needsId": false,
-        "idBase": "qApp-",
-        "flushTasks": false
+        "ssr": {
+          "syncRender": true,
+          "staticRoot": false,
+          "needsRootRange": false,
+          "needsId": false,
+          "idBase": "qApp-",
+          "flushTasks": false,
+          "directSegments": [],
+          "usedSegments": [
+            "segment_0"
+          ]
+        }
       },
       "setup": [
         {

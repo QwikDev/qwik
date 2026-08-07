@@ -30,12 +30,6 @@
       },
       "ssr": {
         "setup": [],
-        "directSegmentIds": [],
-        "usedSegmentIds": [
-          "segment_0",
-          "segment_1",
-          "segment_2"
-        ],
         "ops": [
           {
             "kind": "element",
@@ -99,12 +93,20 @@
             ]
           }
         ],
-        "synchronous": false,
-        "staticRoot": false,
-        "needsRootRange": false,
-        "needsId": false,
-        "idBase": "qBadge-",
-        "flushTasks": false
+        "ssr": {
+          "syncRender": false,
+          "staticRoot": false,
+          "needsRootRange": false,
+          "needsId": false,
+          "idBase": "qBadge-",
+          "flushTasks": false,
+          "directSegments": [],
+          "usedSegments": [
+            "segment_0",
+            "segment_1",
+            "segment_2"
+          ]
+        }
       },
       "setup": [],
       "needsId": false,
@@ -154,8 +156,6 @@
             "name": "shared"
           }
         ],
-        "directSegmentIds": [],
-        "usedSegmentIds": [],
         "ops": [
           {
             "kind": "element",
@@ -204,12 +204,16 @@
             ]
           }
         ],
-        "synchronous": false,
-        "staticRoot": false,
-        "needsRootRange": false,
-        "needsId": false,
-        "idBase": "qApp-",
-        "flushTasks": false
+        "ssr": {
+          "syncRender": false,
+          "staticRoot": false,
+          "needsRootRange": false,
+          "needsId": false,
+          "idBase": "qApp-",
+          "flushTasks": false,
+          "directSegments": [],
+          "usedSegments": []
+        }
       },
       "setup": [
         {

@@ -148,8 +148,34 @@ export function emitJsProductionRender(
 type PlanSsrComponent = {
   readonly setup: readonly unknown[];
   readonly ops: readonly PlanSsrOp[];
-  readonly flushTasks?: boolean;
+  /** Component blocks group annotations under `ssr`; nested RenderFns stay flat (for now). */
+  readonly ssr?: {
+    readonly syncRender?: boolean;
+    readonly staticRoot?: boolean;
+    readonly flushTasks?: boolean;
+    readonly runtimeScope?: true;
+  };
 };
+
+function blockAnnotations(ssr: PlanSsrComponent): {
+  syncRender: boolean;
+  staticRoot: boolean;
+  flushTasks: boolean;
+  runtimeScope: boolean;
+} {
+  const grouped = ssr.ssr;
+  const flat = ssr as {
+    synchronous?: boolean;
+    staticRoot?: boolean;
+    runtimeScope?: true;
+  };
+  return {
+    syncRender: grouped?.syncRender === true || flat.synchronous === true,
+    staticRoot: grouped?.staticRoot === true || flat.staticRoot === true,
+    flushTasks: grouped?.flushTasks === true,
+    runtimeScope: grouped?.runtimeScope === true || flat.runtimeScope === true,
+  };
+}
 
 /** Per-module collections shared by every generated component fn. */
 interface ModuleState {
@@ -336,7 +362,7 @@ class JsComponentGenerator {
 
   /** Custom-hook renders resolve the ambient style scope once, before any parts. */
   private beginRuntimeScope(ssr: PlanSsrComponent): void {
-    if ((ssr as { runtimeScope?: true }).runtimeScope !== true) {
+    if (!blockAnnotations(ssr).runtimeScope) {
       return;
     }
     this.runtimeScopeName = `style_scope_${this.nextTemp++}`;
@@ -353,11 +379,12 @@ class JsComponentGenerator {
     providesContext: boolean
   ): JsRenderPieces {
     void name;
-    this.synchronous = (ssr as { synchronous?: boolean }).synchronous === true;
-    this.staticRoot = (ssr as { staticRoot?: boolean }).staticRoot === true;
+    const annotations = blockAnnotations(ssr as PlanSsrComponent);
+    this.synchronous = annotations.syncRender;
+    this.staticRoot = annotations.staticRoot;
     // the emitted head owns the param destructure — bind locals only, emit no statement
     this.bindPropsShape(propsShape, false);
-    if (ssr.flushTasks === true) {
+    if (blockAnnotations(ssr as PlanSsrComponent).flushTasks) {
       this.invokeCtx();
     }
     for (const entry of ssr.setup as ({ kind: string } & Record<string, unknown>)[]) {
@@ -395,7 +422,7 @@ class JsComponentGenerator {
     const value = parts.length === 1 ? parts[0] : `[${parts.join(', ')}]`;
     const statements = this.finalizeIds(this.statements.splice(0));
     const chainValue = this.wrapAsyncValue(value);
-    if (ssr.flushTasks === true) {
+    if (blockAnnotations(ssr as PlanSsrComponent).flushTasks) {
       this.imports.add('maybeThen');
       this.imports.add('invoke');
     }
@@ -404,7 +431,7 @@ class JsComponentGenerator {
       setupStatements,
       statements,
       value: chainValue,
-      flushTasks: ssr.flushTasks === true,
+      flushTasks: blockAnnotations(ssr as PlanSsrComponent).flushTasks,
     };
   }
 
@@ -441,11 +468,12 @@ class JsComponentGenerator {
     isAsync = false
   ): string {
     signature ??= `(${this.names.props}, ${this.names.ctx})`;
-    this.synchronous = (ssr as { synchronous?: boolean }).synchronous === true;
-    this.staticRoot = (ssr as { staticRoot?: boolean }).staticRoot === true;
+    const annotations = blockAnnotations(ssr as PlanSsrComponent);
+    this.synchronous = annotations.syncRender;
+    this.staticRoot = annotations.staticRoot;
     this.bindPropsShape(propsShape);
     // task flush: setup runs first, then the render replays under the captured invoke context
-    if (ssr.flushTasks === true) {
+    if (blockAnnotations(ssr as PlanSsrComponent).flushTasks) {
       this.invokeCtx();
     }
     // local-component declarations hoist: siblings are callable before their statement
@@ -525,7 +553,7 @@ class JsComponentGenerator {
     let bodyStatements: string[];
     const finalizedStatements = this.finalizeIds(this.statements);
     this.statements.splice(0, this.statements.length, ...finalizedStatements);
-    if (ssr.flushTasks === true) {
+    if (blockAnnotations(ssr as PlanSsrComponent).flushTasks) {
       this.imports.add('maybeThen');
       this.imports.add('invoke');
       const inner = [...this.statements, returnStatement].map((line) => `  ${line}`).join('\n');

@@ -99,14 +99,6 @@
             }
           }
         ],
-        "directSegmentIds": [],
-        "usedSegmentIds": [
-          "segment_3",
-          "segment_4",
-          "segment_5",
-          "segment_0",
-          "segment_1"
-        ],
         "ops": [
           {
             "kind": "element",
@@ -172,8 +164,11 @@
                       ]
                     }
                   ],
-                  "synchronous": true,
-                  "needsRootRange": false
+                  "ssr": {
+                    "syncRender": true,
+                    "needsRootRange": false,
+                    "staticRoot": true
+                  }
                 },
                 "else": {
                   "segment": "segment_5",
@@ -269,8 +264,10 @@
                                   ]
                                 }
                               ],
-                              "synchronous": false,
-                              "needsRootRange": false,
+                              "ssr": {
+                                "syncRender": false,
+                                "needsRootRange": false
+                              },
                               "paramBindings": [
                                 7,
                                 8
@@ -285,8 +282,10 @@
                       ]
                     }
                   ],
-                  "synchronous": false,
-                  "needsRootRange": false
+                  "ssr": {
+                    "syncRender": false,
+                    "needsRootRange": false
+                  }
                 }
               },
               {
@@ -320,12 +319,22 @@
             ]
           }
         ],
-        "synchronous": false,
-        "staticRoot": false,
-        "needsRootRange": false,
-        "needsId": false,
-        "idBase": "qApp-",
-        "flushTasks": true
+        "ssr": {
+          "syncRender": false,
+          "staticRoot": false,
+          "needsRootRange": false,
+          "needsId": false,
+          "idBase": "qApp-",
+          "flushTasks": true,
+          "directSegments": [],
+          "usedSegments": [
+            "segment_3",
+            "segment_4",
+            "segment_5",
+            "segment_0",
+            "segment_1"
+          ]
+        }
       },
       "setup": [
         {

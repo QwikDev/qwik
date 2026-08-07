@@ -33,12 +33,6 @@
             "name": "words"
           }
         ],
-        "directSegmentIds": [],
-        "usedSegmentIds": [
-          "semantic_collectionSource_151_196",
-          "segment_1",
-          "segment_0"
-        ],
         "ops": [
           {
             "kind": "element",
@@ -132,8 +126,10 @@
                         ]
                       }
                     ],
-                    "synchronous": false,
-                    "needsRootRange": false,
+                    "ssr": {
+                      "syncRender": false,
+                      "needsRootRange": false
+                    },
                     "paramBindings": [
                       4
                     ]
@@ -147,12 +143,20 @@
             ]
           }
         ],
-        "synchronous": false,
-        "staticRoot": false,
-        "needsRootRange": false,
-        "needsId": false,
-        "idBase": "qApp-",
-        "flushTasks": false
+        "ssr": {
+          "syncRender": false,
+          "staticRoot": false,
+          "needsRootRange": false,
+          "needsId": false,
+          "idBase": "qApp-",
+          "flushTasks": false,
+          "directSegments": [],
+          "usedSegments": [
+            "semantic_collectionSource_151_196",
+            "segment_1",
+            "segment_0"
+          ]
+        }
       },
       "setup": [
         {

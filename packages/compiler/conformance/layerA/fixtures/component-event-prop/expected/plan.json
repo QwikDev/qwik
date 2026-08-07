@@ -15,11 +15,6 @@
       },
       "ssr": {
         "setup": [],
-        "directSegmentIds": [],
-        "usedSegmentIds": [
-          "segment_0",
-          "segment_1"
-        ],
         "ops": [
           {
             "kind": "element",
@@ -87,12 +82,19 @@
             ]
           }
         ],
-        "synchronous": false,
-        "staticRoot": false,
-        "needsRootRange": false,
-        "needsId": false,
-        "idBase": "qButton-",
-        "flushTasks": false
+        "ssr": {
+          "syncRender": false,
+          "staticRoot": false,
+          "needsRootRange": false,
+          "needsId": false,
+          "idBase": "qButton-",
+          "flushTasks": false,
+          "directSegments": [],
+          "usedSegments": [
+            "segment_0",
+            "segment_1"
+          ]
+        }
       },
       "setup": [],
       "needsId": false,
@@ -117,11 +119,6 @@
             },
             "name": "count"
           }
-        ],
-        "directSegmentIds": [],
-        "usedSegmentIds": [
-          "segment_2",
-          "segment_3"
         ],
         "ops": [
           {
@@ -175,8 +172,11 @@
                           "html": "Add"
                         }
                       ],
-                      "synchronous": true,
-                      "needsRootRange": false
+                      "ssr": {
+                        "syncRender": true,
+                        "needsRootRange": false,
+                        "staticRoot": true
+                      }
                     }
                   }
                 ]
@@ -218,12 +218,19 @@
             ]
           }
         ],
-        "synchronous": false,
-        "staticRoot": false,
-        "needsRootRange": false,
-        "needsId": false,
-        "idBase": "qApp-",
-        "flushTasks": false
+        "ssr": {
+          "syncRender": false,
+          "staticRoot": false,
+          "needsRootRange": false,
+          "needsId": false,
+          "idBase": "qApp-",
+          "flushTasks": false,
+          "directSegments": [],
+          "usedSegments": [
+            "segment_2",
+            "segment_3"
+          ]
+        }
       },
       "setup": [
         {

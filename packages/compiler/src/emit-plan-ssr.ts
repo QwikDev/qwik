@@ -39,20 +39,33 @@ export const enum SsrOpKind {
   Collection = 'collection',
 }
 
-export interface PlanSsrComponent {
-  readonly setup: readonly PlanSetupEntry[];
-  /** Segments invoked synchronously server-side — engines resolve these eagerly (`.s()`). */
-  readonly directSegmentIds: readonly string[];
-  readonly usedSegmentIds: readonly string[];
-  readonly ops: readonly PlanSsrOp[];
-  readonly synchronous: boolean;
+/** Component-level SSR annotations — byte contracts decided at plan time. */
+export interface PlanSsrAnnotations {
+  /** The render chain is proven promise-free: no maybeThen chain, steps stay eager. */
+  readonly syncRender: boolean;
   readonly staticRoot: boolean;
   readonly needsRootRange: boolean;
   readonly needsId: boolean;
   readonly idBase: string;
   readonly flushTasks: boolean;
+  /** Segments invoked synchronously server-side — engines resolve these eagerly (`.s()`). */
+  readonly directSegments: readonly string[];
+  readonly usedSegments: readonly string[];
   /** Custom-hook components render under a runtime style scope from the invoke context. */
   readonly runtimeScope?: true;
+}
+
+export interface PlanSsrComponent {
+  readonly setup: readonly PlanSetupEntry[];
+  readonly ops: readonly PlanSsrOp[];
+  readonly ssr: PlanSsrAnnotations;
+}
+
+/** Block-level SSR annotations for nested render fns. */
+export interface PlanSsrFnAnnotations {
+  readonly syncRender: boolean;
+  readonly needsRootRange: boolean;
+  readonly staticRoot?: true;
 }
 
 export interface PlanSsrRenderFn {
@@ -63,8 +76,7 @@ export interface PlanSsrRenderFn {
   readonly setup: readonly PlanSetupEntry[];
   /** Absent = resume-only: renderable solely via the segment QRL; native engines gate. */
   readonly ops?: readonly PlanSsrOp[];
-  readonly synchronous: boolean;
-  readonly needsRootRange: boolean;
+  readonly ssr: PlanSsrFnAnnotations;
 }
 
 export interface PlanSsrRow extends PlanSsrRenderFn {
@@ -364,9 +376,11 @@ export function emitSsrOpPlan(
             render: {
               setup: [],
               ops: entry.render.operations.map(op),
-              synchronous: entry.render.synchronous,
-              needsRootRange: entry.render.needsRootRange,
-              ...(entry.render.staticRoot ? { staticRoot: true } : {}),
+              ssr: {
+                syncRender: entry.render.synchronous,
+                needsRootRange: entry.render.needsRootRange,
+                ...(entry.render.staticRoot ? { staticRoot: true as const } : {}),
+              },
             } as PlanSsrRenderFn,
           },
         ];
@@ -442,8 +456,11 @@ export function emitSsrOpPlan(
   const targetBlock = (target: SsrRenderFunctionTargetPlan): PlanSsrRenderFn => ({
     setup: setupEntries(target.setup),
     ops: target.render.operations.map(op),
-    synchronous: target.render.synchronous,
-    needsRootRange: target.render.needsRootRange,
+    ssr: {
+      syncRender: target.render.synchronous,
+      needsRootRange: target.render.needsRootRange,
+      ...(target.render.staticRoot ? { staticRoot: true as const } : {}),
+    },
   });
 
   const rowBlock = (
@@ -561,8 +578,7 @@ export function emitSsrOpPlan(
                   {
                     segment: fallbackSegment.id,
                     setup: [],
-                    synchronous: false,
-                    needsRootRange: false,
+                    ssr: { syncRender: false, needsRootRange: false },
                   }
                 : { segment: fallbackSegment.id, ...targetBlock(fallbackTarget) },
           delay: operation.delay === null ? null : planValue(operation.delay),
@@ -628,16 +644,18 @@ export function emitSsrOpPlan(
   try {
     return {
       setup: setupEntries(planned.setup),
-      directSegmentIds: planned.directSegmentIds,
-      usedSegmentIds: planned.usedSegmentIds,
       ops: planned.render.operations.map(op),
-      synchronous: planned.render.synchronous,
-      staticRoot: planned.render.staticRoot,
-      needsRootRange: planned.render.needsRootRange,
-      needsId: planned.needsId,
-      idBase: planned.idBase,
-      flushTasks: planned.flushTasks,
-      ...(planned.runtimeStyleScopeName !== null ? { runtimeScope: true as const } : {}),
+      ssr: {
+        syncRender: planned.render.synchronous,
+        staticRoot: planned.render.staticRoot,
+        needsRootRange: planned.render.needsRootRange,
+        needsId: planned.needsId,
+        idBase: planned.idBase,
+        flushTasks: planned.flushTasks,
+        directSegments: planned.directSegmentIds,
+        usedSegments: planned.usedSegmentIds,
+        ...(planned.runtimeStyleScopeName !== null ? { runtimeScope: true as const } : {}),
+      },
     };
   } catch (error) {
     if (error === UNPLANNABLE) {

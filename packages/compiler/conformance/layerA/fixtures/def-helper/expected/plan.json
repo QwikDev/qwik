@@ -20,10 +20,6 @@
             "name": "count"
           }
         ],
-        "directSegmentIds": [],
-        "usedSegmentIds": [
-          "semantic_expression_190_208"
-        ],
         "ops": [
           {
             "kind": "element",
@@ -56,12 +52,18 @@
             ]
           }
         ],
-        "synchronous": false,
-        "staticRoot": false,
-        "needsRootRange": false,
-        "needsId": false,
-        "idBase": "qApp-",
-        "flushTasks": false
+        "ssr": {
+          "syncRender": false,
+          "staticRoot": false,
+          "needsRootRange": false,
+          "needsId": false,
+          "idBase": "qApp-",
+          "flushTasks": false,
+          "directSegments": [],
+          "usedSegments": [
+            "semantic_expression_190_208"
+          ]
+        }
       },
       "setup": [
         {

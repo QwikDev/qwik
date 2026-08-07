@@ -20,10 +20,6 @@
             "name": "active"
           }
         ],
-        "directSegmentIds": [],
-        "usedSegmentIds": [
-          "segment_0"
-        ],
         "ops": [
           {
             "kind": "element",
@@ -77,12 +73,18 @@
             ]
           }
         ],
-        "synchronous": false,
-        "staticRoot": false,
-        "needsRootRange": false,
-        "needsId": false,
-        "idBase": "qApp-",
-        "flushTasks": false
+        "ssr": {
+          "syncRender": false,
+          "staticRoot": false,
+          "needsRootRange": false,
+          "needsId": false,
+          "idBase": "qApp-",
+          "flushTasks": false,
+          "directSegments": [],
+          "usedSegments": [
+            "segment_0"
+          ]
+        }
       },
       "setup": [
         {

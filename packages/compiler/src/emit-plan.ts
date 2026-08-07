@@ -223,7 +223,7 @@ export function emitModulePlan(
   }));
   // same eligibility as the emit-ssr hoist loop, so `resolved` matches the emitted `.s()` calls
   const directSegmentIds = new Set(
-    components.flatMap((component) => component.ssr?.directSegmentIds ?? [])
+    components.flatMap((component) => component.ssr?.ssr.directSegments ?? [])
   );
   const localComponentSegmentIds = new Set(
     segments.filter((segment) => segment.kind === 'localComponent').map((segment) => segment.id)

@@ -73,15 +73,12 @@
                   ]
                 }
               ],
-              "synchronous": false,
-              "needsRootRange": false
+              "ssr": {
+                "syncRender": false,
+                "needsRootRange": false
+              }
             }
           }
-        ],
-        "directSegmentIds": [],
-        "usedSegmentIds": [
-          "segment_0",
-          "local_component_98_159"
         ],
         "ops": [
           {
@@ -119,12 +116,19 @@
             ]
           }
         ],
-        "synchronous": false,
-        "staticRoot": false,
-        "needsRootRange": false,
-        "needsId": false,
-        "idBase": "qApp-",
-        "flushTasks": false
+        "ssr": {
+          "syncRender": false,
+          "staticRoot": false,
+          "needsRootRange": false,
+          "needsId": false,
+          "idBase": "qApp-",
+          "flushTasks": false,
+          "directSegments": [],
+          "usedSegments": [
+            "segment_0",
+            "local_component_98_159"
+          ]
+        }
       },
       "setup": [
         {

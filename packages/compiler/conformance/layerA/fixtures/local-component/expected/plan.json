@@ -142,8 +142,10 @@
                         ]
                       }
                     ],
-                    "synchronous": false,
-                    "needsRootRange": false
+                    "ssr": {
+                      "syncRender": false,
+                      "needsRootRange": false
+                    }
                   }
                 }
               ],
@@ -251,19 +253,12 @@
                   ]
                 }
               ],
-              "synchronous": false,
-              "needsRootRange": false
+              "ssr": {
+                "syncRender": false,
+                "needsRootRange": false
+              }
             }
           }
-        ],
-        "directSegmentIds": [],
-        "usedSegmentIds": [
-          "segment_1",
-          "segment_2",
-          "semantic_expression_443_461",
-          "segment_0",
-          "local_component_193_284",
-          "local_component_127_491"
         ],
         "ops": [
           {
@@ -322,8 +317,10 @@
                       "slots": []
                     }
                   ],
-                  "synchronous": false,
-                  "needsRootRange": false,
+                  "ssr": {
+                    "syncRender": false,
+                    "needsRootRange": false
+                  },
                   "paramBindings": [
                     8
                   ],
@@ -359,12 +356,23 @@
             ]
           }
         ],
-        "synchronous": false,
-        "staticRoot": false,
-        "needsRootRange": false,
-        "needsId": false,
-        "idBase": "qApp-",
-        "flushTasks": false
+        "ssr": {
+          "syncRender": false,
+          "staticRoot": false,
+          "needsRootRange": false,
+          "needsId": false,
+          "idBase": "qApp-",
+          "flushTasks": false,
+          "directSegments": [],
+          "usedSegments": [
+            "segment_1",
+            "segment_2",
+            "semantic_expression_443_461",
+            "segment_0",
+            "local_component_193_284",
+            "local_component_127_491"
+          ]
+        }
       },
       "setup": [
         {

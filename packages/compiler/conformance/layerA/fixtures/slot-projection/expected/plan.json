@@ -15,10 +15,6 @@
       },
       "ssr": {
         "setup": [],
-        "directSegmentIds": [],
-        "usedSegmentIds": [
-          "segment_0"
-        ],
         "ops": [
           {
             "kind": "element",
@@ -78,12 +74,18 @@
             ]
           }
         ],
-        "synchronous": false,
-        "staticRoot": false,
-        "needsRootRange": false,
-        "needsId": false,
-        "idBase": "qCard-",
-        "flushTasks": false
+        "ssr": {
+          "syncRender": false,
+          "staticRoot": false,
+          "needsRootRange": false,
+          "needsId": false,
+          "idBase": "qCard-",
+          "flushTasks": false,
+          "directSegments": [],
+          "usedSegments": [
+            "segment_0"
+          ]
+        }
       },
       "setup": [],
       "needsId": false,
@@ -108,10 +110,6 @@
             },
             "name": "count"
           }
-        ],
-        "directSegmentIds": [],
-        "usedSegmentIds": [
-          "segment_1"
         ],
         "ops": [
           {
@@ -172,19 +170,27 @@
                       ]
                     }
                   ],
-                  "synchronous": false,
-                  "needsRootRange": false
+                  "ssr": {
+                    "syncRender": false,
+                    "needsRootRange": false
+                  }
                 }
               }
             ]
           }
         ],
-        "synchronous": false,
-        "staticRoot": false,
-        "needsRootRange": false,
-        "needsId": false,
-        "idBase": "qApp-",
-        "flushTasks": false
+        "ssr": {
+          "syncRender": false,
+          "staticRoot": false,
+          "needsRootRange": false,
+          "needsId": false,
+          "idBase": "qApp-",
+          "flushTasks": false,
+          "directSegments": [],
+          "usedSegments": [
+            "segment_1"
+          ]
+        }
       },
       "setup": [
         {

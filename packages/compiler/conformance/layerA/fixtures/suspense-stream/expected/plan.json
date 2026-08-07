@@ -21,8 +21,6 @@
             "await": true
           }
         ],
-        "directSegmentIds": [],
-        "usedSegmentIds": [],
         "ops": [
           {
             "kind": "element",
@@ -41,12 +39,16 @@
             ]
           }
         ],
-        "synchronous": true,
-        "staticRoot": false,
-        "needsRootRange": false,
-        "needsId": false,
-        "idBase": "qDelayed-",
-        "flushTasks": false
+        "ssr": {
+          "syncRender": true,
+          "staticRoot": false,
+          "needsRootRange": false,
+          "needsId": false,
+          "idBase": "qDelayed-",
+          "flushTasks": false,
+          "directSegments": [],
+          "usedSegments": []
+        }
       },
       "setup": [
         {
@@ -74,11 +76,6 @@
       "props": null,
       "ssr": {
         "setup": [],
-        "directSegmentIds": [],
-        "usedSegmentIds": [
-          "segment_1",
-          "segment_0"
-        ],
         "ops": [
           {
             "kind": "element",
@@ -109,8 +106,10 @@
                       "slots": []
                     }
                   ],
-                  "synchronous": false,
-                  "needsRootRange": false
+                  "ssr": {
+                    "syncRender": false,
+                    "needsRootRange": false
+                  }
                 },
                 "fallback": {
                   "segment": "segment_0",
@@ -133,8 +132,11 @@
                       ]
                     }
                   ],
-                  "synchronous": true,
-                  "needsRootRange": false
+                  "ssr": {
+                    "syncRender": true,
+                    "needsRootRange": false,
+                    "staticRoot": true
+                  }
                 },
                 "delay": null,
                 "inOrder": null
@@ -142,12 +144,19 @@
             ]
           }
         ],
-        "synchronous": false,
-        "staticRoot": false,
-        "needsRootRange": false,
-        "needsId": false,
-        "idBase": "qApp-",
-        "flushTasks": false
+        "ssr": {
+          "syncRender": false,
+          "staticRoot": false,
+          "needsRootRange": false,
+          "needsId": false,
+          "idBase": "qApp-",
+          "flushTasks": false,
+          "directSegments": [],
+          "usedSegments": [
+            "segment_1",
+            "segment_0"
+          ]
+        }
       },
       "setup": [],
       "needsId": false,

@@ -1830,10 +1830,7 @@ class JsComponentGenerator {
           }
           // initial-only plain values normalize through the DOM-props renderer
           this.imports.add('renderDomPropsToString');
-          const scopeArg =
-            scope.staticId === null && scope.runtimeName === null
-              ? ''
-              : `, undefined, ${scopeClassExpression(scope, null)}`;
+          const scopeArg = attrScopeArgs(scope);
           open.push(
             `...renderDomPropsToString({ ${JSON.stringify(item.name)}: ${this.irJs(ir)} }${scopeArg}).attrs`
           );
@@ -1853,7 +1850,7 @@ class JsComponentGenerator {
           this.pushStep(
             step,
             [signal],
-            `renderSsrAttr(createSsrElementTarget(${idVariable}), ${JSON.stringify(item.name)}, ${signal})`,
+            `renderSsrAttr(createSsrElementTarget(${idVariable}), ${JSON.stringify(item.name)}, ${signal}${attrScopeArgs(scope)})`,
             this.claimId(idVariable)
           );
           open.push(
@@ -1872,7 +1869,7 @@ class JsComponentGenerator {
         this.pushStep(
           step,
           captures,
-          `renderSsrAttrExpression(createSsrElementTarget(${idVariable}), ${JSON.stringify(item.name)}, [${captures.join(', ')}], ${this.qrlExpression(meta, false)})`,
+          `renderSsrAttrExpression(createSsrElementTarget(${idVariable}), ${JSON.stringify(item.name)}, [${captures.join(', ')}], ${this.qrlExpression(meta, false)}${attrScopeArgs(scope)})`,
           this.claimId(idVariable)
         );
         open.push(
@@ -2261,6 +2258,13 @@ function templateLiteral(text: string): string {
 interface JsStyleScope {
   readonly staticId: string | null;
   readonly runtimeName: string | null;
+}
+
+/** Trailing `, undefined, <scope>` args for attr render calls; empty when unscoped. */
+function attrScopeArgs(scope: JsStyleScope): string {
+  return scope.staticId === null && scope.runtimeName === null
+    ? ''
+    : `, undefined, ${scopeClassExpression(scope, null)}`;
 }
 
 /** Mirrors legacy scopeExpression: merges static scope id, runtime scope, and class value. */

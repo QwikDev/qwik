@@ -52,7 +52,9 @@ export function App(props, ctx) {
     createSsrElementTarget(id_0),
     'class',
     [active],
-    q_use_styles_scoped_dynamic_class_segment_1_3grhh2wv1i202
+    q_use_styles_scoped_dynamic_class_segment_1_3grhh2wv1i202,
+    undefined,
+    '⚡️gtgvab-0'
   );
   return maybeThen(attr_0, (attr_0) => [
     createSsrElementRecord(

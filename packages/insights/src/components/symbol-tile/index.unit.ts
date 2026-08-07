@@ -13,7 +13,7 @@ vi.mock('@qwik.dev/router', () => ({
 describe('symbol source tenant authorization', () => {
   test('rejects a request without an authenticated Insights user', async () => {
     (globalThis as any).__EXPERIMENTAL__ = {};
-    const { getAuthorizedPublicApiKey } = await import('./index');
+    const { getAuthorizedPublicApiKey } = await import('./authorization');
     const forbidden = new ServerError(403, 'Forbidden');
     const error = vi.fn(() => forbidden);
 
@@ -28,7 +28,7 @@ describe('symbol source tenant authorization', () => {
 
   test('rejects a tenant that the current user cannot access', async () => {
     (globalThis as any).__EXPERIMENTAL__ = {};
-    const { getAuthorizedPublicApiKey } = await import('./index');
+    const { getAuthorizedPublicApiKey } = await import('./authorization');
     const forbidden = new ServerError(403, 'Forbidden');
     const error = vi.fn(() => forbidden);
 
@@ -46,7 +46,7 @@ describe('symbol source tenant authorization', () => {
 
   test('uses the route tenant when the current user can access it', async () => {
     (globalThis as any).__EXPERIMENTAL__ = {};
-    const { getAuthorizedPublicApiKey } = await import('./index');
+    const { getAuthorizedPublicApiKey } = await import('./authorization');
 
     expect(
       getAuthorizedPublicApiKey({

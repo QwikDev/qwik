@@ -29,9 +29,11 @@ describe('repl worker qrl chunk rewrites', () => {
     const bundle = {
       'build/event.js': {
         type: 'chunk',
+        // split so the vite worker-qrl transform can't rewrite this test source
         code:
           'const chunk = ' +
-          '"__QWIK_WORKER_QRL__:./app.tsx_incrementInWorker_worker_nQ0IoPmz43I.js";',
+          '"__QWIK_WORKER' +
+          '_QRL__:./app.tsx_incrementInWorker_worker_nQ0IoPmz43I.js";',
       },
     };
 
@@ -41,8 +43,6 @@ describe('repl worker qrl chunk rewrites', () => {
     }
     plugin.generateBundle.call({} as any, {} as any, bundle as any, false);
 
-    expect(bundle['build/event.js'].code).toBe(
-      'const chunk = "/docs/src/repl/bundler/app.tsx_incrementInWorker_worker_nQ0IoPmz43I.js?worker_file&type=module";'
-    );
+    expect(bundle['build/event.js'].code).toBe('const chunk = "build/app-q-worker.js";');
   });
 });

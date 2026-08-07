@@ -1,7 +1,10 @@
 import { Slot, component$ } from '@qwik.dev/core';
 import { type RequestHandler } from '@qwik.dev/router';
-import { dbGetInsightUser, type InsightsUser } from '~/db/sql-user';
+import { dbGetInsightUser } from '~/db/sql-user';
 import type { SessionData } from '../layout';
+import { setInsightUser } from './insight-user';
+
+export { getInsightUser } from './insight-user';
 
 export const onRequest: RequestHandler = async ({ sharedMap, redirect }) => {
   const session = sharedMap.get('session') as SessionData;
@@ -12,16 +15,6 @@ export const onRequest: RequestHandler = async ({ sharedMap, redirect }) => {
   const userInsight = await dbGetInsightUser(email);
   setInsightUser(sharedMap, userInsight);
 };
-
-const INSIGHT_USER = 'insightUser';
-function setInsightUser(sharedMap: Map<string, any>, insightUser: InsightsUser) {
-  sharedMap.set(INSIGHT_USER, insightUser);
-  return insightUser;
-}
-
-export function getInsightUser(sharedMap: Map<string, any>) {
-  return sharedMap.get(INSIGHT_USER) as InsightsUser;
-}
 
 export default component$(() => {
   return <Slot />;

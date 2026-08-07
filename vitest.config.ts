@@ -53,6 +53,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@qwik.dev/devtools/kit': fromRoot('./packages/devtools/kit/src/index.ts'),
+      // router lib chunks import the app-build virtual module; unit tests have no app build
+      '@qwik-router-config': fromRoot('./vitest.qwik-router-config.stub.ts'),
     },
   },
   plugins: [

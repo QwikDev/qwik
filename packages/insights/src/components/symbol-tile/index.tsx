@@ -1,9 +1,10 @@
 import { Resource, component$, useResource$, useStore } from '@qwik.dev/core';
-import { getRequestEvent, server$, useLocation, type RequestEvent } from '@qwik.dev/router';
+import { getRequestEvent, server$, useLocation } from '@qwik.dev/router';
+import { getAuthorizedPublicApiKey } from './authorization';
+
+export { getAuthorizedPublicApiKey } from './authorization';
 import { and, eq } from 'drizzle-orm';
 import { getDB, symbolDetailTable } from '~/db';
-import type { InsightsUser } from '~/db/sql-user';
-import { getInsightUser } from '~/routes/app/layout';
 import { SymbolIcon } from '../icons/symbol';
 import { type PopupEvent } from '../popup-manager';
 
@@ -97,17 +98,6 @@ export const SymbolTile = component$<{ symbol: string }>(({ symbol }) => {
     </code>
   );
 });
-
-export function getAuthorizedPublicApiKey(
-  requestEvent: Pick<RequestEvent, 'params' | 'sharedMap' | 'error'>
-) {
-  const publicApiKey = requestEvent.params.publicApiKey;
-  const insightUser = getInsightUser(requestEvent.sharedMap) as InsightsUser | undefined;
-  if (!publicApiKey || !insightUser?.isAuthorizedForApp(publicApiKey)) {
-    throw requestEvent.error(403, 'Forbidden');
-  }
-  return publicApiKey;
-}
 
 const serverGetSourceSnippet = server$(async function (symbolHash: string) {
   const requestEvent = getRequestEvent(this);

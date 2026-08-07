@@ -1,6 +1,9 @@
 import { sync$ } from '@qwik.dev/core';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { workerQrl } from './worker-qrl';
+// transport tests call the runtime directly: the QRL segment path loads modules through
+// the native node loader, where vi.mock can never reach the ?worker&url imports
+import { getWorkerTransport, invokeWorker } from './worker-runtime';
 import { __clearWorkerRuntimeCache } from './worker-runtime-shared';
 
 const nodeWorkerThreads = vi.hoisted(() => ({
@@ -72,14 +75,15 @@ describe('workerQrl', () => {
     vi.stubGlobal('document', {});
     vi.stubGlobal('process', undefined);
 
-    const browserWorkerFn = workerQrl(
-      sync$(() => {
-        throw new Error('browser worker transport should be used when Worker is available');
-      })
-    );
+    const qrl = sync$(() => {
+      throw new Error('browser worker transport should be used when Worker is available');
+    });
 
-    await expect(browserWorkerFn()).resolves.toBe('from-browser-worker');
-    await expect(browserWorkerFn()).resolves.toBe('from-browser-worker');
+    const transport = await getWorkerTransport(qrl);
+    expect(transport).not.toBeNull();
+    await expect(invokeWorker(transport!, qrl, [])).resolves.toBe('from-browser-worker');
+    const cachedTransport = await getWorkerTransport(qrl);
+    await expect(invokeWorker(cachedTransport!, qrl, [])).resolves.toBe('from-browser-worker');
 
     expect(BrowserWorker).toHaveBeenCalledTimes(1);
 
@@ -207,14 +211,15 @@ describe('workerQrl', () => {
       versions: { node: '22.18.0' },
     });
 
-    const nodeWorkerFn = workerQrl(
-      sync$(() => {
-        throw new Error('worker_threads transport should be used in Node');
-      })
-    );
+    const qrl = sync$(() => {
+      throw new Error('worker_threads transport should be used in Node');
+    });
 
-    await expect(nodeWorkerFn()).resolves.toBe('from-node-worker');
-    await expect(nodeWorkerFn()).resolves.toBe('from-node-worker');
+    const transport = await getWorkerTransport(qrl);
+    expect(transport).not.toBeNull();
+    await expect(invokeWorker(transport!, qrl, [])).resolves.toBe('from-node-worker');
+    const cachedTransport = await getWorkerTransport(qrl);
+    await expect(invokeWorker(cachedTransport!, qrl, [])).resolves.toBe('from-node-worker');
 
     expect(nodeWorkerThreads.Worker).toHaveBeenCalledTimes(1);
 

@@ -67,6 +67,17 @@ function isAsyncIdentifier(context: Rule.RuleContext, ident: TSESTree.Identifier
   }
 
   for (const def of variable.defs) {
+    // LoaderSignal erases to ComputedSignal, so match the written annotation
+    if (def.type === 'Parameter' && def.name.type === AST_NODE_TYPES.Identifier) {
+      const annotation = def.name.typeAnnotation?.typeAnnotation;
+      if (
+        annotation?.type === AST_NODE_TYPES.TSTypeReference &&
+        annotation.typeName.type === AST_NODE_TYPES.Identifier &&
+        /Async|LoaderSignal/i.test(annotation.typeName.name)
+      ) {
+        return true;
+      }
+    }
     if (def.type === 'Variable' && def.node.type === AST_NODE_TYPES.VariableDeclarator) {
       const init = def.node.init;
       if (init && init.type === AST_NODE_TYPES.CallExpression) {

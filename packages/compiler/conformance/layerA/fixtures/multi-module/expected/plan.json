@@ -127,9 +127,8 @@
       ],
       "needsId": false,
       "idBase": "qCounter-",
-      "styleScope": null,
       "providesContext": false,
-      "hasCustomHook": false
+      "runtimeStyleScope": false
     },
     {
       "name": "App",
@@ -206,9 +205,8 @@
       "setup": [],
       "needsId": false,
       "idBase": "qApp-",
-      "styleScope": null,
       "providesContext": false,
-      "hasCustomHook": false
+      "runtimeStyleScope": false
     }
   ],
   "modules": [

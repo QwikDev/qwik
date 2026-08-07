@@ -92,9 +92,7 @@
       ],
       "needsId": false,
       "idBase": "qApp-",
-      "styleScope": null,
-      "providesContext": false,
-      "hasCustomHook": false
+      "providesContext": false
     }
   ],
   "segments": [
@@ -118,5 +116,6 @@
   "imports": [],
   "contexts": [],
   "defs": [],
-  "pluginFns": []
+  "pluginFns": [],
+  "hooks": []
 }

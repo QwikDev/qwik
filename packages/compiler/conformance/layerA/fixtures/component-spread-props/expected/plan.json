@@ -90,9 +90,8 @@
       "setup": [],
       "needsId": false,
       "idBase": "qBadge-",
-      "styleScope": null,
       "providesContext": false,
-      "hasCustomHook": false
+      "runtimeStyleScope": false
     },
     {
       "name": "App",
@@ -205,9 +204,8 @@
       ],
       "needsId": false,
       "idBase": "qApp-",
-      "styleScope": null,
       "providesContext": false,
-      "hasCustomHook": false
+      "runtimeStyleScope": false
     }
   ],
   "modules": [

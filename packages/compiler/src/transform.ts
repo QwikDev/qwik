@@ -1,6 +1,7 @@
 import type { Diagnostic, SegmentAnalysis, TransformModule } from '@qwik.dev/optimizer';
 import type { ImportDeclaration, Program } from 'oxc-parser';
 import { getIdentifierName, getRange, unwrapExpression, visit } from './ast-utils';
+import type { AstNode } from './types';
 import { createModule } from './module-utils';
 import { createOriginalRangeMapper } from './normalization';
 import type { CompilerContext, SourceRange } from './types';
@@ -25,7 +26,12 @@ import {
 } from './transform-diagnostics';
 import { createComponentDefinition, discoverComponentCandidates } from './discover';
 import { emitCsrModule, emitCsrSegmentRender } from './emit-csr';
-import { emitModulePlan, type PlanImportMeta } from './emit-plan';
+import {
+  emitModulePlan,
+  type PlanHookCall,
+  type PlanHookMeta,
+  type PlanImportMeta,
+} from './emit-plan';
 import { validateNativeReadiness } from './validate-native';
 import { collectModuleDefs } from './defs-lower';
 import { drainClaimedPluginFns, setActivePlugins, type QwikCompilerPlugin } from './expr-lower';
@@ -624,7 +630,9 @@ export function transformModule(ctx: CompilerContext): TransformResult {
                 })),
                 (binding) =>
                   analysis.bindings.find((candidate) => candidate.id === binding)?.name ?? null,
-                claimedPluginFns
+                claimedPluginFns,
+                collectPlanHooks(program, analysis),
+                collectComponentHookCalls(program, analysis, outputs)
               ),
               null,
               2
@@ -1957,6 +1965,153 @@ function createComponentAnalysis(
 }
 
 /** Module-level `createContextId('name')` declarations — engines resolve context names here. */
+/** Built-in hook names — calls to these are framework hooks, not custom hooks. */
+const BUILTIN_HOOK_NAMES = new Set([
+  'useConstant',
+  'useSignal',
+  'useStore',
+  'useServerData',
+  'useComputed',
+  'useComputedQrl',
+  'useComputed$',
+  'useAsync',
+  'useAsyncQrl',
+  'useAsync$',
+  'useSerializer',
+  'useSerializerQrl',
+  'useSerializer$',
+  'useTask',
+  'useTaskQrl',
+  'useTask$',
+  'useVisibleTask',
+  'useVisibleTaskQrl',
+  'useVisibleTask$',
+  'useContext',
+  'useContextProvider',
+  'useId',
+  'useStyles',
+  'useStylesQrl',
+  'useStyles$',
+  'useStylesScoped',
+  'useStylesScopedQrl',
+  'useStylesScoped$',
+  'useOn',
+  'useOnDocument',
+  'useOnWindow',
+]);
+
+const SCOPED_STYLE_HOOKS = new Set(['useStylesScoped', 'useStylesScopedQrl', 'useStylesScoped$']);
+
+/** Scans a function body for hook facts: built-in capabilities and nested custom-hook calls. */
+function scanHookBody(
+  body: AstNode,
+  analysis: ModuleAnalysis
+): { capabilities: string[]; calls: { module: string | null; name: string }[] } {
+  const capabilities = new Set<string>();
+  const calls: { module: string | null; name: string }[] = [];
+  const seenCalls = new Set<string>();
+  visit(body, (node) => {
+    if (node.type !== 'CallExpression') {
+      return;
+    }
+    const callee = unwrapExpression((node as { callee: unknown }).callee);
+    const name = callee == null ? null : getIdentifierName(callee);
+    if (name === null || !/^use[A-Z$_]/.test(name)) {
+      return;
+    }
+    if (SCOPED_STYLE_HOOKS.has(name)) {
+      capabilities.add('scoped-styles');
+      return;
+    }
+    if (name === 'useContextProvider') {
+      capabilities.add('context-provider');
+      return;
+    }
+    if (BUILTIN_HOOK_NAMES.has(name)) {
+      return;
+    }
+    const binding = analysis.bindings.find((candidate) => candidate.name === name);
+    const module = binding?.import?.source ?? null;
+    const key = `${module ?? '.'}:${name}`;
+    if (!seenCalls.has(key)) {
+      seenCalls.add(key);
+      calls.push({ module, name });
+    }
+  });
+  return { capabilities: [...capabilities], calls };
+}
+
+/** Exported `use*` fns with their hook capabilities — the linker closes these transitively. */
+function collectPlanHooks(program: Program, analysis: ModuleAnalysis): PlanHookMeta[] {
+  const exportedNames = new Set(
+    analysis.exports.flatMap((entry) => {
+      const binding = analysis.bindings.find((candidate) => candidate.id === entry.bindingId);
+      return binding === undefined ? [] : [binding.name];
+    })
+  );
+  const hooks: PlanHookMeta[] = [];
+  const record = (name: string, fnNode: AstNode): void => {
+    if (!/^use[A-Z$_]/.test(name) || !exportedNames.has(name) || BUILTIN_HOOK_NAMES.has(name)) {
+      return;
+    }
+    const { capabilities, calls } = scanHookBody(fnNode, analysis);
+    hooks.push({ name, capabilities, calls });
+  };
+  visit(program, (node) => {
+    if (node.type === 'FunctionDeclaration') {
+      const fnName = getIdentifierName((node as { id: unknown }).id);
+      if (fnName !== null) {
+        record(fnName, node);
+      }
+      return;
+    }
+    if (node.type === 'VariableDeclarator') {
+      const declarator = node as { id: unknown; init: unknown };
+      const declaredName = getIdentifierName(unwrapExpression(declarator.id));
+      const init = unwrapExpression(declarator.init);
+      if (
+        declaredName !== null &&
+        init != null &&
+        (init.type === 'ArrowFunctionExpression' || init.type === 'FunctionExpression')
+      ) {
+        record(declaredName, init);
+      }
+    }
+  });
+  return hooks;
+}
+
+/** Direct custom-hook calls per component output, aligned by index. */
+function collectComponentHookCalls(
+  program: Program,
+  analysis: ModuleAnalysis,
+  outputs: readonly ComponentOutput[]
+): PlanHookCall[][] {
+  const byRangeKey = new Map<string, number>();
+  outputs.forEach((output, index) => {
+    const range = output.component.functionRange;
+    if (range !== null) {
+      byRangeKey.set(`${range[0]}:${range[1]}`, index);
+    }
+  });
+  const result: PlanHookCall[][] = outputs.map(() => []);
+  visit(program, (node) => {
+    if (
+      node.type !== 'FunctionDeclaration' &&
+      node.type !== 'ArrowFunctionExpression' &&
+      node.type !== 'FunctionExpression'
+    ) {
+      return;
+    }
+    const range = getRange(node);
+    const index = range === null ? undefined : byRangeKey.get(`${range[0]}:${range[1]}`);
+    if (index !== undefined) {
+      result[index] = scanHookBody(node, analysis).calls;
+    }
+  });
+  return result;
+}
+
 function collectPlanContexts(
   program: Program,
   analysis: ModuleAnalysis

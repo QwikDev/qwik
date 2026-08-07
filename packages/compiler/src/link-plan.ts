@@ -44,9 +44,9 @@ export interface LinkedComponent {
   readonly setup: QwikModulePlan['components'][number]['setup'];
   readonly needsId: boolean;
   readonly idBase: string;
-  readonly styleScope: string | null;
   readonly providesContext: boolean;
-  readonly hasCustomHook: boolean;
+  /** Linker-computed: some reachable hook has the scoped-styles capability. */
+  readonly runtimeStyleScope: boolean;
   readonly async?: true;
 }
 
@@ -112,6 +112,72 @@ export function linkSsrPlan(
 
   const unresolved: (number | string)[] = [];
   const components: LinkedComponent[] = [];
+
+  // hook capability closure: fixpoint over the cross-module hook call graph. Hooks from
+  // uncompiled packages are unknown — conservative: assume every capability.
+  const ALL_HOOK_CAPABILITIES = ['scoped-styles', 'context-provider'] as const;
+  const hookTable = new Map<
+    string,
+    {
+      readonly capabilities: Set<string>;
+      readonly calls: readonly { readonly module: string | null; readonly name: string }[];
+      readonly moduleIndex: number;
+    }
+  >();
+  modulePlans.forEach((modulePlan, moduleIndex) => {
+    for (const hook of modulePlan.hooks ?? []) {
+      hookTable.set(`${moduleIndex}#${hook.name}`, {
+        capabilities: new Set(hook.capabilities),
+        calls: hook.calls,
+        moduleIndex,
+      });
+    }
+  });
+  const resolveHookKey = (
+    fromModule: number,
+    call: { readonly module: string | null; readonly name: string }
+  ): string | null => {
+    const target =
+      call.module === null
+        ? fromModule
+        : resolveModuleSpecifier(modulePlans[fromModule].path, call.module);
+    if (target === null) {
+      return null;
+    }
+    const key = `${target}#${call.name}`;
+    return hookTable.has(key) ? key : null;
+  };
+  let hookClosureChanged = true;
+  while (hookClosureChanged) {
+    hookClosureChanged = false;
+    for (const hook of hookTable.values()) {
+      for (const call of hook.calls) {
+        const targetKey = resolveHookKey(hook.moduleIndex, call);
+        const gained =
+          targetKey === null ? ALL_HOOK_CAPABILITIES : hookTable.get(targetKey)!.capabilities;
+        for (const capability of gained) {
+          if (!hook.capabilities.has(capability)) {
+            hook.capabilities.add(capability);
+            hookClosureChanged = true;
+          }
+        }
+      }
+    }
+  }
+  const componentHookCapabilities = (
+    moduleIndex: number,
+    hookCalls: readonly { readonly module: string | null; readonly name: string }[] | undefined
+  ): ReadonlySet<string> => {
+    const capabilities = new Set<string>();
+    for (const call of hookCalls ?? []) {
+      const key = resolveHookKey(moduleIndex, call);
+      const gained = key === null ? ALL_HOOK_CAPABILITIES : hookTable.get(key)!.capabilities;
+      for (const capability of gained) {
+        capabilities.add(capability);
+      }
+    }
+    return capabilities;
+  };
 
   modulePlans.forEach((modulePlan, moduleIndex) => {
     const offset = componentOffsets[moduleIndex];
@@ -241,6 +307,7 @@ export function linkSsrPlan(
     };
 
     for (const component of modulePlan.components) {
+      const hookCapabilities = componentHookCapabilities(moduleIndex, component.hookCalls);
       components.push({
         name: component.name,
         module: moduleIndex,
@@ -250,9 +317,8 @@ export function linkSsrPlan(
         setup: component.setup,
         needsId: component.needsId,
         idBase: component.idBase,
-        styleScope: component.styleScope,
-        providesContext: component.providesContext,
-        hasCustomHook: component.hasCustomHook,
+        providesContext: component.providesContext || hookCapabilities.has('context-provider'),
+        runtimeStyleScope: hookCapabilities.has('scoped-styles'),
         ...(component.async === true ? { async: true as const } : {}),
       });
     }

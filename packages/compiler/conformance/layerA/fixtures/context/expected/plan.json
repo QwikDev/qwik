@@ -78,9 +78,8 @@
       ],
       "needsId": false,
       "idBase": "qPanel-",
-      "styleScope": null,
       "providesContext": false,
-      "hasCustomHook": false
+      "runtimeStyleScope": false
     },
     {
       "name": "App",
@@ -168,9 +167,8 @@
       ],
       "needsId": false,
       "idBase": "qApp-",
-      "styleScope": null,
       "providesContext": true,
-      "hasCustomHook": false
+      "runtimeStyleScope": false
     }
   ],
   "modules": [

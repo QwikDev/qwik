@@ -98,9 +98,8 @@
       "setup": [],
       "needsId": false,
       "idBase": "qCard-",
-      "styleScope": null,
       "providesContext": false,
-      "hasCustomHook": false
+      "runtimeStyleScope": false
     },
     {
       "name": "App",
@@ -218,9 +217,8 @@
       ],
       "needsId": false,
       "idBase": "qApp-",
-      "styleScope": null,
       "providesContext": false,
-      "hasCustomHook": false
+      "runtimeStyleScope": false
     }
   ],
   "modules": [

@@ -28,6 +28,20 @@ export interface QwikModulePlan {
   readonly defs: readonly PlanDefMeta[];
   /** Plugin-claimed fns (specs/09), invoked via `plugin-call` by fnId. */
   readonly pluginFns: readonly PluginFnPlan[];
+  /** Exported `use*` fns with their capabilities — the linker closes these transitively. */
+  readonly hooks: readonly PlanHookMeta[];
+}
+
+/** Import source for imported hooks; null = declared in this module. */
+export interface PlanHookCall {
+  readonly module: string | null;
+  readonly name: string;
+}
+
+export interface PlanHookMeta {
+  readonly name: string;
+  readonly capabilities: readonly string[];
+  readonly calls: readonly PlanHookCall[];
 }
 
 export interface PlanDefMeta {
@@ -72,9 +86,10 @@ export interface PlanComponent {
   readonly setup: readonly PlanSetupEntry[];
   readonly needsId: boolean;
   readonly idBase: string;
-  readonly styleScope: string | null;
+
   readonly providesContext: boolean;
-  readonly hasCustomHook: boolean;
+  /** Direct custom-hook calls — capability closure input for the linker. */
+  readonly hookCalls?: readonly PlanHookCall[];
   /** The component function is async (its setup may yield). */
   readonly async?: true;
 }
@@ -164,7 +179,9 @@ export function emitModulePlan(
   contexts: readonly PlanContextMeta[] = [],
   defs: readonly PlanDefMeta[] = [],
   bindingName: (binding: number) => string | null = () => null,
-  pluginFns: readonly PluginFnPlan[] = []
+  pluginFns: readonly PluginFnPlan[] = [],
+  hooks: readonly PlanHookMeta[] = [],
+  componentHookCalls: readonly (readonly PlanHookCall[])[] = []
 ): QwikModulePlan {
   const slice = (range: SourceRange) => source.slice(range[0], range[1]);
 
@@ -207,7 +224,7 @@ export function emitModulePlan(
             bindings: parameter.bindingIds.map((b) => ({ binding: b, name: bindingName(b) ?? '' })),
           };
 
-  const components = outputs.map((output) => ({
+  const components = outputs.map((output, index) => ({
     name: output.component.exportName ?? '',
     binding: output.component.bindingId,
     propsBindings: output.result.shape.parameter?.bindingIds ?? [],
@@ -216,9 +233,10 @@ export function emitModulePlan(
     setup: planSetup(output.result.setup),
     needsId: output.result.needsId,
     idBase: output.result.idBase,
-    styleScope: output.result.styleScope,
     providesContext: output.result.providesContext,
-    hasCustomHook: output.result.hasCustomHook,
+    ...((componentHookCalls[index]?.length ?? 0) > 0
+      ? { hookCalls: componentHookCalls[index] }
+      : {}),
     ...(output.component.shape.async ? { async: true as const } : {}),
   }));
   // same eligibility as the emit-ssr hoist loop, so `resolved` matches the emitted `.s()` calls
@@ -270,6 +288,7 @@ export function emitModulePlan(
     contexts,
     defs,
     pluginFns,
+    hooks,
   };
 }
 

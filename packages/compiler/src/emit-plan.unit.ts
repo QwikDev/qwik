@@ -139,6 +139,31 @@ function findRenderArgs(node: unknown, found: Record<string, unknown>[] = []) {
   return found;
 }
 
+describe('qrl prop spellings', () => {
+  test('cb={$(fn)}, cb$={fn}, and cb$={$(fn)} all ride as segment values', async () => {
+    const componentFor = (props: string) =>
+      [
+        `import { $, useSignal } from '@qwik.dev/core';`,
+        `function Child() { return <p>Child</p>; }`,
+        `export function App() {`,
+        `  const count = useSignal(1);`,
+        `  return <Child ${props} />;`,
+        `}`,
+      ].join('\n');
+    for (const props of [
+      'cb={$(() => count.value)}',
+      'cb$={() => count.value}',
+      'cb$={$(() => count.value)}',
+    ]) {
+      const [plan] = await planFor({ 'src/view.tsx': componentFor(props) });
+      const prop = plan.components.find((c: { name: string }) => c.name === 'App').ssr.ops[0]
+        .props[0];
+      const value = prop.kind === 'event' ? prop.handlers[0].value : prop.value;
+      expect(value.kind, props).toBe('segment');
+    }
+  });
+});
+
 describe('render-arg wire hygiene', () => {
   test('framework imports never lower to plugin-calls', async () => {
     const [plan] = await planFor({

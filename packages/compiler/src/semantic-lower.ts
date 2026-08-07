@@ -1378,7 +1378,11 @@ class SemanticLowerer {
       functionRange === null
         ? this.findSegment('expression', range)
         : (this.extracted.segments.find(
-            (candidate) => candidate.kind === 'event' && sameRange(candidate.functionRange, range)
+            // any `*$` prop function is a QRL boundary, event-named or not
+            (candidate) =>
+              (candidate.kind === 'event' ||
+                (candidate.kind === 'qrl' && candidate.payload === 'function')) &&
+              sameRange(candidate.functionRange, range)
           ) ?? null);
     if (segment !== null) {
       return {

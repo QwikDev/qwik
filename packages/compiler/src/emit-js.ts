@@ -1066,10 +1066,10 @@ class JsComponentGenerator {
           return;
         }
         if (
-          this.asyncSteps.length > 0 ||
           operation.source.kind === 'direct-array' ||
           row.symbolName !== undefined ||
-          row.segment?.segment === undefined
+          row.segment?.segment === undefined ||
+          (this.asyncSteps.length > 0 && operation.source.kind !== 'direct-reactive')
         ) {
           markUngeneratable({
             steps: this.asyncSteps.length,
@@ -1093,6 +1093,46 @@ class JsComponentGenerator {
         this.imports.add('renderSsrCollection');
         this.imports.add('createSsrRecord');
         this.imports.add('createSsrNodeId');
+        // deferred position: the whole render runs in a chained thunk with a lazy id claim
+        if (this.asyncSteps.length > 0) {
+          const ir = operation.source.ir;
+          if (ir === undefined) {
+            markUngeneratable(operation.source);
+          }
+          this.statements.push(`let ${idVariable};`);
+          const sourceValue = this.irJs(ir);
+          const roots = [sourceValue];
+          const addCaptureRoots = (meta: SegmentMeta): void => {
+            for (const capture of meta.captures) {
+              const name =
+                capture.access === 'component-prop'
+                  ? this.names.props
+                  : this.local(capture.binding);
+              if (!roots.includes(name)) {
+                roots.push(name);
+              }
+            }
+          };
+          const deferredKeyMeta = operation.key === null ? null : this.segment(operation.key);
+          const deferredRowMeta = this.segment(row.segment.segment);
+          if (deferredKeyMeta !== null) {
+            addCaptureRoots(deferredKeyMeta);
+          }
+          addCaptureRoots(deferredRowMeta);
+          const keyQrl =
+            deferredKeyMeta === null ? 'undefined' : this.qrlExpression(deferredKeyMeta);
+          const renderQrl = this.qrlExpression(deferredRowMeta);
+          this.pushStep(
+            step,
+            roots,
+            `renderSsrCollection(${this.names.ctx}, ${idVariable}, ${sourceValue}, ${keyQrl}, ${renderQrl}, ${operation.usesIndexSignal}, ${operation.ssr.idBase === null ? "''" : operation.ssr.idBase}, ${operation.ssr.usesRowId}, ${operation.ssr.rowShape})`,
+            `${idVariable} ??= ${this.names.ctx}.nextId(); `
+          );
+          parts.push(`createSsrRecord('<!f=', createSsrNodeId(${idVariable}), '>')`);
+          parts.push(step);
+          pushStatic('<!/f>');
+          return;
+        }
         this.statements.push(`const ${idVariable} = ${this.names.ctx}.nextId();`);
         let collectionValue: string;
         if (operation.source.kind === 'derived') {

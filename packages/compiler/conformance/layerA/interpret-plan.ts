@@ -1051,6 +1051,51 @@ export async function buildInterpretedRoot(
               parts.push(output);
             });
           }
+          if (source.kind === 'direct-reactive') {
+            const row = op.row as { segment?: { segment?: string } };
+            const rowSegment = row.segment?.segment;
+            if (rowSegment === undefined || source.ir === undefined) {
+              throw new Error('direct-reactive collections need a segment row and source ir');
+            }
+            const sourceIr = source.ir;
+            const keySegment = op.key;
+            const id = ctx.nextId();
+            // mirror the emitted thunk: root the source value then capture roots, deduped
+            const rendered = invoke(invokeCtx, () => {
+              const collection = evalIr(sourceIr);
+              const rooted = new Set<unknown>([collection]);
+              ctx.addRoot(collection);
+              const rootCaptures = (segmentId: string): void => {
+                for (const captureBinding of captureLists.get(segmentId) ?? []) {
+                  const captured = locals.get(captureBinding);
+                  if (!rooted.has(captured)) {
+                    rooted.add(captured);
+                    ctx.addRoot(captured);
+                  }
+                }
+              };
+              if (keySegment !== null) {
+                rootCaptures(keySegment);
+              }
+              rootCaptures(rowSegment);
+              return renderSsrCollection(
+                ctx as never,
+                id,
+                collection as never,
+                (keySegment === null ? undefined : qrlWithCaptures(keySegment)) as never,
+                qrlWithCaptures(rowSegment) as never,
+                op.usesIndexSignal,
+                op.ssr.idBase ?? '',
+                op.ssr.usesRowId,
+                op.ssr.rowShape
+              );
+            });
+            return maybeThen(rendered, (output) => {
+              parts.push(createSsrRecord('<!f=', createSsrNodeId(id), '>'));
+              parts.push(output);
+              parts.push('<!/f>');
+            });
+          }
           if (source.kind !== 'derived') {
             throw new Error(`interpreter cannot render ${source.kind} collections yet`);
           }

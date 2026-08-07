@@ -26,6 +26,7 @@ const FULLY_GENERATED = new Set([
   'cond-attr',
   'context',
   'def-helper',
+  'deferred-collection',
   'derived-collection',
   'imported-callback',
   'inner-html',

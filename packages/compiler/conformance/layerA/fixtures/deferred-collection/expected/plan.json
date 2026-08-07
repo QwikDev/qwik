@@ -1,0 +1,405 @@
+{
+  "format": "qwik/ssr-plan",
+  "version": 1,
+  "entry": 1,
+  "components": [
+    {
+      "name": "Badge",
+      "module": 0,
+      "propsBindings": [
+        3
+      ],
+      "props": {
+        "kind": "object",
+        "bindings": [
+          {
+            "binding": 3,
+            "name": "label"
+          }
+        ]
+      },
+      "ssr": {
+        "setup": [],
+        "ops": [
+          {
+            "kind": "element",
+            "tag": "span",
+            "voidTag": false,
+            "styleScopedId": null,
+            "props": [
+              {
+                "kind": "static",
+                "name": "class",
+                "value": "badge"
+              }
+            ],
+            "propsEffect": null,
+            "children": [
+              {
+                "kind": "dynamic",
+                "output": "text",
+                "value": {
+                  "kind": "ir",
+                  "ir": {
+                    "kind": "binding-read",
+                    "binding": 3
+                  },
+                  "segment": "segment_0"
+                },
+                "ssr": {
+                  "synchronous": false,
+                  "target": {
+                    "kind": "element",
+                    "id": 0
+                  }
+                }
+              }
+            ],
+            "ssr": {
+              "id": 0,
+              "targetUses": 0
+            }
+          }
+        ],
+        "ssr": {
+          "syncRender": false,
+          "staticRoot": false,
+          "needsRootRange": false,
+          "needsId": false,
+          "idBase": "qBadge-",
+          "flushTasks": false,
+          "directSegments": [],
+          "usedSegments": [
+            "segment_0"
+          ]
+        }
+      },
+      "setup": [],
+      "needsId": false,
+      "idBase": "qBadge-",
+      "providesContext": false,
+      "runtimeStyleScope": false
+    },
+    {
+      "name": "App",
+      "module": 0,
+      "propsBindings": [],
+      "props": null,
+      "ssr": {
+        "setup": [
+          {
+            "kind": "signal",
+            "binding": 4,
+            "init": {
+              "kind": "array",
+              "items": [
+                {
+                  "kind": "lit",
+                  "value": "alpha"
+                },
+                {
+                  "kind": "lit",
+                  "value": "beta"
+                }
+              ]
+            },
+            "name": "items"
+          },
+          {
+            "kind": "signal",
+            "binding": 5,
+            "init": {
+              "kind": "lit",
+              "value": "alpha"
+            },
+            "name": "selected"
+          }
+        ],
+        "ops": [
+          {
+            "kind": "element",
+            "tag": "div",
+            "voidTag": false,
+            "styleScopedId": null,
+            "props": [],
+            "propsEffect": null,
+            "children": [
+              {
+                "kind": "component",
+                "target": {
+                  "ref": 0
+                },
+                "props": [
+                  {
+                    "kind": "static",
+                    "name": "label",
+                    "value": "head"
+                  }
+                ],
+                "propsSource": null,
+                "slots": [],
+                "ssr": {
+                  "returnMode": "maybe-promise",
+                  "idBase": null,
+                  "blockingSuspense": false
+                }
+              },
+              {
+                "kind": "element",
+                "tag": "ul",
+                "voidTag": false,
+                "styleScopedId": null,
+                "props": [],
+                "propsEffect": null,
+                "children": [
+                  {
+                    "kind": "collection",
+                    "source": {
+                      "kind": "direct-reactive",
+                      "src": "items",
+                      "ir": {
+                        "kind": "binding-read",
+                        "binding": 4
+                      }
+                    },
+                    "key": "segment_2",
+                    "keyIr": {
+                      "kind": "binding-read",
+                      "binding": 6
+                    },
+                    "row": {
+                      "segment": {
+                        "segment": "segment_1",
+                        "setup": [],
+                        "ops": [
+                          {
+                            "kind": "element",
+                            "tag": "li",
+                            "voidTag": false,
+                            "styleScopedId": null,
+                            "props": [
+                              {
+                                "kind": "dynamic",
+                                "name": "class",
+                                "value": {
+                                  "kind": "ir",
+                                  "ir": {
+                                    "kind": "object",
+                                    "entries": [
+                                      [
+                                        "on",
+                                        {
+                                          "kind": "bin",
+                                          "op": "===",
+                                          "left": {
+                                            "kind": "signal-read",
+                                            "binding": 5
+                                          },
+                                          "right": {
+                                            "kind": "binding-read",
+                                            "binding": 6
+                                          }
+                                        }
+                                      ]
+                                    ]
+                                  },
+                                  "segment": "segment_3"
+                                }
+                              }
+                            ],
+                            "propsEffect": null,
+                            "children": [
+                              {
+                                "kind": "dynamic",
+                                "output": "text",
+                                "value": {
+                                  "kind": "ir",
+                                  "ir": {
+                                    "kind": "binding-read",
+                                    "binding": 6
+                                  },
+                                  "segment": "segment_4"
+                                },
+                                "ssr": {
+                                  "synchronous": false,
+                                  "target": {
+                                    "kind": "element",
+                                    "id": 0
+                                  }
+                                }
+                              }
+                            ],
+                            "ssr": {
+                              "id": 0,
+                              "targetUses": 1
+                            }
+                          }
+                        ],
+                        "ssr": {
+                          "syncRender": false,
+                          "needsRootRange": false
+                        },
+                        "paramBindings": [
+                          6
+                        ]
+                      }
+                    },
+                    "usesIndexSignal": false,
+                    "ssr": {
+                      "usesRowId": false,
+                      "idBase": null,
+                      "rowShape": 0
+                    }
+                  }
+                ],
+                "ssr": {
+                  "id": null,
+                  "targetUses": 0
+                }
+              }
+            ],
+            "ssr": {
+              "id": null,
+              "targetUses": 0
+            }
+          }
+        ],
+        "ssr": {
+          "syncRender": false,
+          "staticRoot": false,
+          "needsRootRange": false,
+          "needsId": false,
+          "idBase": "qApp-",
+          "flushTasks": false,
+          "directSegments": [],
+          "usedSegments": [
+            "segment_2",
+            "segment_1"
+          ]
+        }
+      },
+      "setup": [
+        {
+          "kind": "signal",
+          "binding": 4,
+          "init": {
+            "kind": "array",
+            "items": [
+              {
+                "kind": "lit",
+                "value": "alpha"
+              },
+              {
+                "kind": "lit",
+                "value": "beta"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "signal",
+          "binding": 5,
+          "init": {
+            "kind": "lit",
+            "value": "alpha"
+          }
+        }
+      ],
+      "needsId": false,
+      "idBase": "qApp-",
+      "providesContext": false,
+      "runtimeStyleScope": false
+    }
+  ],
+  "modules": [
+    {
+      "path": "src/input.tsx",
+      "segments": [
+        {
+          "id": "segment_0",
+          "symbolName": "input_text_segment_0_3k1cvwun49quc",
+          "chunk": "./input.tsx_input_text_segment_0_3k1cvwun49quc",
+          "kind": "expression",
+          "resolved": true,
+          "qrl": null,
+          "captures": [
+            {
+              "binding": 3,
+              "name": "label",
+              "source": "param",
+              "access": "component-prop"
+            }
+          ]
+        },
+        {
+          "id": "segment_1",
+          "symbolName": "input_for_render_segment_1_18lij2z360mn4",
+          "chunk": "./input.tsx_input_for_render_segment_1_18lij2z360mn4",
+          "kind": "forRender",
+          "resolved": true,
+          "qrl": null,
+          "captures": [
+            {
+              "binding": 5,
+              "name": "selected",
+              "source": "local",
+              "access": "direct"
+            }
+          ]
+        },
+        {
+          "id": "segment_2",
+          "symbolName": "input_for_key_segment_2_21xk6oj1bpfaa",
+          "chunk": "./input.tsx_input_for_key_segment_2_21xk6oj1bpfaa",
+          "kind": "forKey",
+          "resolved": true,
+          "qrl": null,
+          "captures": []
+        },
+        {
+          "id": "segment_3",
+          "symbolName": "input_class_segment_3_1bbn50hnd2b7u",
+          "chunk": "./input.tsx_input_class_segment_3_1bbn50hnd2b7u",
+          "kind": "expression",
+          "resolved": false,
+          "qrl": null,
+          "captures": [
+            {
+              "binding": 5,
+              "name": "selected",
+              "source": "local",
+              "access": "direct"
+            },
+            {
+              "binding": 6,
+              "name": "item",
+              "source": "loop",
+              "access": "direct"
+            }
+          ]
+        },
+        {
+          "id": "segment_4",
+          "symbolName": "input_text_segment_4_3k1cucq7gxis8",
+          "chunk": "./input.tsx_input_text_segment_4_3k1cucq7gxis8",
+          "kind": "expression",
+          "resolved": false,
+          "qrl": null,
+          "captures": [
+            {
+              "binding": 6,
+              "name": "item",
+              "source": "loop",
+              "access": "direct"
+            }
+          ]
+        }
+      ],
+      "contexts": [],
+      "defs": [],
+      "imports": []
+    }
+  ],
+  "unresolved": [],
+  "pluginFns": []
+}

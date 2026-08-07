@@ -30,6 +30,8 @@ const READY_FIXTURES = [
   'computed-task',
   'child-props',
   'multi-module',
+  'slot-projection',
+  'slot-fallback',
 ];
 
 const layerADir = dirname(fileURLToPath(import.meta.url));

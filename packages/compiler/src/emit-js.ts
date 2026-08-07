@@ -331,6 +331,35 @@ class JsComponentGenerator {
       case SsrOpKind.Component:
         this.componentCall(operation, parts);
         return;
+      case SsrOpKind.Slot: {
+        if (operation.idBase !== null) {
+          markUngeneratable();
+        }
+        let fallback = 'undefined';
+        if (operation.fallback !== null) {
+          if (operation.fallback.segment === undefined) {
+            markUngeneratable();
+          }
+          const meta = this.segment(operation.fallback.segment);
+          // fallback captures root unconditionally, like the emitted prep
+          for (const capture of meta.captures) {
+            this.statements.push(
+              `ctx.addRoot(${capture.access === 'component-prop' ? 'props' : this.local(capture.binding)});`
+            );
+          }
+          fallback = this.qrlExpression(meta);
+        }
+        const step = `slot_${this.nextTemp++}`;
+        this.imports.add('renderSsrSlot');
+        this.imports.add('getActiveInvokeContextOrNull');
+        this.pushStep(
+          step,
+          [],
+          `renderSsrSlot(ctx, ${JSON.stringify(operation.name)}, ${fallback}, getActiveInvokeContextOrNull())`
+        );
+        parts.push(step);
+        return;
+      }
       default:
         markUngeneratable();
     }
@@ -347,7 +376,6 @@ class JsComponentGenerator {
       operation.propsSource !== null ||
       operation.idBase !== null ||
       operation.blockingSuspense ||
-      operation.slots.length > 0 ||
       operation.returnMode !== 'maybe-promise'
     ) {
       markUngeneratable();
@@ -357,6 +385,31 @@ class JsComponentGenerator {
       markUngeneratable();
     }
     this.shared.queue.push(target.ref);
+    let slotScope: string | null = null;
+    if (operation.slots.length > 0) {
+      // slot prep is statement-level; inside a deferred step its root order is unproven
+      if (this.asyncSteps.length > 0) {
+        markUngeneratable();
+      }
+      slotScope = `slot_scope_${this.nextTemp++}`;
+      this.imports.add('createSlotScope');
+      this.imports.add('registerProjection');
+      this.statements.push(`const ${slotScope} = createSlotScope();`, `ctx.addRoot(${slotScope});`);
+      for (const slot of operation.slots) {
+        if (slot.idBase !== null || slot.render.segment === undefined) {
+          markUngeneratable();
+        }
+        const meta = this.segment(slot.render.segment);
+        for (const capture of meta.captures) {
+          this.statements.push(
+            `ctx.addRoot(${capture.access === 'component-prop' ? 'props' : this.local(capture.binding)});`
+          );
+        }
+        this.statements.push(
+          `registerProjection(${slotScope}, ${JSON.stringify(slot.name)}, ${this.qrlExpression(meta)});`
+        );
+      }
+    }
     const literalEntries: string[] = [];
     const sourceEntries: string[] = [];
     const sourceLocals: string[] = [];
@@ -389,10 +442,11 @@ class JsComponentGenerator {
     }
     const step = `component_${this.nextTemp++}`;
     this.imports.add('createComponent');
+    const options = slotScope === null ? '' : `, { slotScope: ${slotScope} }`;
     this.pushStep(
       step,
       sourceLocals,
-      `createComponent(${propsExpr}, (props) => ${child.name}(props, ctx))`
+      `createComponent(${propsExpr}, (props) => ${child.name}(props, ctx)${options})`
     );
     parts.push(step);
   }

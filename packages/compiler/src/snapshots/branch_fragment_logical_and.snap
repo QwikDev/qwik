@@ -56,16 +56,16 @@ function InnerCmp(props, ctx) {
 export { InnerCmp };
 export function App(props, ctx) {
   const groupSig = useSignal('1');
-  const branchId0 = ctx.nextId();
+  const branch_id_0 = ctx.nextId();
   ctx.addRoot(groupSig);
-  const branch1 = renderSsrBranch(
+  const branch_0 = renderSsrBranch(
     ctx,
-    branchId0,
+    branch_id_0,
     q_component_branch_condition_segment_1_2fzri0t2yrfeq.w([groupSig]),
     q_component_branch_then_segment_2_24n7b7xmnzb3n,
     undefined
   );
-  return maybeThen(branch1, (branch1) => [
+  return maybeThen(branch_0, (branch_0) => [
     'Some text:  ',
     createSsrElementRecord(
       'button',
@@ -74,8 +74,8 @@ export function App(props, ctx) {
       '>'
     ),
     'click</button>',
-    createSsrRecord('<!b=', createSsrNodeId(branchId0), '>'),
-    branch1,
+    createSsrRecord('<!b=', createSsrNodeId(branch_id_0), '>'),
+    branch_0,
     '<!/b>',
   ]);
 }

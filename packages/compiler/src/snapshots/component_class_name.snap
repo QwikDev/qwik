@@ -12,26 +12,26 @@ export function App() {
 
 import {
   useSignal,
-  createSsrElementRecord,
   createSsrNodeId,
   createSsrElementTarget,
   renderSsrAttr,
   escapeHTML,
-  createSsrRecord,
+  createSsrElementRecord,
   maybeThen,
 } from '@qwik.dev/core';
 export function App(props, ctx) {
   const classes = useSignal('active');
-  const id0 = ctx.nextId();
+  const id_0 = ctx.nextId();
   ctx.addRoot(classes);
-  const attr1 = renderSsrAttr(createSsrElementTarget(id0), 'class', classes);
-  return maybeThen(attr1, (attr1) => [
-    createSsrElementRecord('main', '<main class="shell"', '>'),
-    createSsrRecord(
+  const attr_0 = renderSsrAttr(createSsrElementTarget(id_0), 'class', classes);
+  return maybeThen(attr_0, (attr_0) => [
+    '<main class="shell">',
+    createSsrElementRecord(
+      'button',
       '<button q:id="',
-      createSsrNodeId(id0),
+      createSsrNodeId(id_0),
       '"',
-      attr1 === null ? '' : ' class' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
+      attr_0 === null ? '' : ' class' + (attr_0 === '' ? '' : '="' + escapeHTML(attr_0) + '"'),
       '>'
     ),
     'Toggle</button></main>',

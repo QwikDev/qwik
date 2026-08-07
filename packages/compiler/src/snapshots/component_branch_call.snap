@@ -11,7 +11,6 @@ export function App(props: { enabled: boolean; value: string }) {
 ============================= src/component.tsx ==
 
 import {
-  createSsrElementRecord,
   renderSsrBranch,
   createSsrRecord,
   createSsrNodeId,
@@ -39,20 +38,21 @@ const q_component_branch_else_segment_2_19dvu7nugnvkl = /*#__PURE__*/ _qrlWithCh
   'component_branch_else_segment_2_19dvu7nugnvkl'
 );
 export function App(props, ctx) {
-  const branchId0 = ctx.nextId();
+  const branch_id_0 = ctx.nextId();
   ctx.addRoot(props);
-  const branch1 = renderSsrBranch(
+  ctx.addRoot(props);
+  ctx.addRoot(props);
+  const branch_0 = renderSsrBranch(
     ctx,
-    branchId0,
+    branch_id_0,
     q_component_branch_condition_segment_0_2fzrieu6vlhf9.w([props]),
     q_component_branch_then_segment_1_24n7blyqktd46.w([props]),
     q_component_branch_else_segment_2_19dvu7nugnvkl.w([props])
   );
-  return maybeThen(branch1, (branch1) => [
-    createSsrElementRecord('section', '<section', '>'),
-    '<b>Before</b>',
-    createSsrRecord('<!b=', createSsrNodeId(branchId0), '>'),
-    branch1,
+  return maybeThen(branch_0, (branch_0) => [
+    '<section><b>Before</b>',
+    createSsrRecord('<!b=', createSsrNodeId(branch_id_0), '>'),
+    branch_0,
     '<!/b><i>After</i></section>',
   ]);
 }

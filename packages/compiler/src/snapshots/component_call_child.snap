@@ -11,7 +11,6 @@ export function App(props: { value: string }) {
 ============================= src/component.tsx ==
 
 import {
-  createSsrElementRecord,
   renderSsrContent,
   createSsrRecord,
   createSsrNodeId,
@@ -28,19 +27,18 @@ const q_semantic_expression_104_127_3po7a59ojefo5 = /*#__PURE__*/ _qrlWithChunk(
 );
 q_semantic_expression_104_127_3po7a59ojefo5.s(semantic_expression_104_127_3po7a59ojefo5);
 export function App(props, ctx) {
-  const contentId0 = ctx.nextId();
+  const content_id_0 = ctx.nextId();
   ctx.addRoot(props);
-  const content1 = renderSsrContent(
+  const content_0 = renderSsrContent(
     ctx,
-    contentId0,
+    content_id_0,
     [props],
     q_semantic_expression_104_127_3po7a59ojefo5
   );
-  return maybeThen(content1, (content1) => [
-    createSsrElementRecord('section', '<section', '>'),
-    '<b>Before</b>',
-    createSsrRecord('<!d=', createSsrNodeId(contentId0), '>'),
-    escapeSsrContent(content1),
+  return maybeThen(content_0, (content_0) => [
+    '<section><b>Before</b>',
+    createSsrRecord('<!d=', createSsrNodeId(content_id_0), '>'),
+    escapeSsrContent(content_0),
     '<!/d><i>After</i></section>',
   ]);
 }

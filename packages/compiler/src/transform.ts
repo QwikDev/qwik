@@ -38,7 +38,7 @@ import {
   type SegmentComponentImport,
   shouldEmitSegmentModule,
 } from './emit-segment';
-import { emitSsrModule, emitSsrSegmentRender } from './emit-ssr';
+import { emitSsrModule, emitSsrSegmentRender, type SsrPlanData } from './emit-ssr';
 import { extractQrls, isSetupQrlSegment } from './extract';
 import {
   createCsrComponentCardinalityResolver,
@@ -417,6 +417,15 @@ export function transformModule(ctx: CompilerContext): TransformResult {
     removableMarkers,
     ctx.emitTarget
   );
+  // shared plan-side tables: production JS emission and plan emission read the same data
+  const claimedPluginFns = drainClaimedPluginFns();
+  const planData: SsrPlanData = {
+    defs: (extractedQrls.moduleDefs ?? []).map((def) => ({ name: def.name })),
+    contexts: collectPlanContexts(program, analysis),
+    pluginFns: claimedPluginFns,
+    bindingName: (binding) =>
+      analysis.bindings.find((candidate) => candidate.id === binding)?.name ?? null,
+  };
   const emittedMain = emitModule(
     ctx,
     analysis,
@@ -429,7 +438,8 @@ export function transformModule(ctx: CompilerContext): TransformResult {
     generatedNames,
     moduleBoundaries.functions,
     moduleRootSegments,
-    inlineComponents
+    inlineComponents,
+    planData
   );
   if (emittedMain === null) {
     return transformFailure(ctx, null, 'The compiler could not emit the qualified module.');
@@ -478,7 +488,8 @@ export function transformModule(ctx: CompilerContext): TransformResult {
       generatedNames,
       [],
       [],
-      []
+      [],
+      planData
     );
     const emittedComponent = emitted?.components.find(
       (candidate) => candidate.identity === component.output.component.identity
@@ -607,7 +618,7 @@ export function transformModule(ctx: CompilerContext): TransformResult {
                 })),
                 (binding) =>
                   analysis.bindings.find((candidate) => candidate.id === binding)?.name ?? null,
-                drainClaimedPluginFns()
+                claimedPluginFns
               ),
               null,
               2
@@ -828,9 +839,22 @@ function emitModule(
   generatedNames: GeneratedNames,
   functions: ModuleBoundaryPlan['functions'],
   moduleRoots: readonly SegmentPlan[],
-  inlineComponents: readonly InlineComponentReferencePlan[]
+  inlineComponents: readonly InlineComponentReferencePlan[],
+  planData?: SsrPlanData
 ): EmittedModule | null {
   const targetImports = new TargetImportResolver(analysis.bindings.map((binding) => binding.name));
+  // module-provided names: core imports resolve in place; anything else taken means fallback
+  const coreNames = new Set<string>([
+    ...analysis.bindings
+      .filter((binding) => binding.import?.source.startsWith('@qwik.dev/') === true)
+      .map((binding) => binding.name),
+    ...[...markerRetargets.values()].map((retarget) => retarget.targetName),
+  ]);
+  const takenNames = new Set<string>(
+    analysis.bindings
+      .filter((binding) => !coreNames.has(binding.name))
+      .map((binding) => binding.name)
+  );
   if (localImplementationSource === null) {
     for (const segment of segments) {
       if (segment.parentId !== null) {
@@ -893,7 +917,9 @@ function emitModule(
         componentReturnMode,
         functions,
         moduleRoots,
-        inlineComponents
+        inlineComponents,
+        planData,
+        { core: coreNames, taken: takenNames }
       )
     : emitCsrModule(
         outputs,

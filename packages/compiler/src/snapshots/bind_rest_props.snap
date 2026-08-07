@@ -15,20 +15,31 @@ export function App() {
 
 ============================= src/component.tsx ==
 
-import { useSignal, createComponent } from '@qwik.dev/core';
+import {
+  useSignal,
+  readTrackedSourceValue,
+  _props,
+  createComponent,
+  maybeThen,
+} from '@qwik.dev/core';
 import { Field } from './component.tsx_component_Field';
 export { Field };
 export function App(props, ctx) {
   const value = useSignal('');
-  return createComponent(
-    {
-      label: 'Name',
-      get 'bind:value'() {
-        return value;
+  ctx.addRoot(value);
+  const component_0 = createComponent(
+    _props(
+      {
+        label: 'Name',
+        get 'bind:value'() {
+          return readTrackedSourceValue(value);
+        },
       },
-    },
+      { 'bind:value': value }
+    ),
     (props) => Field(props, ctx)
   );
+  return maybeThen(component_0, (component_0) => [component_0]);
 }
 ============================= src/component.tsx_component_Field.js (ENTRY POINT)==
 

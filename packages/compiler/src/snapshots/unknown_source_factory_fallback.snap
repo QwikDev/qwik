@@ -46,34 +46,35 @@ function maybeSignal() {
 }
 export function App(props, ctx) {
   const foo = maybeSignal();
-  const id0 = ctx.nextId();
-  const invokeCtx3 = getActiveInvokeContextOrNull();
+  const id_0 = ctx.nextId();
   ctx.addRoot(foo);
-  const attr1 = renderSsrAttrExpression(
-    createSsrElementTarget(id0),
+  const attr_0 = renderSsrAttrExpression(
+    createSsrElementTarget(id_0),
     'title',
     [foo],
     q_component_title_segment_0_2f0r0xivypjmx
   );
-  const text2 = () =>
-    invoke(invokeCtx3, () => {
+  const invokeCtx = getActiveInvokeContextOrNull();
+  const text_1 = () =>
+    invoke(invokeCtx, () => {
+      ctx.addRoot(foo);
       return renderSsrTextExpression(
-        createSsrElementTextTarget(id0),
+        createSsrElementTextTarget(id_0),
         [foo],
         q_component_text_segment_1_1fh10tcowimfv
       );
     });
-  return maybeThen(attr1, (attr1) =>
-    maybeThen(text2(), (text2) => [
+  return maybeThen(attr_0, (attr_0) =>
+    maybeThen(text_1(), (text_1) => [
       createSsrElementRecord(
         'div',
         '<div q:id="',
-        createSsrNodeId(id0),
+        createSsrNodeId(id_0),
         '"',
-        attr1 === null ? '' : ' title' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
+        attr_0 === null ? '' : ' title' + (attr_0 === '' ? '' : '="' + escapeHTML(attr_0) + '"'),
         '>'
       ),
-      escapeHTML(text2),
+      escapeHTML(text_1),
       '</div>',
     ])
   );

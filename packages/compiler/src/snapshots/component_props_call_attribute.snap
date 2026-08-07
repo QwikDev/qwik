@@ -26,21 +26,21 @@ const q_component_title_segment_0_2f0r0xivypjmx = /*#__PURE__*/ _qrlWithChunk(
 );
 q_component_title_segment_0_2f0r0xivypjmx.s(component_title_segment_0_2f0r0xivypjmx);
 export function App(props, ctx) {
-  const id0 = ctx.nextId();
+  const id_0 = ctx.nextId();
   ctx.addRoot(props);
-  const attr1 = renderSsrAttrExpression(
-    createSsrElementTarget(id0),
+  const attr_0 = renderSsrAttrExpression(
+    createSsrElementTarget(id_0),
     'title',
     [props],
     q_component_title_segment_0_2f0r0xivypjmx
   );
-  return maybeThen(attr1, (attr1) => [
+  return maybeThen(attr_0, (attr_0) => [
     createSsrElementRecord(
       'button',
       '<button q:id="',
-      createSsrNodeId(id0),
+      createSsrNodeId(id_0),
       '"',
-      attr1 === null ? '' : ' title' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
+      attr_0 === null ? '' : ' title' + (attr_0 === '' ? '' : '="' + escapeHTML(attr_0) + '"'),
       '>'
     ),
     'Save</button>',

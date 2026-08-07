@@ -37,42 +37,42 @@ const q_component_aria_label_segment_1_qu41fijikfc8 = /*#__PURE__*/ _qrlWithChun
 );
 q_component_aria_label_segment_1_qu41fijikfc8.s(component_aria_label_segment_1_qu41fijikfc8);
 export function Conditional(props, ctx) {
-  const id0 = ctx.nextId();
+  const id_0 = ctx.nextId();
   ctx.addRoot(props);
-  const attr1 = renderSsrAttrExpression(
-    createSsrElementTarget(id0),
+  const attr_0 = renderSsrAttrExpression(
+    createSsrElementTarget(id_0),
     'title',
     [props],
     q_component_title_segment_0_2f0r0xivypjmx
   );
-  return maybeThen(attr1, (attr1) => [
+  return maybeThen(attr_0, (attr_0) => [
     createSsrElementRecord(
       'button',
       '<button q:id="',
-      createSsrNodeId(id0),
+      createSsrNodeId(id_0),
       '"',
-      attr1 === null ? '' : ' title' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
+      attr_0 === null ? '' : ' title' + (attr_0 === '' ? '' : '="' + escapeHTML(attr_0) + '"'),
       '>'
     ),
     'Save</button>',
   ]);
 }
 export function Logical(props, ctx) {
-  const id0 = ctx.nextId();
+  const id_0 = ctx.nextId();
   ctx.addRoot(props);
-  const attr1 = renderSsrAttrExpression(
-    createSsrElementTarget(id0),
+  const attr_0 = renderSsrAttrExpression(
+    createSsrElementTarget(id_0),
     'aria-label',
     [props],
     q_component_aria_label_segment_1_qu41fijikfc8
   );
-  return maybeThen(attr1, (attr1) => [
+  return maybeThen(attr_0, (attr_0) => [
     createSsrElementRecord(
       'button',
       '<button q:id="',
-      createSsrNodeId(id0),
+      createSsrNodeId(id_0),
       '"',
-      attr1 === null ? '' : ' aria-label' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
+      attr_0 === null ? '' : ' aria-label' + (attr_0 === '' ? '' : '="' + escapeHTML(attr_0) + '"'),
       '>'
     ),
     'Save</button>',

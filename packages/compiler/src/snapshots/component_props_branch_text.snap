@@ -16,8 +16,8 @@ import {
   createSsrNodeId,
   createSsrElementRecord,
   createSsrElementTextTarget,
-  renderSsrTextExpression,
   escapeHTML,
+  renderSsrTextExpression,
   maybeThen,
   _qrlWithChunk,
 } from '@qwik.dev/core';
@@ -37,30 +37,30 @@ const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _qrlWithChunk(
 );
 q_component_text_segment_1_1fh10tcowimfv.s(component_text_segment_1_1fh10tcowimfv);
 export function Conditional(props, ctx) {
-  const id0 = ctx.nextId();
+  const id_0 = ctx.nextId();
   ctx.addRoot(props);
-  const text1 = renderSsrTextExpression(
-    createSsrElementTextTarget(id0),
+  const text_0 = renderSsrTextExpression(
+    createSsrElementTextTarget(id_0),
     [props],
     q_component_text_segment_0_1fh10fbkzokfc
   );
-  return maybeThen(text1, (text1) => [
-    createSsrElementRecord('p', '<p q:id="', createSsrNodeId(id0), '"', '>'),
-    escapeHTML(text1),
+  return maybeThen(text_0, (text_0) => [
+    createSsrElementRecord('p', '<p q:id="', createSsrNodeId(id_0), '"', '>'),
+    escapeHTML(text_0),
     '</p>',
   ]);
 }
 export function Logical(props, ctx) {
-  const id0 = ctx.nextId();
+  const id_0 = ctx.nextId();
   ctx.addRoot(props);
-  const text1 = renderSsrTextExpression(
-    createSsrElementTextTarget(id0),
+  const text_0 = renderSsrTextExpression(
+    createSsrElementTextTarget(id_0),
     [props],
     q_component_text_segment_1_1fh10tcowimfv
   );
-  return maybeThen(text1, (text1) => [
-    createSsrElementRecord('p', '<p q:id="', createSsrNodeId(id0), '"', '>'),
-    escapeHTML(text1),
+  return maybeThen(text_0, (text_0) => [
+    createSsrElementRecord('p', '<p q:id="', createSsrNodeId(id_0), '"', '>'),
+    escapeHTML(text_0),
     '</p>',
   ]);
 }

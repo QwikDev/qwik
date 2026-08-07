@@ -15,13 +15,19 @@ export function Parent() {
 
 ============================= src/component.tsx ==
 
-import { useSignal, readTrackedSourceValue, _props, createComponent } from '@qwik.dev/core';
+import {
+  useSignal,
+  readTrackedSourceValue,
+  _props,
+  createComponent,
+  maybeThen,
+} from '@qwik.dev/core';
 import { Child } from './component.tsx_component_Child';
 export { Child };
 export function Parent(props0, ctx) {
   const count = useSignal(1);
   ctx.addRoot(count);
-  return createComponent(
+  const component_0 = createComponent(
     _props(
       {
         label: 'Hi',
@@ -33,6 +39,7 @@ export function Parent(props0, ctx) {
     ),
     (props) => Child(props, ctx)
   );
+  return maybeThen(component_0, (component_0) => [component_0]);
 }
 ============================= src/component.tsx_component_Child.js (ENTRY POINT)==
 
@@ -40,8 +47,8 @@ import {
   createSsrNodeId,
   createSsrElementRecord,
   createSsrRangeTextTarget,
-  renderSsrTextExpression,
   escapeHTML,
+  renderSsrTextExpression,
   getActiveInvokeContextOrNull,
   invoke,
   maybeThen,
@@ -64,29 +71,30 @@ const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _qrlWithChunk(
 q_component_text_segment_1_1fh10tcowimfv.s(component_text_segment_1_1fh10tcowimfv);
 
 export function Child(props, ctx) {
-  const id0 = ctx.nextId();
-  const invokeCtx3 = getActiveInvokeContextOrNull();
+  const id_0 = ctx.nextId();
   ctx.addRoot(props);
-  const text1 = renderSsrTextExpression(
-    createSsrRangeTextTarget(id0, 0),
+  const text_0 = renderSsrTextExpression(
+    createSsrRangeTextTarget(id_0, 0),
     [props],
     q_component_text_segment_0_1fh10fbkzokfc
   );
-  const text2 = () =>
-    invoke(invokeCtx3, () => {
+  const invokeCtx = getActiveInvokeContextOrNull();
+  const text_1 = () =>
+    invoke(invokeCtx, () => {
+      ctx.addRoot(props);
       return renderSsrTextExpression(
-        createSsrRangeTextTarget(id0, 1),
+        createSsrRangeTextTarget(id_0, 1),
         [props],
         q_component_text_segment_1_1fh10tcowimfv
       );
     });
-  return maybeThen(text1, (text1) =>
-    maybeThen(text2(), (text2) => [
-      createSsrElementRecord('p', '<p q:id="', createSsrNodeId(id0), '"', '>'),
+  return maybeThen(text_0, (text_0) =>
+    maybeThen(text_1(), (text_1) => [
+      createSsrElementRecord('p', '<p q:id="', createSsrNodeId(id_0), '"', '>'),
       '<!t>',
-      escapeHTML(text1),
+      escapeHTML(text_0),
       '<!/t>: <!t>',
-      escapeHTML(text2),
+      escapeHTML(text_1),
       '<!/t></p>',
     ])
   );

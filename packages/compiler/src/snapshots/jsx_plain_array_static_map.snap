@@ -9,27 +9,25 @@ export function App() {
 
 ============================= src/component.tsx ==
 
-import { createSsrElementRecord, renderSsrCollection } from '@qwik.dev/core';
+import { renderSsrCollection } from '@qwik.dev/core';
 export function App(props, ctx) {
   const items = ['first', 'second'];
-  function semantic_collectionRender_83_102_1szakjy0f6p92() {
+  function semantic_collectionRender_83_102_1szakjy0f6p92(ctx, __rangeId, __rowId) {
     return '<li>Item</li>';
   }
-  return [
-    createSsrElementRecord('ul', '<ul', '>'),
-    renderSsrCollection(
-      ctx,
-      undefined,
-      items,
-      undefined,
-      semantic_collectionRender_83_102_1szakjy0f6p92,
-      false,
-      '',
-      false,
-      0
-    ),
-    '</ul>',
-  ];
+
+  const collection_result_0 = renderSsrCollection(
+    ctx,
+    undefined,
+    items,
+    undefined,
+    semantic_collectionRender_83_102_1szakjy0f6p92,
+    false,
+    '',
+    false,
+    0
+  );
+  return ['<ul>', collection_result_0, '</ul>'];
 }
 == SSR DIAGNOSTICS ==
 

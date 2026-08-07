@@ -21,16 +21,16 @@ import {
 } from '@qwik.dev/core';
 export function App(props, ctx) {
   const count = useSignal(0);
-  const id0 = ctx.nextId();
+  const id_0 = ctx.nextId();
   ctx.addRoot(count);
-  const attr1 = renderSsrAttr(createSsrElementTarget(id0), 'test', count);
-  return maybeThen(attr1, (attr1) => [
+  const attr_0 = renderSsrAttr(createSsrElementTarget(id_0), 'test', count);
+  return maybeThen(attr_0, (attr_0) => [
     createSsrElementRecord(
       'button',
       '<button q:id="',
-      createSsrNodeId(id0),
+      createSsrNodeId(id_0),
       '"',
-      attr1 === null ? '' : ' test' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
+      attr_0 === null ? '' : ' test' + (attr_0 === '' ? '' : '="' + escapeHTML(attr_0) + '"'),
       '>'
     ),
     'Click</button>',

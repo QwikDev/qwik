@@ -15,7 +15,6 @@ export function App(props: { enabled: boolean; alternate: boolean }) {
 ============================= src/component.tsx ==
 
 import {
-  createSsrElementRecord,
   renderSsrBranch,
   createSsrRecord,
   createSsrNodeId,
@@ -78,52 +77,55 @@ const q_component_branch_else_segment_10_3nwbuwgvts9b8 = /*#__PURE__*/ _qrlWithC
   'component_branch_else_segment_10_3nwbuwgvts9b8'
 );
 export function App(props, ctx) {
-  const branchId0 = ctx.nextId();
-  let branchId2;
-  let branchId4;
-  const invokeCtx6 = getActiveInvokeContextOrNull();
+  const branch_id_0 = ctx.nextId();
   ctx.addRoot(props);
-  const branch1 = renderSsrBranch(
+  const branch_0 = renderSsrBranch(
     ctx,
-    branchId0,
+    branch_id_0,
     q_component_branch_condition_segment_0_2fzrieu6vlhf9.w([props]),
     q_component_branch_then_segment_1_24n7blyqktd46,
     q_component_branch_else_segment_2_19dvu7nugnvkl
   );
-  const branch3 = () =>
-    invoke(invokeCtx6, () => {
-      branchId2 ??= ctx.nextId();
+  let branch_id_1;
+  const invokeCtx = getActiveInvokeContextOrNull();
+  const branch_1 = () =>
+    invoke(invokeCtx, () => {
+      branch_id_1 ??= ctx.nextId();
+      ctx.addRoot(props);
+      ctx.addRoot(props);
       return renderSsrBranch(
         ctx,
-        branchId2,
+        branch_id_1,
         q_component_branch_condition_segment_3_2fzrh8qv53bdo.w([props]),
         q_component_branch_then_segment_4_24n7dk4a4zn6t.w([props]),
         undefined
       );
     });
-  const branch5 = () =>
-    invoke(invokeCtx6, () => {
-      branchId4 ??= ctx.nextId();
+  let branch_id_2;
+  const branch_2 = () =>
+    invoke(invokeCtx, () => {
+      branch_id_2 ??= ctx.nextId();
+      ctx.addRoot(props);
       return renderSsrBranch(
         ctx,
-        branchId4,
+        branch_id_2,
         q_component_branch_condition_segment_8_2fzrlj3269xjh.w([props]),
         q_component_branch_then_segment_9_24n7eq7lvht8e,
         q_component_branch_else_segment_10_3nwbuwgvts9b8
       );
     });
-  return maybeThen(branch1, (branch1) =>
-    maybeThen(branch3(), (branch3) =>
-      maybeThen(branch5(), (branch5) => [
-        createSsrElementRecord('main', '<main', '>'),
-        createSsrRecord('<!b=', createSsrNodeId(branchId0), '>'),
-        branch1,
+  return maybeThen(branch_0, (branch_0) =>
+    maybeThen(branch_1(), (branch_1) =>
+      maybeThen(branch_2(), (branch_2) => [
+        '<main>',
+        createSsrRecord('<!b=', createSsrNodeId(branch_id_0), '>'),
+        branch_0,
         '<!/b>',
-        createSsrRecord('<!b=', createSsrNodeId(branchId2), '>'),
-        branch3,
+        createSsrRecord('<!b=', createSsrNodeId(branch_id_1), '>'),
+        branch_1,
         '<!/b>',
-        createSsrRecord('<!b=', createSsrNodeId(branchId4), '>'),
-        branch5,
+        createSsrRecord('<!b=', createSsrNodeId(branch_id_2), '>'),
+        branch_2,
         '<!/b></main>',
       ])
     )

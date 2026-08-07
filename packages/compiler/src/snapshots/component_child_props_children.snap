@@ -16,6 +16,7 @@ import {
   createSlotScope,
   registerProjection,
   createComponent,
+  maybeThen,
   _qrlWithChunk,
 } from '@qwik.dev/core';
 import { component_slot_render_segment_1_3b0tauy2p1nv1 } from './component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1';
@@ -29,27 +30,21 @@ const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _qrlWithCh
 q_component_slot_render_segment_1_3b0tauy2p1nv1.s(component_slot_render_segment_1_3b0tauy2p1nv1);
 export { Wrapper };
 export function Parent(props0, ctx) {
-  const slotScope0 = createSlotScope();
-  ctx.addRoot(slotScope0);
-  registerProjection(slotScope0, '', q_component_slot_render_segment_1_3b0tauy2p1nv1);
-  return createComponent({}, (props) => Wrapper(props, ctx), { slotScope: slotScope0 });
+  const slot_scope_0 = createSlotScope();
+  ctx.addRoot(slot_scope_0);
+  registerProjection(slot_scope_0, '', q_component_slot_render_segment_1_3b0tauy2p1nv1);
+  const component_1 = createComponent({}, (props) => Wrapper(props, ctx), {
+    slotScope: slot_scope_0,
+  });
+  return maybeThen(component_1, (component_1) => [component_1]);
 }
 ============================= src/component.tsx_component_Wrapper.js (ENTRY POINT)==
 
-import {
-  createSsrElementRecord,
-  renderSsrSlot,
-  getActiveInvokeContextOrNull,
-  maybeThen,
-} from '@qwik.dev/core';
+import { renderSsrSlot, getActiveInvokeContextOrNull, maybeThen } from '@qwik.dev/core';
 
 export function Wrapper(props, ctx) {
-  const slot0 = renderSsrSlot(ctx, '', undefined, getActiveInvokeContextOrNull());
-  return maybeThen(slot0, (slot0) => [
-    createSsrElementRecord('section', '<section', '>'),
-    slot0,
-    '</section>',
-  ]);
+  const slot_0 = renderSsrSlot(ctx, '', undefined, getActiveInvokeContextOrNull());
+  return maybeThen(slot_0, (slot_0) => ['<section>', slot_0, '</section>']);
 }
 /*
 {

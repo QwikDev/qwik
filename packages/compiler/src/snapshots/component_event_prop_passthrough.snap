@@ -38,7 +38,6 @@ import {
   renderSsrEvent,
   createSsrElementTarget,
   createSsrElementRecord,
-  maybeThen,
   _qrlWithChunk,
 } from '@qwik.dev/core';
 import { component_onClick$_segment_0_3iurff47ay1jy } from './component.tsx_component_onClick$_segment_0_3iurff47ay1jy';
@@ -52,10 +51,10 @@ q_component_onClick$_segment_0_3iurff47ay1jy.s(component_onClick$_segment_0_3iur
 
 export function Button(props, ctx) {
   const { onClick$ } = props;
-  const id0 = ctx.nextId();
+  const id_0 = ctx.nextId();
   ctx.addRoot(props);
-  const event1 = renderSsrEvent(
-    createSsrElementTarget(id0),
+  const event_0 = renderSsrEvent(
+    createSsrElementTarget(id_0),
     'q-e:click',
     [props],
     q_component_onClick$_segment_0_3iurff47ay1jy,
@@ -63,17 +62,17 @@ export function Button(props, ctx) {
     [],
     []
   );
-  return maybeThen(event1, (event1) => [
+  return [
     createSsrElementRecord(
       'button',
       '<button q:id="',
-      createSsrNodeId(id0),
+      createSsrNodeId(id_0),
       '"',
-      event1 ?? '',
+      event_0 ?? '',
       '>'
     ),
     'Click</button>',
-  ]);
+  ];
 }
 /*
 {

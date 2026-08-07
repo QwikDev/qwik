@@ -12,7 +12,6 @@ export function App() {
 
 import {
   useSignal,
-  createSsrElementRecord,
   renderSsrBranch,
   createSsrRecord,
   createSsrNodeId,
@@ -36,19 +35,20 @@ const q_component_branch_then_segment_1_24n7blyqktd46 = /*#__PURE__*/ _qrlWithCh
 );
 export function App(props, ctx) {
   const count = useSignal(0);
-  const branchId0 = ctx.nextId();
+  const branch_id_0 = ctx.nextId();
   ctx.addRoot(count);
-  const branch1 = renderSsrBranch(
+  ctx.addRoot(count);
+  const branch_0 = renderSsrBranch(
     ctx,
-    branchId0,
+    branch_id_0,
     q_component_branch_condition_segment_0_2fzrieu6vlhf9.w([count]),
     q_component_branch_then_segment_1_24n7blyqktd46.w([count]),
     undefined
   );
-  return maybeThen(branch1, (branch1) => [
-    createSsrElementRecord('p', '<p', '>'),
-    createSsrRecord('<!b=', createSsrNodeId(branchId0), '>'),
-    branch1,
+  return maybeThen(branch_0, (branch_0) => [
+    '<p>',
+    createSsrRecord('<!b=', createSsrNodeId(branch_id_0), '>'),
+    branch_0,
     '<!/b></p>',
   ]);
 }

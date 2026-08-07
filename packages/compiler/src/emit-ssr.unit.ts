@@ -245,13 +245,13 @@ export function App() {
     expect(parseSync('sequential.js', main, { lang: 'js', sourceType: 'module' }).errors).toEqual(
       []
     );
-    expect(main).toMatch(/const component0 = createComponent\(/);
-    expect(main).toMatch(/const invokeCtx\d+ = getActiveInvokeContextOrNull\(\)/);
+    expect(main).toMatch(/const component_?0 = createComponent\(/);
+    expect(main).toMatch(/const invokeCtx\d* = getActiveInvokeContextOrNull\(\)/);
     expect(main).toMatch(
-      /const component1 = \(\) => invoke\(invokeCtx\d+, \(\) => \{\s+return createComponent\(/
+      /const component_?1 = \(\) => invoke\(invokeCtx\d*, \(\) => \{\s*return createComponent\(/
     );
     expect(main).toMatch(
-      /maybeThen\(component0, \(component0\) => maybeThen\(component1\(\), \(component1\) =>/
+      /maybeThen\(component_?0, \(component_?0\) => maybeThen\(component_?1\(\), \(component_?1\) =>/
     );
     expect(main).not.toContain('promiseAll');
     expect(main).not.toContain('Promise.all');
@@ -341,10 +341,9 @@ export function App() {
     expect(parseSync('inner-html.js', main, { lang: 'js', sourceType: 'module' }).errors).toEqual(
       []
     );
-    expect(main).toContain(
-      'createSsrElementRecord("label", "<label class=\\"field\\" for=\\"input\\"", ">")'
-    );
-    expect(main).toContain('"Name</label>"');
+    // fully-static elements may fold into a string run; the normalized attrs must survive
+    expect(main).toContain('<label class=\\"field\\" for=\\"input\\">');
+    expect(main).toContain('Name</label>');
     expect(main).not.toContain('.innerHTML');
   });
 
@@ -397,7 +396,7 @@ export function App({ value }) {
     expect(
       parseSync('dynamic-content.js', main, { lang: 'js', sourceType: 'module' }).errors
     ).toEqual([]);
-    expect(main).toMatch(/escapeSsrContent\(content\d+\)/);
+    expect(main).toMatch(/escapeSsrContent\(content_?\d+\)/);
   });
 
   test('imports the escaping helper used by dynamic attributes', async () => {

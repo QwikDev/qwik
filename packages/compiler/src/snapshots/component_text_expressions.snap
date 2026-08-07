@@ -12,8 +12,8 @@ import {
   createSsrNodeId,
   createSsrElementRecord,
   createSsrRangeTextTarget,
-  renderSsrTextExpression,
   escapeHTML,
+  renderSsrTextExpression,
   getActiveInvokeContextOrNull,
   invoke,
   maybeThen,
@@ -42,40 +42,42 @@ const q_component_text_segment_2_1fh117dstcoge = /*#__PURE__*/ _qrlWithChunk(
 );
 q_component_text_segment_2_1fh117dstcoge.s(component_text_segment_2_1fh117dstcoge);
 export function App(props, ctx) {
-  const id0 = ctx.nextId();
-  const invokeCtx4 = getActiveInvokeContextOrNull();
+  const id_0 = ctx.nextId();
   ctx.addRoot(props);
-  const text1 = renderSsrTextExpression(
-    createSsrRangeTextTarget(id0, 0),
+  const text_0 = renderSsrTextExpression(
+    createSsrRangeTextTarget(id_0, 0),
     [props],
     q_component_text_segment_0_1fh10fbkzokfc
   );
-  const text2 = () =>
-    invoke(invokeCtx4, () => {
+  const invokeCtx = getActiveInvokeContextOrNull();
+  const text_1 = () =>
+    invoke(invokeCtx, () => {
+      ctx.addRoot(props);
       return renderSsrTextExpression(
-        createSsrRangeTextTarget(id0, 1),
+        createSsrRangeTextTarget(id_0, 1),
         [props],
         q_component_text_segment_1_1fh10tcowimfv
       );
     });
-  const text3 = () =>
-    invoke(invokeCtx4, () => {
+  const text_2 = () =>
+    invoke(invokeCtx, () => {
+      ctx.addRoot(props);
       return renderSsrTextExpression(
-        createSsrRangeTextTarget(id0, 2),
+        createSsrRangeTextTarget(id_0, 2),
         [props],
         q_component_text_segment_2_1fh117dstcoge
       );
     });
-  return maybeThen(text1, (text1) =>
-    maybeThen(text2(), (text2) =>
-      maybeThen(text3(), (text3) => [
-        createSsrElementRecord('p', '<p q:id="', createSsrNodeId(id0), '"', '>'),
+  return maybeThen(text_0, (text_0) =>
+    maybeThen(text_1(), (text_1) =>
+      maybeThen(text_2(), (text_2) => [
+        createSsrElementRecord('p', '<p q:id="', createSsrNodeId(id_0), '"', '>'),
         '<!t>',
-        escapeHTML(text1),
+        escapeHTML(text_0),
         '<!/t> <!t>',
-        escapeHTML(text2),
+        escapeHTML(text_1),
         '<!/t> <!t>',
-        escapeHTML(text3),
+        escapeHTML(text_2),
         '<!/t></p>',
       ])
     )

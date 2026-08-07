@@ -18,41 +18,40 @@ import {
   createSsrElementTarget,
   renderSsrAttr,
   escapeHTML,
-  createSsrElementRecord,
   getActiveInvokeContextOrNull,
   invoke,
+  createSsrElementRecord,
   maybeThen,
 } from '@qwik.dev/core';
 export function App(props, ctx) {
   const title = useSignal('hello');
   const classes = useSignal('active');
   const style = useSignal('color:red');
-  const id0 = ctx.nextId();
-  let target1;
-  const invokeCtx5 = getActiveInvokeContextOrNull();
+  const id_0 = ctx.nextId();
   ctx.addRoot(title);
-  const attr2 = renderSsrAttr((target1 ??= createSsrElementTarget(id0)), 'title', title);
-  const attr3 = () =>
-    invoke(invokeCtx5, () => {
+  const attr_0 = renderSsrAttr(createSsrElementTarget(id_0), 'title', title);
+  const invokeCtx = getActiveInvokeContextOrNull();
+  const attr_1 = () =>
+    invoke(invokeCtx, () => {
       ctx.addRoot(classes);
-      return renderSsrAttr((target1 ??= createSsrElementTarget(id0)), 'class', classes);
+      return renderSsrAttr(createSsrElementTarget(id_0), 'class', classes);
     });
-  const attr4 = () =>
-    invoke(invokeCtx5, () => {
+  const attr_2 = () =>
+    invoke(invokeCtx, () => {
       ctx.addRoot(style);
-      return renderSsrAttr((target1 ??= createSsrElementTarget(id0)), 'style', style);
+      return renderSsrAttr(createSsrElementTarget(id_0), 'style', style);
     });
-  return maybeThen(attr2, (attr2) =>
-    maybeThen(attr3(), (attr3) =>
-      maybeThen(attr4(), (attr4) => [
+  return maybeThen(attr_0, (attr_0) =>
+    maybeThen(attr_1(), (attr_1) =>
+      maybeThen(attr_2(), (attr_2) => [
         createSsrElementRecord(
           'div',
           '<div q:id="',
-          createSsrNodeId(id0),
+          createSsrNodeId(id_0),
           '"',
-          attr2 === null ? '' : ' title' + (attr2 === '' ? '' : '="' + escapeHTML(attr2) + '"'),
-          attr3 === null ? '' : ' class' + (attr3 === '' ? '' : '="' + escapeHTML(attr3) + '"'),
-          attr4 === null ? '' : ' style' + (attr4 === '' ? '' : '="' + escapeHTML(attr4) + '"'),
+          attr_0 === null ? '' : ' title' + (attr_0 === '' ? '' : '="' + escapeHTML(attr_0) + '"'),
+          attr_1 === null ? '' : ' class' + (attr_1 === '' ? '' : '="' + escapeHTML(attr_1) + '"'),
+          attr_2 === null ? '' : ' style' + (attr_2 === '' ? '' : '="' + escapeHTML(attr_2) + '"'),
           '>'
         ),
         'Attrs</div>',

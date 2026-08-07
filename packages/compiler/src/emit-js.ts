@@ -65,6 +65,85 @@ export function emitJsModule(plan: QwikSsrPlan, componentIndex = plan.entry): st
   }
 }
 
+/**
+ * Production render pieces for one component, consumed by the legacy module assembly in `emit-ssr`
+ * (which owns imports rewriting, q_ QRL hoists, and the component fn head).
+ */
+export interface JsRenderPieces {
+  readonly imports: string[];
+  readonly setupStatements: string[];
+  readonly statements: string[];
+  readonly value: string;
+  readonly flushTasks: boolean;
+}
+
+/**
+ * Generates one component's render body from its wire plan for in-place production emission: q_ QRL
+ * constants, defs, contexts, plugin imports, and sibling components resolve to names the
+ * surrounding module already provides. Null when any construct is not generatable.
+ */
+export function emitJsProductionRender(
+  wire: PlanSsrComponent,
+  component: {
+    readonly name: string;
+    readonly propsBindings: readonly number[];
+    readonly props: unknown;
+    readonly providesContext: boolean;
+  },
+  segments: readonly SegmentMeta[],
+  defs: readonly DefMeta[],
+  contexts: QwikSsrPlan['modules'][number]['contexts'],
+  pluginFns: QwikSsrPlan['pluginFns'],
+  names: { props: string; ctx: string; invokeCtx: string }
+): JsRenderPieces | null {
+  const shared: ModuleState = {
+    imports: new Set(),
+    chunkImports: [],
+    hoists: [],
+    hoistedSegments: new Set(),
+    componentFns: [],
+    generated: new Set(),
+    queue: [],
+    production: true,
+  };
+  try {
+    const generator = new JsComponentGenerator(
+      // production emission is module-local: cross-component references stay name-based
+      { components: [], modules: [], pluginFns } as unknown as QwikSsrPlan,
+      shared,
+      segments,
+      defs,
+      contexts,
+      pluginFns,
+      names
+    );
+    for (const binding of component.propsBindings) {
+      generator.bindProps(binding);
+    }
+    return generator.generateProduction(
+      component.name,
+      wire,
+      component.props as PropsShape,
+      component.providesContext
+    );
+  } catch (error) {
+    if (error === UNGENERATABLE) {
+      if (process.env.QWIK_JSGEN_DEBUG === '1') {
+        // eslint-disable-next-line no-console
+        console.error('production', UNGENERATABLE_SITE);
+      }
+      return null;
+    }
+    throw error;
+  }
+}
+
+type PlanSsrComponent = {
+  readonly setup: readonly unknown[];
+  readonly ops: readonly PlanSsrOp[];
+  readonly flushTasks?: boolean;
+};
+
 /** Per-module collections shared by every generated component fn. */
 interface ModuleState {
   readonly imports: Set<string>;
@@ -74,6 +153,8 @@ interface ModuleState {
   readonly componentFns: string[];
   readonly generated: Set<number>;
   readonly queue: number[];
+  /** In-place production emission: skip hoists and child queueing. */
+  readonly production?: boolean;
 }
 
 /** Debug-only: stack captured at the most recent UNGENERATABLE throw. */
@@ -111,12 +192,14 @@ class JsComponentGenerator {
   private readonly hoistedSegments: Set<string>;
   private readonly statements: string[] = [];
   private locals = new Map<number, string>();
-  private usedNames = new Set<string>(['props', 'ctx', 'invokeCtx']);
+  private usedNames: Set<string>;
   private localComponents = new Map<string, LocalComponentEntry>();
   /** `_markComponent` marks flushed after the owning scope's setup completes. */
   private readonly pendingMarks: string[] = [];
   private nextTemp = 0;
   private invokeCtxDeclared = false;
+  /** Wire-proven synchronous render: steps stay eager and the value skips maybeThen. */
+  private synchronous = false;
   /** Bindings declared as reactive sources (signal/store/computed) — prop getters track them. */
   private sourceKinds = new Set<number>();
   /** Element id placeholders: resolved at first claiming step (eager const / lazy let). */
@@ -131,6 +214,11 @@ class JsComponentGenerator {
     private readonly defs: readonly DefMeta[],
     private readonly contexts: QwikSsrPlan['modules'][number]['contexts'],
     private readonly pluginFns: QwikSsrPlan['pluginFns'],
+    private readonly names: { props: string; ctx: string; invokeCtx: string } = {
+      props: 'props',
+      ctx: 'ctx',
+      invokeCtx: 'invokeCtx',
+    },
     seed?: {
       readonly locals: ReadonlyMap<number, string>;
       readonly usedNames: ReadonlySet<string>;
@@ -142,6 +230,7 @@ class JsComponentGenerator {
     this.chunkImports = shared.chunkImports;
     this.hoists = shared.hoists;
     this.hoistedSegments = shared.hoistedSegments;
+    this.usedNames = new Set([this.names.props, this.names.ctx, this.names.invokeCtx]);
     if (seed !== undefined) {
       this.locals = new Map(seed.locals);
       this.usedNames = new Set(seed.usedNames);
@@ -150,9 +239,75 @@ class JsComponentGenerator {
     }
   }
 
+  bindProps(binding: number): void {
+    this.locals.set(binding, this.names.props);
+  }
+
+  /** Production body pieces: like generateFn but without the head — emitComponent adds it. */
+  generateProduction(
+    name: string,
+    ssr: PlanSsrComponent,
+    propsShape: PropsShape,
+    providesContext: boolean
+  ): JsRenderPieces {
+    void name;
+    this.synchronous = (ssr as { synchronous?: boolean }).synchronous === true;
+    // the emitted head owns the param destructure — bind locals only, emit no statement
+    this.bindPropsShape(propsShape, false);
+    if (ssr.flushTasks === true) {
+      this.invokeCtx();
+    }
+    for (const entry of ssr.setup as ({ op: string } & Record<string, unknown>)[]) {
+      if (entry.op === 'local-component') {
+        this.localComponents.set(entry.name as string, entry as unknown as LocalComponentEntry);
+      }
+    }
+    for (const entry of ssr.setup) {
+      this.setupOp(entry as { op: string } & Record<string, unknown>);
+    }
+    for (const markName of this.pendingMarks.splice(0)) {
+      const entry = this.localComponents.get(markName)!;
+      this.statements.push(
+        `_markComponent(${markName}, ${this.qrlExpression(this.segment(entry.segment))});`
+      );
+    }
+    const setupStatements = this.finalizeIds(this.statements.splice(0));
+    let contextScope: string | null = null;
+    if (providesContext) {
+      contextScope = `context_scope_${this.nextTemp++}`;
+      this.statements.push(`const ${contextScope} = ${this.names.ctx}.contextScopeRef();`);
+      this.imports.add('createSsrRecord');
+    }
+    const parts = this.ops(ssr.ops);
+    if (contextScope !== null) {
+      parts.unshift(`createSsrRecord('<!c=', ${contextScope}, '>')`);
+      const last = parts[parts.length - 1];
+      if (last !== undefined && isStringLiteral(last)) {
+        parts[parts.length - 1] = JSON.stringify((JSON.parse(last) as string) + '<!/c>');
+      } else {
+        parts.push(JSON.stringify('<!/c>'));
+      }
+    }
+    const value =
+      parts.length === 1 && isStringLiteral(parts[0]) ? parts[0] : `[${parts.join(', ')}]`;
+    const statements = this.finalizeIds(this.statements.splice(0));
+    const chainValue = this.wrapAsyncValue(value);
+    if (ssr.flushTasks === true) {
+      this.imports.add('maybeThen');
+      this.imports.add('invoke');
+    }
+    return {
+      imports: [...this.imports],
+      setupStatements,
+      statements,
+      value: chainValue,
+      flushTasks: ssr.flushTasks === true,
+    };
+  }
+
   generate(component: QwikSsrPlan['components'][number]): string {
     for (const binding of component.propsBindings) {
-      this.locals.set(binding, 'props');
+      this.locals.set(binding, this.names.props);
     }
     return this.generateFn(
       component.name,
@@ -173,29 +328,10 @@ class JsComponentGenerator {
     propsShape: PropsShape,
     providesContext: boolean,
     exported: boolean,
-    signature = '(props, ctx)'
+    signature?: string
   ): string {
-    // props param bindings: identifier form aliases props; object form destructures by name
-    if (propsShape !== null && propsShape !== undefined) {
-      if (propsShape.kind === 'identifier') {
-        this.locals.set(propsShape.binding, 'props');
-      } else {
-        const names: string[] = [];
-        for (const item of propsShape.bindings) {
-          // shorthand destructure requires the declared name to be the prop name
-          if (
-            !/^[A-Za-z_$][A-Za-z0-9_$]*$/.test(item.name) ||
-            this.declare(item.b, item.name) !== item.name
-          ) {
-            markUngeneratable();
-          }
-          names.push(item.name);
-        }
-        if (names.length > 0) {
-          this.statements.push(`const { ${names.join(', ')} } = props;`);
-        }
-      }
-    }
+    signature ??= `(${this.names.props}, ${this.names.ctx})`;
+    this.bindPropsShape(propsShape);
     // task flush: setup runs first, then the render replays under the captured invoke context
     if (ssr.flushTasks === true) {
       this.invokeCtx();
@@ -210,7 +346,11 @@ class JsComponentGenerator {
     for (const def of this.defs) {
       this.usedNames.add(def.name);
     }
-    if (this.contexts.length > 0 && !this.shared.hoistedSegments.has('__contexts__')) {
+    if (
+      !this.shared.production &&
+      this.contexts.length > 0 &&
+      !this.shared.hoistedSegments.has('__contexts__')
+    ) {
       this.shared.hoistedSegments.add('__contexts__');
       this.imports.add('createContextId');
       for (const context of this.contexts) {
@@ -226,7 +366,11 @@ class JsComponentGenerator {
         `export { ${this.contexts.map((context) => context.declaredName).join(', ')} };`
       );
     }
-    if (this.defs.length > 0 && !this.shared.hoistedSegments.has('__defs__')) {
+    if (
+      !this.shared.production &&
+      this.defs.length > 0 &&
+      !this.shared.hoistedSegments.has('__defs__')
+    ) {
       this.shared.hoistedSegments.add('__defs__');
       for (const def of this.defs) {
         const params = new Map(def.params.map((binding, index) => [binding, `p${index}`]));
@@ -249,7 +393,7 @@ class JsComponentGenerator {
     let contextScope: string | null = null;
     if (providesContext) {
       contextScope = `context_scope_${this.nextTemp++}`;
-      this.statements.push(`const ${contextScope} = ctx.contextScopeRef();`);
+      this.statements.push(`const ${contextScope} = ${this.names.ctx}.contextScopeRef();`);
       this.imports.add('createSsrRecord');
     }
     const parts = this.ops(ssr.ops);
@@ -275,7 +419,7 @@ class JsComponentGenerator {
       const inner = [...this.statements, returnStatement].map((line) => `  ${line}`).join('\n');
       bodyStatements = [
         ...setupStatements,
-        `return maybeThen(ctx.scheduler.flush(), () => invoke(invokeCtx, () => {\n${inner}\n  }));`,
+        `return maybeThen(${this.names.ctx}.scheduler.flush(), () => invoke(invokeCtx, () => {\n${inner}\n  }));`,
       ];
     } else {
       bodyStatements = [...setupStatements, ...this.statements, returnStatement];
@@ -284,16 +428,46 @@ class JsComponentGenerator {
     return `${exported ? 'export ' : ''}function ${name}${signature} {\n${body}\n}\n`;
   }
 
+  /** Props param bindings: identifier form aliases props; object form destructures by name. */
+  private bindPropsShape(propsShape: PropsShape, emitDestructure = true): void {
+    if (propsShape === null || propsShape === undefined) {
+      return;
+    }
+    if (propsShape.kind === 'identifier') {
+      this.locals.set(propsShape.binding, this.names.props);
+      return;
+    }
+    const names: string[] = [];
+    for (const item of propsShape.bindings) {
+      // shorthand destructure requires the declared name to be the prop name
+      if (
+        !/^[A-Za-z_$][A-Za-z0-9_$]*$/.test(item.name) ||
+        this.declare(item.b, item.name) !== item.name
+      ) {
+        markUngeneratable();
+      }
+      names.push(item.name);
+    }
+    if (emitDestructure && names.length > 0) {
+      this.statements.push(`const { ${names.join(', ')} } = ${this.names.props};`);
+    }
+  }
+
   /** MaybeThen chain over async steps, innermost carrying the parts value. */
   private wrapAsync(value: string): string {
-    if (this.asyncSteps.length === 0) {
-      return `return ${value};`;
+    return `return ${this.wrapAsyncValue(value)};`;
+  }
+
+  /** The chain expression alone — production emission returns it as the render value. */
+  private wrapAsyncValue(value: string): string {
+    if (this.asyncSteps.length === 0 || this.synchronous) {
+      return value;
     }
     this.imports.add('maybeThen');
-    return `return ${this.asyncSteps.reduceRight(
+    return this.asyncSteps.reduceRight(
       (inner, step) => `maybeThen(${step.expr}, (${step.name}) => ${inner})`,
       value
-    )};`;
+    );
   }
 
   /**
@@ -307,9 +481,9 @@ class JsComponentGenerator {
     callExpr: string,
     thunkPrelude = ''
   ): void {
-    if (this.asyncSteps.length === 0) {
+    if (this.asyncSteps.length === 0 || this.synchronous) {
       for (const root of roots) {
-        this.statements.push(`ctx.addRoot(${root});`);
+        this.statements.push(`${this.names.ctx}.addRoot(${root});`);
       }
       this.statements.push(`const ${step} = ${callExpr};`);
       this.asyncSteps.push({ name: step, expr: step });
@@ -317,7 +491,7 @@ class JsComponentGenerator {
     }
     const invokeCtx = this.invokeCtx();
     this.imports.add('invoke');
-    const rootStatements = roots.map((root) => `ctx.addRoot(${root}); `).join('');
+    const rootStatements = roots.map((root) => `${this.names.ctx}.addRoot(${root}); `).join('');
     this.statements.push(
       `const ${step} = () => invoke(${invokeCtx}, () => { ${thunkPrelude}${rootStatements}return ${callExpr}; });`
     );
@@ -335,13 +509,13 @@ class JsComponentGenerator {
       return '';
     }
     if (state === 'lazy') {
-      return `${idVariable} ??= ctx.nextId(); `;
+      return `${idVariable} ??= ${this.names.ctx}.nextId(); `;
     }
     const placeholder = `__ID_DECL__${idVariable}`;
     const index = this.statements.indexOf(placeholder);
     if (this.asyncSteps.length === 0) {
       if (index >= 0) {
-        this.statements[index] = `const ${idVariable} = ctx.nextId();`;
+        this.statements[index] = `const ${idVariable} = ${this.names.ctx}.nextId();`;
       }
       this.idState.set(idVariable, 'eager');
       return '';
@@ -350,14 +524,14 @@ class JsComponentGenerator {
       this.statements[index] = `let ${idVariable};`;
     }
     this.idState.set(idVariable, 'lazy');
-    return `${idVariable} ??= ctx.nextId(); `;
+    return `${idVariable} ??= ${this.names.ctx}.nextId(); `;
   }
 
   /** Unclaimed ids allocate eagerly at their element's position. */
   private finalizeIds(statements: string[]): string[] {
     return statements.map((statement) =>
       statement.startsWith('__ID_DECL__')
-        ? `const ${statement.slice('__ID_DECL__'.length)} = ctx.nextId();`
+        ? `const ${statement.slice('__ID_DECL__'.length)} = ${this.names.ctx}.nextId();`
         : statement
     );
   }
@@ -367,9 +541,9 @@ class JsComponentGenerator {
     if (!this.invokeCtxDeclared) {
       this.invokeCtxDeclared = true;
       this.imports.add('getActiveInvokeContextOrNull');
-      this.statements.push('const invokeCtx = getActiveInvokeContextOrNull();');
+      this.statements.push(`const ${this.names.invokeCtx} = getActiveInvokeContextOrNull();`);
     }
-    return 'invokeCtx';
+    return this.names.invokeCtx;
   }
 
   private setupOp(entry: { op: string } & Record<string, unknown>): void {
@@ -428,6 +602,7 @@ class JsComponentGenerator {
           this.defs,
           this.contexts,
           this.pluginFns,
+          this.names,
           {
             locals: this.locals,
             usedNames: this.usedNames,
@@ -537,7 +712,7 @@ class JsComponentGenerator {
         }
         const condition = this.segment(operation.condition);
         const captureName = (capture: SegmentMeta['captures'][number]): string =>
-          capture.access === 'component-prop' ? 'props' : this.local(capture.binding);
+          capture.access === 'component-prop' ? this.names.props : this.local(capture.binding);
         const stepRoots = condition.captures.map(captureName);
         const thenMeta = this.segment(operation.then.segment);
         const thenQrl = this.qrlExpression(thenMeta);
@@ -559,13 +734,13 @@ class JsComponentGenerator {
         this.imports.add('createSsrNodeId');
         const deferred = this.asyncSteps.length > 0;
         this.statements.push(
-          deferred ? `let ${idVariable};` : `const ${idVariable} = ctx.nextId();`
+          deferred ? `let ${idVariable};` : `const ${idVariable} = ${this.names.ctx}.nextId();`
         );
         this.pushStep(
           step,
           stepRoots,
-          `renderSsrBranch(ctx, ${idVariable}, ${this.qrlExpression(condition)}, ${thenQrl}, ${elseQrl}${operation.root ? ", '', true" : ''})`,
-          deferred ? `${idVariable} ??= ctx.nextId(); ` : undefined
+          `renderSsrBranch(${this.names.ctx}, ${idVariable}, ${this.qrlExpression(condition)}, ${thenQrl}, ${elseQrl}${operation.root ? ", '', true" : ''})`,
+          deferred ? `${idVariable} ??= ${this.names.ctx}.nextId(); ` : undefined
         );
         parts.push(`createSsrRecord('<!b=', createSsrNodeId(${idVariable}), '>')`);
         parts.push(step);
@@ -594,7 +769,7 @@ class JsComponentGenerator {
         }
         const source = this.segment(operation.source.segment);
         const sourceCaptures = source.captures.map((capture) =>
-          capture.access === 'component-prop' ? 'props' : this.local(capture.binding)
+          capture.access === 'component-prop' ? this.names.props : this.local(capture.binding)
         );
         const idVariable = `collection_id_${this.nextTemp}`;
         const wrapped = `collection_${this.nextTemp}`;
@@ -603,18 +778,18 @@ class JsComponentGenerator {
         this.imports.add('renderSsrCollection');
         this.imports.add('createSsrRecord');
         this.imports.add('createSsrNodeId');
-        this.statements.push(`const ${idVariable} = ctx.nextId();`);
+        this.statements.push(`const ${idVariable} = ${this.names.ctx}.nextId();`);
         for (const capture of sourceCaptures) {
-          this.statements.push(`ctx.addRoot(${capture});`);
+          this.statements.push(`${this.names.ctx}.addRoot(${capture});`);
         }
         this.statements.push(
-          `const ${wrapped} = _wrapArray(${this.qrlExpression(source)});`,
-          `if (!Array.isArray(${wrapped})) ctx.addRoot(${wrapped});`
+          `const ${wrapped} = _wrapArray(${this.qrlExpression(source)}${(operation.source as { keepSource?: boolean }).keepSource === true ? ', true' : ''});`,
+          `if (!Array.isArray(${wrapped})) ${this.names.ctx}.addRoot(${wrapped});`
         );
         const keyQrl = this.qrlExpression(this.segment(operation.key));
         const renderQrl = this.qrlExpression(this.segment(row.segment.segment));
         this.statements.push(
-          `const ${step} = renderSsrCollection(ctx, ${idVariable}, ${wrapped}, ${keyQrl}, ${renderQrl}, ${operation.usesIndexSignal}, '', ${operation.usesRowId}, ${operation.rowShape});`
+          `const ${step} = renderSsrCollection(${this.names.ctx}, ${idVariable}, ${wrapped}, ${keyQrl}, ${renderQrl}, ${operation.usesIndexSignal}, '', ${operation.usesRowId}, ${operation.rowShape});`
         );
         this.asyncSteps.push({ name: step, expr: step });
         parts.push(`createSsrRecord('<!f=', createSsrNodeId(${idVariable}), '>')`);
@@ -642,13 +817,13 @@ class JsComponentGenerator {
         this.imports.add('createSsrSuspense');
         const deferred = this.asyncSteps.length > 0;
         this.statements.push(
-          deferred ? `let ${idVariable};` : `const ${idVariable} = ctx.nextId();`
+          deferred ? `let ${idVariable};` : `const ${idVariable} = ${this.names.ctx}.nextId();`
         );
         this.pushStep(
           step,
           [],
           `createSsrSuspense(ctx, ${idVariable}, ${contentQrl}, ${fallbackQrl}, 0)`,
-          deferred ? `${idVariable} ??= ctx.nextId(); ` : undefined
+          deferred ? `${idVariable} ??= ${this.names.ctx}.nextId(); ` : undefined
         );
         parts.push(step);
         return;
@@ -666,7 +841,7 @@ class JsComponentGenerator {
           // fallback captures root unconditionally, like the emitted prep
           for (const capture of meta.captures) {
             this.statements.push(
-              `ctx.addRoot(${capture.access === 'component-prop' ? 'props' : this.local(capture.binding)});`
+              `${this.names.ctx}.addRoot(${capture.access === 'component-prop' ? this.names.props : this.local(capture.binding)});`
             );
           }
           fallback = this.qrlExpression(meta);
@@ -677,7 +852,7 @@ class JsComponentGenerator {
         this.pushStep(
           step,
           [],
-          `renderSsrSlot(ctx, ${JSON.stringify(operation.name)}, ${fallback}, getActiveInvokeContextOrNull())`
+          `renderSsrSlot(${this.names.ctx}, ${JSON.stringify(operation.name)}, ${fallback}, getActiveInvokeContextOrNull())`
         );
         parts.push(step);
         return;
@@ -703,11 +878,14 @@ class JsComponentGenerator {
     }
     let childName: string;
     if (typeof target === 'string') {
-      // lexical reference to a local component in scope
-      if (!this.localComponents.has(target)) {
+      // lexical local component, else a module/imported component in scope by name
+      if (this.localComponents.has(target)) {
+        childName = target;
+      } else if (this.shared.production && /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(target)) {
+        childName = target;
+      } else {
         markUngeneratable();
       }
-      childName = target;
     } else {
       const child = this.plan.components[target.ref];
       if (child === undefined) {
@@ -725,7 +903,10 @@ class JsComponentGenerator {
       slotScope = `slot_scope_${this.nextTemp++}`;
       this.imports.add('createSlotScope');
       this.imports.add('registerProjection');
-      this.statements.push(`const ${slotScope} = createSlotScope();`, `ctx.addRoot(${slotScope});`);
+      this.statements.push(
+        `const ${slotScope} = createSlotScope();`,
+        `${this.names.ctx}.addRoot(${slotScope});`
+      );
       for (const slot of operation.slots) {
         if (slot.idBase !== null || slot.render.segment === undefined) {
           markUngeneratable();
@@ -733,7 +914,7 @@ class JsComponentGenerator {
         const meta = this.segment(slot.render.segment);
         for (const capture of meta.captures) {
           this.statements.push(
-            `ctx.addRoot(${capture.access === 'component-prop' ? 'props' : this.local(capture.binding)});`
+            `${this.names.ctx}.addRoot(${capture.access === 'component-prop' ? this.names.props : this.local(capture.binding)});`
           );
         }
         this.statements.push(
@@ -827,7 +1008,7 @@ class JsComponentGenerator {
     this.pushStep(
       step,
       sourceLocals,
-      `createComponent(${propsExpr}, (props) => ${childName}(props, ctx)${options})`
+      `createComponent(${propsExpr}, (props) => ${childName}(props, ${this.names.ctx})${options})`
     );
     parts.push(step);
   }
@@ -868,6 +1049,7 @@ class JsComponentGenerator {
       this.defs,
       this.contexts,
       this.pluginFns,
+      this.names,
       {
         locals: this.locals,
         usedNames: this.usedNames,
@@ -884,7 +1066,7 @@ class JsComponentGenerator {
         null,
         false,
         false,
-        `(ctx, __rangeId, __rowId${paramNames.map((name) => `, ${name}`).join('')})`
+        `(${this.names.ctx}, __rangeId, __rowId${paramNames.map((name) => `, ${name}`).join('')})`
       )
     );
     const step = `collection_result_${this.nextTemp++}`;
@@ -892,7 +1074,7 @@ class JsComponentGenerator {
     this.pushStep(
       step,
       [],
-      `renderSsrCollection(ctx, undefined, ${this.irJs(sourceIr)}, undefined, ${row.symbolName}, ${operation.usesIndexSignal}, '', ${operation.usesRowId}, ${operation.rowShape})`
+      `renderSsrCollection(${this.names.ctx}, undefined, ${this.irJs(sourceIr)}, undefined, ${row.symbolName}, ${operation.usesIndexSignal}, '', ${operation.usesRowId}, ${operation.rowShape})`
     );
     parts.push(step);
   }
@@ -908,7 +1090,7 @@ class JsComponentGenerator {
     }
     const meta = this.segment(operation.segment);
     const captures = meta.captures.map((capture) =>
-      capture.access === 'component-prop' ? 'props' : this.local(capture.binding)
+      capture.access === 'component-prop' ? this.names.props : this.local(capture.binding)
     );
     const idVariable = `content_id_${this.nextTemp}`;
     const step = `content_${this.nextTemp++}`;
@@ -921,13 +1103,13 @@ class JsComponentGenerator {
       // deferred content allocates its id when the step runs, keeping q:id chain order
       this.statements.push(`let ${idVariable};`);
     } else {
-      this.statements.push(`const ${idVariable} = ctx.nextId();`);
+      this.statements.push(`const ${idVariable} = ${this.names.ctx}.nextId();`);
     }
     this.pushStep(
       step,
       captures,
-      `renderSsrContent(ctx, ${idVariable}, [${captures.join(', ')}], ${this.qrlExpression(meta, false)})`,
-      deferred ? `${idVariable} ??= ctx.nextId(); ` : undefined
+      `renderSsrContent(${this.names.ctx}, ${idVariable}, [${captures.join(', ')}], ${this.qrlExpression(meta, false)})`,
+      deferred ? `${idVariable} ??= ${this.names.ctx}.nextId(); ` : undefined
     );
     parts.push(`createSsrRecord('<!d=', createSsrNodeId(${idVariable}), '>')`);
     parts.push(`escapeSsrContent(${step})`);
@@ -1070,7 +1252,7 @@ class JsComponentGenerator {
         }
         const meta = this.segment(segmentId);
         const captures = meta.captures.map((capture) =>
-          capture.access === 'component-prop' ? 'props' : this.local(capture.binding)
+          capture.access === 'component-prop' ? this.names.props : this.local(capture.binding)
         );
         const step = `attr_${this.nextTemp++}`;
         this.imports.add('createSsrElementTarget');
@@ -1111,7 +1293,7 @@ class JsComponentGenerator {
           this.imports.add('inlinedQrl');
           this.imports.add(symbol);
           open.push(
-            `ctx.eventAttr(${JSON.stringify(event.name)}, inlinedQrl(${symbol}, ${JSON.stringify(symbol)}, [${this.local(ir.binding)}]))`
+            `${this.names.ctx}.eventAttr(${JSON.stringify(event.name)}, inlinedQrl(${symbol}, ${JSON.stringify(symbol)}, [${this.local(ir.binding)}]))`
           );
           return true;
         }
@@ -1126,7 +1308,7 @@ class JsComponentGenerator {
             return false;
           }
           const captures = meta.captures.map((capture) =>
-            capture.access === 'component-prop' ? 'props' : this.local(capture.binding)
+            capture.access === 'component-prop' ? this.names.props : this.local(capture.binding)
           );
           const step = `event_${this.nextTemp++}`;
           this.imports.add('renderSsrEvent');
@@ -1134,7 +1316,7 @@ class JsComponentGenerator {
           this.pushStep(
             step,
             captures,
-            `renderSsrEvent(createSsrElementTarget(${idVariable}), ${JSON.stringify(event.name)}, [${captures.join(', ')}], ${this.qrlExpression(meta, false)}, ctx.eventAttr, [], [])`,
+            `renderSsrEvent(createSsrElementTarget(${idVariable}), ${JSON.stringify(event.name)}, [${captures.join(', ')}], ${this.qrlExpression(meta, false)}, ${this.names.ctx}.eventAttr, [], [])`,
             this.claimId(idVariable)
           );
           open.push(`(${step} ?? '')`);
@@ -1143,7 +1325,9 @@ class JsComponentGenerator {
         if (meta.kind !== 'event') {
           return false;
         }
-        open.push(`ctx.eventAttr(${JSON.stringify(event.name)}, ${this.qrlExpression(meta)})`);
+        open.push(
+          `${this.names.ctx}.eventAttr(${JSON.stringify(event.name)}, ${this.qrlExpression(meta)})`
+        );
         return true;
       }
       default:
@@ -1179,7 +1363,7 @@ class JsComponentGenerator {
       // expression text: the segment fn evaluates with captures under the invoke context
       const meta = this.segment(segmentId);
       const captures = meta.captures.map((capture) =>
-        capture.access === 'component-prop' ? 'props' : this.local(capture.binding)
+        capture.access === 'component-prop' ? this.names.props : this.local(capture.binding)
       );
       this.imports.add('renderSsrTextExpression');
       this.pushStep(
@@ -1206,7 +1390,7 @@ class JsComponentGenerator {
 
   private qrlExpression(meta: SegmentMeta, withCaptures = true): string {
     const qrl = `q_${meta.symbolName}`;
-    if (!this.hoistedSegments.has(meta.id)) {
+    if (!this.shared.production && !this.hoistedSegments.has(meta.id)) {
       this.hoistedSegments.add(meta.id);
       this.imports.add('_qrlWithChunk');
       this.hoists.push(
@@ -1222,7 +1406,7 @@ class JsComponentGenerator {
       return qrl;
     }
     const captures = meta.captures.map((capture) =>
-      capture.access === 'component-prop' ? 'props' : this.local(capture.binding)
+      capture.access === 'component-prop' ? this.names.props : this.local(capture.binding)
     );
     return captures.length === 0 ? qrl : `${qrl}.w([${captures.join(', ')}])`;
   }
@@ -1346,9 +1530,11 @@ class JsComponentGenerator {
         if (pluginFn === undefined) {
           markUngeneratable();
         }
-        const importLine = `import { ${pluginFn.exportName} } from ${JSON.stringify(pluginFn.module)};`;
-        if (!this.chunkImports.includes(importLine)) {
-          this.chunkImports.push(importLine);
+        if (!this.shared.production) {
+          const importLine = `import { ${pluginFn.exportName} } from ${JSON.stringify(pluginFn.module)};`;
+          if (!this.chunkImports.includes(importLine)) {
+            this.chunkImports.push(importLine);
+          }
         }
         const args = ir.args.map((argument) => this.irJs(argument, scope));
         return `${pluginFn.exportName}(${args.join(', ')})`;

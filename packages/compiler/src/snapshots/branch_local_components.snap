@@ -24,8 +24,8 @@ import {
   createSsrNodeId,
   createSsrElementRecord,
   createSsrRangeTextTarget,
-  renderSsrTextExpression,
   escapeHTML,
+  renderSsrTextExpression,
   maybeThen,
   renderSsrBranch,
   createSsrRecord,
@@ -67,53 +67,54 @@ const q_component_branch_else_segment_4_19dvrvh6znjhf = /*#__PURE__*/ _qrlWithCh
 );
 function Counter(props, ctx) {
   const { count } = props;
-  const id0 = ctx.nextId();
+  const id_0 = ctx.nextId();
   ctx.addRoot(props);
-  const text1 = renderSsrTextExpression(
-    createSsrRangeTextTarget(id0, 0),
+  const text_0 = renderSsrTextExpression(
+    createSsrRangeTextTarget(id_0, 0),
     [props],
     q_component_text_segment_0_1fh10fbkzokfc
   );
-  return maybeThen(text1, (text1) => [
-    createSsrElementRecord('p', '<p q:id="', createSsrNodeId(id0), '"', '>'),
+  return maybeThen(text_0, (text_0) => [
+    createSsrElementRecord('p', '<p q:id="', createSsrNodeId(id_0), '"', '>'),
     'Count: <!t>',
-    escapeHTML(text1),
+    escapeHTML(text_0),
     '<!/t></p>',
   ]);
 }
 export { Counter };
 function Hello(props, ctx) {
   const { name } = props;
-  const id0 = ctx.nextId();
+  const id_0 = ctx.nextId();
   ctx.addRoot(props);
-  const text1 = renderSsrTextExpression(
-    createSsrRangeTextTarget(id0, 0),
+  const text_0 = renderSsrTextExpression(
+    createSsrRangeTextTarget(id_0, 0),
     [props],
     q_component_text_segment_1_1fh10tcowimfv
   );
-  return maybeThen(text1, (text1) => [
-    createSsrElementRecord('p', '<p q:id="', createSsrNodeId(id0), '"', '>'),
+  return maybeThen(text_0, (text_0) => [
+    createSsrElementRecord('p', '<p q:id="', createSsrNodeId(id_0), '"', '>'),
     'Hello, <!t>',
-    escapeHTML(text1),
+    escapeHTML(text_0),
     '<!/t>!</p>',
   ]);
 }
 export { Hello };
 export function App(props, ctx) {
   const count = useSignal(0);
-  const branchId0 = ctx.nextId();
+  const branch_id_0 = ctx.nextId();
   ctx.addRoot(count);
-  const branch1 = renderSsrBranch(
+  ctx.addRoot(count);
+  const branch_0 = renderSsrBranch(
     ctx,
-    branchId0,
+    branch_id_0,
     q_component_branch_condition_segment_2_2fzrhmrz1xde7.w([count]),
     q_component_branch_then_segment_3_24n7atwir5934,
     q_component_branch_else_segment_4_19dvrvh6znjhf.w([count])
   );
-  return maybeThen(branch1, (branch1) => [
-    createSsrElementRecord('section', '<section', '>'),
-    createSsrRecord('<!b=', createSsrNodeId(branchId0), '>'),
-    branch1,
+  return maybeThen(branch_0, (branch_0) => [
+    '<section>',
+    createSsrRecord('<!b=', createSsrNodeId(branch_id_0), '>'),
+    branch_0,
     '<!/b></section>',
   ]);
 }

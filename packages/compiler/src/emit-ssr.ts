@@ -15,6 +15,8 @@ import {
   TargetImportResolver,
 } from './emit-qrl';
 import { emitFunctionRenders } from './emit-function';
+import { emitSsrOpPlan } from './emit-plan-ssr';
+import { emitJsProductionRender } from './emit-js';
 import {
   getSegmentImportPath,
   shouldResolveSsrSegment,
@@ -84,6 +86,156 @@ interface SsrStyleScope {
   readonly runtimeName: string | null;
 }
 
+export interface SsrPlanData {
+  readonly defs: readonly { readonly name: string }[];
+  readonly contexts: readonly {
+    readonly binding: number;
+    readonly name: string;
+    readonly declaredName?: string;
+  }[];
+  readonly pluginFns: readonly {
+    readonly fnId: string;
+    readonly module: string;
+    readonly exportName: string;
+  }[];
+  readonly bindingName: (binding: number) => string | null;
+}
+
+const EMPTY_PLAN_DATA: SsrPlanData = {
+  defs: [],
+  contexts: [],
+  pluginFns: [],
+  bindingName: () => null,
+};
+
+let jsGenCoverage: { generated: number; fallback: number } | null = null;
+
+/** Test-only tap: counts components emitted from the wire plan vs the legacy fallback. */
+export function startJsGenCoverage(): { generated: number; fallback: number } {
+  jsGenCoverage = { generated: 0, fallback: 0 };
+  return jsGenCoverage;
+}
+
+export function stopJsGenCoverage(): void {
+  jsGenCoverage = null;
+}
+
+/** Plan-first production emission for one component; null falls back to the legacy walker. */
+function emitJsRenderForComponent(
+  output: ComponentOutput,
+  source: string,
+  componentReturnMode: SsrComponentReturnModeResolver,
+  generatedNames: GeneratedNames,
+  planData: SsrPlanData,
+  importNames: { readonly core: ReadonlySet<string>; readonly taken: ReadonlySet<string> }
+): (SsrRender & { readonly setup: SsrSetup }) | null {
+  const wire = emitSsrOpPlan(
+    output.result,
+    output.result.segments,
+    componentReturnMode,
+    source,
+    planData.bindingName
+  );
+  if (wire === null) {
+    if (jsGenCoverage !== null) {
+      jsGenCoverage.fallback++;
+    }
+    return null;
+  }
+  const parameter = output.result.shape.parameter;
+  const props =
+    parameter == null
+      ? null
+      : parameter.kind === 'identifier'
+        ? { kind: 'identifier' as const, binding: parameter.bindingIds[0] }
+        : {
+            kind: 'object' as const,
+            bindings: parameter.bindingIds.map((b) => ({
+              b,
+              name: planData.bindingName(b) ?? '',
+            })),
+          };
+  // captured (inline) components get a _captures prelude the generator does not model yet
+  if (output.result.captures.length > 0) {
+    if (jsGenCoverage !== null) {
+      jsGenCoverage.fallback++;
+    }
+    return null;
+  }
+  const pieces = emitJsProductionRender(
+    wire,
+    {
+      name: output.component.exportName == null ? '' : String(output.component.exportName),
+      propsBindings: parameter?.kind === 'identifier' ? parameter.bindingIds : [],
+      props,
+      providesContext: output.result.providesContext,
+    },
+    output.result.segments.map((segment) => ({
+      id: segment.id,
+      symbolName: segment.symbolName,
+      chunk: '',
+      kind: segment.kind,
+      resolved: false,
+      qrl:
+        segment.qrl === null
+          ? null
+          : {
+              kind: segment.qrl.kind,
+              ...(segment.qrl.kind === 'implicit' ? { role: segment.qrl.role } : {}),
+            },
+      captures: segment.captures.map((capture) => ({
+        binding: capture.bindingId,
+        name: capture.name,
+        source: capture.source,
+        access: capture.access,
+      })),
+      ...(segment.visibleTaskStrategy == null
+        ? {}
+        : { visibleTaskStrategy: segment.visibleTaskStrategy }),
+    })),
+    planData.defs as never,
+    planData.contexts,
+    planData.pluginFns as never,
+    {
+      // the emitted head names the props param after the component's own parameter
+      props:
+        (output.component.params.length === 1 ? output.component.params[0]?.name : undefined) ??
+        generatedNames.props,
+      ctx: generatedNames.ctx,
+      invokeCtx: generatedNames.invokeCtx,
+    }
+  );
+  if (pieces === null) {
+    if (jsGenCoverage !== null) {
+      jsGenCoverage.fallback++;
+    }
+    return null;
+  }
+  // names the module already imports from core need no re-import; other collisions bail
+  const neededImports: string[] = [];
+  for (const name of pieces.imports) {
+    if (importNames.core.has(name)) {
+      continue;
+    }
+    if (importNames.taken.has(name)) {
+      if (jsGenCoverage !== null) {
+        jsGenCoverage.fallback++;
+      }
+      return null;
+    }
+    neededImports.push(name);
+  }
+  if (jsGenCoverage !== null) {
+    jsGenCoverage.generated++;
+  }
+  return {
+    imports: neededImports,
+    statements: pieces.statements,
+    value: pieces.value,
+    setup: { imports: [], statements: pieces.setupStatements, flushTasks: pieces.flushTasks },
+  };
+}
+
 export function emitSsrModule(
   outputs: readonly ComponentOutput[],
   segments: readonly SegmentPlan[],
@@ -96,7 +248,12 @@ export function emitSsrModule(
   componentReturnMode: SsrComponentReturnModeResolver,
   functions: readonly FunctionRenderPlan[],
   moduleRoots: readonly SegmentPlan[],
-  inlineComponents: readonly InlineComponentReferencePlan[]
+  inlineComponents: readonly InlineComponentReferencePlan[],
+  planData: SsrPlanData = EMPTY_PLAN_DATA,
+  importNames: {
+    readonly core: ReadonlySet<string>;
+    readonly taken: ReadonlySet<string>;
+  } = { core: new Set(), taken: new Set() }
 ): EmittedModule | null {
   const imports = new Set<string>();
   const components: EmittedComponentCode[] = [];
@@ -234,14 +391,26 @@ export function emitSsrModule(
     const componentSegments = new Map(
       output.result.segments.map((segment) => [segment.id, segment])
     );
-    const render = emitComponentRender(
-      planned,
-      source,
-      componentSegments,
-      qrlImports,
-      localImplementationSource,
-      generatedNames
-    );
+    // plan-first: the wire plan is the cross-engine contract; generated bodies replace the
+    // legacy tree walk per component, with the legacy path as fallback. Rendered bytes are
+    // held identical by the Layer-A goldens and e2e suites.
+    const render =
+      emitJsRenderForComponent(
+        output,
+        source,
+        componentReturnMode,
+        generatedNames,
+        planData,
+        importNames
+      ) ??
+      emitComponentRender(
+        planned,
+        source,
+        componentSegments,
+        qrlImports,
+        localImplementationSource,
+        generatedNames
+      );
     if (render === null) {
       return null;
     }

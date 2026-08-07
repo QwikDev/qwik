@@ -14,7 +14,6 @@ export function App() {
 
 import {
   useSignal,
-  createSsrElementRecord,
   renderSsrBranch,
   createSsrRecord,
   createSsrNodeId,
@@ -40,21 +39,21 @@ export function App(props, ctx) {
   const visible = useSignal(true);
   const label = useSignal('ready');
   const attrs = useSignal({ role: 'status' });
-  const branchId0 = ctx.nextId();
+  const branch_id_0 = ctx.nextId();
   ctx.addRoot(visible);
   ctx.addRoot(attrs);
   ctx.addRoot(label);
-  const branch1 = renderSsrBranch(
+  const branch_0 = renderSsrBranch(
     ctx,
-    branchId0,
+    branch_id_0,
     q_component_branch_condition_segment_0_2fzrieu6vlhf9.w([visible]),
     q_component_branch_then_segment_1_24n7blyqktd46.w([attrs, label]),
     undefined
   );
-  return maybeThen(branch1, (branch1) => [
-    createSsrElementRecord('div', '<div', '>'),
-    createSsrRecord('<!b=', createSsrNodeId(branchId0), '>'),
-    branch1,
+  return maybeThen(branch_0, (branch_0) => [
+    '<div>',
+    createSsrRecord('<!b=', createSsrNodeId(branch_id_0), '>'),
+    branch_0,
     '<!/b></div>',
   ]);
 }

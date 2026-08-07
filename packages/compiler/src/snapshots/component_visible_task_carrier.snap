@@ -15,7 +15,6 @@ import {
   useSignal,
   useOnDocument,
   createVisibleTaskHandlerQrl,
-  createSsrElementRecord,
   _qrlWithChunk,
 } from '@qwik.dev/core';
 import { component_useVisibleTask$_segment_0_97oyvf4nsls9 } from './component.tsx_component_useVisibleTask$_segment_0_97oyvf4nsls9';
@@ -34,7 +33,7 @@ export function App(props, ctx) {
     'qinit',
     createVisibleTaskHandlerQrl(q_component_useVisibleTask$_segment_0_97oyvf4nsls9.w([count]))
   );
-  return [createSsrElementRecord('button', '<button', '>'), 'Ready</button>'];
+  return '<button>Ready</button>';
 }
 ============================= src/component.tsx_component_useVisibleTask$_segment_0_97oyvf4nsls9.js (ENTRY POINT)==
 

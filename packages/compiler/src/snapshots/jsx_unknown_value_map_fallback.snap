@@ -20,7 +20,6 @@ export function App() {
 ============================= src/component.tsx ==
 
 import {
-  createSsrElementRecord,
   _wrapArray,
   renderSsrCollection,
   createSsrRecord,
@@ -64,14 +63,14 @@ function getItems() {
 }
 export function App(props, ctx) {
   const items = getItems();
-  const collectionId0 = ctx.nextId();
+  const collection_id_0 = ctx.nextId();
   ctx.addRoot(items);
-  const collection1 = _wrapArray(q_semantic_collectionSource_150_161_3tkttngg2391p.w([items]));
-  if (!Array.isArray(collection1)) ctx.addRoot(collection1);
-  const collectionResult2 = renderSsrCollection(
+  const collection_0 = _wrapArray(q_semantic_collectionSource_150_161_3tkttngg2391p.w([items]));
+  if (!Array.isArray(collection_0)) ctx.addRoot(collection_0);
+  const collection_result_0 = renderSsrCollection(
     ctx,
-    collectionId0,
-    collection1,
+    collection_id_0,
+    collection_0,
     q_component_for_key_segment_1_24ursak4wzpxf,
     q_component_for_render_segment_0_asyt89wzo2d3,
     false,
@@ -79,10 +78,10 @@ export function App(props, ctx) {
     false,
     0
   );
-  return maybeThen(collectionResult2, (collectionResult2) => [
-    createSsrElementRecord('ul', '<ul', '>'),
-    createSsrRecord('<!f=', createSsrNodeId(collectionId0), '>'),
-    collectionResult2,
+  return maybeThen(collection_result_0, (collection_result_0) => [
+    '<ul>',
+    createSsrRecord('<!f=', createSsrNodeId(collection_id_0), '>'),
+    collection_result_0,
     '<!/f></ul>',
   ]);
 }

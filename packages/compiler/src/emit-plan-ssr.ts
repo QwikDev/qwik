@@ -230,9 +230,11 @@ export function emitSsrOpPlan(
     ...(value.kind !== 'render-value' && value.ir !== undefined ? { ir: value.ir } : {}),
     ...(value.kind === 'segment' ? { segment: value.segment.segmentId } : {}),
     // pure sources embed verbatim; boundary/JSX-bearing ones need their replacements
-    ...(value.kind === 'expression' &&
-    value.boundaries.length === 0 &&
-    value.embeddedRenders.length === 0
+    ...((value.kind === 'expression' &&
+      value.boundaries.length === 0 &&
+      value.embeddedRenders.length === 0) ||
+    value.kind === 'source' ||
+    value.kind === 'render-value'
       ? { raw: true as const }
       : {}),
   });

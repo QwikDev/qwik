@@ -1003,8 +1003,12 @@ class JsComponentGenerator {
         return;
       }
       case SsrOpKind.Suspense: {
-        if (operation.inOrder !== null || operation.delay !== null) {
-          markUngeneratable();
+        if (operation.inOrder !== null) {
+          // in-order suspense renders its content inline, no suspense machinery
+          for (const inner of operation.inOrder) {
+            this.op(inner, parts, pushStatic, topLevel);
+          }
+          return;
         }
         if (operation.content.segment === undefined) {
           markUngeneratable();
@@ -1012,11 +1016,37 @@ class JsComponentGenerator {
         const contentQrl = this.qrlExpression(this.segment(operation.content.segment));
         let fallbackQrl = 'undefined';
         if (operation.fallback !== null) {
-          if (operation.fallback.segment === undefined) {
-            markUngeneratable();
+          const fallbackValue = operation.fallback as {
+            segment?: string;
+            ir?: ValueIR;
+            raw?: true;
+            src: string;
+          };
+          if (fallbackValue.segment === undefined) {
+            if (fallbackValue.ir === undefined && fallbackValue.raw !== true) {
+              markUngeneratable();
+            }
+            fallbackQrl =
+              fallbackValue.ir === undefined
+                ? `(${fallbackValue.src})`
+                : this.irJs(fallbackValue.ir);
+          } else {
+            fallbackQrl = this.qrlExpression(this.segment(fallbackValue.segment));
           }
-          fallbackQrl = this.qrlExpression(this.segment(operation.fallback.segment));
         }
+        const delayValue = operation.delay as { ir?: ValueIR; raw?: true; src: string } | null;
+        let delayExpr = '0';
+        if (delayValue !== null) {
+          if (delayValue.ir === undefined && delayValue.raw !== true) {
+            markUngeneratable(operation);
+          }
+          delayExpr =
+            delayValue.ir === undefined ? `(${delayValue.src})` : this.irJs(delayValue.ir);
+        }
+        const contentMeta = this.segment(operation.content.segment);
+        const contentRoots = contentMeta.captures.map((capture) =>
+          capture.access === 'component-prop' ? this.names.props : this.local(capture.binding)
+        );
         const idVariable = `suspense_id_${this.nextTemp}`;
         const step = `suspense_${this.nextTemp++}`;
         this.imports.add('createSsrSuspense');
@@ -1026,8 +1056,8 @@ class JsComponentGenerator {
         );
         this.pushStep(
           step,
-          [],
-          `createSsrSuspense(ctx, ${idVariable}, ${contentQrl}, ${fallbackQrl}, 0)`,
+          contentRoots,
+          `createSsrSuspense(ctx, ${idVariable}, ${contentQrl}, ${fallbackQrl}, ${delayExpr})`,
           deferred ? `${idVariable} ??= ${this.names.ctx}.nextId(); ` : undefined
         );
         parts.push(step);
@@ -1095,30 +1125,27 @@ class JsComponentGenerator {
       childName = child.name;
     }
     let slotScope: string | null = null;
+    const slotPrep: string[] = [];
     if (operation.slots.length > 0) {
-      // slot prep is statement-level; inside a deferred step its root order is unproven
-      if (this.asyncSteps.length > 0) {
-        markUngeneratable();
-      }
       slotScope = `slot_scope_${this.nextTemp++}`;
       this.imports.add('createSlotScope');
       this.imports.add('registerProjection');
-      this.statements.push(
+      slotPrep.push(
         `const ${slotScope} = createSlotScope();`,
         `${this.names.ctx}.addRoot(${slotScope});`
       );
       for (const slot of operation.slots) {
-        if (slot.idBase !== null || slot.render.segment === undefined) {
+        if (slot.render.segment === undefined) {
           markUngeneratable();
         }
         const meta = this.segment(slot.render.segment);
         for (const capture of meta.captures) {
-          this.statements.push(
+          slotPrep.push(
             `${this.names.ctx}.addRoot(${capture.access === 'component-prop' ? this.names.props : this.local(capture.binding)});`
           );
         }
-        this.statements.push(
-          `registerProjection(${slotScope}, ${JSON.stringify(slot.name)}, ${this.qrlExpression(meta)});`
+        slotPrep.push(
+          `registerProjection(${slotScope}, ${JSON.stringify(slot.name)}, ${this.qrlExpression(meta)}${slot.idBase === null ? '' : `, undefined, ${slot.idBase}`});`
         );
       }
     }
@@ -1245,6 +1272,7 @@ class JsComponentGenerator {
       : this.names.ctx;
     const childArgs = `props, ${childContext}${operation.idBase === null ? '' : `, ${operation.idBase}`}`;
     const call = `createComponent(${propsExpr}, (props) => ${childName}(${childArgs})${options})`;
+    prepStatements.unshift(...slotPrep);
     if (operation.returnMode === 'sync' && this.synchronous) {
       // sync child in a sync block renders inline, matching the legacy direct path
       this.statements.push(...prepStatements);

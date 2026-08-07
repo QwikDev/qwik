@@ -30,7 +30,7 @@ export function App({ delay }) {
 
     expect(result.diagnostics).toEqual([]);
     expect(parseSync('suspense.js', main, { lang: 'js', sourceType: 'module' }).errors).toEqual([]);
-    expect(main).toMatch(/createSsrSuspense\(ctx, suspenseId\d+, q_[\w$]+, q_[\w$]+, delay\)/);
+    expect(main).toMatch(/createSsrSuspense\(ctx, suspense_id_\d+, q_[\w$]+, q_[\w$]+, delay\)/);
     expect(main).not.toContain("createSsrRecord('<!s='");
     expect(main).not.toContain('<q-s');
     expect(main).not.toContain('Reveal');

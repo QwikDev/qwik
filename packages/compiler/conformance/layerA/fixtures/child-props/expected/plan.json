@@ -203,7 +203,8 @@
                       "ir": {
                         "k": "signal-read",
                         "binding": 4
-                      }
+                      },
+                      "raw": true
                     },
                     "compilerString": false
                   }

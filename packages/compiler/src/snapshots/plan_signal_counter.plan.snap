@@ -56,7 +56,8 @@
                   "ir": {
                     "k": "signal-read",
                     "binding": 2
-                  }
+                  },
+                  "raw": true
                 },
                 "synchronous": false,
                 "target": {

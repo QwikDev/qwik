@@ -14,7 +14,7 @@ export function App(props, ctx) {
   const item = () => {
     return '<span>Item</span>';
   };
-  return [createSsrElementRecord('div', '<div', '>'), item(), item(), '</div>'];
+  return [createSsrElementRecord('div', '<div', '>'), item, item, '</div>'];
 }
 == SSR DIAGNOSTICS ==
 

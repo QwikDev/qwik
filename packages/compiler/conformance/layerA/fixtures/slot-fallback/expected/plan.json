@@ -75,7 +75,9 @@
         "needsRootRange": false,
         "needsId": false,
         "idBase": "qCard-",
-        "flushTasks": false
+        "flushTasks": false,
+        "providesContext": false,
+        "runtimeStyleScopeName": null
       },
       "setup": [],
       "render": [
@@ -194,6 +196,7 @@
                                   "binding": 5
                                 }
                               },
+                              "sourceSrc": "title",
                               "synchronous": false,
                               "target": {
                                 "kind": "element",
@@ -235,7 +238,9 @@
         "needsRootRange": false,
         "needsId": false,
         "idBase": "qApp-",
-        "flushTasks": false
+        "flushTasks": false,
+        "providesContext": false,
+        "runtimeStyleScopeName": null
       },
       "setup": [
         {

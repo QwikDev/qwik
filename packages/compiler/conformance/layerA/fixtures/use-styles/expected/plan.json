@@ -54,6 +54,7 @@
                     "binding": 3
                   }
                 },
+                "sourceSrc": "label",
                 "synchronous": false,
                 "target": {
                   "kind": "element",
@@ -68,7 +69,9 @@
         "needsRootRange": false,
         "needsId": false,
         "idBase": "qApp-",
-        "flushTasks": false
+        "flushTasks": false,
+        "providesContext": false,
+        "runtimeStyleScopeName": null
       },
       "setup": [
         {

@@ -117,6 +117,8 @@ export interface PlanValue {
   readonly src: string;
   readonly ir?: ValueIR;
   readonly segment?: string;
+  /** The expression hides QRL boundaries or embedded renders — src alone cannot re-emit it. */
+  readonly opaque?: true;
 }
 
 export interface PlanRenderFn {

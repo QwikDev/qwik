@@ -60,7 +60,9 @@
         "needsRootRange": false,
         "needsId": false,
         "idBase": "qPanel-",
-        "flushTasks": false
+        "flushTasks": false,
+        "providesContext": false,
+        "runtimeStyleScopeName": null
       },
       "setup": [
         {
@@ -157,7 +159,9 @@
         "needsRootRange": false,
         "needsId": false,
         "idBase": "qApp-",
-        "flushTasks": false
+        "flushTasks": false,
+        "providesContext": true,
+        "runtimeStyleScopeName": null
       },
       "setup": [
         {

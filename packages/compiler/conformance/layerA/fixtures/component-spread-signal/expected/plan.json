@@ -105,7 +105,9 @@
         "needsRootRange": false,
         "needsId": false,
         "idBase": "qBadge-",
-        "flushTasks": false
+        "flushTasks": false,
+        "providesContext": false,
+        "runtimeStyleScopeName": null
       },
       "setup": [],
       "render": [
@@ -255,7 +257,9 @@
         "needsRootRange": false,
         "needsId": false,
         "idBase": "qApp-",
-        "flushTasks": false
+        "flushTasks": false,
+        "providesContext": false,
+        "runtimeStyleScopeName": null
       },
       "setup": [
         {

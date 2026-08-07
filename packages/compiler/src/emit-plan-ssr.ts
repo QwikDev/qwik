@@ -50,6 +50,10 @@ export interface PlanSsrComponent {
   readonly needsId: boolean;
   readonly idBase: string;
   readonly flushTasks: boolean;
+  readonly providesContext: boolean;
+  readonly runtimeStyleScopeName: string | null;
+  /** The block hoists embedded render fns — src alone cannot re-emit it. */
+  readonly hasEmbedded?: true;
 }
 
 export interface PlanSsrRenderFn {
@@ -61,6 +65,7 @@ export interface PlanSsrRenderFn {
   readonly ops: readonly PlanSsrOp[];
   readonly synchronous: boolean;
   readonly needsRootRange: boolean;
+  readonly hasEmbedded?: true;
 }
 
 export interface PlanSsrRow extends PlanSsrRenderFn {
@@ -98,6 +103,7 @@ export type PlanSsrOp =
       readonly id: number | null;
       readonly void: boolean;
       readonly styleScopedId: string | null;
+      readonly runtimeScope?: true;
       readonly targetUses: number;
       readonly props: readonly PlanSsrProp[];
       readonly propsEffect: string | null;
@@ -107,6 +113,8 @@ export type PlanSsrOp =
       readonly o: SsrOpKind.Dynamic;
       readonly output: 'text' | 'content';
       readonly value: PlanValue;
+      /** Direct signal-read text: the sliced source expression `renderSsrTextNode` receives. */
+      readonly sourceSrc?: string;
       readonly synchronous: boolean;
       readonly target:
         | { readonly kind: 'element'; readonly id: number }
@@ -214,6 +222,10 @@ export function emitSsrOpPlan(
     src: slice(value.expression),
     ...(value.kind !== 'render-value' && value.ir !== undefined ? { ir: value.ir } : {}),
     ...(value.kind === 'segment' ? { segment: value.segment.segmentId } : {}),
+    ...(value.kind === 'expression' &&
+    (value.boundaries.length > 0 || value.embeddedRenders.length > 0)
+      ? { opaque: true as const }
+      : {}),
   });
 
   // statement ops live in the semantic setup tree, including local-component nesting
@@ -348,6 +360,7 @@ export function emitSsrOpPlan(
     ops: target.render.operations.map(op),
     synchronous: target.render.synchronous,
     needsRootRange: target.render.needsRootRange,
+    ...(target.render.embeddedRenders.length > 0 ? { hasEmbedded: true as const } : {}),
   });
 
   const rowBlock = (
@@ -377,6 +390,7 @@ export function emitSsrOpPlan(
           id: operation.targetId,
           void: operation.void,
           styleScopedId: operation.styleScopedId,
+          ...(operation.runtimeStyleScope ? { runtimeScope: true as const } : {}),
           targetUses: operation.elementTargetUses,
           props: operation.props.map(ssrProp),
           propsEffect: operation.propsEffect === null ? null : operation.propsEffect.segmentId,
@@ -387,6 +401,7 @@ export function emitSsrOpPlan(
           o: SsrOpKind.Dynamic,
           output: operation.output,
           value: planValue(operation.value),
+          ...(operation.source === null ? {} : { sourceSrc: slice(operation.source) }),
           synchronous: operation.synchronous,
           target:
             operation.target === null
@@ -522,6 +537,9 @@ export function emitSsrOpPlan(
       needsId: planned.needsId,
       idBase: planned.idBase,
       flushTasks: planned.flushTasks,
+      providesContext: planned.providesContext,
+      runtimeStyleScopeName: planned.runtimeStyleScopeName,
+      ...(planned.render.embeddedRenders.length > 0 ? { hasEmbedded: true as const } : {}),
     };
   } catch (error) {
     if (error === UNPLANNABLE) {

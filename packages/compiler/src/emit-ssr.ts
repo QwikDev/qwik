@@ -44,6 +44,7 @@ import {
 } from './plan-ssr';
 import type {
   BindingId,
+  ComponentPlan,
   OrderedPropPlan,
   ComponentDefinition,
   ComponentOutput,
@@ -54,6 +55,8 @@ import type {
   SegmentReferencePlan,
   ValuePlan,
 } from './plan-types';
+import { emitSsrOpPlan } from './emit-plan-ssr';
+import { reviveSsrComponent, type RevivedSsrComponent } from './plan-to-ssr';
 import {
   DEFAULT_GENERATED_NAMES,
   QWIK_IMPORT,
@@ -82,6 +85,59 @@ type SsrPart = string | { readonly literal: string };
 interface SsrStyleScope {
   readonly staticId: string | null;
   readonly runtimeName: string | null;
+}
+
+/** Wire-plan revival for plan-first emission; null when the wire cannot express the component. */
+function reviveFromWirePlan(
+  component: ComponentPlan,
+  returnMode: SsrComponentReturnModeResolver,
+  source: string
+): RevivedSsrComponent | null {
+  const wire = emitSsrOpPlan(component, component.segments, returnMode, source);
+  if (wire === null) {
+    return null;
+  }
+  return reviveSsrComponent(
+    wire,
+    component.segments.map((segment) => ({
+      id: segment.id,
+      symbolName: segment.symbolName,
+      chunk: '',
+      kind: segment.kind,
+      resolved: false,
+      qrl:
+        segment.qrl === null
+          ? null
+          : {
+              kind: segment.qrl.kind,
+              ...(segment.qrl.kind === 'implicit' ? { role: segment.qrl.role } : {}),
+            },
+      captures: segment.captures.map((capture) => ({
+        binding: capture.bindingId,
+        name: capture.name,
+        source: capture.source,
+        access: capture.access,
+      })),
+    }))
+  );
+}
+
+let planEmissionCoverage: { plan: number; fallback: number } | null = null;
+
+/** Test-only tap: counts components emitted from the wire plan vs the direct fallback. */
+export function startPlanEmissionCoverage(): { plan: number; fallback: number } {
+  planEmissionCoverage = { plan: 0, fallback: 0 };
+  return planEmissionCoverage;
+}
+
+export function stopPlanEmissionCoverage(): void {
+  planEmissionCoverage = null;
+}
+
+function reportPlanEmission(fromPlan: boolean): void {
+  if (planEmissionCoverage !== null) {
+    planEmissionCoverage[fromPlan ? 'plan' : 'fallback']++;
+  }
 }
 
 export function emitSsrModule(
@@ -234,17 +290,33 @@ export function emitSsrModule(
     const componentSegments = new Map(
       output.result.segments.map((segment) => [segment.id, segment])
     );
-    const render = emitComponentRender(
-      planned,
-      source,
-      componentSegments,
-      qrlImports,
-      localImplementationSource,
-      generatedNames
-    );
+    // plan-first emission: the wire plan is the cross-engine contract, so JS renders from it
+    // whenever it can express the component; the direct path remains the fallback, and the
+    // snapshot suite holds both to identical bytes.
+    const revived = reviveFromWirePlan(output.result, componentReturnMode, source);
+    const render =
+      (revived === null
+        ? null
+        : emitComponentRender(
+            revived.plan,
+            revived.source,
+            revived.segments,
+            qrlImports,
+            localImplementationSource,
+            generatedNames
+          )) ??
+      emitComponentRender(
+        planned,
+        source,
+        componentSegments,
+        qrlImports,
+        localImplementationSource,
+        generatedNames
+      );
     if (render === null) {
       return null;
     }
+    reportPlanEmission(revived !== null);
     for (const name of render.imports) {
       imports.add(name);
     }

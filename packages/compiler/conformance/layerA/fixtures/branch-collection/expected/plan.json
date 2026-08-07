@@ -308,6 +308,7 @@
                         "binding": 6
                       }
                     },
+                    "sourceSrc": "total",
                     "synchronous": false,
                     "target": {
                       "kind": "element",
@@ -324,7 +325,9 @@
         "needsRootRange": false,
         "needsId": false,
         "idBase": "qApp-",
-        "flushTasks": true
+        "flushTasks": true,
+        "providesContext": false,
+        "runtimeStyleScopeName": null
       },
       "setup": [
         {

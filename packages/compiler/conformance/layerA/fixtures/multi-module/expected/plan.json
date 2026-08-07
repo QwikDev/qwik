@@ -89,6 +89,7 @@
                     "binding": 3
                   }
                 },
+                "sourceSrc": "count",
                 "synchronous": false,
                 "target": {
                   "kind": "range",
@@ -104,7 +105,9 @@
         "needsRootRange": false,
         "needsId": false,
         "idBase": "qCounter-",
-        "flushTasks": false
+        "flushTasks": false,
+        "providesContext": false,
+        "runtimeStyleScopeName": null
       },
       "setup": [
         {
@@ -234,7 +237,9 @@
         "needsRootRange": false,
         "needsId": false,
         "idBase": "qApp-",
-        "flushTasks": false
+        "flushTasks": false,
+        "providesContext": false,
+        "runtimeStyleScopeName": null
       },
       "setup": [],
       "render": [

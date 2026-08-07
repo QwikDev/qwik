@@ -47,10 +47,12 @@
                   },
                   "segment": "segment_0"
                 },
-                "synchronous": false,
-                "target": {
-                  "kind": "element",
-                  "id": 0
+                "ssr": {
+                  "synchronous": false,
+                  "target": {
+                    "kind": "element",
+                    "id": 0
+                  }
                 }
               }
             ],

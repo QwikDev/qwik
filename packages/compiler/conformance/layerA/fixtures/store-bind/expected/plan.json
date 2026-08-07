@@ -104,10 +104,12 @@
                       },
                       "segment": "segment_1"
                     },
-                    "synchronous": false,
-                    "target": {
-                      "kind": "element",
-                      "id": 1
+                    "ssr": {
+                      "synchronous": false,
+                      "target": {
+                        "kind": "element",
+                        "id": 1
+                      }
                     }
                   }
                 ],

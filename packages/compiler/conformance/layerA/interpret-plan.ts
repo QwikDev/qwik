@@ -600,7 +600,7 @@ export async function buildInterpretedRoot(
           });
         }
         case 'dynamic': {
-          const planTarget = op.target;
+          const planTarget = op.ssr.target;
           if (planTarget === null || planTarget.id === null) {
             throw new Error('interpreter needs a targeted dynamic text site');
           }
@@ -903,7 +903,7 @@ export async function buildInterpretedRoot(
         case 'content': {
           const op2 = {
             segment: valueSegment((op as { value: unknown }).value)!,
-            root: (op as { root: boolean }).root,
+            root: (op as { ssr: { root: boolean } }).ssr.root,
           };
           if (op2.root) {
             throw new Error('interpreter cannot render root content ops yet');

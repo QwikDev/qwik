@@ -72,11 +72,13 @@
                         },
                         "segment": "segment_1"
                       },
-                      "synchronous": false,
-                      "target": {
-                        "kind": "range",
-                        "id": 0,
-                        "marker": 0
+                      "ssr": {
+                        "synchronous": false,
+                        "target": {
+                          "kind": "range",
+                          "id": 0,
+                          "marker": 0
+                        }
                       }
                     },
                     {
@@ -89,11 +91,13 @@
                           "binding": 2
                         }
                       },
-                      "synchronous": false,
-                      "target": {
-                        "kind": "range",
-                        "id": 0,
-                        "marker": 1
+                      "ssr": {
+                        "synchronous": false,
+                        "target": {
+                          "kind": "range",
+                          "id": 0,
+                          "marker": 1
+                        }
                       }
                     }
                   ],
@@ -122,7 +126,6 @@
               {
                 "kind": "component",
                 "target": "Badge",
-                "returnMode": "maybe-promise",
                 "props": [
                   {
                     "kind": "static",
@@ -136,9 +139,12 @@
                   }
                 ],
                 "propsSource": null,
-                "idBase": null,
-                "blockingSuspense": false,
-                "slots": []
+                "slots": [],
+                "ssr": {
+                  "returnMode": "maybe-promise",
+                  "idBase": null,
+                  "blockingSuspense": false
+                }
               }
             ],
             "ssr": {

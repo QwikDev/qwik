@@ -61,8 +61,10 @@
                     {
                       "kind": "slot",
                       "name": "",
-                      "idBase": null,
-                      "fallback": null
+                      "fallback": null,
+                      "ssr": {
+                        "idBase": null
+                      }
                     }
                   ],
                   "ssr": {
@@ -82,7 +84,6 @@
           {
             "kind": "component",
             "target": "Card",
-            "returnMode": "maybe-promise",
             "props": [
               {
                 "kind": "static",
@@ -91,8 +92,6 @@
               }
             ],
             "propsSource": null,
-            "idBase": null,
-            "blockingSuspense": false,
             "slots": [
               {
                 "name": "",
@@ -119,10 +118,12 @@
                               "binding": 3
                             }
                           },
-                          "synchronous": false,
-                          "target": {
-                            "kind": "element",
-                            "id": 0
+                          "ssr": {
+                            "synchronous": false,
+                            "target": {
+                              "kind": "element",
+                              "id": 0
+                            }
                           }
                         }
                       ],
@@ -138,7 +139,12 @@
                   }
                 }
               }
-            ]
+            ],
+            "ssr": {
+              "returnMode": "maybe-promise",
+              "idBase": null,
+              "blockingSuspense": false
+            }
           }
         ],
         "ssr": {

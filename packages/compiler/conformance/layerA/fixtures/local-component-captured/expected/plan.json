@@ -153,7 +153,9 @@
                             },
                             "segment": "semantic_expression_362_380"
                           },
-                          "root": false
+                          "ssr": {
+                            "root": false
+                          }
                         }
                       ],
                       "ssr": {
@@ -191,8 +193,6 @@
                   "kind": "signal-read",
                   "binding": 4
                 },
-                "root": false,
-                "idBase": null,
                 "then": {
                   "segment": "segment_3",
                   "setup": [],
@@ -200,7 +200,6 @@
                     {
                       "kind": "component",
                       "target": "Filter",
-                      "returnMode": "maybe-promise",
                       "props": [
                         {
                           "kind": "static",
@@ -209,9 +208,12 @@
                         }
                       ],
                       "propsSource": null,
-                      "idBase": null,
-                      "blockingSuspense": false,
-                      "slots": []
+                      "slots": [],
+                      "ssr": {
+                        "returnMode": "maybe-promise",
+                        "idBase": null,
+                        "blockingSuspense": false
+                      }
                     }
                   ],
                   "ssr": {
@@ -219,7 +221,11 @@
                     "needsRootRange": false
                   }
                 },
-                "else": null
+                "else": null,
+                "ssr": {
+                  "root": false,
+                  "idBase": null
+                }
               }
             ],
             "ssr": {

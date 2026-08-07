@@ -948,7 +948,7 @@ class JsComponentGenerator {
         this.componentCall(operation, parts);
         return;
       case SsrOpKind.Branch: {
-        if (operation.idBase !== null || operation.then.segment === undefined) {
+        if (operation.ssr.idBase !== null || operation.then.segment === undefined) {
           markUngeneratable();
         }
         const condition = this.segment(operation.condition);
@@ -980,7 +980,7 @@ class JsComponentGenerator {
         this.pushStep(
           step,
           stepRoots,
-          `renderSsrBranch(${this.names.ctx}, ${idVariable}, ${this.qrlExpression(condition)}, ${thenQrl}, ${elseQrl}${operation.root ? ", '', true" : ''})`,
+          `renderSsrBranch(${this.names.ctx}, ${idVariable}, ${this.qrlExpression(condition)}, ${thenQrl}, ${elseQrl}${operation.ssr.root ? ", '', true" : ''})`,
           deferred ? `${idVariable} ??= ${this.names.ctx}.nextId(); ` : undefined
         );
         parts.push(`createSsrRecord('<!b=', createSsrNodeId(${idVariable}), '>')`);
@@ -1114,7 +1114,7 @@ class JsComponentGenerator {
         return;
       }
       case SsrOpKind.Slot: {
-        if (operation.idBase !== null) {
+        if (operation.ssr.idBase !== null) {
           markUngeneratable();
         }
         let fallback = 'undefined';
@@ -1153,8 +1153,8 @@ class JsComponentGenerator {
     parts: string[]
   ): void {
     const target = operation.target;
-    if (operation.returnMode !== 'maybe-promise' && operation.returnMode !== 'sync') {
-      markUngeneratable(operation.returnMode);
+    if (operation.ssr.returnMode !== 'maybe-promise' && operation.ssr.returnMode !== 'sync') {
+      markUngeneratable(operation.ssr.returnMode);
     }
     let childName: string;
     if (typeof target === 'string') {
@@ -1319,13 +1319,13 @@ class JsComponentGenerator {
     }
     this.imports.add('createComponent');
     const options = slotScope === null ? '' : `, { slotScope: ${slotScope} }`;
-    const childContext = operation.blockingSuspense
+    const childContext = operation.ssr.blockingSuspense
       ? `${this.names.ctx}.inOrder()`
       : this.names.ctx;
-    const childArgs = `props, ${childContext}${operation.idBase === null ? '' : `, ${operation.idBase}`}`;
+    const childArgs = `props, ${childContext}${operation.ssr.idBase === null ? '' : `, ${operation.ssr.idBase}`}`;
     const call = `createComponent(${propsExpr}, (props) => ${childName}(${childArgs})${options})`;
     prepStatements.unshift(...slotPrep);
-    if (operation.returnMode === 'sync' && this.synchronous) {
+    if (operation.ssr.returnMode === 'sync' && this.synchronous) {
       // sync child in a sync block renders inline, matching the legacy direct path
       this.statements.push(...prepStatements);
       for (const local of sourceLocals) {
@@ -1416,7 +1416,7 @@ class JsComponentGenerator {
     parts: string[],
     pushStatic: (text: string) => void
   ): void {
-    if (operation.root) {
+    if (operation.ssr.root) {
       markUngeneratable();
     }
     const contentSegment = valueSegment(operation.value);
@@ -1895,7 +1895,7 @@ class JsComponentGenerator {
     parts: string[],
     pushStatic: (text: string) => void
   ): void {
-    const target = operation.target;
+    const target = operation.ssr.target;
     if (target === null) {
       this.targetlessDynamic(operation, parts);
       return;
@@ -1961,7 +1961,7 @@ class JsComponentGenerator {
       parts.push(`escapeHTML(String((${this.irJs(ir)}) ?? ''))`);
       return;
     }
-    if (operation.synchronous) {
+    if (operation.ssr.synchronous) {
       const expression = this.valueExpression(operation.value);
       if (expression === null) {
         markUngeneratable(operation);

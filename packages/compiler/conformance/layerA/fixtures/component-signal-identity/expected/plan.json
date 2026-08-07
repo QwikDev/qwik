@@ -168,7 +168,6 @@
                 "target": {
                   "ref": 0
                 },
-                "returnMode": "maybe-promise",
                 "props": [
                   {
                     "kind": "dynamic",
@@ -188,9 +187,12 @@
                   }
                 ],
                 "propsSource": null,
-                "idBase": null,
-                "blockingSuspense": false,
-                "slots": []
+                "slots": [],
+                "ssr": {
+                  "returnMode": "maybe-promise",
+                  "idBase": null,
+                  "blockingSuspense": false
+                }
               }
             ],
             "ssr": {

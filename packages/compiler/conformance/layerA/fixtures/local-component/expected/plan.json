@@ -216,7 +216,6 @@
                         {
                           "kind": "component",
                           "target": "Star",
-                          "returnMode": "maybe-promise",
                           "props": [
                             {
                               "kind": "static",
@@ -225,9 +224,12 @@
                             }
                           ],
                           "propsSource": null,
-                          "idBase": null,
-                          "blockingSuspense": false,
-                          "slots": []
+                          "slots": [],
+                          "ssr": {
+                            "returnMode": "maybe-promise",
+                            "idBase": null,
+                            "blockingSuspense": false
+                          }
                         },
                         {
                           "kind": "content",
@@ -244,7 +246,9 @@
                             },
                             "segment": "semantic_expression_443_461"
                           },
-                          "root": false
+                          "ssr": {
+                            "root": false
+                          }
                         }
                       ],
                       "ssr": {
@@ -301,7 +305,6 @@
                     {
                       "kind": "component",
                       "target": "Filter",
-                      "returnMode": "maybe-promise",
                       "props": [
                         {
                           "kind": "dynamic",
@@ -316,9 +319,12 @@
                         }
                       ],
                       "propsSource": null,
-                      "idBase": null,
-                      "blockingSuspense": false,
-                      "slots": []
+                      "slots": [],
+                      "ssr": {
+                        "returnMode": "maybe-promise",
+                        "idBase": null,
+                        "blockingSuspense": false
+                      }
                     }
                   ],
                   "ssr": {
@@ -344,7 +350,6 @@
               {
                 "kind": "component",
                 "target": "Filter",
-                "returnMode": "maybe-promise",
                 "props": [
                   {
                     "kind": "static",
@@ -353,9 +358,12 @@
                   }
                 ],
                 "propsSource": null,
-                "idBase": null,
-                "blockingSuspense": false,
-                "slots": []
+                "slots": [],
+                "ssr": {
+                  "returnMode": "maybe-promise",
+                  "idBase": null,
+                  "blockingSuspense": false
+                }
               }
             ],
             "ssr": {

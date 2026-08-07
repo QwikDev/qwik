@@ -74,8 +74,10 @@
               {
                 "kind": "slot",
                 "name": "",
-                "idBase": null,
-                "fallback": null
+                "fallback": null,
+                "ssr": {
+                  "idBase": null
+                }
               }
             ],
             "ssr": {
@@ -136,7 +138,6 @@
                 "target": {
                   "ref": 0
                 },
-                "returnMode": "maybe-promise",
                 "props": [
                   {
                     "kind": "static",
@@ -157,8 +158,6 @@
                   }
                 ],
                 "propsSource": null,
-                "idBase": null,
-                "blockingSuspense": false,
                 "slots": [
                   {
                     "name": "",
@@ -179,7 +178,12 @@
                       }
                     }
                   }
-                ]
+                ],
+                "ssr": {
+                  "returnMode": "maybe-promise",
+                  "idBase": null,
+                  "blockingSuspense": false
+                }
               },
               {
                 "kind": "element",
@@ -205,10 +209,12 @@
                         "binding": 5
                       }
                     },
-                    "synchronous": false,
-                    "target": {
-                      "kind": "element",
-                      "id": 0
+                    "ssr": {
+                      "synchronous": false,
+                      "target": {
+                        "kind": "element",
+                        "id": 0
+                      }
                     }
                   }
                 ],

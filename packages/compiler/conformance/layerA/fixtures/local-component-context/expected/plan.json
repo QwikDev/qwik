@@ -50,10 +50,12 @@
                         },
                         "segment": "segment_0"
                       },
-                      "synchronous": false,
-                      "target": {
-                        "kind": "element",
-                        "id": 0
+                      "ssr": {
+                        "synchronous": false,
+                        "target": {
+                          "kind": "element",
+                          "id": 0
+                        }
                       }
                     }
                   ],
@@ -116,12 +118,14 @@
                     {
                       "kind": "component",
                       "target": "Label",
-                      "returnMode": "maybe-promise",
                       "props": [],
                       "propsSource": null,
-                      "idBase": null,
-                      "blockingSuspense": false,
-                      "slots": []
+                      "slots": [],
+                      "ssr": {
+                        "returnMode": "maybe-promise",
+                        "idBase": null,
+                        "blockingSuspense": false
+                      }
                     }
                   ],
                   "ssr": {
@@ -141,7 +145,6 @@
           {
             "kind": "component",
             "target": "Section",
-            "returnMode": "maybe-promise",
             "props": [
               {
                 "kind": "static",
@@ -150,9 +153,12 @@
               }
             ],
             "propsSource": null,
-            "idBase": null,
-            "blockingSuspense": false,
-            "slots": []
+            "slots": [],
+            "ssr": {
+              "returnMode": "maybe-promise",
+              "idBase": null,
+              "blockingSuspense": false
+            }
           }
         ],
         "ssr": {

@@ -59,7 +59,9 @@
                       },
                       "segment": "segment_0"
                     },
-                    "root": false
+                    "ssr": {
+                      "root": false
+                    }
                   }
                 ],
                 "ssr": {

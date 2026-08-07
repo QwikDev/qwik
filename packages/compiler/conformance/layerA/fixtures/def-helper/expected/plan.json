@@ -45,7 +45,9 @@
                   },
                   "segment": "semantic_expression_190_208"
                 },
-                "root": false
+                "ssr": {
+                  "root": false
+                }
               }
             ],
             "ssr": {

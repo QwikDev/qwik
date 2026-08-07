@@ -53,10 +53,12 @@
                       },
                       "segment": "segment_0"
                     },
-                    "synchronous": false,
-                    "target": {
-                      "kind": "element",
-                      "id": 0
+                    "ssr": {
+                      "synchronous": false,
+                      "target": {
+                        "kind": "element",
+                        "id": 0
+                      }
                     }
                   }
                 ],
@@ -68,8 +70,10 @@
               {
                 "kind": "slot",
                 "name": "",
-                "idBase": null,
-                "fallback": null
+                "fallback": null,
+                "ssr": {
+                  "idBase": null
+                }
               }
             ],
             "ssr": {
@@ -121,7 +125,6 @@
             "target": {
               "ref": 0
             },
-            "returnMode": "maybe-promise",
             "props": [
               {
                 "kind": "static",
@@ -130,8 +133,6 @@
               }
             ],
             "propsSource": null,
-            "idBase": null,
-            "blockingSuspense": false,
             "slots": [
               {
                 "name": "",
@@ -162,11 +163,13 @@
                               "binding": 5
                             }
                           },
-                          "synchronous": false,
-                          "target": {
-                            "kind": "range",
-                            "id": 0,
-                            "marker": 0
+                          "ssr": {
+                            "synchronous": false,
+                            "target": {
+                              "kind": "range",
+                              "id": 0,
+                              "marker": 0
+                            }
                           }
                         }
                       ],
@@ -182,7 +185,12 @@
                   }
                 }
               }
-            ]
+            ],
+            "ssr": {
+              "returnMode": "maybe-promise",
+              "idBase": null,
+              "blockingSuspense": false
+            }
           }
         ],
         "ssr": {

@@ -1740,7 +1740,7 @@ impl ComponentGenerator<'_> {
 	}
 
 	fn write_slot(&mut self, op: &Json, target: &str) -> Result<(), String> {
-		if !op["idBase"].is_null() {
+		if !op["ssr"]["idBase"].is_null() {
 			return Err("slot idBase not supported yet".to_string());
 		}
 		let name = op["name"].as_str().ok_or("slot has no name")?;
@@ -1810,7 +1810,7 @@ impl ComponentGenerator<'_> {
 	}
 
 	fn write_branch(&mut self, op: &Json, target: &str) -> Result<(), String> {
-		if !op["idBase"].is_null() {
+		if !op["ssr"]["idBase"].is_null() {
 			return Err("branch idBase not supported yet".to_string());
 		}
 		let condition_ir = &op["conditionIr"];
@@ -2229,7 +2229,7 @@ impl ComponentGenerator<'_> {
 		if ir.is_null() {
 			return Err(format!("content op {segment_id:?} without a lowered value"));
 		}
-		if op["root"].as_bool() == Some(true) {
+		if op["ssr"]["root"].as_bool() == Some(true) {
 			return Err("root content ops not supported yet".to_string());
 		}
 		self.uses_ctx = true;
@@ -2317,7 +2317,7 @@ impl ComponentGenerator<'_> {
 		if op["output"].as_str() != Some("text") {
 			return Err("dynamic content output not supported yet".to_string());
 		}
-		let plan_target = &op["target"];
+		let plan_target = &op["ssr"]["target"];
 		let target_kind = plan_target["kind"]
 			.as_str()
 			.ok_or("dynamic target missing")?;

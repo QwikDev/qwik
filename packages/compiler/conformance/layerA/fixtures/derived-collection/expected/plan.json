@@ -113,10 +113,12 @@
                               },
                               "segment": "segment_2"
                             },
-                            "synchronous": false,
-                            "target": {
-                              "kind": "element",
-                              "id": 0
+                            "ssr": {
+                              "synchronous": false,
+                              "target": {
+                                "kind": "element",
+                                "id": 0
+                              }
                             }
                           }
                         ],

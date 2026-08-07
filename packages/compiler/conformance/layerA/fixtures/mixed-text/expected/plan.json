@@ -43,11 +43,13 @@
                     "binding": 2
                   }
                 },
-                "synchronous": false,
-                "target": {
-                  "kind": "range",
-                  "id": 0,
-                  "marker": 0
+                "ssr": {
+                  "synchronous": false,
+                  "target": {
+                    "kind": "range",
+                    "id": 0,
+                    "marker": 0
+                  }
                 }
               },
               {
@@ -73,11 +75,13 @@
                   },
                   "segment": "segment_1"
                 },
-                "synchronous": false,
-                "target": {
-                  "kind": "range",
-                  "id": 0,
-                  "marker": 1
+                "ssr": {
+                  "synchronous": false,
+                  "target": {
+                    "kind": "range",
+                    "id": 0,
+                    "marker": 1
+                  }
                 }
               },
               {

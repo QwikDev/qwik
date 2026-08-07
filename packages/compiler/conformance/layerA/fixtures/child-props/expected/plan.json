@@ -45,11 +45,13 @@
                   },
                   "segment": "segment_0"
                 },
-                "synchronous": false,
-                "target": {
-                  "kind": "range",
-                  "id": 0,
-                  "marker": 0
+                "ssr": {
+                  "synchronous": false,
+                  "target": {
+                    "kind": "range",
+                    "id": 0,
+                    "marker": 0
+                  }
                 }
               },
               {
@@ -71,11 +73,13 @@
                   },
                   "segment": "segment_1"
                 },
-                "synchronous": false,
-                "target": {
-                  "kind": "range",
-                  "id": 0,
-                  "marker": 1
+                "ssr": {
+                  "synchronous": false,
+                  "target": {
+                    "kind": "range",
+                    "id": 0,
+                    "marker": 1
+                  }
                 }
               }
             ],
@@ -137,7 +141,6 @@
                 "target": {
                   "ref": 0
                 },
-                "returnMode": "maybe-promise",
                 "props": [
                   {
                     "kind": "static",
@@ -157,9 +160,12 @@
                   }
                 ],
                 "propsSource": null,
-                "idBase": null,
-                "blockingSuspense": false,
-                "slots": []
+                "slots": [],
+                "ssr": {
+                  "returnMode": "maybe-promise",
+                  "idBase": null,
+                  "blockingSuspense": false
+                }
               }
             ],
             "ssr": {

@@ -131,41 +131,46 @@ export type PlanSsrOp =
       readonly kind: SsrOpKind.Dynamic;
       readonly output: 'text' | 'content';
       readonly value: PlanValue;
-      readonly synchronous: boolean;
-      readonly target:
-        | { readonly kind: 'element'; readonly id: number }
-        | { readonly kind: 'range'; readonly id: number | null; readonly marker: number }
-        | null;
+      readonly ssr: {
+        /** The value evaluates promise-free. */
+        readonly synchronous: boolean;
+        /** Live subscription target; null = initial-only inline. */
+        readonly target:
+          | { readonly kind: 'element'; readonly id: number }
+          | { readonly kind: 'range'; readonly id: number | null; readonly marker: number }
+          | null;
+      };
     }
   | {
       readonly kind: SsrOpKind.Content;
       /** Always segment-bearing: the `<!d=` region re-renders by resuming this QRL. */
       readonly value: PlanValue;
-      readonly root: boolean;
+      readonly ssr: { readonly root: boolean };
     }
   | {
       readonly kind: SsrOpKind.Component;
       /** Module plans carry the tag source; the linker resolves to `{ ref }`. */
       readonly target: string | { readonly ref: number };
-      readonly returnMode: 'sync' | 'maybe-promise';
       readonly props: readonly PlanSsrProp[];
       readonly propsSource: string | null;
-      readonly idBase: string | null;
-      readonly blockingSuspense: boolean;
       readonly slots: readonly {
         readonly name: string;
         readonly idBase: string | null;
         readonly render: PlanSsrRenderFn;
       }[];
+      readonly ssr: {
+        readonly returnMode: 'sync' | 'maybe-promise';
+        readonly idBase: string | null;
+        readonly blockingSuspense: boolean;
+      };
     }
   | {
       readonly kind: SsrOpKind.Branch;
       readonly condition: string;
       readonly conditionIr?: import('./expr-ir').ValueIR;
-      readonly root: boolean;
-      readonly idBase: string | null;
       readonly then: PlanSsrRenderFn;
       readonly else: PlanSsrRenderFn | null;
+      readonly ssr: { readonly root: boolean; readonly idBase: string | null };
     }
   | {
       readonly kind: SsrOpKind.Suspense;
@@ -178,8 +183,8 @@ export type PlanSsrOp =
   | {
       readonly kind: SsrOpKind.Slot;
       readonly name: string;
-      readonly idBase: string | null;
       readonly fallback: PlanSsrRenderFn | null;
+      readonly ssr: { readonly idBase: string | null };
     }
   | {
       readonly kind: SsrOpKind.Collection;
@@ -509,17 +514,19 @@ export function emitSsrOpPlan(
           kind: SsrOpKind.Dynamic,
           output: operation.output,
           value: planValue(operation.value),
-          synchronous: operation.synchronous,
-          target:
-            operation.target === null
-              ? null
-              : operation.target.kind === 'element'
-                ? { kind: 'element', id: operation.target.targetId }
-                : {
-                    kind: 'range',
-                    id: operation.target.targetId,
-                    marker: operation.target.markerIndex,
-                  },
+          ssr: {
+            synchronous: operation.synchronous,
+            target:
+              operation.target === null
+                ? null
+                : operation.target.kind === 'element'
+                  ? { kind: 'element', id: operation.target.targetId }
+                  : {
+                      kind: 'range',
+                      id: operation.target.targetId,
+                      marker: operation.target.markerIndex,
+                    },
+          },
         };
       case 'content-effect':
         return {
@@ -528,32 +535,33 @@ export function emitSsrOpPlan(
             operation.value === null
               ? { kind: 'segment', segment: operation.segment.segmentId }
               : planValue(operation.value),
-          root: operation.root,
+          ssr: { root: operation.root },
         };
       case 'component':
         return {
           kind: SsrOpKind.Component,
           target: slice(operation.tagRange),
-          returnMode: operation.returnMode,
           props: operation.props.map(orderedProp),
           propsSource: operation.propsSource === null ? null : operation.propsSource.segmentId,
-          idBase: operation.idBase,
-          blockingSuspense: operation.blockingSuspense,
           slots: operation.slots.map((slot) => ({
             name: slot.name,
             idBase: slot.idBase,
             render: renderFnBlock(slot.render),
           })),
+          ssr: {
+            returnMode: operation.returnMode,
+            idBase: operation.idBase,
+            blockingSuspense: operation.blockingSuspense,
+          },
         };
       case 'branch':
         return {
           kind: SsrOpKind.Branch,
           condition: operation.condition.segmentId,
           ...(operation.conditionIr !== undefined ? { conditionIr: operation.conditionIr } : {}),
-          root: operation.root,
-          idBase: operation.idBase,
           then: renderFnBlock(operation.then),
           else: operation.else === null ? null : renderFnBlock(operation.else),
+          ssr: { root: operation.root, idBase: operation.idBase },
         };
       case 'suspense': {
         const fallbackValue = operation.fallback;
@@ -594,8 +602,8 @@ export function emitSsrOpPlan(
         return {
           kind: SsrOpKind.Slot,
           name: operation.name,
-          idBase: operation.idBase,
           fallback: operation.fallback === null ? null : renderFnBlock(operation.fallback),
+          ssr: { idBase: operation.idBase },
         };
       case 'collection':
         return {

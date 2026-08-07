@@ -139,8 +139,6 @@
                     "value": 0
                   }
                 },
-                "root": false,
-                "idBase": null,
                 "then": {
                   "segment": "segment_4",
                   "setup": [],
@@ -229,11 +227,13 @@
                                         },
                                         "segment": "segment_8"
                                       },
-                                      "synchronous": false,
-                                      "target": {
-                                        "kind": "range",
-                                        "id": 0,
-                                        "marker": 0
+                                      "ssr": {
+                                        "synchronous": false,
+                                        "target": {
+                                          "kind": "range",
+                                          "id": 0,
+                                          "marker": 0
+                                        }
                                       }
                                     },
                                     {
@@ -255,7 +255,9 @@
                                         },
                                         "segment": "semantic_expression_475_493"
                                       },
-                                      "root": false
+                                      "ssr": {
+                                        "root": false
+                                      }
                                     }
                                   ],
                                   "ssr": {
@@ -290,6 +292,10 @@
                     "syncRender": false,
                     "needsRootRange": false
                   }
+                },
+                "ssr": {
+                  "root": false,
+                  "idBase": null
                 }
               },
               {
@@ -310,10 +316,12 @@
                         "binding": 6
                       }
                     },
-                    "synchronous": false,
-                    "target": {
-                      "kind": "element",
-                      "id": 1
+                    "ssr": {
+                      "synchronous": false,
+                      "target": {
+                        "kind": "element",
+                        "id": 1
+                      }
                     }
                   }
                 ],

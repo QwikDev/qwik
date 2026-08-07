@@ -36,7 +36,8 @@
             "name": "todos"
           },
           {
-            "kind": "local-component",
+            "kind": "render-fn",
+            "component": true,
             "name": "Filter",
             "binding": 3,
             "segment": "local_component_127_491",
@@ -66,7 +67,8 @@
                   "name": "lower"
                 },
                 {
-                  "kind": "local-component",
+                  "kind": "render-fn",
+                  "component": true,
                   "name": "Star",
                   "binding": 6,
                   "segment": "local_component_193_284",

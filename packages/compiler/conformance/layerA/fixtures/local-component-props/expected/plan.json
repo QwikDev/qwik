@@ -20,7 +20,8 @@
             "name": "count"
           },
           {
-            "kind": "local-component",
+            "kind": "render-fn",
+            "component": true,
             "name": "Badge",
             "binding": 3,
             "segment": "local_component_98_212",

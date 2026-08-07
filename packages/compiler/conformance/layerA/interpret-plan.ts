@@ -45,7 +45,7 @@ import {
   _val,
 } from '@qwik.dev/core';
 import type { PlanSsrOp, PlanSsrProp, PlanSsrRenderFn, PlanSsrRow } from '../../src/emit-plan-ssr';
-import type { PlanLocalComponent } from '../../src/emit-plan';
+import type { PlanRenderFnEntry } from '../../src/emit-plan';
 import type { QwikSsrPlan } from '../../src/link-plan';
 import type { ValueIR } from '../../src/expr-ir';
 import type { SetupOp } from '../../src/setup-ir';
@@ -165,7 +165,7 @@ export async function buildInterpretedRoot(
     readonly block: PlanSsrRenderFn;
     readonly initialLocals: Map<number, unknown>;
     readonly initialLocalComponentBindings: Map<string, number>;
-    readonly propsPlan: PlanLocalComponent['props'];
+    readonly propsPlan: PlanRenderFnEntry['props'];
     /** Positional values for `paramBindings` (inline collection rows). */
     readonly paramValues?: readonly unknown[];
     /** The block wraps its output in a context-scope range, like a provider component. */
@@ -295,7 +295,7 @@ export async function buildInterpretedRoot(
 
     // maps copy per call, so the block sees consts defined after the declaration, like a closure
     const makeLocalComponent =
-      (entry: PlanLocalComponent) => (props: unknown, childCtx: Parameters<SsrRenderRoot>[1]) =>
+      (entry: PlanRenderFnEntry) => (props: unknown, childCtx: Parameters<SsrRenderRoot>[1]) =>
         interpretComponent(componentIndex, props, childCtx, {
           block: entry.render,
           initialLocals: new Map(locals),
@@ -304,8 +304,8 @@ export async function buildInterpretedRoot(
           providesContext: entry.providesContext === true,
         });
     // function declarations hoist above the setup consts in the emitted module
-    for (const entry of ssr.setup as readonly (SetupOp | PlanLocalComponent)[]) {
-      if (entry.kind === 'local-component') {
+    for (const entry of ssr.setup as readonly (SetupOp | PlanRenderFnEntry)[]) {
+      if (entry.kind === 'render-fn' && (entry as { component?: true }).component === true) {
         locals.set(entry.binding, makeLocalComponent(entry));
         localComponentBindings.set(entry.name, entry.binding);
       }
@@ -313,7 +313,7 @@ export async function buildInterpretedRoot(
 
     for (const entry of ssr.setup as readonly (SetupOp | { op: string; src?: string })[]) {
       switch (entry.kind) {
-        case 'local-component':
+        case 'render-fn':
           break;
         case 'signal': {
           const op = entry as Extract<SetupOp, { op: 'signal' }>;
@@ -388,8 +388,8 @@ export async function buildInterpretedRoot(
     }
 
     // local components mark after all setup, like the emitted modules
-    for (const entry of ssr.setup as readonly (SetupOp | PlanLocalComponent)[]) {
-      if (entry.kind === 'local-component') {
+    for (const entry of ssr.setup as readonly (SetupOp | PlanRenderFnEntry)[]) {
+      if (entry.kind === 'render-fn' && (entry as { component?: true }).component === true) {
         _markComponent(locals.get(entry.binding) as never, qrlWithCaptures(entry.segment) as never);
       }
     }

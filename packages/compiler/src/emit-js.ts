@@ -361,7 +361,7 @@ class JsComponentGenerator {
       this.invokeCtx();
     }
     for (const entry of ssr.setup as ({ kind: string } & Record<string, unknown>)[]) {
-      if (entry.kind === 'local-component') {
+      if (entry.kind === 'render-fn' && entry.component === true) {
         this.localComponents.set(entry.name as string, entry as unknown as LocalComponentEntry);
       }
     }
@@ -450,7 +450,7 @@ class JsComponentGenerator {
     }
     // local-component declarations hoist: siblings are callable before their statement
     for (const entry of ssr.setup as ({ kind: string } & Record<string, unknown>)[]) {
-      if (entry.kind === 'local-component') {
+      if (entry.kind === 'render-fn' && entry.component === true) {
         this.localComponents.set(entry.name as string, entry as unknown as LocalComponentEntry);
       }
     }
@@ -726,7 +726,39 @@ class JsComponentGenerator {
         this.statements.push(`useTaskQrl(${this.qrlExpression(meta)});`);
         return;
       }
-      case 'local-component': {
+      case 'render-fn': {
+        if (entry.component !== true) {
+          const item = entry as unknown as {
+            name: string;
+            binding: number;
+            render: LocalComponentEntry['render'];
+          };
+          const name = this.declare(item.binding, item.name);
+          const child = new JsComponentGenerator(
+            this.plan,
+            this.shared,
+            this.segments,
+            this.defs,
+            this.contexts,
+            this.pluginFns,
+            this.names,
+            {
+              locals: this.locals,
+              usedNames: this.usedNames,
+              localComponents: this.localComponents,
+              sourceKinds: this.sourceKinds,
+            },
+            this.moduleBindingName,
+            this.coreAlias,
+            this.sourceBindingName
+          );
+          // zero-arg render fn: `const view = () => { ...; return parts; }`
+          const fn = child.generateFn(name, item.render, null, false, false, '()');
+          this.statements.push(
+            fn.replace(`function ${name}()`, `const ${name} = () =>`).replace(/\}\n$/, '};')
+          );
+          return;
+        }
         const local = entry as unknown as LocalComponentEntry;
         const child = new JsComponentGenerator(
           this.plan,
@@ -758,38 +790,6 @@ class JsComponentGenerator {
         this.imports.add('_markComponent');
         // captures may be declared below the fn — the QRL resolves at mark-flush time
         this.pendingMarks.push(local.name);
-        return;
-      }
-      case 'render-value': {
-        const item = entry as unknown as {
-          name: string;
-          binding: number;
-          render: LocalComponentEntry['render'];
-        };
-        const name = this.declare(item.binding, item.name);
-        const child = new JsComponentGenerator(
-          this.plan,
-          this.shared,
-          this.segments,
-          this.defs,
-          this.contexts,
-          this.pluginFns,
-          this.names,
-          {
-            locals: this.locals,
-            usedNames: this.usedNames,
-            localComponents: this.localComponents,
-            sourceKinds: this.sourceKinds,
-          },
-          this.moduleBindingName,
-          this.coreAlias,
-          this.sourceBindingName
-        );
-        // zero-arg render fn: `const view = () => { ...; return parts; }`
-        const fn = child.generateFn(name, item.render, null, false, false, '()');
-        this.statements.push(
-          fn.replace(`function ${name}()`, `const ${name} = () =>`).replace(/\}\n$/, '};')
-        );
         return;
       }
       case 'js': {

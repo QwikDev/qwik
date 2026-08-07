@@ -333,7 +333,8 @@ export function emitSsrOpPlan(
         const parameter = entry.parameter;
         return [
           {
-            kind: SetupOpKind.LocalComponent,
+            kind: SetupOpKind.RenderFn,
+            component: true as const,
             name: entry.name,
             binding: entry.bindingId,
             segment: entry.segment,
@@ -357,7 +358,7 @@ export function emitSsrOpPlan(
       if (entry.kind === 'render-value') {
         return [
           {
-            kind: SetupOpKind.RenderValue,
+            kind: SetupOpKind.RenderFn,
             name: entry.name,
             binding: entry.bindingId,
             render: {

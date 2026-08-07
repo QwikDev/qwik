@@ -160,7 +160,7 @@ export function linkSsrPlan(
     const moduleLocalComponents = new Set<number | string>();
     const collectLocalComponents = (setup: QwikModulePlan['components'][number]['setup']): void => {
       for (const entry of setup) {
-        if (entry.kind === SetupOpKind.LocalComponent) {
+        if (entry.kind === SetupOpKind.RenderFn && entry.component === true) {
           moduleLocalComponents.add(entry.binding);
           moduleLocalComponents.add(entry.name);
           collectLocalComponents(entry.render.setup);
@@ -240,10 +240,12 @@ export function linkSsrPlan(
     ): QwikModulePlan['components'][number]['setup'] => {
       // declarations hoist: every sibling is visible before any nested block links
       localComponentScopes.push(
-        setup.flatMap((entry) => (entry.kind === SetupOpKind.LocalComponent ? [entry.name] : []))
+        setup.flatMap((entry) =>
+          entry.kind === SetupOpKind.RenderFn && entry.component === true ? [entry.name] : []
+        )
       );
       return setup.map((entry) =>
-        entry.kind === SetupOpKind.LocalComponent
+        entry.kind === SetupOpKind.RenderFn && entry.component === true
           ? { ...entry, render: linkSsrFn(entry.render) }
           : entry
       );

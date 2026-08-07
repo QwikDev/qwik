@@ -582,7 +582,10 @@ impl ComponentGenerator<'_> {
 				self.local_kinds.insert(binding, LocalKind::PlainValue);
 				Ok(())
 			}
-			"local-component" => {
+			"render-fn" => {
+				if entry["component"].as_bool() != Some(true) {
+					return Err("plain render-fn values not supported yet".to_string());
+				}
 				let name = entry["name"]
 					.as_str()
 					.ok_or("local component has no name")?;

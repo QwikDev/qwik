@@ -45,7 +45,8 @@
             "name": "show"
           },
           {
-            "kind": "local-component",
+            "kind": "render-fn",
+            "component": true,
             "name": "Filter",
             "binding": 5,
             "segment": "local_component_169_410",

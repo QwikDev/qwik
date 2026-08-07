@@ -109,27 +109,22 @@ export type PlanSetupEntry =
       readonly final?: true;
       readonly imports?: readonly string[];
     }
-  | PlanLocalComponent
-  | {
-      /** Setup-scope render fn: `const view = () => <jsx/>` invoked from render values. */
-      readonly kind: SetupOpKind.RenderValue;
-      readonly name: string;
-      readonly binding: number;
-      readonly render: PlanSsrRenderFn;
-    };
+  | PlanRenderFnEntry;
 
 /**
- * A setup-scope component compiled in place. Component-op string targets resolve against the
- * lexical chain of these declarations before module/import resolution; nests via `render.setup`.
+ * A setup-scope render fn compiled in place. With `component: true` it is usable as a JSX tag
+ * (component-op string targets resolve against the lexical chain of these declarations) and carries
+ * its chunk `segment` as serialization identity; without it, a plain render value.
  */
-export interface PlanLocalComponent {
-  readonly kind: SetupOpKind.LocalComponent;
+export interface PlanRenderFnEntry {
+  readonly kind: SetupOpKind.RenderFn;
   readonly name: string;
   readonly binding: number;
+  readonly component?: true;
   /** Backing chunk segment id — the component value's serialization identity. */
-  readonly segment: string;
+  readonly segment?: string;
   readonly providesContext?: boolean;
-  readonly props: PlanComponentProps;
+  readonly props?: PlanComponentProps;
   readonly render: PlanSsrRenderFn;
 }
 
@@ -510,7 +505,7 @@ function collectInlineRowSymbols(components: readonly PlanComponent[]): Set<stri
   const symbols = new Set<string>();
   const walkSetup = (setup: readonly PlanSetupEntry[]): void => {
     for (const entry of setup) {
-      if (entry.kind === SetupOpKind.LocalComponent) {
+      if (entry.kind === SetupOpKind.RenderFn && entry.component === true) {
         walkFn(entry.render);
       }
     }

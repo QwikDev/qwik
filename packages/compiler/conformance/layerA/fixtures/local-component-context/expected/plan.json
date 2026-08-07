@@ -11,7 +11,8 @@
       "ssr": {
         "setup": [
           {
-            "kind": "local-component",
+            "kind": "render-fn",
+            "component": true,
             "name": "Label",
             "binding": 5,
             "segment": "local_component_154_248",
@@ -65,7 +66,8 @@
             }
           },
           {
-            "kind": "local-component",
+            "kind": "render-fn",
+            "component": true,
             "name": "Section",
             "binding": 6,
             "segment": "local_component_250_384",

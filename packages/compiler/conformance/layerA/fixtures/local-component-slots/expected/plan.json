@@ -20,7 +20,8 @@
             "name": "title"
           },
           {
-            "kind": "local-component",
+            "kind": "render-fn",
+            "component": true,
             "name": "Card",
             "binding": 4,
             "segment": "local_component_110_197",

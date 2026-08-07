@@ -1,6 +1,6 @@
 {
   "format": "qwik/ssr-plan",
-  "version": 0,
+  "version": 1,
   "entry": 0,
   "components": [
     {
@@ -14,25 +14,25 @@
         "usedSegmentIds": [],
         "ops": [
           {
-            "o": "el",
+            "kind": "element",
             "tag": "form",
             "id": null,
-            "void": false,
+            "voidTag": false,
             "styleScopedId": null,
             "targetUses": 0,
             "props": [
               {
-                "p": "static",
+                "kind": "static",
                 "name": "aria-hidden",
                 "value": false
               },
               {
-                "p": "static",
+                "kind": "static",
                 "name": "draggable",
                 "value": true
               },
               {
-                "p": "static",
+                "kind": "static",
                 "name": "spellcheck",
                 "value": false
               }
@@ -40,30 +40,30 @@
             "propsEffect": null,
             "children": [
               {
-                "o": "el",
+                "kind": "element",
                 "tag": "input",
                 "id": null,
-                "void": true,
+                "voidTag": true,
                 "styleScopedId": null,
                 "targetUses": 0,
                 "props": [
                   {
-                    "p": "static",
+                    "kind": "static",
                     "name": "disabled",
                     "value": true
                   },
                   {
-                    "p": "static",
+                    "kind": "static",
                     "name": "readOnly",
                     "value": false
                   },
                   {
-                    "p": "static",
+                    "kind": "static",
                     "name": "aria-label",
                     "value": "Name field"
                   },
                   {
-                    "p": "static",
+                    "kind": "static",
                     "name": "data-step",
                     "value": 3
                   }
@@ -72,20 +72,20 @@
                 "children": []
               },
               {
-                "o": "el",
+                "kind": "element",
                 "tag": "textarea",
                 "id": null,
-                "void": false,
+                "voidTag": false,
                 "styleScopedId": null,
                 "targetUses": 0,
                 "props": [
                   {
-                    "p": "static",
+                    "kind": "static",
                     "name": "contentEditable",
                     "value": "true"
                   },
                   {
-                    "p": "static",
+                    "kind": "static",
                     "name": "hidden",
                     "value": false
                   }

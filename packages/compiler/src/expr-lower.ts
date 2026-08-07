@@ -276,19 +276,19 @@ export function lowerValueIr(expression: unknown, facts: ExprLowerFacts): ValueI
         typeof value === 'number' ||
         typeof value === 'boolean'
       ) {
-        return { k: ValueIrKind.Lit, v: value };
+        return { kind: ValueIrKind.Lit, value };
       }
       return null; // bigint literals stay unsupported for now
     }
     case 'Identifier': {
       const binding = facts.bindingIdAt(getRange(node));
       if (binding === null) {
-        return getIdentifierName(node) === 'undefined' ? { k: ValueIrKind.Undef } : null;
+        return getIdentifierName(node) === 'undefined' ? { kind: ValueIrKind.Undef } : null;
       }
       if (facts.isFunctionBinding(binding)) {
         return null;
       }
-      return { k: ValueIrKind.BindingRead, binding };
+      return { kind: ValueIrKind.BindingRead, binding };
     }
     case 'ChainExpression':
       return lowerValueIr((node as { expression: unknown }).expression, facts);
@@ -303,7 +303,7 @@ export function lowerValueIr(expression: unknown, facts: ExprLowerFacts): ValueI
         const object = unwrapExpression(member.object);
         const binding = object?.type === 'Identifier' ? facts.bindingIdAt(getRange(object)) : null;
         if (binding !== null && facts.isSourceBinding(binding)) {
-          return { k: ValueIrKind.SignalRead, binding };
+          return { kind: ValueIrKind.SignalRead, binding };
         }
       }
       const obj = lowerValueIr(member.object, facts);
@@ -315,7 +315,7 @@ export function lowerValueIr(expression: unknown, facts: ExprLowerFacts): ValueI
         return key === null
           ? null
           : {
-              k: ValueIrKind.Index,
+              kind: ValueIrKind.Index,
               obj,
               key,
               ...(member.optional === true ? { optional: true } : {}),
@@ -325,7 +325,7 @@ export function lowerValueIr(expression: unknown, facts: ExprLowerFacts): ValueI
       return name === null
         ? null
         : {
-            k: ValueIrKind.Member,
+            kind: ValueIrKind.Member,
             obj,
             name,
             ...(member.optional === true ? { optional: true } : {}),
@@ -336,30 +336,32 @@ export function lowerValueIr(expression: unknown, facts: ExprLowerFacts): ValueI
       if (!UNARY_OPS.has(unary.operator)) {
         return null;
       }
-      const a = lowerValueIr(unary.argument, facts);
-      return a === null ? null : { k: ValueIrKind.Unary, op: unary.operator as ValueIrUnaryOp, a };
+      const operand = lowerValueIr(unary.argument, facts);
+      return operand === null
+        ? null
+        : { kind: ValueIrKind.Unary, op: unary.operator as ValueIrUnaryOp, operand };
     }
     case 'BinaryExpression': {
       const binary = node as { operator: string; left: unknown; right: unknown };
       if (!BIN_OPS.has(binary.operator)) {
         return null;
       }
-      const a = lowerValueIr(binary.left, facts);
-      const b = a === null ? null : lowerValueIr(binary.right, facts);
-      return b === null || a === null
+      const left = lowerValueIr(binary.left, facts);
+      const right = left === null ? null : lowerValueIr(binary.right, facts);
+      return right === null || left === null
         ? null
-        : { k: ValueIrKind.Bin, op: binary.operator as ValueIrBinOp, a, b };
+        : { kind: ValueIrKind.Bin, op: binary.operator as ValueIrBinOp, left, right };
     }
     case 'LogicalExpression': {
       const logical = node as { operator: string; left: unknown; right: unknown };
       if (!LOGIC_OPS.has(logical.operator)) {
         return null;
       }
-      const a = lowerValueIr(logical.left, facts);
-      const b = a === null ? null : lowerValueIr(logical.right, facts);
-      return b === null || a === null
+      const left = lowerValueIr(logical.left, facts);
+      const right = left === null ? null : lowerValueIr(logical.right, facts);
+      return right === null || left === null
         ? null
-        : { k: ValueIrKind.Logic, op: logical.operator as ValueIrLogicOp, a, b };
+        : { kind: ValueIrKind.Logic, op: logical.operator as ValueIrLogicOp, left, right };
     }
     case 'ConditionalExpression': {
       const conditional = node as { test: unknown; consequent: unknown; alternate: unknown };
@@ -368,7 +370,7 @@ export function lowerValueIr(expression: unknown, facts: ExprLowerFacts): ValueI
       const alternate = then === null ? null : lowerValueIr(conditional.alternate, facts);
       return test === null || then === null || alternate === null
         ? null
-        : { k: ValueIrKind.Cond, test, then, else: alternate };
+        : { kind: ValueIrKind.Cond, test, then, else: alternate };
     }
     case 'TemplateLiteral': {
       const template = node as {
@@ -392,7 +394,7 @@ export function lowerValueIr(expression: unknown, facts: ExprLowerFacts): ValueI
           parts.push(part);
         }
       }
-      return { k: ValueIrKind.Template, parts };
+      return { kind: ValueIrKind.Template, parts };
     }
     case 'ArrayExpression': {
       const items: ValueIR[] = [];
@@ -409,7 +411,7 @@ export function lowerValueIr(expression: unknown, facts: ExprLowerFacts): ValueI
         }
         items.push(item);
       }
-      return { k: ValueIrKind.Array, items };
+      return { kind: ValueIrKind.Array, items };
     }
     case 'ObjectExpression': {
       const entries: (readonly [string, ValueIR])[] = [];
@@ -432,7 +434,7 @@ export function lowerValueIr(expression: unknown, facts: ExprLowerFacts): ValueI
         }
         entries.push([key, value]);
       }
-      return { k: ValueIrKind.Object, entries };
+      return { kind: ValueIrKind.Object, entries };
     }
     case 'CallExpression':
       return lowerCall(node, facts);
@@ -462,17 +464,19 @@ function lowerCall(node: AstNode, facts: ExprLowerFacts): ValueIR | null {
           return null; // unclaimed user function
         }
         const args = lowerArgs(call.arguments, facts, null);
-        return args === null ? null : { k: ValueIrKind.PluginCall, fnId, args: args as ValueIR[] };
+        return args === null
+          ? null
+          : { kind: ValueIrKind.PluginCall, fnId, args: args as ValueIR[] };
       }
       const args = lowerArgs(call.arguments, facts, null);
-      return args === null ? null : { k: ValueIrKind.DefCall, def, args: args as ValueIR[] };
+      return args === null ? null : { kind: ValueIrKind.DefCall, def, args: args as ValueIR[] };
     }
     const op = GLOBAL_OPS.get(getIdentifierName(callee) ?? '');
     if (op === undefined) {
       return null;
     }
     const args = lowerArgs(call.arguments, facts, null);
-    return args === null ? null : { k: ValueIrKind.Call, fn: op, recv: null, args };
+    return args === null ? null : { kind: ValueIrKind.Call, fn: op, receiver: null, args };
   }
   if (callee.type !== 'MemberExpression') {
     return null;
@@ -505,7 +509,7 @@ function lowerCall(node: AstNode, facts: ExprLowerFacts): ValueIR | null {
       return null; // 1-arg form only (specs/02)
     }
     const args = lowerArgs(call.arguments, facts, op === 'qwik:array.from' ? 1 : null);
-    return args === null ? null : { k: ValueIrKind.Call, fn: op, recv: null, args };
+    return args === null ? null : { kind: ValueIrKind.Call, fn: op, receiver: null, args };
   }
   // method op: x.trim(), rows.filter(fn), ... — receiver must itself lower
   const higherOrder = HIGHER_ORDER_OPS.get(methodName);
@@ -513,12 +517,12 @@ function lowerCall(node: AstNode, facts: ExprLowerFacts): ValueIR | null {
   if (op === undefined) {
     return null;
   }
-  const recv = lowerValueIr(member.object, facts);
-  if (recv === null) {
+  const receiver = lowerValueIr(member.object, facts);
+  if (receiver === null) {
     return null;
   }
   const args = lowerArgs(call.arguments, facts, higherOrder !== undefined ? 0 : null);
-  return args === null ? null : { k: ValueIrKind.Call, fn: op, recv, args };
+  return args === null ? null : { kind: ValueIrKind.Call, fn: op, receiver, args };
 }
 
 /** Lowers call arguments; `lambdaAt` marks the single position where a restricted lambda is legal. */

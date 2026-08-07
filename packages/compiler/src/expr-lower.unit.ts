@@ -33,36 +33,36 @@ const member = (object: object, name: string, extra: object = {}) => ({
 
 describe('lowerValueIr', () => {
   test('literals and undefined', () => {
-    expect(lowerValueIr(lit('a'), facts)).toEqual({ k: 'lit', v: 'a' });
-    expect(lowerValueIr(lit(3), facts)).toEqual({ k: 'lit', v: 3 });
-    expect(lowerValueIr(lit(true), facts)).toEqual({ k: 'lit', v: true });
-    expect(lowerValueIr(lit(null), facts)).toEqual({ k: 'lit', v: null });
-    expect(lowerValueIr(unknownIdent('undefined'), facts)).toEqual({ k: 'undef' });
+    expect(lowerValueIr(lit('a'), facts)).toEqual({ kind: 'lit', value: 'a' });
+    expect(lowerValueIr(lit(3), facts)).toEqual({ kind: 'lit', value: 3 });
+    expect(lowerValueIr(lit(true), facts)).toEqual({ kind: 'lit', value: true });
+    expect(lowerValueIr(lit(null), facts)).toEqual({ kind: 'lit', value: null });
+    expect(lowerValueIr(unknownIdent('undefined'), facts)).toEqual({ kind: 'undef' });
     expect(lowerValueIr({ type: 'Literal', value: /x/, regex: {} }, facts)).toBeNull();
   });
 
   test('binding reads: generic for locals, null for unknown globals and functions', () => {
-    expect(lowerValueIr(localIdent(), facts)).toEqual({ k: 'binding-read', binding: LOCAL });
+    expect(lowerValueIr(localIdent(), facts)).toEqual({ kind: 'binding-read', binding: LOCAL });
     expect(lowerValueIr(unknownIdent('window'), facts)).toBeNull();
     expect(lowerValueIr(fnIdent(), facts)).toBeNull();
   });
 
   test('proven signal.value becomes signal-read; unproven .value stays generic member', () => {
     expect(lowerValueIr(member(signalIdent(), 'value'), facts)).toEqual({
-      k: 'signal-read',
+      kind: 'signal-read',
       binding: SIGNAL,
     });
     expect(lowerValueIr(member(localIdent(), 'value'), facts)).toEqual({
-      k: 'member',
-      obj: { k: 'binding-read', binding: LOCAL },
+      kind: 'member',
+      obj: { kind: 'binding-read', binding: LOCAL },
       name: 'value',
     });
   });
 
   test('member paths, computed index, optional chaining', () => {
     expect(lowerValueIr(member(member(signalIdent(), 'value'), 'length'), facts)).toEqual({
-      k: 'member',
-      obj: { k: 'signal-read', binding: SIGNAL },
+      kind: 'member',
+      obj: { kind: 'signal-read', binding: SIGNAL },
       name: 'length',
     });
     expect(
@@ -71,9 +71,9 @@ describe('lowerValueIr', () => {
         facts
       )
     ).toEqual({
-      k: 'index',
-      obj: { k: 'binding-read', binding: LOCAL },
-      key: { k: 'lit', v: 0 },
+      kind: 'index',
+      obj: { kind: 'binding-read', binding: LOCAL },
+      key: { kind: 'lit', value: 0 },
     });
     expect(
       lowerValueIr(
@@ -81,8 +81,8 @@ describe('lowerValueIr', () => {
         facts
       )
     ).toEqual({
-      k: 'member',
-      obj: { k: 'binding-read', binding: LOCAL },
+      kind: 'member',
+      obj: { kind: 'binding-read', binding: LOCAL },
       name: 'title',
       optional: true,
     });
@@ -100,10 +100,10 @@ describe('lowerValueIr', () => {
         facts
       )
     ).toEqual({
-      k: 'bin',
+      kind: 'bin',
       op: '===',
-      a: { k: 'member', obj: { k: 'signal-read', binding: SIGNAL }, name: 'length' },
-      b: { k: 'lit', v: 0 },
+      left: { kind: 'member', obj: { kind: 'signal-read', binding: SIGNAL }, name: 'length' },
+      right: { kind: 'lit', value: 0 },
     });
     expect(
       lowerValueIr(
@@ -113,7 +113,7 @@ describe('lowerValueIr', () => {
     ).toBeNull();
     expect(
       lowerValueIr({ type: 'UnaryExpression', operator: '!', argument: localIdent() }, facts)
-    ).toEqual({ k: 'unary', op: '!', a: { k: 'binding-read', binding: LOCAL } });
+    ).toEqual({ kind: 'unary', op: '!', operand: { kind: 'binding-read', binding: LOCAL } });
     expect(
       lowerValueIr({ type: 'UnaryExpression', operator: 'delete', argument: localIdent() }, facts)
     ).toBeNull();
@@ -123,10 +123,10 @@ describe('lowerValueIr', () => {
         facts
       )
     ).toEqual({
-      k: 'logic',
+      kind: 'logic',
       op: '??',
-      a: { k: 'binding-read', binding: LOCAL },
-      b: { k: 'lit', v: 'x' },
+      left: { kind: 'binding-read', binding: LOCAL },
+      right: { kind: 'lit', value: 'x' },
     });
   });
 
@@ -142,10 +142,10 @@ describe('lowerValueIr', () => {
         facts
       )
     ).toEqual({
-      k: 'cond',
-      test: { k: 'signal-read', binding: SIGNAL },
-      then: { k: 'lit', v: 'on' },
-      else: { k: 'lit', v: 'off' },
+      kind: 'cond',
+      test: { kind: 'signal-read', binding: SIGNAL },
+      then: { kind: 'lit', value: 'on' },
+      else: { kind: 'lit', value: 'off' },
     });
     expect(
       lowerValueIr(
@@ -156,17 +156,17 @@ describe('lowerValueIr', () => {
         },
         facts
       )
-    ).toEqual({ k: 'template', parts: ['items-', { k: 'binding-read', binding: LOCAL }] });
+    ).toEqual({ kind: 'template', parts: ['items-', { kind: 'binding-read', binding: LOCAL }] });
   });
 
   test('array and object literals; spreads/computed keys/getters reject', () => {
     expect(
       lowerValueIr({ type: 'ArrayExpression', elements: [lit(1), localIdent()] }, facts)
     ).toEqual({
-      k: 'array',
+      kind: 'array',
       items: [
-        { k: 'lit', v: 1 },
-        { k: 'binding-read', binding: LOCAL },
+        { kind: 'lit', value: 1 },
+        { kind: 'binding-read', binding: LOCAL },
       ],
     });
     expect(
@@ -199,10 +199,10 @@ describe('lowerValueIr', () => {
         facts
       )
     ).toEqual({
-      k: 'object',
+      kind: 'object',
       entries: [
-        ['host', { k: 'lit', v: true }],
-        ['2', { k: 'binding-read', binding: LOCAL }],
+        ['host', { kind: 'lit', value: true }],
+        ['2', { kind: 'binding-read', binding: LOCAL }],
       ],
     });
     expect(
@@ -237,9 +237,9 @@ describe('lowerValueIr', () => {
         facts
       )
     ).toEqual({
-      k: 'call',
+      kind: 'call',
       fn: 'qwik:string.trim',
-      recv: { k: 'binding-read', binding: LOCAL },
+      receiver: { kind: 'binding-read', binding: LOCAL },
       args: [],
     });
     expect(
@@ -252,10 +252,10 @@ describe('lowerValueIr', () => {
         facts
       )
     ).toEqual({
-      k: 'call',
+      kind: 'call',
       fn: 'qwik:number.toFixed',
-      recv: { k: 'signal-read', binding: SIGNAL },
-      args: [{ k: 'lit', v: 2 }],
+      receiver: { kind: 'signal-read', binding: SIGNAL },
+      args: [{ kind: 'lit', value: 2 }],
     });
     // unknown method name fails the whole expression
     expect(
@@ -290,10 +290,10 @@ describe('lowerValueIr', () => {
       arguments: [localIdent()],
     };
     expect(lowerValueIr(mathAbs, facts)).toEqual({
-      k: 'call',
+      kind: 'call',
       fn: 'qwik:math.abs',
-      recv: null,
-      args: [{ k: 'binding-read', binding: LOCAL }],
+      receiver: null,
+      args: [{ kind: 'binding-read', binding: LOCAL }],
     });
     expect(
       lowerValueIr(
@@ -301,10 +301,10 @@ describe('lowerValueIr', () => {
         facts
       )
     ).toEqual({
-      k: 'call',
+      kind: 'call',
       fn: 'qwik:global.String',
-      recv: null,
-      args: [{ k: 'binding-read', binding: LOCAL }],
+      receiver: null,
+      args: [{ kind: 'binding-read', binding: LOCAL }],
     });
     // JSON.stringify only in its 1-arg form
     const stringify = (argumentNodes: unknown[]) => ({
@@ -318,10 +318,10 @@ describe('lowerValueIr', () => {
       arguments: argumentNodes,
     });
     expect(lowerValueIr(stringify([localIdent()]), facts)).toEqual({
-      k: 'call',
+      kind: 'call',
       fn: 'qwik:json.stringify',
-      recv: null,
-      args: [{ k: 'binding-read', binding: LOCAL }],
+      receiver: null,
+      args: [{ kind: 'binding-read', binding: LOCAL }],
     });
     expect(lowerValueIr(stringify([localIdent(), lit(null)]), facts)).toBeNull();
   });
@@ -351,18 +351,18 @@ describe('lowerValueIr', () => {
       ],
     };
     expect(lowerValueIr(filter, lambdaFacts)).toEqual({
-      k: 'call',
+      kind: 'call',
       fn: 'qwik:array.filter',
-      recv: { k: 'signal-read', binding: SIGNAL },
+      receiver: { kind: 'signal-read', binding: SIGNAL },
       args: [
         {
           kind: 'lambda',
           params: [{ name: 'row', binding: PARAM }],
           body: {
-            k: 'bin',
+            kind: 'bin',
             op: '!==',
-            a: { k: 'member', obj: { k: 'binding-read', binding: PARAM }, name: 'id' },
-            b: { k: 'lit', v: 'hidden' },
+            left: { kind: 'member', obj: { kind: 'binding-read', binding: PARAM }, name: 'id' },
+            right: { kind: 'lit', value: 'hidden' },
           },
         },
       ],

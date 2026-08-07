@@ -165,7 +165,7 @@ function emitJsRenderForComponent(
         : {
             kind: 'object' as const,
             bindings: parameter.bindingIds.map((b) => ({
-              b,
+              binding: b,
               name: planData.bindingName(b) ?? '',
             })),
           };

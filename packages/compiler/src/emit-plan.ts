@@ -25,7 +25,7 @@ import type { SourceRange } from './types';
  */
 export interface QwikModulePlan {
   readonly format: 'qwik/module-plan';
-  readonly version: 0;
+  readonly version: 1;
   readonly path: string;
   readonly components: readonly PlanComponent[];
   readonly segments: readonly PlanSegmentMeta[];
@@ -63,7 +63,7 @@ export interface PlanImportMeta {
 export type PlanComponentProps =
   | {
       readonly kind: 'object';
-      readonly bindings: readonly { readonly b: number; readonly name: string }[];
+      readonly bindings: readonly { readonly binding: number; readonly name: string }[];
     }
   | { readonly kind: 'identifier'; readonly binding: number }
   | null;
@@ -92,7 +92,7 @@ export interface PlanComponent {
 export type PlanSetupEntry =
   | SetupOp
   | {
-      readonly op: SetupOpKind.Style;
+      readonly kind: SetupOpKind.Style;
       readonly styleId: string;
       readonly scoped: boolean;
       /** Inlined static CSS (specs/01 `styles`); absent when the argument is dynamic. */
@@ -103,7 +103,7 @@ export type PlanSetupEntry =
       readonly src?: string;
     }
   | {
-      readonly op: SetupOpKind.Js;
+      readonly kind: SetupOpKind.Js;
       readonly src: string;
       /** Production seam: src already carries the QRL/useId rewrites, generators emit verbatim. */
       readonly final?: true;
@@ -112,7 +112,7 @@ export type PlanSetupEntry =
   | PlanLocalComponent
   | {
       /** Setup-scope render fn: `const view = () => <jsx/>` invoked from render values. */
-      readonly op: SetupOpKind.RenderValue;
+      readonly kind: SetupOpKind.RenderValue;
       readonly name: string;
       readonly binding: number;
       readonly render: PlanSsrRenderFn;
@@ -123,7 +123,7 @@ export type PlanSetupEntry =
  * lexical chain of these declarations before module/import resolution; nests via `render.setup`.
  */
 export interface PlanLocalComponent {
-  readonly op: SetupOpKind.LocalComponent;
+  readonly kind: SetupOpKind.LocalComponent;
   readonly name: string;
   readonly binding: number;
   /** Backing chunk segment id — the component value's serialization identity. */
@@ -290,7 +290,7 @@ export function emitModulePlan(
             ? inner
             : null;
         return {
-          op: SetupOpKind.Style,
+          kind: SetupOpKind.Style,
           styleId: entry.styleId,
           scoped: entry.scoped,
           ...(css === null ? {} : { css }),
@@ -299,7 +299,7 @@ export function emitModulePlan(
       if (entry.kind === 'statement' && entry.op !== undefined) {
         return entry.op;
       }
-      return { op: SetupOpKind.Js, src: slice(entry.range) };
+      return { kind: SetupOpKind.Js, src: slice(entry.range) };
     });
 
   const planRenderFn = (fn: RenderFunctionPlan): PlanRenderFn => ({
@@ -427,7 +427,7 @@ export function emitModulePlan(
         ? { kind: 'identifier', binding: parameter.bindingIds[0] }
         : {
             kind: 'object',
-            bindings: parameter.bindingIds.map((b) => ({ b, name: bindingName(b) ?? '' })),
+            bindings: parameter.bindingIds.map((b) => ({ binding: b, name: bindingName(b) ?? '' })),
           };
 
   const components = outputs.map((output) => ({
@@ -465,7 +465,7 @@ export function emitModulePlan(
 
   return {
     format: 'qwik/module-plan',
-    version: 0,
+    version: 1,
     path,
     components,
     segments: segments
@@ -502,7 +502,7 @@ function collectInlineRowSymbols(components: readonly PlanComponent[]): Set<stri
   const symbols = new Set<string>();
   const walkSetup = (setup: readonly PlanSetupEntry[]): void => {
     for (const entry of setup) {
-      if (entry.op === SetupOpKind.LocalComponent) {
+      if (entry.kind === SetupOpKind.LocalComponent) {
         walkFn(entry.render);
       }
     }
@@ -513,8 +513,8 @@ function collectInlineRowSymbols(components: readonly PlanComponent[]): Set<stri
   };
   const walkOps = (ops: PlanSsrComponent['ops']): void => {
     for (const op of ops) {
-      switch (op.o) {
-        case 'el':
+      switch (op.kind) {
+        case 'element':
           walkOps(op.children);
           break;
         case 'component':

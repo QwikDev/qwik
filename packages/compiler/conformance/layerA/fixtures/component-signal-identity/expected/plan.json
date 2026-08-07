@@ -1,6 +1,6 @@
 {
   "format": "qwik/ssr-plan",
-  "version": 0,
+  "version": 1,
   "entry": 1,
   "components": [
     {
@@ -14,11 +14,11 @@
         "kind": "object",
         "bindings": [
           {
-            "b": 4,
+            "binding": 4,
             "name": "value"
           },
           {
-            "b": 5,
+            "binding": 5,
             "name": "final"
           }
         ]
@@ -26,7 +26,7 @@
       "ssr": {
         "setup": [
           {
-            "op": "task",
+            "kind": "task",
             "segment": "segment_0",
             "body": {
               "steps": [
@@ -37,7 +37,7 @@
                     "value"
                   ],
                   "value": {
-                    "k": "binding-read",
+                    "kind": "binding-read",
                     "binding": 5
                   }
                 }
@@ -52,17 +52,17 @@
         ],
         "ops": [
           {
-            "o": "el",
+            "kind": "element",
             "tag": "p",
             "id": null,
-            "void": false,
+            "voidTag": false,
             "styleScopedId": null,
             "targetUses": 0,
             "props": [],
             "propsEffect": null,
             "children": [
               {
-                "o": "static",
+                "kind": "static",
                 "html": "child"
               }
             ]
@@ -77,7 +77,7 @@
       },
       "setup": [
         {
-          "op": "task",
+          "kind": "task",
           "segment": "segment_0",
           "body": {
             "steps": [
@@ -88,7 +88,7 @@
                   "value"
                 ],
                 "value": {
-                  "k": "binding-read",
+                  "kind": "binding-read",
                   "binding": 5
                 }
               }
@@ -124,11 +124,11 @@
       "ssr": {
         "setup": [
           {
-            "op": "signal",
-            "local": 6,
+            "kind": "signal",
+            "binding": 6,
             "init": {
-              "k": "lit",
-              "v": "initial"
+              "kind": "lit",
+              "value": "initial"
             },
             "name": "value"
           }
@@ -137,30 +137,30 @@
         "usedSegmentIds": [],
         "ops": [
           {
-            "o": "el",
+            "kind": "element",
             "tag": "div",
             "id": null,
-            "void": false,
+            "voidTag": false,
             "styleScopedId": null,
             "targetUses": 0,
             "props": [],
             "propsEffect": null,
             "children": [
               {
-                "o": "el",
+                "kind": "element",
                 "tag": "span",
                 "id": 0,
-                "void": false,
+                "voidTag": false,
                 "styleScopedId": null,
                 "targetUses": 1,
                 "props": [
                   {
-                    "p": "dynamic",
+                    "kind": "dynamic",
                     "name": "title",
                     "value": {
                       "src": "value.value",
                       "ir": {
-                        "k": "signal-read",
+                        "kind": "signal-read",
                         "binding": 6
                       },
                       "raw": true
@@ -171,25 +171,25 @@
                 "propsEffect": null,
                 "children": [
                   {
-                    "o": "static",
+                    "kind": "static",
                     "html": "ready"
                   }
                 ]
               },
               {
-                "o": "component",
+                "kind": "component",
                 "target": {
                   "ref": 0
                 },
                 "returnMode": "maybe-promise",
                 "props": [
                   {
-                    "p": "dynamic",
+                    "kind": "dynamic",
                     "name": "value",
                     "value": {
                       "src": "value",
                       "ir": {
-                        "k": "binding-read",
+                        "kind": "binding-read",
                         "binding": 6
                       },
                       "raw": true
@@ -197,7 +197,7 @@
                     "compilerString": false
                   },
                   {
-                    "p": "static",
+                    "kind": "static",
                     "name": "final",
                     "value": "final"
                   }
@@ -219,11 +219,11 @@
       },
       "setup": [
         {
-          "op": "signal",
-          "local": 6,
+          "kind": "signal",
+          "binding": 6,
           "init": {
-            "k": "lit",
-            "v": "initial"
+            "kind": "lit",
+            "value": "initial"
           }
         }
       ],
@@ -243,7 +243,7 @@
                   "value": {
                     "src": "value.value",
                     "ir": {
-                      "k": "signal-read",
+                      "kind": "signal-read",
                       "binding": 6
                     }
                   }
@@ -268,7 +268,7 @@
                   "value": {
                     "src": "value",
                     "ir": {
-                      "k": "binding-read",
+                      "kind": "binding-read",
                       "binding": 6
                     }
                   }

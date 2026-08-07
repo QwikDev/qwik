@@ -1,6 +1,6 @@
 {
   "format": "qwik/ssr-plan",
-  "version": 0,
+  "version": 1,
   "entry": 1,
   "components": [
     {
@@ -11,8 +11,8 @@
       "ssr": {
         "setup": [
           {
-            "op": "context-read",
-            "local": 7,
+            "kind": "context-read",
+            "binding": 7,
             "context": 4,
             "name": "theme"
           }
@@ -23,24 +23,24 @@
         ],
         "ops": [
           {
-            "o": "el",
+            "kind": "element",
             "tag": "p",
             "id": 0,
-            "void": false,
+            "voidTag": false,
             "styleScopedId": null,
             "targetUses": 0,
             "props": [],
             "propsEffect": null,
             "children": [
               {
-                "o": "dyn",
+                "kind": "dynamic",
                 "output": "text",
                 "value": {
                   "src": "theme.value",
                   "ir": {
-                    "k": "member",
+                    "kind": "member",
                     "obj": {
-                      "k": "binding-read",
+                      "kind": "binding-read",
                       "binding": 7
                     },
                     "name": "value"
@@ -65,8 +65,8 @@
       },
       "setup": [
         {
-          "op": "context-read",
-          "local": 7,
+          "kind": "context-read",
+          "binding": 7,
           "context": 4
         }
       ],
@@ -82,9 +82,9 @@
               "value": {
                 "src": "theme.value",
                 "ir": {
-                  "k": "member",
+                  "kind": "member",
                   "obj": {
-                    "k": "binding-read",
+                    "kind": "binding-read",
                     "binding": 7
                   },
                   "name": "value"
@@ -109,19 +109,19 @@
       "ssr": {
         "setup": [
           {
-            "op": "signal",
-            "local": 8,
+            "kind": "signal",
+            "binding": 8,
             "init": {
-              "k": "lit",
-              "v": "dark"
+              "kind": "lit",
+              "value": "dark"
             },
             "name": "theme"
           },
           {
-            "op": "context-provider",
+            "kind": "context-provider",
             "context": 4,
             "value": {
-              "k": "binding-read",
+              "kind": "binding-read",
               "binding": 8
             }
           }
@@ -130,17 +130,17 @@
         "usedSegmentIds": [],
         "ops": [
           {
-            "o": "el",
+            "kind": "element",
             "tag": "section",
             "id": null,
-            "void": false,
+            "voidTag": false,
             "styleScopedId": null,
             "targetUses": 0,
             "props": [],
             "propsEffect": null,
             "children": [
               {
-                "o": "component",
+                "kind": "component",
                 "target": {
                   "ref": 0
                 },
@@ -163,18 +163,18 @@
       },
       "setup": [
         {
-          "op": "signal",
-          "local": 8,
+          "kind": "signal",
+          "binding": 8,
           "init": {
-            "k": "lit",
-            "v": "dark"
+            "kind": "lit",
+            "value": "dark"
           }
         },
         {
-          "op": "context-provider",
+          "kind": "context-provider",
           "context": 4,
           "value": {
-            "k": "binding-read",
+            "kind": "binding-read",
             "binding": 8
           }
         }

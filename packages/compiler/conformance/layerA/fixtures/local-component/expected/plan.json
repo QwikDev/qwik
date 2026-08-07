@@ -1,6 +1,6 @@
 {
   "format": "qwik/ssr-plan",
-  "version": 0,
+  "version": 1,
   "entry": 0,
   "components": [
     {
@@ -11,23 +11,23 @@
       "ssr": {
         "setup": [
           {
-            "op": "store",
-            "local": 2,
+            "kind": "store",
+            "binding": 2,
             "init": {
-              "k": "object",
+              "kind": "object",
               "entries": [
                 [
                   "filter",
                   {
-                    "k": "lit",
-                    "v": "all"
+                    "kind": "lit",
+                    "value": "all"
                   }
                 ],
                 [
                   "count",
                   {
-                    "k": "lit",
-                    "v": 2
+                    "kind": "lit",
+                    "value": 2
                   }
                 ]
               ]
@@ -36,7 +36,7 @@
             "name": "todos"
           },
           {
-            "op": "local-component",
+            "kind": "local-component",
             "name": "Filter",
             "binding": 3,
             "segment": "local_component_127_491",
@@ -44,7 +44,7 @@
               "kind": "object",
               "bindings": [
                 {
-                  "b": 4,
+                  "binding": 4,
                   "name": "name"
                 }
               ]
@@ -52,13 +52,13 @@
             "render": {
               "setup": [
                 {
-                  "op": "const",
-                  "local": 5,
+                  "kind": "const",
+                  "binding": 5,
                   "init": {
-                    "k": "call",
+                    "kind": "call",
                     "fn": "qwik:string.toLowerCase",
-                    "recv": {
-                      "k": "binding-read",
+                    "receiver": {
+                      "kind": "binding-read",
                       "binding": 4
                     },
                     "args": []
@@ -66,7 +66,7 @@
                   "name": "lower"
                 },
                 {
-                  "op": "local-component",
+                  "kind": "local-component",
                   "name": "Star",
                   "binding": 6,
                   "segment": "local_component_193_284",
@@ -74,7 +74,7 @@
                     "kind": "object",
                     "bindings": [
                       {
-                        "b": 7,
+                        "binding": 7,
                         "name": "on"
                       }
                     ]
@@ -83,43 +83,43 @@
                     "setup": [],
                     "ops": [
                       {
-                        "o": "el",
+                        "kind": "element",
                         "tag": "b",
                         "id": 0,
-                        "void": false,
+                        "voidTag": false,
                         "styleScopedId": null,
                         "targetUses": 1,
                         "props": [
                           {
-                            "p": "dynamic",
+                            "kind": "dynamic",
                             "name": "class",
                             "value": {
                               "src": "{ on: on && todos.filter == lower }",
                               "ir": {
-                                "k": "object",
+                                "kind": "object",
                                 "entries": [
                                   [
                                     "on",
                                     {
-                                      "k": "logic",
+                                      "kind": "logic",
                                       "op": "&&",
-                                      "a": {
-                                        "k": "binding-read",
+                                      "left": {
+                                        "kind": "binding-read",
                                         "binding": 7
                                       },
-                                      "b": {
-                                        "k": "bin",
+                                      "right": {
+                                        "kind": "bin",
                                         "op": "==",
-                                        "a": {
-                                          "k": "member",
+                                        "left": {
+                                          "kind": "member",
                                           "obj": {
-                                            "k": "binding-read",
+                                            "kind": "binding-read",
                                             "binding": 2
                                           },
                                           "name": "filter"
                                         },
-                                        "b": {
-                                          "k": "binding-read",
+                                        "right": {
+                                          "kind": "binding-read",
                                           "binding": 5
                                         }
                                       }
@@ -135,7 +135,7 @@
                         "propsEffect": null,
                         "children": [
                           {
-                            "o": "static",
+                            "kind": "static",
                             "html": "*"
                           }
                         ]
@@ -148,46 +148,46 @@
               ],
               "ops": [
                 {
-                  "o": "el",
+                  "kind": "element",
                   "tag": "li",
                   "id": null,
-                  "void": false,
+                  "voidTag": false,
                   "styleScopedId": null,
                   "targetUses": 0,
                   "props": [],
                   "propsEffect": null,
                   "children": [
                     {
-                      "o": "el",
+                      "kind": "element",
                       "tag": "a",
                       "id": 0,
-                      "void": false,
+                      "voidTag": false,
                       "styleScopedId": null,
                       "targetUses": 1,
                       "props": [
                         {
-                          "p": "dynamic",
+                          "kind": "dynamic",
                           "name": "class",
                           "value": {
                             "src": "{ selected: todos.filter == lower }",
                             "ir": {
-                              "k": "object",
+                              "kind": "object",
                               "entries": [
                                 [
                                   "selected",
                                   {
-                                    "k": "bin",
+                                    "kind": "bin",
                                     "op": "==",
-                                    "a": {
-                                      "k": "member",
+                                    "left": {
+                                      "kind": "member",
                                       "obj": {
-                                        "k": "binding-read",
+                                        "kind": "binding-read",
                                         "binding": 2
                                       },
                                       "name": "filter"
                                     },
-                                    "b": {
-                                      "k": "binding-read",
+                                    "right": {
+                                      "kind": "binding-read",
                                       "binding": 5
                                     }
                                   }
@@ -199,7 +199,7 @@
                           "compilerString": false
                         },
                         {
-                          "p": "event",
+                          "kind": "event",
                           "name": "q-e:click",
                           "handlers": [
                             {
@@ -214,12 +214,12 @@
                       "propsEffect": null,
                       "children": [
                         {
-                          "o": "component",
+                          "kind": "component",
                           "target": "Star",
                           "returnMode": "maybe-promise",
                           "props": [
                             {
-                              "p": "static",
+                              "kind": "static",
                               "name": "on",
                               "value": true
                             }
@@ -230,16 +230,16 @@
                           "slots": []
                         },
                         {
-                          "o": "content",
+                          "kind": "content",
                           "segment": "semantic_expression_443_461",
                           "root": false,
                           "value": {
                             "src": "name.toUpperCase()",
                             "ir": {
-                              "k": "call",
+                              "kind": "call",
                               "fn": "qwik:string.toUpperCase",
-                              "recv": {
-                                "k": "binding-read",
+                              "receiver": {
+                                "kind": "binding-read",
                                 "binding": 4
                               },
                               "args": []
@@ -268,30 +268,30 @@
         ],
         "ops": [
           {
-            "o": "el",
+            "kind": "element",
             "tag": "ul",
             "id": null,
-            "void": false,
+            "voidTag": false,
             "styleScopedId": null,
             "targetUses": 0,
             "props": [],
             "propsEffect": null,
             "children": [
               {
-                "o": "collection",
+                "kind": "collection",
                 "source": {
                   "kind": "direct-array",
                   "src": "[\"All\", \"Active\"]",
                   "ir": {
-                    "k": "array",
+                    "kind": "array",
                     "items": [
                       {
-                        "k": "lit",
-                        "v": "All"
+                        "kind": "lit",
+                        "value": "All"
                       },
                       {
-                        "k": "lit",
-                        "v": "Active"
+                        "kind": "lit",
+                        "value": "Active"
                       }
                     ]
                   }
@@ -301,17 +301,17 @@
                   "setup": [],
                   "ops": [
                     {
-                      "o": "component",
+                      "kind": "component",
                       "target": "Filter",
                       "returnMode": "maybe-promise",
                       "props": [
                         {
-                          "p": "dynamic",
+                          "kind": "dynamic",
                           "name": "name",
                           "value": {
                             "src": "f",
                             "ir": {
-                              "k": "binding-read",
+                              "kind": "binding-read",
                               "binding": 8
                             },
                             "raw": true
@@ -344,12 +344,12 @@
                 "rowShape": 3
               },
               {
-                "o": "component",
+                "kind": "component",
                 "target": "Filter",
                 "returnMode": "maybe-promise",
                 "props": [
                   {
-                    "p": "static",
+                    "kind": "static",
                     "name": "name",
                     "value": "Done"
                   }
@@ -371,23 +371,23 @@
       },
       "setup": [
         {
-          "op": "store",
-          "local": 2,
+          "kind": "store",
+          "binding": 2,
           "init": {
-            "k": "object",
+            "kind": "object",
             "entries": [
               [
                 "filter",
                 {
-                  "k": "lit",
-                  "v": "all"
+                  "kind": "lit",
+                  "value": "all"
                 }
               ],
               [
                 "count",
                 {
-                  "k": "lit",
-                  "v": 2
+                  "kind": "lit",
+                  "value": 2
                 }
               ]
             ]
@@ -395,7 +395,7 @@
           "deep": true
         },
         {
-          "op": "js",
+          "kind": "js",
           "src": "function Filter({ name }) {\n\t\tconst lower = name.toLowerCase();\n\t\tfunction Star({ on }) {\n\t\t\treturn <b class={{ on: on && todos.filter == lower }}>*</b>;\n\t\t}\n\t\treturn <li>\n        <a class={{ selected: todos.filter == lower }} onClick$={() => {\n\t\t\ttodos.filter = lower;\n\t\t}}>\n          <Star on={true} />\n          {name.toUpperCase()}\n        </a>\n      </li>;\n\t}"
         }
       ],
@@ -411,15 +411,15 @@
                 "kind": "direct-array",
                 "src": "[\"All\", \"Active\"]",
                 "ir": {
-                  "k": "array",
+                  "kind": "array",
                   "items": [
                     {
-                      "k": "lit",
-                      "v": "All"
+                      "kind": "lit",
+                      "value": "All"
                     },
                     {
-                      "k": "lit",
-                      "v": "Active"
+                      "kind": "lit",
+                      "value": "Active"
                     }
                   ]
                 }
@@ -438,7 +438,7 @@
                         "value": {
                           "src": "f",
                           "ir": {
-                            "k": "binding-read",
+                            "kind": "binding-read",
                             "binding": 8
                           }
                         }

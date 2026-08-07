@@ -1,6 +1,6 @@
 {
   "format": "qwik/ssr-plan",
-  "version": 0,
+  "version": 1,
   "entry": 0,
   "components": [
     {
@@ -11,20 +11,20 @@
       "ssr": {
         "setup": [
           {
-            "op": "signal",
-            "local": 2,
+            "kind": "signal",
+            "binding": 2,
             "init": {
-              "k": "lit",
-              "v": false
+              "kind": "lit",
+              "value": false
             },
             "name": "selected"
           },
           {
-            "op": "signal",
-            "local": 3,
+            "kind": "signal",
+            "binding": 3,
             "init": {
-              "k": "lit",
-              "v": "on"
+              "kind": "lit",
+              "value": "on"
             },
             "name": "label"
           }
@@ -37,46 +37,46 @@
         ],
         "ops": [
           {
-            "o": "el",
+            "kind": "element",
             "tag": "main",
             "id": null,
-            "void": false,
+            "voidTag": false,
             "styleScopedId": null,
             "targetUses": 0,
             "props": [],
             "propsEffect": null,
             "children": [
               {
-                "o": "el",
+                "kind": "element",
                 "tag": "button",
                 "id": 0,
-                "void": false,
+                "voidTag": false,
                 "styleScopedId": null,
                 "targetUses": 1,
                 "props": [
                   {
-                    "p": "static",
+                    "kind": "static",
                     "name": "id",
                     "value": "row"
                   },
                   {
-                    "p": "dynamic",
+                    "kind": "dynamic",
                     "name": "class",
                     "value": {
                       "src": "selected.value ? \"danger\" : \"\"",
                       "ir": {
-                        "k": "cond",
+                        "kind": "cond",
                         "test": {
-                          "k": "signal-read",
+                          "kind": "signal-read",
                           "binding": 2
                         },
                         "then": {
-                          "k": "lit",
-                          "v": "danger"
+                          "kind": "lit",
+                          "value": "danger"
                         },
                         "else": {
-                          "k": "lit",
-                          "v": ""
+                          "kind": "lit",
+                          "value": ""
                         }
                       },
                       "segment": "segment_0"
@@ -84,7 +84,7 @@
                     "compilerString": false
                   },
                   {
-                    "p": "event",
+                    "kind": "event",
                     "name": "q-e:click",
                     "handlers": [
                       {
@@ -99,23 +99,23 @@
                 "propsEffect": null,
                 "children": [
                   {
-                    "o": "dyn",
+                    "kind": "dynamic",
                     "output": "text",
                     "value": {
                       "src": "selected.value ? label.value : \"off\"",
                       "ir": {
-                        "k": "cond",
+                        "kind": "cond",
                         "test": {
-                          "k": "signal-read",
+                          "kind": "signal-read",
                           "binding": 2
                         },
                         "then": {
-                          "k": "signal-read",
+                          "kind": "signal-read",
                           "binding": 3
                         },
                         "else": {
-                          "k": "lit",
-                          "v": "off"
+                          "kind": "lit",
+                          "value": "off"
                         }
                       },
                       "segment": "segment_2"
@@ -140,19 +140,19 @@
       },
       "setup": [
         {
-          "op": "signal",
-          "local": 2,
+          "kind": "signal",
+          "binding": 2,
           "init": {
-            "k": "lit",
-            "v": false
+            "kind": "lit",
+            "value": false
           }
         },
         {
-          "op": "signal",
-          "local": 3,
+          "kind": "signal",
+          "binding": 3,
           "init": {
-            "k": "lit",
-            "v": "on"
+            "kind": "lit",
+            "value": "on"
           }
         }
       ],
@@ -177,18 +177,18 @@
                   "value": {
                     "src": "selected.value ? \"danger\" : \"\"",
                     "ir": {
-                      "k": "cond",
+                      "kind": "cond",
                       "test": {
-                        "k": "signal-read",
+                        "kind": "signal-read",
                         "binding": 2
                       },
                       "then": {
-                        "k": "lit",
-                        "v": "danger"
+                        "kind": "lit",
+                        "value": "danger"
                       },
                       "else": {
-                        "k": "lit",
-                        "v": ""
+                        "kind": "lit",
+                        "value": ""
                       }
                     },
                     "segment": "segment_0"
@@ -211,18 +211,18 @@
                   "value": {
                     "src": "selected.value ? label.value : \"off\"",
                     "ir": {
-                      "k": "cond",
+                      "kind": "cond",
                       "test": {
-                        "k": "signal-read",
+                        "kind": "signal-read",
                         "binding": 2
                       },
                       "then": {
-                        "k": "signal-read",
+                        "kind": "signal-read",
                         "binding": 3
                       },
                       "else": {
-                        "k": "lit",
-                        "v": "off"
+                        "kind": "lit",
+                        "value": "off"
                       }
                     },
                     "segment": "segment_2"

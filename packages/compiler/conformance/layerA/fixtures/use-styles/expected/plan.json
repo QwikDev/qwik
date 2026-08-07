@@ -1,6 +1,6 @@
 {
   "format": "qwik/ssr-plan",
-  "version": 0,
+  "version": 1,
   "entry": 0,
   "components": [
     {
@@ -11,17 +11,17 @@
       "ssr": {
         "setup": [
           {
-            "op": "style",
+            "kind": "style",
             "styleId": "gtgvab-0",
             "scoped": false,
             "css": ".card { color: rebeccapurple; }"
           },
           {
-            "op": "signal",
-            "local": 3,
+            "kind": "signal",
+            "binding": 3,
             "init": {
-              "k": "lit",
-              "v": "styled"
+              "kind": "lit",
+              "value": "styled"
             },
             "name": "label"
           }
@@ -30,15 +30,15 @@
         "usedSegmentIds": [],
         "ops": [
           {
-            "o": "el",
+            "kind": "element",
             "tag": "p",
             "id": 0,
-            "void": false,
+            "voidTag": false,
             "styleScopedId": null,
             "targetUses": 0,
             "props": [
               {
-                "p": "static",
+                "kind": "static",
                 "name": "class",
                 "value": "card"
               }
@@ -46,12 +46,12 @@
             "propsEffect": null,
             "children": [
               {
-                "o": "dyn",
+                "kind": "dynamic",
                 "output": "text",
                 "value": {
                   "src": "label.value",
                   "ir": {
-                    "k": "signal-read",
+                    "kind": "signal-read",
                     "binding": 3
                   },
                   "raw": true
@@ -74,17 +74,17 @@
       },
       "setup": [
         {
-          "op": "style",
+          "kind": "style",
           "styleId": "gtgvab-0",
           "scoped": false,
           "css": ".card { color: rebeccapurple; }"
         },
         {
-          "op": "signal",
-          "local": 3,
+          "kind": "signal",
+          "binding": 3,
           "init": {
-            "k": "lit",
-            "v": "styled"
+            "kind": "lit",
+            "value": "styled"
           }
         }
       ],
@@ -106,7 +106,7 @@
               "value": {
                 "src": "label.value",
                 "ir": {
-                  "k": "signal-read",
+                  "kind": "signal-read",
                   "binding": 3
                 }
               }

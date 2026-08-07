@@ -1,6 +1,6 @@
 {
   "format": "qwik/ssr-plan",
-  "version": 0,
+  "version": 1,
   "entry": 0,
   "components": [
     {
@@ -11,11 +11,11 @@
       "ssr": {
         "setup": [
           {
-            "op": "signal",
-            "local": 2,
+            "kind": "signal",
+            "binding": 2,
             "init": {
-              "k": "lit",
-              "v": 3
+              "kind": "lit",
+              "value": 3
             },
             "name": "count"
           }
@@ -26,26 +26,26 @@
         ],
         "ops": [
           {
-            "o": "el",
+            "kind": "element",
             "tag": "p",
             "id": 0,
-            "void": false,
+            "voidTag": false,
             "styleScopedId": null,
             "targetUses": 0,
             "props": [],
             "propsEffect": null,
             "children": [
               {
-                "o": "static",
+                "kind": "static",
                 "html": "Count: "
               },
               {
-                "o": "dyn",
+                "kind": "dynamic",
                 "output": "text",
                 "value": {
                   "src": "count.value",
                   "ir": {
-                    "k": "signal-read",
+                    "kind": "signal-read",
                     "binding": 2
                   },
                   "raw": true
@@ -58,24 +58,24 @@
                 }
               },
               {
-                "o": "static",
+                "kind": "static",
                 "html": "! (limit "
               },
               {
-                "o": "dyn",
+                "kind": "dynamic",
                 "output": "text",
                 "value": {
                   "src": "count.value + 7",
                   "ir": {
-                    "k": "bin",
+                    "kind": "bin",
                     "op": "+",
-                    "a": {
-                      "k": "signal-read",
+                    "left": {
+                      "kind": "signal-read",
                       "binding": 2
                     },
-                    "b": {
-                      "k": "lit",
-                      "v": 7
+                    "right": {
+                      "kind": "lit",
+                      "value": 7
                     }
                   },
                   "segment": "segment_1"
@@ -88,7 +88,7 @@
                 }
               },
               {
-                "o": "static",
+                "kind": "static",
                 "html": ")"
               }
             ]
@@ -103,11 +103,11 @@
       },
       "setup": [
         {
-          "op": "signal",
-          "local": 2,
+          "kind": "signal",
+          "binding": 2,
           "init": {
-            "k": "lit",
-            "v": 3
+            "kind": "lit",
+            "value": 3
           }
         }
       ],
@@ -127,7 +127,7 @@
               "value": {
                 "src": "count.value",
                 "ir": {
-                  "k": "signal-read",
+                  "kind": "signal-read",
                   "binding": 2
                 }
               }
@@ -142,15 +142,15 @@
               "value": {
                 "src": "count.value + 7",
                 "ir": {
-                  "k": "bin",
+                  "kind": "bin",
                   "op": "+",
-                  "a": {
-                    "k": "signal-read",
+                  "left": {
+                    "kind": "signal-read",
                     "binding": 2
                   },
-                  "b": {
-                    "k": "lit",
-                    "v": 7
+                  "right": {
+                    "kind": "lit",
+                    "value": 7
                   }
                 },
                 "segment": "segment_1"

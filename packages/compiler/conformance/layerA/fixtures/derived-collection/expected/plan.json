@@ -1,6 +1,6 @@
 {
   "format": "qwik/ssr-plan",
-  "version": 0,
+  "version": 1,
   "entry": 0,
   "components": [
     {
@@ -11,22 +11,22 @@
       "ssr": {
         "setup": [
           {
-            "op": "signal",
-            "local": 2,
+            "kind": "signal",
+            "binding": 2,
             "init": {
-              "k": "array",
+              "kind": "array",
               "items": [
                 {
-                  "k": "lit",
-                  "v": "alpha"
+                  "kind": "lit",
+                  "value": "alpha"
                 },
                 {
-                  "k": "lit",
-                  "v": "beta"
+                  "kind": "lit",
+                  "value": "beta"
                 },
                 {
-                  "k": "lit",
-                  "v": "gamma"
+                  "kind": "lit",
+                  "value": "gamma"
                 }
               ]
             },
@@ -41,26 +41,26 @@
         ],
         "ops": [
           {
-            "o": "el",
+            "kind": "element",
             "tag": "ul",
             "id": null,
-            "void": false,
+            "voidTag": false,
             "styleScopedId": null,
             "targetUses": 0,
             "props": [],
             "propsEffect": null,
             "children": [
               {
-                "o": "collection",
+                "kind": "collection",
                 "source": {
                   "kind": "derived",
                   "segment": "semantic_collectionSource_151_196",
                   "keepSource": false,
                   "ir": {
-                    "k": "call",
+                    "kind": "call",
                     "fn": "qwik:array.filter",
-                    "recv": {
-                      "k": "signal-read",
+                    "receiver": {
+                      "kind": "signal-read",
                       "binding": 2
                     },
                     "args": [
@@ -73,19 +73,19 @@
                           }
                         ],
                         "body": {
-                          "k": "bin",
+                          "kind": "bin",
                           "op": ">",
-                          "a": {
-                            "k": "member",
+                          "left": {
+                            "kind": "member",
                             "obj": {
-                              "k": "binding-read",
+                              "kind": "binding-read",
                               "binding": 3
                             },
                             "name": "length"
                           },
-                          "b": {
-                            "k": "lit",
-                            "v": 4
+                          "right": {
+                            "kind": "lit",
+                            "value": 4
                           }
                         }
                       }
@@ -94,7 +94,7 @@
                 },
                 "key": "segment_1",
                 "keyIr": {
-                  "k": "binding-read",
+                  "kind": "binding-read",
                   "binding": 4
                 },
                 "row": {
@@ -103,22 +103,22 @@
                     "setup": [],
                     "ops": [
                       {
-                        "o": "el",
+                        "kind": "element",
                         "tag": "li",
                         "id": 0,
-                        "void": false,
+                        "voidTag": false,
                         "styleScopedId": null,
                         "targetUses": 0,
                         "props": [],
                         "propsEffect": null,
                         "children": [
                           {
-                            "o": "dyn",
+                            "kind": "dynamic",
                             "output": "text",
                             "value": {
                               "src": "word",
                               "ir": {
-                                "k": "binding-read",
+                                "kind": "binding-read",
                                 "binding": 4
                               },
                               "segment": "segment_2"
@@ -156,22 +156,22 @@
       },
       "setup": [
         {
-          "op": "signal",
-          "local": 2,
+          "kind": "signal",
+          "binding": 2,
           "init": {
-            "k": "array",
+            "kind": "array",
             "items": [
               {
-                "k": "lit",
-                "v": "alpha"
+                "kind": "lit",
+                "value": "alpha"
               },
               {
-                "k": "lit",
-                "v": "beta"
+                "kind": "lit",
+                "value": "beta"
               },
               {
-                "k": "lit",
-                "v": "gamma"
+                "kind": "lit",
+                "value": "gamma"
               }
             ]
           }
@@ -190,10 +190,10 @@
                 "src": "words.value.filter((word) => word.length > 4)",
                 "segment": "semantic_collectionSource_151_196",
                 "ir": {
-                  "k": "call",
+                  "kind": "call",
                   "fn": "qwik:array.filter",
-                  "recv": {
-                    "k": "signal-read",
+                  "receiver": {
+                    "kind": "signal-read",
                     "binding": 2
                   },
                   "args": [
@@ -206,19 +206,19 @@
                         }
                       ],
                       "body": {
-                        "k": "bin",
+                        "kind": "bin",
                         "op": ">",
-                        "a": {
-                          "k": "member",
+                        "left": {
+                          "kind": "member",
                           "obj": {
-                            "k": "binding-read",
+                            "kind": "binding-read",
                             "binding": 3
                           },
                           "name": "length"
                         },
-                        "b": {
-                          "k": "lit",
-                          "v": 4
+                        "right": {
+                          "kind": "lit",
+                          "value": 4
                         }
                       }
                     }
@@ -229,7 +229,7 @@
                 "src": "",
                 "segment": "segment_1",
                 "ir": {
-                  "k": "binding-read",
+                  "kind": "binding-read",
                   "binding": 4
                 }
               },
@@ -247,7 +247,7 @@
                         "value": {
                           "src": "word",
                           "ir": {
-                            "k": "binding-read",
+                            "kind": "binding-read",
                             "binding": 4
                           },
                           "segment": "segment_2"

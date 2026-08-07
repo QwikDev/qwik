@@ -1,6 +1,6 @@
 {
   "format": "qwik/ssr-plan",
-  "version": 0,
+  "version": 1,
   "entry": 0,
   "components": [
     {
@@ -11,16 +11,16 @@
       "ssr": {
         "setup": [
           {
-            "op": "signal",
-            "local": 2,
+            "kind": "signal",
+            "binding": 2,
             "init": {
-              "k": "lit",
-              "v": 2
+              "kind": "lit",
+              "value": 2
             },
             "name": "count"
           },
           {
-            "op": "local-component",
+            "kind": "local-component",
             "name": "Badge",
             "binding": 3,
             "segment": "local_component_98_212",
@@ -32,22 +32,22 @@
               "setup": [],
               "ops": [
                 {
-                  "o": "el",
+                  "kind": "element",
                   "tag": "b",
                   "id": 0,
-                  "void": false,
+                  "voidTag": false,
                   "styleScopedId": null,
                   "targetUses": 1,
                   "props": [
                     {
-                      "p": "dynamic",
+                      "kind": "dynamic",
                       "name": "class",
                       "value": {
                         "src": "props.kind",
                         "ir": {
-                          "k": "member",
+                          "kind": "member",
                           "obj": {
-                            "k": "binding-read",
+                            "kind": "binding-read",
                             "binding": 4
                           },
                           "name": "kind"
@@ -60,14 +60,14 @@
                   "propsEffect": null,
                   "children": [
                     {
-                      "o": "dyn",
+                      "kind": "dynamic",
                       "output": "text",
                       "value": {
                         "src": "props.label",
                         "ir": {
-                          "k": "member",
+                          "kind": "member",
                           "obj": {
-                            "k": "binding-read",
+                            "kind": "binding-read",
                             "binding": 4
                           },
                           "name": "label"
@@ -82,12 +82,12 @@
                       }
                     },
                     {
-                      "o": "dyn",
+                      "kind": "dynamic",
                       "output": "text",
                       "value": {
                         "src": "count.value",
                         "ir": {
-                          "k": "signal-read",
+                          "kind": "signal-read",
                           "binding": 2
                         },
                         "raw": true
@@ -115,27 +115,27 @@
         ],
         "ops": [
           {
-            "o": "el",
+            "kind": "element",
             "tag": "div",
             "id": null,
-            "void": false,
+            "voidTag": false,
             "styleScopedId": null,
             "targetUses": 0,
             "props": [],
             "propsEffect": null,
             "children": [
               {
-                "o": "component",
+                "kind": "component",
                 "target": "Badge",
                 "returnMode": "maybe-promise",
                 "props": [
                   {
-                    "p": "static",
+                    "kind": "static",
                     "name": "label",
                     "value": "hi"
                   },
                   {
-                    "p": "static",
+                    "kind": "static",
                     "name": "kind",
                     "value": "tag"
                   }
@@ -157,15 +157,15 @@
       },
       "setup": [
         {
-          "op": "signal",
-          "local": 2,
+          "kind": "signal",
+          "binding": 2,
           "init": {
-            "k": "lit",
-            "v": 2
+            "kind": "lit",
+            "value": 2
           }
         },
         {
-          "op": "js",
+          "kind": "js",
           "src": "function Badge(props) {\n\t\treturn <b class={props.kind}>\n        {props.label}\n        {count.value}\n      </b>;\n\t}"
         }
       ],

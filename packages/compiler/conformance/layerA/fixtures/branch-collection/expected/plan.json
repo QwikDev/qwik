@@ -1,6 +1,6 @@
 {
   "format": "qwik/ssr-plan",
-  "version": 0,
+  "version": 1,
   "entry": 0,
   "components": [
     {
@@ -11,75 +11,75 @@
       "ssr": {
         "setup": [
           {
-            "op": "signal",
-            "local": 4,
+            "kind": "signal",
+            "binding": 4,
             "init": {
-              "k": "array",
+              "kind": "array",
               "items": [
                 {
-                  "k": "lit",
-                  "v": "alpha"
+                  "kind": "lit",
+                  "value": "alpha"
                 },
                 {
-                  "k": "lit",
-                  "v": "beta"
+                  "kind": "lit",
+                  "value": "beta"
                 }
               ]
             },
             "name": "items"
           },
           {
-            "op": "signal",
-            "local": 5,
+            "kind": "signal",
+            "binding": 5,
             "init": {
-              "k": "lit",
-              "v": "idle"
+              "kind": "lit",
+              "value": "idle"
             },
             "name": "label"
           },
           {
-            "op": "computed",
-            "local": 6,
+            "kind": "computed",
+            "binding": 6,
             "segment": "segment_0",
             "body": {
-              "k": "bin",
+              "kind": "bin",
               "op": "*",
-              "a": {
-                "k": "member",
+              "left": {
+                "kind": "member",
                 "obj": {
-                  "k": "signal-read",
+                  "kind": "signal-read",
                   "binding": 4
                 },
                 "name": "length"
               },
-              "b": {
-                "k": "lit",
-                "v": 2
+              "right": {
+                "kind": "lit",
+                "value": 2
               }
             },
             "name": "total"
           },
           {
-            "op": "task",
+            "kind": "task",
             "segment": "segment_1",
             "body": {
               "steps": [
                 {
                   "s": "if",
                   "test": {
-                    "k": "bin",
+                    "kind": "bin",
                     "op": "===",
-                    "a": {
-                      "k": "member",
+                    "left": {
+                      "kind": "member",
                       "obj": {
-                        "k": "signal-read",
+                        "kind": "signal-read",
                         "binding": 4
                       },
                       "name": "length"
                     },
-                    "b": {
-                      "k": "lit",
-                      "v": 0
+                    "right": {
+                      "kind": "lit",
+                      "value": 0
                     }
                   },
                   "then": [
@@ -87,8 +87,8 @@
                       "s": "set-signal",
                       "binding": 5,
                       "value": {
-                        "k": "lit",
-                        "v": "empty"
+                        "kind": "lit",
+                        "value": "empty"
                       }
                     }
                   ],
@@ -109,20 +109,20 @@
         ],
         "ops": [
           {
-            "o": "el",
+            "kind": "element",
             "tag": "section",
             "id": 0,
-            "void": false,
+            "voidTag": false,
             "styleScopedId": null,
             "targetUses": 1,
             "props": [
               {
-                "p": "dynamic",
+                "kind": "dynamic",
                 "name": "title",
                 "value": {
                   "src": "label.value",
                   "ir": {
-                    "k": "signal-read",
+                    "kind": "signal-read",
                     "binding": 5
                   },
                   "raw": true
@@ -133,22 +133,22 @@
             "propsEffect": null,
             "children": [
               {
-                "o": "branch",
+                "kind": "branch",
                 "condition": "segment_3",
                 "conditionIr": {
-                  "k": "bin",
+                  "kind": "bin",
                   "op": "===",
-                  "a": {
-                    "k": "member",
+                  "left": {
+                    "kind": "member",
                     "obj": {
-                      "k": "signal-read",
+                      "kind": "signal-read",
                       "binding": 4
                     },
                     "name": "length"
                   },
-                  "b": {
-                    "k": "lit",
-                    "v": 0
+                  "right": {
+                    "kind": "lit",
+                    "value": 0
                   }
                 },
                 "root": false,
@@ -158,17 +158,17 @@
                   "setup": [],
                   "ops": [
                     {
-                      "o": "el",
+                      "kind": "element",
                       "tag": "p",
                       "id": null,
-                      "void": false,
+                      "voidTag": false,
                       "styleScopedId": null,
                       "targetUses": 0,
                       "props": [],
                       "propsEffect": null,
                       "children": [
                         {
-                          "o": "static",
+                          "kind": "static",
                           "html": "Empty"
                         }
                       ]
@@ -182,28 +182,28 @@
                   "setup": [],
                   "ops": [
                     {
-                      "o": "el",
+                      "kind": "element",
                       "tag": "ul",
                       "id": null,
-                      "void": false,
+                      "voidTag": false,
                       "styleScopedId": null,
                       "targetUses": 0,
                       "props": [],
                       "propsEffect": null,
                       "children": [
                         {
-                          "o": "collection",
+                          "kind": "collection",
                           "source": {
                             "kind": "direct-reactive",
                             "src": "items",
                             "ir": {
-                              "k": "binding-read",
+                              "kind": "binding-read",
                               "binding": 4
                             }
                           },
                           "key": "segment_7",
                           "keyIr": {
-                            "k": "binding-read",
+                            "kind": "binding-read",
                             "binding": 7
                           },
                           "row": {
@@ -212,30 +212,30 @@
                               "setup": [],
                               "ops": [
                                 {
-                                  "o": "el",
+                                  "kind": "element",
                                   "tag": "li",
                                   "id": 0,
-                                  "void": false,
+                                  "voidTag": false,
                                   "styleScopedId": null,
                                   "targetUses": 0,
                                   "props": [],
                                   "propsEffect": null,
                                   "children": [
                                     {
-                                      "o": "dyn",
+                                      "kind": "dynamic",
                                       "output": "text",
                                       "value": {
                                         "src": "index + 1",
                                         "ir": {
-                                          "k": "bin",
+                                          "kind": "bin",
                                           "op": "+",
-                                          "a": {
-                                            "k": "binding-read",
+                                          "left": {
+                                            "kind": "binding-read",
                                             "binding": 8
                                           },
-                                          "b": {
-                                            "k": "lit",
-                                            "v": 1
+                                          "right": {
+                                            "kind": "lit",
+                                            "value": 1
                                           }
                                         },
                                         "segment": "segment_8"
@@ -248,20 +248,20 @@
                                       }
                                     },
                                     {
-                                      "o": "static",
+                                      "kind": "static",
                                       "html": ". "
                                     },
                                     {
-                                      "o": "content",
+                                      "kind": "content",
                                       "segment": "semantic_expression_497_515",
                                       "root": false,
                                       "value": {
                                         "src": "item.toUpperCase()",
                                         "ir": {
-                                          "k": "call",
+                                          "kind": "call",
                                           "fn": "qwik:string.toUpperCase",
-                                          "recv": {
-                                            "k": "binding-read",
+                                          "receiver": {
+                                            "kind": "binding-read",
                                             "binding": 7
                                           },
                                           "args": []
@@ -293,22 +293,22 @@
                 }
               },
               {
-                "o": "el",
+                "kind": "element",
                 "tag": "footer",
                 "id": 1,
-                "void": false,
+                "voidTag": false,
                 "styleScopedId": null,
                 "targetUses": 0,
                 "props": [],
                 "propsEffect": null,
                 "children": [
                   {
-                    "o": "dyn",
+                    "kind": "dynamic",
                     "output": "text",
                     "value": {
                       "src": "total.value",
                       "ir": {
-                        "k": "signal-read",
+                        "kind": "signal-read",
                         "binding": 6
                       },
                       "raw": true
@@ -333,72 +333,72 @@
       },
       "setup": [
         {
-          "op": "signal",
-          "local": 4,
+          "kind": "signal",
+          "binding": 4,
           "init": {
-            "k": "array",
+            "kind": "array",
             "items": [
               {
-                "k": "lit",
-                "v": "alpha"
+                "kind": "lit",
+                "value": "alpha"
               },
               {
-                "k": "lit",
-                "v": "beta"
+                "kind": "lit",
+                "value": "beta"
               }
             ]
           }
         },
         {
-          "op": "signal",
-          "local": 5,
+          "kind": "signal",
+          "binding": 5,
           "init": {
-            "k": "lit",
-            "v": "idle"
+            "kind": "lit",
+            "value": "idle"
           }
         },
         {
-          "op": "computed",
-          "local": 6,
+          "kind": "computed",
+          "binding": 6,
           "segment": "segment_0",
           "body": {
-            "k": "bin",
+            "kind": "bin",
             "op": "*",
-            "a": {
-              "k": "member",
+            "left": {
+              "kind": "member",
               "obj": {
-                "k": "signal-read",
+                "kind": "signal-read",
                 "binding": 4
               },
               "name": "length"
             },
-            "b": {
-              "k": "lit",
-              "v": 2
+            "right": {
+              "kind": "lit",
+              "value": 2
             }
           }
         },
         {
-          "op": "task",
+          "kind": "task",
           "segment": "segment_1",
           "body": {
             "steps": [
               {
                 "s": "if",
                 "test": {
-                  "k": "bin",
+                  "kind": "bin",
                   "op": "===",
-                  "a": {
-                    "k": "member",
+                  "left": {
+                    "kind": "member",
                     "obj": {
-                      "k": "signal-read",
+                      "kind": "signal-read",
                       "binding": 4
                     },
                     "name": "length"
                   },
-                  "b": {
-                    "k": "lit",
-                    "v": 0
+                  "right": {
+                    "kind": "lit",
+                    "value": 0
                   }
                 },
                 "then": [
@@ -406,8 +406,8 @@
                     "s": "set-signal",
                     "binding": 5,
                     "value": {
-                      "k": "lit",
-                      "v": "empty"
+                      "kind": "lit",
+                      "value": "empty"
                     }
                   }
                 ],
@@ -429,7 +429,7 @@
               "value": {
                 "src": "label.value",
                 "ir": {
-                  "k": "signal-read",
+                  "kind": "signal-read",
                   "binding": 5
                 }
               }
@@ -442,19 +442,19 @@
                 "src": "",
                 "segment": "segment_3",
                 "ir": {
-                  "k": "bin",
+                  "kind": "bin",
                   "op": "===",
-                  "a": {
-                    "k": "member",
+                  "left": {
+                    "kind": "member",
                     "obj": {
-                      "k": "signal-read",
+                      "kind": "signal-read",
                       "binding": 4
                     },
                     "name": "length"
                   },
-                  "b": {
-                    "k": "lit",
-                    "v": 0
+                  "right": {
+                    "kind": "lit",
+                    "value": 0
                   }
                 }
               },
@@ -493,7 +493,7 @@
                           "src": "",
                           "segment": "segment_7",
                           "ir": {
-                            "k": "binding-read",
+                            "kind": "binding-read",
                             "binding": 7
                           }
                         },
@@ -511,15 +511,15 @@
                                   "value": {
                                     "src": "index + 1",
                                     "ir": {
-                                      "k": "bin",
+                                      "kind": "bin",
                                       "op": "+",
-                                      "a": {
-                                        "k": "binding-read",
+                                      "left": {
+                                        "kind": "binding-read",
                                         "binding": 8
                                       },
-                                      "b": {
-                                        "k": "lit",
-                                        "v": 1
+                                      "right": {
+                                        "kind": "lit",
+                                        "value": 1
                                       }
                                     },
                                     "segment": "segment_8"
@@ -535,10 +535,10 @@
                                   "value": {
                                     "src": "item.toUpperCase()",
                                     "ir": {
-                                      "k": "call",
+                                      "kind": "call",
                                       "fn": "qwik:string.toUpperCase",
-                                      "recv": {
-                                        "k": "binding-read",
+                                      "receiver": {
+                                        "kind": "binding-read",
                                         "binding": 7
                                       },
                                       "args": []
@@ -568,7 +568,7 @@
                   "value": {
                     "src": "total.value",
                     "ir": {
-                      "k": "signal-read",
+                      "kind": "signal-read",
                       "binding": 6
                     }
                   }

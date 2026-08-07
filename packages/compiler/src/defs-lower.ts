@@ -122,7 +122,7 @@ function readsOnly(ir: ValueIR, params: ReadonlySet<BindingId>): boolean {
     if (!clean) {
       return;
     }
-    switch (node.k) {
+    switch (node.kind) {
       case ValueIrKind.BindingRead:
       case ValueIrKind.SignalRead:
         if (!params.has(node.binding)) {
@@ -132,17 +132,17 @@ function readsOnly(ir: ValueIR, params: ReadonlySet<BindingId>): boolean {
       case ValueIrKind.Member:
       case ValueIrKind.Index:
         walk(node.obj);
-        if (node.k === ValueIrKind.Index) {
+        if (node.kind === ValueIrKind.Index) {
           walk(node.key);
         }
         return;
       case ValueIrKind.Unary:
-        walk(node.a);
+        walk(node.operand);
         return;
       case ValueIrKind.Bin:
       case ValueIrKind.Logic:
-        walk(node.a);
-        walk(node.b);
+        walk(node.left);
+        walk(node.right);
         return;
       case ValueIrKind.Cond:
         walk(node.test);
@@ -163,8 +163,8 @@ function readsOnly(ir: ValueIR, params: ReadonlySet<BindingId>): boolean {
         node.entries.forEach(([, value]) => walk(value));
         return;
       case ValueIrKind.Call:
-        if (node.recv !== null) {
-          walk(node.recv);
+        if (node.receiver !== null) {
+          walk(node.receiver);
         }
         for (const argument of node.args) {
           // lambdas carry the 'lambda' discriminant; everything else is ValueIR

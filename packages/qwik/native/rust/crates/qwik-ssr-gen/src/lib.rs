@@ -61,9 +61,9 @@ pub fn render_function_name(plan: &Json, component_index: usize) -> Result<Strin
 /// True when the component's render surface contains a `slot` op (grows a `slots` parameter).
 fn component_uses_slots(plan: &Json, component_index: usize) -> bool {
 	fn ops_contain_slot(ops: &[Json]) -> bool {
-		ops.iter().any(|op| match op["o"].as_str() {
+		ops.iter().any(|op| match op["kind"].as_str() {
 			Some("slot") => true,
-			Some("el") => op["children"]
+			Some("element") => op["children"]
 				.as_array()
 				.is_some_and(|children| ops_contain_slot(children)),
 			_ => false,
@@ -291,7 +291,7 @@ pub fn generate_component(plan: &Json, component_index: usize) -> Result<String,
 			.as_array()
 			.ok_or("component props bindings missing")?
 		{
-			let binding = binding_entry["b"]
+			let binding = binding_entry["binding"]
 				.as_u64()
 				.ok_or("prop binding not a number")?;
 			let prop_name = binding_entry["name"]
@@ -394,12 +394,12 @@ impl ComponentGenerator<'_> {
 	}
 
 	fn write_setup(&mut self, entry: &Json) -> Result<(), String> {
-		match entry["op"].as_str().ok_or("setup entry has no op")? {
+		match entry["kind"].as_str().ok_or("setup entry has no op")? {
 			"signal" => {
-				let binding = entry["local"].as_u64().ok_or("signal op has no local")?;
+				let binding = entry["binding"].as_u64().ok_or("signal op has no local")?;
 				let variable = format!("local_{binding}");
 				// plugin-call inits are already Rc-valued; literals wrap here
-				let init_rc = if entry["init"]["k"].as_str() == Some("plugin-call") {
+				let init_rc = if entry["init"]["kind"].as_str() == Some("plugin-call") {
 					self.plugin_call_expression(&entry["init"].clone())?
 				} else {
 					format!("std::rc::Rc::new({})", literal_expression(&entry["init"])?)
@@ -415,7 +415,7 @@ impl ComponentGenerator<'_> {
 				Ok(())
 			}
 			"store" => {
-				let binding = entry["local"].as_u64().ok_or("store op has no local")?;
+				let binding = entry["binding"].as_u64().ok_or("store op has no local")?;
 				if entry["deep"].as_bool() != Some(true) {
 					return Err("shallow stores not supported yet".to_string());
 				}
@@ -432,7 +432,7 @@ impl ComponentGenerator<'_> {
 				Ok(())
 			}
 			"computed" => {
-				let binding = entry["local"].as_u64().ok_or("computed op has no local")?;
+				let binding = entry["binding"].as_u64().ok_or("computed op has no local")?;
 				let segment = entry["segment"]
 					.as_str()
 					.ok_or("computed op has no segment")?;
@@ -471,7 +471,7 @@ impl ComponentGenerator<'_> {
 				Ok(())
 			}
 			"qrl-const" => {
-				let binding = entry["local"].as_u64().ok_or("qrl-const has no local")?;
+				let binding = entry["binding"].as_u64().ok_or("qrl-const has no local")?;
 				let segment = entry["segment"]
 					.as_str()
 					.ok_or("qrl-const has no segment")?;
@@ -488,7 +488,7 @@ impl ComponentGenerator<'_> {
 					.ok_or("context-provider has no context binding")?;
 				let name = self.context_name(context)?;
 				let value_ir = entry["value"].clone();
-				let value = if value_ir["k"].as_str() == Some("binding-read") {
+				let value = if value_ir["kind"].as_str() == Some("binding-read") {
 					self.local(
 						value_ir["binding"]
 							.as_u64()
@@ -513,7 +513,7 @@ impl ComponentGenerator<'_> {
 				Ok(())
 			}
 			"context-read" => {
-				let binding = entry["local"].as_u64().ok_or("context-read has no local")?;
+				let binding = entry["binding"].as_u64().ok_or("context-read has no local")?;
 				let context = entry["context"]
 					.as_u64()
 					.ok_or("context-read has no context binding")?;
@@ -564,7 +564,7 @@ impl ComponentGenerator<'_> {
 			}
 			// pure microtask timing (`await Promise.resolve()`) — nothing to do natively
 			"const" => {
-				let binding = entry["local"].as_u64().ok_or("const op has no local")?;
+				let binding = entry["binding"].as_u64().ok_or("const op has no local")?;
 				let variable = format!("local_{binding}");
 				let temp = self.next_temp();
 				let tracked = format!("const_tracked_{temp}");
@@ -607,13 +607,13 @@ impl ComponentGenerator<'_> {
 				// inert awaits (bare Promise.resolve) have no native effect; plugin-claimed
 				// awaits evaluate synchronously; anything else must claim a plugin
 				let ir = entry["value"].clone();
-				let is_inert = ir["k"].as_str() == Some("call")
+				let is_inert = ir["kind"].as_str() == Some("call")
 					&& ir["fn"].as_str() == Some("qwik:promise.resolve")
 					&& ir["args"].as_array().is_some_and(|args| args.is_empty());
 				if is_inert {
 					return Ok(());
 				}
-				if ir["k"].as_str() == Some("plugin-call") {
+				if ir["kind"].as_str() == Some("plugin-call") {
 					let call = self.plugin_call_expression(&ir)?;
 					writeln!(self.body, "    let _ = {call};").unwrap();
 					return Ok(());
@@ -626,14 +626,14 @@ impl ComponentGenerator<'_> {
 
 	fn write_ops(&mut self, ops: &[Json], target: &str) -> Result<(), String> {
 		for op in ops {
-			match op["o"].as_str().ok_or("op has no kind")? {
+			match op["kind"].as_str().ok_or("op has no kind")? {
 				"static" => {
 					// pre-escaped at plan emission (compile-time text profile)
 					self.statics
 						.push_str(op["html"].as_str().ok_or("static op has no html")?);
 				}
-				"el" => self.write_element(op, target)?,
-				"dyn" => self.write_dynamic(op, target)?,
+				"element" => self.write_element(op, target)?,
+				"dynamic" => self.write_dynamic(op, target)?,
 				"component" => self.write_component(op, target)?,
 				"slot" => self.write_slot(op, target)?,
 				"branch" => self.write_branch(op, target)?,
@@ -660,7 +660,7 @@ impl ComponentGenerator<'_> {
 			.ok_or("element children missing")?;
 		let use_on_attrs = std::mem::take(&mut self.pending_use_on);
 		let has_events = !use_on_attrs.is_empty()
-			|| props.iter().any(|prop| prop["p"].as_str() == Some("event"));
+			|| props.iter().any(|prop| prop["kind"].as_str() == Some("event"));
 
 		let row_root = std::mem::take(&mut self.pending_row_root);
 		let id_variable = if op["id"].is_null() {
@@ -693,7 +693,7 @@ impl ComponentGenerator<'_> {
 				.unwrap();
 			}
 			for prop in props {
-				match prop["p"].as_str().ok_or("prop has no kind")? {
+				match prop["kind"].as_str().ok_or("prop has no kind")? {
 					"dynamic" => self.write_dynamic_attr(prop, target, &id_variable)?,
 					_ => self.write_static_prop(prop)?,
 				}
@@ -703,7 +703,7 @@ impl ComponentGenerator<'_> {
 				self.statics.push_str(&raw);
 			}
 			self.write_ops(children, target)?;
-			if !op["void"].as_bool().unwrap_or(false) {
+			if !op["voidTag"].as_bool().unwrap_or(false) {
 				self.statics.push_str(&format!("</{tag}>"));
 			}
 			return Ok(());
@@ -714,7 +714,7 @@ impl ComponentGenerator<'_> {
 		self.flush_statics(target);
 		let mut dynamic_attr_texts: Vec<Option<String>> = Vec::new();
 		for prop in props {
-			if prop["p"].as_str() == Some("dynamic") {
+			if prop["kind"].as_str() == Some("dynamic") {
 				dynamic_attr_texts.push(Some(self.eval_dynamic_attr(prop, &id_variable)?));
 			} else {
 				dynamic_attr_texts.push(None);
@@ -747,7 +747,7 @@ impl ComponentGenerator<'_> {
 			.unwrap();
 		}
 		for (prop_index, prop) in props.iter().enumerate() {
-			match prop["p"].as_str().ok_or("prop has no kind")? {
+			match prop["kind"].as_str().ok_or("prop has no kind")? {
 				"event" => self.write_event_prop(prop, target, props)?,
 				"dynamic" => {
 					let text_variable = dynamic_attr_texts[prop_index]
@@ -766,14 +766,14 @@ impl ComponentGenerator<'_> {
 		if has_children {
 			writeln!(self.body, "    {target}.push_str(&{children_buffer});").unwrap();
 		}
-		if !op["void"].as_bool().unwrap_or(false) {
+		if !op["voidTag"].as_bool().unwrap_or(false) {
 			self.statics.push_str(&format!("</{tag}>"));
 		}
 		Ok(())
 	}
 
 	fn write_static_prop(&mut self, prop: &Json) -> Result<(), String> {
-		match prop["p"].as_str().ok_or("prop has no kind")? {
+		match prop["kind"].as_str().ok_or("prop has no kind")? {
 			"static" => {
 				let name = prop["name"].as_str().ok_or("static prop has no name")?;
 				self.statics
@@ -788,7 +788,7 @@ impl ComponentGenerator<'_> {
 
 	fn inner_html_of(props: &[Json]) -> Option<String> {
 		props.iter().find_map(|prop| {
-			if prop["p"].as_str() != Some("inner-html") {
+			if prop["kind"].as_str() != Some("inner-html") {
 				return None;
 			}
 			Some(match &prop["html"] {
@@ -831,8 +831,8 @@ impl ComponentGenerator<'_> {
 		self.uses_ctx = true;
 		self.flush_statics(target);
 		// binding reads with a segment are expression attrs (plain values, e.g. props)
-		let is_signal_attr = matches!(ir["k"].as_str(), Some("signal-read"))
-			|| (matches!(ir["k"].as_str(), Some("binding-read"))
+		let is_signal_attr = matches!(ir["kind"].as_str(), Some("signal-read"))
+			|| (matches!(ir["kind"].as_str(), Some("binding-read"))
 				&& prop["value"]["segment"].is_null());
 		if is_signal_attr {
 			let signal = self.signal_local(ir)?;
@@ -900,7 +900,7 @@ impl ComponentGenerator<'_> {
 		let sibling = element_props
 			.iter()
 			.find(|prop| {
-				prop["p"].as_str() == Some("dynamic") && prop["name"].as_str() == Some(bind_name)
+				prop["kind"].as_str() == Some("dynamic") && prop["name"].as_str() == Some(bind_name)
 			})
 			.ok_or(format!("bind handler without a sibling {bind_name:?} prop"))?;
 		self.signal_local(&sibling["value"]["ir"])
@@ -1020,7 +1020,7 @@ impl ComponentGenerator<'_> {
 		} else {
 			&call_props
 		} {
-			match prop["p"].as_str().ok_or("prop has no kind")? {
+			match prop["kind"].as_str().ok_or("prop has no kind")? {
 				"static" => {
 					let name = prop["name"].as_str().ok_or("static prop has no name")?;
 					let value = json_literal_expression(&prop["value"])?;
@@ -1032,7 +1032,7 @@ impl ComponentGenerator<'_> {
 				}
 				"dynamic" => {
 					let ir = &prop["value"]["ir"];
-					if ir["k"].as_str() != Some("signal-read") {
+					if ir["kind"].as_str() != Some("signal-read") {
 						return Err(format!("component prop ir {ir} not supported yet"));
 					}
 					let name = prop["name"].as_str().ok_or("dynamic prop has no name")?;
@@ -1188,7 +1188,7 @@ impl ComponentGenerator<'_> {
 	fn spread_props_expression(&mut self, call_props: &[Json]) -> Result<Option<String>, String> {
 		if !call_props
 			.iter()
-			.any(|prop| prop["p"].as_str() == Some("spread"))
+			.any(|prop| prop["kind"].as_str() == Some("spread"))
 		{
 			return Ok(None);
 		}
@@ -1196,10 +1196,10 @@ impl ComponentGenerator<'_> {
 		let mut sources: Vec<(String, String)> = Vec::new();
 		let mut literal_run: Option<String> = None;
 		for prop in call_props {
-			match prop["p"].as_str().ok_or("prop has no kind")? {
+			match prop["kind"].as_str().ok_or("prop has no kind")? {
 				"spread" => {
 					let ir = &prop["value"]["ir"];
-					if ir["k"].as_str() != Some("binding-read") {
+					if ir["kind"].as_str() != Some("binding-read") {
 						return Err(format!("spread props ir {ir} not supported yet"));
 					}
 					let source = self.local(ir["binding"].as_u64().ok_or("no binding")?)?;
@@ -1222,7 +1222,7 @@ impl ComponentGenerator<'_> {
 				}
 				"dynamic" => {
 					let ir = &prop["value"]["ir"];
-					if ir["k"].as_str() != Some("signal-read") {
+					if ir["kind"].as_str() != Some("signal-read") {
 						return Err(format!("prop ir {ir} mixed with spreads not supported yet"));
 					}
 					// signal reads merge as live values; _props records their sources
@@ -1385,7 +1385,7 @@ impl ComponentGenerator<'_> {
 			&call_props
 		} {
 			let prop_name = prop["name"].as_str().ok_or("prop has no name")?;
-			match prop["p"].as_str().ok_or("prop has no kind")? {
+			match prop["kind"].as_str().ok_or("prop has no kind")? {
 				"static" => {
 					let value = json_literal_expression(&prop["value"])?;
 					write!(
@@ -1396,7 +1396,7 @@ impl ComponentGenerator<'_> {
 				}
 				"dynamic" => {
 					let ir = &prop["value"]["ir"];
-					match ir["k"].as_str() {
+					match ir["kind"].as_str() {
 						Some("binding-read") => {
 							let source = self.local(ir["binding"].as_u64().ok_or("no binding")?)?;
 							write!(
@@ -1544,7 +1544,7 @@ impl ComponentGenerator<'_> {
 			}
 			if let Some(bindings) = props_plan["bindings"].as_array() {
 				for binding_entry in bindings {
-					let binding = binding_entry["b"]
+					let binding = binding_entry["binding"]
 						.as_u64()
 						.ok_or("prop binding not a number")?;
 					let prop_name = binding_entry["name"]
@@ -1937,7 +1937,7 @@ impl ComponentGenerator<'_> {
 			return Err("keys on static collections not supported yet".to_string());
 		}
 		let ir = &source_ir_of(op)?;
-		if ir["k"].as_str() != Some("array") {
+		if ir["kind"].as_str() != Some("array") {
 			return Err("static collection source must be an array literal".to_string());
 		}
 		let param_bindings: Vec<u64> = row["paramBindings"]
@@ -2052,7 +2052,7 @@ impl ComponentGenerator<'_> {
 		let render_qrl = format!("std::rc::Rc::clone(&row_qrl_{temp})");
 		if source_kind == "direct-reactive" {
 			let source_ir = &source["ir"];
-			if source_ir["k"].as_str() != Some("binding-read") {
+			if source_ir["kind"].as_str() != Some("binding-read") {
 				return Err("collection source without a signal-container read".to_string());
 			}
 			let source_signal = self.signal_local(source_ir)?;
@@ -2337,7 +2337,7 @@ impl ComponentGenerator<'_> {
 		self.flush_statics(target);
 
 		let ir = &op["value"]["ir"];
-		if ir["k"].as_str() == Some("signal-read")
+		if ir["kind"].as_str() == Some("signal-read")
 			&& self
 				.local_kinds
 				.get(&ir["binding"].as_u64().unwrap_or(u64::MAX))
@@ -2372,7 +2372,7 @@ impl ComponentGenerator<'_> {
 			}
 			return Ok(());
 		}
-		if ir["k"].as_str() == Some("signal-read") {
+		if ir["kind"].as_str() == Some("signal-read") {
 			let signal = self.signal_local(ir)?;
 			let subscribe = if is_range {
 				let marker = plan_target["marker"]
@@ -2610,7 +2610,7 @@ impl ComponentGenerator<'_> {
 	/// Compile a ValueIR tree to a Rust expression producing `Rc<SerdesValue>`; signal and
 	/// props-source reads record into `tracked` (auto-track — the effect deps).
 	fn ir_expression(&mut self, ir: &Json, tracked: &str) -> Result<String, String> {
-		match ir["k"].as_str().ok_or("ir node has no kind")? {
+		match ir["kind"].as_str().ok_or("ir node has no kind")? {
 			"signal-read" => {
 				let binding = ir["binding"].as_u64().ok_or("signal-read has no binding")?;
 				let signal = self.local(binding)?;
@@ -2640,7 +2640,7 @@ impl ComponentGenerator<'_> {
 			"member" => {
 				let object = &ir["obj"];
 				let name = ir["name"].as_str().ok_or("member has no name")?;
-				if object["k"].as_str() == Some("binding-read") {
+				if object["kind"].as_str() == Some("binding-read") {
 					let binding = object["binding"]
 						.as_u64()
 						.ok_or("binding-read has no binding")?;
@@ -2672,8 +2672,8 @@ impl ComponentGenerator<'_> {
 				Ok("std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Undefined)".to_string())
 			}
 			"bin" => {
-				let left = self.ir_expression(&ir["a"], tracked)?;
-				let right = self.ir_expression(&ir["b"], tracked)?;
+				let left = self.ir_expression(&ir["left"], tracked)?;
+				let right = self.ir_expression(&ir["right"], tracked)?;
 				let helper = match ir["op"].as_str().ok_or("bin op missing")? {
 					"+" => "js_add",
 					"*" => "js_mul",
@@ -2685,8 +2685,8 @@ impl ComponentGenerator<'_> {
 				Ok(format!("qwik_ssr_rt::render::{helper}(&{left}, &{right})"))
 			}
 			"logic" => {
-				let a = self.ir_expression(&ir["a"], tracked)?;
-				let b = self.ir_expression(&ir["b"], tracked)?;
+				let a = self.ir_expression(&ir["left"], tracked)?;
+				let b = self.ir_expression(&ir["right"], tracked)?;
 				// b evaluates only when taken — its tracked reads are dep-observable
 				match ir["op"].as_str().ok_or("logic ir has no op")? {
 					"&&" => Ok(format!(
@@ -2726,7 +2726,7 @@ impl ComponentGenerator<'_> {
 			}
 			"call" => {
 				let fn_id = ir["fn"].as_str().ok_or("call has no fn")?;
-				let recv = &ir["recv"];
+				let recv = &ir["receiver"];
 				if recv.is_null() {
 					return Err("receiver-less plugin calls not supported yet".to_string());
 				}
@@ -2788,7 +2788,7 @@ impl ComponentGenerator<'_> {
 
 /// Object-literal ValueIR → `SerdesValue::Object` expression (store init shapes).
 fn object_literal_expression(ir: &Json) -> Result<String, String> {
-	if ir["k"].as_str() != Some("object") {
+	if ir["kind"].as_str() != Some("object") {
 		return Err(format!("store init {ir} not supported yet"));
 	}
 	let mut entries = String::new();
@@ -2819,8 +2819,8 @@ fn source_ir_of(op: &Json) -> Result<Json, String> {
 }
 
 fn literal_expression(ir: &Json) -> Result<String, String> {
-	match ir["k"].as_str().ok_or("ir node has no kind")? {
-		"lit" => json_literal_expression(&ir["v"]),
+	match ir["kind"].as_str().ok_or("ir node has no kind")? {
+		"lit" => json_literal_expression(&ir["value"]),
 		"undef" => Ok("qwik_ssr_rt::serdes::SerdesValue::Undefined".to_string()),
 		"array" => {
 			let mut items = String::new();

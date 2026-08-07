@@ -1,6 +1,6 @@
 {
   "format": "qwik/ssr-plan",
-  "version": 0,
+  "version": 1,
   "entry": 1,
   "components": [
     {
@@ -14,11 +14,11 @@
         "kind": "object",
         "bindings": [
           {
-            "b": 2,
+            "binding": 2,
             "name": "kind"
           },
           {
-            "b": 3,
+            "binding": 3,
             "name": "label"
           }
         ]
@@ -32,20 +32,20 @@
         ],
         "ops": [
           {
-            "o": "el",
+            "kind": "element",
             "tag": "b",
             "id": 0,
-            "void": false,
+            "voidTag": false,
             "styleScopedId": null,
             "targetUses": 1,
             "props": [
               {
-                "p": "dynamic",
+                "kind": "dynamic",
                 "name": "class",
                 "value": {
                   "src": "kind",
                   "ir": {
-                    "k": "binding-read",
+                    "kind": "binding-read",
                     "binding": 2
                   },
                   "segment": "segment_0"
@@ -56,12 +56,12 @@
             "propsEffect": null,
             "children": [
               {
-                "o": "dyn",
+                "kind": "dynamic",
                 "output": "text",
                 "value": {
                   "src": "label",
                   "ir": {
-                    "k": "binding-read",
+                    "kind": "binding-read",
                     "binding": 3
                   },
                   "segment": "segment_1"
@@ -94,7 +94,7 @@
               "value": {
                 "src": "kind",
                 "ir": {
-                  "k": "binding-read",
+                  "kind": "binding-read",
                   "binding": 2
                 },
                 "segment": "segment_0"
@@ -108,7 +108,7 @@
               "value": {
                 "src": "label",
                 "ir": {
-                  "k": "binding-read",
+                  "kind": "binding-read",
                   "binding": 3
                 },
                 "segment": "segment_1"
@@ -131,23 +131,23 @@
       "ssr": {
         "setup": [
           {
-            "op": "const",
-            "local": 4,
+            "kind": "const",
+            "binding": 4,
             "init": {
-              "k": "object",
+              "kind": "object",
               "entries": [
                 [
                   "kind",
                   {
-                    "k": "lit",
-                    "v": "box"
+                    "kind": "lit",
+                    "value": "box"
                   }
                 ],
                 [
                   "label",
                   {
-                    "k": "lit",
-                    "v": "hi"
+                    "kind": "lit",
+                    "value": "hi"
                   }
                 ]
               ]
@@ -159,35 +159,35 @@
         "usedSegmentIds": [],
         "ops": [
           {
-            "o": "el",
+            "kind": "element",
             "tag": "div",
             "id": null,
-            "void": false,
+            "voidTag": false,
             "styleScopedId": null,
             "targetUses": 0,
             "props": [],
             "propsEffect": null,
             "children": [
               {
-                "o": "component",
+                "kind": "component",
                 "target": {
                   "ref": 0
                 },
                 "returnMode": "maybe-promise",
                 "props": [
                   {
-                    "p": "spread",
+                    "kind": "spread",
                     "value": {
                       "src": "shared",
                       "ir": {
-                        "k": "binding-read",
+                        "kind": "binding-read",
                         "binding": 4
                       },
                       "raw": true
                     }
                   },
                   {
-                    "p": "static",
+                    "kind": "static",
                     "name": "label",
                     "value": "over"
                   }
@@ -198,23 +198,23 @@
                 "slots": []
               },
               {
-                "o": "component",
+                "kind": "component",
                 "target": {
                   "ref": 0
                 },
                 "returnMode": "maybe-promise",
                 "props": [
                   {
-                    "p": "static",
+                    "kind": "static",
                     "name": "kind",
                     "value": "pre"
                   },
                   {
-                    "p": "spread",
+                    "kind": "spread",
                     "value": {
                       "src": "shared",
                       "ir": {
-                        "k": "binding-read",
+                        "kind": "binding-read",
                         "binding": 4
                       },
                       "raw": true
@@ -238,23 +238,23 @@
       },
       "setup": [
         {
-          "op": "const",
-          "local": 4,
+          "kind": "const",
+          "binding": 4,
           "init": {
-            "k": "object",
+            "kind": "object",
             "entries": [
               [
                 "kind",
                 {
-                  "k": "lit",
-                  "v": "box"
+                  "kind": "lit",
+                  "value": "box"
                 }
               ],
               [
                 "label",
                 {
-                  "k": "lit",
-                  "v": "hi"
+                  "kind": "lit",
+                  "value": "hi"
                 }
               ]
             ]
@@ -278,7 +278,7 @@
                   "value": {
                     "src": "shared",
                     "ir": {
-                      "k": "binding-read",
+                      "kind": "binding-read",
                       "binding": 4
                     }
                   }
@@ -307,7 +307,7 @@
                   "value": {
                     "src": "shared",
                     "ir": {
-                      "k": "binding-read",
+                      "kind": "binding-read",
                       "binding": 4
                     }
                   }

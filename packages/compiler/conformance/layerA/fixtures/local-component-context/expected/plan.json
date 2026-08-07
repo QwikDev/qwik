@@ -1,6 +1,6 @@
 {
   "format": "qwik/ssr-plan",
-  "version": 0,
+  "version": 1,
   "entry": 0,
   "components": [
     {
@@ -11,7 +11,7 @@
       "ssr": {
         "setup": [
           {
-            "op": "local-component",
+            "kind": "local-component",
             "name": "Label",
             "binding": 5,
             "segment": "local_component_154_248",
@@ -19,32 +19,32 @@
             "render": {
               "setup": [
                 {
-                  "op": "context-read",
-                  "local": 7,
+                  "kind": "context-read",
+                  "binding": 7,
                   "context": 3,
                   "name": "theme"
                 }
               ],
               "ops": [
                 {
-                  "o": "el",
+                  "kind": "element",
                   "tag": "b",
                   "id": 0,
-                  "void": false,
+                  "voidTag": false,
                   "styleScopedId": null,
                   "targetUses": 0,
                   "props": [],
                   "propsEffect": null,
                   "children": [
                     {
-                      "o": "dyn",
+                      "kind": "dynamic",
                       "output": "text",
                       "value": {
                         "src": "theme.color",
                         "ir": {
-                          "k": "member",
+                          "kind": "member",
                           "obj": {
-                            "k": "binding-read",
+                            "kind": "binding-read",
                             "binding": 7
                           },
                           "name": "color"
@@ -65,7 +65,7 @@
             }
           },
           {
-            "op": "local-component",
+            "kind": "local-component",
             "name": "Section",
             "binding": 6,
             "segment": "local_component_250_384",
@@ -74,7 +74,7 @@
               "kind": "object",
               "bindings": [
                 {
-                  "b": 8,
+                  "binding": 8,
                   "name": "color"
                 }
               ]
@@ -82,15 +82,15 @@
             "render": {
               "setup": [
                 {
-                  "op": "context-provider",
+                  "kind": "context-provider",
                   "context": 3,
                   "value": {
-                    "k": "object",
+                    "kind": "object",
                     "entries": [
                       [
                         "color",
                         {
-                          "k": "binding-read",
+                          "kind": "binding-read",
                           "binding": 8
                         }
                       ]
@@ -100,17 +100,17 @@
               ],
               "ops": [
                 {
-                  "o": "el",
+                  "kind": "element",
                   "tag": "section",
                   "id": null,
-                  "void": false,
+                  "voidTag": false,
                   "styleScopedId": null,
                   "targetUses": 0,
                   "props": [],
                   "propsEffect": null,
                   "children": [
                     {
-                      "o": "component",
+                      "kind": "component",
                       "target": "Label",
                       "returnMode": "maybe-promise",
                       "props": [],
@@ -135,12 +135,12 @@
         ],
         "ops": [
           {
-            "o": "component",
+            "kind": "component",
             "target": "Section",
             "returnMode": "maybe-promise",
             "props": [
               {
-                "p": "static",
+                "kind": "static",
                 "name": "color",
                 "value": "red"
               }
@@ -160,11 +160,11 @@
       },
       "setup": [
         {
-          "op": "js",
+          "kind": "js",
           "src": "function Label() {\n\t\tconst theme = useContext(ThemeContext);\n\t\treturn <b>{theme.color}</b>;\n\t}"
         },
         {
-          "op": "js",
+          "kind": "js",
           "src": "function Section({ color }) {\n\t\tuseContextProvider(ThemeContext, { color });\n\t\treturn <section>\n        <Label />\n      </section>;\n\t}"
         }
       ],

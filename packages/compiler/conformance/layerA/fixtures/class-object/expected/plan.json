@@ -1,6 +1,6 @@
 {
   "format": "qwik/ssr-plan",
-  "version": 0,
+  "version": 1,
   "entry": 0,
   "components": [
     {
@@ -11,11 +11,11 @@
       "ssr": {
         "setup": [
           {
-            "op": "signal",
-            "local": 2,
+            "kind": "signal",
+            "binding": 2,
             "init": {
-              "k": "lit",
-              "v": true
+              "kind": "lit",
+              "value": true
             },
             "name": "active"
           }
@@ -26,40 +26,40 @@
         ],
         "ops": [
           {
-            "o": "el",
+            "kind": "element",
             "tag": "a",
             "id": 0,
-            "void": false,
+            "voidTag": false,
             "styleScopedId": null,
             "targetUses": 1,
             "props": [
               {
-                "p": "dynamic",
+                "kind": "dynamic",
                 "name": "class",
                 "value": {
                   "src": "{\n\t\tselected: active.value,\n\t\tmuted: false,\n\t\twide: true\n\t}",
                   "ir": {
-                    "k": "object",
+                    "kind": "object",
                     "entries": [
                       [
                         "selected",
                         {
-                          "k": "signal-read",
+                          "kind": "signal-read",
                           "binding": 2
                         }
                       ],
                       [
                         "muted",
                         {
-                          "k": "lit",
-                          "v": false
+                          "kind": "lit",
+                          "value": false
                         }
                       ],
                       [
                         "wide",
                         {
-                          "k": "lit",
-                          "v": true
+                          "kind": "lit",
+                          "value": true
                         }
                       ]
                     ]
@@ -72,7 +72,7 @@
             "propsEffect": null,
             "children": [
               {
-                "o": "static",
+                "kind": "static",
                 "html": "link"
               }
             ]
@@ -87,11 +87,11 @@
       },
       "setup": [
         {
-          "op": "signal",
-          "local": 2,
+          "kind": "signal",
+          "binding": 2,
           "init": {
-            "k": "lit",
-            "v": true
+            "kind": "lit",
+            "value": true
           }
         }
       ],
@@ -106,27 +106,27 @@
               "value": {
                 "src": "{\n\t\tselected: active.value,\n\t\tmuted: false,\n\t\twide: true\n\t}",
                 "ir": {
-                  "k": "object",
+                  "kind": "object",
                   "entries": [
                     [
                       "selected",
                       {
-                        "k": "signal-read",
+                        "kind": "signal-read",
                         "binding": 2
                       }
                     ],
                     [
                       "muted",
                       {
-                        "k": "lit",
-                        "v": false
+                        "kind": "lit",
+                        "value": false
                       }
                     ],
                     [
                       "wide",
                       {
-                        "k": "lit",
-                        "v": true
+                        "kind": "lit",
+                        "value": true
                       }
                     ]
                   ]

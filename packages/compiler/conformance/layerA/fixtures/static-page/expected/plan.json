@@ -1,6 +1,6 @@
 {
   "format": "qwik/ssr-plan",
-  "version": 0,
+  "version": 1,
   "entry": 0,
   "components": [
     {
@@ -14,15 +14,15 @@
         "usedSegmentIds": [],
         "ops": [
           {
-            "o": "el",
+            "kind": "element",
             "tag": "main",
             "id": null,
-            "void": false,
+            "voidTag": false,
             "styleScopedId": null,
             "targetUses": 0,
             "props": [
               {
-                "p": "static",
+                "kind": "static",
                 "name": "class",
                 "value": "shell"
               }
@@ -30,33 +30,33 @@
             "propsEffect": null,
             "children": [
               {
-                "o": "el",
+                "kind": "element",
                 "tag": "h1",
                 "id": null,
-                "void": false,
+                "voidTag": false,
                 "styleScopedId": null,
                 "targetUses": 0,
                 "props": [],
                 "propsEffect": null,
                 "children": [
                   {
-                    "o": "static",
+                    "kind": "static",
                     "html": "Static page"
                   }
                 ]
               },
               {
-                "o": "el",
+                "kind": "element",
                 "tag": "p",
                 "id": null,
-                "void": false,
+                "voidTag": false,
                 "styleScopedId": null,
                 "targetUses": 0,
                 "props": [],
                 "propsEffect": null,
                 "children": [
                   {
-                    "o": "static",
+                    "kind": "static",
                     "html": "No state, no handlers."
                   }
                 ]

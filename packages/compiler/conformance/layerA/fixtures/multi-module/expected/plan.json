@@ -1,6 +1,6 @@
 {
   "format": "qwik/ssr-plan",
-  "version": 0,
+  "version": 1,
   "entry": 1,
   "components": [
     {
@@ -16,11 +16,11 @@
       "ssr": {
         "setup": [
           {
-            "op": "signal",
-            "local": 3,
+            "kind": "signal",
+            "binding": 3,
             "init": {
-              "k": "lit",
-              "v": 1
+              "kind": "lit",
+              "value": 1
             },
             "name": "count"
           }
@@ -32,15 +32,15 @@
         ],
         "ops": [
           {
-            "o": "el",
+            "kind": "element",
             "tag": "button",
             "id": 0,
-            "void": false,
+            "voidTag": false,
             "styleScopedId": null,
             "targetUses": 0,
             "props": [
               {
-                "p": "event",
+                "kind": "event",
                 "name": "q-e:click",
                 "handlers": [
                   {
@@ -55,14 +55,14 @@
             "propsEffect": null,
             "children": [
               {
-                "o": "dyn",
+                "kind": "dynamic",
                 "output": "text",
                 "value": {
                   "src": "props.label",
                   "ir": {
-                    "k": "member",
+                    "kind": "member",
                     "obj": {
-                      "k": "binding-read",
+                      "kind": "binding-read",
                       "binding": 2
                     },
                     "name": "label"
@@ -77,16 +77,16 @@
                 }
               },
               {
-                "o": "static",
+                "kind": "static",
                 "html": ": "
               },
               {
-                "o": "dyn",
+                "kind": "dynamic",
                 "output": "text",
                 "value": {
                   "src": "count.value",
                   "ir": {
-                    "k": "signal-read",
+                    "kind": "signal-read",
                     "binding": 3
                   },
                   "raw": true
@@ -110,11 +110,11 @@
       },
       "setup": [
         {
-          "op": "signal",
-          "local": 3,
+          "kind": "signal",
+          "binding": 3,
           "init": {
-            "k": "lit",
-            "v": 1
+            "kind": "lit",
+            "value": 1
           }
         }
       ],
@@ -140,9 +140,9 @@
               "value": {
                 "src": "props.label",
                 "ir": {
-                  "k": "member",
+                  "kind": "member",
                   "obj": {
-                    "k": "binding-read",
+                    "kind": "binding-read",
                     "binding": 2
                   },
                   "name": "label"
@@ -160,7 +160,7 @@
               "value": {
                 "src": "count.value",
                 "ir": {
-                  "k": "signal-read",
+                  "kind": "signal-read",
                   "binding": 3
                 }
               }
@@ -185,40 +185,40 @@
         "usedSegmentIds": [],
         "ops": [
           {
-            "o": "el",
+            "kind": "element",
             "tag": "main",
             "id": null,
-            "void": false,
+            "voidTag": false,
             "styleScopedId": null,
             "targetUses": 0,
             "props": [],
             "propsEffect": null,
             "children": [
               {
-                "o": "el",
+                "kind": "element",
                 "tag": "h1",
                 "id": null,
-                "void": false,
+                "voidTag": false,
                 "styleScopedId": null,
                 "targetUses": 0,
                 "props": [],
                 "propsEffect": null,
                 "children": [
                   {
-                    "o": "static",
+                    "kind": "static",
                     "html": "Cross-module"
                   }
                 ]
               },
               {
-                "o": "component",
+                "kind": "component",
                 "target": {
                   "ref": 0
                 },
                 "returnMode": "maybe-promise",
                 "props": [
                   {
-                    "p": "static",
+                    "kind": "static",
                     "name": "label",
                     "value": "hits"
                   }

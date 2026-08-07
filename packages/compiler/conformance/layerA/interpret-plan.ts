@@ -185,7 +185,7 @@ export async function buildInterpretedRoot(
       if (interpreted.props?.kind === 'object') {
         for (const prop of interpreted.props.bindings) {
           destructuredPropValues.set(
-            prop.b,
+            prop.binding,
             (componentProps as Record<string, unknown>)[prop.name]
           );
         }
@@ -196,7 +196,7 @@ export async function buildInterpretedRoot(
         locals.set(nested.propsPlan.binding, componentProps);
       } else {
         for (const prop of nested.propsPlan.bindings) {
-          locals.set(prop.b, (componentProps as Record<string, unknown>)[prop.name]);
+          locals.set(prop.binding, (componentProps as Record<string, unknown>)[prop.name]);
         }
       }
     }
@@ -206,9 +206,9 @@ export async function buildInterpretedRoot(
     }
 
     const evalIr = (ir: ValueIR): unknown => {
-      switch (ir.k) {
+      switch (ir.kind) {
         case 'lit':
-          return ir.v;
+          return ir.value;
         case 'undef':
           return undefined;
         case 'array':
@@ -237,7 +237,7 @@ export async function buildInterpretedRoot(
           return impl(...ir.args.map(evalIr));
         }
         case 'call': {
-          const receiver = ir.recv === null ? null : evalIr(ir.recv);
+          const receiver = ir.receiver === null ? null : evalIr(ir.receiver);
           // mirror the emitted method call exactly — no coercion
           switch (ir.fn) {
             case 'qwik:string.toLowerCase':
@@ -251,7 +251,7 @@ export async function buildInterpretedRoot(
           }
         }
         default:
-          throw new Error(`interpreter cannot evaluate ir kind "${ir.k}" in setup yet`);
+          throw new Error(`interpreter cannot evaluate ir kind "${ir.kind}" in setup yet`);
       }
     };
 
@@ -289,34 +289,34 @@ export async function buildInterpretedRoot(
         });
     // function declarations hoist above the setup consts in the emitted module
     for (const entry of ssr.setup as readonly (SetupOp | PlanLocalComponent)[]) {
-      if (entry.op === 'local-component') {
+      if (entry.kind === 'local-component') {
         locals.set(entry.binding, makeLocalComponent(entry));
         localComponentBindings.set(entry.name, entry.binding);
       }
     }
 
     for (const entry of ssr.setup as readonly (SetupOp | { op: string; src?: string })[]) {
-      switch (entry.op) {
+      switch (entry.kind) {
         case 'local-component':
           break;
         case 'signal': {
           const op = entry as Extract<SetupOp, { op: 'signal' }>;
-          locals.set(op.local, useSignal(evalIr(op.init)));
+          locals.set(op.binding, useSignal(evalIr(op.init)));
           break;
         }
         case 'const': {
           const op = entry as Extract<SetupOp, { op: 'const' }>;
-          locals.set(op.local, evalIr(op.init));
+          locals.set(op.binding, evalIr(op.init));
           break;
         }
         case 'store': {
           const op = entry as Extract<SetupOp, { op: 'store' }>;
-          locals.set(op.local, useStore(evalIr(op.init) as never));
+          locals.set(op.binding, useStore(evalIr(op.init) as never));
           break;
         }
         case 'computed': {
           const op = entry as Extract<SetupOp, { op: 'computed' }>;
-          locals.set(op.local, useComputedQrl(qrlWithCaptures(op.segment) as never));
+          locals.set(op.binding, useComputedQrl(qrlWithCaptures(op.segment) as never));
           break;
         }
         case 'task': {
@@ -339,12 +339,12 @@ export async function buildInterpretedRoot(
           if (context === undefined) {
             throw new Error(`context binding ${op.context} missing from the module contexts`);
           }
-          locals.set(op.local, useContext(context as never));
+          locals.set(op.binding, useContext(context as never));
           break;
         }
         case 'qrl-const': {
           const op = entry as Extract<SetupOp, { op: 'qrl-const' }>;
-          locals.set(op.local, qrlWithCaptures(op.segment));
+          locals.set(op.binding, qrlWithCaptures(op.segment));
           break;
         }
         case 'style': {
@@ -367,13 +367,13 @@ export async function buildInterpretedRoot(
           break;
         }
         default:
-          throw new Error(`interpreter cannot run setup op "${entry.op}" yet`);
+          throw new Error(`interpreter cannot run setup op "${entry.kind}" yet`);
       }
     }
 
     // local components mark after all setup, like the emitted modules
     for (const entry of ssr.setup as readonly (SetupOp | PlanLocalComponent)[]) {
-      if (entry.op === 'local-component') {
+      if (entry.kind === 'local-component') {
         _markComponent(locals.get(entry.binding) as never, qrlWithCaptures(entry.segment) as never);
       }
     }
@@ -381,7 +381,7 @@ export async function buildInterpretedRoot(
     const localSignal = (ir: ValueIR | undefined, site: string): unknown => {
       // signal-read is the proven .value fast path; binding-read of a signal-valued
       // local (bare identifier, e.g. bind:value={text}) yields the signal object itself
-      if (ir === undefined || (ir.k !== 'signal-read' && ir.k !== 'binding-read')) {
+      if (ir === undefined || (ir.kind !== 'signal-read' && ir.kind !== 'binding-read')) {
         throw new Error(`${site} needs a signal-valued local read in the interpreter`);
       }
       if (!locals.has(ir.binding)) {
@@ -410,11 +410,11 @@ export async function buildInterpretedRoot(
     };
 
     const interpretOp = (op: PlanSsrOp, parts: unknown[]): unknown => {
-      switch (op.o) {
+      switch (op.kind) {
         case 'static':
           parts.push(op.html);
           break;
-        case 'el': {
+        case 'element': {
           const id = op.id === null ? null : ctx.nextId();
           if (op.id !== null && id !== null) {
             runtimeIds.set(op.id, id);
@@ -431,7 +431,7 @@ export async function buildInterpretedRoot(
             open.push(' q:id="', createSsrNodeId(id), '"');
           }
           for (const prop of op.props as readonly PlanSsrProp[]) {
-            if (prop.p === 'static') {
+            if (prop.kind === 'static') {
               const staticProp = prop as { name: string; value: unknown };
               // aria-*/spellcheck/draggable/contenteditable stringify booleans (html-utils.ts)
               const stringifiesBooleans =
@@ -449,7 +449,7 @@ export async function buildInterpretedRoot(
                   ? ` ${staticProp.name}`
                   : ` ${staticProp.name}="${escapeHTML(String(staticProp.value))}"`
               );
-            } else if (prop.p === 'dynamic') {
+            } else if (prop.kind === 'dynamic') {
               const dynamic = prop as {
                 name: string;
                 value: { ir?: ValueIR; segment?: string };
@@ -457,7 +457,7 @@ export async function buildInterpretedRoot(
               if (id === null) {
                 throw new Error('dynamic prop on an untargeted element');
               }
-              const irKind = dynamic.value.ir?.k;
+              const irKind = dynamic.value.ir?.kind;
               // binding reads with a segment are expression attrs (plain values, e.g. props)
               const isSignalAttr =
                 irKind === 'signal-read' ||
@@ -492,7 +492,7 @@ export async function buildInterpretedRoot(
                   ? ''
                   : ` ${dynamic.name}` + (attr === '' ? '' : `="${escapeHTML(attr as string)}"`)
               );
-            } else if (prop.p === 'event') {
+            } else if (prop.kind === 'event') {
               const event = prop as {
                 name: string;
                 handlers: readonly ({ value?: { segment?: string } } | { bind: string })[];
@@ -511,18 +511,19 @@ export async function buildInterpretedRoot(
                 const bindName = event.name === 'q-e:input' ? 'value' : 'checked';
                 const sibling = (op.props as readonly PlanSsrProp[]).find(
                   (candidate) =>
-                    candidate.p === 'dynamic' && (candidate as { name: string }).name === bindName
+                    candidate.kind === 'dynamic' &&
+                    (candidate as { name: string }).name === bindName
                 ) as { value: { ir?: ValueIR } } | undefined;
                 const signal = localSignal(sibling?.value.ir, `bind:${bindName}`);
                 deferredEvents.push({ slot, name: event.name, bind: { name: bindName, signal } });
               } else {
                 throw new Error('interpreter supports single segment or bind event handlers only');
               }
-            } else if (prop.p === 'inner-html') {
+            } else if (prop.kind === 'inner-html') {
               const innerHtml = (prop as { html: unknown }).html;
               innerHtmlContent = innerHtml == null ? '' : String(innerHtml);
             } else {
-              throw new Error(`interpreter cannot render prop kind "${prop.p}" yet`);
+              throw new Error(`interpreter cannot render prop kind "${prop.kind}" yet`);
             }
           }
           open.push('>');
@@ -570,12 +571,12 @@ export async function buildInterpretedRoot(
               parts.push(innerHtmlContent);
             }
             parts.push(...(childParts as unknown[]));
-            if (!op.void) {
+            if (!op.voidTag) {
               parts.push(`</${op.tag}>`);
             }
           });
         }
-        case 'dyn': {
+        case 'dynamic': {
           const planTarget = op.target;
           if (planTarget === null || planTarget.id === null) {
             throw new Error('interpreter needs a targeted dynamic text site');
@@ -590,7 +591,7 @@ export async function buildInterpretedRoot(
               : createSsrRangeTextTarget(runtimeId, planTarget.marker);
           const ir = op.value.ir;
           let pendingText: unknown;
-          if (ir !== undefined && ir.k === 'signal-read') {
+          if (ir !== undefined && ir.kind === 'signal-read') {
             const signal = localSignal(ir, 'dynamic text');
             pendingText = invoke(invokeCtx, () => {
               ctx.addRoot(signal);
@@ -684,19 +685,22 @@ export async function buildInterpretedRoot(
           // object through; mixed lists group literal runs between spreads (later wins)
           let spreadProps: unknown;
           const propList = op.props as readonly PlanSsrProp[];
-          if (propList.some((prop) => prop.p === 'spread')) {
+          if (propList.some((prop) => prop.kind === 'spread')) {
             const segments: Record<string, unknown>[] = [];
             const spreadSources: Record<string, unknown> = {};
             let literalRun: Record<string, unknown> | null = null;
             for (const prop of propList) {
-              if (prop.p === 'spread') {
+              if (prop.kind === 'spread') {
                 const spread = prop as { value: { ir?: ValueIR } };
-                if (spread.value.ir?.k !== 'binding-read' || !locals.has(spread.value.ir.binding)) {
+                if (
+                  spread.value.ir?.kind !== 'binding-read' ||
+                  !locals.has(spread.value.ir.binding)
+                ) {
                   throw new Error('spread props need a local binding read');
                 }
                 literalRun = null;
                 segments.push(locals.get(spread.value.ir.binding) as Record<string, unknown>);
-              } else if (prop.p === 'static') {
+              } else if (prop.kind === 'static') {
                 const staticProp = prop as { name: string; value: unknown };
                 if (literalRun === null) {
                   literalRun = {};
@@ -704,8 +708,8 @@ export async function buildInterpretedRoot(
                 }
                 literalRun[staticProp.name] = staticProp.value;
               } else if (
-                prop.p === 'dynamic' &&
-                (prop as { value: { ir?: ValueIR } }).value.ir?.k === 'signal-read'
+                prop.kind === 'dynamic' &&
+                (prop as { value: { ir?: ValueIR } }).value.ir?.kind === 'signal-read'
               ) {
                 // signal reads merge as live getters, then _props records their sources
                 const dynamic = prop as { name: string; value: { ir?: ValueIR } };
@@ -722,7 +726,9 @@ export async function buildInterpretedRoot(
                 spreadSources[dynamic.name] = signal;
                 ctx.addRoot(signal);
               } else {
-                throw new Error(`interpreter cannot merge prop kind "${prop.p}" with spreads yet`);
+                throw new Error(
+                  `interpreter cannot merge prop kind "${prop.kind}" with spreads yet`
+                );
               }
             }
             const merged = segments.length === 1 ? segments[0] : mergeProps(...segments);
@@ -730,13 +736,13 @@ export async function buildInterpretedRoot(
               Object.keys(spreadSources).length > 0 ? _props(merged, spreadSources) : merged;
           }
           for (const prop of spreadProps === undefined ? propList : []) {
-            if (prop.p === 'static') {
+            if (prop.kind === 'static') {
               const staticProp = prop as { name: string; value: unknown };
               literal[staticProp.name] = staticProp.value;
-            } else if (prop.p === 'dynamic') {
+            } else if (prop.kind === 'dynamic') {
               const dynamic = prop as { name: string; value: { ir?: ValueIR } };
               const ir = dynamic.value.ir;
-              if (ir !== undefined && ir.k === 'binding-read') {
+              if (ir !== undefined && ir.kind === 'binding-read') {
                 // plain value read — emitted getters return the local directly, no rooting
                 if (!locals.has(ir.binding)) {
                   throw new Error(`component prop ${dynamic.name} reads unknown binding`);
@@ -754,7 +760,7 @@ export async function buildInterpretedRoot(
                 });
                 sources[dynamic.name] = signal;
               }
-            } else if (prop.p === 'event') {
+            } else if (prop.kind === 'event') {
               // event props pass the handler QRL as a plain prop value (q_….w(captures))
               const event = prop as {
                 name: string;
@@ -766,7 +772,7 @@ export async function buildInterpretedRoot(
               }
               literal[event.name] = qrlWithCaptures(segmentId);
             } else {
-              throw new Error(`interpreter cannot pass component prop kind "${prop.p}" yet`);
+              throw new Error(`interpreter cannot pass component prop kind "${prop.kind}" yet`);
             }
           }
           const pendingComponent = invoke(invokeCtx, () => {
@@ -827,8 +833,8 @@ export async function buildInterpretedRoot(
           const delay =
             op.delay === null
               ? 0
-              : op.delay.ir !== undefined && op.delay.ir.k === 'lit'
-                ? (op.delay.ir.v as number)
+              : op.delay.ir !== undefined && op.delay.ir.kind === 'lit'
+                ? (op.delay.ir.value as number)
                 : (() => {
                     throw new Error('suspense delay must be a literal');
                   })();
@@ -972,7 +978,7 @@ export async function buildInterpretedRoot(
           });
         }
         default:
-          throw new Error(`interpreter cannot render op "${op.o}" yet`);
+          throw new Error(`interpreter cannot render op "${op.kind}" yet`);
       }
     };
 

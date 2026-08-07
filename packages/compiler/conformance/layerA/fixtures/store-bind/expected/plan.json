@@ -1,6 +1,6 @@
 {
   "format": "qwik/ssr-plan",
-  "version": 0,
+  "version": 1,
   "entry": 0,
   "components": [
     {
@@ -11,25 +11,25 @@
       "ssr": {
         "setup": [
           {
-            "op": "signal",
-            "local": 3,
+            "kind": "signal",
+            "binding": 3,
             "init": {
-              "k": "lit",
-              "v": "hi"
+              "kind": "lit",
+              "value": "hi"
             },
             "name": "text"
           },
           {
-            "op": "store",
-            "local": 4,
+            "kind": "store",
+            "binding": 4,
             "init": {
-              "k": "object",
+              "kind": "object",
               "entries": [
                 [
                   "sent",
                   {
-                    "k": "lit",
-                    "v": 0
+                    "kind": "lit",
+                    "value": 0
                   }
                 ]
               ]
@@ -44,30 +44,30 @@
         ],
         "ops": [
           {
-            "o": "el",
+            "kind": "element",
             "tag": "form",
             "id": null,
-            "void": false,
+            "voidTag": false,
             "styleScopedId": null,
             "targetUses": 0,
             "props": [],
             "propsEffect": null,
             "children": [
               {
-                "o": "el",
+                "kind": "element",
                 "tag": "input",
                 "id": 0,
-                "void": true,
+                "voidTag": true,
                 "styleScopedId": null,
                 "targetUses": 1,
                 "props": [
                   {
-                    "p": "dynamic",
+                    "kind": "dynamic",
                     "name": "value",
                     "value": {
                       "src": "text",
                       "ir": {
-                        "k": "binding-read",
+                        "kind": "binding-read",
                         "binding": 3
                       },
                       "raw": true
@@ -75,7 +75,7 @@
                     "compilerString": false
                   },
                   {
-                    "p": "event",
+                    "kind": "event",
                     "name": "q-e:input",
                     "handlers": [
                       {
@@ -88,24 +88,24 @@
                 "children": []
               },
               {
-                "o": "el",
+                "kind": "element",
                 "tag": "output",
                 "id": 1,
-                "void": false,
+                "voidTag": false,
                 "styleScopedId": null,
                 "targetUses": 0,
                 "props": [],
                 "propsEffect": null,
                 "children": [
                   {
-                    "o": "dyn",
+                    "kind": "dynamic",
                     "output": "text",
                     "value": {
                       "src": "form.sent",
                       "ir": {
-                        "k": "member",
+                        "kind": "member",
                         "obj": {
-                          "k": "binding-read",
+                          "kind": "binding-read",
                           "binding": 4
                         },
                         "name": "sent"
@@ -132,24 +132,24 @@
       },
       "setup": [
         {
-          "op": "signal",
-          "local": 3,
+          "kind": "signal",
+          "binding": 3,
           "init": {
-            "k": "lit",
-            "v": "hi"
+            "kind": "lit",
+            "value": "hi"
           }
         },
         {
-          "op": "store",
-          "local": 4,
+          "kind": "store",
+          "binding": 4,
           "init": {
-            "k": "object",
+            "kind": "object",
             "entries": [
               [
                 "sent",
                 {
-                  "k": "lit",
-                  "v": 0
+                  "kind": "lit",
+                  "value": 0
                 }
               ]
             ]
@@ -173,7 +173,7 @@
                   "value": {
                     "src": "text",
                     "ir": {
-                      "k": "binding-read",
+                      "kind": "binding-read",
                       "binding": 3
                     }
                   }
@@ -192,9 +192,9 @@
                   "value": {
                     "src": "form.sent",
                     "ir": {
-                      "k": "member",
+                      "kind": "member",
                       "obj": {
-                        "k": "binding-read",
+                        "kind": "binding-read",
                         "binding": 4
                       },
                       "name": "sent"

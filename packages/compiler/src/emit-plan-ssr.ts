@@ -29,8 +29,8 @@ import type { SourceRange } from './types';
  */
 export const enum SsrOpKind {
   Static = 'static',
-  Element = 'el',
-  Dynamic = 'dyn',
+  Element = 'element',
+  Dynamic = 'dynamic',
   Content = 'content',
   Component = 'component',
   Branch = 'branch',
@@ -77,33 +77,33 @@ export interface PlanSsrRow extends PlanSsrRenderFn {
 }
 
 export type PlanSsrProp =
-  | { readonly p: 'static'; readonly name: string; readonly value: unknown }
+  | { readonly kind: 'static'; readonly name: string; readonly value: unknown }
   | {
-      readonly p: 'dynamic';
+      readonly kind: 'dynamic';
       readonly name: string;
       readonly value: PlanValue;
       readonly compilerString: boolean;
     }
-  | { readonly p: 'spread'; readonly value: PlanValue }
-  | { readonly p: 'ref'; readonly value: PlanValue }
-  | { readonly p: 'inner-html'; readonly html: string | number | boolean | null }
+  | { readonly kind: 'spread'; readonly value: PlanValue }
+  | { readonly kind: 'ref'; readonly value: PlanValue }
+  | { readonly kind: 'inner-html'; readonly html: string | number | boolean | null }
   | {
-      readonly p: 'event';
+      readonly kind: 'event';
       readonly name: string;
       readonly handlers: readonly (
         | { readonly value: PlanValue }
         | { readonly bind: string; readonly checked?: true }
       )[];
     }
-  | { readonly p: string; readonly src: string };
+  | { readonly kind: string; readonly src: string };
 
 export type PlanSsrOp =
-  | { readonly o: SsrOpKind.Static; readonly html: string }
+  | { readonly kind: SsrOpKind.Static; readonly html: string }
   | {
-      readonly o: SsrOpKind.Element;
+      readonly kind: SsrOpKind.Element;
       readonly tag: string;
       readonly id: number | null;
-      readonly void: boolean;
+      readonly voidTag: boolean;
       readonly styleScopedId: string | null;
       readonly runtimeScope?: true;
       readonly targetUses: number;
@@ -113,7 +113,7 @@ export type PlanSsrOp =
       readonly children: readonly PlanSsrOp[];
     }
   | {
-      readonly o: SsrOpKind.Dynamic;
+      readonly kind: SsrOpKind.Dynamic;
       readonly output: 'text' | 'content';
       readonly value: PlanValue;
       readonly synchronous: boolean;
@@ -123,13 +123,13 @@ export type PlanSsrOp =
         | null;
     }
   | {
-      readonly o: SsrOpKind.Content;
+      readonly kind: SsrOpKind.Content;
       readonly segment: string;
       readonly root: boolean;
       readonly value?: PlanValue;
     }
   | {
-      readonly o: SsrOpKind.Component;
+      readonly kind: SsrOpKind.Component;
       /** Module plans carry the tag source; the linker resolves to `{ ref }`. */
       readonly target: string | { readonly ref: number };
       readonly returnMode: 'sync' | 'maybe-promise';
@@ -144,7 +144,7 @@ export type PlanSsrOp =
       }[];
     }
   | {
-      readonly o: SsrOpKind.Branch;
+      readonly kind: SsrOpKind.Branch;
       readonly condition: string;
       readonly conditionIr?: import('./expr-ir').ValueIR;
       readonly root: boolean;
@@ -153,7 +153,7 @@ export type PlanSsrOp =
       readonly else: PlanSsrRenderFn | null;
     }
   | {
-      readonly o: SsrOpKind.Suspense;
+      readonly kind: SsrOpKind.Suspense;
       readonly content: PlanSsrRenderFn;
       readonly fallback: PlanValue | null;
       /** Structural fallback plan (native engines render this; the QRL stays for resume). */
@@ -162,13 +162,13 @@ export type PlanSsrOp =
       readonly inOrder: readonly PlanSsrOp[] | null;
     }
   | {
-      readonly o: SsrOpKind.Slot;
+      readonly kind: SsrOpKind.Slot;
       readonly name: string;
       readonly idBase: string | null;
       readonly fallback: PlanSsrRenderFn | null;
     }
   | {
-      readonly o: SsrOpKind.Collection;
+      readonly kind: SsrOpKind.Collection;
       readonly source:
         | {
             readonly kind: 'direct-array';
@@ -283,7 +283,7 @@ export function emitSsrOpPlan(
         }
         return [
           {
-            op: SetupOpKind.Style,
+            kind: SetupOpKind.Style,
             styleId: entry.styleId,
             scoped: entry.scoped,
             ...(css === null ? {} : { css }),
@@ -296,14 +296,14 @@ export function emitSsrOpPlan(
       }
       if (entry.kind === 'statement') {
         let op: PlanSetupEntry = setupOpByRange.get(`${entry.range[0]}:${entry.range[1]}`) ?? {
-          op: SetupOpKind.Js,
+          kind: SetupOpKind.Js,
           src: slice(entry.range),
         };
-        if (op.op === SetupOpKind.UseId) {
+        if (op.kind === SetupOpKind.UseId) {
           // useId ordinals span the whole component, including ids inside js statements
           op = { ...op, ordinal: entry.useIds[0]?.ordinal ?? 0 } as typeof op;
         }
-        if (op.op === SetupOpKind.Js && rewriteJsStatement !== undefined) {
+        if (op.kind === SetupOpKind.Js && rewriteJsStatement !== undefined) {
           // production seam: QRL/useId rewrites applied now so generators emit src verbatim
           const rewritten = rewriteJsStatement(entry);
           if (rewritten === 'skip') {
@@ -311,7 +311,7 @@ export function emitSsrOpPlan(
           }
           if (rewritten !== null) {
             op = {
-              op: SetupOpKind.Js,
+              kind: SetupOpKind.Js,
               src: rewritten.src,
               final: true,
               imports: rewritten.imports,
@@ -319,7 +319,7 @@ export function emitSsrOpPlan(
           }
         }
         // declared binding names are semantic metadata — generators may reuse them
-        const local = (op as { local?: number }).local;
+        const local = (op as { binding?: number }).binding;
         const name = local === undefined ? null : bindingName(local);
         return [name === null ? op : ({ ...op, name } as unknown as PlanSetupEntry)];
       }
@@ -327,7 +327,7 @@ export function emitSsrOpPlan(
         const parameter = entry.parameter;
         return [
           {
-            op: SetupOpKind.LocalComponent,
+            kind: SetupOpKind.LocalComponent,
             name: entry.name,
             binding: entry.bindingId,
             segment: entry.segment,
@@ -340,7 +340,7 @@ export function emitSsrOpPlan(
                   : {
                       kind: 'object',
                       bindings: parameter.bindingIds.map((b, index) => ({
-                        b,
+                        binding: b,
                         name: entry.propNames[index],
                       })),
                     },
@@ -351,7 +351,7 @@ export function emitSsrOpPlan(
       if (entry.kind === 'render-value') {
         return [
           {
-            op: SetupOpKind.RenderValue,
+            kind: SetupOpKind.RenderValue,
             name: entry.name,
             binding: entry.bindingId,
             render: {
@@ -364,27 +364,27 @@ export function emitSsrOpPlan(
           },
         ];
       }
-      return [{ op: SetupOpKind.Js, src: slice([0, 0]) }];
+      return [{ kind: SetupOpKind.Js, src: slice([0, 0]) }];
     });
 
   const ssrProp = (item: SsrPropOperation): PlanSsrProp => {
     switch (item.kind) {
       case 'static':
-        return { p: 'static', name: item.name, value: item.value };
+        return { kind: 'static', name: item.name, value: item.value };
       case 'dynamic':
         return {
-          p: 'dynamic',
+          kind: 'dynamic',
           name: item.name,
           value: planValue(item.value),
           compilerString: item.compilerString,
         };
       case 'spread':
-        return { p: 'spread', value: planValue(item.value) };
+        return { kind: 'spread', value: planValue(item.value) };
       case 'ref':
-        return { p: 'ref', value: planValue(item.value) };
+        return { kind: 'ref', value: planValue(item.value) };
       case 'event':
         return {
-          p: 'event',
+          kind: 'event',
           name: item.eventName,
           handlers: item.handlers.map((handler) =>
             handler.kind === 'value'
@@ -398,31 +398,31 @@ export function emitSsrOpPlan(
       case 'inner-html':
         // static innerHTML bakes raw children; dynamic keeps the JS fallback src
         if (typeof item.value !== 'object' || item.value === null) {
-          return { p: 'inner-html', html: item.value };
+          return { kind: 'inner-html', html: item.value };
         }
-        return { p: item.kind, src: slice(item.range) };
+        return { kind: item.kind, src: slice(item.range) };
     }
   };
 
   const orderedProp = (item: OrderedPropPlan): PlanSsrProp => {
     switch (item.kind) {
       case 'static':
-        return { p: 'static', name: item.name, value: item.value };
+        return { kind: 'static', name: item.name, value: item.value };
       case 'dynamic':
         return {
-          p: 'dynamic',
+          kind: 'dynamic',
           name: item.name,
           value: planValue(item.value),
           compilerString: false,
         };
       case 'spread':
-        return { p: 'spread', value: planValue(item.value) };
+        return { kind: 'spread', value: planValue(item.value) };
       case 'ref':
-        return { p: 'ref', value: planValue(item.value) };
+        return { kind: 'ref', value: planValue(item.value) };
       case 'event':
-        return { p: 'event', name: item.name, handlers: [{ value: planValue(item.value) }] };
+        return { kind: 'event', name: item.name, handlers: [{ value: planValue(item.value) }] };
       default:
-        return { p: item.kind, src: slice(item.range) };
+        return { kind: item.kind, src: slice(item.range) };
     }
   };
 
@@ -460,13 +460,13 @@ export function emitSsrOpPlan(
   const op = (operation: SsrOperation): PlanSsrOp => {
     switch (operation.kind) {
       case 'static':
-        return { o: SsrOpKind.Static, html: operation.value };
+        return { kind: SsrOpKind.Static, html: operation.value };
       case 'element':
         return {
-          o: SsrOpKind.Element,
+          kind: SsrOpKind.Element,
           tag: operation.tag,
           id: operation.targetId,
-          void: operation.void,
+          voidTag: operation.void,
           styleScopedId: operation.styleScopedId,
           ...(operation.runtimeStyleScope ? { runtimeScope: true as const } : {}),
           targetUses: operation.elementTargetUses,
@@ -479,7 +479,7 @@ export function emitSsrOpPlan(
         };
       case 'dynamic':
         return {
-          o: SsrOpKind.Dynamic,
+          kind: SsrOpKind.Dynamic,
           output: operation.output,
           value: planValue(operation.value),
           synchronous: operation.synchronous,
@@ -496,14 +496,14 @@ export function emitSsrOpPlan(
         };
       case 'content-effect':
         return {
-          o: SsrOpKind.Content,
+          kind: SsrOpKind.Content,
           segment: operation.segment.segmentId,
           root: operation.root,
           ...(operation.value === null ? {} : { value: planValue(operation.value) }),
         };
       case 'component':
         return {
-          o: SsrOpKind.Component,
+          kind: SsrOpKind.Component,
           target: slice(operation.tagRange),
           returnMode: operation.returnMode,
           props: operation.props.map(orderedProp),
@@ -518,7 +518,7 @@ export function emitSsrOpPlan(
         };
       case 'branch':
         return {
-          o: SsrOpKind.Branch,
+          kind: SsrOpKind.Branch,
           condition: operation.condition.segmentId,
           ...(operation.conditionIr !== undefined ? { conditionIr: operation.conditionIr } : {}),
           root: operation.root,
@@ -537,7 +537,7 @@ export function emitSsrOpPlan(
             ? null
             : planSsrSegmentRender(fallbackSegment, segments, returnMode);
         return {
-          o: SsrOpKind.Suspense,
+          kind: SsrOpKind.Suspense,
           content: renderFnBlock(operation.content),
           fallback: operation.fallback === null ? null : planValue(operation.fallback),
           ...(fallbackTarget === null
@@ -551,14 +551,14 @@ export function emitSsrOpPlan(
       }
       case 'slot':
         return {
-          o: SsrOpKind.Slot,
+          kind: SsrOpKind.Slot,
           name: operation.name,
           idBase: operation.idBase,
           fallback: operation.fallback === null ? null : renderFnBlock(operation.fallback),
         };
       case 'collection':
         return {
-          o: SsrOpKind.Collection,
+          kind: SsrOpKind.Collection,
           source:
             operation.source.kind === 'derived'
               ? {

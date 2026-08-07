@@ -1,6 +1,6 @@
 {
   "format": "qwik/ssr-plan",
-  "version": 0,
+  "version": 1,
   "entry": 0,
   "components": [
     {
@@ -11,11 +11,11 @@
       "ssr": {
         "setup": [
           {
-            "op": "signal",
-            "local": 6,
+            "kind": "signal",
+            "binding": 6,
             "init": {
-              "k": "lit",
-              "v": 3
+              "kind": "lit",
+              "value": 3
             },
             "name": "count"
           }
@@ -26,27 +26,27 @@
         ],
         "ops": [
           {
-            "o": "el",
+            "kind": "element",
             "tag": "p",
             "id": null,
-            "void": false,
+            "voidTag": false,
             "styleScopedId": null,
             "targetUses": 0,
             "props": [],
             "propsEffect": null,
             "children": [
               {
-                "o": "content",
+                "kind": "content",
                 "segment": "semantic_expression_190_208",
                 "root": false,
                 "value": {
                   "src": "label(count.value)",
                   "ir": {
-                    "k": "def-call",
+                    "kind": "def-call",
                     "def": 1,
                     "args": [
                       {
-                        "k": "signal-read",
+                        "kind": "signal-read",
                         "binding": 6
                       }
                     ]
@@ -66,11 +66,11 @@
       },
       "setup": [
         {
-          "op": "signal",
-          "local": 6,
+          "kind": "signal",
+          "binding": 6,
           "init": {
-            "k": "lit",
-            "v": 3
+            "kind": "lit",
+            "value": 3
           }
         }
       ],
@@ -86,11 +86,11 @@
               "value": {
                 "src": "label(count.value)",
                 "ir": {
-                  "k": "def-call",
+                  "kind": "def-call",
                   "def": 1,
                   "args": [
                     {
-                      "k": "signal-read",
+                      "kind": "signal-read",
                       "binding": 6
                     }
                   ]
@@ -137,15 +137,15 @@
             4
           ],
           "body": {
-            "k": "bin",
+            "kind": "bin",
             "op": "*",
-            "a": {
-              "k": "binding-read",
+            "left": {
+              "kind": "binding-read",
               "binding": 4
             },
-            "b": {
-              "k": "lit",
-              "v": 2
+            "right": {
+              "kind": "lit",
+              "value": 2
             }
           }
         },
@@ -155,15 +155,15 @@
             5
           ],
           "body": {
-            "k": "template",
+            "kind": "template",
             "parts": [
               "value ",
               {
-                "k": "def-call",
+                "kind": "def-call",
                 "def": 0,
                 "args": [
                   {
-                    "k": "binding-read",
+                    "kind": "binding-read",
                     "binding": 5
                   }
                 ]

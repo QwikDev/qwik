@@ -1,6 +1,6 @@
 {
   "format": "qwik/ssr-plan",
-  "version": 0,
+  "version": 1,
   "entry": 1,
   "components": [
     {
@@ -15,15 +15,15 @@
         "kind": "object",
         "bindings": [
           {
-            "b": 3,
+            "binding": 3,
             "name": "kind"
           },
           {
-            "b": 4,
+            "binding": 4,
             "name": "label"
           },
           {
-            "b": 5,
+            "binding": 5,
             "name": "n"
           }
         ]
@@ -38,20 +38,20 @@
         ],
         "ops": [
           {
-            "o": "el",
+            "kind": "element",
             "tag": "b",
             "id": 0,
-            "void": false,
+            "voidTag": false,
             "styleScopedId": null,
             "targetUses": 1,
             "props": [
               {
-                "p": "dynamic",
+                "kind": "dynamic",
                 "name": "class",
                 "value": {
                   "src": "kind",
                   "ir": {
-                    "k": "binding-read",
+                    "kind": "binding-read",
                     "binding": 3
                   },
                   "segment": "segment_0"
@@ -62,12 +62,12 @@
             "propsEffect": null,
             "children": [
               {
-                "o": "dyn",
+                "kind": "dynamic",
                 "output": "text",
                 "value": {
                   "src": "label",
                   "ir": {
-                    "k": "binding-read",
+                    "kind": "binding-read",
                     "binding": 4
                   },
                   "segment": "segment_1"
@@ -80,12 +80,12 @@
                 }
               },
               {
-                "o": "dyn",
+                "kind": "dynamic",
                 "output": "text",
                 "value": {
                   "src": "n",
                   "ir": {
-                    "k": "binding-read",
+                    "kind": "binding-read",
                     "binding": 5
                   },
                   "segment": "segment_2"
@@ -119,7 +119,7 @@
               "value": {
                 "src": "kind",
                 "ir": {
-                  "k": "binding-read",
+                  "kind": "binding-read",
                   "binding": 3
                 },
                 "segment": "segment_0"
@@ -133,7 +133,7 @@
               "value": {
                 "src": "label",
                 "ir": {
-                  "k": "binding-read",
+                  "kind": "binding-read",
                   "binding": 4
                 },
                 "segment": "segment_1"
@@ -145,7 +145,7 @@
               "value": {
                 "src": "n",
                 "ir": {
-                  "k": "binding-read",
+                  "kind": "binding-read",
                   "binding": 5
                 },
                 "segment": "segment_2"
@@ -168,32 +168,32 @@
       "ssr": {
         "setup": [
           {
-            "op": "signal",
-            "local": 6,
+            "kind": "signal",
+            "binding": 6,
             "init": {
-              "k": "lit",
-              "v": 3
+              "kind": "lit",
+              "value": 3
             },
             "name": "count"
           },
           {
-            "op": "const",
-            "local": 7,
+            "kind": "const",
+            "binding": 7,
             "init": {
-              "k": "object",
+              "kind": "object",
               "entries": [
                 [
                   "kind",
                   {
-                    "k": "lit",
-                    "v": "box"
+                    "kind": "lit",
+                    "value": "box"
                   }
                 ],
                 [
                   "label",
                   {
-                    "k": "lit",
-                    "v": "hi"
+                    "kind": "lit",
+                    "value": "hi"
                   }
                 ]
               ]
@@ -205,40 +205,40 @@
         "usedSegmentIds": [],
         "ops": [
           {
-            "o": "el",
+            "kind": "element",
             "tag": "div",
             "id": null,
-            "void": false,
+            "voidTag": false,
             "styleScopedId": null,
             "targetUses": 0,
             "props": [],
             "propsEffect": null,
             "children": [
               {
-                "o": "component",
+                "kind": "component",
                 "target": {
                   "ref": 0
                 },
                 "returnMode": "maybe-promise",
                 "props": [
                   {
-                    "p": "spread",
+                    "kind": "spread",
                     "value": {
                       "src": "shared",
                       "ir": {
-                        "k": "binding-read",
+                        "kind": "binding-read",
                         "binding": 7
                       },
                       "raw": true
                     }
                   },
                   {
-                    "p": "dynamic",
+                    "kind": "dynamic",
                     "name": "n",
                     "value": {
                       "src": "count.value",
                       "ir": {
-                        "k": "signal-read",
+                        "kind": "signal-read",
                         "binding": 6
                       },
                       "raw": true
@@ -263,31 +263,31 @@
       },
       "setup": [
         {
-          "op": "signal",
-          "local": 6,
+          "kind": "signal",
+          "binding": 6,
           "init": {
-            "k": "lit",
-            "v": 3
+            "kind": "lit",
+            "value": 3
           }
         },
         {
-          "op": "const",
-          "local": 7,
+          "kind": "const",
+          "binding": 7,
           "init": {
-            "k": "object",
+            "kind": "object",
             "entries": [
               [
                 "kind",
                 {
-                  "k": "lit",
-                  "v": "box"
+                  "kind": "lit",
+                  "value": "box"
                 }
               ],
               [
                 "label",
                 {
-                  "k": "lit",
-                  "v": "hi"
+                  "kind": "lit",
+                  "value": "hi"
                 }
               ]
             ]
@@ -311,7 +311,7 @@
                   "value": {
                     "src": "shared",
                     "ir": {
-                      "k": "binding-read",
+                      "kind": "binding-read",
                       "binding": 7
                     }
                   }
@@ -322,7 +322,7 @@
                   "value": {
                     "src": "count.value",
                     "ir": {
-                      "k": "signal-read",
+                      "kind": "signal-read",
                       "binding": 6
                     }
                   }

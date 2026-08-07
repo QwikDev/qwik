@@ -1,6 +1,6 @@
 {
   "format": "qwik/ssr-plan",
-  "version": 0,
+  "version": 1,
   "entry": 1,
   "components": [
     {
@@ -21,15 +21,15 @@
         ],
         "ops": [
           {
-            "o": "el",
+            "kind": "element",
             "tag": "article",
             "id": null,
-            "void": false,
+            "voidTag": false,
             "styleScopedId": null,
             "targetUses": 0,
             "props": [
               {
-                "p": "static",
+                "kind": "static",
                 "name": "class",
                 "value": "card"
               }
@@ -37,24 +37,24 @@
             "propsEffect": null,
             "children": [
               {
-                "o": "el",
+                "kind": "element",
                 "tag": "h2",
                 "id": 0,
-                "void": false,
+                "voidTag": false,
                 "styleScopedId": null,
                 "targetUses": 0,
                 "props": [],
                 "propsEffect": null,
                 "children": [
                   {
-                    "o": "dyn",
+                    "kind": "dynamic",
                     "output": "text",
                     "value": {
                       "src": "props.title",
                       "ir": {
-                        "k": "member",
+                        "kind": "member",
                         "obj": {
-                          "k": "binding-read",
+                          "kind": "binding-read",
                           "binding": 4
                         },
                         "name": "title"
@@ -70,7 +70,7 @@
                 ]
               },
               {
-                "o": "slot",
+                "kind": "slot",
                 "name": "",
                 "idBase": null,
                 "fallback": null
@@ -109,9 +109,9 @@
                   "value": {
                     "src": "props.title",
                     "ir": {
-                      "k": "member",
+                      "kind": "member",
                       "obj": {
-                        "k": "binding-read",
+                        "kind": "binding-read",
                         "binding": 4
                       },
                       "name": "title"
@@ -143,11 +143,11 @@
       "ssr": {
         "setup": [
           {
-            "op": "signal",
-            "local": 5,
+            "kind": "signal",
+            "binding": 5,
             "init": {
-              "k": "lit",
-              "v": 3
+              "kind": "lit",
+              "value": 3
             },
             "name": "count"
           }
@@ -158,14 +158,14 @@
         ],
         "ops": [
           {
-            "o": "component",
+            "kind": "component",
             "target": {
               "ref": 0
             },
             "returnMode": "maybe-promise",
             "props": [
               {
-                "p": "static",
+                "kind": "static",
                 "name": "title",
                 "value": "totals"
               }
@@ -182,26 +182,26 @@
                   "setup": [],
                   "ops": [
                     {
-                      "o": "el",
+                      "kind": "element",
                       "tag": "p",
                       "id": 0,
-                      "void": false,
+                      "voidTag": false,
                       "styleScopedId": null,
                       "targetUses": 0,
                       "props": [],
                       "propsEffect": null,
                       "children": [
                         {
-                          "o": "static",
+                          "kind": "static",
                           "html": "Count is "
                         },
                         {
-                          "o": "dyn",
+                          "kind": "dynamic",
                           "output": "text",
                           "value": {
                             "src": "count.value",
                             "ir": {
-                              "k": "signal-read",
+                              "kind": "signal-read",
                               "binding": 5
                             },
                             "raw": true
@@ -232,11 +232,11 @@
       },
       "setup": [
         {
-          "op": "signal",
-          "local": 5,
+          "kind": "signal",
+          "binding": 5,
           "init": {
-            "k": "lit",
-            "v": 3
+            "kind": "lit",
+            "value": 3
           }
         }
       ],
@@ -274,7 +274,7 @@
                         "value": {
                           "src": "count.value",
                           "ir": {
-                            "k": "signal-read",
+                            "kind": "signal-read",
                             "binding": 5
                           }
                         }

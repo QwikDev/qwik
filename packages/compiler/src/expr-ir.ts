@@ -28,62 +28,62 @@ export const enum ValueIrKind {
 }
 
 export type ValueIR =
-  | { readonly k: ValueIrKind.Lit; readonly v: string | number | boolean | null }
-  | { readonly k: ValueIrKind.Undef }
-  | { readonly k: ValueIrKind.SignalRead; readonly binding: BindingId }
-  | { readonly k: ValueIrKind.BindingRead; readonly binding: BindingId }
+  | { readonly kind: ValueIrKind.Lit; readonly value: string | number | boolean | null }
+  | { readonly kind: ValueIrKind.Undef }
+  | { readonly kind: ValueIrKind.SignalRead; readonly binding: BindingId }
+  | { readonly kind: ValueIrKind.BindingRead; readonly binding: BindingId }
   | {
-      readonly k: ValueIrKind.Member;
+      readonly kind: ValueIrKind.Member;
       readonly obj: ValueIR;
       readonly name: string;
       readonly optional?: true;
     }
   | {
-      readonly k: ValueIrKind.Index;
+      readonly kind: ValueIrKind.Index;
       readonly obj: ValueIR;
       readonly key: ValueIR;
       readonly optional?: true;
     }
-  | { readonly k: ValueIrKind.Unary; readonly op: ValueIrUnaryOp; readonly a: ValueIR }
+  | { readonly kind: ValueIrKind.Unary; readonly op: ValueIrUnaryOp; readonly operand: ValueIR }
   | {
-      readonly k: ValueIrKind.Bin;
+      readonly kind: ValueIrKind.Bin;
       readonly op: ValueIrBinOp;
-      readonly a: ValueIR;
-      readonly b: ValueIR;
+      readonly left: ValueIR;
+      readonly right: ValueIR;
     }
   | {
-      readonly k: ValueIrKind.Logic;
+      readonly kind: ValueIrKind.Logic;
       readonly op: ValueIrLogicOp;
-      readonly a: ValueIR;
-      readonly b: ValueIR;
+      readonly left: ValueIR;
+      readonly right: ValueIR;
     }
   | {
-      readonly k: ValueIrKind.Cond;
+      readonly kind: ValueIrKind.Cond;
       readonly test: ValueIR;
       readonly then: ValueIR;
       readonly else: ValueIR;
     }
-  | { readonly k: ValueIrKind.Template; readonly parts: readonly (string | ValueIR)[] }
-  | { readonly k: ValueIrKind.Array; readonly items: readonly ValueIR[] }
-  | { readonly k: ValueIrKind.Object; readonly entries: readonly (readonly [string, ValueIR])[] }
+  | { readonly kind: ValueIrKind.Template; readonly parts: readonly (string | ValueIR)[] }
+  | { readonly kind: ValueIrKind.Array; readonly items: readonly ValueIR[] }
+  | { readonly kind: ValueIrKind.Object; readonly entries: readonly (readonly [string, ValueIR])[] }
   | {
-      readonly k: ValueIrKind.Call;
+      readonly kind: ValueIrKind.Call;
       /**
        * `qwik:<ns>.<op>` — internal-plugin op id; method ops dispatch on the receiver's runtime
        * type.
        */
       readonly fn: string;
-      readonly recv: ValueIR | null;
+      readonly receiver: ValueIR | null;
       readonly args: readonly (ValueIR | LambdaIR)[];
     }
   | {
-      readonly k: ValueIrKind.DefCall;
+      readonly kind: ValueIrKind.DefCall;
       /** Index into the module's `defs` table. */
       readonly def: number;
       readonly args: readonly ValueIR[];
     }
   | {
-      readonly k: ValueIrKind.PluginCall;
+      readonly kind: ValueIrKind.PluginCall;
       /** `plugin:<module>:<export>` — user-plugin fn id (specs/09). */
       readonly fnId: string;
       readonly args: readonly ValueIR[];

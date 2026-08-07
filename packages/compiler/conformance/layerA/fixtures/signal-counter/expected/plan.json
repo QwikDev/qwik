@@ -1,6 +1,6 @@
 {
   "format": "qwik/ssr-plan",
-  "version": 0,
+  "version": 1,
   "entry": 0,
   "components": [
     {
@@ -11,11 +11,11 @@
       "ssr": {
         "setup": [
           {
-            "op": "signal",
-            "local": 2,
+            "kind": "signal",
+            "binding": 2,
             "init": {
-              "k": "lit",
-              "v": 3
+              "kind": "lit",
+              "value": 3
             },
             "name": "count"
           }
@@ -26,15 +26,15 @@
         ],
         "ops": [
           {
-            "o": "el",
+            "kind": "element",
             "tag": "button",
             "id": 0,
-            "void": false,
+            "voidTag": false,
             "styleScopedId": null,
             "targetUses": 0,
             "props": [
               {
-                "p": "event",
+                "kind": "event",
                 "name": "q-e:click",
                 "handlers": [
                   {
@@ -49,12 +49,12 @@
             "propsEffect": null,
             "children": [
               {
-                "o": "dyn",
+                "kind": "dynamic",
                 "output": "text",
                 "value": {
                   "src": "count.value",
                   "ir": {
-                    "k": "signal-read",
+                    "kind": "signal-read",
                     "binding": 2
                   },
                   "raw": true
@@ -77,11 +77,11 @@
       },
       "setup": [
         {
-          "op": "signal",
-          "local": 2,
+          "kind": "signal",
+          "binding": 2,
           "init": {
-            "k": "lit",
-            "v": 3
+            "kind": "lit",
+            "value": 3
           }
         }
       ],
@@ -107,7 +107,7 @@
               "value": {
                 "src": "count.value",
                 "ir": {
-                  "k": "signal-read",
+                  "kind": "signal-read",
                   "binding": 2
                 }
               }

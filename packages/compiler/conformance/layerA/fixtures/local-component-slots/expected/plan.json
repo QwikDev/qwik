@@ -1,6 +1,6 @@
 {
   "format": "qwik/ssr-plan",
-  "version": 0,
+  "version": 1,
   "entry": 0,
   "components": [
     {
@@ -11,16 +11,16 @@
       "ssr": {
         "setup": [
           {
-            "op": "signal",
-            "local": 3,
+            "kind": "signal",
+            "binding": 3,
             "init": {
-              "k": "lit",
-              "v": "Hello"
+              "kind": "lit",
+              "value": "Hello"
             },
             "name": "title"
           },
           {
-            "op": "local-component",
+            "kind": "local-component",
             "name": "Card",
             "binding": 4,
             "segment": "local_component_110_197",
@@ -28,7 +28,7 @@
               "kind": "object",
               "bindings": [
                 {
-                  "b": 5,
+                  "binding": 5,
                   "name": "kind"
                 }
               ]
@@ -37,20 +37,20 @@
               "setup": [],
               "ops": [
                 {
-                  "o": "el",
+                  "kind": "element",
                   "tag": "div",
                   "id": 0,
-                  "void": false,
+                  "voidTag": false,
                   "styleScopedId": null,
                   "targetUses": 1,
                   "props": [
                     {
-                      "p": "dynamic",
+                      "kind": "dynamic",
                       "name": "class",
                       "value": {
                         "src": "kind",
                         "ir": {
-                          "k": "binding-read",
+                          "kind": "binding-read",
                           "binding": 5
                         },
                         "segment": "segment_0"
@@ -61,7 +61,7 @@
                   "propsEffect": null,
                   "children": [
                     {
-                      "o": "slot",
+                      "kind": "slot",
                       "name": "",
                       "idBase": null,
                       "fallback": null
@@ -82,12 +82,12 @@
         ],
         "ops": [
           {
-            "o": "component",
+            "kind": "component",
             "target": "Card",
             "returnMode": "maybe-promise",
             "props": [
               {
-                "p": "static",
+                "kind": "static",
                 "name": "kind",
                 "value": "box"
               }
@@ -104,22 +104,22 @@
                   "setup": [],
                   "ops": [
                     {
-                      "o": "el",
+                      "kind": "element",
                       "tag": "p",
                       "id": 0,
-                      "void": false,
+                      "voidTag": false,
                       "styleScopedId": null,
                       "targetUses": 0,
                       "props": [],
                       "propsEffect": null,
                       "children": [
                         {
-                          "o": "dyn",
+                          "kind": "dynamic",
                           "output": "text",
                           "value": {
                             "src": "title.value",
                             "ir": {
-                              "k": "signal-read",
+                              "kind": "signal-read",
                               "binding": 3
                             },
                             "raw": true
@@ -149,15 +149,15 @@
       },
       "setup": [
         {
-          "op": "signal",
-          "local": 3,
+          "kind": "signal",
+          "binding": 3,
           "init": {
-            "k": "lit",
-            "v": "Hello"
+            "kind": "lit",
+            "value": "Hello"
           }
         },
         {
-          "op": "js",
+          "kind": "js",
           "src": "function Card({ kind }) {\n\t\treturn <div class={kind}>\n        <Slot />\n      </div>;\n\t}"
         }
       ],
@@ -189,7 +189,7 @@
                         "value": {
                           "src": "title.value",
                           "ir": {
-                            "k": "signal-read",
+                            "kind": "signal-read",
                             "binding": 3
                           }
                         }

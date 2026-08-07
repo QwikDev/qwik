@@ -1,6 +1,6 @@
 {
   "format": "qwik/ssr-plan",
-  "version": 0,
+  "version": 1,
   "entry": 0,
   "components": [
     {
@@ -11,15 +11,15 @@
       "ssr": {
         "setup": [
           {
-            "op": "signal",
-            "local": 3,
+            "kind": "signal",
+            "binding": 3,
             "init": {
-              "k": "plugin-call",
+              "kind": "plugin-call",
               "fnId": "plugin:./greeting:makeGreeting",
               "args": [
                 {
-                  "k": "lit",
-                  "v": "qwik"
+                  "kind": "lit",
+                  "value": "qwik"
                 }
               ]
             },
@@ -33,25 +33,25 @@
         ],
         "ops": [
           {
-            "o": "el",
+            "kind": "element",
             "tag": "main",
             "id": null,
-            "void": false,
+            "voidTag": false,
             "styleScopedId": null,
             "targetUses": 0,
             "props": [],
             "propsEffect": null,
             "children": [
               {
-                "o": "el",
+                "kind": "element",
                 "tag": "b",
                 "id": null,
-                "void": false,
+                "voidTag": false,
                 "styleScopedId": null,
                 "targetUses": 0,
                 "props": [
                   {
-                    "p": "static",
+                    "kind": "static",
                     "name": "id",
                     "value": "text"
                   }
@@ -59,13 +59,13 @@
                 "propsEffect": null,
                 "children": [
                   {
-                    "o": "content",
+                    "kind": "content",
                     "segment": "segment_0",
                     "root": false,
                     "value": {
                       "src": "greeting.value",
                       "ir": {
-                        "k": "signal-read",
+                        "kind": "signal-read",
                         "binding": 3
                       },
                       "segment": "segment_0"
@@ -74,20 +74,20 @@
                 ]
               },
               {
-                "o": "el",
+                "kind": "element",
                 "tag": "button",
                 "id": null,
-                "void": false,
+                "voidTag": false,
                 "styleScopedId": null,
                 "targetUses": 0,
                 "props": [
                   {
-                    "p": "static",
+                    "kind": "static",
                     "name": "id",
                     "value": "shout"
                   },
                   {
-                    "p": "event",
+                    "kind": "event",
                     "name": "q-e:click",
                     "handlers": [
                       {
@@ -102,7 +102,7 @@
                 "propsEffect": null,
                 "children": [
                   {
-                    "o": "static",
+                    "kind": "static",
                     "html": "shout"
                   }
                 ]
@@ -119,15 +119,15 @@
       },
       "setup": [
         {
-          "op": "signal",
-          "local": 3,
+          "kind": "signal",
+          "binding": 3,
           "init": {
-            "k": "plugin-call",
+            "kind": "plugin-call",
             "fnId": "plugin:./greeting:makeGreeting",
             "args": [
               {
-                "k": "lit",
-                "v": "qwik"
+                "kind": "lit",
+                "value": "qwik"
               }
             ]
           }
@@ -156,7 +156,7 @@
                   "value": {
                     "src": "greeting.value",
                     "ir": {
-                      "k": "signal-read",
+                      "kind": "signal-read",
                       "binding": 3
                     },
                     "segment": "segment_0"

@@ -21,7 +21,7 @@ import { SetupOpKind } from './setup-ir';
  */
 export interface QwikSsrPlan {
   readonly format: 'qwik/ssr-plan';
-  readonly version: 0;
+  readonly version: 1;
   readonly entry: number;
   readonly components: readonly LinkedComponent[];
   readonly modules: readonly LinkedModule[];
@@ -160,7 +160,7 @@ export function linkSsrPlan(
     const moduleLocalComponents = new Set<number | string>();
     const collectLocalComponents = (setup: QwikModulePlan['components'][number]['setup']): void => {
       for (const entry of setup) {
-        if (entry.op === SetupOpKind.LocalComponent) {
+        if (entry.kind === SetupOpKind.LocalComponent) {
           moduleLocalComponents.add(entry.binding);
           moduleLocalComponents.add(entry.name);
           collectLocalComponents(entry.render.setup);
@@ -240,10 +240,10 @@ export function linkSsrPlan(
     ): QwikModulePlan['components'][number]['setup'] => {
       // declarations hoist: every sibling is visible before any nested block links
       localComponentScopes.push(
-        setup.flatMap((entry) => (entry.op === SetupOpKind.LocalComponent ? [entry.name] : []))
+        setup.flatMap((entry) => (entry.kind === SetupOpKind.LocalComponent ? [entry.name] : []))
       );
       return setup.map((entry) =>
-        entry.op === SetupOpKind.LocalComponent
+        entry.kind === SetupOpKind.LocalComponent
           ? { ...entry, render: linkSsrFn(entry.render) }
           : entry
       );
@@ -255,7 +255,7 @@ export function linkSsrPlan(
       return linked;
     };
     const linkSsrOp = (op: PlanSsrOp): PlanSsrOp => {
-      switch (op.o) {
+      switch (op.kind) {
         case SsrOpKind.Element:
           return { ...op, children: linkSsrOps(op.children) };
         case SsrOpKind.Component: {
@@ -350,7 +350,7 @@ export function linkSsrPlan(
 
   return {
     format: 'qwik/ssr-plan',
-    version: 0,
+    version: 1,
     entry: componentOffsets[entryModule] + entryLocal,
     components,
     modules: modulePlans.map((plan) => ({

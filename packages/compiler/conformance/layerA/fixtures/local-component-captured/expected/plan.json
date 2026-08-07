@@ -1,6 +1,6 @@
 {
   "format": "qwik/ssr-plan",
-  "version": 0,
+  "version": 1,
   "entry": 0,
   "components": [
     {
@@ -11,23 +11,23 @@
       "ssr": {
         "setup": [
           {
-            "op": "store",
-            "local": 3,
+            "kind": "store",
+            "binding": 3,
             "init": {
-              "k": "object",
+              "kind": "object",
               "entries": [
                 [
                   "filter",
                   {
-                    "k": "lit",
-                    "v": "all"
+                    "kind": "lit",
+                    "value": "all"
                   }
                 ],
                 [
                   "count",
                   {
-                    "k": "lit",
-                    "v": 2
+                    "kind": "lit",
+                    "value": 2
                   }
                 ]
               ]
@@ -36,16 +36,16 @@
             "name": "todos"
           },
           {
-            "op": "signal",
-            "local": 4,
+            "kind": "signal",
+            "binding": 4,
             "init": {
-              "k": "lit",
-              "v": true
+              "kind": "lit",
+              "value": true
             },
             "name": "show"
           },
           {
-            "op": "local-component",
+            "kind": "local-component",
             "name": "Filter",
             "binding": 5,
             "segment": "local_component_169_410",
@@ -53,7 +53,7 @@
               "kind": "object",
               "bindings": [
                 {
-                  "b": 6,
+                  "binding": 6,
                   "name": "name"
                 }
               ]
@@ -61,13 +61,13 @@
             "render": {
               "setup": [
                 {
-                  "op": "const",
-                  "local": 7,
+                  "kind": "const",
+                  "binding": 7,
                   "init": {
-                    "k": "call",
+                    "kind": "call",
                     "fn": "qwik:string.toLowerCase",
-                    "recv": {
-                      "k": "binding-read",
+                    "receiver": {
+                      "kind": "binding-read",
                       "binding": 6
                     },
                     "args": []
@@ -77,46 +77,46 @@
               ],
               "ops": [
                 {
-                  "o": "el",
+                  "kind": "element",
                   "tag": "li",
                   "id": null,
-                  "void": false,
+                  "voidTag": false,
                   "styleScopedId": null,
                   "targetUses": 0,
                   "props": [],
                   "propsEffect": null,
                   "children": [
                     {
-                      "o": "el",
+                      "kind": "element",
                       "tag": "a",
                       "id": 0,
-                      "void": false,
+                      "voidTag": false,
                       "styleScopedId": null,
                       "targetUses": 1,
                       "props": [
                         {
-                          "p": "dynamic",
+                          "kind": "dynamic",
                           "name": "class",
                           "value": {
                             "src": "{ selected: todos.filter == lower }",
                             "ir": {
-                              "k": "object",
+                              "kind": "object",
                               "entries": [
                                 [
                                   "selected",
                                   {
-                                    "k": "bin",
+                                    "kind": "bin",
                                     "op": "==",
-                                    "a": {
-                                      "k": "member",
+                                    "left": {
+                                      "kind": "member",
                                       "obj": {
-                                        "k": "binding-read",
+                                        "kind": "binding-read",
                                         "binding": 3
                                       },
                                       "name": "filter"
                                     },
-                                    "b": {
-                                      "k": "binding-read",
+                                    "right": {
+                                      "kind": "binding-read",
                                       "binding": 7
                                     }
                                   }
@@ -128,7 +128,7 @@
                           "compilerString": false
                         },
                         {
-                          "p": "event",
+                          "kind": "event",
                           "name": "q-e:click",
                           "handlers": [
                             {
@@ -143,16 +143,16 @@
                       "propsEffect": null,
                       "children": [
                         {
-                          "o": "content",
+                          "kind": "content",
                           "segment": "semantic_expression_362_380",
                           "root": false,
                           "value": {
                             "src": "name.toUpperCase()",
                             "ir": {
-                              "k": "call",
+                              "kind": "call",
                               "fn": "qwik:string.toUpperCase",
-                              "recv": {
-                                "k": "binding-read",
+                              "receiver": {
+                                "kind": "binding-read",
                                 "binding": 6
                               },
                               "args": []
@@ -181,20 +181,20 @@
         ],
         "ops": [
           {
-            "o": "el",
+            "kind": "element",
             "tag": "ul",
             "id": null,
-            "void": false,
+            "voidTag": false,
             "styleScopedId": null,
             "targetUses": 0,
             "props": [],
             "propsEffect": null,
             "children": [
               {
-                "o": "branch",
+                "kind": "branch",
                 "condition": "segment_2",
                 "conditionIr": {
-                  "k": "signal-read",
+                  "kind": "signal-read",
                   "binding": 4
                 },
                 "root": false,
@@ -204,12 +204,12 @@
                   "setup": [],
                   "ops": [
                     {
-                      "o": "component",
+                      "kind": "component",
                       "target": "Filter",
                       "returnMode": "maybe-promise",
                       "props": [
                         {
-                          "p": "static",
+                          "kind": "static",
                           "name": "name",
                           "value": "All"
                         }
@@ -237,23 +237,23 @@
       },
       "setup": [
         {
-          "op": "store",
-          "local": 3,
+          "kind": "store",
+          "binding": 3,
           "init": {
-            "k": "object",
+            "kind": "object",
             "entries": [
               [
                 "filter",
                 {
-                  "k": "lit",
-                  "v": "all"
+                  "kind": "lit",
+                  "value": "all"
                 }
               ],
               [
                 "count",
                 {
-                  "k": "lit",
-                  "v": 2
+                  "kind": "lit",
+                  "value": 2
                 }
               ]
             ]
@@ -261,15 +261,15 @@
           "deep": true
         },
         {
-          "op": "signal",
-          "local": 4,
+          "kind": "signal",
+          "binding": 4,
           "init": {
-            "k": "lit",
-            "v": true
+            "kind": "lit",
+            "value": true
           }
         },
         {
-          "op": "js",
+          "kind": "js",
           "src": "function Filter({ name }) {\n\t\tconst lower = name.toLowerCase();\n\t\treturn <li>\n        <a class={{ selected: todos.filter == lower }} onClick$={() => {\n\t\t\ttodos.filter = lower;\n\t\t}}>\n          {name.toUpperCase()}\n        </a>\n      </li>;\n\t}"
         }
       ],
@@ -285,7 +285,7 @@
                 "src": "",
                 "segment": "segment_2",
                 "ir": {
-                  "k": "signal-read",
+                  "kind": "signal-read",
                   "binding": 4
                 }
               },

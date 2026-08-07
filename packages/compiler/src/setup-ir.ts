@@ -36,47 +36,51 @@ export const enum TaskStepKind {
 }
 
 export type SetupOp =
-  | { readonly op: SetupOpKind.Signal; readonly local: BindingId; readonly init: ValueIR }
+  | { readonly kind: SetupOpKind.Signal; readonly binding: BindingId; readonly init: ValueIR }
   | {
-      readonly op: SetupOpKind.Store;
-      readonly local: BindingId;
+      readonly kind: SetupOpKind.Store;
+      readonly binding: BindingId;
       readonly init: ValueIR;
       readonly deep: boolean;
     }
-  | { readonly op: SetupOpKind.Const; readonly local: BindingId; readonly init: ValueIR }
-  | { readonly op: SetupOpKind.UseId; readonly local: BindingId }
+  | { readonly kind: SetupOpKind.Const; readonly binding: BindingId; readonly init: ValueIR }
+  | { readonly kind: SetupOpKind.UseId; readonly binding: BindingId }
   /** `await Promise.resolve()` — a pure microtask yield; native engines skip it. */
-  | { readonly op: SetupOpKind.Yield; readonly value: ValueIR }
+  | { readonly kind: SetupOpKind.Yield; readonly value: ValueIR }
   /** `const fn = $(…)` — the local holds the segment's QRL value. */
-  | { readonly op: SetupOpKind.QrlConst; readonly local: BindingId; readonly segment: string }
-  | { readonly op: SetupOpKind.ContextRead; readonly local: BindingId; readonly context: BindingId }
+  | { readonly kind: SetupOpKind.QrlConst; readonly binding: BindingId; readonly segment: string }
   | {
-      readonly op: SetupOpKind.ContextProvider;
+      readonly kind: SetupOpKind.ContextRead;
+      readonly binding: BindingId;
+      readonly context: BindingId;
+    }
+  | {
+      readonly kind: SetupOpKind.ContextProvider;
       readonly context: BindingId;
       readonly value: ValueIR;
     }
   | {
-      readonly op: SetupOpKind.ServerData;
-      readonly local: BindingId;
+      readonly kind: SetupOpKind.ServerData;
+      readonly binding: BindingId;
       readonly key: ValueIR;
       readonly fallback: ValueIR | null;
     }
   | {
-      readonly op: SetupOpKind.Computed;
-      readonly local: BindingId;
+      readonly kind: SetupOpKind.Computed;
+      readonly binding: BindingId;
       /** QRL segment id — the client resumes via this chunk (the `Reactive` pairing). */
       readonly segment: string;
       /** Portable body when single-expression; null keeps the segment-only (JS) evaluation. */
       readonly body: ValueIR | null;
     }
   | {
-      readonly op: SetupOpKind.Task;
+      readonly kind: SetupOpKind.Task;
       readonly segment: string;
       /** Portable body; null keeps segment-only evaluation. Reads auto-track (v3 semantics). */
       readonly body: TaskBody | null;
     }
   | {
-      readonly op: SetupOpKind.VisibleTask;
+      readonly kind: SetupOpKind.VisibleTask;
       readonly segment: string;
       /** Client-only carrier; the body never runs during SSR. */
       readonly strategy: 'intersection-observer' | 'document-ready' | 'document-idle';
@@ -105,5 +109,5 @@ export type TaskStep =
       readonly then: readonly TaskStep[];
       readonly else: readonly TaskStep[];
     }
-  | { readonly s: TaskStepKind.Let; readonly local: BindingId; readonly value: ValueIR }
+  | { readonly s: TaskStepKind.Let; readonly binding: BindingId; readonly value: ValueIR }
   | { readonly s: TaskStepKind.Return; readonly value: ValueIR | null };

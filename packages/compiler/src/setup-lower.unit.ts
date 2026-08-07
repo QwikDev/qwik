@@ -82,14 +82,14 @@ const hookCall = (offset: number, args: unknown[] = []) => ({
 describe('lowerSetupOp', () => {
   test('useSignal with and without initializer', () => {
     expect(lowerSetupOp(constDecl(hookCall(30, [lit(3)])), facts)).toEqual({
-      op: 'signal',
-      local: LOCAL,
-      init: { k: 'lit', v: 3 },
+      kind: 'signal',
+      binding: LOCAL,
+      init: { kind: 'lit', value: 3 },
     });
     expect(lowerSetupOp(constDecl(hookCall(30)), facts)).toEqual({
-      op: 'signal',
-      local: LOCAL,
-      init: { k: 'undef' },
+      kind: 'signal',
+      binding: LOCAL,
+      init: { kind: 'undef' },
     });
   });
 
@@ -115,9 +115,9 @@ describe('lowerSetupOp', () => {
         facts
       )
     ).toEqual({
-      op: 'store',
-      local: LOCAL,
-      init: { k: 'object', entries: [['items', { k: 'array', items: [] }]] },
+      kind: 'store',
+      binding: LOCAL,
+      init: { kind: 'object', entries: [['items', { kind: 'array', items: [] }]] },
       deep: true,
     });
     // options bag stays verbatim
@@ -131,25 +131,28 @@ describe('lowerSetupOp', () => {
 
   test('plain const, useConstant, useId, useContext, useServerData', () => {
     expect(lowerSetupOp(constDecl(lit('x')), facts)).toEqual({
-      op: 'const',
-      local: LOCAL,
-      init: { k: 'lit', v: 'x' },
+      kind: 'const',
+      binding: LOCAL,
+      init: { kind: 'lit', value: 'x' },
     });
     expect(lowerSetupOp(constDecl(hookCall(36, [lit(5)])), facts)).toEqual({
-      op: 'const',
-      local: LOCAL,
-      init: { k: 'lit', v: 5 },
+      kind: 'const',
+      binding: LOCAL,
+      init: { kind: 'lit', value: 5 },
     });
-    expect(lowerSetupOp(constDecl(hookCall(35)), facts)).toEqual({ op: 'use-id', local: LOCAL });
+    expect(lowerSetupOp(constDecl(hookCall(35)), facts)).toEqual({
+      kind: 'use-id',
+      binding: LOCAL,
+    });
     expect(lowerSetupOp(constDecl(hookCall(35, [lit(1)])), facts)).toBeNull();
     expect(
       lowerSetupOp(constDecl(hookCall(32, [at(40, { type: 'Identifier', name: 'Ctx' })])), facts)
-    ).toEqual({ op: 'context-read', local: LOCAL, context: CONTEXT_ID });
+    ).toEqual({ kind: 'context-read', binding: LOCAL, context: CONTEXT_ID });
     expect(lowerSetupOp(constDecl(hookCall(34, [lit('locale'), lit('en')])), facts)).toEqual({
-      op: 'server-data',
-      local: LOCAL,
-      key: { k: 'lit', v: 'locale' },
-      fallback: { k: 'lit', v: 'en' },
+      kind: 'server-data',
+      binding: LOCAL,
+      key: { kind: 'lit', value: 'locale' },
+      fallback: { kind: 'lit', value: 'en' },
     });
   });
 
@@ -162,7 +165,11 @@ describe('lowerSetupOp', () => {
         } as unknown as AstNode,
         facts
       )
-    ).toEqual({ op: 'context-provider', context: CONTEXT_ID, value: { k: 'lit', v: 'value' } });
+    ).toEqual({
+      kind: 'context-provider',
+      context: CONTEXT_ID,
+      value: { kind: 'lit', value: 'value' },
+    });
   });
 
   test('useComputed$ pairs the segment with a portable body when single-expression', () => {
@@ -189,14 +196,14 @@ describe('lowerSetupOp', () => {
         facts
       )
     ).toEqual({
-      op: 'computed',
-      local: LOCAL,
+      kind: 'computed',
+      binding: LOCAL,
       segment: 'segment_0',
       body: {
-        k: 'bin',
+        kind: 'bin',
         op: '*',
-        a: { k: 'signal-read', binding: SIGNAL_BINDING },
-        b: { k: 'lit', v: 2 },
+        left: { kind: 'signal-read', binding: SIGNAL_BINDING },
+        right: { kind: 'lit', value: 2 },
       },
     });
     // multi-statement computed keeps the segment, drops the body
@@ -209,7 +216,7 @@ describe('lowerSetupOp', () => {
         ),
         facts
       )
-    ).toEqual({ op: 'computed', local: LOCAL, segment: 'segment_0', body: null });
+    ).toEqual({ kind: 'computed', binding: LOCAL, segment: 'segment_0', body: null });
   });
 
   test('useTask$ lowers derive-into-state bodies; v3 tasks auto-track', () => {
@@ -267,26 +274,26 @@ describe('lowerSetupOp', () => {
       ]),
     } as unknown as AstNode;
     expect(lowerSetupOp(taskStatement, facts)).toEqual({
-      op: 'task',
+      kind: 'task',
       segment: 'segment_0',
       body: {
         async: false,
         steps: [
-          { s: 'let', local: LOCAL, value: { k: 'signal-read', binding: SIGNAL_BINDING } },
+          { s: 'let', binding: LOCAL, value: { kind: 'signal-read', binding: SIGNAL_BINDING } },
           {
             s: 'if',
-            test: { k: 'binding-read', binding: LOCAL },
+            test: { kind: 'binding-read', binding: LOCAL },
             then: [
               {
                 s: 'set-store',
                 binding: STORE_BINDING,
                 path: ['label'],
-                value: { k: 'lit', v: 'on' },
+                value: { kind: 'lit', value: 'on' },
               },
             ],
             else: [],
           },
-          { s: 'set-signal', binding: SIGNAL_BINDING, value: { k: 'lit', v: 0 } },
+          { s: 'set-signal', binding: SIGNAL_BINDING, value: { kind: 'lit', value: 0 } },
         ],
       },
     });
@@ -301,7 +308,7 @@ describe('lowerSetupOp', () => {
     const statement = (args: unknown[]) =>
       ({ type: 'ExpressionStatement', expression: hookCall(39, args) }) as unknown as AstNode;
     expect(lowerSetupOp(statement([arrow]), facts)).toEqual({
-      op: 'visible-task',
+      kind: 'visible-task',
       segment: 'segment_0',
       strategy: 'intersection-observer',
     });
@@ -324,7 +331,7 @@ describe('lowerSetupOp', () => {
         ]),
         facts
       )
-    ).toEqual({ op: 'visible-task', segment: 'segment_0', strategy: 'document-idle' });
+    ).toEqual({ kind: 'visible-task', segment: 'segment_0', strategy: 'document-idle' });
   });
 
   test('non-hook call inits lower as const via expression IR', () => {
@@ -339,9 +346,9 @@ describe('lowerSetupOp', () => {
       arguments: [],
     };
     expect(lowerSetupOp(constDecl(methodCall), facts)).toMatchObject({
-      op: 'const',
-      local: LOCAL,
-      init: { k: 'call', fn: 'qwik:string.toLowerCase' },
+      kind: 'const',
+      binding: LOCAL,
+      init: { kind: 'call', fn: 'qwik:string.toLowerCase' },
     });
   });
 

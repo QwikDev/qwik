@@ -1,6 +1,6 @@
 {
   "format": "qwik/ssr-plan",
-  "version": 0,
+  "version": 1,
   "entry": 0,
   "components": [
     {
@@ -11,16 +11,16 @@
       "ssr": {
         "setup": [
           {
-            "op": "signal",
-            "local": 2,
+            "kind": "signal",
+            "binding": 2,
             "init": {
-              "k": "lit",
-              "v": 3
+              "kind": "lit",
+              "value": 3
             },
             "name": "count"
           },
           {
-            "op": "local-component",
+            "kind": "local-component",
             "name": "Badge",
             "binding": 3,
             "segment": "local_component_98_159",
@@ -28,7 +28,7 @@
               "kind": "object",
               "bindings": [
                 {
-                  "b": 4,
+                  "binding": 4,
                   "name": "n"
                 }
               ]
@@ -37,15 +37,15 @@
               "setup": [],
               "ops": [
                 {
-                  "o": "el",
+                  "kind": "element",
                   "tag": "b",
                   "id": 0,
-                  "void": false,
+                  "voidTag": false,
                   "styleScopedId": null,
                   "targetUses": 0,
                   "props": [
                     {
-                      "p": "static",
+                      "kind": "static",
                       "name": "class",
                       "value": "badge"
                     }
@@ -53,12 +53,12 @@
                   "propsEffect": null,
                   "children": [
                     {
-                      "o": "dyn",
+                      "kind": "dynamic",
                       "output": "text",
                       "value": {
                         "src": "n",
                         "ir": {
-                          "k": "binding-read",
+                          "kind": "binding-read",
                           "binding": 4
                         },
                         "segment": "segment_0"
@@ -84,27 +84,27 @@
         ],
         "ops": [
           {
-            "o": "el",
+            "kind": "element",
             "tag": "div",
             "id": null,
-            "void": false,
+            "voidTag": false,
             "styleScopedId": null,
             "targetUses": 0,
             "props": [],
             "propsEffect": null,
             "children": [
               {
-                "o": "component",
+                "kind": "component",
                 "target": "Badge",
                 "returnMode": "maybe-promise",
                 "props": [
                   {
-                    "p": "dynamic",
+                    "kind": "dynamic",
                     "name": "n",
                     "value": {
                       "src": "count.value",
                       "ir": {
-                        "k": "signal-read",
+                        "kind": "signal-read",
                         "binding": 2
                       },
                       "raw": true
@@ -129,15 +129,15 @@
       },
       "setup": [
         {
-          "op": "signal",
-          "local": 2,
+          "kind": "signal",
+          "binding": 2,
           "init": {
-            "k": "lit",
-            "v": 3
+            "kind": "lit",
+            "value": 3
           }
         },
         {
-          "op": "js",
+          "kind": "js",
           "src": "function Badge({ n }) {\n\t\treturn <b class=\"badge\">{n}</b>;\n\t}"
         }
       ],
@@ -157,7 +157,7 @@
                   "value": {
                     "src": "count.value",
                     "ir": {
-                      "k": "signal-read",
+                      "kind": "signal-read",
                       "binding": 2
                     }
                   }

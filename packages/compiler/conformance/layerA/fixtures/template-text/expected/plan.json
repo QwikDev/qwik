@@ -1,6 +1,6 @@
 {
   "format": "qwik/ssr-plan",
-  "version": 0,
+  "version": 1,
   "entry": 0,
   "components": [
     {
@@ -11,11 +11,11 @@
       "ssr": {
         "setup": [
           {
-            "op": "signal",
-            "local": 2,
+            "kind": "signal",
+            "binding": 2,
             "init": {
-              "k": "lit",
-              "v": "world"
+              "kind": "lit",
+              "value": "world"
             },
             "name": "name"
           }
@@ -26,26 +26,26 @@
         ],
         "ops": [
           {
-            "o": "el",
+            "kind": "element",
             "tag": "p",
             "id": 0,
-            "void": false,
+            "voidTag": false,
             "styleScopedId": null,
             "targetUses": 0,
             "props": [],
             "propsEffect": null,
             "children": [
               {
-                "o": "dyn",
+                "kind": "dynamic",
                 "output": "text",
                 "value": {
                   "src": "`Hello ${name.value}!`",
                   "ir": {
-                    "k": "template",
+                    "kind": "template",
                     "parts": [
                       "Hello ",
                       {
-                        "k": "signal-read",
+                        "kind": "signal-read",
                         "binding": 2
                       },
                       "!"
@@ -71,11 +71,11 @@
       },
       "setup": [
         {
-          "op": "signal",
-          "local": 2,
+          "kind": "signal",
+          "binding": 2,
           "init": {
-            "k": "lit",
-            "v": "world"
+            "kind": "lit",
+            "value": "world"
           }
         }
       ],
@@ -91,11 +91,11 @@
               "value": {
                 "src": "`Hello ${name.value}!`",
                 "ir": {
-                  "k": "template",
+                  "kind": "template",
                   "parts": [
                     "Hello ",
                     {
-                      "k": "signal-read",
+                      "kind": "signal-read",
                       "binding": 2
                     },
                     "!"

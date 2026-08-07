@@ -70,7 +70,7 @@ function lowerAwaitStatement(expression: AstNode, facts: SetupLowerFacts): Setup
     return null;
   }
   const value = lowerValueIr(awaited, facts);
-  return value === null ? null : { op: SetupOpKind.Yield, value };
+  return value === null ? null : { kind: SetupOpKind.Yield, value };
 }
 
 function lowerDeclaration(statement: AstNode, facts: SetupLowerFacts): SetupOp | null {
@@ -95,7 +95,7 @@ function lowerDeclaration(statement: AstNode, facts: SetupLowerFacts): SetupOp |
     return lowerHookInit(init, local, facts);
   }
   const value = lowerValueIr(init, facts);
-  return value === null ? null : { op: SetupOpKind.Const, local, init: value };
+  return value === null ? null : { kind: SetupOpKind.Const, binding: local, init: value };
 }
 
 function lowerHookInit(call: AstNode, local: BindingId, facts: SetupLowerFacts): SetupOp | null {
@@ -104,34 +104,36 @@ function lowerHookInit(call: AstNode, local: BindingId, facts: SetupLowerFacts):
     const target = unwrapExpression(args[0]);
     const segment = facts.findQrlSegmentId(target === null ? null : getRange(target ?? null));
     return args.length === 1 && segment !== null
-      ? { op: SetupOpKind.QrlConst, local, segment }
+      ? { kind: SetupOpKind.QrlConst, binding: local, segment }
       : null;
   }
   if (facts.isHook(callee, QwikHooks.UseSignal)) {
     const init = lowerSingleArg(args, facts);
     return init === undefined
       ? null
-      : { op: SetupOpKind.Signal, local, init: init ?? { k: ValueIrKind.Undef } };
+      : { kind: SetupOpKind.Signal, binding: local, init: init ?? { kind: ValueIrKind.Undef } };
   }
   if (facts.isHook(callee, QwikHooks.UseStore)) {
     if (args.length !== 1) {
       return null; // options bag (deep/shallow/reactive) stays verbatim in v1
     }
     const init = lowerValueIr(args[0], facts);
-    return init === null ? null : { op: SetupOpKind.Store, local, init, deep: true };
+    return init === null ? null : { kind: SetupOpKind.Store, binding: local, init, deep: true };
   }
   if (facts.isHook(callee, QwikHooks.UseConstant)) {
     const init = lowerSingleArg(args, facts);
-    return init === undefined || init === null ? null : { op: SetupOpKind.Const, local, init };
+    return init === undefined || init === null
+      ? null
+      : { kind: SetupOpKind.Const, binding: local, init };
   }
   if (facts.isHook(callee, QwikHooks.UseId)) {
-    return args.length === 0 ? { op: SetupOpKind.UseId, local } : null;
+    return args.length === 0 ? { kind: SetupOpKind.UseId, binding: local } : null;
   }
   if (facts.isHook(callee, QwikHooks.UseContext)) {
     const context = contextBinding(args, facts);
     return context === null || args.length !== 1
       ? null
-      : { op: SetupOpKind.ContextRead, local, context };
+      : { kind: SetupOpKind.ContextRead, binding: local, context };
   }
   if (facts.isHook(callee, QwikHooks.UseServerData)) {
     if (args.length === 0 || args.length > 2) {
@@ -145,18 +147,23 @@ function lowerHookInit(call: AstNode, local: BindingId, facts: SetupLowerFacts):
     if (args.length === 2 && fallback === null) {
       return null;
     }
-    return { op: SetupOpKind.ServerData, local, key, fallback };
+    return { kind: SetupOpKind.ServerData, binding: local, key, fallback };
   }
   if (facts.isHook(callee, QwikHooks.UseComputedDollar)) {
     const segment = callbackSegmentId(args, facts);
     if (segment === null || args.length !== 1) {
       return null;
     }
-    return { op: SetupOpKind.Computed, local, segment, body: callbackBodyIr(args[0], facts) };
+    return {
+      kind: SetupOpKind.Computed,
+      binding: local,
+      segment,
+      body: callbackBodyIr(args[0], facts),
+    };
   }
   // non-hook calls lower like any expression; only pure qwik: ops and defs qualify
   const value = lowerValueIr(call, facts);
-  return value === null ? null : { op: SetupOpKind.Const, local, init: value };
+  return value === null ? null : { kind: SetupOpKind.Const, binding: local, init: value };
 }
 
 /** Statement-position hooks: providers, tasks, visible tasks. */
@@ -170,7 +177,7 @@ function lowerStatementCall(call: AstNode, facts: SetupLowerFacts): SetupOp | nu
     if (segment === null || args.length !== 1) {
       return null;
     }
-    return { op: SetupOpKind.Task, segment, body: lowerTaskBody(args[0], facts) };
+    return { kind: SetupOpKind.Task, segment, body: lowerTaskBody(args[0], facts) };
   }
   if (facts.isHook(callee, QwikHooks.UseVisibleTaskDollar)) {
     const segment = callbackSegmentId(args, facts);
@@ -178,7 +185,7 @@ function lowerStatementCall(call: AstNode, facts: SetupLowerFacts): SetupOp | nu
       return null;
     }
     const strategy = args.length === 2 ? visibleTaskStrategy(args[1]) : 'intersection-observer';
-    return strategy === null ? null : { op: SetupOpKind.VisibleTask, segment, strategy };
+    return strategy === null ? null : { kind: SetupOpKind.VisibleTask, segment, strategy };
   }
   return null;
 }
@@ -296,7 +303,9 @@ function lowerTaskStep(statement: AstNode, facts: SetupLowerFacts): TaskStep | n
       const id = declarator.id as AstNode | undefined;
       const local = id?.type === 'Identifier' ? facts.bindingIdAt(getRange(id)) : null;
       const value = local === null ? null : lowerValueIr(declarator.init, facts);
-      return local === null || value === null ? null : { s: TaskStepKind.Let, local, value };
+      return local === null || value === null
+        ? null
+        : { s: TaskStepKind.Let, binding: local, value };
     }
     case 'IfStatement': {
       const conditional = statement as { test: unknown; consequent: unknown; alternate?: unknown };
@@ -397,7 +406,7 @@ function lowerProviderCall(call: AstNode, facts: SetupLowerFacts): SetupOp | nul
   const value = context === null ? null : lowerValueIr(args[1], facts);
   return context === null || value === null
     ? null
-    : { op: SetupOpKind.ContextProvider, context, value };
+    : { kind: SetupOpKind.ContextProvider, context, value };
 }
 
 /** Null = no argument; undefined = argument present but unlowerable. */

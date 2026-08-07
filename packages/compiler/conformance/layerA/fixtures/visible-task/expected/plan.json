@@ -1,6 +1,6 @@
 {
   "format": "qwik/ssr-plan",
-  "version": 0,
+  "version": 1,
   "entry": 0,
   "components": [
     {
@@ -11,16 +11,16 @@
       "ssr": {
         "setup": [
           {
-            "op": "signal",
-            "local": 3,
+            "kind": "signal",
+            "binding": 3,
             "init": {
-              "k": "lit",
-              "v": "waiting"
+              "kind": "lit",
+              "value": "waiting"
             },
             "name": "status"
           },
           {
-            "op": "visible-task",
+            "kind": "visible-task",
             "segment": "segment_0",
             "strategy": "intersection-observer"
           }
@@ -31,22 +31,22 @@
         ],
         "ops": [
           {
-            "o": "el",
+            "kind": "element",
             "tag": "output",
             "id": 0,
-            "void": false,
+            "voidTag": false,
             "styleScopedId": null,
             "targetUses": 0,
             "props": [],
             "propsEffect": null,
             "children": [
               {
-                "o": "dyn",
+                "kind": "dynamic",
                 "output": "text",
                 "value": {
                   "src": "status.value",
                   "ir": {
-                    "k": "signal-read",
+                    "kind": "signal-read",
                     "binding": 3
                   },
                   "raw": true
@@ -69,15 +69,15 @@
       },
       "setup": [
         {
-          "op": "signal",
-          "local": 3,
+          "kind": "signal",
+          "binding": 3,
           "init": {
-            "k": "lit",
-            "v": "waiting"
+            "kind": "lit",
+            "value": "waiting"
           }
         },
         {
-          "op": "visible-task",
+          "kind": "visible-task",
           "segment": "segment_0",
           "strategy": "intersection-observer"
         }
@@ -94,7 +94,7 @@
               "value": {
                 "src": "status.value",
                 "ir": {
-                  "k": "signal-read",
+                  "kind": "signal-read",
                   "binding": 3
                 }
               }

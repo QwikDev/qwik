@@ -181,7 +181,7 @@ type PropsShape =
   | null
   | undefined
   | { kind: 'identifier'; binding: number }
-  | { kind: 'object'; bindings: readonly { b: number; name: string }[] };
+  | { kind: 'object'; bindings: readonly { binding: number; name: string }[] };
 interface LocalComponentEntry {
   readonly name: string;
   readonly binding: number;
@@ -327,13 +327,13 @@ class JsComponentGenerator {
     if (ssr.flushTasks === true) {
       this.invokeCtx();
     }
-    for (const entry of ssr.setup as ({ op: string } & Record<string, unknown>)[]) {
-      if (entry.op === 'local-component') {
+    for (const entry of ssr.setup as ({ kind: string } & Record<string, unknown>)[]) {
+      if (entry.kind === 'local-component') {
         this.localComponents.set(entry.name as string, entry as unknown as LocalComponentEntry);
       }
     }
     for (const entry of ssr.setup) {
-      this.setupOp(entry as { op: string } & Record<string, unknown>);
+      this.setupOp(entry as { kind: string } & Record<string, unknown>);
     }
     for (const markName of this.pendingMarks.splice(0)) {
       const entry = this.localComponents.get(markName)!;
@@ -416,8 +416,8 @@ class JsComponentGenerator {
       this.invokeCtx();
     }
     // local-component declarations hoist: siblings are callable before their statement
-    for (const entry of ssr.setup as ({ op: string } & Record<string, unknown>)[]) {
-      if (entry.op === 'local-component') {
+    for (const entry of ssr.setup as ({ kind: string } & Record<string, unknown>)[]) {
+      if (entry.kind === 'local-component') {
         this.localComponents.set(entry.name as string, entry as unknown as LocalComponentEntry);
       }
     }
@@ -460,7 +460,7 @@ class JsComponentGenerator {
       this.hoists.push(`export { ${this.defs.map((def) => def.name).join(', ')} };`);
     }
     for (const entry of ssr.setup) {
-      this.setupOp(entry as { op: string } & Record<string, unknown>);
+      this.setupOp(entry as { kind: string } & Record<string, unknown>);
     }
     for (const markName of this.pendingMarks.splice(0)) {
       const entry = this.localComponents.get(markName)!;
@@ -521,7 +521,7 @@ class JsComponentGenerator {
       // shorthand destructure requires the declared name to be the prop name
       if (
         !/^[A-Za-z_$][A-Za-z0-9_$]*$/.test(item.name) ||
-        this.declare(item.b, item.name) !== item.name
+        this.declare(item.binding, item.name) !== item.name
       ) {
         markUngeneratable();
       }
@@ -639,10 +639,10 @@ class JsComponentGenerator {
     return this.names.invokeCtx;
   }
 
-  private setupOp(entry: { op: string } & Record<string, unknown>): void {
-    switch (entry.op) {
+  private setupOp(entry: { kind: string } & Record<string, unknown>): void {
+    switch (entry.kind) {
       case 'signal': {
-        const binding = entry.local as number;
+        const binding = entry.binding as number;
         this.sourceKinds.add(binding);
         const variable = this.declare(binding, entry.name as string | undefined);
         this.imports.add('useSignal');
@@ -653,7 +653,7 @@ class JsComponentGenerator {
         if (entry.deep !== true) {
           markUngeneratable();
         }
-        const binding = entry.local as number;
+        const binding = entry.binding as number;
         this.sourceKinds.add(binding);
         const variable = this.declare(binding, entry.name as string | undefined);
         this.imports.add('useStore');
@@ -679,7 +679,7 @@ class JsComponentGenerator {
         return;
       }
       case 'computed': {
-        const binding = entry.local as number;
+        const binding = entry.binding as number;
         this.sourceKinds.add(binding);
         const variable = this.declare(binding, entry.name as string | undefined);
         const meta = this.segment(entry.segment as string);
@@ -771,20 +771,20 @@ class JsComponentGenerator {
         return;
       }
       case 'use-id': {
-        const variable = this.declare(entry.local as number, entry.name as string | undefined);
+        const variable = this.declare(entry.binding as number, entry.name as string | undefined);
         this.statements.push(
           `const ${variable} = (_id + 'u${(entry.ordinal as number | undefined) ?? 0}');`
         );
         return;
       }
       case 'qrl-const': {
-        const variable = this.declare(entry.local as number, entry.name as string | undefined);
+        const variable = this.declare(entry.binding as number, entry.name as string | undefined);
         const meta = this.segment(entry.segment as string);
         this.statements.push(`const ${variable} = ${this.qrlExpression(meta)};`);
         return;
       }
       case 'server-data': {
-        const variable = this.declare(entry.local as number, entry.name as string | undefined);
+        const variable = this.declare(entry.binding as number, entry.name as string | undefined);
         const callee = this.coreName('useServerData');
         const key = this.irJs(entry.key as ValueIR);
         const fallback = entry.fallback == null ? '' : `, ${this.irJs(entry.fallback as ValueIR)}`;
@@ -792,7 +792,7 @@ class JsComponentGenerator {
         return;
       }
       case 'const': {
-        const binding = entry.local as number;
+        const binding = entry.binding as number;
         const variable = this.declare(binding, entry.name as string | undefined);
         this.statements.push(`const ${variable} = ${this.irJs(entry.init as ValueIR)};`);
         return;
@@ -806,7 +806,7 @@ class JsComponentGenerator {
         return;
       }
       case 'context-read': {
-        const binding = entry.local as number;
+        const binding = entry.binding as number;
         const variable = this.declare(binding, entry.name as string | undefined);
         this.imports.add('useContext');
         this.statements.push(
@@ -868,7 +868,7 @@ class JsComponentGenerator {
     pushStatic: (text: string) => void,
     topLevel = false
   ): void {
-    switch (operation.o) {
+    switch (operation.kind) {
       case SsrOpKind.Static:
         pushStatic(operation.html);
         return;
@@ -1099,7 +1099,7 @@ class JsComponentGenerator {
 
   /** Component call: props literal (signal sources via _props getters), child fn by reference. */
   private componentCall(
-    operation: Extract<PlanSsrOp, { o: SsrOpKind.Component }>,
+    operation: Extract<PlanSsrOp, { kind: SsrOpKind.Component }>,
     parts: string[]
   ): void {
     const target = operation.target;
@@ -1169,14 +1169,14 @@ class JsComponentGenerator {
       }
     };
     for (const prop of operation.props) {
-      if (prop.p === 'static') {
+      if (prop.kind === 'static') {
         const item = prop as { name: string; value: unknown };
         literalRun().push(`${JSON.stringify(item.name)}: ${JSON.stringify(item.value)}`);
-      } else if (prop.p === 'dynamic') {
+      } else if (prop.kind === 'dynamic') {
         const item = prop as { name: string; value: { segment?: string; ir?: ValueIR } };
         const segmentId = item.value.segment;
         const ir = item.value.ir;
-        if (segmentId !== undefined && (ir === undefined || ir.k === 'call')) {
+        if (segmentId !== undefined && (ir === undefined || ir.kind === 'call')) {
           // derived prop: the QRL rides the sources map so resume rebuilds the getter
           const meta = this.segment(segmentId);
           const qrlName = `prop_qrl_${this.nextTemp++}`;
@@ -1196,7 +1196,7 @@ class JsComponentGenerator {
         if (ir === undefined) {
           markUngeneratable();
         }
-        if (ir.k !== 'signal-read' && ir.k !== 'binding-read') {
+        if (ir.kind !== 'signal-read' && ir.kind !== 'binding-read') {
           // arbitrary expressions read live through a plain getter
           literalRun().push(`get ${JSON.stringify(item.name)}() { return ${this.irJs(ir)}; }`);
           continue;
@@ -1204,7 +1204,7 @@ class JsComponentGenerator {
         const binding = (ir as { binding: number }).binding;
         const value = this.local(binding);
         // binding-read passes the local raw — a signal prop keeps its identity
-        if (ir.k === 'signal-read' && this.sourceKinds.has(binding)) {
+        if (ir.kind === 'signal-read' && this.sourceKinds.has(binding)) {
           this.imports.add('readTrackedSourceValue');
           literalRun().push(
             `get ${JSON.stringify(item.name)}() { return readTrackedSourceValue(${value}); }`
@@ -1215,7 +1215,7 @@ class JsComponentGenerator {
           // plain values (row params, consts) close over the local without tracking
           literalRun().push(`get ${JSON.stringify(item.name)}() { return ${value}; }`);
         }
-      } else if (prop.p === 'event') {
+      } else if (prop.kind === 'event') {
         const event = prop as {
           name: string;
           handlers: readonly { value?: { segment?: string } }[];
@@ -1228,14 +1228,16 @@ class JsComponentGenerator {
         literalRun().push(
           `${JSON.stringify(event.name)}: ${this.qrlExpression(this.segment(segmentId))}`
         );
-      } else if (prop.p === 'spread') {
+      } else if (prop.kind === 'spread') {
         const item = prop as { value: { ir?: ValueIR } };
         const ir = item.value.ir;
         if (ir === undefined) {
           markUngeneratable();
         }
         closeRun();
-        runSegments.push(ir.k === 'binding-read' ? this.local(ir.binding) : `(${this.irJs(ir)})`);
+        runSegments.push(
+          ir.kind === 'binding-read' ? this.local(ir.binding) : `(${this.irJs(ir)})`
+        );
       } else {
         markUngeneratable();
       }
@@ -1294,7 +1296,7 @@ class JsComponentGenerator {
 
   /** Direct-array collections expand their row inline: a local fn, no QRL, no fences. */
   private inlineCollection(
-    operation: Extract<PlanSsrOp, { o: SsrOpKind.Collection }>,
+    operation: Extract<PlanSsrOp, { kind: SsrOpKind.Collection }>,
     parts: string[]
   ): void {
     const row = operation.row as unknown as {
@@ -1360,7 +1362,7 @@ class JsComponentGenerator {
 
   /** Content effect: the segment fn renders inside `<!d=N>` fences, re-runnable on resume. */
   private content(
-    operation: Extract<PlanSsrOp, { o: SsrOpKind.Content }>,
+    operation: Extract<PlanSsrOp, { kind: SsrOpKind.Content }>,
     parts: string[],
     pushStatic: (text: string) => void
   ): void {
@@ -1397,10 +1399,10 @@ class JsComponentGenerator {
 
   /** Fully static, id-less, effect-free subtrees are the only fold candidates. */
   private isFoldableStatic(operation: PlanSsrOp): boolean {
-    if (operation.o === SsrOpKind.Static) {
+    if (operation.kind === SsrOpKind.Static) {
       return true;
     }
-    if (operation.o !== SsrOpKind.Element) {
+    if (operation.kind !== SsrOpKind.Element) {
       return false;
     }
     if (
@@ -1412,7 +1414,7 @@ class JsComponentGenerator {
       return false;
     }
     for (const prop of operation.props) {
-      if (prop.p !== 'static' && prop.p !== 'inner-html') {
+      if (prop.kind !== 'static' && prop.kind !== 'inner-html') {
         return false;
       }
     }
@@ -1420,7 +1422,7 @@ class JsComponentGenerator {
   }
 
   private element(
-    operation: Extract<PlanSsrOp, { o: SsrOpKind.Element }>,
+    operation: Extract<PlanSsrOp, { kind: SsrOpKind.Element }>,
     parts: string[],
     pushStatic: (text: string) => void,
     topLevel = false
@@ -1491,7 +1493,7 @@ class JsComponentGenerator {
       innerHtmlExpr = `${step}.innerHTML`;
     } else {
       const hasClassProp = operation.props.some(
-        (prop) => prop.p === 'spread' || (prop as { name?: string }).name === 'class'
+        (prop) => prop.kind === 'spread' || (prop as { name?: string }).name === 'class'
       );
       if ((scope.staticId !== null || scope.runtimeName !== null) && !hasClassProp) {
         this.pushScopeOnlyClass(scope, pushOpen, open);
@@ -1562,7 +1564,7 @@ class JsComponentGenerator {
         this.op(child, parts, pushStatic);
       }
     }
-    if (!operation.void) {
+    if (!operation.voidTag) {
       pushStatic(`</${operation.tag}>`);
     }
   }
@@ -1578,7 +1580,7 @@ class JsComponentGenerator {
     scope: JsStyleScope = { staticId: null, runtimeName: null },
     setInnerHtmlExpr?: (expr: string) => void
   ): boolean {
-    switch (prop.p) {
+    switch (prop.kind) {
       case 'spread': {
         const item = prop as { value: { segment?: string; ir?: ValueIR } };
         if (idVariable === null || setInnerHtmlExpr === undefined) {
@@ -1720,7 +1722,7 @@ class JsComponentGenerator {
         if (segmentId === undefined) {
           // signal attr: segment-less signal/binding read subscribes the attribute directly
           const ir = item.value.ir as ValueIR | undefined;
-          if (ir === undefined || (ir.k !== 'signal-read' && ir.k !== 'binding-read')) {
+          if (ir === undefined || (ir.kind !== 'signal-read' && ir.kind !== 'binding-read')) {
             return false;
           }
           const signal = this.local(ir.binding);
@@ -1836,7 +1838,7 @@ class JsComponentGenerator {
   }
 
   private dynamicText(
-    operation: Extract<PlanSsrOp, { o: SsrOpKind.Dynamic }>,
+    operation: Extract<PlanSsrOp, { kind: SsrOpKind.Dynamic }>,
     parts: string[],
     pushStatic: (text: string) => void
   ): void {
@@ -1876,7 +1878,7 @@ class JsComponentGenerator {
         `renderSsrTextExpression(${targetExpr}, [${captures.join(', ')}], ${this.qrlExpression(meta, false)})`,
         idPrelude
       );
-    } else if (ir !== undefined && ir.k === 'signal-read') {
+    } else if (ir !== undefined && ir.kind === 'signal-read') {
       const signal = this.local((ir as { binding: number }).binding);
       this.imports.add('renderSsrTextNode');
       this.pushStep(step, [signal], `renderSsrTextNode(${targetExpr}, ${signal})`, idPrelude);
@@ -1894,7 +1896,7 @@ class JsComponentGenerator {
 
   /** Target-less dynamic values render inline: plain text escapes, content flows as parts. */
   private targetlessDynamic(
-    operation: Extract<PlanSsrOp, { o: SsrOpKind.Dynamic }>,
+    operation: Extract<PlanSsrOp, { kind: SsrOpKind.Dynamic }>,
     parts: string[]
   ): void {
     const ir = operation.value.ir;
@@ -2025,9 +2027,9 @@ class JsComponentGenerator {
   }
 
   private irJs(ir: ValueIR, scope?: ReadonlyMap<number, string>): string {
-    switch (ir.k) {
+    switch (ir.kind) {
       case 'lit':
-        return JSON.stringify(ir.v);
+        return JSON.stringify(ir.value);
       case 'undef':
         return 'undefined';
       case 'binding-read': {
@@ -2038,7 +2040,7 @@ class JsComponentGenerator {
         return scoped;
       }
       case 'bin':
-        return `(${this.irJs(ir.a, scope)} ${ir.op} ${this.irJs(ir.b, scope)})`;
+        return `(${this.irJs(ir.left, scope)} ${ir.op} ${this.irJs(ir.right, scope)})`;
       case 'template': {
         const chunks = ir.parts.map((part) =>
           typeof part === 'string'
@@ -2056,8 +2058,8 @@ class JsComponentGenerator {
           return this.irJs(argument as ValueIR, scope);
         });
         const method = ir.fn.slice(ir.fn.lastIndexOf('.') + 1);
-        if (ir.recv !== null) {
-          return `${this.irJs(ir.recv, scope)}.${method}(${args.join(', ')})`;
+        if (ir.receiver !== null) {
+          return `${this.irJs(ir.receiver, scope)}.${method}(${args.join(', ')})`;
         }
         const namespace = ir.fn.slice(ir.fn.indexOf(':') + 1, ir.fn.lastIndexOf('.'));
         const globals: Record<string, string> = {

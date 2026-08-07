@@ -1,6 +1,6 @@
 {
   "format": "qwik/ssr-plan",
-  "version": 0,
+  "version": 1,
   "entry": 1,
   "components": [
     {
@@ -22,22 +22,22 @@
         ],
         "ops": [
           {
-            "o": "el",
+            "kind": "element",
             "tag": "button",
             "id": 0,
-            "void": false,
+            "voidTag": false,
             "styleScopedId": null,
             "targetUses": 2,
             "props": [
               {
-                "p": "dynamic",
+                "kind": "dynamic",
                 "name": "id",
                 "value": {
                   "src": "props.id",
                   "ir": {
-                    "k": "member",
+                    "kind": "member",
                     "obj": {
-                      "k": "binding-read",
+                      "kind": "binding-read",
                       "binding": 4
                     },
                     "name": "id"
@@ -47,26 +47,26 @@
                 "compilerString": false
               },
               {
-                "p": "static",
+                "kind": "static",
                 "name": "type",
                 "value": "button"
               },
               {
-                "p": "static",
+                "kind": "static",
                 "name": "stoppropagation:click",
                 "value": true
               },
               {
-                "p": "event",
+                "kind": "event",
                 "name": "q-e:click",
                 "handlers": [
                   {
                     "value": {
                       "src": "props.onClick$",
                       "ir": {
-                        "k": "member",
+                        "kind": "member",
                         "obj": {
-                          "k": "binding-read",
+                          "kind": "binding-read",
                           "binding": 4
                         },
                         "name": "onClick$"
@@ -80,7 +80,7 @@
             "propsEffect": null,
             "children": [
               {
-                "o": "slot",
+                "kind": "slot",
                 "name": "",
                 "idBase": null,
                 "fallback": null
@@ -107,9 +107,9 @@
               "value": {
                 "src": "props.id",
                 "ir": {
-                  "k": "member",
+                  "kind": "member",
                   "obj": {
-                    "k": "binding-read",
+                    "kind": "binding-read",
                     "binding": 4
                   },
                   "name": "id"
@@ -134,9 +134,9 @@
               "value": {
                 "src": "props.onClick$",
                 "ir": {
-                  "k": "member",
+                  "kind": "member",
                   "obj": {
-                    "k": "binding-read",
+                    "kind": "binding-read",
                     "binding": 4
                   },
                   "name": "onClick$"
@@ -168,11 +168,11 @@
       "ssr": {
         "setup": [
           {
-            "op": "signal",
-            "local": 5,
+            "kind": "signal",
+            "binding": 5,
             "init": {
-              "k": "lit",
-              "v": 0
+              "kind": "lit",
+              "value": 0
             },
             "name": "count"
           }
@@ -184,29 +184,29 @@
         ],
         "ops": [
           {
-            "o": "el",
+            "kind": "element",
             "tag": "main",
             "id": null,
-            "void": false,
+            "voidTag": false,
             "styleScopedId": null,
             "targetUses": 0,
             "props": [],
             "propsEffect": null,
             "children": [
               {
-                "o": "component",
+                "kind": "component",
                 "target": {
                   "ref": 0
                 },
                 "returnMode": "maybe-promise",
                 "props": [
                   {
-                    "p": "static",
+                    "kind": "static",
                     "name": "id",
                     "value": "inc"
                   },
                   {
-                    "p": "event",
+                    "kind": "event",
                     "name": "onClick$",
                     "handlers": [
                       {
@@ -230,7 +230,7 @@
                       "setup": [],
                       "ops": [
                         {
-                          "o": "static",
+                          "kind": "static",
                           "html": "Add"
                         }
                       ],
@@ -241,15 +241,15 @@
                 ]
               },
               {
-                "o": "el",
+                "kind": "element",
                 "tag": "span",
                 "id": 0,
-                "void": false,
+                "voidTag": false,
                 "styleScopedId": null,
                 "targetUses": 0,
                 "props": [
                   {
-                    "p": "static",
+                    "kind": "static",
                     "name": "id",
                     "value": "value"
                   }
@@ -257,12 +257,12 @@
                 "propsEffect": null,
                 "children": [
                   {
-                    "o": "dyn",
+                    "kind": "dynamic",
                     "output": "text",
                     "value": {
                       "src": "count.value",
                       "ir": {
-                        "k": "signal-read",
+                        "kind": "signal-read",
                         "binding": 5
                       },
                       "raw": true
@@ -287,11 +287,11 @@
       },
       "setup": [
         {
-          "op": "signal",
-          "local": 5,
+          "kind": "signal",
+          "binding": 5,
           "init": {
-            "k": "lit",
-            "v": 0
+            "kind": "lit",
+            "value": 0
           }
         }
       ],
@@ -354,7 +354,7 @@
                   "value": {
                     "src": "count.value",
                     "ir": {
-                      "k": "signal-read",
+                      "kind": "signal-read",
                       "binding": 5
                     }
                   }

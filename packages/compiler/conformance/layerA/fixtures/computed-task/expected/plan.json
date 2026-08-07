@@ -1,6 +1,6 @@
 {
   "format": "qwik/ssr-plan",
-  "version": 0,
+  "version": 1,
   "entry": 0,
   "components": [
     {
@@ -11,58 +11,58 @@
       "ssr": {
         "setup": [
           {
-            "op": "signal",
-            "local": 4,
+            "kind": "signal",
+            "binding": 4,
             "init": {
-              "k": "lit",
-              "v": 2
+              "kind": "lit",
+              "value": 2
             },
             "name": "count"
           },
           {
-            "op": "signal",
-            "local": 5,
+            "kind": "signal",
+            "binding": 5,
             "init": {
-              "k": "lit",
-              "v": "idle"
+              "kind": "lit",
+              "value": "idle"
             },
             "name": "label"
           },
           {
-            "op": "computed",
-            "local": 6,
+            "kind": "computed",
+            "binding": 6,
             "segment": "segment_0",
             "body": {
-              "k": "bin",
+              "kind": "bin",
               "op": "*",
-              "a": {
-                "k": "signal-read",
+              "left": {
+                "kind": "signal-read",
                 "binding": 4
               },
-              "b": {
-                "k": "lit",
-                "v": 2
+              "right": {
+                "kind": "lit",
+                "value": 2
               }
             },
             "name": "doubled"
           },
           {
-            "op": "task",
+            "kind": "task",
             "segment": "segment_1",
             "body": {
               "steps": [
                 {
                   "s": "if",
                   "test": {
-                    "k": "bin",
+                    "kind": "bin",
                     "op": "===",
-                    "a": {
-                      "k": "signal-read",
+                    "left": {
+                      "kind": "signal-read",
                       "binding": 4
                     },
-                    "b": {
-                      "k": "lit",
-                      "v": 2
+                    "right": {
+                      "kind": "lit",
+                      "value": 2
                     }
                   },
                   "then": [
@@ -70,8 +70,8 @@
                       "s": "set-signal",
                       "binding": 5,
                       "value": {
-                        "k": "lit",
-                        "v": "ready"
+                        "kind": "lit",
+                        "value": "ready"
                       }
                     }
                   ],
@@ -89,20 +89,20 @@
         ],
         "ops": [
           {
-            "o": "el",
+            "kind": "element",
             "tag": "p",
             "id": 0,
-            "void": false,
+            "voidTag": false,
             "styleScopedId": null,
             "targetUses": 1,
             "props": [
               {
-                "p": "dynamic",
+                "kind": "dynamic",
                 "name": "title",
                 "value": {
                   "src": "label.value",
                   "ir": {
-                    "k": "signal-read",
+                    "kind": "signal-read",
                     "binding": 5
                   },
                   "raw": true
@@ -113,22 +113,22 @@
             "propsEffect": null,
             "children": [
               {
-                "o": "el",
+                "kind": "element",
                 "tag": "output",
                 "id": 1,
-                "void": false,
+                "voidTag": false,
                 "styleScopedId": null,
                 "targetUses": 0,
                 "props": [],
                 "propsEffect": null,
                 "children": [
                   {
-                    "o": "dyn",
+                    "kind": "dynamic",
                     "output": "text",
                     "value": {
                       "src": "doubled.value",
                       "ir": {
-                        "k": "signal-read",
+                        "kind": "signal-read",
                         "binding": 6
                       },
                       "raw": true
@@ -153,55 +153,55 @@
       },
       "setup": [
         {
-          "op": "signal",
-          "local": 4,
+          "kind": "signal",
+          "binding": 4,
           "init": {
-            "k": "lit",
-            "v": 2
+            "kind": "lit",
+            "value": 2
           }
         },
         {
-          "op": "signal",
-          "local": 5,
+          "kind": "signal",
+          "binding": 5,
           "init": {
-            "k": "lit",
-            "v": "idle"
+            "kind": "lit",
+            "value": "idle"
           }
         },
         {
-          "op": "computed",
-          "local": 6,
+          "kind": "computed",
+          "binding": 6,
           "segment": "segment_0",
           "body": {
-            "k": "bin",
+            "kind": "bin",
             "op": "*",
-            "a": {
-              "k": "signal-read",
+            "left": {
+              "kind": "signal-read",
               "binding": 4
             },
-            "b": {
-              "k": "lit",
-              "v": 2
+            "right": {
+              "kind": "lit",
+              "value": 2
             }
           }
         },
         {
-          "op": "task",
+          "kind": "task",
           "segment": "segment_1",
           "body": {
             "steps": [
               {
                 "s": "if",
                 "test": {
-                  "k": "bin",
+                  "kind": "bin",
                   "op": "===",
-                  "a": {
-                    "k": "signal-read",
+                  "left": {
+                    "kind": "signal-read",
                     "binding": 4
                   },
-                  "b": {
-                    "k": "lit",
-                    "v": 2
+                  "right": {
+                    "kind": "lit",
+                    "value": 2
                   }
                 },
                 "then": [
@@ -209,8 +209,8 @@
                     "s": "set-signal",
                     "binding": 5,
                     "value": {
-                      "k": "lit",
-                      "v": "ready"
+                      "kind": "lit",
+                      "value": "ready"
                     }
                   }
                 ],
@@ -232,7 +232,7 @@
               "value": {
                 "src": "label.value",
                 "ir": {
-                  "k": "signal-read",
+                  "kind": "signal-read",
                   "binding": 5
                 }
               }
@@ -250,7 +250,7 @@
                   "value": {
                     "src": "doubled.value",
                     "ir": {
-                      "k": "signal-read",
+                      "kind": "signal-read",
                       "binding": 6
                     }
                   }

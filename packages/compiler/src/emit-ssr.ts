@@ -509,7 +509,8 @@ export function emitSsrSegmentRender(
   explicitExtensions = false,
   generatedNames = DEFAULT_GENERATED_NAMES,
   componentReturnMode?: SsrComponentReturnModeResolver,
-  wireBlock?: import('./emit-plan-ssr').WireBlockMatch
+  wireBlock?: import('./emit-plan-ssr').WireBlockMatch,
+  planData: SsrPlanData = EMPTY_PLAN_DATA
 ): {
   hoists: string[];
   statements: string[];
@@ -565,9 +566,9 @@ export function emitSsrSegmentRender(
           access: capture.access,
         })),
       })),
-      [],
-      [],
-      [],
+      planData.defs as never,
+      planData.contexts,
+      planData.pluginFns as never,
       {
         props: generatedNames.props,
         ctx: generatedNames.ctx,
@@ -582,9 +583,9 @@ export function emitSsrSegmentRender(
         binding,
         name: source.slice(segment.paramRanges[index][0], segment.paramRanges[index][1]),
       })),
-      undefined,
-      undefined,
-      undefined,
+      planData.moduleBindingName,
+      planData.bindingName,
+      planData.importLocalName,
       planned.rowRoot ? ` ${QwikAttributes.Row}` : null,
       [
         // innermost first: rows bracket in a row-marker range, projections in a slot marker

@@ -633,7 +633,8 @@ export function transformModule(ctx: CompilerContext): TransformResult {
             explicitExtensions,
             generatedNames,
             componentReturnMode,
-            findSegmentWireBlock(segment.id)
+            findSegmentWireBlock(segment.id),
+            planData
           )
       : (segment, source, imports, segments, inputPath, explicitExtensions, generatedNames) =>
           emitCsrSegmentRender(

@@ -38,18 +38,14 @@ impl IntoSerdes for Row {
 	}
 }
 
+/// A spliced sidecar cannot pull in `rand`, so entropy comes from std's per-process hasher keys.
+fn random(max: usize) -> usize {
+	use std::collections::hash_map::RandomState;
+	use std::hash::{BuildHasher, Hasher};
+	(RandomState::new().build_hasher().finish() as usize) % max
+}
+
 pub fn buildData(count: usize) -> Vec<Row> {
-	let mut seed: u64 = std::time::SystemTime::now()
-		.duration_since(std::time::UNIX_EPOCH)
-		.map(|d| d.subsec_nanos() as u64 ^ (d.as_secs() << 20))
-		.unwrap_or(0x9e37_79b9)
-		| 1;
-	let mut random = |max: usize| -> usize {
-		seed = seed
-			.wrapping_mul(6_364_136_223_846_793_005)
-			.wrapping_add(1_442_695_040_888_963_407);
-		((seed >> 33) as usize) % max
-	};
 	let mut rows = Vec::with_capacity(count);
 	for _ in 0..count {
 		let label = format!(

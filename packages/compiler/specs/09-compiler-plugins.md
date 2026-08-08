@@ -79,6 +79,23 @@ interface ClaimSite {
 - Signal-valued fields stay `Signal<T>` across the boundary — they are reactive cells the
   serializer walks, not plain data.
 
+## Dependencies (decided, unimplemented)
+
+Third-party crates are declared where the target language already declares them, not on the wire.
+The compiler cannot infer them: names are lexically guessable, but versions, features, renamed
+packages, and crate-vs-local-module are not, and a dependency without a version is not a
+dependency.
+
+- **Sidecar = a crate.** `nativeFile` points at a directory with its own `Cargo.toml`, and the
+  generated project takes a path dependency on it. Versions, features, the lockfile, `cargo fmt`,
+  `clippy` and `cargo test` all work the way the ecosystem expects, and the wire carries a crate
+  reference plus a fn path instead of source text.
+- **Inline `nativeCode` is for simple cases**: the target's standard library plus the Qwik runtime,
+  nothing else. Needing a crate is the signal to promote the snippet to a sidecar crate.
+- The prerequisite is a real generated Cargo project. While generated code is `include!`d into one
+  host crate there is nothing to add a path dependency to, and all apps share one manifest — so two
+  apps needing incompatible majors of the same crate is unresolvable, not merely awkward.
+
 ## Coverage validation and diagnostics
 
 At lowering, every call site resolves to exactly one of: a lowerable IR form, a claimed plugin

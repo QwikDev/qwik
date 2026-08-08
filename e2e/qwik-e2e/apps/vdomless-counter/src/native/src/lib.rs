@@ -5,9 +5,7 @@
 
 use rand::Rng;
 
-use qwik::native::{IntoSerdes, Signal};
-use qwik::serdes::SerdesValue;
-use std::rc::Rc;
+use qwik::native::{Serdes, Signal};
 use std::sync::atomic::{AtomicU64, Ordering};
 
 const ADJECTIVES: &[&str] = &[
@@ -26,20 +24,11 @@ const NOUNS: &[&str] = &[
 
 static NEXT_ID: AtomicU64 = AtomicU64::new(1);
 
+#[derive(Serdes)]
 pub struct Row {
 	id: u64,
 	label: Signal<String>,
 	selected: Signal<bool>,
-}
-
-impl IntoSerdes for Row {
-	fn into_serdes(self) -> Rc<SerdesValue> {
-		Rc::new(SerdesValue::Object(vec![
-			("id".to_string(), self.id.into_serdes()),
-			("label".to_string(), self.label.into_serdes()),
-			("selected".to_string(), self.selected.into_serdes()),
-		]))
-	}
 }
 
 pub fn buildData(count: usize) -> Vec<Row> {

@@ -1,22 +1,13 @@
 //! `native$` author surface (specs/09): an implementation is plain Rust, and the generated call
 //! site converts across the boundary. Each test mirrors what `qwik-ssr-gen` emits for a call.
 
-use qwik::native::{arg, IntoSerdes, Signal};
+use qwik::native::{arg, Serdes, Signal};
 use qwik::serdes::SerdesValue;
-use std::rc::Rc;
 
+#[derive(Serdes)]
 pub struct Row {
 	id: u64,
 	label: Signal<String>,
-}
-
-impl IntoSerdes for Row {
-	fn into_serdes(self) -> Rc<SerdesValue> {
-		Rc::new(SerdesValue::Object(vec![
-			("id".to_string(), self.id.into_serdes()),
-			("label".to_string(), self.label.into_serdes()),
-		]))
-	}
 }
 
 // nothing Qwik-shaped: this is what an author writes
@@ -32,7 +23,7 @@ pub fn buildRows(count: usize, prefix: String) -> Vec<Row> {
 
 #[test]
 fn a_generated_call_converts_both_directions() {
-	let result = IntoSerdes::into_serdes(buildRows(
+	let result = Serdes::into_serdes(buildRows(
 		arg(&SerdesValue::Number(2.0), "buildRows", 0),
 		arg(&SerdesValue::String("row-".to_string()), "buildRows", 1),
 	));

@@ -105,6 +105,10 @@ upstream of it changing.
   never a silent fallback to splicing.
 - Package exports are named after the JS export they implement, so a Rust crate implementing
   `buildData` carries `#![allow(non_snake_case)]`.
+- A struct crossing the boundary derives its serialization — `#[derive(Serdes)]` in the Rust
+  reference, with field order becoming object key order. Rust has no reflection, so the field list
+  must be emitted by something; the trait's `diagnostic::on_unimplemented` names the missing derive
+  at the point of use, so nobody has to know about it in advance.
 
 ### Generated project
 

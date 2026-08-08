@@ -20,9 +20,18 @@ pub trait FromSerdes: Sized {
 	fn from_serdes(value: &SerdesValue) -> Result<Self, String>;
 }
 
-pub trait IntoSerdes {
+/// A value that can be written into the resumable state. Derive it rather than writing it:
+/// `#[derive(Serdes)]` emits the field list, which Rust cannot discover on its own.
+#[diagnostic::on_unimplemented(
+	message = "`{Self}` is handed to Qwik but cannot be written into the resumable state",
+	label = "add #[derive(Serdes)] to `{Self}`",
+	note = "every value crossing a native$ boundary is serialized so the browser can resume it"
+)]
+pub trait Serdes {
 	fn into_serdes(self) -> Rc<SerdesValue>;
 }
+
+pub use qwik_derive::Serdes;
 
 /// Converts one generated call argument to the parameter type the implementation declares. A
 /// mismatch is a codegen or authoring bug, never user input, so it panics naming the call.
@@ -79,7 +88,7 @@ impl FromSerdes for String {
 
 macro_rules! into_serdes_number {
 	($($ty:ty),*) => {
-		$(impl IntoSerdes for $ty {
+		$(impl Serdes for $ty {
 			fn into_serdes(self) -> Rc<SerdesValue> {
 				Rc::new(SerdesValue::Number(self as f64))
 			}
@@ -88,27 +97,27 @@ macro_rules! into_serdes_number {
 }
 into_serdes_number!(f64, u64, i64, usize);
 
-impl IntoSerdes for bool {
+impl Serdes for bool {
 	fn into_serdes(self) -> Rc<SerdesValue> {
 		Rc::new(SerdesValue::Bool(self))
 	}
 }
 
-impl IntoSerdes for String {
+impl Serdes for String {
 	fn into_serdes(self) -> Rc<SerdesValue> {
 		Rc::new(SerdesValue::String(self))
 	}
 }
 
-impl<T: IntoSerdes> IntoSerdes for Vec<T> {
+impl<T: Serdes> Serdes for Vec<T> {
 	fn into_serdes(self) -> Rc<SerdesValue> {
 		Rc::new(SerdesValue::Array(
-			self.into_iter().map(IntoSerdes::into_serdes).collect(),
+			self.into_iter().map(Serdes::into_serdes).collect(),
 		))
 	}
 }
 
-impl<T: IntoSerdes> IntoSerdes for Option<T> {
+impl<T: Serdes> Serdes for Option<T> {
 	fn into_serdes(self) -> Rc<SerdesValue> {
 		match self {
 			Some(value) => value.into_serdes(),
@@ -117,7 +126,7 @@ impl<T: IntoSerdes> IntoSerdes for Option<T> {
 	}
 }
 
-impl<T: IntoSerdes> IntoSerdes for Signal<T> {
+impl<T: Serdes> Serdes for Signal<T> {
 	fn into_serdes(self) -> Rc<SerdesValue> {
 		Rc::new(SerdesValue::Signal(RefCell::new(SignalState {
 			value: self.0.into_serdes(),
@@ -127,7 +136,7 @@ impl<T: IntoSerdes> IntoSerdes for Signal<T> {
 }
 
 /// Escape hatch for shapes the traits do not cover yet.
-impl IntoSerdes for Rc<SerdesValue> {
+impl Serdes for Rc<SerdesValue> {
 	fn into_serdes(self) -> Rc<SerdesValue> {
 		self
 	}

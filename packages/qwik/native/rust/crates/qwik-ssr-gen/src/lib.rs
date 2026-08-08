@@ -2599,7 +2599,7 @@ impl ComponentGenerator<'_> {
 			.unwrap();
 		}
 		Ok(format!(
-			"qwik::native::IntoSerdes::into_serdes({native_name}::{export_name}({args}))"
+			"qwik::native::Serdes::into_serdes({native_name}::{export_name}({args}))"
 		))
 	}
 

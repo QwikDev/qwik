@@ -57,20 +57,20 @@ describe('layerA js-generator parity', () => {
   for (const name of READY_FIXTURES) {
     test(name, async () => {
       // renderFixture writes the segment chunk modules the generated module imports
-      const { plan } = await renderFixture(name);
+      const { plan, generatedName } = await renderFixture(name);
       const code = emitJsModule(plan);
       expect(code, `emit-js could not generate ${name}`).not.toBeNull();
 
       // the generated module STANDS IN as input.tsx in its own tree, so chunks that import
       // "./input" (defs, captures) resolve to generated exports — never the legacy module
       const entryName = plan.components[plan.entry].name;
-      const standInDir = join(layerADir, '.generated-js', name);
+      const version = createHash('sha256').update(code!).digest('hex').slice(0, 12);
+      const standInDir = join(layerADir, '.generated-js', `${name}-${version}`);
       rmSync(standInDir, { recursive: true, force: true });
-      cpSync(join(layerADir, '.generated', name), standInDir, { recursive: true });
+      cpSync(join(layerADir, '.generated', generatedName), standInDir, { recursive: true });
       const file = join(standInDir, 'src', 'input.tsx');
       writeFileSync(file, code!);
-      const version = createHash('sha256').update(code!).digest('hex').slice(0, 12);
-      const module = await import(`./.generated-js/${name}/src/input.tsx?v=${version}`);
+      const module = await import(`./.generated-js/${name}-${version}/src/input.tsx`);
       const root = module[entryName] as SsrRenderRoot;
       expect(root, `generated module exports ${entryName}`).toBeDefined();
 

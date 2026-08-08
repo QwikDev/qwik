@@ -93,8 +93,8 @@ import {
   createSsrNodeId,
   createSsrElementRecord,
   createSsrElementTextTarget,
-  renderSsrTextExpression,
   escapeHTML,
+  renderSsrTextExpression,
   maybeThen,
 } from '@qwik.dev/core';
 import { component_text_segment_2_1fh117dstcoge } from './component.tsx_component_text_segment_2_1fh117dstcoge';
@@ -106,16 +106,16 @@ const q_component_text_segment_2_1fh117dstcoge = /*#__PURE__*/ _qrlWithChunk(
 q_component_text_segment_2_1fh117dstcoge.s(component_text_segment_2_1fh117dstcoge);
 
 export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __rowId, row) => {
-  const id0 = ctx.nextId();
+  const id_0 = ctx.nextId();
   ctx.addRoot(row);
-  const text1 = renderSsrTextExpression(
-    createSsrElementTextTarget(id0),
+  const text_0 = renderSsrTextExpression(
+    createSsrElementTextTarget(id_0),
     [row],
     q_component_text_segment_2_1fh117dstcoge
   );
-  return maybeThen(text1, (text1) => [
-    createSsrElementRecord('li', '<li q:id="', createSsrNodeId(id0), '" q:row', '>'),
-    escapeHTML(text1),
+  return maybeThen(text_0, (text_0) => [
+    createSsrElementRecord('li', '<li q:id="', createSsrNodeId(id_0), '"', ' q:row', '>'),
+    escapeHTML(text_0),
     '</li>',
   ]);
 };

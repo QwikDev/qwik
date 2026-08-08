@@ -26,6 +26,8 @@ export function listFixtures(): string[] {
 
 export interface FixtureRender {
   name: string;
+  /** Versioned `.generated` subdir (name-hash) holding this render's emitted modules. */
+  generatedName: string;
   html: string;
   /** Out-of-order stream chunks — present only for fixtures with `"stream": true`. */
   chunks?: string[];
@@ -118,7 +120,13 @@ export async function renderFixture(name: string): Promise<FixtureRender> {
     throw new Error(`fixture "${name}" produced diagnostics:\n${messages}`);
   }
 
-  const outDir = join(generatedDir, name);
+  // versioned by emitted code: compiler changes mint fresh module URLs for every chunk,
+  // since only the entry gets a cache-busting query and chunk imports are bare specifiers
+  const version = createHash('sha256')
+    .update(result.modules.map((module) => module.code).join('\0'))
+    .digest('hex')
+    .slice(0, 12);
+  const outDir = join(generatedDir, `${name}-${version}`);
   let hasEntry = false;
   for (const module of result.modules) {
     const file = join(outDir, module.path);
@@ -131,12 +139,7 @@ export async function renderFixture(name: string): Promise<FixtureRender> {
     throw new Error(`fixture "${name}" emitted no entry module`);
   }
 
-  // relative specifier so vite transforms the generated .tsx; query busts the module cache
-  const version = createHash('sha256')
-    .update(input.map((file) => file.code).join('\0'))
-    .digest('hex')
-    .slice(0, 12);
-  const entry = await import(`./.generated/${name}/src/input.tsx?v=${version}`);
+  const entry = await import(`./.generated/${name}-${version}/src/input.tsx`);
   const root = entry.App as SsrRenderRoot | undefined;
   if (root === undefined) {
     throw new Error(`fixture "${name}" entry module does not export App`);
@@ -157,5 +160,11 @@ export async function renderFixture(name: string): Promise<FixtureRender> {
   }
 
   const { html, chunks } = await renderFixtureRoot(root, request);
-  return { name, html, ...(chunks !== undefined ? { chunks } : {}), plan };
+  return {
+    name,
+    generatedName: `${name}-${version}`,
+    html,
+    ...(chunks !== undefined ? { chunks } : {}),
+    plan,
+  };
 }

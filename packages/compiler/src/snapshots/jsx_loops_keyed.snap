@@ -77,11 +77,11 @@ import {
   createSsrElementRecord,
   renderSsrAttrExpression,
   escapeHTML,
+  getActiveInvokeContextOrNull,
+  invoke,
   createSsrRecord,
   createSsrRangeTextTarget,
   renderSsrTextExpression,
-  getActiveInvokeContextOrNull,
-  invoke,
   maybeThen,
 } from '@qwik.dev/core';
 import { component_props_segment_2_208o0eee4yc6n } from './component.tsx_component_props_segment_2_208o0eee4yc6n';
@@ -132,87 +132,90 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (
   row,
   index
 ) => {
-  const id0 = ctx.nextId();
-  let id2;
-  let target3;
-  const invokeCtx8 = getActiveInvokeContextOrNull();
+  const id_0 = ctx.nextId();
   ctx.addRoot(row);
-  const props1 = renderSsrProps(
-    createSsrElementTarget(id0),
+  const props_0 = renderSsrProps(
+    createSsrElementTarget(id_0),
     [row],
     q_component_props_segment_2_208o0eee4yc6n,
     ctx.eventAttr
   );
-  const attr4 = () =>
-    invoke(invokeCtx8, () => {
-      id2 ??= ctx.nextId();
+  let id_1;
+  const invokeCtx = getActiveInvokeContextOrNull();
+  const attr_1 = () =>
+    invoke(invokeCtx, () => {
+      id_1 ??= ctx.nextId();
       ctx.addRoot(index);
       return renderSsrAttrExpression(
-        (target3 ??= createSsrElementTarget(id2)),
+        createSsrElementTarget(id_1),
         'data-index',
         [index],
         q_component_data_index_segment_3_156l37xe00ta5
       );
     });
-  const attr5 = () =>
-    invoke(invokeCtx8, () => {
-      id2 ??= ctx.nextId();
+  const attr_2 = () =>
+    invoke(invokeCtx, () => {
+      id_1 ??= ctx.nextId();
+      ctx.addRoot(row);
       return renderSsrAttrExpression(
-        (target3 ??= createSsrElementTarget(id2)),
+        createSsrElementTarget(id_1),
         'class',
         [row],
         q_component_className_segment_4_kvlgj8us3944
       );
     });
-  const text6 = () =>
-    invoke(invokeCtx8, () => {
-      id2 ??= ctx.nextId();
+  const text_3 = () =>
+    invoke(invokeCtx, () => {
+      id_1 ??= ctx.nextId();
+      ctx.addRoot(row);
       return renderSsrTextExpression(
-        createSsrRangeTextTarget(id2, 0),
+        createSsrRangeTextTarget(id_1, 0),
         [row],
         q_component_text_segment_5_1fh12dh4juuhz
       );
     });
-  const text7 = () =>
-    invoke(invokeCtx8, () => {
-      id2 ??= ctx.nextId();
+  const text_4 = () =>
+    invoke(invokeCtx, () => {
+      id_1 ??= ctx.nextId();
+      ctx.addRoot(index);
       return renderSsrTextExpression(
-        createSsrRangeTextTarget(id2, 1),
+        createSsrRangeTextTarget(id_1, 1),
         [index],
         q_component_text_segment_6_1fh12ri8gowii
       );
     });
-  return maybeThen(props1, (props1) => {
-    props1.ref !== undefined && ctx.setRef(props1.ref, id0);
-    return maybeThen(attr4(), (attr4) =>
-      maybeThen(attr5(), (attr5) =>
-        maybeThen(text6(), (text6) =>
-          maybeThen(text7(), (text7) => [
+  return maybeThen(props_0, (props_0) => {
+    props_0.ref !== undefined && ctx.setRef(props_0.ref, id_0);
+    return maybeThen(attr_1(), (attr_1) =>
+      maybeThen(attr_2(), (attr_2) =>
+        maybeThen(text_3(), (text_3) =>
+          maybeThen(text_4(), (text_4) => [
             createSsrElementRecord(
               'li',
               '<li q:id="',
-              createSsrNodeId(id0),
-              '" q:row',
-              ...props1.attrs,
+              createSsrNodeId(id_0),
+              '"',
+              ...props_0.attrs,
+              ' q:row',
               '>'
             ),
-            props1.innerHTML ?? [
+            props_0.innerHTML ?? [
               createSsrRecord(
                 '<span q:id="',
-                createSsrNodeId(id2),
+                createSsrNodeId(id_1),
                 '"',
-                attr4 === null
+                attr_1 === null
                   ? ''
-                  : ' data-index' + (attr4 === '' ? '' : '="' + escapeHTML(attr4) + '"'),
-                attr5 === null
+                  : ' data-index' + (attr_1 === '' ? '' : '="' + escapeHTML(attr_1) + '"'),
+                attr_2 === null
                   ? ''
-                  : ' class' + (attr5 === '' ? '' : '="' + escapeHTML(attr5) + '"'),
+                  : ' class' + (attr_2 === '' ? '' : '="' + escapeHTML(attr_2) + '"'),
                 '>'
               ),
               '<!t>',
-              escapeHTML(text6),
+              escapeHTML(text_3),
               '<!/t>:<!t>',
-              escapeHTML(text7),
+              escapeHTML(text_4),
               '<!/t></span>',
               createSsrRecord(
                 '<button',

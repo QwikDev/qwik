@@ -166,7 +166,8 @@ export function emitJsSegmentBlock(
   seeds: readonly { readonly binding: number; readonly name: string }[],
   moduleBindingName?: (binding: number) => string | null,
   sourceBindingName?: (binding: number) => string | null,
-  importLocalName?: (module: string, exportName: string) => string | null
+  importLocalName?: (module: string, exportName: string) => string | null,
+  rootAttribute: string | null = null
 ): {
   imports: string[];
   chunkImports: string[];
@@ -203,6 +204,7 @@ export function emitJsSegmentBlock(
     for (const seed of seeds) {
       generator.declare(seed.binding, seed.name);
     }
+    generator.rootAttribute = rootAttribute;
     const pieces = generator.generateProduction('', block, null, false);
     return {
       imports: [...shared.imports, ...pieces.imports],
@@ -343,6 +345,8 @@ class JsComponentGenerator {
   private runtimeScopeName: string | null = null;
   /** Only the first element of a structured render keeps the tagged element record. */
   private didEmitRoot = false;
+  /** Chunk-only: attribute text appended to the root element's open record (` q:row`). */
+  rootAttribute: string | null = null;
   /** Bindings declared as reactive sources (signal/store/computed) — prop getters track them. */
   private sourceKinds = new Set<number>();
   /** Use-id locals — reads of these are compile-time-proven stable strings. */
@@ -1783,6 +1787,7 @@ class JsComponentGenerator {
     const anchorsPendingAttrs = this.pendingAttrAnchor;
     this.pendingAttrAnchor = false;
     const isRootElement = !this.didEmitRoot && !this.staticRoot;
+    const isStaticRoot = !this.didEmitRoot && this.staticRoot;
     this.didEmitRoot = true;
     // legacy part boundaries are chunk boundaries in streaming: only child subtrees fold,
     // unless the wire proves the whole render static
@@ -1848,6 +1853,13 @@ class JsComponentGenerator {
       if (!handled) {
         markUngeneratable(prop);
       }
+    }
+    if (isRootElement && this.rootAttribute !== null) {
+      // row roots carry their marker attribute after every attr part, before the bracket
+      open.push(JSON.stringify(this.rootAttribute));
+    } else if (isStaticRoot && this.rootAttribute !== null) {
+      // fully static rows keep the marker inside the folded open tag
+      pushOpen(this.rootAttribute);
     }
     if (isRootElement || anchorsPendingAttrs) {
       // injectable element records keep the closing bracket as its own part

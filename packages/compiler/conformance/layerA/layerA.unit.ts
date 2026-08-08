@@ -43,11 +43,11 @@ describe('layerA reference interpreter parity', () => {
   for (const name of listFixtures()) {
     test(name, async () => {
       // renderFixture also writes the generated segment modules the interpreter resolves
-      const { plan } = await renderFixture(name);
+      const { plan, generatedName } = await renderFixture(name);
       const request = readFixtureRequest(name);
       const root = await buildInterpretedRoot(
         plan,
-        (chunkFile) => import(`./.generated/${name}/src/${chunkFile}`)
+        (chunkFile) => import(`./.generated/${generatedName}/src/${chunkFile}`)
       );
       const { html, chunks } = await renderFixtureRoot(root as never, request);
       expect(html + '\n').toBe(

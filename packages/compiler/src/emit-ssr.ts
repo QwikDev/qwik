@@ -526,10 +526,11 @@ export function emitSsrSegmentRender(
   if (
     (segment.kind === 'branchRender' ||
       segment.kind === 'slotRender' ||
-      segment.kind === 'suspenseRender') &&
+      segment.kind === 'suspenseRender' ||
+      segment.kind === 'forRender' ||
+      segment.kind === 'collectionRender') &&
     wireBlock?.ops !== undefined &&
     wireBlock.ssr.needsRootRange !== true &&
-    !planned.rowRoot &&
     !planned.rowMarker &&
     !planned.slotMarker
   ) {
@@ -567,7 +568,18 @@ export function emitSsrSegmentRender(
         ctx: generatedNames.ctx,
         invokeCtx: generatedNames.invokeCtx,
       },
-      segment.captures.map((capture) => ({ binding: capture.bindingId, name: capture.name }))
+      [
+        ...segment.captures.map((capture) => ({ binding: capture.bindingId, name: capture.name })),
+        // row params bind by their source names, matching the emitted head
+        ...(planned.parameterBindingIds ?? []).map((binding, index) => ({
+          binding,
+          name: source.slice(segment.paramRanges[index][0], segment.paramRanges[index][1]),
+        })),
+      ],
+      undefined,
+      undefined,
+      undefined,
+      planned.rowRoot ? ` ${QwikAttributes.Row}` : null
     );
     if (generated !== null) {
       for (const name of generated.imports) {

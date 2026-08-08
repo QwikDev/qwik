@@ -2,6 +2,7 @@ import { component$, sync$ } from '@qwik.dev/core';
 import { useSignal } from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
 import { csrRender, ssrRender, testRenderer } from '../test-utils';
+import { syncHandler } from './sync-handler';
 
 const debug = false;
 
@@ -60,6 +61,26 @@ describe.runIf(testRenderer.render === ssrRender)('ssrRender: qwikloader', () =>
     await qwikLoader?.dispatch(button, 'click');
 
     expect(button.getAttribute('data-sync')).toBe('ran');
+
+    cleanup();
+  });
+
+  it('defines a sync handler imported from another module', async () => {
+    // the compiler cannot see the source at the use site: the container defines it instead
+    const ImportedSync = component$(() => {
+      return (
+        <button id="target" onClick$={syncHandler}>
+          Click
+        </button>
+      );
+    });
+
+    const { container, cleanup, qwikLoader } = await ssrRender(ImportedSync, { debug });
+    const button = container.querySelector('button')!;
+
+    await qwikLoader?.dispatch(button, 'click');
+
+    expect(button.getAttribute('data-sync')).toBe('imported');
 
     cleanup();
   });

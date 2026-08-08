@@ -63,7 +63,17 @@ export function qrlToString(
     chunk = '';
     // the compiler emits the function into the container's table under this key
     const syncKey = (qrl as { $syncKey$?: string }).$syncKey$;
-    symbol = syncKey ?? String(serializationContext.$addSyncFn$(null, 0, qrl.resolved as Function));
+    const fn = qrl.resolved as Function;
+    if (syncKey === undefined) {
+      symbol = String(serializationContext.$addSyncFn$(null, 0, fn));
+    } else {
+      // the container defines it when the compiler could not reach the use site
+      serializationContext.$requireSyncFn$(
+        syncKey,
+        ((fn as { serialized?: string }).serialized ?? fn.toString()) as string
+      );
+      symbol = syncKey;
+    }
   }
 
   const captures = qrl.getCaptured();

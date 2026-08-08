@@ -341,6 +341,7 @@ export const renderToStreamCompiled = async <Props = undefined>(
           return '';
         }
         emittedSyncFns.add(key);
+        serializationCtx.$pendingSyncFns$.delete(key);
         return scripts.emitSyncFn(key, source, instanceHash);
       },
       deferSuspense(rangeId, contentQrl, fallbackQrl, delay) {
@@ -416,6 +417,25 @@ export const renderToStreamCompiled = async <Props = undefined>(
       const patches = takePatches(blockedBy);
       return patches === null ? undefined : writer.finish(scripts.emitBackpatch(patches));
     };
+    /**
+     * Cross-module `sync$` resolves through a chunk, so the compiler cannot place its definition;
+     * the container emits it ahead of the batch whose rendering discovered it.
+     */
+    const flush = (output: SsrOutput): ValueOrPromise<void> => {
+      const pending = serializationCtx.$pendingSyncFns$;
+      if (pending.size === 0) {
+        return writer.finish(output);
+      }
+      const defs: string[] = [];
+      for (const [key, source] of pending) {
+        if (!emittedSyncFns.has(key)) {
+          emittedSyncFns.add(key);
+          defs.push(scripts.emitSyncFn(key, source, instanceHash));
+        }
+      }
+      pending.clear();
+      return writer.finish(defs.length === 0 ? output : [defs, output]);
+    };
     const waitForWork = () => new Promise<void>((resolve) => (wake = resolve));
     const throwIfFailed = () => {
       throwDeferredError(hasDeferredError, deferredError);
@@ -444,7 +464,9 @@ export const renderToStreamCompiled = async <Props = undefined>(
       const pending = scheduler.settle();
       return isPromise(pending) ? settlePending(pending) : writePatches(null);
     };
-    await writer.finish([containerOpen, styledOutput]);
+    // the container opens first so any table entry lands inside it, before the element
+    await writer.finish(containerOpen);
+    await flush(styledOutput);
     throwIfFailed();
 
     if (hasDeferred) {
@@ -479,7 +501,7 @@ export const renderToStreamCompiled = async <Props = undefined>(
     } else {
       shellTail.push(containerClose);
     }
-    await writer.finish(shellTail);
+    await flush(shellTail);
     throwIfFailed();
 
     if (deferred !== undefined) {
@@ -536,7 +558,7 @@ export const renderToStreamCompiled = async <Props = undefined>(
         if (packetPatches !== null) {
           packet.push(scripts.emitBackpatch(packetPatches));
         }
-        await writer.finish(packet);
+        await flush(packet);
         blockedLanes!.delete(record.lane.id);
         throwIfFailed();
         emitted.add(record.id);
@@ -556,7 +578,7 @@ export const renderToStreamCompiled = async <Props = undefined>(
         }
       }
       await settlePatches();
-      await writer.finish(containerClose);
+      await flush(containerClose);
     }
 
     return {

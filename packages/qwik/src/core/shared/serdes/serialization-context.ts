@@ -92,6 +92,12 @@ export interface SerializationContext {
   $writer$: SerdesWriter;
   $setWriter$(writer: SerdesWriter): void;
   $syncFns$: string[];
+  /**
+   * Keyed sync handlers whose definition the compiler could not place — cross-module `sync$`
+   * resolves through a chunk, so the container emits the table entry instead.
+   */
+  $pendingSyncFns$: Map<string, string>;
+  $requireSyncFn$(key: string, source: string): void;
 
   $eventQrls$: Set<QRL>;
   $eventNames$: Set<string>;
@@ -105,6 +111,7 @@ export interface SerializationContext {
 class SerializationContextImpl implements SerializationContext {
   private $seenObjsMap$ = new Map<unknown, SeenRef>();
   private $syncFnMap$ = new Map<string, number>();
+  public $pendingSyncFns$ = new Map<string, string>();
   private $syncFnOffset$ = 0;
   public $syncFns$: string[] = [];
   public $roots$: unknown[] = [];
@@ -271,6 +278,10 @@ class SerializationContextImpl implements SerializationContext {
   $hasRootId$(obj: any) {
     const id = this.$seenObjsMap$.get(obj);
     return id && (id.$parent$ ? undefined : id.$index$);
+  }
+
+  $requireSyncFn$(key: string, source: string): void {
+    this.$pendingSyncFns$.set(key, source);
   }
 
   $addSyncFn$(funcStr: string | null, argCount: number, fn: Function): number {

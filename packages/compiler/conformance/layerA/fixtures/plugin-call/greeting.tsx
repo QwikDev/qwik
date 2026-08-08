@@ -1,8 +1,8 @@
-import { native$, nativeFile } from '@qwik.dev/core';
+import { native$, nativeFrom } from '@qwik.dev/core';
 
 export const makeGreeting = native$(
   (name: string): string => {
     return `hello ${name}`;
   },
-  { rust: nativeFile('./greeting.rs') }
+  { rust: nativeFrom('./greeting.rs') }
 );

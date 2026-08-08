@@ -373,11 +373,11 @@ describe('native$ marker', () => {
         {
           path: 'src/math.ts',
           code: [
-            `import { native$, nativeCode, nativeFile } from '@qwik.dev/core';`,
+            `import { native$, nativeCode, nativeFrom } from '@qwik.dev/core';`,
             ``,
             'export const double = native$((value: number) => value * 2, {',
             '  rust: nativeCode`pub fn double(args: &[Rc<SerdesValue>]) -> Rc<SerdesValue> { todo!() }`,',
-            `  go: nativeFile('./double.go'),`,
+            `  go: nativeFrom('./double.go'),`,
             '});',
           ].join('\n'),
         },
@@ -407,7 +407,7 @@ describe('native$ marker', () => {
         // the key names the language: any engine can be addressed
         targets: {
           rust: { source: expect.stringContaining('pub fn double') },
-          go: { file: './double.go' },
+          go: { path: './double.go' },
         },
       },
     ]);

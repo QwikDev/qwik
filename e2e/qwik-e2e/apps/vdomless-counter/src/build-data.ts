@@ -1,4 +1,4 @@
-import { native$, nativeFile, useSignal } from '@qwik.dev/core';
+import { native$, nativeFrom, useSignal } from '@qwik.dev/core';
 
 const adjectives = ["pretty", "large", "big", "small", "tall", "short", "long", "handsome", "plain", "quaint", "clean", "elegant", "easy", "angry", "crazy", "helpful", "mushy", "odd", "unsightly", "adorable", "important", "inexpensive", "cheap", "expensive", "fancy"]; // prettier-ignore
 const colors = ["red", "yellow", "blue", "green", "pink", "brown", "purple", "brown", "white", "black", "orange"]; // prettier-ignore
@@ -31,5 +31,5 @@ export const buildData = native$(
     }
     return data;
   },
-  { rust: nativeFile('./build-data.rs') }
+  { rust: nativeFrom('./native') }
 );

@@ -5,7 +5,8 @@ members = [
     "packages/optimizer/wasm",
     "packages/optimizer/core",
 ]
-exclude = ["packages/optimizer/wasm"]
+# e2e apps own their native$ crates and the generated project; neither is ours to build
+exclude = ["packages/optimizer/wasm", "e2e/qwik-e2e"]
 resolver = "2"
 
 [profile.release]

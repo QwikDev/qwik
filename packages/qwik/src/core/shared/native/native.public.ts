@@ -11,21 +11,21 @@
  * ```ts
  * export const double = native$((value: number) => value * 2, {
  *   rust: nativeCode`pub fn double(args: &[Rc<SerdesValue>]) -> Rc<SerdesValue> { … }`,
- *   go: nativeFile('./double.go'),
+ *   go: nativeFrom('./double.go'),
  * });
  * ```
  */
 
 /**
- * A target implementation, authored inline with `nativeCode` or as a sidecar via `nativeFile`.
+ * A target implementation, authored inline with `nativeCode` or on disk via `nativeFrom`.
  *
  * @public
  */
 export interface NativeSource {
   /** Inline source text. */
   readonly source?: string;
-  /** Path to a sidecar file, relative to the module declaring it. */
-  readonly file?: string;
+  /** Path to a source file or a package directory, relative to the module declaring it. */
+  readonly path?: string;
 }
 
 /**
@@ -49,11 +49,12 @@ export const nativeCode = (source: TemplateStringsArray, ...values: unknown[]): 
 };
 
 /**
- * Target source kept in a sidecar file next to the module.
+ * Target source kept on disk beside the module: a source file, or a directory holding a package for
+ * that language (a `Cargo.toml` crate for Rust). Only a package may pull in dependencies.
  *
  * @public
  */
-export const nativeFile = (file: string): NativeSource => ({ file });
+export const nativeFrom = (path: string): NativeSource => ({ path });
 
 /**
  * Declares native implementations for `impl`. Returns the JS implementation unchanged, so the

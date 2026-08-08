@@ -46,8 +46,8 @@ export interface PluginFnPlan {
   readonly exportName: string;
   /** Legacy claims only: the generated wrapper's fn name. native$ needs none. */
   readonly nativeName?: string;
-  /** Inline `source`, or a `file` the native build reads relative to the declaring module. */
-  readonly targets: Record<string, { source?: string; file?: string }>;
+  /** Inline `source`, or a `path` the build resolves to inline source or a `package` directory. */
+  readonly targets: Record<string, { source?: string; path?: string; package?: string }>;
 }
 
 /** Native$-declared implementations, keyed by fnId — registered per transform run. */

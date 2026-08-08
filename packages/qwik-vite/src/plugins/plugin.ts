@@ -1259,14 +1259,20 @@ export function createQwikPlugin(
   };
 
   const getOptions = () => opts;
-  // native$ sidecars resolve here: the compiler is a pure transform with no filesystem
-  const ssrPlanCollector = createSsrPlanCollector((modulePath, file) => {
-    if (maybeFs == null || optimizer === null) {
-      return null;
+  // native$ targets resolve here: the compiler is a pure transform with no filesystem
+  const ssrPlanCollector = createSsrPlanCollector((modulePath, target) => {
+    const path = getOptimizer().sys.path;
+    // plan module paths are srcDir-relative, or rootDir-relative when there is no srcDir
+    const base = opts.srcDir ?? opts.rootDir;
+    const resolved = path.resolve(base, path.dirname(modulePath), target);
+    if (maybeFs == null) {
+      throw new Error(`cannot read the native$ target ${resolved}: no filesystem available`);
     }
-    const path = optimizer.sys.path;
-    // a missing sidecar is a build error: let readFileSync name the path it looked for
-    return maybeFs.readFileSync(path.resolve(opts.srcDir, path.dirname(modulePath), file), 'utf-8');
+    // a directory is that language's package; a file is source to splice
+    if (maybeFs.statSync(resolved).isDirectory()) {
+      return { package: resolved };
+    }
+    return { source: maybeFs.readFileSync(resolved, 'utf-8') };
   });
   const getSsrPlanCollector = () => ssrPlanCollector;
 

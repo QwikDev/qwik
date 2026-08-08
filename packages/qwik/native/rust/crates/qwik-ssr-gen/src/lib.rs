@@ -182,6 +182,10 @@ pub fn generate_plugin_fns(plan: &Json, target: &str) -> Result<String, String> 
 	let mut output = String::new();
 	for entry in plugin_fns {
 		let fn_id = entry["fnId"].as_str().ok_or("plugin fn has no fnId")?;
+		// a package is a crate dependency of the app: nothing to splice, calls go straight to it
+		if entry["targets"][target]["crate"].is_string() {
+			continue;
+		}
 		let native_name = plugin_module_name(entry, fn_id);
 		let export_name = entry["exportName"]
 			.as_str()
@@ -2569,7 +2573,11 @@ impl ComponentGenerator<'_> {
 					.find(|entry| entry["fnId"].as_str() == Some(fn_id))
 			})
 			.ok_or(format!("plugin fn {fn_id:?} missing from plan pluginFns"))?;
-		let native_name = plugin_module_name(entry, fn_id);
+		// a package target is a crate the app depends on; a source target is a spliced module
+		let native_name = match entry["targets"]["rust"]["crate"].as_str() {
+			Some(crate_name) => crate_name.to_string(),
+			None => plugin_module_name(entry, fn_id),
+		};
 		let export_name = entry["exportName"]
 			.as_str()
 			.ok_or("plugin fn has no exportName")?

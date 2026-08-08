@@ -201,11 +201,11 @@ export const native$: <TYPE extends Function>(impl: TYPE, targets: NativeTargets
 export const nativeCode: (source: TemplateStringsArray, ...values: unknown[]) => NativeSource;
 
 // @public
-export const nativeFile: (file: string) => NativeSource;
+export const nativeFrom: (path: string) => NativeSource;
 
 // @public
 export interface NativeSource {
-    readonly file?: string;
+    readonly path?: string;
     readonly source?: string;
 }
 

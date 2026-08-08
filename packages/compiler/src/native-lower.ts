@@ -14,7 +14,7 @@ export interface NativeMarker {
   readonly range: SourceRange;
   readonly implementationRange: SourceRange;
   readonly exportName: string;
-  readonly targets: Record<string, { readonly source?: string; readonly file?: string }>;
+  readonly targets: Record<string, { readonly source?: string; readonly path?: string }>;
 }
 
 export interface NativeCollection {
@@ -24,7 +24,7 @@ export interface NativeCollection {
 
 const NATIVE_MARKER = 'native$';
 const SOURCE_TAG = 'nativeCode';
-const FILE_HELPER = 'nativeFile';
+const PATH_HELPER = 'nativeFrom';
 
 function isCoreImport(binding: { import?: unknown } | undefined, name: string): boolean {
   const imported = binding?.import as { source?: string; importedName?: string } | null | undefined;
@@ -94,7 +94,7 @@ function readTargets(
     });
     return null;
   }
-  const targets: Record<string, { source?: string; file?: string }> = {};
+  const targets: Record<string, { source?: string; path?: string }> = {};
   for (const property of (options as { properties: unknown[] }).properties) {
     const entry = property as { type: string; key?: unknown; value?: unknown; computed?: boolean };
     const target = entry.type === 'Property' ? getIdentifierName(entry.key) : null;
@@ -106,7 +106,7 @@ function readTargets(
     if (value === null) {
       diagnostics.push({
         range: getRange(entry.value as AstNode) ?? callRange,
-        message: `native$ target "${target}" must be a nativeCode\`…\` template without interpolation, or nativeFile('./file.rs').`,
+        message: `native$ target "${target}" must be a nativeCode\`…\` template without interpolation, or nativeFrom('./impl.rs').`,
       });
       return null;
     }
@@ -119,7 +119,7 @@ function readTargetSource(
   value: AstNode | null | undefined,
   analysis: ModuleAnalysis,
   source: string
-): { source?: string; file?: string } | null {
+): { source?: string; path?: string } | null {
   if (value === null || value === undefined) {
     return null;
   }
@@ -136,18 +136,18 @@ function readTargetSource(
     const raw = (tagged.quasi.quasis[0] as { value?: { raw?: string } }).value?.raw;
     return typeof raw === 'string' ? { source: raw } : null;
   }
-  // nativeFile('./impl.rs')
+  // nativeFrom('./impl.rs') — a file, or a package directory the build resolves
   if (value.type === 'CallExpression') {
     const call = value as { callee: unknown; arguments: unknown[] };
     const binding = analysis.bindings.find(
       (candidate) => candidate.name === getIdentifierName(unwrapExpression(call.callee))
     );
-    if (!isCoreImport(binding, FILE_HELPER)) {
+    if (!isCoreImport(binding, PATH_HELPER)) {
       return null;
     }
     const literal = unwrapExpression(call.arguments[0]) as { type: string; value?: unknown };
     return literal?.type === 'Literal' && typeof literal.value === 'string'
-      ? { file: literal.value }
+      ? { path: literal.value }
       : null;
   }
   return null;
@@ -166,7 +166,7 @@ export function nativePluginFns(
     const targets: PluginFnPlan['targets'] = {};
     for (const [target, value] of Object.entries(marker.targets)) {
       targets[target] =
-        value.source !== undefined ? { source: value.source } : { file: value.file };
+        value.source !== undefined ? { source: value.source } : { path: value.path };
     }
     return {
       fnId: `plugin:${moduleSpecifier}:${marker.exportName}`,

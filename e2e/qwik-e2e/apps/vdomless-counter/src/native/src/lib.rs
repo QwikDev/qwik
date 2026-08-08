@@ -1,5 +1,9 @@
-//! Native implementation of `./build-data.ts` (specs/09 user plugin): same semantics —
-//! LCG randomness, process-global id counter, rows of nested signals.
+//! Native implementation of `../build-data.ts` (specs/09): same semantics — random labels, a
+//! process-global id counter, rows of nested signals.
+// exports are named after the JS export they implement, which is camelCase
+#![allow(non_snake_case)]
+
+use rand::Rng;
 
 use qwik::native::{IntoSerdes, Signal};
 use qwik::serdes::SerdesValue;
@@ -38,22 +42,12 @@ impl IntoSerdes for Row {
 	}
 }
 
-/// A spliced sidecar cannot pull in `rand`, so entropy comes from std's per-process hasher keys.
-fn random(max: usize) -> usize {
-	use std::collections::hash_map::RandomState;
-	use std::hash::{BuildHasher, Hasher};
-	(RandomState::new().build_hasher().finish() as usize) % max
-}
-
 pub fn buildData(count: usize) -> Vec<Row> {
+	let mut rng = rand::rng();
+	let mut pick = |words: &[&str]| words[rng.random_range(0..words.len())].to_string();
 	let mut rows = Vec::with_capacity(count);
 	for _ in 0..count {
-		let label = format!(
-			"{} {} {}",
-			ADJECTIVES[random(ADJECTIVES.len())],
-			COLORS[random(COLORS.len())],
-			NOUNS[random(NOUNS.len())]
-		);
+		let label = format!("{} {} {}", pick(ADJECTIVES), pick(COLORS), pick(NOUNS));
 		rows.push(Row {
 			id: NEXT_ID.fetch_add(1, Ordering::Relaxed),
 			label: Signal::new(label),

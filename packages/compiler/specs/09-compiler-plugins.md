@@ -79,22 +79,40 @@ interface ClaimSite {
 - Signal-valued fields stay `Signal<T>` across the boundary — they are reactive cells the
   serializer walks, not plain data.
 
-## Dependencies (decided, unimplemented)
+## Dependencies
 
-Third-party crates are declared where the target language already declares them, not on the wire.
-The compiler cannot infer them: names are lexically guessable, but versions, features, renamed
-packages, and crate-vs-local-module are not, and a dependency without a version is not a
+Third-party libraries are declared where the target language already declares them, not on the
+wire. The compiler cannot infer them: names are lexically guessable, but versions, features,
+renamed packages, and library-vs-local-module are not, and a dependency without a version is not a
 dependency.
 
-- **Sidecar = a crate.** `nativeFile` points at a directory with its own `Cargo.toml`, and the
-  generated project takes a path dependency on it. Versions, features, the lockfile, `cargo fmt`,
-  `clippy` and `cargo test` all work the way the ecosystem expects, and the wire carries a crate
-  reference plus a fn path instead of source text.
+**Directory = package, file = source.** That one rule is the whole convention, and it keeps every
+layer above the engine language-agnostic:
+
+| layer                                | knows                                                                                               |
+| ------------------------------------ | --------------------------------------------------------------------------------------------------- |
+| `native$` API                        | a path — `nativeFrom('./native')` or `nativeFrom('./impl.rs')`                                      |
+| build (`qwik-vite`, layer-A harness) | is that path a directory or a file? Directory → `{ package: <absolute path> }`, file → `{ source }` |
+| engine generator                     | what a package means in its language                                                                |
+
+So `Cargo.toml` appears only in `qwik-ssr-gen`: it reads `[package] name` to add the path
+dependency and to call `<crate>::<export>`. A Go engine would read `go.mod` instead, with nothing
+upstream of it changing.
+
 - **Inline `nativeCode` is for simple cases**: the target's standard library plus the Qwik runtime,
-  nothing else. Needing a crate is the signal to promote the snippet to a sidecar crate.
-- The prerequisite is a real generated Cargo project. While generated code is `include!`d into one
-  host crate there is nothing to add a path dependency to, and all apps share one manifest — so two
-  apps needing incompatible majors of the same crate is unresolvable, not merely awkward.
+  nothing else. Needing a library is the signal to move to a package.
+- A directory the engine cannot make sense of fails loudly, naming the path and what it expected —
+  never a silent fallback to splicing.
+- Package exports are named after the JS export they implement, so a Rust crate implementing
+  `buildData` carries `#![allow(non_snake_case)]`.
+
+### Generated project
+
+Generated code is a Cargo project, not source spliced into a host crate: one crate per app, plus a
+root binary calling `qwik_ssr_host::run`. `qwik-ssr-gen`'s `qwik-native-project` bin writes it
+before cargo resolves the graph — a `build.rs` cannot add dependencies to its own crate, which is
+the whole reason app code cannot live in the host. Per-app crates also mean two apps can depend on
+incompatible majors of the same library, which one shared manifest makes unresolvable.
 
 ## Coverage validation and diagnostics
 

@@ -1648,12 +1648,12 @@ unknown[]
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/native/native.public.ts)
 
-<h2 id="nativefile">nativeFile</h2>
+<h2 id="nativefrom">nativeFrom</h2>
 
-Target source kept in a sidecar file next to the module.
+Target source kept on disk beside the module: a source file, or a directory holding a package for that language (a `Cargo.toml` crate for Rust). Only a package may pull in dependencies.
 
 ```typescript
-nativeFile: (file: string) => NativeSource;
+nativeFrom: (path: string) => NativeSource;
 ```
 
 <table><thead><tr><th>
@@ -1671,7 +1671,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-file
+path
 
 </td><td>
 
@@ -1690,7 +1690,7 @@ string
 
 <h2 id="nativesource">NativeSource</h2>
 
-A target implementation, authored inline with `nativeCode` or as a sidecar via `nativeFile`.
+A target implementation, authored inline with `nativeCode` or on disk via `nativeFrom`.
 
 ```typescript
 export interface NativeSource
@@ -1715,7 +1715,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-file?
+path?
 
 </td><td>
 
@@ -1727,7 +1727,7 @@ string
 
 </td><td>
 
-_(Optional)_ Path to a sidecar file, relative to the module declaring it.
+_(Optional)_ Path to a source file or a package directory, relative to the module declaring it.
 
 </td></tr>
 <tr><td>

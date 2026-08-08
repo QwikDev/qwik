@@ -66,14 +66,58 @@ fn write_file(path: &Path, contents: &str) -> Result<(), String> {
 	std::fs::write(path, contents).map_err(|error| format!("{}: {error}", path.display()))
 }
 
-fn app_manifest(name: &str, runtime_crates: &Path) -> String {
+fn app_manifest(name: &str, runtime_crates: &Path, packages: &[(String, String)]) -> String {
 	let qwik = runtime_crates.join("qwik");
 	let std_crate = runtime_crates.join("qwik-ssr-std");
-	format!(
+	let mut manifest = format!(
 		"# generated\n[package]\nname = {name:?}\nversion = \"0.0.0\"\nedition = \"2021\"\npublish = false\n\n[lib]\npath = \"src/lib.rs\"\n\n[dependencies]\nqwik = {{ path = {:?} }}\nqwik-ssr-std = {{ path = {:?} }}\n",
 		qwik.display().to_string(),
 		std_crate.display().to_string(),
-	)
+	);
+	for (package_name, path) in packages {
+		writeln!(manifest, "{package_name} = {{ path = {path:?} }}").unwrap();
+	}
+	manifest
+}
+
+/// `[package] name` from a Cargo manifest — the dependency key and, underscored, the call path.
+fn cargo_package_name(package_dir: &Path) -> Result<String, String> {
+	let manifest_path = package_dir.join("Cargo.toml");
+	let manifest = std::fs::read_to_string(&manifest_path).map_err(|error| {
+		format!(
+			"native$ package {}: {error} — a directory target must be a crate",
+			manifest_path.display()
+		)
+	})?;
+	manifest
+		.lines()
+		.map(str::trim)
+		.find_map(|line| line.strip_prefix("name"))
+		.and_then(|rest| rest.trim().strip_prefix('='))
+		.map(|rest| rest.trim().trim_matches('"').to_string())
+		.filter(|name| !name.is_empty())
+		.ok_or_else(|| format!("{} has no [package] name", manifest_path.display()))
+}
+
+/// Rewrites `package` targets to the crate they resolve to, so code generation stays IO-free.
+/// Returns the dependencies the app's manifest needs.
+fn resolve_packages(plan: &mut Json) -> Result<Vec<(String, String)>, String> {
+	let mut packages = Vec::new();
+	let Some(plugin_fns) = plan["pluginFns"].as_array_mut() else {
+		return Ok(packages);
+	};
+	for entry in plugin_fns {
+		let Some(package) = entry["targets"]["rust"]["package"].as_str() else {
+			continue;
+		};
+		let package_dir = PathBuf::from(package);
+		let package_name = cargo_package_name(&package_dir)?;
+		entry["targets"]["rust"]["crate"] = Json::String(package_name.replace('-', "_"));
+		packages.push((package_name, package_dir.display().to_string()));
+	}
+	packages.sort();
+	packages.dedup();
+	Ok(packages)
 }
 
 /// Generates the project into `out_dir`. Returns the apps that could not be generated, so the
@@ -93,12 +137,14 @@ pub fn generate_project(
 
 	for app in apps {
 		let ident = crate_name(&app.name);
-		match render_module(&app.plan) {
+		let mut plan = app.plan.clone();
+		let packages = resolve_packages(&mut plan)?;
+		match render_module(&plan) {
 			Ok((code, entry_function)) => {
 				let crate_dir = out_dir.join("apps").join(&ident);
 				write_file(
 					&crate_dir.join("Cargo.toml"),
-					&app_manifest(&ident, runtime_crates),
+					&app_manifest(&ident, runtime_crates, &packages),
 				)?;
 				write_file(
 					&crate_dir.join("src/lib.rs"),

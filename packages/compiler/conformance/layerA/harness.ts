@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 // built package, not source: the generated modules' bare '@qwik.dev/core' imports resolve to the
 // built lib, and ambient state (invoke context, owner) must live in ONE module world
@@ -73,8 +73,8 @@ export async function renderFixtureRoot(
   return { html: normalized.join(''), chunks: normalized };
 }
 
-/** The compiler leaves `nativeFile` paths unresolved — it has no filesystem; builds read them. */
-function resolveNativeSidecars(plan: QwikModulePlan, fixtureDir: string): QwikModulePlan {
+/** The compiler leaves `nativeFrom` paths unresolved — it has no filesystem; builds resolve them. */
+function resolveNativeTargets(plan: QwikModulePlan, fixtureDir: string): QwikModulePlan {
   if ((plan.pluginFns?.length ?? 0) === 0) {
     return plan;
   }
@@ -84,10 +84,15 @@ function resolveNativeSidecars(plan: QwikModulePlan, fixtureDir: string): QwikMo
       ...fn,
       targets: Object.fromEntries(
         Object.entries(fn.targets).map(([target, value]) => {
-          const file = (value as { file?: string }).file;
-          return file === undefined
-            ? [target, value]
-            : [target, { source: readFileSync(join(fixtureDir, file), 'utf-8') }];
+          const path = (value as { path?: string }).path;
+          if (path === undefined) {
+            return [target, value];
+          }
+          const resolved = join(fixtureDir, path);
+          // a directory is that language's package; a file is source to splice
+          return statSync(resolved).isDirectory()
+            ? [target, { package: resolved }]
+            : [target, { source: readFileSync(resolved, 'utf-8') }];
         })
       ),
     })),
@@ -145,7 +150,7 @@ export async function renderFixture(name: string): Promise<FixtureRender> {
   }
   const modulePlans = result.modules
     .filter((module) => module.path.endsWith('.plan.json'))
-    .map((module) => resolveNativeSidecars(JSON.parse(module.code) as QwikModulePlan, fixtureDir))
+    .map((module) => resolveNativeTargets(JSON.parse(module.code) as QwikModulePlan, fixtureDir))
     .sort((left, right) => left.path.localeCompare(right.path));
   if (modulePlans.length === 0) {
     throw new Error(`fixture "${name}" emitted no module plan`);

@@ -13,17 +13,24 @@ export interface SsrPlanCollector {
   size(): number;
 }
 
-/** Reads a `native$` sidecar (`nativeFile('./impl.rs')`) relative to the declaring module. */
-export type NativeSidecarReader = (modulePath: string, file: string) => string | null;
+/**
+ * Resolves a `nativeFrom(path)` target relative to the declaring module. A directory is that
+ * language's package; a file is source to splice. Which manifest a package carries is the engine's
+ * business, not the build's.
+ */
+export type NativeTargetResolver = (
+  modulePath: string,
+  path: string
+) => { source: string } | { package: string };
 
-export function createSsrPlanCollector(readSidecar?: NativeSidecarReader): SsrPlanCollector {
+export function createSsrPlanCollector(resolveTarget?: NativeTargetResolver): SsrPlanCollector {
   const plans = new Map<string, QwikModulePlan>();
   return {
     collect(modules) {
       const remaining: TransformModule[] = [];
       for (const mod of modules) {
         if (mod.path.endsWith('.plan.json')) {
-          const plan = resolveNativeSidecars(JSON.parse(mod.code) as QwikModulePlan, readSidecar);
+          const plan = resolveNativeTargets(JSON.parse(mod.code) as QwikModulePlan, resolveTarget);
           plans.set(plan.path, plan);
         } else {
           remaining.push(mod);
@@ -46,12 +53,12 @@ export function createSsrPlanCollector(readSidecar?: NativeSidecarReader): SsrPl
   };
 }
 
-/** The compiler leaves sidecar paths unresolved — it has no filesystem; the build reads them. */
-function resolveNativeSidecars(
+/** The compiler leaves target paths unresolved — it has no filesystem; the build resolves them. */
+function resolveNativeTargets(
   plan: QwikModulePlan,
-  readSidecar: NativeSidecarReader | undefined
+  resolveTarget: NativeTargetResolver | undefined
 ): QwikModulePlan {
-  if (readSidecar === undefined || (plan.pluginFns?.length ?? 0) === 0) {
+  if (resolveTarget === undefined || (plan.pluginFns?.length ?? 0) === 0) {
     return plan;
   }
   return {
@@ -60,12 +67,8 @@ function resolveNativeSidecars(
       ...fn,
       targets: Object.fromEntries(
         Object.entries(fn.targets).map(([target, value]) => {
-          const file = (value as { file?: string }).file;
-          if (file === undefined) {
-            return [target, value];
-          }
-          const source = readSidecar(plan.path, file);
-          return [target, source === null ? value : { source }];
+          const path = (value as { path?: string }).path;
+          return path === undefined ? [target, value] : [target, resolveTarget(plan.path, path)];
         })
       ),
     })),

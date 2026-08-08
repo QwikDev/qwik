@@ -8,7 +8,7 @@ export { isBrowser, isDev, isServer } from '@qwik.dev/core/build';
 
 export { $, sync$, type SyncQRL } from './shared/qrl/qrl.public';
 export { event$ } from './shared/qrl/qrl.public.dollar';
-export { native$, nativeCode, nativeFile } from './shared/native/native.public';
+export { native$, nativeCode, nativeFrom } from './shared/native/native.public';
 export type { NativeSource, NativeTargets } from './shared/native/native.public';
 export { inlinedQrl } from './shared/qrl/qrl';
 export type { QRLDev } from './shared/qrl/qrl';

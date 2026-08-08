@@ -195,6 +195,24 @@ export type JSXTagName = keyof HTMLElementTagNameMap | Omit<string, keyof HTMLEl
 export type KnownEventNames = LiteralUnion<AllEventKeys, string>;
 
 // @public
+export const native$: <TYPE extends Function>(impl: TYPE, targets: NativeTargets) => TYPE;
+
+// @public
+export const nativeCode: (source: TemplateStringsArray, ...values: unknown[]) => NativeSource;
+
+// @public
+export const nativeFile: (file: string) => NativeSource;
+
+// @public
+export interface NativeSource {
+    readonly file?: string;
+    readonly source?: string;
+}
+
+// @public
+export type NativeTargets = Record<string, NativeSource>;
+
+// @public
 export type NoSerialize<T> = (T & {
     __no_serialize__: true;
 }) | undefined;

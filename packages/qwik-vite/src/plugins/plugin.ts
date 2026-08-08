@@ -153,7 +153,7 @@ export function createQwikPlugin(
     inlineStylesUpToBytes: 20000,
     lint: false,
     ssrPlan: false,
-    compilerPlugins: undefined as unknown[] | undefined,
+    compilerPlugins: undefined,
     experimental: undefined,
     testTarget: undefined,
   };
@@ -1678,11 +1678,12 @@ export interface QwikPluginOptions {
 
 export interface NormalizedQwikPluginOptions extends Omit<
   Required<QwikPluginOptions>,
-  'input' | 'vendorRoots' | 'srcInputs' | 'experimental' | 'testTarget'
+  'input' | 'vendorRoots' | 'srcInputs' | 'experimental' | 'testTarget' | 'compilerPlugins'
 > {
   input: string[] | { [entry: string]: string } | undefined;
   experimental: Record<keyof typeof ExperimentalFeatures, boolean> | undefined;
   testTarget: QwikPluginOptions['testTarget'];
+  compilerPlugins: QwikPluginOptions['compilerPlugins'];
 }
 
 export type QwikPlugin = ReturnType<typeof createQwikPlugin>;

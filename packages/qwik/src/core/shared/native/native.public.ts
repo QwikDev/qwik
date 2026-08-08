@@ -16,7 +16,11 @@
  * ```
  */
 
-/** A target implementation, authored inline with `nativeCode` or as a sidecar via `nativeFile`. */
+/**
+ * A target implementation, authored inline with `nativeCode` or as a sidecar via `nativeFile`.
+ *
+ * @public
+ */
 export interface NativeSource {
   /** Inline source text. */
   readonly source?: string;
@@ -24,12 +28,18 @@ export interface NativeSource {
   readonly file?: string;
 }
 
-/** Target language name (`rust`, `go`, …) to its implementation. */
+/**
+ * Target language name (`rust`, `go`, …) to its implementation.
+ *
+ * @public
+ */
 export type NativeTargets = Record<string, NativeSource>;
 
 /**
  * Inline target source. Interpolation is rejected at compile time: the compiler reads the text
  * statically, so the template can only hold literal source.
+ *
+ * @public
  */
 export const nativeCode = (source: TemplateStringsArray, ...values: unknown[]): NativeSource => {
   if (values.length > 0) {
@@ -38,12 +48,18 @@ export const nativeCode = (source: TemplateStringsArray, ...values: unknown[]): 
   return { source: source[0] };
 };
 
-/** Target source kept in a sidecar file next to the module. */
+/**
+ * Target source kept in a sidecar file next to the module.
+ *
+ * @public
+ */
 export const nativeFile = (file: string): NativeSource => ({ file });
 
 /**
  * Declares native implementations for `impl`. Returns the JS implementation unchanged, so the
  * function behaves identically whether or not a native engine is in play.
+ *
+ * @public
  */
 export const native$ = <TYPE extends Function>(impl: TYPE, targets: NativeTargets): TYPE => {
   void targets;

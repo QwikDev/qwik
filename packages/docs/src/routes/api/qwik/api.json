@@ -763,6 +763,76 @@
       "mdFile": "core.knowneventnames.md"
     },
     {
+      "name": "native$",
+      "id": "native_",
+      "hierarchy": [
+        {
+          "name": "native$",
+          "id": "native_"
+        }
+      ],
+      "kind": "Function",
+      "content": "Declares native implementations for `impl`<!-- -->. Returns the JS implementation unchanged, so the function behaves identically whether or not a native engine is in play.\n\n\n```typescript\nnative$: <TYPE extends Function>(impl: TYPE, targets: NativeTargets) => TYPE\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nimpl\n\n\n</td><td>\n\nTYPE\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\ntargets\n\n\n</td><td>\n\n[NativeTargets](#nativetargets)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nTYPE",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/native/native.public.ts",
+      "mdFile": "core.native_.md"
+    },
+    {
+      "name": "nativeCode",
+      "id": "nativecode",
+      "hierarchy": [
+        {
+          "name": "nativeCode",
+          "id": "nativecode"
+        }
+      ],
+      "kind": "Function",
+      "content": "Inline target source. Interpolation is rejected at compile time: the compiler reads the text statically, so the template can only hold literal source.\n\n\n```typescript\nnativeCode: (source: TemplateStringsArray, ...values: unknown[]) => NativeSource\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nsource\n\n\n</td><td>\n\nTemplateStringsArray\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nvalues\n\n\n</td><td>\n\nunknown\\[\\]\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[NativeSource](#nativesource)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/native/native.public.ts",
+      "mdFile": "core.nativecode.md"
+    },
+    {
+      "name": "nativeFile",
+      "id": "nativefile",
+      "hierarchy": [
+        {
+          "name": "nativeFile",
+          "id": "nativefile"
+        }
+      ],
+      "kind": "Function",
+      "content": "Target source kept in a sidecar file next to the module.\n\n\n```typescript\nnativeFile: (file: string) => NativeSource\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nfile\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[NativeSource](#nativesource)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/native/native.public.ts",
+      "mdFile": "core.nativefile.md"
+    },
+    {
+      "name": "NativeSource",
+      "id": "nativesource",
+      "hierarchy": [
+        {
+          "name": "NativeSource",
+          "id": "nativesource"
+        }
+      ],
+      "kind": "Interface",
+      "content": "A target implementation, authored inline with `nativeCode` or as a sidecar via `nativeFile`<!-- -->.\n\n\n```typescript\nexport interface NativeSource \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nfile?\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_ Path to a sidecar file, relative to the module declaring it.\n\n\n</td></tr>\n<tr><td>\n\nsource?\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_ Inline source text.\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/native/native.public.ts",
+      "mdFile": "core.nativesource.md"
+    },
+    {
+      "name": "NativeTargets",
+      "id": "nativetargets",
+      "hierarchy": [
+        {
+          "name": "NativeTargets",
+          "id": "nativetargets"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "Target language name (`rust`<!-- -->, `go`<!-- -->, …) to its implementation.\n\n\n```typescript\nexport type NativeTargets = Record<string, NativeSource>;\n```\n**References:** [NativeSource](#nativesource)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/native/native.public.ts",
+      "mdFile": "core.nativetargets.md"
+    },
+    {
       "name": "noSerialize",
       "id": "noserialize",
       "hierarchy": [

@@ -1545,6 +1545,224 @@ export type KnownEventNames = LiteralUnion<AllEventKeys, string>;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-events.ts)
 
+<h2 id="native_">native$</h2>
+
+Declares native implementations for `impl`. Returns the JS implementation unchanged, so the function behaves identically whether or not a native engine is in play.
+
+```typescript
+native$: <TYPE extends Function>(impl: TYPE, targets: NativeTargets) => TYPE;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+impl
+
+</td><td>
+
+TYPE
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+targets
+
+</td><td>
+
+[NativeTargets](#nativetargets)
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+**Returns:**
+
+TYPE
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/native/native.public.ts)
+
+<h2 id="nativecode">nativeCode</h2>
+
+Inline target source. Interpolation is rejected at compile time: the compiler reads the text statically, so the template can only hold literal source.
+
+```typescript
+nativeCode: (source: TemplateStringsArray, ...values: unknown[]) =>
+  NativeSource;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+source
+
+</td><td>
+
+TemplateStringsArray
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+values
+
+</td><td>
+
+unknown[]
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+**Returns:**
+
+[NativeSource](#nativesource)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/native/native.public.ts)
+
+<h2 id="nativefile">nativeFile</h2>
+
+Target source kept in a sidecar file next to the module.
+
+```typescript
+nativeFile: (file: string) => NativeSource;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+file
+
+</td><td>
+
+string
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+**Returns:**
+
+[NativeSource](#nativesource)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/native/native.public.ts)
+
+<h2 id="nativesource">NativeSource</h2>
+
+A target implementation, authored inline with `nativeCode` or as a sidecar via `nativeFile`.
+
+```typescript
+export interface NativeSource
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+file?
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_ Path to a sidecar file, relative to the module declaring it.
+
+</td></tr>
+<tr><td>
+
+source?
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+string
+
+</td><td>
+
+_(Optional)_ Inline source text.
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/native/native.public.ts)
+
+<h2 id="nativetargets">NativeTargets</h2>
+
+Target language name (`rust`, `go`, …) to its implementation.
+
+```typescript
+export type NativeTargets = Record<string, NativeSource>;
+```
+
+**References:** [NativeSource](#nativesource)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/native/native.public.ts)
+
 <h2 id="noserialize-function">noSerialize</h2>
 
 Returned type of the `noSerialize()` function. It will be TYPE or undefined.

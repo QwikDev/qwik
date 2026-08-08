@@ -1,6 +1,6 @@
 //! Author-facing surface for `native$` implementations (specs/09). The generator calls every
 //! plugin fn through one untyped ABI — `&[Rc<SerdesValue>] -> Rc<SerdesValue>` — because the wire
-//! carries no signature. `native_fn!` writes that shim so the implementation is plain Rust.
+//! carries no signature. `native!` writes that shim so the implementation is plain Rust.
 
 use crate::serdes::{SerdesValue, SignalState};
 use std::cell::RefCell;
@@ -24,7 +24,7 @@ pub trait IntoSerdes {
 	fn into_serdes(self) -> Rc<SerdesValue>;
 }
 
-/// Reads one argument for `native_fn!`. A mismatch is a codegen or authoring bug, never user
+/// Reads one argument for `native!`. A mismatch is a codegen or authoring bug, never user
 /// input, so it panics naming the function and parameter instead of coercing.
 pub fn arg<T: FromSerdes>(
 	args: &[Rc<SerdesValue>],
@@ -145,12 +145,12 @@ impl IntoSerdes for Rc<SerdesValue> {
 /// generator calls.
 ///
 /// ```ignore
-/// qwik_ssr_rt::native_fn! {
+/// qwik::native! {
 ///     pub fn double(value: f64) -> f64 { value * 2.0 }
 /// }
 /// ```
 #[macro_export]
-macro_rules! native_fn {
+macro_rules! native {
 	(
 		$(#[$attr:meta])*
 		pub fn $name:ident($($arg:ident: $arg_ty:ty),* $(,)?) -> $ret:ty $body:block

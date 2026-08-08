@@ -20,7 +20,7 @@ Scope when picked up:
 - `plan-ssr.ts`: sole-child detection for content ops (mirror the existing `singleText` path)
   and an element/range target on the content operation.
 - Writers, together: `emit-ssr.ts`, `interpret-plan.ts`, `emit-js.ts`, and the Rust
-  `qwik-ssr-gen`/`qwik-ssr-rt` content path.
+  `qwik-ssr-gen`/`qwik` content path.
 - Reader: client resume in `packages/qwik/src/core/dom/content/content.ts` currently replaces
   a `BranchRange` (`replaceRange`) — needs an element-target variant that replaces the
   element's children.

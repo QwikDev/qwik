@@ -6,7 +6,7 @@ this workspace hosts the Rust one.
 
 ## Crates
 
-- `qwik-ssr-rt` — runtime core: the JS-semantics profile (number formatting, JSON bytes,
+- `qwik` — runtime core: the JS-semantics profile (number formatting, JSON bytes,
   escaping, coercion, value model), the `qwik/state` serializer, and the container writer.
 - `qwik-ssr-gen` — the plan → Rust source generator. Fail-closed: unsupported plan constructs
   abort generation with a named reason.

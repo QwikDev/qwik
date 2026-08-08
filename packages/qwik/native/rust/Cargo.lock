@@ -130,11 +130,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "qwik"
+version = "0.0.0"
+dependencies = [
+ "num-bigint",
+ "ryu-js",
+ "serde_json",
+]
+
+[[package]]
 name = "qwik-ssr-fixtures"
 version = "0.0.0"
 dependencies = [
+ "qwik",
  "qwik-ssr-gen",
- "qwik-ssr-rt",
  "qwik-ssr-std",
  "serde_json",
 ]
@@ -151,18 +160,9 @@ name = "qwik-ssr-host"
 version = "0.0.0"
 dependencies = [
  "flate2",
+ "qwik",
  "qwik-ssr-gen",
- "qwik-ssr-rt",
  "qwik-ssr-std",
- "serde_json",
-]
-
-[[package]]
-name = "qwik-ssr-rt"
-version = "0.0.0"
-dependencies = [
- "num-bigint",
- "ryu-js",
  "serde_json",
 ]
 
@@ -170,7 +170,7 @@ dependencies = [
 name = "qwik-ssr-std"
 version = "0.0.0"
 dependencies = [
- "qwik-ssr-rt",
+ "qwik",
 ]
 
 [[package]]

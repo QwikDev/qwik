@@ -1,8 +1,8 @@
 //! Native implementation of `./build-data.ts` (specs/09 user plugin): same semantics —
 //! LCG randomness, process-global id counter, rows of nested signals.
 
-use qwik_ssr_rt::native::{IntoSerdes, Signal};
-use qwik_ssr_rt::serdes::SerdesValue;
+use qwik::native::{IntoSerdes, Signal};
+use qwik::serdes::SerdesValue;
 use std::rc::Rc;
 use std::sync::atomic::{AtomicU64, Ordering};
 
@@ -60,7 +60,7 @@ impl IntoSerdes for Row {
 	}
 }
 
-qwik_ssr_rt::native_fn! {
+qwik::native! {
 	pub fn buildData(count: usize) -> Vec<Row> {
 		let mut seed: u64 = std::time::SystemTime::now()
 			.duration_since(std::time::UNIX_EPOCH)

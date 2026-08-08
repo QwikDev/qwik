@@ -2,12 +2,12 @@
 //! engine at `packages/compiler/conformance/layer0/goldens`. The JS side freshness-gates
 //! the goldens; this side must match them exactly.
 
-use qwik_ssr_rt::coerce::to_ssr_text;
-use qwik_ssr_rt::escape::escape_html;
-use qwik_ssr_rt::json::stringify;
-use qwik_ssr_rt::number::{to_fixed, to_js_string};
-use qwik_ssr_rt::serdes::{SerdesValue, Serializer};
-use qwik_ssr_rt::value::{JsObject, Value};
+use qwik::coerce::to_ssr_text;
+use qwik::escape::escape_html;
+use qwik::json::stringify;
+use qwik::number::{to_fixed, to_js_string};
+use qwik::serdes::{SerdesValue, Serializer};
+use qwik::value::{JsObject, Value};
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::rc::Rc;

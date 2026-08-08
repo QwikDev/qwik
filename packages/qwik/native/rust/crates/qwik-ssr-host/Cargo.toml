@@ -6,7 +6,7 @@ publish = false
 
 [dependencies]
 flate2 = "1"
-qwik-ssr-rt = { path = "../qwik-ssr-rt" }
+qwik = { path = "../qwik" }
 qwik-ssr-std = { path = "../qwik-ssr-std" }
 serde_json = "1"
 

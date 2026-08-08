@@ -73,7 +73,7 @@ interface ClaimSite {
 - Call ABI (Rust reference): `fn(args: &[Rc<SerdesValue>]) -> Rc<SerdesValue>`. It is uniform and
   untyped because the wire carries no signature — the generator emits the same call shape for
   every plugin fn.
-- Authors do not write that ABI. `qwik_ssr_rt::native_fn!` takes a plain Rust signature and
+- Authors do not write that ABI. `qwik::native!` takes a plain Rust signature and
   generates the shim, converting through `FromSerdes`/`IntoSerdes`; a mismatched argument panics
   naming the function and parameter. Signal-valued fields stay `Signal<T>` across the boundary —
   they are reactive cells the serializer walks, not plain data.

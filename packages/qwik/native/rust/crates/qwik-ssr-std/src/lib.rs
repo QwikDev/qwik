@@ -3,7 +3,7 @@
 //! receiver runtime type, mirroring JS prototype dispatch; an op applied to a type with no
 //! entry is an SSR runtime error (the JS TypeError analogue).
 
-use qwik_ssr_rt::serdes::SerdesValue;
+use qwik::serdes::SerdesValue;
 use std::rc::Rc;
 
 /// Invoke an internal-plugin op (`qwik:<ns>.<op>`), receiver first.

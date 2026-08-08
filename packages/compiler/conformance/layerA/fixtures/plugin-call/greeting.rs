@@ -1,4 +1,4 @@
-qwik_ssr_rt::native_fn! {
+qwik::native! {
 	pub fn makeGreeting(name: String) -> String {
 		format!("hello {name}")
 	}

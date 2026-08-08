@@ -1,8 +1,8 @@
 //! `native$` author surface (specs/09): a typed implementation must round-trip through the
 //! untyped `&[Rc<SerdesValue>]` ABI the generator emits, and reject a mismatch loudly.
 
-use qwik_ssr_rt::native::{IntoSerdes, Signal};
-use qwik_ssr_rt::serdes::SerdesValue;
+use qwik::native::{IntoSerdes, Signal};
+use qwik::serdes::SerdesValue;
 use std::rc::Rc;
 
 struct Row {
@@ -19,7 +19,7 @@ impl IntoSerdes for Row {
 	}
 }
 
-qwik_ssr_rt::native_fn! {
+qwik::native! {
 	pub fn buildRows(count: usize, prefix: String) -> Vec<Row> {
 		(0..count)
 			.map(|index| Row {

@@ -1,5 +1,5 @@
 //! Plan → Rust source generator (specs/07). Consumes a linked `qwik/ssr-plan` (v0) and emits
-//! specialized render functions calling the `qwik-ssr-rt` ABI. Fail-closed: any construct the
+//! specialized render functions calling the `qwik` ABI. Fail-closed: any construct the
 //! generator does not support yet aborts generation with a named reason — never silent output.
 
 use serde_json::Value as Json;
@@ -237,15 +237,15 @@ pub fn generate_defs(plan: &Json, module_index: usize) -> Result<String, String>
 			generator.local_kinds.insert(binding, LocalKind::PlainValue);
 			write!(
 				params_signature,
-				"{variable}: &std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>, "
+				"{variable}: &std::rc::Rc<qwik::serdes::SerdesValue>, "
 			)
 			.unwrap();
 		}
 		let body = generator.ir_expression(&def["body"], "&mut def_tracked")?;
 		write!(
 			output,
-			"fn def_{module_index}_{index}({params_signature}) -> std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue> {{\n    \
-			 let mut def_tracked: Vec<std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>> = Vec::new();\n    \
+			"fn def_{module_index}_{index}({params_signature}) -> std::rc::Rc<qwik::serdes::SerdesValue> {{\n    \
+			 let mut def_tracked: Vec<std::rc::Rc<qwik::serdes::SerdesValue>> = Vec::new();\n    \
 			 let _ = &mut def_tracked;\n    \
 			 {body}\n}}\n"
 		)
@@ -312,7 +312,7 @@ pub fn generate_component(plan: &Json, component_index: usize) -> Result<String,
 			let variable = format!("prop_{binding}");
 			writeln!(
 				generator.body,
-				"    let {variable} = qwik_ssr_rt::render::props_value(&props, {prop_name:?});"
+				"    let {variable} = qwik::render::props_value(&props, {prop_name:?});"
 			)
 			.unwrap();
 			generator.uses_props = true;
@@ -341,7 +341,7 @@ pub fn generate_component(plan: &Json, component_index: usize) -> Result<String,
 		generator.uses_ctx = true;
 		writeln!(
 			generator.body,
-			"    let context_scope = std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::ContextScope(\n        std::cell::RefCell::new(qwik_ssr_rt::serdes::ContextScopeState {{ parent: ctx.current_context(), entries: vec![{entries}] }}),\n    ));\n    \
+			"    let context_scope = std::rc::Rc::new(qwik::serdes::SerdesValue::ContextScope(\n        std::cell::RefCell::new(qwik::serdes::ContextScopeState {{ parent: ctx.current_context(), entries: vec![{entries}] }}),\n    ));\n    \
 			 let context_scope_root = ctx.serializer.add_root(std::rc::Rc::clone(&context_scope));\n    \
 			 ctx.push_context(context_scope);\n    \
 			 out.push_str(&format!(\"<!c={{}}>\", context_scope_root));"
@@ -363,29 +363,29 @@ pub fn generate_component(plan: &Json, component_index: usize) -> Result<String,
 		(String::new(), String::new())
 	} else if generator.uses_props {
 		(
-			", props: &std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>".to_string(),
+			", props: &std::rc::Rc<qwik::serdes::SerdesValue>".to_string(),
 			// rebind owned so generated borrows are uniform with other locals
 			"    let props = std::rc::Rc::clone(props);\n".to_string(),
 		)
 	} else {
 		(
-			", _props: &std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>".to_string(),
+			", _props: &std::rc::Rc<qwik::serdes::SerdesValue>".to_string(),
 			String::new(),
 		)
 	};
 	let slots_param = if !component_uses_slots(plan, component_index) {
 		String::new()
 	} else if generator.uses_slots {
-		", slots: &mut [(&str, &mut dyn FnMut(&mut qwik_ssr_rt::render::SsrContext, &mut String))]"
+		", slots: &mut [(&str, &mut dyn FnMut(&mut qwik::render::SsrContext, &mut String))]"
 			.to_string()
 	} else {
-		", _slots: &mut [(&str, &mut dyn FnMut(&mut qwik_ssr_rt::render::SsrContext, &mut String))]"
+		", _slots: &mut [(&str, &mut dyn FnMut(&mut qwik::render::SsrContext, &mut String))]"
 			.to_string()
 	};
 	let function_name = render_function_name(plan, component_index)?;
 	let local_fns = generator.pending_segment_fns.join("");
 	Ok(format!(
-		"pub fn {function_name}({ctx_param}: &mut qwik_ssr_rt::render::SsrContext, out: &mut String{props_param}{slots_param}) {{\n{props_rebind}{}}}\n{local_fns}",
+		"pub fn {function_name}({ctx_param}: &mut qwik::render::SsrContext, out: &mut String{props_param}{slots_param}) {{\n{props_rebind}{}}}\n{local_fns}",
 		generator.body
 	))
 }
@@ -419,7 +419,7 @@ impl ComponentGenerator<'_> {
 				self.uses_ctx = true;
 				writeln!(
 					self.body,
-					"    let {variable} = std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Signal(\n        std::cell::RefCell::new(qwik_ssr_rt::serdes::SignalState {{ value: {init_rc}, subs: Vec::new() }}),\n    ));"
+					"    let {variable} = std::rc::Rc::new(qwik::serdes::SerdesValue::Signal(\n        std::cell::RefCell::new(qwik::serdes::SignalState {{ value: {init_rc}, subs: Vec::new() }}),\n    ));"
 				)
 				.unwrap();
 				self.locals.insert(binding, variable);
@@ -436,7 +436,7 @@ impl ComponentGenerator<'_> {
 				self.uses_ctx = true;
 				writeln!(
 					self.body,
-					"    let {variable} = std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Store(\n        std::cell::RefCell::new(qwik_ssr_rt::serdes::StoreState {{ raw: std::rc::Rc::new({raw}), records: Vec::new(), prop_handles: Vec::new() }}),\n    ));"
+					"    let {variable} = std::rc::Rc::new(qwik::serdes::SerdesValue::Store(\n        std::cell::RefCell::new(qwik::serdes::StoreState {{ raw: std::rc::Rc::new({raw}), records: Vec::new(), prop_handles: Vec::new() }}),\n    ));"
 				)
 				.unwrap();
 				self.locals.insert(binding, variable);
@@ -456,7 +456,7 @@ impl ComponentGenerator<'_> {
 				self.uses_ctx = true;
 				writeln!(
 					self.body,
-					"    let {variable} = qwik_ssr_rt::render::new_computed({qrl});"
+					"    let {variable} = qwik::render::new_computed({qrl});"
 				)
 				.unwrap();
 				self.locals.insert(binding, variable);
@@ -514,7 +514,7 @@ impl ComponentGenerator<'_> {
 					let variable = format!("context_value_{temp}");
 					writeln!(
 						self.body,
-						"    let mut {tracked}: Vec<std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>> = Vec::new();\n    \
+						"    let mut {tracked}: Vec<std::rc::Rc<qwik::serdes::SerdesValue>> = Vec::new();\n    \
 						 let {variable} = {expression};\n    \
 						 let _ = {tracked};"
 					)
@@ -567,7 +567,7 @@ impl ComponentGenerator<'_> {
 				// client-only: the body never runs server-side; deps stay empty
 				writeln!(
 					self.body,
-					"    let {variable} = std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Task(\n        qwik_ssr_rt::serdes::TaskValue {{ phase: 1, qrl: {qrl}, deps: Vec::new() }},\n    ));"
+					"    let {variable} = std::rc::Rc::new(qwik::serdes::SerdesValue::Task(\n        qwik::serdes::TaskValue {{ phase: 1, qrl: {qrl}, deps: Vec::new() }},\n    ));"
 				)
 				.unwrap();
 				self.pending_use_on
@@ -585,7 +585,7 @@ impl ComponentGenerator<'_> {
 					self.ir_expression(&entry["init"], &format!("(&mut {tracked})"))?;
 				writeln!(
 					self.body,
-					"    let mut {tracked}: Vec<std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>> = Vec::new();\n    \
+					"    let mut {tracked}: Vec<std::rc::Rc<qwik::serdes::SerdesValue>> = Vec::new();\n    \
 					 let {variable} = {expression};\n    \
 					 let _ = {tracked};"
 				)
@@ -855,7 +855,7 @@ impl ComponentGenerator<'_> {
 				self.body,
 				"    ctx.serializer.add_root(std::rc::Rc::clone(&{signal}));\n    \
 				 ctx.subscribe_attr(&{signal}, {id_variable}, {name:?});\n    \
-				 {target}.push_str(&qwik_ssr_rt::render::dynamic_attr(&{signal}, {name:?}));"
+				 {target}.push_str(&qwik::render::dynamic_attr(&{signal}, {name:?}));"
 			)
 			.unwrap();
 			return Ok(());
@@ -883,7 +883,7 @@ impl ComponentGenerator<'_> {
 		let qrl = self.qrl_expression(&segment_id, false)?;
 		writeln!(
 			self.body,
-			"    let mut {tracked}: Vec<std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>> = Vec::new();"
+			"    let mut {tracked}: Vec<std::rc::Rc<qwik::serdes::SerdesValue>> = Vec::new();"
 		)
 		.unwrap();
 		self.track_destructured_props(&segment_id, &format!("&mut {tracked}"))?;
@@ -893,12 +893,12 @@ impl ComponentGenerator<'_> {
 			 if let Some(dep) = {tracked}.first() {{\n        \
 			 ctx.subscribe_attr_expression(dep, {id_variable}, {name:?}, vec![{args}], {qrl});\n    \
 			 }}\n    \
-			 match qwik_ssr_rt::render::attr_expression_text({name:?}, &attr_value_{temp}) {{\n        \
+			 match qwik::render::attr_expression_text({name:?}, &attr_value_{temp}) {{\n        \
 			 None => {{}}\n        \
 			 Some(text) if text.is_empty() => {target}.push_str(\" {name}\"),\n        \
 			 Some(text) => {{\n            \
 			 {target}.push_str(\" {name}=\\\"\");\n            \
-			 {target}.push_str(&qwik_ssr_rt::escape::escape_html(&text));\n            \
+			 {target}.push_str(&qwik::escape::escape_html(&text));\n            \
 			 {target}.push('\\\"');\n        \
 			 }}\n    \
 			 }}"
@@ -953,7 +953,7 @@ impl ComponentGenerator<'_> {
 			let bind_name = if symbol == "_val" { "value" } else { "checked" };
 			let bound = self.sibling_bind_signal(element_props, bind_name)?;
 			format!(
-				"std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Qrl(qwik_ssr_rt::serdes::QrlValue {{\n        chunk: \"mock-chunk\".to_string(), symbol: {symbol:?}.to_string(), captures: vec![std::rc::Rc::clone(&{bound})],\n    }}))"
+				"std::rc::Rc::new(qwik::serdes::SerdesValue::Qrl(qwik::serdes::QrlValue {{\n        chunk: \"mock-chunk\".to_string(), symbol: {symbol:?}.to_string(), captures: vec![std::rc::Rc::clone(&{bound})],\n    }}))"
 			)
 		} else {
 			return Err("event handler without a segment or bind".to_string());
@@ -990,7 +990,7 @@ impl ComponentGenerator<'_> {
 		let expression = self.ir_expression(ir, &format!("&mut {tracked}"))?;
 		writeln!(
 			self.body,
-			"    let mut {tracked}: Vec<std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>> = Vec::new();"
+			"    let mut {tracked}: Vec<std::rc::Rc<qwik::serdes::SerdesValue>> = Vec::new();"
 		)
 		.unwrap();
 		self.track_destructured_props(segment_id, &format!("&mut {tracked}"))?;
@@ -1000,7 +1000,7 @@ impl ComponentGenerator<'_> {
 			 if !{tracked}.is_empty() {{\n        \
 			 panic!(\"tracked event handler expressions not supported yet\");\n    \
 			 }}\n    \
-			 if !matches!(&*event_value_{temp}, qwik_ssr_rt::serdes::SerdesValue::Undefined | qwik_ssr_rt::serdes::SerdesValue::Null) {{\n        \
+			 if !matches!(&*event_value_{temp}, qwik::serdes::SerdesValue::Undefined | qwik::serdes::SerdesValue::Null) {{\n        \
 			 {target}.push_str(&ctx.event_attr({attr_name:?}, event_value_{temp}));\n    \
 			 }}"
 		)
@@ -1105,13 +1105,13 @@ impl ComponentGenerator<'_> {
 				let render_qrl = self.qrl_expression(segment_id, true)?;
 				write!(
 					projection_entries,
-					"({slot_name:?}.to_string(), vec![std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Projection(qwik_ssr_rt::serdes::ProjectionValue {{ render_qrl: {render_qrl}, slot_scope: None, id_base: String::new() }}))]), "
+					"({slot_name:?}.to_string(), vec![std::rc::Rc::new(qwik::serdes::SerdesValue::Projection(qwik::serdes::ProjectionValue {{ render_qrl: {render_qrl}, slot_scope: None, id_base: String::new() }}))]), "
 				)
 				.unwrap();
 			}
 			writeln!(
 				self.body,
-				"    let {scope_variable} = std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::SlotScope(\n        std::cell::RefCell::new(qwik_ssr_rt::serdes::SlotScopeState {{ projections: vec![{projection_entries}] }}),\n    ));\n    \
+				"    let {scope_variable} = std::rc::Rc::new(qwik::serdes::SerdesValue::SlotScope(\n        std::cell::RefCell::new(qwik::serdes::SlotScopeState {{ projections: vec![{projection_entries}] }}),\n    ));\n    \
 				 ctx.serializer.add_root(std::rc::Rc::clone(&{scope_variable}));"
 			)
 			.unwrap();
@@ -1149,10 +1149,10 @@ impl ComponentGenerator<'_> {
 				let closure_variable = format!("slot_fn_{}", self.next_temp());
 				writeln!(
 					self.body,
-					"    let mut {closure_variable} = |ctx: &mut qwik_ssr_rt::render::SsrContext, out: &mut String| {{\n{closure_body}    }};"
+					"    let mut {closure_variable} = |ctx: &mut qwik::render::SsrContext, out: &mut String| {{\n{closure_body}    }};"
 				)
 				.unwrap();
-				write!(table, "({slot_name:?}, &mut {closure_variable} as &mut dyn FnMut(&mut qwik_ssr_rt::render::SsrContext, &mut String)), ").unwrap();
+				write!(table, "({slot_name:?}, &mut {closure_variable} as &mut dyn FnMut(&mut qwik::render::SsrContext, &mut String)), ").unwrap();
 			}
 			slots_argument = format!(", &mut [{table}]");
 		} else if !slot_closures.is_empty() {
@@ -1175,13 +1175,13 @@ impl ComponentGenerator<'_> {
 			// static-only props pass as a bare object literal (no Props record)
 			writeln!(
 				self.body,
-				"    let {props_variable} = std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Object(vec![{statics_entries}]));"
+				"    let {props_variable} = std::rc::Rc::new(qwik::serdes::SerdesValue::Object(vec![{statics_entries}]));"
 			)
 			.unwrap();
 		} else {
 			writeln!(
 				self.body,
-				"    let {props_variable} = std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Props(\n        qwik_ssr_rt::serdes::PropsValue {{ statics: vec![{statics_entries}], sources: vec![{sources_entries}] }},\n    ));"
+				"    let {props_variable} = std::rc::Rc::new(qwik::serdes::SerdesValue::Props(\n        qwik::serdes::PropsValue {{ statics: vec![{statics_entries}], sources: vec![{sources_entries}] }},\n    ));"
 			)
 			.unwrap();
 		}
@@ -1220,7 +1220,7 @@ impl ComponentGenerator<'_> {
 					let source = self.local(ir["binding"].as_u64().ok_or("no binding")?)?;
 					if let Some(entries) = literal_run.take() {
 						segments.push(format!(
-							"std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Object(vec![{entries}]))"
+							"std::rc::Rc::new(qwik::serdes::SerdesValue::Object(vec![{entries}]))"
 						));
 					}
 					segments.push(format!("std::rc::Rc::clone(&{source})"));
@@ -1246,7 +1246,7 @@ impl ComponentGenerator<'_> {
 					let entries = literal_run.get_or_insert_with(String::new);
 					write!(
 						entries,
-						"({name:?}.to_string(), qwik_ssr_rt::render::tracked_signal_value(&{source}, &mut Vec::new())), "
+						"({name:?}.to_string(), qwik::render::tracked_signal_value(&{source}, &mut Vec::new())), "
 					)
 					.unwrap();
 					sources.push((name.to_string(), source));
@@ -1260,14 +1260,14 @@ impl ComponentGenerator<'_> {
 		}
 		if let Some(entries) = literal_run.take() {
 			segments.push(format!(
-				"std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Object(vec![{entries}]))"
+				"std::rc::Rc::new(qwik::serdes::SerdesValue::Object(vec![{entries}]))"
 			));
 		}
 		let merged = if segments.len() == 1 {
 			segments.remove(0)
 		} else {
 			let list = segments.join(", ");
-			format!("qwik_ssr_rt::render::merge_props(&[{list}])")
+			format!("qwik::render::merge_props(&[{list}])")
 		};
 		if sources.is_empty() {
 			return Ok(Some(merged));
@@ -1288,7 +1288,7 @@ impl ComponentGenerator<'_> {
 			.unwrap();
 		}
 		Ok(Some(format!(
-			"qwik_ssr_rt::render::props_from(&{merged}, vec![{sources_entries}])"
+			"qwik::render::props_from(&{merged}, vec![{sources_entries}])"
 		)))
 	}
 
@@ -1341,13 +1341,13 @@ impl ComponentGenerator<'_> {
 				let render_qrl = self.qrl_expression(projection_segment, true)?;
 				write!(
 					projection_entries,
-					"({slot_name:?}.to_string(), vec![std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Projection(qwik_ssr_rt::serdes::ProjectionValue {{ render_qrl: {render_qrl}, slot_scope: None, id_base: String::new() }}))]), "
+					"({slot_name:?}.to_string(), vec![std::rc::Rc::new(qwik::serdes::SerdesValue::Projection(qwik::serdes::ProjectionValue {{ render_qrl: {render_qrl}, slot_scope: None, id_base: String::new() }}))]), "
 				)
 				.unwrap();
 			}
 			writeln!(
 				self.body,
-				"    let {scope_variable} = std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::SlotScope(\n        std::cell::RefCell::new(qwik_ssr_rt::serdes::SlotScopeState {{ projections: vec![{projection_entries}] }}),\n    ));\n    \
+				"    let {scope_variable} = std::rc::Rc::new(qwik::serdes::SerdesValue::SlotScope(\n        std::cell::RefCell::new(qwik::serdes::SlotScopeState {{ projections: vec![{projection_entries}] }}),\n    ));\n    \
 				 ctx.serializer.add_root(std::rc::Rc::clone(&{scope_variable}));"
 			)
 			.unwrap();
@@ -1376,10 +1376,10 @@ impl ComponentGenerator<'_> {
 				let closure_variable = format!("slot_fn_{}", self.next_temp());
 				writeln!(
 					self.body,
-					"    let mut {closure_variable} = |ctx: &mut qwik_ssr_rt::render::SsrContext, out: &mut String| {{\n{closure_body}    }};"
+					"    let mut {closure_variable} = |ctx: &mut qwik::render::SsrContext, out: &mut String| {{\n{closure_body}    }};"
 				)
 				.unwrap();
-				write!(table, "({slot_name:?}, &mut {closure_variable} as &mut dyn FnMut(&mut qwik_ssr_rt::render::SsrContext, &mut String)), ").unwrap();
+				write!(table, "({slot_name:?}, &mut {closure_variable} as &mut dyn FnMut(&mut qwik::render::SsrContext, &mut String)), ").unwrap();
 			}
 			slots_argument = format!(", &mut [{table}]");
 		}
@@ -1453,10 +1453,10 @@ impl ComponentGenerator<'_> {
 		let props_value = if let Some(spread) = &spread_local {
 			spread.clone()
 		} else if source_locals.is_empty() {
-			format!("std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Object(vec![{entries}]))")
+			format!("std::rc::Rc::new(qwik::serdes::SerdesValue::Object(vec![{entries}]))")
 		} else {
 			format!(
-				"std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Props(\n        qwik_ssr_rt::serdes::PropsValue {{ statics: vec![{entries}], sources: vec![{sources_entries}] }},\n    ))"
+				"std::rc::Rc::new(qwik::serdes::SerdesValue::Props(\n        qwik::serdes::PropsValue {{ statics: vec![{entries}], sources: vec![{sources_entries}] }},\n    ))"
 			)
 		};
 		// invoke through the QRL value: the component value carries its captures
@@ -1464,7 +1464,7 @@ impl ComponentGenerator<'_> {
 			self.body,
 			"    let props_{temp} = {props_value};\n    \
 			 ctx.push_component_owner();\n    \
-			 {symbol}(ctx, {target_argument}, &props_{temp}{slots_argument}, qwik_ssr_rt::render::qrl_captures(&{qrl_local}));\n    \
+			 {symbol}(ctx, {target_argument}, &props_{temp}{slots_argument}, qwik::render::qrl_captures(&{qrl_local}));\n    \
 			 ctx.pop_component_owner();"
 		)
 		.unwrap();
@@ -1568,7 +1568,7 @@ impl ComponentGenerator<'_> {
 					let variable = format!("prop_{binding}");
 					writeln!(
 						child.body,
-						"    let {variable} = qwik_ssr_rt::render::props_value(props, {prop_name:?});"
+						"    let {variable} = qwik::render::props_value(props, {prop_name:?});"
 					)
 					.unwrap();
 					child.locals.insert(binding, variable);
@@ -1632,7 +1632,7 @@ impl ComponentGenerator<'_> {
 			child.uses_ctx = true;
 			writeln!(
 				child.body,
-				"    let context_scope = std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::ContextScope(\n        std::cell::RefCell::new(qwik_ssr_rt::serdes::ContextScopeState {{ parent: ctx.current_context(), entries: vec![{entries}] }}),\n    ));\n    \
+				"    let context_scope = std::rc::Rc::new(qwik::serdes::SerdesValue::ContextScope(\n        std::cell::RefCell::new(qwik::serdes::ContextScopeState {{ parent: ctx.current_context(), entries: vec![{entries}] }}),\n    ));\n    \
 				 let context_scope_root = ctx.serializer.add_root(std::rc::Rc::clone(&context_scope));\n    \
 				 ctx.push_context(context_scope);\n    \
 				 out.push_str(&format!(\"<!c={{}}>\", context_scope_root));"
@@ -1660,7 +1660,7 @@ impl ComponentGenerator<'_> {
 			return Err("slots outside a local component body not supported yet".to_string());
 		}
 		let slots_param = if child.uses_slots {
-			", slots: &mut [(&str, &mut dyn FnMut(&mut qwik_ssr_rt::render::SsrContext, &mut String))]"
+			", slots: &mut [(&str, &mut dyn FnMut(&mut qwik::render::SsrContext, &mut String))]"
 		} else {
 			""
 		};
@@ -1668,21 +1668,21 @@ impl ComponentGenerator<'_> {
 			.insert(symbol.clone(), child.uses_slots);
 		let head = match &kind {
 			SegmentFnKind::LocalComponent(_) => format!(
-				"fn {symbol}(ctx: &mut qwik_ssr_rt::render::SsrContext, out: &mut String, props: &std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>{slots_param}, captures: &[std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>])"
+				"fn {symbol}(ctx: &mut qwik::render::SsrContext, out: &mut String, props: &std::rc::Rc<qwik::serdes::SerdesValue>{slots_param}, captures: &[std::rc::Rc<qwik::serdes::SerdesValue>])"
 			),
 			SegmentFnKind::BranchArm => format!(
-				"fn {symbol}(ctx: &mut qwik_ssr_rt::render::SsrContext, out: &mut String, captures: &[std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>])"
+				"fn {symbol}(ctx: &mut qwik::render::SsrContext, out: &mut String, captures: &[std::rc::Rc<qwik::serdes::SerdesValue>])"
 			),
 			SegmentFnKind::CollectionRow {
 				uses_index_signal, ..
 			} => {
 				let index_param = if *uses_index_signal {
-					", row_index: &std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>"
+					", row_index: &std::rc::Rc<qwik::serdes::SerdesValue>"
 				} else {
 					""
 				};
 				format!(
-					"fn {symbol}(ctx: &mut qwik_ssr_rt::render::SsrContext, out: &mut String, row_item: &std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>{index_param}, captures: &[std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>])"
+					"fn {symbol}(ctx: &mut qwik::render::SsrContext, out: &mut String, row_item: &std::rc::Rc<qwik::serdes::SerdesValue>{index_param}, captures: &[std::rc::Rc<qwik::serdes::SerdesValue>])"
 				)
 			}
 		};
@@ -1746,7 +1746,7 @@ impl ComponentGenerator<'_> {
 		let body = child.body;
 		self.pending_segment_fns.extend(child.pending_segment_fns);
 		self.pending_segment_fns.push(format!(
-			"fn {symbol}(tracked: &mut Vec<std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>>, captures: &[std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>]) -> std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue> {{\n{body}    {expression}\n}}\n"
+			"fn {symbol}(tracked: &mut Vec<std::rc::Rc<qwik::serdes::SerdesValue>>, captures: &[std::rc::Rc<qwik::serdes::SerdesValue>]) -> std::rc::Rc<qwik::serdes::SerdesValue> {{\n{body}    {expression}\n}}\n"
 		));
 		Ok(symbol)
 	}
@@ -1790,7 +1790,7 @@ impl ComponentGenerator<'_> {
 			)?;
 			writeln!(self.body, "    let fallback_qrl_{temp} = {fallback_qrl};").unwrap();
 			format!(
-				" else {{\n        {fallback_symbol}(ctx, {out_argument}, qwik_ssr_rt::render::qrl_captures(&fallback_qrl_{temp}));\n    }}"
+				" else {{\n        {fallback_symbol}(ctx, {out_argument}, qwik::render::qrl_captures(&fallback_qrl_{temp}));\n    }}"
 			)
 		};
 		writeln!(
@@ -1901,8 +1901,8 @@ impl ComponentGenerator<'_> {
 			self.body,
 			"    let then_qrl_{temp} = {then_qrl};\n    \
 			 let condition_qrl_{temp} = {condition_qrl};\n    \
-			 let mut {tracked}: Vec<std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>> = Vec::new();\n    \
-			 let branch_taken_{temp} = qwik_ssr_rt::render::truthy(&{condition_symbol}(&mut {tracked}, qwik_ssr_rt::render::qrl_captures(&condition_qrl_{temp})));\n    \
+			 let mut {tracked}: Vec<std::rc::Rc<qwik::serdes::SerdesValue>> = Vec::new();\n    \
+			 let branch_taken_{temp} = qwik::render::truthy(&{condition_symbol}(&mut {tracked}, qwik::render::qrl_captures(&condition_qrl_{temp})));\n    \
 			 let {effect} = ctx.create_branch_effect({range}, if branch_taken_{temp} {{ 0 }} else {{ 1 }}, {tracked}.clone(), std::rc::Rc::clone(&condition_qrl_{temp}), std::rc::Rc::clone(&then_qrl_{temp}), {else_qrl_argument});\n    \
 			 ctx.push_owner();"
 		)
@@ -1911,21 +1911,21 @@ impl ComponentGenerator<'_> {
 		writeln!(
 			self.body,
 			"    if branch_taken_{temp} {{\n        \
-			 {then_symbol}(ctx, {target_argument}, qwik_ssr_rt::render::qrl_captures(&then_qrl_{temp}));\n    \
+			 {then_symbol}(ctx, {target_argument}, qwik::render::qrl_captures(&then_qrl_{temp}));\n    \
 			 }} else {{"
 		)
 		.unwrap();
 		if let Some((_, else_symbol)) = &else_arm {
 			writeln!(
 				self.body,
-				"        {else_symbol}(ctx, {target_argument}, qwik_ssr_rt::render::qrl_captures(&else_qrl_{temp}));"
+				"        {else_symbol}(ctx, {target_argument}, qwik::render::qrl_captures(&else_qrl_{temp}));"
 			)
 			.unwrap();
 		}
 		writeln!(self.body, "    }}").unwrap();
 		writeln!(
 			self.body,
-			"    qwik_ssr_rt::render::SsrContext::set_branch_owner_items(&{effect}, ctx.pop_owner());"
+			"    qwik::render::SsrContext::set_branch_owner_items(&{effect}, ctx.pop_owner());"
 		)
 		.unwrap();
 		self.statics.push_str("<!/b>");
@@ -1976,7 +1976,7 @@ impl ComponentGenerator<'_> {
 		}
 		writeln!(
 			self.body,
-			"    let items_{temp}: Vec<std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>> = vec![{items}];\n    \
+			"    let items_{temp}: Vec<std::rc::Rc<qwik::serdes::SerdesValue>> = vec![{items}];\n    \
 			 for row_item_{temp} in items_{temp}.iter() {{"
 		)
 		.unwrap();
@@ -2075,8 +2075,8 @@ impl ComponentGenerator<'_> {
 				self.body,
 				"    let {range} = ctx.next_id();\n    \
 				 {target}.push_str(&format!(\"<!f={{}}>\", {range}));\n    \
-				 let mut {tracked}: Vec<std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>> = Vec::new();\n    \
-				 let items_{temp} = qwik_ssr_rt::render::tracked_array_items(&{source_signal}, &mut {tracked});\n    \
+				 let mut {tracked}: Vec<std::rc::Rc<qwik::serdes::SerdesValue>> = Vec::new();\n    \
+				 let items_{temp} = qwik::render::tracked_array_items(&{source_signal}, &mut {tracked});\n    \
 				 let {effect} = ctx.create_for_effect({range}, {tracked}.clone(), {key_qrl}, {render_qrl}, {uses_index_signal}, {row_shape});"
 			)
 			.unwrap();
@@ -2103,17 +2103,17 @@ impl ComponentGenerator<'_> {
 			writeln!(
 				self.body,
 				"    let {range} = ctx.next_id();\n    \
-				 let {derived} = qwik_ssr_rt::render::new_computed({source_qrl});\n    \
+				 let {derived} = qwik::render::new_computed({source_qrl});\n    \
 				 ctx.serializer.add_root(std::rc::Rc::clone(&{derived}));\n    \
 				 {target}.push_str(&format!(\"<!f={{}}>\", {range}));\n    \
-				 let items_{temp} = qwik_ssr_rt::render::array_items(&qwik_ssr_rt::render::computed_read_with(&{derived}, {source_symbol}));\n    \
+				 let items_{temp} = qwik::render::array_items(&qwik::render::computed_read_with(&{derived}, {source_symbol}));\n    \
 				 let {effect} = ctx.create_for_effect({range}, vec![std::rc::Rc::clone(&{derived})], {key_qrl}, {render_qrl}, {uses_index_signal}, {row_shape});"
 			)
 			.unwrap();
 		}
 		writeln!(
 			self.body,
-			"    let mut rows_{temp}: Vec<std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>> = Vec::new();\n    \
+			"    let mut rows_{temp}: Vec<std::rc::Rc<qwik::serdes::SerdesValue>> = Vec::new();\n    \
 			 for (row_index_{temp}, row_item_{temp}) in items_{temp}.iter().enumerate() {{"
 		)
 		.unwrap();
@@ -2123,9 +2123,9 @@ impl ComponentGenerator<'_> {
 			let index_variable = format!("row_index_signal_{temp}");
 			writeln!(
 				self.body,
-				"    let {index_variable} = qwik_ssr_rt::render::new_signal(std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Number(row_index_{temp} as f64)));\n    \
+				"    let {index_variable} = qwik::render::new_signal(std::rc::Rc::new(qwik::serdes::SerdesValue::Number(row_index_{temp} as f64)));\n    \
 				 ctx.serializer.add_root(std::rc::Rc::clone(&{index_variable}));\n    \
-				 qwik_ssr_rt::render::SsrContext::add_index_signal(&{effect}, std::rc::Rc::clone(&{index_variable}));"
+				 qwik::render::SsrContext::add_index_signal(&{effect}, std::rc::Rc::clone(&{index_variable}));"
 			)
 			.unwrap();
 			index_argument = format!(", &{index_variable}");
@@ -2144,7 +2144,7 @@ impl ComponentGenerator<'_> {
 				self.ir_expression(&op["keyIr"], &format!("(&mut {key_tracked})"))?;
 			writeln!(
 				self.body,
-				"    let mut {key_tracked}: Vec<std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>> = Vec::new();\n    \
+				"    let mut {key_tracked}: Vec<std::rc::Rc<qwik::serdes::SerdesValue>> = Vec::new();\n    \
 				 ctx.serializer.add_root({key_expression});\n    \
 				 let _ = {key_tracked};"
 			)
@@ -2159,10 +2159,10 @@ impl ComponentGenerator<'_> {
 		writeln!(
 			self.body,
 			"    ctx.push_owner();\n    \
-			 {row_symbol}(ctx, {target_argument}, row_item_{temp}{index_argument}, qwik_ssr_rt::render::qrl_captures(&row_qrl_{temp}));\n    \
-			 rows_{temp}.push(std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Array(ctx.pop_owner())));\n    \
+			 {row_symbol}(ctx, {target_argument}, row_item_{temp}{index_argument}, qwik::render::qrl_captures(&row_qrl_{temp}));\n    \
+			 rows_{temp}.push(std::rc::Rc::new(qwik::serdes::SerdesValue::Array(ctx.pop_owner())));\n    \
 			 }}\n    \
-			 ctx.push_owner_item(std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Array(rows_{temp})));"
+			 ctx.push_owner_item(std::rc::Rc::new(qwik::serdes::SerdesValue::Array(rows_{temp})));"
 		)
 		.unwrap();
 		self.statics.push_str("<!/f>");
@@ -2197,7 +2197,7 @@ impl ComponentGenerator<'_> {
 			self.body,
 			"    let content_qrl_{temp} = {content_qrl};\n    \
 			 let mut {buffer} = String::new();\n    \
-			 {content_symbol}(ctx, &mut {buffer}, qwik_ssr_rt::render::qrl_captures(&content_qrl_{temp}));"
+			 {content_symbol}(ctx, &mut {buffer}, qwik::render::qrl_captures(&content_qrl_{temp}));"
 		)
 		.unwrap();
 		let content_qrl = format!("std::rc::Rc::clone(&content_qrl_{temp})");
@@ -2217,7 +2217,7 @@ impl ComponentGenerator<'_> {
 			writeln!(self.body, "    let fallback_qrl_{temp} = {qrl};").unwrap();
 			(
 				format!("Some(std::rc::Rc::clone(&fallback_qrl_{temp}))"),
-				format!("|ctx: &mut qwik_ssr_rt::render::SsrContext, out: &mut String| {{ {fallback_symbol}(ctx, out, qwik_ssr_rt::render::qrl_captures(&fallback_qrl_{temp})); }}"),
+				format!("|ctx: &mut qwik::render::SsrContext, out: &mut String| {{ {fallback_symbol}(ctx, out, qwik::render::qrl_captures(&fallback_qrl_{temp})); }}"),
 			)
 		};
 		let out_argument = if target == "out" {
@@ -2271,10 +2271,10 @@ impl ComponentGenerator<'_> {
 		let qrl = self.qrl_expression(segment_id, false)?;
 		writeln!(
 			self.body,
-			"    let mut {tracked}: Vec<std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>> = Vec::new();\n    \
+			"    let mut {tracked}: Vec<std::rc::Rc<qwik::serdes::SerdesValue>> = Vec::new();\n    \
 			 let content_value_{temp} = {expression};\n    \
 			 ctx.create_content_effect({range}, {tracked}, vec![{args}], {qrl}, false);\n    \
-			 {target}.push_str(&qwik_ssr_rt::render::escape_ssr_content(&content_value_{temp}));"
+			 {target}.push_str(&qwik::render::escape_ssr_content(&content_value_{temp}));"
 		)
 		.unwrap();
 		self.statics.push_str("<!/d>");
@@ -2291,7 +2291,7 @@ impl ComponentGenerator<'_> {
 			match step["s"].as_str().ok_or("task step has no kind")? {
 				"if" => {
 					let test = self.ir_expression(&step["test"], tracked)?;
-					writeln!(output, "        if qwik_ssr_rt::render::truthy(&{test}) {{").unwrap();
+					writeln!(output, "        if qwik::render::truthy(&{test}) {{").unwrap();
 					let then_steps = step["then"]
 						.as_array()
 						.ok_or("if step has no then")?
@@ -2315,7 +2315,7 @@ impl ComponentGenerator<'_> {
 					let value = self.ir_expression(&step["value"], tracked)?;
 					writeln!(
 						output,
-						"        qwik_ssr_rt::render::set_signal_value(&{signal}, {value});"
+						"        qwik::render::set_signal_value(&{signal}, {value});"
 					)
 					.unwrap();
 				}
@@ -2380,8 +2380,8 @@ impl ComponentGenerator<'_> {
 			writeln!(
 				self.body,
 				"    ctx.serializer.add_root(std::rc::Rc::clone(&{computed}));\n    \
-				 let computed_value_{temp} = qwik_ssr_rt::render::computed_read_with(&{computed}, {computed_fn});\n    {subscribe}\n    \
-				 {target}.push_str(&qwik_ssr_rt::escape::escape_html(&qwik_ssr_rt::render::value_text(&computed_value_{temp})));"
+				 let computed_value_{temp} = qwik::render::computed_read_with(&{computed}, {computed_fn});\n    {subscribe}\n    \
+				 {target}.push_str(&qwik::escape::escape_html(&qwik::render::value_text(&computed_value_{temp})));"
 			)
 			.unwrap();
 			if is_range {
@@ -2402,7 +2402,7 @@ impl ComponentGenerator<'_> {
 			writeln!(
 				self.body,
 				"    ctx.serializer.add_root(std::rc::Rc::clone(&{signal}));\n    {subscribe}\n    \
-				 {target}.push_str(&qwik_ssr_rt::escape::escape_html(&qwik_ssr_rt::render::signal_text(&{signal})));"
+				 {target}.push_str(&qwik::escape::escape_html(&qwik::render::signal_text(&{signal})));"
 			)
 			.unwrap();
 		} else if let Some(segment_id) = op["value"]["segment"].as_str() {
@@ -2426,7 +2426,7 @@ impl ComponentGenerator<'_> {
 			let qrl = self.qrl_expression(segment_id, false)?;
 			writeln!(
 				self.body,
-				"    let mut {tracked}: Vec<std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>> = Vec::new();"
+				"    let mut {tracked}: Vec<std::rc::Rc<qwik::serdes::SerdesValue>> = Vec::new();"
 			)
 			.unwrap();
 			self.track_destructured_props(segment_id, &format!("&mut {tracked}"))?;
@@ -2444,7 +2444,7 @@ impl ComponentGenerator<'_> {
 				 if let Some(dep) = {tracked}.first() {{\n        \
 				 {subscribe}\n    \
 				 }}\n    \
-				 {target}.push_str(&qwik_ssr_rt::escape::escape_html(&qwik_ssr_rt::render::value_text(&{value})));"
+				 {target}.push_str(&qwik::escape::escape_html(&qwik::render::value_text(&{value})));"
 			)
 			.unwrap();
 		} else {
@@ -2495,7 +2495,7 @@ impl ComponentGenerator<'_> {
 			self.uses_props = true;
 			writeln!(
 				self.body,
-				"    qwik_ssr_rt::render::track_props_sources(&props, {tracked});"
+				"    qwik::render::track_props_sources(&props, {tracked});"
 			)
 			.unwrap();
 		}
@@ -2599,7 +2599,7 @@ impl ComponentGenerator<'_> {
 			}
 		}
 		Ok(format!(
-			"std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Qrl(qwik_ssr_rt::serdes::QrlValue {{\n        chunk: {chunk:?}.to_string(), symbol: {symbol:?}.to_string(), captures: vec![{captures}],\n    }}))"
+			"std::rc::Rc::new(qwik::serdes::SerdesValue::Qrl(qwik::serdes::QrlValue {{\n        chunk: {chunk:?}.to_string(), symbol: {symbol:?}.to_string(), captures: vec![{captures}],\n    }}))"
 		))
 	}
 
@@ -2617,7 +2617,7 @@ impl ComponentGenerator<'_> {
 		self.local_kinds.insert(binding, LocalKind::PlainValue);
 		let body = self.ir_expression(&lambda["body"], tracked)?;
 		Ok(format!(
-			"|{variable}: &std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>| {{\n        let predicate_value = {body};\n        qwik_ssr_rt::render::truthy(&predicate_value)\n    }}"
+			"|{variable}: &std::rc::Rc<qwik::serdes::SerdesValue>| {{\n        let predicate_value = {body};\n        qwik::render::truthy(&predicate_value)\n    }}"
 		))
 	}
 
@@ -2632,7 +2632,7 @@ impl ComponentGenerator<'_> {
 					return Err("computed reads inside expressions not supported yet".to_string());
 				}
 				Ok(format!(
-					"qwik_ssr_rt::render::tracked_signal_value(&{signal}, {tracked})"
+					"qwik::render::tracked_signal_value(&{signal}, {tracked})"
 				))
 			}
 			"binding-read" => {
@@ -2642,7 +2642,7 @@ impl ComponentGenerator<'_> {
 				let variable = self.local(binding)?;
 				match self.local_kinds.get(&binding) {
 					Some(LocalKind::IndexSignal) => Ok(format!(
-						"qwik_ssr_rt::render::tracked_signal_value(&{variable}, {tracked})"
+						"qwik::render::tracked_signal_value(&{variable}, {tracked})"
 					)),
 					Some(LocalKind::PlainValue) => Ok(format!("std::rc::Rc::clone(&{variable})")),
 					kind => Err(format!(
@@ -2662,13 +2662,13 @@ impl ComponentGenerator<'_> {
 					match self.local_kinds.get(&binding) {
 						Some(LocalKind::Store) | None => {
 							return Ok(format!(
-								"qwik_ssr_rt::render::member_read(&{variable}, {name:?}, {tracked})"
+								"qwik::render::member_read(&{variable}, {name:?}, {tracked})"
 							));
 						}
 						Some(LocalKind::PlainValue) => {
 							// plain values may hold signals — member_read keeps JS semantics
 							return Ok(format!(
-								"qwik_ssr_rt::render::member_read(&{variable}, {name:?}, {tracked})"
+								"qwik::render::member_read(&{variable}, {name:?}, {tracked})"
 							));
 						}
 						_ => {
@@ -2678,12 +2678,12 @@ impl ComponentGenerator<'_> {
 				}
 				let object_expression = self.ir_expression(object, tracked)?;
 				Ok(format!(
-					"qwik_ssr_rt::render::member_read(&{object_expression}, {name:?}, {tracked})"
+					"qwik::render::member_read(&{object_expression}, {name:?}, {tracked})"
 				))
 			}
 			"lit" => Ok(format!("std::rc::Rc::new({})", literal_expression(ir)?)),
 			"undef" => {
-				Ok("std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Undefined)".to_string())
+				Ok("std::rc::Rc::new(qwik::serdes::SerdesValue::Undefined)".to_string())
 			}
 			"bin" => {
 				let left = self.ir_expression(&ir["left"], tracked)?;
@@ -2696,7 +2696,7 @@ impl ComponentGenerator<'_> {
 					">" => "js_gt",
 					op => return Err(format!("binary operator {op:?} not supported yet")),
 				};
-				Ok(format!("qwik_ssr_rt::render::{helper}(&{left}, &{right})"))
+				Ok(format!("qwik::render::{helper}(&{left}, &{right})"))
 			}
 			"logic" => {
 				let a = self.ir_expression(&ir["left"], tracked)?;
@@ -2704,10 +2704,10 @@ impl ComponentGenerator<'_> {
 				// b evaluates only when taken — its tracked reads are dep-observable
 				match ir["op"].as_str().ok_or("logic ir has no op")? {
 					"&&" => Ok(format!(
-						"{{ let logic_a = {a}; if qwik_ssr_rt::render::truthy(&logic_a) {{ {b} }} else {{ logic_a }} }}"
+						"{{ let logic_a = {a}; if qwik::render::truthy(&logic_a) {{ {b} }} else {{ logic_a }} }}"
 					)),
 					"||" => Ok(format!(
-						"{{ let logic_a = {a}; if qwik_ssr_rt::render::truthy(&logic_a) {{ logic_a }} else {{ {b} }} }}"
+						"{{ let logic_a = {a}; if qwik::render::truthy(&logic_a) {{ logic_a }} else {{ {b} }} }}"
 					)),
 					op => Err(format!("logic operator {op:?} not supported yet")),
 				}
@@ -2718,25 +2718,25 @@ impl ComponentGenerator<'_> {
 				let then = self.ir_expression(&ir["then"], tracked)?;
 				let otherwise = self.ir_expression(&ir["else"], tracked)?;
 				Ok(format!(
-					"{{ if qwik_ssr_rt::render::truthy(&{test}) {{ {then} }} else {{ {otherwise} }} }}"
+					"{{ if qwik::render::truthy(&{test}) {{ {then} }} else {{ {otherwise} }} }}"
 				))
 			}
 			"template" => {
 				let mut parts = String::new();
 				for part in ir["parts"].as_array().ok_or("template parts missing")? {
 					if let Some(text) = part.as_str() {
-						write!(parts, "qwik_ssr_rt::render::TemplatePart::Text({text:?}), ")
+						write!(parts, "qwik::render::TemplatePart::Text({text:?}), ")
 							.unwrap();
 					} else {
 						let expression = self.ir_expression(part, tracked)?;
 						write!(
 							parts,
-							"qwik_ssr_rt::render::TemplatePart::Value({expression}), "
+							"qwik::render::TemplatePart::Value({expression}), "
 						)
 						.unwrap();
 					}
 				}
-				Ok(format!("qwik_ssr_rt::render::js_template(&[{parts}])"))
+				Ok(format!("qwik::render::js_template(&[{parts}])"))
 			}
 			"call" => {
 				let fn_id = ir["fn"].as_str().ok_or("call has no fn")?;
@@ -2775,7 +2775,7 @@ impl ComponentGenerator<'_> {
 					write!(entries, "({key:?}.to_string(), {value}), ").unwrap();
 				}
 				Ok(format!(
-					"std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Object(vec![{entries}]))"
+					"std::rc::Rc::new(qwik::serdes::SerdesValue::Object(vec![{entries}]))"
 				))
 			}
 			"array" => {
@@ -2784,7 +2784,7 @@ impl ComponentGenerator<'_> {
 					write!(items, "{}, ", self.ir_expression(item, tracked)?).unwrap();
 				}
 				Ok(format!(
-					"std::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::Array(vec![{items}]))"
+					"std::rc::Rc::new(qwik::serdes::SerdesValue::Array(vec![{items}]))"
 				))
 			}
 			"def-call" => {
@@ -2820,7 +2820,7 @@ fn object_literal_expression(ir: &Json) -> Result<String, String> {
 		.unwrap();
 	}
 	Ok(format!(
-		"qwik_ssr_rt::serdes::SerdesValue::Object(vec![{entries}])"
+		"qwik::serdes::SerdesValue::Object(vec![{entries}])"
 	))
 }
 
@@ -2835,7 +2835,7 @@ fn source_ir_of(op: &Json) -> Result<Json, String> {
 fn literal_expression(ir: &Json) -> Result<String, String> {
 	match ir["kind"].as_str().ok_or("ir node has no kind")? {
 		"lit" => json_literal_expression(&ir["value"]),
-		"undef" => Ok("qwik_ssr_rt::serdes::SerdesValue::Undefined".to_string()),
+		"undef" => Ok("qwik::serdes::SerdesValue::Undefined".to_string()),
 		"array" => {
 			let mut items = String::new();
 			for item in ir["items"].as_array().ok_or("array ir items missing")? {
@@ -2843,7 +2843,7 @@ fn literal_expression(ir: &Json) -> Result<String, String> {
 				write!(items, "std::rc::Rc::new({}), ", literal_expression(item)?).unwrap();
 			}
 			Ok(format!(
-				"qwik_ssr_rt::serdes::SerdesValue::Array(vec![{items}])"
+				"qwik::serdes::SerdesValue::Array(vec![{items}])"
 			))
 		}
 		"object" => object_literal_expression(ir),
@@ -2854,14 +2854,14 @@ fn literal_expression(ir: &Json) -> Result<String, String> {
 fn json_literal_expression(value: &Json) -> Result<String, String> {
 	match value {
 		Json::Number(number) => Ok(format!(
-			"qwik_ssr_rt::serdes::SerdesValue::Number({}f64)",
+			"qwik::serdes::SerdesValue::Number({}f64)",
 			number.as_f64().ok_or("literal is not an f64")?
 		)),
 		Json::String(text) => Ok(format!(
-			"qwik_ssr_rt::serdes::SerdesValue::String({text:?}.to_string())"
+			"qwik::serdes::SerdesValue::String({text:?}.to_string())"
 		)),
-		Json::Bool(boolean) => Ok(format!("qwik_ssr_rt::serdes::SerdesValue::Bool({boolean})")),
-		Json::Null => Ok("qwik_ssr_rt::serdes::SerdesValue::Null".to_string()),
+		Json::Bool(boolean) => Ok(format!("qwik::serdes::SerdesValue::Bool({boolean})")),
+		Json::Null => Ok("qwik::serdes::SerdesValue::Null".to_string()),
 		other => Err(format!("literal {other:?} not supported yet")),
 	}
 }

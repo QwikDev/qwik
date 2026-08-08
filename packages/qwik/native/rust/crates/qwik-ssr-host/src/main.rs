@@ -25,7 +25,7 @@ mod generated {
 
 struct App {
 	name: &'static str,
-	render: fn(&mut qwik_ssr_rt::render::SsrContext, &mut String),
+	render: fn(&mut qwik::render::SsrContext, &mut String),
 	client_dir: PathBuf,
 	chunk_map: HashMap<String, String>,
 	manifest_hash: String,
@@ -221,7 +221,7 @@ fn homepage(host: &Host) -> String {
 	for (name, reason) in &host.failed {
 		list.push_str(&format!(
 			"<li>❌ {name} — {}</li>",
-			qwik_ssr_rt::escape::escape_html(reason)
+			qwik::escape::escape_html(reason)
 		));
 	}
 	if list.is_empty() {
@@ -238,8 +238,8 @@ fn render(app: &App, counter: u64) -> String {
 		.map(|duration| duration.subsec_nanos() as u64)
 		.unwrap_or(0);
 	let instance = base36(nanos.wrapping_mul(counter.wrapping_add(1)) & 0x7fff_ffff);
-	let options = qwik_ssr_rt::render::PageOptions {
-		container: qwik_ssr_rt::render::ContainerOptions {
+	let options = qwik::render::PageOptions {
+		container: qwik::render::ContainerOptions {
 			tag: "html".to_string(),
 			version: "3.0.0-native".to_string(),
 			render_mode: "ssr".to_string(),
@@ -252,7 +252,7 @@ fn render(app: &App, counter: u64) -> String {
 		streaming: false,
 		chunk_map: Some(app.chunk_map.clone()),
 	};
-	let page = qwik_ssr_rt::render::render_page(&options, app.render);
+	let page = qwik::render::render_page(&options, app.render);
 	format!("<!DOCTYPE html>{page}")
 }
 

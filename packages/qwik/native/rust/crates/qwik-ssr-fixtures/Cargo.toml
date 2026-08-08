@@ -5,7 +5,7 @@ edition = "2021"
 publish = false
 
 [dependencies]
-qwik-ssr-rt = { path = "../qwik-ssr-rt" }
+qwik = { path = "../qwik" }
 qwik-ssr-std = { path = "../qwik-ssr-std" }
 
 [build-dependencies]

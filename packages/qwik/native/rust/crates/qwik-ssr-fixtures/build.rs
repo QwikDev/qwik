@@ -106,9 +106,9 @@ fn main() {
 			generated,
 			"#[allow(non_snake_case, unused_mut, unused_variables, clippy::type_complexity, clippy::comparison_to_empty, clippy::needless_borrow, clippy::needless_else, clippy::borrow_deref_ref)]\npub mod {module_name} {{\n{component_code}\
              pub fn render_page() -> String {{\n    \
-                 qwik_ssr_rt::render::render_page(\n        \
-                     &qwik_ssr_rt::render::PageOptions {{\n            \
-                         container: qwik_ssr_rt::render::ContainerOptions {{\n                \
+                 qwik::render::render_page(\n        \
+                     &qwik::render::PageOptions {{\n            \
+                         container: qwik::render::ContainerOptions {{\n                \
                              tag: {container_tag:?}.to_string(),\n                \
                              version: \"conformance\".to_string(),\n                \
                              render_mode: \"ssr-dev\".to_string(),\n                \

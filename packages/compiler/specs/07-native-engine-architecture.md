@@ -17,7 +17,7 @@ Each target language ships, in that language:
    - the plugin dispatch module (e.g. `generated/plugin_fns.rs`): all internal- and user-plugin
      function sources plus a match-based dispatcher for lambda-carrying/dynamic call sites.
    - a project manifest fragment (e.g. Cargo dependencies merged from plugin `dependencies`).
-2. **`qwik-ssr-rt` — the runtime core** the generated code calls. Deliberately minimal
+2. **`qwik` — the runtime core** the generated code calls. Deliberately minimal
    (user-confirmed): the core contains only the irreducible engine. All call-shaped JS surface —
    string/array methods, `URL`, `fetch`, `Date`, `JSON`, `Math` — lives in **internal plugin
    crates** (e.g. `qwik-ssr-std`) registered through the same mechanism as user plugins

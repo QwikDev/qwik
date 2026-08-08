@@ -212,7 +212,7 @@
       "exportName": "makeGreeting",
       "targets": {
         "rust": {
-          "source": "pub fn makeGreeting(\n\targs: &[std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>],\n) -> std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue> {\n\tlet name = match &*args[0] {\n\t\tqwik_ssr_rt::serdes::SerdesValue::String(text) => text.clone(),\n\t\t_ => String::new(),\n\t};\n\tstd::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::String(format!(\n\t\t\"hello {name}\"\n\t)))\n}\n"
+          "source": "qwik_ssr_rt::native_fn! {\n\tpub fn makeGreeting(name: String) -> String {\n\t\tformat!(\"hello {name}\")\n\t}\n}\n"
         }
       }
     }

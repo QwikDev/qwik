@@ -1751,9 +1751,6 @@ class JsComponentGenerator {
     parts: string[],
     pushStatic: (text: string) => void
   ): void {
-    if (operation.ssr.root) {
-      markUngeneratable();
-    }
     const contentSegment = valueSegment(operation.value);
     if (contentSegment === undefined) {
       markUngeneratable(operation);
@@ -1778,7 +1775,7 @@ class JsComponentGenerator {
     this.pushStep(
       step,
       captures,
-      `renderSsrContent(${this.names.ctx}, ${idVariable}, [${captures.join(', ')}], ${this.qrlExpression(meta, false)})`,
+      `renderSsrContent(${this.names.ctx}, ${idVariable}, [${captures.join(', ')}], ${this.qrlExpression(meta, false)}${operation.ssr.root ? ', true' : ''})`,
       deferred ? `${idVariable} ??= ${this.names.ctx}.nextId(); ` : undefined
     );
     parts.push(`createSsrRecord('<!d=', createSsrNodeId(${idVariable}), '>')`);

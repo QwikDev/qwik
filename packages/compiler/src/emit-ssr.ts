@@ -531,6 +531,7 @@ export function emitSsrSegmentRender(
       segment.kind === 'forRender' ||
       segment.kind === 'collectionRender' ||
       segment.kind === 'qrl' ||
+      segment.kind === 'expression' ||
       segment.kind === 'localComponent') &&
     wireBlock?.render.ops !== undefined &&
     // an owned root range needs a declared id the generator does not allocate yet

@@ -598,7 +598,20 @@ export function transformModule(ctx: CompilerContext): TransformResult {
       output.result.segments.some((candidate) => candidate.id === baseId)
     );
     if (owner === undefined) {
-      return undefined;
+      // module-level QRL segments belong to no component — serialize the block alone
+      if (segment.render === null) {
+        return undefined;
+      }
+      const moduleBlock = emitSsrOpPlan(
+        null,
+        segments,
+        componentReturnMode,
+        ctx.input.code,
+        planData.bindingName,
+        undefined,
+        segment
+      );
+      return moduleBlock === null ? undefined : { render: moduleBlock as never };
     }
     let wire = wireCache.get(owner);
     if (wire === undefined) {

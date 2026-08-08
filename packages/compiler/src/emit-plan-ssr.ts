@@ -366,7 +366,8 @@ export function findWireBlock(
 }
 
 export function emitSsrOpPlan(
-  component: ComponentPlan,
+  /** Null only in chunk mode: a module-level segment has no owning component. */
+  component: ComponentPlan | null,
   segments: readonly SegmentPlan[],
   returnMode: SsrComponentReturnModeResolver,
   source: string,
@@ -510,8 +511,14 @@ export function emitSsrOpPlan(
       }
     }
   };
-  collectSetupOps(component.setup);
-  collectRenderNodes(component.render.roots);
+  if (component !== null) {
+    collectSetupOps(component.setup);
+    collectRenderNodes(component.render.roots);
+  }
+  if (forSegment?.render != null) {
+    // chunk mode: the segment's own tree carries the setup ops its block references
+    collectRenderFnOps(forSegment.render);
+  }
 
   // proven QRL locals: `const x = $(...)` setup entries, binding → segment
   const qrlConstSegments = new Map<number, string>();
@@ -521,12 +528,12 @@ export function emitSsrOpPlan(
     }
   }
   // extraction-proven QRL consts (selectors over qrl factories) without their own setup op
-  const qrlValuedBindings = new Set<number>(component.qrlValuedBindings ?? []);
+  const qrlValuedBindings = new Set<number>(component?.qrlValuedBindings ?? []);
 
   const setupEntries = (setup: readonly SsrSetupOperation[]): PlanSetupEntry[] =>
     setup.flatMap((entry): PlanSetupEntry[] => {
       if (entry.kind === 'style') {
-        const planned = component.setup.find(
+        const planned = component?.setup.find(
           (item) => item.kind === 'style' && item.styleId === entry.styleId
         );
         const css =
@@ -938,7 +945,7 @@ export function emitSsrOpPlan(
       throw error;
     }
   }
-  const planned = planSsr(component, returnMode);
+  const planned = component === null ? null : planSsr(component, returnMode);
   if (planned === null) {
     return null;
   }

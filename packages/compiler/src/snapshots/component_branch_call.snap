@@ -110,17 +110,17 @@ q_semantic_expression_136_161_1jyi1z9jxbjxi.s(semantic_expression_136_161_1jyi1z
 
 export const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
   const props = _captures[0];
-  const contentId0 = ctx.nextId();
-  const content1 = renderSsrContent(
+  const content_id_0 = ctx.nextId();
+  const content_0 = renderSsrContent(
     ctx,
-    contentId0,
+    content_id_0,
     [props],
     q_semantic_expression_136_161_1jyi1z9jxbjxi,
     true
   );
-  return maybeThen(content1, (content1) => [
-    createSsrRecord('<!d=', createSsrNodeId(contentId0), '>'),
-    escapeSsrContent(content1),
+  return maybeThen(content_0, (content_0) => [
+    createSsrRecord('<!d=', createSsrNodeId(content_id_0), '>'),
+    escapeSsrContent(content_0),
     '<!/d>',
   ]);
 };
@@ -168,17 +168,17 @@ q_semantic_expression_164_191_22ve5rjpz86py.s(semantic_expression_164_191_22ve5r
 
 export const component_branch_else_segment_2_19dvu7nugnvkl = (ctx) => {
   const props = _captures[0];
-  const contentId0 = ctx.nextId();
-  const content1 = renderSsrContent(
+  const content_id_0 = ctx.nextId();
+  const content_0 = renderSsrContent(
     ctx,
-    contentId0,
+    content_id_0,
     [props],
     q_semantic_expression_164_191_22ve5rjpz86py,
     true
   );
-  return maybeThen(content1, (content1) => [
-    createSsrRecord('<!d=', createSsrNodeId(contentId0), '>'),
-    escapeSsrContent(content1),
+  return maybeThen(content_0, (content_0) => [
+    createSsrRecord('<!d=', createSsrNodeId(content_id_0), '>'),
+    escapeSsrContent(content_0),
     '<!/d>',
   ]);
 };

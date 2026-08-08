@@ -609,7 +609,26 @@ export function transformModule(ctx: CompilerContext): TransformResult {
       );
       wireCache.set(owner, wire);
     }
-    return wire === null ? undefined : findWireBlock(wire, segmentId);
+    const inWire = wire === null ? undefined : findWireBlock(wire, segmentId);
+    if (inWire !== undefined) {
+      return inWire;
+    }
+    // value-expression and embedded segments have no block on the component wire —
+    // serialize their own render with the same machinery
+    const own = owner.result.segments.find((candidate) => candidate.id === segmentId);
+    if (own === undefined || own.render === null) {
+      return undefined;
+    }
+    const block = emitSsrOpPlan(
+      owner.result,
+      owner.result.segments,
+      componentReturnMode,
+      ctx.input.code,
+      planData.bindingName,
+      undefined,
+      own
+    );
+    return block === null ? undefined : { render: block as never };
   };
   const emittedSegments = segments.filter((segment) =>
     shouldEmitSegmentModule(segment, ctx.emitTarget)

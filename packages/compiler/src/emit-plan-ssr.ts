@@ -371,7 +371,9 @@ export function emitSsrOpPlan(
   returnMode: SsrComponentReturnModeResolver,
   source: string,
   bindingName: (binding: number) => string | null = () => null,
-  rewriteJsStatement?: JsStatementRewriter
+  rewriteJsStatement?: JsStatementRewriter,
+  /** Serialize this segment's own render block instead of the component's. */
+  forSegment?: SegmentPlan
 ): PlanSsrComponent | null {
   const slice = (range: SourceRange) => source.slice(range[0], range[1]);
 
@@ -913,6 +915,29 @@ export function emitSsrOpPlan(
     }
   };
 
+  // chunk mode: serialize one segment's own render block with the same machinery
+  if (forSegment !== undefined) {
+    const target = planSsrSegmentRender(forSegment, segments, returnMode);
+    if (target === null) {
+      return null;
+    }
+    try {
+      return {
+        setup: setupEntries(target.setup),
+        ops: target.render.operations.map(op),
+        ssr: {
+          syncRender: target.render.synchronous,
+          needsRootRange: target.render.needsRootRange,
+          ...(target.render.staticRoot ? { staticRoot: true as const } : {}),
+        },
+      } as never;
+    } catch (error) {
+      if (error === UNPLANNABLE) {
+        return null;
+      }
+      throw error;
+    }
+  }
   const planned = planSsr(component, returnMode);
   if (planned === null) {
     return null;

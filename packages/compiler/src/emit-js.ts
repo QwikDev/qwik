@@ -169,7 +169,9 @@ export function emitJsSegmentBlock(
   sourceBindingName?: (binding: number) => string | null,
   importLocalName?: (module: string, exportName: string) => string | null,
   rootAttribute: string | null = null,
-  blockMarkers: readonly { readonly open: string; readonly close: string }[] = []
+  blockMarkers: readonly { readonly open: string; readonly close: string }[] = [],
+  propsShape: unknown = null,
+  providesContext = false
 ): {
   imports: string[];
   chunkImports: string[];
@@ -208,7 +210,13 @@ export function emitJsSegmentBlock(
     }
     generator.rootAttribute = rootAttribute;
     generator.blockMarkers = blockMarkers;
-    const pieces = generator.generateProduction('', block, null, false);
+    const pieces = generator.generateProduction(
+      '',
+      block,
+      propsShape as PropsShape,
+      providesContext,
+      true
+    );
     // captures arrive pre-rooted through the QRL capture table — their addRoot calls drop
     const dropCaptureRoots = (text: string): string => {
       for (const seed of captureSeeds) {
@@ -563,14 +571,15 @@ class JsComponentGenerator {
     name: string,
     ssr: PlanSsrComponent,
     propsShape: PropsShape,
-    providesContext: boolean
+    providesContext: boolean,
+    destructureProps = false
   ): JsRenderPieces {
     void name;
     const annotations = blockAnnotations(ssr as PlanSsrComponent);
     this.synchronous = annotations.syncRender;
     this.staticRoot = annotations.staticRoot;
-    // the emitted head owns the param destructure — bind locals only, emit no statement
-    this.bindPropsShape(propsShape, false);
+    // component heads own the param destructure; chunk bodies emit it themselves
+    this.bindPropsShape(propsShape, destructureProps);
     if (blockAnnotations(ssr as PlanSsrComponent).flushTasks) {
       this.invokeCtx();
     }

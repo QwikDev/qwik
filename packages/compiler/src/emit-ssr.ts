@@ -504,7 +504,7 @@ export function emitSsrSegmentRender(
   explicitExtensions = false,
   generatedNames = DEFAULT_GENERATED_NAMES,
   componentReturnMode?: SsrComponentReturnModeResolver,
-  wireBlock?: import('./emit-plan-ssr').PlanSsrRenderFn | import('./emit-plan-ssr').PlanSsrRow
+  wireBlock?: import('./emit-plan-ssr').WireBlockMatch
 ): {
   hoists: string[];
   statements: string[];
@@ -529,12 +529,13 @@ export function emitSsrSegmentRender(
       segment.kind === 'suspenseRender' ||
       segment.kind === 'forRender' ||
       segment.kind === 'collectionRender' ||
-      segment.kind === 'qrl') &&
-    wireBlock?.ops !== undefined &&
-    wireBlock.ssr.needsRootRange !== true
+      segment.kind === 'qrl' ||
+      segment.kind === 'localComponent') &&
+    wireBlock?.render.ops !== undefined &&
+    wireBlock.render.ssr.needsRootRange !== true
   ) {
     const generated = emitJsSegmentBlock(
-      wireBlock as never,
+      wireBlock.render as never,
       segments.map((candidate) => ({
         id: candidate.id,
         symbolName: candidate.symbolName,
@@ -590,7 +591,9 @@ export function emitSsrSegmentRender(
         ...(planned.slotMarker
           ? [{ open: `createSsrRecord('<!s=', createSsrNodeId(rangeId), '>')`, close: '<!/s>' }]
           : []),
-      ]
+      ],
+      wireBlock.props ?? null,
+      wireBlock.providesContext === true
     );
     if (generated !== null) {
       for (const name of generated.imports) {
@@ -614,9 +617,9 @@ export function emitSsrSegmentRender(
       segment.kind,
       segment.id,
       'block:',
-      wireBlock?.ops !== undefined,
+      wireBlock?.render.ops !== undefined,
       'rootRange:',
-      wireBlock?.ssr.needsRootRange === true,
+      wireBlock?.render.ssr.needsRootRange === true,
       'markers:',
       planned.rowMarker,
       planned.slotMarker

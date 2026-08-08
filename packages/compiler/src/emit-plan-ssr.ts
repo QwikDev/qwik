@@ -271,17 +271,24 @@ export type JsStatementRewriter = (
  * Finds the serialized wire block backing a segment inside a component's wire plan — the same block
  * nested emission consumes, reused for standalone chunk generation (rows, arms, slots).
  */
+export interface WireBlockMatch {
+  readonly render: PlanSsrRenderFn | PlanSsrRow;
+  /** Local-component entries carry their props shape and context flag beside the block. */
+  readonly props?: unknown;
+  readonly providesContext?: boolean;
+}
+
 export function findWireBlock(
   wire: PlanSsrComponent,
   segmentId: string
-): PlanSsrRenderFn | PlanSsrRow | undefined {
-  let found: PlanSsrRenderFn | PlanSsrRow | undefined;
+): WireBlockMatch | undefined {
+  let found: WireBlockMatch | undefined;
   const visitFn = (fn: PlanSsrRenderFn | PlanSsrRow | undefined | null): void => {
     if (found !== undefined || fn === undefined || fn === null) {
       return;
     }
     if (fn.segment === segmentId && fn.ops !== undefined) {
-      found = fn;
+      found = { render: fn };
       return;
     }
     visitSetup(fn.setup);
@@ -292,7 +299,26 @@ export function findWireBlock(
   const visitSetup = (setup: readonly PlanSetupEntry[]): void => {
     for (const entry of setup) {
       if ((entry as { kind?: string }).kind === 'render-fn') {
-        visitFn((entry as { render: PlanSsrRenderFn }).render);
+        const renderFn = entry as {
+          segment?: string;
+          props?: unknown;
+          providesContext?: boolean;
+          render: PlanSsrRenderFn;
+        };
+        // local components carry their chunk segment on the entry, not the block
+        if (
+          found === undefined &&
+          renderFn.segment === segmentId &&
+          renderFn.render.ops !== undefined
+        ) {
+          found = {
+            render: renderFn.render,
+            props: renderFn.props,
+            providesContext: renderFn.providesContext === true,
+          };
+          return;
+        }
+        visitFn(renderFn.render);
       }
     }
   };

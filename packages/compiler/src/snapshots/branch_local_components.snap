@@ -249,7 +249,6 @@ import {
 
 export const component_branch_else_segment_4_19dvrvh6znjhf = (ctx) => {
   const count = _captures[0];
-  ctx.addRoot(count);
   const component_0 = createComponent(
     _props(
       {

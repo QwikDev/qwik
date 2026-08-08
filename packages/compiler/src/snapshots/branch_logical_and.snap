@@ -117,8 +117,6 @@ export const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
   const attrs = _captures[0],
     label = _captures[1];
   const id_0 = ctx.nextId();
-  ctx.addRoot(attrs);
-  ctx.addRoot(label);
   const props_0 = renderSsrProps(
     createSsrElementTarget(id_0),
     [attrs, label],
@@ -128,7 +126,6 @@ export const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
   const invokeCtx = getActiveInvokeContextOrNull();
   const text_1 = () =>
     invoke(invokeCtx, () => {
-      ctx.addRoot(label);
       return renderSsrTextNode(createSsrRangeTextTarget(id_0, 0), label);
     });
   return maybeThen(props_0, (props_0) => {

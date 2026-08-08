@@ -528,11 +528,10 @@ export function emitSsrSegmentRender(
       segment.kind === 'slotRender' ||
       segment.kind === 'suspenseRender' ||
       segment.kind === 'forRender' ||
-      segment.kind === 'collectionRender') &&
+      segment.kind === 'collectionRender' ||
+      segment.kind === 'qrl') &&
     wireBlock?.ops !== undefined &&
-    wireBlock.ssr.needsRootRange !== true &&
-    !planned.rowMarker &&
-    !planned.slotMarker
+    wireBlock.ssr.needsRootRange !== true
   ) {
     const generated = emitJsSegmentBlock(
       wireBlock as never,
@@ -568,18 +567,30 @@ export function emitSsrSegmentRender(
         ctx: generatedNames.ctx,
         invokeCtx: generatedNames.invokeCtx,
       },
+      segment.captures.map((capture) => ({ binding: capture.bindingId, name: capture.name })),
+      // row params bind by their source names, matching the emitted head
+      (planned.parameterBindingIds ?? []).map((binding, index) => ({
+        binding,
+        name: source.slice(segment.paramRanges[index][0], segment.paramRanges[index][1]),
+      })),
+      undefined,
+      undefined,
+      undefined,
+      planned.rowRoot ? ` ${QwikAttributes.Row}` : null,
       [
-        ...segment.captures.map((capture) => ({ binding: capture.bindingId, name: capture.name })),
-        // row params bind by their source names, matching the emitted head
-        ...(planned.parameterBindingIds ?? []).map((binding, index) => ({
-          binding,
-          name: source.slice(segment.paramRanges[index][0], segment.paramRanges[index][1]),
-        })),
-      ],
-      undefined,
-      undefined,
-      undefined,
-      planned.rowRoot ? ` ${QwikAttributes.Row}` : null
+        // innermost first: rows bracket in a row-marker range, projections in a slot marker
+        ...(planned.rowMarker
+          ? [
+              {
+                open: `createSsrRecord('<!r=', createSsrNodeId(${planned.runtimeParameters?.includes('rowId') ? 'rowId' : '__rowId'}), '>')`,
+                close: '<!/r>',
+              },
+            ]
+          : []),
+        ...(planned.slotMarker
+          ? [{ open: `createSsrRecord('<!s=', createSsrNodeId(rangeId), '>')`, close: '<!/s>' }]
+          : []),
+      ]
     );
     if (generated !== null) {
       for (const name of generated.imports) {
@@ -595,6 +606,21 @@ export function emitSsrSegmentRender(
         directSegmentIds: planned.directSegmentIds,
       };
     }
+  }
+  if (process.env.QWIK_CHUNK_CENSUS === '1') {
+    // eslint-disable-next-line no-console
+    console.error(
+      'CHUNK-WALKER',
+      segment.kind,
+      segment.id,
+      'block:',
+      wireBlock?.ops !== undefined,
+      'rootRange:',
+      wireBlock?.ssr.needsRootRange === true,
+      'markers:',
+      planned.rowMarker,
+      planned.slotMarker
+    );
   }
   const emitted = emitSsrRenderTarget(
     planned,

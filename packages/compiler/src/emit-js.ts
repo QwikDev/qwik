@@ -163,11 +163,13 @@ export function emitJsSegmentBlock(
   contexts: QwikSsrPlan['modules'][number]['contexts'],
   pluginFns: QwikSsrPlan['pluginFns'],
   names: { props: string; ctx: string; invokeCtx: string },
-  seeds: readonly { readonly binding: number; readonly name: string }[],
+  captureSeeds: readonly { readonly binding: number; readonly name: string }[],
+  paramSeeds: readonly { readonly binding: number; readonly name: string }[] = [],
   moduleBindingName?: (binding: number) => string | null,
   sourceBindingName?: (binding: number) => string | null,
   importLocalName?: (module: string, exportName: string) => string | null,
-  rootAttribute: string | null = null
+  rootAttribute: string | null = null,
+  blockMarkers: readonly { readonly open: string; readonly close: string }[] = []
 ): {
   imports: string[];
   chunkImports: string[];
@@ -201,17 +203,35 @@ export function emitJsSegmentBlock(
       sourceBindingName,
       importLocalName
     );
-    for (const seed of seeds) {
+    for (const seed of [...captureSeeds, ...paramSeeds]) {
       generator.declare(seed.binding, seed.name);
     }
     generator.rootAttribute = rootAttribute;
+    generator.blockMarkers = blockMarkers;
     const pieces = generator.generateProduction('', block, null, false);
+    // captures arrive pre-rooted through the QRL capture table — their addRoot calls drop
+    const dropCaptureRoots = (text: string): string => {
+      for (const seed of captureSeeds) {
+        text = text.split(`${names.ctx}.addRoot(${seed.name}); `).join('');
+      }
+      return text;
+    };
+    const statements = [...pieces.setupStatements, ...pieces.statements]
+      .map((statement) => {
+        for (const seed of captureSeeds) {
+          if (statement === `${names.ctx}.addRoot(${seed.name});`) {
+            return null;
+          }
+        }
+        return dropCaptureRoots(statement);
+      })
+      .filter((statement): statement is string => statement !== null);
     return {
       imports: [...shared.imports, ...pieces.imports],
       chunkImports: shared.chunkImports,
       hoists: shared.hoists,
-      statements: [...pieces.setupStatements, ...pieces.statements],
-      value: pieces.value,
+      statements,
+      value: dropCaptureRoots(pieces.value),
     };
   } catch (error) {
     if (error === UNGENERATABLE) {
@@ -347,6 +367,8 @@ class JsComponentGenerator {
   private didEmitRoot = false;
   /** Chunk-only: attribute text appended to the root element's open record (` q:row`). */
   rootAttribute: string | null = null;
+  /** Chunk-only: marker ranges bracketing the block's parts, innermost first. */
+  blockMarkers: readonly { readonly open: string; readonly close: string }[] = [];
   /** Bindings declared as reactive sources (signal/store/computed) — prop getters track them. */
   private sourceKinds = new Set<number>();
   /** Use-id locals — reads of these are compile-time-proven stable strings. */
@@ -582,6 +604,18 @@ class JsComponentGenerator {
         parts[parts.length - 1] = JSON.stringify((JSON.parse(last) as string) + '<!/c>');
       } else {
         parts.push(JSON.stringify('<!/c>'));
+      }
+    }
+    // chunk markers bracket the parts, innermost first; closers merge into trailing statics
+    for (const marker of this.blockMarkers) {
+      this.imports.add('createSsrRecord');
+      this.imports.add('createSsrNodeId');
+      parts.unshift(marker.open);
+      const last = parts[parts.length - 1];
+      if (last !== undefined && isStringLiteral(last)) {
+        parts[parts.length - 1] = JSON.stringify((JSON.parse(last) as string) + marker.close);
+      } else {
+        parts.push(JSON.stringify(marker.close));
       }
     }
     const value = parts.length === 1 ? parts[0] : `[${parts.join(', ')}]`;

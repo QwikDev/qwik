@@ -67,8 +67,10 @@ export interface PluginFnPlan {
   readonly fnId: string;
   readonly module: string;
   readonly exportName: string;
-  readonly nativeName: string;
-  readonly targets: Record<string, { source: string; dependencies?: Record<string, string> }>;
+  /** Legacy claims only: the generated wrapper's fn name. native$ needs none. */
+  readonly nativeName?: string;
+  /** Inline `source`, or a `file` the native build reads relative to the declaring module. */
+  readonly targets: Record<string, { source?: string; file?: string }>;
 }
 
 let activePlugins: readonly QwikCompilerPlugin[] = [];
@@ -80,9 +82,19 @@ export function setActivePlugins(plugins: readonly QwikCompilerPlugin[] | undefi
   claimedFns = new Map();
 }
 
+/** Native$-declared implementations, keyed by fnId — registered per module transform. */
+let nativeFns = new Map<string, PluginFnPlan>();
+
+export function setNativeFns(fns: readonly PluginFnPlan[]): void {
+  nativeFns = new Map(fns.map((fn) => [fn.fnId, fn]));
+}
+
 /** Registry peek: does this fnId have a registered implementation for `target`? */
 export function hasPluginTarget(fnId: string, target: string): boolean {
-  return claimedFns.get(fnId)?.targets[target] !== undefined;
+  return (
+    claimedFns.get(fnId)?.targets[target] !== undefined ||
+    nativeFns.get(fnId)?.targets[target] !== undefined
+  );
 }
 
 /** Claimed fns collected since the last `setActivePlugins`, in first-claim order. */

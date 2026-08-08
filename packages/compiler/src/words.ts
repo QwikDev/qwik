@@ -122,6 +122,7 @@ export const enum QwikHooks {
   Dollar = '$',
   SyncDollar = 'sync$',
   ComponentDollar = 'component$',
+  NativeDollar = 'native$',
   UseConstant = 'useConstant',
   UseSignal = 'useSignal',
   UseStore = 'useStore',

@@ -365,3 +365,103 @@ describe('sync qrl handlers', () => {
     expect(meta.syncSource).toBe(`() => console.log("ready")`);
   });
 });
+
+describe('native$ marker', () => {
+  test('collects rust implementations and strips the marker from the module', async () => {
+    const result = await transformModules({
+      input: [
+        {
+          path: 'src/math.ts',
+          code: [
+            `import { native$, nativeCode, nativeFile } from '@qwik.dev/core';`,
+            ``,
+            'export const double = native$((value: number) => value * 2, {',
+            '  rust: nativeCode`pub fn double(args: &[Rc<SerdesValue>]) -> Rc<SerdesValue> { todo!() }`,',
+            `  go: nativeFile('./double.go'),`,
+            '});',
+          ].join('\n'),
+        },
+      ],
+      srcDir: 'src',
+      sourceMaps: false,
+      transpileTs: true,
+      transpileJsx: true,
+      isServer: true,
+      emitPlan: true,
+    } as TransformModulesOptions & { emitPlan: boolean });
+
+    expect(result.diagnostics).toEqual([]);
+    const emitted = result.modules.find((module) => module.path.endsWith('math.ts'))!;
+    // the marker is build-time only: the emitted module keeps the plain implementation
+    expect(emitted.code).not.toContain('native$');
+    expect(emitted.code).toContain('export const double = (value) => value * 2;');
+
+    const plan = JSON.parse(
+      result.modules.find((module) => module.path.endsWith('math.ts.plan.json'))!.code
+    );
+    expect(plan.pluginFns).toEqual([
+      {
+        fnId: 'plugin:./math:double',
+        module: './math',
+        exportName: 'double',
+        // the key names the language: any engine can be addressed
+        targets: {
+          rust: { source: expect.stringContaining('pub fn double') },
+          go: { file: './double.go' },
+        },
+      },
+    ]);
+  });
+});
+
+describe('native$ satisfies native readiness', () => {
+  const mathModule = [
+    `import { native$, nativeCode } from '@qwik.dev/core';`,
+    'export const double = native$((v: number) => v * 2, {',
+    '  rust: nativeCode`pub fn double() {}`,',
+    '});',
+    'export const triple = (v: number) => v * 3;',
+  ].join('\n');
+
+  const nativeDiagnostics = async (view: string) => {
+    const result = await transformModules({
+      input: [
+        { path: 'src/math.ts', code: mathModule },
+        { path: 'src/view.tsx', code: view },
+      ],
+      srcDir: 'src',
+      sourceMaps: false,
+      transpileTs: true,
+      transpileJsx: true,
+      isServer: true,
+      nativeTarget: 'rust',
+    } as TransformModulesOptions & { nativeTarget: string });
+    return result.diagnostics.map((diagnostic) => diagnostic.code);
+  };
+
+  test('a native$-backed call is native-ready across modules', async () => {
+    expect(
+      await nativeDiagnostics(
+        [
+          `import { double } from './math';`,
+          `export function App(props) {`,
+          `  return <p>{double(props.n)}</p>;`,
+          `}`,
+        ].join('\n')
+      )
+    ).toEqual([]);
+  });
+
+  test('a call without a native implementation is still reported', async () => {
+    expect(
+      await nativeDiagnostics(
+        [
+          `import { triple } from './math';`,
+          `export function App(props) {`,
+          `  return <p>{triple(props.n)}</p>;`,
+          `}`,
+        ].join('\n')
+      )
+    ).toEqual(['native-expression']);
+  });
+});

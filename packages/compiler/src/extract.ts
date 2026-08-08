@@ -1147,7 +1147,8 @@ class QrlExtractor {
       return null;
     }
     const qwik = imported !== null && isQwikImport(imported.source);
-    if (qwik && name === QwikHooks.ComponentDollar) {
+    // build-time markers, not QRL boundaries
+    if (qwik && (name === QwikHooks.ComponentDollar || name === QwikHooks.NativeDollar)) {
       return null;
     }
     const boundary: QrlBoundaryPlan =

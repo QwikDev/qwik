@@ -6,6 +6,9 @@ import type {
   TransformOutput,
 } from '@qwik.dev/optimizer';
 import { parseSync } from 'oxc-parser';
+import { analyzeModule } from './analysis';
+import { collectNativeMarkers, nativePluginFns } from './native-lower';
+import { setNativeFns } from './expr-lower';
 import { createModule, isJsxPath, isTypeScriptPath, transformWithOxc } from './module-utils';
 import { mapDiagnosticsToOriginal, normalizeTransformInput } from './normalization';
 import { parseModule } from './parse';
@@ -20,6 +23,8 @@ export type { QwikModulePlan } from './emit-plan';
 export type { PluginClaimSite, PluginFnPlan, QwikCompilerPlugin } from './expr-lower';
 
 export async function transformModules(options: TransformModulesOptions): Promise<TransformOutput> {
+  // native$ crosses modules: register every declaration before any module lowers a call to it
+  registerNativeFns(options.input);
   const results = await Promise.all(options.input.map((input) => transformInput(input, options)));
   const modules = results.flatMap((result) => result.modules);
 
@@ -242,6 +247,27 @@ function isSourceNode(value: unknown): value is SourceNode {
 }
 
 const SOURCE_NODE_KEYS = new Set(['type', 'start', 'end', 'range', 'loc']);
+
+/** Pre-pass: collect `native$` declarations across all inputs into the target registry. */
+function registerNativeFns(inputs: readonly TransformModuleInput[]): void {
+  const fns = inputs.flatMap((input) => {
+    if (!/native\$/.test(input.code)) {
+      return [];
+    }
+    try {
+      const parsed = parseSync(input.path, input.code, {
+        lang: input.path.endsWith('x') ? 'tsx' : 'ts',
+      });
+      const analysis = analyzeModule(parsed.program as never);
+      const { markers } = collectNativeMarkers(parsed.program as never, analysis, input.code);
+      return nativePluginFns(markers, input.path);
+    } catch {
+      // a parse failure surfaces from the real transform, with proper diagnostics
+      return [];
+    }
+  });
+  setNativeFns(fns);
+}
 
 async function transformInput(
   input: TransformModuleInput,

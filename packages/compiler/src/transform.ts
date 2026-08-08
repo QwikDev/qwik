@@ -26,6 +26,7 @@ import {
 } from './transform-diagnostics';
 import { createComponentDefinition, discoverComponentCandidates } from './discover';
 import { emitCsrModule, emitCsrSegmentRender } from './emit-csr';
+import { collectNativeMarkers, nativePluginFns, type NativeMarker } from './native-lower';
 import { emitSsrOpPlan, findWireBlock, type PlanSsrComponent } from './emit-plan-ssr';
 import {
   emitModulePlan,
@@ -148,8 +149,14 @@ export function transformModule(ctx: CompilerContext): TransformResult {
       ],
     };
   }
+  // native$ markers must be stripped and collected even in a module with no components
+  const native = collectNativeMarkers(program, analysis, ctx.input.code);
+  if (native.diagnostics.length > 0) {
+    return transformFailure(ctx, native.diagnostics[0].range, native.diagnostics[0].message);
+  }
   if (
     candidates.length === 0 &&
+    native.markers.length === 0 &&
     extractedQrls.invalidBoundaries.length === 0 &&
     !extractedQrls.segments.some((segment) => segment.parentId === null && segment.qrl !== null) &&
     analysis.jsxFunctionRanges.length === 0
@@ -430,7 +437,10 @@ export function transformModule(ctx: CompilerContext): TransformResult {
     ctx.emitTarget
   );
   // shared plan-side tables: production JS emission and plan emission read the same data
-  const claimedPluginFns = drainClaimedPluginFns();
+  const claimedPluginFns = [
+    ...drainClaimedPluginFns(),
+    ...nativePluginFns(native.markers, ctx.input.path),
+  ];
   const planData: SsrPlanData = {
     defs: (extractedQrls.moduleDefs ?? []).map((def) => ({ name: def.name })),
     contexts: collectPlanContexts(program, analysis),
@@ -502,7 +512,8 @@ export function transformModule(ctx: CompilerContext): TransformResult {
     segments,
     extractedQrls.moduleDeclarations,
     removableMarkers,
-    markerRetargets
+    markerRetargets,
+    native.markers
   );
   if (main === null) {
     return transformFailure(ctx, null, 'The compiler produced incomplete component output.');
@@ -759,12 +770,20 @@ function assembleMainModule(
   segments: readonly SegmentPlan[],
   declarations: readonly ModuleDeclaration[],
   removableMarkers: ReadonlySet<BindingId>,
-  markerRetargets: ReadonlyMap<BindingId, MarkerImportRetarget>
+  markerRetargets: ReadonlyMap<BindingId, MarkerImportRetarget>,
+  nativeMarkers: readonly NativeMarker[] = []
 ): TransformModule | null {
   const emittedComponents = new Map(
     emitted.components.map((component) => [component.identity, component])
   );
-  const replacements: RangeReplacement[] = [...emitted.replacements];
+  const replacements: RangeReplacement[] = [
+    ...emitted.replacements,
+    // native$ is a build-time marker: the module keeps the implementation alone
+    ...nativeMarkers.map((marker) => ({
+      range: marker.range,
+      value: ctx.input.code.slice(marker.implementationRange[0], marker.implementationRange[1]),
+    })),
+  ];
   const markerImports = createUnusedMarkerImportReplacements(
     program,
     ctx.input.code,
@@ -777,7 +796,8 @@ function assembleMainModule(
         componentModules,
         segments,
         emitted.imports,
-        ctx.emitTarget
+        ctx.emitTarget,
+        nativeMarkers
       ),
     ]),
     markerRetargets
@@ -1526,7 +1546,8 @@ function findUnusedMainImportBindings(
   componentModules: readonly LocalComponentModule[],
   segments: readonly SegmentPlan[],
   runtimeImports: readonly string[],
-  target: 'csr' | 'ssr'
+  target: 'csr' | 'ssr',
+  nativeMarkers: readonly NativeMarker[] = []
 ): BindingId[] {
   const used = new Set<BindingId>();
   const replacedRanges = [
@@ -1535,6 +1556,8 @@ function findUnusedMainImportBindings(
     ...segments.flatMap((segment) =>
       segment.lifetimeId === null && segment.parentId === null ? [segment.functionRange] : []
     ),
+    // the marker call is replaced by its implementation, so its own reads do not count
+    ...nativeMarkers.map((marker) => marker.range),
   ];
   for (const reference of analysis.references) {
     if (

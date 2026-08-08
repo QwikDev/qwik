@@ -1,5 +1,3 @@
-qwik::native! {
-	pub fn makeGreeting(name: String) -> String {
-		format!("hello {name}")
-	}
+pub fn makeGreeting(name: String) -> String {
+	format!("hello {name}")
 }

@@ -1,6 +1,6 @@
-//! Author-facing surface for `native$` implementations (specs/09). The generator calls every
-//! plugin fn through one untyped ABI — `&[Rc<SerdesValue>] -> Rc<SerdesValue>` — because the wire
-//! carries no signature. `native!` writes that shim so the implementation is plain Rust.
+//! Author-facing surface for `native$` implementations (specs/09). An implementation is an
+//! ordinary Rust function: the generated call site converts its arguments and return value
+//! through these traits, so nothing Qwik-shaped appears in the authored source.
 
 use crate::serdes::{SerdesValue, SignalState};
 use std::cell::RefCell;
@@ -24,19 +24,11 @@ pub trait IntoSerdes {
 	fn into_serdes(self) -> Rc<SerdesValue>;
 }
 
-/// Reads one argument for `native!`. A mismatch is a codegen or authoring bug, never user
-/// input, so it panics naming the function and parameter instead of coercing.
-pub fn arg<T: FromSerdes>(
-	args: &[Rc<SerdesValue>],
-	index: usize,
-	fn_name: &str,
-	arg_name: &str,
-) -> T {
-	let Some(value) = args.get(index) else {
-		panic!("native fn {fn_name}: missing argument {index} ({arg_name})");
-	};
+/// Converts one generated call argument to the parameter type the implementation declares. A
+/// mismatch is a codegen or authoring bug, never user input, so it panics naming the call.
+pub fn arg<T: FromSerdes>(value: &SerdesValue, fn_name: &str, index: usize) -> T {
 	T::from_serdes(value)
-		.unwrap_or_else(|reason| panic!("native fn {fn_name}: argument {arg_name}: {reason}"))
+		.unwrap_or_else(|reason| panic!("native fn {fn_name}: argument {index}: {reason}"))
 }
 
 fn kind_of(value: &SerdesValue) -> &'static str {
@@ -139,37 +131,4 @@ impl IntoSerdes for Rc<SerdesValue> {
 	fn into_serdes(self) -> Rc<SerdesValue> {
 		self
 	}
-}
-
-/// Defines a `native$` implementation with plain Rust types, generating the untyped ABI the
-/// generator calls.
-///
-/// ```ignore
-/// qwik::native! {
-///     pub fn double(value: f64) -> f64 { value * 2.0 }
-/// }
-/// ```
-#[macro_export]
-macro_rules! native {
-	(
-		$(#[$attr:meta])*
-		pub fn $name:ident($($arg:ident: $arg_ty:ty),* $(,)?) -> $ret:ty $body:block
-	) => {
-		$(#[$attr])*
-		#[allow(non_snake_case)]
-		pub fn $name(
-			args: &[::std::rc::Rc<$crate::serdes::SerdesValue>],
-		) -> ::std::rc::Rc<$crate::serdes::SerdesValue> {
-			fn implementation($($arg: $arg_ty),*) -> $ret $body
-			#[allow(unused_mut)]
-			let mut index = 0usize;
-			$(
-				let $arg: $arg_ty =
-					$crate::native::arg(args, index, stringify!($name), stringify!($arg));
-				index += 1;
-			)*
-			let _ = index;
-			$crate::native::IntoSerdes::into_serdes(implementation($($arg),*))
-		}
-	};
 }

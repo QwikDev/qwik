@@ -70,13 +70,14 @@ interface ClaimSite {
   (`generated/plugin_fns.rs` with a match dispatcher), and merges `dependencies` into the
   generated project manifest. Duplicate claims across plugins are a hard error
   (`native-plugin-conflict`).
-- Call ABI (Rust reference): `fn(args: &[Rc<SerdesValue>]) -> Rc<SerdesValue>`. It is uniform and
-  untyped because the wire carries no signature — the generator emits the same call shape for
-  every plugin fn.
-- Authors do not write that ABI. `qwik::native!` takes a plain Rust signature and
-  generates the shim, converting through `FromSerdes`/`IntoSerdes`; a mismatched argument panics
-  naming the function and parameter. Signal-valued fields stay `Signal<T>` across the boundary —
-  they are reactive cells the serializer walks, not plain data.
+- An implementation is an ordinary function — `pub fn buildData(count: usize) -> Vec<Row>` for the
+  Rust reference. Nothing Qwik-shaped appears in the authored source, so it stays formattable and
+  testable as plain Rust. Types in the signature must be public, as for any public function.
+- The generated call site does the converting: `into_serdes(f(arg(&value, "f", 0)))`. Inference
+  picks each conversion from the callee's signature, so the generator needs no type information
+  from the wire, and an arity mismatch is a compile error rather than a runtime one.
+- Signal-valued fields stay `Signal<T>` across the boundary — they are reactive cells the
+  serializer walks, not plain data.
 
 ## Coverage validation and diagnostics
 

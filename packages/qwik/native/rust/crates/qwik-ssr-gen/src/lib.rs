@@ -2572,13 +2572,25 @@ impl ComponentGenerator<'_> {
 			.as_str()
 			.ok_or("plugin fn has no exportName")?
 			.to_string();
+		// the implementation is plain Rust: convert here, letting inference pick each type
 		let mut args = String::new();
-		for arg in ir["args"].as_array().ok_or("plugin-call args missing")? {
+		for (index, arg) in ir["args"]
+			.as_array()
+			.ok_or("plugin-call args missing")?
+			.iter()
+			.enumerate()
+		{
 			let value = literal_expression(arg)
 				.map_err(|reason| format!("plugin-call arg: {reason} (literals only for now)"))?;
-			write!(args, "std::rc::Rc::new({value}), ").unwrap();
+			write!(
+				args,
+				"qwik::native::arg(&{value}, {export_name:?}, {index}), "
+			)
+			.unwrap();
 		}
-		Ok(format!("{native_name}::{export_name}(&[{args}])"))
+		Ok(format!(
+			"qwik::native::IntoSerdes::into_serdes({native_name}::{export_name}({args}))"
+		))
 	}
 
 	fn qrl_expression(&mut self, segment_id: &str, with_captures: bool) -> Result<String, String> {

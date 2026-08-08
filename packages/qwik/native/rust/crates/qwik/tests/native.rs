@@ -1,11 +1,11 @@
-//! `native$` author surface (specs/09): a typed implementation must round-trip through the
-//! untyped `&[Rc<SerdesValue>]` ABI the generator emits, and reject a mismatch loudly.
+//! `native$` author surface (specs/09): an implementation is plain Rust, and the generated call
+//! site converts across the boundary. Each test mirrors what `qwik-ssr-gen` emits for a call.
 
-use qwik::native::{IntoSerdes, Signal};
+use qwik::native::{arg, IntoSerdes, Signal};
 use qwik::serdes::SerdesValue;
 use std::rc::Rc;
 
-struct Row {
+pub struct Row {
 	id: u64,
 	label: Signal<String>,
 }
@@ -19,23 +19,23 @@ impl IntoSerdes for Row {
 	}
 }
 
-qwik::native! {
-	pub fn buildRows(count: usize, prefix: String) -> Vec<Row> {
-		(0..count)
-			.map(|index| Row {
-				id: index as u64,
-				label: Signal::new(format!("{prefix}{index}")),
-			})
-			.collect()
-	}
+// nothing Qwik-shaped: this is what an author writes
+#[allow(non_snake_case)]
+pub fn buildRows(count: usize, prefix: String) -> Vec<Row> {
+	(0..count)
+		.map(|index| Row {
+			id: index as u64,
+			label: Signal::new(format!("{prefix}{index}")),
+		})
+		.collect()
 }
 
 #[test]
-fn typed_signature_round_trips_through_the_untyped_abi() {
-	let result = buildRows(&[
-		Rc::new(SerdesValue::Number(2.0)),
-		Rc::new(SerdesValue::String("row-".to_string())),
-	]);
+fn a_generated_call_converts_both_directions() {
+	let result = IntoSerdes::into_serdes(buildRows(
+		arg(&SerdesValue::Number(2.0), "buildRows", 0),
+		arg(&SerdesValue::String("row-".to_string()), "buildRows", 1),
+	));
 
 	let SerdesValue::Array(rows) = &*result else {
 		panic!("expected an array");
@@ -58,16 +58,8 @@ fn typed_signature_round_trips_through_the_untyped_abi() {
 }
 
 #[test]
-#[should_panic(expected = "native fn buildRows: argument count: expected number, got string")]
-fn argument_type_mismatch_names_the_function_and_parameter() {
-	buildRows(&[
-		Rc::new(SerdesValue::String("not a count".to_string())),
-		Rc::new(SerdesValue::String("row-".to_string())),
-	]);
-}
-
-#[test]
-#[should_panic(expected = "native fn buildRows: missing argument 1 (prefix)")]
-fn a_missing_argument_names_the_parameter() {
-	buildRows(&[Rc::new(SerdesValue::Number(1.0))]);
+#[should_panic(expected = "native fn buildRows: argument 0: expected number, got string")]
+fn an_argument_type_mismatch_names_the_call() {
+	let count: usize = arg(&SerdesValue::String("not a count".to_string()), "buildRows", 0);
+	let _ = count;
 }

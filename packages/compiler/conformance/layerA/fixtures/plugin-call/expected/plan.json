@@ -212,7 +212,7 @@
       "exportName": "makeGreeting",
       "targets": {
         "rust": {
-          "source": "qwik::native! {\n\tpub fn makeGreeting(name: String) -> String {\n\t\tformat!(\"hello {name}\")\n\t}\n}\n"
+          "source": "pub fn makeGreeting(name: String) -> String {\n\tformat!(\"hello {name}\")\n}\n"
         }
       }
     }

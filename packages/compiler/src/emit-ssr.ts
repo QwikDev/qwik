@@ -524,7 +524,9 @@ export function emitSsrSegmentRender(
   }
   // plan-first chunk bodies, kind by kind; the walker below is the in-migration fallback
   if (
-    segment.kind === 'branchRender' &&
+    (segment.kind === 'branchRender' ||
+      segment.kind === 'slotRender' ||
+      segment.kind === 'suspenseRender') &&
     wireBlock?.ops !== undefined &&
     wireBlock.ssr.needsRootRange !== true &&
     !planned.rowRoot &&

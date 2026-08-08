@@ -20,6 +20,7 @@ import { _UNINITIALIZED } from '../utils/constants';
 import { maybeThen } from '../utils/promises';
 import type { ValueOrPromise } from '../utils/types';
 import { _constants, TypeIds, type Constants } from './constants';
+import { SYNC_QRL } from '../qrl/qrl-utils';
 import { createQRLWithBackChannel } from './qrl-to-string';
 import { findQwikElement } from '../../runtime/node-walker';
 import { allocatePropsProxy } from '../../component/props';
@@ -82,7 +83,7 @@ export const allocate = (
     case TypeIds.Object:
       return {};
     case TypeIds.QRL: {
-      if (typeof value === 'string') {
+      if (typeof value === 'string' && !value.startsWith('#')) {
         const [chunkId, symbolId, captureDeltas] = parseSerializedQrlRootIds(value);
         const captures = captureDeltas === null ? null : value;
         return maybeThen(context.getRoot(chunkId), (chunk) =>
@@ -91,8 +92,11 @@ export const allocate = (
           )
         );
       }
-      // Sync qrl
-      return createQRLWithBackChannel('', String(value), null, context) as QRLInternal;
+      // Sync qrl: the payload is its table key
+      const syncKey = typeof value === 'string' ? value.slice(1) : String(value);
+      const syncQrl = createQRLWithBackChannel('', SYNC_QRL, null, context) as QRLInternal;
+      (syncQrl as { $syncKey$?: string }).$syncKey$ = syncKey;
+      return syncQrl;
     }
     case TypeIds.URL:
       return new URL(value as string);

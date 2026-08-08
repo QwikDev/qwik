@@ -477,8 +477,8 @@ export class Serializer {
                   this.$qrlMap$.set(data, qrlValue);
                 }
               } else {
-                // sync QRL
-                data = Number(symbol);
+                // sync QRL: '#' marks the compiler's table key, never a root-id pair
+                data = `#${symbol}`;
               }
 
               this.output(TypeIds.QRL, data);

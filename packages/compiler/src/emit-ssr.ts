@@ -270,7 +270,8 @@ export function emitSsrModule(
       const value = source.slice(firstArg[0], firstArg[1]);
       replacements.push({
         range: segment.range,
-        value: `${callee}(${value})`,
+        // the key addresses the container's sync-function table
+        value: `${callee}(${value}, ${JSON.stringify(segment.symbolName)})`,
       });
     } else if (boundary?.kind === 'implicit' && boundary.role === 'visible-task') {
       const documentEvent =
@@ -772,7 +773,8 @@ export function rewriteJsSetupStatement(
       const value = source.slice(firstArg[0], firstArg[1]);
       replacements.push({
         range: segment.range,
-        value: `${callee}(${value})`,
+        // the key addresses the container's sync-function table
+        value: `${callee}(${value}, ${JSON.stringify(segment.symbolName)})`,
       });
     } else if (boundary?.kind === 'implicit' && segment.calleeRange !== null) {
       const callee = getTargetCallee(segment, 'ssr', qrlImports, localImplementationSource);

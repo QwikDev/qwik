@@ -60,10 +60,10 @@ export function qrlToString(
       chunk = chunk.slice(2);
     }
   } else {
-    const fn = qrl.resolved as Function;
     chunk = '';
-    // TODO test that provided stringified fn is used
-    symbol = String(serializationContext.$addSyncFn$(null, 0, fn));
+    // the compiler emits the function into the container's table under this key
+    const syncKey = (qrl as { $syncKey$?: string }).$syncKey$;
+    symbol = syncKey ?? String(serializationContext.$addSyncFn$(null, 0, qrl.resolved as Function));
   }
 
   const captures = qrl.getCaptured();

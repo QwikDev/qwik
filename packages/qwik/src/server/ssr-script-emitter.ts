@@ -5,7 +5,7 @@ import {
   type SsrOutput,
   type SsrReferenceChunk,
 } from '@qwik.dev/core';
-import { escapeHTML, TypeIds } from './qwik-copy';
+import { escapeHTML, QFuncsPrefix, TypeIds } from './qwik-copy';
 import { getQwikLoaderScript } from './scripts';
 import type { QwikLoaderOptions } from './types';
 
@@ -153,6 +153,19 @@ export class SsrScriptEmitter {
       `(window._qwikEv||(window._qwikEv=[])).push(${Array.from(eventNames, (eventName) =>
         JSON.stringify(eventName)
       ).join(',')})`
+    );
+  }
+
+  /**
+   * Sync handlers must be callable the moment their element is parsed, so the compiler places this
+   * definition immediately before the element that references it.
+   */
+  emitSyncFn(key: string, source: string, instanceHash: string): string {
+    const table = JSON.stringify(`${QFuncsPrefix}${instanceHash}`);
+    return this.writeScript(
+      // no `type`: the browser must execute this, and `type=qwik/json` is the state script
+      { 'q:func': 'qwik/json', nonce: this.getNonce() },
+      escapeScript(`((d)=>{(d[${table}]??={})[${JSON.stringify(key)}]=${source}})(document)`)
     );
   }
 

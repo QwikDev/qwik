@@ -72,6 +72,8 @@ export interface SsrRenderContext extends ServerDataContext {
   addRoot(value: unknown): number;
   contextScopeRef(): SsrReferenceChunk;
   eventAttr(name: string, value: unknown, hasMovedCaptures?: boolean): SsrEventAttrChunk;
+  /** Registers a compiler-emitted sync handler; returns its table script the first time. */
+  syncFn(key: string, source: string): string;
   deferSuspense(
     rangeId: number,
     contentQrl: QRL<SsrSuspenseRender>,
@@ -133,6 +135,7 @@ export const renderToStreamCompiled = async <Props = undefined>(
     const buildBase = getBuildBase(opts);
     const locale = getLocale(opts);
     const instanceHash = opts.instanceHash ?? randomStr();
+    const emittedSyncFns = new Set<string>();
     const containerAttributes = createContainerAttributes(
       opts,
       resolvedManifest,
@@ -331,6 +334,14 @@ export const renderToStreamCompiled = async <Props = undefined>(
       },
       eventAttr(name, value, hasMovedCaptures = false) {
         return createSsrEventAttr(serializationCtx, name, value, hasMovedCaptures || locale !== '');
+      },
+      syncFn(key, source) {
+        // one definition per container: repeated uses of the same handler cost nothing
+        if (emittedSyncFns.has(key)) {
+          return '';
+        }
+        emittedSyncFns.add(key);
+        return scripts.emitSyncFn(key, source, instanceHash);
       },
       deferSuspense(rangeId, contentQrl, fallbackQrl, delay) {
         return deferSuspense(ctx, null, rangeId, contentQrl, fallbackQrl, delay, outOfOrder);

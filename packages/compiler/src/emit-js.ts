@@ -385,6 +385,8 @@ class JsComponentGenerator {
   blockMarkers: readonly { readonly open: string; readonly close: string }[] = [];
   /** Chunk-only: runtime id name for range targets anchored on the block's own range. */
   rootRangeName: string | null = null;
+  /** Sync handlers referenced by this block: key → source, emitted as a table script. */
+  private readonly syncFns = new Map<string, string>();
   /** Bindings declared as reactive sources (signal/store/computed) — prop getters track them. */
   private sourceKinds = new Set<number>();
   /** Use-id locals — reads of these are compile-time-proven stable strings. */
@@ -623,6 +625,16 @@ class JsComponentGenerator {
         parts.push(JSON.stringify('<!/c>'));
       }
     }
+    // sync handlers define themselves ahead of the HTML that references them; source holes
+    // never reach qrlExpression, so every sync segment in scope registers here
+    for (const candidate of this.segments) {
+      if (candidate.qrl?.kind === 'sync' && candidate.syncSource !== undefined) {
+        this.syncFns.set(candidate.symbolName, candidate.syncSource);
+      }
+    }
+    for (const [key, source] of this.syncFns) {
+      parts.unshift(`${this.names.ctx}.syncFn(${JSON.stringify(key)}, ${JSON.stringify(source)})`);
+    }
     // chunk markers bracket the parts, innermost first; closers merge into trailing statics
     for (const marker of this.blockMarkers) {
       this.imports.add('createSsrRecord');
@@ -763,6 +775,9 @@ class JsComponentGenerator {
       } else {
         parts.push(JSON.stringify('<!/c>'));
       }
+    }
+    for (const [key, source] of this.syncFns) {
+      parts.unshift(`${this.names.ctx}.syncFn(${JSON.stringify(key)}, ${JSON.stringify(source)})`);
     }
     const value = parts.length === 1 ? parts[0] : `[${parts.join(', ')}]`;
     const returnStatement = this.wrapAsync(value);
@@ -2364,7 +2379,8 @@ class JsComponentGenerator {
         markUngeneratable(meta.id);
       }
       this.imports.add('_qrlSync');
-      return `_qrlSync(${meta.syncSource})`;
+      this.syncFns.set(meta.symbolName, meta.syncSource);
+      return `_qrlSync(${meta.syncSource}, ${JSON.stringify(meta.symbolName)})`;
     }
     const qrl = `q_${meta.symbolName}`;
     if (!this.shared.production && !this.hoistedSegments.has(meta.id)) {

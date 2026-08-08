@@ -9,6 +9,7 @@ export { OwnerFlags, SubscriberFlags } from '../core/reactive/flags';
 export { SubscriberKind } from '../core/runtime/subscriber';
 export { SYNC_QRL } from '../core/shared/qrl/qrl-utils';
 export { QContainerValue } from '../core/shared/types';
+export { QFuncsPrefix } from '../core/shared/utils/markers';
 export { escapeHTML } from '../core/shared/utils/character-escaping';
 export {
   EventNameHtmlScope,

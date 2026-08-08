@@ -25,6 +25,8 @@ import type { ContainerContext } from '../../runtime/container-context';
 
 interface SyncQRLSymbol {
   $symbol$: typeof SYNC_QRL;
+  /** Compiler-assigned key into the container's sync-function table. */
+  $syncKey$?: string;
 }
 
 export type SyncQRLInternal = QRLInternal & SyncQRLSymbol;
@@ -182,7 +184,7 @@ export class LazyRef<TYPE = unknown> {
       const hash = element.getAttribute(QInstanceAttr)!;
       const doc = element.ownerDocument || document;
       const qFuncs = getQFuncs(doc, hash);
-      return (this.$ref$ = qFuncs[Number(this.$symbol$)] as TYPE);
+      return (this.$ref$ = qFuncs[(this as { $syncKey$?: string }).$syncKey$!] as TYPE);
     }
 
     if (isBrowser && this.$chunk$) {

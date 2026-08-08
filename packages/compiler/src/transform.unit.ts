@@ -63,7 +63,8 @@ export const handler = sync$(() => 42);`,
     });
 
     expect(result.diagnostics).toEqual([]);
-    expect(result.modules[0]?.code).toContain('_qrlSync(() => 42)');
+    // the key addresses the container's table; the source itself is never duplicated as a string
+    expect(result.modules[0]?.code).toMatch(/_qrlSync\(\(\) => 42, "[^"]+"\)/);
     expect(result.modules[0]?.code).not.toContain('"() => 42"');
   });
 

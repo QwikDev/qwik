@@ -163,7 +163,7 @@ export async function renderSsrToDom<Props>(
     // `html` is what the server streamed, before inline scripts run.
     const streamedHtml = container.innerHTML;
     applyBackpatchScripts(document);
-    installSyncQrls(document, qwikContainer, rendered.snapshotResult?.funcs);
+    installSyncQrls(document);
     createContainerContext(qwikContainer, scheduler);
 
     const importModule = shouldResume
@@ -278,26 +278,18 @@ function applyBackpatchScripts(document: Document): void {
   Object.defineProperty(document, 'currentScript', { configurable: true, value: null });
 }
 
-function installSyncQrls(
-  document: Document,
-  container: Element,
-  sources?: readonly string[]
-): void {
-  const instance = container.getAttribute('q:instance');
-  if (instance === null || sources === undefined || sources.length === 0) {
-    return;
-  }
+/** Runs the compiler-emitted `q:func` scripts, which a real browser executes while parsing. */
+function installSyncQrls(document: Document): void {
   const win = document.defaultView as Window;
-  const functions = sources.map((source) => {
+  const scripts = Array.from(document.querySelectorAll('script[q\\:func]'));
+  for (const script of scripts) {
+    const code = script.textContent;
+    if (code === null) {
+      continue;
+    }
     // eslint-disable-next-line no-new-func
-    return new Function('window', 'document', 'history', 'location', `return (${source})`)(
-      win,
-      document,
-      win.history,
-      win.location
-    );
-  });
-  (document as Document & Record<string, unknown>)[`qFuncs_${instance}`] = functions;
+    new Function('window', 'document', code)(win, document);
+  }
 }
 
 function hasQwikLoader(container: Element): boolean {

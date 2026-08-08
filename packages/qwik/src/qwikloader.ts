@@ -209,7 +209,7 @@ const resolveHandler = (
     reqTime,
   };
   if (!chunk) {
-    const handler = ((doc as any)['qFuncs_' + container.getAttribute('q:instance')] || [])[+symbol];
+    const handler = ((doc as any)['qFuncs_' + container.getAttribute('q:instance')] || {})[symbol];
     if (!handler && reportSyncError) {
       const error = new Error('sym:' + symbol);
       emitEvent<QwikErrorEvent>('qerror', {

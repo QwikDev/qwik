@@ -1,4 +1,4 @@
-import { component$ } from '@qwik.dev/core';
+import { component$, sync$ } from '@qwik.dev/core';
 import { useSignal } from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
 import { csrRender, ssrRender, testRenderer } from '../test-utils';
@@ -16,6 +16,50 @@ describe.runIf(testRenderer.render === ssrRender)('ssrRender: qwikloader', () =>
     expect(container.querySelector('button')?.getAttribute('q-e:click')).toBeTruthy();
     expect(html).toContain('id="qwikloader"');
     expect(html).toContain('(window._qwikEv||(window._qwikEv=[])).push("e:click")');
+
+    cleanup();
+  });
+
+  it('defines sync handlers before the element that uses them', async () => {
+    const SyncHandler = component$(() => {
+      return <button onClick$={sync$(() => console.log('sync'))}>Click</button>;
+    });
+
+    const { container, html, cleanup } = await ssrRender(SyncHandler, { debug });
+
+    // the table must be defined ahead of the element: a click cannot outrun the stream
+    const table = html.indexOf('qFuncs_');
+    expect(table, 'sync fn table emitted').toBeGreaterThan(-1);
+    expect(html.slice(table)).toContain('console.log("sync")');
+    expect(table).toBeLessThan(html.indexOf('<button'));
+    // the attribute addresses the same key the table defines
+    const key = container.querySelector('button')?.getAttribute('q-e:click')?.slice(1);
+    expect(key).toBeTruthy();
+    expect(html.slice(table)).toContain(`["${key}"]=`);
+
+    cleanup();
+  });
+
+  it('runs a sync handler without loading a chunk', async () => {
+    const SyncCounter = component$(() => {
+      return (
+        <button
+          id="target"
+          onClick$={sync$((_event: Event, element: Element) => {
+            element.setAttribute('data-sync', 'ran');
+          })}
+        >
+          Click
+        </button>
+      );
+    });
+
+    const { container, cleanup, qwikLoader } = await ssrRender(SyncCounter, { debug });
+    const button = container.querySelector('button')!;
+
+    await qwikLoader?.dispatch(button, 'click');
+
+    expect(button.getAttribute('data-sync')).toBe('ran');
 
     cleanup();
   });

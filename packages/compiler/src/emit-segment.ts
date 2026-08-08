@@ -218,7 +218,8 @@ function emitSegmentCode(
         const value = source.slice(firstArg[0], firstArg[1]);
         replacements.push({
           range: child.range,
-          value: `${callee}(${value})`,
+          // the key addresses the container's sync-function table
+          value: `${callee}(${value}, ${JSON.stringify(child.symbolName)})`,
         });
         continue;
       }

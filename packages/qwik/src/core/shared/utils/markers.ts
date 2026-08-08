@@ -15,8 +15,8 @@ export const QwikEvContainerReady = 0;
 export const getQFuncs = (
   document: Document,
   hash: string
-): Array<(...args: unknown[]) => unknown> => {
-  return (document as any)[QFuncsPrefix + hash] || [];
+): Record<string, (...args: unknown[]) => unknown> => {
+  return (document as any)[QFuncsPrefix + hash] || {};
 };
 
 export const QRenderAttr = 'q:render';

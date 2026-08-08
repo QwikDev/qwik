@@ -245,6 +245,10 @@ export function emitJsSegmentBlock(
     };
   } catch (error) {
     if (error === UNGENERATABLE) {
+      if (process.env.QWIK_JSGEN_DEBUG === '1') {
+        // eslint-disable-next-line no-console
+        console.error('chunk', UNGENERATABLE_SITE);
+      }
       return null;
     }
     throw error;
@@ -1602,15 +1606,26 @@ class JsComponentGenerator {
       } else if (prop.kind === 'event') {
         const event = prop as {
           name: string;
-          handlers: readonly { value?: { segment?: string } }[];
+          handlers: readonly { value?: unknown }[];
         };
-        const segmentId = event.handlers[0]?.value?.segment;
-        if (event.handlers.length !== 1 || segmentId === undefined) {
-          markUngeneratable();
+        // event props pass the handler QRL — or an array of them — as a plain prop value
+        const qrls = event.handlers.map((handler) => {
+          const segmentId = handler.value === undefined ? undefined : valueSegment(handler.value);
+          if (segmentId !== undefined) {
+            return this.qrlExpression(this.segment(segmentId));
+          }
+          // consumer-provided handlers arrive as a plain value (props.onClick$)
+          const ir = handler.value === undefined ? undefined : valueIr(handler.value);
+          if (ir === undefined) {
+            markUngeneratable(prop);
+          }
+          return this.irJs(ir);
+        });
+        if (qrls.length === 0) {
+          markUngeneratable(prop);
         }
-        // event props pass the handler QRL as a plain prop value
         literalRun().push(
-          `${JSON.stringify(event.name)}: ${this.qrlExpression(this.segment(segmentId))}`
+          `${JSON.stringify(event.name)}: ${qrls.length === 1 ? qrls[0] : `[${qrls.join(', ')}]`}`
         );
       } else if (prop.kind === 'spread') {
         const item = prop as { value: { ir?: ValueIR } };

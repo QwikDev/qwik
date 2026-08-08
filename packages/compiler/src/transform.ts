@@ -683,7 +683,14 @@ export function transformModule(ctx: CompilerContext): TransformResult {
     generatedNames
   );
   if (segmentModules === null || segmentModules.length !== emittedSegments.length) {
-    return transformFailure(ctx, null, 'The compiler could not emit extracted segments.');
+    const reason = lastUngeneratedReason();
+    return transformFailure(
+      ctx,
+      null,
+      reason === ''
+        ? 'The compiler could not emit extracted segments.'
+        : `The compiler cannot emit ${reason}. Deliver the construct as a plugin or rewrite it.`
+    );
   }
   const mapRange = mapMetadataRange(ctx);
   const mappedSegments = segmentModules.map((module, index) => {

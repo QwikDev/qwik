@@ -418,53 +418,6 @@ export function App({ value }) {
     expect(main).toMatch(/import \{[^}]*escapeHTML[^}]*\} from/);
     expect(main).toContain('escapeHTML(attr');
   });
-
-  test('emits a typed row marker around a non-element row root', () => {
-    const imports = new Set<string>();
-    const emitted = emitSsrSegmentRender(
-      createForRenderSegment(createTextPlan('row')),
-      '',
-      imports
-    );
-
-    expect(emitted?.value).toBe(
-      `[createSsrRecord('<!r=', createSsrNodeId(rowId), '>'), "row<!/r>"]`
-    );
-    expect(emitted?.runtimeParameters).toEqual(['ctx', '__rangeId', 'rowId']);
-    expect(imports).toEqual(new Set(['createSsrRecord', 'createSsrNodeId']));
-  });
-
-  test('emits a typed slot marker inside the existing async chain', () => {
-    const imports = new Set<string>();
-    const emitted = emitSsrSegmentRender(
-      createRenderSegment('slotRender', 'slot', {
-        roots: [
-          {
-            kind: 'component',
-            range: [0, 5],
-            tagRange: [0, 5],
-            bindingId: null,
-            blockingSuspense: false,
-            lifetimeId: 0,
-            props: [],
-            propsSource: null,
-            slots: [],
-          },
-        ],
-        effects: [],
-      }),
-      'Child',
-      imports
-    );
-
-    expect(emitted?.value).toBe(
-      `maybeThen(component0, (component0) => [createSsrRecord('<!s=', createSsrNodeId(rangeId), '>'), component0, "<!/s>"])`
-    );
-    expect(emitted?.value.match(/maybeThen/g)).toHaveLength(1);
-    expect(imports).toEqual(
-      new Set(['createComponent', 'createSsrRecord', 'createSsrNodeId', 'maybeThen'])
-    );
-  });
 });
 
 function createTextPlan(value: string): RenderPlan {

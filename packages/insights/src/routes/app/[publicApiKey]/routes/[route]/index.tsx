@@ -84,7 +84,7 @@ export const RouteDetailView = component$<{
   const headline = getHeadline(latest, previous, change);
 
   return (
-    <div class="mx-auto max-w-[1264px] font-editorial-ui text-editorial-primary">
+    <div class="font-editorial-ui text-editorial-primary">
       <header class="flex flex-col gap-editorial-5 md:flex-row md:items-end md:justify-between">
         <div>
           <p class="text-editorial-11 font-semibold tracking-[0.04em] text-editorial-muted uppercase">

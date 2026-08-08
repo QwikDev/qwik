@@ -54,7 +54,7 @@ const ErrorsView = component$<{
   const eventCount = groups.reduce((total, group) => total + group.occurrences, 0);
 
   return (
-    <div class="mx-auto max-w-[1264px] font-editorial-ui text-editorial-primary">
+    <div class="font-editorial-ui text-editorial-primary">
       <p class="text-editorial-11 font-semibold tracking-[0.04em] text-editorial-muted uppercase">
         Error triage
       </p>

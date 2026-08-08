@@ -25,7 +25,7 @@ export default component$(() => {
       <ApplicationNavigation basePath={path} />
       <div class="min-w-0">
         <Header showBrand={false} />
-        <main class="min-h-[calc(100vh-var(--spacing-editorial-header))] p-editorial-8">
+        <main class="min-h-[calc(100vh-var(--spacing-editorial-header))] p-editorial-8 mx-auto max-w-[1264px]">
           <Slot />
         </main>
       </div>

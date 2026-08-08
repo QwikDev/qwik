@@ -54,7 +54,7 @@ export default component$(() => {
   const selectedBundle = data.value.bundles.at(selectedIndex.value) ?? data.value.bundles.at(0);
 
   return (
-    <div class="mx-auto max-w-[1264px] font-editorial-ui text-editorial-primary">
+    <div class="font-editorial-ui text-editorial-primary">
       <header class="border-b border-editorial-border pb-editorial-6">
         <p class="text-editorial-11 font-semibold tracking-[0.04em] text-editorial-muted uppercase">
           Bundle analysis
@@ -78,7 +78,7 @@ export default component$(() => {
       </div>
 
       {selectedBundle ? (
-        <div class="grid overflow-hidden rounded-editorial-lg border border-editorial-border bg-editorial-surface xl:grid-cols-[15rem_minmax(28rem,1fr)_minmax(20rem,0.85fr)]">
+        <div class="grid overflow-hidden border-y border-editorial-border xl:grid-cols-[15rem_minmax(28rem,1fr)_minmax(20rem,0.85fr)]">
           <section
             class="min-w-0 border-b border-editorial-border xl:border-r xl:border-b-0"
             aria-labelledby="bundle-list-title"
@@ -91,7 +91,7 @@ export default component$(() => {
                 Bundles
               </h2>
             </div>
-            <ol class="max-h-[calc(70vmin-20px)] overflow-y-auto p-editorial-2">
+            <ol class="p-editorial-2">
               {data.value.bundles.map((bundle, index) => {
                 const isSelected = index === selectedIndex.value;
                 return (
@@ -159,9 +159,9 @@ export default component$(() => {
                 {getBundleExecutionCount(selectedBundle).toLocaleString('en')} executions
               </p>
             </div>
-            <div class="max-h-[calc(70vmin-20px)] overflow-auto">
+            <div>
               <table class="w-full min-w-[360px] text-left text-editorial-12">
-                <thead class="sticky top-0 border-b border-editorial-border bg-editorial-surface text-editorial-11 tracking-[0.04em] text-editorial-muted uppercase">
+                <thead class="sticky top-0 border-b border-editorial-border bg-editorial-canvas text-editorial-11 tracking-[0.04em] text-editorial-muted uppercase">
                   <tr>
                     <th class="px-editorial-5 py-editorial-3 font-semibold">Symbol</th>
                     <th class="px-editorial-3 py-editorial-3 text-right font-semibold">

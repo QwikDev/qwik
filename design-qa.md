@@ -67,4 +67,54 @@
 - Full-view and focused comparison: blocked because an in-app browser is unavailable and Playwright
   Chromium has not been approved for this workspace
 
+## Edge graph
+
+- Source visual truth: Penpot board `cf68e076-4315-8007-8008-4faf7359cacf`
+- Source pixels and viewport: 1440 x 1024 CSS px at 1x density
+- Source capture: inspected after removing the tree panel fill, stroke, and radius
+- Implementation: `packages/insights/src/routes/app/[publicApiKey]/symbols/edge/index.tsx`
+- Implementation screenshot path and pixels: unavailable because the protected route requires the
+  user's authenticated browser session and no user-approved browser is available in this session
+- Target state: page 1 with real edge data, Previous disabled, and Next enabled when another page
+  exists
+- Fonts and typography: existing editorial sans and mono tokens are used; visual comparison blocked
+- Spacing and layout: Penpot-derived header, pagination, legend, open-canvas tree, node spacing, and
+  solid hierarchy rails are implemented with existing editorial spacing tokens; visual comparison
+  blocked
+- Colors and tokens: the large white panel was removed; existing canvas, semantic, accent, border,
+  and data-series tokens are used; visual comparison blocked
+- Image quality and assets: the source contains no raster imagery; existing SymbolTile iconography is
+  reused
+- Copy and content: the header explains the 100-manifest window; counts, symbol hashes, and depths use
+  loader data rather than placeholders
+- Primary interactions: Previous and Next use the shared Button and ButtonLink components and preserve
+  query-string pagination; browser interaction testing is blocked
+- Automated checks: 7 focused edge-tree tests, Prettier, ESLint, diff validation, client build, and
+  server build passed
+- Full-view and focused comparison: blocked because the implementation cannot be captured in the
+  user's authenticated browser; no P0/P1/P2 visual iteration can be claimed without that evidence
+
+## Bundles canvas
+
+- Source visual truth: Penpot board `483e883e-3fd8-8092-8008-6715e35560a8`
+- Source pixels and viewport: 1440 x 1024 CSS px at 1x density
+- Source capture: inspected; the layout already uses the application canvas without an outer white
+  card
+- Implementation: `packages/insights/src/routes/app/[publicApiKey]/symbols/bundles/index.tsx`
+- Implementation screenshot path and pixels: unavailable because the protected route requires the
+  user's authenticated browser session and no user-approved browser is available in this session
+- Target state: selected bundle with the relationship matrix and symbol evidence visible
+- Fonts and typography: existing editorial sans and mono tokens are unchanged; visual comparison
+  blocked
+- Spacing and layout: the outer radius and enclosing card border were replaced with horizontal
+  section separators; the matrix layout is unchanged
+- Colors and tokens: the enclosing white surface and sticky white table header were replaced with
+  the existing canvas token; selected and hover states are unchanged
+- Image quality and assets: no raster imagery is present and existing symbol iconography is retained
+- Copy and content: unchanged
+- Primary interactions and console: browser testing is blocked; bundle selection logic is unchanged
+- Automated checks: Prettier, ESLint, diff validation, and client build passed
+- Full-view and focused comparison: blocked because the implementation cannot be captured in the
+  user's authenticated browser; no P0/P1/P2 visual iteration can be claimed without that evidence
+
 final result: blocked

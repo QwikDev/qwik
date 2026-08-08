@@ -70,11 +70,13 @@ interface ClaimSite {
   (`generated/plugin_fns.rs` with a match dispatcher), and merges `dependencies` into the
   generated project manifest. Duplicate claims across plugins are a hard error
   (`native-plugin-conflict`).
-- Required implementation signature (Rust reference):
-  `fn(args: &[Value], ctx: &SsrCtx) -> Result<Value, SsrError>`, plus an async variant returning
-  a host future with a cancel token. `Value` is the engine's JS-semantics type
-  ([06](./06-js-semantics-profile.md)); `Opaque` values let plugins hand out host objects (e.g.
-  `qwik:url` values) that only plugins can consume.
+- Call ABI (Rust reference): `fn(args: &[Rc<SerdesValue>]) -> Rc<SerdesValue>`. It is uniform and
+  untyped because the wire carries no signature — the generator emits the same call shape for
+  every plugin fn.
+- Authors do not write that ABI. `qwik_ssr_rt::native_fn!` takes a plain Rust signature and
+  generates the shim, converting through `FromSerdes`/`IntoSerdes`; a mismatched argument panics
+  naming the function and parameter. Signal-valued fields stay `Signal<T>` across the boundary —
+  they are reactive cells the serializer walks, not plain data.
 
 ## Coverage validation and diagnostics
 

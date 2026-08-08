@@ -6,6 +6,7 @@
 pub mod coerce;
 pub mod escape;
 pub mod json;
+pub mod native;
 pub mod number;
 pub mod render;
 pub mod serdes;

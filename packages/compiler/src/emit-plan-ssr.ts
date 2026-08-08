@@ -374,7 +374,9 @@ export function emitSsrOpPlan(
   bindingName: (binding: number) => string | null = () => null,
   rewriteJsStatement?: JsStatementRewriter,
   /** Serialize this segment's own render block instead of the component's. */
-  forSegment?: SegmentPlan
+  forSegment?: SegmentPlan,
+  /** Serialize a bare render fn (module-level JSX in a plain function). */
+  forRender?: RenderFunctionPlan
 ): PlanSsrComponent | null {
   const slice = (range: SourceRange) => source.slice(range[0], range[1]);
 
@@ -518,6 +520,9 @@ export function emitSsrOpPlan(
   if (forSegment?.render != null) {
     // chunk mode: the segment's own tree carries the setup ops its block references
     collectRenderFnOps(forSegment.render);
+  }
+  if (forRender !== undefined) {
+    collectRenderFnOps(forRender);
   }
 
   // proven QRL locals: `const x = $(...)` setup entries, binding → segment
@@ -923,8 +928,11 @@ export function emitSsrOpPlan(
   };
 
   // chunk mode: serialize one segment's own render block with the same machinery
-  if (forSegment !== undefined) {
-    const target = planSsrSegmentRender(forSegment, segments, returnMode);
+  if (forSegment !== undefined || forRender !== undefined) {
+    const target =
+      forSegment !== undefined
+        ? planSsrSegmentRender(forSegment, segments, returnMode)
+        : planSsrRenderFunction(forRender!, segments, returnMode);
     if (target === null) {
       return null;
     }

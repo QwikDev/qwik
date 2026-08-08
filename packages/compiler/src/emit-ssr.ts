@@ -359,7 +359,8 @@ export function emitSsrModule(
         path,
         extensions,
         generated,
-        componentReturnMode
+        componentReturnMode,
+        planData
       ),
     generatedNames
   );
@@ -542,46 +543,11 @@ export function emitSsrSegmentRender(
   ) {
     const generated = emitJsSegmentBlock(
       wireBlock.render as never,
-      segments.map((candidate) => ({
-        id: candidate.id,
-        symbolName: candidate.symbolName,
-        chunk: getSegmentImportPath(inputPath, candidate, explicitExtensions),
-        kind: candidate.kind,
-        resolved:
-          candidate.parentId === segment.id &&
-          candidate.qrl?.kind !== 'sync' &&
-          !isModuleStyleBoundary(candidate) &&
-          shouldResolveSsrSegment(candidate),
-        qrl:
-          candidate.qrl === null
-            ? null
-            : {
-                kind: candidate.qrl.kind,
-                ...(candidate.qrl.kind === 'implicit' ? { role: candidate.qrl.role } : {}),
-              },
-        ...(candidate.qrl?.kind === 'sync' && candidate.argumentRanges[0] != null
-          ? {
-              syncSource: source.slice(
-                candidate.argumentRanges[0]![0],
-                candidate.argumentRanges[0]![1]
-              ),
-            }
-          : {}),
-        captures: candidate.captures.map((capture) => ({
-          binding: capture.bindingId,
-          name: capture.name,
-          source: capture.source,
-          access: capture.access,
-        })),
-      })),
+      chunkSegmentMetas(segments, source, inputPath, explicitExtensions, segment.id),
       planData.defs as never,
       planData.contexts,
       planData.pluginFns as never,
-      {
-        props: generatedNames.props,
-        ctx: generatedNames.ctx,
-        invokeCtx: generatedNames.invokeCtx,
-      },
+      { props: generatedNames.props, ctx: generatedNames.ctx, invokeCtx: generatedNames.invokeCtx },
       // component-prop captures ride the props param, not the `_captures` prelude
       segment.captures
         .filter((capture) => capture.access !== 'component-prop')
@@ -654,6 +620,48 @@ export function emitSsrSegmentRender(
       };
 }
 
+/** Segment metadata for chunk generation: `resolved` mirrors the chunk's own `.s()` hoists. */
+function chunkSegmentMetas(
+  segments: readonly SegmentPlan[],
+  source: string,
+  inputPath: string,
+  explicitExtensions: boolean,
+  parentId: string | null
+) {
+  return segments.map((candidate) => ({
+    id: candidate.id,
+    symbolName: candidate.symbolName,
+    chunk: getSegmentImportPath(inputPath, candidate, explicitExtensions),
+    kind: candidate.kind,
+    resolved:
+      candidate.parentId === parentId &&
+      candidate.qrl?.kind !== 'sync' &&
+      !isModuleStyleBoundary(candidate) &&
+      shouldResolveSsrSegment(candidate),
+    qrl:
+      candidate.qrl === null
+        ? null
+        : {
+            kind: candidate.qrl.kind,
+            ...(candidate.qrl.kind === 'implicit' ? { role: candidate.qrl.role } : {}),
+          },
+    ...(candidate.qrl?.kind === 'sync' && candidate.argumentRanges[0] != null
+      ? {
+          syncSource: source.slice(
+            candidate.argumentRanges[0]![0],
+            candidate.argumentRanges[0]![1]
+          ),
+        }
+      : {}),
+    captures: candidate.captures.map((capture) => ({
+      binding: capture.bindingId,
+      name: capture.name,
+      source: capture.source,
+      access: capture.access,
+    })),
+  }));
+}
+
 function emitSsrFunctionRender(
   _symbolName: string,
   render: RenderFunctionPlan,
@@ -663,27 +671,56 @@ function emitSsrFunctionRender(
   inputPath: string,
   explicitExtensions: boolean,
   generatedNames: GeneratedNames,
-  componentReturnMode: SsrComponentReturnModeResolver
+  componentReturnMode: SsrComponentReturnModeResolver,
+  planData: SsrPlanData = EMPTY_PLAN_DATA
 ): EmittedSegmentRender | null {
   const planned = planSsrRenderFunction(render, segments, componentReturnMode);
-  return planned === null
-    ? null
-    : emitSsrRenderTarget(
-        planned,
-        source,
-        imports,
-        segments,
-        inputPath,
-        explicitExtensions,
-        generatedNames,
-        [],
-        {
-          surroundingRangeId: null,
-          rootAttribute: null,
-          rowMarkerId: null,
-          slotMarkerId: null,
-        }
-      );
+  if (planned === null) {
+    return null;
+  }
+  const block = emitSsrOpPlan(
+    null,
+    segments,
+    componentReturnMode,
+    source,
+    planData.bindingName,
+    undefined,
+    undefined,
+    render
+  );
+  if (block === null) {
+    ungeneratedReason = 'a module-level JSX function has no SSR plan';
+    return null;
+  }
+  const generated = emitJsSegmentBlock(
+    block as never,
+    chunkSegmentMetas(segments, source, inputPath, explicitExtensions, null),
+    planData.defs as never,
+    planData.contexts,
+    planData.pluginFns as never,
+    { props: generatedNames.props, ctx: generatedNames.ctx, invokeCtx: generatedNames.invokeCtx },
+    [],
+    [],
+    planData.moduleBindingName,
+    planData.bindingName,
+    planData.importLocalName
+  );
+  if (generated === null) {
+    const detail = lastUngeneratableDetail();
+    ungeneratedReason = `a module-level JSX function uses a construct the compiler cannot lower yet${
+      detail === '' ? '' : ` (${detail})`
+    }`;
+    return null;
+  }
+  for (const name of generated.imports) {
+    imports.add(name);
+  }
+  return {
+    hoists: [...generated.chunkImports, ...generated.hoists],
+    statements: generated.statements,
+    value: generated.value,
+    directSegmentIds: planned.directSegmentIds,
+  };
 }
 
 function emitSsrRenderTarget(

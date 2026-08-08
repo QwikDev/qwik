@@ -559,6 +559,14 @@ export function emitSsrSegmentRender(
                 kind: candidate.qrl.kind,
                 ...(candidate.qrl.kind === 'implicit' ? { role: candidate.qrl.role } : {}),
               },
+        ...(candidate.qrl?.kind === 'sync' && candidate.argumentRanges[0] != null
+          ? {
+              syncSource: source.slice(
+                candidate.argumentRanges[0]![0],
+                candidate.argumentRanges[0]![1]
+              ),
+            }
+          : {}),
         captures: candidate.captures.map((capture) => ({
           binding: capture.bindingId,
           name: capture.name,

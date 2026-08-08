@@ -2343,6 +2343,14 @@ class JsComponentGenerator {
   }
 
   private qrlExpression(meta: SegmentMeta, withCaptures = true): string {
+    if (meta.qrl?.kind === 'sync') {
+      // sync QRLs are inlined source, never chunks — the runtime holds the function itself
+      if (meta.syncSource === undefined) {
+        markUngeneratable(meta.id);
+      }
+      this.imports.add('_qrlSync');
+      return `_qrlSync(${meta.syncSource})`;
+    }
     const qrl = `q_${meta.symbolName}`;
     if (!this.shared.production && !this.hoistedSegments.has(meta.id)) {
       this.hoistedSegments.add(meta.id);

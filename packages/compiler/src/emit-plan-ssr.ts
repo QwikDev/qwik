@@ -429,7 +429,7 @@ export function emitSsrOpPlan(
       const boundary = segments.find((candidate) => candidate.id === value.boundaries[0].segmentId);
       if (
         boundary?.kind === 'qrl' &&
-        boundary.qrl?.kind === 'explicit' &&
+        (boundary.qrl?.kind === 'explicit' || boundary.qrl?.kind === 'sync') &&
         boundary.range[0] === value.expression[0] &&
         boundary.range[1] === value.expression[1]
       ) {

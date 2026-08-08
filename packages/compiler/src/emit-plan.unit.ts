@@ -341,3 +341,27 @@ describe('linker hook capability closure', () => {
     expect(byName.get('External')!.providesContext).toBe(true);
   });
 });
+
+describe('sync qrl handlers', () => {
+  test('sync$ handlers ride as segment values carrying their inlined source', async () => {
+    const [plan] = await planFor({
+      'src/view.tsx': [
+        `import { sync$ } from '@qwik.dev/core';`,
+        `export function App() {`,
+        `  return <script document:onQInit$={[sync$(() => console.log('ready'))]} />;`,
+        `}`,
+      ].join('\n'),
+    });
+    const prop = plan.components[0].ssr.ops[0].props[0];
+    expect(prop.kind).toBe('event');
+    expect(prop.handlers[0].value).toEqual({
+      kind: 'segment',
+      segment: expect.stringMatching(/^segment_/),
+    });
+    const meta = plan.segments.find(
+      (candidate: { id: string }) => candidate.id === prop.handlers[0].value.segment
+    );
+    expect(meta.qrl.kind).toBe('sync');
+    expect(meta.syncSource).toBe(`() => console.log("ready")`);
+  });
+});

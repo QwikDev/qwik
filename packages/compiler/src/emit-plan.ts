@@ -157,6 +157,8 @@ export interface PlanSegmentMeta {
    */
   readonly resolved: boolean;
   readonly qrl: { readonly kind: string; readonly role?: string } | null;
+  /** Sync QRLs are inlined source, not chunks: the function text engines pass to _qrlSync. */
+  readonly syncSource?: string;
   /** Client resume strategy for visible tasks (qvisible/qinit/qidle attribute choice). */
   readonly visibleTaskStrategy?: string;
   /** Value never updates after first render — deferred content steps skip capture rooting. */
@@ -277,6 +279,9 @@ export function emitModulePlan(
                 kind: segment.qrl.kind,
                 ...(segment.qrl.kind === 'implicit' ? { role: segment.qrl.role } : {}),
               },
+        ...(segment.qrl?.kind === 'sync' && segment.argumentRanges[0] != null
+          ? { syncSource: slice(segment.argumentRanges[0]) }
+          : {}),
         captures: segment.captures.map((capture) => ({
           binding: capture.bindingId,
           name: capture.name,

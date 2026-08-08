@@ -189,6 +189,9 @@ function emitJsRenderForComponent(
               kind: segment.qrl.kind,
               ...(segment.qrl.kind === 'implicit' ? { role: segment.qrl.role } : {}),
             },
+      ...(segment.qrl?.kind === 'sync' && segment.argumentRanges[0] != null
+        ? { syncSource: source.slice(segment.argumentRanges[0]![0], segment.argumentRanges[0]![1]) }
+        : {}),
       captures: segment.captures.map((capture) => ({
         binding: capture.bindingId,
         name: capture.name,

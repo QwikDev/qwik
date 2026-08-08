@@ -20,7 +20,6 @@ import { transformModule } from './transform';
 export { linkSsrPlan } from './link-plan';
 export type { LinkedComponent, LinkedModule, QwikSsrPlan } from './link-plan';
 export type { QwikModulePlan } from './emit-plan';
-export type { PluginClaimSite, PluginFnPlan, QwikCompilerPlugin } from './expr-lower';
 
 export async function transformModules(options: TransformModulesOptions): Promise<TransformOutput> {
   // native$ crosses modules: register every declaration before any module lowers a call to it

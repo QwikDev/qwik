@@ -159,6 +159,20 @@ struct ComponentGenerator<'plan> {
 /// Emit the plugin-provided fn sources for one target (specs/09). Each source is a plain Rust
 /// file defining `pub fn <exportName>(args: &[Rc<SerdesValue>]) -> Rc<SerdesValue>`; it is
 /// wrapped in a `pub mod <nativeName>` so names never collide across plugin modules.
+/// Wrapper module name: `native$` carries none, so derive a stable one from the fn id.
+fn plugin_module_name(entry: &Json, fn_id: &str) -> String {
+	entry["nativeName"]
+		.as_str()
+		.map(str::to_string)
+		.unwrap_or_else(|| {
+			let sanitized: String = fn_id
+				.chars()
+				.map(|c| if c.is_ascii_alphanumeric() { c } else { '_' })
+				.collect();
+			format!("plugin_{sanitized}")
+		})
+}
+
 pub fn generate_plugin_fns(plan: &Json, target: &str) -> Result<String, String> {
 	let Some(plugin_fns) = plan["pluginFns"].as_array() else {
 		return Ok(String::new());
@@ -166,9 +180,7 @@ pub fn generate_plugin_fns(plan: &Json, target: &str) -> Result<String, String> 
 	let mut output = String::new();
 	for entry in plugin_fns {
 		let fn_id = entry["fnId"].as_str().ok_or("plugin fn has no fnId")?;
-		let native_name = entry["nativeName"]
-			.as_str()
-			.ok_or("plugin fn has no nativeName")?;
+		let native_name = plugin_module_name(entry, fn_id);
 		let export_name = entry["exportName"]
 			.as_str()
 			.ok_or("plugin fn has no exportName")?;
@@ -2555,10 +2567,7 @@ impl ComponentGenerator<'_> {
 					.find(|entry| entry["fnId"].as_str() == Some(fn_id))
 			})
 			.ok_or(format!("plugin fn {fn_id:?} missing from plan pluginFns"))?;
-		let native_name = entry["nativeName"]
-			.as_str()
-			.ok_or("plugin fn has no nativeName")?
-			.to_string();
+		let native_name = plugin_module_name(entry, fn_id);
 		let export_name = entry["exportName"]
 			.as_str()
 			.ok_or("plugin fn has no exportName")?

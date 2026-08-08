@@ -13,14 +13,17 @@ export interface SsrPlanCollector {
   size(): number;
 }
 
-export function createSsrPlanCollector(): SsrPlanCollector {
+/** Reads a `native$` sidecar (`nativeFile('./impl.rs')`) relative to the declaring module. */
+export type NativeSidecarReader = (modulePath: string, file: string) => string | null;
+
+export function createSsrPlanCollector(readSidecar?: NativeSidecarReader): SsrPlanCollector {
   const plans = new Map<string, QwikModulePlan>();
   return {
     collect(modules) {
       const remaining: TransformModule[] = [];
       for (const mod of modules) {
         if (mod.path.endsWith('.plan.json')) {
-          const plan = JSON.parse(mod.code) as QwikModulePlan;
+          const plan = resolveNativeSidecars(JSON.parse(mod.code) as QwikModulePlan, readSidecar);
           plans.set(plan.path, plan);
         } else {
           remaining.push(mod);
@@ -40,6 +43,32 @@ export function createSsrPlanCollector(): SsrPlanCollector {
     size() {
       return plans.size;
     },
+  };
+}
+
+/** The compiler leaves sidecar paths unresolved — it has no filesystem; the build reads them. */
+function resolveNativeSidecars(
+  plan: QwikModulePlan,
+  readSidecar: NativeSidecarReader | undefined
+): QwikModulePlan {
+  if (readSidecar === undefined || (plan.pluginFns?.length ?? 0) === 0) {
+    return plan;
+  }
+  return {
+    ...plan,
+    pluginFns: plan.pluginFns.map((fn) => ({
+      ...fn,
+      targets: Object.fromEntries(
+        Object.entries(fn.targets).map(([target, value]) => {
+          const file = (value as { file?: string }).file;
+          if (file === undefined) {
+            return [target, value];
+          }
+          const source = readSidecar(plan.path, file);
+          return [target, source === null ? value : { source }];
+        })
+      ),
+    })),
   };
 }
 

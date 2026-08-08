@@ -153,7 +153,6 @@ export function createQwikPlugin(
     inlineStylesUpToBytes: 20000,
     lint: false,
     ssrPlan: false,
-    compilerPlugins: undefined,
     experimental: undefined,
     testTarget: undefined,
   };
@@ -398,9 +397,6 @@ export function createQwikPlugin(
     }
     if (typeof (updatedOpts as { ssrPlan?: boolean }).ssrPlan === 'boolean') {
       opts.ssrPlan = (updatedOpts as { ssrPlan?: boolean }).ssrPlan!;
-    }
-    if ((updatedOpts as { compilerPlugins?: unknown[] }).compilerPlugins !== undefined) {
-      opts.compilerPlugins = (updatedOpts as { compilerPlugins?: unknown[] }).compilerPlugins;
     }
 
     if ('experimental' in updatedOpts) {
@@ -1068,9 +1064,6 @@ export function createQwikPlugin(
       if (isServer && opts.ssrPlan) {
         (transformOpts as { emitPlan?: boolean }).emitPlan = true;
       }
-      if (opts.compilerPlugins !== undefined) {
-        (transformOpts as { plugins?: unknown }).plugins = opts.compilerPlugins;
-      }
       const now = Date.now();
       const resumeTransform = await testResume?.transform(
         transformOpts,
@@ -1266,7 +1259,21 @@ export function createQwikPlugin(
   };
 
   const getOptions = () => opts;
-  const ssrPlanCollector = createSsrPlanCollector();
+  // native$ sidecars resolve here: the compiler is a pure transform with no filesystem
+  const ssrPlanCollector = createSsrPlanCollector((modulePath, file) => {
+    if (maybeFs == null || optimizer === null) {
+      return null;
+    }
+    const path = optimizer.sys.path;
+    try {
+      return maybeFs.readFileSync(
+        path.resolve(opts.rootDir, path.dirname(modulePath), file),
+        'utf-8'
+      );
+    } catch {
+      return null;
+    }
+  });
   const getSsrPlanCollector = () => ssrPlanCollector;
 
   const getTransformedOutputs = () => {
@@ -1666,8 +1673,6 @@ export interface QwikPluginOptions {
   lint?: boolean;
   /** Emit and link the native SSR plan (`q-ssr-plan.json`) during SSR builds. */
   ssrPlan?: boolean;
-  /** User compiler plugins (specs/09): claim imported symbols with per-target native sources. */
-  compilerPlugins?: unknown[];
   /**
    * Experimental features. These can come and go in patch releases, and their API is not guaranteed
    * to be stable between releases.
@@ -1678,12 +1683,11 @@ export interface QwikPluginOptions {
 
 export interface NormalizedQwikPluginOptions extends Omit<
   Required<QwikPluginOptions>,
-  'input' | 'vendorRoots' | 'srcInputs' | 'experimental' | 'testTarget' | 'compilerPlugins'
+  'input' | 'vendorRoots' | 'srcInputs' | 'experimental' | 'testTarget'
 > {
   input: string[] | { [entry: string]: string } | undefined;
   experimental: Record<keyof typeof ExperimentalFeatures, boolean> | undefined;
   testTarget: QwikPluginOptions['testTarget'];
-  compilerPlugins: QwikPluginOptions['compilerPlugins'];
 }
 
 export type QwikPlugin = ReturnType<typeof createQwikPlugin>;

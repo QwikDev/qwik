@@ -20,21 +20,6 @@ const distDir = join(appDir, 'dist');
 const serverDir = join(appDir, 'server');
 const basePath = '/';
 
-// specs/09 user plugin: the authored TS module is the JS implementation; the sidecar `.rs`
-// file is the native one (a plain Rust fn named after the claimed export).
-const buildDataPlugin = {
-  name: 'vdomless-build-data',
-  claims: [{ module: './build-data', exports: ['buildData'] }],
-  targets: {
-    rust: () => ({
-      source: readFileSync(
-        join(__dirname, 'apps', 'vdomless-counter', 'src', 'build-data.rs'),
-        'utf-8'
-      ),
-    }),
-  },
-};
-
 async function main() {
   const optimizer = await import('@qwik.dev/core/optimizer');
   rmSync(distDir, { recursive: true, force: true });
@@ -83,7 +68,6 @@ async function main() {
       plugins: [
         optimizer.qwikVite({
           ssrPlan: true,
-          compilerPlugins: [buildDataPlugin],
           ssr: { manifestInput: clientManifest },
         }),
       ],

@@ -5,7 +5,7 @@
   "components": [
     {
       "name": "App",
-      "module": 0,
+      "module": 1,
       "propsBindings": [],
       "props": null,
       "ssr": {
@@ -150,6 +150,13 @@
   ],
   "modules": [
     {
+      "path": "src/greeting.tsx",
+      "segments": [],
+      "contexts": [],
+      "defs": [],
+      "imports": []
+    },
+    {
       "path": "src/input.tsx",
       "segments": [
         {
@@ -203,7 +210,6 @@
       "fnId": "plugin:./greeting:makeGreeting",
       "module": "./greeting",
       "exportName": "makeGreeting",
-      "nativeName": "plugin_plugin___greeting_makeGreeting",
       "targets": {
         "rust": {
           "source": "pub fn makeGreeting(\n\targs: &[std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue>],\n) -> std::rc::Rc<qwik_ssr_rt::serdes::SerdesValue> {\n\tlet name = match &*args[0] {\n\t\tqwik_ssr_rt::serdes::SerdesValue::String(text) => text.clone(),\n\t\t_ => String::new(),\n\t};\n\tstd::rc::Rc::new(qwik_ssr_rt::serdes::SerdesValue::String(format!(\n\t\t\"hello {name}\"\n\t)))\n}\n"

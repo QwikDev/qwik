@@ -36,7 +36,6 @@ import {
 } from './emit-plan';
 import { validateNativeReadiness } from './validate-native';
 import { collectModuleDefs } from './defs-lower';
-import { drainClaimedPluginFns, setActivePlugins, type QwikCompilerPlugin } from './expr-lower';
 import type { EmittedModule } from './emitted-module';
 import { TargetImportResolver } from './emit-qrl';
 import {
@@ -116,7 +115,6 @@ export function transformModule(ctx: CompilerContext): TransformResult {
   if (program === null) {
     return { kind: 'not-applicable' };
   }
-  setActivePlugins((ctx.options as { plugins?: QwikCompilerPlugin[] }).plugins);
   const analysis = analyzeModule(program);
   const extractedQrls = extractQrls(program, ctx.input.path, analysis, ctx.options.scope);
   extractedQrls.moduleDefs = collectModuleDefs(program, analysis, {
@@ -437,14 +435,11 @@ export function transformModule(ctx: CompilerContext): TransformResult {
     ctx.emitTarget
   );
   // shared plan-side tables: production JS emission and plan emission read the same data
-  const claimedPluginFns = [
-    ...drainClaimedPluginFns(),
-    ...nativePluginFns(native.markers, ctx.input.path),
-  ];
+  const modulePluginFns = nativePluginFns(native.markers, ctx.input.path);
   const planData: SsrPlanData = {
     defs: (extractedQrls.moduleDefs ?? []).map((def) => ({ name: def.name })),
     contexts: collectPlanContexts(program, analysis),
-    pluginFns: claimedPluginFns,
+    pluginFns: modulePluginFns,
     bindingName: (binding) =>
       analysis.bindings.find((candidate) => candidate.id === binding)?.name ?? null,
     moduleBindingName: (binding) => {
@@ -744,7 +739,7 @@ export function transformModule(ctx: CompilerContext): TransformResult {
                 })),
                 (binding) =>
                   analysis.bindings.find((candidate) => candidate.id === binding)?.name ?? null,
-                claimedPluginFns,
+                modulePluginFns,
                 collectPlanHooks(program, analysis),
                 collectComponentHookCalls(program, analysis, outputs)
               ),

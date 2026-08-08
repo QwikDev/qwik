@@ -39,30 +39,7 @@ export interface ExprLowerFacts {
   ): { readonly segment: string; readonly source: string; readonly qrlName: string } | null;
 }
 
-/** User compiler plugin (specs/09): claims imported symbols, provides per-target sources. */
-export interface QwikCompilerPlugin {
-  readonly name: string;
-  readonly claims: readonly {
-    readonly module: string;
-    readonly exports: readonly string[] | '*';
-  }[];
-  readonly targets: Record<
-    string,
-    (site: PluginClaimSite) => { source: string; dependencies?: Record<string, string> }
-  >;
-}
-
-export interface PluginClaimSite {
-  readonly fnId: string;
-  readonly module: string;
-  readonly exportName: string;
-  readonly argCount: number;
-  readonly async: boolean;
-  /** Generated module wrapping the target source; the source defines `pub fn <exportName>`. */
-  readonly nativeName: string;
-}
-
-/** One claimed fn collected during a module's lowering, carried on the module plan. */
+/** A native implementation collected from a `native$` marker, carried on the module plan. */
 export interface PluginFnPlan {
   readonly fnId: string;
   readonly module: string;
@@ -73,47 +50,23 @@ export interface PluginFnPlan {
   readonly targets: Record<string, { source?: string; file?: string }>;
 }
 
-let activePlugins: readonly QwikCompilerPlugin[] = [];
-let claimedFns = new Map<string, PluginFnPlan>();
-
-/** Install the plugin set for the current module transform; clears collected claims. */
-export function setActivePlugins(plugins: readonly QwikCompilerPlugin[] | undefined): void {
-  activePlugins = plugins ?? [];
-  claimedFns = new Map();
-}
-
-/** Native$-declared implementations, keyed by fnId — registered per module transform. */
+/** Native$-declared implementations, keyed by fnId — registered per transform run. */
 let nativeFns = new Map<string, PluginFnPlan>();
 
 export function setNativeFns(fns: readonly PluginFnPlan[]): void {
   nativeFns = new Map(fns.map((fn) => [fn.fnId, fn]));
 }
 
-/** Registry peek: does this fnId have a registered implementation for `target`? */
+/** Registry peek: does this fnId have a native implementation for `target`? */
 export function hasPluginTarget(fnId: string, target: string): boolean {
-  return (
-    claimedFns.get(fnId)?.targets[target] !== undefined ||
-    nativeFns.get(fnId)?.targets[target] !== undefined
-  );
-}
-
-/** Claimed fns collected since the last `setActivePlugins`, in first-claim order. */
-export function drainClaimedPluginFns(): PluginFnPlan[] {
-  const drained = [...claimedFns.values()];
-  claimedFns = new Map();
-  return drained;
-}
-
-function pluginFnNativeName(fnId: string): string {
-  const sanitized: string = fnId.replace(/[^a-zA-Z0-9]/g, '_');
-  return `plugin_${sanitized}`;
+  return nativeFns.get(fnId)?.targets[target] !== undefined;
 }
 
 /**
- * Every identifiable imported fn is plugin-call-addressable — the fnId is module + export. Claims
- * never gate lowering; they only register per-target implementations for the registry.
+ * Every identifiable imported fn is plugin-call-addressable — the fnId is module + export. A native
+ * implementation is not required to lower the call; it only decides native readiness.
  */
-function claimPluginCall(imported: ImportBinding, argCount: number): string | null {
+function pluginCallFnId(imported: ImportBinding): string | null {
   // dollar exports ($ transform) and framework exports have compiler-owned semantics
   if (
     imported.typeOnly ||
@@ -123,39 +76,7 @@ function claimPluginCall(imported: ImportBinding, argCount: number): string | nu
   ) {
     return null;
   }
-  const fnId = `plugin:${imported.source}:${imported.importedName}`;
-  for (const plugin of activePlugins) {
-    for (const claim of plugin.claims) {
-      if (claim.module !== imported.source) {
-        continue;
-      }
-      if (claim.exports !== '*' && !claim.exports.includes(imported.importedName)) {
-        continue;
-      }
-      if (!claimedFns.has(fnId)) {
-        const site: PluginClaimSite = {
-          fnId,
-          module: imported.source,
-          exportName: imported.importedName,
-          argCount,
-          async: false,
-          nativeName: pluginFnNativeName(fnId),
-        };
-        const targets: PluginFnPlan['targets'] = {};
-        for (const [target, emit] of Object.entries(plugin.targets)) {
-          targets[target] = emit(site);
-        }
-        claimedFns.set(fnId, {
-          fnId,
-          module: site.module,
-          exportName: site.exportName,
-          nativeName: site.nativeName,
-          targets,
-        });
-      }
-    }
-  }
-  return fnId;
+  return `plugin:${imported.source}:${imported.importedName}`;
 }
 
 export interface ValueIrCoverage {
@@ -513,15 +434,12 @@ function lowerCall(node: AstNode, facts: ExprLowerFacts): ValueIR | null {
           if (rewrite === null) {
             return null;
           }
-          const fnId = claimPluginCall(
-            {
-              source: rewrite.source,
-              importedName: rewrite.qrlName,
-              typeOnly: false,
-              attributes: [],
-            },
-            call.arguments.length
-          );
+          const fnId = pluginCallFnId({
+            source: rewrite.source,
+            importedName: rewrite.qrlName,
+            typeOnly: false,
+            attributes: [],
+          });
           if (fnId === null) {
             return null;
           }
@@ -534,7 +452,7 @@ function lowerCall(node: AstNode, facts: ExprLowerFacts): ValueIR | null {
                 args: [{ kind: 'qrl-arg', segment: rewrite.segment }, ...rest],
               };
         }
-        const fnId = imported === null ? null : claimPluginCall(imported, call.arguments.length);
+        const fnId = imported === null ? null : pluginCallFnId(imported);
         if (fnId === null) {
           return null; // unaddressable callee (component-local fn)
         }

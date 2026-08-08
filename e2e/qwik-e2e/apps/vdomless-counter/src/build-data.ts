@@ -1,4 +1,4 @@
-import { useSignal } from '@qwik.dev/core';
+import { native$, nativeFile, useSignal } from '@qwik.dev/core';
 
 const adjectives = ["pretty", "large", "big", "small", "tall", "short", "long", "handsome", "plain", "quaint", "clean", "elegant", "easy", "angry", "crazy", "helpful", "mushy", "odd", "unsightly", "adorable", "important", "inexpensive", "cheap", "expensive", "fancy"]; // prettier-ignore
 const colors = ["red", "yellow", "blue", "green", "pink", "brown", "purple", "brown", "white", "black", "orange"]; // prettier-ignore
@@ -16,17 +16,20 @@ export type Row = {
   selected: Signal<boolean>;
 };
 
-export const buildData = (count: number): Row[] => {
-  const data = new Array(count);
-  for (let i = 0; i < count; i++) {
-    const label = useSignal(
-      `${adjectives[random(adjectives.length)]} ${colors[random(colors.length)]} ${nouns[random(nouns.length)]}`
-    );
-    data[i] = {
-      id: nextId++,
-      label,
-      selected: useSignal(false),
-    };
-  }
-  return data;
-};
+export const buildData = native$(
+  (count: number): Row[] => {
+    const data = new Array(count);
+    for (let i = 0; i < count; i++) {
+      const label = useSignal(
+        `${adjectives[random(adjectives.length)]} ${colors[random(colors.length)]} ${nouns[random(nouns.length)]}`
+      );
+      data[i] = {
+        id: nextId++,
+        label,
+        selected: useSignal(false),
+      };
+    }
+    return data;
+  },
+  { rust: nativeFile('./build-data.rs') }
+);

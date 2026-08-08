@@ -37,17 +37,6 @@ const GAPS: Record<string, string[]> = {
   'starters/apps/playground/src/routes/demo/flower/index.tsx': ['scoped-style-content'],
 };
 
-/** Plugins the real app build configures (native-build.ts) — the census mirrors them. */
-const PLUGINS: Record<string, unknown[]> = {
-  'e2e/qwik-e2e/apps/vdomless-counter/src/root.tsx': [
-    {
-      name: 'vdomless-build-data',
-      claims: [{ module: './build-data', exports: ['buildData'] }],
-      targets: {},
-    },
-  ],
-};
-
 describe('native readiness over real-world files', () => {
   for (const [path, expectedCodes] of [
     ...CLEAN.map((path) => [path, []] as const),
@@ -63,7 +52,6 @@ describe('native readiness over real-world files', () => {
         transpileJsx: true,
         isServer: true,
         nativeTarget: 'rust',
-        ...(PLUGINS[path] === undefined ? {} : { plugins: PLUGINS[path] }),
       } as TransformModulesOptions & { nativeTarget: string });
       expect(result.diagnostics.map((diagnostic) => diagnostic.code)).toEqual(expectedCodes);
     });

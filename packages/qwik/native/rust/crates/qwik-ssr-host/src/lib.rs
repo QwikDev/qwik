@@ -1,5 +1,6 @@
 //! Multi-app HTTP host for the native SSR engine, no Node in the serving path: `/` lists the
-//! compiled-in e2e apps, `/<app>/` renders it, `/<app>/build/*` serves the client bundles.
+//! apps, `/<app>/` renders it, `/<app>/build/*` serves the client bundles. The apps themselves
+//! live in the generated project that calls [`run`], each one its own crate.
 //! E2E/testing tool — not a production server.
 
 use std::collections::HashMap;
@@ -8,20 +9,14 @@ use std::net::{TcpListener, TcpStream};
 use std::path::PathBuf;
 use std::sync::Arc;
 
-mod generated {
-	#![allow(
-		non_snake_case,
-		unused_mut,
-		unused_variables,
-		clippy::type_complexity,
-		clippy::comparison_to_empty,
-		clippy::needless_borrow,
-		clippy::needless_else,
-		clippy::borrow_deref_ref,
-		unused_parens
-	)]
-	include!(concat!(env!("OUT_DIR"), "/generated.rs"));
+/// One app in the generated project: its render entry point, or why it could not be generated.
+pub struct AppEntry {
+	pub name: &'static str,
+	pub render: Option<fn(&mut qwik::render::SsrContext, &mut String)>,
+	pub error: Option<&'static str>,
 }
+
+include!(concat!(env!("OUT_DIR"), "/loader.rs"));
 
 struct App {
 	name: &'static str,
@@ -37,10 +32,10 @@ struct Host {
 	failed: Vec<(&'static str, String)>,
 }
 
-fn load_apps(apps_dir: &std::path::Path) -> Host {
+fn load_apps(entries: &'static [AppEntry], apps_dir: &std::path::Path) -> Host {
 	let mut apps = Vec::new();
 	let mut failed = Vec::new();
-	for entry in generated::APPS {
+	for entry in entries {
 		if let Some(reason) = entry.error {
 			failed.push((entry.name, reason.to_string()));
 			continue;
@@ -82,12 +77,13 @@ fn load_apps(apps_dir: &std::path::Path) -> Host {
 	Host { apps, failed }
 }
 
-fn main() {
+/// Serves `entries`, or benches one of them with `--bench <app> [iterations]`.
+pub fn run(entries: &'static [AppEntry]) {
 	let repo_root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../../../../..");
 	let apps_dir = std::env::var("QWIK_APPS_DIR")
 		.map(PathBuf::from)
 		.unwrap_or_else(|_| repo_root.join("e2e/qwik-e2e/apps"));
-	let host = Arc::new(load_apps(&apps_dir));
+	let host = Arc::new(load_apps(entries, &apps_dir));
 
 	// `--bench <app> [n]`: time render() in-process (no HTTP), print stats, exit
 	if std::env::args().nth(1).as_deref() == Some("--bench") {
@@ -248,7 +244,7 @@ fn render(app: &App, counter: u64) -> String {
 			manifest_hash: app.manifest_hash.clone(),
 			instance_hash: instance,
 		},
-		qwik_loader: generated::QWIK_LOADER.to_string(),
+		qwik_loader: QWIK_LOADER.to_string(),
 		streaming: false,
 		chunk_map: Some(app.chunk_map.clone()),
 	};

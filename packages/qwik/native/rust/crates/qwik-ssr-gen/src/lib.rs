@@ -2,6 +2,8 @@
 //! specialized render functions calling the `qwik` ABI. Fail-closed: any construct the
 //! generator does not support yet aborts generation with a named reason — never silent output.
 
+pub mod project;
+
 use serde_json::Value as Json;
 use std::collections::HashMap;
 use std::fmt::Write as _;

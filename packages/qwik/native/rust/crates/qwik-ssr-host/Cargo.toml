@@ -11,5 +11,3 @@ qwik-ssr-std = { path = "../qwik-ssr-std" }
 serde_json = "1"
 
 [build-dependencies]
-qwik-ssr-gen = { path = "../qwik-ssr-gen" }
-serde_json = "1"

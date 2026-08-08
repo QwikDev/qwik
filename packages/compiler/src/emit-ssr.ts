@@ -17,12 +17,7 @@ import {
 import { emitFunctionRenders } from './emit-function';
 import { emitSsrOpPlan } from './emit-plan-ssr';
 import type { JsStatementRewriter } from './emit-plan-ssr';
-import {
-  emitJsProductionRender,
-  emitJsSegmentBlock,
-  lastUngeneratableDetail,
-  lastUngeneratableSite,
-} from './emit-js';
+import { emitJsProductionRender, emitJsSegmentBlock, lastUngeneratableDetail } from './emit-js';
 import {
   getSegmentImportPath,
   shouldResolveSsrSegment,
@@ -620,24 +615,6 @@ export function emitSsrSegmentRender(
         directSegmentIds: planned.directSegmentIds,
       };
     }
-  }
-  if (process.env.QWIK_CHUNK_CENSUS === '1') {
-    // eslint-disable-next-line no-console
-    console.error(
-      'CHUNK-WALKER',
-      segment.kind,
-      segment.id,
-      'block:',
-      wireBlock?.render.ops !== undefined,
-      'why:',
-      lastUngeneratableSite(),
-      lastUngeneratableDetail(),
-      'rootRange:',
-      wireBlock?.render.ssr.needsRootRange === true,
-      'markers:',
-      planned.rowMarker,
-      planned.slotMarker
-    );
   }
   const emitted = emitSsrRenderTarget(
     planned,

@@ -17,7 +17,12 @@ import {
 import { emitFunctionRenders } from './emit-function';
 import { emitSsrOpPlan } from './emit-plan-ssr';
 import type { JsStatementRewriter } from './emit-plan-ssr';
-import { emitJsProductionRender, emitJsSegmentBlock, lastUngeneratableDetail } from './emit-js';
+import {
+  emitJsProductionRender,
+  emitJsSegmentBlock,
+  lastUngeneratableDetail,
+  lastUngeneratableSite,
+} from './emit-js';
 import {
   getSegmentImportPath,
   shouldResolveSsrSegment,
@@ -568,7 +573,10 @@ export function emitSsrSegmentRender(
         ctx: generatedNames.ctx,
         invokeCtx: generatedNames.invokeCtx,
       },
-      segment.captures.map((capture) => ({ binding: capture.bindingId, name: capture.name })),
+      // component-prop captures ride the props param, not the `_captures` prelude
+      segment.captures
+        .filter((capture) => capture.access !== 'component-prop')
+        .map((capture) => ({ binding: capture.bindingId, name: capture.name })),
       // row params bind by their source names, matching the emitted head
       (planned.parameterBindingIds ?? []).map((binding, index) => ({
         binding,
@@ -618,6 +626,9 @@ export function emitSsrSegmentRender(
       segment.id,
       'block:',
       wireBlock?.render.ops !== undefined,
+      'why:',
+      lastUngeneratableSite(),
+      lastUngeneratableDetail(),
       'rootRange:',
       wireBlock?.render.ssr.needsRootRange === true,
       'markers:',

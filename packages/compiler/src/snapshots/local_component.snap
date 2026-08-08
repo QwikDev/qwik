@@ -231,21 +231,21 @@ export const local_component_178_269_1v0zojj4cidpx = (props, ctx) => {
   const todos = _captures[0],
     lower = _captures[1];
   const { on } = props;
-  const id0 = ctx.nextId();
+  const id_0 = ctx.nextId();
   ctx.addRoot(on);
-  const attr1 = renderSsrAttrExpression(
-    createSsrElementTarget(id0),
+  const attr_0 = renderSsrAttrExpression(
+    createSsrElementTarget(id_0),
     'class',
     [on, todos, lower],
     q_component_class_segment_0_3htuygud1guoj
   );
-  return maybeThen(attr1, (attr1) => [
+  return maybeThen(attr_0, (attr_0) => [
     createSsrElementRecord(
       'b',
       '<b q:id="',
-      createSsrNodeId(id0),
+      createSsrNodeId(id_0),
       '"',
-      attr1 === null ? '' : ' class' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
+      attr_0 === null ? '' : ' class' + (attr_0 === '' ? '' : '="' + escapeHTML(attr_0) + '"'),
       '>'
     ),
     '*</b>',
@@ -310,19 +310,19 @@ export const semantic_expression_384_402_2ufkztrrdwur1 = (name) => {
 import {
   _qrlWithChunk,
   _captures,
-  createSsrElementRecord,
-  createSsrRecord,
-  createComponent,
-  renderSsrContent,
   createSsrNodeId,
-  escapeSsrContent,
-  getActiveInvokeContextOrNull,
-  invoke,
-  maybeThen,
   createSsrElementTarget,
   renderSsrAttrExpression,
   escapeHTML,
+  createSsrElementRecord,
+  maybeThen,
   _markComponent,
+  createSsrRecord,
+  createComponent,
+  renderSsrContent,
+  escapeSsrContent,
+  getActiveInvokeContextOrNull,
+  invoke,
 } from '@qwik.dev/core';
 import { component_class_segment_0_3htuygud1guoj } from './component.tsx_component_class_segment_0_3htuygud1guoj';
 import { semantic_expression_384_402_2ufkztrrdwur1 } from './component.tsx_semantic_expression_384_402_2ufkztrrdwur1';
@@ -350,49 +350,55 @@ export const local_component_112_432_9mplpu2ebao3 = (props, ctx) => {
   const lower = name.toLowerCase();
   function Star(props, ctx) {
     const { on } = props;
-    const id0 = ctx.nextId();
+    const id_0 = ctx.nextId();
     ctx.addRoot(on);
     ctx.addRoot(todos);
     ctx.addRoot(lower);
-    const attr1 = renderSsrAttrExpression(
-      createSsrElementTarget(id0),
+    const attr_0 = renderSsrAttrExpression(
+      createSsrElementTarget(id_0),
       'class',
       [on, todos, lower],
       q_component_class_segment_0_3htuygud1guoj
     );
-    return maybeThen(attr1, (attr1) => [
+    return maybeThen(attr_0, (attr_0) => [
       createSsrElementRecord(
         'b',
         '<b q:id="',
-        createSsrNodeId(id0),
+        createSsrNodeId(id_0),
         '"',
-        attr1 === null ? '' : ' class' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
+        attr_0 === null ? '' : ' class' + (attr_0 === '' ? '' : '="' + escapeHTML(attr_0) + '"'),
         '>'
       ),
       '*</b>',
     ]);
   }
+
   _markComponent(Star, q_local_component_178_269_1v0zojj4cidpx.w([todos, lower]));
-  let contentId1;
-  const invokeCtx3 = getActiveInvokeContextOrNull();
-  const component0 = createComponent({ on: true }, (props) => Star(props, ctx));
-  const content2 = () =>
-    invoke(invokeCtx3, () => {
-      contentId1 ??= ctx.nextId();
+  const component_0 = createComponent({ on: true }, (props) => Star(props, ctx));
+  let content_id_1;
+  const invokeCtx = getActiveInvokeContextOrNull();
+  const content_1 = () =>
+    invoke(invokeCtx, () => {
+      content_id_1 ??= ctx.nextId();
       ctx.addRoot(name);
-      return renderSsrContent(ctx, contentId1, [name], q_semantic_expression_384_402_2ufkztrrdwur1);
+      return renderSsrContent(
+        ctx,
+        content_id_1,
+        [name],
+        q_semantic_expression_384_402_2ufkztrrdwur1
+      );
     });
-  return maybeThen(component0, (component0) =>
-    maybeThen(content2(), (content2) => [
+  return maybeThen(component_0, (component_0) =>
+    maybeThen(content_1(), (content_1) => [
       createSsrElementRecord('li', '<li', '>'),
       createSsrRecord(
         '<a',
         ctx.eventAttr('q-e:click', q_component_q_e_click_segment_1_2xwyfnber1kpg.w([todos, lower])),
         '>'
       ),
-      component0,
-      createSsrRecord('<!d=', createSsrNodeId(contentId1), '>'),
-      escapeSsrContent(content2),
+      component_0,
+      createSsrRecord('<!d=', createSsrNodeId(content_id_1), '>'),
+      escapeSsrContent(content_1),
       '<!/d></a></li>',
     ])
   );

@@ -210,12 +210,12 @@ export function emitJsSegmentBlock(
     }
     generator.rootAttribute = rootAttribute;
     generator.blockMarkers = blockMarkers;
+    // the emitted chunk head owns the props destructure; bind locals only
     const pieces = generator.generateProduction(
       '',
       block,
       propsShape as PropsShape,
-      providesContext,
-      true
+      providesContext
     );
     // captures arrive pre-rooted through the QRL capture table — their addRoot calls drop
     const dropCaptureRoots = (text: string): string => {
@@ -306,6 +306,10 @@ export function markUngeneratable(detail?: unknown): never {
 /** Detail recorded by the most recent `markUngeneratable`, for compile diagnostics. */
 export function lastUngeneratableDetail(): string {
   return UNGENERATABLE_DETAIL;
+}
+
+export function lastUngeneratableSite(): string {
+  return (UNGENERATABLE_SITE.split('\n')[2] ?? '?').trim();
 }
 
 /** Tagged PlanValue form accessors — see emit-plan `PlanValue`. */
@@ -790,7 +794,10 @@ class JsComponentGenerator {
       // shorthand destructure requires the declared name to be the prop name
       if (
         !/^[A-Za-z_$][A-Za-z0-9_$]*$/.test(item.name) ||
-        this.declare(item.binding, item.name) !== item.name
+        // a capture may already bind this prop under its own name — that binding stands
+        (this.locals.get(item.binding) === item.name
+          ? item.name
+          : this.declare(item.binding, item.name)) !== item.name
       ) {
         markUngeneratable();
       }

@@ -591,9 +591,11 @@ export function transformModule(ctx: CompilerContext): TransformResult {
   // chunk emission reuses the owning component's wire block when one exists
   const wireCache = new Map<ComponentOutput, PlanSsrComponent | null>();
   const allOutputs = [...mainOutputs, ...componentModules.map((component) => component.output)];
-  const findSegmentWireBlock = (segmentId: string) => {
+  const findSegmentWireBlock = (segment: SegmentPlan) => {
+    // embedded renders are synthetic children of their parent segment's id
+    const baseId = segment.id.replace(/_embedded_\d+$/, '');
     const owner = allOutputs.find((output) =>
-      output.result.segments.some((candidate) => candidate.id === segmentId)
+      output.result.segments.some((candidate) => candidate.id === baseId)
     );
     if (owner === undefined) {
       return undefined;
@@ -609,14 +611,13 @@ export function transformModule(ctx: CompilerContext): TransformResult {
       );
       wireCache.set(owner, wire);
     }
-    const inWire = wire === null ? undefined : findWireBlock(wire, segmentId);
+    const inWire = wire === null ? undefined : findWireBlock(wire, segment.id);
     if (inWire !== undefined) {
       return inWire;
     }
     // value-expression and embedded segments have no block on the component wire —
     // serialize their own render with the same machinery
-    const own = owner.result.segments.find((candidate) => candidate.id === segmentId);
-    if (own === undefined || own.render === null) {
+    if (segment.render === null) {
       return undefined;
     }
     const block = emitSsrOpPlan(
@@ -626,7 +627,7 @@ export function transformModule(ctx: CompilerContext): TransformResult {
       ctx.input.code,
       planData.bindingName,
       undefined,
-      own
+      segment
     );
     return block === null ? undefined : { render: block as never };
   };
@@ -652,7 +653,7 @@ export function transformModule(ctx: CompilerContext): TransformResult {
             explicitExtensions,
             generatedNames,
             componentReturnMode,
-            findSegmentWireBlock(segment.id),
+            findSegmentWireBlock(segment),
             planData
           )
       : (segment, source, imports, segments, inputPath, explicitExtensions, generatedNames) =>

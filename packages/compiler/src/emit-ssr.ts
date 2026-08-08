@@ -538,7 +538,8 @@ export function emitSsrSegmentRender(
       segment.kind === 'qrl' ||
       segment.kind === 'localComponent') &&
     wireBlock?.render.ops !== undefined &&
-    wireBlock.render.ssr.needsRootRange !== true
+    // an owned root range needs a declared id the generator does not allocate yet
+    (wireBlock.render.ssr.needsRootRange !== true || planned.surroundingRangeId !== null)
   ) {
     const generated = emitJsSegmentBlock(
       wireBlock.render as never,
@@ -602,7 +603,8 @@ export function emitSsrSegmentRender(
           : []),
       ],
       wireBlock.props ?? null,
-      wireBlock.providesContext === true
+      wireBlock.providesContext === true,
+      planned.surroundingRangeId
     );
     if (generated !== null) {
       for (const name of generated.imports) {

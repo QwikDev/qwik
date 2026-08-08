@@ -89,17 +89,17 @@ export const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
 import {
   _captures,
   createSsrRangeTextTarget,
-  renderSsrTextNode,
   escapeHTML,
+  renderSsrTextNode,
   maybeThen,
 } from '@qwik.dev/core';
 
 export const component_branch_then_segment_1_24n7blyqktd46 = (ctx, rangeId) => {
   const count = _captures[0];
-  const text0 = renderSsrTextNode(createSsrRangeTextTarget(rangeId, 0), count);
-  return maybeThen(text0, (text0) => [
+  const text_0 = renderSsrTextNode(createSsrRangeTextTarget(rangeId, 0), count);
+  return maybeThen(text_0, (text_0) => [
     'Count is greater than 2 and equal to <!t>',
-    escapeHTML(text0),
+    escapeHTML(text_0),
     '<!/t>',
   ]);
 };

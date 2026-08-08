@@ -171,7 +171,8 @@ export function emitJsSegmentBlock(
   rootAttribute: string | null = null,
   blockMarkers: readonly { readonly open: string; readonly close: string }[] = [],
   propsShape: unknown = null,
-  providesContext = false
+  providesContext = false,
+  rootRangeName: string | null = null
 ): {
   imports: string[];
   chunkImports: string[];
@@ -210,6 +211,7 @@ export function emitJsSegmentBlock(
     }
     generator.rootAttribute = rootAttribute;
     generator.blockMarkers = blockMarkers;
+    generator.rootRangeName = rootRangeName;
     // the emitted chunk head owns the props destructure; bind locals only
     const pieces = generator.generateProduction(
       '',
@@ -381,6 +383,8 @@ class JsComponentGenerator {
   rootAttribute: string | null = null;
   /** Chunk-only: marker ranges bracketing the block's parts, innermost first. */
   blockMarkers: readonly { readonly open: string; readonly close: string }[] = [];
+  /** Chunk-only: runtime id name for range targets anchored on the block's own range. */
+  rootRangeName: string | null = null;
   /** Bindings declared as reactive sources (signal/store/computed) — prop getters track them. */
   private sourceKinds = new Set<number>();
   /** Use-id locals — reads of these are compile-time-proven stable strings. */
@@ -2250,13 +2254,16 @@ class JsComponentGenerator {
     if (operation.output !== 'text') {
       markUngeneratable(operation);
     }
-    if (target.kind === 'range' && target.id === null) {
+    if (target.kind === 'range' && target.id === null && this.rootRangeName === null) {
       markUngeneratable();
     }
+    // a null range id anchors on the block's own surrounding range
+    const targetIdName =
+      target.kind === 'range' && target.id === null ? this.rootRangeName! : `id_${target.id}`;
     const targetExpr =
       target.kind === 'element'
-        ? `createSsrElementTextTarget(id_${target.id})`
-        : `createSsrRangeTextTarget(id_${target.id}, ${target.marker})`;
+        ? `createSsrElementTextTarget(${targetIdName})`
+        : `createSsrRangeTextTarget(${targetIdName}, ${target.marker})`;
     this.imports.add(
       target.kind === 'element' ? 'createSsrElementTextTarget' : 'createSsrRangeTextTarget'
     );
@@ -2264,7 +2271,7 @@ class JsComponentGenerator {
     const step = `text_${this.nextTemp++}`;
     const ir = valueIr(operation.value);
     const segmentId = valueSegment(operation.value);
-    const idPrelude = this.claimId(`id_${target.id}`);
+    const idPrelude = target.id === null ? '' : this.claimId(`id_${target.id}`);
     if (segmentId !== undefined) {
       // expression text: the segment fn evaluates with captures under the invoke context
       const meta = this.segment(segmentId);

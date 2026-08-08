@@ -182,6 +182,8 @@ export function emitJsSegmentBlock(
     componentFns: [],
     generated: new Set(),
     queue: [],
+    // the chunk wrapper owns q_ hoists and child imports — reference names only
+    production: true,
   };
   try {
     const generator = new JsComponentGenerator(
@@ -1531,7 +1533,8 @@ class JsComponentGenerator {
         const binding = (ir as { binding: number }).binding;
         const value = this.local(binding);
         // binding-read passes the local raw — a signal prop keeps its identity
-        if (ir.kind === 'signal-read' && this.sourceKinds.has(binding)) {
+        // signal-read is proof by construction — chunk captures have no sourceKinds entry
+        if (ir.kind === 'signal-read') {
           this.imports.add('readTrackedSourceValue');
           literalRun().push(
             `get ${JSON.stringify(item.name)}() { return readTrackedSourceValue(${value}); }`

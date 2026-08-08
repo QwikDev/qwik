@@ -17,7 +17,7 @@ import {
 import { emitFunctionRenders } from './emit-function';
 import { emitSsrOpPlan } from './emit-plan-ssr';
 import type { JsStatementRewriter } from './emit-plan-ssr';
-import { emitJsProductionRender, lastUngeneratableDetail } from './emit-js';
+import { emitJsProductionRender, emitJsSegmentBlock, lastUngeneratableDetail } from './emit-js';
 import {
   getSegmentImportPath,
   shouldResolveSsrSegment,
@@ -512,6 +512,7 @@ export function emitSsrSegmentRender(
   runtimeParameters?: readonly string[];
   trailingRuntimeParameters?: readonly string[];
   parameterBindingIds?: readonly number[];
+  directSegmentIds?: readonly string[];
 } | null {
   const renderFunction = segment.render;
   if (renderFunction === null) {
@@ -520,6 +521,66 @@ export function emitSsrSegmentRender(
   const planned = planSsrSegmentRender(segment, segments, componentReturnMode, generatedNames);
   if (planned === null) {
     return null;
+  }
+  // plan-first chunk bodies, kind by kind; the walker below is the in-migration fallback
+  if (
+    segment.kind === 'branchRender' &&
+    wireBlock?.ops !== undefined &&
+    wireBlock.ssr.needsRootRange !== true &&
+    !planned.rowRoot &&
+    !planned.rowMarker &&
+    !planned.slotMarker
+  ) {
+    const generated = emitJsSegmentBlock(
+      wireBlock as never,
+      segments.map((candidate) => ({
+        id: candidate.id,
+        symbolName: candidate.symbolName,
+        chunk: getSegmentImportPath(inputPath, candidate, explicitExtensions),
+        kind: candidate.kind,
+        resolved:
+          candidate.parentId === segment.id &&
+          candidate.qrl?.kind !== 'sync' &&
+          !isModuleStyleBoundary(candidate) &&
+          shouldResolveSsrSegment(candidate),
+        qrl:
+          candidate.qrl === null
+            ? null
+            : {
+                kind: candidate.qrl.kind,
+                ...(candidate.qrl.kind === 'implicit' ? { role: candidate.qrl.role } : {}),
+              },
+        captures: candidate.captures.map((capture) => ({
+          binding: capture.bindingId,
+          name: capture.name,
+          source: capture.source,
+          access: capture.access,
+        })),
+      })),
+      [],
+      [],
+      [],
+      {
+        props: generatedNames.props,
+        ctx: generatedNames.ctx,
+        invokeCtx: generatedNames.invokeCtx,
+      },
+      segment.captures.map((capture) => ({ binding: capture.bindingId, name: capture.name }))
+    );
+    if (generated !== null) {
+      for (const name of generated.imports) {
+        imports.add(name);
+      }
+      return {
+        hoists: [...generated.chunkImports, ...generated.hoists],
+        statements: generated.statements,
+        value: generated.value,
+        runtimeParameters: planned.runtimeParameters,
+        trailingRuntimeParameters: planned.trailingRuntimeParameters,
+        parameterBindingIds: planned.parameterBindingIds,
+        directSegmentIds: planned.directSegmentIds,
+      };
+    }
   }
   const emitted = emitSsrRenderTarget(
     planned,

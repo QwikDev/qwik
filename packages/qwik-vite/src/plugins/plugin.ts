@@ -1265,14 +1265,8 @@ export function createQwikPlugin(
       return null;
     }
     const path = optimizer.sys.path;
-    try {
-      return maybeFs.readFileSync(
-        path.resolve(opts.rootDir, path.dirname(modulePath), file),
-        'utf-8'
-      );
-    } catch {
-      return null;
-    }
+    // a missing sidecar is a build error: let readFileSync name the path it looked for
+    return maybeFs.readFileSync(path.resolve(opts.srcDir, path.dirname(modulePath), file), 'utf-8');
   });
   const getSsrPlanCollector = () => ssrPlanCollector;
 

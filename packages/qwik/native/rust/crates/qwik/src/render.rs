@@ -211,20 +211,20 @@ impl SsrContext {
 	/// browser passes to the resume QRL; deps are the signals read during server evaluation.
 	pub fn subscribe_text_expression(
 		&mut self,
-		dep: &Rc<SerdesValue>,
+		deps: &[Rc<SerdesValue>],
 		target_id: u32,
 		marker: u32,
 		args: Vec<Rc<SerdesValue>>,
 		qrl: Rc<SerdesValue>,
 	) {
 		self.attach_effect(
-			&[Rc::clone(dep)],
+			deps,
 			EffectValue::Scalar(EffectSubscription {
 				kind: EFFECT_KIND_TEXT_EXPRESSION,
 				target_kind: EFFECT_TARGET_RANGE_TEXT,
 				target_id,
 				marker_index: Some(marker),
-				deps: vec![Rc::clone(dep)],
+				deps: deps.to_vec(),
 				attr_name: None,
 				args: Some(args),
 				qrl: Some(qrl),
@@ -235,19 +235,19 @@ impl SsrContext {
 	/// TextExpression effect on an element-text target (single expression child, no markers).
 	pub fn subscribe_element_text_expression(
 		&mut self,
-		dep: &Rc<SerdesValue>,
+		deps: &[Rc<SerdesValue>],
 		target_id: u32,
 		args: Vec<Rc<SerdesValue>>,
 		qrl: Rc<SerdesValue>,
 	) {
 		self.attach_effect(
-			&[Rc::clone(dep)],
+			deps,
 			EffectValue::Scalar(EffectSubscription {
 				kind: EFFECT_KIND_TEXT_EXPRESSION,
 				target_kind: EFFECT_TARGET_ELEMENT_TEXT,
 				target_id,
 				marker_index: None,
-				deps: vec![Rc::clone(dep)],
+				deps: deps.to_vec(),
 				attr_name: None,
 				args: Some(args),
 				qrl: Some(qrl),
@@ -259,20 +259,20 @@ impl SsrContext {
 	#[allow(clippy::too_many_arguments)]
 	pub fn subscribe_attr_expression(
 		&mut self,
-		dep: &Rc<SerdesValue>,
+		deps: &[Rc<SerdesValue>],
 		target_id: u32,
 		name: &str,
 		args: Vec<Rc<SerdesValue>>,
 		qrl: Rc<SerdesValue>,
 	) {
 		self.attach_effect(
-			&[Rc::clone(dep)],
+			deps,
 			EffectValue::Scalar(EffectSubscription {
 				kind: EFFECT_KIND_ATTR,
 				target_kind: EFFECT_TARGET_ELEMENT,
 				target_id,
 				marker_index: None,
-				deps: vec![Rc::clone(dep)],
+				deps: deps.to_vec(),
 				attr_name: Some(name.to_string()),
 				args: Some(args),
 				qrl: Some(qrl),

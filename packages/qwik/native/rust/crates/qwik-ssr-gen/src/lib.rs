@@ -896,8 +896,8 @@ impl ComponentGenerator<'_> {
 		writeln!(
 			self.body,
 			"    let attr_value_{temp} = {expression};\n    \
-			 if let Some(dep) = {tracked}.first() {{\n        \
-			 ctx.subscribe_attr_expression(dep, {id_variable}, {name:?}, vec![{args}], {qrl});\n    \
+			 if !{tracked}.is_empty() {{\n        \
+			 ctx.subscribe_attr_expression(&{tracked}, {id_variable}, {name:?}, vec![{args}], {qrl});\n    \
 			 }}\n    \
 			 match qwik::render::attr_expression_text({name:?}, &attr_value_{temp}) {{\n        \
 			 None => {{}}\n        \
@@ -2440,14 +2440,14 @@ impl ComponentGenerator<'_> {
 				let marker = plan_target["marker"]
 					.as_u64()
 					.ok_or("range target has no marker")?;
-				format!("ctx.subscribe_text_expression(dep, {element_variable}, {marker}, vec![{args}], {qrl});")
+				format!("ctx.subscribe_text_expression(&{tracked}, {element_variable}, {marker}, vec![{args}], {qrl});")
 			} else {
-				format!("ctx.subscribe_element_text_expression(dep, {element_variable}, vec![{args}], {qrl});")
+				format!("ctx.subscribe_element_text_expression(&{tracked}, {element_variable}, vec![{args}], {qrl});")
 			};
 			writeln!(
 				self.body,
 				"    let {value} = {expression};\n    \
-				 if let Some(dep) = {tracked}.first() {{\n        \
+				 if !{tracked}.is_empty() {{\n        \
 				 {subscribe}\n    \
 				 }}\n    \
 				 {target}.push_str(&qwik::escape::escape_html(&qwik::render::ssr_text_value(&{value})));"

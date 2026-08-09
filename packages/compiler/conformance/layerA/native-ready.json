@@ -13,6 +13,7 @@
     "def-helper",
     "derived-collection",
     "e2-undef-text",
+    "e6-index-read",
     "e7-unary",
     "inner-html",
     "local-component",
@@ -43,7 +44,6 @@
     "implicit-dollar-call": "not yet verified against the Rust engine",
     "imported-callback": "not yet verified against the Rust engine",
     "plugin-callback": "not yet verified against the Rust engine",
-    "visible-task-static": "not yet verified against the Rust engine",
-    "e6-index-read": "index read records more subscription deps than the JS engine (HTML matches, state diverges)"
+    "visible-task-static": "not yet verified against the Rust engine"
   }
 }

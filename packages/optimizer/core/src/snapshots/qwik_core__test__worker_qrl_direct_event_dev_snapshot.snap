@@ -1,6 +1,5 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 7558
 expression: output
 ---
 ==INPUT==
@@ -56,7 +55,7 @@ const q_routes_component_button_q_e_click_ESunfBZQQ0g = /*#__PURE__*/ qrlDEV(()=
     lo: 199,
     hi: 227,
     displayName: "index.tsx_routes_component_button_q_e_click"
-});
+}).m();
 //
 export const routes_component_pCYUo1eiS0w = ()=>{
     const count = useSignal(0);

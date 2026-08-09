@@ -1,6 +1,10 @@
 import { createDocument } from '@qwik.dev/core/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createLinkPrefetchObserver, resetLinkPrefetchState } from './link-prefetch';
+import {
+  createLinkPrefetchObserver,
+  linkPrefetchInit,
+  resetLinkPrefetchState,
+} from './link-prefetch';
 
 const { prefetchRouteMock, preloadRouteBundlesMock } = vi.hoisted(() => ({
   prefetchRouteMock: vi.fn(),
@@ -85,6 +89,18 @@ describe('link prefetch observer', () => {
 
   afterEach(() => {
     vi.unstubAllGlobals();
+  });
+
+  it('initializes from the container manifest without captures', async () => {
+    const anchor = createAnchor('http://localhost/next/', 'd');
+    document.documentElement.setAttribute('q:manifest-hash', manifestHash);
+
+    expect(linkPrefetchInit.getCaptured()).toBeUndefined();
+    const init = await linkPrefetchInit.resolve();
+    init(new Event('qcinit'), anchor);
+    MockIntersectionObserver.instances[0].trigger(anchor);
+
+    expectPrefetchRouteCall(0, '/next/', true, 0.8, manifestHash, false, undefined);
   });
 
   it('prefetches route bundles and visible route data according to the mode', () => {

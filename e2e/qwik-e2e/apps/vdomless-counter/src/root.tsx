@@ -1,6 +1,6 @@
 import type { QRL } from '@qwik.dev/core';
 import { useSignal, Slot } from '@qwik.dev/core';
-import { buildData } from './build-data';
+import { buildData } from './build-data/build-data';
 
 const Button = ({ id, onClick$ }: { id: string; onClick$: QRL<() => any> }) => {
   return (

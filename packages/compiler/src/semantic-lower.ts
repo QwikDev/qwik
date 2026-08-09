@@ -529,6 +529,9 @@ class SemanticLowerer {
   ): RenderNodePlan[] {
     const range = getRange(node);
     const tagRange = getRange(node.openingElement.name);
+    if (this.isQwikFragment(node.openingElement.name)) {
+      return this.lowerChildren(node.children, context, blockingSuspense);
+    }
     if (range !== null && this.isSuspense(node.openingElement.name)) {
       const suspense = this.lowerSuspense(node, range, context, blockingSuspense);
       return suspense === null ? [] : [suspense];
@@ -3467,6 +3470,15 @@ class SemanticLowerer {
   private isSlotBinding(bindingId: BindingId | null): boolean {
     const binding = this.binding(bindingId);
     return isQwikBinding(binding) && binding!.import!.importedName === QwikHooks.Slot;
+  }
+
+  /** An explicit `<Fragment>` from core: a fragment, never a component. */
+  private isQwikFragment(node: AstNode): boolean {
+    if (node.type !== 'JSXIdentifier') {
+      return false;
+    }
+    const binding = this.binding(this.bindingIdAt(getRange(node)));
+    return isQwikBinding(binding) && binding!.import!.importedName === QwikHooks.Fragment;
   }
 
   private isSuspense(node: AstNode): boolean {

@@ -160,6 +160,12 @@ class QrlExtractor {
         this.recordReference(node);
         return;
       case 'JSXElement': {
+        if (this.isQwikFragment(node.openingElement.name)) {
+          for (const child of node.children) {
+            this.visitJsxChild(child);
+          }
+          return;
+        }
         if (this.isSuspense(node.openingElement.name)) {
           this.visitComponentJsxAttributes(node.openingElement.attributes, node.openingElement);
           const segment = this.createExpressionSegment('suspense:content', node, 'suspenseRender');
@@ -1187,6 +1193,19 @@ class QrlExtractor {
   private isQwikSlot(node: unknown): boolean {
     const imported = this.bindingForReference(node)?.import;
     return imported?.importedName === QwikHooks.Slot && isQwikImport(imported.source);
+  }
+
+  /** An explicit `<Fragment>` from core: a fragment, never a component. */
+  private isQwikFragment(node: AstNode): boolean {
+    if (node.type !== 'JSXIdentifier') {
+      return false;
+    }
+    const imported = this.bindingForReference(node)?.import;
+    return (
+      imported?.importedName === QwikHooks.Fragment &&
+      !imported.typeOnly &&
+      isQwikImport(imported.source)
+    );
   }
 
   private isSuspense(node: AstNode): boolean {

@@ -159,4 +159,5 @@ export const enum QwikHooks {
   Jsxs = 'jsxs',
   Slot = 'Slot',
   Suspense = 'Suspense',
+  Fragment = 'Fragment',
 }

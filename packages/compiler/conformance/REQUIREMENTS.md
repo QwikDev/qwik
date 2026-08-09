@@ -67,12 +67,12 @@ Each of these needs a case where the value reaches output, so a wrong result is 
 | #   | requirement                                                                     | checked by        |
 | --- | ------------------------------------------------------------------------------- | ----------------- |
 | E1  | `lit` — string, number, boolean, null render as JS renders them                 | `static-attrs`    |
-| E2  | `undef` renders as nothing in text position                                     | —                 |
+| E2  | `undef` renders an empty text placeholder, so the node can resume               | `e2-undef-text`   |
 | E3  | `signal-read` renders the value and records a subscription                      | `signal-counter`  |
 | E4  | `binding-read` reads a setup binding                                            | `signal-counter`  |
 | E5  | `member` reads a property, including nested reads                               | `store-bind`      |
-| E6  | `index` reads by computed index                                                 | —                 |
-| E7  | `unary` — `!`, `-`, `typeof` follow JS semantics                                | —                 |
+| E6  | `index` reads by computed index                                                 | `e6-index-read`   |
+| E7  | `unary` — `!`, `-`, `typeof` follow JS semantics                                | `e7-unary`        |
 | E8  | `bin` — arithmetic, comparison and `===`/`==` follow JS semantics               | `computed-task`   |
 | E9  | `logic` — `&&`, `\|\|`, `??` short-circuit and yield the operand, not a boolean | `cond-attr`       |
 | E10 | `cond` evaluates only the taken branch                                          | `cond-attr`       |

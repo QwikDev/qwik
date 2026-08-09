@@ -1,0 +1,210 @@
+{
+  "format": "qwik/ssr-plan",
+  "version": 1,
+  "entry": 0,
+  "components": [
+    {
+      "name": "App",
+      "module": 0,
+      "propsBindings": [],
+      "props": null,
+      "ssr": {
+        "setup": [
+          {
+            "kind": "signal",
+            "binding": 3,
+            "init": {
+              "kind": "lit",
+              "value": 1
+            },
+            "name": "at"
+          }
+        ],
+        "ops": [
+          {
+            "kind": "element",
+            "tag": "main",
+            "voidTag": false,
+            "styleScopedId": null,
+            "props": [],
+            "propsEffect": null,
+            "children": [
+              {
+                "kind": "element",
+                "tag": "span",
+                "voidTag": false,
+                "styleScopedId": null,
+                "props": [
+                  {
+                    "kind": "static",
+                    "name": "id",
+                    "value": "picked"
+                  }
+                ],
+                "propsEffect": null,
+                "children": [
+                  {
+                    "kind": "dynamic",
+                    "output": "text",
+                    "value": {
+                      "kind": "ir",
+                      "ir": {
+                        "kind": "index",
+                        "obj": {
+                          "kind": "binding-read",
+                          "binding": 1
+                        },
+                        "key": {
+                          "kind": "signal-read",
+                          "binding": 3
+                        }
+                      },
+                      "segment": "segment_0"
+                    },
+                    "ssr": {
+                      "synchronous": false,
+                      "target": {
+                        "kind": "element",
+                        "id": 0
+                      }
+                    }
+                  }
+                ],
+                "ssr": {
+                  "id": 0,
+                  "targetUses": 0
+                }
+              },
+              {
+                "kind": "element",
+                "tag": "span",
+                "voidTag": false,
+                "styleScopedId": null,
+                "props": [
+                  {
+                    "kind": "static",
+                    "name": "id",
+                    "value": "last"
+                  }
+                ],
+                "propsEffect": null,
+                "children": [
+                  {
+                    "kind": "dynamic",
+                    "output": "text",
+                    "value": {
+                      "kind": "ir",
+                      "ir": {
+                        "kind": "index",
+                        "obj": {
+                          "kind": "binding-read",
+                          "binding": 1
+                        },
+                        "key": {
+                          "kind": "bin",
+                          "op": "-",
+                          "left": {
+                            "kind": "member",
+                            "obj": {
+                              "kind": "binding-read",
+                              "binding": 1
+                            },
+                            "name": "length"
+                          },
+                          "right": {
+                            "kind": "lit",
+                            "value": 1
+                          }
+                        }
+                      },
+                      "segment": "segment_1"
+                    },
+                    "ssr": {
+                      "synchronous": false,
+                      "target": {
+                        "kind": "element",
+                        "id": 1
+                      }
+                    }
+                  }
+                ],
+                "ssr": {
+                  "id": 1,
+                  "targetUses": 0
+                }
+              }
+            ],
+            "ssr": {
+              "id": null,
+              "targetUses": 0
+            }
+          }
+        ],
+        "ssr": {
+          "syncRender": false,
+          "staticRoot": false,
+          "needsRootRange": false,
+          "needsId": false,
+          "idBase": "qApp-",
+          "flushTasks": false,
+          "directSegments": [],
+          "usedSegments": [
+            "segment_0",
+            "segment_1"
+          ]
+        }
+      },
+      "setup": [
+        {
+          "kind": "signal",
+          "binding": 3,
+          "init": {
+            "kind": "lit",
+            "value": 1
+          }
+        }
+      ],
+      "needsId": false,
+      "idBase": "qApp-",
+      "providesContext": false,
+      "runtimeStyleScope": false
+    }
+  ],
+  "modules": [
+    {
+      "path": "src/input.tsx",
+      "segments": [
+        {
+          "id": "segment_0",
+          "symbolName": "input_text_segment_0_3k1cvwun49quc",
+          "chunk": "./input.tsx_input_text_segment_0_3k1cvwun49quc",
+          "kind": "expression",
+          "resolved": true,
+          "qrl": null,
+          "captures": [
+            {
+              "binding": 3,
+              "name": "at",
+              "source": "local",
+              "access": "direct"
+            }
+          ]
+        },
+        {
+          "id": "segment_1",
+          "symbolName": "input_text_segment_1_3k1cwavr13suv",
+          "chunk": "./input.tsx_input_text_segment_1_3k1cwavr13suv",
+          "kind": "expression",
+          "resolved": true,
+          "qrl": null,
+          "captures": []
+        }
+      ],
+      "contexts": [],
+      "defs": [],
+      "imports": []
+    }
+  ],
+  "unresolved": [],
+  "pluginFns": []
+}

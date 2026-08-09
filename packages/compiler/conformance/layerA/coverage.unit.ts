@@ -64,7 +64,7 @@ function plannedKinds(): Set<string> {
  * fails, because the entry has to be added by hand.
  */
 const KNOWN_GAPS: Record<string, string[]> = {
-  ValueIrKind: ['undef', 'index'],
+  ValueIrKind: [],
   SetupOpKind: ['use-id', 'server-data', 'qrl-const'],
   TaskStepKind: ['set-signal', 'set-store', 'if', 'let', 'return'],
   SsrOpKind: [],

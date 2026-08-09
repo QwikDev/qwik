@@ -549,6 +549,11 @@ export async function buildInterpretedRoot(
 
     /** Planned element id → runtime id, filled as element ops execute. */
     const runtimeIds = new Map<number, number>();
+    /** Self-allocated range for a fragment-rooted body, mirroring the emitted `<!d=…>` fence. */
+    const rootRangeId =
+      (ssr as { ssr?: { needsRootRange?: boolean } }).ssr?.needsRootRange === true
+        ? ctx.nextId()
+        : null;
 
     /**
      * Sequential part chain mirroring the emitted maybeThen nesting: sync ops run with zero
@@ -742,11 +747,12 @@ export async function buildInterpretedRoot(
         }
         case 'dynamic': {
           const planTarget = op.ssr.target;
-          if (planTarget === null || planTarget.id === null) {
+          if (planTarget === null) {
             throw new Error('interpreter needs a targeted dynamic text site');
           }
-          const runtimeId = runtimeIds.get(planTarget.id);
-          if (runtimeId === undefined) {
+          // a null id anchors on the body's own root range
+          const runtimeId = planTarget.id === null ? rootRangeId : runtimeIds.get(planTarget.id);
+          if (runtimeId === undefined || runtimeId === null) {
             throw new Error(`dynamic text targets unopened element ${planTarget.id}`);
           }
           const target =
@@ -1225,14 +1231,18 @@ export async function buildInterpretedRoot(
     const run = () => {
       const providesContext =
         nested === undefined ? interpreted.providesContext : nested.providesContext === true;
+      const fence = (parts: unknown) =>
+        rootRangeId === null
+          ? parts
+          : [createSsrRecord('<!d=', createSsrNodeId(rootRangeId), '>'), parts, '<!/d>'];
       if (!providesContext) {
-        return interpretOps(ssr.ops);
+        return maybeThen(interpretOps(ssr.ops), fence);
       }
       // provider components wrap their output in a context-scope range (root-ref id)
       const scopeRef = ctx.contextScopeRef();
       return maybeThen(interpretOps(ssr.ops), (parts) => [
         createSsrRecord('<!c=', scopeRef, '>'),
-        parts,
+        fence(parts),
         '<!/c>',
       ]);
     };

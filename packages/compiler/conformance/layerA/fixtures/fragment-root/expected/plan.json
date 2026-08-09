@@ -1,0 +1,201 @@
+{
+  "format": "qwik/ssr-plan",
+  "version": 1,
+  "entry": 1,
+  "components": [
+    {
+      "name": "Child",
+      "module": 0,
+      "propsBindings": [
+        4
+      ],
+      "props": {
+        "kind": "identifier",
+        "binding": 4
+      },
+      "ssr": {
+        "setup": [],
+        "ops": [
+          {
+            "kind": "static",
+            "html": "Rerender "
+          },
+          {
+            "kind": "dynamic",
+            "output": "text",
+            "value": {
+              "kind": "ir",
+              "ir": {
+                "kind": "member",
+                "obj": {
+                  "kind": "member",
+                  "obj": {
+                    "kind": "binding-read",
+                    "binding": 4
+                  },
+                  "name": "counter"
+                },
+                "name": "count"
+              },
+              "segment": "segment_0"
+            },
+            "ssr": {
+              "synchronous": false,
+              "target": {
+                "kind": "range",
+                "id": null,
+                "marker": 0
+              }
+            }
+          }
+        ],
+        "ssr": {
+          "syncRender": false,
+          "staticRoot": false,
+          "needsRootRange": true,
+          "needsId": false,
+          "idBase": "qChild-",
+          "flushTasks": false,
+          "directSegments": [],
+          "usedSegments": [
+            "segment_0"
+          ]
+        }
+      },
+      "setup": [],
+      "needsId": false,
+      "idBase": "qChild-",
+      "providesContext": false,
+      "runtimeStyleScope": false
+    },
+    {
+      "name": "App",
+      "module": 0,
+      "propsBindings": [],
+      "props": null,
+      "ssr": {
+        "setup": [
+          {
+            "kind": "signal",
+            "binding": 5,
+            "init": {
+              "kind": "object",
+              "entries": [
+                [
+                  "count",
+                  {
+                    "kind": "lit",
+                    "value": 2
+                  }
+                ]
+              ]
+            },
+            "name": "counter"
+          }
+        ],
+        "ops": [
+          {
+            "kind": "element",
+            "tag": "main",
+            "voidTag": false,
+            "styleScopedId": null,
+            "props": [],
+            "propsEffect": null,
+            "children": [
+              {
+                "kind": "component",
+                "target": {
+                  "ref": 0
+                },
+                "props": [
+                  {
+                    "kind": "dynamic",
+                    "name": "counter",
+                    "value": {
+                      "kind": "ir",
+                      "ir": {
+                        "kind": "signal-read",
+                        "binding": 5
+                      }
+                    }
+                  }
+                ],
+                "propsSource": null,
+                "slots": [],
+                "ssr": {
+                  "returnMode": "maybe-promise",
+                  "idBase": null,
+                  "blockingSuspense": false
+                }
+              }
+            ],
+            "ssr": {
+              "id": null,
+              "targetUses": 0
+            }
+          }
+        ],
+        "ssr": {
+          "syncRender": false,
+          "staticRoot": false,
+          "needsRootRange": false,
+          "needsId": false,
+          "idBase": "qApp-",
+          "flushTasks": false,
+          "directSegments": [],
+          "usedSegments": []
+        }
+      },
+      "setup": [
+        {
+          "kind": "signal",
+          "binding": 5,
+          "init": {
+            "kind": "object",
+            "entries": [
+              [
+                "count",
+                {
+                  "kind": "lit",
+                  "value": 2
+                }
+              ]
+            ]
+          }
+        }
+      ],
+      "needsId": false,
+      "idBase": "qApp-",
+      "providesContext": false,
+      "runtimeStyleScope": false
+    }
+  ],
+  "modules": [
+    {
+      "path": "src/input.tsx",
+      "segments": [
+        {
+          "id": "segment_0",
+          "symbolName": "input_text_segment_0_3k1cvwun49quc",
+          "chunk": "./input.tsx_input_text_segment_0_3k1cvwun49quc",
+          "kind": "expression",
+          "resolved": true,
+          "qrl": null,
+          "captures": [
+            {
+              "binding": 4,
+              "name": "props",
+              "source": "param",
+              "access": "direct"
+            }
+          ]
+        }
+      ],
+      "contexts": [],
+      "defs": [],
+      "imports": []
+    }
+  ],
+  "unresolved": [],
+  "pluginFns": []
+}

@@ -134,6 +134,16 @@ export function emitJsProductionRender(
     for (const capture of component.captures ?? []) {
       generator.declare(capture.bindingId, capture.name);
     }
+    // a fragment-rooted body has no element to anchor a dynamic child on, so it fences its own
+    // output in a range the client can find again
+    if ((wire as { ssr?: { needsRootRange?: boolean } }).ssr?.needsRootRange === true) {
+      const rootRange = 'root_range_id';
+      generator.rootRangeName = rootRange;
+      generator.rootRangeStatement = `const ${rootRange} = ${names.ctx}.nextId();`;
+      generator.blockMarkers = [
+        { open: `createSsrRecord('<!d=', createSsrNodeId(${rootRange}), '>')`, close: '<!/d>' },
+      ];
+    }
     return generator.generateProduction(
       component.name,
       wire,
@@ -383,6 +393,8 @@ class JsComponentGenerator {
   rootAttribute: string | null = null;
   /** Chunk-only: marker ranges bracketing the block's parts, innermost first. */
   blockMarkers: readonly { readonly open: string; readonly close: string }[] = [];
+  /** Declares the self-allocated root range id, when the body fences its own output. */
+  rootRangeStatement: string | null = null;
   /** Chunk-only: runtime id name for range targets anchored on the block's own range. */
   rootRangeName: string | null = null;
   /** Sync handlers referenced by this block: key → source, emitted as a table script. */
@@ -634,6 +646,10 @@ class JsComponentGenerator {
     }
     for (const [key, source] of this.syncFns) {
       parts.unshift(`${this.names.ctx}.syncFn(${JSON.stringify(key)}, ${JSON.stringify(source)})`);
+    }
+    // the id must exist before anything references it, and before the opening fence
+    if (this.rootRangeStatement !== null) {
+      this.statements.unshift(this.rootRangeStatement);
     }
     // chunk markers bracket the parts, innermost first; closers merge into trailing statics
     for (const marker of this.blockMarkers) {

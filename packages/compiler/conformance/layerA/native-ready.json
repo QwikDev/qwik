@@ -5,6 +5,7 @@
     "child-props",
     "class-object",
     "component-event-prop",
+    "component-signal-identity",
     "component-spread-mixed",
     "component-spread-props",
     "component-spread-signal",
@@ -43,7 +44,6 @@
   "gaps": {
     "implicit-dollar-call": "calls a JS-only fn (transform$) with no native$ declaration \u2014 unimplementable natively, as the census records",
     "imported-callback": "passes an imported JS function value as a callback; nothing native to call without a native$ declaration",
-    "plugin-callback": "its compute() has no native$ declaration; the fixture covers the JS side of callback wire forms",
-    "component-signal-identity": "needs the attribute backpatch protocol: JS records [q:id, attr, value] triples when a task changes an already-emitted attribute and emits the _qwikB script before the state script"
+    "plugin-callback": "its compute() has no native$ declaration; the fixture covers the JS side of callback wire forms"
   }
 }

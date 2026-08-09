@@ -68,6 +68,13 @@ fn write_value(value: &Value, output: &mut String) -> bool {
 	}
 }
 
+/// A JSON string literal, for embedding data in generated scripts.
+pub fn quoted(text: &str) -> String {
+	let mut output = String::new();
+	write_quoted(text, &mut output);
+	output
+}
+
 fn write_quoted(text: &str, output: &mut String) {
 	output.push('"');
 	for ch in text.chars() {

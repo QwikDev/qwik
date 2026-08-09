@@ -806,7 +806,7 @@ impl Serializer {
 				let capture_ids: Vec<i64> = qrl
 					.captures
 					.iter()
-					.map(|capture| self.add_root(Rc::clone(capture)) as i64)
+					.map(|capture| self.promote_to_root(capture) as i64)
 					.collect();
 				let chunk_id = self.add_root(Rc::new(SerdesValue::String(chunk))) as i64;
 				let symbol_id =

@@ -53,6 +53,24 @@ pub struct SsrContext {
 	styles: Vec<(String, String)>,
 	/// Active context scopes, innermost last.
 	context_stack: Vec<Rc<SerdesValue>>,
+	/// Signal-backed attributes already written, with the value they were written with.
+	attr_backpatches: Vec<AttrBackpatch>,
+}
+
+/// One emitted attribute whose signal could still change before the page ends.
+struct AttrBackpatch {
+	target_id: u32,
+	name: String,
+	signal: Rc<SerdesValue>,
+	emitted: Option<String>,
+}
+
+/// The attribute's value as the client would set it: `None` removes the attribute.
+fn attr_patch_value(signal: &Rc<SerdesValue>) -> Option<String> {
+	match &*signal_value(signal) {
+		SerdesValue::Null | SerdesValue::Undefined => None,
+		other => Some(value_text(other)),
+	}
 }
 
 /// A deferred suspense boundary awaiting its post-shell template packet.
@@ -80,7 +98,19 @@ impl SsrContext {
 			deferred: Vec::new(),
 			styles: Vec::new(),
 			context_stack: Vec::new(),
+			attr_backpatches: Vec::new(),
 		}
+	}
+
+	/// Attributes whose signal changed since they were written, as `[id, name, value]` triples.
+	pub fn take_attr_patches(&mut self) -> Vec<(u32, String, Option<String>)> {
+		std::mem::take(&mut self.attr_backpatches)
+			.into_iter()
+			.filter_map(|record| {
+				let current = attr_patch_value(&record.signal);
+				(current != record.emitted).then_some((record.target_id, record.name, current))
+			})
+			.collect()
 	}
 
 	pub fn push_context(&mut self, scope: Rc<SerdesValue>) {
@@ -282,6 +312,14 @@ impl SsrContext {
 
 	/// Plain Attr effect (`renderSsrAttr`) — reactive attribute on an element target.
 	pub fn subscribe_attr(&mut self, signal: &Rc<SerdesValue>, target_id: u32, name: &str) {
+		// a task may write this signal after the attribute is on the wire; remember what was
+		// written so the difference can be backpatched (`_qwikB`)
+		self.attr_backpatches.push(AttrBackpatch {
+			target_id,
+			name: name.to_string(),
+			signal: Rc::clone(signal),
+			emitted: attr_patch_value(signal),
+		});
 		self.attach_effect(
 			&[Rc::clone(signal)],
 			EffectValue::Scalar(EffectSubscription {
@@ -1062,6 +1100,30 @@ fn js_string(value: &SerdesValue) -> String {
 	}
 }
 
+
+/// `emitBackpatch` — attributes a task changed after they were written are corrected on the
+/// client, before it resumes.
+fn backpatch_script(patches: &[(u32, String, Option<String>)]) -> String {
+	let mut data = String::from("[");
+	for (position, (target_id, name, value)) in patches.iter().enumerate() {
+		if position > 0 {
+			data.push(',');
+		}
+		data.push_str(&target_id.to_string());
+		data.push(',');
+		data.push_str(&crate::json::quoted(name));
+		data.push(',');
+		match value {
+			Some(text) => data.push_str(&crate::json::quoted(text)),
+			None => data.push_str("null"),
+		}
+	}
+	data.push(']');
+	format!(
+		"<script>((s,w,d)=>{{w._qwikB=(s,d)=>{{const c=s.closest('[q\\\\:container]');if(!c)return;const z=e=>e.closest('[q\\\\:container]')===c;for(let i=0;i<d.length;i+=3){{const e=[...c.querySelectorAll('[q\\\\:id=\"'+d[i]+'\"]')].find(z),n=d[i+1],v=d[i+2];if(!e)continue;n==='value'&&e.value!==undefined?e.value=v??'':n==='checked'&&e.checked!==undefined?e.checked=v!==null:v==null?e.removeAttribute(n):e.setAttribute(n,v)}}}};const f=()=>w._qwikB(s,d);w._qwikSP?w._qwikSP=w._qwikSP.then(f):f()}})(document.currentScript,window,{data})</script>"
+	)
+}
+
 pub fn render_page(
 	options: &PageOptions,
 	root: impl FnOnce(&mut SsrContext, &mut String),
@@ -1109,6 +1171,11 @@ pub fn render_page(
 		output.push_str("</head><body>");
 		output.push_str(&body);
 		output.push_str("</body>");
+	}
+
+	let attr_patches = ctx.take_attr_patches();
+	if !attr_patches.is_empty() {
+		output.push_str(&backpatch_script(&attr_patches));
 	}
 
 	let has_roots = ctx.serializer.root_count() > 0;

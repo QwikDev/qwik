@@ -38,12 +38,12 @@
     "visible-task"
   ],
   "gaps": {
-    "computed-task": "not yet verified against the Rust engine",
-    "component-signal-identity": "not yet verified against the Rust engine",
-    "deferred-collection": "not yet verified against the Rust engine",
-    "implicit-dollar-call": "not yet verified against the Rust engine",
-    "imported-callback": "not yet verified against the Rust engine",
-    "plugin-callback": "not yet verified against the Rust engine",
-    "visible-task-static": "not yet verified against the Rust engine"
+    "implicit-dollar-call": "calls a JS-only fn (transform$) with no native$ declaration \u2014 unimplementable natively, as the census records",
+    "imported-callback": "passes an imported JS function value as a callback; nothing native to call without a native$ declaration",
+    "plugin-callback": "its compute() has no native$ declaration; the fixture covers the JS side of callback wire forms",
+    "component-signal-identity": "a task writes a signal already rendered into an attribute; the JS engine emits a _qwikB patch script, which the native engine does not implement",
+    "computed-task": "registers roots in a different order than the JS engine (same values, shifted indices, so QRL capture deltas differ)",
+    "deferred-collection": "a collection over a deferred source serializes a different root set than the JS engine (13 roots vs 8); HTML matches",
+    "visible-task-static": "registers the visible task's captured signal at a different root index than the JS engine, shifting the QRL capture deltas"
   }
 }

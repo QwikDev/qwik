@@ -696,11 +696,9 @@ impl ComponentGenerator<'_> {
 			self.element_ids.insert(plan_id, variable.clone());
 			Some(variable)
 		};
-		let id_attr = if row_root {
-			" q:id=\\\"{}\\\" q:row"
-		} else {
-			" q:id=\\\"{}\\\""
-		};
+		// the row marker follows the element's own attributes, as the JS engine writes it
+		let id_attr = " q:id=\\\"{}\\\"";
+		let row_marker = if row_root { " q:row" } else { "" };
 
 		if !has_events {
 			self.statics.push('<');
@@ -719,6 +717,7 @@ impl ComponentGenerator<'_> {
 					_ => self.write_static_prop(prop)?,
 				}
 			}
+			self.statics.push_str(row_marker);
 			self.statics.push('>');
 			if let Some(raw) = Self::inner_html_of(props) {
 				self.statics.push_str(&raw);
@@ -782,6 +781,7 @@ impl ComponentGenerator<'_> {
 				}
 			}
 		}
+		self.statics.push_str(row_marker);
 		self.statics.push('>');
 		self.flush_statics(target);
 		if has_children {
@@ -1053,17 +1053,45 @@ impl ComponentGenerator<'_> {
 				}
 				"dynamic" => {
 					let ir = &prop["value"]["ir"];
-					if ir["kind"].as_str() != Some("signal-read") {
-						return Err(format!("component prop ir {ir} not supported yet"));
-					}
 					let name = prop["name"].as_str().ok_or("dynamic prop has no name")?;
-					let signal = self.signal_local(ir)?;
-					write!(
-						sources_entries,
-						"({name:?}.to_string(), std::rc::Rc::clone(&{signal})), "
-					)
-					.unwrap();
-					source_locals.push(signal);
+					match ir["kind"].as_str() {
+						// the signal itself, passed by identity — a value, not a reactive source
+						Some("binding-read") => {
+							let source = self.local(ir["binding"].as_u64().ok_or("no binding")?)?;
+							write!(
+								statics_entries,
+								"({name:?}.to_string(), std::rc::Rc::clone(&{source})), "
+							)
+							.unwrap();
+						}
+						Some("signal-read") => {
+							let signal = self.signal_local(ir)?;
+							write!(
+								sources_entries,
+								"({name:?}.to_string(), std::rc::Rc::clone(&{signal})), "
+							)
+							.unwrap();
+							source_locals.push(signal);
+						}
+						// any other value: evaluate it into a local, then pass it as a plain prop
+						_ => {
+							let temp = self.next_temp();
+							let tracked = format!("tracked_{temp}");
+							let expression = self.ir_expression(ir, &format!("&mut {tracked}"))?;
+							writeln!(
+								self.body,
+								"    let mut {tracked}: Vec<std::rc::Rc<qwik::serdes::SerdesValue>> = Vec::new();\n    \
+								 let prop_value_{temp} = {expression};\n    \
+								 let _ = &{tracked};"
+							)
+							.unwrap();
+							write!(
+								statics_entries,
+								"({name:?}.to_string(), prop_value_{temp}), "
+							)
+							.unwrap();
+						}
+					}
 				}
 				"event" => {
 					// event props pass the handler QRL as a plain prop value (q_….w(captures))
@@ -2325,6 +2353,23 @@ impl ComponentGenerator<'_> {
 					)
 					.unwrap();
 				}
+				"set-store" => {
+					let binding = step["binding"].as_u64().ok_or("set-store has no binding")?;
+					let mut target = self.local(binding)?;
+					let path = step["path"].as_array().ok_or("set-store has no path")?;
+					let (last, parents) = path.split_last().ok_or("set-store path is empty")?;
+					for parent in parents {
+						let name = parent.as_str().ok_or("set-store path segment")?;
+						target = format!("qwik::render::member_read(&{target}, {name:?}, {tracked})");
+					}
+					let name = last.as_str().ok_or("set-store path segment")?;
+					let value = self.ir_expression(&step["value"], tracked)?;
+					writeln!(
+						output,
+						"        qwik::render::set_member(&{target}, {name:?}, {value});"
+					)
+					.unwrap();
+				}
 				kind => return Err(format!("task step {kind:?} not supported yet")),
 			}
 		}
@@ -2834,6 +2879,7 @@ impl ComponentGenerator<'_> {
 				}
 				Ok(format!("def_{}_{def}({args})", self.module_index))
 			}
+			"plugin-call" => self.plugin_call_expression(ir),
 			kind => Err(format!("ir kind {kind:?} not supported yet")),
 		}
 	}

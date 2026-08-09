@@ -561,6 +561,14 @@ pub fn computed_read_with(computed: &Rc<SerdesValue>, body: ValueSegmentFn) -> R
 }
 
 /// Signal write (`signal.value = x`) — task bodies mutate during SSR.
+/// Property assignment (`target.key = value`), the write side of `member_read`.
+pub fn set_member(target: &Rc<SerdesValue>, key: &str, value: Rc<SerdesValue>) {
+	match &**target {
+		SerdesValue::Signal(_) if key == "value" => set_signal_value(target, value),
+		other => panic!("assignment to {key:?} on {other:?} not supported yet"),
+	}
+}
+
 pub fn set_signal_value(signal: &Rc<SerdesValue>, value: Rc<SerdesValue>) {
 	let SerdesValue::Signal(state) = &**signal else {
 		panic!("set_signal_value expects a Signal value");

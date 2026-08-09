@@ -13,7 +13,7 @@ const config: PlaywrightTestConfig = {
   outputDir: '../../test-results/',
   webServer: {
     command:
-      'cargo run -q --manifest-path packages/qwik/native/rust/Cargo.toml -p qwik-ssr-gen --bin qwik-native-project -- e2e/qwik-e2e/apps e2e/qwik-e2e/.native && cargo run --manifest-path e2e/qwik-e2e/.native/Cargo.toml 3312',
+      'cargo run -q --manifest-path packages/compiler/generators/rust/ssr/Cargo.toml --bin qwik-native-project -- e2e/qwik-e2e/apps e2e/qwik-e2e/.native && cargo run --manifest-path e2e/qwik-e2e/.native/Cargo.toml 3312',
     port: 3312,
     reuseExistingServer: !process.env.CI,
     cwd: '../..',

@@ -1,3 +1,6 @@
+# its own workspace: it sits outside the native runtime workspace
+[workspace]
+
 [package]
 name = "qwik-ssr-gen"
 version = "0.0.0"

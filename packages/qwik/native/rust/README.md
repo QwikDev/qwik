@@ -8,11 +8,13 @@ this workspace hosts the Rust one.
 
 - `qwik` — runtime core: the JS-semantics profile (number formatting, JSON bytes,
   escaping, coercion, value model), the `qwik/state` serializer, and the container writer.
-- `qwik-ssr-gen` — the plan → Rust source generator. Fail-closed: unsupported plan constructs
-  abort generation with a named reason.
 - `qwik-ssr-fixtures` — Layer-A fixture runner: `build.rs` runs the generator over the linked
-  plans of the fixtures in its explicit `READY_FIXTURES` allowlist; tests byte-compare the
-  rendered shells against the JS engine's goldens. Growing the allowlist is the progress metric.
+  plans of the fixtures listed in `conformance/layerA/native-ready.json`; tests byte-compare the
+  rendered shells against the JS engine's goldens. Shrinking that file's `gaps` is the metric.
+
+The generator itself is not here. It consumes a compiler artifact and changes with the wire, so it
+lives beside the other generators, in its own workspace:
+`packages/compiler/generators/rust/ssr` (`qwik-ssr-gen`).
 
 Planned per spec 07: `qwik-ssr-std` (internal `qwik:` plugins).
 

@@ -9,5 +9,5 @@ qwik = { path = "../qwik" }
 qwik-ssr-std = { path = "../qwik-ssr-std" }
 
 [build-dependencies]
-qwik-ssr-gen = { path = "../qwik-ssr-gen" }
+qwik-ssr-gen = { path = "../../../../../compiler/generators/rust/ssr" }
 serde_json = { version = "1", features = ["preserve_order"] }

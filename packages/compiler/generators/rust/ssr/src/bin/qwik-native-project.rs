@@ -9,10 +9,9 @@ fn main() {
 		eprintln!("usage: qwik-native-project <apps-dir> <out-dir>");
 		std::process::exit(2);
 	};
+	// the generator lives with the compiler; the runtime crates it points app manifests at do not
 	let runtime_crates = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-		.parent()
-		.expect("crates dir")
-		.to_path_buf();
+		.join("../../../../qwik/native/rust/crates");
 
 	let apps_dir = PathBuf::from(apps_dir);
 	let out_dir = PathBuf::from(out_dir);

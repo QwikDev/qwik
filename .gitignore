@@ -24,6 +24,7 @@ lib
 tsdoc-metadata.json
 /target
 packages/qwik/native/rust/target
+packages/compiler/generators/rust/ssr/target
 e2e/qwik-e2e/.native
 e2e/qwik-e2e/apps/**/target
 e2e/qwik-e2e/apps/**/Cargo.lock

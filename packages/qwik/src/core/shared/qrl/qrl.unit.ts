@@ -155,6 +155,12 @@ describe('createQRL', () => {
       resolved: 'resolved',
     });
   });
+  test('should mark moved captures without cloning', () => {
+    const q = createQRL('chunk', 'symbol', 'resolved', null, null);
+    assert.strictEqual(q.m(), q);
+    assert.equal(q.$hasMovedCaptures$, true);
+    assert.equal(q.w([]).$hasMovedCaptures$, true);
+  });
   test('should have .resolved: given scalar', async () => {
     const q = createQRL('chunk', 'symbol', 'resolved', null, null);
     assert.equal(q.resolved, 'resolved');

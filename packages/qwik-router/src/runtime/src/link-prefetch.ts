@@ -20,10 +20,11 @@ export const refreshLinkPrefetchObserver = (
   cleanupPrefetchObserver = createLinkPrefetchObserver(manifestHash, loaderState);
 };
 
-export const linkPrefetchInit = (manifestHash: string, loaderState: RouteLoaderState) =>
-  event$(() => {
-    refreshLinkPrefetchObserver(manifestHash, loaderState);
-  });
+export const linkPrefetchInit = event$((_: Event, element: Element) => {
+  const manifestHash =
+    element.closest('[q\\:manifest-hash]')?.getAttribute('q:manifest-hash') || undefined;
+  refreshLinkPrefetchObserver(manifestHash);
+});
 
 export const createLinkPrefetchObserver = (
   manifestHash?: string,

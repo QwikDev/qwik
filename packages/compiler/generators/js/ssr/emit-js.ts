@@ -2506,6 +2506,10 @@ class JsComponentGenerator {
           return `${this.irJs(ir.receiver, scope)}.${method}(${args.join(', ')})`;
         }
         const namespace = ir.fn.slice(ir.fn.indexOf(':') + 1, ir.fn.lastIndexOf('.'));
+        // global functions have no owner object: `String(x)`, not `Global.String(x)`
+        if (namespace === 'global') {
+          return `${method}(${args.join(', ')})`;
+        }
         const globals: Record<string, string> = {
           promise: 'Promise',
           math: 'Math',

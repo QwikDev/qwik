@@ -382,6 +382,14 @@ export async function buildInterpretedRoot(
             return receiver[method](...args);
           }
           const namespace = ir.fn.slice(ir.fn.indexOf(':') + 1, ir.fn.lastIndexOf('.'));
+          // global functions have no owner object: `String(x)`, not `Global.String(x)`
+          if (namespace === 'global') {
+            const fn = (globalThis as Record<string, unknown>)[method];
+            if (typeof fn !== 'function') {
+              throw new Error(`interpreter has no global ${method}`);
+            }
+            return (fn as (...a: unknown[]) => unknown)(...args);
+          }
           const globalOwners: Record<string, object> = {
             promise: Promise,
             math: Math,

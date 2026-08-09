@@ -1,0 +1,251 @@
+{
+  "format": "qwik/ssr-plan",
+  "version": 1,
+  "entry": 0,
+  "components": [
+    {
+      "name": "App",
+      "module": 0,
+      "propsBindings": [],
+      "props": null,
+      "ssr": {
+        "setup": [
+          {
+            "kind": "signal",
+            "binding": 2,
+            "init": {
+              "kind": "lit",
+              "value": 7
+            },
+            "name": "count"
+          },
+          {
+            "kind": "const",
+            "binding": 3,
+            "init": {
+              "kind": "call",
+              "fn": "qwik:global.String",
+              "receiver": null,
+              "args": [
+                {
+                  "kind": "signal-read",
+                  "binding": 2
+                }
+              ]
+            },
+            "name": "label"
+          },
+          {
+            "kind": "const",
+            "binding": 4,
+            "init": {
+              "kind": "call",
+              "fn": "qwik:global.parseInt",
+              "receiver": null,
+              "args": [
+                {
+                  "kind": "binding-read",
+                  "binding": 3
+                },
+                {
+                  "kind": "lit",
+                  "value": 10
+                }
+              ]
+            },
+            "name": "parsed"
+          }
+        ],
+        "ops": [
+          {
+            "kind": "element",
+            "tag": "main",
+            "voidTag": false,
+            "styleScopedId": null,
+            "props": [],
+            "propsEffect": null,
+            "children": [
+              {
+                "kind": "element",
+                "tag": "span",
+                "voidTag": false,
+                "styleScopedId": null,
+                "props": [
+                  {
+                    "kind": "static",
+                    "name": "id",
+                    "value": "label"
+                  }
+                ],
+                "propsEffect": null,
+                "children": [
+                  {
+                    "kind": "content",
+                    "value": {
+                      "kind": "ir",
+                      "ir": {
+                        "kind": "binding-read",
+                        "binding": 3
+                      },
+                      "segment": "segment_0"
+                    },
+                    "ssr": {
+                      "root": false
+                    }
+                  }
+                ],
+                "ssr": {
+                  "id": null,
+                  "targetUses": 0
+                }
+              },
+              {
+                "kind": "element",
+                "tag": "span",
+                "voidTag": false,
+                "styleScopedId": null,
+                "props": [
+                  {
+                    "kind": "static",
+                    "name": "id",
+                    "value": "parsed"
+                  }
+                ],
+                "propsEffect": null,
+                "children": [
+                  {
+                    "kind": "content",
+                    "value": {
+                      "kind": "ir",
+                      "ir": {
+                        "kind": "binding-read",
+                        "binding": 4
+                      },
+                      "segment": "segment_1"
+                    },
+                    "ssr": {
+                      "root": false
+                    }
+                  }
+                ],
+                "ssr": {
+                  "id": null,
+                  "targetUses": 0
+                }
+              }
+            ],
+            "ssr": {
+              "id": null,
+              "targetUses": 0
+            }
+          }
+        ],
+        "ssr": {
+          "syncRender": false,
+          "staticRoot": false,
+          "needsRootRange": false,
+          "needsId": false,
+          "idBase": "qApp-",
+          "flushTasks": false,
+          "directSegments": [],
+          "usedSegments": [
+            "segment_0",
+            "segment_1"
+          ]
+        }
+      },
+      "setup": [
+        {
+          "kind": "signal",
+          "binding": 2,
+          "init": {
+            "kind": "lit",
+            "value": 7
+          }
+        },
+        {
+          "kind": "const",
+          "binding": 3,
+          "init": {
+            "kind": "call",
+            "fn": "qwik:global.String",
+            "receiver": null,
+            "args": [
+              {
+                "kind": "signal-read",
+                "binding": 2
+              }
+            ]
+          }
+        },
+        {
+          "kind": "const",
+          "binding": 4,
+          "init": {
+            "kind": "call",
+            "fn": "qwik:global.parseInt",
+            "receiver": null,
+            "args": [
+              {
+                "kind": "binding-read",
+                "binding": 3
+              },
+              {
+                "kind": "lit",
+                "value": 10
+              }
+            ]
+          }
+        }
+      ],
+      "needsId": false,
+      "idBase": "qApp-",
+      "providesContext": false,
+      "runtimeStyleScope": false
+    }
+  ],
+  "modules": [
+    {
+      "path": "src/input.tsx",
+      "segments": [
+        {
+          "id": "segment_0",
+          "symbolName": "input_text_segment_0_3k1cvwun49quc",
+          "chunk": "./input.tsx_input_text_segment_0_3k1cvwun49quc",
+          "kind": "expression",
+          "resolved": true,
+          "qrl": null,
+          "captures": [
+            {
+              "binding": 3,
+              "name": "label",
+              "source": "local",
+              "access": "direct"
+            }
+          ]
+        },
+        {
+          "id": "segment_1",
+          "symbolName": "input_text_segment_1_3k1cwavr13suv",
+          "chunk": "./input.tsx_input_text_segment_1_3k1cwavr13suv",
+          "kind": "expression",
+          "resolved": true,
+          "qrl": null,
+          "captures": [
+            {
+              "binding": 4,
+              "name": "parsed",
+              "source": "local",
+              "access": "direct"
+            }
+          ]
+        }
+      ],
+      "contexts": [],
+      "defs": [],
+      "imports": []
+    }
+  ],
+  "unresolved": [],
+  "pluginFns": []
+}

@@ -44,6 +44,7 @@
   "gaps": {
     "implicit-dollar-call": "calls a JS-only fn (transform$) with no native$ declaration \u2014 unimplementable natively, as the census records",
     "imported-callback": "passes an imported JS function value as a callback; nothing native to call without a native$ declaration",
-    "plugin-callback": "its compute() has no native$ declaration; the fixture covers the JS side of callback wire forms"
+    "plugin-callback": "its compute() has no native$ declaration; the fixture covers the JS side of callback wire forms",
+    "global-call-setup": "qwik:global.* ops have no receiver; the generator routes qwik: ops through qwik_ssr_std::call, which needs one"
   }
 }

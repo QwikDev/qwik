@@ -537,6 +537,8 @@ export type RenderEffectPlan =
     };
 
 export interface RenderFunctionPlan {
+  /** The JSX is a call argument in a module function: emit a deferred root, not an eager render. */
+  readonly argumentPosition?: true;
   readonly kind:
     | 'branch'
     | 'suspense'

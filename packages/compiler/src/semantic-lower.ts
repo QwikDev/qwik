@@ -4,16 +4,17 @@ import {
   getJsxAttributeName,
   getJsxName,
   getRange,
-  getStaticSourceTextExpressionParts,
   getStaticExpressionValue,
-  isFunctionLike,
+  getStaticSourceTextExpressionParts,
   isEventProp,
+  isFunctionLike,
   isNativeTag,
   isObviousPromiseExpression,
   jsxEventToHtmlAttribute,
   normalizeJsxEventName,
   normalizeJsxText,
   unwrapExpression,
+  visit,
 } from './ast-utils';
 import type { AstFunction, AstNode, SourceRange } from './types';
 import {
@@ -156,6 +157,24 @@ export function lowerSemanticComponentPlan(
     },
     extracted
   ).lowerComponentPlan();
+}
+
+/** The subset of `roots` that sit in argument position of a call — values handed to a callee. */
+function collectCallArgumentNodes(body: unknown, roots: readonly AstNode[]): Set<AstNode> {
+  const wanted = new Set(roots);
+  const found = new Set<AstNode>();
+  visit(body, (node: AstNode) => {
+    if (node.type !== 'CallExpression') {
+      return;
+    }
+    for (const argument of (node as { arguments: unknown[] }).arguments) {
+      const value = unwrapExpression(argument);
+      if (value !== null && value !== undefined && wanted.has(value)) {
+        found.add(value);
+      }
+    }
+  });
+  return found;
 }
 
 export function lowerSemanticModulePlan(
@@ -440,9 +459,11 @@ class SemanticLowerer {
     this.classifySetupBindings(this.owner.setup);
     this.classifyFunctionBindings();
     const roots = this.directFunctionJsxRoots(callback);
-    const renders = roots.map((root) =>
-      this.createEmbeddedRenderFunction(root, null, rootLifetime)
-    );
+    const argumentRoots = collectCallArgumentNodes(callback.body, roots);
+    const renders = roots.map((root) => {
+      const render = this.createEmbeddedRenderFunction(root, null, rootLifetime);
+      return argumentRoots.has(root) ? { ...render, argumentPosition: true as const } : render;
+    });
     this.validateCompilerHookScopes();
     if (this.failure !== null) {
       return this.failure;

@@ -43,6 +43,7 @@ export function emitFunctionRenders(
     imports.add(QwikWord.GetActiveInvokeContext);
     imports.add('invoke');
   }
+  const contextPrelude = `\n  const ${generatedNames.invokeCtx} = ${QwikWord.GetActiveInvokeContext}();\n  const ${generatedNames.ctx} = ${generatedNames.invokeCtx}.container;`;
   for (const fn of functions) {
     const renderReplacements: Array<{ range: SegmentPlan['range']; value: string }> = [];
     for (let index = 0; index < fn.renders.length; index++) {
@@ -62,22 +63,31 @@ export function emitFunctionRenders(
       }
       hoists.push(...emitted.hoists);
       emitted.directSegmentIds?.forEach((id) => directSegmentIds.add(id));
+      const eager = emitEmbeddedRenderExpression(emitted, render.async, generatedNames.invokeCtx);
       renderReplacements.push({
         range: render.range,
-        value: emitEmbeddedRenderExpression(emitted, render.async, generatedNames.invokeCtx),
+        value: render.argumentPosition
+          ? // a root value handed to a callee: defer into the callee's own invoke scope
+            `(() => {${contextPrelude}\n  return ${eager};\n})`
+          : eager,
       });
     }
+    const needsPrelude = fn.renders.some((render) => !render.argumentPosition);
     if (fn.bodyKind === 'expression') {
       const body = applyReplacements(source, fn.bodyRange, renderReplacements);
       replacements.push({
         range: fn.bodyRange,
-        value: `(() => {\n  const ${generatedNames.invokeCtx} = ${QwikWord.GetActiveInvokeContext}();\n  const ${generatedNames.ctx} = ${generatedNames.invokeCtx}.container;\n  return ${body};\n})()`,
+        value: needsPrelude ? `(() => {${contextPrelude}\n  return ${body};\n})()` : `(${body})`,
       });
     } else {
-      replacements.push(...renderReplacements, {
-        range: [fn.bodyRange[0] + 1, fn.bodyRange[0] + 1],
-        value: `\n  const ${generatedNames.invokeCtx} = ${QwikWord.GetActiveInvokeContext}();\n  const ${generatedNames.ctx} = ${generatedNames.invokeCtx}.container;`,
-      });
+      replacements.push(...renderReplacements);
+      if (needsPrelude) {
+        // deferred roots carry their own prelude; an entry called outside any context must not
+        replacements.push({
+          range: [fn.bodyRange[0] + 1, fn.bodyRange[0] + 1],
+          value: contextPrelude,
+        });
+      }
     }
   }
   return { hoists, replacements, directSegmentIds: [...directSegmentIds] };

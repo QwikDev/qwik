@@ -151,6 +151,12 @@ export default function (opts: any) {
     const line = main!.code.split('\n').find((l) => l.includes('export default'));
     // the caller is outside the compiler: the arity must not change
     expect(line).not.toContain('ctx');
+    // the entry runs before any invoke context exists; the render must defer into the call
+    const body = main!.code.slice(main!.code.indexOf('export default'));
+    expect(body).toContain('renderToStream((() =>');
+    const preludeAt = body.indexOf('getActiveInvokeContext()');
+    const closureAt = body.indexOf('renderToStream(');
+    expect(preludeAt).toBeGreaterThan(closureAt);
   });
 
   test('an exported function returning JSX directly stays a component', async () => {

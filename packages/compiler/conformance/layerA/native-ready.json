@@ -8,6 +8,7 @@
     "component-spread-mixed",
     "component-spread-props",
     "component-spread-signal",
+    "computed-task",
     "cond-attr",
     "context",
     "def-helper",
@@ -35,15 +36,14 @@
     "suspense-stream",
     "template-text",
     "use-styles",
-    "visible-task"
+    "visible-task",
+    "visible-task-static"
   ],
   "gaps": {
     "implicit-dollar-call": "calls a JS-only fn (transform$) with no native$ declaration \u2014 unimplementable natively, as the census records",
     "imported-callback": "passes an imported JS function value as a callback; nothing native to call without a native$ declaration",
     "plugin-callback": "its compute() has no native$ declaration; the fixture covers the JS side of callback wire forms",
-    "component-signal-identity": "a task writes a signal already rendered into an attribute; the JS engine emits a _qwikB patch script, which the native engine does not implement",
-    "computed-task": "registers roots in a different order than the JS engine (same values, shifted indices, so QRL capture deltas differ)",
-    "deferred-collection": "a collection over a deferred source serializes a different root set than the JS engine (13 roots vs 8); HTML matches",
-    "visible-task-static": "registers the visible task's captured signal at a different root index than the JS engine, shifting the QRL capture deltas"
+    "component-signal-identity": "needs the attribute backpatch protocol: JS records [q:id, attr, value] triples when a task changes an already-emitted attribute and emits the _qwikB script before the state script",
+    "deferred-collection": "no ForBlock effect is emitted for a deferred collection source, so the rows serialize as plain values and cannot resume (HTML matches)"
   }
 }

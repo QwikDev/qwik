@@ -801,13 +801,19 @@ impl Serializer {
 						.unwrap_or_else(|| qrl.chunk.clone()),
 					None => qrl.chunk.clone(),
 				};
+				// captures claim their roots before the chunk and symbol strings, as `qrlToString`
+				// does; the deltas are then rebased on the symbol root
+				let capture_ids: Vec<i64> = qrl
+					.captures
+					.iter()
+					.map(|capture| self.add_root(Rc::clone(capture)) as i64)
+					.collect();
 				let chunk_id = self.add_root(Rc::new(SerdesValue::String(chunk))) as i64;
 				let symbol_id =
 					self.add_root(Rc::new(SerdesValue::String(qrl.symbol.clone()))) as i64;
 				let mut encoded = format!("{chunk_id}#{}", symbol_id - chunk_id);
 				let mut previous = symbol_id;
-				for (position, capture) in qrl.captures.iter().enumerate() {
-					let capture_id = self.add_root(Rc::clone(capture)) as i64;
+				for (position, capture_id) in capture_ids.into_iter().enumerate() {
 					encoded.push(if position == 0 { '#' } else { ' ' });
 					encoded.push_str(&(capture_id - previous).to_string());
 					previous = capture_id;

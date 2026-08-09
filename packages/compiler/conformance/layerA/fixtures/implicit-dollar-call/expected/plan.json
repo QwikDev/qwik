@@ -108,7 +108,8 @@
                   "kind": "ir",
                   "ir": {
                     "kind": "plugin-call",
-                    "fnId": "plugin:./api:transformQrl",
+                    "fnId": "plugin:src/api:transformQrl",
+                    "source": "./api",
                     "args": [
                       {
                         "kind": "qrl-arg",

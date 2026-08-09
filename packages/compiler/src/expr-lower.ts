@@ -29,6 +29,8 @@ export interface ExprLowerFacts {
   defIndex?(binding: BindingId): number | null;
   /** The binding's import metadata, for plugin claim matching (specs/09). */
   importOf?(binding: BindingId): ImportBinding | null;
+  /** This module's path, so a relative import resolves to the same id the declaring side wrote. */
+  modulePath?: string;
   /** Only render-position values may carry render-arg placeholders — plan emission resolves them. */
   allowRenderArgs?: true;
   /** Extracted segment backing a plugin-call callback, by the callback's source range. */
@@ -66,7 +68,29 @@ export function hasPluginTarget(fnId: string, target: string): boolean {
  * Every identifiable imported fn is plugin-call-addressable — the fnId is module + export. A native
  * implementation is not required to lower the call; it only decides native readiness.
  */
-function pluginCallFnId(imported: ImportBinding): string | null {
+/**
+ * Canonical module id for a `native$` fn: the declaring module's path, extension stripped, in one
+ * path space. The declaring and calling sides must agree, so a relative specifier resolves against
+ * the module that wrote it — a basename would collide, and would break the moment the two modules
+ * stopped sharing a directory.
+ */
+export function canonicalModuleId(specifier: string, fromModulePath?: string): string {
+  const withoutExtension = specifier.replace(/\.[cm]?[jt]sx?$/, '');
+  if (!withoutExtension.startsWith('.') || fromModulePath === undefined) {
+    return withoutExtension;
+  }
+  const base = fromModulePath.split('/').slice(0, -1);
+  for (const part of withoutExtension.split('/')) {
+    if (part === '..') {
+      base.pop();
+    } else if (part !== '.' && part !== '') {
+      base.push(part);
+    }
+  }
+  return base.join('/');
+}
+
+function pluginCallFnId(imported: ImportBinding, modulePath?: string): string | null {
   // dollar exports ($ transform) and framework exports have compiler-owned semantics
   if (
     imported.typeOnly ||
@@ -76,7 +100,7 @@ function pluginCallFnId(imported: ImportBinding): string | null {
   ) {
     return null;
   }
-  return `plugin:${imported.source}:${imported.importedName}`;
+  return `plugin:${canonicalModuleId(imported.source, modulePath)}:${imported.importedName}`;
 }
 
 export interface ValueIrCoverage {
@@ -434,12 +458,15 @@ function lowerCall(node: AstNode, facts: ExprLowerFacts): ValueIR | null {
           if (rewrite === null) {
             return null;
           }
-          const fnId = pluginCallFnId({
-            source: rewrite.source,
-            importedName: rewrite.qrlName,
-            typeOnly: false,
-            attributes: [],
-          });
+          const fnId = pluginCallFnId(
+            {
+              source: rewrite.source,
+              importedName: rewrite.qrlName,
+              typeOnly: false,
+              attributes: [],
+            },
+            facts.modulePath
+          );
           if (fnId === null) {
             return null;
           }
@@ -449,15 +476,18 @@ function lowerCall(node: AstNode, facts: ExprLowerFacts): ValueIR | null {
             : {
                 kind: ValueIrKind.PluginCall,
                 fnId,
+                source: rewrite.source,
                 args: [{ kind: 'qrl-arg', segment: rewrite.segment }, ...rest],
               };
         }
-        const fnId = imported === null ? null : pluginCallFnId(imported);
+        const fnId = imported === null ? null : pluginCallFnId(imported, facts.modulePath);
         if (fnId === null) {
           return null; // unaddressable callee (component-local fn)
         }
         const args = lowerArgs(call.arguments, facts, null, true);
-        return args === null ? null : { kind: ValueIrKind.PluginCall, fnId, args };
+        return args === null
+          ? null
+          : { kind: ValueIrKind.PluginCall, fnId, source: imported!.source, args };
       }
       const args = lowerArgs(call.arguments, facts, null) as ValueIR[] | null;
       return args === null ? null : { kind: ValueIrKind.DefCall, def, args };

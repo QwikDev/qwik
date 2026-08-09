@@ -84,8 +84,10 @@ export type ValueIR =
     }
   | {
       readonly kind: ValueIrKind.PluginCall;
-      /** `plugin:<module>:<export>` — user-plugin fn id (specs/09). */
+      /** `plugin:<module>:<export>` — canonical identity, matched against declarations. */
       readonly fnId: string;
+      /** The import specifier as written, which is what JS emission must import from. */
+      readonly source: string;
       readonly args: readonly (ValueIR | LambdaIR | RenderArgIR | FnArgIR | QrlArgIR)[];
     };
 

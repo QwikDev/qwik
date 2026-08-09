@@ -691,6 +691,8 @@ export interface ModuleDeclaration {
 
 export interface ExtractedQrls {
   sourceIdentity: string;
+  /** This module's input path, so plugin-call ids resolve in the declaring side's path space. */
+  modulePath: string;
   analysis: ModuleAnalysis;
   segments: Segment[];
   moduleDeclarations: ModuleDeclaration[];

@@ -2551,7 +2551,9 @@ class JsComponentGenerator {
         if (match === null) {
           markUngeneratable(ir.fnId);
         }
-        const [, module, exportName] = match;
+        const [, , exportName] = match;
+        // the identity is canonical; the import has to stay relative to this module
+        const module = ir.source;
         const args = ir.args.map((argument) => this.pluginArgJs(argument, scope));
         if (this.shared.production) {
           // production modules keep the user's own import — reference it by local name

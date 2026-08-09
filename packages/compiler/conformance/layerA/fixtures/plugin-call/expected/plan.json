@@ -15,7 +15,8 @@
             "binding": 3,
             "init": {
               "kind": "plugin-call",
-              "fnId": "plugin:./greeting:makeGreeting",
+              "fnId": "plugin:src/greeting:makeGreeting",
+              "source": "./greeting",
               "args": [
                 {
                   "kind": "lit",
@@ -132,7 +133,8 @@
           "binding": 3,
           "init": {
             "kind": "plugin-call",
-            "fnId": "plugin:./greeting:makeGreeting",
+            "fnId": "plugin:src/greeting:makeGreeting",
+            "source": "./greeting",
             "args": [
               {
                 "kind": "lit",
@@ -207,8 +209,8 @@
   "unresolved": [],
   "pluginFns": [
     {
-      "fnId": "plugin:./greeting:makeGreeting",
-      "module": "./greeting",
+      "fnId": "plugin:src/greeting:makeGreeting",
+      "module": "src/greeting",
       "exportName": "makeGreeting",
       "targets": {
         "rust": {

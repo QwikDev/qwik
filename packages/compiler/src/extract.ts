@@ -99,6 +99,7 @@ class QrlExtractor {
     }
     return {
       sourceIdentity: this.sourceIdentity,
+      modulePath: this.path,
       analysis: this.analysis,
       segments: this.segments,
       moduleDeclarations: this.moduleDeclarations,

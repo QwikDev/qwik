@@ -183,7 +183,8 @@ export async function buildInterpretedRoot(
   // whether or not a native$ registration exists
   const pluginImpls = new Map<string, (...args: unknown[]) => unknown>();
   const loadPluginImpl = async (module: string, exportName: string): Promise<void> => {
-    const loaded = await loadFixtureModule(module).catch(() => null);
+    // plugin ids are canonical input paths; the loader adds the src/ prefix itself
+    const loaded = await loadFixtureModule(module.replace(/^src\//, '')).catch(() => null);
     const impl = loaded?.[exportName];
     if (typeof impl !== 'function') {
       throw new Error(`plugin module "${module}" has no ${exportName} export`);

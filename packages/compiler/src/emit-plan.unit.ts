@@ -185,7 +185,7 @@ describe('named dollar-import calls', () => {
     const prop = app.ssr.ops[0].props[0];
     expect(prop.value.kind).toBe('ir');
     expect(prop.value.ir.kind).toBe('plugin-call');
-    expect(prop.value.ir.fnId).toBe('plugin:./api:transformQrl');
+    expect(prop.value.ir.fnId).toBe('plugin:src/api:transformQrl');
     expect(prop.value.ir.args[0]).toEqual({
       kind: 'qrl-arg',
       segment: expect.stringMatching(/^segment_/),
@@ -401,8 +401,8 @@ describe('native$ marker', () => {
     );
     expect(plan.pluginFns).toEqual([
       {
-        fnId: 'plugin:./math:double',
-        module: './math',
+        fnId: 'plugin:src/math:double',
+        module: 'src/math',
         exportName: 'double',
         // the key names the language: any engine can be addressed
         targets: {

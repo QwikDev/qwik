@@ -293,6 +293,13 @@ class SemanticLowerer {
     private readonly extracted: ExtractedQrls
   ) {
     this.analysis = extracted.analysis;
+    // set here, not in the field literal: parameter properties land after field initializers
+    // every facts object, not just the base: the derived ones are spread at field-init time,
+    // which runs before this constructor body
+    // every facts object: the derived ones are spread at field-init time, before this body runs
+    for (const facts of [this.exprLowerFacts, this.renderValueLowerFacts, this.setupLowerFacts]) {
+      facts.modulePath = extracted.modulePath;
+    }
   }
 
   lowerComponentPlan(): SemanticLowerResult {

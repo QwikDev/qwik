@@ -24,7 +24,8 @@
             "binding": 4,
             "init": {
               "kind": "plugin-call",
-              "fnId": "plugin:./compute:compute",
+              "fnId": "plugin:src/compute:compute",
+              "source": "./compute",
               "args": [
                 {
                   "kind": "fn-arg",
@@ -93,7 +94,8 @@
           "binding": 4,
           "init": {
             "kind": "plugin-call",
-            "fnId": "plugin:./compute:compute",
+            "fnId": "plugin:src/compute:compute",
+            "source": "./compute",
             "args": [
               {
                 "kind": "fn-arg",

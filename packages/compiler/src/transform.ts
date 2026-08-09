@@ -118,6 +118,7 @@ export function transformModule(ctx: CompilerContext): TransformResult {
   const analysis = analyzeModule(program);
   const extractedQrls = extractQrls(program, ctx.input.path, analysis, ctx.options.scope);
   extractedQrls.moduleDefs = collectModuleDefs(program, analysis, {
+    modulePath: ctx.input.path,
     bindingIdAt: (range) =>
       range === null
         ? null

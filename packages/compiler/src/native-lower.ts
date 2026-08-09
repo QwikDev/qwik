@@ -1,5 +1,5 @@
 import { getIdentifierName, getRange, unwrapExpression, visit } from './ast-utils';
-import type { PluginFnPlan } from './expr-lower';
+import { canonicalModuleId, type PluginFnPlan } from './expr-lower';
 import type { ModuleAnalysis } from './plan-types';
 import type { AstNode, SourceRange } from './types';
 
@@ -161,7 +161,7 @@ export function nativePluginFns(
   markers: readonly NativeMarker[],
   modulePath: string
 ): PluginFnPlan[] {
-  const moduleSpecifier = `./${(modulePath.split('/').pop() ?? modulePath).replace(/\.[cm]?[jt]sx?$/, '')}`;
+  const moduleSpecifier = canonicalModuleId(modulePath);
   return markers.map((marker) => {
     const targets: PluginFnPlan['targets'] = {};
     for (const [target, value] of Object.entries(marker.targets)) {

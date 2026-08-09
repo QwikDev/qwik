@@ -53,10 +53,6 @@ const repoRoot = resolve(__dirname, '..', '..');
 const appsDir = join(e2eDir, 'apps');
 const appNames = readdirSync(appsDir).filter((p) => statSync(join(appsDir, p)).isDirectory());
 
-type E2EQwikPackageConfig = PackageJSON['__qwik__'] & {
-  vdomless?: boolean;
-};
-
 type OOOSReleaseStore = {
   resolved: Set<string>;
   resolvers: Map<string, Set<() => void>>;
@@ -78,10 +74,6 @@ let ooosRequestCounter = 0;
 const qwikRouterVirtualEntry = '@router-ssr-entry';
 const entryDevFileName = 'entry.dev.tsx';
 const entrySsrFileName = 'entry.ssr.tsx';
-
-const usesCompiler = (pkgJson: PackageJSON) => {
-  return !!(pkgJson.__qwik__ as E2EQwikPackageConfig | undefined)?.vdomless;
-};
 
 const ensureQwikLoaderGlobals = () => {
   const global = globalThis as typeof globalThis & {
@@ -130,11 +122,9 @@ async function handleApp(req: Request, res: Response, next: NextFunction) {
     const pkgPath = join(appDir, 'package.json');
     const pkgJson: PackageJSON = JSON.parse(readFileSync(pkgPath, 'utf-8'));
     const enableRouterServer = !!pkgJson.__qwik__?.qwikRouter;
-    const enableCompiler = usesCompiler(pkgJson);
-
     let clientManifest = cache.get(appDir);
     if (!clientManifest) {
-      clientManifest = buildApp(appDir, appName, enableRouterServer, enableCompiler);
+      clientManifest = buildApp(appDir, appName, enableRouterServer);
       cache.set(appDir, clientManifest);
     }
 
@@ -161,12 +151,7 @@ async function handleApp(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-async function buildApp(
-  appDir: string,
-  appName: string,
-  enableRouterServer: boolean,
-  enableCompiler: boolean
-) {
+async function buildApp(appDir: string, appName: string, enableRouterServer: boolean) {
   const optimizer = await import('@qwik.dev/core/optimizer');
   const appSrcDir = join(appDir, 'src');
   const appDistDir = join(appDir, 'dist');
@@ -174,8 +159,7 @@ async function buildApp(
   const entryDevPath = join(appSrcDir, entryDevFileName);
   const basePath = `/${appName}/`;
   const isProd = appName.includes('.prod');
-  const clientInput =
-    (appName === 'e2e' || enableCompiler) && existsSync(entryDevPath) ? entryDevPath : undefined;
+  const clientInput = existsSync(entryDevPath) ? entryDevPath : undefined;
 
   // always clean the build directory
   removeDir(appDistDir);
@@ -453,9 +437,7 @@ async function main() {
       const pkgPath = join(appDir, 'package.json');
       const pkgJson: PackageJSON = JSON.parse(readFileSync(pkgPath, 'utf-8'));
       const enableRouterServer = !!pkgJson.__qwik__?.qwikRouter;
-      const enableCompiler = usesCompiler(pkgJson);
-
-      await buildApp(appDir, buildTarget, enableRouterServer, enableCompiler);
+      await buildApp(appDir, buildTarget, enableRouterServer);
       console.log(`\n✅ Successfully built ${buildTarget}\n`);
       process.exit(0);
     } catch (error: any) {

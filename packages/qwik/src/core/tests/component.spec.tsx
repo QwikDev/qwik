@@ -303,3 +303,32 @@ describe(`${name}: component`, () => {
     cleanup();
   });
 });
+
+describe(`${name}: dynamic tag`, () => {
+  it('should render a tag whose value is a string as an element', async () => {
+    const MyComp = component$(() => {
+      const Tag = 'h2';
+      return <Tag class="title">Hello</Tag>;
+    });
+
+    const { container, cleanup } = await render(MyComp, { debug });
+
+    expect(container.querySelector('h2.title')?.textContent).toBe('Hello');
+
+    cleanup();
+  });
+
+  it('should render a tag whose value is a component', async () => {
+    const Badge = component$(() => <em>badge</em>);
+    const MyComp = component$(() => {
+      const Tag = Badge;
+      return <Tag />;
+    });
+
+    const { container, cleanup } = await render(MyComp, { debug });
+
+    expect(container.querySelector('em')?.textContent).toBe('badge');
+
+    cleanup();
+  });
+});

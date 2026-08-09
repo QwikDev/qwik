@@ -252,15 +252,18 @@ export {
   Slot,
   createProjection,
   createSlot,
+  createDynamicTag,
   createSlotScope,
   isProjection,
   isSlotScope,
   registerProjection,
+  renderSsrDynamicTag,
   renderSsrSlot,
   resolveSlot,
   type Projection,
   type SlotName,
   type SlotScope,
+  type SsrDynamicTagContext,
 } from './dom/slot/slot';
 export { ContextScope, createContextScope, isContextScope } from './runtime/context-scope';
 export {

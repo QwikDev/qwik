@@ -1492,7 +1492,10 @@ class JsComponentGenerator {
       markUngeneratable(operation.ssr.returnMode);
     }
     let childName: string;
-    if (typeof target === 'string') {
+    if (operation.tagBinding !== undefined) {
+      // plain local tag: the runtime reads the value to pick the element or the component arm
+      childName = this.local(operation.tagBinding);
+    } else if (typeof target === 'string') {
       // lexical local component, else a module/imported component in scope by name
       if (this.localComponents.has(target)) {
         childName = target;
@@ -1703,7 +1706,12 @@ class JsComponentGenerator {
       ? `${this.names.ctx}.inOrder()`
       : this.names.ctx;
     const childArgs = `props, ${childContext}${operation.ssr.idBase === null ? '' : `, ${operation.ssr.idBase}`}`;
-    const call = `createComponent(${propsExpr}, (props) => ${childName}(${childArgs})${options})`;
+    let childCall = `${childName}(${childArgs})`;
+    if (operation.tagBinding !== undefined) {
+      this.imports.add('renderSsrDynamicTag');
+      childCall = `renderSsrDynamicTag(${childName}, ${childArgs})`;
+    }
+    const call = `createComponent(${propsExpr}, (props) => ${childCall}${options})`;
     prepStatements.unshift(...slotPrep);
     if (operation.ssr.returnMode === 'sync' && this.synchronous) {
       // sync child in a sync block renders inline, matching the legacy direct path

@@ -1,0 +1,247 @@
+{
+  "format": "qwik/ssr-plan",
+  "version": 1,
+  "entry": 0,
+  "components": [
+    {
+      "name": "App",
+      "module": 0,
+      "propsBindings": [],
+      "props": null,
+      "ssr": {
+        "setup": [
+          {
+            "kind": "signal",
+            "binding": 2,
+            "init": {
+              "kind": "lit",
+              "value": "h2"
+            },
+            "name": "heading"
+          },
+          {
+            "kind": "render-fn",
+            "component": true,
+            "name": "Title",
+            "binding": 3,
+            "segment": "local_component_103_352",
+            "props": {
+              "kind": "identifier",
+              "binding": 4
+            },
+            "render": {
+              "setup": [
+                {
+                  "kind": "const",
+                  "binding": 5,
+                  "init": {
+                    "kind": "logic",
+                    "op": "??",
+                    "left": {
+                      "kind": "member",
+                      "obj": {
+                        "kind": "binding-read",
+                        "binding": 4
+                      },
+                      "name": "tag"
+                    },
+                    "right": {
+                      "kind": "lit",
+                      "value": "h1"
+                    }
+                  },
+                  "name": "Tag"
+                },
+                {
+                  "kind": "const",
+                  "binding": 6,
+                  "init": {
+                    "kind": "lit",
+                    "value": "hr"
+                  },
+                  "name": "Rule"
+                }
+              ],
+              "ops": [
+                {
+                  "kind": "component",
+                  "target": "Tag",
+                  "tagBinding": 5,
+                  "props": [
+                    {
+                      "kind": "static",
+                      "name": "class",
+                      "value": "title"
+                    }
+                  ],
+                  "propsSource": null,
+                  "slots": [
+                    {
+                      "name": "",
+                      "idBase": null,
+                      "render": {
+                        "segment": "segment_0",
+                        "setup": [],
+                        "ops": [
+                          {
+                            "kind": "static",
+                            "html": "Hello"
+                          }
+                        ],
+                        "ssr": {
+                          "syncRender": true,
+                          "needsRootRange": false,
+                          "staticRoot": true
+                        }
+                      }
+                    },
+                    {
+                      "name": "",
+                      "idBase": null,
+                      "render": {
+                        "segment": "segment_1",
+                        "setup": [],
+                        "ops": [
+                          {
+                            "kind": "component",
+                            "target": "Rule",
+                            "tagBinding": 6,
+                            "props": [],
+                            "propsSource": null,
+                            "slots": [],
+                            "ssr": {
+                              "returnMode": "maybe-promise",
+                              "idBase": null,
+                              "blockingSuspense": false
+                            }
+                          }
+                        ],
+                        "ssr": {
+                          "syncRender": false,
+                          "needsRootRange": false
+                        }
+                      }
+                    }
+                  ],
+                  "ssr": {
+                    "returnMode": "maybe-promise",
+                    "idBase": null,
+                    "blockingSuspense": false
+                  }
+                }
+              ],
+              "ssr": {
+                "syncRender": false,
+                "needsRootRange": false
+              }
+            }
+          }
+        ],
+        "ops": [
+          {
+            "kind": "component",
+            "target": "Title",
+            "props": [
+              {
+                "kind": "dynamic",
+                "name": "tag",
+                "value": {
+                  "kind": "ir",
+                  "ir": {
+                    "kind": "signal-read",
+                    "binding": 2
+                  }
+                }
+              }
+            ],
+            "propsSource": null,
+            "slots": [],
+            "ssr": {
+              "returnMode": "maybe-promise",
+              "idBase": null,
+              "blockingSuspense": false
+            }
+          }
+        ],
+        "ssr": {
+          "syncRender": false,
+          "staticRoot": false,
+          "needsRootRange": false,
+          "needsId": false,
+          "idBase": "qApp-",
+          "flushTasks": false,
+          "directSegments": [],
+          "usedSegments": [
+            "segment_0",
+            "segment_1",
+            "local_component_103_352"
+          ]
+        }
+      },
+      "setup": [
+        {
+          "kind": "signal",
+          "binding": 2,
+          "init": {
+            "kind": "lit",
+            "value": "h2"
+          }
+        },
+        {
+          "kind": "js",
+          "src": "function Title(props) {\n\t\t// no type checker: only the value decides, so the tag picks element or component at runtime\n\t\tconst Tag = props.tag ?? \"h1\";\n\t\tconst Rule = \"hr\";\n\t\treturn <Tag class=\"title\">\n        Hello\n        <Rule />\n      </Tag>;\n\t}"
+        }
+      ],
+      "needsId": false,
+      "idBase": "qApp-",
+      "providesContext": false,
+      "runtimeStyleScope": false
+    }
+  ],
+  "modules": [
+    {
+      "path": "src/input.tsx",
+      "segments": [
+        {
+          "id": "segment_0",
+          "symbolName": "input_slot_render_segment_0_1eefzxo0vtm46",
+          "chunk": "./input.tsx_input_slot_render_segment_0_1eefzxo0vtm46",
+          "kind": "slotRender",
+          "resolved": true,
+          "qrl": null,
+          "captures": []
+        },
+        {
+          "id": "segment_1",
+          "symbolName": "input_slot_render_segment_1_1eeg0bp4sno4p",
+          "chunk": "./input.tsx_input_slot_render_segment_1_1eeg0bp4sno4p",
+          "kind": "slotRender",
+          "resolved": true,
+          "qrl": null,
+          "captures": [
+            {
+              "binding": 6,
+              "name": "Rule",
+              "source": "local",
+              "access": "direct"
+            }
+          ]
+        },
+        {
+          "id": "local_component_103_352",
+          "symbolName": "local_component_103_352_3ir938hr7xnt1",
+          "chunk": "./input.tsx_local_component_103_352_3ir938hr7xnt1",
+          "kind": "localComponent",
+          "resolved": false,
+          "qrl": null,
+          "captures": []
+        }
+      ],
+      "contexts": [],
+      "defs": [],
+      "imports": []
+    }
+  ],
+  "unresolved": [],
+  "pluginFns": []
+}

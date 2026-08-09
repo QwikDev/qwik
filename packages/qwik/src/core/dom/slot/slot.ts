@@ -13,10 +13,17 @@ import {
   type RuntimeInvokeContext,
 } from '../../runtime/invoke-context';
 import { disposeOwner, getOrCreateContextOwner, type Owner } from '../../runtime/owner';
-import { EMPTY_ARRAY, EMPTY_NODES, EMPTY_STRING } from '../../utils/consts';
+import { DangerousInnerHTMLAttr, EMPTY_ARRAY, EMPTY_NODES, EMPTY_STRING } from '../../utils/consts';
 import { toNodes, type MaybeNodeOutput } from '../../utils/nodes';
 import { getFunctionOrResolve } from '../../utils/qrl';
-import type { SsrOutput } from '../../ssr/output';
+import {
+  createSsrElementRecord,
+  createSsrNodeId,
+  type SsrEventAttrChunk,
+  type SsrOutput,
+  type SsrRecordPart,
+} from '../../ssr/output';
+import { applyDomProps, renderDomPropsToString } from '../effect/dom-props';
 
 type SlotRenderFn = (
   ctx: ContainerContext,
@@ -147,6 +154,102 @@ export function createSlot(
     nodes.push(...output);
   }
   return nodes;
+}
+
+/**
+ * Tags the HTML parser closes itself. Only a runtime tag needs this at render time; the compiler
+ * decides it statically for every other element through its own `isVoidTag`, and the two packages
+ * share no dependency edge.
+ */
+const VOID_TAGS = new Set([
+  'area',
+  'base',
+  'br',
+  'col',
+  'embed',
+  'hr',
+  'img',
+  'input',
+  'link',
+  'meta',
+  'param',
+  'source',
+  'track',
+  'wbr',
+]);
+
+export interface SsrDynamicTagContext extends SsrSlotContext {
+  setRef(value: unknown, nodeId: number): void;
+  eventAttr(name: string, value: unknown): SsrEventAttrChunk;
+}
+
+type SsrTagRender = (
+  props: unknown,
+  ctx: SsrDynamicTagContext,
+  idBase?: string
+) => ValueOrPromise<SsrOutput>;
+
+/**
+ * A capitalized tag whose binding is a plain value — `const Tag = props.tag ?? 'h1'`. Only the
+ * value says which it is: a string renders an element, anything else renders as a component.
+ *
+ * The element arm writes its attributes once. A reactive prop re-renders the enclosing component
+ * instead of patching the attribute, because a runtime tag has no compiled per-attribute effect.
+ */
+export function renderSsrDynamicTag(
+  tag: unknown,
+  props: Record<string, unknown>,
+  ctx: SsrDynamicTagContext,
+  idBase?: string
+): ValueOrPromise<SsrOutput> {
+  if (typeof tag !== 'string') {
+    return (tag as SsrTagRender)(props, ctx, idBase);
+  }
+  const { attrs, innerHTML, ref } = renderDomPropsToString(props, ctx.eventAttr);
+  const open: SsrRecordPart[] = [`<${tag}`];
+  if (ref !== undefined) {
+    const nodeId = ctx.nextId();
+    open.push(' q:id="', createSsrNodeId(nodeId), '"');
+    ctx.setRef(ref, nodeId);
+  }
+  open.push(...attrs, '>');
+  const element = createSsrElementRecord(tag, ...open);
+  if (VOID_TAGS.has(tag)) {
+    return element;
+  }
+  // children arrive as the default projection, the same carrier the component arm registers
+  const children = innerHTML ?? renderSsrSlot(ctx, '');
+  return maybeThen(children, (children) => [element, children, `</${tag}>`]);
+}
+
+type CsrTagRender = (
+  props: unknown,
+  ctx: ContainerContext,
+  idBase?: string
+) => ValueOrPromise<MaybeNodeOutput>;
+
+/** The client peer of {@link renderSsrDynamicTag}: the same branch, building nodes instead of bytes. */
+export function createDynamicTag(
+  tag: unknown,
+  props: Record<string, unknown>,
+  ctx: ContainerContext,
+  idBase?: string
+): ValueOrPromise<MaybeNodeOutput> {
+  if (typeof tag !== 'string') {
+    return (tag as CsrTagRender)(props, ctx, idBase);
+  }
+  const element = ctx.document.createElement(tag);
+  applyDomProps(element, props);
+  // applyDomProps already wrote dangerouslySetInnerHTML, so projecting on top would duplicate it
+  if (VOID_TAGS.has(tag) || props[DangerousInnerHTMLAttr] !== undefined) {
+    return element;
+  }
+  return maybeThen(createSlot(), (children) => {
+    for (let i = 0; i < children.length; i++) {
+      element.appendChild(children[i]);
+    }
+    return element;
+  });
 }
 
 export function renderSsrSlot(

@@ -250,7 +250,7 @@ export function linkSsrPlan(
           if (typeof target !== 'string') {
             return op; // already linked
           }
-          if (isLocalComponentName(target)) {
+          if (op.tagBinding !== undefined || isLocalComponentName(target)) {
             // lexical reference — engines resolve through the local-component scope chain
             return {
               ...op,

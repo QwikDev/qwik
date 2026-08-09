@@ -1043,9 +1043,7 @@ function emitCsrOperation(
         operation.props,
         context,
         operation.propsSource
-      )}, (props) => ${operation.tag}(props, ${context.generatedNames.ctx}${
-        operation.idBase === null ? '' : `, ${operation.idBase}`
-      })${options})`;
+      )}, (props) => ${emitComponentChildCall(operation, context)}${options})`;
       if (operation.returnMode === 'sync') {
         if (roots !== null) {
           operationNames.set(operation.id, mounted);
@@ -1300,9 +1298,24 @@ function emitDirectComponent(
     component.props,
     context,
     component.propsSource
-  )}, (props) => ${component.tag}(props, ${context.generatedNames.ctx}${
+  )}, (props) => ${emitComponentChildCall(component, context)}${
+    slotScope === null ? '' : `, { slotScope: ${slotScope} }`
+  })`;
+}
+
+/** A plain local tag defers the element-or-component decision to the runtime. */
+function emitComponentChildCall(
+  component: { tag: string; unresolvedTag?: true; idBase: string | null },
+  context: CsrEmitContext
+): string {
+  const args = `props, ${context.generatedNames.ctx}${
     component.idBase === null ? '' : `, ${component.idBase}`
-  })${slotScope === null ? '' : `, { slotScope: ${slotScope} }`})`;
+  }`;
+  if (component.unresolvedTag !== true) {
+    return `${component.tag}(${args})`;
+  }
+  context.imports.add(QwikWord.CreateDynamicTag);
+  return `${QwikWord.CreateDynamicTag}(${component.tag}, ${args})`;
 }
 
 function emitCsrSetup(

@@ -49,6 +49,7 @@ const READY_FIXTURES = [
   'local-component',
   'suspense-inline',
   'suspense-stream',
+  'dynamic-tag',
 ];
 
 const layerADir = dirname(fileURLToPath(import.meta.url));

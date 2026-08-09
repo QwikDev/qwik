@@ -1,3 +1,25 @@
+const VOID_ELEMENTS = new Set([
+  'area',
+  'base',
+  'br',
+  'col',
+  'embed',
+  'hr',
+  'img',
+  'input',
+  'link',
+  'meta',
+  'param',
+  'source',
+  'track',
+  'wbr',
+]);
+
+/** Tags the HTML parser closes itself, so emitting an end tag for them is invalid. */
+export function isVoidTag(name: string): boolean {
+  return VOID_ELEMENTS.has(name.toLowerCase());
+}
+
 export type StaticAttributeValue = string | number | boolean | null;
 
 export function serializeAttrValue(name: string, value: StaticAttributeValue): string | null {

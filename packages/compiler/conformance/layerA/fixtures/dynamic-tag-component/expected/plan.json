@@ -1,0 +1,183 @@
+{
+  "format": "qwik/ssr-plan",
+  "version": 1,
+  "entry": 1,
+  "components": [
+    {
+      "name": "Badge",
+      "module": 0,
+      "propsBindings": [
+        1
+      ],
+      "props": {
+        "kind": "identifier",
+        "binding": 1
+      },
+      "ssr": {
+        "setup": [],
+        "ops": [
+          {
+            "kind": "element",
+            "tag": "em",
+            "voidTag": false,
+            "styleScopedId": null,
+            "props": [],
+            "propsEffect": null,
+            "children": [
+              {
+                "kind": "dynamic",
+                "output": "text",
+                "value": {
+                  "kind": "ir",
+                  "ir": {
+                    "kind": "member",
+                    "obj": {
+                      "kind": "binding-read",
+                      "binding": 1
+                    },
+                    "name": "label"
+                  },
+                  "segment": "segment_0"
+                },
+                "ssr": {
+                  "synchronous": false,
+                  "target": {
+                    "kind": "element",
+                    "id": 0
+                  }
+                }
+              }
+            ],
+            "ssr": {
+              "id": 0,
+              "targetUses": 0
+            }
+          }
+        ],
+        "ssr": {
+          "syncRender": false,
+          "staticRoot": false,
+          "needsRootRange": false,
+          "needsId": false,
+          "idBase": "qBadge-",
+          "flushTasks": false,
+          "directSegments": [],
+          "usedSegments": [
+            "segment_0"
+          ]
+        }
+      },
+      "setup": [],
+      "needsId": false,
+      "idBase": "qBadge-",
+      "providesContext": false,
+      "runtimeStyleScope": false
+    },
+    {
+      "name": "App",
+      "module": 1,
+      "propsBindings": [],
+      "props": null,
+      "ssr": {
+        "setup": [
+          {
+            "kind": "const",
+            "binding": 2,
+            "init": {
+              "kind": "binding-read",
+              "binding": 0
+            },
+            "name": "Tag"
+          }
+        ],
+        "ops": [
+          {
+            "kind": "component",
+            "target": "Tag",
+            "tagBinding": 2,
+            "props": [
+              {
+                "kind": "static",
+                "name": "label",
+                "value": "new"
+              }
+            ],
+            "propsSource": null,
+            "slots": [],
+            "ssr": {
+              "returnMode": "maybe-promise",
+              "idBase": null,
+              "blockingSuspense": false
+            }
+          }
+        ],
+        "ssr": {
+          "syncRender": false,
+          "staticRoot": false,
+          "needsRootRange": false,
+          "needsId": false,
+          "idBase": "qApp-",
+          "flushTasks": false,
+          "directSegments": [],
+          "usedSegments": []
+        }
+      },
+      "setup": [
+        {
+          "kind": "const",
+          "binding": 2,
+          "init": {
+            "kind": "binding-read",
+            "binding": 0
+          }
+        }
+      ],
+      "needsId": false,
+      "idBase": "qApp-",
+      "providesContext": false,
+      "runtimeStyleScope": false
+    }
+  ],
+  "modules": [
+    {
+      "path": "src/child.tsx",
+      "segments": [
+        {
+          "id": "segment_0",
+          "symbolName": "child_text_segment_0_2zpluiuy2k73g",
+          "chunk": "./child.tsx_child_text_segment_0_2zpluiuy2k73g",
+          "kind": "expression",
+          "resolved": true,
+          "qrl": null,
+          "captures": [
+            {
+              "binding": 1,
+              "name": "props",
+              "source": "param",
+              "access": "direct"
+            }
+          ]
+        }
+      ],
+      "contexts": [],
+      "defs": [],
+      "imports": []
+    },
+    {
+      "path": "src/input.tsx",
+      "segments": [],
+      "contexts": [],
+      "defs": [],
+      "imports": [
+        {
+          "binding": 0,
+          "name": "Badge",
+          "module": "./child",
+          "export": "Badge"
+        }
+      ]
+    }
+  ],
+  "unresolved": [],
+  "pluginFns": []
+}

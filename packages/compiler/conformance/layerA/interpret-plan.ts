@@ -22,6 +22,7 @@ import {
   renderSsrBranch,
   renderSsrCollection,
   renderSsrContent,
+  renderSsrDynamicTag,
   escapeSsrContent,
   renderSsrTextExpression,
   renderSsrSlot,
@@ -367,6 +368,19 @@ export async function buildInterpretedRoot(
         case 'member': {
           const obj = evalIr(ir.obj) as Record<string, unknown> | null | undefined;
           return ir.optional === true ? obj?.[ir.name] : obj![ir.name];
+        }
+        case 'cond':
+          return evalIr(ir.test) ? evalIr(ir.then) : evalIr(ir.else);
+        case 'logic': {
+          // short-circuit, so the right arm only evaluates when the emitted operator would
+          const left = evalIr(ir.left);
+          if (ir.op === '&&') {
+            return left && evalIr(ir.right);
+          }
+          if (ir.op === '||') {
+            return left || evalIr(ir.right);
+          }
+          return left ?? evalIr(ir.right);
         }
         case 'call': {
           // mirror the emitted call exactly — method on the receiver or a true global
@@ -833,7 +847,12 @@ export async function buildInterpretedRoot(
         case 'component': {
           const target = op.target as unknown;
           let renderTarget: ((childProps: unknown) => unknown) | null = null;
-          if (typeof target === 'string') {
+          if (op.tagBinding !== undefined) {
+            // plain local tag: the runtime reads the value to pick element or component
+            const tag = locals.get(op.tagBinding);
+            renderTarget = (childProps: unknown) =>
+              renderSsrDynamicTag(tag, childProps as never, ctx as never);
+          } else if (typeof target === 'string') {
             // lexical reference to a local component in the interpreted scope chain
             const localBinding = localComponentBindings.get(target);
             const localFn = localBinding === undefined ? undefined : locals.get(localBinding);

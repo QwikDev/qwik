@@ -2,6 +2,7 @@ import type { ValueIR } from './expr-ir';
 import type { SourceRange } from './types';
 import { DEFAULT_GENERATED_NAMES, type GeneratedNames } from './words';
 import { jsxEventToHtmlAttribute } from './ast-utils';
+import { isVoidTag } from './html-utils';
 import { hasInitialTask } from './plan-types';
 import type {
   BindingId,
@@ -157,8 +158,8 @@ export interface SsrContentOperation {
 export interface SsrComponentOperation {
   readonly kind: 'component';
   readonly tagRange: SourceRange;
-  /** The tag is a plain value: the engine decides element or component at render time. */
-  readonly unresolvedTag?: boolean;
+  /** Set when the tag is a plain local: the engine reads it to pick element or component. */
+  readonly tagBinding?: BindingId;
   readonly returnMode: 'sync' | 'maybe-promise';
   readonly props: readonly OrderedPropPlan[];
   readonly propsSource: SegmentReferencePlan | null;
@@ -230,23 +231,6 @@ export interface SsrCollectionOperation {
   readonly usesRowId: boolean;
   readonly rowShape: 0 | 1 | 2 | 3;
 }
-
-const VOID_ELEMENTS = new Set([
-  'area',
-  'base',
-  'br',
-  'col',
-  'embed',
-  'hr',
-  'img',
-  'input',
-  'link',
-  'meta',
-  'param',
-  'source',
-  'track',
-  'wbr',
-]);
 
 export type SsrComponentReturnModeResolver = (
   bindingId: BindingId | null
@@ -621,7 +605,9 @@ class SsrPlanner {
         return {
           kind: 'component',
           tagRange: node.tagRange,
-          ...(node.unresolvedTag === true ? { unresolvedTag: true } : {}),
+          ...(node.unresolvedTag === true && node.bindingId !== null
+            ? { tagBinding: node.bindingId }
+            : {}),
           returnMode: this.componentReturnMode(node.bindingId),
           props: node.props,
           propsSource: node.propsSource,
@@ -851,7 +837,7 @@ class SsrPlanner {
           (prop) => prop.kind === 'spread' || ('name' in prop && prop.name === 'ref')
         ),
       children,
-      void: VOID_ELEMENTS.has(node.tag),
+      void: isVoidTag(node.tag),
       styleScopedId: this.styleScopedId,
       runtimeStyleScope: this.runtimeStyleScopeName !== null,
       elementTargetUses:

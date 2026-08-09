@@ -23,6 +23,7 @@ export const enum QwikWord {
   CreateSlotScope = 'createSlotScope',
   RegisterProjection = 'registerProjection',
   CreateSlot = 'createSlot',
+  CreateDynamicTag = 'createDynamicTag',
   MergeProps = 'mergeProps',
   Props = '_props',
   BranchRange = 'BranchRange',

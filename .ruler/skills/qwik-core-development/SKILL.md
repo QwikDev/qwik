@@ -39,6 +39,10 @@ Do not load the reference for simple docs, package metadata, formatting, or unre
 - Avoid manual QRL construction unless nearby code already does it for the same reason.
 - Keep tests focused and close to the behavior that changed; add e2e coverage only when browser,
   streaming, navigation, or integration timing is the behavior under test.
+- Add new runtime helpers to the module that already owns the concept. A brand-new file re-exported
+  from `core/index.ts` shifts the chunk graph and can break an unrelated `resume` spec that passes
+  when run alone and only fails under the full `pnpm test.unit`. If a new module is unavoidable, run
+  the full suite before and after, and compare — the failure will not name your change.
 - If the change affects public API, run `pnpm api.update` after the focused tests pass.
 - If this skill or `references/core-notes.md` is stale after your source inspection, update it before
   finishing or record why guidance edits were out of scope.

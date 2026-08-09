@@ -180,6 +180,8 @@ export type PlanSsrOp =
       readonly kind: SsrOpKind.Component;
       /** Module plans carry the tag source; the linker resolves to `{ ref }`. */
       readonly target: string | { readonly ref: number };
+      /** Set when the tag is a plain local: the engine reads it to pick element or component. */
+      readonly tagBinding?: number;
       readonly props: readonly PlanSsrProp[];
       readonly propsSource: string | null;
       readonly slots: readonly {
@@ -797,6 +799,7 @@ export function emitSsrOpPlan(
         return {
           kind: SsrOpKind.Component,
           target: slice(operation.tagRange),
+          ...(operation.tagBinding == null ? {} : { tagBinding: operation.tagBinding }),
           props: operation.props.map(orderedProp),
           propsSource: operation.propsSource === null ? null : operation.propsSource.segmentId,
           slots: operation.slots.map((slot) => ({

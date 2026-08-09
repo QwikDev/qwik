@@ -1,7 +1,7 @@
 import { jsxEventToHtmlAttribute } from '../../../src/ast-utils';
 import { DEFAULT_GENERATED_NAMES, type GeneratedNames } from '../../../src/words';
 import type { SourceRange } from '../../../src/types';
-import { escapeAttr, escapeText, serializeAttrValue } from '../../../src/html-utils';
+import { escapeAttr, escapeText, isVoidTag, serializeAttrValue } from '../../../src/html-utils';
 import { hasInitialTask } from '../../../src/plan-types';
 import type {
   BindingId,
@@ -165,6 +165,8 @@ export type CsrRootPlan =
 export interface CsrDirectComponentPlan {
   readonly kind: 'component';
   readonly tag: string;
+  /** Set when the tag is a plain local: the runtime reads it to pick element or component. */
+  readonly unresolvedTag?: true;
   readonly cardinality: CsrCardinality;
   readonly outputShape: CsrOutputShape;
   readonly returnMode: CsrReturnMode;
@@ -355,23 +357,6 @@ interface TemplateMarker {
 }
 
 type TemplateNode = TemplateElement | TemplateText | TemplateMarker;
-
-const VOID_ELEMENTS = new Set([
-  'area',
-  'base',
-  'br',
-  'col',
-  'embed',
-  'hr',
-  'img',
-  'input',
-  'link',
-  'meta',
-  'param',
-  'source',
-  'track',
-  'wbr',
-]);
 
 export interface CsrComponentTargetInfo {
   readonly cardinality: CsrCardinality;
@@ -1047,6 +1032,7 @@ class CsrPlanner {
     return {
       kind: 'component',
       tag: this.source.slice(node.tagRange[0], node.tagRange[1]),
+      ...(node.unresolvedTag === true ? { unresolvedTag: true as const } : {}),
       cardinality: component.cardinality,
       outputShape: component.outputShape,
       returnMode: component.returnMode,
@@ -1381,7 +1367,7 @@ function finalizeTemplate(nodes: readonly TemplateNode[]) {
           case 'element': {
             refs.push({ id: node.ref, kind: 'element', path });
             const open = `<${node.tag}${node.attrs}>`;
-            if (VOID_ELEMENTS.has(node.tag.toLowerCase())) {
+            if (isVoidTag(node.tag)) {
               return open;
             }
             const childPath =

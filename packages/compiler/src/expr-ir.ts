@@ -145,3 +145,26 @@ export type ValueIrBinOp =
   | '**';
 
 export type ValueIrLogicOp = '&&' | '||' | '??';
+
+/**
+ * Every binding the IR reads. Emitters may inline a portable lowering instead of resuming through
+ * its segment, so the owning chunk has to import whatever the inlined form names.
+ */
+export function collectIrBindingIds(
+  ir: ValueIR | LambdaIR | RenderArgIR | FnArgIR | QrlArgIR | undefined,
+  into: Set<BindingId>
+): void {
+  if (ir === undefined || ir === null) {
+    return;
+  }
+  if (ir.kind === ValueIrKind.BindingRead || ir.kind === ValueIrKind.SignalRead) {
+    into.add(ir.binding);
+  }
+  for (const value of Object.values(ir)) {
+    if (Array.isArray(value)) {
+      value.forEach((item) => collectIrBindingIds(item as ValueIR, into));
+    } else if (value !== null && typeof value === 'object') {
+      collectIrBindingIds(value as ValueIR, into);
+    }
+  }
+}

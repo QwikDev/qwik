@@ -1785,4 +1785,28 @@ export function App() {
 `,
     });
   });
+  test('imports the module bindings a component chunk names inline', async () => {
+    const { ssr } = await testInput('component_chunk_module_binding', {
+      code: `import { component$ } from '@qwik.dev/core';
+
+const buttonStyle = 'btn';
+
+export const Child = component$((props: { class: unknown }) => <p class={props.class}>go</p>);
+
+export const Button = component$((props: { isWhite: boolean }) => (
+  <Child class={[buttonStyle, { white: props.isWhite }]} />
+));
+
+export const App = component$(() => (
+  <div>
+    <Button isWhite={true} />
+  </div>
+));
+`,
+    });
+
+    // the props getter is inlined into the chunk, so the chunk owes itself the import
+    const chunk = ssr.modules.find((module) => module.path.endsWith('_component_Button.js'));
+    expect(chunk?.code).toContain('import { buttonStyle }');
+  });
 });

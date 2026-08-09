@@ -61,7 +61,7 @@ import type {
   UseIdPlan,
   ValuePlan,
 } from './plan-types';
-import type { ValueIR } from './expr-ir';
+import { collectIrBindingIds, type ValueIR } from './expr-ir';
 import { lowerValueIr, reportValueIrSite, type ExprLowerFacts } from './expr-lower';
 import type { SetupOp } from './setup-ir';
 import { lowerSetupOp, reportSetupOpSite, type SetupLowerFacts } from './setup-lower';
@@ -2480,6 +2480,10 @@ class SemanticLowerer {
             render.referenceBindingIds.forEach((id) => ids.add(id))
           );
         }
+      }
+      if (value.kind !== 'render-value') {
+        // an emitter may inline the portable lowering, which names bindings the segment imported
+        collectIrBindingIds(value.ir, ids);
       }
     };
     const addProps = (props: readonly OrderedPropPlan[]): void => {

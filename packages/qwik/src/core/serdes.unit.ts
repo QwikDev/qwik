@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { _captures, createQRL, type QRLInternal } from './shared/qrl/qrl-class';
-import { needsInflation } from './shared/serdes/deser-proxy';
+import { needsInflation } from './shared/serdes/constants';
 import { deserializeData, inflate } from './shared/serdes/inflate';
 import { createSerializationContext } from './shared/serdes/serialization-context';
 import { Constants, EMPTY_OBJECT_PAYLOAD, TypeIds } from './shared/serdes/constants';

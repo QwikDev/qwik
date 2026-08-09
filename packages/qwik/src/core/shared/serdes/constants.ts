@@ -5,6 +5,7 @@ import { EMPTY_ARRAY, EMPTY_OBJ } from '../utils/flyweight';
 import { Slot } from '../../dom/slot/slot';
 import { Fragment } from '../jsx/compiler-runtime';
 export { TypeIds } from './type-id';
+import { TypeIds } from './type-id';
 
 /** Used to represent an undefined value that must be serialized */
 export const explicitUndefined = Symbol('undefined');
@@ -63,79 +64,10 @@ export const _constants = [
 ] as const;
 
 // Used for dumpState, make sure they are in sync with Constants
-export const _constantNames = [
-  'undefined',
-  'null',
-  'true',
-  'false',
-  "''",
-  'EMPTY_ARRAY',
-  'EMPTY_OBJ',
-  'NEEDS_COMPUTATION',
-  'STORE_ALL_PROPS',
-  '_UNINITIALIZED',
-  'Slot',
-  'Fragment',
-  'NaN',
-  'Infinity',
-  '-Infinity',
-  'MAX_SAFE_INTEGER',
-  'MAX_SAFE_INTEGER-1',
-  'MIN_SAFE_INTEGER',
-  "':'",
-  "'.'",
-  "'id'",
-  "'ref'",
-] as const;
 
-// Used for dumpState, make sure they are in sync with TypeIds
-export const _typeIdNames = [
-  'Plain',
-  'RootRef',
-  'ForwardRef',
-  'Constant',
-  'Array',
-  'Object',
-  'URL',
-  'Date',
-  'Regex',
-  'QRL',
-  'VNode',
-  'RefVNode',
-  'BigInt',
-  'URLSearchParams',
-  'ForwardRefs',
-  'TemporalDuration',
-  'TemporalInstant',
-  'TemporalPlainDate',
-  'TemporalPlainDateTime',
-  'TemporalPlainMonthDay',
-  'TemporalPlainTime',
-  'TemporalPlainYearMonth',
-  'TemporalZonedDateTime',
-  'Error',
-  'Promise',
-  'Set',
-  'Map',
-  'Uint8Array',
-  'Task',
-  'Component',
-  'Signal',
-  'WrappedSignal',
-  'ComputedSignal',
-  'AsyncSignal',
-  'SerializerSignal',
-  'Store',
-  'FormData',
-  'JSXNode',
-  'PropsProxy',
-  'Props',
-  'SubscriptionData',
-  'EffectSubscription',
-  'SubscriptionPatch',
-  'ContextScope',
-  'SlotScope',
-  'Projection',
-  'BigArray',
-  'StoreProp',
-];
+/** Arrays/Objects are special-cased so their identifiers is a single digit. */
+export const needsInflation = (typeId: TypeIds) =>
+  typeId >= TypeIds.Error ||
+  typeId === TypeIds.Array ||
+  typeId === TypeIds.Object ||
+  typeId === TypeIds.SerializerSignal;

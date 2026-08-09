@@ -24,8 +24,8 @@ export const enum EventNameHtmlScope {
   documentPassive = 'q-dp:',
 }
 
-export const EVENT_SUFFIX = '$';
-export const DOM_CONTENT_LOADED_EVENT = 'DOMContentLoaded';
+const EVENT_SUFFIX = '$';
+const DOM_CONTENT_LOADED_EVENT = 'DOMContentLoaded';
 
 export const isHtmlAttributeAnEventName = (name: string): boolean => {
   return (
@@ -47,7 +47,7 @@ export function jsxEventToHtmlAttribute(jsxEvent: string, isPassive = false): st
   return null; // Return null if not matching expected format
 }
 
-export function createEventName(event: string, prefix = ''): string {
+function createEventName(event: string, prefix = ''): string {
   const eventName = fromCamelToKebabCase(event);
   return prefix + eventName;
 }

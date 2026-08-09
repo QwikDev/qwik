@@ -86,7 +86,7 @@ import type { ValueOrPromise } from '../utils/types';
 import { allocate, pendingStoreTargets, resolvers } from './allocate';
 import { PromiseRoot, unwrapPromiseRoot } from './promise-root';
 import { EMPTY_OBJECT_PAYLOAD, TypeIds } from './constants';
-import { needsInflation } from './deser-proxy';
+import { needsInflation } from './constants';
 import type { SerializedOwnerItems } from './serialize';
 import { _props, restorePropsProxySource } from '../../component/props';
 
@@ -992,7 +992,7 @@ function restoreDependencies(
  * Restores an array eagerly. If you need it lazily, use `deserializeData(container, TypeIds.Array,
  * array)` instead
  */
-export const _eagerDeserializeArray = (
+const _eagerDeserializeArray = (
   container: ContainerContext,
   data: unknown[],
   output: unknown[] = Array(data.length / 2)

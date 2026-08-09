@@ -17,7 +17,7 @@ let preloadCount = 0;
 const queue: BundleImport[] = [];
 
 export const nextTriggerMacroTask = createMacroTask(trigger);
-export const nextAdjustmentMacroTask = createMacroTask(processPendingAdjustments);
+const nextAdjustmentMacroTask = createMacroTask(processPendingAdjustments);
 let isTriggerScheduled = false;
 let isAdjustmentScheduled = false;
 let isProcessingAdjustments = false;
@@ -32,7 +32,7 @@ type AdjustmentFrame = {
 
 const adjustmentStack: AdjustmentFrame[] = [];
 
-export const sortQueue = () => {
+const sortQueue = () => {
   if (queueDirty) {
     queue.sort((a, b) => a.$inverseProbability$ - b.$inverseProbability$);
     queueDirty = false;
@@ -255,7 +255,7 @@ export const adjustProbabilities = (
   }
 };
 
-export const handleBundle = (name: string, inverseProbability: number) => {
+const handleBundle = (name: string, inverseProbability: number) => {
   const bundle = getBundle(name);
   if (bundle) {
     enqueueAdjustment(bundle, inverseProbability);

@@ -66,7 +66,7 @@ export const stringifyStyle = (obj: any): string => {
   return String(obj);
 };
 
-export const serializeBooleanOrNumberAttribute = (value: any) => {
+const serializeBooleanOrNumberAttribute = (value: any) => {
   return value != null ? String(value) : null;
 };
 
@@ -104,6 +104,6 @@ export const setValueForStyle = (styleName: string, value: any) => {
   return value;
 };
 
-export function isAriaAttribute(prop: string): boolean {
+function isAriaAttribute(prop: string): boolean {
   return prop.startsWith('aria-');
 }

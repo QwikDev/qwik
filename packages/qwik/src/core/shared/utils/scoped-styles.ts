@@ -1,6 +1,6 @@
 import { ComponentStylesPrefixContent } from './markers';
 
-export const styleContent = (styleId: string): string => {
+const styleContent = (styleId: string): string => {
   return ComponentStylesPrefixContent + styleId;
 };
 

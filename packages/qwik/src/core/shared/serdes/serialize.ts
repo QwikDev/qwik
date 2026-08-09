@@ -841,7 +841,7 @@ export class Serializer {
   }
 }
 
-export class PromiseResult {
+class PromiseResult {
   constructor(
     public $type$: number,
     public $resolved$: boolean,
@@ -1305,6 +1305,3 @@ function isObjectLiteral(obj: unknown): obj is object {
 class SerializationWeakRef {
   constructor(public $obj$: unknown) {}
 }
-
-/** @internal */
-export const _serializationWeakRef = (obj: unknown) => new SerializationWeakRef(obj);

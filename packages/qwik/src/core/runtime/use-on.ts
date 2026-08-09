@@ -120,7 +120,7 @@ function recordUseOnEvent(
   event.stoppropagation ||= options?.stoppropagation === true;
 }
 
-export function recordUseOn<T extends KnownEventNames>(
+function recordUseOn<T extends KnownEventNames>(
   prefix: EventNameHtmlScope,
   event: T | T[],
   eventQrl: OnHandler<T>,

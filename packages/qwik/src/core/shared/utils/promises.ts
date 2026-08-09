@@ -1,7 +1,7 @@
 import { isDev, isServer } from '@qwik.dev/core/build';
 import type { ValueOrPromise } from './types';
 
-export const MAX_RETRY_ON_PROMISE_COUNT = 100;
+const MAX_RETRY_ON_PROMISE_COUNT = 100;
 
 export const isPromise = <T>(value: any): value is Promise<T> => {
   // not using "value instanceof Promise" to have zone.js support

@@ -8,7 +8,6 @@ export const ComponentStylesPrefixContent = '⚡️';
 /** `<some-element q:slot="...">` */
 export const QStyle = 'q:style';
 export const QStyleSelector = 'style[q\\:style]';
-export const QStyleSSelector = 'style[q\\:sstyle]';
 export const QFuncsPrefix = 'qFuncs_';
 export const QwikEvContainerReady = 0;
 
@@ -26,8 +25,6 @@ export const QBaseAttr = 'q:base';
 export const QLocaleAttr = 'q:locale';
 export const QManifestHashAttr = 'q:manifest-hash';
 export const QInstanceAttr = 'q:instance';
-export const QContainerIsland = 'q:container-island';
-export const QIgnore = 'q:ignore';
 export const QContainerAttr = 'q:container';
 
 // the same selector should be inside the qwik loader

@@ -12,6 +12,7 @@
     "cond-attr",
     "context",
     "def-helper",
+    "deferred-collection",
     "derived-collection",
     "e2-undef-text",
     "e6-index-read",
@@ -43,7 +44,6 @@
     "implicit-dollar-call": "calls a JS-only fn (transform$) with no native$ declaration \u2014 unimplementable natively, as the census records",
     "imported-callback": "passes an imported JS function value as a callback; nothing native to call without a native$ declaration",
     "plugin-callback": "its compute() has no native$ declaration; the fixture covers the JS side of callback wire forms",
-    "component-signal-identity": "needs the attribute backpatch protocol: JS records [q:id, attr, value] triples when a task changes an already-emitted attribute and emits the _qwikB script before the state script",
-    "deferred-collection": "no ForBlock effect is emitted for a deferred collection source, so the rows serialize as plain values and cannot resume (HTML matches)"
+    "component-signal-identity": "needs the attribute backpatch protocol: JS records [q:id, attr, value] triples when a task changes an already-emitted attribute and emits the _qwikB script before the state script"
   }
 }

@@ -2105,6 +2105,13 @@ impl ComponentGenerator<'_> {
 				return Err("collection source without a signal-container read".to_string());
 			}
 			let source_signal = self.signal_local(source_ir)?;
+			// the source signal carries the block's ForBlock effect, so it has to be a root or
+			// the effect is unreachable and the rows cannot resume
+			writeln!(
+				self.body,
+				"    ctx.serializer.add_root(std::rc::Rc::clone(&{source_signal}));"
+			)
+			.unwrap();
 			writeln!(
 				self.body,
 				"    let {range} = ctx.next_id();\n    \
@@ -2179,7 +2186,7 @@ impl ComponentGenerator<'_> {
 			writeln!(
 				self.body,
 				"    let mut {key_tracked}: Vec<std::rc::Rc<qwik::serdes::SerdesValue>> = Vec::new();\n    \
-				 ctx.serializer.add_root({key_expression});\n    \
+				 let key_value_{temp} = {key_expression};\n    \
 				 let _ = {key_tracked};"
 			)
 			.unwrap();
@@ -2189,11 +2196,14 @@ impl ComponentGenerator<'_> {
 		} else {
 			format!("&mut {target}")
 		};
+		// the key is rooted after its row renders, matching the JS engine's root order
+		let key_root = format!("ctx.serializer.add_root(key_value_{temp});\n    ");
 		// rows invoke through the row QRL value (specs/07 invocation convention)
 		writeln!(
 			self.body,
 			"    ctx.push_owner();\n    \
 			 {row_symbol}(ctx, {target_argument}, row_item_{temp}{index_argument}, qwik::render::qrl_captures(&row_qrl_{temp}));\n    \
+			 {key_root}\
 			 rows_{temp}.push(std::rc::Rc::new(qwik::serdes::SerdesValue::Array(ctx.pop_owner())));\n    \
 			 }}\n    \
 			 ctx.push_owner_item(std::rc::Rc::new(qwik::serdes::SerdesValue::Array(rows_{temp})));"

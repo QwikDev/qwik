@@ -556,7 +556,17 @@ class SemanticLowerer {
       ];
     }
     if (!isNativeTag(tag)) {
-      return [this.lowerComponent(node, range, tagRange, bindingId, context, blockingSuspense)];
+      return [
+        this.lowerComponent(
+          node,
+          range,
+          tagRange,
+          bindingId,
+          context,
+          blockingSuspense,
+          this.isUnresolvedTagBinding(bindingId)
+        ),
+      ];
     }
     const propsEffect = this.createElementPropsEffect(node, range, context);
     const props = this.lowerProps(node, range, context, 'element', propsEffect);
@@ -645,7 +655,8 @@ class SemanticLowerer {
     tagRange: SourceRange,
     bindingId: BindingId | null,
     context: RenderContext,
-    blockingSuspense: boolean
+    blockingSuspense: boolean,
+    unresolvedTag = false
   ): ComponentNodePlan {
     const lifetimeId = this.allocateLifetime(context.lifetimeId, 'component-call', 'atomic-range');
     const props = this.lowerProps(
@@ -686,6 +697,7 @@ class SemanticLowerer {
       range,
       tagRange,
       bindingId,
+      unresolvedTag,
       needsId: false,
       blockingSuspense,
       lifetimeId,
@@ -1420,6 +1432,9 @@ class SemanticLowerer {
       ...this.valueIr(expression),
     };
   }
+
+  /** Local bindings proven to hold a component, filled while setup lowers. */
+  private readonly localComponentBindings = new Set<BindingId>();
 
   private readonly exprLowerFacts: ExprLowerFacts = {
     bindingIdAt: (range) => this.bindingIdAt(range),
@@ -2742,6 +2757,9 @@ class SemanticLowerer {
     }
     const bindingId = this.bindingIdAt(nameRange);
     const binding = this.binding(bindingId);
+    if (bindingId !== null) {
+      this.localComponentBindings.add(bindingId);
+    }
     if (
       bindingId === null ||
       binding === null ||
@@ -3408,6 +3426,19 @@ class SemanticLowerer {
       binding!.import!.importedName === '*'
       ? name
       : null;
+  }
+
+  /**
+   * A capitalized tag whose binding is a plain local value — `const Tag = props.tag ?? 'h1'`.
+   * Imports, module scope and function-initialized locals (local components) all prove a component;
+   * anything else is only known once the value exists.
+   */
+  private isUnresolvedTagBinding(bindingId: BindingId | null): boolean {
+    const binding = this.binding(bindingId);
+    if (binding === null || binding.kind !== 'local') {
+      return false;
+    }
+    return !this.localComponentBindings.has(binding.id);
   }
 
   private isSlotBinding(bindingId: BindingId | null): boolean {

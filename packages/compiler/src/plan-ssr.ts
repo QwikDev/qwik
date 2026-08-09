@@ -157,6 +157,8 @@ export interface SsrContentOperation {
 export interface SsrComponentOperation {
   readonly kind: 'component';
   readonly tagRange: SourceRange;
+  /** The tag is a plain value: the engine decides element or component at render time. */
+  readonly unresolvedTag?: boolean;
   readonly returnMode: 'sync' | 'maybe-promise';
   readonly props: readonly OrderedPropPlan[];
   readonly propsSource: SegmentReferencePlan | null;
@@ -619,6 +621,7 @@ class SsrPlanner {
         return {
           kind: 'component',
           tagRange: node.tagRange,
+          ...(node.unresolvedTag === true ? { unresolvedTag: true } : {}),
           returnMode: this.componentReturnMode(node.bindingId),
           props: node.props,
           propsSource: node.propsSource,

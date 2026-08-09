@@ -321,6 +321,8 @@ export interface ComponentNodePlan {
   readonly range: SourceRange;
   readonly tagRange: SourceRange;
   readonly bindingId: BindingId | null;
+  /** The tag is a plain value: only the value itself says element or component. */
+  readonly unresolvedTag?: boolean;
   readonly needsId: boolean;
   readonly blockingSuspense: boolean;
   readonly lifetimeId: LifetimeId;

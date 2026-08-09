@@ -1,13 +1,13 @@
 import { describe, expect, test } from 'vitest';
-import { parseModule } from './parse';
-import type { CompilerContext } from './types';
-import { analyzeModule } from './analysis';
-import { discoverComponents } from './discover';
+import { parseModule } from '../../../src/parse';
+import type { CompilerContext } from '../../../src/types';
+import { analyzeModule } from '../../../src/analysis';
+import { discoverComponents } from '../../../src/discover';
 import { emitCsrPlan, emitCsrSegmentRender } from './emit-csr';
-import { extractQrls } from './extract';
-import { lowerComponent } from './lower';
+import { extractQrls } from '../../../src/extract';
+import { lowerComponent } from '../../../src/lower';
 import { planCsr, planCsrSegmentRender } from './plan-csr';
-import type { ComponentPlan, ModuleAnalysis } from './plan-types';
+import type { ComponentPlan, ModuleAnalysis } from '../../../src/plan-types';
 
 function lower(code: string): { plan: ComponentPlan; analysis: ModuleAnalysis } {
   const input = { path: 'src/component.tsx', code };
@@ -90,7 +90,7 @@ export function App() {
 
   test('passes an imported fallback QRL without a compiler role', () => {
     const code = `import { Suspense } from '@qwik.dev/core';
-import { fallback } from './fallback';
+import { fallback } from '../../../src/fallback';
 export function App() { return <Suspense fallback$={fallback}>ready</Suspense>; }`;
     const plan = planCsr(lower(code).plan, code)!;
     const suspense = plan.operations.find((operation) => operation.kind === 'suspense');
@@ -389,7 +389,7 @@ export function App() {
   });
 
   test('gives a sole reactive content root a resumable range', () => {
-    const code = `import { renderActive, renderInactive } from './renderers';
+    const code = `import { renderActive, renderInactive } from '../../../src/renderers';
 export function App(props) {
   return <main>{props.enabled ? renderActive(props.value) : renderInactive(props.value)}</main>;
 }`;
@@ -416,7 +416,7 @@ export function App(props) {
   });
 
   test('uses ContentBlock for nested dynamic content', () => {
-    const code = `import { renderActive } from './renderers';
+    const code = `import { renderActive } from '../../../src/renderers';
 export function App(props) {
   return <main><b>before</b>{renderActive(props.value)}<i>after</i></main>;
 }`;

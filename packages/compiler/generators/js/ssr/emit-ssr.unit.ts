@@ -1,9 +1,9 @@
 import type { TransformModuleInput, TransformModulesOptions } from '@qwik.dev/optimizer';
 import { parseSync } from 'oxc-parser';
 import { describe, expect, test } from 'vitest';
-import { transformModules } from './index';
+import { transformModules } from '../../../src/index';
 import { emitSsrSegmentRender } from './emit-ssr';
-import type { RenderPlan, SegmentPlan } from './plan-types';
+import type { RenderPlan, SegmentPlan } from '../../../src/plan-types';
 
 const options = (input: TransformModuleInput): TransformModulesOptions => ({
   input: [input],
@@ -20,7 +20,7 @@ describe('SSR output', () => {
       options({
         path: 'src/suspense.tsx',
         code: `import { Suspense } from '@qwik.dev/core';
-import { AsyncContent } from './async-content';
+import { AsyncContent } from '../../../src/async-content';
 export function App({ delay }) {
   return <main><Suspense fallback$={() => <i>wait</i>} delay={delay}><AsyncContent /></Suspense></main>;
 }`,
@@ -233,7 +233,7 @@ export function App() {
     const result = await transformModules(
       options({
         path: 'src/sequential.tsx',
-        code: `import { First, Second } from './children';
+        code: `import { First, Second } from '../../../src/children';
 export function App() {
   return <main><First /><Second /></main>;
 }
@@ -385,7 +385,7 @@ export function App() {
     const result = await transformModules(
       options({
         path: 'src/dynamic-content.tsx',
-        code: `import { renderItem } from './render-item';
+        code: `import { renderItem } from '../../../src/render-item';
 export function App({ value }) {
   return <div>{renderItem(value)}</div>;
 }

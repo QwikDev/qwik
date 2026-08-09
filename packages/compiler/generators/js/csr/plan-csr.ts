@@ -1,8 +1,8 @@
-import { jsxEventToHtmlAttribute } from './ast-utils';
-import { DEFAULT_GENERATED_NAMES, type GeneratedNames } from './words';
-import type { SourceRange } from './types';
-import { escapeAttr, escapeText, serializeAttrValue } from './html-utils';
-import { hasInitialTask } from './plan-types';
+import { jsxEventToHtmlAttribute } from '../../../src/ast-utils';
+import { DEFAULT_GENERATED_NAMES, type GeneratedNames } from '../../../src/words';
+import type { SourceRange } from '../../../src/types';
+import { escapeAttr, escapeText, serializeAttrValue } from '../../../src/html-utils';
+import { hasInitialTask } from '../../../src/plan-types';
 import type {
   BindingId,
   ComponentParameterPlan,
@@ -18,7 +18,7 @@ import type {
   UseIdPlan,
   ValuePlan,
   ComponentOutput,
-} from './plan-types';
+} from '../../../src/plan-types';
 
 export type CsrRefStep = 'content' | 'firstChild' | 'nextSibling';
 

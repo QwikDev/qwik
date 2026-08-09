@@ -1,10 +1,10 @@
-import type { SourceRange } from './types';
+import type { SourceRange } from '../../../src/types';
 import {
   emitComponentFunction,
   emitComponentParamSetup,
   emitComponentRangeReplacement,
-} from './emit-component';
-import type { EmittedComponentCode, EmittedModule } from './emitted-module';
+} from '../../../src/emit-component';
+import type { EmittedComponentCode, EmittedModule } from '../../../src/emitted-module';
 import {
   appendCsrQrlReplacements,
   applyReplacements,
@@ -13,9 +13,9 @@ import {
   emitModuleStyleBoundary,
   isModuleStyleBoundary,
   TargetImportResolver,
-} from './emit-qrl';
-import { emitFunctionRenders } from './emit-function';
-import { getSegmentImportPath } from './emit-segment';
+} from '../../../src/emit-qrl';
+import { emitFunctionRenders } from '../../../src/emit-function';
+import { getSegmentImportPath } from '../shared/emit-segment';
 import {
   planCsr,
   planCsrRenderFunction,
@@ -41,7 +41,7 @@ import type {
   InlineComponentReferencePlan,
   RenderFunctionPlan,
   SegmentPlan,
-} from './plan-types';
+} from '../../../src/plan-types';
 import {
   DEFAULT_GENERATED_NAMES,
   QWIK_IMPORT,
@@ -49,7 +49,7 @@ import {
   QwikHooks,
   QwikWord,
   type GeneratedNames,
-} from './words';
+} from '../../../src/words';
 
 export interface CsrRender {
   readonly hoists: string[];

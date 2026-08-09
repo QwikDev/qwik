@@ -1,8 +1,8 @@
-import type { PlanSsrOp, PlanSsrProp } from './emit-plan-ssr';
-import { SsrOpKind } from './emit-plan-ssr';
-import type { QwikSsrPlan } from './link-plan';
-import type { ValueIR } from './expr-ir';
-import { escapeAttr } from './html-utils';
+import type { PlanSsrOp, PlanSsrProp } from '../../../src/emit-plan-ssr';
+import { SsrOpKind } from '../../../src/emit-plan-ssr';
+import type { QwikSsrPlan } from '../../../src/link-plan';
+import type { ValueIR } from '../../../src/expr-ir';
+import { escapeAttr } from '../../../src/html-utils';
 
 /**
  * JS SSR generator — the JS projection of the wire plan, peer of the Rust `qwik-ssr-gen`

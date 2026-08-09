@@ -25,7 +25,7 @@ import {
   validateSerializableCaptures,
 } from './transform-diagnostics';
 import { createComponentDefinition, discoverComponentCandidates } from './discover';
-import { emitCsrModule, emitCsrSegmentRender } from './emit-csr';
+import { emitCsrModule, emitCsrSegmentRender } from '../generators/js/csr/emit-csr';
 import { collectNativeMarkers, nativePluginFns, type NativeMarker } from './native-lower';
 import { emitSsrOpPlan, findWireBlock, type PlanSsrComponent } from './emit-plan-ssr';
 import {
@@ -38,21 +38,25 @@ import { validateNativeReadiness } from './validate-native';
 import { collectModuleDefs } from './defs-lower';
 import type { EmittedModule } from './emitted-module';
 import { TargetImportResolver } from './emit-qrl';
-import { emitBindingImport, emitSegmentModules, type SegmentComponentImport } from './emit-segment';
+import {
+  emitBindingImport,
+  emitSegmentModules,
+  type SegmentComponentImport,
+} from '../generators/js/shared/emit-segment';
 import { getTargetModuleReferences, shouldEmitSegmentModule } from './segment-plan';
 import {
   emitSsrModule,
   emitSsrSegmentRender,
   lastUngeneratedReason,
   type SsrPlanData,
-} from './emit-ssr';
+} from '../generators/js/ssr/emit-ssr';
 import { extractQrls, isSetupQrlSegment } from './extract';
 import {
   createCsrComponentCardinalityResolver,
   planCsr,
   planCsrRenderFunction,
   type CsrComponentCardinalityResolver,
-} from './plan-csr';
+} from '../generators/js/csr/plan-csr';
 import {
   createSsrComponentReturnModeResolver,
   planSsr,

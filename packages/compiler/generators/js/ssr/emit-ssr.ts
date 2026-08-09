@@ -1,6 +1,6 @@
-import type { SourceRange } from './types';
-import { emitComponentFunction, emitComponentRangeReplacement } from './emit-component';
-import type { EmittedComponentCode, EmittedModule } from './emitted-module';
+import type { SourceRange } from '../../../src/types';
+import { emitComponentFunction, emitComponentRangeReplacement } from '../../../src/emit-component';
+import type { EmittedComponentCode, EmittedModule } from '../../../src/emitted-module';
 import {
   applyReplacements,
   emitCapturedQrlReference,
@@ -9,19 +9,19 @@ import {
   getTargetCallee,
   isModuleStyleBoundary,
   TargetImportResolver,
-} from './emit-qrl';
-import { emitFunctionRenders } from './emit-function';
-import { emitSsrOpPlan } from './emit-plan-ssr';
-import type { JsStatementRewriter } from './emit-plan-ssr';
+} from '../../../src/emit-qrl';
+import { emitFunctionRenders } from '../../../src/emit-function';
+import { emitSsrOpPlan } from '../../../src/emit-plan-ssr';
+import type { JsStatementRewriter } from '../../../src/emit-plan-ssr';
 import { emitJsProductionRender, emitJsSegmentBlock, lastUngeneratableDetail } from './emit-js';
-import { getSegmentImportPath, type EmittedSegmentRender } from './emit-segment';
-import { shouldResolveSsrSegment } from './segment-plan';
+import { getSegmentImportPath, type EmittedSegmentRender } from '../shared/emit-segment';
+import { shouldResolveSsrSegment } from '../../../src/segment-plan';
 import {
   planSsr,
   planSsrRenderFunction,
   planSsrSegmentRender,
   type SsrComponentReturnModeResolver,
-} from './plan-ssr';
+} from '../../../src/plan-ssr';
 import type {
   BindingId,
   ComponentDefinition,
@@ -31,7 +31,7 @@ import type {
   RenderFunctionPlan,
   SegmentPlan,
   SegmentReferencePlan,
-} from './plan-types';
+} from '../../../src/plan-types';
 import {
   DEFAULT_GENERATED_NAMES,
   QWIK_IMPORT,
@@ -40,7 +40,7 @@ import {
   QwikHooks,
   QwikWord,
   type GeneratedNames,
-} from './words';
+} from '../../../src/words';
 
 interface SsrRender {
   readonly imports: readonly string[];
@@ -476,7 +476,7 @@ export function emitSsrSegmentRender(
   explicitExtensions = false,
   generatedNames = DEFAULT_GENERATED_NAMES,
   componentReturnMode?: SsrComponentReturnModeResolver,
-  wireBlock?: import('./emit-plan-ssr').WireBlockMatch,
+  wireBlock?: import('../../../src/emit-plan-ssr').WireBlockMatch,
   planData: SsrPlanData = EMPTY_PLAN_DATA
 ): {
   hoists: string[];

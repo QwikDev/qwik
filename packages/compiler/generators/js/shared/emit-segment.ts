@@ -1,5 +1,5 @@
 import type { SegmentAnalysis, TransformModule } from '@qwik.dev/optimizer';
-import { createModule } from './module-utils';
+import { createModule } from '../../../src/module-utils';
 import {
   appendCsrQrlReplacements,
   applyReplacements,
@@ -9,29 +9,29 @@ import {
   getQrlVariableName,
   getTargetCallee,
   TargetImportResolver,
-} from './emit-qrl';
-import { emitEmbeddedRenderExpression } from './emit-function';
-import { isSetupQrlSegment } from './extract';
+} from '../../../src/emit-qrl';
+import { emitEmbeddedRenderExpression } from '../../../src/emit-function';
+import { isSetupQrlSegment } from '../../../src/extract';
 import type {
   BindingId,
   ImportBinding,
   ModuleAnalysis,
   SegmentPlan,
   SegmentPropsPartPlan,
-} from './plan-types';
-import { getSegmentDisplayName, getSegmentSymbolHash } from './segment-identity';
+} from '../../../src/plan-types';
+import { getSegmentDisplayName, getSegmentSymbolHash } from '../../../src/segment-identity';
 import {
   DEFAULT_GENERATED_NAMES,
   QWIK_IMPORT,
   QwikGenWord,
   QwikWord,
   type GeneratedNames,
-} from './words';
+} from '../../../src/words';
 import {
   getTargetModuleReferences,
   shouldEmitSegmentModule,
   shouldResolveSsrSegment,
-} from './segment-plan';
+} from '../../../src/segment-plan';
 
 export interface EmittedSegmentRender {
   hoists: string[];

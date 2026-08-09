@@ -3,7 +3,7 @@ import { cpSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, test } from 'vitest';
-import { emitJsModule } from '../../src/emit-js';
+import { emitJsModule } from '../../generators/js/ssr/emit-js';
 import { renderFixture, renderFixtureRoot, readFixtureRequest } from './harness';
 import type { SsrRenderRoot } from '../../../qwik/src/server/ssr-render';
 

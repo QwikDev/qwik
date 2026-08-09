@@ -2387,7 +2387,7 @@ impl ComponentGenerator<'_> {
 				self.body,
 				"    ctx.serializer.add_root(std::rc::Rc::clone(&{computed}));\n    \
 				 let computed_value_{temp} = qwik::render::computed_read_with(&{computed}, {computed_fn});\n    {subscribe}\n    \
-				 {target}.push_str(&qwik::escape::escape_html(&qwik::render::value_text(&computed_value_{temp})));"
+				 {target}.push_str(&qwik::escape::escape_html(&qwik::render::ssr_text_value(&computed_value_{temp})));"
 			)
 			.unwrap();
 			if is_range {
@@ -2450,7 +2450,7 @@ impl ComponentGenerator<'_> {
 				 if let Some(dep) = {tracked}.first() {{\n        \
 				 {subscribe}\n    \
 				 }}\n    \
-				 {target}.push_str(&qwik::escape::escape_html(&qwik::render::value_text(&{value})));"
+				 {target}.push_str(&qwik::escape::escape_html(&qwik::render::ssr_text_value(&{value})));"
 			)
 			.unwrap();
 		} else {
@@ -2702,6 +2702,23 @@ impl ComponentGenerator<'_> {
 				Ok(format!(
 					"qwik::render::member_read(&{object_expression}, {name:?}, {tracked})"
 				))
+			}
+			"index" => {
+				let object = self.ir_expression(&ir["obj"], tracked)?;
+				let index = self.ir_expression(&ir["key"], tracked)?;
+				Ok(format!(
+					"qwik::render::index_read(&{object}, &{index}, {tracked})"
+				))
+			}
+			"unary" => {
+				let operand = self.ir_expression(&ir["operand"], tracked)?;
+				let helper = match ir["op"].as_str().ok_or("unary op missing")? {
+					"!" => "js_not",
+					"-" => "js_negate",
+					"typeof" => "js_typeof",
+					op => return Err(format!("unary operator {op:?} not supported yet")),
+				};
+				Ok(format!("qwik::render::{helper}(&{operand})"))
 			}
 			"lit" => Ok(format!("std::rc::Rc::new({})", literal_expression(ir)?)),
 			"undef" => {

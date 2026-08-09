@@ -12,6 +12,28 @@
         "setup": [
           {
             "kind": "signal",
+            "binding": 2,
+            "init": {
+              "kind": "array",
+              "items": [
+                {
+                  "kind": "lit",
+                  "value": "zero"
+                },
+                {
+                  "kind": "lit",
+                  "value": "one"
+                },
+                {
+                  "kind": "lit",
+                  "value": "two"
+                }
+              ]
+            },
+            "name": "words"
+          },
+          {
+            "kind": "signal",
             "binding": 3,
             "init": {
               "kind": "lit",
@@ -51,8 +73,8 @@
                       "ir": {
                         "kind": "index",
                         "obj": {
-                          "kind": "binding-read",
-                          "binding": 1
+                          "kind": "signal-read",
+                          "binding": 2
                         },
                         "key": {
                           "kind": "signal-read",
@@ -84,7 +106,7 @@
                   {
                     "kind": "static",
                     "name": "id",
-                    "value": "last"
+                    "value": "first"
                   }
                 ],
                 "propsEffect": null,
@@ -97,24 +119,12 @@
                       "ir": {
                         "kind": "index",
                         "obj": {
-                          "kind": "binding-read",
-                          "binding": 1
+                          "kind": "signal-read",
+                          "binding": 2
                         },
                         "key": {
-                          "kind": "bin",
-                          "op": "-",
-                          "left": {
-                            "kind": "member",
-                            "obj": {
-                              "kind": "binding-read",
-                              "binding": 1
-                            },
-                            "name": "length"
-                          },
-                          "right": {
-                            "kind": "lit",
-                            "value": 1
-                          }
+                          "kind": "lit",
+                          "value": 0
                         }
                       },
                       "segment": "segment_1"
@@ -157,6 +167,27 @@
       "setup": [
         {
           "kind": "signal",
+          "binding": 2,
+          "init": {
+            "kind": "array",
+            "items": [
+              {
+                "kind": "lit",
+                "value": "zero"
+              },
+              {
+                "kind": "lit",
+                "value": "one"
+              },
+              {
+                "kind": "lit",
+                "value": "two"
+              }
+            ]
+          }
+        },
+        {
+          "kind": "signal",
           "binding": 3,
           "init": {
             "kind": "lit",
@@ -183,6 +214,12 @@
           "qrl": null,
           "captures": [
             {
+              "binding": 2,
+              "name": "words",
+              "source": "local",
+              "access": "direct"
+            },
+            {
               "binding": 3,
               "name": "at",
               "source": "local",
@@ -197,7 +234,14 @@
           "kind": "expression",
           "resolved": true,
           "qrl": null,
-          "captures": []
+          "captures": [
+            {
+              "binding": 2,
+              "name": "words",
+              "source": "local",
+              "access": "direct"
+            }
+          ]
         }
       ],
       "contexts": [],

@@ -1,14 +1,13 @@
 import { useSignal } from '@qwik.dev/core';
 
-const WORDS = ['zero', 'one', 'two'];
-
-// E6: reading by computed index, with the index itself reactive
+// E6: reading by index — a reactive index, and a literal one
 export function App() {
+  const words = useSignal(['zero', 'one', 'two']);
   const at = useSignal(1);
   return (
     <main>
-      <span id="picked">{WORDS[at.value]}</span>
-      <span id="last">{WORDS[WORDS.length - 1]}</span>
+      <span id="picked">{words.value[at.value]}</span>
+      <span id="first">{words.value[0]}</span>
     </main>
   );
 }

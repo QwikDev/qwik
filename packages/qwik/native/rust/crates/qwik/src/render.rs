@@ -664,6 +664,54 @@ pub fn js_gt(left: &Rc<SerdesValue>, right: &Rc<SerdesValue>) -> Rc<SerdesValue>
 	}
 }
 
+/// JS unary `-`.
+pub fn js_negate(value: &Rc<SerdesValue>) -> Rc<SerdesValue> {
+	match &**value {
+		SerdesValue::Number(number) => Rc::new(SerdesValue::Number(-number)),
+		SerdesValue::String(text) => Rc::new(SerdesValue::Number(-js_string_to_number(text))),
+		other => panic!("js_negate of {other:?} not supported yet"),
+	}
+}
+
+/// JS `!`.
+pub fn js_not(value: &Rc<SerdesValue>) -> Rc<SerdesValue> {
+	Rc::new(SerdesValue::Bool(!truthy(value)))
+}
+
+/// JS `typeof`.
+pub fn js_typeof(value: &Rc<SerdesValue>) -> Rc<SerdesValue> {
+	let name = match &**value {
+		SerdesValue::Undefined => "undefined",
+		SerdesValue::Bool(_) => "boolean",
+		SerdesValue::Number(_) => "number",
+		SerdesValue::String(_) => "string",
+		SerdesValue::BigInt(_) => "bigint",
+		SerdesValue::Qrl(_) => "function",
+		// null included: `typeof null === 'object'`
+		_ => "object",
+	};
+	Rc::new(SerdesValue::String(name.to_string()))
+}
+
+/// Computed index read: array by numeric index, anything else by its string key.
+pub fn index_read(
+	object: &Rc<SerdesValue>,
+	index: &Rc<SerdesValue>,
+	tracked: &mut Vec<Rc<SerdesValue>>,
+) -> Rc<SerdesValue> {
+	if let (SerdesValue::Array(items), SerdesValue::Number(position)) = (&**object, &**index) {
+		// a non-integral or out-of-range index is `undefined`, as in JS
+		if position.fract() != 0.0 || *position < 0.0 {
+			return Rc::new(SerdesValue::Undefined);
+		}
+		return match items.get(*position as usize) {
+			Some(item) => Rc::clone(item),
+			None => Rc::new(SerdesValue::Undefined),
+		};
+	}
+	member_read(object, &value_text(index), tracked)
+}
+
 /// Items of an evaluated array value (derived collection iteration).
 pub fn array_items(value: &Rc<SerdesValue>) -> Vec<Rc<SerdesValue>> {
 	let SerdesValue::Array(items) = &**value else {
@@ -799,6 +847,17 @@ pub fn signal_value(signal: &Rc<SerdesValue>) -> Rc<SerdesValue> {
 }
 
 /// SSR text interpolation (`value == null ? '' : String(value)`).
+/// Text-node output (`serializeSsrTextValue`): empty text becomes a space, so the node exists in
+/// the DOM for the client to resume into.
+pub fn ssr_text_value(value: &SerdesValue) -> String {
+	let text = value_text(value);
+	if text.is_empty() {
+		" ".to_string()
+	} else {
+		text
+	}
+}
+
 pub fn value_text(value: &SerdesValue) -> String {
 	match value {
 		SerdesValue::Undefined | SerdesValue::Null => String::new(),

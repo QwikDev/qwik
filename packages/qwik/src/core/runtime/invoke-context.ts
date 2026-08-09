@@ -79,7 +79,9 @@ export function newChildInvokeContext(
     container: options?.container ?? base?.container,
     contextScope: options?.contextScope ?? base?.contextScope ?? null,
     localContextScope: null,
-    slotScope: options?.slotScope ?? base?.slotScope ?? null,
+    // a projection renders under the scope it was registered in, so an explicit null means none:
+    // inheriting the consumer's scope would let a projected <Slot/> resolve to itself
+    slotScope: options?.slotScope === undefined ? (base?.slotScope ?? null) : options.slotScope,
   });
 }
 

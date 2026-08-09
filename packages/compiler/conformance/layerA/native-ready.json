@@ -49,6 +49,7 @@
     "global-call-setup": "qwik:global.* ops have no receiver; the generator routes qwik: ops through qwik_ssr_std::call, which needs one",
     "fragment-root": "pending: the generator has no self-allocated root range for a fragment-rooted body",
     "dynamic-tag": "pending: the generator has no tagBinding branch, so a runtime tag cannot pick element or component",
-    "dynamic-tag-component": "pending: the generator has no tagBinding branch, so a runtime tag cannot pick element or component"
+    "dynamic-tag-component": "pending: the generator has no tagBinding branch, so a runtime tag cannot pick element or component",
+    "projected-slot": "pending: the generator inherits the consumer slot scope for a scopeless projection, so a projected <Slot/> renders one range too many"
   }
 }

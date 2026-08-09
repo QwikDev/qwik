@@ -19,6 +19,7 @@
     "e6-index-read",
     "e7-unary",
     "inner-html",
+    "jsx-call",
     "local-component",
     "local-component-captured",
     "local-component-context",

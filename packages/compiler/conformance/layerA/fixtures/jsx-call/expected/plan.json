@@ -1,0 +1,185 @@
+{
+  "format": "qwik/ssr-plan",
+  "version": 1,
+  "entry": 0,
+  "components": [
+    {
+      "name": "App",
+      "module": 0,
+      "propsBindings": [],
+      "props": null,
+      "ssr": {
+        "setup": [
+          {
+            "kind": "signal",
+            "binding": 3,
+            "init": {
+              "kind": "lit",
+              "value": false
+            },
+            "name": "show"
+          }
+        ],
+        "ops": [
+          {
+            "kind": "element",
+            "tag": "div",
+            "voidTag": false,
+            "styleScopedId": null,
+            "props": [],
+            "propsEffect": null,
+            "children": [
+              {
+                "kind": "branch",
+                "condition": "segment_0",
+                "conditionIr": {
+                  "kind": "signal-read",
+                  "binding": 3
+                },
+                "then": {
+                  "segment": "segment_1",
+                  "setup": [],
+                  "ops": [
+                    {
+                      "kind": "element",
+                      "tag": "p",
+                      "voidTag": false,
+                      "styleScopedId": null,
+                      "props": [],
+                      "propsEffect": null,
+                      "children": [
+                        {
+                          "kind": "static",
+                          "html": "shown"
+                        }
+                      ],
+                      "ssr": {
+                        "id": null,
+                        "targetUses": 0
+                      }
+                    }
+                  ],
+                  "ssr": {
+                    "syncRender": true,
+                    "needsRootRange": false,
+                    "staticRoot": true
+                  }
+                },
+                "else": {
+                  "segment": "segment_2",
+                  "setup": [],
+                  "ops": [
+                    {
+                      "kind": "element",
+                      "tag": "p",
+                      "voidTag": false,
+                      "styleScopedId": null,
+                      "props": [
+                        {
+                          "kind": "inner-html",
+                          "html": "raw"
+                        }
+                      ],
+                      "propsEffect": null,
+                      "children": [],
+                      "ssr": {
+                        "id": null,
+                        "targetUses": 0
+                      }
+                    }
+                  ],
+                  "ssr": {
+                    "syncRender": true,
+                    "needsRootRange": false
+                  }
+                },
+                "ssr": {
+                  "root": false,
+                  "idBase": null
+                }
+              }
+            ],
+            "ssr": {
+              "id": null,
+              "targetUses": 0
+            }
+          }
+        ],
+        "ssr": {
+          "syncRender": false,
+          "staticRoot": false,
+          "needsRootRange": false,
+          "needsId": false,
+          "idBase": "qApp-",
+          "flushTasks": false,
+          "directSegments": [],
+          "usedSegments": [
+            "segment_0",
+            "segment_1",
+            "segment_2"
+          ]
+        }
+      },
+      "setup": [
+        {
+          "kind": "signal",
+          "binding": 3,
+          "init": {
+            "kind": "lit",
+            "value": false
+          }
+        }
+      ],
+      "needsId": false,
+      "idBase": "qApp-",
+      "providesContext": false,
+      "runtimeStyleScope": false
+    }
+  ],
+  "modules": [
+    {
+      "path": "src/input.tsx",
+      "segments": [
+        {
+          "id": "segment_0",
+          "symbolName": "input_branch_condition_segment_0_m6ibwm5wenbt",
+          "chunk": "./input.tsx_input_branch_condition_segment_0_m6ibwm5wenbt",
+          "kind": "branchCondition",
+          "resolved": true,
+          "qrl": null,
+          "captures": [
+            {
+              "binding": 3,
+              "name": "show",
+              "source": "local",
+              "access": "direct"
+            }
+          ]
+        },
+        {
+          "id": "segment_1",
+          "symbolName": "input_branch_then_segment_1_3n2tacjs4axze",
+          "chunk": "./input.tsx_input_branch_then_segment_1_3n2tacjs4axze",
+          "kind": "branchRender",
+          "resolved": false,
+          "qrl": null,
+          "captures": []
+        },
+        {
+          "id": "segment_2",
+          "symbolName": "input_branch_else_segment_2_f8z5xh5htfxl",
+          "chunk": "./input.tsx_input_branch_else_segment_2_f8z5xh5htfxl",
+          "kind": "branchRender",
+          "resolved": false,
+          "qrl": null,
+          "captures": []
+        }
+      ],
+      "contexts": [],
+      "defs": [],
+      "imports": []
+    }
+  ],
+  "unresolved": [],
+  "pluginFns": []
+}

@@ -18,6 +18,7 @@ import {
 import type { AstFunction, AstNode, SourceRange } from './types';
 import {
   getJsxAttributeExpression,
+  getJsxCallElement,
   getJsxBranchExpression,
   getExpandableObjectProperties,
   getStaticBranchCondition,
@@ -507,6 +508,10 @@ class SemanticLowerer {
         if (collection !== null) {
           const plan = this.lowerCollection(collection, context.lifetimeId, blockingSuspense);
           return plan === null ? [] : [plan];
+        }
+        const element = this.getJsxCallCandidate(node);
+        if (element !== null) {
+          return this.lowerElement(element, context, blockingSuspense);
         }
         return [this.createDynamicValue(node, range, context)];
       }
@@ -3439,6 +3444,20 @@ class SemanticLowerer {
       return false;
     }
     return !this.localComponentBindings.has(binding.id);
+  }
+
+  /** `jsx(type, props)` is JSX in call form; the runtime export only throws, so lower it as JSX. */
+  private getJsxCallCandidate(node: AstNode): JSXElement | null {
+    const callee = unwrapExpression((node as { callee?: unknown }).callee);
+    const binding = this.binding(this.bindingIdAt(getRange(callee)));
+    if (
+      !isQwikBinding(binding) ||
+      (binding!.import!.importedName !== QwikHooks.Jsx &&
+        binding!.import!.importedName !== QwikHooks.Jsxs)
+    ) {
+      return null;
+    }
+    return getJsxCallElement(node);
   }
 
   private isSlotBinding(bindingId: BindingId | null): boolean {

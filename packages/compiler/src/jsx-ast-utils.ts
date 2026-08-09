@@ -1,7 +1,8 @@
-import type { JSXAttributeItem, JSXAttributeValue, Node } from 'oxc-parser';
+import type { JSXAttributeItem, JSXAttributeValue, JSXElement, Node } from 'oxc-parser';
 import {
   getIdentifierName,
   getJsxAttributeName,
+  getJsxName,
   getStaticExpressionValue,
   isEventProp,
   isFunctionLike,
@@ -405,4 +406,93 @@ export function isComputedComponentProp(attribute: JSXAttributeItem): boolean {
     return false;
   }
   return !isSerializablePropExpression(attribute.value);
+}
+
+/**
+ * `jsx('div', { class: c, children: x })` is JSX written as a call, which the runtime cannot
+ * execute. Rebuilding it as an element keeps one lowering path for both spellings. Synthetic nodes
+ * borrow the ranges of the real argument nodes, so bindings and segments still resolve.
+ *
+ * Returns null for shapes JSX syntax cannot express either — a computed tag, a non-literal props
+ * object, or the automatic runtime's third `key` argument.
+ */
+export function getJsxCallElement(node: unknown): JSXElement | null {
+  const call = unwrapExpression(node);
+  if (call?.type !== 'CallExpression' || call.arguments.length !== 2) {
+    return null;
+  }
+  const [type, props] = call.arguments;
+  const name = jsxCallName(type);
+  if (name === null || !isObjectNode(props) || props.type !== 'ObjectExpression') {
+    return null;
+  }
+  const attributes: JSXAttributeItem[] = [];
+  const children: Node[] = [];
+  for (const property of props.properties) {
+    if (property.type === 'SpreadElement') {
+      attributes.push(
+        spanOf(property, { type: 'JSXSpreadAttribute', argument: property.argument })
+      );
+      continue;
+    }
+    if (property.type !== 'Property' || property.kind !== 'init' || property.computed) {
+      return null;
+    }
+    const propertyName = getJsxName(property.key) ?? staticStringKey(property.key);
+    if (propertyName === null) {
+      return null;
+    }
+    const value = spanOf(property.value, {
+      type: 'JSXExpressionContainer',
+      expression: property.value,
+    });
+    if (propertyName === 'children') {
+      children.push(value);
+      continue;
+    }
+    attributes.push(
+      spanOf(property, {
+        type: 'JSXAttribute',
+        name: spanOf(property.key, { type: 'JSXIdentifier', name: propertyName }),
+        value,
+      })
+    );
+  }
+  return spanOf(call, {
+    type: 'JSXElement',
+    openingElement: spanOf(call, {
+      type: 'JSXOpeningElement',
+      name,
+      attributes,
+      typeArguments: null,
+      selfClosing: children.length === 0,
+    }),
+    closingElement: null,
+    children,
+  }) as unknown as JSXElement;
+}
+
+/** A literal tag becomes an element name; an identifier keeps its node so its binding resolves. */
+function jsxCallName(type: unknown): Node | null {
+  const expression = unwrapExpression(type);
+  if (expression?.type === 'Identifier') {
+    return expression;
+  }
+  const literal = staticStringKey(expression);
+  return literal === null
+    ? null
+    : spanOf(expression, { type: 'JSXIdentifier', name: literal } as never);
+}
+
+function staticStringKey(node: unknown): string | null {
+  return isObjectNode(node) && node.type === 'Literal' && typeof node.value === 'string'
+    ? node.value
+    : null;
+}
+
+/** Synthetic nodes carry the source span of the real node they stand for. */
+function spanOf<T extends object>(source: unknown, node: T): T & Node {
+  const range = isObjectNode(source) ? ((source as unknown as Node).start ?? 0) : 0;
+  const end = isObjectNode(source) ? ((source as unknown as Node).end ?? range) : range;
+  return { ...node, start: range, end } as T & Node;
 }

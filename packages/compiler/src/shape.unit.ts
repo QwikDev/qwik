@@ -139,6 +139,31 @@ export function App(props) {
     expect(shape.kind).toBe('failure');
   });
 
+  test('an exported function passing JSX to a call keeps its signature', async () => {
+    const code = `import { Root } from './root';
+declare function renderToStream(root: any, opts: any): Promise<void>;
+export default function (opts: any) {
+  return renderToStream(<Root />, opts);
+}`;
+    const result = await transform(code);
+    expect(result.diagnostics).toEqual([]);
+    const main = result.modules.find((module) => module.path.endsWith('component.tsx'));
+    const line = main!.code.split('\n').find((l) => l.includes('export default'));
+    // the caller is outside the compiler: the arity must not change
+    expect(line).not.toContain('ctx');
+  });
+
+  test('an exported function returning JSX directly stays a component', async () => {
+    const code = `export function App() {
+  return <main>hi</main>;
+}`;
+    const result = await transform(code);
+    expect(result.diagnostics).toEqual([]);
+    const main = result.modules.find((module) => module.path.endsWith('component.tsx'));
+    expect(main!.code).toContain('function App(');
+    expect(main!.code).toMatch(/function App\(props\d*, ctx\d*\)/);
+  });
+
   test('allows an exported string helper to use the normal transform path', async () => {
     const result = await transform(`export function FormatName(value) { return String(value); }`);
 

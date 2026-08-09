@@ -1221,13 +1221,45 @@ function getImportSpecifierName(
 function returnPositionContainsJsx(fn: AstFunction): boolean {
   const body = unwrapExpression(fn.body);
   if (body?.type !== 'BlockStatement') {
-    return containsJsx(body);
+    return returnsJsxValue(body);
   }
   let found = false;
   visitReturns(body, (argument) => {
-    found ||= !isFunctionLike(unwrapExpression(argument)) && containsJsx(argument);
+    found ||= returnsJsxValue(unwrapExpression(argument));
   });
   return found;
+}
+
+/**
+ * JSX in value position of the returned expression — the value the function itself produces. JSX
+ * inside a call's arguments belongs to that call: the function returns the call's result, and
+ * rewriting its signature would break callers the compiler cannot see (issue: SSR entries doing
+ * `return renderToStream(<Root />, opts)` gained a ctx parameter the server never passes).
+ */
+function returnsJsxValue(node: unknown): boolean {
+  const value = unwrapExpression(node);
+  if (!isNode(value)) {
+    return false;
+  }
+  switch (value.type) {
+    case 'JSXElement':
+    case 'JSXFragment':
+      return true;
+    case 'ConditionalExpression':
+      return returnsJsxValue(value.consequent) || returnsJsxValue(value.alternate);
+    case 'LogicalExpression':
+      return returnsJsxValue(value.left) || returnsJsxValue(value.right);
+    case 'SequenceExpression': {
+      const expressions = (value as { expressions: unknown[] }).expressions;
+      return returnsJsxValue(expressions[expressions.length - 1]);
+    }
+    case 'ArrayExpression':
+      return (value as { elements: unknown[] }).elements.some((element) =>
+        returnsJsxValue(element)
+      );
+    default:
+      return false;
+  }
 }
 
 function visitReturns(node: unknown, visitor: (argument: unknown) => void, root = true): void {

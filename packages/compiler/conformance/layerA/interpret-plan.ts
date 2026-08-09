@@ -137,6 +137,7 @@ export async function buildInterpretedRoot(
   // segment ids are module-scoped — each component resolves qrls in its own module's table
   const moduleQrls: Map<string, QrlLike>[] = [];
   const moduleCaptureLists: Map<string, number[]>[] = [];
+  const moduleBindingsByName: Map<string, number[]>[] = [];
   const moduleSegmentKinds: Map<string, string>[] = [];
   const moduleImportValues: Map<number, unknown>[] = [];
   for (const linkedModule of plan.modules) {
@@ -168,6 +169,20 @@ export async function buildInterpretedRoot(
     moduleSegmentKinds.push(
       new Map(linkedModule.segments.map((segment) => [segment.id, segment.kind]))
     );
+    {
+      // js setup ops declare locals by name; capture metadata maps those names back to ids
+      const byName = new Map<string, number[]>();
+      for (const segment of linkedModule.segments) {
+        for (const capture of segment.captures) {
+          const ids = byName.get(capture.name) ?? [];
+          if (!ids.includes(capture.binding)) {
+            ids.push(capture.binding);
+          }
+          byName.set(capture.name, ids);
+        }
+      }
+      moduleBindingsByName.push(byName);
+    }
     // module-scope import values: IR binding-reads of imports resolve to the real export
     const importValues = new Map<number, unknown>();
     for (const importMeta of linkedModule.imports ?? []) {
@@ -259,10 +274,14 @@ export async function buildInterpretedRoot(
     }
     const qrls = moduleQrls[interpreted.module];
     const captureLists = moduleCaptureLists[interpreted.module];
+    const bindingsByName = moduleBindingsByName[interpreted.module];
     const segmentKinds = moduleSegmentKinds[interpreted.module];
     const importValues = moduleImportValues[interpreted.module];
     const invokeCtx = getActiveInvokeContextOrNull();
     const locals = nested === undefined ? new Map<number, unknown>() : nested.initialLocals;
+    /** Setup values by source name, the scope a `js` setup op runs over. */
+    const namedLocals = new Map<string, unknown>();
+    const propsObject = componentProps;
     const localComponentBindings = new Map<string, number>(
       nested?.initialLocalComponentBindings ?? []
     );
@@ -472,7 +491,12 @@ export async function buildInterpretedRoot(
           break;
         case 'signal': {
           const op = entry as Extract<SetupOp, { op: 'signal' }>;
-          locals.set(op.binding, useSignal(evalIr(op.init)));
+          const signal = useSignal(evalIr(op.init));
+          locals.set(op.binding, signal);
+          const name = (entry as { name?: string }).name;
+          if (name !== undefined) {
+            namedLocals.set(name, signal);
+          }
           break;
         }
         case 'const': {
@@ -535,6 +559,27 @@ export async function buildInterpretedRoot(
             'qvisible',
             createVisibleTaskHandlerQrl(qrlWithCaptures(op.segment) as never) as never
           );
+          break;
+        }
+        case 'js': {
+          // a js op is a declared hole: run it as JS over the named scope, keeping declarations
+          const op = entry as { src: string };
+          const declared = [...op.src.matchAll(/\b(?:let|const|var)\s+([A-Za-z_$][\w$]*)/g)].map(
+            (match) => match[1]
+          );
+          const names = [...namedLocals.keys()];
+          const returned = [...new Set([...names, ...declared])];
+          const body = `${op.src}\n;return { ${returned.join(', ')} };`;
+          const evaluate = new Function('props', ...names, body) as (
+            ...args: unknown[]
+          ) => Record<string, unknown>;
+          const result = evaluate(propsObject, ...names.map((name) => namedLocals.get(name)));
+          for (const [name, value] of Object.entries(result)) {
+            namedLocals.set(name, value);
+            for (const binding of bindingsByName.get(name) ?? []) {
+              locals.set(binding, value);
+            }
+          }
           break;
         }
         default:

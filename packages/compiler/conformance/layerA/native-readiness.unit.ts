@@ -11,6 +11,8 @@ import { transformModules } from '../../src/index';
  * INTO it fails loudly.
  */
 const KNOWN_GAPS: Record<string, string[]> = {
+  // a setup `if` rides the js op (stage 1); the structured if op makes it native (stage 2)
+  'if-setup': ['native-setup-statement', 'native-setup-statement'],
   // transformQrl runs natively only once a native$ registration exists (task #23)
   'implicit-dollar-call': ['native-expression'],
 };

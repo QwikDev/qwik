@@ -75,6 +75,70 @@ describe('ComponentShape', () => {
     expect(result.modules[0].code).toBe('');
   });
 
+  test('allows an if statement of plain computation in setup', () => {
+    const code = `export function App(props) {
+  let mode = 'view';
+  if (props.editing) {
+    mode = 'edit';
+  } else {
+    mode = 'view';
+  }
+  return <main>{mode}</main>;
+}`;
+    const [shape] = shapes(code);
+    expect(shape.kind).toBe('success');
+  });
+
+  test('rejects a hook call inside an if, naming the hook', () => {
+    const code = `import { useSignal } from '@qwik.dev/core';
+export function App(props) {
+  if (props.fancy) {
+    const extra = useSignal(0);
+  }
+  return <main />;
+}`;
+    const [shape] = shapes(code);
+    expect(shape.kind).toBe('failure');
+    expect((shape as { message: string }).message).toContain('conditionally');
+  });
+
+  test('rejects a return inside an if as a conditional render', () => {
+    const code = `export function App(props) {
+  if (props.missing) {
+    return <p>gone</p>;
+  }
+  return <main />;
+}`;
+    const [shape] = shapes(code);
+    expect(shape.kind).toBe('failure');
+    expect((shape as { message: string }).message).toContain('render');
+  });
+
+  test('rejects JSX inside an if in setup', () => {
+    const code = `export function App(props) {
+  let content = null;
+  if (props.show) {
+    content = <p>hi</p>;
+  }
+  return <main>{content}</main>;
+}`;
+    const [shape] = shapes(code);
+    expect(shape.kind).toBe('failure');
+  });
+
+  test('rejects a $ boundary inside an if in setup', () => {
+    const code = `import { $ } from '@qwik.dev/core';
+export function App(props) {
+  let handler = null;
+  if (props.active) {
+    handler = $(() => 1);
+  }
+  return <main />;
+}`;
+    const [shape] = shapes(code);
+    expect(shape.kind).toBe('failure');
+  });
+
   test('allows an exported string helper to use the normal transform path', async () => {
     const result = await transform(`export function FormatName(value) { return String(value); }`);
 

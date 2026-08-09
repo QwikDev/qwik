@@ -1,5 +1,5 @@
 import type { Function as OxcFunction } from 'oxc-parser';
-import { getParams, getRange, unwrapExpression } from './ast-utils';
+import { getParams, getRange, unwrapExpression, visit } from './ast-utils';
 import type { AstFunction, AstNode, SourceRange } from './types';
 import { findBindingByDeclaration } from './analysis';
 import type {
@@ -27,7 +27,6 @@ const TOP_LEVEL_CONTROL_FLOW = new Set([
   'ForInStatement',
   'ForOfStatement',
   'ForStatement',
-  'IfStatement',
   'LabeledStatement',
   'SwitchStatement',
   'ThrowStatement',
@@ -81,6 +80,12 @@ export function analyzeComponentShape(
         getRange(statement) ?? getRange(body) ?? [0, 0],
         'A component body must have linear setup before one direct return.'
       );
+    }
+    if (statement.type === 'IfStatement') {
+      const conditional = findConditionalSetupViolation(statement);
+      if (conditional !== null) {
+        return conditional;
+      }
     }
   }
 
@@ -193,6 +198,55 @@ function collectPatternBindings(
         );
       }
   }
+}
+
+/**
+ * A setup `if` may hold plain computation only. Hooks are positional, so a conditional call would
+ * shift every later id; a `return` is a conditional render, which belongs to the branch op; JSX and
+ * `$` boundaries are extracted by range and cannot ride the opaque js setup op.
+ */
+function findConditionalSetupViolation(statement: AstNode): ComponentShapeFailure | null {
+  let found: ComponentShapeFailure | null = null;
+  const fail = (node: AstNode, message: string): void => {
+    found ??= failure(getRange(node) ?? [0, 0], message);
+  };
+  visit(statement, (node) => {
+    if (found !== null) {
+      return;
+    }
+    if (node.type === 'ReturnStatement') {
+      fail(
+        node,
+        'A conditional render must be an expression in the returned JSX, not a return inside an if.'
+      );
+      return;
+    }
+    if (node.type === 'JSXElement' || node.type === 'JSXFragment') {
+      fail(
+        node,
+        'JSX inside a setup if is not supported; assign it from a conditional expression in the returned JSX instead.'
+      );
+      return;
+    }
+    if (node.type === 'CallExpression') {
+      const callee = unwrapExpression((node as { callee: unknown }).callee);
+      const name = callee?.type === 'Identifier' ? (callee as { name: string }).name : null;
+      if (name !== null && /^use[A-Z]/.test(name)) {
+        fail(
+          node,
+          `${name}() cannot be called conditionally: hooks are positional, so every render must call them in the same order.`
+        );
+        return;
+      }
+      if (name !== null && name.endsWith('$')) {
+        fail(
+          node,
+          `${name}() cannot appear inside a setup if: $ boundaries are extracted by position.`
+        );
+      }
+    }
+  });
+  return found;
 }
 
 function findNestedReturn(body: AstNode): AstNode | null {

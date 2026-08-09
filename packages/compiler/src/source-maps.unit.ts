@@ -68,6 +68,6 @@ export function App(props: Props) {
     const highlight = result.diagnostics[0].highlights?.[0];
     expect(result.diagnostics[0].code).toBe('unsupported-component-shape');
     expect(highlight).not.toBeUndefined();
-    expect(code.slice(highlight!.lo, highlight!.hi)).toContain('if');
+    expect(code.slice(highlight!.lo, highlight!.hi)).toContain('return');
   });
 });

@@ -38,13 +38,8 @@ import { validateNativeReadiness } from './validate-native';
 import { collectModuleDefs } from './defs-lower';
 import type { EmittedModule } from './emitted-module';
 import { TargetImportResolver } from './emit-qrl';
-import {
-  emitBindingImport,
-  emitSegmentModules,
-  getTargetModuleReferences,
-  type SegmentComponentImport,
-  shouldEmitSegmentModule,
-} from './emit-segment';
+import { emitBindingImport, emitSegmentModules, type SegmentComponentImport } from './emit-segment';
+import { getTargetModuleReferences, shouldEmitSegmentModule } from './segment-plan';
 import {
   emitSsrModule,
   emitSsrSegmentRender,

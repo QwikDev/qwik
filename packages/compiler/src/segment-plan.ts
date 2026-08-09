@@ -410,3 +410,47 @@ function unique(values: readonly number[]): number[] {
 function containsRange(outer: SourceRange, inner: SourceRange): boolean {
   return outer[0] <= inner[0] && outer[1] >= inner[1];
 }
+
+/* Segment policy: which segments exist as modules, and which resolve eagerly. */
+
+export function shouldEmitSegmentModule(segment: SegmentPlan, target: 'csr' | 'ssr'): boolean {
+  return !(
+    (target === 'ssr' && segment.qrl?.kind === 'sync') ||
+    (segment.qrl?.kind === 'implicit' &&
+      (segment.qrl.role === 'style' || segment.qrl.role === 'scoped-style'))
+  );
+}
+
+export function getTargetModuleReferences(segment: SegmentPlan): readonly ModuleReferencePlan[] {
+  if (segment.render === null) {
+    return segment.moduleReferences;
+  }
+  const used = new Set(segment.render.referenceBindingIds);
+  return segment.moduleReferences.filter((reference) => used.has(reference.bindingId));
+}
+
+export function shouldResolveSsrSegment(segment: SegmentPlan): boolean {
+  switch (segment.kind) {
+    case 'expression':
+    case 'collectionSource':
+    case 'branchCondition':
+      return true;
+    case 'qrl':
+      return segment.qrl?.kind === 'implicit';
+    case 'pluginCallback':
+      // plugin-call callbacks run during setup — the fn must be resolved at load
+      return true;
+    case 'branchRender':
+    case 'event':
+      return false;
+    case 'forKey':
+    case 'forRender':
+    case 'collectionRender':
+    case 'slotRender':
+    case 'suspenseRender':
+      return true;
+    case 'localComponent':
+      // the parent module keeps the inline function; the chunk exists for the client only
+      return false;
+  }
+}

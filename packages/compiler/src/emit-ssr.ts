@@ -14,11 +14,8 @@ import { emitFunctionRenders } from './emit-function';
 import { emitSsrOpPlan } from './emit-plan-ssr';
 import type { JsStatementRewriter } from './emit-plan-ssr';
 import { emitJsProductionRender, emitJsSegmentBlock, lastUngeneratableDetail } from './emit-js';
-import {
-  getSegmentImportPath,
-  shouldResolveSsrSegment,
-  type EmittedSegmentRender,
-} from './emit-segment';
+import { getSegmentImportPath, type EmittedSegmentRender } from './emit-segment';
+import { shouldResolveSsrSegment } from './segment-plan';
 import {
   planSsr,
   planSsrRenderFunction,

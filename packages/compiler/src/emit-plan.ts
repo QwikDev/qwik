@@ -1,7 +1,7 @@
 import { emitSsrOpPlan, type PlanSsrComponent, type PlanSsrRenderFn } from './emit-plan-ssr';
 import { isModuleStyleBoundary } from './emit-qrl';
 import type { PluginFnPlan } from './expr-lower';
-import { shouldResolveSsrSegment } from './emit-segment';
+import { shouldResolveSsrSegment } from './segment-plan';
 import type { ValueIR } from './expr-ir';
 import type { ComponentOutput, SegmentPlan, SetupPlan } from './plan-types';
 import { SetupOpKind } from './setup-ir';

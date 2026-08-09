@@ -1809,4 +1809,28 @@ export const App = component$(() => (
     const chunk = ssr.modules.find((module) => module.path.endsWith('_component_Button.js'));
     expect(chunk?.code).toContain('import { buttonStyle }');
   });
+
+  test('imports a module binding a branch chunk names through an inlined prop', async () => {
+    const { ssr } = await testInput('branch_chunk_prop_module_binding', {
+      code: `import { component$, Slot, useSignal } from '@qwik.dev/core';
+
+export const Parent = component$(() => {
+  const show = useSignal(true);
+  return <main>{show.value ? <><Child model={Model} /></> : null}</main>;
+});
+
+export const Child = component$((props: { model: any }) => {
+  const Cmp = props.model;
+  return <Cmp>projected</Cmp>;
+});
+
+export const Model = component$(() => <div id="m">Own content<Slot /></div>);
+`,
+    });
+
+    // the prop expression's segment records the reference; the branch chunk inlines it
+    const chunk = ssr.modules.find((module) => module.path.includes('_branch_then_'));
+    expect(chunk?.code).toContain('return Model');
+    expect(chunk?.code).toMatch(/import \{ (?:\w+ as )?Model(?:,| \})/);
+  });
 });

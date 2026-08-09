@@ -1006,10 +1006,14 @@ class QrlExtractor {
       return binding;
     }
     if (binding.kind === 'import' || binding.kind === 'module') {
-      if (!state.moduleReferences.has(binding.id)) {
-        state.moduleReferences.add(binding.id);
-        state.segment.moduleReferences.push(binding.name);
-        state.segment.moduleReferenceBindingIds?.push(binding.id);
+      // every open segment: an ancestor chunk may inline this expression instead of resuming
+      // through its segment, and then it names whatever the child named
+      for (const frame of this.segmentStack) {
+        if (!frame.moduleReferences.has(binding.id)) {
+          frame.moduleReferences.add(binding.id);
+          frame.segment.moduleReferences.push(binding.name);
+          frame.segment.moduleReferenceBindingIds?.push(binding.id);
+        }
       }
       return binding;
     }

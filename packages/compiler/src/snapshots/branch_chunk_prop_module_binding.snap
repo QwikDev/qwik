@@ -1,0 +1,419 @@
+==INPUT==
+
+import { component$, Slot, useSignal } from '@qwik.dev/core';
+
+export const Parent = component$(() => {
+  const show = useSignal(true);
+  return <main>{show.value ? <><Child model={Model} /></> : null}</main>;
+});
+
+export const Child = component$((props: { model: any }) => {
+  const Cmp = props.model;
+  return <Cmp>projected</Cmp>;
+});
+
+export const Model = component$(() => <div id="m">Own content<Slot /></div>);
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useSignal,
+  createSsrElementRecord,
+  renderSsrBranch,
+  createSsrRecord,
+  createSsrNodeId,
+  maybeThen,
+  renderSsrSlot,
+  getActiveInvokeContextOrNull,
+  _qrlWithChunk,
+} from '@qwik.dev/core';
+import { component_branch_condition_segment_0_2fzrieu6vlhf9 } from './component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9';
+import { Child } from './component.tsx_component_Child';
+
+const q_component_branch_condition_segment_0_2fzrieu6vlhf9 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9',
+  () => import('./component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9'),
+  'component_branch_condition_segment_0_2fzrieu6vlhf9'
+);
+q_component_branch_condition_segment_0_2fzrieu6vlhf9.s(
+  component_branch_condition_segment_0_2fzrieu6vlhf9
+);
+const q_component_branch_then_segment_1_24n7blyqktd46 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_branch_then_segment_1_24n7blyqktd46',
+  () => import('./component.tsx_component_branch_then_segment_1_24n7blyqktd46'),
+  'component_branch_then_segment_1_24n7blyqktd46'
+);
+export const Parent = (props0, ctx) => {
+  const show = useSignal(true);
+  const branch_id_0 = ctx.nextId();
+  ctx.addRoot(show);
+  const branch_0 = renderSsrBranch(
+    ctx,
+    branch_id_0,
+    q_component_branch_condition_segment_0_2fzrieu6vlhf9.w([show]),
+    q_component_branch_then_segment_1_24n7blyqktd46,
+    undefined
+  );
+  return maybeThen(branch_0, (branch_0) => [
+    createSsrElementRecord('main', '<main', '>'),
+    createSsrRecord('<!b=', createSsrNodeId(branch_id_0), '>'),
+    branch_0,
+    '<!/b></main>',
+  ]);
+};
+export { Child };
+export const Model = (props0, ctx) => {
+  const slot_0 = renderSsrSlot(ctx, '', undefined, getActiveInvokeContextOrNull());
+  return maybeThen(slot_0, (slot_0) => [
+    createSsrElementRecord('div', '<div id="m"', '>'),
+    'Own content',
+    slot_0,
+    '</div>',
+  ]);
+};
+============================= src/component.tsx_component_Child.js (ENTRY POINT)==
+
+import {
+  createSlotScope,
+  registerProjection,
+  createComponent,
+  renderSsrDynamicTag,
+  maybeThen,
+  _qrlWithChunk,
+} from '@qwik.dev/core';
+import { component_slot_render_segment_3_3b0ta2vuvdjtz } from './component.tsx_component_slot_render_segment_3_3b0ta2vuvdjtz';
+
+const q_component_slot_render_segment_3_3b0ta2vuvdjtz = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_slot_render_segment_3_3b0ta2vuvdjtz',
+  () => import('./component.tsx_component_slot_render_segment_3_3b0ta2vuvdjtz'),
+  'component_slot_render_segment_3_3b0ta2vuvdjtz'
+);
+q_component_slot_render_segment_3_3b0ta2vuvdjtz.s(component_slot_render_segment_3_3b0ta2vuvdjtz);
+
+export function Child(props, ctx) {
+  const Cmp = props.model;
+  const slot_scope_0 = createSlotScope();
+  ctx.addRoot(slot_scope_0);
+  registerProjection(slot_scope_0, '', q_component_slot_render_segment_3_3b0ta2vuvdjtz);
+  const component_1 = createComponent({}, (props) => renderSsrDynamicTag(Cmp, props, ctx), {
+    slotScope: slot_scope_0,
+  });
+  return maybeThen(component_1, (component_1) => component_1);
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_Child_3dcfzbj6fj81r",
+  "entry": null,
+  "displayName": "component_Child",
+  "hash": "3dcfzbj6fj81r",
+  "canonicalFilename": "component.tsx_component_Child_3dcfzbj6fj81r",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component",
+  "captures": false,
+  "loc": [
+    243,
+    313
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
+  const show = _captures[0];
+  return show.value;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_branch_condition_segment_0_2fzrieu6vlhf9",
+  "entry": null,
+  "displayName": "component_branch_condition_segment_0",
+  "hash": "2fzrieu6vlhf9",
+  "canonicalFilename": "component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:condition",
+  "captures": true,
+  "loc": [
+    149,
+    159
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "show"
+  ]
+}
+*/
+============================= src/component.tsx_component_branch_then_segment_1_24n7blyqktd46.js (ENTRY POINT)==
+
+import { Child } from './component.tsx_component_Child';
+import { Model } from './component';
+import { createComponent, maybeThen } from '@qwik.dev/core';
+
+export const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
+  const component_0 = createComponent(
+    {
+      get model() {
+        return Model;
+      },
+    },
+    (props) => Child(props, ctx)
+  );
+  return maybeThen(component_0, (component_0) => component_0);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_branch_then_segment_1_24n7blyqktd46",
+  "entry": null,
+  "displayName": "component_branch_then_segment_1",
+  "hash": "24n7blyqktd46",
+  "canonicalFilename": "component.tsx_component_branch_then_segment_1_24n7blyqktd46",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:then",
+  "captures": false,
+  "loc": [
+    162,
+    190
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_slot_render_segment_3_3b0ta2vuvdjtz.js (ENTRY POINT)==
+
+import { createSsrRecord, createSsrNodeId } from '@qwik.dev/core';
+
+export const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx, rangeId) => {
+  return [createSsrRecord('<!s=', createSsrNodeId(rangeId), '>'), 'projected<!/s>'];
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_slot_render_segment_3_3b0ta2vuvdjtz",
+  "entry": null,
+  "displayName": "component_slot_render_segment_3",
+  "hash": "3b0ta2vuvdjtz",
+  "canonicalFilename": "component.tsx_component_slot_render_segment_3_3b0ta2vuvdjtz",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot:render",
+  "captures": false,
+  "loc": [
+    295,
+    304
+  ],
+  "paramNames": []
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useSignal,
+  _first,
+  _next,
+  BranchRange,
+  createBranch,
+  _withCaptures,
+  _qrlWithChunk,
+  createTemplate,
+  createSlot,
+  maybeThen,
+} from '@qwik.dev/core';
+import { component_branch_condition_segment_0_2fzrieu6vlhf9 } from './component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9';
+import { Child } from './component.tsx_component_Child';
+
+const q_component_branch_then_segment_1_24n7blyqktd46 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_branch_then_segment_1_24n7blyqktd46',
+  () => import('./component.tsx_component_branch_then_segment_1_24n7blyqktd46'),
+  'component_branch_then_segment_1_24n7blyqktd46'
+);
+const Parent_tmpl0 = createTemplate('<main><!----><!----></main>');
+const Model_tmpl0 = createTemplate('<div id="m">Own content<!----><!----></div>');
+export const Parent = (props0, ctx) => {
+  const show = useSignal(true);
+  const fragment0 = Parent_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  const start0 = _first(el0);
+  const end0 = _next(start0);
+  const branch0 = createBranch(
+    ctx,
+    new BranchRange(ctx.document, start0, end0),
+    _withCaptures(component_branch_condition_segment_0_2fzrieu6vlhf9, [show]),
+    q_component_branch_then_segment_1_24n7blyqktd46,
+    undefined
+  );
+  ctx.scheduler.notify(branch0);
+  return el0;
+};
+export { Child };
+export const Model = (props0, ctx) => {
+  const fragment0 = Model_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  const start0 = _next(_first(el0));
+  const end0 = _next(start0);
+  ctx.scheduler.waitFor(
+    maybeThen(createSlot('', undefined), (slot0) => {
+      for (const node of slot0) end0.parentNode.insertBefore(node, end0);
+    })
+  );
+  return el0;
+};
+============================= src/component.tsx_component_Child.js (ENTRY POINT)==
+
+import {
+  createSlotScope,
+  registerProjection,
+  createComponent,
+  createDynamicTag,
+} from '@qwik.dev/core';
+import { component_slot_render_segment_3_3b0ta2vuvdjtz } from './component.tsx_component_slot_render_segment_3_3b0ta2vuvdjtz';
+
+export function Child(props, ctx) {
+  const Cmp = props.model;
+  const slotScope0 = createSlotScope();
+  registerProjection(slotScope0, '', component_slot_render_segment_3_3b0ta2vuvdjtz);
+  return createComponent({}, (props) => createDynamicTag(Cmp, props, ctx), {
+    slotScope: slotScope0,
+  });
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_Child_3dcfzbj6fj81r",
+  "entry": null,
+  "displayName": "component_Child",
+  "hash": "3dcfzbj6fj81r",
+  "canonicalFilename": "component.tsx_component_Child_3dcfzbj6fj81r",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component",
+  "captures": false,
+  "loc": [
+    243,
+    313
+  ],
+  "paramNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
+  const show = _captures[0];
+  return show.value;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_branch_condition_segment_0_2fzrieu6vlhf9",
+  "entry": null,
+  "displayName": "component_branch_condition_segment_0",
+  "hash": "2fzrieu6vlhf9",
+  "canonicalFilename": "component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:condition",
+  "captures": true,
+  "loc": [
+    149,
+    159
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "show"
+  ]
+}
+*/
+============================= src/component.tsx_component_branch_then_segment_1_24n7blyqktd46.js (ENTRY POINT)==
+
+import { Child } from './component.tsx_component_Child';
+import { Model } from './component';
+import { createComponent } from '@qwik.dev/core';
+
+export const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
+  return createComponent(
+    {
+      get model() {
+        return Model;
+      },
+    },
+    (props) => Child(props, ctx)
+  );
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_branch_then_segment_1_24n7blyqktd46",
+  "entry": null,
+  "displayName": "component_branch_then_segment_1",
+  "hash": "24n7blyqktd46",
+  "canonicalFilename": "component.tsx_component_branch_then_segment_1_24n7blyqktd46",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:then",
+  "captures": false,
+  "loc": [
+    162,
+    190
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_slot_render_segment_3_3b0ta2vuvdjtz.js (ENTRY POINT)==
+
+import { _first, createTemplate } from '@qwik.dev/core';
+const component_slot_render_segment_3_3b0ta2vuvdjtz_tmpl0 = createTemplate('projected');
+
+export const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx) => {
+  const fragment0 = component_slot_render_segment_3_3b0ta2vuvdjtz_tmpl0(ctx.document);
+  const text0 = _first(fragment0);
+  return text0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_slot_render_segment_3_3b0ta2vuvdjtz",
+  "entry": null,
+  "displayName": "component_slot_render_segment_3",
+  "hash": "3b0ta2vuvdjtz",
+  "canonicalFilename": "component.tsx_component_slot_render_segment_3_3b0ta2vuvdjtz",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot:render",
+  "captures": false,
+  "loc": [
+    295,
+    304
+  ],
+  "paramNames": []
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

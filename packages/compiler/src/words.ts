@@ -68,6 +68,7 @@ export const enum QwikWord {
   EscapeSsrContent = 'escapeSsrContent',
   MaybeThen = 'maybeThen',
   QrlWithChunk = '_qrlWithChunk',
+  NoopQrl = '_noopQrl',
   CreateVisibleTaskHandlerQrl = 'createVisibleTaskHandlerQrl',
   //shared
   ComponentQrl = 'componentQrl',

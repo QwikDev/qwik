@@ -190,9 +190,32 @@ export function appendCsrQrlReplacements(
   reference: string,
   qrlImports: TargetImportResolver,
   localImplementationSource: string | null,
-  replacements: Array<{ range: SourceRange; value: string }>
+  replacements: Array<{ range: SourceRange; value: string }>,
+  qwikImports: Set<string>
 ): boolean {
   const boundary = segment.qrl;
+  if (segment.stripped === true) {
+    // v2-parity strip: the qrl form keeps the boundary's identity, the callback never ships
+    if (boundary?.kind !== 'implicit' || segment.calleeRange === null) {
+      return false;
+    }
+    const callee = getTargetCallee(segment, 'ssr', qrlImports, localImplementationSource);
+    if (callee === null) {
+      return false;
+    }
+    qwikImports.add(QwikWord.NoopQrl);
+    const captures = segment.captures.map((capture) => capture.name);
+    replacements.push(
+      { range: segment.calleeRange, value: callee },
+      {
+        range: segment.functionRange,
+        value: `${QwikWord.NoopQrl}(${JSON.stringify(segment.symbolName)}${
+          captures.length === 0 ? '' : `, [${captures.join(', ')}]`
+        })`,
+      }
+    );
+    return true;
+  }
   if (boundary === null) {
     if (segment.kind !== 'event') {
       return false;

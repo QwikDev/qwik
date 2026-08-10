@@ -423,6 +423,7 @@ export function transformModule(ctx: CompilerContext): TransformResult {
       segment.implementationInOrigin = true;
     }
   }
+  markStrippedSegments(segments, ctx);
   const moduleWrite = findExtractedModuleWrite(componentModules, segments, analysis);
   if (moduleWrite !== null) {
     return {
@@ -789,8 +790,13 @@ function assembleMainModule(
   const emittedComponents = new Map(
     emitted.components.map((component) => [component.identity, component])
   );
+  const strippedExports =
+    ctx.options.stripExports === undefined || ctx.options.stripExports.length === 0
+      ? []
+      : createStrippedExportReplacements(program, ctx.options.stripExports);
   const replacements: RangeReplacement[] = [
     ...emitted.replacements,
+    ...strippedExports,
     // native$ is a build-time marker: the module keeps the implementation alone
     ...nativeMarkers.map((marker) => ({
       range: marker.range,
@@ -810,7 +816,8 @@ function assembleMainModule(
         segments,
         emitted.imports,
         ctx.emitTarget,
-        nativeMarkers
+        nativeMarkers,
+        strippedExports.map((replacement) => replacement.range)
       ),
     ]),
     markerRetargets
@@ -1038,7 +1045,7 @@ function emitModule(
       const importedName =
         boundary.kind === 'sync'
           ? '_qrlSync'
-          : ctx.emitTarget === 'csr'
+          : ctx.emitTarget === 'csr' && segment.stripped !== true
             ? boundary.baseName
             : `${boundary.baseName}Qrl`;
       const attributes = boundary.kind === 'sync' ? [] : boundary.attributes;
@@ -1439,6 +1446,9 @@ function createModuleReferenceExports(
   );
   const needed = new Set<BindingId>();
   for (const segment of segments) {
+    if (segment.stripped === true) {
+      continue;
+    }
     for (const reference of getTargetModuleReferences(segment)) {
       if (reference.import === null && !componentBindings.has(reference.bindingId)) {
         needed.add(reference.bindingId);
@@ -1521,7 +1531,10 @@ function createMainMarkerRetargets(
     if (boundary?.kind !== 'implicit' || !removable.has(boundary.markerBindingId)) {
       continue;
     }
-    const targetName = implicitBoundaryTargetName(boundary, target);
+    const targetName =
+      segment.stripped === true
+        ? `${boundary.baseName}Qrl`
+        : implicitBoundaryTargetName(boundary, target);
     if (targetName === null) {
       continue;
     }
@@ -1560,7 +1573,8 @@ function findUnusedMainImportBindings(
   segments: readonly SegmentPlan[],
   runtimeImports: readonly string[],
   target: 'csr' | 'ssr',
-  nativeMarkers: readonly NativeMarker[] = []
+  nativeMarkers: readonly NativeMarker[] = [],
+  strippedRanges: readonly SourceRange[] = []
 ): BindingId[] {
   const used = new Set<BindingId>();
   const replacedRanges = [
@@ -1571,6 +1585,8 @@ function findUnusedMainImportBindings(
     ),
     // the marker call is replaced by its implementation, so its own reads do not count
     ...nativeMarkers.map((marker) => marker.range),
+    // stripped exports keep their name, but their body is replaced by a throw stub
+    ...strippedRanges,
   ];
   for (const reference of analysis.references) {
     if (
@@ -1611,7 +1627,7 @@ function findUnusedMainImportBindings(
       if (implicitTarget === null) {
         continue;
       }
-      targetName = implicitTarget;
+      targetName = segment.stripped === true ? `${boundary.baseName}Qrl` : implicitTarget;
       source = boundary.source;
       attributes = boundary.attributes;
     } else {
@@ -1640,6 +1656,83 @@ function findUnusedMainImportBindings(
       ? [binding.id]
       : []
   );
+}
+
+const STRIPPED_EXPORT_THROW =
+  'throw "Symbol removed by Qwik Optimizer, it can not be called from current platform";';
+
+// v2-parity stripExports: the export keeps its name, its body becomes a fail-loud stub.
+function createStrippedExportReplacements(
+  program: Program,
+  stripExports: readonly string[]
+): RangeReplacement[] {
+  const stripped = new Set(stripExports);
+  const replacements: RangeReplacement[] = [];
+  for (const statement of program.body) {
+    if (statement.type !== 'ExportNamedDeclaration' || statement.declaration == null) {
+      continue;
+    }
+    const declaration = statement.declaration;
+    if (declaration.type === 'VariableDeclaration') {
+      for (const declarator of declaration.declarations) {
+        const range = declarator.init == null ? null : getRange(declarator.init);
+        if (
+          declarator.id.type === 'Identifier' &&
+          stripped.has(declarator.id.name) &&
+          range !== null
+        ) {
+          replacements.push({ range, value: `() => { ${STRIPPED_EXPORT_THROW} }` });
+        }
+      }
+    } else if (
+      declaration.type === 'FunctionDeclaration' &&
+      declaration.id != null &&
+      stripped.has(declaration.id.name) &&
+      declaration.body != null
+    ) {
+      const range = getRange(declaration.body);
+      if (range !== null) {
+        replacements.push({ range, value: `{ ${STRIPPED_EXPORT_THROW} }` });
+      }
+    }
+  }
+  return replacements;
+}
+
+// v2-parity stripCtxName: a listed boundary keeps its qrl identity, its callback never ships.
+// Only the csr target strips today; the ssr-side client list stays ignored as before.
+function markStrippedSegments(segments: readonly SegmentPlan[], ctx: CompilerContext): void {
+  const stripCtxName = ctx.options.stripCtxName;
+  if (ctx.emitTarget !== 'csr' || stripCtxName === undefined || stripCtxName.length === 0) {
+    return;
+  }
+  const strippedIds = new Set<string>();
+  for (const segment of segments) {
+    if (
+      segment.qrl?.kind === 'implicit' &&
+      segment.qrl.source !== null &&
+      stripCtxName.some((prefix) => segment.ctxName.startsWith(prefix))
+    ) {
+      segment.stripped = true;
+      strippedIds.add(segment.id);
+    }
+  }
+  // descendants vanish with their stripped ancestor
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const segment of segments) {
+      if (
+        segment.stripped !== true &&
+        segment.parentId !== null &&
+        strippedIds.has(segment.parentId)
+      ) {
+        segment.stripped = true;
+        strippedIds.add(segment.id);
+        changed = true;
+      }
+    }
+  }
 }
 
 function implicitBoundaryTargetName(

@@ -127,14 +127,17 @@ export function emitCsrModule(
       replacements.push({ range: segment.range, value: replacement });
       continue;
     }
-    directSegmentIds.add(segment.id);
+    if (segment.stripped !== true) {
+      directSegmentIds.add(segment.id);
+    }
     if (
       !appendCsrQrlReplacements(
         segment,
         emitQrlFunctionReference(segment, imports),
         qrlImports,
         localImplementationSource,
-        replacements
+        replacements,
+        imports
       )
     ) {
       return null;
@@ -216,7 +219,11 @@ export function emitCsrModule(
   }
   const seenSegments = new Set<string>();
   const segmentImports = segments.flatMap((segment) => {
-    if (seenSegments.has(segment.id) || !directSegmentIds.has(segment.id)) {
+    if (
+      seenSegments.has(segment.id) ||
+      !directSegmentIds.has(segment.id) ||
+      segment.stripped === true
+    ) {
       return [];
     }
     seenSegments.add(segment.id);
@@ -1443,7 +1450,8 @@ function emitCsrSetup(
           reference,
           qrlImports,
           localImplementationSource,
-          replacements
+          replacements,
+          imports
         )
       ) {
         return null;
@@ -1720,7 +1728,8 @@ function emitValue(value: CsrValuePlan, context?: CsrEmitContext): string {
         reference,
         context.qrlImports,
         context.localImplementationSource,
-        replacements
+        replacements,
+        context.imports
       )
     ) {
       return `(${value.expression})`;

@@ -153,6 +153,7 @@ export function createQwikPlugin(
     inlineStylesUpToBytes: 20000,
     lint: false,
     ssrPlan: false,
+    strip: {},
     experimental: undefined,
     testTarget: undefined,
   };
@@ -218,6 +219,10 @@ export function createQwikPlugin(
     const resolvePath = (...paths: string[]) => normalizePath(path.resolve(...paths));
 
     opts.debug = !!updatedOpts.debug;
+
+    if (updatedOpts.strip) {
+      opts.strip = updatedOpts.strip;
+    }
 
     if (updatedOpts.devTools) {
       opts.devTools = {
@@ -1051,8 +1056,8 @@ export function createQwikPlugin(
           transformOpts.stripEventHandlers = true;
           transformOpts.regCtxName = REG_CTX_NAME;
         } else {
-          transformOpts.stripCtxName = SERVER_STRIP_CTX_NAME;
-          transformOpts.stripExports = SERVER_STRIP_EXPORTS;
+          transformOpts.stripCtxName = [...SERVER_STRIP_CTX_NAME, ...(opts.strip.ctxName ?? [])];
+          transformOpts.stripExports = [...SERVER_STRIP_EXPORTS, ...(opts.strip.exports ?? [])];
         }
       }
       if (opts.target === 'test' && opts.testTarget === 'resume') {
@@ -1101,8 +1106,14 @@ export function createQwikPlugin(
           isServer: false,
         };
         if (strip) {
-          clientTransformOpts.stripCtxName = SERVER_STRIP_CTX_NAME;
-          clientTransformOpts.stripExports = SERVER_STRIP_EXPORTS;
+          clientTransformOpts.stripCtxName = [
+            ...SERVER_STRIP_CTX_NAME,
+            ...(opts.strip.ctxName ?? []),
+          ];
+          clientTransformOpts.stripExports = [
+            ...SERVER_STRIP_EXPORTS,
+            ...(opts.strip.exports ?? []),
+          ];
           clientTransformOpts.stripEventHandlers = undefined;
           clientTransformOpts.regCtxName = undefined;
         }
@@ -1673,6 +1684,12 @@ export interface QwikPluginOptions {
   lint?: boolean;
   /** Emit and link the native SSR plan (`q-ssr-plan.json`) during SSR builds. */
   ssrPlan?: boolean;
+  /**
+   * Extra server-only names stripped from the client build, appended to the built-in lists.
+   * `ctxName` entries are `$`-API name prefixes (like the built-in `route`, `server`,
+   * `globalAction$`); `exports` entries are export names (like the built-in `onGet`).
+   */
+  strip?: { ctxName?: string[]; exports?: string[] };
   /**
    * Experimental features. These can come and go in patch releases, and their API is not guaranteed
    * to be stable between releases.

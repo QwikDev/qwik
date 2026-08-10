@@ -995,3 +995,83 @@ export function App() {
     ]);
   });
 });
+
+describe('strip server code from the client build', () => {
+  const routeCode = `import { globalAction$, routeLoader$ } from '@qwik.dev/router';
+import { db } from './db.server';
+export const useLogin = globalAction$(async (form) => db.login(form));
+export const useUser = routeLoader$(async (ev) => db.user(ev));`;
+  const stripCtxName = ['globalAction$', 'route'];
+
+  test('a stripped boundary keeps the qrl form with a noop qrl and no callback module', async () => {
+    const result = await transformModules({
+      ...options,
+      isServer: false,
+      stripCtxName,
+      input: [{ path: 'src/routes/login.tsx', code: routeCode }],
+    });
+
+    expect(result.diagnostics).toEqual([]);
+    expect(result.modules).toHaveLength(1);
+    const code = result.modules[0].code;
+    expect(code).toMatch(/globalActionQrl\(_noopQrl\("[\w$]+"\)\)/);
+    expect(code).toMatch(/routeLoaderQrl\(_noopQrl\("[\w$]+"\)\)/);
+    expect(code).not.toContain('db.login');
+    expect(code).not.toContain('db.server');
+  });
+
+  test('the noop symbol matches the ssr qrl symbol', async () => {
+    const csr = await transformModules({
+      ...options,
+      isServer: false,
+      stripCtxName,
+      input: [{ path: 'src/routes/login.tsx', code: routeCode }],
+    });
+    const ssr = await transformModules({
+      ...options,
+      isServer: true,
+      input: [{ path: 'src/routes/login.tsx', code: routeCode }],
+    });
+
+    expect(ssr.diagnostics).toEqual([]);
+    const ssrOutput = ssr.modules.map((module) => module.code).join('\n');
+    expect(ssrOutput).toContain('globalActionQrl');
+    expect(ssrOutput).toContain('db.login');
+
+    const noopSymbol = csr.modules[0].code.match(/_noopQrl\("([^"]+)"\)/)?.[1];
+    expect(noopSymbol).toBeTruthy();
+    expect(ssrOutput).toContain(`"${noopSymbol}"`);
+  });
+
+  test('without stripCtxName the csr fast path is unchanged', async () => {
+    const result = await transformModules({
+      ...options,
+      isServer: false,
+      input: [{ path: 'src/routes/login.tsx', code: routeCode }],
+    });
+
+    const code = result.modules.map((module) => module.code).join('\n');
+    expect(code).toContain('globalAction(');
+    expect(code).not.toContain('_noopQrl');
+    expect(result.modules.length).toBeGreaterThan(1);
+  });
+
+  test('a stripped export keeps its name but throws, and its imports are pruned', async () => {
+    const code = `import { component$ } from '@qwik.dev/core';
+import { db } from './db.server';
+export const onGet = async (ev) => db.rows(ev);
+export default component$(() => <div />);`;
+    const result = await transformModules({
+      ...options,
+      isServer: false,
+      stripExports: ['onGet'],
+      input: [{ path: 'src/routes/index.tsx', code }],
+    });
+
+    expect(result.diagnostics).toEqual([]);
+    const output = result.modules.map((module) => module.code).join('\n');
+    expect(output).toMatch(/export const onGet = \(\) => \{\s*throw /);
+    expect(output).not.toContain('db.rows');
+    expect(output).not.toContain('db.server');
+  });
+});

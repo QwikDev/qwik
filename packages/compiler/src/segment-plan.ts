@@ -415,6 +415,7 @@ function containsRange(outer: SourceRange, inner: SourceRange): boolean {
 
 export function shouldEmitSegmentModule(segment: SegmentPlan, target: 'csr' | 'ssr'): boolean {
   return !(
+    segment.stripped === true ||
     (target === 'ssr' && segment.qrl?.kind === 'sync') ||
     (segment.qrl?.kind === 'implicit' &&
       (segment.qrl.role === 'style' || segment.qrl.role === 'scoped-style'))

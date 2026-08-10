@@ -587,6 +587,8 @@ export interface ModuleReferencePlan {
 export interface SegmentPlan {
   /** Writes a module binding: the implementation lives in the origin module, the chunk re-exports. */
   implementationInOrigin?: true;
+  /** Listed in stripCtxName: keeps its qrl identity, the callback never ships to this target. */
+  stripped?: true;
   readonly id: string;
   readonly symbolName: string;
   readonly parentId: string | null;

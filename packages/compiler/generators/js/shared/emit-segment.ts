@@ -186,11 +186,13 @@ function emitSegmentCode(
   const localImplementationSource = getInputImportPath(inputPath, explicitExtensions);
   if (target === 'csr') {
     for (const child of children) {
-      childImports.push(
-        `import { ${child.symbolName} } from ${JSON.stringify(
-          getSegmentImportPath(inputPath, child, explicitExtensions)
-        )};`
-      );
+      if (child.stripped !== true) {
+        childImports.push(
+          `import { ${child.symbolName} } from ${JSON.stringify(
+            getSegmentImportPath(inputPath, child, explicitExtensions)
+          )};`
+        );
+      }
       const reference = emitCapturedFunctionReference(
         child.symbolName,
         segmentCaptureNames(child, generatedNames),
@@ -202,7 +204,8 @@ function emitSegmentCode(
           reference,
           qrlImports,
           localImplementationSource,
-          replacements
+          replacements,
+          qwikImports
         )
       ) {
         return null;

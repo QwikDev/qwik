@@ -1,5 +1,6 @@
 import type { DevEnvironment, HotUpdateOptions, Plugin, Rollup, ViteDevServer } from 'vite';
 import { transformModules as transformCompilerModules } from '@qwik.dev/compiler';
+import { eagerBindLibraryQrls } from './eager-bind-lib-qrls';
 import { createSsrPlanCollector } from './ssr-plan';
 import { hashCode } from '../../../qwik/src/core/shared/utils/hash_code';
 import { generateManifestFromBundles, getValidManifest } from '../manifest';
@@ -1006,6 +1007,10 @@ export function createQwikPlugin(
     }
 
     if (ext in TRANSFORM_EXTS || TRANSFORM_REGEX.test(pathId)) {
+      if (isServer && TRANSFORM_REGEX.test(pathId)) {
+        // server builds bind library chunk QRLs eagerly so computes stay synchronous
+        code = eagerBindLibraryQrls(code) ?? code;
+      }
       /** Strip client|server code from qwik server|client, but not in lib/test */
       const strip = opts.target === 'client' || opts.target === 'ssr';
       debug(

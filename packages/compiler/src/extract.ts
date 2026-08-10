@@ -818,7 +818,12 @@ class QrlExtractor {
     ctxName: string,
     expression: AstNode | null | undefined
   ): boolean {
-    switch (expression?.type) {
+    // `?.` wraps the real expression in a chain node; classify by the inner expression
+    const classified =
+      expression?.type === 'ChainExpression'
+        ? ((expression as { expression?: AstNode }).expression ?? expression)
+        : expression;
+    switch (classified?.type) {
       case 'CallExpression':
         if (ctxName === 'text') {
           return false;

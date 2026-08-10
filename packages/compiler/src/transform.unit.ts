@@ -996,6 +996,31 @@ export function App() {
   });
 });
 
+describe('optional-chained attr expressions', () => {
+  const code = `import { component$, useStore } from '@qwik.dev/core';
+export const Cmp = component$(() => {
+  const action = useStore<any>({ formData: null });
+  return <input value={action.formData?.get('username')} />;
+});`;
+
+  test.each([false, true])(
+    'an optional-chained call lowers as a resumable attr (isServer: %s)',
+    async (isServer) => {
+      const result = await transformModules({
+        ...options,
+        isServer,
+        input: [{ path: 'src/login.tsx', code }],
+      });
+
+      expect(result.diagnostics).toEqual([]);
+      if (isServer) {
+        const output = result.modules.map((module) => module.code).join('\n');
+        expect(output).toContain('renderSsrAttrExpression');
+      }
+    }
+  );
+});
+
 describe('shadowed collection rows', () => {
   const code = `import { component$, Fragment } from '@qwik.dev/core';
 export const Menu = component$(({ menu }: any) => (

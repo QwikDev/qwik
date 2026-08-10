@@ -9,11 +9,8 @@ export const Breadcrumbs = component$(() => {
   const { url } = useLocation();
 
   const breadcrumbs = createBreadcrumbs(menu, url.pathname);
-  if (breadcrumbs.length === 0) {
-    return null;
-  }
 
-  return (
+  return breadcrumbs.length === 0 ? null : (
     <nav class="breadcrumbs">
       {breadcrumbs.map((b, i) => (
         <span data-test-breadcrumb={i} key={b.text}>

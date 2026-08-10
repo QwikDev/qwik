@@ -1,4 +1,4 @@
-import { component$, Resource, useResource$, useStore } from '@qwik.dev/core';
+import { component$, useComputed$, useStore } from '@qwik.dev/core';
 
 import { server$ } from '@qwik.dev/router';
 
@@ -21,20 +21,14 @@ const helloBar = server$(
 );
 export default component$(() => {
   const helloStore = useStore<Hello>({ print: 'hello' });
-  const resource = useResource$(({ track }) => {
-    track(() => helloStore.print);
-
+  const resource = useComputed$(() => {
+    helloStore.print;
     return hello(helloStore);
   });
 
   return (
     <>
-      <Resource
-        value={resource}
-        onPending={() => <div>Loading...</div>}
-        onRejected={(error) => <div>Error: {error.message}</div>}
-        onResolved={(data) => <div>Data: {data}</div>}
-      />
+      {resource.pending ? <div>Loading...</div> : <div>Data: {resource.value}</div>}
 
       <button
         onClick$={() => {

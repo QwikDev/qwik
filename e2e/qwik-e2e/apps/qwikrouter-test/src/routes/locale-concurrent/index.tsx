@@ -1,11 +1,4 @@
-import {
-  component$,
-  Resource,
-  getLocale,
-  withLocale,
-  useSignal,
-  useVisibleTask$,
-} from '@qwik.dev/core';
+import { component$, getLocale, withLocale, useSignal, useVisibleTask$ } from '@qwik.dev/core';
 import type { RequestHandler } from '@qwik.dev/router';
 import { routeLoader$, server$ } from '@qwik.dev/router';
 
@@ -70,14 +63,11 @@ export default component$(() => {
       <p>
         Before barrier locale: <span class="locale-before">{getLocale()}</span>
       </p>
-      <Resource
-        value={barrier}
-        onResolved={() => (
-          <p>
-            After barrier locale: <span class="locale">{getLocale()}</span>
-          </p>
-        )}
-      />
+      {barrier.value && (
+        <p>
+          After barrier locale: <span class="locale">{getLocale()}</span>
+        </p>
+      )}
       <p>
         Server locale: <span class="locale-server">{serverLocale.value}</span>
       </p>

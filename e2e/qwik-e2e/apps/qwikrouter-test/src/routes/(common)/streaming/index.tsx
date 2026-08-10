@@ -27,18 +27,8 @@ export default component$(() => {
   return (
     <div>
       <h1>Streaming</h1>
-      <Resource
-        value={resourceThing}
-        onResolved={(thing) => {
-          return <div>FIRST: {thing.name}</div>;
-        }}
-      />
-      <Resource
-        value={resourceOther}
-        onResolved={(thing) => {
-          return <div>SECOND: {thing.name}</div>;
-        }}
-      />
+      {resourceThing.value && <div>FIRST: {resourceThing.value.name}</div>}
+      {resourceOther.value && <div>SECOND: {resourceOther.value.name}</div>}
     </div>
   );
 });

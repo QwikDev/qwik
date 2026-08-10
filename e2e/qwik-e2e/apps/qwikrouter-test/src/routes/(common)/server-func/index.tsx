@@ -1,5 +1,5 @@
 import { routeLoader$, server$ } from '@qwik.dev/router';
-import { Resource, component$, useResource$, useSignal, useTask$ } from '@qwik.dev/core';
+import { component$, useComputed$, useSignal, useTask$ } from '@qwik.dev/core';
 import { delay } from '../actions/login';
 
 export const useGetUserAgent = routeLoader$(() => {
@@ -54,7 +54,7 @@ export const MultipleServerFunctionsInvokedInTask = component$(() => {
 });
 
 export default component$(() => {
-  const resource = useResource$(() => getUserAgent());
+  const resource = useComputed$(() => getUserAgent());
   const userAgent = useSignal('');
   const userAgentEvent = useSignal('');
   const loader = useGetUserAgent();
@@ -77,7 +77,7 @@ export default component$(() => {
   });
   return (
     <>
-      <Resource value={resource} onResolved={(value) => <div class="server-host">{value}</div>} />
+      {resource.value && <div class="server-host">{resource.value}</div>}
       <div class="server-host">{userAgent.value}</div>
       <div class="server-host">{userAgent.value}</div>
       <div class="server-host">{loader.value}</div>

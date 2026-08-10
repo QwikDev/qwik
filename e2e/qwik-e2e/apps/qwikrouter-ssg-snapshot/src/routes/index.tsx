@@ -1,11 +1,4 @@
-import {
-  Resource,
-  component$,
-  useComputed$,
-  useResource$,
-  useSignal,
-  useStore,
-} from '@qwik.dev/core';
+import { component$, useComputed$, useSignal, useStore } from '@qwik.dev/core';
 import { routeLoader$, type DocumentHead } from '@qwik.dev/router';
 
 export const useSnapshotLoader = routeLoader$(
@@ -13,7 +6,7 @@ export const useSnapshotLoader = routeLoader$(
     return {
       heading: 'SSG Snapshot Fixture',
       stats: [2, 3, 5, 8],
-      tags: ['routeLoader$', 'useResource$', 'useSignal'],
+      tags: ['routeLoader$', 'useComputed$', 'useSignal'],
       profile: {
         name: 'router-state',
         status: 'stable',
@@ -45,8 +38,8 @@ export default component$(() => {
     };
   });
 
-  const asyncState = useResource$(async ({ track }) => {
-    track(() => clicks.value);
+  const asyncState = useComputed$(async () => {
+    clicks.value;
     await Promise.resolve();
 
     return {
@@ -63,10 +56,7 @@ export default component$(() => {
       <p id="tags">{pageData.value.tags.join(' | ')}</p>
       <section id="loader-json">{JSON.stringify(pageData.value)}</section>
       <section id="summary-json">{JSON.stringify(summary.value)}</section>
-      <Resource
-        value={asyncState}
-        onResolved={(resolved) => <section id="resource-json">{JSON.stringify(resolved)}</section>}
-      />
+      {asyncState.value && <section id="resource-json">{JSON.stringify(asyncState.value)}</section>}
     </main>
   );
 });

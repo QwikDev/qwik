@@ -1,5 +1,5 @@
 import { server$ } from '@qwik.dev/router';
-import { component$, Resource, useResource$ } from '@qwik.dev/core';
+import { component$, useComputed$ } from '@qwik.dev/core';
 import { delay } from '../../actions/login';
 
 const serverFunctionA = server$(async function a() {
@@ -15,7 +15,7 @@ const serverFunctionC = server$(async function c() {
 });
 
 const ResourceServerFns = component$(() => {
-  const resource = useResource$(async () => {
+  const resource = useComputed$(async () => {
     const resultA = await serverFunctionA();
     await delay(1);
     const resultB = await serverFunctionB();
@@ -27,16 +27,13 @@ const ResourceServerFns = component$(() => {
 
   return (
     <div>
-      <Resource
-        value={resource}
-        onResolved={({ resultA, resultB, resultC }) => (
-          <>
-            <p id="a">{resultA}</p>
-            <p id="b">{resultB} </p>
-            <p id="c">{resultC}</p>
-          </>
-        )}
-      />
+      {resource.value && (
+        <>
+          <p id="a">{resource.value.resultA}</p>
+          <p id="b">{resource.value.resultB} </p>
+          <p id="c">{resource.value.resultC}</p>
+        </>
+      )}
     </div>
   );
 });

@@ -1,4 +1,4 @@
-import { component$, Resource } from '@qwik.dev/core';
+import { component$ } from '@qwik.dev/core';
 import {
   type DocumentHead,
   Form,
@@ -108,18 +108,13 @@ export default component$(() => {
       <div>
         <p id="slow">slow: {slow.value.foo}</p>
       </div>
-      <Resource
-        value={signal}
-        onResolved={(value) => {
-          return (
-            <div>
-              <p id="nested-date">date: {value.date.toISOString()}</p>
-              <p id="nested-dep">dep: {value.dep}</p>
-              <p id="nested-name">name: {value.name}</p>
-            </div>
-          );
-        }}
-      />
+      {signal.value && (
+        <div>
+          <p id="nested-date">date: {signal.value.date.toISOString()}</p>
+          <p id="nested-dep">dep: {signal.value.dep}</p>
+          <p id="nested-name">name: {signal.value.name}</p>
+        </div>
+      )}
       <Form action={action}>
         <input type="text" name="name" id="form-name" />
         <button type="submit" id="form-submit">

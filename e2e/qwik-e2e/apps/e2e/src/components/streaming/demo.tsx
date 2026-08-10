@@ -1,4 +1,4 @@
-import { component$, Resource, useResource$, useStyles$ } from '@qwik.dev/core';
+import { component$, useComputed$, useStyles$ } from '@qwik.dev/core';
 import { SSRStream } from '@qwik.dev/core/internal';
 import { delay } from '../delay';
 
@@ -34,15 +34,11 @@ export const Cmp = component$((props: { text: string; delay: number }) => {
     margin: 20px 0;
   }`);
 
-  const resource = useResource$<string>(async ({ track }) => {
-    track(() => props.text);
+  const resource = useComputed$<Promise<string>>(async () => {
+    const text = props.text;
     await delay(props.delay);
-    return props.text;
+    return text;
   });
 
-  return (
-    <div>
-      <Resource value={resource} onResolved={(value) => <span class="cmp">{value}</span>} />
-    </div>
-  );
+  return <div>{resource.value && <span class="cmp">{resource.value}</span>}</div>;
 });

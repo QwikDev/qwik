@@ -996,6 +996,35 @@ export function App() {
   });
 });
 
+describe('event handler arrays', () => {
+  const code = `import { component$, $, useSignal } from '@qwik.dev/core';
+const Child = component$((props: any) => <button onClick$={props.onSave$}>go</button>);
+export default component$(() => {
+  const count = useSignal(0);
+  return (
+    <main>
+      <Child onSave$={[$(() => count.value++), $(() => count.value--)]} />
+      <button onClick$={[$(() => count.value++), $(() => count.value--)]}>both</button>
+    </main>
+  );
+});`;
+
+  test.each([false, true])(
+    'a component event prop array lowers per handler (isServer: %s)',
+    async (isServer) => {
+      const result = await transformModules({
+        ...options,
+        isServer,
+        input: [{ path: 'src/multi.tsx', code }],
+      });
+
+      expect(result.diagnostics).toEqual([]);
+      const output = result.modules.map((module) => module.code).join('\n');
+      expect(output).toMatch(/"onSave\$": \[/);
+    }
+  );
+});
+
 describe('strip server code from the client build', () => {
   const routeCode = `import { globalAction$, routeLoader$ } from '@qwik.dev/router';
 import { db } from './db.server';

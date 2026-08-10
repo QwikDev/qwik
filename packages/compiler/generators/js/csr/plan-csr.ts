@@ -110,7 +110,7 @@ export type CsrPropPlan =
       readonly kind: 'event';
       readonly name: string;
       readonly passive: boolean;
-      readonly value: CsrValuePlan;
+      readonly values: readonly CsrValuePlan[];
     }
   | {
       readonly kind: 'bind';
@@ -822,10 +822,12 @@ class CsrPlanner {
                 });
                 break;
               case 'event':
-                this.pushEventOperation(ref, normalizeEventName(prop.name, prop.passive), {
-                  kind: 'value',
-                  value: prop.value,
-                });
+                for (const value of prop.values) {
+                  this.pushEventOperation(ref, normalizeEventName(prop.name, prop.passive), {
+                    kind: 'value',
+                    value,
+                  });
+                }
                 break;
               case 'bind':
                 if (prop.controlsValue) {
@@ -1075,7 +1077,15 @@ class CsrPlanner {
           if (value === null) {
             return null;
           }
-          planned.push({ kind: 'event', name: prop.name, passive: prop.passive, value });
+          const existing = planned.findIndex(
+            (candidate) => candidate.kind === 'event' && candidate.name === prop.name
+          );
+          if (existing !== -1) {
+            const event = planned[existing] as Extract<(typeof planned)[number], { kind: 'event' }>;
+            planned[existing] = { ...event, values: [...event.values, value] };
+            break;
+          }
+          planned.push({ kind: 'event', name: prop.name, passive: prop.passive, values: [value] });
           break;
         }
         case 'bind': {

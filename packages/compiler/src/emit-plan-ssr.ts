@@ -711,6 +711,28 @@ export function emitSsrOpPlan(
     }
   };
 
+  // one prop per event name: repeated event props append their handlers
+  const orderedProps = (items: readonly OrderedPropPlan[]): PlanSsrProp[] => {
+    const props: PlanSsrProp[] = [];
+    const eventIndex = new Map<string, number>();
+    for (const item of items) {
+      if (item.kind === 'event') {
+        const handler = { value: planValue(item.value) };
+        const index = eventIndex.get(item.name);
+        if (index !== undefined) {
+          const existing = props[index] as Extract<PlanSsrProp, { kind: 'event' }>;
+          props[index] = { ...existing, handlers: [...existing.handlers, handler] };
+          continue;
+        }
+        eventIndex.set(item.name, props.length);
+        props.push({ kind: 'event', name: item.name, handlers: [handler] });
+        continue;
+      }
+      props.push(orderedProp(item));
+    }
+    return props;
+  };
+
   const renderFnBlock = (fn: RenderFunctionPlan): PlanSsrRenderFn => {
     const planned = planSsrRenderFunction(fn, segments, returnMode);
     if (planned === null) {
@@ -800,7 +822,7 @@ export function emitSsrOpPlan(
           kind: SsrOpKind.Component,
           target: slice(operation.tagRange),
           ...(operation.tagBinding == null ? {} : { tagBinding: operation.tagBinding }),
-          props: operation.props.map(orderedProp),
+          props: orderedProps(operation.props),
           propsSource: operation.propsSource === null ? null : operation.propsSource.segmentId,
           slots: operation.slots.map((slot) => ({
             name: slot.name,

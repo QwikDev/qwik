@@ -1564,8 +1564,8 @@ function emitElementPropsStatements(
       case 'event': {
         imports.add(QwikWord.ApplyDomProps);
         statements.push(
-          `${QwikWord.ApplyDomProps}(${target}, { ${JSON.stringify(prop.name)}: ${emitEventValue(
-            prop.value,
+          `${QwikWord.ApplyDomProps}(${target}, { ${JSON.stringify(prop.name)}: ${emitEventValues(
+            prop.values,
             context
           )} });`
         );
@@ -1670,7 +1670,7 @@ function emitComponentProps(
         );
         break;
       case 'event':
-        entries.push(`${JSON.stringify(prop.name)}: ${emitEventValue(prop.value, context)}`);
+        entries.push(`${JSON.stringify(prop.name)}: ${emitEventValues(prop.values, context)}`);
         break;
       case 'inner-html':
         entries.push(
@@ -1773,6 +1773,12 @@ function emitEventValue(value: CsrValuePlan, context: CsrEmitContext): string {
   return value.kind === 'segment'
     ? emitFunctionReference(value.reference, context.imports)
     : emitValue(value, context);
+}
+
+function emitEventValues(values: readonly CsrValuePlan[], context: CsrEmitContext): string {
+  return values.length === 1
+    ? emitEventValue(values[0], context)
+    : `[${values.map((value) => emitEventValue(value, context)).join(', ')}]`;
 }
 
 function emitEventHandler(handler: CsrEventHandlerPlan, context: CsrEmitContext): string {

@@ -1126,8 +1126,8 @@ class SemanticLowerer {
         this.allocateLifetime(context.lifetimeId, 'effect', 'immediate');
       const event = isEventProp(name);
       const passive = event && passiveEvents !== null && isPassiveEvent(name, passiveEvents);
-      if (event && targetKind === 'element') {
-        for (const value of this.createEventValues(expression, lifetimeId)) {
+      if (event) {
+        for (const value of this.createEventValues(expression, lifetimeId, targetKind)) {
           const effectId =
             groupedEffect?.effectId ??
             this.pushEffect(context, {
@@ -1398,22 +1398,54 @@ class SemanticLowerer {
     return { kind: 'dynamic-value', output, range, lifetimeId, effectId, value };
   }
 
-  private createEventValues(expression: AstNode, lifetimeId: LifetimeId): ValuePlan[] {
+  private createEventValues(
+    expression: AstNode,
+    lifetimeId: LifetimeId,
+    targetKind: 'element' | 'component' = 'element'
+  ): ValuePlan[] {
     const range = getRange(expression);
     if (range !== null && this.findSegment('expression', range) !== null) {
-      return [this.createValue(expression, lifetimeId, true)];
+      return [this.createEventValue(expression, lifetimeId, targetKind)];
     }
     const value = unwrapExpression(expression);
     if (
       value?.type !== 'ArrayExpression' ||
       value.elements.some((element) => element?.type === 'SpreadElement')
     ) {
-      return [this.createValue(expression, lifetimeId, true)];
+      return [this.createEventValue(expression, lifetimeId, targetKind)];
     }
     return value.elements.flatMap((element) => {
       const child = unwrapExpression(element);
-      return child === null || child === undefined ? [] : this.createEventValues(child, lifetimeId);
+      return child === null || child === undefined
+        ? []
+        : this.createEventValues(child, lifetimeId, targetKind);
     });
+  }
+
+  private createEventValue(
+    expression: AstNode,
+    lifetimeId: LifetimeId,
+    targetKind: 'element' | 'component'
+  ): ValuePlan {
+    // A component receives its handler as a plain prop; an explicit $() must
+    // hand over the boundary's qrl, not an opaque expression.
+    const range = getRange(expression);
+    if (targetKind === 'component' && range !== null) {
+      const explicit = this.extracted.segments.find(
+        (candidate) =>
+          candidate.kind === 'qrl' &&
+          candidate.qrl?.kind === 'explicit' &&
+          sameRange(candidate.range, range)
+      );
+      if (explicit !== undefined) {
+        return {
+          kind: 'segment',
+          expression: range,
+          segment: this.referenceSegment(explicit, lifetimeId),
+        };
+      }
+    }
+    return this.createValue(expression, lifetimeId, true);
   }
 
   private createValue(

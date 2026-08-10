@@ -45,23 +45,33 @@ import {
   invoke,
   createSsrRecord,
   maybeThen,
-  _qrlWithChunk,
+  _noopQrl,
 } from '@qwik.dev/core';
-import { component_text_segment_0_1fh10fbkzokfc } from './component.tsx_component_text_segment_0_1fh10fbkzokfc';
-import { component_props_segment_1_208o0sfi1se76 } from './component.tsx_component_props_segment_1_208o0sfi1se76';
 
-const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_text_segment_0_1fh10fbkzokfc',
-  () => import('./component.tsx_component_text_segment_0_1fh10fbkzokfc'),
+const component_text_segment_0_1fh10fbkzokfc = (props) => {
+  const { label, ...rest } = props;
+  return label;
+};
+const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _noopQrl(
   'component_text_segment_0_1fh10fbkzokfc'
 );
 q_component_text_segment_0_1fh10fbkzokfc.s(component_text_segment_0_1fh10fbkzokfc);
-const q_component_props_segment_1_208o0sfi1se76 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_props_segment_1_208o0sfi1se76',
-  () => import('./component.tsx_component_props_segment_1_208o0sfi1se76'),
+const component_props_segment_1_208o0sfi1se76 = (props) => {
+  const { label, ...rest } = props;
+  return {
+    get onInput$() {
+      return q_component_q_e_input_segment_2_2g2zxvycvpkld;
+    },
+    ...rest,
+  };
+};
+const q_component_props_segment_1_208o0sfi1se76 = /*#__PURE__*/ _noopQrl(
   'component_props_segment_1_208o0sfi1se76'
 );
 q_component_props_segment_1_208o0sfi1se76.s(component_props_segment_1_208o0sfi1se76);
+const q_component_q_e_input_segment_2_2g2zxvycvpkld = /*#__PURE__*/ _noopQrl(
+  'component_q_e_input_segment_2_2g2zxvycvpkld'
+);
 
 export function Field(props, ctx) {
   const { label, ...rest } = props;
@@ -153,10 +163,8 @@ export const component_text_segment_0_1fh10fbkzokfc = (props) => {
 */
 ============================= src/component.tsx_component_props_segment_1_208o0sfi1se76.js (ENTRY POINT)==
 
-import { _qrlWithChunk } from '@qwik.dev/core';
-const q_component_q_e_input_segment_2_2g2zxvycvpkld = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_q_e_input_segment_2_2g2zxvycvpkld',
-  () => import('./component.tsx_component_q_e_input_segment_2_2g2zxvycvpkld'),
+import { _noopQrl } from '@qwik.dev/core';
+const q_component_q_e_input_segment_2_2g2zxvycvpkld = /*#__PURE__*/ _noopQrl(
   'component_q_e_input_segment_2_2g2zxvycvpkld'
 );
 

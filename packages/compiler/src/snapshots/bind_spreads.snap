@@ -30,20 +30,29 @@ import {
   invoke,
   createSsrRecord,
   maybeThen,
-  _qrlWithChunk,
+  _noopQrl,
 } from '@qwik.dev/core';
-import { component_props_segment_0_208o16glymg7p } from './component.tsx_component_props_segment_0_208o16glymg7p';
-import { component_props_segment_1_208o0sfi1se76 } from './component.tsx_component_props_segment_1_208o0sfi1se76';
-
-const q_component_props_segment_0_208o16glymg7p = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_props_segment_0_208o16glymg7p',
-  () => import('./component.tsx_component_props_segment_0_208o16glymg7p'),
+const component_props_segment_0_208o16glymg7p = (first, props) => {
+  return {
+    get 'bind:value'() {
+      return first;
+    },
+    ...props.rest,
+  };
+};
+const q_component_props_segment_0_208o16glymg7p = /*#__PURE__*/ _noopQrl(
   'component_props_segment_0_208o16glymg7p'
 );
 q_component_props_segment_0_208o16glymg7p.s(component_props_segment_0_208o16glymg7p);
-const q_component_props_segment_1_208o0sfi1se76 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_props_segment_1_208o0sfi1se76',
-  () => import('./component.tsx_component_props_segment_1_208o0sfi1se76'),
+const component_props_segment_1_208o0sfi1se76 = (props, second) => {
+  return {
+    ...props.rest,
+    get 'bind:value'() {
+      return second;
+    },
+  };
+};
+const q_component_props_segment_1_208o0sfi1se76 = /*#__PURE__*/ _noopQrl(
   'component_props_segment_1_208o0sfi1se76'
 );
 q_component_props_segment_1_208o0sfi1se76.s(component_props_segment_1_208o0sfi1se76);

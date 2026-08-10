@@ -18,13 +18,13 @@ import {
   createSsrElementRecord,
   maybeThen,
   invoke,
-  _qrlWithChunk,
+  _noopQrl,
 } from '@qwik.dev/core';
-import { component_useTask$_segment_0_12v231gyiwsit } from './component.tsx_component_useTask$_segment_0_12v231gyiwsit';
 
-const q_component_useTask$_segment_0_12v231gyiwsit = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_useTask$_segment_0_12v231gyiwsit',
-  () => import('./component.tsx_component_useTask$_segment_0_12v231gyiwsit'),
+const component_useTask$_segment_0_12v231gyiwsit = () => {
+  return console.log('external');
+};
+const q_component_useTask$_segment_0_12v231gyiwsit = /*#__PURE__*/ _noopQrl(
   'component_useTask$_segment_0_12v231gyiwsit'
 );
 q_component_useTask$_segment_0_12v231gyiwsit.s(component_useTask$_segment_0_12v231gyiwsit);

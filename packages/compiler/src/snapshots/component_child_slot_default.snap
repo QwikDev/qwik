@@ -15,18 +15,20 @@ export function Parent() {
 ============================= src/component.tsx ==
 
 import {
+  createSsrRecord,
+  createSsrNodeId,
   createSlotScope,
   registerProjection,
   createComponent,
   maybeThen,
-  _qrlWithChunk,
+  _noopQrl,
 } from '@qwik.dev/core';
-import { component_slot_render_segment_0_3b0tagwys7lui } from './component.tsx_component_slot_render_segment_0_3b0tagwys7lui';
 import { Wrapper } from './component.tsx_component_Wrapper';
 
-const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_render_segment_0_3b0tagwys7lui',
-  () => import('./component.tsx_component_slot_render_segment_0_3b0tagwys7lui'),
+const component_slot_render_segment_0_3b0tagwys7lui = (ctx, rangeId) => {
+  return [createSsrRecord('<!s=', createSsrNodeId(rangeId), '>'), '<p>Projected</p><!/s>'];
+};
+const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_0_3b0tagwys7lui'
 );
 q_component_slot_render_segment_0_3b0tagwys7lui.s(component_slot_render_segment_0_3b0tagwys7lui);
@@ -43,6 +45,8 @@ export function Parent(props, ctx) {
 ============================= src/component.tsx_component_Wrapper.js (ENTRY POINT)==
 
 import {
+  createSsrRecord,
+  createSsrNodeId,
   createSsrElementRecord,
   renderSsrSlot,
   getActiveInvokeContextOrNull,

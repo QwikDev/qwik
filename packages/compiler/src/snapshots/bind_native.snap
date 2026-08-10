@@ -29,16 +29,12 @@ import {
   invoke,
   createSsrRecord,
   maybeThen,
-  _qrlWithChunk,
+  _noopQrl,
 } from '@qwik.dev/core';
-const q_component_q_e_input_segment_1_2g2zwpv157ejs = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_q_e_input_segment_1_2g2zwpv157ejs',
-  () => import('./component.tsx_component_q_e_input_segment_1_2g2zwpv157ejs'),
+const q_component_q_e_input_segment_1_2g2zwpv157ejs = /*#__PURE__*/ _noopQrl(
   'component_q_e_input_segment_1_2g2zwpv157ejs'
 );
-const q_component_q_e_input_segment_2_2g2zxvycvpkld = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_q_e_input_segment_2_2g2zxvycvpkld',
-  () => import('./component.tsx_component_q_e_input_segment_2_2g2zxvycvpkld'),
+const q_component_q_e_input_segment_2_2g2zxvycvpkld = /*#__PURE__*/ _noopQrl(
   'component_q_e_input_segment_2_2g2zxvycvpkld'
 );
 export function App(props, ctx) {

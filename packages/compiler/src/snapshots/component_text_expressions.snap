@@ -17,27 +17,27 @@ import {
   getActiveInvokeContextOrNull,
   invoke,
   maybeThen,
-  _qrlWithChunk,
+  _noopQrl,
 } from '@qwik.dev/core';
-import { component_text_segment_0_1fh10fbkzokfc } from './component.tsx_component_text_segment_0_1fh10fbkzokfc';
-import { component_text_segment_1_1fh10tcowimfv } from './component.tsx_component_text_segment_1_1fh10tcowimfv';
-import { component_text_segment_2_1fh117dstcoge } from './component.tsx_component_text_segment_2_1fh117dstcoge';
 
-const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_text_segment_0_1fh10fbkzokfc',
-  () => import('./component.tsx_component_text_segment_0_1fh10fbkzokfc'),
+const component_text_segment_0_1fh10fbkzokfc = (props) => {
+  return props.count + 1;
+};
+const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _noopQrl(
   'component_text_segment_0_1fh10fbkzokfc'
 );
 q_component_text_segment_0_1fh10fbkzokfc.s(component_text_segment_0_1fh10fbkzokfc);
-const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_text_segment_1_1fh10tcowimfv',
-  () => import('./component.tsx_component_text_segment_1_1fh10tcowimfv'),
+const component_text_segment_1_1fh10tcowimfv = (props) => {
+  return `Hello ${props.label}`;
+};
+const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _noopQrl(
   'component_text_segment_1_1fh10tcowimfv'
 );
 q_component_text_segment_1_1fh10tcowimfv.s(component_text_segment_1_1fh10tcowimfv);
-const q_component_text_segment_2_1fh117dstcoge = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_text_segment_2_1fh117dstcoge',
-  () => import('./component.tsx_component_text_segment_2_1fh117dstcoge'),
+const component_text_segment_2_1fh117dstcoge = (props) => {
+  return !props.hidden;
+};
+const q_component_text_segment_2_1fh117dstcoge = /*#__PURE__*/ _noopQrl(
   'component_text_segment_2_1fh117dstcoge'
 );
 q_component_text_segment_2_1fh117dstcoge.s(component_text_segment_2_1fh117dstcoge);

@@ -18,11 +18,9 @@ import {
   escapeHTML,
   renderSsrTextNode,
   maybeThen,
-  _qrlWithChunk,
+  _noopQrl,
 } from '@qwik.dev/core';
-const q_component_q_e_click_segment_0_2xwyg1cinvmpz = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz',
-  () => import('./component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz'),
+const q_component_q_e_click_segment_0_2xwyg1cinvmpz = /*#__PURE__*/ _noopQrl(
   'component_q_e_click_segment_0_2xwyg1cinvmpz'
 );
 export const App = (props, ctx) => {

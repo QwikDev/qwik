@@ -30,7 +30,7 @@ export function App() {
 
 ============================= src/component.tsx ==
 
-import { createComponent, maybeThen } from '@qwik.dev/core';
+import { _captures, createComponent, maybeThen } from '@qwik.dev/core';
 import { Child } from './component.tsx_component_Child';
 export { Child };
 export function App(props, ctx) {
@@ -40,34 +40,40 @@ export function App(props, ctx) {
 ============================= src/component.tsx_component_Child.js (ENTRY POINT)==
 
 import {
+  _captures,
   createSsrElementRecord,
   renderSsrBranch,
   createSsrRecord,
   createSsrNodeId,
   maybeThen,
-  _qrlWithChunk,
+  _noopQrl,
 } from '@qwik.dev/core';
-import { component_branch_condition_segment_0_2fzrieu6vlhf9 } from './component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9';
 import { useSignal } from '@qwik.dev/core';
 
-const q_component_branch_condition_segment_0_2fzrieu6vlhf9 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9',
-  () => import('./component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9'),
+const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
+  const hide = _captures[0];
+  return hide.value;
+};
+const q_component_branch_condition_segment_0_2fzrieu6vlhf9 = /*#__PURE__*/ _noopQrl(
   'component_branch_condition_segment_0_2fzrieu6vlhf9'
 );
 q_component_branch_condition_segment_0_2fzrieu6vlhf9.s(
   component_branch_condition_segment_0_2fzrieu6vlhf9
 );
-const q_component_branch_then_segment_1_24n7blyqktd46 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_branch_then_segment_1_24n7blyqktd46',
-  () => import('./component.tsx_component_branch_then_segment_1_24n7blyqktd46'),
+const component_branch_then_segment_1_24n7blyqktd46 = () => {
+  return '<label></label><input><svg></svg>';
+};
+const q_component_branch_then_segment_1_24n7blyqktd46 = /*#__PURE__*/ _noopQrl(
   'component_branch_then_segment_1_24n7blyqktd46'
 );
-const q_component_branch_else_segment_2_19dvu7nugnvkl = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_branch_else_segment_2_19dvu7nugnvkl',
-  () => import('./component.tsx_component_branch_else_segment_2_19dvu7nugnvkl'),
+q_component_branch_then_segment_1_24n7blyqktd46.s(component_branch_then_segment_1_24n7blyqktd46);
+const component_branch_else_segment_2_19dvu7nugnvkl = () => {
+  return '<label for="value"></label><input required><svg width="1"></svg>';
+};
+const q_component_branch_else_segment_2_19dvu7nugnvkl = /*#__PURE__*/ _noopQrl(
   'component_branch_else_segment_2_19dvu7nugnvkl'
 );
+q_component_branch_else_segment_2_19dvu7nugnvkl.s(component_branch_else_segment_2_19dvu7nugnvkl);
 
 export function Child(props, ctx) {
   const hide = useSignal(false);

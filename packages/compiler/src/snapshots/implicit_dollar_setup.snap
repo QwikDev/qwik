@@ -14,19 +14,20 @@ export function App() {
 import {
   useSignal,
   useComputedQrl,
+  _captures,
   createSsrNodeId,
   createSsrElementRecord,
   createSsrElementTextTarget,
   escapeHTML,
   renderSsrTextNode,
   maybeThen,
-  _qrlWithChunk,
+  _noopQrl,
 } from '@qwik.dev/core';
-import { component_useComputed$_segment_0_1ipqnkpgdvv4z } from './component.tsx_component_useComputed$_segment_0_1ipqnkpgdvv4z';
-
-const q_component_useComputed$_segment_0_1ipqnkpgdvv4z = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_useComputed$_segment_0_1ipqnkpgdvv4z',
-  () => import('./component.tsx_component_useComputed$_segment_0_1ipqnkpgdvv4z'),
+const component_useComputed$_segment_0_1ipqnkpgdvv4z = () => {
+  const count = _captures[0];
+  return count.value * 2;
+};
+const q_component_useComputed$_segment_0_1ipqnkpgdvv4z = /*#__PURE__*/ _noopQrl(
   'component_useComputed$_segment_0_1ipqnkpgdvv4z'
 );
 q_component_useComputed$_segment_0_1ipqnkpgdvv4z.s(component_useComputed$_segment_0_1ipqnkpgdvv4z);

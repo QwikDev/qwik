@@ -24,20 +24,20 @@ import {
   getActiveInvokeContextOrNull,
   invoke,
   maybeThen,
-  _qrlWithChunk,
+  _noopQrl,
 } from '@qwik.dev/core';
-import { component_title_segment_0_2f0r0xivypjmx } from './component.tsx_component_title_segment_0_2f0r0xivypjmx';
-import { component_text_segment_1_1fh10tcowimfv } from './component.tsx_component_text_segment_1_1fh10tcowimfv';
 
-const q_component_title_segment_0_2f0r0xivypjmx = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_title_segment_0_2f0r0xivypjmx',
-  () => import('./component.tsx_component_title_segment_0_2f0r0xivypjmx'),
+const component_title_segment_0_2f0r0xivypjmx = (foo) => {
+  return foo.value;
+};
+const q_component_title_segment_0_2f0r0xivypjmx = /*#__PURE__*/ _noopQrl(
   'component_title_segment_0_2f0r0xivypjmx'
 );
 q_component_title_segment_0_2f0r0xivypjmx.s(component_title_segment_0_2f0r0xivypjmx);
-const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_text_segment_1_1fh10tcowimfv',
-  () => import('./component.tsx_component_text_segment_1_1fh10tcowimfv'),
+const component_text_segment_1_1fh10tcowimfv = (foo) => {
+  return foo.value;
+};
+const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _noopQrl(
   'component_text_segment_1_1fh10tcowimfv'
 );
 q_component_text_segment_1_1fh10tcowimfv.s(component_text_segment_1_1fh10tcowimfv);

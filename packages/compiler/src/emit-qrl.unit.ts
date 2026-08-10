@@ -1019,7 +1019,7 @@ export function App() {
     );
   });
 
-  test('keeps explicit dollar lazy on SSR and uses its function on CSR', async () => {
+  test('binds explicit dollar on SSR and uses its function on CSR', async () => {
     const input = {
       path: 'src/explicit.tsx',
       code: `import { $ } from '@qwik.dev/core';
@@ -1039,7 +1039,8 @@ export function App() {
     const symbol = segmentNames(csr, '$')[0];
 
     expect(ssrMain).toContain(`const handler = q_${symbol}.w([count]);`);
-    expect(ssrMain).not.toContain(`q_${symbol}.s(`);
+    // v2-parity: every server segment binds its in-module implementation via `.s()`
+    expect(ssrMain).toContain(`q_${symbol}.s(`);
     expect(csrMain).toContain(`const handler = _withCaptures(${symbol}, [count]);`);
   });
 

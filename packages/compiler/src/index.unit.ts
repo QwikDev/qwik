@@ -73,7 +73,16 @@ function assertGeneratedModuleGraph(result: TransformOutput): void {
     reachable.add(path);
     queue.push(...(edges.get(path) ?? []));
   }
+  const emittedCode = result.modules.map((module) => module.code).join('\n');
   for (const module of result.modules.slice(1)) {
+    // v2-parity ssr: chunkless segments are declared by symbol (`_noopQrl("sym")`), so their
+    // chunk files carry metadata only and are intentionally unreferenced
+    const declaredBySymbol =
+      module.segment?.name !== undefined &&
+      emittedCode.includes(`_noopQrl(${JSON.stringify(module.segment.name)})`);
+    if (declaredBySymbol) {
+      continue;
+    }
     expect(reachable.has(posix.normalize(module.path)), `${module.path} is orphaned`).toBe(true);
   }
 }

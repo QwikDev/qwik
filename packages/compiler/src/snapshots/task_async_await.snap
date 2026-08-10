@@ -26,6 +26,8 @@ export function App() {
 import {
   useSignal,
   useTaskQrl,
+  _captures,
+  _await,
   getActiveInvokeContextOrNull,
   useOnDocument,
   createVisibleTaskHandlerQrl,
@@ -36,24 +38,23 @@ import {
   renderSsrTextNode,
   maybeThen,
   invoke,
-  _qrlWithChunk,
+  _noopQrl,
 } from '@qwik.dev/core';
-import { component_useTask$_segment_0_12v231gyiwsit } from './component.tsx_component_useTask$_segment_0_12v231gyiwsit';
-import { component_useVisibleTask$_segment_1_97oyhe0qyjrq } from './component.tsx_component_useVisibleTask$_segment_1_97oyhe0qyjrq';
-
-const q_component_useTask$_segment_0_12v231gyiwsit = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_useTask$_segment_0_12v231gyiwsit',
-  () => import('./component.tsx_component_useTask$_segment_0_12v231gyiwsit'),
+const component_useTask$_segment_0_12v231gyiwsit = async ({ cleanup }) => {
+  const count = _captures[0];
+  const before = count.value;
+  (await _await(Promise.resolve()))();
+  cleanup(async () => {
+    await Promise.resolve(before);
+  });
+  count.value;
+};
+const q_component_useTask$_segment_0_12v231gyiwsit = /*#__PURE__*/ _noopQrl(
   'component_useTask$_segment_0_12v231gyiwsit'
 );
 q_component_useTask$_segment_0_12v231gyiwsit.s(component_useTask$_segment_0_12v231gyiwsit);
-const q_component_useVisibleTask$_segment_1_97oyhe0qyjrq = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_useVisibleTask$_segment_1_97oyhe0qyjrq',
-  () => import('./component.tsx_component_useVisibleTask$_segment_1_97oyhe0qyjrq'),
+const q_component_useVisibleTask$_segment_1_97oyhe0qyjrq = /*#__PURE__*/ _noopQrl(
   'component_useVisibleTask$_segment_1_97oyhe0qyjrq'
-);
-q_component_useVisibleTask$_segment_1_97oyhe0qyjrq.s(
-  component_useVisibleTask$_segment_1_97oyhe0qyjrq
 );
 export function App(props, ctx) {
   const invokeCtx = getActiveInvokeContextOrNull();

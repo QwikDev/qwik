@@ -20,33 +20,56 @@ export function App() {
 ============================= src/component.tsx ==
 
 import {
+  createSsrNodeId,
   createSsrElementRecord,
+  createSsrElementTextTarget,
+  escapeHTML,
+  renderSsrTextExpression,
+  maybeThen,
+  _captures,
   renderSsrCollection,
   createSsrRecord,
-  createSsrNodeId,
   _wrapArray,
-  maybeThen,
-  _qrlWithChunk,
+  _noopQrl,
 } from '@qwik.dev/core';
-import { component_for_render_segment_0_asyt89wzo2d3 } from './component.tsx_component_for_render_segment_0_asyt89wzo2d3';
-import { component_for_key_segment_1_24ursak4wzpxf } from './component.tsx_component_for_key_segment_1_24ursak4wzpxf';
-import { semantic_collectionSource_150_161_3tkttngg2391p } from './component.tsx_semantic_collectionSource_150_161_3tkttngg2391p';
 
-const q_component_for_render_segment_0_asyt89wzo2d3 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_for_render_segment_0_asyt89wzo2d3',
-  () => import('./component.tsx_component_for_render_segment_0_asyt89wzo2d3'),
+const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __rowId, row) => {
+  const id_0 = ctx.nextId();
+  ctx.addRoot(row);
+  const text_0 = renderSsrTextExpression(
+    createSsrElementTextTarget(id_0),
+    [row],
+    q_component_text_segment_2_1fh117dstcoge
+  );
+  return maybeThen(text_0, (text_0) => [
+    createSsrElementRecord('li', '<li q:id="', createSsrNodeId(id_0), '"', ' q:row', '>'),
+    escapeHTML(text_0),
+    '</li>',
+  ]);
+};
+const q_component_for_render_segment_0_asyt89wzo2d3 = /*#__PURE__*/ _noopQrl(
   'component_for_render_segment_0_asyt89wzo2d3'
 );
 q_component_for_render_segment_0_asyt89wzo2d3.s(component_for_render_segment_0_asyt89wzo2d3);
-const q_component_for_key_segment_1_24ursak4wzpxf = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_for_key_segment_1_24ursak4wzpxf',
-  () => import('./component.tsx_component_for_key_segment_1_24ursak4wzpxf'),
+const component_for_key_segment_1_24ursak4wzpxf = (row) => {
+  return row.id;
+};
+const q_component_for_key_segment_1_24ursak4wzpxf = /*#__PURE__*/ _noopQrl(
   'component_for_key_segment_1_24ursak4wzpxf'
 );
 q_component_for_key_segment_1_24ursak4wzpxf.s(component_for_key_segment_1_24ursak4wzpxf);
-const q_semantic_collectionSource_150_161_3tkttngg2391p = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_semantic_collectionSource_150_161_3tkttngg2391p',
-  () => import('./component.tsx_semantic_collectionSource_150_161_3tkttngg2391p'),
+const component_text_segment_2_1fh117dstcoge = (row) => {
+  return row.label;
+};
+const q_component_text_segment_2_1fh117dstcoge = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_2_1fh117dstcoge'
+);
+q_component_text_segment_2_1fh117dstcoge.s(component_text_segment_2_1fh117dstcoge);
+const semantic_collectionSource_150_161_3tkttngg2391p = () => {
+  const items = _captures[0];
+  return items.value;
+};
+const q_semantic_collectionSource_150_161_3tkttngg2391p = /*#__PURE__*/ _noopQrl(
   'semantic_collectionSource_150_161_3tkttngg2391p'
 );
 q_semantic_collectionSource_150_161_3tkttngg2391p.s(
@@ -89,7 +112,7 @@ export function App(props, ctx) {
 ============================= src/component.tsx_component_for_render_segment_0_asyt89wzo2d3.js (ENTRY POINT)==
 
 import {
-  _qrlWithChunk,
+  _noopQrl,
   createSsrNodeId,
   createSsrElementRecord,
   createSsrElementTextTarget,
@@ -98,9 +121,7 @@ import {
   maybeThen,
 } from '@qwik.dev/core';
 import { component_text_segment_2_1fh117dstcoge } from './component.tsx_component_text_segment_2_1fh117dstcoge';
-const q_component_text_segment_2_1fh117dstcoge = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_text_segment_2_1fh117dstcoge',
-  () => import('./component.tsx_component_text_segment_2_1fh117dstcoge'),
+const q_component_text_segment_2_1fh117dstcoge = /*#__PURE__*/ _noopQrl(
   'component_text_segment_2_1fh117dstcoge'
 );
 q_component_text_segment_2_1fh117dstcoge.s(component_text_segment_2_1fh117dstcoge);

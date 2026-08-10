@@ -361,7 +361,7 @@
           "symbolName": "input_class_segment_3_1bbn50hnd2b7u",
           "chunk": "./input.tsx_input_class_segment_3_1bbn50hnd2b7u",
           "kind": "expression",
-          "resolved": false,
+          "resolved": true,
           "qrl": null,
           "captures": [
             {
@@ -383,7 +383,7 @@
           "symbolName": "input_text_segment_4_3k1cucq7gxis8",
           "chunk": "./input.tsx_input_text_segment_4_3k1cucq7gxis8",
           "kind": "expression",
-          "resolved": false,
+          "resolved": true,
           "qrl": null,
           "captures": [
             {

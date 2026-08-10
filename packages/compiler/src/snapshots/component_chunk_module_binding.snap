@@ -44,13 +44,13 @@ import {
   escapeHTML,
   createSsrElementRecord,
   maybeThen,
-  _qrlWithChunk,
+  _noopQrl,
 } from '@qwik.dev/core';
-import { component_class_segment_0_3htuygud1guoj } from './component.tsx_component_class_segment_0_3htuygud1guoj';
 
-const q_component_class_segment_0_3htuygud1guoj = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_class_segment_0_3htuygud1guoj',
-  () => import('./component.tsx_component_class_segment_0_3htuygud1guoj'),
+const component_class_segment_0_3htuygud1guoj = (props) => {
+  return props.class;
+};
+const q_component_class_segment_0_3htuygud1guoj = /*#__PURE__*/ _noopQrl(
   'component_class_segment_0_3htuygud1guoj'
 );
 q_component_class_segment_0_3htuygud1guoj.s(component_class_segment_0_3htuygud1guoj);
@@ -100,14 +100,14 @@ export function Child(props, ctx) {
 */
 ============================= src/component.tsx_component_Button.js (ENTRY POINT)==
 
-import { createComponent, maybeThen, _qrlWithChunk } from '@qwik.dev/core';
-import { component_class_segment_1_3htuy2t94mso0 } from './component.tsx_component_class_segment_1_3htuy2t94mso0';
+import { createComponent, maybeThen, _noopQrl } from '@qwik.dev/core';
 import { buttonStyle } from './component';
 import { Child } from './component.tsx_component_Child';
 
-const q_component_class_segment_1_3htuy2t94mso0 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_class_segment_1_3htuy2t94mso0',
-  () => import('./component.tsx_component_class_segment_1_3htuy2t94mso0'),
+const component_class_segment_1_3htuy2t94mso0 = (props) => {
+  return [buttonStyle, { white: props.isWhite }];
+};
+const q_component_class_segment_1_3htuy2t94mso0 = /*#__PURE__*/ _noopQrl(
   'component_class_segment_1_3htuy2t94mso0'
 );
 q_component_class_segment_1_3htuy2t94mso0.s(component_class_segment_1_3htuy2t94mso0);

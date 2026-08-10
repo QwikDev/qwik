@@ -50,15 +50,15 @@ import {
   escapeHTML,
   renderSsrTextExpression,
   maybeThen,
-  _qrlWithChunk,
+  _noopQrl,
 } from '@qwik.dev/core';
-import { component_text_segment_0_1fh10fbkzokfc } from './component.tsx_component_text_segment_0_1fh10fbkzokfc';
 import { useContext } from '@qwik.dev/core';
 import { Context } from './context';
 
-const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_text_segment_0_1fh10fbkzokfc',
-  () => import('./component.tsx_component_text_segment_0_1fh10fbkzokfc'),
+const component_text_segment_0_1fh10fbkzokfc = (value) => {
+  return value.value;
+};
+const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _noopQrl(
   'component_text_segment_0_1fh10fbkzokfc'
 );
 q_component_text_segment_0_1fh10fbkzokfc.s(component_text_segment_0_1fh10fbkzokfc);

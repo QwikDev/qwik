@@ -17,18 +17,16 @@ import {
   renderSsrTextExpression,
   maybeThen,
   renderSsrCollection,
-  _qrlWithChunk,
+  _noopQrl,
 } from '@qwik.dev/core';
-import { component_text_segment_3_1fh11lewq6qgx } from './component.tsx_component_text_segment_3_1fh11lewq6qgx';
 
-const q_component_q_e_click_segment_2_2xwygteqhjqr1 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1',
-  () => import('./component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1'),
+const q_component_q_e_click_segment_2_2xwygteqhjqr1 = /*#__PURE__*/ _noopQrl(
   'component_q_e_click_segment_2_2xwygteqhjqr1'
 );
-const q_component_text_segment_3_1fh11lewq6qgx = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_text_segment_3_1fh11lewq6qgx',
-  () => import('./component.tsx_component_text_segment_3_1fh11lewq6qgx'),
+const component_text_segment_3_1fh11lewq6qgx = (item) => {
+  return item.label;
+};
+const q_component_text_segment_3_1fh11lewq6qgx = /*#__PURE__*/ _noopQrl(
   'component_text_segment_3_1fh11lewq6qgx'
 );
 q_component_text_segment_3_1fh11lewq6qgx.s(component_text_segment_3_1fh11lewq6qgx);

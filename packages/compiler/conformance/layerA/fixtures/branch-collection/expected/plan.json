@@ -518,7 +518,7 @@
           "symbolName": "input_branch_then_segment_4_3n2t96ggdsrxt",
           "chunk": "./input.tsx_input_branch_then_segment_4_3n2t96ggdsrxt",
           "kind": "branchRender",
-          "resolved": false,
+          "resolved": true,
           "qrl": null,
           "captures": []
         },
@@ -527,7 +527,7 @@
           "symbolName": "input_branch_else_segment_5_f8z6bi9enhy4",
           "chunk": "./input.tsx_input_branch_else_segment_5_f8z6bi9enhy4",
           "kind": "branchRender",
-          "resolved": false,
+          "resolved": true,
           "qrl": null,
           "captures": [
             {
@@ -543,7 +543,7 @@
           "symbolName": "input_for_render_segment_6_18lilt6ujv0qt",
           "chunk": "./input.tsx_input_for_render_segment_6_18lilt6ujv0qt",
           "kind": "forRender",
-          "resolved": false,
+          "resolved": true,
           "qrl": null,
           "captures": []
         },
@@ -552,7 +552,7 @@
           "symbolName": "input_for_key_segment_7_21xk5ifpl798p",
           "chunk": "./input.tsx_input_for_key_segment_7_21xk5ifpl798p",
           "kind": "forKey",
-          "resolved": false,
+          "resolved": true,
           "qrl": null,
           "captures": []
         },
@@ -561,7 +561,7 @@
           "symbolName": "input_text_segment_8_3k1csslrtlaq4",
           "chunk": "./input.tsx_input_text_segment_8_3k1csslrtlaq4",
           "kind": "expression",
-          "resolved": false,
+          "resolved": true,
           "qrl": null,
           "captures": [
             {
@@ -577,7 +577,7 @@
           "symbolName": "semantic_expression_497_515_x67c7zm3951k",
           "chunk": "./input.tsx_semantic_expression_497_515_x67c7zm3951k",
           "kind": "expression",
-          "resolved": false,
+          "resolved": true,
           "qrl": null,
           "captures": [
             {

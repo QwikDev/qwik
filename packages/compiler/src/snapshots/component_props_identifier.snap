@@ -8,11 +8,9 @@ export function App(input: { value: string }) {
 
 ============================= src/component.tsx ==
 
-import { createSsrElementRecord, _qrlWithChunk } from '@qwik.dev/core';
+import { createSsrElementRecord, _noopQrl } from '@qwik.dev/core';
 
-const q_component_q_e_click_segment_0_2xwyg1cinvmpz = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz',
-  () => import('./component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz'),
+const q_component_q_e_click_segment_0_2xwyg1cinvmpz = /*#__PURE__*/ _noopQrl(
   'component_q_e_click_segment_0_2xwyg1cinvmpz'
 );
 export function App(input, ctx) {

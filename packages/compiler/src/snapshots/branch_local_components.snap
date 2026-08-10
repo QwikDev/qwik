@@ -21,50 +21,74 @@ export function App() {
 
 import {
   useSignal,
+  _captures,
+  createComponent,
+  maybeThen,
+  readTrackedSourceValue,
+  _props,
   createSsrNodeId,
   createSsrElementRecord,
   createSsrRangeTextTarget,
   escapeHTML,
   renderSsrTextExpression,
-  maybeThen,
   renderSsrBranch,
   createSsrRecord,
-  _qrlWithChunk,
+  _noopQrl,
 } from '@qwik.dev/core';
-import { component_text_segment_0_1fh10fbkzokfc } from './component.tsx_component_text_segment_0_1fh10fbkzokfc';
-import { component_text_segment_1_1fh10tcowimfv } from './component.tsx_component_text_segment_1_1fh10tcowimfv';
-import { component_branch_condition_segment_2_2fzrhmrz1xde7 } from './component.tsx_component_branch_condition_segment_2_2fzrhmrz1xde7';
-
-const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_text_segment_0_1fh10fbkzokfc',
-  () => import('./component.tsx_component_text_segment_0_1fh10fbkzokfc'),
+const component_text_segment_0_1fh10fbkzokfc = (props) => {
+  const { count } = props;
+  return count;
+};
+const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _noopQrl(
   'component_text_segment_0_1fh10fbkzokfc'
 );
 q_component_text_segment_0_1fh10fbkzokfc.s(component_text_segment_0_1fh10fbkzokfc);
-const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_text_segment_1_1fh10tcowimfv',
-  () => import('./component.tsx_component_text_segment_1_1fh10tcowimfv'),
+const component_text_segment_1_1fh10tcowimfv = (props) => {
+  const { name } = props;
+  return name;
+};
+const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _noopQrl(
   'component_text_segment_1_1fh10tcowimfv'
 );
 q_component_text_segment_1_1fh10tcowimfv.s(component_text_segment_1_1fh10tcowimfv);
-const q_component_branch_condition_segment_2_2fzrhmrz1xde7 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_branch_condition_segment_2_2fzrhmrz1xde7',
-  () => import('./component.tsx_component_branch_condition_segment_2_2fzrhmrz1xde7'),
+const component_branch_condition_segment_2_2fzrhmrz1xde7 = () => {
+  const count = _captures[0];
+  return count.value < 2;
+};
+const q_component_branch_condition_segment_2_2fzrhmrz1xde7 = /*#__PURE__*/ _noopQrl(
   'component_branch_condition_segment_2_2fzrhmrz1xde7'
 );
 q_component_branch_condition_segment_2_2fzrhmrz1xde7.s(
   component_branch_condition_segment_2_2fzrhmrz1xde7
 );
-const q_component_branch_then_segment_3_24n7atwir5934 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_branch_then_segment_3_24n7atwir5934',
-  () => import('./component.tsx_component_branch_then_segment_3_24n7atwir5934'),
+const component_branch_then_segment_3_24n7atwir5934 = (ctx) => {
+  const component_0 = createComponent({ name: 'Qwik' }, (props) => Hello(props, ctx));
+  return maybeThen(component_0, (component_0) => component_0);
+};
+const q_component_branch_then_segment_3_24n7atwir5934 = /*#__PURE__*/ _noopQrl(
   'component_branch_then_segment_3_24n7atwir5934'
 );
-const q_component_branch_else_segment_4_19dvrvh6znjhf = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_branch_else_segment_4_19dvrvh6znjhf',
-  () => import('./component.tsx_component_branch_else_segment_4_19dvrvh6znjhf'),
+q_component_branch_then_segment_3_24n7atwir5934.s(component_branch_then_segment_3_24n7atwir5934);
+const component_branch_else_segment_4_19dvrvh6znjhf = (ctx) => {
+  const count = _captures[0];
+  ctx.addRoot(count);
+  const component_0 = createComponent(
+    _props(
+      {
+        get count() {
+          return readTrackedSourceValue(count);
+        },
+      },
+      { count: count }
+    ),
+    (props) => Counter(props, ctx)
+  );
+  return maybeThen(component_0, (component_0) => component_0);
+};
+const q_component_branch_else_segment_4_19dvrvh6znjhf = /*#__PURE__*/ _noopQrl(
   'component_branch_else_segment_4_19dvrvh6znjhf'
 );
+q_component_branch_else_segment_4_19dvrvh6znjhf.s(component_branch_else_segment_4_19dvrvh6znjhf);
 function Counter(props, ctx) {
   const { count } = props;
   const id_0 = ctx.nextId();

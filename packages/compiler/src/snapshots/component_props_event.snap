@@ -15,13 +15,13 @@ import {
   renderSsrEvent,
   createSsrElementTarget,
   createSsrElementRecord,
-  _qrlWithChunk,
+  _noopQrl,
 } from '@qwik.dev/core';
-import { component_onClick$_segment_0_3iurff47ay1jy } from './component.tsx_component_onClick$_segment_0_3iurff47ay1jy';
 
-const q_component_onClick$_segment_0_3iurff47ay1jy = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_onClick$_segment_0_3iurff47ay1jy',
-  () => import('./component.tsx_component_onClick$_segment_0_3iurff47ay1jy'),
+const component_onClick$_segment_0_3iurff47ay1jy = (props) => {
+  return props.onClick$;
+};
+const q_component_onClick$_segment_0_3iurff47ay1jy = /*#__PURE__*/ _noopQrl(
   'component_onClick$_segment_0_3iurff47ay1jy'
 );
 q_component_onClick$_segment_0_3iurff47ay1jy.s(component_onClick$_segment_0_3iurff47ay1jy);

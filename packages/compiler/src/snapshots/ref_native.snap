@@ -39,20 +39,20 @@ import {
   createComponent,
   getActiveInvokeContextOrNull,
   invoke,
-  _qrlWithChunk,
+  _noopQrl,
 } from '@qwik.dev/core';
-import { component_text_segment_0_1fh10fbkzokfc } from './component.tsx_component_text_segment_0_1fh10fbkzokfc';
-import { component_props_segment_4_208nzmc6ba85l } from './component.tsx_component_props_segment_4_208nzmc6ba85l';
-
-const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_text_segment_0_1fh10fbkzokfc',
-  () => import('./component.tsx_component_text_segment_0_1fh10fbkzokfc'),
+const component_text_segment_0_1fh10fbkzokfc = (props) => {
+  return props.ref ? 'ref' : 'none';
+};
+const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _noopQrl(
   'component_text_segment_0_1fh10fbkzokfc'
 );
 q_component_text_segment_0_1fh10fbkzokfc.s(component_text_segment_0_1fh10fbkzokfc);
-const q_component_props_segment_4_208nzmc6ba85l = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_props_segment_4_208nzmc6ba85l',
-  () => import('./component.tsx_component_props_segment_4_208nzmc6ba85l'),
+const component_props_segment_4_208nzmc6ba85l = (props0) => {
+  const { forwarded, rest } = props0;
+  return rest;
+};
+const q_component_props_segment_4_208nzmc6ba85l = /*#__PURE__*/ _noopQrl(
   'component_props_segment_4_208nzmc6ba85l'
 );
 q_component_props_segment_4_208nzmc6ba85l.s(component_props_segment_4_208nzmc6ba85l);

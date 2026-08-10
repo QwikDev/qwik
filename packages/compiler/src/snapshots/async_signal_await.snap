@@ -19,19 +19,23 @@ export function App() {
 import {
   useAsyncQrl,
   useSignal,
+  _captures,
+  _await,
   createSsrNodeId,
   createSsrElementRecord,
   createSsrElementTextTarget,
   escapeHTML,
   renderSsrTextNode,
   maybeThen,
-  _qrlWithChunk,
+  _noopQrl,
 } from '@qwik.dev/core';
-import { component_useAsync$_segment_0_1yzaaw1sggq4w } from './component.tsx_component_useAsync$_segment_0_1yzaaw1sggq4w';
-
-const q_component_useAsync$_segment_0_1yzaaw1sggq4w = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_useAsync$_segment_0_1yzaaw1sggq4w',
-  () => import('./component.tsx_component_useAsync$_segment_0_1yzaaw1sggq4w'),
+const component_useAsync$_segment_0_1yzaaw1sggq4w = async () => {
+  const count = _captures[0];
+  const before = count.value;
+  (await _await(Promise.resolve()))();
+  return before + count.value;
+};
+const q_component_useAsync$_segment_0_1yzaaw1sggq4w = /*#__PURE__*/ _noopQrl(
   'component_useAsync$_segment_0_1yzaaw1sggq4w'
 );
 q_component_useAsync$_segment_0_1yzaaw1sggq4w.s(component_useAsync$_segment_0_1yzaaw1sggq4w);

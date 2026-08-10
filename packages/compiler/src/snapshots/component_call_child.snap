@@ -17,13 +17,13 @@ import {
   createSsrNodeId,
   escapeSsrContent,
   maybeThen,
-  _qrlWithChunk,
+  _noopQrl,
 } from '@qwik.dev/core';
-import { semantic_expression_104_127_3po7a59ojefo5 } from './component.tsx_semantic_expression_104_127_3po7a59ojefo5';
 
-const q_semantic_expression_104_127_3po7a59ojefo5 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_semantic_expression_104_127_3po7a59ojefo5',
-  () => import('./component.tsx_semantic_expression_104_127_3po7a59ojefo5'),
+const semantic_expression_104_127_3po7a59ojefo5 = (props) => {
+  return renderItem(props.value);
+};
+const q_semantic_expression_104_127_3po7a59ojefo5 = /*#__PURE__*/ _noopQrl(
   'semantic_expression_104_127_3po7a59ojefo5'
 );
 q_semantic_expression_104_127_3po7a59ojefo5.s(semantic_expression_104_127_3po7a59ojefo5);

@@ -21,6 +21,7 @@ export function App() {
 
 import {
   useSignal,
+  _captures,
   createSsrElementRecord,
   createComponent,
   readTrackedSourceValue,
@@ -30,32 +31,44 @@ import {
   createPropsProxy,
   useComputedQrl,
   maybeThen,
-  _qrlWithChunk,
+  _noopQrl,
 } from '@qwik.dev/core';
 import { Child, createAttrs, importedAttrs } from './child';
-import { component_componentProps_segment_2_1y124uvjbur0a } from './component.tsx_component_componentProps_segment_2_1y124uvjbur0a';
-import { component_componentProps_segment_3_1y1258wn8ot0t } from './component.tsx_component_componentProps_segment_3_1y1258wn8ot0t';
-import { component_componentProps_segment_5_1y122wpzrogxn } from './component.tsx_component_componentProps_segment_5_1y122wpzrogxn';
-
-const q_component_componentProps_segment_2_1y124uvjbur0a = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_componentProps_segment_2_1y124uvjbur0a',
-  () => import('./component.tsx_component_componentProps_segment_2_1y124uvjbur0a'),
+const component_componentProps_segment_2_1y124uvjbur0a = () => {
+  const attributes = _captures[0];
+  return { ...attributes.value };
+};
+const q_component_componentProps_segment_2_1y124uvjbur0a = /*#__PURE__*/ _noopQrl(
   'component_componentProps_segment_2_1y124uvjbur0a'
 );
 q_component_componentProps_segment_2_1y124uvjbur0a.s(
   component_componentProps_segment_2_1y124uvjbur0a
 );
-const q_component_componentProps_segment_3_1y1258wn8ot0t = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_componentProps_segment_3_1y1258wn8ot0t',
-  () => import('./component.tsx_component_componentProps_segment_3_1y1258wn8ot0t'),
+const component_componentProps_segment_3_1y1258wn8ot0t = () => {
+  const attributes = _captures[0],
+    count = _captures[1];
+  return {
+    title: 'before',
+    ...attributes.value,
+    count: count.value,
+    title: 'after',
+    onClick$: q_component_q_e_click_segment_4_2xwyeh830jenv.w([count]),
+  };
+};
+const q_component_componentProps_segment_3_1y1258wn8ot0t = /*#__PURE__*/ _noopQrl(
   'component_componentProps_segment_3_1y1258wn8ot0t'
 );
 q_component_componentProps_segment_3_1y1258wn8ot0t.s(
   component_componentProps_segment_3_1y1258wn8ot0t
 );
-const q_component_componentProps_segment_5_1y122wpzrogxn = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_componentProps_segment_5_1y122wpzrogxn',
-  () => import('./component.tsx_component_componentProps_segment_5_1y122wpzrogxn'),
+const q_component_q_e_click_segment_4_2xwyeh830jenv = /*#__PURE__*/ _noopQrl(
+  'component_q_e_click_segment_4_2xwyeh830jenv'
+);
+const component_componentProps_segment_5_1y122wpzrogxn = () => {
+  const count = _captures[0];
+  return { ...createAttrs(count.value) };
+};
+const q_component_componentProps_segment_5_1y122wpzrogxn = /*#__PURE__*/ _noopQrl(
   'component_componentProps_segment_5_1y122wpzrogxn'
 );
 q_component_componentProps_segment_5_1y122wpzrogxn.s(
@@ -164,10 +177,8 @@ export const component_componentProps_segment_2_1y124uvjbur0a = () => {
 */
 ============================= src/component.tsx_component_componentProps_segment_3_1y1258wn8ot0t.js (ENTRY POINT)==
 
-import { _qrlWithChunk, _captures } from '@qwik.dev/core';
-const q_component_q_e_click_segment_4_2xwyeh830jenv = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_q_e_click_segment_4_2xwyeh830jenv',
-  () => import('./component.tsx_component_q_e_click_segment_4_2xwyeh830jenv'),
+import { _noopQrl, _captures } from '@qwik.dev/core';
+const q_component_q_e_click_segment_4_2xwyeh830jenv = /*#__PURE__*/ _noopQrl(
   'component_q_e_click_segment_4_2xwyeh830jenv'
 );
 

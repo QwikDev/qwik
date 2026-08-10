@@ -18,24 +18,31 @@ import {
   useOn,
   useOnDocument,
   useSignal,
+  _captures,
   createSsrNodeId,
   createSsrElementRecord,
   createSsrElementTextTarget,
   escapeHTML,
   renderSsrTextNode,
   maybeThen,
-  _qrlWithChunk,
+  _noopQrl,
 } from '@qwik.dev/core';
-const q_component_$_segment_0_1lv589sf1qw9f = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_$_segment_0_1lv589sf1qw9f',
-  () => import('./component.tsx_component_$_segment_0_1lv589sf1qw9f'),
+const component_$_segment_0_1lv589sf1qw9f = () => {
+  const count = _captures[0];
+  return count.value++;
+};
+const q_component_$_segment_0_1lv589sf1qw9f = /*#__PURE__*/ _noopQrl(
   'component_$_segment_0_1lv589sf1qw9f'
 );
-const q_component_$_segment_1_1lv57vrb4wu8w = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_$_segment_1_1lv57vrb4wu8w',
-  () => import('./component.tsx_component_$_segment_1_1lv57vrb4wu8w'),
+q_component_$_segment_0_1lv589sf1qw9f.s(component_$_segment_0_1lv589sf1qw9f);
+const component_$_segment_1_1lv57vrb4wu8w = () => {
+  const count = _captures[0];
+  return (count.value += 2);
+};
+const q_component_$_segment_1_1lv57vrb4wu8w = /*#__PURE__*/ _noopQrl(
   'component_$_segment_1_1lv57vrb4wu8w'
 );
+q_component_$_segment_1_1lv57vrb4wu8w.s(component_$_segment_1_1lv57vrb4wu8w);
 export function App(props, ctx) {
   const count = useSignal(0);
   useOn('click', q_component_$_segment_0_1lv589sf1qw9f.w([count]));

@@ -15,25 +15,27 @@ export function Parent() {
 ============================= src/component.tsx ==
 
 import {
+  createSsrRecord,
+  createSsrNodeId,
   createSlotScope,
   registerProjection,
   createComponent,
   maybeThen,
-  _qrlWithChunk,
+  _noopQrl,
 } from '@qwik.dev/core';
-import { component_slot_render_segment_0_3b0tagwys7lui } from './component.tsx_component_slot_render_segment_0_3b0tagwys7lui';
-import { component_slot_render_segment_1_3b0tauy2p1nv1 } from './component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1';
 import { Wrapper } from './component.tsx_component_Wrapper';
 
-const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_render_segment_0_3b0tagwys7lui',
-  () => import('./component.tsx_component_slot_render_segment_0_3b0tagwys7lui'),
+const component_slot_render_segment_0_3b0tagwys7lui = (ctx, rangeId) => {
+  return [createSsrRecord('<!s=', createSsrNodeId(rangeId), '>'), '<h1>Title</h1><!/s>'];
+};
+const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_0_3b0tagwys7lui'
 );
 q_component_slot_render_segment_0_3b0tagwys7lui.s(component_slot_render_segment_0_3b0tagwys7lui);
-const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1',
-  () => import('./component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1'),
+const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, rangeId) => {
+  return [createSsrRecord('<!s=', createSsrNodeId(rangeId), '>'), '<p>Body</p><!/s>'];
+};
+const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_1_3b0tauy2p1nv1'
 );
 q_component_slot_render_segment_1_3b0tauy2p1nv1.s(component_slot_render_segment_1_3b0tauy2p1nv1);
@@ -51,6 +53,8 @@ export function Parent(props, ctx) {
 ============================= src/component.tsx_component_Wrapper.js (ENTRY POINT)==
 
 import {
+  createSsrRecord,
+  createSsrNodeId,
   createSsrElementRecord,
   renderSsrSlot,
   getActiveInvokeContextOrNull,

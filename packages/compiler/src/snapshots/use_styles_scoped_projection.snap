@@ -22,23 +22,26 @@ export function App() {
 import parentStyles from './parent.css?inline';
 
 import {
+  createSsrRecord,
+  createSsrNodeId,
   useStylesScoped,
   createSlotScope,
   registerProjection,
   createComponent,
   maybeThen,
-  _qrlWithChunk,
+  _noopQrl,
 } from '@qwik.dev/core';
-import { use_styles_scoped_projection_slot_render_segment_2_ltuwbe4740jy } from './use-styles-scoped-projection.tsx_use_styles_scoped_projection_slot_render_segment_2_ltuwbe4740jy';
 import { Child } from './use-styles-scoped-projection.tsx_component_Child';
 
-const q_use_styles_scoped_projection_slot_render_segment_2_ltuwbe4740jy =
-  /*#__PURE__*/ _qrlWithChunk(
-    './use-styles-scoped-projection.tsx_use_styles_scoped_projection_slot_render_segment_2_ltuwbe4740jy',
-    () =>
-      import('./use-styles-scoped-projection.tsx_use_styles_scoped_projection_slot_render_segment_2_ltuwbe4740jy'),
-    'use_styles_scoped_projection_slot_render_segment_2_ltuwbe4740jy'
-  );
+const use_styles_scoped_projection_slot_render_segment_2_ltuwbe4740jy = (ctx, rangeId) => {
+  return [
+    createSsrRecord('<!s=', createSsrNodeId(rangeId), '>'),
+    '<span class="⚡️gtgvab-0 projected">Projected</span><!/s>',
+  ];
+};
+const q_use_styles_scoped_projection_slot_render_segment_2_ltuwbe4740jy = /*#__PURE__*/ _noopQrl(
+  'use_styles_scoped_projection_slot_render_segment_2_ltuwbe4740jy'
+);
 q_use_styles_scoped_projection_slot_render_segment_2_ltuwbe4740jy.s(
   use_styles_scoped_projection_slot_render_segment_2_ltuwbe4740jy
 );
@@ -60,6 +63,8 @@ export function App(props, ctx) {
 ============================= src/use-styles-scoped-projection.tsx_component_Child.js (ENTRY POINT)==
 
 import {
+  createSsrRecord,
+  createSsrNodeId,
   useStylesScoped,
   createSsrElementRecord,
   renderSsrSlot,

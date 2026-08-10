@@ -18,28 +18,33 @@ export function App() {
 import {
   useSerializerQrl,
   useSignal,
+  _captures,
   createSsrNodeId,
   createSsrElementRecord,
   createSsrElementTextTarget,
   escapeHTML,
   renderSsrTextExpression,
   maybeThen,
-  _qrlWithChunk,
+  _noopQrl,
 } from '@qwik.dev/core';
-import { component_useSerializer$_segment_0_2zsvg8dcoov6i } from './component.tsx_component_useSerializer$_segment_0_2zsvg8dcoov6i';
-import { component_text_segment_1_1fh10tcowimfv } from './component.tsx_component_text_segment_1_1fh10tcowimfv';
-
-const q_component_useSerializer$_segment_0_2zsvg8dcoov6i = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_useSerializer$_segment_0_2zsvg8dcoov6i',
-  () => import('./component.tsx_component_useSerializer$_segment_0_2zsvg8dcoov6i'),
+const component_useSerializer$_segment_0_2zsvg8dcoov6i = () => {
+  const count = _captures[0];
+  return {
+    initial: 2,
+    deserialize: (value = 0) => ({ count: value + count.value }),
+    serialize: (value) => value.count,
+  };
+};
+const q_component_useSerializer$_segment_0_2zsvg8dcoov6i = /*#__PURE__*/ _noopQrl(
   'component_useSerializer$_segment_0_2zsvg8dcoov6i'
 );
 q_component_useSerializer$_segment_0_2zsvg8dcoov6i.s(
   component_useSerializer$_segment_0_2zsvg8dcoov6i
 );
-const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_text_segment_1_1fh10tcowimfv',
-  () => import('./component.tsx_component_text_segment_1_1fh10tcowimfv'),
+const component_text_segment_1_1fh10tcowimfv = (custom) => {
+  return custom.value.count;
+};
+const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _noopQrl(
   'component_text_segment_1_1fh10tcowimfv'
 );
 q_component_text_segment_1_1fh10tcowimfv.s(component_text_segment_1_1fh10tcowimfv);

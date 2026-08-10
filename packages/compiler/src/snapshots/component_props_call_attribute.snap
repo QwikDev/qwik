@@ -15,13 +15,13 @@ import {
   escapeHTML,
   createSsrElementRecord,
   maybeThen,
-  _qrlWithChunk,
+  _noopQrl,
 } from '@qwik.dev/core';
-import { component_title_segment_0_2f0r0xivypjmx } from './component.tsx_component_title_segment_0_2f0r0xivypjmx';
 
-const q_component_title_segment_0_2f0r0xivypjmx = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_title_segment_0_2f0r0xivypjmx',
-  () => import('./component.tsx_component_title_segment_0_2f0r0xivypjmx'),
+const component_title_segment_0_2f0r0xivypjmx = (props) => {
+  return props.label.toUpperCase();
+};
+const q_component_title_segment_0_2f0r0xivypjmx = /*#__PURE__*/ _noopQrl(
   'component_title_segment_0_2f0r0xivypjmx'
 );
 q_component_title_segment_0_2f0r0xivypjmx.s(component_title_segment_0_2f0r0xivypjmx);

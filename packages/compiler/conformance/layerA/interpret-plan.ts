@@ -43,7 +43,7 @@ import {
   _props,
   _withCaptures,
   _wrapArray,
-  _qrlWithChunk,
+  _noopQrl,
   _val,
 } from '@qwik.dev/core';
 import type { PlanSsrOp, PlanSsrProp, PlanSsrRenderFn, PlanSsrRow } from '../../src/emit-plan-ssr';
@@ -144,11 +144,8 @@ export async function buildInterpretedRoot(
     const qrls = new Map<string, QrlLike>();
     for (const segment of linkedModule.segments) {
       const chunkFile = `${segment.chunk.slice(2)}.js`;
-      const qrl = _qrlWithChunk(
-        segment.chunk,
-        () => loadSegment(chunkFile),
-        segment.symbolName
-      ) as unknown as QrlLike;
+      // v2-parity: server qrls are chunkless; resolved ones bind their fn via `.s()`
+      const qrl = _noopQrl(segment.symbolName) as unknown as QrlLike;
       qrls.set(segment.id, qrl);
       // only `.s()` what the emitted module resolves at load — resolution timing is
       // byte-observable in streaming output (lazy QRLs settle later than eager ones)

@@ -23,24 +23,22 @@ import {
   escapeHTML,
   createSsrElementRecord,
   maybeThen,
-  _qrlWithChunk,
+  _noopQrl,
 } from '@qwik.dev/core';
 import styles from './app.css?inline';
-import { use_styles_scoped_dynamic_class_segment_1_3grhh2wv1i202 } from './use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_class_segment_1_3grhh2wv1i202';
-
-const q_use_styles_scoped_dynamic_class_segment_1_3grhh2wv1i202 = /*#__PURE__*/ _qrlWithChunk(
-  './use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_class_segment_1_3grhh2wv1i202',
-  () =>
-    import('./use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_class_segment_1_3grhh2wv1i202'),
+const use_styles_scoped_dynamic_class_segment_1_3grhh2wv1i202 = (active) => {
+  return {
+    container: true,
+    active: active.value,
+  };
+};
+const q_use_styles_scoped_dynamic_class_segment_1_3grhh2wv1i202 = /*#__PURE__*/ _noopQrl(
   'use_styles_scoped_dynamic_class_segment_1_3grhh2wv1i202'
 );
 q_use_styles_scoped_dynamic_class_segment_1_3grhh2wv1i202.s(
   use_styles_scoped_dynamic_class_segment_1_3grhh2wv1i202
 );
-const q_use_styles_scoped_dynamic_q_e_click_segment_2_29fz3rp7gjtvv = /*#__PURE__*/ _qrlWithChunk(
-  './use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_q_e_click_segment_2_29fz3rp7gjtvv',
-  () =>
-    import('./use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_q_e_click_segment_2_29fz3rp7gjtvv'),
+const q_use_styles_scoped_dynamic_q_e_click_segment_2_29fz3rp7gjtvv = /*#__PURE__*/ _noopQrl(
   'use_styles_scoped_dynamic_q_e_click_segment_2_29fz3rp7gjtvv'
 );
 export function App(props, ctx) {

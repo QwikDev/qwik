@@ -365,7 +365,7 @@
           "symbolName": "input_branch_then_segment_3_3n2t9khkamtyc",
           "chunk": "./input.tsx_input_branch_then_segment_3_3n2t9khkamtyc",
           "kind": "branchRender",
-          "resolved": false,
+          "resolved": true,
           "qrl": null,
           "captures": [
             {

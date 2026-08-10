@@ -842,6 +842,9 @@ class QrlExtractor {
       default:
         return false;
     }
+    if (expression == null) {
+      return false;
+    }
     const segment = this.createExpressionSegment(ctxName, expression);
     if (segment === null) {
       return false;

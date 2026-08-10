@@ -67,7 +67,8 @@ export function emitSegmentModules(
   analysis: ModuleAnalysis,
   target: 'csr' | 'ssr',
   emitSegmentRender: SegmentRenderEmitter,
-  generatedNames = DEFAULT_GENERATED_NAMES
+  generatedNames = DEFAULT_GENERATED_NAMES,
+  libMode = false
 ): TransformModule[] | null {
   const modules: TransformModule[] = [];
   for (const segment of segments) {
@@ -85,7 +86,10 @@ export function emitSegmentModules(
       analysis,
       target,
       emitSegmentRender,
-      generatedNames
+      generatedNames,
+      false,
+      undefined,
+      libMode
     );
     if (code === null) {
       return null;
@@ -114,6 +118,38 @@ function getSegmentModulePath(inputPath: string, segment: Pick<SegmentPlan, 'sym
   return `${inputPath}_${segment.symbolName}.js`;
 }
 
+/**
+ * In-module ssr implementation for a segment: the same generated function, without chunk imports,
+ * child qrl hoists, or exports — the origin module declares every q_ name.
+ */
+export function emitSsrSegmentInlineCode(
+  segment: SegmentPlan,
+  segments: readonly SegmentPlan[],
+  source: string,
+  inputPath: string,
+  explicitExtensions: boolean,
+  componentImports: ReadonlyMap<BindingId, SegmentComponentImport>,
+  analysis: ModuleAnalysis,
+  emitSegmentRender: SegmentRenderEmitter,
+  generatedNames: GeneratedNames,
+  qwikImportNames: Set<string>
+): string | null {
+  return emitSegmentCode(
+    segment,
+    segments,
+    source,
+    inputPath,
+    explicitExtensions,
+    componentImports,
+    analysis,
+    'ssr',
+    emitSegmentRender,
+    generatedNames,
+    true,
+    qwikImportNames
+  );
+}
+
 function emitSegmentCode(
   segment: SegmentPlan,
   segments: readonly SegmentPlan[],
@@ -124,7 +160,10 @@ function emitSegmentCode(
   analysis: ModuleAnalysis,
   target: 'csr' | 'ssr',
   emitSegmentRender: SegmentRenderEmitter,
-  generatedNames: GeneratedNames
+  generatedNames: GeneratedNames,
+  inline = false,
+  inlineQwikImports?: Set<string>,
+  libMode = false
 ): string | null {
   if (segment.implementationInOrigin) {
     // the implementation lives in the origin module, beside the state it writes
@@ -230,12 +269,21 @@ function emitSegmentCode(
       }
       const importPath = getSegmentImportPath(inputPath, child, explicitExtensions);
       const qrl = getQrlVariableName(child);
-      qwikImports.add(QwikWord.QrlWithChunk);
-      hoists.push(
-        `const ${qrl} = /*#__PURE__*/ ${QwikWord.QrlWithChunk}(${JSON.stringify(
-          importPath
-        )}, () => import(${JSON.stringify(importPath)}), ${JSON.stringify(child.symbolName)});`
-      );
+      if (!inline) {
+        if (libMode) {
+          qwikImports.add(QwikWord.QrlWithChunk);
+          hoists.push(
+            `const ${qrl} = /*#__PURE__*/ ${QwikWord.QrlWithChunk}(${JSON.stringify(
+              importPath
+            )}, () => import(${JSON.stringify(importPath)}), ${JSON.stringify(child.symbolName)});`
+          );
+        } else {
+          qwikImports.add(QwikWord.NoopQrl);
+          hoists.push(
+            `const ${qrl} = /*#__PURE__*/ ${QwikWord.NoopQrl}(${JSON.stringify(child.symbolName)});`
+          );
+        }
+      }
       const reference = emitCapturedQrlReference(
         child.symbolName,
         segmentCaptureNames(child, generatedNames)
@@ -287,12 +335,21 @@ function emitSegmentCode(
         }
       } else {
         const qrl = getQrlVariableName(child);
-        qwikImports.add(QwikWord.QrlWithChunk);
-        hoists.push(
-          `const ${qrl} = /*#__PURE__*/ ${QwikWord.QrlWithChunk}(${JSON.stringify(
-            importPath
-          )}, () => import(${JSON.stringify(importPath)}), ${JSON.stringify(child.symbolName)});`
-        );
+        if (!inline) {
+          if (libMode) {
+            qwikImports.add(QwikWord.QrlWithChunk);
+            hoists.push(
+              `const ${qrl} = /*#__PURE__*/ ${QwikWord.QrlWithChunk}(${JSON.stringify(
+                importPath
+              )}, () => import(${JSON.stringify(importPath)}), ${JSON.stringify(child.symbolName)});`
+            );
+          } else {
+            qwikImports.add(QwikWord.NoopQrl);
+            hoists.push(
+              `const ${qrl} = /*#__PURE__*/ ${QwikWord.NoopQrl}(${JSON.stringify(child.symbolName)});`
+            );
+          }
+        }
         replacements.push({
           range: child.functionRange,
           value: emitCapturedQrlReference(
@@ -313,12 +370,23 @@ function emitSegmentCode(
         csrRenderChildren.push(child);
         continue;
       }
+      if (inline) {
+        continue;
+      }
       const qrl = getQrlVariableName(child);
-      qwikImports.add(QwikWord.QrlWithChunk);
-      const declaration = `const ${qrl} = /*#__PURE__*/ ${QwikWord.QrlWithChunk}(${JSON.stringify(
-        importPath
-      )}, () => import(${JSON.stringify(importPath)}), ${JSON.stringify(child.symbolName)});`;
-      if (shouldResolveSsrSegment(child)) {
+      let declaration: string;
+      if (libMode) {
+        qwikImports.add(QwikWord.QrlWithChunk);
+        declaration = `const ${qrl} = /*#__PURE__*/ ${QwikWord.QrlWithChunk}(${JSON.stringify(
+          importPath
+        )}, () => import(${JSON.stringify(importPath)}), ${JSON.stringify(child.symbolName)});`;
+      } else {
+        qwikImports.add(QwikWord.NoopQrl);
+        declaration = `const ${qrl} = /*#__PURE__*/ ${QwikWord.NoopQrl}(${JSON.stringify(
+          child.symbolName
+        )});`;
+      }
+      if (!libMode && shouldResolveSsrSegment(child)) {
         childImports.push(`import { ${child.symbolName} } from ${JSON.stringify(importPath)};`);
         hoists.push(`${declaration}\n${qrl}.s(${child.symbolName});`);
       } else {
@@ -327,7 +395,8 @@ function emitSegmentCode(
     }
   }
   const moduleReferences = getTargetModuleReferences(segment);
-  if (moduleReferences.length > 0) {
+  // in-module code sees every module-scope binding directly — no reference imports
+  if (!inline && moduleReferences.length > 0) {
     for (const reference of moduleReferences) {
       const component = componentImports.get(reference.bindingId);
       const binding: ImportBinding =
@@ -458,7 +527,14 @@ function emitSegmentCode(
     }
   }
   if (qwikImports.size > 0) {
-    imports.push(`import { ${[...qwikImports].join(', ')} } from ${JSON.stringify(QWIK_IMPORT)};`);
+    if (inline && inlineQwikImports !== undefined) {
+      // duplicate import bindings are illegal in one module — the origin merges the names
+      qwikImports.forEach((name) => inlineQwikImports.add(name));
+    } else {
+      imports.push(
+        `import { ${[...qwikImports].join(', ')} } from ${JSON.stringify(QWIK_IMPORT)};`
+      );
+    }
   }
   imports.push(...qrlImports.declarations({ source: QWIK_IMPORT, names: qwikImports }));
 
@@ -507,7 +583,7 @@ function emitSegmentCode(
   if (segment.kind === 'qrl' && segment.payload === 'value' && segment.captures.length === 0) {
     const value = applyReplacements(source, segment.bodyRange, replacements);
     const prelude = [...imports, ...childImports, ...hoists];
-    return `${prelude.length > 0 ? `${prelude.join('\n')}\n\n` : ''}export const ${segment.symbolName} = ${value};\n`;
+    return `${prelude.length > 0 ? `${prelude.join('\n')}\n\n` : ''}${inline ? '' : 'export '}const ${segment.symbolName} = ${value};\n`;
   }
 
   let functionHead: string;
@@ -574,7 +650,7 @@ function emitSegmentCode(
       }
       break;
   }
-  const declaration = `export const ${segment.symbolName} = ${functionHead}{\n${statements}\n};`;
+  const declaration = `${inline ? '' : 'export '}const ${segment.symbolName} = ${functionHead}{\n${statements}\n};`;
 
   const prelude = [...imports, ...childImports, ...hoists, ...(rendered?.hoists ?? [])];
   return `${prelude.length > 0 ? `${prelude.join('\n')}\n\n` : ''}${declaration}\n`;

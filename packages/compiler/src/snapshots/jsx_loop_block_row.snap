@@ -18,28 +18,48 @@ export function App() {
 
 import {
   useSignal,
+  createSsrNodeId,
   createSsrElementRecord,
+  createSsrElementTextTarget,
+  escapeHTML,
+  renderSsrTextExpression,
+  maybeThen,
   renderSsrCollection,
   createSsrRecord,
-  createSsrNodeId,
-  maybeThen,
-  _qrlWithChunk,
+  _noopQrl,
 } from '@qwik.dev/core';
-import { component_for_render_segment_0_asyt89wzo2d3 } from './component.tsx_component_for_render_segment_0_asyt89wzo2d3';
-import { component_for_key_segment_1_24ursak4wzpxf } from './component.tsx_component_for_key_segment_1_24ursak4wzpxf';
-
-const q_component_for_render_segment_0_asyt89wzo2d3 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_for_render_segment_0_asyt89wzo2d3',
-  () => import('./component.tsx_component_for_render_segment_0_asyt89wzo2d3'),
+const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __rowId, item) => {
+  const id_0 = ctx.nextId();
+  ctx.addRoot(item);
+  const text_0 = renderSsrTextExpression(
+    createSsrElementTextTarget(id_0),
+    [item],
+    q_component_text_segment_2_1fh117dstcoge
+  );
+  return maybeThen(text_0, (text_0) => [
+    createSsrElementRecord('li', '<li q:id="', createSsrNodeId(id_0), '"', ' q:row', '>'),
+    escapeHTML(text_0),
+    '</li>',
+  ]);
+};
+const q_component_for_render_segment_0_asyt89wzo2d3 = /*#__PURE__*/ _noopQrl(
   'component_for_render_segment_0_asyt89wzo2d3'
 );
 q_component_for_render_segment_0_asyt89wzo2d3.s(component_for_render_segment_0_asyt89wzo2d3);
-const q_component_for_key_segment_1_24ursak4wzpxf = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_for_key_segment_1_24ursak4wzpxf',
-  () => import('./component.tsx_component_for_key_segment_1_24ursak4wzpxf'),
+const component_for_key_segment_1_24ursak4wzpxf = (item) => {
+  return item.id;
+};
+const q_component_for_key_segment_1_24ursak4wzpxf = /*#__PURE__*/ _noopQrl(
   'component_for_key_segment_1_24ursak4wzpxf'
 );
 q_component_for_key_segment_1_24ursak4wzpxf.s(component_for_key_segment_1_24ursak4wzpxf);
+const component_text_segment_2_1fh117dstcoge = (item) => {
+  return item.label;
+};
+const q_component_text_segment_2_1fh117dstcoge = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_2_1fh117dstcoge'
+);
+q_component_text_segment_2_1fh117dstcoge.s(component_text_segment_2_1fh117dstcoge);
 export function App(props, ctx) {
   const items = useSignal([{ id: 'a', label: 'Alpha' }]);
   const collection_id_0 = ctx.nextId();
@@ -65,7 +85,7 @@ export function App(props, ctx) {
 ============================= src/component.tsx_component_for_render_segment_0_asyt89wzo2d3.js (ENTRY POINT)==
 
 import {
-  _qrlWithChunk,
+  _noopQrl,
   createSsrNodeId,
   createSsrElementRecord,
   createSsrElementTextTarget,
@@ -74,9 +94,7 @@ import {
   maybeThen,
 } from '@qwik.dev/core';
 import { component_text_segment_2_1fh117dstcoge } from './component.tsx_component_text_segment_2_1fh117dstcoge';
-const q_component_text_segment_2_1fh117dstcoge = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_text_segment_2_1fh117dstcoge',
-  () => import('./component.tsx_component_text_segment_2_1fh117dstcoge'),
+const q_component_text_segment_2_1fh117dstcoge = /*#__PURE__*/ _noopQrl(
   'component_text_segment_2_1fh117dstcoge'
 );
 q_component_text_segment_2_1fh117dstcoge.s(component_text_segment_2_1fh117dstcoge);

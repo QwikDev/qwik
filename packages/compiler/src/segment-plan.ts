@@ -413,6 +413,25 @@ function containsRange(outer: SourceRange, inner: SourceRange): boolean {
 
 /* Segment policy: which segments exist as modules, and which resolve eagerly. */
 
+/**
+ * Module-root qrl callbacks inline as raw source: their closures capture module bindings. Only
+ * plain leaf callbacks qualify — JSX or nested boundaries need the compiled form.
+ */
+export function hasRawSsrModuleRootImplementation(
+  segment: SegmentPlan,
+  segments: readonly SegmentPlan[]
+): boolean {
+  return (
+    segment.parentId === null &&
+    segment.lifetimeId === null &&
+    segment.kind === 'qrl' &&
+    segment.payload === 'function' &&
+    segment.render === null &&
+    segment.embeddedRenders.length === 0 &&
+    !segments.some((candidate) => candidate.parentId === segment.id)
+  );
+}
+
 export function shouldEmitSegmentModule(segment: SegmentPlan, target: 'csr' | 'ssr'): boolean {
   return !(
     segment.stripped === true ||
@@ -431,27 +450,22 @@ export function getTargetModuleReferences(segment: SegmentPlan): readonly Module
 }
 
 export function shouldResolveSsrSegment(segment: SegmentPlan): boolean {
-  switch (segment.kind) {
-    case 'expression':
-    case 'collectionSource':
-    case 'branchCondition':
-      return true;
-    case 'qrl':
-      return segment.qrl?.kind === 'implicit';
-    case 'pluginCallback':
-      // plugin-call callbacks run during setup — the fn must be resolved at load
-      return true;
-    case 'branchRender':
-    case 'event':
-      return false;
-    case 'forKey':
-    case 'forRender':
-    case 'collectionRender':
-    case 'slotRender':
-    case 'suspenseRender':
-      return true;
-    case 'localComponent':
-      // the parent module keeps the inline function; the chunk exists for the client only
-      return false;
+  // v2-parity: server qrls are chunkless, so anything the server may invoke binds via `.s()`
+  // at module load; only events and visible tasks stay unresolved (they never run server-side)
+  if (
+    segment.kind === 'event' ||
+    segment.kind === 'localComponent' ||
+    segment.qrl?.kind === 'sync'
+  ) {
+    return false;
   }
+  if (
+    segment.qrl?.kind === 'implicit' &&
+    (segment.qrl.role === 'visible-task' ||
+      segment.qrl.role === 'style' ||
+      segment.qrl.role === 'scoped-style')
+  ) {
+    return false;
+  }
+  return true;
 }

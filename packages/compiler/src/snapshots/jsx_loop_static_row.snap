@@ -17,20 +17,19 @@ import {
   createSsrRecord,
   createSsrNodeId,
   maybeThen,
-  _qrlWithChunk,
+  _noopQrl,
 } from '@qwik.dev/core';
-import { component_for_render_segment_0_asyt89wzo2d3 } from './component.tsx_component_for_render_segment_0_asyt89wzo2d3';
-import { component_for_key_segment_1_24ursak4wzpxf } from './component.tsx_component_for_key_segment_1_24ursak4wzpxf';
-
-const q_component_for_render_segment_0_asyt89wzo2d3 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_for_render_segment_0_asyt89wzo2d3',
-  () => import('./component.tsx_component_for_render_segment_0_asyt89wzo2d3'),
+const component_for_render_segment_0_asyt89wzo2d3 = () => {
+  return '<li q:row>Item</li>';
+};
+const q_component_for_render_segment_0_asyt89wzo2d3 = /*#__PURE__*/ _noopQrl(
   'component_for_render_segment_0_asyt89wzo2d3'
 );
 q_component_for_render_segment_0_asyt89wzo2d3.s(component_for_render_segment_0_asyt89wzo2d3);
-const q_component_for_key_segment_1_24ursak4wzpxf = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_for_key_segment_1_24ursak4wzpxf',
-  () => import('./component.tsx_component_for_key_segment_1_24ursak4wzpxf'),
+const component_for_key_segment_1_24ursak4wzpxf = (item) => {
+  return item.id;
+};
+const q_component_for_key_segment_1_24ursak4wzpxf = /*#__PURE__*/ _noopQrl(
   'component_for_key_segment_1_24ursak4wzpxf'
 );
 q_component_for_key_segment_1_24ursak4wzpxf.s(component_for_key_segment_1_24ursak4wzpxf);

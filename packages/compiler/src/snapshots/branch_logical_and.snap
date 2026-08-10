@@ -14,28 +14,81 @@ export function App() {
 
 import {
   useSignal,
+  _captures,
+  createSsrNodeId,
+  renderSsrProps,
+  createSsrElementTarget,
   createSsrElementRecord,
+  createSsrRangeTextTarget,
+  escapeHTML,
+  renderSsrTextNode,
+  getActiveInvokeContextOrNull,
+  invoke,
+  maybeThen,
   renderSsrBranch,
   createSsrRecord,
-  createSsrNodeId,
-  maybeThen,
-  _qrlWithChunk,
+  _noopQrl,
 } from '@qwik.dev/core';
-import { component_branch_condition_segment_0_2fzrieu6vlhf9 } from './component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9';
-
-const q_component_branch_condition_segment_0_2fzrieu6vlhf9 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9',
-  () => import('./component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9'),
+const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
+  const visible = _captures[0];
+  return visible.value;
+};
+const q_component_branch_condition_segment_0_2fzrieu6vlhf9 = /*#__PURE__*/ _noopQrl(
   'component_branch_condition_segment_0_2fzrieu6vlhf9'
 );
 q_component_branch_condition_segment_0_2fzrieu6vlhf9.s(
   component_branch_condition_segment_0_2fzrieu6vlhf9
 );
-const q_component_branch_then_segment_1_24n7blyqktd46 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_branch_then_segment_1_24n7blyqktd46',
-  () => import('./component.tsx_component_branch_then_segment_1_24n7blyqktd46'),
+const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
+  const attrs = _captures[0],
+    label = _captures[1];
+  const id_0 = ctx.nextId();
+  ctx.addRoot(attrs);
+  ctx.addRoot(label);
+  const props_0 = renderSsrProps(
+    createSsrElementTarget(id_0),
+    [attrs, label],
+    q_component_props_segment_2_208o0eee4yc6n,
+    ctx.eventAttr
+  );
+  const invokeCtx = getActiveInvokeContextOrNull();
+  const text_1 = () =>
+    invoke(invokeCtx, () => {
+      ctx.addRoot(label);
+      return renderSsrTextNode(createSsrRangeTextTarget(id_0, 0), label);
+    });
+  return maybeThen(props_0, (props_0) => {
+    props_0.ref !== undefined && ctx.setRef(props_0.ref, id_0);
+    return maybeThen(text_1(), (text_1) => [
+      createSsrElementRecord(
+        'span',
+        '<span q:id="',
+        createSsrNodeId(id_0),
+        '"',
+        ...props_0.attrs,
+        '>'
+      ),
+      props_0.innerHTML ?? ['<!t>', escapeHTML(text_1), '<!/t>!'],
+      '</span>',
+    ]);
+  });
+};
+const q_component_branch_then_segment_1_24n7blyqktd46 = /*#__PURE__*/ _noopQrl(
   'component_branch_then_segment_1_24n7blyqktd46'
 );
+q_component_branch_then_segment_1_24n7blyqktd46.s(component_branch_then_segment_1_24n7blyqktd46);
+const component_props_segment_2_208o0eee4yc6n = (attrs, label) => {
+  return {
+    ...attrs.value,
+    get title() {
+      return `label ${label.value}`;
+    },
+  };
+};
+const q_component_props_segment_2_208o0eee4yc6n = /*#__PURE__*/ _noopQrl(
+  'component_props_segment_2_208o0eee4yc6n'
+);
+q_component_props_segment_2_208o0eee4yc6n.s(component_props_segment_2_208o0eee4yc6n);
 export function App(props, ctx) {
   const visible = useSignal(true);
   const label = useSignal('ready');
@@ -92,7 +145,7 @@ export const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
 ============================= src/component.tsx_component_branch_then_segment_1_24n7blyqktd46.js (ENTRY POINT)==
 
 import {
-  _qrlWithChunk,
+  _noopQrl,
   _captures,
   createSsrNodeId,
   renderSsrProps,
@@ -106,9 +159,7 @@ import {
   maybeThen,
 } from '@qwik.dev/core';
 import { component_props_segment_2_208o0eee4yc6n } from './component.tsx_component_props_segment_2_208o0eee4yc6n';
-const q_component_props_segment_2_208o0eee4yc6n = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_props_segment_2_208o0eee4yc6n',
-  () => import('./component.tsx_component_props_segment_2_208o0eee4yc6n'),
+const q_component_props_segment_2_208o0eee4yc6n = /*#__PURE__*/ _noopQrl(
   'component_props_segment_2_208o0eee4yc6n'
 );
 q_component_props_segment_2_208o0eee4yc6n.s(component_props_segment_2_208o0eee4yc6n);

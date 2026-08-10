@@ -20,31 +20,44 @@ export const Model = component$(() => <div id="m">Own content<Slot /></div>);
 
 import {
   useSignal,
-  createSsrElementRecord,
-  renderSsrBranch,
+  _captures,
+  createComponent,
+  maybeThen,
   createSsrRecord,
   createSsrNodeId,
-  maybeThen,
+  createSsrElementRecord,
+  renderSsrBranch,
   renderSsrSlot,
   getActiveInvokeContextOrNull,
-  _qrlWithChunk,
+  _noopQrl,
 } from '@qwik.dev/core';
-import { component_branch_condition_segment_0_2fzrieu6vlhf9 } from './component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9';
 import { Child } from './component.tsx_component_Child';
 
-const q_component_branch_condition_segment_0_2fzrieu6vlhf9 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9',
-  () => import('./component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9'),
+const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
+  const show = _captures[0];
+  return show.value;
+};
+const q_component_branch_condition_segment_0_2fzrieu6vlhf9 = /*#__PURE__*/ _noopQrl(
   'component_branch_condition_segment_0_2fzrieu6vlhf9'
 );
 q_component_branch_condition_segment_0_2fzrieu6vlhf9.s(
   component_branch_condition_segment_0_2fzrieu6vlhf9
 );
-const q_component_branch_then_segment_1_24n7blyqktd46 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_branch_then_segment_1_24n7blyqktd46',
-  () => import('./component.tsx_component_branch_then_segment_1_24n7blyqktd46'),
+const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
+  const component_0 = createComponent(
+    {
+      get model() {
+        return Model;
+      },
+    },
+    (props) => Child(props, ctx)
+  );
+  return maybeThen(component_0, (component_0) => component_0);
+};
+const q_component_branch_then_segment_1_24n7blyqktd46 = /*#__PURE__*/ _noopQrl(
   'component_branch_then_segment_1_24n7blyqktd46'
 );
+q_component_branch_then_segment_1_24n7blyqktd46.s(component_branch_then_segment_1_24n7blyqktd46);
 export const Parent = (props0, ctx) => {
   const show = useSignal(true);
   const branch_id_0 = ctx.nextId();
@@ -76,18 +89,21 @@ export const Model = (props0, ctx) => {
 ============================= src/component.tsx_component_Child.js (ENTRY POINT)==
 
 import {
+  _captures,
+  createComponent,
+  maybeThen,
+  createSsrRecord,
+  createSsrNodeId,
   createSlotScope,
   registerProjection,
-  createComponent,
   renderSsrDynamicTag,
-  maybeThen,
-  _qrlWithChunk,
+  _noopQrl,
 } from '@qwik.dev/core';
-import { component_slot_render_segment_3_3b0ta2vuvdjtz } from './component.tsx_component_slot_render_segment_3_3b0ta2vuvdjtz';
 
-const q_component_slot_render_segment_3_3b0ta2vuvdjtz = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_render_segment_3_3b0ta2vuvdjtz',
-  () => import('./component.tsx_component_slot_render_segment_3_3b0ta2vuvdjtz'),
+const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx, rangeId) => {
+  return [createSsrRecord('<!s=', createSsrNodeId(rangeId), '>'), 'projected<!/s>'];
+};
+const q_component_slot_render_segment_3_3b0ta2vuvdjtz = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_3_3b0ta2vuvdjtz'
 );
 q_component_slot_render_segment_3_3b0ta2vuvdjtz.s(component_slot_render_segment_3_3b0ta2vuvdjtz);

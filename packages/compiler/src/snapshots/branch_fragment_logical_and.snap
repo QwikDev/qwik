@@ -23,33 +23,35 @@ export function App() {
 
 import {
   useSignal,
+  _captures,
+  createComponent,
   createSsrElementRecord,
   renderSsrBranch,
   createSsrRecord,
   createSsrNodeId,
   maybeThen,
-  _qrlWithChunk,
+  _noopQrl,
 } from '@qwik.dev/core';
-import { component_branch_condition_segment_1_2fzri0t2yrfeq } from './component.tsx_component_branch_condition_segment_1_2fzri0t2yrfeq';
-
-const q_component_q_e_click_segment_0_2xwyg1cinvmpz = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz',
-  () => import('./component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz'),
+const q_component_q_e_click_segment_0_2xwyg1cinvmpz = /*#__PURE__*/ _noopQrl(
   'component_q_e_click_segment_0_2xwyg1cinvmpz'
 );
-const q_component_branch_condition_segment_1_2fzri0t2yrfeq = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_branch_condition_segment_1_2fzri0t2yrfeq',
-  () => import('./component.tsx_component_branch_condition_segment_1_2fzri0t2yrfeq'),
+const component_branch_condition_segment_1_2fzri0t2yrfeq = () => {
+  const groupSig = _captures[0];
+  return groupSig.value === '2';
+};
+const q_component_branch_condition_segment_1_2fzri0t2yrfeq = /*#__PURE__*/ _noopQrl(
   'component_branch_condition_segment_1_2fzri0t2yrfeq'
 );
 q_component_branch_condition_segment_1_2fzri0t2yrfeq.s(
   component_branch_condition_segment_1_2fzri0t2yrfeq
 );
-const q_component_branch_then_segment_2_24n7b7xmnzb3n = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_branch_then_segment_2_24n7b7xmnzb3n',
-  () => import('./component.tsx_component_branch_then_segment_2_24n7b7xmnzb3n'),
+const component_branch_then_segment_2_24n7b7xmnzb3n = (ctx) => {
+  return createComponent({}, (props) => InnerCmp(props, ctx));
+};
+const q_component_branch_then_segment_2_24n7b7xmnzb3n = /*#__PURE__*/ _noopQrl(
   'component_branch_then_segment_2_24n7b7xmnzb3n'
 );
+q_component_branch_then_segment_2_24n7b7xmnzb3n.s(component_branch_then_segment_2_24n7b7xmnzb3n);
 function InnerCmp(props, ctx) {
   return '<div>Hello world</div>';
 }

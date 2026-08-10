@@ -10,12 +10,18 @@ export function App() {
 
 ============================= src/component.tsx ==
 
-import { useSignal, createSsrElementRecord, _qrlWithChunk } from '@qwik.dev/core';
-const q_component_q_e_click_segment_0_2xwyg1cinvmpz = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz',
-  () => import('./component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz'),
+import { useSignal, _captures, createSsrElementRecord, _noopQrl } from '@qwik.dev/core';
+const q_component_q_e_click_segment_0_2xwyg1cinvmpz = /*#__PURE__*/ _noopQrl(
   'component_q_e_click_segment_0_2xwyg1cinvmpz'
 );
+const component_$_segment_1_1lv57vrb4wu8w = () => {
+  const count = _captures[0];
+  return count.value++;
+};
+const q_component_$_segment_1_1lv57vrb4wu8w = /*#__PURE__*/ _noopQrl(
+  'component_$_segment_1_1lv57vrb4wu8w'
+);
+q_component_$_segment_1_1lv57vrb4wu8w.s(component_$_segment_1_1lv57vrb4wu8w);
 export function App(props, ctx) {
   const count = useSignal(0);
   return [
@@ -30,10 +36,8 @@ export function App(props, ctx) {
 }
 ============================= src/component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz.js (ENTRY POINT)==
 
-import { _qrlWithChunk, _captures } from '@qwik.dev/core';
-const q_component_$_segment_1_1lv57vrb4wu8w = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_$_segment_1_1lv57vrb4wu8w',
-  () => import('./component.tsx_component_$_segment_1_1lv57vrb4wu8w'),
+import { _noopQrl, _captures } from '@qwik.dev/core';
+const q_component_$_segment_1_1lv57vrb4wu8w = /*#__PURE__*/ _noopQrl(
   'component_$_segment_1_1lv57vrb4wu8w'
 );
 

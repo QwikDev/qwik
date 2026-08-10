@@ -40,36 +40,29 @@ import {
   escapeSsrContent,
   getActiveInvokeContextOrNull,
   invoke,
-  _qrlWithChunk,
+  _noopQrl,
 } from '@qwik.dev/core';
-import { component_class_segment_0_3htuygud1guoj } from './component.tsx_component_class_segment_0_3htuygud1guoj';
-import { semantic_expression_384_402_2ufkztrrdwur1 } from './component.tsx_semantic_expression_384_402_2ufkztrrdwur1';
-
-const q_component_class_segment_0_3htuygud1guoj = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_class_segment_0_3htuygud1guoj',
-  () => import('./component.tsx_component_class_segment_0_3htuygud1guoj'),
+const component_class_segment_0_3htuygud1guoj = (on, todos, lower) => {
+  return { on: on && todos.filter == lower };
+};
+const q_component_class_segment_0_3htuygud1guoj = /*#__PURE__*/ _noopQrl(
   'component_class_segment_0_3htuygud1guoj'
 );
 q_component_class_segment_0_3htuygud1guoj.s(component_class_segment_0_3htuygud1guoj);
-const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg',
-  () => import('./component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg'),
+const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ _noopQrl(
   'component_q_e_click_segment_1_2xwyfnber1kpg'
 );
-const q_local_component_178_269_1v0zojj4cidpx = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_local_component_178_269_1v0zojj4cidpx',
-  () => import('./component.tsx_local_component_178_269_1v0zojj4cidpx'),
+const q_local_component_178_269_1v0zojj4cidpx = /*#__PURE__*/ _noopQrl(
   'local_component_178_269_1v0zojj4cidpx'
 );
-const q_semantic_expression_384_402_2ufkztrrdwur1 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_semantic_expression_384_402_2ufkztrrdwur1',
-  () => import('./component.tsx_semantic_expression_384_402_2ufkztrrdwur1'),
+const semantic_expression_384_402_2ufkztrrdwur1 = (name) => {
+  return name.toUpperCase();
+};
+const q_semantic_expression_384_402_2ufkztrrdwur1 = /*#__PURE__*/ _noopQrl(
   'semantic_expression_384_402_2ufkztrrdwur1'
 );
 q_semantic_expression_384_402_2ufkztrrdwur1.s(semantic_expression_384_402_2ufkztrrdwur1);
-const q_local_component_112_432_9mplpu2ebao3 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_local_component_112_432_9mplpu2ebao3',
-  () => import('./component.tsx_local_component_112_432_9mplpu2ebao3'),
+const q_local_component_112_432_9mplpu2ebao3 = /*#__PURE__*/ _noopQrl(
   'local_component_112_432_9mplpu2ebao3'
 );
 export function App(props, ctx) {
@@ -210,7 +203,7 @@ export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
 ============================= src/component.tsx_local_component_178_269_1v0zojj4cidpx.js (ENTRY POINT)==
 
 import {
-  _qrlWithChunk,
+  _noopQrl,
   _captures,
   createSsrNodeId,
   createSsrElementTarget,
@@ -220,9 +213,7 @@ import {
   maybeThen,
 } from '@qwik.dev/core';
 import { component_class_segment_0_3htuygud1guoj } from './component.tsx_component_class_segment_0_3htuygud1guoj';
-const q_component_class_segment_0_3htuygud1guoj = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_class_segment_0_3htuygud1guoj',
-  () => import('./component.tsx_component_class_segment_0_3htuygud1guoj'),
+const q_component_class_segment_0_3htuygud1guoj = /*#__PURE__*/ _noopQrl(
   'component_class_segment_0_3htuygud1guoj'
 );
 q_component_class_segment_0_3htuygud1guoj.s(component_class_segment_0_3htuygud1guoj);
@@ -310,7 +301,7 @@ export const semantic_expression_384_402_2ufkztrrdwur1 = (name) => {
 ============================= src/component.tsx_local_component_112_432_9mplpu2ebao3.js (ENTRY POINT)==
 
 import {
-  _qrlWithChunk,
+  _noopQrl,
   _captures,
   createSsrNodeId,
   createSsrElementTarget,
@@ -328,20 +319,14 @@ import {
 } from '@qwik.dev/core';
 import { component_class_segment_0_3htuygud1guoj } from './component.tsx_component_class_segment_0_3htuygud1guoj';
 import { semantic_expression_384_402_2ufkztrrdwur1 } from './component.tsx_semantic_expression_384_402_2ufkztrrdwur1';
-const q_component_class_segment_0_3htuygud1guoj = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_class_segment_0_3htuygud1guoj',
-  () => import('./component.tsx_component_class_segment_0_3htuygud1guoj'),
+const q_component_class_segment_0_3htuygud1guoj = /*#__PURE__*/ _noopQrl(
   'component_class_segment_0_3htuygud1guoj'
 );
 q_component_class_segment_0_3htuygud1guoj.s(component_class_segment_0_3htuygud1guoj);
-const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg',
-  () => import('./component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg'),
+const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ _noopQrl(
   'component_q_e_click_segment_1_2xwyfnber1kpg'
 );
-const q_semantic_expression_384_402_2ufkztrrdwur1 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_semantic_expression_384_402_2ufkztrrdwur1',
-  () => import('./component.tsx_semantic_expression_384_402_2ufkztrrdwur1'),
+const q_semantic_expression_384_402_2ufkztrrdwur1 = /*#__PURE__*/ _noopQrl(
   'semantic_expression_384_402_2ufkztrrdwur1'
 );
 q_semantic_expression_384_402_2ufkztrrdwur1.s(semantic_expression_384_402_2ufkztrrdwur1);

@@ -29,27 +29,26 @@ import {
   invoke,
   createSsrElementRecord,
   maybeThen,
-  _qrlWithChunk,
+  _noopQrl,
 } from '@qwik.dev/core';
-import { component_title_segment_0_2f0r0xivypjmx } from './component.tsx_component_title_segment_0_2f0r0xivypjmx';
-import { component_className_segment_1_kvlfd5j1l32j } from './component.tsx_component_className_segment_1_kvlfd5j1l32j';
-import { component_style_segment_2_cgm261f5ipp0 } from './component.tsx_component_style_segment_2_cgm261f5ipp0';
-
-const q_component_title_segment_0_2f0r0xivypjmx = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_title_segment_0_2f0r0xivypjmx',
-  () => import('./component.tsx_component_title_segment_0_2f0r0xivypjmx'),
+const component_title_segment_0_2f0r0xivypjmx = (count) => {
+  return `count ${count.value}`;
+};
+const q_component_title_segment_0_2f0r0xivypjmx = /*#__PURE__*/ _noopQrl(
   'component_title_segment_0_2f0r0xivypjmx'
 );
 q_component_title_segment_0_2f0r0xivypjmx.s(component_title_segment_0_2f0r0xivypjmx);
-const q_component_className_segment_1_kvlfd5j1l32j = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_className_segment_1_kvlfd5j1l32j',
-  () => import('./component.tsx_component_className_segment_1_kvlfd5j1l32j'),
+const component_className_segment_1_kvlfd5j1l32j = (count) => {
+  return { active: count.value > 0 };
+};
+const q_component_className_segment_1_kvlfd5j1l32j = /*#__PURE__*/ _noopQrl(
   'component_className_segment_1_kvlfd5j1l32j'
 );
 q_component_className_segment_1_kvlfd5j1l32j.s(component_className_segment_1_kvlfd5j1l32j);
-const q_component_style_segment_2_cgm261f5ipp0 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_style_segment_2_cgm261f5ipp0',
-  () => import('./component.tsx_component_style_segment_2_cgm261f5ipp0'),
+const component_style_segment_2_cgm261f5ipp0 = (count) => {
+  return { color: count.value % 2 === 0 ? 'green' : 'blue' };
+};
+const q_component_style_segment_2_cgm261f5ipp0 = /*#__PURE__*/ _noopQrl(
   'component_style_segment_2_cgm261f5ipp0'
 );
 q_component_style_segment_2_cgm261f5ipp0.s(component_style_segment_2_cgm261f5ipp0);

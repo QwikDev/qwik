@@ -242,19 +242,8 @@ export function emitModulePlan(
     ...(output.component.shape.async ? { async: true as const } : {}),
   }));
   // same eligibility as the emit-ssr hoist loop, so `resolved` matches the emitted `.s()` calls
-  const directSegmentIds = new Set(
-    components.flatMap((component) => component.ssr?.ssr.directSegments ?? [])
-  );
-  const localComponentSegmentIds = new Set(
-    segments.filter((segment) => segment.kind === 'localComponent').map((segment) => segment.id)
-  );
   const resolvesEagerly = (segment: SegmentPlan): boolean =>
-    segment.qrl?.kind !== 'sync' &&
-    !isModuleStyleBoundary(segment) &&
-    (segment.parentId === null ||
-      directSegmentIds.has(segment.id) ||
-      localComponentSegmentIds.has(segment.parentId)) &&
-    shouldResolveSsrSegment(segment);
+    !isModuleStyleBoundary(segment) && shouldResolveSsrSegment(segment);
 
   // inline collection rows never become chunks — drop their table entries (no QRL exists)
   const inlineRowSymbols = collectInlineRowSymbols(components);

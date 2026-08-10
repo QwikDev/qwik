@@ -161,7 +161,7 @@
           "symbolName": "input_branch_then_segment_1_3n2tacjs4axze",
           "chunk": "./input.tsx_input_branch_then_segment_1_3n2tacjs4axze",
           "kind": "branchRender",
-          "resolved": false,
+          "resolved": true,
           "qrl": null,
           "captures": []
         },
@@ -170,7 +170,7 @@
           "symbolName": "input_branch_else_segment_2_f8z5xh5htfxl",
           "chunk": "./input.tsx_input_branch_else_segment_2_f8z5xh5htfxl",
           "kind": "branchRender",
-          "resolved": false,
+          "resolved": true,
           "qrl": null,
           "captures": []
         }

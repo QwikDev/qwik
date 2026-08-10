@@ -31,28 +31,115 @@ export function App() {
 
 import {
   useSignal,
-  createSsrElementRecord,
-  renderSsrCollection,
-  createSsrRecord,
   createSsrNodeId,
+  createSsrElementTarget,
+  renderSsrAttrExpression,
+  escapeHTML,
+  createSsrElementRecord,
+  createSsrRecord,
+  createSsrElementTextTarget,
+  renderSsrTextExpression,
+  getActiveInvokeContextOrNull,
+  invoke,
   maybeThen,
-  _qrlWithChunk,
+  renderSsrCollection,
+  _noopQrl,
 } from '@qwik.dev/core';
-import { component_for_render_segment_0_asyt89wzo2d3 } from './component.tsx_component_for_render_segment_0_asyt89wzo2d3';
-import { component_for_key_segment_1_24ursak4wzpxf } from './component.tsx_component_for_key_segment_1_24ursak4wzpxf';
-
-const q_component_for_render_segment_0_asyt89wzo2d3 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_for_render_segment_0_asyt89wzo2d3',
-  () => import('./component.tsx_component_for_render_segment_0_asyt89wzo2d3'),
+const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __rowId, row) => {
+  const id_0 = ctx.nextId();
+  ctx.addRoot(row);
+  const attr_0 = renderSsrAttrExpression(
+    createSsrElementTarget(id_0),
+    'class',
+    [row],
+    q_component_className_segment_2_kvlfr6myf532
+  );
+  let id_1;
+  const invokeCtx = getActiveInvokeContextOrNull();
+  const text_1 = () =>
+    invoke(invokeCtx, () => {
+      id_1 ??= ctx.nextId();
+      ctx.addRoot(row);
+      return renderSsrTextExpression(
+        createSsrElementTextTarget(id_1),
+        [row],
+        q_component_text_segment_3_1fh11lewq6qgx
+      );
+    });
+  let id_2;
+  const text_2 = () =>
+    invoke(invokeCtx, () => {
+      id_2 ??= ctx.nextId();
+      ctx.addRoot(row);
+      return renderSsrTextExpression(
+        createSsrElementTextTarget(id_2),
+        [row],
+        q_component_text_segment_5_1fh12dh4juuhz
+      );
+    });
+  return maybeThen(attr_0, (attr_0) =>
+    maybeThen(text_1(), (text_1) =>
+      maybeThen(text_2(), (text_2) => [
+        createSsrElementRecord(
+          'tr',
+          '<tr q:id="',
+          createSsrNodeId(id_0),
+          '"',
+          attr_0 === null ? '' : ' class' + (attr_0 === '' ? '' : '="' + escapeHTML(attr_0) + '"'),
+          ' q:row',
+          '>'
+        ),
+        createSsrRecord('<td q:id="', createSsrNodeId(id_1), '" class="col-md-1">'),
+        escapeHTML(text_1),
+        '</td><td class="col-md-4">',
+        createSsrRecord(
+          '<a q:id="',
+          createSsrNodeId(id_2),
+          '"',
+          ctx.eventAttr('q-e:click', q_component_q_e_click_segment_4_2xwyeh830jenv.w([row])),
+          '>'
+        ),
+        escapeHTML(text_2),
+        '</a></td><td class="col-md-1"><a><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></a></td><td class="col-md-6"></td></tr>',
+      ])
+    )
+  );
+};
+const q_component_for_render_segment_0_asyt89wzo2d3 = /*#__PURE__*/ _noopQrl(
   'component_for_render_segment_0_asyt89wzo2d3'
 );
 q_component_for_render_segment_0_asyt89wzo2d3.s(component_for_render_segment_0_asyt89wzo2d3);
-const q_component_for_key_segment_1_24ursak4wzpxf = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_for_key_segment_1_24ursak4wzpxf',
-  () => import('./component.tsx_component_for_key_segment_1_24ursak4wzpxf'),
+const component_for_key_segment_1_24ursak4wzpxf = (row) => {
+  return row.id;
+};
+const q_component_for_key_segment_1_24ursak4wzpxf = /*#__PURE__*/ _noopQrl(
   'component_for_key_segment_1_24ursak4wzpxf'
 );
 q_component_for_key_segment_1_24ursak4wzpxf.s(component_for_key_segment_1_24ursak4wzpxf);
+const component_className_segment_2_kvlfr6myf532 = (row) => {
+  return { danger: row.selected };
+};
+const q_component_className_segment_2_kvlfr6myf532 = /*#__PURE__*/ _noopQrl(
+  'component_className_segment_2_kvlfr6myf532'
+);
+q_component_className_segment_2_kvlfr6myf532.s(component_className_segment_2_kvlfr6myf532);
+const component_text_segment_3_1fh11lewq6qgx = (row) => {
+  return row.id;
+};
+const q_component_text_segment_3_1fh11lewq6qgx = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_3_1fh11lewq6qgx'
+);
+q_component_text_segment_3_1fh11lewq6qgx.s(component_text_segment_3_1fh11lewq6qgx);
+const q_component_q_e_click_segment_4_2xwyeh830jenv = /*#__PURE__*/ _noopQrl(
+  'component_q_e_click_segment_4_2xwyeh830jenv'
+);
+const component_text_segment_5_1fh12dh4juuhz = (row) => {
+  return row.label;
+};
+const q_component_text_segment_5_1fh12dh4juuhz = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_5_1fh12dh4juuhz'
+);
+q_component_text_segment_5_1fh12dh4juuhz.s(component_text_segment_5_1fh12dh4juuhz);
 export function App(props, ctx) {
   const rows = useSignal([{ id: 1, label: 'Alpha', selected: false }]);
   const collection_id_0 = ctx.nextId();
@@ -79,7 +166,7 @@ export function App(props, ctx) {
 ============================= src/component.tsx_component_for_render_segment_0_asyt89wzo2d3.js (ENTRY POINT)==
 
 import {
-  _qrlWithChunk,
+  _noopQrl,
   createSsrNodeId,
   createSsrElementTarget,
   renderSsrAttrExpression,
@@ -95,26 +182,18 @@ import {
 import { component_className_segment_2_kvlfr6myf532 } from './component.tsx_component_className_segment_2_kvlfr6myf532';
 import { component_text_segment_3_1fh11lewq6qgx } from './component.tsx_component_text_segment_3_1fh11lewq6qgx';
 import { component_text_segment_5_1fh12dh4juuhz } from './component.tsx_component_text_segment_5_1fh12dh4juuhz';
-const q_component_className_segment_2_kvlfr6myf532 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_className_segment_2_kvlfr6myf532',
-  () => import('./component.tsx_component_className_segment_2_kvlfr6myf532'),
+const q_component_className_segment_2_kvlfr6myf532 = /*#__PURE__*/ _noopQrl(
   'component_className_segment_2_kvlfr6myf532'
 );
 q_component_className_segment_2_kvlfr6myf532.s(component_className_segment_2_kvlfr6myf532);
-const q_component_text_segment_3_1fh11lewq6qgx = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_text_segment_3_1fh11lewq6qgx',
-  () => import('./component.tsx_component_text_segment_3_1fh11lewq6qgx'),
+const q_component_text_segment_3_1fh11lewq6qgx = /*#__PURE__*/ _noopQrl(
   'component_text_segment_3_1fh11lewq6qgx'
 );
 q_component_text_segment_3_1fh11lewq6qgx.s(component_text_segment_3_1fh11lewq6qgx);
-const q_component_q_e_click_segment_4_2xwyeh830jenv = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_q_e_click_segment_4_2xwyeh830jenv',
-  () => import('./component.tsx_component_q_e_click_segment_4_2xwyeh830jenv'),
+const q_component_q_e_click_segment_4_2xwyeh830jenv = /*#__PURE__*/ _noopQrl(
   'component_q_e_click_segment_4_2xwyeh830jenv'
 );
-const q_component_text_segment_5_1fh12dh4juuhz = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_text_segment_5_1fh12dh4juuhz',
-  () => import('./component.tsx_component_text_segment_5_1fh12dh4juuhz'),
+const q_component_text_segment_5_1fh12dh4juuhz = /*#__PURE__*/ _noopQrl(
   'component_text_segment_5_1fh12dh4juuhz'
 );
 q_component_text_segment_5_1fh12dh4juuhz.s(component_text_segment_5_1fh12dh4juuhz);

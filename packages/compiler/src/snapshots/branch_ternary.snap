@@ -20,32 +20,68 @@ export function App() {
 
 import {
   useSignal,
+  _captures,
+  createSsrNodeId,
   createSsrElementRecord,
+  createSsrRangeTextTarget,
+  escapeHTML,
+  renderSsrTextNode,
+  maybeThen,
   renderSsrBranch,
   createSsrRecord,
-  createSsrNodeId,
-  maybeThen,
-  _qrlWithChunk,
+  _noopQrl,
 } from '@qwik.dev/core';
-import { component_branch_condition_segment_0_2fzrieu6vlhf9 } from './component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9';
-
-const q_component_branch_condition_segment_0_2fzrieu6vlhf9 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9',
-  () => import('./component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9'),
+const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
+  const count = _captures[0];
+  return count.value % 2 === 0;
+};
+const q_component_branch_condition_segment_0_2fzrieu6vlhf9 = /*#__PURE__*/ _noopQrl(
   'component_branch_condition_segment_0_2fzrieu6vlhf9'
 );
 q_component_branch_condition_segment_0_2fzrieu6vlhf9.s(
   component_branch_condition_segment_0_2fzrieu6vlhf9
 );
-const q_component_branch_then_segment_1_24n7blyqktd46 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_branch_then_segment_1_24n7blyqktd46',
-  () => import('./component.tsx_component_branch_then_segment_1_24n7blyqktd46'),
+const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
+  const count = _captures[0];
+  const id_0 = ctx.nextId();
+  ctx.addRoot(count);
+  const text_0 = renderSsrTextNode(createSsrRangeTextTarget(id_0, 0), count);
+  return maybeThen(text_0, (text_0) => [
+    createSsrElementRecord('p', '<p q:id="', createSsrNodeId(id_0), '" class="even"', '>'),
+    'Even <!t>',
+    escapeHTML(text_0),
+    '<!/t></p>',
+  ]);
+};
+const q_component_branch_then_segment_1_24n7blyqktd46 = /*#__PURE__*/ _noopQrl(
   'component_branch_then_segment_1_24n7blyqktd46'
 );
-const q_component_branch_else_segment_3_19dvttmqjttk2 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_branch_else_segment_3_19dvttmqjttk2',
-  () => import('./component.tsx_component_branch_else_segment_3_19dvttmqjttk2'),
+q_component_branch_then_segment_1_24n7blyqktd46.s(component_branch_then_segment_1_24n7blyqktd46);
+const component_branch_else_segment_3_19dvttmqjttk2 = (ctx) => {
+  const count = _captures[0];
+  const id_0 = ctx.nextId();
+  ctx.addRoot(count);
+  const text_0 = renderSsrTextNode(createSsrRangeTextTarget(id_0, 0), count);
+  return maybeThen(text_0, (text_0) => [
+    createSsrElementRecord(
+      'button',
+      '<button q:id="',
+      createSsrNodeId(id_0),
+      '"',
+      ctx.eventAttr('q-e:click', q_component_q_e_click_segment_4_2xwyeh830jenv.w([count])),
+      '>'
+    ),
+    'Odd <!t>',
+    escapeHTML(text_0),
+    '<!/t></button>',
+  ]);
+};
+const q_component_branch_else_segment_3_19dvttmqjttk2 = /*#__PURE__*/ _noopQrl(
   'component_branch_else_segment_3_19dvttmqjttk2'
+);
+q_component_branch_else_segment_3_19dvttmqjttk2.s(component_branch_else_segment_3_19dvttmqjttk2);
+const q_component_q_e_click_segment_4_2xwyeh830jenv = /*#__PURE__*/ _noopQrl(
+  'component_q_e_click_segment_4_2xwyeh830jenv'
 );
 export function App(props, ctx) {
   const count = useSignal(0);
@@ -148,7 +184,7 @@ export const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
 ============================= src/component.tsx_component_branch_else_segment_3_19dvttmqjttk2.js (ENTRY POINT)==
 
 import {
-  _qrlWithChunk,
+  _noopQrl,
   _captures,
   createSsrNodeId,
   createSsrElementRecord,
@@ -157,9 +193,7 @@ import {
   renderSsrTextNode,
   maybeThen,
 } from '@qwik.dev/core';
-const q_component_q_e_click_segment_4_2xwyeh830jenv = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_q_e_click_segment_4_2xwyeh830jenv',
-  () => import('./component.tsx_component_q_e_click_segment_4_2xwyeh830jenv'),
+const q_component_q_e_click_segment_4_2xwyeh830jenv = /*#__PURE__*/ _noopQrl(
   'component_q_e_click_segment_4_2xwyeh830jenv'
 );
 

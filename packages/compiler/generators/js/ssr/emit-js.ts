@@ -2399,9 +2399,10 @@ class JsComponentGenerator {
     const qrl = `q_${meta.symbolName}`;
     if (!this.shared.production && !this.hoistedSegments.has(meta.id)) {
       this.hoistedSegments.add(meta.id);
-      this.imports.add('_qrlWithChunk');
+      // v2-parity: server qrls are chunkless; serialization maps symbol → chunk via the manifest
+      this.imports.add('_noopQrl');
       this.hoists.push(
-        `const ${qrl} = /*#__PURE__*/ _qrlWithChunk(${JSON.stringify(meta.chunk)}, () => import(${JSON.stringify(meta.chunk)}), ${JSON.stringify(meta.symbolName)});`
+        `const ${qrl} = /*#__PURE__*/ _noopQrl(${JSON.stringify(meta.symbolName)});`
       );
       if (meta.resolved) {
         // eagerly resolved segments import the symbol and settle at module load

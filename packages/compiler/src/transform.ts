@@ -41,9 +41,15 @@ import { TargetImportResolver } from './emit-qrl';
 import {
   emitBindingImport,
   emitSegmentModules,
+  emitSsrSegmentInlineCode,
   type SegmentComponentImport,
+  type SegmentRenderEmitter,
 } from '../generators/js/shared/emit-segment';
-import { getTargetModuleReferences, shouldEmitSegmentModule } from './segment-plan';
+import {
+  getTargetModuleReferences,
+  hasRawSsrModuleRootImplementation,
+  shouldEmitSegmentModule,
+} from './segment-plan';
 import {
   emitSsrModule,
   emitSsrSegmentRender,
@@ -491,6 +497,130 @@ export function transformModule(ctx: CompilerContext): TransformResult {
       return null;
     },
   };
+  // chunk emission reuses the owning component's wire block when one exists
+  const wireCache = new Map<ComponentOutput, PlanSsrComponent | null>();
+  const allOutputs = [...mainOutputs, ...componentModules.map((component) => component.output)];
+  const findSegmentWireBlock = (segment: SegmentPlan) => {
+    // embedded renders are synthetic children of their parent segment's id
+    const baseId = segment.id.replace(/_embedded_\d+$/, '');
+    const owner = allOutputs.find((output) =>
+      output.result.segments.some((candidate) => candidate.id === baseId)
+    );
+    if (owner === undefined) {
+      // module-level QRL segments belong to no component — serialize the block alone
+      if (segment.render === null) {
+        return undefined;
+      }
+      const moduleBlock = emitSsrOpPlan(
+        null,
+        segments,
+        componentReturnMode,
+        ctx.input.code,
+        planData.bindingName,
+        undefined,
+        segment
+      );
+      return moduleBlock === null ? undefined : { render: moduleBlock as never };
+    }
+    let wire = wireCache.get(owner);
+    if (wire === undefined) {
+      wire = emitSsrOpPlan(
+        owner.result,
+        owner.result.segments,
+        componentReturnMode,
+        ctx.input.code,
+        planData.bindingName
+      );
+      wireCache.set(owner, wire);
+    }
+    const inWire = wire === null ? undefined : findWireBlock(wire, segment.id);
+    if (inWire !== undefined) {
+      return inWire;
+    }
+    // value-expression and embedded segments have no block on the component wire —
+    // serialize their own render with the same machinery
+    if (segment.render === null) {
+      return undefined;
+    }
+    const block = emitSsrOpPlan(
+      owner.result,
+      owner.result.segments,
+      componentReturnMode,
+      ctx.input.code,
+      planData.bindingName,
+      undefined,
+      segment
+    );
+    return block === null ? undefined : { render: block as never };
+  };
+  const ssrSegmentRenderEmitter: SegmentRenderEmitter = (
+    segment,
+    source,
+    imports,
+    segments,
+    inputPath,
+    explicitExtensions,
+    generatedNames
+  ) =>
+    emitSsrSegmentRender(
+      segment,
+      source,
+      imports,
+      segments,
+      inputPath,
+      explicitExtensions,
+      generatedNames,
+      componentReturnMode,
+      findSegmentWireBlock(segment),
+      planData
+    );
+  // v2-parity ssr: every server-invocable segment gets an in-module implementation, so the
+  // origin adds no static chunk imports and qrls stay chunkless
+  const inlineSegmentCode = new Map<string, string>();
+  const inlineQwikImportNames = new Set<string>();
+  // a library must stay target-neutral: segments publish as lazy chunks so app builds
+  // tree-shake per target; only app server builds inline implementations
+  const libMode = ctx.options.mode === 'lib';
+  if (ctx.emitTarget === 'ssr' && !libMode) {
+    for (const segment of segments) {
+      if (
+        segment.qrl?.kind === 'sync' ||
+        segment.implementationInOrigin === true ||
+        hasRawSsrModuleRootImplementation(segment, segments) ||
+        segment.kind === 'event' ||
+        segment.kind === 'localComponent' ||
+        (segment.qrl?.kind === 'implicit' &&
+          (segment.qrl.role === 'visible-task' ||
+            segment.qrl.role === 'style' ||
+            segment.qrl.role === 'scoped-style'))
+      ) {
+        continue;
+      }
+      const inlineCode = emitSsrSegmentInlineCode(
+        segment,
+        segments,
+        ctx.input.code,
+        ctx.input.path,
+        explicitExtensions,
+        componentImports,
+        analysis,
+        ssrSegmentRenderEmitter,
+        generatedNames,
+        inlineQwikImportNames
+      );
+      if (inlineCode === null) {
+        const reason = lastUngeneratedReason();
+        return transformFailure(
+          ctx,
+          null,
+          reason === ''
+            ? `The compiler could not inline segment "${segment.symbolName}".`
+            : `The compiler cannot emit ${reason}. Deliver the construct as a plugin or rewrite it.`
+        );
+      }
+      inlineSegmentCode.set(segment.id, inlineCode);
+    }
+  }
   const emittedMain = emitModule(
     ctx,
     analysis,
@@ -504,7 +634,10 @@ export function transformModule(ctx: CompilerContext): TransformResult {
     moduleBoundaries.functions,
     moduleRootSegments,
     inlineComponents,
-    planData
+    planData,
+    inlineSegmentCode,
+    inlineQwikImportNames,
+    libMode
   );
   if (emittedMain === null) {
     const reason = lastUngeneratedReason();
@@ -562,7 +695,10 @@ export function transformModule(ctx: CompilerContext): TransformResult {
       [],
       [],
       [],
-      planData
+      planData,
+      inlineSegmentCode,
+      inlineQwikImportNames,
+      libMode
     );
     const emittedComponent = emitted?.components.find(
       (candidate) => candidate.identity === component.output.component.identity
@@ -613,62 +749,6 @@ export function transformModule(ctx: CompilerContext): TransformResult {
     );
   }
 
-  // chunk emission reuses the owning component's wire block when one exists
-  const wireCache = new Map<ComponentOutput, PlanSsrComponent | null>();
-  const allOutputs = [...mainOutputs, ...componentModules.map((component) => component.output)];
-  const findSegmentWireBlock = (segment: SegmentPlan) => {
-    // embedded renders are synthetic children of their parent segment's id
-    const baseId = segment.id.replace(/_embedded_\d+$/, '');
-    const owner = allOutputs.find((output) =>
-      output.result.segments.some((candidate) => candidate.id === baseId)
-    );
-    if (owner === undefined) {
-      // module-level QRL segments belong to no component — serialize the block alone
-      if (segment.render === null) {
-        return undefined;
-      }
-      const moduleBlock = emitSsrOpPlan(
-        null,
-        segments,
-        componentReturnMode,
-        ctx.input.code,
-        planData.bindingName,
-        undefined,
-        segment
-      );
-      return moduleBlock === null ? undefined : { render: moduleBlock as never };
-    }
-    let wire = wireCache.get(owner);
-    if (wire === undefined) {
-      wire = emitSsrOpPlan(
-        owner.result,
-        owner.result.segments,
-        componentReturnMode,
-        ctx.input.code,
-        planData.bindingName
-      );
-      wireCache.set(owner, wire);
-    }
-    const inWire = wire === null ? undefined : findWireBlock(wire, segment.id);
-    if (inWire !== undefined) {
-      return inWire;
-    }
-    // value-expression and embedded segments have no block on the component wire —
-    // serialize their own render with the same machinery
-    if (segment.render === null) {
-      return undefined;
-    }
-    const block = emitSsrOpPlan(
-      owner.result,
-      owner.result.segments,
-      componentReturnMode,
-      ctx.input.code,
-      planData.bindingName,
-      undefined,
-      segment
-    );
-    return block === null ? undefined : { render: block as never };
-  };
   const emittedSegments = segments.filter((segment) =>
     shouldEmitSegmentModule(segment, ctx.emitTarget)
   );
@@ -681,19 +761,7 @@ export function transformModule(ctx: CompilerContext): TransformResult {
     analysis,
     ctx.emitTarget,
     ctx.emitTarget === 'ssr'
-      ? (segment, source, imports, segments, inputPath, explicitExtensions, generatedNames) =>
-          emitSsrSegmentRender(
-            segment,
-            source,
-            imports,
-            segments,
-            inputPath,
-            explicitExtensions,
-            generatedNames,
-            componentReturnMode,
-            findSegmentWireBlock(segment),
-            planData
-          )
+      ? ssrSegmentRenderEmitter
       : (segment, source, imports, segments, inputPath, explicitExtensions, generatedNames) =>
           emitCsrSegmentRender(
             segment,
@@ -705,7 +773,8 @@ export function transformModule(ctx: CompilerContext): TransformResult {
             componentCardinality,
             generatedNames
           ),
-    generatedNames
+    generatedNames,
+    ctx.options.mode === 'lib'
   );
   if (segmentModules === null || segmentModules.length !== emittedSegments.length) {
     const reason = lastUngeneratedReason();
@@ -817,7 +886,8 @@ function assembleMainModule(
         emitted.imports,
         ctx.emitTarget,
         nativeMarkers,
-        strippedExports.map((replacement) => replacement.range)
+        strippedExports.map((replacement) => replacement.range),
+        ctx.options.mode === 'lib'
       ),
     ]),
     markerRetargets
@@ -997,7 +1067,10 @@ function emitModule(
   functions: ModuleBoundaryPlan['functions'],
   moduleRoots: readonly SegmentPlan[],
   inlineComponents: readonly InlineComponentReferencePlan[],
-  planData?: SsrPlanData
+  planData?: SsrPlanData,
+  inlineSegmentCode: ReadonlyMap<string, string> = new Map(),
+  inlineQwikImportNames: ReadonlySet<string> = new Set(),
+  libMode = false
 ): EmittedModule | null {
   const targetImports = new TargetImportResolver(analysis.bindings.map((binding) => binding.name));
   // module-provided names: core imports resolve in place; anything else taken means fallback
@@ -1086,7 +1159,10 @@ function emitModule(
         moduleRoots,
         inlineComponents,
         planData,
-        { core: coreNames, taken: takenNames, aliases: coreAliases }
+        { core: coreNames, taken: takenNames, aliases: coreAliases },
+        inlineSegmentCode,
+        inlineQwikImportNames,
+        libMode
       )
     : emitCsrModule(
         outputs,
@@ -1574,15 +1650,21 @@ function findUnusedMainImportBindings(
   runtimeImports: readonly string[],
   target: 'csr' | 'ssr',
   nativeMarkers: readonly NativeMarker[] = [],
-  strippedRanges: readonly SourceRange[] = []
+  strippedRanges: readonly SourceRange[] = [],
+  libMode = false
 ): BindingId[] {
   const used = new Set<BindingId>();
+  // on the app server target every segment implementation stays in-module, so its
+  // references remain live; only csr and lib builds replace segment bodies with chunks
+  const segmentBodiesReplaced = target === 'csr' || libMode;
   const replacedRanges = [
     ...outputs.map((output) => output.component.replacementRange),
     ...componentModules.map((component) => component.output.component.replacementRange),
-    ...segments.flatMap((segment) =>
-      segment.lifetimeId === null && segment.parentId === null ? [segment.functionRange] : []
-    ),
+    ...(segmentBodiesReplaced
+      ? segments.flatMap((segment) =>
+          segment.lifetimeId === null && segment.parentId === null ? [segment.functionRange] : []
+        )
+      : []),
     // the marker call is replaced by its implementation, so its own reads do not count
     ...nativeMarkers.map((marker) => marker.range),
     // stripped exports keep their name, but their body is replaced by a throw stub

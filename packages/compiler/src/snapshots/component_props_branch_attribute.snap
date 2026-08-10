@@ -19,20 +19,20 @@ import {
   escapeHTML,
   createSsrElementRecord,
   maybeThen,
-  _qrlWithChunk,
+  _noopQrl,
 } from '@qwik.dev/core';
-import { component_title_segment_0_2f0r0xivypjmx } from './component.tsx_component_title_segment_0_2f0r0xivypjmx';
-import { component_aria_label_segment_1_qu41fijikfc8 } from './component.tsx_component_aria_label_segment_1_qu41fijikfc8';
 
-const q_component_title_segment_0_2f0r0xivypjmx = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_title_segment_0_2f0r0xivypjmx',
-  () => import('./component.tsx_component_title_segment_0_2f0r0xivypjmx'),
+const component_title_segment_0_2f0r0xivypjmx = (props) => {
+  return props.enabled ? 'On' : 'Off';
+};
+const q_component_title_segment_0_2f0r0xivypjmx = /*#__PURE__*/ _noopQrl(
   'component_title_segment_0_2f0r0xivypjmx'
 );
 q_component_title_segment_0_2f0r0xivypjmx.s(component_title_segment_0_2f0r0xivypjmx);
-const q_component_aria_label_segment_1_qu41fijikfc8 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_aria_label_segment_1_qu41fijikfc8',
-  () => import('./component.tsx_component_aria_label_segment_1_qu41fijikfc8'),
+const component_aria_label_segment_1_qu41fijikfc8 = (props) => {
+  return props.label ?? 'Fallback';
+};
+const q_component_aria_label_segment_1_qu41fijikfc8 = /*#__PURE__*/ _noopQrl(
   'component_aria_label_segment_1_qu41fijikfc8'
 );
 q_component_aria_label_segment_1_qu41fijikfc8.s(component_aria_label_segment_1_qu41fijikfc8);

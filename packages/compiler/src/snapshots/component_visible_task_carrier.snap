@@ -16,17 +16,10 @@ import {
   useOnDocument,
   createVisibleTaskHandlerQrl,
   createSsrElementRecord,
-  _qrlWithChunk,
+  _noopQrl,
 } from '@qwik.dev/core';
-import { component_useVisibleTask$_segment_0_97oyvf4nsls9 } from './component.tsx_component_useVisibleTask$_segment_0_97oyvf4nsls9';
-
-const q_component_useVisibleTask$_segment_0_97oyvf4nsls9 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_useVisibleTask$_segment_0_97oyvf4nsls9',
-  () => import('./component.tsx_component_useVisibleTask$_segment_0_97oyvf4nsls9'),
+const q_component_useVisibleTask$_segment_0_97oyvf4nsls9 = /*#__PURE__*/ _noopQrl(
   'component_useVisibleTask$_segment_0_97oyvf4nsls9'
-);
-q_component_useVisibleTask$_segment_0_97oyvf4nsls9.s(
-  component_useVisibleTask$_segment_0_97oyvf4nsls9
 );
 export function App(props, ctx) {
   const count = useSignal(0);

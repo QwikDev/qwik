@@ -22,16 +22,27 @@ import {
   createSsrElementTarget,
   createSsrElementRecord,
   maybeThen,
-  _qrlWithChunk,
+  _noopQrl,
 } from '@qwik.dev/core';
-import { component_props_segment_0_208o16glymg7p } from './component.tsx_component_props_segment_0_208o16glymg7p';
-
-const q_component_props_segment_0_208o16glymg7p = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_props_segment_0_208o16glymg7p',
-  () => import('./component.tsx_component_props_segment_0_208o16glymg7p'),
+const component_props_segment_0_208o16glymg7p = (attrs, title) => {
+  return {
+    ...attrs.value,
+    get title() {
+      return title.value;
+    },
+    get onClick$() {
+      return q_component_q_e_click_segment_1_2xwyfnber1kpg.w([title]);
+    },
+    'data-id': 'static',
+  };
+};
+const q_component_props_segment_0_208o16glymg7p = /*#__PURE__*/ _noopQrl(
   'component_props_segment_0_208o16glymg7p'
 );
 q_component_props_segment_0_208o16glymg7p.s(component_props_segment_0_208o16glymg7p);
+const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ _noopQrl(
+  'component_q_e_click_segment_1_2xwyfnber1kpg'
+);
 export function App(props, ctx) {
   const attrs = useSignal({
     title: 'from-spread',
@@ -66,10 +77,8 @@ export function App(props, ctx) {
 }
 ============================= src/component.tsx_component_props_segment_0_208o16glymg7p.js (ENTRY POINT)==
 
-import { _qrlWithChunk } from '@qwik.dev/core';
-const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg',
-  () => import('./component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg'),
+import { _noopQrl } from '@qwik.dev/core';
+const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ _noopQrl(
   'component_q_e_click_segment_1_2xwyfnber1kpg'
 );
 

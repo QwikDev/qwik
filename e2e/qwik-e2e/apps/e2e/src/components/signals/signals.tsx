@@ -1107,8 +1107,8 @@ const MyTextButton = component$<{ text: string }>((props) => {
 export const PropsSpreadingUseResourceReactivityIssue4368 = component$(() => {
   const text = useSignal('');
 
-  const textResource = useComputed$(async (ctx) => {
-    return ctx.track(() => text.value);
+  const textResource = useComputed$(async () => {
+    return text.value;
   });
 
   return (

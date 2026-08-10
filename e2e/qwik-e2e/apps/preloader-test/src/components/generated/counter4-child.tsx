@@ -19,8 +19,8 @@ export default component$(() => {
   const doubleCount = useSignal(0);
 
   const privateCount = useSignal(0);
-  useTask$(({ track }) => {
-    track(() => count.value);
+  useTask$(() => {
+    count.value;
     doubleCount.value = count.value * 2;
   });
 

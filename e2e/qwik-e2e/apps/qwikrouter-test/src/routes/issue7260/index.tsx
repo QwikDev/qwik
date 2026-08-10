@@ -25,8 +25,8 @@ export default component$(() => {
   // Calling our `useDadJoke` hook, will return a reactive signal to the loaded data.
   const dadJokeSignal = useDadJoke();
   const favoriteJokeAction = useJokeVoteAction();
-  useTask$(({ track }) => {
-    track(() => isFavoriteSignal.value);
+  useTask$(() => {
+    isFavoriteSignal.value;
     // eslint-disable-next-line no-console
     console.log('FAVORITE (isomorphic)', isFavoriteSignal.value);
     server$(() => {

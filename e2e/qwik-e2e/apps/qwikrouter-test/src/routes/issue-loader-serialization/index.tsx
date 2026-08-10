@@ -61,8 +61,8 @@ export const Cmp2 = component$(() => {
   const date = useCmp2();
   const signal = useSignal(0);
   const ref = useSignal<HTMLElement>();
-  useTask$(({ track }) => {
-    track(() => signal.value);
+  useTask$(() => {
+    signal.value;
     if (isBrowser) {
       ref.value!.textContent = date.value.message;
     }

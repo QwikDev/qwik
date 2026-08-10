@@ -72,8 +72,8 @@ export const Container = component$((props: ContainerProps) => {
     }
     `);
 
-  const resource = useComputed$(async ({ track }) => {
-    const remoteUrl = track(() => props.url);
+  const resource = useComputed$(async () => {
+    const remoteUrl = props.url;
     const url = `http://localhost:${(globalThis as any).PORT}${remoteUrl}?fragment&loader=false`;
     const res = await fetch(url);
     return {

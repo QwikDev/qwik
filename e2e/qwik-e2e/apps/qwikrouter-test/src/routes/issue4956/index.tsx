@@ -4,8 +4,8 @@ import { component$, useStore, useTask$ } from '@qwik.dev/core';
 export default component$((props) => {
   const loc = useLocation();
   const state = useStore({ id: '' });
-  useTask$(({ track }) => {
-    track(() => loc.url.searchParams);
+  useTask$(() => {
+    loc.url.searchParams;
     state.id = loc.url.searchParams.get('id') || '';
   });
   return (

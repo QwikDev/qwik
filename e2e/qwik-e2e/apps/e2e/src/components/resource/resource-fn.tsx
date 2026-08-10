@@ -1,10 +1,7 @@
 import { component$, useComputed$, useSignal } from '@qwik.dev/core';
 
 export const ResourceFn = component$(() => {
-  const resource = useComputed$(({ track }) => {
-    track(() => {
-      return;
-    });
+  const resource = useComputed$(() => {
     return { name: 'resource' };
   });
   const signal = useSignal({ name: 'signal' });

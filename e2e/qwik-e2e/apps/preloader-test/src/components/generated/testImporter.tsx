@@ -22,8 +22,8 @@ import { testLogger } from './test-logger';
 export const TestImporter = component$(() => {
   const theme = useTheme();
 
-  useTask$(({ track }) => {
-    track(() => theme.value);
+  useTask$(() => {
+    theme.value;
     testLogger();
   });
 

@@ -27,7 +27,7 @@ export const HCollapsibleContent = component$((props: CollapsibleContentProps) =
 
   // animations are detected automatically
   useTask$(async function automaticAnimations({ track }) {
-    track(() => context.isOpenSig.value);
+    context.isOpenSig.value;
 
     if (isServer || !context.contentRef.value) {
       return;

@@ -12,10 +12,10 @@ export default component$(() => {
 
   useStyles$(styles);
 
-  useTask$(({ track }) => {
+  useTask$(() => {
     // run everytime it updates
-    track(serverData);
-    track(userData);
+    serverData.value;
+    userData.value;
   });
 
   return (

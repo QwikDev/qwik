@@ -71,8 +71,8 @@ export const ResourceSignalResumabilityIssue2014 = component$(() => {
   const count = useSignal(0);
   console.log('render');
 
-  const resource = useComputed$(async ({ track }) => {
-    track(count);
+  const resource = useComputed$(async () => {
+    count.value;
     return {
       timestamp: count.value * 2,
     };
@@ -90,8 +90,8 @@ export const ResourceSignalResumabilityIssue2014 = component$(() => {
 
 export const IssueRaceCondition = component$(() => {
   const count = useSignal(0);
-  const resource = useComputed$(async ({ track }) => {
-    track(count);
+  const resource = useComputed$(async () => {
+    count.value;
     const value = count.value;
     if (count.value === 1) {
       await delay(500);

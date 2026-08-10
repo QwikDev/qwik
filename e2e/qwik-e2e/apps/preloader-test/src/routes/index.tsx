@@ -26,8 +26,8 @@ export default component$(() => {
   const count = useSignal(0);
   const message = useSignal('');
 
-  useVisibleTask$(async ({ track }) => {
-    const lib = track(count) & 1 ? getLibA() : getLibB();
+  useVisibleTask$(async () => {
+    const lib = count.value & 1 ? getLibA() : getLibB();
     message.value = (await lib).getMessage();
   });
 

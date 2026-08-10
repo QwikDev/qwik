@@ -58,9 +58,9 @@ export const ResourceApp = component$(() => {
     untrack(() => (logs.content += '[WATCH] 2 after\n'));
   });
 
-  const resource = useComputed$(async ({ track }) => {
+  const resource = useComputed$(async () => {
     untrack(() => (logs.content += '[RESOURCE] 1 before\n'));
-    const count = track(() => state.countDoubleDouble);
+    const count = state.countDoubleDouble;
     await delay(1000);
 
     untrack(() => (logs.content += '[RESOURCE] 1 after\n\n'));

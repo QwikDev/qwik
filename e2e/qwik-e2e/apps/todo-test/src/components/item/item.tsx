@@ -19,8 +19,8 @@ export const Item = component$((props: ItemProps) => {
   const editInput = useSignal<HTMLInputElement>();
   const todos = useContext(TODOS);
 
-  useTask$(({ track }) => {
-    const current = track(() => editInput.value);
+  useTask$(() => {
+    const current = editInput.value;
     if (current) {
       current.focus();
       current.selectionStart = current.selectionEnd = current.value.length;

@@ -1,4 +1,4 @@
-import { component$, useAsync$, useSignal } from '@qwik.dev/core';
+import { component$, useComputed$, useSignal } from '@qwik.dev/core';
 
 export const AsyncRoot = component$(() => {
   const rerender = useSignal(0);
@@ -17,12 +17,10 @@ export const AsyncRoot = component$(() => {
 
 export const AsyncBasic = component$(() => {
   const count = useSignal(0);
-  const double = useAsync$(({ track }) => Promise.resolve(track(count) * 2));
-  const plus3 = useAsync$(({ track }) => Promise.resolve(track(double) + 3));
-  const triple = useAsync$(({ track }) => Promise.resolve(track(plus3) * 3));
-  const sum = useAsync$(({ track }) =>
-    Promise.resolve(track(double) + track(plus3) + track(triple))
-  );
+  const double = useComputed$(() => Promise.resolve(count.value * 2));
+  const plus3 = useComputed$(() => Promise.resolve(double.value + 3));
+  const triple = useComputed$(() => Promise.resolve(plus3.value * 3));
+  const sum = useComputed$(() => Promise.resolve(double.value + plus3.value + triple.value));
 
   return (
     <div>
@@ -40,11 +38,13 @@ export const AsyncBasic = component$(() => {
 
 export const PendingComponent = component$(() => {
   const count = useSignal(0);
-  const double = useAsync$(
-    ({ track }) =>
+  const double = useComputed$(
+    () =>
       new Promise<number>((resolve) => {
+        // the read must happen synchronously: only then does the computed subscribe
+        const value = count.value;
         setTimeout(() => {
-          resolve(track(count) * 2);
+          resolve(value * 2);
         }, 1000);
       })
   );

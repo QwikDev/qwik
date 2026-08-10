@@ -24,8 +24,8 @@ export const RefRoot = component$(() => {
 
 export const Ref = component$((props: { id: string }) => {
   const ref = useSignal<Element>();
-  useVisibleTask$(({ track }) => {
-    const el = track(() => ref.value);
+  useVisibleTask$(() => {
+    const el = ref.value;
     el!.textContent = `Rendered ${props.id}`;
   });
   return <div id={props.id} ref={ref} />;
@@ -33,8 +33,8 @@ export const Ref = component$((props: { id: string }) => {
 
 export const Ref2 = component$((props: { id: string }) => {
   const ref = useSignal<Element>();
-  useVisibleTask$(({ track }) => {
-    const el = track(() => ref.value);
+  useVisibleTask$(() => {
+    const el = ref.value;
     el!.textContent = `Rendered ${props.id}`;
   });
   return <div id={props.id} ref={ref} />;

@@ -4,8 +4,8 @@ import { useLocation } from '@qwik.dev/router';
 export default component$(() => {
   const location = useLocation();
 
-  useTask$(({ track }) => {
-    const id = track(() => location.params.id);
+  useTask$(() => {
+    const id = location.params.id;
     if (id === undefined) {
       // should not happen
       throw new Error('id is undefined');

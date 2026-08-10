@@ -32,8 +32,8 @@ export const Weather = component$(() => {
     };
   });
 
-  const weather = useComputed$<WeatherData | undefined>(async ({ track, abortSignal }) => {
-    const city = track(() => state.debouncedCity);
+  const weather = useComputed$<WeatherData | undefined>(async ({ abortSignal }) => {
+    const city = state.debouncedCity;
     abortSignal.addEventListener('abort', () => console.log('abort request for ', city), {
       once: true,
     });

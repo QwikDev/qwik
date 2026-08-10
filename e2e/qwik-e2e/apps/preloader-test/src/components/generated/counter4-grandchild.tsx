@@ -4,13 +4,13 @@ import { childContext } from './counter4-child';
 export default component$(() => {
   const doubleCount = useContext(childContext);
   const quadrupleCount = useSignal(0);
-  useTask$(({ track }) => {
-    track(() => doubleCount.value);
+  useTask$(() => {
+    doubleCount.value;
     quadrupleCount.value = doubleCount.value * 2;
   });
 
-  useTask$(({ track }) => {
-    track(() => quadrupleCount.value);
+  useTask$(() => {
+    quadrupleCount.value;
   });
 
   const heightupleCount = useComputed$(() => doubleCount.value * 4);

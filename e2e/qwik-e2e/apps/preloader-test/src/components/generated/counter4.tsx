@@ -13,8 +13,8 @@ export const CounterContext = createContextId<Signal<number>>('counter4');
 export default component$(() => {
   const count = useSignal(0);
 
-  useTask$(({ track }) => {
-    track(() => count.value);
+  useTask$(() => {
+    count.value;
   });
 
   useContextProvider(CounterContext, count);

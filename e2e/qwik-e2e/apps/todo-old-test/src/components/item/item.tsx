@@ -17,8 +17,8 @@ export const Item = component$((props: ItemProps) => {
   const state = useStore({ editing: false });
   const editInput = useSignal<HTMLInputElement>();
 
-  useTask$(({ track }) => {
-    const current = track(() => editInput.value);
+  useTask$(() => {
+    const current = editInput.value;
     if (current) {
       current.focus();
       current.selectionStart = current.selectionEnd = current.value.length;

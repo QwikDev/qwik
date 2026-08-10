@@ -57,7 +57,7 @@ export const HCollapsible = component$((props: CollapsibleProps) => {
   const itemId = id ?? localId;
 
   useTask$(function onOpenChangeTask({ track }) {
-    track(() => isOpenSig.value);
+    isOpenSig.value;
 
     if (isBrowser) {
       // syntactic sugar

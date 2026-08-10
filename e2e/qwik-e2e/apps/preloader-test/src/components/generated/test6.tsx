@@ -2,8 +2,8 @@ import { component$, useSignal, useTask$ } from '@qwik.dev/core';
 
 export default component$(() => {
   const count = useSignal(0);
-  useTask$(({ track }) => {
-    track(() => count.value);
+  useTask$(() => {
+    count.value;
   });
   return (
     <>

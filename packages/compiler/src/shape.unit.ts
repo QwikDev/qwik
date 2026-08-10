@@ -170,6 +170,41 @@ export default function (opts: any) {
     expect(main!.code).toMatch(/function App\(props\d*, ctx\d*\)/);
   });
 
+  test('module-level JSX passed to a call lowers as a deferred root', async () => {
+    const code = `import { render } from '@qwik.dev/core';
+import { Root } from './root';
+render(document, <Root />);`;
+    for (const isServer of [false, true]) {
+      const result = await transformModules({
+        input: [{ path: 'src/entry.dev.tsx', code }],
+        srcDir: 'src',
+        sourceMaps: false,
+        transpileTs: true,
+        transpileJsx: true,
+        isServer,
+      });
+      expect(result.diagnostics).toEqual([]);
+      const main = result.modules.find((module) => module.path.endsWith('entry.dev.tsx'));
+      expect(main!.code).toContain('render(document, (() =>');
+    }
+  });
+
+  test('module-level JSX outside a call stays refused', async () => {
+    const code = `const banner = <div>hello</div>;
+export { banner };`;
+    const result = await transformModules({
+      input: [{ path: 'src/banner.tsx', code }],
+      srcDir: 'src',
+      sourceMaps: false,
+      transpileTs: true,
+      transpileJsx: true,
+      isServer: true,
+    });
+    expect(result.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
+      'unsupported-runtime-jsx',
+    ]);
+  });
+
   test('allows an exported string helper to use the normal transform path', async () => {
     const result = await transform(`export function FormatName(value) { return String(value); }`);
 

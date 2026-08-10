@@ -103,6 +103,8 @@ export interface ModuleAnalysis {
   readonly jsxFunctionRanges: readonly SourceRange[];
   /** Bindings referenced as JSX component tags anywhere in the module. */
   readonly jsxTagBindingIds: readonly BindingId[];
+  /** Module-level JSX in call-argument position — deferred render roots. */
+  readonly moduleArgumentJsxRanges: readonly SourceRange[];
 }
 
 export type QrlBoundaryPlan =

@@ -264,6 +264,48 @@ export function lowerSemanticModulePlan(
     }
   }
 
+  // module-level JSX in argument position: a synthetic function spanning the module, every
+  // render deferred — a root value handed to a callee (render(document, <Root />))
+  if (extracted.analysis.moduleArgumentJsxRanges.length > 0) {
+    const programRange = getRange(program) ?? ([0, 0] as SourceRange);
+    const owner: SemanticOwner = {
+      shape: null,
+      body: program as never,
+      functionRange: programRange,
+      setup: [],
+      parameter: null,
+      displayName: 'module',
+    };
+    const lowerer = new SemanticLowerer(owner, extracted);
+    const moduleLifetime = lowerer.allocateModuleLifetime();
+    const renders: RenderFunctionPlan[] = [];
+    for (const range of extracted.analysis.moduleArgumentJsxRanges) {
+      const root = findNodeByRange(program, range);
+      if (root === null) {
+        continue;
+      }
+      const render = lowerer.lowerModuleArgumentRender(root, moduleLifetime);
+      if (render !== null) {
+        renders.push({ ...render, argumentPosition: true });
+      }
+    }
+    const failed = lowerer.takeFailure();
+    if (failed !== null) {
+      return failed;
+    }
+    if (renders.length > 0) {
+      functions.push({
+        functionRange: programRange,
+        bodyRange: programRange,
+        bodyKind: 'block',
+        renders,
+      });
+      for (const segment of lowerer.createSegmentPlans()) {
+        loweredSegments.set(segment.id, segment);
+      }
+    }
+  }
+
   return {
     kind: 'success',
     plan: {
@@ -437,6 +479,22 @@ class SemanticLowerer {
       embeddedRenders,
       segments: this.createSegmentPlans(),
     };
+  }
+
+  /** Lifetime for the synthetic module scope holding argument-position JSX roots. */
+  allocateModuleLifetime(): LifetimeId {
+    return this.allocateLifetime(null, 'render-function', 'atomic-range');
+  }
+
+  /** One module-level argument-position JSX root as an embedded render. */
+  lowerModuleArgumentRender(root: AstNode, lifetimeId: LifetimeId): RenderFunctionPlan | null {
+    this.classifyFunctionBindings();
+    const render = this.createEmbeddedRenderFunction(root, null, lifetimeId);
+    return this.failure === null ? render : null;
+  }
+
+  takeFailure(): Exclude<SemanticLowerResult, { kind: 'success' }> | null {
+    return this.failure;
   }
 
   lowerFunctionRender(callback: AstFunction):
@@ -2248,7 +2306,7 @@ class SemanticLowerer {
     };
   }
 
-  private createSegmentPlans(): SegmentPlan[] {
+  createSegmentPlans(): SegmentPlan[] {
     const plans = this.extracted.segments.flatMap((segment) => {
       const lifetimeId = this.usedSegments.get(segment.id);
       if (lifetimeId === undefined) {

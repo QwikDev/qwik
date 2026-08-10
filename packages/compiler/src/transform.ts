@@ -157,7 +157,8 @@ export function transformModule(ctx: CompilerContext): TransformResult {
     native.markers.length === 0 &&
     extractedQrls.invalidBoundaries.length === 0 &&
     !extractedQrls.segments.some((segment) => segment.parentId === null && segment.qrl !== null) &&
-    analysis.jsxFunctionRanges.length === 0
+    analysis.jsxFunctionRanges.length === 0 &&
+    analysis.moduleArgumentJsxRanges.length === 0
   ) {
     return { kind: 'not-applicable' };
   }

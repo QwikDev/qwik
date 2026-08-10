@@ -113,6 +113,7 @@ class ModuleAnalyzer {
       exports: this.collectExports(),
       items: this.classifyModuleItems(),
       moduleJsxRange: jsxOwners.moduleRange,
+      moduleArgumentJsxRanges: jsxOwners.moduleArgumentJsxRanges,
       jsxFunctionRanges: jsxOwners.functionRanges,
       jsxTagBindingIds: [...this.jsxTagBindings],
     };
@@ -1125,14 +1126,16 @@ class ModuleAnalyzer {
 
 function collectJsxOwners(program: Program): {
   readonly moduleRange: SourceRange | null;
+  readonly moduleArgumentJsxRanges: readonly SourceRange[];
   readonly functionRanges: readonly SourceRange[];
 } {
   let moduleRange: SourceRange | null = null;
+  const moduleArgumentJsxRanges: SourceRange[] = [];
   const functionRanges = new Map<string, SourceRange>();
-  visit(program, null);
-  return { moduleRange, functionRanges: [...functionRanges.values()] };
+  visit(program, null, false);
+  return { moduleRange, moduleArgumentJsxRanges, functionRanges: [...functionRanges.values()] };
 
-  function visit(value: unknown, ownerRange: SourceRange | null): void {
+  function visit(value: unknown, ownerRange: SourceRange | null, inCallArgument: boolean): void {
     if (!isNode(value)) {
       return;
     }
@@ -1140,7 +1143,13 @@ function collectJsxOwners(program: Program): {
     if (value.type === 'JSXElement' || value.type === 'JSXFragment') {
       const jsxRange = getRange(value);
       if (range === null) {
-        moduleRange ??= jsxRange;
+        // a root value handed to a callee (render(document, <Root />)) lowers deferred;
+        // any other module-level JSX has no owner to render it and stays refused
+        if (inCallArgument && jsxRange !== null) {
+          moduleArgumentJsxRanges.push(jsxRange);
+        } else {
+          moduleRange ??= jsxRange;
+        }
       } else {
         functionRanges.set(rangeKey(range), range);
       }
@@ -1150,10 +1159,12 @@ function collectJsxOwners(program: Program): {
       if (SKIPPED_KEYS.has(key)) {
         continue;
       }
+      const childInArgument =
+        inCallArgument || (value.type === 'CallExpression' && key === 'arguments');
       if (Array.isArray(child)) {
-        child.forEach((item) => visit(item, range));
+        child.forEach((item) => visit(item, range, childInArgument));
       } else {
-        visit(child, range);
+        visit(child, range, childInArgument);
       }
     }
   }

@@ -278,6 +278,7 @@ const q_component_branch_else_segment_7_19dvs9iawhlhy = /*#__PURE__*/ _qrlWithCh
 export const component_branch_then_segment_4_24n7dk4a4zn6t = (ctx) => {
   const props = _captures[0];
   const branch_id_0 = ctx.nextId();
+  ctx.addRoot(props);
   const branch_0 = renderSsrBranch(
     ctx,
     branch_id_0,

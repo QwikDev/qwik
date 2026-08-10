@@ -233,6 +233,8 @@ export const local_component_178_269_1v0zojj4cidpx = (props, ctx) => {
   const { on } = props;
   const id_0 = ctx.nextId();
   ctx.addRoot(on);
+  ctx.addRoot(todos);
+  ctx.addRoot(lower);
   const attr_0 = renderSsrAttrExpression(
     createSsrElementTarget(id_0),
     'class',

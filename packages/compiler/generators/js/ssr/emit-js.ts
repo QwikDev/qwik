@@ -229,29 +229,14 @@ export function emitJsSegmentBlock(
       propsShape as PropsShape,
       providesContext
     );
-    // captures arrive pre-rooted through the QRL capture table — their addRoot calls drop
-    const dropCaptureRoots = (text: string): string => {
-      for (const seed of captureSeeds) {
-        text = text.split(`${names.ctx}.addRoot(${seed.name}); `).join('');
-      }
-      return text;
-    };
-    const statements = [...pieces.setupStatements, ...pieces.statements]
-      .map((statement) => {
-        for (const seed of captureSeeds) {
-          if (statement === `${names.ctx}.addRoot(${seed.name});`) {
-            return null;
-          }
-        }
-        return dropCaptureRoots(statement);
-      })
-      .filter((statement): statement is string => statement !== null);
+    // capture addRoot calls stay: they are idempotent for pre-rooted qrl captures, and
+    // dropping them by name loses the root of a shadowing inner binding
     return {
       imports: [...shared.imports, ...pieces.imports],
       chunkImports: shared.chunkImports,
       hoists: shared.hoists,
-      statements,
-      value: dropCaptureRoots(pieces.value),
+      statements: [...pieces.setupStatements, ...pieces.statements],
+      value: pieces.value,
     };
   } catch (error) {
     if (error === UNGENERATABLE) {
@@ -322,6 +307,11 @@ export function markUngeneratable(detail?: unknown): never {
 /** Detail recorded by the most recent `markUngeneratable`, for compile diagnostics. */
 export function lastUngeneratableDetail(): string {
   return UNGENERATABLE_DETAIL;
+}
+
+/** Debug-only: stack of the most recent `markUngeneratable`, for compiler development. */
+export function lastUngeneratableSite(): string {
+  return UNGENERATABLE_SITE;
 }
 
 /** Tagged PlanValue form accessors — see emit-plan `PlanValue`. */
@@ -2459,14 +2449,16 @@ class JsComponentGenerator {
     if (moduleName != null) {
       return moduleName;
     }
-    // locals declared inside verbatim js statements exist under their source names
+    // locals declared inside verbatim source exist under their source names; every emission
+    // site for such a binding sits inside its declaring scope, so a shadowed name still
+    // resolves to the right declaration by plain JS scoping
     const sourceName = this.sourceBindingName?.(binding);
-    if (sourceName != null && !this.usedNames.has(sourceName)) {
+    if (sourceName != null) {
       this.usedNames.add(sourceName);
       this.locals.set(binding, sourceName);
       return sourceName;
     }
-    markUngeneratable();
+    markUngeneratable({ undeclaredLocalBinding: binding, declared: [...this.locals.keys()] });
   }
 
   private contextVar(binding: number): string {

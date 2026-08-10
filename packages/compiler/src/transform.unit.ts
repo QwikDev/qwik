@@ -996,6 +996,43 @@ export function App() {
   });
 });
 
+describe('shadowed collection rows', () => {
+  const code = `import { component$, Fragment } from '@qwik.dev/core';
+export const Menu = component$(({ menu }: any) => (
+  <aside>
+    {menu
+      ? menu.items?.map((item) => (
+          <Fragment key={item.href}>
+            <ul>
+              {item.items?.map((item) => (
+                <li key={item.href}>{item.text}</li>
+              ))}
+            </ul>
+          </Fragment>
+        ))
+      : null}
+  </aside>
+));`;
+
+  test.each([false, true])(
+    'an inner row may shadow the outer row param (isServer: %s)',
+    async (isServer) => {
+      const result = await transformModules({
+        ...options,
+        isServer,
+        input: [{ path: 'src/menu.tsx', code }],
+      });
+
+      expect(result.diagnostics).toEqual([]);
+      if (isServer) {
+        // the inner row's value roots inside its own scope, where the shadowed name is correct
+        const output = result.modules.map((module) => module.code).join('\n');
+        expect(output).toContain('.addRoot(item)');
+      }
+    }
+  );
+});
+
 describe('event handler arrays', () => {
   const code = `import { component$, $, useSignal } from '@qwik.dev/core';
 const Child = component$((props: any) => <button onClick$={props.onSave$}>go</button>);

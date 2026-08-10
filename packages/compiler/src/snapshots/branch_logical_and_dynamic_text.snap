@@ -96,6 +96,7 @@ import {
 
 export const component_branch_then_segment_1_24n7blyqktd46 = (ctx, rangeId) => {
   const count = _captures[0];
+  ctx.addRoot(count);
   const text_0 = renderSsrTextNode(createSsrRangeTextTarget(rangeId, 0), count);
   return maybeThen(text_0, (text_0) => [
     'Count is greater than 2 and equal to <!t>',

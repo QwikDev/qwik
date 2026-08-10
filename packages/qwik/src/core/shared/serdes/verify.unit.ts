@@ -7,6 +7,7 @@ import {
   SerializerSymbol,
   type NoSerialize,
 } from './verify';
+import { _UNINITIALIZED } from '../utils/constants';
 import { useComputed, useSignal } from '../../reactive/public-api';
 import { createOwner, runWithOwner } from '../../runtime/owner';
 
@@ -63,6 +64,24 @@ describe('verifySerializable', () => {
 
       expect(verifySerializable(count)).toBe(count);
       expect(verifySerializable(doubled)).toBe(doubled);
+    });
+
+    it('should allow serialization-constant sentinels', () => {
+      expect(verifySerializable(_UNINITIALIZED)).toBe(_UNINITIALIZED);
+      expect(() => verifySerializable({ loaderValue: _UNINITIALIZED })).not.toThrow();
+    });
+
+    it('should allow class instances that declare their own serializer', () => {
+      class LoaderCapture {
+        constructor(readonly hash: string) {}
+        [SerializerSymbol]() {
+          return this.hash;
+        }
+      }
+      const capture = new LoaderCapture('abc');
+
+      expect(verifySerializable(capture)).toBe(capture);
+      expect(verifySerializable({ nested: capture })).toEqual({ nested: capture });
     });
   });
 

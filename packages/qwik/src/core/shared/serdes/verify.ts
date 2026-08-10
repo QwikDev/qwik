@@ -8,6 +8,7 @@ import { Computed } from '../../reactive/computed';
 import { Signal } from '../../reactive/signal';
 import { isStore, StorePropSource } from '../../reactive/store';
 import { VisibleTaskSubscription } from '../../runtime/task';
+import { _constants } from './constants';
 
 /** @internal */
 export const verifySerializable = <T>(value: T, preMessage?: string): T => {
@@ -113,6 +114,10 @@ const isKnownSerializableValue = (value: unknown): boolean => {
   if (value == null) {
     return true;
   }
+  // framework sentinels (_UNINITIALIZED, NEEDS_COMPUTATION, Slot, ...) serialize by table index
+  if ((_constants as readonly unknown[]).includes(value)) {
+    return true;
+  }
 
   const type = typeof value;
   if (type === 'string' || type === 'number' || type === 'boolean' || type === 'bigint') {
@@ -124,6 +129,11 @@ const isKnownSerializableValue = (value: unknown): boolean => {
   }
   if (!isObject(value)) {
     return false;
+  }
+
+  // custom-serialization protocol: the instance provides its own serialized form
+  if (typeof (value as Record<symbol, unknown>)[SerializerSymbol] === 'function') {
+    return true;
   }
 
   const hasTemporal = typeof Temporal !== 'undefined';

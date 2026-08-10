@@ -1,4 +1,11 @@
-import { component$, sync$, useContext, useServerData } from '@qwik.dev/core';
+import {
+  component$,
+  noSerialize,
+  sync$,
+  useContext,
+  useServerData,
+  type NoSerialize,
+} from '@qwik.dev/core';
 import { ContentInternalContext } from './contexts';
 import { linkPrefetchInit } from './link-prefetch';
 import type { ClientSPAWindow } from './qwik-router-component';
@@ -27,7 +34,8 @@ const assertServerData = (serverData: Record<string, string> | undefined) => {
 interface RoutedContentProps {
   contents: ContentModule[];
   index: number;
-  component: ContentModule['default'];
+  /** Route components are nav-time data: navs re-load them via loadRoute, never from state. */
+  component: NoSerialize<ContentModule['default']>;
 }
 
 function RoutedContent({ contents, index, component: Component }: RoutedContentProps) {
@@ -39,12 +47,16 @@ function RoutedContent({ contents, index, component: Component }: RoutedContentP
         <RoutedContent
           contents={contents}
           index={nextIndex}
-          component={contents[nextIndex].default}
+          component={noSerialize(contents[nextIndex].default)}
         />
       )}
     </RoutedComponent>
   ) : nextIndex < contents.length ? (
-    <RoutedContent contents={contents} index={nextIndex} component={contents[nextIndex].default} />
+    <RoutedContent
+      contents={contents}
+      index={nextIndex}
+      component={noSerialize(contents[nextIndex].default)}
+    />
   ) : null;
 }
 
@@ -60,7 +72,7 @@ export const RouterOutlet = component$(() => {
       <RoutedContent
         contents={internalContext.value}
         index={0}
-        component={internalContext.value[0].default}
+        component={noSerialize(internalContext.value[0].default)}
       />
       {!__EXPERIMENTAL__.noSPA && (
         <script

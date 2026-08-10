@@ -30,7 +30,6 @@
  * update without navigation, the head is resolved in a separate Task that tracks the relevant
  * signals.
  */
-import * as qwikRouterConfig from '@qwik-router-config';
 import { ensureSlash } from '../../utils/pathname';
 import {
   $,
@@ -75,6 +74,7 @@ import {
 } from './contexts';
 import { createDocumentHead, resolveHead } from './head';
 import { refreshLinkPrefetchObserver } from './link-prefetch';
+import { loadRouterConfig } from './router-config';
 import { loadRoute } from './routing';
 import {
   callRestoreScrollOnDocument,
@@ -548,11 +548,8 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         } else if (!globalThis.__NO_TRAILING_SLASH__) {
           trackUrl.pathname = ensureSlash(trackUrl.pathname);
         }
-        const loadRoutePromise = loadRoute(
-          qwikRouterConfig.routes,
-          qwikRouterConfig.cacheModules,
-          trackUrl.pathname
-        );
+        const { routes, cacheModules } = await loadRouterConfig();
+        const loadRoutePromise = loadRoute(routes, cacheModules, trackUrl.pathname);
         try {
           loadedRoute = await loadRoutePromise;
         } catch (e) {
@@ -627,8 +624,8 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         // committing, producing a brief flash of the current page.
         for (let i = 0; i < routeLoaders.length; i++) {
           const loader = routeLoaders[i];
-          // trigger load
-          loaderState[loader.__id].untrackedPending;
+          // trigger load without a sync read; failures surface when the value is read
+          loaderState[loader.__id].promise().catch(() => {});
         }
       }
       if (internalState.navCount !== navCountBefore) {

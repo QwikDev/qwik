@@ -615,6 +615,11 @@ export const useNavigate: () => RouteNavigate;
 // @public
 export const usePreventNavigate$: (qrl: PreventNavigateCallback) => void;
 
+// Warning: (ae-internal-missing-underscore) The name "usePreventNavigate" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export const usePreventNavigate: (fn: PreventNavigateCallback) => void;
+
 // Warning: (ae-internal-missing-underscore) The name "usePreventNavigateQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal

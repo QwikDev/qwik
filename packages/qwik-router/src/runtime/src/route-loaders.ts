@@ -1,4 +1,4 @@
-import * as qwikRouterConfig from '@qwik-router-config';
+import { loadRouterConfig } from './router-config';
 import {
   implicit$FirstArg,
   isDev,
@@ -343,7 +343,7 @@ const createRouteLoaderSignal = (
       const pageSearch = trackedPageSearch || location.search;
       const pageUrl = new URL(pagePathname + pageSearch, location.href);
       const mHash = routeLoaderCtx.manifestHash || 'dev';
-      const basePath = (qwikRouterConfig as any).basePathname ?? '/';
+      const basePath = (await loadRouterConfig()).basePathname ?? '/';
       const needsResumeFetch = stateValues[resumeValueKey] === _UNINITIALIZED;
       const fetchRoutePath = routePath || (needsResumeFetch ? pageUrl.pathname : undefined);
       // A loader that's never been on any route we've visited has no fetch path yet —

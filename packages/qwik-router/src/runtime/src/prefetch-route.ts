@@ -1,9 +1,9 @@
-import * as qwikRouterConfig from '@qwik-router-config';
 import { isBrowser, isDev } from '@qwik.dev/core';
 // @ts-expect-error no types for preloader yet
 import { p as preload } from '@qwik.dev/core/preloader';
 import { ensureSlash } from '../../utils/pathname';
 import { fetchRouteLoaderData } from './route-loaders';
+import { loadRouterConfig } from './router-config';
 import { loadRoute } from './routing';
 /**
  * Prefetch a route's JS bundles and optionally its loader data.
@@ -30,11 +30,8 @@ export async function prefetchRoute(
   }
 
   try {
-    const loadedRoute = await loadRoute(
-      (qwikRouterConfig as any).routes,
-      (qwikRouterConfig as any).cacheModules,
-      url.pathname
-    );
+    const config = await loadRouterConfig();
+    const loadedRoute = await loadRoute(config.routes, config.cacheModules, url.pathname);
     if (!loadedRoute) {
       return;
     }
@@ -56,7 +53,7 @@ export async function prefetchRoute(
 
     // Prefetch loader data in parallel (fire-and-forget, consume body for caching)
     if (loadedRoute.$loaders$?.length && loadedRoute.$loaderPaths$) {
-      const basePath = (qwikRouterConfig as any).basePathname ?? '/';
+      const basePath = config.basePathname ?? '/';
       for (const hash of loadedRoute.$loaders$) {
         let loaderPath = loadedRoute.$loaderPaths$?.[hash];
         if (!loaderPath) {

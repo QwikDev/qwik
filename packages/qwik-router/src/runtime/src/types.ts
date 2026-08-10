@@ -119,7 +119,9 @@ export type RebuildRouteInfoInternal = (
 export type PreventNavigateCallback = (url?: number | URL) => ValueOrPromise<boolean>;
 
 /** @internal registers prevent navigate handler and returns cleanup function */
-export type RoutePreventNavigate = QRL<(cb$: QRL<PreventNavigateCallback>) => () => void>;
+export type RoutePreventNavigate = QRL<
+  (cb$: QRL<PreventNavigateCallback> | PreventNavigateCallback) => () => void
+>;
 
 export type ScrollState = {
   x: number;

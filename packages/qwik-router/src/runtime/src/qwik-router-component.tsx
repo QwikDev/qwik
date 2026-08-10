@@ -154,7 +154,7 @@ export type QwikCityProps = QwikRouterProps;
 
 // Gets populated by registerPreventNav on the client
 const preventNav: {
-  $cbs$?: Set<QRL<PreventNavigateCallback>> | undefined;
+  $cbs$?: Set<QRL<PreventNavigateCallback> | PreventNavigateCallback> | undefined;
   $handler$?: (event: BeforeUnloadEvent) => void;
 } = {};
 
@@ -297,7 +297,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         }
       : undefined
   );
-  const registerPreventNav = $((fn$: QRL<PreventNavigateCallback>) => {
+  const registerPreventNav = $((fn$: QRL<PreventNavigateCallback> | PreventNavigateCallback) => {
     if (!isBrowser) {
       return;
     }
@@ -307,9 +307,10 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       if (!preventNav.$cbs$) {
         return;
       }
-      const prevents = [...preventNav.$cbs$.values()].map((cb) =>
-        cb.resolved ? cb.resolved() : cb()
-      );
+      const prevents = [...preventNav.$cbs$.values()].map((cb) => {
+        const resolved = (cb as Partial<QRL<PreventNavigateCallback>>).resolved;
+        return resolved ? resolved() : cb();
+      });
       // this catches both true and Promise<any>
       // we assume a Promise means to prevent the navigation
       if (prevents.some(Boolean)) {
@@ -320,8 +321,8 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
     };
 
     (preventNav.$cbs$ ||= new Set()).add(fn$);
-    // we need the QRLs to be synchronous if possible, for the beforeunload event
-    fn$.resolve();
+    // we need QRLs synchronous for beforeunload; plain callbacks (client form) have no resolve
+    (fn$ as Partial<QRL<PreventNavigateCallback>>).resolve?.();
     window.addEventListener('beforeunload', preventNav.$handler$);
 
     return () => {

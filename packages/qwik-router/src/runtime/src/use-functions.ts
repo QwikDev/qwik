@@ -55,6 +55,16 @@ export const usePreventNavigateQrl = (fn: QRL<PreventNavigateCallback>): void =>
   // - preventing navigation implies user interaction, so we'll need to load the framework anyway
   useVisibleTask$(() => registerPreventNav(fn));
 };
+
+/**
+ * Client form emitted by the compiler: registers the callback directly.
+ *
+ * @internal
+ */
+export const usePreventNavigate = (fn: PreventNavigateCallback): void => {
+  const registerPreventNav = useContext(RoutePreventNavigateContext);
+  useVisibleTask$(() => registerPreventNav(fn));
+};
 /**
  * Prevent navigation attempts. This hook registers a callback that will be called before SPA or
  * browser navigation.

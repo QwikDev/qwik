@@ -96,6 +96,7 @@ export {
   useHttpStatus,
   useLocation,
   useNavigate,
+  usePreventNavigate,
   usePreventNavigate$,
   usePreventNavigateQrl,
 } from './use-functions';

@@ -158,6 +158,7 @@ function emitJsRenderForComponent(
       ...(segment.qrl?.kind === 'sync' && segment.argumentRanges[0] != null
         ? { syncSource: source.slice(segment.argumentRanges[0]![0], segment.argumentRanges[0]![1]) }
         : {}),
+      ...(segment.render?.runtimeStyleScopeName == null ? {} : { styleScope: true as const }),
       captures: segment.captures.map((capture) => ({
         binding: capture.bindingId,
         name: capture.name,

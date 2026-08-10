@@ -2413,9 +2413,16 @@ class JsComponentGenerator {
     if (!withCaptures) {
       return qrl;
     }
-    const captures = meta.captures.map((capture) =>
-      capture.access === 'component-prop' ? this.names.props : this.local(capture.binding)
-    );
+    // canonical capture ABI: deduped props first, plan-order locals, ambient style scope last —
+    // must match the segment implementation's `_captures` prelude
+    const hasComponentProps = meta.captures.some((capture) => capture.access === 'component-prop');
+    const captures = [
+      ...(hasComponentProps ? [this.names.props] : []),
+      ...meta.captures.flatMap((capture) =>
+        capture.access === 'component-prop' ? [] : [this.local(capture.binding)]
+      ),
+      ...(meta.styleScope === true ? [this.runtimeScopeName ?? `''`] : []),
+    ];
     return captures.length === 0 ? qrl : `${qrl}.w([${captures.join(', ')}])`;
   }
 

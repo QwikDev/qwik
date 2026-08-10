@@ -1270,6 +1270,49 @@ export function App() {
   });
 });
 
+describe('segment capture order', () => {
+  test('chunk capture prelude order matches every consumer .w order', async () => {
+    const input = {
+      path: 'src/capture-order.tsx',
+      code: `export function Shell({ contents, index, component: Component }) {
+  const nextIndex = index + 1;
+  const Tag = Component;
+  return Component ? (
+    <Tag>
+      {nextIndex < contents.length && (
+        <Shell contents={contents} index={nextIndex} component={contents[nextIndex].default} />
+      )}
+    </Tag>
+  ) : nextIndex < contents.length ? (
+    <Shell contents={contents} index={nextIndex} component={contents[nextIndex].default} />
+  ) : null;
+}`,
+    };
+    const result = await transformModules({ ...options(input, true), mode: 'lib' });
+    const allCode = result.modules.map((module) => module.code).join('\n');
+    let compared = 0;
+    for (const mod of result.modules) {
+      const symbol = mod.segment?.name;
+      if (symbol === undefined) {
+        continue;
+      }
+      const prelude = mod.code.match(/const [\w$]+ = _captures\[0\][^;]*/);
+      if (prelude === null) {
+        continue;
+      }
+      const headOrder = [...prelude[0].matchAll(/([\w$]+) = _captures\[\d+\]/g)].map((m) => m[1]);
+      const consumer = allCode.match(new RegExp(`q_${symbol}\\.w\\(\\[([^\\]]*)\\]`));
+      if (consumer === null) {
+        continue;
+      }
+      compared++;
+      const consumerOrder = consumer[1].split(',').map((name) => name.trim());
+      expect(consumerOrder, `capture order for ${symbol}`).toEqual(headOrder);
+    }
+    expect(compared).toBeGreaterThan(0);
+  });
+});
+
 function segmentNames(result: TransformOutput, ctxName: string): string[] {
   return result.modules.flatMap((module) =>
     module.segment?.ctxName === ctxName ? [module.segment.name] : []

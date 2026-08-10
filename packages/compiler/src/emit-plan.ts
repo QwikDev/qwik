@@ -163,6 +163,8 @@ export interface PlanSegmentMeta {
   readonly visibleTaskStrategy?: string;
   /** Value never updates after first render — deferred content steps skip capture rooting. */
   readonly initialOnly?: true;
+  /** The implementation expects the ambient style scope as a trailing capture. */
+  readonly styleScope?: true;
   readonly captures: readonly {
     readonly binding: number;
     readonly name: string;
@@ -271,6 +273,7 @@ export function emitModulePlan(
         ...(segment.qrl?.kind === 'sync' && segment.argumentRanges[0] != null
           ? { syncSource: slice(segment.argumentRanges[0]) }
           : {}),
+        ...(segment.render?.runtimeStyleScopeName == null ? {} : { styleScope: true as const }),
         captures: segment.captures.map((capture) => ({
           binding: capture.bindingId,
           name: capture.name,

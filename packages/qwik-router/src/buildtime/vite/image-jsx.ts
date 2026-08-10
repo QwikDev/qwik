@@ -12,14 +12,23 @@ const JSX_QUERY_PARAM = 'jsx';
 const INTERNAL_IMAGE_JSX_QUERY_PARAM = 'qwik-asset-jsx';
 const VIRTUAL_IMAGE_JSX_PREFIX = 'virtual:';
 const VIRTUAL_IMAGE_JSX_SUFFIX = '.qwik.jsx';
-const TO_IMG_ID = '@to-img.qwik.jsx';
-const VIRTUAL_TO_IMG_ID = 'virtual:to-img.qwik.jsx';
+
+// The compiler derives segment hashes from the query-less path, so each param
+// variant needs its own path identity or two variants of one image collide.
+function hashImageVariant(queryString: string): string {
+  let hash = 5381;
+  for (let i = 0; i < queryString.length; i++) {
+    hash = (hash * 33) ^ queryString.charCodeAt(i);
+  }
+  return (hash >>> 0).toString(36);
+}
 
 export function createVirtualImageJsxId(pathId: string, params: URLSearchParams) {
   const query = new URLSearchParams(params);
   query.delete(INTERNAL_IMAGE_JSX_QUERY_PARAM);
   const queryString = query.toString();
-  return `${VIRTUAL_IMAGE_JSX_PREFIX}${normalizePath(pathId)}${VIRTUAL_IMAGE_JSX_SUFFIX}${
+  const variant = queryString ? `.${hashImageVariant(queryString)}` : '';
+  return `${VIRTUAL_IMAGE_JSX_PREFIX}${normalizePath(pathId)}${variant}${VIRTUAL_IMAGE_JSX_SUFFIX}${
     queryString ? `?${queryString}` : ''
   }`;
 }
@@ -59,30 +68,21 @@ export function parseVirtualImageJsxId(id: string) {
     return null;
   }
 
-  const pathId = parsed.pathId.slice(
+  let pathId = parsed.pathId.slice(
     VIRTUAL_IMAGE_JSX_PREFIX.length,
     -VIRTUAL_IMAGE_JSX_SUFFIX.length
   );
+  const queryString = parsed.params.toString();
+  const variant = queryString ? `.${hashImageVariant(queryString)}` : '';
+  if (variant && pathId.endsWith(variant)) {
+    pathId = pathId.slice(0, -variant.length);
+  }
 
   return {
     ...parsed,
     extension: path.extname(pathId).toLowerCase(),
     pathId,
   };
-}
-
-// Keep this up-to-date with jsxSplit changes
-function getToImg() {
-  return `
-  import { _jsxSplit, _getVarProps as v, _getConstProps as c} from '@qwik.dev/core';
-  const decoding = "async";
-  const loading = "lazy";
-  export default (s, w, h) =>
-    // Try to preserve const attrs by not spreading when props are not provided
-    p => p
-    ? _jsxSplit("img", {decoding, loading, ...v(p)}, {...c(p), height: h, srcSet: s, width: w })
-    : _jsxSplit("img", null, {decoding, height: h, loading, srcSet: s, width: w});
-  `;
 }
 
 function createImageJsxModule(
@@ -92,17 +92,18 @@ function createImageJsxModule(
 ) {
   const importId = createImageJsxImportId(pathId, params, userOpts);
 
-  // We get the metadata via the vite-imagetools import
+  // We get the metadata via the vite-imagetools import; the qwik compiler lowers the JSX
   return `
   import { srcSet, width, height } from ${JSON.stringify(importId)};
-  import toImg from ${JSON.stringify(TO_IMG_ID)};
-
-  export default toImg(srcSet, width, height);
+  export const QwikImg = (p) =>
+    <img decoding="async" loading="lazy" {...p} height={height} srcSet={srcSet} width={width} />;
+  export default QwikImg;
   `;
 }
 
 function createSvgJsxModule(attrs: Record<string, string>) {
-  return `export default p => <svg {...p} {...${JSON.stringify(attrs)}} />`;
+  return `export const QwikSvg = (p) => <svg {...p} {...${JSON.stringify(attrs)}} />;
+export default QwikSvg;`;
 }
 
 /** @public */
@@ -160,9 +161,6 @@ export function imagePlugin(userOpts?: QwikRouterVitePluginOptions): PluginOptio
           if (parseVirtualImageJsxId(id)) {
             return id;
           }
-          if (id.endsWith(TO_IMG_ID) || id === VIRTUAL_TO_IMG_ID) {
-            return VIRTUAL_TO_IMG_ID;
-          }
 
           const { pathId, params } = parseId(id);
           if (!params.has(JSX_QUERY_PARAM) || params.has(INTERNAL_IMAGE_JSX_QUERY_PARAM)) {
@@ -189,9 +187,6 @@ export function imagePlugin(userOpts?: QwikRouterVitePluginOptions): PluginOptio
       load: {
         order: 'pre',
         handler: async (id) => {
-          if (id === VIRTUAL_TO_IMG_ID) {
-            return getToImg();
-          }
           const imageId = parseVirtualImageJsxId(id);
           if (!imageId) {
             return null;

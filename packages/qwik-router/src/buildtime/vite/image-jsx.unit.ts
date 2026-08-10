@@ -132,8 +132,4 @@ test('resolves virtual module ids correctly', async () => {
   const virtualImageId = 'virtual:/assets/hero.png.qwik.jsx?jsx';
   const resolvedImage = await resolveId(virtualImageId, undefined, {});
   assert.equal(resolvedImage, virtualImageId);
-
-  const virtualToImgId = 'virtual:to-img.qwik.jsx';
-  const resolvedToImg = await resolveId(virtualToImgId, undefined, {});
-  assert.equal(resolvedToImg, virtualToImgId);
 });

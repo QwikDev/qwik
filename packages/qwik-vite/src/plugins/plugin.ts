@@ -659,7 +659,11 @@ export function createQwikPlugin(
     // Relative paths must be resolved vs the importer
     if (id.startsWith('.') && parsedImporterId) {
       const path = getPath();
-      const importerDir = path.dirname(parsedImporterId.pathId);
+      // a virtual parent has no real dir; its segments register under srcDir + parent path
+      const importerDir =
+        isVirtualId(parsedImporterId.pathId) && opts.srcDir
+          ? path.join(opts.srcDir, path.dirname(parsedImporterId.pathId))
+          : path.dirname(parsedImporterId.pathId);
       if (importerDir) {
         id = path.resolve(importerDir, id);
       }
@@ -953,7 +957,8 @@ export function createQwikPlugin(
     id: string,
     transformOpts = {} as Parameters<Extract<Plugin['transform'], Function>>[2]
   ): Promise<Rollup.SourceDescription | undefined> {
-    if (isVirtualId(id)) {
+    // `.qwik.jsx` virtual modules (image ?jsx imports) carry real JSX and must be compiled
+    if (isVirtualId(id) && !parseId(id).pathId.endsWith('.qwik.jsx')) {
       return;
     }
     const isServer = getIsServer(ctx, transformOpts);

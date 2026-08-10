@@ -126,6 +126,12 @@ function emitSegmentCode(
   emitSegmentRender: SegmentRenderEmitter,
   generatedNames: GeneratedNames
 ): string | null {
+  if (segment.implementationInOrigin) {
+    // the implementation lives in the origin module, beside the state it writes
+    return `export { ${segment.symbolName} } from ${JSON.stringify(
+      getInputImportPath(inputPath, explicitExtensions)
+    )};\n`;
+  }
   const imports: string[] = [];
   const qwikImports = new Set<string>();
   // nested local components inline their bodies here, so their children belong to this chunk

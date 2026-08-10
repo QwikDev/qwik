@@ -585,6 +585,8 @@ export interface ModuleReferencePlan {
 }
 
 export interface SegmentPlan {
+  /** Writes a module binding: the implementation lives in the origin module, the chunk re-exports. */
+  implementationInOrigin?: true;
   readonly id: string;
   readonly symbolName: string;
   readonly parentId: string | null;

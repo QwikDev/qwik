@@ -445,7 +445,15 @@ export function emitSsrModule(
     const declaration = `const ${qrl} = /*#__PURE__*/ ${QwikWord.QrlWithChunk}(${JSON.stringify(
       path
     )}, () => import(${JSON.stringify(path)}), ${JSON.stringify(segment.symbolName)});`;
-    if (shouldResolveSsrSegment(segment)) {
+    if (segment.implementationInOrigin) {
+      // the body stays in this module, where its module-binding writes are legal; the closure
+      // only runs after module evaluation, so bindings declared below are safe to reference
+      const implementation = `export const ${segment.symbolName} = ${source.slice(
+        segment.functionRange[0],
+        segment.functionRange[1]
+      )};`;
+      hoists.push(`${implementation}\n${declaration}\n${qrl}.s(${segment.symbolName});`);
+    } else if (shouldResolveSsrSegment(segment)) {
       localImports.push(`import { ${segment.symbolName} } from ${JSON.stringify(path)};`);
       hoists.push(`${declaration}\n${qrl}.s(${segment.symbolName});`);
     } else {

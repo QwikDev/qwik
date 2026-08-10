@@ -406,6 +406,23 @@ export function transformModule(ctx: CompilerContext): TransformResult {
       : []
   );
 
+  // a capture-free QRL segment writing module state keeps its implementation in the origin
+  // module, where the assignment is legal; the chunk becomes a re-export shim
+  for (const segment of segments) {
+    if (
+      segment.kind === 'qrl' &&
+      segment.captures.length === 0 &&
+      segment.references.some(
+        (reference) =>
+          reference.role === 'write' &&
+          analysis.bindings.some(
+            (binding) => binding.id === reference.bindingId && binding.kind === 'module'
+          )
+      )
+    ) {
+      segment.implementationInOrigin = true;
+    }
+  }
   const moduleWrite = findExtractedModuleWrite(componentModules, segments, analysis);
   if (moduleWrite !== null) {
     return {
@@ -1783,6 +1800,9 @@ function findExtractedModuleWrite(
   analysis: ModuleAnalysis
 ): { binding: BindingInfo; reference: ModuleAnalysis['references'][number] } | null {
   for (const segment of segments) {
+    if (segment.implementationInOrigin) {
+      continue;
+    }
     for (const reference of segment.references) {
       if (reference.role !== 'write' || reference.bindingId === null) {
         continue;

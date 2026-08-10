@@ -205,6 +205,28 @@ export { banner };`;
     ]);
   });
 
+  test('a segment writing a module binding keeps its implementation in the origin', async () => {
+    const code = `import { $ } from '@qwik.dev/core';
+let runCount = 0;
+export const handler = $(() => {
+  return ++runCount;
+});`;
+    const result = await transformModules({
+      input: [{ path: 'src/loader.ts', code }],
+      srcDir: 'src',
+      sourceMaps: false,
+      transpileTs: true,
+      transpileJsx: false,
+      isServer: true,
+    });
+    expect(result.diagnostics).toEqual([]);
+    const origin = result.modules.find((module) => module.path.endsWith('loader.ts'));
+    const chunk = result.modules.find((module) => module.path.includes('_segment_'));
+    // the write happens in the scope that owns the binding; the chunk only forwards
+    expect(origin!.code).toContain('++runCount');
+    expect(chunk!.code).toMatch(/^export \{ [\w$]+ \} from "\.\/loader";\n$/);
+  });
+
   test('allows an exported string helper to use the normal transform path', async () => {
     const result = await transform(`export function FormatName(value) { return String(value); }`);
 

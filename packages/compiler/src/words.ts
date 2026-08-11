@@ -69,6 +69,7 @@ export const enum QwikWord {
   MaybeThen = 'maybeThen',
   QrlWithChunk = '_qrlWithChunk',
   NoopQrl = '_noopQrl',
+  RegSymbol = '_regSymbol',
   CreateVisibleTaskHandlerQrl = 'createVisibleTaskHandlerQrl',
   //shared
   ComponentQrl = 'componentQrl',

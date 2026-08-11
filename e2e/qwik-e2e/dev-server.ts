@@ -331,7 +331,8 @@ async function routerApp(req: Request, res: Response, next: NextFunction, appDir
   (globalThis as any).__qwik = null;
   const mod = await import(file(ssrPath));
   const router: any = mod.router;
-  router(req, res, next);
+  // await so a rejected request surfaces in the caller's catch instead of killing the process
+  await router(req, res, next);
 }
 
 async function ssrApp(

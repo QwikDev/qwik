@@ -431,6 +431,7 @@ export function transformModule(ctx: CompilerContext): TransformResult {
     }
   }
   markStrippedSegments(segments, ctx);
+  markRegisteredSegments(segments, ctx);
   const moduleWrite = findExtractedModuleWrite(componentModules, segments, analysis);
   if (moduleWrite !== null) {
     return {
@@ -1893,6 +1894,23 @@ function markStrippedSegments(segments: readonly SegmentPlan[], ctx: CompilerCon
         strippedIds.add(segment.id);
         changed = true;
       }
+    }
+  }
+}
+
+// v2-parity regCtxName: a listed boundary registers its ssr implementation by hash, so
+// server-side invocation (server$) can resolve the symbol without a dynamic import.
+function markRegisteredSegments(segments: readonly SegmentPlan[], ctx: CompilerContext): void {
+  const regCtxName = ctx.options.regCtxName;
+  if (ctx.emitTarget !== 'ssr' || regCtxName === undefined || regCtxName.length === 0) {
+    return;
+  }
+  for (const segment of segments) {
+    if (
+      segment.qrl?.kind === 'implicit' &&
+      regCtxName.some((prefix) => segment.ctxName.startsWith(prefix))
+    ) {
+      segment.registerSymbol = true;
     }
   }
 }

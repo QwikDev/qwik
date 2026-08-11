@@ -589,6 +589,8 @@ export interface SegmentPlan {
   implementationInOrigin?: true;
   /** Listed in stripCtxName: keeps its qrl identity, the callback never ships to this target. */
   stripped?: true;
+  /** Listed in regCtxName: the ssr implementation registers by hash for server-side invocation. */
+  registerSymbol?: true;
   readonly id: string;
   readonly symbolName: string;
   readonly parentId: string | null;

@@ -445,6 +445,15 @@ export function emitSsrModule(
   }
 
   hoists.push(...emittedFunctions.hoists);
+  // regCtxName boundaries register by hash so server-side invocation resolves without a chunk
+  const boundImplementation = (segment: SegmentPlan) => {
+    if (segment.registerSymbol !== true) {
+      return segment.symbolName;
+    }
+    imports.add(QwikWord.RegSymbol);
+    const hash = segment.symbolName.slice(segment.symbolName.lastIndexOf('_') + 1);
+    return `${QwikWord.RegSymbol}(${segment.symbolName}, ${JSON.stringify(hash)})`;
+  };
   const emittedSegmentIds = new Set<string>();
   for (const segment of segments) {
     if (
@@ -495,7 +504,7 @@ export function emitSsrModule(
       }
       // binding the lazy qrl keeps the chunk name on it — serialization reads it directly
       hoists.push(
-        `${bodyLines.join('\n').trim()}\nconst ${qrl}_lazy = ${lazyExpression};\nconst ${qrl} = ${LIB_IS_SERVER} ? (${qrl}_lazy.s(${segment.symbolName}), ${qrl}_lazy) : ${qrl}_lazy;`
+        `${bodyLines.join('\n').trim()}\nconst ${qrl}_lazy = ${lazyExpression};\nconst ${qrl} = ${LIB_IS_SERVER} ? (${qrl}_lazy.s(${boundImplementation(segment)}), ${qrl}_lazy) : ${qrl}_lazy;`
       );
       continue;
     }
@@ -512,7 +521,7 @@ export function emitSsrModule(
       const implementation = `${segment.implementationInOrigin ? 'export ' : ''}const ${
         segment.symbolName
       } = ${source.slice(segment.functionRange[0], segment.functionRange[1])};`;
-      hoists.push(`${implementation}\n${declaration}\n${qrl}.s(${segment.symbolName});`);
+      hoists.push(`${implementation}\n${declaration}\n${qrl}.s(${boundImplementation(segment)});`);
     } else if (inline !== undefined) {
       // blob import lines dedupe module-wide: duplicate bindings are illegal in one module
       const bodyLines: string[] = [];
@@ -526,7 +535,7 @@ export function emitSsrModule(
         }
       }
       hoists.push(
-        `${bodyLines.join('\n').trim()}\n${declaration}\n${qrl}.s(${segment.symbolName});`
+        `${bodyLines.join('\n').trim()}\n${declaration}\n${qrl}.s(${boundImplementation(segment)});`
       );
     } else {
       hoists.push(declaration);

@@ -1359,6 +1359,31 @@ export const App = component$(() => {
   });
 });
 
+describe('regCtxName symbol registration', () => {
+  test('server boundaries register their implementation by hash on ssr', async () => {
+    const input = {
+      path: 'src/server-func.ts',
+      code: `import { server$ } from '@qwik.dev/router';
+export const getData = server$(function () {
+  return 42;
+});
+`,
+    };
+    const result = await transformModules({
+      ...options(input, true),
+      regCtxName: ['server'],
+    });
+    expect(result.diagnostics).toEqual([]);
+    const main = result.modules.find((module) => module.path.endsWith('server-func.ts'))!.code;
+    const segment = result.modules.find((module) => module.segment?.ctxName === 'server$');
+    expect(segment).toBeDefined();
+    const hash = segment!.segment!.name.slice(segment!.segment!.name.lastIndexOf('_') + 1);
+    expect(main).toContain(`_regSymbol(`);
+    expect(main).toContain(JSON.stringify(hash));
+    expect(main).toMatch(/import \{[^}]*_regSymbol[^}]*\}/);
+  });
+});
+
 describe('segment capture order', () => {
   test('chunk capture prelude order matches every consumer .w order', async () => {
     const input = {

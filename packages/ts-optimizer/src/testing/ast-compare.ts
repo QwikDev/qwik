@@ -72,6 +72,11 @@ export function compareAst(expected: string, actual: string, filename: string): 
   const finalActual = stripPositions(cleanActual);
 
   const astMatch = equal(finalExpected, finalActual);
+  if (!astMatch && process.env.AST_DEBUG) {
+    const fs = require('node:fs');
+    fs.writeFileSync('/tmp/ast-exp.json', JSON.stringify(finalExpected, null, 1));
+    fs.writeFileSync('/tmp/ast-act.json', JSON.stringify(finalActual, null, 1));
+  }
 
   return {
     match: astMatch,

@@ -535,7 +535,11 @@ function rewriteCallSites(ctx: RewriteContext): void {
         qrlRef += wCallSuffix(ext.captureNames, '        ', '    ');
       }
 
-      s.overwrite(ext.callStart, ext.callEnd, `${propName}={${qrlRef}}`);
+      // Separate name/value overwrites keep the value range sliceable for the
+      // JSX transform (a whole-attr overwrite makes its value slice throw and
+      // fall back to raw source).
+      s.overwrite(ext.calleeStart, ext.calleeEnd, propName);
+      s.overwrite(ext.argStart, ext.argEnd, qrlRef);
     } else {
       s.overwrite(ext.calleeStart, ext.calleeEnd, ext.qrlCallee);
       s.overwrite(ext.argStart, ext.argEnd, getQrlVarName(ctx, ext.symbolName));
@@ -728,6 +732,11 @@ function runJsxTransform(ctx: RewriteContext): void {
   // reads during the same transformAllJsx walk — a later parseSync overwrites
   // the shared oxc raw-transfer buffer, invalidating cross-phase positions.
   const strippedQpOverrides = buildStrippedEventQpOverrides(ctx);
+  const liftedQpOverrides = buildParentLiftedQpOverrides(ctx);
+  let qpOverrides = strippedQpOverrides;
+  if (liftedQpOverrides) {
+    qpOverrides = new Map([...(strippedQpOverrides ?? []), ...liftedQpOverrides]);
+  }
 
   ctx.jsxResult = transformAllJsx(
     {
@@ -742,7 +751,7 @@ function runJsxTransform(ctx: RewriteContext): void {
       // explicitly set; otherwise keep `relPath`.
       devOptions: ctx.isDevMode ? { relPath: ctx.userDevPath ?? ctx.relPath } : undefined,
       enableSignals: ctx.jsxOptions.enableSignals !== false,
-      qpOverrides: strippedQpOverrides,
+      qpOverrides,
       relPath: ctx.relPath,
       precomputedScopeBindings: ctx.jsxOptions.precomputedScopeBindings,
     }
@@ -845,6 +854,51 @@ function buildStrippedEventQpOverrides(ctx: RewriteContext): Map<number, string[
       }
       if (collectedCaps.length > 0) {
         overrides.set(node.start, collectedCaps);
+      }
+    }
+
+    forEachAstChild(node as AstNode, (child) => walk(child as AstNode));
+  }
+
+  walk(ctx.program as unknown as AstNode);
+
+  return overrides.size > 0 ? overrides : undefined;
+}
+
+/**
+ * Parent-level handlers whose captures were lifted into params need the same `q:p` element wiring
+ * the segment path gets from `buildQpOverrides` — keyed by element start position.
+ */
+function buildParentLiftedQpOverrides(ctx: RewriteContext): Map<number, string[]> | undefined {
+  const lifted = ctx.topLevel.filter(
+    (ext) =>
+      ext.ctxKind === 'eventHandler' &&
+      !ext.isSync &&
+      eventHandlerQpParams(ext.paramNames).length > 0
+  );
+  if (lifted.length === 0) return undefined;
+
+  const overrides = new Map<number, string[]>();
+
+  function walk(node: AstNode | null | undefined): void {
+    if (!node || typeof node !== 'object') return;
+
+    if (node.type === 'JSXElement') {
+      const opening = node.openingElement;
+      const collected: string[] = [];
+      const seen = new Set<string>();
+      for (const ext of lifted) {
+        if (opening && ext.argStart >= opening.start && ext.argEnd <= opening.end) {
+          for (const p of eventHandlerQpParams(ext.paramNames)) {
+            if (!seen.has(p)) {
+              seen.add(p);
+              collected.push(p);
+            }
+          }
+        }
+      }
+      if (collected.length > 0) {
+        overrides.set(node.start, collected);
       }
     }
 

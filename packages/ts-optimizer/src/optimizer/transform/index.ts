@@ -15,6 +15,7 @@ import { transformSync as oxcTransformSync } from 'oxc-transform';
 import { parseWithRawTransfer } from '../ast/parse.js';
 import { isStrippedExtraction } from '../rewrite/predicates.js';
 import { flattenAndReparse } from '../prepare/flatten-destructures.js';
+import { normalizeInlineComponentProps } from '../prepare/inline-component-props.js';
 import { detectForeignJsxRuntime } from '../jsx/jsx-import-source.js';
 import type { ConsolidatedSegment, ExtractionResult, Mutable } from '../extraction/extract.js';
 import { repairInput } from '../prepare/input-repair.js';
@@ -403,6 +404,16 @@ function prepareModuleInput(mod: ModuleContext): PreparedModuleInput {
     repairedCode = flattened.source;
     program = flattened.program;
     parserModule = flattened.module ?? parserModule;
+  }
+
+  // Phase 0.6: normalize inline arrow components' destructured props to
+  // `_rawProps` before extraction, so captures and fnSignal roots see it.
+  const inlineProps = normalizeInlineComponentProps(repairedCode, relPath);
+  if (inlineProps.changed) {
+    repairedCode = inlineProps.source;
+    const reparsed = parseWithRawTransfer(relPath, repairedCode);
+    program = reparsed.program;
+    parserModule = reparsed.module ?? parserModule;
   }
 
   // Detect a foreign `@jsxImportSource` pragma once; threaded into rewrite +

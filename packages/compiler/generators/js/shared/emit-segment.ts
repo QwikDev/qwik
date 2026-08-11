@@ -195,7 +195,12 @@ function emitSegmentCode(
     (candidate) =>
       candidate.kind !== 'localComponent' &&
       candidate.parentId !== null &&
-      chunkParentIds.has(candidate.parentId)
+      candidate.id !== segment.id &&
+      (chunkParentIds.has(candidate.parentId) ||
+        // explicit boundaries nested in this segment's source range: every emitter of the
+        // range owns replacing them (a props segment overlaps its structural parent)
+        (candidate.qrl?.kind === 'explicit' &&
+          containsRange(segment.functionRange, candidate.functionRange)))
   );
   const hasEmbeddedRenders = segment.embeddedRenders.length > 0;
   const embeddedInvokeContextName = hasEmbeddedRenders
@@ -395,18 +400,6 @@ function emitSegmentCode(
     }
   }
   const moduleReferences = getTargetModuleReferences(segment);
-  if (inline && inlineQwikImports !== undefined) {
-    // expression segments extracted from component bodies leave no countable origin reference,
-    // so surface their qwik-import names or the origin import gets pruned from under the blob
-    for (const reference of moduleReferences) {
-      if (
-        reference.import?.source === QWIK_IMPORT &&
-        reference.import.importedName === reference.name
-      ) {
-        inlineQwikImports.add(reference.name);
-      }
-    }
-  }
   // in-module code sees every module-scope binding directly — no reference imports
   if (!inline && moduleReferences.length > 0) {
     for (const reference of moduleReferences) {

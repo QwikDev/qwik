@@ -1270,6 +1270,38 @@ export function App() {
   });
 });
 
+describe('explicit boundaries nested in prop expressions', () => {
+  test('a $ call inside a complex prop expression lowers in every emitter of its range', async () => {
+    const input = {
+      path: 'src/nested-dollar.tsx',
+      code: `import { $ } from '@qwik.dev/core';
+export const Shell = ({ action, reload, onSubmit$, ...rest }: any) =>
+  action ? (
+    <form
+      {...rest}
+      onSubmit$={
+        (Array.isArray(onSubmit$)
+          ? [...onSubmit$, !reload ? $((evt: Event) => action.submit(evt)) : undefined]
+          : [onSubmit$]) as any
+      }
+    />
+  ) : null;
+`,
+    };
+    for (const isServer of [true, false]) {
+      const result = await transformModules(options(input, isServer));
+      const dollarSegment = result.modules.find((module) => module.segment?.ctxName === '$');
+      expect(dollarSegment, 'the $ boundary extracts').toBeDefined();
+      for (const module of result.modules) {
+        expect(
+          module.code,
+          `unlowered $ call in ${module.path} (isServer ${isServer})`
+        ).not.toMatch(/[^\w$]\$\(/);
+      }
+    }
+  });
+});
+
 describe('segment capture order', () => {
   test('chunk capture prelude order matches every consumer .w order', async () => {
     const input = {

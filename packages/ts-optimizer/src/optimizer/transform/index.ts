@@ -7,6 +7,7 @@
 import type {
   AstEcmaScriptModule,
   AstFunction,
+  AstNode,
   AstProgram,
   TSEnumDeclaration,
 } from '../../ast-types.js';
@@ -20,6 +21,7 @@ import { repairInput } from '../prepare/input-repair.js';
 import {
   rewriteParentModule,
   resolveConstLiteralsInClosure,
+  resolveWholeBodyIdentifier,
   type InlineStrategyOptions,
   type JsxRewriteOptions,
   type ParentRewriteResult,
@@ -31,7 +33,7 @@ import {
 } from '../extraction/marker-detection.js';
 import { buildDevFilePath } from '../segment/dev-mode.js';
 import { isSimpleIdentifierName } from '../ast/identifier-name.js';
-import { type SymbolName, mkSymbolName, type RelativePath } from '../types/brands.js';
+import { type SymbolName, mkBodyText, mkSymbolName, type RelativePath } from '../types/brands.js';
 import {
   analyzeCaptures,
   collectScopeIdentifiers,
@@ -1138,6 +1140,19 @@ function generateSegments(
   // Resolve const-literal captures for child segments (default strategy only).
   const constLiteralsMap = new Map<string, Map<string, string>>();
   if (!emit.isInlineStrategy) {
+    // A whole-body identifier (`$(render)`) inlines its const init so the
+    // segment doesn't emit a dangling reference.
+    for (const ext of updatedExtractions) {
+      if (ext.isSync || ext.isInlinedQrl) continue;
+      const bare = ext.bodyText.trim();
+      if (!isSimpleIdentifierName(bare)) continue;
+      const scopeNode = ext.parent ? closureNodes.get(ext.parent) : (program as unknown as AstNode);
+      if (!scopeNode) continue;
+      const initText = resolveWholeBodyIdentifier(scopeNode as AstNode, repairedCode, bare);
+      if (initText !== null) {
+        (ext as Mutable<ExtractionResult>).bodyText = mkBodyText(initText);
+      }
+    }
     for (const ext of updatedExtractions) {
       if (ext.isSync || ext.parent === null) continue;
       if (ext.constLiterals && ext.constLiterals.size > 0) {

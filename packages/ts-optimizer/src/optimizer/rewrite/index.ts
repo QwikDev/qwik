@@ -58,6 +58,7 @@ import { detectAndRenameCollisions } from './symbol-collision.js';
 export {
   resolveConstLiterals,
   resolveConstLiteralsInClosure,
+  resolveWholeBodyIdentifier,
   inlineConstCaptures,
   propagateConstLiteralsInBody,
 } from './const-propagation.js';

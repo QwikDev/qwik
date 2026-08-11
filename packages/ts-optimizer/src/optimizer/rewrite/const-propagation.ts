@@ -153,6 +153,55 @@ function isLiteralNode(node: AstNode): boolean {
   return node.type === 'Literal';
 }
 
+/**
+ * Resolve a whole-body identifier segment (`$(render)`, `useStyles$(style)`) to its const init's
+ * source text, matching Rust's static-expression inlining. Only fires when the init is a
+ * serializable expression (literal, template, function) whose free identifiers are not locals of
+ * the enclosing scope — those would need real captures.
+ */
+export function resolveWholeBodyIdentifier(
+  scopeNode: AstNode,
+  source: string,
+  name: string
+): string | null {
+  let initText: string | null = null;
+  let initNode: AstNode | null = null;
+
+  const localBindings = new Set<string>();
+  const visit = (node: AstNode | null | undefined): void => {
+    if (!node) return;
+    if (node.type === 'VariableDeclaration') {
+      for (const decl of node.declarations) {
+        if (decl.id.type === 'Identifier') {
+          localBindings.add(decl.id.name);
+          if (decl.id.name === name && decl.init && node.kind === 'const') {
+            initNode = decl.init as AstNode;
+            initText = source.slice(decl.init.start, decl.init.end);
+          }
+        }
+      }
+    } else if (node.type === 'FunctionDeclaration' && node.id) {
+      localBindings.add(node.id.name);
+    }
+    forEachAstChild(node, (child) => visit(child));
+  };
+  visit(scopeNode);
+
+  if (initText === null || initNode === null) return null;
+  const init = initNode as AstNode;
+  const serializable =
+    init.type === 'Literal' ||
+    init.type === 'TemplateLiteral' ||
+    init.type === 'ArrowFunctionExpression' ||
+    init.type === 'FunctionExpression';
+  if (!serializable) return null;
+
+  for (const ident of collectIdentifiers(init)) {
+    if (ident !== name && localBindings.has(ident)) return null;
+  }
+  return initText;
+}
+
 function collectIdentifiers(node: AstNode): string[] {
   const ids: string[] = [];
   function walk(n: AstNode | null | undefined): void {

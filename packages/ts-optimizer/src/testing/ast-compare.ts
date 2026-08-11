@@ -48,7 +48,7 @@ export function compareAst(expected: string, actual: string, filename: string): 
     ? actualResult.errors.map((e) => e.message).join('; ')
     : null;
 
-  if ((expectedErrors || actualErrors) && (!expectedResult.program || !actualResult.program)) {
+  if (expectedErrors || actualErrors) {
     return {
       match: false,
       expectedParseError: expectedErrors,
@@ -2457,6 +2457,19 @@ function stripBareQrlPreloadCalls(program: AstCompatNode): void {
   }
 }
 
+/**
+ * Only compiler-generated bindings (QRL vars, hoisted fns, segment symbols) may be stripped when
+ * unused — stripping user declarations would hide semantic differences.
+ */
+function isCompilerGeneratedName(name: string): boolean {
+  return (
+    name.startsWith('q_') ||
+    name.startsWith('_auto_') ||
+    /^_hf\d+(_str)?$/.test(name) ||
+    /_[A-Za-z0-9]{11}$/.test(name)
+  );
+}
+
 function stripUnusedModuleLevelDeclarations(program: AstCompatNode): void {
   const body = asArray(program.body);
   if (!body) return;
@@ -2493,7 +2506,9 @@ function stripUnusedModuleLevelDeclarations(program: AstCompatNode): void {
         const allUnused = (asArray(stmt.declarations) ?? []).every((decl: unknown) => {
           const names = new Map<string, number>();
           collectDeclaredNames(isRecord(decl) ? decl.id : undefined, i, names);
-          return Array.from(names.keys()).every((n) => !referencedNames.has(n));
+          return Array.from(names.keys()).every(
+            (n) => !referencedNames.has(n) && isCompilerGeneratedName(n)
+          );
         });
         if (allUnused) {
           body.splice(i, 1);
@@ -2502,14 +2517,22 @@ function stripUnusedModuleLevelDeclarations(program: AstCompatNode): void {
       }
       if (stmt.type === 'FunctionDeclaration' && isRecord(stmt.id) && stmt.id.name) {
         const idName = asString(stmt.id.name);
-        if (idName !== undefined && !referencedNames.has(idName)) {
+        if (
+          idName !== undefined &&
+          !referencedNames.has(idName) &&
+          isCompilerGeneratedName(idName)
+        ) {
           body.splice(i, 1);
           changed = true;
         }
       }
       if (stmt.type === 'ClassDeclaration' && isRecord(stmt.id) && stmt.id.name) {
         const idName = asString(stmt.id.name);
-        if (idName !== undefined && !referencedNames.has(idName)) {
+        if (
+          idName !== undefined &&
+          !referencedNames.has(idName) &&
+          isCompilerGeneratedName(idName)
+        ) {
           body.splice(i, 1);
           changed = true;
         }

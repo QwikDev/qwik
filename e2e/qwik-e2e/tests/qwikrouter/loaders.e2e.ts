@@ -91,6 +91,15 @@ test.describe('loaders', () => {
       await page.waitForURL('**/reexported-loader/two/');
       await expect(loaderId).toHaveText('id: two');
     });
+
+    test('loads a dynamically registered loader after an action redirect', async ({ page }) => {
+      await page.goto('/qwikrouter-test/dynamic-session/login/');
+      await page.evaluate(() => ((window as any).__dynamicSessionMarker = true));
+      await page.getByRole('button', { name: 'Sign in' }).click();
+
+      await expect(page.locator('#dynamic-session-user')).toHaveText('admin');
+      expect(await page.evaluate(() => (window as any).__dynamicSessionMarker)).toBe(true);
+    });
   });
 
   function tests() {

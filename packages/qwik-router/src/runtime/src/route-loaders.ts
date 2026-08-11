@@ -132,13 +132,13 @@ export type RouteLoaderCtx = {
   loaderPaths: Record<string, string | undefined>;
   pagePathname?: string;
   pageSearch?: string;
+  /** Buildtime loader paths for the current client route. */
+  currentLoaderPaths?: Record<string, string>;
   /** SPA navigation function. Client-only and intentionally omitted from SSR state. */
   goto?: NoSerialize<RouteNavigate>;
   /** Client manifest hash for q-loader fetch URLs. */
   manifestHash?: string;
 };
-
-type DevRouteLoaderCtx = RouteLoaderCtx & { devRouteLoaderPaths?: Record<string, true> };
 
 export type RouteLoaderState = Record<string, ComputedSignal<unknown>>;
 
@@ -611,16 +611,11 @@ export const updateRouteLoaderPaths = (
   if (!isServer) {
     ctx.pagePathname = pageUrl.pathname;
     ctx.pageSearch = pageUrl.search;
-    if (isDev) {
-      (ctx as DevRouteLoaderCtx).devRouteLoaderPaths = {};
-    }
+    ctx.currentLoaderPaths = loaderPaths;
   }
   if (loaderPaths) {
     for (const key in loaderPaths) {
       ctx.loaderPaths[key] = loaderPaths[key];
-      if (!isServer && isDev) {
-        (ctx as DevRouteLoaderCtx).devRouteLoaderPaths![key] = true;
-      }
     }
   }
 };
@@ -676,11 +671,13 @@ export const ensureRouteLoaderSignals = (
     const loader = loaders[i];
     // Dev-only safety net for the first SPA nav: the route module isn't transformed yet, so the
     // client trie has no _R loader hash and the loader would resolve to undefined.
-    if (isDev && !isServer) {
-      const devCtx = routeLoaderCtx as DevRouteLoaderCtx;
-      if (devCtx.pagePathname && !devCtx.devRouteLoaderPaths?.[loader.__id]) {
-        devCtx.loaderPaths[loader.__id] = devCtx.pagePathname;
-      }
+    if (
+      isDev &&
+      !isServer &&
+      routeLoaderCtx.pagePathname &&
+      routeLoaderCtx.currentLoaderPaths?.[loader.__id] === undefined
+    ) {
+      routeLoaderCtx.loaderPaths[loader.__id] = routeLoaderCtx.pagePathname;
     }
     ensureRouteLoaderSignal(loader, state, routeLoaderCtx);
   }
@@ -934,9 +931,19 @@ export const routeLoaderQrl = ((
 
   function loader() {
     const state = _resolveContextWithoutSequentialScope(RouteStateContext)!;
+    let routeLoaderCtx: RouteLoaderCtx | undefined;
+    if (!isServer) {
+      routeLoaderCtx = _resolveContextWithoutSequentialScope(RouteLoaderCtxContext)!;
+      if (
+        routeLoaderCtx.pagePathname &&
+        routeLoaderCtx.currentLoaderPaths?.[loader.__id] === undefined
+      ) {
+        routeLoaderCtx.loaderPaths[loader.__id] = routeLoaderCtx.pagePathname;
+      }
+    }
     let signal = state[loader.__id];
     if (!signal) {
-      const routeLoaderCtx = _resolveContextWithoutSequentialScope(RouteLoaderCtxContext)!;
+      routeLoaderCtx ??= _resolveContextWithoutSequentialScope(RouteLoaderCtxContext)!;
       signal = ensureRouteLoaderSignal(loader, state, routeLoaderCtx);
     }
     void signal.promise();

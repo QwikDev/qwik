@@ -1,17 +1,9 @@
 import { execSync } from 'child_process';
-import { existsSync, readFileSync, writeFileSync } from 'fs';
+import { existsSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { workspaceRoot } from '.';
 
-const OPTIMIZER_PACKAGE = '@qwik.dev/ts-optimizer';
-const CORE_PACKAGE = '@qwik.dev/core';
-const corePackagePath = join(workspaceRoot, 'packages/qwik/package.json');
-
 const packageCfg: Record<string, { packagePath: string; distPath: string }> = {
-  '@qwik.dev/ts-optimizer': {
-    packagePath: 'packages/ts-optimizer',
-    distPath: 'packages/ts-optimizer/dist',
-  },
   '@qwik.dev/core': {
     packagePath: 'packages/qwik',
     distPath: 'packages/qwik/dist',
@@ -35,25 +27,12 @@ function ensurePackageBuilt() {
 function packPackages() {
   const tarballPaths: { name: string; absolutePath: string }[] = [];
   const tarballOutDir = join(workspaceRoot, 'temp', 'tarballs');
-  const originalCorePackageJson = readFileSync(corePackagePath, 'utf-8');
 
-  try {
-    for (const [name, cfg] of Object.entries(packageCfg)) {
-      if (name === CORE_PACKAGE) {
-        const optimizerTarball = tarballPaths.find((pkg) => pkg.name === OPTIMIZER_PACKAGE);
-        if (!optimizerTarball) {
-          throw new Error(`Missing packed ${OPTIMIZER_PACKAGE} package.`);
-        }
-        updateCoreOptimizerDependency(optimizerTarball.absolutePath);
-      }
-
-      tarballPaths.push({
-        name,
-        absolutePath: packPackage(join(workspaceRoot, cfg.packagePath), tarballOutDir),
-      });
-    }
-  } finally {
-    writeFileSync(corePackagePath, originalCorePackageJson);
+  for (const [name, cfg] of Object.entries(packageCfg)) {
+    tarballPaths.push({
+      name,
+      absolutePath: packPackage(join(workspaceRoot, cfg.packagePath), tarballOutDir),
+    });
   }
 
   writeFileSync(join(tarballOutDir, 'paths.json'), JSON.stringify(tarballPaths));
@@ -66,15 +45,6 @@ function packPackage(packagePath: string, tarballOutDir: string) {
   });
   const json = JSON.parse(out);
   return json.filename;
-}
-
-function updateCoreOptimizerDependency(optimizerTarballPath: string) {
-  const packageJson = JSON.parse(readFileSync(corePackagePath, 'utf-8'));
-  packageJson.dependencies = {
-    ...packageJson.dependencies,
-    [OPTIMIZER_PACKAGE]: `file:${optimizerTarballPath.replace(/\\/g, '/')}`,
-  };
-  writeFileSync(corePackagePath, `${JSON.stringify(packageJson, null, 2)}\n`);
 }
 
 ensurePackageBuilt();

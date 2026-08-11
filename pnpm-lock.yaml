@@ -757,21 +757,36 @@ importers:
 
   packages/qwik:
     dependencies:
-      '@qwik.dev/ts-optimizer':
-        specifier: workspace:*
-        version: link:../ts-optimizer
       csstype:
         specifier: ^3.2.3
         version: 3.2.3
       launch-editor:
         specifier: ^2.14.1
         version: 2.14.1
+      magic-regexp:
+        specifier: ^0.11.0
+        version: 0.11.0
       magic-string:
         specifier: 0.30.21
         version: 0.30.21
+      oxc-parser:
+        specifier: ^0.124.0
+        version: 0.124.0(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)
+      oxc-transform:
+        specifier: ^0.124.0
+        version: 0.124.0(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)
+      oxc-walker:
+        specifier: ^0.7.0
+        version: 0.7.0(oxc-parser@0.124.0(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1))
+      pathe:
+        specifier: ^2.0.3
+        version: 2.0.3
       rollup:
         specifier: ^4.61.0
         version: 4.61.0
+      siphash:
+        specifier: ^1.1.0
+        version: 1.2.0
     devDependencies:
       '@croct/json5-parser':
         specifier: 0.2.2

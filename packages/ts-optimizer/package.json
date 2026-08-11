@@ -36,9 +36,6 @@
   "files": [
     "dist"
   ],
-  "publishConfig": {
-    "access": "public"
-  },
   "scripts": {
     "build": "tsdown",
     "test": "vitest run",
@@ -62,5 +59,6 @@
     "tsdown": "^0.22.3",
     "typescript": "^5.7.0",
     "vitest": "^4.1.4"
-  }
+  },
+  "private": true
 }

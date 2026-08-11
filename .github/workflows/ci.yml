@@ -138,9 +138,7 @@ jobs:
         uses: actions/cache/restore@v5
         with:
           lookup-only: true
-          path: |
-            packages/qwik/dist
-            packages/ts-optimizer/dist
+          path: packages/qwik/dist
           # Note that this includes the package.json of qwik
           # qwik-vite source is bundled into packages/qwik/dist/optimizer.mjs by scripts/submodule-optimizer.ts, so its sources must invalidate this cache.
           # CI-only helpers should not invalidate compiled package output caches.
@@ -256,9 +254,7 @@ jobs:
         uses: actions/cache/restore@v5
         with:
           fail-on-cache-miss: true
-          path: |
-            packages/qwik/dist
-            packages/ts-optimizer/dist
+          path: packages/qwik/dist
           key: ${{ needs.changes.outputs.hash-qwik }}
 
       - name: Print Qwik Dist Build
@@ -270,18 +266,14 @@ jobs:
         uses: actions/cache/save@v5
         with:
           key: ${{ needs.changes.outputs.hash-qwik }}
-          path: |
-            packages/qwik/dist
-            packages/ts-optimizer/dist
+          path: packages/qwik/dist
 
       - name: Upload Qwik artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: artifact-qwik
           include-hidden-files: true
-          path: |
-            packages/qwik/dist/
-            packages/ts-optimizer/dist/
+          path: packages/qwik/dist/
           if-no-files-found: error
 
       - name: 'build: qwik-router & others'

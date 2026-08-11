@@ -12,13 +12,7 @@ const root = resolve(import.meta.dirname, '..');
 
 /** Each entry maps an artifact source to its package destination. */
 const artifacts: Array<{ artifact: string; src: string; dest: string }> = [
-  // artifact-qwik uploads two dists; upload LCA is packages/, so paths nest under it
-  { artifact: 'artifact-qwik', src: 'artifact-qwik/qwik/dist', dest: 'packages/qwik/dist' },
-  {
-    artifact: 'artifact-qwik',
-    src: 'artifact-qwik/ts-optimizer/dist',
-    dest: 'packages/ts-optimizer/dist',
-  },
+  { artifact: 'artifact-qwik', src: 'artifact-qwik', dest: 'packages/qwik/dist' },
   {
     artifact: 'artifact-qwikrouter',
     src: 'artifact-qwikrouter',

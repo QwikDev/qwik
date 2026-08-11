@@ -2,4 +2,4 @@
 '@qwik.dev/core': minor
 ---
 
-feat: the vite plugin now uses the TypeScript optimizer
+feat: the optimizer is now a bundled TypeScript implementation, replacing the Rust binaries

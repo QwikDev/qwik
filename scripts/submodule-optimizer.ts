@@ -4,7 +4,6 @@ import { join } from 'node:path';
 import { build as viteBuild, type UserConfig } from 'vite';
 import { compiledStringPlugin } from './compiled-string-plugin.ts';
 import { inlineQwikScriptsEsBuild } from './submodule-qwikloader.ts';
-import { execa } from 'execa';
 import { access, getBanner, target, writeFile, type BuildConfig } from './util.ts';
 
 /** Builds packages/rust-optimizer and packages/qwik-vite */
@@ -48,6 +47,8 @@ export async function submoduleOptimizer(config: BuildConfig) {
         ],
         output: {
           banner: getBanner('@qwik.dev/core/optimizer', config.distVersion),
+          // The TS optimizer ships as a sibling dist file, loaded lazily.
+          paths: { '@qwik.dev/ts-optimizer': './ts-optimizer.mjs' },
         },
       },
       lib: {
@@ -78,17 +79,46 @@ export async function submoduleOptimizer(config: BuildConfig) {
     ],
   };
 
-  // The Rust wrapper only builds alongside the Rust bindings (local dev);
-  // CI builds the TS optimizer instead.
+  // The TS optimizer bundles into core dist; oxc native bindings and the
+  // other runtime deps stay external (they are @qwik.dev/core dependencies).
+  const tsOptimizerConfig: UserConfig = {
+    clearScreen: false,
+    build: {
+      emptyOutDir: false,
+      outDir: config.distQwikPkgDir,
+      sourcemap: false,
+      target: target,
+      minify: !config.dev,
+      rollupOptions: {
+        external: [
+          /^node:/,
+          'oxc-parser',
+          'oxc-transform',
+          'oxc-walker',
+          'magic-regexp',
+          'magic-string',
+          'pathe',
+          'siphash',
+        ],
+        output: {
+          banner: getBanner('@qwik.dev/core ts-optimizer', config.distVersion),
+        },
+      },
+      lib: {
+        entry: join(config.packagesDir, 'ts-optimizer', 'src', 'index.ts'),
+        name: 'tsOptimizer',
+        fileName: () => `ts-optimizer.mjs`,
+        formats: ['es'],
+      },
+    },
+  };
+
+  // The Rust wrapper only builds alongside the Rust bindings (local dev).
   const buildsRustWrapper = config.platformBinding || config.platformBindingWasmCopy || config.wasm;
 
   await Promise.all([
     viteBuild(esmConfig),
-    execa('pnpm', ['--filter', '@qwik.dev/ts-optimizer', 'build'], {
-      stdout: 'inherit',
-      stderr: 'inherit',
-      cwd: config.rootDir,
-    }),
+    viteBuild(tsOptimizerConfig),
     ...(buildsRustWrapper
       ? [
           viteBuild({

@@ -411,7 +411,7 @@ export function transformInlineSegmentBody(
         {
           skipRanges: [],
           devOptions: devOptionsForCall,
-          keyCounterStart: jsxBodyOptions.keyCounterStart,
+          keyCounterStart: sharedKeyCounterStart ?? jsxBodyOptions.keyCounterStart,
           qpOverrides: bodyQpOverrides,
           qrlsWithCaptures: bodyQrlsWithCaptures,
           relPath: jsxBodyOptions.relPath,

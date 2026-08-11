@@ -54,6 +54,7 @@ import {
   assembleOutput,
 } from './output-assembly.js';
 import { detectAndRenameCollisions } from './symbol-collision.js';
+import { countJsxKeysInNode } from '../segment/segment-generation.js';
 
 export {
   resolveConstLiterals,
@@ -216,6 +217,59 @@ export function rewriteParentModule(
 
   preConsolidateRawPropsCaptures(ctx);
   ctx.topLevel = extractions.filter((e) => e.parent === null);
+
+  // Inline strategy keeps every body in the parent module. When the parent
+  // has keyable JSX of its own interleaved with extracted bodies, key numbers
+  // must follow the module-order walk — reserve each body's range as the
+  // parent walk passes it. Without parent-level JSX, extraction-order
+  // numbering already matches, so the mechanism stays off.
+  if (ctx.isInline) {
+    const reservationJsxFns = collectJsxFunctionNamesFromIterable(ctx.originalImports.values());
+    const regions: Array<{ start: number; end: number; count: number }> = [];
+    for (const ext of ctx.topLevel) {
+      if (ext.isSync) continue;
+      const node = ctx.closureNodes?.get(ext.symbolName);
+      if (!node) continue;
+      const count = countJsxKeysInNode(node, reservationJsxFns);
+      if (count > 0) regions.push({ start: ext.argStart, end: ext.argEnd, count });
+    }
+    // Engage only when a parent-level keyable site FOLLOWS a region in source
+    // — the shape where extraction-order numbering diverges from the
+    // module-order walk. (Parent sites before all regions number identically.)
+    const minRegionStart = regions.reduce((min, r) => Math.min(min, r.start), Infinity);
+    let parentSiteAfterRegion = false;
+    if (regions.length > 0) {
+      const visit = (n: AstNode | null | undefined): void => {
+        if (!n || parentSiteAfterRegion) return;
+        const inRegion = regions.some((r) => n.start >= r.start && n.start < r.end);
+        if (!inRegion) {
+          const isSyntax = n.type === 'JSXElement' || n.type === 'JSXFragment';
+          const isCall =
+            n.type === 'CallExpression' &&
+            (n as unknown as { callee?: { type?: string; name?: string } }).callee?.type ===
+              'Identifier' &&
+            reservationJsxFns.has((n as unknown as { callee: { name: string } }).callee.name);
+          if ((isSyntax || isCall) && n.start > minRegionStart) {
+            parentSiteAfterRegion = true;
+            return;
+          }
+        }
+        forEachAstChild(n, (child) => visit(child as AstNode));
+      };
+      visit(ctx.program as unknown as AstNode);
+    }
+    if (regions.length > 0 && parentSiteAfterRegion) {
+      const bases = new Map<number, number>();
+      ctx.jsxKeyReservations = {
+        bases,
+        findRegion(pos: number) {
+          return regions.find((r) => pos >= r.start && pos < r.end);
+        },
+      };
+      ctx.jsxCallSkipKeyBases = bases;
+    }
+  }
+
   preComputeQrlVarNames(ctx);
   rewriteCallSites(ctx);
   rewriteNoArgMarkers(ctx);
@@ -753,6 +807,7 @@ function runJsxTransform(ctx: RewriteContext): void {
       devOptions: ctx.isDevMode ? { relPath: ctx.userDevPath ?? ctx.relPath } : undefined,
       enableSignals: ctx.jsxOptions.enableSignals !== false,
       qpOverrides,
+      keyReservations: ctx.jsxKeyReservations,
       relPath: ctx.relPath,
       precomputedScopeBindings: ctx.jsxOptions.precomputedScopeBindings,
     }
@@ -795,6 +850,7 @@ function runPeerToolJsxCallTransform(ctx: RewriteContext): void {
     keyCounter: parentKeyCounter,
     neededImports: neededParentImports,
     skipRanges,
+    keyReservations: ctx.jsxKeyReservations,
     qpByQrl: qpByQrl.size > 0 ? qpByQrl : undefined,
   });
   ctx.jsxKeyCounterValue = parentKeyCounter.current();

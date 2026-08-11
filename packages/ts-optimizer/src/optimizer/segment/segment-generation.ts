@@ -32,6 +32,7 @@ import {
 } from '../rewrite/rewrite-calls.js';
 import { getQrlCalleeName } from '../qwik/qrl-naming.js';
 import { isHtmlElement } from '../jsx/jsx.js';
+import { isJsxCall } from '../jsx/jsx-call-transform.js';
 import { resolveSameFileImportName } from './import-collection.js';
 import { buildQrlDevDeclaration, formatDevMeta } from './dev-mode.js';
 import { generateStrippedSegmentCode } from './strip-ctx.js';
@@ -1512,7 +1513,7 @@ function countJsxKeyConsumption(bodyText: string): number {
 }
 
 /** Counting walk shared by the node path and the body-text fallback. */
-function countJsxKeysInNode(root: AstNode): number {
+export function countJsxKeysInNode(root: AstNode, jsxFunctions?: ReadonlySet<string>): number {
   let count = 0;
   function isHtmlElementName(n: AstNode | null | undefined): boolean {
     if (!n || n.type !== 'JSXElement') return false;
@@ -1528,6 +1529,10 @@ function countJsxKeysInNode(root: AstNode): number {
       if (!(parentIsJsxParent && isHtmlElementName(n))) count++;
     } else if (n.type === 'JSXFragment') {
       count++;
+    } else if (jsxFunctions && isJsxCall(n, jsxFunctions) && n.type === 'CallExpression') {
+      const args = n.arguments ?? [];
+      const hasExplicitKey = args.length === 3 && args[2] && args[2].type !== 'SpreadElement';
+      if (!hasExplicitKey) count++;
     }
     const childIsInJsxParent = n.type === 'JSXElement' || n.type === 'JSXFragment';
     forEachAstChild(n, (child) => walk(child, childIsInJsxParent));

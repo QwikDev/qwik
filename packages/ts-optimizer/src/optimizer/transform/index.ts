@@ -82,6 +82,7 @@ import {
   removeUnusedImports,
 } from './module-cleanup.js';
 import { applySegmentDCE } from './dead-code.js';
+import { applyModuleHygieneRenames } from './hygiene-renames.js';
 import {
   detectC02Diagnostics,
   detectC05Diagnostics,
@@ -1120,12 +1121,13 @@ function rewriteParent(
     undefined,
     emit.isLibMode
   );
-  const removedImportSources = collectRemovedImportSources(analysis.originalImports, cleanedCode);
+  const hygienicCode = applyModuleHygieneRenames(cleanedCode, relPath);
+  const removedImportSources = collectRemovedImportSources(analysis.originalImports, hygienicCode);
   const parentModule: TransformModule = {
     kind: 'parent',
     path: relPath,
     isEntry: false,
-    code: cleanedCode,
+    code: hygienicCode,
     map: null,
     origPath: input.path,
     imports: removedImportSources.length > 0 ? removedImportSources : undefined,

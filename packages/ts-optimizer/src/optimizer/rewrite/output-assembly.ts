@@ -515,7 +515,7 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
       ctx.source,
       ctx.originalImports,
       ctx.relPath,
-      ctx.jsxKeyCounterValue,
+      ctx.jsxCallSkipKeyBases?.get(ext.argStart) ?? ctx.jsxKeyCounterValue,
       migratedNames,
       inlineOptions?.stripCtxName,
       inlineOptions?.stripEventHandlers,
@@ -541,13 +541,15 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
       neededImports.set('_regSymbol', '@qwik.dev/core');
     }
 
-    if (isHoist && keyCounterValue !== undefined && inlineSegmentJsxOptions) {
+    // A body numbered from a reserved base must not rewind the shared counter.
+    const usedReservedBase = ctx.jsxCallSkipKeyBases?.has(ext.argStart) === true;
+    if (isHoist && keyCounterValue !== undefined && inlineSegmentJsxOptions && !usedReservedBase) {
       ctx.jsxKeyCounterValue = keyCounterValue;
       inlineSegmentJsxOptions = {
         ...inlineSegmentJsxOptions,
         keyCounterStart: ctx.jsxKeyCounterValue,
       };
-    } else if (keyCounterValue !== undefined) {
+    } else if (keyCounterValue !== undefined && !usedReservedBase) {
       // The JSX key counter is shared across every `.s(body)` block; without
       // threading it, the next body's keys would restart at 0.
       ctx.jsxKeyCounterValue = keyCounterValue;

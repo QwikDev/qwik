@@ -490,7 +490,7 @@ export function transformJsxElement(
   } else if (isSoleChild && tagIsHtml) {
     keyStr = null;
   } else {
-    keyStr = `"${keyCounter.next()}"`;
+    keyStr = `"${keyCounter.nextFor(node.start)}"`;
   }
 
   if (hasSpread) {
@@ -564,7 +564,7 @@ export function transformJsxFragment(
   });
 
   const flags = computeJsxFlags(false, childrenType);
-  const keyStr = `"${keyCounter.next()}"`;
+  const keyStr = `"${keyCounter.nextFor(node.start)}"`;
   const callString = `_jsxSorted(_Fragment, null, null, ${childrenText ?? 'null'}, ${flags}, ${keyStr})`;
 
   return {

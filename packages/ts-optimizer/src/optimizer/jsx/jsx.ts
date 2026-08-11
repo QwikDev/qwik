@@ -594,6 +594,8 @@ export function computeJsxFlags(
 export class JsxKeyCounter {
   private count: number;
   private prefix: string;
+  /** (source position, assigned index) per consumed key — drives post-hoc renumbering. */
+  readonly log: Array<{ pos: number; index: number }> = [];
 
   constructor(startAt = 0, prefix = 'u6') {
     this.count = startAt;
@@ -604,6 +606,17 @@ export class JsxKeyCounter {
     return `${this.prefix}_${this.count++}`;
   }
 
+  /** Like `next()`, recording the consuming node's source position. */
+  nextFor(pos: number): string {
+    this.log.push({ pos, index: this.count });
+    return this.next();
+  }
+
+  /** Reserve `n` keys (consumed later by an extracted body's own counter). */
+  advance(n: number): void {
+    this.count += n;
+  }
+
   current(): number {
     return this.count;
   }
@@ -611,6 +624,28 @@ export class JsxKeyCounter {
   reset(): void {
     this.count = 0;
   }
+}
+
+/**
+ * Inline-strategy key reservation: extracted bodies' keys are numbered where the module-order walk
+ * would place them. The parent transforms skip extraction ranges; on first contact with a counted
+ * region they record its base and advance past its keys.
+ */
+export interface JsxKeyReservations {
+  readonly bases: Map<number, number>;
+  findRegion(pos: number): { start: number; count: number } | undefined;
+}
+
+export function reserveRegionKeys(
+  reservations: JsxKeyReservations | undefined,
+  keyCounter: JsxKeyCounter,
+  pos: number
+): void {
+  if (!reservations) return;
+  const region = reservations.findRegion(pos);
+  if (!region || reservations.bases.has(region.start)) return;
+  reservations.bases.set(region.start, keyCounter.current());
+  keyCounter.advance(region.count);
 }
 
 export function isHtmlElement(tagName: string): boolean {
@@ -776,6 +811,8 @@ export interface TransformAllJsxOptions {
   skipRanges?: Array<{ start: number; end: number }>;
   devOptions?: DevSuffixOptions;
   keyCounterStart?: number;
+  /** Inline-strategy reservation of extracted-body key ranges. */
+  keyReservations?: JsxKeyReservations;
   enableSignals?: boolean;
   qpOverrides?: Map<number, string[]>;
   qrlsWithCaptures?: Set<string>;
@@ -794,6 +831,7 @@ export function transformAllJsx(
     skipRanges,
     devOptions,
     keyCounterStart,
+    keyReservations,
     enableSignals = true,
     qpOverrides,
     qrlsWithCaptures,
@@ -905,7 +943,10 @@ export function transformAllJsx(
         ctx.loopStack.pop();
       }
 
-      if (ctx.ranges.length > 0 && isInSkipRange(node.start, node.end, ctx.ranges)) return;
+      if (ctx.ranges.length > 0 && isInSkipRange(node.start, node.end, ctx.ranges)) {
+        reserveRegionKeys(keyReservations, keyCounter, node.start);
+        return;
+      }
 
       const currentLoop = ctx.loopStack.length > 0 ? ctx.loopStack[ctx.loopStack.length - 1] : null;
 

@@ -365,6 +365,8 @@ function getDirectWrapperContextName(
     return null;
   }
   if (isMarkerCall(parent, imports, customInlined)) return null;
+  // Plain identifier callees already pushed via the generic call-callee rule.
+  if (parent.callee?.type === 'Identifier') return null;
 
   const wrapperCallee = getCalleeName(parent);
   if (!wrapperCallee) return null;
@@ -707,11 +709,11 @@ export function createExtractionCollector(
         const rawKey = node.key.name;
         // Skip the `children` key when naming a JSX props bag, so a handler
         // nested under `{ children: _jsxDEV("button", …) }` is named
-        // `…_button_…`, not `…_children_button_…`. Only tagged JSX bags — a
-        // plain object literal's `children` key still contributes to naming.
-        if (!(jsxKind && rawKey === 'children')) {
+        // `…_button_…`, not `…_children_button_…`. Plain object literals don't
+        // contribute keys at all — enclosing call callees name those contexts.
+        if (jsxKind && rawKey !== 'children') {
           let pushedKey: string;
-          if (jsxKind && rawKey.endsWith('$')) {
+          if (rawKey.endsWith('$')) {
             if (jsxKind === 'component') {
               pushedKey = rawKey.slice(0, -1);
             } else {
@@ -777,6 +779,11 @@ export function createExtractionCollector(
               ctx.jsxPropObjects.set(propsArg, 'component');
             }
           }
+        } else if (!isMarkerCall(node, imports, customInlined)) {
+          // Plain identifier calls (`children(...)`, `it('…', () => …)`) name
+          // the closures inside their arguments.
+          ctx.naming.push(calleeName);
+          pushCount++;
         }
       }
 

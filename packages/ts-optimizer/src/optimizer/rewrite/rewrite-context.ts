@@ -57,6 +57,10 @@ export interface RewriteContext {
   noArgQrlCallees: Array<{ callee: string; source: string }>;
   jsxResult: JsxTransformOutput | null;
   jsxKeyCounterValue: number;
+  /** Per-extraction JSX key bases reserved by the parent walks (keyed by argStart). */
+  jsxCallSkipKeyBases?: Map<number, number>;
+  /** Inline-strategy reservation of extracted-body key ranges. */
+  jsxKeyReservations?: import('../jsx/jsx.js').JsxKeyReservations;
   isDevMode: boolean;
   isInline: boolean;
   isLibMode: boolean;

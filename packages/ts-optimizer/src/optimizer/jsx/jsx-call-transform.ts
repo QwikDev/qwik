@@ -9,6 +9,8 @@ import {
   fnSignalDepsAllConst,
   type ScopeAwareBindings,
   type JsxKeyCounter,
+  type JsxKeyReservations,
+  reserveRegionKeys,
 } from './jsx.js';
 import { transformEventPropName } from './event-handlers.js';
 import { buildCaptureProp } from './loop-hoisting.js';
@@ -58,6 +60,8 @@ interface JsxCallTransformOptions {
    * double-transformed.
    */
   skipRanges?: ReadonlyArray<{ readonly start: number; readonly end: number }>;
+  /** Inline-strategy reservation of extracted-body key ranges. */
+  keyReservations?: JsxKeyReservations;
   /**
    * Maps an event-handler QRL var (`q_<sym>`) to the lexical-capture params delivered positionally.
    * When a const handler on an element references one, the element gets a `q:p`/`q:ps` prop so the
@@ -129,7 +133,12 @@ export function transformJsxCalls(
     leave(node: AstNode) {
       if (!isJsxCall(node, opts.jsxFunctions) || node.type !== 'CallExpression') return;
 
-      if (isInSkipRange(node.start)) return;
+      if (isInSkipRange(node.start)) {
+        // Extracted-body keys are reserved so their numbering matches the
+        // module-order walk SWC performs.
+        reserveRegionKeys(opts.keyReservations, opts.keyCounter, node.start);
+        return;
+      }
 
       const isDirectJsxChild = directJsxChildStarts.has(node.start);
       const rewritten = buildJsxSortedCall(s, node, opts, isDirectJsxChild);
@@ -157,7 +166,7 @@ function collectReactiveBindings(program: AstProgram): Set<string> {
   return result;
 }
 
-function isJsxCall(node: AstNode, jsxFunctions: ReadonlySet<string>): boolean {
+export function isJsxCall(node: AstNode, jsxFunctions: ReadonlySet<string>): boolean {
   return (
     node.type === 'CallExpression' &&
     node.callee?.type === 'Identifier' &&
@@ -168,7 +177,7 @@ function isJsxCall(node: AstNode, jsxFunctions: ReadonlySet<string>): boolean {
   );
 }
 
-function markDirectJsxChildren(
+export function markDirectJsxChildren(
   node: AstNode,
   jsxFunctions: ReadonlySet<string>,
   out: Set<number>
@@ -534,7 +543,7 @@ function buildJsxSortedCall(
     // trailing key/source arguments are synthetic and carry no key.
     keyText = s.slice(args[2].start, args[2].end);
   } else if (shouldEmitKey) {
-    keyText = `"${opts.keyCounter.next()}"`;
+    keyText = `"${opts.keyCounter.nextFor(callNode.start)}"`;
   } else {
     keyText = 'null';
   }

@@ -300,32 +300,51 @@ function resolveCanonicalCalleeName(calleeName: string, imports: Map<string, Imp
  * non-Identifier args or Identifiers that don't resolve to an import; callers fall back to
  * stack-based naming.
  *
- * Scope is narrow: single-Identifier only; the namespace-member form (`useStyles$(ns.foo)`) is
- * unsupported — extend when a fixture needs it.
+ * Also handles the namespace-member form (`$(ns.foo)` with `import * as ns`).
  */
 function getImportArgNaming(
   arg: AstNode,
   imports: Map<string, ImportInfo>,
   relPath: string
 ): { importContextPortion: string; hashSeed: string } | null {
-  if (arg.type !== 'Identifier') return null;
-  const importInfo = imports.get(arg.name);
-  if (!importInfo) return null;
+  let importInfo: ImportInfo | undefined;
+  let importedName: string;
+  if (arg.type === 'Identifier') {
+    importInfo = imports.get(arg.name);
+    if (!importInfo || importInfo.importedName === '*') return null;
+    importedName = importInfo.importedName;
+  } else if (
+    arg.type === 'MemberExpression' &&
+    !(arg as { computed?: boolean }).computed &&
+    (arg as { object?: AstNode }).object?.type === 'Identifier' &&
+    (arg as { property?: AstNode }).property?.type === 'Identifier'
+  ) {
+    const member = arg as unknown as {
+      object: { name: string };
+      property: { name: string };
+    };
+    importInfo = imports.get(member.object.name);
+    // Only namespace imports: `obj.prop` on a named import is a property
+    // access on a value, not a module member reference.
+    if (!importInfo || importInfo.importedName !== '*') return null;
+    importedName = member.property.name;
+  } else {
+    return null;
+  }
 
   // The hash seed and path-tail use the resolved form: without resolution,
   // `./style.css` would hash differently from `style.css` even though both
   // name the same module.
   const resolvedSource = resolveImportHashPath(importInfo.source, relPath);
+  if (resolvedSource === null) return null;
 
   const slashIdx = resolvedSource.lastIndexOf('/');
   const pathTail = slashIdx >= 0 ? resolvedSource.slice(slashIdx + 1) : resolvedSource;
   const baseName = escapeSymbol(pathTail);
   const importContextPortion =
-    importInfo.importedName === 'default'
-      ? baseName
-      : `${baseName}_${escapeSymbol(importInfo.importedName)}`;
+    importedName === 'default' ? baseName : `${baseName}_${escapeSymbol(importedName)}`;
 
-  const hashSeed = `${resolvedSource}#${importInfo.importedName}`;
+  const hashSeed = `${resolvedSource}#${importedName}`;
 
   return { importContextPortion, hashSeed };
 }
@@ -334,7 +353,7 @@ function getImportArgNaming(
  * Absolute / bare specifiers pass through; relative paths resolve against the directory of
  * `relPath`.
  */
-function resolveImportHashPath(importPath: string, relPath: string): string {
+function resolveImportHashPath(importPath: string, relPath: string): string | null {
   const normalized = importPath.replace(/\\/g, '/');
   if (!normalized.startsWith('.')) return normalized;
 
@@ -343,7 +362,9 @@ function resolveImportHashPath(importPath: string, relPath: string): string {
   for (const segment of normalized.split('/')) {
     if (segment === '' || segment === '.') continue;
     if (segment === '..') {
-      if (segments.length === 0) return normalized;
+      // Escaping the source root: no stable path exists, so the caller
+      // falls back to position-based naming (matches Rust).
+      if (segments.length === 0) return null;
       segments.pop();
       continue;
     }
@@ -1154,8 +1175,7 @@ export function createExtractionCollector(
         // import binding, derive displayName + hash from the import path so the
         // segment name stays stable across files importing the same asset. Falls
         // back to stack-based naming when the helper returns null.
-        const importNaming =
-          !isJsxAttrContext && !isBare ? getImportArgNaming(arg, imports, relPath) : null;
+        const importNaming = !isJsxAttrContext ? getImportArgNaming(arg, imports, relPath) : null;
 
         let displayName: DisplayName;
         let symbolName: SymbolName;

@@ -73,7 +73,7 @@ export const App = component$(() => {
   useStyles$(css);
 });
 `;
-    const sourceB = sourceA.replace(`'./style.css'`, `'./../test/style.css'`);
+    const sourceB = sourceA.replace(`'./style.css'`, `'./other/../style.css'`);
     const segA = transform(sourceA).modules.find(
       (m) => m.kind === 'segment' && m.segment.ctxName === 'useStyles$'
     );
@@ -85,6 +85,21 @@ export const App = component$(() => {
     }
     expect(segA.segment.displayName).toBe('test.tsx_style_css');
     expect(segB.segment.displayName).toBe('test.tsx_style_css');
-    expect(segA.segment.hash).not.toBe(segB.segment.hash);
+    expect(segA.segment.hash).toBe(segB.segment.hash);
+  });
+
+  it('falls back to stack naming when `..` escapes the source root', () => {
+    const source = `
+import { component$, useStyles$ } from '@qwik.dev/core';
+import css from './../outside/style.css';
+export const App = component$(() => {
+  useStyles$(css);
+});
+`;
+    const seg = transform(source).modules.find(
+      (m) => m.kind === 'segment' && m.segment.ctxName === 'useStyles$'
+    );
+    if (seg?.kind !== 'segment') throw new Error('expected segment');
+    expect(seg.segment.displayName).toBe('test.tsx_App_component_useStyles');
   });
 });

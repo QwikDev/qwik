@@ -15,6 +15,12 @@ export interface OptimizerOptions {
   inlineStylesUpToBytes?: number;
   /** Enable sourcemaps */
   sourcemap?: boolean;
+  /**
+   * Use the TypeScript optimizer (`@qwik.dev/ts-optimizer`) instead of the Rust one.
+   *
+   * Default `true`
+   */
+  tsOptimizer?: boolean;
   _optimizer?: unknown;
 }
 

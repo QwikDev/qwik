@@ -9,6 +9,7 @@
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "dependencies": {
     "@qwik.dev/optimizer": "workspace:*",
+    "@qwik.dev/ts-optimizer": "workspace:*",
     "csstype": "^3.2.3",
     "launch-editor": "^2.14.1",
     "magic-string": "0.30.21",

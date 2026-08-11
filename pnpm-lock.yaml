@@ -762,6 +762,9 @@ importers:
       '@qwik.dev/optimizer':
         specifier: workspace:*
         version: link:../optimizer
+      '@qwik.dev/ts-optimizer':
+        specifier: workspace:*
+        version: link:../ts-optimizer
       csstype:
         specifier: ^3.2.3
         version: 3.2.3
@@ -943,6 +946,9 @@ importers:
 
   packages/qwik-vite:
     devDependencies:
+      '@qwik.dev/ts-optimizer':
+        specifier: workspace:*
+        version: link:../ts-optimizer
       image-size:
         specifier: 1.2.1
         version: 1.2.1

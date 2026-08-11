@@ -1,6 +1,7 @@
 {
   "name": "@qwik.dev/qwik-vite",
   "devDependencies": {
+    "@qwik.dev/ts-optimizer": "workspace:*",
     "image-size": "1.2.1",
     "magic-string": "0.30.21"
   },

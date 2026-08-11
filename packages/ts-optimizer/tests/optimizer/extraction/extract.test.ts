@@ -302,6 +302,8 @@ describe('generateSegmentCode', () => {
       inlinedQrlNameArg: null,
       isComponentEvent: false,
       isJsxObjectProp: false,
+      isWorkerEventWrapper: false,
+      isWorkerEventHandler: false,
     };
 
     const code = generateSegmentCode(extraction);
@@ -344,6 +346,8 @@ describe('generateSegmentCode', () => {
       inlinedQrlNameArg: null,
       isComponentEvent: false,
       isJsxObjectProp: false,
+      isWorkerEventWrapper: false,
+      isWorkerEventHandler: false,
     };
 
     const code = generateSegmentCode(extraction);

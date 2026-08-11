@@ -102,6 +102,13 @@ export interface ExtractionBase {
   // attribute. The call site is a bare value (replaced in place with the QRL
   // ref), so `buildNestedCallSites` routes it through the plain call-site path.
   readonly isJsxObjectProp: boolean;
+
+  // Synthetic event-handler segment wrapping a `worker$(fn)` attr value:
+  // `(event, element, ...lifted)=>workerQrl(q_X)(event, element, ...lifted)`.
+  readonly isWorkerEventWrapper: boolean;
+  // The `worker$(fn)` extraction living inside a wrapper — participates in
+  // event-capture promotion despite its `function` ctxKind.
+  readonly isWorkerEventHandler: boolean;
 }
 
 /**
@@ -467,6 +474,8 @@ interface ExtractedSegmentSpec {
   readonly inlinedQrlNameArg?: string | null;
   readonly isComponentEvent?: boolean;
   readonly isJsxObjectProp?: boolean;
+  readonly isWorkerEventWrapper?: boolean;
+  readonly isWorkerEventHandler?: boolean;
 }
 
 /** Single construction point for Phase 1 extraction records. */
@@ -508,6 +517,8 @@ function buildExtractedSegment(spec: ExtractedSegmentSpec): ExtractedSegmentBuil
     inlinedQrlNameArg: spec.inlinedQrlNameArg ?? null,
     isComponentEvent: spec.isComponentEvent ?? false,
     isJsxObjectProp: spec.isJsxObjectProp ?? false,
+    isWorkerEventWrapper: spec.isWorkerEventWrapper ?? false,
+    isWorkerEventHandler: spec.isWorkerEventHandler ?? false,
   };
 }
 
@@ -965,6 +976,43 @@ export function createExtractionCollector(
 
         const canonicalCallee = resolveCanonicalCalleeName(calleeName, imports);
 
+        // `onClick$={worker$(fn)}` needs a synthetic wrapper handler segment:
+        // `(event, element, ...lifted)=>workerQrl(q_X)(event, element, ...lifted)`.
+        // Its naming matches a direct attr handler, so it's created before the
+        // `worker$` push extends the stack.
+        let workerEventAttrName: string | null = null;
+        if (canonicalCallee === 'worker$' && parent?.type === 'JSXExpressionContainer') {
+          const jsxAttrParent = parentMap.get(parent);
+          if (jsxAttrParent?.type === 'JSXAttribute') {
+            const attrFullName = getJsxAttributeName(jsxAttrParent);
+            if (attrFullName.endsWith('$') && onEventAttrName.test(attrFullName)) {
+              workerEventAttrName = attrFullName;
+              const wrapperDisplayName = ctx.naming.getDisplayName();
+              const wrapperSymbolName = ctx.naming.getSymbolName();
+              const wrapper = buildExtractedSegment({
+                symbolName: wrapperSymbolName,
+                displayName: wrapperDisplayName,
+                hash: hashFromSymbolName(wrapperSymbolName),
+                callStart: jsxAttrParent.start,
+                callEnd: jsxAttrParent.end,
+                calleeStart: jsxAttrParent.name.start,
+                calleeEnd: jsxAttrParent.name.end,
+                argStart: node.start,
+                argEnd: node.end,
+                bodyText: source.slice(node.start, node.end),
+                calleeName: attrFullName,
+                ctxKind: 'eventHandler',
+                ctxName: mkCtxName(attrFullName),
+                relPath,
+                extension: defaultExtension,
+                isWorkerEventWrapper: true,
+              });
+              ctx.results.push(wrapper);
+              ctx.onExtraction?.(wrapper, null);
+            }
+          }
+        }
+
         const wrapperContext =
           canonicalCallee === '$'
             ? getDirectWrapperContextName(node, parent, imports, customInlined)
@@ -1037,14 +1085,20 @@ export function createExtractionCollector(
           }
         }
 
-        const ctxKind = getExtractionKind(canonicalCallee, isEventAttr, isJsxNonEventAttr);
-        const isJsxAttrContext = isEventAttr || isJsxNonEventAttr;
+        // Inside a wrapper, the worker segment keeps its marker identity —
+        // the wrapper owns the event-handler role.
+        const ctxKind = workerEventAttrName
+          ? 'function'
+          : getExtractionKind(canonicalCallee, isEventAttr, isJsxNonEventAttr);
+        const isJsxAttrContext = !workerEventAttrName && (isEventAttr || isJsxNonEventAttr);
         const ctxName = mkCtxName(
-          getExtractionName(
-            canonicalCallee,
-            isJsxAttrContext,
-            isJsxAttrContext ? attrCtx : undefined
-          )
+          workerEventAttrName
+            ? canonicalCallee
+            : getExtractionName(
+                canonicalCallee,
+                isJsxAttrContext,
+                isJsxAttrContext ? attrCtx : undefined
+              )
         );
 
         // When the marker's first arg is a single Identifier resolving to an
@@ -1088,6 +1142,7 @@ export function createExtractionCollector(
           ctxName,
           relPath,
           extension: defaultExtension,
+          isWorkerEventHandler: workerEventAttrName !== null,
         });
         ctx.results.push(extraction);
         ctx.pushActiveSegmentBody({

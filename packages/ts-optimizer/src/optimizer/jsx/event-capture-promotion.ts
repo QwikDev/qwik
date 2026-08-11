@@ -455,8 +455,10 @@ export function promoteEventHandlerCaptures(
   } = ctx;
 
   for (const extraction of extractions) {
-    if (extraction.ctxKind !== 'eventHandler') continue;
+    if (extraction.ctxKind !== 'eventHandler' && !extraction.isWorkerEventHandler) continue;
     if (extraction.isInlinedQrl) continue;
+    // Wrapper params are mirrored from their worker child after promotion.
+    if (extraction.isWorkerEventWrapper) continue;
 
     // Capture analysis misses intermediate nested-function scopes (loop
     // callbacks), so re-detect against ALL enclosing scopes.

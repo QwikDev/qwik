@@ -15,6 +15,7 @@ import { SignalHoister } from '../jsx/signal-analysis.js';
 import { computeKeyPrefix } from '../jsx/key-prefix.js';
 import { rewritePropsFieldReferences } from '../rewrite/props-field-rewrite.js';
 import { walkAstForQp } from '../jsx/qp-walk.js';
+import { eventHandlerQpParams } from '../jsx/loop-hoisting.js';
 import { foldBodySimplifiableExpressions } from '../jsx/simplify.js';
 import type { AstProgram } from '../../ast-types.js';
 
@@ -705,7 +706,14 @@ export function generateSegmentCode(
 
   normalizeSeparators(parts);
 
-  if (hasUnderscorePlaceholderParams(extraction.paramNames)) {
+  if (extraction.isWorkerEventWrapper) {
+    // The nested-call rewrite above turned the body into `workerQrl(q_X)`;
+    // wrap it in the delegating handler that forwards event/element + lifted
+    // params positionally.
+    const lifted = eventHandlerQpParams(extraction.paramNames);
+    const params = ['event', 'element', ...lifted].join(', ');
+    bodyText = `(${params})=>${bodyText}(${params})`;
+  } else if (hasUnderscorePlaceholderParams(extraction.paramNames)) {
     bodyText = rewriteFunctionSignature(bodyText, extraction.paramNames);
   }
 

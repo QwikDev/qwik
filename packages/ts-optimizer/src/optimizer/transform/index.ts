@@ -709,6 +709,22 @@ function analyzeModuleCaptures(
 
   promoteEventHandlerCaptures(eventCaptureCtx, globalDeclPositions);
 
+  // A worker wrapper delegates positionally to its worker child, so it takes
+  // the child's lifted params and moved-captures marker verbatim.
+  for (const wrapper of extractions) {
+    if (!wrapper.isWorkerEventWrapper) continue;
+    const worker = extractions.find(
+      (e) =>
+        e.isWorkerEventHandler && e.callStart >= wrapper.argStart && e.callEnd <= wrapper.argEnd
+    );
+    if (!worker) continue;
+    const mut = wrapper as Mutable<ExtractionResult>;
+    mut.paramNames = [...worker.paramNames];
+    mut.movedCaptures = worker.movedCaptures;
+    mut.captureNames = [];
+    mut.captures = false;
+  }
+
   unifyParameterSlots(eventCaptureCtx, globalDeclPositions);
 
   // Threads strip-config so stripped event handlers' captures still populate

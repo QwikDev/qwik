@@ -507,6 +507,12 @@ export function ensureCoreImports(bodyText: string, parts: string[]): void {
       insertImportBeforeSeparator(parts, `import { ${sym} } from "@qwik.dev/core";`);
     }
   }
+  // `_qrlWithChunk` is a prefix of `_qrlWithChunkDEV`, so match the call exactly.
+  for (const sym of ['_qrlWithChunkDEV', '_qrlWithChunk']) {
+    if (new RegExp(`\\b${sym}\\(`).test(bodyText) && !partsHaveImport(parts, sym)) {
+      insertImportBeforeSeparator(parts, `import { ${sym} } from "@qwik.dev/core";`);
+    }
+  }
   if (bodyText.includes('_Fragment') && !partsHaveImport(parts, '_Fragment')) {
     insertImportBeforeSeparator(
       parts,

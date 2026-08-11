@@ -642,6 +642,9 @@ export function buildParentExtractionMap(
     let best: ExtractionResult | null = null;
     for (const other of extractions) {
       if (other.symbolName === ext.symbolName) continue;
+      // Worker wrappers are zero-scope shells around the worker call — scope
+      // visibility comes from the wrapper's own enclosing extraction.
+      if (other.isWorkerEventWrapper) continue;
       if (ext.callStart >= other.argStart && ext.callEnd <= other.argEnd) {
         if (!best || (other.argStart >= best.argStart && other.argEnd <= best.argEnd)) {
           best = other;

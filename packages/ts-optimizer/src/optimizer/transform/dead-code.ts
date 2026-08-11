@@ -154,6 +154,11 @@ export function applySegmentDCE(code: string): string {
 
       const condValue = match[1] === 'true';
       const stmtStart = match.index + match[0].length;
+      // A compound statement (`if (false) if (x) {…} else {…}`) doesn't end
+      // at the next `;` — leave it; dead-but-valid code beats a broken slice.
+      if (/^(?:if|for|while|do|try|switch)\b|^\{/.test(result.slice(stmtStart).trimStart())) {
+        continue;
+      }
       const semiIdx = result.indexOf(';', stmtStart);
       if (semiIdx === -1) continue;
 

@@ -186,7 +186,7 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
         debug,
         srcInputs,
         entryStrategy,
-        experimental: ['suspense'],
+        experimental: ['each', 'show', 'suspense'],
         manifestOutput: (m: any) => {
           result.manifest = m;
         },
@@ -233,7 +233,7 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
         debug,
         srcInputs,
         entryStrategy,
-        experimental: ['suspense'],
+        experimental: ['each', 'show', 'suspense'],
       }),
       replResolver(deps, { srcInputs, buildMode, replId }, 'ssr'),
       replMinify(buildMode),

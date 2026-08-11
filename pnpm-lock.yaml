@@ -409,7 +409,7 @@ importers:
         version: 8.57.1(eslint@10.0.3(jiti@2.6.1))(typescript@5.9.3)
       autoprefixer:
         specifier: 10.4.27
-        version: 10.4.27(postcss@8.5.12)
+        version: 10.4.27(postcss@8.5.18)
       cpy-cli:
         specifier: 7.0.0
         version: 7.0.0
@@ -426,8 +426,8 @@ importers:
         specifier: 11.0.2
         version: 11.0.2(@types/node@24.10.0)(typescript@5.9.3)
       postcss:
-        specifier: 8.5.12
-        version: 8.5.12
+        specifier: 8.5.18
+        version: 8.5.18
       prettier:
         specifier: 3.7.4
         version: 3.7.4
@@ -591,8 +591,8 @@ importers:
         specifier: 1.30.0
         version: 1.30.0
       qwik-image:
-        specifier: 0.0.16
-        version: 0.0.16
+        specifier: 2.0.4
+        version: 2.0.4(@qwik.dev/core@packages+qwik)
       react:
         specifier: 19.2.4
         version: 19.2.4
@@ -618,8 +618,8 @@ importers:
         specifier: 5.9.3
         version: 5.9.3
       valibot:
-        specifier: 1.2.0
-        version: 1.2.0(typescript@5.9.3)
+        specifier: 1.4.2
+        version: 1.4.2(typescript@5.9.3)
       vite:
         specifier: 7.3.5
         version: 7.3.5(@types/node@24.10.0)(jiti@2.6.1)(lightningcss@1.33.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.3)
@@ -711,7 +711,7 @@ importers:
         version: 24.10.0
       autoprefixer:
         specifier: 10.4.27
-        version: 10.4.27(postcss@8.5.12)
+        version: 10.4.27(postcss@8.5.18)
       eslint:
         specifier: 10.0.3
         version: 10.0.3(jiti@2.6.1)
@@ -725,8 +725,8 @@ importers:
         specifier: 24.5.1
         version: 24.5.1(@types/node@24.10.0)(picomatch@4.0.5)(rollup@4.61.0)
       postcss:
-        specifier: 8.5.12
-        version: 8.5.12
+        specifier: 8.5.18
+        version: 8.5.18
       prettier:
         specifier: 3.7.4
         version: 3.7.4
@@ -896,7 +896,7 @@ importers:
         version: 5.1.0
       valibot:
         specifier: '>=0.36.0 <2'
-        version: 1.2.0(typescript@5.9.3)
+        version: 1.4.2(typescript@5.9.3)
       vfile:
         specifier: 6.0.3
         version: 6.0.3
@@ -9490,12 +9490,8 @@ packages:
     peerDependencies:
       postcss: ^8.2.9
 
-  postcss@8.5.12:
-    resolution: {integrity: sha512-W62t/Se6rA0Az3DfCL0AqJwXuKwBeYg6nOaIgzP+xZ7N5BFCI7DYi1qs6ygUYT6rvfi6t9k65UMLJC+PHZpDAA==}
-    engines: {node: ^10 || ^12 || >=14}
-
-  postcss@8.5.22:
-    resolution: {integrity: sha512-KBDEIpLrvpv16pp3K0Fw+UCoZfopFjjgeB+0tA/aaThfEE74kKDLrgg603YvOWJyg3+WYtyq3xYsQWsIyZlPqQ==}
+  postcss@8.5.18:
+    resolution: {integrity: sha512-xdB1oSLHbz1vRWgCDalrCqEFTWzFlhqFC5tIHLMOSUIjhm3XXQ1qrFy8S/ESr1JYRRXqM3c1QFiMZUJdUTqyMQ==}
     engines: {node: ^10 || ^12 || >=14}
 
   postgres-array@2.0.0:
@@ -9739,8 +9735,10 @@ packages:
   quote-unquote@1.0.0:
     resolution: {integrity: sha512-twwRO/ilhlG/FIgYeKGFqyHhoEhqgnKVkcmqMKi2r524gz3ZbDTcyFt38E9xjJI2vT+KbRNHVbnJ/e0I25Azwg==}
 
-  qwik-image@0.0.16:
-    resolution: {integrity: sha512-ZHsRXBlwQiOxiD7HkQyJ59hwCCFENuVN3sIcB1pFGHAZ92ZK5IDKRlsJnag0mV2VPV7Zahk2my9axEPhSQfhUA==}
+  qwik-image@2.0.4:
+    resolution: {integrity: sha512-+DCqQOqT5F+135C0tPSjwhvSemeyi7Sh8+1E6Ymk4rjss22dKQp9IFjsKXM30OK7hr06XZv9uaKt71PeJj/gCw==}
+    peerDependencies:
+      '@qwik.dev/core': ^2.0.0-beta.38
 
   radix3@1.1.2:
     resolution: {integrity: sha512-b484I/7b8rDEdSDKckSSBA8knMpcdsXudlE/LNL639wFoHKwLbEkQFZHWEYwDC0wa0FKUcCY+GAF73Z7wxNVFA==}
@@ -11172,8 +11170,8 @@ packages:
   v8-compile-cache-lib@3.0.1:
     resolution: {integrity: sha512-wa7YjyUGfNZngI/vtK0UHAN+lgDCxBPCylVXGp0zu59Fz5aiGtNXaq3DhIov063MorB+VfufLh3JlF2KdTK3xg==}
 
-  valibot@1.2.0:
-    resolution: {integrity: sha512-mm1rxUsmOxzrwnX5arGS+U4T25RdvpPjPN4yR0u9pUBov9+zGVtO84tif1eY4r6zWxVxu3KzIyknJy3rxfRZZg==}
+  valibot@1.4.2:
+    resolution: {integrity: sha512-gjdCvJ6d3RyHAneqxMYMW9QMCwYMb3jpOO0IyHZV1bnRHFBHrX3VkIILt5XYR0WhwHiH7Mty8ovuPZ/O3gamrg==}
     peerDependencies:
       typescript: 5.9.3
     peerDependenciesMeta:
@@ -13239,7 +13237,7 @@ snapshots:
       '@builder.io/qwik': link:packages/qwik
       '@builder.io/qwik-city': link:packages/qwik-router
       decode-formdata: 0.8.0
-      valibot: 1.2.0(typescript@5.9.3)
+      valibot: 1.4.2(typescript@5.9.3)
     transitivePeerDependencies:
       - typescript
 
@@ -15039,7 +15037,7 @@ snapshots:
       '@alloc/quick-lru': 5.2.0
       '@tailwindcss/node': 4.2.4
       '@tailwindcss/oxide': 4.2.4
-      postcss: 8.5.12
+      postcss: 8.5.18
       tailwindcss: 4.2.4
 
   '@tailwindcss/vite@4.2.4(vite@7.3.5(@types/node@24.10.0)(jiti@2.6.1)(lightningcss@1.33.0)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.3))':
@@ -15666,7 +15664,7 @@ snapshots:
       '@vue/shared': 3.5.32
       estree-walker: 2.0.2
       magic-string: 0.30.21
-      postcss: 8.5.12
+      postcss: 8.5.18
       source-map-js: 1.2.1
 
   '@vue/compiler-ssr@3.5.32':
@@ -16026,13 +16024,13 @@ snapshots:
       stubborn-fs: 2.0.0
       when-exit: 2.1.5
 
-  autoprefixer@10.4.27(postcss@8.5.12):
+  autoprefixer@10.4.27(postcss@8.5.18):
     dependencies:
       browserslist: 4.28.2
       caniuse-lite: 1.0.30001787
       fraction.js: 5.3.4
       picocolors: 1.1.1
-      postcss: 8.5.12
+      postcss: 8.5.18
       postcss-value-parser: 4.2.0
 
   available-typed-arrays@1.0.7:
@@ -16835,11 +16833,11 @@ snapshots:
     dependencies:
       node-source-walk: 7.0.1
 
-  detective-postcss@7.0.1(postcss@8.5.12):
+  detective-postcss@7.0.1(postcss@8.5.18):
     dependencies:
       is-url: 1.2.4
-      postcss: 8.5.12
-      postcss-values-parser: 6.0.2(postcss@8.5.12)
+      postcss: 8.5.18
+      postcss-values-parser: 6.0.2(postcss@8.5.18)
 
   detective-sass@6.0.1:
     dependencies:
@@ -21081,20 +21079,14 @@ snapshots:
 
   postcss-value-parser@4.2.0: {}
 
-  postcss-values-parser@6.0.2(postcss@8.5.12):
+  postcss-values-parser@6.0.2(postcss@8.5.18):
     dependencies:
       color-name: 1.1.4
       is-url-superb: 4.0.0
-      postcss: 8.5.12
+      postcss: 8.5.18
       quote-unquote: 1.0.0
 
-  postcss@8.5.12:
-    dependencies:
-      nanoid: 3.3.16
-      picocolors: 1.1.1
-      source-map-js: 1.2.1
-
-  postcss@8.5.22:
+  postcss@8.5.18:
     dependencies:
       nanoid: 3.3.16
       picocolors: 1.1.1
@@ -21127,7 +21119,7 @@ snapshots:
       detective-amd: 6.0.1
       detective-cjs: 6.1.0
       detective-es6: 5.0.1
-      detective-postcss: 7.0.1(postcss@8.5.12)
+      detective-postcss: 7.0.1(postcss@8.5.18)
       detective-sass: 6.0.1
       detective-scss: 5.0.1
       detective-stylus: 5.0.1
@@ -21135,7 +21127,7 @@ snapshots:
       detective-vue2: 2.2.0(supports-color@10.2.2)(typescript@5.9.3)
       module-definition: 6.0.1
       node-source-walk: 7.0.1
-      postcss: 8.5.12
+      postcss: 8.5.18
       typescript: 5.9.3
     transitivePeerDependencies:
       - supports-color
@@ -21283,7 +21275,9 @@ snapshots:
 
   quote-unquote@1.0.0: {}
 
-  qwik-image@0.0.16: {}
+  qwik-image@2.0.4(@qwik.dev/core@packages+qwik):
+    dependencies:
+      '@qwik.dev/core': link:packages/qwik
 
   radix3@1.1.2: {}
 
@@ -22890,7 +22884,7 @@ snapshots:
 
   v8-compile-cache-lib@3.0.1: {}
 
-  valibot@1.2.0(typescript@5.9.3):
+  valibot@1.4.2(typescript@5.9.3):
     optionalDependencies:
       typescript: 5.9.3
 
@@ -23004,7 +22998,7 @@ snapshots:
       esbuild: 0.27.7
       fdir: 6.5.0(picomatch@4.0.5)
       picomatch: 4.0.5
-      postcss: 8.5.12
+      postcss: 8.5.18
       rollup: 4.61.0
       tinyglobby: 0.2.17
     optionalDependencies:
@@ -23020,7 +23014,7 @@ snapshots:
     dependencies:
       lightningcss: 1.33.0
       picomatch: 4.0.5
-      postcss: 8.5.22
+      postcss: 8.5.18
       rolldown: 1.1.5
       tinyglobby: 0.2.17
     optionalDependencies:

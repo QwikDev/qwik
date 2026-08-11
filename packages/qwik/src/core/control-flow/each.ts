@@ -33,10 +33,10 @@ export const eachCmpTask = async ({ track }: TaskCtx) => {
   const context = tryGetInvokeContext()!;
   const host = context.$hostElement$!;
   const container = context.$container$!;
-  markVNodeDirty(container, host, ChoreBits.RECONCILE);
+  const renderPromise = markVNodeDirty(container, host, ChoreBits.RECONCILE);
   const isSsr = qTest ? isServerPlatform() : isServer;
   if (isSsr) {
-    await container.$renderPromise$;
+    await renderPromise;
   }
 };
 

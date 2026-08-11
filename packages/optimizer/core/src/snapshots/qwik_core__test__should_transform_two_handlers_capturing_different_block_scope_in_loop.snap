@@ -1,6 +1,5 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 5511
 expression: output
 ---
 ==INPUT==
@@ -105,8 +104,8 @@ import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useSignal } from "@qwik.dev/core";
 //
-const q_test_component_div_div_button_q_e_click_hCFE1Zqizzw = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_div_div_button_q_e_click_hCFE1Zqizzw"), "test_component_div_div_button_q_e_click_hCFE1Zqizzw");
-const q_test_component_div_div_span_q_e_keydown_JMCQrlWndWA = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_div_div_span_q_e_keydown_JMCQrlWndWA"), "test_component_div_div_span_q_e_keydown_JMCQrlWndWA");
+const q_test_component_div_div_button_q_e_click_hCFE1Zqizzw = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_div_div_button_q_e_click_hCFE1Zqizzw"), "test_component_div_div_button_q_e_click_hCFE1Zqizzw").m();
+const q_test_component_div_div_span_q_e_keydown_JMCQrlWndWA = /*#__PURE__*/ qrl(()=>import("./test.tsx_test_component_div_div_span_q_e_keydown_JMCQrlWndWA"), "test_component_div_div_span_q_e_keydown_JMCQrlWndWA").m();
 //
 export const test_component_LUXeXe0DQrg = ()=>{
     const arr = useSignal([

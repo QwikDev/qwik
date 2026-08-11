@@ -212,10 +212,7 @@ describe('getNextVNode', () => {
     NextContent.slotParent = Parent;
     NextContent.dirty = ChoreBits.COMPONENT;
 
-    const boundary = {
-      pending: { value: 0 },
-      version: { value: 0 },
-    } as CursorBoundary;
+    const boundary = { value: 0 } as CursorBoundary;
 
     vnode_setProp(BoundaryRoot, QCursorBoundary, boundary);
 
@@ -731,10 +728,7 @@ describe('abandonCursor', () => {
     const targetJournal = [] as CursorData['journal'];
     const sourceOperation = {} as any;
     const sourceJournal = [sourceOperation] as CursorData['journal'];
-    const boundary = {
-      pending: { value: 1 },
-      version: { value: 0 },
-    } as CursorBoundary;
+    const boundary = { value: 1 } as CursorBoundary;
 
     const targetData = createCursorData(container, target, targetJournal);
     const sourceData = createCursorData(container, source, sourceJournal);

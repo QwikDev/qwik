@@ -588,6 +588,9 @@ export { isServer }
 // @public (undocumented)
 export const isSignal: (value: any) => value is Signal<unknown>;
 
+// @internal
+export const _isSignalNotInvalid: (signal: ComputedSignal<unknown> | undefined) => boolean;
+
 // Warning: (ae-internal-missing-underscore) The name "ISsrComponentFrame" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
@@ -1401,7 +1404,6 @@ export const Suspense: typeof _suC;
 // @public (undocumented)
 export type SuspenseProps = {
     fallback?: JSXOutput;
-    showStale?: boolean;
     delay?: number;
 };
 

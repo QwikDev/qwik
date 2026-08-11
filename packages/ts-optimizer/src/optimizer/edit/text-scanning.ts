@@ -62,6 +62,19 @@ export function findMatchingBrace(text: string, openPos: number): number {
       i++;
       continue;
     }
+    // Comments may contain apostrophes and braces; skip them wholesale.
+    if (ch === '/' && text[i + 1] === '/') {
+      const nl = text.indexOf('\n', i);
+      if (nl === -1) return -1;
+      i = nl + 1;
+      continue;
+    }
+    if (ch === '/' && text[i + 1] === '*') {
+      const end = text.indexOf('*/', i + 2);
+      if (end === -1) return -1;
+      i = end + 2;
+      continue;
+    }
     if (ch === '"' || ch === "'" || ch === '`') {
       inString = ch;
       i++;

@@ -13,6 +13,35 @@ describe('applySegmentDCE', () => {
     expect(out).not.toContain('dead()');
   });
 
+  it('keeps the else clause when its body has a comment with an apostrophe', () => {
+    const code = [
+      'if (false) {',
+      '  dead();',
+      '} else {',
+      "  // Don't await — goto re-runs this",
+      '  live();',
+      '}',
+      'after();',
+    ].join('\n');
+
+    const out = applySegmentDCE(code);
+
+    const [open, close] = braceCounts(out);
+    expect(open, `unbalanced braces in:\n${out}`).toBe(close);
+    expect(parseSync('s.js', out).errors, `parse errors in:\n${out}`).toEqual([]);
+    expect(out).toContain('live()');
+    expect(out).not.toContain('dead()');
+    expect(out).toContain('after()');
+  });
+
+  it('never drops an if while leaving its else dangling, even when unparseable', () => {
+    const code = ['if (false) {', '  dead();', '} else {', '  broken( // {', '}'].join('\n');
+
+    const out = applySegmentDCE(code);
+
+    expect(out.replace(/\}\s*else/g, 'X')).not.toMatch(/(^|[^}])\s*else\b/m);
+  });
+
   it('folds a nested fold inside a folded branch without corrupting braces', () => {
     const code = [
       'export const s_x = () => {',

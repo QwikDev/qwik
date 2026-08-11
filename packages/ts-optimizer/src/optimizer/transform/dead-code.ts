@@ -130,10 +130,11 @@ export function applySegmentDCE(code: string): string {
       if (afterClose) {
         const elseBraceStart = closeIdx + 1 + afterClose[0]!.length - 1;
         const elseCloseIdx = findMatchingBrace(result, elseBraceStart);
-        if (elseCloseIdx !== -1) {
-          elseBody = result.slice(elseBraceStart + 1, elseCloseIdx);
-          totalEnd = elseCloseIdx + 1;
-        }
+        // An else we can see but not delimit must veto the fold — folding
+        // anyway would drop the if and leave the else dangling.
+        if (elseCloseIdx === -1) continue;
+        elseBody = result.slice(elseBraceStart + 1, elseCloseIdx);
+        totalEnd = elseCloseIdx + 1;
       }
 
       const replacement = condValue ? ifBody : (elseBody ?? '');

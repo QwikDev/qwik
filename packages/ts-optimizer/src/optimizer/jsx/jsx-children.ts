@@ -187,13 +187,13 @@ function processOneChild(
   opts: ProcessChildrenOptions
 ): { text: string | null; type: 'none' | 'static' | 'dynamic' } {
   if (child._trimmedText) {
-    return { text: `"${child._trimmedText}"`, type: 'static' };
+    return { text: JSON.stringify(child._trimmedText), type: 'static' };
   }
 
   if (child.type === 'JSXText') {
     const trimmed = child.value.trim();
     if (!trimmed) return { text: null, type: 'none' };
-    return { text: `"${trimmed}"`, type: 'static' };
+    return { text: JSON.stringify(trimmed), type: 'static' };
   }
 
   if (child.type === 'JSXExpressionContainer') {

@@ -2,6 +2,7 @@ import { createRegExp, exactly, multiline, oneOrMore, whitespace, wordChar } fro
 import MagicString from 'magic-string';
 import { transformSync as oxcTransformSync } from 'oxc-transform';
 import { walk } from 'oxc-walker';
+import { ScopeQueryTracker } from '../analysis/scope-query-tracker.js';
 import type {
   AstFunction,
   AstNode,
@@ -105,8 +106,15 @@ export function applySegmentConstReplacement(
 
   if (replacements.size === 0) return code;
 
+  // Scope-aware: a local binding (param, let, catch) shadowing the import
+  // must keep both the binding and its references untouched.
+  const tracker = new ScopeQueryTracker({ preserveExitedScopes: true });
+  walk(program, { scopeTracker: tracker });
+  tracker.freeze();
+
   const s = new MagicString(code);
   walk(program, {
+    scopeTracker: tracker,
     enter(node: AstNode, parent: AstParentNode) {
       if (node.type !== 'Identifier') return;
       const replacement = replacements.get(node.name);
@@ -116,6 +124,8 @@ export function applySegmentConstReplacement(
         return;
       if (parent?.type === 'VariableDeclarator' && parent.id === node) return;
       if (parent?.type === 'ImportSpecifier' && parent.imported === node) return;
+      const decl = tracker.getDeclaration(node.name);
+      if (decl && decl.type !== 'Import') return;
       if (parent?.type === 'Property' && parent.shorthand === true) {
         s.overwrite(node.start, node.end, `${node.name}: ${replacement}`);
         return;

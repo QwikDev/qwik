@@ -175,11 +175,11 @@ export function applySegmentDCE(code: string): string {
   }
 
   result = result.replace(trueAndOp, (match, offset) => {
-    if (isInsideString(result, offset)) return match;
+    if (isInsideString(result, offset) || isComparisonOperand(result, offset)) return match;
     return '';
   });
   result = result.replace(falseOrOp, (match, offset) => {
-    if (isInsideString(result, offset)) return match;
+    if (isInsideString(result, offset) || isComparisonOperand(result, offset)) return match;
     return '';
   });
 
@@ -187,6 +187,17 @@ export function applySegmentDCE(code: string): string {
   result = result.replace(/\n\s*\n\s*\n/g, '\n\n');
 
   return result;
+}
+
+/** True when the literal at `offset` is the right operand of a comparison (`x !== false`). */
+function isComparisonOperand(code: string, offset: number): boolean {
+  let i = offset - 1;
+  while (i >= 0 && (code[i] === ' ' || code[i] === '\t' || code[i] === '\n')) i--;
+  if (i < 0) return false;
+  if (code[i] !== '=') return false;
+  // `=` alone is assignment; `==`, `===`, `!=`, `!==`, `<=`, `>=` are comparisons.
+  const before = code[i - 1];
+  return before === '=' || before === '!' || before === '<' || before === '>';
 }
 
 function simplifyFalseAndExpressions(code: string): string {
@@ -199,6 +210,7 @@ function simplifyFalseAndExpressions(code: string): string {
   }> = [];
 
   while ((match = falseAndOp.exec(code)) !== null) {
+    if (isInsideString(code, match.index) || isComparisonOperand(code, match.index)) continue;
     const exprStart = match.index + match[0].length;
     const exprEnd = findExpressionEnd(code, exprStart);
     if (exprEnd > exprStart) {

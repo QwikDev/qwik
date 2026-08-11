@@ -10,6 +10,7 @@ import type {
   AstProgram,
   TSEnumDeclaration,
 } from '../../ast-types.js';
+import { transformSync as oxcTransformSync } from 'oxc-transform';
 import { parseWithRawTransfer } from '../ast/parse.js';
 import { isStrippedExtraction } from '../rewrite/predicates.js';
 import { flattenAndReparse } from '../prepare/flatten-destructures.js';
@@ -132,15 +133,35 @@ function applyPassthroughConstFolding(
   module: TransformModule,
   mod: ModuleContext
 ): TransformModule {
-  const { options, relPath } = mod;
-  if (options.isServer === undefined || module.code === '') return module;
-  if (!module.code.includes('@qwik.dev/core') && !module.code.includes('@builder.io/qwik')) {
-    return module;
+  const { options, relPath, ext } = mod;
+  let code = module.code;
+  if (code === '') return module;
+
+  // The Rust optimizer transpiles TS even in marker-free modules; downstream
+  // consumers (e.g. the vite plugin's literal replacements) rely on that.
+  if (options.transpileTs && (ext === '.ts' || ext === '.tsx' || ext === '.mts')) {
+    try {
+      const stripped = oxcTransformSync(relPath, code, {
+        typescript: { onlyRemoveTypeImports: false },
+        ...(ext === '.tsx' ? {} : { jsx: 'preserve' as const }),
+      });
+      if (stripped.code) code = stripped.code;
+    } catch {
+      // keep the original code when stripping fails
+    }
   }
-  const folded = applySegmentConstReplacement(module.code, relPath, options.isServer);
-  if (folded === module.code) return module;
-  const cleaned = removeUnusedImports(applySegmentDCE(folded), relPath, options.transpileJsx);
-  return { ...module, code: cleaned };
+
+  if (
+    options.isServer !== undefined &&
+    (code.includes('@qwik.dev/core') || code.includes('@builder.io/qwik'))
+  ) {
+    const folded = applySegmentConstReplacement(code, relPath, options.isServer);
+    if (folded !== code) {
+      code = removeUnusedImports(applySegmentDCE(folded), relPath, options.transpileJsx);
+    }
+  }
+
+  return code === module.code ? module : { ...module, code };
 }
 
 /**

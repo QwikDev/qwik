@@ -42,6 +42,22 @@ describe('applySegmentDCE', () => {
     expect(out.replace(/\}\s*else/g, 'X')).not.toMatch(/(^|[^}])\s*else\b/m);
   });
 
+  it('does not fold boolean literals used as comparison operands', () => {
+    const code = [
+      'const a = x !== false && y;',
+      'const b = x === false || y;',
+      'const c = x !== true && y;',
+      'const s = "p0.fallback!==false&&(p2.value)?1:2";',
+    ].join('\n');
+
+    const out = applySegmentDCE(code);
+
+    expect(out).toContain('x !== false && y');
+    expect(out).toContain('x === false || y');
+    expect(out).toContain('x !== true && y');
+    expect(out).toContain('"p0.fallback!==false&&(p2.value)?1:2"');
+  });
+
   it('folds a nested fold inside a folded branch without corrupting braces', () => {
     const code = [
       'export const s_x = () => {',

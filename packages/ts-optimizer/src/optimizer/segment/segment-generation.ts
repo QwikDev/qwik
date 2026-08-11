@@ -25,13 +25,15 @@ import { getDirectory } from '../../paths.js';
 import { resolveEntryField } from './entry-strategy.js';
 import {
   buildQrlDeclaration,
+  buildWorkerQrlDeclaration,
+  isWorkerExtraction,
   markMovedCaptures,
   needsPureAnnotation,
 } from '../rewrite/rewrite-calls.js';
 import { getQrlCalleeName } from '../qwik/qrl-naming.js';
 import { isHtmlElement } from '../jsx/jsx.js';
 import { resolveSameFileImportName } from './import-collection.js';
-import { buildQrlDevDeclaration } from './dev-mode.js';
+import { buildQrlDevDeclaration, formatDevMeta } from './dev-mode.js';
 import { generateStrippedSegmentCode } from './strip-ctx.js';
 import { hasUnderscorePlaceholderParams, isStrippedExtraction } from '../rewrite/predicates.js';
 import { mkByteOffset, mkRelativePath } from '../types/brands.js';
@@ -552,6 +554,27 @@ export function buildNestedQrlDeclarations(
   let strippedIdx = 0;
   const childQrlVarNames = new Map<string, string>();
   const nestedQrlDecls = children.map((child) => {
+    if (isWorkerExtraction(child)) {
+      const varName = `q_qrl_${getSentinelCounter(strippedIdx++)}`;
+      childQrlVarNames.set(child.symbolName, varName);
+      const devMeta =
+        isDevMode && devFile
+          ? formatDevMeta({
+              file: devFile,
+              lo: child.loc[0],
+              hi: child.loc[1],
+              displayName: child.displayName,
+            })
+          : undefined;
+      return buildWorkerQrlDeclaration(
+        varName,
+        child.symbolName,
+        child.canonicalFilename,
+        options.explicitExtensions,
+        qrlOutputExt,
+        devMeta
+      );
+    }
     const childStripped = isStrippedExtraction(
       child,
       options.stripCtxName,
@@ -616,6 +639,28 @@ function buildMovedQrlDecl(
   qrlOutputExt: string | undefined,
   sourceExtensions: Map<string, string>
 ): { decl: string; qrlHelper: string } {
+  if (isWorkerExtraction(ext)) {
+    const devMeta =
+      isDevMode && devFile
+        ? formatDevMeta({
+            file: devFile,
+            lo: ext.loc[0],
+            hi: ext.loc[1],
+            displayName: ext.displayName,
+          })
+        : undefined;
+    return {
+      decl: buildWorkerQrlDeclaration(
+        `q_${ext.symbolName}`,
+        ext.symbolName,
+        ext.canonicalFilename,
+        options.explicitExtensions,
+        qrlOutputExt,
+        devMeta
+      ),
+      qrlHelper: devMeta ? '_qrlWithChunkDEV' : '_qrlWithChunk',
+    };
+  }
   const stripped = isStrippedExtraction(ext, options.stripCtxName, options.stripEventHandlers);
   if (stripped) {
     if (isDevMode && devFile) {

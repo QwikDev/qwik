@@ -116,6 +116,11 @@ export function applySegmentConstReplacement(
         return;
       if (parent?.type === 'VariableDeclarator' && parent.id === node) return;
       if (parent?.type === 'ImportSpecifier' && parent.imported === node) return;
+      if (parent?.type === 'Property' && parent.shorthand === true) {
+        s.overwrite(node.start, node.end, `${node.name}: ${replacement}`);
+        return;
+      }
+      if (parent?.type === 'Property' && parent.key === node && !parent.computed) return;
 
       s.overwrite(node.start, node.end, replacement);
     },

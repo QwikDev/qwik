@@ -165,6 +165,8 @@ export interface NapiTransformModule {
   map: string | null;
   segment: NapiSegmentAnalysis | null;
   origPath: string | null;
+  /** Import sources removed as unused (e.g. only consumed by stripped segments). */
+  imports?: string[];
 }
 
 /** Plain-number mirror of `DiagnosticHighlightFlat`. */
@@ -236,6 +238,7 @@ function toNapiModule(module: TransformModule): NapiTransformModule {
         map: module.map,
         segment: null,
         origPath: module.origPath,
+        imports: module.imports ? [...module.imports] : undefined,
       };
     case 'segment':
       return {

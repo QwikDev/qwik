@@ -113,6 +113,9 @@ export interface TransformModuleParent {
   readonly map: string | null;
 
   readonly origPath: string;
+
+  /** Import sources removed as unused (e.g. only consumed by stripped segments). */
+  readonly imports?: readonly string[];
 }
 
 /**

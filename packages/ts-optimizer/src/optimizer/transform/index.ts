@@ -72,6 +72,7 @@ import {
   getExtension,
 } from '../../paths.js';
 import {
+  applySegmentConstReplacement,
   buildParentExtractionMap,
   buildPassthroughModule,
   removeUnusedImports,
@@ -98,6 +99,49 @@ import {
   generateAllSegmentModules,
   type SegmentGenerationContext,
 } from '../segment/segment-generation.js';
+
+/**
+ * Import sources present in the original module but absent from the final parent output. The vite
+ * plugin uses these to keep stripped-away imports in the module graph (SSR restore).
+ */
+function collectRemovedImportSources(
+  originalImports: ReadonlyMap<string, ImportInfo>,
+  cleanedCode: string
+): string[] {
+  const originalSources = new Set<string>();
+  for (const [, info] of originalImports) {
+    if (info.source) originalSources.add(info.source);
+  }
+  if (originalSources.size === 0) return [];
+
+  const keptSources = new Set<string>();
+  const importSourcePattern = /(?:from\s*|^\s*import\s*)["']([^"']+)["']/gm;
+  let match;
+  while ((match = importSourcePattern.exec(cleanedCode)) !== null) {
+    keptSources.add(match[1]);
+  }
+
+  return [...originalSources].filter((source) => !keptSources.has(source));
+}
+
+/**
+ * Passthrough modules skip the rewrite pipeline, but isServer/isBrowser branches must still fold so
+ * client bundles never reference server-only imports.
+ */
+function applyPassthroughConstFolding(
+  module: TransformModule,
+  mod: ModuleContext
+): TransformModule {
+  const { options, relPath } = mod;
+  if (options.isServer === undefined || module.code === '') return module;
+  if (!module.code.includes('@qwik.dev/core') && !module.code.includes('@builder.io/qwik')) {
+    return module;
+  }
+  const folded = applySegmentConstReplacement(module.code, relPath, options.isServer);
+  if (folded === module.code) return module;
+  const cleaned = removeUnusedImports(applySegmentDCE(folded), relPath, options.transpileJsx);
+  return { ...module, code: cleaned };
+}
 
 /**
  * Output-level source-kind flags accumulated across input files. The accumulation is
@@ -244,7 +288,11 @@ function transformOneModule(
   const prepared = prepareModuleInput(mod);
   const extracted = extractModuleSegments(mod, prepared);
   if (extracted.kind === 'passthrough') {
-    return { modules: [extracted.module], diagnostics, flags };
+    return {
+      modules: [applyPassthroughConstFolding(extracted.module, mod)],
+      diagnostics,
+      flags,
+    };
   }
   const { extractions, closureNodes } = extracted;
 
@@ -998,7 +1046,14 @@ function rewriteParent(
     hasForeignJsxRuntime
   );
 
-  const parentCode = applySegmentDCE(parentResult.code);
+  let foldedParentCode = parentResult.code;
+  if (
+    options.isServer !== undefined &&
+    (foldedParentCode.includes('@qwik.dev/core') || foldedParentCode.includes('@builder.io/qwik'))
+  ) {
+    foldedParentCode = applySegmentConstReplacement(foldedParentCode, relPath, options.isServer);
+  }
+  const parentCode = applySegmentDCE(foldedParentCode);
   const cleanedCode = removeUnusedImports(
     parentCode,
     relPath,
@@ -1006,6 +1061,7 @@ function rewriteParent(
     undefined,
     emit.isLibMode
   );
+  const removedImportSources = collectRemovedImportSources(analysis.originalImports, cleanedCode);
   const parentModule: TransformModule = {
     kind: 'parent',
     path: relPath,
@@ -1013,6 +1069,7 @@ function rewriteParent(
     code: cleanedCode,
     map: null,
     origPath: input.path,
+    imports: removedImportSources.length > 0 ? removedImportSources : undefined,
   };
 
   detectC05Diagnostics(

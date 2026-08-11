@@ -455,6 +455,7 @@ export const MIG_REASON = {
   KEEP_EXPORTED: 'exported but not used by any segment',
   KEEP_UNUSED: 'not used by any segment',
   DROP_UNREFERENCED: 'pure init unused by root and segments (dead after extraction)',
+  DROP_STRIPPED_ONLY: 'only consumed by stripped segments (side effects dropped)',
 } as const;
 
 const INLINE_STRATEGY_REEXPORT_REASONS: ReadonlySet<string> = new Set([

@@ -11,6 +11,7 @@ import type {
   TSEnumDeclaration,
 } from '../../ast-types.js';
 import { parseWithRawTransfer } from '../ast/parse.js';
+import { isStrippedExtraction } from '../rewrite/predicates.js';
 import { flattenAndReparse } from '../prepare/flatten-destructures.js';
 import { detectForeignJsxRuntime } from '../jsx/jsx-import-source.js';
 import type { ConsolidatedSegment, ExtractionResult, Mutable } from '../extraction/extract.js';
@@ -777,17 +778,75 @@ function attributeSegmentUsage(
     }
   }
 
+  // Stripped segments never resume, so their uses of module decls don't
+  // count; a decl consumed only by stripped segments is dropped outright,
+  // side effects included.
+  const strippedOnlyNames = new Set<string>();
+  if (options.stripCtxName || options.stripEventHandlers) {
+    const strippedSegments = new Set(
+      extractions
+        .filter((e) => isStrippedExtraction(e, options.stripCtxName, options.stripEventHandlers))
+        .map((e) => e.symbolName as string)
+    );
+    if (strippedSegments.size > 0) {
+      const usedByStripped = new Set<string>();
+      for (const [seg, names] of segmentUsage) {
+        if (strippedSegments.has(seg)) {
+          for (const name of names) usedByStripped.add(name);
+        }
+      }
+      for (const seg of strippedSegments) segmentUsage.delete(seg);
+      const usedByLiveSegment = new Set<string>();
+      for (const [, names] of segmentUsage) {
+        for (const name of names) usedByLiveSegment.add(name);
+      }
+      for (const name of usedByStripped) {
+        if (!usedByLiveSegment.has(name) && !rootUsage.has(name)) {
+          strippedOnlyNames.add(name);
+        }
+      }
+    }
+  }
+
   let migrationDecisions = analyzeMigration(moduleLevelDecls, segmentUsage, rootUsage, program);
   // A decl whose init holds an extraction keeps its (pure) marker-call
   // registration as a bare statement — only the binding disappears, so
   // whole-decl dropping would erase the registration.
   migrationDecisions = migrationDecisions.map((d) => {
-    if (d.action !== 'drop') return d;
     const decl = moduleLevelDeclsByName.get(d.varName);
-    const holdsExtraction =
-      decl && extractions.some((e) => e.callStart >= decl.declStart && e.callEnd <= decl.declEnd);
-    return holdsExtraction ? { ...d, action: 'keep' as const, reason: MIG_REASON.KEEP_UNUSED } : d;
+    if (!decl) return d;
+    const holdsExtraction = extractions.some(
+      (e) => e.callStart >= decl.declStart && e.callEnd <= decl.declEnd
+    );
+    if (d.action === 'drop' && holdsExtraction) {
+      return { ...d, action: 'keep' as const, reason: MIG_REASON.KEEP_UNUSED };
+    }
+    if (
+      d.action === 'keep' &&
+      strippedOnlyNames.has(d.varName) &&
+      !decl.isExported &&
+      !holdsExtraction
+    ) {
+      return { ...d, action: 'drop' as const, reason: MIG_REASON.DROP_STRIPPED_ONLY };
+    }
+    return d;
   });
+
+  // Captures of dropped decls no longer exist at runtime; scrub them so
+  // segment metadata and `.w()` wiring don't reference removed bindings.
+  const droppedNames = new Set(
+    migrationDecisions.filter((d) => d.action === 'drop').map((d) => d.varName)
+  );
+  if (droppedNames.size > 0) {
+    for (const ext of extractions) {
+      if (ext.captureNames.length === 0) continue;
+      const kept = ext.captureNames.filter((name) => !droppedNames.has(name));
+      if (kept.length === ext.captureNames.length) continue;
+      const mut = ext as Mutable<ExtractionResult>;
+      mut.captureNames = kept;
+      mut.captures = kept.length > 0;
+    }
+  }
   if (isInlineStrategy) {
     migrationDecisions = filterInlineStrategyMigrations(migrationDecisions);
     dropTopLevelModuleScopeCaptures(extractions, moduleLevelDeclsByName);

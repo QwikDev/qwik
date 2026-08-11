@@ -667,7 +667,7 @@ function addCaptureWrapping(ctx: RewriteContext): void {
 
   const migratedNames = new Set(
     (migrationDecisions ?? [])
-      .filter((d) => d.action === 'reexport' || d.action === 'move')
+      .filter((d) => d.action === 'reexport' || d.action === 'move' || d.action === 'drop')
       .map((d) => d.varName)
   );
 

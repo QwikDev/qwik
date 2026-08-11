@@ -293,10 +293,13 @@ function buildDefaultPath(): Path {
 }
 
 function buildDefaultSystem(): OptimizerSystem {
+  const hasProcess = typeof process === 'object' && typeof process.cwd === 'function';
+  const isWebWorker =
+    !hasProcess && typeof (globalThis as { importScripts?: unknown }).importScripts === 'function';
   return {
-    cwd: () => process.cwd(),
-    env: 'node',
-    os: process.platform,
+    cwd: () => (hasProcess ? process.cwd() : '/'),
+    env: hasProcess ? 'node' : isWebWorker ? 'webworker' : 'browsermain',
+    os: hasProcess ? process.platform : 'unknown',
     dynamicImport: (p) => import(p),
     strictDynamicImport: (p) => import(p),
     path: buildDefaultPath(),

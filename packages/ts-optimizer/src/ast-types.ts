@@ -1,4 +1,5 @@
 import type { EcmaScriptModule, ParseResult, ParserOptions } from 'oxc-parser';
+import * as oxcParser from 'oxc-parser';
 
 export type {
   ArrayExpression,
@@ -98,6 +99,12 @@ export type AstParseErrors = ParseResult['errors'];
 export type AstParseResult = ParseResult;
 export type AstEcmaScriptModule = EcmaScriptModule;
 
+// Raw transfer is a native-binding fast path; the wasm (browser) binding
+// parses the same AST without it.
 export const RAW_TRANSFER_PARSER_OPTIONS: AstRawTransferParserOptions = {
-  experimentalRawTransfer: true,
+  experimentalRawTransfer:
+    typeof (oxcParser as { rawTransferSupported?: () => boolean }).rawTransferSupported ===
+    'function'
+      ? (oxcParser as { rawTransferSupported: () => boolean }).rawTransferSupported()
+      : false,
 };

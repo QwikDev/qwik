@@ -4,8 +4,7 @@ import { mkDisplayName } from '../../src/optimizer/types/brands.js';
 import { parseSnapshot } from '../../src/testing/snapshot-parser.js';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
-
-const SNAP_DIR = join(import.meta.dirname, '../../match-these-snaps');
+import { SNAP_DIR } from '../rust-snapshots.js';
 
 describe('escapeSymbol', () => {
   it('strips trailing $ from component names', () => {
@@ -74,9 +73,9 @@ describe('buildSymbolName', () => {
     ).toBe('renderHeader2_component_Ay6ibkfFYsw');
   });
 
-  it('matches all symbol names across the 210 snapshot corpus', () => {
+  it('matches all symbol names across the snapshot corpus', () => {
     const snapFiles = readdirSync(SNAP_DIR).filter((f) => f.endsWith('.snap'));
-    expect(snapFiles.length).toBe(210);
+    expect(snapFiles.length).toBeGreaterThanOrEqual(210);
 
     let totalNames = 0;
     let skipped = 0;

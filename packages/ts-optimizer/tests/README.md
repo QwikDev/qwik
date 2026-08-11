@@ -9,9 +9,9 @@ The optimizer has two types of tests:
 
 ## Snapshot Directories
 
-### `match-these-snaps/` — The Source of Truth
+### `../../optimizer/core/src/snapshots/` — The Source of Truth
 
-209 snapshot files produced by the **Rust SWC optimizer**. These are in Rust's [insta](https://insta.rs/) snapshot format with YAML frontmatter.
+The live snapshot files produced by the **Rust optimizer** test suite, read directly from the `@qwik.dev/optimizer` package (path exported as `SNAP_DIR` from `tests/rust-snapshots.ts`). These are in Rust's [insta](https://insta.rs/) snapshot format with YAML frontmatter.
 
 Each snapshot contains:
 
@@ -20,23 +20,23 @@ Each snapshot contains:
 - Segment modules — the extracted lazy-loadable closures with metadata (name, hash, origin, captures)
 - `==DIAGNOSTICS==` — any warnings/errors (C02, C05, etc.)
 
-**These are the target.** They come from Qwik's Rust test suite and define what we want our TS optimizer to eventually match.
+**These are the target.** Because the tests read the Rust snapshots in place, any `pnpm test.rust.update` run immediately becomes the new convergence target — there is no vendored copy to refresh.
 
 ### `ts-output/` — What We Currently Produce
 
-**Not committed to git** (gitignored). **Automatically regenerated** every time the convergence tests run. Each snapshot with an `==INPUT==` section gets transformed and written here (208 of 209 — `relative_paths` has no input section). The convergence test compares against `match-these-snaps/`, not `ts-output/` — this directory is for human inspection only.
+**Not committed to git** (gitignored). **Automatically regenerated** every time the convergence tests run. Each snapshot with an `==INPUT==` section gets transformed and written here (`relative_paths` has no input section). The convergence test compares against the Rust snapshots, not `ts-output/` — this directory is for human inspection only.
 
 ## How Convergence Tests Work
 
 ```
-match-these-snaps/*.snap  →  parseSnapshot()  →  extract INPUT
-                                                       ↓
-                                                  transformModule()
-                                                       ↓
-                                              compareAst(expected, actual)
+optimizer/core/src/snapshots/*.snap  →  parseSnapshot()  →  extract INPUT
+                                                                  ↓
+                                                             transformModule()
+                                                                  ↓
+                                                         compareAst(expected, actual)
 ```
 
-1. Read a golden snapshot from `match-these-snaps/`
+1. Read a golden snapshot from the Rust snapshot directory
 2. Parse it to extract the INPUT code and expected outputs
 3. Look up per-snapshot options in `tests/optimizer/snapshot-options.ts`
 4. Run `transformModule()` with those options

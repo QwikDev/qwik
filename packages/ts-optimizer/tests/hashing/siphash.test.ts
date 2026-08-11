@@ -4,8 +4,7 @@ import { qwikHash } from '../../src/hashing/siphash.js';
 import { parseSnapshot } from '../../src/testing/snapshot-parser.js';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
-
-const SNAP_DIR = join(import.meta.dirname, '../../match-these-snaps');
+import { SNAP_DIR } from '../rust-snapshots.js';
 
 describe('qwikHash', () => {
   it('produces correct hash for renderHeader1_div_onClick', () => {
@@ -27,9 +26,9 @@ describe('qwikHash', () => {
     expect(hash).not.toMatch(createRegExp(charIn('-_')));
   });
 
-  it('matches all hashes across the 210 snapshot corpus', () => {
+  it('matches all hashes across the snapshot corpus', () => {
     const snapFiles = readdirSync(SNAP_DIR).filter((f) => f.endsWith('.snap'));
-    expect(snapFiles.length).toBe(210);
+    expect(snapFiles.length).toBeGreaterThanOrEqual(210);
 
     let totalHashes = 0;
     let skipped = 0;

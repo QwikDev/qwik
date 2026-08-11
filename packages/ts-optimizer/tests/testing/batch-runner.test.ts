@@ -12,9 +12,7 @@ import {
   type BatchConfig,
   type BatchResult,
 } from '../../src/testing/batch-runner.js';
-import { resolve } from 'node:path';
-
-const SNAP_DIR = resolve(import.meta.dirname, '../../match-these-snaps');
+import { SNAP_DIR } from '../rust-snapshots.js';
 
 describe('batch-runner', () => {
   let tmpDir: string;
@@ -27,9 +25,9 @@ describe('batch-runner', () => {
     rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  it('getSnapshotFiles returns all 210 files', () => {
+  it('getSnapshotFiles returns the full corpus', () => {
     const files = getSnapshotFiles(SNAP_DIR);
-    expect(files).toHaveLength(210);
+    expect(files.length).toBeGreaterThanOrEqual(210);
     for (const f of files) {
       expect(f).toMatch(/\.snap$/);
     }
@@ -145,7 +143,7 @@ describe('batch-runner', () => {
     expect(result.passed).toBe(5);
   });
 
-  it('full corpus parse test - all 210 snapshots parse', () => {
+  it('full corpus parse test - all snapshots parse', () => {
     const allFiles = getSnapshotFiles(SNAP_DIR);
     const totalBatches = Math.ceil(allFiles.length / 10);
     let totalPassed = 0;
@@ -169,7 +167,7 @@ describe('batch-runner', () => {
     }
 
     expect(failures).toEqual([]);
-    expect(totalPassed).toBe(210);
+    expect(totalPassed).toBe(allFiles.length);
     expect(totalFailed).toBe(0);
   });
 });

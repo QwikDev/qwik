@@ -1,12 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
-import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
 import { parseSnapshot } from '../../src/testing/snapshot-parser.js';
 import type { ParsedSnapshot } from '../../src/testing/snapshot-parser.js';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const SNAPS_DIR = join(__dirname, '../../match-these-snaps');
+import { SNAP_DIR as SNAPS_DIR } from '../rust-snapshots.js';
 
 function loadSnap(name: string): string {
   return readFileSync(join(SNAPS_DIR, name), 'utf-8');
@@ -143,14 +140,14 @@ describe('parseSnapshot', () => {
     });
   });
 
-  describe('bulk validation: all 209 .snap files', () => {
+  describe('bulk validation: all .snap files', () => {
     const snapFiles = readdirSync(SNAPS_DIR).filter((f: string) => f.endsWith('.snap'));
 
-    it('finds 210 snapshot files', () => {
-      expect(snapFiles).toHaveLength(210);
+    it('finds the snapshot corpus', () => {
+      expect(snapFiles.length).toBeGreaterThanOrEqual(210);
     });
 
-    it('parses all 209 files without errors', () => {
+    it('parses all files without errors', () => {
       const errors: string[] = [];
       let totalSegments = 0;
       let totalParentModules = 0;

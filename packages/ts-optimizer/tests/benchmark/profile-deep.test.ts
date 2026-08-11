@@ -1,14 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
-import { join, dirname, relative } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { join, relative } from 'node:path';
 import * as process from 'node:process';
 import { transformModule } from '../../src/optimizer/transform/index.js';
 import type { TransformModuleInput, TransformOutput } from '../../src/optimizer/types/types.js';
 import { mkFilePath, mkSourceText } from '../../src/optimizer/types/brands.js';
 import { parseSnapshot } from '../../src/testing/snapshot-parser.js';
-
-const SNAP_DIR = join(dirname(fileURLToPath(import.meta.url)), '../../match-these-snaps');
+import { SNAP_DIR } from '../rust-snapshots.js';
 const QWIK_HOME = process.env.QWIK_HOME;
 const ITERATIONS = Number(process.env.PROFILE_ITERATIONS ?? '3');
 

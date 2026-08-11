@@ -8,9 +8,9 @@ import { transformModule } from '../../src/optimizer/transform/index.js';
 import type { TransformOutput } from '../../src/optimizer/types/types.js';
 import { getSnapshotFiles } from '../../src/testing/batch-runner.js';
 import { getSnapshotTransformOptions } from './snapshot-options.js';
+import { SNAP_DIR } from '../rust-snapshots.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const SNAP_DIR = join(__dirname, '../../match-these-snaps');
 const TS_OUTPUT_DIR = join(__dirname, '../../ts-output');
 
 mkdirSync(TS_OUTPUT_DIR, { recursive: true });
@@ -36,7 +36,7 @@ function getTestName(snapFilename: string): string {
   return snapFilename.replace('qwik_core__test__', '').replace('.snap', '');
 }
 
-describe('convergence: all 209 snapshots', () => {
+describe('convergence: all snapshots', () => {
   const allFiles = getSnapshotFiles(SNAP_DIR);
 
   const results = {

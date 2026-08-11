@@ -1,16 +1,13 @@
 import { describe, it } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
-import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
 import { parseSync } from 'oxc-parser';
 import equal from 'fast-deep-equal';
 import { parseSnapshot } from '../../src/testing/snapshot-parser.js';
 import { transformModule } from '../../src/optimizer/transform/index.js';
 import { getSnapshotTransformOptions } from './snapshot-options.js';
 import { stripAstPositions, isRecord } from './helpers/ast-normalize.js';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const SNAP_DIR = join(__dirname, '../../match-these-snaps');
+import { SNAP_DIR } from '../rust-snapshots.js';
 
 function bodyOf(program: unknown): readonly unknown[] {
   if (isRecord(program) && Array.isArray(program.body)) return program.body;

@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { readdirSync, readFileSync } from 'node:fs';
-import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
 import { parseSync } from 'oxc-parser';
 import { gatherModuleFacts } from '../../../src/optimizer/analysis/module-gather-walk.js';
 import { extractSegments } from '../../../src/optimizer/extraction/extract.js';
@@ -16,8 +15,7 @@ import {
 import { parseSnapshot } from '../../../src/testing/snapshot-parser.js';
 import { RAW_TRANSFER_PARSER_OPTIONS } from '../../../src/ast-types.js';
 import type { AstEcmaScriptModule, AstFunction, AstProgram } from '../../../src/ast-types.js';
-
-const SNAP_DIR = join(dirname(fileURLToPath(import.meta.url)), '../../../match-these-snaps');
+import { SNAP_DIR } from '../../rust-snapshots.js';
 
 interface FlagCombo {
   readonly label: string;

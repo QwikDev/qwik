@@ -23,7 +23,11 @@ import {
 import { join } from 'pathe';
 import { getDirectory } from '../../paths.js';
 import { resolveEntryField } from './entry-strategy.js';
-import { buildQrlDeclaration, needsPureAnnotation } from '../rewrite/rewrite-calls.js';
+import {
+  buildQrlDeclaration,
+  markMovedCaptures,
+  needsPureAnnotation,
+} from '../rewrite/rewrite-calls.js';
 import { getQrlCalleeName } from '../qwik/qrl-naming.js';
 import { isHtmlElement } from '../jsx/jsx.js';
 import { resolveSameFileImportName } from './import-collection.js';
@@ -558,34 +562,43 @@ export function buildNestedQrlDeclarations(
       const counter = getSentinelCounter(idx);
       childQrlVarNames.set(child.symbolName, `q_qrl_${counter}`);
       if (isDevMode && devFile) {
-        return buildStrippedNoopQrlDev(child.symbolName, idx, {
-          file: devFile,
-          lo: 0,
-          hi: 0,
-          displayName: child.displayName,
-        });
+        return markMovedCaptures(
+          buildStrippedNoopQrlDev(child.symbolName, idx, {
+            file: devFile,
+            lo: 0,
+            hi: 0,
+            displayName: child.displayName,
+          }),
+          child
+        );
       }
-      return buildStrippedNoopQrl(child.symbolName, idx);
+      return markMovedCaptures(buildStrippedNoopQrl(child.symbolName, idx), child);
     }
     childQrlVarNames.set(child.symbolName, `q_${child.symbolName}`);
     if (isDevMode && devFile) {
       const devExt = options.explicitExtensions ? (qrlOutputExt ?? '.js') : undefined;
-      return buildQrlDevDeclaration(
-        child.symbolName,
-        child.canonicalFilename,
-        devFile,
-        child.loc[0],
-        child.loc[1],
-        child.displayName,
-        devExt
+      return markMovedCaptures(
+        buildQrlDevDeclaration(
+          child.symbolName,
+          child.canonicalFilename,
+          devFile,
+          child.loc[0],
+          child.loc[1],
+          child.displayName,
+          devExt
+        ),
+        child
       );
     }
-    return buildQrlDeclaration(
-      child.symbolName,
-      child.canonicalFilename,
-      options.explicitExtensions,
-      child.extension,
-      qrlOutputExt
+    return markMovedCaptures(
+      buildQrlDeclaration(
+        child.symbolName,
+        child.canonicalFilename,
+        options.explicitExtensions,
+        child.extension,
+        qrlOutputExt
+      ),
+      child
     );
   });
   return { nestedQrlDecls, childQrlVarNames };

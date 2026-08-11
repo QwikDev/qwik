@@ -5,7 +5,7 @@ import type { AstNode, AstProgram } from '../../ast-types.js';
 import type { ExtractionResult } from '../extraction/extract.js';
 import type { ImportInfo } from '../extraction/marker-detection.js';
 import type { ModuleLevelDecl } from '../analysis/variable-migration.js';
-import { buildQrlDeclaration, getQrlImportSource } from './rewrite-calls.js';
+import { buildQrlDeclaration, getQrlImportSource, markMovedCaptures } from './rewrite-calls.js';
 import { isLibModePreservedMarker } from '../qwik/qrl-naming.js';
 import { escapeSymbol } from '../../hashing/naming.js';
 import { buildQrlDevDeclaration, buildDevFilePath } from '../segment/dev-mode.js';
@@ -212,30 +212,36 @@ export function buildQrlDeclarations(ctx: RewriteContext): void {
         const idx = strippedCounter++;
         if (isDevMode && devFilePath) {
           ctx.qrlDecls.push(
-            buildStrippedNoopQrlDev(ext.symbolName, idx, {
-              file: devFilePath,
-              lo: 0,
-              hi: 0,
-              displayName: ext.displayName,
-            })
+            markMovedCaptures(
+              buildStrippedNoopQrlDev(ext.symbolName, idx, {
+                file: devFilePath,
+                lo: 0,
+                hi: 0,
+                displayName: ext.displayName,
+              }),
+              ext
+            )
           );
         } else {
-          ctx.qrlDecls.push(buildStrippedNoopQrl(ext.symbolName, idx));
+          ctx.qrlDecls.push(markMovedCaptures(buildStrippedNoopQrl(ext.symbolName, idx), ext));
         }
         const counter = 0xffff0000 + idx * 2;
         ctx.qrlVarNames.set(ext.symbolName, `q_qrl_${counter}`);
       } else {
         if (isDevMode && devFilePath) {
           ctx.qrlDecls.push(
-            buildNoopQrlDevDeclaration(ext.symbolName, {
-              file: devFilePath,
-              lo: ext.argStart,
-              hi: ext.argEnd,
-              displayName: ext.displayName,
-            })
+            markMovedCaptures(
+              buildNoopQrlDevDeclaration(ext.symbolName, {
+                file: devFilePath,
+                lo: ext.argStart,
+                hi: ext.argEnd,
+                displayName: ext.displayName,
+              }),
+              ext
+            )
           );
         } else {
-          ctx.qrlDecls.push(buildNoopQrlDeclaration(ext.symbolName));
+          ctx.qrlDecls.push(markMovedCaptures(buildNoopQrlDeclaration(ext.symbolName), ext));
         }
         ctx.qrlVarNames.set(ext.symbolName, `q_${ext.symbolName}`);
       }
@@ -252,15 +258,18 @@ export function buildQrlDeclarations(ctx: RewriteContext): void {
         const idx = strippedCounter++;
         if (isDevMode && devFilePath) {
           ctx.qrlDecls.push(
-            buildStrippedNoopQrlDev(ext.symbolName, idx, {
-              file: devFilePath,
-              lo: 0,
-              hi: 0,
-              displayName: ext.displayName,
-            })
+            markMovedCaptures(
+              buildStrippedNoopQrlDev(ext.symbolName, idx, {
+                file: devFilePath,
+                lo: 0,
+                hi: 0,
+                displayName: ext.displayName,
+              }),
+              ext
+            )
           );
         } else {
-          ctx.qrlDecls.push(buildStrippedNoopQrl(ext.symbolName, idx));
+          ctx.qrlDecls.push(markMovedCaptures(buildStrippedNoopQrl(ext.symbolName, idx), ext));
         }
         const counter = 0xffff0000 + idx * 2;
         ctx.qrlVarNames.set(ext.symbolName, `q_qrl_${counter}`);
@@ -268,24 +277,30 @@ export function buildQrlDeclarations(ctx: RewriteContext): void {
         if (isDevMode && devFilePath) {
           const devExt = explicitExtensions ? (outputExtension ?? '.js') : undefined;
           ctx.qrlDecls.push(
-            buildQrlDevDeclaration(
-              ext.symbolName,
-              ext.canonicalFilename,
-              devFilePath,
-              ext.loc[0],
-              ext.loc[1],
-              ext.displayName,
-              devExt
+            markMovedCaptures(
+              buildQrlDevDeclaration(
+                ext.symbolName,
+                ext.canonicalFilename,
+                devFilePath,
+                ext.loc[0],
+                ext.loc[1],
+                ext.displayName,
+                devExt
+              ),
+              ext
             )
           );
         } else {
           ctx.qrlDecls.push(
-            buildQrlDeclaration(
-              ext.symbolName,
-              ext.canonicalFilename,
-              explicitExtensions,
-              ext.extension,
-              outputExtension
+            markMovedCaptures(
+              buildQrlDeclaration(
+                ext.symbolName,
+                ext.canonicalFilename,
+                explicitExtensions,
+                ext.extension,
+                outputExtension
+              ),
+              ext
             )
           );
         }
@@ -307,14 +322,17 @@ export function buildQrlDeclarations(ctx: RewriteContext): void {
       }
       if (isDevMode && devFilePath) {
         ctx.qrlDecls.push(
-          buildQrlDevDeclaration(
-            ext.symbolName,
-            ext.canonicalFilename,
-            devFilePath,
-            ext.loc[0],
-            ext.loc[1],
-            ext.displayName,
-            devExt
+          markMovedCaptures(
+            buildQrlDevDeclaration(
+              ext.symbolName,
+              ext.canonicalFilename,
+              devFilePath,
+              ext.loc[0],
+              ext.loc[1],
+              ext.displayName,
+              devExt
+            ),
+            ext
           )
         );
       } else if (ext.isInlinedQrl && !relPath.includes('node_modules')) {
@@ -332,12 +350,15 @@ export function buildQrlDeclarations(ctx: RewriteContext): void {
         );
       } else {
         ctx.qrlDecls.push(
-          buildQrlDeclaration(
-            ext.symbolName,
-            ext.canonicalFilename,
-            explicitExtensions,
-            ext.extension,
-            outputExtension
+          markMovedCaptures(
+            buildQrlDeclaration(
+              ext.symbolName,
+              ext.canonicalFilename,
+              explicitExtensions,
+              ext.extension,
+              outputExtension
+            ),
+            ext
           )
         );
       }

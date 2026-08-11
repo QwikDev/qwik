@@ -14,6 +14,7 @@ import { isQwikPackageSource } from '../qwik/qwik-packages.js';
 import { getQrlCalleeName } from '../qwik/qrl-naming.js';
 import { quoteAsStringLiteral } from '../edit/string-literal.js';
 import { scanMatchingParenForward } from '../edit/text-scanning.js';
+import { eventHandlerQpParams } from '../jsx/loop-hoisting.js';
 
 const blockComment = /\/\*[\s\S]*?\*\//g;
 
@@ -34,6 +35,33 @@ const singleArrowParam = createRegExp(
 );
 
 export { getQrlCalleeName } from '../qwik/qrl-naming.js';
+
+interface MovedCapturesSource {
+  readonly ctxKind: 'function' | 'eventHandler' | 'jSXProp';
+  readonly ctxName: string;
+  readonly calleeName: string;
+  readonly paramNames: readonly string[];
+  readonly isInlinedQrl?: boolean;
+}
+
+/**
+ * Event handlers whose captures were lifted into params need a runtime `.m()` marker. Only direct
+ * `on*$={fn}` handlers qualify — nested markers (`server$`, `sync$`, …) keep their captures.
+ */
+export function hasMovedCaptures(ext: MovedCapturesSource): boolean {
+  return (
+    ext.ctxKind === 'eventHandler' &&
+    !ext.isInlinedQrl &&
+    ext.calleeName === ext.ctxName &&
+    eventHandlerQpParams(ext.paramNames).length > 0
+  );
+}
+
+/** Appends the `.m()` moved-captures marker to a `;`-terminated QRL declaration. */
+export function markMovedCaptures(decl: string, ext: MovedCapturesSource): string {
+  if (!hasMovedCaptures(ext)) return decl;
+  return decl.slice(0, -1) + '.m();';
+}
 
 export function buildQrlDeclaration(
   symbolName: string,

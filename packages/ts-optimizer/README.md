@@ -9,8 +9,16 @@ when the user actually triggers it.
 
 > **Status: experimental.** This is a from-scratch TypeScript port of the Rust
 > SWC optimizer that ships with Qwik core, built on [OXC](https://oxc.rs). It
-> currently matches **~96%** of the reference optimizer's snapshot suite. APIs
-> may change before a 1.0.
+> currently matches **206 of 217** of the reference optimizer's live snapshot
+> suite (see `tests/README.md`; the comparison reads the Rust snapshots in
+> place). Known gaps: inline-component raw-props rewriting
+> (`destructure_args_inline_cmp_*`, `example_lightweight_functional`),
+> `q:ps` positional capture delivery, store-chain collapse
+> (`example_use_optimization`), const-value inlining into segments
+> (`example_invalid_segment_expr1`), segment-body dead-statement elimination
+> (`example_9`), the direct-event `worker$` wrapper segment, and the large
+> `example_qwik_router_client`/`fun_with_scopes` composites. APIs may change
+> before a 1.0.
 
 ## Why
 

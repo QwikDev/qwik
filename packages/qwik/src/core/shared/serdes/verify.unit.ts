@@ -5,8 +5,22 @@ import {
   fastSkipSerialize,
   NoSerializeSymbol,
   SerializerSymbol,
+  type NoSerialize,
 } from './verify';
 import * as useCore from '../../use/use-core';
+
+describe('NoSerialize type', () => {
+  it('requires values to be branded by noSerialize()', () => {
+    const marked = noSerialize({ token: 'secret' });
+    const noSerializeValue: NoSerialize<{ token: string }> = marked;
+
+    // @ts-expect-error Plain objects must be wrapped with noSerialize().
+    const plainValue: NoSerialize<{ token: string }> = { token: 'secret' };
+
+    expect(noSerializeValue?.token).toBe('secret');
+    expect(plainValue).toEqual({ token: 'secret' });
+  });
+});
 
 describe('verifySerializable', () => {
   describe('serializable values', () => {

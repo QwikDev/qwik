@@ -10,6 +10,7 @@ import {
   setPlatform,
   useLexicalScope,
   useOn,
+  useAsync$,
   useServerData,
   useSignal,
   useTask$,
@@ -897,6 +898,90 @@ describe('render api', () => {
           streaming,
         });
         expect(write.mock.calls.length).toBeGreaterThan(100);
+      });
+      it('should handle jsx promise rejection while a flush is pending', async () => {
+        const firstWrite = createDeferred();
+        let writeCount = 0;
+        const unhandledRejections: unknown[] = [];
+        const onUnhandledRejection = (reason: unknown) => {
+          unhandledRejections.push(reason);
+        };
+        const stream = createTestStream(() => {
+          writeCount++;
+          if (writeCount === 1) {
+            return firstWrite.promise;
+          }
+        });
+
+        process.on('unhandledRejection', onUnhandledRejection);
+        try {
+          const renderPromise = renderToStreamAndSetPlatform(
+            <div>
+              prefix
+              {Promise.reject(new Error('jsx promise failed'))}
+            </div>,
+            {
+              containerTagName: 'div',
+              stream,
+              streaming: {
+                inOrder: { strategy: 'disabled' },
+              },
+            }
+          );
+          await new Promise((resolve) => setImmediate(resolve));
+
+          expect(unhandledRejections).toEqual([]);
+
+          firstWrite.resolve();
+          await expect(renderPromise).rejects.toThrow('jsx promise failed');
+        } finally {
+          process.off('unhandledRejection', onUnhandledRejection);
+        }
+      });
+      it('should handle async component rejection while a flush is pending', async () => {
+        const firstWrite = createDeferred();
+        let writeCount = 0;
+        const unhandledRejections: unknown[] = [];
+        const onUnhandledRejection = (reason: unknown) => {
+          unhandledRejections.push(reason);
+        };
+        const AsyncReject = component$(() => {
+          const result = useAsync$<JSXOutput>(() =>
+            Promise.reject(new Error('async component failed'))
+          );
+          return result.value;
+        });
+        const stream = createTestStream(() => {
+          writeCount++;
+          if (writeCount === 1) {
+            return firstWrite.promise;
+          }
+        });
+
+        process.on('unhandledRejection', onUnhandledRejection);
+        try {
+          const renderPromise = renderToStreamAndSetPlatform(
+            <div>
+              prefix
+              <AsyncReject />
+            </div>,
+            {
+              containerTagName: 'div',
+              stream,
+              streaming: {
+                inOrder: { strategy: 'disabled' },
+              },
+            }
+          );
+          await new Promise((resolve) => setImmediate(resolve));
+
+          expect(unhandledRejections).toEqual([]);
+
+          firstWrite.resolve();
+          await expect(renderPromise).rejects.toThrow('async component failed');
+        } finally {
+          process.off('unhandledRejection', onUnhandledRejection);
+        }
       });
       it('should wait for an async direct write before emitting the next one', async () => {
         const firstWrite = createDeferred();

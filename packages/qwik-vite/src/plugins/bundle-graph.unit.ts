@@ -103,6 +103,48 @@ describe('convertManifestToBundleGraph', () => {
     ]);
   });
 
+  test('import cycle through the reduced bundle keeps reachable deps', () => {
+    const manifest = {
+      bundles: {
+        'x.js': { size, total, imports: ['a.js', 'd.js'] },
+        'a.js': { size, total, imports: ['x.js'] },
+        'd.js': { size, total },
+      } as Record<string, QwikBundle>,
+      mapping: {},
+    } as QwikManifest;
+    expect(convertManifestToBundleGraph(manifest)).toEqual([
+      'x.js', // 0
+      3,
+      5,
+      'a.js', // 3
+      0,
+      'd.js', // 5
+    ]);
+  });
+
+  test('import cycle keeps dynamic deps but still reduces them', () => {
+    const manifest = {
+      bundles: {
+        'x.js': { size, total, imports: ['a.js'], dynamicImports: ['a.js', 'd.js', 'e.js'] },
+        'a.js': { size, total, imports: ['x.js'], symbols: ['sym1'] },
+        'd.js': { size, total, symbols: ['sym2'] },
+        'e.js': { size, total, imports: ['d.js'], symbols: ['sym3'] },
+      } as Record<string, QwikBundle>,
+      mapping: {},
+    } as QwikManifest;
+    expect(convertManifestToBundleGraph(manifest)).toEqual([
+      'x.js', // 0
+      4,
+      -7,
+      7,
+      'a.js', // 4
+      0,
+      'd.js', // 6
+      'e.js', // 7
+      6,
+    ]);
+  });
+
   test('adder', () => {
     expect(
       convertManifestToBundleGraph(

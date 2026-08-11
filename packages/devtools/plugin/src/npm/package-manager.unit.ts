@@ -113,27 +113,27 @@ describe('build package manager commands', () => {
   test('builds install commands for prod and dev dependencies', () => {
     expect(buildInstallCommand(npmContext, 'vite', 'dependencies')).toEqual({
       command: 'npm',
-      args: ['install', 'vite'],
+      args: ['install', '--ignore-scripts', 'vite'],
       cwd: '/repo',
     });
     expect(buildInstallCommand(npmContext, 'vite', 'devDependencies')).toEqual({
       command: 'npm',
-      args: ['install', '--save-dev', 'vite'],
+      args: ['install', '--ignore-scripts', '--save-dev', 'vite'],
       cwd: '/repo',
     });
     expect(buildInstallCommand(singlePackageContext, 'vite', 'devDependencies')).toEqual({
       command: 'pnpm',
-      args: ['add', '-D', 'vite'],
+      args: ['add', '--ignore-scripts', '-D', 'vite'],
       cwd: '/repo',
     });
     expect(buildInstallCommand(workspaceContext, 'vite', 'devDependencies')).toEqual({
       command: 'pnpm',
-      args: ['--filter', './packages/docs', 'add', '-D', 'vite'],
+      args: ['--filter', './packages/docs', 'add', '--ignore-scripts', '-D', 'vite'],
       cwd: '/repo',
     });
     expect(buildInstallCommand(yarnContext, 'vite', 'dependencies')).toEqual({
       command: 'yarn',
-      args: ['add', 'vite'],
+      args: ['add', '--ignore-scripts', 'vite'],
       cwd: '/repo',
     });
   });
@@ -141,17 +141,24 @@ describe('build package manager commands', () => {
   test('builds update commands that preserve dependency type', () => {
     expect(buildUpdateCommand(npmContext, 'vite', 'dependencies')).toEqual({
       command: 'npm',
-      args: ['install', 'vite@latest'],
+      args: ['install', '--ignore-scripts', 'vite@latest'],
       cwd: '/repo',
     });
     expect(buildUpdateCommand(workspaceContext, '@mui/x-data-grid', 'devDependencies')).toEqual({
       command: 'pnpm',
-      args: ['--filter', './packages/docs', 'add', '-D', '@mui/x-data-grid@latest'],
+      args: [
+        '--filter',
+        './packages/docs',
+        'add',
+        '--ignore-scripts',
+        '-D',
+        '@mui/x-data-grid@latest',
+      ],
       cwd: '/repo',
     });
     expect(buildUpdateCommand(yarnContext, 'vite', 'peerDependencies')).toEqual({
       command: 'yarn',
-      args: ['add', '--peer', 'vite@latest'],
+      args: ['add', '--ignore-scripts', '--peer', 'vite@latest'],
       cwd: '/repo',
     });
   });

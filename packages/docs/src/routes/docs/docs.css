@@ -43,9 +43,7 @@
   @apply hidden;
 
   @variant xl {
-    @apply block order-2 self-start sticky pt-10;
-    top: 0;
-    max-height: 100vh;
+    @apply block order-2 self-start sticky top-0 pt-10;
   }
 }
 

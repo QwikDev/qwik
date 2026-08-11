@@ -14,6 +14,7 @@ import { checkCSRF } from './resolve-request-handlers-core';
 import type { LoadedRoute, RouteModule } from '../../runtime/src/types';
 import { ServerError } from '@qwik.dev/router/middleware/request-handler';
 import { IsQLoader, QLoaderId } from './request-path';
+import { getRouteLoaderValues } from '../../runtime/src/route-loaders';
 
 function createMockServerRequestEvent(url = 'http://localhost:3000/test'): ServerRequestEvent {
   const mockRequest = new Request(url);
@@ -113,7 +114,7 @@ describe('resolve-request-handler', () => {
 
       const handlers = resolveRequestHandlers(undefined, route, 'GET', false, vi.fn());
 
-      await handlers[2]({
+      await handlers[3]({
         sharedMap: new Map([
           [IsQLoader, true],
           [QLoaderId, 'layout-loader'],
@@ -139,7 +140,7 @@ describe('resolve-request-handler', () => {
 
       const handlers = resolveRequestHandlers(undefined, route, 'GET', false, vi.fn());
 
-      await handlers[2]({
+      await handlers[3]({
         sharedMap: new Map([
           [IsQLoader, true],
           [QLoaderId, 'page-loader'],
@@ -147,6 +148,72 @@ describe('resolve-request-handler', () => {
       } as any);
 
       expect(pageOnRequest).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('server function request isolation', () => {
+    it('runs server functions before route middleware and route loaders', async () => {
+      const routeOnRequest = vi.fn();
+      const routeLoader = vi.fn() as any;
+      routeLoader.__brand = 'server_loader';
+      routeLoader.__id = 'route-loader';
+      const route: LoadedRoute = {
+        $routeName$: '/public/',
+        $params$: {},
+        $mods$: [
+          {
+            default: vi.fn(),
+            onRequest: routeOnRequest,
+            useRouteData: routeLoader,
+          },
+        ] as any,
+      };
+
+      const handlers = resolveRequestHandlers(undefined, route, 'POST', false, vi.fn());
+      const ev = {
+        query: new URLSearchParams('qfunc=missing-hash'),
+        request: new Request('http://localhost/public/?qfunc=missing-hash', {
+          method: 'POST',
+          headers: {
+            'X-QRL': 'missing-hash',
+            'Content-Type': 'application/qwik-json',
+          },
+        }),
+        error: vi.fn((status: number, message: string) => ({ status, message })),
+        exit: vi.fn(),
+        parseBody: vi.fn(async () => [[]]),
+        headers: new Headers(),
+      } as any;
+
+      await expect(handlers[2](ev)).rejects.toEqual({ status: 500, message: 'Invalid request' });
+
+      expect(ev.exit).toHaveBeenCalledTimes(1);
+      expect(routeOnRequest).not.toHaveBeenCalled();
+      expect(routeLoader).not.toHaveBeenCalled();
+    });
+
+    it('keeps server plugin middleware before server functions', () => {
+      const serverPluginOnRequest = vi.fn();
+      const routeOnRequest = vi.fn();
+      const route: LoadedRoute = {
+        $routeName$: '/public/',
+        $params$: {},
+        $mods$: [{ default: vi.fn(), onRequest: routeOnRequest }] as any,
+      };
+
+      const handlers = resolveRequestHandlers(
+        [{ onRequest: serverPluginOnRequest }] as any,
+        route,
+        'POST',
+        false,
+        vi.fn()
+      );
+
+      expect(handlers[2]).toBe(serverPluginOnRequest);
+      expect(handlers[3]).not.toBe(routeOnRequest);
+      expect(handlers[4]).not.toBe(routeOnRequest);
+      handlers[4]({ sharedMap: new Map() } as any);
+      expect(routeOnRequest).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -457,6 +524,26 @@ describe('resolve-request-handler', () => {
 
       expect(requestEv.status()).toBe(401);
       expect(requestEv.sharedMap.get(RequestEvHttpStatusMessage)).toBe('boom');
+    });
+
+    it('clears resolved route loader data before rendering a ServerError page', async () => {
+      const route = pageRouteWithLoaders(
+        makeLoader('protected', () => ({ secret: 'hidden' })),
+        makeLoader('guard', () => {
+          throw new ServerError(401, 'login required');
+        })
+      );
+      const renderHandler = vi.fn((requestEv: RequestEvent) => {
+        expect(getRouteLoaderValues(requestEv)).toEqual({});
+        requestEv.exit();
+      });
+      const requestEv = runPage(route, renderHandler);
+
+      await requestEv.next();
+
+      expect(renderHandler).toHaveBeenCalledOnce();
+      expect(requestEv.status()).toBe(401);
+      expect(requestEv.sharedMap.get(RequestEvHttpStatusMessage)).toBe('login required');
     });
 
     it('reports the first blockSSR loader (in route order) that errors', async () => {

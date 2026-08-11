@@ -8,101 +8,171 @@ contributors:
   - mhevery
   - mrhoodz
   - moinulmoin
-updated_at: '2023-06-25T19:43:33Z'
+  - maiieul
+updated_at: '2025-05-19T19:43:33Z'
 created_at: '2023-06-19T21:03:04Z'
 ---
 
 import { Note } from '~/components/note/note';
 
 # Think Qwik
+If you're coming from another reactive web framework such as Angular, React, Vue, Svelte or Solid, you are already familiar with the core Qwik concepts such as components and reactivity. You can learn more about the Qwik flavor [here](link).
 
-Qwik is very similar to other web frameworks at a high level. Qwik is a framework that renders a tree of components resulting in an interactive application.
+What makes Qwik different is a mechanism we call **javascript streaming**. Compared to the other reactive web frameworks which must execute all and thefore download all of the javascript code present or visible on a page in order to become interactive, Qwik has this unique ability to buffer javascript code bit by bit, prioritize the preloading of user events code and execution, and continuing to preload the rest of the code when idle.
 
-The unique part of Qwik is not in what it does but in how it achieves its goals. Qwik's goal is to have instant-on applications, even on mobile devices. Qwik achieves this through two main strategies:
+You can think of it like how video streaming compares to downloading. Instead of having to wait for the download to complete before being able press play, users can start running the video most often right away, and they can jump to other parts of the video, which will resume instantly if the packets have already been buffered or only after a short delay if not. Except the difference with javascript streaming is that it's about avoiding executing code, and therefore the associated downloads.
 
-1. Delay execution and download of JavaScript for as long as possible.
-2. Serialize the execution state of the application and the framework on the server and resume it on the client.
+**The result:** TTI (Time To Interactive) is sped up significantly, now a constant O(1) in time instead of growing proportionally to the amount of code present on a page. 
 
-The goal of Qwik is having only to download and execute the bare minimum of the application.
+This means:
+  - <u>More scalability</u>: there is theoretically no ceiling where you need to stop building features and start focusing on performance because your app is getting too big and too slow.
+  - <u>Happier developers</u>: no need to learn how to optimize application performance, the framework handles it for you.
+  - <u>Happier users</u>: The vast majority of users will never experience unresponsiveness, regardless of the network or device they're on, and will instead enjoy more features or better interfaces.
 
-## Delay Execution
+## Concretely speaking
+Modern websites require vast amounts of javascript to become interactive.
 
-<Note>Delay execution of JavaScript as much as possible.</Note>
+In a typical Qwik application, TTI normally takes only 3s on 4G and 6s on 3G. It is physically hard to get any faster in such network conditions, accounting for network roundtrip latencies and the time it takes to stream the fully server-side rendered html. Once all of the code has been preloaded, all user interactions are basically instant and you can use Cache Control strategies to speed up future user sessions as well as for offline usage.
 
-Qwik applications startup fast because there is a minimal amount of JavaScript code to execute. (At its simplest, a Qwik application only needs about 1KB of JavaScript to become interactive.)
+On the other hand, TTI in the other reactive web frameworks will most often reach **at least** 6s or more on 4G, and 20s or more on 3G networks. It is not uncommon for bigger apps to reach even 60s or more on 3G. Such delays can easily be noticed by end users. They not only increase bounce rates and reduce conversion rates, but also degrade your brand image.
 
-By aggressively delaying the application download and execution, Qwik can provide near-instant startup performance. No current generation of web frameworks can match this implementation.
+> In the wild, TTI numbers for the other reactive web frameworks are hard to compare apples to apples as those depend on application size, code splitting, render and other optimization strategies. 
 
-Qwik is fast not because it uses clever algorithms but because it is designed in a way where most of the JavaScript never needs to be downloaded or executed. Its speed comes from not doing things (such as hydration) that other frameworks have to do.
+## How does it work?
 
-## Resumability & Serialization
+Historically, reactive web frameworks were designed for CSR (Client Side Rendering). It is only later that they introduced SSR (Server Side Rendering) to show content to the user sooner. 
 
-Resumability is discussed in detail [here](../resumable/index.mdx). Resumability allows Qwik applications to continue execution where the server left off. All frameworks need to keep track of internal data structures about the application's state. The current generation of frameworks does not preserve this information when transitioning from the server to the browser. As a result, the framework's data structures need to be rebuilt in the browser, duplicating the work that was done on the server. The rebuilding of data structures and attaching of listeners is called hydration.
+The way they've achieved this is through a process called hydration, where the server generates and sends the html to the client, and then the client uses javascript to regenerate the tree and attach event listeners for a given page/section to be interactive. 
 
-Qwik serializes listeners, internal data structures, and application state into the HTML during the server-browser handoff. Because all of the information is serialized in HTML, the client can just resume execution where the server left off.
+The problem of this approach is that now the framework still has to execute all of the code for that page/section and therefore must also download all of it.
 
-## What is the problem?
+> There are many strategies to optimize hydration, such as reducing what needs to be hydrated (avoiding the non-interactive parts) and/or hydrating only on a page by page or visible intersection by visible intersection basis. While these strategies can help, they introduce added complexity without fully solving the problem. 
+> <br />
+> When partially hydrating only the above the fold components for example, hydration will have to continue on user scroll or route change, introducing continued perceivable delays during the session lifetime. Another limitation of this approach is that it still needs to hydrate all the interactive components above the fold, which can still take a lot of time if there are many.
 
-Modern websites require vast amounts of JavaScript to become interactive. Too much JavaScript manifests itself in two problems:
+Instead, Qwik has been designed with SSR as a first class citizen, supporting [out of order html streaming](link) and relying on the following 5 mechanisms to enable javascript streaming and constant O(1) TTI:
+  - Fine grained Reactivity (a.k.a. signals)
+  - Automatic code splitting (a.k.a. the optimizer)
+  - State serialization (a.k.a. resumability)
+  - Immediate user events registration (a.k.a. the qwikloader)
+  - Buffered and on-demand module preloads (a.k.a. the preloader)
 
-1. **Network bandwidth**: A large amount of code is shipped to the client, which may take a long time on slow networks.
-2. **Startup time**: Once on the client, the code needs to be executed (as part of hydration) to get the site interactive.
+> While Qwik applications do work with pure CSR, SSR is usually the preferred approach. With CSR, any web app (and even Qwik apps) must download the render functions in order to be able to generate the tree, slowing down TTI as the application grows.
 
-As applications get more complex with a higher fidelity of interactivity, the amount of code being shipped has steadily increased over the years, with no sign of stopping. Simply put, websites are getting more complicated. An increase in site complexity, in turn, requires more code. All of this code negatively impacts site startup performance.
+### Fine grained Reactivity (a.k.a. signals)
 
-To make matters worse, JavaScript is single-threaded; therefore, complex sites can't take advantage of modern multi-core CPUs.
+Reactive web frameworks are called reactive because they react on state changes. There are many ways to detect state changes, such as component re-renders, dirty-checking, proxies, observables, and signals. 
 
-### How did we get here?
+Except for React, the industry (Angular, Vue, Svelte and Solid) has converged towards signals as the preferred way to handle reactivity. 
 
-The solution to the above problem is both obvious and hard: Ship less JavaScript.
+Signals are a push/pull mechanism that only update DOM nodes directly affected by a state change, without the need to re-render an entire sub-tree of components. It is more fine grained, does less work and is therefore faster than the other approaches.
 
-The obvious part is that sites with less JavaScript will perform better.
+This ability to propagate state changes outside of the component tree structure is key to javascript streaming as it allows preloading and executing only the code necessary for a given user interaction without pulling in parent or child code altogether. 
 
-The hard part is that our tools don't help us achieve this. Most of them solve problems in a way that makes shipping less JavaScript hard. These tools are designed to address specific issues without considering how much JavaScript they produce.
+Without fine-grained reactivity, a user interaction triggering a state change would require re-rendering entire sub-trees of components, which would force downloading and executing a lot of code all at once, introducing delays that would essentially reproduce a form of hydration.
 
-Do you need to solve rendering, styling, animation, A/B testing, analytics, etc.? There is a tool for that. Just import or add a `<script>` tag, and these tools will solve your problems, but at the expense of making the initial bundle bigger.
 
-As an industry, the implication of bundle size has often been overlooked. Each tool solves a specific problem individually, but size is not part of the equation. Size becomes a problem when all the tools are combined, and by that point, there is very little the developer can do about it.
+### Automatic code splitting and closure extraction (a.k.a. the optimizer)
 
-### What's the solution?
+In order to be able to stream anything, the code must first be split into small packets that can be sent independently. This is one of the core features of the Qwik optimizer. At build time through the `qwikVite` plugin, it analyzes the code and splits it into small chunks, keeping it reactive and attaching metadata to know which bundles are most likely to be requested first. Developers write code as they normally would and the optimizer takes care of the rest.
 
-Qwik is designed from the ground up to address the size problem. Small bundle size is its initial goal, and all other design decisions are subservient to that goal.
+Under the hood, the optimizer relies on QRLs (Qwik Resource Locators), identified through the `$` signs present in the code to split it into separate segment chunks. 
 
-Qwik is not about creating less JavaScript. Qwik is about not having to ship all of that JavaScript to the client at once on application startup. Qwik is what you end up with when you take the idea of "delay loading of JavaScript" to the extreme.
+For example, when you write:
 
-Yes, Qwik requires a different way of thinking and designing your application, but the result is near zero initial JavaScript with progressive JavaScript download based on user interactions.
+```tsx title="counter.tsx"
+export default component$(() => {
+  const count = useSignal(0);
 
-### Size should not be a developer problem
+  useTask$(({ track }) => {
+    track(count);
+    console.log('Count is now', count.value);
+  });
 
-Today, size is the developers' problem. If you follow best practices for each of the frameworks, tools, etc., you will have a large bundle size. It is at that time when developers start to mitigate the problem with some sort of lazy loading boundaries etc. (But as anyone who has done this will tell you: the options are limited.)
+  return <button onClick$={() => count.value++}>{count.value}</button>;
+});
+```
 
-Industry best practices lead to large bundles, and the web is full of examples.
+in a .jsx or .tsx file, the optimizer will split the code into 3 separate chunks: one for the component render function itself, one for the click event listener and one for the visible task.
 
-The mantra of Qwik is that bundle size should not be something that developers should think about. It should just naturally emerge as part of how the framework is designed.
+The outputs would look like this:
 
-Qwik is designed from the ground up to produce lots of lazy loadable boundaries. Tooling can break up your application into many lazy-loadable chunks, and the runtime can download them only when needed.
+```tsx title="./app.tsx_app_component_useTask_41mb3rLO0N0.js"
+export const s_41mb3rLO0N0 = ({ track }) => {
+    const count = _captures[0];
+    track(count);
+    console.log('Count is now', count.value);
+};
+```
 
-### Why not fix existing frameworks/tools?
+```tsx title="./app.tsx_app_component_button_on_click_LToOrb0bX0M.js"
+export const s_LToOrb0bX0M = () => {
+    const count = _captures[0];
+    count.value++;
+};
+```
 
-In short, the lazy loading philosophy must be done at a low level and can not be retroactively added to the existing frameworks/tools without changing them fundamentally. Such fundamental change would be incompatible with the framework/tools and their respective ecosystems, rendering them useless.
+```tsx title="component_qrl.tsx"
+const q_s_41mb3rLO0N0 = /*#__PURE__*/ qrl(()=>import("./app.tsx_app_component_useTask_41mb3rLO0N0.js"), "s_41mb3rLO0N0");
+const q_s_LToOrb0bX0M = /*#__PURE__*/ qrl(()=>import("./app.tsx_app_component_button_on_click_LToOrb0bX0M.js"), "s_LToOrb0bX0M");
+//
+export const s_QbmWc3TlyqA = () => {
+    const count = useSignal(0);
+    useTaskQrl(q_s_41mb3rLO0N0.w([
+        count
+    ]));
+    return /*#__PURE__*/ _jsxSorted("button", {
+        "q:p": count
+    }, {
+        "q-e:click": q_s_LToOrb0bX0M
+    }, _wrapProp(count), 7, "ga_0");
+};
+```
 
-When a framework makes certain assumptions, such as that all rendering is synchronous, adding asynchronous lazy loading becomes pretty close to impossible. Or, if a framework recovers the listener location from templates, then download and execution of those templates is a must before the site can be interactive. These are just some of the more obvious examples, but in practice, there is a long tail of endless reasons why the current mental model does not fit the requirements of resumability.
+And now thanks to fine-grained reactivity, all three QRLs can be preloaded and executed independently of one another.
 
-The above also means that it is not feasible for existing frameworks to add resumability as a feature. Existing frameworks will never be able to do what Qwik can (without breaking backward compatibility).
+By default, Qwik tries to avoid having too many bundles. After the `qwikVite` plugin transformations, it then leverages the bundler (Rollup/Rolldown) output options to group back segment chunks that belong together. 
 
-### Why are we building Qwik?
+For example here, the `useTask$` will always run when `count.value` changes, so it makes sense to group the `onClick$` and the `useTask$` together in the same output chunk, while the render function can run entirely on its own thanks to fine grained reactivity (and won't even get shipped to the client when it runs during SSR). 
 
-Because we believe there is a better way to build sites. A way that does not involve massive amounts of JavaScript that must be downloaded eagerly on startup before your site becomes interactive. A way that allows the developer to think about adding features rather than how to break up the huge codebase into smaller chunks. A way to have instant-on sites for a better user experience. And all of that, in a way that is independent of the size of the application codebase.
+> For the most optimal bundling, the `qwikInsights` plugin can be used to analyze which bundles are used together at runtime.
 
-## Does page speed really matter?
 
-Put simply: slow sites deter visitors, costing businesses millions. Fast sites have better SEO, better UX, and are more profitable.
+### State Serialization (a.k.a. resumability)
 
-Some examples from [web.dev](https://web.dev/tags/case-study/):
+State serialization allows Qwik applications to continue execution where the server left off.
 
-|                                                                                                                                                                                                                                               |                                                                                                                                                        |
-| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Every 100ms faster → 1% more conversions** <br /> For Mobify, every 100ms decrease in homepage load speed worked out to a 1.11% increase in session-based conversion, yielding an average annual revenue increase of nearly $380,000.       | **50% faster → 12% more sales** <br /> When AutoAnything reduced page load time by half, they saw a boost of 12% to 13% in sales.                      |
-| **20% faster → 10% more conversions** <br /> Retailer Furniture Village audited their site speed and developed a plan to address the problems they found, leading to a 20% reduction in page load time and a 10% increase in conversion rate. | **40% faster → 15% more sign-ups** <br /> Pinterest reduced perceived wait times by 40% and this increased search engine traffic and sign-ups by 15%.  |
-| **850ms faster → 7% more conversions** <br /> COOK reduced average page load time by 850 milliseconds which increased conversions by 7%, decreased bounce rates by 7%, and increased pages per session by 10%.                                | **1 seconds slowness → 10% less users** <br /> The BBC found they lost an additional 10% of users for every additional second their site took to load. |
-|                                                                                                                                                                                                                                               |                                                                                                                                                        |
+All reactive frameworks need to keep track of application state. The current generation of frameworks does not preserve this information when transitioning from the server to the browser. As a result, the application state must be rebuilt in the browser, duplicating the work that was done on the server.
+
+On the other hand, Qwik serializes listeners, internal data structures, and application state into the HTML during the server-browser handoff. Because all of the information is serialized in the html, the client can just resume execution where the server left off.
+
+Using our counter.tsx example above, Qwik would serialize the click handler, reactive DOM nodes and state as follows:
+
+```html title="counter.html"
+<body>
+  <button q:p="0" :="ga_0" on:click="../handlers-DnDcryhk.js#_run#1">
+    0
+  </button>
+  <!-- ... -->
+  <script type="qwik/state" :>
+    "[30,[0,0,40,[28,[9,"2#3#0",0,10,0,1,10,"5A"],0,":",3,1],40, ...]"
+  </script>
+  <script type="qwik/vnode" :>
+    "#!~{1<5@wQ_0`6^7[8=4}2!~{B`10=9}"
+  </script>
+</body>
+```
+
+When a user clicks on the button, the `on:click` handler would then reach out for the internal `handlers-DnDcryhk.js`'s `_run` function with the given argument (e.g. `1`), wich would in turn parse the `qwik/state` and `qwik/vnode` scripts to know which code to preload and execute. If the code has been preloaded already it will execute right away, otherwise it will be prioritized over other preloads and executed as soon as it is available. 
+
+
+### Immediate User Events Registration (a.k.a. the qwikloader)
+
+The qwikloader is a small script that is responsible for registering user events as soon as possible, even before any other code has been preloaded. This allows keeping track of user interactions until the code gets preloaded, for example incrementing a cart button by 3 if a user clicked on it 3 times.
+
+
+### Buffered and on-demand modulepreloads (a.k.a. the preloader)
+
+To not compete with visual content loading (FCP & LCP), Qwik waits for the browser `load` event before initiating the streaming of javascript bundles. Once the `load` event fires, Qwik starts to buffer `<link rel="modulepreload" href="..." as="script">` tags to speculatively preload the most likely code executed by the user. 
+
+By default a queue of idle preloads is set to a maximum of 25 simultaneous preloads through the [`maxIdlePreloads`](link). Preloads are therefore buffered in a queue of 25 until all bundles have been preloaded. If a user interaction happens during buffering, the preloader will append the corresponding bundles modulepreload link tags, bypassing the idle queue and starting to preload them right away.

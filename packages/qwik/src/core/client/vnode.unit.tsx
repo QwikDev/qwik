@@ -439,6 +439,16 @@ describe('vnode', () => {
         </test>
       );
     });
+    it('should decode encoded custom attribute names on Virtual', () => {
+      const attrName = '</script><script>globalThis.__qwik_xss=1</script>';
+      const encodedAttrName = encodeVNodeDataString(encodeVNodeDataKey(attrName));
+      parent.innerHTML = ``;
+      document.qVNodeData.set(parent, `{|${encodedAttrName}|value}`);
+
+      const virtual = vnode_getFirstChild(vParent)!;
+
+      expect(vnode_getProp(virtual, attrName, null)).toBe('value');
+    });
     it('should decode encoded slot names on Virtual', () => {
       const slotName = '</script>|~;=?@ zażółć';
       const encodedSlotName = encodeVNodeDataString(encodeVNodeDataKey(slotName));

@@ -15,6 +15,7 @@ import type {
   ValidatorReturn,
 } from '../../runtime/src/types';
 import {
+  clearRouteLoaderData,
   getRouteLoaderCtx,
   getRouteLoaderValues,
   loadRouteLoader,
@@ -28,6 +29,7 @@ import {
   RequestEvETagCacheKey,
   RequestEvHttpStatusMessage,
   RequestEvShareServerTiming,
+  RequestEvSharedActionFormData,
   RequestEvSharedActionId,
   RequestRouteName,
   type RequestEventInternal,
@@ -89,6 +91,10 @@ function createResolveRequestHandlers() {
       );
     }
 
+    if (!route.$notFound$ && isPageRoute && (method === 'POST' || method === 'GET')) {
+      requestHandlers.push(runServerFunction);
+    }
+
     const routeModules = route.$mods$;
     _resolveRequestHandlers(
       routeLoaders,
@@ -116,10 +122,6 @@ function createResolveRequestHandlers() {
       requestHandlers.push(loaderHandler(routeLoaders, route.$loaderPaths$));
       // Per-action handler: returns JSON and exits if IsQAction + Accept: json
       requestHandlers.push(actionHandler(routeActions));
-      if (method === 'POST' || method === 'GET') {
-        requestHandlers.push(runServerFunction);
-      }
-
       if (!route.$notFound$) {
         requestHandlers.push(fixTrailingSlash);
       }
@@ -499,10 +501,18 @@ function createResolveRequestHandlers() {
           RequestEvHttpStatusMessage,
           typeof e.data === 'string' ? e.data : 'Server Error'
         );
+        clearErrorResponseData(requestEv);
 
         await renderHandler(requestEv);
       }
     };
+  }
+
+  function clearErrorResponseData(requestEv: RequestEvent) {
+    clearRouteLoaderData(requestEv);
+    requestEv.sharedMap.delete(RequestEvSharedActionId);
+    requestEv.sharedMap.delete(RequestEvSharedActionFormData);
+    requestEv.sharedMap.delete('@actionResult');
   }
 
   async function runValidators(

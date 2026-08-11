@@ -1,6 +1,5 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 5219
 expression: output
 ---
 ==INPUT==
@@ -79,7 +78,7 @@ import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useSignal } from "@qwik.dev/core";
 //
-const q_FieldInput_component_input_q_e_focus_Sgf3MDWzexI = /*#__PURE__*/ qrl(()=>import("./test.tsx_FieldInput_component_input_q_e_focus_Sgf3MDWzexI"), "FieldInput_component_input_q_e_focus_Sgf3MDWzexI");
+const q_FieldInput_component_input_q_e_focus_Sgf3MDWzexI = /*#__PURE__*/ qrl(()=>import("./test.tsx_FieldInput_component_input_q_e_focus_Sgf3MDWzexI"), "FieldInput_component_input_q_e_focus_Sgf3MDWzexI").m();
 const q_FieldInput_component_input_q_e_input_wqR1xEjZjf4 = /*#__PURE__*/ qrl(()=>import("./test.tsx_FieldInput_component_input_q_e_input_wqR1xEjZjf4"), "FieldInput_component_input_q_e_input_wqR1xEjZjf4");
 //
 export const FieldInput_component_V4XAtJSTRKg = ()=>{

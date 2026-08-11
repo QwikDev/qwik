@@ -139,8 +139,8 @@ export function buildInstallCommand(
       command: 'npm',
       args:
         dependencyType === 'devDependencies'
-          ? ['install', '--save-dev', packageName]
-          : ['install', packageName],
+          ? ['install', '--ignore-scripts', '--save-dev', packageName]
+          : ['install', '--ignore-scripts', packageName],
       cwd: context.projectRoot,
     };
   }
@@ -148,7 +148,9 @@ export function buildInstallCommand(
     return {
       command: 'yarn',
       args:
-        dependencyType === 'devDependencies' ? ['add', '-D', packageName] : ['add', packageName],
+        dependencyType === 'devDependencies'
+          ? ['add', '--ignore-scripts', '-D', packageName]
+          : ['add', '--ignore-scripts', packageName],
       cwd: context.projectRoot,
     };
   }
@@ -157,8 +159,15 @@ export function buildInstallCommand(
   return {
     command: 'pnpm',
     args: context.workspacePackageSelector
-      ? ['--filter', context.workspacePackageSelector, 'add', ...saveArgs, packageName]
-      : ['add', ...saveArgs, packageName],
+      ? [
+          '--filter',
+          context.workspacePackageSelector,
+          'add',
+          '--ignore-scripts',
+          ...saveArgs,
+          packageName,
+        ]
+      : ['add', '--ignore-scripts', ...saveArgs, packageName],
     cwd: context.workspacePackageSelector ? context.workspaceRoot : context.projectRoot,
   };
 }
@@ -174,32 +183,44 @@ export function buildUpdateCommand(
     if (dependencyType === 'devDependencies') {
       return {
         command: 'npm',
-        args: ['install', '--save-dev', packageAtLatest],
+        args: ['install', '--ignore-scripts', '--save-dev', packageAtLatest],
         cwd: context.projectRoot,
       };
     }
     if (dependencyType === 'peerDependencies') {
       return {
         command: 'npm',
-        args: ['install', '--save-peer', packageAtLatest],
+        args: ['install', '--ignore-scripts', '--save-peer', packageAtLatest],
         cwd: context.projectRoot,
       };
     }
-    return { command: 'npm', args: ['install', packageAtLatest], cwd: context.projectRoot };
+    return {
+      command: 'npm',
+      args: ['install', '--ignore-scripts', packageAtLatest],
+      cwd: context.projectRoot,
+    };
   }
 
   if (context.packageManager === 'yarn') {
     if (dependencyType === 'devDependencies') {
-      return { command: 'yarn', args: ['add', '-D', packageAtLatest], cwd: context.projectRoot };
+      return {
+        command: 'yarn',
+        args: ['add', '--ignore-scripts', '-D', packageAtLatest],
+        cwd: context.projectRoot,
+      };
     }
     if (dependencyType === 'peerDependencies') {
       return {
         command: 'yarn',
-        args: ['add', '--peer', packageAtLatest],
+        args: ['add', '--ignore-scripts', '--peer', packageAtLatest],
         cwd: context.projectRoot,
       };
     }
-    return { command: 'yarn', args: ['add', packageAtLatest], cwd: context.projectRoot };
+    return {
+      command: 'yarn',
+      args: ['add', '--ignore-scripts', packageAtLatest],
+      cwd: context.projectRoot,
+    };
   }
 
   const saveArgs =
@@ -212,8 +233,15 @@ export function buildUpdateCommand(
   return {
     command: 'pnpm',
     args: context.workspacePackageSelector
-      ? ['--filter', context.workspacePackageSelector, 'add', ...saveArgs, packageAtLatest]
-      : ['add', ...saveArgs, packageAtLatest],
+      ? [
+          '--filter',
+          context.workspacePackageSelector,
+          'add',
+          '--ignore-scripts',
+          ...saveArgs,
+          packageAtLatest,
+        ]
+      : ['add', '--ignore-scripts', ...saveArgs, packageAtLatest],
     cwd: context.workspacePackageSelector ? context.workspaceRoot : context.projectRoot,
   };
 }

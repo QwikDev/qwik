@@ -2202,7 +2202,7 @@ function materializeFromVNodeData(
     } else if (peek() === VNodeDataChar.SEPARATOR) {
       // Custom attribute: |key|value
       const keyValue = consumeValue();
-      const key = decodeVNodeDataString(keyValue);
+      const key = decodeURIComponent(decodeVNodeDataString(keyValue));
       const valueSeparatorIdx = dataIdx + keyValue.length + 1;
       const isEscapedValue = getChar(valueSeparatorIdx + 1) === VNodeDataChar.SEPARATOR;
       let value;

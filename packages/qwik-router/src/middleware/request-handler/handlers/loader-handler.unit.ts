@@ -1,16 +1,18 @@
 import { describe, expect, it, vi } from 'vitest';
 import { FULLPATH_HEADER } from '../../../runtime/src/route-loaders';
 import { getLoaderName, IsQLoader, QLoaderId } from '../request-path';
+import { RedirectMessage } from '../redirect-handler';
 import { loaderHandler } from './loader-handler';
 
 describe('loaderHandler', () => {
   function createRequestEv() {
+    const headers = new Headers();
     return {
       sharedMap: new Map<string, unknown>([
         [IsQLoader, true],
         [QLoaderId, 'loader-id'],
       ]),
-      headers: new Headers(),
+      headers,
       request: new Request(`http://localhost/products/${getLoaderName('loader-id', 'manifest')}`),
       url: new URL('http://localhost/products/?q=shoes&page=2&ignored=true'),
       headersSent: false,
@@ -19,6 +21,10 @@ describe('loaderHandler', () => {
       json: vi.fn(),
       send: vi.fn(),
       status: vi.fn(() => 200),
+      redirect: vi.fn((_status: number, url: string) => {
+        headers.set('Location', url);
+        return new RedirectMessage();
+      }),
     };
   }
 
@@ -87,7 +93,7 @@ describe('loaderHandler', () => {
     const cacheKeyEv = cacheKey.mock.calls[0][0];
     expect(cacheKeyEv).not.toBe(requestEv);
     expect(cacheKeyEv.url.search).toBe('?page=2&q=shoes');
-    expect(cacheKeyEv.request.url).toBe(requestEv.request.url);
+    expect(cacheKeyEv.request.url).toBe('http://localhost/products/?page=2&q=shoes');
     expect(cacheKey).toHaveBeenCalledWith(cacheKeyEv, '');
     expect(requestEv.send).toHaveBeenCalledWith(200, expect.any(String));
   });
@@ -99,6 +105,8 @@ describe('loaderHandler', () => {
       __qrl: {
         call: vi.fn(async (_thisArg, ev) => ({
           requestUrl: ev.request.url,
+          originalUrl: ev.originalUrl.href,
+          params: ev.params,
           search: ev.url.search,
           q: ev.query.get('q'),
           ignored: ev.query.has('ignored'),
@@ -115,10 +123,51 @@ describe('loaderHandler', () => {
 
     const loaderEv = loader.__qrl.call.mock.calls[0][1];
     expect(loaderEv.url.search).toBe('?q=shoes');
+    expect(loaderEv.request.url).toBe('http://localhost/products/?q=shoes');
+    expect(loaderEv.originalUrl.href).toBe('http://localhost/products/?q=shoes');
+    expect(loaderEv.params).toEqual({});
     expect(loaderEv.query.get('q')).toBe('shoes');
     expect(loaderEv.query.has('ignored')).toBe(false);
-    expect(loaderEv.request.url).toBe(requestEv.request.url);
     expect(requestEv.send).toHaveBeenCalledWith(200, expect.any(String));
+  });
+
+  it('runs earlier blocking loaders before the requested q-loader', async () => {
+    const requestEv = createRequestEv();
+    const guardLoader = {
+      __id: 'guard-loader',
+      __qrl: {
+        call: vi.fn(async (_thisArg, ev) => ev.redirect(302, '/login')),
+        getHash: vi.fn(() => 'guard-loader'),
+      },
+      __validators: undefined,
+      __expires: undefined,
+      __eTag: undefined,
+      __cacheKey: undefined,
+      __search: undefined,
+      __blockSSR: true,
+    };
+    const secretLoader = {
+      __id: 'loader-id',
+      __qrl: {
+        call: vi.fn(async () => 'secret'),
+        getHash: vi.fn(() => 'loader-id'),
+      },
+      __validators: undefined,
+      __expires: undefined,
+      __eTag: undefined,
+      __cacheKey: undefined,
+      __search: undefined,
+      __blockSSR: true,
+    };
+
+    await expect(
+      loaderHandler([guardLoader as any, secretLoader as any])(requestEv as any)
+    ).rejects.toBeInstanceOf(RedirectMessage);
+
+    expect(guardLoader.__qrl.call).toHaveBeenCalledTimes(1);
+    expect(secretLoader.__qrl.call).not.toHaveBeenCalled();
+    expect(requestEv.headers.get('Location')).toBe('/login');
+    expect(requestEv.send).not.toHaveBeenCalled();
   });
 
   it('returns 404 when the requested loader is not available on the matched route', async () => {

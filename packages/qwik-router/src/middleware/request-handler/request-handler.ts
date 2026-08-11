@@ -84,7 +84,8 @@ export async function requestHandler<T = unknown>(
 }
 
 export function getRequestHandlerPathname(
-  serverRequestEv: Pick<ServerRequestEvent, 'url' | 'request'>
+  serverRequestEv: Pick<ServerRequestEvent, 'url' | 'request'>,
+  isDevRequest = isDev
 ) {
   const recognized = recognizeRequest(serverRequestEv.url.pathname);
   if (!recognized) {
@@ -96,13 +97,11 @@ export function getRequestHandlerPathname(
     return loaderPathname;
   }
 
-  return (
-    resolveValidInternalFullPathname(
-      loaderPathname,
-      serverRequestEv.request.headers.get(FULLPATH_HEADER) ??
-        serverRequestEv.request.headers.get(ROUTE_PATH_HEADER)
-    ) ?? loaderPathname
-  );
+  const routePath =
+    serverRequestEv.request.headers.get(FULLPATH_HEADER) ??
+    (isDevRequest ? serverRequestEv.request.headers.get(ROUTE_PATH_HEADER) : null);
+
+  return resolveValidInternalFullPathname(loaderPathname, routePath) ?? loaderPathname;
 }
 
 async function loadRequestHandlers(

@@ -48,8 +48,6 @@ export const QIgnore = 'q:ignore';
 export const QIgnoreEnd = '/' + QIgnore;
 export const QContainerAttr = 'q:container';
 export const QContainerAttrEnd = '/' + QContainerAttr;
-export const QCursorBoundary = 'q:cursorBoundary';
-
 export const QTemplate = 'q:template';
 
 // the same selector should be inside the qwik loader
@@ -100,6 +98,7 @@ export const NON_SERIALIZABLE_MARKER_PREFIX = ':';
 export const USE_ON_LOCAL = NON_SERIALIZABLE_MARKER_PREFIX + 'on';
 export const USE_ON_LOCAL_SEQ_IDX = NON_SERIALIZABLE_MARKER_PREFIX + 'onIdx';
 export const USE_ON_LOCAL_FLAGS = NON_SERIALIZABLE_MARKER_PREFIX + 'onFlags';
+export const QCursorBoundary = NON_SERIALIZABLE_MARKER_PREFIX + 'cursorBoundary';
 export const NEAREST_CURSOR_BOUNDARY = NON_SERIALIZABLE_MARKER_PREFIX + 'nearestCursorBoundary';
 
 export const Q_PROPS_SEPARATOR = ':';

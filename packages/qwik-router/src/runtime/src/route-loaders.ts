@@ -563,6 +563,16 @@ function getRouteLoaderPromises(requestEv: RequestEventBase): Record<string, Pro
   return promises;
 }
 
+/** Clear loader state before rendering a route-independent error boundary. */
+export function clearRouteLoaderData(requestEv: RequestEventBase) {
+  requestEv.sharedMap.delete(REQUEST_ROUTE_LOADER_STATE);
+  requestEv.sharedMap.delete(REQUEST_ROUTE_LOADER_VALUES);
+  requestEv.sharedMap.delete(REQUEST_ROUTE_LOADER_PROMISES);
+  requestEv.sharedMap.delete(REQUEST_ROUTE_LOADER_EVENTS);
+  requestEv.sharedMap.delete(REQUEST_ROUTE_LOADER_ROOT_EVENT);
+  requestEv.sharedMap.delete(REQUEST_ROUTE_LOADERS);
+}
+
 /** Store the route loader internals on the request for SSG to read. */
 export function setRouteLoaders(requestEv: RequestEventBase, loaders: LoaderInternal[]) {
   requestEv.sharedMap.set(REQUEST_ROUTE_LOADERS, loaders);
@@ -789,13 +799,26 @@ export const getLoaderRequestEvent = (
   if (!loaderRequestEv) {
     url.pathname = pathname;
     url.search = filteredSearch;
+    const request = new Request(url, rootRequestEv.request);
     loaderRequestEv = Object.create(rootRequestEv, {
+      originalUrl: {
+        value: new URL(url),
+        enumerable: true,
+      },
+      params: {
+        value: {},
+        enumerable: true,
+      },
       pathname: {
         get: () => url.pathname,
         enumerable: true,
       },
       query: {
         get: () => url.searchParams,
+        enumerable: true,
+      },
+      request: {
+        value: request,
         enumerable: true,
       },
       url: {

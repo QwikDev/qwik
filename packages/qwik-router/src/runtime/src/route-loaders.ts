@@ -316,7 +316,7 @@ const createRouteLoaderSignal = (
     routePath?: string;
   } = {};
   return useComputed$(
-    async (ctx) => {
+    (ctx) => {
       const { track, info, previous, abortSignal } = ctx;
       const hasInjectedValue = !!info && typeof info === 'object' && '__v' in (info as object);
       // Track route dependencies before any early return: the SSR and injected-value paths
@@ -334,83 +334,88 @@ const createRouteLoaderSignal = (
         return value;
       }
       if (isServer) {
+        // synchronous when the middleware precomputed the value — sync readers (tasks
+        // tracking the loader) must never see a pending compute in the standard flow
         return (capture as ServerRouteLoaderCapture).load();
       }
-      const routePath = trackedRoutePath;
-      // The client page path/search fields are only assigned on SPA navigation; before
-      // that, `location` is the source of truth and avoids serializing a duplicate URL in SSR state.
-      const pagePathname = trackedPagePathname || location.pathname;
-      const pageSearch = trackedPageSearch || location.search;
-      const pageUrl = new URL(pagePathname + pageSearch, location.href);
-      const mHash = routeLoaderCtx.manifestHash || 'dev';
-      const basePath = (await loadRouterConfig()).basePathname ?? '/';
-      const needsResumeFetch = stateValues[resumeValueKey] === _UNINITIALIZED;
-      const fetchRoutePath = routePath || (needsResumeFetch ? pageUrl.pathname : undefined);
-      // A loader that's never been on any route we've visited has no fetch path yet —
-      // return whatever value it has (undefined on the very first run). In practice
-      // this branch only fires on the initial client-side read for a loader that
-      // wasn't prefilled by SSR; normal navs leave stale entries in loaderPaths so
-      // this compute only runs when there's a fresh path to fetch against.
-      if (!fetchRoutePath) {
-        return previous;
-      }
-
-      // Filter search params: only include allowed params and skip fetch if unchanged
-      let fetchUrl = pageUrl;
-      if (searchFilter) {
-        const filteredSearch = filterSearchParams(pageUrl.searchParams, searchFilter);
-        if (
-          previous !== undefined &&
-          filteredSearch === lastFetch.filteredSearch &&
-          fetchRoutePath === lastFetch.routePath
-        ) {
-          // Relevant search params didn't change and path didn't change — return previous value
+      // the async client tail keeps the compute itself synchronous up to the first await
+      return (async () => {
+        const routePath = trackedRoutePath;
+        // The client page path/search fields are only assigned on SPA navigation; before
+        // that, `location` is the source of truth and avoids serializing a duplicate URL in SSR state.
+        const pagePathname = trackedPagePathname || location.pathname;
+        const pageSearch = trackedPageSearch || location.search;
+        const pageUrl = new URL(pagePathname + pageSearch, location.href);
+        const mHash = routeLoaderCtx.manifestHash || 'dev';
+        const basePath = (await loadRouterConfig()).basePathname ?? '/';
+        const needsResumeFetch = stateValues[resumeValueKey] === _UNINITIALIZED;
+        const fetchRoutePath = routePath || (needsResumeFetch ? pageUrl.pathname : undefined);
+        // A loader that's never been on any route we've visited has no fetch path yet —
+        // return whatever value it has (undefined on the very first run). In practice
+        // this branch only fires on the initial client-side read for a loader that
+        // wasn't prefilled by SSR; normal navs leave stale entries in loaderPaths so
+        // this compute only runs when there's a fresh path to fetch against.
+        if (!fetchRoutePath) {
           return previous;
         }
-        lastFetch.filteredSearch = filteredSearch;
-        lastFetch.routePath = fetchRoutePath;
-        // Build a URL with only the allowed search params for the fetch
-        fetchUrl = new URL(pageUrl.href);
-        fetchUrl.search = filteredSearch;
-      }
 
-      // Fetch from server
-      const response = await fetchRouteLoaderData(id, fetchRoutePath, mHash, {
-        pageUrl: fetchUrl,
-        basePath,
-        ignoreCache: info === true,
-        signal: abortSignal,
-      });
-      if (!response) {
-        throw new Error(`Loader ${id} returned empty response`);
-      }
-      if (response.r) {
-        // Redirect — fire SPA goto if available, else full page nav. We don't
-        // await or coordinate with the current nav: the new nav starts while
-        // this one finishes committing, producing a brief flash of stale data
-        // before the new route's loaders resolve. That trade-off is intentional
-        // — awaiting all loader promises just to catch redirects is too costly
-        // for the common case.
-        //
-        const goto = routeLoaderCtx.goto;
-        if (goto) {
-          goto(response.r, { replaceState: true });
-        } else {
-          location.href = response.r;
+        // Filter search params: only include allowed params and skip fetch if unchanged
+        let fetchUrl = pageUrl;
+        if (searchFilter) {
+          const filteredSearch = filterSearchParams(pageUrl.searchParams, searchFilter);
+          if (
+            previous !== undefined &&
+            filteredSearch === lastFetch.filteredSearch &&
+            fetchRoutePath === lastFetch.routePath
+          ) {
+            // Relevant search params didn't change and path didn't change — return previous value
+            return previous;
+          }
+          lastFetch.filteredSearch = filteredSearch;
+          lastFetch.routePath = fetchRoutePath;
+          // Build a URL with only the allowed search params for the fetch
+          fetchUrl = new URL(pageUrl.href);
+          fetchUrl.search = filteredSearch;
         }
-        // Return `previous` (stale data) rather than throwing:  a ComputedSignal
-        // in error state can drop Resource subscriptions, which would prevent
-        // the redirect-target fetch from updating the UI once it arrives.
-        return previous;
-      }
-      if (response.e) {
-        // Error — throw so signal enters error state
-        throw response.e;
-      }
-      if (needsResumeFetch) {
-        stateValues[resumeValueKey] = response.d;
-      }
-      return response.d;
+
+        // Fetch from server
+        const response = await fetchRouteLoaderData(id, fetchRoutePath, mHash, {
+          pageUrl: fetchUrl,
+          basePath,
+          ignoreCache: info === true,
+          signal: abortSignal,
+        });
+        if (!response) {
+          throw new Error(`Loader ${id} returned empty response`);
+        }
+        if (response.r) {
+          // Redirect — fire SPA goto if available, else full page nav. We don't
+          // await or coordinate with the current nav: the new nav starts while
+          // this one finishes committing, producing a brief flash of stale data
+          // before the new route's loaders resolve. That trade-off is intentional
+          // — awaiting all loader promises just to catch redirects is too costly
+          // for the common case.
+          //
+          const goto = routeLoaderCtx.goto;
+          if (goto) {
+            goto(response.r, { replaceState: true });
+          } else {
+            location.href = response.r;
+          }
+          // Return `previous` (stale data) rather than throwing:  a ComputedSignal
+          // in error state can drop Resource subscriptions, which would prevent
+          // the redirect-target fetch from updating the UI once it arrives.
+          return previous;
+        }
+        if (response.e) {
+          // Error — throw so signal enters error state
+          throw response.e;
+        }
+        if (needsResumeFetch) {
+          stateValues[resumeValueKey] = response.d;
+        }
+        return response.d;
+      })();
     },
 
     {

@@ -197,14 +197,20 @@ export function buildQrlDeclarations(ctx: RewriteContext): void {
     const fileStem = relPath.split('/').pop() ?? relPath;
     for (const decision of ctx.migrationDecisions) {
       if (decision.action !== 'move') continue;
-      const exact = `${fileStem}_${escapeSymbol(decision.varName)}`;
+      const varName = escapeSymbol(decision.varName);
+      const exact = `${fileStem}_${varName}`;
       const prefix = `${exact}_`;
+      const bareVarPrefix = `${varName}_`;
       // A moved helper can own several extractions, so scan all — every one
       // loses its parent-side `q_<sym>` binding when the decl moves out.
       for (const e of extractions) {
         if (e.parent !== null) continue;
-        if (e.isInlinedQrl) continue;
-        if (e.displayName === exact || e.displayName.startsWith(prefix)) {
+        if (
+          e.displayName === exact ||
+          e.displayName.startsWith(prefix) ||
+          e.displayName === varName ||
+          e.displayName.startsWith(bareVarPrefix)
+        ) {
           movedMarkerSymbols.add(e.symbolName);
         }
       }
@@ -405,7 +411,14 @@ export function buildQrlDeclarations(ctx: RewriteContext): void {
     }
   }
 
-  ctx.qrlDecls.sort();
+  // Sort by segment symbol, not raw text — bare `qrl(...)` registrations
+  // interleave with `const q_* = ...` declarations in symbol order.
+  const declSortKey = (line: string): string => /"([^"]+)"\)?;?\s*$/.exec(line)?.[1] ?? line;
+  ctx.qrlDecls.sort((a, b) => {
+    const ka = declSortKey(a);
+    const kb = declSortKey(b);
+    return ka < kb ? -1 : ka > kb ? 1 : 0;
+  });
 }
 
 export function buildInlineSCalls(ctx: RewriteContext): void {

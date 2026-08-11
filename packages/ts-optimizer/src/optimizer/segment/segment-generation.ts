@@ -787,7 +787,7 @@ function buildMovedQrlSupport(
 
   const matched: ConsolidatedSegment[] = [];
   for (const e of ctx.extractions) {
-    if (e.parent !== null || e.isSync || e.isInlinedQrl) continue;
+    if (e.parent !== null || e.isSync) continue;
     if (declared.has(e.symbolName)) continue;
     if (!movedText.includes(`q_${e.symbolName}`)) continue;
     matched.push(e);

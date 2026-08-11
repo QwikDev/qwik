@@ -85,6 +85,7 @@ import type {
   SetupPlan,
   ComponentDefinition,
   ComponentOutput,
+  ImportBinding,
   InlineComponentReferencePlan,
   TransformResult,
   SegmentPlan,
@@ -713,16 +714,27 @@ export function transformModule(ctx: CompilerContext): TransformResult {
       );
     }
     const imports = [
-      emitRuntimeImport(emitted.imports),
-      ...emitted.localImports,
-      ...emitComponentModuleImports(
-        component.output,
-        analysis,
-        componentByBinding,
-        ctx.input.path,
-        explicitExtensions,
-        collectEagerComponentBindingIds([component.output.result])
-      ),
+      ...new Set([
+        emitRuntimeImport(emitted.imports),
+        ...emitted.localImports,
+        ...emitComponentModuleImports(
+          component.output,
+          analysis,
+          componentByBinding,
+          ctx.input.path,
+          explicitExtensions,
+          collectEagerComponentBindingIds([component.output.result])
+        ),
+        ...(ctx.emitTarget === 'ssr'
+          ? emitInlinedSegmentReferenceImports(
+              componentSegments,
+              inlineSegmentCode,
+              componentImports,
+              ctx.input.path,
+              explicitExtensions
+            )
+          : []),
+      ]),
     ].filter(Boolean);
     const code = joinModuleParts(imports, emitted.hoists, [emittedComponent.moduleCode]);
     const assembled = assembleGeneratedModule(
@@ -1455,6 +1467,51 @@ function emitComponentModuleImports(
           binding.name
         )
       );
+    }
+  }
+  return [...imports];
+}
+
+/**
+ * SSR component modules inline segment implementations away from the origin scope, so the inlined
+ * bodies need imports for the module bindings they reference.
+ */
+function emitInlinedSegmentReferenceImports(
+  segments: readonly SegmentPlan[],
+  inlineSegmentCode: ReadonlyMap<string, string>,
+  componentImports: ReadonlyMap<BindingId, SegmentComponentImport>,
+  inputPath: string,
+  explicitExtensions: boolean
+): string[] {
+  const imports = new Set<string>();
+  for (const segment of segments) {
+    if (
+      segment.implementationInOrigin !== true &&
+      !hasRawSsrModuleRootImplementation(segment, segments) &&
+      !inlineSegmentCode.has(segment.id)
+    ) {
+      continue;
+    }
+    for (const reference of getTargetModuleReferences(segment)) {
+      const component = componentImports.get(reference.bindingId);
+      const binding: ImportBinding =
+        component !== undefined
+          ? {
+              source: component.path,
+              importedName: component.importedName,
+              typeOnly: false,
+              attributes: [],
+            }
+          : (reference.import ?? {
+              source: getInputImportPath(inputPath, explicitExtensions),
+              importedName: reference.name,
+              typeOnly: false,
+              attributes: [],
+            });
+      const line = emitBindingImport(binding, reference.name);
+      if (line !== '') {
+        imports.add(line);
+      }
     }
   }
   return [...imports];

@@ -1327,6 +1327,38 @@ export const build = native$((count: number) => {
   });
 });
 
+describe('component module in-module implementations', () => {
+  test('a raw-slice qrl inlined in a component module imports its references', async () => {
+    const input = {
+      path: 'src/raw-slice.tsx',
+      code: `import { $, component$, useSignal, useTask$ } from '@qwik.dev/core';
+export function foo(this: any) {
+  return this.value;
+}
+export const Child = component$(() => {
+  const message = useSignal('');
+  useTask$(async () => {
+    message.value = await $(foo).apply({ value: 'passed' });
+  });
+  return <div>{message.value}</div>;
+});
+export const App = component$(() => {
+  return <Child />;
+});
+`,
+    };
+    const result = await transformModules(options(input, true));
+    expect(result.diagnostics).toEqual([]);
+    for (const module of result.modules) {
+      if (/=\s*foo;/.test(module.code) && !/function foo/.test(module.code)) {
+        expect(module.code, `${module.path} inlines \`foo\` without importing it`).toMatch(
+          /import \{[^}]*\bfoo\b[^}]*\}/
+        );
+      }
+    }
+  });
+});
+
 describe('segment capture order', () => {
   test('chunk capture prelude order matches every consumer .w order', async () => {
     const input = {

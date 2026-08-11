@@ -15,7 +15,8 @@ const getDevSegmentPath = (
   mapper: SymbolMapper | undefined,
   hash: string,
   symbolName: string,
-  parent?: string
+  parent?: string,
+  chunk?: string | null
 ): ReturnType<SymbolMapperFn> => {
   const existing = mapper?.[hash];
   if (existing) {
@@ -28,6 +29,10 @@ const getDevSegmentPath = (
     // Core symbols
     if (symbolName.startsWith('_') && symbolName.length < 6) {
       return [symbolName, `${import.meta.env?.BASE_URL}@qwik-handlers`];
+    }
+    // library qrls bake their chunk in — never fabricate over it
+    if (chunk) {
+      return [symbolName, chunk];
     }
     console.error('qwik symbolMapper: unknown qrl requested without parent:', symbolName);
     return [symbolName, `${import.meta.env?.BASE_URL}${symbolName}.js`];
@@ -45,12 +50,12 @@ export function createPlatform(
   const mapper = resolvedManifest?.mapper;
   const mapperFn = opts.symbolMapper
     ? opts.symbolMapper
-    : (symbolName: string, _chunk: any, parent?: string): readonly [string, string] | undefined => {
+    : (symbolName: string, chunk: any, parent?: string): readonly [string, string] | undefined => {
         if (mapper || (isDev && import.meta.env?.MODE !== 'test')) {
           const hash = getSymbolHash(symbolName);
           const result = !isDev
             ? mapper![hash]
-            : getDevSegmentPath(mapper, hash, symbolName, parent);
+            : getDevSegmentPath(mapper, hash, symbolName, parent, chunk);
           if (!result) {
             if (hash === SYNC_QRL) {
               return [hash, ''] as const;
@@ -80,8 +85,8 @@ export function createPlatform(
       console.error('server can not rerender');
       return Promise.resolve();
     },
-    chunkForSymbol(symbolName: string, _chunk, parent) {
-      return mapperFn(symbolName, mapper, parent);
+    chunkForSymbol(symbolName: string, chunk, parent) {
+      return mapperFn(symbolName, chunk, parent);
     },
   };
   return serverPlatform;

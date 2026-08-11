@@ -61,6 +61,11 @@ export function applyModuleHygieneRenames(code: string, filename: string): strin
         if (p.type === 'ImportSpecifier' && (p as never as { imported: AstNode }).imported === n) {
           return;
         }
+        // Re-export specifiers (`export { r as x } from '…'`) bind nothing
+        // in module scope — their names are not collisions.
+        if (p.type === 'ExportSpecifier') {
+          return;
+        }
       }
       const name = (n as never as { name: string }).name;
       allNames.add(name);

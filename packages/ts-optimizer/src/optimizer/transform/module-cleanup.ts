@@ -36,14 +36,6 @@ const exportConstLine = createRegExp(
   [multiline]
 );
 
-const nsImportPattern = createRegExp(
-  exactly('*')
-    .and(oneOrMore(whitespace))
-    .and('as')
-    .and(oneOrMore(whitespace))
-    .and(oneOrMore(wordChar).grouped())
-);
-
 const CONST_IMPORT_SOURCES: readonly string[] = [
   '@qwik.dev/core',
   '@qwik.dev/core/build',
@@ -341,42 +333,6 @@ export function removeUnusedImports(
   preParsedProgram?: AstProgram,
   isLibMode?: boolean
 ): string {
-  const sepIdx = code.indexOf('\n//\n');
-  if (sepIdx >= 0) {
-    const importSection = code.slice(0, sepIdx);
-    const bodySection = code.slice(sepIdx);
-    let allReferenced = true;
-    const localNames: string[] = [];
-    for (const line of importSection.split('\n')) {
-      if (!line.startsWith('import ')) continue;
-      const braceStart = line.indexOf('{');
-      const braceEnd = line.indexOf('}');
-      if (braceStart >= 0 && braceEnd > braceStart) {
-        const specList = line.slice(braceStart + 1, braceEnd);
-        for (const spec of specList.split(',')) {
-          const trimmed = spec.trim();
-          if (!trimmed) continue;
-          const asIdx = trimmed.indexOf(' as ');
-          const localName = asIdx >= 0 ? trimmed.slice(asIdx + 4).trim() : trimmed;
-          if (localName) localNames.push(localName);
-        }
-      }
-      const defaultMatch = line.match(/^import\s+([A-Za-z_$]\w*)\s*(?:,|\s+from)/);
-      if (defaultMatch) localNames.push(defaultMatch[1]);
-      const nsMatch = line.match(nsImportPattern);
-      if (nsMatch) localNames.push(nsMatch[1]!);
-    }
-    if (localNames.length > 0) {
-      for (const name of localNames) {
-        if (!bodySection.includes(name)) {
-          allReferenced = false;
-          break;
-        }
-      }
-      if (allReferenced) return code;
-    }
-  }
-
   let parsed: AstParseResult | { program: AstProgram };
   if (preParsedProgram) {
     parsed = { program: preParsedProgram };
@@ -408,8 +364,12 @@ export function removeUnusedImports(
 
   if (importSpecs.length === 0) return code;
 
+  // Scope-aware: a local binding (param, let, catch) shadowing an import
+  // must not count as a reference to it.
+  const scopeTracker = new ScopeQueryTracker();
   const referencedNames = new Set<string>();
   walk(parsed.program, {
+    scopeTracker,
     enter(this: { skip: () => void }, node: AstNode, parent: AstParentNode) {
       if (node.type === 'ImportDeclaration') {
         this.skip();
@@ -428,6 +388,8 @@ export function removeUnusedImports(
         if (parent?.type === 'MemberExpression' && parent.property === node && !parent.computed) {
           return;
         }
+        const decl = scopeTracker.getDeclaration(node.name);
+        if (decl && decl.type !== 'Import') return;
         referencedNames.add(node.name);
       }
     },

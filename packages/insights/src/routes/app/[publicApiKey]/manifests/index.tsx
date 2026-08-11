@@ -2,6 +2,7 @@ import { component$ } from '@qwik.dev/core';
 import { routeLoader$, type DocumentHead } from '@qwik.dev/router';
 import Histogram, { latencyColors } from '~/components/histogram';
 import { ManifestIcon } from '~/components/icons/manifest';
+import PageHeader from '~/components/page-header';
 import { getDB } from '~/db';
 import { dbGetManifestStats } from '~/db/sql-manifest';
 import { BUCKETS, vectorSum } from '~/stats/vector';
@@ -28,17 +29,11 @@ export default component$(() => {
   const overview = getManifestHistoryOverview(data.value);
   return (
     <div class="font-editorial-ui text-editorial-primary">
-      <header>
-        <p class="text-editorial-11 font-semibold tracking-[0.04em] text-editorial-muted uppercase">
-          Manifest history
-        </p>
-        <h1 class="mt-editorial-2 text-editorial-44 font-bold leading-[1.1] tracking-[-0.035em]">
-          Manifests
-        </h1>
-        <p class="mt-editorial-2 max-w-3xl text-editorial-14 text-editorial-secondary">
-          Compare deployment fingerprints and spot latency shifts introduced by each build.
-        </p>
-      </header>
+      <PageHeader
+        eyebrow="Manifest history"
+        title="Manifests"
+        description="Compare deployment fingerprints and spot latency shifts introduced by each build."
+      />
 
       <dl class="mt-editorial-6 flex flex-wrap items-baseline gap-x-editorial-14 gap-y-editorial-3 border-b border-editorial-border pb-editorial-3">
         <SummaryMetric

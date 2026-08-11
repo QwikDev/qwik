@@ -1,6 +1,7 @@
 import { component$ } from '@qwik.dev/core';
 import { routeLoader$ } from '@qwik.dev/router';
 import Button, { ButtonLink } from '~/components/button';
+import PageHeader from '~/components/page-header';
 import { SymbolTile } from '~/components/symbol-tile';
 import { getDB } from '~/db';
 import { computeSymbolGraph, computeSymbolTree, type SymbolTreeNode } from '~/stats/edges';
@@ -34,19 +35,14 @@ export default component$(() => {
   const firstEdge = rootSymbol.value.rootSymbol.children.at(0);
   return (
     <section>
-      <header class="mb-editorial-8 flex flex-col gap-editorial-6 md:flex-row md:items-start md:justify-between">
-        <div>
-          <p class="text-editorial-11 font-bold tracking-[0.04em] text-editorial-secondary uppercase">
-            Edge graph
-          </p>
-          <h1 class="mt-editorial-2 text-editorial-36 leading-none font-bold">Edge</h1>
-          <p class="mt-editorial-3 text-editorial-14 text-editorial-secondary">
-            Symbol execution paths across the latest 100 manifests.
-          </p>
-        </div>
-
+      <PageHeader
+        eyebrow="Edge graph"
+        title="Edge"
+        description="Symbol execution paths across the latest 100 manifests."
+        class="mb-editorial-8"
+      >
         <Pagination page={rootSymbol.value.page} hasNext={rootSymbol.value.hasNext} />
-      </header>
+      </PageHeader>
 
       <div class="overflow-x-auto">
         <div class="flex h-12 min-w-[36rem] items-center gap-editorial-3 border-b border-editorial-border px-editorial-4 text-editorial-12 text-editorial-secondary">

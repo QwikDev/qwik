@@ -30,7 +30,7 @@ export function App() {
 
 ============================= src/component.tsx ==
 
-import { _captures, createComponent, maybeThen } from '@qwik.dev/core';
+import { useSignal, _captures, createComponent, maybeThen } from '@qwik.dev/core';
 import { Child } from './component.tsx_component_Child';
 export { Child };
 export function App(props, ctx) {
@@ -201,7 +201,7 @@ export const component_branch_else_segment_2_19dvu7nugnvkl = () => {
 
 ============================= src/component.tsx ==
 
-import { createComponent } from '@qwik.dev/core';
+import { useSignal, createComponent } from '@qwik.dev/core';
 import { Child } from './component.tsx_component_Child';
 export { Child };
 export function App(props, ctx) {

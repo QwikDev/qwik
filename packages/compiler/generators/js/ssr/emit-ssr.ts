@@ -76,6 +76,9 @@ export interface SsrPlanData {
   readonly importLocalName: (module: string, exportName: string) => string | null;
 }
 
+/** Aliased so the emitted import never collides with an origin `isServer` import. */
+const LIB_IS_SERVER = 'qwikBuildIsServer';
+
 const EMPTY_PLAN_DATA: SsrPlanData = {
   defs: [],
   contexts: [],
@@ -340,18 +343,26 @@ export function emitSsrModule(
     return null;
   }
   emittedFunctions.directSegmentIds.forEach((id) => directSegmentIds.add(id));
+  const localImports: string[] = [];
+  const pushBuildImport = () => {
+    const buildImport = `import { isServer as ${LIB_IS_SERVER} } from '@qwik.dev/core/build';`;
+    if (!localImports.includes(buildImport)) {
+      localImports.push(buildImport);
+    }
+  };
   for (const component of inlineComponents) {
     imports.add(QwikWord.ComponentQrl);
     const qrl = `q_${component.symbolName}`;
     if (libMode) {
       imports.add(QwikWord.QrlWithChunk);
+      imports.add(QwikWord.InlinedQrl);
+      pushBuildImport();
       hoists.push(
-        `const ${qrl} = /*#__PURE__*/ ${QwikWord.QrlWithChunk}(${JSON.stringify(
+        `const ${qrl} = ${LIB_IS_SERVER}\n  ? /*#__PURE__*/ ${QwikWord.InlinedQrl}(${component.symbolName}, ${JSON.stringify(component.symbolName)})\n  : /*#__PURE__*/ ${QwikWord.QrlWithChunk}(${JSON.stringify(
           component.importPath
         )}, () => import(${JSON.stringify(component.importPath)}), ${JSON.stringify(
           component.symbolName
-        )});`,
-        `${qrl}.s(${component.symbolName});`
+        )});`
       );
     } else {
       imports.add(QwikWord.NoopQrl);
@@ -434,7 +445,6 @@ export function emitSsrModule(
   }
 
   hoists.push(...emittedFunctions.hoists);
-  const localImports: string[] = [];
   const emittedSegmentIds = new Set<string>();
   for (const segment of segments) {
     if (
@@ -447,23 +457,46 @@ export function emitSsrModule(
     emittedSegmentIds.add(segment.id);
     const qrl = qrlName(segment);
     if (libMode) {
-      // library qrls stay lazy chunks: app builds tree-shake unused segments per target,
-      // which keeps generated app code (the router config) out of the server graph
+      // library qrls carry their chunk for client laziness, but the server is never lazy:
+      // when the implementation is in-module, a build-time env split resolves it eagerly on
+      // the server while client builds fold to the lazy chunk and drop the implementation
       const path = getSegmentImportPath(inputPath, segment, explicitExtensions);
       imports.add(QwikWord.QrlWithChunk);
-      const lazyDeclaration = `const ${qrl} = /*#__PURE__*/ ${QwikWord.QrlWithChunk}(${JSON.stringify(
+      const lazyExpression = `/*#__PURE__*/ ${QwikWord.QrlWithChunk}(${JSON.stringify(
         path
-      )}, () => import(${JSON.stringify(path)}), ${JSON.stringify(segment.symbolName)});`;
-      if (segment.implementationInOrigin) {
-        // the chunk is a re-export shim of this module — the origin export must exist
-        const implementation = `export const ${segment.symbolName} = ${source.slice(
-          segment.functionRange[0],
-          segment.functionRange[1]
-        )};`;
-        hoists.push(`${implementation}\n${lazyDeclaration}\n${qrl}.s(${segment.symbolName});`);
-      } else {
-        hoists.push(lazyDeclaration);
+      )}, () => import(${JSON.stringify(path)}), ${JSON.stringify(segment.symbolName)})`;
+      const inline = inlineSegmentCode.get(segment.id);
+      const implementation = segment.implementationInOrigin
+        ? `export const ${segment.symbolName} = ${source.slice(
+            segment.functionRange[0],
+            segment.functionRange[1]
+          )};`
+        : hasRawSsrModuleRootImplementation(segment, segments)
+          ? `const ${segment.symbolName} = ${source.slice(
+              segment.functionRange[0],
+              segment.functionRange[1]
+            )};`
+          : inline;
+      if (implementation === undefined) {
+        // no in-module implementation (events, local components, ...): lazy carrier only
+        hoists.push(`const ${qrl} = ${lazyExpression};`);
+        continue;
       }
+      imports.add(QwikWord.InlinedQrl);
+      pushBuildImport();
+      const bodyLines: string[] = [];
+      for (const line of implementation.split('\n')) {
+        if (line.startsWith('import ')) {
+          if (!localImports.includes(line)) {
+            localImports.push(line);
+          }
+        } else {
+          bodyLines.push(line);
+        }
+      }
+      hoists.push(
+        `${bodyLines.join('\n').trim()}\nconst ${qrl} = ${LIB_IS_SERVER}\n  ? /*#__PURE__*/ ${QwikWord.InlinedQrl}(${segment.symbolName}, ${JSON.stringify(segment.symbolName)})\n  : ${lazyExpression};`
+      );
       continue;
     }
     // v2-parity: server qrls are chunkless; serialization maps symbol → client chunk via the

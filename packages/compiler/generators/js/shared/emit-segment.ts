@@ -395,6 +395,18 @@ function emitSegmentCode(
     }
   }
   const moduleReferences = getTargetModuleReferences(segment);
+  if (inline && inlineQwikImports !== undefined) {
+    // expression segments extracted from component bodies leave no countable origin reference,
+    // so surface their qwik-import names or the origin import gets pruned from under the blob
+    for (const reference of moduleReferences) {
+      if (
+        reference.import?.source === QWIK_IMPORT &&
+        reference.import.importedName === reference.name
+      ) {
+        inlineQwikImports.add(reference.name);
+      }
+    }
+  }
   // in-module code sees every module-scope binding directly — no reference imports
   if (!inline && moduleReferences.length > 0) {
     for (const reference of moduleReferences) {

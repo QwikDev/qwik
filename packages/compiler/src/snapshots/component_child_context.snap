@@ -19,6 +19,7 @@ export function Parent() {
 ============================= src/component.tsx ==
 
 import {
+  useContext,
   useContextProvider,
   useSignal,
   createSsrRecord,
@@ -134,6 +135,7 @@ export const component_text_segment_0_1fh10fbkzokfc = (value) => {
 ============================= src/component.tsx ==
 
 import {
+  useContext,
   useContextProvider,
   useSignal,
   _first,

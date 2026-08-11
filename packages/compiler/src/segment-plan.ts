@@ -426,6 +426,8 @@ export function hasRawSsrModuleRootImplementation(
     segment.lifetimeId === null &&
     segment.kind === 'qrl' &&
     segment.payload === 'function' &&
+    // a captured segment reads its `_captures` prelude — a raw source slice has none
+    segment.captures.length === 0 &&
     segment.render === null &&
     segment.embeddedRenders.length === 0 &&
     !segments.some((candidate) => candidate.parentId === segment.id)

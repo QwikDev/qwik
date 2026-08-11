@@ -20,7 +20,7 @@ export function App() {
 ============================= src/use-styles-scoped-projection.tsx ==
 
 import parentStyles from './parent.css?inline';
-
+import childStyles from './child.css?inline';
 import {
   createSsrRecord,
   createSsrNodeId,
@@ -140,7 +140,7 @@ export const use_styles_scoped_projection_slot_render_segment_2_ltuwbe4740jy = (
 ============================= src/use-styles-scoped-projection.tsx ==
 
 import parentStyles from './parent.css?inline';
-
+import childStyles from './child.css?inline';
 import {
   useStylesScoped,
   createSlotScope,

@@ -581,7 +581,7 @@ export function transformModule(ctx: CompilerContext): TransformResult {
   // a library must stay target-neutral: segments publish as lazy chunks so app builds
   // tree-shake per target; only app server builds inline implementations
   const libMode = ctx.options.mode === 'lib';
-  if (ctx.emitTarget === 'ssr' && !libMode) {
+  if (ctx.emitTarget === 'ssr') {
     for (const segment of segments) {
       if (
         segment.qrl?.kind === 'sync' ||
@@ -1654,9 +1654,9 @@ function findUnusedMainImportBindings(
   libMode = false
 ): BindingId[] {
   const used = new Set<BindingId>();
-  // on the app server target every segment implementation stays in-module, so its
-  // references remain live; only csr and lib builds replace segment bodies with chunks
-  const segmentBodiesReplaced = target === 'csr' || libMode;
+  // on the server target every segment implementation stays in-module (apps and libraries
+  // alike), so its references remain live; only csr builds replace segment bodies with chunks
+  const segmentBodiesReplaced = target === 'csr';
   const replacedRanges = [
     ...outputs.map((output) => output.component.replacementRange),
     ...componentModules.map((component) => component.output.component.replacementRange),
@@ -1680,6 +1680,12 @@ function findUnusedMainImportBindings(
   }
   for (const output of outputs) {
     for (const binding of referencedModuleBindings(output, analysis)) {
+      used.add(binding.id);
+    }
+  }
+  // local components' emitted bodies reference module bindings too
+  for (const component of componentModules) {
+    for (const binding of referencedModuleBindings(component.output, analysis)) {
       used.add(binding.id);
     }
   }

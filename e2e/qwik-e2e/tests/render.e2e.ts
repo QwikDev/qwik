@@ -8,7 +8,8 @@ test.describe('render', () => {
 
       await expect(text).toHaveText('Rerender 0');
       await button.click();
-      await expect(text).toHaveText('Rerender 1');
+      // v3: components never rerun, so a body-level store read stays at its initial value
+      await expect(text).toHaveText('Rerender 0');
     });
 
     test('should render classes', async ({ page }) => {
@@ -465,7 +466,8 @@ test.describe('render', () => {
       await expect(result).toHaveAttribute('aria-labelledby', 'title');
     });
 
-    test('should rerender child once', async ({ page }) => {
+    // v3: components never rerun, so the render log can never grow (fixture is also disabled)
+    test.skip('should rerender child once', async ({ page }) => {
       const button = page.locator('#rerender-once-button');
       const rerenderOnceChild = page.locator('#rerender-once-child');
       await expect(rerenderOnceChild).toHaveText('["render Cmp","foo",0]');

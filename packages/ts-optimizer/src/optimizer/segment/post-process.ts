@@ -19,6 +19,7 @@ import {
   removeUnusedImports,
 } from '../transform/module-cleanup.js';
 import { applySegmentDCE, hasSegmentDcePatterns } from '../transform/dead-code.js';
+import { applyStatementDCE } from '../transform/statement-dce.js';
 import { isAnyComponentCtx } from '../rewrite/predicates.js';
 import { parseWithRawTransfer } from '../ast/parse.js';
 import type { AstProgram } from '../../ast-types.js';
@@ -213,6 +214,8 @@ export function postProcessSegmentCode(code: string, opts: SegmentPostProcessOpt
   if (hasSegmentDcePatterns(result)) {
     result = runHelper(() => applySegmentDCE(result));
   }
+
+  result = runHelper(() => applyStatementDCE(result, filename));
 
   const exportIdx = result.indexOf('export const ');
   const afterExportLine = exportIdx >= 0 ? result.indexOf('\n', exportIdx) : -1;

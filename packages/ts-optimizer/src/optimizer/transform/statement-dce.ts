@@ -1,0 +1,164 @@
+/**
+ * Statement-level dead-code elimination mirroring SWC's simplify pass on emitted modules: unused
+ * pure declarations, unused function/class declarations, and empty try statements are removed from
+ * block bodies. Iterates to a fixpoint because one removal can free another.
+ */
+
+import MagicString from 'magic-string';
+import { walk } from 'oxc-walker';
+import type { AstNode, AstProgram } from '../../ast-types.js';
+import { parseWithRawTransfer } from '../ast/parse.js';
+import { forEachAstChild } from '../ast/guards.js';
+import { isNonReferenceIdentifier } from '../analysis/variable-migration.js';
+
+interface RangedNode {
+  readonly type: string;
+  readonly start: number;
+  readonly end: number;
+}
+
+function isRecordNode(value: unknown): value is Record<string, unknown> & RangedNode {
+  return typeof value === 'object' && value !== null && 'type' in value;
+}
+
+/** Names referenced anywhere except declaration-name positions. */
+function collectReferencedNames(program: AstProgram): Set<string> {
+  const referenced = new Set<string>();
+  walk(program, {
+    enter(node, parent) {
+      const n = node as AstNode;
+      const p = parent as AstNode | null;
+      if (n.type !== 'Identifier' && n.type !== 'JSXIdentifier') return;
+      if (isNonReferenceIdentifier(n, p)) return;
+      if (p) {
+        // Declaration-name positions are bindings, not references.
+        if (
+          (p.type === 'FunctionDeclaration' ||
+            p.type === 'ClassDeclaration' ||
+            p.type === 'VariableDeclarator') &&
+          (p as unknown as { id?: unknown }).id === n
+        ) {
+          return;
+        }
+      }
+      referenced.add((n as { name: string }).name);
+    },
+  });
+  return referenced;
+}
+
+function isPureInit(init: unknown): boolean {
+  if (init == null) return true;
+  if (!isRecordNode(init)) return false;
+  switch (init.type) {
+    case 'Literal':
+    case 'Identifier':
+    case 'ArrowFunctionExpression':
+    case 'FunctionExpression':
+      return true;
+    case 'TemplateLiteral':
+      return (init.expressions as unknown[] | undefined)?.length === 0;
+    default:
+      return false;
+  }
+}
+
+function isRemovableVarDecl(stmt: Record<string, unknown>, referenced: Set<string>): boolean {
+  const decls = stmt.declarations as Array<Record<string, unknown>> | undefined;
+  if (!decls || decls.length === 0) return false;
+  for (const decl of decls) {
+    const id = decl.id as Record<string, unknown> | undefined;
+    if (!id || id.type !== 'Identifier') return false;
+    if (referenced.has(id.name as string)) return false;
+    if (!isPureInit(decl.init)) return false;
+  }
+  return true;
+}
+
+function classHasSideEffects(stmt: Record<string, unknown>): boolean {
+  const superClass = stmt.superClass as Record<string, unknown> | undefined | null;
+  if (superClass && superClass.type !== 'Identifier') return true;
+  const body = stmt.body as Record<string, unknown> | undefined;
+  const members = (body?.body as Array<Record<string, unknown>> | undefined) ?? [];
+  for (const member of members) {
+    if (member.type === 'StaticBlock') return true;
+    if (member.type === 'PropertyDefinition' && member.static && !isPureInit(member.value)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function isRemovableStatement(stmt: unknown, referenced: Set<string>): stmt is RangedNode {
+  if (!isRecordNode(stmt)) return false;
+  switch (stmt.type) {
+    case 'VariableDeclaration':
+      return isRemovableVarDecl(stmt, referenced);
+    case 'FunctionDeclaration': {
+      const id = stmt.id as Record<string, unknown> | undefined;
+      return !!id && !referenced.has(id.name as string);
+    }
+    case 'ClassDeclaration': {
+      const id = stmt.id as Record<string, unknown> | undefined;
+      if (!id || referenced.has(id.name as string)) return false;
+      return !classHasSideEffects(stmt);
+    }
+    case 'TryStatement': {
+      const block = stmt.block as Record<string, unknown> | undefined;
+      const blockEmpty = ((block?.body as unknown[] | undefined) ?? []).length === 0;
+      const finalizer = stmt.finalizer as Record<string, unknown> | undefined | null;
+      const finalizerEmpty =
+        !finalizer || ((finalizer.body as unknown[] | undefined) ?? []).length === 0;
+      return blockEmpty && finalizerEmpty;
+    }
+    default:
+      return false;
+  }
+}
+
+function collectBlockBodies(program: AstProgram): unknown[][] {
+  const bodies: unknown[][] = [];
+  const visit = (node: unknown): void => {
+    if (Array.isArray(node)) {
+      for (const item of node) visit(item);
+      return;
+    }
+    if (!isRecordNode(node)) return;
+    if ((node.type === 'BlockStatement' || node.type === 'Program') && Array.isArray(node.body)) {
+      bodies.push(node.body as unknown[]);
+    }
+    forEachAstChild(node as AstNode, (child) => visit(child));
+  };
+  visit(program);
+  return bodies;
+}
+
+export function applyStatementDCE(code: string, filename: string): string {
+  let result = code;
+  for (let pass = 0; pass < 5; pass++) {
+    let program: AstProgram;
+    try {
+      program = parseWithRawTransfer(filename, result).program;
+    } catch {
+      return result;
+    }
+    const referenced = collectReferencedNames(program);
+    const removals: RangedNode[] = [];
+    for (const body of collectBlockBodies(program)) {
+      for (const stmt of body) {
+        if (isRemovableStatement(stmt, referenced)) {
+          removals.push(stmt);
+        }
+      }
+    }
+    if (removals.length === 0) return result;
+    const s = new MagicString(result);
+    for (const stmt of removals) {
+      let end = stmt.end;
+      if (end < result.length && result[end] === '\n') end++;
+      s.remove(stmt.start, end);
+    }
+    result = s.toString();
+  }
+  return result;
+}

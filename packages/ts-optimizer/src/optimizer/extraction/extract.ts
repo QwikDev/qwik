@@ -904,16 +904,56 @@ export function createExtractionCollector(
             }
           }
 
-          // Derive ctxName from wrapping Qrl call (e.g., componentQrl(...) -> "component$")
+          // Derive ctxName from the surrounding context: a wrapping Qrl call
+          // (`componentQrl(...)` → "component$"), a jsx-factory props bag
+          // (`_jsxSplit("form", { onSubmit$: inlinedQrl(...) })` → the factory
+          // callee), or the owning declarator (`const goto = inlinedQrl(...)`,
+          // possibly behind conditional/logical wrappers).
           let inlinedCtxName = nameValue;
-          if (parent?.type === 'CallExpression') {
-            const parentCallee = getCalleeName(parent);
-            if (parentCallee) {
-              const canonicalParentCallee = resolveCanonicalCalleeName(parentCallee, imports);
-              if (canonicalParentCallee.endsWith('Qrl')) {
-                inlinedCtxName = canonicalParentCallee.slice(0, -3) + '$';
-              } else {
-                inlinedCtxName = canonicalParentCallee;
+          let cursor = parent as AstNode | undefined;
+          while (
+            cursor &&
+            (cursor.type === 'ConditionalExpression' ||
+              cursor.type === 'LogicalExpression' ||
+              cursor.type === 'ParenthesizedExpression')
+          ) {
+            cursor = parentMap.get(cursor) as AstNode | undefined;
+          }
+          const qrlToDollar = (name: string): string =>
+            name.endsWith('Qrl') ? name.slice(0, -3) + '$' : name;
+          if (
+            cursor?.type === 'VariableDeclarator' &&
+            (cursor as { id?: { type: string; name?: string } }).id?.type === 'Identifier'
+          ) {
+            inlinedCtxName = qrlToDollar((cursor as unknown as { id: { name: string } }).id.name);
+          } else {
+            while (
+              cursor &&
+              (cursor.type === 'Property' ||
+                cursor.type === 'ObjectExpression' ||
+                cursor.type === 'ArrayExpression')
+            ) {
+              cursor = parentMap.get(cursor) as AstNode | undefined;
+            }
+            if (cursor?.type === 'CallExpression') {
+              const parentCallee = getCalleeName(cursor);
+              if (parentCallee) {
+                inlinedCtxName = qrlToDollar(resolveCanonicalCalleeName(parentCallee, imports));
+              }
+            } else {
+              // Deeply nested (`const serverQrl = (…) => … inlinedQrl(…)`)
+              // takes the nearest enclosing named declaration as context.
+              while (cursor) {
+                if (
+                  (cursor.type === 'VariableDeclarator' || cursor.type === 'FunctionDeclaration') &&
+                  (cursor as { id?: { type: string; name?: string } }).id?.type === 'Identifier'
+                ) {
+                  inlinedCtxName = qrlToDollar(
+                    (cursor as unknown as { id: { name: string } }).id.name
+                  );
+                  break;
+                }
+                cursor = parentMap.get(cursor) as AstNode | undefined;
               }
             }
           }

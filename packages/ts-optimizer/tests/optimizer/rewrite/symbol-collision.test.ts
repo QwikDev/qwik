@@ -20,6 +20,7 @@ import { component$ } from '@qwik.dev/core';
 import { qrl } from '@qwik.dev/core/what';
 
 const log = () => qrl();
+log();
 
 export const Foo = component$(() => {
   return null;
@@ -57,6 +58,7 @@ export const Foo = component$(() => {
 import { component$, qrl } from '@qwik.dev/core';
 
 const log = () => qrl();
+log();
 
 export const Foo = component$(() => {
   return null;
@@ -80,6 +82,7 @@ import { qrl } from '@qwik.dev/core/what';
 const qrl1 = 42;
 const qrl2 = 43;
 const sum = () => qrl() + qrl1 + qrl2;
+sum();
 
 export const Foo = component$(() => {
   return null;

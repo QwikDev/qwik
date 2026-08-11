@@ -164,8 +164,20 @@ describe('analyzeMigration', () => {
     expect(decisions[1].varName).toBe('b');
   });
 
-  it('Test 7: variable not used by any segment => keep', () => {
+  it('Test 7: pure variable not used anywhere => drop', () => {
     const decls = [makeDecl({ name: 'unused' })];
+    const segmentUsage = new Map<string, Set<string>>();
+    const rootUsage = new Set<string>();
+
+    const decisions = analyzeMigration(decls, segmentUsage, rootUsage);
+
+    expect(decisions).toHaveLength(1);
+    expect(decisions[0].action).toBe('drop');
+    expect(decisions[0].varName).toBe('unused');
+  });
+
+  it('Test 7b: side-effectful variable not used anywhere => keep', () => {
+    const decls = [makeDecl({ name: 'unused', hasSideEffects: true })];
     const segmentUsage = new Map<string, Set<string>>();
     const rootUsage = new Set<string>();
 

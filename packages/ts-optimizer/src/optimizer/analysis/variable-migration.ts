@@ -12,7 +12,7 @@ import {
 } from '../ast/binding-pattern.js';
 
 export interface MigrationDecision {
-  readonly action: 'move' | 'reexport' | 'keep';
+  readonly action: 'move' | 'reexport' | 'keep' | 'drop';
   readonly varName: string;
   readonly targetSegment?: string;
   readonly reason: string;
@@ -454,6 +454,7 @@ export const MIG_REASON = {
   REEXPORT_MOVED_DECL_DEP: 'still referenced by a declaration migrating into a segment (MIG-06)',
   KEEP_EXPORTED: 'exported but not used by any segment',
   KEEP_UNUSED: 'not used by any segment',
+  DROP_UNREFERENCED: 'pure init unused by root and segments (dead after extraction)',
 } as const;
 
 const INLINE_STRATEGY_REEXPORT_REASONS: ReadonlySet<string> = new Set([
@@ -719,6 +720,14 @@ function decideMigration(
       targetSegment: usingSegments[0],
       reason: MIG_REASON.MOVE_SINGLE_SEGMENT,
     };
+  }
+  if (
+    !usedByRoot &&
+    !usedByAnySegment &&
+    !decl.hasSideEffects &&
+    !decl.isPartOfSharedDestructuring
+  ) {
+    return { action: 'drop', varName: decl.name, reason: MIG_REASON.DROP_UNREFERENCED };
   }
   return { action: 'keep', varName: decl.name, reason: MIG_REASON.KEEP_UNUSED };
 }

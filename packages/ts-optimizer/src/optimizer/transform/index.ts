@@ -45,6 +45,7 @@ import {
   analyzeMigration,
   collectModuleLevelDecls,
   filterInlineStrategyMigrations,
+  MIG_REASON,
   type MigrationDecision,
   type ModuleLevelDecl,
 } from '../analysis/variable-migration.js';
@@ -777,6 +778,16 @@ function attributeSegmentUsage(
   }
 
   let migrationDecisions = analyzeMigration(moduleLevelDecls, segmentUsage, rootUsage, program);
+  // A decl whose init holds an extraction keeps its (pure) marker-call
+  // registration as a bare statement — only the binding disappears, so
+  // whole-decl dropping would erase the registration.
+  migrationDecisions = migrationDecisions.map((d) => {
+    if (d.action !== 'drop') return d;
+    const decl = moduleLevelDeclsByName.get(d.varName);
+    const holdsExtraction =
+      decl && extractions.some((e) => e.callStart >= decl.declStart && e.callEnd <= decl.declEnd);
+    return holdsExtraction ? { ...d, action: 'keep' as const, reason: MIG_REASON.KEEP_UNUSED } : d;
+  });
   if (isInlineStrategy) {
     migrationDecisions = filterInlineStrategyMigrations(migrationDecisions);
     dropTopLevelModuleScopeCaptures(extractions, moduleLevelDeclsByName);

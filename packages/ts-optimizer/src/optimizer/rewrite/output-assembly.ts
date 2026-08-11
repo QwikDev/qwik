@@ -866,7 +866,7 @@ export function assembleOutput(ctx: RewriteContext): string {
   if (migrationDecisions && moduleLevelDecls) {
     const removedRanges = new Set<string>();
     for (const decision of migrationDecisions) {
-      if (decision.action !== 'move') continue;
+      if (decision.action !== 'move' && decision.action !== 'drop') continue;
       const decl = moduleLevelDecls.find((d) => d.name === decision.varName);
       if (!decl) continue;
       const rangeKey = `${decl.declStart}:${decl.declEnd}`;

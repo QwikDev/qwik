@@ -48,7 +48,12 @@ export function compareAst(expected: string, actual: string, filename: string): 
     ? actualResult.errors.map((e) => e.message).join('; ')
     : null;
 
-  if (expectedErrors || actualErrors) {
+  // Parse errors must appear on both sides or neither — a one-sided error is a
+  // real difference; identical quirks (e.g. `await` in a sync arrow) still compare.
+  if (
+    (expectedErrors !== null) !== (actualErrors !== null) ||
+    ((expectedErrors || actualErrors) && (!expectedResult.program || !actualResult.program))
+  ) {
     return {
       match: false,
       expectedParseError: expectedErrors,

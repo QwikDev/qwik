@@ -6,7 +6,8 @@ import {
 } from '../../../src/optimizer/extraction/extract.js';
 import { collectImports } from '../../../src/optimizer/extraction/marker-detection.js';
 import { parseSync } from 'oxc-parser';
-import { mkRelativePath } from '../../../src/optimizer/types/brands.js';
+import { mkFilePath, mkRelativePath, mkSourceText } from '../../../src/optimizer/types/brands.js';
+import { transformModule } from '../../../src/optimizer/transform/index.js';
 
 function rewrite(source: string, relPath = 'test.tsx'): string {
   const extractions = extractSegments(source, relPath);
@@ -104,7 +105,7 @@ export const App = component$(() => {
     expect(qrlImport).not.toBe(componentQrlImport);
   });
 
-  it('Test 6: existing non-marker imports preserved', () => {
+  it('Test 6: non-marker imports only used in extracted bodies are dropped', () => {
     const source = `import { component$, useStore } from "@qwik.dev/core";
 export const App = component$(() => {
   const state = useStore({ count: 0 });
@@ -112,8 +113,9 @@ export const App = component$(() => {
 });`;
     const code = rewrite(source);
 
-    expect(code).toContain('useStore');
-    expect(code).toMatch(/import\s*\{\s*useStore\s*\}\s*from\s*"@qwik\.dev\/core"/);
+    // useStore moved into the segment with the component body; the parent
+    // no longer references it, matching Rust.
+    expect(code).not.toContain('useStore');
   });
 
   it('Test 7: PURE annotation on componentQrl but NOT on useTaskQrl', () => {
@@ -146,6 +148,8 @@ const fn = sync$(() => {
   });
 
   it('Test 9: nested $() calls produce parent-child relationship', () => {
+    // Event-handler rewrites need the full pipeline's preprocessing, so this
+    // goes through transformModule rather than rewriteParentModule directly.
     const source = `import { component$, $ } from "@qwik.dev/core";
 export const App = component$(() => {
   const handler = $(() => {
@@ -153,20 +157,16 @@ export const App = component$(() => {
   });
   return <div onClick$={handler}>Hello</div>;
 });`;
-    const extractions = extractSegments(source, 'test.tsx');
-    const { program } = parseSync('test.tsx', source);
-    const imports = collectImports(program);
-    const result = rewriteParentModule(
-      source,
-      mkRelativePath('test.tsx'),
-      extractions as ExtractionResult[],
-      imports
-    );
+    const result = transformModule({
+      input: [{ path: mkFilePath('test.tsx'), code: mkSourceText(source) }],
+      srcDir: mkFilePath('.'),
+    });
 
-    expect(result.extractions.length).toBeGreaterThanOrEqual(2);
-    const nested = result.extractions.find((e) => e.parent != null);
+    const segments = result.modules.filter((m) => m.kind === 'segment');
+    expect(segments.length).toBeGreaterThanOrEqual(2);
+    const nested = segments.find((m) => m.segment!.parent != null);
     expect(nested).toBeDefined();
-    expect(result.extractions.some((e) => e.symbolName === nested!.parent)).toBe(true);
+    expect(segments.some((m) => m.segment!.name === nested!.segment!.parent)).toBe(true);
   });
 
   it('Test 10: custom inlined useMemo$ rewritten without adding import', () => {

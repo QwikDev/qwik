@@ -7,6 +7,7 @@ import { transformModule } from '../../src/optimizer/transform/index.js';
 import { getSnapshotFiles } from '../../src/testing/batch-runner.js';
 import { mkFilePath, mkSourceText } from '../../src/optimizer/types/brands.js';
 import { SNAP_DIR } from '../rust-snapshots.js';
+import { getSnapshotTransformOptions } from './snapshot-options.js';
 
 describe('snapshot batch validation', () => {
   const allFiles = getSnapshotFiles(SNAP_DIR);
@@ -122,14 +123,8 @@ describe('snapshot batch validation', () => {
         const parsed = parseSnapshot(content);
         if (!parsed.input) return;
 
-        const filename =
-          parsed.segments[0]?.metadata?.origin || parsed.parentModules[0]?.filename || 'test.tsx';
-
-        const result = transformModule({
-          input: [{ path: mkFilePath(filename), code: mkSourceText(parsed.input) }],
-          srcDir: mkFilePath('.'),
-          mode: 'test',
-        });
+        const testName = snapName.replace(/^qwik_core__test__/, '').replace(/\.snap$/, '');
+        const result = transformModule(getSnapshotTransformOptions(testName, parsed.input));
 
         let matchedCount = 0;
         const missingSegments: string[] = [];

@@ -153,7 +153,7 @@ export const handler = $(() => {
           path: mkFilePath('test.tsx'),
           code: mkSourceText(`import { component$, $ } from '@qwik.dev/core';
 export const App = component$(() => {
-  const count = 0;
+  const count = Math.random();
   const handler = $(() => {
     console.log(count);
   });
@@ -462,10 +462,9 @@ export const App = component$(() => {
     });
 
     const segments = result.modules.filter((m) => m.kind === 'segment');
-    const appSegment = segments.find((s) => s.segment!.displayName.includes('App_component'));
-    if (appSegment) {
-      expect(appSegment.code).toContain('"q-e:click"');
-    }
+    const appSegment = segments.find((s) => s.segment!.displayName.endsWith('App_component'));
+    expect(appSegment).toBeDefined();
+    expect(appSegment!.code).toContain('"q-e:click"');
   });
 
   it('event: renames document:/window: event prefixes (EVT-02, EVT-03)', () => {
@@ -612,7 +611,7 @@ export const App = component$(() => {
     });
 
     const segments = result.modules.filter((m) => m.kind === 'segment');
-    const appSegment = segments.find((s) => s.segment!.displayName.includes('App_component'));
+    const appSegment = segments.find((s) => s.segment!.displayName.endsWith('App_component'));
     expect(appSegment).toBeDefined();
 
     const code = appSegment!.code;
@@ -644,12 +643,12 @@ export const App = component$(() => {
     });
 
     const segments = result.modules.filter((m) => m.kind === 'segment');
-    const appSegment = segments.find((s) => s.segment!.displayName.includes('App_component'));
+    const appSegment = segments.find((s) => s.segment!.displayName.endsWith('App_component'));
     expect(appSegment).toBeDefined();
 
     const code = appSegment!.code;
-    expect(code).toContain('"q:p": i');
-    expect(code).toMatch(/_jsxSorted\("span".*5.*"u6_0"\)/);
+    expect(code).not.toContain('"q:p"');
+    expect(code).toMatch(/_jsxSorted\("span", null, null, i, 1, "u6_0"\)/);
   });
 
   it('loop: non-loop JSX elements do NOT get loop flag (LOOP-05 negative)', () => {
@@ -695,8 +694,8 @@ export const Comp = (props) => {
     });
 
     const parent = result.modules[0];
-    expect(parent.code).toContain('"q:p": item');
-    expect(parent.code).toMatch(/_jsxSorted\("span".*5.*"u6_0"\)/);
+    expect(parent.code).not.toContain('"q:p"');
+    expect(parent.code).toMatch(/_jsxSorted\("span".*3, "u6_0"\)/);
   });
 
   it('sets segment analysis metadata correctly', () => {
@@ -721,7 +720,7 @@ export const App = component$(() => {
     expect(seg.displayName).toContain('component');
     expect(seg.hash).toBeTruthy();
     expect(seg.canonicalFilename).toBeTruthy();
-    expect(seg.extension).toMatch(/\.(tsx|ts|js)$/);
+    expect(seg.extension).toMatch(/^(tsx|ts|js)$/);
     expect(seg.entry).toBeNull();
     expect(seg.captures).toBe(false);
     expect(seg.loc).toHaveLength(2);

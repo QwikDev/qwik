@@ -105,11 +105,12 @@ const F = () => {
 };
 `;
     const names = segmentNames(transform(src).modules);
-    expect(names.some((n) => /^F_onSubmit_/.test(n))).toBe(true);
+    // Rust names this from the callee identifier, not the prop key.
+    expect(names.some((n) => /^F_jsx_/.test(n))).toBe(true);
     expect(names.every((n) => !/^F_form_q_e_submit_/.test(n))).toBe(true);
   });
 
-  it('negative scope: regular ObjectExpression Property keys still push literal', () => {
+  it('negative scope: regular ObjectExpression Property keys do not push naming context', () => {
     const src = `
 import { $ } from '@qwik.dev/core';
 const handlers = {
@@ -117,6 +118,8 @@ const handlers = {
 };
 `;
     const names = segmentNames(transform(src).modules);
-    expect(names.some((n) => /^handlers_onClick_/.test(n))).toBe(true);
+    // Rust only takes the declarator name; plain object keys add nothing.
+    expect(names.some((n) => /^handlers_/.test(n))).toBe(true);
+    expect(names.every((n) => !/^handlers_onClick_/.test(n))).toBe(true);
   });
 });

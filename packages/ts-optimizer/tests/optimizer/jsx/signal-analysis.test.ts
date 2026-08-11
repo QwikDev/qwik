@@ -138,8 +138,8 @@ describe('signal-analysis', () => {
         expect(result.deps).toEqual(['store']);
         expect(result.hoistedFn).toContain('p0.address.city.name');
         expect(result.hoistedStr).toContain('p0.address.city.name?');
-        expect(result.hoistedStr).toContain("'true'");
-        expect(result.hoistedStr).toContain("'false'");
+        expect(result.hoistedStr).toContain('"true"');
+        expect(result.hoistedStr).toContain('"false"');
       }
     });
 

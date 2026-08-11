@@ -306,7 +306,7 @@ describe('generateSegmentCode', () => {
       isWorkerEventHandler: false,
     };
 
-    const code = generateSegmentCode(extraction);
+    const { code } = generateSegmentCode(extraction);
     expect(code).toContain('import { foo } from "./foo"');
     expect(code).toContain('//');
     expect(code).toContain(`export const App_component_abc12345678 = () => {\n  return foo();\n};`);
@@ -350,7 +350,7 @@ describe('generateSegmentCode', () => {
       isWorkerEventHandler: false,
     };
 
-    const code = generateSegmentCode(extraction);
+    const { code } = generateSegmentCode(extraction);
     expect(code).not.toContain('//');
     expect(code).toBe(`export const handler_abc12345678 = () => console.log("hi");`);
   });

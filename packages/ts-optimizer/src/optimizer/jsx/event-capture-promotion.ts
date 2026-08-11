@@ -131,6 +131,11 @@ export interface EventCaptureContext {
   loopBodyVarDecls: LoopBodyVarDeclMap;
   repairedCode: string;
   isInlineStrategy: boolean;
+  /**
+   * Raw-JSX output (no transpile) can't deliver positional params to parent-level handlers, so
+   * their captures stay on the `.w()` path instead of lifting.
+   */
+  liftParentLevelHandlers: boolean;
 }
 
 /** Keyed by `${loopBodyStart}-${loopBodyEnd}` — a LoopContext's positional fingerprint. */
@@ -459,6 +464,7 @@ export function promoteEventHandlerCaptures(
     if (extraction.isInlinedQrl) continue;
     // Wrapper params are mirrored from their worker child after promotion.
     if (extraction.isWorkerEventWrapper) continue;
+    if (!ctx.liftParentLevelHandlers && !ctx.enclosingExtMap.has(extraction.symbolName)) continue;
 
     // Capture analysis misses intermediate nested-function scopes (loop
     // callbacks), so re-detect against ALL enclosing scopes.

@@ -320,7 +320,14 @@ function transformOneModule(
   const { extractions, closureNodes } = extracted;
 
   const emit = resolveEmitConfig(mod);
-  const analysis = analyzeModuleCaptures(mod, prepared, extracted, emit.entryStrategy, diagnostics);
+  const analysis = analyzeModuleCaptures(
+    mod,
+    prepared,
+    extracted,
+    emit.entryStrategy,
+    diagnostics,
+    emit.shouldTranspileJsx
+  );
   const migration = attributeSegmentUsage(
     mod,
     prepared,
@@ -547,7 +554,8 @@ function analyzeModuleCaptures(
   prepared: PreparedModuleInput,
   extracted: ExtractedModule,
   entryStrategy: EntryStrategy,
-  diagnostics: Diagnostic[]
+  diagnostics: Diagnostic[],
+  shouldTranspileJsx = true
 ): CaptureAnalysis {
   const { options, relPath } = mod;
   const { repairedCode, program } = prepared;
@@ -705,6 +713,7 @@ function analyzeModuleCaptures(
     loopBodyVarDecls,
     repairedCode,
     isInlineStrategy: isInlineOnlyStrategy,
+    liftParentLevelHandlers: shouldTranspileJsx,
   };
 
   promoteEventHandlerCaptures(eventCaptureCtx, globalDeclPositions);

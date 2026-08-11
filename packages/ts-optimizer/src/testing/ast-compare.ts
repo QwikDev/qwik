@@ -412,7 +412,19 @@ function canonicalizeQrlVarNames(program: AstCompatNode): void {
       const varName = asString(decl.id.name);
       if (varName === undefined || !varName.startsWith('q_')) continue;
 
-      const init = decl.init;
+      let init = decl.init;
+      if (!isRecord(init) || init.type !== 'CallExpression') continue;
+      // Unwrap the `.m()` moved-captures marker to reach the qrl/noopQrl call.
+      if (
+        isRecord(init.callee) &&
+        init.callee.type === 'MemberExpression' &&
+        isRecord(init.callee.property) &&
+        init.callee.property.name === 'm' &&
+        isRecord(init.callee.object) &&
+        init.callee.object.type === 'CallExpression'
+      ) {
+        init = init.callee.object;
+      }
       if (!isRecord(init) || init.type !== 'CallExpression') continue;
       const callee = init.callee;
       if (!isRecord(callee)) continue;

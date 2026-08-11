@@ -40,7 +40,7 @@ interface MovedCapturesSource {
   readonly ctxKind: 'function' | 'eventHandler' | 'jSXProp';
   readonly ctxName: string;
   readonly calleeName: string;
-  readonly paramNames: readonly string[];
+  readonly movedCaptures?: boolean;
   readonly isInlinedQrl?: boolean;
 }
 
@@ -53,7 +53,7 @@ export function hasMovedCaptures(ext: MovedCapturesSource): boolean {
     ext.ctxKind === 'eventHandler' &&
     !ext.isInlinedQrl &&
     ext.calleeName === ext.ctxName &&
-    eventHandlerQpParams(ext.paramNames).length > 0
+    ext.movedCaptures === true
   );
 }
 

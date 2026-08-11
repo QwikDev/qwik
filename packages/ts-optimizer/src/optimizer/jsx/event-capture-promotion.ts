@@ -388,6 +388,7 @@ function promoteNonLoopCaptures(
     extraction.paramNames = generateParamPadding(sortedCaptures);
     extraction.captureNames = [];
     extraction.captures = false;
+    extraction.movedCaptures = sortedCaptures.length > 0;
   }
 }
 
@@ -433,6 +434,7 @@ function partitionLoopCaptures(
 
   if (loopLocalVars.length > 0) {
     extraction.paramNames = generateParamPadding(loopLocalVars);
+    extraction.movedCaptures = true;
   }
   extraction.captureNames = crossScopeCaptures.sort();
   extraction.captures = crossScopeCaptures.length > 0;
@@ -668,6 +670,9 @@ export function buildElementCaptureMap(
       const allCaps: string[] = [];
       const seen = new Set<string>();
       for (const h of group) {
+        // Stripping forces the captures out of the (noop) QRL — same runtime
+        // contract as param lifting, so the decl needs the `.m()` marker.
+        h.movedCaptures = true;
         for (const c of h.captureNames) {
           if (!seen.has(c)) {
             seen.add(c);

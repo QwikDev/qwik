@@ -113,6 +113,11 @@ interface ExtractionPhaseFields {
   captureNames: string[];
   paramNames: string[];
   captures: boolean;
+  /**
+   * A direct event handler used at least one element capture that promotion lifted into params.
+   * Recorded at promotion time (before strip-mode clears captures) — drives the `.m()` marker.
+   */
+  movedCaptures?: boolean;
   parent: SymbolName | null;
   propsFieldCaptures?: Map<string, string>;
   /**

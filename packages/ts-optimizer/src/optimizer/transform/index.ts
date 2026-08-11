@@ -111,18 +111,27 @@ import {
  */
 function collectRemovedImportSources(
   originalImports: ReadonlyMap<string, ImportInfo>,
+  originalCode: string,
   cleanedCode: string
 ): string[] {
+  const dynamicImportPattern = /\bimport\s*\(\s*["']([^"']+)["']\s*\)/g;
   const originalSources = new Set<string>();
   for (const [, info] of originalImports) {
     if (info.source) originalSources.add(info.source);
+  }
+  let match;
+  while ((match = dynamicImportPattern.exec(originalCode)) !== null) {
+    originalSources.add(match[1]);
   }
   if (originalSources.size === 0) return [];
 
   const keptSources = new Set<string>();
   const importSourcePattern = /(?:from\s*|^\s*import\s*)["']([^"']+)["']/gm;
-  let match;
   while ((match = importSourcePattern.exec(cleanedCode)) !== null) {
+    keptSources.add(match[1]);
+  }
+  dynamicImportPattern.lastIndex = 0;
+  while ((match = dynamicImportPattern.exec(cleanedCode)) !== null) {
     keptSources.add(match[1]);
   }
 
@@ -1123,7 +1132,11 @@ function rewriteParent(
     emit.isLibMode
   );
   const hygienicCode = applyModuleHygieneRenames(cleanedCode, relPath);
-  const removedImportSources = collectRemovedImportSources(analysis.originalImports, hygienicCode);
+  const removedImportSources = collectRemovedImportSources(
+    analysis.originalImports,
+    repairedCode,
+    hygienicCode
+  );
   const parentModule: TransformModule = {
     kind: 'parent',
     path: relPath,

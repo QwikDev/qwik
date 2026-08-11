@@ -252,6 +252,8 @@
     "release.prepare": "pnpm build --prepare-release",
     "serve": "node --require ./scripts/runBefore.ts --inspect --conditions=development e2e/qwik-e2e/dev-server.ts 3300",
     "serve.native": "node --require ./scripts/runBefore.ts e2e/qwik-e2e/native-serve.ts",
+    "build.native.apps": "node --require ./scripts/runBefore.ts e2e/qwik-e2e/native-build.ts",
+    "start.native": "./e2e/qwik-e2e/.native/target/release/qwik-native-apps",
     "serve.debug": "node --require ./scripts/runBefore.ts --inspect-brk --conditions=development e2e/qwik-e2e/dev-server.ts 3300",
     "serve.perf": "node --require ./scripts/runBefore.ts --inspect --conditions=development --log-deopt --log-ic --log-maps --log-maps-details --log-code --log-source-code --prof --log-internal-timer-events --detailed-line-info --logfile=v8.log --no-logfile-per-isolate e2e/qwik-e2e/dev-server.ts 3300",
     "start": "pnpm run --stream \"/.*\\.watch/\"",
@@ -288,7 +290,8 @@
     "tsc.watch": "tsc --noEmit --watch --preserveWatchOutput",
     "update.qwik.builds": "node --require ./scripts/runBefore.ts scripts/update-qwik-builds.ts packages/docs && node scripts/update-qwik-builds.ts packages/insights; pnpm install",
     "vitest": "vitest",
-    "worktree": "node --require ./scripts/runBefore.ts scripts/worktrees.ts"
+    "worktree": "node --require ./scripts/runBefore.ts scripts/worktrees.ts",
+    "build.native": "cargo run --quiet --manifest-path packages/compiler/generators/rust/ssr/Cargo.toml --bin qwik-native-project -- e2e/qwik-e2e/apps e2e/qwik-e2e/.native && cargo build --release --manifest-path e2e/qwik-e2e/.native/Cargo.toml"
   },
   "simple-git-hooks": {
     "pre-commit": "pnpm pretty-quick --staged"

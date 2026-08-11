@@ -155,10 +155,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         if (optimizerOptions._optimizer) {
           return optimizerOptions._optimizer as typeof import('@qwik.dev/optimizer');
         }
-        if (optimizerOptions.tsOptimizer !== false) {
-          return (await import('@qwik.dev/ts-optimizer')) as unknown as typeof import('@qwik.dev/optimizer');
-        }
-        return await import('@qwik.dev/optimizer');
+        return (await import('@qwik.dev/ts-optimizer')) as unknown as typeof import('@qwik.dev/optimizer');
       };
       const createOptimizer = (await loadOptimizerModule()).createOptimizer;
       internalOptimizer = await createOptimizer(optimizerOptions);

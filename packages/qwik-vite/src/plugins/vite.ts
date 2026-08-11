@@ -131,7 +131,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   const disableFontPreload = qwikViteOpts.disableFontPreload ?? false;
   const injections: GlobalInjections[] = [];
   const qwikPlugin = createQwikPlugin({
-    tsOptimizer: qwikViteOpts.tsOptimizer,
     ...qwikViteOpts.optimizerOptions,
   });
 
@@ -1034,12 +1033,6 @@ interface QwikVitePluginCommonOptions {
    * Default `undefined`
    */
   optimizerOptions?: OptimizerOptions;
-  /**
-   * Use the TypeScript optimizer (`@qwik.dev/ts-optimizer`) instead of the Rust one.
-   *
-   * Default `true`
-   */
-  tsOptimizer?: boolean;
   /**
    * Hook that's called after the build and provides all of the transformed modules that were used
    * before bundling.

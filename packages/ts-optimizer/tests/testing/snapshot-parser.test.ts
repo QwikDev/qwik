@@ -18,7 +18,7 @@ describe('parseSnapshot', () => {
     });
 
     it('extracts frontmatter', () => {
-      expect(result.frontmatter.source).toBe('packages/optimizer/core/src/test.rs');
+      expect(result.frontmatter.source).toBe('packages/rust-optimizer/core/src/test.rs');
       expect(result.frontmatter.assertionLine).toBe(92);
       expect(result.frontmatter.expression).toBe('output');
     });

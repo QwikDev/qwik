@@ -2,4 +2,4 @@
 '@qwik.dev/core': minor
 ---
 
-feat: add `tsOptimizer` flag to qwikVite, selecting the TypeScript optimizer by default
+feat: the vite plugin now uses the TypeScript optimizer

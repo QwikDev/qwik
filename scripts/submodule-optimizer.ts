@@ -4,9 +4,10 @@ import { join } from 'node:path';
 import { build as viteBuild, type UserConfig } from 'vite';
 import { compiledStringPlugin } from './compiled-string-plugin.ts';
 import { inlineQwikScriptsEsBuild } from './submodule-qwikloader.ts';
+import { execa } from 'execa';
 import { access, getBanner, target, writeFile, type BuildConfig } from './util.ts';
 
-/** Builds packages/optimizer and packages/qwik-vite */
+/** Builds packages/rust-optimizer and packages/qwik-vite */
 export async function submoduleOptimizer(config: BuildConfig) {
   const submodule = 'optimizer';
 
@@ -77,27 +78,41 @@ export async function submoduleOptimizer(config: BuildConfig) {
     ],
   };
 
-  // Build qwik-vite optimizer and @qwik.dev/optimizer package (via its own vite.config.ts)
+  // The Rust wrapper only builds alongside the Rust bindings (local dev);
+  // CI builds the TS optimizer instead.
+  const buildsRustWrapper = config.platformBinding || config.platformBindingWasmCopy || config.wasm;
+
   await Promise.all([
     viteBuild(esmConfig),
-    viteBuild({
-      root: config.optimizerPkgDir,
-      configFile: join(config.optimizerPkgDir, 'vite.config.ts'),
-      mode: config.dev ? 'development' : 'production',
+    execa('pnpm', ['--filter', '@qwik.dev/ts-optimizer', 'build'], {
+      stdout: 'inherit',
+      stderr: 'inherit',
+      cwd: config.rootDir,
     }),
+    ...(buildsRustWrapper
+      ? [
+          viteBuild({
+            root: config.optimizerPkgDir,
+            configFile: join(config.optimizerPkgDir, 'vite.config.ts'),
+            mode: config.dev ? 'development' : 'production',
+          }),
+        ]
+      : []),
   ]);
 
-  const optimizerScopeDir = join(config.rootDir, 'node_modules', '@qwik.dev');
-  const optimizerLinkPath = join(optimizerScopeDir, 'optimizer');
-  const optimizerTargetPath =
-    process.platform === 'win32'
-      ? config.optimizerPkgDir
-      : join('..', '..', 'packages', 'optimizer');
-  const optimizerLinkType = process.platform === 'win32' ? 'junction' : 'dir';
-  mkdirSync(optimizerScopeDir, { recursive: true });
-  rmSync(optimizerLinkPath, { force: true, recursive: true });
-  // Windows commonly blocks directory symlinks unless Developer Mode or elevated privileges are enabled.
-  symlinkSync(optimizerTargetPath, optimizerLinkPath, optimizerLinkType);
+  if (buildsRustWrapper) {
+    const optimizerScopeDir = join(config.rootDir, 'node_modules', '@qwik.dev');
+    const optimizerLinkPath = join(optimizerScopeDir, 'optimizer');
+    const optimizerTargetPath =
+      process.platform === 'win32'
+        ? config.optimizerPkgDir
+        : join('..', '..', 'packages', 'rust-optimizer');
+    const optimizerLinkType = process.platform === 'win32' ? 'junction' : 'dir';
+    mkdirSync(optimizerScopeDir, { recursive: true });
+    rmSync(optimizerLinkPath, { force: true, recursive: true });
+    // Windows commonly blocks directory symlinks unless Developer Mode or elevated privileges are enabled.
+    symlinkSync(optimizerTargetPath, optimizerLinkPath, optimizerLinkType);
+  }
 
   console.log('🐹', submodule);
 }

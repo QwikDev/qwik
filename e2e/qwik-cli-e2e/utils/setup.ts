@@ -3,14 +3,14 @@ import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { workspaceRoot } from '.';
 
-const OPTIMIZER_PACKAGE = '@qwik.dev/optimizer';
+const OPTIMIZER_PACKAGE = '@qwik.dev/ts-optimizer';
 const CORE_PACKAGE = '@qwik.dev/core';
 const corePackagePath = join(workspaceRoot, 'packages/qwik/package.json');
 
 const packageCfg: Record<string, { packagePath: string; distPath: string }> = {
-  '@qwik.dev/optimizer': {
-    packagePath: 'packages/optimizer',
-    distPath: 'packages/optimizer/dist',
+  '@qwik.dev/ts-optimizer': {
+    packagePath: 'packages/ts-optimizer',
+    distPath: 'packages/ts-optimizer/dist',
   },
   '@qwik.dev/core': {
     packagePath: 'packages/qwik',

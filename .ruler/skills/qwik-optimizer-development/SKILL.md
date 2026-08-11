@@ -1,11 +1,11 @@
 ---
 name: qwik-optimizer-development
-description: Use when modifying or reviewing the Qwik optimizer under packages/optimizer, Rust transform code, WASM/NAPI bindings, optimizer snapshots, or optimizer-facing runtime behavior.
+description: Use when modifying or reviewing the Qwik optimizer under packages/rust-optimizer, Rust transform code, WASM/NAPI bindings, optimizer snapshots, or optimizer-facing runtime behavior.
 ---
 
 # Qwik Optimizer Development
 
-Use this skill for `packages/optimizer/**` and Rust optimizer work. Keep the repo-wide rules from
+Use this skill for `packages/rust-optimizer/**` and Rust optimizer work. Keep the repo-wide rules from
 `.ruler/AGENTS.md` in force.
 
 ## Fast Path
@@ -22,12 +22,12 @@ Use this skill for `packages/optimizer/**` and Rust optimizer work. Keep the rep
 
 ## Source Map
 
-- Rust optimizer core: `packages/optimizer/core/src/`
-- Rust fixtures: `packages/optimizer/core/src/fixtures/`
-- Rust snapshots: `packages/optimizer/core/src/snapshots/`
-- WASM bindings: `packages/optimizer/wasm/`
-- NAPI bindings: `packages/optimizer/napi/`
-- Optimizer package entry points: `packages/optimizer/src/`
+- Rust optimizer core: `packages/rust-optimizer/core/src/`
+- Rust fixtures: `packages/rust-optimizer/core/src/fixtures/`
+- Rust snapshots: `packages/rust-optimizer/core/src/snapshots/`
+- WASM bindings: `packages/rust-optimizer/wasm/`
+- NAPI bindings: `packages/rust-optimizer/napi/`
+- Optimizer package entry points: `packages/rust-optimizer/src/`
 - Vite/Rollup integration: `packages/qwik-vite/src/`
 
 ## Verification
@@ -42,7 +42,7 @@ pnpm vitest run packages/qwik-vite/src/plugins/plugin.unit.ts
 ```
 
 `pnpm test.rust` maps to `make test`, which runs Cargo tests for
-`packages/optimizer/core/Cargo.toml`. Use `pnpm test.rust.update` only when snapshot updates are
+`packages/rust-optimizer/core/Cargo.toml`. Use `pnpm test.rust.update` only when snapshot updates are
 intentional.
 
 ## Hard Rules
@@ -53,7 +53,7 @@ intentional.
   cases where the transform must not run.
 - Keep optimizer output and runtime JSX/QRL/loader semantics in sync. If a transform changes an
   emitted attribute, import, segment, or capture shape, inspect the runtime consumer too.
-- After touching `packages/optimizer/core/`, do not claim verification without Rust test/build
+- After touching `packages/rust-optimizer/core/`, do not claim verification without Rust test/build
   evidence or a recorded blocker.
 - If this skill becomes stale after source inspection, update it before finishing or record why
   guidance edits were out of scope.

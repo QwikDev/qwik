@@ -126,10 +126,33 @@ interface FlattenableDecl {
   fields: Array<{ localName: string; keyName: string }>;
 }
 
+interface PatternFields {
+  fields: Array<{ localName: string; keyName: string }>;
+}
+
+function extractPatternFields(id: AstNode): PatternFields | null {
+  const props = (id as unknown as { properties?: AstNode[] }).properties ?? [];
+  const fields: Array<{ localName: string; keyName: string }> = [];
+  for (const prop of props) {
+    if (prop.type !== 'Property') return null;
+    if (prop.computed) return null;
+    const key = prop.key;
+    const keyName =
+      key.type === 'Identifier' ? key.name : key.type === 'Literal' ? String(key.value) : null;
+    if (keyName === null) return null;
+    const val = prop.value;
+    if (val.type !== 'Identifier') return null;
+    fields.push({ localName: val.name, keyName });
+  }
+  return fields.length > 0 ? { fields } : null;
+}
+
 /**
- * For each flattenable `const { ... } = use*()` at the top level of a `component$(arrow)` body with
- * a BlockStatement, record a FlattenableDecl, overwrite its pattern, and register the substitution
- * map under the body's span. Other call shapes are ignored.
+ * For each flattenable store-rooted declaration chain at the top level of a `component$(arrow)`
+ * body: the seed `const {…} = use*(…)[.path]` becomes `const <binding> = use*(…)`, and follow-up
+ * aliases (`const y = x`, `const b = y.bye`, `const {c} = b.z`) fold into the root member chain
+ * with their declarations removed — every reference rides the store object so subscriptions track
+ * the full path.
  */
 function collectAndApplyDeclsForComponentCall(
   callNode: CallExpression,
@@ -143,52 +166,125 @@ function collectAndApplyDeclsForComponentCall(
   if (!body || body.type !== 'BlockStatement') return;
   const scopeStart = body.start;
   const scopeEnd = body.end;
+
+  const localSubs = new Map<string, string>();
+  const pushSub = (from: string, to: string): void => {
+    localSubs.set(from, to);
+    const existing = subsByScope.get(scopeStart) ?? [];
+    subsByScope.set(scopeStart, [...existing, { from, to }]);
+  };
+
+  // Resolve an init to `{ callNode, suffix }` when it is a `use*()` call plus
+  // an optional non-computed member path.
+  const resolveSeedInit = (init: AstNode): { call: CallExpression; suffix: string } | null => {
+    let suffix = '';
+    let current: AstNode = init;
+    while (current.type === 'MemberExpression') {
+      const member = current as unknown as {
+        computed?: boolean;
+        property: AstNode & { name?: string };
+        object: AstNode;
+      };
+      if (member.computed || member.property.type !== 'Identifier') return null;
+      suffix = `.${member.property.name}${suffix}`;
+      current = member.object;
+    }
+    if (current.type !== 'CallExpression') return null;
+    const call = current as CallExpression;
+    if (!call.callee || call.callee.type !== 'Identifier') return null;
+    const calleeName = call.callee.name;
+    if (!calleeName.startsWith('use') || calleeName.length <= 3) return null;
+    // Skip marker hooks (`use*$` / `use*Qrl`) — the qrl rewrite re-targets
+    // these, so flattening them here would conflict.
+    if (calleeName.endsWith('$') || calleeName.endsWith('Qrl')) return null;
+    return { call, suffix };
+  };
+
+  // Resolve an init already rooted at a tracked local to a substituted path.
+  const resolveTrackedInit = (init: AstNode): string | null => {
+    let suffix = '';
+    let current: AstNode = init;
+    while (current.type === 'MemberExpression') {
+      const member = current as unknown as {
+        computed?: boolean;
+        property: AstNode & { name?: string };
+        object: AstNode;
+      };
+      if (member.computed || member.property.type !== 'Identifier') return null;
+      suffix = `.${member.property.name}${suffix}`;
+      current = member.object;
+    }
+    if (current.type !== 'Identifier') return null;
+    const root = localSubs.get((current as unknown as { name: string }).name);
+    if (root === undefined) return null;
+    return root + suffix;
+  };
+
+  const removeStmt = (stmt: AstNode): void => {
+    edits().remove(stmt.start, stmt.end);
+    decls.push({
+      idStart: stmt.start,
+      idEnd: stmt.end,
+      scopeStart,
+      scopeEnd,
+      declStart: stmt.start,
+      declEnd: stmt.end,
+      newBinding: '',
+      fields: [],
+    });
+  };
+
   for (const stmt of body.body ?? []) {
     if (stmt.type !== 'VariableDeclaration' || stmt.kind !== 'const') continue;
     if ((stmt.declarations ?? []).length !== 1) continue;
     const declarator = stmt.declarations[0];
     const init = declarator.init;
     const id = declarator.id;
-    if (!init || init.type !== 'CallExpression') continue;
-    if (!init.callee || init.callee.type !== 'Identifier') continue;
-    const calleeName = init.callee.name;
-    if (!calleeName.startsWith('use') || calleeName.length <= 3) continue;
-    // Skip marker hooks (`use*$` / `use*Qrl`) — the qrl rewrite re-targets
-    // these, so flattening them here would conflict.
-    if (calleeName.endsWith('$') || calleeName.endsWith('Qrl')) continue;
-    if (id.type !== 'ObjectPattern') continue;
-    const fields: Array<{ localName: string; keyName: string }> = [];
-    for (const prop of id.properties ?? []) {
-      if (prop.type !== 'Property') continue;
-      if (prop.computed) continue;
-      const key = prop.key;
-      const keyName =
-        key.type === 'Identifier' ? key.name : key.type === 'Literal' ? String(key.value) : null;
-      if (keyName === null) continue;
-      const val = prop.value;
-      if (val.type !== 'Identifier') continue;
-      fields.push({ localName: val.name, keyName });
+    if (!init) continue;
+
+    const seed = id.type === 'ObjectPattern' ? resolveSeedInit(init) : null;
+    if (seed) {
+      const pattern = extractPatternFields(id);
+      if (!pattern) continue;
+      const calleeName = (seed.call.callee as unknown as { name: string }).name;
+      const newBinding = `${calleeName.slice(3, 4).toLowerCase()}${calleeName.slice(4)}`;
+      const decl: FlattenableDecl = {
+        idStart: id.start,
+        idEnd: id.end,
+        scopeStart,
+        scopeEnd,
+        declStart: stmt.start,
+        declEnd: stmt.end,
+        newBinding,
+        fields: pattern.fields,
+      };
+      decls.push(decl);
+      edits().overwrite(decl.idStart, decl.idEnd, newBinding);
+      // Move the member suffix off the declaration into the references.
+      if (seed.suffix !== '') {
+        edits().remove(seed.call.end, init.end);
+      }
+      for (const field of pattern.fields) {
+        pushSub(field.localName, `${newBinding}${seed.suffix}.${field.keyName}`);
+      }
+      continue;
     }
-    if (fields.length === 0) continue;
-    const newBinding = `${calleeName.slice(3, 4).toLowerCase()}${calleeName.slice(4)}`;
-    const decl: FlattenableDecl = {
-      idStart: id.start,
-      idEnd: id.end,
-      scopeStart,
-      scopeEnd,
-      declStart: stmt.start,
-      declEnd: stmt.end,
-      newBinding,
-      fields,
-    };
-    decls.push(decl);
-    edits().overwrite(decl.idStart, decl.idEnd, decl.newBinding);
-    const subs: Substitution[] = decl.fields.map((field) => ({
-      from: field.localName,
-      to: `${decl.newBinding}.${field.keyName}`,
-    }));
-    const existing = subsByScope.get(decl.scopeStart) ?? [];
-    subsByScope.set(decl.scopeStart, [...existing, ...subs]);
+
+    if (localSubs.size === 0) continue;
+    const resolved = resolveTrackedInit(init);
+    if (resolved === null) continue;
+
+    if (id.type === 'Identifier') {
+      pushSub((id as unknown as { name: string }).name, resolved);
+      removeStmt(stmt);
+    } else if (id.type === 'ObjectPattern') {
+      const pattern = extractPatternFields(id);
+      if (!pattern) continue;
+      for (const field of pattern.fields) {
+        pushSub(field.localName, `${resolved}.${field.keyName}`);
+      }
+      removeStmt(stmt);
+    }
   }
 }
 

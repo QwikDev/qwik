@@ -910,11 +910,14 @@ export class SignalHoister {
   hoistedFunctions: Array<{ name: string; fn: string; str: string; sourcePos: number }> = [];
   private dedupMap = new Map<string, string>();
 
+  /** `base` offsets `_hf` numbering past another hoister emitting into the same module scope. */
+  constructor(private base: number = 0) {}
+
   hoist(fn: string, str: string, sourcePos: number = 0): string {
     const existing = this.dedupMap.get(fn);
     if (existing) return existing;
 
-    const name = `_hf${this.counter}`;
+    const name = `_hf${this.base + this.counter}`;
     this.hoistedFunctions.push({ name, fn, str, sourcePos });
     this.dedupMap.set(fn, name);
     this.counter++;
@@ -942,7 +945,7 @@ export class SignalHoister {
 
     let needsRename = false;
     for (let i = 0; i < sorted.length; i++) {
-      if (sorted[i].name !== `_hf${i}`) {
+      if (sorted[i].name !== `_hf${this.base + i}`) {
         needsRename = true;
         break;
       }
@@ -952,7 +955,7 @@ export class SignalHoister {
     const renameMap = new Map<string, string>();
     for (let i = 0; i < sorted.length; i++) {
       const oldName = sorted[i].name;
-      const newName = `_hf${i}`;
+      const newName = `_hf${this.base + i}`;
       if (oldName !== newName) {
         renameMap.set(oldName, newName);
       }
@@ -960,7 +963,7 @@ export class SignalHoister {
 
     this.hoistedFunctions = sorted.map((h, i) => ({
       ...h,
-      name: `_hf${i}`,
+      name: `_hf${this.base + i}`,
     }));
 
     return renameMap;

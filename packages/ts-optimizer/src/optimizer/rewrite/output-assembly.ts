@@ -471,10 +471,13 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
       }
     : undefined;
 
-  const sharedHoister = jsxOptions?.enableJsx ? new SignalHoister() : undefined;
+  // The parent's JSX transform already hoisted `_hf` decls into module scope;
+  // number past them.
+  const parentHoistCount = ctx.jsxResult ? ctx.jsxResult.hoistedDeclarations.length / 2 : 0;
+  const sharedHoister = jsxOptions?.enableJsx ? new SignalHoister(parentHoistCount) : undefined;
   // Separate from `sharedHoister` (which gets reordered) so emitted `_hf<n>`
   // refs stay aligned with their decls.
-  const sharedJsxCallHoister = new SignalHoister();
+  const sharedJsxCallHoister = new SignalHoister(parentHoistCount);
 
   const nestedExts: ExtractionResult[] = [];
   const topNonComponent: ExtractionResult[] = [];

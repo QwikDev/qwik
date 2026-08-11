@@ -63,6 +63,28 @@ export function markMovedCaptures(decl: string, ext: MovedCapturesSource): strin
   return decl.slice(0, -1) + '.m();';
 }
 
+/** Worker QRLs load through a dedicated chunk; the prefix tells the bundler to emit one. */
+export const WORKER_CHUNK_PREFIX = '__QWIK_WORKER_QRL__:';
+
+export function isWorkerExtraction(ext: { readonly ctxName: string }): boolean {
+  return ext.ctxName === 'worker$';
+}
+
+export function buildWorkerQrlDeclaration(
+  varName: string,
+  symbolName: string,
+  canonicalFilename: string,
+  explicitExtensions?: boolean,
+  outputExtension?: string,
+  devMeta?: string
+): string {
+  const ext = explicitExtensions ? (outputExtension ?? '.js') : '';
+  const chunk = `${WORKER_CHUNK_PREFIX}./${canonicalFilename}${ext}`;
+  const helper = devMeta ? '_qrlWithChunkDEV' : '_qrlWithChunk';
+  const devArg = devMeta ? `, ${devMeta}` : '';
+  return `const ${varName} = /*#__PURE__*/ ${helper}("${chunk}", ()=>import("./${canonicalFilename}${ext}"), "${symbolName}"${devArg});`;
+}
+
 export function buildQrlDeclaration(
   symbolName: string,
   canonicalFilename: string,

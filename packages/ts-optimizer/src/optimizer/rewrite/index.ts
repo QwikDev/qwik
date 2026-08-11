@@ -13,7 +13,12 @@ import type { ImportInfo } from '../extraction/marker-detection.js';
 import type { MigrationDecision, ModuleLevelDecl } from '../analysis/variable-migration.js';
 import type { RelativePath } from '../types/brands.js';
 import { rewriteImportSource } from './rewrite-imports.js';
-import { buildSyncTransform, needsPureAnnotation, getQrlCalleeName } from './rewrite-calls.js';
+import {
+  buildSyncTransform,
+  isWorkerExtraction,
+  needsPureAnnotation,
+  getQrlCalleeName,
+} from './rewrite-calls.js';
 import { isLibModePreservedMarker } from '../qwik/qrl-naming.js';
 import { isEventHandlerOrJsxProp, isStrippedExtraction, matchesRegCtxName } from './predicates.js';
 import { transformEventPropName } from '../jsx/event-handlers.js';
@@ -458,11 +463,17 @@ function preConsolidateRawPropsCaptures(ctx: RewriteContext): void {
 }
 
 function preComputeQrlVarNames(ctx: RewriteContext): void {
-  if (!ctx.inlineOptions) return;
-
   let earlyStrippedCounter = 0;
   for (const ext of ctx.extractions) {
     if (ext.isSync) continue;
+    // Worker QRLs always take a sentinel binding — their decl carries the
+    // symbol name inside the `_qrlWithChunk` call instead.
+    if (isWorkerExtraction(ext)) {
+      const counter = 0xffff0000 + earlyStrippedCounter++ * 2;
+      ctx.earlyQrlVarNames.set(ext.symbolName, `q_qrl_${counter}`);
+      continue;
+    }
+    if (!ctx.inlineOptions) continue;
     const stripped = isStrippedExtraction(
       ext,
       ctx.inlineOptions.stripCtxName,

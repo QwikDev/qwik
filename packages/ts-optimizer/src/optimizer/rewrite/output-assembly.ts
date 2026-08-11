@@ -5,10 +5,16 @@ import type { AstNode, AstProgram } from '../../ast-types.js';
 import type { ExtractionResult } from '../extraction/extract.js';
 import type { ImportInfo } from '../extraction/marker-detection.js';
 import type { ModuleLevelDecl } from '../analysis/variable-migration.js';
-import { buildQrlDeclaration, getQrlImportSource, markMovedCaptures } from './rewrite-calls.js';
+import {
+  buildQrlDeclaration,
+  buildWorkerQrlDeclaration,
+  getQrlImportSource,
+  isWorkerExtraction,
+  markMovedCaptures,
+} from './rewrite-calls.js';
 import { isLibModePreservedMarker } from '../qwik/qrl-naming.js';
 import { escapeSymbol } from '../../hashing/naming.js';
-import { buildQrlDevDeclaration, buildDevFilePath } from '../segment/dev-mode.js';
+import { buildQrlDevDeclaration, buildDevFilePath, formatDevMeta } from '../segment/dev-mode.js';
 import {
   buildNoopQrlDeclaration,
   buildNoopQrlDevDeclaration,
@@ -17,6 +23,7 @@ import {
   buildSCall,
   buildHoistConstDecl,
   buildHoistSCall,
+  getSentinelCounter,
 } from '../segment/inline-strategy.js';
 import { rewriteFunctionSignature } from '../segment/segment-codegen.js';
 import { collapseToLibInlinedQrl } from './lib-mode-collapse.js';
@@ -100,7 +107,13 @@ export function collectNeededImports(ctx: RewriteContext): void {
       }
     }
   } else {
-    if (hasTopLevelNonSync) {
+    const hasWorker = topLevel.some((e) => !e.isSync && isWorkerExtraction(e));
+    const hasNonWorkerNonSync = topLevel.some((e) => !e.isSync && !isWorkerExtraction(e));
+    if (hasWorker) {
+      const chunkSymbol = isDevMode ? '_qrlWithChunkDEV' : '_qrlWithChunk';
+      if (!alreadyImported.has(chunkSymbol)) neededImports.set(chunkSymbol, '@qwik.dev/core');
+    }
+    if (hasNonWorkerNonSync) {
       const qrlSymbol = isDevMode ? 'qrlDEV' : 'qrl';
       if (!alreadyImported.has(qrlSymbol)) neededImports.set(qrlSymbol, '@qwik.dev/core');
       const hasInlinedQrlLocal = topLevel.some(
@@ -310,6 +323,32 @@ export function buildQrlDeclarations(ctx: RewriteContext): void {
   } else {
     const devExt = explicitExtensions ? (outputExtension ?? '.js') : undefined;
     for (const ext of topLevelNonSync) {
+      if (isWorkerExtraction(ext)) {
+        const varName =
+          ctx.earlyQrlVarNames.get(ext.symbolName) ??
+          `q_qrl_${getSentinelCounter(strippedCounter++)}`;
+        const devMeta =
+          isDevMode && devFilePath
+            ? formatDevMeta({
+                file: devFilePath,
+                lo: ext.loc[0],
+                hi: ext.loc[1],
+                displayName: ext.displayName,
+              })
+            : undefined;
+        ctx.qrlDecls.push(
+          buildWorkerQrlDeclaration(
+            varName,
+            ext.symbolName,
+            ext.canonicalFilename,
+            explicitExtensions,
+            outputExtension,
+            devMeta
+          )
+        );
+        ctx.qrlVarNames.set(ext.symbolName, varName);
+        continue;
+      }
       if (movedMarkerSymbols.has(ext.symbolName) && !(isDevMode && devFilePath)) {
         const fileExt = explicitExtensions ? (outputExtension ?? '.js') : '';
         ctx.qrlDecls.push(

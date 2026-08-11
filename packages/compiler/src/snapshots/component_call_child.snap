@@ -10,6 +10,7 @@ export function App(props: { value: string }) {
 
 ============================= src/component.tsx ==
 
+import { renderItem } from './render-item';
 import {
   createSsrElementRecord,
   renderSsrContent,

@@ -1689,6 +1689,20 @@ function findUnusedMainImportBindings(
       used.add(binding.id);
     }
   }
+  if (target === 'ssr') {
+    // the server emits every segment implementation in-module; whatever a segment references
+    // must keep its import even when the source reference sat inside a replaced range
+    for (const segment of segments) {
+      if (segment.stripped === true) {
+        continue;
+      }
+      for (const reference of getTargetModuleReferences(segment)) {
+        if (reference.bindingId !== null) {
+          used.add(reference.bindingId);
+        }
+      }
+    }
+  }
   for (const binding of analysis.bindings) {
     if (
       binding.import?.source === QWIK_IMPORT &&

@@ -33,7 +33,7 @@
     "zod": "^3.25.48"
   },
   "devDependencies": {
-    "@microsoft/api-extractor": "7.57.6",
+    "@microsoft/api-extractor": "7.58.12",
     "@qwik.dev/core": "workspace:*",
     "@types/mdast": "4.0.4",
     "@types/node": "24.10.0",

@@ -543,8 +543,7 @@ export function getRouteLoaderState(requestEv: RequestEventBase): RouteLoaderSta
 /** Get/create the record of pre-loaded loader values (used by middleware before component). */
 export function getRouteLoaderValues(requestEv: RequestEventBase): Record<string, unknown> {
   let values = requestEv.sharedMap.get(REQUEST_ROUTE_LOADER_VALUES) as
-    | Record<string, unknown>
-    | undefined;
+    Record<string, unknown> | undefined;
   if (!values) {
     values = {};
     requestEv.sharedMap.set(REQUEST_ROUTE_LOADER_VALUES, values);
@@ -554,8 +553,7 @@ export function getRouteLoaderValues(requestEv: RequestEventBase): Record<string
 
 function getRouteLoaderPromises(requestEv: RequestEventBase): Record<string, Promise<unknown>> {
   let promises = requestEv.sharedMap.get(REQUEST_ROUTE_LOADER_PROMISES) as
-    | Record<string, Promise<unknown>>
-    | undefined;
+    Record<string, Promise<unknown>> | undefined;
   if (!promises) {
     promises = {};
     requestEv.sharedMap.set(REQUEST_ROUTE_LOADER_PROMISES, promises);

@@ -124,7 +124,6 @@ const viteDataProvider: DataProvider = {
 export async function loadDevtoolsData(state: DevtoolsState) {
   const provider =
     (getQwikDevtoolsGlobal(window)?.[QWIK_DEVTOOLS_GLOBAL.props.dataProvider] as
-      | DataProvider
-      | undefined) ?? viteDataProvider;
+      DataProvider | undefined) ?? viteDataProvider;
   await provider.loadData(state);
 }

@@ -574,8 +574,7 @@ function descend(
     diffContext.$vSiblings$ = null;
     diffContext.$vSiblingsArray$ = null;
     diffContext.$vParent$ = (diffContext.$vNewNode$ || diffContext.$vCurrent$!) as
-      | ElementVNode
-      | VirtualVNode;
+      ElementVNode | VirtualVNode;
     diffContext.$vCurrent$ = vnode_getFirstChild(diffContext.$vParent$!);
     diffContext.$vNewNode$ = null;
   }

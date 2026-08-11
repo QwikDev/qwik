@@ -190,9 +190,9 @@ function addUseOnEvents(
               // in a `<Slot/>`) would otherwise place the placeholder `<script>` as a direct child of
               // `<html>`, which is invalid. On the server let the container defer it into `<head>`.
               const isSsr = qTest ? isServerPlatform() : isServer;
-              if (
-                !(isSsr && (container as SSRContainer).$deferRootPlaceholder$(placeholderElement))
-              ) {
+              if (!(
+                isSsr && (container as SSRContainer).$deferRootPlaceholder$(placeholderElement)
+              )) {
                 jsxResult = injectPlaceholderElement(jsxResult, placeholderElement);
               }
             }
@@ -261,9 +261,7 @@ function addUseOnEvent(jsxElement: JSXNodeInternal, key: string, value: UseOnEve
   // These handlers are always there, so they go in constProps
   const props = (jsxElement.constProps ||= {} as Props);
   const propValue = props[key] as
-    | EventQRL<KnownEventNames>[]
-    | EventQRL<KnownEventNames>
-    | undefined;
+    EventQRL<KnownEventNames>[] | EventQRL<KnownEventNames> | undefined;
   const qrls = value.qrls;
   if (propValue == null) {
     props[key] = qrls;

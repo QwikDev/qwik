@@ -331,8 +331,7 @@ export function createRequestEvent(
       if (writableStream === null) {
         if (isDev) {
           const serverTiming = sharedMap.get(RequestEvShareServerTiming) as
-            | [string, number][]
-            | undefined;
+            [string, number][] | undefined;
           if (serverTiming) {
             headers.set(
               'Server-Timing',

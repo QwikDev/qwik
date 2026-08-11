@@ -194,8 +194,7 @@ Note: valid cacheKeys are non-empty strings.
 
 ```typescript
 export type CacheKeyFn =
-  | true
-  | ((requestEv: RequestEvent, eTag: string) => string | null);
+  true | ((requestEv: RequestEvent, eTag: string) => string | null);
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
@@ -360,8 +359,7 @@ When set (and a value is produced), the server includes an `ETag` header and ret
 
 ```typescript
 export type ContentModuleETag =
-  | string
-  | ((props: DocumentHeadProps) => string | null);
+  string | ((props: DocumentHeadProps) => string | null);
 ```
 
 **References:** [DocumentHeadProps](#documentheadprops)
@@ -459,8 +457,7 @@ export type DataValidator<T extends Record<string, any> = {}> = {
 
 ```typescript
 export type DocumentHead =
-  | DocumentHeadValue
-  | ((props: DocumentHeadProps) => DocumentHeadValue);
+  DocumentHeadValue | ((props: DocumentHeadProps) => DocumentHeadValue);
 ```
 
 **References:** [DocumentHeadValue](#documentheadvalue), [DocumentHeadProps](#documentheadprops)
@@ -2162,8 +2159,7 @@ When a module exports `routeConfig`, the separate `head`, `eTag`, and `cacheKey`
 
 ```typescript
 export type RouteConfig =
-  | RouteConfigValue
-  | ((props: DocumentHeadProps) => RouteConfigValue);
+  RouteConfigValue | ((props: DocumentHeadProps) => RouteConfigValue);
 ```
 
 **References:** [RouteConfigValue](#routeconfigvalue), [DocumentHeadProps](#documentheadprops)
@@ -2674,7 +2670,7 @@ export type ServerData = {
 };
 ```
 
-**References:** [Q_ROUTE](#q_route), [QwikRouterEnvData](#qwikrouterenvdata)
+**References:** [Q\_ROUTE](#q_route), [QwikRouterEnvData](#qwikrouterenvdata)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
@@ -3086,9 +3082,8 @@ export type ValidatorErrorKeyDotNotation<T, Prefix extends string = ""> =
               ? IsAny<U> extends true
                 ? never
                 : U extends object
-                  ?
-                      | `${Prefix}${K}[]`
-                      | ValidatorErrorKeyDotNotation<U, `${Prefix}${K}[].`>
+                  ? | `${Prefix}${K}[]`
+                    | ValidatorErrorKeyDotNotation<U, `${Prefix}${K}[].`>
                   : `${Prefix}${K}[]`
               : T[K] extends object
                 ? ValidatorErrorKeyDotNotation<T[K], `${Prefix}${K}.`>
@@ -3107,9 +3102,9 @@ export type ValidatorErrorKeyDotNotation<T, Prefix extends string = ""> =
 export type ValidatorErrorType<T, U = string> = {
   formErrors: U[];
   fieldErrors: Partial<{
-    [K in ValidatorErrorKeyDotNotation<T>]: K extends `${infer _Prefix}[]${infer _Suffix}`
-      ? U[]
-      : U;
+    [
+      K in ValidatorErrorKeyDotNotation<T>
+    ]: K extends `${infer _Prefix}[]${infer _Suffix}` ? U[] : U;
   }>;
 };
 ```
@@ -3122,8 +3117,7 @@ export type ValidatorErrorType<T, U = string> = {
 
 ```typescript
 export type ValidatorReturn<T extends Record<string, any> = {}> =
-  | ValidatorReturnSuccess
-  | ValidatorReturnFail<T>;
+  ValidatorReturnSuccess | ValidatorReturnFail<T>;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)

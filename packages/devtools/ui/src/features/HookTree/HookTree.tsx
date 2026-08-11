@@ -403,8 +403,7 @@ export const HookTree = component$(() => {
     }
 
     const qrlChunk = (node.props as Record<string, unknown> | undefined)?.__qrlChunk as
-      | string
-      | undefined;
+      string | undefined;
     selectedNode.value = { name, nodeId: node.id, qrlChunk };
 
     // Read hooks from global state AND VNode props

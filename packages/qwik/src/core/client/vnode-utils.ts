@@ -743,9 +743,7 @@ export const vnode_ensureTextInflated = (journal: VNodeJournal, vnode: TextVNode
     const insertBeforeNode: Element | Text | null =
       sharedTextNode ||
       (((node && vnode_isElementVNode(node) ? node.node : node?.node) || null) as
-        | Element
-        | Text
-        | null);
+        Element | Text | null);
 
     let lastPreviousTextNode = insertBeforeNode;
     while (vCursor && vnode_isTextVNode(vCursor)) {
@@ -856,13 +854,13 @@ export const vnode_locate = (rootVNode: ElementVNode, id: string | Element): VNo
     let childIdx = 0;
     while (idx < idLength) {
       const ch = localId.charCodeAt(idx);
-      childIdx *= 26 /* a-z */;
+      childIdx *= 26; /* a-z */
       if (ch >= 97 /* a */) {
         // is lowercase
-        childIdx += ch - 97 /* a */;
+        childIdx += ch - 97; /* a */
       } else {
         // is uppercase
-        childIdx += ch - 65 /* A */;
+        childIdx += ch - 65; /* A */
         vNode = vnode_getChildWithIdx(vNode, childIdx);
         childIdx = 0;
       }
@@ -2267,11 +2265,11 @@ function materializeFromVNodeData(
 export const vnode_getType = (vnode: VNode): 1 | 3 | 11 => {
   const type = vnode.flags;
   if (type & VNodeFlags.Element) {
-    return 1 /* Element */;
+    return 1; /* Element */
   } else if (type & VNodeFlags.Virtual) {
-    return 11 /* Virtual */;
+    return 11; /* Virtual */
   } else if (type & VNodeFlags.Text) {
-    return 3 /* Text */;
+    return 3; /* Text */
   }
   throw qError(QError.invalidVNodeType, [type]);
 };

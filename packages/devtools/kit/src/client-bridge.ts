@@ -86,8 +86,7 @@ function getPageWindow(isBrowser: boolean): Window | null {
 
 function getHook(pageWindow: Window | null): QwikDevtoolsHookExtended | undefined {
   return getQwikDevtoolsGlobal(pageWindow)?.[QWIK_DEVTOOLS_GLOBAL.props.hook] as
-    | QwikDevtoolsHookExtended
-    | undefined;
+    QwikDevtoolsHookExtended | undefined;
 }
 
 export function createInPageBridge(options: InPageBridgeOptions): InPageBridge {

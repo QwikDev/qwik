@@ -78,12 +78,7 @@ export interface SendMethod {
 }
 
 export type StatusCodes =
-  | InformationalCode
-  | SuccessCode
-  | ClientErrorCode
-  | ServerErrorCode
-  | RedirectCode
-  | number;
+  InformationalCode | SuccessCode | ClientErrorCode | ServerErrorCode | RedirectCode | number;
 
 export type ErrorCodes = ClientErrorCode | ServerErrorCode;
 
@@ -604,12 +599,4 @@ export interface CookieValue {
 
 /** @public */
 export type HttpMethod =
-  | 'GET'
-  | 'POST'
-  | 'PUT'
-  | 'DELETE'
-  | 'PATCH'
-  | 'HEAD'
-  | 'OPTIONS'
-  | 'CONNECT'
-  | 'TRACE';
+  'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS' | 'CONNECT' | 'TRACE';

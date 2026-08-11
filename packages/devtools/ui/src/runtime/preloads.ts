@@ -184,8 +184,7 @@ const syncLoadDuration = (entry: QwikPreloadEntryRemembered, loadDuration?: numb
 const createStore = (): MutablePreloadStore => {
   const devtoolsGlobal = getOrCreateQwikDevtoolsGlobal(window);
   const existing = devtoolsGlobal[QWIK_DEVTOOLS_GLOBAL.props.preloads] as
-    | MutablePreloadStore
-    | undefined;
+    MutablePreloadStore | undefined;
   if (existing) {
     return existing;
   }

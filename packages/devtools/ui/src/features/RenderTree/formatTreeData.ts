@@ -162,8 +162,7 @@ export class HookStore {
 
   findScopeVariables(item: HookDataEntry): string {
     const targets = (item.data as Record<string, unknown>)?.[QWIK_VNODE_PROTOCOL.qrl.captureRef] as
-      | unknown[]
-      | undefined;
+      unknown[] | undefined;
 
     if (!targets) {
       return 'Scope []';

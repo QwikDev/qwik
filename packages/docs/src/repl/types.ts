@@ -131,11 +131,6 @@ export interface SSRErrorMessage {
 }
 
 export type OutputPanel =
-  | 'app'
-  | 'html'
-  | 'segments'
-  | 'clientBundles'
-  | 'serverModules'
-  | 'diagnostics';
+  'app' | 'html' | 'segments' | 'clientBundles' | 'serverModules' | 'diagnostics';
 
 export type OutputDetail = 'options' | 'console';

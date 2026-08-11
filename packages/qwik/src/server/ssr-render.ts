@@ -110,8 +110,7 @@ export function resolveManifest(
 ): ResolvedManifest | undefined {
   const builtManifest = getClientManifest();
   const mergedManifest = (manifest ? { ...builtManifest, ...manifest } : builtManifest) as
-    | ResolvedManifest
-    | QwikManifest;
+    ResolvedManifest | QwikManifest;
 
   if (!mergedManifest || 'mapper' in mergedManifest) {
     return mergedManifest;

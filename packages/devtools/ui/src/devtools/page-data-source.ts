@@ -97,8 +97,7 @@ const defaultSource = new InPageDataSource();
 export function getPageDataSource(): PageDataSource {
   const source = isBrowser
     ? (getQwikDevtoolsGlobal(window)?.[QWIK_DEVTOOLS_GLOBAL.props.pageDataSource] as
-        | PageDataSource
-        | undefined)
+        PageDataSource | undefined)
     : undefined;
   if (source) {
     return source;

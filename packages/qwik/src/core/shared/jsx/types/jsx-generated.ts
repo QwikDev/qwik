@@ -85,15 +85,7 @@ export interface AriaAttributes {
    * elements.
    */
   'aria-current'?:
-    | boolean
-    | 'false'
-    | 'true'
-    | 'page'
-    | 'step'
-    | 'location'
-    | 'date'
-    | 'time'
-    | undefined;
+    boolean | 'false' | 'true' | 'page' | 'step' | 'location' | 'date' | 'time' | undefined;
   /**
    * Identifies the element (or elements) that describes the object.
    *
@@ -147,15 +139,7 @@ export interface AriaAttributes {
    * can be triggered by an element.
    */
   'aria-haspopup'?:
-    | boolean
-    | 'false'
-    | 'true'
-    | 'menu'
-    | 'listbox'
-    | 'tree'
-    | 'grid'
-    | 'dialog'
-    | undefined;
+    boolean | 'false' | 'true' | 'menu' | 'listbox' | 'tree' | 'grid' | 'dialog' | undefined;
   /**
    * Indicates whether the element is exposed to an accessibility API.
    *
@@ -432,15 +416,7 @@ interface HTMLAttributesBase extends AriaAttributes {
    * @see https://html.spec.whatwg.org/multipage/interaction.html#input-modalities:-the-inputmode-attribute
    */
   inputMode?:
-    | 'none'
-    | 'text'
-    | 'tel'
-    | 'url'
-    | 'email'
-    | 'numeric'
-    | 'decimal'
-    | 'search'
-    | undefined;
+    'none' | 'text' | 'tel' | 'url' | 'email' | 'numeric' | 'decimal' | 'search' | undefined;
   /**
    * Specify that a standard HTML element should behave like a defined custom built-in element
    *
@@ -480,24 +456,26 @@ type Filtered<T, A = {}> = {
   [K in keyof Omit<FilterBase<T>, keyof HTMLAttributes<any> | keyof A>]?: T[K];
 };
 type FilterBase<T> = {
-  [K in keyof T as K extends string
-    ? // No uppercase keys
-      K extends Uppercase<K>
-      ? never
-      : // No `any` values
-        any extends T[K]
+  [
+    K in keyof T as K extends string
+      ? // No uppercase keys
+        K extends Uppercase<K>
         ? never
-        : // Only allow basic types
-          false extends IsAcceptableDOMValue<T[K]>
+        : // No `any` values
+          any extends T[K]
           ? never
-          : // No readonly values
-            IsReadOnlyKey<T, K> extends true
+          : // Only allow basic types
+            false extends IsAcceptableDOMValue<T[K]>
             ? never
-            : K extends UnwantedKeys
+            : // No readonly values
+              IsReadOnlyKey<T, K> extends true
               ? never
-              : // Ok this key is allowed
-                K
-    : never]?: T[K];
+              : K extends UnwantedKeys
+                ? never
+                : // Ok this key is allowed
+                  K
+      : never
+  ]?: T[K];
 };
 /**
  * Replace given element's props with custom types and return all props specific to the element. Use
@@ -586,9 +564,7 @@ type SpecialAttrs = {
      * 'range' | 'reset' | 'submit' | 'checkbox' | 'radio'
      */
     autoComplete?:
-      | HTMLInputAutocompleteAttribute
-      | Omit<HTMLInputAutocompleteAttribute, string>
-      | undefined;
+      HTMLInputAutocompleteAttribute | Omit<HTMLInputAutocompleteAttribute, string> | undefined;
     /** For type: 'checkbox' | 'radio' */
     'bind:checked'?: Signal<boolean | undefined>;
     /**

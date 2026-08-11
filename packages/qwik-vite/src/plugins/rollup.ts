@@ -371,8 +371,7 @@ export interface QwikRollupPluginOptions {
    * before bundling.
    */
   transformedModuleOutput?:
-    | ((transformedModules: TransformModule[]) => Promise<void> | void)
-    | null;
+    ((transformedModules: TransformModule[]) => Promise<void> | void) | null;
   /**
    * Run eslint on the source files for the ssr build or dev server. This can slow down startup on
    * large projects. Defaults to `true`

@@ -54,11 +54,7 @@ export type QwikPreloadOriginKind =
   | 'unknown';
 export type QwikPreloadPhase = 'csr' | 'ssr' | 'unknown';
 export type QwikPreloadMatchMode =
-  | 'href'
-  | 'normalized-href'
-  | 'chunk-hash'
-  | 'resource-name'
-  | 'none';
+  'href' | 'normalized-href' | 'chunk-hash' | 'resource-name' | 'none';
 export type QwikPreloadLoadMatchQuality = 'best-effort' | 'none';
 
 export interface QwikPreloadQrlRequestRemembered {

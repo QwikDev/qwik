@@ -1182,7 +1182,7 @@ function generateSegments(
     // A whole-body identifier (`$(render)`) inlines its const init so the
     // segment doesn't emit a dangling reference.
     for (const ext of updatedExtractions) {
-      if (ext.isSync || ext.isInlinedQrl) continue;
+      if (ext.isSync) continue;
       const bare = ext.bodyText.trim();
       if (!isSimpleIdentifierName(bare)) continue;
       const scopeNode = ext.parent ? closureNodes.get(ext.parent) : (program as unknown as AstNode);

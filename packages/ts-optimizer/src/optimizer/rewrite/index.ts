@@ -219,6 +219,7 @@ export function rewriteParentModule(
   preComputeQrlVarNames(ctx);
   rewriteCallSites(ctx);
   rewriteNoArgMarkers(ctx);
+  renameUnextractedEventAttrs(ctx);
   removeUnusedBindings(ctx);
   removeDuplicateExports(ctx);
   addCaptureWrapping(ctx);
@@ -863,6 +864,43 @@ function buildStrippedEventQpOverrides(ctx: RewriteContext): Map<number, string[
   walk(ctx.program as unknown as AstNode);
 
   return overrides.size > 0 ? overrides : undefined;
+}
+
+/**
+ * Raw-JSX parents (no transpile) still rename event attrs whose values were NOT extracted (e.g.
+ * `onColor$={color}` with an identifier value) to their runtime form (`q-e:color`).
+ */
+function renameUnextractedEventAttrs(ctx: RewriteContext): void {
+  if (ctx.jsxOptions?.enableJsx) return;
+
+  const extractedAttrNameRanges = new Set<number>();
+  for (const ext of ctx.extractions) {
+    extractedAttrNameRanges.add(ext.calleeStart);
+  }
+
+  function walk(node: AstNode | null | undefined): void {
+    if (!node || typeof node !== 'object') return;
+    if (node.type === 'JSXElement') {
+      const opening = node.openingElement;
+      const tagName = opening?.name;
+      const isNative =
+        tagName?.type === 'JSXIdentifier' && /^[a-z]/.test((tagName as { name: string }).name);
+      if (isNative) {
+        for (const attr of opening?.attributes ?? []) {
+          if (attr.type !== 'JSXAttribute' || !attr.value) continue;
+          if (extractedAttrNameRanges.has(attr.name.start)) continue;
+          const attrName = getJsxAttributeName(attr);
+          const transformed = transformEventPropName(attrName, new Set());
+          if (transformed !== null && transformed !== attrName) {
+            ctx.s.overwrite(attr.name.start, attr.name.end, transformed);
+          }
+        }
+      }
+    }
+    forEachAstChild(node as AstNode, (child) => walk(child as AstNode));
+  }
+
+  walk(ctx.program as unknown as AstNode);
 }
 
 /**

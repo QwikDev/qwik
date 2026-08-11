@@ -726,6 +726,7 @@ function analyzeModuleCaptures(
     repairedCode,
     isInlineStrategy: isInlineOnlyStrategy,
     liftParentLevelHandlers: shouldTranspileJsx,
+    moduleTopLevelNames: new Set(collectModuleLevelDecls(program, repairedCode).map((d) => d.name)),
   };
 
   promoteEventHandlerCaptures(eventCaptureCtx, globalDeclPositions);

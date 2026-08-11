@@ -136,6 +136,8 @@ export interface EventCaptureContext {
    * their captures stay on the `.w()` path instead of lifting.
    */
   liftParentLevelHandlers: boolean;
+  /** All module-top-level binding names — captures of these resolve by import, never lifting. */
+  moduleTopLevelNames?: ReadonlySet<string>;
 }
 
 /** Keyed by `${loopBodyStart}-${loopBodyEnd}` — a LoopContext's positional fingerprint. */
@@ -340,15 +342,36 @@ function applyEmptyCaptureLoopPadding(
 function collectVisibleScopeBindings(
   extraction: ExtractionResult,
   ctx: EventCaptureContext
-): { allScopeIds: Set<string>; declPositions: Map<string, number> } {
+): {
+  allScopeIds: Set<string>;
+  declPositions: Map<string, number>;
+  enclosingCaptureOnly: Set<string>;
+} {
   const { bodyScopeIds, moduleScopeIds, enclosingExtMap, allScopeEntries, repairedCode } = ctx;
 
   const allScopeIds = new Set<string>();
+  const enclosingCaptureOnly = new Set<string>();
   const enclosingExt = enclosingExtMap.get(extraction.symbolName) ?? null;
   if (enclosingExt) {
     const parentIds = bodyScopeIds.get(enclosingExt.symbolName);
     if (parentIds) {
       for (const id of parentIds) allScopeIds.add(id);
+    }
+    // The enclosing segment's own captures unpack as `_captures[N]` consts in
+    // its emitted body — per-invocation values a nested handler must receive
+    // positionally (q:p/q:ps), not via lexical `.w()` capture. Module-scope
+    // names resolve by import instead and stay out.
+    if (enclosingExt.isBare || enclosingExt.isInlinedQrl) {
+      for (const name of enclosingExt.captureNames) {
+        if (
+          !allScopeIds.has(name) &&
+          !moduleScopeIds.has(name) &&
+          !ctx.moduleTopLevelNames?.has(name)
+        ) {
+          allScopeIds.add(name);
+          enclosingCaptureOnly.add(name);
+        }
+      }
     }
   } else {
     for (const id of moduleScopeIds) allScopeIds.add(id);
@@ -370,7 +393,7 @@ function collectVisibleScopeBindings(
       }
     }
   }
-  return { allScopeIds, declPositions };
+  return { allScopeIds, declPositions, enclosingCaptureOnly };
 }
 
 /**
@@ -483,7 +506,10 @@ export function promoteEventHandlerCaptures(
       continue;
     }
 
-    const { allScopeIds, declPositions } = collectVisibleScopeBindings(extraction, ctx);
+    const { allScopeIds, declPositions, enclosingCaptureOnly } = collectVisibleScopeBindings(
+      extraction,
+      ctx
+    );
     for (const [name, pos] of declPositions) {
       if (!globalDeclPositions.has(name)) globalDeclPositions.set(name, pos);
     }
@@ -498,6 +524,10 @@ export function promoteEventHandlerCaptures(
       applyEmptyCaptureLoopPadding(extraction, extractionLoopMap);
       continue;
     }
+
+    // A capture visible only through the enclosing segment's own captures
+    // unpacks per invocation — the entry classifies var (`is_const` false).
+    extraction.liftedNonConst = uniqueCaptures.some((name) => enclosingCaptureOnly.has(name));
 
     const enclosingLoops = extractionLoopMap.get(extraction.symbolName);
     if (!enclosingLoops || enclosingLoops.length === 0) {

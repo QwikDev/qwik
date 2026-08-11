@@ -117,6 +117,8 @@ export interface NestedCallSiteInfo {
   hoistedCaptureNames?: string[];
   loopLocalParamNames?: string[];
   elementQpParams?: string[];
+  /** The child's lifted captures include a non-const binding — its entry is var. */
+  liftedNonConst?: boolean;
   qrlCallee?: string;
   captureNames?: string[];
   explicitCaptureItems?: string[];
@@ -380,6 +382,7 @@ function transformSegmentJsx(
     if (!session) return { bodyText };
 
     const qrlsWithCaptures = buildQrlsWithCapturesSet(nestedCallSites);
+    const qrlsNonConst = buildQrlsNonConstSet(nestedCallSites);
     const qpOverrides = buildQpOverrides(nestedCallSites, session.program);
 
     const segScopeBindings = collectScopeAwareBindings(session.program);
@@ -419,6 +422,7 @@ function transformSegmentJsx(
         keyCounterStart: jsxOptions.keyCounterStart,
         qpOverrides,
         qrlsWithCaptures,
+        qrlsNonConst,
         paramNames: jsxOptions.paramNames,
         relPath: jsxOptions.relPath,
         precomputedScopeBindings: segScopeBindings,
@@ -447,6 +451,17 @@ function transformSegmentJsx(
   } catch {
     return { bodyText };
   }
+}
+
+function buildQrlsNonConstSet(
+  nestedCallSites: NestedCallSiteInfo[] | undefined
+): Set<string> | undefined {
+  if (!nestedCallSites) return undefined;
+  const result = new Set<string>();
+  for (const site of nestedCallSites) {
+    if (site.liftedNonConst) result.add(site.qrlVarName);
+  }
+  return result.size > 0 ? result : undefined;
 }
 
 function buildQrlsWithCapturesSet(

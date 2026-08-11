@@ -67,6 +67,8 @@ export interface JsxTransformContext {
   allDeclaredNames?: Set<string>;
   paramNames?: Set<string>;
   qrlsWithCaptures?: Set<string>;
+  /** QRL vars whose lifted captures vary per invocation — their entries classify var. */
+  qrlsNonConst?: Set<string>;
   /**
    * Exact-range log of every `writeJsxCall` overwrite, keyed by range start; lets readers recover a
    * rewritten subtree's text without the chunk-list walk `MagicString.slice` pays on a heavily
@@ -816,6 +818,7 @@ export interface TransformAllJsxOptions {
   enableSignals?: boolean;
   qpOverrides?: Map<number, string[]>;
   qrlsWithCaptures?: Set<string>;
+  qrlsNonConst?: Set<string>;
   paramNames?: Set<string>;
   relPath?: string;
   sharedSignalHoister?: SignalHoister;
@@ -835,6 +838,7 @@ export function transformAllJsx(
     enableSignals = true,
     qpOverrides,
     qrlsWithCaptures,
+    qrlsNonConst,
     paramNames,
     relPath,
     sharedSignalHoister,
@@ -859,6 +863,7 @@ export function transformAllJsx(
     allDeclaredNames,
     paramNames,
     qrlsWithCaptures,
+    qrlsNonConst,
     jsxWriteMemo,
   };
 

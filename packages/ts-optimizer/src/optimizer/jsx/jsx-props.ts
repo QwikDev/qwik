@@ -132,6 +132,7 @@ export function processProps(
     importedNames,
     signalHoister,
     qrlsWithCaptures,
+    qrlsNonConst,
     paramNames,
     bindings,
     allDeclaredNames,
@@ -146,6 +147,7 @@ export function processProps(
   let hasSpread = false;
   let hasVarEventHandler = false;
   const bindHandlers = new Map<string, string>();
+  const varBindHandlers = new Set<string>();
 
   if (!attributes || attributes.length === 0) {
     return {
@@ -352,7 +354,14 @@ export function processProps(
         // source-order emission sees the rewritten handler in lexical order; the
         // `bindHandlers` map still drives the legacy bucket injection.
         const existing = bindHandlers.get(propName);
-        const isConst = isConstValueNode(valueNode);
+        // A handler whose lifted captures include per-invocation values
+        // re-renders with fresh values: entry is var, static_listeners clears.
+        const capturesVary = qrlsNonConst?.has(valueText.trim()) === true;
+        const isConst = isConstValueNode(valueNode) && !capturesVary;
+        if (capturesVary) {
+          hasVarEventHandler = true;
+          varBindHandlers.add(propName);
+        }
         if (existing) {
           bindHandlers.set(propName, `[${existing}, ${valueText}]`);
         } else {
@@ -471,7 +480,8 @@ export function processProps(
       constEntries[existingIdx] =
         `${quotedEventName}: ${mergeEventHandlers(existingValue, handlerCode)}`;
     } else {
-      eventTarget.push(`${quotedEventName}: ${handlerCode}`);
+      const target = varBindHandlers.has(eventName) ? varEntries : eventTarget;
+      target.push(`${quotedEventName}: ${handlerCode}`);
     }
   }
 

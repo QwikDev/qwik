@@ -1102,6 +1102,7 @@ export function buildNestedCallSites(
           !hasLoopCrossCaptures && child.captureNames.length > 0 ? child.captureNames : undefined,
         loopLocalParamNames: loopLocalParams.length > 0 ? loopLocalParams : undefined,
         elementQpParams: qp(child.symbolName),
+        liftedNonConst: child.liftedNonConst === true || undefined,
       });
     } else {
       // An event handler extracted from a pre-transformed `_jsxDEV(...)` props
@@ -1136,6 +1137,7 @@ export function buildNestedCallSites(
             : undefined,
         importSource: child.importSource || undefined,
         elementQpParams: qpParams,
+        liftedNonConst: child.liftedNonConst === true || undefined,
       });
     }
   }

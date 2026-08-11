@@ -60,6 +60,14 @@ export function applyReplacements(
   return out;
 }
 
+const TS_EXPRESSION_WRAPPERS = new Set([
+  'TSAsExpression',
+  'TSSatisfiesExpression',
+  'TSNonNullExpression',
+  'TSInstantiationExpression',
+  'TSTypeAssertion',
+]);
+
 export function collectRangeReplacements(
   root: AstMaybeNode,
   exprStart: number,
@@ -75,6 +83,16 @@ export function collectRangeReplacements(
     parentNode: AstParentNode | undefined
   ): void {
     if (!node || typeof node !== 'object') return;
+    // Type-annotation subtrees are never rewrite targets; expression wrappers
+    // (`x as T`, `x!`) still carry real expressions and must be walked.
+    const nodeType = (node as { type?: unknown }).type;
+    if (
+      typeof nodeType === 'string' &&
+      nodeType.startsWith('TS') &&
+      !TS_EXPRESSION_WRAPPERS.has(nodeType)
+    ) {
+      return;
+    }
     const ctx: CollectorContext = { parentKey, parentNode, exprStart, exprText };
 
     let skipSubtree = false;

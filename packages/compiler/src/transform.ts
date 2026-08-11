@@ -1673,7 +1673,10 @@ function findUnusedMainImportBindings(
   for (const reference of analysis.references) {
     if (
       reference.bindingId !== null &&
-      !replacedRanges.some((range) => containsRange(range, reference.range))
+      (!replacedRanges.some((range) => containsRange(range, reference.range)) ||
+        // a native marker call is replaced by its own implementation, which stays in-module —
+        // references inside the implementation remain live
+        nativeMarkers.some((marker) => containsRange(marker.implementationRange, reference.range)))
     ) {
       used.add(reference.bindingId);
     }

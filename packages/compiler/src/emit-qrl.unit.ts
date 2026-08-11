@@ -1302,6 +1302,31 @@ export const Shell = ({ action, reload, onSubmit$, ...rest }: any) =>
   });
 });
 
+describe('native$ implementations', () => {
+  test('keep the imports their kept implementation references', async () => {
+    const input = {
+      path: 'src/native-build.ts',
+      code: `import { native$, nativeFrom, useSignal } from '@qwik.dev/core';
+const labels = ['a', 'b'];
+export const build = native$((count: number) => {
+  const rows = new Array(count);
+  for (let i = 0; i < count; i++) {
+    rows[i] = useSignal(labels[i % labels.length]);
+  }
+  return rows;
+}, { rust: nativeFrom('./native') });
+`,
+    };
+    for (const isServer of [true, false]) {
+      const result = await transformModules(options(input, isServer));
+      const main = result.modules.find((module) => module.path.endsWith('native-build.ts'))!.code;
+      // the marker call is replaced by its implementation, which still calls useSignal
+      expect(main, `isServer ${isServer}`).toContain('useSignal(');
+      expect(main, `isServer ${isServer}`).toMatch(/import \{[^}]*useSignal[^}]*\}/);
+    }
+  });
+});
+
 describe('segment capture order', () => {
   test('chunk capture prelude order matches every consumer .w order', async () => {
     const input = {

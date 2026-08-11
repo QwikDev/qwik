@@ -579,6 +579,26 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
     entryStrategy: { type: 'inline' },
   },
 
+  should_keep_capture_free_sync_handler_direct_when_sibling_moves_captures: {
+    transpileTs: true,
+    transpileJsx: true,
+  },
+
+  worker_qrl_segment_dev_snapshot: {
+    filename: 'src/routes/index.tsx',
+    mode: 'dev',
+  },
+  worker_qrl_segment_prod_snapshot: {
+    filename: 'src/routes/index.tsx',
+    mode: 'prod',
+  },
+  worker_qrl_direct_event_dev_snapshot: {
+    filename: 'src/routes/index.tsx',
+    mode: 'dev',
+    transpileTs: true,
+    transpileJsx: true,
+  },
+
   relative_paths: {
     srcDir: '/path/to/app/src/thing',
     transpileTs: true,

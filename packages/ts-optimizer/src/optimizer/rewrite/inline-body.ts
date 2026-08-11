@@ -3,7 +3,7 @@
 import MagicString from 'magic-string';
 import { parseSync } from 'oxc-parser';
 import { walkAstForQp } from '../jsx/qp-walk.js';
-import { formatWCall, wCallSuffix } from '../qwik/w-call.js';
+import { formatWCall, parseArrayItems, wCallSuffix } from '../qwik/w-call.js';
 import { RAW_TRANSFER_PARSER_OPTIONS, type AstFunction } from '../../ast-types.js';
 import type { ExtractionResult, Mutable } from '../extraction/extract.js';
 import type { ImportInfo } from '../extraction/marker-detection.js';
@@ -179,9 +179,15 @@ export function transformInlineSegmentBody(
         } else {
           // inlinedQrl children have empty `qrlCallee` (peer-tool spec args),
           // so emit the bare `q_X.w([captures])` ref without a wrapper call.
+          // Explicit capture arrays pass through verbatim — the body indexes
+          // `_captures[N]`, so dropping or reordering entries breaks it.
           let replacement = childVarName;
-          if (child.captureNames.length > 0) {
-            replacement += wCallSuffix(child.captureNames, '        ', '    ');
+          const childCaptureItems =
+            child.isInlinedQrl && child.explicitCaptures
+              ? parseArrayItems(child.explicitCaptures)
+              : child.captureNames;
+          if (childCaptureItems.length > 0) {
+            replacement += wCallSuffix(childCaptureItems, '        ', '    ');
           }
           body = body.slice(0, relCallStart) + replacement + body.slice(relCallEnd);
         }
@@ -194,7 +200,10 @@ export function transformInlineSegmentBody(
   }
 
   const isRegCtx = matchesRegCtxName(ext, regCtxName);
-  if (ext.captureNames.length > 0 && ext.parent !== null) {
+  // Explicit inlinedQrl captures are a pre-compiled contract with the body's
+  // `_captures[N]` reads — never const-inline entries out of them.
+  const hasExplicitCaptureContract = ext.isInlinedQrl && ext.explicitCaptures !== null;
+  if (ext.captureNames.length > 0 && ext.parent !== null && !hasExplicitCaptureContract) {
     const parentExt = allExtractions.find((e) => e.symbolName === ext.parent);
     if (parentExt) {
       const parentClosure = closureNodes?.get(parentExt.symbolName);

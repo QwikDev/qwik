@@ -254,6 +254,9 @@ export function propagateConstLiteralsInBody(body: string): string {
   const identRefs: IdentRef[] = [];
   const mutableVars = new Set<string>();
   const mutatedObjects = new Set<string>();
+  // Identifiers inside `q_X.w([...])` capture arrays — serialization
+  // contracts aligned with `_captures[N]` reads; never inline or remove.
+  const protectedNames = new Set<string>();
 
   let currentDeclName: string | null = null;
 
@@ -273,6 +276,24 @@ export function propagateConstLiteralsInBody(body: string): string {
     if (node.type === 'UpdateExpression' && node.argument?.type === 'MemberExpression') {
       const root = memberRootName(node.argument);
       if (root) mutatedObjects.add(root);
+    }
+
+    // A `q_X.w([...])` capture array is a serialization contract aligned with
+    // the segment's `_captures[N]` reads — its identifiers must stay verbatim.
+    if (
+      node.type === 'CallExpression' &&
+      (node.callee as { type?: string; property?: { type?: string; name?: string } })?.type ===
+        'MemberExpression' &&
+      (node.callee as { property?: { type?: string; name?: string } }).property?.type ===
+        'Identifier' &&
+      (node.callee as { property: { name: string } }).property.name === 'w'
+    ) {
+      const firstArg = (node as { arguments?: AstNode[] }).arguments?.[0];
+      if (firstArg?.type === 'ArrayExpression') {
+        for (const el of (firstArg as { elements?: Array<AstNode | null> }).elements ?? []) {
+          if (el?.type === 'Identifier') protectedNames.add(el.name);
+        }
+      }
     }
     if (node.type === 'AssignmentExpression' && node.left?.type === 'MemberExpression') {
       const root = memberRootName(node.left);
@@ -374,6 +395,9 @@ export function propagateConstLiteralsInBody(body: string): string {
   for (const name of constDecls.keys()) {
     resolveValue(name, new Set());
   }
+  for (const name of protectedNames) {
+    resolvedValues.delete(name);
+  }
 
   const toRemove = new Set<string>();
 
@@ -396,6 +420,7 @@ export function propagateConstLiteralsInBody(body: string): string {
 
   for (const [name, decl] of constDecls) {
     if (resolvedValues.has(name)) continue;
+    if (protectedNames.has(name)) continue;
     if (!decl.isSideEffectFree) continue;
     if (decl.isLiteral) continue;
 

@@ -68,6 +68,19 @@ class TestDomRef {
 }
 
 describe('serdes emit-only', () => {
+  it('serializes an object through its own SerializerSymbol', async () => {
+    class LoaderCapture {
+      constructor(readonly hash: string) {}
+      [SerializerSymbol]() {
+        return this.hash;
+      }
+    }
+
+    const restored = await _deserialize<[string]>(await _serialize([new LoaderCapture('abc')]));
+
+    expect(restored[0]).toBe('abc');
+  });
+
   it('round-trips a props proxy with its reactive source', async () => {
     const source = useSignal({ label: 'initial' });
     const proxy = createPropsProxy(source);

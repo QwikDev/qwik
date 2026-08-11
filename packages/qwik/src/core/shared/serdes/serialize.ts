@@ -680,6 +680,15 @@ export class Serializer {
         }
         this.output(TypeIds.ForwardRef, this.getForwardRefId(forwardRefId));
       }
+    } else if (typeof (value as Record<symbol, unknown>)[SerializerSymbol] === 'function') {
+      // custom-serialization protocol: the instance serializes as the value it produces
+      const custom = (value as { [SerializerSymbol]: (toSerialize: unknown) => unknown })[
+        SerializerSymbol
+      ](value);
+      if (isPromise(custom)) {
+        throw qError(QError.serializerSymbolRejectedPromise);
+      }
+      this.writeValue(custom);
     } else {
       throw qError(QError.serializeErrorUnknownType, [typeof value]);
     }

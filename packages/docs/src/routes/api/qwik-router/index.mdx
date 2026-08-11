@@ -824,7 +824,7 @@ export type FailReturn<T> = T & Failed;
 <h2 id="form">Form</h2>
 
 ```typescript
-Form: <O, I>(input: FormProps<O, I>, key: string | null) =>
+Form: <O, I>(props: FormProps<O, I>, key: string | null) =>
   import("@qwik.dev/core").JSXOutput;
 ```
 
@@ -843,18 +843,7 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-\{ action, spaReset, reloadDocument, onSubmit$, ...rest }
-
-</td><td>
-
-(not declared)
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-input
+props
 
 </td><td>
 
@@ -885,106 +874,32 @@ import("@qwik.dev/core").JSXOutput
 <h2 id="formprops">FormProps</h2>
 
 ```typescript
-export interface FormProps<O, I> extends Omit<QwikJSX.IntrinsicElements['form'], 'action' | 'method'>
+export type FormProps<O, I> = Omit<
+  QwikJSX.IntrinsicElements["form"],
+  "action" | "method"
+> & {
+  reloadDocument?: boolean;
+  spaReset?: boolean;
+  onSubmitCompleted$?:
+    | QRLEventHandlerMulti<
+        CustomEvent<FormSubmitCompletedDetail<O>>,
+        HTMLFormElement
+      >
+    | undefined;
+  key?: string | number | null;
+} & (
+    | {
+        action: ActionStore<O, I, true | false>;
+        method?: never;
+      }
+    | {
+        action?: never;
+        method: "get";
+      }
+  );
 ```
 
-**Extends:** Omit&lt;QwikJSX.IntrinsicElements['form'], 'action' \| 'method'&gt;
-
-<table><thead><tr><th>
-
-Property
-
-</th><th>
-
-Modifiers
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-action?
-
-</td><td>
-
-</td><td>
-
-[ActionStore](#actionstore)&lt;O, I, true \| false&gt;
-
-</td><td>
-
-_(Optional)_ Reference to the action returned by `action()`.
-
-</td></tr>
-<tr><td>
-
-key?
-
-</td><td>
-
-</td><td>
-
-string \| number \| null
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-onSubmitCompleted$?
-
-</td><td>
-
-</td><td>
-
-QRLEventHandlerMulti&lt;CustomEvent&lt;[FormSubmitCompletedDetail](#formsubmitsuccessdetail)&lt;O&gt;&gt;, HTMLFormElement&gt; \| undefined
-
-</td><td>
-
-_(Optional)_ Event handler executed right after the action is executed successfully and returns some data.
-
-</td></tr>
-<tr><td>
-
-reloadDocument?
-
-</td><td>
-
-</td><td>
-
-boolean
-
-</td><td>
-
-_(Optional)_ When `true` the form submission will cause a full page reload, even if SPA mode is enabled and JS is available.
-
-</td></tr>
-<tr><td>
-
-spaReset?
-
-</td><td>
-
-</td><td>
-
-boolean
-
-</td><td>
-
-_(Optional)_ When `true` all the form inputs will be reset in SPA mode, just like happens in a full page form submission.
-
-Defaults to `false`
-
-</td></tr>
-</tbody></table>
+**References:** [FormSubmitCompletedDetail](#formsubmitsuccessdetail), [ActionStore](#actionstore)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/form-component.tsx)
 

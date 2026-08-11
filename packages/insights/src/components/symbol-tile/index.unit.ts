@@ -20,7 +20,7 @@ describe('symbol source tenant authorization', () => {
       getAuthorizedPublicApiKey({
         params: { publicApiKey: 'app-a' },
         sharedMap: new Map(),
-        error: error as RequestEvent['error'],
+        error: error as unknown as RequestEvent['error'],
       })
     ).rejects.toBe(forbidden);
   });
@@ -37,7 +37,7 @@ describe('symbol source tenant authorization', () => {
         sharedMap: new Map([
           ['insightUser', new InsightsUser(1, 'john@example.com', false, ['app-a'])],
         ]),
-        error: error as RequestEvent['error'],
+        error: error as unknown as RequestEvent['error'],
       })
     ).rejects.toBe(forbidden);
     expect(error).toHaveBeenCalledWith(403, 'Forbidden');

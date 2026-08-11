@@ -39,16 +39,17 @@ describe('lib ssr emission', () => {
     // build-time env split: server resolves the in-module implementation, client folds to
     // the lazy chunk and drops it
     expect(main).toContain(`import { isServer as qwikBuildIsServer } from '@qwik.dev/core/build';`);
+    // the server binds the lazy qrl in place, keeping the chunk name for serialization
+    expect(main).toContain(`const q_${taskSymbol}_lazy = /*#__PURE__*/ _qrlWithChunk(`);
     expect(main).toContain(
-      `const q_${taskSymbol} = qwikBuildIsServer\n` +
-        `  ? /*#__PURE__*/ inlinedQrl(${taskSymbol}, ${JSON.stringify(taskSymbol)})\n` +
-        `  : /*#__PURE__*/ _qrlWithChunk(`
+      `const q_${taskSymbol} = qwikBuildIsServer ` +
+        `? (q_${taskSymbol}_lazy.s(${taskSymbol}), q_${taskSymbol}_lazy) : q_${taskSymbol}_lazy;`
     );
     // the implementation itself lives in the module
     expect(main).toContain(`const ${taskSymbol} = `);
 
     // event segments never run on the server; their qrls stay lazy serialization carriers
     expect(main).toContain(`const q_${eventSymbol} = /*#__PURE__*/ _qrlWithChunk(`);
-    expect(main).not.toContain(`inlinedQrl(${eventSymbol}`);
+    expect(main).not.toContain(`q_${eventSymbol}_lazy`);
   });
 });

@@ -355,14 +355,14 @@ export function emitSsrModule(
     const qrl = `q_${component.symbolName}`;
     if (libMode) {
       imports.add(QwikWord.QrlWithChunk);
-      imports.add(QwikWord.InlinedQrl);
       pushBuildImport();
       hoists.push(
-        `const ${qrl} = ${LIB_IS_SERVER}\n  ? /*#__PURE__*/ ${QwikWord.InlinedQrl}(${component.symbolName}, ${JSON.stringify(component.symbolName)})\n  : /*#__PURE__*/ ${QwikWord.QrlWithChunk}(${JSON.stringify(
+        `const ${qrl}_lazy = /*#__PURE__*/ ${QwikWord.QrlWithChunk}(${JSON.stringify(
           component.importPath
         )}, () => import(${JSON.stringify(component.importPath)}), ${JSON.stringify(
           component.symbolName
-        )});`
+        )});`,
+        `const ${qrl} = ${LIB_IS_SERVER} ? (${qrl}_lazy.s(${component.symbolName}), ${qrl}_lazy) : ${qrl}_lazy;`
       );
     } else {
       imports.add(QwikWord.NoopQrl);
@@ -482,7 +482,6 @@ export function emitSsrModule(
         hoists.push(`const ${qrl} = ${lazyExpression};`);
         continue;
       }
-      imports.add(QwikWord.InlinedQrl);
       pushBuildImport();
       const bodyLines: string[] = [];
       for (const line of implementation.split('\n')) {
@@ -494,8 +493,9 @@ export function emitSsrModule(
           bodyLines.push(line);
         }
       }
+      // binding the lazy qrl keeps the chunk name on it — serialization reads it directly
       hoists.push(
-        `${bodyLines.join('\n').trim()}\nconst ${qrl} = ${LIB_IS_SERVER}\n  ? /*#__PURE__*/ ${QwikWord.InlinedQrl}(${segment.symbolName}, ${JSON.stringify(segment.symbolName)})\n  : ${lazyExpression};`
+        `${bodyLines.join('\n').trim()}\nconst ${qrl}_lazy = ${lazyExpression};\nconst ${qrl} = ${LIB_IS_SERVER} ? (${qrl}_lazy.s(${segment.symbolName}), ${qrl}_lazy) : ${qrl}_lazy;`
       );
       continue;
     }

@@ -744,6 +744,19 @@ export function analyzeSignalExpression(
   importedNames: Set<string>,
   localNames?: Set<string>
 ): SignalExprResult {
+  // A local declaration shadows a same-named import (e.g. `const jsx =
+  // useSignal(...)` under `import { jsx }`); analyzing it as an import would
+  // veto the fnSignal hoist.
+  if (localNames) {
+    let shadowFree: Set<string> | null = null;
+    for (const name of importedNames) {
+      if (localNames.has(name)) {
+        shadowFree ??= new Set(importedNames);
+        shadowFree.delete(name);
+      }
+    }
+    if (shadowFree) importedNames = shadowFree;
+  }
   const peeled = peelExpressionWrappers(exprNode);
   if (peeled == null) return { type: 'none' };
   if (peeled !== exprNode) {

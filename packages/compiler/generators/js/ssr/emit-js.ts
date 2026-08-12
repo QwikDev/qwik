@@ -1594,6 +1594,19 @@ class JsComponentGenerator {
         if (ir === undefined) {
           markUngeneratable();
         }
+        const storeProp = this.storePropRead(ir);
+        if (storeProp !== null) {
+          // the canonical store-prop source rides the sources map, so serialization
+          // stores the source instead of a snapshot and resume re-subscribes readers
+          this.imports.add('getStoreSource');
+          literalRun().push(`get ${JSON.stringify(item.name)}() { return ${this.irJs(ir)}; }`);
+          sourceEntries.push(
+            `${JSON.stringify(item.name)}: getStoreSource(${storeProp.object}, ${JSON.stringify(
+              storeProp.prop
+            )})`
+          );
+          continue;
+        }
         if (ir.kind !== 'signal-read' && ir.kind !== 'binding-read') {
           if (reactiveComposite) {
             markUngeneratable(); // reactive expression without a backing segment
@@ -2424,6 +2437,21 @@ class JsComponentGenerator {
       ...(meta.styleScope === true ? [this.runtimeScopeName ?? `''`] : []),
     ];
     return captures.length === 0 ? qrl : `${qrl}.w([${captures.join(', ')}])`;
+  }
+
+  /** A `store.prop` read whose base binding is a reactive source, with a static tail prop. */
+  private storePropRead(ir: ValueIR): { object: string; prop: string } | null {
+    if (ir.kind !== 'member') {
+      return null;
+    }
+    let base = ir.obj;
+    while (base.kind === 'member') {
+      base = base.obj;
+    }
+    if (base.kind !== 'binding-read' || !this.sourceKinds.has(base.binding)) {
+      return null;
+    }
+    return { object: this.irJs(ir.obj), prop: ir.name };
   }
 
   /** Plan binding names are reused when they are safe identifiers; `local_<id>` otherwise. */

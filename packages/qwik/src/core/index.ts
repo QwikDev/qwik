@@ -184,6 +184,7 @@ export type {
 } from './reactive/public-types';
 export {
   forceStoreEffects,
+  getStoreSource,
   unwrapStore,
   useStore,
   type Store,

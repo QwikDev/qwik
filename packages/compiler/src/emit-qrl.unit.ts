@@ -1408,6 +1408,34 @@ export const App = component$(() => {
   });
 });
 
+describe('store property component props', () => {
+  test('a store.prop value rides the _props sources map as its store source', async () => {
+    const input = {
+      path: 'src/store-prop.tsx',
+      code: `import { component$, useStore } from '@qwik.dev/core';
+export const Child = component$((props: { count: number }) => <div>{props.count}</div>);
+export const App = component$(() => {
+  const store = useStore({ foo: 10, nested: { bar: 1 } });
+  return (
+    <div>
+      <button onClick$={() => store.foo++}>inc</button>
+      <Child count={store.foo} />
+      <Child count={store.nested.bar} />
+    </div>
+  );
+});
+`,
+    };
+    const result = await transformModules(options(input, true));
+    expect(result.diagnostics).toEqual([]);
+    const all = result.modules.map((module) => module.code).join('\n');
+    // serialization must store the canonical store-prop source, not a snapshot
+    expect(all).toContain('"count": getStoreSource(store, "foo")');
+    expect(all).toContain('"count": getStoreSource(store.nested, "bar")');
+    expect(all).toMatch(/import \{[^}]*getStoreSource[^}]*\}/);
+  });
+});
+
 describe('event$ boundaries', () => {
   test('event$ lowers like $: a plain qrl value on both targets', async () => {
     const input = {

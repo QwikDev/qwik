@@ -109,6 +109,8 @@ export interface NestedCallSiteInfo {
   qrlVarName: string;
   callStart: number;
   callEnd: number;
+  /** End of the extracted closure argument; text up to `callEnd - 1` is trailing args. */
+  argEnd?: number;
   isJsxAttr: boolean;
   attrStart?: number;
   attrEnd?: number;

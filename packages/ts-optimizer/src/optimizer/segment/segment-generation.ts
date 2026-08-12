@@ -1138,6 +1138,7 @@ export function buildNestedCallSites(
         qrlVarName,
         callStart: child.callStart,
         callEnd: child.callEnd,
+        argEnd: child.argEnd,
         isJsxAttr: false,
         qrlCallee: child.isBare ? undefined : child.qrlCallee || undefined,
         captureNames: child.captureNames.length > 0 ? child.captureNames : undefined,

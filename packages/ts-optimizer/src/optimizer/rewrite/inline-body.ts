@@ -169,7 +169,13 @@ export function transformInlineSegmentBody(
             replacement += wCallSuffix(child.captureNames, '        ', '    ');
           }
 
-          replacement += ')';
+          // Preserve arguments after the extracted closure (e.g. task options).
+          const relArgEnd = child.argEnd - bodyOffset;
+          const trailingArgs =
+            relArgEnd > relCallStart && relArgEnd < relCallEnd
+              ? body.slice(relArgEnd, relCallEnd - 1)
+              : '';
+          replacement += trailingArgs + ')';
           body = body.slice(0, relCallStart) + replacement + body.slice(relCallEnd);
 
           additionalImports.set(

@@ -234,7 +234,11 @@ export function rewriteNestedCallSitesInline(
       if (site.qrlCallee) {
         // Wrapped in a `*Qrl(…)` call — a preceding PURE annotation still
         // applies to the call, so leave it be (and re-emit our own if needed).
-        replacement = `${needsPureAnnotation(site.qrlCallee) ? '/*#__PURE__*/ ' : ''}${site.qrlCallee}(${qrlRef})`;
+        // Preserve arguments after the extracted closure (e.g. task options).
+        const relArgEnd = site.argEnd !== undefined ? site.argEnd - bodyOffset : -1;
+        const trailingArgs =
+          relArgEnd > relStart && relArgEnd < relEnd ? bodyText.slice(relArgEnd, relEnd - 1) : '';
+        replacement = `${needsPureAnnotation(site.qrlCallee) ? '/*#__PURE__*/ ' : ''}${site.qrlCallee}(${qrlRef}${trailingArgs})`;
       } else {
         // Replaced by a bare `q_<symbol>` identifier: consume a leading PURE
         // annotation so it isn't stranded before the identifier (a fatal

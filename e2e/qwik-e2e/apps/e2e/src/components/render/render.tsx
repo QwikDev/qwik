@@ -536,13 +536,14 @@ export const ClickHandlersExecutedMultipleTimesIssue3479 = component$(() => {
   const attributes = {
     onClick$: event$(() => count.value++),
   };
-  const countStr = String(count.value) + '';
+  // v3: components never rerun, so the count reads directly in JSX;
+  // a duplicate spread handler would still show as a double increment
   return (
     <div>
       <button id="issue-3479-button" {...attributes}>
         Increment
       </button>
-      <div id="issue-3479-result">{countStr}</div>
+      <div id="issue-3479-result">{count.value}</div>
     </div>
   );
 });

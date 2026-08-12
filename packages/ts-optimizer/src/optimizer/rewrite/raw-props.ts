@@ -717,7 +717,11 @@ export function consolidateQpCaptureValues(
 ): string[] {
   return params.map((p) => {
     const key = fieldMap.get(p);
-    return key === undefined ? p : `_rawProps.${key}`;
+    if (key === undefined) return p;
+    // String-keyed destructures ('bind:page': page) need bracket access.
+    return /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(key)
+      ? `_rawProps.${key}`
+      : `_rawProps[${JSON.stringify(key)}]`;
   });
 }
 

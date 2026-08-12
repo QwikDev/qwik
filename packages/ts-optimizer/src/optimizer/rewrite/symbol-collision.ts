@@ -244,6 +244,11 @@ function rewriteReferences(
 ): void {
   const { program, s } = ctx;
   const scopeStack: Array<Set<string>> = [];
+  // Extraction call ranges were already replaced by rewriteCallSites;
+  // overwriting an identifier inside one re-splits an edited chunk.
+  const replacedRanges = ctx.extractions.map((ext) => [ext.callStart, ext.callEnd] as const);
+  const isInReplacedRange = (pos: number): boolean =>
+    replacedRanges.some(([start, end]) => pos >= start && pos < end);
 
   function isShadowed(name: string): boolean {
     for (const scope of scopeStack) if (scope.has(name)) return true;
@@ -260,7 +265,7 @@ function rewriteReferences(
 
     if (node.type === 'Identifier') {
       const newName = renameMap.get(node.name);
-      if (newName !== undefined && !isShadowed(node.name)) {
+      if (newName !== undefined && !isShadowed(node.name) && !isInReplacedRange(node.start)) {
         const isPropertyKey =
           parentKey === 'key' && parentNode?.type === 'Property' && !parentNode.computed;
         const isMemberProp =

@@ -416,28 +416,20 @@ export function processProps(
 
       if (signalResult.type === 'wrapProp') {
         const formattedName = formatPropName(propName);
-        if (signalResult.isStoreField && tagIsHtml) {
-          const objName = signalResult.code.match(/_wrapProp\((\w+)/)?.[1] ?? null;
-          const isConst = isConstBindingName(
-            objName,
-            importedNames,
-            bindings,
-            valueNode?.start ?? 0
-          );
-          pushNamed(
-            beforeSpread ? beforeSpreadEntries : isConst ? constEntries : varEntries,
-            `${formattedName}: ${signalResult.code}`,
-            isConst && !beforeSpread ? 'const' : 'var',
-            attr.start
-          );
-        } else {
-          pushNamed(
-            beforeSpread ? beforeSpreadEntries : constEntries,
-            `${formattedName}: ${signalResult.code}`,
-            beforeSpread ? 'var' : 'const',
-            attr.start
-          );
-        }
+        // The wrapper is only reusable across renders when its root binding is
+        // stable: a const (or, on component tags, a component param). A
+        // loop-varying root (map callback param) must re-create per render.
+        const objName = signalResult.code.match(/_wrapProp\((\w+)/)?.[1] ?? null;
+        const isConst =
+          isConstBindingName(objName, importedNames, bindings, valueNode?.start ?? 0) ||
+          (!tagIsHtml && objName !== null && (paramNames?.has(objName) ?? false)) ||
+          (!signalResult.isStoreField && !tagIsHtml && objName === null);
+        pushNamed(
+          beforeSpread ? beforeSpreadEntries : isConst ? constEntries : varEntries,
+          `${formattedName}: ${signalResult.code}`,
+          isConst && !beforeSpread ? 'const' : 'var',
+          attr.start
+        );
         neededImports.add('_wrapProp');
         continue;
       }

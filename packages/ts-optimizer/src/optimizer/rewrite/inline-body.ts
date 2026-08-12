@@ -502,6 +502,7 @@ export function transformInlineSegmentBody(
           qrlsWithCaptures: bodyQrlsWithCaptures,
           relPath: jsxBodyOptions.relPath,
           sharedSignalHoister,
+          paramNames: ext.paramNames ? new Set(ext.paramNames) : undefined,
         }
       );
 

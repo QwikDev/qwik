@@ -15,6 +15,8 @@ export default defineConfig({
   plugins: [
     qwikVite({
       debug: !true,
+      // TEMP-AB: QWIK_AB_RUST=1 selects the rust optimizer for A/B triage.
+      ...(process.env.QWIK_AB_RUST ? { optimizerOptions: { tsOptimizer: false } } : {}),
       srcDir: fromRoot('./packages/qwik/src'),
       devTools: { hmr: false },
       experimental: ['each', 'show', 'suspense'],

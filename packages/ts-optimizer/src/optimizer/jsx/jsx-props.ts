@@ -122,12 +122,22 @@ export function isRewrittenEventEntry(entry: string): boolean {
   return entry.startsWith('"') && startsWithRewrittenEventPrefix(entry.slice(1));
 }
 
+/** Entry key up to the value separator — quoted keys may themselves contain `:`. */
+function entryKey(entry: string): string {
+  if (entry.startsWith('"')) {
+    const close = entry.indexOf('"', 1);
+    if (close > 0) return entry.slice(1, close);
+  }
+  return entry.split(':')[0].trim();
+}
+
 export function sortVarEntries(entries: string[]): void {
   if (entries.length > 1) {
     entries.sort((a, b) => {
-      const keyA = a.split(':')[0].replace(/"/g, '').trim();
-      const keyB = b.split(':')[0].replace(/"/g, '').trim();
-      return keyA.localeCompare(keyB);
+      const keyA = entryKey(a);
+      const keyB = entryKey(b);
+      // Code-unit order — localeCompare diverges from rust on case/punctuation.
+      return keyA < keyB ? -1 : keyA > keyB ? 1 : 0;
     });
   }
 }
@@ -339,7 +349,9 @@ export function processProps(
       const renamedProp = transformEventPropName(propName, passiveEvents);
       if (renamedProp !== null) {
         const formattedName = formatPropName(renamedProp);
-        if (isConstValueNode(valueNode)) {
+        // A rewritten inlinedQrl(...) value is a runtime call — not static.
+        const isNonConstQrl = qrlsNonConst?.has(valueText.trim()) === true;
+        if (isConstValueNode(valueNode) && !isNonConstQrl) {
           pushNamed(constEntries, `${formattedName}: ${valueText}`, 'const', attr.start);
         } else {
           pushNamed(varEntries, `${formattedName}: ${valueText}`, 'var', attr.start);
@@ -525,6 +537,10 @@ export function processProps(
       const target = varBindHandlers.has(eventName) ? varEntries : eventTarget;
       target.push(`${quotedEventName}: ${handlerCode}`);
     }
+  }
+  // Var-routed handlers append after the earlier sort — restore key order.
+  if (varBindHandlers.size > 0 && !hasSpread) {
+    sortVarEntries(varEntries);
   }
 
   return {

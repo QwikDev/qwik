@@ -487,6 +487,16 @@ export function transformInlineSegmentBody(
         }
       }
 
+      // A pre-compiled inlinedQrl handler value is a runtime call, not a
+      // statically-known-const handler — its event entry classifies var.
+      let bodyQrlsNonConst: Set<string> | undefined;
+      for (const child of nested) {
+        if (!child.isInlinedQrl) continue;
+        (bodyQrlsNonConst ??= new Set()).add(
+          qrlVarNames.get(child.symbolName) ?? `q_${child.symbolName}`
+        );
+      }
+
       const bodyJsxResult = transformAllJsx(
         {
           source: wrappedSource,
@@ -500,6 +510,7 @@ export function transformInlineSegmentBody(
           keyCounterStart: sharedKeyCounterStart ?? jsxBodyOptions.keyCounterStart,
           qpOverrides: bodyQpOverrides,
           qrlsWithCaptures: bodyQrlsWithCaptures,
+          qrlsNonConst: bodyQrlsNonConst,
           relPath: jsxBodyOptions.relPath,
           sharedSignalHoister,
           paramNames: ext.paramNames ? new Set(ext.paramNames) : undefined,

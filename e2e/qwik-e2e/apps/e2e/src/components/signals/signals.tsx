@@ -6,6 +6,7 @@ import {
   useStore,
   useStyles$,
   useTask$,
+  useVisibleTask$,
   type Signal,
 } from '@qwik.dev/core';
 import { delay } from '../delay';
@@ -56,11 +57,10 @@ export const SignalsChildren = component$<{ rerenderCount: number }>(({ rerender
 
   const styles = useSignal('body { background: white}');
 
-  // Compiler emits unresolved visible-task captures.
-  // useVisibleTask$(() => {
-  //   ref.value!.setAttribute('data-set', 'ref');
-  //   ref2.value!.setAttribute('data-set', 'ref2');
-  // });
+  useVisibleTask$(() => {
+    ref.value!.setAttribute('data-set', 'ref');
+    ref2.value!.setAttribute('data-set', 'ref2');
+  });
 
   renders.count++;
   const rerenders = renders.count + 0;
@@ -130,8 +130,7 @@ export const SignalsChildren = component$<{ rerenderCount: number }>(({ rerender
       <StoreDataAttributeKeyIssue3482 />
       <StoreCustomKeysSerializationIssue3663 />
       <SignalSerializationNullErrorIssue3440 />
-      {/* Compiler emits unresolved visible-task captures during qinit. */}
-      {/* <UseStoreUninitializedKeysIssue4174 /> */}
+      <UseStoreUninitializedKeysIssue4174 />
       <SignalsTernaryUnnecessaryRerendersIssue4249 />
       {/* <ExcessiveRerenderingStorePropsIssue4228 /> */}
       {/* Compiler emits missing symbols for non-exported child components. */}
@@ -921,7 +920,6 @@ export const SignalSerializationNullErrorIssue3440 = component$(() => {
   );
 });
 
-/* Compiler emits unresolved visible-task captures during qinit.
 export const UseStoreUninitializedKeysIssue4174 = component$(() => {
   const storeWithoutInit = useStore<{ value?: string }>({});
 
@@ -938,7 +936,6 @@ export const UseStoreUninitializedKeysIssue4174 = component$(() => {
     </>
   );
 });
-*/
 
 export const SignalsTernaryUnnecessaryRerendersIssue4249 = component$(() => {
   const first = useSignal('');

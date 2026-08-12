@@ -20,6 +20,7 @@ import { foldBodySimplifiableExpressions } from '../jsx/simplify.js';
 import { getQrlImportSource, buildSyncTransform } from './rewrite-calls.js';
 import { foldConstantsInBodyText } from './const-replacement.js';
 import { injectCapturesUnpacking, removeDeadConstLiterals } from '../segment/segment-codegen.js';
+import { passiveEventsFromDisplayName } from '../segment/segment-generation.js';
 import {
   resolveConstLiterals,
   resolveConstLiteralsInClosure,
@@ -131,8 +132,11 @@ export function transformInlineSegmentBody(
           }
           body = body.slice(0, relCallStart) + replacement + body.slice(relCallEnd);
         } else if (isEventHandlerOrJsxProp(child.ctxKind) && !child.qrlCallee) {
-          // Passive detection is segment-codegen-path only, so pass an empty set.
-          const propName = eventHandlerPropName(child.ctxName, child.isComponentEvent, new Set());
+          const propName = eventHandlerPropName(
+            child.ctxName,
+            child.isComponentEvent,
+            passiveEventsFromDisplayName(child)
+          );
 
           const isRegCtx = matchesRegCtxName(child, regCtxName);
           let qrlRef = isRegCtx ? `serverQrl(${childVarName})` : childVarName;

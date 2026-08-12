@@ -1019,7 +1019,11 @@ export function wireMigration(
  * passive variant in the displayName path (`_q_ep_`/`_q_wp_`/`_q_dp_`), so recover the normalized
  * event name from the callee and mark it passive when any marker is present.
  */
-function passiveEventsFromDisplayName(child: ConsolidatedSegment): Set<string> {
+export function passiveEventsFromDisplayName(child: {
+  readonly displayName?: string;
+  readonly symbolName: string;
+  readonly calleeName: string;
+}): Set<string> {
   const passiveSet = new Set<string>();
   const displayNamePath = child.displayName ?? child.symbolName;
   let eventName: string = child.calleeName;

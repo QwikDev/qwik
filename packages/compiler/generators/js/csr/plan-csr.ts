@@ -671,7 +671,10 @@ class CsrPlanner {
         continue;
       }
       for (const segmentId of item.segmentIds) {
-        this.directSegmentIds.add(segmentId);
+        // explicit $() values emit as lazy qrls, so their chunks are not imported eagerly
+        if (this.segmentById.get(segmentId)?.qrl?.kind !== 'explicit') {
+          this.directSegmentIds.add(segmentId);
+        }
         this.usedSegmentIds.add(segmentId);
       }
     }
@@ -1009,7 +1012,8 @@ class CsrPlanner {
   private planComponent(
     node: Extract<RenderNodePlan, { kind: 'component' }>
   ): CsrDirectComponentPlan | null {
-    const props = this.planProps(node.props);
+    // handlers passed as component props escape into the child: they stay qrls
+    const props = this.planProps(node.props, 'lazy');
     const propsSource = node.propsSource === null ? null : this.planSegment(node.propsSource);
     if (props === null || (node.propsSource !== null && propsSource === null)) {
       return null;
@@ -1049,7 +1053,10 @@ class CsrPlanner {
     return this.needsId ? `_id + '${kind}${this.nextId++}-'` : null;
   }
 
-  private planProps(props: readonly OrderedPropPlan[]): CsrPropPlan[] | null {
+  private planProps(
+    props: readonly OrderedPropPlan[],
+    eventDelivery: CsrSegmentReferencePlan['delivery'] = 'direct'
+  ): CsrPropPlan[] | null {
     const planned: CsrPropPlan[] = [];
     for (const prop of props) {
       switch (prop.kind) {
@@ -1073,7 +1080,7 @@ class CsrPlanner {
           break;
         }
         case 'event': {
-          const value = this.planValue(prop.value);
+          const value = this.planValue(prop.value, eventDelivery);
           if (value === null) {
             return null;
           }
@@ -1157,7 +1164,12 @@ class CsrPlanner {
     if (value.kind === 'expression') {
       const boundaries: CsrSegmentReferencePlan[] = [];
       for (const boundary of value.boundaries) {
-        const planned = this.planSegment(boundary);
+        // explicit $() values escape into user space and keep their v2 qrl identity
+        const target = this.segmentById.get(boundary.segmentId);
+        const planned = this.planSegment(
+          boundary,
+          target?.qrl?.kind === 'explicit' ? 'lazy' : 'direct'
+        );
         if (planned === null) {
           return null;
         }

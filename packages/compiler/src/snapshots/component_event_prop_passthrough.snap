@@ -162,14 +162,19 @@ export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
 
 ============================= src/component.tsx ==
 
-import { createComponent, _withCaptures } from '@qwik.dev/core';
-import { component_q_e_click_segment_1_2xwyfnber1kpg } from './component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg';
+import { createComponent, _qrlWithChunk } from '@qwik.dev/core';
 import { Button } from './component.tsx_component_Button';
+
+const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg',
+  () => import('./component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg'),
+  'component_q_e_click_segment_1_2xwyfnber1kpg'
+);
 export { Button };
 export function Parent(props, ctx) {
   const value = 1;
   return createComponent(
-    { onClick$: _withCaptures(component_q_e_click_segment_1_2xwyfnber1kpg, [value]) },
+    { onClick$: q_component_q_e_click_segment_1_2xwyfnber1kpg.w([value]) },
     (props) => Button(props, ctx)
   );
 }

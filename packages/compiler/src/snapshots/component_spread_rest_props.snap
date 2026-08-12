@@ -180,9 +180,14 @@ export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
 
 ============================= src/component.tsx ==
 
-import { createComponent, _withCaptures, mergeProps } from '@qwik.dev/core';
-import { component_q_e_click_segment_2_2xwygteqhjqr1 } from './component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1';
+import { createComponent, _qrlWithChunk, mergeProps } from '@qwik.dev/core';
 import { Button } from './component.tsx_component_Button';
+
+const q_component_q_e_click_segment_2_2xwygteqhjqr1 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1',
+  () => import('./component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1'),
+  'component_q_e_click_segment_2_2xwygteqhjqr1'
+);
 export { Button };
 export function Parent(props, ctx) {
   const attrs = { title: 'Save' };
@@ -190,7 +195,7 @@ export function Parent(props, ctx) {
   return createComponent(
     mergeProps(attrs, {
       kind: 'primary',
-      onClick$: _withCaptures(component_q_e_click_segment_2_2xwygteqhjqr1, [label]),
+      onClick$: q_component_q_e_click_segment_2_2xwygteqhjqr1.w([label]),
     }),
     (props) => Button(props, ctx)
   );

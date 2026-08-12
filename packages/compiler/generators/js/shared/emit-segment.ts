@@ -118,6 +118,26 @@ function getSegmentModulePath(inputPath: string, segment: Pick<SegmentPlan, 'sym
   return `${inputPath}_${segment.symbolName}.js`;
 }
 
+/** Hoists a lazy qrl declaration for a segment and returns its capture-bound reference. */
+export function hoistLazyQrlReference(
+  segment: Pick<SegmentPlan, 'symbolName'>,
+  captureNames: readonly string[],
+  inputPath: string,
+  explicitExtensions: boolean,
+  imports: Set<string>,
+  hoists: string[]
+): string {
+  const path = getSegmentImportPath(inputPath, segment, explicitExtensions);
+  imports.add(QwikWord.QrlWithChunk);
+  const declaration = `const q_${segment.symbolName} = /*#__PURE__*/ ${QwikWord.QrlWithChunk}(${JSON.stringify(
+    path
+  )}, () => import(${JSON.stringify(path)}), ${JSON.stringify(segment.symbolName)});`;
+  if (!hoists.includes(declaration)) {
+    hoists.push(declaration);
+  }
+  return emitCapturedQrlReference(segment.symbolName, captureNames);
+}
+
 /**
  * In-module ssr implementation for a segment: the same generated function, without chunk imports,
  * child qrl hoists, or exports — the origin module declares every q_ name.
@@ -230,18 +250,29 @@ function emitSegmentCode(
   const localImplementationSource = getInputImportPath(inputPath, explicitExtensions);
   if (target === 'csr') {
     for (const child of children) {
-      if (child.stripped !== true) {
+      // explicit $() values escape into user space and keep their v2 qrl identity
+      const isExplicitQrlValue = child.stripped !== true && child.qrl?.kind === 'explicit';
+      if (child.stripped !== true && !isExplicitQrlValue) {
         childImports.push(
           `import { ${child.symbolName} } from ${JSON.stringify(
             getSegmentImportPath(inputPath, child, explicitExtensions)
           )};`
         );
       }
-      const reference = emitCapturedFunctionReference(
-        child.symbolName,
-        segmentCaptureNames(child, generatedNames),
-        qwikImports
-      );
+      const reference = isExplicitQrlValue
+        ? hoistLazyQrlReference(
+            child,
+            segmentCaptureNames(child, generatedNames),
+            inputPath,
+            explicitExtensions,
+            qwikImports,
+            hoists
+          )
+        : emitCapturedFunctionReference(
+            child.symbolName,
+            segmentCaptureNames(child, generatedNames),
+            qwikImports
+          );
       if (
         !appendCsrQrlReplacements(
           child,
@@ -315,13 +346,16 @@ function emitSegmentCode(
       const importPath = getSegmentImportPath(inputPath, child, explicitExtensions);
       if (target === 'csr') {
         if (segment.ctxName === 'componentProps') {
-          childImports.push(`import { ${child.symbolName} } from ${JSON.stringify(importPath)};`);
+          // handlers in component props escape into the child: they stay qrls
           replacements.push({
             range: child.functionRange,
-            value: emitCapturedFunctionReference(
-              child.symbolName,
+            value: hoistLazyQrlReference(
+              child,
               segmentCaptureNames(child, generatedNames),
-              qwikImports
+              inputPath,
+              explicitExtensions,
+              qwikImports,
+              hoists
             ),
           });
         } else {

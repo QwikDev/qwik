@@ -1019,7 +1019,7 @@ export function App() {
     );
   });
 
-  test('binds explicit dollar on SSR and uses its function on CSR', async () => {
+  test('binds explicit dollar on SSR and keeps it a qrl on CSR', async () => {
     const input = {
       path: 'src/explicit.tsx',
       code: `import { $ } from '@qwik.dev/core';
@@ -1041,7 +1041,9 @@ export function App() {
     expect(ssrMain).toContain(`const handler = q_${symbol}.w([count]);`);
     // v2-parity: every server segment binds its in-module implementation via `.s()`
     expect(ssrMain).toContain(`q_${symbol}.s(`);
-    expect(csrMain).toContain(`const handler = _withCaptures(${symbol}, [count]);`);
+    // v2-parity: an explicit $() value is a qrl on every target — lazy chunk on the client
+    expect(csrMain).toContain(`const handler = q_${symbol}.w([count]);`);
+    expect(csrMain).toContain(`_qrlWithChunk(`);
   });
 
   test('uses existing same-source target aliases and removes a marker with no value uses', async () => {
@@ -1356,6 +1358,53 @@ export const App = component$(() => {
         );
       }
     }
+  });
+});
+
+describe('explicit boundaries on csr', () => {
+  test('$() values and component-prop handlers stay qrls', async () => {
+    const input = {
+      path: 'src/qrl-values.tsx',
+      code: `import { $, component$, useSignal, useTask$ } from '@qwik.dev/core';
+export const moduleQrl = $((x: number) => x + 1);
+export const Toggle = component$((props: any) => (
+  <input type="checkbox" onClick$={props.onClick$} />
+));
+export const App = component$(() => {
+  const sig = useSignal('true');
+  const onClick$ = $(() => {
+    sig.value = 'x';
+  });
+  useTask$(async () => {
+    await $(() => sig.value)();
+  });
+  return (
+    <div>
+      {sig.value === 'true' ? <button onClick$={onClick$}>a</button> : <span>b</span>}
+      <Toggle onClick$={() => sig.value++} />
+    </div>
+  );
+});
+`,
+    };
+    const result = await transformModules(options(input, false));
+    expect(result.diagnostics).toEqual([]);
+    const main = result.modules.find((module) => module.path.endsWith('qrl-values.tsx'))!.code;
+    // explicit $() values keep their v2 qrl identity: lazy chunk, .w captures
+    expect(main).not.toMatch(/_withCaptures\(\w+_\$_segment/);
+    expect(main).toMatch(/const onClick\$ = q_\w+_\$_segment_\d+_\w+\.w\(\[sig\]\)/);
+    expect(main).toMatch(/const moduleQrl = q_\w+_\$_segment/);
+    // a handler passed as a component prop escapes into the child: qrl too
+    expect(main).toMatch(/"onClick\$": q_\w+_q_e_click_segment_\d+_\w+\.w\(\[sig\]\)/);
+    // structural sinks keep the direct fast path
+    expect(main).toMatch(/useTask\(_withCaptures\(/);
+    expect(main).toMatch(/_withCaptures\(\w+_branch_condition/);
+    const taskChunk = result.modules.find((module) =>
+      module.path.includes('useTask$_segment')
+    )!.code;
+    // $() nested in another segment body keeps qrl identity there too
+    expect(taskChunk).not.toMatch(/_withCaptures\(\w+_\$_segment/);
+    expect(taskChunk).toMatch(/q_\w+_\$_segment_\d+_\w+\.w\(\[sig\]\)/);
   });
 });
 

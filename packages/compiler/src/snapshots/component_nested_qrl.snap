@@ -119,12 +119,16 @@ export function App(props, ctx) {
 }
 ============================= src/component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz.js (ENTRY POINT)==
 
-import { _withCaptures, _captures } from '@qwik.dev/core';
-import { component_$_segment_1_1lv57vrb4wu8w } from './component.tsx_component_$_segment_1_1lv57vrb4wu8w';
+import { _qrlWithChunk, _captures } from '@qwik.dev/core';
+const q_component_$_segment_1_1lv57vrb4wu8w = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_$_segment_1_1lv57vrb4wu8w',
+  () => import('./component.tsx_component_$_segment_1_1lv57vrb4wu8w'),
+  'component_$_segment_1_1lv57vrb4wu8w'
+);
 
 export const component_q_e_click_segment_0_2xwyg1cinvmpz = () => {
   const count = _captures[0];
-  return _withCaptures(component_$_segment_1_1lv57vrb4wu8w, [count]);
+  return q_component_$_segment_1_1lv57vrb4wu8w.w([count]);
 };
 /*
 {

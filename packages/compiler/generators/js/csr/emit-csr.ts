@@ -15,7 +15,7 @@ import {
   TargetImportResolver,
 } from '../../../src/emit-qrl';
 import { emitFunctionRenders } from '../../../src/emit-function';
-import { getSegmentImportPath } from '../shared/emit-segment';
+import { getSegmentImportPath, hoistLazyQrlReference } from '../shared/emit-segment';
 import {
   planCsr,
   planCsrRenderFunction,
@@ -127,13 +127,25 @@ export function emitCsrModule(
       replacements.push({ range: segment.range, value: replacement });
       continue;
     }
-    if (segment.stripped !== true) {
+    // explicit $() module values keep their v2 qrl identity: lazy chunk, no eager import
+    const isExplicitQrlValue = segment.stripped !== true && segment.qrl?.kind === 'explicit';
+    if (segment.stripped !== true && !isExplicitQrlValue) {
       directSegmentIds.add(segment.id);
     }
+    const reference = isExplicitQrlValue
+      ? hoistLazyQrlReference(
+          segment,
+          segment.captures.map((capture) => capture.name),
+          inputPath,
+          explicitExtensions,
+          imports,
+          hoists
+        )
+      : emitQrlFunctionReference(segment, imports);
     if (
       !appendCsrQrlReplacements(
         segment,
-        emitQrlFunctionReference(segment, imports),
+        reference,
         qrlImports,
         localImplementationSource,
         replacements,
@@ -1443,7 +1455,18 @@ function emitCsrSetup(
       if (segment === undefined) {
         return null;
       }
-      const reference = emitQrlFunctionReference(segment, imports);
+      // explicit $() values escape into user space and keep their v2 qrl identity
+      const reference =
+        segment.stripped !== true && segment.qrl?.kind === 'explicit'
+          ? hoistLazyQrlReference(
+              segment,
+              segment.captures.map((capture) => capture.name),
+              inputPath,
+              explicitExtensions,
+              imports,
+              hoists
+            )
+          : emitQrlFunctionReference(segment, imports);
       if (
         !appendCsrQrlReplacements(
           segment,
@@ -1721,7 +1744,7 @@ function emitValue(value: CsrValuePlan, context?: CsrEmitContext): string {
     if (segment === undefined) {
       return `(${value.expression})`;
     }
-    const reference = emitFunctionReference(boundary, context.imports);
+    const reference = emitPlannedFunctionReference(boundary, context);
     if (
       !appendCsrQrlReplacements(
         segment,
@@ -1771,7 +1794,7 @@ function emitValue(value: CsrValuePlan, context?: CsrEmitContext): string {
 
 function emitEventValue(value: CsrValuePlan, context: CsrEmitContext): string {
   return value.kind === 'segment'
-    ? emitFunctionReference(value.reference, context.imports)
+    ? emitPlannedFunctionReference(value.reference, context)
     : emitValue(value, context);
 }
 

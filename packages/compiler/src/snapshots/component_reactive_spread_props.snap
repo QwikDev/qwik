@@ -442,8 +442,12 @@ export const component_componentProps_segment_2_1y124uvjbur0a = () => {
 */
 ============================= src/component.tsx_component_componentProps_segment_3_1y1258wn8ot0t.js (ENTRY POINT)==
 
-import { _withCaptures, _captures } from '@qwik.dev/core';
-import { component_q_e_click_segment_4_2xwyeh830jenv } from './component.tsx_component_q_e_click_segment_4_2xwyeh830jenv';
+import { _qrlWithChunk, _captures } from '@qwik.dev/core';
+const q_component_q_e_click_segment_4_2xwyeh830jenv = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_q_e_click_segment_4_2xwyeh830jenv',
+  () => import('./component.tsx_component_q_e_click_segment_4_2xwyeh830jenv'),
+  'component_q_e_click_segment_4_2xwyeh830jenv'
+);
 
 export const component_componentProps_segment_3_1y1258wn8ot0t = () => {
   const attributes = _captures[0],
@@ -453,7 +457,7 @@ export const component_componentProps_segment_3_1y1258wn8ot0t = () => {
     ...attributes.value,
     count: count.value,
     title: 'after',
-    onClick$: _withCaptures(component_q_e_click_segment_4_2xwyeh830jenv, [count]),
+    onClick$: q_component_q_e_click_segment_4_2xwyeh830jenv.w([count]),
   };
 };
 /*

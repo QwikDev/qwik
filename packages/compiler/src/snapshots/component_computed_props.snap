@@ -387,7 +387,7 @@ import {
   readTrackedSourceValue,
   _props,
   maybeThen,
-  _withCaptures,
+  _qrlWithChunk,
   createCollection,
   createTemplate,
 } from '@qwik.dev/core';
@@ -395,10 +395,18 @@ import { Child, IMPORTED } from './child';
 import { component_active_segment_2_2hs32stx99tk3 } from './component.tsx_component_active_segment_2_2hs32stx99tk3';
 import { component_label_segment_3_871s51a2ly5o } from './component.tsx_component_label_segment_3_871s51a2ly5o';
 import { component_initial_segment_4_3ga3f7w1o8xxv } from './component.tsx_component_initial_segment_4_3ga3f7w1o8xxv';
-import { component_$_segment_7_1lv5a7xylx6c2 } from './component.tsx_component_$_segment_7_1lv5a7xylx6c2';
-import { component_q_e_pick_segment_8_8323mpce5pk2 } from './component.tsx_component_q_e_pick_segment_8_8323mpce5pk2';
 import { component_active_segment_12_1kya7ncf5yzsc } from './component.tsx_component_active_segment_12_1kya7ncf5yzsc';
 
+const q_component_$_segment_7_1lv5a7xylx6c2 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_$_segment_7_1lv5a7xylx6c2',
+  () => import('./component.tsx_component_$_segment_7_1lv5a7xylx6c2'),
+  'component_$_segment_7_1lv5a7xylx6c2'
+);
+const q_component_q_e_pick_segment_8_8323mpce5pk2 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_q_e_pick_segment_8_8323mpce5pk2',
+  () => import('./component.tsx_component_q_e_pick_segment_8_8323mpce5pk2'),
+  'component_q_e_pick_segment_8_8323mpce5pk2'
+);
 const App_tmpl0 = createTemplate(
   '<main><!----><!----><!----><!----><!----><!----><!----><!----><!----><!----></main>'
 );
@@ -489,9 +497,9 @@ export function App(props, ctx) {
       createComponent(
         {
           get qrl() {
-            return _withCaptures(component_$_segment_7_1lv5a7xylx6c2, [selected]);
+            return q_component_$_segment_7_1lv5a7xylx6c2.w([selected]);
           },
-          onPick$: _withCaptures(component_q_e_pick_segment_8_8323mpce5pk2, [selected]),
+          onPick$: q_component_q_e_pick_segment_8_8323mpce5pk2.w([selected]),
         },
         (props) => Child(props, ctx)
       ),

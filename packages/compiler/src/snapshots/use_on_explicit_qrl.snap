@@ -132,19 +132,26 @@ import {
   useOn,
   useOnDocument,
   useSignal,
-  _withCaptures,
+  _qrlWithChunk,
   _first,
   createTextNodeEffect,
   createTemplate,
 } from '@qwik.dev/core';
-import { component_$_segment_0_1lv589sf1qw9f } from './component.tsx_component_$_segment_0_1lv589sf1qw9f';
-import { component_$_segment_1_1lv57vrb4wu8w } from './component.tsx_component_$_segment_1_1lv57vrb4wu8w';
-
+const q_component_$_segment_0_1lv589sf1qw9f = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_$_segment_0_1lv589sf1qw9f',
+  () => import('./component.tsx_component_$_segment_0_1lv589sf1qw9f'),
+  'component_$_segment_0_1lv589sf1qw9f'
+);
+const q_component_$_segment_1_1lv57vrb4wu8w = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_$_segment_1_1lv57vrb4wu8w',
+  () => import('./component.tsx_component_$_segment_1_1lv57vrb4wu8w'),
+  'component_$_segment_1_1lv57vrb4wu8w'
+);
 const App_tmpl0 = createTemplate('<button> </button>');
 export function App(props, ctx) {
   const count = useSignal(0);
-  useOn('click', _withCaptures(component_$_segment_0_1lv589sf1qw9f, [count]));
-  useOnDocument('qinit', _withCaptures(component_$_segment_1_1lv57vrb4wu8w, [count]), {
+  useOn('click', q_component_$_segment_0_1lv589sf1qw9f.w([count]));
+  useOnDocument('qinit', q_component_$_segment_1_1lv57vrb4wu8w.w([count]), {
     capture: true,
     preventdefault: true,
   });

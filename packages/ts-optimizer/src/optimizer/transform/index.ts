@@ -834,6 +834,18 @@ function attributeSegmentUsage(
   for (const d of moduleLevelDecls) {
     moduleLevelDeclsByName.set(d.name, d);
   }
+
+  // With zero extractions nothing became dead, and the gather walk skipped
+  // usage classification (rootUsage is empty) — deciding migrations here
+  // would drop every non-exported decl as "unreferenced".
+  if (extractions.length === 0) {
+    return {
+      moduleLevelDecls,
+      moduleLevelDeclsByName,
+      segmentUsage: analysis.segmentUsage,
+      migrationDecisions: [],
+    };
+  }
   // Module-level refs inside an `inlinedQrl` body still need migration
   // attribution: explicit captures cover only closure variables, so
   // body-referenced module decls arrive via the Phase-2 usage maps, not

@@ -61,6 +61,8 @@ export interface RewriteContext {
   jsxCallSkipKeyBases?: Map<number, number>;
   /** Inline-strategy reservation of extracted-body key ranges. */
   jsxKeyReservations?: import('../jsx/jsx.js').JsxKeyReservations;
+  /** Unified per-element q:ps arrays keyed by handler symbol (slot order). */
+  elementQpParamsMap?: ReadonlyMap<string, string[]>;
   isDevMode: boolean;
   isInline: boolean;
   isLibMode: boolean;

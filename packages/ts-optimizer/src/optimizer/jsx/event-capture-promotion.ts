@@ -732,7 +732,9 @@ export function buildElementCaptureMap(
           }
         }
       }
-      sortByGlobalDeclPosition(allCaps, globalDeclPositions);
+      // Same sort as unifyParameterSlots: the client build assigns handler
+      // param slots with it, and the serialized q:ps must line up.
+      sortQpNamesForGroup(allCaps, group, extractionLoopMap, globalDeclPositions);
       for (const h of group) {
         // Don't overwrite an entry already populated by the loop pass.
         if (!elementQpParamsMap.has(h.symbolName)) {

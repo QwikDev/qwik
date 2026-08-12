@@ -83,7 +83,9 @@ export function transformInlineSegmentBody(
    * the JSX hoister (which gets reordered) so emitted `_hf<n>` refs stay aligned with their
    * declarations.
    */
-  jsxCallHoister?: SignalHoister
+  jsxCallHoister?: SignalHoister,
+  /** Unified per-element q:ps arrays (slot order) — overrides per-child capture order. */
+  elementQpParamsMap?: ReadonlyMap<string, string[]>
 ): {
   transformedBody: string;
   additionalImports: Map<string, string>;
@@ -421,7 +423,10 @@ export function transformInlineSegmentBody(
         const qrlParamMap = new Map<string, string[]>();
         for (const child of nested) {
           if (child.ctxKind !== 'eventHandler') continue;
-          const captureParams = eventHandlerQpParams(child.paramNames);
+          // The unified element array carries the client build's slot order;
+          // per-child capture order would scramble multi-handler elements.
+          const unified = elementQpParamsMap?.get(child.symbolName);
+          const captureParams = unified ? [...unified] : eventHandlerQpParams(child.paramNames);
           if (captureParams.length === 0) continue;
           const childVarName = qrlVarNames.get(child.symbolName) ?? `q_${child.symbolName}`;
           const consolidated = qpValues(captureParams);
@@ -442,7 +447,10 @@ export function transformInlineSegmentBody(
             if (!isStripped) continue;
             const childVarName = qrlVarNames.get(child.symbolName) ?? `q_${child.symbolName}`;
             if (qrlParamMap.has(childVarName)) continue;
-            const consolidated = qpValues([...child.captureNames]);
+            // The unified element array carries the client build's slot order;
+            // per-child capture order would scramble multi-handler elements.
+            const unified = elementQpParamsMap?.get(child.symbolName);
+            const consolidated = qpValues(unified ? [...unified] : [...child.captureNames]);
             qrlParamMap.set(childVarName, consolidated);
             qrlParamMap.set(child.symbolName, consolidated);
           }

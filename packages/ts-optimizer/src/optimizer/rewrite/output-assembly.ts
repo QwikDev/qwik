@@ -537,7 +537,8 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
       inlineOptions?.stripEventHandlers,
       ctx.isServer,
       deriveIsDev(ctx.mode),
-      sharedJsxCallHoister
+      sharedJsxCallHoister,
+      ctx.elementQpParamsMap
     );
 
     let sigRewrittenBody = rawBody;

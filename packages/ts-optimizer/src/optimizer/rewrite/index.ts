@@ -157,7 +157,8 @@ export function rewriteParentModule(
   existingProgram?: AstProgram,
   closureNodes?: Map<string, AstFunction>,
   userDevPath?: string,
-  hasForeignJsxRuntime?: boolean
+  hasForeignJsxRuntime?: boolean,
+  elementQpParamsMap?: ReadonlyMap<string, string[]>
 ): ParentRewriteResult {
   const s = new MagicString(source);
   const program =
@@ -173,6 +174,7 @@ export function rewriteParentModule(
     originalImports,
     migrationDecisions,
     moduleLevelDecls,
+    elementQpParamsMap,
     jsxOptions,
     mode,
     devFilePath,

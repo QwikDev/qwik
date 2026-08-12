@@ -1125,7 +1125,8 @@ function rewriteParent(
     program,
     closureNodes,
     input.devPath,
-    hasForeignJsxRuntime
+    hasForeignJsxRuntime,
+    analysis.elementQpParamsMap
   );
 
   let foldedParentCode = parentResult.code;

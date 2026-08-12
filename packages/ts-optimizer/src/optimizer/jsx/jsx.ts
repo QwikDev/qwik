@@ -849,6 +849,8 @@ export function transformAllJsx(
   const prefix = relPath ? computeKeyPrefix(relPath) : 'u6';
   const keyCounter = new JsxKeyCounter(keyCounterStart ?? 0, prefix);
   const signalHoister = sharedSignalHoister ?? new SignalHoister();
+  // Earlier bodies' hoists are frozen text; renumbering must not touch them.
+  const hoistStartIndex = signalHoister.hoistedFunctions.length;
   const neededImports = new Set<string>();
   let needsFragment = false;
   const ranges = buildSkipRangeIndex(skipRanges ?? []);
@@ -983,7 +985,7 @@ export function transformAllJsx(
     },
   });
 
-  const renameMap = signalHoister.buildRenameMap();
+  const renameMap = signalHoister.buildRenameMap(hoistStartIndex);
   if (renameMap && renameMap.size > 0) {
     applySignalHoistRenames(s, renameMap, jsxWrites);
   }

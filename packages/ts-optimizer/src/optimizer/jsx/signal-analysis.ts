@@ -942,14 +942,17 @@ export class SignalHoister {
    * callback), so emitted `_hf` numbers must be remapped to top-down source order. Returns null if
    * already in order.
    */
-  buildRenameMap(): Map<string, string> | null {
-    if (this.hoistedFunctions.length <= 1) return null;
+  buildRenameMap(startIndex = 0): Map<string, string> | null {
+    // Only functions added since `startIndex` may be renamed: earlier entries
+    // belong to bodies whose text is already frozen (shared hoister).
+    const slice = this.hoistedFunctions.slice(startIndex);
+    if (slice.length <= 1) return null;
 
-    const sorted = [...this.hoistedFunctions].sort((a, b) => a.sourcePos - b.sourcePos);
+    const sorted = [...slice].sort((a, b) => a.sourcePos - b.sourcePos);
 
     let needsRename = false;
     for (let i = 0; i < sorted.length; i++) {
-      if (sorted[i].name !== `_hf${this.base + i}`) {
+      if (sorted[i].name !== `_hf${this.base + startIndex + i}`) {
         needsRename = true;
         break;
       }
@@ -959,16 +962,20 @@ export class SignalHoister {
     const renameMap = new Map<string, string>();
     for (let i = 0; i < sorted.length; i++) {
       const oldName = sorted[i].name;
-      const newName = `_hf${this.base + i}`;
+      const newName = `_hf${this.base + startIndex + i}`;
       if (oldName !== newName) {
         renameMap.set(oldName, newName);
       }
     }
 
-    this.hoistedFunctions = sorted.map((h, i) => ({
+    const renamed = sorted.map((h, i) => ({
       ...h,
-      name: `_hf${this.base + i}`,
+      name: `_hf${this.base + startIndex + i}`,
     }));
+    this.hoistedFunctions = [...this.hoistedFunctions.slice(0, startIndex), ...renamed];
+    for (const h of renamed) {
+      this.dedupMap.set(h.fn, h.name);
+    }
 
     return renameMap;
   }

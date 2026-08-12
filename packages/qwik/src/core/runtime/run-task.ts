@@ -1,6 +1,7 @@
 import { cleanupDeps } from '../reactive/cleanup';
 import { SubscriberFlags } from '../reactive/flags';
 import { runWithCollector } from '../reactive/tracking';
+import { invoke, newInvokeContext } from './invoke-context';
 import { getFunctionOrResolve } from '../utils/qrl';
 import { isPromise, maybeThen } from '../shared/utils/promises';
 import type { ValueOrPromise } from '../shared/utils/types';
@@ -19,6 +20,10 @@ export function runTaskSubscriber(
   }
 
   const task = subscriber.task;
+  // a resumed task carries no creation context, so its container makes a minimal one
+  const invokeContext =
+    task.invokeContext ??
+    (task.container === undefined ? null : newInvokeContext({ container: task.container }));
   let result: ValueOrPromise<void>;
   try {
     result = maybeThen(runTaskCleanups(task), () => {
@@ -26,11 +31,13 @@ export function runTaskSubscriber(
       return maybeThen(task.runFn ?? getFunctionOrResolve(task.qrl!, task.container), (run) =>
         maybeThen(
           runWithCollector(subscriber, () =>
-            run({
-              cleanup(callback) {
-                addCleanup(task, callback);
-              },
-            })
+            invoke(invokeContext, () =>
+              run({
+                cleanup(callback) {
+                  addCleanup(task, callback);
+                },
+              })
+            )
           ),
           (cleanup) => {
             if (typeof cleanup === 'function') {

@@ -18,6 +18,7 @@ import {
 } from './subscriber';
 import type { Source } from '../reactive/source';
 import type { ContainerContext } from './container-context';
+import type { RuntimeInvokeContext } from './invoke-context';
 import type { Owner } from './owner';
 
 export type TaskCleanupFn = () => ValueOrPromise<void>;
@@ -52,7 +53,8 @@ abstract class RunnableTaskRecord {
   constructor(
     readonly runFn: TaskFn | undefined,
     readonly qrl?: TaskQrlRef,
-    readonly container?: ContainerContext
+    readonly container?: ContainerContext,
+    readonly invokeContext: RuntimeInvokeContext | null = null
   ) {}
 
   dispose(): ValueOrPromise<void> {
@@ -65,9 +67,10 @@ export class Task extends RunnableTaskRecord {
     runFn: TaskFn | undefined,
     readonly phase: Phase.BlockingTask | Phase.DeferredTask,
     qrl?: TaskQrlRef,
-    container?: ContainerContext
+    container?: ContainerContext,
+    invokeContext: RuntimeInvokeContext | null = null
   ) {
-    super(runFn, qrl, container);
+    super(runFn, qrl, container, invokeContext);
   }
 }
 
@@ -126,7 +129,8 @@ export function useTask(run: TaskFn, options?: TaskOptions): TaskSubscriber {
         run,
         options?.deferUpdates === false ? Phase.DeferredTask : Phase.BlockingTask,
         undefined,
-        container
+        container,
+        invokeContext
       ),
       scheduler
     )
@@ -145,7 +149,8 @@ export function useTask(run: TaskFn, options?: TaskOptions): TaskSubscriber {
 }
 
 export function useTaskQrl(qrl: TaskQrlRef, options?: TaskOptions): TaskSubscriber {
-  const container = getActiveInvokeContextOrNull()?.container;
+  const invokeContext = getActiveInvokeContextOrNull();
+  const container = invokeContext?.container;
   const scheduler = container?.scheduler ?? defaultScheduler;
   const subscriber = registerSubscriberToOwner(
     new TaskSubscription(
@@ -153,7 +158,8 @@ export function useTaskQrl(qrl: TaskQrlRef, options?: TaskOptions): TaskSubscrib
         undefined,
         options?.deferUpdates === false ? Phase.DeferredTask : Phase.BlockingTask,
         qrl,
-        container
+        container,
+        invokeContext
       ),
       scheduler
     )
@@ -169,10 +175,14 @@ export const useTask$ = implicit$FirstArg(useTaskQrl) as (
 ) => void;
 
 export function useVisibleTask(run: TaskFn, options?: VisibleTaskOptions): VisibleTaskSubscriber {
-  const container = getActiveInvokeContextOrNull()?.container;
+  const invokeContext = getActiveInvokeContextOrNull();
+  const container = invokeContext?.container;
   const scheduler = container?.scheduler ?? defaultScheduler;
   const subscriber = registerSubscriberToOwner(
-    new VisibleTaskSubscription(new VisibleTask(run, undefined, container), scheduler)
+    new VisibleTaskSubscription(
+      new VisibleTask(run, undefined, container, invokeContext),
+      scheduler
+    )
   );
   subscriber.scheduler.notify(subscriber);
   return subscriber;
@@ -182,10 +192,14 @@ export function useVisibleTaskQrl(
   qrl: TaskQrlRef,
   options?: VisibleTaskOptions
 ): VisibleTaskSubscriber {
-  const container = getActiveInvokeContextOrNull()?.container;
+  const invokeContext = getActiveInvokeContextOrNull();
+  const container = invokeContext?.container;
   const scheduler = container?.scheduler ?? defaultScheduler;
   const subscriber = registerSubscriberToOwner(
-    new VisibleTaskSubscription(new VisibleTask(undefined, qrl, container), scheduler)
+    new VisibleTaskSubscription(
+      new VisibleTask(undefined, qrl, container, invokeContext),
+      scheduler
+    )
   );
   subscriber.scheduler.notify(subscriber);
   return subscriber;

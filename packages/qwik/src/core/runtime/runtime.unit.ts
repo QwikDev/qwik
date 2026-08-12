@@ -51,6 +51,41 @@ import {
 import type { ContainerContext } from './container-context';
 
 describe('runtime scheduler and owner lifecycle', () => {
+  it('runs scheduled tasks under their creation invoke context', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const container = createCaptureContainer({}, scheduler);
+    const context = newInvokeContext({ owner: createOwner(null), container });
+    let seen: unknown = 'unset';
+    const qrl = createQRL('chunk', 'task', () => {
+      seen = getActiveInvokeContextOrNull()?.container;
+    });
+
+    invoke(context, () => runWithOwner(createOwner(null), () => useTaskQrl(qrl)));
+    await scheduler.flushInteraction();
+
+    expect(seen).toBe(container);
+  });
+
+  it('runs resumed tasks under a context carrying their container', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const container = createCaptureContainer({}, scheduler);
+    let seen: unknown = 'unset';
+    const qrl = createQRL('chunk', 'task', () => {
+      seen = getActiveInvokeContextOrNull()?.container;
+    });
+    // the deserialized shape: qrl + container, no stored invoke context
+    const subscriber = runWithOwner(createOwner(null), () =>
+      registerSubscriberToOwner(
+        new TaskSubscription(new Task(undefined, Phase.BlockingTask, qrl, container), scheduler)
+      )
+    ) as TaskSubscriber;
+    subscriber.flags |= SubscriberFlags.Dirty;
+
+    await runTaskSubscriber(subscriber);
+
+    expect(seen).toBe(container);
+  });
+
   it('chains initial tasks on the active invoke context', async () => {
     const scheduler = new Scheduler(noopSchedule);
     const context = newInvokeContext({

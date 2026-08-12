@@ -107,6 +107,7 @@ export function transformInlineSegmentBody(
   if (nested.length > 0) {
     const bodyOffset = ext.argStart;
     const sortedNested = [...nested].sort((a, b) => b.callStart - a.callStart);
+    const strippedLoopWDecls: Array<{ decl: string; symbolName: string }> = [];
 
     for (const child of sortedNested) {
       const childVarName = qrlVarNames.get(child.symbolName) ?? `q_${child.symbolName}`;
@@ -144,11 +145,23 @@ export function transformInlineSegmentBody(
             child.captureNames.length > 0 &&
             hasUnderscorePlaceholderParams(child.paramNames, child.movedCaptures);
 
-          // Stripped child segments emit `= null` bodies that cannot consume
-          // captures, so skip the `.w([…])` wrap and emit the bare `q_X` ref.
+          // Stripped child segments emit `= null` bodies; their captures reach
+          // the client positionally via the element's `q:p` prop instead of
+          // `.w([…])` — except when the positional slots carry promoted loop
+          // params, where the remaining lexical captures still need `.w()` via
+          // a component-scope binding (the attr value must stay an identifier
+          // for the `q:p` walk).
           const childIsStripped = isStrippedExtraction(child, stripCtxName, stripEventHandlers);
+          const promotedParams = childIsStripped ? eventHandlerQpParams(child.paramNames) : [];
 
-          if (hasLoopCrossCaptures && !childIsStripped) {
+          if (childIsStripped && promotedParams.length > 0 && child.captureNames.length > 0) {
+            const wCall = formatWCall(childVarName, child.captureNames, '            ', '        ');
+            strippedLoopWDecls.push({
+              decl: `const ${child.symbolName} = ${wCall};`,
+              symbolName: child.symbolName,
+            });
+            qrlRef = child.symbolName;
+          } else if (hasLoopCrossCaptures && !childIsStripped) {
             const hoistedName = child.symbolName;
             const wCall = formatWCall(childVarName, child.captureNames, '            ', '        ');
             hoistedDeclarations.push(`const ${hoistedName} = ${wCall};`);
@@ -196,6 +209,41 @@ export function transformInlineSegmentBody(
             replacement += wCallSuffix(childCaptureItems, '        ', '    ');
           }
           body = body.slice(0, relCallStart) + replacement + body.slice(relCallEnd);
+        }
+      }
+    }
+
+    // Component-scope `.w([…])` bindings for stripped loop handlers, placed
+    // before the top-level statement that references them so their captures
+    // (declared earlier in the body) are in scope. Statement boundaries come
+    // from a parse — text scanning breaks on `;` inside type annotations.
+    if (strippedLoopWDecls.length > 0) {
+      const wrapperPrefixText = 'const __w__ = ';
+      const wrapped = wrapperPrefixText + body + ';';
+      const parsed = parseSync('__w__.tsx', wrapped, RAW_TRANSFER_PARSER_OPTIONS);
+      const init = parsed.program?.body?.[0];
+      const arrow = init?.type === 'VariableDeclaration' ? init.declarations?.[0]?.init : undefined;
+      const block =
+        arrow &&
+        (arrow.type === 'ArrowFunctionExpression' || arrow.type === 'FunctionExpression') &&
+        arrow.body?.type === 'BlockStatement'
+          ? arrow.body
+          : null;
+      if (block) {
+        const inserts: Array<{ at: number; decl: string }> = [];
+        for (const { decl, symbolName } of strippedLoopWDecls) {
+          const usePos = body.indexOf(symbolName);
+          if (usePos < 0) continue;
+          const stmt = block.body.find(
+            (st) =>
+              st.start - wrapperPrefixText.length <= usePos &&
+              usePos < st.end - wrapperPrefixText.length
+          );
+          if (stmt) inserts.push({ at: stmt.start - wrapperPrefixText.length, decl });
+        }
+        inserts.sort((a, b) => b.at - a.at);
+        for (const { at, decl } of inserts) {
+          body = body.slice(0, at) + `${decl}\n        ` + body.slice(at);
         }
       }
     }

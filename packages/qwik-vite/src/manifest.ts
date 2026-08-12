@@ -183,6 +183,12 @@ function updateSortAndPriorities(manifest: QwikManifest) {
     prioritizedSymbols[symbolName] = manifest.symbols[symbolName];
     prioritizedMapping[symbolName] = manifest.mapping[symbolName];
   }
+  // precompiled library segments map without symbol metadata — keep their entries
+  for (const symbolName of Object.keys(manifest.mapping)) {
+    if (prioritizedMapping[symbolName] === undefined) {
+      prioritizedMapping[symbolName] = manifest.mapping[symbolName];
+    }
+  }
 
   const sortedBundleNames = sortBundleNames(manifest);
   const sortedBundles: { [fileName: string]: QwikBundle } = {};
@@ -397,6 +403,9 @@ const preloaderRegex = /[/\\](core|qwik)[/\\]dist[/\\]preloader\.(|c|m)js$/;
 const coreRegex = /[/\\](core|qwik)[/\\]dist[/\\]core(\.min|\.prod)?\.(|c|m)js$/;
 const handlersRegex = /[/\\](core|qwik)[/\\]handlers\.mjs$/;
 const qwikLoaderRegex = /[/\\](core|qwik)[/\\](dist[/\\])?qwikloader(\.debug)?\.[^/]*js$/;
+/** Compiler segment symbol grammar: `<display>_segment_<n>_<hash>`. */
+const LIBRARY_SEGMENT_SYMBOL = /_segment_\d+_[a-z0-9]{8,}$/;
+
 /**
  * Generates the Qwik build manifest from the Rollup output bundles. It also figures out the bundle
  * files for the preloader, core, qwikloader and handlers. This information is used during SSR.
@@ -500,7 +509,8 @@ export function generateManifestFromBundles(
     };
 
     for (const symbol of outputBundle.exports) {
-      if (qrlNames.has(symbol)) {
+      // precompiled library segments are not in `segments`, but their chunks export them
+      if (qrlNames.has(symbol) || LIBRARY_SEGMENT_SYMBOL.test(symbol)) {
         // When not minifying we see both the entry and the segment file
         // The segment file will only have 1 export, we want the entry
         if (!manifest.mapping[symbol] || outputBundle.exports.length !== 1) {

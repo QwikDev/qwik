@@ -18,6 +18,7 @@ import {
   type RangeReplacementCollector,
 } from '../edit/range-replace.js';
 import { quoteAsStringLiteral } from '../edit/string-literal.js';
+import { stripExpressionTypes } from '../edit/strip-types.js';
 import { addBindingNamesFromPatternToSet } from '../ast/binding-pattern.js';
 
 const trailingComma = createRegExp(exactly(',').and(anyOf('}', ']', ')').grouped()), [global]);
@@ -383,11 +384,11 @@ function generateFnSignal(
     lambdaBodySimplificationsCollector(),
   ]);
 
-  const strFnBody = applyReplacements(exprText, replacements);
+  const strFnBody = stripExpressionTypes(applyReplacements(exprText, replacements));
 
   const lambdaFnBody =
     simplifications.length > 0
-      ? applyReplacements(exprText, [...replacements, ...simplifications])
+      ? stripExpressionTypes(applyReplacements(exprText, [...replacements, ...simplifications]))
       : strFnBody;
 
   const params = roots.map((_, i) => `p${i}`).join(',');

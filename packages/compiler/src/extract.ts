@@ -1171,7 +1171,8 @@ class QrlExtractor {
       return null;
     }
     const boundary: QrlBoundaryPlan =
-      qwik && name === QwikHooks.Dollar
+      // eventQrl is identity, so event$ is just $ with a different name
+      qwik && (name === QwikHooks.Dollar || name === QwikHooks.EventDollar)
         ? { kind: 'explicit', markerBindingId: binding.id }
         : qwik && name === QwikHooks.SyncDollar
           ? { kind: 'sync', markerBindingId: binding.id, source: imported.source }

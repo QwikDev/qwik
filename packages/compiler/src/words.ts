@@ -123,6 +123,7 @@ export const enum QwikAttributes {
 
 export const enum QwikHooks {
   Dollar = '$',
+  EventDollar = 'event$',
   SyncDollar = 'sync$',
   ComponentDollar = 'component$',
   NativeDollar = 'native$',

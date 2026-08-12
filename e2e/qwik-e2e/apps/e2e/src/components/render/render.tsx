@@ -1,7 +1,7 @@
 import {
   component$,
   createContextId,
-  // event$,
+  event$,
   // isServer,
   jsx,
   // SkipRender,
@@ -86,8 +86,7 @@ export const RenderChildren = component$<{ v: number }>(({ v }) => {
       <ArrayItemsDisplayOrderIssue2414 />
       <ProxyOwnKeysSymbolIssue3178 />
       <DynamicElementTagSetPropertyIssue3398 />
-      {/* Compiler emits a missing runtime `event` export for `event$` on CSR. */}
-      {/* <ClickHandlersExecutedMultipleTimesIssue3479 /> */}
+      <ClickHandlersExecutedMultipleTimesIssue3479 />
       <SpreadReplacesExistingPropsIssue3481 />
       <ReactImportKeySpreadLoopIssue3468 />
       {/* useStore in non-linear setup (IIFE argument) is unsupported in v3. */}
@@ -532,7 +531,6 @@ export const DynamicElementTagSetPropertyIssue3398 = component$(() => {
   );
 });
 
-/* Compiler emits a missing runtime `event` export for `event$` on CSR.
 export const ClickHandlersExecutedMultipleTimesIssue3479 = component$(() => {
   const count = useSignal(0);
   const attributes = {
@@ -548,7 +546,6 @@ export const ClickHandlersExecutedMultipleTimesIssue3479 = component$(() => {
     </div>
   );
 });
-*/
 
 export const SpreadReplacesExistingPropsIssue3481 = component$(() => {
   useStylesScoped$(`

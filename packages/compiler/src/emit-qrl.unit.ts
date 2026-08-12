@@ -1408,6 +1408,31 @@ export const App = component$(() => {
   });
 });
 
+describe('event$ boundaries', () => {
+  test('event$ lowers like $: a plain qrl value on both targets', async () => {
+    const input = {
+      path: 'src/event-qrl.tsx',
+      code: `import { component$, event$, useSignal } from '@qwik.dev/core';
+export const App = component$(() => {
+  const count = useSignal(0);
+  const attributes = {
+    onClick$: event$(() => count.value++),
+  };
+  return <button {...attributes}>Increment</button>;
+});
+`,
+    };
+    for (const isServer of [true, false]) {
+      const result = await transformModules(options(input, isServer));
+      expect(result.diagnostics).toEqual([]);
+      const all = result.modules.map((module) => module.code).join('\n');
+      // eventQrl is identity, so the boundary is just a qrl — no `event` runtime callee
+      expect(all, `isServer ${isServer}`).not.toMatch(/\bevent\(/);
+      expect(all, `isServer ${isServer}`).toMatch(/q_\w+_event\$_segment_\d+_\w+\.w\(\[count\]\)/);
+    }
+  });
+});
+
 describe('regCtxName symbol registration', () => {
   test('server boundaries register their implementation by hash on ssr', async () => {
     const input = {

@@ -608,7 +608,10 @@ function sortQpNamesForGroup(
   if (anyInLoop) {
     sortByGlobalDeclPosition(names, globalDeclPositions);
   } else {
-    names.sort((a, b) => a.localeCompare(b));
+    // Code-unit sort — the same comparator the promotion's capture sorts use;
+    // localeCompare orders case-divergent names (colorSignal vs colors)
+    // differently and would desync q:ps from the client's param slots.
+    names.sort();
   }
 }
 

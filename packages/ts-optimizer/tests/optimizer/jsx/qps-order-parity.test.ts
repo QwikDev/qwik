@@ -28,6 +28,21 @@ export const MouseEvents = component$(() => {
     </div>
   );
 });
+export const CaseSort = component$(() => {
+  const colors = useStore({ n: 0 });
+  const colorSignal = useStore({ v: 'black' });
+  return (
+    <button
+      id="case-sort"
+      onClick$={() => {
+        colors.n++;
+        colorSignal.v = String(colors.n);
+      }}
+    >
+      go
+    </button>
+  );
+});
 `;
 
 it('SSR q:ps order matches client handler param slots', () => {
@@ -52,21 +67,31 @@ it('SSR q:ps order matches client handler param slots', () => {
   });
 
   const ssrCode = ssr.modules.map((m) => m.code).join('\n');
-  const qpsMatch = ssrCode.match(/"q:ps": \[([^\]]+)\]/);
-  expect(qpsMatch, 'SSR q:ps present').toBeTruthy();
-  const ssrOrder = qpsMatch![1].split(',').map((s) => s.trim());
+  const qpsArrays = [...ssrCode.matchAll(/"q:ps": \[([^\]]+)\]/g)].map((m) =>
+    m[1].split(',').map((s) => s.trim())
+  );
+  expect(qpsArrays.length, 'SSR q:ps present').toBe(2);
 
-  // Slot index per store from the client segments' param lists.
-  const slotOf = new Map<string, number>();
+  // Slot index per capture from the client segments' param lists.
+  const slots = new Map<string, Map<string, number>>();
   for (const m of client.modules) {
     const fn = m.code.match(/= \(([^)]*)\) => \{/);
     if (!fn) continue;
     const params = fn[1].split(',').map((s) => s.trim());
     for (let i = 2; i < params.length; i++) {
-      if (params[i].startsWith('mouse')) slotOf.set(params[i], i - 2);
+      if (/^(mouse|color)/.test(params[i])) {
+        const group = params[i].startsWith('mouse') ? 'mouse' : 'color';
+        let map = slots.get(group);
+        if (!map) slots.set(group, (map = new Map()));
+        const prev = map.get(params[i]);
+        if (prev !== undefined) expect(prev, `slot for ${params[i]}`).toBe(i - 2);
+        map.set(params[i], i - 2);
+      }
     }
   }
-  expect(slotOf.size).toBe(3);
-  const clientOrder = [...slotOf.entries()].sort((a, b) => a[1] - b[1]).map(([n]) => n);
-  expect(ssrOrder).toEqual(clientOrder);
+  for (const [group, map] of slots) {
+    const clientOrder = [...map.entries()].sort((a, b) => a[1] - b[1]).map(([n]) => n);
+    const ssrOrder = qpsArrays.find((arr) => arr[0].startsWith(group));
+    expect(ssrOrder, `q:ps for ${group} group`).toEqual(clientOrder);
+  }
 });

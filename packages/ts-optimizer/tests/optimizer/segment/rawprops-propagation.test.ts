@@ -117,7 +117,10 @@ export const Panel = component$(({ showAll }: any) => {
       expect(withQp, 'expected a module emitting a q:p prop').toBeTruthy();
       const code = withQp!.code;
 
-      expect(code, 'q:p value reaches the field via _rawProps').toContain(
+      // The slot carries the whole props proxy — a field read would serialize
+      // the naked value and lose the proxy identity on resume (rust parity).
+      expect(code, 'q:p value is the whole props proxy').toContain('"q:p": _rawProps');
+      expect(code, 'q:p must not read the field off the proxy').not.toContain(
         '"q:p": _rawProps.showAll'
       );
       expect(code, 'bare destructured name must not leak into the parent scope').not.toMatch(

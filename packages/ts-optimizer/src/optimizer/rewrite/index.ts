@@ -498,7 +498,9 @@ function preConsolidateRawPropsCaptures(ctx: RewriteContext): void {
   if (!ctx.inlineOptions?.inline) return;
 
   for (const ext of ctx.extractions) {
-    if (ext.parent === null || ext.captureNames.length === 0) continue;
+    if (ext.parent === null) continue;
+    const hasPromotedParams = ext.captureNames.length === 0 && ext.paramNames.length > 2;
+    if (ext.captureNames.length === 0 && !hasPromotedParams) continue;
 
     const parentExt = ctx.extractions.find((e) => e.symbolName === ext.parent);
     if (!parentExt) continue;
@@ -514,17 +516,35 @@ function preConsolidateRawPropsCaptures(ctx: RewriteContext): void {
     let hasPropsFields = false;
     const propsFieldCaptures = new Map<string, string>();
     const propsFieldDefaults = new Map<string, string>();
+    const collectField = (name: string): boolean => {
+      if (!fieldMap.has(name)) return false;
+      hasPropsFields = true;
+      propsFieldCaptures.set(name, fieldMap.get(name)!);
+      const defaultExpr = fieldDefaultsMap.get(name);
+      if (defaultExpr !== undefined) {
+        propsFieldDefaults.set(name, defaultExpr);
+      }
+      return true;
+    };
     for (const name of ext.captureNames) {
-      if (fieldMap.has(name)) {
-        hasPropsFields = true;
-        propsFieldCaptures.set(name, fieldMap.get(name)!);
-        const defaultExpr = fieldDefaultsMap.get(name);
-        if (defaultExpr !== undefined) {
-          propsFieldDefaults.set(name, defaultExpr);
-        }
-      } else {
+      if (!collectField(name)) {
         nonPropsCaptures.push(name);
       }
+    }
+    // Promoted handler params (`(_, _1, field)`) consolidate the same way:
+    // the positional slot must carry the whole props proxy, not a field read
+    // that loses the proxy identity through serialization.
+    let consolidatedParams: string[] | null = null;
+    if (hasPromotedParams) {
+      const mapped: string[] = ext.paramNames.slice(0, 2) as string[];
+      for (let i = 2; i < ext.paramNames.length; i++) {
+        const p = ext.paramNames[i];
+        const target = collectField(p) ? '_rawProps' : p;
+        if (!mapped.includes(target) || target !== '_rawProps') {
+          mapped.push(target);
+        }
+      }
+      if (hasPropsFields) consolidatedParams = mapped;
     }
     if (hasPropsFields) {
       const wip = ext as Mutable<ConsolidatedSegment>;
@@ -532,8 +552,12 @@ function preConsolidateRawPropsCaptures(ctx: RewriteContext): void {
       if (propsFieldDefaults.size > 0) {
         wip.propsFieldDefaults = propsFieldDefaults;
       }
-      wip.captureNames = [...nonPropsCaptures, '_rawProps'].sort();
-      wip.captures = wip.captureNames.length > 0;
+      if (consolidatedParams) {
+        wip.paramNames = consolidatedParams;
+      } else {
+        wip.captureNames = [...nonPropsCaptures, '_rawProps'].sort();
+        wip.captures = wip.captureNames.length > 0;
+      }
     }
   }
 }

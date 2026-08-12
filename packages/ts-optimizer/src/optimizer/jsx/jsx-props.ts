@@ -82,6 +82,18 @@ function isStaticJsxAttrValue(node: NonNullable<AstMaybeNode>): boolean {
   return true;
 }
 
+/** Identifier names in the capture array of a `q_X.w([a, b])` call. */
+function wCallCaptureIdents(callNode: NonNullable<AstMaybeNode>): string[] {
+  if (callNode.type !== 'CallExpression') return [];
+  const arr = callNode.arguments?.[0];
+  if (!arr || arr.type !== 'ArrayExpression') return [];
+  const names: string[] = [];
+  for (const el of arr.elements ?? []) {
+    if (el?.type === 'Identifier') names.push(el.name);
+  }
+  return names;
+}
+
 function isConstValueNode(valueNode: AstMaybeNode): boolean {
   if (!valueNode) return true;
   switch (valueNode.type) {
@@ -363,7 +375,18 @@ export function processProps(
 
     if (propName.endsWith('$') && !startsWithRewrittenEventPrefix(propName)) {
       const formattedName = formatPropName(propName);
-      if (isConstValueNode(valueNode)) {
+      // A `.w([captures])` whose captures include per-invocation bindings
+      // (params, locals) re-creates each render — var, like rust.
+      const hasUnstableWCaptures =
+        valueNode?.type === 'CallExpression' &&
+        isCaptureWrappingQrlCall(valueNode) &&
+        wCallCaptureIdents(valueNode).some(
+          (name) =>
+            !importedNames.has(name) &&
+            bindings?.classify(name, valueNode.start) !== 'const' &&
+            bindings?.classify(name, valueNode.start) !== undefined
+        );
+      if (isConstValueNode(valueNode) && !hasUnstableWCaptures) {
         pushNamed(constEntries, `${formattedName}: ${valueText}`, 'const', attr.start);
       } else {
         pushNamed(varEntries, `${formattedName}: ${valueText}`, 'var', attr.start);
@@ -455,11 +478,17 @@ export function processProps(
         const isParam = (dep: string) => paramNames?.has(dep) ?? false;
         const isRawWhenNonConst =
           valueNode?.type === 'TemplateLiteral' || valueNode?.type === 'CallExpression';
+        // An object-expr class hoists only when it derives purely from the
+        // component's props param; store/captured deps stay inline (rust).
+        const isParamDep = (dep: string) =>
+          (paramNames?.has(dep) ?? false) || bindings?.classify(dep, valueNode.start) === 'param';
         const excludedFromHoist =
           // applyRef writes into the ref value; a hoisted _fnSignal is
           // read-only and throws Q31 when the element is (re)created.
           propName === 'ref' ||
-          (signalResult.isObjectExpr && (propName === 'class' || propName === 'className')) ||
+          (signalResult.isObjectExpr &&
+            (propName === 'class' || propName === 'className') &&
+            !signalResult.deps.every(isParamDep)) ||
           (isRawWhenNonConst &&
             !fnSignalDepsAllConst(
               signalResult.deps,

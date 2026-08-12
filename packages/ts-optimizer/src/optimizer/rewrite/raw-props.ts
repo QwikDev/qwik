@@ -715,14 +715,16 @@ export function consolidateQpCaptureValues(
   params: readonly string[],
   fieldMap: ReadonlyMap<string, string>
 ): string[] {
-  return params.map((p) => {
-    const key = fieldMap.get(p);
-    if (key === undefined) return p;
-    // String-keyed destructures ('bind:page': page) need bracket access.
-    return /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(key)
-      ? `_rawProps.${key}`
-      : `_rawProps[${JSON.stringify(key)}]`;
-  });
+  // A destructured field's slot carries the whole props proxy — a field read
+  // (`_rawProps.state`) would serialize the naked value and lose the proxy
+  // identity on resume. Dedup: every field collapses to the same proxy.
+  const out: string[] = [];
+  for (const p of params) {
+    const value = fieldMap.has(p) ? '_rawProps' : p;
+    if (value === '_rawProps' && out.includes('_rawProps')) continue;
+    out.push(value);
+  }
+  return out;
 }
 
 /**

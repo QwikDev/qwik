@@ -113,6 +113,8 @@ export interface JsxElementOptions {
   isSoleChild?: boolean;
   enableChildSignals?: boolean;
   qpOverrides?: Map<number, string[]>;
+  /** Inside a JSX attribute value: no generated key (parity with rust). */
+  inAttrValue?: boolean;
 }
 
 export interface ProcessChildrenOptions {
@@ -902,6 +904,18 @@ export function transformAllJsx(
 
   const loopStack: LoopContext[] = [];
   const childJsxNodes = new WeakSet<object>();
+  // JSX directly inside an attribute value never takes a counter key, but a
+  // function body inside the attr resets to normal keyed emission (rust parity).
+  const attrFnStack: ('attr' | 'fn')[] = [];
+  const isDirectlyInAttrValue = () => attrFnStack[attrFnStack.length - 1] === 'attr';
+  const attrFnMarker = (node: AstNode): 'attr' | 'fn' | null =>
+    node.type === 'JSXAttribute' || node.type === 'JSXSpreadAttribute'
+      ? 'attr'
+      : node.type === 'ArrowFunctionExpression' ||
+          node.type === 'FunctionExpression' ||
+          node.type === 'FunctionDeclaration'
+        ? 'fn'
+        : null;
 
   // Enter/Exit context views so the type system enforces "enter gathers, exit
   // acts": calling `writeJsxCall` from enter is a compile error because
@@ -932,6 +946,10 @@ export function transformAllJsx(
 
   walkWithProtocol(program, enterCtx, exitCtx, {
     enter(node, _parent, ctx) {
+      const marker = attrFnMarker(node);
+      if (marker) {
+        attrFnStack.push(marker);
+      }
       const loopCtx = detectLoopContext(node, ctx.source);
       if (loopCtx) {
         ctx.loopStack.push(loopCtx);
@@ -946,6 +964,9 @@ export function transformAllJsx(
       }
     },
     leave(node, _parent, ctx) {
+      if (attrFnMarker(node)) {
+        attrFnStack.pop();
+      }
       if (ctx.loopStack.length > 0 && ctx.loopStack[ctx.loopStack.length - 1].loopNode === node) {
         ctx.loopStack.pop();
       }
@@ -967,6 +988,7 @@ export function transformAllJsx(
           isSoleChild,
           enableChildSignals: ctx.enableSignals,
           qpOverrides: ctx.qpOverrides,
+          inAttrValue: isDirectlyInAttrValue(),
         });
         if (result) {
           const callStr = appendDevSuffix(result.callString, ctx.getDevSourceSuffix(node.start));
@@ -974,7 +996,9 @@ export function transformAllJsx(
           for (const imp of result.neededImports) ctx.neededImports.add(imp);
         }
       } else if (node.type === 'JSXFragment') {
-        const result = transformJsxFragment(ctx.jsxCtx, node);
+        const result = transformJsxFragment(ctx.jsxCtx, node, {
+          inAttrValue: isDirectlyInAttrValue(),
+        });
         if (result) {
           const callStr = appendDevSuffix(result.callString, ctx.getDevSourceSuffix(node.start));
           ctx.writeJsxCall(node.start, node.end, `/*#__PURE__*/ ${callStr}`);

@@ -462,7 +462,14 @@ export function transformJsxElement(
     allDeclaredNames,
     qrlsWithCaptures,
   } = ctx;
-  const { passiveEvents, loopCtx, isSoleChild, enableChildSignals = true, qpOverrides } = opts;
+  const {
+    passiveEvents,
+    loopCtx,
+    isSoleChild,
+    enableChildSignals = true,
+    qpOverrides,
+    inAttrValue = false,
+  } = opts;
 
   const neededImports = new Set<string>();
   const openingElement = node.openingElement;
@@ -573,7 +580,7 @@ export function transformJsxElement(
   let keyStr: string | null;
   if (explicitKey !== null) {
     keyStr = explicitKey;
-  } else if (isSoleChild && tagIsHtml) {
+  } else if (inAttrValue || (isSoleChild && tagIsHtml)) {
     keyStr = null;
   } else {
     keyStr = `"${keyCounter.nextFor(node.start)}"`;
@@ -637,7 +644,8 @@ export function transformJsxElement(
 
 export function transformJsxFragment(
   ctx: JsxTransformContext,
-  node: JSXFragment
+  node: JSXFragment,
+  opts: { inAttrValue?: boolean } = {}
 ): JsxTransformResult | null {
   if (node.type !== 'JSXFragment') return null;
 
@@ -650,8 +658,8 @@ export function transformJsxFragment(
   });
 
   const flags = computeJsxFlags(false, childrenType);
-  const keyStr = `"${keyCounter.nextFor(node.start)}"`;
-  const callString = `_jsxSorted(_Fragment, null, null, ${childrenText ?? 'null'}, ${flags}, ${keyStr})`;
+  const keyStr = opts.inAttrValue ? null : `"${keyCounter.nextFor(node.start)}"`;
+  const callString = `_jsxSorted(_Fragment, null, null, ${childrenText ?? 'null'}, ${flags}, ${keyStr ?? 'null'})`;
 
   return {
     tag: '_Fragment',

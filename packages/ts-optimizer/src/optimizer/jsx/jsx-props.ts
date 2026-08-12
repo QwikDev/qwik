@@ -53,6 +53,35 @@ export type SlotEntry =
       readonly sourceStart: number;
     };
 
+/**
+ * A JSX attr value that stays fully static — literal-only props (an explicit key is fine) and
+ * literal/text children. Rust parks these in the const bag; anything reactive stays var.
+ */
+function isStaticJsxAttrValue(node: NonNullable<AstMaybeNode>): boolean {
+  if (node.type !== 'JSXElement' && node.type !== 'JSXFragment') return false;
+  if (node.type === 'JSXElement') {
+    for (const attr of node.openingElement.attributes ?? []) {
+      if (attr.type !== 'JSXAttribute') return false;
+      if (attr.name?.type !== 'JSXIdentifier') return false;
+      if (attr.name.name !== 'key' && attr.name.name.endsWith('$')) return false;
+      const v = attr.value;
+      if (v == null || v.type === 'Literal') continue;
+      if (v.type === 'JSXExpressionContainer' && v.expression.type === 'Literal') continue;
+      return false;
+    }
+  }
+  for (const child of node.children ?? []) {
+    if (child.type === 'JSXText') continue;
+    if (child.type === 'JSXElement' || child.type === 'JSXFragment') {
+      if (isStaticJsxAttrValue(child)) continue;
+      return false;
+    }
+    if (child.type === 'JSXExpressionContainer' && child.expression.type === 'Literal') continue;
+    return false;
+  }
+  return true;
+}
+
 function isConstValueNode(valueNode: AstMaybeNode): boolean {
   if (!valueNode) return true;
   switch (valueNode.type) {
@@ -462,9 +491,13 @@ export function processProps(
       }
     }
 
-    const classification = valueNode
-      ? classifyConstness(valueNode, importedNames, bindings, valueNode.start)
-      : 'const';
+    const classification = !valueNode
+      ? 'const'
+      : valueNode.type === 'JSXElement' || valueNode.type === 'JSXFragment'
+        ? isStaticJsxAttrValue(valueNode)
+          ? 'const'
+          : 'var'
+        : classifyConstness(valueNode, importedNames, bindings, valueNode.start);
 
     const entry = `${formatPropName(propName)}: ${valueText}`;
 

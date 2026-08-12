@@ -393,6 +393,50 @@ describe('branches', () => {
     expect(replacements).toEqual([[node], []]);
   });
 
+  it('skips range cleanup when disposed markers are already detached', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const visible = useSignal(true);
+    const local = useSignal('local');
+    const text = createText();
+    const start = createTestDomNode('start');
+    const end = createTestDomNode('end');
+    const node = createTestDomNode('branch');
+    const parent = createTestParentNode([start, end]);
+    const range = new BranchRange(
+      start.ownerDocument!,
+      start as unknown as Comment,
+      end as unknown as Comment
+    );
+    const branch = createOwned(() =>
+      createBranch(
+        { scheduler } as ContainerContext,
+        range,
+        () => visible.value,
+        () => {
+          const effect = createTextNodeEffect(text, local, scheduler);
+          scheduler.notify(effect);
+          return [node as unknown as Node];
+        }
+      )
+    ) as BranchSubscriber;
+
+    scheduler.notify(branch);
+    await scheduler.flushInteraction();
+
+    expect(parent.nodes.map(getNodeLabel)).toEqual(['start', 'branch', 'end']);
+
+    // an ancestor replacing its own range detaches this branch's markers wholesale
+    parent.removeChild(start);
+    parent.removeChild(node);
+    parent.removeChild(end);
+
+    disposeSubscriber(branch);
+
+    expect(local.subs).toBeNull();
+    expect(branch.branch.currentOwner).toBeNull();
+    expect(branch.branch.currentBranch).toBeNull();
+  });
+
   it('loads unresolved branch condition QRLs before tracking dependencies', async () => {
     const scheduler = new Scheduler(noopSchedule);
     const visible = useSignal(true);

@@ -14,6 +14,10 @@ export function replaceRange(
   end: Comment,
   nodes: readonly Node[]
 ): void {
+  // detached markers mean an ancestor already tore this range out of the DOM — nothing to do
+  if (start.parentNode === null) {
+    return;
+  }
   // Created per operation and dropped: the browser fixes up every *live* Range on every DOM
   // mutation, so holding one per block taxes writes anywhere on the page.
   const range = document.createRange();

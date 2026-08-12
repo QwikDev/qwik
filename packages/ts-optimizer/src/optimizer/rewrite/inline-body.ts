@@ -311,7 +311,10 @@ export function transformInlineSegmentBody(
     }
   }
   {
-    const rawPropsResult = isComponentCtx(ext.ctxName) ? applyRawPropsTransform(body) : body;
+    // Consolidate any destructured first param (component props AND hook
+    // contexts like useComputed$'s { cleanup }) — a bare destructured method
+    // call loses `this`. inlinedQrl bodies are pre-compiled and excluded.
+    const rawPropsResult = !ext.isInlinedQrl ? applyRawPropsTransform(body) : body;
     if (rawPropsResult !== body) {
       body = rawPropsResult;
       if (body.includes('_restProps(')) {

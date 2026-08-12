@@ -3,7 +3,7 @@ import { SsrOpKind } from '../../../src/emit-plan-ssr';
 import type { QwikSsrPlan } from '../../../src/link-plan';
 import type { ValueIR } from '../../../src/expr-ir';
 import { escapeAttr } from '../../../src/html-utils';
-import { QwikWord } from '../../../src/words';
+import { QwikHooks, QwikWord } from '../../../src/words';
 
 /**
  * JS SSR generator — the JS projection of the wire plan, peer of the Rust `qwik-ssr-gen`
@@ -142,7 +142,10 @@ export function emitJsProductionRender(
       generator.rootRangeName = rootRange;
       generator.rootRangeStatement = `const ${rootRange} = ${names.ctx}.nextId();`;
       generator.blockMarkers = [
-        { open: `createSsrRecord('<!d=', createSsrNodeId(${rootRange}), '>')`, close: '<!/d>' },
+        {
+          open: `${QwikWord.CreateSsrRecord}('<!d=', ${QwikWord.CreateSsrNodeId}(${rootRange}), '>')`,
+          close: '<!/d>',
+        },
       ];
     }
     return generator.generateProduction(
@@ -455,15 +458,15 @@ class JsComponentGenerator {
       pushOpen(` class="${escapeAttr(scope.staticId)}"`);
       return;
     }
-    this.imports.add('escapeHTML');
+    this.imports.add(QwikWord.EscapeHTML);
     if (scope.staticId === null && scope.runtimeName !== null) {
       open.push(
-        `(${scope.runtimeName} ? ' class="' + escapeHTML(${scope.runtimeName}) + '"' : '')`
+        `(${scope.runtimeName} ? ' class="' + ${QwikWord.EscapeHTML}(${scope.runtimeName}) + '"' : '')`
       );
       return;
     }
     pushOpen(' class="');
-    open.push(`escapeHTML(${scopeClassExpression(scope, null)})`);
+    open.push(`${QwikWord.EscapeHTML}(${scopeClassExpression(scope, null)})`);
     pushOpen('"');
   }
 
@@ -511,8 +514,8 @@ class JsComponentGenerator {
       if (captures.length === 0) {
         return meta.symbolName;
       }
-      this.imports.add('_withCaptures');
-      return `_withCaptures(${meta.symbolName}, [${captures.join(', ')}])`;
+      this.imports.add(QwikWord.WithCaptures);
+      return `${QwikWord.WithCaptures}(${meta.symbolName}, [${captures.join(', ')}])`;
     }
     if (tagged.kind === 'render-arg') {
       const renderArg = argument as {
@@ -524,7 +527,7 @@ class JsComponentGenerator {
       }
       // the callback re-enters the captured invoke context when its host eventually calls it
       const invokeCtx = this.invokeCtx();
-      this.imports.add('invoke');
+      this.imports.add(QwikWord.Invoke);
       const seedLocals = new Map(this.locals);
       const paramNames = renderArg.params.map((param) => {
         if (param.binding !== null) {
@@ -553,7 +556,7 @@ class JsComponentGenerator {
       );
       const fn = child.generateFn('__render_arg', renderArg.render, null, false, false, '()');
       const body = fn.slice(fn.indexOf('{') + 1, fn.lastIndexOf('}'));
-      return `(${paramNames.join(', ')}) => invoke(${invokeCtx}, () => (() => {${body}})())`;
+      return `(${paramNames.join(', ')}) => ${QwikWord.Invoke}(${invokeCtx}, () => (() => {${body}})())`;
     }
     return this.irJs(argument as ValueIR, scope as Map<number, string> | undefined);
   }
@@ -574,9 +577,9 @@ class JsComponentGenerator {
       return;
     }
     this.runtimeScopeName = `style_scope_${this.nextTemp++}`;
-    this.imports.add('getActiveInvokeContext');
+    this.imports.add(QwikWord.GetActiveInvokeContext);
     this.statements.push(
-      `const ${this.runtimeScopeName} = getActiveInvokeContext().styleScopes?.join(' ');`
+      `const ${this.runtimeScopeName} = ${QwikWord.GetActiveInvokeContext}().styleScopes?.join(' ');`
     );
   }
 
@@ -607,7 +610,7 @@ class JsComponentGenerator {
     for (const markName of this.pendingMarks.splice(0)) {
       const entry = this.localComponents.get(markName)!;
       this.statements.push(
-        `_markComponent(${markName}, ${this.qrlExpression(this.segment(entry.segment))});`
+        `${QwikWord.MarkComponent}(${markName}, ${this.qrlExpression(this.segment(entry.segment))});`
       );
     }
     const setupStatements = this.finalizeIds(this.statements.splice(0));
@@ -616,11 +619,11 @@ class JsComponentGenerator {
     if (providesContext) {
       contextScope = `context_scope_${this.nextTemp++}`;
       this.statements.push(`const ${contextScope} = ${this.names.ctx}.contextScopeRef();`);
-      this.imports.add('createSsrRecord');
+      this.imports.add(QwikWord.CreateSsrRecord);
     }
     const parts = this.ops(ssr.ops);
     if (contextScope !== null) {
-      parts.unshift(`createSsrRecord('<!c=', ${contextScope}, '>')`);
+      parts.unshift(`${QwikWord.CreateSsrRecord}('<!c=', ${contextScope}, '>')`);
       const last = parts[parts.length - 1];
       if (last !== undefined && isStringLiteral(last)) {
         parts[parts.length - 1] = JSON.stringify((JSON.parse(last) as string) + '<!/c>');
@@ -644,8 +647,8 @@ class JsComponentGenerator {
     }
     // chunk markers bracket the parts, innermost first; closers merge into trailing statics
     for (const marker of this.blockMarkers) {
-      this.imports.add('createSsrRecord');
-      this.imports.add('createSsrNodeId');
+      this.imports.add(QwikWord.CreateSsrRecord);
+      this.imports.add(QwikWord.CreateSsrNodeId);
       parts.unshift(marker.open);
       const last = parts[parts.length - 1];
       if (last !== undefined && isStringLiteral(last)) {
@@ -658,8 +661,8 @@ class JsComponentGenerator {
     const statements = this.finalizeIds(this.statements.splice(0));
     const chainValue = this.wrapAsyncValue(value);
     if (blockAnnotations(ssr as PlanSsrComponent).flushTasks) {
-      this.imports.add('maybeThen');
-      this.imports.add('invoke');
+      this.imports.add(QwikWord.MaybeThen);
+      this.imports.add(QwikWord.Invoke);
     }
     return {
       imports: [...this.imports],
@@ -727,14 +730,14 @@ class JsComponentGenerator {
       !this.shared.hoistedSegments.has('__contexts__')
     ) {
       this.shared.hoistedSegments.add('__contexts__');
-      this.imports.add('createContextId');
+      this.imports.add(QwikWord.CreateContextId);
       for (const context of this.contexts) {
         if (context.declaredName === undefined) {
           markUngeneratable();
         }
         this.usedNames.add(context.declaredName);
         this.hoists.push(
-          `const ${context.declaredName} = createContextId(${JSON.stringify(context.name)});`
+          `const ${context.declaredName} = ${QwikWord.CreateContextId}(${JSON.stringify(context.name)});`
         );
       }
       this.hoists.push(
@@ -761,7 +764,7 @@ class JsComponentGenerator {
     for (const markName of this.pendingMarks.splice(0)) {
       const entry = this.localComponents.get(markName)!;
       this.statements.push(
-        `_markComponent(${markName}, ${this.qrlExpression(this.segment(entry.segment))});`
+        `${QwikWord.MarkComponent}(${markName}, ${this.qrlExpression(this.segment(entry.segment))});`
       );
     }
     const setupStatements = this.statements.splice(0);
@@ -770,12 +773,12 @@ class JsComponentGenerator {
     if (providesContext) {
       contextScope = `context_scope_${this.nextTemp++}`;
       this.statements.push(`const ${contextScope} = ${this.names.ctx}.contextScopeRef();`);
-      this.imports.add('createSsrRecord');
+      this.imports.add(QwikWord.CreateSsrRecord);
     }
     const parts = this.ops(ssr.ops);
     if (contextScope !== null) {
       // provider output wraps in a context scope range
-      parts.unshift(`createSsrRecord('<!c=', ${contextScope}, '>')`);
+      parts.unshift(`${QwikWord.CreateSsrRecord}('<!c=', ${contextScope}, '>')`);
       const last = parts[parts.length - 1];
       if (last !== undefined && isStringLiteral(last)) {
         parts[parts.length - 1] = JSON.stringify((JSON.parse(last) as string) + '<!/c>');
@@ -792,12 +795,12 @@ class JsComponentGenerator {
     const finalizedStatements = this.finalizeIds(this.statements);
     this.statements.splice(0, this.statements.length, ...finalizedStatements);
     if (blockAnnotations(ssr as PlanSsrComponent).flushTasks) {
-      this.imports.add('maybeThen');
-      this.imports.add('invoke');
+      this.imports.add(QwikWord.MaybeThen);
+      this.imports.add(QwikWord.Invoke);
       const inner = [...this.statements, returnStatement].map((line) => `  ${line}`).join('\n');
       bodyStatements = [
         ...setupStatements,
-        `return maybeThen(${this.names.ctx}.scheduler.flush(), () => invoke(invokeCtx, () => {\n${inner}\n  }));`,
+        `return ${QwikWord.MaybeThen}(${this.names.ctx}.scheduler.flush(), () => ${QwikWord.Invoke}(invokeCtx, () => {\n${inner}\n  }));`,
       ];
     } else {
       bodyStatements = [...setupStatements, ...this.statements, returnStatement];
@@ -844,12 +847,12 @@ class JsComponentGenerator {
     if (this.asyncSteps.length === 0 || this.synchronous) {
       return value;
     }
-    this.imports.add('maybeThen');
+    this.imports.add(QwikWord.MaybeThen);
     return this.asyncSteps.reduceRight(
       (inner, step) =>
         step.after === undefined
-          ? `maybeThen(${step.expr}, (${step.name}) => ${inner})`
-          : `maybeThen(${step.expr}, (${step.name}) => {\n  ${step.after}\n  return ${inner};\n})`,
+          ? `${QwikWord.MaybeThen}(${step.expr}, (${step.name}) => ${inner})`
+          : `${QwikWord.MaybeThen}(${step.expr}, (${step.name}) => {\n  ${step.after}\n  return ${inner};\n})`,
       value
     );
   }
@@ -881,10 +884,10 @@ class JsComponentGenerator {
       return;
     }
     const invokeCtx = this.invokeCtx();
-    this.imports.add('invoke');
+    this.imports.add(QwikWord.Invoke);
     const rootStatements = roots.map((root) => `${this.names.ctx}.addRoot(${root}); `).join('');
     this.statements.push(
-      `const ${step} = () => invoke(${invokeCtx}, () => { ${thunkPrelude}${rootStatements}return ${callExpr}; });`
+      `const ${step} = () => ${QwikWord.Invoke}(${invokeCtx}, () => { ${thunkPrelude}${rootStatements}return ${callExpr}; });`
     );
     this.asyncSteps.push({
       name: step,
@@ -935,8 +938,10 @@ class JsComponentGenerator {
   private invokeCtx(): string {
     if (!this.invokeCtxDeclared) {
       this.invokeCtxDeclared = true;
-      this.imports.add('getActiveInvokeContextOrNull');
-      this.statements.push(`const ${this.names.invokeCtx} = getActiveInvokeContextOrNull();`);
+      this.imports.add(QwikWord.GetActiveInvokeContextOrNull);
+      this.statements.push(
+        `const ${this.names.invokeCtx} = ${QwikWord.GetActiveInvokeContextOrNull}();`
+      );
     }
     return this.names.invokeCtx;
   }
@@ -947,8 +952,10 @@ class JsComponentGenerator {
         const binding = entry.binding as number;
         this.sourceKinds.add(binding);
         const variable = this.declare(binding, entry.name as string | undefined);
-        this.imports.add('useSignal');
-        this.statements.push(`const ${variable} = useSignal(${this.irJs(entry.init as ValueIR)});`);
+        this.imports.add(QwikHooks.UseSignal);
+        this.statements.push(
+          `const ${variable} = ${QwikHooks.UseSignal}(${this.irJs(entry.init as ValueIR)});`
+        );
         return;
       }
       case 'store': {
@@ -958,13 +965,15 @@ class JsComponentGenerator {
         const binding = entry.binding as number;
         this.sourceKinds.add(binding);
         const variable = this.declare(binding, entry.name as string | undefined);
-        this.imports.add('useStore');
-        this.statements.push(`const ${variable} = useStore(${this.irJs(entry.init as ValueIR)});`);
+        this.imports.add(QwikHooks.UseStore);
+        this.statements.push(
+          `const ${variable} = ${QwikHooks.UseStore}(${this.irJs(entry.init as ValueIR)});`
+        );
         return;
       }
       case 'style': {
         const css = entry.css as string | undefined;
-        const helper = entry.scoped === true ? 'useStylesScoped' : 'useStyles';
+        const helper = entry.scoped === true ? QwikHooks.UseStylesScoped : QwikHooks.UseStyles;
         if (css === undefined || entry.resultUsed === true) {
           const src = entry.src as string | undefined;
           if (src === undefined) {
@@ -985,14 +994,16 @@ class JsComponentGenerator {
         this.sourceKinds.add(binding);
         const variable = this.declare(binding, entry.name as string | undefined);
         const meta = this.segment(entry.segment as string);
-        this.imports.add('useComputedQrl');
-        this.statements.push(`const ${variable} = useComputedQrl(${this.qrlExpression(meta)});`);
+        this.imports.add(QwikHooks.UseComputedQrl);
+        this.statements.push(
+          `const ${variable} = ${QwikHooks.UseComputedQrl}(${this.qrlExpression(meta)});`
+        );
         return;
       }
       case 'task': {
         const meta = this.segment(entry.segment as string);
-        this.imports.add('useTaskQrl');
-        this.statements.push(`useTaskQrl(${this.qrlExpression(meta)});`);
+        this.imports.add(QwikHooks.UseTaskQrl);
+        this.statements.push(`${QwikHooks.UseTaskQrl}(${this.qrlExpression(meta)});`);
         return;
       }
       case 'render-fn': {
@@ -1058,7 +1069,7 @@ class JsComponentGenerator {
             false
           )
         );
-        this.imports.add('_markComponent');
+        this.imports.add(QwikWord.MarkComponent);
         // captures may be declared below the fn — the QRL resolves at mark-flush time
         this.pendingMarks.push(local.name);
         return;
@@ -1104,18 +1115,18 @@ class JsComponentGenerator {
       }
       case 'context-provider': {
         const contextVar = this.contextVar(entry.context as number);
-        this.imports.add('useContextProvider');
+        this.imports.add(QwikHooks.UseContextProvider);
         this.statements.push(
-          `useContextProvider(${contextVar}, ${this.irJs(entry.value as ValueIR)});`
+          `${QwikHooks.UseContextProvider}(${contextVar}, ${this.irJs(entry.value as ValueIR)});`
         );
         return;
       }
       case 'context-read': {
         const binding = entry.binding as number;
         const variable = this.declare(binding, entry.name as string | undefined);
-        this.imports.add('useContext');
+        this.imports.add(QwikHooks.UseContext);
         this.statements.push(
-          `const ${variable} = useContext(${this.contextVar(entry.context as number)});`
+          `const ${variable} = ${QwikHooks.UseContext}(${this.contextVar(entry.context as number)});`
         );
         return;
       }
@@ -1134,12 +1145,12 @@ class JsComponentGenerator {
             : strategy === 'document-idle'
               ? 'qidle'
               : 'qvisible';
-        const useOn = strategy.startsWith('document-') ? 'useOnDocument' : 'useOn';
+        const useOn = strategy.startsWith('document-') ? QwikHooks.UseOnDocument : QwikHooks.UseOn;
         this.pendingAttrAnchor = true;
         this.imports.add(useOn);
-        this.imports.add('createVisibleTaskHandlerQrl');
+        this.imports.add(QwikWord.CreateVisibleTaskHandlerQrl);
         this.statements.push(
-          `${useOn}(${JSON.stringify(event)}, createVisibleTaskHandlerQrl(${this.qrlExpression(meta)}));`
+          `${useOn}(${JSON.stringify(event)}, ${QwikWord.CreateVisibleTaskHandlerQrl}(${this.qrlExpression(meta)}));`
         );
         return;
       }
@@ -1213,9 +1224,9 @@ class JsComponentGenerator {
         }
         const idVariable = `branch_id_${this.nextTemp}`;
         const step = `branch_${this.nextTemp++}`;
-        this.imports.add('renderSsrBranch');
-        this.imports.add('createSsrRecord');
-        this.imports.add('createSsrNodeId');
+        this.imports.add(QwikWord.RenderSsrBranch);
+        this.imports.add(QwikWord.CreateSsrRecord);
+        this.imports.add(QwikWord.CreateSsrNodeId);
         const deferred = this.asyncSteps.length > 0;
         this.statements.push(
           deferred ? `let ${idVariable};` : `const ${idVariable} = ${this.names.ctx}.nextId();`
@@ -1223,10 +1234,12 @@ class JsComponentGenerator {
         this.pushStep(
           step,
           stepRoots,
-          `renderSsrBranch(${this.names.ctx}, ${idVariable}, ${this.qrlExpression(condition)}, ${thenQrl}, ${elseQrl}${operation.ssr.root ? ", '', true" : ''})`,
+          `${QwikWord.RenderSsrBranch}(${this.names.ctx}, ${idVariable}, ${this.qrlExpression(condition)}, ${thenQrl}, ${elseQrl}${operation.ssr.root ? ", '', true" : ''})`,
           deferred ? `${idVariable} ??= ${this.names.ctx}.nextId(); ` : undefined
         );
-        parts.push(`createSsrRecord('<!b=', createSsrNodeId(${idVariable}), '>')`);
+        parts.push(
+          `${QwikWord.CreateSsrRecord}('<!b=', ${QwikWord.CreateSsrNodeId}(${idVariable}), '>')`
+        );
         parts.push(step);
         pushStatic('<!/b>');
         return;
@@ -1264,9 +1277,9 @@ class JsComponentGenerator {
         const step = `collection_result_${this.nextTemp++}`;
         const keyMeta = operation.key === null ? null : this.segment(operation.key);
         const rowMeta = this.segment(row.segment.segment);
-        this.imports.add('renderSsrCollection');
-        this.imports.add('createSsrRecord');
-        this.imports.add('createSsrNodeId');
+        this.imports.add(QwikWord.RenderSsrCollection);
+        this.imports.add(QwikWord.CreateSsrRecord);
+        this.imports.add(QwikWord.CreateSsrNodeId);
         // deferred position: the whole render runs in a chained thunk with a lazy id claim
         if (this.asyncSteps.length > 0 && operation.source.kind === 'derived') {
           const source = this.segment(operation.source.segment);
@@ -1287,21 +1300,23 @@ class JsComponentGenerator {
             rootCapturesInner(deferredKeyMeta);
           }
           rootCapturesInner(deferredRowMeta);
-          this.imports.add('_wrapArray');
+          this.imports.add(QwikWord.WrapArray);
           inner.push(
-            `const ${wrapped} = _wrapArray(${this.qrlExpression(source)}${operation.source.keepSource === true ? ', true' : ''});`,
+            `const ${wrapped} = ${QwikWord.WrapArray}(${this.qrlExpression(source)}${operation.source.keepSource === true ? ', true' : ''});`,
             `if (!Array.isArray(${wrapped})) ${this.names.ctx}.addRoot(${wrapped});`,
-            `return renderSsrCollection(${this.names.ctx}, ${idVariable}, ${wrapped}, ${operation.key === null ? 'undefined' : this.qrlExpression(deferredKeyMeta!)}, ${this.qrlExpression(deferredRowMeta)}, ${operation.usesIndexSignal}, ${operation.ssr.idBase === null ? "''" : operation.ssr.idBase}, ${operation.ssr.usesRowId}, ${operation.ssr.rowShape});`
+            `return ${QwikWord.RenderSsrCollection}(${this.names.ctx}, ${idVariable}, ${wrapped}, ${operation.key === null ? 'undefined' : this.qrlExpression(deferredKeyMeta!)}, ${this.qrlExpression(deferredRowMeta)}, ${operation.usesIndexSignal}, ${operation.ssr.idBase === null ? "''" : operation.ssr.idBase}, ${operation.ssr.usesRowId}, ${operation.ssr.rowShape});`
           );
           const invokeCtx = this.invokeCtx();
-          this.imports.add('invoke');
-          this.imports.add('renderSsrCollection');
+          this.imports.add(QwikWord.Invoke);
+          this.imports.add(QwikWord.RenderSsrCollection);
           this.statements.push(`let ${idVariable};`);
           this.statements.push(
-            `const ${step} = () => invoke(${invokeCtx}, () => { ${inner.join(' ')} });`
+            `const ${step} = () => ${QwikWord.Invoke}(${invokeCtx}, () => { ${inner.join(' ')} });`
           );
           this.asyncSteps.push({ name: step, expr: `${step}()` });
-          parts.push(`createSsrRecord('<!f=', createSsrNodeId(${idVariable}), '>')`);
+          parts.push(
+            `${QwikWord.CreateSsrRecord}('<!f=', ${QwikWord.CreateSsrNodeId}(${idVariable}), '>')`
+          );
           parts.push(step);
           pushStatic('<!/f>');
           return;
@@ -1337,10 +1352,12 @@ class JsComponentGenerator {
           this.pushStep(
             step,
             roots,
-            `renderSsrCollection(${this.names.ctx}, ${idVariable}, ${sourceValue}, ${keyQrl}, ${renderQrl}, ${operation.usesIndexSignal}, ${operation.ssr.idBase === null ? "''" : operation.ssr.idBase}, ${operation.ssr.usesRowId}, ${operation.ssr.rowShape})`,
+            `${QwikWord.RenderSsrCollection}(${this.names.ctx}, ${idVariable}, ${sourceValue}, ${keyQrl}, ${renderQrl}, ${operation.usesIndexSignal}, ${operation.ssr.idBase === null ? "''" : operation.ssr.idBase}, ${operation.ssr.usesRowId}, ${operation.ssr.rowShape})`,
             `${idVariable} ??= ${this.names.ctx}.nextId(); `
           );
-          parts.push(`createSsrRecord('<!f=', createSsrNodeId(${idVariable}), '>')`);
+          parts.push(
+            `${QwikWord.CreateSsrRecord}('<!f=', ${QwikWord.CreateSsrNodeId}(${idVariable}), '>')`
+          );
           parts.push(step);
           pushStatic('<!/f>');
           return;
@@ -1354,9 +1371,9 @@ class JsComponentGenerator {
             rootCaptures(keyMeta);
           }
           rootCaptures(rowMeta);
-          this.imports.add('_wrapArray');
+          this.imports.add(QwikWord.WrapArray);
           this.statements.push(
-            `const ${wrapped} = _wrapArray(${this.qrlExpression(source)}${operation.source.keepSource === true ? ', true' : ''});`,
+            `const ${wrapped} = ${QwikWord.WrapArray}(${this.qrlExpression(source)}${operation.source.keepSource === true ? ', true' : ''});`,
             `if (!Array.isArray(${wrapped})) ${this.names.ctx}.addRoot(${wrapped});`
           );
           collectionValue = wrapped;
@@ -1376,10 +1393,12 @@ class JsComponentGenerator {
         const keyQrl = keyMeta === null ? 'undefined' : this.qrlExpression(keyMeta);
         const renderQrl = this.qrlExpression(rowMeta);
         this.statements.push(
-          `const ${step} = renderSsrCollection(${this.names.ctx}, ${idVariable}, ${collectionValue}, ${keyQrl}, ${renderQrl}, ${operation.usesIndexSignal}, ${operation.ssr.idBase === null ? "''" : operation.ssr.idBase}, ${operation.ssr.usesRowId}, ${operation.ssr.rowShape});`
+          `const ${step} = ${QwikWord.RenderSsrCollection}(${this.names.ctx}, ${idVariable}, ${collectionValue}, ${keyQrl}, ${renderQrl}, ${operation.usesIndexSignal}, ${operation.ssr.idBase === null ? "''" : operation.ssr.idBase}, ${operation.ssr.usesRowId}, ${operation.ssr.rowShape});`
         );
         this.asyncSteps.push({ name: step, expr: step });
-        parts.push(`createSsrRecord('<!f=', createSsrNodeId(${idVariable}), '>')`);
+        parts.push(
+          `${QwikWord.CreateSsrRecord}('<!f=', ${QwikWord.CreateSsrNodeId}(${idVariable}), '>')`
+        );
         parts.push(step);
         pushStatic('<!/f>');
         return;
@@ -1425,7 +1444,7 @@ class JsComponentGenerator {
         );
         const idVariable = `suspense_id_${this.nextTemp}`;
         const step = `suspense_${this.nextTemp++}`;
-        this.imports.add('createSsrSuspense');
+        this.imports.add(QwikWord.CreateSsrSuspense);
         const deferred = this.asyncSteps.length > 0;
         this.statements.push(
           deferred ? `let ${idVariable};` : `const ${idVariable} = ${this.names.ctx}.nextId();`
@@ -1433,7 +1452,7 @@ class JsComponentGenerator {
         this.pushStep(
           step,
           contentRoots,
-          `createSsrSuspense(ctx, ${idVariable}, ${contentQrl}, ${fallbackQrl}, ${delayExpr})`,
+          `${QwikWord.CreateSsrSuspense}(ctx, ${idVariable}, ${contentQrl}, ${fallbackQrl}, ${delayExpr})`,
           deferred ? `${idVariable} ??= ${this.names.ctx}.nextId(); ` : undefined
         );
         parts.push(step);
@@ -1458,12 +1477,12 @@ class JsComponentGenerator {
           fallback = this.qrlExpression(meta);
         }
         const step = `slot_${this.nextTemp++}`;
-        this.imports.add('renderSsrSlot');
-        this.imports.add('getActiveInvokeContextOrNull');
+        this.imports.add(QwikWord.RenderSsrSlot);
+        this.imports.add(QwikWord.GetActiveInvokeContextOrNull);
         this.pushStep(
           step,
           [],
-          `renderSsrSlot(${this.names.ctx}, ${JSON.stringify(operation.name)}, ${fallback}, getActiveInvokeContextOrNull())`
+          `${QwikWord.RenderSsrSlot}(${this.names.ctx}, ${JSON.stringify(operation.name)}, ${fallback}, ${QwikWord.GetActiveInvokeContextOrNull}())`
         );
         parts.push(step);
         return;
@@ -1507,10 +1526,10 @@ class JsComponentGenerator {
     const slotPrep: string[] = [];
     if (operation.slots.length > 0) {
       slotScope = `slot_scope_${this.nextTemp++}`;
-      this.imports.add('createSlotScope');
-      this.imports.add('registerProjection');
+      this.imports.add(QwikWord.CreateSlotScope);
+      this.imports.add(QwikWord.RegisterProjection);
       slotPrep.push(
-        `const ${slotScope} = createSlotScope();`,
+        `const ${slotScope} = ${QwikWord.CreateSlotScope}();`,
         `${this.names.ctx}.addRoot(${slotScope});`
       );
       for (const slot of operation.slots) {
@@ -1524,7 +1543,7 @@ class JsComponentGenerator {
           );
         }
         slotPrep.push(
-          `registerProjection(${slotScope}, ${JSON.stringify(slot.name)}, ${this.qrlExpression(meta)}${slot.idBase === null ? '' : `, undefined, ${slot.idBase}`});`
+          `${QwikWord.RegisterProjection}(${slotScope}, ${JSON.stringify(slot.name)}, ${this.qrlExpression(meta)}${slot.idBase === null ? '' : `, undefined, ${slot.idBase}`});`
         );
       }
     }
@@ -1585,9 +1604,9 @@ class JsComponentGenerator {
             prepStatements.push(`${this.names.ctx}.addRoot(${captured});`);
           }
           prepStatements.push(`const ${qrlName} = ${this.qrlExpression(meta)};`);
-          this.imports.add('readExpression');
+          this.imports.add(QwikWord.ReadExpression);
           literalRun().push(
-            `get ${JSON.stringify(item.name)}() { return readExpression(${qrlName}); }`
+            `get ${JSON.stringify(item.name)}() { return ${QwikWord.ReadExpression}(${qrlName}); }`
           );
           sourceEntries.push(`${JSON.stringify(item.name)}: ${qrlName}`);
           continue;
@@ -1644,9 +1663,9 @@ class JsComponentGenerator {
         // binding-read passes the local raw — a signal prop keeps its identity
         // signal-read is proof by construction — chunk captures have no sourceKinds entry
         if (ir.kind === 'signal-read') {
-          this.imports.add('readTrackedSourceValue');
+          this.imports.add(QwikWord.ReadTrackedSourceValue);
           literalRun().push(
-            `get ${JSON.stringify(item.name)}() { return readTrackedSourceValue(${value}); }`
+            `get ${JSON.stringify(item.name)}() { return ${QwikWord.ReadTrackedSourceValue}(${value}); }`
           );
           sourceEntries.push(`${JSON.stringify(item.name)}: ${value}`);
           sourceLocals.push(value);
@@ -1702,22 +1721,22 @@ class JsComponentGenerator {
           capture.access === 'component-prop' ? this.names.props : this.local(capture.binding);
         prepStatements.push(`${this.names.ctx}.addRoot(${captured});`);
       }
-      this.imports.add('createPropsProxy');
-      this.imports.add('useComputedQrl');
-      propsExpr = `createPropsProxy(useComputedQrl(${this.qrlExpression(meta)}))`;
+      this.imports.add(QwikWord.CreatePropsProxy);
+      this.imports.add(QwikHooks.UseComputedQrl);
+      propsExpr = `${QwikWord.CreatePropsProxy}(${QwikHooks.UseComputedQrl}(${this.qrlExpression(meta)}))`;
     } else if (runSegments.length === 0) {
       propsExpr = '{}';
     } else if (runSegments.length === 1) {
       propsExpr = runSegments[0];
     } else {
-      this.imports.add('mergeProps');
-      propsExpr = `mergeProps(${runSegments.join(', ')})`;
+      this.imports.add(QwikWord.MergeProps);
+      propsExpr = `${QwikWord.MergeProps}(${runSegments.join(', ')})`;
     }
     if (operation.propsSource === null && sourceEntries.length > 0) {
-      this.imports.add('_props');
-      propsExpr = `_props(${propsExpr}, { ${sourceEntries.join(', ')} })`;
+      this.imports.add(QwikWord.Props);
+      propsExpr = `${QwikWord.Props}(${propsExpr}, { ${sourceEntries.join(', ')} })`;
     }
-    this.imports.add('createComponent');
+    this.imports.add(QwikWord.CreateComponent);
     const options = slotScope === null ? '' : `, { slotScope: ${slotScope} }`;
     const childContext = operation.ssr.blockingSuspense
       ? `${this.names.ctx}.inOrder()`
@@ -1725,10 +1744,10 @@ class JsComponentGenerator {
     const childArgs = `props, ${childContext}${operation.ssr.idBase === null ? '' : `, ${operation.ssr.idBase}`}`;
     let childCall = `${childName}(${childArgs})`;
     if (operation.tagBinding !== undefined) {
-      this.imports.add('renderSsrDynamicTag');
-      childCall = `renderSsrDynamicTag(${childName}, ${childArgs})`;
+      this.imports.add(QwikWord.RenderSsrDynamicTag);
+      childCall = `${QwikWord.RenderSsrDynamicTag}(${childName}, ${childArgs})`;
     }
-    const call = `createComponent(${propsExpr}, (props) => ${childCall}${options})`;
+    const call = `${QwikWord.CreateComponent}(${propsExpr}, (props) => ${childCall}${options})`;
     prepStatements.unshift(...slotPrep);
     if (operation.ssr.returnMode === 'sync' && this.synchronous) {
       // sync child in a sync block renders inline, matching the legacy direct path
@@ -1807,11 +1826,11 @@ class JsComponentGenerator {
       )
     );
     const step = `collection_result_${this.nextTemp++}`;
-    this.imports.add('renderSsrCollection');
+    this.imports.add(QwikWord.RenderSsrCollection);
     this.pushStep(
       step,
       [],
-      `renderSsrCollection(${this.names.ctx}, undefined, ${this.irJs(sourceIr)}, undefined, ${row.symbolName}, ${operation.usesIndexSignal}, ${operation.ssr.idBase ?? "''"}, ${operation.ssr.usesRowId}, ${operation.ssr.rowShape})`
+      `${QwikWord.RenderSsrCollection}(${this.names.ctx}, undefined, ${this.irJs(sourceIr)}, undefined, ${row.symbolName}, ${operation.usesIndexSignal}, ${operation.ssr.idBase ?? "''"}, ${operation.ssr.usesRowId}, ${operation.ssr.rowShape})`
     );
     parts.push(step);
   }
@@ -1832,10 +1851,10 @@ class JsComponentGenerator {
     );
     const idVariable = `content_id_${this.nextTemp}`;
     const step = `content_${this.nextTemp++}`;
-    this.imports.add('renderSsrContent');
-    this.imports.add('createSsrRecord');
-    this.imports.add('createSsrNodeId');
-    this.imports.add('escapeSsrContent');
+    this.imports.add(QwikWord.RenderSsrContent);
+    this.imports.add(QwikWord.CreateSsrRecord);
+    this.imports.add(QwikWord.CreateSsrNodeId);
+    this.imports.add(QwikWord.EscapeSsrContent);
     const deferred = this.asyncSteps.length > 0;
     if (deferred) {
       // deferred content allocates its id when the step runs, keeping q:id chain order
@@ -1846,11 +1865,13 @@ class JsComponentGenerator {
     this.pushStep(
       step,
       captures,
-      `renderSsrContent(${this.names.ctx}, ${idVariable}, [${captures.join(', ')}], ${this.qrlExpression(meta, false)}${operation.ssr.root ? ', true' : ''})`,
+      `${QwikWord.RenderSsrContent}(${this.names.ctx}, ${idVariable}, [${captures.join(', ')}], ${this.qrlExpression(meta, false)}${operation.ssr.root ? ', true' : ''})`,
       deferred ? `${idVariable} ??= ${this.names.ctx}.nextId(); ` : undefined
     );
-    parts.push(`createSsrRecord('<!d=', createSsrNodeId(${idVariable}), '>')`);
-    parts.push(`escapeSsrContent(${step})`);
+    parts.push(
+      `${QwikWord.CreateSsrRecord}('<!d=', ${QwikWord.CreateSsrNodeId}(${idVariable}), '>')`
+    );
+    parts.push(`${QwikWord.EscapeSsrContent}(${step})`);
     pushStatic('<!/d>');
   }
 
@@ -1913,9 +1934,9 @@ class JsComponentGenerator {
       (this.staticRoot || !topLevel) && !anchorsPendingAttrs && this.isFoldableStatic(operation);
     pushOpen(`<${operation.tag}`);
     if (idVariable !== null) {
-      this.imports.add('createSsrNodeId');
+      this.imports.add(QwikWord.CreateSsrNodeId);
       pushOpen(` q:id="`);
-      open.push(`createSsrNodeId(${idVariable})`);
+      open.push(`${QwikWord.CreateSsrNodeId}(${idVariable})`);
       pushOpen(`"`);
     }
     const scope: JsStyleScope = {
@@ -1936,12 +1957,12 @@ class JsComponentGenerator {
         scope.staticId === null && scope.runtimeName === null
           ? ''
           : `, undefined, ${scopeClassExpression(scope, null)}`;
-      this.imports.add('renderSsrProps');
-      this.imports.add('createSsrElementTarget');
+      this.imports.add(QwikWord.RenderSsrProps);
+      this.imports.add(QwikWord.CreateSsrElementTarget);
       this.pushStep(
         step,
         captures,
-        `renderSsrProps(createSsrElementTarget(${idVariable}), [${captures.join(', ')}], ${this.qrlExpression(meta, false)}, ${this.names.ctx}.eventAttr${scopeArgs})`,
+        `${QwikWord.RenderSsrProps}(${QwikWord.CreateSsrElementTarget}(${idVariable}), [${captures.join(', ')}], ${this.qrlExpression(meta, false)}, ${this.names.ctx}.eventAttr${scopeArgs})`,
         this.claimId(idVariable),
         operation.propsEffectRef === true
           ? `${step}.ref !== undefined && ${this.names.ctx}.setRef(${step}.ref, ${idVariable});`
@@ -1989,14 +2010,16 @@ class JsComponentGenerator {
       // fully static element folds into the surrounding run
       pushStatic(JSON.parse(open[0]) as string);
     } else if (isRootElement || anchorsPendingAttrs) {
-      this.imports.add('createSsrElementRecord');
-      parts.push(`createSsrElementRecord(${JSON.stringify(operation.tag)}, ${open.join(', ')})`);
+      this.imports.add(QwikWord.CreateSsrElementRecord);
+      parts.push(
+        `${QwikWord.CreateSsrElementRecord}(${JSON.stringify(operation.tag)}, ${open.join(', ')})`
+      );
     } else if (open.length === 1 && isStringLiteral(open[0])) {
       // non-root static open tags fold like any literal run
       pushStatic(JSON.parse(open[0]) as string);
     } else {
-      this.imports.add('createSsrRecord');
-      parts.push(`createSsrRecord(${open.join(', ')})`);
+      this.imports.add(QwikWord.CreateSsrRecord);
+      parts.push(`${QwikWord.CreateSsrRecord}(${open.join(', ')})`);
     }
     if (innerHtmlExpr !== null) {
       // spread innerHTML falls back to the static children when absent
@@ -2060,12 +2083,12 @@ class JsComponentGenerator {
           const captures = meta.captures.map((capture) =>
             capture.access === 'component-prop' ? this.names.props : this.local(capture.binding)
           );
-          this.imports.add('renderSsrProps');
-          this.imports.add('createSsrElementTarget');
+          this.imports.add(QwikWord.RenderSsrProps);
+          this.imports.add(QwikWord.CreateSsrElementTarget);
           this.pushStep(
             step,
             captures,
-            `renderSsrProps(createSsrElementTarget(${idVariable}), [${captures.join(', ')}], ${this.qrlExpression(meta, false)}, ${this.names.ctx}.eventAttr${scopeArgs})`,
+            `${QwikWord.RenderSsrProps}(${QwikWord.CreateSsrElementTarget}(${idVariable}), [${captures.join(', ')}], ${this.qrlExpression(meta, false)}, ${this.names.ctx}.eventAttr${scopeArgs})`,
             this.claimId(idVariable),
             after
           );
@@ -2074,7 +2097,7 @@ class JsComponentGenerator {
           if (ir === undefined) {
             return false;
           }
-          this.imports.add('renderDomPropsToString');
+          this.imports.add(QwikWord.RenderDomPropsToString);
           const scopeValue =
             scope.staticId === null && scope.runtimeName === null
               ? 'undefined'
@@ -2082,7 +2105,7 @@ class JsComponentGenerator {
           this.pushStep(
             step,
             [],
-            `renderDomPropsToString(${this.irJs(ir)}, ${this.names.ctx}.eventAttr, ${scopeValue})`,
+            `${QwikWord.RenderDomPropsToString}(${this.irJs(ir)}, ${this.names.ctx}.eventAttr, ${scopeValue})`,
             this.claimId(idVariable),
             after
           );
@@ -2121,9 +2144,9 @@ class JsComponentGenerator {
             this.pushScopeOnlyClass(scope, pushOpen, open);
             return true;
           }
-          this.imports.add('escapeHTML');
+          this.imports.add(QwikWord.EscapeHTML);
           pushOpen(' class="');
-          open.push(`escapeHTML(${scopeClassExpression(scope, serialized)})`);
+          open.push(`${QwikWord.EscapeHTML}(${scopeClassExpression(scope, serialized)})`);
           pushOpen('"');
           return true;
         }
@@ -2161,16 +2184,16 @@ class JsComponentGenerator {
           if (idVariable !== null) {
             // targeted elements serialize through a plain value step, null-guarded
             const step = `attr_${this.nextTemp++}`;
-            this.imports.add('escapeHTML');
+            this.imports.add(QwikWord.EscapeHTML);
             this.pushStep(step, [], this.irJs(ir), this.claimId(idVariable));
             open.push(
-              `(${step} === null ? '' : ${JSON.stringify(` ${item.name}`)} + (${step} === '' ? '' : '="' + escapeHTML(${step}) + '"'))`
+              `(${step} === null ? '' : ${JSON.stringify(` ${item.name}`)} + (${step} === '' ? '' : '="' + ${QwikWord.EscapeHTML}(${step}) + '"'))`
             );
             return true;
           }
-          this.imports.add('escapeHTML');
+          this.imports.add(QwikWord.EscapeHTML);
           pushOpen(` ${item.name}="`);
-          open.push(`escapeHTML(${this.irJs(ir)})`);
+          open.push(`${QwikWord.EscapeHTML}(${this.irJs(ir)})`);
           pushOpen('"');
           return true;
         }
@@ -2180,7 +2203,7 @@ class JsComponentGenerator {
             return false;
           }
           // initial-only plain values normalize through the DOM-props renderer
-          this.imports.add('renderDomPropsToString');
+          this.imports.add(QwikWord.RenderDomPropsToString);
           const scopeArg = attrScopeArgs(scope);
           open.push(
             `...renderDomPropsToString({ ${JSON.stringify(item.name)}: ${this.irJs(ir)} }${scopeArg}).attrs`
@@ -2195,17 +2218,17 @@ class JsComponentGenerator {
           }
           const signal = this.local(ir.binding);
           const step = `attr_${this.nextTemp++}`;
-          this.imports.add('createSsrElementTarget');
-          this.imports.add('renderSsrAttr');
-          this.imports.add('escapeHTML');
+          this.imports.add(QwikWord.CreateSsrElementTarget);
+          this.imports.add(QwikWord.RenderSsrAttr);
+          this.imports.add(QwikWord.EscapeHTML);
           this.pushStep(
             step,
             [signal],
-            `renderSsrAttr(createSsrElementTarget(${idVariable}), ${JSON.stringify(item.name)}, ${signal}${attrScopeArgs(scope)})`,
+            `${QwikWord.RenderSsrAttr}(${QwikWord.CreateSsrElementTarget}(${idVariable}), ${JSON.stringify(item.name)}, ${signal}${attrScopeArgs(scope)})`,
             this.claimId(idVariable)
           );
           open.push(
-            `(${step} === null ? '' : ${JSON.stringify(` ${item.name}`)} + (${step} === '' ? '' : '="' + escapeHTML(${step}) + '"'))`
+            `(${step} === null ? '' : ${JSON.stringify(` ${item.name}`)} + (${step} === '' ? '' : '="' + ${QwikWord.EscapeHTML}(${step}) + '"'))`
           );
           return true;
         }
@@ -2214,17 +2237,17 @@ class JsComponentGenerator {
           capture.access === 'component-prop' ? this.names.props : this.local(capture.binding)
         );
         const step = `attr_${this.nextTemp++}`;
-        this.imports.add('createSsrElementTarget');
-        this.imports.add('renderSsrAttrExpression');
-        this.imports.add('escapeHTML');
+        this.imports.add(QwikWord.CreateSsrElementTarget);
+        this.imports.add(QwikWord.RenderSsrAttrExpression);
+        this.imports.add(QwikWord.EscapeHTML);
         this.pushStep(
           step,
           captures,
-          `renderSsrAttrExpression(createSsrElementTarget(${idVariable}), ${JSON.stringify(item.name)}, [${captures.join(', ')}], ${this.qrlExpression(meta, false)}${attrScopeArgs(scope)})`,
+          `${QwikWord.RenderSsrAttrExpression}(${QwikWord.CreateSsrElementTarget}(${idVariable}), ${JSON.stringify(item.name)}, [${captures.join(', ')}], ${this.qrlExpression(meta, false)}${attrScopeArgs(scope)})`,
           this.claimId(idVariable)
         );
         open.push(
-          `(${step} === null ? '' : ${JSON.stringify(` ${item.name}`)} + (${step} === '' ? '' : '="' + escapeHTML(${step}) + '"'))`
+          `(${step} === null ? '' : ${JSON.stringify(` ${item.name}`)} + (${step} === '' ? '' : '="' + ${QwikWord.EscapeHTML}(${step}) + '"'))`
         );
         return true;
       }
@@ -2239,10 +2262,11 @@ class JsComponentGenerator {
         const handlerValue = (handler: (typeof event.handlers)[number]): string | null => {
           if ('bind' in handler) {
             // bind rides the built-in _val/_chk handler capturing the bound signal
-            const symbol = handler.checked === true ? '_chk' : '_val';
-            this.imports.add('inlinedQrl');
+            const symbol =
+              handler.checked === true ? QwikWord.BindCheckedHandler : QwikWord.BindValueHandler;
+            this.imports.add(QwikWord.InlinedQrl);
             this.imports.add(symbol);
-            return `inlinedQrl(${symbol}, ${JSON.stringify(symbol)}, [${handler.bind}])`;
+            return `${QwikWord.InlinedQrl}(${symbol}, ${JSON.stringify(symbol)}, [${handler.bind}])`;
           }
           const segmentId = handler.value === undefined ? undefined : valueSegment(handler.value);
           if (segmentId !== undefined) {
@@ -2277,12 +2301,12 @@ class JsComponentGenerator {
             return false;
           }
           const step = `event_${this.nextTemp++}`;
-          this.imports.add('renderSsrEvent');
-          this.imports.add('createSsrElementTarget');
+          this.imports.add(QwikWord.RenderSsrEvent);
+          this.imports.add(QwikWord.CreateSsrElementTarget);
           this.pushStep(
             step,
             captures,
-            `renderSsrEvent(createSsrElementTarget(${idVariable}), ${JSON.stringify(event.name)}, [${captures.join(', ')}], ${this.qrlExpression(meta, false)}, ${this.names.ctx}.eventAttr, [${before.join(', ')}], [${afterHandlers.join(', ')}])`,
+            `${QwikWord.RenderSsrEvent}(${QwikWord.CreateSsrElementTarget}(${idVariable}), ${JSON.stringify(event.name)}, [${captures.join(', ')}], ${this.qrlExpression(meta, false)}, ${this.names.ctx}.eventAttr, [${before.join(', ')}], [${afterHandlers.join(', ')}])`,
             this.claimId(idVariable)
           );
           open.push(`(${step} ?? '')`);
@@ -2326,12 +2350,14 @@ class JsComponentGenerator {
       target.kind === 'range' && target.id === null ? this.rootRangeName! : `id_${target.id}`;
     const targetExpr =
       target.kind === 'element'
-        ? `createSsrElementTextTarget(${targetIdName})`
-        : `createSsrRangeTextTarget(${targetIdName}, ${target.marker})`;
+        ? `${QwikWord.CreateSsrElementTextTarget}(${targetIdName})`
+        : `${QwikWord.CreateSsrRangeTextTarget}(${targetIdName}, ${target.marker})`;
     this.imports.add(
-      target.kind === 'element' ? 'createSsrElementTextTarget' : 'createSsrRangeTextTarget'
+      target.kind === 'element'
+        ? QwikWord.CreateSsrElementTextTarget
+        : QwikWord.CreateSsrRangeTextTarget
     );
-    this.imports.add('escapeHTML');
+    this.imports.add(QwikWord.EscapeHTML);
     const step = `text_${this.nextTemp++}`;
     const ir = valueIr(operation.value);
     const segmentId = valueSegment(operation.value);
@@ -2342,26 +2368,31 @@ class JsComponentGenerator {
       const captures = meta.captures.map((capture) =>
         capture.access === 'component-prop' ? this.names.props : this.local(capture.binding)
       );
-      this.imports.add('renderSsrTextExpression');
+      this.imports.add(QwikWord.RenderSsrTextExpression);
       this.pushStep(
         step,
         captures,
-        `renderSsrTextExpression(${targetExpr}, [${captures.join(', ')}], ${this.qrlExpression(meta, false)})`,
+        `${QwikWord.RenderSsrTextExpression}(${targetExpr}, [${captures.join(', ')}], ${this.qrlExpression(meta, false)})`,
         idPrelude
       );
     } else if (ir !== undefined && ir.kind === 'signal-read') {
       const signal = this.local((ir as { binding: number }).binding);
-      this.imports.add('renderSsrTextNode');
-      this.pushStep(step, [signal], `renderSsrTextNode(${targetExpr}, ${signal})`, idPrelude);
+      this.imports.add(QwikWord.RenderSsrTextNode);
+      this.pushStep(
+        step,
+        [signal],
+        `${QwikWord.RenderSsrTextNode}(${targetExpr}, ${signal})`,
+        idPrelude
+      );
     } else {
       markUngeneratable();
     }
     if (target.kind === 'range') {
       pushStatic('<!t>');
-      parts.push(`escapeHTML(${step})`);
+      parts.push(`${QwikWord.EscapeHTML}(${step})`);
       pushStatic('<!/t>');
     } else {
-      parts.push(`escapeHTML(${step})`);
+      parts.push(`${QwikWord.EscapeHTML}(${step})`);
     }
   }
 
@@ -2375,8 +2406,8 @@ class JsComponentGenerator {
       if (ir === undefined) {
         markUngeneratable(operation);
       }
-      this.imports.add('escapeHTML');
-      parts.push(`escapeHTML(String((${this.irJs(ir)}) ?? ''))`);
+      this.imports.add(QwikWord.EscapeHTML);
+      parts.push(`${QwikWord.EscapeHTML}(String((${this.irJs(ir)}) ?? ''))`);
       return;
     }
     if (operation.ssr.synchronous) {
@@ -2419,17 +2450,17 @@ class JsComponentGenerator {
       if (meta.syncSource === undefined) {
         markUngeneratable(meta.id);
       }
-      this.imports.add('_qrlSync');
+      this.imports.add(QwikWord.QrlSync);
       this.syncFns.set(meta.symbolName, meta.syncSource);
-      return `_qrlSync(${meta.syncSource}, ${JSON.stringify(meta.symbolName)})`;
+      return `${QwikWord.QrlSync}(${meta.syncSource}, ${JSON.stringify(meta.symbolName)})`;
     }
     const qrl = `q_${meta.symbolName}`;
     if (!this.shared.production && !this.hoistedSegments.has(meta.id)) {
       this.hoistedSegments.add(meta.id);
       // v2-parity: server qrls are chunkless; serialization maps symbol → chunk via the manifest
-      this.imports.add('_noopQrl');
+      this.imports.add(QwikWord.NoopQrl);
       this.hoists.push(
-        `const ${qrl} = /*#__PURE__*/ _noopQrl(${JSON.stringify(meta.symbolName)});`
+        `const ${qrl} = /*#__PURE__*/ ${QwikWord.NoopQrl}(${JSON.stringify(meta.symbolName)});`
       );
       if (meta.resolved) {
         // eagerly resolved segments import the symbol and settle at module load

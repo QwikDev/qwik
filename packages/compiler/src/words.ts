@@ -73,10 +73,15 @@ export const enum QwikWord {
   NoopQrl = '_noopQrl',
   RegSymbol = '_regSymbol',
   CreateVisibleTaskHandlerQrl = 'createVisibleTaskHandlerQrl',
+  RenderDomPropsToString = 'renderDomPropsToString',
+  RenderSsrDynamicTag = 'renderSsrDynamicTag',
   //shared
   ComponentQrl = 'componentQrl',
   Captures = '_captures',
   Await = '_await',
+  Invoke = 'invoke',
+  QrlSync = '_qrlSync',
+  CreateContextId = 'createContextId',
 }
 
 export const enum QwikGenWord {

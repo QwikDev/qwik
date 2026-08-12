@@ -1,12 +1,11 @@
 import { component$ } from '@qwik.dev/core';
 import { renderToStream, type RenderToStreamOptions } from '@qwik.dev/core/server';
 import { Root } from './root';
-// Compiler serializes the synchronous qinit handler as invalid `#0`.
-// import { LogConsole } from '../../../log-console';
+import { LogConsole } from '../../../log-console';
 
 const FragmentRoot = component$<{ pathname: string }>(({ pathname }) => (
   <>
-    {/* <LogConsole /> */}
+    <LogConsole />
     <Root pathname={pathname} />
   </>
 ));
@@ -18,7 +17,7 @@ const DocumentRoot = component$<{ pathname: string }>(({ pathname }) => (
       <title>Qwik Blank App</title>
     </head>
     <body>
-      {/* <LogConsole /> */}
+      <LogConsole />
       <Root pathname={pathname} />
     </body>
   </>

@@ -32,9 +32,8 @@ export const ResourceSerialization = component$(() => {
 
   return (
     <>
-      {/* Compiler does not resume handlers in these nested computed fixtures. */}
-      {/* <ResourceSignalResumabilityIssue2014 /> */}
-      {/* <IssueRaceCondition /> */}
+      <ResourceSignalResumabilityIssue2014 />
+      <IssueRaceCondition />
       {resourceSuccess.pending ? null : resourceSuccess.error ? (
         <button class="failure r1" onClick$={() => state.count1++}>
           ERROR: {String(resourceSuccess.error)} {state.count1}
@@ -66,7 +65,6 @@ export const ResourceSerialization = component$(() => {
   );
 });
 
-/* Compiler does not resume handlers in these nested computed fixtures.
 export const ResourceSignalResumabilityIssue2014 = component$(() => {
   const count = useSignal(0);
   console.log('render');
@@ -108,4 +106,3 @@ export const IssueRaceCondition = component$(() => {
     </>
   );
 });
-*/

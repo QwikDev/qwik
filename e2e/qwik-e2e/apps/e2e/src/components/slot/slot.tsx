@@ -64,12 +64,12 @@ export const SlotParent = component$(() => {
           <AsyncSignalUpdateSlotContentIssue3607 />
           {/* <RouteActionResultNavigationIssue3727 /> */}
           <SvgIconSlotConditionalRenderIssue4215 />
+          {/* Emitted projection references the component symbol without defining it. */}
           {/* <ContentDuplicationDelayedVisibleTaskIssue4283>
             <p>index page</p>
           </ContentDuplicationDelayedVisibleTaskIssue4283> */}
           <ConditionalRootNodeLayoutBreaksIssue4658 />
-          {/* Compiler emits a missing symbol for the non-exported child component. */}
-          {/* <ContextHiddenSlotBreaksSsrIssue5270 /> */}
+          <ContextHiddenSlotBreaksSsrIssue5270 />
           <SlotProjectedContentNotUpdatingDomIssue5506 />
         </>
       )}
@@ -508,7 +508,6 @@ export const ConditionalRootNodeLayoutBreaksIssue4658 = component$(() => {
   );
 });
 
-/* Compiler emits a missing symbol for the non-exported child component.
 const ContextHiddenSlotBreaksSsrIssue5270Context = createContextId<{
   hi: string;
 }>('5270');
@@ -541,7 +540,6 @@ export const ContextHiddenSlotBreaksSsrIssue5270 = component$(() => {
     </ProviderParent>
   );
 });
-*/
 
 export const ToggleIssue5506 = component$<any>((props) => {
   return (

@@ -1,6 +1,8 @@
 import {
+  QwikIntrinsicElements,
   Slot,
   component$,
+  isBrowser,
   useComputed$,
   useSignal,
   useStore,
@@ -132,9 +134,8 @@ export const SignalsChildren = component$<{ rerenderCount: number }>(({ rerender
       <SignalSerializationNullErrorIssue3440 />
       <UseStoreUninitializedKeysIssue4174 />
       <SignalsTernaryUnnecessaryRerendersIssue4249 />
-      {/* <ExcessiveRerenderingStorePropsIssue4228 /> */}
-      {/* Compiler emits missing symbols for non-exported child components. */}
-      {/* <PropsSpreadingUseResourceReactivityIssue4368 /> */}
+      <ExcessiveRerenderingStorePropsIssue4228 />
+      <PropsSpreadingUseResourceReactivityIssue4368 />
       <UseComputedValueNotReflectedIssue4868 />
       <ManySignals />
       <span id="rerender-check">{rerenderCount}</span>
@@ -981,7 +982,6 @@ export const SignalsTernaryUnnecessaryRerendersIssue4249 = component$(() => {
   );
 });
 
-/* Compiler emits unresolved visible-task captures during qinit.
 type Counters = {
   countA: number;
   countB: number;
@@ -1084,9 +1084,7 @@ export const ExcessiveRerenderingStorePropsIssue4228 = component$(() => {
     </>
   );
 });
-*/
 
-/* Compiler emits missing symbols for non-exported child components.
 const MyButton = component$<QwikIntrinsicElements['button']>(({ type, ...rest }) => {
   return (
     <button id="issue-4368-button" type={type || 'button'} {...rest}>
@@ -1122,7 +1120,6 @@ export const PropsSpreadingUseResourceReactivityIssue4368 = component$(() => {
     </>
   );
 });
-*/
 
 export const __CFG__ = { noImg: 'https://placehold.co/600x400?text=No%20IMG' };
 

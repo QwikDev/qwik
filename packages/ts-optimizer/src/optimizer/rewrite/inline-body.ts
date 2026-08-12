@@ -168,10 +168,14 @@ export function transformInlineSegmentBody(
             });
             qrlRef = child.symbolName;
           } else if (hasLoopCrossCaptures && !childIsStripped) {
-            const hoistedName = child.symbolName;
+            // The captures are component-scoped, so the `.w()` binding must
+            // live in the component body, not at module level.
             const wCall = formatWCall(childVarName, child.captureNames, '            ', '        ');
-            hoistedDeclarations.push(`const ${hoistedName} = ${wCall};`);
-            qrlRef = hoistedName;
+            strippedLoopWDecls.push({
+              decl: `const ${child.symbolName} = ${wCall};`,
+              symbolName: child.symbolName,
+            });
+            qrlRef = child.symbolName;
           } else if (!isRegCtx && !childIsStripped && child.captureNames.length > 0) {
             qrlRef += wCallSuffix(child.captureNames, '        ', '    ');
           }

@@ -49,6 +49,21 @@ function collectComputedKeyNames(fn: AstFunction): Set<string> {
   return names;
 }
 
+function collectJsxTagNames(fn: AstFunction): Set<string> {
+  const names = new Set<string>();
+  walk(fn as AstNode, {
+    enter(node, parent) {
+      const n = node as AstNode;
+      const p = parent as AstNode | null;
+      if (n.type !== 'JSXIdentifier' || p === null) return;
+      if (p.type === 'JSXAttribute' || p.type === 'JSXNamespacedName') return;
+      if (p.type === 'JSXMemberExpression' && (p as { property?: unknown }).property === n) return;
+      if (/^[A-Z]/.test(n.name)) names.add(n.name);
+    },
+  });
+  return names;
+}
+
 function diffAgainstLegacy(source: string, filename: string): string[] {
   const parsed = parseSync(filename, source, RAW_TRANSFER_PARSER_OPTIONS);
   if (!parsed.program || parsed.errors?.length) return [];
@@ -66,8 +81,14 @@ function diffAgainstLegacy(source: string, filename: string): string[] {
     }
     const ours = fused.get(fn) ?? [];
     const computedKeyNames = collectComputedKeyNames(fn);
+    // The fused walk intentionally counts capitalized JSX tags as free
+    // references (they capture like any binding); the oxc-walker oracle
+    // doesn't know JSX tags, so exclude that known difference.
+    const jsxTagNames = collectJsxTagNames(fn);
     const legacySet = new Set(legacy);
-    const filtered = ours.filter((n) => legacySet.has(n) || !computedKeyNames.has(n));
+    const filtered = ours.filter(
+      (n) => legacySet.has(n) || (!computedKeyNames.has(n) && !jsxTagNames.has(n))
+    );
     if (JSON.stringify(filtered) !== JSON.stringify(legacy)) {
       mismatches.push(
         `${key} @ ${fn.start}: fused=${JSON.stringify(ours)} legacy=${JSON.stringify(legacy)}`

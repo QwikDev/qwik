@@ -478,8 +478,17 @@ function enterFreeIdentifiers(
   }
 
   if (openClosures.length === 0) return;
-  if (node.type !== 'Identifier') return;
-  if (isBindingIdentifier(node, parent) && !isComputedKeyReference(node, parent)) return;
+  if (node.type !== 'Identifier') {
+    // A capitalized JSX tag (`<Display/>`) references a scope binding like any
+    // identifier; attribute names, namespaced parts, and member properties
+    // don't, and lowercase tags are intrinsic elements.
+    if (node.type !== 'JSXIdentifier') return;
+    if (parent?.type === 'JSXAttribute' || parent?.type === 'JSXNamespacedName') return;
+    if (parent?.type === 'JSXMemberExpression' && parent.property === node) return;
+    if (!/^[A-Z]/.test(node.name)) return;
+  } else if (isBindingIdentifier(node, parent) && !isComputedKeyReference(node, parent)) {
+    return;
+  }
 
   const name = node.name;
   const scopeKey = tracker.getCurrentScope();

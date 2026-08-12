@@ -18,31 +18,32 @@ test.describe('render', () => {
 
       const attributes = page.locator('#attributes');
 
-      await expect(attributes).toHaveClass('⚡️unvb18-1 even stable0');
+      await expect(attributes).toHaveClass('⚡️hnnps2-0 even stable0');
       await expect(attributes).toHaveAttribute('aria-hidden', 'true');
       await expect(attributes).toHaveAttribute('preventdefault:click', '');
 
       await increment.click();
 
-      await expect(attributes).toHaveClass('⚡️unvb18-1 odd stable0');
+      // v3: components never rerun, so the body-level `count` const keeps its classes
+      await expect(attributes).toHaveClass('⚡️hnnps2-0 even stable0');
       await expect(attributes).toHaveAttribute('aria-hidden', 'true');
       await expect(attributes).toHaveAttribute('preventdefault:click', '');
 
       await toggle.click();
 
-      await expect(attributes).toHaveClass('⚡️unvb18-1');
+      await expect(attributes).toHaveClass('⚡️hnnps2-0');
       await expect(attributes).not.toHaveAttribute('aria-hidden');
       await expect(attributes).not.toHaveAttribute('preventdefault:click');
 
       await increment.click();
 
-      await expect(attributes).toHaveClass('⚡️unvb18-1');
+      await expect(attributes).toHaveClass('⚡️hnnps2-0');
       await expect(attributes).not.toHaveAttribute('aria-hidden');
       await expect(attributes).not.toHaveAttribute('preventdefault:click');
 
       await toggle.click();
 
-      await expect(attributes).toHaveClass('⚡️unvb18-1 even stable0');
+      await expect(attributes).toHaveClass('⚡️hnnps2-0 even stable0');
       await expect(attributes).toHaveAttribute('aria-hidden', 'true');
       await expect(attributes).toHaveAttribute('preventdefault:click', '');
     });

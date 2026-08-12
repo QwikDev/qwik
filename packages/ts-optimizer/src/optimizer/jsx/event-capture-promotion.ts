@@ -361,17 +361,16 @@ function collectVisibleScopeBindings(
     // The enclosing segment's own captures unpack as `_captures[N]` consts in
     // its emitted body — per-invocation values a nested handler must receive
     // positionally (q:p/q:ps), not via lexical `.w()` capture. Module-scope
-    // names resolve by import instead and stay out.
-    if (enclosingExt.isBare || enclosingExt.isInlinedQrl) {
-      for (const name of enclosingExt.captureNames) {
-        if (
-          !allScopeIds.has(name) &&
-          !moduleScopeIds.has(name) &&
-          !ctx.moduleTopLevelNames?.has(name)
-        ) {
-          allScopeIds.add(name);
-          enclosingCaptureOnly.add(name);
-        }
+    // names resolve by import instead and stay out. This holds for every
+    // enclosing kind: marker segments (component$) unpack captures too.
+    for (const name of enclosingExt.captureNames) {
+      if (
+        !allScopeIds.has(name) &&
+        !moduleScopeIds.has(name) &&
+        !ctx.moduleTopLevelNames?.has(name)
+      ) {
+        allScopeIds.add(name);
+        enclosingCaptureOnly.add(name);
       }
     }
   } else {

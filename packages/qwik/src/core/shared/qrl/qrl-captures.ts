@@ -15,6 +15,13 @@ const setQrlCaptures = (captures: Readonly<unknown[]> | null | undefined) => {
   _captures = captures ?? null;
 };
 
+/** Brands capture-bound segment functions: framework-created, never serialized from the client. */
+export const BOUND_CAPTURES = Symbol('bound-captures');
+
+export const isBoundCapturesFunction = (value: unknown): boolean => {
+  return typeof value === 'function' && (value as any)[BOUND_CAPTURES] === true;
+};
+
 /** @internal */
 export const withCaptures = <TYPE>(
   ref: TYPE,
@@ -23,8 +30,10 @@ export const withCaptures = <TYPE>(
   if (typeof ref !== 'function' || !captures) {
     return ref;
   }
-  return function boundCaptures(this: unknown) {
+  const bound = function boundCaptures(this: unknown) {
     setQrlCaptures(captures);
     return (ref as Function).apply(this, arguments);
-  } as TYPE;
+  };
+  (bound as any)[BOUND_CAPTURES] = true;
+  return bound as TYPE;
 };

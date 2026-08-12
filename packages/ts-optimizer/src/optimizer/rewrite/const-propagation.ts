@@ -244,6 +244,12 @@ function readsMutatedObject(node: AstNode, mutatedObjects: ReadonlySet<string>):
   return found;
 }
 
+/** Textual, conservative: a false positive only skips an optimization. */
+function bodyHasAwaitBetween(body: string, from: number, to: number): boolean {
+  if (to <= from) return false;
+  return /\b(await|yield)\b/.test(body.slice(from, to));
+}
+
 export function propagateConstLiteralsInBody(body: string): string {
   const session = createTransformSession(body);
   if (!session) return body;
@@ -437,6 +443,13 @@ export function propagateConstLiteralsInBody(body: string): string {
 
     const refs = externalRefCounts.get(name) ?? 0;
     if (refs <= 1) {
+      // A member read is position-sensitive: signal/store reads are tracked,
+      // and moving one across an await leaves the invoke context. Keep the
+      // decl when its single use sits past an await.
+      if (refs === 1 && decl.initNode.type === 'MemberExpression') {
+        const ref = identRefs.find((r) => r.name === name && r.insideDeclOf === null);
+        if (ref && bodyHasAwaitBetween(body, decl.stmtEnd, ref.start)) continue;
+      }
       toRemove.add(name);
     }
   }

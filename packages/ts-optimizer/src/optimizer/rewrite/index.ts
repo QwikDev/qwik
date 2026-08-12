@@ -104,6 +104,8 @@ export interface ParentRewriteResult {
   movedDeclSnapshots: Map<string, string>;
   /** Final JSX key counter value, for segment continuation. */
   jsxKeyCounterValue?: number;
+  /** Per-extraction key bases recorded by the module-order walk (keyed by argStart). */
+  jsxRegionKeyBases?: ReadonlyMap<number, number>;
 }
 
 function isMarkerSpecifier(importedName: string, extractedCalleeNames: Set<string>): boolean {
@@ -218,12 +220,14 @@ export function rewriteParentModule(
   preConsolidateRawPropsCaptures(ctx);
   ctx.topLevel = extractions.filter((e) => e.parent === null);
 
-  // Inline strategy keeps every body in the parent module. When the parent
-  // has keyable JSX of its own interleaved with extracted bodies, key numbers
-  // must follow the module-order walk — reserve each body's range as the
-  // parent walk passes it. Without parent-level JSX, extraction-order
-  // numbering already matches, so the mechanism stays off.
-  if (ctx.isInline) {
+  // When the parent has keyable JSX of its own interleaved with extracted
+  // bodies, key numbers must follow the module-order walk — reserve each
+  // body's range as the parent walk passes it. This applies to every
+  // strategy: segment builds continue from the recorded per-region bases so
+  // SSR and client assign identical keys to the same source node. Without
+  // parent-level JSX after a region, extraction-order numbering already
+  // matches, so the mechanism stays off.
+  {
     const reservationJsxFns = collectJsxFunctionNamesFromIterable(ctx.originalImports.values());
     const regions: Array<{ start: number; end: number; count: number }> = [];
     for (const ext of ctx.topLevel) {
@@ -308,6 +312,7 @@ export function rewriteParentModule(
     extractions: extractions as ConsolidatedSegment[],
     movedDeclSnapshots,
     jsxKeyCounterValue: ctx.jsxKeyCounterValue || undefined,
+    jsxRegionKeyBases: ctx.jsxCallSkipKeyBases,
   };
 }
 

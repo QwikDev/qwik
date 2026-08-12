@@ -66,6 +66,7 @@ import {
 } from './post-process.js';
 import type { LoopContext } from '../jsx/loop-hoisting.js';
 import { eventHandlerQpParams } from '../jsx/loop-hoisting.js';
+import { getJsxAttributeName } from '../jsx/jsx-attr-name.js';
 
 /**
  * Resolve the on-disk extension for a segment's emitted file (`module.path` and the `extension`
@@ -295,6 +296,8 @@ export interface SegmentGenerationContext {
   extractionLoopMap: Map<string, LoopContext[]>;
   constLiteralsMap: Map<string, Map<string, string>>;
   parentJsxKeyCounterValue: number;
+  /** Per-extraction key bases from the parent's module-order walk (keyed by argStart). */
+  jsxRegionKeyBases?: ReadonlyMap<number, number>;
   /**
    * Source carries `/* @jsxImportSource <non-qwik-pkg> *‌/`. When true, segment-codegen skips
    * Qwik's JSX-syntax rewrite and prepends `foreignJsxPragmaText` to each segment file so
@@ -1396,7 +1399,8 @@ export function generateAllSegmentModules(ctx: SegmentGenerationContext): Transf
   const segmentStartKey = computeSegmentStartKeys(
     prep.sortedExtractions,
     ctx.parentJsxKeyCounterValue,
-    ctx.closureNodes
+    ctx.closureNodes,
+    ctx.jsxRegionKeyBases
   );
 
   for (const ext of prep.sortedExtractions) {
@@ -1452,7 +1456,8 @@ export function generateAllSegmentModules(ctx: SegmentGenerationContext): Transf
 function computeSegmentStartKeys(
   sortedExtractions: readonly ConsolidatedSegment[],
   parentJsxKeyCounterValue: number,
-  closureNodes: ReadonlyMap<string, AstFunction>
+  closureNodes: ReadonlyMap<string, AstFunction>,
+  regionKeyBases?: ReadonlyMap<number, number>
 ): Map<string, number> {
   // Total JSX-element count per extraction. The Phase-1 closure node IS the raw
   // body's AST — walk it directly; fall back to a body-text parse only when no
@@ -1501,7 +1506,13 @@ function computeSegmentStartKeys(
     .filter((ext) => ext.parent === null)
     .slice()
     .sort((a, b) => a.argStart - b.argStart);
-  for (const ext of topLevelInSourceOrder) visit(ext);
+  for (const ext of topLevelInSourceOrder) {
+    // The parent's module-order walk reserved this extraction's key range;
+    // continue from that base so SSR and client numbering agree.
+    const reservedBase = regionKeyBases?.get(ext.argStart);
+    if (reservedBase !== undefined) counter = reservedBase;
+    visit(ext);
+  }
 
   return result;
 }
@@ -1537,9 +1548,13 @@ export function countJsxKeysInNode(root: AstNode, jsxFunctions?: ReadonlySet<str
   function walk(n: AstNode | null | undefined, parentIsJsxParent: boolean): void {
     if (!n) return;
     if (n.type === 'JSXElement') {
-      // Skip: HTML element that's a JSX child of another JSXElement /
-      // JSXFragment — receives a null key and doesn't advance counter.
-      if (!(parentIsJsxParent && isHtmlElementName(n))) count++;
+      // Skip: an explicit key attribute consumes no counter key, and an HTML
+      // element that's a JSX child of another JSXElement / JSXFragment
+      // receives a null key.
+      const hasExplicitKey = n.openingElement?.attributes?.some(
+        (a) => a.type === 'JSXAttribute' && getJsxAttributeName(a) === 'key'
+      );
+      if (!hasExplicitKey && !(parentIsJsxParent && isHtmlElementName(n))) count++;
     } else if (n.type === 'JSXFragment') {
       count++;
     } else if (jsxFunctions && isJsxCall(n, jsxFunctions) && n.type === 'CallExpression') {

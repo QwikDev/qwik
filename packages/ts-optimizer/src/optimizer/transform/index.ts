@@ -1285,6 +1285,7 @@ function generateSegments(
     extractionLoopMap: analysis.extractionLoopMap,
     constLiteralsMap,
     parentJsxKeyCounterValue: parentResult.jsxKeyCounterValue ?? 0,
+    jsxRegionKeyBases: parentResult.jsxRegionKeyBases,
     hasForeignJsxRuntime,
     foreignJsxPragmaText,
   };

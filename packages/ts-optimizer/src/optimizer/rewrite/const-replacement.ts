@@ -66,6 +66,7 @@ function applyReplacements(
 ): number {
   let replacedCount = 0;
 
+  const expandedShorthands = new Set<number>();
   walk(program, {
     enter(node: AstNode, parent: AstParentNode) {
       if (node.type !== 'Identifier') return;
@@ -78,6 +79,23 @@ function applyReplacements(
         return;
       if (parent?.type === 'VariableDeclarator' && parent.id === node) return;
       if (parent?.type === 'ImportSpecifier' && parent.imported === node) return;
+      // Key/value of a shorthand property are distinct nodes sharing a span,
+      // so compare spans, and expand only once per property.
+      if (
+        parent?.type === 'Property' &&
+        !parent.computed &&
+        parent.key?.start === node.start &&
+        parent.key?.end === node.end
+      ) {
+        // `{ isServer }` means `{ isServer: isServer }` — keep the key,
+        // replace only the value. A plain key is not a reference at all.
+        if (parent.shorthand && !expandedShorthands.has(node.start)) {
+          expandedShorthands.add(node.start);
+          s.overwrite(node.start, node.end, `${node.name}: ${replacement}`);
+          replacedCount++;
+        }
+        return;
+      }
 
       s.overwrite(node.start, node.end, replacement);
       replacedCount++;

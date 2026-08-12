@@ -33,7 +33,7 @@ export {
   _qrlWithChunkDEV,
   _regSymbol,
 } from './shared/qrl/qrl';
-export { isQrl } from './shared/qrl/qrl-utils';
+export { isQrl, isSyncQrl } from './shared/qrl/qrl-utils';
 export { qrlToChunks } from './shared/serdes/qrl-to-string';
 export type { QRL, PropFunction } from './shared/qrl/qrl.public';
 export { implicit$FirstArg } from './shared/qrl/implicit_dollar';

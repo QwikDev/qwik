@@ -2,6 +2,7 @@ import {
   _run,
   createQRL,
   isQrl,
+  isSyncQrl,
   qrlToChunks,
   type QRL,
   type QRLInternal,
@@ -34,7 +35,12 @@ export function serializeSsrEvent(
   };
 
   const appendQrl = (qrl: QRLInternal<unknown>) => {
-    if (!qrl.$symbol$.startsWith('_') && (qrl.$captures$?.length || hasMovedCaptures)) {
+    // sync handlers have no captures to move — wrapping would lose their sync dispatch
+    if (
+      !isSyncQrl(qrl) &&
+      !qrl.$symbol$.startsWith('_') &&
+      (qrl.$captures$?.length || hasMovedCaptures)
+    ) {
       qrl = createQRL(null, '_run', _run, null, [qrl]);
     }
     append(qrlToChunks(serializationCtx, qrl));

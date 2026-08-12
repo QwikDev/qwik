@@ -1,9 +1,27 @@
 import { describe, expect, it } from 'vitest';
 import { createQRL } from '../core/shared/qrl/qrl-class';
+import { _qrlSync } from '../core/shared/qrl/qrl.public';
 import { createSerializationContext } from '../core/shared/serdes/serialization-context';
 import { createSsrEventAttr, createSsrEventAttrParts } from './ssr-event-attr';
 
 describe('SSR event attributes', () => {
+  it('keeps sync handlers synchronous even when captures are moved', () => {
+    const serializationCtx = createSerializationContext(
+      null,
+      () => '',
+      () => {},
+      new WeakMap()
+    );
+    const sync = _qrlSync((event: Event) => event.preventDefault(), 'link_sync$_segment_1_hash1');
+
+    // a sync handler has no captures to move; wrapping it in _run loses sync dispatch
+    expect(createSsrEventAttr(serializationCtx, 'q-e:click', sync, true)).toEqual({
+      type: 'event-attr',
+      name: 'q-e:click',
+      valueParts: ['#link_sync$_segment_1_hash1'],
+    });
+  });
+
   it('keeps capture references typed until ordered output commit', () => {
     const serializationCtx = createSerializationContext(
       null,

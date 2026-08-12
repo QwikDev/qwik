@@ -11,19 +11,15 @@
 
 import * as nodePath from 'pathe';
 
-import { transformModule } from './optimizer/transform/index.js';
+import {
+  createTransformWorkerPool,
+  getSharedTransformPool,
+  resolvePoolSize,
+} from './worker-pool.js';
+import { runTransform } from './transform-run.js';
 
 import type { AstEcmaScriptModule, AstProgram } from './ast-types.js';
-import type {
-  Diagnostic,
-  EmitMode,
-  EntryStrategy,
-  MinifyMode,
-  SegmentAnalysis,
-  TransformModule,
-  TransformModulesOptions,
-} from './optimizer/types/types.js';
-import { mkFilePath, mkSourceText } from './optimizer/types/brands.js';
+import type { EmitMode, EntryStrategy, MinifyMode } from './optimizer/types/types.js';
 
 /**
  * Runtime environment the optimizer is executing in. Default `'node'` — the only environment this
@@ -93,6 +89,12 @@ export interface OptimizerOptions {
   inlineStylesUpToBytes?: number;
   sourcemap?: boolean;
   _optimizer?: unknown;
+  /**
+   * Number of worker threads for transforms (Node only). Workers isolate transform allocations from
+   * the host heap and run independent calls in parallel. `0`/`1` runs in-process. Default: `min(4,
+   * cores - 1)`, overridable via `QWIK_TS_OPTIMIZER_WORKERS`; disabled under vitest.
+   */
+  workers?: number;
 }
 
 // Raw-string transform types — the boundary the `Napi*` type family speaks.
@@ -210,58 +212,8 @@ export interface NapiTransformOutput {
 export interface QwikOptimizer {
   transformModules(opts: NapiTransformModulesOptions): Promise<NapiTransformOutput>;
   sys: OptimizerSystem;
-}
-
-function brandTransformOptions(opts: NapiTransformModulesOptions): TransformModulesOptions {
-  return {
-    ...opts,
-    srcDir: mkFilePath(opts.srcDir),
-    input: opts.input.map((input) => ({
-      ...input,
-      path: mkFilePath(input.path),
-      code: mkSourceText(input.code),
-    })),
-  };
-}
-
-function toNapiSegment(segment: SegmentAnalysis): NapiSegmentAnalysis {
-  return { ...segment, loc: [segment.loc[0], segment.loc[1]] };
-}
-
-function toNapiModule(module: TransformModule): NapiTransformModule {
-  switch (module.kind) {
-    case 'parent':
-      return {
-        path: module.path,
-        isEntry: module.isEntry,
-        code: module.code,
-        map: module.map,
-        segment: null,
-        origPath: module.origPath,
-        imports: module.imports ? [...module.imports] : undefined,
-      };
-    case 'segment':
-      return {
-        path: module.path,
-        isEntry: module.isEntry,
-        code: module.code,
-        map: module.map,
-        segment: toNapiSegment(module.segment),
-        origPath: null,
-      };
-    default: {
-      const _exhaustive: never = module;
-      throw new Error(`unhandled module kind: ${(module as { kind?: string }).kind}`);
-    }
-  }
-}
-
-function toNapiDiagnostic(diagnostic: Diagnostic): NapiDiagnostic {
-  let highlights: NapiSourceLocation[] | null = null;
-  if (diagnostic.highlights !== null) {
-    highlights = diagnostic.highlights.map((highlight) => ({ ...highlight }));
-  }
-  return { ...diagnostic, highlights };
+  /** Terminates the worker pool, if one is active. Safe to omit — workers never block exit. */
+  dispose?(): Promise<void>;
 }
 
 /**
@@ -312,19 +264,26 @@ function buildDefaultSystem(): OptimizerSystem {
  * provided; otherwise a default stub is built. Other `OptimizerOptions` fields are accepted for
  * type-compatibility but not read.
  */
-export function createOptimizer(options?: OptimizerOptions): Promise<QwikOptimizer> {
+export async function createOptimizer(options?: OptimizerOptions): Promise<QwikOptimizer> {
   const sys = options?.sys ?? buildDefaultSystem();
-  const instance: QwikOptimizer = {
+  // Explicit `workers` gets a private, disposable pool; the default shares one
+  // process-wide pool so per-build optimizer instances don't multiply workers.
+  const isPrivatePool = options?.workers !== undefined;
+  const pool = isPrivatePool
+    ? await createTransformWorkerPool(resolvePoolSize(options.workers))
+    : await getSharedTransformPool(resolvePoolSize(undefined));
+  return {
     sys,
     transformModules(opts) {
-      const output = transformModule(brandTransformOptions(opts));
-      return Promise.resolve({
-        modules: output.modules.map(toNapiModule),
-        diagnostics: output.diagnostics.map(toNapiDiagnostic),
-        isTypeScript: output.isTypeScript,
-        isJsx: output.isJsx,
-      });
+      if (pool) return pool.transformModules(opts);
+      try {
+        return Promise.resolve(runTransform(opts));
+      } catch (err) {
+        return Promise.reject(err instanceof Error ? err : new Error(String(err)));
+      }
+    },
+    dispose() {
+      return pool && isPrivatePool ? pool.dispose() : Promise.resolve();
     },
   };
-  return Promise.resolve(instance);
 }

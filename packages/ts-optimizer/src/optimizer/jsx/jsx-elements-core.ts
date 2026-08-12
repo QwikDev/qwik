@@ -295,6 +295,75 @@ function buildJsxSplitCall(
     if (sourceOrdered !== null) return sourceOrdered;
   }
 
+  // Multiple spreads: emit slots in source order so a later spread overrides
+  // earlier named props (and vice versa). Only when every named entry went
+  // through slotOrder — post-hoc bucket pushes (bind/event merging) bypass it.
+  if (
+    additionalSpreads.length > 0 &&
+    slotOrder &&
+    slotOrder.filter((sl) => sl.kind === 'named').length ===
+      beforeSpreadEntries.length + varEntries.length + constEntries.length
+  ) {
+    let lastSpreadStart = -1;
+    for (const slot of slotOrder) {
+      if (slot.kind === 'spread' && slot.sourceStart > lastSpreadStart) {
+        lastSpreadStart = slot.sourceStart;
+      }
+    }
+    // Only the props-proxy spread (the first spread's expression, per the
+    // legacy wrapping rule) splits into _getVarProps/_getConstProps;
+    // arbitrary expressions spread raw. A wrapped FINAL spread donates its
+    // const part to the const arg; any other wrapped spread emits both parts
+    // inline at its source position.
+    const isWrappable = (expr: string): boolean => expr === spreadArg;
+    let finalSpreadWrapped = false;
+    const varParts: string[] = [];
+    const constParts: string[] = [];
+    for (const slot of slotOrder) {
+      if (slot.kind === 'spread') {
+        const isLast = slot.sourceStart === lastSpreadStart;
+        if (isWrappable(slot.expr)) {
+          varParts.push(`..._getVarProps(${slot.expr})`);
+          if (isLast) {
+            finalSpreadWrapped = true;
+          } else {
+            varParts.push(`..._getConstProps(${slot.expr})`);
+          }
+        } else {
+          varParts.push(`...${slot.expr}`);
+        }
+        continue;
+      }
+      if (slot.sourceStart > lastSpreadStart && slot.classification === 'const') {
+        constParts.push(slot.entry);
+      } else {
+        varParts.push(slot.entry);
+      }
+    }
+    neededImports.add('_jsxSplit');
+    neededImports.add('_getVarProps');
+    neededImports.add('_getConstProps');
+    const varPropsPart = varParts.length > 0 ? `{ ${varParts.join(', ')} }` : 'null';
+    const constPropsPart = finalSpreadWrapped
+      ? constParts.length > 0
+        ? `{ ..._getConstProps(${spreadArg}), ${constParts.join(', ')} }`
+        : `_getConstProps(${spreadArg})`
+      : constParts.length > 0
+        ? `{ ${constParts.join(', ')} }`
+        : 'null';
+    const callString = `_jsxSplit(${tag}, ${varPropsPart}, ${constPropsPart}, ${childrenText ?? 'null'}, ${flags}, ${keyStr ?? 'null'})`;
+    return {
+      tag,
+      varProps: varPropsPart,
+      constProps: constPropsPart,
+      children: childrenText,
+      flags,
+      key: keyStr,
+      callString,
+      neededImports,
+    };
+  }
+
   neededImports.add('_jsxSplit');
   neededImports.add('_getVarProps');
   neededImports.add('_getConstProps');

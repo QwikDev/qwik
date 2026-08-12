@@ -396,13 +396,18 @@ export function processProps(
             valueNode?.start ?? 0
           );
           pushNamed(
-            isConst ? constEntries : varEntries,
+            beforeSpread ? beforeSpreadEntries : isConst ? constEntries : varEntries,
             `${formattedName}: ${signalResult.code}`,
-            isConst ? 'const' : 'var',
+            isConst && !beforeSpread ? 'const' : 'var',
             attr.start
           );
         } else {
-          pushNamed(constEntries, `${formattedName}: ${signalResult.code}`, 'const', attr.start);
+          pushNamed(
+            beforeSpread ? beforeSpreadEntries : constEntries,
+            `${formattedName}: ${signalResult.code}`,
+            beforeSpread ? 'var' : 'const',
+            attr.start
+          );
         }
         neededImports.add('_wrapProp');
         continue;
@@ -442,7 +447,11 @@ export function processProps(
             tagIsHtml,
             isParam
           );
-          if (depsAllConst && !inLoop) {
+          if (beforeSpread) {
+            // A named prop before a spread must stay before it in the var bag
+            // so the spread's keys override at runtime.
+            pushNamed(beforeSpreadEntries, `${formattedName}: ${fnSignalCall}`, 'var', attr.start);
+          } else if (depsAllConst && !inLoop) {
             pushNamed(constEntries, `${formattedName}: ${fnSignalCall}`, 'const', attr.start);
           } else {
             pushNamed(varEntries, `${formattedName}: ${fnSignalCall}`, 'var', attr.start);

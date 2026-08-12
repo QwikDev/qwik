@@ -64,7 +64,7 @@ function injectQpProp(
   if (overrideParams && overrideParams.length > 0) {
     const qpResult = buildCaptureProp(overrideParams, true);
     if (qpResult) {
-      varEntries.push(`${formatPropName(qpResult.propName)}: ${qpResult.propValue}`);
+      insertEntrySorted(varEntries, qpResult.propName, qpResult.propValue);
     }
     return;
   }
@@ -89,8 +89,25 @@ function injectQpProp(
 
   const qpResult = buildCaptureProp(loopCtx!.iterVars);
   if (qpResult) {
-    varEntries.push(`${formatPropName(qpResult.propName)}: ${qpResult.propValue}`);
+    insertEntrySorted(varEntries, qpResult.propName, qpResult.propValue);
   }
+}
+
+/** `_jsxSorted` prop bags are key-sorted; splice the entry at its sorted slot. */
+function insertEntrySorted(entries: string[], propName: string, propValue: string): void {
+  const entry = `${formatPropName(propName)}: ${propValue}`;
+  const nameOf = (e: string): string => {
+    const m = /^"([^"]+)"|^([\w$-]+)/.exec(e);
+    return m ? (m[1] ?? m[2] ?? '') : '';
+  };
+  let at = entries.length;
+  for (let i = 0; i < entries.length; i++) {
+    if (nameOf(entries[i]) > propName) {
+      at = i;
+      break;
+    }
+  }
+  entries.splice(at, 0, entry);
 }
 
 /**

@@ -142,7 +142,7 @@ export function transformInlineSegmentBody(
             !isRegCtx &&
             child.captures &&
             child.captureNames.length > 0 &&
-            hasUnderscorePlaceholderParams(child.paramNames);
+            hasUnderscorePlaceholderParams(child.paramNames, child.movedCaptures);
 
           // Stripped child segments emit `= null` bodies that cannot consume
           // captures, so skip the `.w([…])` wrap and emit the bare `q_X` ref.

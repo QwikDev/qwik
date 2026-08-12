@@ -86,7 +86,7 @@ export const AtomStatus = component$(({ctx, atom}) => {
       (m) => m.kind === 'segment' && m.path.includes('span_q_e_click')
     );
     expect(eventHandlerSeg?.code).toBeTruthy();
-    expect(eventHandlerSeg!.code).toMatch(/\(_,\s*_1,\s*atom,\s*ctx\)\s*=>/);
+    expect(eventHandlerSeg!.code).toMatch(/\(ev,\s*_1,\s*atom,\s*ctx\)\s*=>/);
   });
 });
 

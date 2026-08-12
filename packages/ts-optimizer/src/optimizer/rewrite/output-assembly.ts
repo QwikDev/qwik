@@ -541,7 +541,7 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
     );
 
     let sigRewrittenBody = rawBody;
-    if (hasUnderscorePlaceholderParams(ext.paramNames)) {
+    if (hasUnderscorePlaceholderParams(ext.paramNames, ext.movedCaptures)) {
       sigRewrittenBody = rewriteFunctionSignature(rawBody, ext.paramNames);
     }
 

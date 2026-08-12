@@ -9,6 +9,7 @@ import {
   type LoopContext,
 } from './loop-hoisting.js';
 import { addBindingNamesFromPatternToSet } from '../ast/binding-pattern.js';
+import { hasUnderscorePlaceholderParams } from '../rewrite/predicates.js';
 import { getWholeWordPattern } from '../segment/post-process.js';
 
 interface BuildExtractionLoopMapEnterContext {
@@ -413,7 +414,7 @@ function promoteNonLoopCaptures(
     extraction.captureNames = sortedCaptures;
     extraction.captures = sortedCaptures.length > 0;
   } else {
-    extraction.paramNames = generateParamPadding(sortedCaptures);
+    extraction.paramNames = generateParamPadding(sortedCaptures, extraction.paramNames);
     extraction.captureNames = [];
     extraction.captures = false;
     extraction.movedCaptures = sortedCaptures.length > 0;
@@ -461,7 +462,7 @@ function partitionLoopCaptures(
   }
 
   if (loopLocalVars.length > 0) {
-    extraction.paramNames = generateParamPadding(loopLocalVars);
+    extraction.paramNames = generateParamPadding(loopLocalVars, extraction.paramNames);
     extraction.movedCaptures = true;
   }
   extraction.captureNames = crossScopeCaptures.sort();
@@ -531,7 +532,21 @@ export function promoteEventHandlerCaptures(
 
     const enclosingLoops = extractionLoopMap.get(extraction.symbolName);
     if (!enclosingLoops || enclosingLoops.length === 0) {
-      promoteNonLoopCaptures(extraction, uniqueCaptures, isInlineStrategy);
+      // An explicit `$()` handler inside a serializing marker segment
+      // (component$, useTask$, …) keeps `.w()` capture delivery; inline-arrow
+      // attr handlers and handlers with no serializing scope around them
+      // (parent-level, bare-$/inlinedQrl enclosings) promote to positional
+      // params (matches Rust).
+      const enclosingExt = ctx.enclosingExtMap.get(extraction.symbolName);
+      const hasSerializingScope =
+        enclosingExt !== undefined && !enclosingExt.isBare && !enclosingExt.isInlinedQrl;
+      const keepsWCall = extraction.isBare && hasSerializingScope;
+      if (!keepsWCall || isInlineStrategy || extraction.isWorkerEventHandler) {
+        promoteNonLoopCaptures(extraction, uniqueCaptures, isInlineStrategy);
+      } else {
+        extraction.captureNames = [...uniqueCaptures].sort();
+        extraction.captures = extraction.captureNames.length > 0;
+      }
     } else {
       partitionLoopCaptures(
         extraction,
@@ -551,8 +566,7 @@ function groupPromotedHandlersByParent(
   const handlersByParent = new Map<string, ExtractionResult[]>();
   for (const ext of extractions) {
     if (ext.ctxKind !== 'eventHandler') continue;
-    if (ext.paramNames.length < 2 || ext.paramNames[0] !== '_' || ext.paramNames[1] !== '_1')
-      continue;
+    if (!hasUnderscorePlaceholderParams(ext.paramNames, ext.movedCaptures)) continue;
     const parentExt = enclosingExtMap.get(ext.symbolName);
     if (!parentExt) continue;
     const existing = handlersByParent.get(parentExt.symbolName);
@@ -633,7 +647,7 @@ export function unifyParameterSlots(
           handlerCaptures.add(h.paramNames[i]);
         }
         if (handlerCaptures.size === 0) continue;
-        const newParams = ['_', '_1'];
+        const newParams = [h.paramNames[0] ?? '_', h.paramNames[1] ?? '_1'];
         let paddingCounter = 2;
         let lastCaptureIdx = -1;
         for (let idx = 0; idx < allLoopLocals.length; idx++) {

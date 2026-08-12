@@ -728,7 +728,7 @@ export function generateSegmentCode(
     const lifted = eventHandlerQpParams(extraction.paramNames);
     const params = ['event', 'element', ...lifted].join(', ');
     bodyText = `(${params})=>${bodyText}(${params})`;
-  } else if (hasUnderscorePlaceholderParams(extraction.paramNames)) {
+  } else if (hasUnderscorePlaceholderParams(extraction.paramNames, extraction.movedCaptures)) {
     bodyText = rewriteFunctionSignature(bodyText, extraction.paramNames);
   }
 

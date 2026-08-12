@@ -24,7 +24,14 @@ export function isEventHandlerOrJsxProp(ctxKind: ExtractionResult['ctxKind'] | u
  * the first two slots are positional placeholders for the loop's index and item; real captures
  * begin at index 2.
  */
-export function hasUnderscorePlaceholderParams(paramNames: readonly string[]): boolean {
+export function hasUnderscorePlaceholderParams(
+  paramNames: readonly string[],
+  movedCaptures?: boolean
+): boolean {
+  // Promotion appends captures after the (event, element) positions — with
+  // preserved author params the padded prefix may be absent, so the
+  // `movedCaptures` flag is the authoritative signal.
+  if (movedCaptures && paramNames.length >= 3) return true;
   return paramNames.length >= 2 && paramNames[0] === '_' && paramNames[1] === '_1';
 }
 

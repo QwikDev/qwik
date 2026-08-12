@@ -505,6 +505,17 @@ export function collectDeclIdentifiers(
       ) {
         names.add(node.name);
       }
+      // JSX tag names (`<TwoListeners />`) reference bindings too — only
+      // opening/closing tag positions, not attribute names.
+      if (
+        node.type === 'JSXIdentifier' &&
+        node.start >= decl.declStart &&
+        node.end <= decl.declEnd &&
+        (parent as { type?: string; name?: unknown } | null)?.type !== 'JSXAttribute' &&
+        (parent as { type?: string } | null)?.type !== 'JSXNamespacedName'
+      ) {
+        names.add(node.name);
+      }
     },
   });
   return names;

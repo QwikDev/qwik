@@ -91,8 +91,15 @@ function buildLoopContext(
   };
 }
 
-export function generateParamPadding(loopVarNames: string[]): string[] {
-  return ['_', '_1', ...loopVarNames];
+export function generateParamPadding(
+  loopVarNames: string[],
+  originalParams: readonly string[] = []
+): string[] {
+  // Author-written (event, element) params survive promotion (matches Rust's
+  // `(ev, _1, store)` shape); only missing positions get padding.
+  const eventParam = originalParams[0] && originalParams[0] !== '_' ? originalParams[0] : '_';
+  const elementParam = originalParams[1] && originalParams[1] !== '_1' ? originalParams[1] : '_1';
+  return [eventParam, elementParam, ...loopVarNames];
 }
 
 /**
@@ -105,7 +112,9 @@ export function generateParamPadding(loopVarNames: string[]): string[] {
  * SyntaxError in module code).
  */
 export function eventHandlerQpParams(paramNames: readonly string[]): string[] {
-  if (paramNames.length < 2 || paramNames[0] !== '_' || paramNames[1] !== '_1') {
+  // Only capture promotion creates handlers with a third-or-later param —
+  // authors write at most (event, element) — so position filters suffice.
+  if (paramNames.length < 3) {
     return [];
   }
   const result: string[] = [];

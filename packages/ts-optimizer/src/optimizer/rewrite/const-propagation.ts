@@ -331,6 +331,12 @@ export function propagateConstLiteralsInBody(body: string): string {
       }
     }
 
+    // A JSX tag reference (`<Test />`) can't take an inlined expression —
+    // any const it names must keep its declaration.
+    if (node.type === 'JSXIdentifier' && typeof node.name === 'string') {
+      protectedNames.add(node.name);
+    }
+
     if (node.type === 'Identifier' && isReplaceableIdentifierPosition(parentKey, parentNode)) {
       const refStart = node.start - offset;
       const refEnd = node.end - offset;

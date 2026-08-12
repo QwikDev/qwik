@@ -124,11 +124,16 @@ describe('eventHandlerQpParams', () => {
     expect(eventHandlerQpParams([])).toEqual([]);
   });
 
-  it('returns [] when the `_, _1` prefix is absent', () => {
+  it('returns [] for one- or two-param lists (never promoted)', () => {
     expect(eventHandlerQpParams(['ev'])).toEqual([]);
-    expect(eventHandlerQpParams(['event', 'element', 'item'])).toEqual([]);
     expect(eventHandlerQpParams(['_'])).toEqual([]);
-    expect(eventHandlerQpParams(['_', 'el', 'item'])).toEqual([]);
+    expect(eventHandlerQpParams(['ev', 'elm'])).toEqual([]);
+  });
+
+  it('keeps author-written event/element params out of the capture list', () => {
+    // Promotion preserves original params in the first two slots.
+    expect(eventHandlerQpParams(['event', 'element', 'item'])).toEqual(['item']);
+    expect(eventHandlerQpParams(['ev', '_1', 'store'])).toEqual(['store']);
   });
 
   it('returns [] for a bare `_, _1` prefix with no capture params', () => {

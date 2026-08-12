@@ -1090,7 +1090,7 @@ export function buildNestedCallSites(
       const hasLoopCrossCaptures =
         child.captures &&
         child.captureNames.length > 0 &&
-        (hasUnderscorePlaceholderParams(child.paramNames) || childIsInLoop);
+        (hasUnderscorePlaceholderParams(child.paramNames, child.movedCaptures) || childIsInLoop);
 
       const loopLocalParams = consolidateParams(eventHandlerQpParams(child.paramNames));
 

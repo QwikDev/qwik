@@ -27,6 +27,18 @@ export const Parent = component$(() => {
   expect(out).toContain('_jsxSorted(Counter, { count: _wrapProp(c) }, null');
 });
 
+it('an inline-component param root counts as const-stable', () => {
+  const code = `
+export const t = it('x', async () => {
+  const Child = (props: { name: string }) => <>{props.name}</>;
+  const Parent = (props: { name: string }) => <Child name={props.name} />;
+  await render(<Parent name="World" />, {});
+});
+`;
+  const out = transform(code);
+  expect(out).toContain('_jsxSorted(Child, null, { name: _wrapProp(props, "name") }');
+});
+
 it('a component-param-rooted wrapProp stays in the const bag', () => {
   const code = `
 import { component$, Slot } from '@qwik.dev/core';

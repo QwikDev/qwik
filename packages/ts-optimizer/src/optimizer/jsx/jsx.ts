@@ -131,6 +131,8 @@ export interface ProcessPropsOptions {
    * whose path emits prop values verbatim so any `_fnSignal` hoists would be unreachable.
    */
   skipSignalAnalysis?: boolean;
+  /** Loop iteration vars in scope — a wrapProp rooted on one stays var. */
+  loopIterVars?: readonly string[];
 }
 
 export function isConstBindingName(
@@ -190,7 +192,7 @@ function isReturnStatic(init: Expression | null | undefined): boolean {
 interface ScopeRange {
   readonly start: number;
   readonly end: number;
-  readonly kind: 'const' | 'var';
+  readonly kind: 'const' | 'var' | 'param';
 }
 
 export interface ScopeAwareBindings {
@@ -198,7 +200,7 @@ export interface ScopeAwareBindings {
    * Innermost enclosing scope's binding kind for `name` at `atPosition`, or undefined when no scope
    * binds it (caller falls through to imports/undeclared).
    */
-  classify(name: string, atPosition: number): 'const' | 'var' | undefined;
+  classify(name: string, atPosition: number): 'const' | 'var' | 'param' | undefined;
   /**
    * Register `name` as const everywhere — for names that aren't AST-declared but are runtime-const
    * (e.g. `_captures[i]` unpacking bindings). Inner-scope bindings still shadow.
@@ -216,7 +218,7 @@ class ScopeAwareBindingsImpl implements ScopeAwareBindings {
    */
   private alwaysConst = new Set<string>();
 
-  add(name: string, start: number, end: number, kind: 'const' | 'var'): void {
+  add(name: string, start: number, end: number, kind: 'const' | 'var' | 'param'): void {
     let arr = this.nameToScopes.get(name);
     if (!arr) {
       arr = [];
@@ -225,7 +227,7 @@ class ScopeAwareBindingsImpl implements ScopeAwareBindings {
     arr.push({ start, end, kind });
   }
 
-  classify(name: string, atPosition: number): 'const' | 'var' | undefined {
+  classify(name: string, atPosition: number): 'const' | 'var' | 'param' | undefined {
     if (this.alwaysConst.has(name)) return 'const';
     const scopes = this.nameToScopes.get(name);
     if (!scopes) return undefined;
@@ -278,7 +280,10 @@ export function createScopeBindingsCollector(program: AstProgram): ScopeBindings
     return scopeStack[scopeStack.length - 1];
   }
 
-  function addBindingIdent(idNode: AstNode | null | undefined, kind: 'const' | 'var'): void {
+  function addBindingIdent(
+    idNode: AstNode | null | undefined,
+    kind: 'const' | 'var' | 'param'
+  ): void {
     if (!idNode) return;
     if (idNode.type === 'Identifier') {
       allLocalNames.add(idNode.name);
@@ -399,7 +404,7 @@ export function createScopeBindingsCollector(program: AstProgram): ScopeBindings
       node.params
     ) {
       for (const param of node.params) {
-        addBindingIdent(param, 'var');
+        addBindingIdent(param, 'param');
       }
     }
 

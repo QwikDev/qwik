@@ -136,14 +136,14 @@ function f() {
     expect(bindings.classify('item', refPos)).toBe('const');
   });
 
-  it('classifies an arrow param as var at its body position', () => {
+  it('classifies an arrow param as param at its body position', () => {
     const source = `
 function f() {
   arr.map((item) => use(item));
 }`;
     const { bindings, source: src } = setup(source);
     const refPos = src.indexOf('use(item)') + 4;
-    expect(bindings.classify('item', refPos)).toBe('var');
+    expect(bindings.classify('item', refPos)).toBe('param');
   });
 
   it('shadows: arrow param wins over outer for-of binding of the same name', () => {
@@ -157,7 +157,7 @@ function outer() {
     const { bindings, source: src } = setup(source);
     const arrowRef = src.indexOf('use(item))') + 4;
     const forOfRef = src.indexOf('use(item);') + 4;
-    expect(bindings.classify('item', arrowRef)).toBe('var');
+    expect(bindings.classify('item', arrowRef)).toBe('param');
     expect(bindings.classify('item', forOfRef)).toBe('const');
   });
 
@@ -170,7 +170,7 @@ function outer() {
 }`;
     const { bindings, source: src } = setup(source);
     const innerRef = src.indexOf('use(item)') + 4;
-    expect(bindings.classify('item', innerRef)).toBe('var');
+    expect(bindings.classify('item', innerRef)).toBe('param');
   });
 
   it('classifies a catch param as var', () => {

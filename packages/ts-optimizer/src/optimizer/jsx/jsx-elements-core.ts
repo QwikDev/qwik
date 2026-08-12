@@ -508,6 +508,7 @@ export function transformJsxElement(
     passiveEvents: elementPassiveEvents,
     inLoop,
     skipSignalAnalysis: willUseCreateElement,
+    loopIterVars: loopCtx?.iterVars,
   });
   let hasVarEventHandler = initialHasVarEventHandler;
 

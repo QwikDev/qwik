@@ -166,7 +166,7 @@ export function processProps(
     bindings,
     allDeclaredNames,
   } = ctx;
-  const { tagIsHtml, passiveEvents, inLoop, skipSignalAnalysis } = opts;
+  const { tagIsHtml, passiveEvents, inLoop, skipSignalAnalysis, loopIterVars } = opts;
   const varEntries: string[] = [];
   const constEntries: string[] = [];
   const beforeSpreadEntries: string[] = [];
@@ -417,12 +417,17 @@ export function processProps(
       if (signalResult.type === 'wrapProp') {
         const formattedName = formatPropName(propName);
         // The wrapper is only reusable across renders when its root binding is
-        // stable: a const (or, on component tags, a component param). A
-        // loop-varying root (map callback param) must re-create per render.
+        // stable: a const, or — on component tags — a function param that is
+        // not a loop iteration var (map callback params vary per iteration).
         const objName = signalResult.code.match(/_wrapProp\((\w+)/)?.[1] ?? null;
+        const isParamRoot =
+          objName !== null &&
+          ((paramNames?.has(objName) ?? false) ||
+            bindings?.classify(objName, valueNode?.start ?? 0) === 'param') &&
+          !loopIterVars?.includes(objName);
         const isConst =
           isConstBindingName(objName, importedNames, bindings, valueNode?.start ?? 0) ||
-          (!tagIsHtml && objName !== null && (paramNames?.has(objName) ?? false)) ||
+          (!tagIsHtml && isParamRoot) ||
           (!signalResult.isStoreField && !tagIsHtml && objName === null);
         pushNamed(
           beforeSpread ? beforeSpreadEntries : isConst ? constEntries : varEntries,

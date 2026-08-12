@@ -413,6 +413,9 @@ export function processProps(
         const isRawWhenNonConst =
           valueNode?.type === 'TemplateLiteral' || valueNode?.type === 'CallExpression';
         const excludedFromHoist =
+          // applyRef writes into the ref value; a hoisted _fnSignal is
+          // read-only and throws Q31 when the element is (re)created.
+          propName === 'ref' ||
           (signalResult.isObjectExpr && (propName === 'class' || propName === 'className')) ||
           (isRawWhenNonConst &&
             !fnSignalDepsAllConst(

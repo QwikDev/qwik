@@ -80,7 +80,14 @@ export function normalizeJsxChildren(
       normalized = out;
     } else {
       const prevChild = i > 0 ? children[i - 1] : null;
-      if (prevChild && prevChild.type === 'JSXExpressionContainer') {
+      // Same-line whitespace after a sibling element/expression is significant
+      // (`<C/> <C/>` keeps the space); only leading text of the parent trims.
+      if (
+        prevChild &&
+        (prevChild.type === 'JSXExpressionContainer' ||
+          prevChild.type === 'JSXElement' ||
+          prevChild.type === 'JSXFragment')
+      ) {
         normalized = raw;
       } else {
         normalized = raw.replace(/^\s+/, '');

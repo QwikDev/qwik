@@ -15,12 +15,23 @@ const propsProxyStates = new WeakMap<object, PropsProxyState<object>>();
 const propsSources = new WeakMap<object, Record<string, unknown>>();
 
 export function _props<T extends object>(props: T, sources: Record<string, unknown>): T {
+  for (const key in sources) {
+    if (sources[key] === undefined) {
+      // an undefined source means the caller passed a static value: snapshot path
+      delete sources[key];
+    }
+  }
   propsSources.set(props, sources);
   return props;
 }
 
 export function getPropsSources(props: object): Record<string, unknown> | undefined {
   return propsSources.get(props);
+}
+
+/** The source a caller registered for a prop key, for forwarding it further down. */
+export function getPropSource(props: object, key: string): unknown {
+  return propsSources.get(props)?.[key];
 }
 
 export function mergeProps(

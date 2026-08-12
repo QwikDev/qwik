@@ -1,9 +1,26 @@
 import { describe, expect, it } from 'vitest';
 import { createOwner, runWithOwner } from '../runtime/owner';
 import { useComputed, useSignal } from '../reactive/public-api';
-import { allocatePropsProxy, createPropsProxy } from './props';
+import {
+  _props,
+  allocatePropsProxy,
+  createPropsProxy,
+  getPropSource,
+  getPropsSources,
+} from './props';
 
 describe('component props', () => {
+  it('resolves a registered prop source and drops undefined entries', () => {
+    const id = useSignal(0);
+    const props = _props({ id: 0, label: 'static' }, { id, label: undefined });
+
+    // an undefined entry means the caller passed a static value: snapshot path
+    expect(getPropsSources(props)).toEqual({ id });
+    expect(getPropSource(props, 'id')).toBe(id);
+    expect(getPropSource(props, 'label')).toBeUndefined();
+    expect(getPropSource({}, 'id')).toBeUndefined();
+  });
+
   it('reads and tracks the current props source', () => {
     const owner = createOwner(null);
     const source = useSignal({ count: 1, value: 'user value' });

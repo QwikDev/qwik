@@ -1607,6 +1607,19 @@ class JsComponentGenerator {
           );
           continue;
         }
+        const forwardedProp = this.forwardedPropRead(ir);
+        if (forwardedProp !== null) {
+          // a forwarded prop resolves its source from the outer props at construction
+          // time; a static outer value resolves to undefined and stays a snapshot
+          this.imports.add('getPropSource');
+          literalRun().push(`get ${JSON.stringify(item.name)}() { return ${this.irJs(ir)}; }`);
+          sourceEntries.push(
+            `${JSON.stringify(item.name)}: getPropSource(${this.names.props}, ${JSON.stringify(
+              forwardedProp
+            )})`
+          );
+          continue;
+        }
         if (ir.kind !== 'signal-read' && ir.kind !== 'binding-read') {
           if (reactiveComposite) {
             markUngeneratable(); // reactive expression without a backing segment
@@ -2452,6 +2465,14 @@ class JsComponentGenerator {
       return null;
     }
     return { object: this.irJs(ir.obj), prop: ir.name };
+  }
+
+  /** A single-hop `props.key` read of the enclosing component's props object. */
+  private forwardedPropRead(ir: ValueIR): string | null {
+    if (ir.kind !== 'member' || ir.obj.kind !== 'binding-read') {
+      return null;
+    }
+    return this.locals.get(ir.obj.binding) === this.names.props ? ir.name : null;
   }
 
   /** Plan binding names are reused when they are safe identifiers; `local_<id>` otherwise. */

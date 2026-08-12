@@ -1436,6 +1436,32 @@ export const App = component$(() => {
   });
 });
 
+describe('forwarded component props', () => {
+  test('a forwarded prop rides the _props sources map via getPropSource', async () => {
+    const input = {
+      path: 'src/forward-prop.tsx',
+      code: `import { component$, useSignal } from '@qwik.dev/core';
+export const Kid = component$((props: { id: number }) => <div id="kid">{props.id}</div>);
+export const Child = component$((props: { id: number }) => (
+  <section>
+    <Kid id={props.id} />
+  </section>
+));
+export const App = component$(() => {
+  const id = useSignal(0);
+  return <Child id={id.value} />;
+});
+`,
+    };
+    const result = await transformModules(options(input, true));
+    expect(result.diagnostics).toEqual([]);
+    const all = result.modules.map((module) => module.code).join('\n');
+    // the forwarded key resolves its source from the outer props at construction time
+    expect(all).toContain('"id": getPropSource(props, "id")');
+    expect(all).toMatch(/import \{[^}]*getPropSource[^}]*\}/);
+  });
+});
+
 describe('event$ boundaries', () => {
   test('event$ lowers like $: a plain qrl value on both targets', async () => {
     const input = {

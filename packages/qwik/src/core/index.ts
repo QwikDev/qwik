@@ -302,7 +302,7 @@ export {
   type ComponentOptions,
   type ComponentRenderFn,
 } from './component/component';
-export { _props, createPropsProxy, mergeProps } from './component/props';
+export { _props, createPropsProxy, getPropSource, mergeProps } from './component/props';
 export { readExpression } from './utils/qrl';
 
 export {

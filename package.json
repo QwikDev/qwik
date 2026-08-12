@@ -292,5 +292,21 @@
   "simple-git-hooks": {
     "pre-commit": "pnpm pretty-quick --staged"
   },
-  "type": "module"
+  "type": "module",
+  "pnpm": {
+    "supportedArchitectures": {
+      "cpu": [
+        "current",
+        "wasm32"
+      ],
+      "os": [
+        "current",
+        "any"
+      ],
+      "libc": [
+        "current",
+        "any"
+      ]
+    }
+  }
 }

@@ -26,6 +26,8 @@ export const enum QwikWord {
   CreateDynamicTag = 'createDynamicTag',
   MergeProps = 'mergeProps',
   Props = '_props',
+  GetPropSource = 'getPropSource',
+  GetStoreSource = 'getStoreSource',
   BranchRange = 'BranchRange',
   CreateBranch = 'createBranch',
   CreateSuspense = 'createSuspense',

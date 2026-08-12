@@ -3,6 +3,7 @@ import { SsrOpKind } from '../../../src/emit-plan-ssr';
 import type { QwikSsrPlan } from '../../../src/link-plan';
 import type { ValueIR } from '../../../src/expr-ir';
 import { escapeAttr } from '../../../src/html-utils';
+import { QwikWord } from '../../../src/words';
 
 /**
  * JS SSR generator — the JS projection of the wire plan, peer of the Rust `qwik-ssr-gen`
@@ -1598,12 +1599,12 @@ class JsComponentGenerator {
         if (storeProp !== null) {
           // the canonical store-prop source rides the sources map, so serialization
           // stores the source instead of a snapshot and resume re-subscribes readers
-          this.imports.add('getStoreSource');
+          this.imports.add(QwikWord.GetStoreSource);
           literalRun().push(`get ${JSON.stringify(item.name)}() { return ${this.irJs(ir)}; }`);
           sourceEntries.push(
-            `${JSON.stringify(item.name)}: getStoreSource(${storeProp.object}, ${JSON.stringify(
-              storeProp.prop
-            )})`
+            `${JSON.stringify(item.name)}: ${QwikWord.GetStoreSource}(${
+              storeProp.object
+            }, ${JSON.stringify(storeProp.prop)})`
           );
           continue;
         }
@@ -1611,12 +1612,12 @@ class JsComponentGenerator {
         if (forwardedProp !== null) {
           // a forwarded prop resolves its source from the outer props at construction
           // time; a static outer value resolves to undefined and stays a snapshot
-          this.imports.add('getPropSource');
+          this.imports.add(QwikWord.GetPropSource);
           literalRun().push(`get ${JSON.stringify(item.name)}() { return ${this.irJs(ir)}; }`);
           sourceEntries.push(
-            `${JSON.stringify(item.name)}: getPropSource(${this.names.props}, ${JSON.stringify(
-              forwardedProp
-            )})`
+            `${JSON.stringify(item.name)}: ${QwikWord.GetPropSource}(${
+              this.names.props
+            }, ${JSON.stringify(forwardedProp)})`
           );
           continue;
         }

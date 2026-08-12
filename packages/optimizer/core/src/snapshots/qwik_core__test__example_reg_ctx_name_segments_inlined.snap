@@ -1,0 +1,40 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 892
+expression: output
+---
+==INPUT==
+
+
+import { $, component$, server$ } from '@qwik.dev/core';
+export const Works = component$((props) => {
+	const text = 'hola';
+	return (
+		<div onClick$={server$(() => console.log('in server', text))}></div>
+	);
+});
+
+============================= test.js ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { serverQrl } from "@qwik.dev/core";
+import { _regSymbol } from "@qwik.dev/core";
+import { _noopQrl } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+//
+const q_Works_component_div_q_e_click_server_q39lOt7xGrI = /*#__PURE__*/ _noopQrl("Works_component_div_q_e_click_server_q39lOt7xGrI");
+const q_Works_component_t45qL4vNGv0 = /*#__PURE__*/ _noopQrl("Works_component_t45qL4vNGv0");
+//
+q_Works_component_div_q_e_click_server_q39lOt7xGrI.s(/*#__PURE__*/ _regSymbol(()=>console.log('in server', 'hola'), "q39lOt7xGrI"));
+q_Works_component_t45qL4vNGv0.s((props)=>{
+    return /*#__PURE__*/ _jsxSorted("div", {
+        "q-e:click": serverQrl(q_Works_component_div_q_e_click_server_q39lOt7xGrI)
+    }, null, null, 2, "u6_0");
+});
+export const Works = /*#__PURE__*/ componentQrl(q_Works_component_t45qL4vNGv0);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;8EAKyB,IAAM,QAAQ,GAAG,CAAC,aAF7B;gCADkB,CAAC;IAEhC,qBACC,WAAC;QAAI,aAAU;;AAEjB;AALA,OAAO,MAAM,sBAAQ,4CAKlB\"}")
+== DIAGNOSTICS ==
+
+[]

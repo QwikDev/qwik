@@ -8,6 +8,8 @@
   },
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "dependencies": {
+    "@qwik.dev/optimizer": "workspace:*",
+    "@qwik.dev/ts-optimizer": "workspace:*",
     "csstype": "^3.2.3",
     "launch-editor": "^2.14.1",
     "magic-regexp": "^0.11.0",
@@ -23,7 +25,6 @@
     "@croct/json5-parser": "0.2.2",
     "@qwik.dev/core": "workspace:*",
     "@qwik.dev/dom": "workspace:*",
-    "@qwik.dev/optimizer": "workspace:*",
     "domino": "2.1.6",
     "ignore": "5.3.1",
     "image-size": "1.2.1",

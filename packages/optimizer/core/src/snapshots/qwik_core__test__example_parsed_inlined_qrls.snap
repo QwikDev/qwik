@@ -1,0 +1,87 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 1615
+expression: output
+---
+==INPUT==
+
+
+import { componentQrl, inlinedQrl, useStore, jsxs, jsx, useLexicalScope } from '@qwik.dev/core';
+
+export const App = /*#__PURE__*/ componentQrl(inlinedQrl(()=>{
+	useStyles$(inlinedQrl(STYLES, "STYLES_odz7dfdfdM"));
+	useStyles$(inlinedQrl(STYLES, "STYLES_odzdfdfdM"));
+
+	const store = useStore({
+		count: 0
+	});
+	return /*#__PURE__*/ jsxs("div", {
+		children: [
+			/*#__PURE__*/ jsxs("p", {
+				children: [
+					"Count: ",
+					store.count
+				]
+			}),
+			/*#__PURE__*/ jsx("p", {
+				children: /*#__PURE__*/ jsx("button", {
+					onClick$: inlinedQrl(()=>{
+						const [store] = useLexicalScope();
+						return store.count++;
+					}, "App_component_div_p_button_onClick_odz7eidI4GM", [
+						store
+					]),
+					children: "Click"
+				})
+			})
+		]
+	});
+}, "App_component_Fh88JClhbC0"));
+
+export const STYLES = ".red { color: red; }";
+
+
+============================= test.tsx ==
+
+import { _noopQrl } from "@qwik.dev/core";
+import { _wrapProp } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+import { componentQrl, useStore, useLexicalScope } from '@qwik.dev/core';
+//
+const q_s_Fh88JClhbC0 = /*#__PURE__*/ _noopQrl("s_Fh88JClhbC0");
+const q_s_odz7dfdfdM = /*#__PURE__*/ _noopQrl("s_odz7dfdfdM");
+const q_s_odz7eidI4GM = /*#__PURE__*/ _noopQrl("s_odz7eidI4GM");
+const q_s_odzdfdfdM = /*#__PURE__*/ _noopQrl("s_odzdfdfdM");
+//
+q_s_odz7eidI4GM.s(()=>{
+    const [store] = useLexicalScope();
+    return store.count++;
+});
+q_s_Fh88JClhbC0.s(()=>{
+    useStyles$(q_s_odz7dfdfdM);
+    useStyles$(q_s_odzdfdfdM);
+    const store = useStore({
+        count: 0
+    });
+    return /*#__PURE__*/ _jsxSorted("div", null, null, [
+        /*#__PURE__*/ _jsxSorted("p", null, null, [
+            "Count: ",
+            _wrapProp(store, "count")
+        ], 3, null),
+        /*#__PURE__*/ _jsxSorted("p", null, null, /*#__PURE__*/ _jsxSorted("button", {
+            "q-e:click": q_s_odz7eidI4GM.w([
+                store
+            ])
+        }, null, "Click", 2, null), 1, null)
+    ], 1, "u6_0");
+});
+export const App = /*#__PURE__*/ componentQrl(q_s_Fh88JClhbC0);
+export const STYLES = ".red { color: red; }";
+q_s_odz7dfdfdM.s(STYLES);
+q_s_odzdfdfdM.s(STYLES);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;AACA,SAAS,YAAY,EAAc,QAAQ,EAAa,eAAe,QAAQ,iBAAiB;;;;;;;kBAmBtE;IACpB,MAAM,CAAC,MAAM,GAAG;IAChB,OAAO,MAAM,KAAK;AACnB;kBApBoD;IACxD;IACA;IAEA,MAAM,QAAQ,SAAS;QACtB,OAAO;IACR;IACA,OAAO,WAAW,GAAG,WAAK,mBACf;QACT,WAAW,GAAG,WAAK,iBACR;YACT;sBACA;SACA;QAEF,WAAW,GAAG,WAAI,iBACP,WAAW,GAAG,WAAI;YAC3B,WAAQ;;;iBAME;KAGZ;AAEH;AA5BA,OAAO,MAAM,MAAM,WAAW,GAAG,8BA4BA;AAEjC,OAAO,MAAM,SAAS,uBAAuB;iBA7BtB;gBACA\"}")
+== DIAGNOSTICS ==
+
+[]

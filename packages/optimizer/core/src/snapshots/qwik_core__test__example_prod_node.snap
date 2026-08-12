@@ -1,0 +1,150 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 1458
+expression: output
+---
+==INPUT==
+
+
+import { component$ } from '@qwik.dev/core';
+
+export const Foo = component$(() => {
+	return (
+		<div>
+			<div onClick$={() => console.log('first')}/>
+			<div onClick$={() => console.log('second')}/>
+			<div onClick$={() => console.log('third')}/>
+		</div>
+	);
+});
+
+============================= test.tsx_Foo_component_HTDRsvUbLiE.tsx (ENTRY POINT)==
+
+import { qrl } from "@qwik.dev/core";
+//
+const q_s_VSoqbTjzr4w = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_div_q_e_click_1_VSoqbTjzr4w"), "s_VSoqbTjzr4w");
+const q_s_n19LdlqL6To = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_div_q_e_click_2_n19LdlqL6To"), "s_n19LdlqL6To");
+const q_s_vKrX4PmH2aM = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_div_div_q_e_click_vKrX4PmH2aM"), "s_vKrX4PmH2aM");
+//
+export const s_HTDRsvUbLiE = ()=>{
+    return <div>
+			<div q-e:click={q_s_vKrX4PmH2aM}/>
+			<div q-e:click={q_s_VSoqbTjzr4w}/>
+			<div q-e:click={q_s_n19LdlqL6To}/>
+		</div>;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;6BAG8B;IAC7B,QACE,IAAI;GACJ,CAAC,IAAI,6BAAuC;GAC5C,CAAC,IAAI,6BAAwC;GAC7C,CAAC,IAAI,6BAAuC;EAC7C,EAAE;AAEJ\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "s_HTDRsvUbLiE",
+  "entry": null,
+  "displayName": "test.tsx_Foo_component",
+  "hash": "HTDRsvUbLiE",
+  "canonicalFilename": "test.tsx_Foo_component_HTDRsvUbLiE",
+  "path": "",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    78,
+    263
+  ]
+}
+*/
+============================= test.tsx_Foo_component_div_div_q_e_click_2_n19LdlqL6To.tsx (ENTRY POINT)==
+
+export const s_n19LdlqL6To = ()=>console.log('third');
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"6BAQkB,IAAM,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "s_n19LdlqL6To",
+  "entry": null,
+  "displayName": "test.tsx_Foo_component_div_div_q_e_click_2",
+  "hash": "n19LdlqL6To",
+  "canonicalFilename": "test.tsx_Foo_component_div_div_q_e_click_2_n19LdlqL6To",
+  "path": "",
+  "extension": "tsx",
+  "parent": "s_HTDRsvUbLiE",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    219,
+    245
+  ]
+}
+*/
+============================= test.tsx_Foo_component_div_div_q_e_click_1_VSoqbTjzr4w.tsx (ENTRY POINT)==
+
+export const s_VSoqbTjzr4w = ()=>console.log('second');
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"6BAOkB,IAAM,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "s_VSoqbTjzr4w",
+  "entry": null,
+  "displayName": "test.tsx_Foo_component_div_div_q_e_click_1",
+  "hash": "VSoqbTjzr4w",
+  "canonicalFilename": "test.tsx_Foo_component_div_div_q_e_click_1_VSoqbTjzr4w",
+  "path": "",
+  "extension": "tsx",
+  "parent": "s_HTDRsvUbLiE",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    170,
+    197
+  ]
+}
+*/
+============================= test.tsx_Foo_component_div_div_q_e_click_vKrX4PmH2aM.tsx (ENTRY POINT)==
+
+export const s_vKrX4PmH2aM = ()=>console.log('first');
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"6BAMkB,IAAM,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "s_vKrX4PmH2aM",
+  "entry": null,
+  "displayName": "test.tsx_Foo_component_div_div_q_e_click",
+  "hash": "vKrX4PmH2aM",
+  "canonicalFilename": "test.tsx_Foo_component_div_div_q_e_click_vKrX4PmH2aM",
+  "path": "",
+  "extension": "tsx",
+  "parent": "s_HTDRsvUbLiE",
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    122,
+    148
+  ]
+}
+*/
+============================= test.tsx ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { qrl } from "@qwik.dev/core";
+//
+const q_s_HTDRsvUbLiE = /*#__PURE__*/ qrl(()=>import("./test.tsx_Foo_component_HTDRsvUbLiE"), "s_HTDRsvUbLiE");
+//
+export const Foo = /*#__PURE__*/ componentQrl(q_s_HTDRsvUbLiE);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,oBAAM,8BAQhB\"}")
+== DIAGNOSTICS ==
+
+[]

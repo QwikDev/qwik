@@ -2,4 +2,4 @@
 '@qwik.dev/core': minor
 ---
 
-feat: the optimizer is now a bundled TypeScript implementation, replacing the Rust binaries
+feat: add `tsOptimizer` flag to qwikVite, selecting the TypeScript optimizer by default

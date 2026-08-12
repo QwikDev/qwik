@@ -1,0 +1,41 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 2681
+expression: output
+---
+==INPUT==
+
+
+import { component$, useStore } from '@qwik.dev/core';
+
+export const App = component$((props) => {
+	return (
+		<Cmp>
+			<p class="stuff" onClick$={() => console.log('warn')}>Hello Qwik</p>
+		</Cmp>
+	);
+});
+
+============================= test.tsx ==
+
+import { componentQrl } from "@qwik.dev/core";
+import { _noopQrl } from "@qwik.dev/core";
+import { _jsxSorted } from "@qwik.dev/core";
+//
+const q_App_component_Cmp_p_q_e_click_Yl4ybrJWrt4 = /*#__PURE__*/ _noopQrl("App_component_Cmp_p_q_e_click_Yl4ybrJWrt4");
+const q_App_component_ckEPmXZlub0 = /*#__PURE__*/ _noopQrl("App_component_ckEPmXZlub0");
+//
+q_App_component_Cmp_p_q_e_click_Yl4ybrJWrt4.s(()=>console.log('warn'));
+q_App_component_ckEPmXZlub0.s((props)=>{
+    return /*#__PURE__*/ _jsxSorted(Cmp, null, null, /*#__PURE__*/ _jsxSorted("p", null, {
+        class: "stuff",
+        "q-e:click": q_App_component_Cmp_p_q_e_click_Yl4ybrJWrt4
+    }, "Hello Qwik", 3, null), 3, "u6_0");
+});
+export const App = /*#__PURE__*/ componentQrl(q_App_component_ckEPmXZlub0);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;8CAM8B,IAAM,QAAQ,GAAG,CAAC;8BAHlB,CAAC;IAC9B,qBACC,WAAC,+BACA,WAAC;QAAE,OAAM;QAAQ,WAAQ;OAA6B;AAGzD;AANA,OAAO,MAAM,oBAAM,0CAMhB\"}")
+== DIAGNOSTICS ==
+
+[]

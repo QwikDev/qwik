@@ -38,6 +38,8 @@ on:
           - latest
 
 env:
+  # Disable incremental build, speeds up CI
+  CARGO_INCREMENTAL: 0
   CI_NODE_VERSION: 24.15.0
   CI_NODE_VERSION_E2E: 22.22.2
 
@@ -50,6 +52,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       hash-qwik: ${{ steps.cache-qwik.outputs.cache-primary-key }}
+      hash-rust: ${{ steps.cache-rust.outputs.cache-primary-key }}
       hash-others: ${{ steps.cache-others.outputs.cache-primary-key }}
       hash-docs: ${{ steps.cache-docs.outputs.cache-primary-key }}
       hash-insights: ${{ steps.cache-insights.outputs.cache-primary-key }}
@@ -59,13 +62,14 @@ jobs:
       hash-cli-e2e: ${{ steps.cache-cli-e2e.outputs.cache-primary-key }}
       hash-docs-e2e: ${{ steps.cache-docs-e2e.outputs.cache-primary-key }}
       build-qwik: ${{ steps.cache-qwik.outputs.cache-hit != 'true' }}
-      build-others: ${{ steps.cache-others.outputs.cache-hit != 'true' || steps.cache-qwik.outputs.cache-hit != 'true' }}
+      build-rust: ${{ steps.cache-rust.outputs.cache-hit != 'true' }}
+      build-others: ${{ steps.cache-others.outputs.cache-hit != 'true' || steps.cache-qwik.outputs.cache-hit != 'true' || steps.cache-rust.outputs.cache-hit != 'true' }}
       build-docs: ${{ steps.cache-docs.outputs.cache-hit != 'true' }}
       build-insights: ${{ steps.cache-insights.outputs.cache-hit != 'true' }}
-      build-unit: ${{ steps.cache-unit.outputs.cache-hit != 'true' || steps.cache-others.outputs.cache-hit != 'true' || steps.cache-qwik.outputs.cache-hit != 'true' }}
-      build-bench: ${{ steps.cache-bench.outputs.cache-hit != 'true' || steps.cache-others.outputs.cache-hit != 'true' || steps.cache-qwik.outputs.cache-hit != 'true' }}
-      build-e2e: ${{ steps.cache-e2e.outputs.cache-hit != 'true' || steps.cache-others.outputs.cache-hit != 'true' || steps.cache-qwik.outputs.cache-hit != 'true' }}
-      build-cli-e2e: ${{ steps.cache-cli-e2e.outputs.cache-hit != 'true' || steps.cache-others.outputs.cache-hit != 'true' || steps.cache-qwik.outputs.cache-hit != 'true' }}
+      build-unit: ${{ steps.cache-unit.outputs.cache-hit != 'true' || steps.cache-others.outputs.cache-hit != 'true' || steps.cache-qwik.outputs.cache-hit != 'true' || steps.cache-rust.outputs.cache-hit != 'true' }}
+      build-bench: ${{ steps.cache-bench.outputs.cache-hit != 'true' || steps.cache-others.outputs.cache-hit != 'true' || steps.cache-qwik.outputs.cache-hit != 'true' || steps.cache-rust.outputs.cache-hit != 'true' }}
+      build-e2e: ${{ steps.cache-e2e.outputs.cache-hit != 'true' || steps.cache-others.outputs.cache-hit != 'true' || steps.cache-qwik.outputs.cache-hit != 'true' || steps.cache-rust.outputs.cache-hit != 'true' }}
+      build-cli-e2e: ${{ steps.cache-cli-e2e.outputs.cache-hit != 'true' || steps.cache-others.outputs.cache-hit != 'true' || steps.cache-qwik.outputs.cache-hit != 'true' || steps.cache-rust.outputs.cache-hit != 'true' }}
       build-docs-e2e: ${{ steps.cache-docs-e2e.outputs.cache-hit != 'true' }}
       disttag: ${{ steps.set_dist_tag.outputs.disttag }}
 
@@ -142,8 +146,16 @@ jobs:
           # Note that this includes the package.json of qwik
           # qwik-vite source is bundled into packages/qwik/dist/optimizer.mjs by scripts/submodule-optimizer.ts, so its sources must invalidate this cache.
           # CI-only helpers should not invalidate compiled package output caches.
-          key: ${{ hashfiles('pnpm-lock.yaml', 'scripts.json', 'scripts/**/*', '!scripts/ci-restore-artifacts.ts', 'packages/qwik/**/*', 'packages/qwik-vite/**/*', 'packages/ts-optimizer/**/*', 'starters/features/**/*', 'starters/adapters/**/*', 'starters/templates/**/*', '!**/*.unit.*', '!**/*.rs', '!e2e/qwik-e2e/apps/e2e') }}
+          key: ${{ hashfiles('pnpm-lock.yaml', 'scripts.json', 'scripts/**/*', '!scripts/ci-restore-artifacts.ts', 'packages/qwik/**/*', 'packages/qwik-vite/**/*', 'starters/features/**/*', 'starters/adapters/**/*', 'starters/templates/**/*', '!**/*.unit.*', '!**/*.rs', '!e2e/qwik-e2e/apps/e2e') }}
       - run: 'echo ${{ steps.cache-qwik.outputs.cache-primary-key }} > qwik-key.txt'
+      - name: 'check cache: rust'
+        id: cache-rust
+        uses: actions/cache/restore@v5
+        with:
+          lookup-only: true
+          path: packages/optimizer/
+          key: ${{ hashfiles('Makefile', 'rust-toolchain', '**/Cargo.toml', '**/Cargo.lock', '**/*.rs') }}
+      - run: 'echo ${{ steps.cache-rust.outputs.cache-primary-key }} > rust-key.txt'
       - name: 'check cache: others'
         id: cache-others
         uses: actions/cache/restore@v5
@@ -156,7 +168,7 @@ jobs:
             packages/create-qwik/dist
             packages/devtools/dist
           # note that all inputs need to be listed here, including qwik, for correct cache invalidation
-          key: ${{ hashfiles('qwik-key.txt', 'packages/qwik-router/**/*', 'packages/qwik-react/**/*', 'packages/eslint-plugin-qwik/**/*', 'packages/create-qwik/**/*', 'packages/devtools/**/*', 'starters/apps/**/*', 'e2e/qwik-e2e/apps/**/*', '!**/*.unit.*') }}
+          key: ${{ hashfiles('qwik-key.txt', 'rust-key.txt', 'packages/qwik-router/**/*', 'packages/qwik-react/**/*', 'packages/eslint-plugin-qwik/**/*', 'packages/create-qwik/**/*', 'packages/devtools/**/*', 'starters/apps/**/*', 'e2e/qwik-e2e/apps/**/*', '!**/*.unit.*') }}
       - run: 'echo ${{ steps.cache-others.outputs.cache-primary-key }} > others-key.txt'
       - name: 'check cache: docs'
         id: cache-docs
@@ -211,16 +223,173 @@ jobs:
           key: ${{ hashfiles('others-key.txt', 'e2e/docs-e2e/**/*') }}
 
 
+  ############ BUILD PLATFORM BINDINGS ############
+  build-bindings:
+    if: needs.changes.outputs.build-rust == 'true'
+    strategy:
+      matrix:
+        settings:
+          - host: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            checks: true
+            wasm: true
+
+          - host: macos-latest
+            target: aarch64-apple-darwin
+
+          - host: windows-latest
+            target: x86_64-pc-windows-msvc
+
+    name: Build optimizer ${{ matrix.settings.target }}
+    runs-on: ${{ matrix.settings.host }}
+
+    needs: changes
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+
+      - name: Install Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@46268bd060767258de96ed93c1251119784f2ab6 # v1
+        with:
+          components: clippy,rustfmt
+
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
+      - name: Setup Node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: ${{ env.CI_NODE_VERSION }}
+          cache: 'pnpm'
+          registry-url: https://registry.npmjs.org/
+
+      - run: pnpm install
+
+      - name: Install Wasm build tools
+        if: matrix.settings.wasm
+        run: |
+          rustup target add wasm32-unknown-unknown
+          cargo install wasm-pack --locked
+
+      - name: Lint check
+        if: matrix.settings.checks
+        run: pnpm lint.rust
+
+      - name: Unit tests
+        if: matrix.settings.checks
+        run: pnpm test.rust
+        
+      - name: TS bridge
+        if: matrix.settings.checks
+        run: pnpm build --optimizer
+
+      - name: Build Platform Binding
+        run: pnpm build --platform-binding
+
+      - name: Build Wasm Binding
+        if: matrix.settings.wasm
+        run: pnpm build --wasm
+
+      - name: Print Packages Dist Build
+        continue-on-error: true
+        run: ls -lR packages/optimizer/bindings/
+
+      - name: Upload Platform Binding Artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: artifact-bindings-${{ matrix.settings.target }}
+          include-hidden-files: true
+          path: |
+            packages/optimizer/bindings
+            packages/optimizer/dist
+          if-no-files-found: error
+
   ############ BUILD PACKAGE ############
+  combined-optimizer:
+    name: Prepare Optimizer binaries
+    if: always()
+    runs-on: ubuntu-latest
+    needs:
+      - build-bindings
+      - changes
+
+    steps:
+      - name: Verify builds
+        if: |
+          !(
+            needs.changes.result == 'success' &&
+            (
+              (
+                needs.changes.outputs.build-rust == 'true' &&
+                needs.build-bindings.result == 'success'
+              ) ||
+              (
+                needs.changes.outputs.build-rust != 'true' &&
+                needs.build-bindings.result == 'skipped'
+              )
+            )
+          )
+        run: exit 1
+
+      - name: Restore optimizer cache
+        if: needs.changes.outputs.build-rust != 'true'
+        uses: actions/cache/restore@v4
+        with:
+          fail-on-cache-miss: true
+          path: packages/optimizer/
+          key: ${{ needs.changes.outputs.hash-rust }}
+
+      - name: Restore artifacts
+        if: needs.changes.outputs.build-rust == 'true'
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          pattern: 'artifact-bindings-*'
+          merge-multiple: false
+
+      - name: Move Rust Artifacts
+        if: needs.changes.outputs.build-rust == 'true'
+        run: |
+          mkdir -p packages/optimizer/bindings
+          mkdir -p packages/optimizer/dist
+          for dir in artifact-bindings-*; do
+            if [ -d "$dir" ]; then
+              mv "$dir"/bindings/* packages/optimizer/bindings/
+            fi
+            if [ -d "$dir/dist" ]; then
+              mv "$dir"/dist/* packages/optimizer/dist/
+            fi
+          done
+
+      - name: Save rust cache
+        if: needs.changes.outputs.build-rust == 'true'
+        uses: actions/cache/save@v5
+        with:
+          key: ${{ needs.changes.outputs.hash-rust }}
+          path: packages/optimizer/
+
+      - name: Upload optimizer artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: artifact-optimizer
+          include-hidden-files: true
+          path: |
+            packages/optimizer/bindings
+            packages/optimizer/dist
+          if-no-files-found: error
+
   build-other-packages:
     name: Build Packages
     needs:
       - changes
+      - combined-optimizer
     if: always()
     runs-on: ubuntu-latest
     steps:
       - name: Verify prerequisites
-        if: needs.changes.result != 'success'
+        if: |
+          !(
+            needs.changes.result == 'success' &&
+            needs.combined-optimizer.result == 'success'
+          )
         run: exit 1
 
       - name: Checkout
@@ -236,9 +405,19 @@ jobs:
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org/
 
+      - name: Restore optimizer artifact
+        if: needs.changes.outputs.build-qwik == 'true' || needs.changes.outputs.build-others == 'true'
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: artifact-optimizer
+          path: packages/optimizer/
+
       - name: Install NPM Dependencies
         if: needs.changes.outputs.build-qwik == 'true' || needs.changes.outputs.build-others == 'true'
-        run: pnpm install --frozen-lockfile
+        run: |
+          # Ensure that the optimizer binary gets made
+          mkdir -p packages/optimizer/bindings/
+          pnpm install --frozen-lockfile
 
       - name: 'build: qwik and packages'
         if: needs.changes.outputs.build-qwik == 'true' && needs.changes.outputs.build-others == 'true'
@@ -391,12 +570,13 @@ jobs:
       - name: Download Package Artifacts
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
-          pattern: 'artifact-{qwik,qwikrouter,qwikreact,create-qwik,eslint-plugin-qwik}'
+          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,create-qwik,eslint-plugin-qwik}'
           merge-multiple: false
 
       - name: Move Distribution Artifacts
         run: >
           pnpm ci.restore-artifacts
+          artifact-optimizer
           artifact-qwik
           artifact-qwikrouter
           artifact-qwikreact
@@ -447,12 +627,13 @@ jobs:
       - name: Download Package Artifacts
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
-          pattern: 'artifact-{qwik,qwikrouter,qwikreact,create-qwik,eslint-plugin-qwik}'
+          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,create-qwik,eslint-plugin-qwik}'
           merge-multiple: false
 
       - name: Move Distribution Artifacts
         run: >
           pnpm ci.restore-artifacts
+          artifact-optimizer
           artifact-qwik
           artifact-qwikrouter
           artifact-qwikreact
@@ -591,7 +772,7 @@ jobs:
       - name: Download Package Artifacts
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
-          pattern: 'artifact-{qwik,qwikrouter,qwikreact,create-qwik,eslint-plugin-qwik}'
+          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,create-qwik,eslint-plugin-qwik}'
           merge-multiple: false
 
       - name: Download Docs Artifact
@@ -603,6 +784,7 @@ jobs:
       - name: Move Distribution Artifacts
         run: >
           pnpm ci.restore-artifacts
+          artifact-optimizer
           artifact-qwik
           artifact-qwikrouter
           artifact-qwikreact
@@ -702,12 +884,13 @@ jobs:
       - name: Download Package Artifacts
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
-          pattern: 'artifact-{qwik,qwikrouter,qwikreact,create-qwik,eslint-plugin-qwik}'
+          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,create-qwik,eslint-plugin-qwik}'
           merge-multiple: false
 
       - name: Move Distribution Artifacts
         run: >
           pnpm ci.restore-artifacts
+          artifact-optimizer
           artifact-qwik
           artifact-qwikrouter
           artifact-qwikreact
@@ -777,12 +960,13 @@ jobs:
       - name: Download Package Artifacts
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
-          pattern: 'artifact-{qwik,qwikrouter,qwikreact,create-qwik,eslint-plugin-qwik}'
+          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,create-qwik,eslint-plugin-qwik}'
           merge-multiple: false
 
       - name: Move Distribution Artifacts
         run: >
           pnpm ci.restore-artifacts
+          artifact-optimizer
           artifact-qwik
           artifact-qwikrouter
           artifact-qwikreact
@@ -911,12 +1095,13 @@ jobs:
       - name: Download Package Artifacts
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
-          pattern: 'artifact-{qwik,qwikrouter,qwikreact,create-qwik,eslint-plugin-qwik}'
+          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,create-qwik,eslint-plugin-qwik}'
           merge-multiple: false
 
       - name: Move Distribution Artifacts
         run: >
           pnpm ci.restore-artifacts
+          artifact-optimizer
           artifact-qwik
           artifact-qwikrouter
           artifact-qwikreact
@@ -1105,12 +1290,13 @@ jobs:
       - name: Download Package Artifacts
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
-          pattern: 'artifact-{qwik,qwikrouter,qwikreact,create-qwik,eslint-plugin-qwik}'
+          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,create-qwik,eslint-plugin-qwik}'
           merge-multiple: false
 
       - name: Move Distribution Artifacts
         run: >
           pnpm ci.restore-artifacts
+          artifact-optimizer
           artifact-qwik
           artifact-qwikrouter
           artifact-qwikreact
@@ -1308,12 +1494,13 @@ jobs:
       - name: Download Package Artifacts
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
-          pattern: 'artifact-{qwik,qwikrouter,qwikreact,create-qwik,eslint-plugin-qwik,devtools}'
+          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,create-qwik,eslint-plugin-qwik,devtools}'
           merge-multiple: false
 
       - name: Move Distribution Artifacts
         run: >
           pnpm ci.restore-artifacts
+          artifact-optimizer
           artifact-qwik
           artifact-qwikrouter
           artifact-qwikreact
@@ -1365,6 +1552,7 @@ jobs:
 
     needs:
       - changes
+      - combined-optimizer
       - build-other-packages
 
     # Publish previews as soon as the build is ready, regardless of test status.
@@ -1372,6 +1560,7 @@ jobs:
       always() &&
       github.repository == 'QwikDev/qwik' &&
       github.event_name != 'workflow_dispatch' &&
+      (needs.combined-optimizer.result == 'success' || needs.combined-optimizer.result == 'skipped') &&
       needs.build-other-packages.result == 'success'
 
     steps:
@@ -1389,12 +1578,13 @@ jobs:
       - name: Download Package Artifacts
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
-          pattern: 'artifact-{qwik,qwikrouter,qwikreact,create-qwik,eslint-plugin-qwik,devtools}'
+          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,create-qwik,eslint-plugin-qwik,devtools}'
           merge-multiple: false
 
       - name: Move Distribution Artifacts
         run: >
           pnpm ci.restore-artifacts
+          artifact-optimizer
           artifact-qwik
           artifact-qwikrouter
           artifact-qwikreact

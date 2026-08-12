@@ -1,0 +1,80 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 6929
+expression: output
+---
+==INPUT==
+
+
+import { formAction$ } from 'forms';
+import { translate } from 'i18n';
+
+const t = translate();
+export const action = formAction$((data) => {
+  try {
+    return { status: 'success' };
+  } catch (err) {
+    const t = translate();
+    return { status: 'error', message: t('error-key') };
+  }
+});
+		
+============================= test.js ==
+
+import { formActionQrl } from "forms";
+import { qrl } from "@qwik.dev/core";
+import { translate } from 'i18n';
+//
+const q_action_formAction_dIQV5vh1He4 = /*#__PURE__*/ qrl(()=>import("./test.tsx_action_formAction_dIQV5vh1He4"), "action_formAction_dIQV5vh1He4");
+//
+translate();
+export const action = formActionQrl(q_action_formAction_dIQV5vh1He4);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;AAEA,SAAS,SAAS,QAAQ,OAAO;;;;AAEvB;AACV,OAAO,MAAM,SAAS,+CAOnB\"}")
+============================= test.tsx_action_formAction_dIQV5vh1He4.js (ENTRY POINT)==
+
+import { translate } from "i18n";
+//
+export const action_formAction_dIQV5vh1He4 = (data)=>{
+    try {
+        return {
+            status: 'success'
+        };
+    } catch (err) {
+        const t = translate();
+        return {
+            status: 'error',
+            message: t('error-key')
+        };
+    }
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;6CAKkC,CAAC;IACjC,IAAI;QACF,OAAO;YAAE,QAAQ;QAAU;IAC7B,EAAE,OAAO,KAAK;QACZ,MAAM,IAAI;QACV,OAAO;YAAE,QAAQ;YAAS,SAAS,EAAE;QAAa;IACpD;AACF\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "action_formAction_dIQV5vh1He4",
+  "entry": null,
+  "displayName": "test.tsx_action_formAction",
+  "hash": "dIQV5vh1He4",
+  "canonicalFilename": "test.tsx_action_formAction_dIQV5vh1He4",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "formAction$",
+  "captures": false,
+  "loc": [
+    131,
+    292
+  ],
+  "paramNames": [
+    "data"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

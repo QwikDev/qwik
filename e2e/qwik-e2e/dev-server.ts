@@ -239,6 +239,15 @@ export { router }
       plugins: [
         ...plugins,
         optimizer.qwikVite({
+          // TEMP-AB: rust optimizer for debugging
+          ...(process.env.QWIK_AB_RUST
+            ? {
+                optimizerOptions: {
+                  _optimizer:
+                    await import('/home/wmertens/Projects/qwik/packages/optimizer/dist/index.mjs'),
+                } as any,
+              }
+            : {}),
           entryStrategy: { type: 'segment' },
           client: {
             outDir: join(appDistDir, appName),
@@ -262,6 +271,15 @@ export { router }
       plugins: [
         ...plugins,
         optimizer.qwikVite({
+          // TEMP-AB: rust optimizer for debugging
+          ...(process.env.QWIK_AB_RUST
+            ? {
+                optimizerOptions: {
+                  _optimizer:
+                    await import('/home/wmertens/Projects/qwik/packages/optimizer/dist/index.mjs'),
+                } as any,
+              }
+            : {}),
           experimental: ['each', 'show', 'suspense', 'blockSSR'],
           ssr: {
             manifestInput: clientManifest,

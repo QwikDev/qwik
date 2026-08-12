@@ -1,0 +1,113 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 6324
+expression: output
+---
+==INPUT==
+
+
+		import { component$, component$, $ } from "@qwik.dev/core";
+
+		export const TestGetsHmr = component$(() => {
+			return <div>Test</div>;
+		});
+		export const TestNoHmr = componentQrl($(() => {
+			return <div>Test</div>;
+		}));
+		
+============================= test.js ==
+
+import { componentQrl as componentQrl1 } from "@qwik.dev/core";
+import { qrlDEV } from "@qwik.dev/core";
+//
+const q_TestGetsHmr_component_jBUoou0sxX4 = /*#__PURE__*/ qrlDEV(()=>import("./test.tsx_TestGetsHmr_component_jBUoou0sxX4"), "TestGetsHmr_component_jBUoou0sxX4", {
+    file: "/user/qwik/src/test.tsx",
+    lo: 105,
+    hi: 143,
+    displayName: "test.tsx_TestGetsHmr_component"
+});
+const q_TestNoHmr_componentQrl_Uqk3jGTNmYs = /*#__PURE__*/ qrlDEV(()=>import("./test.tsx_TestNoHmr_componentQrl_Uqk3jGTNmYs"), "TestNoHmr_componentQrl_Uqk3jGTNmYs", {
+    file: "/user/qwik/src/test.tsx",
+    lo: 188,
+    hi: 226,
+    displayName: "test.tsx_TestNoHmr_componentQrl"
+});
+//
+export const TestGetsHmr = /*#__PURE__*/ componentQrl1(q_TestGetsHmr_component_jBUoou0sxX4);
+export const TestNoHmr = componentQrl(q_TestNoHmr_componentQrl_Uqk3jGTNmYs);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;;;;;;;AAGE,OAAO,MAAM,4BAAc,mDAExB;AACH,OAAO,MAAM,YAAY,mDAErB\"}")
+============================= test.tsx_TestGetsHmr_component_jBUoou0sxX4.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+import { _useHmr } from "@qwik.dev/core";
+//
+export const TestGetsHmr_component_jBUoou0sxX4 = ()=>{
+    _useHmr("/user/qwik/src/test.tsx");
+    return /*#__PURE__*/ _jsxSorted("div", null, null, "Test", 3, "u6_0", {
+        fileName: "test.tsx",
+        lineNumber: 5,
+        columnNumber: 11
+    });
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;iDAGwC;;IACrC,qBAAO,WAAC,mBAAI;;;;;AACb\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "TestGetsHmr_component_jBUoou0sxX4",
+  "entry": null,
+  "displayName": "test.tsx_TestGetsHmr_component",
+  "hash": "jBUoou0sxX4",
+  "canonicalFilename": "test.tsx_TestGetsHmr_component_jBUoou0sxX4",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component$",
+  "captures": false,
+  "loc": [
+    105,
+    143
+  ]
+}
+*/
+============================= test.tsx_TestNoHmr_componentQrl_Uqk3jGTNmYs.js (ENTRY POINT)==
+
+import { _jsxSorted } from "@qwik.dev/core";
+//
+export const TestNoHmr_componentQrl_Uqk3jGTNmYs = ()=>{
+    return /*#__PURE__*/ _jsxSorted("div", null, null, "Test", 3, "u6_1", {
+        fileName: "test.tsx",
+        lineNumber: 8,
+        columnNumber: 11
+    });
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;kDAM0C;IACvC,qBAAO,WAAC,mBAAI;;;;;AACb\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "TestNoHmr_componentQrl_Uqk3jGTNmYs",
+  "entry": null,
+  "displayName": "test.tsx_TestNoHmr_componentQrl",
+  "hash": "Uqk3jGTNmYs",
+  "canonicalFilename": "test.tsx_TestNoHmr_componentQrl_Uqk3jGTNmYs",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    188,
+    226
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

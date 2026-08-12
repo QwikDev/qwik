@@ -29,7 +29,7 @@ The current CI assertion caps are **1.15×** for BENCH-01 and **1.5×** for BENC
    cd "$QWIK_HOME" && pnpm build.platform
    ```
 
-   This rebuilds `$QWIK_HOME/packages/rust-optimizer/bindings/qwik.<platform-arch>.node`. Skip if the qwik checkout hasn't moved since your last run.
+   This rebuilds `$QWIK_HOME/packages/optimizer/bindings/qwik.<platform-arch>.node`. Skip if the qwik checkout hasn't moved since your last run.
 
 2. From this repo:
 

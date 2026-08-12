@@ -13,6 +13,7 @@ const root = resolve(import.meta.dirname, '..');
 /** Each entry maps an artifact source to its package destination. */
 const artifacts: Array<{ artifact: string; src: string; dest: string }> = [
   { artifact: 'artifact-qwik', src: 'artifact-qwik', dest: 'packages/qwik/dist' },
+  { artifact: 'artifact-optimizer', src: 'artifact-optimizer', dest: 'packages/optimizer' },
   {
     artifact: 'artifact-qwikrouter',
     src: 'artifact-qwikrouter',

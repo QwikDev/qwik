@@ -1,0 +1,153 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 1879
+expression: output
+---
+==INPUT==
+
+
+import GitHub from '@auth/core/providers/github'
+import Facebook from 'next-auth/providers/facebook'
+import Google from 'next-auth/providers/google'
+import {serverAuth$, auth$} from '@auth/qwik';
+
+export const { onRequest, logout, getSession, signup } = serverAuth$({
+	providers: [
+	GitHub({
+		clientId: process.env.GITHUB_ID,
+		clientSecret: process.env.GITHUB_SECRET
+	}),
+	Facebook({
+		clientId: import.meta.env.FACEBOOK_ID,
+		clientSecret: import.meta.env.FACEBOOK_SECRET
+	}),
+	Google({
+		clientId: process.env.GOOGLE_ID,
+		clientSecret: process.env.GOOGLE_SECRET
+	})
+	]
+});
+
+export const { onRequest, logout, getSession, signup } = auth$({
+	providers: [
+	GitHub({
+		clientId: process.env.GITHUB_ID,
+		clientSecret: process.env.GITHUB_SECRET
+	}),
+	Facebook({
+		clientId: process.env.FACEBOOK_ID,
+		clientSecret: process.env.FACEBOOK_SECRET
+	}),
+	Google({
+		clientId: process.env.GOOGLE_ID,
+		clientSecret: process.env.GOOGLE_SECRET
+	})
+	]
+});
+
+============================= test.js ==
+
+import { serverAuthQrl } from "@auth/qwik";
+import { qrl } from "@qwik.dev/core";
+//
+/*#__PURE__*/ qrl(()=>import("./test.tsx_auth_GU0aY5QCETY"), "auth_GU0aY5QCETY");
+//
+const q_serverAuth_qVqpX2a0p9Y = /*#__PURE__*/ qrl(()=>import("./test.tsx_serverAuth_qVqpX2a0p9Y"), "serverAuth_qVqpX2a0p9Y");
+//
+export const { onRequest, logout, getSession, signup } = serverAuthQrl(q_serverAuth_qVqpX2a0p9Y);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;AAMA,OAAO,MAAM,EAAE,SAAS,EAAE,MAAM,EAAE,UAAU,EAAE,MAAM,EAAE,GAAG,wCAetD\"}")
+============================= test.tsx_auth_GU0aY5QCETY.js (ENTRY POINT)==
+
+import Facebook from "next-auth/providers/facebook";
+import GitHub from "@auth/core/providers/github";
+import Google from "next-auth/providers/google";
+//
+export const auth_GU0aY5QCETY = {
+    providers: [
+        GitHub({
+            clientId: process.env.GITHUB_ID,
+            clientSecret: process.env.GITHUB_SECRET
+        }),
+        Facebook({
+            clientId: process.env.FACEBOOK_ID,
+            clientSecret: process.env.FACEBOOK_SECRET
+        }),
+        Google({
+            clientId: process.env.GOOGLE_ID,
+            clientSecret: process.env.GOOGLE_SECRET
+        })
+    ]
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;gCAuB+D;IAC9D,WAAW;QACX,OAAO;YACN,UAAU,QAAQ,GAAG,CAAC,SAAS;YAC/B,cAAc,QAAQ,GAAG,CAAC,aAAa;QACxC;QACA,SAAS;YACR,UAAU,QAAQ,GAAG,CAAC,WAAW;YACjC,cAAc,QAAQ,GAAG,CAAC,eAAe;QAC1C;QACA,OAAO;YACN,UAAU,QAAQ,GAAG,CAAC,SAAS;YAC/B,cAAc,QAAQ,GAAG,CAAC,aAAa;QACxC;KACC;AACF\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "auth_GU0aY5QCETY",
+  "entry": null,
+  "displayName": "test.tsx_auth",
+  "hash": "GU0aY5QCETY",
+  "canonicalFilename": "test.tsx_auth_GU0aY5QCETY",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "auth$",
+  "captures": false,
+  "loc": [
+    644,
+    945
+  ]
+}
+*/
+============================= test.tsx_serverAuth_qVqpX2a0p9Y.js (ENTRY POINT)==
+
+import Facebook from "next-auth/providers/facebook";
+import GitHub from "@auth/core/providers/github";
+import Google from "next-auth/providers/google";
+//
+export const serverAuth_qVqpX2a0p9Y = {
+    providers: [
+        GitHub({
+            clientId: process.env.GITHUB_ID,
+            clientSecret: process.env.GITHUB_SECRET
+        }),
+        Facebook({
+            clientId: import.meta.env.FACEBOOK_ID,
+            clientSecret: import.meta.env.FACEBOOK_SECRET
+        }),
+        Google({
+            clientId: process.env.GOOGLE_ID,
+            clientSecret: process.env.GOOGLE_SECRET
+        })
+    ]
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;sCAMqE;IACpE,WAAW;QACX,OAAO;YACN,UAAU,QAAQ,GAAG,CAAC,SAAS;YAC/B,cAAc,QAAQ,GAAG,CAAC,aAAa;QACxC;QACA,SAAS;YACR,UAAU,YAAY,GAAG,CAAC,WAAW;YACrC,cAAc,YAAY,GAAG,CAAC,eAAe;QAC9C;QACA,OAAO;YACN,UAAU,QAAQ,GAAG,CAAC,SAAS;YAC/B,cAAc,QAAQ,GAAG,CAAC,aAAa;QACxC;KACC;AACF\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "serverAuth_qVqpX2a0p9Y",
+  "entry": null,
+  "displayName": "test.tsx_serverAuth",
+  "hash": "qVqpX2a0p9Y",
+  "canonicalFilename": "test.tsx_serverAuth_qVqpX2a0p9Y",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "serverAuth$",
+  "captures": false,
+  "loc": [
+    268,
+    577
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

@@ -69,7 +69,7 @@ importers:
         version: link:packages/qwik
       '@qwik.dev/optimizer':
         specifier: workspace:*
-        version: link:packages/rust-optimizer
+        version: link:packages/optimizer
       '@qwik.dev/partytown':
         specifier: 0.13.2
         version: 0.13.2
@@ -508,7 +508,7 @@ importers:
         version: link:../devtools
       '@qwik.dev/optimizer':
         specifier: workspace:*
-        version: link:../rust-optimizer
+        version: link:../optimizer
       '@qwik.dev/partytown':
         specifier: 0.13.2
         version: 0.13.2
@@ -779,8 +779,16 @@ importers:
         specifier: 3.25.48
         version: 3.25.48
 
+  packages/optimizer: {}
+
   packages/qwik:
     dependencies:
+      '@qwik.dev/optimizer':
+        specifier: workspace:*
+        version: link:../optimizer
+      '@qwik.dev/ts-optimizer':
+        specifier: workspace:*
+        version: link:../ts-optimizer
       csstype:
         specifier: ^3.2.3
         version: 3.2.3
@@ -821,9 +829,6 @@ importers:
       '@qwik.dev/dom':
         specifier: workspace:*
         version: link:../qwik-dom
-      '@qwik.dev/optimizer':
-        specifier: workspace:*
-        version: link:../rust-optimizer
       domino:
         specifier: 2.1.6
         version: 2.1.6(patch_hash=cfc92e4c7200dc9749feafd71636da4534f892821d01a38afe3025620807877d)
@@ -992,8 +997,6 @@ importers:
       magic-string:
         specifier: 0.30.21
         version: 0.30.21
-
-  packages/rust-optimizer: {}
 
   packages/supabase-auth-helpers-qwik:
     devDependencies:

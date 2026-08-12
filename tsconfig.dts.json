@@ -14,7 +14,7 @@
       "@qwik.dev/core/jsx-runtime": ["packages/qwik/src/jsx-runtime"],
       "@qwik.dev/core/jsx-dev-runtime": ["packages/qwik/src/jsx-runtime"],
       "@qwik.dev/core/build": ["packages/qwik/src/build"],
-      "@qwik.dev/optimizer": ["packages/rust-optimizer/src"],
+      "@qwik.dev/optimizer": ["packages/optimizer/src"],
       "@qwik.dev/core/optimizer": ["packages/qwik-vite/src"],
       "@qwik.dev/core/preloader": ["packages/qwik/src/preloader"],
       "@qwik.dev/core/server": ["packages/qwik/src/server"],

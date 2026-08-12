@@ -1,0 +1,60 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 7343
+expression: output
+---
+==INPUT==
+
+
+import { $ } from '@qwik.dev/core';
+
+let counter = 0;
+
+export const bump = $(() => {
+  counter++;
+  return counter;
+});
+		
+============================= test.js ==
+
+import { qrl } from "@qwik.dev/core";
+//
+const q_bump_yBkqBzPvVX0 = /*#__PURE__*/ qrl(()=>import("./test.tsx_bump_yBkqBzPvVX0"), "bump_yBkqBzPvVX0");
+//
+export const bump = q_bump_yBkqBzPvVX0;
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;AAKA,OAAO,MAAM,0BAGV\"}")
+============================= test.tsx_bump_yBkqBzPvVX0.js (ENTRY POINT)==
+
+let counter = 0;
+export const bump_yBkqBzPvVX0 = ()=>{
+    counter++;
+    return counter;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"IAGI,UAAU;gCAEQ;IACpB;IACA,OAAO;AACT\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "bump_yBkqBzPvVX0",
+  "entry": null,
+  "displayName": "test.tsx_bump",
+  "hash": "yBkqBzPvVX0",
+  "canonicalFilename": "test.tsx_bump_yBkqBzPvVX0",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    79,
+    119
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

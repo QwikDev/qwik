@@ -1,0 +1,67 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 6953
+expression: output
+---
+==INPUT==
+
+
+import { formAction$ } from 'forms';
+const x = 'module-level';
+export const action = formAction$((data) => {
+  let i = 0;
+  do {
+    const x = 'shadowed';
+    i++;
+  } while (i < 3);
+  return {};
+});
+		
+============================= test.js ==
+
+import { formActionQrl } from "forms";
+import { qrl } from "@qwik.dev/core";
+//
+const q_action_formAction_dIQV5vh1He4 = /*#__PURE__*/ qrl(()=>import("./test.tsx_action_formAction_dIQV5vh1He4"), "action_formAction_dIQV5vh1He4");
+//
+export const action = formActionQrl(q_action_formAction_dIQV5vh1He4);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAGA,OAAO,MAAM,SAAS,+CAOnB\"}")
+============================= test.tsx_action_formAction_dIQV5vh1He4.js (ENTRY POINT)==
+
+export const action_formAction_dIQV5vh1He4 = (data)=>{
+    let i = 0;
+    do i++;
+    while (i < 3)
+    return {};
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"6CAGkC,CAAC;IACjC,IAAI,IAAI;IACR,GAEE;WACO,IAAI,EAAG;IAChB,OAAO,CAAC;AACV\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "action_formAction_dIQV5vh1He4",
+  "entry": null,
+  "displayName": "test.tsx_action_formAction",
+  "hash": "dIQV5vh1He4",
+  "canonicalFilename": "test.tsx_action_formAction_dIQV5vh1He4",
+  "path": "",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "formAction$",
+  "captures": false,
+  "loc": [
+    99,
+    199
+  ],
+  "paramNames": [
+    "data"
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

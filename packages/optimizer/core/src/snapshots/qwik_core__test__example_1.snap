@@ -1,0 +1,126 @@
+---
+source: packages/optimizer/core/src/test.rs
+assertion_line: 92
+expression: output
+---
+==INPUT==
+
+
+import { $, component, onRender } from '@qwik.dev/core';
+
+export const renderHeader1 = $(() => {
+	return (
+		<div onClick={$((ctx) => console.log(ctx))}/>
+	);
+});
+const renderHeader2 = component($(() => {
+	console.log("mount");
+	return render;
+}));
+
+============================= test.tsx_renderHeader1_div_onClick_USi8k1jUb40.tsx (ENTRY POINT)==
+
+export const renderHeader1_div_onClick_USi8k1jUb40 = (ctx)=>console.log(ctx);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"qDAKkB,CAAC,MAAQ,QAAQ,GAAG,CAAC\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "renderHeader1_div_onClick_USi8k1jUb40",
+  "entry": null,
+  "displayName": "test.tsx_renderHeader1_div_onClick",
+  "hash": "USi8k1jUb40",
+  "canonicalFilename": "test.tsx_renderHeader1_div_onClick_USi8k1jUb40",
+  "path": "",
+  "extension": "tsx",
+  "parent": "renderHeader1_jMxQsjbyDss",
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    127,
+    152
+  ],
+  "paramNames": [
+    "ctx"
+  ]
+}
+*/
+============================= test.tsx ==
+
+import { qrl } from "@qwik.dev/core";
+import { component } from '@qwik.dev/core';
+//
+const q_renderHeader1_jMxQsjbyDss = /*#__PURE__*/ qrl(()=>import("./test.tsx_renderHeader1_jMxQsjbyDss"), "renderHeader1_jMxQsjbyDss");
+const q_renderHeader2_component_Ay6ibkfFYsw = /*#__PURE__*/ qrl(()=>import("./test.tsx_renderHeader2_component_Ay6ibkfFYsw"), "renderHeader2_component_Ay6ibkfFYsw");
+//
+export const renderHeader1 = q_renderHeader1_jMxQsjbyDss;
+component(q_renderHeader2_component_Ay6ibkfFYsw);
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";AACA,SAAY,SAAS,QAAkB,iBAAiB;;;;;AAExD,OAAO,MAAM,4CAIV;AACmB\"}")
+============================= test.tsx_renderHeader1_jMxQsjbyDss.tsx (ENTRY POINT)==
+
+import { qrl } from "@qwik.dev/core";
+//
+const q_renderHeader1_div_onClick_USi8k1jUb40 = /*#__PURE__*/ qrl(()=>import("./test.tsx_renderHeader1_div_onClick_USi8k1jUb40"), "renderHeader1_div_onClick_USi8k1jUb40");
+//
+export const renderHeader1_jMxQsjbyDss = ()=>{
+    return <div onClick={q_renderHeader1_div_onClick_USi8k1jUb40}/>;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;yCAG+B;IAC9B,QACE,IAAI;AAEP\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "renderHeader1_jMxQsjbyDss",
+  "entry": null,
+  "displayName": "test.tsx_renderHeader1",
+  "hash": "jMxQsjbyDss",
+  "canonicalFilename": "test.tsx_renderHeader1_jMxQsjbyDss",
+  "path": "",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    91,
+    162
+  ]
+}
+*/
+============================= test.tsx_renderHeader2_component_Ay6ibkfFYsw.tsx (ENTRY POINT)==
+
+export const renderHeader2_component_Ay6ibkfFYsw = ()=>{
+    console.log("mount");
+    return render;
+};
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"mDAQkC;IACjC,QAAQ,GAAG,CAAC;IACZ,OAAO;AACR\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "renderHeader2_component_Ay6ibkfFYsw",
+  "entry": null,
+  "displayName": "test.tsx_renderHeader2_component",
+  "hash": "Ay6ibkfFYsw",
+  "canonicalFilename": "test.tsx_renderHeader2_component_Ay6ibkfFYsw",
+  "path": "",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    199,
+    247
+  ]
+}
+*/
+== DIAGNOSTICS ==
+
+[]

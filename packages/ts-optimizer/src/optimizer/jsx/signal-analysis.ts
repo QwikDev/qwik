@@ -781,6 +781,8 @@ export function analyzeSignalExpression(
     const { roots, allDeps } = collectSignalDeps(exprNode, importedNames, localNames);
     if (roots.length === 0) return { type: 'none' };
     if (containsNonOptionalCall(exprNode)) return { type: 'none' };
+    // Hoisting would orphan raw JSX outside the JSX transform.
+    if (containsJsx(exprNode)) return { type: 'none' };
     const { hoistedFn, hoistedStr } = generateFnSignal(exprNode, source, allDeps);
     return { type: 'fnSignal', deps: allDeps, hoistedFn, hoistedStr, isObjectExpr: true };
   }
@@ -789,6 +791,8 @@ export function analyzeSignalExpression(
     const { roots, allDeps } = collectSignalDeps(exprNode, importedNames, localNames);
     if (roots.length === 0) return { type: 'none' };
     if (containsNonOptionalCall(exprNode)) return { type: 'none' };
+    // Hoisting would orphan raw JSX outside the JSX transform.
+    if (containsJsx(exprNode)) return { type: 'none' };
     const { hoistedFn, hoistedStr } = generateFnSignal(exprNode, source, allDeps);
     return { type: 'fnSignal', deps: allDeps, hoistedFn, hoistedStr };
   }

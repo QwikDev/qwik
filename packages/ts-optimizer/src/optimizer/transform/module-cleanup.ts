@@ -375,6 +375,19 @@ export function removeUnusedImports(
         this.skip();
         return;
       }
+      // Type-position-only usages keep no import alive (matches Rust);
+      // expression wrappers (`x as T`, `x!`) still carry real references.
+      if (
+        node.type.startsWith('TS') &&
+        node.type !== 'TSAsExpression' &&
+        node.type !== 'TSSatisfiesExpression' &&
+        node.type !== 'TSNonNullExpression' &&
+        node.type !== 'TSInstantiationExpression' &&
+        node.type !== 'TSTypeAssertion'
+      ) {
+        this.skip();
+        return;
+      }
 
       if ((node.type === 'Identifier' || node.type === 'JSXIdentifier') && node.name) {
         if (

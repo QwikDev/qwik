@@ -598,11 +598,15 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
       } else {
         let hoistBody = transformedBody;
         try {
-          const stripped = oxcTransformSync('__body__.tsx', hoistBody);
+          // Parenthesize so an object-literal body parses as an expression,
+          // not a block with labeled statements.
+          const stripped = oxcTransformSync('__body__.tsx', `(${hoistBody})`);
           if (stripped.code && !stripped.errors?.length) {
-            hoistBody = stripped.code;
-            if (hoistBody.endsWith(';\n')) hoistBody = hoistBody.slice(0, -2);
-            else if (hoistBody.endsWith(';')) hoistBody = hoistBody.slice(0, -1);
+            let code = stripped.code;
+            if (code.endsWith(';\n')) code = code.slice(0, -2);
+            else if (code.endsWith(';')) code = code.slice(0, -1);
+            if (code.startsWith('(') && code.endsWith(')')) code = code.slice(1, -1);
+            hoistBody = code;
           }
         } catch {
           // strip failed — keep the un-stripped body

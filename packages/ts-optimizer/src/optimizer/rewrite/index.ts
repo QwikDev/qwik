@@ -346,9 +346,22 @@ function processImports(ctx: RewriteContext): void {
     const quoteChar = rawSource.startsWith("'") ? "'" : '"';
 
     if (!specifiers || specifiers.length === 0) {
-      if (rewrittenSource !== sourceNode.value) {
-        s.overwrite(sourceNode.start + 1, sourceNode.end - 1, rewrittenSource);
-      }
+      // Side-effect imports move into the rebuilt top import block in original
+      // relative order — leaving them in the body would sink them below the
+      // qrl declarations, changing module evaluation order in bundled cycles.
+      let end = node.end;
+      if (end < source.length && source[end] === '\n') end++;
+      s.remove(node.start, end);
+      ctx.survivingUserImports.push(`import ${quoteChar}${rewrittenSource}${quoteChar};`);
+      ctx.survivingImportInfos.push({
+        defaultPart: '',
+        nsPart: '',
+        namedParts: [],
+        quote: quoteChar,
+        source: rewrittenSource,
+        isSideEffect: true,
+        preservedAll: false,
+      });
       continue;
     }
 
@@ -522,11 +535,17 @@ function preComputeQrlVarNames(ctx: RewriteContext): void {
   let earlyStrippedCounter = 0;
   for (const ext of ctx.extractions) {
     if (ext.isSync) continue;
-    // Worker QRLs always take a sentinel binding — their decl carries the
-    // symbol name inside the `_qrlWithChunk` call instead.
+    // Segment-strategy worker QRLs take a sentinel binding — their decl
+    // carries the symbol name inside the `_qrlWithChunk` call instead. Under
+    // inline/hoist the binding pairs with a named `q_<symbol>.s(...)`
+    // registration, so it keeps the symbol name.
     if (isWorkerExtraction(ext)) {
-      const counter = 0xffff0000 + earlyStrippedCounter++ * 2;
-      ctx.earlyQrlVarNames.set(ext.symbolName, `q_qrl_${counter}`);
+      if (ctx.inlineOptions?.inline) {
+        ctx.earlyQrlVarNames.set(ext.symbolName, `q_${ext.symbolName}`);
+      } else {
+        const counter = 0xffff0000 + earlyStrippedCounter++ * 2;
+        ctx.earlyQrlVarNames.set(ext.symbolName, `q_qrl_${counter}`);
+      }
       continue;
     }
     if (!ctx.inlineOptions) continue;

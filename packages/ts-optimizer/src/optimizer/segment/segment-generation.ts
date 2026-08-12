@@ -213,12 +213,22 @@ export function buildSegmentImportList(
     'useServerMountQrl',
     'inlinedQrl',
   ];
+  // A `*Qrl` dispatcher (e.g. `serverQrl`) belongs to whatever package the
+  // `*$` marker was imported from — only truly-internal helpers default to core.
+  const dollarFormSource = (name: string): string | undefined => {
+    if (!name.endsWith('Qrl')) return undefined;
+    const dollarName = `${name.slice(0, -3)}$`;
+    for (const [, imp] of originalImports) {
+      if (imp.importedName === dollarName) return imp.source;
+    }
+    return undefined;
+  };
   for (const name of runtimeImports) {
     if (!addedModuleImports.has(name)) {
       segmentImportList.push({
         localName: name,
         importedName: name,
-        source: '@qwik.dev/core',
+        source: dollarFormSource(name) ?? '@qwik.dev/core',
       });
     }
   }

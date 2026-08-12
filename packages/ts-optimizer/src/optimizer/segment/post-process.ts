@@ -69,7 +69,9 @@ const tsDeclarationProbe = createRegExp(
 );
 
 const tsNonNullPropertyProbe = createRegExp(
-  oneOrMore(wordChar).and(whitespace.times.any()).and(anyOf('!.', '!['))
+  oneOrMore(wordChar)
+    .and(whitespace.times.any())
+    .and(anyOf('!.', '![', '!)', '!,', '!;'))
 );
 
 const tsGenericCallProbe = createRegExp(

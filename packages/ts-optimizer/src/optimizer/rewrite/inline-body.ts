@@ -183,7 +183,11 @@ export function transformInlineSegmentBody(
           // A handler from a pre-transformed `_jsxDEV(...)` props bag is an
           // object property, not a JSX attribute — replace with the bare QRL ref
           // (`onClick$: q_X`); the JSX-attribute form would break the object literal.
-          const replacement = child.isJsxObjectProp ? qrlRef : `${propName}={${qrlRef}}`;
+          // A kebab-cased name whose local part starts with '-' (onDOMContentLoaded$
+          // → q-d:-d-o-m-...) can't re-parse as a JSX attribute — keep the original
+          // attr name and let the JSX pass emit the final quoted key.
+          const attrName = /:-/.test(propName) ? child.ctxName : propName;
+          const replacement = child.isJsxObjectProp ? qrlRef : `${attrName}={${qrlRef}}`;
           body = body.slice(0, relCallStart) + replacement + body.slice(relCallEnd);
         } else if (child.qrlCallee) {
           let replacement = child.qrlCallee + '(' + childVarName;

@@ -8,7 +8,6 @@ import {
   type NoSerialize,
 } from './verify';
 import { _UNINITIALIZED } from '../utils/constants';
-import { withCaptures } from '../qrl/qrl-captures';
 import { useComputed, useSignal } from '../../reactive/public-api';
 import { createOwner, runWithOwner } from '../../runtime/owner';
 
@@ -122,11 +121,6 @@ describe('verifySerializable', () => {
       expect(() => verifySerializable(fn)).toThrow(/cannot be serialized/);
       expect(() => verifySerializable(fn)).toThrow(/myFunction/);
       expect(() => verifySerializable(fn)).toThrow(/\$\(fn\)/);
-    });
-
-    it('should allow capture-bound segment functions', () => {
-      const bound = withCaptures(function segmentFn() {}, ['capture']);
-      expect(verifySerializable(bound)).toBe(bound);
     });
 
     it('should include context in error message', () => {

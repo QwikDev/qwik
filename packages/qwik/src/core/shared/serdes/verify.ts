@@ -3,7 +3,6 @@ import { isNode } from '../utils/element';
 import { isPromise } from '../utils/promises';
 import { isArray, isFunction, isObject, isSerializableObject } from '../utils/types';
 import { isQrl } from '../qrl/qrl-utils';
-import { isBoundCapturesFunction } from '../qrl/qrl-captures';
 import { isQwikComponent } from '../component.public';
 import { Computed } from '../../reactive/computed';
 import { Signal } from '../../reactive/signal';
@@ -125,9 +124,8 @@ const isKnownSerializableValue = (value: unknown): boolean => {
     return true;
   }
   if (type === 'function') {
-    // component-tagged functions (lifted local components) serialize as their QRL;
-    // capture-bound segment functions are client-only and never cross the wire
-    return isQrl(value) || isQwikComponent(value) || isBoundCapturesFunction(value);
+    // component-tagged functions (lifted local components) serialize as their QRL
+    return isQrl(value) || isQwikComponent(value);
   }
   if (!isObject(value)) {
     return false;

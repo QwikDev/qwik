@@ -1431,8 +1431,85 @@ export const App = component$(() => {
     const all = result.modules.map((module) => module.code).join('\n');
     // serialization must store the canonical store-prop source, not a snapshot
     expect(all).toContain('"count": getStoreSource(store, "foo")');
-    expect(all).toContain('"count": getStoreSource(store.nested, "bar")');
+    // nested hops are runtime facts: the slot may hold a signal, a store, or data
+    expect(all).toContain('"count": getMemberSource(store.nested, "bar")');
     expect(all).toMatch(/import \{[^}]*getStoreSource[^}]*\}/);
+  });
+});
+
+describe('context-provided sources', () => {
+  test('context signal reads and destructured forwards keep their sources', async () => {
+    const contextsModule = {
+      path: 'src/ctx.ts',
+      code: `import { createContextId, type Signal } from '@qwik.dev/core';
+export const ItemsContext = createContextId<Signal<string[] | undefined>>('test-items');
+`,
+    };
+    const providerModule = {
+      path: 'src/provider.tsx',
+      code: `import { component$, useContextProvider, useSignal, Slot } from '@qwik.dev/core';
+import { ItemsContext } from './ctx';
+export const Provider = component$(() => {
+  const items = useSignal<string[] | undefined>(undefined);
+  useContextProvider(ItemsContext, items);
+  return <Slot />;
+});
+`,
+    };
+    const outletModule = {
+      path: 'src/outlet.tsx',
+      code: `import { component$, useContext } from '@qwik.dev/core';
+import { ItemsContext } from './ctx';
+
+function Row({ contents, index }: { contents: string[]; index: number }) {
+  const next = index + 1;
+  return (
+    <div>
+      {contents[index]}
+      {next < contents.length ? <Row contents={contents} index={next} /> : null}
+    </div>
+  );
+}
+
+export const Outlet = component$(() => {
+  const items = useContext(ItemsContext);
+  return items.value?.length ? <Row contents={items.value} index={0} /> : null;
+});
+`,
+    };
+    const result = await transformModules({
+      input: [contextsModule, providerModule, outletModule],
+      srcDir: 'src',
+      sourceMaps: false,
+      transpileTs: true,
+      transpileJsx: true,
+      isServer: true,
+    });
+    expect(result.diagnostics).toEqual([]);
+    const all = result.modules.map((module) => module.code).join('\n');
+    // the context-provided signal is a live source for the top instantiation
+    expect(all).toContain('"contents": items');
+    // the recursion forwards a destructured prop: its source resolves from the outer props
+    expect(all).toContain('"contents": getPropSource(props, "contents")');
+  });
+
+  test('a per-file build probes opaque .value reads at runtime', async () => {
+    // the provider module is not part of this compile: the source kind is unknowable
+    const input = {
+      path: 'src/lone-outlet.tsx',
+      code: `import { component$, createContextId, useContext, type Signal } from '@qwik.dev/core';
+const ItemsContext = createContextId<Signal<string[]>>('lone-items');
+export const Kid = component$((props: { contents: string[] }) => <div>{props.contents.length}</div>);
+export const Outlet = component$(() => {
+  const items = useContext(ItemsContext);
+  return <Kid contents={items.value} />;
+});
+`,
+    };
+    const result = await transformModules(options(input, true));
+    expect(result.diagnostics).toEqual([]);
+    const all = result.modules.map((module) => module.code).join('\n');
+    expect(all).toContain('"contents": getMemberSource(items, "value")');
   });
 });
 

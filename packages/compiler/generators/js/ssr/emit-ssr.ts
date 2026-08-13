@@ -74,6 +74,10 @@ export interface SsrPlanData {
   readonly moduleBindingName: (binding: number) => string | null;
   /** Local name of an import by (module, export) — plugin-call resolution. */
   readonly importLocalName: (module: string, exportName: string) => string | null;
+  /** Props key of a shorthand-destructured component-prop binding — forwards resolve sources. */
+  readonly propsKeyForBinding?: (binding: number) => string | null;
+  /** Reactive kind of a binding beyond local declarations (context-provided signals/stores). */
+  readonly sourceKindForBinding?: (binding: number) => 'signal' | 'store' | 'computed' | null;
 }
 
 /** Aliased so the emitted import never collides with an origin `isServer` import. */
@@ -187,7 +191,9 @@ function emitJsRenderForComponent(
     planData.moduleBindingName,
     (importedName) => importNames.aliases?.get(importedName) ?? null,
     planData.bindingName,
-    planData.importLocalName
+    planData.importLocalName,
+    planData.propsKeyForBinding,
+    planData.sourceKindForBinding
   );
   if (pieces === null) {
     const detail = lastUngeneratableDetail();
@@ -631,7 +637,9 @@ export function emitSsrSegmentRender(
       ],
       wireBlock.props ?? null,
       wireBlock.providesContext === true,
-      planned.surroundingRangeId
+      planned.surroundingRangeId,
+      planData.propsKeyForBinding,
+      planData.sourceKindForBinding
     );
     if (generated !== null) {
       for (const name of generated.imports) {

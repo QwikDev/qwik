@@ -5,9 +5,11 @@ import {
   _props,
   allocatePropsProxy,
   createPropsProxy,
+  getMemberSource,
   getPropSource,
   getPropsSources,
 } from './props';
+import { getStoreSource, useStore } from '../reactive/store';
 
 describe('component props', () => {
   it('resolves a registered prop source and drops undefined entries', () => {
@@ -19,6 +21,20 @@ describe('component props', () => {
     expect(getPropSource(props, 'id')).toBe(id);
     expect(getPropSource(props, 'label')).toBeUndefined();
     expect(getPropSource({}, 'id')).toBeUndefined();
+  });
+
+  it('resolves member sources by what the slot actually holds', () => {
+    const signal = useSignal(0);
+    const store = useStore({ foo: 10, signal });
+
+    // a store target yields its slot source, whatever the slot holds
+    expect(getMemberSource(store, 'foo')).toBe(getStoreSource(store, 'foo'));
+    // a signal target yields itself for .value reads only
+    expect(getMemberSource(signal, 'value')).toBe(signal);
+    expect(getMemberSource(signal, 'other')).toBeUndefined();
+    // plain data has no source: the snapshot path is correct
+    expect(getMemberSource({ value: 1 }, 'value')).toBeUndefined();
+    expect(getMemberSource(undefined, 'value')).toBeUndefined();
   });
 
   it('reads and tracks the current props source', () => {

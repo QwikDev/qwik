@@ -1,3 +1,6 @@
+import { Computed } from '../reactive/computed';
+import { Signal } from '../reactive/signal';
+import { getStoreSource, isStore } from '../reactive/store';
 import { readSourceValue, type Source } from '../reactive/source';
 import { track } from '../reactive/tracking';
 import { qError, QError } from '../shared/error/error';
@@ -32,6 +35,21 @@ export function getPropsSources(props: object): Record<string, unknown> | undefi
 /** The source a caller registered for a prop key, for forwarding it further down. */
 export function getPropSource(props: object, key: string): unknown {
   return propsSources.get(props)?.[key];
+}
+
+/**
+ * The source behind reading `prop` off `target`, whatever target turns out to be. Property slots
+ * are runtime facts — a store prop can hold a signal, a nested store, or plain data — so the
+ * compiler emits this probe wherever the chain cannot be proven statically.
+ */
+export function getMemberSource(target: unknown, prop: string): unknown {
+  if (isStore(target)) {
+    return getStoreSource(target, prop);
+  }
+  if (prop === 'value' && (target instanceof Signal || target instanceof Computed)) {
+    return target;
+  }
+  return undefined;
 }
 
 export function mergeProps(

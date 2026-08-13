@@ -28,6 +28,7 @@ export const enum QwikWord {
   Props = '_props',
   GetPropSource = 'getPropSource',
   GetStoreSource = 'getStoreSource',
+  GetMemberSource = 'getMemberSource',
   BranchRange = 'BranchRange',
   CreateBranch = 'createBranch',
   CreateSuspense = 'createSuspense',

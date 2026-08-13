@@ -8,6 +8,7 @@ import type {
 import { parseSync } from 'oxc-parser';
 import { analyzeModule } from './analysis';
 import { collectNativeMarkers, nativePluginFns } from './native-lower';
+import { registerContextKinds } from './context-kinds';
 import { setNativeFns } from './expr-lower';
 import { createModule, isJsxPath, isTypeScriptPath, transformWithOxc } from './module-utils';
 import { mapDiagnosticsToOriginal, normalizeTransformInput } from './normalization';
@@ -24,6 +25,8 @@ export type { QwikModulePlan } from './emit-plan';
 export async function transformModules(options: TransformModulesOptions): Promise<TransformOutput> {
   // native$ crosses modules: register every declaration before any module lowers a call to it
   registerNativeFns(options.input);
+  // context values are opaque to consumers: the provider side declares their reactive kinds
+  registerContextKinds(options.input);
   const results = await Promise.all(options.input.map((input) => transformInput(input, options)));
   const modules = results.flatMap((result) => result.modules);
 

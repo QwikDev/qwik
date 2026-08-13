@@ -50,6 +50,8 @@ import {
   hasRawSsrModuleRootImplementation,
   shouldEmitSegmentModule,
 } from './segment-plan';
+import { contextKindForName, contextNameForImport, type ContextSourceKind } from './context-kinds';
+import { SetupOpKind } from './setup-ir';
 import {
   emitSsrModule,
   emitSsrSegmentRender,
@@ -463,9 +465,25 @@ export function transformModule(ctx: CompilerContext): TransformResult {
   );
   // shared plan-side tables: production JS emission and plan emission read the same data
   const modulePluginFns = nativePluginFns(native.markers, ctx.input.path);
+  const planContexts = collectPlanContexts(program, analysis);
+  // shorthand-destructured prop bindings, back to their props keys — forwards resolve sources
+  const propsKeyBindings = new Map<BindingId, string>();
+  for (const output of outputs) {
+    const parameter = output.result.shape.parameter;
+    if (parameter?.kind !== 'object') {
+      continue;
+    }
+    for (const bindingId of parameter.bindingIds) {
+      const name = analysis.bindings.find((binding) => binding.id === bindingId)?.name;
+      if (name !== undefined) {
+        propsKeyBindings.set(bindingId, name);
+      }
+    }
+  }
+  const contextReadKinds = collectContextReadKinds(outputs, analysis, planContexts, ctx.input.path);
   const planData: SsrPlanData = {
     defs: (extractedQrls.moduleDefs ?? []).map((def) => ({ name: def.name })),
-    contexts: collectPlanContexts(program, analysis),
+    contexts: planContexts,
     pluginFns: modulePluginFns,
     bindingName: (binding) =>
       analysis.bindings.find((candidate) => candidate.id === binding)?.name ?? null,
@@ -498,6 +516,8 @@ export function transformModule(ctx: CompilerContext): TransformResult {
       }
       return null;
     },
+    propsKeyForBinding: (binding) => propsKeyBindings.get(binding) ?? null,
+    sourceKindForBinding: (binding) => contextReadKinds.get(binding) ?? null,
   };
   // chunk emission reuses the owning component's wire block when one exists
   const wireCache = new Map<ComponentOutput, PlanSsrComponent | null>();
@@ -1471,6 +1491,47 @@ function emitComponentModuleImports(
     }
   }
   return [...imports];
+}
+
+/**
+ * Context values are opaque locals, but the pre-pass knows what each context is provided with.
+ * Context-read bindings inherit that kind so prop getters over them stay tracked sources.
+ */
+function collectContextReadKinds(
+  outputs: readonly ComponentOutput[],
+  analysis: ModuleAnalysis,
+  planContexts: readonly { readonly binding: number; readonly name: string }[],
+  inputPath: string
+): Map<BindingId, ContextSourceKind> {
+  const kinds = new Map<BindingId, ContextSourceKind>();
+  const localContextNames = new Map(planContexts.map((context) => [context.binding, context.name]));
+  const contextName = (binding: BindingId): string | null => {
+    const local = localContextNames.get(binding);
+    if (local !== undefined) {
+      return local;
+    }
+    const imported = analysis.bindings.find((candidate) => candidate.id === binding)?.import;
+    return imported == null
+      ? null
+      : contextNameForImport(inputPath, imported.source, imported.importedName);
+  };
+  const visitSetup = (setup: readonly SetupPlan[]): void => {
+    for (const entry of setup) {
+      if (entry.kind === 'render-value' || entry.kind === 'local-component') {
+        visitSetup(entry.render.setup);
+      } else if (entry.kind === 'statement' && entry.op?.kind === SetupOpKind.ContextRead) {
+        const name = contextName(entry.op.context);
+        const kind = name === null ? null : contextKindForName(name);
+        if (kind !== null) {
+          kinds.set(entry.op.binding, kind);
+        }
+      }
+    }
+  };
+  for (const output of outputs) {
+    visitSetup(output.result.setup);
+  }
+  return kinds;
 }
 
 /**

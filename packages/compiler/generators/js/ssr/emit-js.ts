@@ -100,7 +100,9 @@ export function emitJsProductionRender(
   moduleBindingName?: (binding: number) => string | null,
   coreAlias?: (importedName: string) => string | null,
   sourceBindingName?: (binding: number) => string | null,
-  importLocalName?: (module: string, exportName: string) => string | null
+  importLocalName?: (module: string, exportName: string) => string | null,
+  propsKeyForBinding?: (binding: number) => string | null,
+  sourceKindForBinding?: (binding: number) => SourceBindingKind | null
 ): JsRenderPieces | null {
   const shared: ModuleState = {
     imports: new Set(),
@@ -126,7 +128,9 @@ export function emitJsProductionRender(
       moduleBindingName,
       coreAlias,
       sourceBindingName,
-      importLocalName
+      importLocalName,
+      propsKeyForBinding,
+      sourceKindForBinding
     );
     for (const binding of component.propsBindings) {
       generator.bindProps(binding);
@@ -186,7 +190,9 @@ export function emitJsSegmentBlock(
   blockMarkers: readonly { readonly open: string; readonly close: string }[] = [],
   propsShape: unknown = null,
   providesContext = false,
-  rootRangeName: string | null = null
+  rootRangeName: string | null = null,
+  propsKeyForBinding?: (binding: number) => string | null,
+  sourceKindForBinding?: (binding: number) => SourceBindingKind | null
 ): {
   imports: string[];
   chunkImports: string[];
@@ -218,7 +224,9 @@ export function emitJsSegmentBlock(
       moduleBindingName,
       undefined,
       sourceBindingName,
-      importLocalName
+      importLocalName,
+      propsKeyForBinding,
+      sourceKindForBinding
     );
     for (const seed of [...captureSeeds, ...paramSeeds]) {
       generator.declare(seed.binding, seed.name);
@@ -360,6 +368,8 @@ interface LocalComponentEntry {
 }
 type DefMeta = QwikSsrPlan['modules'][number]['defs'][number];
 
+export type SourceBindingKind = 'signal' | 'store' | 'computed';
+
 class JsComponentGenerator {
   private readonly imports: Set<string>;
   private readonly chunkImports: string[];
@@ -393,8 +403,10 @@ class JsComponentGenerator {
   rootRangeName: string | null = null;
   /** Sync handlers referenced by this block: key → source, emitted as a table script. */
   private readonly syncFns = new Map<string, string>();
-  /** Bindings declared as reactive sources (signal/store/computed) — prop getters track them. */
-  private sourceKinds = new Set<number>();
+  /** Bindings declared as reactive sources — prop getters track them by kind. */
+  private sourceKinds = new Map<number, SourceBindingKind>();
+  /** Destructured component-prop locals, back to their props key — forwards resolve sources. */
+  private readonly propsKeyByBinding = new Map<number, string>();
   /** Use-id locals — reads of these are compile-time-proven stable strings. */
   private useIdBindings = new Set<number>();
   /** Element id placeholders: resolved at first claiming step (eager const / lazy let). */
@@ -418,7 +430,7 @@ class JsComponentGenerator {
       readonly locals: ReadonlyMap<number, string>;
       readonly usedNames: ReadonlySet<string>;
       readonly localComponents: ReadonlyMap<string, LocalComponentEntry>;
-      readonly sourceKinds: ReadonlySet<number>;
+      readonly sourceKinds: ReadonlyMap<number, SourceBindingKind>;
     },
     /** Production only: module-scope bindings resolve to their surviving source names. */
     private readonly moduleBindingName?: (binding: number) => string | null,
@@ -427,7 +439,11 @@ class JsComponentGenerator {
     /** Production only: js-statement-declared locals keep their source names verbatim. */
     private readonly sourceBindingName?: (binding: number) => string | null,
     /** Production only: local name of an import by (module, export) — plugin-call resolution. */
-    private readonly importLocalName?: (module: string, exportName: string) => string | null
+    private readonly importLocalName?: (module: string, exportName: string) => string | null,
+    /** Props key of a shorthand-destructured component-prop binding. */
+    private readonly propsKeyForBinding?: (binding: number) => string | null,
+    /** Reactive kind for bindings beyond local declarations (context-provided sources). */
+    private readonly sourceKindForBinding?: (binding: number) => SourceBindingKind | null
   ) {
     this.imports = shared.imports;
     this.chunkImports = shared.chunkImports;
@@ -438,7 +454,7 @@ class JsComponentGenerator {
       this.locals = new Map(seed.locals);
       this.usedNames = new Set(seed.usedNames);
       this.localComponents = new Map(seed.localComponents);
-      this.sourceKinds = new Set(seed.sourceKinds);
+      this.sourceKinds = new Map(seed.sourceKinds);
     }
   }
 
@@ -830,6 +846,7 @@ class JsComponentGenerator {
       ) {
         markUngeneratable();
       }
+      this.propsKeyByBinding.set(item.binding, item.name);
       names.push(item.name);
     }
     if (emitDestructure && names.length > 0) {
@@ -950,7 +967,7 @@ class JsComponentGenerator {
     switch (entry.kind) {
       case 'signal': {
         const binding = entry.binding as number;
-        this.sourceKinds.add(binding);
+        this.sourceKinds.set(binding, 'signal');
         const variable = this.declare(binding, entry.name as string | undefined);
         this.imports.add(QwikHooks.UseSignal);
         this.statements.push(
@@ -963,7 +980,7 @@ class JsComponentGenerator {
           markUngeneratable();
         }
         const binding = entry.binding as number;
-        this.sourceKinds.add(binding);
+        this.sourceKinds.set(binding, 'store');
         const variable = this.declare(binding, entry.name as string | undefined);
         this.imports.add(QwikHooks.UseStore);
         this.statements.push(
@@ -991,7 +1008,7 @@ class JsComponentGenerator {
       }
       case 'computed': {
         const binding = entry.binding as number;
-        this.sourceKinds.add(binding);
+        this.sourceKinds.set(binding, 'computed');
         const variable = this.declare(binding, entry.name as string | undefined);
         const meta = this.segment(entry.segment as string);
         this.imports.add(QwikHooks.UseComputedQrl);
@@ -1614,6 +1631,19 @@ class JsComponentGenerator {
         if (ir === undefined) {
           markUngeneratable();
         }
+        const forwardedProp = this.forwardedPropRead(ir);
+        if (forwardedProp !== null) {
+          // a forwarded prop resolves its source from the outer props at construction
+          // time; a static outer value resolves to undefined and stays a snapshot
+          this.imports.add(QwikWord.GetPropSource);
+          literalRun().push(`get ${JSON.stringify(item.name)}() { return ${this.irJs(ir)}; }`);
+          sourceEntries.push(
+            `${JSON.stringify(item.name)}: ${QwikWord.GetPropSource}(${
+              this.names.props
+            }, ${JSON.stringify(forwardedProp)})`
+          );
+          continue;
+        }
         const storeProp = this.storePropRead(ir);
         if (storeProp !== null) {
           // the canonical store-prop source rides the sources map, so serialization
@@ -1627,16 +1657,30 @@ class JsComponentGenerator {
           );
           continue;
         }
-        const forwardedProp = this.forwardedPropRead(ir);
-        if (forwardedProp !== null) {
-          // a forwarded prop resolves its source from the outer props at construction
-          // time; a static outer value resolves to undefined and stays a snapshot
-          this.imports.add(QwikWord.GetPropSource);
+        const signalValue = this.signalValueRead(ir);
+        if (signalValue !== null && signalValue.known) {
+          // a `.value` read on a binding classified reactive across modules
+          // (a context-provided signal): tracked getter plus its source entry
+          const value = this.local(signalValue.binding);
+          this.imports.add(QwikWord.ReadTrackedSourceValue);
+          literalRun().push(
+            `get ${JSON.stringify(item.name)}() { return ${QwikWord.ReadTrackedSourceValue}(${value}); }`
+          );
+          sourceEntries.push(`${JSON.stringify(item.name)}: ${value}`);
+          sourceLocals.push(value);
+          continue;
+        }
+        const memberSource = this.memberSourceRead(ir);
+        if (memberSource !== null) {
+          // property slots are runtime facts (a store prop can hold a signal, a nested
+          // store, or plain data): probe the source once at construction; non-reactive
+          // values resolve undefined and stay snapshots
+          this.imports.add(QwikWord.GetMemberSource);
           literalRun().push(`get ${JSON.stringify(item.name)}() { return ${this.irJs(ir)}; }`);
           sourceEntries.push(
-            `${JSON.stringify(item.name)}: ${QwikWord.GetPropSource}(${
-              this.names.props
-            }, ${JSON.stringify(forwardedProp)})`
+            `${JSON.stringify(item.name)}: ${QwikWord.GetMemberSource}(${this.irJs(
+              memberSource.object
+            )}, ${JSON.stringify(memberSource.prop)})`
           );
           continue;
         }
@@ -1672,6 +1716,17 @@ class JsComponentGenerator {
         } else {
           // plain values (row params, consts) close over the local without tracking
           literalRun().push(`get ${JSON.stringify(item.name)}() { return ${value}; }`);
+          const propsKey =
+            this.propsKeyByBinding.get(binding) ?? this.propsKeyForBinding?.(binding);
+          if (propsKey != null) {
+            // a destructured prop forwards: resolve its source from the outer props
+            this.imports.add(QwikWord.GetPropSource);
+            sourceEntries.push(
+              `${JSON.stringify(item.name)}: ${QwikWord.GetPropSource}(${
+                this.names.props
+              }, ${JSON.stringify(propsKey)})`
+            );
+          }
         }
       } else if (prop.kind === 'event') {
         const event = prop as {
@@ -2484,8 +2539,38 @@ class JsComponentGenerator {
     return captures.length === 0 ? qrl : `${qrl}.w([${captures.join(', ')}])`;
   }
 
-  /** A `store.prop` read whose base binding is a reactive source, with a static tail prop. */
+  /** Locally declared source kind, or the module-wide resolver's (context-provided). */
+  private bindingSourceKind(binding: number): SourceBindingKind | null {
+    return this.sourceKinds.get(binding) ?? this.sourceKindForBinding?.(binding) ?? null;
+  }
+
+  /** A `x.value` member read the lowerer left opaque; `known` when a source kind is proven. */
+  private signalValueRead(ir: ValueIR): { binding: number; known: boolean } | null {
+    if (ir.kind !== 'member' || ir.name !== 'value' || ir.obj.kind !== 'binding-read') {
+      return null;
+    }
+    const binding = ir.obj.binding;
+    const kind = this.bindingSourceKind(binding);
+    if (kind === 'store') {
+      return null; // store `.value` properties belong to the store-prop path
+    }
+    return { binding, known: kind === 'signal' || kind === 'computed' };
+  }
+
+  /** A single-hop `store.prop` read on a proven store base — slot tracking is content-agnostic. */
   private storePropRead(ir: ValueIR): { object: string; prop: string } | null {
+    if (
+      ir.kind !== 'member' ||
+      ir.obj.kind !== 'binding-read' ||
+      this.bindingSourceKind(ir.obj.binding) !== 'store'
+    ) {
+      return null;
+    }
+    return { object: this.local(ir.obj.binding), prop: ir.name };
+  }
+
+  /** A member chain of pure reads — safe to re-evaluate once for the sources map. */
+  private memberSourceRead(ir: ValueIR): { object: ValueIR; prop: string } | null {
     if (ir.kind !== 'member') {
       return null;
     }
@@ -2493,10 +2578,7 @@ class JsComponentGenerator {
     while (base.kind === 'member') {
       base = base.obj;
     }
-    if (base.kind !== 'binding-read' || !this.sourceKinds.has(base.binding)) {
-      return null;
-    }
-    return { object: this.irJs(ir.obj), prop: ir.name };
+    return base.kind === 'binding-read' ? { object: ir.obj, prop: ir.name } : null;
   }
 
   /** A single-hop `props.key` read of the enclosing component's props object. */

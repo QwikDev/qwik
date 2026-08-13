@@ -86,7 +86,11 @@ export const AtomStatus = component$(({ctx, atom}) => {
       (m) => m.kind === 'segment' && m.path.includes('span_q_e_click')
     );
     expect(eventHandlerSeg?.code).toBeTruthy();
-    expect(eventHandlerSeg!.code).toMatch(/\(ev,\s*_1,\s*atom,\s*ctx\)\s*=>/);
+    // Promoted params consolidate to the whole props proxy (rust parity) so
+    // the q:p slot value and the handler signature stay paired.
+    expect(eventHandlerSeg!.code).toMatch(/\(ev,\s*_1,\s*_rawProps\)\s*=>/);
+    expect(eventHandlerSeg!.code).toContain('_rawProps.ctx');
+    expect(eventHandlerSeg!.code).toContain('_rawProps.atom');
   });
 });
 
@@ -117,8 +121,9 @@ export const Panel = component$(({ showAll }: any) => {
       expect(withQp, 'expected a module emitting a q:p prop').toBeTruthy();
       const code = withQp!.code;
 
-      // The slot carries the whole props proxy — a field read would serialize
-      // the naked value and lose the proxy identity on resume (rust parity).
+      // Every strategy consolidates the handler params, so the slot carries
+      // the whole props proxy — a field read would serialize the naked value
+      // and lose the proxy identity on resume (rust parity, #5001).
       expect(code, 'q:p value is the whole props proxy').toContain('"q:p": _rawProps');
       expect(code, 'q:p must not read the field off the proxy').not.toContain(
         '"q:p": _rawProps.showAll'

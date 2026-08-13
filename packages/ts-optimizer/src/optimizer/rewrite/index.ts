@@ -495,11 +495,14 @@ function resolveNesting(ctx: RewriteContext): void {
 }
 
 function preConsolidateRawPropsCaptures(ctx: RewriteContext): void {
-  if (!ctx.inlineOptions?.inline) return;
-
+  // `.w()`-capture consolidation is an inline/hoist concern; promoted-param
+  // handlers (q:p slots) consolidate under every strategy so the SSR-emitted
+  // slot value and the handler segment's params stay paired.
+  const isInline = ctx.inlineOptions?.inline === true;
   for (const ext of ctx.extractions) {
     if (ext.parent === null) continue;
     const hasPromotedParams = ext.captureNames.length === 0 && ext.paramNames.length > 2;
+    if (!isInline && !hasPromotedParams) continue;
     if (ext.captureNames.length === 0 && !hasPromotedParams) continue;
 
     const parentExt = ctx.extractions.find((e) => e.symbolName === ext.parent);

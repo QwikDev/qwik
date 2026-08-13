@@ -1232,6 +1232,13 @@ export function buildDefaultStrategySegment(
     }
     ext.captureNames = rawProps.newCaptureNames;
     ext.captures = rawProps.newCaptureNames.length > 0;
+  } else if (ext.propsFieldCaptures && ext.propsFieldCaptures.size > 0) {
+    // Promoted-param handlers: the rewrite pre-pass consolidated the params
+    // to `_rawProps`; the body's field references must follow.
+    captureInfo.propsFieldCaptures = ext.propsFieldCaptures;
+    if (ext.propsFieldDefaults) {
+      captureInfo.propsFieldDefaults = ext.propsFieldDefaults;
+    }
   }
 
   const preComputedConsts = constLiteralsMap.get(ext.symbolName);

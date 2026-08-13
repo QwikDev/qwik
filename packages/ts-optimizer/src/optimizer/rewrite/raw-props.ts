@@ -715,9 +715,9 @@ export function consolidateQpCaptureValues(
   params: readonly string[],
   fieldMap: ReadonlyMap<string, string>
 ): string[] {
-  // A destructured field's slot carries the whole props proxy — a field read
-  // (`_rawProps.state`) would serialize the naked value and lose the proxy
-  // identity on resume. Dedup: every field collapses to the same proxy.
+  // The handler's params consolidate too, so the slot carries the whole
+  // props proxy — a field read would serialize the naked value and lose the
+  // proxy identity on resume (rust parity). Dedup to one proxy slot.
   const out: string[] = [];
   for (const p of params) {
     const value = fieldMap.has(p) ? '_rawProps' : p;

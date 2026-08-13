@@ -267,7 +267,6 @@ export function transformInlineSegmentBody(
     body = inlineConstCaptures(body, ext.constLiterals);
   }
 
-  const isRegCtx = matchesRegCtxName(ext, regCtxName);
   // Explicit inlinedQrl captures are a pre-compiled contract with the body's
   // `_captures[N]` reads — never const-inline entries out of them.
   const hasExplicitCaptureContract = ext.isInlinedQrl && ext.explicitCaptures !== null;
@@ -293,9 +292,7 @@ export function transformInlineSegmentBody(
     }
   }
 
-  if (isRegCtx) {
-    // regCtxName extractions don't use _captures
-  } else if (ext.isInlinedQrl) {
+  if (ext.isInlinedQrl) {
     // Peer-tool `inlinedQrl(...)` bodies destructure captures themselves;
     // injecting `_captures` unpacking would duplicate the destructuring.
   } else if (ext.captureNames.length > 0) {

@@ -39,12 +39,6 @@ export default defineConfig(() => {
           vite: './src/buildtime/vite',
           'service-worker': './src/runtime/src/service-worker',
         },
-        treeshake: {
-          // The app-config virtual module has no side effects; without this a
-          // bare `import '@qwik-router-config'` survives into shared chunks and
-          // breaks importing the middleware outside a router app.
-          moduleSideEffects: (id: string) => id !== '@qwik-router-config',
-        },
         output: [
           {
             format: 'es',

@@ -1,4 +1,3 @@
-import * as qwikRouterConfig from '@qwik-router-config';
 import {
   createComputed$,
   implicit$FirstArg,
@@ -47,6 +46,11 @@ import type {
   RouteModule,
   ValidatorReturn,
 } from './types';
+// This import stays LAST: the config's route modules call `routeLoaderQrl`
+// back during their own evaluation (a cycle), so every other import must be
+// evaluated first or their bindings TDZ inside the factory.
+// eslint-disable-next-line import/order
+import * as qwikRouterConfig from '@qwik-router-config';
 
 /**
  * Route loaders read data before the route rendering starts, based on the route being navigated to.
@@ -441,9 +445,11 @@ export const filterSearchParams = (params: URLSearchParams, allowed: string[]): 
   return filtered.toString() ? `?${filtered.toString()}` : '';
 };
 
-const getLoaderOptions = (rest: (LoaderOptions | DataValidator)[]) => {
+// Hoisted function: called from `routeLoaderQrl` during the config cycle,
+// before this module's own consts are initialized.
+function getLoaderOptions(rest: (LoaderOptions | DataValidator)[]) {
   let id: string | undefined;
-  let serializationStrategy: SerializationStrategy = DEFAULT_LOADERS_SERIALIZATION_STRATEGY;
+  let serializationStrategy: SerializationStrategy = DEFAULT_LOADERS_SERIALIZATION_STRATEGY();
   let expires: number | undefined;
   let poll: boolean | undefined;
   let eTag: LoaderOptions['eTag'] | undefined;
@@ -514,7 +520,7 @@ const getLoaderOptions = (rest: (LoaderOptions | DataValidator)[]) => {
     allowStale,
     blockSSR,
   };
-};
+}
 
 /**
  * Returns the current RequestEvent if possible. Only usable on the server, and only during request
@@ -914,11 +920,17 @@ export const getRouteLoaderResponse = async (
   }
 };
 
-/** @internal */
-export const routeLoaderQrl = ((
+/**
+ * A hoisted function declaration on purpose: this module imports `@qwik-router-config`, whose route
+ * modules call `routeLoaderQrl` back at their own eval — in a bundle that cycle executes the routes
+ * first, and a `const` binding would throw a TDZ ReferenceError.
+ *
+ * @internal
+ */
+export function routeLoaderQrl(
   loaderQrl: QRL<(event: RequestEventLoader) => unknown>,
   ...rest: (LoaderOptions | DataValidator)[]
-): LoaderInternal => {
+): LoaderInternal {
   const {
     id,
     validators,
@@ -957,7 +969,7 @@ export const routeLoaderQrl = ((
   loader.__blockSSR = blockSSR;
   Object.freeze(loader);
   return loader;
-}) as LoaderConstructorQRL;
+}
 
 /**
  * Define a route loader that fetches data before the route renders.
@@ -987,7 +999,9 @@ export const routeLoaderQrl = ((
  *
  * @public
  */
-export const routeLoader$: LoaderConstructor = /*#__PURE__*/ implicit$FirstArg(routeLoaderQrl);
+export const routeLoader$: LoaderConstructor = /*#__PURE__*/ implicit$FirstArg(
+  routeLoaderQrl as LoaderConstructorQRL
+);
 
 async function runValidators(
   requestEv: RequestEvent,

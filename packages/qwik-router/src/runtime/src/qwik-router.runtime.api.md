@@ -510,11 +510,12 @@ export interface RouteData {
 // @public
 export const routeLoader$: LoaderConstructor;
 
-// Warning: (ae-forgotten-export) The symbol "LoaderConstructorQRL" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "LoaderOptions" needs to be exported by the entry point index.d.ts
+// Warning: (ae-forgotten-export) The symbol "LoaderInternal" needs to be exported by the entry point index.d.ts
 // Warning: (ae-internal-missing-underscore) The name "routeLoaderQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
-// @internal (undocumented)
-export const routeLoaderQrl: LoaderConstructorQRL;
+// @internal
+export function routeLoaderQrl(loaderQrl: QRL<(event: RequestEventLoader) => unknown>, ...rest: (LoaderOptions | DataValidator)[]): LoaderInternal;
 
 // @public (undocumented)
 export interface RouteLocation {

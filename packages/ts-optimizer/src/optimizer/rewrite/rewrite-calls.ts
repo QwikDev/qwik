@@ -30,9 +30,10 @@ const spacesAroundOperators = createRegExp(
   [global]
 );
 
-const singleArrowParam = createRegExp(
-  exactly('(').and(oneOrMore(wordChar).grouped()).and(')=>').at.lineStart()
-);
+// All single-ident arrow params drop their parens (rust minifier parity).
+const singleArrowParam = createRegExp(exactly('(').and(oneOrMore(wordChar).grouped()).and(')=>'), [
+  global,
+]);
 
 export { getQrlCalleeName } from '../qwik/qrl-naming.js';
 
@@ -105,6 +106,10 @@ function minifyFunctionText(text: string): string {
   result = result.replace(spacesAroundOperators, '$1');
   result = result.trim();
   result = result.replace(singleArrowParam, '$1=>');
+  // `new Set()` → `new Set` (rust parity) — unless a member/call chain follows.
+  result = result.replace(/new ([A-Za-z_$][\w$]*)\(\)(?![.(])/g, 'new $1');
+  // `"key" in obj` → `"key"in obj` — a quote already separates the tokens.
+  result = result.replace(/(["'`]) in\b/g, '$1in');
 
   return result;
 }

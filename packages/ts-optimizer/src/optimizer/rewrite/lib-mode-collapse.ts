@@ -52,7 +52,12 @@ interface SCallStatement {
  * no `_noopQrl(...)` decls are found.
  */
 export function collapseToLibInlinedQrl(source: string): string {
-  const parsed = parseSync('lib-collapse.tsx', source, RAW_TRANSFER_PARSER_OPTIONS);
+  // JSX is already lowered by this point, so parse as .ts first — in .tsx a
+  // generic arrow like `<T>(x: T) => x` is a JSX ambiguity and fails to parse.
+  let parsed = parseSync('lib-collapse.ts', source, RAW_TRANSFER_PARSER_OPTIONS);
+  if (!parsed.program || parsed.errors?.length) {
+    parsed = parseSync('lib-collapse.tsx', source, RAW_TRANSFER_PARSER_OPTIONS);
+  }
   if (!parsed.program || parsed.errors?.length) return source;
   const program = parsed.program as AstProgram;
 

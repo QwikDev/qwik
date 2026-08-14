@@ -376,6 +376,63 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             QWIK_BUILD_ID,
             QWIK_CLIENT_MANIFEST_ID,
           ];
+          // Dual flavor: the same `vite build --mode lib` also emits the client-compiled
+          // runtime entry. Consumer apps resolve it in client environments so resumed QRLs
+          // load client implementations by symbol.
+          const libInput = viteConfig.build?.rollupOptions?.input;
+          const clientLibEntry =
+            libInput && typeof libInput === 'object' && !Array.isArray(libInput)
+              ? (libInput as Record<string, string>).index
+              : typeof libInput === 'string'
+                ? libInput
+                : undefined;
+          if (viteCommand === 'build' && clientLibEntry) {
+            // Move the user's rollup inputs/outputs to the ssr environment so the client
+            // environment does not inherit them through config merging.
+            const userRollupOptions = viteConfig.build?.rollupOptions;
+            if (viteConfig.build?.rollupOptions) {
+              viteConfig.build.rollupOptions = {};
+            }
+            // the ssr environment owns the lib inputs and outputs; keep them out of the
+            // client environment (top-level rollupOptions merge into every environment,
+            // and a leaked output writes client chunks over the ssr flavor files)
+            (updatedViteConfig.build!.rollupOptions as { input?: unknown }).input = undefined;
+            const normalizedLibOutput = updatedViteConfig.build!.rollupOptions.output;
+            updatedViteConfig.build!.rollupOptions.output = undefined;
+            updatedViteConfig.builder = {};
+            updatedViteConfig.environments = {
+              ssr: {
+                consumer: 'server',
+                build: {
+                  ssr: true,
+                  rollupOptions: { ...userRollupOptions, output: normalizedLibOutput },
+                },
+              },
+              client: {
+                consumer: 'client',
+                build: {
+                  ssr: false,
+                  outDir: viteConfig.build?.outDir,
+                  emptyOutDir: false,
+                  modulePreload: false,
+                  target: viteConfig.build?.target,
+                  minify: false,
+                  copyPublicDir: false,
+                  rollupOptions: {
+                    input: { index: clientLibEntry },
+                    external: userRollupOptions?.external,
+                    output: {
+                      format: 'es',
+                      // segment chunks are emitted as entries to stay exporting chunks
+                      entryFileNames: (chunk: { name: string }) =>
+                        chunk.name === 'index' ? 'index.client.qwik.mjs' : 'chunks/[name].js',
+                      chunkFileNames: 'chunks/[name].js',
+                    },
+                  },
+                },
+              },
+            };
+          }
         } else {
           // Test Build
           updatedViteConfig.define = {

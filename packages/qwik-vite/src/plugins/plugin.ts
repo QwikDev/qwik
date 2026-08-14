@@ -1,4 +1,5 @@
 import type { DevEnvironment, HotUpdateOptions, Plugin, Rollup, ViteDevServer } from 'vite';
+import { existsSync } from 'node:fs';
 import { transformModules as transformCompilerModules } from '@qwik.dev/compiler';
 import { createSsrPlanCollector } from './ssr-plan';
 import { hashCode } from '../../../qwik/src/core/shared/utils/hash_code';
@@ -495,6 +496,52 @@ export function createQwikPlugin(
         : opts.target === 'ssr' || (opts.target === 'test' && opts.testTarget !== 'csr');
   };
 
+  /** Bare id → client-flavor entry path, or null when the resolution has no client flavor. */
+  const clientFlavorEntries = new Map<string, string | null>();
+
+  /** Precompiled library segment chunk files (client flavor siblings). */
+  const LIBRARY_SEGMENT_CHUNK_FILE = /(_segment_\d+|semantic_[a-zA-Z]+_\d+_\d+)_[a-z0-9]{8,}\.js$/;
+  const emittedLibrarySegmentChunks = new Set<string>();
+
+  /** Qwik libraries ship dual flavors; client environments prefer the client entry. */
+  const shouldPreferClientFlavor = (
+    ctx: Rollup.PluginContext,
+    resolveOpts: { ssr?: boolean } | undefined,
+    id: string
+  ) => {
+    const isClientEnvironment = ctx.environment
+      ? ctx.environment.config.consumer === 'client'
+      : devServer
+        ? !resolveOpts?.ssr
+        : opts.target === 'client';
+    return (
+      isClientEnvironment &&
+      opts.target !== 'lib' &&
+      !id.startsWith('.') &&
+      !id.startsWith('/') &&
+      !id.startsWith('\0') &&
+      typeof ctx.resolve === 'function'
+    );
+  };
+
+  const preferClientFlavor = (
+    id: string,
+    resolution: Promise<Rollup.ResolvedId | null>
+  ): Promise<Rollup.ResolvedId | string | null> => {
+    return resolution.then((resolved) => {
+      const resolvedPath = resolved?.id.split('?')[0];
+      let clientFlavor: string | null = null;
+      if (resolvedPath?.endsWith('.qwik.mjs') && !resolvedPath.endsWith('.client.qwik.mjs')) {
+        const candidate = resolvedPath.replace(/\.qwik\.mjs$/, '.client.qwik.mjs');
+        if (existsSync(candidate)) {
+          clientFlavor = candidate;
+        }
+      }
+      clientFlavorEntries.set(id, clientFlavor);
+      return clientFlavor ?? resolved;
+    });
+  };
+
   const shouldAssertClientImports = (isServer: boolean) => {
     return !isServer && (opts.target === 'client' || (!!devServer && opts.target === 'ssr'));
   };
@@ -824,8 +871,28 @@ export function createQwikPlugin(
         if (importerParentId) {
           debug(`resolveId(${count}) end`, `resolving via ${importerParentId}`);
           // This returns a promise that we can't await because of deadlocking
-          return ctx.resolve(id, importerParentId, { skipSelf: true });
+          const viaParent = ctx.resolve(id, importerParentId, { skipSelf: true });
+          if (shouldPreferClientFlavor(ctx, resolveOpts, id)) {
+            const cached = clientFlavorEntries.get(id);
+            if (cached !== undefined) {
+              return cached ?? viaParent;
+            }
+            return preferClientFlavor(id, viaParent);
+          }
+          return viaParent;
         }
+      }
+    }
+
+    if (result == null && shouldPreferClientFlavor(ctx, resolveOpts, id)) {
+      // qwik libraries ship dual flavors; client environments prefer the client entry
+      const cached = clientFlavorEntries.get(id);
+      if (cached !== undefined) {
+        if (cached !== null) {
+          return cached;
+        }
+      } else if (typeof ctx.resolve === 'function') {
+        return preferClientFlavor(id, ctx.resolve(id, importerId, { skipSelf: true }));
       }
     }
 
@@ -943,6 +1010,23 @@ export function createQwikPlugin(
       }
 
       return { code, map, meta: { segment } };
+    }
+
+    if (
+      !devServer &&
+      !isServer &&
+      opts.target === 'client' &&
+      LIBRARY_SEGMENT_CHUNK_FILE.test(pathId) &&
+      !emittedLibrarySegmentChunks.has(id)
+    ) {
+      // precompiled library segment chunks stay exporting chunks so the manifest can
+      // map their symbols; otherwise rollup merges them into their static importer
+      emittedLibrarySegmentChunks.add(id);
+      ctx.emitFile({
+        id,
+        type: 'chunk',
+        preserveSignature: 'allow-extension',
+      });
     }
 
     debug(`load(${count})`, 'Not a QRL or virtual module', id);
@@ -1159,8 +1243,9 @@ export function createQwikPlugin(
             devServer.moduleGraph.invalidateModule(mod);
           }
         }
-        if (opts.target === 'client' && !devServer) {
-          // rollup must be told about all entry points
+        if ((opts.target === 'client' || (opts.target === 'lib' && !isServer)) && !devServer) {
+          // rollup must be told about all entry points; lib client flavors need every
+          // segment as an exporting chunk so consumer manifests can map its symbol
           ctx.emitFile({
             id: key,
             type: 'chunk',

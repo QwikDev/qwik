@@ -46,7 +46,7 @@
     "prettier": "3.7.4",
     "prism-themes": "1.9.0",
     "prismjs": "1.30.0",
-    "qwik-image": "0.0.16",
+    "qwik-image": "2.0.4",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "shiki": "4.0.2",
@@ -55,7 +55,7 @@
     "terser": "5.46.0",
     "tsm": "2.3.0",
     "typescript": "5.9.3",
-    "valibot": "1.2.0",
+    "valibot": "1.4.2",
     "vite": "7.3.5",
     "vite-tsconfig-paths": "6.1.1",
     "wrangler": "4.80.0"

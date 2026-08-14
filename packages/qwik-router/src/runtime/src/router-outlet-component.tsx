@@ -14,7 +14,7 @@ import type { ScrollHistoryState } from './scroll-restoration';
 import { type RouterPopstateEventDetail } from './spa-init';
 import spaInit from './spa-init';
 import type { RouteNavigate } from './types';
-import { useDocumentHead, useNavigate } from './use-functions';
+import { useNavigate } from './use-functions';
 
 export const handleRouterPopstate = (
   nav: RouteNavigate,
@@ -34,7 +34,6 @@ export const RouterOutlet = component$(() => {
   }
 
   const internalContext = useContext(ContentInternalContext);
-  const head = useDocumentHead();
   const nav = useNavigate();
 
   const contents = internalContext.value;
@@ -54,7 +53,7 @@ export const RouterOutlet = component$(() => {
         {cmp}
         {!__EXPERIMENTAL__.noSPA && (
           <script
-            document:onQCInit$={[spaInit, linkPrefetchInit(head.manifestHash)]}
+            document:onQCInit$={[spaInit, linkPrefetchInit]}
             document:onQRouterPopstate$={(event) => handleRouterPopstate(nav, event)}
             document:onQInit$={sync$(() => {
               // Minify window and history

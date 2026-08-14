@@ -11,7 +11,10 @@
 
 <h1 align="center">Instant-loading web apps, without effort</h1>
 
-<b>This is the branch for Qwik v2, currently in beta. For v1, see the `v1` branch.</b>
+<b>
+  This is the branch for Qwik v2, currently in beta. For v1, see the `v1`
+  branch.
+</b>
 
 Qwik offers the fastest possible page load times - regardless of the complexity of your website. Qwik is so fast because it allows fully interactive sites to load with almost no JavaScript and [pick up from where the server left off](https://next.qwik.dev/docs/concepts/resumable/).
 
@@ -90,11 +93,7 @@ We use pkg.pr.new to make packages available for each PR and for the branches. U
   <tr>
     <td align="center">
       <a href="https://kunaico.com/" target="_blank" rel="noopener">
-        <picture>
-          <source srcset="https://github.com/user-attachments/assets/47c6d86a-5141-40c6-a0fb-5986266fa589" media="(prefers-color-scheme: dark)">
-          <source srcset="https://github.com/user-attachments/assets/84bff951-ed35-43e4-9515-ebe07e8b09e4" media="(prefers-color-scheme: light)">
-          <img width="250" src="https://github.com/user-attachments/assets/84bff951-ed35-43e4-9515-ebe07e8b09e4" alt="Kunaico logo">
-        </picture>
+        <svg xmlns="http://www.w3.org/2000/svg" width="301" height="88" fill="none" viewBox="0 0 301 88"><path fill="#f53535" d="M.5 43.8C.5 33.3 19.3 29.2 30.8 23c17-9.2 31.8-24 38.9-17.3 8.4 8.3-11.3 27.5-11.3 38 0 10.7 19.7 29.9 11.3 38-7 7-21.9-8-39-17.2C19.4 58.3.6 54.2.6 43.7z"/><path fill="#fff" d="m15.4 9.5 34.3 34.3-34.3 34.3zm-4-9.5v87.6l43.9-43.8zm101.9 54.7-7.6-9.7-2 1.9v7.8h-4V33h4v9.4l9.5-9.4h4.6l-9.3 9.5 9.6 12.2zm43 .3c-5.2 0-9-2-9-7V33h4v14.7q0 3.7 5.1 3.8c2.9 0 5-1.3 5-3.8V33h4v15.3c0 4.4-3.8 6.6-9 6.6m54.2-.2-9.4-15.9v15.9h-3.8V33h4.7l9 15.4V33h3.8v21.7zm38.4 0h-4l8.4-21.7h5l7.9 21.7H262l-1.9-5.3H251zm7.3-16.2-.5-1.9-.6 2-2.9 7.4h6.7zm40.2 16.2V33h4v21.7z"/></svg>
       </a>    
     </td>
   </tr>

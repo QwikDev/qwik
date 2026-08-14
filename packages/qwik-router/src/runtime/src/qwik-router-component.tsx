@@ -43,6 +43,7 @@ import {
   useContextProvider,
   useComputed$,
   useServerData,
+  untrack,
   useSignal,
   useStore,
   useTask$,
@@ -517,7 +518,8 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       const navigation = routeInternal.value;
       const action = actionState.value;
 
-      const prevUrl = routeLocation.url;
+      // v2 parity: only routeInternal and actionState drive this task
+      const prevUrl = untrack(() => routeLocation.url);
       const navType = action ? 'form' : navigation.type;
       const replaceState = navigation.replaceState;
       // Capture navCount at task entry. If another goto() fires while we're awaiting
@@ -532,7 +534,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       let loadedRoute: LoadedRoute;
       if (isServer) {
         // server
-        trackUrl = new URL(navigation.dest, routeLocation.url);
+        trackUrl = new URL(navigation.dest, prevUrl);
         loadedRoute = env!.loadedRoute;
         endpointResponse = env!.response;
         actionData = endpointResponse;
@@ -774,7 +776,8 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       const navigation = routeInternal.untrackedValue;
 
       const { navType, prevUrl, replaceState, routeName } = nav;
-      const trackUrl = routeLocation.url;
+      // untracked: this task force-notifies the url slot in its finally
+      const trackUrl = untrack(() => routeLocation.url);
 
       const scroller = getScroller();
       // Scroll restore setup — must happen before navigation commits
@@ -835,7 +838,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       };
 
       const _waitNextPage = () => {
-        if (!shouldStartViewTransition(props?.viewTransition)) {
+        if (!untrack(() => shouldStartViewTransition(props?.viewTransition))) {
           return navigate().then(() => undefined as ViewTransition | undefined);
         }
         const { ready, transition } = startViewTransition({

@@ -3,6 +3,7 @@ import {
   implicit$FirstArg,
   isDev,
   isServer,
+  untrack,
   useComputed$,
   useContext,
   type ComputedSignal,
@@ -607,23 +608,25 @@ export const updateRouteLoaderPaths = (
   ctx: RouteLoaderCtx,
   loaderPaths: Record<string, string> | undefined,
   pageUrl: URL
-) => {
-  if (!isServer) {
-    ctx.pagePathname = pageUrl.pathname;
-    ctx.pageSearch = pageUrl.search;
-    if (isDev) {
-      (ctx as DevRouteLoaderCtx).devRouteLoaderPaths = {};
-    }
-  }
-  if (loaderPaths) {
-    for (const key in loaderPaths) {
-      ctx.loaderPaths[key] = loaderPaths[key];
-      if (!isServer && isDev) {
-        (ctx as DevRouteLoaderCtx).devRouteLoaderPaths![key] = true;
+) =>
+  // bookkeeping pass: reads here must not subscribe the navigation task to its own writes
+  untrack(() => {
+    if (!isServer) {
+      ctx.pagePathname = pageUrl.pathname;
+      ctx.pageSearch = pageUrl.search;
+      if (isDev) {
+        (ctx as DevRouteLoaderCtx).devRouteLoaderPaths = {};
       }
     }
-  }
-};
+    if (loaderPaths) {
+      for (const key in loaderPaths) {
+        ctx.loaderPaths[key] = loaderPaths[key];
+        if (!isServer && isDev) {
+          (ctx as DevRouteLoaderCtx).devRouteLoaderPaths![key] = true;
+        }
+      }
+    }
+  });
 
 export const getModuleRouteLoaders = (mods: readonly (RouteModule | undefined)[]) => {
   const routeLoaders: LoaderInternal[] = [];
@@ -671,22 +674,24 @@ export const ensureRouteLoaderSignals = (
   mods: readonly (RouteModule | undefined)[],
   state: RouteLoaderState,
   routeLoaderCtx: RouteLoaderCtx
-) => {
-  const loaders = getModuleRouteLoaders(mods);
-  for (let i = 0; i < loaders.length; i++) {
-    const loader = loaders[i];
-    // Dev-only safety net for the first SPA nav: the route module isn't transformed yet, so the
-    // client trie has no _R loader hash and the loader would resolve to undefined.
-    if (isDev && !isServer) {
-      const devCtx = routeLoaderCtx as DevRouteLoaderCtx;
-      if (devCtx.pagePathname && !devCtx.devRouteLoaderPaths?.[loader.__id]) {
-        devCtx.loaderPaths[loader.__id] = devCtx.pagePathname;
+) =>
+  // bookkeeping pass: reads here must not subscribe the navigation task to its own writes
+  untrack(() => {
+    const loaders = getModuleRouteLoaders(mods);
+    for (let i = 0; i < loaders.length; i++) {
+      const loader = loaders[i];
+      // Dev-only safety net for the first SPA nav: the route module isn't transformed yet, so the
+      // client trie has no _R loader hash and the loader would resolve to undefined.
+      if (isDev && !isServer) {
+        const devCtx = routeLoaderCtx as DevRouteLoaderCtx;
+        if (devCtx.pagePathname && !devCtx.devRouteLoaderPaths?.[loader.__id]) {
+          devCtx.loaderPaths[loader.__id] = devCtx.pagePathname;
+        }
       }
+      ensureRouteLoaderSignal(loader, state, routeLoaderCtx);
     }
-    ensureRouteLoaderSignal(loader, state, routeLoaderCtx);
-  }
-  return loaders;
-};
+    return loaders;
+  });
 
 /** Inject a pre-loaded value into a ComputedSignal while preserving subscriptions. */
 export const setLoaderSignalValue = (signal: ComputedSignal<unknown>, value: unknown) => {

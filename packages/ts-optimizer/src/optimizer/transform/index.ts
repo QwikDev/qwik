@@ -82,6 +82,7 @@ import {
   removeUnusedImports,
 } from './module-cleanup.js';
 import { applySegmentDCE } from './dead-code.js';
+import { deriveIsDev } from '../rewrite/const-replacement.js';
 import { applyModuleHygieneRenames } from './hygiene-renames.js';
 import {
   detectC02Diagnostics,
@@ -164,12 +165,13 @@ function applyPassthroughConstFolding(
     }
   }
 
+  const isDev = deriveIsDev(options.mode);
   if (
-    options.isServer !== undefined &&
+    (options.isServer !== undefined || isDev !== undefined) &&
     options.mode !== 'lib' &&
     (code.includes('@qwik.dev/core') || code.includes('@builder.io/qwik'))
   ) {
-    const folded = applySegmentConstReplacement(code, relPath, options.isServer);
+    const folded = applySegmentConstReplacement(code, relPath, options.isServer, isDev);
     if (folded !== code) {
       code = removeUnusedImports(applySegmentDCE(folded), relPath, options.transpileJsx);
     }
@@ -1131,12 +1133,18 @@ function rewriteParent(
   );
 
   let foldedParentCode = parentResult.code;
+  const isDev = deriveIsDev(options.mode);
   if (
-    options.isServer !== undefined &&
+    (options.isServer !== undefined || isDev !== undefined) &&
     !emit.isLibMode &&
     (foldedParentCode.includes('@qwik.dev/core') || foldedParentCode.includes('@builder.io/qwik'))
   ) {
-    foldedParentCode = applySegmentConstReplacement(foldedParentCode, relPath, options.isServer);
+    foldedParentCode = applySegmentConstReplacement(
+      foldedParentCode,
+      relPath,
+      options.isServer,
+      isDev
+    );
   }
   const parentCode = applySegmentDCE(foldedParentCode);
   const cleanedCode = removeUnusedImports(

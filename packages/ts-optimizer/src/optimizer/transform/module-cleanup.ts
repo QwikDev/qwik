@@ -51,9 +51,10 @@ export function applySegmentConstReplacement(
   code: string,
   filename: string,
   isServer?: boolean,
+  isDev?: boolean,
   preParsedProgram?: AstProgram
 ): string {
-  if (isServer === undefined) return code;
+  if (isServer === undefined && isDev === undefined) return code;
 
   let program: AstProgram;
   if (preParsedProgram) {
@@ -82,10 +83,12 @@ export function applySegmentConstReplacement(
       const localName = spec.local?.name;
       if (!localName) continue;
 
-      if (importedName === 'isServer') {
+      if (isServer !== undefined && importedName === 'isServer') {
         replacements.set(localName, String(isServer));
-      } else if (importedName === 'isBrowser') {
+      } else if (isServer !== undefined && importedName === 'isBrowser') {
         replacements.set(localName, String(!isServer));
+      } else if (isDev !== undefined && importedName === 'isDev') {
+        replacements.set(localName, String(isDev));
       }
     }
   }

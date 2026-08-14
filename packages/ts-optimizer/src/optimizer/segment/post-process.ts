@@ -19,6 +19,8 @@ import {
   removeUnusedImports,
 } from '../transform/module-cleanup.js';
 import { applySegmentDCE, hasSegmentDcePatterns } from '../transform/dead-code.js';
+import { deriveIsDev } from '../rewrite/const-replacement.js';
+import type { EmitMode } from '../types/types.js';
 import { applyStatementDCE } from '../transform/statement-dce.js';
 import { isAnyComponentCtx } from '../rewrite/predicates.js';
 import { parseWithRawTransfer } from '../ast/parse.js';
@@ -206,13 +208,14 @@ export function postProcessSegmentCode(code: string, opts: SegmentPostProcessOpt
     return out;
   };
 
+  const isDev = deriveIsDev(opts.emitMode as EmitMode);
   if (
-    opts.isServer !== undefined &&
+    (opts.isServer !== undefined || isDev !== undefined) &&
     opts.emitMode !== 'lib' &&
     (result.includes('@qwik.dev/core') || result.includes('@builder.io/qwik'))
   ) {
     result = runHelper(() =>
-      applySegmentConstReplacement(result, filename, opts.isServer, lazyParse())
+      applySegmentConstReplacement(result, filename, opts.isServer, isDev, lazyParse())
     );
   }
 
@@ -232,7 +235,7 @@ export function postProcessSegmentCode(code: string, opts: SegmentPostProcessOpt
     result = runHelper(() => injectUseHmr(result, opts.devFile!, lazyParse()));
   }
 
-  if (result.includes('\nimport ')) {
+  if (result.startsWith('import ') || result.includes('\nimport ')) {
     result = runHelper(() => removeUnusedImports(result, filename, undefined, lazyParse()));
   }
 

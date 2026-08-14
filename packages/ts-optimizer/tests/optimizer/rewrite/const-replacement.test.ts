@@ -1,20 +1,14 @@
 import { describe, it, expect } from 'vitest';
-import MagicString from 'magic-string';
 import { parseSync } from 'oxc-parser';
-import {
-  replaceConstants,
-  foldConstantsInBodyText,
-} from '../../../src/optimizer/rewrite/const-replacement.js';
+import { foldConstantsInBodyText } from '../../../src/optimizer/rewrite/const-replacement.js';
+import { applySegmentConstReplacement } from '../../../src/optimizer/transform/module-cleanup.js';
 import { collectImports } from '../../../src/optimizer/extraction/marker-detection.js';
 import { transformModule } from '../../../src/index.js';
 import { mkFilePath, mkSourceText } from '../../../src/optimizer/types/brands.js';
 
 function runReplace(source: string, isServer?: boolean, isDev?: boolean) {
-  const { program } = parseSync('test.tsx', source);
-  const s = new MagicString(source);
-  const importMap = collectImports(program);
-  const result = replaceConstants(s, program, importMap, isServer, isDev);
-  return { code: s.toString(), ...result };
+  const code = applySegmentConstReplacement(source, 'test.tsx', isServer, isDev);
+  return { code };
 }
 
 function importMapOf(source: string) {
@@ -41,7 +35,6 @@ console.log(isServer, isBrowser);
 `;
     const result = runReplace(source, true);
     expect(result.code).toContain('console.log(true, false)');
-    expect(result.replacedCount).toBe(2);
   });
 
   it('replaces isServer with false and isBrowser with true when isServer=false', () => {
@@ -50,7 +43,6 @@ console.log(isServer, isBrowser);
 `;
     const result = runReplace(source, false);
     expect(result.code).toContain('console.log(false, true)');
-    expect(result.replacedCount).toBe(2);
   });
 
   it('does nothing when isServer is undefined', () => {
@@ -59,7 +51,6 @@ console.log(isServer, isBrowser);
 `;
     const result = runReplace(source, undefined, undefined);
     expect(result.code).toContain('console.log(isServer, isBrowser)');
-    expect(result.replacedCount).toBe(0);
   });
 
   it('replaces isDev with true when isDev=true', () => {
@@ -68,7 +59,6 @@ if (isDev) { console.log('dev'); }
 `;
     const result = runReplace(source, undefined, true);
     expect(result.code).toContain('if (true)');
-    expect(result.replacedCount).toBe(1);
   });
 
   it('replaces isDev with false when isDev=false', () => {
@@ -77,7 +67,6 @@ if (isDev) { console.log('dev'); }
 `;
     const result = runReplace(source, undefined, false);
     expect(result.code).toContain('if (false)');
-    expect(result.replacedCount).toBe(1);
   });
 
   it('does NOT replace user-defined isServer variable', () => {
@@ -86,7 +75,6 @@ console.log(isServer);
 `;
     const result = runReplace(source, true);
     expect(result.code).toBe(source);
-    expect(result.replacedCount).toBe(0);
   });
 
   it('handles aliased imports (isServer as isServer2)', () => {
@@ -95,7 +83,6 @@ console.log(isServer2);
 `;
     const result = runReplace(source, true);
     expect(result.code).toContain('console.log(true)');
-    expect(result.replacedCount).toBe(1);
   });
 
   it('handles aliased isBrowser imports', () => {
@@ -104,7 +91,6 @@ console.log(isb);
 `;
     const result = runReplace(source, true);
     expect(result.code).toContain('console.log(false)');
-    expect(result.replacedCount).toBe(1);
   });
 
   it('removes import statement for replaced identifiers', () => {
@@ -140,7 +126,6 @@ console.log(isServer);
 `;
     const result = runReplace(source, true);
     expect(result.code).toContain('console.log(true)');
-    expect(result.replacedCount).toBe(1);
   });
 
   it('handles isServer from @qwik.dev/core (not just /build)', () => {
@@ -149,7 +134,6 @@ console.log(isServer);
 `;
     const result = runReplace(source, false);
     expect(result.code).toContain('console.log(false)');
-    expect(result.replacedCount).toBe(1);
   });
 
   it('replaces multiple references of the same identifier', () => {
@@ -160,7 +144,6 @@ if (isServer) { bar(); }
     const result = runReplace(source, true);
     expect(result.code).toContain('if (true) { foo(); }');
     expect(result.code).toContain('if (true) { bar(); }');
-    expect(result.replacedCount).toBe(2);
   });
 });
 

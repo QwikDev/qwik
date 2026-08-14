@@ -106,39 +106,6 @@ function applyReplacements(
 }
 
 /**
- * Replace isServer/isBrowser/isDev identifiers with boolean literals. Only replaces identifiers
- * that trace to actual Qwik package imports.
- */
-export function replaceConstants(
-  s: MagicString,
-  program: AstProgram,
-  importMap: Map<string, ImportInfo>,
-  isServer?: boolean,
-  isDev?: boolean
-): ConstReplacementResult {
-  const replacements = buildConstReplacementMap(importMap, isServer, isDev);
-
-  if (replacements.size === 0) {
-    return { replacedCount: 0 };
-  }
-
-  const importRanges = new Set<string>();
-  for (const node of program.body) {
-    if (node.type === 'ImportDeclaration') {
-      for (const spec of node.specifiers) {
-        importRanges.add(`${spec.local.start}:${spec.local.end}`);
-      }
-    }
-  }
-
-  const replacedCount = applyReplacements(s, program, replacements, importRanges);
-
-  // Import cleanup is deferred to the parent rewrite's surviving-imports filter;
-  // pruning here re-adds imports onto ranges processImports already stripped.
-  return { replacedCount };
-}
-
-/**
  * Fold isServer/isBrowser/isDev in an inline/hoist body. These bodies are re-emitted outside the
  * parent MagicString, so `replaceConstants` never reaches them.
  */

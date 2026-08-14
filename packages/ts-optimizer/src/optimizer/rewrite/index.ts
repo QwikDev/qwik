@@ -25,7 +25,7 @@ import {
   transformJsxCalls,
 } from '../jsx/jsx-call-transform.js';
 import { stripExportDeclarations } from './strip-exports.js';
-import { replaceConstants, deriveIsDev } from './const-replacement.js';
+import { deriveIsDev } from './const-replacement.js';
 import type { EmitMode } from '../types/types.js';
 import { collectBindingNamesFromPattern } from '../ast/binding-pattern.js';
 import type {
@@ -437,11 +437,6 @@ function processImports(ctx: RewriteContext): void {
 function applyModeTransforms(ctx: RewriteContext): void {
   if (ctx.stripExports && ctx.stripExports.length > 0) {
     stripExportDeclarations(ctx.s, ctx.program, ctx.stripExports);
-  }
-  const isDev = deriveIsDev(ctx.mode);
-  // Lib output serves both environments — never fold env consts (rust parity).
-  if (!ctx.isLibMode && (ctx.isServer !== undefined || isDev !== undefined)) {
-    replaceConstants(ctx.s, ctx.program, ctx.originalImports, ctx.isServer, isDev);
   }
 }
 

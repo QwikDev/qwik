@@ -18,6 +18,7 @@ import {
   type RangeReplacementCollector,
 } from '../edit/range-replace.js';
 import { quoteAsStringLiteral } from '../edit/string-literal.js';
+import { skipStringLiteralForward } from '../edit/text-scanning.js';
 import { stripExpressionTypes } from '../edit/strip-types.js';
 import { addBindingNamesFromPatternToSet } from '../ast/binding-pattern.js';
 
@@ -606,39 +607,6 @@ function stripTrailingCommas(text: string): string {
   return text.replace(trailingComma, '$1');
 }
 
-function skipStringLiteral(text: string, i: number): number {
-  const ch = text[i];
-  if (ch === '"' || ch === "'") {
-    const q = ch;
-    i++;
-    while (i < text.length && text[i] !== q) {
-      if (text[i] === '\\') i++;
-      i++;
-    }
-    return i; // on closing quote; caller's for-loop will advance past it
-  }
-  if (ch === '`') {
-    i++;
-    while (i < text.length && text[i] !== '`') {
-      if (text[i] === '\\') {
-        i++;
-      } else if (text[i] === '$' && i + 1 < text.length && text[i + 1] === '{') {
-        i += 2;
-        let depth = 1;
-        while (i < text.length && depth > 0) {
-          if (text[i] === '{') depth++;
-          else if (text[i] === '}') depth--;
-          i++;
-        }
-        i--; // will be incremented by caller
-      }
-      i++;
-    }
-    return i;
-  }
-  return i;
-}
-
 /**
  * Find the matching close-paren for an open paren at position 0, skipping string/template literals;
  * returns -1 if not found. Intentionally text-based — runs on tiny fragments where re-parsing isn't
@@ -652,9 +620,8 @@ function findMatchingParen(text: string): number {
     else if (ch === ')') {
       depth--;
       if (depth === 0) return i;
-    }
-    if (ch === '"' || ch === "'" || ch === '`') {
-      i = skipStringLiteral(text, i);
+    } else if (ch === '"' || ch === "'" || ch === '`') {
+      i = skipStringLiteralForward(text, i);
     }
   }
   return -1;

@@ -90,6 +90,33 @@ export function findMatchingBrace(text: string, openPos: number): number {
   return -1;
 }
 
+/**
+ * Skip the string or template literal opening at `i`; returns the index of the closing quote.
+ * Template `${}` interpolations are skipped by brace depth (nested backticks stay unsupported).
+ */
+export function skipStringLiteralForward(text: string, i: number): number {
+  const quote = text[i];
+  i++;
+  while (i < text.length && text[i] !== quote) {
+    if (text[i] === '\\') {
+      i += 2;
+      continue;
+    }
+    if (quote === '`' && text[i] === '$' && text[i + 1] === '{') {
+      i += 2;
+      let depth = 1;
+      while (i < text.length && depth > 0) {
+        if (text[i] === '{') depth++;
+        else if (text[i] === '}') depth--;
+        i++;
+      }
+      continue;
+    }
+    i++;
+  }
+  return i;
+}
+
 /** Scan from `start` (just after the open paren) to the index one past the matching close paren. */
 export function scanMatchingParenForward(text: string, start: number): number {
   let depth = 1;
@@ -99,16 +126,7 @@ export function scanMatchingParenForward(text: string, start: number): number {
     if (ch === '(') depth++;
     else if (ch === ')') depth--;
     else if (ch === "'" || ch === '"' || ch === '`') {
-      const quote = ch;
-      j++;
-      while (j < text.length) {
-        if (text[j] === '\\') {
-          j += 2;
-          continue;
-        }
-        if (text[j] === quote) break;
-        j++;
-      }
+      j = skipStringLiteralForward(text, j);
     }
     j++;
   }

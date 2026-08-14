@@ -1355,7 +1355,10 @@ export const isDev = ${JSON.stringify(isDev)};
     }
   }
 
-  const manualChunks: Rollup.ManualChunksOption = (id: string, { getModuleInfo }) => {
+  const manualChunks: NonNullable<Rollup.OutputOptions['manualChunks']> = (
+    id: string,
+    { getModuleInfo }
+  ) => {
     if (opts.target === 'client') {
       if (
         // The preloader has to stay in a separate chunk if it's a client build

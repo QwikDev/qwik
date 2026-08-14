@@ -88,7 +88,7 @@ describe.each([
     await trigger(document.body, anchor, 'pointerenter');
 
     expect(prefetchRouteMock).toHaveBeenCalledTimes(1);
-    expectPrefetchRouteCall(0, '/test', true, 0.8, 'dev', false);
+    expectPrefetchRouteCall(0, '/test', true, 0.8, 'dev', false, {});
   });
 
   it('prefetches route data on intent', async () => {
@@ -103,8 +103,8 @@ describe.each([
     await trigger(document.body, anchor, 'focus');
 
     expect(prefetchRouteMock).toHaveBeenCalledTimes(2);
-    expectPrefetchRouteCall(0, '/test', true, 0.8, 'dev', false);
-    expectPrefetchRouteCall(1, '/test', true, 0.8, 'dev', false);
+    expectPrefetchRouteCall(0, '/test', true, 0.8, 'dev', false, {});
+    expectPrefetchRouteCall(1, '/test', true, 0.8, 'dev', false, {});
   });
 
   it('prefetches route data on commit', async () => {
@@ -120,8 +120,8 @@ describe.each([
     await trigger(document.body, anchor, 'keydown', { key: 'Enter' });
 
     expect(prefetchRouteMock).toHaveBeenCalledTimes(2);
-    expectPrefetchRouteCall(0, '/test', true, 0.8, 'dev', false);
-    expectPrefetchRouteCall(1, '/test', true, 0.8, 'dev', false);
+    expectPrefetchRouteCall(0, '/test', true, 0.8, 'dev', false, {});
+    expectPrefetchRouteCall(1, '/test', true, 0.8, 'dev', false, {});
   });
 
   it('prefetches route data when visible strategy is enabled', async () => {

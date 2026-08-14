@@ -1,6 +1,5 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 4903
 expression: output
 ---
 ==INPUT==
@@ -88,8 +87,8 @@ import { qrl } from "@qwik.dev/core";
 import { useSignal } from "@qwik.dev/core";
 import { useStore } from "@qwik.dev/core";
 //
-const q_Parent_component_div_button_q_e_click_1_rAeuW6OvuXM = /*#__PURE__*/ qrl(()=>import("./test.tsx_Parent_component_div_button_q_e_click_1_rAeuW6OvuXM"), "Parent_component_div_button_q_e_click_1_rAeuW6OvuXM");
-const q_Parent_component_div_button_q_e_click_5khsVRINUws = /*#__PURE__*/ qrl(()=>import("./test.tsx_Parent_component_div_button_q_e_click_5khsVRINUws"), "Parent_component_div_button_q_e_click_5khsVRINUws");
+const q_Parent_component_div_button_q_e_click_1_rAeuW6OvuXM = /*#__PURE__*/ qrl(()=>import("./test.tsx_Parent_component_div_button_q_e_click_1_rAeuW6OvuXM"), "Parent_component_div_button_q_e_click_1_rAeuW6OvuXM").m();
+const q_Parent_component_div_button_q_e_click_5khsVRINUws = /*#__PURE__*/ qrl(()=>import("./test.tsx_Parent_component_div_button_q_e_click_5khsVRINUws"), "Parent_component_div_button_q_e_click_5khsVRINUws").m();
 //
 export const Parent_component_0TaiDayHrlo = ()=>{
     const cart = useStore([]);

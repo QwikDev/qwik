@@ -1,3 +1,11 @@
+// handled by docsUpdatedData plugin in vite-docs-updated.ts
+declare module '@docs-updated' {
+  /** Doc page URL → its frontmatter `updated_at` timestamp. */
+  export const updated: Record<string, string>;
+  /** The newest `updated_at` across all doc pages. */
+  export const maxTs: string;
+}
+
 // handled by raw-source plugin in vite.repl-apps.ts
 declare module '*?raw-source' {
   const url: string;

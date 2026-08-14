@@ -347,8 +347,8 @@ function findFirstElementNode(jsx: JSXOutput): ValueOrPromise<JSXNodeInternal<st
 function injectPlaceholderElement(jsx: JSXOutput, placeholder: JSXNodeInternal<string>): JSXOutput {
   // For regular JSX nodes, we can append the placeholder to its children.
   if (isJSXNode(jsx)) {
-    // Inline components don't always render children, so we wrap them in Fragment which does.
-    if (jsx.type !== Fragment && !isQwikComponent(jsx.type)) {
+    // Inline components may ignore children, while component$ children become projections.
+    if (jsx.type !== Fragment) {
       return _jsxSorted(Fragment, null, null, [jsx, placeholder], 0, null);
     }
 

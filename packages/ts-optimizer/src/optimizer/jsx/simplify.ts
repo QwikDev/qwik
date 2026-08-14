@@ -13,11 +13,6 @@ import {
   type RangeReplacementCollector,
 } from '../edit/range-replace.js';
 
-// Re-export `applyReplacements` for the legacy import path; the helper
-// lives next to `collectRangeReplacements` in `range-replace.js` —
-// consumers should import from there directly going forward.
-export { applyReplacements };
-
 export function simplifyExpression(node: AstMaybeNode): SimplifyResult {
   if (!node) return UNSIMPLIFIED;
   switch (node.type) {

@@ -72,9 +72,6 @@ export type {
 
 export type AstNode = import('@oxc-project/types').Node;
 export type AstProgram = import('@oxc-project/types').Program;
-export type AstStatement = import('@oxc-project/types').Statement;
-export type AstExpression = import('@oxc-project/types').Expression;
-export type AstBindingPattern = import('@oxc-project/types').BindingPattern;
 export type AstParamPattern = import('@oxc-project/types').ParamPattern;
 export type AstFunction =
   | import('@oxc-project/types').Function
@@ -88,14 +85,9 @@ export type AstCompatNode = {
   [key: string]: unknown;
 };
 export type AstCompatMaybeNode = AstCompatNode | AstNode | null | undefined;
-export type AstPropertyWithValue =
-  | import('@oxc-project/types').BindingProperty
-  | import('@oxc-project/types').ObjectProperty;
 export type AstRawTransferParserOptions = ParserOptions & {
   experimentalRawTransfer?: boolean;
 };
-export type AstParseComments = ParseResult['comments'];
-export type AstParseErrors = ParseResult['errors'];
 export type AstParseResult = ParseResult;
 export type AstEcmaScriptModule = EcmaScriptModule;
 

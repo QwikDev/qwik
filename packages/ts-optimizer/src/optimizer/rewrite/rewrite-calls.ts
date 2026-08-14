@@ -35,8 +35,6 @@ const singleArrowParam = createRegExp(exactly('(').and(oneOrMore(wordChar).group
   global,
 ]);
 
-export { getQrlCalleeName } from '../qwik/qrl-naming.js';
-
 interface MovedCapturesSource {
   readonly ctxKind: 'function' | 'eventHandler' | 'jSXProp';
   readonly ctxName: string;

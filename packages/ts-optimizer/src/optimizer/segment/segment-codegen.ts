@@ -23,8 +23,6 @@ export {
   rewriteFunctionSignature,
   removeDeadConstLiterals,
   injectCapturesUnpacking,
-  insertImportBeforeSeparator,
-  partsHaveImport,
 } from './body-transforms.js';
 
 import {

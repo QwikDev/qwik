@@ -7,12 +7,12 @@ import {
   memberStaticPropName,
 } from '../ast/guards.js';
 import {
-  applyReplacements,
   formatSimplifiedLiteral,
   lambdaBodySimplificationsCollector,
   simplifyExpression,
 } from './simplify.js';
 import {
+  applyReplacements,
   collectRangeReplacements,
   isReplaceableIdentifierPosition,
   type RangeReplacementCollector,

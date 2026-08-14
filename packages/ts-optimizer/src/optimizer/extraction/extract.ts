@@ -176,12 +176,6 @@ export type Mutable<T> = { -readonly [P in keyof T]: T[P] };
 /** Builder type for the extraction walker's WIP segment state. */
 export type ExtractedSegmentBuilder = Mutable<ExtractedSegment>;
 
-/** Builder type for capture analysis (Phase 3). */
-export type CapturedSegmentBuilder = Mutable<CapturedSegment>;
-
-/** Builder type for parent rewrite (Phase 5). */
-export type ConsolidatedSegmentBuilder = Mutable<ConsolidatedSegment>;
-
 function nodeContainedIn(inner: AstNode, outer: AstNode): boolean {
   return inner.start >= outer.start && inner.end <= outer.end;
 }

@@ -7,7 +7,7 @@ import {
   type RangeReplacement,
   type RangeReplacementCollector,
 } from '../../../src/optimizer/edit/range-replace.js';
-import { applyReplacements } from '../../../src/optimizer/jsx/simplify.js';
+import { applyReplacements } from '../../../src/optimizer/edit/range-replace.js';
 import type { AstNode, AstParentNode } from '../../../src/ast-types.js';
 
 function parseExpr(src: string): AstNode {

@@ -13,13 +13,8 @@ import type { ImportInfo } from '../extraction/marker-detection.js';
 import type { MigrationDecision, ModuleLevelDecl } from '../analysis/variable-migration.js';
 import type { RelativePath } from '../types/brands.js';
 import { rewriteImportSource } from './rewrite-imports.js';
-import {
-  buildSyncTransform,
-  isWorkerExtraction,
-  needsPureAnnotation,
-  getQrlCalleeName,
-} from './rewrite-calls.js';
-import { isLibModePreservedMarker } from '../qwik/qrl-naming.js';
+import { buildSyncTransform, isWorkerExtraction, needsPureAnnotation } from './rewrite-calls.js';
+import { getQrlCalleeName, isLibModePreservedMarker } from '../qwik/qrl-naming.js';
 import { isEventHandlerOrJsxProp, isStrippedExtraction, matchesRegCtxName } from './predicates.js';
 import { transformEventPropName } from '../jsx/event-handlers.js';
 import { transformAllJsx, JsxKeyCounter, type ScopeAwareCollectResult } from '../jsx/jsx.js';
@@ -57,25 +52,17 @@ import { detectAndRenameCollisions } from './symbol-collision.js';
 import { countJsxKeysInNode } from '../segment/segment-generation.js';
 
 export {
-  resolveConstLiterals,
   resolveConstLiteralsInClosure,
   resolveWholeBodyIdentifier,
   inlineConstCaptures,
-  propagateConstLiteralsInBody,
 } from './const-propagation.js';
 export {
-  extractDestructuredFieldMap,
-  extractDestructuredFieldDefaultsMap,
   extractDestructuredFieldInfo,
   consolidateRawPropsInWCalls,
   applyRawPropsTransform,
   bodyConsolidatesToRawProps,
   consolidateQpCaptureValues,
-  type DestructuredFieldInfo,
 } from './raw-props.js';
-export { transformInlineSegmentBody } from './inline-body.js';
-
-export type { RewriteContext } from './rewrite-context.js';
 
 import { extractDestructuredFieldInfo } from './raw-props.js';
 

@@ -72,7 +72,6 @@ export interface OptimizerSystem {
   os: string;
   dynamicImport: (path: string) => Promise<unknown>;
   strictDynamicImport: (path: string) => Promise<unknown>;
-  getInputFiles?: (rootDir: string) => Promise<readonly unknown[]>;
   path: Path;
 }
 

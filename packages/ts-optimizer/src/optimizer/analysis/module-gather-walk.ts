@@ -492,7 +492,7 @@ function enterFreeIdentifiers(
 
   const name = node.name;
   const scopeKey = tracker.getCurrentScope();
-  const seenKey = `${scopeKey} ${name}`;
+  const seenKey = `${scopeKey}\u0000${name}`;
   for (const oc of openClosures) {
     if (oc.seen.has(seenKey)) continue;
     oc.seen.add(seenKey);
@@ -512,7 +512,7 @@ function resolveFreeIdentifiers(
   const memo = new Map<string, ScopeTrackerNode | null>();
   for (const { oc, name, scopeKey } of pending) {
     if (oc.dedupe.has(name)) continue;
-    const memoKey = `${scopeKey} ${name}`;
+    const memoKey = `${scopeKey}\u0000${name}`;
     let decl: ScopeTrackerNode | null;
     if (memo.has(memoKey)) {
       decl = memo.get(memoKey)!;

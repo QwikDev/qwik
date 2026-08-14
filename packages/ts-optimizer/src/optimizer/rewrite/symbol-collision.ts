@@ -474,9 +474,3 @@ export function detectAndRenameCollisions(ctx: RewriteContext): void {
     }
   }
 }
-
-export const __internals = {
-  localNameOfNeeded,
-  pickFreshName,
-  findBindingIdentifierPositions,
-};

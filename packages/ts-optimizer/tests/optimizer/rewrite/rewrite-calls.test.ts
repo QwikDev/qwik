@@ -1,13 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { parseSync } from 'oxc-parser';
 import {
-  getQrlCalleeName,
   buildQrlDeclaration,
   buildSyncTransform,
   needsPureAnnotation,
   getQrlImportSource,
 } from '../../../src/optimizer/rewrite/rewrite-calls.js';
-import { plainQrlName } from '../../../src/optimizer/qwik/qrl-naming.js';
+import { getQrlCalleeName, plainQrlName } from '../../../src/optimizer/qwik/qrl-naming.js';
 
 describe('plainQrlName', () => {
   it('swaps a trailing $ for Qrl', () => {

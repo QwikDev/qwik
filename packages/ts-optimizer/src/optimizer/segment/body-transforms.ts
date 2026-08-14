@@ -22,7 +22,11 @@ import { formatWCall } from '../qwik/w-call.js';
 import { applyRawPropsTransform, consolidateRawPropsInWCalls } from '../rewrite/index.js';
 import type { ExtractionResult } from '../extraction/extract.js';
 import type { NestedCallSiteInfo } from './segment-codegen.js';
-import { pureAwareOverwriteStart, scanMatchingParenForward } from '../edit/text-scanning.js';
+import {
+  pureAwareOverwriteStart,
+  scanMatchingParenBackward,
+  scanMatchingParenForward,
+} from '../edit/text-scanning.js';
 
 const qwikDisableDirective = createRegExp(
   exactly('/*')
@@ -72,14 +76,7 @@ function findEnclosingArrowBodyForCapture(
 
     let paramText = '';
     if (text[paramEnd] === ')') {
-      let depth = 1;
-      let pStart = paramEnd - 1;
-      while (pStart >= 0 && depth > 0) {
-        if (text[pStart] === ')') depth++;
-        else if (text[pStart] === '(') depth--;
-        pStart--;
-      }
-      pStart++;
+      const pStart = scanMatchingParenBackward(text, paramEnd - 1);
       paramText = text.slice(pStart + 1, paramEnd);
     } else if (/\w/.test(text[paramEnd])) {
       let pStart = paramEnd;
@@ -275,14 +272,7 @@ function injectHoistDeclarations(
     const pos = hoist.position;
     const charBefore = bodyText[pos - 1];
     if (charBefore === '(') {
-      let depth = 1;
-      let closeIdx = pos;
-      while (closeIdx < bodyText.length && depth > 0) {
-        if (bodyText[closeIdx] === '(') depth++;
-        else if (bodyText[closeIdx] === ')') depth--;
-        closeIdx++;
-      }
-      closeIdx--;
+      const closeIdx = scanMatchingParenForward(bodyText, pos) - 1;
       const exprContent = bodyText.slice(pos, closeIdx).replace(/^\s+/, '');
       const blockBody = `{\n        ${hoist.declaration}\n        return ${exprContent};\n    }`;
       bodyText = bodyText.slice(0, pos - 1) + blockBody + bodyText.slice(closeIdx + 1);

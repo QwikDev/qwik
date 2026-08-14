@@ -8,14 +8,6 @@ import { collectPassiveDirectives } from './event-handlers.js';
 import { detectLoopContext, type LoopContext } from './loop-hoisting.js';
 import { computeKeyPrefix } from './key-prefix.js';
 
-export { processChildren } from './jsx-children.js';
-export {
-  processProps,
-  formatPropName,
-  isRewrittenEventEntry,
-  sortVarEntries,
-} from './jsx-props.js';
-
 export interface JsxTransformResult {
   tag: string;
   varProps: string | null;

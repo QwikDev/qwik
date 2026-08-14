@@ -1,11 +1,12 @@
-import { Slot, component$, useTask$ } from '@qwik.dev/core';
+import { Slot, component$, untrack, useTask$ } from '@qwik.dev/core';
 import { useLocation } from '@qwik.dev/router';
 
 export default component$(() => {
   const location = useLocation();
 
   useTask$(() => {
-    const id = location.params.id;
+    // untracked: v3 tasks auto-track reads; this task must run once per mount only
+    const id = untrack(() => location.params.id);
     if (id === undefined) {
       // should not happen
       throw new Error('id is undefined');

@@ -1,0 +1,142 @@
+---
+title: Formisch | Integrations
+keywords: 'form, library, validation, type-safe, schema'
+contributors:
+  - fabian-hiller
+updated_at: '2026-08-01T00:00:00Z'
+created_at: '2026-08-01T00:00:00Z'
+---
+
+import PackageManagerTabs from '~/components/package-manager-tabs/index.tsx';
+
+# Formisch
+
+[Formisch](https://formisch.dev/) is a schema-based, headless form library for Qwik. It manages form state and validates your fields with a [Valibot](https://valibot.dev/) schema. The headless design gives you full control over the visual appearance of your form.
+
+> Formisch requires Qwik v2, which is currently in beta. If you are using Qwik v1, use [Modular Forms](../modular-forms/index.mdx), its predecessor by the same author.
+
+To get started, install the `@formisch/qwik` and `valibot` packages:
+
+<PackageManagerTabs>
+<span q:slot="pnpm">
+```shell
+pnpm install @formisch/qwik valibot
+```
+</span>
+<span q:slot="npm">
+```shell
+npm install @formisch/qwik valibot
+```
+</span>
+<span q:slot="yarn">
+```shell
+yarn add @formisch/qwik valibot
+```
+</span>
+<span q:slot="bun">
+```shell
+bun install @formisch/qwik valibot
+```
+</span>
+</PackageManagerTabs>
+
+## Define your form
+
+Instead of a separate type definition, in Formisch your Valibot schema is the single source of truth. It defines the structure of your form, validates your fields and infers the TypeScript types of your input and output values.
+
+```ts
+import * as v from 'valibot';
+
+const LoginSchema = v.object({
+  email: v.pipe(
+    v.string(),
+    v.nonEmpty('Please enter your email.'),
+    v.email('The email address is badly formatted.'),
+  ),
+  password: v.pipe(
+    v.string(),
+    v.nonEmpty('Please enter your password.'),
+    v.minLength(8, 'Your password must have 8 characters or more.'),
+  ),
+});
+```
+
+## Create a form
+
+To create a form, you use the [`useForm$`](https://formisch.dev/qwik/api/useForm$/) hook. It initializes and returns the store of your form, which you pass to the other Formisch components and methods.
+
+```tsx
+import { component$ } from '@qwik.dev/core';
+import { Field, Form, useForm$ } from '@formisch/qwik';
+
+export default component$(() => {
+  const loginForm = useForm$(() => ({
+    schema: LoginSchema,
+  }));
+
+  return <Form of={loginForm}>…</Form>;
+});
+```
+
+## Add form fields
+
+With the [`Field`](https://formisch.dev/qwik/api/Field/) component you connect a field to your form. It is headless and provides you direct access to its current state via the `render$` prop. The path to the field is type-safe and autocompleted based on your schema. Spread `field.props` onto an `<input />`, `<select />` or `<textarea />` element to connect it to your form.
+
+```tsx
+<Form of={loginForm}>
+  <Field
+    of={loginForm}
+    path={['email']}
+    render$={(field) => (
+      <div>
+        <input {...field.props} value={field.input.value} type="email" />
+        {field.errors.value && <div>{field.errors.value[0]}</div>}
+      </div>
+    )}
+  />
+  <Field
+    of={loginForm}
+    path={['password']}
+    render$={(field) => (
+      <div>
+        <input {...field.props} value={field.input.value} type="password" />
+        {field.errors.value && <div>{field.errors.value[0]}</div>}
+      </div>
+    )}
+  />
+  <button type="submit">Login</button>
+</Form>
+```
+
+This API design results in a fully type-safe form. Furthermore, it gives you full control over the user interface. You can develop your own input components or connect a pre-built component library.
+
+## Handle submission
+
+To process the values when the form is submitted, pass a function to the `onSubmit$` property of the [`Form`](https://formisch.dev/qwik/api/Form/) component. The first parameter contains the validated values, typed according to the output of your schema.
+
+```tsx
+import { $, component$ } from '@qwik.dev/core';
+import { Field, Form, type SubmitHandler, useForm$ } from '@formisch/qwik';
+
+export default component$(() => {
+  const loginForm = useForm$(() => ({
+    schema: LoginSchema,
+  }));
+
+  const handleSubmit = $<SubmitHandler<typeof LoginSchema>>((output) => {
+    // Process the validated values
+  });
+
+  return (
+    <Form of={loginForm} onSubmit$={handleSubmit}>
+      …
+    </Form>
+  );
+});
+```
+
+While the form is being submitted, you can use `loginForm.isSubmitting.value` to display a loading state and disable the submit button.
+
+## Summary
+
+You now know the basic building blocks of Formisch. For more details on nested fields, field arrays and the available form methods, see the [documentation](https://formisch.dev/qwik/guides/introduction/). You can also try Formisch in the [playground](https://formisch.dev/playground/login/).

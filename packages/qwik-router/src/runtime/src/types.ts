@@ -433,6 +433,8 @@ export interface LoadedRoute {
   $routeName$: string;
   /** The route parameters, e.g. `{ id: '123' }` */
   $params$: PathParams;
+  /** Per-level module loaders from the route match — nav-time data, never serialized */
+  $moduleLoaders$?: ModuleLoader[];
   /** The modules associated with this route (on 404, contains only the error component) */
   $mods$: (RouteModule | ContentModule)[];
   /** The menu associated with this route */

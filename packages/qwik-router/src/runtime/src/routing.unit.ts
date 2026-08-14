@@ -1,5 +1,5 @@
 import { assert, describe, test } from 'vitest';
-import { loadRoute } from './routing';
+import { loadRoute, matchRouteLoadersByName } from './routing';
 import type { MenuModuleLoader, ModuleLoader, RouteData } from './types';
 
 // A minimal sync module loader for testing.
@@ -843,4 +843,57 @@ test('loadRoute — empty _M group is ignored', async () => {
   };
   const result = await loadRoute(routes, false, '/anything');
   assert.isTrue(result.$notFound$);
+});
+
+describe('matchRouteLoadersByName — pattern segments', () => {
+  test('catch-all route name resolves its loader chain', () => {
+    const layoutLoader = makeLoader();
+    const pageLoader = makeLoader();
+    const routes: RouteData = {
+      blog: {
+        _L: layoutLoader as any,
+        _A: { _P: 'slug', _I: pageLoader as any },
+      },
+    };
+    const loaders = matchRouteLoadersByName(routes, '/blog/[...slug]');
+    assert.deepEqual(loaders, [layoutLoader, pageLoader]);
+  });
+
+  test('param route name resolves its loader chain', () => {
+    const layoutLoader = makeLoader();
+    const pageLoader = makeLoader();
+    const routes: RouteData = {
+      'location-path': {
+        _W: { _P: 'id', _L: layoutLoader as any, _I: pageLoader as any },
+      },
+    };
+    const loaders = matchRouteLoadersByName(routes, '/location-path/[id]');
+    assert.deepEqual(loaders, [layoutLoader, pageLoader]);
+  });
+
+  test('infix param route name resolves through _W', () => {
+    const pageLoader = makeLoader();
+    const routes: RouteData = {
+      shop: {
+        _W: { _P: 'sku', _0: 'item-', _I: pageLoader as any },
+      },
+    };
+    const loaders = matchRouteLoadersByName(routes, '/shop/item-[sku]');
+    assert.deepEqual(loaders, [pageLoader]);
+  });
+
+  test('pattern segment inside a group node is found', () => {
+    const groupLayout = makeLoader();
+    const pageLoader = makeLoader();
+    const routes: RouteData = {
+      _M: [
+        {
+          _L: groupLayout as any,
+          _A: { _P: 'rest', _I: pageLoader as any },
+        },
+      ],
+    };
+    const loaders = matchRouteLoadersByName(routes, '/[...rest]');
+    assert.deepEqual(loaders, [groupLayout, pageLoader]);
+  });
 });

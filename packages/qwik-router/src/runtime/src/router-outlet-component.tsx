@@ -1,18 +1,11 @@
-import {
-  component$,
-  noSerialize,
-  sync$,
-  useContext,
-  useServerData,
-  type NoSerialize,
-} from '@qwik.dev/core';
-import { ContentInternalContext } from './contexts';
+import { component$, sync$, useContext, useServerData } from '@qwik.dev/core';
+import { RoutedLevelsContext } from './contexts';
 import { linkPrefetchInit } from './link-prefetch';
 import type { ClientSPAWindow } from './qwik-router-component';
 import type { ScrollHistoryState } from './scroll-restoration';
 import { type RouterPopstateEventDetail } from './spa-init';
 import spaInit from './spa-init';
-import type { ContentModule, RouteNavigate } from './types';
+import type { RouteNavigate } from './types';
 import { useDocumentHead, useNavigate } from './use-functions';
 
 export const handleRouterPopstate = (
@@ -32,48 +25,39 @@ const assertServerData = (serverData: Record<string, string> | undefined) => {
 };
 
 interface RoutedContentProps {
-  contents: ContentModule[];
-  index: number;
-  /** Route components are nav-time data: navs re-load them via loadRoute, never from state. */
-  component: NoSerialize<ContentModule['default']>;
+  level: number;
 }
 
-function RoutedContent({ contents, index, component: Component }: RoutedContentProps) {
-  const nextIndex = index + 1;
-  const RoutedComponent = Component as any;
-  return Component ? (
-    <RoutedComponent>
-      {nextIndex < contents.length && (
-        <RoutedContent
-          contents={contents}
-          index={nextIndex}
-          component={noSerialize(contents[nextIndex].default)}
-        />
-      )}
-    </RoutedComponent>
-  ) : nextIndex < contents.length ? (
-    <RoutedContent
-      contents={contents}
-      index={nextIndex}
-      component={noSerialize(contents[nextIndex].default)}
-    />
-  ) : null;
+/**
+ * One route level. The collection subscribes to this level's signal only, so a nav rebuilds exactly
+ * the levels whose module changed; untouched layouts keep their instances mounted.
+ */
+function RoutedContent({ level }: RoutedContentProps) {
+  const levels = useContext(RoutedLevelsContext);
+  const cmp = levels.signals[level];
+  return (
+    <>
+      {[cmp.value].map((Cmp) => {
+        const RoutedComponent = Cmp as any;
+        return Cmp ? (
+          <RoutedComponent>
+            <RoutedContent level={level + 1} />
+          </RoutedComponent>
+        ) : null;
+      })}
+    </>
+  );
 }
 
 /** @public */
 export const RouterOutlet = component$(() => {
   const serverData = useServerData<Record<string, string>>('containerAttributes');
   assertServerData(serverData);
-  const internalContext = useContext(ContentInternalContext);
   const head = useDocumentHead();
   const nav = useNavigate();
-  return internalContext.value?.length ? (
+  return (
     <>
-      <RoutedContent
-        contents={internalContext.value}
-        index={0}
-        component={noSerialize(internalContext.value[0].default)}
-      />
+      <RoutedContent level={0} />
       {!__EXPERIMENTAL__.noSPA && (
         <script
           document:onQCInit$={[spaInit, linkPrefetchInit(head.manifestHash)]}
@@ -100,5 +84,5 @@ export const RouterOutlet = component$(() => {
         ></script>
       )}
     </>
-  ) : null;
+  );
 });

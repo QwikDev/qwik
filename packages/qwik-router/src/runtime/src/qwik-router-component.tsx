@@ -42,6 +42,7 @@ import {
   Slot,
   useContextProvider,
   useComputed$,
+  useConstant,
   useServerData,
   untrack,
   useSignal,
@@ -70,13 +71,16 @@ import {
   RouteLoaderCtxContext,
   RouteLocationContext,
   RouteNavigateContext,
+  RoutedLevelsContext,
   RoutePreventNavigateContext,
   RouteStateContext,
+  type RoutedLevelComponent,
+  type RoutedLevels,
 } from './contexts';
 import { createDocumentHead, resolveHead } from './head';
 import { refreshLinkPrefetchObserver } from './link-prefetch';
 import { loadRouterConfig } from './router-config';
-import { loadRoute } from './routing';
+import { loadRoute, matchRouteLoadersByName } from './routing';
 import {
   callRestoreScrollOnDocument,
   currentScrollState,
@@ -102,11 +106,13 @@ import type {
   LoadedRoute,
   Loader,
   LoaderInternal,
+  ModuleLoader,
   MutableRouteLocation,
   NavigationType,
   PageModule,
   PreventNavigateCallback,
   ResolvedDocumentHead,
+  RouteModule,
   RouteActionResolver,
   RouteActionValue,
   RouteNavigate,
@@ -164,7 +170,30 @@ const preventNav: {
 const internalState: {
   navCount: number;
   currentTransition?: ViewTransition;
+  /** Loader stack of the currently rendered route — the per-level nav diff baseline. */
+  routedLoaders?: ModuleLoader[];
 } = { navCount: 0 };
+
+/**
+ * Write the level signals from `firstChangedLevel` down; untouched levels keep their component
+ * instances mounted. The trailing signal stays null so the deepest level renders nothing below.
+ */
+const applyRoutedLevels = (
+  levels: RoutedLevels,
+  mods: readonly (RouteModule | ContentModule)[],
+  firstChangedLevel: number
+): void => {
+  while (levels.signals.length < mods.length + 1) {
+    levels.signals.push(useSignal<RoutedLevelComponent>(null));
+  }
+  for (let i = firstChangedLevel; i < levels.signals.length; i++) {
+    const next = noSerialize((mods[i] as ContentModule | undefined)?.default) ?? null;
+    const signal = levels.signals[i];
+    if (signal.untrackedValue !== next) {
+      signal.value = next;
+    }
+  }
+};
 
 const getScroller = () => {
   let scroller = document.getElementById(QWIK_ROUTER_SCROLLER);
@@ -248,6 +277,8 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
   });
 
   const contentInternal = useSignal<ContentStateInternal>();
+  const routedLevels = useConstant((): RoutedLevels => ({ signals: [] }));
+  applyRoutedLevels(routedLevels, env.loadedRoute.$mods$ as ContentModule[], 0);
 
   /**
    * Non-serializable navigation context passed from the nav task to the head+commit task. Only the
@@ -263,6 +294,9 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       shouldForceUrl: boolean;
       shouldForceParams: boolean;
       navCount: number;
+      routedMods: ContentModule[];
+      routedFirstChanged: number;
+      routedLoaders: ModuleLoader[] | undefined;
     }>
   >();
 
@@ -500,6 +534,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
 
   useContextProvider(ContentContext, content);
   useContextProvider(ContentInternalContext, contentInternal);
+  useContextProvider(RoutedLevelsContext, routedLevels);
   useContextProvider(DocumentHeadContext, documentHead);
   useContextProvider(HttpStatusContext, httpStatus);
   useContextProvider(RouteLocationContext, routeLocation);
@@ -526,6 +561,12 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       // loadRoute or loaders, navCount will have been bumped and we should bail so
       // the task's next invocation takes over with the newer destination.
       const navCountBefore = internalState.navCount;
+      // the resumed page's rendered route, the post-resume baseline for the level diff
+      const prevRouteName = isBrowser
+        ? _getContextContainer()?.element.getAttribute(Q_ROUTE)
+        : null;
+      let routedFirstChanged = 0;
+      let newModuleLoaders: ModuleLoader[] | undefined;
       let trackUrl: URL;
       let endpointResponse: EndpointResponse | undefined;
       let actionData: { action?: string; actionResult?: unknown; status: number } | undefined;
@@ -562,6 +603,22 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         // Bail if a second nav() was fired while we were loading route modules.
         if (internalState.navCount !== navCountBefore) {
           return;
+        }
+
+        // Per-level diff: untouched shared layouts stay mounted. Fail open to a full
+        // rebuild when no baseline resolves (fresh resume from an unknown route).
+        newModuleLoaders = loadedRoute.$moduleLoaders$;
+        const prevLoaders =
+          internalState.routedLoaders ??
+          (prevRouteName ? matchRouteLoadersByName(routes, prevRouteName) : undefined);
+        if (prevLoaders && newModuleLoaders) {
+          const shared = Math.min(prevLoaders.length, newModuleLoaders.length);
+          while (
+            routedFirstChanged < shared &&
+            prevLoaders[routedFirstChanged] === newModuleLoaders[routedFirstChanged]
+          ) {
+            routedFirstChanged++;
+          }
         }
 
         // Submit action if one was triggered
@@ -721,6 +778,9 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         shouldForceUrl,
         shouldForceParams,
         navCount: navCountBefore,
+        routedMods: contentModules,
+        routedFirstChanged,
+        routedLoaders: newModuleLoaders,
       });
     },
     // We should only wait for head calculation to complete on the server
@@ -833,6 +893,8 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         } else {
           clientNavigate(window, navType, prevUrl, trackUrl, replaceState);
         }
+        applyRoutedLevels(routedLevels, nav.routedMods, nav.routedFirstChanged);
+        internalState.routedLoaders = nav.routedLoaders;
         contentInternal.trigger();
         return (navigatePromise = _waitUntilRendered(container!));
       };
@@ -1017,6 +1079,8 @@ const useQwikMockRouter = (props: QwikRouterMockProps) => {
   );
 
   const contentInternal = useSignal<ContentStateInternal>();
+  const routedLevels = useConstant((): RoutedLevels => ({ signals: [] }));
+  applyRoutedLevels(routedLevels, [], 0);
 
   const actionState = useSignal<RouteActionValue>();
 
@@ -1024,6 +1088,7 @@ const useQwikMockRouter = (props: QwikRouterMockProps) => {
 
   useContextProvider(ContentContext, content);
   useContextProvider(ContentInternalContext, contentInternal);
+  useContextProvider(RoutedLevelsContext, routedLevels);
   useContextProvider(DocumentHeadContext, documentHead);
   useContextProvider(HttpStatusContext, httpStatus);
   useContextProvider(RouteLocationContext, routeLocation);

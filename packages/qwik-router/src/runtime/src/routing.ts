@@ -65,6 +65,7 @@ export const loadRoute = async (
   return {
     $routeName$: routeName,
     $params$: params,
+    $moduleLoaders$: loaders,
     $mods$: modules,
     $menu$: deepFreeze(menu),
     $routeBundleNames$: routeBundleNames,
@@ -73,6 +74,43 @@ export const loadRoute = async (
     $loaders$: loaderHashes,
     $loaderPaths$: loaderPathsByHash,
   };
+};
+
+/**
+ * Per-level module loaders for a canonical route name (`q:route`), without loading any module.
+ * Loader identity is client-stable, so navs can diff levels against a resumed page. Returns
+ * undefined when the name no longer matches the config — callers fail open to a full rebuild.
+ */
+export const matchRouteLoadersByName = (
+  routes: RouteData | undefined,
+  routeName: string
+): ModuleLoader[] | undefined => {
+  if (!routes) {
+    return undefined;
+  }
+  const keys = routeName.split('/').filter((part) => part.length > 0);
+  const walked = walkTrieKeys(routes, keys);
+  if (!walked) {
+    return undefined;
+  }
+  let node = walked.node;
+  const layouts = walked.layouts;
+  if (!node._I && node._G == null) {
+    const indexResult = findIndexNode(node);
+    if (indexResult) {
+      for (let j = 0; j < indexResult.groups.length; j++) {
+        const group = indexResult.groups[j];
+        if (group._L) {
+          layouts.push(group._L);
+        }
+      }
+      node = indexResult.target;
+      if (node._L) {
+        layouts.push(node._L);
+      }
+    }
+  }
+  return resolveLoaders(routes, node, layouts);
 };
 
 /** Built-in fallback error component loader */
@@ -92,7 +130,9 @@ function walkTrieKeys(
     layouts.push(node._L);
   }
   for (let i = 0; i < keys.length; i++) {
-    const key = keys[i];
+    // Canonical route names keep the source pattern; translate to the trie key
+    const rawKey = keys[i];
+    const key = /^\[\.\.\.\w+\]$/.test(rawKey) ? '_A' : /\[\w+\]/.test(rawKey) ? '_W' : rawKey;
     let next = node[key] as RouteData | undefined;
 
     // If not a direct child, search inside _M group nodes

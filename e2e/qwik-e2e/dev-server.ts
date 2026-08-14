@@ -17,6 +17,10 @@ import type { PackageJSON } from '../../scripts/types.ts';
 
 const isWindows = process.platform === 'win32';
 
+process.on('unhandledRejection', (reason) => {
+  console.error('[dev-server unhandledRejection]', reason);
+});
+
 // map the file path to a url for windows only
 const file = (filePath: string) => {
   return isWindows ? pathToFileURL(filePath).toString() : filePath;

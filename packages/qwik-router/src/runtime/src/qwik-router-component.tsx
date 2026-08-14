@@ -175,19 +175,33 @@ const internalState: {
 } = { navCount: 0 };
 
 /**
- * Write the level signals from `firstChangedLevel` down; untouched levels keep their component
- * instances mounted. The trailing signal stays null so the deepest level renders nothing below.
+ * Write the level signals from the first changed level down; untouched levels keep their component
+ * instances mounted. Mods without a default export (middleware-only layouts) are flattened out so
+ * the render chain continues below them; the changed-level index arrives in loader space and maps
+ * into flattened space through the unchanged prefix, whose mods are identical on both sides. The
+ * trailing signal stays null so the deepest level ends the chain.
  */
 const applyRoutedLevels = (
   levels: RoutedLevels,
   mods: readonly (RouteModule | ContentModule)[],
-  firstChangedLevel: number
+  firstChangedLoaderLevel: number
 ): void => {
-  while (levels.signals.length < mods.length + 1) {
+  const components: RoutedLevelComponent[] = [];
+  let firstChangedLevel = 0;
+  for (let i = 0; i < mods.length; i++) {
+    const component = noSerialize((mods[i] as ContentModule | undefined)?.default) ?? null;
+    if (component !== null) {
+      if (i < firstChangedLoaderLevel) {
+        firstChangedLevel++;
+      }
+      components.push(component);
+    }
+  }
+  while (levels.signals.length < components.length + 1) {
     levels.signals.push(useSignal<RoutedLevelComponent>(null));
   }
   for (let i = firstChangedLevel; i < levels.signals.length; i++) {
-    const next = noSerialize((mods[i] as ContentModule | undefined)?.default) ?? null;
+    const next = components[i] ?? null;
     const signal = levels.signals[i];
     if (signal.untrackedValue !== next) {
       signal.value = next;

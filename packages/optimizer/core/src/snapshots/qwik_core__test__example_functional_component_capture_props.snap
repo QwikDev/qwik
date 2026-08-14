@@ -1,6 +1,5 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 389
 expression: output
 ---
 ==INPUT==
@@ -128,7 +127,7 @@ import { _captures } from "@qwik.dev/core";
 import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 //
-const q_App_component_div_q_e_click_mi4E1piTWe8 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_div_q_e_click_mi4E1piTWe8"), "App_component_div_q_e_click_mi4E1piTWe8");
+const q_App_component_div_q_e_click_mi4E1piTWe8 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_div_q_e_click_mi4E1piTWe8"), "App_component_div_q_e_click_mi4E1piTWe8").m();
 //
 export const App_component_1_w0t0o3QMovU = ()=>{
     const C2 = _captures[0], C3 = _captures[1], C4 = _captures[2], C5 = _captures[3], C6 = _captures[4], C7 = _captures[5], C8 = _captures[6], I2 = _captures[7], I3 = _captures[8], I4 = _captures[9], I5 = _captures[10], I6 = _captures[11], I7 = _captures[12], I8 = _captures[13], count = _captures[14], state = _captures[15];

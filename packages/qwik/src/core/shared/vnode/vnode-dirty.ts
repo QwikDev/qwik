@@ -9,6 +9,7 @@ import { isServerPlatform } from '../platform/platform';
 import type { Container } from '../types';
 import { throwErrorAndStop } from '../utils/log';
 import { isPromise } from '../utils/promises';
+import type { ValueOrPromise } from '../utils/types';
 import {
   getNearestCursorBoundary,
   getOwnCursorBoundary,
@@ -136,7 +137,7 @@ export function markVNodeDirty(
   vNode: VNode | ISsrNode,
   bits: ChoreBits,
   cursorRoot: VNode | null = null
-): void {
+): ValueOrPromise<void> {
   const prevDirty = vNode.dirty;
   vNode.dirty |= bits;
   if (isSsrNodeGuard(vNode)) {
@@ -146,7 +147,7 @@ export function markVNodeDirty(
         ? container.$renderPromise$.then(() => result)
         : result;
     }
-    return;
+    return result;
   }
   const isRealDirty = bits & ChoreBits.DIRTY_MASK;
   // If already dirty, no need to propagate again

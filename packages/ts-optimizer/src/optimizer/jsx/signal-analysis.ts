@@ -101,11 +101,10 @@ function isStoreFieldAccess(
 
   const objName = node.object.name;
   if (importedNames.has(objName)) return false;
-  if (GLOBAL_NAMES.has(objName)) return false;
 
-  // Skip unknown globals (not imported, not in GLOBAL_NAMES, not local) —
-  // only known-scope identifiers are analyzed.
-  if (localNames && !localNames.has(objName)) return false;
+  // A local binding shadows a same-named global (e.g. flattened `location`);
+  // without scope info only known globals are excluded.
+  if (localNames ? !localNames.has(objName) : GLOBAL_NAMES.has(objName)) return false;
 
   const propName = memberStaticPropName(node);
   if (propName == null || propName === 'value') return false;
@@ -196,8 +195,8 @@ function isDeepStoreAccess(
   const root = getMemberChainRoot(node);
   if (root == null) return false;
   if (importedNames.has(root)) return false;
-  if (GLOBAL_NAMES.has(root)) return false;
-  if (localNames && !localNames.has(root)) return false;
+  // Local bindings shadow same-named globals.
+  if (localNames ? !localNames.has(root) : GLOBAL_NAMES.has(root)) return false;
   return true;
 }
 
@@ -235,7 +234,9 @@ function collectSignalDeps(
   }
 
   function addBare(name: string): void {
-    if (importedNames.has(name) || GLOBAL_NAMES.has(name)) return;
+    if (importedNames.has(name)) return;
+    // Local bindings shadow same-named globals.
+    if (GLOBAL_NAMES.has(name) && !localNames?.has(name)) return;
     if (boundParams.has(name)) return;
     if (allSeen.has(name)) return;
     allSeen.add(name);
@@ -357,6 +358,9 @@ function collectReactiveRoots(
   return collectSignalDeps(node, importedNames, localNames).roots;
 }
 
+/** Rust caps the rendered fnSignal body at 150 chars; longer stays inline (inlined_fn.rs). */
+const MAX_FN_SIGNAL_BODY_LEN = 150;
+
 /**
  * Generate a hoisted function body, replacing reactive root names with `pN` params. Returns both
  * the full function (original spacing) and a minimal-whitespace serialized string form.
@@ -365,7 +369,7 @@ function generateFnSignal(
   exprNode: AstNode,
   source: string,
   roots: string[]
-): { hoistedFn: string; hoistedStr: string } {
+): { hoistedFn: string; hoistedStr: string; strBodyLen: number } {
   const rootToParam = new Map<string, string>();
   for (let i = 0; i < roots.length; i++) {
     rootToParam.set(roots[i], `p${i}`);
@@ -403,7 +407,7 @@ function generateFnSignal(
 
   const hoistedStr = quoteAsStringLiteral(strBody);
 
-  return { hoistedFn, hoistedStr };
+  return { hoistedFn, hoistedStr, strBodyLen: strBody.length };
 }
 
 function collectComputedKeyRewrites(
@@ -795,9 +799,12 @@ export function analyzeSignalExpression(
     const { roots, allDeps } = collectSignalDeps(exprNode, importedNames, localNames);
     if (roots.length === 0) return { type: 'none' };
     if (containsNonOptionalCall(exprNode)) return { type: 'none' };
+    // The serialized _fnSignal string form cannot resolve imports.
+    if (containsImportedReference(exprNode, importedNames)) return { type: 'none' };
     // Hoisting would orphan raw JSX outside the JSX transform.
     if (containsJsx(exprNode)) return { type: 'none' };
-    const { hoistedFn, hoistedStr } = generateFnSignal(exprNode, source, allDeps);
+    const { hoistedFn, hoistedStr, strBodyLen } = generateFnSignal(exprNode, source, allDeps);
+    if (strBodyLen > MAX_FN_SIGNAL_BODY_LEN) return { type: 'none' };
     return { type: 'fnSignal', deps: allDeps, hoistedFn, hoistedStr, isObjectExpr: true };
   }
 
@@ -805,9 +812,12 @@ export function analyzeSignalExpression(
     const { roots, allDeps } = collectSignalDeps(exprNode, importedNames, localNames);
     if (roots.length === 0) return { type: 'none' };
     if (containsNonOptionalCall(exprNode)) return { type: 'none' };
+    // The serialized _fnSignal string form cannot resolve imports.
+    if (containsImportedReference(exprNode, importedNames)) return { type: 'none' };
     // Hoisting would orphan raw JSX outside the JSX transform.
     if (containsJsx(exprNode)) return { type: 'none' };
-    const { hoistedFn, hoistedStr } = generateFnSignal(exprNode, source, allDeps);
+    const { hoistedFn, hoistedStr, strBodyLen } = generateFnSignal(exprNode, source, allDeps);
+    if (strBodyLen > MAX_FN_SIGNAL_BODY_LEN) return { type: 'none' };
     return { type: 'fnSignal', deps: allDeps, hoistedFn, hoistedStr };
   }
 
@@ -838,7 +848,8 @@ function tryBuildFnSignal(
   if (containsImportedReference(exprNode, importedNames)) return { type: 'none' };
   if (containsJsx(exprNode)) return { type: 'none' };
 
-  const { hoistedFn, hoistedStr } = generateFnSignal(exprNode, source, allDeps);
+  const { hoistedFn, hoistedStr, strBodyLen } = generateFnSignal(exprNode, source, allDeps);
+  if (strBodyLen > MAX_FN_SIGNAL_BODY_LEN) return { type: 'none' };
   return { type: 'fnSignal', deps: allDeps, hoistedFn, hoistedStr };
 }
 
@@ -877,8 +888,10 @@ function analyzeMemberExpression(
     }
     const roots = collectReactiveRoots(exprNode, importedNames, localNames);
     if (roots.length > 0) {
-      const { hoistedFn, hoistedStr } = generateFnSignal(exprNode, source, roots);
-      return { type: 'fnSignal', deps: roots, hoistedFn, hoistedStr };
+      const { hoistedFn, hoistedStr, strBodyLen } = generateFnSignal(exprNode, source, roots);
+      if (strBodyLen <= MAX_FN_SIGNAL_BODY_LEN) {
+        return { type: 'fnSignal', deps: roots, hoistedFn, hoistedStr };
+      }
     }
     const objText = source.slice(exprNode.object.start, exprNode.object.end);
     return { type: 'wrapProp', code: `_wrapProp(${objText})` };
@@ -887,8 +900,10 @@ function analyzeMemberExpression(
   if (isKnownIdent && isDeepStoreAccess(exprNode, importedNames, localNames)) {
     const roots = collectReactiveRoots(exprNode, importedNames, localNames);
     if (roots.length > 0) {
-      const { hoistedFn, hoistedStr } = generateFnSignal(exprNode, source, roots);
-      return { type: 'fnSignal', deps: roots, hoistedFn, hoistedStr };
+      const { hoistedFn, hoistedStr, strBodyLen } = generateFnSignal(exprNode, source, roots);
+      if (strBodyLen <= MAX_FN_SIGNAL_BODY_LEN) {
+        return { type: 'fnSignal', deps: roots, hoistedFn, hoistedStr };
+      }
     }
   }
 
@@ -915,8 +930,10 @@ function analyzeMemberExpression(
       !containsImportedReference(exprNode, importedNames) &&
       !containsJsx(exprNode)
     ) {
-      const { hoistedFn, hoistedStr } = generateFnSignal(exprNode, source, allDeps);
-      return { type: 'fnSignal', deps: allDeps, hoistedFn, hoistedStr };
+      const { hoistedFn, hoistedStr, strBodyLen } = generateFnSignal(exprNode, source, allDeps);
+      if (strBodyLen <= MAX_FN_SIGNAL_BODY_LEN) {
+        return { type: 'fnSignal', deps: allDeps, hoistedFn, hoistedStr };
+      }
     }
   }
 

@@ -26,7 +26,7 @@ export const Child = component$<{ count: number }>(({ count }) => {
   expect(out).toContain('class: _fnSignal(_hf0, [_rawProps], _hf0_str)');
 });
 
-it('a store-derived object class stays inline', () => {
+it('a store-derived object class hoists to _fnSignal (rust parity)', () => {
   const code = `
 import { component$, useStore } from '@qwik.dev/core';
 export const Cmp = component$(() => {
@@ -35,7 +35,7 @@ export const Cmp = component$(() => {
 });
 `;
   const out = transform(code);
-  expect(out).not.toContain('class: _fnSignal');
+  expect(out).toContain('class: _fnSignal(_hf0, [store], _hf0_str)');
 });
 
 it('a .w() with a param capture classifies var on component props', () => {

@@ -478,17 +478,10 @@ export function processProps(
         const isParam = (dep: string) => paramNames?.has(dep) ?? false;
         const isRawWhenNonConst =
           valueNode?.type === 'TemplateLiteral' || valueNode?.type === 'CallExpression';
-        // An object-expr class hoists only when it derives purely from the
-        // component's props param; store/captured deps stay inline (rust).
-        const isParamDep = (dep: string) =>
-          (paramNames?.has(dep) ?? false) || bindings?.classify(dep, valueNode.start) === 'param';
         const excludedFromHoist =
           // applyRef writes into the ref value; a hoisted _fnSignal is
           // read-only and throws Q31 when the element is (re)created.
           propName === 'ref' ||
-          (signalResult.isObjectExpr &&
-            (propName === 'class' || propName === 'className') &&
-            !signalResult.deps.every(isParamDep)) ||
           (isRawWhenNonConst &&
             !fnSignalDepsAllConst(
               signalResult.deps,

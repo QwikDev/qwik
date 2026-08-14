@@ -261,17 +261,21 @@ function processExpressionChild(
   }
 
   if (signalResult.type === 'fnSignal') {
-    const hfName = signalHoister.hoist(
-      signalResult.hoistedFn,
-      signalResult.hoistedStr,
-      expr.start ?? 0
-    );
-    const fnSignalCall = `_fnSignal(${hfName}, [${signalResult.deps.join(', ')}], ${hfName}_str)`;
-    neededImports.add('_fnSignal');
     const depsConst = signalResult.deps.every(
       (dep) => importedNames.has(dep) || bindings?.classify(dep, expr.start) === 'const'
     );
-    return { text: fnSignalCall, type: depsConst ? 'static' : 'dynamic' };
+    // Rust never wraps a non-const template literal or call: re-evaluating
+    // one may repeat side effects it contains (transform.rs).
+    if (depsConst || (expr.type !== 'TemplateLiteral' && expr.type !== 'CallExpression')) {
+      const hfName = signalHoister.hoist(
+        signalResult.hoistedFn,
+        signalResult.hoistedStr,
+        expr.start ?? 0
+      );
+      const fnSignalCall = `_fnSignal(${hfName}, [${signalResult.deps.join(', ')}], ${hfName}_str)`;
+      neededImports.add('_fnSignal');
+      return { text: fnSignalCall, type: depsConst ? 'static' : 'dynamic' };
+    }
   }
 
   const propClass = classifyConstness(expr, importedNames, bindings, expr.start);

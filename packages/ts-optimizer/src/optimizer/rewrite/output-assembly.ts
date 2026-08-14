@@ -535,7 +535,8 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
       migratedNames,
       inlineOptions?.stripCtxName,
       inlineOptions?.stripEventHandlers,
-      ctx.isServer,
+      // Lib output serves both environments — never fold env consts (rust parity).
+      ctx.isLibMode ? undefined : ctx.isServer,
       deriveIsDev(ctx.mode),
       sharedJsxCallHoister,
       ctx.elementQpParamsMap

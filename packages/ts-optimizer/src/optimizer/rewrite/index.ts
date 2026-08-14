@@ -462,7 +462,8 @@ function applyModeTransforms(ctx: RewriteContext): void {
     stripExportDeclarations(ctx.s, ctx.program, ctx.stripExports);
   }
   const isDev = deriveIsDev(ctx.mode);
-  if (ctx.isServer !== undefined || isDev !== undefined) {
+  // Lib output serves both environments — never fold env consts (rust parity).
+  if (!ctx.isLibMode && (ctx.isServer !== undefined || isDev !== undefined)) {
     replaceConstants(ctx.s, ctx.program, ctx.originalImports, ctx.isServer, isDev);
   }
 }

@@ -166,6 +166,7 @@ function applyPassthroughConstFolding(
 
   if (
     options.isServer !== undefined &&
+    options.mode !== 'lib' &&
     (code.includes('@qwik.dev/core') || code.includes('@builder.io/qwik'))
   ) {
     const folded = applySegmentConstReplacement(code, relPath, options.isServer);
@@ -1132,6 +1133,7 @@ function rewriteParent(
   let foldedParentCode = parentResult.code;
   if (
     options.isServer !== undefined &&
+    !emit.isLibMode &&
     (foldedParentCode.includes('@qwik.dev/core') || foldedParentCode.includes('@builder.io/qwik'))
   ) {
     foldedParentCode = applySegmentConstReplacement(foldedParentCode, relPath, options.isServer);

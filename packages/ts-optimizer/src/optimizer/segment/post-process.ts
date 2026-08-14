@@ -208,6 +208,7 @@ export function postProcessSegmentCode(code: string, opts: SegmentPostProcessOpt
 
   if (
     opts.isServer !== undefined &&
+    opts.emitMode !== 'lib' &&
     (result.includes('@qwik.dev/core') || result.includes('@builder.io/qwik'))
   ) {
     result = runHelper(() =>

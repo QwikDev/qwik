@@ -912,6 +912,7 @@ export function assembleOutput(ctx: RewriteContext): string {
 
   s.prepend(preamble.join('\n') + '\n');
 
+  const autoExported = new Set<string>();
   if (migrationDecisions && !ctx.isLibMode) {
     // `_auto_X` re-exports make module-level decls importable by segment
     // files. Lib mode emits a single module (no segment files), so they're
@@ -920,8 +921,27 @@ export function assembleOutput(ctx: RewriteContext): string {
       if (decision.action === 'reexport') {
         const decl = moduleLevelDecls?.find((d) => d.name === decision.varName);
         if (decl?.isExported) continue;
+        autoExported.add(decision.varName);
         s.append(`\nexport { ${decision.varName} as _auto_${decision.varName} };`);
       }
+    }
+  }
+
+  if (!ctx.isLibMode && moduleLevelDecls) {
+    // The router discovers loaders/actions by scanning route-module exports,
+    // so un-exported `routeLoader$`/`routeAction$` results must still surface
+    // as `_auto_X` exports (rust parity) or their middleware never runs.
+    const routerMarkerInit =
+      /=\s*(?:routeLoader\$|routeLoaderQrl|routeAction\$|routeActionQrl|globalAction\$|globalActionQrl)\s*\(/;
+    const names = moduleLevelDecls
+      .filter(
+        (decl) =>
+          !decl.isExported && !autoExported.has(decl.name) && routerMarkerInit.test(decl.declText)
+      )
+      .map((decl) => decl.name)
+      .sort();
+    for (const name of names) {
+      s.append(`\nexport { ${name} as _auto_${name} };`);
     }
   }
 

@@ -5,7 +5,7 @@ export default component$(() => {
   const location = useLocation();
 
   useTask$(() => {
-    // untracked: v3 tasks auto-track reads; this task must run once per mount only
+    // this task must run once per mount only
     const id = untrack(() => location.params.id);
     if (id === undefined) {
       // should not happen

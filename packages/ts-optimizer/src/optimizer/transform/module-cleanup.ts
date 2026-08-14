@@ -13,6 +13,8 @@ import type {
   ImportSpecifier,
 } from '../../ast-types.js';
 import { parseWithRawTransfer } from '../ast/parse.js';
+import { applySegmentDCE, hasSegmentDcePatterns } from './dead-code.js';
+import { applyStatementDCE } from './statement-dce.js';
 import {
   formatImportParts,
   formatImportStatement,
@@ -266,6 +268,8 @@ export function applySegmentSideEffectSimplification(
 
       if (node.type === 'VariableDeclaration' && node.kind === 'const') {
         if (node.start === undefined || node.start < exportStart) return;
+        // Exported declarations are the module's contract — never rewrite them.
+        if (parent?.type === 'ExportNamedDeclaration') return;
         for (const declarator of node.declarations) {
           if (declarator.id?.type === 'Identifier' && declarator.init) {
             if (node.declarations?.length > 1) continue;
@@ -300,11 +304,7 @@ export function applySegmentSideEffectSimplification(
     if (code.indexOf(`export const ${decl.name} =`, exportStart) >= 0) continue;
 
     let replacement: string;
-    if (
-      decl.initType === 'MemberExpression' ||
-      decl.initType === 'CallExpression' ||
-      decl.initType === 'Identifier'
-    ) {
+    if (decl.initType === 'MemberExpression' || decl.initType === 'CallExpression') {
       replacement = decl.initText + ';';
     } else if (decl.initType === 'BinaryExpression') {
       const operandIds = extractBinaryOperandIdentifiersFromAst(decl.initNode);
@@ -648,4 +648,75 @@ function extractBinaryOperandIdentifiersFromAst(node: AstNode): string[] {
   }
   visit(node);
   return ids;
+}
+
+export interface DcePipelineOptions {
+  isServer?: boolean;
+  isDev?: boolean;
+  /** Lib output serves both environments: skip env folding and statement-level DCE. */
+  isLibMode?: boolean;
+  transpileJsx?: boolean;
+  /** Passthrough modules: only clean up when the env fold actually changed the code. */
+  onlyIfFoldChanges?: boolean;
+  /** Inject the HMR prologue after DCE, before the unused-import prune. */
+  hmrDevFile?: string;
+}
+
+/**
+ * The one post-transform cleanup sequence: env-const fold, branch fold, statement DCE, side-effect
+ * simplification, optional HMR prologue, unused-import prune. Every emitted module (segment,
+ * parent, passthrough) runs the same order so the passes stay in lockstep.
+ */
+export function runDcePipeline(code: string, filename: string, opts: DcePipelineOptions): string {
+  let result = code;
+
+  // Single-parse cache across stages; invalidated whenever a stage mutates.
+  let cachedProgram: AstProgram | undefined;
+  const lazyParse = (): AstProgram | undefined => {
+    if (cachedProgram) return cachedProgram;
+    try {
+      cachedProgram = parseWithRawTransfer(filename, result).program;
+    } catch {
+      cachedProgram = undefined;
+    }
+    return cachedProgram;
+  };
+  const runStage = (stage: () => string): void => {
+    const before = result;
+    result = stage();
+    if (result !== before) cachedProgram = undefined;
+  };
+
+  if (
+    (opts.isServer !== undefined || opts.isDev !== undefined) &&
+    !opts.isLibMode &&
+    (result.includes('@qwik.dev/core') || result.includes('@builder.io/qwik'))
+  ) {
+    runStage(() =>
+      applySegmentConstReplacement(result, filename, opts.isServer, opts.isDev, lazyParse())
+    );
+  }
+  if (opts.onlyIfFoldChanges && result === code) {
+    return code;
+  }
+
+  if (hasSegmentDcePatterns(result)) {
+    runStage(() => applySegmentDCE(result));
+  }
+  if (!opts.isLibMode) {
+    runStage(() => applyStatementDCE(result, filename));
+    runStage(() => applySegmentSideEffectSimplification(result, filename, lazyParse()));
+  }
+
+  if (opts.hmrDevFile !== undefined) {
+    runStage(() => injectUseHmr(result, opts.hmrDevFile!, lazyParse()));
+  }
+
+  if (result.startsWith('import ') || result.includes('\nimport ')) {
+    runStage(() =>
+      removeUnusedImports(result, filename, opts.transpileJsx, lazyParse(), opts.isLibMode)
+    );
+  }
+
+  return result;
 }

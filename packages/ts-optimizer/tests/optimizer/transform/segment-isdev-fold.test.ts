@@ -46,3 +46,31 @@ it('folds isDev inside generated segments in dev mode', () => {
   expect(out).toContain('dev only');
   expect(out).not.toContain('prod only');
 });
+
+it('never rewrites an exported const that is only referenced externally', () => {
+  // The side-effect simplification once turned `export const x = call()`
+  // into `export call();` when nothing in-module referenced x.
+  const out = transformModule({
+    input: [
+      {
+        path: mkFilePath('route-loaders.ts'),
+        code: mkSourceText(`
+import { implicit$FirstArg } from '@qwik.dev/core';
+export const useSomething = () => 1;
+function routeLoaderQrl(qrl: unknown) {
+  return qrl;
+}
+export const routeLoader$ = implicit$FirstArg(routeLoaderQrl);
+`),
+      },
+    ],
+    srcDir: mkFilePath('.'),
+    entryStrategy: { type: 'hoist' },
+    minify: 'simplify',
+    transpileTs: true,
+    mode: 'dev',
+    isServer: true,
+  }).modules[0]!.code;
+  expect(out).toContain('export const routeLoader$');
+  expect(out).not.toMatch(/export\s+implicit\$FirstArg/);
+});

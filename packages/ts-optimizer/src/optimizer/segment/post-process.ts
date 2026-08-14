@@ -12,19 +12,10 @@ import {
 } from 'magic-regexp';
 import { transformSync as oxcTransformSync, type TransformOptions } from 'oxc-transform';
 import type { SegmentCaptureInfo } from './segment-codegen.js';
-import {
-  applySegmentConstReplacement,
-  applySegmentSideEffectSimplification,
-  injectUseHmr,
-  removeUnusedImports,
-} from '../transform/module-cleanup.js';
-import { applySegmentDCE, hasSegmentDcePatterns } from '../transform/dead-code.js';
+import { runDcePipeline } from '../transform/module-cleanup.js';
 import { deriveIsDev } from '../rewrite/const-replacement.js';
 import type { EmitMode } from '../types/types.js';
-import { applyStatementDCE } from '../transform/statement-dce.js';
 import { isAnyComponentCtx } from '../rewrite/predicates.js';
-import { parseWithRawTransfer } from '../ast/parse.js';
-import type { AstProgram } from '../../ast-types.js';
 
 /**
  * `parentSourceExt` is the parent input file's extension (`.tsx`/`.ts`/`.jsx`/ `.js`), distinct
@@ -186,58 +177,15 @@ export function postProcessSegmentCode(code: string, opts: SegmentPostProcessOpt
     }
   }
 
-  // Single-parse cache: parse once on first use and reuse until a helper
-  // mutates the code (which invalidates the AST), so a no-mutation pipeline
-  // parses at most once across all steps.
-  let cachedProgram: AstProgram | undefined;
-  const lazyParse = (): AstProgram | undefined => {
-    if (cachedProgram) return cachedProgram;
-    try {
-      cachedProgram = parseWithRawTransfer(filename, result).program;
-    } catch {
-      cachedProgram = undefined;
-    }
-    return cachedProgram;
-  };
-  const runHelper = <T extends string>(helper: () => T): T => {
-    const before = result;
-    const out = helper();
-    // String identity is sufficient: helpers return the original `result`
-    // reference when they no-op, and a new string when they mutate.
-    if (out !== before) cachedProgram = undefined;
-    return out;
-  };
-
-  const isDev = deriveIsDev(opts.emitMode as EmitMode);
-  if (
-    (opts.isServer !== undefined || isDev !== undefined) &&
-    opts.emitMode !== 'lib' &&
-    (result.includes('@qwik.dev/core') || result.includes('@builder.io/qwik'))
-  ) {
-    result = runHelper(() =>
-      applySegmentConstReplacement(result, filename, opts.isServer, isDev, lazyParse())
-    );
-  }
-
-  if (hasSegmentDcePatterns(result)) {
-    result = runHelper(() => applySegmentDCE(result));
-  }
-
-  result = runHelper(() => applyStatementDCE(result, filename));
-
-  const exportIdx = result.indexOf('export const ');
-  const afterExportLine = exportIdx >= 0 ? result.indexOf('\n', exportIdx) : -1;
-  if (afterExportLine >= 0 && result.indexOf('const ', afterExportLine) >= 0) {
-    result = runHelper(() => applySegmentSideEffectSimplification(result, filename, lazyParse()));
-  }
-
-  if (opts.emitMode === 'hmr' && opts.devFile && isAnyComponentCtx(opts.ctxName)) {
-    result = runHelper(() => injectUseHmr(result, opts.devFile!, lazyParse()));
-  }
-
-  if (result.startsWith('import ') || result.includes('\nimport ')) {
-    result = runHelper(() => removeUnusedImports(result, filename, undefined, lazyParse()));
-  }
+  result = runDcePipeline(result, filename, {
+    isServer: opts.isServer,
+    isDev: deriveIsDev(opts.emitMode as EmitMode),
+    isLibMode: opts.emitMode === 'lib',
+    hmrDevFile:
+      opts.emitMode === 'hmr' && opts.devFile && isAnyComponentCtx(opts.ctxName)
+        ? opts.devFile
+        : undefined,
+  });
 
   return result;
 }

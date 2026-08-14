@@ -76,12 +76,10 @@ import {
   getExtension,
 } from '../../paths.js';
 import {
-  applySegmentConstReplacement,
   buildParentExtractionMap,
   buildPassthroughModule,
-  removeUnusedImports,
+  runDcePipeline,
 } from './module-cleanup.js';
-import { applySegmentDCE } from './dead-code.js';
 import { deriveIsDev } from '../rewrite/const-replacement.js';
 import { applyModuleHygieneRenames } from './hygiene-renames.js';
 import {
@@ -165,17 +163,13 @@ function applyPassthroughConstFolding(
     }
   }
 
-  const isDev = deriveIsDev(options.mode);
-  if (
-    (options.isServer !== undefined || isDev !== undefined) &&
-    options.mode !== 'lib' &&
-    (code.includes('@qwik.dev/core') || code.includes('@builder.io/qwik'))
-  ) {
-    const folded = applySegmentConstReplacement(code, relPath, options.isServer, isDev);
-    if (folded !== code) {
-      code = removeUnusedImports(applySegmentDCE(folded), relPath, options.transpileJsx);
-    }
-  }
+  code = runDcePipeline(code, relPath, {
+    isServer: options.isServer,
+    isDev: deriveIsDev(options.mode),
+    isLibMode: options.mode === 'lib',
+    transpileJsx: options.transpileJsx,
+    onlyIfFoldChanges: true,
+  });
 
   return code === module.code ? module : { ...module, code };
 }
@@ -1132,28 +1126,12 @@ function rewriteParent(
     analysis.elementQpParamsMap
   );
 
-  let foldedParentCode = parentResult.code;
-  const isDev = deriveIsDev(options.mode);
-  if (
-    (options.isServer !== undefined || isDev !== undefined) &&
-    !emit.isLibMode &&
-    (foldedParentCode.includes('@qwik.dev/core') || foldedParentCode.includes('@builder.io/qwik'))
-  ) {
-    foldedParentCode = applySegmentConstReplacement(
-      foldedParentCode,
-      relPath,
-      options.isServer,
-      isDev
-    );
-  }
-  const parentCode = applySegmentDCE(foldedParentCode);
-  const cleanedCode = removeUnusedImports(
-    parentCode,
-    relPath,
-    options.transpileJsx,
-    undefined,
-    emit.isLibMode
-  );
+  const cleanedCode = runDcePipeline(parentResult.code, relPath, {
+    isServer: options.isServer,
+    isDev: deriveIsDev(options.mode),
+    isLibMode: emit.isLibMode,
+    transpileJsx: options.transpileJsx,
+  });
   const hygienicCode = applyModuleHygieneRenames(cleanedCode, relPath);
   const removedImportSources = collectRemovedImportSources(
     analysis.originalImports,

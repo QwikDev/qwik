@@ -42,7 +42,7 @@ const q_use_styles_scoped_dynamic_q_e_click_segment_2_29fz3rp7gjtvv = /*#__PURE_
   'use_styles_scoped_dynamic_q_e_click_segment_2_29fz3rp7gjtvv'
 );
 export function App(props, ctx) {
-  useStylesScoped(styles, 'gtgvab-0');
+  useStylesScoped(styles, 'l64svq-0');
   const active = useSignal(false);
   const id_0 = ctx.nextId();
   ctx.addRoot(active);
@@ -52,7 +52,7 @@ export function App(props, ctx) {
     [active],
     q_use_styles_scoped_dynamic_class_segment_1_3grhh2wv1i202,
     undefined,
-    '⚡️gtgvab-0'
+    '⚡️l64svq-0'
   );
   return maybeThen(attr_0, (attr_0) => [
     createSsrElementRecord(
@@ -151,9 +151,9 @@ import styles from './app.css?inline';
 import { use_styles_scoped_dynamic_class_segment_1_3grhh2wv1i202 } from './use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_class_segment_1_3grhh2wv1i202';
 import { use_styles_scoped_dynamic_q_e_click_segment_2_29fz3rp7gjtvv } from './use-styles-scoped-dynamic.tsx_use_styles_scoped_dynamic_q_e_click_segment_2_29fz3rp7gjtvv';
 
-const App_tmpl0 = createTemplate('<button class="⚡️gtgvab-0">Toggle</button>');
+const App_tmpl0 = createTemplate('<button class="⚡️l64svq-0">Toggle</button>');
 export function App(props, ctx) {
-  useStylesScoped(styles, 'gtgvab-0');
+  useStylesScoped(styles, 'l64svq-0');
   const active = useSignal(false);
   const fragment0 = App_tmpl0(ctx.document);
   const el0 = _first(fragment0);
@@ -163,7 +163,7 @@ export function App(props, ctx) {
     [active],
     use_styles_scoped_dynamic_class_segment_1_3grhh2wv1i202,
     ctx.scheduler,
-    '⚡️gtgvab-0'
+    '⚡️l64svq-0'
   );
   ctx.scheduler.notify(effect0);
   setEvent(el0, 'q-e:click', use_styles_scoped_dynamic_q_e_click_segment_2_29fz3rp7gjtvv, [active]);

@@ -3279,7 +3279,10 @@ class SemanticLowerer {
       return null;
     }
     const index = this.nextStyle++;
-    const styleId = `${hashCode(`${this.owner.displayName}_style${index}`)}-${index}`;
+    // Include the module identity: display names like "default" repeat across files
+    const styleId = `${hashCode(
+      `${this.extracted.sourceIdentity}\0${this.owner.displayName}_style${index}`
+    )}-${index}`;
     if (scoped) {
       this.styleScopes.push(`⚡️${styleId}`);
     }

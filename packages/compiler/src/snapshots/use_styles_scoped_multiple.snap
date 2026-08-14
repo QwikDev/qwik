@@ -18,10 +18,10 @@ import red from './red.css?inline';
 import blue from './blue.css?inline';
 import { useStylesScoped, createSsrElementRecord } from '@qwik.dev/core';
 export function App(props, ctx) {
-  useStylesScoped(red, 'gtgvab-0');
-  useStylesScoped(blue, 'gtgvaa-1');
+  useStylesScoped(red, 'o0qnhd-0');
+  useStylesScoped(blue, 'o0qnhc-1');
   return [
-    createSsrElementRecord('div', '<div class="⚡️gtgvab-0 ⚡️gtgvaa-1 container"', '>'),
+    createSsrElementRecord('div', '<div class="⚡️o0qnhd-0 ⚡️o0qnhc-1 container"', '>'),
     'Hello</div>',
   ];
 }
@@ -36,10 +36,10 @@ import red from './red.css?inline';
 import blue from './blue.css?inline';
 import { useStylesScoped, _first, createTemplate } from '@qwik.dev/core';
 
-const App_tmpl0 = createTemplate('<div class="⚡️gtgvab-0 ⚡️gtgvaa-1 container">Hello</div>');
+const App_tmpl0 = createTemplate('<div class="⚡️o0qnhd-0 ⚡️o0qnhc-1 container">Hello</div>');
 export function App(props, ctx) {
-  useStylesScoped(red, 'gtgvab-0');
-  useStylesScoped(blue, 'gtgvaa-1');
+  useStylesScoped(red, 'o0qnhd-0');
+  useStylesScoped(blue, 'o0qnhc-1');
   const fragment0 = App_tmpl0(ctx.document);
   const el0 = _first(fragment0);
   return el0;

@@ -36,7 +36,7 @@ import { Child } from './use-styles-scoped-projection.tsx_component_Child';
 const use_styles_scoped_projection_slot_render_segment_2_ltuwbe4740jy = (ctx, rangeId) => {
   return [
     createSsrRecord('<!s=', createSsrNodeId(rangeId), '>'),
-    '<span class="⚡️gtgvab-0 projected">Projected</span><!/s>',
+    '<span class="⚡️j8y9mo-0 projected">Projected</span><!/s>',
   ];
 };
 const q_use_styles_scoped_projection_slot_render_segment_2_ltuwbe4740jy = /*#__PURE__*/ _noopQrl(
@@ -47,7 +47,7 @@ q_use_styles_scoped_projection_slot_render_segment_2_ltuwbe4740jy.s(
 );
 export { Child };
 export function App(props, ctx) {
-  useStylesScoped(parentStyles, 'gtgvab-0');
+  useStylesScoped(parentStyles, 'j8y9mo-0');
   const slot_scope_0 = createSlotScope();
   ctx.addRoot(slot_scope_0);
   registerProjection(
@@ -74,10 +74,10 @@ import {
 import childStyles from './child.css?inline';
 
 export function Child(props, ctx) {
-  useStylesScoped(childStyles, 'hnnps2-0');
+  useStylesScoped(childStyles, 'f6r605-0');
   const slot_0 = renderSsrSlot(ctx, '', undefined, getActiveInvokeContextOrNull());
   return maybeThen(slot_0, (slot_0) => [
-    createSsrElementRecord('section', '<section class="⚡️hnnps2-0 child"', '>'),
+    createSsrElementRecord('section', '<section class="⚡️f6r605-0 child"', '>'),
     slot_0,
     '</section>',
   ]);
@@ -109,7 +109,7 @@ import { createSsrRecord, createSsrNodeId } from '@qwik.dev/core';
 export const use_styles_scoped_projection_slot_render_segment_2_ltuwbe4740jy = (ctx, rangeId) => {
   return [
     createSsrRecord('<!s=', createSsrNodeId(rangeId), '>'),
-    '<span class="⚡️gtgvab-0 projected">Projected</span><!/s>',
+    '<span class="⚡️j8y9mo-0 projected">Projected</span><!/s>',
   ];
 };
 /*
@@ -151,7 +151,7 @@ import { use_styles_scoped_projection_slot_render_segment_2_ltuwbe4740jy } from 
 import { Child } from './use-styles-scoped-projection.tsx_component_Child';
 export { Child };
 export function App(props, ctx) {
-  useStylesScoped(parentStyles, 'gtgvab-0');
+  useStylesScoped(parentStyles, 'j8y9mo-0');
   const slotScope0 = createSlotScope();
   registerProjection(
     slotScope0,
@@ -172,10 +172,10 @@ import {
 } from '@qwik.dev/core';
 import childStyles from './child.css?inline';
 
-const Child_tmpl0 = createTemplate('<section class="⚡️hnnps2-0 child"><!----><!----></section>');
+const Child_tmpl0 = createTemplate('<section class="⚡️f6r605-0 child"><!----><!----></section>');
 
 export function Child(props, ctx) {
-  useStylesScoped(childStyles, 'hnnps2-0');
+  useStylesScoped(childStyles, 'f6r605-0');
   const fragment0 = Child_tmpl0(ctx.document);
   const el0 = _first(fragment0);
   const start0 = _first(el0);
@@ -211,7 +211,7 @@ export function Child(props, ctx) {
 
 import { _first, createTemplate } from '@qwik.dev/core';
 const use_styles_scoped_projection_slot_render_segment_2_ltuwbe4740jy_tmpl0 = createTemplate(
-  '<span class="⚡️gtgvab-0 projected">Projected</span>'
+  '<span class="⚡️j8y9mo-0 projected">Projected</span>'
 );
 
 export const use_styles_scoped_projection_slot_render_segment_2_ltuwbe4740jy = (ctx) => {

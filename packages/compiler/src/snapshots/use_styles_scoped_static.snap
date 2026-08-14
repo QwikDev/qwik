@@ -15,8 +15,8 @@ export function App() {
 import styles from './app.css?inline';
 import { useStylesScoped, createSsrElementRecord } from '@qwik.dev/core';
 export function App(props, ctx) {
-  useStylesScoped(styles, 'gtgvab-0');
-  return [createSsrElementRecord('div', '<div class="⚡️gtgvab-0 container"', '>'), 'Hello</div>'];
+  useStylesScoped(styles, 'xcbld4-0');
+  return [createSsrElementRecord('div', '<div class="⚡️xcbld4-0 container"', '>'), 'Hello</div>'];
 }
 == SSR DIAGNOSTICS ==
 
@@ -28,9 +28,9 @@ export function App(props, ctx) {
 import styles from './app.css?inline';
 import { useStylesScoped, _first, createTemplate } from '@qwik.dev/core';
 
-const App_tmpl0 = createTemplate('<div class="⚡️gtgvab-0 container">Hello</div>');
+const App_tmpl0 = createTemplate('<div class="⚡️xcbld4-0 container">Hello</div>');
 export function App(props, ctx) {
-  useStylesScoped(styles, 'gtgvab-0');
+  useStylesScoped(styles, 'xcbld4-0');
   const fragment0 = App_tmpl0(ctx.document);
   const el0 = _first(fragment0);
   return el0;

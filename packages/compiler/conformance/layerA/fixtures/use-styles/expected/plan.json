@@ -12,7 +12,7 @@
         "setup": [
           {
             "kind": "style",
-            "styleId": "gtgvab-0",
+            "styleId": "2tk843-0",
             "scoped": false,
             "css": ".card { color: rebeccapurple; }"
           },
@@ -80,7 +80,7 @@
       "setup": [
         {
           "kind": "style",
-          "styleId": "gtgvab-0",
+          "styleId": "2tk843-0",
           "scoped": false,
           "css": ".card { color: rebeccapurple; }"
         },

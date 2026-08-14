@@ -861,6 +861,26 @@ export function App() {
     });
   });
 
+  test('style ids stay unique across files with identical component shapes', async () => {
+    const code = `import { component$, useStylesScoped$ } from '@qwik.dev/core';
+
+export default component$(() => {
+  useStylesScoped$(\`.container { height: 3200px; }\`);
+  return <div class="container">Hello</div>;
+});
+`;
+    const styleIdOf = async (path: string) => {
+      const result = await transformModules(baseOptions({ path, code }, true));
+      const emitted = result.modules.map((module) => module.code).join('\n');
+      const match = /useStylesScoped\([\s\S]*?,\s*"([^"]+)"\)/.exec(emitted);
+      expect(match, `no scoped style call emitted for ${path}`).not.toBeNull();
+      return match![1];
+    };
+    const first = await styleIdOf('src/routes/page-long/index.tsx');
+    const second = await styleIdOf('src/routes/page-short/index.tsx');
+    expect(first).not.toBe(second);
+  });
+
   test('keeps scoped classes on projected JSX owner', async () => {
     await testInput('use_styles_scoped_projection', {
       path: 'src/use-styles-scoped-projection.tsx',

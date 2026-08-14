@@ -239,7 +239,7 @@ export { router }
       plugins: [
         ...plugins,
         optimizer.qwikVite({
-          // TEMP-AB: rust optimizer for debugging (fresh workspace build)
+          // QWIK_AB_RUST=1 selects the rust optimizer, for A/B parity comparison.
           ...(process.env.QWIK_AB_RUST
             ? {
                 optimizerOptions: {
@@ -274,7 +274,7 @@ export { router }
       plugins: [
         ...plugins,
         optimizer.qwikVite({
-          // TEMP-AB: rust optimizer for debugging (fresh workspace build)
+          // QWIK_AB_RUST=1 selects the rust optimizer, for A/B parity comparison.
           ...(process.env.QWIK_AB_RUST
             ? {
                 optimizerOptions: {

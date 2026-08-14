@@ -375,6 +375,48 @@ describe('qwikloader behavior', () => {
     expect(logs).toEqual(['start 1', 'end 1', 'start 2', 'end 2']);
   });
 
+  test('runs sync qrls during dispatch while a prior event is still pending', async () => {
+    const { doc } = createLoaderEnvironment(['e:click']);
+    const logs: string[] = [];
+    let resolvePrior!: () => void;
+    (doc as any).qFuncs_sync = [
+      (ev: any) => {
+        logs.push('sync preventDefault');
+        ev.preventDefault();
+      },
+    ];
+    const container = createMockElement(null, {
+      'q:container': '',
+      'q:base': './',
+      'q:instance': 'sync',
+    });
+    const other = createMockElement(container, {}, async () => {
+      logs.push('prior async');
+      await new Promise<void>((resolve) => {
+        resolvePrior = resolve;
+      });
+      logs.push('prior done');
+    });
+    const link = createMockElement(container, {
+      'q-e:click': '#0#',
+    });
+    const listener = getSingleListener(doc, 'click').handler;
+
+    listener(createMockEvent(other));
+    const linkEvent = createMockEvent(link);
+    const result = listener(linkEvent);
+
+    // the sync$ modifier must apply inside the dispatch, before the prior event settles
+    expect(linkEvent.defaultPrevented).toBe(true);
+    expect(logs).toEqual(['prior async', 'sync preventDefault']);
+
+    resolvePrior();
+    await result;
+    await flushQueuedTasks();
+
+    expect(logs).toEqual(['prior async', 'sync preventDefault', 'prior done']);
+  });
+
   test('applies parent preventdefault synchronously before async child bubbling completes', async () => {
     const { doc } = createLoaderEnvironment(['e:click']);
     const logs: string[] = [];

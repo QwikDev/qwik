@@ -276,6 +276,8 @@ const dispatch = (
   allowPreventDefault = true
 ) => {
   let defer = queuedTasks !== undefined;
+  /** Async progress within this event's own chain — sync qrls only wait for these. */
+  let chainAsync = false;
   if (kebabName) {
     if (allowPreventDefault && element.hasAttribute('preventdefault:' + kebabName)) {
       ev.preventDefault();
@@ -367,23 +369,29 @@ const dispatch = (
         resolveHandler(container, element, qBase, base, chunk, symbol, reqTime, reportSyncError);
       const handler = waitForReady ? undefined : resolve();
       if (waitForReady) {
-        defer = true;
+        defer = chainAsync = true;
         tasks.push(async () => {
           await waitForReady;
           await run((await resolve(false)) || (await resolve()));
         });
       } else if (isPromise(handler)) {
-        defer = true;
+        defer = chainAsync = true;
         tasks.push(() => handler.then(run));
+      } else if (!chunk && !chainAsync) {
+        // sync$ modifiers must apply inside the dispatch even while prior events drain
+        const result = run(handler);
+        if (isPromise(result)) {
+          defer = chainAsync = true;
+          tasks.push(() => result);
+        }
       } else if (defer) {
-        defer = true;
         tasks.push(async () => {
           await run(handler || (await resolve()));
         });
       } else {
         const result = run(handler);
         if (isPromise(result)) {
-          defer = true;
+          defer = chainAsync = true;
           tasks.push(() => result);
         }
       }

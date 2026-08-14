@@ -7,6 +7,10 @@
 
 import type { AstNode, AstProgram } from '../../ast-types.js';
 import { forEachAstChild } from '../ast/guards.js';
+import {
+  addBindingNamesFromPatternToSet,
+  type BindingPatternLike,
+} from '../ast/binding-pattern.js';
 import type { RewriteContext } from './rewrite-context.js';
 import type { ImportInfo } from '../extraction/marker-detection.js';
 import { isStrippedExtraction } from './predicates.js';
@@ -194,39 +198,14 @@ function findBindingIdentifierPositions(
 }
 
 function collectParamBindings(params: readonly AstNode[], out: Set<string>): void {
-  for (const param of params) collectPatternBindings(param, out);
-}
-
-function collectPatternBindings(node: AstNode | null | undefined, out: Set<string>): void {
-  if (!node) return;
-  switch (node.type) {
-    case 'Identifier':
-      out.add(node.name);
-      return;
-    case 'ObjectPattern':
-      for (const prop of node.properties ?? []) {
-        if (prop.type === 'RestElement') collectPatternBindings(prop.argument, out);
-        else if (prop.type === 'Property') collectPatternBindings(prop.value, out);
-      }
-      return;
-    case 'ArrayPattern':
-      for (const elem of node.elements ?? []) {
-        if (elem) collectPatternBindings(elem, out);
-      }
-      return;
-    case 'RestElement':
-      collectPatternBindings(node.argument, out);
-      return;
-    case 'AssignmentPattern':
-      collectPatternBindings(node.left, out);
-      return;
-  }
+  for (const param of params) addBindingNamesFromPatternToSet(param as BindingPatternLike, out);
 }
 
 function collectBlockBindings(statements: readonly AstNode[], out: Set<string>): void {
   for (const stmt of statements) {
     if (stmt.type === 'VariableDeclaration') {
-      for (const d of stmt.declarations) collectPatternBindings(d.id, out);
+      for (const d of stmt.declarations)
+        addBindingNamesFromPatternToSet(d.id as BindingPatternLike, out);
     } else if (stmt.type === 'FunctionDeclaration' || stmt.type === 'ClassDeclaration') {
       if (stmt.id?.type === 'Identifier') out.add(stmt.id.name);
     }

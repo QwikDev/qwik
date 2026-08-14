@@ -1,6 +1,5 @@
 import { createRegExp, exactly, multiline, oneOrMore, whitespace, wordChar } from 'magic-regexp';
 import MagicString from 'magic-string';
-import { transformSync as oxcTransformSync } from 'oxc-transform';
 import { walk } from 'oxc-walker';
 import { ScopeQueryTracker } from '../analysis/scope-query-tracker.js';
 import type {
@@ -19,17 +18,6 @@ import { isLibModePreservedMarker } from '../qwik/qrl-naming.js';
 import type { ExtractionResult } from '../extraction/extract.js';
 import type { TransformModule } from '../types/types.js';
 import type { RelativePath } from '../types/brands.js';
-
-const exportConstAssign = createRegExp(
-  exactly('export')
-    .and(oneOrMore(whitespace))
-    .and('const')
-    .and(oneOrMore(whitespace))
-    .and(oneOrMore(wordChar))
-    .and(whitespace.times.any())
-    .and('=')
-    .and(whitespace.times.any())
-);
 
 const exportConstLine = createRegExp(
   exactly('export const ').and(oneOrMore(wordChar)).and(' = ').at.lineStart(),

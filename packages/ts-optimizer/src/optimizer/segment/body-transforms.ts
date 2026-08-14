@@ -307,6 +307,15 @@ function findComponentReturnPosition(bodyText: string): number {
   let lastDepth1Return = -1;
   while (i < bodyText.length) {
     const ch = bodyText[i];
+    if (ch === "'" || ch === '"' || ch === '`') {
+      // A brace or `return` inside a string literal must not affect the scan.
+      i++;
+      while (i < bodyText.length && bodyText[i] !== ch) {
+        i += bodyText[i] === '\\' ? 2 : 1;
+      }
+      i++;
+      continue;
+    }
     if (ch === '{') depth++;
     else if (ch === '}') depth--;
     else if (depth === 1 && bodyText.startsWith('return ', i)) {

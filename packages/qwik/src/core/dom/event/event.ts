@@ -1,9 +1,42 @@
+import { getOrCreateContainerContext } from '../../runtime/container-context';
+import { invokeApply, newInvokeContext } from '../../runtime/invoke-context';
 import { setCaptures } from '../../shared/qrl/qrl-captures';
 import type { CapturedEventHandler, qWindow, QDispatchHandler, QElement } from '../../shared/types';
+import { retryOnPromise } from '../../shared/utils/promises';
 import { qTest } from '../../shared/utils/qdev';
 
 type EventHandler = (event: Event, element: Element) => unknown;
 const scopedEventNames = Object.create(null) as Record<string, string | undefined>;
+
+// Qwikloader calls _qDispatch entries bare, so the invoke context is established here.
+function invokeDispatchHandler(
+  handler: EventHandler,
+  captures: CapturedEventHandler | null,
+  event: Event,
+  element: Element
+): unknown {
+  if (!element.isConnected) {
+    return;
+  }
+  const context = newInvokeContext({ container: getOrCreateContainerContext(element) });
+  return retryOnPromise(() => {
+    if (captures) {
+      setCaptures(captures);
+    }
+    return invokeApply(context, handler, [event, element]);
+  });
+}
+
+function wrapDispatch(
+  handler: QDispatchHandler | QDispatchHandler[]
+): QDispatchHandler | QDispatchHandler[] {
+  if (Array.isArray(handler)) {
+    return handler.map((entry) => wrapDispatch(entry) as QDispatchHandler);
+  }
+  return typeof handler === 'function'
+    ? invokeDispatchHandler.bind(null, handler as EventHandler, null)
+    : handler;
+}
 
 /** @internal */
 export function createCapturedEvent(
@@ -11,7 +44,7 @@ export function createCapturedEvent(
   captures?: readonly unknown[] | null
 ): QDispatchHandler {
   if (!captures || captures.length === 0) {
-    return handler;
+    return wrapDispatch(handler) as QDispatchHandler;
   }
 
   const captured = captures as CapturedEventHandler;
@@ -31,7 +64,7 @@ export function setEvent(
   const target = element as QElement;
   (target._qDispatch ||= {})[scopedKebabName] = captures
     ? createCapturedEvent(handler as EventHandler, captures)
-    : handler;
+    : wrapDispatch(handler);
 
   // Window and document events need attrs so qwikloader can find the carrier element.
   if (key.charAt(2) !== 'e') {
@@ -62,6 +95,5 @@ function registerQwikLoaderEvent(element: Element, eventName: string) {
 }
 
 function runCapturedEvent(captures: CapturedEventHandler, event: Event, element: Element): unknown {
-  setCaptures(captures);
-  return captures._qHandler(event, element);
+  return invokeDispatchHandler(captures._qHandler, captures, event, element);
 }

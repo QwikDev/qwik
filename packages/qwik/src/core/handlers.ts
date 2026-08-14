@@ -22,13 +22,7 @@ export function _run(this: string, event: Event, element: Element): ValueOrPromi
     return;
   }
   const context = getOrCreateContainerContext(element);
-  return runQrl(
-    this,
-    event,
-    element,
-    context,
-    context.locale ? newInvokeContext({ container: context }) : null
-  );
+  return runQrl(this, event, element, context, newInvokeContext({ container: context }));
 }
 
 function runQrl(
@@ -36,7 +30,7 @@ function runQrl(
   event: Event,
   element: Element,
   context: ContainerContext,
-  invokeContext: RuntimeInvokeContext | null
+  invokeContext: RuntimeInvokeContext
 ): ValueOrPromise<unknown> {
   if (typeof thisValue === 'string') {
     return context.restoreCaptures(thisValue).then((captures) => {
@@ -52,19 +46,13 @@ function runCapturedQrl(
   event: Event,
   element: Element,
   context: ContainerContext,
-  invokeContext: RuntimeInvokeContext | null
+  invokeContext: RuntimeInvokeContext
 ): ValueOrPromise<unknown> {
   const qrlToRun = captures[0] as QRLInternal<(...args: any[]) => void>;
   isDev && assertQrl(qrlToRun);
   return qrlToRun
     .resolve(context)
-    .then(() =>
-      retryOnPromise(() =>
-        invokeContext
-          ? invoke(invokeContext, qrlToRun.resolved!, event, element)
-          : qrlToRun.resolved!(event, element)
-      )
-    );
+    .then(() => retryOnPromise(() => invoke(invokeContext, qrlToRun.resolved!, event, element)));
 }
 
 // Emitted only by SSR output; always runs on the server.

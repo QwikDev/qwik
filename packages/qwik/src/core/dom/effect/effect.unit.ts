@@ -147,11 +147,11 @@ describe('DOM effects', () => {
 
     handler.value = first;
     await scheduler.flushInteraction();
-    expect((element as any)._qDispatch['e:click']).toBe(first);
+    expect(dispatchStored(element, 'e:click')).toEqual([1]);
 
     handler.value = second;
     await scheduler.flushInteraction();
-    expect((element as any)._qDispatch['e:click']).toBe(second);
+    expect(dispatchStored(element, 'e:click')).toEqual([2]);
 
     handler.value = undefined;
     await scheduler.flushInteraction();
@@ -179,11 +179,11 @@ describe('DOM effects', () => {
 
     scheduler.notify(effect);
     await scheduler.flushInteraction();
-    expect((element as any)._qDispatch['e:input']).toEqual([before, after]);
+    expect(dispatchStored(element, 'e:input')).toEqual([1, 3]);
 
     enabled.value = true;
     await scheduler.flushInteraction();
-    expect((element as any)._qDispatch['e:input']).toEqual([before, dynamic, after]);
+    expect(dispatchStored(element, 'e:input')).toEqual([1, 2, 3]);
   });
 
   it('patches serialized class values through className', () => {
@@ -334,8 +334,8 @@ describe('DOM effects', () => {
     scheduler.notify(effect);
     await scheduler.flushInteraction();
 
-    expect((element as any)._qDispatch['ep:click']).toBe(first);
-    expect((element as any)._qDispatch['wp:scroll']).toBe(first);
+    expect(dispatchStored(element, 'ep:click')).toEqual([1]);
+    expect(dispatchStored(element, 'wp:scroll')).toEqual([1]);
     expect(attrs.get('q-wp:scroll')).toBe('');
     expect(attrs.has('preventdefault:click')).toBe(false);
     expect(attrs.get('stoppropagation:click')).toBe('');
@@ -349,7 +349,7 @@ describe('DOM effects', () => {
 
     expect((element as any)._qDispatch['ep:click']).toBeUndefined();
     expect((element as any)._qDispatch['wp:scroll']).toBeUndefined();
-    expect((element as any)._qDispatch['e:click']).toBe(second);
+    expect(dispatchStored(element, 'e:click')).toEqual([2]);
     expect(attrs.has('q-wp:scroll')).toBe(false);
     expect(attrs.get('preventdefault:click')).toBe('');
     expect(attrs.get('stoppropagation:click')).toBe('');
@@ -373,10 +373,11 @@ describe('DOM effects', () => {
     await scheduler.flushInteraction();
 
     expect(element.value).toBe('first');
-    expect((element as any)._qDispatch['e:input']).toEqual([
-      userHandler,
-      expect.objectContaining({ $symbol$: '_val' }),
-    ]);
+    const storedInput = (element as any)._qDispatch['e:input'] as EventHandler[];
+    expect(storedInput).toHaveLength(2);
+    element.value = 'typed';
+    storedInput[1](new Event('input'), element);
+    expect(value.value).toBe('typed');
     expect(toArray(value.subs)).toContain(effect);
 
     value.value = 'second';
@@ -398,9 +399,11 @@ describe('DOM effects', () => {
     props.value = { 'bind:value': useSignal('ignored'), 'bind:checked': checked };
     await scheduler.flushInteraction();
     expect(element.checked).toBe(true);
-    expect((element as any)._qDispatch['e:input']).toEqual(
-      expect.objectContaining({ $symbol$: '_chk' })
-    );
+    const storedChecked = (element as any)._qDispatch['e:input'] as EventHandler;
+    expect(typeof storedChecked).toBe('function');
+    element.checked = false;
+    storedChecked(new Event('input'), element);
+    expect(checked.value).toBe(false);
 
     props.value = {};
     await scheduler.flushInteraction();
@@ -749,16 +752,29 @@ function deferred<T>() {
   return { promise, resolve, reject };
 }
 
+type EventHandler = (event: Event, element: Element) => unknown;
+
+/** Invoke the stored _qDispatch entry the way qwikloader does and collect results. */
+function dispatchStored(element: Element, scopedName: string): unknown[] {
+  const stored = (element as any)._qDispatch?.[scopedName];
+  const handlers = (Array.isArray(stored) ? stored : [stored]) as (EventHandler | null)[];
+  const event = new Event(scopedName.slice(scopedName.indexOf(':') + 1));
+  return handlers.map((handler) => handler?.(event, element));
+}
+
 function createPropsTarget(): {
   element: Element & { innerHTML: string; className: string; value: string; checked: boolean };
   attrs: Map<string, string>;
 } {
   const attrs = new Map<string, string>();
+  const container = { _ctx: { element: 'test-container' } };
   const element = {
     innerHTML: '',
     value: '',
     checked: false,
     type: 'text',
+    isConnected: true,
+    closest: () => container,
     get className() {
       return attrs.get('class') ?? '';
     },

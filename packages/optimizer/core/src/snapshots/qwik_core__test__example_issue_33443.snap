@@ -1,6 +1,5 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 3049
 expression: output
 ---
 ==INPUT==
@@ -33,7 +32,7 @@ import { useSignal } from '@qwik.dev/core';
 const _hf0 = (p0, p1)=>(p0.description ?? '') && 'description' in p0.other ? `Hello ${p1.value}` : `Bye ${p1.value}`;
 const _hf0_str = '(p0.description??"")&&"description"in p0.other?`Hello ${p1.value}`:`Bye ${p1.value}`';
 //
-const q_Issue3742_component_div_button_q_e_click_95Hlm8WgsYY = /*#__PURE__*/ _noopQrl("Issue3742_component_div_button_q_e_click_95Hlm8WgsYY");
+const q_Issue3742_component_div_button_q_e_click_95Hlm8WgsYY = /*#__PURE__*/ _noopQrl("Issue3742_component_div_button_q_e_click_95Hlm8WgsYY").m();
 const q_Issue3742_component_svSy0PlWTAw = /*#__PURE__*/ _noopQrl("Issue3742_component_svSy0PlWTAw");
 //
 const Issue3742_component_div_button_q_e_click_95Hlm8WgsYY = (_, _1, counter)=>counter.value++;

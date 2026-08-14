@@ -1032,7 +1032,20 @@ class QrlExtractor {
       return binding;
     }
     if (!this.isLocalBinding(state, binding)) {
-      this.addCapture(state, binding);
+      // a destructured member re-reads through its container: capture the root instead
+      let capture = binding;
+      for (
+        let origin = this.analysis.destructuredMembers.get(capture.id);
+        origin !== undefined;
+        origin = this.analysis.destructuredMembers.get(capture.id)
+      ) {
+        const root = this.bindings.get(origin.baseBindingId);
+        if (root === undefined) {
+          break;
+        }
+        capture = root;
+      }
+      this.addCapture(state, capture);
     }
     return binding;
   }

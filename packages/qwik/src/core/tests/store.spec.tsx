@@ -284,6 +284,36 @@ describe(`${name}: stores`, () => {
 
     cleanup();
   });
+
+  it('keeps destructured members live when the slot is replaced', async () => {
+    const App = () => {
+      const store = useStore({ item: { label: 'first' } });
+      const { item } = store;
+      return <button onClick$={() => (store.item = { label: 'second' })}>{item.label}</button>;
+    };
+
+    const { container, cleanup, qwikLoader } = await render(App, { debug });
+    const button = container.querySelector('button')!;
+
+    expect(button.textContent).toBe('first');
+    await qwikLoader?.dispatch(button, 'click');
+    expect(button.textContent).toBe('second');
+
+    cleanup();
+  });
+
+  it('renders members destructured directly off a hook call through the compiler temp', async () => {
+    const App = () => {
+      const { item } = useStore({ item: { label: 'pinned' } });
+      return <p>{item.label}</p>;
+    };
+
+    const { container, cleanup } = await render(App, { debug });
+
+    expect(container.querySelector('p')?.textContent).toBe('pinned');
+
+    cleanup();
+  });
 });
 
 function createOwned<T>(run: () => T): T {

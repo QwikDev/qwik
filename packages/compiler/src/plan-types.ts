@@ -105,6 +105,22 @@ export interface ModuleAnalysis {
   readonly jsxTagBindingIds: readonly BindingId[];
   /** Module-level JSX in call-argument position — deferred render roots. */
   readonly moduleArgumentJsxRanges: readonly SourceRange[];
+  /** Destructured members that lazy boundaries must re-read through their container. */
+  readonly destructuredMembers: ReadonlyMap<BindingId, DestructuredMemberOrigin>;
+  /** Compiler temps pinning call-init destructure containers, keyed by statement start. */
+  readonly destructureTemps: readonly DestructureTemp[];
+}
+
+export interface DestructuredMemberOrigin {
+  readonly baseBindingId: BindingId;
+  readonly prop: string;
+}
+
+export interface DestructureTemp {
+  readonly bindingId: BindingId;
+  readonly name: string;
+  readonly statementStart: number;
+  readonly initRange: SourceRange;
 }
 
 export type QrlBoundaryPlan =
@@ -153,6 +169,8 @@ export type SetupPlan =
       readonly useIds: readonly UseIdPlan[];
       /** Portable lowering when the statement is op-expressible; additive, emitters ignore it. */
       readonly op?: SetupOp;
+      /** Compiler temps to declare before this statement, pinning call-init destructure bases. */
+      readonly destructureTemps?: readonly DestructureTemp[];
     }
   | {
       readonly kind: 'render-value';

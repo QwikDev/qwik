@@ -518,6 +518,20 @@ export function transformModule(ctx: CompilerContext): TransformResult {
     },
     propsKeyForBinding: (binding) => propsKeyBindings.get(binding) ?? null,
     sourceKindForBinding: (binding) => contextReadKinds.get(binding) ?? null,
+    memberChainForBinding: (binding) => {
+      let origin = analysis.destructuredMembers.get(binding);
+      if (origin === undefined) {
+        return null;
+      }
+      const path: string[] = [];
+      let base = binding;
+      while (origin !== undefined) {
+        path.unshift(origin.prop);
+        base = origin.baseBindingId;
+        origin = analysis.destructuredMembers.get(base);
+      }
+      return { base, path: path.join('.') };
+    },
   };
   // chunk emission reuses the owning component's wire block when one exists
   const wireCache = new Map<ComponentOutput, PlanSsrComponent | null>();

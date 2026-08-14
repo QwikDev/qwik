@@ -29,6 +29,7 @@ import type {
   BindingId,
   ComponentDefinition,
   ComponentOutput,
+  DestructureTemp,
   FunctionRenderPlan,
   InlineComponentReferencePlan,
   RenderFunctionPlan,
@@ -78,6 +79,8 @@ export interface SsrPlanData {
   readonly propsKeyForBinding?: (binding: number) => string | null;
   /** Reactive kind of a binding beyond local declarations (context-provided signals/stores). */
   readonly sourceKindForBinding?: (binding: number) => 'signal' | 'store' | 'computed' | null;
+  /** Root container and member path of a destructured binding — value reads resolve live. */
+  readonly memberChainForBinding?: (binding: number) => { base: number; path: string } | null;
 }
 
 /** Aliased so the emitted import never collides with an origin `isServer` import. */
@@ -193,7 +196,8 @@ function emitJsRenderForComponent(
     planData.bindingName,
     planData.importLocalName,
     planData.propsKeyForBinding,
-    planData.sourceKindForBinding
+    planData.sourceKindForBinding,
+    planData.memberChainForBinding
   );
   if (pieces === null) {
     const detail = lastUngeneratableDetail();
@@ -639,7 +643,8 @@ export function emitSsrSegmentRender(
       wireBlock.providesContext === true,
       planned.surroundingRangeId,
       planData.propsKeyForBinding,
-      planData.sourceKindForBinding
+      planData.sourceKindForBinding,
+      planData.memberChainForBinding
     );
     if (generated !== null) {
       for (const name of generated.imports) {
@@ -812,6 +817,7 @@ export function rewriteJsSetupStatement(
     readonly range: SourceRange;
     readonly segmentIds: readonly string[];
     readonly useIds: readonly { range: SourceRange; ordinal: number; standalone: boolean }[];
+    readonly destructureTemps?: readonly DestructureTemp[];
   },
   source: string,
   segments: ReadonlyMap<string, SegmentPlan>,
@@ -834,6 +840,16 @@ export function rewriteJsSetupStatement(
     range: useId.range,
     value: `(_id + 'u${useId.ordinal}')`,
   }));
+  for (const temp of operation.destructureTemps ?? []) {
+    // pin the call-init container so member reads have a base to resolve through
+    replacements.push(
+      {
+        range: [temp.statementStart, temp.statementStart],
+        value: `const ${temp.name} = ${source.slice(temp.initRange[0], temp.initRange[1])};\n  `,
+      },
+      { range: temp.initRange, value: temp.name }
+    );
+  }
   for (const segment of operationSegments) {
     const boundary = segment.qrl;
     if (boundary?.kind === 'implicit' && boundary.role === 'visible-task') {

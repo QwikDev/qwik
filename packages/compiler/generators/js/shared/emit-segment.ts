@@ -19,6 +19,7 @@ import type {
   SegmentPlan,
   SegmentPropsPartPlan,
 } from '../../../src/plan-types';
+import type { SourceRange } from '../../../src/types';
 import { getSegmentDisplayName, getSegmentSymbolHash } from '../../../src/segment-identity';
 import {
   DEFAULT_GENERATED_NAMES,
@@ -595,6 +596,8 @@ function emitSegmentCode(
         ].join('\n');
   let statements: string;
   if (rendered === undefined) {
+    // last: earlier pushes replace whole lowered regions this pass must not slice into
+    appendDestructuredMemberReplacements(segment, analysis, replacements);
     const rawBody = applyReplacements(source, segment.bodyRange, replacements);
     const expressionBody =
       segment.propsParts.length === 0
@@ -693,6 +696,103 @@ function emitSegmentCode(
 
   const prelude = [...imports, ...childImports, ...hoists, ...(rendered?.hoists ?? [])];
   return `${prelude.length > 0 ? `${prelude.join('\n')}\n\n` : ''}${declaration}\n`;
+}
+
+/**
+ * Captured destructured members re-read through their container so the value stays live and the
+ * read tracks its slot. A segment-local binding that shadows a container name is renamed so the
+ * inlined `container.prop` reads still hit the capture parameter.
+ */
+function appendDestructuredMemberReplacements(
+  segment: SegmentPlan,
+  analysis: ModuleAnalysis,
+  replacements: Array<{ range: SourceRange; value: string }>
+): void {
+  if (analysis.destructuredMembers.size === 0) {
+    return;
+  }
+  const bindings = new Map(analysis.bindings.map((binding) => [binding.id, binding]));
+  const isSegmentLocal = (binding: { declarationRange: SourceRange | null }): boolean =>
+    binding.declarationRange !== null &&
+    binding.declarationRange[0] >= segment.functionRange[0] &&
+    binding.declarationRange[1] <= segment.functionRange[1];
+  const isInsideReplacedRegion = (range: SourceRange): boolean =>
+    replacements.some(
+      (replacement) => range[0] < replacement.range[1] && range[1] > replacement.range[0]
+    );
+  const rootNamesInUse = new Set<string>();
+  const memberReads: { reference: SegmentPlan['references'][number]; value: string }[] = [];
+  for (const reference of segment.references) {
+    if (
+      reference.bindingId === null ||
+      reference.role === 'write' ||
+      reference.role === 'call' ||
+      reference.range[0] < segment.bodyRange[0] ||
+      reference.range[1] > segment.bodyRange[1] ||
+      isInsideReplacedRegion(reference.range)
+    ) {
+      continue;
+    }
+    let origin = analysis.destructuredMembers.get(reference.bindingId);
+    const member = bindings.get(reference.bindingId);
+    if (origin === undefined || member === undefined || isSegmentLocal(member)) {
+      continue;
+    }
+    const path: string[] = [];
+    let root = member;
+    while (origin !== undefined) {
+      const base = bindings.get(origin.baseBindingId);
+      if (base === undefined) {
+        break;
+      }
+      path.unshift(origin.prop);
+      root = base;
+      origin = analysis.destructuredMembers.get(base.id);
+    }
+    if (path.length === 0) {
+      continue;
+    }
+    rootNamesInUse.add(root.name);
+    const read = `${root.name}.${path.join('.')}`;
+    memberReads.push({
+      reference,
+      value: reference.role === 'shorthand' ? `${member.name}: ${read}` : read,
+    });
+  }
+  if (memberReads.length === 0) {
+    return;
+  }
+  // rename segment locals that shadow a container so the inlined reads reach the capture
+  const usedNames = new Set(analysis.bindings.map((binding) => binding.name));
+  for (const binding of analysis.bindings) {
+    if (
+      !rootNamesInUse.has(binding.name) ||
+      !isSegmentLocal(binding) ||
+      isInsideReplacedRegion(binding.declarationRange!)
+    ) {
+      continue;
+    }
+    usedNames.add(`${binding.name}_`);
+    const renamed = allocateGeneratedName(`${binding.name}_`, usedNames);
+    usedNames.add(renamed);
+    replacements.push({ range: binding.declarationRange!, value: renamed });
+    for (const reference of segment.references) {
+      if (
+        reference.bindingId === binding.id &&
+        reference.range[0] >= segment.bodyRange[0] &&
+        reference.range[1] <= segment.bodyRange[1] &&
+        !isInsideReplacedRegion(reference.range)
+      ) {
+        replacements.push({
+          range: reference.range,
+          value: reference.role === 'shorthand' ? `${binding.name}: ${renamed}` : renamed,
+        });
+      }
+    }
+  }
+  replacements.push(
+    ...memberReads.map(({ reference, value }) => ({ range: reference.range, value }))
+  );
 }
 
 function containsRange(outer: SegmentPlan['range'], inner: SegmentPlan['range']): boolean {

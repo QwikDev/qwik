@@ -6,6 +6,7 @@ import { hasInitialTask } from '../../../src/plan-types';
 import type {
   BindingId,
   ComponentParameterPlan,
+  DestructureTemp,
   ComponentPlan,
   OrderedPropPlan,
   RenderFunctionPlan,
@@ -135,6 +136,7 @@ export type CsrSetupPlan =
       readonly range: SourceRange;
       readonly segmentIds: readonly string[];
       readonly useIds: readonly UseIdPlan[];
+      readonly destructureTemps?: readonly DestructureTemp[];
     }
   | {
       readonly kind: 'render-value';
@@ -614,6 +616,7 @@ class CsrPlanner {
         kind: 'statement',
         range: item.range,
         useIds: item.useIds,
+        ...(item.destructureTemps === undefined ? {} : { destructureTemps: item.destructureTemps }),
         segmentIds: this.segments
           .filter(
             (segment) =>

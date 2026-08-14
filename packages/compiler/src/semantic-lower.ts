@@ -32,33 +32,34 @@ import type {
   BindingInfo,
   BranchPlan,
   CollectionPlan,
+  ComponentDefinition,
   ComponentNodePlan,
+  ComponentParameterPlan,
   ComponentPlan,
   ComponentProjectionPlan,
+  ComponentShape,
+  DestructureTemp,
   DynamicValuePlan,
   ElementPlan,
   ElementPropsEffectPlan,
   ExtractedQrls,
+  FunctionRenderPlan,
   LifetimeId,
   LifetimePlan,
+  ModuleBoundaryPlan,
   ModuleReferencePlan,
   OrderedPropPlan,
-  RenderPlan,
   RenderEffectPlan,
   RenderFunctionPlan,
-  FunctionRenderPlan,
   RenderNodePlan,
-  ComponentDefinition,
-  ComponentParameterPlan,
-  ComponentShape,
-  ModuleBoundaryPlan,
+  RenderPlan,
   Segment,
   SegmentPlan,
   SegmentReferencePlan,
   SetupPlan,
   SlotPlan,
-  SuspensePlan,
   StaticProp,
+  SuspensePlan,
   UseIdPlan,
   ValuePlan,
 } from './plan-types';
@@ -1628,6 +1629,15 @@ class SemanticLowerer {
     return op === null ? {} : { op };
   }
 
+  private destructureTempsAt(range: SourceRange): {
+    destructureTemps?: readonly DestructureTemp[];
+  } {
+    const temps = this.analysis.destructureTemps.filter(
+      (temp) => temp.statementStart >= range[0] && temp.statementStart < range[1]
+    );
+    return temps.length === 0 ? {} : { destructureTemps: temps };
+  }
+
   private attachEmbeddedRenders(
     segmentId: string,
     roots: readonly AstNode[],
@@ -1927,6 +1937,7 @@ class SemanticLowerer {
         ),
         useIds,
         ...this.setupOpAt(setupRange),
+        ...this.destructureTempsAt(setupRange),
       };
     });
     const segmentId = segment?.id ?? `semantic_collectionRender_${range[0]}_${range[1]}`;
@@ -2008,6 +2019,7 @@ class SemanticLowerer {
       ),
       useIds: this.collectUseIds(setupRange),
       ...this.setupOpAt(setupRange),
+      ...this.destructureTempsAt(setupRange),
     }));
     this.referenceSegment(segment, lifetimeId);
     const render = this.withRenderSegment(segment.id, () => {
@@ -2778,6 +2790,7 @@ class SemanticLowerer {
           ),
           useIds,
           ...this.setupOpAt(range),
+          ...this.destructureTempsAt(range),
         });
         continue;
       }

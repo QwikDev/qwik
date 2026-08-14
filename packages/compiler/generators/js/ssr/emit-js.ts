@@ -102,7 +102,8 @@ export function emitJsProductionRender(
   sourceBindingName?: (binding: number) => string | null,
   importLocalName?: (module: string, exportName: string) => string | null,
   propsKeyForBinding?: (binding: number) => string | null,
-  sourceKindForBinding?: (binding: number) => SourceBindingKind | null
+  sourceKindForBinding?: (binding: number) => SourceBindingKind | null,
+  memberChainForBinding?: (binding: number) => { base: number; path: string } | null
 ): JsRenderPieces | null {
   const shared: ModuleState = {
     imports: new Set(),
@@ -130,7 +131,8 @@ export function emitJsProductionRender(
       sourceBindingName,
       importLocalName,
       propsKeyForBinding,
-      sourceKindForBinding
+      sourceKindForBinding,
+      memberChainForBinding
     );
     for (const binding of component.propsBindings) {
       generator.bindProps(binding);
@@ -192,7 +194,8 @@ export function emitJsSegmentBlock(
   providesContext = false,
   rootRangeName: string | null = null,
   propsKeyForBinding?: (binding: number) => string | null,
-  sourceKindForBinding?: (binding: number) => SourceBindingKind | null
+  sourceKindForBinding?: (binding: number) => SourceBindingKind | null,
+  memberChainForBinding?: (binding: number) => { base: number; path: string } | null
 ): {
   imports: string[];
   chunkImports: string[];
@@ -226,7 +229,8 @@ export function emitJsSegmentBlock(
       sourceBindingName,
       importLocalName,
       propsKeyForBinding,
-      sourceKindForBinding
+      sourceKindForBinding,
+      memberChainForBinding
     );
     for (const seed of [...captureSeeds, ...paramSeeds]) {
       generator.declare(seed.binding, seed.name);
@@ -443,7 +447,10 @@ class JsComponentGenerator {
     /** Props key of a shorthand-destructured component-prop binding. */
     private readonly propsKeyForBinding?: (binding: number) => string | null,
     /** Reactive kind for bindings beyond local declarations (context-provided sources). */
-    private readonly sourceKindForBinding?: (binding: number) => SourceBindingKind | null
+    private readonly sourceKindForBinding?: (binding: number) => SourceBindingKind | null,
+    private readonly memberChainForBinding?: (
+      binding: number
+    ) => { base: number; path: string } | null
   ) {
     this.imports = shared.imports;
     this.chunkImports = shared.chunkImports;
@@ -2619,6 +2626,11 @@ class JsComponentGenerator {
     const moduleName = this.moduleBindingName?.(binding);
     if (moduleName != null) {
       return moduleName;
+    }
+    // destructured members with no local of their own read live through their container
+    const chain = this.memberChainForBinding?.(binding);
+    if (chain != null) {
+      return `${this.local(chain.base)}.${chain.path}`;
     }
     // locals declared inside verbatim source exist under their source names; every emission
     // site for such a binding sits inside its declaring scope, so a shadowed name still

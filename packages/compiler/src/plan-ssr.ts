@@ -7,6 +7,7 @@ import { hasInitialTask } from './plan-types';
 import type {
   BindingId,
   ComponentParameterPlan,
+  DestructureTemp,
   ComponentPlan,
   ComponentOutput,
   OrderedPropPlan,
@@ -74,6 +75,7 @@ export type SsrSetupOperation =
       readonly range: SourceRange;
       readonly segmentIds: readonly string[];
       readonly useIds: readonly UseIdPlan[];
+      readonly destructureTemps?: readonly DestructureTemp[];
     }
   | {
       readonly kind: 'render-value';
@@ -487,6 +489,7 @@ class SsrPlanner {
           ? [segment.id]
           : []
       ),
+      ...(setup.destructureTemps === undefined ? {} : { destructureTemps: setup.destructureTemps }),
     };
   }
 

@@ -12,6 +12,8 @@ import type {
   BindingId,
   BindingInfo,
   ComponentCandidatePlan,
+  DestructureTemp,
+  DestructuredMemberOrigin,
   ExportBindingInfo,
   ImportBinding,
   ModuleAnalysis,
@@ -107,6 +109,7 @@ class ModuleAnalyzer {
       this.visit(statement);
     }
     const jsxOwners = collectJsxOwners(this.program);
+    const destructures = this.collectDestructuredMembers(jsxOwners.functionRanges);
     return {
       bindings: this.bindings,
       references: this.references,
@@ -116,7 +119,204 @@ class ModuleAnalyzer {
       moduleArgumentJsxRanges: jsxOwners.moduleArgumentJsxRanges,
       jsxFunctionRanges: jsxOwners.functionRanges,
       jsxTagBindingIds: [...this.jsxTagBindings],
+      destructuredMembers: destructures.members,
+      destructureTemps: destructures.temps,
     };
+  }
+
+  /**
+   * Destructured members freeze their container's slot at setup time, which breaks reactivity in
+   * lazy boundaries. Collect each eligible `const { prop } = base` member so boundaries can capture
+   * the container and re-read `base.prop` live. A call-init destructure gets a compiler temp that
+   * pins the container under a fresh name.
+   */
+  private collectDestructuredMembers(jsxFunctionRanges: readonly SourceRange[]): {
+    members: Map<BindingId, DestructuredMemberOrigin>;
+    temps: DestructureTemp[];
+  } {
+    const members = new Map<BindingId, DestructuredMemberOrigin>();
+    const temps: DestructureTemp[] = [];
+    const constBindings = new Set<BindingId>();
+    const calleeBindings = new Set<BindingId>();
+    for (const reference of this.references) {
+      if (reference.role === 'call' && reference.bindingId !== null) {
+        calleeBindings.add(reference.bindingId);
+      }
+    }
+    const usedNames = new Set(this.bindings.map((binding) => binding.name));
+    const declarations: {
+      node: Extract<AstNode, { type: 'VariableDeclaration' }>;
+      ownerFunctionRange: SourceRange | null;
+    }[] = [];
+    const walk = (node: unknown, ownerFunctionRange: SourceRange | null): void => {
+      if (Array.isArray(node)) {
+        node.forEach((child) => walk(child, ownerFunctionRange));
+        return;
+      }
+      if (typeof node !== 'object' || node === null) {
+        return;
+      }
+      const record = node as unknown as AstNode;
+      if (
+        record.type === 'FunctionDeclaration' ||
+        record.type === 'FunctionExpression' ||
+        record.type === 'ArrowFunctionExpression'
+      ) {
+        ownerFunctionRange = getRange(record);
+      }
+      if (record.type === 'VariableDeclaration' && record.kind === 'const') {
+        declarations.push({ node: record, ownerFunctionRange });
+        for (const declarator of record.declarations) {
+          this.collectPatternBindings(declarator.id, constBindings);
+        }
+      }
+      for (const [key, value] of Object.entries(record)) {
+        if (!SKIPPED_KEYS.has(key)) {
+          walk(value, ownerFunctionRange);
+        }
+      }
+    };
+    walk(this.program.body, null);
+    for (const { node: declaration, ownerFunctionRange } of declarations) {
+      for (const declarator of declaration.declarations) {
+        const pattern = unwrapExpression(declarator.id);
+        if (pattern?.type !== 'ObjectPattern') {
+          continue;
+        }
+        const plainMembers = this.plainPatternMembers(pattern, calleeBindings);
+        if (plainMembers.length === 0) {
+          continue;
+        }
+        // module-scope members flow through module references, not captures — leave them
+        if (plainMembers.some((member) => this.bindings[member.bindingId].kind !== 'local')) {
+          continue;
+        }
+        const baseBindingId = this.resolveDestructureBase(
+          declaration,
+          declarator,
+          plainMembers[0].bindingId,
+          constBindings,
+          usedNames,
+          temps,
+          ownerFunctionRange,
+          jsxFunctionRanges
+        );
+        if (baseBindingId === null) {
+          continue;
+        }
+        for (const member of plainMembers) {
+          members.set(member.bindingId, { baseBindingId, prop: member.prop });
+        }
+      }
+    }
+    return { members, temps };
+  }
+
+  private collectPatternBindings(pattern: unknown, into: Set<BindingId>): void {
+    const node = unwrapExpression(pattern);
+    if (!node) {
+      return;
+    }
+    if (node.type === 'Identifier') {
+      const range = getRange(node);
+      const id = range === null ? undefined : this.declarationBindings.get(rangeKey(range));
+      if (id !== undefined) {
+        into.add(id);
+      }
+    } else if (node.type === 'AssignmentPattern') {
+      this.collectPatternBindings(node.left, into);
+    } else if (node.type === 'RestElement') {
+      this.collectPatternBindings(node.argument, into);
+    } else if (node.type === 'ArrayPattern') {
+      node.elements.forEach((element) => this.collectPatternBindings(element, into));
+    } else if (node.type === 'ObjectPattern') {
+      for (const property of node.properties) {
+        this.collectPatternBindings(
+          property.type === 'RestElement' ? property.argument : property.value,
+          into
+        );
+      }
+    }
+  }
+
+  /** Members with defaults, computed keys, nested patterns, rest, or callee use keep snapshots. */
+  private plainPatternMembers(
+    pattern: Extract<AstNode, { type: 'ObjectPattern' }>,
+    calleeBindings: ReadonlySet<BindingId>
+  ): { bindingId: BindingId; prop: string }[] {
+    const plain: { bindingId: BindingId; prop: string }[] = [];
+    for (const property of pattern.properties) {
+      if (property.type === 'RestElement' || property.computed) {
+        continue;
+      }
+      const value = property.value;
+      const prop = getIdentifierName(property.key);
+      if (prop === null || value?.type !== 'Identifier') {
+        continue;
+      }
+      const range = getRange(value);
+      const bindingId = range === null ? undefined : this.declarationBindings.get(rangeKey(range));
+      // a member ever called as a bare function keeps its snapshot: `base.fn()` rebinds `this`
+      if (bindingId === undefined || calleeBindings.has(bindingId)) {
+        continue;
+      }
+      plain.push({ bindingId, prop });
+    }
+    return plain;
+  }
+
+  private resolveDestructureBase(
+    declaration: Extract<AstNode, { type: 'VariableDeclaration' }>,
+    declarator: Extract<AstNode, { type: 'VariableDeclaration' }>['declarations'][number],
+    memberBindingId: BindingId,
+    constBindings: ReadonlySet<BindingId>,
+    usedNames: Set<string>,
+    temps: DestructureTemp[],
+    ownerFunctionRange: SourceRange | null,
+    jsxFunctionRanges: readonly SourceRange[]
+  ): BindingId | null {
+    const init = unwrapExpression(declarator.init);
+    if (init?.type === 'Identifier') {
+      const range = getRange(init);
+      const bindingId = range === null ? undefined : this.referenceBindings.get(rangeKey(range));
+      if (bindingId === undefined || bindingId === null || !constBindings.has(bindingId)) {
+        return null;
+      }
+      const binding = this.bindings[bindingId];
+      return binding.kind === 'local' ? bindingId : null;
+    }
+    if (init?.type !== 'CallExpression') {
+      return null;
+    }
+    // temps materialize only in setup statements: require a JSX-owning enclosing function
+    if (
+      ownerFunctionRange === null ||
+      !jsxFunctionRanges.some(
+        (range) => range[0] === ownerFunctionRange[0] && range[1] === ownerFunctionRange[1]
+      )
+    ) {
+      return null;
+    }
+    const initRange = getRange(init);
+    const statementRange = getRange(declaration);
+    if (initRange === null || statementRange === null) {
+      return null;
+    }
+    const member = this.bindings[memberBindingId];
+    const name = allocateTempName(getIdentifierName(init.callee), usedNames);
+    const id = this.bindings.length;
+    this.bindings.push({
+      id,
+      name,
+      kind: 'local',
+      // zero-width range at the statement keeps segment-locality checks correct
+      declarationRange: [statementRange[0], statementRange[0]],
+      scopeId: member.scopeId,
+      ownerId: member.ownerId,
+      import: null,
+    });
+    temps.push({ bindingId: id, name, statementStart: statementRange[0], initRange });
+    return id;
   }
 
   private collectExports(): ExportBindingInfo[] {
@@ -1394,3 +1594,17 @@ const SKIPPED_KEYS = new Set([
   'typeParameters',
   'returnType',
 ]);
+
+/** `useLocation()` pins as `_location`; unknown callees fall back to `_destructured`. */
+function allocateTempName(calleeName: string | null, usedNames: Set<string>): string {
+  const base =
+    calleeName !== null && /^use[A-Z]/.test(calleeName)
+      ? `_${calleeName[3].toLowerCase()}${calleeName.slice(4)}`
+      : `_${calleeName ?? 'destructured'}`;
+  let name = base;
+  for (let suffix = 2; usedNames.has(name); suffix++) {
+    name = `${base}${suffix}`;
+  }
+  usedNames.add(name);
+  return name;
+}

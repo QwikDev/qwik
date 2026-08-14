@@ -1450,6 +1450,16 @@ function emitCsrSetup(
     for (const useId of setup.useIds) {
       replacements.push({ range: useId.range, value: `(_id + 'u${useId.ordinal}')` });
     }
+    for (const temp of setup.destructureTemps ?? []) {
+      // pin the call-init container so member reads have a base to resolve through
+      replacements.push(
+        {
+          range: [temp.statementStart, temp.statementStart],
+          value: `const ${temp.name} = ${source.slice(temp.initRange[0], temp.initRange[1])};\n  `,
+        },
+        { range: temp.initRange, value: temp.name }
+      );
+    }
     for (const segmentId of setup.segmentIds) {
       const segment = segmentById.get(segmentId);
       if (segment === undefined) {

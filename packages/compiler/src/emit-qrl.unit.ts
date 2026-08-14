@@ -1437,6 +1437,182 @@ export const App = component$(() => {
   });
 });
 
+describe('destructured reactive members', () => {
+  test('lazy boundaries re-read destructured members through their container', async () => {
+    const input = {
+      path: 'src/destructured-member.tsx',
+      code: `import { component$, useStore } from '@qwik.dev/core';
+export const App = component$(() => {
+  const store = useStore({ counter: { n: 1 }, meta: { tag: 'x' } });
+  const { counter, meta: renamed } = store;
+  return (
+    <div>
+      <p>{counter.n}</p>
+      <button onClick$={() => console.log(counter.n, renamed.tag)}>log</button>
+    </div>
+  );
+});
+`,
+    };
+    for (const isServer of [true, false]) {
+      const result = await transformModules(options(input, isServer));
+      expect(result.diagnostics).toEqual([]);
+      expectValidModules(result.modules);
+      const all = result.modules.map((module) => module.code).join('\n');
+      // members read live through the captured container, tracking their slot
+      expect(all).toContain('store.counter.n');
+      expect(all).toContain('store.meta.tag');
+      expect(all).not.toMatch(/\(counter\) =>/);
+    }
+    const ssr = await transformModules(options(input, true));
+    const text = ssr.modules.find((module) => module.path.includes('text_segment'));
+    expect(text?.code).toMatchInlineSnapshot(`
+      "export const destructured_member_text_segment_0_1bvmmxfutb002 = (store) => {
+        return store.counter.n;
+      };
+      "
+    `);
+    const click = ssr.modules.find((module) => module.path.includes('q_e_click'));
+    expect(click?.code).toMatchInlineSnapshot(`
+      "import { _captures } from "@qwik.dev/core";
+
+      export const destructured_member_q_e_click_segment_1_paa9t0qxfpim = () => {
+        const store = _captures[0];
+        return console.log(store.counter.n, store.meta.tag);
+      };
+      "
+    `);
+  });
+
+  test('chained destructures resolve to the root container', async () => {
+    const input = {
+      path: 'src/destructured-chain.tsx',
+      code: `import { component$, useStore } from '@qwik.dev/core';
+export const App = component$(() => {
+  const store = useStore({ counter: { inner: { n: 1 } } });
+  const { counter } = store;
+  const { inner } = counter;
+  return <p>{inner.n}</p>;
+});
+`,
+    };
+    const result = await transformModules(options(input, true));
+    expect(result.diagnostics).toEqual([]);
+    const all = result.modules.map((module) => module.code).join('\n');
+    expect(all).toContain('store.counter.inner.n');
+  });
+
+  test('a member called as a bare function keeps its snapshot', async () => {
+    const input = {
+      path: 'src/destructured-callee.tsx',
+      code: `import { component$, useStore } from '@qwik.dev/core';
+export const App = component$(() => {
+  const store = useStore({ getLabel: () => 'x', counter: { n: 1 } });
+  const { getLabel, counter } = store;
+  return <button onClick$={() => console.log(getLabel(), counter.n)}>log</button>;
+});
+`,
+    };
+    const result = await transformModules(options(input, true));
+    expect(result.diagnostics).toEqual([]);
+    const all = result.modules.map((module) => module.code).join('\n');
+    // rewriting the call would rebind `this`; the sibling member still resolves live
+    expect(all).not.toContain('store.getLabel()');
+    expect(all).toContain('getLabel()');
+    expect(all).toContain('store.counter.n');
+  });
+
+  test('a member with a default keeps its snapshot', async () => {
+    const input = {
+      path: 'src/destructured-default.tsx',
+      code: `import { component$, useStore } from '@qwik.dev/core';
+export const App = component$(() => {
+  const store = useStore({ counter: { n: 1 } });
+  const { counter = { n: 0 } } = store;
+  return <p>{counter.n}</p>;
+});
+`,
+    };
+    const result = await transformModules(options(input, true));
+    expect(result.diagnostics).toEqual([]);
+    const all = result.modules.map((module) => module.code).join('\n');
+    expect(all).not.toContain('store.counter.n');
+  });
+
+  test('a call-init destructure pins its container in a compiler temp', async () => {
+    const input = {
+      path: 'src/destructured-call-init.tsx',
+      code: `import { component$, useStore } from '@qwik.dev/core';
+export const App = component$(() => {
+  const { counter } = useStore({ counter: { n: 1 } });
+  return <p>{counter.n}</p>;
+});
+`,
+    };
+    for (const isServer of [true, false]) {
+      const result = await transformModules(options(input, isServer));
+      expect(result.diagnostics).toEqual([]);
+      expectValidModules(result.modules);
+      const all = result.modules.map((module) => module.code).join('\n');
+      expect(all).toContain('const _store = useStore(');
+      expect(all).toContain('} = _store;');
+      expect(all).toContain('_store.counter.n');
+    }
+    const ssr = await transformModules(options(input, true));
+    const setup = ssr.modules[0].code
+      .split('\n')
+      .filter((line) => line.includes('_store') || line.includes('} ='));
+    expect(setup.join('\n')).toMatchInlineSnapshot(`
+      "const destructured_call_init_text_segment_0_3u9qqib92m0nu = (_store) => {
+        return _store.counter.n;
+        const _store = useStore({ counter: { n: 1 } });
+        const { counter } = _store;
+        ctx.addRoot(_store);
+        const text_0 = renderSsrTextExpression(createSsrElementTextTarget(id_0), [_store], q_destructured_call_init_text_segment_0_3u9qqib92m0nu);"
+    `);
+  });
+
+  test('a segment-local shadow of the container is renamed', async () => {
+    const input = {
+      path: 'src/destructured-shadow.tsx',
+      code: `import { component$, useStore } from '@qwik.dev/core';
+export const App = component$(() => {
+  const store = useStore({ counter: { n: 1 } });
+  const { counter } = store;
+  return (
+    <button
+      onClick$={() => {
+        const store = { local: true };
+        console.log(counter.n, store.local);
+      }}
+    >
+      log
+    </button>
+  );
+});
+`,
+    };
+    const result = await transformModules(options(input, true));
+    expect(result.diagnostics).toEqual([]);
+    expectValidModules(result.modules);
+    const all = result.modules.map((module) => module.code).join('\n');
+    expect(all).toContain('store.counter.n');
+    expect(all).toMatch(/const store_\d+ = \{ local: true \}/);
+    expect(all).toMatch(/store_\d+\.local/);
+    const handler = result.modules.find((module) => module.path.includes('q_e_click'));
+    expect(handler?.code).toMatchInlineSnapshot(`
+      "import { _captures } from "@qwik.dev/core";
+
+      export const destructured_shadow_q_e_click_segment_0_32gtyf5zf3a8h = () => {
+        const store = _captures[0];
+        const store_0 = { local: true };
+        		console.log(store.counter.n, store_0.local);
+      };
+      "
+    `);
+  });
+});
+
 describe('context-provided sources', () => {
   test('context signal reads and destructured forwards keep their sources', async () => {
     const contextsModule = {

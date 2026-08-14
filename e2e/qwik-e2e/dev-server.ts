@@ -239,12 +239,11 @@ export { router }
       plugins: [
         ...plugins,
         optimizer.qwikVite({
-          // TEMP-AB: rust optimizer for debugging
+          // TEMP-AB: rust optimizer for debugging (fresh workspace build)
           ...(process.env.QWIK_AB_RUST
             ? {
                 optimizerOptions: {
-                  _optimizer:
-                    await import('/home/wmertens/Projects/qwik/packages/optimizer/dist/index.mjs'),
+                  tsOptimizer: false,
                 } as any,
               }
             : {}),
@@ -267,16 +266,19 @@ export { router }
         emitAssets: true,
         minify: false,
         ssr: enableRouterServer ? qwikRouterVirtualEntry : resolve(appSrcDir, entrySsrFileName),
+        // Split the SSR build: single-file output inlines dynamic imports and
+        // evaluates them eagerly at top level, which defeats the config's lazy
+        // route/server$ imports and reintroduces module-order TDZs.
+        rollupOptions: { output: { inlineDynamicImports: false } },
       },
       plugins: [
         ...plugins,
         optimizer.qwikVite({
-          // TEMP-AB: rust optimizer for debugging
+          // TEMP-AB: rust optimizer for debugging (fresh workspace build)
           ...(process.env.QWIK_AB_RUST
             ? {
                 optimizerOptions: {
-                  _optimizer:
-                    await import('/home/wmertens/Projects/qwik/packages/optimizer/dist/index.mjs'),
+                  tsOptimizer: false,
                 } as any,
               }
             : {}),

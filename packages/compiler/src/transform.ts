@@ -1223,7 +1223,8 @@ function emitModule(
         generatedNames,
         functions,
         moduleRoots,
-        inlineComponents
+        inlineComponents,
+        libMode
       );
 }
 

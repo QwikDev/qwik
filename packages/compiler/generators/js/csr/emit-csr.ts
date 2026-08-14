@@ -16,6 +16,7 @@ import {
 } from '../../../src/emit-qrl';
 import { emitFunctionRenders } from '../../../src/emit-function';
 import { getSegmentImportPath, hoistLazyQrlReference } from '../shared/emit-segment';
+import { shouldEmitSegmentModule } from '../../../src/segment-plan';
 import {
   planCsr,
   planCsrRenderFunction,
@@ -111,7 +112,8 @@ export function emitCsrModule(
   generatedNames: GeneratedNames,
   functions: readonly FunctionRenderPlan[],
   moduleRoots: readonly SegmentPlan[],
-  inlineComponents: readonly InlineComponentReferencePlan[]
+  inlineComponents: readonly InlineComponentReferencePlan[],
+  libMode = false
 ): EmittedModule | null {
   const hoists: string[] = [];
   const components: EmittedComponentCode[] = [];
@@ -245,6 +247,26 @@ export function emitCsrModule(
       )};`,
     ];
   });
+  if (libMode) {
+    // libraries resume in a consumer app: every segment must ship as an exporting chunk the
+    // bundler keeps, so symbol resolution can import it. The bare qrl is the import edge.
+    imports.add(QwikWord.QrlWithChunk);
+    const hoisted = hoists.join('\n');
+    for (const segment of segments) {
+      if (
+        !shouldEmitSegmentModule(segment, 'csr') ||
+        hoisted.includes(`q_${segment.symbolName} `)
+      ) {
+        continue;
+      }
+      const path = getSegmentImportPath(inputPath, segment, explicitExtensions);
+      hoists.push(
+        `${QwikWord.QrlWithChunk}(${JSON.stringify(path)}, () => import(${JSON.stringify(
+          path
+        )}), ${JSON.stringify(segment.symbolName)});`
+      );
+    }
+  }
   return {
     imports: [...imports],
     localImports: qrlImports

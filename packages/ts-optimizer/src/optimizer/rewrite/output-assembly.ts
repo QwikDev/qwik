@@ -40,6 +40,11 @@ import {
 import { injectUseHmrIntoInlineBody } from '../transform/module-cleanup.js';
 import type { InlineSegmentJsxOptions } from './raw-props.js';
 import type { RewriteContext } from './rewrite-context.js';
+import {
+  formatImportParts,
+  formatImportStatement,
+  formatNamedImportPart,
+} from '../edit/import-format.js';
 
 function isCustomInlined(ext: ExtractionResult, originalImports: Map<string, ImportInfo>): boolean {
   for (const [, info] of originalImports) {
@@ -703,19 +708,11 @@ export function filterUnusedImports(ctx: RewriteContext): void {
     }
 
     if (usedNamed.length < info.namedParts.length) {
-      const namedStrs = usedNamed.map((np) =>
-        np.imported !== np.local ? `${np.imported} as ${np.local}` : np.local
-      );
-      let importParts = '';
+      const namedStrs = usedNamed.map((np) => formatNamedImportPart(np.imported, np.local));
       const dp = defaultUsed ? info.defaultPart : '';
-      if (namedStrs.length > 0) {
-        importParts = dp ? `${dp}, { ${namedStrs.join(', ')} }` : `{ ${namedStrs.join(', ')} }`;
-      } else if (dp) {
-        importParts = dp;
-      }
+      const importParts = formatImportParts(dp, '', namedStrs);
       if (importParts) {
-        survivingUserImports[idx] =
-          `import ${importParts} from ${info.quote}${info.source}${info.quote};`;
+        survivingUserImports[idx] = formatImportStatement(importParts, info.quote, info.source);
         survivingImportInfos[idx] = { ...info, namedParts: usedNamed, defaultPart: dp };
       } else {
         survivingUserImports.splice(idx, 1);

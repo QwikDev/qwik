@@ -13,6 +13,12 @@ import type {
   ImportSpecifier,
 } from '../../ast-types.js';
 import { parseWithRawTransfer } from '../ast/parse.js';
+import {
+  formatImportParts,
+  formatImportStatement,
+  formatNamedImportPart,
+} from '../edit/import-format.js';
+
 import { applyReplacements } from '../edit/range-replace.js';
 import { isLibModePreservedMarker } from '../qwik/qrl-naming.js';
 import type { ExtractionResult } from '../extraction/extract.js';
@@ -481,24 +487,14 @@ export function removeUnusedImports(
         nsPart = `* as ${localName}`;
       } else {
         const importedName = getImportedSpecifierName(spec) ?? localName;
-        keptParts.push(importedName !== localName ? `${importedName} as ${localName}` : localName);
+        keptParts.push(formatNamedImportPart(importedName, localName));
       }
     }
 
-    let importParts = '';
-    if (nsPart) {
-      importParts = defaultPart ? `${defaultPart}, ${nsPart}` : nsPart;
-    } else if (keptParts.length > 0) {
-      importParts = defaultPart
-        ? `${defaultPart}, { ${keptParts.join(', ')} }`
-        : `{ ${keptParts.join(', ')} }`;
-    } else if (defaultPart) {
-      importParts = defaultPart;
-    }
-
+    const importParts = formatImportParts(defaultPart, nsPart, keptParts);
     const sourceValue = node.source?.value ?? '';
     const quote = code[node.source.start] === "'" ? "'" : '"';
-    const newImport = `import ${importParts} from ${quote}${sourceValue}${quote};`;
+    const newImport = formatImportStatement(importParts, quote, sourceValue);
     let end = node.end;
     if (end < code.length && code[end] === '\n') end++;
     ms.overwrite(node.start, end, newImport + '\n');

@@ -39,6 +39,11 @@ import { forEachAstChild } from '../ast/guards.js';
 import { getJsxAttributeName } from '../jsx/jsx-attr-name.js';
 import { wCallSuffix, parseArrayItems } from '../qwik/w-call.js';
 import { pureAwareOverwriteStart } from '../edit/text-scanning.js';
+import {
+  formatImportParts,
+  formatImportStatement,
+  formatNamedImportPart,
+} from '../edit/import-format.js';
 import { RAW_TRANSFER_PARSER_OPTIONS } from '../../ast-types.js';
 import type { RewriteContext } from './rewrite-context.js';
 import {
@@ -408,29 +413,14 @@ function processImports(ctx: RewriteContext): void {
         const localName = spec.local.name;
         const importedName = importedSpecifierName(spec);
         namedPartsStructured.push({ local: localName, imported: importedName });
-        if (importedName !== localName) {
-          namedParts.push(`${importedName} as ${localName}`);
-        } else {
-          namedParts.push(localName);
-        }
+        namedParts.push(formatNamedImportPart(importedName, localName));
       }
     }
 
-    let importParts = '';
-    if (nsPart) {
-      importParts = defaultPart ? `${defaultPart}, ${nsPart}` : nsPart;
-    } else if (namedParts.length > 0) {
-      importParts = defaultPart
-        ? `${defaultPart}, { ${namedParts.join(', ')} }`
-        : `{ ${namedParts.join(', ')} }`;
-    } else if (defaultPart) {
-      importParts = defaultPart;
-    }
+    const importParts = formatImportParts(defaultPart, nsPart, namedParts);
 
     if (importParts) {
-      ctx.survivingUserImports.push(
-        `import ${importParts} from ${quoteChar}${rewrittenSource}${quoteChar};`
-      );
+      ctx.survivingUserImports.push(formatImportStatement(importParts, quoteChar, rewrittenSource));
       ctx.survivingImportInfos.push({
         defaultPart,
         nsPart,

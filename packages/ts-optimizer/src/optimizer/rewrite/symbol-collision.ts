@@ -15,6 +15,11 @@ import type { RewriteContext } from './rewrite-context.js';
 import type { ImportInfo } from '../extraction/marker-detection.js';
 import { isStrippedExtraction } from './predicates.js';
 import { getQrlImportSource } from './rewrite-calls.js';
+import {
+  formatImportParts,
+  formatImportStatement,
+  formatNamedImportPart,
+} from '../edit/import-format.js';
 
 /**
  * A `neededImports` key is either `'qrl'` or `'Fragment as _Fragment'`; the local binding is the
@@ -319,21 +324,9 @@ function applyImportSpecifierRename(
   const updatedPart = { imported: part.imported, local: newLocal };
   info.namedParts[partIdx] = updatedPart;
 
-  const namedStrs = info.namedParts.map((np) =>
-    np.imported !== np.local ? `${np.imported} as ${np.local}` : np.local
-  );
-  let importParts: string;
-  if (info.nsPart) {
-    importParts = info.defaultPart ? `${info.defaultPart}, ${info.nsPart}` : info.nsPart;
-  } else if (namedStrs.length > 0) {
-    importParts = info.defaultPart
-      ? `${info.defaultPart}, { ${namedStrs.join(', ')} }`
-      : `{ ${namedStrs.join(', ')} }`;
-  } else {
-    importParts = info.defaultPart;
-  }
-  ctx.survivingUserImports[importIdx] =
-    `import ${importParts} from ${info.quote}${info.source}${info.quote};`;
+  const namedStrs = info.namedParts.map((np) => formatNamedImportPart(np.imported, np.local));
+  const importParts = formatImportParts(info.defaultPart, info.nsPart, namedStrs);
+  ctx.survivingUserImports[importIdx] = formatImportStatement(importParts, info.quote, info.source);
 }
 
 /**

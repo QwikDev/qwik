@@ -4,7 +4,8 @@ import type { RouteData, RouteModule } from './types';
 export const routes: RouteData = {};
 export const serverPlugins: RouteModule[] = [];
 export const trailingSlash = !globalThis.__NO_TRAILING_SLASH__;
-export const basePathname = '/';
+// Build-time replaced by the router vite plugin's `define`; '/' outside app builds.
+export const basePathname = globalThis.__QWIK_ROUTER_BASE_PATHNAME__ ?? '/';
 export const cacheModules = false;
 export const fallthrough = false;
 

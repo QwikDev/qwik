@@ -31,11 +31,11 @@ import type { ResolveSyncValue } from '@qwik.dev/router/middleware/request-handl
 import type { SerializationStrategy } from '@qwik.dev/core/internal';
 import type { ServerError } from '@qwik.dev/router/middleware/request-handler';
 import type { Signal } from '@qwik.dev/core';
-import type * as v from 'valibot';
-import type { ValueOrPromise } from '@qwik.dev/core';
+import * as v from 'valibot';
+import { ValueOrPromise } from '@qwik.dev/core';
 import { ValueOrPromise as ValueOrPromise_2 } from '@qwik.dev/core/internal';
 import { z } from 'zod';
-import type * as z_2 from 'zod';
+import * as z_2 from 'zod';
 
 // @public (undocumented)
 export type Action<RETURN, INPUT = Record<string, unknown>, OPTIONAL extends boolean = true> = {
@@ -247,11 +247,17 @@ export type GetValidatorType<VALIDATOR extends TypedDataValidator> = GetValidato
 // @public (undocumented)
 export const globalAction$: ActionConstructor;
 
-// Warning: (ae-forgotten-export) The symbol "ActionConstructorQRL" needs to be exported by the entry point index.d.ts
 // Warning: (ae-internal-missing-underscore) The name "globalActionQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
-export const globalActionQrl: ActionConstructorQRL;
+export function globalActionQrl(actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => unknown>, ...rest: (ActionOptions | DataValidator)[]): {
+    (): Editable<ActionStore<unknown, unknown>>;
+    __brand: "server_action";
+    __validators: DataValidator[];
+    __qrl: QRL<(form: JSONObject, event: RequestEventAction) => unknown>;
+    __id: string;
+    __invalidate: string[] | undefined;
+};
 
 // @public (undocumented)
 export type HttpErrorProps = {
@@ -372,6 +378,7 @@ export interface QwikRouterConfig {
     // (undocumented)
     readonly cacheModules?: boolean;
     readonly fallthrough?: boolean;
+    readonly importEagerModules?: () => Promise<unknown>;
     // (undocumented)
     readonly routes: RouteData;
     // (undocumented)
@@ -469,8 +476,15 @@ export type ResolvedDocumentHead<FrontMatter extends Record<string, any> = Recor
 // @public
 export const routeAction$: ActionConstructor;
 
-// @public (undocumented)
-export const routeActionQrl: ActionConstructorQRL;
+// @public
+export function routeActionQrl(actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => unknown>, ...rest: (ActionOptions | DataValidator)[]): {
+    (): Editable<ActionStore<unknown, unknown>>;
+    __brand: "server_action";
+    __validators: DataValidator[];
+    __qrl: QRL<(form: JSONObject, event: RequestEventAction) => unknown>;
+    __id: string;
+    __invalidate: string[] | undefined;
+};
 
 // @public
 export type RouteConfig = RouteConfigValue | ((props: DocumentHeadProps) => RouteConfigValue);
@@ -570,7 +584,7 @@ export type ServerQRL<T extends ServerFunction> = QRL<((abort: AbortSignal, ...a
 // Warning: (ae-internal-missing-underscore) The name "serverQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
-export const serverQrl: <T extends ServerFunction>(qrl: QRL<T>, options?: ServerConfig) => ServerQRL<T>;
+export function serverQrl<T extends ServerFunction>(qrl: QRL<T>, options?: ServerConfig): ServerQRL<T>;
 
 // @public
 export const ServiceWorkerRegister: (props: {
@@ -633,11 +647,10 @@ export const useQwikRouter: (props?: QwikRouterProps) => void;
 // @beta (undocumented)
 export const valibot$: ValibotConstructor;
 
-// Warning: (ae-forgotten-export) The symbol "ValibotConstructorQRL" needs to be exported by the entry point index.d.ts
 // Warning: (ae-internal-missing-underscore) The name "valibotQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
-export const valibotQrl: ValibotConstructorQRL;
+export function valibotQrl(qrl: QRL<v.GenericSchema | v.GenericSchemaAsync | ((ev: RequestEvent) => v.GenericSchema | v.GenericSchemaAsync)>): ValibotDataValidator;
 
 // Warning: (ae-forgotten-export) The symbol "ValidatorConstructor" needs to be exported by the entry point index.d.ts
 //
@@ -659,11 +672,10 @@ export type ValidatorErrorType<T, U = string> = {
     }>;
 };
 
-// Warning: (ae-forgotten-export) The symbol "ValidatorConstructorQRL" needs to be exported by the entry point index.d.ts
 // Warning: (ae-internal-missing-underscore) The name "validatorQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
-export const validatorQrl: ValidatorConstructorQRL;
+export function validatorQrl(validator: QRL<(ev: RequestEvent, data: unknown) => ValueOrPromise<ValidatorReturn>>): DataValidator;
 
 // Warning: (ae-forgotten-export) The symbol "ValidatorReturnSuccess" needs to be exported by the entry point index.d.ts
 // Warning: (ae-forgotten-export) The symbol "ValidatorReturnFail" needs to be exported by the entry point index.d.ts
@@ -684,11 +696,14 @@ export type ZodConstructor = {
     <T extends z_2.Schema>(schema: (zod: typeof z_2.z, ev: RequestEvent) => T): ZodDataValidator<T>;
 };
 
-// Warning: (ae-forgotten-export) The symbol "ZodConstructorQRL" needs to be exported by the entry point index.d.ts
 // Warning: (ae-internal-missing-underscore) The name "zodQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
-export const zodQrl: ZodConstructorQRL;
+export function zodQrl(qrl: QRL<z_2.ZodRawShape | z_2.Schema | ((z: z, ev: RequestEvent) => z_2.ZodRawShape)>): ZodDataValidator;
+
+// Warnings were encountered during analysis:
+//
+// /home/wmertens/Projects/qwik.worktrees/qwik.worktrees/tsgo/dist-dev/dts-out/packages/qwik-router/src/runtime/src/server-functions.d.ts:23:5 - (ae-forgotten-export) The symbol "Editable" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

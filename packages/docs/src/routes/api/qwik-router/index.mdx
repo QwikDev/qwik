@@ -1616,6 +1616,23 @@ _(Optional)_ When true, return null instead of rendering the 404 page, letting t
 </td></tr>
 <tr><td>
 
+importEagerModules?
+
+</td><td>
+
+`readonly`
+
+</td><td>
+
+() =&gt; Promise&lt;unknown&gt;
+
+</td><td>
+
+_(Optional)_ Imports the modules containing `server$` functions so their registration side effects run. Called by the request handler before serving; deliberately async so the config module itself evaluates without touching the runtime (see the import-cycle notes in `route-loaders.ts`).
+
+</td></tr>
+<tr><td>
+
 routes
 
 </td><td>
@@ -2148,9 +2165,62 @@ routeAction$: ActionConstructor;
 
 <h2 id="routeactionqrl">routeActionQrl</h2>
 
+Hoisted function declarations (not consts) on purpose, like `routeLoaderQrl`: generated route modules call these factories back during their own evaluation via the `@qwik-router-config` cycle, where a `const` binding would throw a TDZ ReferenceError.
+
 ```typescript
-routeActionQrl: ActionConstructorQRL;
+export declare function routeActionQrl(
+  actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => unknown>,
+  ...rest: (ActionOptions | DataValidator)[]
+): {
+  (): Editable<ActionStore<unknown, unknown>>;
+  __brand: "server_action";
+  __validators: DataValidator[];
+  __qrl: QRL<(form: JSONObject, event: RequestEventAction) => unknown>;
+  __id: string;
+  __invalidate: string[] | undefined;
+};
 ```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+actionQrl
+
+</td><td>
+
+QRL&lt;(form: [JSONObject](#jsonobject), event: RequestEventAction) =&gt; unknown&gt;
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+rest
+
+</td><td>
+
+([ActionOptions](#actionoptions) \| [DataValidator](#datavalidator))[]
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+**Returns:**
+
+\{ (): Editable&lt;[ActionStore](#actionstore)&lt;unknown, unknown&gt;&gt;; \_\_brand: "server_action"; \_\_validators: [DataValidator](#datavalidator)[]; \_\_qrl: QRL&lt;(form: [JSONObject](#jsonobject), event: RequestEventAction) =&gt; unknown&gt;; \_\_id: string; \_\_invalidate: string[] \| undefined; }
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts)
 

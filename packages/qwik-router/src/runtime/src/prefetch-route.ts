@@ -1,4 +1,4 @@
-import * as qwikRouterConfig from '@qwik-router-config';
+import { basePathname } from './qwik-router-config';
 import { isBrowser, isDev } from '@qwik.dev/core';
 import { _isSignalNotInvalid } from '@qwik.dev/core/internal';
 // @ts-expect-error no types for preloader yet
@@ -35,6 +35,8 @@ export async function prefetchRoute(
   }
 
   try {
+    // Dynamic import on purpose — see qwik-router-component.tsx.
+    const qwikRouterConfig = await import('@qwik-router-config');
     const loadedRoute = await loadRoute(
       (qwikRouterConfig as any).routes,
       (qwikRouterConfig as any).cacheModules,
@@ -78,7 +80,7 @@ export const prefetchLoaderData = (
   if (!loadedRoute.$loaders$?.length || !loadedRoute.$loaderPaths$) {
     return;
   }
-  const basePath = (qwikRouterConfig as any).basePathname ?? '/';
+  const basePath = basePathname;
   for (const hash of loadedRoute.$loaders$) {
     if (_isSignalNotInvalid(loaderState?.[hash])) {
       continue;

@@ -46,11 +46,17 @@ import { useAction, useLocation } from './use-functions';
 import { _asyncRequestStore } from '../../middleware/request-handler';
 export { getRequestEvent } from './route-loaders';
 
-/** @public */
-export const routeActionQrl = ((
+/**
+ * Hoisted function declarations (not consts) on purpose, like `routeLoaderQrl`: generated route
+ * modules call these factories back during their own evaluation via the `@qwik-router-config`
+ * cycle, where a `const` binding would throw a TDZ ReferenceError.
+ *
+ * @public
+ */
+export function routeActionQrl(
   actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => unknown>,
   ...rest: (ActionOptions | DataValidator)[]
-) => {
+) {
   const { id, validators, invalidate } = getValidators(rest, actionQrl);
   function action() {
     const loc = useLocation() as Editable<RouteLocation>;
@@ -149,13 +155,13 @@ Action.run() can only be called on the browser, for example when a user clicks a
   Object.freeze(action);
 
   return action satisfies ActionInternal;
-}) as unknown as ActionConstructorQRL;
+}
 
 /** @internal */
-export const globalActionQrl = ((
+export function globalActionQrl(
   actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => unknown>,
   ...rest: (ActionOptions | DataValidator)[]
-) => {
+) {
   const action = routeActionQrl(actionQrl, ...(rest as any));
   if (isServer) {
     if (typeof globalThis._qwikActionsMap === 'undefined') {
@@ -164,7 +170,7 @@ export const globalActionQrl = ((
     globalThis._qwikActionsMap!.set((action as ActionInternal).__id, action as ActionInternal);
   }
   return action;
-}) as ActionConstructorQRL;
+}
 
 /**
  * Define a route action that handles form submissions or programmatic invocations.
@@ -187,7 +193,7 @@ export const globalActionQrl = ((
  * @public
  */
 export const routeAction$: ActionConstructor = /*#__PURE__*/ implicit$FirstArg(
-  routeActionQrl
+  routeActionQrl as unknown as ActionConstructorQRL
 ) as any;
 
 /** @public */
@@ -196,19 +202,21 @@ export const globalAction$: ActionConstructor = /*#__PURE__*/ implicit$FirstArg(
 ) as any;
 
 /** @internal */
-export const validatorQrl = ((
+export function validatorQrl(
   validator: QRL<(ev: RequestEvent, data: unknown) => ValueOrPromise<ValidatorReturn>>
-): DataValidator => {
+): DataValidator {
   if (isServer) {
     return {
       validate: validator,
     };
   }
   return undefined as any;
-}) as ValidatorConstructorQRL;
+}
 
 /** @public */
-export const validator$: ValidatorConstructor = /*#__PURE__*/ implicit$FirstArg(validatorQrl);
+export const validator$: ValidatorConstructor = /*#__PURE__*/ implicit$FirstArg(
+  validatorQrl as ValidatorConstructorQRL
+);
 
 const flattenValibotIssues = (issues: v.GenericIssue[]) => {
   return issues.reduce<Record<string, string | string[]>>((acc, issue) => {
@@ -235,13 +243,13 @@ const flattenValibotIssues = (issues: v.GenericIssue[]) => {
 };
 
 /** @internal */
-export const valibotQrl: ValibotConstructorQRL = (
+export function valibotQrl(
   qrl: QRL<
     | v.GenericSchema
     | v.GenericSchemaAsync
     | ((ev: RequestEvent) => v.GenericSchema | v.GenericSchemaAsync)
   >
-): ValibotDataValidator => {
+): ValibotDataValidator {
   if (!__EXPERIMENTAL__.valibot) {
     throw new Error(
       'Valibot is an experimental feature and is not enabled. Please enable the feature flag by adding `experimental: ["valibot"]` to your qwikVite plugin options.'
@@ -278,10 +286,12 @@ export const valibotQrl: ValibotConstructorQRL = (
     };
   }
   return undefined as never;
-};
+}
 
 /** @beta */
-export const valibot$: ValibotConstructor = /*#__PURE__*/ implicit$FirstArg(valibotQrl);
+export const valibot$: ValibotConstructor = /*#__PURE__*/ implicit$FirstArg(
+  valibotQrl as ValibotConstructorQRL
+);
 
 const flattenZodIssues = (issues: z.ZodIssue | z.ZodIssue[]) => {
   issues = Array.isArray(issues) ? issues : [issues];
@@ -308,11 +318,11 @@ const flattenZodIssues = (issues: z.ZodIssue | z.ZodIssue[]) => {
 };
 
 /** @internal */
-export const zodQrl: ZodConstructorQRL = (
+export function zodQrl(
   qrl: QRL<
     z.ZodRawShape | z.Schema | ((z: typeof import('zod').z, ev: RequestEvent) => z.ZodRawShape)
   >
-): ZodDataValidator => {
+): ZodDataValidator {
   if (isServer) {
     return {
       __brand: 'zod',
@@ -348,16 +358,16 @@ export const zodQrl: ZodConstructorQRL = (
     };
   }
   return undefined as never;
-};
+}
 
 /** @public */
-export const zod$: ZodConstructor = /*#__PURE__*/ implicit$FirstArg(zodQrl);
+export const zod$: ZodConstructor = /*#__PURE__*/ implicit$FirstArg(zodQrl as ZodConstructorQRL);
 
 /** @internal */
-export const serverQrl = <T extends ServerFunction>(
+export function serverQrl<T extends ServerFunction>(
   qrl: QRL<T>,
   options?: ServerConfig
-): ServerQRL<T> => {
+): ServerQRL<T> {
   if (isServer) {
     const captured = qrl.getCaptured();
     if (captured && captured.length > 0 && !_getContextHostElement()) {
@@ -461,12 +471,12 @@ export const serverQrl = <T extends ServerFunction>(
       }
     }
   }) as ServerQRL<T>;
-};
+}
 
 /** @public */
 export const server$ = /*#__PURE__*/ implicit$FirstArg(serverQrl);
 
-const getValidators = (rest: (ActionOptions | DataValidator)[], qrl: QRL) => {
+function getValidators(rest: (ActionOptions | DataValidator)[], qrl: QRL) {
   let id: string | undefined;
   let invalidate: string[] | undefined;
   const validators: DataValidator[] = [];
@@ -506,7 +516,7 @@ const getValidators = (rest: (ActionOptions | DataValidator)[], qrl: QRL) => {
     id,
     invalidate,
   };
-};
+}
 
 const deserializeStream = async function* (
   stream: ReadableStream<Uint8Array>,

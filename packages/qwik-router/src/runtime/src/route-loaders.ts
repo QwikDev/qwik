@@ -33,6 +33,7 @@ import {
 } from '../../middleware/request-handler/server-error';
 import { ensureSlash } from '../../utils/pathname';
 import { DEFAULT_LOADERS_SERIALIZATION_STRATEGY } from './constants';
+import { basePathname } from './qwik-router-config';
 import { RouteLoaderCtxContext, RouteStateContext } from './contexts';
 import type {
   DataValidator,
@@ -46,11 +47,6 @@ import type {
   RouteModule,
   ValidatorReturn,
 } from './types';
-// This import stays LAST: the config's route modules call `routeLoaderQrl`
-// back during their own evaluation (a cycle), so every other import must be
-// evaluated first or their bindings TDZ inside the factory.
-// eslint-disable-next-line import/order
-import * as qwikRouterConfig from '@qwik-router-config';
 
 /**
  * Route loaders read data before the route rendering starts, based on the route being navigated to.
@@ -350,7 +346,7 @@ const createRouteLoaderSignal = (
       const pageSearch = trackedPageSearch || location.search;
       const pageUrl = new URL(pagePathname + pageSearch, location.href);
       const mHash = routeLoaderCtx.manifestHash || 'dev';
-      const basePath = (qwikRouterConfig as any).basePathname ?? '/';
+      const basePath = basePathname;
       const needsResumeFetch = stateValues[resumeValueKey] === _UNINITIALIZED;
       const fetchRoutePath = routePath || (needsResumeFetch ? pageUrl.pathname : undefined);
       // A loader that's never been on any route we've visited has no fetch path yet —

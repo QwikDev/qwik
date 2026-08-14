@@ -30,7 +30,6 @@
  * update without navigation, the head is resolved in a separate Task that tracks the relevant
  * signals.
  */
-import * as qwikRouterConfig from '@qwik-router-config';
 import { ensureSlash } from '../../utils/pathname';
 import {
   $,
@@ -548,6 +547,10 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         } else if (!globalThis.__NO_TRAILING_SLASH__) {
           trackUrl.pathname = ensureSlash(trackUrl.pathname);
         }
+        // Dynamic import on purpose: a static config import runs the app's
+        // route/serverPlugin modules during this package's own evaluation
+        // (they import this package back), which TDZs in bundled output.
+        const qwikRouterConfig = await import('@qwik-router-config');
         const loadRoutePromise = loadRoute(
           qwikRouterConfig.routes,
           qwikRouterConfig.cacheModules,

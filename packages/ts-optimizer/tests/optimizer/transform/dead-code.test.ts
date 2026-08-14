@@ -82,3 +82,52 @@ describe('applySegmentDCE', () => {
     expect(out).not.toContain('dead()');
   });
 });
+
+describe('else-if chains with folded conditions', () => {
+  const parses = (code: string) => parseSync('t.js', code, { lang: 'js' }).errors.length === 0;
+
+  it('removes a dead `else if (false)` clause entirely', () => {
+    const code = 'if (a) {\n  one();\n} else if (false) {\n  dead();\n}\nafter();';
+    const out = applySegmentDCE(code);
+    expect(parses(out), out).toBe(true);
+    expect(out).not.toContain('dead()');
+    expect(out).toContain('one()');
+    expect(out).toContain('after()');
+    // No dangling `else` left to swallow the next statement.
+    expect(out, out).not.toMatch(/\belse\b(?!\s+if\b|\s*\{)/);
+  });
+
+  it('removes a dead `else if (false)` clause at the end of a block', () => {
+    const code =
+      'function f() {\n  if (a) {\n    one();\n  } else if (false) {\n    dead();\n  }\n}';
+    const out = applySegmentDCE(code);
+    expect(parses(out), out).toBe(true);
+    expect(out).not.toContain('dead()');
+    expect(out, out).not.toMatch(/\belse\b(?!\s+if\b|\s*\{)/);
+  });
+
+  it('converts `else if (true)` into a plain else', () => {
+    const code = 'if (a) {\n  one();\n} else if (true) {\n  live();\n}\nafter();';
+    const out = applySegmentDCE(code);
+    expect(parses(out), out).toBe(true);
+    expect(out).toContain('live()');
+    expect(out, out).not.toMatch(/\belse\b(?!\s+if\b|\s*\{)/);
+  });
+
+  it('reattaches a trailing else when removing `else if (false)`', () => {
+    const code =
+      'if (a) {\n  one();\n} else if (false) {\n  dead();\n} else {\n  live();\n}\nafter();';
+    const out = applySegmentDCE(code);
+    expect(parses(out), out).toBe(true);
+    expect(out).not.toContain('dead()');
+    expect(out).toContain('live()');
+    expect(out, out).not.toMatch(/\belse\b(?!\s+if\b|\s*\{)/);
+  });
+
+  it('does not break an `if (bool)` followed by `else if`', () => {
+    const code = 'if (false) {\n  dead();\n} else if (b) {\n  live();\n}\nafter();';
+    const out = applySegmentDCE(code);
+    expect(parses(out), out).toBe(true);
+    expect(out).toContain('live()');
+  });
+});

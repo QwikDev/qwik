@@ -126,7 +126,8 @@ export function applySegmentDCE(code: string): string {
 
       let elseBody: string | null = null;
       let totalEnd = closeIdx + 1;
-      const afterClose = result.slice(closeIdx + 1).match(elseClause);
+      const trailing = result.slice(closeIdx + 1);
+      const afterClose = trailing.match(elseClause);
       if (afterClose) {
         const elseBraceStart = closeIdx + 1 + afterClose[0]!.length - 1;
         const elseCloseIdx = findMatchingBrace(result, elseBraceStart);
@@ -135,6 +136,26 @@ export function applySegmentDCE(code: string): string {
         if (elseCloseIdx === -1) continue;
         elseBody = result.slice(elseBraceStart + 1, elseCloseIdx);
         totalEnd = elseCloseIdx + 1;
+      } else if (/^\s*else\b/.test(trailing)) {
+        // A trailing `else if (...)` chain we don't model — leave the fold
+        // alone; dead-but-valid code beats a broken slice.
+        continue;
+      }
+
+      // When the folded `if` is itself an else-if arm, the surrounding
+      // `else` keyword must be part of the rewrite or it dangles.
+      const beforeIf = result.slice(0, match.index);
+      const elsePrefix = beforeIf.match(/(?<![\w$.])else\s*$/);
+
+      if (elsePrefix) {
+        const elseStart = beforeIf.length - elsePrefix[0].length;
+        const keptBody = condValue ? ifBody : elseBody;
+        replacements.push({
+          start: elseStart,
+          end: totalEnd,
+          replacement: keptBody === null ? '' : `else {${keptBody}}`,
+        });
+        continue;
       }
 
       const replacement = condValue ? ifBody : (elseBody ?? '');

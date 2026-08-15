@@ -303,7 +303,7 @@ function classifyProp(
 
   if (sig.type === 'wrapProp') {
     if (sig.isStoreField && isHtmlTag) {
-      const objName = sig.code.match(/_wrapProp\((\w+)/)?.[1] ?? null;
+      const objName = sig.code.match(/_wrapProp\(([\w$]+)/)?.[1] ?? null;
       return isConstBindingName(objName, importedNames, bindings, pos) ? 'const' : 'var';
     }
     return 'const';

@@ -40,6 +40,7 @@ import {
 import { injectUseHmrIntoInlineBody } from '../transform/module-cleanup.js';
 import type { InlineSegmentJsxOptions } from './raw-props.js';
 import type { RewriteContext } from './rewrite-context.js';
+import { wholeIdentifierPattern } from '../edit/identifier-boundary.js';
 import {
   formatImportParts,
   formatImportStatement,
@@ -681,16 +682,12 @@ function findLastMarkerExportAnchor(program: AstProgram): { start: number; end: 
   return null;
 }
 
-/**
- * Names are JS identifiers whose only regex-significant char is `$`; the raw concatenation must
- * preserve existing behavior on `$`-containing names — don't silently "fix" it.
- */
 const wordBoundaryTesterCache = new Map<string, RegExp>();
 
 function wordBoundaryTester(name: string): RegExp {
   let tester = wordBoundaryTesterCache.get(name);
   if (!tester) {
-    tester = new RegExp('\\b' + name + '\\b');
+    tester = wholeIdentifierPattern(name);
     wordBoundaryTesterCache.set(name, tester);
   }
   return tester;

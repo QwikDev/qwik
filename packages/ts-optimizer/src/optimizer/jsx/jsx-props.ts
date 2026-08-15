@@ -454,7 +454,7 @@ export function processProps(
         // The wrapper is only reusable across renders when its root binding is
         // stable: a const, or — on component tags — a function param that is
         // not a loop iteration var (map callback params vary per iteration).
-        const objName = signalResult.code.match(/_wrapProp\((\w+)/)?.[1] ?? null;
+        const objName = signalResult.code.match(/_wrapProp\(([\w$]+)/)?.[1] ?? null;
         const isParamRoot =
           objName !== null &&
           ((paramNames?.has(objName) ?? false) ||

@@ -39,6 +39,7 @@ import { forEachAstChild } from '../ast/guards.js';
 import { getJsxAttributeName } from '../jsx/jsx-attr-name.js';
 import { wCallSuffix, parseArrayItems } from '../qwik/w-call.js';
 import { pureAwareOverwriteStart } from '../edit/text-scanning.js';
+import { wholeIdentifierPattern } from '../edit/identifier-boundary.js';
 import {
   formatImportParts,
   formatImportStatement,
@@ -704,7 +705,7 @@ function removeUnusedBindings(ctx: RewriteContext): void {
     if (!varName) continue;
     if (reexportedNames.has(varName)) continue;
 
-    const wordBoundaryRegex = createRegExp(wordBoundary, exactly(varName), wordBoundary);
+    const wordBoundaryRegex = wholeIdentifierPattern(varName);
     let bodyText = '';
     for (const bodyStmt of program.body) {
       if (bodyStmt.type === 'ImportDeclaration') continue;

@@ -16,6 +16,7 @@ import { runDcePipeline } from '../transform/module-cleanup.js';
 import { deriveIsDev } from '../rewrite/const-replacement.js';
 import type { EmitMode } from '../types/types.js';
 import { isAnyComponentCtx } from '../rewrite/predicates.js';
+import { wholeIdentifierPattern } from '../edit/identifier-boundary.js';
 
 /**
  * `parentSourceExt` is the parent input file's extension (`.tsx`/`.ts`/`.jsx`/ `.js`), distinct
@@ -97,17 +98,8 @@ export const paddingParam = createRegExp(
   exactly('_').and(digit.times.any()).at.lineStart().at.lineEnd()
 );
 
-const wholeWordPatternCache = new Map<string, RegExp>();
-
 export function getWholeWordPattern(name: string): RegExp {
-  const cached = wholeWordPatternCache.get(name);
-  if (cached) {
-    return cached;
-  }
-
-  const pattern = createRegExp(wordBoundary.and(exactly(name)).and(wordBoundary));
-  wholeWordPatternCache.set(name, pattern);
-  return pattern;
+  return wholeIdentifierPattern(name);
 }
 
 function hasCapturePayload(

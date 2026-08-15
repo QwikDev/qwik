@@ -757,24 +757,29 @@ export function isInSkipRange(
   return found >= 0 && nodeEnd <= index[found].end;
 }
 
+/** Whole-identifier rename: `_hf1` must not match inside `_hf10` or `_hf1_str`. */
+function renameWholeIdentifier(text: string, from: string, to: string): string {
+  return text.replace(new RegExp(`(?<![\\w$])${from}(?![\\w$])`, 'g'), to);
+}
+
 /**
  * Two-phase rename (old → temp → new) so renumbering `_hf` variables to top-down source order can't
  * collide.
  */
-function renameSignalHoistNames(text: string, renameMap: Map<string, string>): string {
+export function renameSignalHoistNames(text: string, renameMap: Map<string, string>): string {
   let renamed = text;
 
   const tempMap = new Map<string, string>();
   for (const [oldName, newName] of renameMap) {
     const temp = `__hf_temp_${oldName.slice(3)}__`;
     tempMap.set(temp, newName);
-    renamed = renamed.split(`${oldName}_str`).join(`${temp}_str`);
-    renamed = renamed.split(oldName).join(temp);
+    renamed = renameWholeIdentifier(renamed, `${oldName}_str`, `${temp}_str`);
+    renamed = renameWholeIdentifier(renamed, oldName, temp);
   }
 
   for (const [temp, newName] of tempMap) {
-    renamed = renamed.split(`${temp}_str`).join(`${newName}_str`);
-    renamed = renamed.split(temp).join(newName);
+    renamed = renameWholeIdentifier(renamed, `${temp}_str`, `${newName}_str`);
+    renamed = renameWholeIdentifier(renamed, temp, newName);
   }
 
   return renamed;

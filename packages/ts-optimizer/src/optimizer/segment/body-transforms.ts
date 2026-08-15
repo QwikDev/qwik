@@ -493,10 +493,14 @@ export function stripDiagnosticsAndDirectives(bodyText: string): string {
 export function transformSyncCalls(bodyText: string, parts: string[]): string {
   if (!bodyText.includes('sync$(')) return bodyText;
 
+  // Call sites are located on the blanked copy so `sync$(` inside a string or
+  // comment is data, not a call.
+  const blanked = blankNonCode(bodyText);
+  let didTransform = false;
   let result = '';
   let i = 0;
   while (i < bodyText.length) {
-    const syncIdx = bodyText.indexOf('sync$(', i);
+    const syncIdx = blanked.indexOf('sync$(', i);
     if (syncIdx === -1) {
       result += bodyText.slice(i);
       break;
@@ -513,7 +517,9 @@ export function transformSyncCalls(bodyText: string, parts: string[]): string {
     const closePos = scanMatchingParenForward(bodyText, openParen + 1);
     result += buildSyncTransform(bodyText.slice(openParen + 1, closePos - 1));
     i = closePos;
+    didTransform = true;
   }
+  if (!didTransform) return bodyText;
 
   bodyText = result;
   const syncSepIdx = parts.indexOf('//');

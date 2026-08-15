@@ -6,6 +6,7 @@ import {
   rewriteFunctionSignature,
   rewriteNestedCallSitesInline,
   stripDiagnosticsAndDirectives,
+  transformSyncCalls,
 } from '../../../src/optimizer/segment/body-transforms.js';
 import type { NestedCallSiteInfo } from '../../../src/optimizer/segment/segment-codegen.js';
 
@@ -137,6 +138,30 @@ describe('body-transforms', () => {
     it('leaves directive-shaped text inside a string literal alone', () => {
       const body = 'const s = "/* @qwik-disable-next-line foo */";';
       expect(stripDiagnosticsAndDirectives(body)).toBe(body);
+    });
+  });
+
+  describe('transformSyncCalls', () => {
+    it('transforms a real sync$ call and adds the import', () => {
+      const parts = ['//'];
+      const out = transformSyncCalls('const cb = sync$((e) => e.preventDefault());', parts);
+      expect(out).toContain('_qrlSync(');
+      expect(out).not.toContain('sync$(');
+      expect(parts[0]).toBe('import { _qrlSync } from "@qwik.dev/core";');
+    });
+
+    it('leaves sync$( inside a string alone and adds no import', () => {
+      const parts = ['//'];
+      const body = 'const tip = "wrap it in sync$(fn) first";';
+      expect(transformSyncCalls(body, parts)).toBe(body);
+      expect(parts).toEqual(['//']);
+    });
+
+    it('leaves sync$( inside a comment alone', () => {
+      const parts = ['//'];
+      const body = '// see sync$(handler) docs\nconst n = 1;';
+      expect(transformSyncCalls(body, parts)).toBe(body);
+      expect(parts).toEqual(['//']);
     });
   });
 

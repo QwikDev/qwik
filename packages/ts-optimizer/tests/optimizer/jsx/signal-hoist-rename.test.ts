@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { transformModule } from '../../../src/optimizer/transform/index.js';
+import { renameSignalHoistNames } from '../../../src/optimizer/jsx/jsx.js';
 import type { TransformModule } from '../../../src/optimizer/types/types.js';
 import { mkFilePath, mkSourceText } from '../../../src/optimizer/types/brands.js';
 
@@ -55,6 +56,24 @@ function transform(code: string) {
     transpileJsx: true,
   });
 }
+
+describe('renameSignalHoistNames', () => {
+  it('renames _hf1 without corrupting the ten-and-up names it prefixes', () => {
+    const text =
+      'const _hf1 = a; const _hf10 = b; _fnSignal(_hf1, [x], _hf1_str); _fnSignal(_hf10, [y], _hf10_str);';
+    const renamed = renameSignalHoistNames(
+      text,
+      new Map([
+        ['_hf1', '_hf2'],
+        ['_hf10', '_hf1'],
+      ])
+    );
+    expect(renamed).toContain('const _hf2 = a');
+    expect(renamed).toContain('const _hf1 = b');
+    expect(renamed).toContain('_fnSignal(_hf2, [x], _hf2_str)');
+    expect(renamed).toContain('_fnSignal(_hf1, [y], _hf1_str)');
+  });
+});
 
 describe('parent with hoisted-signal renames still rewrites author-written jsx() calls', () => {
   it('transforms without throwing and rewrites the jsx() helper', () => {

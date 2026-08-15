@@ -894,7 +894,7 @@ describe('runtime scheduler and owner lifecycle', () => {
     expect(order).toEqual(['run:0', 'cleanup:0:start', 'cleanup:0:end', 'run:1']);
   });
 
-  it('throws cleanup errors without rerunning the task', async () => {
+  it('logs cleanup errors without rerunning the task or aborting the flush', async () => {
     const scheduler = new Scheduler(noopSchedule);
     const count = useSignal(0);
     const seen: number[] = [];
@@ -911,12 +911,13 @@ describe('runtime scheduler and owner lifecycle', () => {
 
     await scheduler.flushInteraction();
     count.value = 1;
-    await expect(scheduler.flushInteraction()).rejects.toBe(error);
+    // the error is logged and isolated: the flush settles instead of rejecting
+    await expect(scheduler.flushInteraction()).resolves.toBeUndefined();
 
     expect(seen).toEqual([0]);
   });
 
-  it('rejects async cleanup errors without rerunning the task', async () => {
+  it('logs async cleanup errors without rerunning the task', async () => {
     const scheduler = new Scheduler(noopSchedule);
     const count = useSignal(0);
     const seen: number[] = [];
@@ -934,7 +935,7 @@ describe('runtime scheduler and owner lifecycle', () => {
 
     await scheduler.flushInteraction();
     count.value = 1;
-    await expect(scheduler.flushInteraction()).rejects.toBe(error);
+    await expect(scheduler.flushInteraction()).resolves.toBeUndefined();
 
     expect(seen).toEqual([0]);
   });

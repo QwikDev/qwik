@@ -147,8 +147,9 @@ export class Scheduler {
             await pending;
           }
         } catch (error) {
+          // one failing owner must not starve the rest of the batch
           owner.flags &= ~OwnerFlags.Queued;
-          throw error;
+          logError(error);
         }
         owner.flags &= ~OwnerFlags.Queued;
         if (owner.flags & OwnerFlags.DirtyMask) {

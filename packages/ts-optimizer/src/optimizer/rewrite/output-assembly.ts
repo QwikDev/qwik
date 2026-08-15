@@ -889,14 +889,6 @@ export function assembleOutput(ctx: RewriteContext): string {
     finalCode = collapseToLibInlinedQrl(finalCode);
   }
 
-  // oxc-transform's strip drops these as unused (`*$` markers + `jsx as
-  // _jsx` have no in-body refs after rewrite); capture them before strip
-  // and re-prepend to preserve lib mode's public surface.
-  const libModeReservedImports: string[] = [];
-  if (ctx.isLibMode && transpileTs) {
-    libModeReservedImports.push(...extractLibModeReservedImports(finalCode));
-  }
-
   if (transpileTs) {
     // Only strip explicit type imports: liveness decisions (unused value
     // imports, side-effect downgrades) belong to the pipeline's AST prune.
@@ -910,44 +902,5 @@ export function assembleOutput(ctx: RewriteContext): string {
     }
   }
 
-  if (libModeReservedImports.length > 0) {
-    finalCode = libModeReservedImports.join('\n') + '\n' + finalCode;
-  }
-
   return finalCode;
-}
-
-/**
- * Extracts the imports lib mode preserves across TS-strip: the `$`-suffix marker survivors
- * (downstream consumers may import the original forms) and `import { jsx as _jsx } from
- * '@qwik.dev/core/jsx-runtime'`. Returns them as they appear in `source` for the caller to
- * re-prepend.
- */
-function extractLibModeReservedImports(source: string): string[] {
-  const out: string[] = [];
-
-  // Emit the source with double quotes to match post-strip quote style —
-  // the dedup pass keys on the AST `raw` field, so single vs double quote
-  // won't merge.
-  const markerRe = /import\s*\{([^}]*\$[^}]*)\}\s*from\s*(["'])@qwik\.dev\/core\2\s*;/g;
-  let m: RegExpExecArray | null;
-  while ((m = markerRe.exec(source)) !== null) {
-    const inner = m[1];
-    // Keep only specifiers ending in `$` (length > 1 — excludes the bare `$`).
-    const kept = inner
-      .split(',')
-      .map((s) => s.trim())
-      .filter((s) => s.length > 1 && s.endsWith('$'));
-    if (kept.length === 0) continue;
-    out.push(`import { ${kept.join(', ')} } from "@qwik.dev/core";`);
-  }
-
-  const jsxRe =
-    /import\s*\{\s*jsx\s+as\s+_jsx\s*\}\s*from\s*(["'])@qwik\.dev\/core\/jsx-runtime\1\s*;/g;
-  const jsxMatch = jsxRe.exec(source);
-  if (jsxMatch) {
-    out.push(`import { jsx as _jsx } from "@qwik.dev/core/jsx-runtime";`);
-  }
-
-  return out;
 }

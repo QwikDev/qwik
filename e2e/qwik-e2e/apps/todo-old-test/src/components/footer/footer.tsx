@@ -1,4 +1,4 @@
-import { component$ } from '@qwik.dev/core';
+import { component$, useComputed$ } from '@qwik.dev/core';
 import { FILTERS, FilterStates, Todos } from '../../state/state';
 
 /**
@@ -23,21 +23,22 @@ export const Footer = component$((props: { todos: Todos }) => {
       </li>
     );
   }
-  const remaining = props.todos.items.filter(FILTERS.active).length;
+  // v3 components never rerun: derive reactively instead of a body-level const
+  const remaining = useComputed$(() => props.todos.items.filter(FILTERS.active).length);
   return (
     <footer class="footer">
       {props.todos.items.length > 0 ? (
         <>
           <span class="todo-count">
-            <strong>{remaining}</strong>
-            {remaining == 1 ? ' item' : ' items'} left
+            <strong>{remaining.value}</strong>
+            {remaining.value == 1 ? ' item' : ' items'} left
           </span>
           <ul class="filters">
             {FilterStates.map((f) => (
               <Filter filter={f} key={f} />
             ))}
           </ul>
-          {remaining > 0 ? (
+          {remaining.value > 0 ? (
             <button
               class="clear-completed"
               onClick$={() => {

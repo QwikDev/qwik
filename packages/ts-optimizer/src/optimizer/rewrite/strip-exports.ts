@@ -27,16 +27,24 @@ export function stripExportDeclarations(
   const strippedNames: string[] = [];
 
   for (const node of program.body) {
-    if (node.type !== 'ExportNamedDeclaration') continue;
+    if (node.type !== 'ExportNamedDeclaration') {
+      continue;
+    }
 
     const decl = node.declaration;
-    if (!decl) continue;
+    if (!decl) {
+      continue;
+    }
 
     if (decl.type === 'VariableDeclaration') {
       for (const declarator of decl.declarations) {
-        if (declarator.id?.type !== 'Identifier') continue;
+        if (declarator.id?.type !== 'Identifier') {
+          continue;
+        }
         const name = declarator.id.name;
-        if (!stripSet.has(name)) continue;
+        if (!stripSet.has(name)) {
+          continue;
+        }
 
         if (declarator.init) {
           const throwBody = `()=>{\n    throw "${STRIP_THROW_MSG}";\n}`;
@@ -45,9 +53,13 @@ export function stripExportDeclarations(
         }
       }
     } else if (decl.type === 'FunctionDeclaration') {
-      if (decl.id?.type !== 'Identifier') continue;
+      if (decl.id?.type !== 'Identifier') {
+        continue;
+      }
       const name = decl.id.name;
-      if (!stripSet.has(name)) continue;
+      if (!stripSet.has(name)) {
+        continue;
+      }
 
       const throwBody = `const ${name} = ()=>{\n    throw "${STRIP_THROW_MSG}";\n}`;
       s.overwrite(decl.start, decl.end, throwBody);

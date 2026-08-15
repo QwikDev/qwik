@@ -7,7 +7,9 @@
 import type { AstNode } from '../../ast-types.js';
 
 export function isCaptureWrappingQrlCall(node: AstNode): boolean {
-  if (node.type !== 'CallExpression') return false;
+  if (node.type !== 'CallExpression') {
+    return false;
+  }
   const callee = node.callee;
   return (
     callee?.type === 'MemberExpression' &&
@@ -42,8 +44,12 @@ export function formatWCall(
  */
 export function parseArrayItems(arrayText: string): string[] {
   let inner = arrayText.trim();
-  if (inner.startsWith('[')) inner = inner.slice(1);
-  if (inner.endsWith(']')) inner = inner.slice(0, -1);
+  if (inner.startsWith('[')) {
+    inner = inner.slice(1);
+  }
+  if (inner.endsWith(']')) {
+    inner = inner.slice(0, -1);
+  }
 
   const items: string[] = [];
   let depth = 0;
@@ -52,20 +58,30 @@ export function parseArrayItems(arrayText: string): string[] {
   for (let i = 0; i < inner.length; i++) {
     const ch = inner[i];
     if (quote !== null) {
-      if (ch === '\\') i++;
-      else if (ch === quote) quote = null;
+      if (ch === '\\') {
+        i++;
+      } else if (ch === quote) {
+        quote = null;
+      }
       continue;
     }
-    if (ch === '"' || ch === "'" || ch === '`') quote = ch;
-    else if (ch === '(' || ch === '[' || ch === '{') depth++;
-    else if (ch === ')' || ch === ']' || ch === '}') depth--;
-    else if (ch === ',' && depth === 0) {
+    if (ch === '"' || ch === "'" || ch === '`') {
+      quote = ch;
+    } else if (ch === '(' || ch === '[' || ch === '{') {
+      depth++;
+    } else if (ch === ')' || ch === ']' || ch === '}') {
+      depth--;
+    } else if (ch === ',' && depth === 0) {
       const item = inner.slice(start, i).trim();
-      if (item.length > 0) items.push(item);
+      if (item.length > 0) {
+        items.push(item);
+      }
       start = i + 1;
     }
   }
   const last = inner.slice(start).trim();
-  if (last.length > 0) items.push(last);
+  if (last.length > 0) {
+    items.push(last);
+  }
   return items;
 }

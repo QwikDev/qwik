@@ -55,7 +55,9 @@ function detectMapCall(node: CallExpression): LoopContext | null {
   }
 
   const callback = node.arguments?.[0];
-  if (!callback) return null;
+  if (!callback) {
+    return null;
+  }
   if (
     callback.type !== 'ArrowFunctionExpression' &&
     callback.type !== 'FunctionExpression' &&
@@ -120,7 +122,9 @@ export function eventHandlerQpParams(paramNames: readonly string[]): string[] {
   const result: string[] = [];
   for (let i = 2; i < paramNames.length; i++) {
     const p = paramNames[i];
-    if (paddingParam.test(p)) continue;
+    if (paddingParam.test(p)) {
+      continue;
+    }
     result.push(p);
   }
   return result;
@@ -130,7 +134,9 @@ export function buildCaptureProp(
   loopVars: string[],
   preserveOrder: boolean = false
 ): { propName: string; propValue: string } | null {
-  if (loopVars.length === 0) return null;
+  if (loopVars.length === 0) {
+    return null;
+  }
 
   if (loopVars.length === 1) {
     return { propName: 'q:p', propValue: loopVars[0] };
@@ -155,12 +161,16 @@ function extractCallbackParams(callback: AstFunction): string[] {
 
 function getCallbackBodyRange(callback: AstFunction): { start: number; end: number } {
   const body = callback.body;
-  if (!body) return { start: callback.start, end: callback.end };
+  if (!body) {
+    return { start: callback.start, end: callback.end };
+  }
   return { start: body.start, end: body.end };
 }
 
 function extractForInitVars(init: ForStatement['init']): string[] {
-  if (!init) return [];
+  if (!init) {
+    return [];
+  }
   if (init.type === 'VariableDeclaration') {
     return extractDeclaratorNames(init.declarations ?? []);
   }
@@ -168,7 +178,9 @@ function extractForInitVars(init: ForStatement['init']): string[] {
 }
 
 function extractForLeftVars(left: ForOfStatement['left'] | ForInStatement['left']): string[] {
-  if (!left) return [];
+  if (!left) {
+    return [];
+  }
   if (left.type === 'VariableDeclaration') {
     return extractDeclaratorNames(left.declarations ?? []);
   }

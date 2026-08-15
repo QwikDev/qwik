@@ -83,7 +83,9 @@ export function collectEnumValueMap(
   shouldTranspileTs: boolean
 ): Map<string, Map<string, string>> {
   const enumValueMap = new Map<string, Map<string, string>>();
-  if (!shouldTranspileTs) return enumValueMap;
+  if (!shouldTranspileTs) {
+    return enumValueMap;
+  }
 
   for (const node of program.body) {
     let enumDecl: TSEnumDeclaration | null = null;
@@ -105,7 +107,9 @@ export function collectEnumValueMap(
             : member.id.type === 'Literal' && typeof member.id.value === 'string'
               ? member.id.value
               : null;
-        if (!memberName) continue;
+        if (!memberName) {
+          continue;
+        }
         if (member.initializer) {
           if (
             member.initializer.type === 'Literal' &&
@@ -139,14 +143,18 @@ export function collectEnumValueMap(
 export function collectImportAttributes(program: AstProgram): Map<string, Record<string, string>> {
   const importAttributesMap = new Map<string, Record<string, string>>();
   for (const node of program.body) {
-    if (node.type !== 'ImportDeclaration') continue;
+    if (node.type !== 'ImportDeclaration') {
+      continue;
+    }
     const attrs = node.attributes;
     if (attrs && attrs.length > 0) {
       const attrObj: Record<string, string> = {};
       for (const attr of attrs) {
         const key = attr.key?.type === 'Identifier' ? attr.key.name : attr.key?.value;
         const value = attr.value?.value;
-        if (key && value) attrObj[key] = value;
+        if (key && value) {
+          attrObj[key] = value;
+        }
       }
       for (const spec of node.specifiers) {
         const localName = spec.local?.name;
@@ -210,10 +218,14 @@ export function buildSegmentImportList(
   // A `*Qrl` dispatcher (e.g. `serverQrl`) belongs to whatever package the
   // `*$` marker was imported from — only truly-internal helpers default to core.
   const dollarFormSource = (name: string): string | undefined => {
-    if (!name.endsWith('Qrl')) return undefined;
+    if (!name.endsWith('Qrl')) {
+      return undefined;
+    }
     const dollarName = `${name.slice(0, -3)}$`;
     for (const [, imp] of originalImports) {
-      if (imp.importedName === dollarName) return imp.source;
+      if (imp.importedName === dollarName) {
+        return imp.source;
+      }
     }
     return undefined;
   };
@@ -355,12 +367,16 @@ export function consolidateRawPropsCaptures(
     if (fieldExpr !== undefined) {
       propsFieldCaptures.set(name, fieldExpr);
       const defaultExpr = fieldDefaults?.get(name);
-      if (defaultExpr !== undefined) propsFieldDefaults.set(name, defaultExpr);
+      if (defaultExpr !== undefined) {
+        propsFieldDefaults.set(name, defaultExpr);
+      }
     } else {
       nonPropsCaptures.push(name);
     }
   }
-  if (propsFieldCaptures.size === 0) return null;
+  if (propsFieldCaptures.size === 0) {
+    return null;
+  }
   return {
     propsFieldCaptures,
     newCaptureNames: [...nonPropsCaptures, '_rawProps'].sort(),
@@ -377,7 +393,9 @@ function buildParentFieldMaps(
 } {
   const parentSymbolNames = new Set<string>();
   for (const ext of extractions) {
-    if (ext.parent !== null) parentSymbolNames.add(ext.parent);
+    if (ext.parent !== null) {
+      parentSymbolNames.add(ext.parent);
+    }
   }
   const fieldMaps = new Map<string, ReadonlyMap<string, string>>();
   const fieldDefaultsMaps = new Map<string, ReadonlyMap<string, string>>();
@@ -402,9 +420,13 @@ function tryConsolidateRawProps(
   ext: ConsolidatedSegment,
   prep: SegmentGenerationPrep
 ): RawPropsConsolidation | null {
-  if (ext.parent === null || ext.captureNames.length === 0) return null;
+  if (ext.parent === null || ext.captureNames.length === 0) {
+    return null;
+  }
   const fieldMap = prep.fieldMaps.get(ext.parent);
-  if (fieldMap === undefined || fieldMap.size === 0) return null;
+  if (fieldMap === undefined || fieldMap.size === 0) {
+    return null;
+  }
   const fieldDefaults = prep.fieldDefaultsMaps.get(ext.parent);
   return consolidateRawPropsCaptures(ext.captureNames, fieldMap, fieldDefaults);
 }
@@ -521,7 +543,9 @@ export function buildInlineStrategySegment(
     undefined
   );
 
-  if (!stripped) return null;
+  if (!stripped) {
+    return null;
+  }
 
   const outputExtension = resolveSegmentFileExtension(
     ext.symbolName,
@@ -743,16 +767,24 @@ function tryBuildMarkerDeclMove(
   const prefixDisplayName = `${exactDisplayName}_`;
   let match: ConsolidatedSegment | null = null;
   for (const ext of extractions) {
-    if (ext.parent !== null) continue;
-    if (ext.isInlinedQrl) continue;
+    if (ext.parent !== null) {
+      continue;
+    }
+    if (ext.isInlinedQrl) {
+      continue;
+    }
     if (ext.displayName === exactDisplayName || ext.displayName.startsWith(prefixDisplayName)) {
       match = ext;
       break;
     }
   }
-  if (!match) return null;
+  if (!match) {
+    return null;
+  }
   const qrlCallee = getQrlCalleeName(match.ctxName);
-  if (!qrlCallee) return null;
+  if (!qrlCallee) {
+    return null;
+  }
 
   const { decl: qrlDecl, qrlHelper } = buildMovedQrlDecl(
     match,
@@ -793,12 +825,20 @@ function buildMovedQrlSupport(
 
   const matched: ConsolidatedSegment[] = [];
   for (const e of ctx.extractions) {
-    if (e.parent !== null || e.isSync) continue;
-    if (declared.has(e.symbolName)) continue;
-    if (!movedText.includes(`q_${e.symbolName}`)) continue;
+    if (e.parent !== null || e.isSync) {
+      continue;
+    }
+    if (declared.has(e.symbolName)) {
+      continue;
+    }
+    if (!movedText.includes(`q_${e.symbolName}`)) {
+      continue;
+    }
     matched.push(e);
   }
-  if (matched.length === 0) return { qrlDecls, importDeps };
+  if (matched.length === 0) {
+    return { qrlDecls, importDeps };
+  }
 
   const isDevMode = ctx.emitMode === 'dev' || ctx.emitMode === 'hmr';
   const qrlHelpers = new Set<string>();
@@ -857,8 +897,12 @@ function resolveMovedDeclImportDeps(
       });
       continue;
     }
-    if (!sameFileSymbols.has(idName) || idName === varName) continue;
-    if (movedIntoThisSegment.has(idName)) continue;
+    if (!sameFileSymbols.has(idName) || idName === varName) {
+      continue;
+    }
+    if (movedIntoThisSegment.has(idName)) {
+      continue;
+    }
     const importedName = resolveSameFileImportName(
       idName,
       reexportedNames.has(idName),
@@ -963,8 +1007,12 @@ export function wireMigration(
   const segUsage = segmentUsage.get(migrationKey);
   if (segUsage) {
     for (const decision of migrationDecisions) {
-      if (decision.action !== 'reexport' || !segUsage.has(decision.varName)) continue;
-      if (moduleLevelDeclsByName.get(decision.varName)?.isExported) continue;
+      if (decision.action !== 'reexport' || !segUsage.has(decision.varName)) {
+        continue;
+      }
+      if (moduleLevelDeclsByName.get(decision.varName)?.isExported) {
+        continue;
+      }
       captureInfo.autoImports.push({ varName: decision.varName, parentModulePath });
     }
   }
@@ -989,7 +1037,9 @@ export function wireMigration(
       const decl = moduleLevelDeclsByName.get(decision.varName);
       if (decl) {
         const rangeKey = `${decl.declStart}:${decl.declEnd}`;
-        if (movedDeclRanges.has(rangeKey)) continue;
+        if (movedDeclRanges.has(rangeKey)) {
+          continue;
+        }
         movedDeclRanges.add(rangeKey);
         const importDeps = resolveMovedDeclImportDeps(
           decl,
@@ -1020,8 +1070,11 @@ export function passiveEventsFromDisplayName(child: {
   const passiveSet = new Set<string>();
   const displayNamePath = child.displayName ?? child.symbolName;
   let eventName: string = child.calleeName;
-  if (eventName.startsWith('document:')) eventName = eventName.slice(9);
-  else if (eventName.startsWith('window:')) eventName = eventName.slice(7);
+  if (eventName.startsWith('document:')) {
+    eventName = eventName.slice(9);
+  } else if (eventName.startsWith('window:')) {
+    eventName = eventName.slice(7);
+  }
   if (eventName.startsWith('on') && eventName.endsWith('$')) {
     eventName = eventName.slice(2, -1).toLowerCase();
   }
@@ -1128,7 +1181,9 @@ export function buildNestedCallSites(
         (child.ctxKind === 'eventHandler' || child.ctxKind === 'jSXProp')
       ) {
         const params = eventHandlerQpParams(child.paramNames);
-        if (params.length > 0) qpParams = consolidateParams(params);
+        if (params.length > 0) {
+          qpParams = consolidateParams(params);
+        }
       }
       const explicitCaptureItems =
         child.isInlinedQrl && child.explicitCaptures
@@ -1408,7 +1463,9 @@ export function generateAllSegmentModules(ctx: SegmentGenerationContext): Transf
   );
 
   for (const ext of prep.sortedExtractions) {
-    if (ext.isSync) continue;
+    if (ext.isSync) {
+      continue;
+    }
 
     const stripped = isStrippedExtraction(
       ext,
@@ -1417,7 +1474,9 @@ export function generateAllSegmentModules(ctx: SegmentGenerationContext): Transf
     );
     // Stripped-segment fallback zeros loc before SegmentAnalysis emission.
     // Internal-builder cast — see extract.ts `Mutable<T>`.
-    if (stripped) (ext as Mutable<ConsolidatedSegment>).loc = [mkByteOffset(0), mkByteOffset(0)];
+    if (stripped) {
+      (ext as Mutable<ConsolidatedSegment>).loc = [mkByteOffset(0), mkByteOffset(0)];
+    }
 
     // Clear capture metadata for event-handler segments stripped via
     // `stripEventHandlers`: the body is gone and the runtime never consumes the
@@ -1434,7 +1493,9 @@ export function generateAllSegmentModules(ctx: SegmentGenerationContext): Transf
       const inlineModule = buildInlineStrategySegment(ext, ctx, prep, stripped);
       // null result means non-stripped inline — body inlined into parent,
       // no segment file emitted.
-      if (inlineModule !== null) allModules.push(inlineModule);
+      if (inlineModule !== null) {
+        allModules.push(inlineModule);
+      }
       continue;
     }
 
@@ -1478,10 +1539,15 @@ function computeSegmentStartKeys(
 
   const childrenBySymbol = new Map<string, ConsolidatedSegment[]>();
   for (const ext of sortedExtractions) {
-    if (ext.parent === null) continue;
+    if (ext.parent === null) {
+      continue;
+    }
     const arr = childrenBySymbol.get(ext.parent);
-    if (arr) arr.push(ext);
-    else childrenBySymbol.set(ext.parent, [ext]);
+    if (arr) {
+      arr.push(ext);
+    } else {
+      childrenBySymbol.set(ext.parent, [ext]);
+    }
   }
 
   const exclusiveCount = new Map<string, number>();
@@ -1498,10 +1564,14 @@ function computeSegmentStartKeys(
   let counter = parentJsxKeyCounterValue;
 
   function visit(ext: ConsolidatedSegment): void {
-    if (ext.isSync) return;
+    if (ext.isSync) {
+      return;
+    }
     const children = childrenBySymbol.get(ext.symbolName) ?? [];
     const childrenInSourceOrder = [...children].sort((a, b) => a.argStart - b.argStart);
-    for (const child of childrenInSourceOrder) visit(child);
+    for (const child of childrenInSourceOrder) {
+      visit(child);
+    }
     result.set(ext.symbolName, counter);
     counter += exclusiveCount.get(ext.symbolName) ?? 0;
   }
@@ -1514,7 +1584,9 @@ function computeSegmentStartKeys(
     // The parent's module-order walk reserved this extraction's key range;
     // continue from that base so SSR and client numbering agree.
     const reservedBase = regionKeyBases?.get(ext.argStart);
-    if (reservedBase !== undefined) counter = reservedBase;
+    if (reservedBase !== undefined) {
+      counter = reservedBase;
+    }
     visit(ext);
   }
 
@@ -1531,7 +1603,9 @@ function computeSegmentStartKeys(
 function countJsxKeyConsumption(bodyText: string): number {
   // Cheap regex prefilter — if the body contains nothing JSX-shaped, skip
   // the parse. Both `<tag` (element) and `<>` (fragment) start with `<`.
-  if (bodyText.indexOf('<') === -1) return 0;
+  if (bodyText.indexOf('<') === -1) {
+    return 0;
+  }
   try {
     const parsed = parseWithRawTransfer('segment-jsx-count.tsx', `(${bodyText})`);
     return countJsxKeysInNode(parsed.program);
@@ -1544,13 +1618,19 @@ function countJsxKeyConsumption(bodyText: string): number {
 export function countJsxKeysInNode(root: AstNode, jsxFunctions?: ReadonlySet<string>): number {
   let count = 0;
   function isHtmlElementName(n: AstNode | null | undefined): boolean {
-    if (!n || n.type !== 'JSXElement') return false;
+    if (!n || n.type !== 'JSXElement') {
+      return false;
+    }
     const name = n.openingElement?.name;
-    if (!name || name.type !== 'JSXIdentifier') return false;
+    if (!name || name.type !== 'JSXIdentifier') {
+      return false;
+    }
     return isHtmlElement(name.name);
   }
   function walk(n: AstNode | null | undefined, parentIsJsxParent: boolean): void {
-    if (!n) return;
+    if (!n) {
+      return;
+    }
     if (n.type === 'JSXElement') {
       // Skip: an explicit key attribute consumes no counter key, and an HTML
       // element that's a JSX child of another JSXElement / JSXFragment
@@ -1558,13 +1638,17 @@ export function countJsxKeysInNode(root: AstNode, jsxFunctions?: ReadonlySet<str
       const hasExplicitKey = n.openingElement?.attributes?.some(
         (a) => a.type === 'JSXAttribute' && getJsxAttributeName(a) === 'key'
       );
-      if (!hasExplicitKey && !(parentIsJsxParent && isHtmlElementName(n))) count++;
+      if (!hasExplicitKey && !(parentIsJsxParent && isHtmlElementName(n))) {
+        count++;
+      }
     } else if (n.type === 'JSXFragment') {
       count++;
     } else if (jsxFunctions && isJsxCall(n, jsxFunctions) && n.type === 'CallExpression') {
       const args = n.arguments ?? [];
       const hasExplicitKey = args.length === 3 && args[2] && args[2].type !== 'SpreadElement';
-      if (!hasExplicitKey) count++;
+      if (!hasExplicitKey) {
+        count++;
+      }
     }
     const childIsInJsxParent = n.type === 'JSXElement' || n.type === 'JSXFragment';
     forEachAstChild(n, (child) => walk(child, childIsInJsxParent));

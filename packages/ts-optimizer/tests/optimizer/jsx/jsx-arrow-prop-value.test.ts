@@ -35,7 +35,9 @@ export default component$((props: any) => {
 `;
     const result = transform(source);
     const seg = findComponentSegment(result, 'test_component_');
-    if (seg?.kind !== 'segment') throw new Error('expected segment');
+    if (seg?.kind !== 'segment') {
+      throw new Error('expected segment');
+    }
 
     expect(seg.code).toMatch(/onRejected:\s*\(\)\s*=>\s*\/\*#__PURE__\*\/\s*_jsxSorted\("p"/);
     expect(seg.code).not.toContain('react/jsx-runtime');
@@ -58,7 +60,9 @@ export default component$((props: any) => {
 `;
     const result = transform(source);
     const seg = findComponentSegment(result, 'test_component_');
-    if (seg?.kind !== 'segment') throw new Error('expected segment');
+    if (seg?.kind !== 'segment') {
+      throw new Error('expected segment');
+    }
 
     expect(seg.code).toMatch(/_jsxSorted\(Image,/);
     expect(seg.code).not.toContain('react/jsx-runtime');
@@ -73,7 +77,9 @@ export const Image = component$((props: any) => {
 `;
     const result = transform(source);
     const seg = findComponentSegment(result, 'Image_component_');
-    if (seg?.kind !== 'segment') throw new Error('expected segment');
+    if (seg?.kind !== 'segment') {
+      throw new Error('expected segment');
+    }
 
     expect(seg.code).toMatch(/src:\s*`\$\{props\.src\}`/);
     expect(seg.code).not.toMatch(/src:\s*_fnSignal/);
@@ -88,7 +94,9 @@ export default component$((props: any) => {
 `;
     const result = transform(source);
     const seg = findComponentSegment(result, 'test_component_');
-    if (seg?.kind !== 'segment') throw new Error('expected segment');
+    if (seg?.kind !== 'segment') {
+      throw new Error('expected segment');
+    }
 
     expect(seg.code).toMatch(/"data-x":\s*_fnSignal\(/);
   });
@@ -102,7 +110,9 @@ export default component$((props: any) => {
 `;
     const result = transform(source);
     const seg = findComponentSegment(result, 'test_component_');
-    if (seg?.kind !== 'segment') throw new Error('expected segment');
+    if (seg?.kind !== 'segment') {
+      throw new Error('expected segment');
+    }
 
     expect(seg.code).toMatch(/class:\s*_fnSignal\(/);
   });

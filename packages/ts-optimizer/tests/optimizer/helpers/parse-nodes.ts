@@ -9,7 +9,9 @@ export function parseExprWithSource(code: string): { node: Expression; source: s
     throw new Error(`expected VariableDeclaration, got ${decl.type}`);
   }
   const init = decl.declarations[0]?.init;
-  if (!init) throw new Error('expected an initializer expression');
+  if (!init) {
+    throw new Error('expected an initializer expression');
+  }
   return { node: init, source };
 }
 

@@ -64,8 +64,12 @@ export function compareAst(expected: string, actual: string, filename: string): 
   const cleanExpected = stripPositions(expectedResult.program);
   const cleanActual = stripPositions(actualResult.program);
 
-  if (isAstNode(cleanExpected)) normalizeProgram(cleanExpected);
-  if (isAstNode(cleanActual)) normalizeProgram(cleanActual);
+  if (isAstNode(cleanExpected)) {
+    normalizeProgram(cleanExpected);
+  }
+  if (isAstNode(cleanActual)) {
+    normalizeProgram(cleanActual);
+  }
 
   // Re-strip: some normalizations create synthetic nodes with different key shapes than parsed nodes.
   const finalExpected = stripPositions(cleanExpected);
@@ -147,15 +151,21 @@ function normalizeProgram(program: AstCompatNode): void {
 
 function normalizeImportOrder(program: AstCompatNode): void {
   const body = asArray(program.body);
-  if (!body) return;
+  if (!body) {
+    return;
+  }
 
   let importEnd = 0;
   while (importEnd < body.length) {
     const el = body[importEnd];
-    if (!isRecord(el) || el.type !== 'ImportDeclaration') break;
+    if (!isRecord(el) || el.type !== 'ImportDeclaration') {
+      break;
+    }
     importEnd++;
   }
-  if (importEnd === 0) return;
+  if (importEnd === 0) {
+    return;
+  }
 
   const splitImports: unknown[] = [];
   for (let i = 0; i < importEnd; i++) {
@@ -187,35 +197,49 @@ function normalizeImportOrder(program: AstCompatNode): void {
  */
 function normalizeImportAliases(program: AstCompatNode): void {
   const body = asArray(program.body);
-  if (!body) return;
+  if (!body) {
+    return;
+  }
 
   const aliasMap = new Map<string, string>();
   const allLocalNames = new Set<string>();
 
   for (const stmt of body) {
-    if (!isRecord(stmt) || stmt.type !== 'ImportDeclaration') continue;
+    if (!isRecord(stmt) || stmt.type !== 'ImportDeclaration') {
+      continue;
+    }
     for (const spec of asArray(stmt.specifiers) ?? []) {
-      if (!isRecord(spec)) continue;
+      if (!isRecord(spec)) {
+        continue;
+      }
       if (spec.type === 'ImportSpecifier' && isRecord(spec.imported) && isRecord(spec.local)) {
         const imported = asString(spec.imported.name);
         const local = asString(spec.local.name);
-        if (imported === undefined || local === undefined) continue;
+        if (imported === undefined || local === undefined) {
+          continue;
+        }
         allLocalNames.add(local);
         if (imported !== local && !imported.startsWith('_auto_')) {
           aliasMap.set(local, imported);
         }
       } else if (isRecord(spec.local)) {
         const local = asString(spec.local.name);
-        if (local !== undefined) allLocalNames.add(local);
+        if (local !== undefined) {
+          allLocalNames.add(local);
+        }
       }
     }
   }
 
-  if (aliasMap.size === 0) return;
+  if (aliasMap.size === 0) {
+    return;
+  }
 
   const declaredNames = new Set<string>();
   for (const stmt of body) {
-    if (isRecord(stmt) && stmt.type === 'ImportDeclaration') continue;
+    if (isRecord(stmt) && stmt.type === 'ImportDeclaration') {
+      continue;
+    }
     collectDeclNames(stmt, declaredNames);
   }
 
@@ -228,10 +252,14 @@ function normalizeImportAliases(program: AstCompatNode): void {
     }
   }
 
-  if (safeAliases.size === 0) return;
+  if (safeAliases.size === 0) {
+    return;
+  }
 
   for (const stmt of body) {
-    if (!isRecord(stmt) || stmt.type !== 'ImportDeclaration') continue;
+    if (!isRecord(stmt) || stmt.type !== 'ImportDeclaration') {
+      continue;
+    }
     for (const spec of asArray(stmt.specifiers) ?? []) {
       if (isRecord(spec) && spec.type === 'ImportSpecifier' && isRecord(spec.local)) {
         const localName = asString(spec.local.name);
@@ -245,10 +273,14 @@ function normalizeImportAliases(program: AstCompatNode): void {
   function renameIdents(node: unknown): void {
     const arr = asArray(node);
     if (arr) {
-      for (const item of arr) renameIdents(item);
+      for (const item of arr) {
+        renameIdents(item);
+      }
       return;
     }
-    if (!isRecord(node)) return;
+    if (!isRecord(node)) {
+      return;
+    }
     if (node.type === 'Identifier') {
       const name = asString(node.name);
       if (name !== undefined && safeAliases.has(name)) {
@@ -256,13 +288,17 @@ function normalizeImportAliases(program: AstCompatNode): void {
       }
     }
     for (const key of Object.keys(node)) {
-      if (key === 'type') continue;
+      if (key === 'type') {
+        continue;
+      }
       renameIdents(node[key]);
     }
   }
 
   for (const stmt of body) {
-    if (isRecord(stmt) && stmt.type === 'ImportDeclaration') continue;
+    if (isRecord(stmt) && stmt.type === 'ImportDeclaration') {
+      continue;
+    }
     renameIdents(stmt);
   }
 }
@@ -270,34 +306,48 @@ function normalizeImportAliases(program: AstCompatNode): void {
 function collectDeclNames(node: unknown, names: Set<string>): void {
   const arr = asArray(node);
   if (arr) {
-    for (const item of arr) collectDeclNames(item, names);
+    for (const item of arr) {
+      collectDeclNames(item, names);
+    }
     return;
   }
-  if (!isRecord(node)) return;
+  if (!isRecord(node)) {
+    return;
+  }
   if (node.type === 'VariableDeclaration') {
     for (const decl of asArray(node.declarations) ?? []) {
       if (isRecord(decl) && isRecord(decl.id) && decl.id.type === 'Identifier') {
         const name = asString(decl.id.name);
-        if (name !== undefined) names.add(name);
+        if (name !== undefined) {
+          names.add(name);
+        }
       }
     }
   }
   if (node.type === 'FunctionDeclaration' && isRecord(node.id)) {
     const name = asString(node.id.name);
-    if (name) names.add(name);
+    if (name) {
+      names.add(name);
+    }
   }
   if (node.type === 'ClassDeclaration' && isRecord(node.id)) {
     const name = asString(node.id.name);
-    if (name) names.add(name);
+    if (name) {
+      names.add(name);
+    }
   }
   for (const key of Object.keys(node)) {
-    if (key === 'type') continue;
+    if (key === 'type') {
+      continue;
+    }
     collectDeclNames(node[key], names);
   }
 }
 
 function isReorderableDeclaration(decl: unknown): boolean {
-  if (!isRecord(decl)) return false;
+  if (!isRecord(decl)) {
+    return false;
+  }
 
   switch (decl.type) {
     case 'FunctionDeclaration':
@@ -309,13 +359,19 @@ function isReorderableDeclaration(decl: unknown): boolean {
   }
 
   const decls = asArray(decl.declarations);
-  if (decl.kind !== 'const' || !decls || decls.length !== 1) return false;
+  if (decl.kind !== 'const' || !decls || decls.length !== 1) {
+    return false;
+  }
 
   const first = decls[0];
-  if (!isRecord(first)) return false;
+  if (!isRecord(first)) {
+    return false;
+  }
   const id = first.id;
   const init = first.init;
-  if (!isRecord(id)) return false;
+  if (!isRecord(id)) {
+    return false;
+  }
 
   switch (id.type) {
     case 'ArrayPattern':
@@ -328,11 +384,14 @@ function isReorderableDeclaration(decl: unknown): boolean {
   }
 
   const idName = asString(id.name);
-  if (idName !== undefined && (idName.startsWith('q_') || /^_hf\d+(_str)?$/.test(idName)))
+  if (idName !== undefined && (idName.startsWith('q_') || /^_hf\d+(_str)?$/.test(idName))) {
     return true;
+  }
 
   // Otherwise only side-effect-free inits (reads, function expressions, `x.w(...)`) are reorderable.
-  if (!isRecord(init)) return false;
+  if (!isRecord(init)) {
+    return false;
+  }
   switch (init.type) {
     case 'Literal':
     case 'Identifier':
@@ -360,7 +419,9 @@ function normalizeQrlDeclarationOrder(program: AstCompatNode): void {
 
 function sortReorderableBlock(body: unknown): void {
   const arr = asArray(body);
-  if (!arr) return;
+  if (!arr) {
+    return;
+  }
   let i = 0;
   while (i < arr.length) {
     if (!isReorderableDeclaration(arr[i])) {
@@ -371,7 +432,9 @@ function sortReorderableBlock(body: unknown): void {
     while (i < arr.length && isReorderableDeclaration(arr[i])) {
       i++;
     }
-    if (i - blockStart <= 1) continue;
+    if (i - blockStart <= 1) {
+      continue;
+    }
     const block = arr.slice(blockStart, i);
     block.sort((a: unknown, b: unknown) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
     arr.splice(blockStart, i - blockStart, ...block);
@@ -384,13 +447,17 @@ function walkBodies(node: unknown, cb: (body: unknown[]) => void): void {
     arr.forEach((n) => walkBodies(n, cb));
     return;
   }
-  if (!isRecord(node)) return;
+  if (!isRecord(node)) {
+    return;
+  }
   const body = asArray(node.body);
   if (node.type === 'BlockStatement' && body) {
     cb(body);
   }
   for (const key of Object.keys(node)) {
-    if (key === 'start' || key === 'end' || key === 'loc' || key === 'range') continue;
+    if (key === 'start' || key === 'end' || key === 'loc' || key === 'range') {
+      continue;
+    }
     walkBodies(node[key], cb);
   }
 }
@@ -401,19 +468,29 @@ function walkBodies(node: unknown, cb: (body: unknown[]) => void): void {
  */
 function canonicalizeQrlVarNames(program: AstCompatNode): void {
   const body = asArray(program.body);
-  if (!body) return;
+  if (!body) {
+    return;
+  }
 
   const renameMap = new Map<string, string>();
 
   for (const stmt of body) {
-    if (!isRecord(stmt) || stmt.type !== 'VariableDeclaration') continue;
+    if (!isRecord(stmt) || stmt.type !== 'VariableDeclaration') {
+      continue;
+    }
     for (const decl of asArray(stmt.declarations) ?? []) {
-      if (!isRecord(decl) || !isRecord(decl.id) || decl.id.type !== 'Identifier') continue;
+      if (!isRecord(decl) || !isRecord(decl.id) || decl.id.type !== 'Identifier') {
+        continue;
+      }
       const varName = asString(decl.id.name);
-      if (varName === undefined || !varName.startsWith('q_')) continue;
+      if (varName === undefined || !varName.startsWith('q_')) {
+        continue;
+      }
 
       let init = decl.init;
-      if (!isRecord(init) || init.type !== 'CallExpression') continue;
+      if (!isRecord(init) || init.type !== 'CallExpression') {
+        continue;
+      }
       // Unwrap the `.m()` moved-captures marker to reach the qrl/noopQrl call.
       if (
         isRecord(init.callee) &&
@@ -425,9 +502,13 @@ function canonicalizeQrlVarNames(program: AstCompatNode): void {
       ) {
         init = init.callee.object;
       }
-      if (!isRecord(init) || init.type !== 'CallExpression') continue;
+      if (!isRecord(init) || init.type !== 'CallExpression') {
+        continue;
+      }
       const callee = init.callee;
-      if (!isRecord(callee)) continue;
+      if (!isRecord(callee)) {
+        continue;
+      }
 
       let symbolArg: string | null = null;
       const args = asArray(init.arguments);
@@ -461,15 +542,21 @@ function canonicalizeQrlVarNames(program: AstCompatNode): void {
     }
   }
 
-  if (renameMap.size === 0) return;
+  if (renameMap.size === 0) {
+    return;
+  }
 
   function renameIdents(node: unknown): void {
     const arr = asArray(node);
     if (arr) {
-      for (const item of arr) renameIdents(item);
+      for (const item of arr) {
+        renameIdents(item);
+      }
       return;
     }
-    if (!isRecord(node)) return;
+    if (!isRecord(node)) {
+      return;
+    }
     if (node.type === 'Identifier') {
       const name = asString(node.name);
       if (name !== undefined && renameMap.has(name)) {
@@ -477,7 +564,9 @@ function canonicalizeQrlVarNames(program: AstCompatNode): void {
       }
     }
     for (const key of Object.keys(node)) {
-      if (key === 'type') continue;
+      if (key === 'type') {
+        continue;
+      }
       renameIdents(node[key]);
     }
   }
@@ -503,8 +592,12 @@ function shouldStripRaw(node: unknown, ancestors: unknown[]): boolean {
 }
 
 function stripPositions(node: unknown, ancestors: unknown[] = []): unknown {
-  if (Array.isArray(node)) return node.map((item) => stripPositions(item, ancestors));
-  if (!isRecord(node)) return node;
+  if (Array.isArray(node)) {
+    return node.map((item) => stripPositions(item, ancestors));
+  }
+  if (!isRecord(node)) {
+    return node;
+  }
 
   if (node.type === 'ParenthesizedExpression' && node.expression) {
     return stripPositions(node.expression, ancestors);
@@ -550,8 +643,9 @@ function stripPositions(node: unknown, ancestors: unknown[] = []): unknown {
         (key === 'decorators' && Array.isArray(value) && value.length === 0) ||
         (key === 'optional' && value === false) ||
         (key === 'raw' && shouldStripRaw(normalizedNode, ancestors))
-      )
+      ) {
         continue;
+      }
       cleaned[key] = stripPositions(value, [normalizedNode, ...ancestors].slice(0, 3));
     }
     return cleaned;
@@ -578,8 +672,9 @@ function stripPositions(node: unknown, ancestors: unknown[] = []): unknown {
       (key === 'decorators' && Array.isArray(value) && value.length === 0) ||
       (key === 'optional' && value === false) ||
       (key === 'raw' && shouldStripRaw(node, ancestors))
-    )
+    ) {
       continue;
+    }
     cleaned[key] = stripPositions(value, [node, ...ancestors].slice(0, 3));
   }
   return cleaned;
@@ -587,9 +682,13 @@ function stripPositions(node: unknown, ancestors: unknown[] = []): unknown {
 
 function sortSpecifiersWithinImports(program: AstCompatNode): void {
   const body = asArray(program.body);
-  if (!body) return;
+  if (!body) {
+    return;
+  }
   for (const stmt of body) {
-    if (!isRecord(stmt) || stmt.type !== 'ImportDeclaration') continue;
+    if (!isRecord(stmt) || stmt.type !== 'ImportDeclaration') {
+      continue;
+    }
     const specs = asArray(stmt.specifiers);
     if (specs && specs.length > 1) {
       specs.sort((a: unknown, b: unknown) => {
@@ -609,7 +708,9 @@ function sortSpecifiersWithinImports(program: AstCompatNode): void {
 
 function sortIndependentExpressionStatements(program: AstCompatNode): void {
   const body = asArray(program.body);
-  if (!body) return;
+  if (!body) {
+    return;
+  }
   let i = 0;
   while (i < body.length) {
     if (!isIndependentExprStatement(body[i])) {
@@ -617,8 +718,12 @@ function sortIndependentExpressionStatements(program: AstCompatNode): void {
       continue;
     }
     const start = i;
-    while (i < body.length && isIndependentExprStatement(body[i])) i++;
-    if (i - start <= 1) continue;
+    while (i < body.length && isIndependentExprStatement(body[i])) {
+      i++;
+    }
+    if (i - start <= 1) {
+      continue;
+    }
     const block = body.slice(start, i);
     block.sort((a: unknown, b: unknown) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
     body.splice(start, i - start, ...block);
@@ -626,9 +731,13 @@ function sortIndependentExpressionStatements(program: AstCompatNode): void {
 }
 
 function isIndependentExprStatement(stmt: unknown): boolean {
-  if (!isRecord(stmt) || stmt.type !== 'ExpressionStatement') return false;
+  if (!isRecord(stmt) || stmt.type !== 'ExpressionStatement') {
+    return false;
+  }
   const expr = stmt.expression;
-  if (!isRecord(expr)) return false;
+  if (!isRecord(expr)) {
+    return false;
+  }
   if (
     expr.type === 'CallExpression' &&
     isRecord(expr.callee) &&
@@ -638,22 +747,26 @@ function isIndependentExprStatement(stmt: unknown): boolean {
     asString(expr.callee.object.name)?.startsWith('q_') &&
     isRecord(expr.callee.property) &&
     expr.callee.property.name === 's'
-  )
+  ) {
     return true;
+  }
   if (
     expr.type === 'CallExpression' &&
     isRecord(expr.callee) &&
     expr.callee.type === 'Identifier' &&
     typeof expr.callee.name === 'string' &&
     /^_hf\d+/.test(expr.callee.name)
-  )
+  ) {
     return true;
+  }
   return false;
 }
 
 function sortIndependentTopLevelStatements(program: AstCompatNode): void {
   const body = asArray(program.body);
-  if (!body) return;
+  if (!body) {
+    return;
+  }
   let i = 0;
   while (i < body.length) {
     if (!isIndependentTopLevel(body[i])) {
@@ -661,8 +774,12 @@ function sortIndependentTopLevelStatements(program: AstCompatNode): void {
       continue;
     }
     const start = i;
-    while (i < body.length && isIndependentTopLevel(body[i])) i++;
-    if (i - start <= 1) continue;
+    while (i < body.length && isIndependentTopLevel(body[i])) {
+      i++;
+    }
+    if (i - start <= 1) {
+      continue;
+    }
     const block = body.slice(start, i);
     block.sort((a: unknown, b: unknown) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
     body.splice(start, i - start, ...block);
@@ -670,7 +787,9 @@ function sortIndependentTopLevelStatements(program: AstCompatNode): void {
 }
 
 function isIndependentTopLevel(stmt: unknown): boolean {
-  if (!isRecord(stmt)) return false;
+  if (!isRecord(stmt)) {
+    return false;
+  }
   if (stmt.type === 'ExpressionStatement') {
     const expr = stmt.expression;
     if (
@@ -679,8 +798,9 @@ function isIndependentTopLevel(stmt: unknown): boolean {
       isRecord(expr.callee) &&
       expr.callee.type === 'Identifier' &&
       (expr.callee.name === 'qrl' || expr.callee.name === 'qrlDEV')
-    )
+    ) {
       return true;
+    }
     if (
       isRecord(expr) &&
       expr.type === 'CallExpression' &&
@@ -692,11 +812,16 @@ function isIndependentTopLevel(stmt: unknown): boolean {
       isRecord(expr.callee.property) &&
       expr.callee.property.type === 'Identifier' &&
       expr.callee.property.name === 's'
-    )
+    ) {
       return true;
+    }
   }
-  if (stmt.type === 'ExportNamedDeclaration') return true;
-  if (stmt.type === 'ExportDefaultDeclaration') return true;
+  if (stmt.type === 'ExportNamedDeclaration') {
+    return true;
+  }
+  if (stmt.type === 'ExportDefaultDeclaration') {
+    return true;
+  }
   // Literal-init const decls are side-effect-free, so their order relative to
   // surrounding exports / `q_*.s(...)` is irrelevant. Gated to Literal only —
   // complex inits could have order-dependent side effects.
@@ -742,8 +867,12 @@ function normalizeBooleanLiterals(program: AstCompatNode): void {
       node.argument.type === 'Literal' &&
       typeof node.argument.value === 'number'
     ) {
-      if (node.argument.value === 0) return { type: 'Literal', value: true };
-      if (node.argument.value === 1) return { type: 'Literal', value: false };
+      if (node.argument.value === 0) {
+        return { type: 'Literal', value: true };
+      }
+      if (node.argument.value === 1) {
+        return { type: 'Literal', value: false };
+      }
     }
     return node;
   });
@@ -751,17 +880,22 @@ function normalizeBooleanLiterals(program: AstCompatNode): void {
 
 function stripDirectives(program: AstCompatNode): void {
   const body = asArray(program.body);
-  if (!body) return;
+  if (!body) {
+    return;
+  }
   program.body = body.filter((stmt: unknown) => {
-    if (isRecord(stmt) && stmt.type === 'ExpressionStatement' && stmt.directive) return false;
+    if (isRecord(stmt) && stmt.type === 'ExpressionStatement' && stmt.directive) {
+      return false;
+    }
     if (
       isRecord(stmt) &&
       stmt.type === 'ExpressionStatement' &&
       isRecord(stmt.expression) &&
       stmt.expression.type === 'Literal' &&
       stmt.expression.value === 'use strict'
-    )
+    ) {
       return false;
+    }
     return true;
   });
 }
@@ -769,12 +903,18 @@ function stripDirectives(program: AstCompatNode): void {
 function normalizeArrowBodies(node: unknown): void {
   const arr = asArray(node);
   if (arr) {
-    for (const item of arr) normalizeArrowBodies(item);
+    for (const item of arr) {
+      normalizeArrowBodies(item);
+    }
     return;
   }
-  if (!isRecord(node)) return;
+  if (!isRecord(node)) {
+    return;
+  }
   for (const key of Object.keys(node)) {
-    if (key === 'type') continue;
+    if (key === 'type') {
+      continue;
+    }
     normalizeArrowBodies(node[key]);
   }
   if (
@@ -803,7 +943,9 @@ function normalizeArrowBodies(node: unknown): void {
  */
 function renumberHoistedFunctions(program: AstCompatNode): void {
   const body = asArray(program.body);
-  if (!body) return;
+  if (!body) {
+    return;
+  }
 
   const hfDecls: Array<{
     oldName: string; // e.g., "_hf0" or "_hf0_str"
@@ -815,13 +957,21 @@ function renumberHoistedFunctions(program: AstCompatNode): void {
 
   for (let i = 0; i < body.length; i++) {
     const stmt = body[i];
-    if (!isRecord(stmt) || stmt.type !== 'VariableDeclaration') continue;
+    if (!isRecord(stmt) || stmt.type !== 'VariableDeclaration') {
+      continue;
+    }
     for (const decl of asArray(stmt.declarations) ?? []) {
-      if (!isRecord(decl) || !isRecord(decl.id) || decl.id.type !== 'Identifier') continue;
+      if (!isRecord(decl) || !isRecord(decl.id) || decl.id.type !== 'Identifier') {
+        continue;
+      }
       const name = asString(decl.id.name);
-      if (name === undefined) continue;
+      if (name === undefined) {
+        continue;
+      }
       const match = /^_hf(\d+)(_str)?$/.exec(name);
-      if (!match) continue;
+      if (!match) {
+        continue;
+      }
       hfDecls.push({
         oldName: name,
         initJson: JSON.stringify(decl.init, (k, v) => (k === 'raw' ? undefined : v)),
@@ -832,7 +982,9 @@ function renumberHoistedFunctions(program: AstCompatNode): void {
     }
   }
 
-  if (hfDecls.length === 0) return;
+  if (hfDecls.length === 0) {
+    return;
+  }
 
   const byOldIndex = new Map<number, typeof hfDecls>();
   for (const d of hfDecls) {
@@ -861,15 +1013,21 @@ function renumberHoistedFunctions(program: AstCompatNode): void {
       break;
     }
   }
-  if (isIdentity) return;
+  if (isIdentity) {
+    return;
+  }
 
   function renameHf(node: unknown): void {
     const arr = asArray(node);
     if (arr) {
-      for (const item of arr) renameHf(item);
+      for (const item of arr) {
+        renameHf(item);
+      }
       return;
     }
-    if (!isRecord(node)) return;
+    if (!isRecord(node)) {
+      return;
+    }
     if (node.type === 'Identifier' && typeof node.name === 'string') {
       const m = /^_hf(\d+)(_str)?$/.exec(node.name);
       if (m) {
@@ -881,7 +1039,9 @@ function renumberHoistedFunctions(program: AstCompatNode): void {
       }
     }
     for (const key of Object.keys(node)) {
-      if (key === 'type') continue;
+      if (key === 'type') {
+        continue;
+      }
       renameHf(node[key]);
     }
   }
@@ -891,13 +1051,19 @@ function renumberHoistedFunctions(program: AstCompatNode): void {
 function unwrapSingleStatementBlocks(node: unknown): void {
   const arr = asArray(node);
   if (arr) {
-    for (const item of arr) unwrapSingleStatementBlocks(item);
+    for (const item of arr) {
+      unwrapSingleStatementBlocks(item);
+    }
     return;
   }
-  if (!isRecord(node)) return;
+  if (!isRecord(node)) {
+    return;
+  }
 
   for (const key of Object.keys(node)) {
-    if (key === 'type') continue;
+    if (key === 'type') {
+      continue;
+    }
     unwrapSingleStatementBlocks(node[key]);
   }
 
@@ -928,11 +1094,15 @@ function unwrapSingleStatementBlocks(node: unknown): void {
  */
 function normalizeEnumIIFE(program: AstCompatNode): void {
   const body = asArray(program.body);
-  if (!body) return;
+  if (!body) {
+    return;
+  }
 
   for (let i = 0; i < body.length; i++) {
     const stmt = body[i];
-    if (!isRecord(stmt)) continue;
+    if (!isRecord(stmt)) {
+      continue;
+    }
 
     let varDecl: Record<string, unknown> | null = null;
     if (
@@ -948,29 +1118,44 @@ function normalizeEnumIIFE(program: AstCompatNode): void {
     const varDecls = varDecl ? asArray(varDecl.declarations) : undefined;
     if (varDecl && varDecls && varDecls.length === 1) {
       const decl = varDecls[0];
-      if (!isRecord(decl)) continue;
+      if (!isRecord(decl)) {
+        continue;
+      }
       const init = decl.init;
-      if (!isRecord(init)) continue;
+      if (!isRecord(init)) {
+        continue;
+      }
 
       let callExpr: unknown = init;
-      if (isRecord(callExpr) && callExpr.type === 'ParenthesizedExpression')
+      if (isRecord(callExpr) && callExpr.type === 'ParenthesizedExpression') {
         callExpr = callExpr.expression;
+      }
 
-      if (!isRecord(callExpr) || callExpr.type !== 'CallExpression') continue;
+      if (!isRecord(callExpr) || callExpr.type !== 'CallExpression') {
+        continue;
+      }
 
       let callee: unknown = callExpr.callee;
-      if (isRecord(callee) && callee.type === 'ParenthesizedExpression') callee = callee.expression;
-      if (!isRecord(callee) || callee.type !== 'FunctionExpression') continue;
+      if (isRecord(callee) && callee.type === 'ParenthesizedExpression') {
+        callee = callee.expression;
+      }
+      if (!isRecord(callee) || callee.type !== 'FunctionExpression') {
+        continue;
+      }
 
       const params = asArray(callee.params);
-      if (!params || params.length !== 1) continue;
+      if (!params || params.length !== 1) {
+        continue;
+      }
       const p0 = params[0];
       const paramName =
         (isRecord(p0) && asString(p0.name)) ||
         (isRecord(p0) && isRecord(p0.id) && asString(p0.id.name)) ||
         undefined;
       const declName = isRecord(decl.id) ? asString(decl.id.name) : undefined;
-      if (!paramName || !declName || paramName !== declName) continue;
+      if (!paramName || !declName || paramName !== declName) {
+        continue;
+      }
 
       const args = asArray(callExpr.arguments) ?? [];
       if (args.length === 1) {
@@ -996,12 +1181,18 @@ function normalizeEnumIIFE(program: AstCompatNode): void {
 function normalizeJsxCalleeNames(node: unknown): void {
   const arr = asArray(node);
   if (arr) {
-    for (const item of arr) normalizeJsxCalleeNames(item);
+    for (const item of arr) {
+      normalizeJsxCalleeNames(item);
+    }
     return;
   }
-  if (!isRecord(node)) return;
+  if (!isRecord(node)) {
+    return;
+  }
   for (const key of Object.keys(node)) {
-    if (key === 'type') continue;
+    if (key === 'type') {
+      continue;
+    }
     normalizeJsxCalleeNames(node[key]);
   }
   if (
@@ -1017,33 +1208,48 @@ function normalizeJsxCalleeNames(node: unknown): void {
 function mergeJsxSplitProps(node: unknown): void {
   const nodeArr = asArray(node);
   if (nodeArr) {
-    for (const item of nodeArr) mergeJsxSplitProps(item);
+    for (const item of nodeArr) {
+      mergeJsxSplitProps(item);
+    }
     return;
   }
-  if (!isRecord(node)) return;
+  if (!isRecord(node)) {
+    return;
+  }
   for (const key of Object.keys(node)) {
-    if (key === 'type') continue;
+    if (key === 'type') {
+      continue;
+    }
     mergeJsxSplitProps(node[key]);
   }
 
   // varProps/constProps split is an optimization hint, not semantic.
-  if (node.type !== 'CallExpression') return;
+  if (node.type !== 'CallExpression') {
+    return;
+  }
   const callee = node.callee;
   if (
     !isRecord(callee) ||
     callee.type !== 'Identifier' ||
     (callee.name !== '_jsxSplit' && callee.name !== '_jsxSorted')
-  )
+  ) {
     return;
+  }
 
   const args = asArray(node.arguments);
-  if (!args || args.length < 3) return;
+  if (!args || args.length < 3) {
+    return;
+  }
 
   const varProps = args[1];
   const constProps = args[2];
 
-  if (!constProps) return;
-  if (isRecord(constProps) && constProps.type === 'Literal' && constProps.value === null) return;
+  if (!constProps) {
+    return;
+  }
+  if (isRecord(constProps) && constProps.type === 'Literal' && constProps.value === null) {
+    return;
+  }
 
   const varIsNull =
     !varProps || (isRecord(varProps) && varProps.type === 'Literal' && varProps.value === null);
@@ -1089,9 +1295,13 @@ function normalizeWrapProp(node: unknown): void {
     }
     return;
   }
-  if (!isRecord(node)) return;
+  if (!isRecord(node)) {
+    return;
+  }
   for (const key of Object.keys(node)) {
-    if (key === 'type') continue;
+    if (key === 'type') {
+      continue;
+    }
     const val = node[key];
     if (val && typeof val === 'object') {
       const valArr = asArray(val);
@@ -1109,11 +1319,17 @@ function normalizeWrapProp(node: unknown): void {
 }
 
 function unwrapWrapProp(node: unknown): unknown {
-  if (!isRecord(node) || node.type !== 'CallExpression') return node;
+  if (!isRecord(node) || node.type !== 'CallExpression') {
+    return node;
+  }
   const callee = node.callee;
-  if (!isRecord(callee) || callee.type !== 'Identifier' || callee.name !== '_wrapProp') return node;
+  if (!isRecord(callee) || callee.type !== 'Identifier' || callee.name !== '_wrapProp') {
+    return node;
+  }
   const args = asArray(node.arguments);
-  if (!args) return node;
+  if (!args) {
+    return node;
+  }
 
   const a1 = args[1];
   if (args.length === 2 && isRecord(a1) && a1.type === 'Literal' && typeof a1.value === 'string') {
@@ -1145,31 +1361,49 @@ function unwrapWrapProp(node: unknown): unknown {
  */
 function inlineFnSignalSimple(program: AstCompatNode): void {
   const body = asArray(program.body);
-  if (!body) return;
+  if (!body) {
+    return;
+  }
 
   const hfDecls = new Map<string, { paramNames: string[]; body: unknown }>();
   for (const stmt of body) {
-    if (!isRecord(stmt) || stmt.type !== 'VariableDeclaration') continue;
+    if (!isRecord(stmt) || stmt.type !== 'VariableDeclaration') {
+      continue;
+    }
     for (const decl of asArray(stmt.declarations) ?? []) {
-      if (!isRecord(decl) || !isRecord(decl.id) || decl.id.type !== 'Identifier') continue;
+      if (!isRecord(decl) || !isRecord(decl.id) || decl.id.type !== 'Identifier') {
+        continue;
+      }
       const name = asString(decl.id.name);
-      if (name === undefined || !/^_hf\d+$/.test(name) || !isRecord(decl.init)) continue;
+      if (name === undefined || !/^_hf\d+$/.test(name) || !isRecord(decl.init)) {
+        continue;
+      }
       const fn = decl.init;
-      if (fn.type !== 'ArrowFunctionExpression') continue;
+      if (fn.type !== 'ArrowFunctionExpression') {
+        continue;
+      }
       const paramNames = (asArray(fn.params) ?? [])
         .map((p: unknown) => (isRecord(p) ? asString(p.name) : undefined))
         .filter((n): n is string => Boolean(n));
-      if (paramNames.length === 0) continue;
+      if (paramNames.length === 0) {
+        continue;
+      }
       hfDecls.set(name, { paramNames, body: fn.body });
     }
   }
 
-  if (hfDecls.size === 0) return;
+  if (hfDecls.size === 0) {
+    return;
+  }
 
   function deepClone(node: unknown): unknown {
     const arr = asArray(node);
-    if (arr) return arr.map(deepClone);
-    if (!isRecord(node)) return node;
+    if (arr) {
+      return arr.map(deepClone);
+    }
+    if (!isRecord(node)) {
+      return node;
+    }
     const clone: Record<string, unknown> = {};
     for (const key of Object.keys(node)) {
       clone[key] = deepClone(node[key]);
@@ -1179,8 +1413,12 @@ function inlineFnSignalSimple(program: AstCompatNode): void {
 
   function substituteParams(node: unknown, paramMap: Map<string, unknown>): unknown {
     const arr = asArray(node);
-    if (arr) return arr.map((n) => substituteParams(n, paramMap));
-    if (!isRecord(node)) return node;
+    if (arr) {
+      return arr.map((n) => substituteParams(n, paramMap));
+    }
+    if (!isRecord(node)) {
+      return node;
+    }
     if (node.type === 'Identifier') {
       const name = asString(node.name);
       if (name !== undefined && paramMap.has(name)) {
@@ -1202,32 +1440,47 @@ function inlineFnSignalSimple(program: AstCompatNode): void {
       }
       return arr;
     }
-    if (!isRecord(node)) return node;
+    if (!isRecord(node)) {
+      return node;
+    }
 
     for (const key of Object.keys(node)) {
-      if (key === 'type') continue;
+      if (key === 'type') {
+        continue;
+      }
       const val = node[key];
       if (val && typeof val === 'object') {
         node[key] = processNode(val);
       }
     }
 
-    if (node.type !== 'CallExpression') return node;
+    if (node.type !== 'CallExpression') {
+      return node;
+    }
     if (
       !isRecord(node.callee) ||
       node.callee.type !== 'Identifier' ||
       node.callee.name !== '_fnSignal'
-    )
+    ) {
       return node;
+    }
     const nodeArgs = asArray(node.arguments);
-    if (!nodeArgs || nodeArgs.length < 2) return node;
+    if (!nodeArgs || nodeArgs.length < 2) {
+      return node;
+    }
 
     const hfRef = nodeArgs[0];
     const argsArray = nodeArgs[1];
-    if (!isRecord(hfRef) || hfRef.type !== 'Identifier') return node;
+    if (!isRecord(hfRef) || hfRef.type !== 'Identifier') {
+      return node;
+    }
     const hfRefName = asString(hfRef.name);
-    if (hfRefName === undefined || !hfDecls.has(hfRefName)) return node;
-    if (!isRecord(argsArray) || argsArray.type !== 'ArrayExpression') return node;
+    if (hfRefName === undefined || !hfDecls.has(hfRefName)) {
+      return node;
+    }
+    if (!isRecord(argsArray) || argsArray.type !== 'ArrayExpression') {
+      return node;
+    }
 
     const hfInfo = hfDecls.get(hfRefName)!;
     const args = asArray(argsArray.elements) ?? [];
@@ -1247,24 +1500,35 @@ function inlineFnSignalSimple(program: AstCompatNode): void {
 function normalizeJsxFlags(node: unknown): void {
   const arr = asArray(node);
   if (arr) {
-    for (const item of arr) normalizeJsxFlags(item);
+    for (const item of arr) {
+      normalizeJsxFlags(item);
+    }
     return;
   }
-  if (!isRecord(node)) return;
+  if (!isRecord(node)) {
+    return;
+  }
   for (const key of Object.keys(node)) {
-    if (key === 'type') continue;
+    if (key === 'type') {
+      continue;
+    }
     normalizeJsxFlags(node[key]);
   }
-  if (node.type !== 'CallExpression') return;
+  if (node.type !== 'CallExpression') {
+    return;
+  }
   const callee = node.callee;
   if (
     !isRecord(callee) ||
     callee.type !== 'Identifier' ||
     (callee.name !== '_jsxSorted' && callee.name !== '_jsxSplit')
-  )
+  ) {
     return;
+  }
   const args = asArray(node.arguments);
-  if (!args || args.length < 5) return;
+  if (!args || args.length < 5) {
+    return;
+  }
   const flagsArg = args[4];
   if (isRecord(flagsArg) && flagsArg.type === 'Literal' && typeof flagsArg.value === 'number') {
     // Flags encode optimization hints (children type, mutability, handlers), not correctness; zero them.
@@ -1279,18 +1543,26 @@ function normalizeJsxFlags(node: unknown): void {
 function stripQpProperties(node: unknown): void {
   const arr = asArray(node);
   if (arr) {
-    for (const item of arr) stripQpProperties(item);
+    for (const item of arr) {
+      stripQpProperties(item);
+    }
     return;
   }
-  if (!isRecord(node)) return;
+  if (!isRecord(node)) {
+    return;
+  }
   for (const key of Object.keys(node)) {
-    if (key === 'type') continue;
+    if (key === 'type') {
+      continue;
+    }
     stripQpProperties(node[key]);
   }
   const props = asArray(node.properties);
   if (node.type === 'ObjectExpression' && props) {
     node.properties = props.filter((p: unknown) => {
-      if (!isRecord(p) || !isRecord(p.key)) return true;
+      if (!isRecord(p) || !isRecord(p.key)) {
+        return true;
+      }
       const keyName = p.key.name || p.key.value;
       return keyName !== 'q:p' && keyName !== 'q:ps';
     });
@@ -1303,22 +1575,32 @@ function stripQpProperties(node: unknown): void {
  */
 function canonicalizeCaptureBindings(program: AstCompatNode): void {
   const programBody = asArray(program.body);
-  if (!programBody) return;
+  if (!programBody) {
+    return;
+  }
 
   function processBody(bodyInput: unknown): void {
     const body = asArray(bodyInput);
-    if (!body) return;
+    if (!body) {
+      return;
+    }
 
     const renameMap = new Map<string, string>();
     let capIdx = 0;
 
     for (const stmt of body) {
-      if (!isRecord(stmt) || stmt.type !== 'VariableDeclaration') continue;
+      if (!isRecord(stmt) || stmt.type !== 'VariableDeclaration') {
+        continue;
+      }
       for (const decl of asArray(stmt.declarations) ?? []) {
-        if (!isRecord(decl) || !isRecord(decl.init) || !isCapturesAccess(decl.init)) continue;
+        if (!isRecord(decl) || !isRecord(decl.init) || !isCapturesAccess(decl.init)) {
+          continue;
+        }
         if (isRecord(decl.id) && decl.id.type === 'Identifier') {
           const origName = asString(decl.id.name);
-          if (origName === undefined) continue;
+          if (origName === undefined) {
+            continue;
+          }
           const canonName = `_cap${capIdx++}`;
           if (origName !== canonName) {
             renameMap.set(origName, canonName);
@@ -1327,15 +1609,21 @@ function canonicalizeCaptureBindings(program: AstCompatNode): void {
       }
     }
 
-    if (renameMap.size === 0) return;
+    if (renameMap.size === 0) {
+      return;
+    }
 
     function renameIdents(node: unknown): void {
       const arr = asArray(node);
       if (arr) {
-        for (const item of arr) renameIdents(item);
+        for (const item of arr) {
+          renameIdents(item);
+        }
         return;
       }
-      if (!isRecord(node)) return;
+      if (!isRecord(node)) {
+        return;
+      }
       if (node.type === 'Identifier') {
         const name = asString(node.name);
         if (name !== undefined && renameMap.has(name)) {
@@ -1343,9 +1631,13 @@ function canonicalizeCaptureBindings(program: AstCompatNode): void {
         }
       }
       for (const key of Object.keys(node)) {
-        if (key === 'type') continue;
+        if (key === 'type') {
+          continue;
+        }
         const val = node[key];
-        if (val && typeof val === 'object') renameIdents(val);
+        if (val && typeof val === 'object') {
+          renameIdents(val);
+        }
       }
     }
 
@@ -1372,10 +1664,14 @@ function canonicalizeCaptureBindings(program: AstCompatNode): void {
   function visitNode(node: unknown): void {
     const arr = asArray(node);
     if (arr) {
-      for (const item of arr) visitNode(item);
+      for (const item of arr) {
+        visitNode(item);
+      }
       return;
     }
-    if (!isRecord(node)) return;
+    if (!isRecord(node)) {
+      return;
+    }
 
     if (
       (node.type === 'ArrowFunctionExpression' ||
@@ -1388,7 +1684,9 @@ function canonicalizeCaptureBindings(program: AstCompatNode): void {
     }
 
     for (const key of Object.keys(node)) {
-      if (key === 'type') continue;
+      if (key === 'type') {
+        continue;
+      }
       visitNode(node[key]);
     }
   }
@@ -1400,53 +1698,77 @@ function canonicalizeCaptureBindings(program: AstCompatNode): void {
 function mergeGetVarConstProps(node: unknown): void {
   const nodeArr = asArray(node);
   if (nodeArr) {
-    for (const item of nodeArr) mergeGetVarConstProps(item);
+    for (const item of nodeArr) {
+      mergeGetVarConstProps(item);
+    }
     return;
   }
-  if (!isRecord(node)) return;
+  if (!isRecord(node)) {
+    return;
+  }
   for (const key of Object.keys(node)) {
-    if (key === 'type') continue;
+    if (key === 'type') {
+      continue;
+    }
     mergeGetVarConstProps(node[key]);
   }
   const props = asArray(node.properties);
-  if (node.type !== 'ObjectExpression' || !props) return;
+  if (node.type !== 'ObjectExpression' || !props) {
+    return;
+  }
 
   const consumed = new Set<number>();
 
   for (let i = 0; i < props.length; i++) {
-    if (consumed.has(i)) continue;
+    if (consumed.has(i)) {
+      continue;
+    }
     const a = props[i];
-    if (!isRecord(a) || a.type !== 'SpreadElement') continue;
+    if (!isRecord(a) || a.type !== 'SpreadElement') {
+      continue;
+    }
     const aCall = a.argument;
     if (
       !isRecord(aCall) ||
       aCall.type !== 'CallExpression' ||
       !isRecord(aCall.callee) ||
       aCall.callee.type !== 'Identifier'
-    )
+    ) {
       continue;
+    }
     const aName = aCall.callee.name;
-    if (aName !== '_getVarProps' && aName !== '_getConstProps') continue;
+    if (aName !== '_getVarProps' && aName !== '_getConstProps') {
+      continue;
+    }
 
     const otherName = aName === '_getVarProps' ? '_getConstProps' : '_getVarProps';
 
     for (let j = 0; j < props.length; j++) {
-      if (j === i || consumed.has(j)) continue;
+      if (j === i || consumed.has(j)) {
+        continue;
+      }
       const b = props[j];
-      if (!isRecord(b) || b.type !== 'SpreadElement') continue;
+      if (!isRecord(b) || b.type !== 'SpreadElement') {
+        continue;
+      }
       const bCall = b.argument;
       if (
         !isRecord(bCall) ||
         bCall.type !== 'CallExpression' ||
         !isRecord(bCall.callee) ||
         bCall.callee.type !== 'Identifier'
-      )
+      ) {
         continue;
-      if (bCall.callee.name !== otherName) continue;
+      }
+      if (bCall.callee.name !== otherName) {
+        continue;
+      }
 
       const aArg = JSON.stringify(aCall.arguments);
       const bArg = JSON.stringify(bCall.arguments);
-      if (aArg !== bArg) continue;
+      if (aArg !== bArg) {
+        continue;
+      }
 
       a.argument = asArray(aCall.arguments)?.[0] || aCall;
       consumed.add(j);
@@ -1466,12 +1788,18 @@ function mergeGetVarConstProps(node: unknown): void {
 function normalizeDevModePositions(node: unknown): void {
   const arr = asArray(node);
   if (arr) {
-    for (const item of arr) normalizeDevModePositions(item);
+    for (const item of arr) {
+      normalizeDevModePositions(item);
+    }
     return;
   }
-  if (!isRecord(node)) return;
+  if (!isRecord(node)) {
+    return;
+  }
   for (const key of Object.keys(node)) {
-    if (key === 'type') continue;
+    if (key === 'type') {
+      continue;
+    }
     normalizeDevModePositions(node[key]);
   }
   const props = asArray(node.properties);
@@ -1490,7 +1818,9 @@ function normalizeDevModePositions(node: unknown): void {
     );
     if (hasLo && hasHi && hasFile) {
       for (const prop of props) {
-        if (!isRecord(prop) || !isRecord(prop.key)) continue;
+        if (!isRecord(prop) || !isRecord(prop.key)) {
+          continue;
+        }
         const keyName = prop.key.name || prop.key.value;
         if (keyName === 'lo' || keyName === 'hi') {
           prop.value = { type: 'Literal', value: 0 };
@@ -1509,7 +1839,9 @@ function normalizeDevModePositions(node: unknown): void {
     );
     if (hasLine && hasCol && hasFileName) {
       for (const prop of props) {
-        if (!isRecord(prop) || !isRecord(prop.key)) continue;
+        if (!isRecord(prop) || !isRecord(prop.key)) {
+          continue;
+        }
         const keyName = prop.key.name || prop.key.value;
         if (keyName === 'lineNumber' || keyName === 'columnNumber') {
           prop.value = { type: 'Literal', value: 0 };
@@ -1526,12 +1858,18 @@ function normalizeDevModePositions(node: unknown): void {
 function normalizeDevQrlCalls(node: unknown): void {
   const arr = asArray(node);
   if (arr) {
-    for (const item of arr) normalizeDevQrlCalls(item);
+    for (const item of arr) {
+      normalizeDevQrlCalls(item);
+    }
     return;
   }
-  if (!isRecord(node)) return;
+  if (!isRecord(node)) {
+    return;
+  }
   for (const key of Object.keys(node)) {
-    if (key === 'type') continue;
+    if (key === 'type') {
+      continue;
+    }
     normalizeDevQrlCalls(node[key]);
   }
 
@@ -1550,11 +1888,17 @@ function normalizeDevQrlCalls(node: unknown): void {
     return;
   }
 
-  if (node.type !== 'CallExpression') return;
+  if (node.type !== 'CallExpression') {
+    return;
+  }
   const callee = node.callee;
-  if (!isRecord(callee) || callee.type !== 'Identifier') return;
+  if (!isRecord(callee) || callee.type !== 'Identifier') {
+    return;
+  }
   const args = asArray(node.arguments);
-  if (!args) return;
+  if (!args) {
+    return;
+  }
 
   if (callee.name === 'qrlDEV' && args.length >= 2) {
     callee.name = 'qrl';
@@ -1576,18 +1920,30 @@ function normalizeDevQrlCalls(node: unknown): void {
 function stripJsxSourceInfo(node: unknown): void {
   const arr = asArray(node);
   if (arr) {
-    for (const item of arr) stripJsxSourceInfo(item);
+    for (const item of arr) {
+      stripJsxSourceInfo(item);
+    }
     return;
   }
-  if (!isRecord(node)) return;
+  if (!isRecord(node)) {
+    return;
+  }
   for (const key of Object.keys(node)) {
-    if (key === 'type') continue;
+    if (key === 'type') {
+      continue;
+    }
     stripJsxSourceInfo(node[key]);
   }
-  if (node.type !== 'CallExpression') return;
+  if (node.type !== 'CallExpression') {
+    return;
+  }
   const callee = node.callee;
-  if (!isRecord(callee) || callee.type !== 'Identifier') return;
-  if (callee.name !== '_jsxSorted' && callee.name !== '_jsxSplit') return;
+  if (!isRecord(callee) || callee.type !== 'Identifier') {
+    return;
+  }
+  if (callee.name !== '_jsxSorted' && callee.name !== '_jsxSplit') {
+    return;
+  }
   const args = asArray(node.arguments);
   if (args && args.length > 6) {
     node.arguments = args.slice(0, 6);
@@ -1601,18 +1957,25 @@ function stripJsxSourceInfo(node: unknown): void {
 function stripUseHmrCalls(program: AstCompatNode): void {
   function processBody(bodyInput: unknown): void {
     const body = asArray(bodyInput);
-    if (!body) return;
+    if (!body) {
+      return;
+    }
     for (let i = body.length - 1; i >= 0; i--) {
       const stmt = body[i];
-      if (!isRecord(stmt) || stmt.type !== 'ExpressionStatement') continue;
+      if (!isRecord(stmt) || stmt.type !== 'ExpressionStatement') {
+        continue;
+      }
       const expr = stmt.expression;
-      if (!isRecord(expr) || expr.type !== 'CallExpression') continue;
+      if (!isRecord(expr) || expr.type !== 'CallExpression') {
+        continue;
+      }
       if (
         !isRecord(expr.callee) ||
         expr.callee.type !== 'Identifier' ||
         expr.callee.name !== '_useHmr'
-      )
+      ) {
         continue;
+      }
       body.splice(i, 1);
     }
   }
@@ -1620,10 +1983,14 @@ function stripUseHmrCalls(program: AstCompatNode): void {
   function visit(node: unknown): void {
     const arr = asArray(node);
     if (arr) {
-      for (const item of arr) visit(item);
+      for (const item of arr) {
+        visit(item);
+      }
       return;
     }
-    if (!isRecord(node)) return;
+    if (!isRecord(node)) {
+      return;
+    }
     if (
       (node.type === 'ArrowFunctionExpression' ||
         node.type === 'FunctionExpression' ||
@@ -1634,7 +2001,9 @@ function stripUseHmrCalls(program: AstCompatNode): void {
       processBody(node.body.body);
     }
     for (const key of Object.keys(node)) {
-      if (key === 'type') continue;
+      if (key === 'type') {
+        continue;
+      }
       visit(node[key]);
     }
   }
@@ -1649,12 +2018,18 @@ function stripUseHmrCalls(program: AstCompatNode): void {
 function mergeDuplicateObjectProperties(node: unknown): void {
   const arr = asArray(node);
   if (arr) {
-    for (const item of arr) mergeDuplicateObjectProperties(item);
+    for (const item of arr) {
+      mergeDuplicateObjectProperties(item);
+    }
     return;
   }
-  if (!isRecord(node)) return;
+  if (!isRecord(node)) {
+    return;
+  }
   for (const key of Object.keys(node)) {
-    if (key === 'type') continue;
+    if (key === 'type') {
+      continue;
+    }
     mergeDuplicateObjectProperties(node[key]);
   }
   const props = asArray(node.properties);
@@ -1662,17 +2037,23 @@ function mergeDuplicateObjectProperties(node: unknown): void {
     const keyMap = new Map<string, number[]>();
     for (let i = 0; i < props.length; i++) {
       const prop = props[i];
-      if (!isRecord(prop) || prop.type !== 'Property' || prop.computed) continue;
+      if (!isRecord(prop) || prop.type !== 'Property' || prop.computed) {
+        continue;
+      }
       const keyRaw = isRecord(prop.key) ? prop.key.name || prop.key.value : undefined;
       const keyName = asString(keyRaw);
-      if (!keyName) continue;
+      if (!keyName) {
+        continue;
+      }
       const indices = keyMap.get(keyName) || [];
       indices.push(i);
       keyMap.set(keyName, indices);
     }
     const toRemove = new Set<number>();
     for (const [, indices] of keyMap) {
-      if (indices.length <= 1) continue;
+      if (indices.length <= 1) {
+        continue;
+      }
       const first = props[indices[0]];
       const values: unknown[] = [];
       for (const idx of indices) {
@@ -1684,9 +2065,13 @@ function mergeDuplicateObjectProperties(node: unknown): void {
         } else {
           values.push(val);
         }
-        if (idx !== indices[0]) toRemove.add(idx);
+        if (idx !== indices[0]) {
+          toRemove.add(idx);
+        }
       }
-      if (isRecord(first)) first.value = { type: 'ArrayExpression', elements: values };
+      if (isRecord(first)) {
+        first.value = { type: 'ArrayExpression', elements: values };
+      }
     }
     if (toRemove.size > 0) {
       node.properties = props.filter((_: unknown, i: number) => !toRemove.has(i));
@@ -1697,12 +2082,18 @@ function mergeDuplicateObjectProperties(node: unknown): void {
 function sortObjectProperties(node: unknown): void {
   const arr = asArray(node);
   if (arr) {
-    for (const item of arr) sortObjectProperties(item);
+    for (const item of arr) {
+      sortObjectProperties(item);
+    }
     return;
   }
-  if (!isRecord(node)) return;
+  if (!isRecord(node)) {
+    return;
+  }
   for (const key of Object.keys(node)) {
-    if (key === 'type') continue;
+    if (key === 'type') {
+      continue;
+    }
     sortObjectProperties(node[key]);
   }
   const props = asArray(node.properties);
@@ -1754,7 +2145,9 @@ function sortObjectProperties(node: unknown): void {
  */
 function stripUnusedCallBindings(program: AstCompatNode): void {
   const body = asArray(program.body);
-  if (!body) return;
+  if (!body) {
+    return;
+  }
 
   function collectRefs(node: unknown, refs: Set<string>, skipDecl?: string): void {
     const arr = asArray(node);
@@ -1762,35 +2155,54 @@ function stripUnusedCallBindings(program: AstCompatNode): void {
       arr.forEach((n) => collectRefs(n, refs, skipDecl));
       return;
     }
-    if (!isRecord(node)) return;
+    if (!isRecord(node)) {
+      return;
+    }
     if (node.type === 'Identifier') {
       const name = asString(node.name);
-      if (name && name !== skipDecl) refs.add(name);
+      if (name && name !== skipDecl) {
+        refs.add(name);
+      }
     }
     for (const key of Object.keys(node)) {
-      if (key === 'type' || key === 'start' || key === 'end' || key === 'loc' || key === 'range')
+      if (key === 'type' || key === 'start' || key === 'end' || key === 'loc' || key === 'range') {
         continue;
+      }
       collectRefs(node[key], refs, skipDecl);
     }
   }
 
   function processBody(bodyInput: unknown): void {
     const bodyArr = asArray(bodyInput);
-    if (!bodyArr) return;
+    if (!bodyArr) {
+      return;
+    }
     for (let i = 0; i < bodyArr.length; i++) {
       const stmt = bodyArr[i];
-      if (!isRecord(stmt) || stmt.type !== 'VariableDeclaration') continue;
+      if (!isRecord(stmt) || stmt.type !== 'VariableDeclaration') {
+        continue;
+      }
       const decls = asArray(stmt.declarations);
-      if (!decls || decls.length !== 1) continue;
+      if (!decls || decls.length !== 1) {
+        continue;
+      }
       const decl = decls[0];
-      if (!isRecord(decl) || !isRecord(decl.id) || decl.id.type !== 'Identifier') continue;
+      if (!isRecord(decl) || !isRecord(decl.id) || decl.id.type !== 'Identifier') {
+        continue;
+      }
       const name = asString(decl.id.name);
-      if (name === undefined) continue;
-      if (!isRecord(decl.init) || decl.init.type !== 'CallExpression') continue;
+      if (name === undefined) {
+        continue;
+      }
+      if (!isRecord(decl.init) || decl.init.type !== 'CallExpression') {
+        continue;
+      }
 
       const refs = new Set<string>();
       for (let j = 0; j < bodyArr.length; j++) {
-        if (j === i) continue;
+        if (j === i) {
+          continue;
+        }
         collectRefs(bodyArr[j], refs);
       }
       if (!refs.has(name)) {
@@ -1813,15 +2225,23 @@ function stripUnusedCallBindings(program: AstCompatNode): void {
  */
 function canonicalizeFnSignalArgs(program: AstCompatNode): void {
   const body = asArray(program.body);
-  if (!body) return;
+  if (!body) {
+    return;
+  }
 
   const hfDecls = new Map<string, { bodyStmt: unknown; strStmt: unknown; paramNames: string[] }>();
   for (const stmt of body) {
-    if (!isRecord(stmt) || stmt.type !== 'VariableDeclaration') continue;
+    if (!isRecord(stmt) || stmt.type !== 'VariableDeclaration') {
+      continue;
+    }
     for (const decl of asArray(stmt.declarations) ?? []) {
-      if (!isRecord(decl) || !isRecord(decl.id) || decl.id.type !== 'Identifier') continue;
+      if (!isRecord(decl) || !isRecord(decl.id) || decl.id.type !== 'Identifier') {
+        continue;
+      }
       const name = asString(decl.id.name);
-      if (name === undefined) continue;
+      if (name === undefined) {
+        continue;
+      }
       if (/^_hf\d+$/.test(name) && isRecord(decl.init)) {
         const params = (asArray(decl.init.params) ?? [])
           .map((p: unknown) => (isRecord(p) ? asString(p.name) : undefined))
@@ -1831,48 +2251,73 @@ function canonicalizeFnSignalArgs(program: AstCompatNode): void {
       if (/^_hf\d+_str$/.test(name) && isRecord(decl.init)) {
         const baseName = name.replace('_str', '');
         const existing = hfDecls.get(baseName);
-        if (existing) existing.strStmt = decl;
+        if (existing) {
+          existing.strStmt = decl;
+        }
       }
     }
   }
 
-  if (hfDecls.size === 0) return;
+  if (hfDecls.size === 0) {
+    return;
+  }
 
   function processFnSignalCalls(node: unknown): void {
     const arr = asArray(node);
     if (arr) {
-      for (const item of arr) processFnSignalCalls(item);
+      for (const item of arr) {
+        processFnSignalCalls(item);
+      }
       return;
     }
-    if (!isRecord(node)) return;
+    if (!isRecord(node)) {
+      return;
+    }
 
     for (const key of Object.keys(node)) {
-      if (key === 'type') continue;
+      if (key === 'type') {
+        continue;
+      }
       processFnSignalCalls(node[key]);
     }
 
-    if (node.type !== 'CallExpression') return;
+    if (node.type !== 'CallExpression') {
+      return;
+    }
     if (
       !isRecord(node.callee) ||
       node.callee.type !== 'Identifier' ||
       node.callee.name !== '_fnSignal'
-    )
+    ) {
       return;
+    }
     const nodeArgs = asArray(node.arguments);
-    if (!nodeArgs || nodeArgs.length < 2) return;
+    if (!nodeArgs || nodeArgs.length < 2) {
+      return;
+    }
 
     const hfRef = nodeArgs[0];
     const argsArray = nodeArgs[1];
 
-    if (!isRecord(hfRef) || hfRef.type !== 'Identifier') return;
+    if (!isRecord(hfRef) || hfRef.type !== 'Identifier') {
+      return;
+    }
     const hfName = asString(hfRef.name);
-    if (hfName === undefined || !/^_hf\d+$/.test(hfName)) return;
-    if (!isRecord(argsArray) || argsArray.type !== 'ArrayExpression') return;
+    if (hfName === undefined || !/^_hf\d+$/.test(hfName)) {
+      return;
+    }
+    if (!isRecord(argsArray) || argsArray.type !== 'ArrayExpression') {
+      return;
+    }
     const elements = asArray(argsArray.elements);
-    if (!elements) return;
+    if (!elements) {
+      return;
+    }
 
     const hfInfo = hfDecls.get(hfName);
-    if (!hfInfo || hfInfo.paramNames.length !== elements.length) return;
+    if (!hfInfo || hfInfo.paramNames.length !== elements.length) {
+      return;
+    }
 
     // Clear _hf_str values — serialized forms that may differ in formatting.
     if (isRecord(hfInfo.strStmt) && isRecord(hfInfo.strStmt.init)) {
@@ -1898,7 +2343,9 @@ function canonicalizeFnSignalArgs(program: AstCompatNode): void {
         break;
       }
     }
-    if (alreadySorted) return;
+    if (alreadySorted) {
+      return;
+    }
 
     const paramMap = new Map<string, string>();
     for (let newIdx = 0; newIdx < sorted.length; newIdx++) {
@@ -1913,10 +2360,14 @@ function canonicalizeFnSignalArgs(program: AstCompatNode): void {
     function remapParams(n: unknown): void {
       const nArr = asArray(n);
       if (nArr) {
-        for (const item of nArr) remapParams(item);
+        for (const item of nArr) {
+          remapParams(item);
+        }
         return;
       }
-      if (!isRecord(n)) return;
+      if (!isRecord(n)) {
+        return;
+      }
       if (n.type === 'Identifier') {
         const nm = asString(n.name);
         if (nm !== undefined && paramMap.has(nm)) {
@@ -1924,7 +2375,9 @@ function canonicalizeFnSignalArgs(program: AstCompatNode): void {
         }
       }
       for (const key of Object.keys(n)) {
-        if (key === 'type') continue;
+        if (key === 'type') {
+          continue;
+        }
         remapParams(n[key]);
       }
     }
@@ -1937,15 +2390,21 @@ function canonicalizeFnSignalArgs(program: AstCompatNode): void {
     function finalizeParams(n: unknown): void {
       const nArr = asArray(n);
       if (nArr) {
-        for (const item of nArr) finalizeParams(item);
+        for (const item of nArr) {
+          finalizeParams(item);
+        }
         return;
       }
-      if (!isRecord(n)) return;
+      if (!isRecord(n)) {
+        return;
+      }
       if (n.type === 'Identifier' && typeof n.name === 'string' && n.name.startsWith('__canon_p')) {
         n.name = n.name.replace('__canon_', '');
       }
       for (const key of Object.keys(n)) {
-        if (key === 'type') continue;
+        if (key === 'type') {
+          continue;
+        }
         finalizeParams(n[key]);
       }
     }
@@ -1959,13 +2418,17 @@ function canonicalizeFnSignalArgs(program: AstCompatNode): void {
 
 function deduplicateImports(program: AstCompatNode): void {
   const body = asArray(program.body);
-  if (!body) return;
+  if (!body) {
+    return;
+  }
   const importMap = new Map<string, Record<string, unknown>>();
   const toRemove: number[] = [];
 
   for (let i = 0; i < body.length; i++) {
     const stmt = body[i];
-    if (!isRecord(stmt) || stmt.type !== 'ImportDeclaration') continue;
+    if (!isRecord(stmt) || stmt.type !== 'ImportDeclaration') {
+      continue;
+    }
     const source = JSON.stringify(stmt.source);
     const specs = asArray(stmt.specifiers);
     const hasDefault = specs?.some(
@@ -1974,12 +2437,16 @@ function deduplicateImports(program: AstCompatNode): void {
     const hasNamespace = specs?.some(
       (s: unknown) => isRecord(s) && s.type === 'ImportNamespaceSpecifier'
     );
-    if (hasDefault || hasNamespace) continue;
+    if (hasDefault || hasNamespace) {
+      continue;
+    }
 
     const existing = importMap.get(source);
     if (existing) {
       const existingSpecs = asArray(existing.specifiers);
-      if (existingSpecs) existingSpecs.push(...(specs ?? []));
+      if (existingSpecs) {
+        existingSpecs.push(...(specs ?? []));
+      }
       toRemove.push(i);
     } else {
       importMap.set(source, stmt);
@@ -2005,12 +2472,16 @@ function deduplicateImports(program: AstCompatNode): void {
 /** Inline `const X = fn; q_X.s(X)` to `q_X.s(fn)` when `X` is only referenced by the `.s()` call. */
 function inlineSegmentBodyIntoSCall(program: AstCompatNode): void {
   const body = asArray(program.body);
-  if (!body) return;
+  if (!body) {
+    return;
+  }
 
   const constDecls = new Map<string, { init: unknown; stmtIndex: number }>();
   for (let i = 0; i < body.length; i++) {
     const stmt = body[i];
-    if (!isRecord(stmt)) continue;
+    if (!isRecord(stmt)) {
+      continue;
+    }
     const decls = asArray(stmt.declarations);
     if (
       stmt.type === 'VariableDeclaration' &&
@@ -2021,7 +2492,9 @@ function inlineSegmentBodyIntoSCall(program: AstCompatNode): void {
       const decl = decls[0];
       if (isRecord(decl) && isRecord(decl.id) && decl.id.type === 'Identifier' && decl.init) {
         const name = asString(decl.id.name);
-        if (name !== undefined) constDecls.set(name, { init: decl.init, stmtIndex: i });
+        if (name !== undefined) {
+          constDecls.set(name, { init: decl.init, stmtIndex: i });
+        }
       }
     }
   }
@@ -2030,30 +2503,51 @@ function inlineSegmentBodyIntoSCall(program: AstCompatNode): void {
 
   for (let i = 0; i < body.length; i++) {
     const stmt = body[i];
-    if (!isRecord(stmt) || stmt.type !== 'ExpressionStatement') continue;
+    if (!isRecord(stmt) || stmt.type !== 'ExpressionStatement') {
+      continue;
+    }
     const expr = stmt.expression;
-    if (!isRecord(expr) || expr.type !== 'CallExpression') continue;
-    if (!isRecord(expr.callee) || expr.callee.type !== 'MemberExpression') continue;
-    if (!isRecord(expr.callee.object) || expr.callee.object.type !== 'Identifier') continue;
+    if (!isRecord(expr) || expr.type !== 'CallExpression') {
+      continue;
+    }
+    if (!isRecord(expr.callee) || expr.callee.type !== 'MemberExpression') {
+      continue;
+    }
+    if (!isRecord(expr.callee.object) || expr.callee.object.type !== 'Identifier') {
+      continue;
+    }
     if (
       !isRecord(expr.callee.property) ||
       expr.callee.property.type !== 'Identifier' ||
       expr.callee.property.name !== 's'
-    )
+    ) {
       continue;
-    if (!asString(expr.callee.object.name)?.startsWith('q_')) continue;
+    }
+    if (!asString(expr.callee.object.name)?.startsWith('q_')) {
+      continue;
+    }
     const exprArgs = asArray(expr.arguments);
-    if (!exprArgs || exprArgs.length !== 1) continue;
+    if (!exprArgs || exprArgs.length !== 1) {
+      continue;
+    }
     const arg = exprArgs[0];
-    if (!isRecord(arg) || arg.type !== 'Identifier') continue;
+    if (!isRecord(arg) || arg.type !== 'Identifier') {
+      continue;
+    }
     const argName = asString(arg.name);
-    if (argName === undefined) continue;
+    if (argName === undefined) {
+      continue;
+    }
 
     const constInfo = constDecls.get(argName);
-    if (!constInfo) continue;
+    if (!constInfo) {
+      continue;
+    }
 
     const initType = isRecord(constInfo.init) ? constInfo.init.type : undefined;
-    if (initType !== 'ArrowFunctionExpression' && initType !== 'FunctionExpression') continue;
+    if (initType !== 'ArrowFunctionExpression' && initType !== 'FunctionExpression') {
+      continue;
+    }
 
     toInline.push({
       sCallStmtIndex: i,
@@ -2068,7 +2562,9 @@ function inlineSegmentBodyIntoSCall(program: AstCompatNode): void {
     const sStmt = body[sCallStmtIndex];
     if (isRecord(sStmt) && isRecord(sStmt.expression)) {
       const sArgs = asArray(sStmt.expression.arguments);
-      if (sArgs) sArgs[0] = constInfo.init;
+      if (sArgs) {
+        sArgs[0] = constInfo.init;
+      }
     }
     toRemoveIndices.add(constStmtIndex);
   }
@@ -2084,13 +2580,19 @@ function inlineSegmentBodyIntoSCall(program: AstCompatNode): void {
  */
 function normalizeAutoExports(program: AstCompatNode): void {
   const body = asArray(program.body);
-  if (!body) return;
+  if (!body) {
+    return;
+  }
 
   for (let i = body.length - 1; i >= 0; i--) {
     const stmt = body[i];
-    if (!isRecord(stmt) || stmt.type !== 'ExportNamedDeclaration' || stmt.declaration) continue;
+    if (!isRecord(stmt) || stmt.type !== 'ExportNamedDeclaration' || stmt.declaration) {
+      continue;
+    }
     const specs = asArray(stmt.specifiers);
-    if (!specs) continue;
+    if (!specs) {
+      continue;
+    }
     const kept = specs.filter((spec: unknown) => {
       const exported =
         (isRecord(spec) && isRecord(spec.exported) && asString(spec.exported.name)) || '';
@@ -2103,11 +2605,17 @@ function normalizeAutoExports(program: AstCompatNode): void {
   }
 
   for (const stmt of body) {
-    if (!isRecord(stmt) || stmt.type !== 'ImportDeclaration') continue;
+    if (!isRecord(stmt) || stmt.type !== 'ImportDeclaration') {
+      continue;
+    }
     const specs = asArray(stmt.specifiers);
-    if (!specs) continue;
+    if (!specs) {
+      continue;
+    }
     for (const spec of specs) {
-      if (!isRecord(spec) || spec.type !== 'ImportSpecifier') continue;
+      if (!isRecord(spec) || spec.type !== 'ImportSpecifier') {
+        continue;
+      }
       const imported = (isRecord(spec.imported) && asString(spec.imported.name)) || '';
       if (imported.startsWith('_auto_')) {
         spec.imported = { ...(isRecord(spec.local) ? spec.local : {}) };
@@ -2122,7 +2630,9 @@ function normalizeAutoExports(program: AstCompatNode): void {
  */
 function stripUnusedImports(program: AstCompatNode): void {
   const body = asArray(program.body);
-  if (!body) return;
+  if (!body) {
+    return;
+  }
 
   const usedNames = new Set<string>();
   function collectIdents(node: unknown): void {
@@ -2131,28 +2641,39 @@ function stripUnusedImports(program: AstCompatNode): void {
       arr.forEach(collectIdents);
       return;
     }
-    if (!isRecord(node)) return;
+    if (!isRecord(node)) {
+      return;
+    }
     if (node.type === 'Identifier') {
       const name = asString(node.name);
-      if (name) usedNames.add(name);
+      if (name) {
+        usedNames.add(name);
+      }
     }
     for (const key of Object.keys(node)) {
-      if (key === 'start' || key === 'end' || key === 'loc' || key === 'range' || key === 'type')
+      if (key === 'start' || key === 'end' || key === 'loc' || key === 'range' || key === 'type') {
         continue;
+      }
       collectIdents(node[key]);
     }
   }
 
   for (const stmt of body) {
-    if (isRecord(stmt) && stmt.type === 'ImportDeclaration') continue;
+    if (isRecord(stmt) && stmt.type === 'ImportDeclaration') {
+      continue;
+    }
     collectIdents(stmt);
   }
 
   for (let i = body.length - 1; i >= 0; i--) {
     const stmt = body[i];
-    if (!isRecord(stmt) || stmt.type !== 'ImportDeclaration') continue;
+    if (!isRecord(stmt) || stmt.type !== 'ImportDeclaration') {
+      continue;
+    }
     const specs = asArray(stmt.specifiers);
-    if (!specs || specs.length === 0) continue; // side-effect import
+    if (!specs || specs.length === 0) {
+      continue;
+    } // side-effect import
 
     const kept = specs.filter((spec: unknown) => {
       const localName =
@@ -2179,8 +2700,12 @@ function stripFrameworkHelperImports(program: AstCompatNode): void {
 
   // A ModuleExportName may be an Identifier (carries `name`) or StringLiteral (carries `value`).
   const importedNameOf = (imported: unknown): string | undefined => {
-    if (!isRecord(imported)) return undefined;
-    if (imported.type === 'Literal') return asString(imported.value);
+    if (!isRecord(imported)) {
+      return undefined;
+    }
+    if (imported.type === 'Literal') {
+      return asString(imported.value);
+    }
     return asString(imported.name);
   };
 
@@ -2190,23 +2715,35 @@ function stripFrameworkHelperImports(program: AstCompatNode): void {
   };
 
   const keepSpecifier = (spec: unknown): boolean => {
-    if (!isRecord(spec) || spec.type !== 'ImportSpecifier') return true;
+    if (!isRecord(spec) || spec.type !== 'ImportSpecifier') {
+      return true;
+    }
     const name = importedNameOf(spec.imported);
     return name === undefined || !isFrameworkHelper(name);
   };
 
   const body = asArray(program.body);
-  if (!body) return;
+  if (!body) {
+    return;
+  }
   for (let i = body.length - 1; i >= 0; i--) {
     const stmt = body[i];
-    if (!isRecord(stmt) || stmt.type !== 'ImportDeclaration') continue;
+    if (!isRecord(stmt) || stmt.type !== 'ImportDeclaration') {
+      continue;
+    }
     const specs = asArray(stmt.specifiers);
-    if (!specs || specs.length === 0) continue;
-    if (!isStrippable(stmt)) continue;
+    if (!specs || specs.length === 0) {
+      continue;
+    }
+    if (!isStrippable(stmt)) {
+      continue;
+    }
 
     const kept = specs.filter(keepSpecifier);
     stmt.specifiers = kept;
-    if (kept.length === 0) body.splice(i, 1);
+    if (kept.length === 0) {
+      body.splice(i, 1);
+    }
   }
 }
 
@@ -2217,7 +2754,9 @@ function stripFrameworkHelperImports(program: AstCompatNode): void {
 function stripIsServerGuards(program: AstCompatNode): void {
   function visitBody(bodyInput: unknown): void {
     const body = asArray(bodyInput);
-    if (!body) return;
+    if (!body) {
+      return;
+    }
     for (let i = body.length - 1; i >= 0; i--) {
       const stmt = body[i];
       if (
@@ -2242,10 +2781,14 @@ function stripIsServerGuards(program: AstCompatNode): void {
   function visitNode(node: unknown): void {
     const arr = asArray(node);
     if (arr) {
-      for (const item of arr) visitNode(item);
+      for (const item of arr) {
+        visitNode(item);
+      }
       return;
     }
-    if (!isRecord(node)) return;
+    if (!isRecord(node)) {
+      return;
+    }
     const nodeBody = asArray(node.body);
     if (node.type === 'BlockStatement' && nodeBody) {
       visitBody(nodeBody);
@@ -2260,7 +2803,9 @@ function stripIsServerGuards(program: AstCompatNode): void {
       visitBody(node.body.body);
     }
     for (const key of Object.keys(node)) {
-      if (key === 'type') continue;
+      if (key === 'type') {
+        continue;
+      }
       visitNode(node[key]);
     }
   }
@@ -2274,9 +2819,15 @@ function stripIsServerGuards(program: AstCompatNode): void {
  */
 function stripPureExpressionStatements(program: AstCompatNode): void {
   function isPure(expr: unknown): boolean {
-    if (!isRecord(expr)) return false;
-    if (expr.type === 'Identifier') return true;
-    if (expr.type === 'Literal') return true;
+    if (!isRecord(expr)) {
+      return false;
+    }
+    if (expr.type === 'Identifier') {
+      return true;
+    }
+    if (expr.type === 'Literal') {
+      return true;
+    }
     if (expr.type === 'SequenceExpression') {
       return (asArray(expr.expressions) ?? []).every(isPure);
     }
@@ -2285,7 +2836,9 @@ function stripPureExpressionStatements(program: AstCompatNode): void {
 
   function visitBody(bodyInput: unknown): void {
     const body = asArray(bodyInput);
-    if (!body) return;
+    if (!body) {
+      return;
+    }
     for (let i = body.length - 1; i >= 0; i--) {
       const stmt = body[i];
       if (isRecord(stmt) && stmt.type === 'ExpressionStatement' && isPure(stmt.expression)) {
@@ -2297,10 +2850,14 @@ function stripPureExpressionStatements(program: AstCompatNode): void {
   function visitNode(node: unknown): void {
     const arr = asArray(node);
     if (arr) {
-      for (const item of arr) visitNode(item);
+      for (const item of arr) {
+        visitNode(item);
+      }
       return;
     }
-    if (!isRecord(node)) return;
+    if (!isRecord(node)) {
+      return;
+    }
     const nodeBody = asArray(node.body);
     if (node.type === 'BlockStatement' && nodeBody) {
       visitBody(nodeBody);
@@ -2315,7 +2872,9 @@ function stripPureExpressionStatements(program: AstCompatNode): void {
       visitBody(node.body.body);
     }
     for (const key of Object.keys(node)) {
-      if (key === 'type') continue;
+      if (key === 'type') {
+        continue;
+      }
       visitNode(node[key]);
     }
   }
@@ -2330,7 +2889,9 @@ function stripUnusedLocalDeclarations(program: AstCompatNode): void {
       arr.forEach(visitNode);
       return;
     }
-    if (!isRecord(node)) return;
+    if (!isRecord(node)) {
+      return;
+    }
 
     if (
       (node.type === 'ArrowFunctionExpression' ||
@@ -2347,7 +2908,9 @@ function stripUnusedLocalDeclarations(program: AstCompatNode): void {
     }
 
     for (const key of Object.keys(node)) {
-      if (key === 'type') continue;
+      if (key === 'type') {
+        continue;
+      }
       visitNode(node[key]);
     }
   }
@@ -2388,9 +2951,13 @@ function stripNoopLabeledStatements(node: unknown): void {
     }
     return;
   }
-  if (!isRecord(node)) return;
+  if (!isRecord(node)) {
+    return;
+  }
   for (const key of Object.keys(node)) {
-    if (key === 'type') continue;
+    if (key === 'type') {
+      continue;
+    }
     const val = node[key];
     if (val && typeof val === 'object') {
       stripNoopLabeledStatements(val);
@@ -2405,15 +2972,21 @@ function stripNoopLabeledStatements(node: unknown): void {
  */
 function stripOrphanedSideEffectCalls(program: AstCompatNode): void {
   const body = asArray(program.body);
-  if (!body) return;
+  if (!body) {
+    return;
+  }
 
   const importedNames = new Set<string>();
   for (const stmt of body) {
-    if (!isRecord(stmt) || stmt.type !== 'ImportDeclaration') continue;
+    if (!isRecord(stmt) || stmt.type !== 'ImportDeclaration') {
+      continue;
+    }
     for (const spec of asArray(stmt.specifiers) ?? []) {
       const localName =
         isRecord(spec) && isRecord(spec.local) ? asString(spec.local.name) : undefined;
-      if (localName) importedNames.add(localName);
+      if (localName) {
+        importedNames.add(localName);
+      }
     }
   }
 
@@ -2422,23 +2995,34 @@ function stripOrphanedSideEffectCalls(program: AstCompatNode): void {
     changed = false;
     for (let i = body.length - 1; i >= 0; i--) {
       const stmt = body[i];
-      if (!isRecord(stmt) || stmt.type !== 'ExpressionStatement') continue;
-      const expr = stmt.expression;
-      if (!isRecord(expr) || (expr.type !== 'CallExpression' && expr.type !== 'NewExpression'))
+      if (!isRecord(stmt) || stmt.type !== 'ExpressionStatement') {
         continue;
+      }
+      const expr = stmt.expression;
+      if (!isRecord(expr) || (expr.type !== 'CallExpression' && expr.type !== 'NewExpression')) {
+        continue;
+      }
 
       const usedIdents = new Set<string>();
       collectAllIdents(expr, usedIdents);
 
       const allImportOnly = [...usedIdents].every((name) => {
-        if (!importedNames.has(name)) return false;
+        if (!importedNames.has(name)) {
+          return false;
+        }
         for (let j = 0; j < body.length; j++) {
-          if (j === i) continue;
+          if (j === i) {
+            continue;
+          }
           const other = body[j];
-          if (isRecord(other) && other.type === 'ImportDeclaration') continue;
+          if (isRecord(other) && other.type === 'ImportDeclaration') {
+            continue;
+          }
           const refs = new Set<string>();
           collectAllIdents(other, refs);
-          if (refs.has(name)) return false;
+          if (refs.has(name)) {
+            return false;
+          }
         }
         return true;
       });
@@ -2457,10 +3041,14 @@ function stripOrphanedSideEffectCalls(program: AstCompatNode): void {
  */
 function stripBareQrlPreloadCalls(program: AstCompatNode): void {
   const body = asArray(program.body);
-  if (!body) return;
+  if (!body) {
+    return;
+  }
   for (let i = body.length - 1; i >= 0; i--) {
     const stmt = body[i];
-    if (!isRecord(stmt) || stmt.type !== 'ExpressionStatement') continue;
+    if (!isRecord(stmt) || stmt.type !== 'ExpressionStatement') {
+      continue;
+    }
     const expr = stmt.expression;
     if (
       isRecord(expr) &&
@@ -2489,7 +3077,9 @@ function isCompilerGeneratedName(name: string): boolean {
 
 function stripUnusedModuleLevelDeclarations(program: AstCompatNode): void {
   const body = asArray(program.body);
-  if (!body) return;
+  if (!body) {
+    return;
+  }
 
   let changed = true;
   while (changed) {
@@ -2503,14 +3093,24 @@ function stripUnusedModuleLevelDeclarations(program: AstCompatNode): void {
       }
       if (stmt.type === 'VariableDeclaration') {
         for (const decl of asArray(stmt.declarations) ?? []) {
-          if (isRecord(decl) && decl.init) collectAllIdents(decl.init, referencedNames);
+          if (isRecord(decl) && decl.init) {
+            collectAllIdents(decl.init, referencedNames);
+          }
         }
       } else if (stmt.type === 'FunctionDeclaration') {
-        for (const p of asArray(stmt.params) ?? []) collectAllIdents(p, referencedNames);
-        if (stmt.body) collectAllIdents(stmt.body, referencedNames);
+        for (const p of asArray(stmt.params) ?? []) {
+          collectAllIdents(p, referencedNames);
+        }
+        if (stmt.body) {
+          collectAllIdents(stmt.body, referencedNames);
+        }
       } else if (stmt.type === 'ClassDeclaration') {
-        if (stmt.body) collectAllIdents(stmt.body, referencedNames);
-        if (stmt.superClass) collectAllIdents(stmt.superClass, referencedNames);
+        if (stmt.body) {
+          collectAllIdents(stmt.body, referencedNames);
+        }
+        if (stmt.superClass) {
+          collectAllIdents(stmt.superClass, referencedNames);
+        }
       } else {
         collectAllIdents(stmt, referencedNames);
       }
@@ -2518,7 +3118,9 @@ function stripUnusedModuleLevelDeclarations(program: AstCompatNode): void {
 
     for (let i = body.length - 1; i >= 0; i--) {
       const stmt = body[i];
-      if (!isRecord(stmt)) continue;
+      if (!isRecord(stmt)) {
+        continue;
+      }
       if (stmt.type === 'VariableDeclaration') {
         const allUnused = (asArray(stmt.declarations) ?? []).every((decl: unknown) => {
           const names = new Map<string, number>();
@@ -2559,9 +3161,13 @@ function stripUnusedModuleLevelDeclarations(program: AstCompatNode): void {
 }
 
 function stripUnusedDeclsInBlock(block: unknown, params: unknown[]): void {
-  if (!isRecord(block)) return;
+  if (!isRecord(block)) {
+    return;
+  }
   const blockBody = asArray(block.body);
-  if (!blockBody) return;
+  if (!blockBody) {
+    return;
+  }
 
   let changed = true;
   while (changed) {
@@ -2585,14 +3191,24 @@ function stripUnusedDeclsInBlock(block: unknown, params: unknown[]): void {
       }
       if (stmt.type === 'VariableDeclaration') {
         for (const decl of asArray(stmt.declarations) ?? []) {
-          if (isRecord(decl) && decl.init) collectAllIdents(decl.init, referencedNames);
+          if (isRecord(decl) && decl.init) {
+            collectAllIdents(decl.init, referencedNames);
+          }
         }
       } else if (stmt.type === 'FunctionDeclaration') {
-        for (const p of asArray(stmt.params) ?? []) collectAllIdents(p, referencedNames);
-        if (stmt.body) collectAllIdents(stmt.body, referencedNames);
+        for (const p of asArray(stmt.params) ?? []) {
+          collectAllIdents(p, referencedNames);
+        }
+        if (stmt.body) {
+          collectAllIdents(stmt.body, referencedNames);
+        }
       } else if (stmt.type === 'ClassDeclaration') {
-        if (stmt.body) collectAllIdents(stmt.body, referencedNames);
-        if (stmt.superClass) collectAllIdents(stmt.superClass, referencedNames);
+        if (stmt.body) {
+          collectAllIdents(stmt.body, referencedNames);
+        }
+        if (stmt.superClass) {
+          collectAllIdents(stmt.superClass, referencedNames);
+        }
       } else if (stmt.type === 'TryStatement') {
         collectAllIdents(stmt, referencedNames);
       } else {
@@ -2602,7 +3218,9 @@ function stripUnusedDeclsInBlock(block: unknown, params: unknown[]): void {
 
     for (let i = blockBody.length - 1; i >= 0; i--) {
       const stmt = blockBody[i];
-      if (!isRecord(stmt)) continue;
+      if (!isRecord(stmt)) {
+        continue;
+      }
       if (stmt.type === 'VariableDeclaration') {
         const allUnused = (asArray(stmt.declarations) ?? []).every((decl: unknown) => {
           const names = new Map<string, number>();
@@ -2640,10 +3258,14 @@ function stripUnusedDeclsInBlock(block: unknown, params: unknown[]): void {
 }
 
 function collectDeclaredNames(pattern: unknown, stmtIndex: number, map: Map<string, number>): void {
-  if (!isRecord(pattern)) return;
+  if (!isRecord(pattern)) {
+    return;
+  }
   if (pattern.type === 'Identifier') {
     const name = asString(pattern.name);
-    if (name !== undefined) map.set(name, stmtIndex);
+    if (name !== undefined) {
+      map.set(name, stmtIndex);
+    }
   } else if (pattern.type === 'ObjectPattern') {
     for (const prop of asArray(pattern.properties) ?? []) {
       if (isRecord(prop) && prop.type === 'RestElement') {
@@ -2671,13 +3293,19 @@ function collectAllIdents(node: unknown, set: Set<string>): void {
     arr.forEach((n) => collectAllIdents(n, set));
     return;
   }
-  if (!isRecord(node)) return;
+  if (!isRecord(node)) {
+    return;
+  }
   if (node.type === 'Identifier') {
     const name = asString(node.name);
-    if (name) set.add(name);
+    if (name) {
+      set.add(name);
+    }
   }
   for (const key of Object.keys(node)) {
-    if (key === 'type') continue;
+    if (key === 'type') {
+      continue;
+    }
     collectAllIdents(node[key], set);
   }
 }
@@ -2696,9 +3324,13 @@ function stripDotWCalls(node: unknown): void {
     }
     return;
   }
-  if (!isRecord(node)) return;
+  if (!isRecord(node)) {
+    return;
+  }
   for (const key of Object.keys(node)) {
-    if (key === 'type') continue;
+    if (key === 'type') {
+      continue;
+    }
     const val = node[key];
     if (val && typeof val === 'object') {
       const valArr = asArray(val);
@@ -2716,15 +3348,20 @@ function stripDotWCalls(node: unknown): void {
 }
 
 function unwrapDotW(node: unknown): unknown {
-  if (!isRecord(node) || node.type !== 'CallExpression') return node;
+  if (!isRecord(node) || node.type !== 'CallExpression') {
+    return node;
+  }
   const callee = node.callee;
-  if (!isRecord(callee) || callee.type !== 'MemberExpression') return node;
+  if (!isRecord(callee) || callee.type !== 'MemberExpression') {
+    return node;
+  }
   if (
     !isRecord(callee.property) ||
     callee.property.type !== 'Identifier' ||
     callee.property.name !== 'w'
-  )
+  ) {
     return node;
+  }
   return unwrapDotW(callee.object);
 }
 
@@ -2734,30 +3371,45 @@ function unwrapDotW(node: unknown): unknown {
  */
 function stripDotSBodies(program: AstCompatNode): void {
   const body = asArray(program.body);
-  if (!body) return;
+  if (!body) {
+    return;
+  }
 
   const sCallArgNames = new Set<string>();
 
   for (const stmt of body) {
-    if (!isRecord(stmt) || stmt.type !== 'ExpressionStatement') continue;
+    if (!isRecord(stmt) || stmt.type !== 'ExpressionStatement') {
+      continue;
+    }
     const expr = stmt.expression;
-    if (!isRecord(expr) || expr.type !== 'CallExpression') continue;
+    if (!isRecord(expr) || expr.type !== 'CallExpression') {
+      continue;
+    }
     const callee = expr.callee;
-    if (!isRecord(callee) || callee.type !== 'MemberExpression') continue;
+    if (!isRecord(callee) || callee.type !== 'MemberExpression') {
+      continue;
+    }
     if (
       !isRecord(callee.property) ||
       callee.property.type !== 'Identifier' ||
       callee.property.name !== 's'
-    )
+    ) {
       continue;
-    if (!isRecord(callee.object) || callee.object.type !== 'Identifier') continue;
+    }
+    if (!isRecord(callee.object) || callee.object.type !== 'Identifier') {
+      continue;
+    }
     const objName = asString(callee.object.name) || '';
-    if (!objName.startsWith('q_')) continue;
+    if (!objName.startsWith('q_')) {
+      continue;
+    }
     const exprArgs = asArray(expr.arguments);
     const arg0 = exprArgs?.[0];
     if (exprArgs?.length === 1 && isRecord(arg0) && arg0.type === 'Identifier') {
       const argName = asString(arg0.name);
-      if (argName !== undefined) sCallArgNames.add(argName);
+      if (argName !== undefined) {
+        sCallArgNames.add(argName);
+      }
     }
     expr.arguments = [];
   }
@@ -2773,13 +3425,21 @@ function stripDotSBodies(program: AstCompatNode): void {
 
     for (let i = body.length - 1; i >= 0; i--) {
       const stmt = body[i];
-      if (!isRecord(stmt) || stmt.type !== 'VariableDeclaration') continue;
+      if (!isRecord(stmt) || stmt.type !== 'VariableDeclaration') {
+        continue;
+      }
       const decls = asArray(stmt.declarations);
-      if (!decls || decls.length !== 1) continue;
+      if (!decls || decls.length !== 1) {
+        continue;
+      }
       const decl = decls[0];
-      if (!isRecord(decl) || !isRecord(decl.id) || decl.id.type !== 'Identifier') continue;
+      if (!isRecord(decl) || !isRecord(decl.id) || decl.id.type !== 'Identifier') {
+        continue;
+      }
       const name = asString(decl.id.name);
-      if (name === undefined) continue;
+      if (name === undefined) {
+        continue;
+      }
       if (sCallArgNames.has(name) && !referencedNames.has(name)) {
         body.splice(i, 1);
       }
@@ -2794,21 +3454,29 @@ function stripDotSBodies(program: AstCompatNode): void {
  */
 function stripMigratedDeclarations(program: AstCompatNode): void {
   const body = asArray(program.body);
-  if (!body) return;
+  if (!body) {
+    return;
+  }
 
   const importedNames = new Set<string>();
   for (const stmt of body) {
-    if (!isRecord(stmt) || stmt.type !== 'ImportDeclaration') continue;
+    if (!isRecord(stmt) || stmt.type !== 'ImportDeclaration') {
+      continue;
+    }
     for (const spec of asArray(stmt.specifiers) ?? []) {
       const localName =
         isRecord(spec) && isRecord(spec.local) ? asString(spec.local.name) : undefined;
-      if (localName) importedNames.add(localName);
+      if (localName) {
+        importedNames.add(localName);
+      }
     }
   }
 
   const declaredNames = new Set<string>();
   for (const stmt of body) {
-    if (!isRecord(stmt)) continue;
+    if (!isRecord(stmt)) {
+      continue;
+    }
     if (
       stmt.type === 'FunctionDeclaration' &&
       isRecord(stmt.id) &&
@@ -2816,7 +3484,9 @@ function stripMigratedDeclarations(program: AstCompatNode): void {
       !isExported(stmt, program)
     ) {
       const name = asString(stmt.id.name);
-      if (name) declaredNames.add(name);
+      if (name) {
+        declaredNames.add(name);
+      }
     }
     if (
       stmt.type === 'ClassDeclaration' &&
@@ -2825,7 +3495,9 @@ function stripMigratedDeclarations(program: AstCompatNode): void {
       !isExported(stmt, program)
     ) {
       const name = asString(stmt.id.name);
-      if (name) declaredNames.add(name);
+      if (name) {
+        declaredNames.add(name);
+      }
     }
     if (stmt.type === 'VariableDeclaration' && !isExported(stmt, program)) {
       for (const decl of asArray(stmt.declarations) ?? []) {
@@ -2840,7 +3512,9 @@ function stripMigratedDeclarations(program: AstCompatNode): void {
     }
   }
 
-  if (declaredNames.size === 0) return;
+  if (declaredNames.size === 0) {
+    return;
+  }
 
   const namesToStrip = new Set<string>();
   for (const name of declaredNames) {
@@ -2849,11 +3523,15 @@ function stripMigratedDeclarations(program: AstCompatNode): void {
     }
   }
 
-  if (namesToStrip.size === 0) return;
+  if (namesToStrip.size === 0) {
+    return;
+  }
 
   for (let i = body.length - 1; i >= 0; i--) {
     const stmt = body[i];
-    if (!isRecord(stmt)) continue;
+    if (!isRecord(stmt)) {
+      continue;
+    }
     const idName = isRecord(stmt.id) ? asString(stmt.id.name) : undefined;
     if (stmt.type === 'FunctionDeclaration' && idName !== undefined && namesToStrip.has(idName)) {
       body.splice(i, 1);
@@ -2866,7 +3544,9 @@ function stripMigratedDeclarations(program: AstCompatNode): void {
     } else if (stmt.type === 'VariableDeclaration') {
       const allNames: string[] = [];
       for (const decl of asArray(stmt.declarations) ?? []) {
-        if (isRecord(decl)) collectPatternNames(decl.id, new Set(), allNames);
+        if (isRecord(decl)) {
+          collectPatternNames(decl.id, new Set(), allNames);
+        }
       }
       if (allNames.length > 0 && allNames.every((n) => namesToStrip.has(n))) {
         body.splice(i, 1);
@@ -2877,26 +3557,36 @@ function stripMigratedDeclarations(program: AstCompatNode): void {
 
 function isExported(stmt: unknown, program: AstCompatNode): boolean {
   for (const s of asArray(program.body) ?? []) {
-    if (isRecord(s) && s.type === 'ExportNamedDeclaration' && s.declaration === stmt) return true;
+    if (isRecord(s) && s.type === 'ExportNamedDeclaration' && s.declaration === stmt) {
+      return true;
+    }
   }
   return false;
 }
 
 function collectPatternNames(pattern: unknown, nameSet: Set<string>, nameArr?: string[]): void {
-  if (!isRecord(pattern)) return;
+  if (!isRecord(pattern)) {
+    return;
+  }
   if (pattern.type === 'Identifier') {
     const name = asString(pattern.name);
     if (name !== undefined) {
       nameSet.add(name);
-      if (nameArr) nameArr.push(name);
+      if (nameArr) {
+        nameArr.push(name);
+      }
     }
   } else if (pattern.type === 'ArrayPattern') {
-    for (const el of asArray(pattern.elements) ?? []) collectPatternNames(el, nameSet, nameArr);
+    for (const el of asArray(pattern.elements) ?? []) {
+      collectPatternNames(el, nameSet, nameArr);
+    }
   } else if (pattern.type === 'ObjectPattern') {
     for (const prop of asArray(pattern.properties) ?? []) {
-      if (isRecord(prop) && prop.type === 'RestElement')
+      if (isRecord(prop) && prop.type === 'RestElement') {
         collectPatternNames(prop.argument, nameSet, nameArr);
-      else if (isRecord(prop)) collectPatternNames(prop.value, nameSet, nameArr);
+      } else if (isRecord(prop)) {
+        collectPatternNames(prop.value, nameSet, nameArr);
+      }
     }
   } else if (pattern.type === 'AssignmentPattern') {
     collectPatternNames(pattern.left, nameSet, nameArr);
@@ -2913,17 +3603,27 @@ function collectPatternNames(pattern: unknown, nameSet: Set<string>, nameArr?: s
 function inlineDestructuredBindings(program: AstCompatNode): void {
   function processFunctionBody(bodyInput: unknown, params: unknown[]): void {
     const body = asArray(bodyInput);
-    if (!body) return;
+    if (!body) {
+      return;
+    }
 
     for (let i = body.length - 1; i >= 0; i--) {
       const stmt = body[i];
-      if (!isRecord(stmt) || stmt.type !== 'VariableDeclaration') continue;
+      if (!isRecord(stmt) || stmt.type !== 'VariableDeclaration') {
+        continue;
+      }
       const decls = asArray(stmt.declarations);
-      if (!decls || decls.length !== 1) continue;
+      if (!decls || decls.length !== 1) {
+        continue;
+      }
       const decl = decls[0];
-      if (!isRecord(decl) || !decl.init || !isRecord(decl.id)) continue;
+      if (!isRecord(decl) || !decl.init || !isRecord(decl.id)) {
+        continue;
+      }
 
-      if (decl.id.type !== 'ObjectPattern') continue;
+      if (decl.id.type !== 'ObjectPattern') {
+        continue;
+      }
       const objExpr = decl.init;
 
       const bindings = new Map<string, unknown>();
@@ -2962,7 +3662,9 @@ function inlineDestructuredBindings(program: AstCompatNode): void {
         bindings.set(alias, memberExpr);
       }
 
-      if (!canInline || bindings.size === 0) continue;
+      if (!canInline || bindings.size === 0) {
+        continue;
+      }
 
       const paramNames = new Set(
         params.map((p: unknown) => (isRecord(p) ? asString(p.name) : undefined)).filter(Boolean)
@@ -2974,7 +3676,9 @@ function inlineDestructuredBindings(program: AstCompatNode): void {
           break;
         }
       }
-      if (hasConflict) continue;
+      if (hasConflict) {
+        continue;
+      }
 
       for (let j = i + 1; j < body.length; j++) {
         body[j] = replaceIdentifiers(body[j], bindings);
@@ -2986,8 +3690,12 @@ function inlineDestructuredBindings(program: AstCompatNode): void {
 
   function replaceIdentifiers(node: unknown, bindings: Map<string, unknown>): unknown {
     const arr = asArray(node);
-    if (arr) return arr.map((n) => replaceIdentifiers(n, bindings));
-    if (!isRecord(node)) return node;
+    if (arr) {
+      return arr.map((n) => replaceIdentifiers(n, bindings));
+    }
+    if (!isRecord(node)) {
+      return node;
+    }
     if (node.type === 'Identifier') {
       const name = asString(node.name);
       if (name !== undefined && bindings.has(name)) {
@@ -3004,10 +3712,14 @@ function inlineDestructuredBindings(program: AstCompatNode): void {
   function visit(node: unknown): void {
     const arr = asArray(node);
     if (arr) {
-      for (const item of arr) visit(item);
+      for (const item of arr) {
+        visit(item);
+      }
       return;
     }
-    if (!isRecord(node)) return;
+    if (!isRecord(node)) {
+      return;
+    }
     if (
       (node.type === 'ArrowFunctionExpression' ||
         node.type === 'FunctionExpression' ||
@@ -3018,7 +3730,9 @@ function inlineDestructuredBindings(program: AstCompatNode): void {
       processFunctionBody(node.body.body, asArray(node.params) ?? []);
     }
     for (const key of Object.keys(node)) {
-      if (key === 'type') continue;
+      if (key === 'type') {
+        continue;
+      }
       visit(node[key]);
     }
   }
@@ -3033,17 +3747,23 @@ function inlineDestructuredBindings(program: AstCompatNode): void {
 function stripTypeAnnotations(node: unknown): void {
   const arr = asArray(node);
   if (arr) {
-    for (const item of arr) stripTypeAnnotations(item);
+    for (const item of arr) {
+      stripTypeAnnotations(item);
+    }
     return;
   }
-  if (!isRecord(node)) return;
+  if (!isRecord(node)) {
+    return;
+  }
   delete node.typeAnnotation;
   delete node.returnType;
   delete node.typeParameters;
   delete node.superTypeParameters;
   delete node.implements;
   for (const key of Object.keys(node)) {
-    if (key === 'type') continue;
+    if (key === 'type') {
+      continue;
+    }
     stripTypeAnnotations(node[key]);
   }
 }
@@ -3055,25 +3775,37 @@ function stripTypeAnnotations(node: unknown): void {
  */
 function destructureRawPropsParam(program: AstCompatNode): void {
   const body = asArray(program.body);
-  if (!body) return;
+  if (!body) {
+    return;
+  }
 
   for (const stmt of body) {
     const fn = getExportedSegmentFunction(stmt);
-    if (!isRecord(fn)) continue;
+    if (!isRecord(fn)) {
+      continue;
+    }
     const fnParams = asArray(fn.params);
-    if (!fnParams || fnParams.length < 3) continue;
+    if (!fnParams || fnParams.length < 3) {
+      continue;
+    }
 
     // Positions 0,1 are the `_`, `_1` convention; only 3rd+ params carry props.
     for (let pi = 2; pi < fnParams.length; pi++) {
       const param = fnParams[pi];
-      if (!isRecord(param) || param.type !== 'Identifier') continue;
+      if (!isRecord(param) || param.type !== 'Identifier') {
+        continue;
+      }
       const paramName = asString(param.name);
-      if (paramName === undefined) continue;
+      if (paramName === undefined) {
+        continue;
+      }
 
       const refs: unknown[] = [];
       collectIdentRefs(fn.body, paramName, refs);
 
-      if (refs.length === 0) continue;
+      if (refs.length === 0) {
+        continue;
+      }
 
       let fieldName: string | null = null;
       let allSingleField = true;
@@ -3108,11 +3840,15 @@ function destructureRawPropsParam(program: AstCompatNode): void {
         }
       }
 
-      if (!allSingleField || !fieldName) continue;
+      if (!allSingleField || !fieldName) {
+        continue;
+      }
 
       param.name = fieldName;
       for (const ref of refs) {
-        if (!isRecord(ref)) continue;
+        if (!isRecord(ref)) {
+          continue;
+        }
         replaceNodeInParent(
           ref._grandparent,
           asString(ref._parentKey),
@@ -3125,11 +3861,17 @@ function destructureRawPropsParam(program: AstCompatNode): void {
 }
 
 function getExportedSegmentFunction(stmt: unknown): unknown {
-  if (!isRecord(stmt) || stmt.type !== 'ExportNamedDeclaration') return null;
+  if (!isRecord(stmt) || stmt.type !== 'ExportNamedDeclaration') {
+    return null;
+  }
   const decl = stmt.declaration;
-  if (!isRecord(decl) || decl.type !== 'VariableDeclaration') return null;
+  if (!isRecord(decl) || decl.type !== 'VariableDeclaration') {
+    return null;
+  }
   const d = asArray(decl.declarations)?.[0];
-  if (!isRecord(d) || !isRecord(d.init)) return null;
+  if (!isRecord(d) || !isRecord(d.init)) {
+    return null;
+  }
   if (d.init.type === 'ArrowFunctionExpression' || d.init.type === 'FunctionExpression') {
     return d.init;
   }
@@ -3152,7 +3894,9 @@ function collectIdentRefs(
     }
     return;
   }
-  if (!isRecord(node)) return;
+  if (!isRecord(node)) {
+    return;
+  }
   if (node.type === 'Identifier' && node.name === name) {
     refs.push({
       _node: node,
@@ -3164,7 +3908,9 @@ function collectIdentRefs(
     return;
   }
   for (const key of Object.keys(node)) {
-    if (key === 'type') continue;
+    if (key === 'type') {
+      continue;
+    }
     const val = node[key];
     if (val && typeof val === 'object') {
       collectIdentRefs(val, name, refs, node, key, undefined, parent);
@@ -3178,10 +3924,14 @@ function replaceNodeInParent(
   index: number | undefined,
   replacement: unknown
 ): void {
-  if (!container || !key) return;
+  if (!container || !key) {
+    return;
+  }
   const arr = asArray(container);
   if (arr) {
-    if (index !== undefined) arr[index] = replacement;
+    if (index !== undefined) {
+      arr[index] = replacement;
+    }
   } else if (isRecord(container)) {
     container[key] = replacement;
   }
@@ -3196,21 +3946,28 @@ function replaceNodeInParent(
 function expandRawPropsCaptures(program: AstCompatNode): void {
   function processFunctionBody(fn: Record<string, unknown>): void {
     const body = fn.body;
-    if (!isRecord(body)) return;
+    if (!isRecord(body)) {
+      return;
+    }
 
     const stmts = body.type === 'BlockStatement' ? asArray(body.body) : null;
-    if (!stmts) return;
+    if (!stmts) {
+      return;
+    }
 
     for (const stmt of stmts) {
-      if (!isRecord(stmt) || stmt.type !== 'VariableDeclaration') continue;
+      if (!isRecord(stmt) || stmt.type !== 'VariableDeclaration') {
+        continue;
+      }
       for (const decl of asArray(stmt.declarations) ?? []) {
         if (
           !isRecord(decl) ||
           !isRecord(decl.init) ||
           !isRecord(decl.id) ||
           decl.id.type !== 'Identifier'
-        )
+        ) {
           continue;
+        }
         if (
           decl.init.type !== 'MemberExpression' ||
           !isRecord(decl.init.object) ||
@@ -3220,25 +3977,34 @@ function expandRawPropsCaptures(program: AstCompatNode): void {
           !isRecord(decl.init.property) ||
           decl.init.property.type !== 'Literal' ||
           typeof decl.init.property.value !== 'number'
-        )
+        ) {
           continue;
+        }
 
         const varName = asString(decl.id.name);
-        if (varName !== undefined) expandMemberAccessesInBody(body, varName);
+        if (varName !== undefined) {
+          expandMemberAccessesInBody(body, varName);
+        }
       }
     }
 
     const fnParams = asArray(fn.params);
     if (fnParams) {
       for (const param of fnParams) {
-        if (!isRecord(param) || param.type !== 'Identifier') continue;
+        if (!isRecord(param) || param.type !== 'Identifier') {
+          continue;
+        }
         const paramName = asString(param.name);
-        if (paramName === undefined) continue;
+        if (paramName === undefined) {
+          continue;
+        }
         if (paramName === '_rawProps' || paramName.startsWith('_rawProps')) {
           const fieldNames = expandMemberAccessesInBody(body, paramName);
           if (fieldNames && fieldNames.size === 1) {
             const first = fieldNames.values().next().value;
-            if (first !== undefined) param.name = first;
+            if (first !== undefined) {
+              param.name = first;
+            }
           }
         }
       }
@@ -3258,10 +4024,14 @@ function expandRawPropsCaptures(program: AstCompatNode): void {
     function scan(node: unknown, parent: unknown, key: string, index?: number): void {
       const nodeArr = asArray(node);
       if (nodeArr) {
-        for (let i = 0; i < nodeArr.length; i++) scan(nodeArr[i], nodeArr, String(i), i);
+        for (let i = 0; i < nodeArr.length; i++) {
+          scan(nodeArr[i], nodeArr, String(i), i);
+        }
         return;
       }
-      if (!isRecord(node)) return;
+      if (!isRecord(node)) {
+        return;
+      }
       if (
         node.type === 'MemberExpression' &&
         !node.computed &&
@@ -3281,18 +4051,26 @@ function expandRawPropsCaptures(program: AstCompatNode): void {
         return;
       }
       if (node.type === 'Identifier' && node.name === varName) {
-        if (isRecord(parent) && parent.type === 'VariableDeclarator' && key === 'id') return;
-        if (Array.isArray(parent) && parent === body) return;
+        if (isRecord(parent) && parent.type === 'VariableDeclarator' && key === 'id') {
+          return;
+        }
+        if (Array.isArray(parent) && parent === body) {
+          return;
+        }
         hasNonMemberRef = true;
         return;
       }
       for (const k of Object.keys(node)) {
-        if (k === 'type') continue;
+        if (k === 'type') {
+          continue;
+        }
         const val = node[k];
         if (val && typeof val === 'object') {
           const valArr = asArray(val);
           if (valArr) {
-            for (let i = 0; i < valArr.length; i++) scan(valArr[i], valArr, String(i), i);
+            for (let i = 0; i < valArr.length; i++) {
+              scan(valArr[i], valArr, String(i), i);
+            }
           } else {
             scan(val, node, k);
           }
@@ -3302,10 +4080,14 @@ function expandRawPropsCaptures(program: AstCompatNode): void {
 
     scan(body, null, '');
 
-    if (hasNonMemberRef || refs.length === 0) return null;
+    if (hasNonMemberRef || refs.length === 0) {
+      return null;
+    }
 
     const fieldNames = new Set<string>();
-    for (const ref of refs) fieldNames.add(ref.fieldName);
+    for (const ref of refs) {
+      fieldNames.add(ref.fieldName);
+    }
 
     for (const ref of refs) {
       const replacement = { type: 'Identifier', name: ref.fieldName };
@@ -3323,10 +4105,14 @@ function expandRawPropsCaptures(program: AstCompatNode): void {
   function visit(node: unknown): void {
     const arr = asArray(node);
     if (arr) {
-      for (const item of arr) visit(item);
+      for (const item of arr) {
+        visit(item);
+      }
       return;
     }
-    if (!isRecord(node)) return;
+    if (!isRecord(node)) {
+      return;
+    }
     if (
       node.type === 'ArrowFunctionExpression' ||
       node.type === 'FunctionExpression' ||
@@ -3335,7 +4121,9 @@ function expandRawPropsCaptures(program: AstCompatNode): void {
       processFunctionBody(node);
     }
     for (const key of Object.keys(node)) {
-      if (key === 'type') continue;
+      if (key === 'type') {
+        continue;
+      }
       visit(node[key]);
     }
   }
@@ -3350,14 +4138,22 @@ function expandRawPropsCaptures(program: AstCompatNode): void {
 function stripCapturesDeclarations(program: AstCompatNode): void {
   function processBody(bodyInput: unknown): void {
     const body = asArray(bodyInput);
-    if (!body) return;
+    if (!body) {
+      return;
+    }
     for (let i = body.length - 1; i >= 0; i--) {
       const stmt = body[i];
-      if (!isRecord(stmt) || stmt.type !== 'VariableDeclaration') continue;
+      if (!isRecord(stmt) || stmt.type !== 'VariableDeclaration') {
+        continue;
+      }
       const decls = asArray(stmt.declarations);
-      if (!decls || decls.length === 0) continue;
+      if (!decls || decls.length === 0) {
+        continue;
+      }
       const allCaptures = decls.every((d: unknown) => {
-        if (!isRecord(d) || !isRecord(d.init)) return false;
+        if (!isRecord(d) || !isRecord(d.init)) {
+          return false;
+        }
         return (
           d.init.type === 'MemberExpression' &&
           isRecord(d.init.object) &&
@@ -3378,10 +4174,14 @@ function stripCapturesDeclarations(program: AstCompatNode): void {
   function visit(node: unknown): void {
     const arr = asArray(node);
     if (arr) {
-      for (const item of arr) visit(item);
+      for (const item of arr) {
+        visit(item);
+      }
       return;
     }
-    if (!isRecord(node)) return;
+    if (!isRecord(node)) {
+      return;
+    }
     if (
       (node.type === 'ArrowFunctionExpression' ||
         node.type === 'FunctionExpression' ||
@@ -3392,7 +4192,9 @@ function stripCapturesDeclarations(program: AstCompatNode): void {
       processBody(node.body.body);
     }
     for (const key of Object.keys(node)) {
-      if (key === 'type') continue;
+      if (key === 'type') {
+        continue;
+      }
       visit(node[key]);
     }
   }
@@ -3409,11 +4211,17 @@ function walkAndReplace(node: unknown, replacer: (n: unknown) => unknown): void 
     }
     return;
   }
-  if (!isRecord(node)) return;
+  if (!isRecord(node)) {
+    return;
+  }
   for (const key of Object.keys(node)) {
-    if (key === 'type') continue;
+    if (key === 'type') {
+      continue;
+    }
     const val = node[key];
-    if (val === null || typeof val !== 'object') continue;
+    if (val === null || typeof val !== 'object') {
+      continue;
+    }
     const valArr = asArray(val);
     if (valArr) {
       for (let i = 0; i < valArr.length; i++) {

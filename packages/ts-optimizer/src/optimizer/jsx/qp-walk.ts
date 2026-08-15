@@ -18,16 +18,26 @@ export function collectQpParamsFromElement(
   const seen = new Set<string>();
 
   for (const attr of attrs) {
-    if (attr.type !== 'JSXAttribute') continue;
+    if (attr.type !== 'JSXAttribute') {
+      continue;
+    }
 
     const attrName = getJsxAttributeName(attr);
-    if (!isEventAttributeName(attrName)) continue;
-    if (attr.value?.type !== 'JSXExpressionContainer') continue;
-    if (attr.value.expression?.type !== 'Identifier') continue;
+    if (!isEventAttributeName(attrName)) {
+      continue;
+    }
+    if (attr.value?.type !== 'JSXExpressionContainer') {
+      continue;
+    }
+    if (attr.value.expression?.type !== 'Identifier') {
+      continue;
+    }
 
     const qrlName = attr.value.expression.name;
     const params = resolveParams(qrlName);
-    if (!params) continue;
+    if (!params) {
+      continue;
+    }
 
     qrlsWithCaptures?.add(qrlName);
     for (const p of params) {
@@ -47,7 +57,9 @@ export function walkAstForQp(
   qpOverrides: Map<number, string[]>,
   qrlsWithCaptures?: Set<string>
 ): void {
-  if (!node || typeof node !== 'object') return;
+  if (!node || typeof node !== 'object') {
+    return;
+  }
 
   if (node.type === 'JSXElement' && node.openingElement) {
     const elementParams = collectQpParamsFromElement(

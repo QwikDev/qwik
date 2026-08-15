@@ -14,7 +14,9 @@ function jsxKeysInOrder(code: string): string[] {
   const keys: string[] = [];
   const re = /"(u6_\d+)"/g;
   let match;
-  while ((match = re.exec(code)) !== null) keys.push(match[1]);
+  while ((match = re.exec(code)) !== null) {
+    keys.push(match[1]);
+  }
   return keys;
 }
 

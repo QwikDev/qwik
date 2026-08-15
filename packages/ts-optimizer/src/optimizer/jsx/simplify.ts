@@ -14,7 +14,9 @@ import {
 } from '../edit/range-replace.js';
 
 export function simplifyExpression(node: AstMaybeNode): SimplifyResult {
-  if (!node) return UNSIMPLIFIED;
+  if (!node) {
+    return UNSIMPLIFIED;
+  }
   switch (node.type) {
     case 'Literal': {
       // The typeof guards admit only the four primitive-valued Literal variants;
@@ -35,7 +37,9 @@ export function simplifyExpression(node: AstMaybeNode): SimplifyResult {
 
     case 'UnaryExpression': {
       const arg = simplifyExpression(node.argument);
-      if (!arg.simplified) return UNSIMPLIFIED;
+      if (!arg.simplified) {
+        return UNSIMPLIFIED;
+      }
       const v = arg.value;
       switch (node.operator) {
         case '!':
@@ -56,9 +60,13 @@ export function simplifyExpression(node: AstMaybeNode): SimplifyResult {
 
     case 'BinaryExpression': {
       const left = simplifyExpression(node.left);
-      if (!left.simplified) return UNSIMPLIFIED;
+      if (!left.simplified) {
+        return UNSIMPLIFIED;
+      }
       const right = simplifyExpression(node.right);
-      if (!right.simplified) return UNSIMPLIFIED;
+      if (!right.simplified) {
+        return UNSIMPLIFIED;
+      }
       // The `as never` casts are load-bearing: TS refuses `string + boolean`,
       // but JS-side folding must allow it. The casts bridge the TS-vs-JS
       // arithmetic gap; the result stays typed via the typeof guards on each
@@ -88,10 +96,10 @@ export function simplifyExpression(node: AstMaybeNode): SimplifyResult {
           return { simplified: true, value: l === r };
         case '!==':
           return { simplified: true, value: l !== r };
-        // eslint-disable-next-line eqeqeq
+
         case '==':
           return { simplified: true, value: l == r };
-        // eslint-disable-next-line eqeqeq
+
         case '!=':
           return { simplified: true, value: l != r };
         case '<':
@@ -108,7 +116,9 @@ export function simplifyExpression(node: AstMaybeNode): SimplifyResult {
 
     case 'LogicalExpression': {
       const left = simplifyExpression(node.left);
-      if (!left.simplified) return UNSIMPLIFIED;
+      if (!left.simplified) {
+        return UNSIMPLIFIED;
+      }
       const l = left.value;
       switch (node.operator) {
         case '&&':
@@ -123,7 +133,9 @@ export function simplifyExpression(node: AstMaybeNode): SimplifyResult {
 
     case 'ConditionalExpression': {
       const t = simplifyExpression(node.test);
-      if (!t.simplified) return UNSIMPLIFIED;
+      if (!t.simplified) {
+        return UNSIMPLIFIED;
+      }
       return simplifyExpression(t.value ? node.consequent : node.alternate);
     }
   }
@@ -140,12 +152,22 @@ export function formatSimplifiedLiteral(value: unknown): string {
     // double quotes left alone.
     return `'${value.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, '\\r')}'`;
   }
-  if (value === undefined) return 'undefined';
-  if (value === null) return 'null';
+  if (value === undefined) {
+    return 'undefined';
+  }
+  if (value === null) {
+    return 'null';
+  }
   if (typeof value === 'number') {
-    if (Number.isNaN(value)) return 'NaN';
-    if (value === Infinity) return 'Infinity';
-    if (value === -Infinity) return '-Infinity';
+    if (Number.isNaN(value)) {
+      return 'NaN';
+    }
+    if (value === Infinity) {
+      return 'Infinity';
+    }
+    if (value === -Infinity) {
+      return '-Infinity';
+    }
     return String(value);
   }
   return String(value);
@@ -166,11 +188,17 @@ const UNSIMPLIFIED: SimplifyResult = { simplified: false };
  */
 function buildSimplificationsCollector(skipLiterals: boolean): RangeReplacementCollector {
   return (node, ctx) => {
-    if (skipLiterals && node.type === 'Literal') return null;
-    if (typeof node.start !== 'number' || typeof node.end !== 'number') return null;
+    if (skipLiterals && node.type === 'Literal') {
+      return null;
+    }
+    if (typeof node.start !== 'number' || typeof node.end !== 'number') {
+      return null;
+    }
 
     const result = simplifyExpression(node);
-    if (!result.simplified) return null;
+    if (!result.simplified) {
+      return null;
+    }
 
     const formatted = formatSimplifiedLiteral(result.value);
     const sliceStart = node.start - ctx.exprStart;
@@ -214,14 +242,20 @@ export function bodySourceSimplificationsCollector(): RangeReplacementCollector 
  * so a bare arrow parses; returns the body unchanged on parse failure.
  */
 export function foldBodySimplifiableExpressions(bodyText: string): string {
-  if (bodyText.length === 0) return bodyText;
+  if (bodyText.length === 0) {
+    return bodyText;
+  }
   const session = createTransformSession(bodyText);
-  if (!session) return bodyText;
+  if (!session) {
+    return bodyText;
+  }
 
   const simplifications = collectRangeReplacements(session.program, 0, session.wrappedSource, [
     bodySourceSimplificationsCollector(),
   ]);
-  if (simplifications.length === 0) return bodyText;
+  if (simplifications.length === 0) {
+    return bodyText;
+  }
 
   const folded = applyReplacements(session.wrappedSource, simplifications);
   return folded.slice(session.wrapperPrefix.length);

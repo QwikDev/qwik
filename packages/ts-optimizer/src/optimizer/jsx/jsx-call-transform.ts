@@ -88,12 +88,16 @@ export function transformJsxCalls(
   program: AstProgram,
   opts: JsxCallTransformOptions
 ): void {
-  if (opts.jsxFunctions.size === 0) return;
+  if (opts.jsxFunctions.size === 0) {
+    return;
+  }
 
   const skipRanges = opts.skipRanges ?? [];
   const isInSkipRange = (start: number): boolean => {
     for (const r of skipRanges) {
-      if (start >= r.start && start < r.end) return true;
+      if (start >= r.start && start < r.end) {
+        return true;
+      }
     }
     return false;
   };
@@ -105,7 +109,9 @@ export function transformJsxCalls(
   // Closure params aren't declarations in the parsed body (codegen wraps it in
   // `(props) =>` afterward), so union them in — member reads on them are
   // store-field reads the wrap pass must recognise.
-  for (const p of opts.paramNames ?? []) localNames.add(p);
+  for (const p of opts.paramNames ?? []) {
+    localNames.add(p);
+  }
   opts.localNames = localNames;
   opts.bindings = scopeBindings.bindings;
 
@@ -113,14 +119,22 @@ export function transformJsxCalls(
 
   walk(program, {
     enter(node: AstNode) {
-      if (!isJsxCall(node, opts.jsxFunctions) || node.type !== 'CallExpression') return;
+      if (!isJsxCall(node, opts.jsxFunctions) || node.type !== 'CallExpression') {
+        return;
+      }
 
       markDirectJsxChildren(node, opts.jsxFunctions, directJsxChildStarts);
 
-      if (reactiveBindings.size === 0 && (opts.paramNames?.length ?? 0) === 0) return;
-      if (isInSkipRange(node.start)) return;
+      if (reactiveBindings.size === 0 && (opts.paramNames?.length ?? 0) === 0) {
+        return;
+      }
+      if (isInSkipRange(node.start)) {
+        return;
+      }
       const propsArg = node.arguments?.[1];
-      if (!propsArg || propsArg.type !== 'ObjectExpression') return;
+      if (!propsArg || propsArg.type !== 'ObjectExpression') {
+        return;
+      }
       wrapReactivePropValues(propsArg, {
         s,
         source,
@@ -131,7 +145,9 @@ export function transformJsxCalls(
       });
     },
     leave(node: AstNode) {
-      if (!isJsxCall(node, opts.jsxFunctions) || node.type !== 'CallExpression') return;
+      if (!isJsxCall(node, opts.jsxFunctions) || node.type !== 'CallExpression') {
+        return;
+      }
 
       if (isInSkipRange(node.start)) {
         // Extracted-body keys are reserved so their numbering matches the
@@ -153,13 +169,23 @@ function collectReactiveBindings(program: AstProgram): Set<string> {
   const result = new Set<string>();
   walk(program, {
     enter(node: AstNode) {
-      if (node.type !== 'VariableDeclaration') return;
+      if (node.type !== 'VariableDeclaration') {
+        return;
+      }
       for (const decl of node.declarations ?? []) {
-        if (decl.id?.type !== 'Identifier') continue;
-        if (decl.init?.type !== 'CallExpression') continue;
+        if (decl.id?.type !== 'Identifier') {
+          continue;
+        }
+        if (decl.init?.type !== 'CallExpression') {
+          continue;
+        }
         const callee = decl.init.callee;
-        if (callee?.type !== 'Identifier') continue;
-        if (callee.name.startsWith('use')) result.add(decl.id.name);
+        if (callee?.type !== 'Identifier') {
+          continue;
+        }
+        if (callee.name.startsWith('use')) {
+          result.add(decl.id.name);
+        }
       }
     },
   });
@@ -182,18 +208,28 @@ export function markDirectJsxChildren(
   jsxFunctions: ReadonlySet<string>,
   out: Set<number>
 ): void {
-  if (node.type !== 'CallExpression') return;
+  if (node.type !== 'CallExpression') {
+    return;
+  }
   const propsArg = node.arguments?.[1];
-  if (!propsArg || propsArg.type !== 'ObjectExpression') return;
+  if (!propsArg || propsArg.type !== 'ObjectExpression') {
+    return;
+  }
   for (const prop of propsArg.properties ?? []) {
-    if (prop.type !== 'Property' || prop.computed) continue;
-    if (propertyKeyName(prop) !== 'children') continue;
+    if (prop.type !== 'Property' || prop.computed) {
+      continue;
+    }
+    if (propertyKeyName(prop) !== 'children') {
+      continue;
+    }
     const value = prop.value;
     if (isJsxCall(value, jsxFunctions)) {
       out.add(value.start);
     } else if (value?.type === 'ArrayExpression') {
       for (const el of value.elements ?? []) {
-        if (el && isJsxCall(el, jsxFunctions)) out.add(el.start);
+        if (el && isJsxCall(el, jsxFunctions)) {
+          out.add(el.start);
+        }
       }
     }
     return;
@@ -210,11 +246,17 @@ interface WrapReactiveContext {
 }
 
 function wrapReactivePropValues(propsObj: AstNode, ctx: WrapReactiveContext): void {
-  if (propsObj.type !== 'ObjectExpression') return;
+  if (propsObj.type !== 'ObjectExpression') {
+    return;
+  }
   for (const prop of propsObj.properties ?? []) {
-    if (prop.type !== 'Property') continue;
+    if (prop.type !== 'Property') {
+      continue;
+    }
     const key = propertyKeyName(prop);
-    if (isHandlerPropKey(key)) continue;
+    if (isHandlerPropKey(key)) {
+      continue;
+    }
     const value = prop.value;
     if (key === 'children' && value?.type === 'ArrayExpression') {
       for (const element of value.elements ?? []) {
@@ -240,8 +282,12 @@ function isDollarSuffixedMemberRead(node: AstNode): boolean {
 }
 
 function wrapReactiveValue(node: AstNode | null | undefined, ctx: WrapReactiveContext): void {
-  if (!node) return;
-  if (isDollarSuffixedMemberRead(node)) return;
+  if (!node) {
+    return;
+  }
+  if (isDollarSuffixedMemberRead(node)) {
+    return;
+  }
   const result = analyzeSignalExpression(
     node,
     ctx.source,
@@ -298,7 +344,9 @@ function classifyProp(
   const bindings = opts.bindings;
   const localNames = opts.localNames as Set<string> | undefined;
   const pos = valueNode.start ?? 0;
-  if (isDollarSuffixedMemberRead(valueNode)) return 'var';
+  if (isDollarSuffixedMemberRead(valueNode)) {
+    return 'var';
+  }
   const sig = analyzeSignalExpression(valueNode, s.original, importedNames, localNames);
 
   if (sig.type === 'wrapProp') {
@@ -335,12 +383,18 @@ function constBagEligible(
   reactiveConst: boolean,
   s: MagicString
 ): boolean {
-  if (reactiveConst || isConstExpr(valueNode, opts)) return true;
-  if (isHtmlTag) return false;
+  if (reactiveConst || isConstExpr(valueNode, opts)) {
+    return true;
+  }
+  if (isHtmlTag) {
+    return false;
+  }
   const importedNames = (opts.importedNames ?? EMPTY_SET) as Set<string>;
   const localNames = opts.localNames as Set<string> | undefined;
   const sig = analyzeSignalExpression(valueNode, s.original, importedNames, localNames);
-  if (sig.type === 'wrapProp') return true;
+  if (sig.type === 'wrapProp') {
+    return true;
+  }
   return (
     sig.type === 'fnSignal' && opts.signalHoister !== undefined && isHoistableSignalExpr(valueNode)
   );
@@ -350,8 +404,12 @@ function isConstExpr(node: AstNode, opts: JsxCallTransformOptions): boolean {
   const importedNames = (opts.importedNames ?? EMPTY_SET) as Set<string>;
   const bindings = opts.bindings;
   const check = (n: AstNode): boolean => {
-    if (n.type === 'CallExpression' || n.type === 'MemberExpression') return false;
-    if (n.type === 'ArrowFunctionExpression') return true;
+    if (n.type === 'CallExpression' || n.type === 'MemberExpression') {
+      return false;
+    }
+    if (n.type === 'ArrowFunctionExpression') {
+      return true;
+    }
     if (n.type === 'Identifier') {
       return isConstBindingName(n.name, importedNames, bindings, n.start ?? 0);
     }
@@ -398,8 +456,11 @@ function partitionSpreadProps(slots: readonly PropSlot[]): {
   for (const slot of slots) {
     if (slot.kind === 'spread') {
       varBag.push(slot.getVar);
-      if (spreadRemaining > 1 || hasVarPropAfterLastSpread) varBag.push(slot.getConst);
-      else constBag.push(slot.getConst);
+      if (spreadRemaining > 1 || hasVarPropAfterLastSpread) {
+        varBag.push(slot.getConst);
+      } else {
+        constBag.push(slot.getConst);
+      }
       spreadRemaining--;
     } else if (spreadRemaining > 0 || !slot.isConst) {
       varBag.push(slot.text);
@@ -411,7 +472,9 @@ function partitionSpreadProps(slots: readonly PropSlot[]): {
 }
 
 function renderConstBag(constBag: readonly string[]): string {
-  if (constBag.length === 0) return 'null';
+  if (constBag.length === 0) {
+    return 'null';
+  }
   if (constBag.length === 1 && constBag[0].startsWith('..._getConstProps(')) {
     return constBag[0].slice('...'.length);
   }
@@ -426,7 +489,9 @@ function buildJsxSortedCall(
 ): string | null {
   // The CallExpression check is required for type-checker narrowing before
   // destructuring, even though the caller already gated on it.
-  if (callNode.type !== 'CallExpression') return null;
+  if (callNode.type !== 'CallExpression') {
+    return null;
+  }
   const args = callNode.arguments;
   const tagArg = args[0];
   const propsArg = args[1];
@@ -435,8 +500,9 @@ function buildJsxSortedCall(
     tagArg.type === 'SpreadElement' ||
     !propsArg ||
     propsArg.type !== 'ObjectExpression'
-  )
+  ) {
     return null;
+  }
 
   const tag = s.slice(tagArg.start, tagArg.end);
   // HTML tags are string-literal first args; component tags are identifiers.
@@ -463,7 +529,9 @@ function buildJsxSortedCall(
       });
       continue;
     }
-    if (prop.type !== 'Property') return null;
+    if (prop.type !== 'Property') {
+      return null;
+    }
     const keyName = propertyKeyName(prop);
     if (keyName === 'children' && !prop.computed) {
       const value = prop.value;
@@ -475,7 +543,9 @@ function buildJsxSortedCall(
       const entryText = s.slice(prop.start, prop.end);
       varEntries.push(entryText);
       slots.push({ kind: 'named', text: entryText, isConst: false, rawConst: false });
-      if (isHandlerPropKey(keyName)) hasVarEventHandler = true;
+      if (isHandlerPropKey(keyName)) {
+        hasVarEventHandler = true;
+      }
       continue;
     }
     if (isHtmlTag && keyName !== null) {
@@ -497,7 +567,9 @@ function buildJsxSortedCall(
           const handlerQp = opts.qpByQrl?.get(valueText);
           if (handlerQp) {
             for (const p of handlerQp) {
-              if (!qpParams.includes(p)) qpParams.push(p);
+              if (!qpParams.includes(p)) {
+                qpParams.push(p);
+              }
             }
           }
         } else {
@@ -569,7 +641,9 @@ function buildJsxSortedCall(
     opts.neededImports.add('_getVarProps');
     opts.neededImports.add('_getConstProps');
     const { varBag, constBag } = partitionSpreadProps(slots);
-    if (qpEntry !== null) varBag.unshift(qpEntry);
+    if (qpEntry !== null) {
+      varBag.unshift(qpEntry);
+    }
     const varPropsPart = varBag.length > 0 ? `{ ${varBag.join(', ')} }` : 'null';
     const constPropsPart = renderConstBag(constBag);
     const splitFlags = qpParams.length > 0 ? 4 : 0;
@@ -580,7 +654,9 @@ function buildJsxSortedCall(
   const constPropsText = constEntries.length > 0 ? `{ ${constEntries.join(', ')} }` : 'null';
   const hasVarProps = varEntries.length > 0;
   let flags = computeJsxFlags(hasVarProps, childrenType, false, hasVarEventHandler);
-  if (qpParams.length > 0) flags |= 4;
+  if (qpParams.length > 0) {
+    flags |= 4;
+  }
 
   opts.neededImports.add('_jsxSorted');
 
@@ -597,10 +673,16 @@ function isConstEventHandlerValue(value: AstNode): boolean {
 }
 
 function propertyKeyName(prop: AstNode): string | null {
-  if (prop.type !== 'Property' || !prop.key) return null;
+  if (prop.type !== 'Property' || !prop.key) {
+    return null;
+  }
   const key = prop.key;
-  if (key.type === 'Identifier') return key.name;
-  if (key.type === 'Literal' && typeof key.value === 'string') return key.value;
+  if (key.type === 'Identifier') {
+    return key.name;
+  }
+  if (key.type === 'Literal' && typeof key.value === 'string') {
+    return key.value;
+  }
   return null;
 }
 
@@ -610,14 +692,19 @@ function propertyKeyName(prop: AstNode): string | null {
  * `buildJsxSortedCall`.
  */
 function isStaticChildren(value: AstNode, reactive: ReadonlySet<string>): boolean {
-  if (value.type === 'Literal') return true;
-  if (value.type === 'TemplateLiteral' && (value.expressions ?? []).length === 0) return true;
+  if (value.type === 'Literal') {
+    return true;
+  }
+  if (value.type === 'TemplateLiteral' && (value.expressions ?? []).length === 0) {
+    return true;
+  }
   if (
     value.type === 'CallExpression' &&
     value.callee?.type === 'Identifier' &&
     value.callee.name === '_wrapProp'
-  )
+  ) {
     return true;
+  }
   if (
     value.type === 'MemberExpression' &&
     value.object?.type === 'Identifier' &&
@@ -626,7 +713,9 @@ function isStaticChildren(value: AstNode, reactive: ReadonlySet<string>): boolea
     // A reactive member read (signal `.value` or store `.field`) becomes a
     // stable `_wrapProp(...)` reference, so it counts as static children.
     const propName = memberStaticPropName(value);
-    if (propName !== null) return true;
+    if (propName !== null) {
+      return true;
+    }
   }
   if (value.type === 'ArrayExpression') {
     return (value.elements ?? []).every((el) => el != null && isStaticChildren(el, reactive));

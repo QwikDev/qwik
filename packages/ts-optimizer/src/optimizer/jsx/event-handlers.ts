@@ -2,11 +2,19 @@ import type { JSXAttributeItem } from '../../ast-types.js';
 import { getJsxAttributeName } from './jsx-attr-name.js';
 
 export function isEventProp(propName: string): boolean {
-  if (!propName.endsWith('$')) return false;
+  if (!propName.endsWith('$')) {
+    return false;
+  }
 
-  if (propName.startsWith('document:on')) return true;
-  if (propName.startsWith('window:on')) return true;
-  if (propName.startsWith('host:on')) return true;
+  if (propName.startsWith('document:on')) {
+    return true;
+  }
+  if (propName.startsWith('window:on')) {
+    return true;
+  }
+  if (propName.startsWith('host:on')) {
+    return true;
+  }
 
   if (propName.startsWith('on') && propName.length > 3) {
     const charAfterOn = propName[2];
@@ -63,11 +71,17 @@ export function transformEventPropName(
   propName: string,
   passiveEvents: Set<string>
 ): string | null {
-  if (!propName.endsWith('$')) return null;
-  if (propName.startsWith('host:')) return null;
+  if (!propName.endsWith('$')) {
+    return null;
+  }
+  if (propName.startsWith('host:')) {
+    return null;
+  }
 
   const scopeData = getEventScopeData(propName, false);
-  if (!scopeData) return null;
+  if (!scopeData) {
+    return null;
+  }
 
   const [, stripIndex] = scopeData;
   const eventNameRaw = propName.slice(stripIndex, propName.length - 1);
@@ -90,7 +104,9 @@ export function eventHandlerPropName(
   isComponentEvent: boolean,
   passiveEvents: Set<string>
 ): string {
-  if (isComponentEvent) return rawName;
+  if (isComponentEvent) {
+    return rawName;
+  }
   return transformEventPropName(rawName, passiveEvents) ?? rawName;
 }
 
@@ -98,11 +114,15 @@ export function collectPassiveDirectives(attributes: readonly JSXAttributeItem[]
   const passiveEvents = new Set<string>();
 
   for (const attr of attributes) {
-    if (attr.type !== 'JSXAttribute') continue;
+    if (attr.type !== 'JSXAttribute') {
+      continue;
+    }
 
     const name = getJsxAttributeName(attr);
 
-    if (!isPassiveDirective(name)) continue;
+    if (!isPassiveDirective(name)) {
+      continue;
+    }
 
     const rawEventName = name.slice('passive:'.length);
     passiveEvents.add(normalizeJsxEventName(rawEventName));

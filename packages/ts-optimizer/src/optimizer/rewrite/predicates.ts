@@ -4,9 +4,13 @@ import type { ExtractionResult } from '../extraction/extract.js';
 
 /** Whether `ext.calleeName` matches a registered context name (e.g., `'server'` matches `server$`). */
 export function matchesRegCtxName(ext: ExtractionResult, regCtxName?: readonly string[]): boolean {
-  if (!regCtxName || regCtxName.length === 0) return false;
+  if (!regCtxName || regCtxName.length === 0) {
+    return false;
+  }
   for (const name of regCtxName) {
-    if (ext.calleeName === name + '$') return true;
+    if (ext.calleeName === name + '$') {
+      return true;
+    }
   }
   return false;
 }
@@ -31,7 +35,9 @@ export function hasUnderscorePlaceholderParams(
   // Promotion appends captures after the (event, element) positions — with
   // preserved author params the padded prefix may be absent, so the
   // `movedCaptures` flag is the authoritative signal.
-  if (movedCaptures && paramNames.length >= 3) return true;
+  if (movedCaptures && paramNames.length >= 3) {
+    return true;
+  }
   return paramNames.length >= 2 && paramNames[0] === '_' && paramNames[1] === '_1';
 }
 
@@ -92,6 +98,8 @@ export function isStrippedExtraction(
   stripCtxName?: readonly string[],
   stripEventHandlers?: boolean
 ): boolean {
-  if (ext.isInlinedQrl) return false;
+  if (ext.isInlinedQrl) {
+    return false;
+  }
   return isStrippedSegment(ext.ctxName, ext.ctxKind, stripCtxName, stripEventHandlers);
 }

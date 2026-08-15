@@ -106,11 +106,19 @@ function hasCapturePayload(
   captureInfo: SegmentCaptureInfo,
   includeConstLiterals: boolean
 ): boolean {
-  if (captureInfo.captureNames.length > 0) return true;
-  if (captureInfo.autoImports.length > 0) return true;
-  if (captureInfo.movedDeclarations.length > 0) return true;
+  if (captureInfo.captureNames.length > 0) {
+    return true;
+  }
+  if (captureInfo.autoImports.length > 0) {
+    return true;
+  }
+  if (captureInfo.movedDeclarations.length > 0) {
+    return true;
+  }
   // Promoted-param consolidation carries only the field-rewrite map.
-  if (captureInfo.propsFieldCaptures && captureInfo.propsFieldCaptures.size > 0) return true;
+  if (captureInfo.propsFieldCaptures && captureInfo.propsFieldCaptures.size > 0) {
+    return true;
+  }
   return includeConstLiterals && captureInfo.constLiterals !== undefined;
 }
 

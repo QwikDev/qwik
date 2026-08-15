@@ -64,7 +64,9 @@ function isRouterMarkerInit(init: AstMaybeNode): boolean {
 
 /** Conservative purity check: true only for expressions that provably have no side effects. */
 function isInitializerSafe(node: AstMaybeNode): boolean {
-  if (!node) return true;
+  if (!node) {
+    return true;
+  }
 
   switch (node.type) {
     case 'Literal':
@@ -83,19 +85,31 @@ function isInitializerSafe(node: AstMaybeNode): boolean {
 
     case 'ObjectExpression':
       for (const prop of node.properties ?? []) {
-        if (prop.type === 'SpreadElement') return false;
+        if (prop.type === 'SpreadElement') {
+          return false;
+        }
         if (prop.type === 'Property') {
-          if (prop.computed) return false;
-          if (!isInitializerSafe(prop.value)) return false;
+          if (prop.computed) {
+            return false;
+          }
+          if (!isInitializerSafe(prop.value)) {
+            return false;
+          }
         }
       }
       return true;
 
     case 'ArrayExpression':
       for (const elem of node.elements ?? []) {
-        if (!elem) continue;
-        if (elem.type === 'SpreadElement') return false;
-        if (!isInitializerSafe(elem)) return false;
+        if (!elem) {
+          continue;
+        }
+        if (elem.type === 'SpreadElement') {
+          return false;
+        }
+        if (!isInitializerSafe(elem)) {
+          return false;
+        }
       }
       return true;
 
@@ -129,7 +143,9 @@ function isInitializerSafe(node: AstMaybeNode): boolean {
       // move optimization; reexport is still correct.
       if (node.callee?.type === 'Identifier') {
         const name = node.callee.name;
-        if (name === '$' || name.endsWith('$')) return true;
+        if (name === '$' || name.endsWith('$')) {
+          return true;
+        }
       }
       return false;
     }
@@ -169,7 +185,9 @@ export function collectModuleLevelDecls(program: AstProgram, source: string): Mo
       const kind = declaration.kind;
       for (const declarator of declaration.declarations ?? []) {
         const id = declarator.id;
-        if (!id) continue;
+        if (!id) {
+          continue;
+        }
 
         const hasSideEffects = !isInitializerSafe(declarator.init);
         const isDestructuring = id.type === 'ObjectPattern' || id.type === 'ArrayPattern';
@@ -245,9 +263,13 @@ export function collectModuleLevelDecls(program: AstProgram, source: string): Mo
     if (stmt.type === 'ExportNamedDeclaration' && !stmt.declaration && stmt.specifiers) {
       for (const spec of stmt.specifiers) {
         const localName = spec.local?.type === 'Identifier' ? spec.local.name : spec.local?.value;
-        if (!localName) continue;
+        if (!localName) {
+          continue;
+        }
         const decl = decls.find((d) => d.name === localName);
-        if (decl) decl.isExported = true;
+        if (decl) {
+          decl.isExported = true;
+        }
       }
     }
   }
@@ -269,7 +291,9 @@ export function addDeclaredNamesFromNode(node: AstNode, target: Set<string>): vo
   }
 
   if (type === 'FunctionExpression' || type === 'FunctionDeclaration') {
-    if (node.id?.name) target.add(node.id.name);
+    if (node.id?.name) {
+      target.add(node.id.name);
+    }
     for (const param of node.params ?? []) {
       addBindingNamesFromPatternToSet(param, target);
     }
@@ -277,7 +301,9 @@ export function addDeclaredNamesFromNode(node: AstNode, target: Set<string>): vo
 
   if (type === 'VariableDeclaration') {
     for (const decl of node.declarations ?? []) {
-      if (decl.id) addBindingNamesFromPatternToSet(decl.id, target);
+      if (decl.id) {
+        addBindingNamesFromPatternToSet(decl.id, target);
+      }
     }
   }
 
@@ -311,7 +337,9 @@ export function isNonReferenceIdentifier(
   node: AstNode,
   parent: AstNode | null | undefined
 ): boolean {
-  if (!parent) return false;
+  if (!parent) {
+    return false;
+  }
   if (parent.type === 'MemberExpression') {
     return !parent.computed && parent.property === node;
   }
@@ -336,7 +364,9 @@ export function collectRootDeclPositions(program: AstProgram): Set<number> {
 
     if (declaration.type === 'VariableDeclaration') {
       for (const decl of declaration.declarations ?? []) {
-        if (decl.id) collectBindingPositions(decl.id, positions);
+        if (decl.id) {
+          collectBindingPositions(decl.id, positions);
+        }
       }
     } else if (declaration.type === 'FunctionDeclaration' && declaration.id) {
       positions.add(declaration.id.start);
@@ -352,7 +382,9 @@ function collectBindingPositions(
   node: BindingPatternLike | null | undefined,
   positions: Set<number>
 ): void {
-  if (!node) return;
+  if (!node) {
+    return;
+  }
 
   switch (node.type) {
     case 'Identifier':
@@ -425,7 +457,9 @@ export function computeSegmentUsage(
         const nodeStart = node.start;
         const nodeEnd = node.end;
         for (const ext of extractions) {
-          if (nodeStart < ext.argStart || nodeEnd > ext.argEnd) continue;
+          if (nodeStart < ext.argStart || nodeEnd > ext.argEnd) {
+            continue;
+          }
           addDeclaredNamesFromNode(node, extractionLocals.get(ext.symbolName)!);
         }
       }
@@ -560,7 +594,9 @@ export function collectDeclIdentifiers(
 function usingSegmentsOf(name: string, segmentUsage: Map<string, Set<string>>): string[] {
   const result: string[] = [];
   for (const [segName, usedNames] of segmentUsage) {
-    if (usedNames.has(name)) result.push(segName);
+    if (usedNames.has(name)) {
+      result.push(segName);
+    }
   }
   return result;
 }
@@ -595,7 +631,9 @@ export function analyzeMigration(
 ): MigrationDecision[] {
   const decisions = decls.map((decl) => decideMigration(decl, segmentUsage, rootUsage));
   promoteSharedDestructureGroups(decls, decisions, segmentUsage, rootUsage);
-  if (program) reexportMovedDeclDependencies(decls, decisions, program, segmentUsage);
+  if (program) {
+    reexportMovedDeclDependencies(decls, decisions, program, segmentUsage);
+  }
   return decisions;
 }
 
@@ -615,7 +653,9 @@ function reexportMovedDeclDependencies(
   segmentUsage: Map<string, Set<string>>
 ): void {
   const indexByName = new Map<string, number>();
-  for (let i = 0; i < decls.length; i++) indexByName.set(decls[i].name, i);
+  for (let i = 0; i < decls.length; i++) {
+    indexByName.set(decls[i].name, i);
+  }
 
   const depsOfMover = new Map<number, Set<string>>();
   const moverDeps = (i: number): Set<string> => {
@@ -640,11 +680,17 @@ function reexportMovedDeclDependencies(
     changed = false;
     for (let i = 0; i < decisions.length; i++) {
       const decision = decisions[i];
-      if (decision.action !== 'move') continue;
+      if (decision.action !== 'move') {
+        continue;
+      }
       for (const dep of moverDeps(i)) {
-        if (dep === decision.varName) continue;
+        if (dep === decision.varName) {
+          continue;
+        }
         const depIdx = indexByName.get(dep);
-        if (depIdx === undefined || decls[depIdx].isExported) continue;
+        if (depIdx === undefined || decls[depIdx].isExported) {
+          continue;
+        }
         const depDecision = decisions[depIdx];
         if (depDecision.action === 'move' && depDecision.targetSegment !== decision.targetSegment) {
           flipToReexport(depIdx);
@@ -657,7 +703,9 @@ function reexportMovedDeclDependencies(
   const referencedByDecls = new Map<string, Set<number>>();
   for (let j = 0; j < decls.length; j++) {
     for (const dep of collectDeclIdentifiers(program, decls[j], true)) {
-      if (dep === decls[j].name) continue;
+      if (dep === decls[j].name) {
+        continue;
+      }
       let refs = referencedByDecls.get(dep);
       if (!refs) {
         refs = new Set();
@@ -673,13 +721,21 @@ function reexportMovedDeclDependencies(
   // segment) keeps it in the parent to reexport.
   const canMoveInto = (depIdx: number, segment: string): boolean => {
     const d = decls[depIdx];
-    if (d.isExported || rootStmtRefs.has(d.name)) return false;
-    if (usingSegmentsOf(d.name, segmentUsage).some((s) => s !== segment)) return false;
+    if (d.isExported || rootStmtRefs.has(d.name)) {
+      return false;
+    }
+    if (usingSegmentsOf(d.name, segmentUsage).some((s) => s !== segment)) {
+      return false;
+    }
     const refs = referencedByDecls.get(d.name);
-    if (!refs || refs.size === 0) return false;
+    if (!refs || refs.size === 0) {
+      return false;
+    }
     for (const j of refs) {
       const dec = decisions[j];
-      if (dec.action !== 'move' || dec.targetSegment !== segment) return false;
+      if (dec.action !== 'move' || dec.targetSegment !== segment) {
+        return false;
+      }
     }
     return true;
   };
@@ -689,13 +745,21 @@ function reexportMovedDeclDependencies(
     changed2 = false;
     for (let i = 0; i < decisions.length; i++) {
       const decision = decisions[i];
-      if (decision.action !== 'move' || decision.targetSegment === undefined) continue;
+      if (decision.action !== 'move' || decision.targetSegment === undefined) {
+        continue;
+      }
       const targetSegment = decision.targetSegment;
       for (const dep of moverDeps(i)) {
-        if (dep === decision.varName) continue;
+        if (dep === decision.varName) {
+          continue;
+        }
         const depIdx = indexByName.get(dep);
-        if (depIdx === undefined || decls[depIdx].isExported) continue;
-        if (decisions[depIdx].action !== 'keep') continue;
+        if (depIdx === undefined || decls[depIdx].isExported) {
+          continue;
+        }
+        if (decisions[depIdx].action !== 'keep') {
+          continue;
+        }
         if (canMoveInto(depIdx, targetSegment)) {
           decisions[depIdx] = {
             action: 'move',
@@ -796,7 +860,9 @@ function promoteSharedDestructureGroups(
 ): void {
   const groupsByDeclSpan = new Map<string, number[]>();
   for (let i = 0; i < decls.length; i++) {
-    if (!decls[i].isPartOfSharedDestructuring) continue;
+    if (!decls[i].isPartOfSharedDestructuring) {
+      continue;
+    }
     const key = `${decls[i].declStart}:${decls[i].declEnd}`;
     let group = groupsByDeclSpan.get(key);
     if (!group) {
@@ -807,9 +873,13 @@ function promoteSharedDestructureGroups(
   }
 
   for (const indices of groupsByDeclSpan.values()) {
-    if (indices.length < 2) continue;
+    if (indices.length < 2) {
+      continue;
+    }
     const target = unifiedSingleSegmentTarget(indices, decls, segmentUsage, rootUsage);
-    if (!target) continue;
+    if (!target) {
+      continue;
+    }
 
     for (const i of indices) {
       decisions[i] = {
@@ -836,13 +906,20 @@ function unifiedSingleSegmentTarget(
 
   for (const i of indices) {
     const d = decls[i];
-    if (d.isExported || d.hasSideEffects || rootUsage.has(d.name)) return null;
+    if (d.isExported || d.hasSideEffects || rootUsage.has(d.name)) {
+      return null;
+    }
 
     const using = usingSegmentsOf(d.name, segmentUsage);
-    if (using.length !== 1) return null;
+    if (using.length !== 1) {
+      return null;
+    }
 
-    if (target === null) target = using[0];
-    else if (target !== using[0]) return null;
+    if (target === null) {
+      target = using[0];
+    } else if (target !== using[0]) {
+      return null;
+    }
   }
 
   return target;

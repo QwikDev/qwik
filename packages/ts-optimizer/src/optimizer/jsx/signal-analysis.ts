@@ -88,18 +88,28 @@ function isStoreFieldAccess(
   importedNames: Set<string>,
   localNames?: Set<string>
 ): node is MemberExpressionNode {
-  if (node == null || node.type !== 'MemberExpression') return false;
-  if (node.object?.type !== 'Identifier') return false;
+  if (node == null || node.type !== 'MemberExpression') {
+    return false;
+  }
+  if (node.object?.type !== 'Identifier') {
+    return false;
+  }
 
   const objName = node.object.name;
-  if (importedNames.has(objName)) return false;
+  if (importedNames.has(objName)) {
+    return false;
+  }
 
   // A local binding shadows a same-named global (e.g. flattened `location`);
   // without scope info only known globals are excluded.
-  if (localNames ? !localNames.has(objName) : GLOBAL_NAMES.has(objName)) return false;
+  if (localNames ? !localNames.has(objName) : GLOBAL_NAMES.has(objName)) {
+    return false;
+  }
 
   const propName = memberStaticPropName(node);
-  if (propName == null || propName === 'value') return false;
+  if (propName == null || propName === 'value') {
+    return false;
+  }
 
   return true;
 }
@@ -110,16 +120,24 @@ function containsJsx(node: AstMaybeNode): boolean {
 
 function containsUnknownCall(node: AstMaybeNode, importedNames: Set<string>): boolean {
   return someAstDescendant(node, (n) => {
-    if (n.type === 'TaggedTemplateExpression') return true;
-    if (n.type !== 'CallExpression') return false;
-    if (n.callee?.type === 'MemberExpression' || n.callee?.type === 'ChainExpression') return false;
+    if (n.type === 'TaggedTemplateExpression') {
+      return true;
+    }
+    if (n.type !== 'CallExpression') {
+      return false;
+    }
+    if (n.callee?.type === 'MemberExpression' || n.callee?.type === 'ChainExpression') {
+      return false;
+    }
     const calleeName = getCalleeIdentifierName(n.callee);
     return calleeName == null || !importedNames.has(calleeName);
   });
 }
 
 function getCalleeIdentifierName(callee: AstMaybeNode): string | null {
-  if (callee?.type === 'Identifier') return callee.name;
+  if (callee?.type === 'Identifier') {
+    return callee.name;
+  }
   return null;
 }
 
@@ -137,42 +155,62 @@ function containsNonOptionalCall(node: AstMaybeNode): boolean {
 }
 
 function hasCallOutsideChainSpine(node: AstMaybeNode, inChainSpine: boolean): boolean {
-  if (node == null) return false;
+  if (node == null) {
+    return false;
+  }
 
   if (node.type === 'ChainExpression') {
     return hasCallOutsideChainSpine(node.expression, true);
   }
 
   if (node.type === 'CallExpression') {
-    if (!inChainSpine) return true;
-    if (hasCallOutsideChainSpine(node.callee, true)) return true;
+    if (!inChainSpine) {
+      return true;
+    }
+    if (hasCallOutsideChainSpine(node.callee, true)) {
+      return true;
+    }
     for (const arg of node.arguments) {
-      if (hasCallOutsideChainSpine(arg, false)) return true;
+      if (hasCallOutsideChainSpine(arg, false)) {
+        return true;
+      }
     }
     return false;
   }
 
   if (node.type === 'MemberExpression') {
-    if (hasCallOutsideChainSpine(node.object, inChainSpine)) return true;
-    if (node.computed && hasCallOutsideChainSpine(node.property, false)) return true;
+    if (hasCallOutsideChainSpine(node.object, inChainSpine)) {
+      return true;
+    }
+    if (node.computed && hasCallOutsideChainSpine(node.property, false)) {
+      return true;
+    }
     return false;
   }
 
   let found = false;
   forEachAstChild(node, (child) => {
-    if (!found && hasCallOutsideChainSpine(child, false)) found = true;
+    if (!found && hasCallOutsideChainSpine(child, false)) {
+      found = true;
+    }
   });
   return found;
 }
 
 function getMemberChainRoot(node: AstNode): string | null {
-  if (node.type === 'Identifier') return node.name;
-  if (node.type === 'MemberExpression') return getMemberChainRoot(node.object);
+  if (node.type === 'Identifier') {
+    return node.name;
+  }
+  if (node.type === 'MemberExpression') {
+    return getMemberChainRoot(node.object);
+  }
   return null;
 }
 
 function getMemberChainDepth(node: AstNode): number {
-  if (node.type !== 'MemberExpression') return 0;
+  if (node.type !== 'MemberExpression') {
+    return 0;
+  }
   return 1 + getMemberChainDepth(node.object);
 }
 
@@ -181,14 +219,24 @@ function isDeepStoreAccess(
   importedNames: Set<string>,
   localNames?: Set<string>
 ): node is MemberExpressionNode {
-  if (node.type !== 'MemberExpression') return false;
-  if (getMemberChainDepth(node) < 2) return false;
+  if (node.type !== 'MemberExpression') {
+    return false;
+  }
+  if (getMemberChainDepth(node) < 2) {
+    return false;
+  }
 
   const root = getMemberChainRoot(node);
-  if (root == null) return false;
-  if (importedNames.has(root)) return false;
+  if (root == null) {
+    return false;
+  }
+  if (importedNames.has(root)) {
+    return false;
+  }
   // Local bindings shadow same-named globals.
-  if (localNames ? !localNames.has(root) : GLOBAL_NAMES.has(root)) return false;
+  if (localNames ? !localNames.has(root) : GLOBAL_NAMES.has(root)) {
+    return false;
+  }
   return true;
 }
 
@@ -216,8 +264,12 @@ function collectSignalDeps(
   const boundParams = new Set<string>();
 
   function addRoot(name: string | null): void {
-    if (name == null) return;
-    if (boundParams.has(name)) return;
+    if (name == null) {
+      return;
+    }
+    if (boundParams.has(name)) {
+      return;
+    }
     if (!rootsSeen.has(name)) {
       rootsSeen.add(name);
       roots.push(name);
@@ -226,19 +278,31 @@ function collectSignalDeps(
   }
 
   function addBare(name: string): void {
-    if (importedNames.has(name)) return;
+    if (importedNames.has(name)) {
+      return;
+    }
     // Local bindings shadow same-named globals.
-    if (GLOBAL_NAMES.has(name) && !localNames?.has(name)) return;
-    if (boundParams.has(name)) return;
-    if (allSeen.has(name)) return;
+    if (GLOBAL_NAMES.has(name) && !localNames?.has(name)) {
+      return;
+    }
+    if (boundParams.has(name)) {
+      return;
+    }
+    if (allSeen.has(name)) {
+      return;
+    }
     allSeen.add(name);
     bareIdents.push(name);
   }
 
   function fallbackCollectIdents(n: AstMaybeNode): void {
-    if (n == null) return;
+    if (n == null) {
+      return;
+    }
     if (n.type === 'Identifier') {
-      if (!importedNames.has(n.name)) addRoot(n.name);
+      if (!importedNames.has(n.name)) {
+        addRoot(n.name);
+      }
       return;
     }
     forEachAstChild(n, (child) => fallbackCollectIdents(child));
@@ -250,13 +314,17 @@ function collectSignalDeps(
   function walkComputedKeys(chainNode: AstMaybeNode): void {
     let cur: AstMaybeNode = chainNode;
     while (cur != null && cur.type === 'MemberExpression') {
-      if (cur.computed && cur.property != null) walkKey(cur.property);
+      if (cur.computed && cur.property != null) {
+        walkKey(cur.property);
+      }
       cur = cur.object;
     }
   }
 
   function walkKey(keyNode: AstMaybeNode): void {
-    if (keyNode == null) return;
+    if (keyNode == null) {
+      return;
+    }
     if (
       isSignalValueAccess(keyNode) ||
       isDeepStoreAccess(keyNode, importedNames, localNames) ||
@@ -266,14 +334,18 @@ function collectSignalDeps(
       return;
     }
     if (keyNode.type === 'Identifier') {
-      if (localNames == null || localNames.has(keyNode.name)) addBare(keyNode.name);
+      if (localNames == null || localNames.has(keyNode.name)) {
+        addBare(keyNode.name);
+      }
       return;
     }
     forEachAstChild(keyNode, (child) => walkKey(child));
   }
 
   function walk(n: AstMaybeNode): void {
-    if (n == null) return;
+    if (n == null) {
+      return;
+    }
 
     if (isSignalValueAccess(n)) {
       const root = getMemberChainRoot(n.object);
@@ -309,7 +381,9 @@ function collectSignalDeps(
 
     if (n.type === 'ArrowFunctionExpression' || n.type === 'FunctionExpression') {
       const paramNames = new Set<string>();
-      for (const param of n.params) addBindingNamesFromPatternToSet(param, paramNames);
+      for (const param of n.params) {
+        addBindingNamesFromPatternToSet(param, paramNames);
+      }
       const introduced: string[] = [];
       for (const name of paramNames) {
         if (!boundParams.has(name)) {
@@ -318,7 +392,9 @@ function collectSignalDeps(
         }
       }
       descend(n);
-      for (const name of introduced) boundParams.delete(name);
+      for (const name of introduced) {
+        boundParams.delete(name);
+      }
       return;
     }
 
@@ -327,7 +403,9 @@ function collectSignalDeps(
 
   function descend(n: AstNode): void {
     forEachAstChild(n, (child, key, parent) => {
-      if (key === 'key' && parent.type === 'Property') return;
+      if (key === 'key' && parent.type === 'Property') {
+        return;
+      }
       if (key === 'property' && parent.type === 'MemberExpression' && !parent.computed) {
         return;
       }
@@ -409,14 +487,17 @@ function collectComputedKeyRewrites(
 ): Array<{ start: number; end: number; replacement: string }> {
   const reps: Array<{ start: number; end: number; replacement: string }> = [];
   function rewriteKey(node: AstMaybeNode, parentKey?: string, parentNode?: AstNode): void {
-    if (node == null) return;
+    if (node == null) {
+      return;
+    }
     if (node.type === 'Identifier') {
       if (
         parentKey === 'property' &&
         parentNode?.type === 'MemberExpression' &&
         !parentNode.computed
-      )
+      ) {
         return;
+      }
       const param = rootToParam.get(node.name);
       if (param != null) {
         reps.push({ start: node.start - exprStart, end: node.end - exprStart, replacement: param });
@@ -427,7 +508,9 @@ function collectComputedKeyRewrites(
   }
   let cur: AstMaybeNode = chainNode;
   while (cur != null && cur.type === 'MemberExpression') {
-    if (cur.computed && cur.property != null) rewriteKey(cur.property, 'property', cur);
+    if (cur.computed && cur.property != null) {
+      rewriteKey(cur.property, 'property', cur);
+    }
     cur = cur.object;
   }
   return reps;
@@ -503,9 +586,15 @@ function rootReplacementsCollector(
 }
 
 function findRootIdentifier(node: AstMaybeNode): IdentifierNode | null {
-  if (!node) return null;
-  if (node.type === 'Identifier') return node;
-  if (node.type === 'MemberExpression') return findRootIdentifier(node.object);
+  if (!node) {
+    return null;
+  }
+  if (node.type === 'Identifier') {
+    return node;
+  }
+  if (node.type === 'MemberExpression') {
+    return findRootIdentifier(node.object);
+  }
   return null;
 }
 
@@ -566,12 +655,18 @@ function removeWhitespace(text: string): string {
     let tok = '';
     while (i < text.length) {
       const c = text[i];
-      if (c === ' ' || c === '\t' || c === '\n' || c === '\r') break;
-      if (c === '"' || c === "'" || c === '`') break;
+      if (c === ' ' || c === '\t' || c === '\n' || c === '\r') {
+        break;
+      }
+      if (c === '"' || c === "'" || c === '`') {
+        break;
+      }
       tok += c;
       i++;
     }
-    if (tok) tokens.push(tok);
+    if (tok) {
+      tokens.push(tok);
+    }
   }
 
   let result = '';
@@ -607,10 +702,13 @@ function findMatchingParen(text: string): number {
   let depth = 0;
   for (let i = 0; i < text.length; i++) {
     const ch = text[i];
-    if (ch === '(') depth++;
-    else if (ch === ')') {
+    if (ch === '(') {
+      depth++;
+    } else if (ch === ')') {
       depth--;
-      if (depth === 0) return i;
+      if (depth === 0) {
+        return i;
+      }
     } else if (ch === '"' || ch === "'" || ch === '`') {
       i = skipStringLiteralForward(text, i);
     }
@@ -636,7 +734,9 @@ function stripOuterParens(text: string): string {
 
 /** Strip redundant parentheses around a ternary condition: `(cond)?cons:alt` -> `cond?cons:alt`. */
 function stripTernaryConditionParens(text: string): string {
-  if (text.length < 4 || text[0] !== '(') return text;
+  if (text.length < 4 || text[0] !== '(') {
+    return text;
+  }
 
   const matchPos = findMatchingParen(text);
 
@@ -692,7 +792,9 @@ function normalizeStringQuotes(text: string): string {
           i++;
         }
       }
-      if (i < text.length) result += text[i];
+      if (i < text.length) {
+        result += text[i];
+      }
     } else {
       result += ch;
     }
@@ -717,10 +819,14 @@ export function analyzeSignalExpression(
         shadowFree.delete(name);
       }
     }
-    if (shadowFree) importedNames = shadowFree;
+    if (shadowFree) {
+      importedNames = shadowFree;
+    }
   }
   const peeled = peelExpressionWrappers(exprNode);
-  if (peeled == null) return { type: 'none' };
+  if (peeled == null) {
+    return { type: 'none' };
+  }
   if (peeled !== exprNode) {
     return analyzeSignalExpression(peeled, source, importedNames, localNames);
   }
@@ -755,27 +861,47 @@ export function analyzeSignalExpression(
 
   if (exprNode.type === 'ObjectExpression') {
     const { roots, allDeps } = collectSignalDeps(exprNode, importedNames, localNames);
-    if (roots.length === 0) return { type: 'none' };
-    if (containsNonOptionalCall(exprNode)) return { type: 'none' };
+    if (roots.length === 0) {
+      return { type: 'none' };
+    }
+    if (containsNonOptionalCall(exprNode)) {
+      return { type: 'none' };
+    }
     // The serialized _fnSignal string form cannot resolve imports.
-    if (containsImportedReference(exprNode, importedNames)) return { type: 'none' };
+    if (containsImportedReference(exprNode, importedNames)) {
+      return { type: 'none' };
+    }
     // Hoisting would orphan raw JSX outside the JSX transform.
-    if (containsJsx(exprNode)) return { type: 'none' };
+    if (containsJsx(exprNode)) {
+      return { type: 'none' };
+    }
     const { hoistedFn, hoistedStr, strBodyLen } = generateFnSignal(exprNode, source, allDeps);
-    if (strBodyLen > MAX_FN_SIGNAL_BODY_LEN) return { type: 'none' };
+    if (strBodyLen > MAX_FN_SIGNAL_BODY_LEN) {
+      return { type: 'none' };
+    }
     return { type: 'fnSignal', deps: allDeps, hoistedFn, hoistedStr, isObjectExpr: true };
   }
 
   if (exprNode.type === 'ArrayExpression') {
     const { roots, allDeps } = collectSignalDeps(exprNode, importedNames, localNames);
-    if (roots.length === 0) return { type: 'none' };
-    if (containsNonOptionalCall(exprNode)) return { type: 'none' };
+    if (roots.length === 0) {
+      return { type: 'none' };
+    }
+    if (containsNonOptionalCall(exprNode)) {
+      return { type: 'none' };
+    }
     // The serialized _fnSignal string form cannot resolve imports.
-    if (containsImportedReference(exprNode, importedNames)) return { type: 'none' };
+    if (containsImportedReference(exprNode, importedNames)) {
+      return { type: 'none' };
+    }
     // Hoisting would orphan raw JSX outside the JSX transform.
-    if (containsJsx(exprNode)) return { type: 'none' };
+    if (containsJsx(exprNode)) {
+      return { type: 'none' };
+    }
     const { hoistedFn, hoistedStr, strBodyLen } = generateFnSignal(exprNode, source, allDeps);
-    if (strBodyLen > MAX_FN_SIGNAL_BODY_LEN) return { type: 'none' };
+    if (strBodyLen > MAX_FN_SIGNAL_BODY_LEN) {
+      return { type: 'none' };
+    }
     return { type: 'fnSignal', deps: allDeps, hoistedFn, hoistedStr };
   }
 
@@ -799,15 +925,27 @@ function tryBuildFnSignal(
   localNames?: Set<string>
 ): SignalExprResult {
   const { roots, allDeps } = collectSignalDeps(exprNode, importedNames, localNames);
-  if (roots.length === 0) return { type: 'none' };
+  if (roots.length === 0) {
+    return { type: 'none' };
+  }
 
-  if (containsUnknownCall(exprNode, importedNames)) return { type: 'none' };
-  if (containsNonOptionalCall(exprNode)) return { type: 'none' };
-  if (containsImportedReference(exprNode, importedNames)) return { type: 'none' };
-  if (containsJsx(exprNode)) return { type: 'none' };
+  if (containsUnknownCall(exprNode, importedNames)) {
+    return { type: 'none' };
+  }
+  if (containsNonOptionalCall(exprNode)) {
+    return { type: 'none' };
+  }
+  if (containsImportedReference(exprNode, importedNames)) {
+    return { type: 'none' };
+  }
+  if (containsJsx(exprNode)) {
+    return { type: 'none' };
+  }
 
   const { hoistedFn, hoistedStr, strBodyLen } = generateFnSignal(exprNode, source, allDeps);
-  if (strBodyLen > MAX_FN_SIGNAL_BODY_LEN) return { type: 'none' };
+  if (strBodyLen > MAX_FN_SIGNAL_BODY_LEN) {
+    return { type: 'none' };
+  }
   return { type: 'fnSignal', deps: allDeps, hoistedFn, hoistedStr };
 }
 
@@ -818,8 +956,12 @@ function analyzeCallExpression(
   localNames?: Set<string>
 ): SignalExprResult {
   const calleeName = getCalleeIdentifierName(exprNode.callee);
-  if (calleeName === 'mutable') return { type: 'none' };
-  if (isSignalValueAccess(exprNode.callee)) return { type: 'none' };
+  if (calleeName === 'mutable') {
+    return { type: 'none' };
+  }
+  if (isSignalValueAccess(exprNode.callee)) {
+    return { type: 'none' };
+  }
 
   return tryBuildFnSignal(exprNode, source, importedNames, localNames);
 }
@@ -908,7 +1050,9 @@ export class SignalHoister {
 
   hoist(fn: string, str: string, sourcePos: number = 0): string {
     const existing = this.dedupMap.get(fn);
-    if (existing) return existing;
+    if (existing) {
+      return existing;
+    }
 
     const name = `_hf${this.base + this.counter}`;
     this.hoistedFunctions.push({ name, fn, str, sourcePos });
@@ -935,7 +1079,9 @@ export class SignalHoister {
     // Only functions added since `startIndex` may be renamed: earlier entries
     // belong to bodies whose text is already frozen (shared hoister).
     const slice = this.hoistedFunctions.slice(startIndex);
-    if (slice.length <= 1) return null;
+    if (slice.length <= 1) {
+      return null;
+    }
 
     const sorted = [...slice].sort((a, b) => a.sourcePos - b.sourcePos);
 
@@ -946,7 +1092,9 @@ export class SignalHoister {
         break;
       }
     }
-    if (!needsRename) return null;
+    if (!needsRename) {
+      return null;
+    }
 
     const renameMap = new Map<string, string>();
     for (let i = 0; i < sorted.length; i++) {

@@ -9,7 +9,9 @@ function parentCode(input: string): string {
     entryStrategy: { type: 'inline' },
   });
   const parent = result.modules.find((m) => m.kind === 'parent');
-  if (!parent) throw new Error('parent module not found');
+  if (!parent) {
+    throw new Error('parent module not found');
+  }
   return parent.code;
 }
 

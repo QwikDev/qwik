@@ -10,7 +10,9 @@ export const REWRITTEN_EVENT_PREFIXES = [
 
 export function startsWithRewrittenEventPrefix(name: string): boolean {
   for (const prefix of REWRITTEN_EVENT_PREFIXES) {
-    if (name.startsWith(prefix)) return true;
+    if (name.startsWith(prefix)) {
+      return true;
+    }
   }
   return false;
 }

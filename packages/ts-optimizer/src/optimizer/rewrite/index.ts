@@ -108,7 +108,9 @@ function isMarkerSpecifier(importedName: string, extractedCalleeNames: Set<strin
  */
 function importedSpecifierName(spec: ImportSpecifier): string {
   const imported = spec.imported;
-  if (imported.type === 'Identifier') return imported.name;
+  if (imported.type === 'Identifier') {
+    return imported.name;
+  }
   return spec.local.name;
 }
 
@@ -216,11 +218,17 @@ export function rewriteParentModule(
     const reservationJsxFns = collectJsxFunctionNamesFromIterable(ctx.originalImports.values());
     const regions: Array<{ start: number; end: number; count: number }> = [];
     for (const ext of ctx.topLevel) {
-      if (ext.isSync) continue;
+      if (ext.isSync) {
+        continue;
+      }
       const node = ctx.closureNodes?.get(ext.symbolName);
-      if (!node) continue;
+      if (!node) {
+        continue;
+      }
       const count = countJsxKeysInNode(node, reservationJsxFns);
-      if (count > 0) regions.push({ start: ext.argStart, end: ext.argEnd, count });
+      if (count > 0) {
+        regions.push({ start: ext.argStart, end: ext.argEnd, count });
+      }
     }
     // Engage only when a parent-level keyable site FOLLOWS a region in source
     // — the shape where extraction-order numbering diverges from the
@@ -229,7 +237,9 @@ export function rewriteParentModule(
     let parentSiteAfterRegion = false;
     if (regions.length > 0) {
       const visit = (n: AstNode | null | undefined): void => {
-        if (!n || parentSiteAfterRegion) return;
+        if (!n || parentSiteAfterRegion) {
+          return;
+        }
         const inRegion = regions.some((r) => n.start >= r.start && n.start < r.end);
         if (!inRegion) {
           const isSyntax = n.type === 'JSXElement' || n.type === 'JSXFragment';
@@ -274,11 +284,17 @@ export function rewriteParentModule(
   const movedDeclSnapshots = new Map<string, string>();
   if (migrationDecisions && moduleLevelDecls) {
     const declsByName = new Map<string, ModuleLevelDecl>();
-    for (const decl of moduleLevelDecls) declsByName.set(decl.name, decl);
+    for (const decl of moduleLevelDecls) {
+      declsByName.set(decl.name, decl);
+    }
     for (const decision of migrationDecisions) {
-      if (decision.action !== 'move') continue;
+      if (decision.action !== 'move') {
+        continue;
+      }
       const decl = declsByName.get(decision.varName);
-      if (!decl) continue;
+      if (!decl) {
+        continue;
+      }
       movedDeclSnapshots.set(decision.varName, ctx.s.slice(decl.declStart, decl.declEnd));
     }
   }
@@ -325,7 +341,9 @@ function processImports(ctx: RewriteContext): void {
   const { s, program, source, extractedCalleeNames, minify, isLibMode } = ctx;
 
   for (const node of program.body) {
-    if (node.type !== 'ImportDeclaration') continue;
+    if (node.type !== 'ImportDeclaration') {
+      continue;
+    }
 
     const specifiers = node.specifiers;
     const sourceNode = node.source;
@@ -339,7 +357,9 @@ function processImports(ctx: RewriteContext): void {
       // relative order — leaving them in the body would sink them below the
       // qrl declarations, changing module evaluation order in bundled cycles.
       let end = node.end;
-      if (end < source.length && source[end] === '\n') end++;
+      if (end < source.length && source[end] === '\n') {
+        end++;
+      }
       s.remove(node.start, end);
       ctx.survivingUserImports.push(`import ${quoteChar}${rewrittenSource}${quoteChar};`);
       ctx.survivingImportInfos.push({
@@ -357,7 +377,9 @@ function processImports(ctx: RewriteContext): void {
     const toRemove: number[] = [];
     for (let i = 0; i < specifiers.length; i++) {
       const spec = specifiers[i];
-      if (spec.type !== 'ImportSpecifier') continue;
+      if (spec.type !== 'ImportSpecifier') {
+        continue;
+      }
       const importedName = importedSpecifierName(spec);
       if (isMarkerSpecifier(importedName, extractedCalleeNames)) {
         if (isLibMode && isLibModePreservedMarker(importedName)) {
@@ -368,10 +390,14 @@ function processImports(ctx: RewriteContext): void {
     }
 
     let end = node.end;
-    if (end < source.length && source[end] === '\n') end++;
+    if (end < source.length && source[end] === '\n') {
+      end++;
+    }
     s.remove(node.start, end);
 
-    if (toRemove.length === specifiers.length) continue;
+    if (toRemove.length === specifiers.length) {
+      continue;
+    }
 
     const isQwikSource =
       rewrittenSource.startsWith('@qwik.dev/') || rewrittenSource.startsWith('@builder.io/qwik');
@@ -379,13 +405,19 @@ function processImports(ctx: RewriteContext): void {
     if (isQwikSource && quoteChar === "'" && minify === 'none') {
       const hasNonDollarSurvivor = specifiers.some(
         (spec: ImportDeclarationSpecifier, i: number) => {
-          if (toRemove.includes(i)) return false;
-          if (spec.type !== 'ImportSpecifier') return true;
+          if (toRemove.includes(i)) {
+            return false;
+          }
+          if (spec.type !== 'ImportSpecifier') {
+            return true;
+          }
           const importedName = importedSpecifierName(spec);
           return !importedName.endsWith('$');
         }
       );
-      if (hasNonDollarSurvivor) preserveAll = true;
+      if (hasNonDollarSurvivor) {
+        preserveAll = true;
+      }
     }
 
     let defaultPart = '';
@@ -393,7 +425,9 @@ function processImports(ctx: RewriteContext): void {
     const namedParts: string[] = [];
     const namedPartsStructured: { local: string; imported: string }[] = [];
     for (let i = 0; i < specifiers.length; i++) {
-      if (!preserveAll && toRemove.includes(i)) continue;
+      if (!preserveAll && toRemove.includes(i)) {
+        continue;
+      }
       const spec = specifiers[i];
       if (spec.type === 'ImportDefaultSpecifier') {
         defaultPart = spec.local.name;
@@ -437,7 +471,9 @@ function resolveNesting(ctx: RewriteContext): void {
     let bestParent: (typeof sorted)[0] | null = null;
     let bestRange = Infinity;
     for (let j = 0; j < sorted.length; j++) {
-      if (i === j) continue;
+      if (i === j) {
+        continue;
+      }
       if (sorted[i].callStart >= sorted[j].argStart && sorted[i].callEnd <= sorted[j].argEnd) {
         const range = sorted[j].argEnd - sorted[j].argStart;
         if (range < bestRange) {
@@ -453,7 +489,9 @@ function resolveNesting(ctx: RewriteContext): void {
 
   for (const ext of sorted) {
     const orig = ctx.extractions.find((e) => e.symbolName === ext.symbolName);
-    if (orig) (orig as Mutable<ConsolidatedSegment>).parent = ext.parent;
+    if (orig) {
+      (orig as Mutable<ConsolidatedSegment>).parent = ext.parent;
+    }
   }
 }
 
@@ -463,27 +501,39 @@ function preConsolidateRawPropsCaptures(ctx: RewriteContext): void {
   // slot value and the handler segment's params stay paired.
   const isInline = ctx.inlineOptions?.inline === true;
   for (const ext of ctx.extractions) {
-    if (ext.parent === null) continue;
+    if (ext.parent === null) {
+      continue;
+    }
     const hasPromotedParams = ext.captureNames.length === 0 && ext.paramNames.length > 2;
-    if (!isInline && !hasPromotedParams) continue;
-    if (ext.captureNames.length === 0 && !hasPromotedParams) continue;
+    if (!isInline && !hasPromotedParams) {
+      continue;
+    }
+    if (ext.captureNames.length === 0 && !hasPromotedParams) {
+      continue;
+    }
 
     const parentExt = ctx.extractions.find((e) => e.symbolName === ext.parent);
-    if (!parentExt) continue;
+    if (!parentExt) {
+      continue;
+    }
 
     // Defaults let nested-segment field rewrites emit `(_rawProps.<key> ?? <default>)`
     // for fields the parent destructure defaulted; undefaulted fields stay bare.
     const { fieldMap, fieldDefaults: fieldDefaultsMap } = extractDestructuredFieldInfo(
       parentExt.bodyText
     );
-    if (fieldMap.size === 0) continue;
+    if (fieldMap.size === 0) {
+      continue;
+    }
 
     const nonPropsCaptures: string[] = [];
     let hasPropsFields = false;
     const propsFieldCaptures = new Map<string, string>();
     const propsFieldDefaults = new Map<string, string>();
     const collectField = (name: string): boolean => {
-      if (!fieldMap.has(name)) return false;
+      if (!fieldMap.has(name)) {
+        return false;
+      }
       hasPropsFields = true;
       propsFieldCaptures.set(name, fieldMap.get(name)!);
       const defaultExpr = fieldDefaultsMap.get(name);
@@ -510,7 +560,9 @@ function preConsolidateRawPropsCaptures(ctx: RewriteContext): void {
           mapped.push(target);
         }
       }
-      if (hasPropsFields) consolidatedParams = mapped;
+      if (hasPropsFields) {
+        consolidatedParams = mapped;
+      }
     }
     if (hasPropsFields) {
       const wip = ext as Mutable<ConsolidatedSegment>;
@@ -531,7 +583,9 @@ function preConsolidateRawPropsCaptures(ctx: RewriteContext): void {
 function preComputeQrlVarNames(ctx: RewriteContext): void {
   let earlyStrippedCounter = 0;
   for (const ext of ctx.extractions) {
-    if (ext.isSync) continue;
+    if (ext.isSync) {
+      continue;
+    }
     // Segment-strategy worker QRLs take a sentinel binding — their decl
     // carries the symbol name inside the `_qrlWithChunk` call instead. Under
     // inline/hoist the binding pairs with a named `q_<symbol>.s(...)`
@@ -545,7 +599,9 @@ function preComputeQrlVarNames(ctx: RewriteContext): void {
       }
       continue;
     }
-    if (!ctx.inlineOptions) continue;
+    if (!ctx.inlineOptions) {
+      continue;
+    }
     const stripped = isStrippedExtraction(
       ext,
       ctx.inlineOptions.stripCtxName,
@@ -626,7 +682,9 @@ function rewriteNoArgMarkers(ctx: RewriteContext): void {
   const extractedCallStarts = new Set<number>(ctx.extractions.map((e) => e.callStart));
 
   function walk(node: AstNode | null | undefined): void {
-    if (!node) return;
+    if (!node) {
+      return;
+    }
     if (node.type === 'CallExpression' && !extractedCallStarts.has(node.start)) {
       const calleeName = node.callee.type === 'Identifier' ? node.callee.name : null;
       if (calleeName) {
@@ -654,11 +712,15 @@ function rewriteNoArgMarkers(ctx: RewriteContext): void {
     }
     forEachAstChild(node, (child) => walk(child));
   }
-  for (const stmt of program.body) walk(stmt);
+  for (const stmt of program.body) {
+    walk(stmt);
+  }
 }
 
 function removeUnusedBindings(ctx: RewriteContext): void {
-  if (ctx.minify === 'none') return;
+  if (ctx.minify === 'none') {
+    return;
+  }
 
   const { s, source, program, topLevel, explicitExtensions, outputExtension } = ctx;
 
@@ -670,14 +732,22 @@ function removeUnusedBindings(ctx: RewriteContext): void {
   );
 
   for (const stmt of program.body) {
-    if (stmt.type === 'ExportNamedDeclaration') continue;
-    if (stmt.type !== 'VariableDeclaration') continue;
+    if (stmt.type === 'ExportNamedDeclaration') {
+      continue;
+    }
+    if (stmt.type !== 'VariableDeclaration') {
+      continue;
+    }
 
     const decl = stmt;
-    if (!decl.declarations || decl.declarations.length !== 1) continue;
+    if (!decl.declarations || decl.declarations.length !== 1) {
+      continue;
+    }
 
     const declarator = decl.declarations[0];
-    if (!declarator.init) continue;
+    if (!declarator.init) {
+      continue;
+    }
 
     const initStart = declarator.init.start;
     const initEnd = declarator.init.end;
@@ -690,17 +760,27 @@ function removeUnusedBindings(ctx: RewriteContext): void {
       declarator.init.callee?.type === 'Identifier' &&
       declarator.init.callee.name === 'inlinedQrl';
 
-    if (matchingExtractions.length === 0 && !isInlinedQrlCall) continue;
+    if (matchingExtractions.length === 0 && !isInlinedQrlCall) {
+      continue;
+    }
 
     const varName = declarator.id?.type === 'Identifier' ? declarator.id.name : null;
-    if (!varName) continue;
-    if (reexportedNames.has(varName)) continue;
+    if (!varName) {
+      continue;
+    }
+    if (reexportedNames.has(varName)) {
+      continue;
+    }
 
     const wordBoundaryRegex = wholeIdentifierPattern(varName);
     let bodyText = '';
     for (const bodyStmt of program.body) {
-      if (bodyStmt.type === 'ImportDeclaration') continue;
-      if (bodyStmt === decl) continue;
+      if (bodyStmt.type === 'ImportDeclaration') {
+        continue;
+      }
+      if (bodyStmt === decl) {
+        continue;
+      }
       bodyText += source.slice(bodyStmt.start, bodyStmt.end) + '\n';
     }
 
@@ -715,7 +795,9 @@ function removeUnusedBindings(ctx: RewriteContext): void {
   }
 
   for (const ext of topLevel) {
-    if (!ctx.inlinedQrlSymbols.has(ext.symbolName)) continue;
+    if (!ctx.inlinedQrlSymbols.has(ext.symbolName)) {
+      continue;
+    }
     const inlineExt = explicitExtensions ? (outputExtension ?? '.js') : '';
     const inlineQrl = `/*#__PURE__*/ qrl(()=>import("./${ext.canonicalFilename}${inlineExt}"), "${ext.symbolName}")`;
     s.overwrite(ext.callStart, ext.callEnd, inlineQrl);
@@ -723,20 +805,32 @@ function removeUnusedBindings(ctx: RewriteContext): void {
 }
 
 function removeDuplicateExports(ctx: RewriteContext): void {
-  if (ctx.minify === 'none') return;
+  if (ctx.minify === 'none') {
+    return;
+  }
 
   const seenExportNames = new Set<string>();
   for (const stmt of ctx.program.body) {
-    if (stmt.type !== 'ExportNamedDeclaration') continue;
+    if (stmt.type !== 'ExportNamedDeclaration') {
+      continue;
+    }
     const innerDecl = stmt.declaration;
-    if (!innerDecl || innerDecl.type !== 'VariableDeclaration') continue;
-    if (!innerDecl.declarations || innerDecl.declarations.length !== 1) continue;
+    if (!innerDecl || innerDecl.type !== 'VariableDeclaration') {
+      continue;
+    }
+    if (!innerDecl.declarations || innerDecl.declarations.length !== 1) {
+      continue;
+    }
 
     const declarator = innerDecl.declarations[0];
-    if (!declarator.init) continue;
+    if (!declarator.init) {
+      continue;
+    }
 
     const exportedNames = collectBindingNamesFromPattern(declarator.id);
-    if (exportedNames.length === 0) continue;
+    if (exportedNames.length === 0) {
+      continue;
+    }
 
     const hasDuplicate = exportedNames.some((n) => seenExportNames.has(n));
     if (hasDuplicate) {
@@ -759,23 +853,35 @@ function addCaptureWrapping(ctx: RewriteContext): void {
   );
 
   for (const ext of topLevel) {
-    if (ext.isSync) continue;
+    if (ext.isSync) {
+      continue;
+    }
 
     if (ext.isInlinedQrl) {
-      if (!ext.explicitCaptures) continue;
+      if (!ext.explicitCaptures) {
+        continue;
+      }
       const captureItems = parseArrayItems(ext.explicitCaptures);
-      if (captureItems.length === 0) continue;
+      if (captureItems.length === 0) {
+        continue;
+      }
       const wrapVars = captureItems.join(',\n    ');
       s.appendLeft(ext.callEnd, `.w([\n    ${wrapVars}\n])`);
       continue;
     }
 
-    if (ext.captureNames.length === 0) continue;
+    if (ext.captureNames.length === 0) {
+      continue;
+    }
 
-    if (isEventHandlerOrJsxProp(ext.ctxKind) && !ext.qrlCallee) continue;
+    if (isEventHandlerOrJsxProp(ext.ctxKind) && !ext.qrlCallee) {
+      continue;
+    }
 
     const effectiveCaptures = ext.captureNames.filter((name) => !migratedNames.has(name));
-    if (effectiveCaptures.length === 0) continue;
+    if (effectiveCaptures.length === 0) {
+      continue;
+    }
 
     const wrapVars = effectiveCaptures.join(',\n        ');
     const wText = `.w([\n        ${wrapVars}\n    ])`;
@@ -789,10 +895,14 @@ function addCaptureWrapping(ctx: RewriteContext): void {
 }
 
 function runJsxTransform(ctx: RewriteContext): void {
-  if (!ctx.jsxOptions?.enableJsx) return;
+  if (!ctx.jsxOptions?.enableJsx) {
+    return;
+  }
   // Foreign `@jsxImportSource` pragma — leave JSX intact so oxc-transform's
   // default JSX transform handles it via the pragma-named runtime.
-  if (ctx.hasForeignJsxRuntime) return;
+  if (ctx.hasForeignJsxRuntime) {
+    return;
+  }
 
   const skipRanges = ctx.topLevel.map((ext) => ({
     start: ext.argStart,
@@ -841,7 +951,9 @@ function runPeerToolJsxCallTransform(ctx: RewriteContext): void {
   // Foreign `@jsxImportSource` governs JSX syntax, not the peer-tool form: a
   // `jsx(...)` resolving to a Qwik-runtime import still rewrites.
   const parentJsxFunctions = collectJsxFunctionNamesFromIterable(ctx.originalImports.values());
-  if (parentJsxFunctions.size === 0) return;
+  if (parentJsxFunctions.size === 0) {
+    return;
+  }
 
   const neededParentImports = new Set<string>();
   const parentKeyPrefix = ctx.relPath ? computeKeyPrefix(ctx.relPath) : 'u6';
@@ -857,9 +969,13 @@ function runPeerToolJsxCallTransform(ctx: RewriteContext): void {
   // for client resumption even when the handler body stays inline or is stripped.
   const qpByQrl = new Map<string, string[]>();
   for (const ext of ctx.extractions) {
-    if (ext.ctxKind !== 'eventHandler' && ext.ctxKind !== 'jSXProp') continue;
+    if (ext.ctxKind !== 'eventHandler' && ext.ctxKind !== 'jSXProp') {
+      continue;
+    }
     const params = eventHandlerQpParams(ext.paramNames);
-    if (params.length > 0) qpByQrl.set(getQrlVarName(ctx, ext.symbolName), params);
+    if (params.length > 0) {
+      qpByQrl.set(getQrlVarName(ctx, ext.symbolName), params);
+    }
   }
   transformJsxCalls(ctx.source, ctx.s, ctx.program, {
     jsxFunctions: parentJsxFunctions,
@@ -884,39 +1000,60 @@ function runPeerToolJsxCallTransform(ctx: RewriteContext): void {
  * queue in source (walk) order.
  */
 function buildStrippedEventQpOverrides(ctx: RewriteContext): Map<number, string[]> | undefined {
-  if (!ctx.inlineOptions) return undefined;
+  if (!ctx.inlineOptions) {
+    return undefined;
+  }
   const { stripCtxName, stripEventHandlers } = ctx.inlineOptions;
-  if (!stripCtxName && !stripEventHandlers) return undefined;
+  if (!stripCtxName && !stripEventHandlers) {
+    return undefined;
+  }
 
   const stripByName = new Map<string, ExtractionResult[]>();
   for (const ext of ctx.extractions) {
-    if (ext.ctxKind !== 'eventHandler') continue;
-    if (!ext.captures || ext.captureNames.length === 0) continue;
+    if (ext.ctxKind !== 'eventHandler') {
+      continue;
+    }
+    if (!ext.captures || ext.captureNames.length === 0) {
+      continue;
+    }
     if (!isStrippedExtraction(ext, stripCtxName, stripEventHandlers)) {
       continue;
     }
     const name = ext.calleeName;
     const bucket = stripByName.get(name);
-    if (bucket) bucket.push(ext);
-    else stripByName.set(name, [ext]);
+    if (bucket) {
+      bucket.push(ext);
+    } else {
+      stripByName.set(name, [ext]);
+    }
   }
-  if (stripByName.size === 0) return undefined;
+  if (stripByName.size === 0) {
+    return undefined;
+  }
 
   const overrides = new Map<number, string[]>();
 
   function walk(node: AstNode | null | undefined): void {
-    if (!node || typeof node !== 'object') return;
+    if (!node || typeof node !== 'object') {
+      return;
+    }
 
     if (node.type === 'JSXElement') {
       const attrs = node.openingElement?.attributes ?? [];
       const collectedCaps: string[] = [];
       const seen = new Set<string>();
       for (const attr of attrs) {
-        if (attr.type !== 'JSXAttribute') continue;
+        if (attr.type !== 'JSXAttribute') {
+          continue;
+        }
         const attrName = getJsxAttributeName(attr);
-        if (!attrName.endsWith('$')) continue;
+        if (!attrName.endsWith('$')) {
+          continue;
+        }
         const queue = stripByName.get(attrName);
-        if (!queue || queue.length === 0) continue;
+        if (!queue || queue.length === 0) {
+          continue;
+        }
         const ext = queue.shift()!;
         for (const c of ext.captureNames) {
           if (!seen.has(c)) {
@@ -943,7 +1080,9 @@ function buildStrippedEventQpOverrides(ctx: RewriteContext): Map<number, string[
  * `onColor$={color}` with an identifier value) to their runtime form (`q-e:color`).
  */
 function renameUnextractedEventAttrs(ctx: RewriteContext): void {
-  if (ctx.jsxOptions?.enableJsx) return;
+  if (ctx.jsxOptions?.enableJsx) {
+    return;
+  }
 
   const extractedAttrNameRanges = new Set<number>();
   for (const ext of ctx.extractions) {
@@ -951,7 +1090,9 @@ function renameUnextractedEventAttrs(ctx: RewriteContext): void {
   }
 
   function walk(node: AstNode | null | undefined): void {
-    if (!node || typeof node !== 'object') return;
+    if (!node || typeof node !== 'object') {
+      return;
+    }
     if (node.type === 'JSXElement') {
       const opening = node.openingElement;
       const tagName = opening?.name;
@@ -959,8 +1100,12 @@ function renameUnextractedEventAttrs(ctx: RewriteContext): void {
         tagName?.type === 'JSXIdentifier' && /^[a-z]/.test((tagName as { name: string }).name);
       if (isNative) {
         for (const attr of opening?.attributes ?? []) {
-          if (attr.type !== 'JSXAttribute' || !attr.value) continue;
-          if (extractedAttrNameRanges.has(attr.name.start)) continue;
+          if (attr.type !== 'JSXAttribute' || !attr.value) {
+            continue;
+          }
+          if (extractedAttrNameRanges.has(attr.name.start)) {
+            continue;
+          }
           const attrName = getJsxAttributeName(attr);
           const transformed = transformEventPropName(attrName, new Set());
           if (transformed !== null && transformed !== attrName) {
@@ -986,12 +1131,16 @@ function buildParentLiftedQpOverrides(ctx: RewriteContext): Map<number, string[]
       !ext.isSync &&
       eventHandlerQpParams(ext.paramNames).length > 0
   );
-  if (lifted.length === 0) return undefined;
+  if (lifted.length === 0) {
+    return undefined;
+  }
 
   const overrides = new Map<number, string[]>();
 
   function walk(node: AstNode | null | undefined): void {
-    if (!node || typeof node !== 'object') return;
+    if (!node || typeof node !== 'object') {
+      return;
+    }
 
     if (node.type === 'JSXElement') {
       const opening = node.openingElement;

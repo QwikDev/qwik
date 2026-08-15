@@ -76,15 +76,21 @@ it('SSR q:ps order matches client handler param slots', () => {
   const slots = new Map<string, Map<string, number>>();
   for (const m of client.modules) {
     const fn = m.code.match(/= \(([^)]*)\) => \{/);
-    if (!fn) continue;
+    if (!fn) {
+      continue;
+    }
     const params = fn[1].split(',').map((s) => s.trim());
     for (let i = 2; i < params.length; i++) {
       if (/^(mouse|color)/.test(params[i])) {
         const group = params[i].startsWith('mouse') ? 'mouse' : 'color';
         let map = slots.get(group);
-        if (!map) slots.set(group, (map = new Map()));
+        if (!map) {
+          slots.set(group, (map = new Map()));
+        }
         const prev = map.get(params[i]);
-        if (prev !== undefined) expect(prev, `slot for ${params[i]}`).toBe(i - 2);
+        if (prev !== undefined) {
+          expect(prev, `slot for ${params[i]}`).toBe(i - 2);
+        }
         map.set(params[i], i - 2);
       }
     }

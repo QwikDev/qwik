@@ -58,25 +58,43 @@ export type SlotEntry =
  * literal/text children. Rust parks these in the const bag; anything reactive stays var.
  */
 function isStaticJsxAttrValue(node: NonNullable<AstMaybeNode>): boolean {
-  if (node.type !== 'JSXElement' && node.type !== 'JSXFragment') return false;
+  if (node.type !== 'JSXElement' && node.type !== 'JSXFragment') {
+    return false;
+  }
   if (node.type === 'JSXElement') {
     for (const attr of node.openingElement.attributes ?? []) {
-      if (attr.type !== 'JSXAttribute') return false;
-      if (attr.name?.type !== 'JSXIdentifier') return false;
-      if (attr.name.name !== 'key' && attr.name.name.endsWith('$')) return false;
+      if (attr.type !== 'JSXAttribute') {
+        return false;
+      }
+      if (attr.name?.type !== 'JSXIdentifier') {
+        return false;
+      }
+      if (attr.name.name !== 'key' && attr.name.name.endsWith('$')) {
+        return false;
+      }
       const v = attr.value;
-      if (v == null || v.type === 'Literal') continue;
-      if (v.type === 'JSXExpressionContainer' && v.expression.type === 'Literal') continue;
+      if (v == null || v.type === 'Literal') {
+        continue;
+      }
+      if (v.type === 'JSXExpressionContainer' && v.expression.type === 'Literal') {
+        continue;
+      }
       return false;
     }
   }
   for (const child of node.children ?? []) {
-    if (child.type === 'JSXText') continue;
+    if (child.type === 'JSXText') {
+      continue;
+    }
     if (child.type === 'JSXElement' || child.type === 'JSXFragment') {
-      if (isStaticJsxAttrValue(child)) continue;
+      if (isStaticJsxAttrValue(child)) {
+        continue;
+      }
       return false;
     }
-    if (child.type === 'JSXExpressionContainer' && child.expression.type === 'Literal') continue;
+    if (child.type === 'JSXExpressionContainer' && child.expression.type === 'Literal') {
+      continue;
+    }
     return false;
   }
   return true;
@@ -84,18 +102,26 @@ function isStaticJsxAttrValue(node: NonNullable<AstMaybeNode>): boolean {
 
 /** Identifier names in the capture array of a `q_X.w([a, b])` call. */
 function wCallCaptureIdents(callNode: NonNullable<AstMaybeNode>): string[] {
-  if (callNode.type !== 'CallExpression') return [];
+  if (callNode.type !== 'CallExpression') {
+    return [];
+  }
   const arr = callNode.arguments?.[0];
-  if (!arr || arr.type !== 'ArrayExpression') return [];
+  if (!arr || arr.type !== 'ArrayExpression') {
+    return [];
+  }
   const names: string[] = [];
   for (const el of arr.elements ?? []) {
-    if (el?.type === 'Identifier') names.push(el.name);
+    if (el?.type === 'Identifier') {
+      names.push(el.name);
+    }
   }
   return names;
 }
 
 function isConstValueNode(valueNode: AstMaybeNode): boolean {
-  if (!valueNode) return true;
+  if (!valueNode) {
+    return true;
+  }
   switch (valueNode.type) {
     case 'ArrowFunctionExpression':
     case 'FunctionExpression':
@@ -122,8 +148,12 @@ function foldJsxAttrStringWhitespace(quoted: string): string {
   const folded = lines
     .map((line, i) => {
       let l = line.replace(/\t/g, ' ');
-      if (i > 0) l = l.replace(/^ +/, '');
-      if (i < lines.length - 1) l = l.replace(/ +$/, '');
+      if (i > 0) {
+        l = l.replace(/^ +/, '');
+      }
+      if (i < lines.length - 1) {
+        l = l.replace(/ +$/, '');
+      }
       return l;
     })
     .join(' ');
@@ -138,7 +168,9 @@ export function isRewrittenEventEntry(entry: string): boolean {
 function entryKey(entry: string): string {
   if (entry.startsWith('"')) {
     const close = entry.indexOf('"', 1);
-    if (close > 0) return entry.slice(1, close);
+    if (close > 0) {
+      return entry.slice(1, close);
+    }
   }
   return entry.split(':')[0].trim();
 }
@@ -251,7 +283,9 @@ export function processProps(
       continue;
     }
 
-    if (attr.type !== 'JSXAttribute') continue;
+    if (attr.type !== 'JSXAttribute') {
+      continue;
+    }
 
     let propName = getJsxAttributeName(attr);
 
@@ -270,7 +304,9 @@ export function processProps(
       continue;
     }
 
-    if (isPassiveDirective(propName)) continue;
+    if (isPassiveDirective(propName)) {
+      continue;
+    }
 
     if (propName.startsWith('preventdefault:')) {
       const eventName = propName.slice('preventdefault:'.length);

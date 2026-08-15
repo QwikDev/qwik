@@ -53,7 +53,9 @@ export const App = component$(() => {
 });
 `);
       const body = findComponentBodySegment(result);
-      if (body?.kind !== 'segment') throw new Error('App body segment missing');
+      if (body?.kind !== 'segment') {
+        throw new Error('App body segment missing');
+      }
       expect(body.code).toMatch(/captured\$:\s*q_[A-Za-z_0-9]+\.w\(\s*\[\s*state\s*\]\s*\)/);
       expect(body.code).not.toMatch(/captured\$:\s*q_[A-Za-z_0-9]+\s*[,}]/);
     });
@@ -69,7 +71,9 @@ export const App = component$(() => {
 });
 `);
       const body = findComponentBodySegment(result);
-      if (body?.kind !== 'segment') throw new Error('App body segment missing');
+      if (body?.kind !== 'segment') {
+        throw new Error('App body segment missing');
+      }
       expect(body.code).toMatch(/handler\$:\s*q_[A-Za-z_0-9]+\.w\(\s*\[\s*a\s*,\s*b\s*\]\s*\)/);
     });
   });
@@ -84,7 +88,9 @@ export const App = component$(() => {
 });
 `);
       const body = findComponentBodySegment(result);
-      if (body?.kind !== 'segment') throw new Error('App body segment missing');
+      if (body?.kind !== 'segment') {
+        throw new Error('App body segment missing');
+      }
       expect(body.code).toMatch(/static\$:\s*q_[A-Za-z_0-9]+\s*[,}]/);
       expect(body.code).not.toMatch(/static\$:\s*q_[A-Za-z_0-9]+\.w\(/);
     });
@@ -100,7 +106,9 @@ export const App = component$(() => {
 });
 `);
       const body = findComponentBodySegment(result);
-      if (body?.kind !== 'segment') throw new Error('App body segment missing');
+      if (body?.kind !== 'segment') {
+        throw new Error('App body segment missing');
+      }
       expect(body.code).toMatch(/"q-e:click":\s*q_[A-Za-z_0-9]+\s*[},]/);
       expect(body.code).toMatch(/"q:p":\s*state\b/);
       expect(body.code).not.toMatch(/"q-e:click":\s*q_[A-Za-z_0-9]+\.w\(/);
@@ -163,7 +171,9 @@ export const App = component$((props) => {
 });
 `);
       const body = findComponentBodySegment(result);
-      if (body?.kind !== 'segment') throw new Error('App body segment missing');
+      if (body?.kind !== 'segment') {
+        throw new Error('App body segment missing');
+      }
       const flagMatch = body.code.match(/_jsxSorted\(\s*Card\s*,\s*[^)]+?,\s*([0-9]+)\s*,\s*"u6_/);
       expect(flagMatch).not.toBeNull();
       const flag = Number(flagMatch![1]);

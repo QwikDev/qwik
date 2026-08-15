@@ -32,14 +32,20 @@ function worstCaseWorkload(qwikHome: string): Workload {
 function largestFixtureWorkload(): Workload {
   let best: { name: string; input: string } | undefined;
   for (const snapFile of readdirSync(SNAP_DIR)) {
-    if (!snapFile.endsWith('.snap')) continue;
+    if (!snapFile.endsWith('.snap')) {
+      continue;
+    }
     const parsed = parseSnapshot(readFileSync(join(SNAP_DIR, snapFile), 'utf-8'));
-    if (!parsed.input) continue;
+    if (!parsed.input) {
+      continue;
+    }
     if (best === undefined || parsed.input.length > best.input.length) {
       best = { name: snapFile, input: parsed.input };
     }
   }
-  if (!best) throw new Error('no snapshot fixture with an input section found');
+  if (!best) {
+    throw new Error('no snapshot fixture with an input section found');
+  }
   return {
     label: `largest fixture input (${best.name}, ${best.input.length} bytes)`,
     input: { path: mkFilePath('test.tsx'), code: mkSourceText(best.input) },

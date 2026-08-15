@@ -186,10 +186,13 @@ export function buildForLoopScopeEntry(node: AstNode): ScopeEntry | undefined {
     node.type !== 'ForOfStatement' &&
     node.type !== 'ForInStatement' &&
     node.type !== 'ForStatement'
-  )
+  ) {
     return undefined;
+  }
   const left = node.type === 'ForStatement' ? node.init : node.left;
-  if (left?.type !== 'VariableDeclaration') return undefined;
+  if (left?.type !== 'VariableDeclaration') {
+    return undefined;
+  }
   const leftKind: BindingKind =
     left.kind === 'const' ? 'const' : left.kind === 'let' ? 'let' : 'var';
   const bindings: Array<{ name: string; pos: number; kind: BindingKind }> = [];
@@ -206,7 +209,9 @@ export function buildForLoopScopeEntry(node: AstNode): ScopeEntry | undefined {
       }
     }
   }
-  if (bindings.length === 0) return undefined;
+  if (bindings.length === 0) {
+    return undefined;
+  }
   return { type: 'for-loop', start: node.start, end: node.end, bindings };
 }
 
@@ -236,7 +241,9 @@ export function collectAllScopeEntries(program: AstProgram): ScopeEntry[] {
         node.end !== undefined
       ) {
         const entry = buildForLoopScopeEntry(node);
-        if (entry) allScopeEntries.push(entry);
+        if (entry) {
+          allScopeEntries.push(entry);
+        }
       }
     },
     leave() {},
@@ -257,25 +264,40 @@ function collectWhileLoopCounterCandidates(
   extraction: ExtractionResult,
   declMustPrecedeLoop: boolean
 ): string[] {
-  if (loop.type !== 'while' && loop.type !== 'do-while') return [];
-  if (loop.iterVars.length > 0) return [];
+  if (loop.type !== 'while' && loop.type !== 'do-while') {
+    return [];
+  }
+  if (loop.iterVars.length > 0) {
+    return [];
+  }
 
   const names: string[] = [];
   const seen = new Set<string>();
   for (const entry of allScopeEntries) {
-    if (entry.type !== 'function') continue;
+    if (entry.type !== 'function') {
+      continue;
+    }
     if (
       entry.start >= loop.loopNode.start ||
       entry.end <= loop.loopNode.end ||
       entry.start >= extraction.callStart ||
       entry.end <= extraction.callEnd
-    )
+    ) {
       continue;
+    }
     for (const b of entry.bindings) {
-      if (b.kind !== 'let' && b.kind !== 'var') continue;
-      if (declMustPrecedeLoop && b.pos >= loop.loopNode.start) continue;
-      if (seen.has(b.name)) continue;
-      if (!getWholeWordPattern(b.name).test(extraction.bodyText)) continue;
+      if (b.kind !== 'let' && b.kind !== 'var') {
+        continue;
+      }
+      if (declMustPrecedeLoop && b.pos >= loop.loopNode.start) {
+        continue;
+      }
+      if (seen.has(b.name)) {
+        continue;
+      }
+      if (!getWholeWordPattern(b.name).test(extraction.bodyText)) {
+        continue;
+      }
       seen.add(b.name);
       names.push(b.name);
     }
@@ -297,11 +319,15 @@ function augmentUndeclaredIdsForLoops(
 ): string[] {
   const result = [...undeclaredIds];
   const enclosingLoops = extractionLoopMap.get(extraction.symbolName);
-  if (!enclosingLoops || enclosingLoops.length === 0) return result;
+  if (!enclosingLoops || enclosingLoops.length === 0) {
+    return result;
+  }
 
   const undeclaredSet = new Set(result);
   const addMissing = (name: string) => {
-    if (undeclaredSet.has(name)) return;
+    if (undeclaredSet.has(name)) {
+      return;
+    }
     undeclaredSet.add(name);
     result.push(name);
   };
@@ -332,9 +358,13 @@ function applyEmptyCaptureLoopPadding(
   extraction: ExtractionResult,
   extractionLoopMap: ReadonlyMap<string, LoopContext[]>
 ): void {
-  if (extraction.isComponentEvent) return;
+  if (extraction.isComponentEvent) {
+    return;
+  }
   const enclosingLoops = extractionLoopMap.get(extraction.symbolName);
-  if (!enclosingLoops || enclosingLoops.length === 0) return;
+  if (!enclosingLoops || enclosingLoops.length === 0) {
+    return;
+  }
   extraction.paramNames = ['_', '_1'];
   extraction.captureNames = [];
   extraction.captures = false;
@@ -356,7 +386,9 @@ function collectVisibleScopeBindings(
   if (enclosingExt) {
     const parentIds = bodyScopeIds.get(enclosingExt.symbolName);
     if (parentIds) {
-      for (const id of parentIds) allScopeIds.add(id);
+      for (const id of parentIds) {
+        allScopeIds.add(id);
+      }
     }
     // The enclosing segment's own captures unpack as `_captures[N]` consts in
     // its emitted body — per-invocation values a nested handler must receive
@@ -374,7 +406,9 @@ function collectVisibleScopeBindings(
       }
     }
   } else {
-    for (const id of moduleScopeIds) allScopeIds.add(id);
+    for (const id of moduleScopeIds) {
+      allScopeIds.add(id);
+    }
   }
 
   const declPositions = new Map<string, number>();
@@ -389,7 +423,9 @@ function collectVisibleScopeBindings(
     ) {
       for (const b of entry.bindings) {
         allScopeIds.add(b.name);
-        if (!declPositions.has(b.name)) declPositions.set(b.name, b.pos);
+        if (!declPositions.has(b.name)) {
+          declPositions.set(b.name, b.pos);
+        }
       }
     }
   }
@@ -439,7 +475,9 @@ function partitionLoopCaptures(
     loopBodyKey(immediateLoop.loopBodyStart, immediateLoop.loopBodyEnd)
   );
   if (loopBodyDecls) {
-    for (const d of loopBodyDecls) loopLocalSet.add(d.name);
+    for (const d of loopBodyDecls) {
+      loopLocalSet.add(d.name);
+    }
   }
   for (const name of collectWhileLoopCounterCandidates(
     allScopeEntries,
@@ -483,18 +521,30 @@ export function promoteEventHandlerCaptures(
   } = ctx;
 
   for (const extraction of extractions) {
-    if (extraction.ctxKind !== 'eventHandler' && !extraction.isWorkerEventHandler) continue;
-    if (extraction.isInlinedQrl) continue;
+    if (extraction.ctxKind !== 'eventHandler' && !extraction.isWorkerEventHandler) {
+      continue;
+    }
+    if (extraction.isInlinedQrl) {
+      continue;
+    }
     // Wrapper params are mirrored from their worker child after promotion.
-    if (extraction.isWorkerEventWrapper) continue;
-    if (!ctx.liftParentLevelHandlers && !ctx.enclosingExtMap.has(extraction.symbolName)) continue;
+    if (extraction.isWorkerEventWrapper) {
+      continue;
+    }
+    if (!ctx.liftParentLevelHandlers && !ctx.enclosingExtMap.has(extraction.symbolName)) {
+      continue;
+    }
 
     // Capture analysis misses intermediate nested-function scopes (loop
     // callbacks), so re-detect against ALL enclosing scopes.
     const closureNode = closureNodes.get(extraction.symbolName);
-    if (!closureNode) continue;
+    if (!closureNode) {
+      continue;
+    }
     const rawUndeclaredIds = ctx.closureFreeIdentifiers.get(closureNode);
-    if (!rawUndeclaredIds) continue;
+    if (!rawUndeclaredIds) {
+      continue;
+    }
     const undeclaredIds = augmentUndeclaredIdsForLoops(
       extraction,
       rawUndeclaredIds,
@@ -511,7 +561,9 @@ export function promoteEventHandlerCaptures(
       ctx
     );
     for (const [name, pos] of declPositions) {
-      if (!globalDeclPositions.has(name)) globalDeclPositions.set(name, pos);
+      if (!globalDeclPositions.has(name)) {
+        globalDeclPositions.set(name, pos);
+      }
     }
 
     const allCaptures = undeclaredIds.filter(
@@ -564,13 +616,22 @@ function groupPromotedHandlersByParent(
 ): Map<string, ExtractionResult[]> {
   const handlersByParent = new Map<string, ExtractionResult[]>();
   for (const ext of extractions) {
-    if (ext.ctxKind !== 'eventHandler') continue;
-    if (!hasUnderscorePlaceholderParams(ext.paramNames, ext.movedCaptures)) continue;
+    if (ext.ctxKind !== 'eventHandler') {
+      continue;
+    }
+    if (!hasUnderscorePlaceholderParams(ext.paramNames, ext.movedCaptures)) {
+      continue;
+    }
     const parentExt = enclosingExtMap.get(ext.symbolName);
-    if (!parentExt) continue;
+    if (!parentExt) {
+      continue;
+    }
     const existing = handlersByParent.get(parentExt.symbolName);
-    if (existing) existing.push(ext);
-    else handlersByParent.set(parentExt.symbolName, [ext]);
+    if (existing) {
+      existing.push(ext);
+    } else {
+      handlersByParent.set(parentExt.symbolName, [ext]);
+    }
   }
   return handlersByParent;
 }
@@ -582,10 +643,15 @@ function groupByContainingElement(
   const elementGroups = new Map<number, ExtractionResult[]>();
   for (const h of handlers) {
     let pos = h.callStart - 1;
-    while (pos > 0 && repairedCode[pos] !== '<') pos--;
+    while (pos > 0 && repairedCode[pos] !== '<') {
+      pos--;
+    }
     const existing = elementGroups.get(pos);
-    if (existing) existing.push(h);
-    else elementGroups.set(pos, [h]);
+    if (existing) {
+      existing.push(h);
+    } else {
+      elementGroups.set(pos, [h]);
+    }
   }
   return elementGroups;
 }
@@ -622,11 +688,15 @@ export function unifyParameterSlots(
   const handlersByParent = groupPromotedHandlersByParent(extractions, enclosingExtMap);
 
   for (const [, handlers] of handlersByParent) {
-    if (handlers.length < 2) continue;
+    if (handlers.length < 2) {
+      continue;
+    }
     const elementGroups = groupByContainingElement(handlers, repairedCode);
 
     for (const [, group] of elementGroups) {
-      if (group.length < 2) continue;
+      if (group.length < 2) {
+        continue;
+      }
 
       const allLoopLocals: string[] = [];
       const seen = new Set<string>();
@@ -641,19 +711,25 @@ export function unifyParameterSlots(
       }
       sortQpNamesForGroup(allLoopLocals, group, extractionLoopMap, globalDeclPositions);
 
-      if (allLoopLocals.length === 0) continue;
+      if (allLoopLocals.length === 0) {
+        continue;
+      }
 
       for (const h of group) {
         const handlerCaptures = new Set<string>();
         for (let i = 2; i < h.paramNames.length; i++) {
           handlerCaptures.add(h.paramNames[i]);
         }
-        if (handlerCaptures.size === 0) continue;
+        if (handlerCaptures.size === 0) {
+          continue;
+        }
         const newParams = [h.paramNames[0] ?? '_', h.paramNames[1] ?? '_1'];
         let paddingCounter = 2;
         let lastCaptureIdx = -1;
         for (let idx = 0; idx < allLoopLocals.length; idx++) {
-          if (handlerCaptures.has(allLoopLocals[idx])) lastCaptureIdx = idx;
+          if (handlerCaptures.has(allLoopLocals[idx])) {
+            lastCaptureIdx = idx;
+          }
         }
         for (let idx = 0; idx <= lastCaptureIdx; idx++) {
           const p = allLoopLocals[idx];
@@ -710,12 +786,18 @@ export function buildElementCaptureMap(
   if (stripCtxName || stripEventHandlers) {
     const strippedHandlers: ExtractionResult[] = [];
     for (const ext of extractions) {
-      if (ext.ctxKind !== 'eventHandler') continue;
-      if (!ext.captures || ext.captureNames.length === 0) continue;
+      if (ext.ctxKind !== 'eventHandler') {
+        continue;
+      }
+      if (!ext.captures || ext.captureNames.length === 0) {
+        continue;
+      }
       const isStripped =
         (stripCtxName && stripCtxName.some((v) => ext.ctxName.startsWith(v))) ||
         stripEventHandlers === true;
-      if (!isStripped) continue;
+      if (!isStripped) {
+        continue;
+      }
       strippedHandlers.push(ext);
     }
 

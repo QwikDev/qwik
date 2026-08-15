@@ -10,7 +10,9 @@ import { stripAstPositions, isRecord } from './helpers/ast-normalize.js';
 import { SNAP_DIR } from '../rust-snapshots.js';
 
 function bodyOf(program: unknown): readonly unknown[] {
-  if (isRecord(program) && Array.isArray(program.body)) return program.body;
+  if (isRecord(program) && Array.isArray(program.body)) {
+    return program.body;
+  }
   return [];
 }
 
@@ -67,9 +69,13 @@ describe('convergence breakdown', () => {
             const apBody = bodyOf(ap);
             const matchCount = epBody.filter((s, i) => equal(s, apBody[i])).length;
             const total = Math.max(epBody.length, apBody.length);
-            if (matchCount >= total - 1) categories['off-by-1'].push(name);
-            else if (matchCount >= total * 0.7) categories['mostly-matching'].push(name);
-            else categories['major-diff'].push(name);
+            if (matchCount >= total - 1) {
+              categories['off-by-1'].push(name);
+            } else if (matchCount >= total * 0.7) {
+              categories['mostly-matching'].push(name);
+            } else {
+              categories['major-diff'].push(name);
+            }
           }
         } catch {
           parentFail++;
@@ -78,7 +84,9 @@ describe('convergence breakdown', () => {
       }
 
       for (const es of parsed.segments) {
-        if (!es.metadata) continue;
+        if (!es.metadata) {
+          continue;
+        }
         const as = result.modules.find(
           (m) => m.kind === 'segment' && m.segment.name === es.metadata!.name
         );
@@ -90,8 +98,11 @@ describe('convergence breakdown', () => {
           try {
             const ep = stripAstPositions(parseSync('test.tsx', es.code).program);
             const ap = stripAstPositions(parseSync('test.tsx', as.code).program);
-            if (equal(ep, ap)) segPass++;
-            else segFail++;
+            if (equal(ep, ap)) {
+              segPass++;
+            } else {
+              segFail++;
+            }
           } catch {
             segFail++;
           }

@@ -3,8 +3,12 @@ export function plainQrlName(markerName: string): string {
 }
 
 export function getQrlCalleeName(markerName: string): string {
-  if (markerName === '$') return '';
-  if (markerName === 'sync$') return '_qrlSync';
+  if (markerName === '$') {
+    return '';
+  }
+  if (markerName === 'sync$') {
+    return '_qrlSync';
+  }
   return plainQrlName(markerName);
 }
 

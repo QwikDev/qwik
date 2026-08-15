@@ -20,7 +20,9 @@ export function resolveEntryField(
       return null;
 
     case 'component':
-      if (ctxName === 'component') return null;
+      if (ctxName === 'component') {
+        return null;
+      }
       return parentComponentSymbol ?? null;
 
     case 'single':

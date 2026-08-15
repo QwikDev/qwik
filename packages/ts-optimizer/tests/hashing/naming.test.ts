@@ -106,7 +106,9 @@ describe('buildSymbolName', () => {
       const parsed = parseSnapshot(content);
 
       for (const segment of parsed.segments) {
-        if (!segment.metadata) continue;
+        if (!segment.metadata) {
+          continue;
+        }
         const meta = segment.metadata;
 
         const lastSlash = meta.origin.lastIndexOf('/');

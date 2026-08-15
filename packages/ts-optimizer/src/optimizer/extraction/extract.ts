@@ -181,8 +181,12 @@ function nodeContainedIn(inner: AstNode, outer: AstNode): boolean {
 }
 
 function extensionFromSegmentJsx(hasJsx: boolean, sourceExt: string): string {
-  if (hasJsx) return '.tsx';
-  if (sourceExt === '.ts') return '.ts';
+  if (hasJsx) {
+    return '.tsx';
+  }
+  if (sourceExt === '.ts') {
+    return '.ts';
+  }
   return '.js';
 }
 
@@ -305,7 +309,9 @@ function getImportArgNaming(
   let importedName: string;
   if (arg.type === 'Identifier') {
     importInfo = imports.get(arg.name);
-    if (!importInfo || importInfo.importedName === '*') return null;
+    if (!importInfo || importInfo.importedName === '*') {
+      return null;
+    }
     importedName = importInfo.importedName;
   } else if (
     arg.type === 'MemberExpression' &&
@@ -320,7 +326,9 @@ function getImportArgNaming(
     importInfo = imports.get(member.object.name);
     // Only namespace imports: `obj.prop` on a named import is a property
     // access on a value, not a module member reference.
-    if (!importInfo || importInfo.importedName !== '*') return null;
+    if (!importInfo || importInfo.importedName !== '*') {
+      return null;
+    }
     importedName = member.property.name;
   } else {
     return null;
@@ -330,7 +338,9 @@ function getImportArgNaming(
   // `./style.css` would hash differently from `style.css` even though both
   // name the same module.
   const resolvedSource = resolveImportHashPath(importInfo.source, relPath);
-  if (resolvedSource === null) return null;
+  if (resolvedSource === null) {
+    return null;
+  }
 
   const slashIdx = resolvedSource.lastIndexOf('/');
   const pathTail = slashIdx >= 0 ? resolvedSource.slice(slashIdx + 1) : resolvedSource;
@@ -349,16 +359,22 @@ function getImportArgNaming(
  */
 function resolveImportHashPath(importPath: string, relPath: string): string | null {
   const normalized = importPath.replace(/\\/g, '/');
-  if (!normalized.startsWith('.')) return normalized;
+  if (!normalized.startsWith('.')) {
+    return normalized;
+  }
 
   const baseDir = getDirectory(relPath);
   const segments = baseDir.split('/').filter((s) => s !== '');
   for (const segment of normalized.split('/')) {
-    if (segment === '' || segment === '.') continue;
+    if (segment === '' || segment === '.') {
+      continue;
+    }
     if (segment === '..') {
       // Escaping the source root: no stable path exists, so the caller
       // falls back to position-based naming (matches Rust).
-      if (segments.length === 0) return null;
+      if (segments.length === 0) {
+        return null;
+      }
       segments.pop();
       continue;
     }
@@ -377,16 +393,24 @@ function getDirectWrapperContextName(
   imports: Map<string, ImportInfo>,
   customInlined: Map<string, CustomInlinedInfo>
 ): string | null {
-  if (parent?.type !== 'CallExpression') return null;
+  if (parent?.type !== 'CallExpression') {
+    return null;
+  }
   if (!parent.arguments.some((arg) => arg === node)) {
     return null;
   }
-  if (isMarkerCall(parent, imports, customInlined)) return null;
+  if (isMarkerCall(parent, imports, customInlined)) {
+    return null;
+  }
   // Plain identifier callees already pushed via the generic call-callee rule.
-  if (parent.callee?.type === 'Identifier') return null;
+  if (parent.callee?.type === 'Identifier') {
+    return null;
+  }
 
   const wrapperCallee = getCalleeName(parent);
-  if (!wrapperCallee) return null;
+  if (!wrapperCallee) {
+    return null;
+  }
 
   return resolveCanonicalCalleeName(wrapperCallee, imports);
 }
@@ -411,7 +435,9 @@ function collectIdentifiers(node: AstNode): Set<string> {
 function filterImportsByIds(ids: Set<string>, imports: Map<string, ImportInfo>): ImportInfo[] {
   const result: ImportInfo[] = [];
   for (const [localName, info] of imports) {
-    if (ids.has(localName)) result.push(info);
+    if (ids.has(localName)) {
+      result.push(info);
+    }
   }
   return result;
 }
@@ -681,7 +707,9 @@ export function createExtractionCollector(
 
   const handlers = {
     enter(node: AstNode, parent: AstParentNode, ctx: ExtractWalkEnterContext): void {
-      if (parent) ctx.parentMap.set(node, parent);
+      if (parent) {
+        ctx.parentMap.set(node, parent);
+      }
 
       // Accumulate Identifier names into each active body's deferred set so
       // `segmentImports` is computed on leave without a per-extraction body-walk.
@@ -1027,14 +1055,18 @@ export function createExtractionCollector(
           }
         }
 
-        if (pushCount > 0) ctx.pushedNodes.set(node, pushCount);
+        if (pushCount > 0) {
+          ctx.pushedNodes.set(node, pushCount);
+        }
         return;
       }
 
       if (node.type === 'CallExpression' && isMarkerCall(node, ctx.imports, ctx.customInlined)) {
         const calleeName = getCalleeName(node);
         if (!calleeName) {
-          if (pushCount > 0) ctx.pushedNodes.set(node, pushCount);
+          if (pushCount > 0) {
+            ctx.pushedNodes.set(node, pushCount);
+          }
           return;
         }
 
@@ -1094,7 +1126,9 @@ export function createExtractionCollector(
 
         const arg = node.arguments?.[0];
         if (!arg) {
-          if (pushCount > 0) ctx.pushedNodes.set(node, pushCount);
+          if (pushCount > 0) {
+            ctx.pushedNodes.set(node, pushCount);
+          }
           return;
         }
 
@@ -1380,7 +1414,9 @@ export function createExtractionCollector(
         }
       }
 
-      if (pushCount > 0) ctx.pushedNodes.set(node, pushCount);
+      if (pushCount > 0) {
+        ctx.pushedNodes.set(node, pushCount);
+      }
     },
 
     leave(node: AstNode, ctx: ExtractWalkExitContext): void {
@@ -1479,7 +1515,9 @@ function disambiguateExtractions(
     // Peer-tool `inlinedQrl` extractions carry an explicit, already-unique name;
     // appending `_<n>` would rewrite a name the consumer expects and that the
     // prod-rename hash math is computed against verbatim. Skip them.
-    if (ext.isInlinedQrl) continue;
+    if (ext.isInlinedQrl) {
+      continue;
+    }
 
     const contextPortion = ext.displayName.startsWith(prefix)
       ? ext.displayName.slice(prefix.length)

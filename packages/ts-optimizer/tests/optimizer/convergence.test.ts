@@ -93,7 +93,9 @@ describe('convergence: all snapshots', () => {
       }
 
       for (const expectedSeg of parsed.segments) {
-        if (!expectedSeg.metadata) continue;
+        if (!expectedSeg.metadata) {
+          continue;
+        }
 
         const actualSeg = result.modules.find(
           (m) => m.kind === 'segment' && m.segment.name === expectedSeg.metadata!.name

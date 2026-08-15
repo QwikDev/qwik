@@ -5,7 +5,9 @@ import { mkFilePath, mkSourceText } from '../../../src/optimizer/types/brands.js
 
 function findParent(result: { modules: readonly TransformModule[] }): TransformModule {
   const parent = result.modules.find((m) => m.kind === 'parent');
-  if (!parent) throw new Error('parent module not found');
+  if (!parent) {
+    throw new Error('parent module not found');
+  }
   return parent;
 }
 
@@ -106,9 +108,13 @@ export const C = component$((props) => {
       entryStrategy: { type: 'segment' },
     });
     const seg = result.modules.find((m) => m.kind === 'segment' && /_jsxSplit\(Cmp/.test(m.code));
-    if (!seg) throw new Error('Cmp _jsxSplit segment not found');
+    if (!seg) {
+      throw new Error('Cmp _jsxSplit segment not found');
+    }
     const line = seg.code.split('\n').find((l) => l.includes('_jsxSplit(Cmp'));
-    if (!line) throw new Error('_jsxSplit(Cmp ...) call not found');
+    if (!line) {
+      throw new Error('_jsxSplit(Cmp ...) call not found');
+    }
     return line;
   }
 

@@ -19,7 +19,9 @@ function findFirstNode(source: string, nodeType: string): AstNode {
       }
     },
   });
-  if (!found) throw new Error(`No ${nodeType} node found in source`);
+  if (!found) {
+    throw new Error(`No ${nodeType} node found in source`);
+  }
   return found;
 }
 

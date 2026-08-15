@@ -62,7 +62,9 @@ if (!QWIK_HOME) {
   let discoveredFiles: string[] | null = null;
 
   function discoverFiles(): string[] {
-    if (discoveredFiles) return discoveredFiles;
+    if (discoveredFiles) {
+      return discoveredFiles;
+    }
 
     const output = execSync(
       `find ${QWIK_PACKAGES_DIR} -type f \\( -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" \\) ! -path "*/node_modules/*" ! -path "*/dist/*" ! -path "*/.turbo/*"`,
@@ -108,7 +110,9 @@ if (!QWIK_HOME) {
       const start = performance.now();
       await fn();
       const elapsed = performance.now() - start;
-      if (elapsed < min) min = elapsed;
+      if (elapsed < min) {
+        min = elapsed;
+      }
     }
     return min;
   }
@@ -119,7 +123,9 @@ if (!QWIK_HOME) {
       const start = performance.now();
       fn();
       const elapsed = performance.now() - start;
-      if (elapsed < min) min = elapsed;
+      if (elapsed < min) {
+        min = elapsed;
+      }
     }
     return min;
   }

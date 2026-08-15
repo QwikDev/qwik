@@ -34,7 +34,9 @@ it.runIf(name)(`debug ${name}`, () => {
     }
   }
   for (const seg of parsed.segments) {
-    if (!seg.metadata) continue;
+    if (!seg.metadata) {
+      continue;
+    }
     const actual = result.modules.find(
       (m) => m.kind === 'segment' && m.segment.name === seg.metadata!.name
     );
@@ -57,7 +59,9 @@ it.runIf(name)(`debug ${name}`, () => {
         'ctxName',
         'captures',
       ]) {
-        if (a[k] !== e[k]) metaDiffs.push(`${k}: expected ${e[k]} got ${a[k]}`);
+        if (a[k] !== e[k]) {
+          metaDiffs.push(`${k}: expected ${e[k]} got ${a[k]}`);
+        }
       }
     }
     console.log(`SEGMENT ${seg.metadata.name}: code=${r.match} meta=[${metaDiffs.join('; ')}]`);

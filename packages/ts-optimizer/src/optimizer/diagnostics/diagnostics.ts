@@ -69,22 +69,30 @@ export function parseDisableDirectives(sourceCode: string): Map<number, Set<stri
 
   for (let i = 0; i < lines.length; i++) {
     const idx = lines[i].indexOf(DIRECTIVE_MARKER);
-    if (idx === -1) continue;
+    if (idx === -1) {
+      continue;
+    }
 
     const afterMarker = lines[i].slice(idx + DIRECTIVE_MARKER.length).trim();
     const cleaned = afterMarker.replace(TRAILING_COMMENT_CLOSER, '').trim();
-    if (!cleaned) continue;
+    if (!cleaned) {
+      continue;
+    }
 
     const codes = cleaned
       .split(',')
       .map((c) => c.trim())
       .filter(Boolean);
-    if (codes.length === 0) continue;
+    if (codes.length === 0) {
+      continue;
+    }
 
     // Line i (0-based) suppresses line i+2 (1-based)
     const suppressedLine = i + 2;
     const existing = directives.get(suppressedLine) ?? new Set<string>();
-    for (const code of codes) existing.add(code);
+    for (const code of codes) {
+      existing.add(code);
+    }
     directives.set(suppressedLine, existing);
   }
 
@@ -95,10 +103,14 @@ export function filterSuppressedDiagnostics(
   diagnostics: Diagnostic[],
   directives: Map<number, Set<string>>
 ): Diagnostic[] {
-  if (directives.size === 0) return diagnostics;
+  if (directives.size === 0) {
+    return diagnostics;
+  }
 
   return diagnostics.filter((diag) => {
-    if (!diag.highlights || diag.highlights.length === 0) return true;
+    if (!diag.highlights || diag.highlights.length === 0) {
+      return true;
+    }
 
     const suppressedCodes = directives.get(diag.highlights[0].startLine);
     return !suppressedCodes?.has(diag.code);
@@ -127,8 +139,12 @@ export function classifyDeclarationTypeInClosure(
 
 function classifyInStatements(stmts: ReadonlyArray<AstNode>, identName: string): DeclKind {
   for (const stmt of stmts) {
-    if (stmt.type === 'FunctionDeclaration' && stmt.id?.name === identName) return 'fn';
-    if (stmt.type === 'ClassDeclaration' && stmt.id?.name === identName) return 'class';
+    if (stmt.type === 'FunctionDeclaration' && stmt.id?.name === identName) {
+      return 'fn';
+    }
+    if (stmt.type === 'ClassDeclaration' && stmt.id?.name === identName) {
+      return 'class';
+    }
 
     let result: DeclKind = 'var';
 
@@ -140,7 +156,9 @@ function classifyInStatements(stmts: ReadonlyArray<AstNode>, identName: string):
       for (const decl of stmt.declarations ?? []) {
         if (decl.init) {
           result = classifyInExpression(decl.init, identName);
-          if (result !== 'var') break;
+          if (result !== 'var') {
+            break;
+          }
         }
       }
     } else if (stmt.type === 'ExportNamedDeclaration' && stmt.declaration) {
@@ -149,13 +167,17 @@ function classifyInStatements(stmts: ReadonlyArray<AstNode>, identName: string):
       result = classifyInExpression(stmt.declaration, identName);
     }
 
-    if (result !== 'var') return result;
+    if (result !== 'var') {
+      return result;
+    }
   }
   return 'var';
 }
 
 function classifyInExpression(node: AstMaybeNode, identName: string): DeclKind {
-  if (!node) return 'var';
+  if (!node) {
+    return 'var';
+  }
 
   if (node.type === 'ParenthesizedExpression') {
     return classifyInExpression(node.expression, identName);
@@ -171,7 +193,9 @@ function classifyInExpression(node: AstMaybeNode, identName: string): DeclKind {
   if (node.type === 'CallExpression') {
     for (const arg of node.arguments ?? []) {
       const result = classifyInExpression(arg, identName);
-      if (result !== 'var') return result;
+      if (result !== 'var') {
+        return result;
+      }
     }
   }
 

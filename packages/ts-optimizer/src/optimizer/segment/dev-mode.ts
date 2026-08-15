@@ -31,9 +31,13 @@ export function buildQrlDevDeclaration(
 }
 
 export function buildDevFilePath(inputPath: string, srcDir: string, devPath?: string): string {
-  if (devPath) return devPath;
+  if (devPath) {
+    return devPath;
+  }
   const normalizedInput = inputPath.startsWith('./') ? inputPath.slice(2) : inputPath;
-  if (normalizedInput.startsWith('/')) return normalizedInput;
+  if (normalizedInput.startsWith('/')) {
+    return normalizedInput;
+  }
   const normalizedSrcDir = srcDir.endsWith('/') ? srcDir.slice(0, -1) : srcDir;
   return `${normalizedSrcDir}/${normalizedInput}`;
 }

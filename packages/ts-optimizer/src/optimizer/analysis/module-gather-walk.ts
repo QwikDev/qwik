@@ -118,7 +118,9 @@ export interface ModuleGatherFacts {
  * `"0-1"`.
  */
 function isScopeWithin(scope: string, ancestor: string): boolean {
-  if (ancestor === '') return true;
+  if (ancestor === '') {
+    return true;
+  }
   return scope === ancestor || scope.startsWith(`${ancestor}-`);
 }
 
@@ -333,7 +335,9 @@ export function gatherModuleFacts(inputs: ModuleGatherInputs): ModuleGatherFacts
       }
     },
     popScopeIfFunction: (node) => {
-      if (isFunctionLike(node)) scopeStack.pop();
+      if (isFunctionLike(node)) {
+        scopeStack.pop();
+      }
     },
     popLoopIfMatches: (node) => {
       if (loopStack.length > 0 && loopStack[loopStack.length - 1].loopNode === node) {
@@ -360,8 +364,12 @@ export function gatherModuleFacts(inputs: ModuleGatherInputs): ModuleGatherFacts
       leave(node, _parent, ctx) {
         ctx.extractionCollector?.leave(node);
         ctx.popOpenClosureIfMatches(node);
-        if (ctx.lexicalEnabled) ctx.popScopeIfFunction(node);
-        if (ctx.loopEnabled) ctx.popLoopIfMatches(node);
+        if (ctx.lexicalEnabled) {
+          ctx.popScopeIfFunction(node);
+        }
+        if (ctx.loopEnabled) {
+          ctx.popLoopIfMatches(node);
+        }
         ctx.scopeBindingsCollector?.leave(node);
       },
     },
@@ -379,7 +387,9 @@ export function gatherModuleFacts(inputs: ModuleGatherInputs): ModuleGatherFacts
         allScopeEntries.push(buildFunctionScopeEntry(node));
       } else {
         const entry = buildForLoopScopeEntry(node);
-        if (entry) allScopeEntries.push(entry);
+        if (entry) {
+          allScopeEntries.push(entry);
+        }
       }
     }
   }
@@ -391,7 +401,9 @@ export function gatherModuleFacts(inputs: ModuleGatherInputs): ModuleGatherFacts
   for (const { node, frames } of pendingLexicalUnions) {
     const union = new Set<string>();
     for (const frame of frames) {
-      for (const id of frame.set) union.add(id);
+      for (const id of frame.set) {
+        union.add(id);
+      }
     }
     closureLexicalScopes.set(node, union);
   }
@@ -433,7 +445,9 @@ export function gatherModuleFacts(inputs: ModuleGatherInputs): ModuleGatherFacts
 // A computed key (`obj[x]`, `{ [x]: v }`) references `x`, but oxc-walker's
 // `isBindingIdentifier` ignores `computed` and reports it as a binding.
 function isComputedKeyReference(node: AstNode, parent: AstNode | null): boolean {
-  if (parent === null) return false;
+  if (parent === null) {
+    return false;
+  }
   if (parent.type === 'MemberExpression') {
     return parent.computed === true && parent.property === node;
   }
@@ -477,15 +491,25 @@ function enterFreeIdentifiers(
     });
   }
 
-  if (openClosures.length === 0) return;
+  if (openClosures.length === 0) {
+    return;
+  }
   if (node.type !== 'Identifier') {
     // A capitalized JSX tag (`<Display/>`) references a scope binding like any
     // identifier; attribute names, namespaced parts, and member properties
     // don't, and lowercase tags are intrinsic elements.
-    if (node.type !== 'JSXIdentifier') return;
-    if (parent?.type === 'JSXAttribute' || parent?.type === 'JSXNamespacedName') return;
-    if (parent?.type === 'JSXMemberExpression' && parent.property === node) return;
-    if (!/^[A-Z]/.test(node.name)) return;
+    if (node.type !== 'JSXIdentifier') {
+      return;
+    }
+    if (parent?.type === 'JSXAttribute' || parent?.type === 'JSXNamespacedName') {
+      return;
+    }
+    if (parent?.type === 'JSXMemberExpression' && parent.property === node) {
+      return;
+    }
+    if (!/^[A-Z]/.test(node.name)) {
+      return;
+    }
   } else if (isBindingIdentifier(node, parent) && !isComputedKeyReference(node, parent)) {
     return;
   }
@@ -494,7 +518,9 @@ function enterFreeIdentifiers(
   const scopeKey = tracker.getCurrentScope();
   const seenKey = `${scopeKey}\u0000${name}`;
   for (const oc of openClosures) {
-    if (oc.seen.has(seenKey)) continue;
+    if (oc.seen.has(seenKey)) {
+      continue;
+    }
     oc.seen.add(seenKey);
     ctx.pendingResolutions.push({ oc, name, scopeKey });
   }
@@ -511,7 +537,9 @@ function resolveFreeIdentifiers(
 ): void {
   const memo = new Map<string, ScopeTrackerNode | null>();
   for (const { oc, name, scopeKey } of pending) {
-    if (oc.dedupe.has(name)) continue;
+    if (oc.dedupe.has(name)) {
+      continue;
+    }
     const memoKey = `${scopeKey}\u0000${name}`;
     let decl: ScopeTrackerNode | null;
     if (memo.has(memoKey)) {
@@ -538,13 +566,17 @@ function resolveFreeIdentifiers(
 }
 
 function enterLexicalScopes(node: AstNode, ctx: GatherEnterContext): void {
-  if (!ctx.lexicalEnabled) return;
+  if (!ctx.lexicalEnabled) {
+    return;
+  }
 
   // Collect before pushing this node's own frame, so a function/class
   // declaration name lands in the enclosing scope, not its own.
   addScopeDeclarations(node, ctx.scopeStack[ctx.scopeStack.length - 1].set);
 
-  if (!isFunctionLike(node)) return;
+  if (!isFunctionLike(node)) {
+    return;
+  }
 
   if (ctx.lexicalClosureNodes.has(node)) {
     ctx.pendingLexicalUnions.push({ node, frames: [...ctx.scopeStack] });
@@ -558,7 +590,9 @@ function enterLexicalScopes(node: AstNode, ctx: GatherEnterContext): void {
 }
 
 function enterLoopMap(node: AstNode, ctx: GatherEnterContext): void {
-  if (!ctx.loopEnabled) return;
+  if (!ctx.loopEnabled) {
+    return;
+  }
 
   const loopCtx = detectLoopContext(node, ctx.repairedCode);
   if (loopCtx) {
@@ -603,7 +637,9 @@ function enterLoopMap(node: AstNode, ctx: GatherEnterContext): void {
  * found no extractions (the sole consumer iterates extractions).
  */
 function enterScopeEntries(node: AstNode, ctx: GatherEnterContext): void {
-  if (!ctx.scopeEntriesEnabled) return;
+  if (!ctx.scopeEntriesEnabled) {
+    return;
+  }
 
   if (
     (isFunctionLike(node) ||
@@ -622,7 +658,9 @@ function enterScopeEntries(node: AstNode, ctx: GatherEnterContext): void {
  * {@link classifySegmentUsage}.
  */
 function enterSegmentUsage(node: AstNode, parent: AstNode | null, ctx: GatherEnterContext): void {
-  if (!ctx.usageEnabled) return;
+  if (!ctx.usageEnabled) {
+    return;
+  }
 
   if (ctx.bufferDeclVisits && DECLARATION_TYPES.has(node.type)) {
     ctx.declVisits.push(node);
@@ -637,15 +675,21 @@ function enterSegmentUsage(node: AstNode, parent: AstNode | null, ctx: GatherEnt
 }
 
 function enterPassiveConflicts(node: AstNode, ctx: GatherEnterContext): void {
-  if (!ctx.passiveEnabled) return;
-  if (node.type !== 'JSXOpeningElement') return;
+  if (!ctx.passiveEnabled) {
+    return;
+  }
+  if (node.type !== 'JSXOpeningElement') {
+    return;
+  }
 
   const attrs = node.attributes ?? [];
   const passiveEvents = new Set<string>();
   const preventdefaultEvents = new Set<string>();
 
   for (const attr of attrs) {
-    if (attr.type !== 'JSXAttribute') continue;
+    if (attr.type !== 'JSXAttribute') {
+      continue;
+    }
 
     const name = getJsxAttributeName(attr);
 
@@ -691,7 +735,9 @@ class ExtractionRangeSweep {
     while (this.next < sorted.length && sorted[this.next].argStart <= pos) {
       const ext = sorted[this.next];
       this.next++;
-      if (ext.argEnd > pos) stack.push(ext);
+      if (ext.argEnd > pos) {
+        stack.push(ext);
+      }
     }
   }
 }
@@ -717,7 +763,9 @@ function classifySegmentUsage(
   for (const node of sortedDecls) {
     declSweep.advanceTo(node.start);
     for (const ext of declSweep.stack) {
-      if (node.end > ext.argEnd) continue;
+      if (node.end > ext.argEnd) {
+        continue;
+      }
       addDeclaredNamesFromNode(node, extractionLocals.get(ext.symbolName)!);
     }
   }

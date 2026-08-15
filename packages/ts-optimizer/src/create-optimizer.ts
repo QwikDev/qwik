@@ -274,7 +274,9 @@ export async function createOptimizer(options?: OptimizerOptions): Promise<QwikO
   return {
     sys,
     transformModules(opts) {
-      if (pool) return pool.transformModules(opts);
+      if (pool) {
+        return pool.transformModules(opts);
+      }
       try {
         return Promise.resolve(runTransform(opts));
       } catch (err) {

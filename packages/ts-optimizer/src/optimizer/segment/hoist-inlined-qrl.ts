@@ -21,7 +21,9 @@ interface HoistCandidate {
 }
 
 export function hoistInlinedQrlBodies(code: string): string {
-  if (!code.includes('inlinedQrl(')) return code;
+  if (!code.includes('inlinedQrl(')) {
+    return code;
+  }
 
   let current = code;
   // Each pass hoists only candidates whose body holds no other candidate
@@ -29,7 +31,9 @@ export function hoistInlinedQrlBodies(code: string): string {
   // resolve; the cap is a runaway guard, real inputs converge in one or two.
   for (let pass = 0; pass < 16; pass++) {
     const next = hoistOnePass(current);
-    if (next === current) break;
+    if (next === current) {
+      break;
+    }
     current = next;
   }
   return current;
@@ -47,17 +51,23 @@ function hoistOnePass(code: string): string {
   walk(program, {
     enter(node: AstNode) {
       const candidate = asHoistCandidate(node);
-      if (candidate) candidates.push(candidate);
+      if (candidate) {
+        candidates.push(candidate);
+      }
     },
   });
-  if (candidates.length === 0) return code;
+  if (candidates.length === 0) {
+    return code;
+  }
 
   // Defer non-leaves: once a leaf's body is replaced by its identifier, the
   // enclosing candidate becomes a leaf on the next pass.
   const leaves = candidates.filter(
     (c) => !candidates.some((o) => o !== c && o.callStart >= c.argStart && o.callEnd <= c.argEnd)
   );
-  if (leaves.length === 0) return code;
+  if (leaves.length === 0) {
+    return code;
+  }
   leaves.sort((a, b) => a.argStart - b.argStart);
 
   const s = new MagicString(code);
@@ -71,8 +81,12 @@ function hoistOnePass(code: string): string {
 }
 
 function asHoistCandidate(node: AstNode): HoistCandidate | null {
-  if (node.type !== 'CallExpression') return null;
-  if (node.callee.type !== 'Identifier' || node.callee.name !== 'inlinedQrl') return null;
+  if (node.type !== 'CallExpression') {
+    return null;
+  }
+  if (node.callee.type !== 'Identifier' || node.callee.name !== 'inlinedQrl') {
+    return null;
+  }
   // A function-expression first arg is an un-hoisted body; an identifier is
   // already lifted.
   const fnArg = node.arguments[0];
@@ -80,7 +94,9 @@ function asHoistCandidate(node: AstNode): HoistCandidate | null {
     return null;
   }
   const nameArg = node.arguments[1];
-  if (!nameArg || nameArg.type !== 'Literal' || typeof nameArg.value !== 'string') return null;
+  if (!nameArg || nameArg.type !== 'Literal' || typeof nameArg.value !== 'string') {
+    return null;
+  }
   return {
     argStart: fnArg.start,
     argEnd: fnArg.end,
@@ -93,7 +109,9 @@ function asHoistCandidate(node: AstNode): HoistCandidate | null {
 function lastImportEnd(program: AstProgram): number {
   let end = 0;
   for (const stmt of program.body) {
-    if (stmt.type === 'ImportDeclaration') end = stmt.end;
+    if (stmt.type === 'ImportDeclaration') {
+      end = stmt.end;
+    }
   }
   return end;
 }

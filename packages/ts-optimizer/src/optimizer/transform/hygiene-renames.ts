@@ -43,12 +43,16 @@ export function applyModuleHygieneRenames(code: string, filename: string): strin
     scopeTracker: tracker,
     enter(node, parent) {
       const n = node as AstNode;
-      if (n.type !== 'Identifier') return;
+      if (n.type !== 'Identifier') {
+        return;
+      }
       const p = parent as AstNode | null;
       if (p) {
         if (p.type === 'MemberExpression' && (p as never as { property: AstNode }).property === n) {
           const computed = (p as never as { computed?: boolean }).computed;
-          if (!computed) return;
+          if (!computed) {
+            return;
+          }
         }
         if (
           p.type === 'Property' &&
@@ -103,17 +107,27 @@ export function applyModuleHygieneRenames(code: string, filename: string): strin
   // Free names: referenced somewhere with no resolvable declaration.
   const freeNames = new Set<string>();
   for (const rec of records) {
-    if (rec.declKey === null) freeNames.add(rec.name);
+    if (rec.declKey === null) {
+      freeNames.add(rec.name);
+    }
   }
-  if (freeNames.size === 0) return code;
+  if (freeNames.size === 0) {
+    return code;
+  }
 
   // Declared bindings sharing a free name get renamed — but only non-root
   // bindings (a top-level decl of that name would BE the free ref's target).
   const renameByDecl = new Map<string, string>();
   for (const rec of records) {
-    if (rec.declKey === null) continue;
-    if (!freeNames.has(rec.name)) continue;
-    if (renameByDecl.has(rec.declKey)) continue;
+    if (rec.declKey === null) {
+      continue;
+    }
+    if (!freeNames.has(rec.name)) {
+      continue;
+    }
+    if (renameByDecl.has(rec.declKey)) {
+      continue;
+    }
     let counter = 1;
     let candidate = `${rec.name}${counter}`;
     while (allNames.has(candidate) && !captureUnpackNames.has(candidate)) {
@@ -127,13 +141,19 @@ export function applyModuleHygieneRenames(code: string, filename: string): strin
     }
     renameByDecl.set(rec.declKey, candidate);
   }
-  if (renameByDecl.size === 0) return code;
+  if (renameByDecl.size === 0) {
+    return code;
+  }
 
   const s = new MagicString(code);
   for (const rec of records) {
-    if (rec.declKey === null) continue;
+    if (rec.declKey === null) {
+      continue;
+    }
     const renamed = renameByDecl.get(rec.declKey);
-    if (renamed === undefined) continue;
+    if (renamed === undefined) {
+      continue;
+    }
     s.overwrite(rec.start, rec.end, rec.isShorthand ? `${rec.name}: ${renamed}` : renamed);
   }
   return s.toString();

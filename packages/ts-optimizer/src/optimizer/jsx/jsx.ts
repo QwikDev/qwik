@@ -86,7 +86,9 @@ export interface JsxWriteRecord {
  */
 export function sliceTransformed(ctx: JsxTransformContext, start: number, end: number): string {
   const hit = ctx.jsxWriteMemo?.get(start);
-  if (hit !== undefined && hit.end === end) return hit.content;
+  if (hit !== undefined && hit.end === end) {
+    return hit.content;
+  }
   return ctx.s.slice(start, end);
 }
 
@@ -149,7 +151,9 @@ export function isConstBindingName(
   if (!name) {
     return false;
   }
-  if (importedNames.has(name)) return true;
+  if (importedNames.has(name)) {
+    return true;
+  }
   return bindings?.classify(name, atPosition) === 'const';
 }
 
@@ -172,14 +176,22 @@ export function fnSignalDepsAllConst(
 }
 
 function staticPropKeyName(key: AstNode | null | undefined): string | null {
-  if (!key) return null;
-  if (key.type === 'Identifier') return key.name;
-  if (key.type === 'Literal') return String(key.value);
+  if (!key) {
+    return null;
+  }
+  if (key.type === 'Identifier') {
+    return key.name;
+  }
+  if (key.type === 'Literal') {
+    return String(key.value);
+  }
   return null;
 }
 
 function isReturnStatic(init: Expression | null | undefined): boolean {
-  if (!init) return true;
+  if (!init) {
+    return true;
+  }
   if (init.type === 'CallExpression' && init.callee.type === 'Identifier') {
     const calleeName = init.callee.name;
     return calleeName.endsWith('$') || calleeName.endsWith('Qrl') || calleeName.startsWith('use');
@@ -233,9 +245,13 @@ class ScopeAwareBindingsImpl implements ScopeAwareBindings {
   }
 
   classify(name: string, atPosition: number): 'const' | 'var' | 'param' | undefined {
-    if (this.alwaysConst.has(name)) return 'const';
+    if (this.alwaysConst.has(name)) {
+      return 'const';
+    }
     const scopes = this.nameToScopes.get(name);
-    if (!scopes) return undefined;
+    if (!scopes) {
+      return undefined;
+    }
     let best: ScopeRange | undefined;
     let bestSize = Infinity;
     for (const s of scopes) {
@@ -289,14 +305,18 @@ export function createScopeBindingsCollector(program: AstProgram): ScopeBindings
     idNode: AstNode | null | undefined,
     kind: 'const' | 'var' | 'param'
   ): void {
-    if (!idNode) return;
+    if (!idNode) {
+      return;
+    }
     if (idNode.type === 'Identifier') {
       allLocalNames.add(idNode.name);
       const scope = currentScope();
       bindings.add(idNode.name, scope.start, scope.end, kind);
     } else if (idNode.type === 'ArrayPattern') {
       for (const elem of idNode.elements) {
-        if (elem) addBindingIdent(elem.type === 'RestElement' ? elem.argument : elem, kind);
+        if (elem) {
+          addBindingIdent(elem.type === 'RestElement' ? elem.argument : elem, kind);
+        }
       }
     } else if (idNode.type === 'ObjectPattern') {
       for (const prop of idNode.properties) {
@@ -315,7 +335,9 @@ export function createScopeBindingsCollector(program: AstProgram): ScopeBindings
     id: AstNode | null | undefined,
     init: Expression | null | undefined
   ): void {
-    if (!id) return;
+    if (!id) {
+      return;
+    }
     if (id.type === 'Identifier') {
       addBindingIdent(id, isReturnStatic(init) ? 'const' : 'var');
       return;
@@ -325,14 +347,20 @@ export function createScopeBindingsCollector(program: AstProgram): ScopeBindings
       if (init && init.type === 'ArrayExpression') {
         for (let i = 0; i < elems.length; i++) {
           const elem = elems[i];
-          if (!elem || elem.type === 'RestElement') continue;
+          if (!elem || elem.type === 'RestElement') {
+            continue;
+          }
           const initElem = init.elements?.[i] ?? null;
-          if (initElem && initElem.type === 'SpreadElement') continue;
+          if (initElem && initElem.type === 'SpreadElement') {
+            continue;
+          }
           walkPatternInit(elem, initElem);
         }
       } else {
         for (const elem of elems) {
-          if (!elem || elem.type === 'RestElement') continue;
+          if (!elem || elem.type === 'RestElement') {
+            continue;
+          }
           walkPatternInit(elem, init);
         }
       }
@@ -343,20 +371,30 @@ export function createScopeBindingsCollector(program: AstProgram): ScopeBindings
       if (init && init.type === 'ObjectExpression') {
         const valueByKey = new Map<string, Expression | null>();
         for (const ip of init.properties ?? []) {
-          if (ip.type !== 'Property' || ip.computed) continue;
+          if (ip.type !== 'Property' || ip.computed) {
+            continue;
+          }
           const keyName = staticPropKeyName(ip.key);
-          if (keyName === null) continue;
+          if (keyName === null) {
+            continue;
+          }
           valueByKey.set(keyName, ip.value as Expression);
         }
         for (const pp of props) {
-          if (pp.type !== 'Property' || pp.computed) continue;
+          if (pp.type !== 'Property' || pp.computed) {
+            continue;
+          }
           const keyName = staticPropKeyName(pp.key);
-          if (keyName === null) continue;
+          if (keyName === null) {
+            continue;
+          }
           walkPatternInit(pp.value, valueByKey.get(keyName) ?? null);
         }
       } else {
         for (const pp of props) {
-          if (pp.type !== 'Property') continue;
+          if (pp.type !== 'Property') {
+            continue;
+          }
           walkPatternInit(pp.value, init);
         }
       }
@@ -452,7 +490,9 @@ export function createScopeBindingsCollector(program: AstProgram): ScopeBindings
 export function collectScopeAwareBindings(program: AstProgram): ScopeAwareCollectResult {
   const collector = createScopeBindingsCollector(program);
   function visit(node: AstNode | null | undefined): void {
-    if (!node) return;
+    if (!node) {
+      return;
+    }
     collector.enter(node);
     forEachAstChild(node, (child) => visit(child));
     collector.leave(node);
@@ -471,7 +511,9 @@ export function classifyConstness(
   bindings: ScopeAwareBindings | undefined,
   atPosition: number
 ): 'const' | 'var' {
-  if (!exprNode) return 'const';
+  if (!exprNode) {
+    return 'const';
+  }
 
   switch (exprNode.type) {
     case 'Literal':
@@ -480,21 +522,31 @@ export function classifyConstness(
       return 'const';
 
     case 'TemplateLiteral': {
-      if (exprNode.expressions.length === 0) return 'const';
+      if (exprNode.expressions.length === 0) {
+        return 'const';
+      }
       for (const expr of exprNode.expressions) {
-        if (classifyConstness(expr, importedNames, bindings, atPosition) === 'var') return 'var';
+        if (classifyConstness(expr, importedNames, bindings, atPosition) === 'var') {
+          return 'var';
+        }
       }
       return 'const';
     }
 
     case 'Identifier': {
       const name = exprNode.name;
-      if (name === 'undefined') return 'const';
-      if (importedNames.has(name)) return 'const';
+      if (name === 'undefined') {
+        return 'const';
+      }
+      if (importedNames.has(name)) {
+        return 'const';
+      }
       // Use the identifier's own start for the scope lookup — the outer
       // `atPosition` is the enclosing expression's start, but the identifier
       // may sit deeper.
-      if (bindings?.classify(name, exprNode.start) === 'const') return 'const';
+      if (bindings?.classify(name, exprNode.start) === 'const') {
+        return 'const';
+      }
       return 'var';
     }
 
@@ -502,7 +554,9 @@ export function classifyConstness(
       // Computed/Static/PrivateField share one `'MemberExpression'`
       // discriminant; all three carry `.object`.
       const obj = exprNode.object;
-      if (obj.type === 'Identifier' && importedNames.has(obj.name)) return 'const';
+      if (obj.type === 'Identifier' && importedNames.has(obj.name)) {
+        return 'const';
+      }
       return 'var';
     }
 
@@ -538,11 +592,13 @@ export function classifyConstness(
     case 'ObjectExpression': {
       for (const prop of exprNode.properties) {
         if (prop.type === 'SpreadElement') {
-          if (classifyConstness(prop.argument, importedNames, bindings, atPosition) === 'var')
+          if (classifyConstness(prop.argument, importedNames, bindings, atPosition) === 'var') {
             return 'var';
+          }
         } else if (prop.value) {
-          if (classifyConstness(prop.value, importedNames, bindings, atPosition) === 'var')
+          if (classifyConstness(prop.value, importedNames, bindings, atPosition) === 'var') {
             return 'var';
+          }
         }
       }
       return 'const';
@@ -550,12 +606,17 @@ export function classifyConstness(
 
     case 'ArrayExpression': {
       for (const el of exprNode.elements) {
-        if (el === null) continue;
+        if (el === null) {
+          continue;
+        }
         if (el.type === 'SpreadElement') {
-          if (classifyConstness(el.argument, importedNames, bindings, atPosition) === 'var')
+          if (classifyConstness(el.argument, importedNames, bindings, atPosition) === 'var') {
             return 'var';
+          }
         } else {
-          if (classifyConstness(el, importedNames, bindings, atPosition) === 'var') return 'var';
+          if (classifyConstness(el, importedNames, bindings, atPosition) === 'var') {
+            return 'var';
+          }
         }
       }
       return 'const';
@@ -570,7 +631,9 @@ export function classifyConstness(
 
     case 'SequenceExpression': {
       for (const expr of exprNode.expressions) {
-        if (classifyConstness(expr, importedNames, bindings, atPosition) === 'var') return 'var';
+        if (classifyConstness(expr, importedNames, bindings, atPosition) === 'var') {
+          return 'var';
+        }
       }
       return 'const';
     }
@@ -655,9 +718,13 @@ export function reserveRegionKeys(
   keyCounter: JsxKeyCounter,
   pos: number
 ): void {
-  if (!reservations) return;
+  if (!reservations) {
+    return;
+  }
   const region = reservations.findRegion(pos);
-  if (!region || reservations.bases.has(region.start)) return;
+  if (!region || reservations.bases.has(region.start)) {
+    return;
+  }
   reservations.bases.set(region.start, keyCounter.current());
   keyCounter.advance(region.count);
 }
@@ -682,7 +749,9 @@ export function isTextOnlyElement(tagName: string): boolean {
 }
 
 export function processJsxTag(nameNode: JSXElementName | null | undefined): string {
-  if (!nameNode) return '"div"';
+  if (!nameNode) {
+    return '"div"';
+  }
 
   switch (nameNode.type) {
     case 'JSXIdentifier': {
@@ -719,12 +788,16 @@ export function processJsxTag(nameNode: JSXElementName | null | undefined): stri
 export function buildSkipRangeIndex(
   skipRanges: ReadonlyArray<{ start: number; end: number }>
 ): ReadonlyArray<{ start: number; end: number }> {
-  if (skipRanges.length <= 1) return skipRanges;
+  if (skipRanges.length <= 1) {
+    return skipRanges;
+  }
   const sorted = [...skipRanges].sort((a, b) => a.start - b.start || b.end - a.end);
   const kept: { start: number; end: number }[] = [];
   let maxEnd = -1;
   for (const range of sorted) {
-    if (range.end <= maxEnd) continue;
+    if (range.end <= maxEnd) {
+      continue;
+    }
     kept.push(range);
     maxEnd = range.end;
   }
@@ -811,7 +884,9 @@ function applySignalHoistRenames(
 }
 
 function appendDevSuffix(callString: string, devSuffix: string): string {
-  if (!devSuffix) return callString;
+  if (!devSuffix) {
+    return callString;
+  }
   return callString.slice(0, -1) + devSuffix + ')';
 }
 
@@ -895,12 +970,16 @@ export function transformAllJsx(
     const linesSource = devOptions.sourcePosition?.source ?? source;
     lineStarts = [0];
     for (let i = 0; i < linesSource.length; i++) {
-      if (linesSource[i] === '\n') lineStarts.push(i + 1);
+      if (linesSource[i] === '\n') {
+        lineStarts.push(i + 1);
+      }
     }
   }
 
   function getDevSourceSuffix(nodeStart: number): string {
-    if (!devOptions || !lineStarts) return '';
+    if (!devOptions || !lineStarts) {
+      return '';
+    }
     const effectiveOffset = devOptions.sourcePosition
       ? devOptions.sourcePosition.bodyOriginOffset +
         (nodeStart - devOptions.sourcePosition.wrapperPrefixLen)
@@ -909,8 +988,11 @@ export function transformAllJsx(
       hi = lineStarts.length - 1;
     while (lo < hi) {
       const mid = (lo + hi + 1) >> 1;
-      if (lineStarts[mid] <= effectiveOffset) lo = mid;
-      else hi = mid - 1;
+      if (lineStarts[mid] <= effectiveOffset) {
+        lo = mid;
+      } else {
+        hi = mid - 1;
+      }
     }
     const lineNumber = lo + 1;
     const columnNumber = effectiveOffset - lineStarts[lo] + 1;
@@ -1013,7 +1095,9 @@ export function transformAllJsx(
         if (result) {
           const callStr = appendDevSuffix(result.callString, ctx.getDevSourceSuffix(node.start));
           ctx.writeJsxCall(node.start, node.end, `/*#__PURE__*/ ${callStr}`, result);
-          for (const imp of result.neededImports) ctx.neededImports.add(imp);
+          for (const imp of result.neededImports) {
+            ctx.neededImports.add(imp);
+          }
         }
       } else if (node.type === 'JSXFragment') {
         const result = transformJsxFragment(ctx.jsxCtx, node, {
@@ -1022,7 +1106,9 @@ export function transformAllJsx(
         if (result) {
           const callStr = appendDevSuffix(result.callString, ctx.getDevSourceSuffix(node.start));
           ctx.writeJsxCall(node.start, node.end, `/*#__PURE__*/ ${callStr}`, result);
-          for (const imp of result.neededImports) ctx.neededImports.add(imp);
+          for (const imp of result.neededImports) {
+            ctx.neededImports.add(imp);
+          }
           ctx.setNeedsFragment();
         }
       }

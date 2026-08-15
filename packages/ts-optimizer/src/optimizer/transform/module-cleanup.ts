@@ -59,7 +59,9 @@ export function applySegmentConstReplacement(
   isDev?: boolean,
   preParsedProgram?: AstProgram
 ): string {
-  if (isServer === undefined && isDev === undefined) return code;
+  if (isServer === undefined && isDev === undefined) {
+    return code;
+  }
 
   let program: AstProgram;
   if (preParsedProgram) {
@@ -76,17 +78,25 @@ export function applySegmentConstReplacement(
   const importRanges = new Set<string>();
 
   for (const node of program.body) {
-    if (node.type !== 'ImportDeclaration') continue;
+    if (node.type !== 'ImportDeclaration') {
+      continue;
+    }
     const source = node.source?.value ?? '';
-    if (!CONST_IMPORT_SOURCES.includes(source)) continue;
+    if (!CONST_IMPORT_SOURCES.includes(source)) {
+      continue;
+    }
 
     for (const spec of node.specifiers || []) {
       importRanges.add(`${spec.local.start}:${spec.local.end}`);
-      if (spec.type !== 'ImportSpecifier') continue;
+      if (spec.type !== 'ImportSpecifier') {
+        continue;
+      }
 
       const importedName = getImportedSpecifierName(spec) ?? spec.local?.name;
       const localName = spec.local?.name;
-      if (!localName) continue;
+      if (!localName) {
+        continue;
+      }
 
       if (isServer !== undefined && importedName === 'isServer') {
         replacements.set(localName, String(isServer));
@@ -98,7 +108,9 @@ export function applySegmentConstReplacement(
     }
   }
 
-  if (replacements.size === 0) return code;
+  if (replacements.size === 0) {
+    return code;
+  }
 
   const s = new MagicString(code);
   replaceResolvedConstIdentifiers(s, program, replacements, importRanges);
@@ -123,10 +135,16 @@ export function injectUseHmr(
 
   let targetFn: AstFunction | null = null;
   for (const stmt of program.body) {
-    if (stmt.type !== 'ExportNamedDeclaration' || stmt.declaration?.type !== 'VariableDeclaration')
+    if (
+      stmt.type !== 'ExportNamedDeclaration' ||
+      stmt.declaration?.type !== 'VariableDeclaration'
+    ) {
       continue;
+    }
     const init = stmt.declaration.declarations?.[0]?.init;
-    if (!init) continue;
+    if (!init) {
+      continue;
+    }
     if (
       (init.type === 'ArrowFunctionExpression' || init.type === 'FunctionExpression') &&
       init.body
@@ -135,7 +153,9 @@ export function injectUseHmr(
       break;
     }
   }
-  if (!targetFn || !targetFn.body) return segmentCode;
+  if (!targetFn || !targetFn.body) {
+    return segmentCode;
+  }
 
   let result = injectHmrCallIntoFunctionBody(segmentCode, targetFn.body, devFile);
 
@@ -180,7 +200,9 @@ export function injectUseHmrIntoInlineBody(bodyText: string, devFile: string): s
     return bodyText;
   }
   const stmt = program.body[0];
-  if (!stmt || stmt.type !== 'ExpressionStatement') return bodyText;
+  if (!stmt || stmt.type !== 'ExpressionStatement') {
+    return bodyText;
+  }
   const fn = stmt.expression;
   if ((fn.type !== 'ArrowFunctionExpression' && fn.type !== 'FunctionExpression') || !fn.body) {
     return bodyText;
@@ -202,7 +224,9 @@ export function applySegmentSideEffectSimplification(
   // Match on the blanked copy so an export-shaped line inside a template
   // literal can't anchor the export block; positions are preserved.
   const exportMatch = blankNonCode(code).match(exportConstLine);
-  if (!exportMatch) return code;
+  if (!exportMatch) {
+    return code;
+  }
 
   const exportStart = exportMatch.index!;
 
@@ -235,20 +259,30 @@ export function applySegmentSideEffectSimplification(
   walk(program, {
     enter(node: AstNode, parent: AstParentNode) {
       if (node.type === 'Identifier' && node.name) {
-        if (parent?.type === 'VariableDeclarator' && parent.id === node) return;
-        if (parent?.type === 'ImportSpecifier') return;
+        if (parent?.type === 'VariableDeclarator' && parent.id === node) {
+          return;
+        }
+        if (parent?.type === 'ImportSpecifier') {
+          return;
+        }
         // Count references module-wide: parent modules interleave uses
         // before the export block (unlike segments).
         allRefs.set(node.name, (allRefs.get(node.name) ?? 0) + 1);
       }
 
       if (node.type === 'VariableDeclaration' && node.kind === 'const') {
-        if (node.start === undefined || node.start < exportStart) return;
+        if (node.start === undefined || node.start < exportStart) {
+          return;
+        }
         // Exported declarations are the module's contract — never rewrite them.
-        if (parent?.type === 'ExportNamedDeclaration') return;
+        if (parent?.type === 'ExportNamedDeclaration') {
+          return;
+        }
         for (const declarator of node.declarations) {
           if (declarator.id?.type === 'Identifier' && declarator.init) {
-            if (node.declarations?.length > 1) continue;
+            if (node.declarations?.length > 1) {
+              continue;
+            }
             varDecls.push({
               name: declarator.id.name,
               initStart: declarator.init.start,
@@ -269,7 +303,9 @@ export function applySegmentSideEffectSimplification(
 
   for (const decl of varDecls) {
     const refCount = allRefs.get(decl.name) ?? 0;
-    if (refCount > 0) continue;
+    if (refCount > 0) {
+      continue;
+    }
     if (
       decl.initType === 'ClassExpression' ||
       decl.initType === 'FunctionExpression' ||
@@ -277,7 +313,9 @@ export function applySegmentSideEffectSimplification(
     ) {
       continue;
     }
-    if (code.indexOf(`export const ${decl.name} =`, exportStart) >= 0) continue;
+    if (code.indexOf(`export const ${decl.name} =`, exportStart) >= 0) {
+      continue;
+    }
 
     let replacement: string;
     if (decl.initType === 'MemberExpression' || decl.initType === 'CallExpression') {
@@ -325,8 +363,12 @@ export function removeUnusedImports(
   }> = [];
 
   for (const node of parsed.program.body) {
-    if (node.type !== 'ImportDeclaration') continue;
-    if (!node.specifiers || node.specifiers.length === 0) continue;
+    if (node.type !== 'ImportDeclaration') {
+      continue;
+    }
+    if (!node.specifiers || node.specifiers.length === 0) {
+      continue;
+    }
 
     for (const spec of node.specifiers) {
       const localName = spec.local?.name;
@@ -336,7 +378,9 @@ export function removeUnusedImports(
     }
   }
 
-  if (importSpecs.length === 0) return code;
+  if (importSpecs.length === 0) {
+    return code;
+  }
 
   // Scope-aware: a local binding (param, let, catch) shadowing an import
   // must not count as a reference to it.
@@ -376,14 +420,18 @@ export function removeUnusedImports(
           return;
         }
         const decl = scopeTracker.getDeclaration(node.name);
-        if (decl && decl.type !== 'Import') return;
+        if (decl && decl.type !== 'Import') {
+          return;
+        }
         referencedNames.add(node.name);
       }
     },
   });
 
   const unreferencedSpecs = importSpecs.filter((spec) => {
-    if (referencedNames.has(spec.localName)) return false;
+    if (referencedNames.has(spec.localName)) {
+      return false;
+    }
 
     const importSource = spec.node.source?.value ?? '';
 
@@ -411,7 +459,9 @@ export function removeUnusedImports(
         const allUnreferenced = siblings.every((s) => !referencedNames.has(s.localName));
         const hasNonDollarSpec = (spec.node.specifiers ?? []).some(
           (s: ImportDeclarationSpecifier) => {
-            if (s.type !== 'ImportSpecifier') return true;
+            if (s.type !== 'ImportSpecifier') {
+              return true;
+            }
             const importedName = getImportedSpecifierName(s) ?? s.local.name;
             return !importedName.endsWith('$');
           }
@@ -425,7 +475,9 @@ export function removeUnusedImports(
     return true;
   });
 
-  if (unreferencedSpecs.length === 0) return code;
+  if (unreferencedSpecs.length === 0) {
+    return code;
+  }
 
   const ms = new MagicString(code);
   const specsByNode = new Map<
@@ -455,7 +507,9 @@ export function removeUnusedImports(
         continue;
       }
       let end = node.end;
-      if (end < code.length && code[end] === '\n') end++;
+      if (end < code.length && code[end] === '\n') {
+        end++;
+      }
       ms.overwrite(node.start, end, '');
       continue;
     }
@@ -467,7 +521,9 @@ export function removeUnusedImports(
 
     for (const spec of node.specifiers ?? []) {
       const localName = spec.local?.name;
-      if (unreferencedNames.has(localName)) continue;
+      if (unreferencedNames.has(localName)) {
+        continue;
+      }
 
       if (spec.type === 'ImportDefaultSpecifier') {
         defaultPart = localName;
@@ -484,7 +540,9 @@ export function removeUnusedImports(
     const quote = code[node.source.start] === "'" ? "'" : '"';
     const newImport = formatImportStatement(importParts, quote, sourceValue);
     let end = node.end;
-    if (end < code.length && code[end] === '\n') end++;
+    if (end < code.length && code[end] === '\n') {
+      end++;
+    }
     ms.overwrite(node.start, end, newImport + '\n');
   }
 
@@ -523,7 +581,9 @@ export function buildPassthroughModule(
   for (const node of program.body) {
     if (node.type === 'ImportDeclaration') {
       let end = node.end;
-      if (end < repairedCode.length && repairedCode[end] === '\n') end++;
+      if (end < repairedCode.length && repairedCode[end] === '\n') {
+        end++;
+      }
       lastImportEnd = end;
     }
   }
@@ -545,12 +605,20 @@ export function buildPassthroughModule(
   });
 
   for (const stmt of program.body) {
-    if (stmt.type !== 'VariableDeclaration') continue;
-    if (stmt.declarations?.length !== 1) continue;
+    if (stmt.type !== 'VariableDeclaration') {
+      continue;
+    }
+    if (stmt.declarations?.length !== 1) {
+      continue;
+    }
     const declarator = stmt.declarations[0];
-    if (!declarator.init || declarator.init.type !== 'CallExpression') continue;
+    if (!declarator.init || declarator.init.type !== 'CallExpression') {
+      continue;
+    }
     const callee = declarator.init.callee;
-    if (callee?.type !== 'Identifier' || callee.name !== 'inlinedQrl') continue;
+    if (callee?.type !== 'Identifier' || callee.name !== 'inlinedQrl') {
+      continue;
+    }
     const varName = declarator.id?.type === 'Identifier' ? declarator.id.name : null;
     if (varName && !bodyReferencedNames.has(varName)) {
       s.remove(stmt.start, declarator.init.start);
@@ -588,17 +656,23 @@ export function buildParentExtractionMap(
   for (const ext of extractions) {
     let best: ExtractionResult | null = null;
     for (const other of extractions) {
-      if (other.symbolName === ext.symbolName) continue;
+      if (other.symbolName === ext.symbolName) {
+        continue;
+      }
       // Worker wrappers are zero-scope shells around the worker call — scope
       // visibility comes from the wrapper's own enclosing extraction.
-      if (other.isWorkerEventWrapper) continue;
+      if (other.isWorkerEventWrapper) {
+        continue;
+      }
       if (ext.callStart >= other.argStart && ext.callEnd <= other.argEnd) {
         if (!best || (other.argStart >= best.argStart && other.argEnd <= best.argEnd)) {
           best = other;
         }
       }
     }
-    if (best) map.set(ext.symbolName, best);
+    if (best) {
+      map.set(ext.symbolName, best);
+    }
   }
   return map;
 }
@@ -612,7 +686,9 @@ function extractBinaryOperandIdentifiersFromAst(node: AstNode): string[] {
   const ids: string[] = [];
   const seen = new Set<string>();
   function visit(n: AstNode | null | undefined): void {
-    if (!n) return;
+    if (!n) {
+      return;
+    }
     if (n.type === 'Identifier') {
       if (!seen.has(n.name)) {
         seen.add(n.name);
@@ -660,7 +736,9 @@ export function runDcePipeline(code: string, filename: string, opts: DcePipeline
   // Single-parse cache across stages; invalidated whenever a stage mutates.
   let cachedProgram: AstProgram | undefined;
   const lazyParse = (): AstProgram | undefined => {
-    if (cachedProgram) return cachedProgram;
+    if (cachedProgram) {
+      return cachedProgram;
+    }
     try {
       cachedProgram = parseWithRawTransfer(filename, result).program;
     } catch {
@@ -671,7 +749,9 @@ export function runDcePipeline(code: string, filename: string, opts: DcePipeline
   const runStage = (stage: () => string): void => {
     const before = result;
     result = stage();
-    if (result !== before) cachedProgram = undefined;
+    if (result !== before) {
+      cachedProgram = undefined;
+    }
   };
 
   if (

@@ -42,14 +42,18 @@ describe('snapshot batch validation', () => {
   describe('full match (parent + segments)', () => {
     for (const snapName of fullMatchSnapshots) {
       const snapFile = allFiles.find((f) => f === snapName);
-      if (!snapFile) continue;
+      if (!snapFile) {
+        continue;
+      }
 
       const fullPath = join(SNAP_DIR, snapFile);
 
       it(`matches ${snapName}`, () => {
         const content = readFileSync(fullPath, 'utf-8');
         const parsed = parseSnapshot(content);
-        if (!parsed.input) return;
+        if (!parsed.input) {
+          return;
+        }
 
         const filename =
           parsed.segments[0]?.metadata?.origin || parsed.parentModules[0]?.filename || 'test.tsx';
@@ -74,7 +78,9 @@ describe('snapshot batch validation', () => {
         }
 
         for (const expectedSeg of parsed.segments) {
-          if (!expectedSeg.metadata) continue;
+          if (!expectedSeg.metadata) {
+            continue;
+          }
 
           const actualSeg = result.modules.find(
             (m) => m.kind === 'segment' && m.segment.name === expectedSeg.metadata!.name
@@ -114,14 +120,18 @@ describe('snapshot batch validation', () => {
   describe('JSX segment metadata match (Phase 4)', () => {
     for (const snapName of jsxParentMatchSnapshots) {
       const snapFile = allFiles.find((f) => f === snapName);
-      if (!snapFile) continue;
+      if (!snapFile) {
+        continue;
+      }
 
       const fullPath = join(SNAP_DIR, snapFile);
 
       it(`segments match ${snapName}`, () => {
         const content = readFileSync(fullPath, 'utf-8');
         const parsed = parseSnapshot(content);
-        if (!parsed.input) return;
+        if (!parsed.input) {
+          return;
+        }
 
         const testName = snapName.replace(/^qwik_core__test__/, '').replace(/\.snap$/, '');
         const result = transformModule(getSnapshotTransformOptions(testName, parsed.input));
@@ -130,7 +140,9 @@ describe('snapshot batch validation', () => {
         const missingSegments: string[] = [];
 
         for (const expectedSeg of parsed.segments) {
-          if (!expectedSeg.metadata) continue;
+          if (!expectedSeg.metadata) {
+            continue;
+          }
 
           const actualSeg = result.modules.find(
             (m) => m.kind === 'segment' && m.segment.name === expectedSeg.metadata!.name
@@ -167,14 +179,18 @@ describe('snapshot batch validation', () => {
   describe('parent module match (segments deferred to later phases)', () => {
     for (const snapName of parentMatchSnapshots) {
       const snapFile = allFiles.find((f) => f === snapName);
-      if (!snapFile) continue;
+      if (!snapFile) {
+        continue;
+      }
 
       const fullPath = join(SNAP_DIR, snapFile);
 
       it(`parent matches ${snapName}`, () => {
         const content = readFileSync(fullPath, 'utf-8');
         const parsed = parseSnapshot(content);
-        if (!parsed.input) return;
+        if (!parsed.input) {
+          return;
+        }
 
         const filename =
           parsed.segments[0]?.metadata?.origin || parsed.parentModules[0]?.filename || 'test.tsx';

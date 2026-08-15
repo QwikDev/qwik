@@ -9,7 +9,9 @@ function transform(source: string) {
     mode: 'test',
   });
   const parent = result.modules.find((m) => m.kind === 'parent');
-  if (!parent || parent.kind !== 'parent') throw new Error('no parent module emitted');
+  if (!parent || parent.kind !== 'parent') {
+    throw new Error('no parent module emitted');
+  }
   return { parent, modules: result.modules };
 }
 
@@ -111,7 +113,9 @@ export const Foo = component$(() => {
       (m) => m.kind === 'segment' && m.segment.name.startsWith('Foo_component_')
     );
     expect(fooSegment).toBeDefined();
-    if (fooSegment?.kind !== 'segment') throw new Error('expected segment');
+    if (fooSegment?.kind !== 'segment') {
+      throw new Error('expected segment');
+    }
 
     expect(fooSegment.code).toMatch(/const qrl\s*=\s*23/);
   });

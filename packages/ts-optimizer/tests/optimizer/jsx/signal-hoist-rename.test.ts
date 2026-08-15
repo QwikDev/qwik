@@ -6,7 +6,9 @@ import { mkFilePath, mkSourceText } from '../../../src/optimizer/types/brands.js
 
 function findParent(result: { modules: readonly TransformModule[] }): TransformModule {
   const parent = result.modules.find((m) => m.kind === 'parent');
-  if (!parent) throw new Error('parent module not found');
+  if (!parent) {
+    throw new Error('parent module not found');
+  }
   return parent;
 }
 

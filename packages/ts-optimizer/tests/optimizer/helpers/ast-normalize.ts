@@ -8,7 +8,9 @@ function shouldStripRaw(
   node: Record<string, unknown>,
   ancestors: readonly Record<string, unknown>[]
 ): boolean {
-  if (node.type === 'Literal' || node.type === 'JSXText') return true;
+  if (node.type === 'Literal' || node.type === 'JSXText') {
+    return true;
+  }
   const [parent, grandparent, greatGrandparent] = ancestors;
   return (
     parent?.type === 'TemplateElement' &&
@@ -21,8 +23,12 @@ export function stripAstPositions(
   node: unknown,
   ancestors: readonly Record<string, unknown>[] = []
 ): unknown {
-  if (Array.isArray(node)) return node.map((item) => stripAstPositions(item, ancestors));
-  if (!isRecord(node)) return node;
+  if (Array.isArray(node)) {
+    return node.map((item) => stripAstPositions(item, ancestors));
+  }
+  if (!isRecord(node)) {
+    return node;
+  }
   if (node.type === 'ParenthesizedExpression' && node.expression) {
     return stripAstPositions(node.expression, ancestors);
   }

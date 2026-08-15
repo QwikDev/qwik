@@ -17,9 +17,13 @@ interface DollarArgFacts {
 }
 
 function asClosureArg(node: AstNode): AstFunction | null {
-  if (node.type !== 'CallExpression') return null;
+  if (node.type !== 'CallExpression') {
+    return null;
+  }
   const { callee } = node;
-  if (callee.type !== 'Identifier' || !callee.name.endsWith('$')) return null;
+  if (callee.type !== 'Identifier' || !callee.name.endsWith('$')) {
+    return null;
+  }
   const arg = node.arguments[0];
   if (arg?.type === 'ArrowFunctionExpression' || arg?.type === 'FunctionExpression') {
     return arg;
@@ -32,7 +36,9 @@ function collectDollarArgs(program: AstProgram): AstFunction[] {
   walk(program, {
     enter(node: AstNode) {
       const arg = asClosureArg(node);
-      if (arg) args.push(arg);
+      if (arg) {
+        args.push(arg);
+      }
     },
   });
   return args;
@@ -105,7 +111,9 @@ function findNthDollarArg(source: string, n: number): DollarArgFacts {
 }
 
 function collectBindingNames(node: AstMaybeNode, names: Set<string>): void {
-  if (!node) return;
+  if (!node) {
+    return;
+  }
   if (node.type === 'Identifier') {
     names.add(node.name);
     return;

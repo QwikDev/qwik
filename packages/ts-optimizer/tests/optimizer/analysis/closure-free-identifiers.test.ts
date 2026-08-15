@@ -33,16 +33,22 @@ function collectComputedKeyNames(fn: AstFunction): Set<string> {
     enter(node, parent) {
       const n = node as AstNode;
       const p = parent as AstNode | null;
-      if (n.type !== 'Identifier' || p === null) return;
+      if (n.type !== 'Identifier' || p === null) {
+        return;
+      }
       if (p.type === 'MemberExpression') {
-        if (p.computed === true && p.property === n) names.add(n.name);
+        if (p.computed === true && p.property === n) {
+          names.add(n.name);
+        }
       } else if (
         p.type === 'Property' ||
         p.type === 'MethodDefinition' ||
         p.type === 'PropertyDefinition' ||
         p.type === 'AccessorProperty'
       ) {
-        if (p.computed === true && p.key === n) names.add(n.name);
+        if (p.computed === true && p.key === n) {
+          names.add(n.name);
+        }
       }
     },
   });
@@ -55,10 +61,18 @@ function collectJsxTagNames(fn: AstFunction): Set<string> {
     enter(node, parent) {
       const n = node as AstNode;
       const p = parent as AstNode | null;
-      if (n.type !== 'JSXIdentifier' || p === null) return;
-      if (p.type === 'JSXAttribute' || p.type === 'JSXNamespacedName') return;
-      if (p.type === 'JSXMemberExpression' && (p as { property?: unknown }).property === n) return;
-      if (/^[A-Z]/.test(n.name)) names.add(n.name);
+      if (n.type !== 'JSXIdentifier' || p === null) {
+        return;
+      }
+      if (p.type === 'JSXAttribute' || p.type === 'JSXNamespacedName') {
+        return;
+      }
+      if (p.type === 'JSXMemberExpression' && (p as { property?: unknown }).property === n) {
+        return;
+      }
+      if (/^[A-Z]/.test(n.name)) {
+        names.add(n.name);
+      }
     },
   });
   return names;
@@ -66,7 +80,9 @@ function collectJsxTagNames(fn: AstFunction): Set<string> {
 
 function diffAgainstLegacy(source: string, filename: string): string[] {
   const parsed = parseSync(filename, source, RAW_TRANSFER_PARSER_OPTIONS);
-  if (!parsed.program || parsed.errors?.length) return [];
+  if (!parsed.program || parsed.errors?.length) {
+    return [];
+  }
   const program = parsed.program as AstProgram;
   const nodes = collectFunctionNodes(program);
   const fused = computeClosureFreeIdentifiers(program, nodes);
@@ -158,7 +174,9 @@ const dual = 9;
     for (const snapFile of snapFiles) {
       const content = readFileSync(join(SNAP_DIR, snapFile), 'utf-8');
       const parsed = parseSnapshot(content);
-      if (!parsed.input) continue;
+      if (!parsed.input) {
+        continue;
+      }
       const mismatches = diffAgainstLegacy(parsed.input, 'test.tsx');
       checkedFns += 1;
       for (const m of mismatches) {

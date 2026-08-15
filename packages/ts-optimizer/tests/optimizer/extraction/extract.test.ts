@@ -210,7 +210,9 @@ export const App = component$(() => <button onClick$={() => console.log('hi')}/>
     const results = extractSegments(source, 'test.tsx');
     const handler = results.find((r) => r.ctxKind === 'eventHandler');
     expect(handler).toBeDefined();
-    if (!handler) throw new Error('expected event-handler extraction');
+    if (!handler) {
+      throw new Error('expected event-handler extraction');
+    }
 
     expect(handler.loc[0]).toBe(handler.argStart);
     expect(handler.loc[1]).toBe(handler.argEnd);

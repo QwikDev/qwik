@@ -35,10 +35,14 @@ export function repairInput(
   }
 
   const repairedA = tryRemoveUnmatchedParens(source, filename);
-  if (repairedA !== null) return { source: repairedA };
+  if (repairedA !== null) {
+    return { source: repairedA };
+  }
 
   const repairedB = tryWrapJsxTextArrows(source, filename);
-  if (repairedB !== null) return { source: repairedB };
+  if (repairedB !== null) {
+    return { source: repairedB };
+  }
 
   return { source };
 }
@@ -52,18 +56,28 @@ function tryRemoveUnmatchedParens(source: string, filename: string): string | nu
   let closeCount = 0;
 
   for (const ch of source) {
-    if (ch === '(') openCount++;
-    if (ch === ')') closeCount++;
+    if (ch === '(') {
+      openCount++;
+    }
+    if (ch === ')') {
+      closeCount++;
+    }
   }
 
-  if (closeCount <= openCount) return null;
+  if (closeCount <= openCount) {
+    return null;
+  }
 
   const excess = closeCount - openCount;
-  if (excess !== 1) return null;
+  if (excess !== 1) {
+    return null;
+  }
 
   const closePositions: number[] = [];
   for (let i = 0; i < source.length; i++) {
-    if (source[i] === ')') closePositions.push(i);
+    if (source[i] === ')') {
+      closePositions.push(i);
+    }
   }
 
   for (let i = closePositions.length - 1; i >= 0; i--) {
@@ -84,7 +98,9 @@ function tryRemoveUnmatchedParens(source: string, filename: string): string | nu
  */
 function tryWrapJsxTextArrows(source: string, filename: string): string | null {
   const regions = findJsxTextRegionsWithGt(source);
-  if (regions.length === 0) return null;
+  if (regions.length === 0) {
+    return null;
+  }
 
   // Process from end to start to preserve positions
   let repaired = source;
@@ -96,7 +112,9 @@ function tryWrapJsxTextArrows(source: string, filename: string): string | null {
   }
 
   const result = parseWithRawTransfer(filename, repaired);
-  if (result.program.body.length > 0) return repaired;
+  if (result.program.body.length > 0) {
+    return repaired;
+  }
 
   return null;
 }
@@ -144,11 +162,17 @@ function findJsxTextRegionsWithGt(source: string): Array<{ start: number; end: n
 
       for (let j = lineIdx + 1; j < lines.length; j++) {
         const nextTrimmed = lines[j].trim();
-        if (nextTrimmed.startsWith('<')) break;
-        if (nextTrimmed === '') continue;
+        if (nextTrimmed.startsWith('<')) {
+          break;
+        }
+        if (nextTrimmed === '') {
+          continue;
+        }
         if (BRACKET_ONLY_LINE.test(nextTrimmed)) {
           let nextOffset = 0;
-          for (let k = 0; k < j; k++) nextOffset += lines[k].length + 1;
+          for (let k = 0; k < j; k++) {
+            nextOffset += lines[k].length + 1;
+          }
           const nextTextStart = nextOffset + lines[j].indexOf(nextTrimmed);
           const nextTextEnd = nextTextStart + nextTrimmed.length;
           regions.push({ start: nextTextStart, end: nextTextEnd });
@@ -164,7 +188,9 @@ function findJsxTextRegionsWithGt(source: string): Array<{ start: number; end: n
 
 function findNextNonEmptyLine(lines: string[], startIdx: number): string {
   for (let i = startIdx; i < lines.length; i++) {
-    if (lines[i].trim().length > 0) return lines[i];
+    if (lines[i].trim().length > 0) {
+      return lines[i];
+    }
   }
   return '';
 }

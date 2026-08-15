@@ -21,8 +21,12 @@ export const App = component$(() => {
     expect(result.modules.length).toBeGreaterThan(1);
     const parent = result.modules[0];
     const segment = result.modules[1];
-    if (parent.kind !== 'parent') throw new Error('expected parent module');
-    if (segment.kind !== 'segment') throw new Error('expected segment module');
+    if (parent.kind !== 'parent') {
+      throw new Error('expected parent module');
+    }
+    if (segment.kind !== 'segment') {
+      throw new Error('expected segment module');
+    }
     expect(parent.isEntry).toBe(false);
     expect(parent.origPath).toBe('test.tsx');
     expect(parent.code).toContain('componentQrl');
@@ -51,7 +55,9 @@ export const handler = $(() => {
 
     expect(result.modules.length).toBe(2);
     const segment = result.modules[1];
-    if (segment.kind !== 'segment') throw new Error('expected segment module');
+    if (segment.kind !== 'segment') {
+      throw new Error('expected segment module');
+    }
     expect(result.modules[0].code).toContain('q_');
     expect(segment.segment.ctxName).toBe('$');
     expect(segment.code).toContain('export const');
@@ -713,7 +719,9 @@ export const App = component$(() => {
     });
 
     const segMod = result.modules[1];
-    if (segMod.kind !== 'segment') throw new Error('expected segment module');
+    if (segMod.kind !== 'segment') {
+      throw new Error('expected segment module');
+    }
     const seg = segMod.segment;
     expect(seg.origin).toBe('test.tsx');
     expect(seg.displayName).toContain('App');

@@ -21,18 +21,27 @@ function duplicateImportBindings(code: string): string[] {
   const seen = new Set<string>();
   const dups: string[] = [];
   for (const line of code.split('\n')) {
-    if (!line.trim().startsWith('import')) continue;
+    if (!line.trim().startsWith('import')) {
+      continue;
+    }
     const braces = line.match(/\{([^}]*)\}/);
-    if (!braces) continue;
+    if (!braces) {
+      continue;
+    }
     for (const raw of braces[1].split(',')) {
       const name = raw
         .replace(/\btype\b/, '')
         .trim()
         .split(/\s+as\s+/)[0]
         .trim();
-      if (!name) continue;
-      if (seen.has(name)) dups.push(name);
-      else seen.add(name);
+      if (!name) {
+        continue;
+      }
+      if (seen.has(name)) {
+        dups.push(name);
+      } else {
+        seen.add(name);
+      }
     }
   }
   return dups;

@@ -43,7 +43,9 @@ function run(mode: 'test' | 'dev' = 'test'): {
   const provider = result.modules.find(
     (m) => m.kind === 'segment' && m.segment.ctxName === 'component$'
   );
-  if (!provider) throw new Error('Provider component segment not found');
+  if (!provider) {
+    throw new Error('Provider component segment not found');
+  }
   return { parent, provider };
 }
 
@@ -74,7 +76,9 @@ function runChildMove(mode: 'test' | 'dev'): { parent: TransformModule; panel: T
   const panel = result.modules.find(
     (m) => m.kind === 'segment' && m.segment.name.startsWith('Panel_component')
   );
-  if (!panel) throw new Error('Panel component segment not found');
+  if (!panel) {
+    throw new Error('Panel component segment not found');
+  }
   return { parent, panel };
 }
 

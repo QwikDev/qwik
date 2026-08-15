@@ -37,15 +37,21 @@ const isNode = typeof process === 'object' && !!process.versions?.node;
 
 /** Resolve the pool size: explicit option > env override > default. 0/1 disables the pool. */
 export function resolvePoolSize(workers?: number): number {
-  if (typeof workers === 'number') return Math.floor(workers);
-  if (!isNode) return 0;
+  if (typeof workers === 'number') {
+    return Math.floor(workers);
+  }
+  if (!isNode) {
+    return 0;
+  }
   const env = process.env.QWIK_TS_OPTIMIZER_WORKERS;
   if (env !== undefined) {
     const parsed = Number(env);
     return Number.isFinite(parsed) ? Math.floor(parsed) : 0;
   }
   // Unit-test runners already parallelize across processes; don't nest pools.
-  if (process.env.VITEST) return 0;
+  if (process.env.VITEST) {
+    return 0;
+  }
   const cores = globalThis.navigator?.hardwareConcurrency ?? 8;
   return Math.min(4, Math.max(1, cores - 1));
 }
@@ -56,7 +62,9 @@ export function resolvePoolSize(workers?: number): number {
  * future calls — behavior stays identical, only isolation is lost.
  */
 export async function createTransformWorkerPool(size: number): Promise<TransformWorkerPool | null> {
-  if (!isNode || size < 1) return null;
+  if (!isNode || size < 1) {
+    return null;
+  }
   let wt: typeof import('node:worker_threads');
   try {
     wt = await import('node:worker_threads');
@@ -109,10 +117,14 @@ export async function createTransformWorkerPool(size: number): Promise<Transform
       const holder: PoolWorker = { worker, inflight: 0 };
       worker.on('message', (msg: WorkerResponse) => {
         const job = pending.get(msg.id);
-        if (!job) return;
+        if (!job) {
+          return;
+        }
         pending.delete(msg.id);
         holder.inflight--;
-        if (holder.inflight === 0) holder.worker.unref();
+        if (holder.inflight === 0) {
+          holder.worker.unref();
+        }
         if (msg.error !== undefined) {
           job.reject(new Error(msg.error));
         } else {
@@ -121,7 +133,9 @@ export async function createTransformWorkerPool(size: number): Promise<Transform
       });
       worker.on('error', () => breakPool(holder));
       worker.on('exit', () => {
-        if (!broken && holder.inflight > 0) breakPool(holder);
+        if (!broken && holder.inflight > 0) {
+          breakPool(holder);
+        }
       });
       // After listener setup: attaching 'message' re-refs a worker, so unref
       // last or the pool keeps the host process alive.
@@ -137,14 +151,18 @@ export async function createTransformWorkerPool(size: number): Promise<Transform
     transformModules(opts) {
       // Pre-parsed ASTs are large; cloning them defeats the purpose.
       const hasPreparsedAst = opts.input?.some((input) => input.program || input.module) ?? false;
-      if (broken || hasPreparsedAst) return runInProcess(opts);
+      if (broken || hasPreparsedAst) {
+        return runInProcess(opts);
+      }
       const holder = workers.reduce((a, b) => (b.inflight < a.inflight ? b : a));
       const id = nextId++;
       return new Promise<NapiTransformOutput>((resolve, reject) => {
         pending.set(id, { opts, resolve, reject, holder });
         holder.inflight++;
         // A busy worker must keep the host loop alive until it responds.
-        if (holder.inflight === 1) holder.worker.ref();
+        if (holder.inflight === 1) {
+          holder.worker.ref();
+        }
         holder.worker.postMessage({ id, opts } satisfies WorkerRequest);
       });
     },
@@ -169,15 +187,21 @@ export function getSharedTransformPool(size: number): Promise<TransformWorkerPoo
 
 /** Worker-side bootstrap: runs the message loop when loaded with the pool's workerData flag. */
 async function maybeStartWorkerLoop(): Promise<void> {
-  if (!isNode) return;
+  if (!isNode) {
+    return;
+  }
   let wt: typeof import('node:worker_threads');
   try {
     wt = await import('node:worker_threads');
   } catch {
     return;
   }
-  if (wt.isMainThread || !wt.parentPort) return;
-  if ((wt.workerData as Record<string, unknown> | null)?.[WORKER_FLAG] !== true) return;
+  if (wt.isMainThread || !wt.parentPort) {
+    return;
+  }
+  if ((wt.workerData as Record<string, unknown> | null)?.[WORKER_FLAG] !== true) {
+    return;
+  }
   const port = wt.parentPort;
   port.on('message', ({ id, opts }: WorkerRequest) => {
     try {

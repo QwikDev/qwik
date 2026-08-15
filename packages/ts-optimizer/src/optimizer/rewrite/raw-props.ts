@@ -57,10 +57,18 @@ function isRawPropsMemberExpression(
 function isWCallWithArrayArg(
   node: unknown
 ): node is CallExpression & { arguments: [ArrayExpression & AstRangedNode] } {
-  if (!isAstNode(node) || node.type !== 'CallExpression') return false;
-  if (!isAstNode(node.callee) || node.callee.type !== 'MemberExpression') return false;
-  if (!isIdentifierNode(node.callee.property) || node.callee.property.name !== 'w') return false;
-  if (!Array.isArray(node.arguments) || node.arguments.length !== 1) return false;
+  if (!isAstNode(node) || node.type !== 'CallExpression') {
+    return false;
+  }
+  if (!isAstNode(node.callee) || node.callee.type !== 'MemberExpression') {
+    return false;
+  }
+  if (!isIdentifierNode(node.callee.property) || node.callee.property.name !== 'w') {
+    return false;
+  }
+  if (!Array.isArray(node.arguments) || node.arguments.length !== 1) {
+    return false;
+  }
   const arg = node.arguments[0];
   return isAstNode(arg) && arg.type === 'ArrayExpression' && hasRange(arg);
 }
@@ -138,18 +146,26 @@ export function extractDestructuredFieldInfo(body: string): DestructuredFieldInf
   const result: DestructuredFieldInfo = { fieldMap, fieldDefaults };
 
   const session = createFunctionTransformSession(body);
-  if (!session) return result;
+  if (!session) {
+    return result;
+  }
 
   const params = session.fn.params;
-  if (params.length === 0) return result;
+  if (params.length === 0) {
+    return result;
+  }
 
   const firstParam = params[0];
-  if (firstParam.type !== 'ObjectPattern') return result;
+  if (firstParam.type !== 'ObjectPattern') {
+    return result;
+  }
 
   const bindings = collectPatternBindings(firstParam, body, session.offset);
   // Aborted destructure — return empty maps so downstream consolidation skips
   // this parent entirely rather than partially consolidating safe fields only.
-  if (bindings.unsafe) return result;
+  if (bindings.unsafe) {
+    return result;
+  }
 
   for (const field of bindings.fields) {
     fieldMap.set(field.local, field.key);
@@ -191,14 +207,21 @@ function collectPatternBindings(
   for (const prop of getPatternProperties(pattern)) {
     if (isRestElementNode(prop)) {
       const restId = isIdentifierNode(prop.argument) ? prop.argument.name : null;
-      if (restId) restElementName = restId;
-      else unsafe = true;
+      if (restId) {
+        restElementName = restId;
+      } else {
+        unsafe = true;
+      }
       continue;
     }
-    if (!isPropertyNode(prop)) continue;
+    if (!isPropertyNode(prop)) {
+      continue;
+    }
 
     const keyName = getObjectPropertyKeyName(prop.key);
-    if (!keyName) continue;
+    if (!keyName) {
+      continue;
+    }
 
     // A nested pattern value (`{ stuff: { hey } }`) has no `_rawProps.<key>`
     // accessor to emit, so consolidation cannot express it — abort.
@@ -211,7 +234,9 @@ function collectPatternBindings(
     }
 
     const local = getAssignedIdentifierName(prop.value);
-    if (!local) continue;
+    if (!local) {
+      continue;
+    }
 
     let defaultValue: string | undefined;
     let defaultNode: unknown | undefined;
@@ -233,7 +258,9 @@ function collectPatternBindings(
   // After the loop: needs the full binding set; any non-const default aborts.
   if (!unsafe) {
     const bindingLocals = new Set<string>(fields.map((f) => f.local));
-    if (restElementName) bindingLocals.add(restElementName);
+    if (restElementName) {
+      bindingLocals.add(restElementName);
+    }
     for (const node of defaultNodes) {
       if (node !== undefined && defaultExprIsNonConst(node, bindingLocals)) {
         unsafe = true;
@@ -251,20 +278,36 @@ function collectPatternBindings(
  * eliminated). Arrow/function bodies aren't descended; object-literal keys aren't references.
  */
 function defaultExprIsNonConst(node: unknown, bindingLocals: ReadonlySet<string>): boolean {
-  if (!isAstNode(node)) return false;
+  if (!isAstNode(node)) {
+    return false;
+  }
   const t = node.type;
-  if (t === 'CallExpression') return true;
-  if (t === 'MemberExpression' || t === 'StaticMemberExpression') return true;
-  if (t === 'ArrowFunctionExpression' || t === 'FunctionExpression') return false;
-  if (isIdentifierNode(node)) return bindingLocals.has(node.name);
+  if (t === 'CallExpression') {
+    return true;
+  }
+  if (t === 'MemberExpression' || t === 'StaticMemberExpression') {
+    return true;
+  }
+  if (t === 'ArrowFunctionExpression' || t === 'FunctionExpression') {
+    return false;
+  }
+  if (isIdentifierNode(node)) {
+    return bindingLocals.has(node.name);
+  }
 
   let found = false;
   forEachAstChild(node, (child, key, parent) => {
-    if (found) return;
+    if (found) {
+      return;
+    }
     const parentComputed = (parent as { computed?: boolean }).computed;
     const isPropertyKey = key === 'key' && parent.type === 'Property' && parentComputed !== true;
-    if (isPropertyKey) return;
-    if (defaultExprIsNonConst(child, bindingLocals)) found = true;
+    if (isPropertyKey) {
+      return;
+    }
+    if (defaultExprIsNonConst(child, bindingLocals)) {
+      found = true;
+    }
   });
   return found;
 }
@@ -313,8 +356,11 @@ function getStatementRemovalRange(
   }
 
   let removeEnd = stmt.end;
-  if (body.slice(stmtEnd).startsWith('\r\n')) removeEnd += 2;
-  else if (body.slice(stmtEnd).startsWith('\n')) removeEnd += 1;
+  if (body.slice(stmtEnd).startsWith('\r\n')) {
+    removeEnd += 2;
+  } else if (body.slice(stmtEnd).startsWith('\n')) {
+    removeEnd += 1;
+  }
 
   return { start: offset + lineStart, end: removeEnd };
 }
@@ -324,7 +370,9 @@ function isExpressionBodyArrow(body: AstMaybeNode): boolean {
 }
 
 function blockHasTopLevelReturn(body: AstMaybeNode): boolean {
-  if (body == null || body.type !== 'BlockStatement') return false;
+  if (body == null || body.type !== 'BlockStatement') {
+    return false;
+  }
   return (body.body ?? []).some((stmt) => stmt?.type === 'ReturnStatement');
 }
 
@@ -338,22 +386,32 @@ function analyzeRawPropsTransform(
 ): RawPropsTransformPlan | null {
   const { fn, offset } = session;
   const firstParam = fn.params[0];
-  if (!firstParam) return null;
+  if (!firstParam) {
+    return null;
+  }
 
   if (firstParam.type === 'Identifier') {
     return analyzeBodyDestructurePlan(firstParam.name, fn.body, body, offset);
   }
 
-  if (firstParam.type !== 'ObjectPattern') return null;
+  if (firstParam.type !== 'ObjectPattern') {
+    return null;
+  }
 
-  if (!arrowBodyLooksLikeComponent(fn.body)) return null;
+  if (!arrowBodyLooksLikeComponent(fn.body)) {
+    return null;
+  }
 
   const bindings = collectPatternBindings(firstParam, body, offset);
   // Abort the whole pattern rewrite when any field has an unsupported shape
   // (nested pattern, call-expression default, non-ident rest) — preserve the
   // source destructure verbatim.
-  if (bindings.unsafe) return null;
-  if (bindings.fields.length === 0 && !bindings.restElementName) return null;
+  if (bindings.unsafe) {
+    return null;
+  }
+  if (bindings.fields.length === 0 && !bindings.restElementName) {
+    return null;
+  }
 
   return {
     replacementParamRange: { start: firstParam.start, end: firstParam.end },
@@ -373,7 +431,9 @@ function analyzeBodyDestructurePlan(
   body: string,
   offset: number
 ): RawPropsTransformPlan | null {
-  if (!fnBody || fnBody.type !== 'BlockStatement') return null;
+  if (!fnBody || fnBody.type !== 'BlockStatement') {
+    return null;
+  }
 
   // The destructured props object may be a local derived from the param
   // (`const props = usePlayground(rawProps)`); `{ ...rest }` on it would
@@ -381,7 +441,9 @@ function analyzeBodyDestructurePlan(
   const propsDerived = collectPropsDerivedLocals(baseName, fnBody.body ?? []);
 
   for (const stmt of fnBody.body ?? []) {
-    if (stmt.type !== 'VariableDeclaration' || !hasRange(stmt)) continue;
+    if (stmt.type !== 'VariableDeclaration' || !hasRange(stmt)) {
+      continue;
+    }
 
     for (const declarator of stmt.declarations ?? []) {
       const plan = analyzeBodyDestructureDeclarator(
@@ -392,7 +454,9 @@ function analyzeBodyDestructurePlan(
         body,
         offset
       );
-      if (plan) return plan;
+      if (plan) {
+        return plan;
+      }
     }
   }
 
@@ -402,12 +466,20 @@ function analyzeBodyDestructurePlan(
 function collectPropsDerivedLocals(baseName: string, statements: readonly unknown[]): Set<string> {
   const derived = new Set<string>([baseName]);
   for (const stmt of statements) {
-    if (!isAstNode(stmt) || stmt.type !== 'VariableDeclaration' || stmt.kind !== 'const') continue;
+    if (!isAstNode(stmt) || stmt.type !== 'VariableDeclaration' || stmt.kind !== 'const') {
+      continue;
+    }
     for (const declarator of (stmt.declarations as unknown[] | undefined) ?? []) {
-      if (!isVariableDeclaratorNode(declarator)) continue;
-      if (!isIdentifierNode(declarator.id)) continue;
+      if (!isVariableDeclaratorNode(declarator)) {
+        continue;
+      }
+      if (!isIdentifierNode(declarator.id)) {
+        continue;
+      }
       const init = declarator.init;
-      if (!isAstNode(init) || init.type !== 'CallExpression') continue;
+      if (!isAstNode(init) || init.type !== 'CallExpression') {
+        continue;
+      }
       const arg0 = (init.arguments as unknown[] | undefined)?.[0];
       if (isIdentifierNode(arg0) && derived.has(arg0.name)) {
         derived.add(declarator.id.name);
@@ -425,16 +497,26 @@ function analyzeBodyDestructureDeclarator(
   body: string,
   offset: number
 ): RawPropsTransformPlan | null {
-  if (!isVariableDeclaratorNode(declarator)) return null;
-  if (!isAstNode(declarator.id) || declarator.id.type !== 'ObjectPattern') return null;
-  if (!isIdentifierNode(declarator.init) || !propsDerived.has(declarator.init.name)) return null;
+  if (!isVariableDeclaratorNode(declarator)) {
+    return null;
+  }
+  if (!isAstNode(declarator.id) || declarator.id.type !== 'ObjectPattern') {
+    return null;
+  }
+  if (!isIdentifierNode(declarator.init) || !propsDerived.has(declarator.init.name)) {
+    return null;
+  }
   const baseName = declarator.init.name;
 
   const bindings = collectPatternBindings(declarator.id, body, offset);
   // Same gate as the param-level path — preserve the source destructure when
   // any field has an unsupported shape.
-  if (bindings.unsafe) return null;
-  if (bindings.fields.length === 0 && !bindings.restElementName) return null;
+  if (bindings.unsafe) {
+    return null;
+  }
+  if (bindings.fields.length === 0 && !bindings.restElementName) {
+    return null;
+  }
 
   return {
     removeRange: getStatementRemovalRange(body, stmt, offset),
@@ -453,7 +535,9 @@ function isExcludedRange(
   node: { start: number; end: number },
   excludedRanges?: Array<{ start: number; end: number }>
 ): boolean {
-  if (!excludedRanges || excludedRanges.length === 0) return false;
+  if (!excludedRanges || excludedRanges.length === 0) {
+    return false;
+  }
   return excludedRanges.some((range) => node.start >= range.start && node.end <= range.end);
 }
 
@@ -502,9 +586,13 @@ function buildIdentifierReplacementsCollector(
       }
       return { replacements: [] };
     }
-    if (!isRangedIdentifierNode(node)) return null;
+    if (!isRangedIdentifierNode(node)) {
+      return null;
+    }
     const key = fieldLocalToKey.get(node.name);
-    if (key === undefined) return null;
+    if (key === undefined) {
+      return null;
+    }
 
     const isShorthandValue =
       ctx.parentKey === 'value' &&
@@ -542,7 +630,9 @@ function collectIdentifierReplacements(
   offset: number,
   excludedRanges?: Array<{ start: number; end: number }>
 ): IdentifierReplacement[] {
-  if (!isAstNode(root)) return [];
+  if (!isAstNode(root)) {
+    return [];
+  }
   const out: IdentifierReplacement[] = [];
   // `root` is an `AstCompatNode` narrowed via `isAstNode`; it shares the
   // structural fields the orchestrator reads, so the cast to `AstNode` is safe.
@@ -596,7 +686,9 @@ function collectRawPropsWCallReplacements(session: TransformSession): Array<{
   const replacements: Array<{ start: number; end: number; text: string }> = [];
 
   function walk(node: unknown): void {
-    if (!isAstNode(node)) return;
+    if (!isAstNode(node)) {
+      return;
+    }
 
     if (isWCallWithArrayArg(node)) {
       const arg = node.arguments[0];
@@ -605,14 +697,18 @@ function collectRawPropsWCallReplacements(session: TransformSession): Array<{
       let hasRawProps = false;
 
       for (const element of arg.elements ?? []) {
-        if (!element || !hasRange(element)) continue;
+        if (!element || !hasRange(element)) {
+          continue;
+        }
 
         const elementText = session.wrappedSource.slice(element.start, element.end).trim();
         const isRawPropsField = isRawPropsMemberExpression(element);
         const isRawPropsIdent = isIdentifierNode(element) && element.name === '_rawProps';
 
         if (isRawPropsField || isRawPropsIdent) {
-          if (isRawPropsField) hasRawPropsField = true;
+          if (isRawPropsField) {
+            hasRawPropsField = true;
+          }
           if (!hasRawProps) {
             consolidated.push('_rawProps');
             hasRawProps = true;
@@ -646,12 +742,18 @@ function collectRawPropsWCallReplacements(session: TransformSession): Array<{
 export function consolidateRawPropsInWCalls(body: string): string {
   // Textual prefilter: any body this pass could change contains both `_rawProps`
   // and `.w(`; most have neither, so skip the parse.
-  if (!body.includes('_rawProps') || !body.includes('.w(')) return body;
+  if (!body.includes('_rawProps') || !body.includes('.w(')) {
+    return body;
+  }
   const session = createTransformSession(body);
-  if (!session) return body;
+  if (!session) {
+    return body;
+  }
 
   const replacements = collectRawPropsWCallReplacements(session);
-  if (replacements.length === 0) return body;
+  if (replacements.length === 0) {
+    return body;
+  }
 
   replacements.sort((a, b) => b.start - a.start);
   for (const replacement of replacements) {
@@ -662,10 +764,14 @@ export function consolidateRawPropsInWCalls(body: string): string {
 
 export function applyRawPropsTransform(body: string): string {
   const session = createFunctionTransformSession(body);
-  if (!session) return body;
+  if (!session) {
+    return body;
+  }
 
   const plan = analyzeRawPropsTransform(session, body);
-  if (!plan) return body;
+  if (!plan) {
+    return body;
+  }
 
   if (plan.replacementParamRange) {
     session.edits.overwrite(
@@ -681,7 +787,9 @@ export function applyRawPropsTransform(body: string): string {
       session.edits.overwrite(plan.removeRange.start, plan.removeRange.end, plan.restLine);
     } else {
       session.edits.remove(plan.removeRange.start, plan.removeRange.end);
-      if (plan.restLine) insertFunctionBodyPrologue(session, session.fn, plan.restLine);
+      if (plan.restLine) {
+        insertFunctionBodyPrologue(session, session.fn, plan.restLine);
+      }
     }
   } else if (plan.restLine) {
     insertFunctionBodyPrologue(session, session.fn, plan.restLine);
@@ -706,7 +814,9 @@ export function applyRawPropsTransform(body: string): string {
 
 export function bodyConsolidatesToRawProps(body: string): boolean {
   const session = createFunctionTransformSession(body);
-  if (!session) return false;
+  if (!session) {
+    return false;
+  }
   return analyzeRawPropsTransform(session, body)?.replacementParamRange !== undefined;
 }
 
@@ -720,7 +830,9 @@ export function consolidateQpCaptureValues(
   const out: string[] = [];
   for (const p of params) {
     const value = fieldMap.has(p) ? '_rawProps' : p;
-    if (value === '_rawProps' && out.includes('_rawProps')) continue;
+    if (value === '_rawProps' && out.includes('_rawProps')) {
+      continue;
+    }
     out.push(value);
   }
   return out;

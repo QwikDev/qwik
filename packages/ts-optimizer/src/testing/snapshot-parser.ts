@@ -161,7 +161,9 @@ function extractInput(body: string): { input: string | null; rest: string } {
 
   let afterInput = body.slice(inputIdx + inputMarker.length);
   // Strip only the marker's own trailing newline; later whitespace affects qrlDEV byte offsets.
-  if (afterInput.startsWith('\n')) afterInput = afterInput.slice(1);
+  if (afterInput.startsWith('\n')) {
+    afterInput = afterInput.slice(1);
+  }
 
   const delimMatch = afterInput.match(
     createRegExp(
@@ -259,10 +261,14 @@ function parseSections(body: string): {
 
 function extractMetadata(sectionBody: string): SegmentMetadata | null {
   const metaStart = sectionBody.lastIndexOf('/*\n');
-  if (metaStart === -1) return null;
+  if (metaStart === -1) {
+    return null;
+  }
 
   const metaEnd = sectionBody.indexOf('*/', metaStart);
-  if (metaEnd === -1) return null;
+  if (metaEnd === -1) {
+    return null;
+  }
 
   const jsonStr = sectionBody.slice(metaStart + 2, metaEnd).trim();
 

@@ -8,18 +8,24 @@ import { mkFilePath, mkSourceText } from '../../../src/optimizer/types/brands.js
 
 function findSegment(modules: readonly TransformModule[]): TransformModule {
   const seg = modules.find((m) => m.kind === 'segment');
-  if (!seg) throw new Error('expected a segment module in output');
+  if (!seg) {
+    throw new Error('expected a segment module in output');
+  }
   return seg;
 }
 
 function findParent(modules: readonly TransformModule[]): TransformModule {
   const parent = modules.find((m) => m.kind === 'parent');
-  if (!parent) throw new Error('expected a parent module in output');
+  if (!parent) {
+    throw new Error('expected a parent module in output');
+  }
   return parent;
 }
 
 function segmentMeta(m: TransformModule): SegmentMetadataInternal {
-  if (m.kind !== 'segment') throw new Error('expected segment kind');
+  if (m.kind !== 'segment') {
+    throw new Error('expected segment kind');
+  }
   return m.segment as SegmentMetadataInternal;
 }
 

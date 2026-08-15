@@ -33,7 +33,9 @@ export function normalizeJsxChildren(
       const lines = raw.split('\n');
       let lastNonEmptyLine = -1;
       for (let li = 0; li < lines.length; li++) {
-        if (/[^ \t]/.test(lines[li])) lastNonEmptyLine = li;
+        if (/[^ \t]/.test(lines[li])) {
+          lastNonEmptyLine = li;
+        }
       }
       let out = '';
       for (let li = 0; li < lines.length; li++) {
@@ -41,10 +43,16 @@ export function normalizeJsxChildren(
         const isFirstLine = li === 0;
         const isLastLine = li === lines.length - 1;
         const isLastNonEmptyLine = li === lastNonEmptyLine;
-        if (!isFirstLine) line = line.replace(/^ +/, '');
-        if (!isLastLine) line = line.replace(/ +$/, '');
+        if (!isFirstLine) {
+          line = line.replace(/^ +/, '');
+        }
+        if (!isLastLine) {
+          line = line.replace(/ +$/, '');
+        }
         if (line) {
-          if (!isLastNonEmptyLine) line += ' ';
+          if (!isLastNonEmptyLine) {
+            line += ' ';
+          }
           out += line;
         }
       }
@@ -121,7 +129,9 @@ export function processChildren(
     if (text !== null) {
       parts.push(text);
     }
-    if (type === 'dynamic') isDynamic = true;
+    if (type === 'dynamic') {
+      isDynamic = true;
+    }
   }
 
   return {
@@ -142,19 +152,27 @@ function classifyNestedJsxChild(
 ): 'static' | 'dynamic' {
   if (child.type === 'JSXElement') {
     const tagName = child.openingElement.name;
-    if (tagName.type === 'JSXMemberExpression') return 'dynamic';
+    if (tagName.type === 'JSXMemberExpression') {
+      return 'dynamic';
+    }
     const tagStr = tagName.type === 'JSXIdentifier' ? tagName.name : '';
     const isComponent =
       tagStr.length > 0 &&
       tagStr[0] === tagStr[0].toUpperCase() &&
       tagStr[0] !== tagStr[0].toLowerCase();
-    if (isComponent) return 'dynamic';
+    if (isComponent) {
+      return 'dynamic';
+    }
   }
 
   const written = ctx.jsxWriteMemo?.get(child.start);
   // Unknown ⇒ mutable: a misclassified-static child stops updating.
-  if (!written || written.end !== child.end) return 'dynamic';
-  if (written.hasVarProps) return 'dynamic';
+  if (!written || written.end !== child.end) {
+    return 'dynamic';
+  }
+  if (written.hasVarProps) {
+    return 'dynamic';
+  }
   return (written.flags & 2) !== 0 ? 'static' : 'dynamic';
 }
 
@@ -169,7 +187,9 @@ function processOneChild(
 
   if (child.type === 'JSXText') {
     const trimmed = child.value.trim();
-    if (!trimmed) return { text: null, type: 'none' };
+    if (!trimmed) {
+      return { text: null, type: 'none' };
+    }
     return { text: JSON.stringify(trimmed), type: 'static' };
   }
 

@@ -15,7 +15,9 @@ function parseExpr(src: string): AstNode {
   const parsed = parseSync('__expr__.ts', wrapped);
   const decl = (parsed.program?.body?.[0] as { declarations?: Array<{ init?: AstNode }> })
     ?.declarations?.[0];
-  if (!decl?.init) throw new Error('parse failed');
+  if (!decl?.init) {
+    throw new Error('parse failed');
+  }
   return decl.init;
 }
 
@@ -84,15 +86,21 @@ describe('collectRangeReplacements', () => {
     const childVisitsA: Array<string> = [];
     const childVisitsB: Array<string> = [];
     const skipAtBinary: RangeReplacementCollector = (n) => {
-      if (n.type === 'BinaryExpression') return { replacements: [], skipSubtree: true };
+      if (n.type === 'BinaryExpression') {
+        return { replacements: [], skipSubtree: true };
+      }
       return null;
     };
     const traceA: RangeReplacementCollector = (n) => {
-      if (n.type === 'Literal') childVisitsA.push(String(n.value));
+      if (n.type === 'Literal') {
+        childVisitsA.push(String(n.value));
+      }
       return null;
     };
     const traceB: RangeReplacementCollector = (n) => {
-      if (n.type === 'Literal') childVisitsB.push(String(n.value));
+      if (n.type === 'Literal') {
+        childVisitsB.push(String(n.value));
+      }
       return null;
     };
     collectRangeReplacements(expr, expr.start, '1 + 2', [skipAtBinary, traceA, traceB]);

@@ -12,7 +12,7 @@ const dynamicRouteParam = createRegExp(
 );
 
 function extractFileStem(fileName: string): string {
-  let stem = getFileStem(fileName);
+  const stem = getFileStem(fileName);
 
   const catchAllMatch = stem.match(catchAllRouteParam);
   if (catchAllMatch) {

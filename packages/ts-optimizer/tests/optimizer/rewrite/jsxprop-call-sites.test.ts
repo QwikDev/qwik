@@ -28,7 +28,9 @@ export const App = component$(() => {
 });
 `);
       const body = findComponentBodySegment(result);
-      if (body?.kind !== 'segment') throw new Error('App component-body segment missing');
+      if (body?.kind !== 'segment') {
+        throw new Error('App component-body segment missing');
+      }
       expect(body.code).toMatch(
         /_jsxSorted\(\s*Card\s*,\s*null\s*,\s*\{\s*onProp\$:\s*q_[A-Za-z_0-9]+\s*\}/
       );
@@ -44,7 +46,9 @@ export const App = component$(() => {
 });
 `);
       const body = findComponentBodySegment(result);
-      if (body?.kind !== 'segment') throw new Error('App component-body segment missing');
+      if (body?.kind !== 'segment') {
+        throw new Error('App component-body segment missing');
+      }
       expect(body.code).toMatch(
         /_jsxSorted\(\s*Card\s*,\s*null\s*,\s*\{\s*transparent\$:\s*q_[A-Za-z_0-9]+\s*\}/
       );
@@ -60,7 +64,9 @@ export const App = component$(() => {
 });
 `);
       const body = findComponentBodySegment(result);
-      if (body?.kind !== 'segment') throw new Error('App component-body segment missing');
+      if (body?.kind !== 'segment') {
+        throw new Error('App component-body segment missing');
+      }
       expect(body.code).toMatch(/"q-e:click":\s*q_[A-Za-z_0-9]+/);
       expect(body.code).not.toMatch(/\bonClick\$:\s*q_/);
     });
@@ -78,7 +84,9 @@ export const App = component$(() => {
       const handler = result.modules.find(
         (m) => m.kind === 'segment' && m.segment.ctxName === 'onProp$'
       );
-      if (handler?.kind !== 'segment') throw new Error('Card onProp$ segment missing');
+      if (handler?.kind !== 'segment') {
+        throw new Error('Card onProp$ segment missing');
+      }
       expect(handler.segment.ctxKind).toBe('jSXProp');
     });
 
@@ -92,7 +100,9 @@ export const App = component$(() => {
       const handler = result.modules.find(
         (m) => m.kind === 'segment' && m.segment.ctxName === 'onClick$'
       );
-      if (handler?.kind !== 'segment') throw new Error('div onClick$ segment missing');
+      if (handler?.kind !== 'segment') {
+        throw new Error('div onClick$ segment missing');
+      }
       expect(handler.segment.ctxKind).toBe('eventHandler');
     });
   });

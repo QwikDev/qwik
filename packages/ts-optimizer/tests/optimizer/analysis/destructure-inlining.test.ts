@@ -28,7 +28,9 @@ export const App = component$((props) => {
 });
 `);
       const body = findComponentBodySegment(result);
-      if (body?.kind !== 'segment') throw new Error('App component-body segment missing');
+      if (body?.kind !== 'segment') {
+        throw new Error('App component-body segment missing');
+      }
       expect(body.code).not.toMatch(/const\s*\{\s*Model\s*\}\s*=\s*props\s*;/);
       expect(body.code).toMatch(/_jsxSorted\(\s*props\.Model\s*,/);
       expect(body.code).not.toMatch(/_jsxSorted\(\s*Model\s*,/);
@@ -43,7 +45,9 @@ export const App = component$((props) => {
 });
 `);
       const body = findComponentBodySegment(result);
-      if (body?.kind !== 'segment') throw new Error('App component-body segment missing');
+      if (body?.kind !== 'segment') {
+        throw new Error('App component-body segment missing');
+      }
       expect(body.code).toMatch(/_jsxSorted\(\s*props\.Wrapper\s*,/);
     });
 
@@ -56,7 +60,9 @@ export const App = component$((props) => {
 });
 `);
       const body = findComponentBodySegment(result);
-      if (body?.kind !== 'segment') throw new Error('App component-body segment missing');
+      if (body?.kind !== 'segment') {
+        throw new Error('App component-body segment missing');
+      }
       expect(body.code).not.toMatch(/const\s*\{\s*Model\s*,\s*count\s*\}\s*=\s*props\s*;/);
       expect(body.code).toMatch(/_jsxSorted\(\s*props\.Model\s*,/);
       expect(body.code).toMatch(/_wrapProp\(\s*props\s*,\s*"count"\s*\)/);
@@ -74,7 +80,9 @@ export const App = component$((props) => {
 });
 `);
       const body = findComponentBodySegment(result);
-      if (body?.kind !== 'segment') throw new Error('App component-body segment missing');
+      if (body?.kind !== 'segment') {
+        throw new Error('App component-body segment missing');
+      }
       expect(body.code).toMatch(/\bmodel:\s*_wrapProp\(\s*props\s*,\s*"model"\s*\)/);
       expect(body.code).not.toMatch(/"props\.model":/);
       expect(body.code).not.toMatch(/\bprops\.model\s*:/);
@@ -91,7 +99,9 @@ export const App = component$(() => {
 });
 `);
       const body = findComponentBodySegment(result);
-      if (body?.kind !== 'segment') throw new Error('App component-body segment missing');
+      if (body?.kind !== 'segment') {
+        throw new Error('App component-body segment missing');
+      }
       expect(body.code).toMatch(/_jsxSorted\(\s*X\s*,/);
       expect(body.code).not.toMatch(/_jsxSorted\(\s*props\.X\s*,/);
     });

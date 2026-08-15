@@ -49,23 +49,31 @@ export function detectC02Diagnostics(
 ): void {
   for (const extraction of extractions) {
     const closureNode = closureNodes.get(extraction.symbolName);
-    if (!closureNode) continue;
+    if (!closureNode) {
+      continue;
+    }
 
     const undeclaredIds = closureFreeIdentifiers.get(closureNode);
-    if (!undeclaredIds || undeclaredIds.length === 0) continue;
+    if (!undeclaredIds || undeclaredIds.length === 0) {
+      continue;
+    }
 
     const enclosingExt = enclosingExtMap.get(extraction.symbolName) ?? null;
     const enclosingClosure = enclosingExt ? closureNodes.get(enclosingExt.symbolName) : undefined;
 
     // C02 fires only for fn/class refs inside an enclosing extraction's closure —
     // module-level refs are handled by variable-migration and would false-positive.
-    if (!enclosingClosure) continue;
+    if (!enclosingClosure) {
+      continue;
+    }
 
     type Classified = { refName: string; declType: 'var' | 'fn' | 'class' };
     const classified: Classified[] = [];
     const fnOrClassNames = new Set<string>();
     for (const refName of undeclaredIds) {
-      if (importedNames.has(refName)) continue;
+      if (importedNames.has(refName)) {
+        continue;
+      }
       let declType: 'var' | 'fn' | 'class';
       try {
         declType = classifyDeclarationTypeInClosure(enclosingClosure, refName);
@@ -78,7 +86,9 @@ export function detectC02Diagnostics(
       }
     }
 
-    if (classified.length === 0) continue;
+    if (classified.length === 0) {
+      continue;
+    }
 
     const referenceSites = collectIdentifierReferenceSites(closureNode, fnOrClassNames);
 
@@ -116,22 +126,32 @@ export function detectC05Diagnostics(
   const targets = new Set<string>();
   const targetToQrl = new Map<string, string>();
   for (const exportName of moduleExportNames) {
-    if (!exportName.endsWith('$')) continue;
+    if (!exportName.endsWith('$')) {
+      continue;
+    }
     const importInfo = originalImports.get(exportName);
-    if (importInfo?.isQwikCore) continue;
+    if (importInfo?.isQwikCore) {
+      continue;
+    }
     const qrlName = plainQrlName(exportName);
-    if (moduleExportNames.has(qrlName)) continue;
+    if (moduleExportNames.has(qrlName)) {
+      continue;
+    }
     targets.add(exportName);
     targetToQrl.set(exportName, qrlName);
   }
 
-  if (targets.size === 0) return;
+  if (targets.size === 0) {
+    return;
+  }
 
   const callSitesByName = collectCallSitesByName(program, targets);
 
   for (const [exportName, sites] of callSitesByName) {
     const qrlName = targetToQrl.get(exportName);
-    if (!qrlName) continue;
+    if (!qrlName) {
+      continue;
+    }
     for (const site of sites) {
       diagnostics.push(
         emitC05(exportName, qrlName, file, buildHighlight(source, site.start, site.end))
@@ -166,14 +186,18 @@ export function detectPassivePreventdefaultConflicts(
 ): void {
   walk(program, {
     enter(node: AstNode) {
-      if (node.type !== 'JSXOpeningElement') return;
+      if (node.type !== 'JSXOpeningElement') {
+        return;
+      }
 
       const attrs = node.attributes ?? [];
       const passiveEvents = new Set<string>();
       const preventdefaultEvents = new Set<string>();
 
       for (const attr of attrs) {
-        if (attr.type !== 'JSXAttribute') continue;
+        if (attr.type !== 'JSXAttribute') {
+          continue;
+        }
 
         const name = getJsxAttributeName(attr);
 
@@ -210,13 +234,17 @@ function collectCallSitesByName(
         node.type !== 'CallExpression' ||
         node.callee?.type !== 'Identifier' ||
         !names.has(node.callee.name)
-      )
+      ) {
         return;
+      }
       const name = node.callee.name;
       const bucket = out.get(name);
       const entry = { start: node.callee.start, end: node.callee.end };
-      if (bucket) bucket.push(entry);
-      else out.set(name, [entry]);
+      if (bucket) {
+        bucket.push(entry);
+      } else {
+        out.set(name, [entry]);
+      }
     },
   });
   return out;
@@ -227,16 +255,26 @@ function collectIdentifierReferenceSites(
   names: Set<string>
 ): Map<string, SourceRange> {
   const out = new Map<string, SourceRange>();
-  if (names.size === 0) return out;
+  if (names.size === 0) {
+    return out;
+  }
   let remaining = names.size;
 
   walk(closureNode, {
     enter(node: AstNode, parent: AstParentNode) {
-      if (remaining === 0) return;
-      if (node.type !== 'Identifier') return;
+      if (remaining === 0) {
+        return;
+      }
+      if (node.type !== 'Identifier') {
+        return;
+      }
       const name = node.name;
-      if (!names.has(name) || out.has(name)) return;
-      if (isDeclaringOrMemberKey(node, parent)) return;
+      if (!names.has(name) || out.has(name)) {
+        return;
+      }
+      if (isDeclaringOrMemberKey(node, parent)) {
+        return;
+      }
       out.set(name, { start: node.start, end: node.end });
       remaining--;
     },
@@ -246,7 +284,9 @@ function collectIdentifierReferenceSites(
 }
 
 function isDeclaringOrMemberKey(node: AstNode, parent: AstParentNode): boolean {
-  if (!parent) return false;
+  if (!parent) {
+    return false;
+  }
   switch (parent.type) {
     case 'VariableDeclarator':
       return parent.id === node;

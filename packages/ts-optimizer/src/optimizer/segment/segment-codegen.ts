@@ -150,13 +150,17 @@ function buildSegmentImports(
   const importsBySource = new Map<string, SegmentImportSpec[]>();
 
   for (const imp of extraction.segmentImports) {
-    if (capturedNames.has(imp.localName)) continue;
+    if (capturedNames.has(imp.localName)) {
+      continue;
+    }
 
     const rewrittenSource = rewriteImportSource(imp.source);
     const existing = importsBySource.get(rewrittenSource);
     const spec: SegmentImportSpec = { localName: imp.localName, importedName: imp.importedName };
     if (existing) {
-      if (!existing.some((s) => s.localName === imp.localName)) existing.push(spec);
+      if (!existing.some((s) => s.localName === imp.localName)) {
+        existing.push(spec);
+      }
     } else {
       importsBySource.set(rewrittenSource, [spec]);
     }
@@ -196,7 +200,9 @@ function buildSegmentImports(
     } else if (defaultSpec) {
       importStmt = `import ${defaultSpec.localName} from "${source}"${importAttrsSuffix};`;
     }
-    if (importStmt) parts.push(importStmt);
+    if (importStmt) {
+      parts.push(importStmt);
+    }
   }
 
   return { parts, importsBySource };
@@ -232,7 +238,9 @@ function addCaptureAndMigrationImports(
     }
   }
 
-  if (parts.length > 0) parts.push('//');
+  if (parts.length > 0) {
+    parts.push('//');
+  }
 
   if (captureInfo && captureInfo.movedDeclarations.length > 0) {
     for (const moved of captureInfo.movedDeclarations) {
@@ -260,20 +268,27 @@ function addCaptureAndMigrationImports(
 }
 
 function addNestedQrlDeclarations(parts: string[], nestedQrlDecls: string[] | undefined): void {
-  if (!nestedQrlDecls || nestedQrlDecls.length === 0) return;
+  if (!nestedQrlDecls || nestedQrlDecls.length === 0) {
+    return;
+  }
 
   const neededSymbols: string[] = [];
-  if (nestedQrlDecls.some((d) => d.includes('qrlDEV(') && !d.includes('_noopQrlDEV(')))
+  if (nestedQrlDecls.some((d) => d.includes('qrlDEV(') && !d.includes('_noopQrlDEV('))) {
     neededSymbols.push('qrlDEV');
+  }
   if (
     nestedQrlDecls.some(
       (d) => d.includes('qrl(') && !d.includes('_noopQrl(') && !d.includes('qrlDEV(')
     )
-  )
+  ) {
     neededSymbols.push('qrl');
-  if (nestedQrlDecls.some((d) => d.includes('_noopQrlDEV('))) neededSymbols.push('_noopQrlDEV');
-  if (nestedQrlDecls.some((d) => d.includes('_noopQrl(') && !d.includes('_noopQrlDEV(')))
+  }
+  if (nestedQrlDecls.some((d) => d.includes('_noopQrlDEV('))) {
+    neededSymbols.push('_noopQrlDEV');
+  }
+  if (nestedQrlDecls.some((d) => d.includes('_noopQrl(') && !d.includes('_noopQrlDEV('))) {
     neededSymbols.push('_noopQrl');
+  }
 
   for (const sym of neededSymbols) {
     if (!partsHaveImport(parts, sym)) {
@@ -292,7 +307,9 @@ function addNestedQrlDeclarations(parts: string[], nestedQrlDecls: string[] | un
     const nameB = b.match(qrlConstName)?.[1] ?? b;
     return nameA.localeCompare(nameB);
   });
-  for (const decl of sortedDecls) parts.push(decl);
+  for (const decl of sortedDecls) {
+    parts.push(decl);
+  }
   parts.push('//');
 }
 
@@ -313,7 +330,9 @@ function transformSegmentJsxCalls(
   // Cheap fast-path: only parse if the body even mentions a candidate
   // jsx-function name. Most segments don't.
   const jsxFunctions = collectJsxFunctionNames(importContext);
-  if (jsxFunctions.size === 0) return { bodyText };
+  if (jsxFunctions.size === 0) {
+    return { bodyText };
+  }
 
   let anyMatch = false;
   for (const name of jsxFunctions) {
@@ -322,11 +341,15 @@ function transformSegmentJsxCalls(
       break;
     }
   }
-  if (!anyMatch) return { bodyText };
+  if (!anyMatch) {
+    return { bodyText };
+  }
 
   try {
     const session = createTransformSession(bodyText, { tolerateErrors: true });
-    if (!session) return { bodyText };
+    if (!session) {
+      return { bodyText };
+    }
 
     const prefix = relPath ? computeKeyPrefix(relPath) : 'u6';
     const startAt = keyCounterStartOverride ?? 0;
@@ -347,7 +370,9 @@ function transformSegmentJsxCalls(
 
     const newBodyText = session.toSource();
 
-    if (newBodyText === bodyText) return { bodyText };
+    if (newBodyText === bodyText) {
+      return { bodyText };
+    }
 
     for (const sym of neededImports) {
       if (!parts.some((p) => p.includes(`{ ${sym} }`) || p.includes(`, ${sym}`))) {
@@ -360,7 +385,9 @@ function transformSegmentJsxCalls(
       }
     }
 
-    for (const decl of signalHoister.getDeclarations()) parts.push(decl);
+    for (const decl of signalHoister.getDeclarations()) {
+      parts.push(decl);
+    }
 
     return { bodyText: newBodyText, keyCounterValue: keyCounter.current() };
   } catch {
@@ -375,11 +402,15 @@ function transformSegmentJsx(
   nestedCallSites: NestedCallSiteInfo[] | undefined,
   captureInfo: SegmentCaptureInfo | undefined
 ): { bodyText: string; keyCounterValue?: number } {
-  if (!/(?:<[A-Z_a-z\/]|JSX)/.test(bodyText)) return { bodyText };
+  if (!/(?:<[A-Z_a-z\/]|JSX)/.test(bodyText)) {
+    return { bodyText };
+  }
 
   try {
     const session = createTransformSession(bodyText, { tolerateErrors: true });
-    if (!session) return { bodyText };
+    if (!session) {
+      return { bodyText };
+    }
 
     const qrlsWithCaptures = buildQrlsWithCapturesSet(nestedCallSites);
     const qrlsNonConst = buildQrlsNonConstSet(nestedCallSites);
@@ -391,8 +422,9 @@ function transformSegmentJsx(
       // body entry; they're runtime-const but have no AST declaration in
       // this body. Inject as program-scope consts so any reference in the
       // segment classifies as const (unless shadowed by an inner binding).
-      for (const name of captureInfo.captureNames)
+      for (const name of captureInfo.captureNames) {
         segScopeBindings.bindings.addProgramScopeConst(name);
+      }
     }
 
     // The session wrapper adds a prefix; without `sourcePosition`
@@ -444,7 +476,9 @@ function transformSegmentJsx(
       );
     }
     if (jsxResult.hoistedDeclarations) {
-      for (const decl of jsxResult.hoistedDeclarations) parts.push(decl);
+      for (const decl of jsxResult.hoistedDeclarations) {
+        parts.push(decl);
+      }
     }
 
     return { bodyText, keyCounterValue: jsxResult.keyCounterValue };
@@ -456,10 +490,14 @@ function transformSegmentJsx(
 function buildQrlsNonConstSet(
   nestedCallSites: NestedCallSiteInfo[] | undefined
 ): Set<string> | undefined {
-  if (!nestedCallSites) return undefined;
+  if (!nestedCallSites) {
+    return undefined;
+  }
   const result = new Set<string>();
   for (const site of nestedCallSites) {
-    if (site.liftedNonConst) result.add(site.qrlVarName);
+    if (site.liftedNonConst) {
+      result.add(site.qrlVarName);
+    }
   }
   return result.size > 0 ? result : undefined;
 }
@@ -467,7 +505,9 @@ function buildQrlsNonConstSet(
 function buildQrlsWithCapturesSet(
   nestedCallSites: NestedCallSiteInfo[] | undefined
 ): Set<string> | undefined {
-  if (!nestedCallSites) return undefined;
+  if (!nestedCallSites) {
+    return undefined;
+  }
   const result = new Set<string>();
   for (const site of nestedCallSites) {
     // Either form of cross-loop wiring contributes a "captures" qrl: the
@@ -479,7 +519,9 @@ function buildQrlsWithCapturesSet(
     const hasHoistedCaptures = !!site.hoistedSymbolName;
     if (hasLoopLocal || hasHoistedCaptures) {
       result.add(site.qrlVarName);
-      if (site.hoistedSymbolName) result.add(site.hoistedSymbolName);
+      if (site.hoistedSymbolName) {
+        result.add(site.hoistedSymbolName);
+      }
     }
   }
   return result.size > 0 ? result : undefined;
@@ -507,9 +549,13 @@ function buildQpOverrides(
   const qpOverrides = new Map<number, string[]>();
   const qrlParamMap = new Map<string, string[]>();
   for (const site of nestedCallSites) {
-    if (!site.loopLocalParamNames || site.loopLocalParamNames.length === 0) continue;
+    if (!site.loopLocalParamNames || site.loopLocalParamNames.length === 0) {
+      continue;
+    }
     qrlParamMap.set(site.qrlVarName, site.loopLocalParamNames);
-    if (site.hoistedSymbolName) qrlParamMap.set(site.hoistedSymbolName, site.loopLocalParamNames);
+    if (site.hoistedSymbolName) {
+      qrlParamMap.set(site.hoistedSymbolName, site.loopLocalParamNames);
+    }
   }
 
   // Per-attr site lookup (not a pre-merged map) so a site that matches by
@@ -534,19 +580,30 @@ function normalizeSeparators(parts: string[]): void {
   const other: string[] = [];
 
   for (const p of allParts) {
-    if (p.startsWith('import ')) imports.push(p);
-    else if (p.trimStart().startsWith('const _hf')) hoisted.push(p);
-    else if (p.trimStart().startsWith('const q_')) qrlDecls.push(p);
-    else other.push(p);
+    if (p.startsWith('import ')) {
+      imports.push(p);
+    } else if (p.trimStart().startsWith('const _hf')) {
+      hoisted.push(p);
+    } else if (p.trimStart().startsWith('const q_')) {
+      qrlDecls.push(p);
+    } else {
+      other.push(p);
+    }
   }
 
   parts.length = 0;
-  if (imports.length > 0) parts.push(...imports, '//');
+  if (imports.length > 0) {
+    parts.push(...imports, '//');
+  }
   if (hoisted.length > 0) {
     parts.push(...hoisted);
-    if (qrlDecls.length > 0) parts.push('//');
+    if (qrlDecls.length > 0) {
+      parts.push('//');
+    }
   }
-  if (qrlDecls.length > 0) parts.push(...qrlDecls, '//');
+  if (qrlDecls.length > 0) {
+    parts.push(...qrlDecls, '//');
+  }
   parts.push(...other);
 }
 
@@ -715,7 +772,9 @@ export function generateSegmentCode(
   // a separator before calling so the early-return path doesn't bail out.
   const scanText =
     bodyText + '\n' + parts.filter((p) => !p.startsWith('import') && p !== '//').join('\n');
-  if (parts.indexOf('//') < 0) parts.push('//');
+  if (parts.indexOf('//') < 0) {
+    parts.push('//');
+  }
   ensureCoreImports(scanText, parts);
   bodyText = transformSyncCalls(bodyText, parts);
 

@@ -33,7 +33,7 @@ describe('someAstChild', () => {
     const a = mkNode('A');
     const b = mkNode('B');
     const node = mkNode('Foo', { items: [a, b] });
-    let seen: string[] = [];
+    const seen: string[] = [];
     const result = someAstChild(node, (child) => {
       seen.push(child.type);
       return (child.type as string) === 'B';
@@ -47,7 +47,7 @@ describe('someAstChild', () => {
     const b = mkNode('B');
     const c = mkNode('C');
     const node = mkNode('Foo', { items: [a, b, c] });
-    let seen: string[] = [];
+    const seen: string[] = [];
     someAstChild(node, (child) => {
       seen.push(child.type);
       return (child.type as string) === 'B';

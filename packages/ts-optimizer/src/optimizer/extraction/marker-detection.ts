@@ -70,7 +70,9 @@ export function collectImports(
   }
 
   for (const node of program.body) {
-    if (node.type !== 'ImportDeclaration') continue;
+    if (node.type !== 'ImportDeclaration') {
+      continue;
+    }
 
     const source = node.source.value;
     const isQwik = isQwikPackageSource(source);
@@ -125,7 +127,9 @@ export function collectExportNames(
   }
 
   for (const stmt of program.body) {
-    if (stmt.type !== 'ExportNamedDeclaration') continue;
+    if (stmt.type !== 'ExportNamedDeclaration') {
+      continue;
+    }
 
     if (stmt.declaration?.type === 'VariableDeclaration') {
       for (const decl of stmt.declaration.declarations ?? []) {
@@ -145,7 +149,9 @@ export function collectExportNames(
 
     for (const spec of stmt.specifiers ?? []) {
       const exportedName = getExportedSpecifierName(spec.exported);
-      if (exportedName) exports.add(exportedName);
+      if (exportedName) {
+        exports.add(exportedName);
+      }
     }
   }
 
@@ -156,21 +162,35 @@ export function collectCustomInlined(program: AstProgram): Map<string, CustomInl
   const custom = new Map<string, CustomInlinedInfo>();
 
   for (const node of program.body) {
-    if (node.type !== 'ExportNamedDeclaration') continue;
-    if (!node.declaration || node.declaration.type !== 'VariableDeclaration') continue;
+    if (node.type !== 'ExportNamedDeclaration') {
+      continue;
+    }
+    if (!node.declaration || node.declaration.type !== 'VariableDeclaration') {
+      continue;
+    }
 
     for (const decl of node.declaration.declarations) {
-      if (decl.id?.type !== 'Identifier') continue;
+      if (decl.id?.type !== 'Identifier') {
+        continue;
+      }
 
       const name = decl.id.name;
-      if (!name.endsWith('$')) continue;
+      if (!name.endsWith('$')) {
+        continue;
+      }
 
       const init = decl.init;
-      if (!init || init.type !== 'CallExpression') continue;
-      if (init.arguments.length < 1) continue;
+      if (!init || init.type !== 'CallExpression') {
+        continue;
+      }
+      if (init.arguments.length < 1) {
+        continue;
+      }
 
       const firstArg = init.arguments[0];
-      if (firstArg.type !== 'Identifier' || !firstArg.name.endsWith('Qrl')) continue;
+      if (firstArg.type !== 'Identifier' || !firstArg.name.endsWith('Qrl')) {
+        continue;
+      }
 
       custom.set(name, { dollarName: name, qrlName: firstArg.name });
     }
@@ -193,11 +213,17 @@ export function isMarkerCall(
   customInlined: Map<string, CustomInlinedInfo>
 ): boolean {
   const name = getCalleeName(callExpr);
-  if (!name) return false;
+  if (!name) {
+    return false;
+  }
 
   const importInfo = imports.get(name);
-  if (importInfo && importInfo.importedName.endsWith('$')) return true;
-  if (name.endsWith('$') && customInlined.has(name)) return true;
+  if (importInfo && importInfo.importedName.endsWith('$')) {
+    return true;
+  }
+  if (name.endsWith('$') && customInlined.has(name)) {
+    return true;
+  }
 
   return false;
 }
@@ -212,8 +238,12 @@ export function getExtractionKind(
   isJsxEventAttr: boolean,
   isJsxNonEventAttr: boolean = false
 ): 'function' | 'eventHandler' | 'jSXProp' {
-  if (isJsxEventAttr) return 'eventHandler';
-  if (isJsxNonEventAttr) return 'jSXProp';
+  if (isJsxEventAttr) {
+    return 'eventHandler';
+  }
+  if (isJsxNonEventAttr) {
+    return 'jSXProp';
+  }
   return 'function';
 }
 
@@ -235,7 +265,9 @@ export function getExtractionName(
 export function sourceMayContainMarkers(source: string): boolean {
   for (let idx = source.indexOf('$'); idx !== -1; idx = source.indexOf('$', idx + 1)) {
     // charCodeAt past end is NaN (!== '{'), so a trailing `$` over-includes safely.
-    if (source.charCodeAt(idx + 1) !== 0x7b /* '{' */) return true;
+    if (source.charCodeAt(idx + 1) !== 0x7b /* '{' */) {
+      return true;
+    }
   }
   return source.includes('inlinedQrl') || source.includes('\\u0024') || source.includes('\\u{24}');
 }

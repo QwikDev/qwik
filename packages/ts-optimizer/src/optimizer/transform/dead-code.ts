@@ -35,14 +35,18 @@ export function hasSegmentDcePatterns(code: string): boolean {
 
 /** Resolve an expression to a compile-time boolean when possible. */
 function resolveBoolValue(node: AstMaybeNode): boolean | undefined {
-  if (node == null) return undefined;
+  if (node == null) {
+    return undefined;
+  }
   switch (node.type) {
     case 'Literal':
       return typeof node.value === 'boolean' ? node.value : undefined;
     case 'ParenthesizedExpression':
       return resolveBoolValue(node.expression);
     case 'UnaryExpression': {
-      if (node.operator !== '!') return undefined;
+      if (node.operator !== '!') {
+        return undefined;
+      }
       const inner = resolveBoolValue(node.argument);
       return inner === undefined ? undefined : !inner;
     }
@@ -53,7 +57,9 @@ function resolveBoolValue(node: AstMaybeNode): boolean | undefined {
 
 /** Top-level lexical declarations make a block unsafe to unwrap into statement position. */
 function blockHasLexicalDecls(block: AstNode): boolean {
-  if (block.type !== 'BlockStatement') return false;
+  if (block.type !== 'BlockStatement') {
+    return false;
+  }
   for (const stmt of block.body ?? []) {
     if (
       stmt.type === 'VariableDeclaration' ||
@@ -114,7 +120,9 @@ export function applySegmentDCE(code: string, filename = 'dce.tsx'): string {
   }
 
   function walk(node: AstMaybeNode, ctx: FoldContext): void {
-    if (node == null) return;
+    if (node == null) {
+      return;
+    }
 
     if (node.type === 'IfStatement') {
       const value = resolveBoolValue(node.test);
@@ -174,6 +182,8 @@ export function applySegmentDCE(code: string, filename = 'dce.tsx'): string {
 
   walk(program as unknown as AstNode, { inStatementList: true });
 
-  if (!changed) return code;
+  if (!changed) {
+    return code;
+  }
   return s.toString();
 }

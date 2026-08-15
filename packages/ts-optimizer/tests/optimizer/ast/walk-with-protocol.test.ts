@@ -81,7 +81,9 @@ describe('walkWithProtocol — behavioural parity with raw walk', () => {
       {
         enter(node) {
           visited.push(node.type);
-          if (node.type === 'ObjectExpression') this.skip();
+          if (node.type === 'ObjectExpression') {
+            this.skip();
+          }
         },
         leave() {
           /* no-op */

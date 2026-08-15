@@ -57,7 +57,9 @@ function injectQpProp(
   constEntries: string[],
   qrlsWithCaptures: Set<string> | undefined
 ): void {
-  if (!tagIsHtml) return;
+  if (!tagIsHtml) {
+    return;
+  }
 
   const overrideParams = qpOverrides?.get(node.start);
   if (overrideParams && overrideParams.length > 0) {
@@ -68,12 +70,16 @@ function injectQpProp(
     return;
   }
 
-  if (!inLoop || qpOverrides) return;
+  if (!inLoop || qpOverrides) {
+    return;
+  }
 
   const hasEventHandlers =
     varEntries.some((e) => isRewrittenEventEntry(e) || e.startsWith('"host:')) ||
     constEntries.some((e) => isRewrittenEventEntry(e) || e.startsWith('"host:'));
-  if (!hasEventHandlers) return;
+  if (!hasEventHandlers) {
+    return;
+  }
 
   // Suppress the iterVars fallback when an event handler references a QRL with
   // hoisted cross-scope captures: those handlers receive data via `.w([captures])`
@@ -119,14 +125,24 @@ function eventHandlerReferencesCapturingQrl(
   qrlsWithCaptures: Set<string>
 ): boolean {
   for (const e of [...varEntries, ...constEntries]) {
-    if (!isRewrittenEventEntry(e)) continue;
-    if (e[0] !== '"') continue;
+    if (!isRewrittenEventEntry(e)) {
+      continue;
+    }
+    if (e[0] !== '"') {
+      continue;
+    }
     const closingQuote = e.indexOf('"', 1);
-    if (closingQuote < 0) continue;
+    if (closingQuote < 0) {
+      continue;
+    }
     const colonIdx = e.indexOf(':', closingQuote);
-    if (colonIdx < 0) continue;
+    if (colonIdx < 0) {
+      continue;
+    }
     const valueText = e.slice(colonIdx + 1).trim();
-    if (qrlsWithCaptures.has(valueText)) return true;
+    if (qrlsWithCaptures.has(valueText)) {
+      return true;
+    }
   }
   return false;
 }
@@ -142,15 +158,21 @@ function moveEventHandlersForNonConstCaptures(
   constEntries: string[],
   hasSpread: boolean
 ): boolean {
-  if (!tagIsHtml || inLoop) return false;
+  if (!tagIsHtml || inLoop) {
+    return false;
+  }
 
   const overrideParams = qpOverrides?.get(node.start);
-  if (!overrideParams || overrideParams.length === 0) return false;
+  if (!overrideParams || overrideParams.length === 0) {
+    return false;
+  }
 
   const hasNonConstParam = overrideParams.some(
     (p) => bindings?.classify(p, node.start) !== 'const' && !importedNames.has(p)
   );
-  if (!hasNonConstParam) return false;
+  if (!hasNonConstParam) {
+    return false;
+  }
 
   let movedAny = false;
   for (let i = constEntries.length - 1; i >= 0; i--) {
@@ -219,22 +241,38 @@ function tryBuildSourceOrderedJsxSplit(
   let spreadCount = 0;
   let lastSpreadStart = -1;
   for (const slot of slotOrder) {
-    if (slot.kind !== 'spread') continue;
+    if (slot.kind !== 'spread') {
+      continue;
+    }
     spreadCount++;
-    if (slot.sourceStart > lastSpreadStart) lastSpreadStart = slot.sourceStart;
+    if (slot.sourceStart > lastSpreadStart) {
+      lastSpreadStart = slot.sourceStart;
+    }
   }
-  if (spreadCount < 2) return null;
+  if (spreadCount < 2) {
+    return null;
+  }
 
   let hasRealConstAfterSpreads = false;
   for (const slot of slotOrder) {
-    if (slot.kind !== 'named') continue;
-    if (slot.classification !== 'const') continue;
-    if (slot.sourceStart <= lastSpreadStart) continue;
-    if (isRewrittenEventEntry(slot.entry) || slot.entry.startsWith('"q:')) continue;
+    if (slot.kind !== 'named') {
+      continue;
+    }
+    if (slot.classification !== 'const') {
+      continue;
+    }
+    if (slot.sourceStart <= lastSpreadStart) {
+      continue;
+    }
+    if (isRewrittenEventEntry(slot.entry) || slot.entry.startsWith('"q:')) {
+      continue;
+    }
     hasRealConstAfterSpreads = true;
     break;
   }
-  if (!hasRealConstAfterSpreads) return null;
+  if (!hasRealConstAfterSpreads) {
+    return null;
+  }
 
   const varParts: string[] = [];
   const constParts: string[] = [];
@@ -291,7 +329,9 @@ function buildJsxSplitCall(
       keyStr,
       neededImports
     );
-    if (sourceOrdered !== null) return sourceOrdered;
+    if (sourceOrdered !== null) {
+      return sourceOrdered;
+    }
   }
 
   // Multiple spreads: emit slots in source order so a later spread overrides
@@ -449,7 +489,9 @@ export function transformJsxElement(
   node: JSXElement,
   opts: JsxElementOptions = {}
 ): JsxTransformResult | null {
-  if (node.type !== 'JSXElement') return null;
+  if (node.type !== 'JSXElement') {
+    return null;
+  }
 
   const { source, importedNames, keyCounter, bindings, qrlsWithCaptures } = ctx;
   const {
@@ -638,7 +680,9 @@ export function transformJsxFragment(
   node: JSXFragment,
   opts: { inAttrValue?: boolean } = {}
 ): JsxTransformResult | null {
-  if (node.type !== 'JSXFragment') return null;
+  if (node.type !== 'JSXFragment') {
+    return null;
+  }
 
   const { keyCounter } = ctx;
   const neededImports = new Set<string>();

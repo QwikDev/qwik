@@ -37,7 +37,9 @@ export function collectSameFileSymbolInfo(program: AstProgram): SameFileSymbolIn
 
       for (const spec of node.specifiers ?? []) {
         const exportedName = getSpecifierName(spec.exported);
-        if (exportedName) sameFileSymbols.add(exportedName);
+        if (exportedName) {
+          sameFileSymbols.add(exportedName);
+        }
 
         const localName = getSpecifierName(spec.local);
         if (localName && exportedName && localName !== exportedName) {

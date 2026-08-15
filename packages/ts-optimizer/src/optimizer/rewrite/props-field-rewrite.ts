@@ -27,10 +27,14 @@ function propsFieldIdentifierCollector(
   memberPropertyMode: 'all' | 'nonComputed' | undefined
 ): RangeReplacementCollector {
   return (node, ctx) => {
-    if (node.type !== 'Identifier') return null;
+    if (node.type !== 'Identifier') {
+      return null;
+    }
     const localName = node.name;
     const key = fieldMap.get(localName);
-    if (key === undefined) return null;
+    if (key === undefined) {
+      return null;
+    }
 
     const isShorthandValue =
       ctx.parentKey === 'value' &&
@@ -40,7 +44,9 @@ function propsFieldIdentifierCollector(
     const isReferencePosition =
       isShorthandValue ||
       isReplaceableIdentifierPosition(ctx.parentKey, ctx.parentNode, { memberPropertyMode });
-    if (!isReferencePosition) return null;
+    if (!isReferencePosition) {
+      return null;
+    }
 
     const baseAccessor = buildPropertyAccessor('_rawProps', key);
     const defaultExpr = defaultValues?.get(localName);
@@ -77,7 +83,9 @@ export function rewritePropsFieldReferences(
   fieldMap: Map<string, string>,
   options: RewritePropsFieldReferencesOptions
 ): string {
-  if (fieldMap.size === 0) return bodyText;
+  if (fieldMap.size === 0) {
+    return bodyText;
+  }
 
   let session;
   try {
@@ -86,7 +94,9 @@ export function rewritePropsFieldReferences(
     return bodyText;
   }
 
-  if (!session) return bodyText;
+  if (!session) {
+    return bodyText;
+  }
 
   const { offset, program, wrappedSource } = session;
   const collector = propsFieldIdentifierCollector(
@@ -98,7 +108,9 @@ export function rewritePropsFieldReferences(
   // Ranges are relative to `wrappedSource`; slicing off the wrapper prefix
   // yields the original body's edited form.
   const replacements = collectRangeReplacements(program, 0, wrappedSource, [collector]);
-  if (replacements.length === 0) return bodyText;
+  if (replacements.length === 0) {
+    return bodyText;
+  }
 
   const edited = applyReplacements(wrappedSource, replacements);
   return edited.slice(offset, edited.length - session.wrapperSuffix.length);

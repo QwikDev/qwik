@@ -37,7 +37,9 @@ export const App = component$(() => {
       const handler = result.modules.find(
         (m) => m.kind === 'segment' && m.segment.ctxName === 'shouldRemove$'
       );
-      if (handler?.kind !== 'segment') throw new Error('shouldRemove$ segment missing');
+      if (handler?.kind !== 'segment') {
+        throw new Error('shouldRemove$ segment missing');
+      }
       expect(handler.segment.ctxKind).toBe('eventHandler');
     });
 
@@ -52,7 +54,9 @@ export const App = component$(() => {
       const handler = result.modules.find(
         (m) => m.kind === 'segment' && m.segment.ctxName === 'onClick$'
       );
-      if (handler?.kind !== 'segment') throw new Error('Card onClick$ segment missing');
+      if (handler?.kind !== 'segment') {
+        throw new Error('Card onClick$ segment missing');
+      }
       expect(handler.segment.ctxKind).toBe('jSXProp');
     });
 
@@ -76,7 +80,9 @@ export const App = component$(() => {
       const handler = result.modules.find(
         (m) => m.kind === 'segment' && m.segment.ctxName === 'onClick$'
       );
-      if (handler?.kind !== 'segment') throw new Error('Card onClick$ segment missing');
+      if (handler?.kind !== 'segment') {
+        throw new Error('Card onClick$ segment missing');
+      }
       expect(handler.segment.ctxKind).toBe('eventHandler');
     });
   });

@@ -53,7 +53,9 @@ export function isVariableDeclaratorNode(node: unknown): node is VariableDeclara
 }
 
 export function getPatternProperties(node: unknown): AstNode[] {
-  if (!isAstNode(node) || !Array.isArray(node.properties)) return [];
+  if (!isAstNode(node) || !Array.isArray(node.properties)) {
+    return [];
+  }
   return node.properties.filter(isAstNode) as AstNode[];
 }
 
@@ -68,8 +70,12 @@ export function getObjectPropertyKeyName(key: unknown): string | null {
 }
 
 export function memberStaticPropName(node: AstNode): string | null {
-  if (node.type !== 'MemberExpression' || !node.property) return null;
-  if (!node.computed && node.property.type === 'Identifier') return node.property.name;
+  if (node.type !== 'MemberExpression' || !node.property) {
+    return null;
+  }
+  if (!node.computed && node.property.type === 'Identifier') {
+    return node.property.name;
+  }
   if (
     node.computed &&
     node.property.type === 'Literal' &&
@@ -95,18 +101,26 @@ export function forEachAstChild(
   visitor: (child: AstNode, key: string, parent: AstNode) => void,
   skipKeys: ReadonlySet<string> = DEFAULT_META_KEYS
 ): void {
-  if (!node || typeof node !== 'object') return;
+  if (!node || typeof node !== 'object') {
+    return;
+  }
 
   const compat = node as AstCompatNode;
   for (const key of Object.keys(compat)) {
-    if (skipKeys.has(key)) continue;
+    if (skipKeys.has(key)) {
+      continue;
+    }
 
     const value = compat[key];
-    if (!value || typeof value !== 'object') continue;
+    if (!value || typeof value !== 'object') {
+      continue;
+    }
 
     if (Array.isArray(value)) {
       for (const item of value) {
-        if (isAstNode(item)) visitor(item as AstNode, key, compat as AstNode);
+        if (isAstNode(item)) {
+          visitor(item as AstNode, key, compat as AstNode);
+        }
       }
       continue;
     }
@@ -122,23 +136,33 @@ export function someAstChild(
   predicate: (child: AstNode, key: string, parent: AstNode) => boolean,
   skipKeys: ReadonlySet<string> = DEFAULT_META_KEYS
 ): boolean {
-  if (!node || typeof node !== 'object') return false;
+  if (!node || typeof node !== 'object') {
+    return false;
+  }
 
   const compat = node as AstCompatNode;
   for (const key of Object.keys(compat)) {
-    if (skipKeys.has(key)) continue;
+    if (skipKeys.has(key)) {
+      continue;
+    }
 
     const value = compat[key];
-    if (!value || typeof value !== 'object') continue;
+    if (!value || typeof value !== 'object') {
+      continue;
+    }
 
     if (Array.isArray(value)) {
       for (const item of value) {
-        if (isAstNode(item) && predicate(item as AstNode, key, compat as AstNode)) return true;
+        if (isAstNode(item) && predicate(item as AstNode, key, compat as AstNode)) {
+          return true;
+        }
       }
       continue;
     }
 
-    if (isAstNode(value) && predicate(value as AstNode, key, compat as AstNode)) return true;
+    if (isAstNode(value) && predicate(value as AstNode, key, compat as AstNode)) {
+      return true;
+    }
   }
   return false;
 }
@@ -147,7 +171,11 @@ export function someAstDescendant(
   node: AstCompatMaybeNode,
   predicate: (node: AstNode) => boolean
 ): boolean {
-  if (!node || typeof node !== 'object') return false;
-  if (predicate(node as AstNode)) return true;
+  if (!node || typeof node !== 'object') {
+    return false;
+  }
+  if (predicate(node as AstNode)) {
+    return true;
+  }
   return someAstChild(node, (child) => someAstDescendant(child, predicate));
 }

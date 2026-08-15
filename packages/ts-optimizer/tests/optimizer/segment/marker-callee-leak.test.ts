@@ -8,7 +8,9 @@ function findSegmentByCtx(
   ctxName: string
 ): TransformModule {
   const m = result.modules.find((mod) => mod.kind === 'segment' && mod.segment.ctxName === ctxName);
-  if (!m) throw new Error(`segment with ctxName=${ctxName} not found`);
+  if (!m) {
+    throw new Error(`segment with ctxName=${ctxName} not found`);
+  }
   return m;
 }
 

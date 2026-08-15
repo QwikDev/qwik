@@ -57,7 +57,9 @@ describe('failure families', () => {
       let allSegsMatch = true;
       let anySegMissing = false;
       for (const es of parsed.segments) {
-        if (!es.metadata) continue;
+        if (!es.metadata) {
+          continue;
+        }
         const as = result.modules.find(
           (m) => m.kind === 'segment' && m.segment.name === es.metadata!.name
         );
@@ -70,7 +72,9 @@ describe('failure families', () => {
           try {
             const ep = stripAstPositions(parseSync('test.tsx', es.code).program);
             const ap = stripAstPositions(parseSync('test.tsx', as.code).program);
-            if (!equal(ep, ap)) allSegsMatch = false;
+            if (!equal(ep, ap)) {
+              allSegsMatch = false;
+            }
           } catch {
             allSegsMatch = false;
           }

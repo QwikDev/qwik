@@ -13,7 +13,9 @@ export function detectForeignJsxRuntime(source: string): {
     /\/\*\s*@jsxImportSource\s+(?!@qwik|@builder\.io\/qwik)\S+\s*\*\//g
   )) {
     // Pragma-shaped STRING data must not reroute the whole file's JSX.
-    if (isInsideString(source, m.index)) continue;
+    if (isInsideString(source, m.index)) {
+      continue;
+    }
     return { hasForeignJsxRuntime: true, pragmaText: m[0] };
   }
   return { hasForeignJsxRuntime: false, pragmaText: null };

@@ -36,7 +36,9 @@ export default component$((props) => {
 `;
     const result = transform(source);
     const seg = findComponentSegment(result, 'test_component_');
-    if (seg?.kind !== 'segment') throw new Error('expected segment');
+    if (seg?.kind !== 'segment') {
+      throw new Error('expected segment');
+    }
 
     expect(seg.code).not.toContain('_getVarProps');
     expect(seg.code).not.toContain('_getConstProps');
@@ -59,7 +61,9 @@ export const C = component$(({some = 1 + 2, ...rest}) => {
 `;
     const result = transform(source);
     const seg = findComponentSegment(result, 'C_component_');
-    if (seg?.kind !== 'segment') throw new Error('expected segment');
+    if (seg?.kind !== 'segment') {
+      throw new Error('expected segment');
+    }
 
     expect(seg.code).toContain('_getVarProps');
     expect(seg.code).toContain('_getConstProps');
@@ -78,7 +82,9 @@ export default component$((props) => {
 `;
     const result = transform(source);
     const seg = findComponentSegment(result, 'test_component_');
-    if (seg?.kind !== 'segment') throw new Error('expected segment');
+    if (seg?.kind !== 'segment') {
+      throw new Error('expected segment');
+    }
 
     expect(seg.code).toMatch(/_getVarProps|_getConstProps/);
   });
@@ -96,7 +102,9 @@ export default component$((props) => {
 `;
     const result = transform(source);
     const seg = findComponentSegment(result, 'test_component_');
-    if (seg?.kind !== 'segment') throw new Error('expected segment');
+    if (seg?.kind !== 'segment') {
+      throw new Error('expected segment');
+    }
 
     expect(seg.code).not.toContain('_getVarProps');
     expect(seg.code).not.toContain('_getConstProps');

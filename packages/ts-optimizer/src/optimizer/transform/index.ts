@@ -121,7 +121,9 @@ function addImportSourcesFromText(
     for (const m of blanked.matchAll(pattern)) {
       const quoteIdx = m.index + m[0].length - 1;
       const close = skipStringLiteralForward(code, quoteIdx);
-      if (close < code.length) sources.add(code.slice(quoteIdx + 1, close));
+      if (close < code.length) {
+        sources.add(code.slice(quoteIdx + 1, close));
+      }
     }
   }
 }
@@ -140,10 +142,14 @@ function collectRemovedImportSources(
 ): string[] {
   const originalSources = new Set<string>();
   for (const [, info] of originalImports) {
-    if (info.source) originalSources.add(info.source);
+    if (info.source) {
+      originalSources.add(info.source);
+    }
   }
   addImportSourcesFromText(originalCode, [dynamicImportOpen], originalSources);
-  if (originalSources.size === 0) return [];
+  if (originalSources.size === 0) {
+    return [];
+  }
 
   const keptSources = new Set<string>();
   addImportSourcesFromText(cleanedCode, [dynamicImportOpen, ...staticImportOpens], keptSources);
@@ -161,7 +167,9 @@ function applyPassthroughConstFolding(
 ): TransformModule {
   const { options, relPath, ext } = mod;
   let code = module.code;
-  if (code === '') return module;
+  if (code === '') {
+    return module;
+  }
 
   // The Rust optimizer transpiles TS even in marker-free modules; downstream
   // consumers (e.g. the vite plugin's literal replacements) rely on that.
@@ -171,7 +179,9 @@ function applyPassthroughConstFolding(
         typescript: { onlyRemoveTypeImports: false },
         ...(ext === '.tsx' ? {} : { jsx: 'preserve' as const }),
       });
-      if (stripped.code) code = stripped.code;
+      if (stripped.code) {
+        code = stripped.code;
+      }
     } catch {
       // keep the original code when stripping fails
     }
@@ -461,12 +471,16 @@ function prepareModuleInput(mod: ModuleContext): PreparedModuleInput {
  */
 function filterCaptureInlinedQrls(extractions: ExtractionResult[]): ExtractionResult[] {
   const inlined = extractions.filter((e) => e.isInlinedQrl);
-  if (inlined.length < 2) return extractions;
+  if (inlined.length < 2) {
+    return extractions;
+  }
 
   const captureInlined = new Set<ExtractionResult>();
   for (const inner of inlined) {
     for (const outer of inlined) {
-      if (inner === outer) continue;
+      if (inner === outer) {
+        continue;
+      }
       if (
         inner.callStart > outer.callStart &&
         inner.callEnd < outer.callEnd &&
@@ -478,7 +492,9 @@ function filterCaptureInlinedQrls(extractions: ExtractionResult[]): ExtractionRe
     }
   }
 
-  if (captureInlined.size === 0) return extractions;
+  if (captureInlined.size === 0) {
+    return extractions;
+  }
   return extractions.filter((e) => !captureInlined.has(e));
 }
 
@@ -603,7 +619,9 @@ function analyzeModuleCaptures(
   if (emitsChildFiles) {
     for (const child of extractions) {
       const parent = enclosingExtMap.get(child.symbolName);
-      if (!parent) continue;
+      if (!parent) {
+        continue;
+      }
       const ranges = childRangesByParent.get(parent.symbolName) ?? [];
       ranges.push([child.argStart, child.argEnd]);
       childRangesByParent.set(parent.symbolName, ranges);
@@ -636,7 +654,9 @@ function analyzeModuleCaptures(
 
   for (const extraction of extractions) {
     const closureNode = closureNodes.get(extraction.symbolName);
-    if (!closureNode) continue;
+    if (!closureNode) {
+      continue;
+    }
 
     const enclosingExt = enclosingExtMap.get(extraction.symbolName) ?? null;
 
@@ -709,12 +729,20 @@ function analyzeModuleCaptures(
 
   // Resolve const literals for event handlers before capture-to-param promotion
   for (const extraction of extractions) {
-    if (extraction.ctxKind !== 'eventHandler') continue;
-    if (extraction.isInlinedQrl || extraction.captureNames.length === 0) continue;
+    if (extraction.ctxKind !== 'eventHandler') {
+      continue;
+    }
+    if (extraction.isInlinedQrl || extraction.captureNames.length === 0) {
+      continue;
+    }
     const enclosingExt = enclosingExtMap.get(extraction.symbolName) ?? null;
-    if (!enclosingExt) continue;
+    if (!enclosingExt) {
+      continue;
+    }
     const enclosingClosure = closureNodes.get(enclosingExt.symbolName);
-    if (!enclosingClosure) continue;
+    if (!enclosingClosure) {
+      continue;
+    }
     const constValues = resolveConstLiteralsInClosure(
       enclosingClosure,
       repairedCode,
@@ -754,12 +782,16 @@ function analyzeModuleCaptures(
   // A worker wrapper delegates positionally to its worker child, so it takes
   // the child's lifted params and moved-captures marker verbatim.
   for (const wrapper of extractions) {
-    if (!wrapper.isWorkerEventWrapper) continue;
+    if (!wrapper.isWorkerEventWrapper) {
+      continue;
+    }
     const worker = extractions.find(
       (e) =>
         e.isWorkerEventHandler && e.callStart >= wrapper.argStart && e.callEnd <= wrapper.argEnd
     );
-    if (!worker) continue;
+    if (!worker) {
+      continue;
+    }
     const mut = wrapper as Mutable<ExtractionResult>;
     mut.paramNames = [...worker.paramNames];
     mut.movedCaptures = worker.movedCaptures;
@@ -819,9 +851,13 @@ function dropTopLevelModuleScopeCaptures(
   moduleLevelDeclsByName: ReadonlyMap<string, ModuleLevelDecl>
 ): void {
   for (const ext of extractions) {
-    if (ext.parent !== null || ext.captureNames.length === 0) continue;
+    if (ext.parent !== null || ext.captureNames.length === 0) {
+      continue;
+    }
     const kept = ext.captureNames.filter((name) => !moduleLevelDeclsByName.has(name));
-    if (kept.length === ext.captureNames.length) continue;
+    if (kept.length === ext.captureNames.length) {
+      continue;
+    }
     const mut = ext as Mutable<ExtractionResult>;
     mut.captureNames = kept;
     mut.captures = kept.length > 0;
@@ -867,7 +903,9 @@ function attributeSegmentUsage(
   // captures arrive via `_captures`, not an import — folding them in would
   // wrongly mark them dual-use and reexport them.
   for (const ext of extractions) {
-    if (ext.isInlinedQrl) continue;
+    if (ext.isInlinedQrl) {
+      continue;
+    }
     const usage = segmentUsage.get(ext.symbolName);
     if (usage && ext.captureNames) {
       for (const name of ext.captureNames) {
@@ -878,16 +916,25 @@ function attributeSegmentUsage(
 
   // Captures delivered via q:p (paramNames slots >= 2) are referenced by the parent.
   for (const ext of extractions) {
-    if (ext.ctxKind !== 'eventHandler') continue;
-    if (ext.paramNames.length < 3 || ext.paramNames[0] !== '_' || ext.paramNames[1] !== '_1')
+    if (ext.ctxKind !== 'eventHandler') {
       continue;
+    }
+    if (ext.paramNames.length < 3 || ext.paramNames[0] !== '_' || ext.paramNames[1] !== '_1') {
+      continue;
+    }
     const parentExt = enclosingExtMap.get(ext.symbolName) ?? null;
-    if (!parentExt) continue;
+    if (!parentExt) {
+      continue;
+    }
     const parentUsage = segmentUsage.get(parentExt.symbolName);
-    if (!parentUsage) continue;
+    if (!parentUsage) {
+      continue;
+    }
     for (let i = 2; i < ext.paramNames.length; i++) {
       const p = ext.paramNames[i];
-      if (paddingParam.test(p)) continue;
+      if (paddingParam.test(p)) {
+        continue;
+      }
       parentUsage.add(p);
     }
   }
@@ -933,13 +980,19 @@ function attributeSegmentUsage(
       const usedByStripped = new Set<string>();
       for (const [seg, names] of segmentUsage) {
         if (strippedSegments.has(seg)) {
-          for (const name of names) usedByStripped.add(name);
+          for (const name of names) {
+            usedByStripped.add(name);
+          }
         }
       }
-      for (const seg of strippedSegments) segmentUsage.delete(seg);
+      for (const seg of strippedSegments) {
+        segmentUsage.delete(seg);
+      }
       const usedByLiveSegment = new Set<string>();
       for (const [, names] of segmentUsage) {
-        for (const name of names) usedByLiveSegment.add(name);
+        for (const name of names) {
+          usedByLiveSegment.add(name);
+        }
       }
       for (const name of usedByStripped) {
         if (!usedByLiveSegment.has(name) && !rootUsage.has(name)) {
@@ -955,7 +1008,9 @@ function attributeSegmentUsage(
   // whole-decl dropping would erase the registration.
   migrationDecisions = migrationDecisions.map((d) => {
     const decl = moduleLevelDeclsByName.get(d.varName);
-    if (!decl) return d;
+    if (!decl) {
+      return d;
+    }
     const holdsExtraction = extractions.some(
       (e) => e.callStart >= decl.declStart && e.callEnd <= decl.declEnd
     );
@@ -980,9 +1035,13 @@ function attributeSegmentUsage(
   );
   if (droppedNames.size > 0) {
     for (const ext of extractions) {
-      if (ext.captureNames.length === 0) continue;
+      if (ext.captureNames.length === 0) {
+        continue;
+      }
       const kept = ext.captureNames.filter((name) => !droppedNames.has(name));
-      if (kept.length === ext.captureNames.length) continue;
+      if (kept.length === ext.captureNames.length) {
+        continue;
+      }
       const mut = ext as Mutable<ExtractionResult>;
       mut.captureNames = kept;
       mut.captures = kept.length > 0;
@@ -1011,7 +1070,9 @@ function applyProdRename(
   emitMode: EmitMode
 ): Map<SymbolName, SymbolName> {
   const preRenameSymbolName = new Map<SymbolName, SymbolName>();
-  if (emitMode !== 'prod') return preRenameSymbolName;
+  if (emitMode !== 'prod') {
+    return preRenameSymbolName;
+  }
 
   for (const ext of extractions) {
     // inlinedQrl extractions are renamed under prod too, preserving the hash
@@ -1050,12 +1111,19 @@ function downgradeExtensions(
     for (const extraction of extractions) {
       const wip = extraction as Mutable<ExtractionResult>;
       if (shouldTranspileJsx) {
-        if (wip.extension === '.tsx') wip.extension = shouldTranspileTs ? '.js' : '.ts';
-        else if (wip.extension === '.jsx') wip.extension = '.js';
-        else if (shouldTranspileTs && wip.extension === '.ts') wip.extension = '.js';
+        if (wip.extension === '.tsx') {
+          wip.extension = shouldTranspileTs ? '.js' : '.ts';
+        } else if (wip.extension === '.jsx') {
+          wip.extension = '.js';
+        } else if (shouldTranspileTs && wip.extension === '.ts') {
+          wip.extension = '.js';
+        }
       } else if (shouldTranspileTs) {
-        if (wip.extension === '.ts') wip.extension = '.js';
-        else if (wip.extension === '.tsx') wip.extension = '.jsx';
+        if (wip.extension === '.ts') {
+          wip.extension = '.js';
+        } else if (wip.extension === '.tsx') {
+          wip.extension = '.jsx';
+        }
       }
     }
   }
@@ -1212,26 +1280,40 @@ function generateSegments(
     // A whole-body identifier (`$(render)`) inlines its const init so the
     // segment doesn't emit a dangling reference.
     for (const ext of updatedExtractions) {
-      if (ext.isSync) continue;
+      if (ext.isSync) {
+        continue;
+      }
       const bare = ext.bodyText.trim();
-      if (!isSimpleIdentifierName(bare)) continue;
+      if (!isSimpleIdentifierName(bare)) {
+        continue;
+      }
       const scopeNode = ext.parent ? closureNodes.get(ext.parent) : (program as unknown as AstNode);
-      if (!scopeNode) continue;
+      if (!scopeNode) {
+        continue;
+      }
       const initText = resolveWholeBodyIdentifier(scopeNode as AstNode, repairedCode, bare);
       if (initText !== null) {
         (ext as Mutable<ExtractionResult>).bodyText = mkBodyText(initText);
       }
     }
     for (const ext of updatedExtractions) {
-      if (ext.isSync || ext.parent === null) continue;
+      if (ext.isSync || ext.parent === null) {
+        continue;
+      }
       if (ext.constLiterals && ext.constLiterals.size > 0) {
         constLiteralsMap.set(ext.symbolName, ext.constLiterals);
       }
-      if (ext.captureNames.length === 0) continue;
+      if (ext.captureNames.length === 0) {
+        continue;
+      }
       const parentExt = updatedExtractions.find((e) => e.symbolName === ext.parent);
-      if (!parentExt) continue;
+      if (!parentExt) {
+        continue;
+      }
       const parentClosure = closureNodes.get(parentExt.symbolName);
-      if (!parentClosure) continue;
+      if (!parentClosure) {
+        continue;
+      }
       const constValues = resolveConstLiteralsInClosure(
         parentClosure,
         repairedCode,
@@ -1240,7 +1322,9 @@ function generateSegments(
       if (constValues.size > 0) {
         const existing = constLiteralsMap.get(ext.symbolName);
         if (existing) {
-          for (const [k, v] of constValues) existing.set(k, v);
+          for (const [k, v] of constValues) {
+            existing.set(k, v);
+          }
         } else {
           constLiteralsMap.set(ext.symbolName, constValues);
         }

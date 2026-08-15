@@ -14,7 +14,9 @@ function collectConstLiteralValues(
   result: Map<string, string>
 ): void {
   function walkNode(node: AstNode | null | undefined): void {
-    if (!node) return;
+    if (!node) {
+      return;
+    }
 
     if (node.type !== 'VariableDeclaration' || node.kind !== 'const') {
       forEachAstChild(node, (child) => walkNode(child));
@@ -22,9 +24,13 @@ function collectConstLiteralValues(
     }
 
     for (const decl of node.declarations) {
-      if (decl.id.type !== 'Identifier' || !captureSet.has(decl.id.name) || !decl.init) continue;
+      if (decl.id.type !== 'Identifier' || !captureSet.has(decl.id.name) || !decl.init) {
+        continue;
+      }
       const init = decl.init;
-      if (!isLiteralNode(init)) continue;
+      if (!isLiteralNode(init)) {
+        continue;
+      }
       const literalStart = init.start - offset;
       const literalEnd = init.end - offset;
       if (literalStart >= 0 && literalEnd <= source.length) {
@@ -43,10 +49,14 @@ export function resolveConstLiterals(
   captureNames: string[]
 ): Map<string, string> {
   const result = new Map<string, string>();
-  if (captureNames.length === 0) return result;
+  if (captureNames.length === 0) {
+    return result;
+  }
 
   const session = createTransformSession(parentBody);
-  if (!session) return result;
+  if (!session) {
+    return result;
+  }
 
   collectConstLiteralValues(
     session.program,
@@ -68,8 +78,12 @@ export function resolveConstLiteralsInClosure(
   captureNames: string[]
 ): Map<string, string> {
   const result = new Map<string, string>();
-  if (captureNames.length === 0) return result;
-  if (!closureNode.body) return result;
+  if (captureNames.length === 0) {
+    return result;
+  }
+  if (!closureNode.body) {
+    return result;
+  }
 
   collectConstLiteralValues(closureNode.body, source, 0, new Set(captureNames), result);
   return result;
@@ -78,7 +92,9 @@ export function resolveConstLiteralsInClosure(
 /** AST-based (not textual) so property names sharing a captured identifier's name are not replaced. */
 export function inlineConstCaptures(body: string, constValues: Map<string, string>): string {
   const session = createTransformSession(body);
-  if (!session) return body;
+  if (!session) {
+    return body;
+  }
 
   const offset = session.offset;
   const replacements: Array<{ start: number; end: number; replacement: string }> = [];
@@ -88,7 +104,9 @@ export function inlineConstCaptures(body: string, constValues: Map<string, strin
     parentKey?: string,
     parentNode?: AstNode
   ): void {
-    if (!node) return;
+    if (!node) {
+      return;
+    }
 
     if (node.type === 'Identifier' && constValues.has(node.name)) {
       if (isReplaceableIdentifierPosition(parentKey, parentNode)) {
@@ -130,7 +148,9 @@ interface IdentRef {
 }
 
 function isSimpleSideEffectFree(node: AstNode | null | undefined): boolean {
-  if (!node) return false;
+  if (!node) {
+    return false;
+  }
   switch (node.type) {
     case 'Identifier':
       return !node.name.startsWith('_');
@@ -163,7 +183,9 @@ export function resolveWholeBodyIdentifier(
 
   const localBindings = new Set<string>();
   const visit = (node: AstNode | null | undefined): void => {
-    if (!node) return;
+    if (!node) {
+      return;
+    }
     if (node.type === 'VariableDeclaration') {
       for (const decl of node.declarations) {
         if (decl.id.type === 'Identifier') {
@@ -181,17 +203,23 @@ export function resolveWholeBodyIdentifier(
   };
   visit(scopeNode);
 
-  if (initText === null || initNode === null) return null;
+  if (initText === null || initNode === null) {
+    return null;
+  }
   const init = initNode as AstNode;
   const serializable =
     init.type === 'Literal' ||
     init.type === 'TemplateLiteral' ||
     init.type === 'ArrowFunctionExpression' ||
     init.type === 'FunctionExpression';
-  if (!serializable) return null;
+  if (!serializable) {
+    return null;
+  }
 
   for (const ident of collectIdentifiers(init)) {
-    if (ident !== name && localBindings.has(ident)) return null;
+    if (ident !== name && localBindings.has(ident)) {
+      return null;
+    }
   }
   return initText;
 }
@@ -199,7 +227,9 @@ export function resolveWholeBodyIdentifier(
 function collectIdentifiers(node: AstNode): string[] {
   const ids: string[] = [];
   function walk(n: AstNode | null | undefined): void {
-    if (!n) return;
+    if (!n) {
+      return;
+    }
     if (n.type === 'Identifier') {
       ids.push(n.name);
       return;
@@ -212,7 +242,9 @@ function collectIdentifiers(node: AstNode): string[] {
 
 function memberRootName(member: AstNode): string | null {
   let obj: AstNode | null | undefined = member.type === 'MemberExpression' ? member.object : member;
-  while (obj?.type === 'MemberExpression') obj = obj.object;
+  while (obj?.type === 'MemberExpression') {
+    obj = obj.object;
+  }
   return obj?.type === 'Identifier' ? obj.name : null;
 }
 
@@ -221,10 +253,14 @@ function memberRootName(member: AstNode): string | null {
  * not fold into `return ctx.n` after it.
  */
 function readsMutatedObject(node: AstNode, mutatedObjects: ReadonlySet<string>): boolean {
-  if (mutatedObjects.size === 0) return false;
+  if (mutatedObjects.size === 0) {
+    return false;
+  }
   let found = false;
   function walk(n: AstNode | null | undefined): void {
-    if (!n || found) return;
+    if (!n || found) {
+      return;
+    }
     if (n.type === 'MemberExpression') {
       const root = memberRootName(n);
       if (root && mutatedObjects.has(root)) {
@@ -240,13 +276,17 @@ function readsMutatedObject(node: AstNode, mutatedObjects: ReadonlySet<string>):
 
 /** Textual, conservative: a false positive only skips an optimization. */
 function bodyHasAwaitBetween(body: string, from: number, to: number): boolean {
-  if (to <= from) return false;
+  if (to <= from) {
+    return false;
+  }
   return /\b(await|yield)\b/.test(body.slice(from, to));
 }
 
 export function propagateConstLiteralsInBody(body: string): string {
   const session = createTransformSession(body);
-  if (!session) return body;
+  if (!session) {
+    return body;
+  }
 
   const offset = session.offset;
 
@@ -265,17 +305,23 @@ export function propagateConstLiteralsInBody(body: string): string {
     parentKey?: string,
     parentNode?: AstNode
   ): void {
-    if (!node) return;
+    if (!node) {
+      return;
+    }
 
     if (node.type === 'VariableDeclaration' && (node.kind === 'let' || node.kind === 'var')) {
       for (const decl of node.declarations) {
-        if (decl.id.type === 'Identifier') mutableVars.add(decl.id.name);
+        if (decl.id.type === 'Identifier') {
+          mutableVars.add(decl.id.name);
+        }
       }
     }
 
     if (node.type === 'UpdateExpression' && node.argument?.type === 'MemberExpression') {
       const root = memberRootName(node.argument);
-      if (root) mutatedObjects.add(root);
+      if (root) {
+        mutatedObjects.add(root);
+      }
     }
 
     // A `q_X.w([...])` capture array is a serialization contract aligned with
@@ -291,13 +337,17 @@ export function propagateConstLiteralsInBody(body: string): string {
       const firstArg = (node as { arguments?: AstNode[] }).arguments?.[0];
       if (firstArg?.type === 'ArrayExpression') {
         for (const el of (firstArg as { elements?: Array<AstNode | null> }).elements ?? []) {
-          if (el?.type === 'Identifier') protectedNames.add(el.name);
+          if (el?.type === 'Identifier') {
+            protectedNames.add(el.name);
+          }
         }
       }
     }
     if (node.type === 'AssignmentExpression' && node.left?.type === 'MemberExpression') {
       const root = memberRootName(node.left);
-      if (root) mutatedObjects.add(root);
+      if (root) {
+        mutatedObjects.add(root);
+      }
     }
 
     if (
@@ -369,17 +419,25 @@ export function propagateConstLiteralsInBody(body: string): string {
 
   walkCollect(session.program);
 
-  if (constDecls.size === 0) return body;
+  if (constDecls.size === 0) {
+    return body;
+  }
 
   const resolvedValues = new Map<string, string>();
 
   function resolveValue(name: string, visited: Set<string>): string | null {
-    if (resolvedValues.has(name)) return resolvedValues.get(name)!;
-    if (visited.has(name)) return null;
+    if (resolvedValues.has(name)) {
+      return resolvedValues.get(name)!;
+    }
+    if (visited.has(name)) {
+      return null;
+    }
     visited.add(name);
 
     const decl = constDecls.get(name);
-    if (!decl) return null;
+    if (!decl) {
+      return null;
+    }
 
     if (decl.isLiteral) {
       resolvedValues.set(name, decl.initText);
@@ -415,8 +473,12 @@ export function propagateConstLiteralsInBody(body: string): string {
   function countExternalRefs(removedSet: Set<string>): Map<string, number> {
     const counts = new Map<string, number>();
     for (const ref of identRefs) {
-      if (!constDecls.has(ref.name)) continue;
-      if (ref.insideDeclOf !== null && removedSet.has(ref.insideDeclOf)) continue;
+      if (!constDecls.has(ref.name)) {
+        continue;
+      }
+      if (ref.insideDeclOf !== null && removedSet.has(ref.insideDeclOf)) {
+        continue;
+      }
       counts.set(ref.name, (counts.get(ref.name) ?? 0) + 1);
     }
     return counts;
@@ -425,15 +487,27 @@ export function propagateConstLiteralsInBody(body: string): string {
   let externalRefCounts = countExternalRefs(toRemove);
 
   for (const [name, decl] of constDecls) {
-    if (resolvedValues.has(name)) continue;
-    if (protectedNames.has(name)) continue;
-    if (!decl.isSideEffectFree) continue;
-    if (decl.isLiteral) continue;
+    if (resolvedValues.has(name)) {
+      continue;
+    }
+    if (protectedNames.has(name)) {
+      continue;
+    }
+    if (!decl.isSideEffectFree) {
+      continue;
+    }
+    if (decl.isLiteral) {
+      continue;
+    }
 
     const referencesMutable = decl.initRefersTo.some((id) => mutableVars.has(id));
-    if (referencesMutable) continue;
+    if (referencesMutable) {
+      continue;
+    }
 
-    if (readsMutatedObject(decl.initNode, mutatedObjects)) continue;
+    if (readsMutatedObject(decl.initNode, mutatedObjects)) {
+      continue;
+    }
 
     const refs = externalRefCounts.get(name) ?? 0;
     if (refs <= 1) {
@@ -442,7 +516,9 @@ export function propagateConstLiteralsInBody(body: string): string {
       // decl when its single use sits past an await.
       if (refs === 1 && decl.initNode.type === 'MemberExpression') {
         const ref = identRefs.find((r) => r.name === name && r.insideDeclOf === null);
-        if (ref && bodyHasAwaitBetween(body, decl.stmtEnd, ref.start)) continue;
+        if (ref && bodyHasAwaitBetween(body, decl.stmtEnd, ref.start)) {
+          continue;
+        }
       }
       toRemove.add(name);
     }
@@ -460,8 +536,12 @@ export function propagateConstLiteralsInBody(body: string): string {
   }
 
   for (const [name, decl] of constDecls) {
-    if (resolvedValues.has(name)) continue;
-    if (!toRemove.has(name)) continue;
+    if (resolvedValues.has(name)) {
+      continue;
+    }
+    if (!toRemove.has(name)) {
+      continue;
+    }
     const refs = externalRefCounts.get(name) ?? 0;
     if (refs === 1) {
       let initText = decl.initText;
@@ -484,13 +564,19 @@ export function propagateConstLiteralsInBody(body: string): string {
     }
   }
 
-  if (toInline.size === 0 && toRemove.size === 0) return body;
+  if (toInline.size === 0 && toRemove.size === 0) {
+    return body;
+  }
 
   const edits: Array<{ start: number; end: number; replacement: string }> = [];
 
   for (const ref of identRefs) {
-    if (!toInline.has(ref.name)) continue;
-    if (ref.insideDeclOf !== null && toRemove.has(ref.insideDeclOf)) continue;
+    if (!toInline.has(ref.name)) {
+      continue;
+    }
+    if (ref.insideDeclOf !== null && toRemove.has(ref.insideDeclOf)) {
+      continue;
+    }
     const value = toInline.get(ref.name)!;
     // Re-emit the key when inlining into a shorthand `{ x }`, else the object is invalid.
     const replacement = ref.shorthandKey !== null ? `${ref.shorthandKey}: ${value}` : value;
@@ -505,10 +591,15 @@ export function propagateConstLiteralsInBody(body: string): string {
     const decl = constDecls.get(name)!;
     let start = decl.stmtStart;
     let end = decl.stmtEnd;
-    while (end < body.length && (body[end] === ';' || body[end] === ' ' || body[end] === '\t'))
+    while (end < body.length && (body[end] === ';' || body[end] === ' ' || body[end] === '\t')) {
       end++;
-    if (end < body.length && body[end] === '\n') end++;
-    while (start > 0 && (body[start - 1] === ' ' || body[start - 1] === '\t')) start--;
+    }
+    if (end < body.length && body[end] === '\n') {
+      end++;
+    }
+    while (start > 0 && (body[start - 1] === ' ' || body[start - 1] === '\t')) {
+      start--;
+    }
     edits.push({
       start,
       end,

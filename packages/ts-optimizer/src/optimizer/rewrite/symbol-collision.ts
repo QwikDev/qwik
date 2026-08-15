@@ -27,7 +27,9 @@ import {
  */
 function localNameOfNeeded(key: string): string {
   const asIdx = key.indexOf(' as ');
-  if (asIdx === -1) return key;
+  if (asIdx === -1) {
+    return key;
+  }
   return key.slice(asIdx + ' as '.length).trim();
 }
 
@@ -55,11 +57,15 @@ export function computeWouldInjectNames(ctx: RewriteContext): Map<string, string
   const hasAnyNonSync = extractions.some((e) => !e.isSync);
 
   const add = (key: string, source: string): void => {
-    if (!result.has(key)) result.set(key, source);
+    if (!result.has(key)) {
+      result.set(key, source);
+    }
   };
 
   if (isInline) {
-    if (hasAnyNonSync) add(isDevMode ? '_noopQrlDEV' : '_noopQrl', '@qwik.dev/core');
+    if (hasAnyNonSync) {
+      add(isDevMode ? '_noopQrlDEV' : '_noopQrl', '@qwik.dev/core');
+    }
     const needsCapturesImport = extractions.some(
       (e) =>
         !e.isSync &&
@@ -69,7 +75,9 @@ export function computeWouldInjectNames(ctx: RewriteContext): Map<string, string
           isStrippedExtraction(e, inlineOptions.stripCtxName, inlineOptions.stripEventHandlers)
         )
     );
-    if (needsCapturesImport) add('_captures', '@qwik.dev/core');
+    if (needsCapturesImport) {
+      add('_captures', '@qwik.dev/core');
+    }
   } else if (inlineOptions && !inlineOptions.inline) {
     if (hasTopLevelNonSync) {
       const hasNonStripped = topLevel.some(
@@ -82,8 +90,12 @@ export function computeWouldInjectNames(ctx: RewriteContext): Map<string, string
           !e.isSync &&
           isStrippedExtraction(e, inlineOptions.stripCtxName, inlineOptions.stripEventHandlers)
       );
-      if (hasNonStripped) add(isDevMode ? 'qrlDEV' : 'qrl', '@qwik.dev/core');
-      if (hasStripped) add(isDevMode ? '_noopQrlDEV' : '_noopQrl', '@qwik.dev/core');
+      if (hasNonStripped) {
+        add(isDevMode ? 'qrlDEV' : 'qrl', '@qwik.dev/core');
+      }
+      if (hasStripped) {
+        add(isDevMode ? '_noopQrlDEV' : '_noopQrl', '@qwik.dev/core');
+      }
     }
   } else {
     if (hasTopLevelNonSync) {
@@ -91,7 +103,9 @@ export function computeWouldInjectNames(ctx: RewriteContext): Map<string, string
       const hasInlinedQrlLocal = topLevel.some(
         (e) => e.isInlinedQrl && !ctx.relPath.includes('node_modules')
       );
-      if (hasInlinedQrlLocal && !isDevMode) add('qrlDEV', '@qwik.dev/core');
+      if (hasInlinedQrlLocal && !isDevMode) {
+        add('qrlDEV', '@qwik.dev/core');
+      }
     }
   }
 
@@ -101,7 +115,9 @@ export function computeWouldInjectNames(ctx: RewriteContext): Map<string, string
       continue;
     }
     if (ext.isBare) {
-      if (inlinedQrlSymbols.has(ext.symbolName)) add('qrl', '@qwik.dev/core');
+      if (inlinedQrlSymbols.has(ext.symbolName)) {
+        add('qrl', '@qwik.dev/core');
+      }
       continue;
     }
     const qrlCallee = ext.qrlCallee;
@@ -113,7 +129,9 @@ export function computeWouldInjectNames(ctx: RewriteContext): Map<string, string
           break;
         }
       }
-      if (!isCustom) add(qrlCallee, getQrlImportSource(qrlCallee, ext.importSource));
+      if (!isCustom) {
+        add(qrlCallee, getQrlImportSource(qrlCallee, ext.importSource));
+      }
     }
   }
 
@@ -125,10 +143,16 @@ export function computeWouldInjectNames(ctx: RewriteContext): Map<string, string
   }
 
   if (jsxResult) {
-    for (const sym of jsxResult.neededImports) add(sym, '@qwik.dev/core');
-    if (jsxResult.needsFragment) add('Fragment as _Fragment', '@qwik.dev/core/jsx-runtime');
+    for (const sym of jsxResult.neededImports) {
+      add(sym, '@qwik.dev/core');
+    }
+    if (jsxResult.needsFragment) {
+      add('Fragment as _Fragment', '@qwik.dev/core/jsx-runtime');
+    }
   }
-  if (ctx.isLibMode && jsxResult) add('jsx as _jsx', '@qwik.dev/core/jsx-runtime');
+  if (ctx.isLibMode && jsxResult) {
+    add('jsx as _jsx', '@qwik.dev/core/jsx-runtime');
+  }
 
   return result;
 }
@@ -150,7 +174,9 @@ type UserSymbol = UserSymbolImport | UserSymbolDecl;
 function pickFreshName(base: string, taken: ReadonlySet<string>): string {
   for (let i = 1; i < 10_000; i++) {
     const candidate = `${base}${i}`;
-    if (!taken.has(candidate)) return candidate;
+    if (!taken.has(candidate)) {
+      return candidate;
+    }
   }
   throw new Error(`pickFreshName exhausted suffixes for ${base}`);
 }
@@ -203,16 +229,21 @@ function findBindingIdentifierPositions(
 }
 
 function collectParamBindings(params: readonly AstNode[], out: Set<string>): void {
-  for (const param of params) addBindingNamesFromPatternToSet(param as BindingPatternLike, out);
+  for (const param of params) {
+    addBindingNamesFromPatternToSet(param as BindingPatternLike, out);
+  }
 }
 
 function collectBlockBindings(statements: readonly AstNode[], out: Set<string>): void {
   for (const stmt of statements) {
     if (stmt.type === 'VariableDeclaration') {
-      for (const d of stmt.declarations)
+      for (const d of stmt.declarations) {
         addBindingNamesFromPatternToSet(d.id as BindingPatternLike, out);
+      }
     } else if (stmt.type === 'FunctionDeclaration' || stmt.type === 'ClassDeclaration') {
-      if (stmt.id?.type === 'Identifier') out.add(stmt.id.name);
+      if (stmt.id?.type === 'Identifier') {
+        out.add(stmt.id.name);
+      }
     }
   }
 }
@@ -235,17 +266,25 @@ function rewriteReferences(
     replacedRanges.some(([start, end]) => pos >= start && pos < end);
 
   function isShadowed(name: string): boolean {
-    for (const scope of scopeStack) if (scope.has(name)) return true;
+    for (const scope of scopeStack) {
+      if (scope.has(name)) {
+        return true;
+      }
+    }
     return false;
   }
 
   function walk(node: AstNode | null | undefined, parentKey?: string, parentNode?: AstNode): void {
-    if (!node) return;
+    if (!node) {
+      return;
+    }
 
     // Import ranges were already `s.remove`d elsewhere; overwriting inside
     // a removed range re-introduces text (`qrl1;` residue), so skip the
     // whole subtree — the surviving import is rebuilt separately.
-    if (node.type === 'ImportDeclaration') return;
+    if (node.type === 'ImportDeclaration') {
+      return;
+    }
 
     if (node.type === 'Identifier') {
       const newName = renameMap.get(node.name);
@@ -271,17 +310,25 @@ function rewriteReferences(
     }
 
     const pushedScope = pushScopeIfFunctionLike(node);
-    if (pushedScope) scopeStack.push(pushedScope);
+    if (pushedScope) {
+      scopeStack.push(pushedScope);
+    }
 
     const pushedBlock = pushScopeIfBlock(node);
-    if (pushedBlock) scopeStack.push(pushedBlock);
+    if (pushedBlock) {
+      scopeStack.push(pushedBlock);
+    }
 
     forEachAstChild(node, (child, key, parent) => {
       walk(child, key, parent);
     });
 
-    if (pushedBlock) scopeStack.pop();
-    if (pushedScope) scopeStack.pop();
+    if (pushedBlock) {
+      scopeStack.pop();
+    }
+    if (pushedScope) {
+      scopeStack.pop();
+    }
   }
 
   function pushScopeIfFunctionLike(node: AstNode): Set<string> | null {
@@ -300,7 +347,9 @@ function rewriteReferences(
   function pushScopeIfBlock(node: AstNode): Set<string> | null {
     // Function bodies are also BlockStatements: the function-like push
     // handles params, this one handles the body's own lexical decls.
-    if (node.type !== 'BlockStatement') return null;
+    if (node.type !== 'BlockStatement') {
+      return null;
+    }
     const scope = new Set<string>();
     collectBlockBindings(node.body ?? [], scope);
     return scope;
@@ -336,7 +385,9 @@ function applyImportSpecifierRename(
  */
 export function detectAndRenameCollisions(ctx: RewriteContext): void {
   const wouldInject = computeWouldInjectNames(ctx);
-  if (wouldInject.size === 0) return;
+  if (wouldInject.size === 0) {
+    return;
+  }
 
   const wouldInjectByLocal = new Map<string, string>();
   for (const [key, source] of wouldInject) {
@@ -347,7 +398,9 @@ export function detectAndRenameCollisions(ctx: RewriteContext): void {
   const userImportSources = new Map<string, string>();
   for (let importIdx = 0; importIdx < ctx.survivingImportInfos.length; importIdx++) {
     const info = ctx.survivingImportInfos[importIdx];
-    if (info.preservedAll) continue;
+    if (info.preservedAll) {
+      continue;
+    }
     for (let partIdx = 0; partIdx < info.namedParts.length; partIdx++) {
       const local = info.namedParts[partIdx].local;
       if (!userSymbols.has(local)) {
@@ -359,9 +412,13 @@ export function detectAndRenameCollisions(ctx: RewriteContext): void {
 
   if (ctx.moduleLevelDecls) {
     for (const decl of ctx.moduleLevelDecls) {
-      if (userSymbols.has(decl.name)) continue;
+      if (userSymbols.has(decl.name)) {
+        continue;
+      }
       const pos = findBindingIdentifierPositions(ctx.program, decl.name);
-      if (!pos) continue;
+      if (!pos) {
+        continue;
+      }
       userSymbols.set(decl.name, { kind: 'decl', idStart: pos.start, idEnd: pos.end });
     }
   }
@@ -373,28 +430,38 @@ export function detectAndRenameCollisions(ctx: RewriteContext): void {
   const taken = new Set<string>([...userSymbols.keys(), ...wouldInjectByLocal.keys()]);
   for (const [name, sym] of userSymbols) {
     const expectedSource = wouldInjectByLocal.get(name);
-    if (expectedSource === undefined) continue;
+    if (expectedSource === undefined) {
+      continue;
+    }
     if (sym.kind === 'import') {
       const userSource = userImportSources.get(name);
-      if (userSource === expectedSource) continue;
+      if (userSource === expectedSource) {
+        continue;
+      }
     }
     const newName = pickFreshName(name, taken);
     renameMap.set(name, newName);
     taken.add(newName);
   }
-  if (renameMap.size === 0) return;
+  if (renameMap.size === 0) {
+    return;
+  }
 
   const declExclusions = new Set<number>();
   for (const [oldName, newName] of renameMap) {
     const sym = userSymbols.get(oldName);
-    if (sym?.kind !== 'decl') continue;
+    if (sym?.kind !== 'decl') {
+      continue;
+    }
     ctx.s.overwrite(sym.idStart, sym.idEnd, newName);
     declExclusions.add(sym.idStart);
   }
 
   for (const [oldName, newName] of renameMap) {
     const sym = userSymbols.get(oldName);
-    if (sym?.kind !== 'import') continue;
+    if (sym?.kind !== 'import') {
+      continue;
+    }
     applyImportSpecifierRename(ctx, sym.importIdx, sym.partIdx, newName);
   }
 
@@ -426,7 +493,9 @@ export function detectAndRenameCollisions(ctx: RewriteContext): void {
   // authoritative `wouldInject` map so it isn't dropped.
   for (const [renamedUserName] of renameMap) {
     for (const [key, source] of wouldInject) {
-      if (localNameOfNeeded(key) !== renamedUserName) continue;
+      if (localNameOfNeeded(key) !== renamedUserName) {
+        continue;
+      }
       if (!ctx.neededImports.has(key)) {
         ctx.neededImports.set(key, source);
       }
@@ -438,7 +507,9 @@ export function detectAndRenameCollisions(ctx: RewriteContext): void {
   // dead). Drop them — `recollectPostTransformImports` re-derives whatever
   // the post-transform body genuinely needs.
   for (const ext of ctx.extractions) {
-    if (ext.segmentImports.length === 0) continue;
+    if (ext.segmentImports.length === 0) {
+      continue;
+    }
     const filtered = ext.segmentImports.filter((imp) => !renameMap.has(imp.localName));
     if (filtered.length !== ext.segmentImports.length) {
       // `segmentImports` is readonly; cast through to reassign the filtered list.

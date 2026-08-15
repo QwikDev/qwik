@@ -25,7 +25,9 @@ export function getExtension(filePath: string): string {
 export function stripExtension(filePath: string): string {
   const normalized = normalizePath(filePath);
   const extension = extname(normalized);
-  if (!extension) return normalized;
+  if (!extension) {
+    return normalized;
+  }
   return normalized.slice(0, -extension.length);
 }
 
@@ -86,9 +88,15 @@ export function computeRelPath(inputPath: FilePath, srcDir: FilePath): RelativeP
 }
 
 function restoreDotSlash(normalized: string, hadDotSlashPrefix: boolean): string {
-  if (!hadDotSlashPrefix) return normalized;
-  if (normalized.startsWith('./')) return normalized;
-  if (normalized === '' || normalized.startsWith('/')) return normalized;
+  if (!hadDotSlashPrefix) {
+    return normalized;
+  }
+  if (normalized.startsWith('./')) {
+    return normalized;
+  }
+  if (normalized === '' || normalized.startsWith('/')) {
+    return normalized;
+  }
   return './' + normalized;
 }
 
@@ -100,7 +108,9 @@ export function isRelativePathInsideBase(
   relativePath: string,
   importerPath: RelativePath
 ): boolean {
-  if (!relativePath.startsWith('.')) return false;
+  if (!relativePath.startsWith('.')) {
+    return false;
+  }
 
   const importerDir = getDirectory(importerPath);
   const combined = importerDir ? `${importerDir}/${relativePath}` : relativePath;
@@ -133,7 +143,11 @@ export function computeOutputExtension(
   transpileTs?: boolean,
   transpileJsx?: boolean
 ): string {
-  if (transpileTs) return '.js';
-  if (transpileJsx) return '.ts';
+  if (transpileTs) {
+    return '.js';
+  }
+  if (transpileJsx) {
+    return '.ts';
+  }
   return sourceExt;
 }

@@ -38,7 +38,9 @@ function checkFixture(source: string, filename: string): FixtureResult {
     scopeTracker: tracker,
     enter(node) {
       const n = node as AstNode;
-      if (n.type !== 'Identifier') return;
+      if (n.type !== 'Identifier') {
+        return;
+      }
       records.push({
         name: n.name,
         scopeKey: tracker.getCurrentScope(),
@@ -50,7 +52,9 @@ function checkFixture(source: string, filename: string): FixtureResult {
   const mismatches: string[] = [];
   let resolved = 0;
   for (const { name, scopeKey, decl } of records) {
-    if (decl !== null) resolved++;
+    if (decl !== null) {
+      resolved++;
+    }
     const fromScope = tracker.getDeclarationFromScope(name, scopeKey);
     if (fromScope !== decl) {
       mismatches.push(
@@ -142,7 +146,9 @@ use(e);
     for (const snapFile of snapFiles) {
       const content = readFileSync(join(SNAP_DIR, snapFile), 'utf-8');
       const parsed = parseSnapshot(content);
-      if (!parsed.input) continue;
+      if (!parsed.input) {
+        continue;
+      }
       const result = checkFixture(parsed.input, 'test.tsx');
       checkedFixtures += 1;
       totalRecords += result.records;

@@ -27,7 +27,9 @@ function collectBodyIdentifiers(bodyText: string): Set<string> {
   const ids = new Set<string>();
   try {
     const session = createTransformSession(bodyText, { tolerateErrors: true });
-    if (!session) throw new Error('unparseable body');
+    if (!session) {
+      throw new Error('unparseable body');
+    }
 
     let funcNode: AstFunction | null = null;
     const bareIds = new Set<string>();
@@ -56,15 +58,21 @@ function collectBodyIdentifiers(bodyText: string): Set<string> {
 
     if (funcNode) {
       const undeclared = getUndeclaredIdentifiersInFunction(funcNode);
-      for (const name of undeclared) ids.add(name);
+      for (const name of undeclared) {
+        ids.add(name);
+      }
     } else {
-      for (const name of bareIds) ids.add(name);
+      for (const name of bareIds) {
+        ids.add(name);
+      }
     }
   } catch {
     // Not converted to magic-regexp: charIn() escapes hyphens, breaking character ranges.
     const identRegex = /\b([A-Z_$][a-zA-Z0-9_$]*)\b/g;
     let match;
-    while ((match = identRegex.exec(bodyText)) !== null) ids.add(match[1]);
+    while ((match = identRegex.exec(bodyText)) !== null) {
+      ids.add(match[1]);
+    }
   }
   return ids;
 }
@@ -80,7 +88,9 @@ export function recollectPostTransformImports(
   const bodyIdentifiers = collectBodyIdentifiers(bodyText);
 
   for (const id of bodyIdentifiers) {
-    if (capturedNames.has(id)) continue;
+    if (capturedNames.has(id)) {
+      continue;
+    }
 
     let alreadyImported = false;
     for (const specs of importsBySource.values()) {
@@ -89,8 +99,12 @@ export function recollectPostTransformImports(
         break;
       }
     }
-    if (alreadyImported) continue;
-    if (partsHaveImport(parts, id)) continue;
+    if (alreadyImported) {
+      continue;
+    }
+    if (partsHaveImport(parts, id)) {
+      continue;
+    }
 
     const moduleImp = importContext.moduleImports.find((m) => m.localName === id);
     if (moduleImp) {
@@ -119,10 +133,15 @@ function buildModuleImportStatement(imp: {
   source: string;
 }): string {
   const rewrittenSource = rewriteImportSource(imp.source);
-  if (imp.importedName === '*') return `import * as ${imp.localName} from "${rewrittenSource}";`;
-  if (imp.importedName === 'default') return `import ${imp.localName} from "${rewrittenSource}";`;
-  if (imp.importedName !== imp.localName)
+  if (imp.importedName === '*') {
+    return `import * as ${imp.localName} from "${rewrittenSource}";`;
+  }
+  if (imp.importedName === 'default') {
+    return `import ${imp.localName} from "${rewrittenSource}";`;
+  }
+  if (imp.importedName !== imp.localName) {
     return `import { ${imp.importedName} as ${imp.localName} } from "${rewrittenSource}";`;
+  }
   return `import { ${imp.localName} } from "${rewrittenSource}";`;
 }
 
@@ -137,19 +156,27 @@ export function resolveSameFileImportName(
   defaultExportedNames: ReadonlySet<string> | undefined,
   renamedExports: ReadonlyMap<string, string> | undefined
 ): string {
-  if (isReexported) return `_auto_${id}`;
-  if (defaultExportedNames?.has(id)) return 'default';
+  if (isReexported) {
+    return `_auto_${id}`;
+  }
+  if (defaultExportedNames?.has(id)) {
+    return 'default';
+  }
   return renamedExports?.get(id) ?? id;
 }
 
 export function formatSameFileImport(id: string, importedName: string, source: string): string {
-  if (importedName === id) return `import { ${id} } from "${source}";`;
+  if (importedName === id) {
+    return `import { ${id} } from "${source}";`;
+  }
   return `import { ${importedName} as ${id} } from "${source}";`;
 }
 
 function addSameFileImport(parts: string[], id: string, importContext: SegmentImportData): void {
   const migrationDecision = importContext.migrationDecisions.find((d) => d.varName === id);
-  if (migrationDecision && migrationDecision.action === 'move') return;
+  if (migrationDecision && migrationDecision.action === 'move') {
+    return;
+  }
 
   const isReexported = migrationDecision?.action === 'reexport' && !migrationDecision.isExported;
   const importedName = resolveSameFileImportName(
@@ -176,9 +203,13 @@ function addQrlCalleeImports(
     let qrlMatch;
     while ((qrlMatch = qrlSuffixRegex.exec(bodyText)) !== null) {
       const qrlName = qrlMatch[1];
-      if (parts.some((p) => p.includes(qrlName))) continue;
+      if (parts.some((p) => p.includes(qrlName))) {
+        continue;
+      }
       const markerName = `${qrlName.slice(0, -3)}$`;
-      if (getQrlCalleeName(markerName) !== qrlName) continue;
+      if (getQrlCalleeName(markerName) !== qrlName) {
+        continue;
+      }
       // Gate on the name being a legitimate `*Qrl` import — either from the
       // source file's imports or the optimizer's runtime-imports injection
       // list. Without this gate, ANY user-named identifier ending in `Qrl`
@@ -186,7 +217,9 @@ function addQrlCalleeImports(
       // `qwikifyQrl`) gets a bogus `import { reactCmpQrl } from
       // "@qwik.dev/core";` emitted — getQrlCalleeName's check above is
       // trivially true since it literally re-suffixes `Qrl` onto its input.
-      if (!importContext.moduleImports.some((m) => m.localName === qrlName)) continue;
+      if (!importContext.moduleImports.some((m) => m.localName === qrlName)) {
+        continue;
+      }
       const importSource = getQrlImportSource(qrlName);
       insertImportBeforeSeparator(parts, `import { ${qrlName} } from "${importSource}";`);
     }
@@ -195,9 +228,13 @@ function addQrlCalleeImports(
 
   const addedQrlCallees = new Set<string>();
   for (const site of nestedCallSites) {
-    if (!site.qrlCallee || addedQrlCallees.has(site.qrlCallee)) continue;
+    if (!site.qrlCallee || addedQrlCallees.has(site.qrlCallee)) {
+      continue;
+    }
     addedQrlCallees.add(site.qrlCallee);
-    if (parts.some((p) => p.includes(site.qrlCallee!))) continue;
+    if (parts.some((p) => p.includes(site.qrlCallee!))) {
+      continue;
+    }
     const importSource = getQrlImportSource(site.qrlCallee!, site.importSource);
     insertImportBeforeSeparator(parts, `import { ${site.qrlCallee} } from "${importSource}";`);
   }

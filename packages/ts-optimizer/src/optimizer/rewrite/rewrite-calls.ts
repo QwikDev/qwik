@@ -51,7 +51,9 @@ export function hasMovedCaptures(ext: MovedCapturesSource): boolean {
 
 /** Appends the `.m()` moved-captures marker to a `;`-terminated QRL declaration. */
 export function markMovedCaptures(decl: string, ext: MovedCapturesSource): string {
-  if (!hasMovedCaptures(ext)) return decl;
+  if (!hasMovedCaptures(ext)) {
+    return decl;
+  }
   return decl.slice(0, -1) + '.m();';
 }
 
@@ -107,7 +109,9 @@ function minifyFunctionText(text: string): string {
   let codeStart = 0;
   const OPERATOR = /[{}(),:;=<>+\-*/%&|!?.]/;
   const flushCode = (end: number): void => {
-    if (end <= codeStart) return;
+    if (end <= codeStart) {
+      return;
+    }
     let chunk = minifyCodeSegment(text.slice(codeStart, end));
     // Boundary spaces around a dropped comment must not survive the join.
     if (chunk.startsWith(' ') && (out === '' || OPERATOR.test(out[out.length - 1]))) {
@@ -153,9 +157,13 @@ function stripTypesForSerialization(fnText: string): string {
       typescript: { onlyRemoveTypeImports: false },
       jsx: 'preserve',
     });
-    if (!out.code) return fnText;
+    if (!out.code) {
+      return fnText;
+    }
     const openIdx = out.code.indexOf('(', out.code.indexOf('='));
-    if (openIdx < 0) return fnText;
+    if (openIdx < 0) {
+      return fnText;
+    }
     const closeIdx = scanMatchingParenForward(out.code, openIdx + 1);
     return out.code.slice(openIdx + 1, closeIdx - 1);
   } catch {
@@ -188,10 +196,14 @@ export function getQrlImportSource(qrlCalleeName: string, originalSource?: strin
     return rewriteImportSource(originalSource);
   }
 
-  if (qrlCalleeName === 'qwikifyQrl') return '@qwik.dev/react';
+  if (qrlCalleeName === 'qwikifyQrl') {
+    return '@qwik.dev/react';
+  }
 
   const ROUTER_QRLS = new Set(['globalActionQrl', 'routeActionQrl', 'routeLoaderQrl', 'zodQrl']);
-  if (ROUTER_QRLS.has(qrlCalleeName)) return '@qwik.dev/router';
+  if (ROUTER_QRLS.has(qrlCalleeName)) {
+    return '@qwik.dev/router';
+  }
 
   return '@qwik.dev/core';
 }

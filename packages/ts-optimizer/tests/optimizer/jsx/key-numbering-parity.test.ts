@@ -49,7 +49,9 @@ function componentKeys(
     const end = body.indexOf('\n};');
     const scoped = end >= 0 ? body.slice(0, end) : body;
     const keys = [...scoped.matchAll(/\d, "([A-Za-z0-9]+_\d+)"/g)].map((m) => m[1]);
-    if (keys.length) out.set(name, keys);
+    if (keys.length) {
+      out.set(name, keys);
+    }
   };
   for (const m of modules) {
     // Both parent modules and segment files declare the component function as

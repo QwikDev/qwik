@@ -30,7 +30,9 @@ function memoizedParse(wrappedSource: string): ReturnType<typeof parseWithRawTra
   const parsed = parseWithRawTransfer(SESSION_FILENAME, wrappedSource);
   if (parseMemo.size >= PARSE_MEMO_CAP) {
     const oldest = parseMemo.keys().next().value;
-    if (oldest !== undefined) parseMemo.delete(oldest);
+    if (oldest !== undefined) {
+      parseMemo.delete(oldest);
+    }
   }
   parseMemo.set(wrappedSource, parsed);
   return parsed;
@@ -67,7 +69,9 @@ export function createTransformSession(
   const wrappedSource = WRAPPER_PREFIX + sourceText;
   const parseResult = memoizedParse(wrappedSource);
 
-  if (!parseResult.program) return null;
+  if (!parseResult.program) {
+    return null;
+  }
   if (!options.tolerateErrors && parseResult.errors?.length) {
     return null;
   }
@@ -82,11 +86,15 @@ export function createTransformSession(
     offset: WRAPPER_PREFIX.length,
     program: parseResult.program,
     get edits(): MagicString {
-      if (edits === undefined) edits = new MagicString(wrappedSource);
+      if (edits === undefined) {
+        edits = new MagicString(wrappedSource);
+      }
       return edits;
     },
     toSource() {
-      if (edits === undefined) return this.sourceText;
+      if (edits === undefined) {
+        return this.sourceText;
+      }
       const transformed = edits.toString();
       return transformed.slice(
         this.wrapperPrefix.length,
@@ -101,16 +109,24 @@ export function createFunctionTransformSession(
   options: TransformSessionOptions = {}
 ): FunctionTransformSession | null {
   const session = createTransformSession(sourceText, options);
-  if (!session) return null;
+  if (!session) {
+    return null;
+  }
 
   const decl = session.program.body[0];
-  if (!decl || decl.type !== 'VariableDeclaration') return null;
+  if (!decl || decl.type !== 'VariableDeclaration') {
+    return null;
+  }
   const init = decl.declarations?.[0]?.init;
-  if (!init) return null;
+  if (!init) {
+    return null;
+  }
   if (init.type !== 'ArrowFunctionExpression' && init.type !== 'FunctionExpression') {
     return null;
   }
-  if (!init.body) return null;
+  if (!init.body) {
+    return null;
+  }
 
   // Object.assign (not spread): spreading would invoke the lazy `edits`
   // getter, forcing the MagicString and freezing it as a data property.
@@ -122,7 +138,9 @@ export function insertFunctionBodyPrologue(
   fn: AstFunction,
   line: string
 ): void {
-  if (!fn.body) return;
+  if (!fn.body) {
+    return;
+  }
   if (fn.body.type === 'BlockStatement') {
     session.edits.appendLeft(fn.body.start + 1, `\n${line}`);
     return;
@@ -137,7 +155,9 @@ export function replaceFunctionParams(
   fn: AstFunction,
   paramNames: string[]
 ): boolean {
-  if (!fn.body) return false;
+  if (!fn.body) {
+    return false;
+  }
   const paramList = paramNames.join(', ');
   if (fn.params.length > 0) {
     const firstParam = fn.params[0]!;

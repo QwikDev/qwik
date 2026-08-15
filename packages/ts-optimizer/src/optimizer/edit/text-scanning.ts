@@ -16,8 +16,11 @@ export function isInsideString(text: string, offset: number): boolean {
       continue;
     }
     if (inTemplate && templateDepth > 0) {
-      if (ch === '{') templateDepth++;
-      else if (ch === '}') templateDepth--;
+      if (ch === '{') {
+        templateDepth++;
+      } else if (ch === '}') {
+        templateDepth--;
+      }
       continue;
     }
     if (inTemplate && ch === '$' && text[i + 1] === '{') {
@@ -25,9 +28,13 @@ export function isInsideString(text: string, offset: number): boolean {
       i++;
       continue;
     }
-    if (ch === "'" && !inDouble && !inTemplate) inSingle = !inSingle;
-    else if (ch === '"' && !inSingle && !inTemplate) inDouble = !inDouble;
-    else if (ch === '`' && !inSingle && !inDouble) inTemplate = !inTemplate;
+    if (ch === "'" && !inDouble && !inTemplate) {
+      inSingle = !inSingle;
+    } else if (ch === '"' && !inSingle && !inTemplate) {
+      inDouble = !inDouble;
+    } else if (ch === '`' && !inSingle && !inDouble) {
+      inTemplate = !inTemplate;
+    }
   }
   return inSingle || inDouble || (inTemplate && templateDepth === 0);
 }
@@ -42,7 +49,9 @@ const PURE_ANNOTATION_AT_END = /\/\*\s*[#@]__PURE__\s*\*\/$/;
  */
 export function pureAwareOverwriteStart(source: string, callStart: number): number {
   let j = callStart;
-  while (j > 0 && /\s/.test(source[j - 1]!)) j--;
+  while (j > 0 && /\s/.test(source[j - 1]!)) {
+    j--;
+  }
   const match = PURE_ANNOTATION_AT_END.exec(source.slice(0, j));
   return match ? match.index : callStart;
 }
@@ -65,13 +74,17 @@ export function findMatchingBrace(text: string, openPos: number): number {
     // Comments may contain apostrophes and braces; skip them wholesale.
     if (ch === '/' && text[i + 1] === '/') {
       const nl = text.indexOf('\n', i);
-      if (nl === -1) return -1;
+      if (nl === -1) {
+        return -1;
+      }
       i = nl + 1;
       continue;
     }
     if (ch === '/' && text[i + 1] === '*') {
       const end = text.indexOf('*/', i + 2);
-      if (end === -1) return -1;
+      if (end === -1) {
+        return -1;
+      }
       i = end + 2;
       continue;
     }
@@ -81,10 +94,15 @@ export function findMatchingBrace(text: string, openPos: number): number {
       continue;
     }
 
-    if (ch === '{') depth++;
-    else if (ch === '}') depth--;
+    if (ch === '{') {
+      depth++;
+    } else if (ch === '}') {
+      depth--;
+    }
 
-    if (depth === 0) return i;
+    if (depth === 0) {
+      return i;
+    }
     i++;
   }
   return -1;
@@ -112,8 +130,11 @@ export function skipStringLiteralForward(text: string, i: number): number {
           i = skipStringLiteralForward(text, i) + 1;
           continue;
         }
-        if (ch === '{') depth++;
-        else if (ch === '}') depth--;
+        if (ch === '{') {
+          depth++;
+        } else if (ch === '}') {
+          depth--;
+        }
         i++;
       }
       continue;
@@ -133,7 +154,9 @@ export function blankNonCode(text: string): string {
   const chars = text.split('');
   const blank = (from: number, to: number): void => {
     for (let k = from; k < to && k < chars.length; k++) {
-      if (chars[k] !== '\n') chars[k] = ' ';
+      if (chars[k] !== '\n') {
+        chars[k] = ' ';
+      }
     }
   };
   for (let i = 0; i < text.length; i++) {
@@ -163,9 +186,11 @@ export function scanMatchingParenForward(text: string, start: number): number {
   let j = start;
   while (j < text.length && depth > 0) {
     const ch = text[j];
-    if (ch === '(') depth++;
-    else if (ch === ')') depth--;
-    else if (ch === "'" || ch === '"' || ch === '`') {
+    if (ch === '(') {
+      depth++;
+    } else if (ch === ')') {
+      depth--;
+    } else if (ch === "'" || ch === '"' || ch === '`') {
       j = skipStringLiteralForward(text, j);
     }
     j++;
@@ -178,8 +203,11 @@ export function scanMatchingParenBackward(text: string, start: number): number {
   let depth = 1;
   let i = start;
   while (i >= 0 && depth > 0) {
-    if (text[i] === ')') depth++;
-    else if (text[i] === '(') depth--;
+    if (text[i] === ')') {
+      depth++;
+    } else if (text[i] === '(') {
+      depth--;
+    }
     i--;
   }
   return i + 1;
@@ -201,7 +229,9 @@ export function findExpressionEnd(code: string, start: number): number {
     const ch = code[i];
 
     if (inString) {
-      if (ch === inString && code[i - 1] !== '\\') inString = null;
+      if (ch === inString && code[i - 1] !== '\\') {
+        inString = null;
+      }
       i++;
       continue;
     }
@@ -217,7 +247,9 @@ export function findExpressionEnd(code: string, start: number): number {
       continue;
     }
     if (ch === ')') {
-      if (parenDepth === 0) return i;
+      if (parenDepth === 0) {
+        return i;
+      }
       parenDepth--;
       i++;
       continue;
@@ -228,7 +260,9 @@ export function findExpressionEnd(code: string, start: number): number {
       continue;
     }
     if (ch === '}') {
-      if (curlyDepth === 0) return i;
+      if (curlyDepth === 0) {
+        return i;
+      }
       curlyDepth--;
       i++;
       continue;
@@ -250,9 +284,11 @@ export function findExpressionEnd(code: string, start: number): number {
       let j = i + 1;
       let tagCurly = 0;
       while (j < code.length) {
-        if (code[j] === '{') tagCurly++;
-        else if (code[j] === '}') tagCurly--;
-        else if (code[j] === '>' && tagCurly === 0) {
+        if (code[j] === '{') {
+          tagCurly++;
+        } else if (code[j] === '}') {
+          tagCurly--;
+        } else if (code[j] === '>' && tagCurly === 0) {
           if (code[j - 1] === '/') {
             angleBraceDepth--;
             i = j + 1;
@@ -266,12 +302,16 @@ export function findExpressionEnd(code: string, start: number): number {
         }
         j++;
       }
-      if (j >= code.length) return code.length;
+      if (j >= code.length) {
+        return code.length;
+      }
       continue;
     }
 
     if (angleBraceDepth === 0 && parenDepth === 0 && curlyDepth === 0) {
-      if (ch === '\n' || ch === ';' || ch === ',') return i;
+      if (ch === '\n' || ch === ';' || ch === ',') {
+        return i;
+      }
     }
 
     i++;

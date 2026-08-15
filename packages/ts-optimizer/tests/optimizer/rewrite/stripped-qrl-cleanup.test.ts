@@ -8,7 +8,9 @@ import { mkFilePath, mkSourceText } from '../../../src/optimizer/types/brands.js
 
 function findParent(result: { modules: readonly TransformModule[] }): TransformModule {
   const parent = result.modules.find((m) => m.kind === 'parent');
-  if (!parent) throw new Error('parent module not found');
+  if (!parent) {
+    throw new Error('parent module not found');
+  }
   return parent;
 }
 
@@ -17,7 +19,9 @@ function findSegmentByCtx(
   ctxName: string
 ): TransformModule {
   const m = result.modules.find((mod) => mod.kind === 'segment' && mod.segment.ctxName === ctxName);
-  if (!m) throw new Error(`segment with ctxName=${ctxName} not found`);
+  if (!m) {
+    throw new Error(`segment with ctxName=${ctxName} not found`);
+  }
   return m;
 }
 
@@ -62,7 +66,9 @@ export const Parent = component$(() => {
       stripEventHandlers: true,
     });
     const seg = findSegmentByCtx(result, 'shouldRemove$');
-    if (seg.kind !== 'segment') throw new Error('expected segment');
+    if (seg.kind !== 'segment') {
+      throw new Error('expected segment');
+    }
     const meta = seg.segment as SegmentMetadataInternal;
     expect(meta.captures).toBe(false);
     expect(meta.captureNames).toEqual([]);
@@ -86,7 +92,9 @@ export const Parent = component$(() => {
       stripCtxName: ['useClientMount$'],
     });
     const seg = findSegmentByCtx(result, 'useClientMount$');
-    if (seg.kind !== 'segment') throw new Error('expected segment');
+    if (seg.kind !== 'segment') {
+      throw new Error('expected segment');
+    }
     const meta = seg.segment as SegmentMetadataInternal;
     expect(meta.captures).toBe(true);
     expect(meta.captureNames).toEqual(['state']);

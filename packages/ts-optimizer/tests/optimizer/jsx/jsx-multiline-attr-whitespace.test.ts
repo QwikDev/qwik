@@ -21,11 +21,15 @@ function classValueAfterTransform(rawClassValue: string): string {
   const seg = result.modules.find(
     (m) => m.kind === 'segment' && m.segment.name.startsWith('C_component_')
   );
-  if (seg?.kind !== 'segment') throw new Error('expected component segment');
+  if (seg?.kind !== 'segment') {
+    throw new Error('expected component segment');
+  }
   const parsed = parseSync('seg.js', seg.code, { lang: 'tsx' });
   expect(parsed.errors, `emitted segment must parse:\n${seg.code}`).toHaveLength(0);
   const m = seg.code.match(/class:\s*("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')/);
-  if (!m) throw new Error(`no class prop found in:\n${seg.code}`);
+  if (!m) {
+    throw new Error(`no class prop found in:\n${seg.code}`);
+  }
   return m[1];
 }
 
@@ -44,7 +48,9 @@ describe('multi-line JSX attribute string whitespace folding', () => {
     const seg = result.modules.find(
       (m) => m.kind === 'segment' && m.segment.name.startsWith('Decor_component_')
     );
-    if (seg?.kind !== 'segment') throw new Error('expected component segment');
+    if (seg?.kind !== 'segment') {
+      throw new Error('expected component segment');
+    }
     const parsed = parseSync('seg.js', seg.code, { lang: 'tsx' });
     expect(parsed.errors, `segment must parse:\n${seg.code}`).toHaveLength(0);
     expect(seg.code).not.toMatch(/class:\s*"[^"]*\n/);

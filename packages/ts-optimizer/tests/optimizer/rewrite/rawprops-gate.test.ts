@@ -6,7 +6,9 @@ import { mkFilePath, mkSourceText } from '../../../src/optimizer/types/brands.js
 
 function findParent(result: { modules: readonly TransformModule[] }): TransformModule {
   const parent = result.modules.find((m) => m.kind === 'parent');
-  if (!parent) throw new Error('parent module not found');
+  if (!parent) {
+    throw new Error('parent module not found');
+  }
   return parent;
 }
 
@@ -218,7 +220,9 @@ describe('bug 3: gate counts only top-level returns, not nested ones', () => {
     needle: string
   ): TransformModule {
     const seg = result.modules.find((m) => m.kind === 'segment' && m.path.includes(needle));
-    if (!seg) throw new Error(`segment ${needle} not found`);
+    if (!seg) {
+      throw new Error(`segment ${needle} not found`);
+    }
     return seg;
   }
 

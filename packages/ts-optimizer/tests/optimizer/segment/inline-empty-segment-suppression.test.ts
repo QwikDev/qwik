@@ -82,7 +82,9 @@ export const Parent = component$(() => {
       .map((m) => (m.kind === 'segment' ? m.segment.ctxName : ''))
       .sort();
     for (const m of segments) {
-      if (m.kind === 'segment') expect(m.code).toContain('= null');
+      if (m.kind === 'segment') {
+        expect(m.code).toContain('= null');
+      }
     }
     expect(strippedCtxNames).not.toContain('useTask$');
     expect(strippedCtxNames).toContain('useClientMount$');
@@ -106,7 +108,9 @@ export const App = component$(() => {
     const segments = findSegments(result);
     expect(segments.length).toBe(2);
     for (const m of segments) {
-      if (m.kind === 'segment') expect(m.code.length).toBeGreaterThan(20);
+      if (m.kind === 'segment') {
+        expect(m.code.length).toBeGreaterThan(20);
+      }
     }
   });
 });

@@ -29,9 +29,15 @@ function collectReferencedNames(program: AstProgram, dead: readonly RangedNode[]
     enter(node, parent) {
       const n = node as AstNode;
       const p = parent as AstNode | null;
-      if (n.type !== 'Identifier' && n.type !== 'JSXIdentifier') return;
-      if (dead.some((d) => n.start >= d.start && n.end <= d.end)) return;
-      if (isNonReferenceIdentifier(n, p)) return;
+      if (n.type !== 'Identifier' && n.type !== 'JSXIdentifier') {
+        return;
+      }
+      if (dead.some((d) => n.start >= d.start && n.end <= d.end)) {
+        return;
+      }
+      if (isNonReferenceIdentifier(n, p)) {
+        return;
+      }
       if (p) {
         // Declaration-name positions are bindings, not references.
         if (
@@ -50,8 +56,12 @@ function collectReferencedNames(program: AstProgram, dead: readonly RangedNode[]
 }
 
 function isPureInit(init: unknown): boolean {
-  if (init == null) return true;
-  if (!isRecordNode(init)) return false;
+  if (init == null) {
+    return true;
+  }
+  if (!isRecordNode(init)) {
+    return false;
+  }
   switch (init.type) {
     case 'Literal':
     case 'Identifier':
@@ -67,23 +77,35 @@ function isPureInit(init: unknown): boolean {
 
 function isRemovableVarDecl(stmt: Record<string, unknown>, referenced: Set<string>): boolean {
   const decls = stmt.declarations as Array<Record<string, unknown>> | undefined;
-  if (!decls || decls.length === 0) return false;
+  if (!decls || decls.length === 0) {
+    return false;
+  }
   for (const decl of decls) {
     const id = decl.id as Record<string, unknown> | undefined;
-    if (!id || id.type !== 'Identifier') return false;
-    if (referenced.has(id.name as string)) return false;
-    if (!isPureInit(decl.init)) return false;
+    if (!id || id.type !== 'Identifier') {
+      return false;
+    }
+    if (referenced.has(id.name as string)) {
+      return false;
+    }
+    if (!isPureInit(decl.init)) {
+      return false;
+    }
   }
   return true;
 }
 
 function classHasSideEffects(stmt: Record<string, unknown>): boolean {
   const superClass = stmt.superClass as Record<string, unknown> | undefined | null;
-  if (superClass && superClass.type !== 'Identifier') return true;
+  if (superClass && superClass.type !== 'Identifier') {
+    return true;
+  }
   const body = stmt.body as Record<string, unknown> | undefined;
   const members = (body?.body as Array<Record<string, unknown>> | undefined) ?? [];
   for (const member of members) {
-    if (member.type === 'StaticBlock') return true;
+    if (member.type === 'StaticBlock') {
+      return true;
+    }
     if (member.type === 'PropertyDefinition' && member.static && !isPureInit(member.value)) {
       return true;
     }
@@ -92,7 +114,9 @@ function classHasSideEffects(stmt: Record<string, unknown>): boolean {
 }
 
 function isRemovableStatement(stmt: unknown, referenced: Set<string>): stmt is RangedNode {
-  if (!isRecordNode(stmt)) return false;
+  if (!isRecordNode(stmt)) {
+    return false;
+  }
   switch (stmt.type) {
     case 'VariableDeclaration':
       return isRemovableVarDecl(stmt, referenced);
@@ -102,7 +126,9 @@ function isRemovableStatement(stmt: unknown, referenced: Set<string>): stmt is R
     }
     case 'ClassDeclaration': {
       const id = stmt.id as Record<string, unknown> | undefined;
-      if (!id || referenced.has(id.name as string)) return false;
+      if (!id || referenced.has(id.name as string)) {
+        return false;
+      }
       return !classHasSideEffects(stmt);
     }
     case 'TryStatement': {
@@ -122,10 +148,14 @@ function collectBlockBodies(program: AstProgram): unknown[][] {
   const bodies: unknown[][] = [];
   const visit = (node: unknown): void => {
     if (Array.isArray(node)) {
-      for (const item of node) visit(item);
+      for (const item of node) {
+        visit(item);
+      }
       return;
     }
-    if (!isRecordNode(node)) return;
+    if (!isRecordNode(node)) {
+      return;
+    }
     if ((node.type === 'BlockStatement' || node.type === 'Program') && Array.isArray(node.body)) {
       bodies.push(node.body as unknown[]);
     }
@@ -156,7 +186,9 @@ export function applyStatementDCE(code: string, filename: string): string {
     const referenced = collectReferencedNames(program, dead);
     for (const body of bodies) {
       for (const stmt of body) {
-        if (!isRecordNode(stmt) || isDead(stmt)) continue;
+        if (!isRecordNode(stmt) || isDead(stmt)) {
+          continue;
+        }
         if (isRemovableStatement(stmt, referenced)) {
           dead.push(stmt);
           changed = true;
@@ -165,11 +197,15 @@ export function applyStatementDCE(code: string, filename: string): string {
     }
   }
 
-  if (dead.length === 0) return code;
+  if (dead.length === 0) {
+    return code;
+  }
   const s = new MagicString(code);
   for (const stmt of dead) {
     let end = stmt.end;
-    if (end < code.length && code[end] === '\n') end++;
+    if (end < code.length && code[end] === '\n') {
+      end++;
+    }
     s.remove(stmt.start, end);
   }
   return s.toString();

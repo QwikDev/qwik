@@ -74,7 +74,9 @@ describe('segment origin + file extension resolve under bundler config', () => {
     const source = readFileSync(FIXTURE_PATH, 'utf8');
     const result = runTransform(source);
     for (const mod of result.modules) {
-      if (mod.kind !== 'segment') continue;
+      if (mod.kind !== 'segment') {
+        continue;
+      }
       const origin = mod.segment.origin;
       expect(
         origin.startsWith('/'),
@@ -102,7 +104,9 @@ describe('segment origin + file extension resolve under bundler config', () => {
       const baseDir = mod.kind === 'segment' ? dirname(mod.path) : dirname(INPUT_PATH);
       for (const match of mod.code.matchAll(importRe)) {
         const spec = match[1]!;
-        if (!spec.includes('index.qwik.mjs_')) continue;
+        if (!spec.includes('index.qwik.mjs_')) {
+          continue;
+        }
         checked++;
         const resolved = join(baseDir, spec);
         expect(
@@ -184,7 +188,9 @@ export { f, g, h };
             .split(/\s+as\s+/)
             .pop()
             ?.trim();
-          if (name) names.push(name);
+          if (name) {
+            names.push(name);
+          }
         }
       }
       const dups = names.filter((n, i) => names.indexOf(n) !== i);

@@ -41,7 +41,9 @@ import { wholeIdentifierPattern } from '../edit/identifier-boundary.js';
 
 function isCustomInlined(ext: ExtractionResult, originalImports: Map<string, ImportInfo>): boolean {
   for (const [, info] of originalImports) {
-    if (info.importedName === ext.calleeName) return false;
+    if (info.importedName === ext.calleeName) {
+      return false;
+    }
   }
   return true;
 }
@@ -97,11 +99,15 @@ export function collectNeededImports(ctx: RewriteContext): void {
       );
       if (hasNonStripped) {
         const qrlSymbol = isDevMode ? 'qrlDEV' : 'qrl';
-        if (!alreadyImported.has(qrlSymbol)) neededImports.set(qrlSymbol, '@qwik.dev/core');
+        if (!alreadyImported.has(qrlSymbol)) {
+          neededImports.set(qrlSymbol, '@qwik.dev/core');
+        }
       }
       if (hasStripped) {
         const noopSymbol = isDevMode ? '_noopQrlDEV' : '_noopQrl';
-        if (!alreadyImported.has(noopSymbol)) neededImports.set(noopSymbol, '@qwik.dev/core');
+        if (!alreadyImported.has(noopSymbol)) {
+          neededImports.set(noopSymbol, '@qwik.dev/core');
+        }
       }
     }
   } else {
@@ -109,11 +115,15 @@ export function collectNeededImports(ctx: RewriteContext): void {
     const hasNonWorkerNonSync = topLevel.some((e) => !e.isSync && !isWorkerExtraction(e));
     if (hasWorker) {
       const chunkSymbol = isDevMode ? '_qrlWithChunkDEV' : '_qrlWithChunk';
-      if (!alreadyImported.has(chunkSymbol)) neededImports.set(chunkSymbol, '@qwik.dev/core');
+      if (!alreadyImported.has(chunkSymbol)) {
+        neededImports.set(chunkSymbol, '@qwik.dev/core');
+      }
     }
     if (hasNonWorkerNonSync) {
       const qrlSymbol = isDevMode ? 'qrlDEV' : 'qrl';
-      if (!alreadyImported.has(qrlSymbol)) neededImports.set(qrlSymbol, '@qwik.dev/core');
+      if (!alreadyImported.has(qrlSymbol)) {
+        neededImports.set(qrlSymbol, '@qwik.dev/core');
+      }
       const hasInlinedQrlLocal = topLevel.some(
         (e) => e.isInlinedQrl && !ctx.relPath.includes('node_modules')
       );
@@ -125,7 +135,9 @@ export function collectNeededImports(ctx: RewriteContext): void {
 
   for (const ext of topLevel) {
     if (ext.isSync) {
-      if (!alreadyImported.has('_qrlSync')) neededImports.set('_qrlSync', '@qwik.dev/core');
+      if (!alreadyImported.has('_qrlSync')) {
+        neededImports.set('_qrlSync', '@qwik.dev/core');
+      }
       continue;
     }
     if (ext.isBare) {
@@ -156,7 +168,9 @@ export function collectNeededImports(ctx: RewriteContext): void {
 
   if (jsxResult) {
     for (const sym of jsxResult.neededImports) {
-      if (!alreadyImported.has(sym)) neededImports.set(sym, '@qwik.dev/core');
+      if (!alreadyImported.has(sym)) {
+        neededImports.set(sym, '@qwik.dev/core');
+      }
     }
     if (jsxResult.needsFragment && !alreadyImported.has('_Fragment')) {
       neededImports.set('Fragment as _Fragment', '@qwik.dev/core/jsx-runtime');
@@ -194,7 +208,9 @@ export function buildQrlDeclarations(ctx: RewriteContext): void {
   if (ctx.migrationDecisions && ctx.moduleLevelDecls) {
     const fileStem = relPath.split('/').pop() ?? relPath;
     for (const decision of ctx.migrationDecisions) {
-      if (decision.action !== 'move') continue;
+      if (decision.action !== 'move') {
+        continue;
+      }
       const varName = escapeSymbol(decision.varName);
       const exact = `${fileStem}_${varName}`;
       const prefix = `${exact}_`;
@@ -202,7 +218,9 @@ export function buildQrlDeclarations(ctx: RewriteContext): void {
       // A moved helper can own several extractions, so scan all — every one
       // loses its parent-side `q_<sym>` binding when the decl moves out.
       for (const e of extractions) {
-        if (e.parent !== null) continue;
+        if (e.parent !== null) {
+          continue;
+        }
         if (
           e.displayName === exact ||
           e.displayName.startsWith(prefix) ||
@@ -420,7 +438,9 @@ export function buildQrlDeclarations(ctx: RewriteContext): void {
 }
 
 export function buildInlineSCalls(ctx: RewriteContext): void {
-  if (!ctx.isInline) return;
+  if (!ctx.isInline) {
+    return;
+  }
 
   const {
     extractions,
@@ -487,7 +507,9 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
       !isRegCtx &&
       inlineOptions &&
       isStrippedExtraction(ext, inlineOptions.stripCtxName, inlineOptions.stripEventHandlers);
-    if (isStrippedExt) continue;
+    if (isStrippedExt) {
+      continue;
+    }
 
     if (ext.parent !== null) {
       nestedExts.push(ext);
@@ -502,7 +524,9 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
   if (isHoist) {
     for (const ext of allNonSync) {
       for (const stmt of program.body) {
-        if (stmt.type === 'ImportDeclaration') continue;
+        if (stmt.type === 'ImportDeclaration') {
+          continue;
+        }
         if (ext.callStart >= stmt.start && ext.callStart < stmt.end) {
           extContainingStmtStart.set(ext.symbolName, stmt.start);
           break;
@@ -603,9 +627,14 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
           const stripped = oxcTransformSync('__body__.tsx', `(${hoistBody})`);
           if (stripped.code && !stripped.errors?.length) {
             let code = stripped.code;
-            if (code.endsWith(';\n')) code = code.slice(0, -2);
-            else if (code.endsWith(';')) code = code.slice(0, -1);
-            if (code.startsWith('(') && code.endsWith(')')) code = code.slice(1, -1);
+            if (code.endsWith(';\n')) {
+              code = code.slice(0, -2);
+            } else if (code.endsWith(';')) {
+              code = code.slice(0, -1);
+            }
+            if (code.startsWith('(') && code.endsWith(')')) {
+              code = code.slice(1, -1);
+            }
             hoistBody = code;
           }
         } catch {
@@ -626,14 +655,22 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
     }
   };
 
-  for (const ext of nestedExts) processExtraction(ext);
-  for (const ext of topNonComponent) processExtraction(ext);
-  for (const ext of topComponent) processExtraction(ext);
+  for (const ext of nestedExts) {
+    processExtraction(ext);
+  }
+  for (const ext of topNonComponent) {
+    processExtraction(ext);
+  }
+  for (const ext of topComponent) {
+    processExtraction(ext);
+  }
 
   const jsxCallDecls = sharedJsxCallHoister.getDeclarations();
   if (sharedHoister || jsxCallDecls.length > 0) {
     ctx.inlineHoistedDeclarations.length = 0;
-    if (sharedHoister) ctx.inlineHoistedDeclarations.push(...sharedHoister.getDeclarations());
+    if (sharedHoister) {
+      ctx.inlineHoistedDeclarations.push(...sharedHoister.getDeclarations());
+    }
     ctx.inlineHoistedDeclarations.push(...jsxCallDecls);
   }
 }
@@ -643,7 +680,9 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
  * anchor: self-referencing sCalls must follow it to avoid TDZ at module load.
  */
 function isMarkerLikeCall(init: AstNode | null | undefined): boolean {
-  if (!init || init.type !== 'CallExpression' || init.callee?.type !== 'Identifier') return false;
+  if (!init || init.type !== 'CallExpression' || init.callee?.type !== 'Identifier') {
+    return false;
+  }
   const name = init.callee.name;
   return name.endsWith('$') || name.endsWith('Qrl');
 }
@@ -651,10 +690,16 @@ function isMarkerLikeCall(init: AstNode | null | undefined): boolean {
 function findExportedMarkerNames(program: AstProgram): Set<string> {
   const names = new Set<string>();
   for (const stmt of program.body) {
-    if (stmt.type !== 'ExportNamedDeclaration' || stmt.declaration?.type !== 'VariableDeclaration')
+    if (
+      stmt.type !== 'ExportNamedDeclaration' ||
+      stmt.declaration?.type !== 'VariableDeclaration'
+    ) {
       continue;
+    }
     for (const decl of stmt.declaration.declarations ?? []) {
-      if (decl.id?.type !== 'Identifier' || !isMarkerLikeCall(decl.init)) continue;
+      if (decl.id?.type !== 'Identifier' || !isMarkerLikeCall(decl.init)) {
+        continue;
+      }
       names.add(decl.id.name);
     }
   }
@@ -664,9 +709,15 @@ function findExportedMarkerNames(program: AstProgram): Set<string> {
 function findLastMarkerExportAnchor(program: AstProgram): { start: number; end: number } | null {
   for (let i = program.body.length - 1; i >= 0; i--) {
     const stmt = program.body[i];
-    if (stmt.type === 'ExportDefaultDeclaration') return { start: stmt.start, end: stmt.end };
-    if (stmt.type !== 'ExportNamedDeclaration' || stmt.declaration?.type !== 'VariableDeclaration')
+    if (stmt.type === 'ExportDefaultDeclaration') {
+      return { start: stmt.start, end: stmt.end };
+    }
+    if (
+      stmt.type !== 'ExportNamedDeclaration' ||
+      stmt.declaration?.type !== 'VariableDeclaration'
+    ) {
       continue;
+    }
     if (isMarkerLikeCall(stmt.declaration.declarations?.[0]?.init)) {
       return { start: stmt.start, end: stmt.end };
     }
@@ -691,9 +742,13 @@ function findLastReferencedDeclEnd(
 ): number | null {
   let maxEnd = -1;
   for (const decl of decls) {
-    if (decl.declEnd <= maxEnd) continue;
+    if (decl.declEnd <= maxEnd) {
+      continue;
+    }
     const wb = wordBoundaryTester(decl.name);
-    if (sCalls.some((sc) => wb.test(sc))) maxEnd = decl.declEnd;
+    if (sCalls.some((sc) => wb.test(sc))) {
+      maxEnd = decl.declEnd;
+    }
   }
   return maxEnd >= 0 ? maxEnd : null;
 }
@@ -711,9 +766,15 @@ function findForwardReferencedDeclEnd(
 ): number | null {
   let maxEnd = -1;
   for (const decl of decls) {
-    if (decl.declStart <= threshold) continue;
-    if (decl.declEnd <= maxEnd) continue;
-    if (wordBoundaryTester(decl.name).test(sCall)) maxEnd = decl.declEnd;
+    if (decl.declStart <= threshold) {
+      continue;
+    }
+    if (decl.declEnd <= maxEnd) {
+      continue;
+    }
+    if (wordBoundaryTester(decl.name).test(sCall)) {
+      maxEnd = decl.declEnd;
+    }
   }
   return maxEnd >= 0 ? maxEnd : null;
 }
@@ -743,7 +804,9 @@ function placeSCalls(
   sCalls: readonly string[],
   moduleLevelDecls: readonly ModuleLevelDecl[] | undefined
 ): void {
-  if (sCalls.length === 0) return;
+  if (sCalls.length === 0) {
+    return;
+  }
 
   const markerAnchor = findLastMarkerExportAnchor(program);
   const decls = moduleLevelDecls ?? [];
@@ -754,16 +817,25 @@ function placeSCalls(
       markerAnchor && decls.length > 0
         ? findForwardReferencedDeclEnd(sCall, decls, markerAnchor.end)
         : null;
-    if (forwardDeclEnd !== null) s.appendRight(forwardDeclEnd, '\n' + sCall);
-    else groupedSCalls.push(sCall);
+    if (forwardDeclEnd !== null) {
+      s.appendRight(forwardDeclEnd, '\n' + sCall);
+    } else {
+      groupedSCalls.push(sCall);
+    }
   }
-  if (groupedSCalls.length === 0) return;
+  if (groupedSCalls.length === 0) {
+    return;
+  }
 
   if (markerAnchor) {
     const exportedNames = findExportedMarkerNames(program);
     const { beforeExport, afterExport } = partitionSCallsBySelfRef(groupedSCalls, exportedNames);
-    if (beforeExport.length > 0) s.appendLeft(markerAnchor.start, beforeExport.join('\n') + '\n');
-    if (afterExport.length > 0) s.appendRight(markerAnchor.end, '\n' + afterExport.join('\n'));
+    if (beforeExport.length > 0) {
+      s.appendLeft(markerAnchor.start, beforeExport.join('\n') + '\n');
+    }
+    if (afterExport.length > 0) {
+      s.appendRight(markerAnchor.end, '\n' + afterExport.join('\n'));
+    }
     return;
   }
 
@@ -798,8 +870,12 @@ export function assembleOutput(ctx: RewriteContext): string {
   );
 
   const preamble: string[] = [];
-  if (importStatements.length > 0) preamble.push(...importStatements);
-  if (survivingUserImports.length > 0) preamble.push(...survivingUserImports);
+  if (importStatements.length > 0) {
+    preamble.push(...importStatements);
+  }
+  if (survivingUserImports.length > 0) {
+    preamble.push(...survivingUserImports);
+  }
 
   const allHoistedDecls: string[] = [];
   if (jsxResult && jsxResult.hoistedDeclarations.length > 0) {
@@ -830,7 +906,9 @@ export function assembleOutput(ctx: RewriteContext): string {
     for (const decision of migrationDecisions) {
       if (decision.action === 'reexport') {
         const decl = moduleLevelDecls?.find((d) => d.name === decision.varName);
-        if (decl?.isExported) continue;
+        if (decl?.isExported) {
+          continue;
+        }
         autoExported.add(decision.varName);
         s.append(`\nexport { ${decision.varName} as _auto_${decision.varName} };`);
       }
@@ -855,14 +933,22 @@ export function assembleOutput(ctx: RewriteContext): string {
   if (migrationDecisions && moduleLevelDecls) {
     const removedRanges = new Set<string>();
     for (const decision of migrationDecisions) {
-      if (decision.action !== 'move' && decision.action !== 'drop') continue;
+      if (decision.action !== 'move' && decision.action !== 'drop') {
+        continue;
+      }
       const decl = moduleLevelDecls.find((d) => d.name === decision.varName);
-      if (!decl) continue;
+      if (!decl) {
+        continue;
+      }
       const rangeKey = `${decl.declStart}:${decl.declEnd}`;
-      if (removedRanges.has(rangeKey)) continue;
+      if (removedRanges.has(rangeKey)) {
+        continue;
+      }
       removedRanges.add(rangeKey);
       let end = decl.declEnd;
-      if (end < source.length && source[end] === '\n') end++;
+      if (end < source.length && source[end] === '\n') {
+        end++;
+      }
       s.remove(decl.declStart, end);
     }
   }

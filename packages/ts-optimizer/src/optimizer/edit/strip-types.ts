@@ -13,7 +13,9 @@ import { scanMatchingParenForward } from './text-scanning.js';
 export function stripExpressionTypes(exprText: string): string {
   try {
     const probe = parseSync('__expr__.mjs', `(${exprText});`);
-    if (!probe.errors?.length) return exprText;
+    if (!probe.errors?.length) {
+      return exprText;
+    }
   } catch {
     // fall through to the transform
   }
@@ -23,12 +25,16 @@ export function stripExpressionTypes(exprText: string): string {
       typescript: { onlyRemoveTypeImports: false },
       jsx: 'preserve',
     });
-    if (!out.code) return exprText;
+    if (!out.code) {
+      return exprText;
+    }
     // The transform may drop the redundant wrapping parens, so slice the
     // declaration initializer instead of matching them.
     const eqIdx = out.code.indexOf('=');
     const endIdx = out.code.lastIndexOf(';');
-    if (eqIdx < 0 || endIdx <= eqIdx) return exprText;
+    if (eqIdx < 0 || endIdx <= eqIdx) {
+      return exprText;
+    }
     const stripped = out.code.slice(eqIdx + 1, endIdx).trim();
     return stripped.startsWith('(') && scanMatchingParenForward(stripped, 1) === stripped.length
       ? stripped.slice(1, -1)

@@ -58,24 +58,36 @@ export function collapseToLibInlinedQrl(source: string): string {
   if (!parsed.program || parsed.errors?.length) {
     parsed = parseSync('lib-collapse.tsx', source, RAW_TRANSFER_PARSER_OPTIONS);
   }
-  if (!parsed.program || parsed.errors?.length) return source;
+  if (!parsed.program || parsed.errors?.length) {
+    return source;
+  }
   const program = parsed.program as AstProgram;
 
   const noopDecls = collectNoopQrlDecls(program, source);
-  if (noopDecls.size === 0) return source;
+  if (noopDecls.size === 0) {
+    return source;
+  }
 
   const sCalls = collectSCallStatements(program, source, noopDecls);
-  if (sCalls.size === 0) return source;
+  if (sCalls.size === 0) {
+    return source;
+  }
 
   const inlinedLiteralsByVar = new Map<string, string>();
   const inProgress = new Set<string>();
   function buildInlinedLiteral(qVar: string): string | null {
     const cached = inlinedLiteralsByVar.get(qVar);
-    if (cached !== undefined) return cached;
-    if (inProgress.has(qVar)) return null;
+    if (cached !== undefined) {
+      return cached;
+    }
+    if (inProgress.has(qVar)) {
+      return null;
+    }
     const decl = noopDecls.get(qVar);
     const sCall = sCalls.get(qVar);
-    if (!decl || !sCall) return null;
+    if (!decl || !sCall) {
+      return null;
+    }
     inProgress.add(qVar);
     const collapsedBody = substituteInnerQVarsInText(sCall.bodyText, buildInlinedLiteral);
     inProgress.delete(qVar);
@@ -87,9 +99,13 @@ export function collapseToLibInlinedQrl(source: string): string {
 
   // Pre-build all literals so the body strings are settled before applying edits.
   for (const qVar of noopDecls.keys()) {
-    if (sCalls.has(qVar)) buildInlinedLiteral(qVar);
+    if (sCalls.has(qVar)) {
+      buildInlinedLiteral(qVar);
+    }
   }
-  if (inlinedLiteralsByVar.size === 0) return source;
+  if (inlinedLiteralsByVar.size === 0) {
+    return source;
+  }
 
   const edits = new MagicString(source);
 
@@ -114,16 +130,24 @@ export function collapseToLibInlinedQrl(source: string): string {
 
   const ranges: Array<{ start: number; end: number }> = [];
   for (const decl of noopDecls.values()) {
-    if (!inlinedLiteralsByVar.has(decl.qVarName)) continue;
+    if (!inlinedLiteralsByVar.has(decl.qVarName)) {
+      continue;
+    }
     ranges.push({ start: decl.start, end: decl.end });
   }
   for (const sCall of sCalls.values()) {
-    if (!inlinedLiteralsByVar.has(sCall.qVarName)) continue;
+    if (!inlinedLiteralsByVar.has(sCall.qVarName)) {
+      continue;
+    }
     ranges.push({ start: sCall.start, end: sCall.end });
-    if (sCall.bodyDecl) ranges.push({ start: sCall.bodyDecl.start, end: sCall.bodyDecl.end });
+    if (sCall.bodyDecl) {
+      ranges.push({ start: sCall.bodyDecl.start, end: sCall.bodyDecl.end });
+    }
   }
   ranges.sort((a, b) => b.start - a.start);
-  for (const r of ranges) edits.remove(r.start, r.end);
+  for (const r of ranges) {
+    edits.remove(r.start, r.end);
+  }
 
   rewriteImports(edits, source);
 
@@ -139,17 +163,23 @@ function substituteInnerQVarsInText(
   buildInlinedLiteral: (qVar: string) => string | null
 ): string {
   const session = createTransformSession(bodyText);
-  if (!session) return bodyText;
+  if (!session) {
+    return bodyText;
+  }
 
   const edits = session.edits;
   const wrappedSource = session.wrappedSource;
   const decl = (session.program.body[0] as { declarations?: Array<{ init?: AstNode }> })
     ?.declarations?.[0];
   const bodyNode = decl?.init;
-  if (!bodyNode) return bodyText;
+  if (!bodyNode) {
+    return bodyText;
+  }
 
   function walk(node: AstNode | null | undefined): void {
-    if (!node || typeof node !== 'object') return;
+    if (!node || typeof node !== 'object') {
+      return;
+    }
 
     if (
       node.type === 'CallExpression' &&
@@ -191,12 +221,17 @@ function substituteInnerQVarsInText(
         key === 'loc' ||
         key === 'range' ||
         key === 'parent'
-      )
+      ) {
         continue;
+      }
       const child = (node as unknown as Record<string, unknown>)[key];
-      if (child == null) continue;
+      if (child == null) {
+        continue;
+      }
       if (Array.isArray(child)) {
-        for (const item of child) walk(item as AstNode);
+        for (const item of child) {
+          walk(item as AstNode);
+        }
       } else if (typeof child === 'object') {
         walk(child as AstNode);
       }
@@ -209,24 +244,40 @@ function substituteInnerQVarsInText(
 
 function insertCapturesIntoInlinedQrl(literal: string, captureArgsText: string): string {
   const lastParen = literal.lastIndexOf(')');
-  if (lastParen < 0) return literal;
+  if (lastParen < 0) {
+    return literal;
+  }
   return literal.slice(0, lastParen) + `, ${captureArgsText}` + literal.slice(lastParen);
 }
 
 function collectNoopQrlDecls(program: AstProgram, source: string): Map<string, NoopQrlDecl> {
   const out = new Map<string, NoopQrlDecl>();
   for (const stmt of program.body ?? []) {
-    if (stmt.type !== 'VariableDeclaration') continue;
-    if (stmt.declarations?.length !== 1) continue;
+    if (stmt.type !== 'VariableDeclaration') {
+      continue;
+    }
+    if (stmt.declarations?.length !== 1) {
+      continue;
+    }
     const decl = stmt.declarations[0];
-    if (!decl.id || decl.id.type !== 'Identifier') continue;
-    if (!decl.init || decl.init.type !== 'CallExpression') continue;
+    if (!decl.id || decl.id.type !== 'Identifier') {
+      continue;
+    }
+    if (!decl.init || decl.init.type !== 'CallExpression') {
+      continue;
+    }
     const callee = decl.init.callee;
-    if (!callee || callee.type !== 'Identifier' || callee.name !== '_noopQrl') continue;
+    if (!callee || callee.type !== 'Identifier' || callee.name !== '_noopQrl') {
+      continue;
+    }
     const args = decl.init.arguments ?? [];
-    if (args.length < 1) continue;
+    if (args.length < 1) {
+      continue;
+    }
     const nameArg = args[0];
-    if (!nameArg || nameArg.type !== 'Literal' || typeof nameArg.value !== 'string') continue;
+    if (!nameArg || nameArg.type !== 'Literal' || typeof nameArg.value !== 'string') {
+      continue;
+    }
     out.set(decl.id.name, {
       qVarName: decl.id.name,
       qrlSymbolName: nameArg.value,
@@ -247,11 +298,19 @@ function collectSCallStatements(
     { name: string; bodyText: string; start: number; end: number }
   >();
   for (const stmt of program.body ?? []) {
-    if (stmt.type !== 'VariableDeclaration' || stmt.kind !== 'const') continue;
-    if (stmt.declarations?.length !== 1) continue;
+    if (stmt.type !== 'VariableDeclaration' || stmt.kind !== 'const') {
+      continue;
+    }
+    if (stmt.declarations?.length !== 1) {
+      continue;
+    }
     const decl = stmt.declarations[0];
-    if (!decl.id || decl.id.type !== 'Identifier') continue;
-    if (!decl.init) continue;
+    if (!decl.id || decl.id.type !== 'Identifier') {
+      continue;
+    }
+    if (!decl.init) {
+      continue;
+    }
     if (
       decl.init.type === 'CallExpression' &&
       decl.init.callee?.type === 'Identifier' &&
@@ -269,9 +328,13 @@ function collectSCallStatements(
 
   const out = new Map<string, SCallStatement>();
   for (const stmt of program.body ?? []) {
-    if (stmt.type !== 'ExpressionStatement') continue;
+    if (stmt.type !== 'ExpressionStatement') {
+      continue;
+    }
     const expr = stmt.expression;
-    if (!expr || expr.type !== 'CallExpression') continue;
+    if (!expr || expr.type !== 'CallExpression') {
+      continue;
+    }
     const callee = expr.callee;
     if (
       !callee ||
@@ -284,11 +347,17 @@ function collectSCallStatements(
       continue;
     }
     const qVarName = callee.object.name;
-    if (!noopDecls.has(qVarName)) continue;
+    if (!noopDecls.has(qVarName)) {
+      continue;
+    }
     const args = expr.arguments ?? [];
-    if (args.length !== 1) continue;
+    if (args.length !== 1) {
+      continue;
+    }
     const bodyArg = args[0];
-    if (!bodyArg || bodyArg.type === 'SpreadElement') continue;
+    if (!bodyArg || bodyArg.type === 'SpreadElement') {
+      continue;
+    }
 
     let bodyText: string;
     let bodyDecl: SCallStatement['bodyDecl'];
@@ -336,17 +405,23 @@ function collectSkipRanges(
   sCalls: Map<string, SCallStatement>
 ): readonly { start: number; end: number }[] {
   const out: { start: number; end: number }[] = [];
-  for (const decl of noopDecls.values()) out.push({ start: decl.start, end: decl.end });
+  for (const decl of noopDecls.values()) {
+    out.push({ start: decl.start, end: decl.end });
+  }
   for (const sCall of sCalls.values()) {
     out.push({ start: sCall.start, end: sCall.end });
-    if (sCall.bodyDecl) out.push({ start: sCall.bodyDecl.start, end: sCall.bodyDecl.end });
+    if (sCall.bodyDecl) {
+      out.push({ start: sCall.bodyDecl.start, end: sCall.bodyDecl.end });
+    }
   }
   return out;
 }
 
 function isInsideAnyRange(pos: number, ranges: readonly { start: number; end: number }[]): boolean {
   for (const r of ranges) {
-    if (pos >= r.start && pos < r.end) return true;
+    if (pos >= r.start && pos < r.end) {
+      return true;
+    }
   }
   return false;
 }
@@ -361,8 +436,12 @@ function collectQVarReferenceRanges(
   const out: QVarReferenceRange[] = [];
 
   function walk(node: AstNode | null | undefined): void {
-    if (!node || typeof node !== 'object') return;
-    if (typeof node.start === 'number' && isInsideAnyRange(node.start, skipRanges)) return;
+    if (!node || typeof node !== 'object') {
+      return;
+    }
+    if (typeof node.start === 'number' && isInsideAnyRange(node.start, skipRanges)) {
+      return;
+    }
 
     if (
       node.type === 'CallExpression' &&
@@ -402,19 +481,26 @@ function collectQVarReferenceRanges(
         key === 'loc' ||
         key === 'range' ||
         key === 'parent'
-      )
+      ) {
         continue;
+      }
       const child = (node as unknown as Record<string, unknown>)[key];
-      if (child == null) continue;
+      if (child == null) {
+        continue;
+      }
       if (Array.isArray(child)) {
-        for (const item of child) walk(item as AstNode);
+        for (const item of child) {
+          walk(item as AstNode);
+        }
       } else if (typeof child === 'object') {
         walk(child as AstNode);
       }
     }
   }
 
-  for (const stmt of program.body ?? []) walk(stmt as AstNode);
+  for (const stmt of program.body ?? []) {
+    walk(stmt as AstNode);
+  }
   return out;
 }
 

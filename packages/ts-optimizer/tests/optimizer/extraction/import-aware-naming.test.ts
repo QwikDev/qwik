@@ -23,7 +23,9 @@ export const App = component$(() => {
     const seg = result.modules.find(
       (m) => m.kind === 'segment' && m.segment.ctxName === 'useStyles$'
     );
-    if (seg?.kind !== 'segment') throw new Error('expected useStyles$ segment');
+    if (seg?.kind !== 'segment') {
+      throw new Error('expected useStyles$ segment');
+    }
 
     expect(seg.segment.displayName).toBe('test.tsx_style_css');
     expect(seg.segment.name).toMatch(/^style_css_[A-Za-z0-9]+$/);
@@ -43,7 +45,9 @@ export const App = component$(() => {
     const seg = result.modules.find(
       (m) => m.kind === 'segment' && m.segment.ctxName === 'useStyles$'
     );
-    if (seg?.kind !== 'segment') throw new Error('expected useStyles$ segment');
+    if (seg?.kind !== 'segment') {
+      throw new Error('expected useStyles$ segment');
+    }
 
     expect(seg.segment.displayName).toBe('test.tsx_App_component_useStyles');
   });
@@ -60,7 +64,9 @@ export const App = component$(() => {
     const seg = result.modules.find(
       (m) => m.kind === 'segment' && m.segment.ctxName === 'useStyles$'
     );
-    if (seg?.kind !== 'segment') throw new Error('expected useStyles$ segment');
+    if (seg?.kind !== 'segment') {
+      throw new Error('expected useStyles$ segment');
+    }
 
     expect(seg.segment.displayName).toBe('test.tsx_App_component_useStyles');
   });
@@ -99,7 +105,9 @@ export const App = component$(() => {
     const seg = transform(source).modules.find(
       (m) => m.kind === 'segment' && m.segment.ctxName === 'useStyles$'
     );
-    if (seg?.kind !== 'segment') throw new Error('expected segment');
+    if (seg?.kind !== 'segment') {
+      throw new Error('expected segment');
+    }
     expect(seg.segment.displayName).toBe('test.tsx_App_component_useStyles');
   });
 });

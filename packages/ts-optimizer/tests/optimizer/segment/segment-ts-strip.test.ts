@@ -26,7 +26,9 @@ export const App = component$(() => {
 });
 `);
       const handler = result.modules.find((m) => m.kind === 'segment' && m.segment.ctxName === '$');
-      if (handler?.kind !== 'segment') throw new Error('$ handler segment missing');
+      if (handler?.kind !== 'segment') {
+        throw new Error('$ handler segment missing');
+      }
       expect(handler.code).not.toMatch(/\(id:\s*number\s*\)/);
       expect(handler.code).toMatch(/=\s*\(\s*id\s*\)\s*=>/);
     });
@@ -40,7 +42,9 @@ export const App = component$(() => {
 });
 `);
       const handler = result.modules.find((m) => m.kind === 'segment' && m.segment.ctxName === '$');
-      if (handler?.kind !== 'segment') throw new Error('$ handler segment missing');
+      if (handler?.kind !== 'segment') {
+        throw new Error('$ handler segment missing');
+      }
       expect(handler.code).not.toMatch(/:\s*number/);
       expect(handler.code).not.toMatch(/:\s*string/);
       expect(handler.code).not.toMatch(/:\s*boolean/);
@@ -58,7 +62,9 @@ export const App = component$(() => {
 });
 `);
       const handler = result.modules.find((m) => m.kind === 'segment' && m.segment.ctxName === '$');
-      if (handler?.kind !== 'segment') throw new Error('$ handler segment missing');
+      if (handler?.kind !== 'segment') {
+        throw new Error('$ handler segment missing');
+      }
       expect(handler.code).not.toMatch(/\(items:\s*number\[\]\)/);
       expect(handler.code).not.toMatch(/\(x:\s*number\)/);
       expect(handler.code).toMatch(/items\.filter\(\s*\(x\)\s*=>/);
@@ -75,7 +81,9 @@ export const App = component$(() => {
 });
 `);
       const handler = result.modules.find((m) => m.kind === 'segment' && m.segment.ctxName === '$');
-      if (handler?.kind !== 'segment') throw new Error('$ handler segment missing');
+      if (handler?.kind !== 'segment') {
+        throw new Error('$ handler segment missing');
+      }
       expect(handler.code).toMatch(/=\s*\(\s*id\s*\)\s*=>/);
       expect(handler.code).not.toMatch(/\(\s*\)\s*=>\s*console\.log\(id\)/);
     });

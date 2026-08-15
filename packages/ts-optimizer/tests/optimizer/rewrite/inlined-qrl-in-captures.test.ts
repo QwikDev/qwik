@@ -50,7 +50,9 @@ describe('inlinedQrl nested inside another inlinedQrl captures array', () => {
 
   it('hoists the capture-position QRL body to a top-level _inlined_ const and keeps the call inline', () => {
     const owner = segments.find((m) => m.kind === 'segment' && /HTDRsvUbLiE/.test(m.segment.name));
-    if (owner?.kind !== 'segment') throw new Error('owner segment not found');
+    if (owner?.kind !== 'segment') {
+      throw new Error('owner segment not found');
+    }
     expect(owner.code).toMatch(/const _inlined_C_component_isActive_useComputed_kbFhYQZkoVA\s*=/);
     expect(owner.code).toMatch(
       /inlinedQrl\(_inlined_C_component_isActive_useComputed_kbFhYQZkoVA,/

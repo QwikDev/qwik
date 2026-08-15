@@ -53,14 +53,20 @@ export function excludeNestedExtractionCaptures(
     return [...captureNames];
   }
   const moduleLevelCaptures = new Set(captureNames.filter((n) => moduleScopeNames.has(n)));
-  if (moduleLevelCaptures.size === 0) return [...captureNames];
+  if (moduleLevelCaptures.size === 0) {
+    return [...captureNames];
+  }
 
   const usedOutsideAnyChild = new Set<string>();
   walk(closureNode, {
     enter(node: AstNode) {
-      if (node.type !== 'Identifier' && node.type !== 'JSXIdentifier') return;
+      if (node.type !== 'Identifier' && node.type !== 'JSXIdentifier') {
+        return;
+      }
       const name = node.name;
-      if (!moduleLevelCaptures.has(name) || usedOutsideAnyChild.has(name)) return;
+      if (!moduleLevelCaptures.has(name) || usedOutsideAnyChild.has(name)) {
+        return;
+      }
       if (!childRanges.some(([s, e]) => node.start >= s && node.start < e)) {
         usedOutsideAnyChild.add(name);
       }
@@ -91,12 +97,16 @@ function collectDeclarationsFromNode(
   node: AstMaybeNode | Statement | FunctionBody | AstFunction,
   ids: Set<string>
 ): void {
-  if (!node) return;
+  if (!node) {
+    return;
+  }
 
   if (node.type === 'VariableDeclaration') {
     const declarationNode = node as VariableDeclaration;
     for (const decl of declarationNode.declarations ?? []) {
-      if (decl.id) addBindingNamesFromPatternToSet(decl.id, ids);
+      if (decl.id) {
+        addBindingNamesFromPatternToSet(decl.id, ids);
+      }
     }
     return;
   }
@@ -122,7 +132,9 @@ function collectDeclarationsFromNode(
     for (const param of node.params ?? []) {
       addBindingNamesFromPatternToSet(param, ids);
     }
-    if (node.body) collectDeclarationsFromNode(node.body, ids);
+    if (node.body) {
+      collectDeclarationsFromNode(node.body, ids);
+    }
   }
 }
 
@@ -150,12 +162,16 @@ export function buildClosureLexicalScopes(
   walk(program, {
     enter(node: AstNode) {
       addScopeDeclarations(node, scopeStack[scopeStack.length - 1]);
-      if (!isFunctionLikeNode(node)) return;
+      if (!isFunctionLikeNode(node)) {
+        return;
+      }
 
       const fn = node as AstFunction;
       const sym = nodeToSymbol.get(fn);
       // Snapshot enclosing scopes by reference; they keep filling, union taken post-walk.
-      if (sym !== undefined) pending.push({ sym, scopes: [...scopeStack] });
+      if (sym !== undefined) {
+        pending.push({ sym, scopes: [...scopeStack] });
+      }
 
       const ownScope = new Set<string>();
       for (const param of fn.params ?? []) {
@@ -164,13 +180,19 @@ export function buildClosureLexicalScopes(
       scopeStack.push(ownScope);
     },
     leave(node: AstNode) {
-      if (isFunctionLikeNode(node)) scopeStack.pop();
+      if (isFunctionLikeNode(node)) {
+        scopeStack.pop();
+      }
     },
   });
 
   for (const { sym, scopes } of pending) {
     const union = new Set<string>();
-    for (const scope of scopes) for (const id of scope) union.add(id);
+    for (const scope of scopes) {
+      for (const id of scope) {
+        union.add(id);
+      }
+    }
     result.set(sym, union);
   }
   return result;
@@ -193,15 +215,21 @@ export function addScopeDeclarations(node: AstNode, ids: Set<string>): void {
   switch (node.type) {
     case 'VariableDeclaration':
       for (const d of node.declarations ?? []) {
-        if (d.id) addBindingNamesFromPatternToSet(d.id, ids);
+        if (d.id) {
+          addBindingNamesFromPatternToSet(d.id, ids);
+        }
       }
       return;
     case 'FunctionDeclaration':
     case 'ClassDeclaration':
-      if (node.id?.type === 'Identifier') ids.add(node.id.name);
+      if (node.id?.type === 'Identifier') {
+        ids.add(node.id.name);
+      }
       return;
     case 'CatchClause':
-      if (node.param) addBindingNamesFromPatternToSet(node.param, ids);
+      if (node.param) {
+        addBindingNamesFromPatternToSet(node.param, ids);
+      }
       return;
   }
 }

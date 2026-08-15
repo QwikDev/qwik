@@ -27,7 +27,9 @@ export function replaceOutsideStrings(text: string, pattern: RegExp, replacement
   let out = '';
   let codeStart = 0;
   const flush = (end: number): void => {
-    if (end > codeStart) out += text.slice(codeStart, end).replace(pattern, replacement);
+    if (end > codeStart) {
+      out += text.slice(codeStart, end).replace(pattern, replacement);
+    }
   };
   for (let i = 0; i < text.length; i++) {
     const ch = text[i];
@@ -91,21 +93,28 @@ function emitTemplateLiteral(
           k = skipStringLiteralForward(text, k) + 1;
           continue;
         }
-        if (ch === '{') depth++;
-        else if (ch === '}') {
+        if (ch === '{') {
+          depth++;
+        } else if (ch === '}') {
           depth--;
-          if (depth === 0) break;
+          if (depth === 0) {
+            break;
+          }
         }
         k++;
       }
       out += '${' + replaceOutsideStrings(text.slice(i + 2, k), pattern, replacement);
-      if (k < text.length) out += '}';
+      if (k < text.length) {
+        out += '}';
+      }
       i = k + 1;
       continue;
     }
     out += text[i];
     i++;
   }
-  if (i < text.length) out += '`';
+  if (i < text.length) {
+    out += '`';
+  }
   return { text: out, end: i };
 }

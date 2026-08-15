@@ -26,7 +26,9 @@ interface NormalizeResult {
 function containsJsx(node: AstNode): boolean {
   let found = false;
   const visit = (n: AstNode | null | undefined): void => {
-    if (!n || found) return;
+    if (!n || found) {
+      return;
+    }
     if (n.type === 'JSXElement' || n.type === 'JSXFragment') {
       found = true;
       return;
@@ -40,7 +42,9 @@ function containsJsx(node: AstNode): boolean {
 /** Key → local name, or null when the pattern has unsupported shapes. */
 function extractSimpleFieldMap(pattern: AstNode): Map<string, string> | null {
   const props = (pattern as unknown as { properties?: AstNode[] }).properties;
-  if (!props) return null;
+  if (!props) {
+    return null;
+  }
   const localToKey = new Map<string, string>();
   for (const prop of props) {
     const p = prop as unknown as {
@@ -50,16 +54,24 @@ function extractSimpleFieldMap(pattern: AstNode): Map<string, string> | null {
       value?: { type: string; name?: string };
       shorthand?: boolean;
     };
-    if (p.type !== 'Property' && p.type !== 'BindingProperty') return null;
-    if (p.computed) return null;
+    if (p.type !== 'Property' && p.type !== 'BindingProperty') {
+      return null;
+    }
+    if (p.computed) {
+      return null;
+    }
     const keyName =
       p.key?.type === 'Identifier'
         ? p.key.name
         : typeof p.key?.value === 'string'
           ? (p.key.value as string)
           : undefined;
-    if (!keyName) return null;
-    if (p.value?.type !== 'Identifier' || !p.value.name) return null;
+    if (!keyName) {
+      return null;
+    }
+    if (p.value?.type !== 'Identifier' || !p.value.name) {
+      return null;
+    }
     localToKey.set(p.value.name, keyName);
   }
   return localToKey.size > 0 ? localToKey : null;
@@ -78,7 +90,9 @@ function collectInlineArrowComponents(program: AstProgram): AstNode[] {
   const arrows: AstNode[] = [];
   const consider = (candidate: AstNode | null | undefined): void => {
     const node = unwrapParenthesized(candidate);
-    if (node?.type === 'ArrowFunctionExpression') arrows.push(node);
+    if (node?.type === 'ArrowFunctionExpression') {
+      arrows.push(node);
+    }
   };
   for (const stmt of program.body) {
     if (stmt.type === 'ExportDefaultDeclaration') {
@@ -93,7 +107,9 @@ function collectInlineArrowComponents(program: AstProgram): AstNode[] {
               'VariableDeclaration'
           ? (stmt as unknown as { declaration: AstNode }).declaration
           : null;
-    if (!varDecl) continue;
+    if (!varDecl) {
+      continue;
+    }
     for (const decl of (varDecl as unknown as { declarations: AstNode[] }).declarations) {
       consider((decl as unknown as { init?: AstNode }).init);
     }
@@ -114,8 +130,12 @@ export function normalizeInlineComponentProps(code: string, filename: string): N
   for (const arrow of collectInlineArrowComponents(program)) {
     const params = (arrow as unknown as { params: AstNode[] }).params;
     const body = (arrow as unknown as { body: AstNode }).body;
-    if (!params || params.length === 0 || !body) continue;
-    if (!containsJsx(body)) continue;
+    if (!params || params.length === 0 || !body) {
+      continue;
+    }
+    if (!containsJsx(body)) {
+      continue;
+    }
     const removedRanges: Array<{ start: number; end: number }> = [];
     const pattern = params[0];
 
@@ -124,7 +144,9 @@ export function normalizeInlineComponentProps(code: string, filename: string): N
 
     if (pattern.type === 'ObjectPattern') {
       localToKey = extractSimpleFieldMap(pattern);
-      if (!localToKey) continue;
+      if (!localToKey) {
+        continue;
+      }
       const typeAnnotation = (pattern as unknown as { typeAnnotation?: { end: number } })
         .typeAnnotation;
       replacements.push({
@@ -139,11 +161,17 @@ export function normalizeInlineComponentProps(code: string, filename: string): N
       const blockBody =
         body.type === 'BlockStatement' ? ((body as unknown as { body: AstNode[] }).body ?? []) : [];
       for (const stmt of blockBody) {
-        if (stmt.type !== 'VariableDeclaration') continue;
+        if (stmt.type !== 'VariableDeclaration') {
+          continue;
+        }
         const decls = (stmt as unknown as { declarations: AstNode[] }).declarations;
-        if (decls.length !== 1) continue;
+        if (decls.length !== 1) {
+          continue;
+        }
         const decl = decls[0] as unknown as { id: AstNode; init?: AstNode };
-        if (decl.id?.type !== 'ObjectPattern') continue;
+        if (decl.id?.type !== 'ObjectPattern') {
+          continue;
+        }
         if (
           decl.init?.type !== 'Identifier' ||
           (decl.init as unknown as { name: string }).name !== propsName
@@ -151,14 +179,20 @@ export function normalizeInlineComponentProps(code: string, filename: string): N
           continue;
         }
         localToKey = extractSimpleFieldMap(decl.id);
-        if (!localToKey) continue;
+        if (!localToKey) {
+          continue;
+        }
         let end = stmt.end;
-        if (end < code.length && code[end] === '\n') end++;
+        if (end < code.length && code[end] === '\n') {
+          end++;
+        }
         replacements.push({ start: stmt.start, end, replacement: '' });
         removedRanges.push({ start: stmt.start, end });
         break;
       }
-      if (!localToKey) continue;
+      if (!localToKey) {
+        continue;
+      }
     } else {
       continue;
     }
@@ -166,22 +200,32 @@ export function normalizeInlineComponentProps(code: string, filename: string): N
     // Rewrite reference positions; bail out of a name on shadowing redeclarations.
     const shadowed = new Set<string>();
     const collectDecl = (n: AstNode | null | undefined): void => {
-      if (!n) return;
+      if (!n) {
+        return;
+      }
       if (
         (n.type === 'VariableDeclarator' || n.type === 'FunctionDeclaration') &&
         (n as unknown as { id?: { type: string; name?: string } }).id?.type === 'Identifier'
       ) {
         const name = (n as unknown as { id: { name: string } }).id.name;
-        if (localToKey.has(name)) shadowed.add(name);
+        if (localToKey.has(name)) {
+          shadowed.add(name);
+        }
       }
       forEachAstChild(n, (child) => collectDecl(child as AstNode));
     };
     collectDecl(body);
 
     const visit = (n: AstNode | null | undefined, parent: AstNode | null): void => {
-      if (!n) return;
-      if (n.type.startsWith('TS')) return;
-      if (removedRanges.some((r) => n.start >= r.start && n.end <= r.end)) return;
+      if (!n) {
+        return;
+      }
+      if (n.type.startsWith('TS')) {
+        return;
+      }
+      if (removedRanges.some((r) => n.start >= r.start && n.end <= r.end)) {
+        return;
+      }
       if (n.type === 'Identifier') {
         const name = (n as unknown as { name: string }).name;
         const key = localToKey!.get(name);
@@ -195,6 +239,8 @@ export function normalizeInlineComponentProps(code: string, filename: string): N
     visit(body, arrow);
   }
 
-  if (replacements.length === 0) return { changed: false, source: code };
+  if (replacements.length === 0) {
+    return { changed: false, source: code };
+  }
   return { changed: true, source: applyReplacements(code, replacements) };
 }

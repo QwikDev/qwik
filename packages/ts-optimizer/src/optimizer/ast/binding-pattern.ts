@@ -19,7 +19,9 @@ function visitBindingNames(
   node: BindingPatternLike | null | undefined,
   visit: (name: string) => void
 ): void {
-  if (!node) return;
+  if (!node) {
+    return;
+  }
 
   switch (node.type) {
     case 'Identifier':

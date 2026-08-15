@@ -64,7 +64,9 @@ function syntheticExtractions(nodes: Map<string, AstFunction>): SyntheticExtract
 
 function mapOfSetsToPlain(m: ReadonlyMap<string, Set<string>>): Record<string, string[]> {
   const out: Record<string, string[]> = {};
-  for (const [k, v] of m) out[k] = [...v].sort();
+  for (const [k, v] of m) {
+    out[k] = [...v].sort();
+  }
   return out;
 }
 
@@ -84,7 +86,9 @@ function loopMapToComparable(
   const out: Record<string, Array<Record<string, unknown>>> = {};
   for (const [k, stack] of m) {
     out[k] = stack.map((lc) => {
-      if (!nodeIds.has(lc.loopNode)) nodeIds.set(lc.loopNode, nodeIds.size);
+      if (!nodeIds.has(lc.loopNode)) {
+        nodeIds.set(lc.loopNode, nodeIds.size);
+      }
       return {
         type: lc.type,
         iterVars: lc.iterVars,
@@ -99,7 +103,9 @@ function loopMapToComparable(
 
 function diffFixture(source: string, filename: string): string[] {
   const parsed = parseSync(filename, source, RAW_TRANSFER_PARSER_OPTIONS);
-  if (!parsed.program || parsed.errors?.length) return [];
+  if (!parsed.program || parsed.errors?.length) {
+    return [];
+  }
   const program = parsed.program as AstProgram;
   const nodes = collectFunctionNodes(program);
   const extractions = syntheticExtractions(nodes);
@@ -119,14 +125,18 @@ function diffFixture(source: string, filename: string): string[] {
   const check = (label: string, fused: unknown, oracle: unknown): void => {
     const a = JSON.stringify(fused);
     const b = JSON.stringify(oracle);
-    if (a !== b) mismatches.push(`${label}: fused=${a} oracle=${b}`);
+    if (a !== b) {
+      mismatches.push(`${label}: fused=${a} oracle=${b}`);
+    }
   };
 
   const oracleLex = buildClosureLexicalScopes(program, nodes);
   const fusedLex = new Map<string, Set<string>>();
   for (const [sym, fn] of nodes) {
     const union = facts.closureLexicalScopes.get(fn);
-    if (union) fusedLex.set(sym, union);
+    if (union) {
+      fusedLex.set(sym, union);
+    }
   }
   check('lexicalScopes', mapOfSetsToPlain(fusedLex), mapOfSetsToPlain(oracleLex));
 
@@ -280,7 +290,9 @@ const laterDecl = 7;
     for (const snapFile of snapFiles) {
       const content = readFileSync(join(SNAP_DIR, snapFile), 'utf-8');
       const parsed = parseSnapshot(content);
-      if (!parsed.input) continue;
+      if (!parsed.input) {
+        continue;
+      }
       const mismatches = diffFixture(parsed.input, 'test.tsx');
       checkedFixtures += 1;
       for (const m of mismatches) {

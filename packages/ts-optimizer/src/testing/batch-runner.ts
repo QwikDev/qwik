@@ -34,7 +34,9 @@ export function getBatchFiles(files: string[], batchSize: number, batchIndex: nu
 }
 
 export function loadLockedSnapshots(lockFile: string): string[] {
-  if (!existsSync(lockFile)) return [];
+  if (!existsSync(lockFile)) {
+    return [];
+  }
   const content = readFileSync(lockFile, 'utf-8');
   return JSON.parse(content) as string[];
 }

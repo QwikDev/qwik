@@ -25,8 +25,12 @@ function isConstSource(source: string): boolean {
 }
 
 export function deriveIsDev(mode: EmitMode | undefined): boolean | undefined {
-  if (mode === 'dev' || mode === 'hmr') return true;
-  if (mode === 'prod') return false;
+  if (mode === 'dev' || mode === 'hmr') {
+    return true;
+  }
+  if (mode === 'prod') {
+    return false;
+  }
   return undefined;
 }
 
@@ -38,13 +42,18 @@ export function buildConstReplacementMap(
   const replacements = new Map<string, string>();
 
   for (const [localName, info] of importMap) {
-    if (!isConstSource(info.source)) continue;
+    if (!isConstSource(info.source)) {
+      continue;
+    }
 
     const { importedName } = info;
 
     if (isServer !== undefined) {
-      if (importedName === 'isServer') replacements.set(localName, String(isServer));
-      else if (importedName === 'isBrowser') replacements.set(localName, String(!isServer));
+      if (importedName === 'isServer') {
+        replacements.set(localName, String(isServer));
+      } else if (importedName === 'isBrowser') {
+        replacements.set(localName, String(!isServer));
+      }
     }
 
     if (isDev !== undefined && importedName === 'isDev') {
@@ -74,18 +83,31 @@ export function replaceResolvedConstIdentifiers(
   walk(program, {
     scopeTracker: tracker,
     enter(node: AstNode, parent: AstParentNode) {
-      if (node.type !== 'Identifier') return;
+      if (node.type !== 'Identifier') {
+        return;
+      }
 
       const replacement = replacements.get(node.name);
-      if (replacement === undefined) return;
-
-      if (importRanges?.has(`${node.start}:${node.end}`)) return;
-      if (parent?.type === 'MemberExpression' && parent.property === node && !parent.computed)
+      if (replacement === undefined) {
         return;
-      if (parent?.type === 'VariableDeclarator' && parent.id === node) return;
-      if (parent?.type === 'ImportSpecifier' && parent.imported === node) return;
+      }
+
+      if (importRanges?.has(`${node.start}:${node.end}`)) {
+        return;
+      }
+      if (parent?.type === 'MemberExpression' && parent.property === node && !parent.computed) {
+        return;
+      }
+      if (parent?.type === 'VariableDeclarator' && parent.id === node) {
+        return;
+      }
+      if (parent?.type === 'ImportSpecifier' && parent.imported === node) {
+        return;
+      }
       const decl = tracker.getDeclaration(node.name);
-      if (decl && decl.type !== 'Import') return;
+      if (decl && decl.type !== 'Import') {
+        return;
+      }
       // Key/value of a shorthand property are distinct nodes sharing a span,
       // so compare spans, and expand only once per property.
       if (
@@ -123,7 +145,9 @@ export function foldConstantsInBodyText(
   isDev?: boolean
 ): string {
   const replacements = buildConstReplacementMap(importMap, isServer, isDev);
-  if (replacements.size === 0) return body;
+  if (replacements.size === 0) {
+    return body;
+  }
 
   let mentionsCandidate = false;
   for (const name of replacements.keys()) {
@@ -132,7 +156,9 @@ export function foldConstantsInBodyText(
       break;
     }
   }
-  if (!mentionsCandidate) return body;
+  if (!mentionsCandidate) {
+    return body;
+  }
 
   // Parenthesise so the arrow/function body parses as an expression.
   const wrapped = `(${body})`;
@@ -142,11 +168,15 @@ export function foldConstantsInBodyText(
   } catch {
     return body;
   }
-  if (!parsed.program || parsed.errors?.length) return body;
+  if (!parsed.program || parsed.errors?.length) {
+    return body;
+  }
 
   const s = new MagicString(wrapped);
   const count = replaceResolvedConstIdentifiers(s, parsed.program, replacements);
-  if (count === 0) return body;
+  if (count === 0) {
+    return body;
+  }
 
   return s.toString().slice(1, -1);
 }

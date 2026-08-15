@@ -246,13 +246,17 @@ export function transformInlineSegmentBody(
         const inserts: Array<{ at: number; decl: string }> = [];
         for (const { decl, symbolName } of strippedLoopWDecls) {
           const usePos = body.indexOf(symbolName);
-          if (usePos < 0) continue;
+          if (usePos < 0) {
+            continue;
+          }
           const stmt = block.body.find(
             (st) =>
               st.start - wrapperPrefixText.length <= usePos &&
               usePos < st.end - wrapperPrefixText.length
           );
-          if (stmt) inserts.push({ at: stmt.start - wrapperPrefixText.length, decl });
+          if (stmt) {
+            inserts.push({ at: stmt.start - wrapperPrefixText.length, decl });
+          }
         }
         inserts.sort((a, b) => b.at - a.at);
         for (const { at, decl } of inserts) {
@@ -282,10 +286,13 @@ export function transformInlineSegmentBody(
         const wip = ext as Mutable<ExtractionResult>;
         wip.captureNames = wip.captureNames.filter((n) => !constValues.has(n));
         wip.captures = wip.captureNames.length > 0;
-        if (!wip.constLiterals) wip.constLiterals = constValues;
-        else {
+        if (!wip.constLiterals) {
+          wip.constLiterals = constValues;
+        } else {
           const accumulator = wip.constLiterals as Map<string, string>;
-          for (const [k, v] of constValues) accumulator.set(k, v);
+          for (const [k, v] of constValues) {
+            accumulator.set(k, v);
+          }
         }
       }
     }
@@ -362,7 +369,9 @@ export function transformInlineSegmentBody(
             // for client resumption even when the body is inline or stripped.
             const qpByQrl = new Map<string, string[]>();
             for (const child of nested) {
-              if (child.ctxKind !== 'eventHandler' && child.ctxKind !== 'jSXProp') continue;
+              if (child.ctxKind !== 'eventHandler' && child.ctxKind !== 'jSXProp') {
+                continue;
+              }
               const params = eventHandlerQpParams(child.paramNames);
               if (params.length > 0) {
                 qpByQrl.set(
@@ -433,12 +442,16 @@ export function transformInlineSegmentBody(
       {
         const qrlParamMap = new Map<string, string[]>();
         for (const child of nested) {
-          if (child.ctxKind !== 'eventHandler') continue;
+          if (child.ctxKind !== 'eventHandler') {
+            continue;
+          }
           // The unified element array carries the client build's slot order;
           // per-child capture order would scramble multi-handler elements.
           const unified = elementQpParamsMap?.get(child.symbolName);
           const captureParams = unified ? [...unified] : eventHandlerQpParams(child.paramNames);
-          if (captureParams.length === 0) continue;
+          if (captureParams.length === 0) {
+            continue;
+          }
           const childVarName = qrlVarNames.get(child.symbolName) ?? `q_${child.symbolName}`;
           const consolidated = qpValues(captureParams);
           qrlParamMap.set(childVarName, consolidated);
@@ -450,14 +463,22 @@ export function transformInlineSegmentBody(
         // element's `q:p` var-prop instead, keyed by the post-rewrite QRL var.
         if (stripCtxName || stripEventHandlers) {
           for (const child of nested) {
-            if (child.ctxKind !== 'eventHandler') continue;
-            if (!child.captures || child.captureNames.length === 0) continue;
+            if (child.ctxKind !== 'eventHandler') {
+              continue;
+            }
+            if (!child.captures || child.captureNames.length === 0) {
+              continue;
+            }
             const isStripped =
               (stripCtxName && stripCtxName.some((v) => child.ctxName.startsWith(v))) ||
               stripEventHandlers === true;
-            if (!isStripped) continue;
+            if (!isStripped) {
+              continue;
+            }
             const childVarName = qrlVarNames.get(child.symbolName) ?? `q_${child.symbolName}`;
-            if (qrlParamMap.has(childVarName)) continue;
+            if (qrlParamMap.has(childVarName)) {
+              continue;
+            }
             // The unified element array carries the client build's slot order;
             // per-child capture order would scramble multi-handler elements.
             const unified = elementQpParamsMap?.get(child.symbolName);
@@ -487,7 +508,9 @@ export function transformInlineSegmentBody(
       // statically-known-const handler — its event entry classifies var.
       let bodyQrlsNonConst: Set<string> | undefined;
       for (const child of nested) {
-        if (!child.isInlinedQrl) continue;
+        if (!child.isInlinedQrl) {
+          continue;
+        }
         (bodyQrlsNonConst ??= new Set()).add(
           qrlVarNames.get(child.symbolName) ?? `q_${child.symbolName}`
         );

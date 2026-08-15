@@ -68,14 +68,18 @@ function findEnclosingArrowBodyForCapture(
     }
 
     let j = i - 1;
-    while (j >= 0 && /\s/.test(text[j])) j--;
+    while (j >= 0 && /\s/.test(text[j])) {
+      j--;
+    }
     if (!(j >= 1 && text[j] === '>' && text[j - 1] === '=')) {
       i--;
       continue;
     }
 
     let paramEnd = j - 2;
-    while (paramEnd >= 0 && /\s/.test(text[paramEnd])) paramEnd--;
+    while (paramEnd >= 0 && /\s/.test(text[paramEnd])) {
+      paramEnd--;
+    }
 
     let paramText = '';
     if (text[paramEnd] === ')') {
@@ -83,12 +87,16 @@ function findEnclosingArrowBodyForCapture(
       paramText = text.slice(pStart + 1, paramEnd);
     } else if (/\w/.test(text[paramEnd])) {
       let pStart = paramEnd;
-      while (pStart > 0 && /\w/.test(text[pStart - 1])) pStart--;
+      while (pStart > 0 && /\w/.test(text[pStart - 1])) {
+        pStart--;
+      }
       paramText = text.slice(pStart, paramEnd + 1);
     }
 
     const params = paramText.split(',').map((p) => p.trim());
-    if (params.includes(capturedVarName)) return i + 1;
+    if (params.includes(capturedVarName)) {
+      return i + 1;
+    }
 
     const bodyStart = i + 1;
     const bodySlice = text.slice(bodyStart, pos);
@@ -99,7 +107,9 @@ function findEnclosingArrowBodyForCapture(
       exactly(capturedVarName),
       wordBoundary
     );
-    if (localDeclPattern.test(bodySlice)) return bodyStart;
+    if (localDeclPattern.test(bodySlice)) {
+      return bodyStart;
+    }
 
     i--;
   }
@@ -117,7 +127,9 @@ function findVarDeclarationEnd(text: string, startPos: number, varName: string):
     exactly('=')
   );
   const match = pattern.exec(code.slice(startPos));
-  if (!match) return -1;
+  if (!match) {
+    return -1;
+  }
 
   const declStart = startPos + match.index;
   // The statement's own `;`: same nesting depth as the declaration, outside
@@ -126,19 +138,26 @@ function findVarDeclarationEnd(text: string, startPos: number, varName: string):
   let depth = 0;
   for (let i = declStart + match[0].length; i < code.length; i++) {
     const ch = code[i];
-    if (ch === '(' || ch === '[' || ch === '{') depth++;
-    else if (ch === ')' || ch === ']' || ch === '}') {
-      if (depth === 0) break;
+    if (ch === '(' || ch === '[' || ch === '{') {
+      depth++;
+    } else if (ch === ')' || ch === ']' || ch === '}') {
+      if (depth === 0) {
+        break;
+      }
       depth--;
     } else if (ch === ';' && depth === 0) {
       semiIdx = i;
       break;
     }
   }
-  if (semiIdx < 0) return -1;
+  if (semiIdx < 0) {
+    return -1;
+  }
 
   let endPos = semiIdx + 1;
-  if (text[endPos] === '\n') endPos++;
+  if (text[endPos] === '\n') {
+    endPos++;
+  }
   return endPos;
 }
 
@@ -159,7 +178,9 @@ function spliceWithinBody(
   end: number,
   replacement: string
 ): string {
-  if (start < 0 || end > bodyText.length) return bodyText;
+  if (start < 0 || end > bodyText.length) {
+    return bodyText;
+  }
   return bodyText.slice(0, start) + replacement + bodyText.slice(end);
 }
 
@@ -219,14 +240,18 @@ export function rewriteNestedCallSitesInline(
           let latestDeclPos = -1;
           for (const capVar of site.hoistedCaptureNames) {
             const varDeclPos = findVarDeclarationEnd(bodyText, enclosingPos, capVar);
-            if (varDeclPos > latestDeclPos) latestDeclPos = varDeclPos;
+            if (varDeclPos > latestDeclPos) {
+              latestDeclPos = varDeclPos;
+            }
           }
           hoistDeclarations.push({
             position: latestDeclPos >= 0 ? latestDeclPos : enclosingPos,
             declaration: decl,
           });
         } else {
-          if (!componentScopeWDecls) componentScopeWDecls = [];
+          if (!componentScopeWDecls) {
+            componentScopeWDecls = [];
+          }
           const wCall = formatWCall(site.qrlVarName, site.hoistedCaptureNames, '        ', '    ');
           componentScopeWDecls.push(`const ${site.hoistedSymbolName} = ${wCall};`);
         }
@@ -273,14 +298,18 @@ function injectHoistDeclarations(
   bodyText: string,
   hoistDeclarations: Array<{ position: number; declaration: string }>
 ): string {
-  if (hoistDeclarations.length === 0) return bodyText;
+  if (hoistDeclarations.length === 0) {
+    return bodyText;
+  }
 
   // Group .w() declarations in the same scope together at the max position.
   if (hoistDeclarations.length > 1) {
     const maxPos = Math.max(...hoistDeclarations.map((h) => h.position));
     const minPos = Math.min(...hoistDeclarations.map((h) => h.position));
     if (maxPos - minPos < 500) {
-      for (const h of hoistDeclarations) h.position = maxPos;
+      for (const h of hoistDeclarations) {
+        h.position = maxPos;
+      }
     }
   }
 
@@ -301,7 +330,9 @@ function injectHoistDeclarations(
       if (nextNewline >= 0) {
         const nextLine = bodyText.slice(nextNewline + 1);
         const indentMatch = nextLine.match(/^(\s+)/);
-        if (indentMatch) indent = indentMatch[1];
+        if (indentMatch) {
+          indent = indentMatch[1];
+        }
       }
       bodyText = bodyText.slice(0, pos) + indent + hoist.declaration + '\n' + bodyText.slice(pos);
     }
@@ -319,16 +350,22 @@ function findComponentReturnPosition(bodyText: string): number {
   const code = blankNonCode(bodyText);
   let i = 0;
   // Skip ahead to the first `{` — the body open.
-  while (i < code.length && code[i] !== '{') i++;
-  if (i >= code.length) return -1;
+  while (i < code.length && code[i] !== '{') {
+    i++;
+  }
+  if (i >= code.length) {
+    return -1;
+  }
   let depth = 1;
   i++;
   let lastDepth1Return = -1;
   while (i < code.length) {
     const ch = code[i];
-    if (ch === '{') depth++;
-    else if (ch === '}') depth--;
-    else if (depth === 1 && code.startsWith('return ', i)) {
+    if (ch === '{') {
+      depth++;
+    } else if (ch === '}') {
+      depth--;
+    } else if (depth === 1 && code.startsWith('return ', i)) {
       // Confirm `return ` is a keyword, not an identifier tail like `noreturn `.
       const prev = i > 0 ? code[i - 1] : '\n';
       if (!/[A-Za-z0-9_$]/.test(prev)) {
@@ -343,13 +380,19 @@ function findComponentReturnPosition(bodyText: string): number {
 }
 
 function injectComponentScopeWDecls(bodyText: string, decls: string[] | undefined): string {
-  if (!decls || decls.length === 0) return bodyText;
+  if (!decls || decls.length === 0) {
+    return bodyText;
+  }
 
   const returnIdx = findComponentReturnPosition(bodyText);
-  if (returnIdx < 0) return bodyText;
+  if (returnIdx < 0) {
+    return bodyText;
+  }
 
   let lineStart = returnIdx - 1;
-  while (lineStart >= 0 && bodyText[lineStart] !== '\n') lineStart--;
+  while (lineStart >= 0 && bodyText[lineStart] !== '\n') {
+    lineStart--;
+  }
   const indent = bodyText.slice(lineStart + 1, returnIdx);
   const declBlock = decls.join('\n' + indent) + '\n' + indent;
   return bodyText.slice(0, returnIdx) + declBlock + bodyText.slice(returnIdx);
@@ -384,12 +427,18 @@ export function inlineEnumReferences(
  * matching the enclosing const declarator name.
  */
 export function applySelfRefIndirection(bodyText: string): string {
-  if (!bodyText.includes('.w([')) return bodyText;
+  if (!bodyText.includes('.w([')) {
+    return bodyText;
+  }
 
   const session = createFunctionTransformSession(bodyText);
-  if (!session) return bodyText;
+  if (!session) {
+    return bodyText;
+  }
   const block = session.fn.body;
-  if (!block || block.type !== 'BlockStatement') return bodyText;
+  if (!block || block.type !== 'BlockStatement') {
+    return bodyText;
+  }
 
   let foundAny = false;
   for (const stmt of block.body ?? []) {
@@ -397,22 +446,35 @@ export function applySelfRefIndirection(bodyText: string): string {
       stmt.type !== 'VariableDeclaration' ||
       stmt.kind !== 'const' ||
       stmt.declarations?.length !== 1
-    )
+    ) {
       continue;
+    }
     const d = stmt.declarations[0];
-    if (d?.id?.type !== 'Identifier' || !d.init) continue;
+    if (d?.id?.type !== 'Identifier' || !d.init) {
+      continue;
+    }
     const { name } = d.id;
     let referenced = false;
     walk(d.init, {
       enter(node: AstNode) {
-        if (node.type !== 'CallExpression') return;
+        if (node.type !== 'CallExpression') {
+          return;
+        }
         // The parser emits 'MemberExpression', not a 'StaticMemberExpression' shape.
         const callee = node.callee;
-        if (callee.type !== 'MemberExpression') return;
-        if (callee.property.type !== 'Identifier' || callee.property.name !== 'w') return;
-        if (callee.object.type !== 'Identifier' || !callee.object.name.startsWith('q_')) return;
+        if (callee.type !== 'MemberExpression') {
+          return;
+        }
+        if (callee.property.type !== 'Identifier' || callee.property.name !== 'w') {
+          return;
+        }
+        if (callee.object.type !== 'Identifier' || !callee.object.name.startsWith('q_')) {
+          return;
+        }
         const arr = node.arguments[0];
-        if (!arr || arr.type !== 'ArrayExpression') return;
+        if (!arr || arr.type !== 'ArrayExpression') {
+          return;
+        }
         for (const el of arr.elements ?? []) {
           if (el?.type === 'Identifier' && el.name === name) {
             session.edits.overwrite(el.start, el.end, `_ref.${name}`);
@@ -428,14 +490,18 @@ export function applySelfRefIndirection(bodyText: string): string {
     }
   }
 
-  if (!foundAny) return bodyText;
+  if (!foundAny) {
+    return bodyText;
+  }
   insertFunctionBodyPrologue(session, session.fn, '    const _ref = {};');
   return session.toSource();
 }
 
 export function applyRawPropsToSegmentBody(bodyText: string, parts: string[]): string {
   const result = applyRawPropsTransform(bodyText);
-  if (result === bodyText) return bodyText;
+  if (result === bodyText) {
+    return bodyText;
+  }
 
   bodyText = consolidateRawPropsInWCalls(result);
   if (bodyText.includes('_restProps(') && !parts.some((p) => p.includes('_restProps'))) {
@@ -452,7 +518,9 @@ export function stripDiagnosticsAndDirectives(bodyText: string): string {
     return isInsideString(bodyText, offset) ? match : '';
   });
 
-  if (!bodyText.includes('passive:')) return bodyText;
+  if (!bodyText.includes('passive:')) {
+    return bodyText;
+  }
 
   // Match tags and directives on the blanked copy (attribute string values
   // spaced out, positions preserved), then delete the found ranges from the
@@ -467,7 +535,9 @@ export function stripDiagnosticsAndDirectives(bodyText: string): string {
     for (const m of attrs.matchAll(/passive:(\w+)/g)) {
       elementPassive.add(m[1]);
     }
-    if (elementPassive.size === 0) continue;
+    if (elementPassive.size === 0) {
+      continue;
+    }
     for (const m of attrs.matchAll(/\s*passive:\w+/g)) {
       deletions.push({ start: attrsStart + m.index, end: attrsStart + m.index + m[0].length });
     }
@@ -477,7 +547,9 @@ export function stripDiagnosticsAndDirectives(bodyText: string): string {
       }
     }
   }
-  if (deletions.length === 0) return bodyText;
+  if (deletions.length === 0) {
+    return bodyText;
+  }
 
   deletions.sort((a, b) => a.start - b.start);
   let out = '';
@@ -490,7 +562,9 @@ export function stripDiagnosticsAndDirectives(bodyText: string): string {
 }
 
 export function transformSyncCalls(bodyText: string, parts: string[]): string {
-  if (!bodyText.includes('sync$(')) return bodyText;
+  if (!bodyText.includes('sync$(')) {
+    return bodyText;
+  }
 
   // Call sites are located on the blanked copy so `sync$(` inside a string or
   // comment is data, not a call.
@@ -518,7 +592,9 @@ export function transformSyncCalls(bodyText: string, parts: string[]): string {
     i = closePos;
     didTransform = true;
   }
-  if (!didTransform) return bodyText;
+  if (!didTransform) {
+    return bodyText;
+  }
 
   bodyText = result;
   const syncSepIdx = parts.indexOf('//');
@@ -565,14 +641,20 @@ export function removeDeadConstLiterals(bodyText: string): string {
   } catch {
     return bodyText;
   }
-  if (!session) return bodyText;
+  if (!session) {
+    return bodyText;
+  }
 
   const fnBody = session.fn.body;
-  if (!fnBody || fnBody.type !== 'BlockStatement') return bodyText;
+  if (!fnBody || fnBody.type !== 'BlockStatement') {
+    return bodyText;
+  }
 
   const offset = session.offset;
   const stmts = fnBody.body;
-  if (!stmts || stmts.length === 0) return bodyText;
+  if (!stmts || stmts.length === 0) {
+    return bodyText;
+  }
 
   interface DeadCandidate {
     name: string;
@@ -582,16 +664,26 @@ export function removeDeadConstLiterals(bodyText: string): string {
   const candidates: DeadCandidate[] = [];
 
   for (const stmt of stmts) {
-    if (stmt.type !== 'VariableDeclaration' || stmt.kind !== 'const') continue;
-    if (stmt.declarations.length !== 1) continue;
+    if (stmt.type !== 'VariableDeclaration' || stmt.kind !== 'const') {
+      continue;
+    }
+    if (stmt.declarations.length !== 1) {
+      continue;
+    }
     const d = stmt.declarations[0];
-    if (d.id?.type !== 'Identifier') continue;
+    if (d.id?.type !== 'Identifier') {
+      continue;
+    }
     const initNode = d.init;
-    if (!initNode) continue;
+    if (!initNode) {
+      continue;
+    }
     const isLiteral =
       initNode.type === 'Literal' &&
       (initNode.value === null || typeof initNode.value !== 'object');
-    if (!isLiteral) continue;
+    if (!isLiteral) {
+      continue;
+    }
 
     candidates.push({
       name: d.id.name,
@@ -600,17 +692,23 @@ export function removeDeadConstLiterals(bodyText: string): string {
     });
   }
 
-  if (candidates.length === 0) return bodyText;
+  if (candidates.length === 0) {
+    return bodyText;
+  }
 
   const toRemove: DeadCandidate[] = [];
   for (const c of candidates) {
     const rest = bodyText.slice(0, c.stmtStart) + bodyText.slice(c.stmtEnd);
     const escaped = createRegExp(exactly(c.name)).source;
     const re = new RegExp(`(?<![\\w$])${escaped}(?![\\w$])`);
-    if (!re.test(rest)) toRemove.push(c);
+    if (!re.test(rest)) {
+      toRemove.push(c);
+    }
   }
 
-  if (toRemove.length === 0) return bodyText;
+  if (toRemove.length === 0) {
+    return bodyText;
+  }
 
   toRemove.sort((a, b) => b.stmtStart - a.stmtStart);
   let result = bodyText;
@@ -619,10 +717,13 @@ export function removeDeadConstLiterals(bodyText: string): string {
     while (
       end < result.length &&
       (result[end] === '\n' || result[end] === '\r' || result[end] === ';')
-    )
+    ) {
       end++;
+    }
     let start = c.stmtStart;
-    while (start > 0 && (result[start - 1] === '\t' || result[start - 1] === ' ')) start--;
+    while (start > 0 && (result[start - 1] === '\t' || result[start - 1] === ' ')) {
+      start--;
+    }
     result = result.slice(0, start) + result.slice(end);
   }
 
@@ -631,19 +732,27 @@ export function removeDeadConstLiterals(bodyText: string): string {
 
 export function rewriteFunctionSignature(bodyText: string, paramNames: string[]): string {
   const session = createFunctionTransformSession(bodyText);
-  if (!session) return bodyText;
-  if (!replaceFunctionParams(session, session.fn, paramNames)) return bodyText;
+  if (!session) {
+    return bodyText;
+  }
+  if (!replaceFunctionParams(session, session.fn, paramNames)) {
+    return bodyText;
+  }
   return session.toSource();
 }
 
 export function injectCapturesUnpacking(bodyText: string, captureNames: string[]): string {
-  if (captureNames.length === 0) return bodyText;
+  if (captureNames.length === 0) {
+    return bodyText;
+  }
 
   const unpackParts = captureNames.map((name, i) => `${name} = _captures[${i}]`);
   const unpackLine = `const ${unpackParts.join(', ')};`;
 
   const session = createFunctionTransformSession(bodyText);
-  if (!session) return bodyText;
+  if (!session) {
+    return bodyText;
+  }
 
   insertFunctionBodyPrologue(session, session.fn, unpackLine);
   return session.toSource();

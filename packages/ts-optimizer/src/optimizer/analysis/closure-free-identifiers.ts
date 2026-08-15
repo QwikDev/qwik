@@ -11,6 +11,8 @@ export function computeClosureFreeIdentifiers(
   program: AstProgram,
   closureNodes: ReadonlyMap<string, AstFunction>
 ): ReadonlyMap<AstFunction, readonly string[]> {
-  if (closureNodes.size === 0) return new Map();
+  if (closureNodes.size === 0) {
+    return new Map();
+  }
   return gatherModuleFacts({ program, closureNodes }).closureFreeIdentifiers;
 }

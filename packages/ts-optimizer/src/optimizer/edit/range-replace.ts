@@ -47,7 +47,9 @@ export function applyReplacements(
   text: string,
   replacements: ReadonlyArray<RangeReplacement>
 ): string {
-  if (replacements.length === 0) return text;
+  if (replacements.length === 0) {
+    return text;
+  }
   const sorted = [...replacements].sort((a, b) => a.start - b.start);
   let out = '';
   let pos = 0;
@@ -75,14 +77,18 @@ export function collectRangeReplacements(
   collectors: readonly RangeReplacementCollector[]
 ): RangeReplacement[] {
   const out: RangeReplacement[] = [];
-  if (collectors.length === 0) return out;
+  if (collectors.length === 0) {
+    return out;
+  }
 
   function walk(
     node: AstMaybeNode,
     parentKey: string | undefined,
     parentNode: AstParentNode | undefined
   ): void {
-    if (!node || typeof node !== 'object') return;
+    if (!node || typeof node !== 'object') {
+      return;
+    }
     // Type-annotation subtrees are never rewrite targets; expression wrappers
     // (`x as T`, `x!`) still carry real expressions and must be walked.
     const nodeType = (node as { type?: unknown }).type;
@@ -98,12 +104,20 @@ export function collectRangeReplacements(
     let skipSubtree = false;
     for (const collect of collectors) {
       const result = collect(node, ctx);
-      if (!result) continue;
-      if (result.replacements.length > 0) out.push(...result.replacements);
-      if (result.skipSubtree) skipSubtree = true;
+      if (!result) {
+        continue;
+      }
+      if (result.replacements.length > 0) {
+        out.push(...result.replacements);
+      }
+      if (result.skipSubtree) {
+        skipSubtree = true;
+      }
     }
 
-    if (skipSubtree) return;
+    if (skipSubtree) {
+      return;
+    }
     forEachAstChild(node, (child, key, parent) => walk(child, key, parent));
   }
 
@@ -132,13 +146,23 @@ export function isReplaceableIdentifierPosition(
   parentNode: AstParentNode | undefined,
   options: ReplaceableIdentifierPositionOptions = {}
 ): boolean {
-  if (parentKey === 'key' && parentNode?.type === 'Property') return false;
-  if (parentKey === 'property' && parentNode?.type === 'MemberExpression') {
-    if (options.memberPropertyMode === 'all') return false;
-    if (!parentNode.computed) return false;
+  if (parentKey === 'key' && parentNode?.type === 'Property') {
+    return false;
   }
-  if (parentKey === 'params') return false;
-  if (parentKey === 'id' && parentNode?.type === 'VariableDeclarator') return false;
+  if (parentKey === 'property' && parentNode?.type === 'MemberExpression') {
+    if (options.memberPropertyMode === 'all') {
+      return false;
+    }
+    if (!parentNode.computed) {
+      return false;
+    }
+  }
+  if (parentKey === 'params') {
+    return false;
+  }
+  if (parentKey === 'id' && parentNode?.type === 'VariableDeclarator') {
+    return false;
+  }
   return true;
 }
 
@@ -151,7 +175,9 @@ export function expressionNeedsParens(
   parentKey: string | undefined,
   parentNode: AstParentNode | undefined
 ): boolean {
-  if (!parentNode) return false;
+  if (!parentNode) {
+    return false;
+  }
   switch (parentNode.type) {
     case 'BinaryExpression':
     case 'LogicalExpression':

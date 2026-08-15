@@ -1,20 +1,9 @@
-import {
-  component$,
-  // Reveal,
-  Suspense,
-  untrack,
-  useSignal,
-  useTask$,
-  // type JSXOutput,
-  type Signal,
-} from '@qwik.dev/core';
+import { component$, Suspense, untrack, useAsync$, useSignal, useTask$ } from '@qwik.dev/core';
 
 interface BlockingUpdateProps {
   id: string;
   resolveName: string;
   pendingName: string;
-  target?: Signal<number>;
-  showButton?: boolean;
 }
 
 export const SuspenseRoot = component$(() => {
@@ -36,11 +25,8 @@ export const SuspenseChildren = component$(() => {
   return (
     <>
       <SingleBoundary />
-      <ShowStaleBoundary />
       <NestedBoundaries />
-      {/* <MountedAsyncBoundary /> */}
-      {/* Runtime v3 does not export deferred Reveal support. */}
-      {/* <RevealBoundaries /> */}
+      <MountedAsyncBoundary />
     </>
   );
 });
@@ -51,24 +37,10 @@ export const SingleBoundary = component$(() => {
 
   return (
     <div id="single-boundary">
-      <Suspense fallback={<span id="single-fallback">Loading single</span>} delay={10}>
+      <Suspense fallback$={() => <span id="single-fallback">Loading single</span>} delay={10}>
         <BlockingUpdate id="single" resolveName={resolveName} pendingName={pendingName} />
       </Suspense>
       <ResolveUpdate id="single" resolveName={resolveName} />
-    </div>
-  );
-});
-
-export const ShowStaleBoundary = component$(() => {
-  const resolveName = '__resolveShowStaleSuspense';
-  const pendingName = '__pendingShowStaleSuspense';
-
-  return (
-    <div id="show-stale-boundary">
-      <Suspense fallback={<span id="show-stale-fallback">Loading stale</span>} delay={10} showStale>
-        <BlockingUpdate id="show-stale" resolveName={resolveName} pendingName={pendingName} />
-      </Suspense>
-      <ResolveUpdate id="show-stale" resolveName={resolveName} />
     </div>
   );
 });
@@ -79,9 +51,9 @@ export const NestedBoundaries = component$(() => {
 
   return (
     <div id="nested-boundary">
-      <Suspense fallback={<span id="outer-fallback">Loading outer</span>} delay={10}>
+      <Suspense fallback$={() => <span id="outer-fallback">Loading outer</span>} delay={10}>
         <section id="outer-content">
-          <Suspense fallback={<span id="inner-fallback">Loading inner</span>} delay={10}>
+          <Suspense fallback$={() => <span id="inner-fallback">Loading inner</span>} delay={10}>
             <BlockingUpdate id="inner" resolveName={resolveName} pendingName={pendingName} />
           </Suspense>
         </section>
@@ -91,9 +63,19 @@ export const NestedBoundaries = component$(() => {
   );
 });
 
-/* export const MountedAsyncBoundary = component$(() => {
+export const MountedAsyncBoundary = component$(() => {
   const show = useSignal(false);
-  const resolveName = '__resolveMountedAsyncSuspense';
+  // the signal lives outside the suspending child, so the mount retry re-reads it once settled;
+  // it computes lazily on the child's first read, registering the resolver only after mounting
+  const content = useAsync$(
+    () =>
+      new Promise<string>((resolve) => {
+        (globalThis as any).__resolveMountedAsyncSuspense = () => {
+          delete (globalThis as any).__resolveMountedAsyncSuspense;
+          resolve('Async content');
+        };
+      })
+  );
 
   return (
     <div id="mounted-async-boundary">
@@ -103,95 +85,23 @@ export const NestedBoundaries = component$(() => {
       {show.value && (
         <>
           <Suspense
-            fallback={<span id="mounted-async-fallback">Loading mounted async</span>}
+            fallback$={() => <span id="mounted-async-fallback">Loading mounted async</span>}
             delay={10}
           >
-            <MountedAsyncChild resolveName={resolveName} />
+            <MountedAsyncChild content={content} />
           </Suspense>
-          <ResolveUpdate id="mounted-async" resolveName={resolveName} />
+          <ResolveUpdate id="mounted-async" resolveName="__resolveMountedAsyncSuspense" />
         </>
       )}
     </div>
   );
 });
 
-export const MountedAsyncChild = component$((props: { resolveName: string }) => {
-  const content = new Promise<JSXOutput>((resolve) => {
-    (globalThis as any)[props.resolveName] = () => {
-      delete (globalThis as any)[props.resolveName];
-      resolve(<p id="mounted-async-value">Async content</p>);
-    };
-  });
-  return <>{content}</>;
-}); */
-
-/* Runtime v3 does not export deferred Reveal support.
-export const RevealBoundaries = component$(() => {
-  const firstResolveName = '__resolveRevealFirstSuspense';
-  const firstPendingName = '__pendingRevealFirstSuspense';
-  const secondResolveName = '__resolveRevealSecondSuspense';
-  const secondPendingName = '__pendingRevealSecondSuspense';
-  const firstTarget = useSignal(0);
-  const secondTarget = useSignal(0);
-
-  return (
-    <div id="reveal-boundary">
-      <Reveal order="sequential" collapsed>
-        <Suspense
-          fallback={<span id="reveal-first-fallback">Loading reveal first</span>}
-          delay={10}
-        >
-          <BlockingUpdate
-            id="reveal-first"
-            resolveName={firstResolveName}
-            pendingName={firstPendingName}
-            target={firstTarget}
-            showButton={false}
-          />
-        </Suspense>
-        <Suspense
-          fallback={<span id="reveal-second-fallback">Loading reveal second</span>}
-          delay={10}
-        >
-          <BlockingUpdate
-            id="reveal-second"
-            resolveName={secondResolveName}
-            pendingName={secondPendingName}
-            target={secondTarget}
-            showButton={false}
-          />
-        </Suspense>
-      </Reveal>
-      <button
-        id="reveal-first-button"
-        onClick$={() => {
-          if ((globalThis as any)[firstPendingName]) {
-            return;
-          }
-          (globalThis as any)[firstPendingName] = true;
-          firstTarget.value++;
-        }}
-      >
-        Increment reveal-first
-      </button>
-      <button
-        id="reveal-second-button"
-        onClick$={() => {
-          if ((globalThis as any)[secondPendingName]) {
-            return;
-          }
-          (globalThis as any)[secondPendingName] = true;
-          secondTarget.value++;
-        }}
-      >
-        Increment reveal-second
-      </button>
-      <ResolveUpdate id="reveal-first" resolveName={firstResolveName} />
-      <ResolveUpdate id="reveal-second" resolveName={secondResolveName} />
-    </div>
-  );
+export const MountedAsyncChild = component$((props: { content: { value: string } }) => {
+  // the body read suspends the mount until the async value settles
+  const value = props.content.value;
+  return <p id="mounted-async-value">{value}</p>;
 });
-*/
 
 export const ResolveUpdate = component$((props: { id: string; resolveName: string }) => {
   return (
@@ -210,8 +120,7 @@ export const ResolveUpdate = component$((props: { id: string; resolveName: strin
 });
 
 export const BlockingUpdate = component$((props: BlockingUpdateProps) => {
-  const localTarget = useSignal(0);
-  const target = props.target ?? localTarget;
+  const target = useSignal(0);
   const value = useSignal(0);
 
   useTask$(({ cleanup }) => {
@@ -241,20 +150,18 @@ export const BlockingUpdate = component$((props: BlockingUpdateProps) => {
 
   return (
     <>
-      {props.showButton !== false && (
-        <button
-          id={`${props.id}-button`}
-          onClick$={() => {
-            if ((globalThis as any)[props.pendingName]) {
-              return;
-            }
-            (globalThis as any)[props.pendingName] = true;
-            target.value++;
-          }}
-        >
-          Increment {props.id}
-        </button>
-      )}
+      <button
+        id={`${props.id}-button`}
+        onClick$={() => {
+          if ((globalThis as any)[props.pendingName]) {
+            return;
+          }
+          (globalThis as any)[props.pendingName] = true;
+          target.value++;
+        }}
+      >
+        Increment {props.id}
+      </button>
       <p id={`${props.id}-value`}>value={value.value}</p>
     </>
   );

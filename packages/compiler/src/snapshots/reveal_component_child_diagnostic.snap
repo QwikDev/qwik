@@ -1,0 +1,71 @@
+==INPUT==
+
+import { Reveal, Suspense } from '@qwik.dev/core';
+export function Hidden() {
+  return <p>maybe a boundary in here</p>;
+}
+export function App() {
+  return (
+    <Reveal order="sequential">
+      <Suspense fallback$={() => <em>waiting</em>}>
+        <p>ok</p>
+      </Suspense>
+      <Hidden />
+    </Reveal>
+  );
+}
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+
+== SSR DIAGNOSTICS ==
+
+[
+  {
+    "scope": "compiler",
+    "category": "error",
+    "code": "transform-failure",
+    "file": "src/component.tsx",
+    "message": "Reveal requires its Suspense boundaries to be lexically visible; a component inside <Reveal> could hide one.",
+    "highlights": [
+      {
+        "lo": 283,
+        "hi": 293,
+        "startLine": 11,
+        "startCol": 7,
+        "endLine": 11,
+        "endCol": 16
+      }
+    ],
+    "suggestions": null
+  }
+]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+
+== CSR DIAGNOSTICS ==
+
+[
+  {
+    "scope": "compiler",
+    "category": "error",
+    "code": "transform-failure",
+    "file": "src/component.tsx",
+    "message": "Reveal requires its Suspense boundaries to be lexically visible; a component inside <Reveal> could hide one.",
+    "highlights": [
+      {
+        "lo": 283,
+        "hi": 293,
+        "startLine": 11,
+        "startCol": 7,
+        "endLine": 11,
+        "endCol": 16
+      }
+    ],
+    "suggestions": null
+  }
+]

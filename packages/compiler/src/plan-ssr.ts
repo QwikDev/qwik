@@ -17,6 +17,7 @@ import type {
   SegmentPlan,
   SegmentReferencePlan,
   SetupPlan,
+  SuspenseRevealPlan,
   UseIdPlan,
   ValuePlan,
 } from './plan-types';
@@ -191,6 +192,7 @@ export interface SsrSuspenseOperation {
   readonly fallback: ValuePlan | null;
   readonly delay: ValuePlan | null;
   readonly inOrder: readonly SsrOperation[] | null;
+  readonly reveal: SuspenseRevealPlan | null;
 }
 
 export interface SsrSlotOperation {
@@ -651,6 +653,7 @@ class SsrPlanner {
           fallback: node.fallback,
           delay: node.delay,
           inOrder,
+          reveal: node.reveal,
         };
       }
       case 'slot':

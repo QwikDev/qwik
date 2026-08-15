@@ -278,6 +278,8 @@ export type CsrOperationPlan =
       readonly content: CsrSegmentReferencePlan;
       readonly fallback: CsrValuePlan | null;
       readonly delay: CsrValuePlan | null;
+      /** Static `<Reveal>` group membership: [groupId, order, collapsed, index, count]. */
+      readonly reveal: readonly [number, string, boolean, number, number] | null;
     }
   | {
       readonly id: number;
@@ -944,7 +946,23 @@ class CsrPlanner {
           return null;
         }
         const range = this.appendRange(parent);
-        const operation = this.pushOperation({ kind: 'suspense', range, content, fallback, delay });
+        const operation = this.pushOperation({
+          kind: 'suspense',
+          range,
+          content,
+          fallback,
+          delay,
+          reveal:
+            node.reveal === null
+              ? null
+              : ([
+                  node.reveal.group,
+                  node.reveal.order,
+                  node.reveal.collapsed,
+                  node.reveal.index,
+                  node.reveal.count,
+                ] as const),
+        });
         return { kind: 'operation', operation, cardinality: 'many' };
       }
       case 'slot': {

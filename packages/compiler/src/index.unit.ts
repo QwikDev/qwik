@@ -1389,6 +1389,55 @@ export function App() {
     });
   });
 
+  test('wires reveal groups into lexical suspense boundaries', async () => {
+    await testInput('reveal_sequential_suspense', {
+      code: `import { Reveal, Suspense } from '@qwik.dev/core';
+export async function First() {
+  await Promise.resolve();
+  return <p>first</p>;
+}
+export async function Second() {
+  await Promise.resolve();
+  return <p>second</p>;
+}
+export function App() {
+  return (
+    <section>
+      <Reveal order="sequential" collapsed>
+        <Suspense fallback$={() => <em>waiting first</em>}>
+          <First />
+        </Suspense>
+        <Suspense fallback$={() => <em>waiting second</em>}>
+          <Second />
+        </Suspense>
+      </Reveal>
+    </section>
+  );
+}
+`,
+    });
+  });
+
+  test('fails closed when a component could hide a reveal boundary', async () => {
+    await testInput('reveal_component_child_diagnostic', {
+      code: `import { Reveal, Suspense } from '@qwik.dev/core';
+export function Hidden() {
+  return <p>maybe a boundary in here</p>;
+}
+export function App() {
+  return (
+    <Reveal order="sequential">
+      <Suspense fallback$={() => <em>waiting</em>}>
+        <p>ok</p>
+      </Suspense>
+      <Hidden />
+    </Reveal>
+  );
+}
+`,
+    });
+  });
+
   test('keeps outer props reachable from a destructured local component', async () => {
     await testInput('local_component_outer_props', {
       code: `export function Footer(props: { todos: { filter: string } }) {

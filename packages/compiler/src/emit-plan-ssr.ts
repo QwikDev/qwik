@@ -212,6 +212,8 @@ export type PlanSsrOp =
       readonly fallbackValue?: PlanValue;
       readonly delay: PlanValue | null;
       readonly inOrder: readonly PlanSsrOp[] | null;
+      /** Static `<Reveal>` group membership: [groupId, order, collapsed, index, count]. */
+      readonly reveal?: readonly [number, string, boolean, number, number];
     }
   | {
       readonly kind: SsrOpKind.Slot;
@@ -896,6 +898,17 @@ export function emitSsrOpPlan(
           ...(selectedFallback === undefined ? {} : { fallbackValue: selectedFallback }),
           delay: operation.delay === null ? null : planValue(operation.delay),
           inOrder: operation.inOrder === null ? null : operation.inOrder.map(op),
+          ...(operation.reveal === null
+            ? {}
+            : {
+                reveal: [
+                  operation.reveal.group,
+                  operation.reveal.order,
+                  operation.reveal.collapsed,
+                  operation.reveal.index,
+                  operation.reveal.count,
+                ] as const,
+              }),
         };
       }
       case 'slot':

@@ -1,0 +1,532 @@
+==INPUT==
+
+import { Reveal, Suspense } from '@qwik.dev/core';
+export async function First() {
+  await Promise.resolve();
+  return <p>first</p>;
+}
+export async function Second() {
+  await Promise.resolve();
+  return <p>second</p>;
+}
+export function App() {
+  return (
+    <section>
+      <Reveal order="sequential" collapsed>
+        <Suspense fallback$={() => <em>waiting first</em>}>
+          <First />
+        </Suspense>
+        <Suspense fallback$={() => <em>waiting second</em>}>
+          <Second />
+        </Suspense>
+      </Reveal>
+    </section>
+  );
+}
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  createComponent,
+  maybeThen,
+  createSsrElementRecord,
+  createSsrSuspense,
+  createRevealGroup,
+  getActiveInvokeContextOrNull,
+  invoke,
+  _noopQrl,
+} from '@qwik.dev/core';
+import { First } from './component.tsx_component_First';
+import { Second } from './component.tsx_component_Second';
+
+const component_fallback$_segment_0_2xzpofej2tyn5 = (ctx) => {
+  return '<em>waiting first</em>';
+};
+const q_component_fallback$_segment_0_2xzpofej2tyn5 = /*#__PURE__*/ _noopQrl(
+  'component_fallback$_segment_0_2xzpofej2tyn5'
+);
+q_component_fallback$_segment_0_2xzpofej2tyn5.s(component_fallback$_segment_0_2xzpofej2tyn5);
+const component_suspense_content_segment_1_oznzhxo2l2hq = (ctx) => {
+  const component_0 = createComponent({}, (props) => First(props, ctx));
+  return maybeThen(component_0, (component_0) => component_0);
+};
+const q_component_suspense_content_segment_1_oznzhxo2l2hq = /*#__PURE__*/ _noopQrl(
+  'component_suspense_content_segment_1_oznzhxo2l2hq'
+);
+q_component_suspense_content_segment_1_oznzhxo2l2hq.s(
+  component_suspense_content_segment_1_oznzhxo2l2hq
+);
+const component_fallback$_segment_2_2xzpnncb95um3 = (ctx) => {
+  return '<em>waiting second</em>';
+};
+const q_component_fallback$_segment_2_2xzpnncb95um3 = /*#__PURE__*/ _noopQrl(
+  'component_fallback$_segment_2_2xzpnncb95um3'
+);
+q_component_fallback$_segment_2_2xzpnncb95um3.s(component_fallback$_segment_2_2xzpnncb95um3);
+const component_suspense_content_segment_3_oznypvg8wygo = (ctx) => {
+  const component_0 = createComponent({}, (props) => Second(props, ctx));
+  return maybeThen(component_0, (component_0) => component_0);
+};
+const q_component_suspense_content_segment_3_oznypvg8wygo = /*#__PURE__*/ _noopQrl(
+  'component_suspense_content_segment_3_oznypvg8wygo'
+);
+q_component_suspense_content_segment_3_oznypvg8wygo.s(
+  component_suspense_content_segment_3_oznypvg8wygo
+);
+export { First };
+export { Second };
+export function App(props, ctx) {
+  const suspense_id_0 = ctx.nextId();
+  const reveal_0 = createRevealGroup('sequential', true, 2);
+  const suspense_0 = createSsrSuspense(
+    ctx,
+    suspense_id_0,
+    q_component_suspense_content_segment_1_oznzhxo2l2hq,
+    q_component_fallback$_segment_0_2xzpofej2tyn5,
+    0,
+    reveal_0,
+    0
+  );
+  let suspense_id_1;
+  const invokeCtx = getActiveInvokeContextOrNull();
+  const suspense_1 = () =>
+    invoke(invokeCtx, () => {
+      suspense_id_1 ??= ctx.nextId();
+      return createSsrSuspense(
+        ctx,
+        suspense_id_1,
+        q_component_suspense_content_segment_3_oznypvg8wygo,
+        q_component_fallback$_segment_2_2xzpnncb95um3,
+        0,
+        reveal_0,
+        1
+      );
+    });
+  return maybeThen(suspense_0, (suspense_0) =>
+    maybeThen(suspense_1(), (suspense_1) => [
+      createSsrElementRecord('section', '<section', '>'),
+      suspense_0,
+      suspense_1,
+      '</section>',
+    ])
+  );
+}
+============================= src/component.tsx_component_First.js (ENTRY POINT)==
+
+import { createComponent, maybeThen, createSsrElementRecord } from '@qwik.dev/core';
+
+export async function First(props, ctx) {
+  await Promise.resolve();
+  return [createSsrElementRecord('p', '<p', '>'), 'first</p>'];
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_First_1o3lqpph2igej",
+  "entry": null,
+  "displayName": "component_First",
+  "hash": "1o3lqpph2igej",
+  "canonicalFilename": "component.tsx_component_First_1o3lqpph2igej",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component",
+  "captures": false,
+  "loc": [
+    58,
+    132
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_Second.js (ENTRY POINT)==
+
+import { createComponent, maybeThen, createSsrElementRecord } from '@qwik.dev/core';
+
+export async function Second(props, ctx) {
+  await Promise.resolve();
+  return [createSsrElementRecord('p', '<p', '>'), 'second</p>'];
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_Second_3vnn3mq4i1nh3",
+  "entry": null,
+  "displayName": "component_Second",
+  "hash": "3vnn3mq4i1nh3",
+  "canonicalFilename": "component.tsx_component_Second_3vnn3mq4i1nh3",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component",
+  "captures": false,
+  "loc": [
+    140,
+    216
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_fallback$_segment_0_2xzpofej2tyn5.js (ENTRY POINT)==
+
+export const component_fallback$_segment_0_2xzpofej2tyn5 = (ctx) => {
+  return '<em>waiting first</em>';
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_fallback$_segment_0_2xzpofej2tyn5",
+  "entry": null,
+  "displayName": "component_fallback$_segment_0",
+  "hash": "2xzpofej2tyn5",
+  "canonicalFilename": "component.tsx_component_fallback$_segment_0_2xzpofej2tyn5",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "fallback$",
+  "captures": false,
+  "loc": [
+    321,
+    361
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_suspense_content_segment_1_oznzhxo2l2hq.js (ENTRY POINT)==
+
+import { First } from './component.tsx_component_First';
+import { createComponent, maybeThen } from '@qwik.dev/core';
+
+export const component_suspense_content_segment_1_oznzhxo2l2hq = (ctx) => {
+  const component_0 = createComponent({}, (props) => First(props, ctx));
+  return maybeThen(component_0, (component_0) => component_0);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_suspense_content_segment_1_oznzhxo2l2hq",
+  "entry": null,
+  "displayName": "component_suspense_content_segment_1",
+  "hash": "oznzhxo2l2hq",
+  "canonicalFilename": "component.tsx_component_suspense_content_segment_1_oznzhxo2l2hq",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "suspense:content",
+  "captures": false,
+  "loc": [
+    311,
+    402
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_fallback$_segment_2_2xzpnncb95um3.js (ENTRY POINT)==
+
+export const component_fallback$_segment_2_2xzpnncb95um3 = (ctx) => {
+  return '<em>waiting second</em>';
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_fallback$_segment_2_2xzpnncb95um3",
+  "entry": null,
+  "displayName": "component_fallback$_segment_2",
+  "hash": "2xzpnncb95um3",
+  "canonicalFilename": "component.tsx_component_fallback$_segment_2_2xzpnncb95um3",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "fallback$",
+  "captures": false,
+  "loc": [
+    421,
+    462
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_suspense_content_segment_3_oznypvg8wygo.js (ENTRY POINT)==
+
+import { Second } from './component.tsx_component_Second';
+import { createComponent, maybeThen } from '@qwik.dev/core';
+
+export const component_suspense_content_segment_3_oznypvg8wygo = (ctx) => {
+  const component_0 = createComponent({}, (props) => Second(props, ctx));
+  return maybeThen(component_0, (component_0) => component_0);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_suspense_content_segment_3_oznypvg8wygo",
+  "entry": null,
+  "displayName": "component_suspense_content_segment_3",
+  "hash": "oznypvg8wygo",
+  "canonicalFilename": "component.tsx_component_suspense_content_segment_3_oznypvg8wygo",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "suspense:content",
+  "captures": false,
+  "loc": [
+    411,
+    504
+  ],
+  "paramNames": []
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  _first,
+  _next,
+  BranchRange,
+  createSuspense,
+  _qrlWithChunk,
+  createRevealGroup,
+  createTemplate,
+} from '@qwik.dev/core';
+import { First } from './component.tsx_component_First';
+import { Second } from './component.tsx_component_Second';
+
+const q_component_fallback$_segment_0_2xzpofej2tyn5 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_fallback$_segment_0_2xzpofej2tyn5',
+  () => import('./component.tsx_component_fallback$_segment_0_2xzpofej2tyn5'),
+  'component_fallback$_segment_0_2xzpofej2tyn5'
+);
+const q_component_suspense_content_segment_1_oznzhxo2l2hq = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_suspense_content_segment_1_oznzhxo2l2hq',
+  () => import('./component.tsx_component_suspense_content_segment_1_oznzhxo2l2hq'),
+  'component_suspense_content_segment_1_oznzhxo2l2hq'
+);
+const q_component_fallback$_segment_2_2xzpnncb95um3 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_fallback$_segment_2_2xzpnncb95um3',
+  () => import('./component.tsx_component_fallback$_segment_2_2xzpnncb95um3'),
+  'component_fallback$_segment_2_2xzpnncb95um3'
+);
+const q_component_suspense_content_segment_3_oznypvg8wygo = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_suspense_content_segment_3_oznypvg8wygo',
+  () => import('./component.tsx_component_suspense_content_segment_3_oznypvg8wygo'),
+  'component_suspense_content_segment_3_oznypvg8wygo'
+);
+const App_tmpl0 = createTemplate('<section><!----><!----><!----><!----></section>');
+export { First };
+export { Second };
+export function App(props, ctx) {
+  const fragment0 = App_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  const start0 = _first(el0);
+  const end0 = _next(start0);
+  const start1 = _next(end0);
+  const end1 = _next(start1);
+  const reveal_0 = createRevealGroup('sequential', true, 2);
+  createSuspense(
+    ctx,
+    new BranchRange(ctx.document, start0, end0),
+    q_component_suspense_content_segment_1_oznzhxo2l2hq,
+    q_component_fallback$_segment_0_2xzpofej2tyn5,
+    0,
+    reveal_0,
+    0
+  );
+  createSuspense(
+    ctx,
+    new BranchRange(ctx.document, start1, end1),
+    q_component_suspense_content_segment_3_oznypvg8wygo,
+    q_component_fallback$_segment_2_2xzpnncb95um3,
+    0,
+    reveal_0,
+    1
+  );
+  return el0;
+}
+============================= src/component.tsx_component_First.js (ENTRY POINT)==
+
+import { _first, createTemplate } from '@qwik.dev/core';
+
+const First_tmpl0 = createTemplate('<p>first</p>');
+
+export async function First(props, ctx) {
+  await Promise.resolve();
+  const fragment0 = First_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_First_1o3lqpph2igej",
+  "entry": null,
+  "displayName": "component_First",
+  "hash": "1o3lqpph2igej",
+  "canonicalFilename": "component.tsx_component_First_1o3lqpph2igej",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component",
+  "captures": false,
+  "loc": [
+    58,
+    132
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_Second.js (ENTRY POINT)==
+
+import { _first, createTemplate } from '@qwik.dev/core';
+
+const Second_tmpl0 = createTemplate('<p>second</p>');
+
+export async function Second(props, ctx) {
+  await Promise.resolve();
+  const fragment0 = Second_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_Second_3vnn3mq4i1nh3",
+  "entry": null,
+  "displayName": "component_Second",
+  "hash": "3vnn3mq4i1nh3",
+  "canonicalFilename": "component.tsx_component_Second_3vnn3mq4i1nh3",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component",
+  "captures": false,
+  "loc": [
+    140,
+    216
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_fallback$_segment_0_2xzpofej2tyn5.js (ENTRY POINT)==
+
+import { _first, createTemplate } from '@qwik.dev/core';
+const component_fallback$_segment_0_2xzpofej2tyn5_tmpl0 = createTemplate('<em>waiting first</em>');
+
+export const component_fallback$_segment_0_2xzpofej2tyn5 = (ctx) => {
+  const fragment0 = component_fallback$_segment_0_2xzpofej2tyn5_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  return el0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_fallback$_segment_0_2xzpofej2tyn5",
+  "entry": null,
+  "displayName": "component_fallback$_segment_0",
+  "hash": "2xzpofej2tyn5",
+  "canonicalFilename": "component.tsx_component_fallback$_segment_0_2xzpofej2tyn5",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "fallback$",
+  "captures": false,
+  "loc": [
+    321,
+    361
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_suspense_content_segment_1_oznzhxo2l2hq.js (ENTRY POINT)==
+
+import { First } from './component.tsx_component_First';
+import { createComponent } from '@qwik.dev/core';
+
+export const component_suspense_content_segment_1_oznzhxo2l2hq = (ctx) => {
+  return createComponent({}, (props) => First(props, ctx));
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_suspense_content_segment_1_oznzhxo2l2hq",
+  "entry": null,
+  "displayName": "component_suspense_content_segment_1",
+  "hash": "oznzhxo2l2hq",
+  "canonicalFilename": "component.tsx_component_suspense_content_segment_1_oznzhxo2l2hq",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "suspense:content",
+  "captures": false,
+  "loc": [
+    311,
+    402
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_fallback$_segment_2_2xzpnncb95um3.js (ENTRY POINT)==
+
+import { _first, createTemplate } from '@qwik.dev/core';
+const component_fallback$_segment_2_2xzpnncb95um3_tmpl0 = createTemplate('<em>waiting second</em>');
+
+export const component_fallback$_segment_2_2xzpnncb95um3 = (ctx) => {
+  const fragment0 = component_fallback$_segment_2_2xzpnncb95um3_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  return el0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_fallback$_segment_2_2xzpnncb95um3",
+  "entry": null,
+  "displayName": "component_fallback$_segment_2",
+  "hash": "2xzpnncb95um3",
+  "canonicalFilename": "component.tsx_component_fallback$_segment_2_2xzpnncb95um3",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "fallback$",
+  "captures": false,
+  "loc": [
+    421,
+    462
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_suspense_content_segment_3_oznypvg8wygo.js (ENTRY POINT)==
+
+import { Second } from './component.tsx_component_Second';
+import { createComponent } from '@qwik.dev/core';
+
+export const component_suspense_content_segment_3_oznypvg8wygo = (ctx) => {
+  return createComponent({}, (props) => Second(props, ctx));
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_suspense_content_segment_3_oznypvg8wygo",
+  "entry": null,
+  "displayName": "component_suspense_content_segment_3",
+  "hash": "oznypvg8wygo",
+  "canonicalFilename": "component.tsx_component_suspense_content_segment_3_oznypvg8wygo",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "suspense:content",
+  "captures": false,
+  "loc": [
+    411,
+    504
+  ],
+  "paramNames": []
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

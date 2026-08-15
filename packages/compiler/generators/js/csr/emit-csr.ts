@@ -82,6 +82,8 @@ interface CsrEmitContext {
   readonly runtimeStyleScopeName: string | null;
   readonly generatedNames: GeneratedNames;
   readonly next: (prefix: string) => string;
+  /** `<Reveal>` group variables already declared for the current render function. */
+  readonly revealGroups: Map<number, string>;
 }
 
 interface CsrOperationEmission {
@@ -363,6 +365,7 @@ export function emitCsrPlan(
       localImplementationSource,
       runtimeStyleScopeName: plan.runtimeStyleScopeName,
       next,
+      revealGroups: new Map(),
     };
     if (plan.output.kind === 'component') {
       const component = emitDirectComponent(plan.output, context, statements);
@@ -462,6 +465,7 @@ export function emitCsrPlan(
     localImplementationSource,
     runtimeStyleScopeName: plan.runtimeStyleScopeName,
     next,
+    revealGroups: new Map(),
   };
   const batchKeys = getDomEffectBatchKeys(plan.operations);
   const batches = new Map<string, CsrDomBatch>();
@@ -1159,10 +1163,25 @@ function emitCsrOperation(
           : operation.fallback.kind === 'segment'
             ? emitPlannedFunctionReference(operation.fallback.reference, context)
             : emitValue(operation.fallback, context);
+      const declarations: string[] = [];
+      let revealArgs = '';
+      if (operation.reveal !== null) {
+        const [groupId, order, collapsed, index, count] = operation.reveal;
+        let groupVar = context.revealGroups.get(groupId);
+        if (groupVar === undefined) {
+          groupVar = `reveal_${groupId}`;
+          context.revealGroups.set(groupId, groupVar);
+          imports.add(QwikWord.CreateRevealGroup);
+          declarations.push(
+            `const ${groupVar} = ${QwikWord.CreateRevealGroup}(${JSON.stringify(order)}, ${collapsed}, ${count});`
+          );
+        }
+        revealArgs = `, ${groupVar}, ${index}`;
+      }
       return {
-        declarations: [],
+        declarations,
         statements: [
-          `${QwikWord.CreateSuspense}(${context.generatedNames.ctx}, new ${QwikWord.BranchRange}(${context.generatedNames.ctx}.document, ${range.start}, ${range.end}), ${emitPlannedFunctionReference(operation.content, context)}, ${fallback}, ${operation.delay === null ? '0' : emitValue(operation.delay, context)});`,
+          `${QwikWord.CreateSuspense}(${context.generatedNames.ctx}, new ${QwikWord.BranchRange}(${context.generatedNames.ctx}.document, ${range.start}, ${range.end}), ${emitPlannedFunctionReference(operation.content, context)}, ${fallback}, ${operation.delay === null ? '0' : emitValue(operation.delay, context)}${revealArgs});`,
         ],
       };
     }

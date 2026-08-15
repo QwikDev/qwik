@@ -369,6 +369,17 @@ export interface BranchPlan {
   readonly else: RenderFunctionPlan | null;
 }
 
+export type RevealOrder = 'parallel' | 'sequential' | 'reverse' | 'together';
+
+/** Static membership of a Suspense boundary in its lexical `<Reveal>` group. */
+export interface SuspenseRevealPlan {
+  readonly group: number;
+  readonly order: RevealOrder;
+  readonly collapsed: boolean;
+  readonly index: number;
+  readonly count: number;
+}
+
 export interface SuspensePlan {
   readonly kind: 'suspense';
   readonly range: SourceRange;
@@ -377,6 +388,7 @@ export interface SuspensePlan {
   readonly fallback: ValuePlan | null;
   readonly delay: ValuePlan | null;
   readonly blocking: boolean;
+  readonly reveal: SuspenseRevealPlan | null;
 }
 
 export interface SlotPlan {

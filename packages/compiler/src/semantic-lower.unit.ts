@@ -166,6 +166,7 @@ export function App({ delay }) {
       'kind',
       'lifetimeId',
       'range',
+      'reveal',
     ]);
     expect(suspense).toMatchObject({
       kind: 'suspense',

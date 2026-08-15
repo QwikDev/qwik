@@ -166,6 +166,12 @@ class QrlExtractor {
           }
           return;
         }
+        if (this.isReveal(node.openingElement.name)) {
+          for (const child of node.children) {
+            this.visitJsxChild(child);
+          }
+          return;
+        }
         if (this.isSuspense(node.openingElement.name)) {
           this.visitComponentJsxAttributes(node.openingElement.attributes, node.openingElement);
           const segment = this.createExpressionSegment('suspense:content', node, 'suspenseRender');
@@ -1231,18 +1237,22 @@ class QrlExtractor {
   }
 
   private isSuspense(node: AstNode): boolean {
+    return this.isQwikHookTag(node, QwikHooks.Suspense);
+  }
+
+  private isReveal(node: AstNode): boolean {
+    return this.isQwikHookTag(node, QwikHooks.Reveal);
+  }
+
+  private isQwikHookTag(node: AstNode, hook: string): boolean {
     if (node.type === 'JSXIdentifier') {
       const imported = this.bindingForReference(node)?.import;
-      return (
-        imported?.importedName === QwikHooks.Suspense &&
-        !imported.typeOnly &&
-        isQwikImport(imported.source)
-      );
+      return imported?.importedName === hook && !imported.typeOnly && isQwikImport(imported.source);
     }
     if (
       node.type !== 'JSXMemberExpression' ||
       node.object.type !== 'JSXIdentifier' ||
-      node.property.name !== QwikHooks.Suspense
+      node.property.name !== hook
     ) {
       return false;
     }

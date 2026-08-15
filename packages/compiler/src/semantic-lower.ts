@@ -59,6 +59,7 @@ import type {
   SetupPlan,
   SlotPlan,
   StaticProp,
+  RevealOrder,
   SuspensePlan,
   UseIdPlan,
   ValuePlan,
@@ -332,6 +333,15 @@ class SemanticLowerer {
   private readonly syntheticSegments: SegmentPlan[] = [];
   private readonly syntheticSegmentParents = new Map<string, string>();
   private readonly renderSegmentStack: string[] = [];
+  /** Active `<Reveal>` scopes; suspended inside nested render segments. */
+  private revealStack: Array<{
+    id: number;
+    order: string;
+    collapsed: boolean;
+    nextIndex: number;
+    plans: SuspensePlan[];
+  }> = [];
+  private revealGroupCount = 0;
   private readonly bindingOutputs = new Map<BindingId, DynamicOutputKind>();
   private readonly sourceOutputs = new Map<BindingId, DynamicOutputKind>();
   private readonly signalBindings = new Set<BindingId>();
@@ -612,6 +622,9 @@ class SemanticLowerer {
     if (this.isQwikFragment(node.openingElement.name)) {
       return this.lowerChildren(node.children, context, blockingSuspense);
     }
+    if (range !== null && this.isReveal(node.openingElement.name)) {
+      return this.lowerReveal(node, range, context, blockingSuspense);
+    }
     if (range !== null && this.isSuspense(node.openingElement.name)) {
       const suspense = this.lowerSuspense(node, range, context, blockingSuspense);
       return suspense === null ? [] : [suspense];
@@ -673,6 +686,86 @@ class SemanticLowerer {
     return [element];
   }
 
+  private lowerReveal(
+    node: JSXElement,
+    range: SourceRange,
+    context: RenderContext,
+    blockingSuspense: boolean
+  ): RenderNodePlan[] {
+    for (const attribute of node.openingElement.attributes) {
+      if (attribute.type === 'JSXSpreadAttribute') {
+        return this.unsupported(range, 'Reveal does not support spread props.');
+      }
+      const name = getJsxAttributeName(attribute.name);
+      if (name === 'order') {
+        if (readStaticAttribute(node, 'order') === null) {
+          return this.unsupported(range, 'Reveal `order` must be a static string literal.');
+        }
+        continue;
+      }
+      if (name === 'collapsed') {
+        if (attribute.value !== null && attribute.value !== undefined) {
+          return this.unsupported(range, 'Reveal `collapsed` must be a shorthand boolean prop.');
+        }
+        continue;
+      }
+      if (name !== 'key') {
+        return this.unsupported(range, `Reveal does not support the \`${name}\` prop.`);
+      }
+    }
+    const order = readStaticAttribute(node, 'order') ?? 'parallel';
+    if (!['parallel', 'sequential', 'reverse', 'together'].includes(order)) {
+      return this.unsupported(range, `Unknown Reveal order \`${order}\`.`);
+    }
+    const hasCollapsed = node.openingElement.attributes.some(
+      (attribute) =>
+        attribute.type === 'JSXAttribute' && getJsxAttributeName(attribute.name) === 'collapsed'
+    );
+    const group = {
+      id: this.revealGroupCount++,
+      order,
+      collapsed: hasCollapsed,
+      nextIndex: 0,
+      plans: [] as SuspensePlan[],
+    };
+    this.revealStack.push(group);
+    try {
+      const children = this.lowerChildren(node.children, context, blockingSuspense);
+      // the boundary count is only known now: stamp the final membership on each plan
+      for (const plan of group.plans) {
+        (plan as { reveal: SuspensePlan['reveal'] }).reveal = {
+          ...plan.reveal!,
+          count: group.nextIndex,
+        };
+      }
+      return children;
+    } finally {
+      this.revealStack.pop();
+    }
+  }
+
+  /** Reveal groups are wired statically: anything that can hide a boundary fails closed. */
+  private failIfInsideReveal(range: SourceRange, what: string): void {
+    if (this.revealStack.length > 0) {
+      this.unsupported(
+        range,
+        `Reveal requires its Suspense boundaries to be lexically visible; ${what} inside <Reveal> could hide one.`
+      );
+    }
+  }
+
+  private isReveal(node: AstNode): boolean {
+    if (node.type !== 'JSXIdentifier') {
+      return false;
+    }
+    const binding = this.binding(this.bindingIdAt(getRange(node)));
+    return (
+      isQwikBinding(binding) &&
+      !binding!.import!.typeOnly &&
+      binding!.import!.importedName === QwikHooks.Reveal
+    );
+  }
+
   private lowerSuspense(
     node: JSXElement,
     range: SourceRange,
@@ -703,7 +796,9 @@ class SemanticLowerer {
     const fallback =
       fallbackExpression === null ? null : this.createQrlValue(fallbackExpression, lifetimeId);
     const delayExpression = readAttributeExpression(node, 'delay');
-    return {
+    const activeReveal =
+      this.revealStack.length === 0 ? null : this.revealStack[this.revealStack.length - 1];
+    const plan: SuspensePlan = {
       kind: 'suspense',
       range,
       lifetimeId,
@@ -714,7 +809,19 @@ class SemanticLowerer {
           ? null
           : this.createValue(delayExpression, lifetimeId, false, false, false, true),
       blocking,
+      reveal:
+        activeReveal === null
+          ? null
+          : {
+              group: activeReveal.id,
+              order: activeReveal.order as RevealOrder,
+              collapsed: activeReveal.collapsed,
+              index: activeReveal.nextIndex++,
+              count: 0,
+            },
     };
+    activeReveal?.plans.push(plan);
+    return plan;
   }
 
   private createQrlValue(expression: AstNode, lifetimeId: LifetimeId): ValuePlan {
@@ -746,6 +853,7 @@ class SemanticLowerer {
     blockingSuspense: boolean,
     unresolvedTag = false
   ): ComponentNodePlan {
+    this.failIfInsideReveal(range, 'a component');
     const lifetimeId = this.allocateLifetime(context.lifetimeId, 'component-call', 'atomic-range');
     const props = this.lowerProps(
       node,
@@ -1760,6 +1868,9 @@ class SemanticLowerer {
     blockingSuspense: boolean
   ): BranchPlan | null {
     const range = getRange(expression);
+    if (range !== null) {
+      this.failIfInsideReveal(range, 'a conditional branch');
+    }
     const conditionRange = getRange(branch.condition);
     const thenRange = getRange(branch.then);
     const elseRange = branch.else === null ? null : getRange(branch.else);
@@ -1815,6 +1926,7 @@ class SemanticLowerer {
     parentLifetimeId: LifetimeId,
     blockingSuspense: boolean
   ): CollectionPlan | null {
+    this.failIfInsideReveal(collection.range, 'a collection');
     const sourceRange = getRange(collection.source);
     if (sourceRange === null) {
       this.unsupported(collection.range, 'A collection source has no source range.');
@@ -2167,9 +2279,13 @@ class SemanticLowerer {
 
   private withRenderSegment<T>(segmentId: string, lower: () => T): T {
     this.renderSegmentStack.push(segmentId);
+    // a nested render function is a separate scope: reveal groups do not reach into it
+    const activeReveals = this.revealStack;
+    this.revealStack = [];
     try {
       return lower();
     } finally {
+      this.revealStack = activeReveals;
       this.renderSegmentStack.pop();
     }
   }

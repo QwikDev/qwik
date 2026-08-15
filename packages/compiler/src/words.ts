@@ -32,6 +32,7 @@ export const enum QwikWord {
   BranchRange = 'BranchRange',
   CreateBranch = 'createBranch',
   CreateSuspense = 'createSuspense',
+  CreateRevealGroup = 'createRevealGroup',
   CreateContentBlock = 'createContentBlock',
   CreateCollection = 'createCollection',
   WrapArray = '_wrapArray',
@@ -170,5 +171,6 @@ export const enum QwikHooks {
   Jsxs = 'jsxs',
   Slot = 'Slot',
   Suspense = 'Suspense',
+  Reveal = 'Reveal',
   Fragment = 'Fragment',
 }

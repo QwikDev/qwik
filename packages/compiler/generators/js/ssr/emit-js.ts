@@ -383,6 +383,8 @@ class JsComponentGenerator {
   private locals = new Map<number, string>();
   private usedNames: Set<string>;
   private localComponents = new Map<string, LocalComponentEntry>();
+  /** `<Reveal>` group variables already declared in this render function. */
+  private revealGroups = new Map<number, string>();
   /** `_markComponent` marks flushed after the owning scope's setup completes. */
   private readonly pendingMarks: string[] = [];
   private nextTemp = 0;
@@ -1480,10 +1482,24 @@ class JsComponentGenerator {
         this.statements.push(
           deferred ? `let ${idVariable};` : `const ${idVariable} = ${this.names.ctx}.nextId();`
         );
+        let revealArgs = '';
+        if (operation.reveal !== undefined) {
+          const [groupId, order, collapsed, index, count] = operation.reveal;
+          let groupVar = this.revealGroups.get(groupId);
+          if (groupVar === undefined) {
+            groupVar = `reveal_${groupId}`;
+            this.revealGroups.set(groupId, groupVar);
+            this.imports.add(QwikWord.CreateRevealGroup);
+            this.statements.push(
+              `const ${groupVar} = ${QwikWord.CreateRevealGroup}(${JSON.stringify(order)}, ${collapsed}, ${count});`
+            );
+          }
+          revealArgs = `, ${groupVar}, ${index}`;
+        }
         this.pushStep(
           step,
           contentRoots,
-          `${QwikWord.CreateSsrSuspense}(ctx, ${idVariable}, ${contentQrl}, ${fallbackQrl}, ${delayExpr})`,
+          `${QwikWord.CreateSsrSuspense}(ctx, ${idVariable}, ${contentQrl}, ${fallbackQrl}, ${delayExpr}${revealArgs})`,
           deferred ? `${idVariable} ??= ${this.names.ctx}.nextId(); ` : undefined
         );
         parts.push(step);

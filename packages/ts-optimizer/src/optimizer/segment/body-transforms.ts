@@ -23,6 +23,7 @@ import { applyRawPropsTransform, consolidateRawPropsInWCalls } from '../rewrite/
 import type { ExtractionResult } from '../extraction/extract.js';
 import type { NestedCallSiteInfo } from './segment-codegen.js';
 import {
+  blankNonCode,
   pureAwareOverwriteStart,
   scanMatchingParenBackward,
   scanMatchingParenForward,
@@ -51,13 +52,14 @@ function getNestedCallSiteStart(site: NestedCallSiteInfo): number {
 
 /**
  * Text-based because it runs after nested call site rewriting has invalidated the original AST
- * positions.
+ * positions. Scans the blanked text so strings and comments can't fake an arrow or a declaration.
  */
 function findEnclosingArrowBodyForCapture(
   text: string,
   pos: number,
   capturedVarName: string
 ): number {
+  text = blankNonCode(text);
   let i = pos - 1;
   while (i >= 1) {
     if (text[i] !== '(' && text[i] !== '{') {
@@ -105,6 +107,7 @@ function findEnclosingArrowBodyForCapture(
 }
 
 function findVarDeclarationEnd(text: string, startPos: number, varName: string): number {
+  const code = blankNonCode(text);
   const pattern = createRegExp(
     wordBoundary,
     anyOf('const', 'let', 'var'),
@@ -113,12 +116,25 @@ function findVarDeclarationEnd(text: string, startPos: number, varName: string):
     whitespace.times.any(),
     exactly('=')
   );
-  const searchText = text.slice(startPos);
-  const match = pattern.exec(searchText);
+  const match = pattern.exec(code.slice(startPos));
   if (!match) return -1;
 
   const declStart = startPos + match.index;
-  const semiIdx = text.indexOf(';', declStart + match[0].length);
+  // The statement's own `;`: same nesting depth as the declaration, outside
+  // strings — a nested arrow body's `;` must not end it early.
+  let semiIdx = -1;
+  let depth = 0;
+  for (let i = declStart + match[0].length; i < code.length; i++) {
+    const ch = code[i];
+    if (ch === '(' || ch === '[' || ch === '{') depth++;
+    else if (ch === ')' || ch === ']' || ch === '}') {
+      if (depth === 0) break;
+      depth--;
+    } else if (ch === ';' && depth === 0) {
+      semiIdx = i;
+      break;
+    }
+  }
   if (semiIdx < 0) return -1;
 
   let endPos = semiIdx + 1;
@@ -299,29 +315,22 @@ function injectHoistDeclarations(
  * function's — so this returns the LAST depth-1 `return`, or -1 when none is found.
  */
 function findComponentReturnPosition(bodyText: string): number {
+  // Blanked text: braces or `return` inside strings and comments can't affect the scan.
+  const code = blankNonCode(bodyText);
   let i = 0;
   // Skip ahead to the first `{` — the body open.
-  while (i < bodyText.length && bodyText[i] !== '{') i++;
-  if (i >= bodyText.length) return -1;
+  while (i < code.length && code[i] !== '{') i++;
+  if (i >= code.length) return -1;
   let depth = 1;
   i++;
   let lastDepth1Return = -1;
-  while (i < bodyText.length) {
-    const ch = bodyText[i];
-    if (ch === "'" || ch === '"' || ch === '`') {
-      // A brace or `return` inside a string literal must not affect the scan.
-      i++;
-      while (i < bodyText.length && bodyText[i] !== ch) {
-        i += bodyText[i] === '\\' ? 2 : 1;
-      }
-      i++;
-      continue;
-    }
+  while (i < code.length) {
+    const ch = code[i];
     if (ch === '{') depth++;
     else if (ch === '}') depth--;
-    else if (depth === 1 && bodyText.startsWith('return ', i)) {
+    else if (depth === 1 && code.startsWith('return ', i)) {
       // Confirm `return ` is a keyword, not an identifier tail like `noreturn `.
-      const prev = i > 0 ? bodyText[i - 1] : '\n';
+      const prev = i > 0 ? code[i - 1] : '\n';
       if (!/[A-Za-z0-9_$]/.test(prev)) {
         lastDepth1Return = i;
       }

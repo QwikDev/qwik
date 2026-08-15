@@ -4,7 +4,9 @@ import {
   ensureCoreImports,
   injectCapturesUnpacking,
   rewriteFunctionSignature,
+  rewriteNestedCallSitesInline,
 } from '../../../src/optimizer/segment/body-transforms.js';
+import type { NestedCallSiteInfo } from '../../../src/optimizer/segment/segment-codegen.js';
 
 describe('body-transforms', () => {
   describe('rewriteFunctionSignature', () => {
@@ -105,6 +107,83 @@ describe('body-transforms', () => {
       const parts = ['//', 'return 1'];
       ensureCoreImports(parts[1]!, parts);
       expect(parts).toEqual(['//', 'return 1']);
+    });
+  });
+
+  describe('rewriteNestedCallSitesInline scanner robustness', () => {
+    const attrText = 'onClick$={PLACEHOLDER}';
+    const hoistedAttrSite = (
+      body: string,
+      qrlVarName: string,
+      hoistedSymbolName: string,
+      capture: string
+    ): NestedCallSiteInfo => {
+      const attrStart = body.indexOf(attrText);
+      return {
+        qrlVarName,
+        callStart: attrStart,
+        callEnd: attrStart + attrText.length,
+        isJsxAttr: true,
+        attrStart,
+        attrEnd: attrStart + attrText.length,
+        transformedPropName: 'onClick$',
+        hoistedSymbolName,
+        hoistedCaptureNames: [capture],
+      };
+    };
+
+    it('finds the component return past a comment with an apostrophe', () => {
+      const body = `() => {
+    const msg = state.msg;
+    // don't break the scanner
+    return <button ${attrText}>x</button>;
+}`;
+      const out = rewriteNestedCallSitesInline(
+        body,
+        [hoistedAttrSite(body, 'q_h', '_hw1', 'msg')],
+        0
+      );
+      expect(out).toContain('onClick$={_hw1}');
+      const declPos = out.indexOf('const _hw1 = q_h.w([');
+      expect(declPos).toBeGreaterThanOrEqual(0);
+      expect(declPos).toBeLessThan(out.indexOf('return <button'));
+    });
+
+    it('ends a capture declaration at its statement, not a nested arrow semicolon', () => {
+      const body = `() => {
+    return items.map((item) => {
+        const derived = item.list.filter((x) => { use(x); return x.ok; });
+        return <li ${attrText}>t</li>;
+    });
+}`;
+      const out = rewriteNestedCallSitesInline(
+        body,
+        [hoistedAttrSite(body, 'q_c', '_hw2', 'derived')],
+        0
+      );
+      const declPos = out.indexOf('const _hw2 = q_c.w([');
+      expect(declPos).toBeGreaterThanOrEqual(0);
+      expect(declPos).toBeGreaterThan(out.indexOf('x.ok; });'));
+      expect(declPos).toBeLessThan(out.indexOf('return <li'));
+    });
+
+    it('ignores a capture declaration mentioned only in a comment', () => {
+      const body = `() => {
+    const msg = state.msg;
+    return items.map((item) => {
+        // note: const msg = state.msg above
+        return <li ${attrText}>t</li>;
+    });
+}`;
+      const out = rewriteNestedCallSitesInline(
+        body,
+        [hoistedAttrSite(body, 'q_m', '_hw3', 'msg')],
+        0
+      );
+      const declPos = out.indexOf('const _hw3 = q_m.w([');
+      expect(declPos).toBeGreaterThanOrEqual(0);
+      // The real declaration is in the component scope, so the hoist goes there.
+      expect(declPos).toBeLessThan(out.indexOf('return items.map'));
     });
   });
 });

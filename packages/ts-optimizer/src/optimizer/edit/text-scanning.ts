@@ -117,6 +117,40 @@ export function skipStringLiteralForward(text: string, i: number): number {
   return i;
 }
 
+/**
+ * Length-preserving copy with string/template contents and comments blanked to spaces (newlines
+ * kept), so position-based scanners see only code. The quote characters themselves are kept as
+ * anchors. Template `${}` interpolation contents blank too — declarations inside them go unseen,
+ * which scanners must treat as "not found", never as license to match raw text.
+ */
+export function blankNonCode(text: string): string {
+  const chars = text.split('');
+  const blank = (from: number, to: number): void => {
+    for (let k = from; k < to && k < chars.length; k++) {
+      if (chars[k] !== '\n') chars[k] = ' ';
+    }
+  };
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (ch === '"' || ch === "'" || ch === '`') {
+      const close = skipStringLiteralForward(text, i);
+      blank(i + 1, close);
+      i = close;
+    } else if (ch === '/' && text[i + 1] === '*') {
+      const end = text.indexOf('*/', i + 2);
+      const stop = end < 0 ? text.length : end + 2;
+      blank(i, stop);
+      i = stop - 1;
+    } else if (ch === '/' && text[i + 1] === '/') {
+      const nl = text.indexOf('\n', i);
+      const stop = nl < 0 ? text.length : nl;
+      blank(i, stop);
+      i = stop - 1;
+    }
+  }
+  return chars.join('');
+}
+
 /** Scan from `start` (just after the open paren) to the index one past the matching close paren. */
 export function scanMatchingParenForward(text: string, start: number): number {
   let depth = 1;

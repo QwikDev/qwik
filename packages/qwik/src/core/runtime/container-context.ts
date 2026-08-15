@@ -282,6 +282,24 @@ function registerSubscriberRoots(context: ContainerContext, subscriptions: numbe
   }
 }
 
+/**
+ * Registers one pre-parsed payload as the context's only state chunk. The standalone reader
+ * (`_deserialize`) uses this so loader/action responses go through the same chunk preprocessing as
+ * container state — root-ref path promotion included.
+ */
+export function registerStateData(context: ContainerContext, data: unknown[]): void {
+  const chunk: StateChunk = { base: 0, len: data.length / 2, script: null as never, parsed: data };
+  for (let offset = 0; offset < chunk.len; offset++) {
+    context.state.rootToChunk[offset] = chunk;
+  }
+  preprocessStateChunk(context, chunk, data);
+}
+
+/** The shared root reader; standalone contexts delegate here instead of re-implementing it. */
+export function getStateRoot(context: ContainerContext, id: number): Promise<unknown> {
+  return getRoot(context, id);
+}
+
 function parseStateChunk(context: ContainerContext, chunk: StateChunk): unknown[] {
   if (chunk.parsed !== null) {
     return chunk.parsed;

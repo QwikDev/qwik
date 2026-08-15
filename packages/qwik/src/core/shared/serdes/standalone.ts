@@ -1,7 +1,10 @@
-import { TypeIds } from './type-id';
 import { createSerializationContext } from './serialization-context';
 import { defaultScheduler } from '../../runtime/scheduler';
-import type { ContainerContext } from '../../runtime/container-context';
+import {
+  getStateRoot,
+  registerStateData,
+  type ContainerContext,
+} from '../../runtime/container-context';
 import { deserializeCaptures } from './captures';
 
 /** @internal */
@@ -24,38 +27,27 @@ export async function _deserialize<T>(raw: string): Promise<T> {
     throw new Error('Invalid serialized state.');
   }
 
-  const roots = new Map<number, unknown>();
   const context = {
     element: null,
     document: null,
     locale: null,
     scheduler: defaultScheduler,
-    state: { rootToChunk: [], forwardRefsChunk: null, liveRoots: roots, disposedRoots: new Set() },
+    state: {
+      rootToChunk: [],
+      forwardRefsChunk: null,
+      liveRoots: new Map(),
+      disposedRoots: new Set(),
+    },
     forwardRefs: null,
     getForwardRefs: () => context.forwardRefs,
-    async getRoot(id: number | string) {
-      const index = Number(id);
-      if (roots.has(index)) {
-        return roots.get(index);
-      }
-      const offset = index * 2;
-      if (offset < 0 || offset + 1 >= data.length) {
-        throw new Error(`Missing serialized root ${index}.`);
-      }
-      const type = data[offset] as TypeIds;
-      const value = data[offset + 1];
-      const { allocate, inflate, needsInflation } = await import('./inflate');
-      const root = await allocate(context as ContainerContext, type, value);
-      roots.set(index, root);
-      if (needsInflation(type)) {
-        await inflate(context as ContainerContext, root, type, value);
-      }
-      return root;
+    getRoot(id: number | string) {
+      return getStateRoot(context as ContainerContext, Number(id));
     },
     restoreCaptures(ids: string) {
       return deserializeCaptures(context as ContainerContext, ids);
     },
   } as unknown as ContainerContext;
+  registerStateData(context, data);
 
   return (await context.getRoot(0)) as T;
 }

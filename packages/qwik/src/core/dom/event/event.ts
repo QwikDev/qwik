@@ -30,6 +30,14 @@ function invokeDispatchHandler(
 function wrapDispatch(
   handler: QDispatchHandler | QDispatchHandler[]
 ): QDispatchHandler | QDispatchHandler[] {
+  // a captured handler is an array too; its _qRun path already establishes the context
+  if (
+    handler != null &&
+    typeof handler !== 'function' &&
+    (handler as CapturedEventHandler)._qRun !== undefined
+  ) {
+    return handler;
+  }
   if (Array.isArray(handler)) {
     return handler.map((entry) => wrapDispatch(entry) as QDispatchHandler);
   }

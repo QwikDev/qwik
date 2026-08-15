@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createWindow } from '../../../testing/document';
 import { EffectKind } from '../../dom/effect/effect-kind.enum';
 import { DomSubscription } from '../../dom/effect/dom-subscription';
@@ -280,7 +280,7 @@ describe('inflate(TypeIds.EffectSubscription) text targets', () => {
   it('restores event effects and updates handlers', async () => {
     const context = createContext('<button q:id="10"></button>');
     const enabled = useSignal(false);
-    const handler = () => undefined;
+    const handler = vi.fn();
     const qrl = {
       resolve: async () => (source: Signal<boolean>) => (source.value ? handler : undefined),
     };
@@ -313,7 +313,11 @@ describe('inflate(TypeIds.EffectSubscription) text targets', () => {
     enabled.value = true;
     await context.scheduler.flushInteraction();
     const element = context.element.querySelector('button') as Element & QElement;
-    expect(element._qDispatch?.['e:click']).toBe(handler);
+    // setEvent stores a context-establishing wrapper, so assert by invoking it
+    const stored = element._qDispatch?.['e:click'];
+    expect(stored).toBeTypeOf('function');
+    (stored as (event: Event, element: Element) => void)(new Event('click'), element);
+    expect(handler).toHaveBeenCalledTimes(1);
 
     enabled.value = false;
     await context.scheduler.flushInteraction();

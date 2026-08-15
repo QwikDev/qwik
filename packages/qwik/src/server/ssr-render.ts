@@ -27,6 +27,7 @@ import {
   type SsrEventAttrChunk,
   type SsrOutput,
   type SsrReferenceChunk,
+  type RevealGroup,
   version,
   withLocale,
 } from '@qwik.dev/core';
@@ -78,7 +79,9 @@ export interface SsrRenderContext extends ServerDataContext {
     rangeId: number,
     contentQrl: QRL<SsrSuspenseRender>,
     fallbackQrl: QRL<SsrSuspenseRender> | undefined,
-    delay: number
+    delay: number,
+    group?: RevealGroup,
+    index?: number
   ): ValueOrPromise<SsrOutput>;
   inOrder(): SsrRenderContext;
   styleIds: Map<string, string>;
@@ -90,6 +93,8 @@ interface DeferredSuspense {
   readonly id: number;
   readonly contentRoot: unknown;
   readonly lane: SsrLane;
+  readonly group?: RevealGroup;
+  readonly groupIndex: number;
   parentId: number | null;
   fallbackRoot?: unknown;
   cancelled?: true;
@@ -197,13 +202,25 @@ export const renderToStreamCompiled = async <Props = undefined>(
       contentQrl: QRL<SsrSuspenseRender>,
       fallbackQrl: QRL<SsrSuspenseRender> | undefined,
       delay: number,
-      allowOutOfOrder: boolean
+      allowOutOfOrder: boolean,
+      group?: RevealGroup,
+      groupIndex = 0
     ): ValueOrPromise<SsrOutput> => {
       const contentCtx = Object.create(renderCtx) as SsrRenderContext;
       const contentLane = scheduler.createLane(serializationCtx, renderCtx.scheduler);
       contentCtx.scheduler = contentLane;
-      contentCtx.deferSuspense = (id, content, fallback, nestedDelay) =>
-        deferSuspense(contentCtx, rangeId, id, content, fallback, nestedDelay, allowOutOfOrder);
+      contentCtx.deferSuspense = (id, content, fallback, nestedDelay, nestedGroup, nestedIndex) =>
+        deferSuspense(
+          contentCtx,
+          rangeId,
+          id,
+          content,
+          fallback,
+          nestedDelay,
+          allowOutOfOrder,
+          nestedGroup,
+          nestedIndex
+        );
       let contentRoot: unknown;
       const renderedContent = renderSsrContent(
         contentCtx as any,
@@ -223,11 +240,13 @@ export const renderToStreamCompiled = async <Props = undefined>(
               maybeThen(initialTasks, () => finishContent(output))
             );
       if (!isPromise(content)) {
+        group?.resolve(groupIndex);
         reparentChildren(rangeId, parentId);
         return wrapContent(rangeId, content);
       }
       if (!allowOutOfOrder) {
         return content.then((output) => {
+          group?.resolve(groupIndex);
           serializationCtx.$addRoot$(contentRoot);
           reparentChildren(rangeId, parentId);
           return wrapContent(rangeId, output);
@@ -235,7 +254,10 @@ export const renderToStreamCompiled = async <Props = undefined>(
       }
 
       const renderFallback = (record: DeferredSuspense): ValueOrPromise<SsrOutput> => {
-        if (fallbackQrl === undefined) {
+        if (
+          fallbackQrl === undefined ||
+          (group !== undefined && group.collapsed && !group.canReveal(groupIndex))
+        ) {
           return wrapContent(rangeId, '');
         }
         const fallbackId = renderCtx.nextId();
@@ -258,7 +280,14 @@ export const renderToStreamCompiled = async <Props = undefined>(
         );
       };
       const registerDeferred = (): ValueOrPromise<SsrOutput> => {
-        const record: DeferredSuspense = { id: rangeId, parentId, contentRoot, lane: contentLane };
+        const record: DeferredSuspense = {
+          id: rangeId,
+          parentId,
+          contentRoot,
+          lane: contentLane,
+          group,
+          groupIndex,
+        };
         (blockedLanes ??= new Set()).add(contentLane.id);
         (deferred ??= []).push(record);
         content.then(
@@ -296,6 +325,7 @@ export const renderToStreamCompiled = async <Props = undefined>(
             if (!settled) {
               settled = true;
               clearTimeout(timer);
+              group?.resolve(groupIndex);
               serializationCtx.$addRoot$(contentRoot);
               reparentChildren(rangeId, parentId);
               resolve(wrapContent(rangeId, output));
@@ -344,14 +374,34 @@ export const renderToStreamCompiled = async <Props = undefined>(
         serializationCtx.$pendingSyncFns$.delete(key);
         return scripts.emitSyncFn(key, source, instanceHash);
       },
-      deferSuspense(rangeId, contentQrl, fallbackQrl, delay) {
-        return deferSuspense(ctx, null, rangeId, contentQrl, fallbackQrl, delay, outOfOrder);
+      deferSuspense(rangeId, contentQrl, fallbackQrl, delay, group, index) {
+        return deferSuspense(
+          ctx,
+          null,
+          rangeId,
+          contentQrl,
+          fallbackQrl,
+          delay,
+          outOfOrder,
+          group,
+          index
+        );
       },
       inOrder() {
         const inOrderCtx = Object.create(this) as SsrRenderContext;
         inOrderCtx.inOrder = () => inOrderCtx;
-        inOrderCtx.deferSuspense = (rangeId, contentQrl, fallbackQrl, delay) =>
-          deferSuspense(inOrderCtx, null, rangeId, contentQrl, fallbackQrl, delay, false);
+        inOrderCtx.deferSuspense = (rangeId, contentQrl, fallbackQrl, delay, group, index) =>
+          deferSuspense(
+            inOrderCtx,
+            null,
+            rangeId,
+            contentQrl,
+            fallbackQrl,
+            delay,
+            false,
+            group,
+            index
+          );
         return inOrderCtx;
       },
     } satisfies SsrRenderContext;
@@ -520,7 +570,9 @@ export const renderToStreamCompiled = async <Props = undefined>(
             const index = records.findIndex(
               (candidate) =>
                 !candidate.cancelled &&
-                (candidate.parentId === null || emitted.has(candidate.parentId))
+                (candidate.parentId === null || emitted.has(candidate.parentId)) &&
+                // a reveal group holds packets until its order allows the swap
+                (candidate.group === undefined || candidate.group.canReveal(candidate.groupIndex))
             );
             if (index !== -1) {
               record = records.splice(index, 1)[0];
@@ -562,6 +614,8 @@ export const renderToStreamCompiled = async <Props = undefined>(
         blockedLanes!.delete(record.lane.id);
         throwIfFailed();
         emitted.add(record.id);
+        record.group?.resolve(record.groupIndex);
+        notifyDeferred();
         if (record.fallbackRoot !== undefined) {
           disposeSubscriber(record.fallbackRoot as any);
           for (let i = 0; i < deferred.length; i++) {
@@ -571,6 +625,8 @@ export const renderToStreamCompiled = async <Props = undefined>(
               (candidate.contentRoot as { owner?: unknown }).owner === null
             ) {
               candidate.cancelled = true;
+              // a cancelled boundary must not gate its reveal siblings forever
+              candidate.group?.resolve(candidate.groupIndex);
               blockedLanes!.delete(candidate.lane.id);
               scheduler.cancel(candidate.lane);
             }

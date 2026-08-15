@@ -18,6 +18,7 @@ import { useServerData } from '../core/runtime/use-server-data';
 import { useSignal } from '../core/reactive/public-api';
 import { useOnDocument } from '../core/runtime/use-on';
 import { createSsrSuspense } from '../core/dom/content/content';
+import { createRevealGroup } from '../core/dom/content/reveal';
 import { _await } from '../core/reactive/tracking';
 import {
   createSsrElementTarget,
@@ -414,6 +415,66 @@ describe('SSR context markers', () => {
     expect(result.html).toContain('<!d=0><p>content</p><!/d>');
     expect(result.html).not.toContain('q:s=');
     expect(fallback).not.toHaveBeenCalled();
+  });
+
+  test('streams no fallback for a collapsed reveal boundary that cannot reveal yet', async () => {
+    let resolveFirst!: (value: string) => void;
+    const first = new Promise<string>((resolve) => (resolveFirst = resolve));
+    let resolveSecond!: (value: string) => void;
+    const second = new Promise<string>((resolve) => (resolveSecond = resolve));
+    const chunks: string[] = [];
+
+    const rendering = renderToStream(
+      (_props, ctx) => {
+        const group = createRevealGroup('sequential', true, 2);
+        return [
+          createSsrSuspense(
+            ctx,
+            ctx.nextId(),
+            createQRL('', 'content1', () => first, null, null),
+            createQRL('', 'fallback1', () => '<p>fallback-1</p>', null, null),
+            0,
+            group,
+            0
+          ),
+          createSsrSuspense(
+            ctx,
+            ctx.nextId(),
+            createQRL('', 'content2', () => second, null, null),
+            createQRL('', 'fallback2', () => '<p>fallback-2</p>', null, null),
+            0,
+            group,
+            1
+          ),
+        ];
+      },
+      {
+        containerTagName: 'div',
+        stream: {
+          write(chunk) {
+            chunks.push(chunk);
+          },
+        },
+      }
+    );
+
+    // let the shell flush, then resolve out of order: second first
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    expect(chunks.join('')).toContain('<p>fallback-1</p>');
+    expect(chunks.join('')).not.toContain('fallback-2');
+
+    resolveSecond('<p>content-2</p>');
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    // the resolved packet is held server-side until the first boundary reveals
+    expect(chunks.join('')).not.toContain('content-2');
+
+    resolveFirst('<p>content-1</p>');
+    await rendering;
+    const html = chunks.join('');
+    expect(html).toContain('<p>content-1</p>');
+    expect(html).toContain('<p>content-2</p>');
+    // packets flush in reveal order: first before second
+    expect(html.indexOf('content-1')).toBeLessThan(html.indexOf('content-2'));
   });
 
   test('writes a fallback shell before its resolved packet', async () => {

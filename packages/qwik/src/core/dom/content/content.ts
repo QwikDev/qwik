@@ -344,19 +344,19 @@ export function createSsrSuspense(
       rangeId: number,
       contentQrl: QRL<SsrSuspenseContentFn>,
       fallbackQrl: QRL<SsrSuspenseContentFn> | undefined,
-      delay: number
+      delay: number,
+      group?: RevealGroup,
+      index?: number
     ): ValueOrPromise<SsrOutput>;
   },
   rangeId: number,
   contentQrl: QRL<SsrSuspenseContentFn>,
   fallbackQrl?: QRL<SsrSuspenseContentFn>,
   delay = 0,
-  // out-of-order swap coordination consumes the group in a follow-up; accepted now so
-  // the compiled call shape stays stable
-  _group?: RevealGroup,
-  _index = 0
+  group?: RevealGroup,
+  index = 0
 ): ValueOrPromise<SsrOutput> {
-  return ctx.deferSuspense(rangeId, contentQrl, fallbackQrl, delay);
+  return ctx.deferSuspense(rangeId, contentQrl, fallbackQrl, delay, group, index);
 }
 
 export class SSRContent<TArgs extends unknown[] = unknown[]> {

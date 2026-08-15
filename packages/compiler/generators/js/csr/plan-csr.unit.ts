@@ -409,8 +409,10 @@ export function App(props) {
     expect(emitted.statements.join('\n')).toContain('createContentBlock');
     expect(emitted.statements.join('\n')).not.toContain('.block.nodes');
     expect(emitted.statements.join('\n')).not.toContain('let range');
-    expect(emitted.statements.join('\n')).toMatch(/ctx\.scheduler\.notify\(content\d+\);/);
-    expect(emitted.value).toBe('[start0, end0]');
+    // the initial run chains into the return; the committed span rides inside the value
+    expect(emitted.value).toMatch(
+      /^maybeThen\(content\d+\.run\(\), \(\) => Array\.from\(start0\.parentNode\.childNodes\)\)$/
+    );
     expect(emitted.runtimeParameters).toEqual(['ctx']);
     expect([...imports]).not.toContain('_toNodes');
   });
@@ -426,8 +428,8 @@ export function App(props) {
     const output = emitted.statements.join('\n');
 
     expect(output).toContain('createContentBlock(');
-    expect(output).toMatch(/ctx\.scheduler\.notify\(content\d+\);/);
-    expect(output).not.toContain('.run()');
+    // the initial run chains into the return instead of a scheduler notify
+    expect(emitted.value).toMatch(/^maybeThen\(content\d+\.run\(\), \(\) => /);
     expect(output).not.toContain('_toNodes(');
     expect(output).not.toContain('let range0;');
     expect(output).not.toContain('range0 =');

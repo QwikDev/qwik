@@ -82,7 +82,7 @@ export const semantic_expression_104_127_3po7a59ojefo5 = (props) => {
 
 ============================= src/component.tsx ==
 
-import { _first, _next, createContentBlock, createTemplate } from '@qwik.dev/core';
+import { _first, _next, createContentBlock, createTemplate, maybeThen } from '@qwik.dev/core';
 import { semantic_expression_104_127_3po7a59ojefo5 } from './component.tsx_semantic_expression_104_127_3po7a59ojefo5';
 
 const App_tmpl0 = createTemplate('<section><b>Before</b><!----><!----><i>After</i></section>');
@@ -98,8 +98,7 @@ export function App(props, ctx) {
     [props],
     semantic_expression_104_127_3po7a59ojefo5
   );
-  ctx.scheduler.notify(content0);
-  return el0;
+  return maybeThen(content0.run(), () => el0);
 }
 ============================= src/component.tsx_semantic_expression_104_127_3po7a59ojefo5.js (ENTRY POINT)==
 

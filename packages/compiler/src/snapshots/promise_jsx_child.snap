@@ -85,7 +85,7 @@ export const component_text_segment_0_1fh10fbkzokfc = (content) => {
 
 ============================= src/component.tsx ==
 
-import { _first, createTemplate, _next, createContentBlock } from '@qwik.dev/core';
+import { _first, createTemplate, _next, createContentBlock, maybeThen } from '@qwik.dev/core';
 import { component_text_segment_0_1fh10fbkzokfc } from './component.tsx_component_text_segment_0_1fh10fbkzokfc';
 
 const jsx_value_121_158_tmpl0 = createTemplate('<p id="async-value">Async content</p>');
@@ -110,8 +110,7 @@ export function App(props, ctx) {
     [content],
     component_text_segment_0_1fh10fbkzokfc
   );
-  ctx.scheduler.notify(content0);
-  return el0;
+  return maybeThen(content0.run(), () => el0);
 }
 ============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
 

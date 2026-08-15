@@ -499,8 +499,7 @@ export function App(props, ctx) {
       [name],
       semantic_expression_384_402_2ufkztrrdwur1
     );
-    ctx.scheduler.notify(content0);
-    return el0;
+    return maybeThen(content0.run(), () => el0);
   }
   _markComponent(Filter, q_local_component_112_432_9mplpu2ebao3.w([todos]));
   const fragment0 = App_tmpl0(ctx.document);
@@ -733,8 +732,7 @@ export const local_component_112_432_9mplpu2ebao3 = (props, ctx) => {
     [name],
     semantic_expression_384_402_2ufkztrrdwur1
   );
-  ctx.scheduler.notify(content0);
-  return el0;
+  return maybeThen(content0.run(), () => el0);
 };
 /*
 {

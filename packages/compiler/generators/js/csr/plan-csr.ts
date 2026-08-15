@@ -200,12 +200,14 @@ export type CsrOperationPlan =
       readonly range: CsrRangePlan;
       readonly value: CsrValuePlan;
       readonly cardinality: CsrCardinality;
+      readonly chained?: true;
     }
   | {
       readonly id: number;
       readonly kind: 'content-effect';
       readonly range: CsrRangePlan;
       readonly segment: CsrSegmentReferencePlan;
+      readonly chained?: true;
     }
   | {
       readonly id: number;
@@ -448,7 +450,7 @@ export function planCsrRenderFunction(
   componentCardinality: CsrComponentCardinalityResolver = unknownComponentCardinality,
   generatedNames = DEFAULT_GENERATED_NAMES
 ): CsrPlan | null {
-  return new CsrPlanner(
+  const planner = new CsrPlanner(
     segments,
     source,
     componentCardinality,
@@ -456,7 +458,9 @@ export function planCsrRenderFunction(
     renderFunction.styleScope,
     renderFunction.runtimeStyleScopeName,
     false
-  ).plan(
+  );
+  planner.markSuspenseContent(renderFunction.kind === 'suspense');
+  return planner.plan(
     renderFunction.render,
     renderFunction.setup,
     renderFunction.segmentId,
@@ -511,6 +515,8 @@ class CsrPlanner {
   private readonly renderValuePlans = new Map<BindingId, CsrPlan>();
   private nextRef = 0;
   private isAsync = false;
+  /** Suspense content must surface pending children through its return value. */
+  private suspenseContent = false;
   private needsId = false;
   private nextId = 0;
 
@@ -524,6 +530,10 @@ class CsrPlanner {
     private readonly initializeRuntimeStyleScope = false
   ) {
     this.segmentById = new Map(segments.map((segment) => [segment.id, segment]));
+  }
+
+  markSuspenseContent(value: boolean): void {
+    this.suspenseContent = value;
   }
 
   plan(
@@ -762,11 +772,16 @@ class CsrPlanner {
         let operation: number;
         const segment =
           value.kind === 'segment' ? this.segmentById.get(value.reference.segmentId) : undefined;
+        // an opaque value may resolve to a promise: chaining the initial run into the
+        // render's return carries the pending child to its Suspense via maybeThen
+        const chained =
+          this.suspenseContent || (segment !== undefined && segment.kind === 'expression');
         if (value.kind === 'segment' && segment?.initialOnly !== true) {
           operation = this.pushOperation({
             kind: 'content-effect',
             range,
             segment: value.reference,
+            ...(chained ? { chained: true as const } : {}),
           });
         } else {
           operation = this.pushOperation({
@@ -774,6 +789,7 @@ class CsrPlanner {
             range,
             value,
             cardinality: value.cardinality,
+            ...(chained ? { chained: true as const } : {}),
           });
         }
         return { kind: 'operation', operation, cardinality: 'many' };

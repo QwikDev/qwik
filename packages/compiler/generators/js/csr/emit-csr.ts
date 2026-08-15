@@ -84,6 +84,8 @@ interface CsrEmitContext {
   readonly next: (prefix: string) => string;
   /** `<Reveal>` group variables already declared for the current render function. */
   readonly revealGroups: Map<number, string>;
+  /** Initial runs whose pending-ness chains into the render's return via maybeThen. */
+  readonly pendingChains: string[];
 }
 
 interface CsrOperationEmission {
@@ -366,6 +368,7 @@ export function emitCsrPlan(
       runtimeStyleScopeName: plan.runtimeStyleScopeName,
       next,
       revealGroups: new Map(),
+      pendingChains: [],
     };
     if (plan.output.kind === 'component') {
       const component = emitDirectComponent(plan.output, context, statements);
@@ -466,6 +469,7 @@ export function emitCsrPlan(
     runtimeStyleScopeName: plan.runtimeStyleScopeName,
     next,
     revealGroups: new Map(),
+    pendingChains: [],
   };
   const batchKeys = getDomEffectBatchKeys(plan.operations);
   const batches = new Map<string, CsrDomBatch>();
@@ -495,7 +499,15 @@ export function emitCsrPlan(
   const templateFactory =
     directElementRef === null ? QwikWord.CreateTemplate : QwikWord.CreateElementTemplate;
   imports.add(templateFactory);
-  const value = emitRoots(plan.roots, context.operationNames, refNames);
+  let value = emitRoots(plan.roots, context.operationNames, refNames);
+  if (context.pendingChains.length > 0) {
+    imports.add(QwikWord.MaybeThen);
+    // pending initial runs settle before the value evaluates; sync runs stay synchronous
+    value = context.pendingChains.reduceRight(
+      (acc, chain) => `${QwikWord.MaybeThen}(${chain}, () => ${acc})`,
+      value
+    );
+  }
   return finalizeCsrRender(
     plan,
     setup,
@@ -752,14 +764,17 @@ function emitCsrOperation(
         if (isRoot) {
           operationNames.set(operation.id, `Array.from(${range.start}.parentNode.childNodes)`);
         }
+        const mount = `${QwikWord.MaybeThen}(${QwikWord.CreateDynamicContent}(${emitValue(
+          operation.value,
+          context
+        )}, ${context.generatedNames.ctx}), (${value}) => { for (const node of ${value}) ${range.end}.parentNode.insertBefore(node, ${range.end}); })`;
+        if (operation.chained === true) {
+          context.pendingChains.push(mount);
+          return { declarations: [], statements: [] };
+        }
         return {
           declarations: [],
-          statements: [
-            `${context.generatedNames.ctx}.scheduler.waitFor(${QwikWord.MaybeThen}(${QwikWord.CreateDynamicContent}(${emitValue(
-              operation.value,
-              context
-            )}, ${context.generatedNames.ctx}), (${value}) => { for (const node of ${value}) ${range.end}.parentNode.insertBefore(node, ${range.end}); }));`,
-          ],
+          statements: [`${context.generatedNames.ctx}.scheduler.waitFor(${mount});`],
         };
       }
       let rootValue: string;
@@ -801,14 +816,26 @@ function emitCsrOperation(
       const content = next('content');
       const isRoot = context.rootOperationIds.has(operation.id);
       imports.add(QwikWord.CreateContentBlock);
-      operationNames.set(operation.id, [range.start, range.end]);
+      // a chained root commits before the value evaluates: the span holds the nodes too
+      operationNames.set(
+        operation.id,
+        operation.chained === true && isRoot
+          ? `Array.from(${range.start}.parentNode.childNodes)`
+          : [range.start, range.end]
+      );
+      if (operation.chained === true) {
+        context.pendingChains.push(`${content}.run()`);
+      }
       return {
         declarations: [
           `const ${content} = ${QwikWord.CreateContentBlock}(${context.generatedNames.ctx}, ${range.start}, ${range.end}, [${operation.segment.captures.join(
             ', '
           )}], ${operation.segment.symbolName}${isRoot ? ', true' : ''});`,
         ],
-        statements: [`${context.generatedNames.ctx}.scheduler.notify(${content});`],
+        statements:
+          operation.chained === true
+            ? []
+            : [`${context.generatedNames.ctx}.scheduler.notify(${content});`],
       };
     }
     case 'runtime-style': {

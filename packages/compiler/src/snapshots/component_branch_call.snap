@@ -391,7 +391,14 @@ export const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
 */
 ============================= src/component.tsx_component_branch_then_segment_1_24n7blyqktd46.js (ENTRY POINT)==
 
-import { _captures, _first, _next, createContentBlock, createTemplate } from '@qwik.dev/core';
+import {
+  _captures,
+  _first,
+  _next,
+  createContentBlock,
+  createTemplate,
+  maybeThen,
+} from '@qwik.dev/core';
 import { semantic_expression_136_161_1jyi1z9jxbjxi } from './component.tsx_semantic_expression_136_161_1jyi1z9jxbjxi';
 const component_branch_then_segment_1_24n7blyqktd46_tmpl0 = createTemplate('<!----><!---->');
 
@@ -408,8 +415,7 @@ export const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
     semantic_expression_136_161_1jyi1z9jxbjxi,
     true
   );
-  ctx.scheduler.notify(content0);
-  return [start0, end0];
+  return maybeThen(content0.run(), () => Array.from(start0.parentNode.childNodes));
 };
 /*
 {
@@ -436,7 +442,14 @@ export const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
 */
 ============================= src/component.tsx_component_branch_else_segment_2_19dvu7nugnvkl.js (ENTRY POINT)==
 
-import { _captures, _first, _next, createContentBlock, createTemplate } from '@qwik.dev/core';
+import {
+  _captures,
+  _first,
+  _next,
+  createContentBlock,
+  createTemplate,
+  maybeThen,
+} from '@qwik.dev/core';
 import { semantic_expression_164_191_22ve5rjpz86py } from './component.tsx_semantic_expression_164_191_22ve5rjpz86py';
 const component_branch_else_segment_2_19dvu7nugnvkl_tmpl0 = createTemplate('<!----><!---->');
 
@@ -453,8 +466,7 @@ export const component_branch_else_segment_2_19dvu7nugnvkl = (ctx) => {
     semantic_expression_164_191_22ve5rjpz86py,
     true
   );
-  ctx.scheduler.notify(content0);
-  return [start0, end0];
+  return maybeThen(content0.run(), () => Array.from(start0.parentNode.childNodes));
 };
 /*
 {

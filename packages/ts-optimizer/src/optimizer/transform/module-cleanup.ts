@@ -24,6 +24,7 @@ import {
 } from '../edit/import-format.js';
 
 import { applyReplacements } from '../edit/range-replace.js';
+import { blankNonCode } from '../edit/text-scanning.js';
 import { isLibModePreservedMarker } from '../qwik/qrl-naming.js';
 import type { ExtractionResult } from '../extraction/extract.js';
 import type { TransformModule } from '../types/types.js';
@@ -198,10 +199,12 @@ export function applySegmentSideEffectSimplification(
   filename: string,
   preParsedProgram?: AstProgram
 ): string {
-  const exportMatch = code.match(exportConstLine);
+  // Match on the blanked copy so an export-shaped line inside a template
+  // literal can't anchor the export block; positions are preserved.
+  const exportMatch = blankNonCode(code).match(exportConstLine);
   if (!exportMatch) return code;
 
-  const exportStart = code.indexOf(exportMatch[0]!);
+  const exportStart = exportMatch.index!;
 
   // Parse the full `code` and filter the walk by absolute position
   // (`>= exportStart`) rather than reparsing a substring — the AST is never

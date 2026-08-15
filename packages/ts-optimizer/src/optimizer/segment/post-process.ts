@@ -146,7 +146,8 @@ export function postProcessSegmentCode(code: string, opts: SegmentPostProcessOpt
     // Segments under a foreign `@jsxImportSource` pragma have raw JSX in their
     // body (Qwik's JSX-syntax rewrite was skipped); the TS-syntax probes don't
     // detect plain JSX, so force oxc-transform when the body still contains JSX.
-    const needsJsxStrip = opts.shouldTranspileJsx && /<\/?[A-Za-z]/.test(result);
+    // `_` and `$` are legal JSX tag starts (`<$Icon/>`, `<_Private/>`).
+    const needsJsxStrip = opts.shouldTranspileJsx && /<\/?[A-Za-z_$]/.test(result);
     if (hasTsSyntax || needsJsxStrip) {
       const tsStripOptions: TransformOptions = {
         typescript: { onlyRemoveTypeImports: false },

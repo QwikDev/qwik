@@ -81,3 +81,26 @@ export const App = component$(() => {
     });
   });
 });
+
+describe('foreign-runtime JSX strip probe', () => {
+  it('strips $- and _-leading JSX tags too', async () => {
+    const { postProcessSegmentCode } =
+      await import('../../../src/optimizer/segment/post-process.js');
+    const opts = {
+      symbolName: 's_x',
+      canonicalFilename: 'test_x',
+      extension: '.js',
+      ctxName: 'x',
+      sourceExtensions: new Map<string, string>(),
+      parentSourceExt: '.tsx',
+      shouldTranspileTs: true,
+      shouldTranspileJsx: true,
+      isServer: false,
+      emitMode: 'prod',
+    };
+    const out = postProcessSegmentCode('export const s_x = () => <$Icon a="1" />;\n', opts);
+    expect(out).not.toContain('<$Icon');
+    const out2 = postProcessSegmentCode('export const s_x = () => <_Private a="1" />;\n', opts);
+    expect(out2).not.toContain('<_Private');
+  });
+});

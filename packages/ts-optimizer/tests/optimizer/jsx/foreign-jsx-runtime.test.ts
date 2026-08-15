@@ -28,6 +28,18 @@ describe('foreign @jsxImportSource pragma support', () => {
       expect(r.pragmaText).toBe('/* @jsxImportSource react */');
     });
 
+    it('ignores a pragma-shaped string literal', () => {
+      const src = `const doc = "/* @jsxImportSource react */";\nconst x = 1;`;
+      expect(detectForeignJsxRuntime(src).hasForeignJsxRuntime).toBe(false);
+    });
+
+    it('detects a real pragma that follows a pragma-shaped string', () => {
+      const src = `const doc = "/* @jsxImportSource react */";\n/* @jsxImportSource preact */\nconst x = 1;`;
+      const r = detectForeignJsxRuntime(src);
+      expect(r.hasForeignJsxRuntime).toBe(true);
+      expect(r.pragmaText).toBe('/* @jsxImportSource preact */');
+    });
+
     it('does NOT flag Qwik-named import sources (those stay under Qwik optimization)', () => {
       const r1 = detectForeignJsxRuntime(`/* @jsxImportSource @qwik.dev/core */\n`);
       const r2 = detectForeignJsxRuntime(`/* @jsxImportSource @builder.io/qwik */\n`);

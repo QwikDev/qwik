@@ -37,7 +37,7 @@ import {
   createSsrRecord,
   createComponent,
   renderSsrContent,
-  escapeSsrContent,
+  renderSsrDynamicContent,
   getActiveInvokeContextOrNull,
   invoke,
   _noopQrl,
@@ -123,7 +123,7 @@ export function App(props, ctx) {
         ),
         component_0,
         createSsrRecord('<!d=', createSsrNodeId(content_id_1), '>'),
-        escapeSsrContent(content_1),
+        renderSsrDynamicContent(content_1),
         '<!/d></a></li>',
       ])
     );
@@ -313,7 +313,7 @@ import {
   createSsrRecord,
   createComponent,
   renderSsrContent,
-  escapeSsrContent,
+  renderSsrDynamicContent,
   getActiveInvokeContextOrNull,
   invoke,
 } from '@qwik.dev/core';
@@ -385,7 +385,7 @@ export const local_component_112_432_9mplpu2ebao3 = (props, ctx) => {
       ),
       component_0,
       createSsrRecord('<!d=', createSsrNodeId(content_id_1), '>'),
-      escapeSsrContent(content_1),
+      renderSsrDynamicContent(content_1),
       '<!/d></a></li>',
     ])
   );

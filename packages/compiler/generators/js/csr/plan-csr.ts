@@ -137,11 +137,12 @@ export type CsrSetupPlan =
       readonly segmentIds: readonly string[];
       readonly useIds: readonly UseIdPlan[];
       readonly destructureTemps?: readonly DestructureTemp[];
+      readonly jsxValues?: readonly { readonly range: SourceRange; readonly name: string }[];
     }
   | {
       readonly kind: 'render-value';
       readonly name: string;
-      readonly bindingId: BindingId;
+      readonly bindingId: BindingId | null;
       readonly render: CsrPlan;
     }
   | {
@@ -557,7 +558,9 @@ class CsrPlanner {
         if (render === null) {
           return null;
         }
-        this.renderValuePlans.set(item.bindingId, render);
+        if (item.bindingId !== null) {
+          this.renderValuePlans.set(item.bindingId, render);
+        }
         for (const segmentId of render.directSegmentIds) {
           this.directSegmentIds.add(segmentId);
         }
@@ -619,6 +622,7 @@ class CsrPlanner {
         range: item.range,
         useIds: item.useIds,
         ...(item.destructureTemps === undefined ? {} : { destructureTemps: item.destructureTemps }),
+        ...(item.jsxValues === undefined ? {} : { jsxValues: item.jsxValues }),
         segmentIds: this.segments
           .filter(
             (segment) =>

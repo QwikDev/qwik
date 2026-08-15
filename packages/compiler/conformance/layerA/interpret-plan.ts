@@ -23,7 +23,7 @@ import {
   renderSsrCollection,
   renderSsrContent,
   renderSsrDynamicTag,
-  escapeSsrContent,
+  renderSsrDynamicContent,
   renderSsrTextExpression,
   renderSsrSlot,
   renderSsrTextNode,
@@ -1153,7 +1153,7 @@ export async function buildInterpretedRoot(
           });
           return maybeThen(rendered, (output) => {
             parts.push(createSsrRecord('<!d=', createSsrNodeId(id), '>'));
-            parts.push(escapeSsrContent(output as never));
+            parts.push(renderSsrDynamicContent(output as never) as never);
             parts.push('<!/d>');
           });
         }

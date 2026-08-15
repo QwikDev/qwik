@@ -16,7 +16,7 @@ import {
   renderSsrContent,
   createSsrRecord,
   createSsrNodeId,
-  escapeSsrContent,
+  renderSsrDynamicContent,
   maybeThen,
   createSsrElementRecord,
   renderSsrBranch,
@@ -46,7 +46,7 @@ const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
   );
   return maybeThen(content_0, (content_0) => [
     createSsrRecord('<!d=', createSsrNodeId(content_id_0), '>'),
-    escapeSsrContent(content_0),
+    renderSsrDynamicContent(content_0),
     '<!/d>',
   ]);
 };
@@ -67,7 +67,7 @@ const component_branch_else_segment_2_19dvu7nugnvkl = (ctx) => {
   );
   return maybeThen(content_0, (content_0) => [
     createSsrRecord('<!d=', createSsrNodeId(content_id_0), '>'),
-    escapeSsrContent(content_0),
+    renderSsrDynamicContent(content_0),
     '<!/d>',
   ]);
 };
@@ -148,7 +148,7 @@ import {
   renderSsrContent,
   createSsrRecord,
   createSsrNodeId,
-  escapeSsrContent,
+  renderSsrDynamicContent,
   maybeThen,
 } from '@qwik.dev/core';
 import { semantic_expression_136_161_1jyi1z9jxbjxi } from './component.tsx_semantic_expression_136_161_1jyi1z9jxbjxi';
@@ -170,7 +170,7 @@ export const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
   );
   return maybeThen(content_0, (content_0) => [
     createSsrRecord('<!d=', createSsrNodeId(content_id_0), '>'),
-    escapeSsrContent(content_0),
+    renderSsrDynamicContent(content_0),
     '<!/d>',
   ]);
 };
@@ -205,7 +205,7 @@ import {
   renderSsrContent,
   createSsrRecord,
   createSsrNodeId,
-  escapeSsrContent,
+  renderSsrDynamicContent,
   maybeThen,
 } from '@qwik.dev/core';
 import { semantic_expression_164_191_22ve5rjpz86py } from './component.tsx_semantic_expression_164_191_22ve5rjpz86py';
@@ -227,7 +227,7 @@ export const component_branch_else_segment_2_19dvu7nugnvkl = (ctx) => {
   );
   return maybeThen(content_0, (content_0) => [
     createSsrRecord('<!d=', createSsrNodeId(content_id_0), '>'),
-    escapeSsrContent(content_0),
+    renderSsrDynamicContent(content_0),
     '<!/d>',
   ]);
 };

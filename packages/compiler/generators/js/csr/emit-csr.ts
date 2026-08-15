@@ -1497,6 +1497,10 @@ function emitCsrSetup(
     for (const useId of setup.useIds) {
       replacements.push({ range: useId.range, value: `(_id + 'u${useId.ordinal}')` });
     }
+    for (const jsxValue of setup.jsxValues ?? []) {
+      // the literal compiled to a hoisted closure; the statement keeps its handle
+      replacements.push({ range: jsxValue.range, value: jsxValue.name });
+    }
     for (const temp of setup.destructureTemps ?? []) {
       // pin the call-init container so member reads have a base to resolve through
       replacements.push(

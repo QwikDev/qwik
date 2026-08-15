@@ -640,7 +640,7 @@ export function emitSsrOpPlan(
           {
             kind: SetupOpKind.RenderFn,
             name: entry.name,
-            binding: entry.bindingId,
+            ...(entry.bindingId === null ? {} : { binding: entry.bindingId }),
             render: {
               setup: [],
               ops: entry.render.operations.map(op),

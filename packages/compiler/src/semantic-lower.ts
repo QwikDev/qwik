@@ -1842,6 +1842,33 @@ class SemanticLowerer {
     };
   }
 
+  /** Hoists each JSX literal in a setup statement as a synthetic render-value closure. */
+  private hoistStatementJsxValues(
+    statement: AstNode,
+    lifetimeId: LifetimeId,
+    setup: SetupPlan[]
+  ): Array<{ range: SourceRange; name: string }> {
+    const values: Array<{ range: SourceRange; name: string }> = [];
+    for (const root of this.embeddedJsxRoots(statement)) {
+      const rootRange = getRange(root);
+      if (rootRange === null) {
+        continue;
+      }
+      const render = this.createEmbeddedRenderFunction(root, null, lifetimeId);
+      const name = `jsx_value_${rootRange[0]}_${rootRange[1]}`;
+      setup.push({
+        kind: 'render-value',
+        range: rootRange,
+        lifetimeId,
+        bindingId: null,
+        name,
+        render,
+      });
+      values.push({ range: rootRange, name });
+    }
+    return values;
+  }
+
   private embeddedJsxRoots(expression: AstNode, owningSegmentId: string | null = null): AstNode[] {
     const range = getRange(expression);
     if (range === null) {
@@ -2799,7 +2826,9 @@ class SemanticLowerer {
       if (item.kind === 'statement' || item.kind === 'style') {
         item.referenceBindingIds.forEach((id) => ids.add(id));
       } else {
-        ids.add(item.bindingId);
+        if (item.bindingId !== null) {
+          ids.add(item.bindingId);
+        }
         addRenderFunction(item.render);
       }
     });
@@ -2894,15 +2923,21 @@ class SemanticLowerer {
         statement?.type === 'VariableDeclaration'
           ? statement.declarations.find((declaration) => containsJsx(declaration.init))
           : undefined;
-      const initializer = unwrapExpression(jsxDeclaration?.init);
-      const hasQrl = this.extracted.segments.some(
-        (segment) => segment.kind === 'qrl' && containsRange(range, segment.range)
-      );
-      if (
-        statement?.type !== 'VariableDeclaration' ||
-        jsxDeclaration === undefined ||
-        (initializer?.type !== 'JSXElement' && initializer?.type !== 'JSXFragment' && hasQrl)
-      ) {
+      const declaration =
+        statement?.type === 'VariableDeclaration' ? statement.declarations[0] : undefined;
+      const id = unwrapExpression(declaration?.id);
+      const init = unwrapExpression(declaration?.init);
+      const directJsxConst =
+        statement?.type === 'VariableDeclaration' &&
+        statement.kind === 'const' &&
+        statement.declarations.length === 1 &&
+        jsxDeclaration !== undefined &&
+        id?.type === 'Identifier' &&
+        (init?.type === 'JSXElement' || init?.type === 'JSXFragment');
+      if (!directJsxConst) {
+        // any other JSX literal in the statement hoists to a synthetic render closure
+        const jsxValues =
+          statement === null ? [] : this.hoistStatementJsxValues(statement, lifetimeId, setup);
         const useIds = this.collectUseIds(range);
         setup.push({
           kind: 'statement',
@@ -2912,24 +2947,11 @@ class SemanticLowerer {
             (id) => !this.isSparkHookBinding(id, QwikHooks.UseId)
           ),
           useIds,
-          ...this.setupOpAt(range),
+          // an op-form lowering would keep the raw JSX; source replacement is the contract here
+          ...(jsxValues.length === 0 ? this.setupOpAt(range) : {}),
           ...this.destructureTempsAt(range),
+          ...(jsxValues.length === 0 ? {} : { jsxValues }),
         });
-        continue;
-      }
-      const declaration = statement.declarations[0];
-      const id = unwrapExpression(declaration?.id);
-      const init = unwrapExpression(declaration?.init);
-      if (
-        statement.kind !== 'const' ||
-        statement.declarations.length !== 1 ||
-        id?.type !== 'Identifier' ||
-        (init?.type !== 'JSXElement' && init?.type !== 'JSXFragment')
-      ) {
-        this.unsupported(
-          range,
-          'Local JSX setup values require one const identifier with a direct JSX initializer.'
-        );
         continue;
       }
       const bindingId = this.bindingIdAt(getRange(id));
@@ -4091,10 +4113,6 @@ const PARSER_SENSITIVE_ELEMENTS = new Set([
   'math',
 ]);
 
-function containsRange(outer: SourceRange, inner: SourceRange): boolean {
-  return inner[0] >= outer[0] && inner[1] <= outer[1];
-}
-
 function isQwikBinding(binding: BindingInfo | null): boolean {
   return (
     binding !== null &&
@@ -4330,7 +4348,11 @@ function inlineSingleUseRenderValues(
   renderFunctions: ReadonlyMap<string, RenderFunctionPlan>
 ): { readonly render: RenderPlan; readonly setup: readonly SetupPlan[] } {
   const localValues = new Map(
-    setup.flatMap((item) => (item.kind === 'render-value' ? [[item.bindingId, item] as const] : []))
+    setup.flatMap((item) =>
+      item.kind === 'render-value' && item.bindingId !== null
+        ? [[item.bindingId, item] as const]
+        : []
+    )
   );
   if (localValues.size === 0) {
     return { render, setup };
@@ -4390,7 +4412,10 @@ function inlineSingleUseRenderValues(
     });
   return {
     render: { roots: inlineNodes(render.roots), effects },
-    setup: setup.filter((item) => item.kind !== 'render-value' || !eligible.has(item.bindingId)),
+    setup: setup.filter(
+      (item) =>
+        item.kind !== 'render-value' || item.bindingId === null || !eligible.has(item.bindingId)
+    ),
   };
 }
 

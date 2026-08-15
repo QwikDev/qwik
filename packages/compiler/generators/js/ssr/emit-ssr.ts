@@ -818,6 +818,7 @@ export function rewriteJsSetupStatement(
     readonly segmentIds: readonly string[];
     readonly useIds: readonly { range: SourceRange; ordinal: number; standalone: boolean }[];
     readonly destructureTemps?: readonly DestructureTemp[];
+    readonly jsxValues?: readonly { readonly range: SourceRange; readonly name: string }[];
   },
   source: string,
   segments: ReadonlyMap<string, SegmentPlan>,
@@ -840,6 +841,10 @@ export function rewriteJsSetupStatement(
     range: useId.range,
     value: `(_id + 'u${useId.ordinal}')`,
   }));
+  for (const jsxValue of operation.jsxValues ?? []) {
+    // the literal compiled to a hoisted closure; the statement keeps its handle
+    replacements.push({ range: jsxValue.range, value: jsxValue.name });
+  }
   for (const temp of operation.destructureTemps ?? []) {
     // pin the call-init container so member reads have a base to resolve through
     replacements.push(

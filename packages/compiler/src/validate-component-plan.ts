@@ -73,7 +73,9 @@ class ComponentPlanValidator {
         this.issue(`setup[${index}].lifetimeId`, 'must belong to the component lifetime');
       }
       if (setup.kind === 'render-value' || setup.kind === 'local-component') {
-        this.requireBinding(setup.bindingId, `setup[${index}].bindingId`);
+        if (setup.kind === 'local-component' || setup.bindingId !== null) {
+          this.requireBinding(setup.bindingId!, `setup[${index}].bindingId`);
+        }
         this.validateRenderFunction(setup.render, `setup[${index}].render`, componentLifetime.id);
       } else {
         setup.referenceBindingIds.forEach((bindingId, bindingIndex) =>

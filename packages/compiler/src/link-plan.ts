@@ -203,7 +203,7 @@ export function linkSsrPlan(
     const collectLocalComponents = (setup: QwikModulePlan['components'][number]['setup']): void => {
       for (const entry of setup) {
         if (entry.kind === SetupOpKind.RenderFn && entry.component === true) {
-          moduleLocalComponents.add(entry.binding);
+          moduleLocalComponents.add(entry.binding!);
           moduleLocalComponents.add(entry.name);
           collectLocalComponents(entry.render.setup);
         }

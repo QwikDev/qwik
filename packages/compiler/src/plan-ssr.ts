@@ -77,11 +77,12 @@ export type SsrSetupOperation =
       readonly segmentIds: readonly string[];
       readonly useIds: readonly UseIdPlan[];
       readonly destructureTemps?: readonly DestructureTemp[];
+      readonly jsxValues?: readonly { readonly range: SourceRange; readonly name: string }[];
     }
   | {
       readonly kind: 'render-value';
       readonly name: string;
-      readonly bindingId: BindingId;
+      readonly bindingId: BindingId | null;
       readonly render: SsrRenderBlockPlan;
     }
   | {
@@ -455,7 +456,9 @@ class SsrPlanner {
       if (render === null) {
         return null;
       }
-      this.renderValues.set(setup.bindingId, render);
+      if (setup.bindingId !== null) {
+        this.renderValues.set(setup.bindingId, render);
+      }
       return {
         kind: 'render-value',
         name: setup.name,
@@ -492,6 +495,7 @@ class SsrPlanner {
           : []
       ),
       ...(setup.destructureTemps === undefined ? {} : { destructureTemps: setup.destructureTemps }),
+      ...(setup.jsxValues === undefined ? {} : { jsxValues: setup.jsxValues }),
     };
   }
 

@@ -124,7 +124,8 @@ export type PlanSetupEntry =
 export interface PlanRenderFnEntry {
   readonly kind: SetupOpKind.RenderFn;
   readonly name: string;
-  readonly binding: number;
+  /** Absent for a synthetic closure hoisted from an expression position. */
+  readonly binding?: number;
   readonly component?: true;
   /** Backing chunk segment id — the component value's serialization identity. */
   readonly segment?: string;

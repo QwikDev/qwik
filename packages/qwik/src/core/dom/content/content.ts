@@ -95,6 +95,9 @@ function normalizeContentOutput(document: Document, output: ContentOutput): Mayb
       return document.createTextNode(String(output));
     case 'boolean':
       return null;
+    case 'function':
+      // a hoisted JSX closure delivered as a value renders in place
+      return normalizeContentOutput(document, (output as () => ContentOutput)());
     default:
       return output;
   }

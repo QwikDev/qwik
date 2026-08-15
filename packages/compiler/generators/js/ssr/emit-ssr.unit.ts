@@ -397,7 +397,7 @@ export function App({ value }) {
     expect(
       parseSync('dynamic-content.js', main, { lang: 'js', sourceType: 'module' }).errors
     ).toEqual([]);
-    expect(main).toMatch(/escapeSsrContent\(content_?\d+\)/);
+    expect(main).toMatch(/renderSsrDynamicContent\(content_?\d+\)/);
   });
 
   test('imports the escaping helper used by dynamic attributes', async () => {

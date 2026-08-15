@@ -336,16 +336,20 @@ export function App() {
     ['mutable', 'let item = <span />;'],
     ['destructured', 'const { item } = { item: <span /> };'],
     ['mixed', 'const item = <span />, other = 1;'],
-  ])('rejects a %s local JSX declaration', (_name, declaration) => {
-    const lowered = lower(`export function App() {
+  ])('hoists a %s local JSX declaration to a synthetic closure', (_name, declaration) => {
+    const plan = success(`export function App() {
   ${declaration}
   return <div>{item}</div>;
 }`);
-    expect(lowered.result).toMatchObject({
-      kind: 'failure',
-      code: 'unsupported-syntax',
-      message: 'Local JSX setup values require one const identifier with a direct JSX initializer.',
-    });
+    expect(plan.setup).toContainEqual(
+      expect.objectContaining({ kind: 'render-value', bindingId: null })
+    );
+    expect(plan.setup).toContainEqual(
+      expect.objectContaining({
+        kind: 'statement',
+        jsxValues: [expect.objectContaining({ name: expect.stringMatching(/^jsx_value_/) })],
+      })
+    );
   });
 
   test('expands static object spreads before semantic last-write-wins', () => {

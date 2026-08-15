@@ -1,0 +1,146 @@
+==INPUT==
+
+export function App(props: { resolveName: string }) {
+  const content = new Promise((resolve) => {
+    (globalThis as any)[props.resolveName] = () => resolve(<p id="async-value">Async content</p>);
+  });
+  return <div>{content}</div>;
+}
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  createSsrElementRecord,
+  renderSsrContent,
+  createSsrRecord,
+  createSsrNodeId,
+  renderSsrDynamicContent,
+  maybeThen,
+  _noopQrl,
+} from '@qwik.dev/core';
+
+const component_text_segment_0_1fh10fbkzokfc = (content) => {
+  return content;
+};
+const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_0_1fh10fbkzokfc'
+);
+q_component_text_segment_0_1fh10fbkzokfc.s(component_text_segment_0_1fh10fbkzokfc);
+export function App(props, ctx) {
+  const jsx_value_121_158 = () => {
+    return '<p id="async-value">Async content</p>';
+  };
+  const content = new Promise((resolve) => {
+    globalThis[props.resolveName] = () => resolve(jsx_value_121_158);
+  });
+  const content_id_0 = ctx.nextId();
+  ctx.addRoot(content);
+  const content_0 = renderSsrContent(
+    ctx,
+    content_id_0,
+    [content],
+    q_component_text_segment_0_1fh10fbkzokfc
+  );
+  return maybeThen(content_0, (content_0) => [
+    createSsrElementRecord('div', '<div', '>'),
+    createSsrRecord('<!d=', createSsrNodeId(content_id_0), '>'),
+    renderSsrDynamicContent(content_0),
+    '<!/d></div>',
+  ]);
+}
+============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
+
+export const component_text_segment_0_1fh10fbkzokfc = (content) => {
+  return content;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_0_1fh10fbkzokfc",
+  "entry": null,
+  "displayName": "component_text_segment_0",
+  "hash": "1fh10fbkzokfc",
+  "canonicalFilename": "component.tsx_component_text_segment_0_1fh10fbkzokfc",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    180,
+    187
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "content"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { _first, createTemplate, _next, createContentBlock } from '@qwik.dev/core';
+import { component_text_segment_0_1fh10fbkzokfc } from './component.tsx_component_text_segment_0_1fh10fbkzokfc';
+
+const jsx_value_121_158_tmpl0 = createTemplate('<p id="async-value">Async content</p>');
+const App_tmpl0 = createTemplate('<div><!----><!----></div>');
+export function App(props, ctx) {
+  const jsx_value_121_158 = () => {
+    const fragment0 = jsx_value_121_158_tmpl0(ctx.document);
+    const el0 = _first(fragment0);
+    return el0;
+  };
+  const content = new Promise((resolve) => {
+    globalThis[props.resolveName] = () => resolve(jsx_value_121_158);
+  });
+  const fragment0 = App_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  const start0 = _first(el0);
+  const end0 = _next(start0);
+  const content0 = createContentBlock(
+    ctx,
+    start0,
+    end0,
+    [content],
+    component_text_segment_0_1fh10fbkzokfc
+  );
+  ctx.scheduler.notify(content0);
+  return el0;
+}
+============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
+
+export const component_text_segment_0_1fh10fbkzokfc = (content) => {
+  return content;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_0_1fh10fbkzokfc",
+  "entry": null,
+  "displayName": "component_text_segment_0",
+  "hash": "1fh10fbkzokfc",
+  "canonicalFilename": "component.tsx_component_text_segment_0_1fh10fbkzokfc",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    180,
+    187
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "content"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

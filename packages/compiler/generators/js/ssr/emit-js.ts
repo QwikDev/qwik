@@ -1036,10 +1036,13 @@ class JsComponentGenerator {
         if (entry.component !== true) {
           const item = entry as unknown as {
             name: string;
-            binding: number;
+            binding?: number;
             render: LocalComponentEntry['render'];
           };
-          const name = this.declare(item.binding, item.name);
+          const name =
+            item.binding === undefined
+              ? (this.usedNames.add(item.name), item.name)
+              : this.declare(item.binding, item.name);
           const child = new JsComponentGenerator(
             this.plan,
             this.shared,
@@ -1939,7 +1942,7 @@ class JsComponentGenerator {
     this.imports.add(QwikWord.RenderSsrContent);
     this.imports.add(QwikWord.CreateSsrRecord);
     this.imports.add(QwikWord.CreateSsrNodeId);
-    this.imports.add(QwikWord.EscapeSsrContent);
+    this.imports.add(QwikWord.RenderSsrDynamicContent);
     const deferred = this.asyncSteps.length > 0;
     if (deferred) {
       // deferred content allocates its id when the step runs, keeping q:id chain order
@@ -1956,7 +1959,7 @@ class JsComponentGenerator {
     parts.push(
       `${QwikWord.CreateSsrRecord}('<!d=', ${QwikWord.CreateSsrNodeId}(${idVariable}), '>')`
     );
-    parts.push(`${QwikWord.EscapeSsrContent}(${step})`);
+    parts.push(`${QwikWord.RenderSsrDynamicContent}(${step})`);
     pushStatic('<!/d>');
   }
 

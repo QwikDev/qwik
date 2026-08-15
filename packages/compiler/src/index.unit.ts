@@ -1389,6 +1389,18 @@ export function App() {
     });
   });
 
+  test('renders a promise of JSX as a child', async () => {
+    await testInput('promise_jsx_child', {
+      code: `export function App(props: { resolveName: string }) {
+  const content = new Promise((resolve) => {
+    (globalThis as any)[props.resolveName] = () => resolve(<p id="async-value">Async content</p>);
+  });
+  return <div>{content}</div>;
+}
+`,
+    });
+  });
+
   test('rejects the plain fallback prop on Suspense', async () => {
     await testInput('suspense_plain_fallback_diagnostic', {
       code: `import { Suspense } from '@qwik.dev/core';

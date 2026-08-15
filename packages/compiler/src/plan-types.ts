@@ -171,12 +171,15 @@ export type SetupPlan =
       readonly op?: SetupOp;
       /** Compiler temps to declare before this statement, pinning call-init destructure bases. */
       readonly destructureTemps?: readonly DestructureTemp[];
+      /** JSX literals hoisted out of this statement, replaced by their closure names. */
+      readonly jsxValues?: readonly { readonly range: SourceRange; readonly name: string }[];
     }
   | {
       readonly kind: 'render-value';
       readonly range: SourceRange;
       readonly lifetimeId: LifetimeId;
-      readonly bindingId: BindingId;
+      /** Null for a synthetic closure hoisted from an expression position. */
+      readonly bindingId: BindingId | null;
       readonly name: string;
       readonly render: RenderFunctionPlan;
     }

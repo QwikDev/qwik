@@ -50,7 +50,6 @@ import {
   collectNeededImports,
   buildQrlDeclarations,
   buildInlineSCalls,
-  filterUnusedImports,
   assembleOutput,
 } from './output-assembly.js';
 import { detectAndRenameCollisions } from './symbol-collision.js';
@@ -298,7 +297,6 @@ export function rewriteParentModule(
   detectAndRenameCollisions(ctx);
   buildQrlDeclarations(ctx);
   buildInlineSCalls(ctx);
-  filterUnusedImports(ctx);
   const finalCode = assembleOutput(ctx);
 
   return {

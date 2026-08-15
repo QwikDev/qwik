@@ -6,6 +6,7 @@
 import MagicString from 'magic-string';
 import { parseSync } from 'oxc-parser';
 import { walk } from 'oxc-walker';
+import { ScopeQueryTracker } from '../analysis/scope-query-tracker.js';
 import type { AstNode, AstParentNode, AstProgram } from '../../ast-types.js';
 import { RAW_TRANSFER_PARSER_OPTIONS } from '../../ast-types.js';
 import type { EmitMode } from '../types/types.js';
@@ -58,16 +59,24 @@ export function buildConstReplacementMap(
   return replacements;
 }
 
-function applyReplacements(
+/**
+ * Scope-aware identifier→literal replacement: a local binding (param, let, catch) shadowing the
+ * folded name keeps both the binding and its references untouched.
+ */
+export function replaceResolvedConstIdentifiers(
   s: MagicString,
   program: AstProgram,
-  replacements: Map<string, string>,
+  replacements: ReadonlyMap<string, string>,
   importRanges?: ReadonlySet<string>
 ): number {
-  let replacedCount = 0;
+  const tracker = new ScopeQueryTracker({ preserveExitedScopes: true });
+  walk(program, { scopeTracker: tracker });
+  tracker.freeze();
 
+  let replacedCount = 0;
   const expandedShorthands = new Set<number>();
   walk(program, {
+    scopeTracker: tracker,
     enter(node: AstNode, parent: AstParentNode) {
       if (node.type !== 'Identifier') return;
 
@@ -79,6 +88,8 @@ function applyReplacements(
         return;
       if (parent?.type === 'VariableDeclarator' && parent.id === node) return;
       if (parent?.type === 'ImportSpecifier' && parent.imported === node) return;
+      const decl = tracker.getDeclaration(node.name);
+      if (decl && decl.type !== 'Import') return;
       // Key/value of a shorthand property are distinct nodes sharing a span,
       // so compare spans, and expand only once per property.
       if (
@@ -138,7 +149,7 @@ export function foldConstantsInBodyText(
   if (!parsed.program || parsed.errors?.length) return body;
 
   const s = new MagicString(wrapped);
-  const count = applyReplacements(s, parsed.program, replacements);
+  const count = replaceResolvedConstIdentifiers(s, parsed.program, replacements);
   if (count === 0) return body;
 
   return s.toString().slice(1, -1);

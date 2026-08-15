@@ -111,7 +111,16 @@ export const App = component$(() => {
   const state = useStore({ count: 0 });
   return <div>{state.count}</div>;
 });`;
-    const code = rewrite(source);
+    // The unused-import prune lives in the DCE pipeline now, so assert on
+    // the full transform product, not the intermediate parent rewrite.
+    const code = transformModule({
+      input: [{ path: mkFilePath('test.tsx'), code: mkSourceText(source) }],
+      srcDir: mkFilePath('.'),
+      entryStrategy: { type: 'segment' },
+      minify: 'simplify',
+      transpileTs: true,
+      transpileJsx: true,
+    }).modules.find((m) => m.kind === 'parent')!.code;
 
     // useStore moved into the segment with the component body; the parent
     // no longer references it, matching Rust.

@@ -13,6 +13,8 @@ import type {
   ImportSpecifier,
 } from '../../ast-types.js';
 import { parseWithRawTransfer } from '../ast/parse.js';
+import { replaceResolvedConstIdentifiers } from '../rewrite/const-replacement.js';
+import { isRelativePathInsideBase } from '../../paths.js';
 import { applySegmentDCE, hasSegmentDcePatterns } from './dead-code.js';
 import { applyStatementDCE } from './statement-dce.js';
 import {
@@ -97,36 +99,8 @@ export function applySegmentConstReplacement(
 
   if (replacements.size === 0) return code;
 
-  // Scope-aware: a local binding (param, let, catch) shadowing the import
-  // must keep both the binding and its references untouched.
-  const tracker = new ScopeQueryTracker({ preserveExitedScopes: true });
-  walk(program, { scopeTracker: tracker });
-  tracker.freeze();
-
   const s = new MagicString(code);
-  walk(program, {
-    scopeTracker: tracker,
-    enter(node: AstNode, parent: AstParentNode) {
-      if (node.type !== 'Identifier') return;
-      const replacement = replacements.get(node.name);
-      if (replacement === undefined) return;
-      if (importRanges.has(`${node.start}:${node.end}`)) return;
-      if (parent?.type === 'MemberExpression' && parent.property === node && !parent.computed)
-        return;
-      if (parent?.type === 'VariableDeclarator' && parent.id === node) return;
-      if (parent?.type === 'ImportSpecifier' && parent.imported === node) return;
-      const decl = tracker.getDeclaration(node.name);
-      if (decl && decl.type !== 'Import') return;
-      if (parent?.type === 'Property' && parent.shorthand === true) {
-        s.overwrite(node.start, node.end, `${node.name}: ${replacement}`);
-        return;
-      }
-      if (parent?.type === 'Property' && parent.key === node && !parent.computed) return;
-
-      s.overwrite(node.start, node.end, replacement);
-    },
-  });
-
+  replaceResolvedConstIdentifiers(s, program, replacements, importRanges);
   return s.toString();
 }
 
@@ -327,7 +301,8 @@ export function removeUnusedImports(
   filename: string,
   transpileJsx?: boolean,
   preParsedProgram?: AstProgram,
-  isLibMode?: boolean
+  isLibMode?: boolean,
+  keepRelativeSideEffects?: boolean
 ): string {
   let parsed: AstParseResult | { program: AstProgram };
   if (preParsedProgram) {
@@ -468,6 +443,14 @@ export function removeUnusedImports(
   for (const [node, specs] of specsByNode) {
     const totalSpecs = node.specifiers?.length ?? 0;
     if (specs.length >= totalSpecs) {
+      const src = node.source?.value ?? '';
+      if (keepRelativeSideEffects && isRelativePathInsideBase(src, filename as RelativePath)) {
+        // Stripped-away client code still owns this module's evaluation
+        // order: keep the import as a bare side-effect form.
+        const quote = code[node.source.start] === "'" ? "'" : '"';
+        ms.overwrite(node.start, node.end, `import ${quote}${src}${quote};`);
+        continue;
+      }
       let end = node.end;
       if (end < code.length && code[end] === '\n') end++;
       ms.overwrite(node.start, end, '');
@@ -659,6 +642,8 @@ export interface DcePipelineOptions {
   onlyIfFoldChanges?: boolean;
   /** Inject the HMR prologue after DCE, before the unused-import prune. */
   hmrDevFile?: string;
+  /** Inline strategy with stripping: downgrade fully-unused relative imports to side-effect form. */
+  keepRelativeSideEffects?: boolean;
 }
 
 /**
@@ -713,7 +698,14 @@ export function runDcePipeline(code: string, filename: string, opts: DcePipeline
 
   if (result.startsWith('import ') || result.includes('\nimport ')) {
     runStage(() =>
-      removeUnusedImports(result, filename, opts.transpileJsx, lazyParse(), opts.isLibMode)
+      removeUnusedImports(
+        result,
+        filename,
+        opts.transpileJsx,
+        lazyParse(),
+        opts.isLibMode,
+        opts.keepRelativeSideEffects
+      )
     );
   }
 

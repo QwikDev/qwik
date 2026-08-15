@@ -221,3 +221,26 @@ export const C = component$(() => {
     expect(code).not.toContain('serverOnly()');
   });
 });
+
+describe('shadowed bindings in body folds', () => {
+  it('does not fold a body parameter shadowing the isServer import', () => {
+    const importMap = importMapOf(`import { isServer } from '@qwik.dev/core';`);
+    const body = `(isServer) => isServer ? 'a' : 'b'`;
+    const out = foldConstantsInBodyText(body, importMap, true, undefined);
+    expect(out).toBe(body);
+  });
+
+  it('does not fold a local const shadowing the import', () => {
+    const importMap = importMapOf(`import { isBrowser } from '@qwik.dev/core';`);
+    const body = `() => { const isBrowser = check(); return isBrowser; }`;
+    const out = foldConstantsInBodyText(body, importMap, true, undefined);
+    expect(out).toBe(body);
+  });
+
+  it('still folds an unshadowed reference', () => {
+    const importMap = importMapOf(`import { isServer } from '@qwik.dev/core';`);
+    const out = foldConstantsInBodyText(`() => (isServer ? 'a' : 'b')`, importMap, true, undefined);
+    expect(out).toContain('true');
+    expect(out).not.toContain('isServer');
+  });
+});

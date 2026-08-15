@@ -645,83 +645,6 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
   }
 }
 
-export function filterUnusedImports(ctx: RewriteContext): void {
-  const {
-    survivingUserImports,
-    survivingImportInfos,
-    s,
-    qrlDecls,
-    sCalls,
-    inlineHoistedDeclarations,
-    isInline,
-    inlineOptions,
-    relPath,
-    isLibMode,
-  } = ctx;
-
-  if (survivingUserImports.length === 0 || survivingImportInfos.length === 0) return;
-
-  const bodyText = s.toString();
-  const allPreambleText = [...qrlDecls, ...sCalls, ...inlineHoistedDeclarations].join('\n');
-  const fullRefText = bodyText + '\n' + allPreambleText;
-
-  for (let idx = survivingUserImports.length - 1; idx >= 0; idx--) {
-    const info = survivingImportInfos[idx];
-    if (info.isSideEffect || info.nsPart || info.preservedAll) continue;
-
-    let defaultUsed = false;
-    if (info.defaultPart) {
-      defaultUsed = createRegExp(wordBoundary, exactly(info.defaultPart), wordBoundary).test(
-        fullRefText
-      );
-    }
-
-    const usedNamed: { local: string; imported: string }[] = [];
-    for (const np of info.namedParts) {
-      if (isLibMode && isLibModePreservedMarker(np.imported)) {
-        usedNamed.push(np);
-        continue;
-      }
-      if (createRegExp(wordBoundary, exactly(np.local), wordBoundary).test(fullRefText)) {
-        usedNamed.push(np);
-      }
-    }
-
-    if (!defaultUsed && usedNamed.length === 0 && !info.nsPart) {
-      const src = info.source;
-      const hasStripping = !!(
-        inlineOptions?.stripCtxName?.length || inlineOptions?.stripEventHandlers
-      );
-      if (isInline && hasStripping && isRelativePathInsideBase(src, relPath)) {
-        survivingUserImports[idx] = `import ${info.quote}${src}${info.quote};`;
-        survivingImportInfos[idx] = {
-          ...info,
-          namedParts: [],
-          defaultPart: '',
-          isSideEffect: true,
-        };
-        continue;
-      }
-      survivingUserImports.splice(idx, 1);
-      survivingImportInfos.splice(idx, 1);
-      continue;
-    }
-
-    if (usedNamed.length < info.namedParts.length) {
-      const namedStrs = usedNamed.map((np) => formatNamedImportPart(np.imported, np.local));
-      const dp = defaultUsed ? info.defaultPart : '';
-      const importParts = formatImportParts(dp, '', namedStrs);
-      if (importParts) {
-        survivingUserImports[idx] = formatImportStatement(importParts, info.quote, info.source);
-        survivingImportInfos[idx] = { ...info, namedParts: usedNamed, defaultPart: dp };
-      } else {
-        survivingUserImports.splice(idx, 1);
-        survivingImportInfos.splice(idx, 1);
-      }
-    }
-  }
-}
-
 /**
  * Marks an export whose init is QRL-wrapped (`component$`/`componentQrl`) — the sCall placement
  * anchor: self-referencing sCalls must follow it to avoid TDZ at module load.
@@ -975,7 +898,9 @@ export function assembleOutput(ctx: RewriteContext): string {
   }
 
   if (transpileTs) {
-    const tsStripOptions: TransformOptions = { typescript: { onlyRemoveTypeImports: false } };
+    // Only strip explicit type imports: liveness decisions (unused value
+    // imports, side-effect downgrades) belong to the pipeline's AST prune.
+    const tsStripOptions: TransformOptions = { typescript: { onlyRemoveTypeImports: true } };
     if (!jsxOptions?.enableJsx) {
       tsStripOptions.jsx = 'preserve';
     }

@@ -1131,6 +1131,8 @@ function rewriteParent(
     isDev: deriveIsDev(options.mode),
     isLibMode: emit.isLibMode,
     transpileJsx: options.transpileJsx,
+    keepRelativeSideEffects:
+      emit.isInlineStrategy && !!(options.stripCtxName?.length || options.stripEventHandlers),
   });
   const hygienicCode = applyModuleHygieneRenames(cleanedCode, relPath);
   const removedImportSources = collectRemovedImportSources(

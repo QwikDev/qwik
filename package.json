@@ -136,7 +136,7 @@
     "create-qwik": "workspace:*",
     "csstype": "3.2.3",
     "dotenv": "17.2.3",
-    "esbuild": "0.28.1",
+    "esbuild": "0.28.2",
     "eslint": "10.0.3",
     "eslint-plugin-import": "2.32.0",
     "eslint-plugin-no-only-tests": "3.3.0",

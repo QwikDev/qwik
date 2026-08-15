@@ -22,10 +22,6 @@ export async function submoduleOptimizer(config: BuildConfig) {
     resolve: {
       alias: [
         {
-          find: /^image-size(?=\/|$)/,
-          replacement: join(config.packagesDir, 'qwik', 'node_modules', 'image-size'),
-        },
-        {
           find: /^launch-editor$/,
           replacement: join(config.packagesDir, 'qwik', 'node_modules', 'launch-editor'),
         },

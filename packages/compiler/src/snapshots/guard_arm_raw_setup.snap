@@ -1,0 +1,451 @@
+==INPUT==
+
+import { component$, isServer, useServerData } from '@qwik.dev/core';
+export const Inner = component$(() => <p>inner</p>);
+const waitFor = (a: string, b: string, v: unknown) => Promise.resolve(v);
+export const App = component$(() => {
+  const url = useServerData<string>('url');
+  const requestId = useServerData<string>('id');
+  if (isServer) {
+    const releaseId = url ? new URL(url).searchParams.get('release') : null;
+    if (releaseId && requestId) {
+      return waitFor(requestId, releaseId, <Inner />);
+    }
+    const delay = Number(url?.charAt(0) || 1000);
+    return new Promise((resolve) => { setTimeout(() => resolve(<Inner />), delay); });
+  }
+  return <Inner />;
+});
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useServerData,
+  _captures,
+  maybeThen,
+  getActiveInvokeContext,
+  invoke,
+  createComponent,
+  renderSsrContent,
+  createSsrRecord,
+  createSsrNodeId,
+  renderSsrDynamicContent,
+  renderSsrBranch,
+  _noopQrl,
+} from '@qwik.dev/core';
+import { Inner } from './component.tsx_component_Inner';
+
+const semantic_branchCondition_383_405_31auezwekp93y = () => {
+  const releaseId = _captures[0],
+    requestId = _captures[1];
+  return releaseId && requestId;
+};
+const q_semantic_branchCondition_383_405_31auezwekp93y = /*#__PURE__*/ _noopQrl(
+  'semantic_branchCondition_383_405_31auezwekp93y'
+);
+q_semantic_branchCondition_383_405_31auezwekp93y.s(semantic_branchCondition_383_405_31auezwekp93y);
+const semantic_branchRender_412_460_2rw3igofg7qtp = (ctx) => {
+  const requestId = _captures[0],
+    releaseId = _captures[1];
+  ctx.addRoot(requestId);
+  ctx.addRoot(releaseId);
+  const content_0 = semantic_expression_419_459_2uol5fqdfdeli(requestId, releaseId);
+  return maybeThen(content_0, (content_0) => content_0);
+};
+const q_semantic_branchRender_412_460_2rw3igofg7qtp = /*#__PURE__*/ _noopQrl(
+  'semantic_branchRender_412_460_2rw3igofg7qtp'
+);
+q_semantic_branchRender_412_460_2rw3igofg7qtp.s(semantic_branchRender_412_460_2rw3igofg7qtp);
+const semantic_expression_419_459_2uol5fqdfdeli = (requestId, releaseId) => {
+  const invokeCtx = getActiveInvokeContext();
+  const ctx = invokeCtx.container;
+  return waitFor(requestId, releaseId, () =>
+    invoke(invokeCtx, () =>
+      (() => {
+        return createComponent({}, (props) => Inner(props, ctx));
+      })()
+    )
+  );
+};
+const q_semantic_expression_419_459_2uol5fqdfdeli = /*#__PURE__*/ _noopQrl(
+  'semantic_expression_419_459_2uol5fqdfdeli'
+);
+q_semantic_expression_419_459_2uol5fqdfdeli.s(semantic_expression_419_459_2uol5fqdfdeli);
+const semantic_branchRender_467_601_2t11uxu4tu6qy = (ctx) => {
+  const url = _captures[0];
+  const delay = Number(url?.charAt(0) || 1e3);
+  const content_id_0 = ctx.nextId();
+  ctx.addRoot(delay);
+  const content_0 = renderSsrContent(
+    ctx,
+    content_id_0,
+    [delay],
+    q_semantic_expression_521_600_swe3lf3ujkpy,
+    true
+  );
+  return maybeThen(content_0, (content_0) => [
+    createSsrRecord('<!d=', createSsrNodeId(content_id_0), '>'),
+    renderSsrDynamicContent(content_0),
+    '<!/d>',
+  ]);
+};
+const q_semantic_branchRender_467_601_2t11uxu4tu6qy = /*#__PURE__*/ _noopQrl(
+  'semantic_branchRender_467_601_2t11uxu4tu6qy'
+);
+q_semantic_branchRender_467_601_2t11uxu4tu6qy.s(semantic_branchRender_467_601_2t11uxu4tu6qy);
+const semantic_expression_521_600_swe3lf3ujkpy = (delay) => {
+  const invokeCtx = getActiveInvokeContext();
+  const ctx = invokeCtx.container;
+  return new Promise((resolve) => {
+    setTimeout(
+      () =>
+        resolve(() =>
+          invoke(invokeCtx, () =>
+            (() => {
+              return createComponent({}, (props) => Inner(props, ctx));
+            })()
+          )
+        ),
+      delay
+    );
+  });
+};
+const q_semantic_expression_521_600_swe3lf3ujkpy = /*#__PURE__*/ _noopQrl(
+  'semantic_expression_521_600_swe3lf3ujkpy'
+);
+q_semantic_expression_521_600_swe3lf3ujkpy.s(semantic_expression_521_600_swe3lf3ujkpy);
+export { Inner };
+const waitFor = (a, b, v) => Promise.resolve(v);
+export { waitFor };
+export const App = (props, ctx) => {
+  const url = useServerData('url');
+  const requestId = useServerData('id');
+  const releaseId = url ? new URL(url).searchParams.get('release') : null;
+  const branch_id_0 = ctx.nextId();
+  ctx.addRoot(releaseId);
+  ctx.addRoot(requestId);
+  ctx.addRoot(requestId);
+  ctx.addRoot(releaseId);
+  ctx.addRoot(url);
+  const branch_0 = renderSsrBranch(
+    ctx,
+    branch_id_0,
+    q_semantic_branchCondition_383_405_31auezwekp93y.w([releaseId, requestId]),
+    q_semantic_branchRender_412_460_2rw3igofg7qtp.w([requestId, releaseId]),
+    q_semantic_branchRender_467_601_2t11uxu4tu6qy.w([url]),
+    '',
+    true
+  );
+  return maybeThen(branch_0, (branch_0) => [
+    createSsrRecord('<!b=', createSsrNodeId(branch_id_0), '>'),
+    branch_0,
+    '<!/b>',
+  ]);
+};
+============================= src/component.tsx_component_Inner.js (ENTRY POINT)==
+
+import {
+  _captures,
+  maybeThen,
+  getActiveInvokeContext,
+  invoke,
+  createComponent,
+  renderSsrContent,
+  createSsrRecord,
+  createSsrNodeId,
+  renderSsrDynamicContent,
+} from '@qwik.dev/core';
+
+export function Inner(props, ctx) {
+  return '<p>inner</p>';
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_Inner_3e5rvyk7dtfmh",
+  "entry": null,
+  "displayName": "component_Inner",
+  "hash": "3e5rvyk7dtfmh",
+  "canonicalFilename": "component.tsx_component_Inner_3e5rvyk7dtfmh",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component",
+  "captures": false,
+  "loc": [
+    102,
+    120
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_semantic_branchCondition_383_405_31auezwekp93y.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const semantic_branchCondition_383_405_31auezwekp93y = () => {
+  const releaseId = _captures[0],
+    requestId = _captures[1];
+  return releaseId && requestId;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "semantic_branchCondition_383_405_31auezwekp93y",
+  "entry": null,
+  "displayName": "semantic_branchCondition_383_405",
+  "hash": "31auezwekp93y",
+  "canonicalFilename": "component.tsx_semantic_branchCondition_383_405_31auezwekp93y",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branchCondition",
+  "captures": true,
+  "loc": [
+    383,
+    405
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "releaseId",
+    "requestId"
+  ]
+}
+*/
+============================= src/component.tsx_semantic_branchRender_412_460_2rw3igofg7qtp.js (ENTRY POINT)==
+
+import { _noopQrl, _captures, maybeThen } from '@qwik.dev/core';
+import { semantic_expression_419_459_2uol5fqdfdeli } from './component.tsx_semantic_expression_419_459_2uol5fqdfdeli';
+const q_semantic_expression_419_459_2uol5fqdfdeli = /*#__PURE__*/ _noopQrl(
+  'semantic_expression_419_459_2uol5fqdfdeli'
+);
+q_semantic_expression_419_459_2uol5fqdfdeli.s(semantic_expression_419_459_2uol5fqdfdeli);
+
+export const semantic_branchRender_412_460_2rw3igofg7qtp = (ctx) => {
+  const requestId = _captures[0],
+    releaseId = _captures[1];
+  ctx.addRoot(requestId);
+  ctx.addRoot(releaseId);
+  const content_0 = semantic_expression_419_459_2uol5fqdfdeli(requestId, releaseId);
+  return maybeThen(content_0, (content_0) => content_0);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "semantic_branchRender_412_460_2rw3igofg7qtp",
+  "entry": null,
+  "displayName": "semantic_branchRender_412_460",
+  "hash": "2rw3igofg7qtp",
+  "canonicalFilename": "component.tsx_semantic_branchRender_412_460_2rw3igofg7qtp",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branchRender",
+  "captures": true,
+  "loc": [
+    412,
+    460
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "requestId",
+    "releaseId"
+  ]
+}
+*/
+============================= src/component.tsx_semantic_expression_419_459_2uol5fqdfdeli.js (ENTRY POINT)==
+
+import { waitFor } from './component';
+import { Inner } from './component.tsx_component_Inner';
+import { getActiveInvokeContext, invoke, createComponent } from '@qwik.dev/core';
+
+export const semantic_expression_419_459_2uol5fqdfdeli = (requestId, releaseId) => {
+  const invokeCtx = getActiveInvokeContext();
+  const ctx = invokeCtx.container;
+  return waitFor(requestId, releaseId, () =>
+    invoke(invokeCtx, () =>
+      (() => {
+        return createComponent({}, (props) => Inner(props, ctx));
+      })()
+    )
+  );
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "semantic_expression_419_459_2uol5fqdfdeli",
+  "entry": null,
+  "displayName": "semantic_expression_419_459",
+  "hash": "2uol5fqdfdeli",
+  "canonicalFilename": "component.tsx_semantic_expression_419_459_2uol5fqdfdeli",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "expression",
+  "captures": true,
+  "loc": [
+    419,
+    459
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "requestId",
+    "releaseId"
+  ]
+}
+*/
+============================= src/component.tsx_semantic_branchRender_467_601_2t11uxu4tu6qy.js (ENTRY POINT)==
+
+import {
+  _noopQrl,
+  _captures,
+  renderSsrContent,
+  createSsrRecord,
+  createSsrNodeId,
+  renderSsrDynamicContent,
+  maybeThen,
+} from '@qwik.dev/core';
+import { semantic_expression_521_600_swe3lf3ujkpy } from './component.tsx_semantic_expression_521_600_swe3lf3ujkpy';
+const q_semantic_expression_521_600_swe3lf3ujkpy = /*#__PURE__*/ _noopQrl(
+  'semantic_expression_521_600_swe3lf3ujkpy'
+);
+q_semantic_expression_521_600_swe3lf3ujkpy.s(semantic_expression_521_600_swe3lf3ujkpy);
+
+export const semantic_branchRender_467_601_2t11uxu4tu6qy = (ctx) => {
+  const url = _captures[0];
+  const delay = Number(url?.charAt(0) || 1e3);
+  const content_id_0 = ctx.nextId();
+  ctx.addRoot(delay);
+  const content_0 = renderSsrContent(
+    ctx,
+    content_id_0,
+    [delay],
+    q_semantic_expression_521_600_swe3lf3ujkpy,
+    true
+  );
+  return maybeThen(content_0, (content_0) => [
+    createSsrRecord('<!d=', createSsrNodeId(content_id_0), '>'),
+    renderSsrDynamicContent(content_0),
+    '<!/d>',
+  ]);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "semantic_branchRender_467_601_2t11uxu4tu6qy",
+  "entry": null,
+  "displayName": "semantic_branchRender_467_601",
+  "hash": "2t11uxu4tu6qy",
+  "canonicalFilename": "component.tsx_semantic_branchRender_467_601_2t11uxu4tu6qy",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branchRender",
+  "captures": true,
+  "loc": [
+    467,
+    601
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "url"
+  ]
+}
+*/
+============================= src/component.tsx_semantic_expression_521_600_swe3lf3ujkpy.js (ENTRY POINT)==
+
+import { Inner } from './component.tsx_component_Inner';
+import { getActiveInvokeContext, invoke, createComponent } from '@qwik.dev/core';
+
+export const semantic_expression_521_600_swe3lf3ujkpy = (delay) => {
+  const invokeCtx = getActiveInvokeContext();
+  const ctx = invokeCtx.container;
+  return new Promise((resolve) => {
+    setTimeout(
+      () =>
+        resolve(() =>
+          invoke(invokeCtx, () =>
+            (() => {
+              return createComponent({}, (props) => Inner(props, ctx));
+            })()
+          )
+        ),
+      delay
+    );
+  });
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "semantic_expression_521_600_swe3lf3ujkpy",
+  "entry": null,
+  "displayName": "semantic_expression_521_600",
+  "hash": "swe3lf3ujkpy",
+  "canonicalFilename": "component.tsx_semantic_expression_521_600_swe3lf3ujkpy",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "expression",
+  "captures": true,
+  "loc": [
+    521,
+    600
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "delay"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { useServerData, createComponent } from '@qwik.dev/core';
+import { Inner } from './component.tsx_component_Inner';
+export { Inner };
+const waitFor = (a, b, v) => Promise.resolve(v);
+export const App = (props, ctx) => {
+  const url = useServerData('url');
+  const requestId = useServerData('id');
+  return createComponent({}, (props) => Inner(props, ctx));
+};
+============================= src/component.tsx_component_Inner.js (ENTRY POINT)==
+
+import { _first, createTemplate } from '@qwik.dev/core';
+
+const Inner_tmpl0 = createTemplate('<p>inner</p>');
+
+export function Inner(props, ctx) {
+  const fragment0 = Inner_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  return el0;
+}
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_Inner_3e5rvyk7dtfmh",
+  "entry": null,
+  "displayName": "component_Inner",
+  "hash": "3e5rvyk7dtfmh",
+  "canonicalFilename": "component.tsx_component_Inner_3e5rvyk7dtfmh",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "component",
+  "captures": false,
+  "loc": [
+    102,
+    120
+  ],
+  "paramNames": []
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

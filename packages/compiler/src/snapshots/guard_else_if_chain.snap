@@ -1,0 +1,574 @@
+==INPUT==
+
+export function App(props: { kind: string }) {
+  if (props.kind === 'a') {
+    return <em>a</em>;
+  } else if (props.kind === 'b') {
+    return <strong>b</strong>;
+  } else {
+    return <span>rest</span>;
+  }
+}
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  _captures,
+  renderSsrBranch,
+  createSsrRecord,
+  createSsrNodeId,
+  maybeThen,
+  _noopQrl,
+} from '@qwik.dev/core';
+
+const semantic_branchCondition_34_52_1cdkgkl9aglt = () => {
+  const props = _captures[0];
+  return props.kind === 'a';
+};
+const q_semantic_branchCondition_34_52_1cdkgkl9aglt = /*#__PURE__*/ _noopQrl(
+  'semantic_branchCondition_34_52_1cdkgkl9aglt'
+);
+q_semantic_branchCondition_34_52_1cdkgkl9aglt.s(semantic_branchCondition_34_52_1cdkgkl9aglt);
+const semantic_branchRender_58_76_39hxd6pezz3ac = () => {
+  return '<em>a</em>';
+};
+const q_semantic_branchRender_58_76_39hxd6pezz3ac = /*#__PURE__*/ _noopQrl(
+  'semantic_branchRender_58_76_39hxd6pezz3ac'
+);
+q_semantic_branchRender_58_76_39hxd6pezz3ac.s(semantic_branchRender_58_76_39hxd6pezz3ac);
+const semantic_branchRender_85_180_qryptjfq5bb6 = (ctx) => {
+  const props = _captures[0];
+  const branch_id_0 = ctx.nextId();
+  ctx.addRoot(props);
+  const branch_0 = renderSsrBranch(
+    ctx,
+    branch_id_0,
+    q_semantic_branchCondition_89_107_tdui4uuzl7u0.w([props]),
+    q_semantic_branchRender_113_139_5t1kvcki1ql0,
+    q_semantic_branchRender_152_177_2fqu0ewkrluqh,
+    '',
+    true
+  );
+  return maybeThen(branch_0, (branch_0) => [
+    createSsrRecord('<!b=', createSsrNodeId(branch_id_0), '>'),
+    branch_0,
+    '<!/b>',
+  ]);
+};
+const q_semantic_branchRender_85_180_qryptjfq5bb6 = /*#__PURE__*/ _noopQrl(
+  'semantic_branchRender_85_180_qryptjfq5bb6'
+);
+q_semantic_branchRender_85_180_qryptjfq5bb6.s(semantic_branchRender_85_180_qryptjfq5bb6);
+const semantic_branchCondition_89_107_tdui4uuzl7u0 = () => {
+  const props = _captures[0];
+  return props.kind === 'b';
+};
+const q_semantic_branchCondition_89_107_tdui4uuzl7u0 = /*#__PURE__*/ _noopQrl(
+  'semantic_branchCondition_89_107_tdui4uuzl7u0'
+);
+q_semantic_branchCondition_89_107_tdui4uuzl7u0.s(semantic_branchCondition_89_107_tdui4uuzl7u0);
+const semantic_branchRender_113_139_5t1kvcki1ql0 = () => {
+  return '<strong>b</strong>';
+};
+const q_semantic_branchRender_113_139_5t1kvcki1ql0 = /*#__PURE__*/ _noopQrl(
+  'semantic_branchRender_113_139_5t1kvcki1ql0'
+);
+q_semantic_branchRender_113_139_5t1kvcki1ql0.s(semantic_branchRender_113_139_5t1kvcki1ql0);
+const semantic_branchRender_152_177_2fqu0ewkrluqh = () => {
+  return '<span>rest</span>';
+};
+const q_semantic_branchRender_152_177_2fqu0ewkrluqh = /*#__PURE__*/ _noopQrl(
+  'semantic_branchRender_152_177_2fqu0ewkrluqh'
+);
+q_semantic_branchRender_152_177_2fqu0ewkrluqh.s(semantic_branchRender_152_177_2fqu0ewkrluqh);
+export function App(props, ctx) {
+  const branch_id_0 = ctx.nextId();
+  ctx.addRoot(props);
+  ctx.addRoot(props);
+  const branch_0 = renderSsrBranch(
+    ctx,
+    branch_id_0,
+    q_semantic_branchCondition_34_52_1cdkgkl9aglt.w([props]),
+    q_semantic_branchRender_58_76_39hxd6pezz3ac,
+    q_semantic_branchRender_85_180_qryptjfq5bb6.w([props]),
+    '',
+    true
+  );
+  return maybeThen(branch_0, (branch_0) => [
+    createSsrRecord('<!b=', createSsrNodeId(branch_id_0), '>'),
+    branch_0,
+    '<!/b>',
+  ]);
+}
+============================= src/component.tsx_semantic_branchCondition_34_52_1cdkgkl9aglt.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const semantic_branchCondition_34_52_1cdkgkl9aglt = () => {
+  const props = _captures[0];
+  return props.kind === 'a';
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "semantic_branchCondition_34_52_1cdkgkl9aglt",
+  "entry": null,
+  "displayName": "semantic_branchCondition_34_52",
+  "hash": "1cdkgkl9aglt",
+  "canonicalFilename": "component.tsx_semantic_branchCondition_34_52_1cdkgkl9aglt",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branchCondition",
+  "captures": true,
+  "loc": [
+    34,
+    52
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_semantic_branchRender_58_76_39hxd6pezz3ac.js (ENTRY POINT)==
+
+export const semantic_branchRender_58_76_39hxd6pezz3ac = () => {
+  return '<em>a</em>';
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "semantic_branchRender_58_76_39hxd6pezz3ac",
+  "entry": null,
+  "displayName": "semantic_branchRender_58_76",
+  "hash": "39hxd6pezz3ac",
+  "canonicalFilename": "component.tsx_semantic_branchRender_58_76_39hxd6pezz3ac",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branchRender",
+  "captures": false,
+  "loc": [
+    58,
+    76
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_semantic_branchRender_85_180_qryptjfq5bb6.js (ENTRY POINT)==
+
+import {
+  _noopQrl,
+  _captures,
+  renderSsrBranch,
+  createSsrRecord,
+  createSsrNodeId,
+  maybeThen,
+} from '@qwik.dev/core';
+import { semantic_branchCondition_89_107_tdui4uuzl7u0 } from './component.tsx_semantic_branchCondition_89_107_tdui4uuzl7u0';
+import { semantic_branchRender_113_139_5t1kvcki1ql0 } from './component.tsx_semantic_branchRender_113_139_5t1kvcki1ql0';
+import { semantic_branchRender_152_177_2fqu0ewkrluqh } from './component.tsx_semantic_branchRender_152_177_2fqu0ewkrluqh';
+const q_semantic_branchCondition_89_107_tdui4uuzl7u0 = /*#__PURE__*/ _noopQrl(
+  'semantic_branchCondition_89_107_tdui4uuzl7u0'
+);
+q_semantic_branchCondition_89_107_tdui4uuzl7u0.s(semantic_branchCondition_89_107_tdui4uuzl7u0);
+const q_semantic_branchRender_113_139_5t1kvcki1ql0 = /*#__PURE__*/ _noopQrl(
+  'semantic_branchRender_113_139_5t1kvcki1ql0'
+);
+q_semantic_branchRender_113_139_5t1kvcki1ql0.s(semantic_branchRender_113_139_5t1kvcki1ql0);
+const q_semantic_branchRender_152_177_2fqu0ewkrluqh = /*#__PURE__*/ _noopQrl(
+  'semantic_branchRender_152_177_2fqu0ewkrluqh'
+);
+q_semantic_branchRender_152_177_2fqu0ewkrluqh.s(semantic_branchRender_152_177_2fqu0ewkrluqh);
+
+export const semantic_branchRender_85_180_qryptjfq5bb6 = (ctx) => {
+  const props = _captures[0];
+  const branch_id_0 = ctx.nextId();
+  ctx.addRoot(props);
+  const branch_0 = renderSsrBranch(
+    ctx,
+    branch_id_0,
+    q_semantic_branchCondition_89_107_tdui4uuzl7u0.w([props]),
+    q_semantic_branchRender_113_139_5t1kvcki1ql0,
+    q_semantic_branchRender_152_177_2fqu0ewkrluqh,
+    '',
+    true
+  );
+  return maybeThen(branch_0, (branch_0) => [
+    createSsrRecord('<!b=', createSsrNodeId(branch_id_0), '>'),
+    branch_0,
+    '<!/b>',
+  ]);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "semantic_branchRender_85_180_qryptjfq5bb6",
+  "entry": null,
+  "displayName": "semantic_branchRender_85_180",
+  "hash": "qryptjfq5bb6",
+  "canonicalFilename": "component.tsx_semantic_branchRender_85_180_qryptjfq5bb6",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branchRender",
+  "captures": true,
+  "loc": [
+    85,
+    180
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_semantic_branchCondition_89_107_tdui4uuzl7u0.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const semantic_branchCondition_89_107_tdui4uuzl7u0 = () => {
+  const props = _captures[0];
+  return props.kind === 'b';
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "semantic_branchCondition_89_107_tdui4uuzl7u0",
+  "entry": null,
+  "displayName": "semantic_branchCondition_89_107",
+  "hash": "tdui4uuzl7u0",
+  "canonicalFilename": "component.tsx_semantic_branchCondition_89_107_tdui4uuzl7u0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branchCondition",
+  "captures": true,
+  "loc": [
+    89,
+    107
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_semantic_branchRender_113_139_5t1kvcki1ql0.js (ENTRY POINT)==
+
+export const semantic_branchRender_113_139_5t1kvcki1ql0 = () => {
+  return '<strong>b</strong>';
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "semantic_branchRender_113_139_5t1kvcki1ql0",
+  "entry": null,
+  "displayName": "semantic_branchRender_113_139",
+  "hash": "5t1kvcki1ql0",
+  "canonicalFilename": "component.tsx_semantic_branchRender_113_139_5t1kvcki1ql0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branchRender",
+  "captures": false,
+  "loc": [
+    113,
+    139
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_semantic_branchRender_152_177_2fqu0ewkrluqh.js (ENTRY POINT)==
+
+export const semantic_branchRender_152_177_2fqu0ewkrluqh = () => {
+  return '<span>rest</span>';
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "semantic_branchRender_152_177_2fqu0ewkrluqh",
+  "entry": null,
+  "displayName": "semantic_branchRender_152_177",
+  "hash": "2fqu0ewkrluqh",
+  "canonicalFilename": "component.tsx_semantic_branchRender_152_177_2fqu0ewkrluqh",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branchRender",
+  "captures": false,
+  "loc": [
+    152,
+    177
+  ],
+  "paramNames": []
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  _first,
+  _next,
+  BranchRange,
+  createBranch,
+  _withCaptures,
+  _qrlWithChunk,
+  createTemplate,
+} from '@qwik.dev/core';
+import { semantic_branchCondition_34_52_1cdkgkl9aglt } from './component.tsx_semantic_branchCondition_34_52_1cdkgkl9aglt';
+
+const q_semantic_branchRender_58_76_39hxd6pezz3ac = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_semantic_branchRender_58_76_39hxd6pezz3ac',
+  () => import('./component.tsx_semantic_branchRender_58_76_39hxd6pezz3ac'),
+  'semantic_branchRender_58_76_39hxd6pezz3ac'
+);
+const q_semantic_branchRender_85_180_qryptjfq5bb6 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_semantic_branchRender_85_180_qryptjfq5bb6',
+  () => import('./component.tsx_semantic_branchRender_85_180_qryptjfq5bb6'),
+  'semantic_branchRender_85_180_qryptjfq5bb6'
+);
+const App_tmpl0 = createTemplate('<!----><!---->');
+export function App(props, ctx) {
+  const fragment0 = App_tmpl0(ctx.document);
+  const start0 = _first(fragment0);
+  const end0 = _next(start0);
+  const branch0 = createBranch(
+    ctx,
+    new BranchRange(ctx.document, start0, end0),
+    _withCaptures(semantic_branchCondition_34_52_1cdkgkl9aglt, [props]),
+    q_semantic_branchRender_58_76_39hxd6pezz3ac,
+    q_semantic_branchRender_85_180_qryptjfq5bb6.w([props]),
+    '',
+    true
+  );
+  ctx.scheduler.notify(branch0);
+  return [start0, end0];
+}
+============================= src/component.tsx_semantic_branchCondition_34_52_1cdkgkl9aglt.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const semantic_branchCondition_34_52_1cdkgkl9aglt = () => {
+  const props = _captures[0];
+  return props.kind === 'a';
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "semantic_branchCondition_34_52_1cdkgkl9aglt",
+  "entry": null,
+  "displayName": "semantic_branchCondition_34_52",
+  "hash": "1cdkgkl9aglt",
+  "canonicalFilename": "component.tsx_semantic_branchCondition_34_52_1cdkgkl9aglt",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branchCondition",
+  "captures": true,
+  "loc": [
+    34,
+    52
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_semantic_branchRender_58_76_39hxd6pezz3ac.js (ENTRY POINT)==
+
+import { _first, createTemplate } from '@qwik.dev/core';
+const semantic_branchRender_58_76_39hxd6pezz3ac_tmpl0 = createTemplate('<em>a</em>');
+
+export const semantic_branchRender_58_76_39hxd6pezz3ac = (ctx) => {
+  const fragment0 = semantic_branchRender_58_76_39hxd6pezz3ac_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  return el0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "semantic_branchRender_58_76_39hxd6pezz3ac",
+  "entry": null,
+  "displayName": "semantic_branchRender_58_76",
+  "hash": "39hxd6pezz3ac",
+  "canonicalFilename": "component.tsx_semantic_branchRender_58_76_39hxd6pezz3ac",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branchRender",
+  "captures": false,
+  "loc": [
+    58,
+    76
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_semantic_branchRender_85_180_qryptjfq5bb6.js (ENTRY POINT)==
+
+import {
+  _captures,
+  _first,
+  _next,
+  BranchRange,
+  createBranch,
+  _withCaptures,
+  _qrlWithChunk,
+  createTemplate,
+} from '@qwik.dev/core';
+import { semantic_branchCondition_89_107_tdui4uuzl7u0 } from './component.tsx_semantic_branchCondition_89_107_tdui4uuzl7u0';
+const q_semantic_branchRender_113_139_5t1kvcki1ql0 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_semantic_branchRender_113_139_5t1kvcki1ql0',
+  () => import('./component.tsx_semantic_branchRender_113_139_5t1kvcki1ql0'),
+  'semantic_branchRender_113_139_5t1kvcki1ql0'
+);
+const q_semantic_branchRender_152_177_2fqu0ewkrluqh = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_semantic_branchRender_152_177_2fqu0ewkrluqh',
+  () => import('./component.tsx_semantic_branchRender_152_177_2fqu0ewkrluqh'),
+  'semantic_branchRender_152_177_2fqu0ewkrluqh'
+);
+const semantic_branchRender_85_180_qryptjfq5bb6_tmpl0 = createTemplate('<!----><!---->');
+
+export const semantic_branchRender_85_180_qryptjfq5bb6 = (ctx) => {
+  const props = _captures[0];
+  const fragment0 = semantic_branchRender_85_180_qryptjfq5bb6_tmpl0(ctx.document);
+  const start0 = _first(fragment0);
+  const end0 = _next(start0);
+  const branch0 = createBranch(
+    ctx,
+    new BranchRange(ctx.document, start0, end0),
+    _withCaptures(semantic_branchCondition_89_107_tdui4uuzl7u0, [props]),
+    q_semantic_branchRender_113_139_5t1kvcki1ql0,
+    q_semantic_branchRender_152_177_2fqu0ewkrluqh,
+    '',
+    true
+  );
+  ctx.scheduler.notify(branch0);
+  return [start0, end0];
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "semantic_branchRender_85_180_qryptjfq5bb6",
+  "entry": null,
+  "displayName": "semantic_branchRender_85_180",
+  "hash": "qryptjfq5bb6",
+  "canonicalFilename": "component.tsx_semantic_branchRender_85_180_qryptjfq5bb6",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branchRender",
+  "captures": true,
+  "loc": [
+    85,
+    180
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_semantic_branchCondition_89_107_tdui4uuzl7u0.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const semantic_branchCondition_89_107_tdui4uuzl7u0 = () => {
+  const props = _captures[0];
+  return props.kind === 'b';
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "semantic_branchCondition_89_107_tdui4uuzl7u0",
+  "entry": null,
+  "displayName": "semantic_branchCondition_89_107",
+  "hash": "tdui4uuzl7u0",
+  "canonicalFilename": "component.tsx_semantic_branchCondition_89_107_tdui4uuzl7u0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branchCondition",
+  "captures": true,
+  "loc": [
+    89,
+    107
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_semantic_branchRender_113_139_5t1kvcki1ql0.js (ENTRY POINT)==
+
+import { _first, createTemplate } from '@qwik.dev/core';
+const semantic_branchRender_113_139_5t1kvcki1ql0_tmpl0 = createTemplate('<strong>b</strong>');
+
+export const semantic_branchRender_113_139_5t1kvcki1ql0 = (ctx) => {
+  const fragment0 = semantic_branchRender_113_139_5t1kvcki1ql0_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  return el0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "semantic_branchRender_113_139_5t1kvcki1ql0",
+  "entry": null,
+  "displayName": "semantic_branchRender_113_139",
+  "hash": "5t1kvcki1ql0",
+  "canonicalFilename": "component.tsx_semantic_branchRender_113_139_5t1kvcki1ql0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branchRender",
+  "captures": false,
+  "loc": [
+    113,
+    139
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_semantic_branchRender_152_177_2fqu0ewkrluqh.js (ENTRY POINT)==
+
+import { _first, createTemplate } from '@qwik.dev/core';
+const semantic_branchRender_152_177_2fqu0ewkrluqh_tmpl0 = createTemplate('<span>rest</span>');
+
+export const semantic_branchRender_152_177_2fqu0ewkrluqh = (ctx) => {
+  const fragment0 = semantic_branchRender_152_177_2fqu0ewkrluqh_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  return el0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "semantic_branchRender_152_177_2fqu0ewkrluqh",
+  "entry": null,
+  "displayName": "semantic_branchRender_152_177",
+  "hash": "2fqu0ewkrluqh",
+  "canonicalFilename": "component.tsx_semantic_branchRender_152_177_2fqu0ewkrluqh",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branchRender",
+  "captures": false,
+  "loc": [
+    152,
+    177
+  ],
+  "paramNames": []
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

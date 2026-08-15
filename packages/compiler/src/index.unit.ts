@@ -1401,6 +1401,100 @@ export function App() {
     });
   });
 
+  test('lowers a guard return to a reactive branch', async () => {
+    await testInput('guard_return_null', {
+      code: `export function App(props: { releaseId: string | null }) {
+  if (!props.releaseId) {
+    return null;
+  }
+  const releaseUrl = '/release/' + props.releaseId;
+  return <a href={releaseUrl}>release</a>;
+}
+`,
+    });
+  });
+
+  test('lowers guard returns around opaque promise arms', async () => {
+    await testInput('guard_promise_arms', {
+      code: `import { isServer } from '@qwik.dev/core';
+export function App(props: { releaseId: string | null }) {
+  if (isServer) {
+    if (props.releaseId) {
+      return globalThis.waitForRelease(props.releaseId, <p>released</p>);
+    }
+    return new Promise((resolve) => setTimeout(() => resolve(<p>slow</p>), 1000));
+  }
+  return <p>client</p>;
+}
+`,
+    });
+  });
+
+  test('lowers a fully returning else-if chain', async () => {
+    await testInput('guard_else_if_chain', {
+      code: `export function App(props: { kind: string }) {
+  if (props.kind === 'a') {
+    return <em>a</em>;
+  } else if (props.kind === 'b') {
+    return <strong>b</strong>;
+  } else {
+    return <span>rest</span>;
+  }
+}
+`,
+    });
+  });
+
+  test('emits raw guard-arm setup inside a chunked component', async () => {
+    await testInput('guard_arm_raw_setup', {
+      code: `import { component$, isServer, useServerData } from '@qwik.dev/core';
+export const Inner = component$(() => <p>inner</p>);
+const waitFor = (a: string, b: string, v: unknown) => Promise.resolve(v);
+export const App = component$(() => {
+  const url = useServerData<string>('url');
+  const requestId = useServerData<string>('id');
+  if (isServer) {
+    const releaseId = url ? new URL(url).searchParams.get('release') : null;
+    if (releaseId && requestId) {
+      return waitFor(requestId, releaseId, <Inner />);
+    }
+    const delay = Number(url?.charAt(0) || 1000);
+    return new Promise((resolve) => { setTimeout(() => resolve(<Inner />), delay); });
+  }
+  return <Inner />;
+});
+`,
+    });
+  });
+
+  test('rejects a guard else followed by more statements', async () => {
+    await testInput('guard_else_trailing_diagnostic', {
+      code: `export function App(props: { flag: boolean }) {
+  if (props.flag) {
+    return <em>yes</em>;
+  } else {
+    console.log('no');
+  }
+  return <span>after</span>;
+}
+`,
+    });
+  });
+
+  test('rejects hooks inside a guard arm', async () => {
+    await testInput('guard_hook_arm_diagnostic', {
+      code: `import { useSignal } from '@qwik.dev/core';
+export function App(props: { flag: boolean }) {
+  if (props.flag) {
+    const count = useSignal(0);
+    return <em>{count.value}</em>;
+  }
+  return <span>off</span>;
+}
+`,
+    });
+  });
+
   test('folds isServer and isBrowser per emit target', async () => {
     await testInput('build_constant_fold', {
       code: `import { isServer, isBrowser, useSignal } from '@qwik.dev/core';

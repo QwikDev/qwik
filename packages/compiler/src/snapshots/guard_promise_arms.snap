@@ -1,0 +1,369 @@
+==INPUT==
+
+import { isServer } from '@qwik.dev/core';
+export function App(props: { releaseId: string | null }) {
+  if (isServer) {
+    if (props.releaseId) {
+      return globalThis.waitForRelease(props.releaseId, <p>released</p>);
+    }
+    return new Promise((resolve) => setTimeout(() => resolve(<p>slow</p>), 1000));
+  }
+  return <p>client</p>;
+}
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  _captures,
+  renderSsrContent,
+  createSsrRecord,
+  createSsrNodeId,
+  renderSsrDynamicContent,
+  maybeThen,
+  getActiveInvokeContext,
+  invoke,
+  renderSsrBranch,
+  _noopQrl,
+} from '@qwik.dev/core';
+
+const semantic_branchCondition_95_110_11rphvizt83y1 = () => {
+  const props = _captures[0];
+  return props.releaseId;
+};
+const q_semantic_branchCondition_95_110_11rphvizt83y1 = /*#__PURE__*/ _noopQrl(
+  'semantic_branchCondition_95_110_11rphvizt83y1'
+);
+q_semantic_branchCondition_95_110_11rphvizt83y1.s(semantic_branchCondition_95_110_11rphvizt83y1);
+const semantic_branchRender_117_184_cqga24q4x5d8 = (ctx) => {
+  const props = _captures[0];
+  const content_id_0 = ctx.nextId();
+  ctx.addRoot(props);
+  const content_0 = renderSsrContent(
+    ctx,
+    content_id_0,
+    [props],
+    q_semantic_expression_124_183_2uytkwva3pdod,
+    true
+  );
+  return maybeThen(content_0, (content_0) => [
+    createSsrRecord('<!d=', createSsrNodeId(content_id_0), '>'),
+    renderSsrDynamicContent(content_0),
+    '<!/d>',
+  ]);
+};
+const q_semantic_branchRender_117_184_cqga24q4x5d8 = /*#__PURE__*/ _noopQrl(
+  'semantic_branchRender_117_184_cqga24q4x5d8'
+);
+q_semantic_branchRender_117_184_cqga24q4x5d8.s(semantic_branchRender_117_184_cqga24q4x5d8);
+const semantic_expression_124_183_2uytkwva3pdod = (props) => {
+  const invokeCtx = getActiveInvokeContext();
+  const ctx = invokeCtx.container;
+  return globalThis.waitForRelease(props.releaseId, () =>
+    invoke(invokeCtx, () =>
+      (() => {
+        return '<p>released</p>';
+      })()
+    )
+  );
+};
+const q_semantic_expression_124_183_2uytkwva3pdod = /*#__PURE__*/ _noopQrl(
+  'semantic_expression_124_183_2uytkwva3pdod'
+);
+q_semantic_expression_124_183_2uytkwva3pdod.s(semantic_expression_124_183_2uytkwva3pdod);
+const semantic_branchRender_191_268_3mnm2yotw6hdh = (ctx) => {
+  const content_id_0 = ctx.nextId();
+  const content_0 = renderSsrContent(
+    ctx,
+    content_id_0,
+    [],
+    q_semantic_expression_198_267_6luf80ubcnn9,
+    true
+  );
+  return maybeThen(content_0, (content_0) => [
+    createSsrRecord('<!d=', createSsrNodeId(content_id_0), '>'),
+    renderSsrDynamicContent(content_0),
+    '<!/d>',
+  ]);
+};
+const q_semantic_branchRender_191_268_3mnm2yotw6hdh = /*#__PURE__*/ _noopQrl(
+  'semantic_branchRender_191_268_3mnm2yotw6hdh'
+);
+q_semantic_branchRender_191_268_3mnm2yotw6hdh.s(semantic_branchRender_191_268_3mnm2yotw6hdh);
+const semantic_expression_198_267_6luf80ubcnn9 = () => {
+  const invokeCtx = getActiveInvokeContext();
+  const ctx = invokeCtx.container;
+  return new Promise((resolve) =>
+    setTimeout(
+      () =>
+        resolve(() =>
+          invoke(invokeCtx, () =>
+            (() => {
+              return '<p>slow</p>';
+            })()
+          )
+        ),
+      1e3
+    )
+  );
+};
+const q_semantic_expression_198_267_6luf80ubcnn9 = /*#__PURE__*/ _noopQrl(
+  'semantic_expression_198_267_6luf80ubcnn9'
+);
+q_semantic_expression_198_267_6luf80ubcnn9.s(semantic_expression_198_267_6luf80ubcnn9);
+export function App(props, ctx) {
+  const branch_id_0 = ctx.nextId();
+  ctx.addRoot(props);
+  ctx.addRoot(props);
+  const branch_0 = renderSsrBranch(
+    ctx,
+    branch_id_0,
+    q_semantic_branchCondition_95_110_11rphvizt83y1.w([props]),
+    q_semantic_branchRender_117_184_cqga24q4x5d8.w([props]),
+    q_semantic_branchRender_191_268_3mnm2yotw6hdh,
+    '',
+    true
+  );
+  return maybeThen(branch_0, (branch_0) => [
+    createSsrRecord('<!b=', createSsrNodeId(branch_id_0), '>'),
+    branch_0,
+    '<!/b>',
+  ]);
+}
+============================= src/component.tsx_semantic_branchCondition_95_110_11rphvizt83y1.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const semantic_branchCondition_95_110_11rphvizt83y1 = () => {
+  const props = _captures[0];
+  return props.releaseId;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "semantic_branchCondition_95_110_11rphvizt83y1",
+  "entry": null,
+  "displayName": "semantic_branchCondition_95_110",
+  "hash": "11rphvizt83y1",
+  "canonicalFilename": "component.tsx_semantic_branchCondition_95_110_11rphvizt83y1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branchCondition",
+  "captures": true,
+  "loc": [
+    95,
+    110
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_semantic_branchRender_117_184_cqga24q4x5d8.js (ENTRY POINT)==
+
+import {
+  _noopQrl,
+  _captures,
+  renderSsrContent,
+  createSsrRecord,
+  createSsrNodeId,
+  renderSsrDynamicContent,
+  maybeThen,
+} from '@qwik.dev/core';
+import { semantic_expression_124_183_2uytkwva3pdod } from './component.tsx_semantic_expression_124_183_2uytkwva3pdod';
+const q_semantic_expression_124_183_2uytkwva3pdod = /*#__PURE__*/ _noopQrl(
+  'semantic_expression_124_183_2uytkwva3pdod'
+);
+q_semantic_expression_124_183_2uytkwva3pdod.s(semantic_expression_124_183_2uytkwva3pdod);
+
+export const semantic_branchRender_117_184_cqga24q4x5d8 = (ctx) => {
+  const props = _captures[0];
+  const content_id_0 = ctx.nextId();
+  ctx.addRoot(props);
+  const content_0 = renderSsrContent(
+    ctx,
+    content_id_0,
+    [props],
+    q_semantic_expression_124_183_2uytkwva3pdod,
+    true
+  );
+  return maybeThen(content_0, (content_0) => [
+    createSsrRecord('<!d=', createSsrNodeId(content_id_0), '>'),
+    renderSsrDynamicContent(content_0),
+    '<!/d>',
+  ]);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "semantic_branchRender_117_184_cqga24q4x5d8",
+  "entry": null,
+  "displayName": "semantic_branchRender_117_184",
+  "hash": "cqga24q4x5d8",
+  "canonicalFilename": "component.tsx_semantic_branchRender_117_184_cqga24q4x5d8",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branchRender",
+  "captures": true,
+  "loc": [
+    117,
+    184
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_semantic_expression_124_183_2uytkwva3pdod.js (ENTRY POINT)==
+
+import { getActiveInvokeContext, invoke } from '@qwik.dev/core';
+
+export const semantic_expression_124_183_2uytkwva3pdod = (props) => {
+  const invokeCtx = getActiveInvokeContext();
+  const ctx = invokeCtx.container;
+  return globalThis.waitForRelease(props.releaseId, () =>
+    invoke(invokeCtx, () =>
+      (() => {
+        return '<p>released</p>';
+      })()
+    )
+  );
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "semantic_expression_124_183_2uytkwva3pdod",
+  "entry": null,
+  "displayName": "semantic_expression_124_183",
+  "hash": "2uytkwva3pdod",
+  "canonicalFilename": "component.tsx_semantic_expression_124_183_2uytkwva3pdod",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "expression",
+  "captures": true,
+  "loc": [
+    124,
+    183
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_semantic_branchRender_191_268_3mnm2yotw6hdh.js (ENTRY POINT)==
+
+import {
+  _noopQrl,
+  renderSsrContent,
+  createSsrRecord,
+  createSsrNodeId,
+  renderSsrDynamicContent,
+  maybeThen,
+} from '@qwik.dev/core';
+import { semantic_expression_198_267_6luf80ubcnn9 } from './component.tsx_semantic_expression_198_267_6luf80ubcnn9';
+const q_semantic_expression_198_267_6luf80ubcnn9 = /*#__PURE__*/ _noopQrl(
+  'semantic_expression_198_267_6luf80ubcnn9'
+);
+q_semantic_expression_198_267_6luf80ubcnn9.s(semantic_expression_198_267_6luf80ubcnn9);
+
+export const semantic_branchRender_191_268_3mnm2yotw6hdh = (ctx) => {
+  const content_id_0 = ctx.nextId();
+  const content_0 = renderSsrContent(
+    ctx,
+    content_id_0,
+    [],
+    q_semantic_expression_198_267_6luf80ubcnn9,
+    true
+  );
+  return maybeThen(content_0, (content_0) => [
+    createSsrRecord('<!d=', createSsrNodeId(content_id_0), '>'),
+    renderSsrDynamicContent(content_0),
+    '<!/d>',
+  ]);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "semantic_branchRender_191_268_3mnm2yotw6hdh",
+  "entry": null,
+  "displayName": "semantic_branchRender_191_268",
+  "hash": "3mnm2yotw6hdh",
+  "canonicalFilename": "component.tsx_semantic_branchRender_191_268_3mnm2yotw6hdh",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branchRender",
+  "captures": false,
+  "loc": [
+    191,
+    268
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_semantic_expression_198_267_6luf80ubcnn9.js (ENTRY POINT)==
+
+import { getActiveInvokeContext, invoke } from '@qwik.dev/core';
+
+export const semantic_expression_198_267_6luf80ubcnn9 = () => {
+  const invokeCtx = getActiveInvokeContext();
+  const ctx = invokeCtx.container;
+  return new Promise((resolve) =>
+    setTimeout(
+      () =>
+        resolve(() =>
+          invoke(invokeCtx, () =>
+            (() => {
+              return '<p>slow</p>';
+            })()
+          )
+        ),
+      1e3
+    )
+  );
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "semantic_expression_198_267_6luf80ubcnn9",
+  "entry": null,
+  "displayName": "semantic_expression_198_267",
+  "hash": "6luf80ubcnn9",
+  "canonicalFilename": "component.tsx_semantic_expression_198_267_6luf80ubcnn9",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "expression",
+  "captures": false,
+  "loc": [
+    198,
+    267
+  ],
+  "paramNames": []
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { _first, createTemplate } from '@qwik.dev/core';
+
+const App_tmpl0 = createTemplate('<p>client</p>');
+export function App(props, ctx) {
+  const fragment0 = App_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  return el0;
+}
+== CSR DIAGNOSTICS ==
+
+[]

@@ -871,7 +871,7 @@ export const value = register(renderChoice);
     expect(result.diagnostics[0]?.code).toBe('unsupported-runtime-jsx');
   });
 
-  test('keeps the linear return contract for ordinary components', async () => {
+  test('lowers a guard return to a lazy client branch', async () => {
     const input = {
       path: 'src/non-linear-component.tsx',
       code: `export function App(props) {
@@ -883,9 +883,14 @@ export const value = register(renderChoice);
 
     const result = await transformModules(options(input, false));
 
-    expect(result.modules[0]?.code).toBe('');
-    expect(result.diagnostics).toHaveLength(1);
-    expect(result.diagnostics[0]?.code).toBe('unsupported-component-shape');
+    expect(result.diagnostics).toHaveLength(0);
+    const origin = result.modules[0]?.code ?? '';
+    expect(origin).toContain('createBranch(');
+    expect(origin).toContain('_withCaptures(semantic_branchCondition_');
+    // both arms load as chunks, like any ternary branch
+    expect(
+      origin.match(/_qrlWithChunk\("\.\/non-linear-component\.tsx_semantic_branchRender_/g)
+    ).toHaveLength(2);
   });
 
   test('emits useTaskQrl for SSR and useTask with a function for CSR', async () => {

@@ -157,7 +157,25 @@ export interface ComponentShape {
   readonly async: boolean;
   readonly setup: readonly SourceRange[];
   readonly returnExpression: SourceRange;
+  /** Present when the body is a guard tree; setup/returnExpression then describe the prefix. */
+  readonly guard: GuardShape | null;
   readonly parameter: ComponentParameterPlan | null;
+}
+
+/** A return-terminated `if` lowered as a reactive branch: `if (c) { s; return X; } rest`. */
+export interface GuardShape {
+  readonly range: SourceRange;
+  readonly condition: SourceRange;
+  readonly then: GuardArmShape;
+  readonly else: GuardArmShape;
+}
+
+export interface GuardArmShape {
+  readonly range: SourceRange;
+  readonly setup: readonly SourceRange[];
+  readonly exit:
+    | { readonly kind: 'return'; readonly expression: SourceRange | null }
+    | { readonly kind: 'guard'; readonly guard: GuardShape };
 }
 
 export type SetupPlan =

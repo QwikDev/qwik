@@ -27,7 +27,12 @@ import {
 import { createComponentDefinition, discoverComponentCandidates } from './discover';
 import { emitCsrModule, emitCsrSegmentRender } from '../generators/js/csr/emit-csr';
 import { collectNativeMarkers, nativePluginFns, type NativeMarker } from './native-lower';
-import { emitSsrOpPlan, findWireBlock, type PlanSsrComponent } from './emit-plan-ssr';
+import {
+  emitSsrOpPlan,
+  findWireBlock,
+  type JsStatementRewriter,
+  type PlanSsrComponent,
+} from './emit-plan-ssr';
 import {
   emitModulePlan,
   type PlanHookCall,
@@ -56,6 +61,7 @@ import {
   emitSsrModule,
   emitSsrSegmentRender,
   lastUngeneratedReason,
+  rewriteJsSetupStatement,
   type SsrPlanData,
 } from '../generators/js/ssr/emit-ssr';
 import { extractQrls, isSetupQrlSegment } from './extract';
@@ -536,6 +542,15 @@ export function transformModule(ctx: CompilerContext): TransformResult {
   // chunk emission reuses the owning component's wire block when one exists
   const wireCache = new Map<ComponentOutput, PlanSsrComponent | null>();
   const allOutputs = [...mainOutputs, ...componentModules.map((component) => component.output)];
+  // raw setup statements in chunk-emitted render fns finalize here; QRL-bearing ones
+  // stay refused because their import declarations cannot print in this seam
+  const wireStatementImports = new TargetImportResolver(
+    analysis.bindings.map((binding) => binding.name)
+  );
+  const rewriteWireStatement: JsStatementRewriter = (operation) =>
+    operation.segmentIds.length > 0
+      ? null
+      : rewriteJsSetupStatement(operation, ctx.input.code, new Map(), wireStatementImports, null);
   const findSegmentWireBlock = (segment: SegmentPlan) => {
     // embedded renders are synthetic children of their parent segment's id
     const baseId = segment.id.replace(/_embedded_\d+$/, '');
@@ -553,7 +568,7 @@ export function transformModule(ctx: CompilerContext): TransformResult {
         componentReturnMode,
         ctx.input.code,
         planData.bindingName,
-        undefined,
+        rewriteWireStatement,
         segment
       );
       return moduleBlock === null ? undefined : { render: moduleBlock as never };
@@ -565,7 +580,8 @@ export function transformModule(ctx: CompilerContext): TransformResult {
         owner.result.segments,
         componentReturnMode,
         ctx.input.code,
-        planData.bindingName
+        planData.bindingName,
+        rewriteWireStatement
       );
       wireCache.set(owner, wire);
     }
@@ -584,7 +600,7 @@ export function transformModule(ctx: CompilerContext): TransformResult {
       componentReturnMode,
       ctx.input.code,
       planData.bindingName,
-      undefined,
+      rewriteWireStatement,
       segment
     );
     return block === null ? undefined : { render: block as never };

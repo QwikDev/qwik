@@ -1,0 +1,65 @@
+==INPUT==
+
+export function App(props: { flag: boolean }) {
+  if (props.flag) {
+    return <em>yes</em>;
+  } else {
+    console.log('no');
+  }
+  return <span>after</span>;
+}
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+
+== SSR DIAGNOSTICS ==
+
+[
+  {
+    "scope": "compiler",
+    "category": "error",
+    "code": "unsupported-component-shape",
+    "file": "src/component.tsx",
+    "message": "A returning if/else cannot be followed by more statements; move the trailing code into the else.",
+    "highlights": [
+      {
+        "lo": 133,
+        "hi": 159,
+        "startLine": 7,
+        "startCol": 3,
+        "endLine": 7,
+        "endCol": 28
+      }
+    ],
+    "suggestions": null
+  }
+]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+
+== CSR DIAGNOSTICS ==
+
+[
+  {
+    "scope": "compiler",
+    "category": "error",
+    "code": "unsupported-component-shape",
+    "file": "src/component.tsx",
+    "message": "A returning if/else cannot be followed by more statements; move the trailing code into the else.",
+    "highlights": [
+      {
+        "lo": 133,
+        "hi": 159,
+        "startLine": 7,
+        "startCol": 3,
+        "endLine": 7,
+        "endCol": 28
+      }
+    ],
+    "suggestions": null
+  }
+]

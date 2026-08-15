@@ -49,9 +49,11 @@ export function App(props: Props) {
   });
 
   it('reports qualified shape diagnostics in original TSX coordinates', async () => {
-    const code = `type Props = { ok: boolean };
+    const code = `type Props = { ok: boolean[] };
 export function App(props: Props) {
-  if (props.ok) return <b>yes</b>;
+  for (const ok of props.ok) {
+    return <b>yes</b>;
+  }
   return <i>no</i>;
 }
 `;
@@ -68,6 +70,6 @@ export function App(props: Props) {
     const highlight = result.diagnostics[0].highlights?.[0];
     expect(result.diagnostics[0].code).toBe('unsupported-component-shape');
     expect(highlight).not.toBeUndefined();
-    expect(code.slice(highlight!.lo, highlight!.hi)).toContain('return');
+    expect(code.slice(highlight!.lo, highlight!.hi)).toContain('for (const ok');
   });
 });

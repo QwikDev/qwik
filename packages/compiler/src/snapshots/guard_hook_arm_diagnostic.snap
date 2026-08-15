@@ -1,0 +1,65 @@
+==INPUT==
+
+import { useSignal } from '@qwik.dev/core';
+export function App(props: { flag: boolean }) {
+  if (props.flag) {
+    const count = useSignal(0);
+    return <em>{count.value}</em>;
+  }
+  return <span>off</span>;
+}
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+
+== SSR DIAGNOSTICS ==
+
+[
+  {
+    "scope": "compiler",
+    "category": "error",
+    "code": "unsupported-component-shape",
+    "file": "src/component.tsx",
+    "message": "useSignal() cannot be called conditionally: hooks are positional, so every render must call them in the same order.",
+    "highlights": [
+      {
+        "lo": 130,
+        "hi": 142,
+        "startLine": 4,
+        "startCol": 19,
+        "endLine": 4,
+        "endCol": 30
+      }
+    ],
+    "suggestions": null
+  }
+]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+
+== CSR DIAGNOSTICS ==
+
+[
+  {
+    "scope": "compiler",
+    "category": "error",
+    "code": "unsupported-component-shape",
+    "file": "src/component.tsx",
+    "message": "useSignal() cannot be called conditionally: hooks are positional, so every render must call them in the same order.",
+    "highlights": [
+      {
+        "lo": 130,
+        "hi": 142,
+        "startLine": 4,
+        "startCol": 19,
+        "endLine": 4,
+        "endCol": 30
+      }
+    ],
+    "suggestions": null
+  }
+]

@@ -52,6 +52,8 @@ import type {
   RenderEffectPlan,
   RenderFunctionPlan,
   RenderNodePlan,
+  GuardArmShape,
+  GuardShape,
   RenderPlan,
   Segment,
   SegmentPlan,
@@ -64,6 +66,11 @@ import type {
   UseIdPlan,
   ValuePlan,
 } from './plan-types';
+
+/** A guard arm that renders nothing and computes nothing: `return;` / `return null` with no setup. */
+function isEmptyGuardArm(arm: GuardArmShape): boolean {
+  return arm.setup.length === 0 && arm.exit.kind === 'return' && arm.exit.expression === null;
+}
 import { collectIrBindingIds, type ValueIR } from './expr-ir';
 import { lowerValueIr, reportValueIrSite, type ExprLowerFacts } from './expr-lower';
 import type { SetupOp } from './setup-ir';
@@ -394,16 +401,22 @@ class SemanticLowerer {
     }
     this.hasCustomHook = this.hasCustomHookInSetup();
 
-    const expression = findNodeByRange(this.owner.body, shape.returnExpression);
-    if (expression === null) {
-      return this.fail(
-        'unsupported-syntax',
-        shape.returnExpression,
-        'The component return expression could not be located in the normalized AST.'
-      );
-    }
     const effects: RenderEffectPlan[] = [];
-    const roots = this.lowerExpression(expression, { lifetimeId: rootLifetime, effects });
+    let roots: readonly RenderNodePlan[];
+    if (shape.guard !== null) {
+      const guardBranch = this.lowerGuard(shape.guard, rootLifetime);
+      roots = guardBranch === null ? [] : [guardBranch];
+    } else {
+      const expression = findNodeByRange(this.owner.body, shape.returnExpression);
+      if (expression === null) {
+        return this.fail(
+          'unsupported-syntax',
+          shape.returnExpression,
+          'The component return expression could not be located in the normalized AST.'
+        );
+      }
+      roots = this.lowerExpression(expression, { lifetimeId: rootLifetime, effects });
+    }
     this.lowerQrlRenderFunctions();
     this.validateCompilerHookScopes();
     if (this.failure !== null) {
@@ -1469,10 +1482,10 @@ class SemanticLowerer {
     }
     const initialEmbedded =
       embeddedRoots.length > 0 && this.isInitialEmbeddedExpression(range, embeddedRoots);
-    const inlineEmbeddedRenders = initialEmbedded
-      ? embeddedRoots.map((root) => this.createEmbeddedRenderFunction(root, null, lifetimeId))
-      : [];
-    const value: ValuePlan = initialEmbedded
+    const inlineIr = initialEmbedded ? this.valueIr(expression) : {};
+    // without portable IR the inline form emits as opaque js, which cannot carry embedded JSX
+    const inlineEmbedded = initialEmbedded && inlineIr.ir !== undefined;
+    const value: ValuePlan = inlineEmbedded
       ? {
           kind: 'expression',
           expression: range,
@@ -1480,8 +1493,10 @@ class SemanticLowerer {
           initialOnly: true,
           compilerString: false,
           boundaries: this.referenceInlineBoundaries(range, lifetimeId),
-          embeddedRenders: inlineEmbeddedRenders,
-          ...this.valueIr(expression),
+          embeddedRenders: embeddedRoots.map((root) =>
+            this.createEmbeddedRenderFunction(root, null, lifetimeId)
+          ),
+          ...inlineIr,
         }
       : this.createValue(
           expression,
@@ -1492,7 +1507,7 @@ class SemanticLowerer {
           false,
           embeddedRoots.length > 0
         );
-    if (embeddedRoots.length > 0 && !initialEmbedded) {
+    if (embeddedRoots.length > 0 && !inlineEmbedded) {
       if (value.kind !== 'segment') {
         this.unsupported(range, 'Embedded JSX requires a source-preserving value segment.');
       } else {
@@ -1501,7 +1516,8 @@ class SemanticLowerer {
           embeddedRoots,
           lifetimeId,
           'ambient',
-          this.isInitialEmbeddedExpression(range, embeddedRoots)
+          initialEmbedded,
+          expression
         );
       }
     }
@@ -1758,11 +1774,15 @@ class SemanticLowerer {
     roots: readonly AstNode[],
     parentLifetimeId: LifetimeId,
     context: Exclude<SegmentPlan['embeddedRenderContext'], null>,
-    initialOnly: boolean
+    initialOnly: boolean,
+    container?: unknown
   ): void {
-    const plans = roots.map((root) =>
-      this.createEmbeddedRenderFunction(root, segmentId, parentLifetimeId)
-    );
+    const argumentRoots =
+      container === undefined ? new Set<AstNode>() : collectCallArgumentNodes(container, roots);
+    const plans = roots.map((root) => {
+      const render = this.createEmbeddedRenderFunction(root, segmentId, parentLifetimeId);
+      return argumentRoots.has(root) ? { ...render, argumentPosition: true as const } : render;
+    });
     const existing = this.embeddedRenders.get(segmentId) ?? [];
     this.embeddedRenders.set(segmentId, [...existing, ...plans]);
     this.embeddedRenderContexts.set(segmentId, context);
@@ -1953,6 +1973,115 @@ class SemanticLowerer {
               blockingSuspense
             ),
     };
+  }
+
+  /** Lowers a guard-shaped body exit (`if (c) { return X; } rest`) as a reactive branch. */
+  private lowerGuard(guard: GuardShape, parentLifetimeId: LifetimeId): BranchPlan | null {
+    const conditionNode = findNodeByRange(this.owner.body, guard.condition);
+    if (conditionNode === null) {
+      this.unsupported(
+        guard.condition,
+        'A guard condition could not be located in the normalized AST.'
+      );
+      return null;
+    }
+    const lifetimeId = this.allocateLifetime(parentLifetimeId, 'branch', 'atomic-range');
+    const conditionRange = getRange(conditionNode) ?? guard.condition;
+    const conditionId = `semantic_branchCondition_${conditionRange[0]}_${conditionRange[1]}`;
+    const conditionPlan = this.createSyntheticSegment(
+      conditionId,
+      'branchCondition',
+      conditionRange,
+      conditionRange,
+      lifetimeId,
+      [],
+      null,
+      containsAwait(conditionNode),
+      null,
+      'declared-in-range'
+    );
+    this.syntheticSegments.push(conditionPlan);
+    const thenArm = this.lowerGuardArm(guard.then, lifetimeId);
+    const elseArm = isEmptyGuardArm(guard.else) ? null : this.lowerGuardArm(guard.else, lifetimeId);
+    if (thenArm === null || (elseArm === null && !isEmptyGuardArm(guard.else))) {
+      return null;
+    }
+    return {
+      kind: 'branch',
+      range: guard.range,
+      lifetimeId,
+      condition: { segmentId: conditionId, ...captureBindingIds(conditionPlan.captures) },
+      ...this.namedValueIr('conditionIr', conditionNode),
+      then: thenArm,
+      else: elseArm,
+    };
+  }
+
+  private lowerGuardArm(
+    arm: GuardArmShape,
+    parentLifetimeId: LifetimeId
+  ): RenderFunctionPlan | null {
+    const lifetimeId = this.allocateLifetime(parentLifetimeId, 'render-function', 'atomic-range');
+    const segmentId = this.createSyntheticRenderSegment(
+      'branchRender',
+      null,
+      arm.range,
+      lifetimeId,
+      []
+    ).segmentId;
+    this.classifySetupBindings(arm.setup);
+    const lowered = this.withRenderSegment(segmentId, () => {
+      const setup = this.lowerSetup(lifetimeId, arm.setup);
+      const effects: RenderEffectPlan[] = [];
+      let roots: readonly RenderNodePlan[] = [];
+      if (arm.exit.kind === 'guard') {
+        const nested = this.lowerGuard(arm.exit.guard, lifetimeId);
+        roots = nested === null ? [] : [nested];
+      } else if (arm.exit.expression !== null) {
+        const expression = findNodeByRange(this.owner.body, arm.exit.expression);
+        if (expression === null) {
+          this.unsupported(
+            arm.exit.expression,
+            'A guard return expression could not be located in the normalized AST.'
+          );
+          return null;
+        }
+        roots = this.lowerExpression(expression, { lifetimeId, effects });
+      }
+      return { setup, render: { roots, effects } satisfies RenderPlan };
+    });
+    if (lowered === null || this.failure !== null) {
+      return null;
+    }
+    const { setup, render } = lowered;
+    const needsId = setup.some((item) => item.kind === 'statement' && item.useIds.length > 0);
+    const plan: RenderFunctionPlan = {
+      kind: 'branch',
+      collectionSourceKind: null,
+      range: arm.range,
+      segmentId,
+      lifetimeId,
+      async: false,
+      pure: isPureRenderFunction(
+        render,
+        setup,
+        false,
+        this.lifecycleSegmentsIn(arm.range),
+        needsId
+      ),
+      setup,
+      parameterBindingIds: [],
+      render,
+      referenceBindingIds: this.renderReferenceBindingIds(render, setup),
+      lifecycleSegmentIds: this.lifecycleSegmentsIn(arm.range),
+      needsId,
+      styleScope: this.styleScopes.length === 0 ? null : this.styleScopes.join(' '),
+      runtimeStyleScope: this.hasCustomHook,
+      runtimeStyleScopeName: this.hasCustomHook ? this.runtimeStyleScopeName() : null,
+    };
+    this.renderFunctions.set(segmentId, plan);
+    this.attachSyntheticRender(segmentId, plan);
+    return plan;
   }
 
   private lowerCollection(
@@ -2237,7 +2366,8 @@ class SemanticLowerer {
           roots,
           lifetimeId,
           segment.qrl?.kind === 'implicit' ? 'trailing' : 'ambient',
-          true
+          true,
+          callback.body
         );
       }
     }
@@ -2381,7 +2511,7 @@ class SemanticLowerer {
   }
 
   private createSyntheticRenderSegment(
-    kind: 'forRender' | 'suspenseRender' | 'slotRender' | 'collectionRender',
+    kind: 'forRender' | 'suspenseRender' | 'slotRender' | 'collectionRender' | 'branchRender',
     callback: AstFunction | null,
     range: SourceRange,
     lifetimeId: LifetimeId,
@@ -2396,7 +2526,10 @@ class SemanticLowerer {
       lifetimeId,
       parameterBindingIds,
       null,
-      callback?.async === true || containsAwait(callback?.body)
+      callback?.async === true || containsAwait(callback?.body),
+      null,
+      // guard arms are statement spans in the component scope, not their own function scope
+      kind === 'branchRender' ? 'declared-in-range' : 'function-scope'
     );
     this.syntheticSegments.push(plan);
     return {
@@ -2415,7 +2548,12 @@ class SemanticLowerer {
     render: RenderFunctionPlan | null,
     async: boolean,
     /** The segment function's own name binding — declared in-range but owned by the outer scope. */
-    excludeBindingId: BindingId | null = null
+    excludeBindingId: BindingId | null = null,
+    /**
+     * 'function-scope' excludes whole scopes declared inside the range (real function segments);
+     * 'declared-in-range' excludes only in-range declarations (guard arms share the outer scope).
+     */
+    captureExclusion: 'function-scope' | 'declared-in-range' = 'function-scope'
   ): SegmentPlan {
     const references = this.analysis.references.filter((reference) =>
       rangeContains(functionRange, reference.range)
@@ -2437,12 +2575,17 @@ class SemanticLowerer {
           : [reference.bindingId]
       )
     );
+    const isLocalToSegment = (binding: BindingInfo): boolean =>
+      captureExclusion === 'function-scope'
+        ? localOwnerIds.has(binding.ownerId)
+        : binding.declarationRange !== null &&
+          rangeContains(functionRange, binding.declarationRange);
     const captureBindings = referencedBindings.flatMap((bindingId) => {
       const binding = this.binding(bindingId);
       return binding === null ||
         binding.kind === 'import' ||
         binding.kind === 'module' ||
-        localOwnerIds.has(binding.ownerId)
+        isLocalToSegment(binding)
         ? []
         : [binding];
     });

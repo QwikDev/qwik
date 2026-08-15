@@ -543,9 +543,11 @@ function emitSegmentCode(
     if (embedded === null) {
       return null;
     }
+    const eager = emitEmbeddedRenderExpression(embedded, render.async, embeddedInvokeContextName!);
     replacements.push({
       range: render.range,
-      value: emitEmbeddedRenderExpression(embedded, render.async, embeddedInvokeContextName!),
+      // argument-position JSX defers as a thunk, so consumers see a compiled closure
+      value: render.argumentPosition ? `() => ${eager}` : eager,
     });
     hoists.push(...embedded.hoists);
     for (const id of embedded.directSegmentIds ?? []) {

@@ -63,7 +63,7 @@ describe('ComponentShape', () => {
   test.each([
     `export function App(a, b) { return <main />; }`,
     `export function App([value]) { return <main>{value}</main>; }`,
-    `export function App(flag) { if (flag) return <main />; return <aside />; }`,
+    `export function App(flag) { for (const x of flag) { return <main />; } return <aside />; }`,
     `export function App() { return <main />; sideEffect(); }`,
   ])('fails a qualified unsupported shape atomically', async (code) => {
     const result = await transform(code);
@@ -102,7 +102,7 @@ export function App(props) {
     expect((shape as { message: string }).message).toContain('conditionally');
   });
 
-  test('rejects a return inside an if as a conditional render', () => {
+  test('shapes a return inside an if as a guard branch', () => {
     const code = `export function App(props) {
   if (props.missing) {
     return <p>gone</p>;
@@ -110,8 +110,13 @@ export function App(props) {
   return <main />;
 }`;
     const [shape] = shapes(code);
-    expect(shape.kind).toBe('failure');
-    expect((shape as { message: string }).message).toContain('render');
+    expect(shape.kind).toBe('success');
+    if (shape.kind === 'success') {
+      expect(shape.shape.guard).not.toBeNull();
+      expect(shape.shape.guard!.then.exit.kind).toBe('return');
+      expect(shape.shape.guard!.else.exit.kind).toBe('return');
+      expect(code.slice(...shape.shape.guard!.condition)).toBe('props.missing');
+    }
   });
 
   test('rejects JSX inside an if in setup', () => {

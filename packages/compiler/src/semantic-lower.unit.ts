@@ -144,9 +144,12 @@ export function App() {
       throw new Error('Expected embedded callback content');
     }
     const value = root.children[0].value;
-    expect(value).toMatchObject({
+    if (value.kind !== 'segment') {
+      throw new Error('Expected a source-preserving value segment');
+    }
+    const segment = plan.segments.find((candidate) => candidate.id === value.segment.segmentId);
+    expect(segment).toMatchObject({
       kind: 'expression',
-      initialOnly: true,
       embeddedRenders: [{ render: { roots: [{ kind: 'component' }] } }],
     });
   });

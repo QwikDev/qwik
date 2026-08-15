@@ -29,6 +29,37 @@ export interface ModuleLevelDecl {
   readonly hasSideEffects: boolean;
   readonly isPartOfSharedDestructuring: boolean;
   readonly kind: string;
+  /** Initializer is a direct `routeLoader$`/`routeAction$`/`globalAction$` (or Qrl-form) call. */
+  readonly hasRouterMarkerInit: boolean;
+}
+
+const ROUTER_MARKER_CALLEES = new Set([
+  'routeLoader$',
+  'routeLoaderQrl',
+  'routeAction$',
+  'routeActionQrl',
+  'globalAction$',
+  'globalActionQrl',
+]);
+
+function isRouterMarkerInit(init: AstMaybeNode): boolean {
+  let node = init;
+  while (
+    node &&
+    (node.type === 'ParenthesizedExpression' ||
+      node.type === 'TSAsExpression' ||
+      node.type === 'TSNonNullExpression' ||
+      node.type === 'TSTypeAssertion' ||
+      node.type === 'TSSatisfiesExpression' ||
+      node.type === 'TSInstantiationExpression')
+  ) {
+    node = node.expression;
+  }
+  return (
+    node?.type === 'CallExpression' &&
+    node.callee?.type === 'Identifier' &&
+    ROUTER_MARKER_CALLEES.has(node.callee.name)
+  );
 }
 
 /** Conservative purity check: true only for expressions that provably have no side effects. */
@@ -143,6 +174,7 @@ export function collectModuleLevelDecls(program: AstProgram, source: string): Mo
         const hasSideEffects = !isInitializerSafe(declarator.init);
         const isDestructuring = id.type === 'ObjectPattern' || id.type === 'ArrayPattern';
         const isShared = isDestructuring && countBindings(id) > 1;
+        const hasRouterMarkerInit = isRouterMarkerInit(declarator.init);
 
         const names = collectBindingNamesFromPattern(id);
 
@@ -156,6 +188,7 @@ export function collectModuleLevelDecls(program: AstProgram, source: string): Mo
             hasSideEffects,
             isPartOfSharedDestructuring: isShared,
             kind,
+            hasRouterMarkerInit,
           });
         }
       }
@@ -170,6 +203,7 @@ export function collectModuleLevelDecls(program: AstProgram, source: string): Mo
           isExported,
           hasSideEffects: false,
           isPartOfSharedDestructuring: false,
+          hasRouterMarkerInit: false,
           kind: 'function',
         });
       }
@@ -184,6 +218,7 @@ export function collectModuleLevelDecls(program: AstProgram, source: string): Mo
           isExported,
           hasSideEffects: false,
           isPartOfSharedDestructuring: false,
+          hasRouterMarkerInit: false,
           kind: 'class',
         });
       }
@@ -198,6 +233,7 @@ export function collectModuleLevelDecls(program: AstProgram, source: string): Mo
           isExported,
           hasSideEffects: false,
           isPartOfSharedDestructuring: false,
+          hasRouterMarkerInit: false,
           kind: 'const', // enums behave like const for migration
         });
       }

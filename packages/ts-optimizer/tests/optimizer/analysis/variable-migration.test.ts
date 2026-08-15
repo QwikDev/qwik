@@ -19,6 +19,7 @@ function makeDecl(overrides: Partial<ModuleLevelDecl> & { name: string }): Modul
     hasSideEffects: false,
     isPartOfSharedDestructuring: false,
     kind: 'const',
+    hasRouterMarkerInit: false,
     ...overrides,
   };
 }

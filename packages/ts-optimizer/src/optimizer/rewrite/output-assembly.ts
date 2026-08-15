@@ -849,12 +849,9 @@ export function assembleOutput(ctx: RewriteContext): string {
     // The router discovers loaders/actions by scanning route-module exports,
     // so un-exported `routeLoader$`/`routeAction$` results must still surface
     // as `_auto_X` exports (rust parity) or their middleware never runs.
-    const routerMarkerInit =
-      /=\s*(?:routeLoader\$|routeLoaderQrl|routeAction\$|routeActionQrl|globalAction\$|globalActionQrl)\s*\(/;
     const names = moduleLevelDecls
       .filter(
-        (decl) =>
-          !decl.isExported && !autoExported.has(decl.name) && routerMarkerInit.test(decl.declText)
+        (decl) => !decl.isExported && !autoExported.has(decl.name) && decl.hasRouterMarkerInit
       )
       .map((decl) => decl.name)
       .sort();

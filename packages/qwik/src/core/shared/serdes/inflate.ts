@@ -316,7 +316,10 @@ const inflateResolved = (
       const raw = unwrapStore(target as object) as object;
       const pending = pendingStoreTargets.get(raw);
       const d = data as unknown[];
-      const inflatedRaw = pending ? inflate(container, raw, pending.t, pending.v) : undefined;
+      // a deduped raw may be another root mid-inflation; its paths are walkable only after
+      const inflatedRaw = pending
+        ? inflate(container, raw, pending.t, pending.v)
+        : container.state.inflatingRoots?.get(raw);
       pendingStoreTargets.delete(raw);
       return maybeThen(inflatedRaw, () => {
         if (d.length > 2) {

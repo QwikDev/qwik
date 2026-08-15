@@ -8,6 +8,7 @@ import { findContextScopeId } from './node-walker';
 import type { ServerDataContext } from './use-server-data';
 import type { PhaseSubscriber, Subscriber } from './subscriber';
 import { deserializeCaptures } from '../shared/serdes/captures';
+import { isPromise } from '../shared/utils/promises';
 import { qTest } from '../shared/utils/qdev';
 
 const STATE_SCRIPT_TYPE = 'qwik/state';
@@ -27,6 +28,8 @@ export interface ContainerState {
   disposedRoots: Set<number>;
   registeredScripts?: WeakSet<HTMLScriptElement>;
   subscriberRoots?: Map<number, number[]>;
+  /** In-flight root inflations, so dependent restores can order after them. */
+  inflatingRoots?: WeakMap<object, Promise<unknown>>;
 }
 
 export interface ContainerContext extends ServerDataContext {
@@ -250,7 +253,18 @@ export async function getStateRoot(context: ContainerContext, id: number): Promi
   } else if (type === TypeIds.ForwardRefs) {
     context.forwardRefs = value as Array<number | string>;
   } else if (needsInflation(type)) {
-    await inflate(context, root, type, value);
+    const inflation = inflate(context, root, type, value);
+    if (isPromise(inflation) && root !== null && typeof root === 'object') {
+      const inflating = (context.state.inflatingRoots ??= new WeakMap());
+      inflating.set(root, inflation);
+      try {
+        await inflation;
+      } finally {
+        inflating.delete(root);
+      }
+    } else {
+      await inflation;
+    }
   }
 
   const subscriberRoots = context.state.subscriberRoots;

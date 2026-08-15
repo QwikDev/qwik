@@ -131,3 +131,20 @@ describe('else-if chains with folded conditions', () => {
     expect(out).toContain('live()');
   });
 });
+
+describe('template literals are data', () => {
+  it('never collapses blank lines inside a template literal', () => {
+    const code = [
+      'const styles = `',
+      '.a { color: red }',
+      '',
+      '',
+      '.b { color: blue }',
+      '`;',
+      'if (true) { init(); }',
+    ].join('\n');
+    const out = applySegmentDCE(code);
+    expect(out).toContain('.a { color: red }\n\n\n.b { color: blue }');
+    expect(out).toContain('init()');
+  });
+});

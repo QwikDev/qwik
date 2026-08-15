@@ -175,5 +175,5 @@ export function applySegmentDCE(code: string, filename = 'dce.tsx'): string {
   walk(program as unknown as AstNode, { inStatementList: true });
 
   if (!changed) return code;
-  return s.toString().replace(/\n\s*\n\s*\n/g, '\n\n');
+  return s.toString();
 }

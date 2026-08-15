@@ -1,65 +1,15 @@
-import {
-  anyOf,
-  createRegExp,
-  exactly,
-  global,
-  oneOrMore,
-  whitespace,
-  wordBoundary,
-} from 'magic-regexp';
-import { isInsideString, findMatchingBrace, findExpressionEnd } from '../edit/text-scanning.js';
-import { applyReplacements } from '../edit/range-replace.js';
+/**
+ * Constant-branch folding on the AST: `if (true/false)` statements, `!true`/`!false`, and `true &&
+ * x` / `false || x` / `false && x` shapes collapse via range edits against the original text — one
+ * parse, one MagicString write, no textual pattern matching. Dead branches are marked and never
+ * walked, so cascades (`else if` chains, nested folds) resolve in a single pass.
+ */
 
-const notTrueLiteral = createRegExp(exactly('!true').and(wordBoundary), [global]);
-
-const notFalseLiteral = createRegExp(exactly('!false').and(wordBoundary), [global]);
-
-const ifBracedBoolLiteral = createRegExp(
-  wordBoundary
-    .and('if')
-    .and(whitespace.times.any())
-    .and('(')
-    .and(whitespace.times.any())
-    .and(anyOf('true', 'false').grouped())
-    .and(whitespace.times.any())
-    .and(')')
-    .and(whitespace.times.any())
-    .and('{'),
-  [global]
-);
-
-const trueAndOp = createRegExp(
-  wordBoundary.and('true').and(whitespace.times.any()).and('&&').and(whitespace.times.any()),
-  [global]
-);
-
-const falseOrOp = createRegExp(
-  wordBoundary.and('false').and(whitespace.times.any()).and('||').and(whitespace.times.any()),
-  [global]
-);
-
-const falseAndOp = createRegExp(
-  wordBoundary.and('false').and(whitespace.times.any()).and('&&').and(whitespace.times.any()),
-  [global]
-);
-
-const elseClause = createRegExp(
-  whitespace.times.any().and('else').and(whitespace.times.any()).and('{').at.lineStart()
-);
-
-const ifBracelessPattern = createRegExp(
-  wordBoundary
-    .and(exactly('if'))
-    .and(whitespace.times.any())
-    .and(exactly('('))
-    .and(whitespace.times.any())
-    .and(anyOf('true', 'false').grouped())
-    .and(whitespace.times.any())
-    .and(exactly(')'))
-    .and(oneOrMore(whitespace))
-    .notBefore(exactly('{')),
-  [global]
-);
+import MagicString from 'magic-string';
+import { anyOf, createRegExp, exactly, whitespace, wordBoundary } from 'magic-regexp';
+import type { AstMaybeNode, AstNode } from '../../ast-types.js';
+import { parseWithRawTransfer } from '../ast/parse.js';
+import { forEachAstChild } from '../ast/guards.js';
 
 const dceGuard = createRegExp(
   wordBoundary.and(
@@ -72,7 +22,9 @@ const dceGuard = createRegExp(
         .and(wordBoundary),
       exactly('true').and(whitespace.times.any()).and('&&'),
       exactly('false').and(whitespace.times.any()).and('||'),
-      exactly('false').and(whitespace.times.any()).and('&&')
+      exactly('false').and(whitespace.times.any()).and('&&'),
+      exactly('!true').and(wordBoundary),
+      exactly('!false').and(wordBoundary)
     )
   )
 );
@@ -81,172 +33,147 @@ export function hasSegmentDcePatterns(code: string): boolean {
   return dceGuard.test(code);
 }
 
-export function applySegmentDCE(code: string): string {
-  let result = code;
-  let changed = true;
-  let iterations = 0;
-
-  result = result.replace(notTrueLiteral, (match, offset) => {
-    if (isInsideString(result, offset)) return match;
-    return 'false';
-  });
-  result = result.replace(notFalseLiteral, (match, offset) => {
-    if (isInsideString(result, offset)) return match;
-    return 'true';
-  });
-
-  while (changed && iterations < 10) {
-    changed = false;
-    iterations++;
-
-    const replacements: Array<{
-      start: number;
-      end: number;
-      replacement: string;
-    }> = [];
-
-    ifBracedBoolLiteral.lastIndex = 0;
-    let match;
-
-    while ((match = ifBracedBoolLiteral.exec(result)) !== null) {
-      // Skip a fold nested inside one already collected this pass: applying
-      // the inner edit shifts later offsets and invalidates the outer fold's
-      // stale `end`. The `while (changed)` loop re-folds it next iteration.
-      if (replacements.some((r) => match!.index >= r.start && match!.index < r.end)) {
-        continue;
-      }
-
-      const condValue = match[1] === 'true';
-      const braceStart = match.index + match[0].length - 1;
-
-      const closeIdx = findMatchingBrace(result, braceStart);
-      if (closeIdx === -1) continue;
-
-      const ifBody = result.slice(braceStart + 1, closeIdx);
-
-      let elseBody: string | null = null;
-      let totalEnd = closeIdx + 1;
-      const trailing = result.slice(closeIdx + 1);
-      const afterClose = trailing.match(elseClause);
-      if (afterClose) {
-        const elseBraceStart = closeIdx + 1 + afterClose[0]!.length - 1;
-        const elseCloseIdx = findMatchingBrace(result, elseBraceStart);
-        // An else we can see but not delimit must veto the fold — folding
-        // anyway would drop the if and leave the else dangling.
-        if (elseCloseIdx === -1) continue;
-        elseBody = result.slice(elseBraceStart + 1, elseCloseIdx);
-        totalEnd = elseCloseIdx + 1;
-      } else if (/^\s*else\b/.test(trailing)) {
-        // A trailing `else if (...)` chain we don't model — leave the fold
-        // alone; dead-but-valid code beats a broken slice.
-        continue;
-      }
-
-      // When the folded `if` is itself an else-if arm, the surrounding
-      // `else` keyword must be part of the rewrite or it dangles.
-      const beforeIf = result.slice(0, match.index);
-      const elsePrefix = beforeIf.match(/(?<![\w$.])else\s*$/);
-
-      if (elsePrefix) {
-        const elseStart = beforeIf.length - elsePrefix[0].length;
-        const keptBody = condValue ? ifBody : elseBody;
-        replacements.push({
-          start: elseStart,
-          end: totalEnd,
-          replacement: keptBody === null ? '' : `else {${keptBody}}`,
-        });
-        continue;
-      }
-
-      const replacement = condValue ? ifBody : (elseBody ?? '');
-      replacements.push({
-        start: match.index,
-        end: totalEnd,
-        replacement: replacement.trim(),
-      });
+/** Resolve an expression to a compile-time boolean when possible. */
+function resolveBoolValue(node: AstMaybeNode): boolean | undefined {
+  if (node == null) return undefined;
+  switch (node.type) {
+    case 'Literal':
+      return typeof node.value === 'boolean' ? node.value : undefined;
+    case 'ParenthesizedExpression':
+      return resolveBoolValue(node.expression);
+    case 'UnaryExpression': {
+      if (node.operator !== '!') return undefined;
+      const inner = resolveBoolValue(node.argument);
+      return inner === undefined ? undefined : !inner;
     }
-
-    ifBracelessPattern.lastIndex = 0;
-    while ((match = ifBracelessPattern.exec(result)) !== null) {
-      const matchStart = match.index;
-      if (replacements.some((r) => matchStart >= r.start && matchStart < r.end)) {
-        continue;
-      }
-
-      const condValue = match[1] === 'true';
-      const stmtStart = match.index + match[0].length;
-      // A compound statement (`if (false) if (x) {…} else {…}`) doesn't end
-      // at the next `;` — leave it; dead-but-valid code beats a broken slice.
-      if (/^(?:if|for|while|do|try|switch)\b|^\{/.test(result.slice(stmtStart).trimStart())) {
-        continue;
-      }
-      const semiIdx = result.indexOf(';', stmtStart);
-      if (semiIdx === -1) continue;
-
-      const stmt = result.slice(stmtStart, semiIdx + 1).trim();
-      let adjustedEnd = semiIdx + 1;
-      if (result[adjustedEnd] === '\n') adjustedEnd++;
-
-      replacements.push({
-        start: match.index,
-        end: adjustedEnd,
-        replacement: condValue ? stmt : '',
-      });
-    }
-
-    if (replacements.length > 0) {
-      result = applyReplacements(result, replacements);
-      changed = true;
-    }
+    default:
+      return undefined;
   }
-
-  result = result.replace(trueAndOp, (match, offset) => {
-    if (isInsideString(result, offset) || isComparisonOperand(result, offset)) return match;
-    return '';
-  });
-  result = result.replace(falseOrOp, (match, offset) => {
-    if (isInsideString(result, offset) || isComparisonOperand(result, offset)) return match;
-    return '';
-  });
-
-  result = simplifyFalseAndExpressions(result);
-  result = result.replace(/\n\s*\n\s*\n/g, '\n\n');
-
-  return result;
 }
 
-/** True when the literal at `offset` is the right operand of a comparison (`x !== false`). */
-function isComparisonOperand(code: string, offset: number): boolean {
-  let i = offset - 1;
-  while (i >= 0 && (code[i] === ' ' || code[i] === '\t' || code[i] === '\n')) i--;
-  if (i < 0) return false;
-  if (code[i] !== '=') return false;
-  // `=` alone is assignment; `==`, `===`, `!=`, `!==`, `<=`, `>=` are comparisons.
-  const before = code[i - 1];
-  return before === '=' || before === '!' || before === '<' || before === '>';
-}
-
-function simplifyFalseAndExpressions(code: string): string {
-  falseAndOp.lastIndex = 0;
-  let match;
-  const replacements: Array<{
-    start: number;
-    end: number;
-    replacement: string;
-  }> = [];
-
-  while ((match = falseAndOp.exec(code)) !== null) {
-    if (isInsideString(code, match.index) || isComparisonOperand(code, match.index)) continue;
-    const exprStart = match.index + match[0].length;
-    const exprEnd = findExpressionEnd(code, exprStart);
-    if (exprEnd > exprStart) {
-      replacements.push({
-        start: match.index,
-        end: exprEnd,
-        replacement: 'false',
-      });
+/** Top-level lexical declarations make a block unsafe to unwrap into statement position. */
+function blockHasLexicalDecls(block: AstNode): boolean {
+  if (block.type !== 'BlockStatement') return false;
+  for (const stmt of block.body ?? []) {
+    if (
+      stmt.type === 'VariableDeclaration' ||
+      stmt.type === 'FunctionDeclaration' ||
+      stmt.type === 'ClassDeclaration'
+    ) {
+      return true;
     }
   }
+  return false;
+}
 
-  return applyReplacements(code, replacements);
+export function applySegmentDCE(code: string, filename = 'dce.tsx'): string {
+  let program;
+  try {
+    program = parseWithRawTransfer(filename, code).program;
+  } catch {
+    return code;
+  }
+
+  const s = new MagicString(code);
+  let changed = false;
+
+  /**
+   * Where a fold's edits land, given the if's position: `elseFrom` covers the parent's `else`
+   * keyword when this if is an else-if arm; `inStatementList` allows unwrapping a kept block (only
+   * safe directly inside a Program/BlockStatement body).
+   */
+  interface FoldContext {
+    elseFrom?: number;
+    inStatementList: boolean;
+  }
+  const EXPR_CTX: FoldContext = { inStatementList: false };
+
+  function foldIf(node: AstNode & { type: 'IfStatement' }, ctx: FoldContext, value: boolean): void {
+    changed = true;
+    const kept = value ? node.consequent : (node.alternate ?? null);
+    if (kept === null) {
+      // Dropping an else-if arm must consume the parent's `else` keyword too.
+      s.remove(ctx.elseFrom ?? node.start, node.end);
+      return;
+    }
+    s.remove(node.start, kept.start);
+    if (kept.end < node.end) {
+      s.remove(kept.end, node.end);
+    }
+    if (
+      ctx.inStatementList &&
+      ctx.elseFrom === undefined &&
+      kept.type === 'BlockStatement' &&
+      !blockHasLexicalDecls(kept)
+    ) {
+      // Unwrap `{ ... }` into statement position (rust parity).
+      s.remove(kept.start, kept.start + 1);
+      s.remove(kept.end - 1, kept.end);
+    }
+    walk(kept, { inStatementList: ctx.inStatementList, elseFrom: ctx.elseFrom });
+  }
+
+  function walk(node: AstMaybeNode, ctx: FoldContext): void {
+    if (node == null) return;
+
+    if (node.type === 'IfStatement') {
+      const value = resolveBoolValue(node.test);
+      if (value !== undefined) {
+        foldIf(node, ctx, value);
+        return;
+      }
+      walk(node.test, EXPR_CTX);
+      walk(node.consequent, { inStatementList: false });
+      // An else-if arm folds together with our `else` keyword.
+      walk(node.alternate, { inStatementList: false, elseFrom: node.consequent.end });
+      return;
+    }
+
+    if (node.type === 'LogicalExpression') {
+      const left = resolveBoolValue(node.left);
+      if (node.operator === '&&' && left === true) {
+        changed = true;
+        s.remove(node.start, node.right.start);
+        walk(node.right, EXPR_CTX);
+        return;
+      }
+      if (node.operator === '&&' && left === false) {
+        changed = true;
+        s.overwrite(node.start, node.end, 'false');
+        return;
+      }
+      if (node.operator === '||' && left === false) {
+        changed = true;
+        s.remove(node.start, node.right.start);
+        walk(node.right, EXPR_CTX);
+        return;
+      }
+      walk(node.left, EXPR_CTX);
+      walk(node.right, EXPR_CTX);
+      return;
+    }
+
+    if (node.type === 'UnaryExpression' && node.operator === '!') {
+      const value = resolveBoolValue(node);
+      if (value !== undefined) {
+        changed = true;
+        s.overwrite(node.start, node.end, String(value));
+        return;
+      }
+    }
+
+    if (node.type === 'Program' || node.type === 'BlockStatement' || node.type === 'StaticBlock') {
+      for (const stmt of node.body ?? []) {
+        walk(stmt, { inStatementList: true });
+      }
+      return;
+    }
+
+    forEachAstChild(node, (child) => walk(child, EXPR_CTX));
+  }
+
+  walk(program as unknown as AstNode, { inStatementList: true });
+
+  if (!changed) return code;
+  return s.toString().replace(/\n\s*\n\s*\n/g, '\n\n');
 }

@@ -701,7 +701,7 @@ export function runDcePipeline(code: string, filename: string, opts: DcePipeline
   }
 
   if (hasSegmentDcePatterns(result)) {
-    runStage(() => applySegmentDCE(result));
+    runStage(() => applySegmentDCE(result, filename));
   }
   if (!opts.isLibMode) {
     runStage(() => applyStatementDCE(result, filename));

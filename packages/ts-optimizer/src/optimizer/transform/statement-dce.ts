@@ -1,7 +1,8 @@
 /**
  * Statement-level dead-code elimination mirroring SWC's simplify pass on emitted modules: unused
  * pure declarations, unused function/class declarations, and empty try statements are removed from
- * block bodies. Iterates to a fixpoint because one removal can free another.
+ * block bodies. Runs to a fixpoint on one parse: removed statements join a dead-range set, and
+ * reference counting simply skips dead ranges — no reparse between passes.
  */
 
 import MagicString from 'magic-string';
@@ -21,14 +22,15 @@ function isRecordNode(value: unknown): value is Record<string, unknown> & Ranged
   return typeof value === 'object' && value !== null && 'type' in value;
 }
 
-/** Names referenced anywhere except declaration-name positions. */
-function collectReferencedNames(program: AstProgram): Set<string> {
+/** Names referenced anywhere except declaration-name positions; dead ranges don't count. */
+function collectReferencedNames(program: AstProgram, dead: readonly RangedNode[]): Set<string> {
   const referenced = new Set<string>();
   walk(program, {
     enter(node, parent) {
       const n = node as AstNode;
       const p = parent as AstNode | null;
       if (n.type !== 'Identifier' && n.type !== 'JSXIdentifier') return;
+      if (dead.some((d) => n.start >= d.start && n.end <= d.end)) return;
       if (isNonReferenceIdentifier(n, p)) return;
       if (p) {
         // Declaration-name positions are bindings, not references.
@@ -134,31 +136,41 @@ function collectBlockBodies(program: AstProgram): unknown[][] {
 }
 
 export function applyStatementDCE(code: string, filename: string): string {
-  let result = code;
-  for (let pass = 0; pass < 5; pass++) {
-    let program: AstProgram;
-    try {
-      program = parseWithRawTransfer(filename, result).program;
-    } catch {
-      return result;
-    }
-    const referenced = collectReferencedNames(program);
-    const removals: RangedNode[] = [];
-    for (const body of collectBlockBodies(program)) {
+  let program: AstProgram;
+  try {
+    program = parseWithRawTransfer(filename, code).program;
+  } catch {
+    return code;
+  }
+
+  const bodies = collectBlockBodies(program);
+  const dead: RangedNode[] = [];
+  const isDead = (stmt: RangedNode): boolean =>
+    dead.some((d) => stmt.start >= d.start && stmt.end <= d.end);
+
+  // Fixpoint on the single parse: each pass recounts references while
+  // skipping statements already marked dead, so one removal can free another.
+  let changed = true;
+  while (changed) {
+    changed = false;
+    const referenced = collectReferencedNames(program, dead);
+    for (const body of bodies) {
       for (const stmt of body) {
+        if (!isRecordNode(stmt) || isDead(stmt)) continue;
         if (isRemovableStatement(stmt, referenced)) {
-          removals.push(stmt);
+          dead.push(stmt);
+          changed = true;
         }
       }
     }
-    if (removals.length === 0) return result;
-    const s = new MagicString(result);
-    for (const stmt of removals) {
-      let end = stmt.end;
-      if (end < result.length && result[end] === '\n') end++;
-      s.remove(stmt.start, end);
-    }
-    result = s.toString();
   }
-  return result;
+
+  if (dead.length === 0) return code;
+  const s = new MagicString(code);
+  for (const stmt of dead) {
+    let end = stmt.end;
+    if (end < code.length && code[end] === '\n') end++;
+    s.remove(stmt.start, end);
+  }
+  return s.toString();
 }

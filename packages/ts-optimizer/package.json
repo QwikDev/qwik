@@ -25,16 +25,12 @@
     "node": ">=22"
   },
   "sideEffects": false,
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./src/index.ts",
   "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    }
+    ".": "./src/index.ts"
   },
   "files": [
-    "dist"
+    "src"
   ],
   "scripts": {
     "build": "tsdown",

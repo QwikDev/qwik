@@ -4,13 +4,7 @@ import { forEachAstChild } from '../ast/guards.js';
 import { applyReplacements, isReplaceableIdentifierPosition } from '../edit/range-replace.js';
 import { isShorthandPropertyValue } from '../prepare/flatten-destructures.js';
 import { createTransformSession } from '../edit/transform-session.js';
-import {
-  type AstCompatNode,
-  type AstFunction,
-  type AstNode,
-  type Expression,
-  type VariableDeclarator,
-} from '../../ast-types.js';
+import { type AstFunction, type AstNode, type Expression } from '../../ast-types.js';
 
 function collectConstLiteralValues(
   root: AstNode | null | undefined,

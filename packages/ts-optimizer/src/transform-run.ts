@@ -59,7 +59,7 @@ function toNapiModule(module: TransformModule): NapiTransformModule {
       };
     default: {
       const _exhaustive: never = module;
-      throw new Error(`unhandled module kind: ${(module as { kind?: string }).kind}`);
+      throw new Error(`unhandled module kind: ${(_exhaustive as { kind?: string }).kind}`);
     }
   }
 }

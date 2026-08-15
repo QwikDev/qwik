@@ -1,16 +1,7 @@
 import { createRegExp, exactly, anyOf, global } from 'magic-regexp';
-import type { AstMaybeNode, AstNode, AstParentNode } from '../../ast-types.js';
-import {
-  forEachAstChild,
-  isAstNode,
-  someAstDescendant,
-  memberStaticPropName,
-} from '../ast/guards.js';
-import {
-  formatSimplifiedLiteral,
-  lambdaBodySimplificationsCollector,
-  simplifyExpression,
-} from './simplify.js';
+import type { AstMaybeNode, AstNode } from '../../ast-types.js';
+import { forEachAstChild, someAstDescendant, memberStaticPropName } from '../ast/guards.js';
+import { lambdaBodySimplificationsCollector } from './simplify.js';
 import {
   applyReplacements,
   collectRangeReplacements,
@@ -38,7 +29,6 @@ export type SignalExprResult =
 
 type IdentifierNode = Extract<AstNode, { type: 'Identifier' }>;
 type MemberExpressionNode = Extract<AstNode, { type: 'MemberExpression' }>;
-type AstNodeList = ReadonlyArray<AstMaybeNode>;
 
 function peelExpressionWrappers(node: AstMaybeNode): AstNode | null {
   let current: AstMaybeNode = node;

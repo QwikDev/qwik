@@ -1,4 +1,4 @@
-import { createRegExp, exactly, multiline, oneOrMore, whitespace, wordChar } from 'magic-regexp';
+import { createRegExp, exactly, multiline, oneOrMore, wordChar } from 'magic-regexp';
 import MagicString from 'magic-string';
 import { walk } from 'oxc-walker';
 import { ScopeQueryTracker } from '../analysis/scope-query-tracker.js';

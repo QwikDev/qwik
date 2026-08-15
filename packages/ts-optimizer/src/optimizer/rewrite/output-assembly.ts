@@ -1,6 +1,5 @@
 import type MagicString from 'magic-string';
 import { transformSync as oxcTransformSync, type TransformOptions } from 'oxc-transform';
-import { createRegExp, exactly, wordBoundary } from 'magic-regexp';
 import type { AstNode, AstProgram } from '../../ast-types.js';
 import type { ExtractionResult } from '../extraction/extract.js';
 import type { ImportInfo } from '../extraction/marker-detection.js';
@@ -12,7 +11,6 @@ import {
   isWorkerExtraction,
   markMovedCaptures,
 } from './rewrite-calls.js';
-import { isLibModePreservedMarker } from '../qwik/qrl-naming.js';
 import { escapeSymbol } from '../../hashing/naming.js';
 import { buildQrlDevDeclaration, buildDevFilePath, formatDevMeta } from '../segment/dev-mode.js';
 import {
@@ -28,7 +26,6 @@ import {
 import { rewriteFunctionSignature } from '../segment/segment-codegen.js';
 import { collapseToLibInlinedQrl } from './lib-mode-collapse.js';
 import { SignalHoister } from '../jsx/signal-analysis.js';
-import { isRelativePathInsideBase } from '../../paths.js';
 import { transformInlineSegmentBody } from './inline-body.js';
 import { deriveIsDev } from './const-replacement.js';
 import {
@@ -41,11 +38,6 @@ import { injectUseHmrIntoInlineBody } from '../transform/module-cleanup.js';
 import type { InlineSegmentJsxOptions } from './raw-props.js';
 import type { RewriteContext } from './rewrite-context.js';
 import { wholeIdentifierPattern } from '../edit/identifier-boundary.js';
-import {
-  formatImportParts,
-  formatImportStatement,
-  formatNamedImportPart,
-} from '../edit/import-format.js';
 
 function isCustomInlined(ext: ExtractionResult, originalImports: Map<string, ImportInfo>): boolean {
   for (const [, info] of originalImports) {

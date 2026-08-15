@@ -6,7 +6,6 @@
  */
 
 import MagicString from 'magic-string';
-import { createRegExp, exactly, wordBoundary } from 'magic-regexp';
 import { parseSync } from 'oxc-parser';
 import type { ConsolidatedSegment, ExtractionResult, Mutable } from '../extraction/extract.js';
 import type { ImportInfo } from '../extraction/marker-detection.js';
@@ -25,7 +24,6 @@ import {
   transformJsxCalls,
 } from '../jsx/jsx-call-transform.js';
 import { stripExportDeclarations } from './strip-exports.js';
-import { deriveIsDev } from './const-replacement.js';
 import type { EmitMode } from '../types/types.js';
 import { collectBindingNamesFromPattern } from '../ast/binding-pattern.js';
 import type {
@@ -112,13 +110,6 @@ function importedSpecifierName(spec: ImportSpecifier): string {
   const imported = spec.imported;
   if (imported.type === 'Identifier') return imported.name;
   return spec.local.name;
-}
-
-function isCustomInlined(ext: ExtractionResult, originalImports: Map<string, ImportInfo>): boolean {
-  for (const [, info] of originalImports) {
-    if (info.importedName === ext.calleeName) return false;
-  }
-  return true;
 }
 
 export interface JsxRewriteOptions {

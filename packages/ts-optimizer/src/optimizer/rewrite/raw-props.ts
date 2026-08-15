@@ -6,7 +6,6 @@
 import type {
   AstCompatNode,
   ArrayExpression,
-  BindingProperty,
   CallExpression,
   AstMaybeNode,
   AstNode,

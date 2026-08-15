@@ -1,4 +1,3 @@
-import { walk } from 'oxc-walker';
 import type { AstFunction, AstNode, AstProgram, TSEnumDeclaration } from '../../ast-types.js';
 import type { ConsolidatedSegment, ExtractionResult, Mutable } from '../extraction/extract.js';
 import type { ImportInfo } from '../extraction/marker-detection.js';
@@ -55,15 +54,9 @@ import {
   consolidateQpCaptureValues,
 } from '../rewrite/index.js';
 import { collectSameFileSymbolInfo } from './module-symbols.js';
-import { rewriteImportSource } from '../rewrite/rewrite-imports.js';
 import { parseWithRawTransfer } from '../ast/parse.js';
 import { forEachAstChild } from '../ast/guards.js';
-import {
-  leadingDot,
-  paddingParam,
-  resolveCaptureInfo,
-  postProcessSegmentCode,
-} from './post-process.js';
+import { leadingDot, resolveCaptureInfo, postProcessSegmentCode } from './post-process.js';
 import type { LoopContext } from '../jsx/loop-hoisting.js';
 import { eventHandlerQpParams } from '../jsx/loop-hoisting.js';
 import { getJsxAttributeName } from '../jsx/jsx-attr-name.js';

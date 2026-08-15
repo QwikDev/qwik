@@ -20,7 +20,6 @@ import {
 import { buildSyncTransform, needsPureAnnotation } from '../rewrite/rewrite-calls.js';
 import { formatWCall } from '../qwik/w-call.js';
 import { applyRawPropsTransform, consolidateRawPropsInWCalls } from '../rewrite/index.js';
-import type { ExtractionResult } from '../extraction/extract.js';
 import type { NestedCallSiteInfo } from './segment-codegen.js';
 import {
   blankNonCode,

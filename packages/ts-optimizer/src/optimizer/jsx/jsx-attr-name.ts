@@ -9,7 +9,9 @@ export function getJsxAttributeName(attr: JSXAttribute): string {
       return `${name.namespace.name}:${name.name.name}`;
     default: {
       const _exhaustive: never = name;
-      throw new Error(`unhandled JSX attribute name type: ${(name as { type?: string }).type}`);
+      throw new Error(
+        `unhandled JSX attribute name type: ${(_exhaustive as { type?: string }).type}`
+      );
     }
   }
 }

@@ -14,7 +14,6 @@ import {
   processJsxTag,
   isTextOnlyElement,
   computeJsxFlags,
-  type JsxKeyCounter,
   type JsxTransformContext,
   type JsxElementOptions,
   type ScopeAwareBindings,
@@ -452,16 +451,7 @@ export function transformJsxElement(
 ): JsxTransformResult | null {
   if (node.type !== 'JSXElement') return null;
 
-  const {
-    source,
-    s,
-    importedNames,
-    keyCounter,
-    signalHoister,
-    bindings,
-    allDeclaredNames,
-    qrlsWithCaptures,
-  } = ctx;
+  const { source, importedNames, keyCounter, bindings, qrlsWithCaptures } = ctx;
   const {
     passiveEvents,
     loopCtx,

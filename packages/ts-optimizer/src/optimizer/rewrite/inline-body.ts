@@ -38,7 +38,6 @@ import {
 } from './raw-props.js';
 import {
   hasUnderscorePlaceholderParams,
-  isComponentCtx,
   isEventHandlerOrJsxProp,
   isStrippedExtraction,
   matchesRegCtxName,

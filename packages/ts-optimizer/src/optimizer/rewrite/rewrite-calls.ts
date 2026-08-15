@@ -5,16 +5,13 @@ import {
   whitespace,
   wordChar,
   charIn,
-  charNotIn,
   global,
 } from 'magic-regexp';
 import { transformSync as oxcTransformSync } from 'oxc-transform';
 import { rewriteImportSource } from './rewrite-imports.js';
 import { isQwikPackageSource } from '../qwik/qwik-packages.js';
-import { getQrlCalleeName } from '../qwik/qrl-naming.js';
 import { quoteAsStringLiteral } from '../edit/string-literal.js';
 import { scanMatchingParenForward, skipStringLiteralForward } from '../edit/text-scanning.js';
-import { eventHandlerQpParams } from '../jsx/loop-hoisting.js';
 
 const collapsedWhitespace = createRegExp(oneOrMore(whitespace), [global]);
 

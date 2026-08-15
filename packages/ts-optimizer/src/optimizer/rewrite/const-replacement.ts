@@ -24,10 +24,6 @@ function isConstSource(source: string): boolean {
   return CONST_SOURCES.includes(source);
 }
 
-interface ConstReplacementResult {
-  replacedCount: number;
-}
-
 export function deriveIsDev(mode: EmitMode | undefined): boolean | undefined {
   if (mode === 'dev' || mode === 'hmr') return true;
   if (mode === 'prod') return false;

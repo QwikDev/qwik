@@ -13,12 +13,8 @@ import { rewriteImportSource } from './rewrite-imports.js';
 import { isQwikPackageSource } from '../qwik/qwik-packages.js';
 import { getQrlCalleeName } from '../qwik/qrl-naming.js';
 import { quoteAsStringLiteral } from '../edit/string-literal.js';
-import { scanMatchingParenForward } from '../edit/text-scanning.js';
+import { scanMatchingParenForward, skipStringLiteralForward } from '../edit/text-scanning.js';
 import { eventHandlerQpParams } from '../jsx/loop-hoisting.js';
-
-const blockComment = /\/\*[\s\S]*?\*\//g;
-
-const lineComment = createRegExp(exactly('//').and(charNotIn('\n').times.any()), [global]);
 
 const collapsedWhitespace = createRegExp(oneOrMore(whitespace), [global]);
 
@@ -95,20 +91,61 @@ export function buildQrlDeclaration(
   return `const q_${symbolName} = /*#__PURE__*/ qrl(()=>import("./${canonicalFilename}${ext}"), "${symbolName}");`;
 }
 
-function minifyFunctionText(text: string): string {
-  let result = text;
-
-  result = result.replace(blockComment, '');
-  result = result.replace(lineComment, '');
+function minifyCodeSegment(code: string): string {
+  let result = code;
   result = result.replace(collapsedWhitespace, ' ');
   result = result.replace(spacesAroundOperators, '$1');
-  result = result.trim();
   result = result.replace(singleArrowParam, '$1=>');
   // `new Set()` → `new Set` (rust parity) — unless a member/call chain follows.
   result = result.replace(/new ([A-Za-z_$][\w$]*)\(\)(?![.(])/g, 'new $1');
+  return result;
+}
+
+/**
+ * Minify the serialized sync$ source: comments drop, string/template literals pass through
+ * verbatim, and only the code between them is whitespace/operator-minified.
+ */
+function minifyFunctionText(text: string): string {
+  let out = '';
+  let codeStart = 0;
+  const OPERATOR = /[{}(),:;=<>+\-*/%&|!?.]/;
+  const flushCode = (end: number): void => {
+    if (end <= codeStart) return;
+    let chunk = minifyCodeSegment(text.slice(codeStart, end));
+    // Boundary spaces around a dropped comment must not survive the join.
+    if (chunk.startsWith(' ') && (out === '' || OPERATOR.test(out[out.length - 1]))) {
+      chunk = chunk.slice(1);
+    }
+    if (out.endsWith(' ') && (chunk === '' || OPERATOR.test(chunk[0]))) {
+      out = out.slice(0, -1);
+    }
+    out += chunk;
+  };
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (ch === '"' || ch === "'" || ch === '`') {
+      flushCode(i);
+      const close = skipStringLiteralForward(text, i);
+      out += text.slice(i, Math.min(close + 1, text.length));
+      i = close;
+      codeStart = i + 1;
+    } else if (ch === '/' && text[i + 1] === '*') {
+      flushCode(i);
+      const end = text.indexOf('*/', i + 2);
+      i = end < 0 ? text.length : end + 1;
+      codeStart = i + 1;
+    } else if (ch === '/' && text[i + 1] === '/') {
+      flushCode(i);
+      const nl = text.indexOf('\n', i);
+      // The newline survives as code whitespace so tokens stay separated.
+      codeStart = nl < 0 ? text.length : nl;
+      i = codeStart - 1;
+    }
+  }
+  flushCode(text.length);
+  let result = out.trim();
   // `"key" in obj` → `"key"in obj` — a quote already separates the tokens.
   result = result.replace(/(["'`]) in\b/g, '$1in');
-
   return result;
 }
 

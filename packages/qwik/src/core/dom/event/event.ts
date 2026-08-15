@@ -39,7 +39,7 @@ function wrapDispatch(
     return handler;
   }
   if (Array.isArray(handler)) {
-    return handler.map((entry) => wrapDispatch(entry) as QDispatchHandler);
+    return handler.map((entry) => wrapDispatch(entry as QDispatchHandler) as QDispatchHandler);
   }
   return typeof handler === 'function'
     ? invokeDispatchHandler.bind(null, handler as EventHandler, null)

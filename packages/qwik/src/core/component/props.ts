@@ -44,7 +44,7 @@ export function getPropSource(props: object, key: string): unknown {
  */
 export function getMemberSource(target: unknown, prop: string): unknown {
   if (isStore(target)) {
-    return getStoreSource(target, prop);
+    return getStoreSource(target as object, prop);
   }
   if (prop === 'value' && (target instanceof Signal || target instanceof Computed)) {
     return target;

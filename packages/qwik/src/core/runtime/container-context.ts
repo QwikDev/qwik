@@ -103,7 +103,7 @@ function createContainerContextRecord(
       return getForwardRefs(context);
     },
     getRoot(id) {
-      return getRoot(context, Number(id));
+      return getStateRoot(context, Number(id));
     },
     discardRoot(id) {
       const rootId = Number(id);
@@ -114,11 +114,11 @@ function createContainerContextRecord(
       }
     },
     async disposeRoot(id) {
-      const root = (await getRoot(context, Number(id))) as Subscriber;
+      const root = (await getStateRoot(context, Number(id))) as Subscriber;
       disposeSubscriber(root);
     },
     async prepareRoot(id) {
-      const root = (await getRoot(context, Number(id))) as PhaseSubscriber;
+      const root = (await getStateRoot(context, Number(id))) as PhaseSubscriber;
       context.scheduler.notify(root);
       await context.scheduler.flushInteraction();
     },
@@ -221,7 +221,8 @@ function getForwardRefs(context: ContainerContext): Array<number | string> | nul
   return (context.forwardRefs = parsed[1] as Array<number | string>);
 }
 
-async function getRoot(context: ContainerContext, id: number): Promise<unknown> {
+/** The shared root reader; standalone contexts (`_deserialize`) use it too. */
+export async function getStateRoot(context: ContainerContext, id: number): Promise<unknown> {
   if (context.state.liveRoots.has(id)) {
     return context.state.liveRoots.get(id);
   }
@@ -293,11 +294,6 @@ export function registerStateData(context: ContainerContext, data: unknown[]): v
     context.state.rootToChunk[offset] = chunk;
   }
   preprocessStateChunk(context, chunk, data);
-}
-
-/** The shared root reader; standalone contexts delegate here instead of re-implementing it. */
-export function getStateRoot(context: ContainerContext, id: number): Promise<unknown> {
-  return getRoot(context, id);
 }
 
 function parseStateChunk(context: ContainerContext, chunk: StateChunk): unknown[] {

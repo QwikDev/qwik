@@ -1,12 +1,3 @@
-import {
-  createRegExp,
-  exactly,
-  oneOrMore,
-  anyOf,
-  digit,
-  whitespace,
-  charNotIn,
-} from 'magic-regexp';
 import { analyzeSignalExpression } from './signal-analysis.js';
 import {
   classifyConstness,
@@ -17,26 +8,6 @@ import {
 import type { JSXChild, JSXElement, JSXExpressionContainer, JSXFragment } from '../../ast-types.js';
 
 type AnnotatedJSXChild = JSXChild & { _trimmedText?: string };
-
-const jsxFlagTail = createRegExp(
-  exactly(',')
-    .and(whitespace.times.any())
-    .and(oneOrMore(digit).grouped())
-    .and(',')
-    .and(whitespace.times.any())
-    .and(anyOf(exactly('"').and(charNotIn('"').times.any()).and('"'), exactly('null')))
-    .and(whitespace.times.any())
-    .and(')')
-    .at.lineEnd()
-);
-
-const jsxSortedVarProps = createRegExp(
-  exactly('_jsxSorted(')
-    .and(oneOrMore(charNotIn(',')))
-    .and(',')
-    .and(whitespace.times.any())
-    .and(anyOf('{', 'null').grouped())
-);
 
 export function normalizeJsxChildren(
   children: JSXChild[]
@@ -159,33 +130,32 @@ export function processChildren(
   };
 }
 
-function hasStaticSubtreeFlag(transformedText: string): boolean {
-  const flagMatch = transformedText.match(jsxFlagTail);
-  if (!flagMatch) return true;
-  const flag = parseInt(flagMatch[1]!, 10);
-  return (flag & 2) !== 0;
-}
-
+/**
+ * Structural mirror of rust's `jsx_mutable`: component and member-expression tags re-render on
+ * their own, var props and a dynamic subtree propagate up. The child's facts come from the write
+ * memo recorded by its own transform (the walk is bottom-up), never from re-parsing generated
+ * code.
+ */
 function classifyNestedJsxChild(
-  child: JSXElement | JSXFragment,
-  childText: string
+  ctx: JsxTransformContext,
+  child: JSXElement | JSXFragment
 ): 'static' | 'dynamic' {
-  if (child.type === 'JSXFragment') {
-    return hasStaticSubtreeFlag(childText) ? 'static' : 'dynamic';
+  if (child.type === 'JSXElement') {
+    const tagName = child.openingElement.name;
+    if (tagName.type === 'JSXMemberExpression') return 'dynamic';
+    const tagStr = tagName.type === 'JSXIdentifier' ? tagName.name : '';
+    const isComponent =
+      tagStr.length > 0 &&
+      tagStr[0] === tagStr[0].toUpperCase() &&
+      tagStr[0] !== tagStr[0].toLowerCase();
+    if (isComponent) return 'dynamic';
   }
 
-  const tagName = child.openingElement.name;
-  const tagStr = tagName.type === 'JSXIdentifier' ? tagName.name : '';
-  const isComponent =
-    tagStr.length > 0 &&
-    tagStr[0] === tagStr[0].toUpperCase() &&
-    tagStr[0] !== tagStr[0].toLowerCase();
-  if (isComponent) return 'dynamic';
-
-  const varPropsMatch = childText.match(jsxSortedVarProps);
-  if (varPropsMatch && varPropsMatch[1] === '{') return 'dynamic';
-
-  return hasStaticSubtreeFlag(childText) ? 'static' : 'dynamic';
+  const written = ctx.jsxWriteMemo?.get(child.start);
+  // Unknown ⇒ mutable: a misclassified-static child stops updating.
+  if (!written || written.end !== child.end) return 'dynamic';
+  if (written.hasVarProps) return 'dynamic';
+  return (written.flags & 2) !== 0 ? 'static' : 'dynamic';
 }
 
 function processOneChild(
@@ -209,7 +179,7 @@ function processOneChild(
 
   if (child.type === 'JSXElement' || child.type === 'JSXFragment') {
     const childText = sliceTransformed(ctx, child.start, child.end);
-    const type = classifyNestedJsxChild(child, childText);
+    const type = classifyNestedJsxChild(ctx, child);
     return { text: childText, type };
   }
 

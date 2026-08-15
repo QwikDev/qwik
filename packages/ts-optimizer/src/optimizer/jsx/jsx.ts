@@ -64,9 +64,17 @@ export interface JsxTransformContext {
   /**
    * Exact-range log of every `writeJsxCall` overwrite, keyed by range start; lets readers recover a
    * rewritten subtree's text without the chunk-list walk `MagicString.slice` pays on a heavily
-   * edited buffer (see `sliceTransformed`).
+   * edited buffer (see `sliceTransformed`), and carries the subtree's structured facts so parents
+   * classify children without re-parsing generated code.
    */
-  jsxWriteMemo?: ReadonlyMap<number, { end: number; content: string }>;
+  jsxWriteMemo?: ReadonlyMap<number, JsxWriteRecord>;
+}
+
+export interface JsxWriteRecord {
+  end: number;
+  content: string;
+  flags: number;
+  hasVarProps: boolean;
 }
 
 /**
@@ -96,7 +104,12 @@ export interface JsxWalkExitContext extends JsxWalkEnterContext {
   readonly neededImports: Set<string>;
   readonly getDevSourceSuffix: (nodeStart: number) => string;
   readonly setNeedsFragment: () => void;
-  readonly writeJsxCall: (start: number, end: number, content: string) => void;
+  readonly writeJsxCall: (
+    start: number,
+    end: number,
+    content: string,
+    result: JsxTransformResult
+  ) => void;
 }
 
 export interface JsxElementOptions {
@@ -853,7 +866,7 @@ export function transformAllJsx(
   const neededImports = new Set<string>();
   let needsFragment = false;
   const ranges = buildSkipRangeIndex(skipRanges ?? []);
-  const jsxWriteMemo = new Map<number, { end: number; content: string }>();
+  const jsxWriteMemo = new Map<number, JsxWriteRecord>();
   const jsxCtx: JsxTransformContext = {
     source,
     s,
@@ -934,10 +947,15 @@ export function transformAllJsx(
     setNeedsFragment: () => {
       needsFragment = true;
     },
-    writeJsxCall: (start, end, content) => {
+    writeJsxCall: (start, end, content, result) => {
       s.overwrite(start, end, content);
       jsxWrites.push({ start, end, content });
-      jsxWriteMemo.set(start, { end, content });
+      jsxWriteMemo.set(start, {
+        end,
+        content,
+        flags: result.flags,
+        hasVarProps: result.varProps != null,
+      });
     },
   };
 
@@ -989,7 +1007,7 @@ export function transformAllJsx(
         });
         if (result) {
           const callStr = appendDevSuffix(result.callString, ctx.getDevSourceSuffix(node.start));
-          ctx.writeJsxCall(node.start, node.end, `/*#__PURE__*/ ${callStr}`);
+          ctx.writeJsxCall(node.start, node.end, `/*#__PURE__*/ ${callStr}`, result);
           for (const imp of result.neededImports) ctx.neededImports.add(imp);
         }
       } else if (node.type === 'JSXFragment') {
@@ -998,7 +1016,7 @@ export function transformAllJsx(
         });
         if (result) {
           const callStr = appendDevSuffix(result.callString, ctx.getDevSourceSuffix(node.start));
-          ctx.writeJsxCall(node.start, node.end, `/*#__PURE__*/ ${callStr}`);
+          ctx.writeJsxCall(node.start, node.end, `/*#__PURE__*/ ${callStr}`, result);
           for (const imp of result.neededImports) ctx.neededImports.add(imp);
           ctx.setNeedsFragment();
         }

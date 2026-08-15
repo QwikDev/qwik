@@ -259,7 +259,7 @@ function tryBuildSourceOrderedJsxSplit(
 
   return {
     tag,
-    varProps: varPropsPart,
+    varProps: varParts.length > 0 ? varPropsPart : null,
     constProps: constPropsPart,
     children: childrenText,
     flags,
@@ -354,7 +354,7 @@ function buildJsxSplitCall(
     const callString = `_jsxSplit(${tag}, ${varPropsPart}, ${constPropsPart}, ${childrenText ?? 'null'}, ${flags}, ${keyStr ?? 'null'})`;
     return {
       tag,
-      varProps: varPropsPart,
+      varProps: varParts.length > 0 ? varPropsPart : null,
       constProps: constPropsPart,
       children: childrenText,
       flags,

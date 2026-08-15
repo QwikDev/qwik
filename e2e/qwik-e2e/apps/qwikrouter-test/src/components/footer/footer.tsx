@@ -1,4 +1,4 @@
-import { component$, useStyles$, useTask$ } from '@qwik.dev/core';
+import { component$, untrack, useStyles$, useTask$ } from '@qwik.dev/core';
 import { Link } from '@qwik.dev/router';
 import { useUserLoader } from '../../routes/layout';
 import { useRootLoader } from '../../routes/plugin@header';
@@ -13,9 +13,11 @@ export default component$(() => {
   useStyles$(styles);
 
   useTask$(() => {
-    // run everytime it updates
-    serverData.value;
-    userData.value;
+    // untracked: v3 tasks auto-track reads; v2 only tracked explicit track() calls
+    untrack(() => {
+      serverData.value;
+      userData.value;
+    });
   });
 
   return (

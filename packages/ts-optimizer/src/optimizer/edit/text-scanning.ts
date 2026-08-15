@@ -92,7 +92,8 @@ export function findMatchingBrace(text: string, openPos: number): number {
 
 /**
  * Skip the string or template literal opening at `i`; returns the index of the closing quote.
- * Template `${}` interpolations are skipped by brace depth (nested backticks stay unsupported).
+ * Template `${}` interpolations are skipped by brace depth, with string literals inside the
+ * interpolation (including nested templates) skipped recursively so their braces don't count.
  */
 export function skipStringLiteralForward(text: string, i: number): number {
   const quote = text[i];
@@ -106,8 +107,13 @@ export function skipStringLiteralForward(text: string, i: number): number {
       i += 2;
       let depth = 1;
       while (i < text.length && depth > 0) {
-        if (text[i] === '{') depth++;
-        else if (text[i] === '}') depth--;
+        const ch = text[i];
+        if (ch === '"' || ch === "'" || ch === '`') {
+          i = skipStringLiteralForward(text, i) + 1;
+          continue;
+        }
+        if (ch === '{') depth++;
+        else if (ch === '}') depth--;
         i++;
       }
       continue;

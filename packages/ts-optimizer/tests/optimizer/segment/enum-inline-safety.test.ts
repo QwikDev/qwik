@@ -17,7 +17,8 @@ it('never rewrites member paths, strings, or comments', () => {
   const out = inlineEnumReferences(body, enums);
   expect(out).toContain('config.Status.Active');
   expect(out).toContain('"Status.Active"');
-  expect(out).toContain('${Status.Active}');
+  // Interpolation contents are code (rust inlines there); literal chunks are data.
+  expect(out).toContain('${"active"}');
   expect(out).toContain('} Status.Active`');
   expect(out).toContain('// Status.Active in a comment');
 });

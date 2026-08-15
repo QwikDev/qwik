@@ -1,5 +1,5 @@
 import { isServer } from '@qwik.dev/core/build';
-import { isPromise } from '../shared/utils/promises';
+import { isPromise, MAX_RETRY_ON_PROMISE_COUNT } from '../shared/utils/promises';
 import type { ValueOrPromise } from '../shared/utils/types';
 import {
   getActiveInvokeContextOrNull,
@@ -60,6 +60,15 @@ export function createComponent<TProps>(
   render: ComponentRenderFn<TProps>,
   options?: ComponentOptions
 ): ValueOrPromise<ComponentOutput | void> {
+  return createComponentAttempt(props, render, options, 0);
+}
+
+function createComponentAttempt<TProps>(
+  props: TProps,
+  render: ComponentRenderFn<TProps>,
+  options: ComponentOptions | undefined,
+  retryCount: number
+): ValueOrPromise<ComponentOutput | void> {
   const parentInvokeContext =
     options !== undefined && options.invokeContext
       ? options.invokeContext
@@ -83,27 +92,37 @@ export function createComponent<TProps>(
           : [parentInvokeContext.useOnEvents, ...inherited];
   }
 
-  let nodes: ValueOrPromise<ComponentOutput | void>;
-  try {
-    nodes = untrack(invoke, invokeContext, render, props);
-  } catch (error) {
+  // A thrown promise is a pending read (e.g. an async value in the component body):
+  // wait for it and re-run the component, mirroring v2's promise-exception retry.
+  // The retry re-invokes with the parent context carried explicitly — the ambient
+  // invoke context is gone after the await. The failed attempt's owner is left
+  // undisposed: disposing would abort in-flight computeds before they publish.
+  const retryOnPending = (error: unknown): ValueOrPromise<ComponentOutput | void> => {
+    if (isPromise(error)) {
+      if (retryCount < MAX_RETRY_ON_PROMISE_COUNT) {
+        const retryOptions: ComponentOptions = { ...options, invokeContext: parentInvokeContext };
+        return (error as Promise<unknown>).then(() =>
+          createComponentAttempt(props, render, retryOptions, retryCount + 1)
+        );
+      }
+      // never rethrow the promise itself: a thenable error is silently adopted upstream
+      error = new Error('Max retry count of component execution reached');
+    }
     if (invokeContext.owner !== null) {
       disposeOwner(invokeContext.owner);
       invokeContext.owner = null;
     }
     throw error;
+  };
+
+  let nodes: ValueOrPromise<ComponentOutput | void>;
+  try {
+    nodes = untrack(invoke, invokeContext, render, props);
+  } catch (error) {
+    return retryOnPending(error);
   }
   if (isPromise(nodes)) {
-    return nodes.then(
-      (nodes) => finalizeOutput(nodes, invokeContext),
-      (error) => {
-        if (invokeContext.owner !== null) {
-          disposeOwner(invokeContext.owner);
-          invokeContext.owner = null;
-        }
-        throw error;
-      }
-    );
+    return nodes.then((nodes) => finalizeOutput(nodes, invokeContext), retryOnPending);
   }
 
   return finalizeOutput(nodes, invokeContext);

@@ -157,6 +157,29 @@ describe(`${name}: async signals`, () => {
     (globalThis as any).__asyncResolve = undefined;
   });
 
+  it('retries a component whose body reads a pending async value', async () => {
+    // The signal lives outside the suspending component (like a route loader),
+    // so the retry re-reads the same instance once it settles.
+    const Reader = component$<{ data: { value: string } }>((props) => {
+      // a body-level read, not a text expression: throws the pending promise
+      const value = props.data.value;
+      return <div>{value}</div>;
+    });
+    const App = component$(() => {
+      const data = useAsync$(
+        () => new Promise<string>((resolve) => setTimeout(() => resolve('ready'), 10))
+      );
+      return <Reader data={data} />;
+    });
+
+    const { container, cleanup, flush } = await render(App, { debug });
+
+    await drain(flush);
+    expect(container.querySelector('div')!.textContent).toBe('ready');
+
+    cleanup();
+  });
+
   it('does not show initial value after SSR', async () => {
     const Counter = () => {
       const asyncValue = useAsync$(async () => 42, { initial: 10 });

@@ -1401,6 +1401,25 @@ export function App() {
     });
   });
 
+  test('folds isServer and isBrowser per emit target', async () => {
+    await testInput('build_constant_fold', {
+      code: `import { isServer, isBrowser, useSignal } from '@qwik.dev/core';
+export function App() {
+  const count = useSignal(0);
+  if (isServer) {
+    console.log('server setup');
+  }
+  return (
+    <div>
+      <p>{isServer ? 'server' : 'client'}</p>
+      <button onClick$={() => count.value += isBrowser ? 1 : 0}>{count.value}</button>
+    </div>
+  );
+}
+`,
+    });
+  });
+
   test('emits promise-callback JSX as a thunk child', async () => {
     await testInput('promise_callback_jsx_child', {
       code: `export function App(props: { load: () => Promise<(props: any) => any> }) {

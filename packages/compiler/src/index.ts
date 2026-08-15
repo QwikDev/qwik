@@ -7,6 +7,7 @@ import type {
 } from '@qwik.dev/optimizer';
 import { parseSync } from 'oxc-parser';
 import { analyzeModule } from './analysis';
+import { foldBuildConstants } from './fold-build-constants';
 import { collectNativeMarkers, nativePluginFns } from './native-lower';
 import { registerContextKinds } from './context-kinds';
 import { setNativeFns } from './expr-lower';
@@ -285,6 +286,19 @@ async function transformInput(
   };
 
   parseModule(ctx);
+  if (ctx.diagnostics.length === 0 && ctx.program !== null) {
+    const folded = foldBuildConstants(
+      analyzeModule(ctx.program),
+      ctx.input.code,
+      ctx.emitTarget,
+      options
+    );
+    if (folded !== null) {
+      // padded literals keep every offset stable, so the normalization map still applies
+      ctx.input = { ...ctx.input, code: folded };
+      parseModule(ctx);
+    }
+  }
   if (ctx.diagnostics.length === 0) {
     const result = transformModule(ctx);
     switch (result.kind) {

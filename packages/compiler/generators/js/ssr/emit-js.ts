@@ -2510,9 +2510,10 @@ class JsComponentGenerator {
       if (expression === null) {
         markUngeneratable(operation);
       }
-      // no segment: the expression evaluates as its own step
+      // no segment: the value's shape resolves at runtime — closure, empty, or text
       const step = `content_${this.nextTemp++}`;
-      this.pushStep(step, [], expression);
+      this.imports.add(QwikWord.RenderSsrDynamicContent);
+      this.pushStep(step, [], `${QwikWord.RenderSsrDynamicContent}(${expression})`);
       parts.push(step);
       return;
     }

@@ -33,6 +33,8 @@ export const enum QwikWord {
   CreateBranch = 'createBranch',
   CreateSuspense = 'createSuspense',
   CreateRevealGroup = 'createRevealGroup',
+  RenderSsrDynamicContent = 'renderSsrDynamicContent',
+  CreateDynamicContent = 'createDynamicContent',
   CreateContentBlock = 'createContentBlock',
   CreateCollection = 'createCollection',
   WrapArray = '_wrapArray',

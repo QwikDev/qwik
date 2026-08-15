@@ -49,6 +49,32 @@ export interface SuspenseProps {
 /** @public */
 export const Suspense: FunctionComponent<SuspenseProps & { children?: JSXOutput }> = () => null;
 
+/**
+ * A child value the compiler could not classify: exactly what it would have emitted had it known
+ * the shape — a compiled JSX closure renders, empty values vanish, everything else is text.
+ */
+export const renderSsrDynamicContent = (value: unknown): ValueOrPromise<SsrOutput> =>
+  maybeThen(value, (v) =>
+    typeof v === 'function'
+      ? (v as () => ValueOrPromise<SsrOutput>)()
+      : v == null || v === true || v === false
+        ? ''
+        : escapeHTML(String(v))
+  );
+
+/** The client peer of {@link renderSsrDynamicContent}: nodes instead of bytes. */
+export const createDynamicContent = (
+  value: unknown,
+  ctx: ContainerContext
+): ValueOrPromise<readonly Node[]> =>
+  maybeThen(value, (v) =>
+    typeof v === 'function'
+      ? maybeThen((v as (ctx: ContainerContext) => ValueOrPromise<MaybeNodeOutput>)(ctx), toNodes)
+      : v == null || v === true || v === false
+        ? EMPTY_NODES
+        : [ctx.document.createTextNode(String(v))]
+  );
+
 /** Content results are user values, so they must never reach the stream as markup. */
 export function escapeSsrContent(output: ContentOutput): string {
   switch (typeof output) {

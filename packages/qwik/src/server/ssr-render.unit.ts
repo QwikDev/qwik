@@ -17,7 +17,7 @@ import { getLocale } from '../core/runtime/use-locale';
 import { useServerData } from '../core/runtime/use-server-data';
 import { useSignal } from '../core/reactive/public-api';
 import { useOnDocument } from '../core/runtime/use-on';
-import { createSsrSuspense } from '../core/dom/content/content';
+import { createSsrSuspense, renderSsrDynamicContent } from '../core/dom/content/content';
 import { createRevealGroup } from '../core/dom/content/reveal';
 import { _await } from '../core/reactive/tracking';
 import {
@@ -34,6 +34,9 @@ import {
 } from './ssr-render';
 
 const FINAL_ATTRIBUTE_PATCH = '[0,"aria-describedby","final-id"]';
+
+const maybeThenAll = (parts: unknown[]) =>
+  Promise.all(parts) as Promise<import('../core/ssr/output').SsrOutput[]> as never;
 
 describe('SSR context markers', () => {
   test('passes root props without a JSX wrapper', async () => {
@@ -400,6 +403,21 @@ describe('SSR context markers', () => {
     expect(result.html).toContain(FINAL_ATTRIBUTE_PATCH);
   });
 
+  test('renders runtime-shaped children: closure, promise, text, empty', async () => {
+    const view = () => '<p>hi</p>';
+    const result = await renderToString((_props, _ctx) =>
+      maybeThenAll([
+        renderSsrDynamicContent(view),
+        renderSsrDynamicContent(Promise.resolve(view)),
+        renderSsrDynamicContent('a <b> c'),
+        renderSsrDynamicContent(null),
+        renderSsrDynamicContent(false),
+      ])
+    );
+
+    expect(result.html).toContain('<p>hi</p><p>hi</p>a &lt;b&gt; c');
+  });
+
   test('keeps synchronous Suspense content inline', async () => {
     const fallback = vi.fn(() => '<p>fallback</p>');
 
@@ -425,7 +443,7 @@ describe('SSR context markers', () => {
     const chunks: string[] = [];
 
     const rendering = renderToStream(
-      (_props, ctx) => {
+      ((_props: undefined, ctx: Parameters<SsrRenderRoot>[1]) => {
         const group = createRevealGroup('sequential', true, 2);
         return [
           createSsrSuspense(
@@ -447,7 +465,7 @@ describe('SSR context markers', () => {
             1
           ),
         ];
-      },
+      }) as unknown as SsrRenderRoot,
       {
         containerTagName: 'div',
         stream: {

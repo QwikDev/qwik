@@ -19,6 +19,7 @@ import {
   escapeHTML,
   renderSsrTextNode,
   maybeThen,
+  renderSsrDynamicContent,
   _noopQrl,
 } from '@qwik.dev/core';
 const q_component_q_e_click_segment_0_2xwyg1cinvmpz = /*#__PURE__*/ _noopQrl(
@@ -43,7 +44,7 @@ export function App(props, ctx) {
       '</button>',
     ]);
   };
-  const content_0 = button;
+  const content_0 = renderSsrDynamicContent(button);
   return maybeThen(content_0, (content_0) => [
     createSsrElementRecord('section', '<section', '>'),
     content_0,

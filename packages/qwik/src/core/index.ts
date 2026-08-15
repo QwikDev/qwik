@@ -323,9 +323,11 @@ export {
 export {
   Suspense,
   createContentBlock,
+  createDynamicContent,
   createSsrSuspense,
   createSuspense,
   escapeSsrContent,
+  renderSsrDynamicContent,
   renderSsrContent,
   type SuspenseProps,
 } from './dom/content/content';

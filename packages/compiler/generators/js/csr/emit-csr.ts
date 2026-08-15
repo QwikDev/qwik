@@ -745,25 +745,31 @@ function emitCsrOperation(
       }
       const value = next('content');
       const isRoot = context.rootOperationIds.has(operation.id);
+      if (operation.cardinality === 'unknown') {
+        // the value's shape resolves at runtime — closure, promise, empty, or text
+        imports.add(QwikWord.CreateDynamicContent);
+        imports.add(QwikWord.MaybeThen);
+        if (isRoot) {
+          operationNames.set(operation.id, `Array.from(${range.start}.parentNode.childNodes)`);
+        }
+        return {
+          declarations: [],
+          statements: [
+            `${context.generatedNames.ctx}.scheduler.waitFor(${QwikWord.MaybeThen}(${QwikWord.CreateDynamicContent}(${emitValue(
+              operation.value,
+              context
+            )}, ${context.generatedNames.ctx}), (${value}) => { for (const node of ${value}) ${range.end}.parentNode.insertBefore(node, ${range.end}); }));`,
+          ],
+        };
+      }
       let rootValue: string;
       let mount: string;
       if (operation.cardinality === 'one') {
         rootValue = `[${range.start}, ${value}, ${range.end}]`;
         mount = `${range.end}.parentNode.insertBefore(${value}, ${range.end});`;
       } else {
-        const nodes =
-          operation.cardinality === 'many'
-            ? value
-            : (() => {
-                imports.add(QwikWord.ToNodes);
-                return next('nodes');
-              })();
-        rootValue = `[${range.start}, ...${nodes}, ${range.end}]`;
-        mount = `${
-          operation.cardinality === 'unknown'
-            ? `const ${nodes} = ${QwikWord.ToNodes}(${value}); `
-            : ''
-        }for (const node of ${nodes}) ${range.end}.parentNode.insertBefore(node, ${range.end});`;
+        rootValue = `[${range.start}, ...${value}, ${range.end}]`;
+        mount = `for (const node of ${value}) ${range.end}.parentNode.insertBefore(node, ${range.end});`;
       }
       if (isRoot && operation.value.returnMode === 'sync') {
         operationNames.set(operation.id, rootValue);

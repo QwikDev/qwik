@@ -4,7 +4,6 @@
  */
 
 import { charIn, createRegExp, exactly, global as g, oneOrMore } from 'magic-regexp';
-/// <reference path="../siphash.d.ts" />
 import SipHash13 from 'siphash/lib/siphash13.js';
 import { type Hash, mkHash } from '../optimizer/types/brands.js';
 

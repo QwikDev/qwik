@@ -4,6 +4,8 @@
   "version": "0.0.1",
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "dependencies": {
+    "@emnapi/core": "^1.7.1",
+    "@emnapi/runtime": "^1.7.1",
     "@oxc-project/types": "0.124.0",
     "magic-regexp": "^0.11.0",
     "magic-string": "^0.30.21",

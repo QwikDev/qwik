@@ -3,7 +3,6 @@
  * the relative file path's little-endian hash bytes.
  */
 
-/// <reference path="../../siphash.d.ts" />
 import SipHash13 from 'siphash/lib/siphash13.js';
 
 const ZERO_KEY: [number, number, number, number] = [0, 0, 0, 0];

@@ -8,6 +8,8 @@
   },
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "dependencies": {
+    "@emnapi/core": "^1.7.1",
+    "@emnapi/runtime": "^1.7.1",
     "@qwik.dev/optimizer": "workspace:*",
     "@qwik.dev/ts-optimizer": "workspace:*",
     "csstype": "^3.2.3",

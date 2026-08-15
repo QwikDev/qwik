@@ -24,8 +24,7 @@ describe('convergence breakdown', () => {
 
     let parentPass = 0,
       parentFail = 0,
-      noInput = 0,
-      parseError = 0;
+      noInput = 0;
     let segPass = 0,
       segFail = 0,
       segMissing = 0;

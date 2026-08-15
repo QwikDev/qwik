@@ -402,7 +402,7 @@ function transformSegmentJsx(
   nestedCallSites: NestedCallSiteInfo[] | undefined,
   captureInfo: SegmentCaptureInfo | undefined
 ): { bodyText: string; keyCounterValue?: number } {
-  if (!/(?:<[A-Z_a-z\/]|JSX)/.test(bodyText)) {
+  if (!/(?:<[A-Z_a-z/]|JSX)/.test(bodyText)) {
     return { bodyText };
   }
 
@@ -706,13 +706,15 @@ export function generateSegmentCode(
     importContext
   );
 
-  let { bodyText, captureInfo: liveCaptureInfo } = applyBodyTransforms(
+  const transformed = applyBodyTransforms(
     extraction,
     parts,
     captureInfo,
     nestedCallSites,
     enumValueMap
   );
+  const liveCaptureInfo = transformed.captureInfo;
+  let bodyText = transformed.bodyText;
 
   let segmentKeyCounterValue: number | undefined;
   if (jsxOptions?.enableJsx) {

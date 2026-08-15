@@ -74,3 +74,32 @@ export const routeLoader$ = implicit$FirstArg(routeLoaderQrl);
   expect(out).toContain('export const routeLoader$');
   expect(out).not.toMatch(/export\s+implicit\$FirstArg/);
 });
+
+it('keeps a decl referenced only before the export block', () => {
+  // Parent modules emit component bodies before their exports; the
+  // side-effect pass once counted references only past the first export.
+  const out = transformModule({
+    input: [
+      {
+        path: mkFilePath('attributes.tsx'),
+        code: mkSourceText(`
+import { component$ } from '@qwik.dev/core';
+export const Attributes = component$(() => {
+  return <ProgressParent />;
+});
+const ProgressParent = component$(() => {
+  return <div id="progress" />;
+});
+`),
+      },
+    ],
+    srcDir: mkFilePath('.'),
+    entryStrategy: { type: 'hoist' },
+    minify: 'simplify',
+    transpileTs: true,
+    transpileJsx: true,
+    mode: 'dev',
+    isServer: true,
+  }).modules[0]!.code;
+  expect(out).toMatch(/const ProgressParent = /);
+});

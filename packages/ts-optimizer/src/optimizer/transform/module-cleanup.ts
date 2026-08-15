@@ -257,12 +257,11 @@ export function applySegmentSideEffectSimplification(
 
   walk(program, {
     enter(node: AstNode, parent: AstParentNode) {
-      if (node.start !== undefined && node.end !== undefined && node.end <= exportStart) return;
-
       if (node.type === 'Identifier' && node.name) {
         if (parent?.type === 'VariableDeclarator' && parent.id === node) return;
         if (parent?.type === 'ImportSpecifier') return;
-        if (node.start === undefined || node.start < exportStart) return;
+        // Count references module-wide: parent modules interleave uses
+        // before the export block (unlike segments).
         allRefs.set(node.name, (allRefs.get(node.name) ?? 0) + 1);
       }
 

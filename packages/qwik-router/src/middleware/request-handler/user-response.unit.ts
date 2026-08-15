@@ -46,6 +46,23 @@ describe('runQwikRouter', () => {
     await expect(run.completion).resolves.toBe(error);
   });
 
+  it('converts a thenable rejection into an error instead of adopting it', async () => {
+    const requestEv = {
+      originalUrl: new URL('http://localhost/'),
+      next: async () => {
+        throw Promise.resolve('late');
+      },
+      isDirty: () => false,
+      headersSent: false,
+    };
+    mocks.createRequestEvent.mockReturnValue(requestEv);
+
+    const run = runQwikRouter({} as any, {} as any, [], vi.fn() as any, '/');
+
+    await expect(run.completion).resolves.toBeInstanceOf(Error);
+    await expect(run.response).resolves.toBeNull();
+  });
+
   it('runs within the async request store, reading it at call time', () => {
     const requestEv = {};
     mocks.createRequestEvent.mockReturnValue(requestEv);

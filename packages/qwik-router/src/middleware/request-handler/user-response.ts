@@ -83,6 +83,10 @@ async function runNext(
     try {
       await requestEv.next();
     } catch (e) {
+      // an async `return e` adopts a thenable, silently swallowing the failure
+      if (typeof (e as { then?: unknown } | null)?.then === 'function') {
+        e = new Error('Request handler rejected with a pending promise.');
+      }
       if (e instanceof RedirectMessage) {
         const stream = requestEv.getWritableStream();
         await stream.close();

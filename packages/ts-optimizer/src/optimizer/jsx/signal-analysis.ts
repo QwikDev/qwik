@@ -18,6 +18,7 @@ import {
   type RangeReplacementCollector,
 } from '../edit/range-replace.js';
 import { quoteAsStringLiteral } from '../edit/string-literal.js';
+import { replaceOutsideStrings } from '../edit/identifier-boundary.js';
 import { skipStringLiteralForward } from '../edit/text-scanning.js';
 import { stripExpressionTypes } from '../edit/strip-types.js';
 import { addBindingNamesFromPatternToSet } from '../ast/binding-pattern.js';
@@ -604,7 +605,7 @@ function isWordChar(ch: string): boolean {
 
 /** Strip trailing commas before closing delimiters (dropped by AST re-serialization). */
 function stripTrailingCommas(text: string): string {
-  return text.replace(trailingComma, '$1');
+  return replaceOutsideStrings(text, trailingComma, '$1');
 }
 
 /**

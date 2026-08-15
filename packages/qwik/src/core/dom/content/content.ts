@@ -22,6 +22,7 @@ import {
 } from '../../runtime/subscriber';
 import { escapeHTML } from '../../shared/utils/character-escaping';
 import { EMPTY_NODES } from '../../utils/consts';
+import type { RevealGroup } from './reveal';
 import { toNodes, type MaybeNodeOutput } from '../../utils/nodes';
 import { getFunctionOrResolve } from '../../utils/qrl';
 import type { SsrOutput } from '../../ssr/output';
@@ -223,7 +224,9 @@ export function createSuspense(
   range: BranchRange,
   contentQrl: QRL<SuspenseContentFn>,
   fallbackQrl?: QRL<SuspenseContentFn>,
-  delay = 0
+  delay = 0,
+  group?: RevealGroup,
+  index = 0
 ): ContentSubscription<[]> {
   const subscription = createContentBlock(
     ctx,
@@ -235,7 +238,24 @@ export function createSuspense(
     true
   );
   const content = subscription.run();
+  // committed content may still have to wait for its reveal group
+  const holdForReveal = (nodes: readonly Node[]) => {
+    if (group === undefined) {
+      return;
+    }
+    group.resolve(index);
+    if (group.canReveal(index) || subscription.owner === null) {
+      return;
+    }
+    range.replace(EMPTY_NODES);
+    group.whenRevealable(index, () => {
+      if (subscription.owner !== null) {
+        range.replace(nodes);
+      }
+    });
+  };
   if (!isPromise(content)) {
+    holdForReveal(content);
     return subscription;
   }
   let isPending = true;
@@ -260,6 +280,11 @@ export function createSuspense(
   const showFallback = () => {
     if (!isPending || subscription.owner === null || fallbackQrl === undefined) {
       finish();
+      return;
+    }
+    if (group !== undefined && !group.mayShowFallback(index)) {
+      // a collapsed group hides even the fallback until the order allows it
+      group.whenRevealable(index, showFallback);
       return;
     }
     const invokeContext = (fallbackContext = newChildInvokeContext(
@@ -297,12 +322,19 @@ export function createSuspense(
   } else if (fallbackQrl !== undefined) {
     showFallback();
   }
-  content.then(finish, (error) => {
-    finish();
-    subscription.block.dispose();
-    // Only the rejection goes to the scheduler; awaiting the content would block the fallback.
-    ctx.scheduler.waitFor(Promise.reject(error));
-  });
+  content.then(
+    (nodes) => {
+      finish();
+      holdForReveal(nodes);
+    },
+    (error) => {
+      finish();
+      group?.resolve(index);
+      subscription.block.dispose();
+      // Only the rejection goes to the scheduler; awaiting the content would block the fallback.
+      ctx.scheduler.waitFor(Promise.reject(error));
+    }
+  );
   return subscription;
 }
 
@@ -318,7 +350,11 @@ export function createSsrSuspense(
   rangeId: number,
   contentQrl: QRL<SsrSuspenseContentFn>,
   fallbackQrl?: QRL<SsrSuspenseContentFn>,
-  delay = 0
+  delay = 0,
+  // out-of-order swap coordination consumes the group in a follow-up; accepted now so
+  // the compiled call shape stays stable
+  _group?: RevealGroup,
+  _index = 0
 ): ValueOrPromise<SsrOutput> {
   return ctx.deferSuspense(rangeId, contentQrl, fallbackQrl, delay);
 }

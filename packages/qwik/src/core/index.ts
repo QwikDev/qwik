@@ -330,6 +330,13 @@ export {
   type SuspenseProps,
 } from './dom/content/content';
 export {
+  Reveal,
+  RevealGroup,
+  createRevealGroup,
+  type RevealOrder,
+  type RevealProps,
+} from './dom/content/reveal';
+export {
   ForBlock,
   ForRange,
   SSRForBlock,

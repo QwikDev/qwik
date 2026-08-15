@@ -5,6 +5,7 @@ import {
   injectCapturesUnpacking,
   rewriteFunctionSignature,
   rewriteNestedCallSitesInline,
+  stripDiagnosticsAndDirectives,
 } from '../../../src/optimizer/segment/body-transforms.js';
 import type { NestedCallSiteInfo } from '../../../src/optimizer/segment/segment-codegen.js';
 
@@ -107,6 +108,35 @@ describe('body-transforms', () => {
       const parts = ['//', 'return 1'];
       ensureCoreImports(parts[1]!, parts);
       expect(parts).toEqual(['//', 'return 1']);
+    });
+  });
+
+  describe('stripDiagnosticsAndDirectives', () => {
+    it('removes a passive directive and its preventdefault without touching string data', () => {
+      const body =
+        '<div title="passive:wheel demo" passive:wheel preventdefault:wheel onWheel$={q_h}>x</div>';
+      expect(stripDiagnosticsAndDirectives(body)).toBe(
+        '<div title="passive:wheel demo" onWheel$={q_h}>x</div>'
+      );
+    });
+
+    it('is not fooled by a ">" inside an attribute string value', () => {
+      const body = '<div title="a > b" passive:scroll onScroll$={q_h}>x</div>';
+      expect(stripDiagnosticsAndDirectives(body)).toBe(
+        '<div title="a > b" onScroll$={q_h}>x</div>'
+      );
+    });
+
+    it('keeps preventdefault for events that are not passive', () => {
+      const body = '<div passive:wheel preventdefault:click onClick$={q_h}>x</div>';
+      expect(stripDiagnosticsAndDirectives(body)).toBe(
+        '<div preventdefault:click onClick$={q_h}>x</div>'
+      );
+    });
+
+    it('leaves directive-shaped text inside a string literal alone', () => {
+      const body = 'const s = "/* @qwik-disable-next-line foo */";';
+      expect(stripDiagnosticsAndDirectives(body)).toBe(body);
     });
   });
 

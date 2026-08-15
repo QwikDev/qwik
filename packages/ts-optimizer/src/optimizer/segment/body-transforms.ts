@@ -24,6 +24,7 @@ import type { ExtractionResult } from '../extraction/extract.js';
 import type { NestedCallSiteInfo } from './segment-codegen.js';
 import {
   blankNonCode,
+  isInsideString,
   pureAwareOverwriteStart,
   scanMatchingParenBackward,
   scanMatchingParenForward,
@@ -446,24 +447,47 @@ export function applyRawPropsToSegmentBody(bodyText: string, parts: string[]): s
 
 /** Must run AFTER nested call site rewriting, which uses original positions. */
 export function stripDiagnosticsAndDirectives(bodyText: string): string {
-  bodyText = bodyText.replace(qwikDisableDirective, '');
-
-  // Not converted to magic-regexp: lazy quantifiers inside capture groups aren't supported.
-  bodyText = bodyText.replace(/<(\w+)([^>]*?)>/g, (_match, tagName, attrsStr) => {
-    const elementPassive = new Set<string>();
-    for (const m of attrsStr.matchAll(/passive:(\w+)/g)) {
-      elementPassive.add(m[1]);
-    }
-    let cleaned = attrsStr.replace(/\s*passive:\w+/g, '');
-    if (elementPassive.size > 0) {
-      cleaned = cleaned.replace(/\s*preventdefault:(\w+)/g, (pdFull: string, eventName: string) => {
-        return elementPassive.has(eventName) ? '' : pdFull;
-      });
-    }
-    return `<${tagName}${cleaned}>`;
+  bodyText = bodyText.replace(qwikDisableDirective, (match, ...args) => {
+    const offset = args[args.length - 2] as number;
+    // Directive-shaped STRING data is not a directive.
+    return isInsideString(bodyText, offset) ? match : '';
   });
 
-  return bodyText;
+  if (!bodyText.includes('passive:')) return bodyText;
+
+  // Match tags and directives on the blanked copy (attribute string values
+  // spaced out, positions preserved), then delete the found ranges from the
+  // original — a `passive:` or `>` inside a string can't confuse the scan.
+  const code = blankNonCode(bodyText);
+  const deletions: Array<{ start: number; end: number }> = [];
+  // Not converted to magic-regexp: lazy quantifiers inside capture groups aren't supported.
+  for (const tag of code.matchAll(/<(\w+)([^>]*?)>/g)) {
+    const attrs = tag[2];
+    const attrsStart = tag.index + 1 + tag[1].length;
+    const elementPassive = new Set<string>();
+    for (const m of attrs.matchAll(/passive:(\w+)/g)) {
+      elementPassive.add(m[1]);
+    }
+    if (elementPassive.size === 0) continue;
+    for (const m of attrs.matchAll(/\s*passive:\w+/g)) {
+      deletions.push({ start: attrsStart + m.index, end: attrsStart + m.index + m[0].length });
+    }
+    for (const m of attrs.matchAll(/\s*preventdefault:(\w+)/g)) {
+      if (elementPassive.has(m[1])) {
+        deletions.push({ start: attrsStart + m.index, end: attrsStart + m.index + m[0].length });
+      }
+    }
+  }
+  if (deletions.length === 0) return bodyText;
+
+  deletions.sort((a, b) => a.start - b.start);
+  let out = '';
+  let last = 0;
+  for (const d of deletions) {
+    out += bodyText.slice(last, d.start);
+    last = d.end;
+  }
+  return out + bodyText.slice(last);
 }
 
 export function transformSyncCalls(bodyText: string, parts: string[]): string {

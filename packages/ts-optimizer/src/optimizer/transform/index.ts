@@ -12,6 +12,7 @@ import type {
   TSEnumDeclaration,
 } from '../../ast-types.js';
 import { transformSync as oxcTransformSync } from 'oxc-transform';
+import { blankNonCode, skipStringLiteralForward } from '../edit/text-scanning.js';
 import { parseWithRawTransfer } from '../ast/parse.js';
 import { isStrippedExtraction } from '../rewrite/predicates.js';
 import { flattenAndReparse } from '../prepare/flatten-destructures.js';
@@ -105,6 +106,30 @@ import {
 } from '../segment/segment-generation.js';
 
 /**
+ * Collect import sources from generated text whose parse isn't cached. Patterns end at the opening
+ * quote and match on the blanked copy (string/comment contents spaced out, positions preserved), so
+ * import-shaped text inside a string or comment can't register; the source itself reads from the
+ * original through the string scanner.
+ */
+function addImportSourcesFromText(
+  code: string,
+  patterns: readonly RegExp[],
+  sources: Set<string>
+): void {
+  const blanked = blankNonCode(code);
+  for (const pattern of patterns) {
+    for (const m of blanked.matchAll(pattern)) {
+      const quoteIdx = m.index + m[0].length - 1;
+      const close = skipStringLiteralForward(code, quoteIdx);
+      if (close < code.length) sources.add(code.slice(quoteIdx + 1, close));
+    }
+  }
+}
+
+const dynamicImportOpen = /\bimport\s*\(\s*["']/g;
+const staticImportOpens = [/\bfrom\s*["']/g, /^\s*import\s*["']/gm] as const;
+
+/**
  * Import sources present in the original module but absent from the final parent output. The vite
  * plugin uses these to keep stripped-away imports in the module graph (SSR restore).
  */
@@ -113,26 +138,15 @@ function collectRemovedImportSources(
   originalCode: string,
   cleanedCode: string
 ): string[] {
-  const dynamicImportPattern = /\bimport\s*\(\s*["']([^"']+)["']\s*\)/g;
   const originalSources = new Set<string>();
   for (const [, info] of originalImports) {
     if (info.source) originalSources.add(info.source);
   }
-  let match;
-  while ((match = dynamicImportPattern.exec(originalCode)) !== null) {
-    originalSources.add(match[1]);
-  }
+  addImportSourcesFromText(originalCode, [dynamicImportOpen], originalSources);
   if (originalSources.size === 0) return [];
 
   const keptSources = new Set<string>();
-  const importSourcePattern = /(?:from\s*|^\s*import\s*)["']([^"']+)["']/gm;
-  while ((match = importSourcePattern.exec(cleanedCode)) !== null) {
-    keptSources.add(match[1]);
-  }
-  dynamicImportPattern.lastIndex = 0;
-  while ((match = dynamicImportPattern.exec(cleanedCode)) !== null) {
-    keptSources.add(match[1]);
-  }
+  addImportSourcesFromText(cleanedCode, [dynamicImportOpen, ...staticImportOpens], keptSources);
 
   return [...originalSources].filter((source) => !keptSources.has(source));
 }

@@ -1,0 +1,90 @@
+==INPUT==
+
+export function App(props: { load: () => Promise<(props: any) => any> }) {
+  const component = props.load();
+  return <div>{component.then((Cmp) => <Cmp name="late" />)}</div>;
+}
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  createSsrElementRecord,
+  getActiveInvokeContextOrNull,
+  invoke,
+  createComponent,
+  maybeThen,
+  renderSsrDynamicContent,
+} from '@qwik.dev/core';
+export function App(props, ctx) {
+  const component = props.load();
+  const invokeCtx = getActiveInvokeContextOrNull();
+  const content_0 = renderSsrDynamicContent(
+    component.then(
+      (Cmp) => () =>
+        invoke(invokeCtx, () =>
+          (() => {
+            const component_0 = createComponent({ name: 'late' }, (props) => Cmp(props, ctx));
+            return maybeThen(component_0, (component_0) => component_0);
+          })()
+        )
+    )
+  );
+  return maybeThen(content_0, (content_0) => [
+    createSsrElementRecord('div', '<div', '>'),
+    content_0,
+    '</div>',
+  ]);
+}
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  _first,
+  _next,
+  createDynamicContent,
+  maybeThen,
+  createComponent,
+  getActiveInvokeContext,
+  invoke,
+  createTemplate,
+} from '@qwik.dev/core';
+
+const App_tmpl0 = createTemplate('<div><!----><!----></div>');
+export function App(props, ctx) {
+  const component = props.load();
+  const fragment0 = App_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  const start0 = _first(el0);
+  const end0 = _next(start0);
+  ctx.scheduler.waitFor(
+    maybeThen(
+      createDynamicContent(
+        (() => {
+          const invokeCtx = getActiveInvokeContext();
+          return component.then(
+            (Cmp) => () =>
+              invoke(invokeCtx, () =>
+                (() => {
+                  return createComponent({ name: 'late' }, (props) => Cmp(props, ctx));
+                })()
+              )
+          );
+        })(),
+        ctx
+      ),
+      (content0) => {
+        for (const node of content0) end0.parentNode.insertBefore(node, end0);
+      }
+    )
+  );
+  return el0;
+}
+== CSR DIAGNOSTICS ==
+
+[]

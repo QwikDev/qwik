@@ -581,7 +581,8 @@ class JsComponentGenerator {
       );
       const fn = child.generateFn('__render_arg', renderArg.render, null, false, false, '()');
       const body = fn.slice(fn.indexOf('{') + 1, fn.lastIndexOf('}'));
-      return `(${paramNames.join(', ')}) => ${QwikWord.Invoke}(${invokeCtx}, () => (() => {${body}})())`;
+      // a thunk, so consumers see a compiled closure instead of raw parts
+      return `(${paramNames.join(', ')}) => () => ${QwikWord.Invoke}(${invokeCtx}, () => (() => {${body}})())`;
     }
     return this.irJs(argument as ValueIR, scope as Map<number, string> | undefined);
   }

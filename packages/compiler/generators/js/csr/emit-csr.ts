@@ -1868,7 +1868,8 @@ function emitValue(value: CsrValuePlan, context?: CsrEmitContext): string {
       .join('\n');
     replacements.push({
       range: embedded.range,
-      value: `invoke(${context.generatedNames.invokeCtx}, () => (${embedded.async ? 'async ' : ''}() => {\n${body}\n})())`,
+      // a thunk, so consumers see a compiled closure instead of raw nodes
+      value: `() => invoke(${context.generatedNames.invokeCtx}, () => (${embedded.async ? 'async ' : ''}() => {\n${body}\n})())`,
     });
   }
   const expression = applyReplacements(context.source, value.range, replacements);

@@ -1401,6 +1401,16 @@ export function App() {
     });
   });
 
+  test('emits promise-callback JSX as a thunk child', async () => {
+    await testInput('promise_callback_jsx_child', {
+      code: `export function App(props: { load: () => Promise<(props: any) => any> }) {
+  const component = props.load();
+  return <div>{component.then((Cmp) => <Cmp name="late" />)}</div>;
+}
+`,
+    });
+  });
+
   test('rejects the plain fallback prop on Suspense', async () => {
     await testInput('suspense_plain_fallback_diagnostic', {
       code: `import { Suspense } from '@qwik.dev/core';

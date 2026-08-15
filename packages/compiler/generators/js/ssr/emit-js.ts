@@ -1065,6 +1065,13 @@ class JsComponentGenerator {
           return;
         }
         const local = entry as unknown as LocalComponentEntry;
+        // the synthesized props param must not shadow an enclosing `props` capture
+        const childPropsBase = this.names.props.replace(/\d+$/, '');
+        let childProps = `${childPropsBase}0`;
+        for (let index = 1; this.usedNames.has(childProps); index++) {
+          childProps = `${childPropsBase}${index}`;
+        }
+        this.usedNames.add(childProps);
         const child = new JsComponentGenerator(
           this.plan,
           this.shared,
@@ -1072,7 +1079,7 @@ class JsComponentGenerator {
           this.defs,
           this.contexts,
           this.pluginFns,
-          this.names,
+          { ...this.names, props: childProps },
           {
             locals: this.locals,
             usedNames: this.usedNames,

@@ -67,11 +67,11 @@ const q_local_component_112_432_9mplpu2ebao3 = /*#__PURE__*/ _noopQrl(
 );
 export function App(props, ctx) {
   const todos = useStore({ filter: 'all' });
-  function Filter(props, ctx) {
-    const { name } = props;
+  function Filter(props0, ctx) {
+    const { name } = props0;
     const lower = name.toLowerCase();
-    function Star(props, ctx) {
-      const { on } = props;
+    function Star(props1, ctx) {
+      const { on } = props1;
       const id_0 = ctx.nextId();
       ctx.addRoot(on);
       ctx.addRoot(todos);
@@ -335,8 +335,8 @@ export const local_component_112_432_9mplpu2ebao3 = (props, ctx) => {
   const todos = _captures[0];
   const { name } = props;
   const lower = name.toLowerCase();
-  function Star(props, ctx) {
-    const { on } = props;
+  function Star(props0, ctx) {
+    const { on } = props0;
     const id_0 = ctx.nextId();
     ctx.addRoot(on);
     ctx.addRoot(todos);

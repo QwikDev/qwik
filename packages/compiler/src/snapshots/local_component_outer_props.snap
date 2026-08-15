@@ -1,0 +1,468 @@
+==INPUT==
+
+export function Footer(props: { todos: { filter: string } }) {
+  function Filter({ filter }: { filter: string }) {
+    const lMode = filter.toLowerCase();
+    return (
+      <li>
+        <a class={{ selected: props.todos.filter == lMode }}>{filter}</a>
+      </li>
+    );
+  }
+  return (
+    <ul>
+      <Filter filter="all" />
+      <Filter filter="active" />
+    </ul>
+  );
+}
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  createSsrElementRecord,
+  createSsrNodeId,
+  createSsrElementTarget,
+  renderSsrAttrExpression,
+  escapeHTML,
+  createSsrRecord,
+  createSsrElementTextTarget,
+  renderSsrTextExpression,
+  getActiveInvokeContextOrNull,
+  invoke,
+  maybeThen,
+  _markComponent,
+  createComponent,
+  _noopQrl,
+} from '@qwik.dev/core';
+
+const component_class_segment_0_3htuygud1guoj = (props, lMode) => {
+  return { selected: props.todos.filter == lMode };
+};
+const q_component_class_segment_0_3htuygud1guoj = /*#__PURE__*/ _noopQrl(
+  'component_class_segment_0_3htuygud1guoj'
+);
+q_component_class_segment_0_3htuygud1guoj.s(component_class_segment_0_3htuygud1guoj);
+const component_text_segment_1_1fh10tcowimfv = (filter) => {
+  return filter;
+};
+const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_1_1fh10tcowimfv'
+);
+q_component_text_segment_1_1fh10tcowimfv.s(component_text_segment_1_1fh10tcowimfv);
+const q_local_component_33_204_slxzo3femvko = /*#__PURE__*/ _noopQrl(
+  'local_component_33_204_slxzo3femvko'
+);
+export function Footer(props, ctx) {
+  function Filter(props0, ctx) {
+    const { filter } = props0;
+    const lMode = filter.toLowerCase();
+    const id_0 = ctx.nextId();
+    ctx.addRoot(props);
+    ctx.addRoot(lMode);
+    const attr_0 = renderSsrAttrExpression(
+      createSsrElementTarget(id_0),
+      'class',
+      [props, lMode],
+      q_component_class_segment_0_3htuygud1guoj
+    );
+    const invokeCtx = getActiveInvokeContextOrNull();
+    const text_1 = () =>
+      invoke(invokeCtx, () => {
+        ctx.addRoot(filter);
+        return renderSsrTextExpression(
+          createSsrElementTextTarget(id_0),
+          [filter],
+          q_component_text_segment_1_1fh10tcowimfv
+        );
+      });
+    return maybeThen(attr_0, (attr_0) =>
+      maybeThen(text_1(), (text_1) => [
+        createSsrElementRecord('li', '<li', '>'),
+        createSsrRecord(
+          '<a q:id="',
+          createSsrNodeId(id_0),
+          '"',
+          attr_0 === null ? '' : ' class' + (attr_0 === '' ? '' : '="' + escapeHTML(attr_0) + '"'),
+          '>'
+        ),
+        escapeHTML(text_1),
+        '</a></li>',
+      ])
+    );
+  }
+
+  _markComponent(Filter, q_local_component_33_204_slxzo3femvko.w([props]));
+  const component_0 = createComponent({ filter: 'all' }, (props) => Filter(props, ctx));
+  const invokeCtx = getActiveInvokeContextOrNull();
+  const component_1 = () =>
+    invoke(invokeCtx, () => {
+      return createComponent({ filter: 'active' }, (props) => Filter(props, ctx));
+    });
+  return maybeThen(component_0, (component_0) =>
+    maybeThen(component_1(), (component_1) => [
+      createSsrElementRecord('ul', '<ul', '>'),
+      component_0,
+      component_1,
+      '</ul>',
+    ])
+  );
+}
+============================= src/component.tsx_component_class_segment_0_3htuygud1guoj.js (ENTRY POINT)==
+
+export const component_class_segment_0_3htuygud1guoj = (props, lMode) => {
+  return { selected: props.todos.filter == lMode };
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_class_segment_0_3htuygud1guoj",
+  "entry": null,
+  "displayName": "component_class_segment_0",
+  "hash": "3htuygud1guoj",
+  "canonicalFilename": "component.tsx_component_class_segment_0_3htuygud1guoj",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "class",
+  "captures": true,
+  "loc": [
+    133,
+    174
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props",
+    "lMode"
+  ]
+}
+*/
+============================= src/component.tsx_component_text_segment_1_1fh10tcowimfv.js (ENTRY POINT)==
+
+export const component_text_segment_1_1fh10tcowimfv = (filter) => {
+  return filter;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_1_1fh10tcowimfv",
+  "entry": null,
+  "displayName": "component_text_segment_1",
+  "hash": "1fh10tcowimfv",
+  "canonicalFilename": "component.tsx_component_text_segment_1_1fh10tcowimfv",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    177,
+    183
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "filter"
+  ]
+}
+*/
+============================= src/component.tsx_local_component_33_204_slxzo3femvko.js (ENTRY POINT)==
+
+import {
+  _noopQrl,
+  _captures,
+  createSsrElementRecord,
+  createSsrNodeId,
+  createSsrElementTarget,
+  renderSsrAttrExpression,
+  escapeHTML,
+  createSsrRecord,
+  createSsrElementTextTarget,
+  renderSsrTextExpression,
+  getActiveInvokeContextOrNull,
+  invoke,
+  maybeThen,
+} from '@qwik.dev/core';
+import { component_class_segment_0_3htuygud1guoj } from './component.tsx_component_class_segment_0_3htuygud1guoj';
+import { component_text_segment_1_1fh10tcowimfv } from './component.tsx_component_text_segment_1_1fh10tcowimfv';
+const q_component_class_segment_0_3htuygud1guoj = /*#__PURE__*/ _noopQrl(
+  'component_class_segment_0_3htuygud1guoj'
+);
+q_component_class_segment_0_3htuygud1guoj.s(component_class_segment_0_3htuygud1guoj);
+const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_1_1fh10tcowimfv'
+);
+q_component_text_segment_1_1fh10tcowimfv.s(component_text_segment_1_1fh10tcowimfv);
+
+export const local_component_33_204_slxzo3femvko = (props0, ctx) => {
+  const props = _captures[0];
+  const { filter } = props0;
+  const lMode = filter.toLowerCase();
+  const id_0 = ctx.nextId();
+  ctx.addRoot(props);
+  ctx.addRoot(lMode);
+  const attr_0 = renderSsrAttrExpression(
+    createSsrElementTarget(id_0),
+    'class',
+    [props, lMode],
+    q_component_class_segment_0_3htuygud1guoj
+  );
+  const invokeCtx = getActiveInvokeContextOrNull();
+  const text_1 = () =>
+    invoke(invokeCtx, () => {
+      ctx.addRoot(filter);
+      return renderSsrTextExpression(
+        createSsrElementTextTarget(id_0),
+        [filter],
+        q_component_text_segment_1_1fh10tcowimfv
+      );
+    });
+  return maybeThen(attr_0, (attr_0) =>
+    maybeThen(text_1(), (text_1) => [
+      createSsrElementRecord('li', '<li', '>'),
+      createSsrRecord(
+        '<a q:id="',
+        createSsrNodeId(id_0),
+        '"',
+        attr_0 === null ? '' : ' class' + (attr_0 === '' ? '' : '="' + escapeHTML(attr_0) + '"'),
+        '>'
+      ),
+      escapeHTML(text_1),
+      '</a></li>',
+    ])
+  );
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "local_component_33_204_slxzo3femvko",
+  "entry": null,
+  "displayName": "local_component_33_204",
+  "hash": "slxzo3femvko",
+  "canonicalFilename": "component.tsx_local_component_33_204_slxzo3femvko",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "localComponent",
+  "captures": true,
+  "loc": [
+    33,
+    204
+  ],
+  "paramNames": [
+    "filter"
+  ],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  _first,
+  createAttrExpressionEffect,
+  createTextExpressionEffect,
+  createTemplate,
+  _qrlWithChunk,
+  _markComponent,
+  _next,
+  createComponent,
+  _toNodes,
+  maybeThen,
+} from '@qwik.dev/core';
+import { component_class_segment_0_3htuygud1guoj } from './component.tsx_component_class_segment_0_3htuygud1guoj';
+import { component_text_segment_1_1fh10tcowimfv } from './component.tsx_component_text_segment_1_1fh10tcowimfv';
+
+const Filter_tmpl0 = createTemplate('<li><a> </a></li>');
+const q_local_component_33_204_slxzo3femvko = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_local_component_33_204_slxzo3femvko',
+  () => import('./component.tsx_local_component_33_204_slxzo3femvko'),
+  'local_component_33_204_slxzo3femvko'
+);
+const Footer_tmpl0 = createTemplate('<ul><!----><!----><!----><!----></ul>');
+export function Footer(props, ctx) {
+  function Filter(props0, ctx) {
+    const { filter } = props0;
+    const lMode = filter.toLowerCase();
+    const fragment0 = Filter_tmpl0(ctx.document);
+    const el0 = _first(fragment0);
+    const el1 = _first(el0);
+    const text0 = _first(el1);
+    const effect0 = createAttrExpressionEffect(
+      el1,
+      'class',
+      [props, lMode],
+      component_class_segment_0_3htuygud1guoj,
+      ctx.scheduler
+    );
+    ctx.scheduler.notify(effect0);
+    const effect1 = createTextExpressionEffect(
+      text0,
+      [filter],
+      component_text_segment_1_1fh10tcowimfv,
+      ctx.scheduler
+    );
+    ctx.scheduler.notify(effect1);
+    return el0;
+  }
+  _markComponent(Filter, q_local_component_33_204_slxzo3femvko.w([props]));
+  const fragment0 = Footer_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  const start0 = _first(el0);
+  const end0 = _next(start0);
+  const start1 = _next(end0);
+  const end1 = _next(start1);
+  ctx.scheduler.waitFor(
+    maybeThen(
+      createComponent({ filter: 'all' }, (props) => Filter(props, ctx)),
+      (component0) => {
+        const nodes0 = _toNodes(component0);
+        for (const node of nodes0) end0.parentNode.insertBefore(node, end0);
+        start0.remove();
+        end0.remove();
+      }
+    )
+  );
+  ctx.scheduler.waitFor(
+    maybeThen(
+      createComponent({ filter: 'active' }, (props) => Filter(props, ctx)),
+      (component1) => {
+        const nodes1 = _toNodes(component1);
+        for (const node of nodes1) end1.parentNode.insertBefore(node, end1);
+        start1.remove();
+        end1.remove();
+      }
+    )
+  );
+  return el0;
+}
+============================= src/component.tsx_component_class_segment_0_3htuygud1guoj.js (ENTRY POINT)==
+
+export const component_class_segment_0_3htuygud1guoj = (props, lMode) => {
+  return { selected: props.todos.filter == lMode };
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_class_segment_0_3htuygud1guoj",
+  "entry": null,
+  "displayName": "component_class_segment_0",
+  "hash": "3htuygud1guoj",
+  "canonicalFilename": "component.tsx_component_class_segment_0_3htuygud1guoj",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "class",
+  "captures": true,
+  "loc": [
+    133,
+    174
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props",
+    "lMode"
+  ]
+}
+*/
+============================= src/component.tsx_component_text_segment_1_1fh10tcowimfv.js (ENTRY POINT)==
+
+export const component_text_segment_1_1fh10tcowimfv = (filter) => {
+  return filter;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_1_1fh10tcowimfv",
+  "entry": null,
+  "displayName": "component_text_segment_1",
+  "hash": "1fh10tcowimfv",
+  "canonicalFilename": "component.tsx_component_text_segment_1_1fh10tcowimfv",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    177,
+    183
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "filter"
+  ]
+}
+*/
+============================= src/component.tsx_local_component_33_204_slxzo3femvko.js (ENTRY POINT)==
+
+import {
+  _captures,
+  _first,
+  createAttrExpressionEffect,
+  createTextExpressionEffect,
+  createTemplate,
+} from '@qwik.dev/core';
+import { component_class_segment_0_3htuygud1guoj } from './component.tsx_component_class_segment_0_3htuygud1guoj';
+import { component_text_segment_1_1fh10tcowimfv } from './component.tsx_component_text_segment_1_1fh10tcowimfv';
+const local_component_33_204_slxzo3femvko_tmpl0 = createTemplate('<li><a> </a></li>');
+
+export const local_component_33_204_slxzo3femvko = (props0, ctx) => {
+  const props = _captures[0];
+  const { filter } = props0;
+  const lMode = filter.toLowerCase();
+  const fragment0 = local_component_33_204_slxzo3femvko_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  const el1 = _first(el0);
+  const text0 = _first(el1);
+  const effect0 = createAttrExpressionEffect(
+    el1,
+    'class',
+    [props, lMode],
+    component_class_segment_0_3htuygud1guoj,
+    ctx.scheduler
+  );
+  ctx.scheduler.notify(effect0);
+  const effect1 = createTextExpressionEffect(
+    text0,
+    [filter],
+    component_text_segment_1_1fh10tcowimfv,
+    ctx.scheduler
+  );
+  ctx.scheduler.notify(effect1);
+  return el0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "local_component_33_204_slxzo3femvko",
+  "entry": null,
+  "displayName": "local_component_33_204",
+  "hash": "slxzo3femvko",
+  "canonicalFilename": "component.tsx_local_component_33_204_slxzo3femvko",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "localComponent",
+  "captures": true,
+  "loc": [
+    33,
+    204
+  ],
+  "paramNames": [
+    "filter"
+  ],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

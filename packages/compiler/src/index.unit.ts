@@ -271,11 +271,16 @@ export function App() {
       const entry = result.modules.find((module) => module.path === 'src/component.tsx');
       expect(entry).toBeDefined();
       // both levels compile in place — no raw JSX or $-props survive into the emitted module
-      expect(entry!.code).toContain('function Filter(props, ctx)');
-      expect(entry!.code).toContain('function Star(props, ctx)');
       expect(entry!.code).not.toContain('<Star');
       expect(entry!.code).not.toContain('onClick$');
     }
+    const ssrEntry = ssr.modules.find((module) => module.path === 'src/component.tsx')!;
+    // synthesized props params are unique per nesting level: captures resolve lexically
+    expect(ssrEntry.code).toContain('function Filter(props0, ctx)');
+    expect(ssrEntry.code).toContain('function Star(props1, ctx)');
+    const csrEntry = csr.modules.find((module) => module.path === 'src/component.tsx')!;
+    expect(csrEntry.code).toContain('function Filter(props, ctx)');
+    expect(csrEntry.code).toContain('function Star(props, ctx)');
   });
 
   test('simple default function component', async () => {
@@ -1379,6 +1384,28 @@ export function App() {
 export function App() {
   const count = useSignal(0);
   return <p>{count.value > 2 && 'Count is greater than 2 and equal to ' + count.value}</p>;
+}
+`,
+    });
+  });
+
+  test('keeps outer props reachable from a destructured local component', async () => {
+    await testInput('local_component_outer_props', {
+      code: `export function Footer(props: { todos: { filter: string } }) {
+  function Filter({ filter }: { filter: string }) {
+    const lMode = filter.toLowerCase();
+    return (
+      <li>
+        <a class={{ selected: props.todos.filter == lMode }}>{filter}</a>
+      </li>
+    );
+  }
+  return (
+    <ul>
+      <Filter filter="all" />
+      <Filter filter="active" />
+    </ul>
+  );
 }
 `,
     });

@@ -1389,6 +1389,20 @@ export function App() {
     });
   });
 
+  test('rejects the plain fallback prop on Suspense', async () => {
+    await testInput('suspense_plain_fallback_diagnostic', {
+      code: `import { Suspense } from '@qwik.dev/core';
+export function App() {
+  return (
+    <Suspense fallback={<em>waiting</em>}>
+      <p>ok</p>
+    </Suspense>
+  );
+}
+`,
+    });
+  });
+
   test('wires reveal groups into lexical suspense boundaries', async () => {
     await testInput('reveal_sequential_suspense', {
       code: `import { Reveal, Suspense } from '@qwik.dev/core';

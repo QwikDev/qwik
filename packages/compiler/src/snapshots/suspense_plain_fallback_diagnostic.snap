@@ -1,0 +1,65 @@
+==INPUT==
+
+import { Suspense } from '@qwik.dev/core';
+export function App() {
+  return (
+    <Suspense fallback={<em>waiting</em>}>
+      <p>ok</p>
+    </Suspense>
+  );
+}
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+
+== SSR DIAGNOSTICS ==
+
+[
+  {
+    "scope": "compiler",
+    "category": "error",
+    "code": "transform-failure",
+    "file": "src/component.tsx",
+    "message": "Suspense takes `fallback$`; the plain `fallback` prop is not supported.",
+    "highlights": [
+      {
+        "lo": 82,
+        "hi": 152,
+        "startLine": 4,
+        "startCol": 5,
+        "endLine": 6,
+        "endCol": 15
+      }
+    ],
+    "suggestions": null
+  }
+]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+
+== CSR DIAGNOSTICS ==
+
+[
+  {
+    "scope": "compiler",
+    "category": "error",
+    "code": "transform-failure",
+    "file": "src/component.tsx",
+    "message": "Suspense takes `fallback$`; the plain `fallback` prop is not supported.",
+    "highlights": [
+      {
+        "lo": 82,
+        "hi": 152,
+        "startLine": 4,
+        "startCol": 5,
+        "endLine": 6,
+        "endCol": 15
+      }
+    ],
+    "suggestions": null
+  }
+]

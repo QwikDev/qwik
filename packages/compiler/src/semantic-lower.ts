@@ -792,6 +792,13 @@ class SemanticLowerer {
       lifetimeId,
       blocking
     );
+    if (readAttributeExpression(node, 'fallback') !== null) {
+      this.unsupported(
+        range,
+        'Suspense takes `fallback$`; the plain `fallback` prop is not supported.'
+      );
+      return null;
+    }
     const fallbackExpression = readAttributeExpression(node, 'fallback$');
     const fallback =
       fallbackExpression === null ? null : this.createQrlValue(fallbackExpression, lifetimeId);

@@ -1,5 +1,12 @@
 import { component$, Suspense } from '@qwik.dev/core';
-import { useComputed$, useSignal, useStore, useTask$, useVisibleTask$ } from '@qwik.dev/core';
+import {
+  useAsync$,
+  useComputed$,
+  useSignal,
+  useStore,
+  useTask$,
+  useVisibleTask$,
+} from '@qwik.dev/core';
 import { describe, expect, it, vi } from 'vitest';
 import { testRenderer } from '../test-utils';
 
@@ -8,6 +15,51 @@ const debug = false;
 const { name, render } = testRenderer;
 
 describe(`${name}: task`, () => {
+  it('retries a task that reads a pending async value', async () => {
+    const App = component$(() => {
+      const seen = useSignal('none');
+      const bump = useSignal(0);
+      const data = useAsync$(
+        (ctx) => {
+          if (ctx.track(bump) === 0) {
+            return 'first';
+          }
+          return new Promise<string>((resolve) => setTimeout(() => resolve('second'), 20));
+        },
+        { allowStale: false }
+      );
+      useTask$(() => {
+        seen.value = data.value;
+      });
+      return (
+        <button
+          onClick$={() => {
+            // mirror the route-loader refresh: bump the input and drop the cached value
+            bump.value++;
+            data.invalidate(true);
+          }}
+        >
+          {seen.value}
+        </button>
+      );
+    });
+
+    const { container, cleanup, qwikLoader } = await render(App, { debug });
+    const button = container.querySelector('button')!;
+    expect(button.textContent).toBe('first');
+
+    // the pending read must retry, not reject through the scheduler as an error
+    const consoleError = vi.spyOn(console, 'error');
+    await qwikLoader?.dispatch(button, 'click');
+    await new Promise((resolve) => setTimeout(resolve, 60));
+
+    expect(button.textContent).toBe('second');
+    expect(consoleError).not.toHaveBeenCalled();
+    consoleError.mockRestore();
+
+    cleanup();
+  });
+
   it('task executes async task before initial render settles', async () => {
     const App = component$(() => {
       const value = useSignal('wrong');

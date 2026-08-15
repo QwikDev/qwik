@@ -3,7 +3,7 @@ import { SubscriberFlags } from '../reactive/flags';
 import { runWithCollector } from '../reactive/tracking';
 import { invoke, newInvokeContext } from './invoke-context';
 import { getFunctionOrResolve } from '../utils/qrl';
-import { isPromise, maybeThen } from '../shared/utils/promises';
+import { isPromise, maybeThen, retryOnPromise } from '../shared/utils/promises';
 import type { ValueOrPromise } from '../shared/utils/types';
 import type { Task, TaskCleanupFn, VisibleTask } from './task';
 import { takeDirty, type TaskSubscriber, type VisibleTaskSubscriber } from './subscriber';
@@ -30,13 +30,16 @@ export function runTaskSubscriber(
       cleanupDeps(subscriber);
       return maybeThen(task.runFn ?? getFunctionOrResolve(task.qrl!, task.container), (run) =>
         maybeThen(
-          runWithCollector(subscriber, () =>
-            invoke(invokeContext, () =>
-              run({
-                cleanup(callback) {
-                  addCleanup(task, callback);
-                },
-              })
+          // a read of a pending async value throws its promise; re-run when it settles
+          retryOnPromise(() =>
+            runWithCollector(subscriber, () =>
+              invoke(invokeContext, () =>
+                run({
+                  cleanup(callback) {
+                    addCleanup(task, callback);
+                  },
+                })
+              )
             )
           ),
           (cleanup) => {

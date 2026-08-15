@@ -27,6 +27,7 @@ import {
   scanMatchingParenBackward,
   scanMatchingParenForward,
 } from '../edit/text-scanning.js';
+import { replaceOutsideStrings } from '../edit/identifier-boundary.js';
 
 const qwikDisableDirective = createRegExp(
   exactly('/*')
@@ -351,15 +352,10 @@ export function inlineEnumReferences(
 ): string {
   for (const [enumName, members] of enumValueMap) {
     for (const [memberName, value] of members) {
-      const pattern = createRegExp(
-        wordBoundary,
-        exactly(enumName),
-        exactly('.'),
-        exactly(memberName),
-        wordBoundary,
-        [global]
-      );
-      bodyText = bodyText.replace(pattern, value);
+      // No preceding `.`/ident (a member path like `x.Status.Active` is not
+      // the enum) and never inside strings or comments.
+      const pattern = new RegExp(`(?<![\\w$.])${enumName}\\s*\\.\\s*${memberName}(?![\\w$])`, 'g');
+      bodyText = replaceOutsideStrings(bodyText, pattern, value);
     }
   }
   return bodyText;

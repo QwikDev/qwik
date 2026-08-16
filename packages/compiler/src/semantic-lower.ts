@@ -340,6 +340,8 @@ class SemanticLowerer {
   private readonly syntheticSegments: SegmentPlan[] = [];
   private readonly syntheticSegmentParents = new Map<string, string>();
   private readonly renderSegmentStack: string[] = [];
+  /** While lowering one projection of a multi-slot child, the slot that projection targets. */
+  private projectionFilter: string | null = null;
   /** Active `<Reveal>` scopes; suspended inside nested render segments. */
   private revealStack: Array<{
     id: number;
@@ -892,21 +894,30 @@ class SemanticLowerer {
         this.unsupported(range, 'A component projection has no source range.');
         continue;
       }
-      const projectionLifetime = this.allocateLifetime(lifetimeId, 'slot', 'atomic-range');
-      const segment = this.findSegment('slotRender', childRange);
-      slots.push({
-        name: getProjectionName(child) ?? '',
-        range: childRange,
-        lifetimeId: projectionLifetime,
-        render: this.createChildrenRenderFunction(
-          'slot',
-          childRange,
-          [child],
-          segment,
-          projectionLifetime,
-          blockingSuspense
-        ),
-      });
+      const names = collectProjectionNames(child);
+      for (let index = 0; index < names.length; index++) {
+        const name = names[index];
+        const projectionLifetime = this.allocateLifetime(lifetimeId, 'slot', 'atomic-range');
+        // one child can name several slots, and each needs its own chunk
+        const segment = names.length === 1 ? this.findSegment('slotRender', childRange) : null;
+        const previousFilter = this.projectionFilter;
+        this.projectionFilter = names.length === 1 ? null : name;
+        slots.push({
+          name,
+          range: childRange,
+          lifetimeId: projectionLifetime,
+          render: this.createChildrenRenderFunction(
+            'slot',
+            childRange,
+            [child],
+            segment,
+            projectionLifetime,
+            blockingSuspense,
+            names.length === 1 ? undefined : String(index)
+          ),
+        });
+        this.projectionFilter = previousFilter;
+      }
     }
     return {
       kind: 'component',
@@ -1935,6 +1946,56 @@ class SemanticLowerer {
     return findMaximalJsxRoots(callback.body, skippedRanges, true);
   }
 
+  /** True unless this arm names a slot other than the projection currently being lowered. */
+  private armTargetsProjection(arm: AstNode | null): boolean {
+    if (this.projectionFilter === null || arm === null) {
+      return true;
+    }
+    const value = unwrapExpression(arm);
+    if (value === null || value === undefined || value.type !== 'JSXElement') {
+      return this.projectionFilter === '';
+    }
+    return (readStaticAttribute(value as JSXElement, 'q:slot') ?? '') === this.projectionFilter;
+  }
+
+  /** A branch arm that belongs to another slot renders nothing in this projection. */
+  private createEmptyRenderFunction(
+    range: SourceRange,
+    parentLifetimeId: LifetimeId
+  ): RenderFunctionPlan {
+    const lifetimeId = this.allocateLifetime(parentLifetimeId, 'render-function', 'atomic-range');
+    const segmentId = this.createSyntheticRenderSegment(
+      'branchRender',
+      null,
+      range,
+      lifetimeId,
+      [],
+      `empty_${this.projectionFilter ?? ''}`
+    ).segmentId;
+    const render: RenderPlan = { roots: [], effects: [] };
+    const plan: RenderFunctionPlan = {
+      kind: 'branch',
+      collectionSourceKind: null,
+      range,
+      segmentId,
+      lifetimeId,
+      async: false,
+      pure: true,
+      setup: [],
+      parameterBindingIds: [],
+      render,
+      referenceBindingIds: [],
+      lifecycleSegmentIds: [],
+      needsId: false,
+      styleScope: this.styleScopes.length === 0 ? null : this.styleScopes.join(' '),
+      runtimeStyleScope: this.hasCustomHook,
+      runtimeStyleScopeName: this.hasCustomHook ? this.runtimeStyleScopeName() : null,
+    };
+    this.renderFunctions.set(segmentId, plan);
+    this.attachSyntheticRender(segmentId, plan);
+    return plan;
+  }
+
   private lowerBranch(
     expression: AstNode,
     branch: NonNullable<ReturnType<typeof getJsxBranchExpression>>,
@@ -1975,15 +2036,17 @@ class SemanticLowerer {
       lifetimeId,
       condition: this.referenceSegment(condition, lifetimeId),
       ...this.namedValueIr('conditionIr', branch.condition),
-      then: this.createExpressionRenderFunction(
-        'branch',
-        branch.then,
-        thenSegment,
-        lifetimeId,
-        blockingSuspense
-      ),
+      then: this.armTargetsProjection(branch.then)
+        ? this.createExpressionRenderFunction(
+            'branch',
+            branch.then,
+            thenSegment,
+            lifetimeId,
+            blockingSuspense
+          )
+        : this.createEmptyRenderFunction(thenRange, lifetimeId),
       else:
-        branch.else === null || elseSegment === null
+        branch.else === null || elseSegment === null || !this.armTargetsProjection(branch.else)
           ? null
           : this.createExpressionRenderFunction(
               'branch',
@@ -2399,12 +2462,14 @@ class SemanticLowerer {
     children: readonly JSXChild[],
     segment: Segment | null,
     parentLifetimeId: LifetimeId,
-    blockingSuspense = false
+    blockingSuspense = false,
+    discriminator?: string
   ): RenderFunctionPlan {
     const lifetimeId = this.allocateLifetime(parentLifetimeId, 'render-function', 'atomic-range');
     const segmentId =
       segment?.id ??
-      this.createSyntheticRenderSegment('slotRender', null, range, lifetimeId, []).segmentId;
+      this.createSyntheticRenderSegment('slotRender', null, range, lifetimeId, [], discriminator)
+        .segmentId;
     if (segment !== null) {
       this.referenceSegment(segment, lifetimeId);
     }
@@ -2535,9 +2600,12 @@ class SemanticLowerer {
     callback: AstFunction | null,
     range: SourceRange,
     lifetimeId: LifetimeId,
-    parameterBindingIds: readonly BindingId[]
+    parameterBindingIds: readonly BindingId[],
+    discriminator?: string
   ): SegmentReferencePlan {
-    const id = `semantic_${kind}_${range[0]}_${range[1]}`;
+    const id = `semantic_${kind}_${range[0]}_${range[1]}${
+      discriminator === undefined ? '' : `_${discriminator}`
+    }`;
     const plan = this.createSyntheticSegment(
       id,
       kind,
@@ -4250,8 +4318,37 @@ function readAttributeExpression(node: JSXElement, expectedName: string): AstNod
   return null;
 }
 
-function getProjectionName(child: JSXChild): string | null {
-  return child.type === 'JSXElement' ? readStaticAttribute(child, 'q:slot') : '';
+/**
+ * The slots a projected child targets. A conditional child names its slot on the element inside it,
+ * and each arm may name a different one, so the child projects into every slot its arms mention.
+ */
+function collectProjectionNames(child: JSXChild): string[] {
+  const names: string[] = [];
+  const visit = (node: AstNode | null | undefined): void => {
+    const value = unwrapExpression(node);
+    if (value === null || value === undefined || isEmptyBranchExpression(value)) {
+      return;
+    }
+    if (value.type === 'JSXElement') {
+      names.push(readStaticAttribute(value as JSXElement, 'q:slot') ?? '');
+      return;
+    }
+    const branch = getJsxBranchExpression(value);
+    if (branch !== null) {
+      visit(branch.then);
+      visit(branch.else);
+      return;
+    }
+    names.push('');
+  };
+  if (child.type === 'JSXElement') {
+    names.push(readStaticAttribute(child, 'q:slot') ?? '');
+  } else if (child.type === 'JSXExpressionContainer') {
+    visit(child.expression as AstNode);
+  } else {
+    names.push('');
+  }
+  return names.length === 0 ? [''] : [...new Set(names)];
 }
 
 function isEmptyChild(child: JSXChild): boolean {

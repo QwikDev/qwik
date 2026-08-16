@@ -1401,6 +1401,48 @@ export function App() {
     });
   });
 
+  test('projects a conditional child into the slot its element names', async () => {
+    await testInput('projection_conditional_slot', {
+      code: `import { component$, Slot, useSignal } from '@qwik.dev/core';
+export const Panel = component$(() => (
+  <div>
+    <Slot name="start" />
+    <span><Slot /></span>
+  </div>
+));
+export function App() {
+  const show = useSignal(true);
+  return (
+    <Panel>
+      {show.value && <span q:slot="start">start content</span>}
+    </Panel>
+  );
+}
+`,
+    });
+  });
+
+  test('splits a conditional child across the slots its arms name', async () => {
+    await testInput('projection_conditional_slot_split', {
+      code: `import { component$, Slot, useSignal } from '@qwik.dev/core';
+export const Panel = component$(() => (
+  <div>
+    <Slot name="x" />
+    <Slot name="y" />
+  </div>
+));
+export function App() {
+  const flip = useSignal(false);
+  return (
+    <Panel>
+      {flip.value ? <a q:slot="x">alpha</a> : <b q:slot="y">bravo</b>}
+    </Panel>
+  );
+}
+`,
+    });
+  });
+
   test('renders a dynamic dangerouslySetInnerHTML on both flavors', async () => {
     await testInput('inner_html_dynamic', {
       code: `import { useSignal } from '@qwik.dev/core';

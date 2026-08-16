@@ -325,13 +325,17 @@ export {
   Suspense,
   createContentBlock,
   createDynamicContent,
-  createSsrSuspense,
   createSuspense,
   escapeSsrContent,
   renderSsrDynamicContent,
   renderSsrContent,
   type SuspenseProps,
 } from './dom/content/content';
+export {
+  createSsrSuspense,
+  type SsrRangeHost,
+  type SsrRangeScope,
+} from './dom/content/suspense-ssr';
 export {
   Reveal,
   RevealGroup,

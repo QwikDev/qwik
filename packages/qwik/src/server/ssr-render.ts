@@ -13,13 +13,10 @@ import {
   invoke,
   isPromise,
   isSsrRecordChunk,
-  maybeThen,
   newInvokeContext,
   Owner,
-  renderSsrContent,
   setPlatform,
   SsrOutputWriter,
-  type QRL,
   type SerializationContext,
   type ServerDataContext,
   type Subscriber,
@@ -28,7 +25,6 @@ import {
   type SsrDeferredRange,
   type SsrOutput,
   type SsrReferenceChunk,
-  type RevealGroup,
   version,
   withLocale,
 } from '@qwik.dev/core';
@@ -76,23 +72,19 @@ export interface SsrRenderContext extends ServerDataContext {
   eventAttr(name: string, value: unknown, hasMovedCaptures?: boolean): SsrEventAttrChunk;
   /** Registers a compiler-emitted sync handler; returns its table script the first time. */
   syncFn(key: string, source: string): string;
-  deferSuspense(
-    rangeId: number,
-    contentQrl: QRL<SsrSuspenseRender>,
-    fallbackQrl: QRL<SsrSuspenseRender> | undefined,
-    delay: number,
-    group?: RevealGroup,
-    index?: number
-  ): ValueOrPromise<SsrOutput>;
+  wrapRange(rangeId: number, content: SsrOutput): SsrOutput;
+  createRangeScope(rangeId: number): SsrRenderContext;
+  flush(): ValueOrPromise<void>;
+  defer(range: SsrDeferredRange, content: Promise<SsrOutput>): void;
+  reparentRanges(): void;
+  canDefer: boolean;
   inOrder(): SsrRenderContext;
   styleIds: Map<string, string>;
 }
 
-type SsrSuspenseRender = (ctx: SsrRenderContext) => ValueOrPromise<SsrOutput>;
-
 /** A deferred range plus the engine's own lane bookkeeping. */
-interface DeferredSuspense extends SsrDeferredRange {
-  readonly lane: SsrLane;
+interface DeferredRange extends SsrDeferredRange {
+  lane: SsrLane;
 }
 
 /** @internal */
@@ -160,8 +152,8 @@ export const renderToStreamCompiled = async <Props = undefined>(
     });
     const styleIds = new Map<string, string>();
     let nextId = 0;
-    let deferred: DeferredSuspense[] | undefined;
-    let ready: DeferredSuspense[] | undefined;
+    let deferred: DeferredRange[] | undefined;
+    let ready: DeferredRange[] | undefined;
     let blockedLanes: Set<number> | undefined;
     let wake: (() => void) | undefined;
     let deferredError: unknown;
@@ -189,105 +181,30 @@ export const renderToStreamCompiled = async <Props = undefined>(
         }
       }
     };
-    const deferSuspense = (
-      renderCtx: SsrRenderContext,
-      parentId: number | null,
-      rangeId: number,
-      contentQrl: QRL<SsrSuspenseRender>,
-      fallbackQrl: QRL<SsrSuspenseRender> | undefined,
-      delay: number,
-      allowOutOfOrder: boolean,
-      group?: RevealGroup,
-      groupIndex = 0
-    ): ValueOrPromise<SsrOutput> => {
-      const contentCtx = Object.create(renderCtx) as SsrRenderContext;
-      const contentLane = scheduler.createLane(serializationCtx, renderCtx.scheduler);
-      contentCtx.scheduler = contentLane;
-      contentCtx.deferSuspense = (id, content, fallback, nestedDelay, nestedGroup, nestedIndex) =>
-        deferSuspense(
-          contentCtx,
-          rangeId,
-          id,
-          content,
-          fallback,
-          nestedDelay,
-          allowOutOfOrder,
-          nestedGroup,
-          nestedIndex
-        );
-      let contentRoot: unknown;
-      const renderedContent = renderSsrContent(
-        contentCtx as any,
-        rangeId,
-        [],
-        contentQrl as any,
-        false,
-        true,
-        (subscription) => (contentRoot = subscription)
-      );
-      const initialTasks = contentLane.flush();
-      const finishContent = (output: SsrOutput) => maybeThen(contentLane.flush(), () => output);
-      const content =
-        isPromise(renderedContent) && isPromise(initialTasks)
-          ? Promise.all([renderedContent, initialTasks]).then(([output]) => finishContent(output))
-          : maybeThen(renderedContent, (output) =>
-              maybeThen(initialTasks, () => finishContent(output))
-            );
-      if (!isPromise(content)) {
-        group?.resolve(groupIndex);
-        reparentChildren(rangeId, parentId);
-        return wrapContent(rangeId, content);
-      }
-      if (!allowOutOfOrder) {
-        return content.then((output) => {
-          group?.resolve(groupIndex);
-          serializationCtx.$addRoot$(contentRoot);
-          reparentChildren(rangeId, parentId);
-          return wrapContent(rangeId, output);
-        });
-      }
-
-      const renderFallback = (record: DeferredSuspense): ValueOrPromise<SsrOutput> => {
-        if (fallbackQrl === undefined || !(group?.mayShowFallback(groupIndex) ?? true)) {
-          return wrapContent(rangeId, '');
-        }
-        const fallbackId = renderCtx.nextId();
-        return maybeThen(
-          renderSsrContent(
-            renderCtx as any,
-            fallbackId,
-            [],
-            fallbackQrl as any,
-            false,
-            true,
-            (subscription) => {
-              record.placeholderRoot = subscription;
-            }
-          ),
-          (fallback) => {
-            serializationCtx.$addRoot$(record.placeholderRoot);
-            return wrapContent(rangeId, wrapContent(fallbackId, fallback));
-          }
-        );
-      };
-      const registerDeferred = (): ValueOrPromise<SsrOutput> => {
-        const record: DeferredSuspense = {
-          id: rangeId,
-          parentId,
-          contentRoot,
-          lane: contentLane,
-          canEmit: () => group?.canReveal(groupIndex) ?? true,
-          onEmitted: () => group?.resolve(groupIndex),
-          onCancelled: () => group?.resolve(groupIndex),
-        };
-        (blockedLanes ??= new Set()).add(contentLane.id);
+    /** A child range: its work runs on its own lane and ranges opened inside it nest under it. */
+    const createRangeScope = (
+      parent: SsrRenderContext,
+      parentRangeId: number | null,
+      rangeId: number
+    ): SsrRenderContext => {
+      const scope = Object.create(parent) as SsrRenderContext;
+      const lane = scheduler.createLane(serializationCtx, parent.scheduler);
+      scope.scheduler = lane;
+      scope.createRangeScope = (childId) => createRangeScope(scope, rangeId, childId);
+      scope.flush = () => lane.flush();
+      scope.reparentRanges = () => reparentChildren(rangeId, parentRangeId);
+      scope.defer = (range, content) => {
+        const record = range as DeferredRange;
+        record.parentId = parentRangeId;
+        record.lane = lane;
+        (blockedLanes ??= new Set()).add(lane.id);
         (deferred ??= []).push(record);
         content.then(
           (output) => {
             if (record.cancelled) {
               return;
             }
-            serializationCtx.$addRoot$(contentRoot);
+            serializationCtx.$addRoot$(record.contentRoot);
             record.output = output;
             (ready ??= []).push(record);
             notifyDeferred();
@@ -301,37 +218,8 @@ export const renderToStreamCompiled = async <Props = undefined>(
             notifyDeferred();
           }
         );
-        return renderFallback(record);
       };
-      if (!(delay > 0)) {
-        return registerDeferred();
-      }
-      return new Promise<SsrOutput>((resolve, reject) => {
-        let settled = false;
-        const timer = setTimeout(() => {
-          settled = true;
-          resolve(registerDeferred());
-        }, delay);
-        content.then(
-          (output) => {
-            if (!settled) {
-              settled = true;
-              clearTimeout(timer);
-              group?.resolve(groupIndex);
-              serializationCtx.$addRoot$(contentRoot);
-              reparentChildren(rangeId, parentId);
-              resolve(wrapContent(rangeId, output));
-            }
-          },
-          (error) => {
-            if (!settled) {
-              settled = true;
-              clearTimeout(timer);
-              reject(error);
-            }
-          }
-        );
-      });
+      return scope;
     };
     const ctx: SsrRenderContext = {
       serializationCtx,
@@ -366,34 +254,25 @@ export const renderToStreamCompiled = async <Props = undefined>(
         serializationCtx.$pendingSyncFns$.delete(key);
         return scripts.emitSyncFn(key, source, instanceHash);
       },
-      deferSuspense(rangeId, contentQrl, fallbackQrl, delay, group, index) {
-        return deferSuspense(
-          ctx,
-          null,
-          rangeId,
-          contentQrl,
-          fallbackQrl,
-          delay,
-          outOfOrder,
-          group,
-          index
-        );
+      wrapRange(rangeId, content) {
+        return wrapContent(rangeId, content);
       },
+      createRangeScope(rangeId) {
+        return createRangeScope(ctx, null, rangeId);
+      },
+      flush() {
+        return rootLane.flush();
+      },
+      defer() {
+        throw new Error('Only a range scope can defer.');
+      },
+      reparentRanges() {},
+      canDefer: outOfOrder,
       inOrder() {
         const inOrderCtx = Object.create(this) as SsrRenderContext;
         inOrderCtx.inOrder = () => inOrderCtx;
-        inOrderCtx.deferSuspense = (rangeId, contentQrl, fallbackQrl, delay, group, index) =>
-          deferSuspense(
-            inOrderCtx,
-            null,
-            rangeId,
-            contentQrl,
-            fallbackQrl,
-            delay,
-            false,
-            group,
-            index
-          );
+        inOrderCtx.canDefer = false;
+        inOrderCtx.createRangeScope = (rangeId) => createRangeScope(inOrderCtx, null, rangeId);
         return inOrderCtx;
       },
     } satisfies SsrRenderContext;
@@ -549,7 +428,7 @@ export const renderToStreamCompiled = async <Props = undefined>(
     if (deferred !== undefined) {
       const emitted = new Set<number>();
       while (deferred.some((record) => !record.cancelled && !emitted.has(record.id))) {
-        let record: DeferredSuspense | undefined;
+        let record: DeferredRange | undefined;
         while (record === undefined) {
           throwIfFailed();
           const patches = takePatches(null);

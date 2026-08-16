@@ -17,7 +17,8 @@ import { getLocale } from '../core/runtime/use-locale';
 import { useServerData } from '../core/runtime/use-server-data';
 import { useSignal } from '../core/reactive/public-api';
 import { useOnDocument } from '../core/runtime/use-on';
-import { createSsrSuspense, renderSsrDynamicContent } from '../core/dom/content/content';
+import { renderSsrDynamicContent } from '../core/dom/content/content';
+import { createSsrSuspense } from '../core/dom/content/suspense-ssr';
 import { createRevealGroup } from '../core/dom/content/reveal';
 import { _await } from '../core/reactive/tracking';
 import {

@@ -38,7 +38,6 @@ type SsrContentFn<TArgs extends unknown[] = unknown[]> = (
   ...args: TArgs
 ) => ValueOrPromise<SsrOutput>;
 type SuspenseContentFn = (ctx: ContainerContext) => ValueOrPromise<MaybeNodeOutput>;
-type SsrSuspenseContentFn = SsrContentFn<[ctx: any]>;
 
 /** @public */
 export interface SuspenseProps {
@@ -365,27 +364,6 @@ export function createSuspense(
     }
   );
   return subscription;
-}
-
-export function createSsrSuspense(
-  ctx: {
-    deferSuspense(
-      rangeId: number,
-      contentQrl: QRL<SsrSuspenseContentFn>,
-      fallbackQrl: QRL<SsrSuspenseContentFn> | undefined,
-      delay: number,
-      group?: RevealGroup,
-      index?: number
-    ): ValueOrPromise<SsrOutput>;
-  },
-  rangeId: number,
-  contentQrl: QRL<SsrSuspenseContentFn>,
-  fallbackQrl?: QRL<SsrSuspenseContentFn>,
-  delay = 0,
-  group?: RevealGroup,
-  index = 0
-): ValueOrPromise<SsrOutput> {
-  return ctx.deferSuspense(rangeId, contentQrl, fallbackQrl, delay, group, index);
 }
 
 export class SSRContent<TArgs extends unknown[] = unknown[]> {

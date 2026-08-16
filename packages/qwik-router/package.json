@@ -36,7 +36,7 @@
     "@microsoft/api-extractor": "7.57.6",
     "@qwik.dev/core": "workspace:*",
     "@types/mdast": "4.0.4",
-    "@types/node": "24.10.0",
+    "@types/node": "25.6.0",
     "@types/refractor": "4.0.0",
     "@types/set-cookie-parser": "2.4.10",
     "tsm": "2.3.0",

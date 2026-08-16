@@ -349,6 +349,15 @@ export function isNonReferenceIdentifier(
   if (parent.type === 'MethodDefinition' || parent.type === 'PropertyDefinition') {
     return !parent.computed && parent.key === node;
   }
+  // Labels live in their own namespace, so `loop:`, `break loop`, and `continue
+  // loop` name a statement rather than reading a binding.
+  if (
+    parent.type === 'LabeledStatement' ||
+    parent.type === 'BreakStatement' ||
+    parent.type === 'ContinueStatement'
+  ) {
+    return parent.label === node;
+  }
   return false;
 }
 

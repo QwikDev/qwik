@@ -19,6 +19,11 @@
       "@qwik.dev/core/insights/vite": ["packages/qwik/src/insights/vite"]
     }
   },
-  "include": ["src", "global.d.ts", "../qwik-vite/global.d.ts", "../ts-optimizer/src/siphash.d.ts"],
+  "include": [
+    "src",
+    "global.d.ts",
+    "../qwik-vite/global.d.ts",
+    "../ts-optimizer/src/hashing/siphash13.d.ts"
+  ],
   "exclude": ["dist"]
 }

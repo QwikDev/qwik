@@ -462,6 +462,22 @@ function isComputedKeyReference(node: AstNode, parent: AstNode | null): boolean 
   return false;
 }
 
+// Labels live in their own namespace, so `loop:`, `break loop`, and `continue
+// loop` name a statement rather than reading a binding.
+function isLabelIdentifier(node: AstNode, parent: AstNode | null): boolean {
+  if (parent === null) {
+    return false;
+  }
+  if (
+    parent.type !== 'LabeledStatement' &&
+    parent.type !== 'BreakStatement' &&
+    parent.type !== 'ContinueStatement'
+  ) {
+    return false;
+  }
+  return parent.label === node;
+}
+
 /**
  * Free-identifier projection: buffer `(name, scopeKey)` per open closure; resolution happens
  * post-walk in {@link resolveFreeIdentifiers}. The same name can resolve free at one reference and
@@ -510,7 +526,10 @@ function enterFreeIdentifiers(
     if (!/^[A-Z]/.test(node.name)) {
       return;
     }
-  } else if (isBindingIdentifier(node, parent) && !isComputedKeyReference(node, parent)) {
+  } else if (
+    isLabelIdentifier(node, parent) ||
+    (isBindingIdentifier(node, parent) && !isComputedKeyReference(node, parent))
+  ) {
     return;
   }
 

@@ -55,6 +55,51 @@ function collectComputedKeyNames(fn: AstFunction): Set<string> {
   return names;
 }
 
+// `as T`, `x!`, `x satisfies T` and friends hold a real expression next to the
+// type, so only their type child starts a type position.
+const TS_NODES_HOLDING_A_VALUE = new Set([
+  'TSAsExpression',
+  'TSSatisfiesExpression',
+  'TSNonNullExpression',
+  'TSInstantiationExpression',
+  'TSTypeAssertion',
+  'TSEnumDeclaration',
+  'TSEnumMember',
+  'TSModuleDeclaration',
+  'TSModuleBlock',
+  'TSParameterProperty',
+  'TSExportAssignment',
+  'TSImportEqualsDeclaration',
+]);
+
+/**
+ * Names that only ever appear in a type position (`props: Stuff`, `useSignal<Signal<number>>`). The
+ * fused walk reports them; the oxc-walker oracle doesn't. Inert in the pipeline — `transpileTs`
+ * strips types before this analysis runs, and the migration and capture gates downstream drop them
+ * even when it doesn't — so the difference stays a test-only exclusion rather than a TS-grammar
+ * exception list baked into the production walk.
+ */
+function collectTypePositionNames(fn: AstFunction): Set<string> {
+  const names = new Set<string>();
+  walk(fn as AstNode, {
+    enter(node) {
+      const n = node as AstNode;
+      if (!n.type.startsWith('TS') || TS_NODES_HOLDING_A_VALUE.has(n.type)) {
+        return;
+      }
+      walk(n, {
+        enter(inner) {
+          const i = inner as AstNode;
+          if (i.type === 'Identifier') {
+            names.add(i.name);
+          }
+        },
+      });
+    },
+  });
+  return names;
+}
+
 function collectJsxTagNames(fn: AstFunction): Set<string> {
   const names = new Set<string>();
   walk(fn as AstNode, {
@@ -101,11 +146,18 @@ function diffAgainstLegacy(source: string, filename: string): string[] {
     // references (they capture like any binding); the oxc-walker oracle
     // doesn't know JSX tags, so exclude that known difference.
     const jsxTagNames = collectJsxTagNames(fn);
+    // A name used in a type position is dropped from both sides: the fused walk
+    // also sees it earlier there than the oracle sees it at its value use, so
+    // its ordering can't be compared either.
+    const typePositionNames = collectTypePositionNames(fn);
     const legacySet = new Set(legacy);
     const filtered = ours.filter(
-      (n) => legacySet.has(n) || (!computedKeyNames.has(n) && !jsxTagNames.has(n))
+      (n) =>
+        !typePositionNames.has(n) &&
+        (legacySet.has(n) || (!computedKeyNames.has(n) && !jsxTagNames.has(n)))
     );
-    if (JSON.stringify(filtered) !== JSON.stringify(legacy)) {
+    const expected = legacy.filter((n) => !typePositionNames.has(n));
+    if (JSON.stringify(filtered) !== JSON.stringify(expected)) {
       mismatches.push(
         `${key} @ ${fn.start}: fused=${JSON.stringify(ours)} legacy=${JSON.stringify(legacy)}`
       );

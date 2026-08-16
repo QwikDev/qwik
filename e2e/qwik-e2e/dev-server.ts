@@ -359,7 +359,13 @@ async function ssrApp(
   const ooosRequestId = `${process.pid}-${++ooosRequestCounter}`;
 
   const opts: RenderToStreamOptions = {
-    stream: res,
+    // compression buffers a held stream, so flush each chunk to keep out-of-order packets observable
+    stream: {
+      write(chunk) {
+        res.write(chunk);
+        (res as Response & { flush?: () => void }).flush?.();
+      },
+    },
     manifest,
     debug: true,
     base,

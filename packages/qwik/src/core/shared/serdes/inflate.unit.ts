@@ -173,6 +173,40 @@ describe('inflate(TypeIds.EffectSubscription) text targets', () => {
     expect(context.element.querySelector('p')?.textContent).toBe('2');
   });
 
+  it('drops a DOM subscriber whose element is no longer in the document', async () => {
+    // an out-of-order swap removes the fallback subtree, but its serialized effect survives
+    const context = createContext('<p q:id="10">1</p>');
+    const signal = useSignal(1);
+    const data = [
+      TypeIds.Plain,
+      1,
+      TypeIds.EffectSubscription,
+      [
+        TypeIds.Plain,
+        EffectKind.TextNode,
+        TypeIds.Plain,
+        EffectTargetKind.ElementText,
+        TypeIds.Plain,
+        // never rendered: the element this effect targets is gone
+        49,
+        TypeIds.Array,
+        [TypeIds.Plain, signal],
+      ],
+    ];
+
+    await inflate(context, signal, TypeIds.Signal, data);
+
+    signal.value = 2;
+    for (let i = 0; i < 10 && toArray(signal.subs).some(isLazySerialized); i++) {
+      await Promise.resolve();
+      await context.scheduler.flushInteraction();
+    }
+
+    // the effect is dropped instead of throwing, and the live document keeps working
+    expect(toArray(signal.subs).some(isLazySerialized)).toBe(false);
+    expect(context.element.querySelector('p')?.textContent).toBe('1');
+  });
+
   it('keeps ForBlock and DOM subscribers lazy under a source', async () => {
     const context = createContext('<!--f=1--><!--/f--><p q:id="10">1</p>');
     const signal = useSignal([{ id: 1 }]);

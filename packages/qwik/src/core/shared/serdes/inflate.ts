@@ -775,6 +775,10 @@ async function restoreDomSubscription(
   parts: unknown[]
 ): Promise<void> {
   const restored = await restoreDomEffect(container, parts);
+  if (restored === null) {
+    // its element is gone, so the effect can never run: leave the subscription unsubscribed
+    return;
+  }
   subscription.effect = restored.effect;
   restoreDependencies(subscription, restored.deps);
 }
@@ -786,10 +790,13 @@ async function restoreDomBatchSubscription(
 ): Promise<void> {
   const deps = parts[1] as Source[];
   const effectParts = parts[2] as unknown[][];
-  const effects: DomEffect[] = Array(effectParts.length);
+  const effects: DomEffect[] = [];
 
   for (let i = 0; i < effectParts.length; i++) {
-    effects[i] = (await restoreDomEffect(container, effectParts[i])).effect;
+    const restored = await restoreDomEffect(container, effectParts[i]);
+    if (restored !== null) {
+      effects.push(restored.effect);
+    }
   }
 
   subscription.effect = () => {
@@ -805,10 +812,11 @@ async function restoreDomBatchSubscription(
   restoreDependencies(subscription, deps);
 }
 
+/** Null when the effect's element is gone: a removed subtree leaves its serialized effects behind. */
 async function restoreDomEffect(
   container: ContainerContext,
   parts: unknown[]
-): Promise<{ effect: DomEffect; deps: Source[] }> {
+): Promise<{ effect: DomEffect; deps: Source[] } | null> {
   const kind = parts[0] as EffectKind;
   switch (kind) {
     case EffectKind.TextNode: {
@@ -819,6 +827,9 @@ async function restoreDomEffect(
         target.targetId,
         target.markerIndex
       );
+      if (text === null) {
+        return null;
+      }
       const source = readRequiredSource(target.deps) as Source<TextExpressionValue>;
       return { deps: target.deps, effect: new TextNodeEffect(text, source) };
     }
@@ -830,6 +841,9 @@ async function restoreDomEffect(
         target.targetId,
         target.markerIndex
       );
+      if (text === null) {
+        return null;
+      }
       const qrl = parts[target.depsIndex + 2] as QRLInternal<TextExpressionFn>;
       const args = parts[target.depsIndex + 1] as unknown[];
       const fn = withCaptures(await qrl.resolve(), args);
@@ -841,6 +855,9 @@ async function restoreDomEffect(
     case EffectKind.Attr: {
       const target = readDomSubscriptionTarget(parts);
       const element = resolveElementTarget(container, target.targetKind, target.targetId);
+      if (element === null) {
+        return null;
+      }
       const name = String(parts[target.depsIndex + 1]);
       if (parts.length > target.depsIndex + 3) {
         const args = parts[target.depsIndex + 2] as unknown[];
@@ -862,6 +879,9 @@ async function restoreDomEffect(
     case EffectKind.Props: {
       const target = readDomSubscriptionTarget(parts);
       const element = resolveElementTarget(container, target.targetKind, target.targetId);
+      if (element === null) {
+        return null;
+      }
       const qrl = parts[target.depsIndex + 2] as QRLInternal<
         (...args: unknown[]) => Record<string, unknown> | null | undefined
       >;
@@ -876,6 +896,9 @@ async function restoreDomEffect(
     case EffectKind.Event: {
       const target = readDomSubscriptionTarget(parts);
       const element = resolveElementTarget(container, target.targetKind, target.targetId);
+      if (element === null) {
+        return null;
+      }
       const name = String(parts[target.depsIndex + 1]);
       const args = parts[target.depsIndex + 2] as unknown[];
       const qrl = parts[target.depsIndex + 3] as QRLInternal<(...args: unknown[]) => unknown>;
@@ -926,13 +949,11 @@ function resolveElementTarget(
   container: ContainerContext,
   targetKind: EffectTargetKind,
   elementId: number
-): Element {
+): Element | null {
   if (targetKind !== EffectTargetKind.Element) {
     throw new Error(`Unsupported element target kind ${targetKind}.`);
   }
-  const element = findQwikElement(container.element, elementId);
-  isDev && assertDefined(element, `Missing Qwik element ${elementId}.`);
-  return element!;
+  return findQwikElement(container.element, elementId);
 }
 
 function resolveTextTarget(
@@ -940,21 +961,24 @@ function resolveTextTarget(
   targetKind: EffectTargetKind,
   elementId: number,
   markerIndex: number | undefined
-): Text {
+): Text | null {
   const element = findQwikElement(container.element, elementId);
 
   if (targetKind === EffectTargetKind.ElementText) {
-    isDev && assertDefined(element, `Missing Qwik element ${elementId}.`);
-    const text = findElementText(element!);
+    if (element == null) {
+      return null;
+    }
+    const text = findElementText(element);
     isDev && assertDefined(text, `Missing text target ${elementId}.`);
     return text!;
   }
   if (targetKind === EffectTargetKind.RangeText) {
     isDev && assertNumber(markerIndex, `Missing range text marker index for element ${elementId}.`);
-    const text =
-      element == null
-        ? resolveBranchTextTarget(container, elementId, markerIndex!)
-        : findTextNode(element, markerIndex!);
+    if (element == null) {
+      // a branch range lives between markers, not inside an element
+      return resolveBranchTextTarget(container, elementId, markerIndex!);
+    }
+    const text = findTextNode(element, markerIndex!);
     isDev && assertDefined(text, `Missing range text target ${elementId}:${markerIndex}.`);
     return text!;
   }

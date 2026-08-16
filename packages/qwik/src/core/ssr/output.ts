@@ -22,6 +22,27 @@ export type SsrChunk = string | SsrReferenceChunk | SsrRecordChunk;
 
 export type SsrOutput = SsrChunk | readonly SsrOutput[];
 
+/**
+ * A range whose content is not ready when the shell streams. The engine emits its swap packet once
+ * the content settles, its parent range is out, and the owner's own gate allows it. The engine
+ * knows nothing about why a range defers — that belongs to whoever created it.
+ */
+export interface SsrDeferredRange {
+  readonly id: number;
+  /** Reassigned when an ancestor resolves inline, so its markers never reach the document. */
+  parentId: number | null;
+  /** Set by the owner once the content is ready to swap in. */
+  output?: SsrOutput;
+  /** Serialized roots riding the packet: the content's, and the placeholder's to dispose. */
+  contentRoot: unknown;
+  placeholderRoot?: unknown;
+  cancelled?: true;
+  /** Owner-supplied ordering gate; the engine separately requires the parent range to be out. */
+  canEmit?(): boolean;
+  onEmitted?(): void;
+  onCancelled?(): void;
+}
+
 export function createSsrRecord(...parts: readonly SsrRecordPart[]): SsrRecordChunk {
   return { type: 'record', parts };
 }

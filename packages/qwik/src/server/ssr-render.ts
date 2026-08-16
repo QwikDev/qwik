@@ -25,6 +25,7 @@ import {
   type Subscriber,
   type SsrAttributePatch,
   type SsrEventAttrChunk,
+  type SsrDeferredRange,
   type SsrOutput,
   type SsrReferenceChunk,
   type RevealGroup,
@@ -89,16 +90,9 @@ export interface SsrRenderContext extends ServerDataContext {
 
 type SsrSuspenseRender = (ctx: SsrRenderContext) => ValueOrPromise<SsrOutput>;
 
-interface DeferredSuspense {
-  readonly id: number;
-  readonly contentRoot: unknown;
+/** A deferred range plus the engine's own lane bookkeeping. */
+interface DeferredSuspense extends SsrDeferredRange {
   readonly lane: SsrLane;
-  readonly group?: RevealGroup;
-  readonly groupIndex: number;
-  parentId: number | null;
-  fallbackRoot?: unknown;
-  cancelled?: true;
-  output?: SsrOutput;
 }
 
 /** @internal */
@@ -254,10 +248,7 @@ export const renderToStreamCompiled = async <Props = undefined>(
       }
 
       const renderFallback = (record: DeferredSuspense): ValueOrPromise<SsrOutput> => {
-        if (
-          fallbackQrl === undefined ||
-          (group !== undefined && group.collapsed && !group.canReveal(groupIndex))
-        ) {
+        if (fallbackQrl === undefined || !(group?.mayShowFallback(groupIndex) ?? true)) {
           return wrapContent(rangeId, '');
         }
         const fallbackId = renderCtx.nextId();
@@ -270,11 +261,11 @@ export const renderToStreamCompiled = async <Props = undefined>(
             false,
             true,
             (subscription) => {
-              record.fallbackRoot = subscription;
+              record.placeholderRoot = subscription;
             }
           ),
           (fallback) => {
-            serializationCtx.$addRoot$(record.fallbackRoot);
+            serializationCtx.$addRoot$(record.placeholderRoot);
             return wrapContent(rangeId, wrapContent(fallbackId, fallback));
           }
         );
@@ -285,8 +276,9 @@ export const renderToStreamCompiled = async <Props = undefined>(
           parentId,
           contentRoot,
           lane: contentLane,
-          group,
-          groupIndex,
+          canEmit: () => group?.canReveal(groupIndex) ?? true,
+          onEmitted: () => group?.resolve(groupIndex),
+          onCancelled: () => group?.resolve(groupIndex),
         };
         (blockedLanes ??= new Set()).add(contentLane.id);
         (deferred ??= []).push(record);
@@ -571,8 +563,7 @@ export const renderToStreamCompiled = async <Props = undefined>(
               (candidate) =>
                 !candidate.cancelled &&
                 (candidate.parentId === null || emitted.has(candidate.parentId)) &&
-                // a reveal group holds packets until its order allows the swap
-                (candidate.group === undefined || candidate.group.canReveal(candidate.groupIndex))
+                (candidate.canEmit?.() ?? true)
             );
             if (index !== -1) {
               record = records.splice(index, 1)[0];
@@ -601,9 +592,9 @@ export const renderToStreamCompiled = async <Props = undefined>(
             record.id,
             record.output!,
             serializationCtx.$hasRootId$(record.contentRoot),
-            record.fallbackRoot === undefined
+            record.placeholderRoot === undefined
               ? undefined
-              : serializationCtx.$hasRootId$(record.fallbackRoot)
+              : serializationCtx.$hasRootId$(record.placeholderRoot)
           )
         );
         const packetPatches = takePatches(record.lane.id);
@@ -614,10 +605,10 @@ export const renderToStreamCompiled = async <Props = undefined>(
         blockedLanes!.delete(record.lane.id);
         throwIfFailed();
         emitted.add(record.id);
-        record.group?.resolve(record.groupIndex);
+        record.onEmitted?.();
         notifyDeferred();
-        if (record.fallbackRoot !== undefined) {
-          disposeSubscriber(record.fallbackRoot as any);
+        if (record.placeholderRoot !== undefined) {
+          disposeSubscriber(record.placeholderRoot as any);
           for (let i = 0; i < deferred.length; i++) {
             const candidate = deferred[i];
             if (
@@ -625,8 +616,8 @@ export const renderToStreamCompiled = async <Props = undefined>(
               (candidate.contentRoot as { owner?: unknown }).owner === null
             ) {
               candidate.cancelled = true;
-              // a cancelled boundary must not gate its reveal siblings forever
-              candidate.group?.resolve(candidate.groupIndex);
+              // a cancelled range must not gate whatever its owner is ordering it against
+              candidate.onCancelled?.();
               blockedLanes!.delete(candidate.lane.id);
               scheduler.cancel(candidate.lane);
             }

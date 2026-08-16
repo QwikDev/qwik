@@ -201,6 +201,7 @@ export {
   isSsrEventAttrChunk,
   isSsrRecordChunk,
   type SsrChunk,
+  type SsrDeferredRange,
   type SsrEventAttrChunk,
   type SsrOutput,
   type SsrRecordPart,

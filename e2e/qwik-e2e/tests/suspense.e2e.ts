@@ -402,13 +402,13 @@ test.describe('out-of-order suspense streaming', () => {
     });
 
     await expect(page.locator('#ooos-title')).toHaveText('OOOS Suspense', { timeout: 10000 });
-    await expect(page.locator('#ooos-delay-fallback')).toHaveCount(1);
     await expect(page.locator('#ooos-delay-resolved')).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('#ooos-delay-fallback')).toBeHidden();
+    // content won the race, so the fallback is never emitted at all
+    await expect(page.locator('#ooos-delay-fallback')).toHaveCount(0);
 
     await page.waitForTimeout(2200);
     await expect(page.locator('#ooos-delay-resolved')).toBeVisible();
-    await expect(page.locator('#ooos-delay-fallback')).toBeHidden();
+    await expect(page.locator('#ooos-delay-fallback')).toHaveCount(0);
     expect(await page.evaluate(() => (window as any).__ooosDelayFallbackWasVisible)).toBe(false);
     await page.waitForLoadState('load');
   });

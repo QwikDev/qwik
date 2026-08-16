@@ -1,40 +1,26 @@
 /**
- * Constant-branch folding on the AST: `if (true/false)` statements, `!true`/`!false`, and `true &&
- * x` / `false || x` / `false && x` shapes collapse via range edits against the original text — one
- * parse, one MagicString write, no textual pattern matching. Dead branches are marked and never
- * walked, so cascades (`else if` chains, nested folds) resolve in a single pass.
+ * Constant-branch folding on the AST: `if (true/false)` statements, `cond ? a : b`,
+ * `!true`/`!false`, and `true && x` / `false || x` / `false && x` shapes collapse via range edits
+ * against the original text — one parse, one MagicString write, no textual pattern matching. Dead
+ * branches are marked and never walked, so cascades (`else if` chains, nested folds) resolve in a
+ * single pass.
  */
 
 import MagicString from 'magic-string';
-import { anyOf, createRegExp, exactly, whitespace, wordBoundary } from 'magic-regexp';
+import { anyOf, createRegExp, wordBoundary } from 'magic-regexp';
 import type { AstMaybeNode, AstNode } from '../../ast-types.js';
 import { parseWithRawTransfer } from '../ast/parse.js';
 import { forEachAstChild } from '../ast/guards.js';
 
-const dceGuard = createRegExp(
-  wordBoundary.and(
-    anyOf(
-      exactly('if')
-        .and(whitespace.times.any())
-        .and('(')
-        .and(whitespace.times.any())
-        .and(anyOf('true', 'false', '!true', '!false'))
-        .and(wordBoundary),
-      exactly('true').and(whitespace.times.any()).and('&&'),
-      exactly('false').and(whitespace.times.any()).and('||'),
-      exactly('false').and(whitespace.times.any()).and('&&'),
-      // `isServer ? serverOnly : undefined` folds to a constant-test ternary,
-      // whose live branch is what keeps a server-only import in the bundle.
-      exactly('true').and(whitespace.times.any()).and('?'),
-      exactly('false').and(whitespace.times.any()).and('?'),
-      exactly('!true').and(wordBoundary),
-      exactly('!false').and(wordBoundary)
-    )
-  )
-);
+/**
+ * Every fold below bottoms out at a boolean literal (directly, parenthesised, or under `!`), so a
+ * module without one has nothing to fold. Enumerating the _shapes_ instead would silently skip the
+ * pass whenever a new one appeared — that is how constant-test ternaries went unfolded.
+ */
+const booleanLiteral = createRegExp(wordBoundary.and(anyOf('true', 'false')).and(wordBoundary));
 
 export function hasSegmentDcePatterns(code: string): boolean {
-  return dceGuard.test(code);
+  return booleanLiteral.test(code);
 }
 
 /** Resolve an expression to a compile-time boolean when possible. */

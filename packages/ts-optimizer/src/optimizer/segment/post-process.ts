@@ -1,15 +1,4 @@
-import {
-  anyOf,
-  charIn,
-  createRegExp,
-  digit,
-  exactly,
-  global,
-  oneOrMore,
-  whitespace,
-  wordBoundary,
-  wordChar,
-} from 'magic-regexp';
+import { createRegExp, digit, exactly, global } from 'magic-regexp';
 import { transformSync as oxcTransformSync, type TransformOptions } from 'oxc-transform';
 import type { SegmentCaptureInfo } from './segment-codegen.js';
 import { runDcePipeline } from '../transform/module-cleanup.js';
@@ -37,54 +26,6 @@ export interface SegmentPostProcessOptions {
   emitMode: string;
   devFile?: string;
 }
-
-const tsTypeAnnotationProbe = createRegExp(
-  exactly(':')
-    .and(whitespace.times.any())
-    .and(charIn('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_${[('))
-);
-
-const tsAngleAssertionProbe = createRegExp(
-  exactly('<')
-    .and(oneOrMore(wordChar))
-    .and('>')
-    .notBefore(whitespace.times.any(), anyOf(')', ',', ';'))
-);
-
-const tsGenericTypeListProbe = createRegExp(exactly('<').and(oneOrMore(wordChar)).and(','));
-
-const tsAsCastProbe = createRegExp(wordBoundary.and('as').and(oneOrMore(whitespace)).and(wordChar));
-
-const tsDeclarationProbe = createRegExp(
-  wordBoundary
-    .and(anyOf('interface', 'type', 'enum'))
-    .and(oneOrMore(whitespace))
-    .and(wordChar)
-);
-
-const tsNonNullPropertyProbe = createRegExp(
-  oneOrMore(wordChar)
-    .and(whitespace.times.any())
-    .and(anyOf('!.', '![', '!)', '!,', '!;'))
-);
-
-const tsGenericCallProbe = createRegExp(
-  exactly('<')
-    .and(charIn('ABCDEFGHIJKLMNOPQRSTUVWXYZ'))
-    .and(wordChar.times.any())
-    .and(
-      whitespace.times
-        .any()
-        .and(',')
-        .and(whitespace.times.any())
-        .and(oneOrMore(wordChar))
-        .times.any()
-    )
-    .and(whitespace.times.any())
-    .and('>')
-    .and(whitespace.times.any())
-    .and('(')
-);
 
 const pureAnnotationComment = createRegExp(exactly('/* @__PURE__ */'), [global]);
 
@@ -142,21 +83,11 @@ export function postProcessSegmentCode(code: string, opts: SegmentPostProcessOpt
   let result = code;
   const filename = opts.canonicalFilename + opts.extension;
 
+  // Always transpile rather than probing for TS/JSX syntax first: a probe list
+  // that misses a shape silently emits unstripped TS, and oxc has to parse the
+  // body here anyway.
   if (opts.shouldTranspileTs) {
-    const hasTsSyntax =
-      tsTypeAnnotationProbe.test(result) ||
-      tsAngleAssertionProbe.test(result) ||
-      tsGenericTypeListProbe.test(result) ||
-      tsAsCastProbe.test(result) ||
-      tsDeclarationProbe.test(result) ||
-      tsNonNullPropertyProbe.test(result) ||
-      tsGenericCallProbe.test(result);
-    // Segments under a foreign `@jsxImportSource` pragma have raw JSX in their
-    // body (Qwik's JSX-syntax rewrite was skipped); the TS-syntax probes don't
-    // detect plain JSX, so force oxc-transform when the body still contains JSX.
-    // `_` and `$` are legal JSX tag starts (`<$Icon/>`, `<_Private/>`).
-    const needsJsxStrip = opts.shouldTranspileJsx && /<\/?[A-Za-z_$]/.test(result);
-    if (hasTsSyntax || needsJsxStrip) {
+    {
       const tsStripOptions: TransformOptions = {
         typescript: { onlyRemoveTypeImports: false },
       };

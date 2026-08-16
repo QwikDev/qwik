@@ -49,11 +49,24 @@ describe('foreign @jsxImportSource pragma support', () => {
       expect(detectForeignJsxRuntime(src).hasForeignJsxRuntime).toBe(false);
     });
 
-    it('detects a real pragma that follows a pragma-shaped string', () => {
+    // oxc reads the pragma only from leading comments, so one sitting after the
+    // first token changes nothing — claiming otherwise sends the file to a
+    // runtime oxc never switches to.
+    it('ignores a pragma that follows code', () => {
       const src = `const doc = "/* @jsxImportSource react */";\n/* @jsxImportSource preact */\nconst x = 1;`;
-      const r = detectForeignJsxRuntime(src);
+      expect(detectForeignJsxRuntime(src).hasForeignJsxRuntime).toBe(false);
+    });
+
+    it('detects a line-comment pragma', () => {
+      const r = detectForeignJsxRuntime(`// @jsxImportSource react\nconst x = 1;`);
       expect(r.hasForeignJsxRuntime).toBe(true);
-      expect(r.pragmaText).toBe('/* @jsxImportSource preact */');
+      expect(r.pragmaText).toBe('// @jsxImportSource react');
+    });
+
+    it('detects a pragma after other leading comments', () => {
+      const r = detectForeignJsxRuntime(`// license\n/** @jsxImportSource preact */\nconst x = 1;`);
+      expect(r.hasForeignJsxRuntime).toBe(true);
+      expect(r.pragmaText).toBe('/** @jsxImportSource preact */');
     });
 
     it('does NOT flag Qwik-named import sources (those stay under Qwik optimization)', () => {

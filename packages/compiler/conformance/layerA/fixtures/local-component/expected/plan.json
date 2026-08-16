@@ -111,12 +111,11 @@
                                         "kind": "bin",
                                         "op": "==",
                                         "left": {
-                                          "kind": "member",
-                                          "obj": {
-                                            "kind": "binding-read",
-                                            "binding": 2
-                                          },
-                                          "name": "filter"
+                                          "kind": "store-read",
+                                          "binding": 2,
+                                          "path": [
+                                            "filter"
+                                          ]
                                         },
                                         "right": {
                                           "kind": "binding-read",
@@ -180,12 +179,11 @@
                                     "kind": "bin",
                                     "op": "==",
                                     "left": {
-                                      "kind": "member",
-                                      "obj": {
-                                        "kind": "binding-read",
-                                        "binding": 2
-                                      },
-                                      "name": "filter"
+                                      "kind": "store-read",
+                                      "binding": 2,
+                                      "path": [
+                                        "filter"
+                                      ]
                                     },
                                     "right": {
                                       "kind": "binding-read",

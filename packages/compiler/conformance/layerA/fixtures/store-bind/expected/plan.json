@@ -95,12 +95,11 @@
                     "value": {
                       "kind": "ir",
                       "ir": {
-                        "kind": "member",
-                        "obj": {
-                          "kind": "binding-read",
-                          "binding": 4
-                        },
-                        "name": "sent"
+                        "kind": "store-read",
+                        "binding": 4,
+                        "path": [
+                          "sent"
+                        ]
                       },
                       "segment": "segment_1"
                     },

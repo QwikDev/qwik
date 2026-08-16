@@ -3,15 +3,16 @@ import type { BindingId } from './plan-types';
 /**
  * Portable expression IR (specs/02-expression-ir.md), compiler-internal form.
  *
- * Reads are pre-place-resolution: `signal-read` is emitted only when signal-ness is proven (typed
- * reads are fast paths, never semantic requirements); `binding-read` is the generic "current
- * runtime value of this binding" read. Plan emission later resolves bindings to places (setup
- * slots, props, row scopes) — until then the IR stays keyed by `BindingId`.
+ * Reads are pre-place-resolution: `signal-read` and `store-read` are emitted only when the source
+ * kind is proven (typed reads are fast paths, never semantic requirements); `binding-read` is the
+ * generic "current runtime value of this binding" read. Plan emission later resolves bindings to
+ * places (setup slots, props, row scopes) — until then the IR stays keyed by `BindingId`.
  */
 export const enum ValueIrKind {
   Lit = 'lit',
   Undef = 'undef',
   SignalRead = 'signal-read',
+  StoreRead = 'store-read',
   BindingRead = 'binding-read',
   Member = 'member',
   Index = 'index',
@@ -31,6 +32,11 @@ export type ValueIR =
   | { readonly kind: ValueIrKind.Lit; readonly value: string | number | boolean | null }
   | { readonly kind: ValueIrKind.Undef }
   | { readonly kind: ValueIrKind.SignalRead; readonly binding: BindingId }
+  | {
+      readonly kind: ValueIrKind.StoreRead;
+      readonly binding: BindingId;
+      readonly path: readonly (string | ValueIR)[];
+    }
   | { readonly kind: ValueIrKind.BindingRead; readonly binding: BindingId }
   | {
       readonly kind: ValueIrKind.Member;

@@ -23,6 +23,15 @@ export interface ExprLowerFacts {
   bindingIdAt(range: SourceRange | null): BindingId | null;
   /** Proven signal-valued binding (`sourceOutputs`) — enables the `signal-read` fast path. */
   isSourceBinding(binding: BindingId): boolean;
+  /**
+   * Resolves a binding read `depth` properties deep to the store it belongs to, or null when no
+   * store is proven. A destructured alias answers with its owner and the path that reaches it. Only
+   * a deep store proves anything past the first property.
+   */
+  resolveStoreRead?(
+    binding: BindingId,
+    depth: number
+  ): { readonly binding: BindingId; readonly path: readonly string[] } | null;
   /** Function-valued bindings read as values are call-shaped territory — not lowerable yet. */
   isFunctionBinding(binding: BindingId): boolean;
   /** Index into the module defs table when the binding is an auto-lowered helper. */
@@ -297,6 +306,10 @@ export function lowerValueIr(expression: unknown, facts: ExprLowerFacts): ValueI
         if (binding !== null && facts.isSourceBinding(binding)) {
           return { kind: ValueIrKind.SignalRead, binding };
         }
+      }
+      const storeRead = lowerStoreRead(node, facts);
+      if (storeRead !== null) {
+        return storeRead;
       }
       const obj = lowerValueIr(member.object, facts);
       if (obj === null) {
@@ -668,4 +681,50 @@ function objectKeyName(key: unknown): string | null {
     }
   }
   return null;
+}
+
+/** `store.a.b` is one read of one store, so the whole member chain collapses into one node. */
+function lowerStoreRead(node: unknown, facts: ExprLowerFacts): ValueIR | null {
+  if (facts.resolveStoreRead === undefined) {
+    return null;
+  }
+  const path: (string | ValueIR)[] = [];
+  let current = unwrapExpression(node);
+  while (current?.type === 'MemberExpression') {
+    const member = current as {
+      object: unknown;
+      property: unknown;
+      computed: boolean;
+      optional?: boolean;
+    };
+    // optional chaining short-circuits the read, which a flat path cannot express
+    if (member.optional === true) {
+      return null;
+    }
+    if (member.computed) {
+      const key = lowerValueIr(member.property, facts);
+      if (key === null) {
+        return null;
+      }
+      path.unshift(key);
+    } else {
+      const name = getIdentifierName(member.property);
+      if (name === null) {
+        return null;
+      }
+      path.unshift(name);
+    }
+    current = unwrapExpression(member.object);
+  }
+  if (current?.type !== 'Identifier') {
+    return null;
+  }
+  const binding = facts.bindingIdAt(getRange(current));
+  if (binding === null) {
+    return null;
+  }
+  const store = facts.resolveStoreRead(binding, path.length);
+  return store === null
+    ? null
+    : { kind: ValueIrKind.StoreRead, binding: store.binding, path: [...store.path, ...path] };
 }

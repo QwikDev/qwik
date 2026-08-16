@@ -354,6 +354,9 @@ class SemanticLowerer {
   private readonly bindingOutputs = new Map<BindingId, DynamicOutputKind>();
   private readonly sourceOutputs = new Map<BindingId, DynamicOutputKind>();
   private readonly signalBindings = new Set<BindingId>();
+  /** Proven `useStore` bindings; only a deep store makes a nested path reactive. */
+  private readonly deepStoreBindings = new Set<BindingId>();
+  private readonly shallowStoreBindings = new Set<BindingId>();
   private readonly functionBindings = new Set<BindingId>();
   private readonly asyncFunctionBindings = new Set<BindingId>();
   private readonly localRenderValues = new Map<BindingId, RenderFunctionPlan>();
@@ -1783,6 +1786,7 @@ class SemanticLowerer {
   private readonly exprLowerFacts: ExprLowerFacts = {
     bindingIdAt: (range) => this.bindingIdAt(range),
     isSourceBinding: (binding) => this.sourceOutputs.has(binding),
+    resolveStoreRead: (binding, depth) => this.resolveStoreRead(binding, depth),
     isFunctionBinding: (binding) => this.functionBindings.has(binding),
     defIndex: (binding) => {
       const index = this.extracted.moduleDefs?.findIndex((def) => def.binding === binding) ?? -1;
@@ -3792,6 +3796,20 @@ class SemanticLowerer {
     );
   }
 
+  private resolveStoreRead(
+    binding: BindingId,
+    depth: number
+  ): { binding: BindingId; path: readonly string[] } | null {
+    if (this.deepStoreBindings.has(binding)) {
+      return { binding, path: [] };
+    }
+    // a shallow store proxies only its own properties, so nothing deeper is reactive
+    if (depth === 1 && this.shallowStoreBindings.has(binding)) {
+      return { binding, path: [] };
+    }
+    return null;
+  }
+
   private classifySetupBindings(ranges: readonly SourceRange[]): void {
     for (const range of ranges) {
       const statement = findNodeByRange(this.owner.body, range);
@@ -3831,11 +3849,15 @@ class SemanticLowerer {
         if (sourceOutput !== null) {
           this.sourceOutputs.set(bindingId, sourceOutput);
         }
-        if (
-          init.type === 'CallExpression' &&
-          this.sourceFactoryName(init.callee) === QwikHooks.UseSignal
-        ) {
-          this.signalBindings.add(bindingId);
+        if (init.type === 'CallExpression') {
+          if (this.sourceFactoryName(init.callee) === QwikHooks.UseSignal) {
+            this.signalBindings.add(bindingId);
+          } else if (this.isQwikHook(init.callee, QwikHooks.UseStore)) {
+            // an options bag can turn deep off, so only the bare form proves nested reactivity
+            (init.arguments.length === 1 ? this.deepStoreBindings : this.shallowStoreBindings).add(
+              bindingId
+            );
+          }
         }
       }
     }

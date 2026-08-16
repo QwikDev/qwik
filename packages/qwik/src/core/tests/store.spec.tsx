@@ -314,6 +314,30 @@ describe(`${name}: stores`, () => {
 
     cleanup();
   });
+
+  // A prop derived from a store stays reactive only when the store read is proven, so it
+  // rides the sources map instead of serializing as a snapshot.
+  it('keeps a prop derived from a store reactive', async () => {
+    const Child = (props: { value: string }) => <p id="out">{props.value}</p>;
+    const App = () => {
+      const store = useStore({ flip: false });
+      return (
+        <div>
+          <button onClick$={() => (store.flip = !store.flip)}>toggle</button>
+          <Child value={store.flip ? 'b' : 'a'} />
+        </div>
+      );
+    };
+
+    const { container, cleanup, qwikLoader } = await render(App, { debug });
+    const button = container.querySelector('button')!;
+
+    expect(container.querySelector('#out')?.textContent).toBe('a');
+    await qwikLoader?.dispatch(button, 'click');
+    expect(container.querySelector('#out')?.textContent).toBe('b');
+
+    cleanup();
+  });
 });
 
 function createOwned<T>(run: () => T): T {

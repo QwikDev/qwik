@@ -86,15 +86,19 @@ function collectSegmentArgIds(node: unknown, found: string[] = []): string[] {
 }
 
 /** Deep check mirroring the generator's irReadsSignal: reactive values need tracked emission. */
-function irContainsSignalRead(node: unknown): boolean {
+function irContainsSourceRead(node: unknown): boolean {
   if (Array.isArray(node)) {
-    return node.some(irContainsSignalRead);
+    return node.some(irContainsSourceRead);
   }
   if (typeof node !== 'object' || node === null) {
     return false;
   }
   const record = node as Record<string, unknown>;
-  return record.kind === 'signal-read' || Object.values(record).some(irContainsSignalRead);
+  return (
+    record.kind === 'signal-read' ||
+    record.kind === 'store-read' ||
+    Object.values(record).some(irContainsSourceRead)
+  );
 }
 
 function valueSegment(value: unknown): string | undefined {
@@ -346,6 +350,15 @@ export async function buildInterpretedRoot(
               value: unknown;
             }
           ).value;
+        // proven store binding: the path walks back the member chain it came from
+        case 'store-read': {
+          let value = evalIr({ kind: 'binding-read', binding: ir.binding } as ValueIR);
+          for (const step of ir.path) {
+            const key = typeof step === 'string' ? step : (evalIr(step) as string);
+            value = (value as Record<string, unknown>)[key];
+          }
+          return value;
+        }
         case 'plugin-call': {
           const impl = pluginImpls.get(ir.fnId);
           if (impl === undefined) {
@@ -994,7 +1007,8 @@ export async function buildInterpretedRoot(
               } else if (
                 ir !== undefined &&
                 ir.kind !== 'signal-read' &&
-                !irContainsSignalRead(ir)
+                ir.kind !== 'store-read' &&
+                !irContainsSourceRead(ir)
               ) {
                 // segment-backed args root their captures before the component call
                 for (const segmentId of collectSegmentArgIds(ir)) {

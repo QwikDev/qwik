@@ -1704,7 +1704,10 @@ class JsComponentGenerator {
         const ir = valueIr(item.value);
         // composite reactive expressions need the QRL so resume rebuilds the subscription
         const reactiveComposite =
-          ir !== undefined && ir.kind !== 'signal-read' && irReadsSignal(ir);
+          ir !== undefined &&
+          ir.kind !== 'signal-read' &&
+          ir.kind !== 'store-read' &&
+          irReadsSource(ir);
         if (
           segmentId !== undefined &&
           (ir === undefined || ir.kind === 'call' || reactiveComposite)
@@ -2680,18 +2683,22 @@ class JsComponentGenerator {
 
   /** A single-hop `store.prop` read on a proven store base — slot tracking is content-agnostic. */
   private storePropRead(ir: ValueIR): { object: string; prop: string } | null {
-    if (
-      ir.kind !== 'member' ||
-      ir.obj.kind !== 'binding-read' ||
-      this.bindingSourceKind(ir.obj.binding) !== 'store'
-    ) {
+    // the canonical source is one property of one store, so a deeper path is not one
+    if (ir.kind !== 'store-read' || ir.path.length !== 1 || typeof ir.path[0] !== 'string') {
       return null;
     }
-    return { object: this.local(ir.obj.binding), prop: ir.name };
+    return { object: this.local(ir.binding), prop: ir.path[0] };
   }
 
   /** A member chain of pure reads — safe to re-evaluate once for the sources map. */
   private memberSourceRead(ir: ValueIR): { object: ValueIR; prop: string } | null {
+    // a deeper store path probes its parent object, the same as any other member chain
+    if (ir.kind === 'store-read') {
+      const prop = ir.path[ir.path.length - 1];
+      return ir.path.length > 1 && typeof prop === 'string'
+        ? { object: { ...ir, path: ir.path.slice(0, -1) }, prop }
+        : null;
+    }
     if (ir.kind !== 'member') {
       return null;
     }
@@ -2792,6 +2799,14 @@ class JsComponentGenerator {
       // proven signal binding: the current value reads as `<local>.value`
       case 'signal-read':
         return `${scope?.get(ir.binding) ?? this.local(ir.binding)}.value`;
+      // proven store binding: the path reads back as the member chain it came from
+      case 'store-read':
+        return (
+          (scope?.get(ir.binding) ?? this.local(ir.binding)) +
+          ir.path
+            .map((step) => (typeof step === 'string' ? `.${step}` : `[${this.irJs(step, scope)}]`))
+            .join('')
+        );
       case 'bin':
       case 'logic':
         return `(${this.irJs(ir.left, scope)} ${ir.op} ${this.irJs(ir.right, scope)})`;
@@ -2920,15 +2935,19 @@ function collectSegmentArgIds(node: unknown, found: string[] = []): string[] {
 }
 
 /** Deep check: does this IR read any signal source? Reactive values need tracked emission. */
-function irReadsSignal(node: unknown): boolean {
+function irReadsSource(node: unknown): boolean {
   if (Array.isArray(node)) {
-    return node.some(irReadsSignal);
+    return node.some(irReadsSource);
   }
   if (typeof node !== 'object' || node === null) {
     return false;
   }
   const record = node as Record<string, unknown>;
-  return record.kind === 'signal-read' || Object.values(record).some(irReadsSignal);
+  return (
+    record.kind === 'signal-read' ||
+    record.kind === 'store-read' ||
+    Object.values(record).some(irReadsSource)
+  );
 }
 
 /** Trailing `, undefined, <scope>` args for attr render calls; empty when unscoped. */

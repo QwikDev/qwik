@@ -105,12 +105,11 @@
                                     "kind": "bin",
                                     "op": "==",
                                     "left": {
-                                      "kind": "member",
-                                      "obj": {
-                                        "kind": "binding-read",
-                                        "binding": 3
-                                      },
-                                      "name": "filter"
+                                      "kind": "store-read",
+                                      "binding": 3,
+                                      "path": [
+                                        "filter"
+                                      ]
                                     },
                                     "right": {
                                       "kind": "binding-read",

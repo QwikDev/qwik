@@ -74,6 +74,10 @@ export function applySegmentConstReplacement(
     }
   }
 
+  if (isPrebuiltLibraryOutput(program)) {
+    return code;
+  }
+
   const replacements = new Map<string, string>();
   const importRanges = new Set<string>();
 
@@ -115,6 +119,28 @@ export function applySegmentConstReplacement(
   const s = new MagicString(code);
   replaceResolvedConstIdentifiers(s, program, replacements, importRanges);
   return s.toString();
+}
+
+/**
+ * `inlinedQrl` only ever appears in optimizer output, so its presence means a published library
+ * built for both environments. Folding its env consts collapses the guards protecting its
+ * server-only work, leaving those statements unreachable but still referencing their imports —
+ * which keeps a server-only dependency in the client graph. Leaving the guard intact lets the
+ * bundler fold and drop it, which is what the rust optimizer does (it skips these modules
+ * entirely).
+ */
+function isPrebuiltLibraryOutput(program: AstProgram): boolean {
+  for (const node of program.body) {
+    if (node.type !== 'ImportDeclaration') {
+      continue;
+    }
+    for (const spec of node.specifiers || []) {
+      if (spec.type === 'ImportSpecifier' && getImportedSpecifierName(spec) === 'inlinedQrl') {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 export function injectUseHmr(
@@ -723,6 +749,8 @@ export interface DcePipelineOptions {
   hmrDevFile?: string;
   /** Inline strategy with stripping: downgrade fully-unused relative imports to side-effect form. */
   keepRelativeSideEffects?: boolean;
+  /** Set when the source was already optimizer output; see {@link isPrebuiltLibraryOutput}. */
+  isPrebuiltLibrary?: boolean;
 }
 
 /**
@@ -757,6 +785,7 @@ export function runDcePipeline(code: string, filename: string, opts: DcePipeline
   if (
     (opts.isServer !== undefined || opts.isDev !== undefined) &&
     !opts.isLibMode &&
+    !opts.isPrebuiltLibrary &&
     (result.includes('@qwik.dev/core') || result.includes('@builder.io/qwik'))
   ) {
     runStage(() =>

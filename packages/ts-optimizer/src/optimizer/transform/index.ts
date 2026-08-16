@@ -1215,6 +1215,11 @@ function rewriteParent(
     transpileJsx: options.transpileJsx,
     keepRelativeSideEffects:
       emit.isInlineStrategy && !!(options.stripCtxName?.length || options.stripEventHandlers),
+    // Extraction has already consumed the `inlinedQrl` import by now, so the marker has to come
+    // from the imports as they were before it ran.
+    isPrebuiltLibrary: [...analysis.originalImports.values()].some(
+      (imp) => imp.importedName === 'inlinedQrl'
+    ),
   });
   const hygienicCode = applyModuleHygieneRenames(cleanedCode, relPath);
   const removedImportSources = collectRemovedImportSources(

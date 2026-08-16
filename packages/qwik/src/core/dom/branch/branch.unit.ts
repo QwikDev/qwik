@@ -13,6 +13,7 @@ import {
 } from '../../test-utils';
 import { createComponent } from '../../component/component';
 import { disposeSubscriber } from '../../reactive/cleanup';
+import { OwnerFlags } from '../../reactive/flags';
 import { useSignal } from '../../reactive/public-api';
 import { createTextExpressionEffect, createTextNodeEffect } from '../effect/text-effect';
 import { createSsrElementTextTarget, renderSsrTextNode } from '../effect/ssr-effect';
@@ -25,7 +26,13 @@ import {
 } from '../../runtime/invoke-context';
 import type { ContextScope } from '../../runtime/context-scope';
 import type { SlotScope } from '../slot/slot';
-import { createOwner, registerSubscriberToOwner, runWithOwner } from '../../runtime/owner';
+import {
+  createOwner,
+  getOrCreateContextOwner,
+  registerSubscriberToOwner,
+  runWithOwner,
+  type Owner,
+} from '../../runtime/owner';
 import { Scheduler } from '../../runtime/scheduler';
 import type { ValueOrPromise } from '../../shared/utils/types';
 import type { BranchSubscriber, DomSubscriber } from '../../runtime/subscriber';
@@ -503,6 +510,32 @@ describe('branches', () => {
 
     expect(elseResolved).toBe(true);
     expect(replacements).toEqual([[thenNode], [elseNode]]);
+  });
+
+  it('disposes render owners that are materialized after the commit', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const visible = useSignal(true);
+    const thenNode = createNode('then');
+    const { range } = createBranchRange();
+    const materialized = deferred<Owner>();
+    // Projections resolve their QRL asynchronously, so they claim the render owner after the commit.
+    const thenQrl = createQRL<BranchRenderFn>('chunk', 'renderThen', () => {
+      const context = getActiveInvokeContext();
+      Promise.resolve().then(() => materialized.resolve(getOrCreateContextOwner(context)!));
+      return [thenNode];
+    });
+    const branch = createOwned(() =>
+      createBranch({ scheduler } as ContainerContext, range, () => visible.value, thenQrl)
+    );
+
+    scheduler.notify(branch);
+    await scheduler.flushInteraction();
+    const renderOwner = await materialized.promise;
+
+    visible.value = false;
+    await scheduler.flushInteraction();
+
+    expect(renderOwner.flags & OwnerFlags.Disposed).toBeTruthy();
   });
 
   it('resumes mounted branches without loading the matching renderer', async () => {

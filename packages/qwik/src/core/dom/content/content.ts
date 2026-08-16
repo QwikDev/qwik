@@ -13,7 +13,12 @@ import {
   newChildInvokeContext,
   type RuntimeInvokeContext,
 } from '../../runtime/invoke-context';
-import { disposeOwner, registerSubscriberToOwner, type Owner } from '../../runtime/owner';
+import {
+  disposeOwner,
+  getOrCreateContextOwner,
+  registerSubscriberToOwner,
+  type Owner,
+} from '../../runtime/owner';
 import { defaultScheduler, type Scheduler } from '../../runtime/scheduler';
 import {
   SubscriberKind,
@@ -196,7 +201,8 @@ export class ContentBlock<TArgs extends unknown[] = unknown[]> {
     );
     replaceRange(this.document, this.start, this.end, nodes);
     this.committed = true;
-    this.currentOwner = invokeContext.owner;
+    // Deferred content claims the owner after this commit, so materialize it now or lose the handle.
+    this.currentOwner = getOrCreateContextOwner(invokeContext);
     if (previousOwner !== null) {
       disposeOwner(previousOwner);
     }
@@ -328,7 +334,8 @@ export function createSuspense(
             return;
           }
           const output = invoke(invokeContext, fallback, ctx);
-          subscription.block.currentOwner = invokeContext.owner;
+          // The fallback may still be rendering, so materialize the owner instead of reading it.
+          subscription.block.currentOwner = getOrCreateContextOwner(invokeContext);
           return maybeThen(output, (output) => {
             if (!isPending || subscription.owner === null) {
               finish();

@@ -315,7 +315,8 @@ function project(
       () => invoke(invokeContext, render, container, projection.idBase),
       (output) => {
         const nodes = toNodes(output);
-        projection.owner = invokeContext.owner;
+        // The cache is dropped only when this owner is disposed, so it must never stay unmaterialized.
+        projection.owner = getOrCreateContextOwner(invokeContext);
         projection.nodes = nodes;
         return nodes;
       },

@@ -11,7 +11,12 @@ import {
   newChildInvokeContext,
   type RuntimeInvokeContext,
 } from '../../runtime/invoke-context';
-import { disposeOwner, registerSubscriberToOwner, type Owner } from '../../runtime/owner';
+import {
+  disposeOwner,
+  getOrCreateContextOwner,
+  registerSubscriberToOwner,
+  type Owner,
+} from '../../runtime/owner';
 import { defaultScheduler, type Scheduler } from '../../runtime/scheduler';
 import {
   SubscriberKind,
@@ -94,7 +99,8 @@ export class Branch {
     );
     this.range.replace(nodes);
     this.currentBranch = nextBranch;
-    this.currentOwner = invokeContext?.owner ?? null;
+    // Deferred content claims the owner after this commit, so materialize it now or lose the handle.
+    this.currentOwner = invokeContext === null ? null : getOrCreateContextOwner(invokeContext);
     if (previousOwner !== null) {
       disposeOwner(previousOwner);
     }

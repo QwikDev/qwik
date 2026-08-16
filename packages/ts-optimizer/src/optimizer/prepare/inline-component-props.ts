@@ -117,12 +117,20 @@ function collectInlineArrowComponents(program: AstProgram): AstNode[] {
   return arrows;
 }
 
-export function normalizeInlineComponentProps(code: string, filename: string): NormalizeResult {
+export function normalizeInlineComponentProps(
+  code: string,
+  filename: string,
+  preParsedProgram?: AstProgram
+): NormalizeResult {
   let program: AstProgram;
-  try {
-    program = parseWithRawTransfer(filename, code).program;
-  } catch {
-    return { changed: false, source: code };
+  if (preParsedProgram) {
+    program = preParsedProgram;
+  } else {
+    try {
+      program = parseWithRawTransfer(filename, code).program;
+    } catch {
+      return { changed: false, source: code };
+    }
   }
 
   const replacements: Replacement[] = [];

@@ -768,10 +768,10 @@ export function runDcePipeline(code: string, filename: string, opts: DcePipeline
   }
 
   if (hasSegmentDcePatterns(result)) {
-    runStage(() => applySegmentDCE(result, filename));
+    runStage(() => applySegmentDCE(result, filename, lazyParse()));
   }
   if (!opts.isLibMode) {
-    runStage(() => applyStatementDCE(result, filename));
+    runStage(() => applyStatementDCE(result, filename, lazyParse()));
     runStage(() => applySegmentSideEffectSimplification(result, filename, lazyParse()));
   }
 

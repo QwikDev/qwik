@@ -183,12 +183,20 @@ function collectBlockBodies(program: AstProgram): unknown[][] {
   return bodies;
 }
 
-export function applyStatementDCE(code: string, filename: string): string {
+export function applyStatementDCE(
+  code: string,
+  filename: string,
+  preParsedProgram?: AstProgram
+): string {
   let program: AstProgram;
-  try {
-    program = parseWithRawTransfer(filename, code).program;
-  } catch {
-    return code;
+  if (preParsedProgram) {
+    program = preParsedProgram;
+  } else {
+    try {
+      program = parseWithRawTransfer(filename, code).program;
+    } catch {
+      return code;
+    }
   }
 
   const bodies = collectBlockBodies(program);

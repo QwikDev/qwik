@@ -439,7 +439,8 @@ function prepareModuleInput(mod: ModuleContext): PreparedModuleInput {
 
   // Phase 0.6: normalize inline arrow components' destructured props to
   // `_rawProps` before extraction, so captures and fnSignal roots see it.
-  const inlineProps = normalizeInlineComponentProps(repairedCode, relPath);
+  // `program` still describes `repairedCode` here, so this pass needs no parse of its own.
+  const inlineProps = normalizeInlineComponentProps(repairedCode, relPath, program);
   if (inlineProps.changed) {
     repairedCode = inlineProps.source;
     const reparsed = parseWithRawTransfer(relPath, repairedCode);

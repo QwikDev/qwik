@@ -8,7 +8,7 @@
 
 import MagicString from 'magic-string';
 import { anyOf, createRegExp, wordBoundary } from 'magic-regexp';
-import type { AstMaybeNode, AstNode } from '../../ast-types.js';
+import type { AstMaybeNode, AstNode, AstProgram } from '../../ast-types.js';
 import { parseWithRawTransfer } from '../ast/parse.js';
 import { forEachAstChild } from '../ast/guards.js';
 
@@ -62,12 +62,20 @@ function blockHasLexicalDecls(block: AstNode): boolean {
   return false;
 }
 
-export function applySegmentDCE(code: string, filename = 'dce.tsx'): string {
+export function applySegmentDCE(
+  code: string,
+  filename = 'dce.tsx',
+  preParsedProgram?: AstProgram
+): string {
   let program;
-  try {
-    program = parseWithRawTransfer(filename, code).program;
-  } catch {
-    return code;
+  if (preParsedProgram) {
+    program = preParsedProgram;
+  } else {
+    try {
+      program = parseWithRawTransfer(filename, code).program;
+    } catch {
+      return code;
+    }
   }
 
   const s = new MagicString(code);

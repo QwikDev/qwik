@@ -150,14 +150,26 @@ export function skipStringLiteralForward(text: string, i: number): number {
  * anchors. Template `${}` interpolation contents blank too — declarations inside them go unseen,
  * which scanners must treat as "not found", never as license to match raw text.
  */
+const nonNewline = /[^\n]/g;
+
+/** Same length, every character but a newline replaced by a space. */
+function spacesLike(segment: string): string {
+  const firstNewline = segment.indexOf('\n');
+  return firstNewline === -1 ? ' '.repeat(segment.length) : segment.replace(nonNewline, ' ');
+}
+
 export function blankNonCode(text: string): string {
-  const chars = text.split('');
+  // Copy the code spans verbatim and blank only what lies between them. Building this per character
+  // costs an array of single-character strings per call, and this runs on nearly every module.
+  let out = '';
+  let copied = 0;
   const blank = (from: number, to: number): void => {
-    for (let k = from; k < to && k < chars.length; k++) {
-      if (chars[k] !== '\n') {
-        chars[k] = ' ';
-      }
+    const stop = to < text.length ? to : text.length;
+    if (stop <= from) {
+      return;
     }
+    out += text.slice(copied, from) + spacesLike(text.slice(from, stop));
+    copied = stop;
   };
   for (let i = 0; i < text.length; i++) {
     const ch = text[i];
@@ -177,7 +189,7 @@ export function blankNonCode(text: string): string {
       i = stop - 1;
     }
   }
-  return chars.join('');
+  return copied === 0 ? text : out + text.slice(copied);
 }
 
 /** Scan from `start` (just after the open paren) to the index one past the matching close paren. */

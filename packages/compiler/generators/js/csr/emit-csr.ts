@@ -1231,9 +1231,9 @@ function emitCsrOperation(
       return {
         declarations: [],
         statements: [
-          `${context.generatedNames.ctx}.scheduler.waitFor(${QwikWord.MaybeThen}(${QwikWord.CreateSlot}(${JSON.stringify(
-            operation.name
-          )}, ${
+          `${context.generatedNames.ctx}.scheduler.waitFor(${QwikWord.MaybeThen}(${QwikWord.CreateSlot}(${
+            operation.nameSource ?? JSON.stringify(operation.name)
+          }, ${
             operation.fallback === null
               ? 'undefined'
               : emitPlannedFunctionReference(operation.fallback, context)
@@ -1241,6 +1241,25 @@ function emitCsrOperation(
             range.end
           }.parentNode.insertBefore(node, ${range.end}); }));`,
         ],
+      };
+    }
+    case 'dynamic-slot': {
+      const range = getRangeNames(operation.range, refNames);
+      if (range === null) {
+        return null;
+      }
+      const content = next('content');
+      imports.add(QwikWord.CreateContentBlock);
+      operationNames.set(operation.id, [range.start, range.end]);
+      return {
+        declarations: [
+          // the render returns nodes, so it takes the container rather than plain captures
+          `const ${content} = ${QwikWord.CreateContentBlock}(${context.generatedNames.ctx}, ${range.start}, ${range.end}, [], ${emitPlannedFunctionReference(
+            operation.render,
+            context
+          )}, false, true);`,
+        ],
+        statements: [`${context.generatedNames.ctx}.scheduler.notify(${content});`],
       };
     }
     case 'collection': {

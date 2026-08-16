@@ -1128,6 +1128,29 @@ export async function buildInterpretedRoot(
             parts.push(rendered);
           });
         }
+        case 'dynamic-slot': {
+          const segment = (op as { render: { segment: string } }).render.segment;
+          const id = ctx.nextId();
+          const rendered = invoke(invokeCtx, () => {
+            for (const binding of captureLists.get(segment) ?? []) {
+              ctx.addRoot(locals.get(binding));
+            }
+            // the render returns ssr output, so it takes the container rather than plain captures
+            return renderSsrContent(
+              ctx as never,
+              id,
+              [] as never,
+              qrlWithCaptures(segment) as never,
+              false,
+              true
+            );
+          });
+          return maybeThen(rendered, (output) => {
+            parts.push(createSsrRecord('<!d=', createSsrNodeId(id), '>'));
+            parts.push(output as never);
+            parts.push('<!/d>');
+          });
+        }
         case 'content': {
           const op2 = {
             segment: valueSegment((op as { value: unknown }).value)!,

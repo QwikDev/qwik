@@ -65,6 +65,7 @@ export const enum SsrOpKind {
   Branch = 'branch',
   Suspense = 'suspense',
   Slot = 'slot',
+  DynamicSlot = 'dynamic-slot',
   Collection = 'collection',
 }
 
@@ -218,8 +219,14 @@ export type PlanSsrOp =
   | {
       readonly kind: SsrOpKind.Slot;
       readonly name: string;
+      /** Present when the name is an expression: the slot resolves it at render time. */
+      readonly nameSource?: string;
       readonly fallback: PlanSsrRenderFn | null;
       readonly ssr: { readonly idBase: string | null };
+    }
+  | {
+      readonly kind: SsrOpKind.DynamicSlot;
+      readonly render: PlanSsrRenderFn;
     }
   | {
       readonly kind: SsrOpKind.Collection;
@@ -350,6 +357,9 @@ export function findWireBlock(
         break;
       case SsrOpKind.Slot:
         visitFn(operation.fallback);
+        break;
+      case SsrOpKind.DynamicSlot:
+        visitFn(operation.render);
         break;
       case SsrOpKind.Collection: {
         const row = operation.row;
@@ -915,9 +925,14 @@ export function emitSsrOpPlan(
         return {
           kind: SsrOpKind.Slot,
           name: operation.name,
+          ...(operation.nameValue === undefined
+            ? {}
+            : { nameSource: slice(operation.nameValue.expression) }),
           fallback: operation.fallback === null ? null : renderFnBlock(operation.fallback),
           ssr: { idBase: operation.idBase },
         };
+      case 'dynamic-slot':
+        return { kind: SsrOpKind.DynamicSlot, render: renderFnBlock(operation.render) };
       case 'collection':
         return {
           kind: SsrOpKind.Collection,

@@ -1283,6 +1283,9 @@ function forEachRenderNode(render: RenderPlan, visit: (node: RenderNodePlan) => 
       case 'collection':
         visitRender(node.row.render);
         return;
+      case 'dynamic-slot':
+        visitRender(node.render.render);
+        return;
       case 'dynamic-value':
       case 'static-text':
         return;
@@ -1435,6 +1438,8 @@ function markPlanNeedsId(
         return node.fallback?.needsId === true;
       case 'collection':
         return node.row.needsId;
+      case 'dynamic-slot':
+        return node.render.needsId;
       case 'dynamic-value':
       case 'static-text':
         return false;

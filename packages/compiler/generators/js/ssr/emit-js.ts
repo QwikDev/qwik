@@ -1579,9 +1579,40 @@ class JsComponentGenerator {
         this.pushStep(
           step,
           [],
-          `${QwikWord.RenderSsrSlot}(${this.names.ctx}, ${JSON.stringify(operation.name)}, ${fallback}, ${QwikWord.GetActiveInvokeContextOrNull}())`
+          `${QwikWord.RenderSsrSlot}(${this.names.ctx}, ${operation.nameSource ?? JSON.stringify(operation.name)}, ${fallback}, ${QwikWord.GetActiveInvokeContextOrNull}())`
         );
         parts.push(step);
+        return;
+      }
+      case SsrOpKind.DynamicSlot: {
+        if (operation.render.segment === undefined) {
+          markUngeneratable();
+        }
+        const meta = this.segment(operation.render.segment);
+        const captures = meta.captures.map((capture) =>
+          capture.access === 'component-prop' ? this.names.props : this.local(capture.binding)
+        );
+        const idVariable = `slot_id_${this.nextTemp}`;
+        const step = `slot_${this.nextTemp++}`;
+        this.imports.add(QwikWord.RenderSsrContent);
+        this.imports.add(QwikWord.CreateSsrRecord);
+        this.imports.add(QwikWord.CreateSsrNodeId);
+        const deferred = this.asyncSteps.length > 0;
+        this.statements.push(
+          deferred ? `let ${idVariable};` : `const ${idVariable} = ${this.names.ctx}.nextId();`
+        );
+        // the render returns ssr output, so it takes the container rather than plain captures
+        this.pushStep(
+          step,
+          captures,
+          `${QwikWord.RenderSsrContent}(${this.names.ctx}, ${idVariable}, [], ${this.qrlExpression(meta)}, false, true)`,
+          deferred ? `${idVariable} ??= ${this.names.ctx}.nextId(); ` : undefined
+        );
+        parts.push(
+          `${QwikWord.CreateSsrRecord}('<!d=', ${QwikWord.CreateSsrNodeId}(${idVariable}), '>')`
+        );
+        parts.push(step);
+        pushStatic('<!/d>');
         return;
       }
       default:

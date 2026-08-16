@@ -1964,6 +1964,21 @@ export function Parent() {
     });
   });
 
+  test('resolves a Slot whose name is an expression', async () => {
+    await testInput('component_child_slot_dynamic_name', {
+      code: `import { Slot } from '@qwik.dev/core';
+
+export function Switch(props) {
+  return <Slot name={props.name} />;
+}
+
+export function Parent(props) {
+  return <Switch name={props.pick}><i q:slot="a">Alpha</i><b q:slot="b">Bravo</b></Switch>;
+}
+`,
+    });
+  });
+
   test('inherits context across child component renderers', async () => {
     await testInput('component_child_context', {
       code: `import { useContext, useContextProvider, useSignal } from '@qwik.dev/core';

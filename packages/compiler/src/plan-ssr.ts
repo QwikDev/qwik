@@ -106,6 +106,7 @@ export type SsrOperation =
   | SsrBranchOperation
   | SsrSuspenseOperation
   | SsrSlotOperation
+  | SsrDynamicSlotOperation
   | SsrCollectionOperation;
 
 export interface SsrElementOperation {
@@ -199,8 +200,15 @@ export interface SsrSuspenseOperation {
 export interface SsrSlotOperation {
   readonly kind: 'slot';
   readonly name: string;
+  /** Present when the name is an expression: the slot resolves it at render time. */
+  readonly nameValue?: ValuePlan;
   readonly fallback: RenderFunctionPlan | null;
   readonly idBase: string | null;
+}
+
+export interface SsrDynamicSlotOperation {
+  readonly kind: 'dynamic-slot';
+  readonly render: RenderFunctionPlan;
 }
 
 export interface SsrCollectionOperation {
@@ -664,9 +672,12 @@ class SsrPlanner {
         return {
           kind: 'slot',
           name: node.name,
+          ...(node.nameValue === undefined ? {} : { nameValue: node.nameValue }),
           fallback: node.fallback,
           idBase: node.fallback?.needsId === true ? this.idExpression('s') : null,
         };
+      case 'dynamic-slot':
+        return { kind: 'dynamic-slot', render: node.render };
       case 'collection': {
         const rowTarget =
           node.row.segmentId === null
@@ -1053,6 +1064,9 @@ function collectSsrSegmentIds(operations: readonly SsrOperation[]): string[] {
       case 'slot':
         render(operation.fallback);
         return;
+      case 'dynamic-slot':
+        render(operation.render);
+        return;
       case 'collection':
         if (operation.source.kind === 'derived') {
           ids.add(operation.source.segment.segmentId);
@@ -1120,6 +1134,7 @@ function isSynchronousSsrOperation(operation: SsrOperation): boolean {
       return operation.returnMode === 'sync';
     case 'branch':
     case 'slot':
+    case 'dynamic-slot':
       return false;
     case 'suspense':
       return operation.inOrder?.every(isSynchronousSsrOperation) ?? false;
@@ -1154,6 +1169,7 @@ function needsSsrContext(operation: SsrOperation): boolean {
     case 'component':
     case 'branch':
     case 'slot':
+    case 'dynamic-slot':
     case 'collection':
       return true;
     case 'suspense':

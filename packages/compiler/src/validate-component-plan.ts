@@ -331,9 +331,16 @@ class ComponentPlanValidator {
         return;
       case 'slot':
         this.validateOwnedLifetime(node.lifetimeId, parentLifetimeId, 'slot', path);
+        if (node.nameValue !== undefined) {
+          this.validateValue(node.nameValue, `${path}.nameValue`);
+        }
         if (node.fallback !== null) {
           this.validateRenderFunction(node.fallback, `${path}.fallback`, node.lifetimeId);
         }
+        return;
+      case 'dynamic-slot':
+        this.validateOwnedLifetime(node.lifetimeId, parentLifetimeId, 'slot', path);
+        this.validateRenderFunction(node.render, `${path}.render`, node.lifetimeId);
         return;
       case 'collection':
         this.validateOwnedLifetime(node.lifetimeId, parentLifetimeId, 'collection', path);

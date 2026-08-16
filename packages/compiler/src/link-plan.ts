@@ -286,6 +286,8 @@ export function linkSsrPlan(
           };
         case SsrOpKind.Slot:
           return { ...op, fallback: op.fallback === null ? null : linkSsrFn(op.fallback) };
+        case SsrOpKind.DynamicSlot:
+          return { ...op, render: linkSsrFn(op.render) };
         case SsrOpKind.Collection: {
           const row = op.row;
           // inline rows carry a required symbolName; segment rows are { segment: renderFn }

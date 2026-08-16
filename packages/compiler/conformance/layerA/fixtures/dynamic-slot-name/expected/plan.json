@@ -1,0 +1,263 @@
+{
+  "format": "qwik/ssr-plan",
+  "version": 1,
+  "entry": 1,
+  "components": [
+    {
+      "name": "Switch",
+      "module": 0,
+      "propsBindings": [
+        4
+      ],
+      "props": {
+        "kind": "identifier",
+        "binding": 4
+      },
+      "ssr": {
+        "setup": [],
+        "ops": [
+          {
+            "kind": "element",
+            "tag": "section",
+            "voidTag": false,
+            "styleScopedId": null,
+            "props": [],
+            "propsEffect": null,
+            "children": [
+              {
+                "kind": "dynamic-slot",
+                "render": {
+                  "segment": "semantic_branchRender_106_132",
+                  "setup": [],
+                  "ops": [
+                    {
+                      "kind": "slot",
+                      "name": "",
+                      "nameSource": "props.pick",
+                      "fallback": null,
+                      "ssr": {
+                        "idBase": null
+                      }
+                    }
+                  ],
+                  "ssr": {
+                    "syncRender": false,
+                    "needsRootRange": false
+                  }
+                }
+              }
+            ],
+            "ssr": {
+              "id": null,
+              "targetUses": 0
+            }
+          }
+        ],
+        "ssr": {
+          "syncRender": false,
+          "staticRoot": false,
+          "needsRootRange": false,
+          "needsId": false,
+          "idBase": "qSwitch-",
+          "flushTasks": false,
+          "directSegments": [],
+          "usedSegments": [
+            "semantic_branchRender_106_132"
+          ]
+        }
+      },
+      "setup": [],
+      "needsId": false,
+      "idBase": "qSwitch-",
+      "providesContext": false,
+      "runtimeStyleScope": false
+    },
+    {
+      "name": "App",
+      "module": 0,
+      "propsBindings": [],
+      "props": null,
+      "ssr": {
+        "setup": [
+          {
+            "kind": "signal",
+            "binding": 5,
+            "init": {
+              "kind": "lit",
+              "value": "b"
+            },
+            "name": "pick"
+          }
+        ],
+        "ops": [
+          {
+            "kind": "component",
+            "target": {
+              "ref": 0
+            },
+            "props": [
+              {
+                "kind": "dynamic",
+                "name": "pick",
+                "value": {
+                  "kind": "ir",
+                  "ir": {
+                    "kind": "signal-read",
+                    "binding": 5
+                  }
+                }
+              }
+            ],
+            "propsSource": null,
+            "slots": [
+              {
+                "name": "a",
+                "idBase": null,
+                "render": {
+                  "segment": "segment_2",
+                  "setup": [],
+                  "ops": [
+                    {
+                      "kind": "element",
+                      "tag": "p",
+                      "voidTag": false,
+                      "styleScopedId": null,
+                      "props": [],
+                      "propsEffect": null,
+                      "children": [
+                        {
+                          "kind": "static",
+                          "html": "alpha"
+                        }
+                      ],
+                      "ssr": {
+                        "id": null,
+                        "targetUses": 0
+                      }
+                    }
+                  ],
+                  "ssr": {
+                    "syncRender": true,
+                    "needsRootRange": false,
+                    "staticRoot": true
+                  }
+                }
+              },
+              {
+                "name": "b",
+                "idBase": null,
+                "render": {
+                  "segment": "segment_3",
+                  "setup": [],
+                  "ops": [
+                    {
+                      "kind": "element",
+                      "tag": "p",
+                      "voidTag": false,
+                      "styleScopedId": null,
+                      "props": [],
+                      "propsEffect": null,
+                      "children": [
+                        {
+                          "kind": "static",
+                          "html": "bravo"
+                        }
+                      ],
+                      "ssr": {
+                        "id": null,
+                        "targetUses": 0
+                      }
+                    }
+                  ],
+                  "ssr": {
+                    "syncRender": true,
+                    "needsRootRange": false,
+                    "staticRoot": true
+                  }
+                }
+              }
+            ],
+            "ssr": {
+              "returnMode": "maybe-promise",
+              "idBase": null,
+              "blockingSuspense": false
+            }
+          }
+        ],
+        "ssr": {
+          "syncRender": false,
+          "staticRoot": false,
+          "needsRootRange": false,
+          "needsId": false,
+          "idBase": "qApp-",
+          "flushTasks": false,
+          "directSegments": [],
+          "usedSegments": [
+            "segment_2",
+            "segment_3"
+          ]
+        }
+      },
+      "setup": [
+        {
+          "kind": "signal",
+          "binding": 5,
+          "init": {
+            "kind": "lit",
+            "value": "b"
+          }
+        }
+      ],
+      "needsId": false,
+      "idBase": "qApp-",
+      "providesContext": false,
+      "runtimeStyleScope": false
+    }
+  ],
+  "modules": [
+    {
+      "path": "src/input.tsx",
+      "segments": [
+        {
+          "id": "semantic_branchRender_106_132",
+          "symbolName": "semantic_branchRender_106_132_3229dulgoiw70",
+          "chunk": "./input.tsx_semantic_branchRender_106_132_3229dulgoiw70",
+          "kind": "branchRender",
+          "resolved": true,
+          "qrl": null,
+          "captures": [
+            {
+              "binding": 4,
+              "name": "props",
+              "source": "param",
+              "access": "direct"
+            }
+          ]
+        },
+        {
+          "id": "segment_2",
+          "symbolName": "input_slot_render_segment_2_1eefz5lt25i34",
+          "chunk": "./input.tsx_input_slot_render_segment_2_1eefz5lt25i34",
+          "kind": "slotRender",
+          "resolved": true,
+          "qrl": null,
+          "captures": []
+        },
+        {
+          "id": "segment_3",
+          "symbolName": "input_slot_render_segment_3_1eefzjmwyzk3n",
+          "chunk": "./input.tsx_input_slot_render_segment_3_1eefzjmwyzk3n",
+          "kind": "slotRender",
+          "resolved": true,
+          "qrl": null,
+          "captures": []
+        }
+      ],
+      "contexts": [],
+      "defs": [],
+      "imports": []
+    }
+  ],
+  "unresolved": [],
+  "pluginFns": []
+}

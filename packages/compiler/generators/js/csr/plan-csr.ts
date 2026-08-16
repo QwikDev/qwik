@@ -289,8 +289,16 @@ export type CsrOperationPlan =
       readonly kind: 'slot';
       readonly range: CsrRangePlan;
       readonly name: string;
+      /** Present when the name is an expression: the slot resolves it at render time. */
+      readonly nameSource?: string;
       readonly fallback: CsrSegmentReferencePlan | null;
       readonly idBase: string | null;
+    }
+  | {
+      readonly id: number;
+      readonly kind: 'dynamic-slot';
+      readonly range: CsrRangePlan;
+      readonly render: CsrSegmentReferencePlan;
     }
   | {
       readonly id: number;
@@ -995,9 +1003,26 @@ class CsrPlanner {
           kind: 'slot',
           range,
           name: node.name,
+          ...(node.nameValue === undefined
+            ? {}
+            : {
+                nameSource: this.source.slice(
+                  node.nameValue.expression[0],
+                  node.nameValue.expression[1]
+                ),
+              }),
           fallback,
           idBase: node.fallback?.needsId === true ? this.idExpression('s') : null,
         });
+        return { kind: 'operation', operation, cardinality: 'many' };
+      }
+      case 'dynamic-slot': {
+        const render = this.planRenderFunction(node.render);
+        if (render === null) {
+          return null;
+        }
+        const range = this.appendRange(parent);
+        const operation = this.pushOperation({ kind: 'dynamic-slot', range, render });
         return { kind: 'operation', operation, cardinality: 'many' };
       }
       case 'collection': {
@@ -1557,6 +1582,7 @@ function renderPlanOutputShape(
     case 'branch':
     case 'suspense':
     case 'slot':
+    case 'dynamic-slot':
     case 'collection':
       return 'many';
   }

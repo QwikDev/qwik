@@ -52,6 +52,7 @@
     "dynamic-tag-component": "pending: the generator has no tagBinding branch, so a runtime tag cannot pick element or component",
     "projected-slot": "pending: the generator inherits the consumer slot scope for a scopeless projection, so a projected <Slot/> renders one range too many",
     "if-setup": "setup if rides the opaque js op; native needs the structured if SetupOpKind (stage 2)",
-    "fragment-tag": "a keyed fragment row is a row-id collection (multi-root rows fence in <!r= ranges), which the generator does not support yet"
+    "fragment-tag": "a keyed fragment row is a row-id collection (multi-root rows fence in <!r= ranges), which the generator does not support yet",
+    "dynamic-slot-name": "pending: the generator has no dynamic-slot op, so a name expression cannot pick a projection natively"
   }
 }

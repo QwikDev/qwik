@@ -324,6 +324,7 @@ export type RenderNodePlan =
   | BranchPlan
   | SuspensePlan
   | SlotPlan
+  | DynamicSlotPlan
   | CollectionPlan;
 
 export interface ElementPlan {
@@ -417,7 +418,17 @@ export interface SlotPlan {
   readonly range: SourceRange;
   readonly lifetimeId: LifetimeId;
   readonly name: string;
+  /** `<Slot name={expr}/>` resolves its projection from this value instead of {@link name}. */
+  readonly nameValue?: ValuePlan;
   readonly fallback: RenderFunctionPlan | null;
+}
+
+/** A slot whose name is an expression: the render re-runs whenever the name changes. */
+export interface DynamicSlotPlan {
+  readonly kind: 'dynamic-slot';
+  readonly range: SourceRange;
+  readonly lifetimeId: LifetimeId;
+  readonly render: RenderFunctionPlan;
 }
 
 export interface CollectionPlan {

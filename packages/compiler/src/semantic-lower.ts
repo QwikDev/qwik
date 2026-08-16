@@ -653,23 +653,15 @@ class SemanticLowerer {
     }
     const bindingId = this.bindingIdAt(tagRange);
     if (this.isSlotBinding(bindingId)) {
-      const name = readStaticAttribute(node, 'name') ?? '';
+      const staticName = readStaticAttribute(node, 'name');
       const children = node.children.filter((child) => !isEmptyChild(child));
+      // an absent name is the default slot; a name that is not a literal resolves at render time
+      const nameExpression = staticName === null ? readAttributeExpression(node, 'name') : null;
+      if (nameExpression !== null) {
+        return this.lowerDynamicSlot(range, nameExpression, children, context);
+      }
       const lifetimeId = this.allocateLifetime(context.lifetimeId, 'slot', 'atomic-range');
-      const segment = this.findSegment('slotRender', range);
-      const fallback =
-        children.length === 0
-          ? null
-          : this.createChildrenRenderFunction('slot', range, children, segment, lifetimeId);
-      return [
-        {
-          kind: 'slot',
-          range,
-          lifetimeId,
-          name,
-          fallback,
-        },
-      ];
+      return [this.lowerSlotNode(range, staticName ?? '', undefined, children, lifetimeId)];
     }
     if (!isNativeTag(tag)) {
       return [
@@ -970,6 +962,76 @@ class SemanticLowerer {
         sameRange(candidate.bodyRange, openingRange)
     );
     return segment === undefined ? null : this.referenceSegment(segment, lifetimeId);
+  }
+
+  private lowerSlotNode(
+    range: SourceRange,
+    name: string,
+    nameValue: ValuePlan | undefined,
+    children: readonly JSXChild[],
+    lifetimeId: LifetimeId
+  ): SlotPlan {
+    const segment = this.findSegment('slotRender', range);
+    const fallback =
+      children.length === 0
+        ? null
+        : this.createChildrenRenderFunction('slot', range, children, segment, lifetimeId);
+    return {
+      kind: 'slot',
+      range,
+      lifetimeId,
+      name,
+      ...(nameValue === undefined ? {} : { nameValue }),
+      fallback,
+    };
+  }
+
+  /** The slot render becomes a reactive range so a new name resolves a different projection. */
+  private lowerDynamicSlot(
+    range: SourceRange,
+    nameExpression: AstNode,
+    children: readonly JSXChild[],
+    context: RenderContext
+  ): RenderNodePlan[] {
+    const lifetimeId = this.allocateLifetime(context.lifetimeId, 'slot', 'atomic-range');
+    const renderLifetimeId = this.allocateLifetime(lifetimeId, 'render-function', 'atomic-range');
+    const segmentId = this.createSyntheticRenderSegment(
+      'branchRender',
+      null,
+      range,
+      renderLifetimeId,
+      []
+    ).segmentId;
+    const lowered = this.withRenderSegment(segmentId, () => {
+      const slotLifetimeId = this.allocateLifetime(renderLifetimeId, 'slot', 'atomic-range');
+      const nameValue = this.createValue(nameExpression, slotLifetimeId, false, true, true, false);
+      return this.lowerSlotNode(range, '', nameValue, children, slotLifetimeId);
+    });
+    if (lowered === null || this.failure !== null) {
+      return [];
+    }
+    const render: RenderPlan = { roots: [lowered], effects: [] };
+    const plan: RenderFunctionPlan = {
+      kind: 'branch',
+      collectionSourceKind: null,
+      range,
+      segmentId,
+      lifetimeId: renderLifetimeId,
+      async: false,
+      pure: false,
+      setup: [],
+      parameterBindingIds: [],
+      render,
+      referenceBindingIds: this.renderReferenceBindingIds(render, []),
+      lifecycleSegmentIds: [],
+      needsId: false,
+      styleScope: this.styleScopes.length === 0 ? null : this.styleScopes.join(' '),
+      runtimeStyleScope: this.hasCustomHook,
+      runtimeStyleScopeName: this.hasCustomHook ? this.runtimeStyleScopeName() : null,
+    };
+    this.renderFunctions.set(segmentId, plan);
+    this.attachSyntheticRender(segmentId, plan);
+    return [{ kind: 'dynamic-slot', range, lifetimeId, render: plan }];
   }
 
   private createSlot(

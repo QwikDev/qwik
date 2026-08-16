@@ -22,15 +22,16 @@ export function normalizeJsxChildren(
     }
 
     const raw = child.value ?? '';
-    const hasNewline = raw.includes('\n');
+    const hasNewline = /[\r\n]/.test(raw);
     let normalized: string;
 
     if (hasNewline) {
       // JSX whitespace normalization (Babel's `cleanJSXElementLiteralChild`):
       // a line that is both the last line of the chunk and non-empty keeps its
       // trailing whitespace, and a first line keeps its leading whitespace —
-      // only newline-adjacent indentation is stripped.
-      const lines = raw.split('\n');
+      // only newline-adjacent indentation is stripped. Split every line-ending
+      // form, or a CRLF checkout leaves a `\r` in every emitted text child.
+      const lines = raw.split(/\r\n|\n|\r/);
       let lastNonEmptyLine = -1;
       for (let li = 0; li < lines.length; li++) {
         if (/[^ \t]/.test(lines[li])) {

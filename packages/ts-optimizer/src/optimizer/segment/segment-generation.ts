@@ -30,6 +30,7 @@ import {
   needsPureAnnotation,
 } from '../rewrite/rewrite-calls.js';
 import { getQrlCalleeName } from '../qwik/qrl-naming.js';
+import { getQrlImportSource } from '../rewrite/rewrite-calls.js';
 import { isHtmlElement } from '../jsx/jsx.js';
 import { isJsxCall } from '../jsx/jsx-call-transform.js';
 import { resolveSameFileImportName } from './import-collection.js';
@@ -862,7 +863,13 @@ function buildMovedQrlSupport(
       movedText.includes(`${callee}(`) &&
       !importDeps.some((d) => d.localName === callee)
     ) {
-      importDeps.push({ localName: callee, importedName: callee, source: '@qwik.dev/core' });
+      // The extraction remembers which package the marker came from, so a moved
+      // decl using e.g. `reactify$` keeps @qwik.dev/react instead of core.
+      importDeps.push({
+        localName: callee,
+        importedName: callee,
+        source: getQrlImportSource(callee, e.importSource),
+      });
     }
   }
   const helperDeps = [...qrlHelpers].map((h) => ({

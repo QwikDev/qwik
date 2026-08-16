@@ -1,0 +1,369 @@
+==INPUT==
+
+import { useStore } from '@qwik.dev/core';
+import { Child } from './child';
+
+export function Alias() {
+  const store = useStore({ nested: { flip: false } });
+  const { nested } = store;
+  return <Child label={nested.flip ? 'b' : 'a'} deep={nested.flip} />;
+}
+
+export function Shallow() {
+  const store = useStore({ nested: { flip: false } }, { deep: false });
+  return <Child label={store.nested.flip ? 'b' : 'a'} own={store.nested} />;
+}
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useStore,
+  readExpression,
+  getMemberSource,
+  _props,
+  createComponent,
+  maybeThen,
+  getStoreSource,
+  _noopQrl,
+} from '@qwik.dev/core';
+import { Child } from './child';
+const component_label_segment_0_871tb4lt4479 = (store) => {
+  return store.nested.flip ? 'b' : 'a';
+};
+const q_component_label_segment_0_871tb4lt4479 = /*#__PURE__*/ _noopQrl(
+  'component_label_segment_0_871tb4lt4479'
+);
+q_component_label_segment_0_871tb4lt4479.s(component_label_segment_0_871tb4lt4479);
+const component_deep_segment_1_1j8241i7aafxu = (store) => {
+  return store.nested.flip;
+};
+const q_component_deep_segment_1_1j8241i7aafxu = /*#__PURE__*/ _noopQrl(
+  'component_deep_segment_1_1j8241i7aafxu'
+);
+q_component_deep_segment_1_1j8241i7aafxu.s(component_deep_segment_1_1j8241i7aafxu);
+const component_label_segment_2_871sj2dzg067 = (store) => {
+  return store.nested.flip ? 'b' : 'a';
+};
+const q_component_label_segment_2_871sj2dzg067 = /*#__PURE__*/ _noopQrl(
+  'component_label_segment_2_871sj2dzg067'
+);
+q_component_label_segment_2_871sj2dzg067.s(component_label_segment_2_871sj2dzg067);
+const component_own_segment_3_22sa58ebd2o5q = (store) => {
+  return store.nested;
+};
+const q_component_own_segment_3_22sa58ebd2o5q = /*#__PURE__*/ _noopQrl(
+  'component_own_segment_3_22sa58ebd2o5q'
+);
+q_component_own_segment_3_22sa58ebd2o5q.s(component_own_segment_3_22sa58ebd2o5q);
+export function Alias(props, ctx) {
+  const store = useStore({ nested: { flip: false } });
+  const { nested } = store;
+  ctx.addRoot(store);
+  const prop_qrl_0 = q_component_label_segment_0_871tb4lt4479.w([store]);
+  const component_1 = createComponent(
+    _props(
+      {
+        get label() {
+          return readExpression(prop_qrl_0);
+        },
+        get deep() {
+          return store.nested.flip;
+        },
+      },
+      { label: prop_qrl_0, deep: getMemberSource(store.nested, 'flip') }
+    ),
+    (props) => Child(props, ctx)
+  );
+  return maybeThen(component_1, (component_1) => component_1);
+}
+export function Shallow(props, ctx) {
+  const store = useStore({ nested: { flip: false } }, { deep: false });
+  ctx.addRoot(store);
+  const prop_qrl_0 = q_component_label_segment_2_871sj2dzg067.w([store]);
+  const component_1 = createComponent(
+    _props(
+      {
+        get label() {
+          return readExpression(prop_qrl_0);
+        },
+        get own() {
+          return store.nested;
+        },
+      },
+      { label: prop_qrl_0, own: getStoreSource(store, 'nested') }
+    ),
+    (props) => Child(props, ctx)
+  );
+  return maybeThen(component_1, (component_1) => component_1);
+}
+============================= src/component.tsx_component_label_segment_0_871tb4lt4479.js (ENTRY POINT)==
+
+export const component_label_segment_0_871tb4lt4479 = (store) => {
+  return store.nested.flip ? 'b' : 'a';
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_label_segment_0_871tb4lt4479",
+  "entry": null,
+  "displayName": "component_label_segment_0",
+  "hash": "871tb4lt4479",
+  "canonicalFilename": "component.tsx_component_label_segment_0_871tb4lt4479",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "label",
+  "captures": true,
+  "loc": [
+    205,
+    228
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "store"
+  ]
+}
+*/
+============================= src/component.tsx_component_deep_segment_1_1j8241i7aafxu.js (ENTRY POINT)==
+
+export const component_deep_segment_1_1j8241i7aafxu = (store) => {
+  return store.nested.flip;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_deep_segment_1_1j8241i7aafxu",
+  "entry": null,
+  "displayName": "component_deep_segment_1",
+  "hash": "1j8241i7aafxu",
+  "canonicalFilename": "component.tsx_component_deep_segment_1_1j8241i7aafxu",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "deep",
+  "captures": true,
+  "loc": [
+    236,
+    247
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "store"
+  ]
+}
+*/
+============================= src/component.tsx_component_label_segment_2_871sj2dzg067.js (ENTRY POINT)==
+
+export const component_label_segment_2_871sj2dzg067 = (store) => {
+  return store.nested.flip ? 'b' : 'a';
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_label_segment_2_871sj2dzg067",
+  "entry": null,
+  "displayName": "component_label_segment_2",
+  "hash": "871sj2dzg067",
+  "canonicalFilename": "component.tsx_component_label_segment_2_871sj2dzg067",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "label",
+  "captures": true,
+  "loc": [
+    376,
+    405
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "store"
+  ]
+}
+*/
+============================= src/component.tsx_component_own_segment_3_22sa58ebd2o5q.js (ENTRY POINT)==
+
+export const component_own_segment_3_22sa58ebd2o5q = (store) => {
+  return store.nested;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_own_segment_3_22sa58ebd2o5q",
+  "entry": null,
+  "displayName": "component_own_segment_3",
+  "hash": "22sa58ebd2o5q",
+  "canonicalFilename": "component.tsx_component_own_segment_3_22sa58ebd2o5q",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "own",
+  "captures": true,
+  "loc": [
+    412,
+    424
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "store"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { useStore, createComponent } from '@qwik.dev/core';
+import { Child } from './child';
+import { component_label_segment_0_871tb4lt4479 } from './component.tsx_component_label_segment_0_871tb4lt4479';
+import { component_deep_segment_1_1j8241i7aafxu } from './component.tsx_component_deep_segment_1_1j8241i7aafxu';
+import { component_label_segment_2_871sj2dzg067 } from './component.tsx_component_label_segment_2_871sj2dzg067';
+import { component_own_segment_3_22sa58ebd2o5q } from './component.tsx_component_own_segment_3_22sa58ebd2o5q';
+export function Alias(props, ctx) {
+  const store = useStore({ nested: { flip: false } });
+  const { nested } = store;
+  return createComponent(
+    {
+      get label() {
+        return component_label_segment_0_871tb4lt4479(store);
+      },
+      get deep() {
+        return component_deep_segment_1_1j8241i7aafxu(store);
+      },
+    },
+    (props) => Child(props, ctx)
+  );
+}
+export function Shallow(props, ctx) {
+  const store = useStore({ nested: { flip: false } }, { deep: false });
+  return createComponent(
+    {
+      get label() {
+        return component_label_segment_2_871sj2dzg067(store);
+      },
+      get own() {
+        return component_own_segment_3_22sa58ebd2o5q(store);
+      },
+    },
+    (props) => Child(props, ctx)
+  );
+}
+============================= src/component.tsx_component_label_segment_0_871tb4lt4479.js (ENTRY POINT)==
+
+export const component_label_segment_0_871tb4lt4479 = (store) => {
+  return store.nested.flip ? 'b' : 'a';
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_label_segment_0_871tb4lt4479",
+  "entry": null,
+  "displayName": "component_label_segment_0",
+  "hash": "871tb4lt4479",
+  "canonicalFilename": "component.tsx_component_label_segment_0_871tb4lt4479",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "label",
+  "captures": true,
+  "loc": [
+    205,
+    228
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "store"
+  ]
+}
+*/
+============================= src/component.tsx_component_deep_segment_1_1j8241i7aafxu.js (ENTRY POINT)==
+
+export const component_deep_segment_1_1j8241i7aafxu = (store) => {
+  return store.nested.flip;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_deep_segment_1_1j8241i7aafxu",
+  "entry": null,
+  "displayName": "component_deep_segment_1",
+  "hash": "1j8241i7aafxu",
+  "canonicalFilename": "component.tsx_component_deep_segment_1_1j8241i7aafxu",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "deep",
+  "captures": true,
+  "loc": [
+    236,
+    247
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "store"
+  ]
+}
+*/
+============================= src/component.tsx_component_label_segment_2_871sj2dzg067.js (ENTRY POINT)==
+
+export const component_label_segment_2_871sj2dzg067 = (store) => {
+  return store.nested.flip ? 'b' : 'a';
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_label_segment_2_871sj2dzg067",
+  "entry": null,
+  "displayName": "component_label_segment_2",
+  "hash": "871sj2dzg067",
+  "canonicalFilename": "component.tsx_component_label_segment_2_871sj2dzg067",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "label",
+  "captures": true,
+  "loc": [
+    376,
+    405
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "store"
+  ]
+}
+*/
+============================= src/component.tsx_component_own_segment_3_22sa58ebd2o5q.js (ENTRY POINT)==
+
+export const component_own_segment_3_22sa58ebd2o5q = (store) => {
+  return store.nested;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_own_segment_3_22sa58ebd2o5q",
+  "entry": null,
+  "displayName": "component_own_segment_3",
+  "hash": "22sa58ebd2o5q",
+  "canonicalFilename": "component.tsx_component_own_segment_3_22sa58ebd2o5q",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "own",
+  "captures": true,
+  "loc": [
+    412,
+    424
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "store"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

@@ -357,6 +357,8 @@ class SemanticLowerer {
   /** Proven `useStore` bindings; only a deep store makes a nested path reactive. */
   private readonly deepStoreBindings = new Set<BindingId>();
   private readonly shallowStoreBindings = new Set<BindingId>();
+  /** `const { nested } = store` — the alias still reads the store it was destructured from. */
+  private readonly storeAliases = new Map<BindingId, { binding: BindingId; path: string[] }>();
   private readonly functionBindings = new Set<BindingId>();
   private readonly asyncFunctionBindings = new Set<BindingId>();
   private readonly localRenderValues = new Map<BindingId, RenderFunctionPlan>();
@@ -3796,6 +3798,50 @@ class SemanticLowerer {
     );
   }
 
+  /**
+   * `const { nested } = store` keeps reading the store, so the alias inherits its owner and path.
+   * Only a deep store proxies its nested objects; a shallow one hands back plain values.
+   */
+  private registerStoreAliases(pattern: AstNode, init: AstNode | null | undefined): void {
+    const source = unwrapExpression(init);
+    if (source?.type !== 'Identifier') {
+      return;
+    }
+    const sourceBinding = this.bindingIdAt(getRange(source));
+    if (sourceBinding === null) {
+      return;
+    }
+    const owner = this.deepStoreBindings.has(sourceBinding)
+      ? { binding: sourceBinding, path: [] as string[] }
+      : this.storeAliases.get(sourceBinding);
+    if (owner === undefined) {
+      return;
+    }
+    for (const property of (pattern as { properties: AstNode[] }).properties) {
+      const entry = property as {
+        type: string;
+        key?: AstNode;
+        value?: AstNode;
+        computed?: boolean;
+      };
+      if (entry.type !== 'Property' || entry.computed === true) {
+        continue;
+      }
+      const name = getIdentifierName(entry.key);
+      const local = unwrapExpression(entry.value);
+      if (name === null || local?.type !== 'Identifier') {
+        continue;
+      }
+      const localBinding = this.bindingIdAt(getRange(local));
+      if (localBinding !== null) {
+        this.storeAliases.set(localBinding, {
+          binding: owner.binding,
+          path: [...owner.path, name],
+        });
+      }
+    }
+  }
+
   private resolveStoreRead(
     binding: BindingId,
     depth: number
@@ -3807,7 +3853,8 @@ class SemanticLowerer {
     if (depth === 1 && this.shallowStoreBindings.has(binding)) {
       return { binding, path: [] };
     }
-    return null;
+    const alias = this.storeAliases.get(binding);
+    return alias === undefined ? null : { binding: alias.binding, path: alias.path };
   }
 
   private classifySetupBindings(ranges: readonly SourceRange[]): void {
@@ -3819,6 +3866,10 @@ class SemanticLowerer {
       for (const declaration of statement.declarations) {
         const id = unwrapExpression(declaration.id);
         const init = unwrapExpression(declaration.init);
+        if (id?.type === 'ObjectPattern') {
+          this.registerStoreAliases(id, init);
+          continue;
+        }
         if (id?.type !== 'Identifier' || init === null || init === undefined) {
           continue;
         }

@@ -338,6 +338,30 @@ describe(`${name}: stores`, () => {
 
     cleanup();
   });
+
+  // A destructured alias is still the same store, so the read stays proven through it.
+  it('keeps a prop derived from a destructured store alias reactive', async () => {
+    const Child = (props: { value: string }) => <p id="out">{props.value}</p>;
+    const App = () => {
+      const store = useStore({ nested: { flip: false } });
+      const { nested } = store;
+      return (
+        <div>
+          <button onClick$={() => (nested.flip = !nested.flip)}>toggle</button>
+          <Child value={nested.flip ? 'b' : 'a'} />
+        </div>
+      );
+    };
+
+    const { container, cleanup, qwikLoader } = await render(App, { debug });
+    const button = container.querySelector('button')!;
+
+    expect(container.querySelector('#out')?.textContent).toBe('a');
+    await qwikLoader?.dispatch(button, 'click');
+    expect(container.querySelector('#out')?.textContent).toBe('b');
+
+    cleanup();
+  });
 });
 
 function createOwned<T>(run: () => T): T {

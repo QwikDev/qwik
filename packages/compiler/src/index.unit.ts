@@ -1979,6 +1979,25 @@ export function Parent(props) {
     });
   });
 
+  test('reads a store through a destructured alias and a shallow store', async () => {
+    await testInput('component_store_alias_props', {
+      code: `import { useStore } from '@qwik.dev/core';
+import { Child } from './child';
+
+export function Alias() {
+  const store = useStore({ nested: { flip: false } });
+  const { nested } = store;
+  return <Child label={nested.flip ? 'b' : 'a'} deep={nested.flip} />;
+}
+
+export function Shallow() {
+  const store = useStore({ nested: { flip: false } }, { deep: false });
+  return <Child label={store.nested.flip ? 'b' : 'a'} own={store.nested} />;
+}
+`,
+    });
+  });
+
   test('inherits context across child component renderers', async () => {
     await testInput('component_child_context', {
       code: `import { useContext, useContextProvider, useSignal } from '@qwik.dev/core';

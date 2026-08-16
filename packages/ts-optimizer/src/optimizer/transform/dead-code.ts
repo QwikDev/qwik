@@ -23,6 +23,10 @@ const dceGuard = createRegExp(
       exactly('true').and(whitespace.times.any()).and('&&'),
       exactly('false').and(whitespace.times.any()).and('||'),
       exactly('false').and(whitespace.times.any()).and('&&'),
+      // `isServer ? serverOnly : undefined` folds to a constant-test ternary,
+      // whose live branch is what keeps a server-only import in the bundle.
+      exactly('true').and(whitespace.times.any()).and('?'),
+      exactly('false').and(whitespace.times.any()).and('?'),
       exactly('!true').and(wordBoundary),
       exactly('!false').and(wordBoundary)
     )
@@ -134,6 +138,25 @@ export function applySegmentDCE(code: string, filename = 'dce.tsx'): string {
       walk(node.consequent, { inStatementList: false });
       // An else-if arm folds together with our `else` keyword.
       walk(node.alternate, { inStatementList: false, elseFrom: node.consequent.end });
+      return;
+    }
+
+    if (node.type === 'ConditionalExpression') {
+      const value = resolveBoolValue(node.test);
+      if (value !== undefined) {
+        changed = true;
+        const kept = value ? node.consequent : node.alternate;
+        const keptText = code.slice(kept.start, kept.end);
+        // An object or function branch would reparse as a block or declaration
+        // once the ternary around it is gone.
+        const needsParens = /^[{(]?\s*$|^[{]|^function\b|^class\b/.test(keptText);
+        s.overwrite(node.start, node.end, needsParens ? `(${keptText})` : keptText);
+        walk(kept, EXPR_CTX);
+        return;
+      }
+      walk(node.test, EXPR_CTX);
+      walk(node.consequent, EXPR_CTX);
+      walk(node.alternate, EXPR_CTX);
       return;
     }
 

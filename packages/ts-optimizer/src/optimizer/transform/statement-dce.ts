@@ -144,6 +144,24 @@ function isRemovableStatement(stmt: unknown, referenced: Set<string>): stmt is R
   }
 }
 
+/** Statements that always complete abruptly, so nothing after them in the same block can run. */
+function alwaysExits(stmt: Record<string, unknown>): boolean {
+  return (
+    stmt.type === 'ReturnStatement' ||
+    stmt.type === 'ThrowStatement' ||
+    stmt.type === 'BreakStatement' ||
+    stmt.type === 'ContinueStatement'
+  );
+}
+
+/** Hoisted bindings stay observable from before the exit, so they survive it. */
+function isHoistedDeclaration(stmt: Record<string, unknown>): boolean {
+  return (
+    stmt.type === 'FunctionDeclaration' ||
+    (stmt.type === 'VariableDeclaration' && stmt.kind === 'var')
+  );
+}
+
 function collectBlockBodies(program: AstProgram): unknown[][] {
   const bodies: unknown[][] = [];
   const visit = (node: unknown): void => {
@@ -185,13 +203,23 @@ export function applyStatementDCE(code: string, filename: string): string {
     changed = false;
     const referenced = collectReferencedNames(program, dead);
     for (const body of bodies) {
+      let exited = false;
       for (const stmt of body) {
         if (!isRecordNode(stmt) || isDead(stmt)) {
+          continue;
+        }
+        if (exited && !isHoistedDeclaration(stmt)) {
+          dead.push(stmt);
+          changed = true;
           continue;
         }
         if (isRemovableStatement(stmt, referenced)) {
           dead.push(stmt);
           changed = true;
+          continue;
+        }
+        if (alwaysExits(stmt)) {
+          exited = true;
         }
       }
     }

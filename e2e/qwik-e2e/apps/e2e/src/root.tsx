@@ -44,9 +44,8 @@ import './global.css';
 import { QRL } from './components/qrl/qrl';
 import { AsyncRoot } from './components/use-async/use-async';
 import { Backpatching } from './components/backpatching/backpatching';
-import { SuspenseRoot } from './components/suspense/suspense';
+import { OutOfOrderSuspenseRoot, SuspenseRoot } from './components/suspense/suspense';
 // Conditional renders as returns inside `if` are unsupported by the compiler.
-// import { OutOfOrderSuspenseRoot } from './components/suspense/ooos';
 
 const TestIndex = component$(() => <section>Test index</section>);
 
@@ -96,7 +95,7 @@ export const Root = component$<{ pathname: string }>(({ pathname }) => {
       {pathname === '/e2e/async-computed' && <AsyncRoot />}
       {pathname === '/e2e/backpatching' && <Backpatching />}
       {pathname === '/e2e/suspense' && <SuspenseRoot />}
-      {/* {pathname === '/e2e/suspense-ooos' && <OutOfOrderSuspenseRoot />} */}
+      {pathname === '/e2e/suspense-ooos' && <OutOfOrderSuspenseRoot />}
       {/* <WorkerRoot /> — see disabled import above */}
     </>
   );

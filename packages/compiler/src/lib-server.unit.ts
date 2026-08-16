@@ -52,4 +52,33 @@ describe('lib ssr emission', () => {
     expect(main).toContain(`const q_${eventSymbol} = /*#__PURE__*/ _qrlWithChunk(`);
     expect(main).not.toContain(`q_${eventSymbol}_lazy`);
   });
+
+  test('every client segment keeps a bare import edge, even when it has a pure qrl hoist', async () => {
+    // an explicit `$()` value is the case that regressed: it hoists as a pure `q_` const, which a
+    // consuming app drops together with the import edge, leaving the server naming a chunk that
+    // was never built
+    const explicitQrl = {
+      path: 'src/widget.tsx',
+      code: `import { component$, $, useSignal } from '@qwik.dev/core';
+export const Widget = component$(() => {
+  const count = useSignal(0);
+  const bump = $(() => { count.value++; });
+  return <button onClick$={bump}>{count.value}</button>;
+});`,
+    };
+    const result = await transformModules({
+      ...options(),
+      input: [explicitQrl],
+      isServer: false,
+    });
+    const main = result.modules.find((module) => module.path.endsWith('widget.tsx'))!.code;
+    const segments = result.modules.flatMap((module) => module.segment ?? []);
+
+    expect(segments.some((segment) => main.includes(`const q_${segment.name} = `))).toBe(true);
+    for (const segment of segments) {
+      // anchored: the pure `const q_… = _qrlWithChunk(…)` form contains the same call text
+      const bareEdge = new RegExp(`^_qrlWithChunk\\("\\./widget\\.tsx_${segment.name}\\.js"`, 'm');
+      expect(main).toMatch(bareEdge);
+    }
+  });
 });

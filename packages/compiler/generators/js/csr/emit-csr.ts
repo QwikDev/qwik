@@ -255,12 +255,10 @@ export function emitCsrModule(
     // libraries resume in a consumer app: every segment must ship as an exporting chunk the
     // bundler keeps, so symbol resolution can import it. The bare qrl is the import edge.
     imports.add(QwikWord.QrlWithChunk);
-    const hoisted = hoists.join('\n');
     for (const segment of segments) {
-      if (
-        !shouldEmitSegmentModule(segment, 'csr') ||
-        hoisted.includes(`q_${segment.symbolName} `)
-      ) {
+      // even a segment that already has a `q_` hoist needs this: that one is pure, so a consumer
+      // app drops it along with the import edge, and the chunk the server references is never built
+      if (!shouldEmitSegmentModule(segment, 'csr')) {
         continue;
       }
       const path = getSegmentImportPath(inputPath, segment, explicitExtensions);

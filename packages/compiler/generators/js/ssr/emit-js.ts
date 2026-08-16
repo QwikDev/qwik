@@ -3,7 +3,7 @@ import { SsrOpKind } from '../../../src/emit-plan-ssr';
 import type { QwikSsrPlan } from '../../../src/link-plan';
 import type { ValueIR } from '../../../src/expr-ir';
 import { escapeAttr } from '../../../src/html-utils';
-import { QwikHooks, QwikWord } from '../../../src/words';
+import { INNER_HTML_ATTR, QwikHooks, QwikWord } from '../../../src/words';
 
 /**
  * JS SSR generator — the JS projection of the wire plan, peer of the Rust `qwik-ssr-gen`
@@ -1216,6 +1216,52 @@ class JsComponentGenerator {
     return parts;
   }
 
+  /**
+   * InnerHTML is children, not an attribute: the value streams raw into the element body while the
+   * effect registers under the attribute name the runtime dispatches innerHTML on.
+   */
+  private innerHtmlProp(
+    item: { name: string; value: unknown },
+    idVariable: string | null,
+    setInnerHtmlExpr: ((expr: string) => void) | undefined
+  ): boolean {
+    if (idVariable === null || setInnerHtmlExpr === undefined) {
+      return false;
+    }
+    const step = `inner_html_${this.nextTemp++}`;
+    const name = JSON.stringify(item.name);
+    const segmentId = valueSegment(item.value);
+    this.imports.add(QwikWord.CreateSsrElementTarget);
+    if (segmentId === undefined) {
+      const ir = valueIr(item.value);
+      if (ir === undefined || (ir.kind !== 'signal-read' && ir.kind !== 'binding-read')) {
+        return false;
+      }
+      const signal = this.local(ir.binding);
+      this.imports.add(QwikWord.RenderSsrAttr);
+      this.pushStep(
+        step,
+        [signal],
+        `${QwikWord.RenderSsrAttr}(${QwikWord.CreateSsrElementTarget}(${idVariable}), ${name}, ${signal})`,
+        this.claimId(idVariable)
+      );
+    } else {
+      const meta = this.segment(segmentId);
+      const captures = meta.captures.map((capture) =>
+        capture.access === 'component-prop' ? this.names.props : this.local(capture.binding)
+      );
+      this.imports.add(QwikWord.RenderSsrAttrExpression);
+      this.pushStep(
+        step,
+        captures,
+        `${QwikWord.RenderSsrAttrExpression}(${QwikWord.CreateSsrElementTarget}(${idVariable}), ${name}, [${captures.join(', ')}], ${this.qrlExpression(meta, false)})`,
+        this.claimId(idVariable)
+      );
+    }
+    setInnerHtmlExpr(step);
+    return true;
+  }
+
   private op(
     operation: PlanSsrOp,
     parts: string[],
@@ -2252,12 +2298,19 @@ class JsComponentGenerator {
         return true;
       }
       case 'inner-html': {
-        const html = (prop as { html: string | number | boolean | null }).html;
-        setInnerHtml(html == null ? '' : String(html));
+        const item = prop as { html?: string | number | boolean | null };
+        if (!('html' in item)) {
+          // a non-static innerHTML reaches here only if lowering failed to make it an attr prop
+          return false;
+        }
+        setInnerHtml(item.html == null ? '' : String(item.html));
         return true;
       }
       case 'dynamic': {
         const item = prop as { name: string; value: unknown };
+        if (item.name === INNER_HTML_ATTR) {
+          return this.innerHtmlProp(item, idVariable, setInnerHtmlExpr);
+        }
         const segmentId = valueSegment(item.value);
         const propIr = valueIr(item.value);
         // proven stable string: a bare read of a use-id local — derived, not a wire flag

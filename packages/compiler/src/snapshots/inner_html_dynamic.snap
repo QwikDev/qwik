@@ -1,0 +1,219 @@
+==INPUT==
+
+import { useSignal } from '@qwik.dev/core';
+export function App() {
+  const html = useSignal('<b>hi</b>');
+  return (
+    <div>
+      <span dangerouslySetInnerHTML={html.value} />
+      <button onClick$={() => (html.value = '<i>x</i>')}>go</button>
+    </div>
+  );
+}
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useSignal,
+  createSsrElementRecord,
+  createSsrNodeId,
+  createSsrElementTarget,
+  renderSsrAttrExpression,
+  createSsrRecord,
+  maybeThen,
+  _noopQrl,
+} from '@qwik.dev/core';
+const component_dangerouslySetInnerHTML_segment_0_x73niz9xuctt = (html) => {
+  return html.value;
+};
+const q_component_dangerouslySetInnerHTML_segment_0_x73niz9xuctt = /*#__PURE__*/ _noopQrl(
+  'component_dangerouslySetInnerHTML_segment_0_x73niz9xuctt'
+);
+q_component_dangerouslySetInnerHTML_segment_0_x73niz9xuctt.s(
+  component_dangerouslySetInnerHTML_segment_0_x73niz9xuctt
+);
+const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ _noopQrl(
+  'component_q_e_click_segment_1_2xwyfnber1kpg'
+);
+export function App(props, ctx) {
+  const html = useSignal('<b>hi</b>');
+  const id_0 = ctx.nextId();
+  ctx.addRoot(html);
+  const inner_html_0 = renderSsrAttrExpression(
+    createSsrElementTarget(id_0),
+    'dangerouslySetInnerHTML',
+    [html],
+    q_component_dangerouslySetInnerHTML_segment_0_x73niz9xuctt
+  );
+  return maybeThen(inner_html_0, (inner_html_0) => [
+    createSsrElementRecord('div', '<div', '>'),
+    createSsrRecord('<span q:id="', createSsrNodeId(id_0), '">'),
+    inner_html_0 ?? '',
+    '</span>',
+    createSsrRecord(
+      '<button',
+      ctx.eventAttr('q-e:click', q_component_q_e_click_segment_1_2xwyfnber1kpg.w([html])),
+      '>'
+    ),
+    'go</button></div>',
+  ]);
+}
+============================= src/component.tsx_component_dangerouslySetInnerHTML_segment_0_x73niz9xuctt.js (ENTRY POINT)==
+
+export const component_dangerouslySetInnerHTML_segment_0_x73niz9xuctt = (html) => {
+  return html.value;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_dangerouslySetInnerHTML_segment_0_x73niz9xuctt",
+  "entry": null,
+  "displayName": "component_dangerouslySetInnerHTML_segment_0",
+  "hash": "x73niz9xuctt",
+  "canonicalFilename": "component.tsx_component_dangerouslySetInnerHTML_segment_0_x73niz9xuctt",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "dangerouslySetInnerHTML",
+  "captures": true,
+  "loc": [
+    157,
+    167
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "html"
+  ]
+}
+*/
+============================= src/component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
+  const html = _captures[0];
+  return (html.value = '<i>x</i>');
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_1_2xwyfnber1kpg",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_1",
+  "hash": "2xwyfnber1kpg",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    186,
+    226
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "html"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useSignal,
+  _first,
+  _next,
+  createAttrExpressionEffect,
+  setEvent,
+  createTemplate,
+} from '@qwik.dev/core';
+import { component_dangerouslySetInnerHTML_segment_0_x73niz9xuctt } from './component.tsx_component_dangerouslySetInnerHTML_segment_0_x73niz9xuctt';
+import { component_q_e_click_segment_1_2xwyfnber1kpg } from './component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg';
+
+const App_tmpl0 = createTemplate('<div><span></span><button>go</button></div>');
+export function App(props, ctx) {
+  const html = useSignal('<b>hi</b>');
+  const fragment0 = App_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  const el1 = _first(el0);
+  const el2 = _next(el1);
+  const effect0 = createAttrExpressionEffect(
+    el1,
+    'dangerouslySetInnerHTML',
+    [html],
+    component_dangerouslySetInnerHTML_segment_0_x73niz9xuctt,
+    ctx.scheduler
+  );
+  ctx.scheduler.notify(effect0);
+  setEvent(el2, 'q-e:click', component_q_e_click_segment_1_2xwyfnber1kpg, [html]);
+  return el0;
+}
+============================= src/component.tsx_component_dangerouslySetInnerHTML_segment_0_x73niz9xuctt.js (ENTRY POINT)==
+
+export const component_dangerouslySetInnerHTML_segment_0_x73niz9xuctt = (html) => {
+  return html.value;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_dangerouslySetInnerHTML_segment_0_x73niz9xuctt",
+  "entry": null,
+  "displayName": "component_dangerouslySetInnerHTML_segment_0",
+  "hash": "x73niz9xuctt",
+  "canonicalFilename": "component.tsx_component_dangerouslySetInnerHTML_segment_0_x73niz9xuctt",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "dangerouslySetInnerHTML",
+  "captures": true,
+  "loc": [
+    157,
+    167
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "html"
+  ]
+}
+*/
+============================= src/component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
+  const html = _captures[0];
+  return (html.value = '<i>x</i>');
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_1_2xwyfnber1kpg",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_1",
+  "hash": "2xwyfnber1kpg",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    186,
+    226
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "html"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

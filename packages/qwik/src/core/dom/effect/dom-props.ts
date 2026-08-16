@@ -334,6 +334,10 @@ export function patchAttrValue(
       patchAttrValue(element, name, resolved, styleScopedId);
     });
   }
+  if (name === DangerousInnerHTMLAttr) {
+    setInnerHtml(element, value);
+    return;
+  }
   if (name === ClassAttr) {
     const serialized = serializeAttrExpressionValue(name, value, styleScopedId);
     if (serialized === null) {

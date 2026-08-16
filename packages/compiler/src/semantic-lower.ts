@@ -75,7 +75,7 @@ import { collectIrBindingIds, type ValueIR } from './expr-ir';
 import { lowerValueIr, reportValueIrSite, type ExprLowerFacts } from './expr-lower';
 import type { SetupOp } from './setup-ir';
 import { lowerSetupOp, reportSetupOpSite, type SetupLowerFacts } from './setup-lower';
-import { QWIK_CORE_IMPORT, QWIK_IMPORT, QwikAttributes, QwikHooks } from './words';
+import { INNER_HTML_ATTR, QWIK_CORE_IMPORT, QWIK_IMPORT, QwikAttributes, QwikHooks } from './words';
 import { createSegmentSymbolName } from './segment-identity';
 import { createExtractedSegmentPlan } from './segment-plan';
 import { analyzeComponentShape } from './shape';
@@ -1286,7 +1286,27 @@ class SemanticLowerer {
         false,
         targetKind === 'component' && !event && !computedProp
       );
-      if (innerHtml) {
+      if (innerHtml && targetKind === 'element') {
+        // innerHTML rides the attribute machinery: one name, one target, one effect
+        const innerHtmlName = INNER_HTML_ATTR;
+        const effectId =
+          groupedEffect?.effectId ??
+          this.pushEffect(context, {
+            kind: 'attribute',
+            lifetimeId,
+            target,
+            name: innerHtmlName,
+            value,
+          });
+        props.push({
+          kind: 'dynamic',
+          range,
+          name: innerHtmlName,
+          value,
+          lifetimeId,
+          effectId,
+        });
+      } else if (innerHtml) {
         const effectId =
           groupedEffect?.effectId ??
           this.pushEffect(context, {

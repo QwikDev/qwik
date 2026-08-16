@@ -1,6 +1,9 @@
 export const QWIK_IMPORT = '@qwik.dev/core';
 export const QWIK_CORE_IMPORT = '@qwik.dev/core';
 
+/** Mirrors core's DangerousInnerHTMLAttr: the name the runtime dispatches innerHTML on. */
+export const INNER_HTML_ATTR = 'dangerouslySetInnerHTML';
+
 export const enum QwikWord {
   // csr
   CreateTemplate = 'createTemplate',

@@ -1401,6 +1401,22 @@ export function App() {
     });
   });
 
+  test('renders a dynamic dangerouslySetInnerHTML on both flavors', async () => {
+    await testInput('inner_html_dynamic', {
+      code: `import { useSignal } from '@qwik.dev/core';
+export function App() {
+  const html = useSignal('<b>hi</b>');
+  return (
+    <div>
+      <span dangerouslySetInnerHTML={html.value} />
+      <button onClick$={() => (html.value = '<i>x</i>')}>go</button>
+    </div>
+  );
+}
+`,
+    });
+  });
+
   test('lowers a guard return to a reactive branch', async () => {
     await testInput('guard_return_null', {
       code: `export function App(props: { releaseId: string | null }) {

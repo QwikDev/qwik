@@ -784,6 +784,16 @@ export type DocumentStyle = Readonly<
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
+<h2 id="editable">Editable</h2>
+
+```typescript
+export type Editable<T> = {
+  -readonly [P in keyof T]: T[P];
+};
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
+
 <h2 id="errorboundary">ErrorBoundary</h2>
 
 ```typescript
@@ -2220,7 +2230,7 @@ rest
 
 **Returns:**
 
-\{ (): Editable&lt;[ActionStore](#actionstore)&lt;unknown, unknown&gt;&gt;; \_\_brand: "server_action"; \_\_validators: [DataValidator](#datavalidator)[]; \_\_qrl: QRL&lt;(form: [JSONObject](#jsonobject), event: RequestEventAction) =&gt; unknown&gt;; \_\_id: string; \_\_invalidate: string[] \| undefined; }
+\{ (): [Editable](#editable)&lt;[ActionStore](#actionstore)&lt;unknown, unknown&gt;&gt;; \_\_brand: "server_action"; \_\_validators: [DataValidator](#datavalidator)[]; \_\_qrl: QRL&lt;(form: [JSONObject](#jsonobject), event: RequestEventAction) =&gt; unknown&gt;; \_\_id: string; \_\_invalidate: string[] \| undefined; }
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts)
 

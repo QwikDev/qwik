@@ -192,6 +192,11 @@ export type DocumentStyle = Readonly<((Omit<QwikIntrinsicElements['style'], 'dan
     style?: never;
 })>;
 
+// @public (undocumented)
+export type Editable<T> = {
+    -readonly [P in keyof T]: T[P];
+};
+
 // Warning: (ae-forgotten-export) The symbol "ErrorBoundaryProps" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
@@ -700,10 +705,6 @@ export type ZodConstructor = {
 //
 // @internal (undocumented)
 export function zodQrl(qrl: QRL<z_2.ZodRawShape | z_2.Schema | ((z: z, ev: RequestEvent) => z_2.ZodRawShape)>): ZodDataValidator;
-
-// Warnings were encountered during analysis:
-//
-// /home/wmertens/Projects/qwik.worktrees/qwik.worktrees/tsgo/dist-dev/dts-out/packages/qwik-router/src/runtime/src/server-functions.d.ts:23:5 - (ae-forgotten-export) The symbol "Editable" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

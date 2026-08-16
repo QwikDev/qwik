@@ -18,33 +18,33 @@ import {
   createSsrElementRecord,
   _noopQrl,
 } from '@qwik.dev/core';
-const q_component_useVisibleTask$_segment_0_97oyvf4nsls9 = /*#__PURE__*/ _noopQrl(
-  'component_useVisibleTask$_segment_0_97oyvf4nsls9'
+const q_component_useVisibleTaskqrl_segment_0_rykj3v0khy38 = /*#__PURE__*/ _noopQrl(
+  'component_useVisibleTaskqrl_segment_0_rykj3v0khy38'
 );
 export function App(props, ctx) {
   const count = useSignal(0);
   useOnDocument(
     'qinit',
-    createVisibleTaskHandlerQrl(q_component_useVisibleTask$_segment_0_97oyvf4nsls9.w([count]))
+    createVisibleTaskHandlerQrl(q_component_useVisibleTaskqrl_segment_0_rykj3v0khy38.w([count]))
   );
   return [createSsrElementRecord('button', '<button', '>'), 'Ready</button>'];
 }
-============================= src/component.tsx_component_useVisibleTask$_segment_0_97oyvf4nsls9.js (ENTRY POINT)==
+============================= src/component.tsx_component_useVisibleTaskqrl_segment_0_rykj3v0khy38.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';
 
-export const component_useVisibleTask$_segment_0_97oyvf4nsls9 = () => {
+export const component_useVisibleTaskqrl_segment_0_rykj3v0khy38 = () => {
   const count = _captures[0];
   return count.value++;
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_useVisibleTask$_segment_0_97oyvf4nsls9",
+  "name": "component_useVisibleTaskqrl_segment_0_rykj3v0khy38",
   "entry": null,
-  "displayName": "component_useVisibleTask$_segment_0",
-  "hash": "97oyvf4nsls9",
-  "canonicalFilename": "component.tsx_component_useVisibleTask$_segment_0_97oyvf4nsls9",
+  "displayName": "component_useVisibleTaskqrl_segment_0",
+  "hash": "rykj3v0khy38",
+  "canonicalFilename": "component.tsx_component_useVisibleTaskqrl_segment_0_rykj3v0khy38",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -68,34 +68,34 @@ export const component_useVisibleTask$_segment_0_97oyvf4nsls9 = () => {
 ============================= src/component.tsx ==
 
 import { useSignal, useVisibleTask, _withCaptures, _first, createTemplate } from '@qwik.dev/core';
-import { component_useVisibleTask$_segment_0_97oyvf4nsls9 } from './component.tsx_component_useVisibleTask$_segment_0_97oyvf4nsls9';
+import { component_useVisibleTaskqrl_segment_0_rykj3v0khy38 } from './component.tsx_component_useVisibleTaskqrl_segment_0_rykj3v0khy38';
 
 const App_tmpl0 = createTemplate('<button>Ready</button>');
 export function App(props, ctx) {
   const count = useSignal(0);
-  useVisibleTask(_withCaptures(component_useVisibleTask$_segment_0_97oyvf4nsls9, [count]), {
+  useVisibleTask(_withCaptures(component_useVisibleTaskqrl_segment_0_rykj3v0khy38, [count]), {
     strategy: 'document-ready',
   });
   const fragment0 = App_tmpl0(ctx.document);
   const el0 = _first(fragment0);
   return el0;
 }
-============================= src/component.tsx_component_useVisibleTask$_segment_0_97oyvf4nsls9.js (ENTRY POINT)==
+============================= src/component.tsx_component_useVisibleTaskqrl_segment_0_rykj3v0khy38.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';
 
-export const component_useVisibleTask$_segment_0_97oyvf4nsls9 = () => {
+export const component_useVisibleTaskqrl_segment_0_rykj3v0khy38 = () => {
   const count = _captures[0];
   return count.value++;
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_useVisibleTask$_segment_0_97oyvf4nsls9",
+  "name": "component_useVisibleTaskqrl_segment_0_rykj3v0khy38",
   "entry": null,
-  "displayName": "component_useVisibleTask$_segment_0",
-  "hash": "97oyvf4nsls9",
-  "canonicalFilename": "component.tsx_component_useVisibleTask$_segment_0_97oyvf4nsls9",
+  "displayName": "component_useVisibleTaskqrl_segment_0",
+  "hash": "rykj3v0khy38",
+  "canonicalFilename": "component.tsx_component_useVisibleTaskqrl_segment_0_rykj3v0khy38",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

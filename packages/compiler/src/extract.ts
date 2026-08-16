@@ -31,7 +31,11 @@ import type {
   Segment,
   SegmentPropsPartPlan,
 } from './plan-types';
-import { createSegmentSourceIdentity, createSegmentSymbolName } from './segment-identity';
+import {
+  createSegmentSourceIdentity,
+  createSegmentSymbolName,
+  sanitizeSegmentName,
+} from './segment-identity';
 import { QWIK_CORE_IMPORT, QWIK_IMPORT, QwikHooks, QwikWord } from './words';
 
 interface SegmentState {
@@ -1468,14 +1472,9 @@ function createSegmentName(
   const sourceName = filename.replace(/\.[cm]?[jt]sx?$/, '');
   return createSegmentSymbolName(
     sourceIdentity,
-    sanitizeIdentifier(`${sourceName}_${ctxName}_${id}`),
+    sanitizeSegmentName(`${sourceName}_${ctxName}_${id}`),
     'extracted'
   );
-}
-
-function sanitizeIdentifier(value: string): string {
-  const sanitized = value.replace(/[^A-Za-z0-9_$]/g, '_');
-  return /^[A-Za-z_$]/.test(sanitized) ? sanitized : `_${sanitized}`;
 }
 
 function isNode(node: unknown): node is AstNode {

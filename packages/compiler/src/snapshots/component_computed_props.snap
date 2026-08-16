@@ -57,14 +57,14 @@ const q_component_initial_segment_4_3ga3f7w1o8xxv = /*#__PURE__*/ _noopQrl(
   'component_initial_segment_4_3ga3f7w1o8xxv'
 );
 q_component_initial_segment_4_3ga3f7w1o8xxv.s(component_initial_segment_4_3ga3f7w1o8xxv);
-const component_$_segment_7_1lv5a7xylx6c2 = () => {
+const component_qrl_segment_7_2fpouwe2h89sr = () => {
   const selected = _captures[0];
   return selected.value;
 };
-const q_component_$_segment_7_1lv5a7xylx6c2 = /*#__PURE__*/ _noopQrl(
-  'component_$_segment_7_1lv5a7xylx6c2'
+const q_component_qrl_segment_7_2fpouwe2h89sr = /*#__PURE__*/ _noopQrl(
+  'component_qrl_segment_7_2fpouwe2h89sr'
 );
-q_component_$_segment_7_1lv5a7xylx6c2.s(component_$_segment_7_1lv5a7xylx6c2);
+q_component_qrl_segment_7_2fpouwe2h89sr.s(component_qrl_segment_7_2fpouwe2h89sr);
 const q_component_q_e_pick_segment_8_8323mpce5pk2 = /*#__PURE__*/ _noopQrl(
   'component_q_e_pick_segment_8_8323mpce5pk2'
 );
@@ -136,7 +136,7 @@ export function App(props, ctx) {
       return createComponent(
         {
           get qrl() {
-            return q_component_$_segment_7_1lv5a7xylx6c2.w([selected]);
+            return q_component_qrl_segment_7_2fpouwe2h89sr.w([selected]);
           },
           onPick$: q_component_q_e_pick_segment_8_8323mpce5pk2.w([selected]),
         },
@@ -280,22 +280,22 @@ export const component_initial_segment_4_3ga3f7w1o8xxv = (CONST) => {
   ]
 }
 */
-============================= src/component.tsx_component_$_segment_7_1lv5a7xylx6c2.js (ENTRY POINT)==
+============================= src/component.tsx_component_qrl_segment_7_2fpouwe2h89sr.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';
 
-export const component_$_segment_7_1lv5a7xylx6c2 = () => {
+export const component_qrl_segment_7_2fpouwe2h89sr = () => {
   const selected = _captures[0];
   return selected.value;
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_$_segment_7_1lv5a7xylx6c2",
+  "name": "component_qrl_segment_7_2fpouwe2h89sr",
   "entry": null,
-  "displayName": "component_$_segment_7",
-  "hash": "1lv5a7xylx6c2",
-  "canonicalFilename": "component.tsx_component_$_segment_7_1lv5a7xylx6c2",
+  "displayName": "component_qrl_segment_7",
+  "hash": "2fpouwe2h89sr",
+  "canonicalFilename": "component.tsx_component_qrl_segment_7_2fpouwe2h89sr",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -397,10 +397,10 @@ import { component_label_segment_3_871s51a2ly5o } from './component.tsx_componen
 import { component_initial_segment_4_3ga3f7w1o8xxv } from './component.tsx_component_initial_segment_4_3ga3f7w1o8xxv';
 import { component_active_segment_12_1kya7ncf5yzsc } from './component.tsx_component_active_segment_12_1kya7ncf5yzsc';
 
-const q_component_$_segment_7_1lv5a7xylx6c2 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_$_segment_7_1lv5a7xylx6c2',
-  () => import('./component.tsx_component_$_segment_7_1lv5a7xylx6c2'),
-  'component_$_segment_7_1lv5a7xylx6c2'
+const q_component_qrl_segment_7_2fpouwe2h89sr = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_qrl_segment_7_2fpouwe2h89sr',
+  () => import('./component.tsx_component_qrl_segment_7_2fpouwe2h89sr'),
+  'component_qrl_segment_7_2fpouwe2h89sr'
 );
 const q_component_q_e_pick_segment_8_8323mpce5pk2 = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_q_e_pick_segment_8_8323mpce5pk2',
@@ -497,7 +497,7 @@ export function App(props, ctx) {
       createComponent(
         {
           get qrl() {
-            return q_component_$_segment_7_1lv5a7xylx6c2.w([selected]);
+            return q_component_qrl_segment_7_2fpouwe2h89sr.w([selected]);
           },
           onPick$: q_component_q_e_pick_segment_8_8323mpce5pk2.w([selected]),
         },
@@ -624,22 +624,22 @@ export const component_initial_segment_4_3ga3f7w1o8xxv = (CONST) => {
   ]
 }
 */
-============================= src/component.tsx_component_$_segment_7_1lv5a7xylx6c2.js (ENTRY POINT)==
+============================= src/component.tsx_component_qrl_segment_7_2fpouwe2h89sr.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';
 
-export const component_$_segment_7_1lv5a7xylx6c2 = () => {
+export const component_qrl_segment_7_2fpouwe2h89sr = () => {
   const selected = _captures[0];
   return selected.value;
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_$_segment_7_1lv5a7xylx6c2",
+  "name": "component_qrl_segment_7_2fpouwe2h89sr",
   "entry": null,
-  "displayName": "component_$_segment_7",
-  "hash": "1lv5a7xylx6c2",
-  "canonicalFilename": "component.tsx_component_$_segment_7_1lv5a7xylx6c2",
+  "displayName": "component_qrl_segment_7",
+  "hash": "2fpouwe2h89sr",
+  "canonicalFilename": "component.tsx_component_qrl_segment_7_2fpouwe2h89sr",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

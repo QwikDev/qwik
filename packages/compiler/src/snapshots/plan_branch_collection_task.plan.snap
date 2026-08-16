@@ -451,8 +451,8 @@
   "segments": [
     {
       "id": "segment_0",
-      "symbolName": "input_useComputed$_segment_0_1njp779gwswof",
-      "chunk": "./input.tsx_input_useComputed$_segment_0_1njp779gwswof",
+      "symbolName": "input_useComputedqrl_segment_0_2yk3zcxfrxvom",
+      "chunk": "./input.tsx_input_useComputedqrl_segment_0_2yk3zcxfrxvom",
       "kind": "qrl",
       "resolved": true,
       "qrl": {
@@ -470,8 +470,8 @@
     },
     {
       "id": "segment_1",
-      "symbolName": "input_useTask$_segment_1_2ngp3wzswnn6e",
-      "chunk": "./input.tsx_input_useTask$_segment_1_2ngp3wzswnn6e",
+      "symbolName": "input_useTaskqrl_segment_1_nudmpp3wv11j",
+      "chunk": "./input.tsx_input_useTaskqrl_segment_1_nudmpp3wv11j",
       "kind": "qrl",
       "resolved": true,
       "qrl": {

@@ -22,6 +22,16 @@ export function createSegmentSourceIdentity(path: string, scope?: string): strin
   return `${scope ?? ''}\0${isAbsolute ? '/' : ''}${parts.join('/')}`;
 }
 
+/**
+ * Names a segment for both its symbol and its chunk file. `$` is a legal identifier character but
+ * bundlers strip it from file names, which would desync a baked chunk path from the file written,
+ * so it spells out instead.
+ */
+export function sanitizeSegmentName(value: string): string {
+  const sanitized = value.replaceAll('$', 'qrl').replace(/[^A-Za-z0-9_]/g, '_');
+  return /^[A-Za-z_]/.test(sanitized) ? sanitized : `_${sanitized}`;
+}
+
 export function createSegmentSymbolName(
   sourceIdentity: string,
   displayName: string,

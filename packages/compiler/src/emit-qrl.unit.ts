@@ -73,7 +73,7 @@ export function App() {
 
     for (const isServer of [false, true]) {
       const result = await transformModules(options(input, isServer));
-      const view = result.modules.find((module) => module.path.includes('$_segment'));
+      const view = result.modules.find((module) => module.path.includes('qrl_segment'));
       const event = result.modules.find((module) => module.segment?.ctxName === 'onClick$');
 
       expect(result.diagnostics).toEqual([]);
@@ -122,7 +122,7 @@ export function App() {
 
     for (const isServer of [false, true]) {
       const result = await transformModules(options(input, isServer));
-      const fallback = result.modules.find((module) => module.path.includes('fallback$_segment'));
+      const fallback = result.modules.find((module) => module.path.includes('fallbackqrl_segment'));
 
       expect(result.diagnostics).toEqual([]);
       expectValidModules(result.modules);
@@ -463,7 +463,7 @@ export function App() {
       const output = result.modules.map((module) => module.code).join('\n');
       expectValidModules(result.modules);
       expect(result.diagnostics).toEqual([]);
-      expect(output).toContain('mixed_useComputed$_segment_0');
+      expect(output).toContain('mixed_useComputedqrl_segment_0');
       expect(result.modules.filter((module) => module.segment != null)).toHaveLength(1);
     }
   });
@@ -1079,8 +1079,8 @@ export function App() {
     expect(ssrMain).toContain(`lazy(q_${symbol}.w([count]), { mode: "test" });`);
     expect(csrMain).not.toContain('marker$ as marker');
     expect(ssrMain).not.toContain('marker$ as marker');
-    expect(csr.modules.some((module) => module.path.includes('marker$_segment_0'))).toBe(true);
-    expect(ssr.modules.some((module) => module.path.includes('marker$_segment_0'))).toBe(true);
+    expect(csr.modules.some((module) => module.path.includes('markerqrl_segment_0'))).toBe(true);
+    expect(ssr.modules.some((module) => module.path.includes('markerqrl_segment_0'))).toBe(true);
   });
 
   test('passes a capture-free value segment to the direct CSR API', async () => {
@@ -1102,7 +1102,7 @@ export function App() {
     const csr = await transformModules(options(input, false));
     const csrMain = csr.modules[0]?.code ?? '';
     const valueModule = csr.modules.find((module) =>
-      module.path.includes('useSerializer$_segment')
+      module.path.includes('useSerializerqrl_segment')
     );
     const symbol = segmentNames(csr, 'useSerializer$')[0];
 
@@ -1135,7 +1135,7 @@ export function App() {
     const csr = await transformModules(options(input, false));
     const csrMain = csr.modules[0]?.code ?? '';
     const valueModule = csr.modules.find((module) =>
-      module.path.includes('useSerializer$_segment')
+      module.path.includes('useSerializerqrl_segment')
     );
     const symbol = segmentNames(csr, 'useSerializer$')[0];
 
@@ -1165,9 +1165,9 @@ export function App() {
 
     const ssr = await transformModules(options(input, true));
     const csr = await transformModules(options(input, false));
-    const csrOuter = csr.modules.find((module) => module.path.includes('outer$_segment_0'))!;
-    const csrInner = csr.modules.find((module) => module.path.includes('inner$_segment_1'))!;
-    const ssrOuter = ssr.modules.find((module) => module.path.includes('outer$_segment_0'))!;
+    const csrOuter = csr.modules.find((module) => module.path.includes('outerqrl_segment_0'))!;
+    const csrInner = csr.modules.find((module) => module.path.includes('innerqrl_segment_1'))!;
+    const ssrOuter = ssr.modules.find((module) => module.path.includes('outerqrl_segment_0'))!;
     const innerSymbol = segmentNames(csr, 'inner$')[0];
 
     expectValidModules(ssr.modules);
@@ -1396,20 +1396,20 @@ export const App = component$(() => {
     expect(result.diagnostics).toEqual([]);
     const main = result.modules.find((module) => module.path.endsWith('qrl-values.tsx'))!.code;
     // explicit $() values keep their v2 qrl identity: lazy chunk, .w captures
-    expect(main).not.toMatch(/_withCaptures\(\w+_\$_segment/);
-    expect(main).toMatch(/const onClick\$ = q_\w+_\$_segment_\d+_\w+\.w\(\[sig\]\)/);
-    expect(main).toMatch(/const moduleQrl = q_\w+_\$_segment/);
+    expect(main).not.toMatch(/_withCaptures\(\w+_\qrl_segment/);
+    expect(main).toMatch(/const onClick\$ = q_\w+_\qrl_segment_\d+_\w+\.w\(\[sig\]\)/);
+    expect(main).toMatch(/const moduleQrl = q_\w+_\qrl_segment/);
     // a handler passed as a component prop escapes into the child: qrl too
     expect(main).toMatch(/"onClick\$": q_\w+_q_e_click_segment_\d+_\w+\.w\(\[sig\]\)/);
     // structural sinks keep the direct fast path
     expect(main).toMatch(/useTask\(_withCaptures\(/);
     expect(main).toMatch(/_withCaptures\(\w+_branch_condition/);
     const taskChunk = result.modules.find((module) =>
-      module.path.includes('useTask$_segment')
+      module.path.includes('useTaskqrl_segment')
     )!.code;
     // $() nested in another segment body keeps qrl identity there too
-    expect(taskChunk).not.toMatch(/_withCaptures\(\w+_\$_segment/);
-    expect(taskChunk).toMatch(/q_\w+_\$_segment_\d+_\w+\.w\(\[sig\]\)/);
+    expect(taskChunk).not.toMatch(/_withCaptures\(\w+_\qrl_segment/);
+    expect(taskChunk).toMatch(/q_\w+_\qrl_segment_\d+_\w+\.w\(\[sig\]\)/);
   });
 });
 
@@ -1740,7 +1740,9 @@ export const App = component$(() => {
       const all = result.modules.map((module) => module.code).join('\n');
       // eventQrl is identity, so the boundary is just a qrl — no `event` runtime callee
       expect(all, `isServer ${isServer}`).not.toMatch(/\bevent\(/);
-      expect(all, `isServer ${isServer}`).toMatch(/q_\w+_event\$_segment_\d+_\w+\.w\(\[count\]\)/);
+      expect(all, `isServer ${isServer}`).toMatch(
+        /q_\w+_event\qrl_segment_\d+_\w+\.w\(\[count\]\)/
+      );
     }
   });
 });

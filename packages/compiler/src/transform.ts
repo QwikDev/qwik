@@ -103,6 +103,7 @@ import {
   createSegmentSourceIdentity,
   createSegmentSymbolName,
   getSegmentSymbolHash,
+  sanitizeSegmentName,
 } from './segment-identity';
 import { QWIK_IMPORT, QwikGenWord, type GeneratedNames } from './words';
 import {
@@ -2451,7 +2452,7 @@ function createComponentAnalysis(
     component.exportName === 'default' ? (component.localName ?? 'default') : component.exportName;
   const name = createSegmentSymbolName(
     createSegmentSourceIdentity(inputPath, scope),
-    sanitizeIdentifier(`${sourceName}_${componentName}`),
+    sanitizeSegmentName(`${sourceName}_${componentName}`),
     'component'
   );
   return {
@@ -2698,11 +2699,6 @@ function mapMetadataRange(ctx: CompilerContext): (range: SourceRange) => SourceR
     ctx.input.originalCode,
     ctx.input.normalizationMap as Parameters<typeof createOriginalRangeMapper>[2]
   );
-}
-
-function sanitizeIdentifier(value: string): string {
-  const sanitized = value.replace(/[^A-Za-z0-9_$]/g, '_');
-  return /^[A-Za-z_$]/.test(sanitized) ? sanitized : `_${sanitized}`;
 }
 
 function basename(path: string): string {

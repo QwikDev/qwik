@@ -178,8 +178,8 @@
       "segments": [
         {
           "id": "segment_0",
-          "symbolName": "input_fallback$_segment_0_2m585yx0u2l5p",
-          "chunk": "./input.tsx_input_fallback$_segment_0_2m585yx0u2l5p",
+          "symbolName": "input_fallbackqrl_segment_0_zdbdhvj7mtiw",
+          "chunk": "./input.tsx_input_fallbackqrl_segment_0_zdbdhvj7mtiw",
           "kind": "qrl",
           "resolved": true,
           "qrl": null,

@@ -23,17 +23,19 @@ import {
   maybeThen,
   _noopQrl,
 } from '@qwik.dev/core';
-const component_useComputed$_segment_0_1ipqnkpgdvv4z = () => {
+const component_useComputedqrl_segment_0_cgrhjggwb9pm = () => {
   const count = _captures[0];
   return count.value * 2;
 };
-const q_component_useComputed$_segment_0_1ipqnkpgdvv4z = /*#__PURE__*/ _noopQrl(
-  'component_useComputed$_segment_0_1ipqnkpgdvv4z'
+const q_component_useComputedqrl_segment_0_cgrhjggwb9pm = /*#__PURE__*/ _noopQrl(
+  'component_useComputedqrl_segment_0_cgrhjggwb9pm'
 );
-q_component_useComputed$_segment_0_1ipqnkpgdvv4z.s(component_useComputed$_segment_0_1ipqnkpgdvv4z);
+q_component_useComputedqrl_segment_0_cgrhjggwb9pm.s(
+  component_useComputedqrl_segment_0_cgrhjggwb9pm
+);
 export function App(props, ctx) {
   const count = useSignal(1);
-  const double = useComputedQrl(q_component_useComputed$_segment_0_1ipqnkpgdvv4z.w([count]));
+  const double = useComputedQrl(q_component_useComputedqrl_segment_0_cgrhjggwb9pm.w([count]));
   const id_0 = ctx.nextId();
   ctx.addRoot(double);
   const text_0 = renderSsrTextNode(createSsrElementTextTarget(id_0), double);
@@ -43,22 +45,22 @@ export function App(props, ctx) {
     '</p>',
   ]);
 }
-============================= src/component.tsx_component_useComputed$_segment_0_1ipqnkpgdvv4z.js (ENTRY POINT)==
+============================= src/component.tsx_component_useComputedqrl_segment_0_cgrhjggwb9pm.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';
 
-export const component_useComputed$_segment_0_1ipqnkpgdvv4z = () => {
+export const component_useComputedqrl_segment_0_cgrhjggwb9pm = () => {
   const count = _captures[0];
   return count.value * 2;
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_useComputed$_segment_0_1ipqnkpgdvv4z",
+  "name": "component_useComputedqrl_segment_0_cgrhjggwb9pm",
   "entry": null,
-  "displayName": "component_useComputed$_segment_0",
-  "hash": "1ipqnkpgdvv4z",
-  "canonicalFilename": "component.tsx_component_useComputed$_segment_0_1ipqnkpgdvv4z",
+  "displayName": "component_useComputedqrl_segment_0",
+  "hash": "cgrhjggwb9pm",
+  "canonicalFilename": "component.tsx_component_useComputedqrl_segment_0_cgrhjggwb9pm",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -89,13 +91,13 @@ import {
   createTextNodeEffect,
   createTemplate,
 } from '@qwik.dev/core';
-import { component_useComputed$_segment_0_1ipqnkpgdvv4z } from './component.tsx_component_useComputed$_segment_0_1ipqnkpgdvv4z';
+import { component_useComputedqrl_segment_0_cgrhjggwb9pm } from './component.tsx_component_useComputedqrl_segment_0_cgrhjggwb9pm';
 
 const App_tmpl0 = createTemplate('<p> </p>');
 export function App(props, ctx) {
   const count = useSignal(1);
   const double = useComputed(
-    _withCaptures(component_useComputed$_segment_0_1ipqnkpgdvv4z, [count])
+    _withCaptures(component_useComputedqrl_segment_0_cgrhjggwb9pm, [count])
   );
   const fragment0 = App_tmpl0(ctx.document);
   const el0 = _first(fragment0);
@@ -104,22 +106,22 @@ export function App(props, ctx) {
   ctx.scheduler.notify(effect0);
   return el0;
 }
-============================= src/component.tsx_component_useComputed$_segment_0_1ipqnkpgdvv4z.js (ENTRY POINT)==
+============================= src/component.tsx_component_useComputedqrl_segment_0_cgrhjggwb9pm.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';
 
-export const component_useComputed$_segment_0_1ipqnkpgdvv4z = () => {
+export const component_useComputedqrl_segment_0_cgrhjggwb9pm = () => {
   const count = _captures[0];
   return count.value * 2;
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_useComputed$_segment_0_1ipqnkpgdvv4z",
+  "name": "component_useComputedqrl_segment_0_cgrhjggwb9pm",
   "entry": null,
-  "displayName": "component_useComputed$_segment_0",
-  "hash": "1ipqnkpgdvv4z",
-  "canonicalFilename": "component.tsx_component_useComputed$_segment_0_1ipqnkpgdvv4z",
+  "displayName": "component_useComputedqrl_segment_0",
+  "hash": "cgrhjggwb9pm",
+  "canonicalFilename": "component.tsx_component_useComputedqrl_segment_0_cgrhjggwb9pm",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

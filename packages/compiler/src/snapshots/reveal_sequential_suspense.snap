@@ -41,13 +41,13 @@ import {
 import { First } from './component.tsx_component_First';
 import { Second } from './component.tsx_component_Second';
 
-const component_fallback$_segment_0_2xzpofej2tyn5 = (ctx) => {
+const component_fallbackqrl_segment_0_3grqaiepfwcws = (ctx) => {
   return '<em>waiting first</em>';
 };
-const q_component_fallback$_segment_0_2xzpofej2tyn5 = /*#__PURE__*/ _noopQrl(
-  'component_fallback$_segment_0_2xzpofej2tyn5'
+const q_component_fallbackqrl_segment_0_3grqaiepfwcws = /*#__PURE__*/ _noopQrl(
+  'component_fallbackqrl_segment_0_3grqaiepfwcws'
 );
-q_component_fallback$_segment_0_2xzpofej2tyn5.s(component_fallback$_segment_0_2xzpofej2tyn5);
+q_component_fallbackqrl_segment_0_3grqaiepfwcws.s(component_fallbackqrl_segment_0_3grqaiepfwcws);
 const component_suspense_content_segment_1_oznzhxo2l2hq = (ctx) => {
   const component_0 = createComponent({}, (props) => First(props, ctx));
   return maybeThen(component_0, (component_0) => component_0);
@@ -58,13 +58,13 @@ const q_component_suspense_content_segment_1_oznzhxo2l2hq = /*#__PURE__*/ _noopQ
 q_component_suspense_content_segment_1_oznzhxo2l2hq.s(
   component_suspense_content_segment_1_oznzhxo2l2hq
 );
-const component_fallback$_segment_2_2xzpnncb95um3 = (ctx) => {
+const component_fallbackqrl_segment_2_3grqbagx9kgxu = (ctx) => {
   return '<em>waiting second</em>';
 };
-const q_component_fallback$_segment_2_2xzpnncb95um3 = /*#__PURE__*/ _noopQrl(
-  'component_fallback$_segment_2_2xzpnncb95um3'
+const q_component_fallbackqrl_segment_2_3grqbagx9kgxu = /*#__PURE__*/ _noopQrl(
+  'component_fallbackqrl_segment_2_3grqbagx9kgxu'
 );
-q_component_fallback$_segment_2_2xzpnncb95um3.s(component_fallback$_segment_2_2xzpnncb95um3);
+q_component_fallbackqrl_segment_2_3grqbagx9kgxu.s(component_fallbackqrl_segment_2_3grqbagx9kgxu);
 const component_suspense_content_segment_3_oznypvg8wygo = (ctx) => {
   const component_0 = createComponent({}, (props) => Second(props, ctx));
   return maybeThen(component_0, (component_0) => component_0);
@@ -84,7 +84,7 @@ export function App(props, ctx) {
     ctx,
     suspense_id_0,
     q_component_suspense_content_segment_1_oznzhxo2l2hq,
-    q_component_fallback$_segment_0_2xzpofej2tyn5,
+    q_component_fallbackqrl_segment_0_3grqaiepfwcws,
     0,
     reveal_0,
     0
@@ -98,7 +98,7 @@ export function App(props, ctx) {
         ctx,
         suspense_id_1,
         q_component_suspense_content_segment_3_oznypvg8wygo,
-        q_component_fallback$_segment_2_2xzpnncb95um3,
+        q_component_fallbackqrl_segment_2_3grqbagx9kgxu,
         0,
         reveal_0,
         1
@@ -169,19 +169,19 @@ export async function Second(props, ctx) {
   "paramNames": []
 }
 */
-============================= src/component.tsx_component_fallback$_segment_0_2xzpofej2tyn5.js (ENTRY POINT)==
+============================= src/component.tsx_component_fallbackqrl_segment_0_3grqaiepfwcws.js (ENTRY POINT)==
 
-export const component_fallback$_segment_0_2xzpofej2tyn5 = (ctx) => {
+export const component_fallbackqrl_segment_0_3grqaiepfwcws = (ctx) => {
   return '<em>waiting first</em>';
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_fallback$_segment_0_2xzpofej2tyn5",
+  "name": "component_fallbackqrl_segment_0_3grqaiepfwcws",
   "entry": null,
-  "displayName": "component_fallback$_segment_0",
-  "hash": "2xzpofej2tyn5",
-  "canonicalFilename": "component.tsx_component_fallback$_segment_0_2xzpofej2tyn5",
+  "displayName": "component_fallbackqrl_segment_0",
+  "hash": "3grqaiepfwcws",
+  "canonicalFilename": "component.tsx_component_fallbackqrl_segment_0_3grqaiepfwcws",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -223,19 +223,19 @@ export const component_suspense_content_segment_1_oznzhxo2l2hq = (ctx) => {
   "paramNames": []
 }
 */
-============================= src/component.tsx_component_fallback$_segment_2_2xzpnncb95um3.js (ENTRY POINT)==
+============================= src/component.tsx_component_fallbackqrl_segment_2_3grqbagx9kgxu.js (ENTRY POINT)==
 
-export const component_fallback$_segment_2_2xzpnncb95um3 = (ctx) => {
+export const component_fallbackqrl_segment_2_3grqbagx9kgxu = (ctx) => {
   return '<em>waiting second</em>';
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_fallback$_segment_2_2xzpnncb95um3",
+  "name": "component_fallbackqrl_segment_2_3grqbagx9kgxu",
   "entry": null,
-  "displayName": "component_fallback$_segment_2",
-  "hash": "2xzpnncb95um3",
-  "canonicalFilename": "component.tsx_component_fallback$_segment_2_2xzpnncb95um3",
+  "displayName": "component_fallbackqrl_segment_2",
+  "hash": "3grqbagx9kgxu",
+  "canonicalFilename": "component.tsx_component_fallbackqrl_segment_2_3grqbagx9kgxu",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -296,20 +296,20 @@ import {
 import { First } from './component.tsx_component_First';
 import { Second } from './component.tsx_component_Second';
 
-const q_component_fallback$_segment_0_2xzpofej2tyn5 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_fallback$_segment_0_2xzpofej2tyn5',
-  () => import('./component.tsx_component_fallback$_segment_0_2xzpofej2tyn5'),
-  'component_fallback$_segment_0_2xzpofej2tyn5'
+const q_component_fallbackqrl_segment_0_3grqaiepfwcws = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_fallbackqrl_segment_0_3grqaiepfwcws',
+  () => import('./component.tsx_component_fallbackqrl_segment_0_3grqaiepfwcws'),
+  'component_fallbackqrl_segment_0_3grqaiepfwcws'
 );
 const q_component_suspense_content_segment_1_oznzhxo2l2hq = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_suspense_content_segment_1_oznzhxo2l2hq',
   () => import('./component.tsx_component_suspense_content_segment_1_oznzhxo2l2hq'),
   'component_suspense_content_segment_1_oznzhxo2l2hq'
 );
-const q_component_fallback$_segment_2_2xzpnncb95um3 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_fallback$_segment_2_2xzpnncb95um3',
-  () => import('./component.tsx_component_fallback$_segment_2_2xzpnncb95um3'),
-  'component_fallback$_segment_2_2xzpnncb95um3'
+const q_component_fallbackqrl_segment_2_3grqbagx9kgxu = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_fallbackqrl_segment_2_3grqbagx9kgxu',
+  () => import('./component.tsx_component_fallbackqrl_segment_2_3grqbagx9kgxu'),
+  'component_fallbackqrl_segment_2_3grqbagx9kgxu'
 );
 const q_component_suspense_content_segment_3_oznypvg8wygo = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_suspense_content_segment_3_oznypvg8wygo',
@@ -331,7 +331,7 @@ export function App(props, ctx) {
     ctx,
     new BranchRange(ctx.document, start0, end0),
     q_component_suspense_content_segment_1_oznzhxo2l2hq,
-    q_component_fallback$_segment_0_2xzpofej2tyn5,
+    q_component_fallbackqrl_segment_0_3grqaiepfwcws,
     0,
     reveal_0,
     0
@@ -340,7 +340,7 @@ export function App(props, ctx) {
     ctx,
     new BranchRange(ctx.document, start1, end1),
     q_component_suspense_content_segment_3_oznypvg8wygo,
-    q_component_fallback$_segment_2_2xzpnncb95um3,
+    q_component_fallbackqrl_segment_2_3grqbagx9kgxu,
     0,
     reveal_0,
     1
@@ -411,24 +411,25 @@ export async function Second(props, ctx) {
   "paramNames": []
 }
 */
-============================= src/component.tsx_component_fallback$_segment_0_2xzpofej2tyn5.js (ENTRY POINT)==
+============================= src/component.tsx_component_fallbackqrl_segment_0_3grqaiepfwcws.js (ENTRY POINT)==
 
 import { _first, createTemplate } from '@qwik.dev/core';
-const component_fallback$_segment_0_2xzpofej2tyn5_tmpl0 = createTemplate('<em>waiting first</em>');
+const component_fallbackqrl_segment_0_3grqaiepfwcws_tmpl0 =
+  createTemplate('<em>waiting first</em>');
 
-export const component_fallback$_segment_0_2xzpofej2tyn5 = (ctx) => {
-  const fragment0 = component_fallback$_segment_0_2xzpofej2tyn5_tmpl0(ctx.document);
+export const component_fallbackqrl_segment_0_3grqaiepfwcws = (ctx) => {
+  const fragment0 = component_fallbackqrl_segment_0_3grqaiepfwcws_tmpl0(ctx.document);
   const el0 = _first(fragment0);
   return el0;
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_fallback$_segment_0_2xzpofej2tyn5",
+  "name": "component_fallbackqrl_segment_0_3grqaiepfwcws",
   "entry": null,
-  "displayName": "component_fallback$_segment_0",
-  "hash": "2xzpofej2tyn5",
-  "canonicalFilename": "component.tsx_component_fallback$_segment_0_2xzpofej2tyn5",
+  "displayName": "component_fallbackqrl_segment_0",
+  "hash": "3grqaiepfwcws",
+  "canonicalFilename": "component.tsx_component_fallbackqrl_segment_0_3grqaiepfwcws",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -469,24 +470,25 @@ export const component_suspense_content_segment_1_oznzhxo2l2hq = (ctx) => {
   "paramNames": []
 }
 */
-============================= src/component.tsx_component_fallback$_segment_2_2xzpnncb95um3.js (ENTRY POINT)==
+============================= src/component.tsx_component_fallbackqrl_segment_2_3grqbagx9kgxu.js (ENTRY POINT)==
 
 import { _first, createTemplate } from '@qwik.dev/core';
-const component_fallback$_segment_2_2xzpnncb95um3_tmpl0 = createTemplate('<em>waiting second</em>');
+const component_fallbackqrl_segment_2_3grqbagx9kgxu_tmpl0 =
+  createTemplate('<em>waiting second</em>');
 
-export const component_fallback$_segment_2_2xzpnncb95um3 = (ctx) => {
-  const fragment0 = component_fallback$_segment_2_2xzpnncb95um3_tmpl0(ctx.document);
+export const component_fallbackqrl_segment_2_3grqbagx9kgxu = (ctx) => {
+  const fragment0 = component_fallbackqrl_segment_2_3grqbagx9kgxu_tmpl0(ctx.document);
   const el0 = _first(fragment0);
   return el0;
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_fallback$_segment_2_2xzpnncb95um3",
+  "name": "component_fallbackqrl_segment_2_3grqbagx9kgxu",
   "entry": null,
-  "displayName": "component_fallback$_segment_2",
-  "hash": "2xzpnncb95um3",
-  "canonicalFilename": "component.tsx_component_fallback$_segment_2_2xzpnncb95um3",
+  "displayName": "component_fallbackqrl_segment_2",
+  "hash": "3grqbagx9kgxu",
+  "canonicalFilename": "component.tsx_component_fallbackqrl_segment_2_3grqbagx9kgxu",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

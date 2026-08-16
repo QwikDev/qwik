@@ -233,8 +233,8 @@
       "segments": [
         {
           "id": "segment_0",
-          "symbolName": "input_useTask$_segment_0_2ngp4b0wthp6x",
-          "chunk": "./input.tsx_input_useTask$_segment_0_2ngp4b0wthp6x",
+          "symbolName": "input_useTaskqrl_segment_0_nudmbo000z10",
+          "chunk": "./input.tsx_input_useTaskqrl_segment_0_nudmbo000z10",
           "kind": "qrl",
           "resolved": true,
           "qrl": {

@@ -21,16 +21,16 @@ import {
   _noopQrl,
 } from '@qwik.dev/core';
 
-const component_useTask$_segment_0_12v231gyiwsit = () => {
+const component_useTaskqrl_segment_0_1og80iqmttt5c = () => {
   return console.log('external');
 };
-const q_component_useTask$_segment_0_12v231gyiwsit = /*#__PURE__*/ _noopQrl(
-  'component_useTask$_segment_0_12v231gyiwsit'
+const q_component_useTaskqrl_segment_0_1og80iqmttt5c = /*#__PURE__*/ _noopQrl(
+  'component_useTaskqrl_segment_0_1og80iqmttt5c'
 );
-q_component_useTask$_segment_0_12v231gyiwsit.s(component_useTask$_segment_0_12v231gyiwsit);
+q_component_useTaskqrl_segment_0_1og80iqmttt5c.s(component_useTaskqrl_segment_0_1og80iqmttt5c);
 export function App(props, ctx) {
   const invokeCtx = getActiveInvokeContextOrNull();
-  useTaskQrl(q_component_useTask$_segment_0_12v231gyiwsit);
+  useTaskQrl(q_component_useTaskqrl_segment_0_1og80iqmttt5c);
   return maybeThen(ctx.scheduler.flush(), () =>
     invoke(invokeCtx, () => {
       const style_scope_0 = getActiveInvokeContext().styleScopes?.join(' ');
@@ -46,19 +46,19 @@ export function App(props, ctx) {
     })
   );
 }
-============================= src/component.tsx_component_useTask$_segment_0_12v231gyiwsit.js (ENTRY POINT)==
+============================= src/component.tsx_component_useTaskqrl_segment_0_1og80iqmttt5c.js (ENTRY POINT)==
 
-export const component_useTask$_segment_0_12v231gyiwsit = () => {
+export const component_useTaskqrl_segment_0_1og80iqmttt5c = () => {
   return console.log('external');
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_useTask$_segment_0_12v231gyiwsit",
+  "name": "component_useTaskqrl_segment_0_1og80iqmttt5c",
   "entry": null,
-  "displayName": "component_useTask$_segment_0",
-  "hash": "12v231gyiwsit",
-  "canonicalFilename": "component.tsx_component_useTask$_segment_0_12v231gyiwsit",
+  "displayName": "component_useTaskqrl_segment_0",
+  "hash": "1og80iqmttt5c",
+  "canonicalFilename": "component.tsx_component_useTaskqrl_segment_0_1og80iqmttt5c",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -80,12 +80,12 @@ export const component_useTask$_segment_0_12v231gyiwsit = () => {
 
 import { useTask } from 'third-party-library';
 import { getActiveInvokeContext, _first, createTemplate, maybeThen, invoke } from '@qwik.dev/core';
-import { component_useTask$_segment_0_12v231gyiwsit } from './component.tsx_component_useTask$_segment_0_12v231gyiwsit';
+import { component_useTaskqrl_segment_0_1og80iqmttt5c } from './component.tsx_component_useTaskqrl_segment_0_1og80iqmttt5c';
 
 const App_tmpl0 = createTemplate('<main>Ready</main>');
 export function App(props, ctx) {
   const invokeCtx = getActiveInvokeContext();
-  useTask(component_useTask$_segment_0_12v231gyiwsit);
+  useTask(component_useTaskqrl_segment_0_1og80iqmttt5c);
   const styleScope0 = getActiveInvokeContext().styleScopes?.join(' ');
   return maybeThen(invokeCtx.initialTaskPromise, () =>
     invoke(invokeCtx, () => {
@@ -96,19 +96,19 @@ export function App(props, ctx) {
     })
   );
 }
-============================= src/component.tsx_component_useTask$_segment_0_12v231gyiwsit.js (ENTRY POINT)==
+============================= src/component.tsx_component_useTaskqrl_segment_0_1og80iqmttt5c.js (ENTRY POINT)==
 
-export const component_useTask$_segment_0_12v231gyiwsit = () => {
+export const component_useTaskqrl_segment_0_1og80iqmttt5c = () => {
   return console.log('external');
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_useTask$_segment_0_12v231gyiwsit",
+  "name": "component_useTaskqrl_segment_0_1og80iqmttt5c",
   "entry": null,
-  "displayName": "component_useTask$_segment_0",
-  "hash": "12v231gyiwsit",
-  "canonicalFilename": "component.tsx_component_useTask$_segment_0_12v231gyiwsit",
+  "displayName": "component_useTaskqrl_segment_0",
+  "hash": "1og80iqmttt5c",
+  "canonicalFilename": "component.tsx_component_useTaskqrl_segment_0_1og80iqmttt5c",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

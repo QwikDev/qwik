@@ -27,7 +27,7 @@ import {
   maybeThen,
   _noopQrl,
 } from '@qwik.dev/core';
-const component_useSerializer$_segment_0_2zsvg8dcoov6i = () => {
+const component_useSerializerqrl_segment_0_38jz59iiawtzb = () => {
   const count = _captures[0];
   return {
     initial: 2,
@@ -35,11 +35,11 @@ const component_useSerializer$_segment_0_2zsvg8dcoov6i = () => {
     serialize: (value) => value.count,
   };
 };
-const q_component_useSerializer$_segment_0_2zsvg8dcoov6i = /*#__PURE__*/ _noopQrl(
-  'component_useSerializer$_segment_0_2zsvg8dcoov6i'
+const q_component_useSerializerqrl_segment_0_38jz59iiawtzb = /*#__PURE__*/ _noopQrl(
+  'component_useSerializerqrl_segment_0_38jz59iiawtzb'
 );
-q_component_useSerializer$_segment_0_2zsvg8dcoov6i.s(
-  component_useSerializer$_segment_0_2zsvg8dcoov6i
+q_component_useSerializerqrl_segment_0_38jz59iiawtzb.s(
+  component_useSerializerqrl_segment_0_38jz59iiawtzb
 );
 const component_text_segment_1_1fh10tcowimfv = (custom) => {
   return custom.value.count;
@@ -50,7 +50,7 @@ const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _noopQrl(
 q_component_text_segment_1_1fh10tcowimfv.s(component_text_segment_1_1fh10tcowimfv);
 export function App(props, ctx) {
   const count = useSignal(1);
-  const custom = useSerializerQrl(q_component_useSerializer$_segment_0_2zsvg8dcoov6i.w([count]));
+  const custom = useSerializerQrl(q_component_useSerializerqrl_segment_0_38jz59iiawtzb.w([count]));
   const id_0 = ctx.nextId();
   ctx.addRoot(custom);
   const text_0 = renderSsrTextExpression(
@@ -64,11 +64,11 @@ export function App(props, ctx) {
     '</p>',
   ]);
 }
-============================= src/component.tsx_component_useSerializer$_segment_0_2zsvg8dcoov6i.js (ENTRY POINT)==
+============================= src/component.tsx_component_useSerializerqrl_segment_0_38jz59iiawtzb.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';
 
-export const component_useSerializer$_segment_0_2zsvg8dcoov6i = () => {
+export const component_useSerializerqrl_segment_0_38jz59iiawtzb = () => {
   const count = _captures[0];
   return {
     initial: 2,
@@ -79,11 +79,11 @@ export const component_useSerializer$_segment_0_2zsvg8dcoov6i = () => {
 /*
 {
   "origin": "component.tsx",
-  "name": "component_useSerializer$_segment_0_2zsvg8dcoov6i",
+  "name": "component_useSerializerqrl_segment_0_38jz59iiawtzb",
   "entry": null,
-  "displayName": "component_useSerializer$_segment_0",
-  "hash": "2zsvg8dcoov6i",
-  "canonicalFilename": "component.tsx_component_useSerializer$_segment_0_2zsvg8dcoov6i",
+  "displayName": "component_useSerializerqrl_segment_0",
+  "hash": "38jz59iiawtzb",
+  "canonicalFilename": "component.tsx_component_useSerializerqrl_segment_0_38jz59iiawtzb",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -142,14 +142,14 @@ import {
   createTextExpressionEffect,
   createTemplate,
 } from '@qwik.dev/core';
-import { component_useSerializer$_segment_0_2zsvg8dcoov6i } from './component.tsx_component_useSerializer$_segment_0_2zsvg8dcoov6i';
+import { component_useSerializerqrl_segment_0_38jz59iiawtzb } from './component.tsx_component_useSerializerqrl_segment_0_38jz59iiawtzb';
 import { component_text_segment_1_1fh10tcowimfv } from './component.tsx_component_text_segment_1_1fh10tcowimfv';
 
 const App_tmpl0 = createTemplate('<p> </p>');
 export function App(props, ctx) {
   const count = useSignal(1);
   const custom = useSerializer(
-    _withCaptures(component_useSerializer$_segment_0_2zsvg8dcoov6i, [count])
+    _withCaptures(component_useSerializerqrl_segment_0_38jz59iiawtzb, [count])
   );
   const fragment0 = App_tmpl0(ctx.document);
   const el0 = _first(fragment0);
@@ -163,11 +163,11 @@ export function App(props, ctx) {
   ctx.scheduler.notify(effect0);
   return el0;
 }
-============================= src/component.tsx_component_useSerializer$_segment_0_2zsvg8dcoov6i.js (ENTRY POINT)==
+============================= src/component.tsx_component_useSerializerqrl_segment_0_38jz59iiawtzb.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';
 
-export const component_useSerializer$_segment_0_2zsvg8dcoov6i = () => {
+export const component_useSerializerqrl_segment_0_38jz59iiawtzb = () => {
   const count = _captures[0];
   return {
     initial: 2,
@@ -178,11 +178,11 @@ export const component_useSerializer$_segment_0_2zsvg8dcoov6i = () => {
 /*
 {
   "origin": "component.tsx",
-  "name": "component_useSerializer$_segment_0_2zsvg8dcoov6i",
+  "name": "component_useSerializerqrl_segment_0_38jz59iiawtzb",
   "entry": null,
-  "displayName": "component_useSerializer$_segment_0",
-  "hash": "2zsvg8dcoov6i",
-  "canonicalFilename": "component.tsx_component_useSerializer$_segment_0_2zsvg8dcoov6i",
+  "displayName": "component_useSerializerqrl_segment_0",
+  "hash": "38jz59iiawtzb",
+  "canonicalFilename": "component.tsx_component_useSerializerqrl_segment_0_38jz59iiawtzb",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

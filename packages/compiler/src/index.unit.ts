@@ -191,12 +191,12 @@ export function App() {
         {
           path: 'src/x.tsx',
           code: `import { Foo$ } from './foo';
-export function Foo$_segment_0() {
+export function Fooqrl_segment_0() {
   return <p>Child</p>;
 }
 export function App() {
   Foo$(() => 'value');
-  return <Foo$_segment_0 />;
+  return <Fooqrl_segment_0 />;
 }`,
         },
         false

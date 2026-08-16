@@ -37,10 +37,8 @@
   "include": [
     "packages/create-qwik",
     "packages/supabase-auth-helpers-qwik",
-    "packages/qwik-react/src",
     "starters/apps/*",
     "e2e/qwik-e2e/apps/*",
-    "packages/qwik-react/vite",
     "@types/deno.d.ts",
     "@types/bun.d.ts",
     "types.d.ts",

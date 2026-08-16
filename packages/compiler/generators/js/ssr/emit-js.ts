@@ -320,6 +320,15 @@ export function markUngeneratable(detail?: unknown): never {
   throw UNGENERATABLE;
 }
 
+let DEOPTIMIZED_PROPS: string[] = [];
+
+/** Props that fell back to a lazy segment because their reactivity could not be proven. */
+export function takeDeoptimizedProps(): readonly string[] {
+  const deoptimized = DEOPTIMIZED_PROPS;
+  DEOPTIMIZED_PROPS = [];
+  return deoptimized;
+}
+
 /** Detail recorded by the most recent `markUngeneratable`, for compile diagnostics. */
 export function lastUngeneratableDetail(): string {
   return UNGENERATABLE_DETAIL;
@@ -411,6 +420,8 @@ class JsComponentGenerator {
   private readonly syncFns = new Map<string, string>();
   /** Bindings declared as reactive sources — prop getters track them by kind. */
   private sourceKinds = new Map<number, SourceBindingKind>();
+  /** Setup consts whose value is fixed at render time, so reading them cannot be reactive. */
+  private readonly staticBindings = new Set<number>();
   /** Destructured component-prop locals, back to their props key — forwards resolve sources. */
   private readonly propsKeyByBinding = new Map<number, string>();
   /** Use-id locals — reads of these are compile-time-proven stable strings. */
@@ -1147,6 +1158,9 @@ class JsComponentGenerator {
       case 'const': {
         const binding = entry.binding as number;
         const variable = this.declare(binding, entry.name as string | undefined);
+        if (this.irIsStaticRead(entry.init as ValueIR)) {
+          this.staticBindings.add(binding);
+        }
         this.statements.push(`const ${variable} = ${this.irJs(entry.init as ValueIR)};`);
         return;
       }
@@ -1812,7 +1826,21 @@ class JsComponentGenerator {
               prepStatements.push(`${this.names.ctx}.addRoot(${captured});`);
             }
           }
-          // non-reactive expressions read through a plain getter
+          // reactivity arriving through props, context or captures is unprovable per module, so
+          // an unproven read deoptimizes to the QRL rather than freezing as a snapshot
+          if (segmentId !== undefined && !this.irIsStaticRead(ir)) {
+            DEOPTIMIZED_PROPS.push(item.name);
+            const meta = this.segment(segmentId);
+            const qrlName = `prop_qrl_${this.nextTemp++}`;
+            prepStatements.push(`const ${qrlName} = ${this.qrlExpression(meta)};`);
+            this.imports.add(QwikWord.ReadExpression);
+            literalRun().push(
+              `get ${JSON.stringify(item.name)}() { return ${QwikWord.ReadExpression}(${qrlName}); }`
+            );
+            sourceEntries.push(`${JSON.stringify(item.name)}: ${qrlName}`);
+            continue;
+          }
+          // static expressions read through a plain getter
           literalRun().push(`get ${JSON.stringify(item.name)}() { return ${this.irJs(ir)}; }`);
           continue;
         }
@@ -2664,6 +2692,43 @@ class JsComponentGenerator {
   }
 
   /** Locally declared source kind, or the module-wide resolver's (context-provided). */
+  /**
+   * True when the expression cannot read reactive state: every binding it reaches is an import or a
+   * fixed setup const. Anything else is unproven — reactivity can arrive through props, context or
+   * captures — so the caller deoptimizes instead of freezing a snapshot.
+   */
+  private irIsStaticRead(node: unknown): boolean {
+    if (Array.isArray(node)) {
+      return node.every((item) => this.irIsStaticRead(item));
+    }
+    if (typeof node !== 'object' || node === null) {
+      return true;
+    }
+    const record = node as Record<string, unknown>;
+    switch (record.kind) {
+      case 'lit':
+      case 'undef':
+        return true;
+      case 'binding-read': {
+        const binding = record.binding as number;
+        // imports are never reactive: reactive state cannot cross a module boundary (specs/01)
+        return this.staticBindings.has(binding) || this.moduleBindingName?.(binding) != null;
+      }
+      case 'member':
+      case 'index':
+      case 'unary':
+      case 'bin':
+      case 'logic':
+      case 'cond':
+      case 'template':
+      case 'array':
+      case 'object':
+        return Object.values(record).every((value) => this.irIsStaticRead(value));
+      default:
+        return false;
+    }
+  }
+
   private bindingSourceKind(binding: number): SourceBindingKind | null {
     return this.sourceKinds.get(binding) ?? this.sourceKindForBinding?.(binding) ?? null;
   }

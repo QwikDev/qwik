@@ -38,6 +38,7 @@ export const enum TransformDiagnosticCode {
   UseId = 'use-id',
   StyleHook = 'style-hook',
   CustomHook = 'custom-hook',
+  DeoptimizedProp = 'deoptimized-prop',
   ScopedStyleContent = 'scoped-style-content',
   NonSerializableCapture = 'non-serializable-capture',
   MissingDirectImplementation = 'missing-direct-implementation',
@@ -475,6 +476,19 @@ export function createKeylessCollectionDiagnostic(
     'A reactive JSX collection without a synchronous key rebuilds every row on each change. Add a key to reconcile rows instead.',
     'warning'
   ).diagnostic;
+}
+
+/** A prop whose reactivity could not be proven ships a lazy segment instead of an inline read. */
+export function createDeoptimizedPropDiagnostic(file: string, prop: string): Diagnostic {
+  return {
+    scope: 'compiler',
+    category: 'warning',
+    code: TransformDiagnosticCode.DeoptimizedProp,
+    file,
+    message: `Prop "${prop}" deoptimized: its value reads state that cannot be proven reactive here, so it ships a lazy segment instead of an inline read. Pass the signal or store itself to keep the fast path.`,
+    highlights: null,
+    suggestions: null,
+  };
 }
 
 export function createAsyncForDiagnostic(

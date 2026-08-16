@@ -100,7 +100,7 @@ export function Child(props, ctx) {
 */
 ============================= src/component.tsx_component_Button.js (ENTRY POINT)==
 
-import { createComponent, maybeThen, _noopQrl } from '@qwik.dev/core';
+import { readExpression, _props, createComponent, maybeThen, _noopQrl } from '@qwik.dev/core';
 import { buttonStyle } from './component';
 import { Child } from './component.tsx_component_Child';
 
@@ -113,15 +113,19 @@ const q_component_class_segment_1_3htuy2t94mso0 = /*#__PURE__*/ _noopQrl(
 q_component_class_segment_1_3htuy2t94mso0.s(component_class_segment_1_3htuy2t94mso0);
 
 export function Button(props, ctx) {
-  const component_0 = createComponent(
-    {
-      get class() {
-        return [buttonStyle, { white: props.isWhite }];
+  const prop_qrl_0 = q_component_class_segment_1_3htuy2t94mso0.w([props]);
+  const component_1 = createComponent(
+    _props(
+      {
+        get class() {
+          return readExpression(prop_qrl_0);
+        },
       },
-    },
+      { class: prop_qrl_0 }
+    ),
     (props) => Child(props, ctx)
   );
-  return maybeThen(component_0, (component_0) => component_0);
+  return maybeThen(component_1, (component_1) => component_1);
 }
 /*
 {
@@ -205,7 +209,17 @@ export const component_class_segment_1_3htuy2t94mso0 = (props) => {
 */
 == SSR DIAGNOSTICS ==
 
-[]
+[
+  {
+    "scope": "compiler",
+    "category": "warning",
+    "code": "deoptimized-prop",
+    "file": "src/component.tsx",
+    "message": "Prop \"class\" deoptimized: its value reads state that cannot be proven reactive here, so it ships a lazy segment instead of an inline read. Pass the signal or store itself to keep the fast path.",
+    "highlights": null,
+    "suggestions": null
+  }
+]
 == CSR OUTPUT ==
 
 ============================= src/component.tsx ==

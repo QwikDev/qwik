@@ -248,6 +248,31 @@ describe(`${name}: component`, () => {
     cleanup();
   });
 
+  // The middle component cannot prove its own prop is reactive, so the derived prop has to stay
+  // live without that proof rather than serializing as a snapshot.
+  it('should update a prop derived from an unproven prop', async () => {
+    const Leaf = (props: { label: string }) => <span id="leaf">{props.label}</span>;
+    const Middle = (props: { flag: boolean }) => <Leaf label={props.flag ? 'on' : 'off'} />;
+
+    const Parent = () => {
+      const flag = useSignal(false);
+      return (
+        <div>
+          <button onClick$={() => (flag.value = !flag.value)}>toggle</button>
+          <Middle flag={flag.value} />
+        </div>
+      );
+    };
+
+    const { container, cleanup, qwikLoader } = await render(Parent, { debug });
+    expect(container.querySelector('#leaf')?.textContent).toBe('off');
+
+    await qwikLoader?.dispatch(container.querySelector('button')!, 'click');
+
+    expect(container.querySelector('#leaf')?.textContent).toBe('on');
+    cleanup();
+  });
+
   it('should update expression props on mapped children', async () => {
     const Child = (props: { value: number; active: boolean }) => (
       <div id={`child-${props.value}`}>{props.active ? 'active' : 'inactive'}</div>

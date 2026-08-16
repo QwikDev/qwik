@@ -12,6 +12,7 @@ import {
   createKeylessCollectionDiagnostic,
   createImplicitDollarArgumentDiagnostic,
   createModuleWriteDiagnostic,
+  createDeoptimizedPropDiagnostic,
   createRefDiagnostic,
   createScopedStyleContentDiagnostic,
   createStyleHookDiagnostic,
@@ -57,6 +58,7 @@ import {
 } from './segment-plan';
 import { contextKindForName, contextNameForImport, type ContextSourceKind } from './context-kinds';
 import { SetupOpKind } from './setup-ir';
+import { takeDeoptimizedProps } from '../generators/js/ssr/emit-js';
 import {
   emitSsrModule,
   emitSsrSegmentRender,
@@ -1208,41 +1210,48 @@ function emitModule(
       }
     }
   }
-  return ctx.emitTarget === 'ssr'
-    ? emitSsrModule(
-        outputs,
-        segments,
-        ctx.input.code,
-        ctx.input.path,
-        ctx.options.explicitExtensions === true,
-        localImplementationSource,
-        targetImports,
-        generatedNames,
-        componentReturnMode,
-        functions,
-        moduleRoots,
-        inlineComponents,
-        planData,
-        { core: coreNames, taken: takenNames, aliases: coreAliases },
-        inlineSegmentCode,
-        inlineQwikImportNames,
-        libMode
-      )
-    : emitCsrModule(
-        outputs,
-        segments,
-        ctx.input.code,
-        ctx.input.path,
-        ctx.options.explicitExtensions === true,
-        localImplementationSource,
-        targetImports,
-        componentCardinality,
-        generatedNames,
-        functions,
-        moduleRoots,
-        inlineComponents,
-        libMode
-      );
+  // a stale entry would be attributed to this module, so start from a clean slate
+  takeDeoptimizedProps();
+  const emitted =
+    ctx.emitTarget === 'ssr'
+      ? emitSsrModule(
+          outputs,
+          segments,
+          ctx.input.code,
+          ctx.input.path,
+          ctx.options.explicitExtensions === true,
+          localImplementationSource,
+          targetImports,
+          generatedNames,
+          componentReturnMode,
+          functions,
+          moduleRoots,
+          inlineComponents,
+          planData,
+          { core: coreNames, taken: takenNames, aliases: coreAliases },
+          inlineSegmentCode,
+          inlineQwikImportNames,
+          libMode
+        )
+      : emitCsrModule(
+          outputs,
+          segments,
+          ctx.input.code,
+          ctx.input.path,
+          ctx.options.explicitExtensions === true,
+          localImplementationSource,
+          targetImports,
+          componentCardinality,
+          generatedNames,
+          functions,
+          moduleRoots,
+          inlineComponents,
+          libMode
+        );
+  for (const prop of takeDeoptimizedProps()) {
+    ctx.diagnostics.push(createDeoptimizedPropDiagnostic(ctx.input.path, prop));
+  }
+  return emitted;
 }
 
 function allocateGeneratedName(base: string, names: readonly string[]): string {

@@ -26,6 +26,8 @@ export interface ContainerState {
   forwardRefsChunk: StateChunk | null;
   liveRoots: Map<number, unknown>;
   disposedRoots: Set<number>;
+  /** Roots materialised but never inflated, so they must stay out of the live owner tree. */
+  retiredRoots: WeakSet<object>;
   registeredScripts?: WeakSet<HTMLScriptElement>;
   subscriberRoots?: Map<number, number[]>;
   /** In-flight root inflations, so dependent restores can order after them. */
@@ -93,6 +95,7 @@ function createContainerContextRecord(
     forwardRefsChunk: null,
     liveRoots: new Map(),
     disposedRoots: new Set(),
+    retiredRoots: new WeakSet(),
     registeredScripts: new WeakSet(),
   };
   const context: ContainerContext = {
@@ -249,6 +252,11 @@ export async function getStateRoot(context: ContainerContext, id: number): Promi
   context.state.liveRoots.set(id, root);
 
   if (context.state.disposedRoots.has(id)) {
+    // allocate hands back a shell whose fields inflation never filled, so keep it out of the
+    // owner tree: disposeSubscriber only skips a subscriber whose owner is still null
+    if (root !== null && typeof root === 'object') {
+      context.state.retiredRoots.add(root);
+    }
     return root;
   } else if (type === TypeIds.ForwardRefs) {
     context.forwardRefs = value as Array<number | string>;

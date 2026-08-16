@@ -83,6 +83,20 @@ describe('ContainerContext', () => {
     expect(await context.getRoot(0)).toMatchObject({ owner: null });
   });
 
+  it('keeps a disposed streamed root out of an owner tree', async () => {
+    const container = createContainer(`
+      <script type="qwik/state" q:base="0" q:len="1" q:dispose="0">
+        [${TypeIds.EffectSubscription},[${TypeIds.Plain},${EffectKind.Content}]]
+      </script>
+    `);
+    const context = createContainerContext(container);
+
+    const retired = (await context.getRoot(0)) as Subscriber;
+    // adopting it would defeat the owner === null guard and let a shell object be disposed
+    expect(context.state.retiredRoots.has(retired as object)).toBe(true);
+    expect(retired.owner).toBe(null);
+  });
+
   it('attaches streamed subscribers lazily when a source first resumes', async () => {
     const container = createContainer(`
       <script type="qwik/state" q:base="0" q:len="2">

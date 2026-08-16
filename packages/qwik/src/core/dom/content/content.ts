@@ -221,7 +221,7 @@ export class ContentSubscription<TArgs extends unknown[] = unknown[]> implements
 
   dispose(): void {
     // a root that was retired before inflation never got its block
-    this.block?.dispose();
+    this.block.dispose();
   }
 }
 

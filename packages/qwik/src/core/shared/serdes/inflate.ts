@@ -556,7 +556,7 @@ async function restoreBranchSubscription(
   if (Array.isArray(ownedItems) && ownedItems.length > 0) {
     const owner = createOwner(subscription.owner);
     subscription.branch.currentOwner = owner;
-    restoreOwnerItems(ownedItems, owner);
+    restoreOwnerItems(container, ownedItems, owner);
   }
 }
 
@@ -649,16 +649,22 @@ async function restoreContentSubscription(
   if (Array.isArray(ownedItems) && ownedItems.length > 0) {
     const owner = createOwner(subscription.owner);
     subscription.block.currentOwner = owner;
-    restoreOwnerItems(ownedItems, owner);
+    restoreOwnerItems(container, ownedItems, owner);
   }
 }
 
-function restoreOwnerItems(items: SerializedOwnerItems, owner: Owner): void {
+function restoreOwnerItems(
+  container: ContainerContext,
+  items: SerializedOwnerItems,
+  owner: Owner
+): void {
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
     if (Array.isArray(item)) {
-      restoreOwnerItems(item, createOwner(owner));
-    } else {
+      restoreOwnerItems(container, item, createOwner(owner));
+    } else if (!container.state.retiredRoots.has(item as object)) {
+      // a retired root was never inflated; adopting it would defeat the owner === null
+      // guard that keeps an uninflated shell from being run or disposed
       registerSubscriberToOwner(item, owner);
     }
   }

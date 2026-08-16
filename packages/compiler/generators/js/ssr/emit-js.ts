@@ -2584,7 +2584,9 @@ class JsComponentGenerator {
       meta.initialOnly === true ? [] : captures,
       `${meta.symbolName}(${captures.join(', ')})`
     );
-    parts.push(step);
+    // the segment is opaque user code: its result normalizes like any other content value
+    this.imports.add(QwikWord.RenderSsrDynamicContent);
+    parts.push(`${QwikWord.RenderSsrDynamicContent}(${step})`);
   }
 
   private qrlExpression(meta: SegmentMeta, withCaptures = true): string {

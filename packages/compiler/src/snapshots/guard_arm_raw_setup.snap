@@ -24,6 +24,7 @@ export const App = component$(() => {
 import {
   useServerData,
   _captures,
+  renderSsrDynamicContent,
   maybeThen,
   getActiveInvokeContext,
   invoke,
@@ -31,7 +32,6 @@ import {
   renderSsrContent,
   createSsrRecord,
   createSsrNodeId,
-  renderSsrDynamicContent,
   renderSsrBranch,
   _noopQrl,
 } from '@qwik.dev/core';
@@ -52,7 +52,7 @@ const semantic_branchRender_412_460_2rw3igofg7qtp = (ctx) => {
   ctx.addRoot(requestId);
   ctx.addRoot(releaseId);
   const content_0 = semantic_expression_419_459_2uol5fqdfdeli(requestId, releaseId);
-  return maybeThen(content_0, (content_0) => content_0);
+  return maybeThen(content_0, (content_0) => renderSsrDynamicContent(content_0));
 };
 const q_semantic_branchRender_412_460_2rw3igofg7qtp = /*#__PURE__*/ _noopQrl(
   'semantic_branchRender_412_460_2rw3igofg7qtp'
@@ -148,6 +148,7 @@ export const App = (props, ctx) => {
 
 import {
   _captures,
+  renderSsrDynamicContent,
   maybeThen,
   getActiveInvokeContext,
   invoke,
@@ -155,7 +156,6 @@ import {
   renderSsrContent,
   createSsrRecord,
   createSsrNodeId,
-  renderSsrDynamicContent,
 } from '@qwik.dev/core';
 
 export function Inner(props, ctx) {
@@ -216,7 +216,7 @@ export const semantic_branchCondition_383_405_31auezwekp93y = () => {
 */
 ============================= src/component.tsx_semantic_branchRender_412_460_2rw3igofg7qtp.js (ENTRY POINT)==
 
-import { _noopQrl, _captures, maybeThen } from '@qwik.dev/core';
+import { _noopQrl, _captures, renderSsrDynamicContent, maybeThen } from '@qwik.dev/core';
 import { semantic_expression_419_459_2uol5fqdfdeli } from './component.tsx_semantic_expression_419_459_2uol5fqdfdeli';
 const q_semantic_expression_419_459_2uol5fqdfdeli = /*#__PURE__*/ _noopQrl(
   'semantic_expression_419_459_2uol5fqdfdeli'
@@ -229,7 +229,7 @@ export const semantic_branchRender_412_460_2rw3igofg7qtp = (ctx) => {
   ctx.addRoot(requestId);
   ctx.addRoot(releaseId);
   const content_0 = semantic_expression_419_459_2uol5fqdfdeli(requestId, releaseId);
-  return maybeThen(content_0, (content_0) => content_0);
+  return maybeThen(content_0, (content_0) => renderSsrDynamicContent(content_0));
 };
 /*
 {

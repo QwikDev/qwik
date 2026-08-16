@@ -10,7 +10,8 @@ export function detectForeignJsxRuntime(source: string): {
   pragmaText: string | null;
 } {
   for (const m of source.matchAll(
-    /\/\*\s*@jsxImportSource\s+(?!@qwik|@builder\.io\/qwik)\S+\s*\*\//g
+    // `/**` is as common as `/*` for this pragma, so the leading stars are optional.
+    /\/\*+\s*@jsxImportSource\s+(?!@qwik|@builder\.io\/qwik)\S+\s*\*\//g
   )) {
     // Pragma-shaped STRING data must not reroute the whole file's JSX.
     if (isInsideString(source, m.index)) {

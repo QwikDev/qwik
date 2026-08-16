@@ -27,9 +27,8 @@
  */
 
 import MagicString from 'magic-string';
-import { parseSync } from 'oxc-parser';
+import { parseWithRawTransfer } from '../ast/parse.js';
 import type { AstNode, AstProgram } from '../../ast-types.js';
-import { RAW_TRANSFER_PARSER_OPTIONS } from '../../ast-types.js';
 import { createTransformSession } from '../edit/transform-session.js';
 
 interface NoopQrlDecl {
@@ -54,9 +53,9 @@ interface SCallStatement {
 export function collapseToLibInlinedQrl(source: string): string {
   // JSX is already lowered by this point, so parse as .ts first — in .tsx a
   // generic arrow like `<T>(x: T) => x` is a JSX ambiguity and fails to parse.
-  let parsed = parseSync('lib-collapse.ts', source, RAW_TRANSFER_PARSER_OPTIONS);
+  let parsed = parseWithRawTransfer('lib-collapse.ts', source);
   if (!parsed.program || parsed.errors?.length) {
-    parsed = parseSync('lib-collapse.tsx', source, RAW_TRANSFER_PARSER_OPTIONS);
+    parsed = parseWithRawTransfer('lib-collapse.tsx', source);
   }
   if (!parsed.program || parsed.errors?.length) {
     return source;

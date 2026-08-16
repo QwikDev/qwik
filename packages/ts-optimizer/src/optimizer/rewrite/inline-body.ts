@@ -1,10 +1,10 @@
 /** Inline .s() body transformation for extracted segments. */
 
 import MagicString from 'magic-string';
-import { parseSync } from 'oxc-parser';
+import { parseWithRawTransfer } from '../ast/parse.js';
 import { walkAstForQp } from '../jsx/qp-walk.js';
 import { formatWCall, parseArrayItems, wCallSuffix } from '../qwik/w-call.js';
-import { RAW_TRANSFER_PARSER_OPTIONS, type AstFunction } from '../../ast-types.js';
+import type { AstFunction } from '../../ast-types.js';
 import type { ExtractionResult, Mutable } from '../extraction/extract.js';
 import type { ImportInfo } from '../extraction/marker-detection.js';
 import { eventHandlerPropName } from '../jsx/event-handlers.js';
@@ -233,7 +233,7 @@ export function transformInlineSegmentBody(
     if (strippedLoopWDecls.length > 0) {
       const wrapperPrefixText = 'const __w__ = ';
       const wrapped = wrapperPrefixText + body + ';';
-      const parsed = parseSync('__w__.tsx', wrapped, RAW_TRANSFER_PARSER_OPTIONS);
+      const parsed = parseWithRawTransfer('__w__.tsx', wrapped);
       const init = parsed.program?.body?.[0];
       const arrow = init?.type === 'VariableDeclaration' ? init.declarations?.[0]?.init : undefined;
       const block =
@@ -352,11 +352,7 @@ export function transformInlineSegmentBody(
       if (mentionsAny) {
         try {
           const wrappedBody = `(${body})`;
-          const bodyParse = parseSync(
-            '__inline_body__.tsx',
-            wrappedBody,
-            RAW_TRANSFER_PARSER_OPTIONS
-          );
+          const bodyParse = parseWithRawTransfer('__inline_body__.tsx', wrappedBody);
           if (bodyParse.program && !bodyParse.errors?.length) {
             const callS = new MagicString(wrappedBody);
             const relPathForPrefix = parentRelPath ?? jsxBodyOptions?.relPath;
@@ -428,7 +424,7 @@ export function transformInlineSegmentBody(
       };
     }
 
-    const parseResult = parseSync('__body__.tsx', wrappedSource, RAW_TRANSFER_PARSER_OPTIONS);
+    const parseResult = parseWithRawTransfer('__body__.tsx', wrappedSource);
     if (parseResult.program && !parseResult.errors?.length) {
       const bodyS = new MagicString(wrappedSource);
 

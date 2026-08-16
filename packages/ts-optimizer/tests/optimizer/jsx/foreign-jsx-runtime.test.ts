@@ -32,6 +32,18 @@ describe('foreign @jsxImportSource pragma support', () => {
       expect(r.pragmaText).toBe('/* @jsxImportSource react */');
     });
 
+    it('detects a JSDoc-style pragma', () => {
+      const r = detectForeignJsxRuntime(`/** @jsxImportSource react */\nconst x = 1;`);
+      expect(r.hasForeignJsxRuntime).toBe(true);
+      expect(r.pragmaText).toBe('/** @jsxImportSource react */');
+    });
+
+    it('does NOT flag a Qwik runtime named in a JSDoc-style pragma', () => {
+      expect(
+        detectForeignJsxRuntime(`/** @jsxImportSource @qwik.dev/core */\n`).hasForeignJsxRuntime
+      ).toBe(false);
+    });
+
     it('ignores a pragma-shaped string literal', () => {
       const src = `const doc = "/* @jsxImportSource react */";\nconst x = 1;`;
       expect(detectForeignJsxRuntime(src).hasForeignJsxRuntime).toBe(false);
@@ -103,6 +115,28 @@ export const App2 = qwikify$(() => (
   });
 
   describe('segment module', () => {
+    // The qwik-react e2e counter is written this way; compiling its JSX with
+    // Qwik's runtime renders nothing.
+    it('a JSDoc-style pragma also keeps qwikify$ bodies on the React runtime', () => {
+      const input = `/** @jsxImportSource react */
+import { qwikify$ } from '@qwik.dev/react';
+function Counter() {
+  return <div data-testid="count">count</div>;
+}
+export const QCounter = qwikify$(Counter, { eagerness: 'hover' });
+`;
+      const result = transformModule({
+        input: [{ path: mkFilePath('test.tsx'), code: mkSourceText(input) }],
+        srcDir: mkFilePath('.'),
+        transpileTs: true,
+        transpileJsx: true,
+      });
+
+      const seg = findSegmentByCtx(result, 'qwikify$');
+      expect(seg.code).not.toMatch(/_jsxSorted/);
+      expect(seg.code).toMatch(/import \{ jsx as _jsx \} from ["']react\/jsx-runtime["']/);
+    });
+
     it('segment file gets the pragma injected and emits React _jsx', () => {
       const input = `/* @jsxImportSource react */
 import { qwikify$ } from './qwikfy';

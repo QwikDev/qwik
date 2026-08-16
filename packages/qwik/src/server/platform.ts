@@ -48,27 +48,29 @@ export function createPlatform(
   resolvedManifest: ResolvedManifest | undefined
 ) {
   const mapper = resolvedManifest?.mapper;
-  const mapperFn = opts.symbolMapper
-    ? opts.symbolMapper
-    : (symbolName: string, chunk: any, parent?: string): readonly [string, string] | undefined => {
-        if (mapper || (isDev && import.meta.env?.MODE !== 'test')) {
-          const hash = getSymbolHash(symbolName);
-          const result = !isDev
-            ? mapper![hash]
-            : getDevSegmentPath(mapper, hash, symbolName, parent, chunk);
-          if (!result) {
-            if (hash === SYNC_QRL) {
-              return [hash, ''] as const;
-            }
-            const isRegistered = (globalThis as any).__qwik_reg_symbols?.has(hash);
-            if (isRegistered) {
-              return [symbolName, '_'] as const;
-            }
-            console.error('Cannot resolve symbol', symbolName, 'in', mapper, parent);
-          }
-          return result;
+  const mapFromManifest = (
+    symbolName: string,
+    chunk: string | null,
+    parent?: string
+  ): readonly [string, string] | undefined => {
+    if (mapper || (isDev && import.meta.env?.MODE !== 'test')) {
+      const hash = getSymbolHash(symbolName);
+      const result = !isDev
+        ? mapper![hash]
+        : getDevSegmentPath(mapper, hash, symbolName, parent, chunk);
+      if (!result) {
+        if (hash === SYNC_QRL) {
+          return [hash, ''] as const;
         }
-      };
+        const isRegistered = (globalThis as any).__qwik_reg_symbols?.has(hash);
+        if (isRegistered) {
+          return [symbolName, '_'] as const;
+        }
+        console.error('Cannot resolve symbol', symbolName, 'in', mapper, parent);
+      }
+      return result;
+    }
+  };
 
   const serverPlatform: CorePlatformServer = {
     isServer: true,
@@ -85,8 +87,11 @@ export function createPlatform(
       console.error('server can not rerender');
       return Promise.resolve();
     },
-    chunkForSymbol(symbolName: string, chunk, parent) {
-      return mapperFn(symbolName, chunk, parent);
+    chunkForSymbol(symbolName, chunk, parent) {
+      // a caller-supplied SymbolMapperFn takes the manifest mapper; ours takes the chunk
+      return opts.symbolMapper
+        ? opts.symbolMapper(symbolName, mapper, parent)
+        : mapFromManifest(symbolName, chunk, parent);
     },
   };
   return serverPlatform;

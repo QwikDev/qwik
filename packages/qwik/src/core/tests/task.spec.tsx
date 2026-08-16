@@ -20,7 +20,7 @@ describe(`${name}: task`, () => {
       const seen = useSignal('none');
       const bump = useSignal(0);
       const data = useAsync$(
-        (ctx) => {
+        (ctx): string | Promise<string> => {
           if (ctx.track(bump) === 0) {
             return 'first';
           }

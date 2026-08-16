@@ -5,7 +5,7 @@
 ```ts
 
 import { PhaseSubscriber } from '@qwik.dev/core';
-import { QRL } from '@qwik.dev/core';
+import type { QRL } from '@qwik.dev/core';
 import type { QwikManifest } from '@qwik.dev/core/optimizer';
 import type { RenderRoot } from '@qwik.dev/core';
 import type { ResolvedManifest } from '@qwik.dev/core/optimizer';
@@ -13,6 +13,7 @@ import { SerializationContext } from '@qwik.dev/core';
 import { ServerDataContext } from '@qwik.dev/core';
 import type { ServerQwikManifest } from '@qwik.dev/core/optimizer';
 import { SsrAttributePatch } from '@qwik.dev/core';
+import { SsrDeferredRange } from '@qwik.dev/core';
 import { SsrEventAttrChunk } from '@qwik.dev/core';
 import { SsrOutput } from '@qwik.dev/core';
 import { SsrReferenceChunk } from '@qwik.dev/core';

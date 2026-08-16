@@ -503,7 +503,7 @@ export class Serializer {
               const oldParent = this.$parent$;
               this.$parent$ = newSeenRef;
               // separate function for readability
-              this.writeObjectValue(value);
+              this.writeObjectValue(value, index);
               this.$parent$ = oldParent;
             }
           }
@@ -514,7 +514,7 @@ export class Serializer {
     }
   }
 
-  private writeObjectValue(value: {}) {
+  private writeObjectValue(value: {}, index: number) {
     let propsProxySource: Source<object> | null | undefined;
     let propsSources: Record<string, unknown> | undefined;
     if (value instanceof SerializerSignal) {
@@ -688,7 +688,8 @@ export class Serializer {
       if (isPromise(custom)) {
         throw qError(QError.serializerSymbolRejectedPromise);
       }
-      this.writeValue(custom);
+      // the produced value takes the slot of the instance it serializes for
+      this.writeValue(custom, index);
     } else {
       throw qError(QError.serializeErrorUnknownType, [typeof value]);
     }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { component$ } from '@qwik.dev/core';
+import { component$, type JSXOutput } from '@qwik.dev/core';
 import { testRenderer } from '../test-utils';
 
 const debug = false;
@@ -10,7 +10,7 @@ const { name, render } = testRenderer;
 describe.runIf(name === 'csrRender')(`${name}: promise as JSX child`, () => {
   it('renders the resolved JSX once the promise settles', async () => {
     const App = component$(() => {
-      const content = new Promise((resolve) => {
+      const content = new Promise<JSXOutput>((resolve) => {
         (globalThis as unknown as Record<string, unknown>).__resolvePromiseChild = () =>
           resolve(<p id="async-value">Async content</p>);
       });

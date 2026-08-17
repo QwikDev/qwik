@@ -16,10 +16,11 @@ export const refreshLinkPrefetchObserver = (manifestHash?: string) => {
   cleanupPrefetchObserver = createLinkPrefetchObserver(manifestHash);
 };
 
-export const linkPrefetchInit = (manifestHash: string) =>
-  event$(() => {
-    refreshLinkPrefetchObserver(manifestHash);
-  });
+export const linkPrefetchInit = event$((_: Event, element: Element) => {
+  const manifestHash =
+    element.closest('[q\\:manifest-hash]')?.getAttribute('q:manifest-hash') || undefined;
+  refreshLinkPrefetchObserver(manifestHash);
+});
 
 export const createLinkPrefetchObserver = (manifestHash?: string): (() => void) => {
   const anchors = document.querySelectorAll<HTMLAnchorElement>('a[q\\:link][data-q-prefetch]');

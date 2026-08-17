@@ -1,6 +1,5 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 6229
 expression: output
 ---
 ==INPUT==
@@ -32,9 +31,9 @@ import { _jsxSorted } from "@qwik.dev/core";
 import { qrl } from "@qwik.dev/core";
 import { useSignal } from "@qwik.dev/core";
 //
-const q_Test_component_button_q_e_click_SvzH9HBZLMQ = /*#__PURE__*/ qrl(()=>import("./test.tsx_Test_component_button_q_e_click_SvzH9HBZLMQ"), "Test_component_button_q_e_click_SvzH9HBZLMQ");
-const q_Test_component_button_q_e_dblclick_dxOdkqiOleU = /*#__PURE__*/ qrl(()=>import("./test.tsx_Test_component_button_q_e_dblclick_dxOdkqiOleU"), "Test_component_button_q_e_dblclick_dxOdkqiOleU");
-const q_Test_component_button_q_e_hover_IVVGOMV4FJ4 = /*#__PURE__*/ qrl(()=>import("./test.tsx_Test_component_button_q_e_hover_IVVGOMV4FJ4"), "Test_component_button_q_e_hover_IVVGOMV4FJ4");
+const q_Test_component_button_q_e_click_SvzH9HBZLMQ = /*#__PURE__*/ qrl(()=>import("./test.tsx_Test_component_button_q_e_click_SvzH9HBZLMQ"), "Test_component_button_q_e_click_SvzH9HBZLMQ").m();
+const q_Test_component_button_q_e_dblclick_dxOdkqiOleU = /*#__PURE__*/ qrl(()=>import("./test.tsx_Test_component_button_q_e_dblclick_dxOdkqiOleU"), "Test_component_button_q_e_dblclick_dxOdkqiOleU").m();
+const q_Test_component_button_q_e_hover_IVVGOMV4FJ4 = /*#__PURE__*/ qrl(()=>import("./test.tsx_Test_component_button_q_e_hover_IVVGOMV4FJ4"), "Test_component_button_q_e_hover_IVVGOMV4FJ4").m();
 //
 export const Test_component_qJXYteHpGTQ = ()=>{
     const sig = useSignal(0);

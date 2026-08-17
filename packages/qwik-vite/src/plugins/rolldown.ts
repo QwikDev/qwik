@@ -61,8 +61,12 @@ export function qwikRolldown(qwikRolldownOpts: QwikRolldownPluginOptions = {}): 
 
       await qwikPlugin.normalizeOptions(pluginOpts);
       // Override the input with the normalized input
-      const { input } = qwikPlugin.getOptions();
+      const { input, target } = qwikPlugin.getOptions();
       inputOpts.input = input;
+      if (target === 'client') {
+        // Rolldown rejects 'exports-only' with the includeDependenciesRecursively:false we set below.
+        inputOpts.preserveEntrySignatures ??= 'allow-extension';
+      }
 
       return inputOpts;
     },

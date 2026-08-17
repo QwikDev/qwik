@@ -17,6 +17,8 @@ import Test8 from './test8';
 import Test9 from './test9';
 import { useTheme } from './use-theme';
 import { testLogger } from './test-logger';
+import { VisibleTaskDialog } from '../dialog/visible-task-dialog';
+import DialogCounter from '../dialog/dialog-counter';
 
 export const TestImporter = component$(() => {
   const theme = useTheme();
@@ -34,6 +36,9 @@ export const TestImporter = component$(() => {
         }}
       >
         <p>TestImporter</p>
+        <VisibleTaskDialog>
+          <DialogCounter />
+        </VisibleTaskDialog>
         <Test1 />
         <Test2 />
         <Test3 />

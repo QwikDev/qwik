@@ -17,7 +17,9 @@ describe('generateManifestFromBundles', () => {
 
   const generate = (
     bundles: Record<string, ReturnType<typeof chunk>>,
-    qwikLoaderFileName?: string
+    qwikLoaderFileName?: string,
+    preloaderFileName?: string,
+    handlersFileName?: string
   ) =>
     generateManifestFromBundles(
       path as any,
@@ -27,7 +29,9 @@ describe('generateManifestFromBundles', () => {
       { rootDir: '/', outDir: '/' } as any,
       () => {},
       (p) => p,
-      qwikLoaderFileName
+      qwikLoaderFileName,
+      preloaderFileName,
+      handlersFileName
     );
 
   test('identifies core/preloader by group name and the loader by its emit file name', () => {
@@ -50,6 +54,43 @@ describe('generateManifestFromBundles', () => {
     // Core handler symbols (e.g. _run) map to the qwik-core chunk, which also holds handlers.
     expect(manifest.mapping['_run']).toBe('q-core.js');
     expect(manifest.symbols['_run']?.origin).toBe('Qwik core');
+  });
+
+  test('emitted preloader and handlers facades win over the group chunks', () => {
+    const manifest = generate(
+      {
+        'q-core.js': chunk('qwik-core', 'q-core.js', [
+          '/app/node_modules/@qwik.dev/core/dist/core.prod.mjs',
+        ]),
+        'q-preloader.js': chunk('qwik-preloader', 'q-preloader.js'),
+        'preloader.js': chunk('preloader', 'preloader.js'),
+        'handlers.js': chunk('handlers', 'handlers.js'),
+      },
+      undefined,
+      'preloader.js',
+      'handlers.js'
+    );
+
+    expect(manifest.core).toBe('q-core.js');
+    expect(manifest.preloader).toBe('preloader.js');
+    expect(manifest.mapping['_run']).toBe('handlers.js');
+  });
+
+  test('falls back to the group chunk when the emitted entry was merged into it', () => {
+    const manifest = generate(
+      {
+        'q-core.js': chunk('qwik-core', 'q-core.js', [
+          '/app/node_modules/@qwik.dev/core/dist/core.prod.mjs',
+        ]),
+        'q-preloader.js': chunk('qwik-preloader', 'q-preloader.js'),
+      },
+      undefined,
+      'build/preloader.js',
+      'build/handlers.js'
+    );
+
+    expect(manifest.preloader).toBe('q-preloader.js');
+    expect(manifest.mapping['_run']).toBe('q-core.js');
   });
 
   test('a user route named "qwikloader" does not shadow the real loader chunk', () => {

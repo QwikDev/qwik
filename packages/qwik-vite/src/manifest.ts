@@ -358,7 +358,9 @@ export function generateManifestFromBundles(
   opts: NormalizedQwikPluginOptions,
   debug: (...args: any[]) => void,
   canonPath: (p: string) => string,
-  qwikLoaderFileName?: string
+  qwikLoaderFileName?: string,
+  preloaderFileName?: string,
+  handlersFileName?: string
 ) {
   // Note that this will be the order of the JSON file
   const manifest: QwikManifest = {
@@ -399,8 +401,8 @@ export function generateManifestFromBundles(
   // by chunk name, which a user route like /qwikloader would shadow.
   manifest.qwikLoader = qwikLoaderFileName ? canonPath(qwikLoaderFileName) : undefined;
 
-  // core and preloader are code-splitting groups (no emit reference), so we match them by the group
-  // name assigned in qwik-vite plugin.ts. The qwik-core group bundles core runtime + handlers.
+  // The core/preloader payloads are the code-splitting group chunks, matched by the group name
+  // assigned in qwik-vite plugin.ts. The qwik-core group bundles core runtime + handlers.
   for (const outputBundle of Object.values(outputBundles)) {
     const bundleFileName = getBundleName(outputBundle.fileName);
     if (outputBundle.name === 'qwik-core') {
@@ -412,6 +414,17 @@ export function generateManifestFromBundles(
       preloaderBundleName = bundleFileName;
       manifest.preloader = bundleFileName;
     }
+  }
+  // Runtime-addressed exports must resolve through the emitFile facades: the bundler may mangle
+  // the group chunks' export names, while the emitted entries keep them verbatim. The bundler may
+  // also merge an emitted entry into its group chunk instead — then the ref names a file that was
+  // never written and the group chunk keeps the verbatim exports, so only prefer a facade that
+  // actually exists in the output.
+  if (preloaderFileName && preloaderFileName in outputBundles) {
+    manifest.preloader = canonPath(preloaderFileName);
+  }
+  if (handlersFileName && handlersFileName in outputBundles) {
+    qwikHandlersName = canonPath(handlersFileName);
   }
   // We need to find our QRL exports
   const qrlNames = new Set(segments.map((h) => h.name));

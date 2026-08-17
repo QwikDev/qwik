@@ -427,6 +427,8 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
   let optimizer: Optimizer;
   let shouldAddHandlers = false;
   let qwikLoaderChunkRef: string | undefined;
+  let preloaderChunkRef: string | undefined;
+  let handlersChunkRef: string | undefined;
   const buildStart = async (_ctx: Rolldown.PluginContext) => {
     debug(`buildStart()`, opts.buildMode, opts.scope, opts.target, opts.rootDir, opts.srcDir);
     optimizer = getOptimizer();
@@ -444,6 +446,8 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
     serverTransformedOutputs.clear();
 
     qwikLoaderChunkRef = undefined;
+    preloaderChunkRef = undefined;
+    handlersChunkRef = undefined;
     if (opts.target === 'client' && !devServer) {
       // emitFile() is only supported during build, not in Vite serve mode
       const ql = await _ctx.resolve('@qwik.dev/core/qwikloader.js', undefined, {
@@ -736,7 +740,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         skipSelf: true,
       });
       if (preloader) {
-        ctx.emitFile({
+        preloaderChunkRef = ctx.emitFile({
           id: preloader.id,
           type: 'chunk',
           preserveSignature: 'allow-extension',
@@ -759,7 +763,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         if (!key) {
           throw new Error('Failed to resolve @qwik.dev/core/handlers.mjs');
         }
-        ctx.emitFile({
+        handlersChunkRef = ctx.emitFile({
           id: key.id,
           type: 'chunk',
           preserveSignature: 'allow-extension',
@@ -1185,7 +1189,9 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
   const createOutputAnalyzer = (
     rollupBundle: Rolldown.OutputBundle,
-    qwikLoaderFileName?: string
+    qwikLoaderFileName?: string,
+    preloaderFileName?: string,
+    handlersFileName?: string
   ) => {
     const injections: GlobalInjections[] = [];
 
@@ -1215,7 +1221,9 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         opts,
         debug,
         canonPath,
-        qwikLoaderFileName
+        qwikLoaderFileName,
+        preloaderFileName,
+        handlersFileName
       );
       if (extra) {
         Object.assign(manifest, extra);
@@ -1436,7 +1444,14 @@ export const isDev = ${JSON.stringify(isDev)};
     manifestExtra?: Partial<QwikManifest>
   ) {
     const qwikLoaderFileName = qwikLoaderChunkRef ? ctx.getFileName(qwikLoaderChunkRef) : undefined;
-    const outputAnalyzer = createOutputAnalyzer(rollupBundle, qwikLoaderFileName);
+    const preloaderFileName = preloaderChunkRef ? ctx.getFileName(preloaderChunkRef) : undefined;
+    const handlersFileName = handlersChunkRef ? ctx.getFileName(handlersChunkRef) : undefined;
+    const outputAnalyzer = createOutputAnalyzer(
+      rollupBundle,
+      qwikLoaderFileName,
+      preloaderFileName,
+      handlersFileName
+    );
     const manifest = await outputAnalyzer.generateManifest(manifestExtra);
 
     manifest.platform = {

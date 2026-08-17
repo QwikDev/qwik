@@ -335,7 +335,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             qwikPlugin,
             viteConfig.build?.rolldownOptions?.output
           ),
-          // Rolldown rejects 'exports-only' with includeDependenciesRecursively:false.
+          // Rolldown's default 'exports-only' is invalid with includeDependenciesRecursively:false.
           preserveEntrySignatures: 'allow-extension',
         };
 

@@ -147,10 +147,7 @@ export function parseId(originalId: string) {
 export const getSymbolHash = (symbolName: string) =>
   /_([a-zA-Z0-9]+)($|\.js($|\?))/.exec(symbolName)?.[1];
 
-/**
- * Flatten a path-like name into a chunk `[name]`-safe token (Rolldown rejects path separators
- * there).
- */
+/** Flattens a path-like name so debug chunk files stay flat inside `build/`. */
 export const flattenToChunkName = (name: string) =>
   name
     .replace(/^[A-Za-z]:/, '')
@@ -164,10 +161,7 @@ export const flattenToChunkName = (name: string) =>
 // emit reference instead, so a same-named route chunk can't shadow it.)
 const RESERVED_CHUNK_NAMES = new Set(['qwik-core', 'qwikloader', 'qwik-preloader']);
 
-/**
- * Turn an entry/segment name into a chunk `[name]`, kept clear of path separators and reserved
- * names.
- */
+/** Turns an entry/segment name into a chunk group name, kept clear of reserved names. */
 export const sanitizeChunkGroupName = (name: string | null | undefined) => {
   if (!name) {
     return null;

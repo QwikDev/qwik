@@ -26,7 +26,7 @@ the same encoding. It is real JSON, parsed with `JSON.parse` (never evaluated).
 33 AsyncSignal 34 SerializerSignal  35 Store  36 FormData   37 JSXNode*
 38 PropsProxy  39 Props       40 SubscriptionData*  41 EffectSubscription
 42 SubscriptionPatch*  43 ContextScope  44 SlotScope  45 Projection
-46 BigArray    47 StoreProp
+46 BigArray    47 StoreProp   48 Owner
 ```
 
 `*` = **reserved, never emitted or read** (`VNode`, `Component`, `WrappedSignal`, `JSXNode`,
@@ -86,6 +86,7 @@ Payload = the odd slot; `[a, b, …]` is a nested array whose items are themselv
 | 45    | Projection         | `[renderQrl, slotScope, idBase]`                             | `slotScope` may be `null`; `idBase` string, `''` default                                                                                                                                                |
 | 46    | BigArray           | `[v0, …]`                                                    | decodes identically to Array; encoder-side flattening only (below)                                                                                                                                      |
 | 47    | StoreProp          | `[targetRootId, prop]`                                       | `targetRootId` is a **Plain number, not a RootRef** — emitting `[1, id]` here breaks resume                                                                                                             |
+| 48    | Owner              | `[item0, …]`                                                 | items are subscribers or child `Owner`s; an owner owning nothing is not emitted. Resume adopts the owner it is given rather than rebuilding one, so the tree keeps its identity                         |
 
 ### EffectSubscription(41) sub-layouts
 

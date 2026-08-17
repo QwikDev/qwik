@@ -48,4 +48,5 @@ export const enum TypeIds {
   Projection,
   BigArray,
   StoreProp,
+  Owner,
 }

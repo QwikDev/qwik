@@ -57,7 +57,7 @@ import { SerializationBackRef } from './serialization-back-ref';
 import type { SeenRef, SerializationContext } from './serialization-context';
 import { fastSkipSerialize, SerializerSymbol } from './verify';
 
-export type SerializedOwnerItems = Array<Subscriber | SerializedOwnerItems>;
+export type SerializedOwnerItems = Array<Subscriber | Owner>;
 
 const MAX_INLINE_ARRAY_ITEMS = 64;
 
@@ -556,6 +556,8 @@ export class Serializer {
         out.push(key, value === undefined ? explicitUndefined : value);
       }
       this.output(TypeIds.ContextScope, out);
+    } else if (value instanceof Owner) {
+      this.output(TypeIds.Owner, getSsrOwnerItems(value));
     } else if (isSlotScope(value)) {
       this.output(TypeIds.SlotScope, serializeSlotScope(value));
     } else if (isProjection(value)) {
@@ -1078,22 +1080,19 @@ function serializeBranchSubscription(subscription: SsrBranchSubscription): unkno
   ];
 }
 
+/** A child owner rides the list by reference, so resume restores the same tree, not a copy of it. */
 function getSsrOwnerItems(owner: Owner | null): SerializedOwnerItems {
   const items = owner?.items;
   if (items == null) {
     return EMPTY_ARRAY;
   }
 
-  const out: Array<Subscriber | SerializedOwnerItems> = [];
+  const out: Array<Subscriber | Owner> = [];
   const itemCount = Array.isArray(items) ? items.length : 1;
   for (let i = 0; i < itemCount; i++) {
     const item = Array.isArray(items) ? items[i] : items;
-    if (item instanceof Owner) {
-      const childItems = getSsrOwnerItems(item);
-      if (childItems.length > 0) {
-        out.push(childItems);
-      }
-    } else {
+    // an owner that owns nothing has no lifetime worth restoring
+    if (!(item instanceof Owner) || getSsrOwnerItems(item).length > 0) {
       out.push(item);
     }
   }

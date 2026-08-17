@@ -11,6 +11,7 @@ import { useStore, StorePropSource, unwrapStore } from '../../reactive/store';
 import type { ContainerContext } from '../../runtime/container-context';
 import { createContextScope } from '../../runtime/context-scope';
 import { createProjection, createSlotScope } from '../../dom/slot/slot';
+import { createOwner } from '../../runtime/owner';
 import { Task, TaskSubscription, VisibleTask, VisibleTaskSubscription } from '../../runtime/task';
 import { Phase } from '../../runtime/scheduler';
 import { qError, QError } from '../error/error';
@@ -218,6 +219,8 @@ export const allocate = (
       return createSlotScope();
     case TypeIds.Projection:
       return createProjection();
+    case TypeIds.Owner:
+      return createOwner(null);
     default:
       throw qError(QError.serializeErrorCannotAllocate, [typeId]);
   }

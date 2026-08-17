@@ -46,7 +46,12 @@ import type { ContextScope } from '../../runtime/context-scope';
 import { newInvokeContext, type RuntimeInvokeContext } from '../../runtime/invoke-context';
 import type { UseOnMap } from '../../runtime/use-on';
 import type { Projection, SlotScope } from '../../dom/slot/slot';
-import { createOwner, registerSubscriberToOwner, type Owner } from '../../runtime/owner';
+import {
+  Owner,
+  createOwner,
+  registerOwnerToOwner,
+  registerSubscriberToOwner,
+} from '../../runtime/owner';
 import { Phase } from '../../runtime/scheduler';
 import {
   Task,
@@ -391,6 +396,10 @@ const inflateResolved = (
       }
       break;
     }
+    case TypeIds.Owner: {
+      restoreOwnerItems(container, data as SerializedOwnerItems, target as Owner);
+      break;
+    }
     case TypeIds.Projection: {
       const projection = target as Projection;
       const d = data as unknown[];
@@ -660,8 +669,9 @@ function restoreOwnerItems(
 ): void {
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
-    if (Array.isArray(item)) {
-      restoreOwnerItems(container, item, createOwner(owner));
+    if (item instanceof Owner) {
+      // the child arrived with its own identity; adopting it keeps the tree, not a copy
+      registerOwnerToOwner(item, owner);
     } else if (!container.state.retiredRoots.has(item as object)) {
       // a retired root was never inflated; adopting it would defeat the owner === null
       // guard that keeps an uninflated shell from being run or disposed

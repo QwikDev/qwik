@@ -192,7 +192,7 @@ function materializeContextOwner(context: RuntimeInvokeContext): Owner {
   return nextOwner;
 }
 
-function registerOwnerToOwner(owner: Owner, parent: Owner | null): void {
+export function registerOwnerToOwner(owner: Owner, parent: Owner | null): void {
   if (parent === null) {
     return;
   }

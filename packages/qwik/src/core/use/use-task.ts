@@ -1,5 +1,6 @@
 import { getDomContainer, whenContainerDataReady } from '../client/dom-container';
 import { BackRef } from '../reactive-primitives/backref';
+import { ErrorBoundaryPhase, tagErrorPhase } from '../shared/error/error-handling';
 import { clearAllEffects } from '../reactive-primitives/cleanup';
 import { type Signal } from '../reactive-primitives/signal.public';
 import {
@@ -182,7 +183,10 @@ export const runTask = (
   }
 
   task.$flags$ &= ~TaskFlags.DIRTY;
-  const handleError = (reason: unknown) => container.handleError(reason, host);
+  const handleError = (reason: unknown) => {
+    tagErrorPhase(reason, ErrorBoundaryPhase.Hook);
+    container.handleError(reason, host, ErrorBoundaryPhase.Hook);
+  };
 
   let taskPromise: Promise<void> | null = null;
   const result = maybeThen(cleanupAsyncDestroyable(task, handleError), () => {
@@ -259,6 +263,10 @@ export function scheduleTask(this: string, _event: Event, element: Element) {
       setCaptures(deserializeCaptureDeltas(container, this));
     }
     const task = _captures![0] as Task;
+    if (!task.$el$) {
+      // An ErrorBoundary tore the host down; the task has nothing left to run against.
+      return;
+    }
     task.$flags$ |= TaskFlags.DIRTY;
     markVNodeDirty(container, task.$el$, ChoreBits.TASKS);
   });

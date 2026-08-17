@@ -9,21 +9,8 @@ import {
   type Signal,
 } from '@qwik.dev/core';
 import { SSRRaw, SSRStream, type SSRStreamWriter } from '@qwik.dev/core/internal';
-
-type OutOfOrderReleaseStore = {
-  resolved: Set<string>;
-  resolvers: Map<string, Set<() => void>>;
-};
-
-const getOutOfOrderReleaseStore = (): OutOfOrderReleaseStore =>
-  ((globalThis as any).__qwikOOOSReleaseStore ||= {
-    resolved: new Set<string>(),
-    resolvers: new Map<string, Set<() => void>>(),
-  });
-
-const getOutOfOrderReleaseKey = (requestId: string, releaseId: string): string => {
-  return `${requestId}:${releaseId}`;
-};
+import { waitForRelease } from '../../../../../utils/release-gate';
+import { WEBKIT_STREAMING_FLUSH } from '../../../../../utils/webkit-flush';
 
 const getSearchParam = (url: string | undefined, name: string): string | null => {
   return url ? new URL(url).searchParams.get(name) : null;
@@ -33,32 +20,13 @@ const waitForOutOfOrderRelease = (
   requestId: string,
   releaseId: string,
   value: JSXOutput
-): Promise<JSXOutput> => {
-  return new Promise<JSXOutput>((resolve) => {
-    const release = () => resolve(value);
-    const store = getOutOfOrderReleaseStore();
-    const key = getOutOfOrderReleaseKey(requestId, releaseId);
-    if (store.resolved.has(key)) {
-      release();
-    } else {
-      let resolvers = store.resolvers.get(key);
-      if (!resolvers) {
-        store.resolvers.set(key, (resolvers = new Set()));
-      }
-      resolvers.add(release);
-    }
-  });
-};
+): Promise<JSXOutput> => waitForRelease(requestId, releaseId).then(() => value);
 
 const escapeHtml = (value: string): string =>
   value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 const escapeAttr = (value: string): string =>
   escapeHtml(value).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-
-// WebKit buffers streamed HTML until enough early body content is emitted.
-// https://bugs.webkit.org/show_bug.cgi?id=265386
-const WEBKIT_STREAMING_FLUSH = '\u200b'.repeat(512);
 
 export const OutOfOrderSuspenseRoot = component$(() => {
   const shellCount = useSignal(0);

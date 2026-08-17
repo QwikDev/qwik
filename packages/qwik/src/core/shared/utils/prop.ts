@@ -15,6 +15,17 @@ export function isSlotProp(prop: string): boolean {
   return !prop.startsWith('q:') && !prop.startsWith(NON_SERIALIZABLE_MARKER_PREFIX);
 }
 
+export function hasSlotProps(props: Props | null | undefined): boolean {
+  if (props) {
+    for (const prop in props) {
+      if (isSlotProp(prop)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 /** @internal */
 export const _restProps = (props: PropsProxy, omit: string[] = [], target: Props = {}) => {
   let constPropsTarget: Props | null = null;

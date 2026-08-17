@@ -1,4 +1,6 @@
 import {
+  $,
+  ErrorBoundary,
   Fragment as Component,
   Fragment as Signal,
   component$,
@@ -868,6 +870,64 @@ describe('render api', () => {
         expect(stream.write).toHaveBeenCalled();
       });
     });
+    describe('onBeforeFirstFlush', () => {
+      const FlushThrower = component$((): JSXOutput => {
+        throw new Error('flush boom');
+      });
+
+      it('reports an SSR-caught boundary error before the first chunk is written', async () => {
+        const calls: Array<{ errorBoundaryCaught: boolean; chunksAtCall: number }> = [];
+        const chunks: string[] = [];
+        await renderToStreamAndSetPlatform(
+          <ErrorBoundary fallback$={$(() => 'fb')}>
+            <FlushThrower />
+          </ErrorBoundary>,
+          {
+            containerTagName: 'div',
+            stream: createTestStream((chunk) => {
+              chunks.push(chunk as string);
+            }),
+            onBeforeFirstFlush: (info) =>
+              calls.push({
+                errorBoundaryCaught: info.errorBoundaryCaught,
+                chunksAtCall: chunks.length,
+              }),
+          }
+        );
+        expect(calls).toEqual([{ errorBoundaryCaught: true, chunksAtCall: 0 }]);
+      });
+
+      it('reports no boundary error on a healthy render', async () => {
+        const calls: boolean[] = [];
+        const result = await renderToStreamAndSetPlatform(<Counter />, {
+          containerTagName: 'div',
+          stream: createTestStream(vi.fn()),
+          onBeforeFirstFlush: (info) => calls.push(info.errorBoundaryCaught),
+        });
+        expect(calls).toEqual([false]);
+        expect(result.errorBoundaryCaught).toBe(false);
+      });
+
+      it('a catch after the first flush is reported on the result, not the callback', async () => {
+        const calls: boolean[] = [];
+        const result = await renderToStreamAndSetPlatform(
+          <>
+            {'x'.repeat(25000)}
+            <ErrorBoundary fallback$={$(() => 'fb')}>
+              <FlushThrower />
+            </ErrorBoundary>
+          </>,
+          {
+            containerTagName: 'div',
+            stream: createTestStream(vi.fn()),
+            onBeforeFirstFlush: (info) => calls.push(info.errorBoundaryCaught),
+          }
+        );
+        expect(calls).toEqual([false]);
+        expect(result.errorBoundaryCaught).toBe(true);
+      });
+    });
+
     describe('streaming', () => {
       it('should render all at once', async () => {
         const write = vi.fn();

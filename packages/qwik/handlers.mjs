@@ -26,4 +26,7 @@ export {
   _reR,
   _reC,
   _reT,
+  // ErrorBoundary
+  _ebC,
+  _ebR,
 } from '@qwik.dev/core/internal';

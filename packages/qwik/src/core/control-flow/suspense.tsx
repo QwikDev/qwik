@@ -18,7 +18,9 @@ import {
   QSuspenseResultParent,
 } from '../shared/utils/markers';
 import { resolveSlotName } from '../shared/utils/prop';
+import { ERROR_CONTEXT, type ErrorBoundaryStore } from '../shared/error/error-handling';
 import { createInternalServerComponent } from '../ssr/internal-server-component';
+import { finalizeAndSwapOutOfOrderSegment } from '../ssr/out-of-order-segment-swap';
 import type { SSRContainer, SSROutOfOrderSegment, SSRRenderJSXOptions } from '../ssr/ssr-types';
 import { useComputedQrl } from '../use/use-computed';
 import { untrack } from '../use/use-core';
@@ -249,6 +251,12 @@ const SSRDeferredSlot = __EXPERIMENTAL__.suspense
       const boundaryState = jsx.varProps.boundary as SSROutOfOrderBoundaryState | null;
       const contentStyle = jsx.varProps.contentStyle as Signal<{ display: string }>;
       const revealBoundary = jsx.varProps.reveal as OutOfOrderRevealBoundary | null;
+      const errorBoundaryStore =
+        __EXPERIMENTAL__.errorBoundary && options.parentComponentFrame
+          ? (ssr.resolveContext(options.parentComponentFrame.componentNode, ERROR_CONTEXT) as
+              | ErrorBoundaryStore
+              | undefined)
+          : undefined;
       const content = ssr.segment(
         contentSegment,
         createClaimedDeferredSlot(ssr, jsx, options),
@@ -258,17 +266,26 @@ const SSRDeferredSlot = __EXPERIMENTAL__.suspense
       ssr.write(`<template ${QSuspenseResolved}="${boundaryId}"></template>`);
       ssr.emitOutOfOrderExecutorIfNeeded();
       ssr.queueOutOfOrderSegment(
-        content.then((rendered) =>
-          emitRenderedOutOfOrderSegment(
-            ssr,
-            boundaryId,
-            contentSegment,
-            rendered,
-            contentStyle,
-            revealBoundary,
-            boundaryState
+        content
+          .then((rendered) =>
+            emitRenderedOutOfOrderSegment(
+              ssr,
+              boundaryId,
+              rendered,
+              contentStyle,
+              revealBoundary,
+              boundaryState
+            )
           )
-        )
+          .catch((error) => {
+            if (errorBoundaryStore?.$emitFallback$) {
+              return errorBoundaryStore.$emitFallback$(error);
+            }
+            if (errorBoundaryStore?.error !== undefined) {
+              return;
+            }
+            throw error;
+          })
       );
     })
   : null!;
@@ -311,7 +328,6 @@ function createClaimedDeferredSlot(
 async function emitRenderedOutOfOrderSegment(
   ssr: SSRContainer,
   boundaryId: number,
-  segmentId: string,
   rendered: SSROutOfOrderSegment,
   contentStyle: Signal<{ display: string }>,
   revealBoundary: OutOfOrderRevealBoundary | null,
@@ -327,14 +343,7 @@ async function emitRenderedOutOfOrderSegment(
   revealBoundary?.resolve();
   await ssr.$runQueuedRender$(async () => {
     ssr.addRoot(contentStyle);
-    const result = await rendered.container.$finalizeOutOfOrderSegment$(segmentId, rendered);
-    ssr.write(`<template ${QSuspenseResolved}="${boundaryId}"${revealBoundary?.attrs ?? ''}>`);
-    ssr.write(result.html);
-    ssr.write('</template>');
-    ssr.emitOutOfOrderSegmentScripts(result.scripts);
-    ssr.emitInlineScript(`qO(${boundaryId})`);
-    // qO() is the browser-visible handoff for this segment, so flush it immediately.
-    await ssr.streamHandler.flush();
+    await finalizeAndSwapOutOfOrderSegment(ssr, boundaryId, rendered, revealBoundary);
   });
 }
 

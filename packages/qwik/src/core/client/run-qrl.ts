@@ -15,6 +15,7 @@ import { invokeApply, newInvokeContextFromDOM, type InvokeContext } from '../use
 import { getDomContainer, whenContainerDataReady } from './dom-container';
 import { VNodeFlags } from './types';
 import { vnode_ensureElementInflated, vnode_getProp } from './vnode-utils';
+import { ErrorBoundaryPhase } from '../shared/error/error-handling';
 
 /**
  * This safely calls an event handler, handling errors and retrying on thrown Promises, and
@@ -71,7 +72,7 @@ export function runEventHandlerQRL(
         return invokeApply(ctx, realHandler, [event, element]);
       }
     },
-    (err) => container.handleError(err, hostElement)
+    (err) => container.handleError(err, hostElement, ErrorBoundaryPhase.Event)
   );
 }
 

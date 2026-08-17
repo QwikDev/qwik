@@ -12,6 +12,8 @@ import { createTimer } from './utils';
 export class StreamHandler implements IStreamHandler {
   private bufferSize = 0;
   private buffer: string = '';
+  private firstWriteNotified = false;
+  public onFirstWrite: (() => void) | undefined;
   public networkFlushes = 0;
   private inOrderStreaming: InOrderStreaming;
   private streamBlockDepth = 0;
@@ -54,6 +56,7 @@ export class StreamHandler implements IStreamHandler {
           if (chunk === undefined || chunk === null) {
             return;
           }
+          handler.notifyFirstWrite();
           if (handler.pendingFlush) {
             const queued = handler.pendingFlush.then(() => originalStream.write(chunk));
             return handler.trackPendingFlush(queued);
@@ -115,7 +118,15 @@ export class StreamHandler implements IStreamHandler {
     return pending;
   }
 
+  private notifyFirstWrite() {
+    if (!this.firstWriteNotified) {
+      this.firstWriteNotified = true;
+      this.onFirstWrite?.();
+    }
+  }
+
   private flushBuffer() {
+    this.notifyFirstWrite();
     const chunk = this.buffer;
     this.buffer = '';
     this.bufferSize = 0;

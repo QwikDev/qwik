@@ -23,8 +23,7 @@ exports[`injectCollectHooks > matches snapshot of transformed output 1`] = `
   useSerializer$,
   useConstant,
   useOn,
-  useServerData,
-  useErrorBoundary
+  useServerData
 } from '@qwik.dev/core';
 import { _getDomContainer, isServer, useVisibleTask$ } from '@qwik.dev/core/internal';
 import type { QRL, Signal } from '@qwik.dev/core';
@@ -79,14 +78,6 @@ export default component$<ButtonProps>((props) => {
     hookType: 'useServerData',
     category: 'VariableDeclarator',
     data: serverData
-  });
-
-  const errorBoundary = useErrorBoundary();
-  collecthook({
-    variableName: 'errorBoundary',
-    hookType: 'useErrorBoundary',
-    category: 'VariableDeclarator',
-    data: errorBoundary
   });
 
   const location = useLocation();
@@ -386,7 +377,6 @@ export default component$<ButtonProps>((props) => {
         <div>Context: {context.theme} - {context.size}</div>
         <div>Button ID: {buttonId}</div>
         <div>Constant: {constantValue}</div>
-        {errorBoundary.error && <div>Error captured</div>}
         <div>ServerData: {serverData ? JSON.stringify(serverData) : 'N/A'}</div>
         <div>Serialized N: {customSerialized.value.n}</div>
         <Resource

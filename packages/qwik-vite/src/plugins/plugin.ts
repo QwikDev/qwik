@@ -84,6 +84,8 @@ export enum ExperimentalFeatures {
   show = 'show',
   /** Enable the Suspense fallback primitive */
   suspense = 'suspense',
+  /** Enable the ErrorBoundary primitive */
+  errorBoundary = 'errorBoundary',
   /** Enable the Valibot form validation */
   valibot = 'valibot',
   /** Disable SPA navigation handler in Qwik Router */

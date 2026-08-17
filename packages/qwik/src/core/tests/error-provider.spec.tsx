@@ -16,7 +16,7 @@ Error.stackTraceLimit = 100;
 describe.each([
   { render: ssrRenderToDom }, //
   { render: domRender }, //
-])('$render.name: error handling', ({ render }) => {
+])('$render.name: ErrorProvider capture', ({ render }) => {
   it('should handle error in component with element wrapper', async () => {
     const Cmp = component$(() => {
       const counter = useSignal(0);

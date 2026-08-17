@@ -27,6 +27,10 @@ Use this skill for Playwright e2e work in `e2e/**`. Keep the repo-wide rules fro
 - CLI e2e: `e2e/qwik-cli-e2e/tests/`
 - React integration e2e: `e2e/qwik-react-e2e/tests/`
 
+Apps whose directory names contain `.prod` run in production mode under the shared Qwik dev server.
+Keep exact production-only assertions in those fixtures; regular fixtures must pass after either
+`build.core.dev` or `build.core`.
+
 ## Commands
 
 Main Qwik e2e config uses `--browser`, not Playwright projects:
@@ -58,6 +62,7 @@ pnpm playwright test e2e/qwik-react-e2e/tests/reactify.spec.ts --project=chromiu
 
 Traps:
 
+- The core budget is skipped after `build.core.dev`; run `pnpm build.core` to measure it.
 - `test.e2e.router.ssg.update` regenerates the goldens only; it never touches the budgets, so a
   budget breach survives the update.
 - The update run can exit non-zero because a sibling budget assertion failed, not the golden. "N

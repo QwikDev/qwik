@@ -23,8 +23,7 @@ const sampleVarDecl = `
   useSerializer$,
   useConstant,
   useOn,
-  useServerData,
-  useErrorBoundary
+  useServerData
 } from '@qwik.dev/core';
 import { _getDomContainer, isServer, useVisibleTask$ } from '@qwik.dev/core/internal';
 import type { QRL, Signal } from '@qwik.dev/core';
@@ -52,7 +51,6 @@ export default component$<ButtonProps>((props) => {
   const signal = useSignal<any>('111');
   const constantValue = useConstant(() => 'CONST');
   const serverData = useServerData<any>('demo-key');
-  const errorBoundary = useErrorBoundary();
   const location = useLocation();
   const navigate = useNavigate();
   const content = useContent();
@@ -203,7 +201,6 @@ export default component$<ButtonProps>((props) => {
         <div>Context: {context.theme} - {context.size}</div>
         <div>Button ID: {buttonId}</div>
         <div>Constant: {constantValue}</div>
-        {errorBoundary.error && <div>Error captured</div>}
         <div>ServerData: {serverData ? JSON.stringify(serverData) : 'N/A'}</div>
         <div>Serialized N: {customSerialized.value.n}</div>
         <Resource

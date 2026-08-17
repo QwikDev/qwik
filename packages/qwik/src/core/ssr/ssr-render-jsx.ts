@@ -1,8 +1,7 @@
 import { isDev } from '@qwik.dev/core/build';
 import { _run } from '../client/run-qrl';
-import { ComputedSignalImpl } from '../reactive-primitives/impl/computed-signal-impl';
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
-import { AsyncSignalFlags, EffectProperty } from '../reactive-primitives/types';
+import { EffectProperty } from '../reactive-primitives/types';
 import { isSignal } from '../reactive-primitives/utils';
 import { isQwikComponent } from '../shared/component.public';
 import { Fragment } from '../shared/jsx/jsx-runtime';
@@ -17,7 +16,6 @@ import {
   SSRStreamBlock,
   type SSRStreamChildren,
 } from '../shared/jsx/utils.public';
-import { type SerializationContext } from '../shared/serdes/index';
 import { DEBUG_TYPE, VirtualType } from '../shared/types';
 import { isAsyncGenerator } from '../shared/utils/async-generator';
 import { EMPTY_OBJ } from '../shared/utils/flyweight';
@@ -149,7 +147,6 @@ function processJSXNode(
         enqueue(value[i]);
       }
     } else if (isSignal(value)) {
-      maybeAddPollingAsyncSignalToEagerResume(ssr.serializationCtx, value);
       ssr.openFragment(isDev ? { [DEBUG_TYPE]: VirtualType.WrappedSignal } : EMPTY_OBJ);
       const signalNode = ssr.getOrCreateLastNode();
       const unwrappedSignal = value instanceof WrappedSignalImpl ? value.$unwrapIfSignal$() : value;
@@ -363,25 +360,6 @@ function processJSXNode(
           }
         }
       }
-    }
-  }
-}
-
-function maybeAddPollingAsyncSignalToEagerResume(
-  serializationCtx: SerializationContext,
-  signal: unknown
-) {
-  // Unwrap if it's a WrappedSignalImpl
-  const unwrappedSignal = signal instanceof WrappedSignalImpl ? signal.$unwrapIfSignal$() : signal;
-
-  if (unwrappedSignal instanceof ComputedSignalImpl) {
-    const expires = unwrappedSignal.$expires$;
-    // Don't check for $effects$ here - effects are added later during tracking.
-    // The AsyncSignal's polling mechanism will check for effects before scheduling.
-    // Only eager-resume for polling signals, not stale-only ones.
-    if (expires && !(unwrappedSignal.$flags$ & AsyncSignalFlags.NO_POLL)) {
-      serializationCtx.$addRoot$(unwrappedSignal);
-      serializationCtx.$eagerResume$.add(unwrappedSignal);
     }
   }
 }

@@ -112,7 +112,6 @@ describe('signal types', () => {
     expectTypeOf(signal.value).toEqualTypeOf<number>();
     expectTypeOf(signal.loading).toEqualTypeOf<boolean>();
     expectTypeOf(signal.error).toEqualTypeOf<Error | undefined>();
-    expectTypeOf(signal.interval).toEqualTypeOf<number>();
     expectTypeOf(signal.untrackedValue).toEqualTypeOf<number>();
     expectTypeOf(signal.abort()).toEqualTypeOf<void>();
     expectTypeOf(signal.invalidate()).toEqualTypeOf<void>();

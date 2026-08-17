@@ -113,7 +113,7 @@ export function loaderHandler(
       return;
     }
 
-    await sendLoaderResponse(requestEv, data, loader);
+    await sendLoaderResponse(requestEv, data, loader, responseData.e !== undefined);
   };
 }
 
@@ -158,11 +158,14 @@ function resolvePreETag(
 async function sendLoaderResponse(
   requestEv: RequestEventInternal,
   data: string,
-  loader?: LoaderInternal
+  loader?: LoaderInternal,
+  isErrorEnvelope = false
 ) {
   requestEv.headers.set('Content-Type', 'application/json; charset=utf-8');
   addVaryHeader(requestEv, FULLPATH_HEADER);
-  if (loader?.__expires && loader.__expires > 0) {
+  if (isErrorEnvelope) {
+    requestEv.cacheControl({ noStore: true });
+  } else if (loader?.__expires && loader.__expires > 0) {
     requestEv.cacheControl({ maxAge: Math.ceil(loader.__expires / 1000), private: true });
   }
   requestEv.send(200, data);

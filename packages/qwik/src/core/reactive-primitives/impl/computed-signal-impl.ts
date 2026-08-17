@@ -263,8 +263,12 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
       return this.$untrackedValue$;
     }
     if (this.$untrackedError$) {
-      DEBUG && log('Throwing error while reading value', this);
-      throw this.$untrackedError$;
+      if (this.$untrackedValue$ === NEEDS_COMPUTATION) {
+        DEBUG && log('Throwing error while reading value', this);
+        throw this.$untrackedError$;
+      }
+      DEBUG && log('Returning stale value while errored', this);
+      return this.$untrackedValue$;
     }
     // For clientOnly signals without initial value during SSR, throw if trying to read value
     // During SSR, clientOnly signals are skipped, so there's no computed value available
@@ -717,8 +721,6 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
       return;
     }
     this.untrackedError = error;
-    // Job failures should be rare and require retrying
-    this.untrackedValue = NEEDS_COMPUTATION;
   }
 
   /** Called after SSR/unmount */

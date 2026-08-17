@@ -1470,6 +1470,42 @@ describe('shared-serialization', () => {
       expect((restored as AsyncSignalImpl<number>).$concurrency$).toBe(3);
       expect((restored as AsyncSignalImpl<number>).$timeoutMs$).toBe(1000);
     });
+    it(`${title(TypeIds.AsyncSignal)} errored: resumes settled and .value throws the restored error`, async () => {
+      const asyncSignal = createAsync$(async () => {
+        throw new Error('ssr boom');
+      });
+      await (asyncSignal as AsyncSignalImpl<never>).promise().catch(() => {});
+      const objs = await serialize(asyncSignal);
+      const restored = deserialize(objs)[0] as AsyncSignalImpl<number>;
+      expect(restored.$flags$ & ComputedSignalFlags.INVALID).toBeFalsy();
+      expect(restored.untrackedError?.message).toBe('ssr boom');
+      let thrown: unknown;
+      try {
+        restored.value;
+      } catch (e) {
+        thrown = e;
+      }
+      expect(thrown).toBe(restored.untrackedError);
+    });
+    it(`${title(TypeIds.AsyncSignal)} errored with a stale value: resumes with both`, async () => {
+      const ref = { fail: false };
+      const asyncSignal = createAsync$(async () => {
+        if (ref.fail) {
+          throw new Error('later boom');
+        }
+        return 7;
+      });
+      await asyncSignal.promise();
+      ref.fail = true;
+      await asyncSignal.invalidate();
+      await (asyncSignal as AsyncSignalImpl<number>).promise().catch(() => {});
+
+      const objs = await serialize(asyncSignal);
+      const restored = deserialize(objs)[0] as AsyncSignalImpl<number>;
+      expect(restored.$flags$ & ComputedSignalFlags.INVALID).toBeFalsy();
+      expect(restored.value).toBe(7);
+      expect(restored.untrackedError?.message).toBe('later boom');
+    });
     // this requires a domcontainer
     it(title(TypeIds.Store), async () => {
       const orig: any = { a: { b: true } };

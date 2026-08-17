@@ -74,6 +74,7 @@ export {
   _serialize,
 } from './shared/serdes/index';
 export { SubscriptionPatch as _SubscriptionPatch } from './shared/serdes/subscription-patch';
+export { redactToGeneric as _redactToGeneric } from './shared/error/error-handling';
 export { verifySerializable as _verifySerializable } from './shared/serdes/verify';
 export { _SharedContainer } from './shared/shared-container';
 export { _CONST_PROPS, _IMMUTABLE, _UNINITIALIZED, _VAR_PROPS } from './shared/utils/constants';

@@ -309,8 +309,8 @@ function* inflateIterator(
       if (hasValue) {
         asyncSignal.$untrackedValue$ = d[6];
       }
-      // can happen when never serialize etc
-      if (asyncSignal.$untrackedValue$ === NEEDS_COMPUTATION) {
+      // can happen when never serialize etc; a restored error is a settled state, not stale
+      if (asyncSignal.$untrackedValue$ === NEEDS_COMPUTATION && !asyncSignal.$untrackedError$) {
         asyncSignal.$flags$ |= ComputedSignalFlags.INVALID;
       }
 

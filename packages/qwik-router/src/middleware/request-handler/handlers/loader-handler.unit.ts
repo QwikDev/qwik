@@ -49,6 +49,29 @@ describe('loaderHandler', () => {
     expect(requestEv.send).toHaveBeenCalledWith(200, expect.any(String));
   });
 
+  it('an error envelope responds no-store instead of the loader max-age', async () => {
+    const requestEv = createRequestEv();
+    const loader = {
+      __id: 'loader-id',
+      __qrl: {
+        call: vi.fn(async () => {
+          throw new Error('loader boom');
+        }),
+      },
+      __validators: undefined,
+      __expires: 1500,
+      __eTag: undefined,
+      __cacheKey: undefined,
+      __search: undefined,
+    };
+
+    await loaderHandler([loader as any])(requestEv as any);
+
+    expect(requestEv.cacheControl).toHaveBeenCalledWith({ noStore: true });
+    expect(requestEv.cacheControl).not.toHaveBeenCalledWith({ maxAge: 2, private: true });
+    expect(requestEv.send).toHaveBeenCalledWith(200, expect.any(String));
+  });
+
   it('passes normalized unquoted eTags to cacheKey callbacks and quotes only response headers', async () => {
     const requestEv = createRequestEv();
     const cacheKey = vi.fn((_ev: any, _eTag: string) => `loader-cache-${Date.now()}`);

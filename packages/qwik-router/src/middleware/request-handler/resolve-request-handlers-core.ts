@@ -52,6 +52,7 @@ import {
 import { HttpStatus } from './http-status-codes';
 import { getQwikRouterServerData } from './response-page';
 import { encoder, isContentType } from './request-utils';
+import { AbortMessage } from './redirect-handler';
 import { ServerError, throwIfControlFlowSignal } from './server-error';
 
 const loadHttpError = () => import('../../runtime/src/http-error');
@@ -345,7 +346,13 @@ function createResolveRequestHandlers() {
           ) as Promise<void>;
         }
       }
-      return allBlockSSRLoaders;
+      // Outcomes abort the response; a plain throw settles the loader's `.error` and rendering
+      // decides how it surfaces.
+      return allBlockSSRLoaders?.catch((err) => {
+        if (err instanceof ServerError || err instanceof AbortMessage) {
+          throw err;
+        }
+      });
     };
   }
 

@@ -1371,21 +1371,6 @@ export const isDev = ${JSON.stringify(isDev)};
     }
   }
 
-  // Root-relative names keep manifests machine-independent; absolute only outside the project.
-  const normalizeChunkGroupName = (entry: string) => {
-    const path = getPath();
-    const normalizedEntry = normalizePath(entry);
-    const absoluteEntry = path.isAbsolute(normalizedEntry)
-      ? normalizedEntry
-      : normalizePath(path.resolve(opts.srcDir ?? opts.rootDir, normalizedEntry));
-    const rootRelativeEntry = normalizePath(path.relative(opts.rootDir, absoluteEntry));
-    const preferredName =
-      !rootRelativeEntry.startsWith('../') && !path.isAbsolute(rootRelativeEntry)
-        ? rootRelativeEntry
-        : absoluteEntry;
-    return sanitizeChunkGroupName(preferredName);
-  };
-
   // Eagerly-loaded contexts stay with their parent rather than grouping into a segment chunk.
   const EAGER_CTX_NAMES = new Set(['qwikify$', 'useVisibleTask$', 'useComputed$']);
   const mergeRelatedSegments = (id: string, ctx: ChunkingContext) => {
@@ -1399,12 +1384,10 @@ export const isDev = ${JSON.stringify(isDev)};
         }
         const { hash } = segment;
         // Group segments by their common entry (or Qwik Insights hash), incl. node_modules qwik libs.
-        const manualName = (opts.entryStrategy as SmartEntryStrategy).manual?.[hash];
-        if (manualName) {
-          return sanitizeChunkGroupName(manualName);
-        }
-        if (segment.entry) {
-          return normalizeChunkGroupName(segment.entry);
+        const chunkName =
+          (opts.entryStrategy as SmartEntryStrategy).manual?.[hash] || segment.entry;
+        if (chunkName) {
+          return sanitizeChunkGroupName(chunkName);
         }
       }
     }

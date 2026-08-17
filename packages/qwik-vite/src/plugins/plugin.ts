@@ -1107,9 +1107,6 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
       }
       const deps = new Set<string>();
       for (const mod of newOutput.modules) {
-        if (mod.segment) {
-          mod.segment.entry = normalizeChunkGroupName(mod.segment.entry, srcDir);
-        }
         // TODO handle noop modules
         if (mod !== module) {
           const key = normalizePath(path.join(srcDir, mod.path));
@@ -1374,15 +1371,13 @@ export const isDev = ${JSON.stringify(isDev)};
     }
   }
 
-  const normalizeChunkGroupName = (entry: string | null | undefined, srcDir: string) => {
-    if (!entry) {
-      return null;
-    }
+  // Root-relative names keep manifests machine-independent; absolute only outside the project.
+  const normalizeChunkGroupName = (entry: string) => {
     const path = getPath();
     const normalizedEntry = normalizePath(entry);
     const absoluteEntry = path.isAbsolute(normalizedEntry)
       ? normalizedEntry
-      : normalizePath(path.resolve(srcDir, normalizedEntry));
+      : normalizePath(path.resolve(opts.srcDir ?? opts.rootDir, normalizedEntry));
     const rootRelativeEntry = normalizePath(path.relative(opts.rootDir, absoluteEntry));
     const preferredName =
       !rootRelativeEntry.startsWith('../') && !path.isAbsolute(rootRelativeEntry)
@@ -1404,11 +1399,12 @@ export const isDev = ${JSON.stringify(isDev)};
         }
         const { hash } = segment;
         // Group segments by their common entry (or Qwik Insights hash), incl. node_modules qwik libs.
-        // segment.entry is already sanitized at transform; a user `manual` name may not be.
-        const chunkName =
-          (opts.entryStrategy as SmartEntryStrategy).manual?.[hash] || segment.entry;
-        if (chunkName) {
-          return sanitizeChunkGroupName(chunkName);
+        const manualName = (opts.entryStrategy as SmartEntryStrategy).manual?.[hash];
+        if (manualName) {
+          return sanitizeChunkGroupName(manualName);
+        }
+        if (segment.entry) {
+          return normalizeChunkGroupName(segment.entry);
         }
       }
     }

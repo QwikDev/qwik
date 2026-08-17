@@ -10,6 +10,18 @@ const LeakRow = component$((props: { label: string; tick: Signal<number> }) => {
   return <li id={`row-${props.label}`}>{props.tick.value}</li>;
 });
 
+const List = component$((props: { tick: Signal<number> }) => {
+  return (
+    <ul>
+      {['a', 'b'].map((label) => (
+        <li id={`row-${label}`} key={label}>
+          {props.tick.value}
+        </li>
+      ))}
+    </ul>
+  );
+});
+
 describe(`${name}: loops`, () => {
   it('updates retained keyed rows and row event captures', async () => {
     const MyComp = () => {
@@ -190,6 +202,41 @@ describe(`${name}: loops`, () => {
     // the row is gone; an effect that outlived it would keep writing to the detached node
     await qwikLoader?.dispatch(container.querySelector('#tick')!, 'click');
     expect(rowB.textContent).toBe('1');
+
+    cleanup();
+  });
+
+  it('stops updating a removed static collection', async () => {
+    const App = component$(() => {
+      const show = useSignal(true);
+      const tick = useSignal(0);
+      return (
+        <div>
+          <button id="hide" onClick$={() => (show.value = false)}>
+            hide
+          </button>
+          <button id="tick" onClick$={() => tick.value++}>
+            tick
+          </button>
+          {show.value && <List tick={tick} />}
+        </div>
+      );
+    });
+
+    const { container, cleanup, qwikLoader } = await render(App, { debug });
+
+    const rowA = container.querySelector('#row-a')!;
+    expect(rowA.textContent).toBe('0');
+
+    await qwikLoader?.dispatch(container.querySelector('#tick')!, 'click');
+    expect(rowA.textContent).toBe('1');
+
+    await qwikLoader?.dispatch(container.querySelector('#hide')!, 'click');
+    expect(container.querySelector('#row-a')).toBeFalsy();
+
+    // the collection is gone; an effect that outlived it would keep writing to the detached node
+    await qwikLoader?.dispatch(container.querySelector('#tick')!, 'click');
+    expect(rowA.textContent).toBe('1');
 
     cleanup();
   });

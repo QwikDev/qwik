@@ -17,6 +17,7 @@ import type { Owner } from '../runtime/owner';
 import { SubscriberKind, type ComputedSubscriber } from '../runtime/subscriber';
 import { getFunctionOrResolve } from '../utils/qrl';
 import type { AsyncCtx, ComputedOptions, ComputedSignal, ComputeCtx } from './public-types';
+import { isSubscriberDisposed } from '../runtime/subscriber';
 
 export type ComputeSignalFn<T> = (ctx: ComputeCtx<T>) => ValueOrPromise<T>;
 export type ComputeSignalQrl<T> = QRL<ComputeSignalFn<T>>;
@@ -87,7 +88,7 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
   }
 
   override get value(): T {
-    if (this.owner !== null) {
+    if (!isSubscriberDisposed(this)) {
       track(this);
     }
     return this.readValue();
@@ -280,7 +281,7 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
   }) as AsyncCtx<T>['track'];
 
   readValue(): T {
-    if (this.owner === null) {
+    if (isSubscriberDisposed(this)) {
       if (this.flags & ComputedFlags.HasValue) {
         return this.v;
       }
@@ -555,7 +556,7 @@ function isServerEnv(): boolean {
 }
 
 export function readComputed<T>(computed: ComputedSubscriber<T>): T {
-  if (computed.owner !== null) {
+  if (!isSubscriberDisposed(computed)) {
     track(computed);
   }
   return (computed as Computed<T>).readValue();

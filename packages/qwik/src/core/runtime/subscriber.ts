@@ -34,8 +34,16 @@ export interface ScheduledSubscriber extends OwnedSubscriber {
   readonly scheduler: TaskScheduler;
 }
 
+/**
+ * Disposal is its own state: a subscriber can be unparented and still live, so liveness reads the
+ * flag rather than the parent pointer.
+ */
+export function isSubscriberDisposed(subscriber: { readonly flags: number }): boolean {
+  return (subscriber.flags & SubscriberFlags.Disposed) !== 0;
+}
+
 export function takeDirty(subscriber: ScheduledSubscriber): boolean {
-  if (subscriber.owner === null || !(subscriber.flags & SubscriberFlags.Dirty)) {
+  if (isSubscriberDisposed(subscriber) || !(subscriber.flags & SubscriberFlags.Dirty)) {
     return false;
   }
 
@@ -114,6 +122,7 @@ export interface SsrDomSubscriber extends Collector, ScheduledSubscriber {
 export interface SsrBranchSubscriber extends Collector {
   readonly kind: SubscriberKind.Branch;
   owner: Owner | null;
+  flags: SubscriberFlags;
   readonly scheduler: null;
   readonly effect: SSRBranch;
 }
@@ -121,6 +130,7 @@ export interface SsrBranchSubscriber extends Collector {
 export interface SsrForBlockSubscriber extends Collector {
   readonly kind: SubscriberKind.ForBlock;
   owner: Owner | null;
+  flags: SubscriberFlags;
   readonly scheduler: null;
   readonly effect: SSRForBlock<any>;
 }
@@ -128,6 +138,7 @@ export interface SsrForBlockSubscriber extends Collector {
 export interface SsrContentSubscriber extends Collector {
   readonly kind: SubscriberKind.Content;
   owner: Owner | null;
+  flags: SubscriberFlags;
   readonly scheduler: null;
   readonly content: SSRContent<any>;
   dispose(): void;

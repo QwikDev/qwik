@@ -41,17 +41,20 @@ function removeSubscriber(source: Source, subscriber: Subscriber): void {
 }
 
 export function disposeSubscriber(subscriber: Subscriber): void {
-  const owner = subscriber.owner;
-  if (owner === null) {
+  if (subscriber.flags & SubscriberFlags.Disposed) {
     return;
   }
+  subscriber.flags |= SubscriberFlags.Disposed;
 
-  detachSubscriberFromOwner(subscriber, owner);
+  const owner = subscriber.owner;
+  if (owner !== null) {
+    detachSubscriberFromOwner(subscriber, owner);
+  }
 
   switch (subscriber.kind) {
     case SubscriberKind.Computed:
       (subscriber as { dispose?: () => void }).dispose?.();
-      subscriber.flags &= ComputedFlags.HasValue;
+      subscriber.flags &= ComputedFlags.HasValue | ComputedFlags.Disposed;
       cleanupDeps(subscriber);
       // Only computed is both a subscriber and a source, so it can retain
       // downstream subscribers after its upstream deps are cleaned.
@@ -75,7 +78,7 @@ export function disposeSubscriber(subscriber: Subscriber): void {
       if (scheduled.kind === SubscriberKind.Dom) {
         scheduled.invalidate();
       }
-      scheduled.flags = SubscriberFlags.None;
+      scheduled.flags = SubscriberFlags.Disposed;
       if (scheduled.kind === SubscriberKind.Task || scheduled.kind === SubscriberKind.VisibleTask) {
         scheduled.task.dispose();
       } else if (scheduled.kind === SubscriberKind.Branch) {
@@ -86,7 +89,7 @@ export function disposeSubscriber(subscriber: Subscriber): void {
       return;
     }
     case SubscriberKind.Idle:
-      subscriber.flags = SubscriberFlags.None;
+      subscriber.flags = SubscriberFlags.Disposed;
       subscriber.job.dispose?.();
       return;
   }

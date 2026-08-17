@@ -20,6 +20,7 @@ import { isDev } from '@qwik.dev/core/build';
 import { SubscriberFlags } from '../../reactive/flags';
 import { cleanupDeps } from '../../reactive/cleanup';
 import { getActiveInvokeContextOrNull } from '../../runtime/invoke-context';
+import { isSubscriberDisposed } from '../../runtime/subscriber';
 
 export type TextExpressionQrl<TArgs extends unknown[] = unknown[]> = QRLInternal<
   (...args: TArgs) => ValueOrPromise<TextExpressionValue>
@@ -187,7 +188,7 @@ export class SsrDomSubscription implements SsrDomSubscriber {
       pendingValue ??
       retryOnPromise(() => {
         cleanupDeps(this);
-        if (this.owner === null) {
+        if (isSubscriberDisposed(this)) {
           return;
         }
         if (effect instanceof SsrAttrEffect) {
@@ -217,7 +218,7 @@ export class SsrDomSubscription implements SsrDomSubscriber {
     this.cancelAsync = cancel;
     return Promise.race([
       promise.then((value) => {
-        if (this.owner !== null && this.cancelAsync === cancel) {
+        if (!isSubscriberDisposed(this) && this.cancelAsync === cancel) {
           commit(value);
         }
       }),
@@ -234,6 +235,7 @@ export class SSRForBlockSubscription<T = unknown> implements SsrForBlockSubscrib
   readonly kind = SubscriberKind.ForBlock;
   readonly scheduler = null;
   owner: Owner | null = null;
+  flags = SubscriberFlags.None;
   deps: Source[] | null = null;
 
   constructor(readonly block: SSRForBlock<T>) {}

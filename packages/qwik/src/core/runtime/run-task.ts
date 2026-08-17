@@ -7,6 +7,7 @@ import { isPromise, maybeThen, retryOnPromise } from '../shared/utils/promises';
 import type { ValueOrPromise } from '../shared/utils/types';
 import type { Task, TaskCleanupFn, VisibleTask } from './task';
 import { takeDirty, type TaskSubscriber, type VisibleTaskSubscriber } from './subscriber';
+import { isSubscriberDisposed } from './subscriber';
 
 export function runTaskSubscriber(
   subscriber: TaskSubscriber | VisibleTaskSubscriber
@@ -102,7 +103,7 @@ export function runTaskCleanups(task: Task | VisibleTask): ValueOrPromise<void> 
 
 function finishTaskRun(subscriber: TaskSubscriber | VisibleTaskSubscriber): void {
   subscriber.runPromise = null;
-  if (subscriber.owner !== null && subscriber.flags & SubscriberFlags.Dirty) {
+  if (!isSubscriberDisposed(subscriber) && subscriber.flags & SubscriberFlags.Dirty) {
     subscriber.scheduler.notify(subscriber);
   }
 }

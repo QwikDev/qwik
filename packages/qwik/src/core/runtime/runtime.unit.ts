@@ -500,10 +500,11 @@ describe('runtime scheduler and owner lifecycle', () => {
     disposeSubscriber(first);
     expect(owner.items).toBe(second);
 
+    // re-attaching a disposed subscriber does not revive it: disposal is terminal
     registerSubscriberToOwner(first, owner);
     disposeOwner(owner);
 
-    expect(order).toEqual(['first', 'first', 'second']);
+    expect(order).toEqual(['first', 'second']);
     expect(owner.items).toBeNull();
   });
 

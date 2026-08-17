@@ -5,6 +5,7 @@ import {
   setActiveInvokeContext,
   type RuntimeInvokeContext,
 } from '../runtime/invoke-context';
+import { isSubscriberDisposed } from '../runtime/subscriber';
 
 let activeCollector: CollectorSubscriber | null = null;
 
@@ -17,7 +18,7 @@ export function _await<T>(value: T | PromiseLike<T>): Promise<() => Awaited<T>> 
   const invokeContext = getActiveInvokeContextOrNull();
 
   const resume = (value: unknown, rejected: boolean) => () => {
-    const restored = collector?.owner === null ? null : collector;
+    const restored = collector !== null && isSubscriberDisposed(collector) ? null : collector;
     activeCollector = restored;
     setActiveInvokeContext(invokeContext);
 

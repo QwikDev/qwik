@@ -8,6 +8,7 @@ import { defaultScheduler, type Scheduler } from '../../runtime/scheduler';
 import { SubscriberKind, type DomSubscriber } from '../../runtime/subscriber';
 import { retryOnPromise } from '../../shared/utils/promises';
 import type { ValueOrPromise } from '../../shared/utils/types';
+import { isSubscriberDisposed } from '../../runtime/subscriber';
 
 export interface DomEffect {
   run(): ValueOrPromise<void>;
@@ -39,13 +40,15 @@ export class DomSubscription implements DomSubscriber {
   }
 
   run(): ValueOrPromise<void> {
-    if (this.owner === null) {
+    if (isSubscriberDisposed(this)) {
       return;
     }
     this.invalidate();
     return retryOnPromise(() => {
       cleanupDeps(this);
-      return this.owner === null ? undefined : runWithCollector1(this, runDomEffect, this.effect);
+      return isSubscriberDisposed(this)
+        ? undefined
+        : runWithCollector1(this, runDomEffect, this.effect);
     });
   }
 
@@ -56,7 +59,7 @@ export class DomSubscription implements DomSubscriber {
     }));
     const pending = Promise.race([
       promise.then((value) => {
-        if (this.owner !== null && generation === this.asyncGeneration) {
+        if (!isSubscriberDisposed(this) && generation === this.asyncGeneration) {
           commit(value);
         }
       }),

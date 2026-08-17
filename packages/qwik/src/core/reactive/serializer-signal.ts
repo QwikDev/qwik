@@ -7,6 +7,7 @@ import { markComputedDirty } from './notify';
 import { getFunctionOrResolve } from '../utils/qrl';
 import type { SerializerArg, SerializerArgObject } from './public-types';
 import { NEEDS_COMPUTATION } from './constants';
+import { isSubscriberDisposed } from '../runtime/subscriber';
 
 export type SerializerSignalQrl<T, S> = QRLInternal<SerializerArg<T, S>>;
 export type SerializerArgObjectWithInitial<T, S> = SerializerArgObject<T, S> & { initial: S };
@@ -51,7 +52,7 @@ export class SerializerSignal<T, S = unknown> extends Computed<T> {
   }
 
   invalidate(): void {
-    if (this.owner === null) {
+    if (isSubscriberDisposed(this)) {
       this.flags |= ComputedFlags.Dirty;
       return;
     }

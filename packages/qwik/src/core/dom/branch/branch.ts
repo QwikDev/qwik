@@ -30,6 +30,7 @@ import { getFunctionOrResolve } from '../../utils/qrl';
 import { replaceRange } from '../range/range';
 import type { SsrOutput } from '../../ssr/output';
 import { reapplyUseOnContexts } from '../../runtime/use-on';
+import { isSubscriberDisposed } from '../../runtime/subscriber';
 
 type BranchConditionFn = () => ValueOrPromise<boolean>;
 type BranchHandlerFn = (ctx: ContainerContext, id?: string) => ValueOrPromise<MaybeNodeOutput>;
@@ -122,14 +123,14 @@ export class BranchSubscription implements BranchSubscriber {
     const conditionFn = getFunctionOrResolve(this.branch.conditionFn, this.branch.container);
 
     return maybeThen(conditionFn, (conditionFn) => {
-      if (this.owner === null) {
+      if (isSubscriberDisposed(this)) {
         return;
       }
       const condition = retryOnPromise(() =>
         runWithCollector(this, () => invoke(this.branch.invokeContext, conditionFn))
       );
       return maybeThen(condition, (condition) => {
-        if (this.owner === null) {
+        if (isSubscriberDisposed(this)) {
           return;
         }
         const nextBranch = condition ? BranchState.Then : BranchState.Else;
@@ -142,7 +143,7 @@ export class BranchSubscription implements BranchSubscriber {
           this.branch.container
         );
         return maybeThen(renderer, (renderer) => {
-          if (this.owner === null) {
+          if (isSubscriberDisposed(this)) {
             return;
           }
           if (renderer === undefined) {
@@ -164,7 +165,7 @@ export class BranchSubscription implements BranchSubscriber {
                 )
               ),
             (nodes) => {
-              if (this.owner === null) {
+              if (isSubscriberDisposed(this)) {
                 if (invokeContext.owner !== null) {
                   disposeOwner(invokeContext.owner);
                   invokeContext.owner = null;
@@ -278,6 +279,7 @@ export class SSRBranchSubscription implements SsrBranchSubscriber {
   readonly kind = SubscriberKind.Branch;
   readonly scheduler = null;
   owner: Owner | null = null;
+  flags = SubscriberFlags.None;
   deps: Source[] | null = null;
 
   constructor(readonly branch: SSRBranch) {}

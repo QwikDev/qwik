@@ -2,6 +2,7 @@ import { resolveLazySubscribers } from './lazy-serialized';
 import type { Source } from './source';
 import { ComputedFlags } from './flags';
 import { SubscriberKind, type ComputedSubscriber, type Subscriber } from '../runtime/subscriber';
+import { isSubscriberDisposed } from '../runtime/subscriber';
 
 export function notifySourceSubscribers(source: Source): void {
   if (resolveLazySubscribers(source, () => notifySourceSubscribers(source))) {
@@ -44,7 +45,7 @@ function notifySubscriber(subscriber: Subscriber): void {
 }
 
 export function markComputedDirty(computed: ComputedSubscriber): void {
-  if (computed.owner === null || computed.flags & ComputedFlags.Dirty) {
+  if (isSubscriberDisposed(computed) || computed.flags & ComputedFlags.Dirty) {
     return;
   }
 

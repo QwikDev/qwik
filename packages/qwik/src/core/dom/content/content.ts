@@ -34,6 +34,7 @@ import type { SsrOutput } from '../../ssr/output';
 import { replaceRange } from '../range/range';
 import { reapplyUseOnContexts } from '../../runtime/use-on';
 import type { BranchRange } from '../branch/branch';
+import { isSubscriberDisposed } from '../../runtime/subscriber';
 
 export type ContentOutput = MaybeNodeOutput | string | number | bigint | boolean;
 type ContentFn<TArgs extends unknown[] = unknown[]> = (
@@ -129,7 +130,7 @@ export class ContentBlock<TArgs extends unknown[] = unknown[]> {
 
   run(subscription: ContentSubscription<TArgs>): ValueOrPromise<readonly Node[]> {
     return maybeThen(getFunctionOrResolve(this.fn, this.container), (fn) => {
-      if (subscription.owner === null) {
+      if (isSubscriberDisposed(subscription)) {
         return EMPTY_NODES;
       }
       const invokeContext = newChildInvokeContext(this.invokeContext, {
@@ -152,7 +153,7 @@ export class ContentBlock<TArgs extends unknown[] = unknown[]> {
           if (this.pendingContext === invokeContext) {
             this.pendingContext = null;
           }
-          if (subscription.owner === null) {
+          if (isSubscriberDisposed(subscription)) {
             if (invokeContext.owner !== null) {
               disposeOwner(invokeContext.owner);
               invokeContext.owner = null;
@@ -222,7 +223,7 @@ export class ContentSubscription<TArgs extends unknown[] = unknown[]> implements
   ) {}
 
   run(): ValueOrPromise<readonly Node[]> {
-    return this.owner === null ? EMPTY_NODES : this.block.run(this);
+    return isSubscriberDisposed(this) ? EMPTY_NODES : this.block.run(this);
   }
 
   dispose(): void {
@@ -279,12 +280,12 @@ export function createSuspense(
       return;
     }
     group.resolve(index);
-    if (group.canReveal(index) || subscription.owner === null) {
+    if (group.canReveal(index) || isSubscriberDisposed(subscription)) {
       return;
     }
     range.replace(EMPTY_NODES);
     group.whenRevealable(index, () => {
-      if (subscription.owner !== null) {
+      if (!isSubscriberDisposed(subscription)) {
         range.replace(nodes);
       }
     });
@@ -313,7 +314,7 @@ export function createSuspense(
     disposeFallback();
   };
   const showFallback = () => {
-    if (!isPending || subscription.owner === null || fallbackQrl === undefined) {
+    if (!isPending || isSubscriberDisposed(subscription) || fallbackQrl === undefined) {
       finish();
       return;
     }
@@ -329,7 +330,7 @@ export function createSuspense(
     const work = safeCall(
       () =>
         maybeThen(getFunctionOrResolve(fallbackQrl, ctx), (fallback) => {
-          if (!isPending || subscription.owner === null) {
+          if (!isPending || isSubscriberDisposed(subscription)) {
             finish();
             return;
           }
@@ -337,7 +338,7 @@ export function createSuspense(
           // The fallback may still be rendering, so materialize the owner instead of reading it.
           subscription.block.currentOwner = getOrCreateContextOwner(invokeContext);
           return maybeThen(output, (output) => {
-            if (!isPending || subscription.owner === null) {
+            if (!isPending || isSubscriberDisposed(subscription)) {
               finish();
               return;
             }
@@ -411,7 +412,7 @@ export class SSRContent<TArgs extends unknown[] = unknown[]> {
           ),
         (output) => {
           this.isPending = false;
-          if (subscription.owner === null) {
+          if (isSubscriberDisposed(subscription)) {
             if (invokeContext.owner !== null) {
               disposeOwner(invokeContext.owner);
               invokeContext.owner = null;
@@ -440,6 +441,7 @@ export class SSRContentSubscription<
   readonly kind = SubscriberKind.Content;
   readonly scheduler = null;
   owner: Owner | null = null;
+  flags = SubscriberFlags.None;
   deps: Source[] | null = null;
 
   constructor(readonly content: SSRContent<TArgs>) {}

@@ -77,11 +77,13 @@ export default defineConfig((): UserConfig => {
       minify: false,
       rolldownOptions: {
         output: {
-          manualChunks: (id) => {
-            // Put library code in separate chunks
-            if (id.includes('vendor-lib')) {
-              return id;
-            }
+          codeSplitting: {
+            groups: [
+              {
+                // Put library code in separate chunks
+                name: (id) => (id.includes('vendor-lib') ? id.split('/').pop()! : null),
+              },
+            ],
           },
         },
       },

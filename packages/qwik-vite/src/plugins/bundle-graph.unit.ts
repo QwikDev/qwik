@@ -3,7 +3,9 @@ import path from 'node:path';
 import { describe, expect, test } from 'vitest';
 import { generateManifestFromBundles } from '../manifest';
 import { convertManifestToBundleGraph } from './bundle-graph';
-// You can generate this file by uncommenting the writing code in manifest.ts, building, running `pnpm build.client` in the e2e/qwik-e2e/apps/preloader-test dir and moving the output
+// Frozen sample from an old, smaller preloader-test build; kept as-is so the snapshots stay reviewable.
+// Regenerating (uncomment the writing code in manifest.ts, build, run `pnpm build.client` in
+// e2e/qwik-e2e/apps/preloader-test, move the output) now yields 300+ bundles from the counters.
 import outputBundles from './fixture-output-bundles.json';
 
 describe('convertManifestToBundleGraph', () => {

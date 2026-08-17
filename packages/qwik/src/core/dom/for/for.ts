@@ -90,6 +90,7 @@ export class ForBlock<T = unknown> {
   indexSignals: Array<Signal<number> | null> | null;
   resumeIndexSignals: Array<Signal<number> | null> | null = null;
   resumeItems: readonly T[] | null = null;
+  resumeOwners: Array<Owner | null> | null = null;
   readonly rowInvokeContext: RuntimeInvokeContext;
 
   constructor(
@@ -487,7 +488,7 @@ export class ForBlock<T = unknown> {
       rows[i] = Array.isArray(rowRange)
         ? createRangeRow(rowRange[0], rowRange[1])
         : (rowRange as Element);
-      owners[i] = null;
+      owners[i] = this.resumeOwners?.[i] ?? null;
       if (indexSignals !== null) {
         indexSignals[i] = this.resumeIndexSignals?.[i] ?? new Signal(i);
       }
@@ -495,6 +496,7 @@ export class ForBlock<T = unknown> {
 
     this.commitRows(keys, rows, owners, indexSignals);
     this.resumeItems = null;
+    this.resumeOwners = null;
     this.resumeIndexSignals = null;
   }
 
@@ -853,9 +855,14 @@ export class SSRForBlock<T = unknown> {
     this.indexSignals = usesIndexSignal ? [] : null;
   }
 
+  listOwner: Owner | null = null;
+  /** Row owners in row order, so resume can dispose a row's effects with the row. */
+  readonly rowOwners: Array<Owner | null> = [];
+
   run(): ValueOrPromise<SsrOutput> {
     const subscription = registerSubscriberToOwner(new SSRForBlockSubscription(this));
-    const listOwner = createOwner(subscription.owner);
+    // rows render under this owner, so resume needs it to dispose a row's effects with the row
+    const listOwner = (this.listOwner = createOwner(subscription.owner));
     const keyFn =
       this.keyQrl == null ? indexKeyFn : getFunctionOrResolve(this.keyQrl, this.container);
     return maybeThen(keyFn, (keyFn) => {
@@ -923,6 +930,7 @@ export class SSRForBlock<T = unknown> {
         if (isPromise(rowOutput)) {
           return Promise.resolve(rowOutput).then(
             (rowOutput) => {
+              this.rowOwners.push(invokeContext.owner);
               output.push(rowOutput);
               return renderNext(i + 1);
             },
@@ -932,6 +940,7 @@ export class SSRForBlock<T = unknown> {
             }
           );
         }
+        this.rowOwners.push(invokeContext.owner);
         output.push(rowOutput);
       }
 

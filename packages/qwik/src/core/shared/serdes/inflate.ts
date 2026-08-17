@@ -582,7 +582,7 @@ async function restoreForBlockSubscription(
   >;
   const usesIndexSignal = parts[5] as boolean;
   const slotScope = (parts[6] as SlotScope | null | undefined) ?? null;
-  const useOnScopes = parts[7] as UseOnMap[] | null | undefined;
+  const rowOwners = (parts[7] as Array<Owner | null> | null | undefined) ?? null;
   const indexSignals =
     (parts[8] as Array<ReactiveSignal<number> | null> | null | undefined) ?? null;
   const idBase = (parts[9] as string | null | undefined) ?? '';
@@ -597,9 +597,10 @@ async function restoreForBlockSubscription(
   }
 
   const listOwner = createOwner(subscription.owner);
+  // the rows rendered under the list owner, so adopting them keeps that tree across resume
+  rowOwners?.forEach((rowOwner) => rowOwner && registerOwnerToOwner(rowOwner, listOwner));
   const invokeContext = await restoreInvokeContext(container, markerRange[0]);
   invokeContext.slotScope = slotScope;
-  restoreUseOnScopes(invokeContext, useOnScopes);
   const block = new ForBlock(
     new ForRange(container.document, markerRange[0], markerRange[1]),
     deps[0] as Source<readonly unknown[]>,
@@ -613,6 +614,7 @@ async function restoreForBlockSubscription(
     rowShape
   );
   block.resumeItems = readSourceValue(deps[0] as Source<readonly unknown[]>) ?? [];
+  block.resumeOwners = rowOwners;
   block.resumeIndexSignals = indexSignals;
 
   subscription.block = block;

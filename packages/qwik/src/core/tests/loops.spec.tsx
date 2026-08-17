@@ -1,10 +1,14 @@
-import { useSignal } from '@qwik.dev/core';
+import { component$, useSignal, type Signal } from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
 import { testRenderer } from '../test-utils';
 
 const debug = false;
 
 const { name, render } = testRenderer;
+
+const LeakRow = component$((props: { label: string; tick: Signal<number> }) => {
+  return <li id={`row-${props.label}`}>{props.tick.value}</li>;
+});
 
 describe(`${name}: loops`, () => {
   it('updates retained keyed rows and row event captures', async () => {
@@ -148,6 +152,45 @@ describe(`${name}: loops`, () => {
     const { container, cleanup } = await render(MyComp, { debug });
 
     expect(container.querySelector('p')?.textContent).toBe('Alpha!Beta!');
+    cleanup();
+  });
+
+  it('stops updating a removed row', async () => {
+    const App = component$(() => {
+      const items = useSignal(['a', 'b']);
+      const tick = useSignal(0);
+      return (
+        <div>
+          <button id="drop" onClick$={() => (items.value = items.value.slice(0, 1))}>
+            drop
+          </button>
+          <button id="tick" onClick$={() => tick.value++}>
+            tick
+          </button>
+          <ul>
+            {items.value.map((label) => (
+              <LeakRow key={label} label={label} tick={tick} />
+            ))}
+          </ul>
+        </div>
+      );
+    });
+
+    const { container, cleanup, qwikLoader } = await render(App, { debug });
+
+    const rowB = container.querySelector('#row-b')!;
+    expect(rowB.textContent).toBe('0');
+
+    await qwikLoader?.dispatch(container.querySelector('#tick')!, 'click');
+    expect(rowB.textContent).toBe('1');
+
+    await qwikLoader?.dispatch(container.querySelector('#drop')!, 'click');
+    expect(container.querySelector('#row-b')).toBeFalsy();
+
+    // the row is gone; an effect that outlived it would keep writing to the detached node
+    await qwikLoader?.dispatch(container.querySelector('#tick')!, 'click');
+    expect(rowB.textContent).toBe('1');
+
     cleanup();
   });
 });

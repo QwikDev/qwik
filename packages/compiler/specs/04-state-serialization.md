@@ -95,18 +95,18 @@ Payload = the odd slot; `[a, b, …]` is a nested array whose items are themselv
 kinds (0, 1, 2, 4, 8) a `markerIndex` field is inserted **only** when
 `targetKind === RangeText`, shifting later fields by one.
 
-| kind                | payload                                                                                                                                                      |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 0 TextNode          | `[0, targetKind, targetId, (markerIndex,) deps]`                                                                                                             |
-| 1 TextExpression    | `[1, targetKind, targetId, (markerIndex,) deps, args, qrl]`                                                                                                  |
-| 2 Attr (plain)      | `[2, targetKind, targetId, (markerIndex,) deps, name, styleScopedId]`                                                                                        |
-| 2 Attr (expression) | `[2, targetKind, targetId, (markerIndex,) deps, name, args, qrl, styleScopedId]` — distinguished by payload length                                           |
-| 3 Branch            | `[3, rangeId, currentBranch, deps, conditionQrl, thenQrl, elseQrl\|null, ownerItems, slotScope\|null, useOnScopes\|null, idBase]`                            |
-| 4 Props             | `[4, targetKind, targetId, (markerIndex,) deps, args, qrl, styleScopedId]`                                                                                   |
-| 5 ForBlock          | `[5, rangeId, deps, keyQrl, renderQrl, usesIndexSignal, slotScope\|null, null, indexSignals, idBase, rowShape]` — slot 7 always `null`; `rowShape` default 3 |
-| 6 DomBatch          | `[6, deps, [scalarPayload0, …]]` — each item a full scalar payload with its own deps                                                                         |
-| 7 Content           | `[7, rangeId, deps, args, qrl, ownerItems, slotScope\|null, useOnScopes\|null, contextArg]`                                                                  |
-| 8 Event             | `[8, targetKind, targetId, (markerIndex,) deps, name, args, qrl, before, after]`                                                                             |
+| kind                | payload                                                                                                                                                                                                         |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0 TextNode          | `[0, targetKind, targetId, (markerIndex,) deps]`                                                                                                                                                                |
+| 1 TextExpression    | `[1, targetKind, targetId, (markerIndex,) deps, args, qrl]`                                                                                                                                                     |
+| 2 Attr (plain)      | `[2, targetKind, targetId, (markerIndex,) deps, name, styleScopedId]`                                                                                                                                           |
+| 2 Attr (expression) | `[2, targetKind, targetId, (markerIndex,) deps, name, args, qrl, styleScopedId]` — distinguished by payload length                                                                                              |
+| 3 Branch            | `[3, rangeId, currentBranch, deps, conditionQrl, thenQrl, elseQrl\|null, ownerItems, slotScope\|null, useOnScopes\|null, idBase]`                                                                               |
+| 4 Props             | `[4, targetKind, targetId, (markerIndex,) deps, args, qrl, styleScopedId]`                                                                                                                                      |
+| 5 ForBlock          | `[5, rangeId, deps, keyQrl, renderQrl, usesIndexSignal, slotScope\|null, rowOwners\|null, indexSignals, idBase, rowShape]` — `rowOwners` is row-ordered, `null` per row that owns nothing; `rowShape` default 3 |
+| 6 DomBatch          | `[6, deps, [scalarPayload0, …]]` — each item a full scalar payload with its own deps                                                                                                                            |
+| 7 Content           | `[7, rangeId, deps, args, qrl, ownerItems, slotScope\|null, useOnScopes\|null, contextArg]`                                                                                                                     |
+| 8 Event             | `[8, targetKind, targetId, (markerIndex,) deps, name, args, qrl, before, after]`                                                                                                                                |
 
 Note `Branch`/`ForBlock`/`Content` carry a `rangeId` at index 1 and **no** `EffectTargetKind`.
 

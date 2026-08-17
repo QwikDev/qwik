@@ -1125,7 +1125,7 @@ function serializeForBlockSubscription(subscription: SsrForBlockSubscription): u
     effect.renderQrl,
     effect.usesIndexSignal,
     effect.invokeContext?.slotScope ?? null,
-    null,
+    effect.rowOwners,
     effect.indexSignals,
     effect.idBase,
     effect.rowShape,

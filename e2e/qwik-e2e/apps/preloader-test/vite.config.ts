@@ -80,11 +80,18 @@ export default defineConfig((): UserConfig => {
           codeSplitting: {
             groups: [
               {
-                // Put library code in separate chunks
-                name: (id) => (id.includes('vendor-lib') ? id.split('/').pop()! : null),
+                name: (id) => {
+                  if (id.includes('vendor-lib')) {
+                    return 'vendor';
+                  }
+                },
               },
             ],
           },
+          comments: true,
+        },
+        experimental: {
+          attachDebugInfo: 'full',
         },
       },
     },

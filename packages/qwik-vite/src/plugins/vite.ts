@@ -314,6 +314,12 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             external: ['node:async_hooks'],
             // This will amend the existing input
             input,
+            experimental: {
+              // Rolldown's default 'simple' writes provenance comments into unminified output,
+              // which lib builds publish.
+              attachDebugInfo:
+                viteConfig.build?.rolldownOptions?.experimental?.attachDebugInfo ?? 'none',
+            },
           },
         },
         worker: getQwikWorkerConfig(viteConfig.worker, target, viteCommand),

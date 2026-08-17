@@ -631,6 +631,21 @@ const immutableLoaderIds = new Set<string>();
 
 export const isImmutableLoader = (loaderId: string) => immutableLoaderIds.has(loaderId);
 
+/**
+ * Invalidate every loader signal on navigation: the browser HTTP cache (driven by each loader's
+ * cacheControl) decides freshness. Unsubscribed signals only mark stale and refetch lazily when
+ * read again. Immutable loaders are skipped — their data cannot change until a rebuild; tracked URL
+ * inputs still invalidate them.
+ */
+export const invalidateNavRouteLoaders = (state: RouteLoaderState) => {
+  for (const id in state) {
+    // The state also holds resumed loader values under prefixed keys, which are not signals
+    if (!id.startsWith(ROUTE_LOADER_VALUE_PREFIX) && !immutableLoaderIds.has(id)) {
+      state[id].invalidate();
+    }
+  }
+};
+
 export const ensureRouteLoaderSignal = (
   loader: LoaderInternal,
   state: RouteLoaderState,

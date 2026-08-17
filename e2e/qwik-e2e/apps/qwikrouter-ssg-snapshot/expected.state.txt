@@ -71,9 +71,7 @@
             Constant undefined
             Constant undefined
             Constant undefined
-            {number} 772
-            Constant NEEDS_COMPUTATION
-            {number} 120000
+            {number} 516
           ]
           Constant '.'
         ]
@@ -365,7 +363,9 @@
 19 RootRef [omitted]
 20 RootRef [omitted]
 21 {string} "ssg-snapshot-loader"
-22 Object 0
+22 Object [
+  {string} "raw"
+]
 23 {string} "__qwik_route_loader_value__ssg-snapshot-loader"
 24 RootRef [omitted]
 25 Array []
@@ -511,7 +511,6 @@
           ]
         ]
       ]
-      Constant undefined
       {number} 0
     ]
     {string} "value"

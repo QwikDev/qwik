@@ -3,6 +3,7 @@ import { _UNINITIALIZED, type SerializationStrategy } from '@qwik.dev/core/inter
 import {
   ensureRouteLoaderSignal,
   getRouteLoaderResponse,
+  invalidateNavRouteLoaders,
   isImmutableLoader,
   loadRouteLoader,
   routeLoaderQrl,
@@ -41,6 +42,25 @@ describe('route loader execution', () => {
 
     expect(isImmutableLoader(immutable.__id)).toBe(true);
     expect(isImmutableLoader(normal.__id)).toBe(false);
+  });
+
+  it('invalidates loader signals on nav, skipping resumed values and immutable loaders', () => {
+    const state = {} as RouteLoaderState;
+    const routeLoaderCtx = { loaderPaths: {} };
+    const immutable = routeLoaderQrl(createQrl('nav-immutable-loader'), {
+      cacheControl: 'immutable',
+    }) as LoaderInternal;
+    const normal = createLoader('nav-normal-loader', async () => undefined);
+
+    ensureRouteLoaderSignal(immutable, state, routeLoaderCtx);
+    ensureRouteLoaderSignal(normal, state, routeLoaderCtx);
+    const immutableInvalidate = vi.spyOn(state[immutable.__id], 'invalidate');
+    const normalInvalidate = vi.spyOn(state['nav-normal-loader'], 'invalidate');
+
+    invalidateNavRouteLoaders(state);
+
+    expect(normalInvalidate).toHaveBeenCalledOnce();
+    expect(immutableInvalidate).not.toHaveBeenCalled();
   });
 
   it('memoizes in-flight loader executions on the request', async () => {

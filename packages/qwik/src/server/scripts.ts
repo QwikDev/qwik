@@ -52,5 +52,5 @@ export function getQwikOutOfOrderExecutorScript(opts: { debug?: boolean } = {}) 
   // OOOS uses classic scripts so qO() can run synchronously in stream order. Wrap the
   // whole executor so multiple streamed containers can include it without redeclaring
   // top-level consts; the first installed executor services every container.
-  return `if(!globalThis.qO||globalThis.qO.d!==document){${script}}`;
+  return `if(!globalThis.qO||globalThis.qO.d!==document){${script}\n}`;
 }

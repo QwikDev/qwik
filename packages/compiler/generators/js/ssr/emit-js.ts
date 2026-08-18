@@ -2417,8 +2417,21 @@ class JsComponentGenerator {
         if (segmentId === undefined) {
           // signal attr: segment-less signal/binding read subscribes the attribute directly
           const ir = valueIr(item.value);
-          if (ir === undefined || (ir.kind !== 'signal-read' && ir.kind !== 'binding-read')) {
+          if (ir === undefined) {
             return false;
+          }
+          if (ir.kind !== 'signal-read' && ir.kind !== 'binding-read') {
+            // a value fixed at render time needs no subscription, only normalizing once
+            const fixed = `attr_${this.nextTemp++}`;
+            this.imports.add(QwikWord.RenderDomPropsToString);
+            this.pushStep(
+              fixed,
+              [],
+              `${QwikWord.RenderDomPropsToString}({ ${JSON.stringify(item.name)}: ${this.irJs(ir)} }${attrScopeArgs(scope)})`,
+              this.claimId(idVariable)
+            );
+            open.push(`...${fixed}.attrs`);
+            return true;
           }
           const signal = this.local(ir.binding);
           const step = `attr_${this.nextTemp++}`;

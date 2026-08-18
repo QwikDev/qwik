@@ -2370,9 +2370,12 @@ class SemanticLowerer {
     if (segment !== null) {
       this.referenceSegment(segment, lifetimeId);
     }
-    const render = this.withInitialOnlyBinding(
-      collectionSourceKind === 'direct-array' ? collection.indexBindingId : null,
-      () =>
+    // a direct array never reorders, so the index is fixed; the item is only fixed when the
+    // elements are primitives — an object literal can still be read from asynchronously
+    const directArray = collectionSourceKind === 'direct-array';
+    const staticItem = directArray && isPrimitiveArrayLiteral(collection.source);
+    const render = this.withInitialOnlyBinding(staticItem ? collection.itemBindingId : null, () =>
+      this.withInitialOnlyBinding(directArray ? collection.indexBindingId : null, () =>
         this.withRenderSegment(segmentId, () => {
           const effects: RenderEffectPlan[] = [];
           return {
@@ -2380,6 +2383,7 @@ class SemanticLowerer {
             effects,
           } satisfies RenderPlan;
         })
+      )
     );
     const referenceBindingIds = this.renderReferenceBindingIds(render, setup);
     if (
@@ -4624,6 +4628,20 @@ function containsAwait(node: unknown): boolean {
     found ||= child.type === 'AwaitExpression';
   });
   return found;
+}
+
+/** An array literal of primitives: every row value is fixed and carries nothing to read from. */
+function isPrimitiveArrayLiteral(value: unknown): boolean {
+  const node = unwrapExpression(value);
+  if (node?.type !== 'ArrayExpression') {
+    return false;
+  }
+  return node.elements.every(
+    (element) =>
+      element !== null &&
+      element.type !== 'SpreadElement' &&
+      unwrapExpression(element)?.type === 'Literal'
+  );
 }
 
 function isLiteralOnlyValue(value: unknown): boolean {

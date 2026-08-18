@@ -1590,10 +1590,22 @@ class JsComponentGenerator {
         const step = `slot_${this.nextTemp++}`;
         this.imports.add(QwikWord.RenderSsrSlot);
         this.imports.add(QwikWord.GetActiveInvokeContextOrNull);
+        // a dynamic name is a dependency of the surrounding render; resolving the slot is not
+        let nameExpr = JSON.stringify(operation.name);
+        let open = '';
+        let close = '';
+        if (operation.nameSource !== undefined) {
+          const nameVar = `slot_name_${this.nextTemp++}`;
+          this.statements.push(`const ${nameVar} = ${operation.nameSource};`);
+          this.imports.add(QwikWord.Untrack);
+          nameExpr = nameVar;
+          open = `${QwikWord.Untrack}(() => `;
+          close = ')';
+        }
         this.pushStep(
           step,
           [],
-          `${QwikWord.RenderSsrSlot}(${this.names.ctx}, ${operation.nameSource ?? JSON.stringify(operation.name)}, ${fallback}, ${QwikWord.GetActiveInvokeContextOrNull}())`
+          `${open}${QwikWord.RenderSsrSlot}(${this.names.ctx}, ${nameExpr}, ${fallback}, ${QwikWord.GetActiveInvokeContextOrNull}())${close}`
         );
         parts.push(step);
         return;

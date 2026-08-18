@@ -18,6 +18,7 @@ import {
   _captures,
   renderSsrSlot,
   getActiveInvokeContextOrNull,
+  untrack,
   maybeThen,
   createSsrRecord,
   createSsrNodeId,
@@ -77,6 +78,7 @@ import {
   _captures,
   renderSsrSlot,
   getActiveInvokeContextOrNull,
+  untrack,
   maybeThen,
   createSsrRecord,
   createSsrNodeId,
@@ -86,7 +88,10 @@ import {
 
 const semantic_branchRender_79_105_272cfzygzynhu = (ctx) => {
   const props = _captures[0];
-  const slot_0 = renderSsrSlot(ctx, props.name, undefined, getActiveInvokeContextOrNull());
+  const slot_name_1 = props.name;
+  const slot_0 = untrack(() =>
+    renderSsrSlot(ctx, slot_name_1, undefined, getActiveInvokeContextOrNull())
+  );
   return maybeThen(slot_0, (slot_0) => slot_0);
 };
 const q_semantic_branchRender_79_105_272cfzygzynhu = /*#__PURE__*/ _noopQrl(
@@ -135,11 +140,20 @@ export function Switch(props, ctx) {
 */
 ============================= src/component.tsx_semantic_branchRender_79_105_272cfzygzynhu.js (ENTRY POINT)==
 
-import { _captures, renderSsrSlot, getActiveInvokeContextOrNull, maybeThen } from '@qwik.dev/core';
+import {
+  _captures,
+  renderSsrSlot,
+  getActiveInvokeContextOrNull,
+  untrack,
+  maybeThen,
+} from '@qwik.dev/core';
 
 export const semantic_branchRender_79_105_272cfzygzynhu = (ctx) => {
   const props = _captures[0];
-  const slot_0 = renderSsrSlot(ctx, props.name, undefined, getActiveInvokeContextOrNull());
+  const slot_name_1 = props.name;
+  const slot_0 = untrack(() =>
+    renderSsrSlot(ctx, slot_name_1, undefined, getActiveInvokeContextOrNull())
+  );
   return maybeThen(slot_0, (slot_0) => slot_0);
 };
 /*
@@ -321,7 +335,15 @@ export function Switch(props, ctx) {
 */
 ============================= src/component.tsx_semantic_branchRender_79_105_272cfzygzynhu.js (ENTRY POINT)==
 
-import { _captures, _first, _next, createSlot, maybeThen, createTemplate } from '@qwik.dev/core';
+import {
+  _captures,
+  _first,
+  _next,
+  createSlot,
+  maybeThen,
+  untrack,
+  createTemplate,
+} from '@qwik.dev/core';
 const semantic_branchRender_79_105_272cfzygzynhu_tmpl0 = createTemplate('<!----><!---->');
 
 export const semantic_branchRender_79_105_272cfzygzynhu = (ctx) => {
@@ -329,10 +351,14 @@ export const semantic_branchRender_79_105_272cfzygzynhu = (ctx) => {
   const fragment0 = semantic_branchRender_79_105_272cfzygzynhu_tmpl0(ctx.document);
   const start0 = _first(fragment0);
   const end0 = _next(start0);
+  const slot_name0 = props.name;
   ctx.scheduler.waitFor(
-    maybeThen(createSlot(props.name, undefined), (slot0) => {
-      for (const node of slot0) end0.parentNode.insertBefore(node, end0);
-    })
+    maybeThen(
+      untrack(() => createSlot(slot_name0, undefined)),
+      (slot0) => {
+        for (const node of slot0) end0.parentNode.insertBefore(node, end0);
+      }
+    )
   );
   return Array.from(start0.parentNode.childNodes);
 };

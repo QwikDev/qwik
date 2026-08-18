@@ -1228,16 +1228,22 @@ function emitCsrOperation(
       if (isRoot) {
         operationNames.set(operation.id, `Array.from(${range.start}.parentNode.childNodes)`);
       }
+      // a dynamic name is a dependency of the surrounding render; resolving the slot is not
+      const nameVar = operation.nameSource === undefined ? null : next('slot_name');
+      const nameExpr = nameVar ?? JSON.stringify(operation.name);
+      const openSlot = nameVar === null ? '' : `${QwikWord.Untrack}(() => `;
+      const closeSlot = nameVar === null ? '' : ')';
+      if (nameVar !== null) {
+        imports.add(QwikWord.Untrack);
+      }
       return {
-        declarations: [],
+        declarations: nameVar === null ? [] : [`const ${nameVar} = ${operation.nameSource};`],
         statements: [
-          `${context.generatedNames.ctx}.scheduler.waitFor(${QwikWord.MaybeThen}(${QwikWord.CreateSlot}(${
-            operation.nameSource ?? JSON.stringify(operation.name)
-          }, ${
+          `${context.generatedNames.ctx}.scheduler.waitFor(${QwikWord.MaybeThen}(${openSlot}${QwikWord.CreateSlot}(${nameExpr}, ${
             operation.fallback === null
               ? 'undefined'
               : emitPlannedFunctionReference(operation.fallback, context)
-          }${operation.idBase === null ? '' : `, ${operation.idBase}`}), (${slot}) => { for (const node of ${slot}) ${
+          }${operation.idBase === null ? '' : `, ${operation.idBase}`})${closeSlot}, (${slot}) => { for (const node of ${slot}) ${
             range.end
           }.parentNode.insertBefore(node, ${range.end}); }));`,
         ],

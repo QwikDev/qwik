@@ -411,6 +411,9 @@ export function isComputedComponentProp(attribute: JSXAttributeItem): boolean {
 /**
  * A call to one of these is JSX in call form, so every pass that looks for JSX must accept it. Only
  * the local names matter: the callers already know the import came from Qwik.
+ *
+ * A shape `getJsxCallElement` cannot rebuild is deliberately not JSX here: claiming it is routes it
+ * into value lowering, which has no element to lower and recurses until the stack dies.
  */
 export function isJsxCallExpression(node: unknown, calleeNames: ReadonlySet<string>): boolean {
   if (calleeNames.size === 0) {
@@ -421,7 +424,10 @@ export function isJsxCallExpression(node: unknown, calleeNames: ReadonlySet<stri
     return false;
   }
   const callee = unwrapExpression(call.callee);
-  return callee?.type === 'Identifier' && calleeNames.has(getIdentifierName(callee) ?? '');
+  if (callee?.type !== 'Identifier' || !calleeNames.has(getIdentifierName(callee) ?? '')) {
+    return false;
+  }
+  return getJsxCallElement(call) !== null;
 }
 
 /**

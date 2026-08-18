@@ -729,7 +729,8 @@ export function useCounter() {
 
   expect(result?.code).toContain('useComputed(_withCaptures(');
   expect(result?.code).not.toContain('useComputed$(');
-  const segmentId = result?.meta?.qwikdeps?.find((dep) => dep.includes('useComputed$_segment'));
+  // segment names spell $ as qrl, so the boundary reads useComputedqrl
+  const segmentId = result?.meta?.qwikdeps?.find((dep) => dep.includes('useComputedqrl_segment'));
   expect(segmentId).toBeTruthy();
   expect((await plugin.load({} as any, segmentId!)) as { code: string }).toHaveProperty('code');
 });

@@ -2,8 +2,7 @@ import type { TransformModuleInput } from '@qwik.dev/core/optimizer';
 import MagicString from 'magic-string';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { basename, join } from 'node:path';
-import type { PluginContext } from 'rolldown';
-import type { Plugin } from 'vite';
+import type { Plugin, Rolldown } from 'vite';
 import type { ReplModuleInput } from './src/repl/types';
 import type { ExampleSection } from './src/routes/examples/apps/examples-data';
 import type { PlaygroundApp } from './src/routes/playground/playground-data';
@@ -47,7 +46,7 @@ export function examplesData(routesDir: string): Plugin {
   const menuPath = join(dir, 'examples-menu.json');
   const menuSrc = readFileSync(menuPath, 'utf-8');
 
-  const loadExamplesData = (ctx: PluginContext) => {
+  const loadExamplesData = (ctx: Rolldown.PluginContext) => {
     const sections: ExampleSection[] = [];
     const dataSections: ExampleSection[] = JSON.parse(menuSrc);
     ctx.addWatchFile(menuPath);
@@ -147,7 +146,7 @@ export function tutorialData(routesDir: string): Plugin {
   const menuPath = join(dir, 'tutorial-menu.json');
   const menuSrc = readFileSync(menuPath, 'utf-8');
 
-  const loadTutorialData = (ctx: PluginContext) => {
+  const loadTutorialData = (ctx: Rolldown.PluginContext) => {
     const sections: TutorialSection[] = [];
     const dataSections: TutorialSection[] = JSON.parse(menuSrc);
     ctx.addWatchFile(menuPath);

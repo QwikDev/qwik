@@ -402,7 +402,8 @@ function emitSegmentCode(
   }
   if (segment.render !== null || hasEmbeddedRenders) {
     for (const child of childSegments) {
-      if (isSetupQrlSegment(child)) {
+      // a direct-array row is written into this segment, so it has no chunk to import or register
+      if (isSetupQrlSegment(child) || child.render?.collectionSourceKind === 'direct-array') {
         continue;
       }
       const importPath = getSegmentImportPath(inputPath, child, explicitExtensions);

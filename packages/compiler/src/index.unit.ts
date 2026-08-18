@@ -1998,6 +1998,18 @@ export function Shallow() {
     });
   });
 
+  test('renders a static list inside a branch arm', async () => {
+    await testInput('branch_arm_static_list', {
+      code: `import { component$, useSignal } from '@qwik.dev/core';
+
+export const App = component$(() => {
+  const show = useSignal(true);
+  return <div>{show.value && <ul>{['a', 'b'].map((label) => <li key={label}>{label}</li>)}</ul>}</div>;
+});
+`,
+    });
+  });
+
   test('inherits context across child component renderers', async () => {
     await testInput('component_child_context', {
       code: `import { useContext, useContextProvider, useSignal } from '@qwik.dev/core';

@@ -469,6 +469,8 @@ export function emitSsrModule(
     if (
       emittedSegmentIds.has(segment.id) ||
       segment.qrl?.kind === 'sync' ||
+      // a direct-array row is written into its parent: no chunk, so no qrl to point at one
+      segment.render?.collectionSourceKind === 'direct-array' ||
       isModuleStyleBoundary(segment)
     ) {
       continue;

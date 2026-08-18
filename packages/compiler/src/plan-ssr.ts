@@ -233,6 +233,7 @@ export interface SsrCollectionOperation {
     | { readonly kind: 'segment'; readonly render: RenderFunctionPlan }
     | {
         readonly kind: 'inline';
+        readonly segmentId: string;
         readonly symbolName: string;
         readonly target: SsrSegmentRenderTargetPlan;
         readonly parameterRanges: readonly SourceRange[];
@@ -719,6 +720,7 @@ class SsrPlanner {
             node.source.kind === 'direct-array'
               ? {
                   kind: 'inline',
+                  segmentId: rowTarget.id,
                   symbolName: rowTarget.symbolName,
                   target: row,
                   parameterRanges: rowTarget.paramRanges,
@@ -1074,7 +1076,9 @@ function collectSsrSegmentIds(operations: readonly SsrOperation[]): string[] {
         if (operation.key !== null) {
           ids.add(operation.key.segmentId);
         }
+        // inlining is an emit-time decision, so the row is referenced either way
         if (operation.row.kind === 'inline') {
+          ids.add(operation.row.segmentId);
           operation.row.target.usedSegmentIds.forEach((id) => ids.add(id));
         } else {
           render(operation.row.render);

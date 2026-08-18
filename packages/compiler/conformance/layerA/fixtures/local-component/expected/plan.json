@@ -381,6 +381,7 @@
           "flushTasks": false,
           "directSegments": [],
           "usedSegments": [
+            "segment_3",
             "segment_1",
             "segment_2",
             "semantic_expression_443_461",

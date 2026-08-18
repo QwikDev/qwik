@@ -437,6 +437,8 @@ export function hasRawSsrModuleRootImplementation(
 export function shouldEmitSegmentModule(segment: SegmentPlan, target: 'csr' | 'ssr'): boolean {
   return !(
     segment.stripped === true ||
+    // a direct-array row is written into its parent, so its chunk would import nothing
+    segment.render?.collectionSourceKind === 'direct-array' ||
     (target === 'ssr' && segment.qrl?.kind === 'sync') ||
     (segment.qrl?.kind === 'implicit' &&
       (segment.qrl.role === 'style' || segment.qrl.role === 'scoped-style'))

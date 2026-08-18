@@ -641,6 +641,8 @@ export function transformModule(ctx: CompilerContext): TransformResult {
       if (
         segment.qrl?.kind === 'sync' ||
         segment.implementationInOrigin === true ||
+        // a direct-array row is written into its parent, so it needs no implementation of its own
+        segment.render?.collectionSourceKind === 'direct-array' ||
         hasRawSsrModuleRootImplementation(segment, segments) ||
         segment.kind === 'event' ||
         segment.kind === 'localComponent' ||

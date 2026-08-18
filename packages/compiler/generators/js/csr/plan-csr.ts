@@ -1327,6 +1327,8 @@ class CsrPlanner {
     for (const id of planned.directSegmentIds) {
       this.directSegmentIds.add(id);
     }
+    // inlining is an emit-time decision, so the row is referenced either way
+    this.usedSegmentIds.add(render.segmentId);
     for (const id of planned.usedSegmentIds) {
       this.usedSegmentIds.add(id);
     }

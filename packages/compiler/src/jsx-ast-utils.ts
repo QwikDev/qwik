@@ -435,21 +435,36 @@ export function isJsxCallExpression(node: unknown, calleeNames: ReadonlySet<stri
  * execute. Rebuilding it as an element keeps one lowering path for both spellings. Synthetic nodes
  * borrow the ranges of the real argument nodes, so bindings and segments still resolve.
  *
- * Returns null for shapes JSX syntax cannot express either — a computed tag, a non-literal props
- * object, or the automatic runtime's third `key` argument.
+ * Returns null for shapes JSX syntax cannot express either — a computed tag or a non-literal props
+ * object.
  */
 export function getJsxCallElement(node: unknown): JSXElement | null {
   const call = unwrapExpression(node);
-  if (call?.type !== 'CallExpression' || call.arguments.length !== 2) {
+  if (
+    call?.type !== 'CallExpression' ||
+    call.arguments.length < 2 ||
+    call.arguments.length > JSX_DEV_ARGUMENTS ||
+    call.arguments.some((argument) => argument.type === 'SpreadElement')
+  ) {
     return null;
   }
-  const [type, props] = call.arguments;
+  const [type, props, key] = call.arguments;
   const name = jsxCallName(type);
   if (name === null || !isObjectNode(props) || props.type !== 'ObjectExpression') {
     return null;
   }
   const attributes: JSXAttributeItem[] = [];
   const children: Node[] = [];
+  // the automatic runtime hoists key out of props; rows read it back off the element
+  if (key !== undefined && !isUndefinedLiteral(key)) {
+    attributes.push(
+      spanOf(key, {
+        type: 'JSXAttribute',
+        name: spanOf(key, { type: 'JSXIdentifier', name: 'key' }),
+        value: spanOf(key, { type: 'JSXExpressionContainer', expression: key }),
+      })
+    );
+  }
   for (const property of props.properties) {
     if (property.type === 'SpreadElement') {
       attributes.push(
@@ -492,6 +507,14 @@ export function getJsxCallElement(node: unknown): JSXElement | null {
     closingElement: null,
     children,
   }) as unknown as JSXElement;
+}
+
+/** `jsxDEV(type, props, key, isStatic, source, self)` — the trailing three are dev metadata. */
+const JSX_DEV_ARGUMENTS = 6;
+
+function isUndefinedLiteral(node: unknown): boolean {
+  const value = unwrapExpression(node);
+  return value?.type === 'Identifier' && getIdentifierName(value) === 'undefined';
 }
 
 /** A literal tag becomes an element name; an identifier keeps its node so its binding resolves. */

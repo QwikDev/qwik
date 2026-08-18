@@ -1570,7 +1570,7 @@ function isQwikImport(source: string): boolean {
 }
 
 /** Kept in step with semantic-lower's gate: recognizing more than it lowers only moves the error. */
-const JSX_CALLEES: ReadonlySet<string> = new Set([QwikHooks.Jsx, QwikHooks.Jsxs]);
+const JSX_CALLEES: ReadonlySet<string> = new Set([QwikHooks.Jsx, QwikHooks.Jsxs, QwikHooks.JsxDev]);
 
 function sameRange(left: SourceRange | null, right: SourceRange | null): boolean {
   return left !== null && right !== null && left[0] === right[0] && left[1] === right[1];

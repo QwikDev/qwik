@@ -4114,7 +4114,8 @@ class SemanticLowerer {
     if (
       !isQwikBinding(binding) ||
       (binding!.import!.importedName !== QwikHooks.Jsx &&
-        binding!.import!.importedName !== QwikHooks.Jsxs)
+        binding!.import!.importedName !== QwikHooks.Jsxs &&
+        binding!.import!.importedName !== QwikHooks.JsxDev)
     ) {
       return null;
     }

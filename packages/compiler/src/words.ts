@@ -175,6 +175,7 @@ export const enum QwikHooks {
   UseOnWindow = 'useOnWindow',
   Jsx = 'jsx',
   Jsxs = 'jsxs',
+  JsxDev = 'jsxDEV',
   Slot = 'Slot',
   Suspense = 'Suspense',
   Reveal = 'Reveal',

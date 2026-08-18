@@ -273,9 +273,11 @@ const dispatch = (
   tasks: Task[],
   /** This must only be provided if checking for preventDefault and stopPropagation attributes */
   kebabName?: string,
-  allowPreventDefault = true
+  allowPreventDefault = true,
+  /** A capture handler queued work, so bubbling must not overtake it. */
+  afterCapture = false
 ) => {
-  let defer = queuedTasks !== undefined;
+  let defer = queuedTasks !== undefined || afterCapture;
   /** Async progress within this event's own chain — sync qrls only wait for these. */
   let chainAsync = false;
   if (kebabName) {
@@ -446,9 +448,19 @@ const processElementEvent = (
     }
   }
 
+  // capture runs before bubbling, so a capture handler that went async has to finish first
+  const afterCapture = tasks.length > 0;
   for (let i = 0; i < elements.length; i++) {
     if (!captureHandlers[i]) {
-      dispatch(elements[i], ev, scopedKebabName, tasks, kebabName, allowPreventDefault);
+      dispatch(
+        elements[i],
+        ev,
+        scopedKebabName,
+        tasks,
+        kebabName,
+        allowPreventDefault,
+        afterCapture
+      );
       if (!ev.bubbles || ev.cancelBubble) {
         queueTasks(tasks);
         return;

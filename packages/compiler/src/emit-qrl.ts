@@ -2,13 +2,6 @@ import type { SourceRange } from './types';
 import type { ImportAttributeBinding, SegmentPlan } from './plan-types';
 import { QwikWord } from './words';
 
-export function emitQrlReference(segment: SegmentPlan): string {
-  return emitCapturedQrlReference(
-    segment.symbolName,
-    segment.captures.map((capture) => capture.name)
-  );
-}
-
 export function emitCapturedQrlReference(name: string, captures: readonly string[]): string {
   const qrl = `q_${name}`;
   return captures.length === 0 ? qrl : `${qrl}.w([${captures.join(', ')}])`;

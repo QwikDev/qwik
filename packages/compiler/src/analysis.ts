@@ -81,13 +81,6 @@ export function findBindingByDeclaration(
   );
 }
 
-export function findReference(
-  analysis: ModuleAnalysis,
-  range: SourceRange | null
-): ReferenceInfo | null {
-  return analysis.references.find((reference) => sameRange(reference.range, range)) ?? null;
-}
-
 class ModuleAnalyzer {
   private readonly scopes: Scope[] = [];
   private readonly bindings: BindingInfo[] = [];

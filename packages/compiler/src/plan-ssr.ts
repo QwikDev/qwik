@@ -2,8 +2,8 @@ import type { ValueIR } from './expr-ir';
 import type { SourceRange } from './types';
 import { DEFAULT_GENERATED_NAMES, type GeneratedNames } from './words';
 import { jsxEventToHtmlAttribute } from './ast-utils';
-import { isVoidTag } from './html-utils';
-import { hasInitialTask } from './plan-types';
+import { isVoidTag, normalizeAttributeName } from './html-utils';
+import { hasInitialTask, isValuePlan } from './plan-types';
 import type {
   BindingId,
   ComponentParameterPlan,
@@ -322,14 +322,6 @@ export function planSsr(
       ...new Set([...render.directSegmentIds, ...operations.flatMap(setupDirectSegmentIds)]),
     ],
   };
-}
-
-export function planSsrRender(
-  render: RenderPlan,
-  segments: readonly SegmentPlan[],
-  componentReturnMode: SsrComponentReturnModeResolver = unknownComponentReturnMode
-): SsrRenderBlockPlan | null {
-  return new SsrPlanner(segments, undefined, null, false, componentReturnMode).render(render);
 }
 
 export function planSsrRenderFunction(
@@ -958,10 +950,6 @@ function markSoleStructuralRoot(operations: readonly SsrOperation[]): readonly S
     : operations;
 }
 
-function normalizeAttributeName(name: string): string {
-  return name === 'className' ? 'class' : name === 'htmlFor' ? 'for' : name;
-}
-
 function renderRowShape(render: RenderPlan): 0 | 1 | 2 | 3 {
   if (render.roots.length !== 1) {
     return 2;
@@ -1185,10 +1173,6 @@ function needsSsrContext(operation: SsrOperation): boolean {
 }
 
 type StaticPropValue = string | number | boolean | null;
-
-function isValuePlan(value: ValuePlan | StaticPropValue): value is ValuePlan {
-  return typeof value === 'object' && value !== null && 'kind' in value;
-}
 
 function isInitialOnlyValue(value: ValuePlan): boolean {
   return value.kind === 'expression' && value.initialOnly;

@@ -1,8 +1,14 @@
 import { jsxEventToHtmlAttribute } from '../../../src/ast-utils';
 import { DEFAULT_GENERATED_NAMES, type GeneratedNames } from '../../../src/words';
 import type { SourceRange } from '../../../src/types';
-import { escapeAttr, escapeText, isVoidTag, serializeAttrValue } from '../../../src/html-utils';
-import { hasInitialTask } from '../../../src/plan-types';
+import {
+  escapeAttr,
+  escapeText,
+  isVoidTag,
+  normalizeAttributeName,
+  serializeAttrValue,
+} from '../../../src/html-utils';
+import { hasInitialTask, isValuePlan } from '../../../src/plan-types';
 import type {
   BindingId,
   ComponentParameterPlan,
@@ -1523,10 +1529,6 @@ function getStaticInnerHtml(props: readonly CsrPropPlan[]): string | null {
     : null;
 }
 
-function normalizeAttributeName(name: string): string {
-  return name === 'className' ? 'class' : name === 'htmlFor' ? 'for' : name;
-}
-
 function normalizeEventName(name: string, passive = false): string {
   return jsxEventToHtmlAttribute(name, passive) ?? name;
 }
@@ -1544,10 +1546,6 @@ type CsrOperationInput = CsrOperationPlan extends infer Operation
     ? Omit<Operation, 'id'>
     : never
   : never;
-
-function isValuePlan(value: StaticProp['value'] | ValuePlan): value is ValuePlan {
-  return typeof value === 'object' && value !== null && 'kind' in value;
-}
 
 function isCsrValuePlan(value: StaticProp['value'] | CsrValuePlan): value is CsrValuePlan {
   return typeof value === 'object' && value !== null && 'kind' in value;

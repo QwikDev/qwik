@@ -342,11 +342,6 @@ export function lastUngeneratableDetail(): string {
   return UNGENERATABLE_DETAIL;
 }
 
-/** Debug-only: stack of the most recent `markUngeneratable`, for compiler development. */
-export function lastUngeneratableSite(): string {
-  return UNGENERATABLE_SITE;
-}
-
 /** Tagged PlanValue form accessors — see emit-plan `PlanValue`. */
 type WireValue =
   | { readonly kind: 'ir'; readonly ir: ValueIR; readonly segment?: string }

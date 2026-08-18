@@ -778,3 +778,8 @@ export interface ExtractedQrls {
   /** Auto-lowered module helpers (specs/02 §defs), set by the transform before lowering. */
   moduleDefs?: readonly import('./defs-lower').ModuleDef[];
 }
+
+/** A prop value is either a lowered plan or a primitive literal; only the plan is an object. */
+export function isValuePlan(value: ValuePlan | StaticProp['value']): value is ValuePlan {
+  return typeof value === 'object' && value !== null;
+}

@@ -48,3 +48,7 @@ export function escapeText(value: string) {
 export function escapeAttr(value: string) {
   return escapeText(value).replace(/"/g, '&quot;');
 }
+
+export function normalizeAttributeName(name: string): string {
+  return name === 'className' ? 'class' : name === 'htmlFor' ? 'for' : name;
+}

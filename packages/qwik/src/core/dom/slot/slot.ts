@@ -5,6 +5,7 @@ import { isPromise, maybeThen, safeCall } from '../../shared/utils/promises';
 import type { ValueOrPromise } from '../../shared/utils/types';
 import type { ContainerContext } from '../../runtime/container-context';
 import { OwnerFlags } from '../../reactive/flags';
+import { runWithCollector } from '../../reactive/tracking';
 import {
   getActiveInvokeContext,
   getActiveInvokeContextOrNull,
@@ -312,7 +313,9 @@ function project(
       slotScope: projection.slotScope,
     });
     return safeCall(
-      () => invoke(invokeContext, render, container, projection.idBase),
+      // projected content owns its own subscriptions: the consumer's collector must not take them
+      () =>
+        runWithCollector(null, () => invoke(invokeContext, render, container, projection.idBase)),
       (output) => {
         const nodes = toNodes(output);
         // The cache is dropped only when this owner is disposed, so it must never stay unmaterialized.

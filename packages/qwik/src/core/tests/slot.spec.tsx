@@ -1,5 +1,5 @@
 import { component$, createContextId, Slot } from '@qwik.dev/core';
-import { useContext, useContextProvider, useSignal } from '@qwik.dev/core';
+import { useContext, useContextProvider, useSignal, useStore } from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
 import { testRenderer } from '../test-utils';
 
@@ -263,6 +263,60 @@ describe(`${name}: slot`, () => {
     await qwikLoader?.dispatch(button, 'click');
 
     expect(container.querySelector('#on')).toBeFalsy();
+    cleanup();
+  });
+  // A consumer that re-renders must not dispose the content it is re-projecting.
+  it('keeps projected content live across repeated consumer renders', async () => {
+    const Switch = component$((props: { pick: string }) => {
+      return <Slot name={props.pick} />;
+    });
+
+    const Panel = component$(({ count }: { count: number }) => {
+      const store = useStore({ flip: false });
+      return (
+        <div id="panel">
+          <button id="flip" onClick$={() => (store.flip = !store.flip)}>
+            flip
+          </button>
+          <Switch pick={store.flip ? 'b' : 'a'}>
+            <span q:slot="a">A {count}</span>
+            <span q:slot="b">B {count}</span>
+          </Switch>
+        </div>
+      );
+    });
+
+    const App = component$(() => {
+      const state = useStore({ count: 0 });
+      return (
+        <div>
+          <button id="inc" onClick$={() => state.count++}>
+            inc
+          </button>
+          <Panel count={state.count} />
+        </div>
+      );
+    });
+
+    const { container, cleanup, qwikLoader } = await render(App, { debug });
+    const shown = () => container.querySelector('#panel')?.textContent?.replace('flip', '').trim();
+    const flip = () => qwikLoader?.dispatch(container.querySelector('#flip')!, 'click');
+    const inc = () => qwikLoader?.dispatch(container.querySelector('#inc')!, 'click');
+
+    expect(shown()).toBe('A 0');
+
+    await inc();
+    expect(shown()).toBe('A 1');
+
+    await flip();
+    expect(shown()).toBe('B 1');
+
+    await flip();
+    expect(shown()).toBe('A 1');
+
+    await inc();
+    expect(shown()).toBe('A 2');
+
     cleanup();
   });
 });

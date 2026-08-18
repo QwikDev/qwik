@@ -1,0 +1,11 @@
+---
+title: Qwik is Resumable
+date: '2024-04-15'
+description: A short note on why resumability beats hydration for cold starts.
+---
+
+# Qwik is Resumable
+
+Instead of replaying component code on the client to reconstruct framework state, Qwik serializes that state into HTML during SSR and resumes from it.
+
+The practical effect: the amount of JS needed before interactivity does not scale with app size.

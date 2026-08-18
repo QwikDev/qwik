@@ -6,7 +6,7 @@
   "devDependencies": {
     "@qwik.dev/core": "workspace:*",
     "typescript": "5.9.3",
-    "vite": "7.3.5"
+    "vite": "8.2.1"
   },
   "engines": {
     "node": "^18.17.0 || ^20.3.0 || >=21.0.0"

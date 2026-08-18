@@ -292,7 +292,7 @@ Still compile in v2, removed in v3.
 | Track deps | `ctx.track(() => sig.value)` | read `sig.value` directly before the first `await` (auto-tracked); use `ctx.track()` after an `await` |
 | Abort | Manual `AbortController` | `ctx.abortSignal` |
 | Previous value | - | `ctx.previous` |
-| Polling | - | `options.expires` + `options.poll` |
+| Polling | - | `usePoll(signal, ms)` from `@qwik.dev/utils` |
 | Initial value | - | `options.initial` |
 | Rendering | `<Resource onResolved={} />` | `.pending`/`.error` branching or `<Suspense>` |
 

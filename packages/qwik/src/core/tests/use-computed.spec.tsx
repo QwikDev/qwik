@@ -15,13 +15,11 @@ import {
   untrack,
   useComputed$,
   useComputedQrl,
-  useConstant,
   useErrorBoundary,
   useSignal,
   useStore,
   useTask$,
   useVisibleTask$,
-  type ComputedSignal,
 } from '@qwik.dev/core/internal';
 import { domRender, ssrRenderToDom, trigger, waitForDrain } from '@qwik.dev/core/testing';
 import { describe, expect, it } from 'vitest';
@@ -987,43 +985,6 @@ describe.each([
 
       await trigger(container.element, 'button', 'click');
       expect((globalThis as any).log).toEqual(['cleanup', 'cleanup']);
-    });
-
-    it('should resume polling computed with d:qidle on SSR', async () => {
-      // This test verifies that polling computeds are tracked during serialization
-      // and a d:qidle event is added to resume polling on document idle
-      const Counter = component$(() => {
-        const start = useConstant(Date.now);
-        const elapsed = useComputed$(async () => Date.now() - start, { expires: 50 });
-        return (
-          <div>
-            <div id="elapsed">{elapsed.value}</div>
-            <button
-              onClick$={() => {
-                (elapsed as ComputedSignal<number>).expires = elapsed.expires ? 0 : 50;
-              }}
-            >
-              Toggle updates
-            </button>
-          </div>
-        );
-      });
-
-      const { container } = await render(<Counter />, { debug });
-
-      if (render === ssrRenderToDom) {
-        await trigger(container.element, null, 'd:qidle');
-      }
-      const elapsedBefore = Number(container.element.querySelector('#elapsed')!.textContent);
-      await delay(100);
-      const elapsedAfter = Number(container.element.querySelector('#elapsed')!.textContent);
-      expect(elapsedAfter).toBeGreaterThan(elapsedBefore);
-
-      await trigger(container.element, 'button', 'click'); // disable polling
-      const elapsedWhenStopped = Number(container.element.querySelector('#elapsed')!.textContent);
-      await delay(100);
-      const elapsedAfterStop = Number(container.element.querySelector('#elapsed')!.textContent);
-      expect(elapsedAfterStop).toEqual(elapsedWhenStopped);
     });
   });
 

@@ -59,9 +59,8 @@ const createAnchor = (href: string, mode: string) => {
 };
 
 const manifestHash = 'test-manifest';
-const loaderState = {} as import('./route-loaders').RouteLoaderState;
 
-const createObserver = () => createLinkPrefetchObserver(manifestHash, loaderState);
+const createObserver = () => createLinkPrefetchObserver(manifestHash);
 
 const expectPrefetchRouteCall = (
   callIndex: number,
@@ -100,7 +99,7 @@ describe('link prefetch observer', () => {
     init(new Event('qcinit'), anchor);
     MockIntersectionObserver.instances[0].trigger(anchor);
 
-    expectPrefetchRouteCall(0, '/next/', true, 0.8, manifestHash, false, undefined);
+    expectPrefetchRouteCall(0, '/next/', true, 0.8, manifestHash, false);
   });
 
   it('prefetches route bundles and visible route data according to the mode', () => {
@@ -113,7 +112,7 @@ describe('link prefetch observer', () => {
     expect(preloadRouteBundlesMock).toHaveBeenCalledTimes(1);
     expect(preloadRouteBundlesMock).toHaveBeenCalledWith('/next/');
     expect(prefetchRouteMock).toHaveBeenCalledTimes(1);
-    expectPrefetchRouteCall(0, '/next/', true, 0.8, manifestHash, false, loaderState);
+    expectPrefetchRouteCall(0, '/next/', true, 0.8, manifestHash, false);
     cleanup();
   });
 

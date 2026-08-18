@@ -43,6 +43,7 @@ const booleanOptions = [
   'qwikauth',
   'qwikrouter',
   'qwikreact',
+  'qwikutils',
   'qwikworker',
   'release',
   'supabaseauthhelpers',

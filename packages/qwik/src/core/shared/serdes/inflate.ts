@@ -198,7 +198,7 @@ const inflateResolved = (
       return maybeThen(deserializeData(container, d[0] as TypeIds, d[1]), (value) => {
         signal.v = unwrapPromiseRoot(value);
         if (d.length > 2) {
-          signal.subs = createLazySourceSubscribers(signal, container, d, 2);
+          restoreSourceSubs(signal, container, d, 2);
         }
       });
     }
@@ -256,7 +256,7 @@ const inflateResolved = (
               computed.flags = ComputedFlags.HasValue;
             }
             if (d.length > 6) {
-              computed.subs = createLazySourceSubscribers(computed, container, d, 6);
+              restoreSourceSubs(computed, container, d, 6);
             }
             if (value === NEEDS_COMPUTATION) {
               return maybeThen(getFunctionOrResolve(computed.computeQrl!, container), () => {});
@@ -284,7 +284,7 @@ const inflateResolved = (
                 signal.flags = ComputedFlags.HasValue | ComputedFlags.Async;
               }
               if (d.length > subscriberOffset) {
-                signal.subs = createLazySourceSubscribers(signal, container, d, subscriberOffset);
+                restoreSourceSubs(signal, container, d, subscriberOffset);
               }
               if (value === NEEDS_COMPUTATION) {
                 return maybeThen(getFunctionOrResolve(signal.computeQrl!, container), () => {});
@@ -309,7 +309,7 @@ const inflateResolved = (
               signal.flags = ComputedFlags.HasValue;
               signal.didInitialize = false;
               if (d.length > subscriberOffset) {
-                signal.subs = createLazySourceSubscribers(signal, container, d, subscriberOffset);
+                restoreSourceSubs(signal, container, d, subscriberOffset);
               }
               return maybeThen(getFunctionOrResolve(signal.argQrl!, container), () => {});
             })
@@ -705,6 +705,24 @@ function restoreUseOnScopes(
   }
 }
 
+/** A source read before its subs record inflates already has live subscribers to keep. */
+function restoreSourceSubs(
+  source: Source,
+  container: ContainerContext,
+  data: unknown[],
+  start: number
+): void {
+  const live = source.subs;
+  source.subs = createLazySourceSubscribers(source, container, data, start);
+  if (live === null) {
+    return;
+  }
+  const liveSubs = Array.isArray(live) ? live : [live];
+  for (let i = 0; i < liveSubs.length; i++) {
+    appendSourceSubscriber(source, liveSubs[i]);
+  }
+}
+
 function createLazySourceSubscribers(
   source: Source,
   container: ContainerContext,
@@ -771,7 +789,7 @@ function restoreStoreSources(
               unwrapStore(target as object) as object,
               prop as PropertyKey
             );
-            source.subs = createLazySourceSubscribers(source, container, record, start);
+            restoreSourceSubs(source, container, record, start);
             return restoreNext();
           }
         )

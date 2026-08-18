@@ -1342,7 +1342,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type ZodConstructor = {\n    <T extends z.ZodRawShape>(schema: T): ZodDataValidator<z.ZodObject<T>>;\n    <T extends z.ZodRawShape>(schema: (zod: typeof z.z, ev: RequestEvent) => T): ZodDataValidator<z.ZodObject<T>>;\n    <T extends z.Schema>(schema: T): ZodDataValidator<T>;\n    <T extends z.Schema>(schema: (zod: typeof z.z, ev: RequestEvent) => T): ZodDataValidator<T>;\n};\n```",
+      "content": "```typescript\nexport type ZodConstructor = {\n    <T extends z.ZodRawShape>(schema: T): ZodDataValidator<z.ZodObject<T>>;\n    <T extends z.ZodRawShape>(schema: (zod: typeof z.z, ev: RequestEvent) => T): ZodDataValidator<z.ZodObject<T>>;\n    <T extends z.ZodType>(schema: T): ZodDataValidator<T>;\n    <T extends z.ZodType>(schema: (zod: typeof z.z, ev: RequestEvent) => T): ZodDataValidator<T>;\n};\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.zodconstructor.md"
     }

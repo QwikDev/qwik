@@ -310,18 +310,18 @@ const flattenZodIssues = (issues: z.ZodIssue | z.ZodIssue[]) => {
 /** @internal */
 export const zodQrl: ZodConstructorQRL = (
   qrl: QRL<
-    z.ZodRawShape | z.Schema | ((z: typeof import('zod').z, ev: RequestEvent) => z.ZodRawShape)
+    z.ZodRawShape | z.ZodType | ((z: typeof import('zod').z, ev: RequestEvent) => z.ZodRawShape)
   >
 ): ZodDataValidator => {
   if (isServer) {
     return {
       __brand: 'zod',
       async validate(ev, inputData) {
-        const schema: z.Schema = await qrl.resolve().then((obj) => {
+        const schema: z.ZodType = await qrl.resolve().then((obj) => {
           if (typeof obj === 'function') {
             obj = obj(z, ev);
           }
-          if (obj instanceof z.Schema) {
+          if (obj instanceof z.ZodType) {
             return obj;
           } else {
             return z.object(obj);

@@ -1121,8 +1121,8 @@ export type ZodConstructor = {
   <T extends z.ZodRawShape>(
     schema: (zod: typeof z.z, ev: RequestEvent) => T
   ): ZodDataValidator<z.ZodObject<T>>;
-  <T extends z.Schema>(schema: T): ZodDataValidator<T>;
-  <T extends z.Schema>(schema: (zod: typeof z.z, ev: RequestEvent) => T): ZodDataValidator<T>;
+  <T extends z.ZodType>(schema: T): ZodDataValidator<T>;
+  <T extends z.ZodType>(schema: (zod: typeof z.z, ev: RequestEvent) => T): ZodDataValidator<T>;
 };
 
 /** @public */
@@ -1131,8 +1131,8 @@ export type ZodConstructorQRL = {
   <T extends z.ZodRawShape>(
     schema: QRL<(zod: typeof z.z, ev: RequestEvent) => T>
   ): ZodDataValidator<z.ZodObject<T>>;
-  <T extends z.Schema>(schema: QRL<T>): ZodDataValidator<T>;
-  <T extends z.Schema>(schema: QRL<(zod: typeof z.z, ev: RequestEvent) => T>): ZodDataValidator<T>;
+  <T extends z.ZodType>(schema: QRL<T>): ZodDataValidator<T>;
+  <T extends z.ZodType>(schema: QRL<(zod: typeof z.z, ev: RequestEvent) => T>): ZodDataValidator<T>;
 };
 
 /** @public */

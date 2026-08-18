@@ -3144,8 +3144,8 @@ export type ZodConstructor = {
   <T extends z.ZodRawShape>(
     schema: (zod: typeof z.z, ev: RequestEvent) => T,
   ): ZodDataValidator<z.ZodObject<T>>;
-  <T extends z.Schema>(schema: T): ZodDataValidator<T>;
-  <T extends z.Schema>(
+  <T extends z.ZodType>(schema: T): ZodDataValidator<T>;
+  <T extends z.ZodType>(
     schema: (zod: typeof z.z, ev: RequestEvent) => T,
   ): ZodDataValidator<T>;
 };

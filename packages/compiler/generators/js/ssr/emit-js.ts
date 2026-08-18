@@ -314,6 +314,14 @@ interface ModuleState {
 /** Debug-only: stack captured at the most recent UNGENERATABLE throw. */
 let UNGENERATABLE_SITE = '';
 let UNGENERATABLE_DETAIL = '';
+/** Trailing `renderSsrBranch` args: the id base is sixth, so a root flag has to follow it. */
+function branchIdArgs(ssr: { readonly root: boolean; readonly idBase: string | null }): string {
+  if (ssr.root) {
+    return `, ${ssr.idBase ?? "''"}, true`;
+  }
+  return ssr.idBase === null ? '' : `, ${ssr.idBase}`;
+}
+
 export function markUngeneratable(detail?: unknown): never {
   UNGENERATABLE_SITE = new Error('ungeneratable').stack ?? '';
   UNGENERATABLE_DETAIL = detail === undefined ? '' : JSON.stringify(detail);
@@ -1299,7 +1307,7 @@ class JsComponentGenerator {
         this.componentCall(operation, parts);
         return;
       case SsrOpKind.Branch: {
-        if (operation.ssr.idBase !== null || operation.then.segment === undefined) {
+        if (operation.then.segment === undefined) {
           markUngeneratable();
         }
         const condition = this.segment(operation.condition);
@@ -1331,7 +1339,7 @@ class JsComponentGenerator {
         this.pushStep(
           step,
           stepRoots,
-          `${QwikWord.RenderSsrBranch}(${this.names.ctx}, ${idVariable}, ${this.qrlExpression(condition)}, ${thenQrl}, ${elseQrl}${operation.ssr.root ? ", '', true" : ''})`,
+          `${QwikWord.RenderSsrBranch}(${this.names.ctx}, ${idVariable}, ${this.qrlExpression(condition)}, ${thenQrl}, ${elseQrl}${branchIdArgs(operation.ssr)})`,
           deferred ? `${idVariable} ??= ${this.names.ctx}.nextId(); ` : undefined
         );
         parts.push(

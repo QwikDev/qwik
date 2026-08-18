@@ -412,9 +412,12 @@ export function planSsrSegmentRender(
         : branch
           ? planned.render.needsRootRange
             ? [generatedNames.ctx, 'rangeId']
-            : planned.render.needsContext
-              ? [generatedNames.ctx]
-              : []
+            : segment.render.needsId
+              ? // the branch runtime passes the id base third, so hold the earlier slots
+                [generatedNames.ctx, '__rangeId']
+              : planned.render.needsContext
+                ? [generatedNames.ctx]
+                : []
           : slot
             ? [generatedNames.ctx, 'rangeId']
             : planned.render.needsContext

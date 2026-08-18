@@ -3,6 +3,7 @@ import type { Rolldown } from 'vite';
 import { assert, describe, test } from 'vitest';
 import { normalizePath } from '../../../qwik/src/testing/util';
 import type { OptimizerOptions } from '../types';
+import { flattenToChunkName } from './vite-utils';
 import { qwikVite, type QwikVitePlugin, type QwikVitePluginOptions } from './vite';
 import {
   createBuildWorkerCoreChunkResolver,
@@ -104,10 +105,7 @@ test('command: serve, mode: development', async () => {
   assert.deepEqual(chunkFileNames(chunkInfoMocks[0]), `build/chunk.tsx.js`);
   assert.deepEqual(entryFileNames(chunkInfoMocks[0]), `build/chunk.tsx.js`);
   const relDev = path.relative(cwd, chunkInfoMocks[1].name);
-  const sanitizedDev = relDev
-    .replace(/^\(\.\.\/\)+/, '')
-    .replace(/^\/+/, '')
-    .replace(/\//g, '-');
+  const sanitizedDev = flattenToChunkName(relDev);
   const expectedDevChunk = `build/${sanitizedDev}.js`;
   assert.deepEqual(chunkFileNames(chunkInfoMocks[1]), expectedDevChunk);
   assert.deepEqual(entryFileNames(chunkInfoMocks[1]), expectedDevChunk);
@@ -195,10 +193,7 @@ test('command: build, mode: development', async () => {
   assert.deepEqual(chunkFileNames(chunkInfoMocks[0]), `build/chunk.tsx.js`);
   assert.deepEqual(entryFileNames(chunkInfoMocks[0]), `build/chunk.tsx.js`);
   const relBuildDev = path.relative(cwd, chunkInfoMocks[1].name);
-  const sanitizedBuildDev = relBuildDev
-    .replace(/^\(\.\.\/\)+/, '')
-    .replace(/^\/+/, '')
-    .replace(/\//g, '-');
+  const sanitizedBuildDev = flattenToChunkName(relBuildDev);
   const expectedBuildDevChunk = `build/${sanitizedBuildDev}.js`;
   assert.deepEqual(chunkFileNames(chunkInfoMocks[1]), expectedBuildDevChunk);
   assert.deepEqual(entryFileNames(chunkInfoMocks[1]), expectedBuildDevChunk);

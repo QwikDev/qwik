@@ -1,0 +1,157 @@
+{
+  "format": "qwik/ssr-plan",
+  "version": 1,
+  "entry": 1,
+  "components": [
+    {
+      "name": "Badge",
+      "module": 0,
+      "propsBindings": [
+        3
+      ],
+      "props": {
+        "kind": "identifier",
+        "binding": 3
+      },
+      "ssr": {
+        "setup": [],
+        "ops": [
+          {
+            "kind": "element",
+            "tag": "span",
+            "voidTag": false,
+            "styleScopedId": null,
+            "props": [
+              {
+                "kind": "static",
+                "name": "class",
+                "value": "badge"
+              }
+            ],
+            "propsEffect": null,
+            "children": [
+              {
+                "kind": "dynamic",
+                "output": "text",
+                "value": {
+                  "kind": "ir",
+                  "ir": {
+                    "kind": "member",
+                    "obj": {
+                      "kind": "binding-read",
+                      "binding": 3
+                    },
+                    "name": "label"
+                  },
+                  "segment": "segment_0"
+                },
+                "ssr": {
+                  "synchronous": false,
+                  "target": {
+                    "kind": "element",
+                    "id": 0
+                  }
+                }
+              }
+            ],
+            "ssr": {
+              "id": 0,
+              "targetUses": 0
+            }
+          }
+        ],
+        "ssr": {
+          "syncRender": false,
+          "staticRoot": false,
+          "needsRootRange": false,
+          "needsId": false,
+          "idBase": "qBadge-",
+          "flushTasks": false,
+          "directSegments": [],
+          "usedSegments": [
+            "segment_0"
+          ]
+        }
+      },
+      "setup": [],
+      "needsId": false,
+      "idBase": "qBadge-",
+      "providesContext": false,
+      "runtimeStyleScope": false
+    },
+    {
+      "name": "App",
+      "module": 0,
+      "propsBindings": [],
+      "props": null,
+      "ssr": {
+        "setup": [],
+        "ops": [
+          {
+            "kind": "component",
+            "target": {
+              "ref": 0
+            },
+            "props": [
+              {
+                "kind": "static",
+                "name": "label",
+                "value": "clicks"
+              }
+            ],
+            "propsSource": null,
+            "slots": [],
+            "ssr": {
+              "returnMode": "maybe-promise",
+              "idBase": null,
+              "blockingSuspense": false
+            }
+          }
+        ],
+        "ssr": {
+          "syncRender": false,
+          "staticRoot": false,
+          "needsRootRange": false,
+          "needsId": false,
+          "idBase": "qApp-",
+          "flushTasks": false,
+          "directSegments": [],
+          "usedSegments": []
+        }
+      },
+      "setup": [],
+      "needsId": false,
+      "idBase": "qApp-",
+      "providesContext": false,
+      "runtimeStyleScope": false
+    }
+  ],
+  "modules": [
+    {
+      "path": "src/input.tsx",
+      "segments": [
+        {
+          "id": "segment_0",
+          "symbolName": "input_text_segment_0_3k1cvwun49quc",
+          "chunk": "./input.tsx_input_text_segment_0_3k1cvwun49quc",
+          "kind": "expression",
+          "resolved": true,
+          "qrl": null,
+          "captures": [
+            {
+              "binding": 3,
+              "name": "props",
+              "source": "param",
+              "access": "direct"
+            }
+          ]
+        }
+      ],
+      "contexts": [],
+      "defs": [],
+      "imports": []
+    }
+  ],
+  "unresolved": [],
+  "pluginFns": []
+}

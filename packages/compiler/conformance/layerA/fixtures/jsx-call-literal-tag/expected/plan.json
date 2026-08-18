@@ -1,0 +1,68 @@
+{
+  "format": "qwik/ssr-plan",
+  "version": 1,
+  "entry": 0,
+  "components": [
+    {
+      "name": "App",
+      "module": 0,
+      "propsBindings": [],
+      "props": null,
+      "ssr": {
+        "setup": [],
+        "ops": [
+          {
+            "kind": "element",
+            "tag": "div",
+            "voidTag": false,
+            "styleScopedId": null,
+            "props": [
+              {
+                "kind": "static",
+                "name": "class",
+                "value": "shell"
+              }
+            ],
+            "propsEffect": null,
+            "children": [
+              {
+                "kind": "static",
+                "html": "hello"
+              }
+            ],
+            "ssr": {
+              "id": null,
+              "targetUses": 0
+            }
+          }
+        ],
+        "ssr": {
+          "syncRender": true,
+          "staticRoot": true,
+          "needsRootRange": false,
+          "needsId": false,
+          "idBase": "qApp-",
+          "flushTasks": false,
+          "directSegments": [],
+          "usedSegments": []
+        }
+      },
+      "setup": [],
+      "needsId": false,
+      "idBase": "qApp-",
+      "providesContext": false,
+      "runtimeStyleScope": false
+    }
+  ],
+  "modules": [
+    {
+      "path": "src/input.tsx",
+      "segments": [],
+      "contexts": [],
+      "defs": [],
+      "imports": []
+    }
+  ],
+  "unresolved": [],
+  "pluginFns": []
+}

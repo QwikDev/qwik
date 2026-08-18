@@ -409,6 +409,22 @@ export function isComputedComponentProp(attribute: JSXAttributeItem): boolean {
 }
 
 /**
+ * A call to one of these is JSX in call form, so every pass that looks for JSX must accept it. Only
+ * the local names matter: the callers already know the import came from Qwik.
+ */
+export function isJsxCallExpression(node: unknown, calleeNames: ReadonlySet<string>): boolean {
+  if (calleeNames.size === 0) {
+    return false;
+  }
+  const call = unwrapExpression(node);
+  if (call?.type !== 'CallExpression') {
+    return false;
+  }
+  const callee = unwrapExpression(call.callee);
+  return callee?.type === 'Identifier' && calleeNames.has(getIdentifierName(callee) ?? '');
+}
+
+/**
  * `jsx('div', { class: c, children: x })` is JSX written as a call, which the runtime cannot
  * execute. Rebuilding it as an element keeps one lowering path for both spellings. Synthetic nodes
  * borrow the ranges of the real argument nodes, so bindings and segments still resolve.

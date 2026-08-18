@@ -20,6 +20,7 @@ import type { AstFunction, AstNode, SourceRange } from './types';
 import {
   getJsxAttributeExpression,
   getJsxCallElement,
+  isJsxCallExpression,
   getJsxBranchExpression,
   getExpandableObjectProperties,
   getStaticBranchCondition,
@@ -206,7 +207,11 @@ export function lowerSemanticModulePlan(
       continue;
     }
     const callback = findNodeByRange(program, segment.functionRange);
-    if (callback === null || !isFunctionLike(callback) || !containsJsx(callback.body)) {
+    if (
+      callback === null ||
+      !isFunctionLike(callback) ||
+      !containsJsx(callback.body, extracted.analysis.jsxCalleeNames)
+    ) {
       continue;
     }
     const bodyRange = getRange(callback.body);
@@ -328,6 +333,9 @@ export function lowerSemanticModulePlan(
 
 class SemanticLowerer {
   private readonly analysis;
+  private get jsxCalleeNames(): ReadonlySet<string> {
+    return this.analysis.jsxCalleeNames;
+  }
   private readonly lifetimes: LifetimePlan[] = [];
   private readonly usedSegments = new Map<string, LifetimeId>();
   private readonly renderFunctions = new Map<string, RenderFunctionPlan>();
@@ -2000,7 +2008,7 @@ class SemanticLowerer {
         ? [segment.functionRange]
         : []
     );
-    return findMaximalJsxRoots(expression, skippedRanges);
+    return findMaximalJsxRoots(expression, skippedRanges, this.jsxCalleeNames);
   }
 
   private directFunctionJsxRoots(callback: AstFunction): AstNode[] {
@@ -2011,7 +2019,7 @@ class SemanticLowerer {
     const skippedRanges = this.extracted.segments.flatMap((segment) =>
       rangeContains(functionRange, segment.functionRange) ? [segment.functionRange] : []
     );
-    return findMaximalJsxRoots(callback.body, skippedRanges, true);
+    return findMaximalJsxRoots(callback.body, skippedRanges, this.jsxCalleeNames, true);
   }
 
   /** True unless this arm names a slot other than the projection currently being lowered. */
@@ -2504,7 +2512,7 @@ class SemanticLowerer {
         continue;
       }
       const returned = getCallbackReturn(callback);
-      if (returned !== null && containsJsx(returned.row)) {
+      if (returned !== null && containsJsx(returned.row, this.jsxCalleeNames)) {
         this.createExpressionRenderFunction(
           'qrl',
           returned.row,
@@ -2514,7 +2522,7 @@ class SemanticLowerer {
           returned.setup,
           this.parameterBindings(callback)
         );
-      } else if (containsJsx(callback.body)) {
+      } else if (containsJsx(callback.body, this.jsxCalleeNames)) {
         const roots = this.embeddedJsxRoots(callback.body!, segment.id);
         this.attachEmbeddedRenders(
           segment.id,
@@ -3224,7 +3232,9 @@ class SemanticLowerer {
       }
       const jsxDeclaration =
         statement?.type === 'VariableDeclaration'
-          ? statement.declarations.find((declaration) => containsJsx(declaration.init))
+          ? statement.declarations.find((declaration) =>
+              containsJsx(declaration.init, this.jsxCalleeNames)
+            )
           : undefined;
       const declaration =
         statement?.type === 'VariableDeclaration' ? statement.declarations[0] : undefined;
@@ -3236,7 +3246,9 @@ class SemanticLowerer {
         statement.declarations.length === 1 &&
         jsxDeclaration !== undefined &&
         id?.type === 'Identifier' &&
-        (init?.type === 'JSXElement' || init?.type === 'JSXFragment');
+        (init?.type === 'JSXElement' ||
+          init?.type === 'JSXFragment' ||
+          isJsxCallExpression(init, this.jsxCalleeNames));
       if (!directJsxConst) {
         // any other JSX literal in the statement hoists to a synthetic render closure
         const jsxValues =
@@ -4350,6 +4362,7 @@ function getLeadingSetupRanges(callback: AstFunction): SourceRange[] {
 function findMaximalJsxRoots(
   node: unknown,
   skippedRanges: readonly SourceRange[],
+  jsxCalleeNames: ReadonlySet<string>,
   skipNestedFunctions = false
 ): AstNode[] {
   const roots: AstNode[] = [];
@@ -4367,7 +4380,11 @@ function findMaximalJsxRoots(
     if (skipNestedFunctions && isFunctionLike(value)) {
       return;
     }
-    if (value.type === 'JSXElement' || value.type === 'JSXFragment') {
+    if (
+      value.type === 'JSXElement' ||
+      value.type === 'JSXFragment' ||
+      isJsxCallExpression(value, jsxCalleeNames)
+    ) {
       roots.push(value);
       return;
     }
@@ -4683,10 +4700,13 @@ function isLiteralOnlyValue(value: unknown): boolean {
   });
 }
 
-function containsJsx(node: unknown): boolean {
+function containsJsx(node: unknown, jsxCalleeNames: ReadonlySet<string>): boolean {
   let found = false;
   forEachNode(node, (child) => {
-    found ||= child.type === 'JSXElement' || child.type === 'JSXFragment';
+    found ||=
+      child.type === 'JSXElement' ||
+      child.type === 'JSXFragment' ||
+      isJsxCallExpression(child, jsxCalleeNames);
   });
   return found;
 }

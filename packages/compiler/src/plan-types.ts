@@ -101,6 +101,8 @@ export interface ModuleAnalysis {
   readonly items: readonly ModuleItemPlan[];
   readonly moduleJsxRange: SourceRange | null;
   readonly jsxFunctionRanges: readonly SourceRange[];
+  /** Local names Qwik's `jsx`/`jsxs` were imported as: JSX in call form is still JSX. */
+  readonly jsxCalleeNames: ReadonlySet<string>;
   /** Bindings referenced as JSX component tags anywhere in the module. */
   readonly jsxTagBindingIds: readonly BindingId[];
   /** Module-level JSX in call-argument position — deferred render roots. */

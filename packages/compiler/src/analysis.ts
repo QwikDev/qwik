@@ -6,7 +6,7 @@ import {
   isNativeTag,
   unwrapExpression,
 } from './ast-utils';
-import { visit as visitAst } from './jsx-ast-utils';
+import { isJsxCallExpression, visit as visitAst } from './jsx-ast-utils';
 import type { AstFunction, AstNode, SourceRange } from './types';
 import type {
   BindingId,
@@ -95,6 +95,7 @@ class ModuleAnalyzer {
   private readonly declarationBindings = new Map<string, BindingId>();
   private readonly referenceBindings = new Map<string, BindingId | null>();
   private readonly jsxTagBindings = new Set<BindingId>();
+  private jsxCallees: ReadonlySet<string> = new Set();
   private scopeId = -1;
   private ownerId = 0;
   private nextOwnerId = 1;
@@ -108,7 +109,8 @@ class ModuleAnalyzer {
     for (const statement of this.program.body) {
       this.visit(statement);
     }
-    const jsxOwners = collectJsxOwners(this.program);
+    this.jsxCallees = this.collectJsxCalleeNames();
+    const jsxOwners = collectJsxOwners(this.program, this.jsxCallees);
     const destructures = this.collectDestructuredMembers(jsxOwners.functionRanges);
     return {
       bindings: this.bindings,
@@ -118,6 +120,7 @@ class ModuleAnalyzer {
       moduleJsxRange: jsxOwners.moduleRange,
       moduleArgumentJsxRanges: jsxOwners.moduleArgumentJsxRanges,
       jsxFunctionRanges: jsxOwners.functionRanges,
+      jsxCalleeNames: this.jsxCallees,
       jsxTagBindingIds: [...this.jsxTagBindings],
       destructuredMembers: destructures.members,
       destructureTemps: destructures.temps,
@@ -1055,7 +1058,7 @@ class ModuleAnalyzer {
         ? 'component$'
         : candidate.bindingId !== null && this.jsxTagBindings.has(candidate.bindingId)
           ? 'jsx-tag'
-          : candidate.exported && returnPositionContainsJsx(candidate.fn)
+          : candidate.exported && returnPositionContainsJsx(candidate.fn, this.jsxCallees)
             ? 'exported-jsx'
             : null;
       if (qualification === null) {
@@ -1217,7 +1220,7 @@ class ModuleAnalyzer {
       (candidate) =>
         !candidate.wrapped &&
         (candidate.bindingId === null || !this.jsxTagBindings.has(candidate.bindingId)) &&
-        !(candidate.exported && returnPositionContainsJsx(candidate.fn))
+        !(candidate.exported && returnPositionContainsJsx(candidate.fn, this.jsxCallees))
     );
 
     for (const helper of moduleHelpers) {
@@ -1308,6 +1311,23 @@ class ModuleAnalyzer {
     return this.scopes[0].bindings.get('default') ?? null;
   }
 
+  /** Local names that Qwik's `jsx`/`jsxs`/`jsxDEV` were imported as, aliases included. */
+  private collectJsxCalleeNames(): ReadonlySet<string> {
+    const names = new Set<string>();
+    for (const binding of this.bindings) {
+      const imported = binding.import;
+      if (
+        imported !== null &&
+        !imported.typeOnly &&
+        isQwikImport(imported.source) &&
+        JSX_CALLEES.has(imported.importedName)
+      ) {
+        names.add(binding.name);
+      }
+    }
+    return names;
+  }
+
   private visitUnknownChildren(node: AstNode): void {
     for (const [key, value] of Object.entries(node)) {
       if (SKIPPED_KEYS.has(key)) {
@@ -1324,7 +1344,10 @@ class ModuleAnalyzer {
   }
 }
 
-function collectJsxOwners(program: Program): {
+function collectJsxOwners(
+  program: Program,
+  jsxCalleeNames: ReadonlySet<string>
+): {
   readonly moduleRange: SourceRange | null;
   readonly moduleArgumentJsxRanges: readonly SourceRange[];
   readonly functionRanges: readonly SourceRange[];
@@ -1340,7 +1363,11 @@ function collectJsxOwners(program: Program): {
       return;
     }
     const range = isFunctionLike(value) ? getRange(value) : ownerRange;
-    if (value.type === 'JSXElement' || value.type === 'JSXFragment') {
+    if (
+      value.type === 'JSXElement' ||
+      value.type === 'JSXFragment' ||
+      isJsxCallExpression(value, jsxCalleeNames)
+    ) {
       const jsxRange = getRange(value);
       if (range === null) {
         // a root value handed to a callee (render(document, <Root />)) lowers deferred;
@@ -1429,14 +1456,14 @@ function getImportSpecifierName(
   return getIdentifierName(specifier.local) ?? '';
 }
 
-function returnPositionContainsJsx(fn: AstFunction): boolean {
+function returnPositionContainsJsx(fn: AstFunction, jsxCalleeNames: ReadonlySet<string>): boolean {
   const body = unwrapExpression(fn.body);
   if (body?.type !== 'BlockStatement') {
-    return returnsJsxValue(body);
+    return returnsJsxValue(body, jsxCalleeNames);
   }
   let found = false;
   visitReturns(body, (argument) => {
-    found ||= returnsJsxValue(unwrapExpression(argument));
+    found ||= returnsJsxValue(unwrapExpression(argument), jsxCalleeNames);
   });
   return found;
 }
@@ -1447,7 +1474,7 @@ function returnPositionContainsJsx(fn: AstFunction): boolean {
  * rewriting its signature would break callers the compiler cannot see (issue: SSR entries doing
  * `return renderToStream(<Root />, opts)` gained a ctx parameter the server never passes).
  */
-function returnsJsxValue(node: unknown): boolean {
+function returnsJsxValue(node: unknown, jsxCalleeNames: ReadonlySet<string>): boolean {
   const value = unwrapExpression(node);
   if (!isNode(value)) {
     return false;
@@ -1457,19 +1484,25 @@ function returnsJsxValue(node: unknown): boolean {
     case 'JSXFragment':
       return true;
     case 'ConditionalExpression':
-      return returnsJsxValue(value.consequent) || returnsJsxValue(value.alternate);
+      return (
+        returnsJsxValue(value.consequent, jsxCalleeNames) ||
+        returnsJsxValue(value.alternate, jsxCalleeNames)
+      );
     case 'LogicalExpression':
-      return returnsJsxValue(value.left) || returnsJsxValue(value.right);
+      return (
+        returnsJsxValue(value.left, jsxCalleeNames) || returnsJsxValue(value.right, jsxCalleeNames)
+      );
     case 'SequenceExpression': {
       const expressions = (value as { expressions: unknown[] }).expressions;
-      return returnsJsxValue(expressions[expressions.length - 1]);
+      return returnsJsxValue(expressions[expressions.length - 1], jsxCalleeNames);
     }
     case 'ArrayExpression':
       return (value as { elements: unknown[] }).elements.some((element) =>
-        returnsJsxValue(element)
+        returnsJsxValue(element, jsxCalleeNames)
       );
     default:
-      return false;
+      // the one call whose result is JSX rather than an opaque value the caller owns
+      return isJsxCallExpression(value, jsxCalleeNames);
   }
 }
 
@@ -1535,6 +1568,9 @@ function isIterationCall(node: Extract<AstNode, { type: 'CallExpression' }>): bo
 function isQwikImport(source: string): boolean {
   return source === QWIK_CORE_IMPORT || source === QWIK_IMPORT;
 }
+
+/** Kept in step with semantic-lower's gate: recognizing more than it lowers only moves the error. */
+const JSX_CALLEES: ReadonlySet<string> = new Set([QwikHooks.Jsx, QwikHooks.Jsxs]);
 
 function sameRange(left: SourceRange | null, right: SourceRange | null): boolean {
   return left !== null && right !== null && left[0] === right[0] && left[1] === right[1];

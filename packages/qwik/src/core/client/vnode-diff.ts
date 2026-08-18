@@ -45,6 +45,7 @@ import {
   ITERATION_ITEM_SINGLE,
   OnRenderProp,
   QBackRefs,
+  QComponentHash,
   QContainerAttr,
   QDefaultSlot,
   QCursorBoundary,
@@ -1764,7 +1765,9 @@ function getComponentHash(vNode: VNode | null, getObject: (id: string) => any): 
     return null;
   }
   const qrl = vnode_getProp<QRLInternal>(vNode as VirtualVNode, OnRenderProp, getObject);
-  return qrl ? qrl.$hash$ : null;
+  return qrl
+    ? qrl.$hash$
+    : vnode_getProp<string | null>(vNode as VirtualVNode, QComponentHash, null);
 }
 
 /**

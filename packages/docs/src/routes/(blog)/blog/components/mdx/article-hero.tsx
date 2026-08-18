@@ -62,7 +62,7 @@ export const ArticleHero = component$<Props>(({ image, authorLinks }) => {
         </div>
       </div>
       <div class="relative max-w-[1280px] pb-4">
-        <Image alt={title} src={image} layout="fullWidth" />
+        <Image alt={title} src={image} layout="fullWidth" loading="eager" fetchpriority="high" />
       </div>
     </>
   );

@@ -17,6 +17,7 @@ export const ArticlesGrid = component$(() => {
             <div class="relative h-48 overflow-hidden">
               <Image
                 layout="constrained"
+                loading="lazy"
                 class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
                 src={post.image}
                 alt={post.title}

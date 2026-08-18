@@ -13,6 +13,8 @@ export const FeaturedArticle = component$(() => {
           <Image
             layout="fullWidth"
             objectFit="fill"
+            loading="eager"
+            fetchpriority="high"
             class="transform group-hover:scale-105 transition-transform duration-500"
             src={blogArticles[0].image}
             alt={blogArticles[0].title}

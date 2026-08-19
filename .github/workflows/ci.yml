@@ -1553,6 +1553,8 @@ jobs:
           npm dist-tag add @qwik.dev/core@${{ fromJSON(steps.changesets.outputs.publishedPackages)[0].version }} latest
           npm dist-tag add @qwik.dev/router@${{ fromJSON(steps.changesets.outputs.publishedPackages)[0].version }} latest
           npm dist-tag add @qwik.dev/react@${{ fromJSON(steps.changesets.outputs.publishedPackages)[0].version }} latest
+          npm dist-tag add @qwik.dev/utils@${{ fromJSON(steps.changesets.outputs.publishedPackages)[0].version }} latest
+          npm dist-tag add @qwik.dev/devtools@${{ fromJSON(steps.changesets.outputs.publishedPackages)[0].version }} latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

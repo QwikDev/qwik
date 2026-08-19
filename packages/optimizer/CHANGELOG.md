@@ -1,5 +1,11 @@
 # @qwik.dev/optimizer
 
+## 2.1.0-beta.6
+
+### Patch Changes
+
+- 🐞🩹 avoid eager container resume for capture-free sibling handlers (by [@Varixo](https://github.com/Varixo) in [#8919](https://github.com/QwikDev/qwik/pull/8919))
+
 ## 2.1.0-beta.5
 
 ### Patch Changes

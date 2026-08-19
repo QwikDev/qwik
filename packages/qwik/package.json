@@ -10,7 +10,6 @@
   "dependencies": {
     "@emnapi/core": "1.11.3",
     "@emnapi/runtime": "1.11.3",
-    "@qwik.dev/optimizer": "workspace:*",
     "csstype": "^3.2.3",
     "launch-editor": "^2.14.1",
     "magic-regexp": "^0.11.0",
@@ -168,15 +167,19 @@
   "license": "MIT",
   "main": "./src/index.ts",
   "peerDependencies": {
+    "@qwik.dev/optimizer": "workspace:*",
     "prettier": "*",
     "vite": ">=6 <9",
     "vitest": ">=2 <4"
   },
   "peerDependenciesMeta": {
-    "vitest": {
+    "@qwik.dev/optimizer": {
       "optional": true
     },
     "prettier": {
+      "optional": true
+    },
+    "vitest": {
       "optional": true
     }
   },

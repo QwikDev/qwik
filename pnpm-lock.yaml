@@ -798,9 +798,6 @@ importers:
       '@emnapi/runtime':
         specifier: 1.11.3
         version: 1.11.3
-      '@qwik.dev/optimizer':
-        specifier: workspace:*
-        version: link:../optimizer
       csstype:
         specifier: ^3.2.3
         version: 3.2.3
@@ -1012,6 +1009,9 @@ importers:
 
   packages/qwik-vite:
     devDependencies:
+      '@qwik.dev/optimizer':
+        specifier: workspace:*
+        version: link:../optimizer
       '@qwik.dev/ts-optimizer':
         specifier: workspace:*
         version: link:../ts-optimizer

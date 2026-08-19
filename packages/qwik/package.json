@@ -11,7 +11,6 @@
     "@emnapi/core": "1.11.3",
     "@emnapi/runtime": "1.11.3",
     "@qwik.dev/optimizer": "workspace:*",
-    "@qwik.dev/ts-optimizer": "workspace:*",
     "csstype": "^3.2.3",
     "launch-editor": "^2.14.1",
     "magic-regexp": "^0.11.0",

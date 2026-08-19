@@ -1373,27 +1373,6 @@ export const isDev = ${JSON.stringify(isDev)};
 
   // Eagerly-loaded contexts stay with their parent rather than grouping into a segment chunk.
   const EAGER_CTX_NAMES = new Set(['qwikify$', 'useVisibleTask$', 'useComputed$']);
-  const mergeRelatedSegments = (id: string, ctx: ChunkingContext) => {
-    const module = ctx?.getModuleInfo(id);
-    if (module) {
-      const segment = module.meta.segment as SegmentAnalysis | undefined;
-      if (segment) {
-        // TODO: Remove useComputed$ once we don't need to eagerly load them anymore
-        if (EAGER_CTX_NAMES.has(segment.ctxName)) {
-          return null;
-        }
-        const { hash } = segment;
-        // Group segments by their common entry (or Qwik Insights hash), incl. node_modules qwik libs.
-        const chunkName =
-          (opts.entryStrategy as SmartEntryStrategy).manual?.[hash] || segment.entry;
-        if (chunkName) {
-          return sanitizeChunkGroupName(chunkName);
-        }
-      }
-    }
-    // The rest is non-qwik code. We let the bundler handle it.
-    return null;
-  };
 
   /**
    * Client-only chunking. The server bundle doesn't need it, and the manifest only ever reads
@@ -1412,7 +1391,29 @@ export const isDev = ${JSON.stringify(isDev)};
         name: 'qwik-preloader',
         test: /(?:@qwik\.dev\/core\/build|[/\\](?:core|qwik)[/\\]dist[/\\]preloader\.[cm]js)$/,
       },
-      { name: mergeRelatedSegments },
+      {
+        name: (id: string, ctx: ChunkingContext) => {
+          const module = ctx?.getModuleInfo(id);
+          if (module) {
+            const segment = module.meta.segment as SegmentAnalysis | undefined;
+            if (segment) {
+              // TODO: Remove useComputed$ once we don't need to eagerly load them anymore
+              if (EAGER_CTX_NAMES.has(segment.ctxName)) {
+                return null;
+              }
+              const { hash } = segment;
+              // Group segments by their common entry (or Qwik Insights hash), incl. node_modules qwik libs.
+              const chunkName =
+                (opts.entryStrategy as SmartEntryStrategy).manual?.[hash] || segment.entry;
+              if (chunkName) {
+                return sanitizeChunkGroupName(chunkName);
+              }
+            }
+          }
+          // The rest is non-qwik code. We let the bundler handle it.
+          return null;
+        },
+      },
     ],
   });
 

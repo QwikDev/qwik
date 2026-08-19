@@ -25,6 +25,7 @@
     "@croct/json5-parser": "0.2.2",
     "@qwik.dev/core": "workspace:*",
     "@qwik.dev/dom": "workspace:*",
+    "@qwik.dev/optimizer": "workspace:*",
     "domino": "2.1.6",
     "ignore": "5.3.1",
     "image-size": "2.0.2",

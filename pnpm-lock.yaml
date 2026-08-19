@@ -838,6 +838,9 @@ importers:
       '@qwik.dev/dom':
         specifier: workspace:*
         version: link:../qwik-dom
+      '@qwik.dev/optimizer':
+        specifier: workspace:*
+        version: link:../optimizer
       domino:
         specifier: 2.1.6
         version: 2.1.6(patch_hash=cfc92e4c7200dc9749feafd71636da4534f892821d01a38afe3025620807877d)

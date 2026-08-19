@@ -142,8 +142,8 @@ export interface QContainerElement extends Element {
  * value during SSR.
  *
  * - `never`: The value is never serialized. When the component is resumed, the value will be
- *   recalculated when it is first read.
- * - `always`: The value is always serialized. This is the default.
+ *   recalculated when it is first read. This is the default for computed signals.
+ * - `always`: The value is always serialized. This is the default for async signals.
  *
  * **IMPORTANT**: When you use `never`, your serialized HTML is smaller, but the recalculation will
  * trigger subscriptions, meaning that other signals using this signal will recalculate, even if

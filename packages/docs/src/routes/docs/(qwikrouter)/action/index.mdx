@@ -261,7 +261,8 @@ Actions + [Zod](https://zod.dev/) allows to create type safe forms, where the da
 
 ```tsx {16-20} /firstName/#a /lastName/#b title="src/routes/index.tsx"
 import { component$ } from '@qwik.dev/core';
-import { routeAction$, zod$, z, Form } from '@qwik.dev/router';
+import { routeAction$, Form } from '@qwik.dev/router';
+import { zod$, z } from '@qwik.dev/utils';
 
 export const useAddUser = routeAction$(
   async (user) => {
@@ -369,7 +370,8 @@ export const useProductRecommendations = routeAction$(
 In order to return non-success values, the action must use the `fail()` method.
 
 ```tsx /fail/
-import { routeAction$, zod$, z } from '@qwik.dev/router';
+import { routeAction$ } from '@qwik.dev/router';
+import { zod$, z } from '@qwik.dev/utils';
 
 export const useAddUser = routeAction$(
   async (user, { fail }) => {
@@ -419,7 +421,8 @@ When an action is triggered, the previous state is stored in the `action.formDat
 
 ```tsx {12} /action.formData/
 import { component$ } from '@qwik.dev/core';
-import { routeAction$, Form, zod$, z } from '@qwik.dev/router';
+import { routeAction$, Form } from '@qwik.dev/router';
+import { zod$, z } from '@qwik.dev/utils';
 
 export const useAddUser = routeAction$(async (user) => {
   // handle action...

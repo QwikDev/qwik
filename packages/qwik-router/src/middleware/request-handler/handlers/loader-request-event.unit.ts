@@ -163,11 +163,8 @@ function createLoader(
     },
     __validators: undefined,
     __serializationStrategy: 'never',
-    __expires: 0,
-    __poll: false,
     __eTag: undefined,
     __cacheKey: undefined,
     __search: search,
-    __allowStale: true,
   } as any;
 }

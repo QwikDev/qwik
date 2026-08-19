@@ -5,6 +5,7 @@
 ```ts
 
 import type { AbortMessage } from '@qwik.dev/router/middleware/request-handler';
+import type { CacheControl } from '@qwik.dev/router/middleware/request-handler';
 import { Component } from '@qwik.dev/core';
 import type { ComputedSignal } from '@qwik.dev/core';
 import { Cookie } from '@qwik.dev/router/middleware/request-handler';

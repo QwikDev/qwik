@@ -1,3 +1,4 @@
+// Qwik DOM/container protocol: selector and attribute names the devtools read off the page.
 export const QWIK_CONTAINER_SELECTOR =
   '[q\\:container]:not([q\\:container="html"]):not([q\\:container="text"])';
 

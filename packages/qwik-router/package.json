@@ -169,7 +169,7 @@
   "license": "MIT",
   "main": "./lib/index.qwik.mjs",
   "peerDependencies": {
-    "@qwik.dev/core": "workspace:^",
+    "@qwik.dev/core": "workspace:*",
     "vite": ">=8 <9"
   },
   "publishConfig": {

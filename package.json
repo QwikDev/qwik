@@ -1,6 +1,6 @@
 {
   "name": "qwik-monorepo",
-  "version": "0.0.0-read-qwik-package-json",
+  "version": "workspace:*",
   "author": "Qwik Team",
   "comments": {
     "01": "devDependencies includes reference to @qwik.dev/core: workspace:*. This is needed or e2e tests will fail",
@@ -33,23 +33,13 @@
           "pinVersion": "workspace:*"
         },
         {
-          "label": "use workspace protocol for local packages and allow patch versions (used in e.g. qwik-react)",
+          "label": "use workspace protocol for qwik packages, only allow strict versions",
           "dependencies": [
             "$LOCAL"
           ],
           "dependencyTypes": [
-            "!local",
-            "!dev"
-          ],
-          "pinVersion": "workspace:^"
-        },
-        {
-          "label": "dev: use workspace protocol for local packages - split from prod and peer version group",
-          "dependencies": [
-            "$LOCAL"
-          ],
-          "dependencyTypes": [
-            "dev"
+            "dev",
+            "peer"
           ],
           "pinVersion": "workspace:*"
         },

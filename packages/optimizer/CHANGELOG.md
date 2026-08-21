@@ -1,5 +1,11 @@
 # @qwik.dev/optimizer
 
+## 2.1.0-beta.7
+
+### Patch Changes
+
+- 🐞🩹 preserve wrapper context for direct qrl markers (by [@Varixo](https://github.com/Varixo) in [#8924](https://github.com/QwikDev/qwik/pull/8924))
+
 ## 2.1.0-beta.6
 
 ### Patch Changes

@@ -91,6 +91,24 @@ test.describe('loaders', () => {
       await page.waitForURL('**/reexported-loader/two/');
       await expect(loaderId).toHaveText('id: two');
     });
+
+    test('loads a routeLoaderQrl session after an action redirect', async ({ page }) => {
+      await page.goto('/qwikrouter-test/dynamic-session/login/');
+      await page.evaluate(() => ((window as any).__dynamicSessionMarker = true));
+      await page.getByRole('button', { name: 'Sign in' }).click();
+
+      await expect(page.locator('#dynamic-session-user')).toHaveText('admin');
+      expect(await page.evaluate(() => (window as any).__dynamicSessionMarker)).toBe(true);
+    });
+
+    test('loads routeLoaderQrl after production SPA navigation', async ({ page }) => {
+      await page.goto('/qwikrouter-test.prod/');
+      await page.evaluate(() => ((window as any).__prodLoaderMarker = true));
+      await page.locator('#prod-loader-link').click();
+
+      await expect(page.locator('#prod-qrl-loader')).toHaveText('qrl loader');
+      expect(await page.evaluate(() => (window as any).__prodLoaderMarker)).toBe(true);
+    });
   });
 
   function tests() {

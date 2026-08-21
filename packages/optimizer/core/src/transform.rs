@@ -204,6 +204,18 @@ fn convert_qrl_word(id: &Atom) -> Option<Atom> {
 		None
 	}
 }
+
+fn convert_qrl_to_dollar_word(id: &str) -> Option<Atom> {
+	if id.ends_with(LONG_SUFFIX) {
+		Some(Atom::from(format!(
+			"{}{QRL_SUFFIX}",
+			id.trim_end_matches(LONG_SUFFIX)
+		)))
+	} else {
+		None
+	}
+}
+
 impl<'a> QwikTransform<'a> {
 	pub fn new(options: QwikTransformOptions<'a>) -> Self {
 		let mut marker_functions = HashMap::new();
@@ -539,11 +551,7 @@ impl<'a> QwikTransform<'a> {
 			.last()
 			.map_or_else(|| QSEGMENT.clone(), |last| Atom::from(last.as_str()));
 
-		let ctx_name = if last_stack.ends_with("Qrl") {
-			Atom::from(format!("{}$", last_stack.trim_end_matches("Qrl")))
-		} else {
-			last_stack
-		};
+		let ctx_name = convert_qrl_to_dollar_word(last_stack.as_ref()).unwrap_or(last_stack);
 		let ctx_kind = if ctx_name.starts_with("on") {
 			SegmentKind::JSXProp
 		} else {
@@ -706,10 +714,16 @@ impl<'a> QwikTransform<'a> {
 				None
 			};
 
+			let ctx_name = self
+				.stack_ctxt
+				.last()
+				.and_then(|name| convert_qrl_to_dollar_word(name))
+				.unwrap_or_else(|| QSEGMENT.clone());
+
 			self.create_synthetic_qsegment(
 				*first_arg,
 				SegmentKind::Function,
-				QSEGMENT.clone(),
+				ctx_name,
 				custom_symbol,
 			)
 		} else {

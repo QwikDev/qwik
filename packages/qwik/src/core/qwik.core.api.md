@@ -1100,7 +1100,7 @@ export type ResourceReturn<T> = {
 };
 
 // @internal (undocumented)
-export const _restProps: (props: PropsProxy | Record<PropertyKey, unknown>, omit?: string[], target?: Props) => Props;
+export const _restProps: (props: unknown, omit?: string[], target?: Props) => Props;
 
 // @internal (undocumented)
 export const _reT: (input: TaskCtx) => void;

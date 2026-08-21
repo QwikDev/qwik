@@ -52,6 +52,16 @@ describe('_restProps', () => {
       assert.equal(rest.visible, 1);
       assert.isFalse(Object.hasOwn(rest, 'hidden'));
     });
+
+    it('supports primitive object-rest sources', () => {
+      const rest = _restProps('ab');
+      assert.deepEqual({ ...rest }, { 0: 'a', 1: 'b' });
+    });
+
+    it('throws on nullish sources like native rest-destructuring', () => {
+      assert.throws(() => _restProps(null), TypeError);
+      assert.throws(() => _restProps(undefined), TypeError);
+    });
   });
 
   describe('props proxy path', () => {

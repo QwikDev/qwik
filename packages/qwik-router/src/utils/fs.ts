@@ -73,6 +73,20 @@ export function normalizePath(path: string) {
   return normalizePathSlash(normalize(path));
 }
 
+/** Normalize equivalent filesystem paths for string-key comparisons. */
+export function normalizePathKey(path: string) {
+  if (path.startsWith('\\\\?\\UNC\\')) {
+    path = `\\\\${path.slice(8)}`;
+  } else if (path.startsWith('\\\\?\\')) {
+    path = path.slice(4);
+  } else if (path.startsWith('//?/UNC/')) {
+    path = `//${path.slice(8)}`;
+  } else if (path.startsWith('//?/')) {
+    path = path.slice(4);
+  }
+  return normalizePath(path).replace(/\\/g, '/');
+}
+
 export function normalizePathSlash(path: string) {
   // MIT https://github.com/sindresorhus/slash/blob/main/license
   // Convert Windows backslash paths to slash paths: foo\\bar ➔ foo/bar

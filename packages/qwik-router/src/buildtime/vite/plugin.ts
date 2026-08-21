@@ -24,6 +24,7 @@ import {
   isPluginModule,
   isServiceWorkerName,
   normalizePath,
+  normalizePathKey,
   removeExtension,
 } from '../../utils/fs';
 import { parseRoutesDir } from '../build';
@@ -89,10 +90,10 @@ export function replaceLoaderPlaceholders(
   // `_R: ...` entry when no routeLoader$ was found — that way the client-side routing code
   // never sees a stale placeholder string and spreads it character-by-character.
   return code.replace(/_R\s*:\s*"__LOADERS:([^"]+)__"\s*,?/g, (_match, paths: string) => {
-    const filePaths = paths.split('|');
+    const filePaths = (JSON.parse(`"${paths}"`) as string).split('|');
     const hashes: string[] = [];
     for (const filePath of filePaths) {
-      const fileHashes = loadersByFile.get(filePath);
+      const fileHashes = loadersByFile.get(normalizePathKey(filePath));
       if (fileHashes) {
         hashes.push(...fileHashes);
       }
@@ -111,7 +112,7 @@ export function addRouteLoaderHash(
   filePath: string,
   hash: string
 ) {
-  const normalizedPath = normalizePath(filePath);
+  const normalizedPath = normalizePathKey(filePath);
   const existing = loadersByFile.get(normalizedPath);
   if (!existing) {
     loadersByFile.set(normalizedPath, [hash]);
@@ -125,7 +126,7 @@ export function addRouteLoaderHash(
 }
 
 export function clearRouteLoaderHashes(loadersByFile: Map<string, string[]>, filePath: string) {
-  return loadersByFile.delete(normalizePath(filePath));
+  return loadersByFile.delete(normalizePathKey(filePath));
 }
 
 export function isRouterSourceFilePath(filePath: string) {

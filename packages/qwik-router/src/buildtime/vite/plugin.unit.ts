@@ -9,6 +9,7 @@ import {
   invalidateRouterConfigModules,
   isRouterSourceFilePath,
   qwikRouter,
+  replaceLoaderPlaceholders,
 } from './plugin';
 
 describe('qwikRouter plugin', () => {
@@ -134,6 +135,17 @@ describe('qwikRouter plugin', () => {
   });
 
   describe('routeLoader$ dev cache', () => {
+    it('matches extended-length Windows loader paths', () => {
+      const loadersByFile = new Map<string, string[]>();
+      const loaderPath = String.raw`\\?\C:\deep\project\src\routes\index.tsx`;
+      addRouteLoaderHash(loadersByFile, loaderPath, 'loader_hash');
+
+      for (const placeholderPath of [loaderPath, 'C:/deep/project/src/routes/index.tsx']) {
+        const code = `{ _R: ${JSON.stringify(`__LOADERS:${placeholderPath}__`)}, }`;
+        expect(replaceLoaderPlaceholders(code, loadersByFile)).toContain('_R: ["loader_hash"],');
+      }
+    });
+
     it('dedupes hashes and can replace stale file entries', () => {
       const loadersByFile = new Map<string, string[]>();
 

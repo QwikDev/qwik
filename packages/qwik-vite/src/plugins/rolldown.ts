@@ -141,23 +141,8 @@ export function normalizeRolldownOutputOptions(
   return normalizeRolldownOutputObject(qwikPlugin, outputOpts_arr);
 }
 
-const normalizeChunkPathPrefix = (prefix: string) => {
-  if (!prefix) {
-    return '';
-  }
-  return `${prefix.replace(/\/+$/, '')}/`;
-};
-
-export const getChunkPathPrefix = (prefix: string) => {
-  return `${normalizeChunkPathPrefix(prefix)}build/`;
-};
-
-const getChunkFileName = (
-  prefix: string,
-  opts: NormalizedQwikPluginOptions,
-  optimizer: Optimizer
-) => {
-  const chunkPathPrefix = getChunkPathPrefix(prefix);
+const getChunkFileName = (opts: NormalizedQwikPluginOptions, optimizer: Optimizer) => {
+  const chunkPathPrefix = 'build/';
   if (opts.buildMode === 'production' && !opts.debug) {
     return `${chunkPathPrefix}q-[hash].js`;
   } else {
@@ -170,8 +155,7 @@ const getChunkFileName = (
         return `${chunkPathPrefix}qwik-router.js`;
       }
 
-      // The chunk name can often be a path. We sanitize it to use dashes instead of slashes, to keep the same folder structure as without debug:true.
-      // Besides, the bundler doesn't accept absolute or relative paths as inputs for the [name] placeholder for the same reason.
+      // Flatten path-like names so debug output stays flat in build/.
       const relativePath = optimizer.sys.path.relative(optimizer.sys.cwd(), chunkInfo.name);
       return `${chunkPathPrefix}${flattenToChunkName(relativePath)}.js`;
     };
@@ -195,7 +179,7 @@ export function normalizeRolldownOutputObject(
   }
 
   // Qwik's lazy JS chunks stay at `build/` (the preloader's fixed home) regardless of asset config.
-  const chunkFileName = getChunkFileName('', opts, optimizer);
+  const chunkFileName = getChunkFileName(opts, optimizer);
   if (opts.target === 'client') {
     // client output
     if (!outputOpts.entryFileNames) {

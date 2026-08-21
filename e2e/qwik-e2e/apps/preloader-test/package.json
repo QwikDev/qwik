@@ -10,10 +10,5 @@
     "start": "vite --open --mode ssr"
   },
   "private": true,
-  "type": "module",
-  "devDependencies": {
-    "@qwik-ui/headless": "0.7.1",
-    "body-scroll-lock-upgrade": "1.1.0",
-    "focus-trap": "7.5.4"
-  }
+  "type": "module"
 }

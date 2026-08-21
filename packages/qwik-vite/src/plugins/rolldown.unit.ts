@@ -3,7 +3,7 @@ import { qwikRolldown } from './rolldown';
 import type { Rolldown } from 'vite';
 import type { OptimizerOptions } from '../types';
 import type { NormalizedQwikPluginOptions } from './plugin';
-import { assert, test } from 'vitest';
+import { assert, expect, test, vi } from 'vitest';
 import { normalizePath } from '../../../qwik/src/testing/util';
 
 const cwd = process.cwd();
@@ -197,4 +197,71 @@ test('rolldown input, forceFullBuild true', async () => {
   assert.deepEqual(opts.target, 'ssr');
   assert.deepEqual(opts.buildMode, 'development');
   assert.deepEqual(opts.entryStrategy, { type: 'hoist' });
+});
+
+type CodeSplitting = Exclude<Rolldown.OutputOptions['codeSplitting'], boolean | undefined>;
+
+async function clientCodeSplitting(output: Rolldown.OutputOptions) {
+  const plugin = qwikRolldown({ optimizerOptions: mockOptimizerOptions() });
+  await plugin.options!({});
+  const outputOpts: Rolldown.OutputOptions = await plugin.outputOptions!(output);
+  return outputOpts.codeSplitting as CodeSplitting;
+}
+
+test('codeSplitting starts with the qwik groups and disables dependency recursion', async () => {
+  const codeSplitting = await clientCodeSplitting({});
+
+  assert.deepEqual(codeSplitting.includeDependenciesRecursively, false);
+  assert.deepEqual(
+    codeSplitting.groups!.map((group) => group.name),
+    ['qwik-core', 'qwik-preloader', codeSplitting.groups![2].name]
+  );
+  assert.deepEqual(typeof codeSplitting.groups![2].name, 'function');
+  assert.deepEqual(
+    codeSplitting.groups!.map((group) => group.includeDependenciesRecursively),
+    [false, false, false]
+  );
+});
+
+test('codeSplitting appends the user groups after the qwik groups', async () => {
+  const vendor = { name: 'vendor', test: /node_modules/ };
+  const codeSplitting = await clientCodeSplitting({ codeSplitting: { groups: [vendor] } });
+
+  assert.deepEqual(codeSplitting.groups!.length, 4);
+  assert.deepEqual(codeSplitting.groups![3], vendor);
+});
+
+test('codeSplitting keeps the user top-level options without touching the qwik groups', async () => {
+  const codeSplitting = await clientCodeSplitting({
+    codeSplitting: { includeDependenciesRecursively: true, minSize: 20000 },
+  });
+
+  assert.deepEqual(codeSplitting.includeDependenciesRecursively, true);
+  assert.deepEqual(codeSplitting.minSize, 20000);
+  assert.deepEqual(
+    codeSplitting.groups!.map((group) => group.includeDependenciesRecursively),
+    [false, false, false]
+  );
+});
+
+test('codeSplitting true is the default and keeps the qwik groups', async () => {
+  const codeSplitting = await clientCodeSplitting({ codeSplitting: true });
+
+  assert.deepEqual(codeSplitting.groups!.length, 3);
+});
+
+test('codeSplitting false throws', async () => {
+  await expect(clientCodeSplitting({ codeSplitting: false })).rejects.toThrow(/lazy loading/);
+});
+
+test('warns that manualChunks and advancedChunks are ignored', async () => {
+  const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+  await clientCodeSplitting({ manualChunks: () => null });
+  await clientCodeSplitting({ advancedChunks: { groups: [] } });
+  await clientCodeSplitting({});
+
+  assert.deepEqual(warn.mock.calls.length, 2);
+  assert.match(warn.mock.calls[0][0], /codeSplitting\.groups/);
+  warn.mockRestore();
 });

@@ -1380,18 +1380,20 @@ export const isDev = ${JSON.stringify(isDev)};
    * same-named route chunk can't shadow it.
    */
   const codeSplitting = (): CodeSplittingOptions => ({
-    includeDependenciesRecursively: false,
     groups: [
       // core and handlers must share a chunk so there's no import waterfall
       {
         name: 'qwik-core',
         test: /[/\\](core|qwik)[/\\](handlers|dist[/\\]core(\.prod|\.min)?)\.[cm]js$/,
+        includeDependenciesRecursively: false,
       },
       {
         name: 'qwik-preloader',
         test: /(?:@qwik\.dev\/core\/build|[/\\](?:core|qwik)[/\\]dist[/\\]preloader\.[cm]js)$/,
+        includeDependenciesRecursively: false,
       },
       {
+        includeDependenciesRecursively: false,
         name: (id: string, ctx: ChunkingContext) => {
           const module = ctx?.getModuleInfo(id);
           if (module) {

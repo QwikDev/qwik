@@ -209,17 +209,22 @@ export function normalizeRolldownOutputObject(
     // client should always be es
     outputOpts.format = 'es';
 
-    const userCodeSplitting = outputOpts.codeSplitting;
-    if (typeof userCodeSplitting === 'boolean') {
+    const userCodeSplitting =
+      outputOpts.codeSplitting === true ? undefined : outputOpts.codeSplitting;
+    if (userCodeSplitting === false) {
       throw new Error(
-        'codeSplitting must be a `codeSplitting: { groups: [...] }` object so Qwik can group qrl segments back together without causing network waterfalls.'
+        'codeSplitting: false inlines all dynamic imports, which breaks lazy loading. Use `codeSplitting: { groups: [...] }` instead.'
       );
     }
-    // Qwik's groups come first; user groups can outrank them with an explicit `priority`.
-    const qwikCodeSplitting = qwikPlugin.codeSplitting();
+    if (outputOpts.manualChunks || outputOpts.advancedChunks) {
+      console.warn(
+        'vite-plugin-qwik: manualChunks and advancedChunks are ignored once codeSplitting is set. Move them into codeSplitting.groups.'
+      );
+    }
     outputOpts.codeSplitting = {
-      includeDependenciesRecursively: qwikCodeSplitting.includeDependenciesRecursively,
-      groups: [...(qwikCodeSplitting.groups ?? []), ...(userCodeSplitting?.groups ?? [])],
+      includeDependenciesRecursively: false,
+      ...userCodeSplitting,
+      groups: [...qwikPlugin.codeSplitting().groups!, ...(userCodeSplitting?.groups ?? [])],
     };
   } else {
     // server production output, try to be similar to client

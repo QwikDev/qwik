@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-// No space after the colon: the bundler minifies the inline CSS.
+// Minified inline CSS has no space after the colon.
 const USE_STYLES_DEDUPE_MARKER = '--use-styles-dedupe-marker:dedupe-ok';
 
 test.describe('styles', () => {

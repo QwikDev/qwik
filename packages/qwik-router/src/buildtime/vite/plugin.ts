@@ -439,7 +439,7 @@ function qwikRouterPlugin(
     async configureServer(server) {
       devServer = server;
       // recursively watch all route files in the src/routes directory
-      // chokidar 4 dropped glob support, so watch the directories and filter on change
+      // chokidar 4 dropped globs, so watch directories and filter.
       const toWatch = [ctx!.opts.routesDir, ctx!.opts.serverPluginsDir];
       server.watcher.add(toWatch);
       await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -473,7 +473,7 @@ function qwikRouterPlugin(
       if (!ctx) {
         return;
       }
-      // hotUpdate runs per environment, so only this environment's config module can be returned.
+      // hotUpdate runs per environment, so return this environment's config module.
       const configModule = this.environment.moduleGraph.getModuleById(QWIK_ROUTER_CONFIG_ID);
       if (!isRouterSourceFileForContext(file, ctx)) {
         if (

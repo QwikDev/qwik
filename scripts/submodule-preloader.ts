@@ -2,7 +2,7 @@ import { join } from 'node:path';
 import { build } from 'vite';
 import { fileSize, type BuildConfig } from './util.ts';
 
-/** Builds the preloader script as a stand-alone ES module, minified by the bundler. */
+/** Builds the stand-alone preloader module, minified by the bundler. */
 export async function submodulePreloader(config: BuildConfig): Promise<void> {
   await build({
     build: {

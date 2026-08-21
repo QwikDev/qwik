@@ -51,7 +51,7 @@ describe('generateManifestFromBundles', () => {
     expect(manifest.core).toBe('q-core.js');
     expect(manifest.qwikLoader).toBe('q-loader.js');
     expect(manifest.preloader).toBe('q-preloader.js');
-    // Core handler symbols (e.g. _run) map to the qwik-core chunk, which also holds handlers.
+    // _run lives in qwik-core, which also holds the handlers.
     expect(manifest.mapping['_run']).toBe('q-core.js');
     expect(manifest.symbols['_run']?.origin).toBe('Qwik core');
   });
@@ -94,8 +94,7 @@ describe('generateManifestFromBundles', () => {
   });
 
   test('a user route named "qwikloader" does not shadow the real loader chunk', () => {
-    // Regression: a /qwikloader route chunk is also named "qwikloader"; the loader is taken from its
-    // emit file name, so the route chunk cannot hijack the manifest pointer.
+    // The route chunk shares the name; the emit ref wins.
     const manifest = generate(
       {
         'q-loader.js': chunk('qwikloader', 'q-loader.js'),

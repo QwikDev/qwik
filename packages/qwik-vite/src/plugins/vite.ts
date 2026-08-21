@@ -315,8 +315,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             // This will amend the existing input
             input,
             experimental: {
-              // Rolldown's default 'simple' writes provenance comments into unminified output,
-              // which lib builds publish.
+              // Rolldown's default 'simple' leaks provenance comments into lib output.
               attachDebugInfo:
                 viteConfig.build?.rolldownOptions?.experimental?.attachDebugInfo ?? 'none',
             },

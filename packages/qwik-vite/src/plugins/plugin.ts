@@ -454,7 +454,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         skipSelf: true,
       });
       if (ql) {
-        // Keep the reference so the manifest can resolve the loader's output name authoritatively.
+        // The manifest resolves the loader's output name from this ref.
         qwikLoaderChunkRef = _ctx.emitFile({
           id: ql.id,
           type: 'chunk',
@@ -1371,17 +1371,13 @@ export const isDev = ${JSON.stringify(isDev)};
     }
   }
 
-  // Eagerly-loaded contexts stay with their parent rather than grouping into a segment chunk.
+  // Eager contexts stay with their parent, not a segment chunk.
   const EAGER_CTX_NAMES = new Set(['qwikify$', 'useVisibleTask$', 'useComputed$']);
 
-  /**
-   * Client-only chunking. The server bundle doesn't need it, and the manifest only ever reads
-   * client bundles. The qwikloader is resolved by its emit reference instead of a group, so a
-   * same-named route chunk can't shadow it.
-   */
+  /** Client-only; the server bundle needs no Qwik chunking. */
   const codeSplitting = (): CodeSplittingOptions => ({
     groups: [
-      // core and handlers must share a chunk so there's no import waterfall
+      // core and handlers share a chunk: no import waterfall
       {
         name: 'qwik-core',
         test: /[/\\](core|qwik)[/\\](handlers|dist[/\\]core(\.prod|\.min)?)\.[cm]js$/,
@@ -1404,7 +1400,7 @@ export const isDev = ${JSON.stringify(isDev)};
                 return null;
               }
               const { hash } = segment;
-              // Group segments by their common entry (or Qwik Insights hash), incl. node_modules qwik libs.
+              // Group segments by entry or Qwik Insights hash.
               const chunkName =
                 (opts.entryStrategy as SmartEntryStrategy).manual?.[hash] || segment.entry;
               if (chunkName) {
@@ -1412,7 +1408,7 @@ export const isDev = ${JSON.stringify(isDev)};
               }
             }
           }
-          // The rest is non-qwik code. We let the bundler handle it.
+          // Non-qwik code: let the bundler decide.
           return null;
         },
       },

@@ -397,12 +397,10 @@ export function generateManifestFromBundles(
   let preloaderBundleName: string | undefined;
   let qwikHandlersName: string | undefined;
 
-  // The qwikloader is emitFile'd, so its output name comes from the emit reference — never matched
-  // by chunk name, which a user route like /qwikloader would shadow.
+  // A /qwikloader route could shadow a chunk-name match.
   manifest.qwikLoader = qwikLoaderFileName ? canonPath(qwikLoaderFileName) : undefined;
 
-  // The core/preloader payloads are the code-splitting group chunks, matched by the group name
-  // assigned in qwik-vite plugin.ts. The qwik-core group bundles core runtime + handlers.
+  // Group names come from plugin.ts; qwik-core also holds the handlers.
   for (const outputBundle of Object.values(outputBundles)) {
     const bundleFileName = getBundleName(outputBundle.fileName);
     if (outputBundle.name === 'qwik-core') {
@@ -415,11 +413,7 @@ export function generateManifestFromBundles(
       manifest.preloader = bundleFileName;
     }
   }
-  // Runtime-addressed exports must resolve through the emitFile facades: the bundler may mangle
-  // the group chunks' export names, while the emitted entries keep them verbatim. The bundler may
-  // also merge an emitted entry into its group chunk instead — then the ref names a file that was
-  // never written and the group chunk keeps the verbatim exports, so only prefer a facade that
-  // actually exists in the output.
+  // Facades keep export names; a merged facade leaves no file.
   if (preloaderFileName && preloaderFileName in outputBundles) {
     manifest.preloader = canonPath(preloaderFileName);
   }

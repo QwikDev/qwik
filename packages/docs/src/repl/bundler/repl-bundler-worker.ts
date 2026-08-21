@@ -176,7 +176,7 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
   const clientBuild = await rolldown({
     cwd: '/',
     input: srcInputs.find((i) => i.path.endsWith('app.tsx'))?.path,
-    // Rolldown's default 'exports-only' is invalid with the codeSplitting the qwik plugin sets.
+    // 'exports-only' is invalid with the qwik plugin's codeSplitting.
     preserveEntrySignatures: 'allow-extension',
     plugins: [
       definesPlugin(defines),

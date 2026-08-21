@@ -322,8 +322,7 @@ export function rawSource(): Plugin {
       },
     },
 
-    // `pre` so we own `\0raw-source:` ids before Vite's wasm-helper, which would otherwise
-    // try to parse a `.wasm` raw source as a real WASM module.
+    // Vite's wasm helper would otherwise parse the raw `.wasm` source.
     load: {
       order: 'pre',
       handler(id) {

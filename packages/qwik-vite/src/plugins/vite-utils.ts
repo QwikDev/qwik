@@ -147,7 +147,7 @@ export function parseId(originalId: string) {
 export const getSymbolHash = (symbolName: string) =>
   /_([a-zA-Z0-9]+)($|\.js($|\?))/.exec(symbolName)?.[1];
 
-/** Flattens a path-like name so debug chunk files stay flat inside `build/`. */
+/** Flattens a path into a chunk name under `build/`. */
 export const flattenToChunkName = (name: string) =>
   name
     .replace(/^[A-Za-z]:/, '')
@@ -156,12 +156,10 @@ export const flattenToChunkName = (name: string) =>
     .replace(/^[/\\]+/, '')
     .replace(/[/\\]+/g, '-');
 
-// Chunk names the manifest matches to find the core/preloader bundles; a user or segment chunk must
-// never collide with one or it would hijack that manifest pointer. (The qwikloader is matched by its
-// emit reference instead, so a same-named route chunk can't shadow it.)
+// A user chunk with these names would hijack the manifest.
 const RESERVED_CHUNK_NAMES = new Set(['qwik-core', 'qwikloader', 'qwik-preloader']);
 
-/** Turns an entry/segment name into a chunk group name, kept clear of reserved names. */
+/** Segment name to chunk group name, avoiding reserved names. */
 export const sanitizeChunkGroupName = (name: string | null | undefined) => {
   if (!name) {
     return null;

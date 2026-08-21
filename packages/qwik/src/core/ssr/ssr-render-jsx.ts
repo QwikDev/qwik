@@ -1,11 +1,10 @@
 import { isDev } from '@qwik.dev/core/build';
 import { _run } from '../client/run-qrl';
-import { ComputedSignalImpl } from '../reactive-primitives/impl/computed-signal-impl';
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
-import { AsyncSignalFlags, EffectProperty } from '../reactive-primitives/types';
+import { EffectProperty } from '../reactive-primitives/types';
 import { isSignal } from '../reactive-primitives/utils';
 import { isQwikComponent } from '../shared/component.public';
-import { Fragment, type Props } from '../shared/jsx/jsx-runtime';
+import { Fragment } from '../shared/jsx/jsx-runtime';
 import { directGetPropsProxyProp } from '../shared/jsx/props-proxy';
 import { Slot } from '../shared/jsx/slot.public';
 import { JSXNodeFlags, type JSXNodeInternal, type JSXOutput } from '../shared/jsx/types/jsx-node';
@@ -17,14 +16,12 @@ import {
   SSRStreamBlock,
   type SSRStreamChildren,
 } from '../shared/jsx/utils.public';
-import { type SerializationContext } from '../shared/serdes/index';
 import { DEBUG_TYPE, VirtualType } from '../shared/types';
 import { isAsyncGenerator } from '../shared/utils/async-generator';
 import { EMPTY_OBJ } from '../shared/utils/flyweight';
 import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
 import {
   ELEMENT_KEY,
-  QCursorBoundary,
   QDefaultSlot,
   QScopedStyle,
   QSlot,
@@ -37,7 +34,6 @@ import { addComponentStylePrefix } from '../shared/utils/scoped-styles';
 import type { InnerContainer } from '../shared/utils/container';
 import { isFunction, type ValueOrPromise } from '../shared/utils/types';
 import { trackSignalAndAssignHost } from '../use/use-core';
-import type { CursorBoundary } from '../use/use-cursor-boundary';
 import {
   getInternalServerComponentHandler,
   isInternalServerComponent,
@@ -151,7 +147,6 @@ function processJSXNode(
         enqueue(value[i]);
       }
     } else if (isSignal(value)) {
-      maybeAddPollingAsyncSignalToEagerResume(ssr.serializationCtx, value);
       ssr.openFragment(isDev ? { [DEBUG_TYPE]: VirtualType.WrappedSignal } : EMPTY_OBJ);
       const signalNode = ssr.getOrCreateLastNode();
       const unwrappedSignal = value instanceof WrappedSignalImpl ? value.$unwrapIfSignal$() : value;
@@ -240,14 +235,9 @@ function processJSXNode(
           const componentFrame = options.parentComponentFrame;
           if (componentFrame) {
             const compId = componentFrame.componentNode.id || '';
-            const projectionAttrs: Props = isDev ? { [DEBUG_TYPE]: VirtualType.Projection } : {};
-            const cursorBoundary = directGetPropsProxyProp<CursorBoundary | null, any>(
-              jsx,
-              QCursorBoundary
-            );
-            if (cursorBoundary) {
-              projectionAttrs[QCursorBoundary] = cursorBoundary;
-            }
+            const projectionAttrs: Record<string, string | null> = isDev
+              ? { [DEBUG_TYPE]: VirtualType.Projection }
+              : {};
             projectionAttrs[QSlotParent] = compId;
             ssr.openProjection(projectionAttrs);
             const host = componentFrame.componentNode;
@@ -370,25 +360,6 @@ function processJSXNode(
           }
         }
       }
-    }
-  }
-}
-
-function maybeAddPollingAsyncSignalToEagerResume(
-  serializationCtx: SerializationContext,
-  signal: unknown
-) {
-  // Unwrap if it's a WrappedSignalImpl
-  const unwrappedSignal = signal instanceof WrappedSignalImpl ? signal.$unwrapIfSignal$() : signal;
-
-  if (unwrappedSignal instanceof ComputedSignalImpl) {
-    const expires = unwrappedSignal.$expires$;
-    // Don't check for $effects$ here - effects are added later during tracking.
-    // The AsyncSignal's polling mechanism will check for effects before scheduling.
-    // Only eager-resume for polling signals, not stale-only ones.
-    if (expires && !(unwrappedSignal.$flags$ & AsyncSignalFlags.NO_POLL)) {
-      serializationCtx.$addRoot$(unwrappedSignal);
-      serializationCtx.$eagerResume$.add(unwrappedSignal);
     }
   }
 }

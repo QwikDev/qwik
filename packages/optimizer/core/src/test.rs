@@ -6050,6 +6050,29 @@ export default component$(() => {
 }
 
 #[test]
+fn should_keep_capture_free_sync_handler_direct_when_sibling_moves_captures() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, sync$, useSignal } from '@qwik.dev/core';
+
+export default component$(() => {
+  const count = useSignal(0);
+  return (
+    <script
+      document:onQInit$={sync$(() => console.log('init'))}
+      document:onClick$={() => count.value++}
+    />
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn should_transform_nested_loops_handler_captures_only_inner_scope() {
 	test_input!(TestInput {
 		code: r#"
@@ -7829,6 +7852,39 @@ export default component$(() => {
 		snapshot: true,
 		..TestInput::default()
 	});
+}
+
+#[test]
+fn direct_qrl_marker_in_qrl_wrapper_uses_dollar_context() {
+	let output = test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+import { routeLoaderQrl } from '@qwik.dev/router';
+
+export const useSession = routeLoaderQrl($(() => 'session'));
+export const standalone = $(() => 'standalone');
+"#
+		.to_string(),
+		snapshot: true,
+		..TestInput::default()
+	})
+	.unwrap();
+
+	let session_segment = output
+		.modules
+		.iter()
+		.filter_map(|module| module.segment.as_ref())
+		.find(|segment| segment.name.starts_with("useSession_routeLoaderQrl_"))
+		.expect("routeLoaderQrl segment should exist");
+	assert_eq!(session_segment.ctx_name.as_ref(), "routeLoader$");
+
+	let standalone_segment = output
+		.modules
+		.iter()
+		.filter_map(|module| module.segment.as_ref())
+		.find(|segment| segment.name.starts_with("standalone_"))
+		.expect("standalone segment should exist");
+	assert_eq!(standalone_segment.ctx_name.as_ref(), "$");
 }
 
 impl TestInput {

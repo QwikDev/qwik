@@ -11,7 +11,10 @@
 
 <h1 align="center">Instant-loading web apps, without effort</h1>
 
-<b>This is the branch for Qwik v2, currently in beta. For v1, see the `v1` branch.</b>
+<b>
+  This is the branch for Qwik v2, currently in beta. For v1, see the `v1`
+  branch.
+</b>
 
 Qwik offers the fastest possible page load times - regardless of the complexity of your website. Qwik is so fast because it allows fully interactive sites to load with almost no JavaScript and [pick up from where the server left off](https://next.qwik.dev/docs/concepts/resumable/).
 
@@ -90,12 +93,8 @@ We use pkg.pr.new to make packages available for each PR and for the branches. U
   <tr>
     <td align="center">
       <a href="https://kunaico.com/" target="_blank" rel="noopener">
-        <picture>
-          <source srcset="https://github.com/user-attachments/assets/47c6d86a-5141-40c6-a0fb-5986266fa589" media="(prefers-color-scheme: dark)">
-          <source srcset="https://github.com/user-attachments/assets/84bff951-ed35-43e4-9515-ebe07e8b09e4" media="(prefers-color-scheme: light)">
-          <img width="250" src="https://github.com/user-attachments/assets/84bff951-ed35-43e4-9515-ebe07e8b09e4" alt="Kunaico logo">
-        </picture>
-      </a>    
+        <img width="250" src=".github/assets/kunaico.svg" alt="Kunaico logo">
+      </a>
     </td>
   </tr>
   <tr>

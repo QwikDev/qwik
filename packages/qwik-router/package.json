@@ -1,7 +1,7 @@
 {
   "name": "@qwik.dev/router",
   "description": "The router for Qwik.",
-  "version": "2.0.0-beta.38",
+  "version": "2.0.0-beta.39",
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "dependencies": {
     "@azure/functions": "3.5.1",
@@ -22,7 +22,7 @@
     "remark-gfm": "^4.0.1",
     "set-cookie-parser": "^2.7.2",
     "source-map": "^0.7.6",
-    "svgo": "^3.3.3",
+    "svgo": "^3.3.4",
     "unified": "^11.0.5",
     "unist-util-visit": "^5.0.0",
     "valibot": ">=0.36.0 <2",

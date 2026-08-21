@@ -51,7 +51,6 @@ export {
   QStatePatchAttr,
   QStyle,
   QSuspenseResolved,
-  QSuspenseResultParent,
   QTemplate,
   QVersionAttr,
   QwikEvContainerReady,

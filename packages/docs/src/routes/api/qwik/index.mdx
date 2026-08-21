@@ -288,6 +288,18 @@ cleanup(): void;
 
 void
 
+<h2 id="computedsignal-clear">clear</h2>
+
+Clear the value and recompute. Unlike `invalidate()`, readers see the loading state (reads throw the computation promise) instead of the stale value while the new value computes.
+
+```typescript
+clear(): void;
+```
+
+**Returns:**
+
+void
+
 <h2 id="component">Component</h2>
 
 Type representing the Qwik component.
@@ -485,29 +497,6 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-allowStale?
-
-</td><td>
-
-</td><td>
-
-boolean
-
-</td><td>
-
-_(Optional)_ When true (default), the previous value is kept while the signal re-computes after invalidation, so reads return stale data instead of throwing a promise. Reactivity will then update the readers when the new value is ready.
-
-When false, invalidation clears the value so reads throw the computation promise (like the initial load), which is useful for navigations where showing old data would be confusing.
-
-Note that polling invalidations (`expires` with `poll: true`) are not affected by this option and will keep the old value while the new value is loading, to avoid flashing loaders.
-
-This option only affects manual invalidations via `invalidate()`, and non-polling expirations (`poll: false`, or there are no subscribers).
-
-Defaults to `true`.
-
-</td></tr>
-<tr><td>
-
 clientOnly?
 
 </td><td>
@@ -574,25 +563,6 @@ Defaults to `false`, meaning cleanup happens only when inputs change.
 </td></tr>
 <tr><td>
 
-expires?
-
-</td><td>
-
-</td><td>
-
-number
-
-</td><td>
-
-_(Optional)_ Time in milliseconds after which the value expires.
-
-When the value expires and subscribers exist, the signal is invalidated. If `poll` is `true` (default), the function is re-run automatically. If `poll` is `false`, the value is marked stale and recomputation happens when reading `.value` or `.loading`.
-
-`0` (default) means no expiration.
-
-</td></tr>
-<tr><td>
-
 initial?
 
 </td><td>
@@ -604,38 +574,6 @@ Awaited&lt;T&gt; \| (() =&gt; Awaited&lt;T&gt;)
 </td><td>
 
 _(Optional)_ Like useSignal's `initial`; prevents the throw on first read when uninitialized
-
-</td></tr>
-<tr><td>
-
-interval?
-
-</td><td>
-
-</td><td>
-
-number
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-poll?
-
-</td><td>
-
-</td><td>
-
-boolean
-
-</td><td>
-
-_(Optional)_ Whether to automatically re-run the function when the value expires. Only relevant when `expires` is set.
-
-Defaults to `true`.
 
 </td></tr>
 <tr><td>
@@ -730,36 +668,6 @@ The error that occurred while computing the signal, if any, including synchronou
 </td></tr>
 <tr><td>
 
-expires
-
-</td><td>
-
-</td><td>
-
-number
-
-</td><td>
-
-Expiration time in ms. Writable and immediately effective.
-
-When set, the signal is invalidated after this many ms. Whether it auto-recomputes depends on the `poll` property. `0` means no expiration.
-
-</td></tr>
-<tr><td>
-
-interval
-
-</td><td>
-
-</td><td>
-
-number
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
 loading
 
 </td><td>
@@ -794,23 +702,6 @@ signal.pending ? (
   <Component value={signal.value} />
 );
 ```
-
-</td></tr>
-<tr><td>
-
-poll
-
-</td><td>
-
-</td><td>
-
-boolean
-
-</td><td>
-
-Whether to automatically re-run the function when the value expires. Writable and immediately effective. Only relevant when `expires` is set.
-
-Defaults to `true`.
 
 </td></tr>
 <tr><td>
@@ -878,6 +769,15 @@ Description
 </td><td>
 
 Abort the current computation and run cleanups if needed.
+
+</td></tr>
+<tr><td>
+
+[clear()](#computedsignal-clear)
+
+</td><td>
+
+Clear the value and recompute. Unlike `invalidate()`, readers see the loading state (reads throw the computation promise) instead of the stale value while the new value computes.
 
 </td></tr>
 <tr><td>
@@ -5156,7 +5056,6 @@ Suspense: typeof suspenseCmp;
 ```typescript
 export type SuspenseProps = {
   fallback?: JSXOutput;
-  showStale?: boolean;
   delay?: number;
 };
 ```

@@ -39,6 +39,7 @@ export type QRLInternalMethods<TYPE> = {
 
   /** Captures are stored lazily after deserialization. */
   readonly $captures$?: QrlCaptures;
+  readonly $hasMovedCaptures$?: boolean;
   dev?: QRLDev | null;
 
   resolve(container?: Container): Promise<TYPE>;
@@ -65,6 +66,9 @@ export type QRLInternalMethods<TYPE> = {
    * after the $name$ props are mangled
    */
   w(captures: QrlCaptures): QRLInternal<TYPE>;
+
+  /** Mark that the handler receives captures moved to its element. */
+  m(): QRLInternal<TYPE>;
 
   /**
    * "set ref" - Set the ref of the QRL. It's an internal method but we need to have a stable name
@@ -100,6 +104,7 @@ let getLazyRef: <TYPE>(
  */
 export class LazyRef<TYPE = unknown> {
   $container$: Container | undefined;
+  declare $hasMovedCaptures$?: boolean;
   // Don't allocate dev property immediately so that in prod we don't have this property
   declare dev?: QRLDev | null | undefined;
   // documenter fails on WeakRef
@@ -294,6 +299,11 @@ const qrlWithCaptures = function <TYPE>(
   return makeQrlFn(newQrl);
 };
 
+const qrlWithMovedCaptures = function <TYPE>(this: QRLCallable<TYPE>): QRLInternal<TYPE> {
+  this[QRL_STATE].$lazy$.$hasMovedCaptures$ = true;
+  return this;
+};
+
 const qrlSetRef = function <TYPE>(
   this: QRLClass<TYPE> | QRLCallable<TYPE>,
   ref: ValueOrPromise<TYPE>
@@ -368,6 +378,11 @@ const QRL_FUNCTION_PROTO: QRLInternalMethods<any> = Object.create(Function.proto
       this[QRL_STATE].$captures$ = value;
     },
   },
+  $hasMovedCaptures$: {
+    get(this: QRLCallable<any>) {
+      return this[QRL_STATE].$lazy$.$hasMovedCaptures$;
+    },
+  },
   $container$: {
     get(this: QRLCallable<any>) {
       return this[QRL_STATE].$container$;
@@ -415,6 +430,9 @@ const QRL_FUNCTION_PROTO: QRLInternalMethods<any> = Object.create(Function.proto
   },
   w: {
     value: qrlWithCaptures,
+  },
+  m: {
+    value: qrlWithMovedCaptures,
   },
   s: {
     value: qrlSetRef,

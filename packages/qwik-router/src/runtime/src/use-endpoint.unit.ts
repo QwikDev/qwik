@@ -1,7 +1,12 @@
 import { _serialize } from '@qwik.dev/core/internal';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { getLoaderName } from '../../middleware/request-handler/request-path';
-import { FULLPATH_HEADER, ROUTE_PATH_HEADER, fetchRouteLoaderData } from './route-loaders';
+import {
+  FULLPATH_HEADER,
+  ROUTE_PATH_HEADER,
+  clearNavFetchCache,
+  fetchRouteLoaderData,
+} from './route-loaders';
 import { submitAction } from './use-endpoint';
 
 const previousStrictLoaders = globalThis.__STRICT_LOADERS__;
@@ -233,10 +238,7 @@ describe('fetchRouteLoaderData', () => {
     expect(fetchSpy).toHaveBeenCalledTimes(1);
     resolveFetch!();
 
-    await expect(Promise.all([first, second])).resolves.toEqual([
-      { d: 'prefetched' },
-      { d: 'prefetched' },
-    ]);
+    await expect(Promise.all([first, second])).resolves.toEqual([{ raw: body }, { raw: body }]);
   });
 
   it('lets an abortable caller stop waiting for a shared prefetch', async () => {
@@ -265,7 +267,7 @@ describe('fetchRouteLoaderData', () => {
     expect(fetchSpy).toHaveBeenCalledTimes(1);
 
     resolveFetch!();
-    await expect(prefetch).resolves.toEqual({ d: 'prefetched' });
+    await expect(prefetch).resolves.toEqual({ raw: body });
   });
 
   it('reuses a recently completed loader fetch', async () => {
@@ -291,9 +293,26 @@ describe('fetchRouteLoaderData', () => {
       }
     );
 
-    expect(first).toEqual({ d: 'cached' });
-    expect(second).toEqual({ d: 'cached' });
+    expect(first).toEqual({ raw: body });
+    expect(second).toEqual({ raw: body });
     expect(fetchSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('refetches after the per-navigation cache is cleared', async () => {
+    const body = await _serialize({ d: 'cached' });
+    const fetchSpy = vi.fn().mockImplementation(() => Promise.resolve(new Response(body)));
+    vi.stubGlobal('fetch', fetchSpy);
+
+    const url = new URL('http://localhost/products/123/?view=full');
+    await fetchRouteLoaderData('nav-cleared', '/products/123/', 'manifest-hash', {
+      pageUrl: url,
+    });
+    clearNavFetchCache();
+    await fetchRouteLoaderData('nav-cleared', '/products/123/', 'manifest-hash', {
+      pageUrl: url,
+    });
+
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
   });
 
   it('reuses a completed abortable loader request', async () => {

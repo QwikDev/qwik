@@ -31,11 +31,12 @@ export async function submoduleWorker(config: BuildConfig) {
         fileName: () => 'index.mjs',
       },
       rollupOptions: {
-        external: (id) =>
-          /^@qwik\.dev\/core(?:\/|$)/.test(id) ||
-          id === './worker.js?worker&url' ||
-          id === './worker.node.js?worker&url' ||
-          id === 'node:worker_threads',
+        external: [
+          /^@qwik\.dev\/core(?:\/|$)/,
+          './worker.js?worker&url',
+          './worker.node.js?worker&url',
+          'node:worker_threads',
+        ],
       },
     },
     plugins: [preserveWorkerImports(), qwikVite({ srcDir: 'src/web-worker' })],

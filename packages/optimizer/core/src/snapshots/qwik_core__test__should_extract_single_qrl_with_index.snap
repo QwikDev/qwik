@@ -1,6 +1,5 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 4944
 expression: output
 ---
 ==INPUT==
@@ -118,8 +117,8 @@ const _hf1_str = "p0.value.id";
 const _hf2 = (p0)=>p0.value.label.value;
 const _hf2_str = "p0.value.label.value";
 //
-const q_App_component_div_tr_td_a_q_e_click_1_40fnSAlYI48 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_div_tr_td_a_q_e_click_1_40fnSAlYI48"), "App_component_div_tr_td_a_q_e_click_1_40fnSAlYI48");
-const q_App_component_div_tr_td_a_q_e_click_lgbZkJXyLtg = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_div_tr_td_a_q_e_click_lgbZkJXyLtg"), "App_component_div_tr_td_a_q_e_click_lgbZkJXyLtg");
+const q_App_component_div_tr_td_a_q_e_click_1_40fnSAlYI48 = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_div_tr_td_a_q_e_click_1_40fnSAlYI48"), "App_component_div_tr_td_a_q_e_click_1_40fnSAlYI48").m();
+const q_App_component_div_tr_td_a_q_e_click_lgbZkJXyLtg = /*#__PURE__*/ qrl(()=>import("./test.tsx_App_component_div_tr_td_a_q_e_click_lgbZkJXyLtg"), "App_component_div_tr_td_a_q_e_click_lgbZkJXyLtg").m();
 //
 export const App_component_ckEPmXZlub0 = ()=>{
     const data = useSignal([]);

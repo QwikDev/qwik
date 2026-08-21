@@ -243,6 +243,37 @@ export default component$(() => {
 
 <Note>If your root component is reactive (reads signals), use `<QwikRouterProvider>` instead. `useQwikRouter()` only runs once during SSR.</Note>
 
+### Module-level variable mutated inside a closure no longer builds
+
+The v2 Optimizer extracts closures more aggressively than v1. If an extracted closure mutates an exported module-level `let`, the Optimizer rewrites the reference as an `import`, and assigning to an import binding fails at build time — a path v1's less aggressive extraction didn't reach.
+
+```tsx
+// Fails to build in v2
+export let count = 0;
+component$(() => {
+  return <button onClick$={() => count++}>{count}</button>;
+});
+```
+
+Move the mutation into an exported accessor function in a separate module:
+
+```tsx
+// counter.ts
+let count = 0;
+export const getCount = () => count;
+export const incrementCount = () => count++;
+```
+
+```tsx
+import { getCount, incrementCount } from './counter';
+
+component$(() => {
+  return <button onClick$={() => incrementCount()}>{getCount()}</button>;
+});
+```
+
+See [Module-level variables cannot be mutated after extraction](../../advanced/dollar/index.mdx#module-level-variables-cannot-be-mutated-after-extraction).
+
 ### Serialization
 
 v1 serialized state into `<script type="qwik/json">` tags. v2 uses `<script type="qwik/vnode">` and `<script type="qwik/state">` at the end of the document. No code change needed, but tooling that parses the old tags will need updating.
@@ -261,7 +292,7 @@ Still compile in v2, removed in v3.
 | Track deps | `ctx.track(() => sig.value)` | read `sig.value` directly before the first `await` (auto-tracked); use `ctx.track()` after an `await` |
 | Abort | Manual `AbortController` | `ctx.abortSignal` |
 | Previous value | - | `ctx.previous` |
-| Polling | - | `options.expires` + `options.poll` |
+| Polling | - | `usePoll(signal, ms)` from `@qwik.dev/utils` |
 | Initial value | - | `options.initial` |
 | Rendering | `<Resource onResolved={} />` | `.pending`/`.error` branching or `<Suspense>` |
 
@@ -427,6 +458,10 @@ Add `"type": "module"` to `package.json`. Run the CLI again if this wasn't set a
 ### Calling a 'use*()' method outside 'component$(...)'
 
 Move the hook inside `component$` (error Q10).
+
+### Cannot assign to import ... / Illegal reassignment of import ...
+
+A module-level `let` mutated inside a `$`-extracted closure. The exact wording depends on the bundler: esbuild says `Cannot assign to import "x"`, Rollup/Rolldown say `Illegal reassignment of import "x"`. See [Module-level variable mutated inside a closure no longer builds](#module-level-variable-mutated-inside-a-closure-no-longer-builds).
 
 ### Move qwik packages [...] to devDependencies
 

@@ -1,5 +1,19 @@
 # @qwik.dev/devtools
 
+## 0.3.0-beta.3
+
+### Minor Changes
+
+- ✨ add a command palette (cmd/ctrl+k) to search and jump across devtools (by [@Aejkatappaja](https://github.com/Aejkatappaja) in [#8835](https://github.com/QwikDev/qwik/pull/8835))
+
+### Patch Changes
+
+- 🐞🩹 disable lifecycle scripts during package operations. (by [@Varixo](https://github.com/Varixo) in [#8855](https://github.com/QwikDev/qwik/pull/8855))
+
+- refactor: move the qwik dom protocol constants into the shared devtools kit (by [@Aejkatappaja](https://github.com/Aejkatappaja) in [#8825](https://github.com/QwikDev/qwik/pull/8825))
+
+- refactor: type-check devtools hook method names across the runtime and eval bridge (by [@Aejkatappaja](https://github.com/Aejkatappaja) in [#8824](https://github.com/QwikDev/qwik/pull/8824))
+
 ## 0.3.0-beta.2
 
 ### Minor Changes

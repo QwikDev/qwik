@@ -771,14 +771,6 @@ describe('shared-serialization', () => {
           serializationStrategy: 'always',
         }
       );
-      const polling = createAsyncSignal(
-        inlinedQrl(
-          ({ track }) => Promise.resolve(track(() => (foo as SignalImpl).value) + 1),
-          'polling',
-          [foo]
-        ),
-        { expires: 100 }
-      );
       const concurrent = createAsyncSignal(
         inlinedQrl(
           ({ track }) => Promise.resolve(track(() => (foo as SignalImpl).value) + 1),
@@ -810,7 +802,6 @@ describe('shared-serialization', () => {
         clean,
         never,
         always,
-        polling,
         concurrent,
         timeout,
         undefinedSignal
@@ -818,7 +809,7 @@ describe('shared-serialization', () => {
       expect(_dumpState(objs)).toMatchInlineSnapshot(`
         "
         0 AsyncSignal [
-          QRL "9#1#-2"
+          QRL "8#1#-2"
           Constant undefined
           Constant undefined
           Constant undefined
@@ -826,7 +817,7 @@ describe('shared-serialization', () => {
           {number} 1537
         ]
         1 AsyncSignal [
-          QRL "9#2#-3"
+          QRL "8#2#-3"
           Constant undefined
           Constant undefined
           Constant undefined
@@ -835,7 +826,7 @@ describe('shared-serialization', () => {
           {number} 2
         ]
         2 AsyncSignal [
-          QRL "9#3#-4"
+          QRL "8#3#-4"
           Constant undefined
           Constant undefined
           Constant undefined
@@ -843,7 +834,7 @@ describe('shared-serialization', () => {
           {number} 1536
         ]
         3 AsyncSignal [
-          QRL "9#4#-5"
+          QRL "8#4#-5"
           Constant undefined
           Constant undefined
           Constant undefined
@@ -852,40 +843,28 @@ describe('shared-serialization', () => {
           {number} 2
         ]
         4 AsyncSignal [
-          QRL "9#5#-6"
+          QRL "8#5#-6"
           Constant undefined
           Constant undefined
           Constant undefined
           Constant undefined
           {number} 1537
           Constant NEEDS_COMPUTATION
-          {number} 100
-        ]
-        5 AsyncSignal [
-          QRL "9#6#-7"
-          Constant undefined
-          Constant undefined
-          Constant undefined
-          Constant undefined
-          {number} 1537
-          Constant NEEDS_COMPUTATION
-          Constant undefined
           {number} 23
         ]
-        6 AsyncSignal [
-          QRL "9#7#-8"
+        5 AsyncSignal [
+          QRL "8#6#-7"
           Constant undefined
           Constant undefined
           Constant undefined
           Constant undefined
           {number} 1537
           Constant NEEDS_COMPUTATION
-          Constant undefined
           Constant undefined
           {number} 5000
         ]
-        7 AsyncSignal [
-          QRL "9#8"
+        6 AsyncSignal [
+          QRL "8#7"
           Constant undefined
           Constant undefined
           Constant undefined
@@ -893,7 +872,7 @@ describe('shared-serialization', () => {
           {number} 1536
           Constant undefined
         ]
-        8 Signal [
+        7 Signal [
           {number} 1
           EffectSubscriptionNoData [
             RootRef 1
@@ -908,16 +887,15 @@ describe('shared-serialization', () => {
             Constant ':'
           ]
         ]
-        9 {string} "mock-chunk"
-        10 {string} "dirty"
-        11 {string} "clean"
-        12 {string} "never"
-        13 {string} "always"
-        14 {string} "polling"
-        15 {string} "concurrent"
-        16 {string} "timeout"
-        17 {string} "undefinedSignal"
-        (530 chars)"
+        8 {string} "mock-chunk"
+        9 {string} "dirty"
+        10 {string} "clean"
+        11 {string} "never"
+        12 {string} "always"
+        13 {string} "concurrent"
+        14 {string} "timeout"
+        15 {string} "undefinedSignal"
+        (461 chars)"
       `);
     });
     it(title(TypeIds.Store), async () => {
@@ -1445,14 +1423,12 @@ describe('shared-serialization', () => {
     });
     it(`${title(TypeIds.AsyncSignal)} invalid`, async () => {
       const asyncSignal = createAsync$(async () => 123, {
-        expires: 50,
         timeout: 1000,
         concurrency: 3,
       });
       const objs = await serialize(asyncSignal);
       const restored = deserialize(objs)[0] as AsyncSignal<number>;
       expect(isSignal(restored)).toBeTruthy();
-      expect((restored as AsyncSignalImpl<number>).$expires$).toBe(50);
       expect(
         (restored as AsyncSignalImpl<number>).$flags$ & ComputedSignalFlags.INVALID
       ).toBeTruthy();

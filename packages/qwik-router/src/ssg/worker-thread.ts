@@ -235,9 +235,10 @@ async function workerRender(
                 const routeLoaders = getRouteLoaders(requestEv);
                 const loaderValues = getRouteLoaderValues(requestEv);
                 const manifestHash = (opts.manifest as any)?.manifestHash || 'dev';
-                // Write individual per-loader files for static loaders (expires === 0)
+                // Write per-loader files only for static loaders (cacheControl: 'immutable').
+                // Other values imply a freshness horizon a build-time file cannot honor.
                 for (const loader of routeLoaders) {
-                  if (loader.__expires !== 0) {
+                  if (loader.__cacheControl !== 'immutable') {
                     continue;
                   }
                   const data = loaderValues[loader.__id];

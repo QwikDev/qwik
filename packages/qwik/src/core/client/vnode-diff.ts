@@ -45,6 +45,7 @@ import {
   ITERATION_ITEM_SINGLE,
   OnRenderProp,
   QBackRefs,
+  QComponentHash,
   QContainerAttr,
   QDefaultSlot,
   QCursorBoundary,
@@ -758,11 +759,7 @@ function expectSlot(diffContext: DiffContext) {
     diffContext.$vNewNode$ = vnode_newVirtual();
     vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, QSlot, slotNameKey);
     vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, QCursorBoundary, cursorBoundary);
-    updateDirtySubtreeCursorBoundary(
-      diffContext.$container$,
-      diffContext.$vNewNode$ as VirtualVNode,
-      cursorBoundary
-    );
+    updateDirtySubtreeCursorBoundary(diffContext.$vNewNode$ as VirtualVNode, cursorBoundary);
     vHost && vnode_setProp(vHost as VirtualVNode, slotNameKey, diffContext.$vNewNode$);
     isDev &&
       vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, DEBUG_TYPE, VirtualType.Projection); // Nothing to project, so render content of the slot.
@@ -781,11 +778,7 @@ function expectSlot(diffContext: DiffContext) {
     diffContext.$vNewNode$ = vProjectedNode;
     vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, QSlot, slotNameKey);
     vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, QCursorBoundary, cursorBoundary);
-    updateDirtySubtreeCursorBoundary(
-      diffContext.$container$,
-      diffContext.$vNewNode$ as VirtualVNode,
-      cursorBoundary
-    );
+    updateDirtySubtreeCursorBoundary(diffContext.$vNewNode$ as VirtualVNode, cursorBoundary);
     vHost && vnode_setProp(vHost as VirtualVNode, slotNameKey, diffContext.$vNewNode$);
     isDev &&
       vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, DEBUG_TYPE, VirtualType.Projection);
@@ -1772,7 +1765,9 @@ function getComponentHash(vNode: VNode | null, getObject: (id: string) => any): 
     return null;
   }
   const qrl = vnode_getProp<QRLInternal>(vNode as VirtualVNode, OnRenderProp, getObject);
-  return qrl ? qrl.$hash$ : null;
+  return qrl
+    ? qrl.$hash$
+    : vnode_getProp<string | null>(vNode as VirtualVNode, QComponentHash, null);
 }
 
 /**

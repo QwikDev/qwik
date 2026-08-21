@@ -51,7 +51,6 @@ describe('generateManifestFromBundles', () => {
     expect(manifest.core).toBe('q-core.js');
     expect(manifest.qwikLoader).toBe('q-loader.js');
     expect(manifest.preloader).toBe('q-preloader.js');
-    // _run lives in qwik-core, which also holds the handlers.
     expect(manifest.mapping['_run']).toBe('q-core.js');
     expect(manifest.symbols['_run']?.origin).toBe('Qwik core');
   });
@@ -94,7 +93,6 @@ describe('generateManifestFromBundles', () => {
   });
 
   test('a user route named "qwikloader" does not shadow the real loader chunk', () => {
-    // The route chunk shares the name; the emit ref wins.
     const manifest = generate(
       {
         'q-loader.js': chunk('qwikloader', 'q-loader.js'),

@@ -2,7 +2,6 @@ import {
   $,
   _verifySerializable,
   componentQrl,
-  createAsync$,
   createComputed$,
   createSerializer$,
   createSignal,
@@ -1407,7 +1406,7 @@ describe('shared-serialization', () => {
     it.todo(title(TypeIds.ComputedSignal));
     it.todo(title(TypeIds.SerializerSignal));
     it(`${title(TypeIds.AsyncSignal)} valid`, async () => {
-      const asyncSignal = createAsync$(async () => 123);
+      const asyncSignal = createAsyncSignal($(async () => 123));
       expect(
         (asyncSignal as AsyncSignalImpl<number>).$flags$ & ComputedSignalFlags.INVALID
       ).toBeTruthy();
@@ -1422,10 +1421,13 @@ describe('shared-serialization', () => {
       ).toBeFalsy();
     });
     it(`${title(TypeIds.AsyncSignal)} invalid`, async () => {
-      const asyncSignal = createAsync$(async () => 123, {
-        timeout: 1000,
-        concurrency: 3,
-      });
+      const asyncSignal = createAsyncSignal(
+        $(async () => 123),
+        {
+          timeout: 1000,
+          concurrency: 3,
+        }
+      );
       const objs = await serialize(asyncSignal);
       const restored = deserialize(objs)[0] as AsyncSignal<number>;
       expect(isSignal(restored)).toBeTruthy();

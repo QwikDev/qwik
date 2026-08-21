@@ -1,7 +1,7 @@
 ---
-'@qwik.dev/core': minor
-'@qwik.dev/router': minor
-'@qwik.dev/react': minor
+'@qwik.dev/core': major
+'@qwik.dev/router': major
+'@qwik.dev/react': major
 ---
 
-feat: support Vite 8 with the Rolldown bundler (Vite 8 is now required)
+feat: require Vite 8 and bundle with Rolldown. `manualChunks` is no longer supported since it can't work with Rolldown, use `codeSplitting.groups` instead

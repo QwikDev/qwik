@@ -20,12 +20,19 @@ let qwikRouterConfig: QwikRouterConfig;
 
 async function getConfig(): Promise<QwikRouterConfig> {
   if (isDev) {
-    return (await import('@qwik-router-config')) as any as QwikRouterConfig;
+    const config = (await import('@qwik-router-config')) as any as QwikRouterConfig;
+    // Dev re-imports the config each request for freshness, but server$
+    // registration side effects must still run before serving.
+    await config.importEagerModules?.();
+    return config;
   }
   if (!qwikRouterConfig) {
     // The production server build prunes this plan (drops prerendered server-free routes); full
     // when nothing is excluded. See the router config `load`.
-    qwikRouterConfig = (await import('@qwik-router-config')) as any as QwikRouterConfig;
+    const config = (await import('@qwik-router-config')) as any as QwikRouterConfig;
+    // Run the server$ modules' registration side effects before serving.
+    await config.importEagerModules?.();
+    qwikRouterConfig = config;
   }
   return qwikRouterConfig;
 }

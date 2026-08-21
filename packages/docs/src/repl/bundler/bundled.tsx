@@ -16,9 +16,7 @@ import qWorkerSharedJs from '../../../node_modules/@qwik.dev/core/dist/worker/wo
 import qQwikLoaderJs from '../../../node_modules/@qwik.dev/core/dist/qwikloader.debug.js?raw-source';
 import qServerMjs from '../../../node_modules/@qwik.dev/core/dist/server.mjs?raw-source';
 import qServerDts from '../../../node_modules/@qwik.dev/core/dist/server.d.ts?raw-source';
-import qWasmMjs from '../../../node_modules/@qwik.dev/optimizer/bindings/qwik.wasm.mjs?raw-source';
-import qWasmBinUrl from '../../../node_modules/@qwik.dev/optimizer/bindings/qwik_wasm_bg.wasm?raw-source';
-import qOptimizerMjs from '../../../node_modules/@qwik.dev/optimizer/dist/index.mjs?raw-source';
+import qTsOptimizerMjs from '../../../node_modules/@qwik.dev/core/dist/ts-optimizer.mjs?raw-source';
 
 import { QWIK_PKG_NAME_V1, QWIK_PKG_NAME_V2 } from '../repl-constants';
 
@@ -76,19 +74,12 @@ const qwikUrls: PkgUrls[string] = {
   '/dist/worker/worker.node.js': qWorkerNodeJs,
   '/dist/worker/worker.shared.js': qWorkerSharedJs,
   '/dist/qwikloader.js': qQwikLoaderJs,
-  '/bindings/qwik.wasm.mjs': qWasmMjs,
-  '/bindings/qwik_wasm_bg.wasm': qWasmBinUrl,
+  '/dist/ts-optimizer.mjs': qTsOptimizerMjs,
   '/handlers.mjs': qHandlersMjs,
 };
 export const bundled: PkgUrls = {
   [QWIK_PKG_NAME_V1]: qwikUrls,
   [QWIK_PKG_NAME_V2]: qwikUrls,
-  '@qwik.dev/optimizer': {
-    version: qwikVersion,
-    '/bindings/qwik.wasm.mjs': qWasmMjs,
-    '/bindings/qwik_wasm_bg.wasm': qWasmBinUrl,
-    '/dist/index.mjs': qOptimizerMjs,
-  },
 };
 
 export const getDeps = (qwikVersion: string) => {
@@ -106,8 +97,7 @@ export const getDeps = (qwikVersion: string) => {
       `/dist/core.min.mjs`,
       `/dist/optimizer.mjs`,
       `/dist/server.mjs`,
-      `/bindings/qwik.wasm.mjs`,
-      `/bindings/qwik_wasm_bg.wasm`,
+      ...(isV2 ? [`/dist/ts-optimizer.mjs`] : []),
       `/dist/qwikloader.js`,
       `/dist/preloader.mjs`,
       `/dist/worker/index.mjs`,

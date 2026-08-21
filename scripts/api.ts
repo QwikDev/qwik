@@ -227,6 +227,38 @@ export async function apiExtractorQwikRouter(config: BuildConfig) {
   console.log('🥶', 'qwik-router d.ts API files generated');
 }
 
+/**
+ * Without this, a CI-only API change reports just "API changed true" and the report it wants lives
+ * in a build dir nobody can read from the log.
+ */
+function printApiReportDiff(committedPath: string, generatedPath: string) {
+  const read = (path: string) => {
+    try {
+      return readFileSync(path, 'utf-8').split('\n');
+    } catch {
+      return null;
+    }
+  };
+  const committed = read(committedPath);
+  const generated = read(generatedPath);
+  if (!committed || !generated) {
+    console.error(`Could not read both reports to diff:\n  ${committedPath}\n  ${generatedPath}`);
+    return;
+  }
+  console.error(`--- committed: ${committedPath}`);
+  console.error(`+++ generated: ${generatedPath}`);
+  for (let i = 0; i < Math.max(committed.length, generated.length); i++) {
+    if (committed[i] !== generated[i]) {
+      if (committed[i] !== undefined) {
+        console.error(`-${i + 1}: ${committed[i]}`);
+      }
+      if (generated[i] !== undefined) {
+        console.error(`+${i + 1}: ${generated[i]}`);
+      }
+    }
+  }
+}
+
 function createTypesApi(
   config: BuildConfig,
   inPath: string,
@@ -274,6 +306,12 @@ function createTypesApi(
       'warnings',
       result.warningCount
     );
+    if (result.apiReportChanged) {
+      printApiReportDiff(
+        result.extractorConfig.reportFilePath,
+        result.extractorConfig.reportTempFilePath
+      );
+    }
     panic(
       `Use "pnpm api.update" to automatically update the .md files if the api changes were expected`
     );

@@ -239,6 +239,14 @@ export { router }
       plugins: [
         ...plugins,
         optimizer.qwikVite({
+          // QWIK_AB_RUST=1 selects the rust optimizer, for A/B parity comparison.
+          ...(process.env.QWIK_AB_RUST
+            ? {
+                optimizerOptions: {
+                  tsOptimizer: false,
+                } as any,
+              }
+            : {}),
           entryStrategy: { type: 'segment' },
           client: {
             outDir: join(appDistDir, appName),
@@ -258,10 +266,22 @@ export { router }
         emitAssets: true,
         minify: false,
         ssr: enableRouterServer ? qwikRouterVirtualEntry : resolve(appSrcDir, entrySsrFileName),
+        // Split the SSR build: single-file output inlines dynamic imports and
+        // evaluates them eagerly at top level, which defeats the config's lazy
+        // route/server$ imports and reintroduces module-order TDZs.
+        rollupOptions: { output: { inlineDynamicImports: false } },
       },
       plugins: [
         ...plugins,
         optimizer.qwikVite({
+          // QWIK_AB_RUST=1 selects the rust optimizer, for A/B parity comparison.
+          ...(process.env.QWIK_AB_RUST
+            ? {
+                optimizerOptions: {
+                  tsOptimizer: false,
+                } as any,
+              }
+            : {}),
           experimental: ['each', 'show', 'suspense', 'blockSSR'],
           ssr: {
             manifestInput: clientManifest,

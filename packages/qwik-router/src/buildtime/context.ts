@@ -42,6 +42,27 @@ export function resetBuildContext(ctx: RoutingContext | null) {
   }
 }
 
+/**
+ * Resolve the app's base pathname from plugin options and vite's `base`. Shared by option
+ * normalization and the `config()`-hook `define` (which runs before the build context exists).
+ */
+export function resolveBasePathname(
+  userOpts: PluginOptions | undefined,
+  viteBasePath: string
+): string {
+  let basePathname =
+    typeof (userOpts as any)?.baseUrl === 'string'
+      ? // baseUrl deprecated
+        ((userOpts as any).baseUrl as string)
+      : typeof userOpts?.basePathname === 'string'
+        ? userOpts.basePathname
+        : viteBasePath || '/';
+  if (!basePathname.endsWith('/')) {
+    basePathname = ensureSlash(basePathname);
+  }
+  return new URL(basePathname, 'https://qwik.dev/').pathname;
+}
+
 function normalizeOptions(
   rootDir: string,
   viteBasePath: string,
@@ -72,27 +93,17 @@ function normalizeOptions(
   }
   opts.serverPluginsDir = normalizePath(opts.serverPluginsDir);
 
-  if (typeof (opts as any).baseUrl === 'string') {
-    // baseUrl deprecated
-    opts.basePathname = (opts as any).baseUrl;
-  }
-
-  if (typeof opts.basePathname !== 'string') {
-    // opts.basePathname is used internally
-    // but in most cases should be passed in by the vite config "base" property
-    opts.basePathname = viteBasePath;
-  }
-  if (!opts.basePathname.endsWith('/')) {
+  if (
+    typeof (opts as any).baseUrl !== 'string' &&
+    typeof opts.basePathname === 'string' &&
+    !opts.basePathname.endsWith('/')
+  ) {
     // TODO: in v2 make this an error
     console.error(
       `Warning: qwik-router plugin basePathname must end with /. This will be an error in v2`
     );
-    opts.basePathname = ensureSlash(opts.basePathname);
   }
-
-  // cleanup basePathname
-  const url = new URL(opts.basePathname, 'https://qwik.dev/');
-  opts.basePathname = url.pathname;
+  opts.basePathname = resolveBasePathname(userOpts, viteBasePath);
 
   opts.mdx = opts.mdx || {};
   opts.platform = opts.platform || {};

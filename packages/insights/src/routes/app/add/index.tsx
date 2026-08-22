@@ -1,12 +1,17 @@
 import { component$, useSignal } from '@qwik.dev/core';
 import { formAction$, useForm, zodForm$ } from '@modular-forms/qwik';
-import Container from '~/components/container';
-import { DiskIcon } from '~/components/icons/disk';
+import { type DocumentHead } from '@qwik.dev/router';
+import BackLink from '~/components/back-link';
+import Button from '~/components/button';
+import FormField from '~/components/form-field';
 import Layout from '~/components/layout';
 import { applicationTable, getDB, userApplicationMap } from '~/db';
 import { ApplicationForm } from '../[publicApiKey]/app.form';
-import styles from './styles.module.css';
 import { getInsightUser } from '~/routes/app/layout';
+
+export const head: DocumentHead = {
+  title: 'Create application | Qwik Insights',
+};
 
 export const useFormAction = formAction$<ApplicationForm>(
   async ({ name, description, url }, { redirect, sharedMap }) => {
@@ -46,71 +51,92 @@ export default component$(() => {
     action: useFormAction(),
     validate: zodForm$(ApplicationForm),
   });
+
   return (
-    <Layout mode="bright">
-      <Container position="center" width="small"></Container>
-      <div class={[styles['add-app-wrapper'], 'p-6']}>
-        <h1 class="h3">Create Application</h1>
-        <Form>
-          <div>
-            <label>Name</label>
-            <Field name="name">
-              {(field, props) => (
-                <>
-                  <input
-                    {...props}
-                    type="text"
-                    value={field.value}
-                    class="border-2 border-gray-300"
-                  />
-                  {field.error && <p class="text-red-800">{field.error}</p>}
-                </>
-              )}
-            </Field>
-          </div>
-          <div>
-            <label>URL</label>
-            <Field name="url">
-              {(field, props) => (
-                <>
-                  <input
-                    {...props}
-                    type="url"
-                    value={field.value}
-                    class="border-2 border-gray-300"
-                  />
-                  {field.error && <p class="text-red-800">{field.error}</p>}
-                </>
-              )}
-            </Field>
-          </div>
-          <div>
-            <label>Description</label>
-            <Field name="description">
-              {(field, props) => (
-                <>
-                  <input
-                    {...props}
-                    type="text"
-                    value={field.value}
-                    class="border-2 border-gray-300"
-                  />
-                  {field.error && <p class="text-red-800">{field.error}</p>}
-                </>
-              )}
-            </Field>
-          </div>
-          <div
-            style={{
-              'margin-top': 'calc(var(--form-element-margin-bottom) * 2)',
-            }}
+    <Layout>
+      <div class="mx-auto max-w-editorial-shell px-editorial-6 py-editorial-12">
+        <BackLink href="/app/">Back to applications</BackLink>
+
+        <section class="mt-editorial-5" aria-labelledby="create-application-title">
+          <p class="text-editorial-11 font-semibold tracking-[0.02em] text-editorial-muted uppercase">
+            New application
+          </p>
+          <h1
+            id="create-application-title"
+            class="mt-editorial-3 text-editorial-44 font-bold leading-[1.2] tracking-[-0.03em] text-editorial-primary"
           >
-            <button type="submit" class="button">
-              <DiskIcon />
-              Create
-            </button>
-          </div>
-        </Form>
+            Create an application
+          </h1>
+          <p class="mt-editorial-1 text-editorial-14 leading-[1.45] text-editorial-secondary">
+            Add the project details used to identify this application in Qwik Insights.
+          </p>
+        </section>
+
+        <div class="mt-editorial-6 border-t border-editorial-border pt-editorial-8">
+          <section aria-labelledby="application-details-title">
+            <p class="text-editorial-11 font-semibold tracking-[0.02em] text-editorial-muted uppercase">
+              Application details
+            </p>
+            <h2
+              id="application-details-title"
+              class="mt-editorial-3 text-editorial-24 font-semibold leading-[1.2] tracking-[-0.01em] text-editorial-primary"
+            >
+              Project identity
+            </h2>
+            <p class="mt-editorial-1 text-editorial-14 text-editorial-secondary">
+              Shown in the application switcher and dashboard navigation.
+            </p>
+
+            <Form class="mt-editorial-8 flex max-w-editorial-form flex-col gap-editorial-8">
+              <Field name="name">
+                {(field, props) => (
+                  <FormField
+                    {...props}
+                    id="application-name"
+                    type="text"
+                    label="Name"
+                    value={field.value}
+                    error={field.error}
+                    placeholder="Qwik Docs · Production"
+                    autocomplete="organization"
+                  />
+                )}
+              </Field>
+              <Field name="url">
+                {(field, props) => (
+                  <FormField
+                    {...props}
+                    id="application-url"
+                    type="url"
+                    label="URL"
+                    value={field.value}
+                    error={field.error}
+                    placeholder="https://qwik.dev"
+                    inputMode="url"
+                  />
+                )}
+              </Field>
+              <Field name="description">
+                {(field, props) => (
+                  <FormField
+                    {...props}
+                    id="application-description"
+                    type="text"
+                    label="Description"
+                    value={field.value}
+                    error={field.error}
+                    placeholder="Production application for Qwik Docs"
+                  />
+                )}
+              </Field>
+              <div class="mb-0 pt-editorial-2">
+                <Button type="submit" theme="primary">
+                  Create application
+                </Button>
+              </div>
+            </Form>
+          </section>
+        </div>
       </div>
     </Layout>
   );

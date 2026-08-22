@@ -2,35 +2,47 @@ import { Resource, component$, useResource$, useStore } from '@qwik.dev/core';
 import { getRequestEvent, server$, useLocation, type RequestEvent } from '@qwik.dev/router';
 import { and, eq } from 'drizzle-orm';
 import { getDB, symbolDetailTable } from '~/db';
-import type { InsightsUser } from '~/db/sql-user';
+import { dbGetInsightUser, type InsightsUser } from '~/db/sql-user';
 import { getInsightUser } from '~/routes/app/layout';
 import { SymbolIcon } from '../icons/symbol';
 import { type PopupEvent } from '../popup-manager';
 
-export const SymbolPopup = component$<{ symbolHash: string }>(({ symbolHash }) => (
+type SymbolDetails = {
+  fullName?: string | null;
+  origin?: string | null;
+};
+
+type SymbolPopupProps = SymbolDetails & {
+  symbolHash: string;
+};
+
+export const SymbolPopup = component$<SymbolPopupProps>((props) => (
   <div class="min-w-[500px] max-w-[75vw]">
-    <SymbolSource symbolHash={symbolHash} />
+    <SymbolSource {...props} />
   </div>
 ));
 
-export const SymbolSource = component$<{ symbolHash: string }>(({ symbolHash }) => {
+export const SymbolSource = component$<SymbolPopupProps>(({ fullName, origin, symbolHash }) => {
   const location = useLocation();
+  const hasDetails = hasProvidedSymbolDetails(fullName, origin);
   const state = useStore({
     symbolHash: symbolHash,
-    fullName: '',
-    origin: '',
+    fullName: hasDetails ? displaySymbolDetail(fullName) : '',
+    origin: hasDetails ? displaySymbolDetail(origin) : '',
     originUrl: '',
-    lo: 0,
-    hi: 0,
   });
   const source = useResource$(async ({ track }) => {
     state.symbolHash = track(() => symbolHash);
+    const publicApiKey = track(() => location.params.publicApiKey);
+    if (hasDetails) {
+      return null;
+    }
     if (state.symbolHash) {
       state.fullName = '...';
       state.origin = '...';
-      const data = await serverGetSourceSnippet(state.symbolHash);
-      state.fullName = data.fullName;
-      state.origin = data.origin;
+      const data = await serverGetSourceSnippet(state.symbolHash, publicApiKey);
+      state.fullName = displaySymbolDetail(data.fullName);
+      state.origin = displaySymbolDetail(data.origin);
       state.originUrl = data.originUrl;
       return data.source;
     } else {
@@ -68,104 +80,152 @@ export const SymbolSource = component$<{ symbolHash: string }>(({ symbolHash }) 
               </code>
             </td>
           </tr>
-          <tr>
-            <td colSpan={2} class="px-6 py-3 text-xs">
-              <Resource
-                value={source}
-                onPending={() => <div>loading...</div>}
-                onResolved={(source) => (
-                  <div>
-                    <pre>{source.preamble}</pre>
-                    <pre>{source.highlight}</pre>
-                    <pre>{source.postamble}</pre>
-                  </div>
-                )}
-              />
-            </td>
-          </tr>
+          <Resource
+            value={source}
+            onPending={() =>
+              hasDetails ? null : (
+                <tr>
+                  <td colSpan={2} class="px-6 py-3 text-xs">
+                    loading...
+                  </td>
+                </tr>
+              )
+            }
+            onRejected={() => null}
+            onResolved={(source) =>
+              source ? (
+                <tr>
+                  <td colSpan={2} class="px-6 py-3 text-xs">
+                    <div>
+                      <pre>{source.preamble}</pre>
+                      <pre>{source.highlight}</pre>
+                      <pre>{source.postamble}</pre>
+                    </div>
+                  </td>
+                </tr>
+              ) : null
+            }
+          />
         </tbody>
       </table>
     </div>
   );
 });
 
-export const SymbolTile = component$<{ symbol: string }>(({ symbol }) => {
-  return (
-    <code onPopup$={(e: PopupEvent) => e.detail.show(SymbolPopup, { symbolHash: symbol })}>
-      <SymbolIcon />
-      <span class="ml-1">{symbol}</span>
-    </code>
-  );
-});
-
-export function getAuthorizedPublicApiKey(
-  requestEvent: Pick<RequestEvent, 'params' | 'sharedMap' | 'error'>
-) {
-  const publicApiKey = requestEvent.params.publicApiKey;
-  const insightUser = getInsightUser(requestEvent.sharedMap) as InsightsUser | undefined;
-  if (!publicApiKey || !insightUser?.isAuthorizedForApp(publicApiKey)) {
-    throw requestEvent.error(403, 'Forbidden');
+export const SymbolTile = component$<SymbolDetails & { symbol: string }>(
+  ({ fullName, origin, symbol }) => {
+    return (
+      <code
+        onPopup$={(e: PopupEvent) =>
+          e.detail.show(SymbolPopup, { fullName, origin, symbolHash: symbol })
+        }
+      >
+        <SymbolIcon />
+        <span class="ml-1">{symbol}</span>
+      </code>
+    );
   }
-  return publicApiKey;
+);
+
+export function hasProvidedSymbolDetails(
+  fullName: string | null | undefined,
+  origin: string | null | undefined
+): boolean {
+  return fullName !== undefined || origin !== undefined;
 }
 
-const serverGetSourceSnippet = server$(async function (symbolHash: string) {
+export function displaySymbolDetail(value: string | null | undefined): string {
+  return value || 'Metadata unavailable';
+}
+
+type LoadInsightsUser = (email: string) => Promise<InsightsUser>;
+
+export async function getAuthorizedPublicApiKey(
+  requestEvent: Pick<RequestEvent, 'params' | 'sharedMap' | 'error'>,
+  requestedPublicApiKey = requestEvent.params.publicApiKey,
+  loadUser: LoadInsightsUser = dbGetInsightUser
+): Promise<string> {
+  const session = requestEvent.sharedMap.get('session') as
+    | { user?: { email?: string | null } }
+    | undefined;
+  const email = session?.user?.email;
+  const insightUser =
+    (getInsightUser(requestEvent.sharedMap) as InsightsUser | undefined) ??
+    (email ? await loadUser(email) : undefined);
+  if (!requestedPublicApiKey || !insightUser?.isAuthorizedForApp(requestedPublicApiKey)) {
+    throw requestEvent.error(403, 'Forbidden');
+  }
+  return requestedPublicApiKey;
+}
+
+const serverGetSourceSnippet = server$(async function (
+  symbolHash: string,
+  requestedPublicApiKey: string
+) {
   const requestEvent = getRequestEvent(this);
   if (!requestEvent) {
     throw new Error('Missing request context');
   }
-  const publicApiKey = getAuthorizedPublicApiKey(requestEvent);
+  const publicApiKey = await getAuthorizedPublicApiKey(requestEvent, requestedPublicApiKey);
   const db = getDB();
-  let [symbolDetail] = await Promise.all([
-    db
-      .select({
-        fullName: symbolDetailTable.fullName,
-        origin: symbolDetailTable.origin,
-        lo: symbolDetailTable.lo,
-        hi: symbolDetailTable.hi,
-      })
-      .from(symbolDetailTable)
-      .where(
-        and(
-          //
-          eq(symbolDetailTable.publicApiKey, publicApiKey),
-          eq(symbolDetailTable.hash, symbolHash)
-        )
-      )
-      .get(),
-  ]);
+  const symbolDetail = await db
+    .select({
+      fullName: symbolDetailTable.fullName,
+      origin: symbolDetailTable.origin,
+      lo: symbolDetailTable.lo,
+      hi: symbolDetailTable.hi,
+    })
+    .from(symbolDetailTable)
+    .where(
+      and(eq(symbolDetailTable.publicApiKey, publicApiKey), eq(symbolDetailTable.hash, symbolHash))
+    )
+    .get();
   if (!symbolDetail) {
-    symbolDetail = {
-      fullName: 'unknown',
-      origin: 'unknown',
-      lo: 0,
-      hi: 0,
+    return {
+      fullName: null,
+      origin: null,
+      originUrl: '',
+      source: null,
     };
   }
-  let source = '...';
+  let source: ReturnType<typeof codeHighlight> | null = null;
   let url: URL | null = null;
-  let rawUrl: URL | null = null;
-  if (publicApiKey == '221smyuj5gl') {
+  if (publicApiKey === '221smyuj5gl' && !symbolDetail.origin.startsWith('./')) {
     const rawGithub = 'https://raw.githubusercontent.com/QwikDev/qwik/main/packages/docs/src/';
     const github = 'https://github.com/QwikDev/qwik/blob/main/packages/docs/src/';
-    rawUrl = new URL(rawGithub);
+    const rawUrl = new URL(rawGithub);
     url = new URL(github);
-    if (symbolDetail.origin.startsWith('./')) {
-      console.log('ORIGIN:', symbolDetail.origin);
-    } else {
-      rawUrl.pathname += symbolDetail.origin;
-      url.pathname += symbolDetail.origin;
-      const rawSource = await (await fetch(rawUrl.toString())).text();
-      source = rawSource;
+    rawUrl.pathname += symbolDetail.origin;
+    url.pathname += symbolDetail.origin;
+    const rawSource = await fetchSourceText(rawUrl.toString());
+    if (rawSource !== null) {
+      source = codeHighlight(rawSource, symbolDetail.lo, symbolDetail.hi);
     }
   }
   return {
     fullName: symbolDetail.fullName,
     origin: symbolDetail.origin,
     originUrl: url ? url.toString() : '',
-    source: codeHighlight(source, symbolDetail.lo, symbolDetail.hi),
+    source,
   };
 });
+
+type SourceFetcher = (
+  input: string,
+  init?: RequestInit
+) => Promise<{ ok: boolean; text(): Promise<string> }>;
+
+export async function fetchSourceText(
+  url: string,
+  fetchSource: SourceFetcher = fetch
+): Promise<string | null> {
+  try {
+    const response = await fetchSource(url, { signal: AbortSignal.timeout(3_000) });
+    return response.ok ? await response.text() : null;
+  } catch {
+    return null;
+  }
+}
 
 function codeHighlight(
   code: string,

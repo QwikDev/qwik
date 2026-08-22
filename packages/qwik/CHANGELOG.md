@@ -1,5 +1,11 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.41
+
+### Patch Changes
+
+- 🐞🩹 preserve rest properties for plain objects (by [@wermetal](https://github.com/wermetal) in [#8937](https://github.com/QwikDev/qwik/pull/8937))
+
 ## 2.0.0-beta.40
 
 ### Major Changes

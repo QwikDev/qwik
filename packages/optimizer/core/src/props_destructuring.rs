@@ -8,7 +8,7 @@ use swc_atoms::Atom;
 use swc_common::DUMMY_SP;
 use swc_ecmascript::ast;
 use swc_ecmascript::utils::private_ident;
-use swc_ecmascript::visit::{VisitMut, VisitMutWith};
+use swc_ecmascript::visit::{Visit, VisitMut, VisitMutWith, VisitWith};
 
 struct PropsDestructuring<'a> {
 	component_ident: Option<Id>,
@@ -82,8 +82,8 @@ impl<'a> PropsDestructuring<'a> {
 			}
 
 			let new_ident = private_ident!("_rawProps");
-			if let Some((rest_id_opt, local)) =
-				transform_pat(ast::Expr::Ident(new_ident.clone()), obj, self)
+			if let Some((rest_id_opt, local, default_stmts)) =
+				transform_pat(ast::Expr::Ident(new_ident.clone()), obj, self, true)
 			{
 				if let Some(rest_id) = rest_id_opt {
 					let omit_fn = self.global_collect.import(&_REST_PROPS, self.core_module);
@@ -100,6 +100,7 @@ impl<'a> PropsDestructuring<'a> {
 					self.identifiers.insert(id, expr);
 				}
 				arrow.params[0] = ast::Pat::Ident(ast::BindingIdent::from(new_ident));
+				prepend_stmts(arrow, default_stmts);
 			}
 		}
 		if let ast::BlockStmtOrExpr::BlockStmt(body) = &mut *arrow.body {
@@ -240,8 +241,8 @@ impl<'a> PropsDestructuring<'a> {
 									}
 								}
 								ast::Pat::Object(obj_pat) => {
-									if let Some((rest_id, local)) =
-										transform_pat(new_ref.clone(), obj_pat, self)
+									if let Some((rest_id, local, _)) =
+										transform_pat(new_ref.clone(), obj_pat, self, false)
 									{
 										if let Some(rest_id) = rest_id {
 											let omit_fn = self
@@ -377,15 +378,18 @@ impl<'a> VisitMut for PropsDestructuring<'a> {
 	}
 }
 
-type TransformPatReturn = (Option<Id>, Vec<(Id, Atom, ast::Expr)>);
+type TransformPatReturn = (Option<Id>, Vec<(Id, Atom, ast::Expr)>, Vec<ast::Stmt>);
 fn transform_pat(
 	new_ident: ast::Expr,
 	obj: &ast::ObjectPat,
 	props_transform: &mut PropsDestructuring,
+	allow_dynamic_defaults: bool,
 ) -> Option<TransformPatReturn> {
 	let mut local = vec![];
+	let mut default_stmts = vec![];
 	let mut skip = false;
 	let mut rest_id = None;
+	let destructured_names = collect_destructured_names(obj);
 	for prop in &obj.props {
 		match prop {
 			ast::ObjectPatProp::Assign(ref v) => {
@@ -406,6 +410,13 @@ fn transform_pat(
 								right: value.clone(),
 							}),
 						));
+					} else if allow_dynamic_defaults
+						&& !references_destructured_name(value, &destructured_names)
+					{
+						let (default_expr, default_stmt) =
+							create_dynamic_default(access, value.clone());
+						local.push((id!(v.key), v.key.sym.clone(), default_expr));
+						default_stmts.push(default_stmt);
 					} else {
 						skip = true;
 					}
@@ -469,6 +480,18 @@ fn transform_pat(
 										right: value.clone(),
 									}),
 								));
+							} else if allow_dynamic_defaults
+								&& !references_destructured_name(value, &destructured_names)
+							{
+								let access = ast::Expr::Member(ast::MemberExpr {
+									obj: Box::new(new_ident.clone()),
+									prop,
+									span: DUMMY_SP,
+								});
+								let (default_expr, default_stmt) =
+									create_dynamic_default(access, value.clone());
+								local.push((id!(ident.id), key_atom.clone(), default_expr));
+								default_stmts.push(default_stmt);
 							} else {
 								skip = true;
 							}
@@ -494,7 +517,65 @@ fn transform_pat(
 		return None;
 	}
 	// Allow case with only rest binding (no local fields)
-	Some((rest_id, local))
+	Some((rest_id, local, default_stmts))
+}
+
+fn create_dynamic_default(access: ast::Expr, value: Box<ast::Expr>) -> (ast::Expr, ast::Stmt) {
+	let default_ident = private_ident!("_defaultValue");
+	let default_stmt = ast::Stmt::Decl(ast::Decl::Var(Box::new(ast::VarDecl {
+		kind: ast::VarDeclKind::Const,
+		decls: vec![ast::VarDeclarator {
+			definite: false,
+			span: DUMMY_SP,
+			init: Some(Box::new(ast::Expr::Cond(ast::CondExpr {
+				span: DUMMY_SP,
+				test: Box::new(is_undefined(access.clone())),
+				cons: value,
+				alt: ast::Expr::undefined(DUMMY_SP),
+			}))),
+			name: ast::Pat::Ident(ast::BindingIdent::from(default_ident.clone())),
+		}],
+		..Default::default()
+	})));
+	let default_expr = ast::Expr::Cond(ast::CondExpr {
+		span: DUMMY_SP,
+		test: Box::new(is_undefined(access.clone())),
+		cons: Box::new(ast::Expr::Ident(default_ident)),
+		alt: Box::new(access),
+	});
+
+	(default_expr, default_stmt)
+}
+
+fn is_undefined(expr: ast::Expr) -> ast::Expr {
+	ast::Expr::Bin(ast::BinExpr {
+		span: DUMMY_SP,
+		op: ast::BinaryOp::EqEqEq,
+		left: Box::new(expr),
+		right: ast::Expr::undefined(DUMMY_SP),
+	})
+}
+
+fn references_destructured_name(expr: &ast::Expr, names: &HashSet<Id>) -> bool {
+	struct Finder<'a> {
+		names: &'a HashSet<Id>,
+		found: bool,
+	}
+
+	impl Visit for Finder<'_> {
+		fn visit_ident(&mut self, ident: &ast::Ident) {
+			if self.names.contains(&id!(ident)) {
+				self.found = true;
+			}
+		}
+	}
+
+	let mut finder = Finder {
+		names,
+		found: false,
+	};
+	expr.visit_with(&mut finder);
+	finder.found
 }
 
 fn transform_rest(
@@ -528,13 +609,21 @@ fn transform_rest(
 	} else {
 		create_omit_props(omit_fn, rest_id, props_expr, omit)
 	};
+	prepend_stmts(arrow, vec![new_stmt]);
+}
+
+fn prepend_stmts(arrow: &mut ast::ArrowExpr, mut stmts: Vec<ast::Stmt>) {
+	if stmts.is_empty() {
+		return;
+	}
 	match &mut arrow.body {
 		box ast::BlockStmtOrExpr::BlockStmt(block) => {
-			block.stmts.insert(0, new_stmt);
+			block.stmts.splice(0..0, stmts);
 		}
 		box ast::BlockStmtOrExpr::Expr(ref expr) => {
+			stmts.push(create_return_stmt(expr.clone()));
 			arrow.body = Box::new(ast::BlockStmtOrExpr::BlockStmt(ast::BlockStmt {
-				stmts: vec![new_stmt, create_return_stmt(expr.clone())],
+				stmts,
 				..Default::default()
 			}));
 		}

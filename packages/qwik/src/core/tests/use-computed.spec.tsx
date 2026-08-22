@@ -341,6 +341,35 @@ describe.each([
   });
 
   describe('async', () => {
+    it('should auto-track synchronous reads', async () => {
+      const Counter = component$(() => {
+        const explicitlyTracked = useSignal(1);
+        const autoTracked = useSignal(10);
+        const sum = useComputed$(({ track }) => {
+          return Promise.resolve(track(explicitlyTracked) + autoTracked.value);
+        });
+        return (
+          <div>
+            <button id="explicit" onClick$={() => explicitlyTracked.value++}></button>
+            <button id="auto" onClick$={() => autoTracked.value++}></button>
+            <span>{sum.value}</span>
+          </div>
+        );
+      });
+
+      const { container } = await render(<Counter />, { debug });
+      const renderedSum = () => container.document.querySelector('span')!.textContent;
+      expect(renderedSum()).toBe('11');
+
+      await trigger(container.element, 'button#auto', 'click');
+      await waitForDrain(container);
+      expect(renderedSum()).toBe('12');
+
+      await trigger(container.element, 'button#explicit', 'click');
+      await waitForDrain(container);
+      expect(renderedSum()).toBe('13');
+    });
+
     it('should compute async computed result from async computed result', async () => {
       const Counter = component$(() => {
         const count = useSignal(1);

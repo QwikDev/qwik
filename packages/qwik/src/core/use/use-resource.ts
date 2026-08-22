@@ -143,7 +143,7 @@ export interface ResourceProps<T> {
  * const Cmp = component$(() => {
  *   const city = useSignal('');
  *
- *   const weather = useAsync$(async ({ track, cleanup, abortSignal }) => {
+ *   const weather = useComputed$(async ({ track, cleanup, abortSignal }) => {
  *     const cityName = track(city);
  *     const res = await fetch(`http://weatherdata.com?city=${cityName}`, {
  *       signal: abortSignal,
@@ -157,7 +157,7 @@ export interface ResourceProps<T> {
  *       <input name="city" bind:value={city} />
  *       <div>
  *         Temperature:{' '}
- *         {weather.loading
+ *         {weather.pending
  *           ? 'Loading...'
  *           : weather.error
  *             ? `Error: ${weather.error.message}`
@@ -168,8 +168,8 @@ export interface ResourceProps<T> {
  * });
  * ```
  *
- * @deprecated Use `useAsync$` instead, which is more efficient, and has a more flexible API. Just
- *   read the `loading` and `error` properties from the returned signal to determine the status.
+ * @deprecated Use `useComputed$` instead. Read the `pending` and `error` properties from the
+ *   returned signal to determine the status.
  * @public
  */
 export const Resource = <T>({

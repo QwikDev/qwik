@@ -480,9 +480,9 @@ export class ComputedSignalImpl<T, S extends QRLInternal = ComputeQRL<T>>
   }
 
   /**
-   * Invoke the compute fn with the ComputeCtx argument. CTX_ARG signals (useAsync$, useResource$)
-   * only track via its explicit track(). Computeds auto-track every synchronous read instead; after
-   * the first await they must use the explicit track() too.
+   * Invoke the compute fn with the ComputeCtx argument. CTX_ARG signals (createAsyncQrl,
+   * useResource$) only track via its explicit track(). Computeds auto-track every synchronous read
+   * instead; after the first await they must use the explicit track() too.
    */
   $invokeComputeFn$(fn: Function, job: Job<T>): T | Promise<T> {
     const computeFn = fn as (job: Job<T>) => T;

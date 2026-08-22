@@ -7,7 +7,6 @@ export {
   ComputedSignal,
   ContextId,
   createComputed$,
-  createAsync$,
   createSerializer$,
   createContextId,
   createSignal,
@@ -70,7 +69,6 @@ export {
   TaskCtx,
   // TODO do we really want to export this?
   untrack,
-  useAsync$,
   useComputed$,
   useConstant,
   useContext,

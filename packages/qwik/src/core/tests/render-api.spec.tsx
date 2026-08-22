@@ -10,7 +10,7 @@ import {
   setPlatform,
   useLexicalScope,
   useOn,
-  useAsync$,
+  useComputed$,
   useServerData,
   useSignal,
   useTask$,
@@ -946,7 +946,7 @@ describe('render api', () => {
           unhandledRejections.push(reason);
         };
         const AsyncReject = component$(() => {
-          const result = useAsync$<JSXOutput>(() =>
+          const result = useComputed$<JSXOutput>(() =>
             Promise.reject(new Error('async component failed'))
           );
           return result.value;

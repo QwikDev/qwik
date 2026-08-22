@@ -9,7 +9,8 @@
       "eslint-plugin-qwik",
       "create-qwik",
       "@qwik.dev/react",
-      "@qwik.dev/utils"
+      "@qwik.dev/utils",
+      "@qwik.dev/devtools"
     ]
   ],
   "linked": [],

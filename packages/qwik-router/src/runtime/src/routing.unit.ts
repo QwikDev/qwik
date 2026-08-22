@@ -247,6 +247,36 @@ test('loadRoute — loader paths are replaced by deeper matches', async () => {
   });
 });
 
+test('loadRoute — loader params match each loader path', async () => {
+  const routes: RouteData = {
+    _R: ['root-loader'],
+    _W: {
+      _P: 'tenantSlug',
+      _R: ['tenant-loader'],
+      agents: {
+        _W: {
+          _P: 'agentId',
+          _R: ['agent-loader'],
+          view: {
+            _R: ['page-loader'],
+            _I: makeLoader(),
+          },
+        },
+      },
+    },
+  };
+
+  const result = await loadRoute(routes, false, '/acme/agents/42/view');
+
+  assert.isFalse(result.$notFound$);
+  assert.deepEqual(result.$loaderParams$, {
+    'root-loader': {},
+    'tenant-loader': { tenantSlug: 'acme' },
+    'agent-loader': { tenantSlug: 'acme', agentId: '42' },
+    'page-loader': { tenantSlug: 'acme', agentId: '42' },
+  });
+});
+
 test('loadRoute — miss renders the nearest _4 inside gathered layouts', async () => {
   const rootLayout = { default: () => 'layout' };
   const notFound = { default: () => 'not-found' };

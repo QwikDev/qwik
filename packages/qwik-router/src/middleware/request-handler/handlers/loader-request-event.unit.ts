@@ -96,6 +96,8 @@ describe('createLoaderRequestEventFactory', () => {
       const routeLoaderCtx = getRouteLoaderCtx(requestEv);
       routeLoaderCtx.loaderPaths['products-loader'] = '/products/';
       routeLoaderCtx.loaderPaths['details-loader'] = '/products/123/';
+      routeLoaderCtx.loaderParams['products-loader'] = {};
+      routeLoaderCtx.loaderParams['details-loader'] = { id: '123' };
       const getLoaderRequestEvent = createLoaderRequestEventFactory(requestEv);
       const productsLoader = createLoader('products-loader', ['page']);
       const detailsLoader = createLoader('details-loader', ['page']);
@@ -111,6 +113,7 @@ describe('createLoaderRequestEventFactory', () => {
       expect(productsEv.request.url).toBe('http://localhost/products/?page=2');
       expect(productsEv.originalUrl.href).toBe('http://localhost/products/?page=2');
       expect(productsEv.params).toEqual({});
+      expect(detailsEv.params).toEqual({ id: '123' });
     } finally {
       globalThis.__STRICT_LOADERS__ = previousStrictLoaders;
     }

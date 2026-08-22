@@ -116,6 +116,8 @@ When JS is enabled, the `<Form/>` component will intercept the form submission a
 
 Actions can also be triggered programmatically using the `action.submit()` method (i.e. you don't need a `<Form/>` component). However, you can trigger the action from a button click or any other event, just like you would do with a function.
 
+When handling a submit event yourself, use a native `<form>` instead of the router's `<Form>`, which requires either an `action` or `method="get"`.
+
 ```tsx {18} title="src/routes/index.tsx"
 import { component$ } from '@qwik.dev/core';
 import { routeAction$ } from '@qwik.dev/router';

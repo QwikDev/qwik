@@ -6,7 +6,7 @@ export default component$((props) => {
   const signal = useSignal(false);
   return (
     <section>
-      <Form spaReset={signal.value}>
+      <Form method="get" spaReset={signal.value}>
         <button
           type="button"
           id="issue-4679-button"

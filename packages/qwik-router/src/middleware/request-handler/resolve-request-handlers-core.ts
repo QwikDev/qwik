@@ -363,6 +363,9 @@ function createResolveRequestHandlers() {
     if (route.$loaderPaths$) {
       Object.assign(routeLoaderCtx.loaderPaths, route.$loaderPaths$);
     }
+    if (route.$loaderParams$) {
+      Object.assign(routeLoaderCtx.loaderParams, route.$loaderParams$);
+    }
 
     // Store loader internals so SSG can check __cacheControl.
     setRouteLoaders(requestEv, routeLoaders);

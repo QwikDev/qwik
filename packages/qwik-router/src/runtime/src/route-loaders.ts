@@ -41,6 +41,7 @@ import type {
   LoaderConstructorQRL,
   LoaderInternal,
   LoaderOptions,
+  PathParams,
   RequestEvent,
   RequestEventLoader,
   RouteNavigate,
@@ -118,12 +119,14 @@ const wrapWithAbort = <T>(promise: Promise<T>, signal: AbortSignal): Promise<T> 
  * a store that gets updated on navigation.
  *
  * - `loaderPaths`: loader ID → fetch path (the longest route path for that loader)
+ * - `loaderParams`: loader ID → params resolved at the loader path
  * - `pagePathname` / `pageSearch`: client-only navigation state used for loader invalidation and
  *   q-loader fetches. They are intentionally omitted from SSR state and fall back to `location`
  *   until the first SPA navigation.
  */
 export type RouteLoaderCtx = {
   loaderPaths: Record<string, string | undefined>;
+  loaderParams: Record<string, PathParams | undefined>;
   pagePathname?: string;
   pageSearch?: string;
   /** SPA navigation function. Client-only and intentionally omitted from SSR state. */
@@ -555,6 +558,7 @@ export function getRouteLoaderCtx(requestEv: RequestEventBase): RouteLoaderCtx {
   if (!ctx) {
     ctx = {
       loaderPaths: {},
+      loaderParams: {},
     };
     requestEv.sharedMap.set(REQUEST_LOADER_PATHS_STORE, ctx);
   }
@@ -772,9 +776,12 @@ export const getLoaderRequestEvent = (
   }
 
   const url = new URL(rootRequestEv.url);
+  const routeLoaderCtx = getRouteLoaderCtx(rootRequestEv);
   const pathname = globalThis.__STRICT_LOADERS__
-    ? getRouteLoaderCtx(rootRequestEv).loaderPaths[loader.__id] || rootRequestEv.url.pathname
+    ? routeLoaderCtx.loaderPaths[loader.__id] || rootRequestEv.url.pathname
     : rootRequestEv.url.pathname;
+  const scopedParams =
+    pathname === rootRequestEv.url.pathname ? {} : routeLoaderCtx.loaderParams[loader.__id] || {};
   const filteredSearch = loader.__search
     ? filterSearchParams(url.searchParams, loader.__search)
     : rootRequestEv.url.search;
@@ -800,7 +807,7 @@ export const getLoaderRequestEvent = (
         enumerable: true,
       },
       params: {
-        value: {},
+        value: scopedParams,
         enumerable: true,
       },
       pathname: {

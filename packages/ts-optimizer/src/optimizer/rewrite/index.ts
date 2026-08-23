@@ -9,7 +9,11 @@ import MagicString from 'magic-string';
 import { parseSync } from 'oxc-parser';
 import type { ConsolidatedSegment, ExtractionResult, Mutable } from '../extraction/extract.js';
 import type { ImportInfo } from '../extraction/marker-detection.js';
-import type { MigrationDecision, ModuleLevelDecl } from '../analysis/variable-migration.js';
+import {
+  autoExportedNames,
+  type MigrationDecision,
+  type ModuleLevelDecl,
+} from '../analysis/variable-migration.js';
 import type { RelativePath } from '../types/brands.js';
 import { rewriteImportSource } from './rewrite-imports.js';
 import { buildSyncTransform, isWorkerExtraction, needsPureAnnotation } from './rewrite-calls.js';
@@ -728,7 +732,7 @@ function removeUnusedBindings(ctx: RewriteContext): void {
   // look unused here: the reexport is appended after this pass (not in the scan
   // below), so stripping the binding would leave the reexport dangling.
   const reexportedNames = new Set(
-    (ctx.migrationDecisions ?? []).filter((d) => d.action === 'reexport').map((d) => d.varName)
+    autoExportedNames(ctx.migrationDecisions, ctx.moduleLevelDecls)
   );
 
   for (const stmt of program.body) {

@@ -35,6 +35,25 @@ function segmentFor(modules: readonly TransformModule[], name: string): string {
 }
 
 describe('generated segments are valid JavaScript', () => {
+  it('keeps an un-exported routeLoader in the module its _auto_ export lives in', () => {
+    const result = transform(`
+import { component$ } from '@qwik.dev/core';
+import { routeLoader$ } from '@qwik.dev/router';
+
+const useOnlyUsedInASegment = routeLoader$(() => 1);
+const useNeverUsed = routeLoader$(() => 2);
+
+export default component$(() => <p>{useOnlyUsedInASegment().value}</p>);
+`);
+    // A moved or binding-stripped decl leaves its appended `_auto_` export pointing at nothing,
+    // which every bundler rejects — the parent must still declare both names.
+    const parent = result.modules.find((m) => m.kind === 'parent')!.code;
+    for (const name of ['useOnlyUsedInASegment', 'useNeverUsed']) {
+      expect(parent).toContain(`export { ${name} as _auto_${name} };`);
+      expect(parent).toMatch(new RegExp(`const ${name} = routeLoaderQrl\\(`));
+    }
+  });
+
   it('imports a moved decl`s QRL callee from the module`s own subpath, once', () => {
     const result = transform(`
 import { componentQrl, inlinedQrl } from '@qwik.dev/core';

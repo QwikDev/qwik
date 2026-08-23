@@ -531,7 +531,9 @@ export const MIG_REASON = {
   REEXPORT_SIDE_EFFECTS: 'declaration has side effects (MIG-04)',
   REEXPORT_SHARED_DESTRUCTURE: 'part of shared destructuring pattern (MIG-05)',
   REEXPORT_MOVED_DECL_DEP: 'still referenced by a declaration migrating into a segment (MIG-06)',
+  REEXPORT_ROUTER_MARKER: 'router loader/action reached through its _auto_ export (MIG-07)',
   KEEP_EXPORTED: 'exported but not used by any segment',
+  KEEP_ROUTER_MARKER: 'router loader/action, exported as _auto_ even when unused',
   KEEP_UNUSED: 'not used by any segment',
   DROP_UNREFERENCED: 'pure init unused by root and segments (dead after extraction)',
   DROP_STRIPPED_ONLY: 'only consumed by stripped segments (side effects dropped)',
@@ -803,6 +805,39 @@ function collectTopLevelStatementRefs(program: AstProgram, decls: ModuleLevelDec
   return refs;
 }
 
+/**
+ * Names `assembleOutput` appends `export { X as _auto_X }` for, in the order it appends them. The
+ * rewrite pass must keep these bindings alive even when nothing in the module body reads them, so
+ * both sides read this one list — a name exported here but stripped there dangles the export.
+ */
+export function autoExportedNames(
+  migrationDecisions: readonly MigrationDecision[] | undefined,
+  moduleLevelDecls: readonly ModuleLevelDecl[] | undefined
+): string[] {
+  const decls = moduleLevelDecls ?? [];
+  const alreadyExported = new Set(decls.filter((d) => d.isExported).map((d) => d.name));
+  const names: string[] = [];
+  const taken = new Set<string>();
+  const add = (name: string): void => {
+    if (alreadyExported.has(name) || taken.has(name)) {
+      return;
+    }
+    taken.add(name);
+    names.push(name);
+  };
+
+  for (const decision of migrationDecisions ?? []) {
+    if (decision.action === 'reexport') {
+      add(decision.varName);
+    }
+  }
+  // The router discovers un-exported loaders/actions only through these exports.
+  for (const decl of decls.filter((d) => d.hasRouterMarkerInit).map((d) => d.name).sort()) {
+    add(decl);
+  }
+  return names;
+}
+
 function decideMigration(
   decl: ModuleLevelDecl,
   segmentUsage: Map<string, Set<string>>,
@@ -812,6 +847,13 @@ function decideMigration(
   const usedByAnySegment = usingSegments.length > 0;
   const usedByRoot = rootUsage.has(decl.name);
 
+  // The router finds un-exported loaders/actions through the `_auto_` re-export
+  // output-assembly appends, so moving or dropping one dangles that export.
+  if (decl.hasRouterMarkerInit && !decl.isExported) {
+    return usedByAnySegment
+      ? { action: 'reexport', varName: decl.name, reason: MIG_REASON.REEXPORT_ROUTER_MARKER }
+      : { action: 'keep', varName: decl.name, reason: MIG_REASON.KEEP_ROUTER_MARKER };
+  }
   if (decl.isExported && usedByAnySegment) {
     return { action: 'reexport', varName: decl.name, reason: MIG_REASON.REEXPORT_EXPORTED };
   }

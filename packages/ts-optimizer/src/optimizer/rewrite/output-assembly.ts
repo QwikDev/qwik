@@ -3,7 +3,7 @@ import { type TransformOptions } from 'oxc-transform';
 import type { AstNode, AstProgram } from '../../ast-types.js';
 import type { ExtractionResult } from '../extraction/extract.js';
 import type { ImportInfo } from '../extraction/marker-detection.js';
-import type { ModuleLevelDecl } from '../analysis/variable-migration.js';
+import { autoExportedNames, type ModuleLevelDecl } from '../analysis/variable-migration.js';
 import {
   buildQrlDeclaration,
   buildWorkerQrlDeclaration,
@@ -898,34 +898,11 @@ export function assembleOutput(ctx: RewriteContext): string {
 
   s.prepend(preamble.join('\n') + '\n');
 
-  const autoExported = new Set<string>();
-  if (migrationDecisions && !ctx.isLibMode) {
-    // `_auto_X` re-exports make module-level decls importable by segment
-    // files. Lib mode emits a single module (no segment files), so they're
-    // unnecessary and omitted.
-    for (const decision of migrationDecisions) {
-      if (decision.action === 'reexport') {
-        const decl = moduleLevelDecls?.find((d) => d.name === decision.varName);
-        if (decl?.isExported) {
-          continue;
-        }
-        autoExported.add(decision.varName);
-        s.append(`\nexport { ${decision.varName} as _auto_${decision.varName} };`);
-      }
-    }
-  }
-
-  if (!ctx.isLibMode && moduleLevelDecls) {
-    // The router discovers loaders/actions by scanning route-module exports,
-    // so un-exported `routeLoader$`/`routeAction$` results must still surface
-    // as `_auto_X` exports (rust parity) or their middleware never runs.
-    const names = moduleLevelDecls
-      .filter(
-        (decl) => !decl.isExported && !autoExported.has(decl.name) && decl.hasRouterMarkerInit
-      )
-      .map((decl) => decl.name)
-      .sort();
-    for (const name of names) {
+  // `_auto_X` re-exports make module-level decls importable by segment files, and are how the
+  // router finds un-exported `routeLoader$`/`routeAction$` results (rust parity) — without them
+  // their middleware never runs. Lib mode emits a single module (no segment files) and needs none.
+  if (!ctx.isLibMode) {
+    for (const name of autoExportedNames(migrationDecisions, moduleLevelDecls)) {
       s.append(`\nexport { ${name} as _auto_${name} };`);
     }
   }

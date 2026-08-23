@@ -14,9 +14,8 @@ import {
   type LinkedPlan,
   type Op,
 } from '../schema';
-import { isJsxPath, isTypeScriptPath } from '../analyse/ast/parse';
 import { foldStaticOp } from './fold-static';
-import type { GenerateOutput, PresentationOptions } from './output';
+import { makeOutput, type GenerateOutput, type PresentationOptions } from './output';
 
 export async function generateRustSsr(
   plan: LinkedPlan,
@@ -49,21 +48,16 @@ export async function generateRustSsr(
     }
     return emitComponentRender(module, module.components[intent.component]);
   });
-  return {
-    modules: [
-      {
-        path: `${module.path}.rs`,
-        code: renders.join('\n'),
-        map: null,
-        isEntry: true,
-        origPath: module.path,
-        segment: null,
-      },
-    ],
-    diagnostics: plan.diagnostics.map((item) => item.diagnostic),
-    isTypeScript: plan.modules.some((item) => isTypeScriptPath(item.path)),
-    isJsx: plan.modules.some((item) => isJsxPath(item.path)),
-  };
+  return makeOutput(plan, [
+    {
+      path: `${module.path}.rs`,
+      code: renders.join('\n'),
+      map: null,
+      isEntry: true,
+      origPath: module.path,
+      segment: null,
+    },
+  ]);
 }
 
 function emitComponentRender(module: LinkedModule, component: ComponentDecl): string {

@@ -5,12 +5,8 @@
  * legacy pipeline in `../src` is the differential oracle until the cutover commit.
  */
 export * from './schema';
-export {
-  analyseModule,
-  UnsupportedError,
-  type AnalyseInput,
-  type AnalyseOptions,
-} from './analyse/analyse-module';
+export { analyseModule, type AnalyseInput, type AnalyseOptions } from './analyse/analyse-module';
+export { InvalidModuleError, UnsupportedError } from './errors';
 export {
   linkPlans,
   ResolutionKind,

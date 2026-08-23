@@ -12,12 +12,11 @@ import {
   type LinkedPlan,
   type Op,
 } from '../schema';
-import { isJsxPath, isTypeScriptPath } from '../analyse/ast/parse';
 import { assembleQwikModule } from './assemble-module';
 import { foldStaticOp } from './fold-static';
 import type { ComponentEmission } from './emit-component';
 import { generateForeignModule } from './foreign';
-import type { GenerateOutput, PresentationOptions } from './output';
+import { makeOutput, type GenerateOutput, type PresentationOptions } from './output';
 
 export async function generateJsSsr(
   plan: LinkedPlan,
@@ -30,12 +29,7 @@ export async function generateJsSsr(
   for (const module of plan.modules) {
     modules.push(await generateModule(module, options));
   }
-  return {
-    modules,
-    diagnostics: plan.diagnostics.map((entry) => entry.diagnostic),
-    isTypeScript: plan.modules.some((module) => isTypeScriptPath(module.path)),
-    isJsx: plan.modules.some((module) => isJsxPath(module.path)),
-  };
+  return makeOutput(plan, modules);
 }
 
 async function generateModule(

@@ -22,8 +22,6 @@ import { emptyPlan } from './plan';
 
 import { InvalidModuleError, UnsupportedError } from '../errors';
 
-export { UnsupportedError } from '../errors';
-
 export interface AnalyseOptions {
   transpileTs?: boolean;
   rootDir?: string;
@@ -152,8 +150,8 @@ export async function analyseModule(
       body: plan.programs.length - 1,
       captures: [],
       root: { name: `q${component.name}-` },
-      functionRange: component.arrowRange,
-      replacementRange: component.statementRange,
+      functionRange: [component.arrow.start, component.arrow.end],
+      replacementRange: [component.statement.start, component.statement.end],
       declarationKind: component.declarationKind,
       localName: component.declarationKind === DeclarationKind.Const ? component.name : null,
     });

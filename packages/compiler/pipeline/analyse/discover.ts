@@ -7,8 +7,7 @@ import { UnsupportedError } from '../errors';
 export interface DiscoveredComponent {
   name: string;
   declarationKind: DeclarationKind;
-  statementRange: [number, number];
-  arrowRange: [number, number];
+  arrow: AstNode;
   /** The authored props param — reused as the emitted props name. */
   param: { name: string; range: [number, number] } | null;
   jsx: AstNode;
@@ -79,8 +78,7 @@ function describeComponent(
   return {
     name,
     declarationKind,
-    statementRange: [statement.start, statement.end],
-    arrowRange: [arrow.start, arrow.end],
+    arrow,
     param:
       param === undefined
         ? null

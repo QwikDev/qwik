@@ -76,7 +76,7 @@ export type BundleGraphAdder = (manifest: QwikManifest) => Record<
 <h2 id="componententrystrategy">ComponentEntryStrategy</h2>
 
 ```typescript
-export declare interface ComponentEntryStrategy
+export interface ComponentEntryStrategy
 ```
 
 <table><thead><tr><th>
@@ -167,7 +167,7 @@ Promise&lt;[Optimizer](#optimizer)&gt;
 <h2 id="diagnostic">Diagnostic</h2>
 
 ```typescript
-export declare interface Diagnostic
+export interface Diagnostic
 ```
 
 <table><thead><tr><th>
@@ -283,7 +283,7 @@ string[] \| null
 <h2 id="diagnosticcategory">DiagnosticCategory</h2>
 
 ```typescript
-export declare type DiagnosticCategory = "error" | "warning" | "sourceError";
+export type DiagnosticCategory = "error" | "warning" | "sourceError";
 ```
 
 <h2 id="path-dirname">dirname</h2>
@@ -327,13 +327,13 @@ string
 <h2 id="emitmode">EmitMode</h2>
 
 ```typescript
-export declare type EmitMode = "dev" | "prod" | "lib" | "hmr";
+export type EmitMode = "dev" | "prod" | "lib" | "hmr";
 ```
 
 <h2 id="entrystrategy">EntryStrategy</h2>
 
 ```typescript
-export declare type EntryStrategy =
+export type EntryStrategy =
   | InlineEntryStrategy
   | HoistEntryStrategy
   | SingleEntryStrategy
@@ -612,7 +612,7 @@ string
 <h2 id="hoistentrystrategy">HoistEntryStrategy</h2>
 
 ```typescript
-export declare interface HoistEntryStrategy
+export interface HoistEntryStrategy
 ```
 
 <table><thead><tr><th>
@@ -654,7 +654,7 @@ type
 > Use SegmentStrategy instead
 
 ```typescript
-export declare interface HookEntryStrategy
+export interface HookEntryStrategy
 ```
 
 <table><thead><tr><th>
@@ -707,7 +707,7 @@ type
 <h2 id="inlineentrystrategy">InlineEntryStrategy</h2>
 
 ```typescript
-export declare interface InlineEntryStrategy
+export interface InlineEntryStrategy
 ```
 
 <table><thead><tr><th>
@@ -819,7 +819,7 @@ string
 <h2 id="minifymode">MinifyMode</h2>
 
 ```typescript
-export declare type MinifyMode = "simplify" | "none";
+export type MinifyMode = "simplify" | "none";
 ```
 
 <h2 id="path-normalize">normalize</h2>
@@ -863,7 +863,7 @@ string
 <h2 id="optimizer">Optimizer</h2>
 
 ```typescript
-export declare interface Optimizer
+export interface Optimizer
 ```
 
 <table><thead><tr><th>
@@ -923,7 +923,7 @@ Transforms the input code string, does not access the file system.
 <h2 id="optimizeroptions">OptimizerOptions</h2>
 
 ```typescript
-export declare interface OptimizerOptions
+export interface OptimizerOptions
 ```
 
 <table><thead><tr><th>
@@ -1040,7 +1040,7 @@ Default `true`
 <h2 id="optimizersystem">OptimizerSystem</h2>
 
 ```typescript
-export declare interface OptimizerSystem
+export interface OptimizerSystem
 ```
 
 <table><thead><tr><th>
@@ -1200,7 +1200,7 @@ string
 <h2 id="path">Path</h2>
 
 ```typescript
-export declare interface Path
+export interface Path
 ```
 
 <table><thead><tr><th>
@@ -1819,11 +1819,11 @@ The version of the manifest
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-vite/src/types.ts)
 
-<h2 id="qwikrollup">qwikRollup</h2>
+<h2 id="qwikrolldown">qwikRolldown</h2>
 
 ```typescript
-export declare function qwikRollup(
-  qwikRollupOpts?: QwikRollupPluginOptions,
+export declare function qwikRolldown(
+  qwikRolldownOpts?: QwikRolldownPluginOptions,
 ): any;
 ```
 
@@ -1842,11 +1842,11 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-qwikRollupOpts
+qwikRolldownOpts
 
 </td><td>
 
-[QwikRollupPluginOptions](#qwikrolluppluginoptions)
+[QwikRolldownPluginOptions](#qwikrolldownpluginoptions)
 
 </td><td>
 
@@ -1859,12 +1859,12 @@ _(Optional)_
 
 any
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-vite/src/plugins/rollup.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-vite/src/plugins/rolldown.ts)
 
-<h2 id="qwikrolluppluginoptions">QwikRollupPluginOptions</h2>
+<h2 id="qwikrolldownpluginoptions">QwikRolldownPluginOptions</h2>
 
 ```typescript
-export interface QwikRollupPluginOptions
+export interface QwikRolldownPluginOptions
 ```
 
 <table><thead><tr><th>
@@ -2114,7 +2114,37 @@ _(Optional)_ Hook that's called after the build and provides all of the transfor
 </td></tr>
 </tbody></table>
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-vite/src/plugins/rollup.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-vite/src/plugins/rolldown.ts)
+
+<h2 id="qwikrollup">qwikRollup</h2>
+
+> Warning: This API is now obsolete.
+>
+> Use `qwikRolldown`.
+
+Renamed to `qwikRolldown`.
+
+```typescript
+qwikRollup: typeof qwikRolldown;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-vite/src/plugins/rolldown.ts)
+
+<h2 id="qwikrolluppluginoptions">QwikRollupPluginOptions</h2>
+
+> Warning: This API is now obsolete.
+>
+> Use `QwikRolldownPluginOptions`.
+
+Renamed to `QwikRolldownPluginOptions`.
+
+```typescript
+export type QwikRollupPluginOptions = QwikRolldownPluginOptions;
+```
+
+**References:** [QwikRolldownPluginOptions](#qwikrolldownpluginoptions)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-vite/src/plugins/rolldown.ts)
 
 <h2 id="qwiksymbol">QwikSymbol</h2>
 
@@ -2294,7 +2324,7 @@ string \| null
 
 <h2 id="qwikvite">qwikVite</h2>
 
-The types for Vite/Rollup don't allow us to be too specific about the return type. The correct return type is `[QwikVitePlugin, VitePlugin<never>]`, and if you search the plugin by name you'll get the `QwikVitePlugin`.
+The types for Vite/Rolldown don't allow us to be too specific about the return type. The correct return type is `[QwikVitePlugin, VitePlugin<never>]`, and if you search the plugin by name you'll get the `QwikVitePlugin`.
 
 ```typescript
 export declare function qwikVite(qwikViteOpts?: QwikVitePluginOptions): any;
@@ -2660,7 +2690,7 @@ mapper
 <h2 id="segmentanalysis">SegmentAnalysis</h2>
 
 ```typescript
-export declare interface SegmentAnalysis
+export interface SegmentAnalysis
 ```
 
 <table><thead><tr><th>
@@ -2871,7 +2901,7 @@ string \| null
 <h2 id="segmententrystrategy">SegmentEntryStrategy</h2>
 
 ```typescript
-export declare interface SegmentEntryStrategy
+export interface SegmentEntryStrategy
 ```
 
 <table><thead><tr><th>
@@ -2948,7 +2978,7 @@ export type ServerQwikManifest = Pick<
 <h2 id="singleentrystrategy">SingleEntryStrategy</h2>
 
 ```typescript
-export declare interface SingleEntryStrategy
+export interface SingleEntryStrategy
 ```
 
 <table><thead><tr><th>
@@ -3001,7 +3031,7 @@ type
 <h2 id="smartentrystrategy">SmartEntryStrategy</h2>
 
 ```typescript
-export declare interface SmartEntryStrategy
+export interface SmartEntryStrategy
 ```
 
 <table><thead><tr><th>
@@ -3054,7 +3084,7 @@ type
 <h2 id="sourcelocation">SourceLocation</h2>
 
 ```typescript
-export declare interface SourceLocation
+export interface SourceLocation
 ```
 
 <table><thead><tr><th>
@@ -3184,7 +3214,7 @@ export type SymbolMapperFn = (
 <h2 id="systemenvironment">SystemEnvironment</h2>
 
 ```typescript
-export declare type SystemEnvironment =
+export type SystemEnvironment =
   | "node"
   | "deno"
   | "bun"
@@ -3196,7 +3226,7 @@ export declare type SystemEnvironment =
 <h2 id="transformmodule">TransformModule</h2>
 
 ```typescript
-export declare interface TransformModule
+export interface TransformModule
 ```
 
 <table><thead><tr><th>
@@ -3314,7 +3344,7 @@ segment
 <h2 id="transformmoduleinput">TransformModuleInput</h2>
 
 ```typescript
-export declare interface TransformModuleInput
+export interface TransformModuleInput
 ```
 
 <table><thead><tr><th>
@@ -3418,7 +3448,7 @@ Promise&lt;[TransformOutput](#transformoutput)&gt;
 <h2 id="transformmodulesoptions">TransformModulesOptions</h2>
 
 ```typescript
-export declare interface TransformModulesOptions extends TransformOptions
+export interface TransformModulesOptions extends TransformOptions
 ```
 
 **Extends:** [TransformOptions](#transformoptions)
@@ -3458,7 +3488,7 @@ input
 <h2 id="transformoptions">TransformOptions</h2>
 
 ```typescript
-export declare interface TransformOptions
+export interface TransformOptions
 ```
 
 <table><thead><tr><th>
@@ -3721,7 +3751,7 @@ _(Optional)_
 <h2 id="transformoutput">TransformOutput</h2>
 
 ```typescript
-export declare interface TransformOutput
+export interface TransformOutput
 ```
 
 <table><thead><tr><th>

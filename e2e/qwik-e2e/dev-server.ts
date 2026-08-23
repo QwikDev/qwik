@@ -220,7 +220,7 @@ export { router }
     getInlineConf({
       build: {
         minify: false,
-        rollupOptions: clientInput
+        rolldownOptions: clientInput
           ? {
               input: {
                 'entry.dev': clientInput,

@@ -117,7 +117,7 @@ import type {
 } from './types';
 import { submitAction } from './use-endpoint';
 import { useQwikRouterEnv } from './use-functions';
-import { isSameOrigin, isSamePath, toPath, toUrl } from './utils';
+import { isPromise, isSameOrigin, isSamePath, toPath, toUrl } from './utils';
 import {
   shouldStartViewTransition,
   startViewTransition,
@@ -761,17 +761,27 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       }
       const actionData = track(actionDataSignal);
 
-      // Resolve head — this might throw a promise so keep it near the top of the function
-      const head = track(() =>
-        resolveHead(
-          actionData,
-          loaderState,
-          routeLocation,
-          contentModules,
-          getLocale(''),
-          serverHead
-        )
-      );
+      let head: ResolvedDocumentHead;
+      try {
+        // Resolve head — this might throw a promise so keep it near the top of the function
+        head = track(() =>
+          resolveHead(
+            actionData,
+            loaderState,
+            routeLocation,
+            contentModules,
+            getLocale(''),
+            serverHead
+          )
+        );
+      } catch (error) {
+        if (isServer || isPromise(error)) {
+          throw error;
+        }
+        // Preserve the current head after client-side calculation errors.
+        console.error(error);
+        return;
+      }
       documentHead.links = head.links;
       documentHead.meta = head.meta;
       documentHead.styles = head.styles;

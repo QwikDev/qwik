@@ -7,10 +7,10 @@ import { findExports } from 'mlly';
 import type {
   ConfigEnv,
   EnvironmentOptions,
-  HmrContext,
+  HotUpdateOptions,
   Plugin,
   PluginOption,
-  Rollup,
+  Rolldown,
   UserConfig,
   ViteDevServer,
 } from 'vite';
@@ -88,22 +88,25 @@ export function replaceLoaderPlaceholders(
   // Replace `_R: "__LOADERS:path1|path2__"` with the actual hash array, or strip the whole
   // `_R: ...` entry when no routeLoader$ was found — that way the client-side routing code
   // never sees a stale placeholder string and spreads it character-by-character.
-  return code.replace(/_R\s*:\s*"__LOADERS:([^"]+)__"\s*,?/g, (_match, paths: string) => {
-    const filePaths = paths.split('|');
-    const hashes: string[] = [];
-    for (const filePath of filePaths) {
-      const fileHashes = loadersByFile.get(filePath);
-      if (fileHashes) {
-        hashes.push(...fileHashes);
+  return code.replace(
+    /_R\s*:\s*(["'`])__LOADERS:([^"'`]+)__\1\s*,?/g,
+    (_match, _q, paths: string) => {
+      const filePaths = paths.split('|');
+      const hashes: string[] = [];
+      for (const filePath of filePaths) {
+        const fileHashes = loadersByFile.get(filePath);
+        if (fileHashes) {
+          hashes.push(...fileHashes);
+        }
       }
+      if (hashes.length > 0) {
+        return `_R: ${JSON.stringify(hashes)},`;
+      }
+      // Trailing commas inside object literals are legal, so removing a mid-object entry
+      // (and the trailing comma it emitted with) leaves the surrounding trie literal valid.
+      return '';
     }
-    if (hashes.length > 0) {
-      return `_R: ${JSON.stringify(hashes)},`;
-    }
-    // Trailing commas inside object literals are legal, so removing a mid-object entry
-    // (and the trailing comma it emitted with) leaves the surrounding trie literal valid.
-    return '';
-  });
+  );
 }
 
 export function addRouteLoaderHash(
@@ -363,12 +366,6 @@ function qwikRouterPlugin(
             'zod',
           ],
         },
-        server: {
-          watch: {
-            // needed for recursive watching of index and layout files in the src/routes directory
-            disableGlobbing: false,
-          },
-        },
       };
       return updatedViteConfig;
     },
@@ -445,13 +442,8 @@ function qwikRouterPlugin(
     async configureServer(server) {
       devServer = server;
       // recursively watch all route files in the src/routes directory
-      const toWatch = [
-        join(
-          ctx!.opts.routesDir,
-          '**/{index,index!,index@*,layout,layout!,layout-*,error,404,entry,service-worker,menu}.{ts,tsx,js,jsx,md,mdx}'
-        ),
-        join(ctx!.opts.serverPluginsDir, 'plugin{,@*}.{ts,tsx,js,jsx}'),
-      ];
+      // chokidar 4 dropped globs, so watch directories and filter.
+      const toWatch = [ctx!.opts.routesDir, ctx!.opts.serverPluginsDir];
       server.watcher.add(toWatch);
       await new Promise((resolve) => setTimeout(resolve, 1000));
       server.watcher.on('change', (path) => {
@@ -471,7 +463,11 @@ function qwikRouterPlugin(
       }
     },
 
-    handleHotUpdate({ file, modules, server, timestamp }: HmrContext) {
+    hotUpdate({ file, modules, timestamp }: HotUpdateOptions) {
+      const server = devServer;
+      if (!server) {
+        return;
+      }
       // Route CSS is injected as a <link>; swap it in place rather than forcing a restart.
       if (sendRouterCssHotUpdate(server, file, timestamp)) {
         return [];
@@ -480,19 +476,21 @@ function qwikRouterPlugin(
       if (!ctx) {
         return;
       }
+      // hotUpdate runs per environment, so return this environment's config module.
+      const configModule = this.environment.moduleGraph.getModuleById(QWIK_ROUTER_CONFIG_ID);
       if (!isRouterSourceFileForContext(file, ctx)) {
         if (
           clearedLoaderHashes ||
           isDiscoveredRouteLoaderSource(file, reExportedRouteLoaderSources)
         ) {
-          const configModules = invalidateRouterConfigModules(server);
-          return [...modules, ...configModules];
+          invalidateRouterConfigModules(server);
+          return configModule ? [...modules, configModule] : modules;
         }
         return;
       }
       ctx.isDirty = true;
-      const configModules = invalidateRouterConfigModules(server);
-      return [...modules, ...configModules];
+      invalidateRouterConfigModules(server);
+      return configModule ? [...modules, configModule] : modules;
     },
 
     transformIndexHtml() {
@@ -610,7 +608,7 @@ function qwikRouterPlugin(
             if (e && typeof e == 'object' && 'position' in e && 'reason' in e) {
               const column = (e as any).position?.start.column;
               const line = (e as any).position?.start.line;
-              const err: Rollup.RollupError = Object.assign(new Error(e.reason), {
+              const err: Rolldown.RolldownError = Object.assign(new Error(e.reason), {
                 id,
                 plugin: 'qwik-router-mdx',
                 loc: {
@@ -728,7 +726,7 @@ function serverFnsPlugin(buildContextRef: BuildContextRef): Plugin {
   }
   reset();
 
-  async function collectServerFnModules(this: Rollup.PluginContext) {
+  async function collectServerFnModules(this: Rolldown.PluginContext) {
     if (serverFnsReady) {
       await serverFnsReady;
       return;

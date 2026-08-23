@@ -1,0 +1,81 @@
+---
+source: packages/optimizer/core/src/test.rs
+expression: output
+---
+==INPUT==
+
+
+import { $ } from '@qwik.dev/core';
+import { routeLoaderQrl } from '@qwik.dev/router';
+
+export const useSession = routeLoaderQrl($(() => 'session'));
+export const standalone = $(() => 'standalone');
+
+============================= test.tsx_useSession_routeLoaderQrl_MyHiCWvkVgk.tsx (ENTRY POINT)==
+
+export const useSession_routeLoaderQrl_MyHiCWvkVgk = ()=>'session';
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"qDAI2C,IAAM\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "useSession_routeLoaderQrl_MyHiCWvkVgk",
+  "entry": null,
+  "displayName": "test.tsx_useSession_routeLoaderQrl",
+  "hash": "MyHiCWvkVgk",
+  "canonicalFilename": "test.tsx_useSession_routeLoaderQrl_MyHiCWvkVgk",
+  "path": "",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "routeLoader$",
+  "captures": false,
+  "loc": [
+    133,
+    148
+  ]
+}
+*/
+============================= test.tsx_standalone_JfX9MiBjaoY.tsx (ENTRY POINT)==
+
+export const standalone_JfX9MiBjaoY = ()=>'standalone';
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\"sCAK4B,IAAM\"}")
+/*
+{
+  "origin": "test.tsx",
+  "name": "standalone_JfX9MiBjaoY",
+  "entry": null,
+  "displayName": "test.tsx_standalone",
+  "hash": "JfX9MiBjaoY",
+  "canonicalFilename": "test.tsx_standalone_JfX9MiBjaoY",
+  "path": "",
+  "extension": "tsx",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    180,
+    198
+  ]
+}
+*/
+============================= test.tsx ==
+
+import { qrl } from "@qwik.dev/core";
+import { routeLoaderQrl } from '@qwik.dev/router';
+//
+const q_standalone_JfX9MiBjaoY = /*#__PURE__*/ qrl(()=>import("./test.tsx_standalone_JfX9MiBjaoY"), "standalone_JfX9MiBjaoY");
+const q_useSession_routeLoaderQrl_MyHiCWvkVgk = /*#__PURE__*/ qrl(()=>import("./test.tsx_useSession_routeLoaderQrl_MyHiCWvkVgk"), "useSession_routeLoaderQrl_MyHiCWvkVgk");
+//
+export const useSession = routeLoaderQrl(q_useSession_routeLoaderQrl_MyHiCWvkVgk);
+export const standalone = q_standalone_JfX9MiBjaoY;
+
+
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";AAEA,SAAS,cAAc,QAAQ,mBAAmB;;;;;AAElD,OAAO,MAAM,aAAa,wDAAmC;AAC7D,OAAO,MAAM,sCAAmC\"}")
+== DIAGNOSTICS ==
+
+[]

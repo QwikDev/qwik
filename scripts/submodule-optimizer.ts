@@ -33,7 +33,7 @@ export async function submoduleOptimizer(config: BuildConfig) {
       sourcemap: false,
       target: target,
       minify: !config.dev,
-      rollupOptions: {
+      rolldownOptions: {
         external: [
           'node:fs',
           'node:path',

@@ -14,7 +14,7 @@ import {
   replMinify,
   replResolver,
   replWorkerQrlChunks,
-} from './rollup-plugins';
+} from './rolldown-plugins';
 import { QWIK_PKG_NAME_V1 } from '../repl-constants';
 
 // Worker message types
@@ -257,10 +257,12 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
   const clientBuild = await rolldown({
     cwd: '/',
     input: srcInputs.find((i) => i.path.endsWith('app.tsx'))?.path,
+    // 'exports-only' is invalid with the qwik plugin's codeSplitting.
+    preserveEntrySignatures: 'allow-extension',
     plugins: [
       definesPlugin(defines),
       replCss({ srcInputs }),
-      qwikViteModule!.qwikRollup({
+      qwikViteModule!.qwikRolldown({
         optimizerOptions: { binding, _optimizer: qwikOptimizerModule },
         target: 'client',
         buildMode,
@@ -307,7 +309,7 @@ async function performBundle(message: BundleMessage): Promise<ReplResult> {
     plugins: [
       definesPlugin(defines),
       replCss({ srcInputs }),
-      qwikViteModule!.qwikRollup({
+      qwikViteModule!.qwikRolldown({
         optimizerOptions: { binding, _optimizer: qwikOptimizerModule },
         target: 'ssr',
         buildMode,

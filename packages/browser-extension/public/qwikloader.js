@@ -114,7 +114,7 @@ const l = (e, t) => Array.from(e.querySelectorAll(t)),
   A = (e, t) => {
     const n = g(t.type),
       o = e + ':' + n,
-      r = q('[q-' + e + '\\:' + n + ']');
+      r = q('[q-' + CSS.escape(o) + ']');
     for (let e = 0; e < r.length; e++) {
       const s = r[e];
       w(s, t, o, n);

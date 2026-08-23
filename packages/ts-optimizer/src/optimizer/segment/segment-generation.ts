@@ -1402,6 +1402,7 @@ export function buildDefaultStrategySegment(
       canonicalFilename: ext.canonicalFilename,
       extension: ext.extension,
       ctxName: ext.ctxName,
+      isBare: ext.isBare,
       sourceExtensions,
       parentSourceExt,
       origin: { filename: relPath, text: ctx.repairedCode },

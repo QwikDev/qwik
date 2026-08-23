@@ -415,6 +415,22 @@ function getDirectWrapperContextName(
   return resolveCanonicalCalleeName(wrapperCallee, imports);
 }
 
+function getDirectQrlWrapperContextName(
+  node: AstNode,
+  parent: AstParentNode,
+  imports: Map<string, ImportInfo>
+): string | null {
+  if (
+    parent?.type !== 'CallExpression' ||
+    parent.callee?.type !== 'Identifier' ||
+    !parent.arguments.some((arg) => arg === node)
+  ) {
+    return null;
+  }
+  const wrapperName = resolveCanonicalCalleeName(parent.callee.name, imports);
+  return wrapperName.endsWith('Qrl') ? wrapperName.slice(0, -3) + '$' : null;
+}
+
 function collectIdentifiers(node: AstNode): Set<string> {
   const ids = new Set<string>();
   walk(node, {
@@ -1113,6 +1129,8 @@ export function createExtractionCollector(
           canonicalCallee === '$'
             ? getDirectWrapperContextName(node, parent, imports, customInlined)
             : null;
+        const qrlWrapperContext =
+          canonicalCallee === '$' ? getDirectQrlWrapperContextName(node, parent, imports) : null;
         if (wrapperContext) {
           ctx.naming.push(wrapperContext);
           pushCount++;
@@ -1192,11 +1210,12 @@ export function createExtractionCollector(
         const ctxName = mkCtxName(
           workerEventAttrName
             ? canonicalCallee
-            : getExtractionName(
-                canonicalCallee,
-                isJsxAttrContext,
-                isJsxAttrContext ? attrCtx : undefined
-              )
+            : (qrlWrapperContext ??
+                getExtractionName(
+                  canonicalCallee,
+                  isJsxAttrContext,
+                  isJsxAttrContext ? attrCtx : undefined
+                ))
         );
 
         // When the marker's first arg is a single Identifier resolving to an

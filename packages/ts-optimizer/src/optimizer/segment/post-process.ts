@@ -19,6 +19,7 @@ export interface SegmentPostProcessOptions {
   canonicalFilename: string;
   extension: string;
   ctxName: string;
+  isBare?: boolean;
   sourceExtensions: Map<string, string>;
   parentSourceExt: string;
   origin: StripOrigin;
@@ -112,7 +113,7 @@ export function postProcessSegmentCode(code: string, opts: SegmentPostProcessOpt
     isDev: deriveIsDev(opts.emitMode as EmitMode),
     isLibMode: opts.emitMode === 'lib',
     hmrDevFile:
-      opts.emitMode === 'hmr' && opts.devFile && isAnyComponentCtx(opts.ctxName)
+      opts.emitMode === 'hmr' && opts.devFile && !opts.isBare && isAnyComponentCtx(opts.ctxName)
         ? opts.devFile
         : undefined,
   });

@@ -79,6 +79,22 @@ const TestNoHmr = componentQrl($(() => {
     expect(results[0].displayName).toBe('test.tsx_TestNoHmr_componentQrl');
   });
 
+  it('inherits the dollar context from a direct Qrl wrapper', () => {
+    const source = `
+import { $ } from '@qwik.dev/core';
+import { routeLoaderQrl } from '@qwik.dev/router';
+
+export const useSession = routeLoaderQrl($(() => 'session'));
+export const standalone = $(() => 'standalone');
+`;
+    const results = extractSegments(source, 'test.tsx');
+    expect(results).toHaveLength(2);
+    expect(results[0].ctxName).toBe('routeLoader$');
+    expect(results[0].displayName).toBe('test.tsx_useSession_routeLoaderQrl');
+    expect(results[1].ctxName).toBe('$');
+    expect(results[1].displayName).toBe('test.tsx_standalone');
+  });
+
   it('composes wrapper context with enclosing marker context', () => {
     const source = `
 import { $, component$, useStyles } from '@qwik.dev/core';

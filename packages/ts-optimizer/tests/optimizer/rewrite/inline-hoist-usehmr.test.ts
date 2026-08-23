@@ -22,6 +22,9 @@ export const Widget = component$((props) => {
   return <div ref={ref} onClick$={() => console.log('hi')}><span>{props.label}</span><Slot /></div>;
 });`;
 
+const componentQrlSource = `import { $, componentQrl } from '@qwik.dev/core';
+export const Widget = componentQrl($(() => <div>Widget</div>));`;
+
 const countUseHmr = (code: string): number => (code.match(/_useHmr\(/g) ?? []).length;
 
 describe('inline/hoist strategy injects _useHmr for component bodies in hmr mode', () => {
@@ -49,4 +52,11 @@ describe('inline/hoist strategy injects _useHmr for component bodies in hmr mode
     expect(serverHoist).toContain('_useHmr("n.tsx")');
     expect(clientSegment).toContain('_useHmr("n.tsx")');
   });
+
+  for (const strategy of ['hoist', 'inline', 'segment'] as const) {
+    it(`does not inject _useHmr into componentQrl($()) with ${strategy}`, () => {
+      const emitted = allEmittedCode(componentQrlSource, { type: strategy }, 'hmr');
+      expect(emitted).not.toContain('_useHmr');
+    });
+  }
 });

@@ -570,7 +570,7 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
       sigRewrittenBody = rewriteFunctionSignature(rawBody, ext.paramNames);
     }
 
-    if (ctx.mode === 'hmr' && ctx.devFilePath && isAnyComponentCtx(ext.ctxName)) {
+    if (ctx.mode === 'hmr' && ctx.devFilePath && !ext.isBare && isAnyComponentCtx(ext.ctxName)) {
       sigRewrittenBody = injectUseHmrIntoInlineBody(sigRewrittenBody, ctx.devFilePath);
       neededImports.set('_useHmr', '@qwik.dev/core');
     }

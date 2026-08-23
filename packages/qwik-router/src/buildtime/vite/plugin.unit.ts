@@ -35,8 +35,8 @@ describe('qwikRouter plugin', () => {
     });
   });
 
-  describe('route loader re-exports', () => {
-    it('discovers re-exported source files through the resolver', async () => {
+  describe('route loader source discovery', () => {
+    it('discovers re-exported and factory source files through the resolver', async () => {
       const dir = await mkdtemp(join(tmpdir(), 'qwik-router-'));
       try {
         const routeDir = join(dir, 'src/routes/[id]');
@@ -47,9 +47,16 @@ describe('qwikRouter plugin', () => {
         const layout = join(routeDir, 'layout.tsx');
         const barrel = join(loadersDir, 'barrel.ts');
         const data = join(loadersDir, 'data.ts');
+        const plugin = join(dir, 'src/routes/plugin@auth.ts');
+        const auth = join(loadersDir, 'auth.ts');
         await writeFile(layout, `export { useDadJoke } from '~/loaders/barrel';`);
         await writeFile(barrel, `export { useDadJoke } from './data';`);
         await writeFile(data, `export const useDadJoke = 1;`);
+        await writeFile(
+          plugin,
+          `import { QwikAuth$ } from '~/loaders/auth'; export const { useSession } = QwikAuth$<Session>();`
+        );
+        await writeFile(auth, `export const QwikAuth$ = () => ({ useSession: true });`);
 
         const ctx = {
           routeTrie: {
@@ -66,7 +73,7 @@ describe('qwikRouter plugin', () => {
             ],
             children: new Map(),
           },
-          serverPlugins: [],
+          serverPlugins: [{ filePath: plugin }],
         } as any;
 
         const sources = await findRouteLoaderSourceFiles(ctx, async (specifier, importer) => {
@@ -82,6 +89,7 @@ describe('qwikRouter plugin', () => {
           barrel.replaceAll(/\\/g, '/'),
           data.replaceAll(/\\/g, '/'),
         ]);
+        expect(sources.get(plugin)).toEqual([auth.replaceAll(/\\/g, '/')]);
       } finally {
         await rm(dir, { recursive: true, force: true });
       }
@@ -134,6 +142,16 @@ describe('qwikRouter plugin', () => {
   });
 
   describe('routeLoader$ dev cache', () => {
+    it('matches optimized dependency ids with Vite query parameters', () => {
+      const loadersByFile = new Map<string, string[]>();
+      const filePath = '/app/node_modules/@auth/qwik/index.qwik.js';
+
+      addRouteLoaderHash(loadersByFile, `${filePath}?v=123`, 'session');
+
+      expect(loadersByFile.get(filePath)).toEqual(['session']);
+      expect(clearRouteLoaderHashes(loadersByFile, `${filePath}?v=456`)).toBe(true);
+    });
+
     it('dedupes hashes and can replace stale file entries', () => {
       const loadersByFile = new Map<string, string[]>();
 

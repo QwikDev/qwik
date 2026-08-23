@@ -92,13 +92,13 @@ test.describe('loaders', () => {
       await expect(loaderId).toHaveText('id: two');
     });
 
-    test('loads a routeLoaderQrl session after an action redirect', async ({ page }) => {
+    test('loads a wrapped route loader session after an action redirect', async ({ page }) => {
       await page.goto('/qwikrouter-test/dynamic-session/login/');
       await page.evaluate(() => ((window as any).__dynamicSessionMarker = true));
       await page.getByRole('button', { name: 'Sign in' }).click();
 
-      await expect(page.locator('#dynamic-session-user')).toHaveText('admin');
       expect(await page.evaluate(() => (window as any).__dynamicSessionMarker)).toBe(true);
+      await expect(page.locator('#dynamic-session-user')).toHaveText('admin');
     });
 
     test('loads routeLoaderQrl after production SPA navigation', async ({ page }) => {
@@ -108,6 +108,17 @@ test.describe('loaders', () => {
 
       await expect(page.locator('#prod-qrl-loader')).toHaveText('qrl loader');
       expect(await page.evaluate(() => (window as any).__prodLoaderMarker)).toBe(true);
+    });
+
+    test('loads a wrapped route loader session after a production action redirect', async ({
+      page,
+    }) => {
+      await page.goto('/qwikrouter-test.prod/');
+      await page.evaluate(() => ((window as any).__prodSessionMarker = true));
+      await page.locator('#prod-session-sign-in').click();
+
+      expect(await page.evaluate(() => (window as any).__prodSessionMarker)).toBe(true);
+      await expect(page.locator('#prod-session-user')).toHaveText('admin');
     });
   });
 

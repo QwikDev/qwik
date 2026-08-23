@@ -3,7 +3,7 @@ import type { QwikVitePlugin } from '@qwik.dev/core/optimizer';
 import fs from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { basename, extname, join, resolve } from 'node:path';
-import { findExports } from 'mlly';
+import { findExports, findStaticImports, parseStaticImport } from 'mlly';
 import type {
   ConfigEnv,
   EnvironmentOptions,
@@ -114,7 +114,7 @@ export function addRouteLoaderHash(
   filePath: string,
   hash: string
 ) {
-  const normalizedPath = normalizePath(filePath);
+  const normalizedPath = normalizePath(filePath.split(/[?#]/, 1)[0]);
   const existing = loadersByFile.get(normalizedPath);
   if (!existing) {
     loadersByFile.set(normalizedPath, [hash]);
@@ -128,7 +128,7 @@ export function addRouteLoaderHash(
 }
 
 export function clearRouteLoaderHashes(loadersByFile: Map<string, string[]>, filePath: string) {
-  return loadersByFile.delete(normalizePath(filePath));
+  return loadersByFile.delete(normalizePath(filePath.split(/[?#]/, 1)[0]));
 }
 
 export function isRouterSourceFilePath(filePath: string) {
@@ -187,7 +187,7 @@ export async function findRouteLoaderSourceFiles(
     owners.add(plugin.filePath);
   }
   await Promise.all(
-    [...owners].map((owner) => collectReExportSources(owner, owner, resolveSource, sources))
+    [...owners].map((owner) => collectRouteLoaderSources(owner, owner, resolveSource, sources))
   );
   return sources;
 }
@@ -203,7 +203,7 @@ function collectRouteLoaderOwners(node: RoutingContext['routeTrie'], owners: Set
   }
 }
 
-async function collectReExportSources(
+async function collectRouteLoaderSources(
   owner: string,
   filePath: string,
   resolveSource: SourceResolver,
@@ -220,29 +220,51 @@ async function collectReExportSources(
   } catch {
     return;
   }
-  await Promise.all(
-    exportEntries.map(async (exp) => {
-      if (!exp.specifier) {
-        return;
+
+  const importedFactories = new Map<string, string>();
+  for (const entry of findStaticImports(code)) {
+    const parsed = parseStaticImport(entry);
+    if (parsed.defaultImport) {
+      importedFactories.set(parsed.defaultImport, entry.specifier);
+    }
+    if (parsed.namedImports) {
+      for (const localName of Object.values(parsed.namedImports)) {
+        importedFactories.set(localName, entry.specifier);
       }
-      const resolved = await resolveSource(exp.specifier, filePath);
-      if (!resolved || resolved.charCodeAt(0) === 0) {
-        return;
+    }
+  }
+
+  const specifiers = new Set<string>();
+  for (const exp of exportEntries) {
+    if (exp.specifier) {
+      specifiers.add(exp.specifier);
+    } else if (/^export\s+(?:const|let|var)\s*{/.test(exp.code)) {
+      const factoryName = code.slice(exp.end).match(/^\s*([\w$]+)(?:\s*<[^;()]*>)?\s*\(/)?.[1];
+      const specifier = factoryName && importedFactories.get(factoryName);
+      if (specifier) {
+        specifiers.add(specifier);
       }
-      const resolvedPath = normalizePath(resolved.split(/[?#]/, 1)[0]);
-      let ownerSources = sources.get(owner);
-      if (!ownerSources) {
-        sources.set(owner, (ownerSources = []));
-      }
-      if (!ownerSources.includes(resolvedPath)) {
-        ownerSources.push(resolvedPath);
-      }
-      if (!seen.has(resolvedPath)) {
-        seen.add(resolvedPath);
-        await collectReExportSources(owner, resolvedPath, resolveSource, sources, seen);
-      }
-    })
-  );
+    }
+  }
+
+  for (const specifier of specifiers) {
+    const resolved = await resolveSource(specifier, filePath);
+    if (!resolved || resolved.charCodeAt(0) === 0) {
+      continue;
+    }
+    const resolvedPath = normalizePath(resolved.split(/[?#]/, 1)[0]);
+    let ownerSources = sources.get(owner);
+    if (!ownerSources) {
+      sources.set(owner, (ownerSources = []));
+    }
+    if (!ownerSources.includes(resolvedPath)) {
+      ownerSources.push(resolvedPath);
+    }
+    if (!seen.has(resolvedPath)) {
+      seen.add(resolvedPath);
+      await collectRouteLoaderSources(owner, resolvedPath, resolveSource, sources, seen);
+    }
+  }
 }
 
 export function invalidateRouterConfigModules(server: ViteDevServer) {

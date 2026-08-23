@@ -121,6 +121,7 @@ export default defineConfig(({ mode }) => {
             'qwik-image',
             // optimizing breaks the wasm import
             '@rolldown/browser',
+            '@rolldown/browser/experimental',
             'oxc-walker',
             '@qwik.dev/devtools',
           ],

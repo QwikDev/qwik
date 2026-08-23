@@ -1,16 +1,22 @@
 /**
- * `generateJsSsr(serverLinkedPlan, options)` — the BASELINE generator.
- *
- * Consumes the exact same server LinkedPlan as `generateRustSsr`. Validates by EXHAUSTIVE MATCH
- * over linked leaf variants; JS payload bodies are native format here, so every variant is
- * supported and the exhaustiveness check is purely structural.
- *
- * MOCK STAGE: only `ModuleKind.Foreign` modules generate (authored source transpiled with oxc,
- * mirroring the legacy fallback). Qwik modules throw until slice 1 lands the real emitter.
+ * `generateJsSsr(serverLinkedPlan, options)` — the baseline generator; consumes the exact same
+ * server LinkedPlan as `generateRustSsr` (DESIGN.md rule 5).
  */
-import { transform } from 'oxc-transform';
-import { Environment, ModuleKind, type LinkedModule, type LinkedPlan } from '../schema';
-import { getLang, isJsxPath, isTypeScriptPath } from '../analyse/analyse-module';
+import {
+  Environment,
+  ModuleKind,
+  OpKind,
+  ProgramBodyKind,
+  type ComponentDecl,
+  type LinkedModule,
+  type LinkedPlan,
+  type Op,
+} from '../schema';
+import { isJsxPath, isTypeScriptPath } from '../analyse/ast/parse';
+import { assembleQwikModule } from './assemble-module';
+import { foldStaticOp } from './fold-static';
+import type { ComponentEmission } from './emit-component';
+import { generateForeignModule } from './foreign';
 import type { GenerateOutput, PresentationOptions } from './output';
 
 export async function generateJsSsr(
@@ -37,27 +43,64 @@ async function generateModule(
   options: PresentationOptions
 ): Promise<GenerateOutput['modules'][number]> {
   switch (module.kind) {
-    case ModuleKind.Foreign: {
-      const result = await transform(module.path, module.source.code, {
-        lang: getLang(module.path),
-        sourceType: 'module',
-        cwd: options.rootDir,
-        sourcemap: !!options.outputSourceMaps,
-      });
+    case ModuleKind.Foreign:
+      return generateForeignModule(module, options);
+    case ModuleKind.Qwik: {
+      const emitter = new SsrModuleEmitter(module);
       return {
         path: module.path,
-        code: result.code,
-        map: options.outputSourceMaps && result.map ? JSON.stringify(result.map) : null,
+        code: assembleQwikModule(module, emitter, (component) => emitter.emitProgram(component)),
+        map: null,
         isEntry: false,
         origPath: null,
         segment: null,
       };
     }
-    case ModuleKind.Qwik:
     case ModuleKind.ExportsOnly:
     case ModuleKind.Failed:
       throw new Error(
         `pipeline.generateJsSsr: ${module.kind} modules not implemented yet (slice 1): ${module.path}`
       );
+  }
+}
+
+class SsrModuleEmitter {
+  readonly imports = new Set<string>();
+  readonly hoists: string[] = [];
+
+  constructor(private readonly module: LinkedModule) {}
+
+  emitProgram(component: ComponentDecl): ComponentEmission {
+    const body = this.module.programs[component.body].body;
+    if (body.kind !== ProgramBodyKind.Ops) {
+      throw new Error('pipeline.generateJsSsr: js-bodied programs not implemented yet');
+    }
+    // Adjacent static runs merge into one string part.
+    const parts: string[] = [];
+    for (const op of body.ops) {
+      this.op(op, parts);
+    }
+    const value =
+      parts.length === 0 ? "''" : parts.length === 1 ? parts[0] : `[${parts.join(', ')}]`;
+    return { statements: [], value };
+  }
+
+  private op(op: Op, parts: string[]): void {
+    switch (op.op) {
+      case OpKind.Static:
+      case OpKind.Element: {
+        // SSR streams raw text; adjacent static runs merge into one string part.
+        const html = foldStaticOp(op, false);
+        const last = parts[parts.length - 1];
+        if (last !== undefined && last.startsWith('"')) {
+          parts[parts.length - 1] = JSON.stringify((JSON.parse(last) as string) + html);
+        } else {
+          parts.push(JSON.stringify(html));
+        }
+        return;
+      }
+      default:
+        throw new Error(`pipeline.generateJsSsr: op "${op.op}" not implemented yet`);
+    }
   }
 }

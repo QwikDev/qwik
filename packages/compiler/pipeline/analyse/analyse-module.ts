@@ -1,13 +1,28 @@
-/**
- * `analyseModule(file, options) -> ModulePlan` — one file, one plan, pure (DESIGN.md rule 7).
- *
- * MOCK STAGE: every module currently analyses to `ModuleKind.Foreign` (authored source retained;
- * transpiled at generate), which is enough to run the whole flow end to end. Slice 1 replaces this
- * with real component/QRL lowering; modules it cannot lower yet must throw
- * {@link SliceUnsupportedError} — an honest "not this slice yet", never silently wrong output.
- */
-import { parseSync } from 'oxc-parser';
-import { DiagnosticCategory, ModuleKind, PlanFormat, type ModulePlan } from '../schema';
+/** `analyseModule(file, options) -> ModulePlan` — one file, one plan, pure (DESIGN.md rule 7). */
+import {
+  AssemblyKind,
+  BindingScope,
+  SurfaceKind,
+  DeclarationKind,
+  DiagnosticCategory,
+  LifetimeCommit,
+  LifetimeOwner,
+  ModuleKind,
+  ProgramBodyKind,
+  type Diagnostic,
+  type ModulePlan,
+} from '../schema';
+import { collectBindingNames } from './ast/bindings';
+import { findRuntimeJsx, hasComponentCandidates } from './ast/returns-jsx';
+import { parseModule } from './ast/parse';
+import { discoverComponent } from './discover';
+import { lowerStaticJsx } from './static-html';
+import { normalizeSource } from './normalize';
+import { emptyPlan } from './plan';
+
+import { InvalidModuleError } from '../errors';
+
+export { UnsupportedError } from '../errors';
 
 export interface AnalyseOptions {
   transpileTs?: boolean;
@@ -22,81 +37,128 @@ export interface AnalyseInput {
   devPath?: string;
 }
 
-export class SliceUnsupportedError extends Error {
-  constructor(what: string) {
-    super(`pipeline slice 1 does not support: ${what}`);
-  }
-}
-
 export async function analyseModule(
   input: AnalyseInput,
   options: AnalyseOptions
 ): Promise<ModulePlan> {
-  void options;
-  const plan = emptyPlan(input.path);
-  plan.source = { code: input.code, originalPath: input.path, normalizationMap: null };
+  const plan = emptyPlan(input.path, input.code);
+  const normalized = await normalizeSource(input.path, input.code, options);
+  if (normalized.errors.length > 0) {
+    return failedPlan(plan, normalized.errors);
+  }
 
-  const parsed = parseSync(input.path, input.code, {
-    lang: getLang(input.path),
-    sourceType: 'module',
-    astType: 'ts',
-    range: true,
-  });
-  if (parsed.errors && parsed.errors.length > 0) {
-    plan.kind = ModuleKind.Failed;
-    for (const error of parsed.errors) {
+  const parsed = parseModule(input.path, normalized.code);
+  if (parsed.errors.length > 0) {
+    return failedPlan(plan, parsed.errors);
+  }
+
+  if (!hasComponentCandidates(parsed.program)) {
+    const leftoverJsx = findRuntimeJsx(parsed.program);
+    if (leftoverJsx !== null) {
+      // Fail closed — the foreign fallback would compile this JSX against react/jsx-runtime.
+      plan.kind = ModuleKind.Failed;
       plan.diagnostics.push({
-        code: 'parse-error',
-        message: (error as { message?: string }).message ?? 'Unable to parse module',
-        span: null,
+        code: 'unsupported-runtime-jsx',
+        message: 'JSX must belong to a supported component or resumable boundary.',
+        span: [leftoverJsx.start, leftoverJsx.end],
         category: DiagnosticCategory.Error,
       });
+      return plan;
     }
+    // Non-Qwik module: authored source kept, transpiled at generate.
+    plan.kind = ModuleKind.Foreign;
     return plan;
   }
 
-  // MOCK: no Qwik lowering yet — everything passes through as a foreign module.
-  plan.kind = ModuleKind.Foreign;
+  const found = discoverComponent(parsed.program);
+  let rootOp;
+  try {
+    rootOp = lowerStaticJsx(found.jsx);
+  } catch (error) {
+    if (error instanceof InvalidModuleError) {
+      plan.kind = ModuleKind.Failed;
+      plan.diagnostics.push({
+        code: error.code,
+        message: error.message,
+        span: error.span,
+        category: DiagnosticCategory.Error,
+      });
+      return plan;
+    }
+    throw error;
+  }
+  plan.kind = ModuleKind.Qwik;
+  plan.bindings = collectBindingNames(parsed.program).map((name, id) => ({
+    id,
+    name,
+    scope: BindingScope.Module,
+    varKind: null,
+    declarationRange: null,
+  }));
+  plan.source.code = normalized.code;
+  plan.lifetimes.push({
+    id: 0,
+    parent: null,
+    owner: LifetimeOwner.Component,
+    commit: LifetimeCommit.Immediate,
+  });
+  plan.programs.push({
+    body: { kind: ProgramBodyKind.Ops, ops: [rootOp] },
+    setup: [],
+    params: [],
+    lifetime: 0,
+    needsId: false,
+    async: false,
+  });
+  if (found.param !== null) {
+    plan.payloads.push({
+      range: found.param.range,
+      constants: [],
+      qrls: [],
+      reads: [],
+      awaits: [],
+      useIds: [],
+      renders: [],
+      temps: [],
+    });
+  }
+  plan.components.push({
+    name: 'default',
+    identity: `${input.path}#default`,
+    binding: null,
+    parameter:
+      found.param === null
+        ? null
+        : {
+            pattern: plan.payloads.length - 1,
+            surface: {
+              kind: SurfaceKind.Identifier,
+              binding: plan.bindings.findIndex((binding) => binding.name === found.param!.name),
+            },
+          },
+    body: 0,
+    captures: [],
+    root: { name: 'qdefault-' },
+    functionRange: found.arrowRange,
+    replacementRange: found.statementRange,
+    declarationKind: DeclarationKind.DefaultArrow,
+    localName: null,
+  });
+  plan.assembly.push({ a: AssemblyKind.Component, component: 0 });
   return plan;
 }
 
-function emptyPlan(path: string): ModulePlan {
-  return {
-    format: PlanFormat.ModulePlan,
-    version: 1,
-    path,
-    kind: ModuleKind.Qwik,
-    source: { code: '', originalPath: path, normalizationMap: null },
-    bindings: [],
-    lifetimes: [],
-    payloads: [],
-    programs: [],
-    qrls: [],
-    components: [],
-    hooks: [],
-    callables: [],
-    values: [],
-    contexts: [],
-    contextProviders: [],
-    natives: [],
-    defs: [],
-    pluginSites: [],
-    edges: [],
-    imports: [],
-    exports: [],
-    assembly: [],
-    diagnostics: [],
-  };
+function failedPlan(plan: ModulePlan, errors: { message?: string }[]): ModulePlan {
+  plan.kind = ModuleKind.Failed;
+  plan.diagnostics.push(
+    ...errors.map(
+      (error): Diagnostic => ({
+        code: 'parse-error',
+        message: error.message ?? 'Unable to parse module',
+        span: null,
+        category: DiagnosticCategory.Error,
+      })
+    )
+  );
+  return plan;
 }
-
-export function getLang(path: string): 'js' | 'jsx' | 'ts' | 'tsx' {
-  if (path.endsWith('.tsx')) return 'tsx';
-  if (path.endsWith('.ts')) return 'ts';
-  if (path.endsWith('.jsx')) return 'jsx';
-  if (/\.qwik\.[mc]?js$/.test(path)) return 'jsx';
-  return 'js';
-}
-
-export const isTypeScriptPath = (path: string) => path.endsWith('.ts') || path.endsWith('.tsx');
-export const isJsxPath = (path: string) =>
-  path.endsWith('.jsx') || path.endsWith('.tsx') || /\.qwik\.[mc]?js$/.test(path);

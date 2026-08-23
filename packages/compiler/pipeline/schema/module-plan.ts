@@ -1,6 +1,7 @@
 /** The neutral per-module plan: QRLs, declarations, envelope, assembly (DESIGN.md "Model"). */
 import type { ValueIR } from '../../src/expr-ir';
 import type {
+  MODULE_PLAN_VERSION,
   BindingScope,
   ContextKind,
   Diagnostic,
@@ -185,8 +186,7 @@ export const enum ExportTargetKind {
 
 export interface ModulePlan {
   format: PlanFormat.ModulePlan;
-  /** Pre-release: the new contract starts at 1. */
-  version: 1;
+  version: typeof MODULE_PLAN_VERSION;
   path: string;
   kind: ModuleKind.Qwik | ModuleKind.Foreign | ModuleKind.Failed;
   source: ModuleSource;

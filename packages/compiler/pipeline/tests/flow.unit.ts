@@ -85,6 +85,70 @@ describe('pipeline flow', () => {
     await expect(generateJsSsr(linked.plan, {})).rejects.toThrow('server LinkedPlan');
   });
 
+  test('JSX outside any candidate fails closed — never react/jsx-runtime output', async () => {
+    const plan = await analyseModule(
+      {
+        path: 'src/entry.tsx',
+        code: 'export default function main() {\n  return render(<p>x</p>);\n}\n',
+      },
+      { transpileTs: true }
+    );
+    expect(plan.kind).toBe(ModuleKind.Failed);
+    expect(plan.diagnostics[0].code).toBe('unsupported-runtime-jsx');
+  });
+
+  test('a lowercase-named function returning JSX is not a component candidate', async () => {
+    const plan = await analyseModule(
+      {
+        path: 'src/helper.tsx',
+        code: 'export function makeNode() {\n  return <p>x</p>;\n}\n',
+      },
+      { transpileTs: true }
+    );
+    expect(plan.kind).toBe(ModuleKind.Failed);
+    expect(plan.diagnostics[0].code).toBe('unsupported-runtime-jsx');
+  });
+
+  test('an Uppercased function returning JSX is a component candidate', async () => {
+    await expect(
+      analyseModule(
+        {
+          path: 'src/app.tsx',
+          code: 'export function App() {\n  return <p>x</p>;\n}\n',
+        },
+        { transpileTs: true }
+      )
+    ).rejects.toThrow('JSX outside a default-exported component');
+  });
+
+  test('a mixed return (ternary arm with JSX) is a component candidate', async () => {
+    await expect(
+      analyseModule(
+        {
+          path: 'src/mixed.tsx',
+          code: 'export default (cond) => {\n  return cond ? <p>x</p> : "text";\n};\n',
+        },
+        { transpileTs: true }
+      )
+    ).rejects.toThrow('a return value that is not a JSX element');
+  });
+
+  test('invalid authored JSX (void-tag children) fails with a spanned diagnostic', async () => {
+    const plan = await analyseModule(
+      {
+        path: 'src/bad.tsx',
+        code: 'export default () => {\n  return <p><br>x</br></p>;\n};\n',
+      },
+      { transpileTs: true }
+    );
+    expect(plan.kind).toBe(ModuleKind.Failed);
+    expect(plan.diagnostics[0]).toMatchObject({
+      code: 'invalid-void-children',
+      message: 'The void element <br> cannot have children.',
+    });
+    expect(plan.diagnostics[0].span).not.toBeNull();
+  });
+
   test('a parse failure analyses to a failed plan with diagnostics', async () => {
     const plan = await analyseModule(
       { path: 'src/broken.ts', code: 'const = ;' },

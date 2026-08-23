@@ -1,13 +1,6 @@
 /**
- * Compatibility wrapper — the same surface as the legacy `transformModules` for direct consumers
- * and tests:
- *
- * Analyse inputs → hostless path-join snapshots → link(complete: false, module entries for every
- * input — works for foreign/plain modules, no render root required) → generateJsSsr / generateJsCsr
- * per `options.isServer`.
- *
- * The legacy pipeline in `../../src` stays intact as the DIFFERENTIAL ORACLE until cutover; this
- * wrapper must match its full `TransformOutput` field-by-field, fixture by fixture.
+ * Legacy `transformModules` surface over analyse → link(complete: false) → generate; must match the
+ * legacy pipeline's full `TransformOutput` field-by-field until cutover.
  */
 import type { TransformModulesOptions, TransformOutput } from '@qwik.dev/optimizer';
 import { analyseModule } from '../analyse/analyse-module';

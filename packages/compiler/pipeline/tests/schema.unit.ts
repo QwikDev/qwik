@@ -1,7 +1,4 @@
-/**
- * Schema gates (DESIGN.md "Phases" — slice 1 schema gates): fold truth tables, JSON round-trip,
- * deep-freeze survivability.
- */
+/** Schema gates (DESIGN.md "Phases"): fold truth tables, JSON round-trip, deep-freeze survivability. */
 import { describe, expect, test } from 'vitest';
 import {
   BuildConstant,

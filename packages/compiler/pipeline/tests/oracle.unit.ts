@@ -2,9 +2,8 @@
  * Differential-oracle harness (DESIGN.md "Phases").
  *
  * Until cutover, the legacy pipeline (`../../src`) is the oracle: for every conformance fixture,
- * legacy and staged pipelines must produce field-identical full `TransformOutput`. Each vertical
- * slice turns its `test.todo` entries into live comparisons via `expectParity`; a slice is done
- * when its fixture family passes here AND the schema gates pass.
+ * legacy and staged pipelines must produce field-identical full `TransformOutput`. Each `test.todo`
+ * becomes a live comparison via `expectParity` as its fixture family lands.
  */
 import { describe, expect, test } from 'vitest';
 import type { TransformModulesOptions } from '@qwik.dev/optimizer';
@@ -16,45 +15,128 @@ const baseOptions = {
   sourceMaps: false,
   transpileTs: true,
   transpileJsx: true,
-  isServer: true,
 };
 
-async function expectParity(path: string, code: string) {
-  const options: TransformModulesOptions = { ...baseOptions, input: [{ path, code }] };
+async function expectParity(path: string, code: string, isServer = true) {
+  const options: TransformModulesOptions = { ...baseOptions, isServer, input: [{ path, code }] };
   const legacy = await legacyTransformModules(options);
   const staged = await stagedTransformModules(options);
   expect(staged).toEqual(legacy);
 }
 
 describe('differential oracle: staged pipeline vs legacy transformModules', () => {
-  // The wrapper's foreign passthrough already matches the oracle byte-for-byte.
-  test('foreign passthrough TypeScript module', () =>
+  test('foreign passthrough TypeScript module (ssr)', () =>
     expectParity('src/plain.ts', 'const value: number = 1;\nexport default value;\n'));
 
-  // Slice 1 — core render fixtures (analyse → link(complete) → generateJsSsr)
-  test.todo('slice 1: static markup and elements');
-  test.todo('slice 1: dynamic props, holes, events, bind, refs');
-  test.todo('slice 1: component calls, projections, slots');
-  test.todo('slice 1: branches (incl. build-constant conditions and residual isDev)');
+  test('foreign passthrough TypeScript module (csr)', () =>
+    expectParity('src/plain.ts', 'const value: number = 1;\nexport default value;\n', false));
 
-  // Slice 2 — full JS coverage + CSR
-  test.todo('slice 2: collections (array/reactive/derived, inline and chunk rows)');
-  test.todo('slice 2: suspense, reveal, dynamic slots');
-  test.todo('slice 2: styles, context, custom hooks, tasks');
-  test.todo('slice 2: natives-as-JS, foreign modules, library mode');
-  test.todo('slice 2: generateJsCsr against the same fixtures (browser LinkedPlan)');
+  test('static default-arrow component (ssr)', () =>
+    expectParity('src/component.tsx', 'export default () => {\n  return <p>Hello Qwik</p>;\n};\n'));
 
-  // Slice 3 — hosts
-  test.todo(
-    'slice 3: incomplete link during per-module transform matches legacy conservative output'
-  );
-  test.todo('slice 3: complete link at generateBundle produces the artifact');
+  test('static default-arrow component (csr)', () =>
+    expectParity(
+      'src/component.tsx',
+      'export default () => {\n  return <p>Hello Qwik</p>;\n};\n',
+      false
+    ));
 
-  // Slice 4 — specialization depth
-  test.todo('slice 4: recognition parity — segment/marker/id/subscription counts per mode');
-  test.todo('slice 4: constants sweep across every payload carrier');
+  test('expression-body arrow component (ssr)', () =>
+    expectParity('src/component.tsx', 'export default () => <p>Hello Qwik</p>;\n'));
 
-  // Slice 5 — native
-  test.todo('slice 5: generateRustSsr shared should-generate corpus');
-  test.todo('slice 5: generateRustSsr should-reject corpus (unsupported-variant error arms)');
+  test('expression-body arrow component (csr)', () =>
+    expectParity('src/component.tsx', 'export default () => <p>Hello Qwik</p>;\n', false));
+
+  test('static attributes: strings, bare booleans, JSX aliases, aria (ssr)', () =>
+    expectParity(
+      'src/component.tsx',
+      'export default () => {\n  return <main className="shell" htmlFor="x" hidden aria-hidden="false" title="A&B"></main>;\n};\n'
+    ));
+
+  test('nested tree with void tags and raw text (ssr)', () =>
+    expectParity(
+      'src/component.tsx',
+      'export default () => {\n  return <section><h1 title="hi">A&B</h1><br/><p>x</p></section>;\n};\n'
+    ));
+
+  test('nested tree with void tags and raw text (csr)', () =>
+    expectParity(
+      'src/component.tsx',
+      'export default () => {\n  return <section><h1 title="hi">A&B</h1><br/><p>x</p></section>;\n};\n',
+      false
+    ));
+
+  test('multi-line JSX text normalization (ssr)', () =>
+    expectParity(
+      'src/component.tsx',
+      'export default () => {\n  return (\n    <p>\n      one\n      two\n    </p>\n  );\n};\n'
+    ));
+
+  test('component with an unused props param (ssr)', () =>
+    expectParity(
+      'src/component.tsx',
+      'export default (props) => {\n  return <p>Hello Qwik</p>;\n};\n'
+    ));
+
+  test('authored param name is reused as the props name (ssr)', () =>
+    expectParity(
+      'src/component.tsx',
+      'export default (myProps) => {\n  return <p>Hello Qwik</p>;\n};\n'
+    ));
+
+  test('authored param name is reused as the props name (csr)', () =>
+    expectParity(
+      'src/component.tsx',
+      'export default (myProps) => {\n  return <p>Hello Qwik</p>;\n};\n',
+      false
+    ));
+
+  test('component with a const sibling statement (ssr)', () =>
+    expectParity(
+      'src/component.tsx',
+      "const title = 'Hello';\nexport default () => {\n  return <p>Hello Qwik</p>;\n};\n"
+    ));
+
+  test('component with a const sibling statement (csr)', () =>
+    expectParity(
+      'src/component.tsx',
+      "const title = 'Hello';\nexport default () => {\n  return <p>Hello Qwik</p>;\n};\n",
+      false
+    ));
+
+  test('module binding named ctx forces an allocated name (ssr)', () =>
+    expectParity(
+      'src/component.tsx',
+      'const ctx = 1;\nexport default () => {\n  return <p>Hello Qwik</p>;\n};\n'
+    ));
+
+  test('module binding named ctx forces an allocated name (csr)', () =>
+    expectParity(
+      'src/component.tsx',
+      'const ctx = 1;\nexport default () => {\n  return <p>Hello Qwik</p>;\n};\n',
+      false
+    ));
+
+  test('component with an import sibling (ssr)', () =>
+    expectParity(
+      'src/component.tsx',
+      "import { something } from './helpers';\nexport default () => {\n  return <p>Hello Qwik</p>;\n};\n"
+    ));
+
+  test.todo('static markup and elements (declaration kinds, attributes, void tags, JSX text)');
+  test.todo('JSX in a call argument lowers as an embedded function render');
+  test.todo('JSX outside any candidate rejects with unsupported-runtime-jsx');
+  test.todo('dynamic props, holes, events, bind, refs');
+  test.todo('component calls, projections, slots');
+  test.todo('branches (incl. build-constant conditions and residual isDev)');
+  test.todo('collections (array/reactive/derived, inline and chunk rows)');
+  test.todo('suspense, reveal, dynamic slots');
+  test.todo('styles, context, custom hooks, tasks');
+  test.todo('natives-as-JS, library mode');
+  test.todo('incomplete link during per-module transform matches legacy conservative output');
+  test.todo('complete link at generateBundle produces the artifact');
+  test.todo('recognition parity — segment/marker/id/subscription counts per mode');
+  test.todo('constants sweep across every payload carrier');
+  test.todo('generateRustSsr shared should-generate corpus');
+  test.todo('generateRustSsr should-reject corpus (unsupported-variant error arms)');
 });

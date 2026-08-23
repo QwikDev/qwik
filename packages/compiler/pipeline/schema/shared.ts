@@ -17,6 +17,10 @@ export const enum PlanFormat {
   LinkedPlan = 'qwik/linked-plan',
 }
 
+// Pre-release: both contracts start at 1; bump here.
+export const MODULE_PLAN_VERSION = 1;
+export const LINKED_PLAN_VERSION = 1;
+
 export const enum Environment {
   Server = 'server',
   Browser = 'browser',

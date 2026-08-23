@@ -17,7 +17,7 @@ generateRustSsr(serverLinkedPlan, entry, options)    -> native project sources
 | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `DESIGN.md` | the authoritative design: model rationale, rules, phases, verification                                                                                                                                                                                                                                                                                            |
 | `schema/`   | the plan model as compilable TypeScript — `shared` (scalars, `Predicate` + `foldPredicate`, `Maybe`), `value` (payloads, edges, `Value`, `TaskBody`), `program` (`Program`, `Op`, `Prop`, typed `Invoke`/`Setup`), `module-plan` (`Qrl`, declarations, envelope, `AssemblyIntent`), `linked-plan` (materialized `LinkedModule`s, delivery, implementations table) |
-| `analyse/`  | `analyseModule` — pure, no batch registries                                                                                                                                                                                                                                                                                                                       |
+| `analyse/`  | `analyseModule` — pure, no batch registries; one concern per file like the ts-optimizer (PR #8872): `ast/` (types, parse, walkers), `normalize`, `discover`, `static-html`, `plan`, `errors`                                                                                                                                                                      |
 | `link/`     | `linkPlans` + `ResolverSnapshot`/`PluginSnapshot`/`LinkEntry`; `complete` flag semantics                                                                                                                                                                                                                                                                          |
 | `generate/` | `generateJsSsr` (baseline), `generateJsCsr`, `generateRustSsr`; `GenerateOutput`                                                                                                                                                                                                                                                                                  |
 | `compat/`   | `transformModules` wrapper (hostless snapshots, `{kind:'module'}` roots)                                                                                                                                                                                                                                                                                          |
@@ -34,12 +34,15 @@ module entries) → `generateJsSsr`/`generateJsCsr`. What is real vs mocked:
   plans are unchanged.
 - **analyse**: MOCK — parses (oxc), fails loudly on parse errors, otherwise everything becomes
   `kind: 'foreign'` (authored source). Slice 1 replaces this with component/QRL lowering; use
-  `SliceUnsupportedError` for anything a slice cannot lower yet — never silently wrong output.
+  `UnsupportedError` for anything a slice cannot lower yet — never silently wrong output.
 - **link**: MOCK — 1:1 materialization into `LinkedModule`s, entry resolution, `complete` failure
   semantics. No folding/policies yet.
-- **generateJsSsr**: foreign modules transpile through oxc exactly like the legacy fallback
-  (already byte-parity — see the live oracle test); qwik modules throw.
-- **generateJsCsr / generateRustSsr**: precondition-enforcing stubs (slice 2 / slice 5).
+- **generators**: all three handle example 1 (the static default-arrow component) plus the
+  foreign oxc passthrough; every other shape throws. `generateJsSsr`/`generateJsCsr` are gated by
+  live differential tests against the legacy pipeline; `generateRustSsr` by a golden captured
+  from the oracle crate (`../generators/rust/ssr` `generate_component`) — see
+  `tests/rust-ssr.unit.ts` for the re-capture note. One ModulePlan feeds both environment links
+  and all three generators.
 
 ## Workflow (vertical slices — DESIGN.md "Phases")
 
@@ -74,6 +77,16 @@ from a deserialized frozen plan in a fresh process.
   markers with a per-element marker counter.
 - Multi-step renders: first step eager, later steps are `invoke(invokeCtx, …)` thunks with lazy
   `??=` id claiming; the value chains nested `maybeThen`.
+
+## Deliberate divergences from the legacy oracle
+
+- Component candidates require an Uppercased name (anonymous default exports exempt). The legacy
+  compiler has no such rule — a differential fixture with a lowercase-named component will
+  diverge; that is this decision, not a parity bug.
+- Candidate detection is the routing gate; JSX left outside any candidate fails closed with
+  `unsupported-runtime-jsx` (NEVER the oxc fallback — that would emit react/jsx-runtime output).
+  Legacy additionally embeds function renders for JSX in call arguments — resolve when that
+  fixture family lands.
 
 ## Pending prerequisites from DESIGN.md Phase 0 (not yet done)
 

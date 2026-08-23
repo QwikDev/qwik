@@ -7,7 +7,7 @@
 export * from './schema';
 export {
   analyseModule,
-  SliceUnsupportedError,
+  UnsupportedError,
   type AnalyseInput,
   type AnalyseOptions,
 } from './analyse/analyse-module';

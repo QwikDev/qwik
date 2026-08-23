@@ -1,41 +1,13 @@
 import {
+  LINKED_PLAN_VERSION,
   BuildMode,
   Environment,
-  ModuleKind,
   PlanFormat,
   type LinkedPlan,
-  type ModulePlan,
   type Specialization,
 } from '../schema';
 
-export function emptyModulePlan(path: string): ModulePlan {
-  return {
-    format: PlanFormat.ModulePlan,
-    version: 1,
-    path,
-    kind: ModuleKind.Qwik,
-    source: { code: '', originalPath: path, normalizationMap: null },
-    bindings: [],
-    lifetimes: [],
-    payloads: [],
-    programs: [],
-    qrls: [],
-    components: [],
-    hooks: [],
-    callables: [],
-    values: [],
-    contexts: [],
-    contextProviders: [],
-    natives: [],
-    defs: [],
-    pluginSites: [],
-    edges: [],
-    imports: [],
-    exports: [],
-    assembly: [],
-    diagnostics: [],
-  };
-}
+export { emptyPlan as emptyModulePlan } from '../analyse/plan';
 
 export function serverSpecialization(): Specialization {
   return { environment: Environment.Server, mode: BuildMode.Prod, stripExports: [] };
@@ -44,7 +16,7 @@ export function serverSpecialization(): Specialization {
 export function emptyLinkedPlan(specialization: Specialization): LinkedPlan {
   return {
     format: PlanFormat.LinkedPlan,
-    version: 1,
+    version: LINKED_PLAN_VERSION,
     specialization,
     complete: true,
     entries: [],

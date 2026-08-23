@@ -1,24 +1,12 @@
 /**
- * `linkPlans(plans, entries, specialization, snapshots, complete) -> LinkedPlan`.
- *
- * Pure over its explicit inputs; completeness is a declared property:
- *
- * - `complete: false` — per-module transform link; dangling refs become typed unknowns and JS
- *   generators emit today's conservative forms for them (the explicit answer to Vite's lazy
- *   transform).
- * - `complete: true` — artifact link; dangling resolved edges, failed reachable modules, and
- *   unresolved explicit roots are `LinkResult.failed`.
- *
- * The linker owns runtime semantics only: constant folding, guard selection, pruning, export
- * stripping, plugin policies. It knows nothing about generators and carries every provided
- * implementation so the selected generator picks what it supports.
- *
- * MOCK STAGE: materializes each plan into a LinkedModule 1:1 (no folding, no edge resolution, no
- * plugin policies yet) — enough to thread the flow. Slice 1+ fills in the semantics.
+ * `linkPlans(plans, entries, specialization, snapshots, complete) -> LinkedPlan`; pure over its
+ * explicit inputs. `complete: false` = per-module transform link (dangling refs become typed
+ * unknowns); `complete: true` = artifact link (dangling refs are `LinkResult.failed`).
  */
 import {
   DeliveryKind,
   EntryKind,
+  LINKED_PLAN_VERSION,
   LinkResultKind,
   PlanFormat,
   UnknownWhy,
@@ -132,7 +120,7 @@ export function linkPlans(
     kind: LinkResultKind.Linked,
     plan: {
       format: PlanFormat.LinkedPlan,
-      version: 1,
+      version: LINKED_PLAN_VERSION,
       specialization,
       complete,
       entries: linkedEntries,

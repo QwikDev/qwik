@@ -7,6 +7,7 @@
  * overlay-addressed by string keys.
  */
 import type {
+  LINKED_PLAN_VERSION,
   BuildMode,
   ContextKind,
   Diagnostic,
@@ -129,7 +130,7 @@ export const enum ImplementationContentKind {
 
 export interface LinkedPlan {
   format: PlanFormat.LinkedPlan;
-  version: 1;
+  version: typeof LINKED_PLAN_VERSION;
   specialization: Specialization;
   /**
    * Incomplete = per-module transform link (unreached refs are typed unknowns); artifacts and

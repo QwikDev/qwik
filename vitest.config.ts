@@ -1,7 +1,7 @@
 import { qwikVite } from '@qwik.dev/core/optimizer';
 import { fileURLToPath } from 'node:url';
 import tsconfigPaths from 'vite-tsconfig-paths';
-import { defineConfig, type TestProjectInlineConfiguration } from 'vitest/config';
+import { configDefaults, defineConfig, type TestProjectInlineConfiguration } from 'vitest/config';
 
 const fromRoot = (path: string) => fileURLToPath(new URL(path, import.meta.url));
 const renderTests = [
@@ -68,15 +68,14 @@ export default defineConfig({
   ],
   test: {
     root: fromRoot('./packages'),
-    include: [
-      '**/*.spec.*',
-      '**/*.unit.*',
-      '!*/(lib|dist|build|server|target)/**',
-      '!**/node_modules/**',
-      '!qwik/src/core/tests/*.spec.tsx',
-      '!qwik/src/testing/testing.unit.tsx',
-      '!qwik-router/src/runtime/src/link-component.unit.tsx',
-      '!qwik/src/testing/resume-session.unit.tsx',
+    include: ['**/*.spec.*', '**/*.unit.*'],
+    exclude: [
+      ...configDefaults.exclude,
+      '*/(lib|dist|build|server|target)/**',
+      'qwik/src/core/tests/*.spec.tsx',
+      'qwik/src/testing/testing.unit.tsx',
+      'qwik-router/src/runtime/src/link-component.unit.tsx',
+      'qwik/src/testing/resume-session.unit.tsx',
     ],
     setupFiles: [fromRoot('./vitest-setup.ts')],
     projects: ['..', renderProject('csr'), renderProject('resume'), renderProject('ssr')],

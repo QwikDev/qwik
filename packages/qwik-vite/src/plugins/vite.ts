@@ -61,7 +61,6 @@ const DEDUPE = [
 ];
 
 const STYLING = ['.css', '.scss', '.sass', '.less', '.styl', '.stylus'];
-const FONTS = ['.woff', '.woff2', '.ttf'];
 
 const QWIK_HMR_BRIDGE_ID = '@qwik-hmr-bridge';
 /**
@@ -128,7 +127,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   const fileFilter: QwikVitePluginOptions['fileFilter'] = qwikViteOpts.fileFilter
     ? (id, type) => TRANSFORM_REGEX.test(id) || qwikViteOpts.fileFilter!(id, type)
     : () => true;
-  const disableFontPreload = qwikViteOpts.disableFontPreload ?? false;
   const injections: GlobalInjections[] = [];
   const qwikPlugin = createQwikPlugin(qwikViteOpts.optimizerOptions);
 
@@ -567,21 +565,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
                     attributes: {
                       rel: 'stylesheet',
                       href: baseFilename,
-                    },
-                  });
-                }
-              } else {
-                const selectedFont = FONTS.find((ext) => fileName.endsWith(ext));
-                if (selectedFont && !disableFontPreload) {
-                  injections.unshift({
-                    tag: 'link',
-                    location: 'head',
-                    attributes: {
-                      rel: 'preload',
-                      href: baseFilename,
-                      as: 'font',
-                      type: `font/${selectedFont.slice(1)}`,
-                      crossorigin: '',
                     },
                   });
                 }
@@ -1054,13 +1037,7 @@ interface QwikVitePluginCommonOptions {
    */
   experimental?: (keyof typeof ExperimentalFeatures)[];
 
-  /**
-   * Disables automatic preloading of font assets (WOFF/WOFF2/TTF) found in the build output. When
-   * enabled, the plugin will not add `<link rel="preload">` tags for font files in the document
-   * head.
-   *
-   * Disabling may impact Cumulative Layout Shift (CLS) metrics.
-   */
+  /** @deprecated No longer used. Automatic font preloading has been removed. */
   disableFontPreload?: boolean;
 }
 

@@ -1,5 +1,5 @@
 import type MagicString from 'magic-string';
-import { transformSync as oxcTransformSync, type TransformOptions } from 'oxc-transform';
+import { type TransformOptions } from 'oxc-transform';
 import type { AstNode, AstProgram } from '../../ast-types.js';
 import type { ExtractionResult } from '../extraction/extract.js';
 import type { ImportInfo } from '../extraction/marker-detection.js';
@@ -38,6 +38,7 @@ import { injectUseHmrIntoInlineBody } from '../transform/module-cleanup.js';
 import type { InlineSegmentJsxOptions } from './raw-props.js';
 import type { RewriteContext } from './rewrite-context.js';
 import { wholeIdentifierPattern } from '../edit/identifier-boundary.js';
+import { stripTypeScript } from '../edit/strip-types.js';
 
 function isCustomInlined(ext: ExtractionResult, originalImports: Map<string, ImportInfo>): boolean {
   for (const [, info] of originalImports) {
@@ -621,25 +622,24 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
         ctx.sCalls.push(buildSCall(varName, trimmedBody));
       } else {
         let hoistBody = transformedBody;
-        try {
-          // Parenthesize so an object-literal body parses as an expression,
-          // not a block with labeled statements.
-          const stripped = oxcTransformSync('__body__.tsx', `(${hoistBody})`);
-          if (stripped.code && !stripped.errors?.length) {
-            let code = stripped.code;
-            if (code.endsWith(';\n')) {
-              code = code.slice(0, -2);
-            } else if (code.endsWith(';')) {
-              code = code.slice(0, -1);
-            }
-            if (code.startsWith('(') && code.endsWith(')')) {
-              code = code.slice(1, -1);
-            }
-            hoistBody = code;
-          }
-        } catch {
-          // strip failed — keep the un-stripped body
+        // Parenthesize so an object-literal body parses as an expression,
+        // not a block with labeled statements.
+        let code = stripTypeScript(
+          '__body__.tsx',
+          `(${hoistBody})`,
+          {},
+          `hoisted segment "${ext.symbolName}"`,
+          { filename: ctx.relPath, text: ctx.source }
+        );
+        if (code.endsWith(';\n')) {
+          code = code.slice(0, -2);
+        } else if (code.endsWith(';')) {
+          code = code.slice(0, -1);
         }
+        if (code.startsWith('(') && code.endsWith(')')) {
+          code = code.slice(1, -1);
+        }
+        hoistBody = code;
         const constDecl = buildHoistConstDecl(ext.symbolName, hoistBody);
         const sCall = buildHoistSCall(varName, ext.symbolName);
         const stmtStart = extContainingStmtStart.get(ext.symbolName);
@@ -968,10 +968,13 @@ export function assembleOutput(ctx: RewriteContext): string {
     if (!jsxOptions?.enableJsx) {
       tsStripOptions.jsx = 'preserve';
     }
-    const stripped = oxcTransformSync('output.tsx', finalCode, tsStripOptions);
-    if (stripped.code) {
-      finalCode = stripped.code;
-    }
+    finalCode = stripTypeScript(
+      ctx.relPath,
+      finalCode,
+      tsStripOptions,
+      `rewritten module "${ctx.relPath}"`,
+      { filename: ctx.relPath, text: ctx.source }
+    );
   }
 
   return finalCode;

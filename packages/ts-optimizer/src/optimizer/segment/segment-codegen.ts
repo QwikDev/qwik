@@ -249,14 +249,16 @@ function addCaptureAndMigrationImports(
         let importLine: string;
         if (dep.importedName === '*') {
           importLine = `import * as ${dep.localName} from "${rewrittenSource}";`;
+        } else if (dep.importedName === 'default') {
+          importLine = `import ${dep.localName} from "${rewrittenSource}";`;
         } else if (dep.importedName === dep.localName) {
           importLine = `import { ${dep.localName} } from "${rewrittenSource}";`;
         } else {
           importLine = `import { ${dep.importedName} as ${dep.localName} } from "${rewrittenSource}";`;
         }
-        if (
-          !parts.some((p) => p.includes(`${dep.localName}`) && p.includes(`"${rewrittenSource}"`))
-        ) {
+        // Dedupe by local name: two imports of one name is a redeclaration error
+        // no matter which modules they come from.
+        if (!partsHaveImport(parts, dep.localName)) {
           insertImportBeforeSeparator(parts, importLine);
         }
       }

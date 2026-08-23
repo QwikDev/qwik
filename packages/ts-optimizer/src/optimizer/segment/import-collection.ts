@@ -217,10 +217,13 @@ function addQrlCalleeImports(
       // `qwikifyQrl`) gets a bogus `import { reactCmpQrl } from
       // "@qwik.dev/core";` emitted — getQrlCalleeName's check above is
       // trivially true since it literally re-suffixes `Qrl` onto its input.
-      if (!importContext.moduleImports.some((m) => m.localName === qrlName)) {
+      const moduleImport = importContext.moduleImports.find((m) => m.localName === qrlName);
+      if (!moduleImport) {
         continue;
       }
-      const importSource = getQrlImportSource(qrlName);
+      // Import from wherever the module itself got it — a `*Qrl` re-exported by
+      // a subpath (e.g. `@qwik.dev/core/internal`) is not on the core entry.
+      const importSource = getQrlImportSource(qrlName, moduleImport.source);
       insertImportBeforeSeparator(parts, `import { ${qrlName} } from "${importSource}";`);
     }
     return;

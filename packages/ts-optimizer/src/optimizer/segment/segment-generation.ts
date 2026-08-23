@@ -863,13 +863,18 @@ function buildMovedQrlSupport(
       movedText.includes(`${callee}(`) &&
       !importDeps.some((d) => d.localName === callee)
     ) {
-      // The extraction remembers which package the marker came from, so a moved
-      // decl using e.g. `reactify$` keeps @qwik.dev/react instead of core.
-      importDeps.push({
-        localName: callee,
-        importedName: callee,
-        source: getQrlImportSource(callee, e.importSource),
-      });
+      // The module's own import wins when it already binds the callee (e.g. a
+      // pre-optimized lib importing `createAsyncQrl` from `@qwik.dev/core/internal`);
+      // otherwise the extraction remembers which package the marker came from, so a
+      // moved decl using e.g. `reactify$` keeps @qwik.dev/react instead of core.
+      const ownImport = ctx.originalImports.get(callee);
+      importDeps.push(
+        ownImport ?? {
+          localName: callee,
+          importedName: callee,
+          source: getQrlImportSource(callee, e.importSource),
+        }
+      );
     }
   }
   const helperDeps = [...qrlHelpers].map((h) => ({
@@ -1128,11 +1133,15 @@ export function buildNestedCallSites(
       // `_jsxDEV`→`_jsxSorted` rewrite renames the key and slices the ref.
       !child.isJsxObjectProp;
     if (isJsxAttr) {
-      const propName = eventHandlerPropName(
+      const transformedName = eventHandlerPropName(
         child.calleeName,
         child.isComponentEvent,
         passiveEventsFromDisplayName(child)
       );
+      // A kebab-cased name whose local part starts with '-' (onDOMContentLoaded$
+      // → q-d:-d-o-m-...) can't re-parse as a JSX attribute — keep the original
+      // attr name and let the JSX pass emit the final quoted key.
+      const propName = /:-/.test(transformedName) ? child.calleeName : transformedName;
 
       // Two-armed detection: an event-handler QRL needs `.w([captures])`
       // wiring whenever it captures something the runtime can't deliver
@@ -1395,6 +1404,7 @@ export function buildDefaultStrategySegment(
       ctxName: ext.ctxName,
       sourceExtensions,
       parentSourceExt,
+      origin: { filename: relPath, text: ctx.repairedCode },
       shouldTranspileTs,
       shouldTranspileJsx,
       isServer: options.isServer,

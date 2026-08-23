@@ -101,6 +101,7 @@ describe('foreign-runtime JSX strip probe', () => {
       ctxName: 'x',
       sourceExtensions: new Map<string, string>(),
       parentSourceExt: '.tsx',
+      origin: { filename: 'test.tsx', text: '' },
       shouldTranspileTs: true,
       shouldTranspileJsx: true,
       isServer: false,

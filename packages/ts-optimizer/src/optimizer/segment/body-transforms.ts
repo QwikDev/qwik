@@ -60,10 +60,25 @@ function findEnclosingArrowBodyForCapture(
   capturedVarName: string
 ): number {
   text = blankNonCode(text);
-  let i = pos - 1;
-  while (i >= 1) {
-    if (text[i] !== '(' && text[i] !== '{') {
-      i--;
+  // Brackets closed between `i` and `pos` belong to siblings, not to an enclosing
+  // scope — without this, an earlier arrow that merely *precedes* the position
+  // matches and the declaration lands outside any statement.
+  const closedBrackets: string[] = [];
+  for (let i = pos - 1; i >= 1; i--) {
+    const ch = text[i];
+    if (ch === ')' || ch === '}' || ch === ']') {
+      closedBrackets.push(ch);
+      continue;
+    }
+    if (ch !== '(' && ch !== '{' && ch !== '[') {
+      continue;
+    }
+    const closer = ch === '(' ? ')' : ch === '{' ? '}' : ']';
+    if (closedBrackets[closedBrackets.length - 1] === closer) {
+      closedBrackets.pop();
+      continue;
+    }
+    if (ch === '[') {
       continue;
     }
 
@@ -72,7 +87,6 @@ function findEnclosingArrowBodyForCapture(
       j--;
     }
     if (!(j >= 1 && text[j] === '>' && text[j - 1] === '=')) {
-      i--;
       continue;
     }
 
@@ -110,8 +124,6 @@ function findEnclosingArrowBodyForCapture(
     if (localDeclPattern.test(bodySlice)) {
       return bodyStart;
     }
-
-    i--;
   }
   return -1;
 }
@@ -775,6 +787,9 @@ export function partsHaveImport(parts: string[], symbol: string): boolean {
       p.includes(`, ${symbol} }`) ||
       p.includes(`, ${symbol},`) ||
       p.includes(`as ${symbol}`) ||
-      p.includes(`* as ${symbol}`)
+      p.includes(`* as ${symbol}`) ||
+      // Default import — binds the name just as much as a named one.
+      p.startsWith(`import ${symbol} from`) ||
+      p.startsWith(`import ${symbol},`)
   );
 }

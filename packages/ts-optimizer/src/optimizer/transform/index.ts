@@ -11,7 +11,7 @@ import type {
   AstProgram,
   TSEnumDeclaration,
 } from '../../ast-types.js';
-import { transformSync as oxcTransformSync } from 'oxc-transform';
+import { stripTypeScript } from '../edit/strip-types.js';
 import { blankNonCode, skipStringLiteralForward } from '../edit/text-scanning.js';
 import { parseWithRawTransfer } from '../ast/parse.js';
 import { isStrippedExtraction } from '../rewrite/predicates.js';
@@ -174,17 +174,16 @@ function applyPassthroughConstFolding(
   // The Rust optimizer transpiles TS even in marker-free modules; downstream
   // consumers (e.g. the vite plugin's literal replacements) rely on that.
   if (options.transpileTs && (ext === '.ts' || ext === '.tsx' || ext === '.mts')) {
-    try {
-      const stripped = oxcTransformSync(relPath, code, {
+    code = stripTypeScript(
+      relPath,
+      code,
+      {
         typescript: { onlyRemoveTypeImports: false },
         ...(ext === '.tsx' ? {} : { jsx: 'preserve' as const }),
-      });
-      if (stripped.code) {
-        code = stripped.code;
-      }
-    } catch {
-      // keep the original code when stripping fails
-    }
+      },
+      `source file "${relPath}"`,
+      { filename: relPath, text: code }
+    );
   }
 
   code = runDcePipeline(code, relPath, {

@@ -1,8 +1,7 @@
 import { rolldown, type OutputAsset, type OutputChunk } from '@rolldown/browser';
-// Browser builds of the TS optimizer's runtime deps, bundled into this
-// worker by vite (oxc resolves to its wasm32-wasi browser bindings).
-import * as oxcParser from 'oxc-parser';
-import * as oxcTransform from 'oxc-transform';
+// Browser builds of the TS optimizer's runtime deps, bundled into this worker by vite.
+// Rolldown embeds the same oxc version, so reusing its parser saves 4.5MB of extra wasm.
+import * as rolldownOxc from '@rolldown/browser/utils';
 import * as oxcWalker from 'oxc-walker';
 import * as magicRegexp from 'magic-regexp';
 import * as magicString from 'magic-string';
@@ -125,8 +124,8 @@ function getDepShimUrl(specifier: string, mod: Record<string, unknown>): string 
 }
 
 const TS_OPTIMIZER_DEPS: Record<string, Record<string, unknown>> = {
-  'oxc-parser': oxcParser,
-  'oxc-transform': oxcTransform,
+  'oxc-parser': rolldownOxc,
+  'oxc-transform': rolldownOxc,
   'oxc-walker': oxcWalker,
   'magic-regexp': magicRegexp,
   'magic-string': magicString,

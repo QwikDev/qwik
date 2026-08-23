@@ -311,6 +311,23 @@
       "mdFile": "core.renderresult.cleanup.md"
     },
     {
+      "name": "clear",
+      "id": "computedsignal-clear",
+      "hierarchy": [
+        {
+          "name": "ComputedSignal",
+          "id": "computedsignal-clear"
+        },
+        {
+          "name": "clear",
+          "id": "computedsignal-clear"
+        }
+      ],
+      "kind": "MethodSignature",
+      "content": "```typescript\nclear(): void;\n```\n**Returns:**\n\nvoid",
+      "mdFile": "core.computedsignal.clear.md"
+    },
+    {
       "name": "Component",
       "id": "component",
       "hierarchy": [
@@ -376,7 +393,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface ComputedOptions<T = unknown> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nallowStale?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nclientOnly?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nconcurrency?\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\neagerCleanup?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nexpires?\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\ninitial?\n\n\n</td><td>\n\n\n</td><td>\n\nT \\| (() =&gt; T)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\ninterval?\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\npoll?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nserializationStrategy?\n\n\n</td><td>\n\n\n</td><td>\n\n[SerializationStrategy](#serializationstrategy)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\ntimeout?\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface ComputedOptions<T = unknown> \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nclientOnly?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nconcurrency?\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\neagerCleanup?\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\ninitial?\n\n\n</td><td>\n\n\n</td><td>\n\nT \\| (() =&gt; T)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nserializationStrategy?\n\n\n</td><td>\n\n\n</td><td>\n\n[SerializationStrategy](#serializationstrategy)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\ntimeout?\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive/public-types.ts",
       "mdFile": "core.computedoptions.md"
     },
@@ -390,7 +407,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface ComputedSignal<T = unknown> extends ReadonlySignal<T> \n```\n**Extends:** [ReadonlySignal](#readonlysignal)<!-- -->&lt;T&gt;\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nerror\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nError \\| undefined\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nexpires\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\ninterval\n\n\n</td><td>\n\n\n</td><td>\n\nnumber\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nloading\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\npending\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\npoll\n\n\n</td><td>\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nuntrackedError\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nError \\| undefined\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nuntrackedLoading\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nuntrackedPending\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[abort(reason)](#computedsignal-abort)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[invalidate(info)](#computedsignal-invalidate)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[promise()](#computedsignal-promise)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[trigger()](#computedsignal-trigger)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface ComputedSignal<T = unknown> extends ReadonlySignal<T> \n```\n**Extends:** [ReadonlySignal](#readonlysignal)<!-- -->&lt;T&gt;\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nerror\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nError \\| undefined\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nloading\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\npending\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nuntrackedError\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nError \\| undefined\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nuntrackedLoading\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nuntrackedPending\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[abort(reason)](#computedsignal-abort)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[clear()](#computedsignal-clear)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[invalidate(info)](#computedsignal-invalidate)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[promise()](#computedsignal-promise)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\n[trigger()](#computedsignal-trigger)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive/public-types.ts",
       "mdFile": "core.computedsignal.md"
     },

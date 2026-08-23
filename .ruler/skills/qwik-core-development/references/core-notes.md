@@ -46,7 +46,7 @@ Do not restore removed VNode, cursor, legacy SSR-JSX, `reactive-primitives`, or 
 - Reading `.value`, `.pending`, or `.error` may start computation. During SSR, an unresolved compute
   propagates its promise through the established retry path.
 - `AbortError` is cancellation, not a user-visible `.error`.
-- Poll timers never run during SSR and Node timers use `.unref?.()`.
+- Polling belongs in `usePoll` from `@qwik.dev/utils`, not the computed engine.
 - `clientOnly` values are scheduled for eager resume and cannot be read during SSR without an
   initial value.
 
@@ -67,9 +67,8 @@ When changing computed behavior, inspect:
   observable state changes.
 - `invalidate(info)` records the latest info, marks the value dirty, aborts current work, and notifies
   subscribers.
-- `allowStale: false` drops a cached value on manual invalidation and non-polling expiration.
-- `expires` controls expiration duration; `poll` controls automatic recomputation.
-- Deprecated `interval` maps positive values to polling and negative values to stale-only expiry.
+- `invalidate(info)` keeps the cached value readable while recomputation is pending.
+- `clear()` drops the cached value before invalidating, so readers wait for the replacement.
 - Cleanup callbacks run before recomputation and when the subscriber is disposed.
 - Serialization reads internal cached state and must not start computation.
 

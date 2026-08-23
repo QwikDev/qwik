@@ -6,6 +6,8 @@ import {
   ensureRouteLoaderSignal,
   getModuleRouteLoaders,
   getRouteLoaderResponse,
+  invalidateNavRouteLoaders,
+  isImmutableLoader,
   loadRouteLoader,
   routeLoaderQrl,
   setLoaderSignalValue,
@@ -13,42 +15,6 @@ import {
 } from './route-loaders';
 import { ServerError } from '../../middleware/request-handler/server-error';
 import type { LoaderInternal, RouteModule } from './types';
-
-describe('search filter early-return logic', () => {
-  // Mirrors the captured lastFetch object and condition in createRouteLoaderSignal.
-  // Before the fix, only filteredSearch was checked — path changes were silently suppressed.
-  it('does not skip fetch when routePath changes even if filtered search is unchanged', () => {
-    const lastFetch: {
-      filteredSearch?: string;
-      routePath?: string;
-    } = {};
-
-    const shouldSkipFetch = (routePath: string, filteredSearch: string) => {
-      const hasPrevious = lastFetch.filteredSearch !== undefined;
-      if (
-        hasPrevious &&
-        filteredSearch === lastFetch.filteredSearch &&
-        routePath === lastFetch.routePath
-      ) {
-        return true;
-      }
-      lastFetch.filteredSearch = filteredSearch;
-      lastFetch.routePath = routePath;
-      return false;
-    };
-
-    // First call — no previous value, always fetches
-    expect(shouldSkipFetch('/a', 'page=1')).toBe(false);
-    // Same path + same search: skip is correct
-    expect(shouldSkipFetch('/a', 'page=1')).toBe(true);
-    // Different path, same filtered search: must NOT skip (was the bug)
-    expect(shouldSkipFetch('/b', 'page=1')).toBe(false);
-    // Same path + same search again: skip is correct
-    expect(shouldSkipFetch('/b', 'page=1')).toBe(true);
-    // Same path, different search: fetch
-    expect(shouldSkipFetch('/b', 'page=2')).toBe(false);
-  });
-});
 
 describe('route loader execution', () => {
   it('injects a value through the computed signal', async () => {
@@ -82,6 +48,44 @@ describe('route loader execution', () => {
     ).toEqual([['__qwik_route_loader_value__never-loader', _UNINITIALIZED]]);
   });
 
+  it('registers immutable loaders so nav-wide invalidation skips them', () => {
+    const state = {} as RouteLoaderState;
+    const routeLoaderCtx = { loaderPaths: {} };
+    const immutable = routeLoaderQrl(createQrl('immutable-loader'), {
+      cacheControl: 'immutable',
+    }) as LoaderInternal;
+    const normal = routeLoaderQrl(createQrl('normal-loader')) as LoaderInternal;
+
+    runWithOwner(createOwner(null), () => {
+      ensureRouteLoaderSignal(immutable, state, routeLoaderCtx);
+      ensureRouteLoaderSignal(normal, state, routeLoaderCtx);
+    });
+
+    expect(isImmutableLoader(immutable.__id)).toBe(true);
+    expect(isImmutableLoader(normal.__id)).toBe(false);
+  });
+
+  it('invalidates loader signals on nav, skipping resumed values and immutable loaders', () => {
+    const state = {} as RouteLoaderState;
+    const routeLoaderCtx = { loaderPaths: {} };
+    const immutable = routeLoaderQrl(createQrl('nav-immutable-loader'), {
+      cacheControl: 'immutable',
+    }) as LoaderInternal;
+    const normal = createLoader('nav-normal-loader', async () => undefined);
+
+    runWithOwner(createOwner(null), () => {
+      ensureRouteLoaderSignal(immutable, state, routeLoaderCtx);
+      ensureRouteLoaderSignal(normal, state, routeLoaderCtx);
+    });
+    const immutableInvalidate = vi.spyOn(state[immutable.__id], 'invalidate');
+    const normalInvalidate = vi.spyOn(state['nav-normal-loader'], 'invalidate');
+
+    invalidateNavRouteLoaders(state);
+
+    expect(normalInvalidate).toHaveBeenCalledOnce();
+    expect(immutableInvalidate).not.toHaveBeenCalled();
+  });
+
   it('memoizes in-flight loader executions on the request', async () => {
     const requestEv: any = {
       sharedMap: new Map(),
@@ -105,10 +109,12 @@ describe('route loader execution', () => {
     expect(parentLoader.__qrl.call).toHaveBeenCalledOnce();
   });
 
-  it('stores loader expires values in milliseconds', () => {
-    const loader = routeLoaderQrl(createQrl('timed-loader'), { expires: 60_000 }) as LoaderInternal;
+  it('stores the cacheControl option', () => {
+    const loader = routeLoaderQrl(createQrl('cached-loader'), {
+      cacheControl: 'immutable',
+    }) as LoaderInternal;
 
-    expect(loader.__expires).toBe(60_000);
+    expect(loader.__cacheControl).toBe('immutable');
   });
 
   it('rejects blockSSR: false when the experimental flag is not enabled', () => {
@@ -188,12 +194,9 @@ function createLoader(
     __qrl: createQrl(id, fn),
     __validators: undefined,
     __serializationStrategy: serializationStrategy,
-    __expires: 0,
-    __poll: false,
     __eTag: undefined,
     __cacheKey: undefined,
     __search: undefined,
-    __allowStale: true,
   } as any;
 }
 

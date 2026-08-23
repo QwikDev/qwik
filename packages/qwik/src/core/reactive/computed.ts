@@ -66,10 +66,6 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
   cleanupPromise: Promise<void> | null = null;
   info: unknown;
 
-  private expiresValue = 0;
-  private pollValue = true;
-  private pollTimeoutId: ReturnType<typeof setTimeout> | undefined;
-
   constructor(
     public computeQrl: ComputeSignalQrl<T> | null,
     public computeFn: ComputeSignalFn<T> | null = null,
@@ -99,7 +95,6 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
     this.errorValue = undefined;
     this.flags &= ~ComputedFlags.Dirty;
     this.publishValue(value);
-    this.scheduleNextPoll();
   }
 
   override get untrackedValue(): T {
@@ -164,37 +159,12 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
     }
   }
 
-  get expires(): number {
-    return this.expiresValue;
-  }
-
-  set expires(value: number) {
-    this.clearNextPoll();
-    this.expiresValue = value;
-    this.scheduleNextPoll();
-  }
-
-  get poll(): boolean {
-    return this.pollValue;
-  }
-
-  set poll(value: boolean) {
-    this.pollValue = value;
-    this.clearNextPoll();
-    this.scheduleNextPoll();
-  }
-
-  /** @deprecated Use `expires` and `poll` instead. */
-  get interval(): number {
-    return this.pollValue ? this.expiresValue : -this.expiresValue;
-  }
-
-  set interval(value: number) {
-    this.pollValue = value >= 0;
-    this.expires = Math.abs(value);
-  }
-
   force(): void {
+    this.invalidate();
+  }
+
+  clear(): void {
+    this.flags &= ~ComputedFlags.HasValue;
     this.invalidate();
   }
 
@@ -202,17 +172,12 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
     if (arguments.length > 0) {
       this.info = info;
     }
-    this.clearNextPoll();
     this.flags |= ComputedFlags.Dirty;
-    if (this.options?.allowStale === false) {
-      this.flags &= ~ComputedFlags.HasValue;
-    }
     this.abort();
     this.notify();
   }
 
   abort(reason?: unknown): void {
-    this.clearNextPoll();
     const job = this.current;
     if (job === null) {
       return;
@@ -236,7 +201,6 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
   }
 
   dispose(): void {
-    this.clearNextPoll();
     this.abort();
     cleanupDeps(this);
     this.subs = null;
@@ -246,16 +210,11 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
   resume(): void {
     if (this.flags & ComputedFlags.Dirty) {
       this.computeIfNeeded();
-      return;
     }
-    this.scheduleNextPoll();
   }
 
   setOptions(options: ComputedOptions<T> | undefined): void {
     this.options = options;
-    const interval = options?.interval;
-    this.expiresValue = options?.expires ?? (interval ? Math.abs(interval) : 0);
-    this.pollValue = !(options?.poll === false || (interval !== undefined && interval < 0));
   }
 
   trackSource: AsyncCtx<T>['track'] = ((obj: (() => unknown) | object, prop?: PropertyKey) => {
@@ -307,7 +266,6 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
         throw this.current.promise;
       }
     }
-    this.addPollingToEagerResume();
     return this.v;
   }
 
@@ -318,7 +276,6 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
     if (!(this.flags & ComputedFlags.Dirty) || this.current !== null) {
       return;
     }
-    this.clearNextPoll();
     if (isServerEnv() && this.options?.clientOnly) {
       this.loadingValue = true;
       this.addToEagerResume();
@@ -386,7 +343,6 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
       this.computeIfNeeded();
     } else {
       this.setLoading(false);
-      this.scheduleNextPoll();
     }
   }
 
@@ -458,42 +414,6 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
     (
       this.container as { serializationCtx?: { $eagerResume$: Set<unknown> } } | undefined
     )?.serializationCtx?.$eagerResume$.add(this);
-  }
-
-  private addPollingToEagerResume(): void {
-    if (isServerEnv() && this.expiresValue && this.pollValue) {
-      this.addToEagerResume();
-    }
-  }
-
-  private clearNextPoll(): void {
-    if (this.pollTimeoutId !== undefined) {
-      clearTimeout(this.pollTimeoutId);
-      this.pollTimeoutId = undefined;
-    }
-  }
-
-  private scheduleNextPoll(): void {
-    if (isServerEnv() || !this.expiresValue || !this.hasSubscribers()) {
-      return;
-    }
-    this.clearNextPoll();
-    this.pollTimeoutId = setTimeout(() => {
-      this.pollTimeoutId = undefined;
-      this.flags |= ComputedFlags.Dirty;
-      if (!this.pollValue && this.options?.allowStale === false) {
-        this.flags &= ~ComputedFlags.HasValue;
-      }
-      this.notify();
-      if (this.pollValue) {
-        this.computeIfNeeded();
-      }
-    }, this.expiresValue);
-    this.pollTimeoutId.unref?.();
-  }
-
-  private hasSubscribers(): boolean {
-    return this.subs !== null;
   }
 
   private runStoredCleanups(): ValueOrPromise<void> {

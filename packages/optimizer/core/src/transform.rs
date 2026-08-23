@@ -204,6 +204,18 @@ fn convert_qrl_word(id: &Atom) -> Option<Atom> {
 		None
 	}
 }
+
+fn convert_qrl_to_dollar_word(id: &str) -> Option<Atom> {
+	if id.ends_with(LONG_SUFFIX) {
+		Some(Atom::from(format!(
+			"{}{QRL_SUFFIX}",
+			id.trim_end_matches(LONG_SUFFIX)
+		)))
+	} else {
+		None
+	}
+}
+
 impl<'a> QwikTransform<'a> {
 	pub fn new(options: QwikTransformOptions<'a>) -> Self {
 		let mut marker_functions = HashMap::new();
@@ -539,11 +551,7 @@ impl<'a> QwikTransform<'a> {
 			.last()
 			.map_or_else(|| QSEGMENT.clone(), |last| Atom::from(last.as_str()));
 
-		let ctx_name = if last_stack.ends_with("Qrl") {
-			Atom::from(format!("{}$", last_stack.trim_end_matches("Qrl")))
-		} else {
-			last_stack
-		};
+		let ctx_name = convert_qrl_to_dollar_word(last_stack.as_ref()).unwrap_or(last_stack);
 		let ctx_kind = if ctx_name.starts_with("on") {
 			SegmentKind::JSXProp
 		} else {
@@ -706,10 +714,16 @@ impl<'a> QwikTransform<'a> {
 				None
 			};
 
+			let ctx_name = self
+				.stack_ctxt
+				.last()
+				.and_then(|name| convert_qrl_to_dollar_word(name))
+				.unwrap_or_else(|| QSEGMENT.clone());
+
 			self.create_synthetic_qsegment(
 				*first_arg,
 				SegmentKind::Function,
-				QSEGMENT.clone(),
+				ctx_name,
 				custom_symbol,
 			)
 		} else {
@@ -1257,7 +1271,7 @@ impl<'a> QwikTransform<'a> {
 						SegmentKind::JSXProp
 					};
 					let qrl = self.create_synthetic_qsegment(*expr, segment_kind, ctx_name, None);
-					let hoisted = self.hoist_qrl_to_module_scope(qrl);
+					let hoisted = self.hoist_qrl_to_module_scope(qrl, false);
 					Some(ast::JSXAttrValue::JSXExprContainer(ast::JSXExprContainer {
 						span: DUMMY_SP,
 						expr: ast::JSXExpr::Expr(Box::new(hoisted)),
@@ -1391,8 +1405,13 @@ impl<'a> QwikTransform<'a> {
 	/// to module scope. If captures exist, a `.w([...])` call is returned ("with captures").
 	/// When inside a loop, the `w` call is further hoisted to the highest scope
 	/// where all captures are available, for efficiency.
-	fn hoist_qrl_if_needed(&mut self, converted_expr: ast::CallExpr, is_fn: bool) -> ast::Expr {
-		let module_hoisted = self.hoist_qrl_to_module_scope(converted_expr);
+	fn hoist_qrl_if_needed(
+		&mut self,
+		converted_expr: ast::CallExpr,
+		is_fn: bool,
+		has_moved_captures: bool,
+	) -> ast::Expr {
+		let module_hoisted = self.hoist_qrl_to_module_scope(converted_expr, has_moved_captures);
 
 		// If it's just an ident (no captures), no further hoisting needed
 		let with_captures_call = match module_hoisted {
@@ -1474,10 +1493,31 @@ impl<'a> QwikTransform<'a> {
 		}
 	}
 
-	fn hoist_qrl_to_module_scope(&mut self, call_expr: ast::CallExpr) -> ast::Expr {
+	fn mark_moved_captures(expr: ast::Expr) -> ast::Expr {
+		ast::Expr::Call(ast::CallExpr {
+			callee: ast::Callee::Expr(Box::new(ast::Expr::Member(ast::MemberExpr {
+				obj: Box::new(expr),
+				prop: ast::MemberProp::Ident(ast::IdentName::new("m".into(), DUMMY_SP)),
+				span: DUMMY_SP,
+			}))),
+			args: Vec::new(),
+			..Default::default()
+		})
+	}
+
+	fn hoist_qrl_to_module_scope(
+		&mut self,
+		call_expr: ast::CallExpr,
+		has_moved_captures: bool,
+	) -> ast::Expr {
 		// Library mode: don't hoist QRLs to module scope
 		if matches!(self.options.mode, EmitMode::Lib) {
-			return ast::Expr::Call(call_expr);
+			let qrl = ast::Expr::Call(call_expr);
+			return if has_moved_captures {
+				Self::mark_moved_captures(qrl)
+			} else {
+				qrl
+			};
 		}
 		let mut call_expr = call_expr;
 		let is_inlined = self.is_inlined_qrl_callee(&call_expr);
@@ -1545,10 +1585,15 @@ impl<'a> QwikTransform<'a> {
 			let id: Id = (ident_name, SyntaxContext::empty());
 
 			if !self.extra_top_items.contains_key(&id) {
+				let qrl = ast::Expr::Call(noop_call);
 				let declarator = ast::VarDeclarator {
 					span: DUMMY_SP,
 					name: ast::Pat::Ident(ast::BindingIdent::from(new_ident_from_id(&id))),
-					init: Some(Box::new(ast::Expr::Call(noop_call))),
+					init: Some(Box::new(if has_moved_captures {
+						Self::mark_moved_captures(qrl)
+					} else {
+						qrl
+					})),
 					definite: false,
 				};
 				self.extra_top_items.insert(
@@ -1644,10 +1689,15 @@ impl<'a> QwikTransform<'a> {
 			let id: Id = (ident_name, SyntaxContext::empty());
 
 			if !self.extra_top_items.contains_key(&id) {
+				let qrl = ast::Expr::Call(call_expr);
 				let declarator = ast::VarDeclarator {
 					span: DUMMY_SP,
 					name: ast::Pat::Ident(ast::BindingIdent::from(new_ident_from_id(&id))),
-					init: Some(Box::new(ast::Expr::Call(call_expr))),
+					init: Some(Box::new(if has_moved_captures {
+						Self::mark_moved_captures(qrl)
+					} else {
+						qrl
+					})),
 					definite: false,
 				};
 				self.extra_top_items.insert(
@@ -2468,6 +2518,9 @@ impl<'a> QwikTransform<'a> {
 											} else {
 												Vec::new()
 											};
+										let has_lifted_captures = params_to_lift
+											.iter()
+											.any(|param| expr_uses_ident(&node.value, &id!(param)));
 
 										// Inject lifted params as extra function params
 										let transformed_value = if let Some(call) = worker_qrl_call
@@ -2503,9 +2556,11 @@ impl<'a> QwikTransform<'a> {
 											static_listeners = false;
 										}
 
-										let handler_expr = Box::new(
-											self.hoist_qrl_if_needed(converted_expr, is_fn),
-										);
+										let handler_expr = Box::new(self.hoist_qrl_if_needed(
+											converted_expr,
+											is_fn,
+											has_lifted_captures,
+										));
 										self.add_prop_to_appropriate_list(
 											handler_expr,
 											final_key.clone(),
@@ -4164,7 +4219,7 @@ impl<'a> Fold for QwikTransform<'a> {
 					comments.add_pure_comment(ident.span.lo);
 				}
 				let call = self.handle_qsegment(node);
-				let hoisted = self.hoist_qrl_to_module_scope(call);
+				let hoisted = self.hoist_qrl_to_module_scope(call, false);
 				self.pending_expr_replacement = Some(hoisted);
 				return Default::default();
 			} else if self.jsx_functions.contains(&id!(ident)) {
@@ -4184,7 +4239,7 @@ impl<'a> Fold for QwikTransform<'a> {
 					return node.fold_children_with(self);
 				}
 				let call = self.handle_inlined_qsegment(node);
-				let hoisted = self.hoist_qrl_to_module_scope(call);
+				let hoisted = self.hoist_qrl_to_module_scope(call, false);
 				self.pending_expr_replacement = Some(hoisted);
 				return Default::default();
 			} else if is_fn_signal {
@@ -4287,7 +4342,7 @@ impl<'a> Fold for QwikTransform<'a> {
 						ctx_name.clone(),
 						None,
 					);
-					let hoisted = self.hoist_qrl_to_module_scope(qrl);
+					let hoisted = self.hoist_qrl_to_module_scope(qrl, false);
 					ast::ExprOrSpread {
 						expr: Box::new(hoisted.fold_with(self)),
 						..arg

@@ -9,6 +9,7 @@ import { buildDevtools } from './devtools.ts';
 import { buildBrowserExtension } from './browser-extension.ts';
 import { buildEslint } from './eslint.ts';
 import { buildQwikReact } from './qwik-react.ts';
+import { buildQwikUtils } from './qwik-utils.ts';
 import { buildQwikRouter } from './qwik-router.ts';
 import {
   commitPrepareReleaseVersion,
@@ -158,6 +159,10 @@ export async function build(config: BuildConfig) {
 
     if (config.qwikreact) {
       await buildQwikReact(config);
+    }
+
+    if (config.qwikutils) {
+      await buildQwikUtils(config);
     }
 
     if (config.supabaseauthhelpers) {

@@ -4,8 +4,10 @@
     "@qwik.dev/compiler": "workspace:*"
   },
   "devDependencies": {
-    "image-size": "1.2.1",
-    "magic-string": "0.30.21"
+    "image-size": "2.0.2",
+    "magic-string": "0.30.21",
+    "rolldown": "1.2.4",
+    "vite": "8.2.1"
   },
   "private": true
 }

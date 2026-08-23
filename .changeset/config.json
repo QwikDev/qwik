@@ -3,7 +3,15 @@
   "changelog": ["./changelog-github-custom.cjs", { "repo": "QwikDev/qwik" }],
   "commit": false,
   "fixed": [
-    ["@qwik.dev/core", "@qwik.dev/router", "eslint-plugin-qwik", "create-qwik", "@qwik.dev/react"]
+    [
+      "@qwik.dev/core",
+      "@qwik.dev/router",
+      "eslint-plugin-qwik",
+      "create-qwik",
+      "@qwik.dev/react",
+      "@qwik.dev/utils",
+      "@qwik.dev/devtools"
+    ]
   ],
   "linked": [],
   "access": "public",

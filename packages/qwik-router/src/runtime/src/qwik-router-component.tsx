@@ -90,7 +90,10 @@ import {
 } from './scroll-restoration';
 import spaInit from './spa-init';
 import {
+  clearNavFetchCache,
   ensureRouteLoaderSignals,
+  invalidateNavRouteLoaders,
+  isImmutableLoader,
   setLoaderSignalValue,
   updateRouteLoaderPaths,
 } from './route-loaders';
@@ -121,7 +124,7 @@ import type {
 } from './types';
 import { submitAction } from './use-endpoint';
 import { useQwikRouterEnv } from './use-functions';
-import { isSameOrigin, isSamePath, toPath, toUrl } from './utils';
+import { isPromise, isSameOrigin, isSamePath, toPath, toUrl } from './utils';
 import {
   shouldStartViewTransition,
   startViewTransition,
@@ -678,7 +681,11 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       }
       updateRouteLoaderPaths(routeLoaderCtx, loadedRoute.$loaderPaths$, trackUrl);
       const routeLoaders = ensureRouteLoaderSignals(contentModules, loaderState, routeLoaderCtx);
+      if (!isServer) {
+        invalidateNavRouteLoaders(loaderState);
+      }
       if (shouldInvalidateActionLoaders) {
+        // Actions force revalidation (fetch cache: 'reload') for their loaders
         if (actionLoaderHashes !== undefined) {
           for (const hash of actionLoaderHashes) {
             loaderState[hash]?.invalidate(true);
@@ -695,11 +702,20 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         // and SSR awaits them on the server side. A loader that redirects
         // fires goto() directly; the new nav starts while this one finishes
         // committing, producing a brief flash of the current page.
+        // Immutable loaders stay lazy: they download only when actually read,
+        // and are then browser-cached for the life of the deploy.
         for (let i = 0; i < routeLoaders.length; i++) {
           const loader = routeLoaders[i];
-          // trigger load without a sync read; failures surface when the value is read
-          loaderState[loader.__id].promise().catch(() => {});
+          if (!isImmutableLoader(loader.__id)) {
+            // trigger load without a sync read; failures surface when the value is read
+            loaderState[loader.__id].promise().catch(() => {});
+          }
         }
+      }
+      if (!isServer) {
+        // Clear after the kick-off above so hover-prefetched promises are consumed
+        // by this nav's fetches; the next hover starts a fresh per-nav cache.
+        clearNavFetchCache();
       }
       if (internalState.navCount !== navCountBefore) {
         return;
@@ -815,15 +831,25 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       }
       const actionData = actionDataSignal.value;
 
-      // Resolve head — this might throw a promise so keep it near the top of the function
-      const head = resolveHead(
-        actionData,
-        loaderState,
-        routeLocation,
-        contentModules,
-        getLocale(''),
-        serverHead
-      );
+      let head: ResolvedDocumentHead;
+      try {
+        // Resolve head — this might throw a promise so keep it near the top of the function
+        head = resolveHead(
+          actionData,
+          loaderState,
+          routeLocation,
+          contentModules,
+          getLocale(''),
+          serverHead
+        );
+      } catch (error) {
+        if (isServer || isPromise(error)) {
+          throw error;
+        }
+        // Preserve the current head after client-side calculation errors.
+        console.error(error);
+        return;
+      }
       documentHead.links = head.links;
       documentHead.meta = head.meta;
       documentHead.styles = head.styles;

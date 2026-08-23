@@ -19,15 +19,12 @@ describe(`${name}: task`, () => {
     const App = component$(() => {
       const seen = useSignal('none');
       const bump = useSignal(0);
-      const data = useAsync$(
-        (ctx): string | Promise<string> => {
-          if (ctx.track(bump) === 0) {
-            return 'first';
-          }
-          return new Promise<string>((resolve) => setTimeout(() => resolve('second'), 20));
-        },
-        { allowStale: false }
-      );
+      const data = useAsync$((ctx): string | Promise<string> => {
+        if (ctx.track(bump) === 0) {
+          return 'first';
+        }
+        return new Promise<string>((resolve) => setTimeout(() => resolve('second'), 20));
+      });
       useTask$(() => {
         seen.value = data.value;
       });
@@ -36,7 +33,7 @@ describe(`${name}: task`, () => {
           onClick$={() => {
             // mirror the route-loader refresh: bump the input and drop the cached value
             bump.value++;
-            data.invalidate(true);
+            data.clear();
           }}
         >
           {seen.value}
@@ -51,9 +48,8 @@ describe(`${name}: task`, () => {
     // the pending read must retry, not reject through the scheduler as an error
     const consoleError = vi.spyOn(console, 'error');
     await qwikLoader?.dispatch(button, 'click');
-    await new Promise((resolve) => setTimeout(resolve, 60));
 
-    expect(button.textContent).toBe('second');
+    await vi.waitFor(() => expect(button.textContent).toBe('second'), { timeout: 5000 });
     expect(consoleError).not.toHaveBeenCalled();
     consoleError.mockRestore();
 

@@ -46,6 +46,7 @@ the cursor system, and the compiler's lowering and emit pipeline.
 | `@qwik.dev/core` | `packages/qwik` | Core runtime, SSR, optimizer-facing code |
 | `@qwik.dev/router` | `packages/qwik-router` | Routing, middleware, adapters, SSG |
 | `@qwik.dev/react` | `packages/qwik-react` | React integration |
+| `@qwik.dev/utils` | `packages/qwik-utils` | Less-common helpers (`usePoll`, `zod$`), may use qwik internals |
 | `@qwik.dev/dom` | `packages/qwik-dom` | Server-side DOM implementation |
 | `@qwik.dev/qwik-vite` | `packages/qwik-vite` | `vite-plugin-qwik`, private, bundled into `@qwik.dev/core/optimizer` |
 | `@qwik.dev/compiler` | `packages/compiler` | TypeScript compiler: analysis, lowering, CSR/SSR emit |

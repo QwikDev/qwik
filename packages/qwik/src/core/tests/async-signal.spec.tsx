@@ -464,42 +464,6 @@ describe(`${name}: async signals`, () => {
     cleanup();
     (globalThis as any).__asyncLog = undefined;
   });
-
-  it('resumes polling AsyncSignal with qidle on SSR', async () => {
-    const Counter = () => {
-      const start = Date.now();
-      const elapsed = useAsync$(async () => Date.now() - start, { expires: 50 });
-      return (
-        <div>
-          <div id="elapsed">{elapsed.value}</div>
-          <button onClick$={() => (elapsed.expires = elapsed.expires ? 0 : 50)}>Toggle</button>
-        </div>
-      );
-    };
-
-    const { container, cleanup, flush, qwikLoader } = await render(Counter, { debug });
-    await drain(flush);
-
-    if (testRenderer.name === 'ssrRender') {
-      await qwikLoader?.dispatch(container, 'qidle');
-      await drain(flush);
-    }
-
-    const elapsedBefore = Number(container.querySelector('#elapsed')!.textContent);
-    await delay(100);
-    await drain(flush);
-    const elapsedAfter = Number(container.querySelector('#elapsed')!.textContent);
-    expect(elapsedAfter).toBeGreaterThan(elapsedBefore);
-
-    await qwikLoader?.dispatch(container.querySelector('button')!, 'click');
-    await drain(flush);
-    const elapsedWhenStopped = Number(container.querySelector('#elapsed')!.textContent);
-    await delay(100);
-    await drain(flush);
-    expect(Number(container.querySelector('#elapsed')!.textContent)).toBe(elapsedWhenStopped);
-
-    cleanup();
-  });
 });
 
 async function drain(flush: () => Promise<void>): Promise<void> {

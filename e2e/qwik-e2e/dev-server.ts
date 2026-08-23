@@ -239,7 +239,7 @@ export { router }
     getInlineConf({
       build: {
         minify: isProd,
-        rollupOptions: clientInput
+        rolldownOptions: clientInput
           ? {
               input: {
                 'entry.dev': clientInput,

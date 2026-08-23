@@ -1,6 +1,6 @@
 import { browser } from 'wxt/browser';
 import { defineContentScript } from 'wxt/utils/define-content-script';
-import { QWIK_ATTR, QWIK_CONTAINER_SELECTOR, V2_BINDING_ATTR } from '../shared/constants.js';
+import { QWIK_ATTR, QWIK_CONTAINER_SELECTOR, V2_BINDING_ATTR } from '@qwik.dev/devtools/kit';
 import type { ExtensionMessage, QwikContainerInfo } from '../shared/types.js';
 import { isExtensionMessage } from '../shared/types.js';
 

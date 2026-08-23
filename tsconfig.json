@@ -37,6 +37,7 @@
   "include": [
     "packages/create-qwik",
     "packages/supabase-auth-helpers-qwik",
+    "packages/qwik-utils/src",
     "starters/apps/*",
     "e2e/qwik-e2e/apps/*",
     "@types/deno.d.ts",

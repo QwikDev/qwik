@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import type { QwikManifest } from '@qwik.dev/core/optimizer';
-import { replWorkerQrlChunks } from './rollup-plugins';
+import { replWorkerQrlChunks } from './rolldown-plugins';
 
 describe('repl worker qrl chunk rewrites', () => {
   test('rewrites worker qrl placeholders to repl client bundle paths', () => {

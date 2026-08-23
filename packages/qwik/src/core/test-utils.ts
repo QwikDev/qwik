@@ -371,6 +371,7 @@ export function createCaptureContainer(
       forwardRefsChunk: null,
       liveRoots: new Map(),
       disposedRoots: new Set(),
+      retiredRoots: new WeakSet(),
     },
     forwardRefs: null,
     getForwardRefs() {

@@ -10,6 +10,7 @@ import type {
 import type { SerializationStrategy } from '@qwik.dev/core/internal';
 import type {
   AbortMessage,
+  CacheControl,
   EnvGetter,
   RequestEvent,
   RequestEventAction,
@@ -795,19 +796,20 @@ export type LoaderOptions = {
   readonly validation?: DataValidator[];
   readonly serializationStrategy?: SerializationStrategy;
   /**
-   * Time in milliseconds after which the loader data is considered stale. The server derives
-   * `Cache-Control: max-age` seconds from this value on loader responses.
+   * Cache-Control for this loader's JSON responses. The browser HTTP cache is the single source of
+   * freshness for loader data: on every client navigation the loaders re-fetch, and this header
+   * decides whether the browser serves the fetch from cache, revalidates, or hits the server.
    *
-   * On the client, the loader's ComputedSignal `expires` is set to this value. If `poll` is true,
-   * the signal auto-refetches when expired. If `poll` is false (default), the data is marked stale
-   * but not auto-refetched.
+   * Accepts any `cacheControl()` value (`'immutable'`, `'no-cache'`, a max-age number, an options
+   * object) or a function of the request event; the function may return `null` to skip the header.
+   * A `Cache-Control` header set inside the loader function wins over this option.
+   *
+   * Defaults to `no-cache` (always revalidate; combine with `eTag` for cheap 304s).
+   *
+   * The literal value `'immutable'` also marks the loader's data as static, so SSG writes a
+   * per-loader JSON file at build time.
    */
-  readonly expires?: number;
-  /**
-   * When true AND `expires` is set, the loader data is automatically refetched when it expires
-   * (polling behavior). When false (default), expired data is marked stale but not auto-refetched.
-   */
-  readonly poll?: boolean;
+  readonly cacheControl?: CacheControl | ((ev: RequestEvent) => CacheControl | null);
   /**
    * Enable ETag-based caching for this loader's JSON responses.
    *
@@ -855,14 +857,6 @@ export type LoaderOptions = {
    * triggers a re-fetch.
    */
   readonly search?: string[];
-  /**
-   * When true (default), the previous value is kept while the loader re-fetches after navigation,
-   * so components see stale data until the new response arrives.
-   *
-   * When false, the value is cleared on re-fetch, causing reads to suspend (show a loading
-   * boundary). This is useful when showing old data during navigation would be confusing.
-   */
-  readonly allowStale?: boolean;
   /**
    * When true (default), the loader is awaited before SSR renders, so its redirect or error can
    * short-circuit the response and its value is ready for synchronous reads (e.g. in the head).
@@ -1027,12 +1021,10 @@ export interface LoaderInternal extends Loader<any> {
   __id: string;
   __validators: DataValidator[] | undefined;
   __serializationStrategy: SerializationStrategy;
-  __expires: number;
-  __poll: boolean;
+  __cacheControl: CacheControl | ((ev: RequestEvent) => CacheControl | null) | undefined;
   __eTag: string | ((ev: RequestEvent) => string | null) | undefined;
   __cacheKey: CacheKeyFn | undefined;
   __search: string[] | undefined;
-  __allowStale: boolean;
   __blockSSR: boolean;
   (): LoaderSignal<unknown>;
 }

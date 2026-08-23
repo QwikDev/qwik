@@ -17,12 +17,9 @@ export interface ComputedSignal<T = unknown> extends ReadonlySignal<T> {
   readonly untrackedLoading: boolean;
   readonly error: Error | undefined;
   readonly untrackedError: Error | undefined;
-  expires: number;
-  poll: boolean;
-  /** @deprecated Use `expires` and `poll` instead. */
-  interval: number;
   promise(): Promise<void>;
   abort(reason?: unknown): void;
+  clear(): void;
   invalidate(info?: unknown): void;
   trigger(): void;
 }
@@ -59,12 +56,7 @@ export interface ComputedOptions<T = unknown> {
   serializationStrategy?: SerializationStrategy;
   concurrency?: number;
   eagerCleanup?: boolean;
-  expires?: number;
-  poll?: boolean;
-  /** @deprecated Use `expires` and `poll` instead. */
-  interval?: number;
   clientOnly?: boolean;
-  allowStale?: boolean;
   timeout?: number;
 }
 

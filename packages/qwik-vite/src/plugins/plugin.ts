@@ -1,4 +1,5 @@
-import type { DevEnvironment, HotUpdateOptions, Plugin, Rollup, ViteDevServer } from 'vite';
+import type { CodeSplittingOptions, ChunkingContext } from 'rolldown';
+import type { DevEnvironment, HotUpdateOptions, Plugin, Rolldown, ViteDevServer } from 'vite';
 import { existsSync } from 'node:fs';
 import { transformModules as transformCompilerModules } from '@qwik.dev/compiler';
 import { createSsrPlanCollector } from './ssr-plan';
@@ -27,7 +28,7 @@ import {
   isServerOnlyModule,
   mightContainServerOnlyImport,
 } from './server-only-modules';
-import { isVirtualId, isWin, parseId } from './vite-utils';
+import { isVirtualId, isWin, parseId, sanitizeChunkGroupName } from './vite-utils';
 import MagicString from 'magic-string';
 import {
   createDevWorkerQrlChunkResolver,
@@ -452,7 +453,10 @@ export function createQwikPlugin(
 
   let optimizer: Optimizer;
   let shouldAddHandlers = false;
-  const buildStart = async (_ctx: Rollup.PluginContext) => {
+  let qwikLoaderChunkRef: string | undefined;
+  let preloaderChunkRef: string | undefined;
+  let handlersChunkRef: string | undefined;
+  const buildStart = async (_ctx: Rolldown.PluginContext) => {
     debug(`buildStart()`, opts.buildMode, opts.scope, opts.target, opts.rootDir, opts.srcDir);
     optimizer = getOptimizer();
     shouldAddHandlers = !devServer;
@@ -469,13 +473,17 @@ export function createQwikPlugin(
     serverTransformedOutputs.clear();
     testResume?.clear();
 
+    qwikLoaderChunkRef = undefined;
+    preloaderChunkRef = undefined;
+    handlersChunkRef = undefined;
     if (opts.target === 'client' && !devServer) {
       // emitFile() is only supported during build, not in Vite serve mode
       const ql = await _ctx.resolve('@qwik.dev/core/qwikloader.js', undefined, {
         skipSelf: true,
       });
       if (ql) {
-        _ctx.emitFile({
+        // The manifest resolves the loader's output name from this ref.
+        qwikLoaderChunkRef = _ctx.emitFile({
           id: ql.id,
           type: 'chunk',
           preserveSignature: 'allow-extension',
@@ -485,7 +493,7 @@ export function createQwikPlugin(
   };
 
   /** Determine if the current module is being processed for a server environment. */
-  const getIsServer = (ctx: Rollup.PluginContext, viteOpts?: { ssr?: boolean }) => {
+  const getIsServer = (ctx: Rolldown.PluginContext, viteOpts?: { ssr?: boolean }) => {
     if (opts.target === 'test' && opts.testTarget === 'csr') {
       return false;
     }
@@ -505,7 +513,7 @@ export function createQwikPlugin(
 
   /** Qwik libraries ship dual flavors; client environments prefer the client entry. */
   const shouldPreferClientFlavor = (
-    ctx: Rollup.PluginContext,
+    ctx: Rolldown.PluginContext,
     resolveOpts: { ssr?: boolean } | undefined,
     id: string
   ) => {
@@ -526,8 +534,8 @@ export function createQwikPlugin(
 
   const preferClientFlavor = (
     id: string,
-    resolution: Promise<Rollup.ResolvedId | null>
-  ): Promise<Rollup.ResolvedId | string | null> => {
+    resolution: Promise<Rolldown.ResolvedId | null>
+  ): Promise<Rolldown.ResolvedId | string | null> => {
     return resolution.then((resolved) => {
       const resolvedPath = resolved?.id.split('?')[0];
       let clientFlavor: string | null = null;
@@ -561,7 +569,7 @@ export function createQwikPlugin(
     return normalizedImportId.includes('.server') || /(^|\/)server(\/|$)/.test(normalizedImportId);
   };
 
-  const getImportSpecifiers = (ctx: Rollup.PluginContext, code: string): string[] => {
+  const getImportSpecifiers = (ctx: Rolldown.PluginContext, code: string): string[] => {
     const imports = new Set<string>();
 
     const addSource = (source: any) => {
@@ -609,7 +617,7 @@ export function createQwikPlugin(
   };
 
   const assertClientTransformCanImport = async (
-    ctx: Rollup.PluginContext,
+    ctx: Rolldown.PluginContext,
     code: string,
     resolveImporterId: string,
     importerId = resolveImporterId
@@ -630,7 +638,7 @@ export function createQwikPlugin(
   };
 
   const assertClientTransformOutputCanImport = async (
-    ctx: Rollup.PluginContext,
+    ctx: Rolldown.PluginContext,
     output: TransformOutput,
     srcDir: string,
     importerId?: string,
@@ -658,7 +666,7 @@ export function createQwikPlugin(
    * `load()` phase ensure it is built first.
    */
   const resolveId = async (
-    ctx: Rollup.PluginContext,
+    ctx: Rolldown.PluginContext,
     id: string,
     importerId: string | undefined,
     resolveOpts?: QwikResolveIdOptions
@@ -720,7 +728,7 @@ export function createQwikPlugin(
     const parsedId = parseId(id);
     const pathId = normalizePath(parsedId.pathId);
 
-    let result: Rollup.ResolveIdResult;
+    let result: Rolldown.ResolveIdResult;
 
     /** At this point, the request has been normalized. */
     if (!(devServer && resolveOpts?.scan)) {
@@ -781,7 +789,7 @@ export function createQwikPlugin(
         skipSelf: true,
       });
       if (preloader) {
-        ctx.emitFile({
+        preloaderChunkRef = ctx.emitFile({
           id: preloader.id,
           type: 'chunk',
           preserveSignature: 'allow-extension',
@@ -805,7 +813,7 @@ export function createQwikPlugin(
         if (!key) {
           throw new Error(`Failed to resolve ${handlersId}`);
         }
-        ctx.emitFile({
+        handlersChunkRef = ctx.emitFile({
           id: key.id,
           type: 'chunk',
           preserveSignature: 'allow-extension',
@@ -902,10 +910,10 @@ export function createQwikPlugin(
 
   let loadCount = 0;
   const load = async (
-    ctx: Rollup.PluginContext,
+    ctx: Rolldown.PluginContext,
     id: string,
     loadOpts?: Parameters<Extract<Plugin['load'], Function>>[1]
-  ): Promise<Rollup.LoadResult> => {
+  ): Promise<Rolldown.LoadResult> => {
     if (id === '\0editor') {
       // This doesn't get used, but we need to return something
       return '"opening in editor"';
@@ -1036,11 +1044,11 @@ export function createQwikPlugin(
   let theManifest: string | null | undefined;
   let transformCount = 0;
   const transform = async function (
-    ctx: Rollup.PluginContext,
+    ctx: Rolldown.PluginContext,
     code: string,
     id: string,
     transformOpts = {} as Parameters<Extract<Plugin['transform'], Function>>[2]
-  ): Promise<Rollup.SourceDescription | undefined> {
+  ): Promise<Rolldown.SourceDescription | undefined> {
     // `.qwik.jsx` virtual modules (image ?jsx imports) carry real JSX and must be compiled
     if (isVirtualId(id) && !parseId(id).pathId.endsWith('.qwik.jsx')) {
       return;
@@ -1305,7 +1313,12 @@ export function createQwikPlugin(
     canonPath: (p: string) => string;
   };
 
-  const createOutputAnalyzer = (rollupBundle: Rollup.OutputBundle) => {
+  const createOutputAnalyzer = (
+    rollupBundle: Rolldown.OutputBundle,
+    qwikLoaderFileName?: string,
+    preloaderFileName?: string,
+    handlersFileName?: string
+  ) => {
     const injections: GlobalInjections[] = [];
 
     const outputAnalyzer: OutputAnalyzer = {
@@ -1333,7 +1346,10 @@ export function createQwikPlugin(
         rollupBundle,
         opts,
         debug,
-        canonPath
+        canonPath,
+        qwikLoaderFileName,
+        preloaderFileName,
+        handlersFileName
       );
       if (extra) {
         Object.assign(manifest, extra);
@@ -1501,56 +1517,65 @@ export const isDev = ${JSON.stringify(isDev)};
     }
   }
 
-  const manualChunks: Rollup.ManualChunksOption = (id: string, { getModuleInfo }) => {
-    if (opts.target === 'client') {
-      if (
-        // The preloader has to stay in a separate chunk if it's a client build
-        id.endsWith('@qwik.dev/core/build') ||
-        /[/\\](core|qwik)[/\\]dist[/\\]preloader\.[cm]js$/.test(id)
-      ) {
-        return 'qwik-preloader';
-      } else if (
-        // likewise, core and handlers have to be in the same chunk so there's no import waterfall
-        /[/\\](core|qwik)[/\\](handlers|dist[/\\]core(\.prod|\.min)?)\.[cm]js$/.test(id)
-      ) {
-        return 'qwik-core';
-      } else if (/[/\\](core|qwik)[/\\]dist[/\\]qwikloader\.js$/.test(id)) {
-        return 'qwik-loader';
-      }
-    }
+  // Eager contexts stay with their parent, not a segment chunk.
+  const EAGER_CTX_NAMES = new Set(['qwikify$', 'useVisibleTask$', 'useComputed$']);
 
-    const module = getModuleInfo(id);
-    if (module) {
-      const segment = module.meta.segment as SegmentAnalysis | undefined;
-      if (segment) {
-        // TODO: Remove useComputed$ once we don't need to eagerly load them anymore
-        if (['qwikify$', 'useVisibleTask$', 'useComputed$'].includes(segment.ctxName)) {
+  /** Client-only; the server bundle needs no Qwik chunking. */
+  const codeSplitting = (): CodeSplittingOptions => ({
+    groups: [
+      // core and handlers share a chunk: no import waterfall
+      {
+        name: 'qwik-core',
+        test: /[/\\](core|qwik)[/\\](handlers|dist[/\\]core(\.prod|\.min)?)\.[cm]js$/,
+        includeDependenciesRecursively: false,
+      },
+      {
+        name: 'qwik-preloader',
+        test: /(?:@qwik\.dev\/core\/build|[/\\](?:core|qwik)[/\\]dist[/\\]preloader\.[cm]js)$/,
+        includeDependenciesRecursively: false,
+      },
+      {
+        includeDependenciesRecursively: false,
+        name: (id: string, ctx: ChunkingContext) => {
+          const module = ctx?.getModuleInfo(id);
+          if (module) {
+            const segment = module.meta.segment as SegmentAnalysis | undefined;
+            if (segment) {
+              // TODO: Remove useComputed$ once we don't need to eagerly load them anymore
+              if (EAGER_CTX_NAMES.has(segment.ctxName)) {
+                return null;
+              }
+              const { hash } = segment;
+              // Group segments by entry or Qwik Insights hash.
+              const chunkName =
+                (opts.entryStrategy as SmartEntryStrategy).manual?.[hash] || segment.entry;
+              if (chunkName) {
+                return sanitizeChunkGroupName(chunkName);
+              }
+            }
+          }
+          // Non-qwik code: let the bundler decide.
           return null;
-        }
-        const { hash } = segment;
-
-        // We use the manual entry strategy to group segments together based on their common entry or Qwik Insights provided hash
-        const chunkName =
-          (opts.entryStrategy as SmartEntryStrategy).manual?.[hash] || segment.entry;
-        if (chunkName) {
-          // we group related segments together based on their common entry or Qwik Insights provided hash
-          // This not only applies to source files, but also qwik libraries files that are imported through node_modules
-          return chunkName;
-        }
-      }
-    }
-
-    // The rest is non-qwik code. We let rollup handle it.
-    return null;
-  };
+        },
+      },
+    ],
+  });
 
   async function generateManifest(
-    ctx: Rollup.PluginContext,
-    rollupBundle: Rollup.OutputBundle,
+    ctx: Rolldown.PluginContext,
+    rollupBundle: Rolldown.OutputBundle,
     bundleGraphAdders?: Set<BundleGraphAdder>,
     manifestExtra?: Partial<QwikManifest>
   ) {
-    const outputAnalyzer = createOutputAnalyzer(rollupBundle);
+    const qwikLoaderFileName = qwikLoaderChunkRef ? ctx.getFileName(qwikLoaderChunkRef) : undefined;
+    const preloaderFileName = preloaderChunkRef ? ctx.getFileName(preloaderChunkRef) : undefined;
+    const handlersFileName = handlersChunkRef ? ctx.getFileName(handlersChunkRef) : undefined;
+    const outputAnalyzer = createOutputAnalyzer(
+      rollupBundle,
+      qwikLoaderFileName,
+      preloaderFileName,
+      handlersFileName
+    );
     const manifest = await outputAnalyzer.generateManifest(manifestExtra);
 
     manifest.platform = {
@@ -1619,7 +1644,7 @@ export const isDev = ${JSON.stringify(isDev)};
     setSourceMapSupport,
     configureServer,
     hotUpdate,
-    manualChunks,
+    codeSplitting,
     generateManifest,
   };
 }

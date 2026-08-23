@@ -232,6 +232,16 @@ cleanup(): void;
 
 void
 
+<h2 id="computedsignal-clear">clear</h2>
+
+```typescript
+clear(): void;
+```
+
+**Returns:**
+
+void
+
 <h2 id="component">Component</h2>
 
 Type representing the Qwik component.
@@ -433,21 +443,6 @@ Description
 </th></tr></thead>
 <tbody><tr><td>
 
-allowStale?
-
-</td><td>
-
-</td><td>
-
-boolean
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
 clientOnly?
 
 </td><td>
@@ -493,21 +488,6 @@ _(Optional)_
 </td></tr>
 <tr><td>
 
-expires?
-
-</td><td>
-
-</td><td>
-
-number
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
 initial?
 
 </td><td>
@@ -515,36 +495,6 @@ initial?
 </td><td>
 
 T \| (() =&gt; T)
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-interval?
-
-</td><td>
-
-</td><td>
-
-number
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-<tr><td>
-
-poll?
-
-</td><td>
-
-</td><td>
-
-boolean
 
 </td><td>
 
@@ -627,32 +577,6 @@ Error \| undefined
 </td></tr>
 <tr><td>
 
-expires
-
-</td><td>
-
-</td><td>
-
-number
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-interval
-
-</td><td>
-
-</td><td>
-
-number
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
 loading
 
 </td><td>
@@ -673,19 +597,6 @@ pending
 </td><td>
 
 `readonly`
-
-</td><td>
-
-boolean
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-poll
-
-</td><td>
 
 </td><td>
 
@@ -753,6 +664,13 @@ Description
 <tbody><tr><td>
 
 [abort(reason)](#computedsignal-abort)
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+[clear()](#computedsignal-clear)
 
 </td><td>
 

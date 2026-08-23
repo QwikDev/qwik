@@ -1,48 +1,27 @@
-import { $, component$, type Signal, useSignal } from '@qwik.dev/core';
-import { Link, routeLoader$, useContent, useLocation, type ContentMenu } from '@qwik.dev/router';
+import {
+  $,
+  component$,
+  createContextId,
+  type Signal,
+  useContext,
+  useContextProvider,
+  useSignal,
+  useVisibleTask$,
+} from '@qwik.dev/core';
+import { Link, useContent, useLocation, type ContentMenu } from '@qwik.dev/router';
 import { lucide, tree } from '@qds.dev/ui';
+import { maxTs, updated } from '@docs-updated';
 
-export const useMarkdownItems = routeLoader$(
-  async () => {
-    const rawData = await Promise.all(
-      Object.entries(import.meta.glob<{ frontmatter?: MDX }>('../../routes/**/*.{md,mdx}')).map(
-        async ([k, v]) => {
-          return [
-            k
-              .replace('../../routes', '')
-              .replace('(qwikrouter)/', '')
-              .replace('(qwik)/', '')
-              .replaceAll(/([()])/g, '')
-              .replace('index.mdx', '')
-              .replace('index.md', ''),
-            await v(),
-          ] as const;
-        }
-      )
-    );
-    const markdownItems: MarkdownItems = {};
-    rawData.map(([k, v]) => {
-      if (v.frontmatter?.updated_at) {
-        markdownItems[k] = {
-          title: v.frontmatter.title,
-          contributors: v.frontmatter.contributors,
-          created_at: v.frontmatter.created_at,
-          updated_at: v.frontmatter.updated_at,
-        };
-      }
-    });
-    return markdownItems;
-  },
-  { expires: 0 }
-);
+const SEEN_STORAGE_KEY = 'docs-updated-seen';
 
-type MarkdownItems = Record<string, MDX>;
-type MDX = {
-  title: string;
-  contributors: string[];
-  created_at: string;
-  updated_at: string;
+/** Compare hrefs ignoring trailing slash so map keys match nav hrefs and the router pathname. */
+const normalizePath = (path: string) => {
+  const trimmed = path.replace(/\/+$/, '');
+  return trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
 };
+
+/** Doc pages updated since the visitor's last visit and not yet opened. */
+const UpdatedPathsContext = createContextId<Signal<Record<string, true>>>('docs-updated-paths');
 
 export const Sidebar = component$((props: { mobileOpen: Signal<boolean> }) => {
   const { menu } = useContent();
@@ -53,6 +32,37 @@ export const Sidebar = component$((props: { mobileOpen: Signal<boolean> }) => {
       props.mobileOpen.value = false;
     }
   });
+
+  const updatedPaths = useSignal<Record<string, true>>({});
+  useContextProvider(UpdatedPathsContext, updatedPaths);
+  // `updated_at` is monotonic, so we store only `{ lastTs, pending }`: pages changed past the last
+  // caught-up timestamp, draining as they're visited. A first-ever visit seeds `lastTs` to a month
+  // ago, so it still flags recently-updated pages.
+  useVisibleTask$(
+    ({ track }) => {
+      const current = normalizePath(track(() => url.pathname));
+      const stored = localStorage.getItem(SEEN_STORAGE_KEY);
+      const monthAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+      const state: { lastTs: string; pending: string[] } = stored
+        ? JSON.parse(stored)
+        : { lastTs: monthAgo, pending: [] };
+      if (maxTs > state.lastTs) {
+        for (const path in updated) {
+          if (updated[path] > state.lastTs && !state.pending.includes(path)) {
+            state.pending.push(path);
+          }
+        }
+        state.lastTs = maxTs;
+      }
+      const openedIndex = state.pending.indexOf(current);
+      if (openedIndex !== -1) {
+        state.pending.splice(openedIndex, 1);
+      }
+      localStorage.setItem(SEEN_STORAGE_KEY, JSON.stringify(state));
+      updatedPaths.value = Object.fromEntries(state.pending.map((path) => [path, true]));
+    },
+    { strategy: 'document-idle' }
+  );
 
   const introSection = menu?.items?.[0];
   const guidesSections = menu?.items?.slice(1);
@@ -139,6 +149,19 @@ export const Sidebar = component$((props: { mobileOpen: Signal<boolean> }) => {
   );
 });
 
+const UpdatedDot = component$<{ href: string | undefined }>((props) => {
+  const updatedPaths = useContext(UpdatedPathsContext);
+  if (!props.href || !updatedPaths.value[normalizePath(props.href)]) {
+    return null;
+  }
+  return (
+    <span
+      class="ml-auto size-2 shrink-0 rounded-full bg-standalone-accent"
+      title="Updated since your last visit"
+    />
+  );
+});
+
 const IntroTreeItem = component$((props: { item: ContentMenu; pathname: string }) => {
   const isActive = props.pathname === props.item.href;
 
@@ -157,6 +180,7 @@ const IntroTreeItem = component$((props: { item: ContentMenu; pathname: string }
         >
           <IntroItemIcon text={props.item.text} />
           <span>{props.item.text}</span>
+          <UpdatedDot href={props.item.href} />
         </Link>
       </tree.itemlabel>
     </tree.item>
@@ -208,6 +232,7 @@ const GuidesTreeNode = component$(
                     ]}
                   >
                     <span class="truncate">{item.text}</span>
+                    <UpdatedDot href={item.href} />
                   </Link>
                 </tree.itemlabel>
               </tree.item>
@@ -254,6 +279,7 @@ const SubTreeNode = component$((props: { item: ContentMenu; pathname: string }) 
                   ]}
                 >
                   <span class="truncate">{child.text}</span>
+                  <UpdatedDot href={child.href} />
                 </Link>
               </tree.itemlabel>
             </tree.item>

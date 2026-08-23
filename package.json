@@ -1,6 +1,6 @@
 {
   "name": "qwik-monorepo",
-  "version": "0.0.0-read-qwik-package-json",
+  "version": "workspace:*",
   "author": "Qwik Team",
   "comments": {
     "01": "devDependencies includes reference to @qwik.dev/core: workspace:*. This is needed or e2e tests will fail",
@@ -11,7 +11,7 @@
     "syncpack": {
       "versionGroups": [
         {
-          "label": "Be lenient in vite versions for prod. v4 is broken, v5 is good",
+          "label": "Vite 8 only",
           "dependencyTypes": [
             "prod",
             "peer"
@@ -19,7 +19,7 @@
           "dependencies": [
             "vite"
           ],
-          "pinVersion": ">=6 <9"
+          "pinVersion": ">=8 <9"
         },
         {
           "label": "compiler and optimizer need exact workspace versions",
@@ -34,23 +34,13 @@
           "pinVersion": "workspace:*"
         },
         {
-          "label": "use workspace protocol for local packages and allow patch versions (used in e.g. qwik-react)",
+          "label": "use workspace protocol for qwik packages, only allow strict versions",
           "dependencies": [
             "$LOCAL"
           ],
           "dependencyTypes": [
-            "!local",
-            "!dev"
-          ],
-          "pinVersion": "workspace:^"
-        },
-        {
-          "label": "dev: use workspace protocol for local packages - split from prod and peer version group",
-          "dependencies": [
-            "$LOCAL"
-          ],
-          "dependencyTypes": [
-            "dev"
+            "dev",
+            "peer"
           ],
           "pinVersion": "workspace:*"
         },
@@ -132,7 +122,7 @@
     "@types/semver": "7.7.1",
     "@types/tmp": "0.2.6",
     "@types/which-pm-runs": "1.0.2",
-    "@vitejs/plugin-basic-ssl": "2.1.4",
+    "@vitejs/plugin-basic-ssl": "2.3.0",
     "@vitest/coverage-v8": "4.0.18",
     "all-contributors-cli": "6.26.1",
     "brotli": "1.3.3",
@@ -140,7 +130,7 @@
     "create-qwik": "workspace:*",
     "csstype": "3.2.3",
     "dotenv": "17.2.3",
-    "esbuild": "0.28.1",
+    "esbuild": "0.28.2",
     "eslint": "10.0.3",
     "eslint-plugin-import": "2.32.0",
     "eslint-plugin-no-only-tests": "3.3.0",
@@ -164,7 +154,7 @@
     "simple-git-hooks": "2.13.1",
     "snoop": "1.0.4",
     "source-map": "0.7.6",
-    "svgo": "3.3.3",
+    "svgo": "3.3.4",
     "syncpack": "13.0.4",
     "terser": "5.46.0",
     "tmp": "0.2.7",
@@ -173,9 +163,9 @@
     "typescript": "5.9.3",
     "typescript-eslint": "8.56.1",
     "vfile": "6.0.3",
-    "vite": "7.3.5",
+    "vite": "8.2.1",
     "vite-imagetools": "10.0.0",
-    "vite-plugin-dts": "4.5.4",
+    "vite-plugin-dts": "5.0.3",
     "vite-tsconfig-paths": "6.1.1",
     "vitest": "4.1.10",
     "watchlist": "0.3.1",
@@ -205,7 +195,7 @@
     "build.core.dev": "node --require ./scripts/runBefore.ts scripts/index.ts --qwik --qwikworker --optimizer --insights --qwikrouter --platform-binding --dev",
     "build.devtools": "node --require ./scripts/runBefore.ts scripts/index.ts --devtools --browser-extension",
     "build.eslint": "node --require ./scripts/runBefore.ts scripts/index.ts --eslint",
-    "build.full": "node --require ./scripts/runBefore.ts scripts/index.ts --tsc --tsc-docs --qwik --optimizer --insights --supabaseauthhelpers --api --eslint --qwikrouter --qwikworker --qwikreact --cli --platform-binding --wasm",
+    "build.full": "node --require ./scripts/runBefore.ts scripts/index.ts --tsc --tsc-docs --qwik --optimizer --insights --supabaseauthhelpers --api --eslint --qwikrouter --qwikworker --qwikreact --qwikutils --cli --platform-binding --wasm",
     "build.local": "node --require ./scripts/runBefore.ts scripts/index.ts --tsc --tsc-docs --qwik --optimizer --insights --supabaseauthhelpers --api --eslint --qwikrouter --qwikworker --qwikreact --cli --platform-binding-wasm-copy",
     "build.only_javascript": "node --require ./scripts/runBefore.ts scripts/index.ts --tsc --qwik --qwikworker --api",
     "build.packages.docs": "pnpm -C ./packages/docs/ run build",
@@ -216,7 +206,7 @@
     "build.qwik-router": "node --require ./scripts/runBefore.ts scripts/index.ts --tsc --qwikrouter",
     "build.router": "node --require ./scripts/runBefore.ts scripts/index.ts --tsc --qwikrouter --api",
     "build.validate": "node --require ./scripts/runBefore.ts scripts/index.ts --tsc --qwik --qwikworker --api --eslint --qwikrouter --platform-binding --wasm --validate",
-    "build.vite": "node --require ./scripts/runBefore.ts scripts/index.ts --tsc --qwik --qwikworker --insights --api --qwikrouter --eslint --platform-binding-wasm-copy",
+    "build.vite": "node --require ./scripts/runBefore.ts scripts/index.ts --tsc --qwik --qwikworker --optimizer --insights --api --qwikrouter --eslint --platform-binding-wasm-copy",
     "build.wasm": "node --require ./scripts/runBefore.ts scripts/index.ts --wasm",
     "build.watch": "node --require ./scripts/runBefore.ts scripts/index.ts --qwik --qwikworker --qwikrouter --watch --dev --platform-binding",
     "change": "changeset",
@@ -246,9 +236,9 @@
     "prepare": "simple-git-hooks",
     "prettier.fix": "prettier --cache --write .",
     "qwik-push-build-repos": "node --require ./scripts/runBefore.ts ./scripts/qwik-push-build-repos.ts",
-    "release": "changeset publish",
+    "release": "node scripts/changeset-release.mjs",
     "release.fixup-package-json": "syncpack fix-mismatches --config syncpack-release-conf.json",
-    "release.pkg-pr-new": "pnpm dlx pkg-pr-new@^0.0.9 publish --pnpm ./packages/qwik ./packages/qwik-router ./packages/eslint-plugin-qwik ./packages/create-qwik ./packages/optimizer ./packages/compiler ./packages/devtools",
+    "release.pkg-pr-new": "pnpm dlx pkg-pr-new@^0.0.9 publish --pnpm ./packages/qwik ./packages/qwik-router ./packages/qwik-utils ./packages/eslint-plugin-qwik ./packages/create-qwik ./packages/optimizer ./packages/compiler ./packages/devtools",
     "release.prepare": "pnpm build --prepare-release",
     "serve": "node --require ./scripts/runBefore.ts --inspect --conditions=development e2e/qwik-e2e/dev-server.ts 3300",
     "serve.native": "node --require ./scripts/runBefore.ts e2e/qwik-e2e/native-serve.ts",

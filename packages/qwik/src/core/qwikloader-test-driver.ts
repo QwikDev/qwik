@@ -14,6 +14,7 @@ export interface QwikLoaderTestDriver {
 }
 
 const drivers = new WeakMap<Document, QwikLoaderTestDriver>();
+const queueTasksDeclaration = /\b(?:const|let|var)\s+queueTasks\s*=\s*\(tasks\)\s*=>\s*\{/;
 
 export async function bootQwikLoader(
   document: Document,
@@ -143,7 +144,7 @@ function executeQwikEventScripts(document: Document, win: Window): void {
 
 async function getQwikLoaderSource(document: Document): Promise<string> {
   const inlineLoader = document.getElementById('qwikloader')?.textContent?.trim();
-  if (inlineLoader?.includes('const queueTasks = (tasks) => {')) {
+  if (inlineLoader && queueTasksDeclaration.test(inlineLoader)) {
     return inlineLoader;
   }
   const debugLoaderPath = import.meta.url.includes('/dist/testing/')
@@ -175,8 +176,8 @@ function runQwikLoader(
 
   const testSource = source
     .replace(
-      'const queueTasks = (tasks) => {',
-      'const queueTasks = (tasks) => { window.__qwikTestGetQueuedTasks = () => queuedTasks;'
+      queueTasksDeclaration,
+      (declaration) => `${declaration} window.__qwikTestGetQueuedTasks = () => queuedTasks;`
     )
     .replace(/\bimport\s*\(/g, '__import(');
   const DominoCustomEvent = function <T = unknown>(type: string, init?: CustomEventInit<T>) {
@@ -194,6 +195,7 @@ function runQwikLoader(
     'document',
     'CustomEvent',
     'IntersectionObserver',
+    'CSS',
     'performance',
     '__import',
     testSource
@@ -202,6 +204,7 @@ function runQwikLoader(
     document,
     DominoCustomEvent,
     createIntersectionObserverStub(),
+    { escape: (value: string) => value.replaceAll(':', '\\:') },
     { now: () => 1 },
     moduleImport
   );

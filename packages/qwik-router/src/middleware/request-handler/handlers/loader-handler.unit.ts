@@ -28,7 +28,7 @@ describe('loaderHandler', () => {
     };
   }
 
-  it('uses expires values for private Cache-Control and varies on full path', async () => {
+  it('defaults to no-cache Cache-Control and varies on full path', async () => {
     const requestEv = createRequestEv();
     const loader = {
       __id: 'loader-id',
@@ -36,7 +36,6 @@ describe('loaderHandler', () => {
         call: vi.fn(async () => 'loader-value'),
       },
       __validators: undefined,
-      __expires: 1500,
       __eTag: undefined,
       __cacheKey: undefined,
       __search: undefined,
@@ -44,8 +43,94 @@ describe('loaderHandler', () => {
 
     await loaderHandler([loader as any])(requestEv as any);
 
-    expect(requestEv.cacheControl).toHaveBeenCalledWith({ maxAge: 2, private: true });
+    expect(requestEv.cacheControl).toHaveBeenCalledWith('no-cache');
     expect(requestEv.headers.get('Vary')).toBe(FULLPATH_HEADER);
+    expect(requestEv.send).toHaveBeenCalledWith(200, expect.any(String));
+  });
+
+  it('sends the configured cacheControl value', async () => {
+    const requestEv = createRequestEv();
+    const loader = {
+      __id: 'loader-id',
+      __qrl: {
+        call: vi.fn(async () => 'loader-value'),
+      },
+      __validators: undefined,
+      __cacheControl: 'immutable',
+      __eTag: undefined,
+      __cacheKey: undefined,
+      __search: undefined,
+    };
+
+    await loaderHandler([loader as any])(requestEv as any);
+
+    expect(requestEv.cacheControl).toHaveBeenCalledWith('immutable');
+    expect(requestEv.send).toHaveBeenCalledWith(200, expect.any(String));
+  });
+
+  it('resolves function-form cacheControl with the loader request event', async () => {
+    const requestEv = createRequestEv();
+    const cacheControl = vi.fn((ev: any) => ({ maxAge: ev.url.searchParams.has('q') ? 60 : 0 }));
+    const loader = {
+      __id: 'loader-id',
+      __qrl: {
+        call: vi.fn(async () => 'loader-value'),
+      },
+      __validators: undefined,
+      __cacheControl: cacheControl,
+      __eTag: undefined,
+      __cacheKey: undefined,
+      __search: undefined,
+    };
+
+    await loaderHandler([loader as any])(requestEv as any);
+
+    expect(cacheControl).toHaveBeenCalledTimes(1);
+    expect(requestEv.cacheControl).toHaveBeenCalledWith({ maxAge: 60 });
+    expect(requestEv.send).toHaveBeenCalledWith(200, expect.any(String));
+  });
+
+  it('skips the Cache-Control header when function-form cacheControl returns null', async () => {
+    const requestEv = createRequestEv();
+    const loader = {
+      __id: 'loader-id',
+      __qrl: {
+        call: vi.fn(async () => 'loader-value'),
+      },
+      __validators: undefined,
+      __cacheControl: () => null,
+      __eTag: undefined,
+      __cacheKey: undefined,
+      __search: undefined,
+    };
+
+    await loaderHandler([loader as any])(requestEv as any);
+
+    expect(requestEv.cacheControl).not.toHaveBeenCalled();
+    expect(requestEv.send).toHaveBeenCalledWith(200, expect.any(String));
+  });
+
+  it('lets a Cache-Control header set by the loader win over the option', async () => {
+    const requestEv = createRequestEv();
+    const loader = {
+      __id: 'loader-id',
+      __qrl: {
+        call: vi.fn(async () => {
+          requestEv.headers.set('Cache-Control', 'max-age=123');
+          return 'loader-value';
+        }),
+      },
+      __validators: undefined,
+      __cacheControl: 'no-cache',
+      __eTag: undefined,
+      __cacheKey: undefined,
+      __search: undefined,
+    };
+
+    await loaderHandler([loader as any])(requestEv as any);
+
+    expect(requestEv.cacheControl).not.toHaveBeenCalled();
+    expect(requestEv.headers.get('Cache-Control')).toBe('max-age=123');
     expect(requestEv.send).toHaveBeenCalledWith(200, expect.any(String));
   });
 
@@ -58,7 +143,6 @@ describe('loaderHandler', () => {
         call: vi.fn(async () => 'loader-value'),
       },
       __validators: undefined,
-      __expires: undefined,
       __eTag: '  W/"a b\tc"  ',
       __cacheKey: cacheKey,
       __search: undefined,
@@ -82,7 +166,6 @@ describe('loaderHandler', () => {
         call: vi.fn(async () => 'loader-value'),
       },
       __validators: undefined,
-      __expires: undefined,
       __eTag: undefined,
       __cacheKey: cacheKey,
       __search: ['page', 'q'],
@@ -113,7 +196,6 @@ describe('loaderHandler', () => {
         })),
       },
       __validators: undefined,
-      __expires: undefined,
       __eTag: undefined,
       __cacheKey: undefined,
       __search: ['q'],
@@ -140,7 +222,6 @@ describe('loaderHandler', () => {
         getHash: vi.fn(() => 'guard-loader'),
       },
       __validators: undefined,
-      __expires: undefined,
       __eTag: undefined,
       __cacheKey: undefined,
       __search: undefined,
@@ -153,7 +234,6 @@ describe('loaderHandler', () => {
         getHash: vi.fn(() => 'loader-id'),
       },
       __validators: undefined,
-      __expires: undefined,
       __eTag: undefined,
       __cacheKey: undefined,
       __search: undefined,
@@ -188,7 +268,6 @@ describe('loaderHandler', () => {
         call: vi.fn(async () => 'loader-value'),
       },
       __validators: undefined,
-      __expires: undefined,
       __eTag: '""',
       __cacheKey: cacheKey,
       __search: undefined,

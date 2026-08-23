@@ -22,6 +22,23 @@ describe('SSR event attributes', () => {
     });
   });
 
+  it('wraps only the handler whose captures were moved', () => {
+    const serializationCtx = createSerializationContext(
+      null,
+      () => '',
+      () => {},
+      new WeakMap()
+    );
+    const direct = createQRL('./listener.js', 'direct', () => {}, null, null);
+    const moved = createQRL('./listener.js', 'moved', () => {}, null, null).m();
+
+    expect(createSsrEventAttr(serializationCtx, 'q-e:click', [direct, moved], true)).toEqual({
+      type: 'event-attr',
+      name: 'q-e:click',
+      valueParts: ['listener.js#direct|mock-chunk#_run#', { type: 'root-ref', localId: 0 }],
+    });
+  });
+
   it('keeps capture references typed until ordered output commit', () => {
     const serializationCtx = createSerializationContext(
       null,

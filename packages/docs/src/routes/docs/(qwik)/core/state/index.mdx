@@ -298,7 +298,7 @@ const user = useComputed$(async ({ track }) => {
 
 While the async work is running, the signal is pending. Read `.pending` for the state, and `.value` or `.error` for the result. If you read `.value` before it is ready, that part of the UI can wait and a [`<Suspense>`](/docs/labs/suspense/index.mdx) boundary can show fallback UI.
 
-The async work can run during SSR and in the browser. `useComputed$()` also supports polling for values that need to stay up to date.
+The async work can run during SSR and in the browser. For values that need to stay up to date, poll the signal with `usePoll` from `@qwik.dev/utils`.
 
 <Note title="Migrating from useAsync$">
 `useAsync$()`, `createAsync$()`, and the `AsyncSignal` type are deprecated. Use `useComputed$()`, `createComputed$()`, and `ComputedSignal` instead. Synchronous reads before the first `await` are now tracked automatically; `track()` is still provided on the context argument for reads after an `await`.
@@ -413,7 +413,7 @@ export default component$(() => {
 </LongNote>
 
 <LongNote title="API reference">
-Most apps only need `.value`, `.pending`, and `.error`. The full API also includes options for cleanup, polling, cancellation, timeouts, and manual invalidation.
+Most apps only need `.value`, `.pending`, and `.error`. The full API also includes options for cleanup, cancellation, timeouts, and manual invalidation.
 
 ```tsx
 function useComputed$<T>(
@@ -428,8 +428,6 @@ function useComputed$<T>(
     initial?: T | (() => T);
     concurrency?: number;
     eagerCleanup?: boolean;
-    expires?: number;
-    poll?: boolean;
     clientOnly?: boolean;
     timeout?: number;
   }
@@ -449,8 +447,6 @@ Options:
 - `initial`: value to use before the async function resolves.
 - `concurrency`: number of computations that can run at the same time. Defaults to `1`; `0` means no limit.
 - `eagerCleanup`: cleanup as soon as nothing is reading the signal.
-- `expires`: time in milliseconds after which the value is stale.
-- `poll`: when `expires` is set, re-run automatically once stale. Defaults to `true`.
 - `clientOnly`: skip SSR and only run in the browser.
 - `timeout`: abort if the function takes longer than this many milliseconds.
 
@@ -461,21 +457,22 @@ interface ComputedSignal<T> {
   value: T;
   pending: boolean;
   error: Error | undefined;
-  expires: number;
-  poll: boolean;
   promise(): Promise<void>;
   abort(reason?: any): void;
   invalidate(info?: unknown): void;
+  clear(): void;
 }
 ```
 
 - `value`: the resolved value, or `initial` if provided.
 - `pending`: whether the async function is running.
 - `error`: the error if the async function failed.
-- `expires` / `poll`: current staleness interval and whether it re-runs automatically.
 - `promise()`: starts the async function if needed and waits for it to finish.
 - `abort()`: aborts the current async function.
-- `invalidate()`: marks the signal to run again.
+- `invalidate()`: marks the signal to run again; readers keep seeing the previous value while it recomputes.
+- `clear()`: like `invalidate()`, but drops the value so readers suspend until the new value is ready.
+
+To re-run the signal on an interval, use `usePoll(signal, ms)` from `@qwik.dev/utils`. It starts polling once the document is idle.
 </LongNote>
 
 ## Sharing state

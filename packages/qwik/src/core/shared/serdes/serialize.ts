@@ -1010,9 +1010,6 @@ function serializeAsyncSignalOptions(signal: Computed<unknown>): Record<string, 
   if (signal.options?.clientOnly) {
     options.clientOnly = true;
   }
-  if (signal.options?.allowStale === false) {
-    options.allowStale = false;
-  }
   if (signal.options?.timeout) {
     options.timeout = signal.options.timeout;
   }
@@ -1024,12 +1021,6 @@ function serializeAsyncSignalOptions(signal: Computed<unknown>): Record<string, 
   }
   if (signal.options?.serializationStrategy) {
     options.serializationStrategy = signal.options.serializationStrategy;
-  }
-  if (signal.expires) {
-    options.expires = signal.expires;
-  }
-  if (!signal.poll) {
-    options.poll = false;
   }
   return Object.keys(options).length === 0 ? null : options;
 }

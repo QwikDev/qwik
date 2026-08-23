@@ -68,6 +68,9 @@ function bootLoader(document: any, window: any) {
 
     constructor(_cb: Function) {}
   };
+  const CSSImpl = {
+    escape: (value: string) => value.replaceAll(':', '\\:'),
+  };
 
   // eslint-disable-next-line no-new-func
   new Function(
@@ -75,6 +78,7 @@ function bootLoader(document: any, window: any) {
     'document',
     'CustomEvent',
     'IntersectionObserver',
+    'CSS',
     'performance',
     '__import__',
     loaderScript
@@ -83,6 +87,7 @@ function bootLoader(document: any, window: any) {
     document,
     CustomEventImpl,
     IntersectionObserverImpl,
+    CSSImpl,
     { now: () => 1 },
     (href: string) => import(/* @vite-ignore */ href)
   );
@@ -231,6 +236,17 @@ describe('qwikloader behavior', () => {
       capture: true,
       passive: true,
     });
+  });
+
+  test('#8901 escapes colons in document event selectors', () => {
+    const { doc } = createLoaderEnvironment(['d:qwik:foo']);
+    const handler = vi.fn();
+    doc.querySelectorAll.mockReturnValue([createMockElement(null, {}, handler, 'd:qwik:foo')]);
+
+    doc.dispatchEvent(createMockEvent(doc, 'qwik:foo'));
+
+    expect(doc.querySelectorAll).toHaveBeenCalledWith('[q-d\\:qwik\\:foo]');
+    expect(handler).toHaveBeenCalledOnce();
   });
 
   test('dispatches capture handlers before bubbling handlers without double-running', async () => {

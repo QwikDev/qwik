@@ -39,7 +39,7 @@ export function serializeSsrEvent(
     if (
       !isSyncQrl(qrl) &&
       !qrl.$symbol$.startsWith('_') &&
-      (qrl.$captures$?.length || hasMovedCaptures)
+      (qrl.$captures$?.length || (hasMovedCaptures && qrl.$hasMovedCaptures$))
     ) {
       qrl = createQRL(null, '_run', _run, null, [qrl]);
     }

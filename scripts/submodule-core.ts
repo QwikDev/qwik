@@ -10,6 +10,13 @@ import { type BuildConfig, fileSize, getBanner, rollupOnWarn, target, writeFile 
  */
 export const MANGLE_PROPS_REGEX = '^\\$.+\\$$';
 
+/** Terser strands these annotations, so bundlers silently drop the tree-shaking hint. */
+function fixPureAnnotations(code: string): string {
+  return code
+    .replace(/\/\*\s*[@#]__PURE__\s*\*\/\s*return\s+/g, 'return /* @__PURE__ */ ')
+    .replace(/\/\*\s*[@#]__PURE__\s*\*\/(\s*)(?=[^\sA-Za-z_$(])/g, '$1');
+}
+
 /**
  * Build the core package which is also the root package: @qwik.dev/core
  *
@@ -161,7 +168,7 @@ async function submoduleCoreProd(config: BuildConfig): Promise<object | undefine
             },
           });
           const esmMinCode = esmMinifyResult.code!;
-          const esmCleanCode = esmMinCode.replace(/__self__/g, '__SELF__');
+          const esmCleanCode = fixPureAnnotations(esmMinCode.replace(/__self__/g, '__SELF__'));
           validateNoBareExperimentalReferences(esmCleanCode, chunk.fileName);
 
           const selfIdx = esmCleanCode.indexOf('self');
@@ -302,7 +309,6 @@ async function submoduleCoreProduction(config: BuildConfig, nameCache: object | 
       },
     ],
   });
-
   console.log('🦝 core.prod.mjs:', await fileSize(join(config.distQwikPkgDir, 'core.prod.mjs')));
 }
 

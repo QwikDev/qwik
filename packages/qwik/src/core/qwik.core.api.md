@@ -51,21 +51,13 @@ export type ComputeCtx<T = unknown> = {
 // @public (undocumented)
 export interface ComputedOptions<T = unknown> {
     // (undocumented)
-    allowStale?: boolean;
-    // (undocumented)
     clientOnly?: boolean;
     // (undocumented)
     concurrency?: number;
     // (undocumented)
     eagerCleanup?: boolean;
     // (undocumented)
-    expires?: number;
-    // (undocumented)
     initial?: T | (() => T);
-    // @deprecated (undocumented)
-    interval?: number;
-    // (undocumented)
-    poll?: boolean;
     // (undocumented)
     serializationStrategy?: SerializationStrategy;
     // (undocumented)
@@ -77,19 +69,15 @@ export interface ComputedSignal<T = unknown> extends ReadonlySignal<T> {
     // (undocumented)
     abort(reason?: unknown): void;
     // (undocumented)
-    readonly error: Error | undefined;
+    clear(): void;
     // (undocumented)
-    expires: number;
-    // @deprecated (undocumented)
-    interval: number;
+    readonly error: Error | undefined;
     // (undocumented)
     invalidate(info?: unknown): void;
     // @deprecated (undocumented)
     readonly loading: boolean;
     // (undocumented)
     readonly pending: boolean;
-    // (undocumented)
-    poll: boolean;
     // (undocumented)
     promise(): Promise<void>;
     // (undocumented)

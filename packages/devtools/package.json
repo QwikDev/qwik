@@ -1,7 +1,7 @@
 {
   "name": "@qwik.dev/devtools",
   "description": "Qwik devtools package",
-  "version": "0.3.0-beta.3",
+  "version": "2.0.0-beta.39",
   "bugs": "https://github.com/QwikDev/devtools/issues",
   "dependencies": {
     "birpc": "^4.0.0",
@@ -84,6 +84,7 @@
   "license": "MIT",
   "main": "./dist/plugin/index.mjs",
   "peerDependencies": {
+    "@qwik.dev/core": "workspace:*",
     "@tailwindcss/postcss": "^4.2.1",
     "@tailwindcss/vite": "^4.2.1",
     "tailwindcss": "^4.2.1",

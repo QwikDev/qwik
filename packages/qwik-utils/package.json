@@ -24,7 +24,7 @@
   "license": "MIT",
   "main": "./lib/index.qwik.mjs",
   "peerDependencies": {
-    "@qwik.dev/core": "workspace:^"
+    "@qwik.dev/core": "workspace:*"
   },
   "publishConfig": {
     "access": "public"

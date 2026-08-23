@@ -33,7 +33,7 @@
   "license": "MIT",
   "main": "./lib/index.qwik.mjs",
   "peerDependencies": {
-    "@qwik.dev/core": "workspace:^",
+    "@qwik.dev/core": "workspace:*",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "react": "^18",

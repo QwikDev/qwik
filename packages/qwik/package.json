@@ -13,7 +13,7 @@
     "csstype": "^3.2.3",
     "launch-editor": "^2.14.1",
     "magic-regexp": "^0.11.0",
-    "magic-string": "0.30.21",
+    "magic-string": "^0.30.21",
     "oxc-parser": "^0.144.0",
     "oxc-transform": "^0.144.0",
     "oxc-walker": "^1.1.1",

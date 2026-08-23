@@ -832,7 +832,10 @@ export function autoExportedNames(
     }
   }
   // The router discovers un-exported loaders/actions only through these exports.
-  for (const decl of decls.filter((d) => d.hasRouterMarkerInit).map((d) => d.name).sort()) {
+  for (const decl of decls
+    .filter((d) => d.hasRouterMarkerInit)
+    .map((d) => d.name)
+    .sort()) {
     add(decl);
   }
   return names;

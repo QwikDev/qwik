@@ -731,9 +731,7 @@ function removeUnusedBindings(ctx: RewriteContext): void {
   // Reexported bindings (`export { X as _auto_X }`) MUST survive even when they
   // look unused here: the reexport is appended after this pass (not in the scan
   // below), so stripping the binding would leave the reexport dangling.
-  const reexportedNames = new Set(
-    autoExportedNames(ctx.migrationDecisions, ctx.moduleLevelDecls)
-  );
+  const reexportedNames = new Set(autoExportedNames(ctx.migrationDecisions, ctx.moduleLevelDecls));
 
   for (const stmt of program.body) {
     if (stmt.type === 'ExportNamedDeclaration') {

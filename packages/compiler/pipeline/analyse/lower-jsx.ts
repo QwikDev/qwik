@@ -5,20 +5,20 @@ import { normalizeAttributeName, VOID_ELEMENTS } from '../html';
 import { InvalidModuleError, UnsupportedError } from '../errors';
 
 /**
- * Lowers fully static JSX to structural element ops. Text stays RAW in the plan — each generator
- * folds with its own escaping (SSR streams raw, CSR templates escape).
+ * Lowers a JSX render tree to structural ops. Text stays RAW in the plan — each generator folds
+ * with its own escaping (SSR streams raw, CSR templates escape). Dynamic arms land per example.
  */
-export function lowerStaticJsx(element: AstNode): Op {
+export function lowerJsx(element: AstNode): Op {
   const opening = element.openingElement as AstNode;
   const nameNode = opening.name as AstNode & { name?: string };
   if (nameNode.type !== 'JSXIdentifier' || !/^[a-z]/.test(String(nameNode.name))) {
     throw new UnsupportedError('a non-native JSX tag');
   }
   const tag = String(nameNode.name);
-  const props = (opening.attributes as AstNode[]).map(lowerStaticAttribute);
+  const props = (opening.attributes as AstNode[]).map(lowerAttribute);
   const children: Op[] = [];
   for (const child of (element.children as AstNode[]) ?? []) {
-    const lowered = lowerStaticChild(child);
+    const lowered = lowerChild(child);
     if (lowered !== null) {
       children.push(lowered);
     }
@@ -42,14 +42,14 @@ export function lowerStaticJsx(element: AstNode): Op {
   };
 }
 
-function lowerStaticChild(child: AstNode): Op | null {
+function lowerChild(child: AstNode): Op | null {
   switch (child.type) {
     case 'JSXText': {
       const text = normalizeJsxText(String(child.value));
       return text === '' ? null : { op: OpKind.Static, html: text };
     }
     case 'JSXElement':
-      return lowerStaticJsx(child);
+      return lowerJsx(child);
     case 'JSXExpressionContainer': {
       // `{/* comment */}` renders nothing; real expressions are dynamic holes, not static HTML.
       if ((child.expression as AstNode).type === 'JSXEmptyExpression') {
@@ -62,7 +62,7 @@ function lowerStaticChild(child: AstNode): Op | null {
   }
 }
 
-function lowerStaticAttribute(attribute: AstNode): Prop {
+function lowerAttribute(attribute: AstNode): Prop {
   if (attribute.type !== 'JSXAttribute') {
     throw new UnsupportedError('a JSX spread attribute');
   }

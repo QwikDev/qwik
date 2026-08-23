@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import type { AstNode } from '../analyse/ast/ast-types';
 import { parseModule } from '../analyse/ast/parse';
-import { lowerStaticJsx } from '../analyse/static-html';
+import { lowerJsx } from '../analyse/lower-jsx';
 import { foldStaticOp } from '../generate/fold-static';
 
 function fold(jsx: string, escapeTextContent = false): string {
@@ -13,10 +13,10 @@ function fold(jsx: string, escapeTextContent = false): string {
   while (element.type === 'ParenthesizedExpression') {
     element = element.expression as AstNode;
   }
-  return foldStaticOp(lowerStaticJsx(element), escapeTextContent);
+  return foldStaticOp(lowerJsx(element), escapeTextContent);
 }
 
-describe('static JSX lowering + folding', () => {
+describe('JSX lowering + static folding', () => {
   test('element with text', () => {
     expect(fold('<p>Hello Qwik</p>')).toBe('<p>Hello Qwik</p>');
   });

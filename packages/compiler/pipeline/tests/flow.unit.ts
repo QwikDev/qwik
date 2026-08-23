@@ -118,7 +118,19 @@ describe('pipeline flow', () => {
         },
         { transpileTs: true }
       )
-    ).rejects.toThrow('JSX outside a default-exported component');
+    ).rejects.toThrow('JSX outside an exported component');
+  });
+
+  test('JSX in a non-component sibling of a component fails loud', async () => {
+    await expect(
+      analyseModule(
+        {
+          path: 'src/mixed.tsx',
+          code: 'export function makeNode() {\n  return <p>x</p>;\n}\nexport default () => {\n  return <p>Hello</p>;\n};\n',
+        },
+        { transpileTs: true }
+      )
+    ).rejects.toThrow('JSX outside the discovered components');
   });
 
   test('a mixed return (ternary arm with JSX) is a component candidate', async () => {

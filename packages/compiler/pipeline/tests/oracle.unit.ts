@@ -41,6 +41,32 @@ describe('differential oracle: staged pipeline vs legacy transformModules', () =
       false
     ));
 
+  test('named const-export component (ssr)', () =>
+    expectParity(
+      'src/component.tsx',
+      'export const App = () => {\n  return <p>Hello Qwik</p>;\n};\n'
+    ));
+
+  test('named const-export component (csr)', () =>
+    expectParity(
+      'src/component.tsx',
+      'export const App = () => {\n  return <p>Hello Qwik</p>;\n};\n',
+      false
+    ));
+
+  test('two components in one module (ssr)', () =>
+    expectParity(
+      'src/component.tsx',
+      'export const Header = () => {\n  return <h1>Hi</h1>;\n};\nexport default () => {\n  return <p>Hello Qwik</p>;\n};\n'
+    ));
+
+  test('two components in one module (csr)', () =>
+    expectParity(
+      'src/component.tsx',
+      'export const Header = () => {\n  return <h1>Hi</h1>;\n};\nexport default () => {\n  return <p>Hello Qwik</p>;\n};\n',
+      false
+    ));
+
   test('expression-body arrow component (ssr)', () =>
     expectParity('src/component.tsx', 'export default () => <p>Hello Qwik</p>;\n'));
 

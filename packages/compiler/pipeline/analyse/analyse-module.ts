@@ -15,12 +15,12 @@ import {
 import { collectBindingNames } from './ast/bindings';
 import { findRuntimeJsx, hasComponentCandidates } from './ast/returns-jsx';
 import { parseModule } from './ast/parse';
-import { discoverComponent } from './discover';
-import { lowerStaticJsx } from './static-html';
+import { discoverComponents } from './discover';
+import { lowerJsx } from './lower-jsx';
 import { normalizeSource } from './normalize';
 import { emptyPlan } from './plan';
 
-import { InvalidModuleError } from '../errors';
+import { InvalidModuleError, UnsupportedError } from '../errors';
 
 export { UnsupportedError } from '../errors';
 
@@ -70,23 +70,17 @@ export async function analyseModule(
     return plan;
   }
 
-  const found = discoverComponent(parsed.program);
-  let rootOp;
-  try {
-    rootOp = lowerStaticJsx(found.jsx);
-  } catch (error) {
-    if (error instanceof InvalidModuleError) {
-      plan.kind = ModuleKind.Failed;
-      plan.diagnostics.push({
-        code: error.code,
-        message: error.message,
-        span: error.span,
-        category: DiagnosticCategory.Error,
-      });
-      return plan;
+  const components = discoverComponents(parsed.program);
+  const componentStatements = new Set(components.map((component) => component.statement));
+  for (const statement of parsed.program.body as unknown[]) {
+    if (!componentStatements.has(statement as never)) {
+      const leftover = findRuntimeJsx(statement);
+      if (leftover !== null) {
+        throw new UnsupportedError('JSX outside the discovered components');
+      }
     }
-    throw error;
   }
+
   plan.kind = ModuleKind.Qwik;
   plan.bindings = collectBindingNames(parsed.program).map((name, id) => ({
     id,
@@ -102,49 +96,69 @@ export async function analyseModule(
     owner: LifetimeOwner.Component,
     commit: LifetimeCommit.Immediate,
   });
-  plan.programs.push({
-    body: { kind: ProgramBodyKind.Ops, ops: [rootOp] },
-    setup: [],
-    params: [],
-    lifetime: 0,
-    needsId: false,
-    async: false,
-  });
-  if (found.param !== null) {
-    plan.payloads.push({
-      range: found.param.range,
-      constants: [],
-      qrls: [],
-      reads: [],
-      awaits: [],
-      useIds: [],
-      renders: [],
-      temps: [],
+  for (const component of components) {
+    let rootOp;
+    try {
+      rootOp = lowerJsx(component.jsx);
+    } catch (error) {
+      if (error instanceof InvalidModuleError) {
+        plan.kind = ModuleKind.Failed;
+        plan.diagnostics.push({
+          code: error.code,
+          message: error.message,
+          span: error.span,
+          category: DiagnosticCategory.Error,
+        });
+        return plan;
+      }
+      throw error;
+    }
+    plan.programs.push({
+      body: { kind: ProgramBodyKind.Ops, ops: [rootOp] },
+      setup: [],
+      params: [],
+      lifetime: 0,
+      needsId: false,
+      async: false,
     });
-  }
-  plan.components.push({
-    name: 'default',
-    identity: `${input.path}#default`,
-    binding: null,
-    parameter:
-      found.param === null
-        ? null
-        : {
-            pattern: plan.payloads.length - 1,
-            surface: {
-              kind: SurfaceKind.Identifier,
-              binding: plan.bindings.findIndex((binding) => binding.name === found.param!.name),
+    if (component.param !== null) {
+      plan.payloads.push({
+        range: component.param.range,
+        constants: [],
+        qrls: [],
+        reads: [],
+        awaits: [],
+        useIds: [],
+        renders: [],
+        temps: [],
+      });
+    }
+    plan.components.push({
+      name: component.name,
+      identity: `${input.path}#${component.name}`,
+      binding: null,
+      parameter:
+        component.param === null
+          ? null
+          : {
+              pattern: plan.payloads.length - 1,
+              surface: {
+                kind: SurfaceKind.Identifier,
+                binding: plan.bindings.findIndex(
+                  (binding) => binding.name === component.param!.name
+                ),
+              },
             },
-          },
-    body: 0,
-    captures: [],
-    root: { name: 'qdefault-' },
-    functionRange: found.arrowRange,
-    replacementRange: found.statementRange,
-    declarationKind: DeclarationKind.DefaultArrow,
-    localName: null,
-  });
-  plan.assembly.push({ a: AssemblyKind.Component, component: 0 });
+      body: plan.programs.length - 1,
+      captures: [],
+      root: { name: `q${component.name}-` },
+      functionRange: component.arrowRange,
+      replacementRange: component.statementRange,
+      declarationKind: component.declarationKind,
+      localName: component.declarationKind === DeclarationKind.Const ? component.name : null,
+    });
+    plan.assembly.push({ a: AssemblyKind.Component, component: plan.components.length - 1 });
+  }
   return plan;
 }
 

@@ -5,7 +5,7 @@
       "@qwik.dev/optimizer": ["packages/optimizer/dist/index.d.ts"]
     }
   },
-  "include": ["src", "generators"],
+  "include": ["src", "generators", "pipeline"],
   "exclude": [
     "dist",
     "**/*.unit.ts",

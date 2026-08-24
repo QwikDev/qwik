@@ -19,8 +19,19 @@ const DERIVED_DIAGNOSTIC_POSITION_KEYS = new Set(['startLine', 'startCol', 'endL
 
 mkdirSync(TS_OUTPUT_DIR, { recursive: true });
 
-function formatSnapshot(input: string, result: TransformOutput): string {
-  const lines: string[] = ['==INPUT==\n', input];
+function formatSnapshot(
+  input: string | null,
+  inputs: ReadonlyArray<{ path: string; code: string }>,
+  result: TransformOutput
+): string {
+  const lines: string[] = [];
+  if (input !== null) {
+    lines.push('==INPUT==\n', input);
+  } else {
+    for (const namedInput of inputs) {
+      lines.push(`==INPUT ${namedInput.path}==\n\n`, namedInput.code, '\n');
+    }
+  }
 
   for (const mod of result.modules) {
     const isEntry = mod.kind === 'segment';
@@ -72,12 +83,16 @@ describe('convergence: all snapshots', () => {
       const content = readFileSync(fullPath, 'utf-8');
       const parsed = parseSnapshot(content);
 
-      if (!parsed.input) {
+      if (!parsed.input && parsed.inputs.length === 0) {
         results.noInput++;
         return;
       }
 
-      const options = getSnapshotTransformOptions(testName, parsed.input);
+      const options = getSnapshotTransformOptions(
+        testName,
+        parsed.input ?? parsed.inputs[0].code,
+        parsed.inputs.length > 0 ? parsed.inputs : undefined
+      );
 
       let result;
       try {
@@ -87,7 +102,10 @@ describe('convergence: all snapshots', () => {
         throw new Error(`transformModule() threw for ${testName}: ${err}`);
       }
 
-      writeFileSync(join(TS_OUTPUT_DIR, snapFile), formatSnapshot(parsed.input, result));
+      writeFileSync(
+        join(TS_OUTPUT_DIR, snapFile),
+        formatSnapshot(parsed.input, parsed.inputs, result)
+      );
 
       let parentMatches = true;
       let segmentsMatch = true;
@@ -236,18 +254,14 @@ describe('convergence: all snapshots', () => {
     console.log(`No input:         ${results.noInput}`);
     console.log(`Error/throw:      ${results.error}`);
     console.log(
-      `Pass rate:        ${results.total > 0 ? ((results.fullPass / (results.total - results.noInput)) * 100).toFixed(1) : 0}%`
+      `Pass rate:        ${results.total > 0 ? ((results.fullPass / results.total) * 100).toFixed(1) : 0}%`
     );
     console.log('===========================\n');
 
     expect(results.total).toBe(allFiles.length);
-    expect(
-      results.fullPass +
-        results.parentOnlyFail +
-        results.segmentOnlyFail +
-        results.fullFail +
-        results.noInput +
-        results.error
-    ).toBe(results.total);
+    expect(results.noInput).toBe(0);
+    expect(results.error).toBe(0);
+    expect(parityDifferences).toEqual([]);
+    expect(results.fullPass).toBe(results.total);
   });
 });

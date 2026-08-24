@@ -10,6 +10,31 @@ function loadSnap(name: string): string {
 }
 
 describe('parseSnapshot', () => {
+  it('extracts multiple named inputs', () => {
+    const result = parseSnapshot(`---
+source: test.rs
+expression: output
+---
+==INPUT dep.mjs==
+
+export const dep = 1;
+==INPUT app.tsx==
+
+import { dep } from './dep';
+============================= app.js ==
+
+export { dep };
+== DIAGNOSTICS ==
+
+[]`);
+
+    expect(result.input).toBeNull();
+    expect(result.inputs).toEqual([
+      { path: 'dep.mjs', code: 'export const dep = 1;' },
+      { path: 'app.tsx', code: "import { dep } from './dep';" },
+    ]);
+  });
+
   describe('example_1.snap', () => {
     let result: ParsedSnapshot;
 
@@ -79,7 +104,7 @@ describe('parseSnapshot', () => {
     });
   });
 
-  describe('relative_paths.snap (no INPUT section)', () => {
+  describe('relative_paths.snap (multiple inputs)', () => {
     let result: ParsedSnapshot;
 
     it('parses without error', () => {
@@ -88,6 +113,15 @@ describe('parseSnapshot', () => {
 
     it('has null input', () => {
       expect(result.input).toBeNull();
+    });
+
+    it('finds both named inputs', () => {
+      expect(result.inputs.map((input) => input.path)).toEqual([
+        '../../node_modules/dep/dist/lib.mjs',
+        'components/main.tsx',
+      ]);
+      expect(result.inputs[0].code).toContain('export const App');
+      expect(result.inputs[1].code).toContain('export const Local');
     });
 
     it('finds segments with metadata', () => {

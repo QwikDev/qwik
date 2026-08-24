@@ -55,6 +55,7 @@ export interface ParentModule {
 export interface ParsedSnapshot {
   frontmatter: { source: string; assertionLine: number; expression: string };
   input: string | null;
+  inputs: Array<{ path: string; code: string }>;
   segments: SegmentBlock[];
   parentModules: ParentModule[];
   diagnostics: Diagnostic[];
@@ -67,13 +68,14 @@ export function parseSnapshot(content: string): ParsedSnapshot {
 
   const { body, diagnostics } = extractDiagnostics(afterFrontmatter);
 
-  const { input, rest } = extractInput(body);
+  const { input, inputs, rest } = extractInput(body);
 
   const { segments, parentModules } = parseSections(rest);
 
   return {
     frontmatter,
     input,
+    inputs,
     segments,
     parentModules,
     diagnostics,
@@ -140,12 +142,30 @@ function extractDiagnostics(body: string): { body: string; diagnostics: Diagnost
   return { body: beforeDiag, diagnostics };
 }
 
-function extractInput(body: string): { input: string | null; rest: string } {
+function extractInput(body: string): {
+  input: string | null;
+  inputs: Array<{ path: string; code: string }>;
+  rest: string;
+} {
+  const namedInputRe = /^==INPUT (.+)==$/gm;
+  const namedMarkers = [...body.matchAll(namedInputRe)];
+  if (namedMarkers.length > 0) {
+    const section = body.match(/^={3,}\s*.+\s*==$/m);
+    const sectionStart = section?.index ?? body.length;
+    const inputs = namedMarkers.map((marker, index) => {
+      const start = marker.index! + marker[0].length;
+      const end = namedMarkers[index + 1]?.index ?? sectionStart;
+      const code = body.slice(start, end).replace(/^\n\n/, '').trimEnd();
+      return { path: marker[1].trim(), code };
+    });
+    return { input: null, inputs, rest: body.slice(sectionStart) };
+  }
+
   const inputMarker = '==INPUT==';
   const inputIdx = body.indexOf(inputMarker);
 
   if (inputIdx === -1) {
-    return { input: null, rest: body };
+    return { input: null, inputs: [], rest: body };
   }
 
   let afterInput = body.slice(inputIdx + inputMarker.length);
@@ -156,13 +176,13 @@ function extractInput(body: string): { input: string | null; rest: string } {
   if (!delimMatch || delimMatch.index === undefined) {
     // trimEnd() preserves leading newlines — they affect the qrlDEV lo/hi byte
     // offsets, computed from the original input including leading whitespace.
-    return { input: afterInput.trimEnd(), rest: '' };
+    return { input: afterInput.trimEnd(), inputs: [], rest: '' };
   }
 
   const input = afterInput.slice(0, delimMatch.index).trimEnd();
   const rest = afterInput.slice(delimMatch.index);
 
-  return { input: input || null, rest };
+  return { input: input || null, inputs: [], rest };
 }
 
 /**

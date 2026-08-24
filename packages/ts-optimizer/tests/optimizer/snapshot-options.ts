@@ -610,14 +610,19 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
 
 export function getSnapshotTransformOptions(
   snapshotName: string,
-  inputCode: string
+  inputCode: string,
+  inputs?: ReadonlyArray<{ path: string; code: string }>
 ): TransformModulesOptions {
   const overrides = SNAPSHOT_OPTIONS[snapshotName] ?? {};
   const filename = overrides.filename ?? DEFAULT_OPTIONS.filename;
   const srcDir = overrides.srcDir ?? DEFAULT_OPTIONS.srcDir;
 
   return {
-    input: [
+    input: inputs?.map((input) => ({
+      path: mkFilePath(input.path),
+      code: mkSourceText(input.code),
+      devPath: overrides.devPath,
+    })) ?? [
       { path: mkFilePath(filename), code: mkSourceText(inputCode), devPath: overrides.devPath },
     ],
     srcDir: mkFilePath(srcDir),

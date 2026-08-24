@@ -786,6 +786,60 @@ function partitionSCallsBySelfRef(
   return { beforeExport, afterExport };
 }
 
+function orderedNeededImports(ctx: RewriteContext): Array<[string, string]> {
+  const entries = Array.from(ctx.neededImports.entries());
+  const ordered: Array<[string, string]> = [];
+  const used = new Set<string>();
+  const add = (importedName: string): void => {
+    const entry = entries.find(
+      ([key]) => !used.has(key) && (key === importedName || key.startsWith(`${importedName} as `))
+    );
+    if (entry) {
+      used.add(entry[0]);
+      ordered.push(entry);
+    }
+  };
+
+  for (const ext of ctx.topLevel) {
+    if (ext.isSync) {
+      add('_qrlSync');
+      continue;
+    }
+    if (!ext.isBare && ext.qrlCallee) {
+      add(ext.qrlCallee);
+    }
+    if (ctx.isInline) {
+      add(ctx.isDevMode ? '_noopQrlDEV' : '_noopQrl');
+    } else if (ctx.inlineOptions && !ctx.inlineOptions.inline) {
+      add(
+        isStrippedExtraction(
+          ext,
+          ctx.inlineOptions.stripCtxName,
+          ctx.inlineOptions.stripEventHandlers
+        )
+          ? ctx.isDevMode
+            ? '_noopQrlDEV'
+            : '_noopQrl'
+          : ctx.isDevMode
+            ? 'qrlDEV'
+            : 'qrl'
+      );
+    } else {
+      add(
+        isWorkerExtraction(ext)
+          ? ctx.isDevMode
+            ? '_qrlWithChunkDEV'
+            : '_qrlWithChunk'
+          : ctx.isDevMode
+            ? 'qrlDEV'
+            : 'qrl'
+      );
+    }
+  }
+  ordered.push(...entries.filter(([key]) => !used.has(key)));
+  return ordered;
+}
+
 /**
  * Places each sCall at one `MagicString` offset. A per-sCall forward dependency (references a decl
  * declared after the marker anchor) is spliced right after that decl to avoid TDZ; the rest group
@@ -859,7 +913,7 @@ export function assembleOutput(ctx: RewriteContext): string {
     transpileTs,
   } = ctx;
 
-  const importStatements = Array.from(neededImports.entries()).map(
+  const importStatements = orderedNeededImports(ctx).map(
     ([symbol, src]) => `import { ${symbol} } from "${src}";`
   );
 

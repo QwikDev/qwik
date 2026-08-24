@@ -658,9 +658,10 @@ function resolveEmitConfig(mod: ModuleContext): EmitConfig {
   }
 
   const qrlOutputExt = computeOutputExtension(ext, options.transpileTs, options.transpileJsx);
+  const parentOutputExt = ext === '.mjs' || ext === '.cjs' ? ext : qrlOutputExt;
   const parentOutputPath = options.preserveFilenames
     ? relPath
-    : mkRelativePath(stripExtension(relPath) + qrlOutputExt);
+    : mkRelativePath(stripExtension(relPath) + parentOutputExt);
 
   return {
     emitMode: options.mode ?? 'prod',

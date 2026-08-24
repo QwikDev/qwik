@@ -241,6 +241,23 @@ export const App = component$(() => <div />);`),
     expect(result.modules[0].path).toBe('project/test.js');
   });
 
+  it('preserves an mjs parent extension when no syntax is transpiled', () => {
+    const result = transformModule({
+      input: [
+        {
+          path: mkFilePath('project/lib.mjs'),
+          code: mkSourceText(`import { componentQrl, inlinedQrl } from '@qwik.dev/core';
+export const App = componentQrl(inlinedQrl(() => null, 'App_component_hash'));`),
+        },
+      ],
+      srcDir: mkFilePath('.'),
+      transpileTs: true,
+      transpileJsx: true,
+    });
+
+    expect(result.modules[0].path).toBe('project/lib.mjs');
+  });
+
   it('returns correct isTypeScript and isJsx flags', () => {
     const tsxResult = transformModule({
       input: [{ path: mkFilePath('test.tsx'), code: mkSourceText('const x = 1;') }],

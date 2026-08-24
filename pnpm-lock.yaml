@@ -1045,6 +1045,9 @@ importers:
       '@oxc-project/types':
         specifier: 0.144.0
         version: 0.144.0
+      entities:
+        specifier: 7.0.1
+        version: 7.0.1
       magic-regexp:
         specifier: ^0.11.0
         version: 0.11.0

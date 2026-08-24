@@ -1,3 +1,4 @@
+import { decodeHTMLStrict } from 'entities';
 import { analyzeSignalExpression } from './signal-analysis.js';
 import {
   classifyConstness,
@@ -21,7 +22,7 @@ export function normalizeJsxChildren(
       continue;
     }
 
-    const raw = child.value ?? '';
+    const raw = decodeHTMLStrict(child.value ?? '');
     const hasNewline = /[\r\n]/.test(raw);
     let normalized: string;
 

@@ -1,3 +1,4 @@
+import { decodeHTMLStrict } from 'entities';
 import type { AstMaybeNode, JSXAttributeItem } from '../../ast-types.js';
 import { analyzeSignalExpression } from './signal-analysis.js';
 import { transformEventPropName, isEventProp, isPassiveDirective } from './event-handlers.js';
@@ -298,7 +299,7 @@ export function processProps(
         if (attr.value.type === 'JSXExpressionContainer') {
           key = source.slice(attr.value.expression.start, attr.value.expression.end);
         } else if (attr.value.type === 'Literal') {
-          key = `"${attr.value.value}"`;
+          key = JSON.stringify(decodeHTMLStrict(String(attr.value.value)));
         }
       }
       continue;
@@ -341,10 +342,14 @@ export function processProps(
     } else {
       valueNode = attr.value;
       valueText = sliceWithFallback(ctx, attr.value.start, attr.value.end);
-      // Only fold when a newline/tab/CR is present, so single-line values keep
-      // their exact source bytes.
-      if (attr.value.type === 'Literal' && /[\n\r\t]/.test(valueText)) {
-        valueText = foldJsxAttrStringWhitespace(valueText);
+      if (attr.value.type === 'Literal') {
+        const decodedValue = decodeHTMLStrict(String(attr.value.value));
+        if (decodedValue !== attr.value.value) {
+          valueText = JSON.stringify(decodedValue);
+        } else if (/[\n\r\t]/.test(valueText)) {
+          // Only fold multiline values, so single-line source bytes stay exact.
+          valueText = foldJsxAttrStringWhitespace(valueText);
+        }
       }
     }
 

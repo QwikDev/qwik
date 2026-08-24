@@ -7,6 +7,7 @@
     "@emnapi/core": "1.11.3",
     "@emnapi/runtime": "1.11.3",
     "@oxc-project/types": "0.144.0",
+    "entities": "7.0.1",
     "magic-regexp": "^0.11.0",
     "magic-string": "^0.30.21",
     "oxc-parser": "^0.144.0",

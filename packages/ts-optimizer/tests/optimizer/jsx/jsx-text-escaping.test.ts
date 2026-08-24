@@ -21,3 +21,19 @@ export default component$(() => {
     expect(parseSync('m.tsx', m.code).errors, m.code).toEqual([]);
   }
 });
+
+it('decodes character references in JSX text and attributes', () => {
+  const code = `export const Hero = () => (
+  <h1 title="Auto&shy;matically">Auto&shy;matically</h1>
+);`;
+  const res = transformModule({
+    input: [{ path: mkFilePath('test.tsx'), code: mkSourceText(code) }],
+    srcDir: '/x/src',
+    transpileTs: true,
+    transpileJsx: true,
+  } as any);
+  const output = res.modules.map((module) => module.code).join('\n');
+
+  expect(output).not.toContain('&shy;');
+  expect(output).toContain('Auto\u00admatically');
+});

@@ -91,4 +91,24 @@ export const Foo = component$((props) => {
     expect(sCallIdx).toBeGreaterThanOrEqual(0);
     expect(sCallIdx).toBeLessThan(exportIdx);
   });
+
+  it('places all non-self-ref component bodies before multiple exports', () => {
+    const input = `
+import { component$ } from '@qwik.dev/core';
+export const First = component$(() => <div>first</div>);
+export const Second = component$(() => <div>second</div>);
+`;
+    const result = transformModule({
+      input: [{ path: mkFilePath('test.tsx'), code: mkSourceText(input) }],
+      srcDir: mkFilePath('.'),
+      entryStrategy: { type: 'inline' },
+      transpileJsx: true,
+    });
+    const code = findParent(result).code;
+    const lastSCall = code.lastIndexOf('.s(');
+    const firstExport = code.indexOf('export const');
+
+    expect(lastSCall).toBeGreaterThan(-1);
+    expect(lastSCall).toBeLessThan(firstExport);
+  });
 });

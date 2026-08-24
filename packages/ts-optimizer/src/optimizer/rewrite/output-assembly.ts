@@ -674,6 +674,39 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
     processExtraction(ext);
   }
 
+  const childrenByParent = new Map<string, ExtractionResult[]>();
+  for (const ext of allNonSync) {
+    if (ext.parent === null) {
+      continue;
+    }
+    const children = childrenByParent.get(ext.parent) ?? [];
+    children.push(ext);
+    childrenByParent.set(ext.parent, children);
+  }
+  const callOrder = new Map<string, number>();
+  const visit = (ext: ExtractionResult): void => {
+    for (const child of (childrenByParent.get(ext.symbolName) ?? []).sort(
+      (a, b) => a.callStart - b.callStart
+    )) {
+      visit(child);
+    }
+    const rank = callOrder.size;
+    callOrder.set(ext.symbolName, rank);
+    callOrder.set(qrlVarNames.get(ext.symbolName) ?? `q_${ext.symbolName}`, rank);
+  };
+  for (const ext of allNonSync
+    .filter((ext) => ext.parent === null)
+    .sort((a, b) => a.callStart - b.callStart)) {
+    visit(ext);
+  }
+  const callRank = (statement: string): number => {
+    const name = /^(?:const\s+)?([\w$]+)(?:\s*=|\.s\()/.exec(statement)?.[1];
+    return name === undefined
+      ? Number.MAX_SAFE_INTEGER
+      : (callOrder.get(name) ?? Number.MAX_SAFE_INTEGER);
+  };
+  ctx.sCalls.sort((a, b) => callRank(a) - callRank(b));
+
   const jsxCallDecls = sharedJsxCallHoister.getDeclarations();
   if (sharedHoister || jsxCallDecls.length > 0) {
     ctx.inlineHoistedDeclarations.length = 0;
@@ -715,9 +748,8 @@ function findExportedMarkerNames(program: AstProgram): Set<string> {
   return names;
 }
 
-function findLastMarkerExportAnchor(program: AstProgram): { start: number; end: number } | null {
-  for (let i = program.body.length - 1; i >= 0; i--) {
-    const stmt = program.body[i];
+function findMarkerExportAnchor(program: AstProgram): { start: number; end: number } | null {
+  for (const stmt of program.body) {
     if (stmt.type === 'ExportDefaultDeclaration') {
       return { start: stmt.start, end: stmt.end };
     }
@@ -871,7 +903,7 @@ function placeSCalls(
     return;
   }
 
-  const markerAnchor = findLastMarkerExportAnchor(program);
+  const markerAnchor = findMarkerExportAnchor(program);
   const decls = moduleLevelDecls ?? [];
 
   const groupedSCalls: string[] = [];
@@ -912,7 +944,7 @@ function placeSCalls(
 }
 
 function placeLibReferencedDeclarations(ctx: RewriteContext): void {
-  const anchor = findLastMarkerExportAnchor(ctx.program);
+  const anchor = findMarkerExportAnchor(ctx.program);
   if (!anchor || !ctx.moduleLevelDecls) {
     return;
   }

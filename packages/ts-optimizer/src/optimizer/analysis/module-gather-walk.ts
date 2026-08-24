@@ -14,7 +14,13 @@
 import { isBindingIdentifier } from 'oxc-walker';
 import type { ScopeTrackerNode } from 'oxc-walker';
 import { ScopeQueryTracker } from './scope-query-tracker.js';
-import type { AstEcmaScriptModule, AstFunction, AstNode, AstProgram } from '../../ast-types.js';
+import type {
+  AstEcmaScriptModule,
+  AstFunction,
+  AstNode,
+  AstParentNode,
+  AstProgram,
+} from '../../ast-types.js';
 import {
   createExtractionCollector,
   type ExtractedSegment,

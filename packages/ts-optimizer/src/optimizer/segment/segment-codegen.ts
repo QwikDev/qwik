@@ -589,7 +589,13 @@ function normalizeSeparators(parts: string[]): void {
   }
   imports.sort((a, b) => {
     const rank = (value: string) =>
-      value.includes('@qwik.dev/core/jsx-') ? 1 : value.includes('@qwik.dev/core') ? 2 : 0;
+      value.includes('_captures')
+        ? -1
+        : value.includes('@qwik.dev/core/jsx-')
+          ? 1
+          : value.includes('@qwik.dev/core')
+            ? 2
+            : 0;
     return rank(a) - rank(b);
   });
 

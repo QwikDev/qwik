@@ -111,4 +111,31 @@ export const App = component$(() => {
     const useTaskSeg = findSegmentByCtx(result, 'useTask$');
     expect(useTaskSeg.code).toMatch(/import mongo from ["']mongodb["']/);
   });
+
+  it('emits the generated capture import before source imports', () => {
+    const input = `
+import { component$, isServer, useStore, useTask$ } from '@qwik.dev/core';
+import mongo from 'mongodb';
+export const App = component$(() => {
+  const state = useStore({ value: '' });
+  useTask$(async () => {
+    if (!isServer) return;
+    state.value = await mongo.users();
+  });
+  return <div/>;
+});
+`;
+    const result = transformModule({
+      input: [{ path: mkFilePath('test.tsx'), code: mkSourceText(input) }],
+      srcDir: mkFilePath('.'),
+      transpileTs: true,
+      transpileJsx: true,
+      entryStrategy: { type: 'segment' },
+      mode: 'prod',
+      isServer: true,
+    });
+
+    const code = findSegmentByCtx(result, 'useTask$').code;
+    expect(code.indexOf('import { _captures }')).toBeLessThan(code.indexOf('import mongo'));
+  });
 });

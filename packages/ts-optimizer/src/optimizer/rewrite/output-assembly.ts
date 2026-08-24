@@ -236,6 +236,7 @@ export function buildQrlDeclarations(ctx: RewriteContext): void {
   }
 
   let strippedCounter = 0;
+  const deferredStrippedQrlVars = new Set<string>();
 
   if (isInline) {
     for (const ext of allNonSync) {
@@ -266,7 +267,11 @@ export function buildQrlDeclarations(ctx: RewriteContext): void {
           ctx.qrlDecls.push(markMovedCaptures(buildStrippedNoopQrl(ext.symbolName, idx), ext));
         }
         const counter = 0xffff0000 + idx * 2;
-        ctx.qrlVarNames.set(ext.symbolName, `q_qrl_${counter}`);
+        const qrlVar = `q_qrl_${counter}`;
+        ctx.qrlVarNames.set(ext.symbolName, qrlVar);
+        if (ext.parent !== null) {
+          deferredStrippedQrlVars.add(qrlVar);
+        }
       } else {
         if (isDevMode && devFilePath) {
           ctx.qrlDecls.push(
@@ -436,6 +441,11 @@ export function buildQrlDeclarations(ctx: RewriteContext): void {
   // interleave with `const q_* = ...` declarations in symbol order.
   const declSortKey = (line: string): string => /"([^"]+)"\)?;?\s*$/.exec(line)?.[1] ?? line;
   ctx.qrlDecls.sort((a, b) => {
+    const rankA = deferredStrippedQrlVars.has(/^const ([\w$]+)/.exec(a)?.[1] ?? '') ? 1 : 0;
+    const rankB = deferredStrippedQrlVars.has(/^const ([\w$]+)/.exec(b)?.[1] ?? '') ? 1 : 0;
+    if (rankA !== rankB) {
+      return rankA - rankB;
+    }
     const ka = declSortKey(a);
     const kb = declSortKey(b);
     return ka < kb ? -1 : ka > kb ? 1 : 0;

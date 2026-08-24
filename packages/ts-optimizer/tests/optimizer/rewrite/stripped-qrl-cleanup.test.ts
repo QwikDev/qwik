@@ -49,6 +49,15 @@ export const Parent = component$(() => {
     expect(parent.code).toContain('useClientMountQrl(q_qrl_4294901760)');
     expect(parent.code).toContain('shouldRemove$: q_qrl_4294901764');
     expect(parent.code).toContain('"q-e:click": q_qrl_4294901766');
+    const taskVar = /useTaskQrl\((q_[\w$]+)/.exec(parent.code)?.[1];
+    const taskDeclaration = parent.code
+      .split('\n')
+      .findIndex((line) => line.startsWith(`const ${taskVar} =`));
+    const strippedDeclaration = parent.code
+      .split('\n')
+      .findIndex((line) => line.startsWith('const q_qrl_4294901760'));
+    expect(taskDeclaration).toBeGreaterThan(-1);
+    expect(taskDeclaration).toBeLessThan(strippedDeclaration);
   });
 
   it('counts nested descendants before a stripped segment', () => {

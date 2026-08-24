@@ -16,7 +16,7 @@ import {
 import { QwikWord, QwikGenWord } from '../words';
 import { UnsupportedError } from '../errors';
 import { generateQwikModule } from './assemble-module';
-import { chunkCanonicalFilename } from './emit-chunk';
+import { captureNames, chunkCanonicalFilename } from './emit-chunk';
 import { foldStaticOp } from './fold-static';
 import type { ComponentEmission, GeneratedNames } from './emit-component';
 import { generateForeignModule } from './foreign';
@@ -120,12 +120,43 @@ class CsrModuleEmitter {
         this.event(prop.name, prop.handlers, mounted.el, statements);
       }
     }
+    const holes = op.children.filter((child) => child.op === OpKind.Hole);
+    if (holes.length > 0) {
+      // A sole hole child binds the template's placeholder text node (deeper positions later).
+      if (op.children.length !== 1) {
+        throw new UnsupportedError('a text hole with sibling children');
+      }
+      this.textHole(holes[0] as Extract<Op, { op: OpKind.Hole }>, mounted.el, statements, names);
+    }
     // Template markup excludes event props; text is escaped for innerHTML parsing.
-    this.hoistTemplate(
-      mounted.template,
-      foldStaticOp({ ...op, props: op.props.filter((prop) => prop.k === PropKind.Static) }, true)
-    );
+    this.hoistTemplate(mounted.template, foldStaticOp(templateOp(op), true));
     return mounted.el;
+  }
+
+  /** The effect re-runs the expression chunk against the placeholder text node. */
+  private textHole(
+    op: Extract<Op, { op: OpKind.Hole }>,
+    el: string,
+    statements: string[],
+    names: GeneratedNames
+  ): void {
+    if (op.value.v !== ValueKind.Computed || !('qrl' in op.value.resume)) {
+      throw new UnsupportedError('a non-computed text hole');
+    }
+    const use = op.value.resume.qrl;
+    const qrl = this.module.qrls.find((candidate) => candidate.id === use.qrl);
+    if (qrl === undefined) {
+      throw new Error(`pipeline.generateJsCsr: unknown qrl "${use.qrl}"`);
+    }
+    const text = this.next(QwikGenWord.Text);
+    statements.push(`const ${text} = ${QwikWord.FirstChild}(${el});`);
+    const effect = this.next(QwikGenWord.Effect);
+    const captures = captureNames(this.module, qrl);
+    this.imports.add(QwikWord.CreateTextExpressionEffect);
+    statements.push(
+      `const ${effect} = ${QwikWord.CreateTextExpressionEffect}(${text}, [${captures.join(', ')}], ${this.chunkSymbol(qrl.id)}, ${names.ctx}.scheduler);`
+    );
+    statements.push(`${names.ctx}.scheduler.notify(${effect});`);
   }
 
   /** Clones the template into fresh `fragmentN`/`elN` locals. */
@@ -180,6 +211,17 @@ class CsrModuleEmitter {
     }
     return qrl.name;
   }
+}
+
+/** Template shape: events stripped, holes become a single-space placeholder text node. */
+function templateOp(op: Extract<Op, { op: OpKind.Element }>): Op {
+  return {
+    ...op,
+    props: op.props.filter((prop) => prop.k === PropKind.Static),
+    children: op.children.map((child) =>
+      child.op === OpKind.Hole ? { op: OpKind.Static as const, html: ' ' } : child
+    ),
+  };
 }
 
 /** `fragment0`, `el0`, `tmpl0`, … — one counter per prefix. */

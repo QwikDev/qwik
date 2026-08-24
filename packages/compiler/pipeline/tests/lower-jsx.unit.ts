@@ -1,7 +1,8 @@
 import { describe, expect, test } from 'vitest';
 import type { AstNode } from '../analyse/ast/ast-types';
 import { parseModule } from '../analyse/ast/parse';
-import { createLowerContext, lowerJsx } from '../analyse/lower-jsx';
+import { createLowerContext } from '../analyse/lower-context';
+import { lowerJsx } from '../analyse/lower-jsx';
 import { emptyModulePlan } from './fixtures';
 import { foldStaticOp } from '../generate/fold-static';
 
@@ -62,7 +63,8 @@ describe('JSX lowering + static folding', () => {
   });
 
   test('rejects dynamic children, dynamic attributes, spreads, component tags, void children', () => {
-    expect(() => fold('<p>{value}</p>')).toThrow('a dynamic JSX child expression');
+    // A dynamic child now lowers to a hole op; only the static FOLD refuses it.
+    expect(() => fold('<p>{value}</p>')).toThrow('folding the op "hole"');
     expect(() => fold('<p title={value}></p>')).toThrow('a dynamic JSX attribute value');
     expect(() => fold('<p {...rest}></p>')).toThrow('a JSX spread attribute');
     expect(() => fold('<Foo></Foo>')).toThrow('a non-native JSX tag');

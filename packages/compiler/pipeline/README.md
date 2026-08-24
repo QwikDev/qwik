@@ -17,32 +17,24 @@ generateRustSsr(serverLinkedPlan, entry, options)    -> native project sources
 | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `DESIGN.md` | the authoritative design: model rationale, rules, phases, verification                                                                                                                                                                                                                                                                                            |
 | `schema/`   | the plan model as compilable TypeScript — `shared` (scalars, `Predicate` + `foldPredicate`, `Maybe`), `value` (payloads, edges, `Value`, `TaskBody`), `program` (`Program`, `Op`, `Prop`, typed `Invoke`/`Setup`), `module-plan` (`Qrl`, declarations, envelope, `AssemblyIntent`), `linked-plan` (materialized `LinkedModule`s, delivery, implementations table) |
-| `analyse/`  | `analyseModule` — pure, no batch registries; one concern per file like the ts-optimizer (PR #8872): `ast/` (types, parse, walkers), `normalize`, `discover`, `lower-jsx`, `plan`, `errors`                                                                                                                                                                        |
+| `analyse/`  | `analyseModule` — pure, no batch registries; one concern per file like the ts-optimizer (PR #8872): `ast/` (types, parse, walkers, capture-analysis, jsx-text), `normalize`, `discover`, `lower-context`, `lower-jsx`/`lower-event`/`lower-hole`, `events`, `plan`                                                                                                |
 | `link/`     | `linkPlans` + `ResolverSnapshot`/`PluginSnapshot`/`LinkEntry`; `complete` flag semantics                                                                                                                                                                                                                                                                          |
 | `generate/` | `generateJsSsr` (baseline), `generateJsCsr`, `generateRustSsr`; `GenerateOutput`                                                                                                                                                                                                                                                                                  |
 | `compat/`   | `transformModules` wrapper (hostless snapshots, `{kind:'module'}` roots)                                                                                                                                                                                                                                                                                          |
 | `tests/`    | schema gates + flow smoke (green) + differential-oracle harness (`test.todo` per slice)                                                                                                                                                                                                                                                                           |
 
-## Current state: mocked stages, full flow wired
+## Current state
 
-The whole flow runs end to end today: `transformModules` → analyse → link(incomplete,
-module entries) → `generateJsSsr`/`generateJsCsr`. What is real vs mocked:
-
-- **Schema**: complete per DESIGN.md, compiles, JSON round-trips (`tests/schema.unit.ts`).
-  String-literal unions from the design are `const enum`s (repo convention, cf. `QwikWord`,
-  `SsrOpKind` in `../src`); enum values keep the design's exact wire strings, so serialized
-  plans are unchanged.
-- **analyse**: MOCK — parses (oxc), fails loudly on parse errors, otherwise everything becomes
-  `kind: 'foreign'` (authored source). Slice 1 replaces this with component/QRL lowering; use
-  `UnsupportedError` for anything a slice cannot lower yet — never silently wrong output.
-- **link**: MOCK — 1:1 materialization into `LinkedModule`s, entry resolution, `complete` failure
-  semantics. No folding/policies yet.
-- **generators**: all three handle example 1 (the static default-arrow component) plus the
-  foreign oxc passthrough; every other shape throws. `generateJsSsr`/`generateJsCsr` are gated by
-  live differential tests against the legacy pipeline; `generateRustSsr` by a golden captured
-  from the oracle crate (`../generators/rust/ssr` `generate_component`) — see
-  `tests/rust-ssr.unit.ts` for the re-capture note. One ModulePlan feeds both environment links
-  and all three generators.
+Live byte-parity with the legacy oracle (SSR + CSR differential, Rust goldens) covers: foreign
+passthrough; static components (all supported declaration forms, attrs, void tags, JSX text,
+sibling statements, generated-name allocation, authored param reuse); element event handlers
+(QRL identity, chunks, `_noopQrl` hoists, `setEvent` wiring); dynamic text holes (invoked-segment
+mirrors + `.s()`, `q:id`, `renderSsrTextExpression`/`maybeThen`, CSR placeholder templates +
+`createTextExpressionEffect`). Expressions lower to ValueIR when the
+vocabulary covers them (JS payload fallback), so Rust evaluates text holes natively; only
+IR-uncoverable expressions refuse on the native target. The linker is still a 1:1 materializer — folding, policies, and edges
+pending. Everything unsupported throws `UnsupportedError`; invalid authored code becomes
+`InvalidModuleError` diagnostics.
 
 ## Workflow (vertical slices — DESIGN.md "Phases")
 

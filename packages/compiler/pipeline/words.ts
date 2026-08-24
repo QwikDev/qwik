@@ -8,8 +8,14 @@ export const enum QwikWord {
   CreateTemplate = 'createTemplate',
   FirstChild = '_first',
   SetEvent = 'setEvent',
+  CreateTextExpressionEffect = 'createTextExpressionEffect',
   // ssr
   CreateSsrElementRecord = 'createSsrElementRecord',
+  CreateSsrNodeId = 'createSsrNodeId',
+  CreateSsrElementTextTarget = 'createSsrElementTextTarget',
+  EscapeHTML = 'escapeHTML',
+  RenderSsrTextExpression = 'renderSsrTextExpression',
+  MaybeThen = 'maybeThen',
   // shared
   NoopQrl = '_noopQrl',
 }
@@ -19,6 +25,9 @@ export const enum QwikGenWord {
   Template = 'tmpl',
   Fragment = 'fragment',
   Element = 'el',
+  Text = 'text',
+  Effect = 'effect',
+  Id = 'id',
   ComponentProps = 'props',
   ComponentContext = 'ctx',
 }

@@ -149,6 +149,22 @@ describe('differential oracle: staged pipeline vs legacy transformModules', () =
       "import { something } from './helpers';\nexport default () => {\n  return <p>Hello Qwik</p>;\n};\n"
     ));
 
+  test('dynamic text hole reading props (ssr)', () =>
+    expectParity(
+      'src/component.tsx',
+      'export default (props) => {\n  return <p>{props.title}</p>;\n};\n'
+    ));
+
+  test('dynamic text hole in an expression-body arrow (ssr)', () =>
+    expectParity('src/component.tsx', 'export default (props) => <p>{props.name}</p>;\n'));
+
+  test('dynamic text hole reading props (csr)', () =>
+    expectParity(
+      'src/component.tsx',
+      'export default (props) => {\n  return <p>{props.title}</p>;\n};\n',
+      false
+    ));
+
   test('element event handler without captures (ssr)', () =>
     expectParity(
       'src/component.tsx',

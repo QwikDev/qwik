@@ -1,4 +1,11 @@
-import { FnBodyKind, QrlBodyKind, type LinkedModule, type LinkedQrl } from '../schema';
+import {
+  FnBodyKind,
+  FormalAccess,
+  QrlBodyKind,
+  QrlPayloadKind,
+  type LinkedModule,
+  type LinkedQrl,
+} from '../schema';
 import { getSegmentDisplayName, getSegmentSymbolHash } from '../segment-identity';
 import { UnsupportedError } from '../errors';
 import type { GenerateOutput } from './output';
@@ -30,8 +37,37 @@ export function emitQrlChunks(module: LinkedModule): GenerateOutput['modules'] {
       paramNames: qrl.origin.paramRanges.map(([start, end]) =>
         module.source.code.slice(start, end)
       ),
+      ...(qrl.formals.length > 0 ? { captureNames: captureNames(module, qrl) } : {}),
     },
   }));
+}
+
+/** Capture names double as the chunk fn's parameters for value-payload QRLs. */
+export function captureNames(module: LinkedModule, qrl: LinkedQrl): string[] {
+  return qrl.formals.map((formal) => {
+    if (formal.access !== FormalAccess.ComponentProp) {
+      throw new UnsupportedError('a non-props QRL capture');
+    }
+    return module.bindings[formal.binding].name;
+  });
+}
+
+/** The regenerated arrow — shared by the chunk export and the SSR in-module mirror. */
+export function chunkFunctionText(module: LinkedModule, qrl: LinkedQrl): string {
+  if (qrl.body.b !== QrlBodyKind.Js && qrl.body.b !== QrlBodyKind.Expr) {
+    throw new UnsupportedError('emitting a chunk for a program/task QRL body');
+  }
+  if (qrl.origin.bodyKind !== FnBodyKind.Expression) {
+    throw new UnsupportedError('emitting a chunk for a block QRL body');
+  }
+  const source = module.source.code;
+  const params =
+    qrl.payloadKind === QrlPayloadKind.Value
+      ? captureNames(module, qrl)
+      : qrl.origin.paramRanges.map(([start, end]) => source.slice(start, end));
+  const [bodyStart, bodyEnd] = qrl.origin.bodyRange;
+  const async = qrl.authoredAsync ? 'async ' : '';
+  return `${async}(${params.join(', ')}) => {\n  return ${source.slice(bodyStart, bodyEnd)};\n}`;
 }
 
 export function chunkCanonicalFilename(module: LinkedModule, qrl: LinkedQrl): string {
@@ -44,12 +80,5 @@ function moduleBasename(module: LinkedModule): string {
 }
 
 function emitChunkCode(module: LinkedModule, qrl: LinkedQrl): string {
-  if (qrl.body.b !== QrlBodyKind.Js || qrl.origin.bodyKind !== FnBodyKind.Expression) {
-    throw new UnsupportedError('emitting a chunk for a non-expression QRL body');
-  }
-  const source = module.source.code;
-  const params = qrl.origin.paramRanges.map(([start, end]) => source.slice(start, end)).join(', ');
-  const [bodyStart, bodyEnd] = qrl.origin.bodyRange;
-  const async = qrl.authoredAsync ? 'async ' : '';
-  return `export const ${qrl.name} = ${async}(${params}) => {\n  return ${source.slice(bodyStart, bodyEnd)};\n};\n`;
+  return `export const ${qrl.name} = ${chunkFunctionText(module, qrl)};\n`;
 }

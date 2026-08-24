@@ -17,10 +17,11 @@ import {
   type Op,
   type Prop,
 } from '../schema';
-import { QwikWord } from '../words';
+import { QwikGenWord, QwikWord } from '../words';
 import { escapeAttr, serializeAttrValue } from '../html';
 import { UnsupportedError } from '../errors';
 import { generateQwikModule } from './assemble-module';
+import { captureNames, chunkFunctionText } from './emit-chunk';
 import { foldStaticOp, isFullyStaticSubtree } from './fold-static';
 import type { ComponentEmission, GeneratedNames } from './emit-component';
 import { generateForeignModule } from './foreign';
@@ -57,11 +58,22 @@ async function generateModule(
   }
 }
 
+interface QrlUsage {
+  qrl: LinkedQrl;
+  /** Invoked segments (render expressions) get an in-module mirror registered via `.s()`. */
+  invoked: boolean;
+}
+
 class SsrModuleEmitter {
   readonly imports = new Set<string>();
   readonly chunkImports: string[] = [];
   readonly hoists: string[] = [];
-  private readonly hoistedQrls = new Set<string>();
+  private readonly usedQrls = new Map<string, QrlUsage>();
+  private statements: string[] = [];
+  private asyncSteps: string[] = [];
+  private idCount = 0;
+  private tempCount = 0;
+  private names!: GeneratedNames;
 
   constructor(private readonly module: LinkedModule) {}
 
@@ -70,18 +82,29 @@ class SsrModuleEmitter {
     if (body.kind !== ProgramBodyKind.Ops) {
       throw new Error('pipeline.generateJsSsr: js-bodied programs not implemented yet');
     }
+    this.names = names;
+    this.statements = [];
+    this.asyncSteps = [];
+    this.idCount = 0;
+    this.tempCount = 0;
     const parts: string[] = [];
     for (const op of body.ops) {
-      this.op(op, parts, names);
+      this.op(op, parts);
     }
-    const value =
-      parts.length === 0 ? "''" : parts.length === 1 ? parts[0] : `[${parts.join(', ')}]`;
+    let value = parts.length === 0 ? "''" : parts.length === 1 ? parts[0] : `[${parts.join(', ')}]`;
+    if (this.asyncSteps.length > 0) {
+      this.imports.add(QwikWord.MaybeThen);
+      value = this.asyncSteps.reduceRight(
+        (inner, step) => `${QwikWord.MaybeThen}(${step}, (${step}) => ${inner})`,
+        value
+      );
+    }
     // QRL hoists flush after the body so their imports keep the request order.
     this.flushQrlHoists();
-    return { statements: [], value };
+    return { statements: this.statements, value };
   }
 
-  private op(op: Op, parts: string[], names: GeneratedNames): void {
+  private op(op: Op, parts: string[]): void {
     switch (op.op) {
       case OpKind.Static:
         // SSR streams raw text; adjacent static runs merge into one string part.
@@ -92,27 +115,44 @@ class SsrModuleEmitter {
           pushMergedStatic(parts, foldStaticOp(op, false));
           return;
         }
-        this.element(op, parts, names);
+        this.element(op, parts);
         return;
       default:
         throw new Error(`pipeline.generateJsSsr: op "${op.op}" not implemented yet`);
     }
   }
 
-  private element(
-    op: Extract<Op, { op: OpKind.Element }>,
-    parts: string[],
-    names: GeneratedNames
-  ): void {
+  private element(op: Extract<Op, { op: OpKind.Element }>, parts: string[]): void {
+    const holes = op.children.filter((child) => child.op === OpKind.Hole);
+    const idVariable = holes.length > 0 ? `${QwikGenWord.Id}_${this.idCount++}` : null;
+    if (idVariable !== null) {
+      // One eager step only, so the id allocates right here; lazy `??=` claiming returns with
+      // the multi-step example.
+      this.statements.push(`const ${idVariable} = ${this.names.ctx}.nextId();`);
+    }
     const open: string[] = [];
     pushMergedStatic(open, `<${op.tag}`);
+    if (idVariable !== null) {
+      this.imports.add(QwikWord.CreateSsrNodeId);
+      pushMergedStatic(open, ` q:id="`);
+      open.push(`${QwikWord.CreateSsrNodeId}(${idVariable})`);
+      pushMergedStatic(open, `"`);
+    }
     for (const prop of op.props) {
-      this.prop(prop, open, names);
+      this.prop(prop, open);
     }
     open.push(JSON.stringify('>'));
     this.imports.add(QwikWord.CreateSsrElementRecord);
     parts.push(`${QwikWord.CreateSsrElementRecord}(${JSON.stringify(op.tag)}, ${open.join(', ')})`);
+    // A sole hole child targets the element itself; siblings need range targets (not yet).
+    if (holes.length > 0 && op.children.length !== 1) {
+      throw new UnsupportedError('a text hole with sibling children (range targets)');
+    }
     for (const child of op.children) {
+      if (child.op === OpKind.Hole) {
+        this.textHole(child, idVariable!, parts);
+        continue;
+      }
       if (!isFullyStaticSubtree(child)) {
         throw new UnsupportedError('a dynamic child inside an element record');
       }
@@ -123,7 +163,49 @@ class SsrModuleEmitter {
     }
   }
 
-  private prop(prop: Prop, open: string[], names: GeneratedNames): void {
+  private textHole(
+    op: Extract<Op, { op: OpKind.Hole }>,
+    idVariable: string,
+    parts: string[]
+  ): void {
+    if (op.value.v !== ValueKind.Computed || !('qrl' in op.value.resume)) {
+      throw new UnsupportedError('a non-computed text hole');
+    }
+    this.imports.add(QwikWord.CreateSsrElementTextTarget);
+    this.imports.add(QwikWord.EscapeHTML);
+    const step = `${QwikGenWord.Text}_${this.tempCount++}`;
+    const qrl = this.qrlById(op.value.resume.qrl.qrl);
+    const captures = captureNames(this.module, qrl);
+    this.imports.add(QwikWord.RenderSsrTextExpression);
+    this.pushStep(
+      step,
+      captures,
+      `${QwikWord.RenderSsrTextExpression}(${QwikWord.CreateSsrElementTextTarget}(${idVariable}), [${captures.join(', ')}], ${this.qrlReference(qrl, true)})`
+    );
+    parts.push(`${QwikWord.EscapeHTML}(${step})`);
+  }
+
+  /** First step evaluates eagerly at its statement; later steps need invoke thunks (not yet). */
+  private pushStep(step: string, roots: readonly string[], callExpr: string): void {
+    if (this.asyncSteps.length > 0) {
+      throw new UnsupportedError('more than one async render step');
+    }
+    for (const root of roots) {
+      this.statements.push(`${this.names.ctx}.addRoot(${root});`);
+    }
+    this.statements.push(`const ${step} = ${callExpr};`);
+    this.asyncSteps.push(step);
+  }
+
+  private qrlById(id: string): LinkedQrl {
+    const qrl = this.module.qrls.find((candidate) => candidate.id === id);
+    if (qrl === undefined) {
+      throw new Error(`pipeline.generateJsSsr: unknown qrl "${id}"`);
+    }
+    return qrl;
+  }
+
+  private prop(prop: Prop, open: string[]): void {
     switch (prop.k) {
       case PropKind.Static: {
         const serialized = serializeAttrValue(prop.name, prop.value ?? null);
@@ -141,10 +223,10 @@ class SsrModuleEmitter {
           if (handler.h !== HandlerKind.Value || handler.value.v !== ValueKind.Qrl) {
             throw new UnsupportedError('a non-QRL event handler');
           }
-          return this.qrlReference(handler.value.use.qrl);
+          return this.qrlReference(this.qrlById(handler.value.use.qrl));
         });
         const value = values.length === 1 ? values[0] : `[${values.join(', ')}]`;
-        open.push(`${names.ctx}.eventAttr(${JSON.stringify(prop.name)}, ${value})`);
+        open.push(`${this.names.ctx}.eventAttr(${JSON.stringify(prop.name)}, ${value})`);
         return;
       }
       default:
@@ -152,24 +234,35 @@ class SsrModuleEmitter {
     }
   }
 
-  private qrlReference(id: string): string {
-    const qrl = this.module.qrls.find((candidate) => candidate.id === id);
-    if (qrl === undefined) {
-      throw new Error(`pipeline.generateJsSsr: unknown qrl "${id}"`);
+  private qrlReference(qrl: LinkedQrl, invoked = false): string {
+    const usage = this.usedQrls.get(qrl.id);
+    if (usage === undefined) {
+      this.usedQrls.set(qrl.id, { qrl, invoked });
+    } else {
+      usage.invoked = usage.invoked || invoked;
     }
-    this.hoistedQrls.add(qrl.id);
     return `q_${qrl.name}`;
   }
 
   private flushQrlHoists(): void {
-    for (const id of this.hoistedQrls) {
-      const qrl = this.module.qrls.find((candidate) => candidate.id === id) as LinkedQrl;
-      this.imports.add(QwikWord.NoopQrl);
-      this.hoists.push(
-        `const q_${qrl.name} = /*#__PURE__*/ ${QwikWord.NoopQrl}(${JSON.stringify(qrl.name)});`
-      );
+    for (const usage of this.usedQrls.values()) {
+      const { qrl } = usage;
+      if (usage.invoked) {
+        // The server invokes render expressions in-module: mirror fn + `.s()` registration.
+        this.hoists.push(`const ${qrl.name} = ${chunkFunctionText(this.module, qrl)};`);
+        this.imports.add(QwikWord.NoopQrl);
+        this.hoists.push(
+          `const q_${qrl.name} = /*#__PURE__*/ ${QwikWord.NoopQrl}(${JSON.stringify(qrl.name)});`
+        );
+        this.hoists.push(`q_${qrl.name}.s(${qrl.name});`);
+      } else {
+        this.imports.add(QwikWord.NoopQrl);
+        this.hoists.push(
+          `const q_${qrl.name} = /*#__PURE__*/ ${QwikWord.NoopQrl}(${JSON.stringify(qrl.name)});`
+        );
+      }
     }
-    this.hoistedQrls.clear();
+    this.usedQrls.clear();
   }
 }
 

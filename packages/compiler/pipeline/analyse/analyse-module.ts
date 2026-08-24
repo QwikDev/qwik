@@ -16,7 +16,8 @@ import { collectBindingNames } from './ast/bindings';
 import { findRuntimeJsx, hasComponentCandidates } from './ast/returns-jsx';
 import { parseModule } from './ast/parse';
 import { discoverComponents } from './discover';
-import { createLowerContext, lowerJsx } from './lower-jsx';
+import { createLowerContext } from './lower-context';
+import { lowerJsx } from './lower-jsx';
 import { normalizeSource } from './normalize';
 import { emptyPlan } from './plan';
 

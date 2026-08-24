@@ -145,6 +145,18 @@ describe('pipeline flow', () => {
     ).rejects.toThrow('an event handler capturing "count"');
   });
 
+  test('expressions capturing module bindings fail loud', async () => {
+    await expect(
+      analyseModule(
+        {
+          path: 'src/outer.tsx',
+          code: 'const title = "x";\nexport default () => {\n  return <p>{title}</p>;\n};\n',
+        },
+        { transpileTs: true }
+      )
+    ).rejects.toThrow('an expression capturing "title"');
+  });
+
   test('block-bodied event handlers are not supported yet', async () => {
     await expect(
       analyseModule(

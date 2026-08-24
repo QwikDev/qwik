@@ -208,6 +208,7 @@ describe('body-transforms', () => {
       const body = `() => {
     const first = 1;
     const second = 2;
+    function nested() {}
     return <><button onClick$={FIRST}/><button onClick$={SECOND}/></>;
 }`;
       const site = (marker: string, symbol: string, capture: string): NestedCallSiteInfo => {
@@ -231,6 +232,7 @@ describe('body-transforms', () => {
       );
 
       expect(out.indexOf('const firstHandler')).toBeLessThan(out.indexOf('const secondHandler'));
+      expect(out.indexOf('const secondHandler')).toBeLessThan(out.indexOf('function nested'));
     });
 
     it('ends a capture declaration at its statement, not a nested arrow semicolon', () => {

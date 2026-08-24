@@ -360,9 +360,36 @@ function findComponentReturnPosition(bodyText: string): number {
   return lastDepth1Return;
 }
 
+function findComponentDeclarationPrologueEnd(bodyText: string): number {
+  const session = createFunctionTransformSession(bodyText, { tolerateErrors: true });
+  const block = session?.fn.body;
+  if (!session || !block || block.type !== 'BlockStatement') {
+    return -1;
+  }
+
+  let end = -1;
+  for (const statement of block.body ?? []) {
+    if (statement.type !== 'VariableDeclaration') {
+      break;
+    }
+    end = statement.end - session.offset;
+  }
+  if (bodyText[end] === '\n') {
+    end++;
+  }
+  return end;
+}
+
 function injectComponentScopeWDecls(bodyText: string, decls: string[] | undefined): string {
   if (!decls || decls.length === 0) {
     return bodyText;
+  }
+
+  const prologueEnd = findComponentDeclarationPrologueEnd(bodyText);
+  if (prologueEnd >= 0) {
+    const indent = bodyText.slice(prologueEnd).match(/^[\t ]*/)?.[0] ?? '';
+    const declBlock = indent + decls.join('\n' + indent) + '\n';
+    return bodyText.slice(0, prologueEnd) + declBlock + bodyText.slice(prologueEnd);
   }
 
   const returnIdx = findComponentReturnPosition(bodyText);

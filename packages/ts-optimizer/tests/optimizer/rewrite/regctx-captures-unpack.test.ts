@@ -62,4 +62,7 @@ export const Works = component$(() => {
       (module) => module.kind === 'segment' && module.segment.displayName.endsWith('_server')
     )
   ).toBe(false);
+  expect(result.modules.find((module) => module.kind === 'parent')?.code).toContain(
+    'q_qrl_4294901763'
+  );
 });

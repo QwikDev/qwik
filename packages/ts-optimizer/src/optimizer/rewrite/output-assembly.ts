@@ -16,6 +16,8 @@ import { buildQrlDevDeclaration, buildDevFilePath, formatDevMeta } from '../segm
 import {
   buildNoopQrlDeclaration,
   buildNoopQrlDevDeclaration,
+  buildNoopQrlDevForVar,
+  buildNoopQrlForVar,
   buildStrippedNoopQrl,
   buildStrippedNoopQrlDev,
   buildSCall,
@@ -29,10 +31,10 @@ import { SignalHoister } from '../jsx/signal-analysis.js';
 import { transformInlineSegmentBody } from './inline-body.js';
 import { deriveIsDev } from './const-replacement.js';
 import {
-  advancesSentinelCounter,
   hasUnderscorePlaceholderParams,
   isAnyComponentCtx,
   isStrippedExtraction,
+  inlineSentinelStep,
   matchesRegCtxName,
 } from './predicates.js';
 import { injectUseHmrIntoInlineBody } from '../transform/module-cleanup.js';
@@ -236,6 +238,7 @@ export function buildQrlDeclarations(ctx: RewriteContext): void {
   }
 
   let strippedCounter = 0;
+  let inlineSentinelOffset = 0;
   const deferredStrippedQrlVars = new Set<string>();
 
   if (isInline) {
@@ -246,15 +249,15 @@ export function buildQrlDeclarations(ctx: RewriteContext): void {
         inlineOptions &&
         isStrippedExtraction(ext, inlineOptions.stripCtxName, inlineOptions.stripEventHandlers);
 
-      const idx = strippedCounter;
-      if (advancesSentinelCounter(ext, !!stripped)) {
-        strippedCounter++;
-      }
+      const offset = inlineSentinelOffset;
+      inlineSentinelOffset += inlineSentinelStep(ext, !!stripped, inlineOptions?.regCtxName);
       if (stripped) {
+        const counter = 0xffff0000 + offset;
+        const qrlVar = `q_qrl_${counter}`;
         if (isDevMode && devFilePath) {
           ctx.qrlDecls.push(
             markMovedCaptures(
-              buildStrippedNoopQrlDev(ext.symbolName, idx, {
+              buildNoopQrlDevForVar(qrlVar, ext.symbolName, {
                 file: devFilePath,
                 lo: 0,
                 hi: 0,
@@ -264,10 +267,8 @@ export function buildQrlDeclarations(ctx: RewriteContext): void {
             )
           );
         } else {
-          ctx.qrlDecls.push(markMovedCaptures(buildStrippedNoopQrl(ext.symbolName, idx), ext));
+          ctx.qrlDecls.push(markMovedCaptures(buildNoopQrlForVar(qrlVar, ext.symbolName), ext));
         }
-        const counter = 0xffff0000 + idx * 2;
-        const qrlVar = `q_qrl_${counter}`;
         ctx.qrlVarNames.set(ext.symbolName, qrlVar);
         if (ext.parent !== null) {
           deferredStrippedQrlVars.add(qrlVar);

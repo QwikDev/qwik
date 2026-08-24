@@ -110,3 +110,14 @@ export function advancesSentinelCounter(
 ): boolean {
   return isStripped || (ext.parent !== null && ext.ctxKind !== 'jSXProp');
 }
+
+export function inlineSentinelStep(
+  ext: ExtractionResult,
+  isStripped: boolean,
+  regCtxName?: readonly string[]
+): number {
+  if (!advancesSentinelCounter(ext, isStripped)) {
+    return 0;
+  }
+  return matchesRegCtxName(ext, regCtxName) ? 3 : 2;
+}

@@ -20,7 +20,7 @@ import { rewriteImportSource } from './rewrite-imports.js';
 import { buildSyncTransform, isWorkerExtraction, needsPureAnnotation } from './rewrite-calls.js';
 import { getQrlCalleeName, isLibModePreservedMarker } from '../qwik/qrl-naming.js';
 import {
-  advancesSentinelCounter,
+  inlineSentinelStep,
   isEventHandlerOrJsxProp,
   isStrippedExtraction,
   matchesRegCtxName,
@@ -592,6 +592,7 @@ function preConsolidateRawPropsCaptures(ctx: RewriteContext): void {
 
 function preComputeQrlVarNames(ctx: RewriteContext): void {
   let earlyStrippedCounter = 0;
+  let inlineSentinelOffset = 0;
   for (const ext of ctx.extractions) {
     if (ext.isSync) {
       continue;
@@ -603,9 +604,7 @@ function preComputeQrlVarNames(ctx: RewriteContext): void {
     if (isWorkerExtraction(ext)) {
       if (ctx.inlineOptions?.inline) {
         ctx.earlyQrlVarNames.set(ext.symbolName, `q_${ext.symbolName}`);
-        if (advancesSentinelCounter(ext, false)) {
-          earlyStrippedCounter++;
-        }
+        inlineSentinelOffset += inlineSentinelStep(ext, false, ctx.inlineOptions.regCtxName);
       } else {
         const counter = 0xffff0000 + earlyStrippedCounter++ * 2;
         ctx.earlyQrlVarNames.set(ext.symbolName, `q_qrl_${counter}`);
@@ -615,17 +614,20 @@ function preComputeQrlVarNames(ctx: RewriteContext): void {
     if (!ctx.inlineOptions) {
       continue;
     }
-    const stripped = isStrippedExtraction(
-      ext,
-      ctx.inlineOptions.stripCtxName,
-      ctx.inlineOptions.stripEventHandlers
-    );
-    const idx = earlyStrippedCounter;
-    if (ctx.inlineOptions.inline && advancesSentinelCounter(ext, stripped)) {
-      earlyStrippedCounter++;
+    const isRegCtx = matchesRegCtxName(ext, ctx.inlineOptions.regCtxName);
+    const stripped =
+      !isRegCtx &&
+      isStrippedExtraction(
+        ext,
+        ctx.inlineOptions.stripCtxName,
+        ctx.inlineOptions.stripEventHandlers
+      );
+    const offset = ctx.inlineOptions.inline ? inlineSentinelOffset : earlyStrippedCounter * 2;
+    if (ctx.inlineOptions.inline) {
+      inlineSentinelOffset += inlineSentinelStep(ext, stripped, ctx.inlineOptions.regCtxName);
     }
     if (stripped) {
-      const counter = 0xffff0000 + idx * 2;
+      const counter = 0xffff0000 + offset;
       ctx.earlyQrlVarNames.set(ext.symbolName, `q_qrl_${counter}`);
     } else {
       ctx.earlyQrlVarNames.set(ext.symbolName, `q_${ext.symbolName}`);

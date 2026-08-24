@@ -47,6 +47,24 @@ describe('applyStatementDCE', () => {
     expect(out).toContain('function helper');
   });
 
+  it('drops unused object and array literals', () => {
+    const code = [
+      'export const seg = () => {',
+      '  const object = { name: "Qwik", nested: { value: source } };',
+      '  const array = [1, source, { value: 2 }];',
+      '  return null;',
+      '};',
+    ].join('\n');
+
+    const out = applyStatementDCE(code, 'test.js');
+
+    expect(out).not.toContain('object');
+    expect(out).not.toContain('array');
+    expect(out).not.toContain('Qwik');
+    expect(out).not.toContain('source');
+    expect(out).toContain('return null');
+  });
+
   it('keeps classes with static side effects and non-trivial extends', () => {
     const code = [
       'export const seg = () => {',

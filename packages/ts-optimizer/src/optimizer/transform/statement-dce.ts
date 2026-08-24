@@ -93,6 +93,17 @@ function isPureInit(init: unknown): boolean {
       return true;
     case 'TemplateLiteral':
       return (init.expressions as unknown[] | undefined)?.length === 0;
+    case 'ObjectExpression':
+      return ((init.properties as unknown[] | undefined) ?? []).every((property) => {
+        if (!isRecordNode(property) || property.type !== 'Property' || property.computed) {
+          return false;
+        }
+        return isPureInit(property.value);
+      });
+    case 'ArrayExpression':
+      return ((init.elements as unknown[] | undefined) ?? []).every(
+        (element) => element == null || isPureInit(element)
+      );
     default:
       return false;
   }

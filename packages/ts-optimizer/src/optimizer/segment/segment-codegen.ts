@@ -302,7 +302,7 @@ function addNestedQrlDeclarations(parts: string[], nestedQrlDecls: string[] | un
   const sortedDecls = [...nestedQrlDecls].sort((a, b) => {
     const nameA = a.match(qrlConstName)?.[1] ?? a;
     const nameB = b.match(qrlConstName)?.[1] ?? b;
-    return nameA.localeCompare(nameB);
+    return nameA < nameB ? -1 : nameA > nameB ? 1 : 0;
   });
   for (const decl of sortedDecls) {
     parts.push(decl);

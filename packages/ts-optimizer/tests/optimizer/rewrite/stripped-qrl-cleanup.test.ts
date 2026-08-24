@@ -66,6 +66,7 @@ import { $, client$, component$, serverStuff$, useTask$ } from '@qwik.dev/core';
 export const Parent = component$(() => {
   useTask$(() => {});
   serverStuff$(() => [$(() => {}), client$(() => {})]);
+  useTask$(() => {});
   return <div/>;
 });
 `;
@@ -80,6 +81,10 @@ export const Parent = component$(() => {
     const component = findSegmentByCtx(result, 'component$');
 
     expect(component.code).toContain('serverStuffQrl(q_qrl_4294901766)');
+    const liveQrlVars = [...component.code.matchAll(/^const (q_(?!qrl_)[\w$]+)/gm)].map(
+      (match) => match[1]
+    );
+    expect(liveQrlVars).toEqual([...liveQrlVars].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0)));
   });
 
   it('stripEventHandlers: parent emits bare q_X for stripped handlers (no .w wrap)', () => {

@@ -102,6 +102,23 @@ const fn = sync$(() => true);`),
     expect(result.modules[0].code).toContain('_qrlSync');
   });
 
+  it('uses the transpiled extension for a transformed parent module', () => {
+    const result = transformModule({
+      input: [
+        {
+          path: mkFilePath('project/test.tsx'),
+          code: mkSourceText(`import { component$ } from '@qwik.dev/core';
+export const App = component$(() => <div />);`),
+        },
+      ],
+      srcDir: mkFilePath('.'),
+      transpileTs: true,
+      transpileJsx: true,
+    });
+
+    expect(result.modules[0].path).toBe('project/test.js');
+  });
+
   it('returns correct isTypeScript and isJsx flags', () => {
     const tsxResult = transformModule({
       input: [{ path: mkFilePath('test.tsx'), code: mkSourceText('const x = 1;') }],

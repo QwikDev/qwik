@@ -35,7 +35,13 @@ import {
 } from '../extraction/marker-detection.js';
 import { buildDevFilePath } from '../segment/dev-mode.js';
 import { isSimpleIdentifierName } from '../ast/identifier-name.js';
-import { type SymbolName, mkBodyText, mkSymbolName, type RelativePath } from '../types/brands.js';
+import {
+  type SymbolName,
+  mkBodyText,
+  mkRelativePath,
+  mkSymbolName,
+  type RelativePath,
+} from '../types/brands.js';
 import {
   analyzeCaptures,
   collectScopeIdentifiers,
@@ -75,6 +81,7 @@ import {
   computeParentModulePath,
   computeRelPath,
   getExtension,
+  stripExtension,
 } from '../../paths.js';
 import {
   buildParentExtractionMap,
@@ -253,6 +260,7 @@ interface EmitConfig {
   readonly shouldTranspileTs: boolean;
   readonly qrlOutputExt: string;
   readonly parentModulePath: string;
+  readonly parentOutputPath: RelativePath;
 }
 
 /**
@@ -601,6 +609,11 @@ function resolveEmitConfig(mod: ModuleContext): EmitConfig {
     entryStrategy = options.entryStrategy ?? { type: 'smart' as const };
   }
 
+  const qrlOutputExt = computeOutputExtension(ext, options.transpileTs, options.transpileJsx);
+  const parentOutputPath = options.preserveFilenames
+    ? relPath
+    : mkRelativePath(stripExtension(relPath) + qrlOutputExt);
+
   return {
     emitMode: options.mode ?? 'prod',
     entryStrategy,
@@ -608,8 +621,9 @@ function resolveEmitConfig(mod: ModuleContext): EmitConfig {
     isLibMode: options.mode === 'lib',
     shouldTranspileJsx: options.transpileJsx !== false,
     shouldTranspileTs: options.transpileTs === true,
-    qrlOutputExt: computeOutputExtension(ext, options.transpileTs, options.transpileJsx),
-    parentModulePath: computeParentModulePath(relPath, options.explicitExtensions),
+    qrlOutputExt,
+    parentModulePath: computeParentModulePath(parentOutputPath, options.explicitExtensions),
+    parentOutputPath,
   };
 }
 
@@ -1247,7 +1261,7 @@ function rewriteParent(
   );
   const parentModule: TransformModule = {
     kind: 'parent',
-    path: relPath,
+    path: emit.parentOutputPath,
     isEntry: false,
     code: hygienicCode,
     map: null,

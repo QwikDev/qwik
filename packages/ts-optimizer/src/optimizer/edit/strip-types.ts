@@ -16,6 +16,23 @@ function formatOxcErrors(errors: readonly OxcError[] | undefined): string {
   return (errors ?? []).map((e) => e.codeframe || e.message || String(e)).join('\n');
 }
 
+function normalizeExportedEnumBindings(filename: string, source: string, output: string): string {
+  if (!source.includes('enum')) {
+    return output;
+  }
+  const program = parseSync(filename, source).program;
+  for (const statement of program.body) {
+    if (
+      statement.type === 'ExportNamedDeclaration' &&
+      statement.declaration?.type === 'TSEnumDeclaration'
+    ) {
+      const name = statement.declaration.id.name;
+      output = output.replace(`export let ${name} =`, `export var ${name} =`);
+    }
+  }
+  return output;
+}
+
 /** `.ts` rejects JSX and `.tsx` rejects `<T>(x) => x`, so the other dialect may still parse. */
 function otherTsDialect(filename: string): string | undefined {
   if (filename.endsWith('.tsx')) {
@@ -50,13 +67,13 @@ export function stripTypeScript(
 ): string {
   const stripped = oxcTransformSync(filename, code, options);
   if (!hasFatalError(stripped.errors)) {
-    return stripped.code;
+    return normalizeExportedEnumBindings(filename, code, stripped.code);
   }
   const alternate = otherTsDialect(filename);
   if (alternate) {
     const retry = oxcTransformSync(alternate, code, options);
     if (!hasFatalError(retry.errors)) {
-      return retry.code;
+      return normalizeExportedEnumBindings(alternate, code, retry.code);
     }
   }
   if (origin && hasFatalError(parseSync(origin.filename, origin.text).errors)) {

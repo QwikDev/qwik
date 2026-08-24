@@ -17,6 +17,7 @@ import { QwikWord, QwikGenWord } from '../words';
 import { UnsupportedError } from '../errors';
 import { generateQwikModule } from './assemble-module';
 import { captureNames, chunkCanonicalFilename } from './emit-chunk';
+import { emitJsSetup, signalReadName } from './emit-setup';
 import { foldStaticOp } from './fold-static';
 import type { ComponentEmission, GeneratedNames } from './emit-component';
 import { generateForeignModule } from './foreign';
@@ -69,7 +70,11 @@ class CsrModuleEmitter {
       throw new Error('pipeline.generateJsCsr: js-bodied programs not implemented yet');
     }
     this.next = createNameAllocator();
-    const statements: string[] = [];
+    const statements: string[] = emitJsSetup(
+      this.module,
+      this.module.programs[component.body],
+      this.imports
+    );
     const roots: string[] = [];
     for (const op of body.ops) {
       roots.push(this.op(op, component, statements, names));
@@ -140,6 +145,19 @@ class CsrModuleEmitter {
     statements: string[],
     names: GeneratedNames
   ): void {
+    if (op.value.v === ValueKind.Read) {
+      // Signal reads bind the placeholder text node directly — no chunk involved.
+      const signal = signalReadName(this.module, op.value.expr);
+      const text = this.next(QwikGenWord.Text);
+      statements.push(`const ${text} = ${QwikWord.FirstChild}(${el});`);
+      const effect = this.next(QwikGenWord.Effect);
+      this.imports.add(QwikWord.CreateTextNodeEffect);
+      statements.push(
+        `const ${effect} = ${QwikWord.CreateTextNodeEffect}(${text}, ${signal}, ${names.ctx}.scheduler);`
+      );
+      statements.push(`${names.ctx}.scheduler.notify(${effect});`);
+      return;
+    }
     if (op.value.v !== ValueKind.Computed || !('qrl' in op.value.resume)) {
       throw new UnsupportedError('a non-computed text hole');
     }

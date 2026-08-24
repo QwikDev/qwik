@@ -19,6 +19,15 @@ import {
   type Prop,
 } from '../schema';
 import { ValueIrKind, type ValueIR } from '../../src/expr-ir';
+import {
+  ArgKind,
+  BindTargetKind,
+  ExprKind,
+  InvokeKind,
+  SetupKind,
+  type Arg,
+  type Program,
+} from '../schema';
 import { captureNames, chunkCanonicalFilename } from './emit-chunk';
 import { foldStaticOp, isFullyStaticSubtree } from './fold-static';
 import { UnsupportedError } from '../errors';
@@ -90,6 +99,7 @@ function emitComponentRender(module: LinkedModule, component: ComponentDecl): st
       : `pub fn ${fnName}(ctx: &mut qwik::render::SsrContext, out: &mut String, ${propsName}: &std::rc::Rc<qwik::serdes::SerdesValue>) {\n`;
   const statements =
     propsName === null ? [] : [`    let ${propsName} = std::rc::Rc::clone(${propsName});\n`];
+  statements.push(...emitRustSetup(module.programs[component.body]));
   statements.push(...emitDynamicElement(module, body.ops[0], propsName));
   return `${head}${statements.join('')}}\n`;
 }
@@ -168,6 +178,19 @@ function emitTextHole(
   temps: number,
   lines: string[]
 ): number {
+  if (op.value.v === ValueKind.Read) {
+    const expr = op.value.expr;
+    if (expr.kind !== ExprKind.Ir || expr.ir.kind !== ValueIrKind.SignalRead) {
+      throw new UnsupportedError('a read hole without signal-read IR');
+    }
+    const local = `local_${expr.ir.binding}`;
+    lines.push(`    ctx.serializer.add_root(std::rc::Rc::clone(&${local}));\n`);
+    lines.push(`    ctx.subscribe_element_text(&${local}, ${idVariable});\n`);
+    lines.push(
+      `    out.push_str(&qwik::escape::escape_html(&qwik::render::signal_text(&${local})));\n`
+    );
+    return temps;
+  }
   if (op.value.v !== ValueKind.Computed || !('qrl' in op.value.resume)) {
     throw new UnsupportedError('a non-computed text hole');
   }
@@ -219,6 +242,38 @@ function emitEventAttr(
   lines.push(
     `    out.push_str(&ctx.event_attr(${rustString(prop.name)}, ${rustQrlValue(module, qrl)}));\n`
   );
+}
+
+/** Signal locals are `local_<binding>` holding a serialized SignalState. */
+function emitRustSetup(program: Program): string[] {
+  return program.setup.map((entry) => {
+    if (entry.s !== SetupKind.Invoke || entry.invoke.op !== InvokeKind.UseSignal) {
+      throw new UnsupportedError(`the setup entry "${entry.s}" in a rust render`);
+    }
+    const result = entry.invoke.result;
+    if (result.bind !== BindTargetKind.Pattern || result.bindings.length !== 1) {
+      throw new UnsupportedError('a non-identifier useSignal binding');
+    }
+    return (
+      `    let local_${result.bindings[0]} = std::rc::Rc::new(qwik::serdes::SerdesValue::Signal(\n` +
+      `        std::cell::RefCell::new(qwik::serdes::SignalState { value: ${rustSerdesValue(entry.invoke.initial)}, subs: Vec::new() }),\n` +
+      `    ));\n`
+    );
+  });
+}
+
+function rustSerdesValue(initial: Arg | undefined): string {
+  if (initial === undefined) {
+    return 'std::rc::Rc::new(qwik::serdes::SerdesValue::Undefined)';
+  }
+  if (initial.a !== ArgKind.Expr || initial.expr.kind !== ExprKind.Ir) {
+    throw new UnsupportedError('a js-payload signal initial on the rust target');
+  }
+  const ir = initial.expr.ir;
+  if (ir.kind === ValueIrKind.Lit && typeof ir.value === 'number') {
+    return `std::rc::Rc::new(qwik::serdes::SerdesValue::Number(${ir.value}f64))`;
+  }
+  throw new UnsupportedError('a non-numeric signal initial on the rust target');
 }
 
 /** IR → tracked evaluation; only the captured `member(binding-read)` shape has verified bytes. */

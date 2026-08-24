@@ -165,6 +165,19 @@ describe('differential oracle: staged pipeline vs legacy transformModules', () =
       false
     ));
 
+  test('useSignal with a signal-read hole (ssr)', () =>
+    expectParity(
+      'src/component.tsx',
+      "import { useSignal } from '@qwik.dev/core';\nexport default () => {\n  const count = useSignal(0);\n  return <p>{count.value}</p>;\n};\n"
+    ));
+
+  test('useSignal with a signal-read hole (csr)', () =>
+    expectParity(
+      'src/component.tsx',
+      "import { useSignal } from '@qwik.dev/core';\nexport default () => {\n  const count = useSignal(0);\n  return <p>{count.value}</p>;\n};\n",
+      false
+    ));
+
   test('element event handler without captures (ssr)', () =>
     expectParity(
       'src/component.tsx',

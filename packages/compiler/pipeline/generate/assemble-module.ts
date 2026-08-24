@@ -93,14 +93,28 @@ export function assembleQwikModule(
           ]),
       ...parts.chunkImports,
     ];
-    const header = importLines.length === 0 ? '' : `${importLines.join('\n')}\n\n`;
+    let header = importLines.length === 0 ? '' : `${importLines.join('\n')}\n\n`;
+    // An authored core import is replaced in place (authored names merge into the request set);
+    // otherwise the header block is synthesized in front of the component.
+    const coreEdge = module.edges.find((edge) => edge.specifier.startsWith(QWIK_CORE_IMPORT));
+    let hoists = parts.hoists;
+    if (coreEdge !== undefined && parts.imports.size > 0) {
+      // Module-top hoists follow the replaced import, keeping the authored statement order.
+      const inlineHoists = placement === 'module-top' ? hoists : [];
+      edits.push({
+        range: coreEdge.authoredOwnerRange,
+        text: [...importLines, ...inlineHoists].join('\n'),
+      });
+      header = '';
+      hoists = placement === 'module-top' ? [] : hoists;
+    }
     if (placement === 'module-top') {
-      prefix = `${header}${parts.hoists.join('\n')}${parts.hoists.length > 0 ? '\n' : ''}`;
+      prefix = `${header}${hoists.join('\n')}${hoists.length > 0 ? '\n' : ''}`;
     } else {
       if (componentEdits.length !== 1) {
         throw new Error('pipeline: imports/hoists in a module with more than one component');
       }
-      componentEdits[0].text = `${header}${[...parts.hoists, componentEdits[0].text].join('\n')}`;
+      componentEdits[0].text = `${header}${[...hoists, componentEdits[0].text].join('\n')}`;
     }
   }
   edits.sort((a, b) => b.range[0] - a.range[0]);

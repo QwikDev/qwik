@@ -15,7 +15,9 @@ import {
 import { collectBindingNames } from './ast/bindings';
 import { findRuntimeJsx, hasComponentCandidates } from './ast/returns-jsx';
 import { parseModule } from './ast/parse';
+import { scanCoreImports } from './core-imports';
 import { discoverComponents } from './discover';
+import { lowerSetup } from './lower-setup';
 import { createLowerContext } from './lower-context';
 import { lowerJsx } from './lower-jsx';
 import { normalizeSource } from './normalize';
@@ -95,11 +97,19 @@ export async function analyseModule(
     owner: LifetimeOwner.Component,
     commit: LifetimeCommit.Immediate,
   });
-  const lowerContext = createLowerContext(plan, input.path, options.scope);
+  const coreBindings = scanCoreImports(
+    parsed.program,
+    plan,
+    plan.bindings.map((binding) => binding.name)
+  );
+  const lowerContext = createLowerContext(plan, input.path, options.scope, coreBindings);
   for (const component of components) {
     lowerContext.propsParamName = component.param?.name ?? null;
     let rootOp;
+    let setup;
     try {
+      setup = lowerSetup(component.setupStatements, lowerContext);
+      lowerContext.locals = setup.locals;
       rootOp = lowerJsx(component.jsx, lowerContext);
     } catch (error) {
       if (error instanceof InvalidModuleError) {
@@ -116,7 +126,7 @@ export async function analyseModule(
     }
     plan.programs.push({
       body: { kind: ProgramBodyKind.Ops, ops: [rootOp] },
-      setup: [],
+      setup: setup.setup,
       params: [],
       lifetime: 0,
       needsId: false,

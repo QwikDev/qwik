@@ -22,6 +22,7 @@ import { escapeAttr, serializeAttrValue } from '../html';
 import { UnsupportedError } from '../errors';
 import { generateQwikModule } from './assemble-module';
 import { captureNames, chunkFunctionText } from './emit-chunk';
+import { emitJsSetup, signalReadName } from './emit-setup';
 import { foldStaticOp, isFullyStaticSubtree } from './fold-static';
 import type { ComponentEmission, GeneratedNames } from './emit-component';
 import { generateForeignModule } from './foreign';
@@ -83,7 +84,7 @@ class SsrModuleEmitter {
       throw new Error('pipeline.generateJsSsr: js-bodied programs not implemented yet');
     }
     this.names = names;
-    this.statements = [];
+    this.statements = emitJsSetup(this.module, this.module.programs[component.body], this.imports);
     this.asyncSteps = [];
     this.idCount = 0;
     this.tempCount = 0;
@@ -168,12 +169,24 @@ class SsrModuleEmitter {
     idVariable: string,
     parts: string[]
   ): void {
-    if (op.value.v !== ValueKind.Computed || !('qrl' in op.value.resume)) {
-      throw new UnsupportedError('a non-computed text hole');
-    }
     this.imports.add(QwikWord.CreateSsrElementTextTarget);
     this.imports.add(QwikWord.EscapeHTML);
     const step = `${QwikGenWord.Text}_${this.tempCount++}`;
+    if (op.value.v === ValueKind.Read) {
+      // Signal reads subscribe directly — no QRL involved.
+      const signal = signalReadName(this.module, op.value.expr);
+      this.imports.add(QwikWord.RenderSsrTextNode);
+      this.pushStep(
+        step,
+        [signal],
+        `${QwikWord.RenderSsrTextNode}(${QwikWord.CreateSsrElementTextTarget}(${idVariable}), ${signal})`
+      );
+      parts.push(`${QwikWord.EscapeHTML}(${step})`);
+      return;
+    }
+    if (op.value.v !== ValueKind.Computed || !('qrl' in op.value.resume)) {
+      throw new UnsupportedError('a non-computed text hole');
+    }
     const qrl = this.qrlById(op.value.resume.qrl.qrl);
     const captures = captureNames(this.module, qrl);
     this.imports.add(QwikWord.RenderSsrTextExpression);

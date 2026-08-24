@@ -10,6 +10,8 @@ export interface DiscoveredComponent {
   arrow: AstNode;
   /** The authored props param — reused as the emitted props name. */
   param: { name: string; range: [number, number] } | null;
+  /** Statements before the return — lowered as component setup. */
+  setupStatements: AstNode[];
   jsx: AstNode;
   statement: AstNode;
 }
@@ -70,7 +72,7 @@ function describeComponent(
   if (params.length === 1 && params[0].type !== 'Identifier') {
     throw new UnsupportedError('a destructured component parameter');
   }
-  const returned = componentReturnValue(arrow);
+  const { setupStatements, returned } = componentBody(arrow);
   if (returned === null || returned.type !== 'JSXElement') {
     throw new UnsupportedError('a return value that is not a JSX element');
   }
@@ -78,6 +80,7 @@ function describeComponent(
   return {
     name,
     declarationKind,
+    setupStatements,
     arrow,
     param:
       param === undefined
@@ -91,15 +94,19 @@ function describeComponent(
   };
 }
 
-/** The returned expression — the concise body itself, or the single `return`'s argument. */
-function componentReturnValue(arrow: AstNode): AstNode | null {
+/** Setup statements plus the returned expression (concise body, or the final `return`). */
+function componentBody(arrow: AstNode): { setupStatements: AstNode[]; returned: AstNode | null } {
   const body = arrow.body as AstNode;
   if (body.type !== 'BlockStatement') {
-    return unwrapExpression(body);
+    return { setupStatements: [], returned: unwrapExpression(body) };
   }
   const statements = body.body as AstNode[];
-  if (statements.length !== 1 || statements[0].type !== 'ReturnStatement') {
-    throw new UnsupportedError('a component body beyond a single return statement');
+  const last = statements[statements.length - 1];
+  if (last === undefined || last.type !== 'ReturnStatement') {
+    throw new UnsupportedError('a component body without a final return statement');
   }
-  return unwrapExpression(statements[0].argument);
+  return {
+    setupStatements: statements.slice(0, -1),
+    returned: unwrapExpression(last.argument),
+  };
 }

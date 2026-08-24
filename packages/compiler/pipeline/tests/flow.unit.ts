@@ -169,6 +169,18 @@ describe('pipeline flow', () => {
     ).rejects.toThrow('a block-bodied event handler');
   });
 
+  test('non-hook setup statements fail loud', async () => {
+    await expect(
+      analyseModule(
+        {
+          path: 'src/setup.tsx',
+          code: 'export default () => {\n  const x = compute();\n  return <p>{x.value}</p>;\n};\n',
+        },
+        { transpileTs: true }
+      )
+    ).rejects.toThrow('the setup call "compute"');
+  });
+
   test('a mixed return (ternary arm with JSX) is a component candidate', async () => {
     await expect(
       analyseModule(

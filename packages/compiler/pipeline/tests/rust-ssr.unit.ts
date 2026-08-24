@@ -116,6 +116,44 @@ describe('generateRustSsr', () => {
     );
   });
 
+  test('useSignal render matches the captured crate output (locals renumbered)', async () => {
+    const plan = await analyseModule(
+      {
+        path: 'src/component.tsx',
+        code: "import { useSignal } from '@qwik.dev/core';\nexport default () => {\n  const count = useSignal(0);\n  return <p>{count.value}</p>;\n};\n",
+      },
+      { transpileTs: true }
+    );
+    const linked = linkPlans(
+      [plan],
+      [{ kind: EntryKind.Module, module: 'src/component.tsx' }],
+      serverSpecialization(),
+      { edges: {} },
+      { claims: [], policies: [], emissions: [] },
+      true
+    );
+    if (linked.kind !== LinkResultKind.Linked) {
+      throw new Error('expected linked');
+    }
+    const generated = await generateRustSsr(linked.plan, 0, {});
+    // `local_1` vs the crate's `local_2`: local numbering follows each plan's binding table.
+    expect(generated.modules[0].code).toBe(
+      'pub fn render_default(ctx: &mut qwik::render::SsrContext, out: &mut String) {\n' +
+        '    let local_1 = std::rc::Rc::new(qwik::serdes::SerdesValue::Signal(\n' +
+        '        std::cell::RefCell::new(qwik::serdes::SignalState { value: std::rc::Rc::new(qwik::serdes::SerdesValue::Number(0f64)), subs: Vec::new() }),\n' +
+        '    ));\n' +
+        '    let element_id_0_0 = ctx.next_id();\n' +
+        '    out.push_str("<p");\n' +
+        '    out.push_str(&format!(" q:id=\\"{}\\"", element_id_0_0));\n' +
+        "    out.push('>');\n" +
+        '    ctx.serializer.add_root(std::rc::Rc::clone(&local_1));\n' +
+        '    ctx.subscribe_element_text(&local_1, element_id_0_0);\n' +
+        '    out.push_str(&qwik::escape::escape_html(&qwik::render::signal_text(&local_1)));\n' +
+        '    out.push_str("</p>");\n' +
+        '}\n'
+    );
+  });
+
   test('refuses an incomplete link', async () => {
     const linked = linkPlans(
       [],

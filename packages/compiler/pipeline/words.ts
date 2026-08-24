@@ -9,15 +9,18 @@ export const enum QwikWord {
   FirstChild = '_first',
   SetEvent = 'setEvent',
   CreateTextExpressionEffect = 'createTextExpressionEffect',
+  CreateTextNodeEffect = 'createTextNodeEffect',
   // ssr
   CreateSsrElementRecord = 'createSsrElementRecord',
   CreateSsrNodeId = 'createSsrNodeId',
   CreateSsrElementTextTarget = 'createSsrElementTextTarget',
   EscapeHTML = 'escapeHTML',
   RenderSsrTextExpression = 'renderSsrTextExpression',
+  RenderSsrTextNode = 'renderSsrTextNode',
   MaybeThen = 'maybeThen',
   // shared
   NoopQrl = '_noopQrl',
+  UseSignal = 'useSignal',
 }
 
 /** Name stems for generated locals. */
@@ -30,4 +33,9 @@ export const enum QwikGenWord {
   Id = 'id',
   ComponentProps = 'props',
   ComponentContext = 'ctx',
+}
+
+/** Authored hook names recognized in component setup. */
+export const enum QwikHook {
+  UseSignal = 'useSignal',
 }

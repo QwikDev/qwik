@@ -1,4 +1,5 @@
 import type { ModulePlan, Payload, Range } from '../schema';
+import type { SetupLocal } from './lower-setup';
 import {
   createSegmentSourceIdentity,
   createSegmentSymbolName,
@@ -13,14 +14,19 @@ export interface LowerContext {
   sourceIdentity: string;
   segmentCounter: { next: number };
   bindingNames: ReadonlySet<string>;
+  /** Local binding → imported name for `@qwik.dev/core` imports. */
+  coreBindings: ReadonlyMap<string, string>;
   /** The current component's props param name. */
   propsParamName: string | null;
+  /** The current component's reactive locals (name → kind/slot/binding). */
+  locals: ReadonlyMap<string, SetupLocal>;
 }
 
 export function createLowerContext(
   plan: ModulePlan,
   path: string,
-  scope: string | undefined
+  scope: string | undefined,
+  coreBindings: ReadonlyMap<string, string> = new Map()
 ): LowerContext {
   const slash = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
   const basename = slash === -1 ? path : path.slice(slash + 1);
@@ -30,7 +36,9 @@ export function createLowerContext(
     sourceIdentity: createSegmentSourceIdentity(path, scope),
     segmentCounter: { next: 0 },
     bindingNames: new Set(plan.bindings.map((binding) => binding.name)),
+    coreBindings,
     propsParamName: null,
+    locals: new Map(),
   };
 }
 

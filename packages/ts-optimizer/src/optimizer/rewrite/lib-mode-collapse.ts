@@ -27,6 +27,7 @@
  */
 
 import MagicString from 'magic-string';
+import { walk } from 'oxc-walker';
 import { parseWithRawTransfer } from '../ast/parse.js';
 import type { AstNode, AstProgram } from '../../ast-types.js';
 import { createTransformSession } from '../edit/transform-session.js';
@@ -115,8 +116,7 @@ export function collapseToLibInlinedQrl(source: string): string {
     program,
     source,
     inlinedLiteralsByVar,
-    skipRanges,
-    noopDecls
+    skipRanges
   );
   for (const ref of referenceRanges) {
     const literal = inlinedLiteralsByVar.get(ref.qVar)!;
@@ -175,68 +175,42 @@ function substituteInnerQVarsInText(
     return bodyText;
   }
 
-  function walk(node: AstNode | null | undefined): void {
-    if (!node || typeof node !== 'object') {
-      return;
-    }
-
-    if (
-      node.type === 'CallExpression' &&
-      node.callee?.type === 'MemberExpression' &&
-      !node.callee.computed &&
-      node.callee.object?.type === 'Identifier' &&
-      node.callee.property?.type === 'Identifier' &&
-      node.callee.property.name === 'w'
-    ) {
-      const qVar = node.callee.object.name;
-      const literal = buildInlinedLiteral(qVar);
-      if (literal) {
-        const args = node.arguments ?? [];
-        const captureArg = args[0];
-        const captureText =
-          captureArg && captureArg.type !== 'SpreadElement'
-            ? wrappedSource.slice(captureArg.start, captureArg.end)
-            : undefined;
-        const replacement =
-          captureText !== undefined ? insertCapturesIntoInlinedQrl(literal, captureText) : literal;
-        edits.overwrite(node.start, node.end, replacement);
-        return;
-      }
-    }
-
-    if (node.type === 'Identifier') {
-      const literal = buildInlinedLiteral(node.name);
-      if (literal) {
-        edits.overwrite(node.start, node.end, literal);
-        return;
-      }
-    }
-
-    for (const key in node) {
+  walk(bodyNode, {
+    enter(node: AstNode) {
       if (
-        key === 'type' ||
-        key === 'start' ||
-        key === 'end' ||
-        key === 'loc' ||
-        key === 'range' ||
-        key === 'parent'
+        node.type === 'CallExpression' &&
+        node.callee?.type === 'MemberExpression' &&
+        !node.callee.computed &&
+        node.callee.object?.type === 'Identifier' &&
+        node.callee.property?.type === 'Identifier' &&
+        node.callee.property.name === 'w'
       ) {
-        continue;
-      }
-      const child = (node as unknown as Record<string, unknown>)[key];
-      if (child == null) {
-        continue;
-      }
-      if (Array.isArray(child)) {
-        for (const item of child) {
-          walk(item as AstNode);
+        const literal = buildInlinedLiteral(node.callee.object.name);
+        if (literal) {
+          const captureArg = node.arguments?.[0];
+          const captureText =
+            captureArg && captureArg.type !== 'SpreadElement'
+              ? wrappedSource.slice(captureArg.start, captureArg.end)
+              : undefined;
+          const replacement =
+            captureText === undefined
+              ? literal
+              : insertCapturesIntoInlinedQrl(literal, captureText);
+          edits.overwrite(node.start, node.end, replacement);
+          this.skip();
         }
-      } else if (typeof child === 'object') {
-        walk(child as AstNode);
+        return;
       }
-    }
-  }
-  walk(bodyNode);
+
+      if (node.type === 'Identifier') {
+        const literal = buildInlinedLiteral(node.name);
+        if (literal) {
+          edits.overwrite(node.start, node.end, literal);
+          this.skip();
+        }
+      }
+    },
+  });
 
   return session.toSource();
 }
@@ -429,77 +403,46 @@ function collectQVarReferenceRanges(
   program: AstProgram,
   source: string,
   buildersByVar: ReadonlyMap<string, string>,
-  skipRanges: readonly { start: number; end: number }[],
-  noopDecls: ReadonlyMap<string, NoopQrlDecl>
+  skipRanges: readonly { start: number; end: number }[]
 ): readonly QVarReferenceRange[] {
   const out: QVarReferenceRange[] = [];
 
-  function walk(node: AstNode | null | undefined): void {
-    if (!node || typeof node !== 'object') {
-      return;
-    }
-    if (typeof node.start === 'number' && isInsideAnyRange(node.start, skipRanges)) {
-      return;
-    }
-
-    if (
-      node.type === 'CallExpression' &&
-      node.callee?.type === 'MemberExpression' &&
-      !node.callee.computed &&
-      node.callee.object?.type === 'Identifier' &&
-      node.callee.property?.type === 'Identifier' &&
-      node.callee.property.name === 'w' &&
-      buildersByVar.has(node.callee.object.name)
-    ) {
-      const args = node.arguments ?? [];
-      if (args.length === 1 && args[0]) {
-        const arg = args[0];
-        const captureArgsText =
-          arg.type !== 'SpreadElement' ? source.slice(arg.start, arg.end) : undefined;
-        out.push({
-          qVar: node.callee.object.name,
-          start: node.start,
-          end: node.end,
-          captureArgsText,
-        });
+  walk(program, {
+    enter(node: AstNode) {
+      if (isInsideAnyRange(node.start, skipRanges)) {
+        this.skip();
         return;
       }
-    }
 
-    if (node.type === 'Identifier' && buildersByVar.has(node.name)) {
-      // Defensive: don't replace declarator-id positions.
-      out.push({ qVar: node.name, start: node.start, end: node.end });
-      return;
-    }
-
-    for (const key in node) {
       if (
-        key === 'type' ||
-        key === 'start' ||
-        key === 'end' ||
-        key === 'loc' ||
-        key === 'range' ||
-        key === 'parent'
+        node.type === 'CallExpression' &&
+        node.callee?.type === 'MemberExpression' &&
+        !node.callee.computed &&
+        node.callee.object?.type === 'Identifier' &&
+        node.callee.property?.type === 'Identifier' &&
+        node.callee.property.name === 'w' &&
+        buildersByVar.has(node.callee.object.name)
       ) {
-        continue;
-      }
-      const child = (node as unknown as Record<string, unknown>)[key];
-      if (child == null) {
-        continue;
-      }
-      if (Array.isArray(child)) {
-        for (const item of child) {
-          walk(item as AstNode);
+        const arg = node.arguments?.[0];
+        if (node.arguments?.length === 1 && arg) {
+          out.push({
+            qVar: node.callee.object.name,
+            start: node.start,
+            end: node.end,
+            captureArgsText:
+              arg.type === 'SpreadElement' ? undefined : source.slice(arg.start, arg.end),
+          });
+          this.skip();
         }
-      } else if (typeof child === 'object') {
-        walk(child as AstNode);
+        return;
       }
-    }
-  }
 
-  for (const stmt of program.body ?? []) {
-    walk(stmt as AstNode);
-  }
+      if (node.type === 'Identifier' && buildersByVar.has(node.name)) {
+        out.push({ qVar: node.name, start: node.start, end: node.end });
+        this.skip();
+      }
+    },
+  });
   return out;
 }
 

@@ -7,6 +7,7 @@
 
 import MagicString from 'magic-string';
 import { parseSync } from 'oxc-parser';
+import { walk } from 'oxc-walker';
 import type { ConsolidatedSegment, ExtractionResult, Mutable } from '../extraction/extract.js';
 import type { ImportInfo } from '../extraction/marker-detection.js';
 import {
@@ -1035,12 +1036,11 @@ function buildStrippedEventQpOverrides(ctx: RewriteContext): Map<number, string[
 
   const overrides = new Map<number, string[]>();
 
-  function walk(node: AstNode | null | undefined): void {
-    if (!node || typeof node !== 'object') {
-      return;
-    }
-
-    if (node.type === 'JSXElement') {
+  walk(ctx.program, {
+    enter(node: AstNode) {
+      if (node.type !== 'JSXElement') {
+        return;
+      }
       const attrs = node.openingElement?.attributes ?? [];
       const collectedCaps: string[] = [];
       const seen = new Set<string>();
@@ -1067,12 +1067,8 @@ function buildStrippedEventQpOverrides(ctx: RewriteContext): Map<number, string[
       if (collectedCaps.length > 0) {
         overrides.set(node.start, collectedCaps);
       }
-    }
-
-    forEachAstChild(node as AstNode, (child) => walk(child as AstNode));
-  }
-
-  walk(ctx.program as unknown as AstNode);
+    },
+  });
 
   return overrides.size > 0 ? overrides : undefined;
 }
@@ -1091,11 +1087,11 @@ function renameUnextractedEventAttrs(ctx: RewriteContext): void {
     extractedAttrNameRanges.add(ext.calleeStart);
   }
 
-  function walk(node: AstNode | null | undefined): void {
-    if (!node || typeof node !== 'object') {
-      return;
-    }
-    if (node.type === 'JSXElement') {
+  walk(ctx.program, {
+    enter(node: AstNode) {
+      if (node.type !== 'JSXElement') {
+        return;
+      }
       const opening = node.openingElement;
       const tagName = opening?.name;
       const isNative =
@@ -1115,11 +1111,8 @@ function renameUnextractedEventAttrs(ctx: RewriteContext): void {
           }
         }
       }
-    }
-    forEachAstChild(node as AstNode, (child) => walk(child as AstNode));
-  }
-
-  walk(ctx.program as unknown as AstNode);
+    },
+  });
 }
 
 /**
@@ -1139,12 +1132,11 @@ function buildParentLiftedQpOverrides(ctx: RewriteContext): Map<number, string[]
 
   const overrides = new Map<number, string[]>();
 
-  function walk(node: AstNode | null | undefined): void {
-    if (!node || typeof node !== 'object') {
-      return;
-    }
-
-    if (node.type === 'JSXElement') {
+  walk(ctx.program, {
+    enter(node: AstNode) {
+      if (node.type !== 'JSXElement') {
+        return;
+      }
       const opening = node.openingElement;
       const collected: string[] = [];
       const seen = new Set<string>();
@@ -1161,12 +1153,8 @@ function buildParentLiftedQpOverrides(ctx: RewriteContext): Map<number, string[]
       if (collected.length > 0) {
         overrides.set(node.start, collected);
       }
-    }
-
-    forEachAstChild(node as AstNode, (child) => walk(child as AstNode));
-  }
-
-  walk(ctx.program as unknown as AstNode);
+    },
+  });
 
   return overrides.size > 0 ? overrides : undefined;
 }

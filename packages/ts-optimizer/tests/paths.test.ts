@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  computeOutputExtension,
   computeRelPath,
   getBasename,
   getDirectory,
@@ -11,6 +12,11 @@ import {
 import { mkFilePath, mkRelativePath } from '../src/optimizer/types/brands.js';
 
 describe('path-utils', () => {
+  it('keeps JSX when only TypeScript is transpiled', () => {
+    expect(computeOutputExtension('.tsx', true, false)).toBe('.jsx');
+    expect(computeOutputExtension('.ts', true, false)).toBe('.js');
+  });
+
   it('normalizes windows-style paths', () => {
     expect(normalizePath('src\\components\\App.tsx')).toBe('src/components/App.tsx');
     expect(getBasename('src\\components\\App.tsx')).toBe('App.tsx');

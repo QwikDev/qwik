@@ -134,20 +134,17 @@ export function computeParentModulePath(
   return './' + stripExtension(basename);
 }
 
-/**
- * Output file extension for QRL imports: `.js` when TS is transpiled (fully stripped), `.ts` when
- * only JSX is transpiled (TS remains), else the source extension.
- */
+/** Output extension after independently stripping TypeScript and JSX syntax. */
 export function computeOutputExtension(
   sourceExt: string,
   transpileTs?: boolean,
   transpileJsx?: boolean
 ): string {
   if (transpileTs) {
-    return '.js';
+    return !transpileJsx && (sourceExt === '.tsx' || sourceExt === '.jsx') ? '.jsx' : '.js';
   }
   if (transpileJsx) {
-    return '.ts';
+    return sourceExt === '.ts' || sourceExt === '.tsx' ? '.ts' : '.js';
   }
   return sourceExt;
 }

@@ -92,6 +92,28 @@ export const handler = $((event, { target }, [value]) => {
     ]);
   });
 
+  it('reports segment locations in the original source after preparation rewrites', () => {
+    const code = `import { component$, useStore } from '@qwik.dev/core';
+export default component$(() => {
+  const { value } = useStore();
+  return <button onClick$={() => value++}>click</button>;
+});`;
+    const result = transformModule({
+      input: [{ path: mkFilePath('test.tsx'), code: mkSourceText(code) }],
+      srcDir: mkFilePath('.'),
+      transpileTs: true,
+      transpileJsx: true,
+    });
+
+    const segment = result.modules.find(
+      (module) => module.kind === 'segment' && module.segment.ctxKind === 'eventHandler'
+    );
+    if (segment?.kind !== 'segment') {
+      throw new Error('expected event segment module');
+    }
+    expect(code.slice(...segment.segment.loc)).toBe('() => value++');
+  });
+
   it('rewrites @builder.io/qwik imports to @qwik.dev/core', () => {
     const result = transformModule({
       input: [

@@ -38,6 +38,7 @@ import { isSimpleIdentifierName } from '../ast/identifier-name.js';
 import {
   type SymbolName,
   mkBodyText,
+  mkByteOffset,
   mkRelativePath,
   mkSymbolName,
   type RelativePath,
@@ -223,6 +224,7 @@ interface ModuleContext {
 /** Phase 0 + 0.5 result: prepared source and its parse. */
 interface PreparedModuleInput {
   readonly repairedCode: string;
+  readonly originalOffset: (offset: number) => number;
   readonly program: AstProgram;
   readonly parserModule: AstEcmaScriptModule | undefined;
   readonly diagnostics: readonly Diagnostic[];
@@ -458,6 +460,7 @@ function prepareModuleInput(mod: ModuleContext): PreparedModuleInput {
   if (diagnostics.length > 0) {
     return {
       repairedCode,
+      originalOffset: (offset) => offset,
       program,
       parserModule,
       diagnostics,
@@ -469,7 +472,13 @@ function prepareModuleInput(mod: ModuleContext): PreparedModuleInput {
   const edits = new MagicString(repairedCode);
   const flattened = flattenDestructureUseCalls(repairedCode, relPath, program, edits);
   const inlineProps = normalizeInlineComponentProps(repairedCode, relPath, program, edits);
+  let originalOffset = (offset: number): number => offset;
   if (flattened.changed || inlineProps.changed) {
+    originalOffset = createOriginalOffsetMapper(
+      repairedCode,
+      edits.toString(),
+      edits.generateDecodedMap({ hires: true }).mappings
+    );
     repairedCode = edits.toString();
     const reparsed = parseWithRawTransfer(relPath, repairedCode);
     program = reparsed.program;
@@ -484,12 +493,45 @@ function prepareModuleInput(mod: ModuleContext): PreparedModuleInput {
 
   return {
     repairedCode,
+    originalOffset,
     program,
     parserModule,
     diagnostics,
     hasForeignJsxRuntime,
     foreignJsxPragmaText,
   };
+}
+
+function createOriginalOffsetMapper(
+  original: string,
+  generated: string,
+  mappings: ReturnType<MagicString['generateDecodedMap']>['mappings']
+): (offset: number) => number {
+  const lineStarts = (source: string): number[] => {
+    const starts = [0];
+    for (let i = 0; i < source.length; i++) {
+      if (source.charCodeAt(i) === 10) {
+        starts.push(i + 1);
+      }
+    }
+    return starts;
+  };
+  const originalLines = lineStarts(original);
+  const generatedLines = lineStarts(generated);
+  const offsets = new Map<number, number>([[generated.length, original.length]]);
+  for (let line = 0; line < mappings.length; line++) {
+    for (const segment of mappings[line]) {
+      const originalLine = segment[2];
+      const originalColumn = segment[3];
+      if (originalLine !== undefined && originalColumn !== undefined) {
+        offsets.set(
+          generatedLines[line] + segment[0],
+          originalLines[originalLine] + originalColumn
+        );
+      }
+    }
+  }
+  return (offset) => offsets.get(offset) ?? offset;
 }
 
 /**
@@ -578,6 +620,12 @@ function extractModuleSegments(
   // orchestrator then advances elements in place through the `captured` →
   // `consolidated` phases via per-mutation `Mutable` casts.
   const extractions = facts.extractions as ExtractionResult[];
+  for (const extraction of extractions) {
+    (extraction as Mutable<ExtractionResult>).loc = [
+      mkByteOffset(prepared.originalOffset(extraction.loc[0])),
+      mkByteOffset(prepared.originalOffset(extraction.loc[1])),
+    ];
+  }
 
   if (extractions.length === 0 && !willTranspileJsx) {
     return {

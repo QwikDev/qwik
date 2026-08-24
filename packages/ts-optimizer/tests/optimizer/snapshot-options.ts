@@ -391,6 +391,8 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
   should_ignore_passive_jsx_events_without_handlers: { transpileTs: true, transpileJsx: true },
   should_ignore_preventdefault_with_passive: { transpileTs: true, transpileJsx: true },
   should_keep_module_level_var_used_in_both_main_and_qrl: { transpileTs: true, transpileJsx: true },
+  should_auto_export_shared_let_kept_in_parent: { transpileTs: true, transpileJsx: true },
+  should_preserve_let_when_migrated_into_segment: { transpileTs: true, transpileJsx: true },
   should_keep_non_migrated_binding_from_shared_array_destructuring_declarator: {
     transpileTs: true,
     transpileJsx: true,
@@ -505,7 +507,7 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
 
   component_level_self_referential_qrl: {},
   example_segment_variable_migration: {},
-  rename_builder_io: {},
+  rename_builder_io: { transpileJsx: true },
   root_level_self_referential_qrl: {},
   should_not_transform_events_on_non_elements: {},
   should_transform_event_names_without_jsx_transpile: {},

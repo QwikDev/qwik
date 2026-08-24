@@ -696,7 +696,8 @@ export function generateSegmentCode(
   jsxOptions?: SegmentJsxOptions,
   nestedCallSites?: NestedCallSiteInfo[],
   importContext?: SegmentImportData,
-  enumValueMap?: Map<string, Map<string, string>>
+  enumValueMap?: Map<string, Map<string, string>>,
+  inlinedIdentifiers?: ReadonlySet<string>
 ): { code: string; keyCounterValue?: number; paramNames?: string[] } {
   const capturedNames = new Set<string>(captureInfo ? captureInfo.captureNames : []);
 
@@ -808,7 +809,7 @@ export function generateSegmentCode(
   normalizeSeparators(parts);
 
   if (nestedCallSites && nestedCallSites.length > 0) {
-    bodyText = removeDeadConstLiterals(bodyText);
+    bodyText = removeDeadConstLiterals(bodyText, inlinedIdentifiers);
   }
 
   const paramNames = createFunctionTransformSession(bodyText, { tolerateErrors: true })

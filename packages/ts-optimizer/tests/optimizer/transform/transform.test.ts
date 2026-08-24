@@ -114,6 +114,43 @@ export default component$(() => {
     expect(code.slice(...segment.segment.loc)).toBe('() => value++');
   });
 
+  it('moves whole-body const initializers into their segments', () => {
+    const code = `import { $, component$, useStyles$ } from '@qwik.dev/core';
+export default component$(() => {
+  const style = \`body {}\`;
+  useStyles$(style);
+  const render = () => <div />;
+  return $(render);
+});`;
+    const result = transformModule({
+      input: [{ path: mkFilePath('test.tsx'), code: mkSourceText(code) }],
+      srcDir: mkFilePath('.'),
+      transpileTs: true,
+      transpileJsx: true,
+    });
+
+    const styleSegment = result.modules.find(
+      (module) => module.kind === 'segment' && module.segment.ctxName === 'useStyles$'
+    );
+    const renderSegment = result.modules.find(
+      (module) => module.kind === 'segment' && module.segment.ctxName === '$'
+    );
+    const componentSegment = result.modules.find(
+      (module) => module.kind === 'segment' && module.segment.ctxName === 'component$'
+    );
+    if (
+      styleSegment?.kind !== 'segment' ||
+      renderSegment?.kind !== 'segment' ||
+      componentSegment?.kind !== 'segment'
+    ) {
+      throw new Error('expected style, render, and component segments');
+    }
+    expect(code.slice(...styleSegment.segment.loc)).toBe('`body {}`');
+    expect(code.slice(...renderSegment.segment.loc)).toBe('() => <div />');
+    expect(componentSegment.code).not.toContain('const style');
+    expect(componentSegment.code).not.toContain('const render');
+  });
+
   it('rewrites @builder.io/qwik imports to @qwik.dev/core', () => {
     const result = transformModule({
       input: [

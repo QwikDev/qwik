@@ -301,6 +301,7 @@ export interface SegmentGenerationContext {
   elementQpParamsMap: Map<string, string[]>;
   extractionLoopMap: Map<string, LoopContext[]>;
   constLiteralsMap: Map<string, Map<string, string>>;
+  inlinedIdentifiersByParent: ReadonlyMap<string, ReadonlySet<string>>;
   parentJsxKeyCounterValue: number;
   /** Per-extraction key bases from the parent's module-order walk (keyed by argStart). */
   jsxRegionKeyBases?: ReadonlyMap<number, number>;
@@ -1379,7 +1380,8 @@ export function buildDefaultStrategySegment(
           : undefined,
         nestedCallSites.length > 0 ? nestedCallSites : undefined,
         importContext,
-        enumValueMap.size > 0 ? enumValueMap : undefined
+        enumValueMap.size > 0 ? enumValueMap : undefined,
+        ctx.inlinedIdentifiersByParent.get(ext.symbolName)
       );
   let segmentCode = segmentResult.code;
 

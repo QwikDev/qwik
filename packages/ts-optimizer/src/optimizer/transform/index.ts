@@ -1358,6 +1358,7 @@ function generateSegments(
 
   // Resolve const-literal captures for child segments (default strategy only).
   const constLiteralsMap = new Map<string, Map<string, string>>();
+  const inlinedIdentifiersByParent = new Map<string, Set<string>>();
   if (!emit.isInlineStrategy) {
     // A whole-body identifier (`$(render)`) inlines its const init so the
     // segment doesn't emit a dangling reference.
@@ -1373,9 +1374,19 @@ function generateSegments(
       if (!scopeNode) {
         continue;
       }
-      const initText = resolveWholeBodyIdentifier(scopeNode as AstNode, repairedCode, bare);
-      if (initText !== null) {
-        (ext as Mutable<ExtractionResult>).bodyText = mkBodyText(initText);
+      const init = resolveWholeBodyIdentifier(scopeNode as AstNode, repairedCode, bare);
+      if (init !== null) {
+        const mutable = ext as Mutable<ExtractionResult>;
+        mutable.bodyText = mkBodyText(init.text);
+        mutable.loc = [
+          mkByteOffset(prepared.originalOffset(init.start)),
+          mkByteOffset(prepared.originalOffset(init.end)),
+        ];
+        if (ext.parent) {
+          const names = inlinedIdentifiersByParent.get(ext.parent) ?? new Set<string>();
+          names.add(bare);
+          inlinedIdentifiersByParent.set(ext.parent, names);
+        }
       }
     }
     for (const ext of updatedExtractions) {
@@ -1455,6 +1466,7 @@ function generateSegments(
     elementQpParamsMap: analysis.elementQpParamsMap,
     extractionLoopMap: analysis.extractionLoopMap,
     constLiteralsMap,
+    inlinedIdentifiersByParent,
     parentJsxKeyCounterValue: parentResult.jsxKeyCounterValue ?? 0,
     jsxRegionKeyBases: parentResult.jsxRegionKeyBases,
     hasForeignJsxRuntime,

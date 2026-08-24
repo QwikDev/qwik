@@ -177,7 +177,7 @@ export function resolveWholeBodyIdentifier(
   scopeNode: AstNode,
   source: string,
   name: string
-): string | null {
+): { text: string; start: number; end: number } | null {
   let initText: string | null = null;
   let initNode: AstNode | null = null;
 
@@ -221,7 +221,7 @@ export function resolveWholeBodyIdentifier(
       return null;
     }
   }
-  return initText;
+  return { text: initText, start: init.start, end: init.end };
 }
 
 function collectIdentifiers(node: AstNode): string[] {

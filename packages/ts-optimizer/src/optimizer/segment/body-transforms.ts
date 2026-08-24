@@ -614,7 +614,10 @@ export function ensureCoreImports(bodyText: string, parts: string[]): void {
   }
 }
 
-export function removeDeadConstLiterals(bodyText: string): string {
+export function removeDeadConstLiterals(
+  bodyText: string,
+  inlinedIdentifiers?: ReadonlySet<string>
+): string {
   let session: FunctionTransformSession | null;
   try {
     session = createFunctionTransformSession(bodyText, { tolerateErrors: true });
@@ -661,7 +664,7 @@ export function removeDeadConstLiterals(bodyText: string): string {
     const isLiteral =
       initNode.type === 'Literal' &&
       (initNode.value === null || typeof initNode.value !== 'object');
-    if (!isLiteral) {
+    if (!isLiteral && !inlinedIdentifiers?.has(d.id.name)) {
       continue;
     }
 

@@ -537,13 +537,7 @@ export function buildInlineStrategySegment(
     ext.captures = rawProps.newCaptureNames.length > 0;
   }
 
-  const entryField = resolveEntryField(
-    ctx.entryStrategy.type,
-    ext.symbolName,
-    ext.ctxName,
-    null,
-    undefined
-  );
+  const entryField = resolveEntryField(ctx.entryStrategy.type, ext, undefined);
 
   if (!stripped) {
     return null;
@@ -1416,23 +1410,9 @@ export function buildDefaultStrategySegment(
     segmentCode = hoistInlinedQrlBodies(segmentCode);
   }
 
-  let parentComponentSymbol: string | null = null;
-  if (entryStrategy.type === 'component') {
-    let current = ext.parent;
-    while (current) {
-      const parentExt = extBySymbol.get(current!);
-      if (parentExt && parentExt.ctxName === 'component') {
-        parentComponentSymbol = parentExt.symbolName;
-        break;
-      }
-      current = parentExt?.parent ?? null;
-    }
-  }
   const entryField = resolveEntryField(
     entryStrategy.type,
-    ext.symbolName,
-    ext.ctxName,
-    parentComponentSymbol,
+    ext,
     hasManualEntryMap(entryStrategy) ? entryStrategy.manual : undefined
   );
 

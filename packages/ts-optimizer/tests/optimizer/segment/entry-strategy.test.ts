@@ -1,24 +1,36 @@
 import { describe, it, expect } from 'vitest';
 import { resolveEntryField } from '../../../src/optimizer/segment/entry-strategy.js';
 
+const segment = {
+  symbolName: 'App_component_abc123',
+  origin: 'test.tsx',
+  ctxKind: 'function' as const,
+  ctxName: 'component$',
+  captures: false,
+};
+
 describe('resolveEntryField', () => {
   describe('smart strategy', () => {
-    it('returns null for smart strategy', () => {
+    it('keeps capture-free event handlers separate', () => {
       expect(
-        resolveEntryField('smart', 'App_component_abc123', 'component', null, undefined)
+        resolveEntryField(
+          'smart',
+          { ...segment, symbolName: 'App_component_div_q_e_click_xyz', ctxKind: 'eventHandler' },
+          undefined
+        )
       ).toBeNull();
     });
 
     it('returns null for segment strategy (alias of smart)', () => {
-      expect(
-        resolveEntryField('segment', 'App_component_abc123', 'component', null, undefined)
-      ).toBeNull();
+      expect(resolveEntryField('segment', segment, undefined)).toBeNull();
     });
 
     it('returns null for hook strategy (alias of smart)', () => {
-      expect(
-        resolveEntryField('hook', 'App_component_abc123', 'component', null, undefined)
-      ).toBeNull();
+      expect(resolveEntryField('hook', segment, undefined)).toBeNull();
+    });
+
+    it('leaves stripped inline segments ungrouped', () => {
+      expect(resolveEntryField('inline', segment, undefined)).toBeNull();
     });
   });
 
@@ -27,53 +39,58 @@ describe('resolveEntryField', () => {
       expect(
         resolveEntryField(
           'component',
-          'App_component_useTask_xyz',
-          'useTask',
-          'App_component_abc123',
+          { ...segment, symbolName: 'App_component_useTask_xyz', ctxName: 'useTask$' },
           undefined
         )
-      ).toBe('App_component_abc123');
+      ).toBe('test.tsx_entry_App');
     });
 
     it('returns null for component segments themselves', () => {
-      expect(
-        resolveEntryField('component', 'App_component_abc123', 'component', null, undefined)
-      ).toBeNull();
+      expect(resolveEntryField('component', segment, undefined)).toBe('test.tsx_entry_App');
     });
 
     it('returns null when no parent component exists', () => {
       expect(
-        resolveEntryField('component', 'someHandler_xyz', 'eventHandler', null, undefined)
-      ).toBeNull();
+        resolveEntryField(
+          'component',
+          { ...segment, symbolName: 'someHandler_xyz', ctxKind: 'eventHandler' },
+          undefined
+        )
+      ).toBe('entry_segments');
     });
   });
 
   describe('manual strategy', () => {
     it('returns mapped value when symbol is in manual map', () => {
       const manual = { App_component_abc123: 'vendor' };
-      expect(resolveEntryField('smart', 'App_component_abc123', 'component', null, manual)).toBe(
-        'vendor'
-      );
+      expect(resolveEntryField('smart', segment, manual)).toBe('vendor');
     });
 
-    it('returns null when symbol is not in manual map', () => {
+    it('falls back to the selected strategy when symbol is not mapped', () => {
       const manual = { Other_component_xyz: 'vendor' };
-      expect(
-        resolveEntryField('smart', 'App_component_abc123', 'component', null, manual)
-      ).toBeNull();
+      expect(resolveEntryField('smart', segment, manual)).toBe('test.tsx_entry_App');
     });
   });
 
   describe('single strategy', () => {
     it('returns fixed entry name for single strategy', () => {
-      const result = resolveEntryField(
-        'single',
-        'App_component_abc123',
-        'component',
-        null,
-        undefined
-      );
-      expect(result).toBe('entry_hooks');
+      expect(resolveEntryField('single', segment, undefined)).toBe('entry_segments');
+    });
+  });
+
+  describe('smart strategy grouping', () => {
+    it('groups function segments by root component', () => {
+      expect(resolveEntryField('smart', segment, undefined)).toBe('test.tsx_entry_App');
+    });
+
+    it('keeps route syntax in default component entry names', () => {
+      expect(
+        resolveEntryField(
+          'smart',
+          { ...segment, symbolName: 'slug_component_abc123', origin: 'routes/[[...slug]].tsx' },
+          undefined
+        )
+      ).toBe('routes/[[...slug]].tsx_entry_[[...slug]]');
     });
   });
 });

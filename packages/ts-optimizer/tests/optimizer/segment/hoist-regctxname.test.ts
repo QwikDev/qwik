@@ -14,21 +14,26 @@ function findParent(result: { modules: readonly TransformModule[] }): TransformM
 describe('Fix A: direct emit for bare-identifier hoist body matching module-level decl', () => {
   it('emits `q_X.s(STYLES)` directly instead of the const-wrap pair', () => {
     const input = `
-import { component$, useStyle$ } from '@qwik.dev/core';
+import { $, component$, server$, useStyle$ } from '@qwik.dev/core';
 
-export const Works = component$(() => {
+export const Works = component$((props) => {
   useStyle$(STYLES);
-  return <div></div>;
+  const text = 'hola';
+  return (
+    <div onClick$={server$(() => console.log('in server', text))}></div>
+  );
 });
 
 const STYLES = '.class {}';
 `;
     const result = transformModule({
       input: [{ path: mkFilePath('test.tsx'), code: mkSourceText(input) }],
-      srcDir: mkFilePath('.'),
+      srcDir: mkFilePath('/user/qwik/src/'),
       entryStrategy: { type: 'hoist' },
       transpileTs: true,
       transpileJsx: true,
+      regCtxName: ['server'],
+      minify: 'simplify',
     });
 
     const parent = findParent(result);
@@ -36,6 +41,9 @@ const STYLES = '.class {}';
 
     expect(code).toMatch(/q_\w+\.s\(STYLES\)/);
     expect(code).not.toMatch(/const\s+\w+\s*=\s*STYLES\s*;/);
+    expect(code.indexOf('.s(STYLES)')).toBeLessThan(
+      code.indexOf('export { STYLES as _auto_STYLES }')
+    );
   });
 
   it('still wraps non-bare-identifier bodies in the const+sCall pair', () => {

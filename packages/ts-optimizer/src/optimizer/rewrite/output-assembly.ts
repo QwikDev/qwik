@@ -1020,15 +1020,6 @@ export function assembleOutput(ctx: RewriteContext): string {
 
   s.prepend(preamble.join('\n') + '\n');
 
-  // `_auto_X` re-exports make module-level decls importable by segment files, and are how the
-  // router finds un-exported `routeLoader$`/`routeAction$` results (rust parity) — without them
-  // their middleware never runs. Lib mode emits a single module (no segment files) and needs none.
-  if (!ctx.isLibMode) {
-    for (const name of autoExportedNames(migrationDecisions, moduleLevelDecls)) {
-      s.append(`\nexport { ${name} as _auto_${name} };`);
-    }
-  }
-
   if (migrationDecisions && moduleLevelDecls) {
     const removedRanges = new Set<string>();
     for (const decision of migrationDecisions) {
@@ -1056,6 +1047,15 @@ export function assembleOutput(ctx: RewriteContext): string {
     placeLibReferencedDeclarations(ctx);
   }
   placeSCalls(s, program, sCalls, moduleLevelDecls);
+
+  // `_auto_X` re-exports make module-level decls importable by segment files, and are how the
+  // router finds un-exported `routeLoader$`/`routeAction$` results (rust parity) — without them
+  // their middleware never runs. Lib mode emits a single module (no segment files) and needs none.
+  if (!ctx.isLibMode) {
+    for (const name of autoExportedNames(migrationDecisions, moduleLevelDecls)) {
+      s.append(`\nexport { ${name} as _auto_${name} };`);
+    }
+  }
 
   let finalCode = s.toString();
 

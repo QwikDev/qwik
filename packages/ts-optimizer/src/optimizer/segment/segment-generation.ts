@@ -40,6 +40,7 @@ import {
   advancesSentinelCounter,
   hasUnderscorePlaceholderParams,
   isStrippedExtraction,
+  matchesRegCtxName,
 } from '../rewrite/predicates.js';
 import { mkByteOffset, mkRelativePath } from '../types/brands.js';
 import { escapeSymbol } from '../../hashing/naming.js';
@@ -1524,11 +1525,9 @@ export function generateAllSegmentModules(ctx: SegmentGenerationContext): Transf
       continue;
     }
 
-    const stripped = isStrippedExtraction(
-      ext,
-      ctx.options.stripCtxName,
-      ctx.options.stripEventHandlers
-    );
+    const stripped =
+      !matchesRegCtxName(ext, ctx.options.regCtxName) &&
+      isStrippedExtraction(ext, ctx.options.stripCtxName, ctx.options.stripEventHandlers);
     // Stripped-segment fallback zeros loc before SegmentAnalysis emission.
     // Internal-builder cast — see extract.ts `Mutable<T>`.
     if (stripped) {

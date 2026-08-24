@@ -34,3 +34,32 @@ export default component$(() => {
   const body = out.slice(i, out.indexOf('.s(', i));
   expect(body).toContain('_captures[0]');
 });
+
+it('does not emit a stripped segment for an inline registered context', () => {
+  const code = `
+import { component$, server$ } from '@qwik.dev/core';
+import { foo } from './foo';
+export const Works = component$(() => {
+  const text = 'hola';
+  return <>
+    <div onClick$={server$(() => console.log('server', text))}/>
+    <div onClick$={() => foo()}/>
+  </>;
+});
+`;
+  const result = transformModule({
+    input: [{ path: mkFilePath('test.tsx'), code: mkSourceText(code) }],
+    srcDir: mkFilePath('.'),
+    transpileTs: true,
+    transpileJsx: true,
+    entryStrategy: { type: 'inline' },
+    stripEventHandlers: true,
+    regCtxName: ['server'],
+  });
+
+  expect(
+    result.modules.some(
+      (module) => module.kind === 'segment' && module.segment.displayName.endsWith('_server')
+    )
+  ).toBe(false);
+});

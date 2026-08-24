@@ -23,6 +23,7 @@ describe('path-utils', () => {
     expect(getDirectory('src\\components\\App.tsx')).toBe('src/components');
     expect(getExtension('src\\components\\App.tsx')).toBe('.tsx');
     expect(stripExtension('src\\components\\App.tsx')).toBe('src/components/App');
+    expect(stripExtension('./node_modules/pkg/index.tsx')).toBe('./node_modules/pkg/index');
   });
 
   it('preserves current computeRelPath behavior for paths outside srcDir', () => {

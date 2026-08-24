@@ -57,6 +57,7 @@ export const Tree = component$((props) => {
     });
 
     const parent = findParent(result);
+    expect(parent.path).toBe('./test.ts');
     const code = parent.code;
 
     const exportIdx = code.search(/export\s+const\s+Tree\s*=/);

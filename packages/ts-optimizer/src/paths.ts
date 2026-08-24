@@ -23,12 +23,13 @@ export function getExtension(filePath: string): string {
 }
 
 export function stripExtension(filePath: string): string {
+  const hasLeadingDotSlash = filePath.startsWith('./');
   const normalized = normalizePath(filePath);
   const extension = extname(normalized);
   if (!extension) {
-    return normalized;
+    return restoreDotSlash(normalized, hasLeadingDotSlash);
   }
-  return normalized.slice(0, -extension.length);
+  return restoreDotSlash(normalized.slice(0, -extension.length), hasLeadingDotSlash);
 }
 
 export function getBasename(filePath: string): string {

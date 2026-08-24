@@ -197,7 +197,6 @@ function applyPassthroughConstFolding(
     isServer: options.isServer,
     isDev: deriveIsDev(options.mode),
     isLibMode: options.mode === 'lib',
-    transpileJsx: options.transpileJsx,
     onlyIfFoldChanges: true,
   });
 
@@ -1249,7 +1248,6 @@ function rewriteParent(
     isServer: options.isServer,
     isDev: deriveIsDev(options.mode),
     isLibMode: emit.isLibMode,
-    transpileJsx: options.transpileJsx,
     keepRelativeSideEffects:
       emit.isInlineStrategy && !!(options.stripCtxName?.length || options.stripEventHandlers),
   });

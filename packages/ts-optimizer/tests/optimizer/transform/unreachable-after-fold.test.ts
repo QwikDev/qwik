@@ -38,6 +38,7 @@ export function handler(req) {
       false
     );
     expect(code).not.toContain('server-only-lib');
+    expect(code).not.toContain('@qwik.dev/core');
     expect(code).not.toContain('Auth(');
   });
 

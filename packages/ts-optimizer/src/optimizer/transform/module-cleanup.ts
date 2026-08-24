@@ -39,8 +39,6 @@ const CONST_IMPORT_SOURCES: readonly string[] = [
   '@builder.io/qwik-city/build',
 ];
 
-const QWIK_IMPORT_PREFIXES: readonly string[] = ['@qwik.dev/', '@builder.io/qwik'];
-
 function getImportedSpecifierName(spec: ImportSpecifier): string | undefined {
   if (spec.imported.type === 'Identifier') {
     return spec.imported.name;
@@ -336,7 +334,6 @@ export function applySegmentSideEffectSimplification(
 export function removeUnusedImports(
   code: string,
   filename: string,
-  transpileJsx?: boolean,
   preParsedProgram?: AstProgram,
   isLibMode?: boolean,
   keepRelativeSideEffects?: boolean
@@ -444,27 +441,6 @@ export function removeUnusedImports(
       }
       if (importedName === 'jsx' && importSource === '@qwik.dev/core/jsx-runtime') {
         return false;
-      }
-    }
-
-    const isQwikImport = QWIK_IMPORT_PREFIXES.some((prefix) => importSource.startsWith(prefix));
-    if (isQwikImport && !transpileJsx) {
-      const quoteChar = code[spec.node.source.start];
-      if (quoteChar === "'") {
-        const siblings = importSpecs.filter((s) => s.node === spec.node);
-        const allUnreferenced = siblings.every((s) => !referencedNames.has(s.localName));
-        const hasNonDollarSpec = (spec.node.specifiers ?? []).some(
-          (s: ImportDeclarationSpecifier) => {
-            if (s.type !== 'ImportSpecifier') {
-              return true;
-            }
-            const importedName = getImportedSpecifierName(s) ?? s.local.name;
-            return !importedName.endsWith('$');
-          }
-        );
-        if (allUnreferenced && hasNonDollarSpec) {
-          return false;
-        }
       }
     }
 
@@ -712,7 +688,6 @@ export interface DcePipelineOptions {
   isDev?: boolean;
   /** Lib output serves both environments: skip env folding and statement-level DCE. */
   isLibMode?: boolean;
-  transpileJsx?: boolean;
   /** Passthrough modules: only clean up when the env fold actually changed the code. */
   onlyIfFoldChanges?: boolean;
   /** Inject the HMR prologue after DCE, before the unused-import prune. */
@@ -780,7 +755,6 @@ export function runDcePipeline(code: string, filename: string, opts: DcePipeline
       removeUnusedImports(
         result,
         filename,
-        opts.transpileJsx,
         lazyParse(),
         opts.isLibMode,
         opts.keepRelativeSideEffects

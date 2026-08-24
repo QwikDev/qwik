@@ -170,6 +170,25 @@ export const useMemo$ = (qrl) => {
     ]);
   });
 
+  it('keeps transpiled inline bodies directly in their registrations', () => {
+    const result = transformModule({
+      input: [
+        {
+          path: mkFilePath('test.tsx'),
+          code: mkSourceText(`import { component$ } from '@qwik.dev/core';
+export const App = component$(() => <div />);`),
+        },
+      ],
+      srcDir: mkFilePath('.'),
+      entryStrategy: { type: 'inline' },
+      transpileTs: true,
+      transpileJsx: true,
+    });
+
+    expect(result.modules[0].code).toMatch(/q_\w+\.s\(\(\) =>/);
+    expect(result.modules[0].code).not.toMatch(/const s_\w+ =/);
+  });
+
   it('rewrites @builder.io/qwik imports to @qwik.dev/core', () => {
     const result = transformModule({
       input: [

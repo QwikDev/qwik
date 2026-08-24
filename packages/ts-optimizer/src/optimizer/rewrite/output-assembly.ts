@@ -456,7 +456,6 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
     qrlVarNames,
     inlinedQrlSymbols,
     mode,
-    transpileTs,
     migrationDecisions,
   } = ctx;
   const allNonSync = extractions.filter((e) => !e.isSync && !inlinedQrlSymbols.has(e.symbolName));
@@ -470,12 +469,7 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
       .map((d) => d.varName)
   );
 
-  const isHoist =
-    inlineOptions?.entryType === 'hoist' ||
-    (inlineOptions?.entryType === 'inline' &&
-      !!transpileTs &&
-      !!jsxOptions?.enableJsx &&
-      mode !== 'dev');
+  const isHoist = inlineOptions?.entryType === 'hoist';
 
   let inlineSegmentJsxOptions: InlineSegmentJsxOptions | undefined = jsxOptions?.enableJsx
     ? {

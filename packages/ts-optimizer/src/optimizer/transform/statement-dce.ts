@@ -233,10 +233,66 @@ export function applyStatementDCE(
     }
   }
 
-  if (dead.length === 0) {
+  const referenced = collectReferencedNames(program, dead);
+  const preservedInitializers: Array<{ stmt: RangedNode; text: string }> = [];
+  for (const body of bodies) {
+    for (const stmt of body) {
+      if (!isRecordNode(stmt) || stmt.type !== 'VariableDeclaration' || isDead(stmt)) {
+        continue;
+      }
+      const declarations = stmt.declarations as Array<Record<string, unknown>> | undefined;
+      if (declarations?.length !== 1) {
+        continue;
+      }
+      const declarator = declarations[0];
+      const id = declarator.id as Record<string, unknown> | undefined;
+      const init = declarator.init;
+      if (id?.type === 'Identifier' && isRecordNode(init) && init.type === 'CallExpression') {
+        const callee = init.callee as Record<string, unknown> | undefined;
+        const args = init.arguments as Array<Record<string, unknown>> | undefined;
+        const arg = args?.[0];
+        const param = (callee?.params as Array<Record<string, unknown>> | undefined)?.[0];
+        if (
+          isRecordNode(callee) &&
+          callee.type === 'FunctionExpression' &&
+          param?.type === 'Identifier' &&
+          param.name === id.name &&
+          args?.length === 1 &&
+          isRecordNode(arg) &&
+          arg.type === 'LogicalExpression' &&
+          arg.operator === '||' &&
+          (arg.left as Record<string, unknown> | undefined)?.type === 'Identifier' &&
+          (arg.left as Record<string, unknown>).name === id.name &&
+          (arg.right as Record<string, unknown> | undefined)?.type === 'ObjectExpression' &&
+          !collectReferencedNames(program, [...dead, stmt]).has(id.name as string)
+        ) {
+          const pureComment =
+            code.slice(stmt.start, init.start).match(/\/\*\s*[@#]__PURE__\s*\*\/\s*$/)?.[0] ?? '';
+          preservedInitializers.push({
+            stmt,
+            text: `${pureComment}(${code.slice(init.start, callee.end)})${code.slice(callee.end, arg.start)}{}${code.slice(arg.end, init.end)};`,
+          });
+          continue;
+        }
+      }
+      if (
+        id?.type === 'Identifier' &&
+        !referenced.has(id.name as string) &&
+        !isPureInit(init) &&
+        isRecordNode(init)
+      ) {
+        preservedInitializers.push({ stmt, text: `${code.slice(init.start, init.end)};` });
+      }
+    }
+  }
+
+  if (dead.length === 0 && preservedInitializers.length === 0) {
     return code;
   }
   const s = new MagicString(code);
+  for (const { stmt, text } of preservedInitializers) {
+    s.overwrite(stmt.start, stmt.end, text);
+  }
   for (const stmt of dead) {
     let end = stmt.end;
     if (end < code.length && code[end] === '\n') {

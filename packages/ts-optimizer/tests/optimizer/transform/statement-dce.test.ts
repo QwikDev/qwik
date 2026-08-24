@@ -28,7 +28,7 @@ describe('applyStatementDCE', () => {
     expect(out).not.toContain('try');
   });
 
-  it('keeps used declarations and side-effectful inits', () => {
+  it('keeps used declarations and only the initializer of unused side-effectful declarations', () => {
     const code = [
       'export const seg = () => {',
       '  const used = 1;',
@@ -43,6 +43,7 @@ describe('applyStatementDCE', () => {
 
     expect(out).toContain('const used = 1');
     expect(out).toContain('doThing()');
+    expect(out).not.toContain('const effect');
     expect(out).toContain('function helper');
   });
 
@@ -72,5 +73,21 @@ describe('applyStatementDCE', () => {
 
     expect(out).not.toContain('const a');
     expect(out).not.toContain('function b');
+  });
+
+  it('drops unused transpiled enum bindings without dropping their initializer', () => {
+    const code = [
+      'var Thing = function(Thing) {',
+      '  Thing[Thing["A"] = 0] = "A";',
+      '  return Thing;',
+      '}(Thing || {});',
+      'export const value = 1;',
+    ].join('\n');
+
+    const out = applyStatementDCE(code, 'test.js');
+
+    expect(out).not.toContain('var Thing');
+    expect(out).not.toContain('Thing || {}');
+    expect(out).toContain('})({});');
   });
 });

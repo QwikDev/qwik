@@ -350,9 +350,8 @@ function augmentUndeclaredIdsForLoops(
 }
 
 /**
- * Event handlers in a loop need `(_, _1)` padding for q:p delivery even with no captures. Component
- * event handlers (`onClick$` on `<MyComponent/>`) are plain props, not Qwik handlers, so they're
- * excepted.
+ * Event handlers in a loop need two positional slots for q:p delivery even with no captures.
+ * Component event handlers (`onClick$` on `<MyComponent/>`) are plain props, so they're excepted.
  */
 function applyEmptyCaptureLoopPadding(
   extraction: ExtractionResult,
@@ -365,7 +364,7 @@ function applyEmptyCaptureLoopPadding(
   if (!enclosingLoops || enclosingLoops.length === 0) {
     return;
   }
-  extraction.paramNames = ['_', '_1'];
+  extraction.paramNames = generateParamPadding([], extraction.paramNames);
   extraction.captureNames = [];
   extraction.captures = false;
 }

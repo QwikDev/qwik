@@ -44,6 +44,25 @@ export default component$(() => <Cmp x={1} />);
   expect(handler.code).toMatch(/\(ev, _1, store\)/);
 });
 
+it('loop handlers without captures keep author-written event params', () => {
+  const code = `
+import { component$ } from '@qwik.dev/core';
+export default component$((props) => (
+  <ul>
+    {props.items.map(() => (
+      <li onMouseDown$={(event) => { event.preventDefault(); event.stopPropagation(); }} />
+    ))}
+  </ul>
+));
+`;
+  const result = transformModule({
+    ...OPTS,
+    input: [{ path: mkFilePath('test.tsx'), code: mkSourceText(code) }],
+  });
+  const handler = result.modules.find((m) => m.path.includes('q_e_mousedown'))!;
+  expect(handler.code).toMatch(/\(event, _1\).*event\.preventDefault\(\)/s);
+});
+
 it('handlers sharing an element align to one positional q:ps array', () => {
   const code = `
 import { component$, useStore } from '@qwik.dev/core';

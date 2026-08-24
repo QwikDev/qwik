@@ -518,7 +518,32 @@ export function removeUnusedImports(
     ms.overwrite(node.start, end, newImport + '\n');
   }
 
-  return ms.toString();
+  const output = ms.toString();
+  return keepRelativeSideEffects ? moveSideEffectImportsFirst(output, filename) : output;
+}
+
+function moveSideEffectImportsFirst(code: string, filename: string): string {
+  const program = parseWithRawTransfer(filename, code).program;
+  const imports = program.body.filter((node) => node.type === 'ImportDeclaration');
+  const firstBare = imports.findIndex((node) => node.specifiers.length === 0);
+  if (
+    firstBare < 0 ||
+    !imports.slice(0, firstBare).some((node) => node.specifiers.length > 0) ||
+    imports.some(
+      (node, index) => index > 0 && !/^\s*$/.test(code.slice(imports[index - 1].end, node.start))
+    )
+  ) {
+    return code;
+  }
+  const ordered = [
+    ...imports.filter((node) => node.specifiers.length === 0),
+    ...imports.filter((node) => node.specifiers.length > 0),
+  ];
+  return (
+    code.slice(0, imports[0].start) +
+    ordered.map((node) => code.slice(node.start, node.end)).join('\n') +
+    code.slice(imports.at(-1)!.end)
+  );
 }
 
 function isBareScript(program: AstProgram): boolean {

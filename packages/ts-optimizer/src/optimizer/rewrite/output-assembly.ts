@@ -901,8 +901,8 @@ export function assembleOutput(ctx: RewriteContext): string {
     s,
     source,
     program,
-    neededImports,
     survivingUserImports,
+    survivingImportInfos,
     jsxResult,
     inlineHoistedDeclarations,
     qrlDecls,
@@ -916,13 +916,19 @@ export function assembleOutput(ctx: RewriteContext): string {
   const importStatements = orderedNeededImports(ctx).map(
     ([symbol, src]) => `import { ${symbol} } from "${src}";`
   );
+  const sideEffectImports = survivingUserImports.filter(
+    (_, index) => survivingImportInfos[index]?.isSideEffect
+  );
+  const valueImports = survivingUserImports.filter(
+    (_, index) => !survivingImportInfos[index]?.isSideEffect
+  );
 
-  const preamble: string[] = [];
+  const preamble: string[] = [...sideEffectImports];
   if (importStatements.length > 0) {
     preamble.push(...importStatements);
   }
-  if (survivingUserImports.length > 0) {
-    preamble.push(...survivingUserImports);
+  if (valueImports.length > 0) {
+    preamble.push(...valueImports);
   }
 
   const allHoistedDecls: string[] = [];

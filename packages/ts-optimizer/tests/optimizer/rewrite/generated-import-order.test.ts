@@ -30,3 +30,56 @@ export const App = component$(() => <div/>);
     parent.code.indexOf('import { componentQrl }')
   );
 });
+
+it('keeps user side-effect imports ahead of generated imports', () => {
+  const result = transformModule({
+    input: [
+      {
+        path: mkFilePath('test.tsx'),
+        code: mkSourceText(`
+import './setup';
+import { component$ } from '@qwik.dev/core';
+export const App = component$(() => <div/>);
+`),
+      },
+    ],
+    srcDir: mkFilePath('.'),
+    entryStrategy: { type: 'hoist' },
+    transpileJsx: true,
+  });
+  const parent = result.modules.find((module) => module.kind === 'parent');
+  if (!parent) {
+    throw new Error('parent module not found');
+  }
+
+  expect(parent.code.indexOf("import './setup'")).toBeLessThan(
+    parent.code.indexOf('import { componentQrl }')
+  );
+});
+
+it('keeps downgraded relative imports ahead of generated imports', () => {
+  const result = transformModule({
+    input: [
+      {
+        path: mkFilePath('test.tsx'),
+        code: mkSourceText(`
+import { setup } from './setup';
+import { component$ } from '@qwik.dev/core';
+export const App = component$(() => <div/>);
+`),
+      },
+    ],
+    srcDir: mkFilePath('.'),
+    entryStrategy: { type: 'hoist' },
+    stripCtxName: ['component'],
+    transpileJsx: true,
+  });
+  const parent = result.modules.find((module) => module.kind === 'parent');
+  if (!parent) {
+    throw new Error('parent module not found');
+  }
+
+  const setupImport = parent.code.indexOf("import './setup'");
+  expect(setupImport).toBeGreaterThanOrEqual(0);
+  expect(setupImport).toBeLessThan(parent.code.indexOf('import { componentQrl }'));
+});

@@ -1,11 +1,5 @@
 import { walk } from 'oxc-walker';
-import type {
-  AstEcmaScriptModule,
-  AstFunction,
-  AstNode,
-  AstParentNode,
-  AstProgram,
-} from '../../ast-types.js';
+import type { AstEcmaScriptModule, AstFunction, AstNode, AstProgram } from '../../ast-types.js';
 import type { ExtractionResult } from '../extraction/extract.js';
 import {
   classifyDeclarationTypeInClosure,
@@ -43,7 +37,6 @@ export function detectC02Diagnostics(
   enclosingExtMap: Map<string, ExtractionResult>,
   importedNames: Set<string>,
   program: AstProgram,
-  source: string,
   file: string,
   diagnostics: Diagnostic[]
 ): void {
@@ -69,7 +62,6 @@ export function detectC02Diagnostics(
 
     type Classified = { refName: string; declType: 'var' | 'fn' | 'class' };
     const classified: Classified[] = [];
-    const fnOrClassNames = new Set<string>();
     for (const refName of undeclaredIds) {
       if (importedNames.has(refName)) {
         continue;
@@ -82,7 +74,6 @@ export function detectC02Diagnostics(
       }
       if (declType === 'fn' || declType === 'class') {
         classified.push({ refName, declType });
-        fnOrClassNames.add(refName);
       }
     }
 
@@ -90,17 +81,9 @@ export function detectC02Diagnostics(
       continue;
     }
 
-    const referenceSites = collectIdentifierReferenceSites(closureNode, fnOrClassNames);
-
-    for (const { refName, declType } of classified) {
-      const site = referenceSites.get(refName);
-      if (!site) {
-        diagnostics.push(emitC02(refName, file, declType === 'class'));
-        continue;
-      }
-      diagnostics.push(
-        emitC02(refName, file, declType === 'class', buildHighlight(source, site.start, site.end))
-      );
+    classified.sort((a, b) => (a.refName < b.refName ? -1 : a.refName > b.refName ? 1 : 0));
+    for (const { refName } of classified) {
+      diagnostics.push(emitC02(refName, file));
     }
   }
 }
@@ -248,58 +231,4 @@ function collectCallSitesByName(
     },
   });
   return out;
-}
-
-function collectIdentifierReferenceSites(
-  closureNode: AstFunction,
-  names: Set<string>
-): Map<string, SourceRange> {
-  const out = new Map<string, SourceRange>();
-  if (names.size === 0) {
-    return out;
-  }
-  let remaining = names.size;
-
-  walk(closureNode, {
-    enter(node: AstNode, parent: AstParentNode) {
-      if (remaining === 0) {
-        return;
-      }
-      if (node.type !== 'Identifier') {
-        return;
-      }
-      const name = node.name;
-      if (!names.has(name) || out.has(name)) {
-        return;
-      }
-      if (isDeclaringOrMemberKey(node, parent)) {
-        return;
-      }
-      out.set(name, { start: node.start, end: node.end });
-      remaining--;
-    },
-  });
-
-  return out;
-}
-
-function isDeclaringOrMemberKey(node: AstNode, parent: AstParentNode): boolean {
-  if (!parent) {
-    return false;
-  }
-  switch (parent.type) {
-    case 'VariableDeclarator':
-      return parent.id === node;
-    case 'FunctionDeclaration':
-    case 'FunctionExpression':
-    case 'ClassDeclaration':
-    case 'ClassExpression':
-      return parent.id === node;
-    case 'MemberExpression':
-      return parent.property === node && !parent.computed;
-    case 'Property':
-      return parent.key === node;
-    default:
-      return false;
-  }
 }

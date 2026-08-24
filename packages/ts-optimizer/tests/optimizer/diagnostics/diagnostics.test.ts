@@ -18,12 +18,12 @@ import {
 
 describe('emitC02', () => {
   it('produces error with code C02 for a function reference', () => {
-    const diag = emitC02('hola', 'test.tsx', false);
+    const diag = emitC02('hola', 'test.tsx');
     expect(diag.category).toBe('error');
     expect(diag.code).toBe('C02');
     expect(diag.file).toBe('test.tsx');
     expect(diag.message).toBe(
-      "'hola' is a local function, and local function/class declarations can't be referenced from this callback. Move 'hola' into the callback, or rewrite it as a captured value."
+      "Reference to identifier 'hola' can not be used inside a Qrl($) scope because it's a function"
     );
     expect(diag.highlights).toBeNull();
     expect(diag.suggestions).toBeNull();
@@ -31,18 +31,18 @@ describe('emitC02', () => {
   });
 
   it('produces error with code C02 for a class reference', () => {
-    const diag = emitC02('Thing', 'test.tsx', true);
+    const diag = emitC02('Thing', 'test.tsx');
     expect(diag.category).toBe('error');
     expect(diag.code).toBe('C02');
     expect(diag.message).toBe(
-      "'Thing' is a local class, and local function/class declarations can't be referenced from this callback. Move 'Thing' into the callback, or rewrite it as a captured value."
+      "Reference to identifier 'Thing' can not be used inside a Qrl($) scope because it's a function"
     );
     expect(diag.highlights).toBeNull();
     expect(diag.scope).toBe('optimizer');
   });
 
   it('does not emit for uncaptured identifiers (caller responsibility)', () => {
-    const diag = emitC02('Other', 'test.tsx', true);
+    const diag = emitC02('Other', 'test.tsx');
     expect(diag.code).toBe('C02');
   });
 });
@@ -109,7 +109,7 @@ describe('filterSuppressedDiagnostics', () => {
   });
 
   it('keeps diagnostics not matching directive codes', () => {
-    const diags: Diagnostic[] = [emitC02('hola', 'test.tsx', false)];
+    const diags: Diagnostic[] = [emitC02('hola', 'test.tsx')];
     const directives = new Map<number, Set<string>>();
     directives.set(5, new Set(['C05']));
     const result = filterSuppressedDiagnostics(diags, directives);
@@ -163,7 +163,7 @@ describe('filterSuppressedDiagnostics', () => {
   });
 
   it('handles diagnostics with null highlights (uses no line matching)', () => {
-    const diags: Diagnostic[] = [emitC02('hola', 'test.tsx', false)];
+    const diags: Diagnostic[] = [emitC02('hola', 'test.tsx')];
     const directives = new Map<number, Set<string>>();
     directives.set(5, new Set(['C02']));
     const result = filterSuppressedDiagnostics(diags, directives);
@@ -184,7 +184,7 @@ describe('emitC05', () => {
     expect(diag.category).toBe('error');
     expect(diag.code).toBe('C05');
     expect(diag.message).toBe(
-      "The Qwik optimizer rewrites 'useMemo$' to use 'useMemoQrl', but this file does not export 'useMemoQrl'. Export 'useMemoQrl' from the same file, or stop calling 'useMemo$' directly."
+      "Found 'useMemo$' but did not find the corresponding 'useMemoQrl' exported in the same file. Please check that it is exported and spelled correctly"
     );
     expect(diag.highlights).toEqual([
       { lo: 241, hi: 249, startLine: 11, startCol: 5, endLine: 11, endCol: 12 },
@@ -199,7 +199,7 @@ describe('emitPassiveConflictWarning', () => {
     expect(diag.category).toBe('warning');
     expect(diag.code).toBe('preventdefault-passive-check');
     expect(diag.message).toBe(
-      'This JSX element has both passive:click and preventdefault:click. On the same element, passive events cannot use preventDefault(), so preventdefault:click will be ignored.'
+      'preventdefault:click has no effect when passive:click is also set; passive event listeners cannot call preventDefault()'
     );
     expect(diag.scope).toBe('optimizer');
   });
@@ -237,13 +237,11 @@ export const App = component$(() => {
     const c02Diags = result.diagnostics.filter((d) => d.code === 'C02');
     expect(c02Diags.length).toBe(2);
 
-    const messages = c02Diags.map((d) => d.message);
-    expect(messages).toContainEqual(
-      "'hola' is a local function, and local function/class declarations can't be referenced from this callback. Move 'hola' into the callback, or rewrite it as a captured value."
-    );
-    expect(messages).toContainEqual(
-      "'Thing' is a local class, and local function/class declarations can't be referenced from this callback. Move 'Thing' into the callback, or rewrite it as a captured value."
-    );
+    expect(c02Diags.map((d) => d.message)).toEqual([
+      "Reference to identifier 'Thing' can not be used inside a Qrl($) scope because it's a function",
+      "Reference to identifier 'hola' can not be used inside a Qrl($) scope because it's a function",
+    ]);
+    expect(c02Diags.every((d) => d.highlights === null)).toBe(true);
   });
 
   it('emits C05 for missing custom inlined Qrl export', () => {
@@ -273,7 +271,7 @@ export const App = component$((props) => {
 
     const c05Diags = result.diagnostics.filter((d) => d.code === 'C05');
     expect(c05Diags.length).toBe(1);
-    expect(c05Diags[0].message).toContain("rewrites 'useMemo$' to use 'useMemoQrl'");
+    expect(c05Diags[0].message).toContain("Found 'useMemo$'");
     expect(c05Diags[0].message).toContain("'useMemoQrl'");
   });
 

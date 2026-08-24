@@ -853,7 +853,6 @@ function analyzeModuleCaptures(
     enclosingExtMap,
     importedNames,
     program,
-    repairedCode,
     relPath,
     diagnostics
   );

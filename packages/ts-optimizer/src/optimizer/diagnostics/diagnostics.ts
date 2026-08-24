@@ -1,19 +1,13 @@
 import type { AstFunction, AstMaybeNode, AstNode, AstProgram } from '../../ast-types.js';
 import type { Diagnostic, DiagnosticHighlightFlat } from '../types/types.js';
 
-export function emitC02(
-  identName: string,
-  file: string,
-  isClass: boolean,
-  highlightSpan?: DiagnosticHighlightFlat
-): Diagnostic {
-  const kind = isClass ? 'class' : 'function';
+export function emitC02(identName: string, file: string): Diagnostic {
   return {
     category: 'error',
     code: 'C02',
     file,
-    message: `'${identName}' is a local ${kind}, and local function/class declarations can't be referenced from this callback. Move '${identName}' into the callback, or rewrite it as a captured value.`,
-    highlights: highlightSpan ? [highlightSpan] : null,
+    message: `Reference to identifier '${identName}' can not be used inside a Qrl($) scope because it's a function`,
+    highlights: null,
     suggestions: null,
     scope: 'optimizer',
   };
@@ -29,7 +23,7 @@ export function emitC05(
     category: 'error',
     code: 'C05',
     file,
-    message: `The Qwik optimizer rewrites '${calleeName}' to use '${qrlName}', but this file does not export '${qrlName}'. Export '${qrlName}' from the same file, or stop calling '${calleeName}' directly.`,
+    message: `Found '${calleeName}' but did not find the corresponding '${qrlName}' exported in the same file. Please check that it is exported and spelled correctly`,
     highlights: highlightSpan ? [highlightSpan] : null,
     suggestions: null,
     scope: 'optimizer',
@@ -45,7 +39,7 @@ export function emitPassiveConflictWarning(
     category: 'warning',
     code: 'preventdefault-passive-check',
     file,
-    message: `This JSX element has both passive:${eventName} and preventdefault:${eventName}. On the same element, passive events cannot use preventDefault(), so preventdefault:${eventName} will be ignored.`,
+    message: `preventdefault:${eventName} has no effect when passive:${eventName} is also set; passive event listeners cannot call preventDefault()`,
     highlights: highlightSpan ? [highlightSpan] : null,
     suggestions: null,
     scope: 'optimizer',

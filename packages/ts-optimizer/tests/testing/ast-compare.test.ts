@@ -67,6 +67,16 @@ describe('compareAst', () => {
     expect(compareAst('use({ value });', 'use({ value: value });', 'test.ts').match).toBe(true);
   });
 
+  it('ignores redundant control-flow blocks', () => {
+    const expected = 'if (ready) return value; while (waiting) break;';
+    const actual = 'if (ready) { return value; } while (waiting) { break; }';
+    expect(compareAst(expected, actual, 'test.ts').match).toBe(true);
+  });
+
+  it('preserves blocks that create declaration scopes', () => {
+    expect(compareAst('{ let value = 1; }', 'let value = 1;', 'test.ts').match).toBe(false);
+  });
+
   it('preserves executable statements', () => {
     const result = compareAst('sideEffect();', '', 'test.ts');
     expect(result.match).toBe(false);

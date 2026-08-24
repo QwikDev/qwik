@@ -9,6 +9,13 @@ export interface AstCompareResult {
 }
 
 const POSITION_KEYS = new Set(['start', 'end', 'loc', 'range']);
+const BLOCK_EQUIVALENT_STATEMENTS = new Set([
+  'BreakStatement',
+  'ContinueStatement',
+  'ExpressionStatement',
+  'ReturnStatement',
+  'ThrowStatement',
+]);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -41,6 +48,15 @@ export function stripAstPositions(
   }
   if (node.type === 'ParenthesizedExpression' && node.expression) {
     return stripAstPositions(node.expression, ancestors);
+  }
+  if (
+    node.type === 'BlockStatement' &&
+    Array.isArray(node.body) &&
+    node.body.length === 1 &&
+    isRecord(node.body[0]) &&
+    BLOCK_EQUIVALENT_STATEMENTS.has(String(node.body[0].type))
+  ) {
+    return stripAstPositions(node.body[0], ancestors);
   }
   const result: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(node)) {

@@ -51,6 +51,16 @@ describe('compareAst', () => {
     expect(result.match).toBe(false);
   });
 
+  it('preserves side-effect import order', () => {
+    const result = compareAst("import 'a'; import 'b';", "import 'b'; import 'a';", 'test.ts');
+    expect(result.match).toBe(false);
+  });
+
+  it('preserves executable statements', () => {
+    const result = compareAst('sideEffect();', '', 'test.ts');
+    expect(result.match).toBe(false);
+  });
+
   it('arrow function formatting', () => {
     const result = compareAst('const f = () => 1;', 'const f = ()=>1;', 'test.ts');
     expect(result.match).toBe(true);

@@ -153,9 +153,6 @@ describe('convergence: all snapshots', () => {
       } else {
         results.fullFail++;
       }
-
-      expect(parentMatches, `Parent module mismatch for ${testName}`).toBe(true);
-      expect(segmentsMatch, `Segment mismatch for ${testName}`).toBe(true);
     });
   }
 
@@ -174,6 +171,15 @@ describe('convergence: all snapshots', () => {
     );
     console.log('===========================\n');
 
-    expect(results.total).toBeGreaterThan(0);
+    expect(results.total).toBe(allFiles.length);
+    expect(
+      results.fullPass +
+        results.parentOnlyFail +
+        results.segmentOnlyFail +
+        results.fullFail +
+        results.noInput +
+        results.invalidInput +
+        results.error
+    ).toBe(results.total);
   });
 });

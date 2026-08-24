@@ -9,15 +9,15 @@ when the user actually triggers it.
 
 > **Status: experimental.** This is a from-scratch TypeScript port of the Rust
 > SWC optimizer that ships with Qwik core, built on [OXC](https://oxc.rs). It
-> matches **all 217** of the reference optimizer's live snapshot suite
-> (see `tests/README.md`; the comparison reads the Rust snapshots in place).
+> is measured against the reference optimizer's live snapshot suite
+> (see `tests/README.md`; comparisons read the Rust snapshots in place).
 > APIs may change before a 1.0.
 
 ## Why
 
 The optimizer is the heart of Qwik's resumability model: every `$()` boundary
-becomes a separately loadable chunk, so the browser downloads code lazily as
-interaction demands it instead of hydrating the whole app up front. This package
+becomes a separately loadable chunk, so the browser downloads code only as
+interaction demands it. This package
 makes that transform available as a pure-TypeScript, [OXC](https://oxc.rs)-based
 library — no native SWC binding required for the transform logic itself (the
 parser/transformer it builds on, `oxc-parser` / `oxc-transform`, do ship native

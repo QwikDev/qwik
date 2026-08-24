@@ -4,9 +4,9 @@ import { join } from 'node:path';
 import { parseSync } from 'oxc-parser';
 import { isDeepStrictEqual as equal } from 'node:util';
 import { parseSnapshot } from '../../src/testing/snapshot-parser.js';
+import { stripAstPositions } from '../../src/testing/ast-compare.js';
 import { transformModule } from '../../src/optimizer/transform/index.js';
 import { getSnapshotTransformOptions } from './snapshot-options.js';
-import { stripAstPositions } from './helpers/ast-normalize.js';
 import { SNAP_DIR } from '../rust-snapshots.js';
 
 describe('failure families', () => {

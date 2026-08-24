@@ -80,6 +80,6 @@ BENCH=1 pnpm vitest run tests/benchmark/optimizer-benchmark.test.ts --no-file-pa
 
 ## Current State
 
-The convergence tests are a **measurement tool**, not a gate. Not all 209 tests pass yet. The test names track which snapshots match and which diverge, making it easy to see progress over time.
+The convergence tests are a **measurement tool**, not a parity gate. They fail on transform errors and report how many snapshots strictly match or diverge.
 
 Check the test output for the current pass rate — it's printed as a summary at the end of the convergence test run.

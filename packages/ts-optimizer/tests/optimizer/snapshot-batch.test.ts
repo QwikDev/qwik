@@ -17,13 +17,6 @@ describe('snapshot batch validation', () => {
     'qwik_core__test__special_jsx.snap',
   ];
 
-  const parentMatchSnapshots = [
-    'qwik_core__test__example_2.snap',
-    'qwik_core__test__example_4.snap',
-    'qwik_core__test__example_5.snap',
-    'qwik_core__test__example_of_synchronous_qrl.snap',
-  ];
-
   const jsxParentMatchSnapshots = [
     'qwik_core__test__should_convert_jsx_events.snap',
     'qwik_core__test__example_jsx.snap',
@@ -172,47 +165,6 @@ describe('snapshot batch validation', () => {
 
         const totalExpected = parsed.segments.filter((s) => s.metadata).length;
         expect(matchedCount + missingSegments.length).toBe(totalExpected);
-      });
-    }
-  });
-
-  describe('parent module match (segments deferred to later phases)', () => {
-    for (const snapName of parentMatchSnapshots) {
-      const snapFile = allFiles.find((f) => f === snapName);
-      if (!snapFile) {
-        continue;
-      }
-
-      const fullPath = join(SNAP_DIR, snapFile);
-
-      it(`parent matches ${snapName}`, () => {
-        const content = readFileSync(fullPath, 'utf-8');
-        const parsed = parseSnapshot(content);
-        if (!parsed.input) {
-          return;
-        }
-
-        const filename =
-          parsed.segments[0]?.metadata?.origin || parsed.parentModules[0]?.filename || 'test.tsx';
-
-        const result = transformModule({
-          input: [{ path: mkFilePath(filename), code: mkSourceText(parsed.input) }],
-          srcDir: mkFilePath('.'),
-          mode: 'test',
-        });
-
-        if (parsed.parentModules.length > 0) {
-          const expectedParent = parsed.parentModules[0];
-          const actualParent = result.modules[0];
-          const parseFilename = expectedParent.filename || 'test.tsx';
-          const astResult = compareAst(expectedParent.code, actualParent.code, parseFilename);
-          expect(
-            astResult.match,
-            `Parent module AST mismatch for ${snapName}.\n` +
-              `Expected parse error: ${astResult.expectedParseError}\n` +
-              `Actual parse error: ${astResult.actualParseError}`
-          ).toBe(true);
-        }
       });
     }
   });

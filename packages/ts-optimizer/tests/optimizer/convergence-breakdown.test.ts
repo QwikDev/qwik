@@ -4,10 +4,14 @@ import { join } from 'node:path';
 import { parseSync } from 'oxc-parser';
 import { isDeepStrictEqual as equal } from 'node:util';
 import { parseSnapshot } from '../../src/testing/snapshot-parser.js';
+import { stripAstPositions } from '../../src/testing/ast-compare.js';
 import { transformModule } from '../../src/optimizer/transform/index.js';
 import { getSnapshotTransformOptions } from './snapshot-options.js';
-import { stripAstPositions, isRecord } from './helpers/ast-normalize.js';
 import { SNAP_DIR } from '../rust-snapshots.js';
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
 
 function bodyOf(program: unknown): readonly unknown[] {
   if (isRecord(program) && Array.isArray(program.body)) {

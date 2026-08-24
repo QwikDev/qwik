@@ -36,6 +36,9 @@ export const App = component$(() => {
     expect(segment.segment.ctxName).toBe('component$');
     expect(segment.segment.ctxKind).toBe('function');
     expect(segment.segment.origin).toBe('test.tsx');
+    expect(segment.segment.path).toBe('');
+    expect((segment.segment as SegmentMetadataInternal).paramNames).toBeUndefined();
+    expect((segment.segment as SegmentMetadataInternal).captureNames).toBeUndefined();
     expect(segment.code).toContain('export const');
   });
 

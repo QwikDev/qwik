@@ -449,14 +449,15 @@ function buildSegmentMetadata(
     displayName: ext.displayName,
     hash: ext.hash,
     canonicalFilename: ext.canonicalFilename,
+    path: getDirectory(ext.origin),
     extension: outputExtension.replace(leadingDot, ''),
     parent: ext.parent,
     ctxKind: ext.ctxKind,
     ctxName: ext.ctxName,
     captures: ext.captures,
     loc: ext.loc,
-    captureNames: ext.captureNames,
-    paramNames: ext.paramNames,
+    captureNames: ext.captureNames.length > 0 ? ext.captureNames : undefined,
+    paramNames: ext.paramNames.length > 0 ? ext.paramNames : undefined,
   };
 }
 

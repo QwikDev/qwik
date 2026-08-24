@@ -1,11 +1,14 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { isDeepStrictEqual } from 'node:util';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseSnapshot } from '../../src/testing/snapshot-parser.js';
 import { compareAst } from '../../src/testing/ast-compare.js';
+import { compareMetadata } from '../../src/testing/metadata-compare.js';
 import { transformModule } from '../../src/optimizer/transform/index.js';
-import type { TransformOutput } from '../../src/optimizer/types/types.js';
+import type { SegmentMetadataInternal, TransformOutput } from '../../src/optimizer/types/types.js';
+import type { SegmentMetadata } from '../../src/testing/snapshot-parser.js';
 import { getSnapshotFiles } from '../../src/testing/batch-runner.js';
 import { getSnapshotTransformOptions } from './snapshot-options.js';
 import { SNAP_DIR } from '../rust-snapshots.js';
@@ -38,7 +41,7 @@ function getTestName(snapFilename: string): string {
 
 describe('convergence: all snapshots', () => {
   const allFiles = getSnapshotFiles(SNAP_DIR);
-  const astDifferences: Array<{ snapshot: string; module: string; difference: string }> = [];
+  const parityDifferences: Array<{ snapshot: string; module: string; difference: string }> = [];
 
   const results = {
     total: 0,
@@ -79,19 +82,38 @@ describe('convergence: all snapshots', () => {
 
       let parentMatches = true;
       let segmentsMatch = true;
+      const actualParents = result.modules.filter((module) => module.kind === 'parent');
+      const actualSegments = result.modules.filter((module) => module.kind === 'segment');
 
-      if (parsed.parentModules.length > 0) {
-        const expectedParent = parsed.parentModules[0];
-        const actualParent = result.modules[0];
+      if (actualParents.length !== parsed.parentModules.length) {
+        parentMatches = false;
+        parityDifferences.push({
+          snapshot: testName,
+          module: 'parent',
+          difference: `module count: expected ${parsed.parentModules.length}, received ${actualParents.length}`,
+        });
+      }
+
+      for (let index = 0; index < parsed.parentModules.length; index++) {
+        const expectedParent = parsed.parentModules[index];
+        const actualParent = actualParents[index];
 
         if (!actualParent) {
           parentMatches = false;
         } else {
+          if (actualParent.path !== expectedParent.filename) {
+            parentMatches = false;
+            parityDifferences.push({
+              snapshot: testName,
+              module: 'parent',
+              difference: `path: expected ${expectedParent.filename}, received ${actualParent.path}`,
+            });
+          }
           const parseFilename = expectedParent.filename || 'test.tsx';
           const astResult = compareAst(expectedParent.code, actualParent.code, parseFilename);
-          parentMatches = astResult.match;
+          parentMatches &&= astResult.match;
           if (astResult.difference) {
-            astDifferences.push({
+            parityDifferences.push({
               snapshot: testName,
               module: 'parent',
               difference: astResult.difference,
@@ -100,50 +122,78 @@ describe('convergence: all snapshots', () => {
         }
       }
 
+      const expectedSegmentNames = new Set<string>();
       for (const expectedSeg of parsed.segments) {
         if (!expectedSeg.metadata) {
+          segmentsMatch = false;
+          parityDifferences.push({
+            snapshot: testName,
+            module: expectedSeg.filename,
+            difference: 'missing expected segment metadata',
+          });
           continue;
         }
+        expectedSegmentNames.add(expectedSeg.metadata.name);
 
-        const actualSeg = result.modules.find(
-          (m) => m.kind === 'segment' && m.segment.name === expectedSeg.metadata!.name
+        const actualSeg = actualSegments.find(
+          (module) => module.segment.name === expectedSeg.metadata!.name
         );
 
         if (!actualSeg) {
           segmentsMatch = false;
+          parityDifferences.push({
+            snapshot: testName,
+            module: expectedSeg.metadata.name,
+            difference: 'missing actual segment',
+          });
           continue;
         }
 
-        if (actualSeg.code && expectedSeg.code) {
-          const parseFilename = expectedSeg.filename || 'test.tsx';
-          const astResult = compareAst(expectedSeg.code, actualSeg.code, parseFilename);
-          if (!astResult.match) {
-            segmentsMatch = false;
-            astDifferences.push({
+        const parseFilename = expectedSeg.filename || 'test.tsx';
+        const astResult = compareAst(expectedSeg.code, actualSeg.code, parseFilename);
+        if (!astResult.match) {
+          segmentsMatch = false;
+          parityDifferences.push({
+            snapshot: testName,
+            module: expectedSeg.metadata.name,
+            difference: astResult.difference ?? 'unknown AST difference',
+          });
+        }
+
+        const metadataResult = compareMetadata(
+          expectedSeg.metadata,
+          actualSeg.segment as SegmentMetadataInternal as unknown as SegmentMetadata
+        );
+        if (!metadataResult.match) {
+          segmentsMatch = false;
+          for (const mismatch of metadataResult.mismatches) {
+            parityDifferences.push({
               snapshot: testName,
               module: expectedSeg.metadata.name,
-              difference: astResult.difference ?? 'unknown AST difference',
+              difference: `metadata.${mismatch.field}: expected ${JSON.stringify(mismatch.expected)}, received ${JSON.stringify(mismatch.actual)}`,
             });
           }
         }
+      }
 
-        if (actualSeg.kind === 'segment' && expectedSeg.metadata) {
-          const actual = actualSeg.segment;
-          const expected = expectedSeg.metadata;
-
-          if (
-            actual.origin !== expected.origin ||
-            actual.name !== expected.name ||
-            actual.displayName !== expected.displayName ||
-            actual.hash !== expected.hash ||
-            actual.canonicalFilename !== expected.canonicalFilename ||
-            actual.ctxKind !== expected.ctxKind ||
-            actual.ctxName !== expected.ctxName ||
-            actual.captures !== expected.captures
-          ) {
-            segmentsMatch = false;
-          }
+      for (const actualSeg of actualSegments) {
+        if (!expectedSegmentNames.has(actualSeg.segment.name)) {
+          segmentsMatch = false;
+          parityDifferences.push({
+            snapshot: testName,
+            module: actualSeg.segment.name,
+            difference: 'unexpected actual segment',
+          });
         }
+      }
+
+      if (!isDeepStrictEqual(parsed.diagnostics, result.diagnostics)) {
+        parentMatches = false;
+        parityDifferences.push({
+          snapshot: testName,
+          module: 'diagnostics',
+          difference: `expected ${JSON.stringify(parsed.diagnostics)}, received ${JSON.stringify(result.diagnostics)}`,
+        });
       }
 
       if (parentMatches && segmentsMatch) {
@@ -161,7 +211,7 @@ describe('convergence: all snapshots', () => {
   it('convergence summary', () => {
     writeFileSync(
       join(TS_OUTPUT_DIR, 'parity-differences.json'),
-      JSON.stringify(astDifferences, null, 2) + '\n'
+      JSON.stringify(parityDifferences, null, 2) + '\n'
     );
     console.log('\n=== CONVERGENCE SUMMARY ===');
     console.log(`Total:            ${results.total}`);

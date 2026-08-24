@@ -106,6 +106,7 @@ export interface NapiSegmentAnalysis {
   displayName: string;
   hash: string;
   canonicalFilename: string;
+  path: string;
   extension: string;
   parent: string | null;
   ctxKind: 'eventHandler' | 'function' | 'jSXProp';

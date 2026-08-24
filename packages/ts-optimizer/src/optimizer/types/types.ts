@@ -153,6 +153,8 @@ export interface SegmentAnalysis {
 
   readonly canonicalFilename: CanonicalFilename;
 
+  readonly path: string;
+
   readonly extension: string;
 
   readonly parent: SymbolName | null;

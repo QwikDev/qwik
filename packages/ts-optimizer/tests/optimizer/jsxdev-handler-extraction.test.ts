@@ -30,6 +30,33 @@ function assertAllModulesParse(modules: ReadonlyArray<{ path: string; code: stri
 }
 
 describe('pre-transformed `_jsxDEV` event-handler extraction', () => {
+  test('inlinedQrl handlers retain event metadata', () => {
+    const result = transformModule({
+      srcDir: mkFilePath('.'),
+      input: [
+        {
+          path: mkFilePath('lib.mjs'),
+          code: mkSourceText(`import { componentQrl, inlinedQrl, useLexicalScope } from '@qwik.dev/core';
+import { jsx } from '@qwik.dev/core/jsx-runtime';
+export const App = componentQrl(inlinedQrl(() => jsx('button', {
+  onClick$: inlinedQrl(() => useLexicalScope(), 'click', [])
+}), 'App_component_hash'));`),
+        },
+      ],
+      transpileTs: true,
+      transpileJsx: true,
+    });
+
+    const handler = result.modules.find(
+      (module) => module.kind === 'segment' && module.segment.hash === 'click'
+    );
+    expect(handler?.kind).toBe('segment');
+    if (handler?.kind === 'segment') {
+      expect(handler.segment.ctxKind).toBe('function');
+      expect(handler.segment.ctxName).toBe('q-e:click');
+    }
+  });
+
   test('client/default: handler is lifted to its own segment and the server$ binding survives', () => {
     const result = transformModule({
       srcDir: mkFilePath('/proj/src'),

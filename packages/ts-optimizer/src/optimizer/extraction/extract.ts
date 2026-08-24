@@ -12,6 +12,7 @@ import type {
 import { qwikHash, qwikHashFromSeed } from '../../hashing/siphash.js';
 import { escapeSymbol } from '../../hashing/naming.js';
 import { parseWithRawTransfer } from '../ast/parse.js';
+import { getObjectPropertyKeyName } from '../ast/guards.js';
 import { ContextStack } from './context-stack.js';
 import {
   collectImports,
@@ -969,6 +970,7 @@ export function createExtractionCollector(
           // callee), or the owning declarator (`const goto = inlinedQrl(...)`,
           // possibly behind conditional/logical wrappers).
           let inlinedCtxName = nameValue;
+          let isInlinedJsxObjectProp = false;
           let cursor = parent as AstNode | undefined;
           while (
             cursor &&
@@ -980,7 +982,20 @@ export function createExtractionCollector(
           }
           const qrlToDollar = (name: string): string =>
             name.endsWith('Qrl') ? name.slice(0, -3) + '$' : name;
-          if (
+          const propsObject = cursor?.type === 'Property' ? parentMap.get(cursor) : undefined;
+          const jsxKind =
+            propsObject?.type === 'ObjectExpression'
+              ? ctx.jsxPropObjects.get(propsObject)
+              : undefined;
+          const propName =
+            cursor?.type === 'Property' ? getObjectPropertyKeyName(cursor.key) : null;
+          if (jsxKind && propName?.endsWith('$')) {
+            isInlinedJsxObjectProp = true;
+            inlinedCtxName =
+              jsxKind === 'html'
+                ? (transformEventPropName(propName, new Set()) ?? propName)
+                : propName;
+          } else if (
             cursor?.type === 'VariableDeclarator' &&
             (cursor as { id?: { type: string; name?: string } }).id?.type === 'Identifier'
           ) {
@@ -1051,6 +1066,7 @@ export function createExtractionCollector(
             isInlinedQrl: true,
             explicitCaptures: explicitCapturesText,
             inlinedQrlNameArg: nameValue,
+            isJsxObjectProp: isInlinedJsxObjectProp,
           });
           ctx.results.push(extraction);
           if (arg0.type === 'ArrowFunctionExpression' || arg0.type === 'FunctionExpression') {
@@ -1368,12 +1384,7 @@ export function createExtractionCollector(
         (node.value?.type === 'ArrowFunctionExpression' ||
           node.value?.type === 'FunctionExpression')
       ) {
-        let rawKey: string | null = null;
-        if (node.key?.type === 'Identifier') {
-          rawKey = node.key.name;
-        } else if (node.key?.type === 'Literal' && typeof node.key.value === 'string') {
-          rawKey = node.key.value;
-        }
+        const rawKey = getObjectPropertyKeyName(node.key);
 
         if (rawKey !== null && rawKey.endsWith('$')) {
           const propKey = rawKey;

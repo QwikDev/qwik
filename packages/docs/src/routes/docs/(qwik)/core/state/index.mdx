@@ -300,10 +300,6 @@ While the async work is running, the signal is pending. Read `.pending` for the 
 
 The async work can run during SSR and in the browser. For values that need to stay up to date, poll the signal with `usePoll` from `@qwik.dev/utils`.
 
-<Note title="Migrating from useAsync$">
-`useAsync$()`, `createAsync$()`, and the `AsyncSignal` type are deprecated. Use `useComputed$()`, `createComputed$()`, and `ComputedSignal` instead. Synchronous reads before the first `await` are now tracked automatically; `track()` is still provided on the context argument for reads after an `await`.
-</Note>
-
 #### Example
 
 Below, `useComputed$()` fetches programming jokes for the current query. Reading `query.value` reruns the function when the query changes, and `abortSignal` cancels any previous request.

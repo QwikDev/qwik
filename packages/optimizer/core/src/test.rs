@@ -6415,18 +6415,18 @@ export const Tree = component$((props) => {
 fn component_level_self_referential_qrl() {
 	test_input!(TestInput {
 		code: r#"
-import { component$, useAsync$ } from '@qwik.dev/core';
+import { component$, useComputed$ } from '@qwik.dev/core';
 		
 // Component-level self-referential component
 export const Foo = component$((props) => {
-	const sig = useAsync$(async ({cleanup}) => {
+	const sig = useComputed$(async ({cleanup}) => {
 		const timer = setInterval(() => {
 			sig.value++;
 		}, 1000);
 		cleanup(() => clearInterval(timer));
 		return 0;
 	});
-	const other = useAsync$(async ({cleanup}) => {
+	const other = useComputed$(async ({cleanup}) => {
 		const timer = setInterval(() => {
 			other.value++;
 		}, 900);
@@ -6870,11 +6870,11 @@ fn inlined_qrl_after_ref_identifiers_forward_ref() {
 	let res = test_input!(TestInput {
 		code: r#"
 import { component$ } from '@qwik.dev/core';
-import { useAsyncQrl } from '@qwik.dev/core';
+import { useComputedQrl } from '@qwik.dev/core';
 
 export const TestComponent = component$(() => {
 	// This should be hoisted with an identifier
-	const asyncSig = useAsyncQrl$(async () => {
+	const asyncSig = useComputedQrl$(async () => {
 		return 42;
 	});
 	return <div>{asyncSig}</div>;
@@ -7846,6 +7846,39 @@ export default component$(() => {
 		snapshot: true,
 		..TestInput::default()
 	});
+}
+
+#[test]
+fn direct_qrl_marker_in_qrl_wrapper_uses_dollar_context() {
+	let output = test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+import { routeLoaderQrl } from '@qwik.dev/router';
+
+export const useSession = routeLoaderQrl($(() => 'session'));
+export const standalone = $(() => 'standalone');
+"#
+		.to_string(),
+		snapshot: true,
+		..TestInput::default()
+	})
+	.unwrap();
+
+	let session_segment = output
+		.modules
+		.iter()
+		.filter_map(|module| module.segment.as_ref())
+		.find(|segment| segment.name.starts_with("useSession_routeLoaderQrl_"))
+		.expect("routeLoaderQrl segment should exist");
+	assert_eq!(session_segment.ctx_name.as_ref(), "routeLoader$");
+
+	let standalone_segment = output
+		.modules
+		.iter()
+		.filter_map(|module| module.segment.as_ref())
+		.find(|segment| segment.name.starts_with("standalone_"))
+		.expect("standalone segment should exist");
+	assert_eq!(standalone_segment.ctx_name.as_ref(), "$");
 }
 
 impl TestInput {

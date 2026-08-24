@@ -1,9 +1,9 @@
-import type { Rollup } from 'vite';
+import type { Rolldown } from 'vite';
 import type { ESLint, Linter } from 'eslint';
 import type { OptimizerSystem } from '../types';
 
 export interface QwikLinter {
-  lint(ctx: Rollup.PluginContext, code: string, id: string): void;
+  lint(ctx: Rolldown.PluginContext, code: string, id: string): void;
 }
 
 export async function createLinter(
@@ -39,7 +39,7 @@ export async function createLinter(
   }
 
   return {
-    async lint(ctx: Rollup.PluginContext, code: string, id: string) {
+    async lint(ctx: Rolldown.PluginContext, code: string, id: string) {
       try {
         const filePath = parseRequest(id);
         if (await eslint.isPathIgnored(filePath)) {
@@ -70,7 +70,7 @@ function parseRequest(id: string) {
 }
 
 function createRollupError(id: string, reportMessage: Linter.LintMessage) {
-  const err: Rollup.RollupError = Object.assign(new Error(reportMessage.message), {
+  const err: Rolldown.RolldownError = Object.assign(new Error(reportMessage.message), {
     id,
     plugin: 'vite-plugin-eslint',
     loc: {

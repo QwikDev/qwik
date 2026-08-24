@@ -1,4 +1,4 @@
-import { component$, useAsync$, useSignal } from '@qwik.dev/core';
+import { component$, useComputed$, useSignal } from '@qwik.dev/core';
 
 export const AsyncRoot = component$(() => {
   const rerender = useSignal(0);
@@ -17,10 +17,10 @@ export const AsyncRoot = component$(() => {
 
 export const AsyncBasic = component$(() => {
   const count = useSignal(0);
-  const double = useAsync$(({ track }) => Promise.resolve(track(count) * 2));
-  const plus3 = useAsync$(({ track }) => Promise.resolve(track(double) + 3));
-  const triple = useAsync$(({ track }) => Promise.resolve(track(plus3) * 3));
-  const sum = useAsync$(({ track }) =>
+  const double = useComputed$(({ track }) => Promise.resolve(track(count) * 2));
+  const plus3 = useComputed$(({ track }) => Promise.resolve(track(double) + 3));
+  const triple = useComputed$(({ track }) => Promise.resolve(track(plus3) * 3));
+  const sum = useComputed$(({ track }) =>
     Promise.resolve(track(double) + track(plus3) + track(triple))
   );
 
@@ -40,7 +40,7 @@ export const AsyncBasic = component$(() => {
 
 export const PendingComponent = component$(() => {
   const count = useSignal(0);
-  const double = useAsync$(
+  const double = useComputed$(
     ({ track }) =>
       new Promise<number>((resolve) => {
         setTimeout(() => {
@@ -51,7 +51,7 @@ export const PendingComponent = component$(() => {
 
   return (
     <div>
-      {(double as any).loading ? 'loading' : 'not loading'}
+      {double.pending ? 'loading' : 'not loading'}
       <div class="result">double: {double.value}</div>
       <button id="increment" onClick$={() => count.value++}>
         Increment

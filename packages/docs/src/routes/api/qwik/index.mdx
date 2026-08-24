@@ -164,17 +164,15 @@ void
 
 > Warning: This API is now obsolete.
 >
-> Use `useComputed$` with an async function instead.
-
-Note, we don't pass the generic type to ComputeCtx because it causes TypeScript to not infer the type of the resource correctly. The type is only used for the `previous` property, which is not commonly used, and can be easily cast if needed.
+> Use `ComputedFn` instead.
 
 ```typescript
-export type AsyncFn<T> = (ctx: ComputeCtx) => ValueOrPromise<T>;
+export type AsyncFn<T> = ComputedFn<T>;
 ```
 
-**References:** [ValueOrPromise](#valueorpromise)
+**References:** [ComputedFn](#computedfn)
 
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-async.ts)
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-computed.ts)
 
 <h2 id="asyncsignal">AsyncSignal</h2>
 
@@ -1082,66 +1080,6 @@ prevState
 </tbody></table>
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/shared/jsx/types/jsx-qwik-attributes.ts)
-
-<h2 id="createasync_">createAsync$</h2>
-
-> Warning: This API is now obsolete.
->
-> Use `createComputed$` instead, it has async support now.
-
-Create a signal holding a `.value` which is calculated from the given async function (QRL). The standalone version of `useAsync$`.
-
-```typescript
-createAsync$: <T>(
-  qrl: (arg: ComputeCtx<T>) => Promise<T>,
-  options?: AsyncSignalOptions<T>,
-) => AsyncSignal<T>;
-```
-
-<table><thead><tr><th>
-
-Parameter
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-qrl
-
-</td><td>
-
-(arg: ComputeCtx&lt;T&gt;) =&gt; Promise&lt;T&gt;
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-options
-
-</td><td>
-
-[AsyncSignalOptions](#asyncsignaloptions)&lt;T&gt;
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-</tbody></table>
-
-**Returns:**
-
-[AsyncSignal](#asyncsignal)&lt;T&gt;
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/signal.public.ts)
 
 <h2 id="createcomputed_">createComputed$</h2>
 
@@ -3999,13 +3937,13 @@ StreamWriter
 
 > Warning: This API is now obsolete.
 >
-> Use `useAsync$` instead, which is more efficient, and has a more flexible API. Just read the `loading` and `error` properties from the returned signal to determine the status.
+> Use `useComputed$` instead. Read the `pending` and `error` properties from the returned signal to determine the status.
 
 ```tsx
 const Cmp = component$(() => {
   const city = useSignal("");
 
-  const weather = useAsync$(async ({ track, cleanup, abortSignal }) => {
+  const weather = useComputed$(async ({ track, cleanup, abortSignal }) => {
     const cityName = track(city);
     const res = await fetch(`http://weatherdata.com?city=${cityName}`, {
       signal: abortSignal,
@@ -4019,7 +3957,7 @@ const Cmp = component$(() => {
       <input name="city" bind:value={city} />
       <div>
         Temperature:{" "}
-        {weather.loading
+        {weather.pending
           ? "Loading..."
           : weather.error
             ? `Error: ${weather.error.message}`
@@ -9302,72 +9240,6 @@ T
 T
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/reactive-primitives/impl/store.ts)
-
-<h2 id="useasync_">useAsync$</h2>
-
-> Warning: This API is now obsolete.
->
-> Use `useComputed$` instead, it has async support now. It auto-tracks synchronous reads; after the first `await`, use the provided `track()` like before.
-
-Creates an AsyncSignal which holds the result of the given async function. If the function uses `track()` to track reactive state, and that state changes, the AsyncSignal is recalculated, and if the result changed, all tasks which are tracking the AsyncSignal will be re-run and all subscribers (components, tasks etc) that read the AsyncSignal will be updated.
-
-If the async function throws an error, the AsyncSignal will capture the error and set the `error` property. The error can be cleared by re-running the async function successfully.
-
-While the async function is running, the `loading` property will be set to `true`. Once the function completes, `loading` will be set to `false`.
-
-If the value has not yet been resolved, reading the AsyncSignal will throw a Promise, which will retry the component or task once the value resolves.
-
-If the value has been resolved, but the async function is re-running, reading the AsyncSignal will subscribe to it and return the last resolved value until the new value is ready. As soon as the new value is ready, the subscribers will be updated.
-
-```typescript
-useAsync$: <T>(qrl: AsyncFn<T>, options?: AsyncSignalOptions<T> | undefined) =>
-  AsyncSignal<T>;
-```
-
-<table><thead><tr><th>
-
-Parameter
-
-</th><th>
-
-Type
-
-</th><th>
-
-Description
-
-</th></tr></thead>
-<tbody><tr><td>
-
-qrl
-
-</td><td>
-
-[AsyncFn](#asyncfn)&lt;T&gt;
-
-</td><td>
-
-</td></tr>
-<tr><td>
-
-options
-
-</td><td>
-
-[AsyncSignalOptions](#asyncsignaloptions)&lt;T&gt; \| undefined
-
-</td><td>
-
-_(Optional)_
-
-</td></tr>
-</tbody></table>
-
-**Returns:**
-
-[AsyncSignal](#asyncsignal)&lt;T&gt;
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik/src/core/use/use-async.ts)
 
 <h2 id="usecomputed_">useComputed$</h2>
 

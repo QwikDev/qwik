@@ -65,11 +65,16 @@ export function createQwikRouter(opts: QwikRouterCloudflarePagesOptions) {
           },
         },
         getWritableStream: (status, headers, cookies, resolve) => {
-          const { readable, writable } = new TransformStream<Uint8Array>();
-          const response = new Response(readable, {
+          const responseInit = {
             status,
             headers: mergeHeadersCookies(headers, cookies),
-          });
+          };
+          if (status === 204 || status === 205 || status === 304) {
+            resolve(new Response(null, responseInit));
+            return new WritableStream<Uint8Array>();
+          }
+          const { readable, writable } = new TransformStream<Uint8Array>();
+          const response = new Response(readable, responseInit);
           resolve(response);
           return writable;
         },

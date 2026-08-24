@@ -36,7 +36,11 @@ import { isJsxCall } from '../jsx/jsx-call-transform.js';
 import { resolveSameFileImportName } from './import-collection.js';
 import { buildQrlDevDeclaration, formatDevMeta } from './dev-mode.js';
 import { generateStrippedSegmentCode } from './strip-ctx.js';
-import { hasUnderscorePlaceholderParams, isStrippedExtraction } from '../rewrite/predicates.js';
+import {
+  advancesSentinelCounter,
+  hasUnderscorePlaceholderParams,
+  isStrippedExtraction,
+} from '../rewrite/predicates.js';
 import { mkByteOffset, mkRelativePath } from '../types/brands.js';
 import { escapeSymbol } from '../../hashing/naming.js';
 import {
@@ -575,7 +579,8 @@ export function buildNestedQrlDeclarations(
   options: TransformModulesOptions,
   isDevMode: boolean,
   devFile: string | undefined,
-  qrlOutputExt: string | undefined
+  qrlOutputExt: string | undefined,
+  sentinelIndexes?: ReadonlyMap<string, number>
 ): {
   nestedQrlDecls: string[];
   childQrlVarNames: Map<string, string>;
@@ -584,7 +589,8 @@ export function buildNestedQrlDeclarations(
   const childQrlVarNames = new Map<string, string>();
   const nestedQrlDecls = children.map((child) => {
     if (isWorkerExtraction(child)) {
-      const varName = `q_qrl_${getSentinelCounter(strippedIdx++)}`;
+      const idx = sentinelIndexes?.get(child.symbolName) ?? strippedIdx++;
+      const varName = `q_qrl_${getSentinelCounter(idx)}`;
       childQrlVarNames.set(child.symbolName, varName);
       const devMeta =
         isDevMode && devFile
@@ -609,8 +615,11 @@ export function buildNestedQrlDeclarations(
       options.stripCtxName,
       options.stripEventHandlers
     );
+    const idx = sentinelIndexes?.get(child.symbolName) ?? strippedIdx;
+    if (!sentinelIndexes && advancesSentinelCounter(child, childStripped)) {
+      strippedIdx++;
+    }
     if (childStripped) {
-      const idx = strippedIdx++;
       const counter = getSentinelCounter(idx);
       childQrlVarNames.set(child.symbolName, `q_qrl_${counter}`);
       if (isDevMode && devFile) {
@@ -654,6 +663,41 @@ export function buildNestedQrlDeclarations(
     );
   });
   return { nestedQrlDecls, childQrlVarNames };
+}
+
+function buildDescendantSentinelIndexes(
+  parentSymbol: string,
+  extractions: readonly ConsolidatedSegment[],
+  options: TransformModulesOptions
+): Map<string, number> {
+  const childrenByParent = new Map<string, ConsolidatedSegment[]>();
+  for (const extraction of extractions) {
+    if (extraction.isSync || extraction.parent === null) {
+      continue;
+    }
+    const siblings = childrenByParent.get(extraction.parent) ?? [];
+    siblings.push(extraction);
+    childrenByParent.set(extraction.parent, siblings);
+  }
+  const indexes = new Map<string, number>();
+  let counter = 0;
+  const visit = (symbol: string): void => {
+    for (const child of (childrenByParent.get(symbol) ?? []).sort(
+      (a, b) => a.callStart - b.callStart
+    )) {
+      visit(child.symbolName);
+      const stripped = isStrippedExtraction(
+        child,
+        options.stripCtxName,
+        options.stripEventHandlers
+      );
+      if (advancesSentinelCounter(child, stripped)) {
+        indexes.set(child.symbolName, counter++);
+      }
+    }
+  };
+  visit(parentSymbol);
+  return indexes;
 }
 
 /**
@@ -1266,13 +1310,19 @@ export function buildDefaultStrategySegment(
   } = prep;
 
   const children = sortedExtractions.filter((c) => c.parent === ext.symbolName && !c.isSync);
+  const sentinelIndexes = buildDescendantSentinelIndexes(
+    ext.symbolName,
+    sortedExtractions,
+    options
+  );
   const isDevMode = emitMode === 'dev' || emitMode === 'hmr';
   const { nestedQrlDecls, childQrlVarNames } = buildNestedQrlDeclarations(
     children,
     options,
     isDevMode,
     devFile,
-    qrlOutputExt
+    qrlOutputExt,
+    sentinelIndexes
   );
 
   const captureInfo: SegmentCaptureInfo = {

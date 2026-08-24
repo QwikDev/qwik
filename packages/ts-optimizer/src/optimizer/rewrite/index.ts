@@ -19,7 +19,12 @@ import type { RelativePath } from '../types/brands.js';
 import { rewriteImportSource } from './rewrite-imports.js';
 import { buildSyncTransform, isWorkerExtraction, needsPureAnnotation } from './rewrite-calls.js';
 import { getQrlCalleeName, isLibModePreservedMarker } from '../qwik/qrl-naming.js';
-import { isEventHandlerOrJsxProp, isStrippedExtraction, matchesRegCtxName } from './predicates.js';
+import {
+  advancesSentinelCounter,
+  isEventHandlerOrJsxProp,
+  isStrippedExtraction,
+  matchesRegCtxName,
+} from './predicates.js';
 import { transformEventPropName } from '../jsx/event-handlers.js';
 import { transformAllJsx, JsxKeyCounter, type ScopeAwareCollectResult } from '../jsx/jsx.js';
 import { computeKeyPrefix } from '../jsx/key-prefix.js';
@@ -598,6 +603,9 @@ function preComputeQrlVarNames(ctx: RewriteContext): void {
     if (isWorkerExtraction(ext)) {
       if (ctx.inlineOptions?.inline) {
         ctx.earlyQrlVarNames.set(ext.symbolName, `q_${ext.symbolName}`);
+        if (advancesSentinelCounter(ext, false)) {
+          earlyStrippedCounter++;
+        }
       } else {
         const counter = 0xffff0000 + earlyStrippedCounter++ * 2;
         ctx.earlyQrlVarNames.set(ext.symbolName, `q_qrl_${counter}`);
@@ -612,8 +620,11 @@ function preComputeQrlVarNames(ctx: RewriteContext): void {
       ctx.inlineOptions.stripCtxName,
       ctx.inlineOptions.stripEventHandlers
     );
+    const idx = earlyStrippedCounter;
+    if (ctx.inlineOptions.inline && advancesSentinelCounter(ext, stripped)) {
+      earlyStrippedCounter++;
+    }
     if (stripped) {
-      const idx = earlyStrippedCounter++;
       const counter = 0xffff0000 + idx * 2;
       ctx.earlyQrlVarNames.set(ext.symbolName, `q_qrl_${counter}`);
     } else {

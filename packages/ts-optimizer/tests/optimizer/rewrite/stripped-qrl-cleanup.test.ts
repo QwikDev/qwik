@@ -26,6 +26,53 @@ function findSegmentByCtx(
 }
 
 describe('stripped-QRL parent emission cleanup', () => {
+  it('counts non-stripped sibling functions in sentinel numbering', () => {
+    const input = `
+import { component$, useClientMount$, useTask$ } from '@qwik.dev/core';
+export const Parent = component$(() => {
+  useClientMount$(() => {});
+  useTask$(() => {});
+  return <div shouldRemove$={() => {}} onClick$={() => {}}/>;
+});
+`;
+    const result = transformModule({
+      input: [{ path: mkFilePath('test.tsx'), code: mkSourceText(input) }],
+      srcDir: mkFilePath('.'),
+      transpileTs: true,
+      transpileJsx: true,
+      entryStrategy: { type: 'inline' },
+      stripCtxName: ['useClientMount$'],
+      stripEventHandlers: true,
+    });
+    const parent = findParent(result);
+
+    expect(parent.code).toContain('useClientMountQrl(q_qrl_4294901760)');
+    expect(parent.code).toContain('shouldRemove$: q_qrl_4294901764');
+    expect(parent.code).toContain('"q-e:click": q_qrl_4294901766');
+  });
+
+  it('counts nested descendants before a stripped segment', () => {
+    const input = `
+import { $, client$, component$, serverStuff$, useTask$ } from '@qwik.dev/core';
+export const Parent = component$(() => {
+  useTask$(() => {});
+  serverStuff$(() => [$(() => {}), client$(() => {})]);
+  return <div/>;
+});
+`;
+    const result = transformModule({
+      input: [{ path: mkFilePath('test.tsx'), code: mkSourceText(input) }],
+      srcDir: mkFilePath('.'),
+      transpileTs: true,
+      transpileJsx: true,
+      entryStrategy: { type: 'segment' },
+      stripCtxName: ['serverStuff$'],
+    });
+    const component = findSegmentByCtx(result, 'component$');
+
+    expect(component.code).toContain('serverStuffQrl(q_qrl_4294901766)');
+  });
+
   it('stripEventHandlers: parent emits bare q_X for stripped handlers (no .w wrap)', () => {
     const input = `
 import { component$, useStore } from '@qwik.dev/core';

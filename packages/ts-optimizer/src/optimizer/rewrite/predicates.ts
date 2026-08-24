@@ -103,3 +103,10 @@ export function isStrippedExtraction(
   }
   return isStrippedSegment(ext.ctxName, ext.ctxKind, stripCtxName, stripEventHandlers);
 }
+
+export function advancesSentinelCounter(
+  ext: { readonly parent: string | null; readonly ctxKind: string },
+  isStripped: boolean
+): boolean {
+  return isStripped || (ext.parent !== null && ext.ctxKind !== 'jSXProp');
+}

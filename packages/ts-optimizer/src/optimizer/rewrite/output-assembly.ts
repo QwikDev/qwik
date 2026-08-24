@@ -29,6 +29,7 @@ import { SignalHoister } from '../jsx/signal-analysis.js';
 import { transformInlineSegmentBody } from './inline-body.js';
 import { deriveIsDev } from './const-replacement.js';
 import {
+  advancesSentinelCounter,
   hasUnderscorePlaceholderParams,
   isAnyComponentCtx,
   isStrippedExtraction,
@@ -244,8 +245,11 @@ export function buildQrlDeclarations(ctx: RewriteContext): void {
         inlineOptions &&
         isStrippedExtraction(ext, inlineOptions.stripCtxName, inlineOptions.stripEventHandlers);
 
+      const idx = strippedCounter;
+      if (advancesSentinelCounter(ext, !!stripped)) {
+        strippedCounter++;
+      }
       if (stripped) {
-        const idx = strippedCounter++;
         if (isDevMode && devFilePath) {
           ctx.qrlDecls.push(
             markMovedCaptures(

@@ -61,6 +61,12 @@ describe('applyStatementDCE', () => {
     expect(out).toContain('Extending');
   });
 
+  it('keeps classes with instance field initializers', () => {
+    const code = 'export const seg = () => { class Some { value = external; } };';
+
+    expect(applyStatementDCE(code, 'test.js')).toBe(code);
+  });
+
   it('removes decls freed up by earlier removals (fixpoint)', () => {
     const code = [
       'export const seg = () => {',

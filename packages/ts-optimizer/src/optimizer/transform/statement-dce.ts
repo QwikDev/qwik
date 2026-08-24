@@ -129,7 +129,7 @@ function classHasSideEffects(stmt: Record<string, unknown>): boolean {
     if (member.type === 'StaticBlock') {
       return true;
     }
-    if (member.type === 'PropertyDefinition' && member.static && !isPureInit(member.value)) {
+    if (member.type === 'PropertyDefinition' && (!member.static || !isPureInit(member.value))) {
       return true;
     }
   }

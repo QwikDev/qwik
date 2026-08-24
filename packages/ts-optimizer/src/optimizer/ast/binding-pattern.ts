@@ -15,6 +15,61 @@ export type BindingPatternLike =
   | FormalParameterRest
   | TSParameterProperty;
 
+function formatPropertyKey(key: import('@oxc-project/types').PropertyKey): string | undefined {
+  if (key.type === 'Identifier') {
+    return key.name;
+  }
+  if (key.type === 'Literal' && ['string', 'number', 'bigint'].includes(typeof key.value)) {
+    return String(key.value);
+  }
+  return undefined;
+}
+
+export function formatBindingPattern(pattern: BindingPatternLike): string | undefined {
+  switch (pattern.type) {
+    case 'Identifier':
+      return pattern.name;
+    case 'RestElement': {
+      const argument = formatBindingPattern(pattern.argument);
+      return argument === undefined ? undefined : `...${argument}`;
+    }
+    case 'ArrayPattern': {
+      if (pattern.elements.length === 0) {
+        return undefined;
+      }
+      return `[${pattern.elements
+        .map((element) => (element === null ? '' : formatBindingPattern(element)))
+        .filter((element) => element !== undefined)
+        .join(', ')}]`;
+    }
+    case 'ObjectPattern': {
+      const properties = pattern.properties.flatMap((property) => {
+        if (property.type === 'RestElement') {
+          return [];
+        }
+        const key = formatPropertyKey(property.key);
+        if (key === undefined) {
+          return [];
+        }
+        if (property.shorthand) {
+          return [key];
+        }
+        const value = formatBindingPattern(property.value);
+        return value === undefined ? [] : [`${key}: ${value}`];
+      });
+      return properties.length === 0 ? undefined : `{${properties.join(', ')}}`;
+    }
+    case 'TSParameterProperty':
+      return formatBindingPattern(pattern.parameter);
+    case 'AssignmentPattern':
+      return undefined;
+    default: {
+      const _exhaustive: never = pattern;
+      throw new Error(`unhandled binding-pattern node: ${(_exhaustive as { type?: string }).type}`);
+    }
+  }
+}
+
 function visitBindingNames(
   node: BindingPatternLike | null | undefined,
   visit: (name: string) => void

@@ -67,6 +67,31 @@ export const handler = $(() => {
     expect(segment.code).toContain("console.log('hello')");
   });
 
+  it('reports emitted parameter patterns in segment metadata', () => {
+    const result = transformModule({
+      input: [
+        {
+          path: mkFilePath('test.tsx'),
+          code: mkSourceText(`import { $ } from '@qwik.dev/core';
+export const handler = $((event, { target }, [value]) => {
+  console.log(event, target, value);
+});`),
+        },
+      ],
+      srcDir: mkFilePath('.'),
+    });
+
+    const segment = result.modules[1];
+    if (segment.kind !== 'segment') {
+      throw new Error('expected segment module');
+    }
+    expect((segment.segment as SegmentMetadataInternal).paramNames).toEqual([
+      'event',
+      '{target}',
+      '[value]',
+    ]);
+  });
+
   it('rewrites @builder.io/qwik imports to @qwik.dev/core', () => {
     const result = transformModule({
       input: [

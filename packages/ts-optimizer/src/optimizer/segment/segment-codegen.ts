@@ -1,4 +1,8 @@
-import { createTransformSession } from '../edit/transform-session.js';
+import {
+  createFunctionTransformSession,
+  createTransformSession,
+} from '../edit/transform-session.js';
+import { formatBindingPattern } from '../ast/binding-pattern.js';
 import { rewriteImportSource } from '../rewrite/rewrite-imports.js';
 import { inlineConstCaptures } from '../rewrite/index.js';
 import { hasUnderscorePlaceholderParams } from '../rewrite/predicates.js';
@@ -693,7 +697,7 @@ export function generateSegmentCode(
   nestedCallSites?: NestedCallSiteInfo[],
   importContext?: SegmentImportData,
   enumValueMap?: Map<string, Map<string, string>>
-): { code: string; keyCounterValue?: number } {
+): { code: string; keyCounterValue?: number; paramNames?: string[] } {
   const capturedNames = new Set<string>(captureInfo ? captureInfo.captureNames : []);
 
   const { parts, importsBySource } = collectInitialImports(
@@ -807,6 +811,13 @@ export function generateSegmentCode(
     bodyText = removeDeadConstLiterals(bodyText);
   }
 
+  const paramNames = createFunctionTransformSession(bodyText, { tolerateErrors: true })
+    ?.fn.params.map(formatBindingPattern)
+    .filter((name) => name !== undefined);
   parts.push(`export const ${extraction.symbolName} = ${bodyText};`);
-  return { code: parts.join('\n'), keyCounterValue: segmentKeyCounterValue };
+  return {
+    code: parts.join('\n'),
+    keyCounterValue: segmentKeyCounterValue,
+    paramNames: paramNames?.length ? paramNames : undefined,
+  };
 }

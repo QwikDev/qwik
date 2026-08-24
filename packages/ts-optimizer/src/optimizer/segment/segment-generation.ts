@@ -440,7 +440,8 @@ function tryConsolidateRawProps(
 function buildSegmentMetadata(
   ext: ConsolidatedSegment,
   entryField: string | null,
-  outputExtension: string
+  outputExtension: string,
+  paramNames?: string[]
 ): SegmentMetadataInternal {
   return {
     origin: ext.origin,
@@ -457,7 +458,7 @@ function buildSegmentMetadata(
     captures: ext.captures,
     loc: ext.loc,
     captureNames: ext.captureNames.length > 0 ? ext.captureNames : undefined,
-    paramNames: ext.paramNames.length > 0 ? ext.paramNames : undefined,
+    paramNames,
   };
 }
 
@@ -1422,7 +1423,12 @@ export function buildDefaultStrategySegment(
     qrlOutputExt,
     sourceExtensions
   );
-  const segmentAnalysis = buildSegmentMetadata(ext, entryField, outputExtension);
+  const segmentAnalysis = buildSegmentMetadata(
+    ext,
+    entryField,
+    outputExtension,
+    segmentResult.paramNames
+  );
 
   return {
     module: {

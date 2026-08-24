@@ -1,5 +1,6 @@
 import { it, expect } from 'vitest';
 import { transformModule } from '../../../src/optimizer/transform/index.js';
+import { computeKeyPrefix } from '../../../src/optimizer/jsx/key-prefix.js';
 import { mkFilePath, mkSourceText } from '../../../src/optimizer/types/brands.js';
 
 // A module-level plain function with JSX between two components. SSR (hoist)
@@ -40,6 +41,11 @@ export const Three = component$(() => {
   );
 });
 `;
+
+it('matches the Rust key prefix alphabet', () => {
+  expect(computeKeyPrefix('../../node_modules/dep/dist/lib.mjs')).toBe('70');
+  expect(computeKeyPrefix('p24.tsx')).toBe('0n');
+});
 
 function componentKeys(
   modules: ReadonlyArray<{ path: string; code: string }>

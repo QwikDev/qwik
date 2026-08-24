@@ -845,7 +845,7 @@ export function autoExportedNames(
     .sort()) {
     add(decl);
   }
-  return names;
+  return names.sort();
 }
 
 function decideMigration(

@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { parseSync } from 'oxc-parser';
 import {
   analyzeMigration,
+  autoExportedNames,
   collectModuleLevelDecls,
   computeSegmentUsage,
   filterInlineStrategyMigrations,
@@ -524,5 +525,19 @@ describe('filterInlineStrategyMigrations', () => {
   it('drops every move (which would delete a still-referenced in-parent decl)', () => {
     const result = filterInlineStrategyMigrations(decisions);
     expect(result.some((d) => d.action === 'move')).toBe(false);
+  });
+});
+
+describe('autoExportedNames', () => {
+  it('sorts private exports by name', () => {
+    expect(
+      autoExportedNames(
+        [
+          { action: 'reexport', varName: 'scrollState', reason: MIG_REASON.REEXPORT_MULTI_SEGMENT },
+          { action: 'reexport', varName: 'saveScroll', reason: MIG_REASON.REEXPORT_MULTI_SEGMENT },
+        ],
+        []
+      )
+    ).toEqual(['saveScroll', 'scrollState']);
   });
 });

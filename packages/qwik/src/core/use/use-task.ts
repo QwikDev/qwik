@@ -337,8 +337,8 @@ export const useComputedQrl = <T>(qrl: QRL<ComputedFn<T>>): Signal<Awaited<T>> =
  * recalculated, and if the result changed, all tasks which are tracking the signal will be re-run
  * and all components that read the signal will be re-rendered.
  *
- * The function must not have any side effects. It may return a promise, but only signal reads
- * before the first await are tracked. Read reactive inputs before awaiting.
+ * The function must not have any side effects. It may return a promise, but in Qwik v1 only signal
+ * reads before the first await are tracked. Read reactive inputs before awaiting.
  *
  * @public
  */

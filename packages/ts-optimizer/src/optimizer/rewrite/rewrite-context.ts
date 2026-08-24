@@ -48,6 +48,7 @@ export interface RewriteContext {
   topLevel: ExtractionResult[];
   earlyQrlVarNames: Map<string, string>;
   neededImports: Map<string, string>;
+  injectedImportAliases: Map<string, string>;
   qrlVarNames: Map<string, string>;
   qrlDecls: string[];
   sCalls: string[];

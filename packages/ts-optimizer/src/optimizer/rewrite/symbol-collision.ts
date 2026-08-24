@@ -181,6 +181,36 @@ function pickFreshName(base: string, taken: ReadonlySet<string>): string {
   throw new Error(`pickFreshName exhausted suffixes for ${base}`);
 }
 
+export function reserveGeneratedImportAliases(ctx: RewriteContext): void {
+  const taken = new Set<string>([
+    ...ctx.originalImports.keys(),
+    ...(ctx.moduleLevelDecls?.map((declaration) => declaration.name) ?? []),
+  ]);
+  for (const extraction of ctx.topLevel) {
+    if (extraction.isBare || !extraction.qrlCallee) {
+      continue;
+    }
+    const name = extraction.qrlCallee;
+    if (taken.has(name) || ctx.injectedImportAliases.has(name)) {
+      continue;
+    }
+    const wrapsBareExtraction = ctx.topLevel.some((candidate) => {
+      if (!candidate.isBare) {
+        return false;
+      }
+      return new RegExp(`\\b${name}\\s*\\(\\s*$`).test(
+        ctx.source.slice(Math.max(0, candidate.callStart - name.length - 16), candidate.callStart)
+      );
+    });
+    if (!wrapsBareExtraction) {
+      continue;
+    }
+    const alias = pickFreshName(name, taken);
+    ctx.injectedImportAliases.set(name, alias);
+    taken.add(alias);
+  }
+}
+
 function findBindingIdentifierPositions(
   program: AstProgram,
   name: string
@@ -384,6 +414,13 @@ function applyImportSpecifierRename(
  * still a collision).
  */
 export function detectAndRenameCollisions(ctx: RewriteContext): void {
+  for (const [name, alias] of ctx.injectedImportAliases) {
+    const source = ctx.neededImports.get(name);
+    if (source !== undefined) {
+      ctx.neededImports.delete(name);
+      ctx.neededImports.set(`${name} as ${alias}`, source);
+    }
+  }
   const wouldInject = computeWouldInjectNames(ctx);
   if (wouldInject.size === 0) {
     return;

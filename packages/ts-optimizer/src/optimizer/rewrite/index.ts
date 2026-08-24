@@ -61,7 +61,7 @@ import {
   buildInlineSCalls,
   assembleOutput,
 } from './output-assembly.js';
-import { detectAndRenameCollisions } from './symbol-collision.js';
+import { detectAndRenameCollisions, reserveGeneratedImportAliases } from './symbol-collision.js';
 import { countJsxKeysInNode } from '../segment/segment-generation.js';
 
 export {
@@ -188,6 +188,7 @@ export function rewriteParentModule(
     topLevel: [],
     earlyQrlVarNames: new Map(),
     neededImports: new Map(),
+    injectedImportAliases: new Map(),
     qrlVarNames: new Map(),
     qrlDecls: [],
     sCalls: [],
@@ -280,6 +281,7 @@ export function rewriteParentModule(
   }
 
   preComputeQrlVarNames(ctx);
+  reserveGeneratedImportAliases(ctx);
   rewriteCallSites(ctx);
   rewriteNoArgMarkers(ctx);
   renameUnextractedEventAttrs(ctx);
@@ -686,7 +688,8 @@ function rewriteCallSites(ctx: RewriteContext): void {
       s.overwrite(ext.calleeStart, ext.calleeEnd, propName);
       s.overwrite(ext.argStart, ext.argEnd, qrlRef);
     } else {
-      s.overwrite(ext.calleeStart, ext.calleeEnd, ext.qrlCallee);
+      const qrlCallee = ctx.injectedImportAliases.get(ext.qrlCallee) ?? ext.qrlCallee;
+      s.overwrite(ext.calleeStart, ext.calleeEnd, qrlCallee);
       s.overwrite(ext.argStart, ext.argEnd, getQrlVarName(ctx, ext.symbolName));
       if (needsPureAnnotation(ext.qrlCallee)) {
         s.prependRight(ext.callStart, '/*#__PURE__*/ ');

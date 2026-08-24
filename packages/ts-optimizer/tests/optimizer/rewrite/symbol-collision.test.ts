@@ -55,6 +55,21 @@ export const Foo = component$(() => {
     expect(parent.code).toMatch(/componentQrl\(q_/);
   });
 
+  it('aliases an injected wrapper around an existing free wrapper call', () => {
+    const source = `
+import { component$, $ } from '@qwik.dev/core';
+export const Generated = component$(() => null);
+export const Existing = componentQrl($(() => null));
+`;
+    const { parent } = transform(source);
+
+    expect(parent.code).toMatch(
+      /import \{ componentQrl as componentQrl1 \} from ['"]@qwik\.dev\/core['"]/
+    );
+    expect(parent.code).toMatch(/Generated = .*componentQrl1\(q_/);
+    expect(parent.code).toMatch(/Existing = componentQrl\(q_/);
+  });
+
   it('does NOT rename when a user import already comes from the same source the optimizer would inject from', () => {
     const source = `
 import { component$, qrl } from '@qwik.dev/core';

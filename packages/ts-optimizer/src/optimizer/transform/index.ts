@@ -19,7 +19,6 @@ import { flattenAndReparse } from '../prepare/flatten-destructures.js';
 import { normalizeInlineComponentProps } from '../prepare/inline-component-props.js';
 import { detectForeignJsxRuntime } from '../jsx/jsx-import-source.js';
 import type { ConsolidatedSegment, ExtractionResult, Mutable } from '../extraction/extract.js';
-import { repairInput } from '../prepare/input-repair.js';
 import {
   rewriteParentModule,
   resolveConstLiteralsInClosure,
@@ -214,11 +213,12 @@ interface ModuleContext {
   readonly ext: string;
 }
 
-/** Phase 0 + 0.5 result: repaired/flattened source and its single parse. */
+/** Phase 0 + 0.5 result: prepared source and its parse. */
 interface PreparedModuleInput {
   readonly repairedCode: string;
   readonly program: AstProgram;
   readonly parserModule: AstEcmaScriptModule | undefined;
+  readonly diagnostics: readonly Diagnostic[];
   readonly hasForeignJsxRuntime: boolean;
   readonly foreignJsxPragmaText: string | null;
 }
@@ -340,6 +340,22 @@ function transformOneModule(
   const diagnostics: Diagnostic[] = [];
 
   const prepared = prepareModuleInput(mod);
+  if (prepared.diagnostics.length > 0) {
+    return {
+      modules: [
+        {
+          kind: 'parent',
+          path: relPath,
+          isEntry: false,
+          code: input.code,
+          map: null,
+          origPath: input.path,
+        },
+      ],
+      diagnostics: prepared.diagnostics,
+      flags,
+    };
+  }
   const extracted = extractModuleSegments(mod, prepared);
   if (extracted.kind === 'passthrough') {
     return {
@@ -403,26 +419,43 @@ function transformOneModule(
   };
 }
 
-/** Phase 0 + 0.5: repair, flatten, parse once, detect foreign JSX runtime. */
+/** Phase 0 + 0.5: parse, flatten, and detect a foreign JSX runtime. */
 function prepareModuleInput(mod: ModuleContext): PreparedModuleInput {
   const { input, relPath } = mod;
 
-  // Phase 0: repair recoverable parse errors. A caller-supplied pre-parsed
-  // Program (typically a bundler's `meta.ast`) is used directly, skipping the
-  // internal parse.
-  const repairResult = repairInput(input.code, relPath, input.program, input.module);
-  let repairedCode = repairResult.source;
-  // Reuse repair's program when present; otherwise parse once here so
-  // extraction doesn't re-parse the same source.
+  let repairedCode = input.code;
   let program: AstProgram;
   let parserModule: AstEcmaScriptModule | undefined;
-  if (repairResult.program) {
-    program = repairResult.program;
-    parserModule = repairResult.module;
+  let diagnostics: readonly Diagnostic[] = [];
+  if (input.program) {
+    program = input.program;
+    parserModule = input.module;
   } else {
     const parsed = parseWithRawTransfer(relPath, repairedCode);
     program = parsed.program;
     parserModule = parsed.module;
+    if (program.body.length === 0) {
+      diagnostics = (parsed.errors ?? []).map((error) => ({
+        category: 'error',
+        code: 'PARSE_ERROR',
+        file: relPath,
+        message: error.message,
+        highlights: null,
+        suggestions: null,
+        scope: 'optimizer',
+      }));
+    }
+  }
+
+  if (diagnostics.length > 0) {
+    return {
+      repairedCode,
+      program,
+      parserModule,
+      diagnostics,
+      hasForeignJsxRuntime: false,
+      foreignJsxPragmaText: null,
+    };
   }
 
   // Phase 0.5: flatten `const {x} = useFoo()` inside `component$` bodies to
@@ -457,6 +490,7 @@ function prepareModuleInput(mod: ModuleContext): PreparedModuleInput {
     repairedCode,
     program,
     parserModule,
+    diagnostics,
     hasForeignJsxRuntime,
     foreignJsxPragmaText,
   };

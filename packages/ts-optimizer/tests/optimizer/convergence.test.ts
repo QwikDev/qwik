@@ -12,6 +12,7 @@ import { SNAP_DIR } from '../rust-snapshots.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const TS_OUTPUT_DIR = join(__dirname, '../../ts-output');
+const INVALID_INPUTS = new Set(['example_3', 'example_immutable_analysis']);
 
 mkdirSync(TS_OUTPUT_DIR, { recursive: true });
 
@@ -46,6 +47,7 @@ describe('convergence: all snapshots', () => {
     segmentOnlyFail: 0,
     fullFail: 0,
     noInput: 0,
+    invalidInput: 0,
     error: 0,
   };
 
@@ -75,6 +77,15 @@ describe('convergence: all snapshots', () => {
       }
 
       writeFileSync(join(TS_OUTPUT_DIR, snapFile), formatSnapshot(parsed.input, result));
+
+      if (INVALID_INPUTS.has(testName)) {
+        results.invalidInput++;
+        expect(result.modules[0]?.code).toBe(parsed.input);
+        expect(result.diagnostics).toContainEqual(
+          expect.objectContaining({ category: 'error', code: 'PARSE_ERROR' })
+        );
+        return;
+      }
 
       let parentMatches = true;
       let segmentsMatch = true;
@@ -156,9 +167,10 @@ describe('convergence: all snapshots', () => {
     console.log(`Segment-only fail:${results.segmentOnlyFail}`);
     console.log(`Full fail:        ${results.fullFail}`);
     console.log(`No input:         ${results.noInput}`);
+    console.log(`Invalid input:    ${results.invalidInput}`);
     console.log(`Error/throw:      ${results.error}`);
     console.log(
-      `Pass rate:        ${results.total > 0 ? ((results.fullPass / results.total) * 100).toFixed(1) : 0}%`
+      `Pass rate:        ${results.total > 0 ? ((results.fullPass / (results.total - results.noInput - results.invalidInput)) * 100).toFixed(1) : 0}%`
     );
     console.log('===========================\n');
 

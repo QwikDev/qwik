@@ -63,6 +63,18 @@ describe('compareAst', () => {
     expect(compareAst(expected, actual, 'test.ts').match).toBe(true);
   });
 
+  it('ignores unused specifiers when both outputs import the module', () => {
+    const expected = "import { used, unused } from 'x'; use(used);";
+    const actual = "import { used } from 'x'; use(used);";
+    expect(compareAst(expected, actual, 'test.ts').match).toBe(true);
+  });
+
+  it('preserves used import specifiers', () => {
+    const expected = "import { first } from 'x'; use(first);";
+    const actual = "import { second } from 'x'; use(second);";
+    expect(compareAst(expected, actual, 'test.ts').match).toBe(false);
+  });
+
   it('ignores object property shorthand', () => {
     expect(compareAst('use({ value });', 'use({ value: value });', 'test.ts').match).toBe(true);
   });

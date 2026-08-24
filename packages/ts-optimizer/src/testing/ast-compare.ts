@@ -21,6 +21,24 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+function collectIdentifierNames(node: unknown, names: Set<string>): void {
+  if (Array.isArray(node)) {
+    for (const item of node) {
+      collectIdentifierNames(item, names);
+    }
+    return;
+  }
+  if (!isRecord(node)) {
+    return;
+  }
+  if (node.type === 'Identifier' && typeof node.name === 'string') {
+    names.add(node.name);
+  }
+  for (const value of Object.values(node)) {
+    collectIdentifierNames(value, names);
+  }
+}
+
 function shouldStripRaw(
   node: Record<string, unknown>,
   ancestors: readonly Record<string, unknown>[]
@@ -93,9 +111,19 @@ function normalizeImports(program: unknown): unknown {
     return program;
   }
 
+  const usedNames = new Set<string>();
+  collectIdentifierNames(program.body.slice(importCount), usedNames);
   const imports = [...groups.values()].map(({ declaration, specifiers }) => ({
     ...declaration,
-    specifiers: specifiers.sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b))),
+    specifiers: specifiers
+      .filter(
+        (specifier) =>
+          !isRecord(specifier) ||
+          !isRecord(specifier.local) ||
+          typeof specifier.local.name !== 'string' ||
+          usedNames.has(specifier.local.name)
+      )
+      .sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b))),
   }));
   return { ...program, body: [...imports, ...program.body.slice(importCount)] };
 }

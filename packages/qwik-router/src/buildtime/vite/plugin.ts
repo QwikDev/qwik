@@ -24,6 +24,7 @@ import {
   isPluginModule,
   isServiceWorkerName,
   normalizePath,
+  normalizePathKey,
   removeExtension,
 } from '../../utils/fs';
 import { parseRoutesDir } from '../build';
@@ -91,10 +92,10 @@ export function replaceLoaderPlaceholders(
   return code.replace(
     /_R\s*:\s*(["'`])__LOADERS:([^"'`]+)__\1\s*,?/g,
     (_match, _q, paths: string) => {
-      const filePaths = paths.split('|');
+      const filePaths = (JSON.parse(`"${paths}"`) as string).split('|');
       const hashes: string[] = [];
       for (const filePath of filePaths) {
-        const fileHashes = loadersByFile.get(filePath);
+        const fileHashes = loadersByFile.get(normalizePathKey(filePath));
         if (fileHashes) {
           hashes.push(...fileHashes);
         }
@@ -114,7 +115,7 @@ export function addRouteLoaderHash(
   filePath: string,
   hash: string
 ) {
-  const normalizedPath = normalizePath(filePath.split(/[?#]/, 1)[0]);
+  const normalizedPath = normalizePathKey(filePath).split(/[?#]/, 1)[0];
   const existing = loadersByFile.get(normalizedPath);
   if (!existing) {
     loadersByFile.set(normalizedPath, [hash]);
@@ -128,7 +129,7 @@ export function addRouteLoaderHash(
 }
 
 export function clearRouteLoaderHashes(loadersByFile: Map<string, string[]>, filePath: string) {
-  return loadersByFile.delete(normalizePath(filePath.split(/[?#]/, 1)[0]));
+  return loadersByFile.delete(normalizePathKey(filePath).split(/[?#]/, 1)[0]);
 }
 
 export function isRouterSourceFilePath(filePath: string) {

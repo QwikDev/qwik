@@ -623,8 +623,8 @@ function extractModuleSegments(
   const extractions = facts.extractions as ExtractionResult[];
   for (const extraction of extractions) {
     (extraction as Mutable<ExtractionResult>).loc = [
-      mkByteOffset(prepared.originalOffset(extraction.loc[0])),
-      mkByteOffset(prepared.originalOffset(extraction.loc[1])),
+      mkByteOffset(prepared.originalOffset(extraction.loc[0]) + 1),
+      mkByteOffset(prepared.originalOffset(extraction.loc[1]) + 1),
     ];
   }
 
@@ -1390,8 +1390,8 @@ function generateSegments(
         const mutable = ext as Mutable<ExtractionResult>;
         mutable.bodyText = mkBodyText(init.text);
         mutable.loc = [
-          mkByteOffset(prepared.originalOffset(init.start)),
-          mkByteOffset(prepared.originalOffset(init.end)),
+          mkByteOffset(prepared.originalOffset(init.start) + 1),
+          mkByteOffset(prepared.originalOffset(init.end) + 1),
         ];
         if (ext.parent) {
           const names = inlinedIdentifiersByParent.get(ext.parent) ?? new Set<string>();

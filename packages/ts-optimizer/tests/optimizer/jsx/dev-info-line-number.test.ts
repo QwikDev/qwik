@@ -13,6 +13,31 @@ function findDevInfo(code: string): Array<{ lineNumber: number; columnNumber: nu
 }
 
 describe('JSX dev-info source-relative positions', () => {
+  it('keeps nested default-strategy JSX on its original source line', async () => {
+    const code = `
+import { component$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+  return (
+    <Cmp>
+      <p onClick$={() => console.log('warn')}>Hello</p>
+    </Cmp>
+  );
+});
+`;
+    const result = await transformModule({
+      srcDir: mkFilePath('/p'),
+      input: [{ code: mkSourceText(code), path: mkFilePath('test.tsx') }],
+      transpileJsx: true,
+      mode: 'dev',
+    });
+    const segment = result.modules.find(
+      (module) => module.kind === 'segment' && module.segment.ctxKind === 'function'
+    );
+    expect(segment).toBeDefined();
+    expect(findDevInfo(segment!.code)).toContainEqual({ lineNumber: 7, columnNumber: 7 });
+  });
+
   it('Inline strategy emits source-relative lineNumber from wrapped body', async () => {
     const code = `import { component$ } from '@qwik.dev/core';
 
@@ -25,7 +50,7 @@ export const App = component$((props) => <div>{props.x}</div>);
       entryStrategy: { type: 'inline' },
       mode: 'dev',
     });
-    const parent = result.modules.find((m) => m.path === 'test.tsx')!;
+    const parent = result.modules.find((m) => m.kind === 'parent')!;
     const found = findDevInfo(parent.code);
     expect(found.length).toBeGreaterThan(0);
     expect(found[0].lineNumber).toBe(3);
@@ -49,7 +74,7 @@ export const App = component$((props) => {
       entryStrategy: { type: 'inline' },
       mode: 'dev',
     });
-    const parent = result.modules.find((m) => m.path === 'test.tsx')!;
+    const parent = result.modules.find((m) => m.kind === 'parent')!;
     const found = findDevInfo(parent.code);
     expect(found.length).toBeGreaterThanOrEqual(2);
     const lines = found.map((f) => f.lineNumber).sort((a, b) => a - b);
@@ -87,7 +112,7 @@ export const App = component$((props) => <div/>);
       entryStrategy: { type: 'inline' },
       mode: 'dev',
     });
-    const parent = result.modules.find((m) => m.path === 'test.tsx')!;
+    const parent = result.modules.find((m) => m.kind === 'parent')!;
     const found = findDevInfo(parent.code);
     expect(found.length).toBeGreaterThan(0);
     expect(found[0].lineNumber).toBe(2);
@@ -104,7 +129,7 @@ export const App = component$((props) => <div>{props.x}</div>);
       transpileJsx: true,
       entryStrategy: { type: 'inline' },
     });
-    const parent = result.modules.find((m) => m.path === 'test.tsx')!;
+    const parent = result.modules.find((m) => m.kind === 'parent')!;
     const found = findDevInfo(parent.code);
     expect(found).toEqual([]);
   });

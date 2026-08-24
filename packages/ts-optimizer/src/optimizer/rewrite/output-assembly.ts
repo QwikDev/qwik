@@ -269,8 +269,8 @@ export function buildQrlDeclarations(ctx: RewriteContext): void {
             markMovedCaptures(
               buildNoopQrlDevDeclaration(ext.symbolName, {
                 file: devFilePath,
-                lo: ext.argStart,
-                hi: ext.argEnd,
+                lo: ext.loc[0],
+                hi: ext.loc[1],
                 displayName: ext.displayName,
               }),
               ext

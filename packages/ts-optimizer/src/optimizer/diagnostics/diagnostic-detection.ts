@@ -23,8 +23,8 @@ function buildHighlight(source: string, lo: number, hi: number): DiagnosticHighl
   const [startLine, startCol] = computeLineColFromOffset(source, lo);
   const [endLine, endCol] = computeLineColFromOffset(source, hi);
   return {
-    lo: mkByteOffset(lo),
-    hi: mkByteOffset(hi),
+    lo: mkByteOffset(lo + 1),
+    hi: mkByteOffset(hi + 1),
     startLine: mkLineNumber(startLine),
     startCol: mkColumnNumber(startCol),
     endLine: mkLineNumber(endLine),
@@ -61,7 +61,7 @@ export function detectC03Diagnostics(
       emitC03(
         capture.names,
         file,
-        buildHighlight(originalCode, extraction.loc[0], extraction.loc[1])
+        buildHighlight(originalCode, extraction.loc[0] - 1, extraction.loc[1] - 1)
       )
     );
   }

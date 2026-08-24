@@ -149,10 +149,8 @@ function extractInput(body: string): { input: string | null; rest: string } {
   }
 
   let afterInput = body.slice(inputIdx + inputMarker.length);
-  // Strip only the marker's own trailing newline; later whitespace affects qrlDEV byte offsets.
-  if (afterInput.startsWith('\n')) {
-    afterInput = afterInput.slice(1);
-  }
+  // Insta puts a blank separator after the marker; it is not part of the Rust test input.
+  afterInput = afterInput.replace(/^\n\n/, '');
 
   const delimMatch = afterInput.match(/^={3,}\s*.+\s*==$/m);
   if (!delimMatch || delimMatch.index === undefined) {

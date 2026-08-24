@@ -418,7 +418,7 @@ export function transformInlineSegmentBody(
         ...devOptionsForCall,
         sourcePosition: {
           source: jsxBodyOptions.source,
-          bodyOriginOffset: ext.loc[0],
+          bodyOriginOffset: ext.argStart,
           wrapperPrefixLen: wrapperPrefix.length,
         },
       };

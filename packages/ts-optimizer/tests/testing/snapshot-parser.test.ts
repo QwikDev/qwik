@@ -25,6 +25,7 @@ describe('parseSnapshot', () => {
 
     it('extracts input section', () => {
       expect(result.input).not.toBeNull();
+      expect(result.input).toMatch(/^\n[^\n]/);
       expect(result.input).toContain('import { $, component, onRender }');
       expect(result.input).toContain('export const renderHeader1');
     });

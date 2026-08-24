@@ -47,7 +47,10 @@ export function stripAstPositions(
     if (POSITION_KEYS.has(key) || (key === 'raw' && shouldStripRaw(node, ancestors))) {
       continue;
     }
-    result[key] = stripAstPositions(value, [node, ...ancestors].slice(0, 3));
+    result[key] =
+      key === 'shorthand' && node.type === 'Property'
+        ? false
+        : stripAstPositions(value, [node, ...ancestors].slice(0, 3));
   }
   return result;
 }

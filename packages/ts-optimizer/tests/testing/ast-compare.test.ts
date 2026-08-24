@@ -63,6 +63,10 @@ describe('compareAst', () => {
     expect(compareAst(expected, actual, 'test.ts').match).toBe(true);
   });
 
+  it('ignores object property shorthand', () => {
+    expect(compareAst('use({ value });', 'use({ value: value });', 'test.ts').match).toBe(true);
+  });
+
   it('preserves executable statements', () => {
     const result = compareAst('sideEffect();', '', 'test.ts');
     expect(result.match).toBe(false);

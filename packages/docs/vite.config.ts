@@ -12,7 +12,7 @@ import type { ShikiTransformer } from '@shikijs/types';
 import tailwindcss from '@tailwindcss/vite';
 import path, { resolve } from 'node:path';
 // import { qwikDevtools } from '@qwik.dev/devtools';
-import { defineConfig, loadEnv, type Plugin, type UserConfig } from 'vite';
+import { defineConfig, loadEnv, type Connect, type Plugin, type UserConfig } from 'vite';
 import { compiledStringPlugin } from '../../scripts/compiled-string-plugin.js';
 import { docsUpdatedData } from './vite-docs-updated';
 import { examplesData, playgroundData, rawSource, tutorialData } from './vite.repl-apps';
@@ -57,6 +57,28 @@ const muteWarningsPlugin = (warningsToIgnore: string[][]): Plugin => {
         this.warn('Some of your muted warnings never appeared during the build process:');
         diff.forEach((m) => this.warn(`- ${m.join(': ')}`));
       }
+    },
+  };
+};
+
+/** Paths that host the REPL, which needs crossOriginIsolated for its SharedArrayBuffer. */
+const REPL_PATHS = ['/playground', '/tutorial', '/examples', '/repl'];
+
+const crossOriginIsolateRepl = (): Plugin => {
+  const isolateRepl: Connect.NextHandleFunction = (req, res, next) => {
+    if (REPL_PATHS.some((replPath) => req.url?.startsWith(replPath))) {
+      res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+      res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
+    }
+    next();
+  };
+  return {
+    name: 'cross-origin-isolate-repl',
+    configureServer: (server) => {
+      server.middlewares.use(isolateRepl);
+    },
+    configurePreviewServer: (server) => {
+      server.middlewares.use(isolateRepl);
     },
   };
 };
@@ -153,8 +175,6 @@ export default defineConfig(({ mode }) => {
     preview: {
       headers: {
         'Cache-Control': 'public, max-age=600',
-        'Cross-Origin-Opener-Policy': 'same-origin',
-        'Cross-Origin-Embedder-Policy': 'require-corp',
       },
     },
     define: {
@@ -182,6 +202,7 @@ export default defineConfig(({ mode }) => {
     },
 
     plugins: [
+      crossOriginIsolateRepl(),
       qds({ icons: true, asChild: true }),
       // some imported react code has sourcemap issues
       muteWarningsPlugin([
@@ -248,11 +269,6 @@ export default defineConfig(({ mode }) => {
     clearScreen: false,
     server: {
       port: 3000,
-      // Needed for the REPL SharedArrayBuffer
-      headers: {
-        'Cross-Origin-Opener-Policy': 'same-origin',
-        'Cross-Origin-Embedder-Policy': 'require-corp',
-      },
     },
   } as UserConfig;
 });

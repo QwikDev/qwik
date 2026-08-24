@@ -3,6 +3,7 @@ import { parseSync } from 'oxc-parser';
 
 export interface AstCompareResult {
   match: boolean;
+  difference: string | null;
   expectedParseError: string | null;
   actualParseError: string | null;
 }
@@ -51,6 +52,35 @@ export function stripAstPositions(
   return result;
 }
 
+function normalizeImports(program: unknown): unknown {
+  if (!isRecord(program) || !Array.isArray(program.body)) {
+    return program;
+  }
+
+  const groups = new Map<string, { declaration: Record<string, unknown>; specifiers: unknown[] }>();
+  let importCount = 0;
+  for (const statement of program.body) {
+    if (!isRecord(statement) || statement.type !== 'ImportDeclaration') {
+      break;
+    }
+    importCount++;
+    const declaration = { ...statement, specifiers: [] };
+    const key = JSON.stringify(declaration);
+    const group = groups.get(key) ?? { declaration, specifiers: [] as unknown[] };
+    group.specifiers.push(...(Array.isArray(statement.specifiers) ? statement.specifiers : []));
+    groups.set(key, group);
+  }
+  if (importCount === 0) {
+    return program;
+  }
+
+  const imports = [...groups.values()].map(({ declaration, specifiers }) => ({
+    ...declaration,
+    specifiers: specifiers.sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b))),
+  }));
+  return { ...program, body: [...imports, ...program.body.slice(importCount)] };
+}
+
 function parse(filename: string, code: string) {
   const parsed = parseSync(filename, code);
   if (!parsed.errors?.length || (!filename.endsWith('.js') && !filename.endsWith('.ts'))) {
@@ -60,6 +90,38 @@ function parse(filename: string, code: string) {
   const jsxFilename = filename.replace(/\.(js|ts)$/, '.tsx');
   const jsxParsed = parseSync(jsxFilename, code);
   return jsxParsed.errors.length < parsed.errors.length ? jsxParsed : parsed;
+}
+
+function formatValue(value: unknown): string {
+  const formatted = JSON.stringify(value);
+  return formatted && formatted.length > 120 ? `${formatted.slice(0, 117)}...` : formatted;
+}
+
+function findDifference(expected: unknown, actual: unknown, path = 'program'): string | null {
+  if (isDeepStrictEqual(expected, actual)) {
+    return null;
+  }
+  if (Array.isArray(expected) && Array.isArray(actual)) {
+    for (let index = 0; index < Math.min(expected.length, actual.length); index++) {
+      const difference = findDifference(expected[index], actual[index], `${path}[${index}]`);
+      if (difference) {
+        return difference;
+      }
+    }
+    return `${path}.length: expected ${expected.length}, received ${actual.length}`;
+  }
+  if (isRecord(expected) && isRecord(actual)) {
+    for (const key of new Set([...Object.keys(expected), ...Object.keys(actual)])) {
+      if (!Object.hasOwn(expected, key) || !Object.hasOwn(actual, key)) {
+        return `${path}.${key}: ${Object.hasOwn(expected, key) ? 'missing from actual' : 'missing from expected'}`;
+      }
+      const difference = findDifference(expected[key], actual[key], `${path}.${key}`);
+      if (difference) {
+        return difference;
+      }
+    }
+  }
+  return `${path}: expected ${formatValue(expected)}, received ${formatValue(actual)}`;
 }
 
 export function compareAst(expected: string, actual: string, filename: string): AstCompareResult {
@@ -72,14 +134,14 @@ export function compareAst(expected: string, actual: string, filename: string): 
     ? actualResult.errors.map((error) => error.message).join('; ')
     : null;
 
-  const match =
-    (expectedParseError === null) === (actualParseError === null) &&
-    !!expectedResult.program &&
-    !!actualResult.program &&
-    isDeepStrictEqual(
-      stripAstPositions(expectedResult.program),
-      stripAstPositions(actualResult.program)
-    );
+  const parseErrorsMatch = (expectedParseError === null) === (actualParseError === null);
+  const difference = parseErrorsMatch
+    ? findDifference(
+        normalizeImports(stripAstPositions(expectedResult.program)),
+        normalizeImports(stripAstPositions(actualResult.program))
+      )
+    : 'program.parseErrors: only one side failed to parse';
+  const match = parseErrorsMatch && difference === null;
 
-  return { match, expectedParseError, actualParseError };
+  return { match, difference, expectedParseError, actualParseError };
 }

@@ -38,6 +38,7 @@ function getTestName(snapFilename: string): string {
 
 describe('convergence: all snapshots', () => {
   const allFiles = getSnapshotFiles(SNAP_DIR);
+  const astDifferences: Array<{ snapshot: string; module: string; difference: string }> = [];
 
   const results = {
     total: 0,
@@ -89,6 +90,13 @@ describe('convergence: all snapshots', () => {
           const parseFilename = expectedParent.filename || 'test.tsx';
           const astResult = compareAst(expectedParent.code, actualParent.code, parseFilename);
           parentMatches = astResult.match;
+          if (astResult.difference) {
+            astDifferences.push({
+              snapshot: testName,
+              module: 'parent',
+              difference: astResult.difference,
+            });
+          }
         }
       }
 
@@ -111,6 +119,11 @@ describe('convergence: all snapshots', () => {
           const astResult = compareAst(expectedSeg.code, actualSeg.code, parseFilename);
           if (!astResult.match) {
             segmentsMatch = false;
+            astDifferences.push({
+              snapshot: testName,
+              module: expectedSeg.metadata.name,
+              difference: astResult.difference ?? 'unknown AST difference',
+            });
           }
         }
 
@@ -146,6 +159,10 @@ describe('convergence: all snapshots', () => {
   }
 
   it('convergence summary', () => {
+    writeFileSync(
+      join(TS_OUTPUT_DIR, 'parity-differences.json'),
+      JSON.stringify(astDifferences, null, 2) + '\n'
+    );
     console.log('\n=== CONVERGENCE SUMMARY ===');
     console.log(`Total:            ${results.total}`);
     console.log(`Full pass:        ${results.fullPass}`);

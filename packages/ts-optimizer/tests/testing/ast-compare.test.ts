@@ -32,6 +32,7 @@ describe('compareAst', () => {
   it('semantically different code does NOT match', () => {
     const result = compareAst('const x = 1;', 'const x = 2;', 'test.ts');
     expect(result.match).toBe(false);
+    expect(result.difference).toContain('body[0].declarations[0].init.value');
     expect(result.expectedParseError).toBeNull();
     expect(result.actualParseError).toBeNull();
   });
@@ -54,6 +55,12 @@ describe('compareAst', () => {
   it('preserves side-effect import order', () => {
     const result = compareAst("import 'a'; import 'b';", "import 'b'; import 'a';", 'test.ts');
     expect(result.match).toBe(false);
+  });
+
+  it('ignores same-source import grouping and specifier order', () => {
+    const expected = "import { b } from 'x'; import { a } from 'x'; use(a, b);";
+    const actual = "import { a, b } from 'x'; use(a, b);";
+    expect(compareAst(expected, actual, 'test.ts').match).toBe(true);
   });
 
   it('preserves executable statements', () => {

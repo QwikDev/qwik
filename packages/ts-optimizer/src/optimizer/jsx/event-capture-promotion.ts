@@ -433,18 +433,15 @@ function collectVisibleScopeBindings(
 
 /**
  * Not in a loop. Under the default/segment strategy all captured vars become alphabetically-sorted
- * paramNames. Under inline/hoist they stay in `captureNames` (routed through `_captures[N]`
- * unpacking downstream, plus `_rawProps.X` rewriting when the parent component has destructured
- * props): positional-param padding is wrong for `q_X.s(body)` emission, which must preserve the
- * body's original closure args.
+ * paramNames. Under inline/hoist they stay in `captureNames` for `_captures[N]` unpacking.
  */
 function promoteNonLoopCaptures(
   extraction: ExtractionResult,
   uniqueCaptures: readonly string[],
-  isInlineStrategy: boolean
+  keepInlineCaptures: boolean
 ): void {
   const sortedCaptures = [...uniqueCaptures].sort();
-  if (isInlineStrategy) {
+  if (keepInlineCaptures) {
     extraction.captureNames = sortedCaptures;
     extraction.captures = sortedCaptures.length > 0;
   } else {
@@ -591,8 +588,10 @@ export function promoteEventHandlerCaptures(
       const hasSerializingScope =
         enclosingExt !== undefined && !enclosingExt.isBare && !enclosingExt.isInlinedQrl;
       const keepsWCall = extraction.isBare && hasSerializingScope;
-      if (!keepsWCall || isInlineStrategy || extraction.isWorkerEventHandler) {
-        promoteNonLoopCaptures(extraction, uniqueCaptures, isInlineStrategy);
+      if (!keepsWCall || extraction.isWorkerEventHandler) {
+        // Rust lifts inline document handlers through q:p.
+        const keepInlineCaptures = isInlineStrategy && !extraction.ctxName.startsWith('document:');
+        promoteNonLoopCaptures(extraction, uniqueCaptures, keepInlineCaptures);
       } else {
         extraction.captureNames = [...uniqueCaptures].sort();
         extraction.captures = extraction.captureNames.length > 0;

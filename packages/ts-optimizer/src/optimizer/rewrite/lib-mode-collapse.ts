@@ -29,7 +29,7 @@
 import MagicString from 'magic-string';
 import { walk } from 'oxc-walker';
 import { parseWithRawTransfer } from '../ast/parse.js';
-import type { AstNode, AstProgram } from '../../ast-types.js';
+import type { AstNode, AstProgram, CallExpression } from '../../ast-types.js';
 import { createTransformSession } from '../edit/transform-session.js';
 
 interface NoopQrlDecl {
@@ -223,6 +223,27 @@ function insertCapturesIntoInlinedQrl(literal: string, captureArgsText: string):
   return literal.slice(0, lastParen) + `, ${captureArgsText}` + literal.slice(lastParen);
 }
 
+function unwrapNoopQrlCall(node: AstNode): CallExpression | null {
+  if (
+    node.type === 'CallExpression' &&
+    node.callee.type === 'Identifier' &&
+    node.callee.name === '_noopQrl'
+  ) {
+    return node;
+  }
+  if (
+    node.type === 'CallExpression' &&
+    node.callee.type === 'MemberExpression' &&
+    !node.callee.computed &&
+    node.callee.property.type === 'Identifier' &&
+    node.callee.property.name === 'm' &&
+    node.callee.object.type === 'CallExpression'
+  ) {
+    return unwrapNoopQrlCall(node.callee.object);
+  }
+  return null;
+}
+
 function collectNoopQrlDecls(program: AstProgram, source: string): Map<string, NoopQrlDecl> {
   const out = new Map<string, NoopQrlDecl>();
   for (const stmt of program.body ?? []) {
@@ -236,14 +257,14 @@ function collectNoopQrlDecls(program: AstProgram, source: string): Map<string, N
     if (!decl.id || decl.id.type !== 'Identifier') {
       continue;
     }
-    if (!decl.init || decl.init.type !== 'CallExpression') {
+    if (!decl.init) {
       continue;
     }
-    const callee = decl.init.callee;
-    if (!callee || callee.type !== 'Identifier' || callee.name !== '_noopQrl') {
+    const noopQrlCall = unwrapNoopQrlCall(decl.init);
+    if (!noopQrlCall) {
       continue;
     }
-    const args = decl.init.arguments ?? [];
+    const args = noopQrlCall.arguments ?? [];
     if (args.length < 1) {
       continue;
     }
@@ -284,11 +305,7 @@ function collectSCallStatements(
     if (!decl.init) {
       continue;
     }
-    if (
-      decl.init.type === 'CallExpression' &&
-      decl.init.callee?.type === 'Identifier' &&
-      decl.init.callee.name === '_noopQrl'
-    ) {
+    if (unwrapNoopQrlCall(decl.init)) {
       continue;
     }
     constDeclByName.set(decl.id.name, {

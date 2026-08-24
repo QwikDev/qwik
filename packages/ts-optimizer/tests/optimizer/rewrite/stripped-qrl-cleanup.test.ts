@@ -161,7 +161,33 @@ export const Parent = component$(() => {
     expect(meta.captureNames).toEqual(['state']);
   });
 
-  it('non-stripped event handlers still receive .w([captures]) when needed (negative scope)', () => {
+  it('stripCtxName drops top-level module references from capture metadata', () => {
+    const input = `
+import { routeLoader$ } from '@qwik.dev/router';
+export const LANGUAGE = 'en';
+export const readLanguage = () => LANGUAGE;
+export const useLanguage = routeLoader$(() => readLanguage());
+`;
+    const result = transformModule({
+      input: [{ path: mkFilePath('test.ts'), code: mkSourceText(input) }],
+      srcDir: mkFilePath('.'),
+      transpileTs: true,
+      transpileJsx: true,
+      entryStrategy: { type: 'segment' },
+      stripCtxName: ['routeLoader$'],
+    });
+    const parent = findParent(result);
+    const seg = findSegmentByCtx(result, 'routeLoader$');
+    if (seg.kind !== 'segment') {
+      throw new Error('expected segment');
+    }
+    const meta = seg.segment as SegmentMetadataInternal;
+    expect(meta.captures).toBe(false);
+    expect(meta.captureNames).toBeUndefined();
+    expect(parent.code).not.toMatch(/\.w\(\[(?:LANGUAGE|readLanguage)/);
+  });
+
+  it('non-stripped inline handlers still receive .w([captures]) when needed (negative scope)', () => {
     const input = `
 import { component$, useStore } from '@qwik.dev/core';
 export const Parent = component$(() => {

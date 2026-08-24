@@ -58,6 +58,29 @@ export const C = component$(() => {
     expect(code).not.toMatch(/\.w\(\[/);
   });
 
+  it('collapses moved document-handler captures into inlinedQrl params', () => {
+    const input = `
+import { component$, useSignal } from '@qwik.dev/core';
+export const C = component$(() => {
+  const count = useSignal(0);
+  return <script document:onCount$={(event) => { count.value++; console.log(event); }} />;
+});
+`;
+    const result = transformModule({
+      input: [{ path: mkFilePath('test.tsx'), code: mkSourceText(input) }],
+      srcDir: mkFilePath('.'),
+      mode: 'lib',
+      transpileTs: true,
+      transpileJsx: true,
+    });
+
+    const code = findParent(result).code;
+    expect(code).toMatch(/inlinedQrl\(\(event, _1, count\)/);
+    expect(code).toContain('"q:p": count');
+    expect(code).not.toContain('_noopQrl');
+    expect(code).not.toMatch(/q_[A-Za-z0-9_]+\.s\(/);
+  });
+
   it('preserves user-level module const decls as identifier refs (not value-inlined)', () => {
     const input = `
 import { component$, useStyle$ } from '@qwik.dev/core';

@@ -63,6 +63,47 @@ export default component$((props) => (
   expect(handler.code).toMatch(/\(event, _1\).*event\.preventDefault\(\)/s);
 });
 
+it('optional-chain map handlers deliver values through q:ps', () => {
+  const code = `
+import { component$, $ } from '@qwik.dev/core';
+export default component$(() => {
+  const select = $((index: number) => index);
+  const source = { items: ['a'] };
+  return <ul>{source?.items.map((label, index) => (
+    <li onClick$={() => select(index)}>{label}</li>
+  ))}</ul>;
+});
+`;
+  const result = transformModule({
+    ...OPTS,
+    input: [{ path: mkFilePath('test.tsx'), code: mkSourceText(code) }],
+  });
+  const all = result.modules.map((m) => m.code).join('\n');
+  const handler = result.modules.find((m) => m.path.includes('q_e_click'))!;
+  expect(handler.code).toMatch(/\(_, _1, select, index\)|\(_, _1, index, select\)/);
+  expect(all).toMatch(/"q:ps": \[(?:select, index|index, select)\]/);
+  expect(all).not.toMatch(/q_\w+\.w\(\[select\]\)/);
+});
+
+it('inline document handlers deliver captures through q:p', () => {
+  const code = `
+import { component$, useSignal } from '@qwik.dev/core';
+export default component$(() => {
+  const count = useSignal(0);
+  return <script document:onCount$={() => count.value++} />;
+});
+`;
+  const result = transformModule({
+    ...OPTS,
+    entryStrategy: { type: 'inline' },
+    input: [{ path: mkFilePath('test.tsx'), code: mkSourceText(code) }],
+  });
+  const all = result.modules.map((m) => m.code).join('\n');
+  expect(all).toMatch(/\(_, _1, count\)/);
+  expect(all).toContain('"q:p": count');
+  expect(all).not.toMatch(/q_\w+\.w\(\[count\]\)/);
+});
+
 it('handlers sharing an element align to one positional q:ps array', () => {
   const code = `
 import { component$, useStore } from '@qwik.dev/core';

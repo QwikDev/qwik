@@ -76,6 +76,7 @@ const handler = $(() => {
     expect(code).not.toMatch(/const q_handler/);
     expect(code).toMatch(/\/\*#__PURE__\*\/ qrl\(\(\)=>import\(.*handler/);
     expect(code).toMatch(/const q_.*component/);
+    expect(code.indexOf('handler_')).toBeLessThan(code.indexOf('export const App'));
   });
 
   it('Test 4: @builder.io/qwik rewritten to @qwik.dev/core', () => {

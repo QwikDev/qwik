@@ -801,11 +801,12 @@ function removeUnusedBindings(ctx: RewriteContext): void {
     }
 
     if (!wordBoundaryRegex.test(bodyText)) {
-      s.remove(decl.start, initStart);
-      for (const ext of matchingExtractions) {
-        if (ext.isBare && ext.callStart === initStart && ext.callEnd === initEnd) {
-          ctx.inlinedQrlSymbols.add(ext.symbolName);
-        }
+      const bareExtractions = matchingExtractions.filter(
+        (ext) => ext.isBare && ext.callStart === initStart && ext.callEnd === initEnd
+      );
+      s.remove(decl.start, bareExtractions.length > 0 ? decl.end : initStart);
+      for (const ext of bareExtractions) {
+        ctx.inlinedQrlSymbols.add(ext.symbolName);
       }
     }
   }
@@ -815,8 +816,9 @@ function removeUnusedBindings(ctx: RewriteContext): void {
       continue;
     }
     const inlineExt = explicitExtensions ? (outputExtension ?? '.js') : '';
-    const inlineQrl = `/*#__PURE__*/ qrl(()=>import("./${ext.canonicalFilename}${inlineExt}"), "${ext.symbolName}")`;
-    s.overwrite(ext.callStart, ext.callEnd, inlineQrl);
+    ctx.qrlDecls.push(
+      `/*#__PURE__*/ qrl(()=>import("./${ext.canonicalFilename}${inlineExt}"), "${ext.symbolName}");`
+    );
   }
 }
 

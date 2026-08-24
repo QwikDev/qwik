@@ -534,6 +534,7 @@ export const MIG_REASON = {
   REEXPORT_ROUTER_MARKER: 'router loader/action reached through its _auto_ export (MIG-07)',
   KEEP_EXPORTED: 'exported but not used by any segment',
   KEEP_ROUTER_MARKER: 'router loader/action, exported as _auto_ even when unused',
+  KEEP_ROOT_USED: 'used only by root code',
   KEEP_UNUSED: 'not used by any segment',
   DROP_UNREFERENCED: 'pure init unused by root and segments (dead after extraction)',
   DROP_STRIPPED_ONLY: 'only consumed by stripped segments (side effects dropped)',
@@ -894,6 +895,9 @@ function decideMigration(
     !decl.isPartOfSharedDestructuring
   ) {
     return { action: 'drop', varName: decl.name, reason: MIG_REASON.DROP_UNREFERENCED };
+  }
+  if (usedByRoot) {
+    return { action: 'keep', varName: decl.name, reason: MIG_REASON.KEEP_ROOT_USED };
   }
   return { action: 'keep', varName: decl.name, reason: MIG_REASON.KEEP_UNUSED };
 }

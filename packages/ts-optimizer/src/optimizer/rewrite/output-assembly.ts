@@ -3,7 +3,11 @@ import { type TransformOptions } from 'oxc-transform';
 import type { AstNode, AstProgram } from '../../ast-types.js';
 import type { ExtractionResult } from '../extraction/extract.js';
 import type { ImportInfo } from '../extraction/marker-detection.js';
-import { autoExportedNames, type ModuleLevelDecl } from '../analysis/variable-migration.js';
+import {
+  autoExportedNames,
+  MIG_REASON,
+  type ModuleLevelDecl,
+} from '../analysis/variable-migration.js';
 import {
   buildQrlDeclaration,
   buildWorkerQrlDeclaration,
@@ -1023,15 +1027,37 @@ export function assembleOutput(ctx: RewriteContext): string {
   if (migrationDecisions && moduleLevelDecls) {
     const removedRanges = new Set<string>();
     for (const decision of migrationDecisions) {
-      if (decision.action !== 'move' && decision.action !== 'drop') {
-        continue;
-      }
       const decl = moduleLevelDecls.find((d) => d.name === decision.varName);
       if (!decl) {
         continue;
       }
       const rangeKey = `${decl.declStart}:${decl.declEnd}`;
       if (removedRanges.has(rangeKey)) {
+        continue;
+      }
+      if (
+        decision.action === 'keep' &&
+        decision.reason === MIG_REASON.KEEP_UNUSED &&
+        decl.hasSideEffects
+      ) {
+        const statement = program.body.find(
+          (node) => node.start === decl.declStart && node.end === decl.declEnd
+        );
+        const declarator =
+          statement?.type === 'VariableDeclaration' && statement.declarations.length === 1
+            ? statement.declarations[0]
+            : undefined;
+        if (declarator?.id.type === 'Identifier' && declarator.init) {
+          s.overwrite(
+            decl.declStart,
+            decl.declEnd,
+            `${s.slice(declarator.init.start, declarator.init.end)};`
+          );
+          removedRanges.add(rangeKey);
+        }
+        continue;
+      }
+      if (decision.action !== 'move' && decision.action !== 'drop') {
         continue;
       }
       removedRanges.add(rangeKey);

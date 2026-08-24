@@ -132,7 +132,7 @@ export const Parent = component$(() => {
     }
     const meta = seg.segment as SegmentMetadataInternal;
     expect(meta.captures).toBe(false);
-    expect(meta.captureNames).toEqual([]);
+    expect(meta.captureNames).toBeUndefined();
   });
 
   it('stripCtxName-stripped segments PRESERVE capture metadata (negative-scope policy split)', () => {

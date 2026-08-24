@@ -111,7 +111,9 @@ export default component$(() => {
     if (segment?.kind !== 'segment') {
       throw new Error('expected event segment module');
     }
-    expect(code.slice(...segment.segment.loc)).toBe('() => value++');
+    expect(code.slice(segment.segment.loc[0] - 1, segment.segment.loc[1] - 1)).toBe(
+      '() => value++'
+    );
   });
 
   it('moves whole-body const initializers into their segments', () => {
@@ -145,8 +147,12 @@ export default component$(() => {
     ) {
       throw new Error('expected style, render, and component segments');
     }
-    expect(code.slice(...styleSegment.segment.loc)).toBe('`body {}`');
-    expect(code.slice(...renderSegment.segment.loc)).toBe('() => <div />');
+    expect(code.slice(styleSegment.segment.loc[0] - 1, styleSegment.segment.loc[1] - 1)).toBe(
+      '`body {}`'
+    );
+    expect(code.slice(renderSegment.segment.loc[0] - 1, renderSegment.segment.loc[1] - 1)).toBe(
+      '() => <div />'
+    );
     expect(componentSegment.code).not.toContain('const style');
     expect(componentSegment.code).not.toContain('const render');
   });
@@ -165,7 +171,7 @@ export const useMemo$ = (qrl) => {
       {
         code: 'C03',
         message: "Qrl($) scope is not a function, but it's capturing local identifiers: qrl",
-        highlights: [{ lo: code.indexOf('qrl);'), hi: code.indexOf('qrl);') + 3 }],
+        highlights: [{ lo: code.indexOf('qrl);') + 1, hi: code.indexOf('qrl);') + 4 }],
       },
     ]);
   });

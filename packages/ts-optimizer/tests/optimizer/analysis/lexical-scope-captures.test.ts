@@ -128,7 +128,7 @@ export const fn1 = () => {
     const result = transform(src);
     const meta = segmentMeta(findSegment(result.modules));
     expect(meta.captures).toBe(false);
-    expect(meta.captureNames).toEqual([]);
+    expect(meta.captureNames).toBeUndefined();
   });
 
   it('negative scope: sibling functions do not contribute their scope', () => {

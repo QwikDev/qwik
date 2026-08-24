@@ -1,7 +1,6 @@
 import { it, expect } from 'vitest';
 import { parseSync } from 'oxc-parser';
-import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { globSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { transformModule } from '../../src/optimizer/transform/index.js';
 import type { TransformModulesOptions } from '../../src/optimizer/types/types.js';
@@ -9,13 +8,19 @@ import { mkFilePath, mkSourceText } from '../../src/optimizer/types/brands.js';
 
 const REPO_ROOT = resolve(import.meta.dirname, '../../../..');
 
-function trackedSourceFiles(): string[] {
-  const listed = execFileSync('git', ['ls-files', '-z', '*.ts', '*.tsx'], {
+function sourceFiles(): string[] {
+  return globSync('**/*.{ts,tsx}', {
     cwd: REPO_ROOT,
-    encoding: 'utf-8',
-    maxBuffer: 64 * 1024 * 1024,
+    exclude: [
+      '**/node_modules/**',
+      '**/target/**',
+      '**/coverage/**',
+      '**/.git/**',
+      '**/.codex/**',
+      '**/.claude/**',
+      '**/.cursor/**',
+    ],
   });
-  return listed.split('\0').filter((f) => f && !f.includes('node_modules'));
 }
 
 /**
@@ -39,7 +44,7 @@ function semanticErrorsIn(path: string, code: string): string[] {
 it('emits parseable code for every source file in the repo', () => {
   const failures: string[] = [];
   let transformed = 0;
-  for (const relPath of trackedSourceFiles()) {
+  for (const relPath of sourceFiles()) {
     const code = readFileSync(`${REPO_ROOT}/${relPath}`, 'utf-8');
     for (const isServer of [false, true]) {
       try {

@@ -205,7 +205,7 @@ export function detectPassivePreventdefaultConflicts(
   diagnostics: Diagnostic[]
 ): void {
   walk(program, {
-    enter(node: AstNode) {
+    enter(node: AstNode, parent: AstNode | null) {
       if (node.type !== 'JSXOpeningElement') {
         return;
       }
@@ -234,7 +234,11 @@ export function detectPassivePreventdefaultConflicts(
             emitPassiveConflictWarning(
               eventName,
               file,
-              buildHighlight(source, node.start, node.end)
+              buildHighlight(
+                source,
+                node.start,
+                parent?.type === 'JSXElement' ? parent.end : node.end
+              )
             )
           );
         }

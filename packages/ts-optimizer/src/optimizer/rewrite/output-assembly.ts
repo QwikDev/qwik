@@ -444,7 +444,8 @@ export function buildQrlDeclarations(ctx: RewriteContext): void {
 
   // Sort by segment symbol, not raw text — bare `qrl(...)` registrations
   // interleave with `const q_* = ...` declarations in symbol order.
-  const declSortKey = (line: string): string => /"([^"]+)"\)?;?\s*$/.exec(line)?.[1] ?? line;
+  const declSortKey = (line: string): string =>
+    /^const q_([\w$]+)/.exec(line)?.[1] ?? /"([^"]+)"\)?;?\s*$/.exec(line)?.[1] ?? line;
   ctx.qrlDecls.sort((a, b) => {
     const rankA = deferredStrippedQrlVars.has(/^const ([\w$]+)/.exec(a)?.[1] ?? '') ? 1 : 0;
     const rankB = deferredStrippedQrlVars.has(/^const ([\w$]+)/.exec(b)?.[1] ?? '') ? 1 : 0;

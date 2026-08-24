@@ -57,6 +57,32 @@ export const App = component$(() => <button onClick$={() => {}}>{helper()}</butt
   });
 });
 
+describe('parent qrl declaration order', () => {
+  it('sorts moved-capture qrls by symbol name', () => {
+    const output = transformModule(
+      rustDefaults(
+        `
+import { component$, useSignal } from '@qwik.dev/core';
+export const Issue3742 = component$(({ description = '', other }: any) => {
+  const counter = useSignal(0);
+  return <div title={description && 'description' in other ? counter.value : 0}>
+    <button onClick$={() => counter.value++}>click</button>
+  </div>;
+});
+`,
+        { entryStrategy: { type: 'hoist' }, transpileJsx: true, transpileTs: true }
+      )
+    );
+    const declarations =
+      parents(output)[0]!
+        .code.match(/^const q_([\w$]+).*_noopQrl/gm)
+        ?.map((line) => /^const q_([\w$]+)/.exec(line)![1]) ?? [];
+
+    expect(declarations).toHaveLength(2);
+    expect(declarations).toEqual([...declarations].sort());
+  });
+});
+
 describe('stylesheet import ownership', () => {
   const componentCode = (styleSetup: string, styleArg: string) => {
     const output = transformModule(

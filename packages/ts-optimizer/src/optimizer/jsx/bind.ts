@@ -61,5 +61,5 @@ export function mergeEventHandlers(existingHandler: string | null, newHandler: s
   if (existingHandler === null) {
     return newHandler;
   }
-  return `[${newHandler}, ${existingHandler}]`;
+  return `[${existingHandler}, ${newHandler}]`;
 }

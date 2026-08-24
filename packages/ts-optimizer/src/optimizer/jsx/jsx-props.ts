@@ -265,6 +265,9 @@ export function processProps(
   };
 
   const hasSpreadAttr = attributes.some((a) => a.type === 'JSXSpreadAttribute');
+  const hasBindAttr = attributes.some(
+    (a) => a.type === 'JSXAttribute' && isBindProp(getJsxAttributeName(a))
+  );
   const spreadIndex = attributes.findIndex((a) => a.type === 'JSXSpreadAttribute');
   const additionalSpreads: string[] = [];
   let spreadCount = 0;
@@ -460,28 +463,49 @@ export function processProps(
           hasVarEventHandler = true;
         }
       } else {
-        // Record the slot at the prop's source position so `buildJsxSplitCall`'s
-        // source-order emission sees the rewritten handler in lexical order; the
-        // `bindHandlers` map still drives the legacy bucket injection.
-        const existing = bindHandlers.get(propName);
         // A handler whose lifted captures include per-invocation values
         // re-renders with fresh values: entry is var, static_listeners clears.
         const capturesVary = qrlsNonConst?.has(valueText.trim()) === true;
         const isConst = isConstValueNode(valueNode) && !capturesVary;
         if (capturesVary) {
           hasVarEventHandler = true;
-          varBindHandlers.add(propName);
         }
-        if (existing) {
-          bindHandlers.set(propName, `[${existing}, ${valueText}]`);
+
+        if (hasSpreadAttr || hasBindAttr) {
+          const existing = bindHandlers.get(propName);
+          if (capturesVary) {
+            varBindHandlers.add(propName);
+          }
+          if (existing) {
+            bindHandlers.set(propName, mergeEventHandlers(existing, valueText));
+          } else {
+            bindHandlers.set(propName, valueText);
+            slotOrder.push({
+              kind: 'named',
+              entry: `${formattedName}: ${valueText}`,
+              classification: isConst ? 'const' : 'var',
+              sourceStart: attr.start,
+            });
+          }
+          continue;
+        }
+
+        const prefix = `${formattedName}: `;
+        const existingConst = constEntries.findIndex((entry) => entry.startsWith(prefix));
+        const existingVar = varEntries.findIndex((entry) => entry.startsWith(prefix));
+        const existingEntries = existingConst >= 0 ? constEntries : varEntries;
+        const existingIndex = existingConst >= 0 ? existingConst : existingVar;
+        if (existingIndex >= 0) {
+          const existingValue = existingEntries[existingIndex].slice(prefix.length);
+          const mergedEntry = `${prefix}${mergeEventHandlers(existingValue, valueText)}`;
+          existingEntries[existingIndex] = mergedEntry;
         } else {
-          bindHandlers.set(propName, valueText);
-          slotOrder.push({
-            kind: 'named',
-            entry: `${formattedName}: ${valueText}`,
-            classification: isConst ? 'const' : 'var',
-            sourceStart: attr.start,
-          });
+          pushNamed(
+            isConst ? constEntries : varEntries,
+            `${prefix}${valueText}`,
+            isConst ? 'const' : 'var',
+            attr.start
+          );
         }
       }
       continue;
@@ -606,7 +630,6 @@ export function processProps(
       target.push(`${quotedEventName}: ${handlerCode}`);
     }
   }
-  // Var-routed handlers append after the earlier sort — restore key order.
   if (varBindHandlers.size > 0 && !hasSpread) {
     sortVarEntries(varEntries);
   }

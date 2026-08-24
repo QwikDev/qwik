@@ -1735,15 +1735,12 @@ impl<'a> QwikTransform<'a> {
 		}
 	}
 
-	/// Helper function to merge an event handler with an existing one in the props list.
-	/// If a handler with the same key already exists, they are merged into an array.
-	/// Otherwise, the new handler is simply added.
-	fn merge_or_add_event_handler(
+	fn merge_event_handler(
 		&mut self,
 		props: &mut Vec<ast::PropOrSpread>,
 		key: Atom,
-		new_handler: Box<ast::Expr>,
-	) {
+		new_handler: &ast::Expr,
+	) -> bool {
 		// Check if there's already a handler with this key
 		let existing_handler_index = props.iter().position(|prop| {
 			if let ast::PropOrSpread::Prop(box ast::Prop::KeyValue(kv)) = prop {
@@ -1763,7 +1760,7 @@ impl<'a> QwikTransform<'a> {
 						// Existing handler is already an array, append to it
 						existing_array.elems.push(Some(ast::ExprOrSpread {
 							spread: None,
-							expr: new_handler.fold_with(self),
+							expr: Box::new(new_handler.clone().fold_with(self)),
 						}));
 						ast::Expr::Array(existing_array)
 					} else {
@@ -1777,7 +1774,7 @@ impl<'a> QwikTransform<'a> {
 								}),
 								Some(ast::ExprOrSpread {
 									spread: None,
-									expr: new_handler.fold_with(self),
+									expr: Box::new(new_handler.clone().fold_with(self)),
 								}),
 							],
 						})
@@ -1794,7 +1791,19 @@ impl<'a> QwikTransform<'a> {
 					})));
 				props.push(merged_prop);
 			}
+			true
 		} else {
+			false
+		}
+	}
+
+	fn merge_or_add_event_handler(
+		&mut self,
+		props: &mut Vec<ast::PropOrSpread>,
+		key: Atom,
+		new_handler: Box<ast::Expr>,
+	) {
+		if !self.merge_event_handler(props, key.clone(), &new_handler) {
 			// Add the new handler
 			let handler_prop =
 				ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(ast::KeyValueProp {
@@ -3413,7 +3422,7 @@ impl<'a> QwikTransform<'a> {
 	}
 
 	/// Helper to add a prop to the appropriate props list based on const-ness and spread props
-	/// Handles the special case of merging q-e:input handlers
+	/// Merges repeated event handlers instead of emitting duplicate object keys.
 	fn add_prop_to_appropriate_list(
 		&mut self,
 		expr: Box<ast::Expr>,
@@ -3426,37 +3435,44 @@ impl<'a> QwikTransform<'a> {
 		let is_const = context.is_const;
 		let is_fn = context.is_fn;
 		let spread_props_count = context.spread_props_count;
-		// Check if this is an q-e:input handler that needs to be merged
-		if transformed_event_key.as_ref() == Some(&*ON_INPUT) {
+		if let Some(event_key) = transformed_event_key
+			.as_ref()
+			.filter(|key| key.as_ref().starts_with("q-"))
+		{
 			let target_props = if is_fn || spread_props_count > 0 {
 				if is_const && spread_props_count == 0 {
-					const_props
+					&mut *const_props
 				} else {
-					var_props
+					&mut *var_props
 				}
 			} else if !is_const || spread_props_count > 0 {
-				var_props
+				&mut *var_props
 			} else {
-				const_props
+				&mut *const_props
 			};
-			self.merge_or_add_event_handler(target_props, ON_INPUT.clone(), expr);
-		} else {
-			let converted_prop =
-				ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(ast::KeyValueProp {
-					value: expr,
-					key: final_key,
-				})));
-			if is_fn || spread_props_count > 0 {
-				if is_const && spread_props_count == 0 {
-					const_props.push(converted_prop.fold_with(self));
-				} else {
-					var_props.push(converted_prop.fold_with(self));
-				}
-			} else if !is_const || spread_props_count > 0 {
-				var_props.push(converted_prop.fold_with(self));
-			} else {
-				const_props.push(converted_prop.fold_with(self));
+			if event_key == &*ON_INPUT {
+				self.merge_or_add_event_handler(target_props, event_key.clone(), expr);
+				return;
 			}
+			if self.merge_event_handler(target_props, event_key.clone(), &expr) {
+				return;
+			}
+		}
+		let converted_prop =
+			ast::PropOrSpread::Prop(Box::new(ast::Prop::KeyValue(ast::KeyValueProp {
+				value: expr,
+				key: final_key,
+			})));
+		if is_fn || spread_props_count > 0 {
+			if is_const && spread_props_count == 0 {
+				const_props.push(converted_prop.fold_with(self));
+			} else {
+				var_props.push(converted_prop.fold_with(self));
+			}
+		} else if !is_const || spread_props_count > 0 {
+			var_props.push(converted_prop.fold_with(self));
+		} else {
+			const_props.push(converted_prop.fold_with(self));
 		}
 	}
 }

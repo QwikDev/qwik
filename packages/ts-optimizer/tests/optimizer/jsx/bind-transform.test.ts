@@ -115,14 +115,14 @@ describe('bind-transform', () => {
 
     it('merges existing and new handler into array', () => {
       const result = mergeEventHandlers('existingHandler', 'newHandler');
-      expect(result).toBe('[newHandler, existingHandler]');
+      expect(result).toBe('[existingHandler, newHandler]');
     });
 
     it('merges bind:checked inlinedQrl with extracted handler QRL', () => {
       const bindHandler = 'inlinedQrl(_chk, "_chk", [localValue])';
       const existingHandler = 'q_FieldInput_component_input_q_e_input_wqR1xEjZjf4';
       const result = mergeEventHandlers(existingHandler, bindHandler);
-      expect(result).toBe(`[${bindHandler}, ${existingHandler}]`);
+      expect(result).toBe(`[${existingHandler}, ${bindHandler}]`);
     });
   });
 

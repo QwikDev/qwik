@@ -38,6 +38,28 @@ const combinedCode = (output: TransformOutput) => output.modules.map((m) => m.co
 
 const compact = (code: string) => code.replace(/\s+/g, '');
 
+describe('JSX listener order', () => {
+  it('merges repeated handlers without moving them past later props', () => {
+    const output = transformModule(
+      rustDefaults(
+        `
+import { component$ } from '@qwik.dev/core';
+export const App = component$(() => <div
+  onClick$={() => 1}
+  onClick$={() => 2}
+  host:onClick$={() => 3}
+/>);
+`,
+        { transpileJsx: true, transpileTs: true }
+      )
+    );
+    const component = segments(output).find((module) => module.code.includes('_jsxSorted'))!;
+    const code = compact(component.code);
+
+    expect(code).toMatch(/"q-e:click":\[q_[^,]+,q_[^\]]+\],"host:onClick\$":q_/);
+  });
+});
+
 describe('segment support declaration order', () => {
   it('keeps independent moved helpers before nested qrl declarations', () => {
     const output = transformModule(

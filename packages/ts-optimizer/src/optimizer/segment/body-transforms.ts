@@ -142,32 +142,8 @@ function findVarDeclarationEnd(text: string, startPos: number, varName: string):
   return endPos;
 }
 
-/**
- * Position threshold: below it a capture resolved in the segment's outermost arrow body (hoisted to
- * component scope); above it, deeper in a nested loop callback (hoisted at the local declaration
- * site). Empirical.
- */
+/** Fallback for malformed bodies that cannot provide an outer scope. */
 const OUTERMOST_BODY_THRESHOLD = 20;
-
-/**
- * Returns the body unchanged when the range is out of bounds — a defensive guard against stale
- * positions from upstream rewriting.
- */
-function spliceWithinBody(
-  bodyText: string,
-  start: number,
-  end: number,
-  replacement: string,
-  preserveOffsets = false
-): string {
-  if (start < 0 || end > bodyText.length) {
-    return bodyText;
-  }
-  if (preserveOffsets && replacement.length < end - start) {
-    replacement += ' '.repeat(end - start - replacement.length);
-  }
-  return bodyText.slice(0, start) + replacement + bodyText.slice(end);
-}
 
 /** MUST run before any other text modifications because it uses original source positions. */
 export function rewriteNestedCallSitesInline(
@@ -176,12 +152,32 @@ export function rewriteNestedCallSitesInline(
   bodyOffset: number,
   preserveOffsets = false
 ): string {
+  const outerSession = createFunctionTransformSession(bodyText, { tolerateErrors: true });
+  const outerBodyStart =
+    outerSession?.fn.body?.type === 'BlockStatement'
+      ? outerSession.fn.body.start - outerSession.offset + 1
+      : -1;
   const sorted = [...nestedCallSites].sort((a, b) => {
     return getNestedCallSiteStart(b) - getNestedCallSiteStart(a);
   });
 
   let componentScopeWDecls: string[] | undefined;
   const hoistDeclarations: Array<{ position: number; declaration: string }> = [];
+  const replaceBodyRange = (start: number, end: number, replacement: string): void => {
+    if (start < 0 || end > bodyText.length) {
+      return;
+    }
+    if (preserveOffsets && replacement.length < end - start) {
+      replacement += ' '.repeat(end - start - replacement.length);
+    }
+    const offsetChange = replacement.length - (end - start);
+    for (const hoist of hoistDeclarations) {
+      if (hoist.position >= end) {
+        hoist.position += offsetChange;
+      }
+    }
+    bodyText = bodyText.slice(0, start) + replacement + bodyText.slice(end);
+  };
 
   for (const site of sorted) {
     if (
@@ -203,13 +199,7 @@ export function rewriteNestedCallSitesInline(
       }
       const relStart = site.attrStart - bodyOffset;
       const relEnd = site.attrEnd - bodyOffset;
-      bodyText = spliceWithinBody(
-        bodyText,
-        relStart,
-        relEnd,
-        `${site.transformedPropName}={${propValueRef}}`,
-        preserveOffsets
-      );
+      replaceBodyRange(relStart, relEnd, `${site.transformedPropName}={${propValueRef}}`);
 
       if (
         site.hoistedSymbolName &&
@@ -218,7 +208,11 @@ export function rewriteNestedCallSitesInline(
       ) {
         const capturedVar = site.hoistedCaptureNames[0];
         const enclosingPos = findEnclosingArrowBodyForCapture(bodyText, relStart, capturedVar);
-        const isLoopCallback = enclosingPos >= 0 && enclosingPos > OUTERMOST_BODY_THRESHOLD;
+        const isLoopCallback =
+          enclosingPos >= 0 &&
+          (outerBodyStart >= 0
+            ? enclosingPos !== outerBodyStart
+            : enclosingPos > OUTERMOST_BODY_THRESHOLD);
         if (isLoopCallback) {
           // Asymmetric indentation (12-space first item, 8-space rest+close)
           // is intentional here; kept inline rather than routed through formatWCall.
@@ -272,7 +266,7 @@ export function rewriteNestedCallSitesInline(
         relStart = pureAwareOverwriteStart(bodyText, relStart);
         replacement = qrlRef;
       }
-      bodyText = spliceWithinBody(bodyText, relStart, relEnd, replacement, preserveOffsets);
+      replaceBodyRange(relStart, relEnd, replacement);
     }
   }
 

@@ -814,7 +814,7 @@ function tryBuildMarkerDeclMove(
     if (ext.parent !== null) {
       continue;
     }
-    if (ext.isInlinedQrl) {
+    if (ext.isInlinedQrl || ext.isSync) {
       continue;
     }
     if (ext.displayName === exactDisplayName || ext.displayName.startsWith(prefixDisplayName)) {
@@ -1003,6 +1003,13 @@ function emitMovedDeclaration(
   }
 
   const movedText = ctx.movedDeclSnapshots.get(varName) ?? decl.declText;
+  if (movedText.includes('_qrlSync(') && !importDeps.some((dep) => dep.localName === '_qrlSync')) {
+    importDeps.push({
+      localName: '_qrlSync',
+      importedName: '_qrlSync',
+      source: '@qwik.dev/core',
+    });
+  }
   const support = buildMovedQrlSupport(movedText, ctx, movedQrlSymbols);
   for (const qrlDecl of support.qrlDecls) {
     captureInfo.movedDeclarations.push({ text: qrlDecl, importDeps: support.importDeps });

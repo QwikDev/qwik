@@ -41,3 +41,25 @@ export const Nav = component$(() => {
     expect(parent).not.toMatch(/_qrlSync\(\s*q_\w*sync/);
   });
 });
+
+it('keeps a moved top-level sync$ inline in its consuming segment', () => {
+  const code = `import { component$, sync$ } from '@qwik.dev/core';
+const prevent = sync$((event: MouseEvent) => event.preventDefault());
+export const Link = component$<{ onClick$: unknown }>((props) => (
+  <a onClick$={[prevent, props.onClick$]} />
+));`;
+  const result = transformModule({
+    input: [{ path: mkFilePath('n.tsx'), code: mkSourceText(code) }],
+    srcDir: mkFilePath('.'),
+    entryStrategy: { type: 'smart' },
+    transpileTs: true,
+    transpileJsx: true,
+    mode: 'prod',
+  });
+  const segment = result.modules.find(
+    (module) => module.kind === 'segment' && module.segment.ctxName === 'component$'
+  );
+  expect(segment?.code).toContain('import { _qrlSync } from "@qwik.dev/core";');
+  expect(segment?.code).toMatch(/const prevent = _qrlSync\(\(event\) =>/);
+  expect(segment?.code).not.toContain('_qrlSync(q_');
+});

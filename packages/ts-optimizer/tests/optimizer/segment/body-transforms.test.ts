@@ -186,6 +186,22 @@ describe('body-transforms', () => {
         hoistedCaptureNames: [capture],
       };
     };
+    const rewriteActionAndHoistedAttr = (body: string): string => {
+      const actionStart = body.indexOf('$(()');
+      return rewriteNestedCallSitesInline(
+        body,
+        [
+          {
+            qrlVarName: 'q_action',
+            callStart: actionStart,
+            callEnd: body.lastIndexOf(';', body.indexOf('return <button')),
+            isJsxAttr: false,
+          },
+          hoistedAttrSite(body, 'q_click', 's_click', 'action'),
+        ],
+        0
+      );
+    };
 
     it('finds the component return past a comment with an apostrophe', () => {
       const body = `() => {
@@ -270,6 +286,40 @@ describe('body-transforms', () => {
       expect(declPos).toBeGreaterThanOrEqual(0);
       // The real declaration is in the component scope, so the hoist goes there.
       expect(declPos).toBeLessThan(out.indexOf('return items.map'));
+    });
+
+    it('keeps captures from a long component signature before its return', () => {
+      const body = `(props: { value: string }) => {
+    const action = $(() => {
+        const first = props.value.trim();
+        const second = first.toUpperCase();
+        const third = second.toLowerCase();
+        return third;
+    });
+    return <button class="long enough padding here" ${attrText}>go</button>;
+}`;
+      const out = rewriteActionAndHoistedAttr(body);
+      const declPos = out.indexOf('const s_click = q_click.w([');
+      expect(declPos).toBeGreaterThan(out.indexOf('const action = q_action'));
+      expect(declPos).toBeLessThan(out.indexOf('return <button'));
+    });
+
+    it('keeps loop-local captures before the nested return after earlier rewrites', () => {
+      const body = `() => {
+    return items.map((item) => {
+        const action = $(() => {
+            const first = item.value.trim();
+            const second = first.toUpperCase();
+            const third = second.toLowerCase();
+            return third;
+        });
+        return <button class="long enough padding here" ${attrText}>go</button>;
+    });
+}`;
+      const out = rewriteActionAndHoistedAttr(body);
+      const declPos = out.indexOf('const s_click = q_click.w([');
+      expect(declPos).toBeGreaterThan(out.indexOf('const action = q_action'));
+      expect(declPos).toBeLessThan(out.indexOf('return <button'));
     });
   });
 });

@@ -108,4 +108,18 @@ describe('applyStatementDCE', () => {
 
     expect(applyStatementDCE(code, 'test.js')).toBe('export const seg = () => { left, right; };');
   });
+
+  it('drops labels containing only dead declarations and a matching break', () => {
+    const code = [
+      'export const seg = () => {',
+      '  label: { const unused = 1; break label; }',
+      '  return {};',
+      '};',
+    ].join('\n');
+
+    const out = applyStatementDCE(code, 'test.js');
+    expect(out).not.toContain('label');
+    expect(out).not.toContain('unused');
+    expect(out).toContain('return {};');
+  });
 });

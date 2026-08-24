@@ -226,6 +226,28 @@ export function applyStatementDCE(
   const dead: RangedNode[] = [];
   const isDead = (stmt: RangedNode): boolean =>
     dead.some((d) => stmt.start >= d.start && stmt.end <= d.end);
+  const isRedundantLabel = (stmt: RangedNode & Record<string, unknown>): boolean => {
+    if (stmt.type !== 'LabeledStatement') {
+      return false;
+    }
+    const label = stmt.label as Record<string, unknown> | undefined;
+    const block = stmt.body as Record<string, unknown> | undefined;
+    if (label?.type !== 'Identifier' || block?.type !== 'BlockStatement') {
+      return false;
+    }
+    const live = ((block.body as RangedNode[] | undefined) ?? []).filter((child) => !isDead(child));
+    if (live.length === 0) {
+      return true;
+    }
+    const only = live[0] as RangedNode & Record<string, unknown>;
+    const breakLabel = only.label as Record<string, unknown> | undefined;
+    return (
+      live.length === 1 &&
+      only.type === 'BreakStatement' &&
+      breakLabel?.type === 'Identifier' &&
+      breakLabel.name === label.name
+    );
+  };
 
   // Fixpoint on the single parse: each pass recounts references while
   // skipping statements already marked dead, so one removal can free another.
@@ -240,6 +262,11 @@ export function applyStatementDCE(
           continue;
         }
         if (exited && !isHoistedDeclaration(stmt)) {
+          dead.push(stmt);
+          changed = true;
+          continue;
+        }
+        if (isRedundantLabel(stmt)) {
           dead.push(stmt);
           changed = true;
           continue;

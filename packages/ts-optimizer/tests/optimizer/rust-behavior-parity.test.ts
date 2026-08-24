@@ -57,6 +57,33 @@ export const App = component$(() => <button onClick$={() => {}}>{helper()}</butt
   });
 });
 
+describe('stylesheet import ownership', () => {
+  const componentCode = (styleSetup: string, styleArg: string) => {
+    const output = transformModule(
+      rustDefaults(
+        `
+import { component$, useStyles$ } from '@qwik.dev/core';
+import css from './style.css';
+export const App = component$(() => {
+  ${styleSetup}
+  useStyles$(${styleArg});
+});
+`,
+        { transpileTs: true, transpileJsx: true }
+      )
+    );
+    return segments(output).find((module) => module.segment.ctxName === 'component$')!.code;
+  };
+
+  it('keeps CSS feeding an owner-local style declaration', () => {
+    expect(componentCode('const style = css;', 'style')).toContain('import css');
+  });
+
+  it('moves a direct CSS style argument entirely into its segment', () => {
+    expect(componentCode('', 'css')).not.toContain('import css');
+  });
+});
+
 /** Rust's `get_hash`: the trailing `_`-separated part of a symbol name. */
 const getHash = (name: string) => name.split('_').at(-1)!;
 

@@ -19,7 +19,7 @@ interface SegmentImportSpec {
 
 const qrlSuffixPattern = /\b(\w+Qrl)\b/g;
 
-function collectBodyIdentifiers(bodyText: string): Set<string> {
+export function collectBodyIdentifiers(bodyText: string): Set<string> {
   const ids = new Set<string>();
   try {
     const session = createTransformSession(bodyText, { tolerateErrors: true });

@@ -63,6 +63,7 @@ import { collectSameFileSymbolInfo } from './module-symbols.js';
 import { parseWithRawTransfer } from '../ast/parse.js';
 import { forEachAstChild } from '../ast/guards.js';
 import { leadingDot, resolveCaptureInfo, postProcessSegmentCode } from './post-process.js';
+import { collectBodyIdentifiers } from './import-collection.js';
 import type { LoopContext } from '../jsx/loop-hoisting.js';
 import { eventHandlerQpParams } from '../jsx/loop-hoisting.js';
 import { getJsxAttributeName } from '../jsx/jsx-attr-name.js';
@@ -1376,6 +1377,21 @@ export function buildDefaultStrategySegment(
   );
 
   const effectiveCaptureInfo = resolveCaptureInfo(captureInfo, ext.isInlinedQrl);
+  let ownerBody = ext.bodyText as string;
+  for (const child of [...children].sort((a, b) => b.argStart - a.argStart)) {
+    const start = child.argStart - ext.argStart;
+    const end = child.argEnd - ext.argStart;
+    ownerBody = ownerBody.slice(0, start) + ownerBody.slice(end);
+  }
+  const ownerIdentifiers = collectBodyIdentifiers(ownerBody);
+  const preservedImportNames = new Set(
+    ext.segmentImports
+      .filter(
+        (moduleImport) =>
+          /\.css(?:$|\?)/.test(moduleImport.source) && ownerIdentifiers.has(moduleImport.localName)
+      )
+      .map((moduleImport) => moduleImport.localName)
+  );
 
   // Build import context
   const importContext: SegmentImportData = {
@@ -1470,6 +1486,7 @@ export function buildDefaultStrategySegment(
         effectiveCaptureInfo !== undefined &&
         effectiveCaptureInfo.captureNames.length > 0 &&
         !effectiveCaptureInfo.skipCaptureInjection,
+      preserveImportNames: preservedImportNames,
     });
     segmentCode = hoistInlinedQrlBodies(segmentCode);
   }

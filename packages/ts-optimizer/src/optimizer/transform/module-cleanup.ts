@@ -336,7 +336,8 @@ export function removeUnusedImports(
   filename: string,
   preParsedProgram?: AstProgram,
   isLibMode?: boolean,
-  keepRelativeSideEffects?: boolean
+  keepRelativeSideEffects?: boolean,
+  preserveImportNames?: ReadonlySet<string>
 ): string {
   let parsed: AstParseResult | { program: AstProgram };
   if (preParsedProgram) {
@@ -422,7 +423,7 @@ export function removeUnusedImports(
   });
 
   const unreferencedSpecs = importSpecs.filter((spec) => {
-    if (referencedNames.has(spec.localName)) {
+    if (referencedNames.has(spec.localName) || preserveImportNames?.has(spec.localName)) {
       return false;
     }
 
@@ -685,6 +686,8 @@ export interface DcePipelineOptions {
   hmrDevFile?: string;
   /** Inline strategy with stripping: downgrade fully-unused relative imports to side-effect form. */
   keepRelativeSideEffects?: boolean;
+  /** Imports retained because a directly nested extraction owns their evaluation. */
+  preserveImportNames?: ReadonlySet<string>;
 }
 
 /**
@@ -748,7 +751,8 @@ export function runDcePipeline(code: string, filename: string, opts: DcePipeline
         filename,
         lazyParse(),
         opts.isLibMode,
-        opts.keepRelativeSideEffects
+        opts.keepRelativeSideEffects,
+        opts.preserveImportNames
       )
     );
   }

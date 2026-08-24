@@ -31,6 +31,7 @@ export interface SegmentPostProcessOptions {
   emitMode: string;
   devFile?: string;
   prioritizeGeneratedCaptures?: boolean;
+  preserveImportNames?: ReadonlySet<string>;
 }
 
 const pureAnnotationComment = /\/\* @__PURE__ \*\//g;
@@ -92,7 +93,7 @@ export function postProcessSegmentCode(code: string, opts: SegmentPostProcessOpt
   // body here anyway.
   if (opts.shouldTranspileTs) {
     const tsStripOptions: TransformOptions = {
-      typescript: { onlyRemoveTypeImports: false },
+      typescript: { onlyRemoveTypeImports: (opts.preserveImportNames?.size ?? 0) > 0 },
     };
     if (!opts.shouldTranspileJsx) {
       tsStripOptions.jsx = 'preserve';
@@ -117,6 +118,7 @@ export function postProcessSegmentCode(code: string, opts: SegmentPostProcessOpt
       opts.emitMode === 'hmr' && opts.devFile && !opts.isBare && isAnyComponentCtx(opts.ctxName)
         ? opts.devFile
         : undefined,
+    preserveImportNames: opts.preserveImportNames,
   });
 
   return sortSegmentImports(

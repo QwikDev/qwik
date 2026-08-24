@@ -7,7 +7,6 @@
  */
 
 import MagicString from 'magic-string';
-import { parseWithRawTransfer } from '../ast/parse.js';
 import { walk } from 'oxc-walker';
 import type { AstNode, AstParentNode, AstProgram, CallExpression } from '../../ast-types.js';
 
@@ -16,7 +15,8 @@ type Substitution = { from: string; to: string };
 export function flattenDestructureUseCalls(
   source: string,
   relPath: string,
-  program: AstProgram
+  program: AstProgram,
+  target?: MagicString
 ): { source: string; changed: boolean } {
   // Sound prefilter: the walk only fires on a callee literally named
   // `component$`, and that token appears verbatim at its source position, so
@@ -27,7 +27,7 @@ export function flattenDestructureUseCalls(
 
   // Lazily materialize MagicString on first overwrite — most prefiltered
   // modules still have no flattenable decls.
-  let s: MagicString | undefined;
+  let s = target;
   const edits = (): MagicString => (s ??= new MagicString(source));
   const decls: FlattenableDecl[] = [];
   const subsByScope = new Map<number, Substitution[]>();
@@ -346,28 +346,4 @@ function collectAndApplyDeclsForComponentCall(
       removeStmt(stmt);
     }
   }
-}
-
-/** Parse, flatten, then re-parse the flattened source. */
-export function flattenAndReparse(
-  source: string,
-  relPath: string,
-  program: AstProgram
-): {
-  source: string;
-  program: AstProgram;
-  module: ReturnType<typeof parseWithRawTransfer>['module'] | null;
-  changed: boolean;
-} {
-  const result = flattenDestructureUseCalls(source, relPath, program);
-  if (!result.changed) {
-    return { source, program, module: null, changed: false };
-  }
-  const reparsed = parseWithRawTransfer(relPath, result.source);
-  return {
-    source: result.source,
-    program: reparsed.program,
-    module: reparsed.module,
-    changed: true,
-  };
 }

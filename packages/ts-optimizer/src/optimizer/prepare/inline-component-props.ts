@@ -7,6 +7,7 @@
  */
 
 import type { AstNode, AstProgram } from '../../ast-types.js';
+import MagicString from 'magic-string';
 import { parseWithRawTransfer } from '../ast/parse.js';
 import { forEachAstChild } from '../ast/guards.js';
 import { applyReplacements } from '../edit/range-replace.js';
@@ -120,7 +121,8 @@ function collectInlineArrowComponents(program: AstProgram): AstNode[] {
 export function normalizeInlineComponentProps(
   code: string,
   filename: string,
-  preParsedProgram?: AstProgram
+  preParsedProgram?: AstProgram,
+  target?: MagicString
 ): NormalizeResult {
   let program: AstProgram;
   if (preParsedProgram) {
@@ -249,6 +251,12 @@ export function normalizeInlineComponentProps(
 
   if (replacements.length === 0) {
     return { changed: false, source: code };
+  }
+  if (target) {
+    for (const replacement of replacements) {
+      target.overwrite(replacement.start, replacement.end, replacement.replacement);
+    }
+    return { changed: true, source: target.toString() };
   }
   return { changed: true, source: applyReplacements(code, replacements) };
 }

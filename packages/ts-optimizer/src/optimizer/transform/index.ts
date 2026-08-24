@@ -11,11 +11,12 @@ import type {
   AstProgram,
   TSEnumDeclaration,
 } from '../../ast-types.js';
+import MagicString from 'magic-string';
 import { stripTypeScript } from '../edit/strip-types.js';
 import { blankNonCode, skipStringLiteralForward } from '../edit/text-scanning.js';
 import { parseWithRawTransfer } from '../ast/parse.js';
 import { isStrippedExtraction } from '../rewrite/predicates.js';
-import { flattenAndReparse } from '../prepare/flatten-destructures.js';
+import { flattenDestructureUseCalls } from '../prepare/flatten-destructures.js';
 import { normalizeInlineComponentProps } from '../prepare/inline-component-props.js';
 import { detectForeignJsxRuntime } from '../jsx/jsx-import-source.js';
 import type { ConsolidatedSegment, ExtractionResult, Mutable } from '../extraction/extract.js';
@@ -458,23 +459,11 @@ function prepareModuleInput(mod: ModuleContext): PreparedModuleInput {
     };
   }
 
-  // Phase 0.5: flatten `const {x} = useFoo()` inside `component$` bodies to
-  // `const foo = useFoo()` + reference rewrites (a pre-extraction code-size
-  // optimization). Re-parse when it changes so downstream phases see the
-  // rewritten source.
-  const flattened = flattenAndReparse(repairedCode, relPath, program);
-  if (flattened.changed) {
-    repairedCode = flattened.source;
-    program = flattened.program;
-    parserModule = flattened.module ?? parserModule;
-  }
-
-  // Phase 0.6: normalize inline arrow components' destructured props to
-  // `_rawProps` before extraction, so captures and fnSignal roots see it.
-  // `program` still describes `repairedCode` here, so this pass needs no parse of its own.
-  const inlineProps = normalizeInlineComponentProps(repairedCode, relPath, program);
-  if (inlineProps.changed) {
-    repairedCode = inlineProps.source;
+  const edits = new MagicString(repairedCode);
+  const flattened = flattenDestructureUseCalls(repairedCode, relPath, program, edits);
+  const inlineProps = normalizeInlineComponentProps(repairedCode, relPath, program, edits);
+  if (flattened.changed || inlineProps.changed) {
+    repairedCode = edits.toString();
     const reparsed = parseWithRawTransfer(relPath, repairedCode);
     program = reparsed.program;
     parserModule = reparsed.module ?? parserModule;

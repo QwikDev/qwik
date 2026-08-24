@@ -140,11 +140,7 @@ function buildModuleImportStatement(imp: {
   return `import { ${imp.localName} } from "${rewrittenSource}";`;
 }
 
-/**
- * The reexport and default arms never both match one symbol: a default export is always
- * `isExported`, so it can't satisfy the `reexport && !isExported` predicate callers pass as
- * `isReexported`. Order between them is therefore free.
- */
+/** Reexports take precedence because segment files consume the optimizer's stable private alias. */
 export function resolveSameFileImportName(
   id: string,
   isReexported: boolean,
@@ -173,7 +169,10 @@ function addSameFileImport(parts: string[], id: string, importContext: SegmentIm
     return;
   }
 
-  const isReexported = migrationDecision?.action === 'reexport' && !migrationDecision.isExported;
+  const isReexported =
+    migrationDecision?.action === 'reexport' &&
+    (!migrationDecision.isExported ||
+      (importContext.useAutoExportForExported === true && !migrationDecision.isDirectlyExported));
   const importedName = resolveSameFileImportName(
     id,
     isReexported,

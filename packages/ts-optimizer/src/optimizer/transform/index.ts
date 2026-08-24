@@ -1097,6 +1097,23 @@ function attributeSegmentUsage(
   }
 
   let migrationDecisions = analyzeMigration(moduleLevelDecls, segmentUsage, rootUsage, program);
+  const inlinedSegmentNames = new Set<string>();
+  for (const ext of extractions) {
+    if (!ext.isInlinedQrl) {
+      continue;
+    }
+    for (const name of segmentUsage.get(ext.symbolName) ?? []) {
+      inlinedSegmentNames.add(name);
+    }
+  }
+  migrationDecisions = migrationDecisions.map((decision) =>
+    decision.action === 'reexport' &&
+    moduleLevelDeclsByName.get(decision.varName)?.isExported &&
+    !moduleLevelDeclsByName.get(decision.varName)?.isDirectlyExported &&
+    inlinedSegmentNames.has(decision.varName)
+      ? { ...decision, useAutoExport: true }
+      : decision
+  );
   // A decl whose init holds an extraction keeps its (pure) marker-call
   // registration as a bare statement — only the binding disappears, so
   // whole-decl dropping would erase the registration.

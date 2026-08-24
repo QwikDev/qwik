@@ -16,6 +16,7 @@ export interface MigrationDecision {
   readonly varName: string;
   readonly targetSegment?: string;
   readonly reason: string;
+  readonly useAutoExport?: boolean;
 }
 
 export interface ModuleLevelDecl {
@@ -26,6 +27,7 @@ export interface ModuleLevelDecl {
   // Mutable: set false during the initial decl walk, flipped true by the later
   // pass that scans `export { name }` specifiers.
   isExported: boolean;
+  readonly isDirectlyExported: boolean;
   readonly hasSideEffects: boolean;
   readonly isPartOfSharedDestructuring: boolean;
   readonly kind: string;
@@ -203,6 +205,7 @@ export function collectModuleLevelDecls(program: AstProgram, source: string): Mo
             declEnd,
             declText,
             isExported,
+            isDirectlyExported: isExported,
             hasSideEffects,
             isPartOfSharedDestructuring: isShared,
             kind,
@@ -219,6 +222,7 @@ export function collectModuleLevelDecls(program: AstProgram, source: string): Mo
           declEnd,
           declText,
           isExported,
+          isDirectlyExported: isExported,
           hasSideEffects: false,
           isPartOfSharedDestructuring: false,
           hasRouterMarkerInit: false,
@@ -234,6 +238,7 @@ export function collectModuleLevelDecls(program: AstProgram, source: string): Mo
           declEnd,
           declText,
           isExported,
+          isDirectlyExported: isExported,
           hasSideEffects: false,
           isPartOfSharedDestructuring: false,
           hasRouterMarkerInit: false,
@@ -249,6 +254,7 @@ export function collectModuleLevelDecls(program: AstProgram, source: string): Mo
           declEnd,
           declText,
           isExported,
+          isDirectlyExported: isExported,
           hasSideEffects: false,
           isPartOfSharedDestructuring: false,
           hasRouterMarkerInit: false,
@@ -819,8 +825,8 @@ export function autoExportedNames(
   const alreadyExported = new Set(decls.filter((d) => d.isExported).map((d) => d.name));
   const names: string[] = [];
   const taken = new Set<string>();
-  const add = (name: string): void => {
-    if (alreadyExported.has(name) || taken.has(name)) {
+  const add = (name: string, force = false): void => {
+    if ((!force && alreadyExported.has(name)) || taken.has(name)) {
       return;
     }
     taken.add(name);
@@ -829,7 +835,7 @@ export function autoExportedNames(
 
   for (const decision of migrationDecisions ?? []) {
     if (decision.action === 'reexport') {
-      add(decision.varName);
+      add(decision.varName, decision.useAutoExport);
     }
   }
   // The router discovers un-exported loaders/actions only through these exports.

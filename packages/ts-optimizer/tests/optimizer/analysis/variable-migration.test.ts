@@ -16,6 +16,7 @@ function makeDecl(overrides: Partial<ModuleLevelDecl> & { name: string }): Modul
     declEnd: 0,
     declText: '',
     isExported: false,
+    isDirectlyExported: false,
     hasSideEffects: false,
     isPartOfSharedDestructuring: false,
     kind: 'const',

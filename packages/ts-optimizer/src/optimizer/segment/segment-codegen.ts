@@ -78,7 +78,13 @@ export interface SegmentImportData {
   defaultExportedNames?: Set<string>;
   renamedExports?: Map<string, string>;
   parentModulePath: string;
-  migrationDecisions: Array<{ varName: string; action: string; isExported?: boolean }>;
+  migrationDecisions: Array<{
+    varName: string;
+    action: string;
+    isExported?: boolean;
+    isDirectlyExported?: boolean;
+  }>;
+  useAutoExportForExported?: boolean;
 }
 
 /**

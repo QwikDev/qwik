@@ -1064,7 +1064,8 @@ export function wireMigration(
       if (decision.action !== 'reexport' || !segUsage.has(decision.varName)) {
         continue;
       }
-      if (moduleLevelDeclsByName.get(decision.varName)?.isExported) {
+      const decl = moduleLevelDeclsByName.get(decision.varName);
+      if (decl?.isExported && (!ext.isInlinedQrl || decl.isDirectlyExported)) {
         continue;
       }
       captureInfo.autoImports.push({ varName: decision.varName, parentModulePath });
@@ -1073,13 +1074,15 @@ export function wireMigration(
 
   const movedDeclRanges = new Set<string>();
   const movedQrlSymbols = new Set<string>();
-  // Reexported non-exported decls — reachable from segments only via their
-  // `_auto_` alias. User-exported decls keep plain imports even when a reexport
-  // decision also fires for them.
+  // Reexported decls are reachable from segments through their `_auto_` alias.
   const reexportedNames = new Set<string>();
   const movedIntoThisSegment = new Set<string>();
   for (const d of migrationDecisions) {
-    if (d.action === 'reexport' && !moduleLevelDeclsByName.get(d.varName)?.isExported) {
+    if (
+      d.action === 'reexport' &&
+      (!moduleLevelDeclsByName.get(d.varName)?.isExported ||
+        (ext.isInlinedQrl && !moduleLevelDeclsByName.get(d.varName)?.isDirectlyExported))
+    ) {
       reexportedNames.add(d.varName);
     }
     if (d.action === 'move' && d.targetSegment === migrationKey) {
@@ -1387,8 +1390,10 @@ export function buildDefaultStrategySegment(
         varName: d.varName,
         action: d.action,
         isExported: decl?.isExported ?? false,
+        isDirectlyExported: decl?.isDirectlyExported ?? false,
       };
     }),
+    useAutoExportForExported: ext.isInlinedQrl,
   };
 
   // When source carries a foreign `@jsxImportSource` pragma, skip Qwik's

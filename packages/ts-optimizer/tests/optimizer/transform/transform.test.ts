@@ -355,6 +355,30 @@ export const App = component$(() => {
     expect(parent.code).not.toContain('_auto_TITLE');
   });
 
+  it('migration: exported const used by a segment gets a private export and import', () => {
+    const result = transformModule({
+      input: [
+        {
+          path: mkFilePath('test.tsx'),
+          code: mkSourceText(`import { componentQrl, inlinedQrl } from '@qwik.dev/core';
+const PUBLIC = "Hello World";
+export const App = componentQrl(inlinedQrl(() => <div>{PUBLIC}</div>, "App_component_test"));
+export { PUBLIC };`),
+        },
+      ],
+      srcDir: mkFilePath('.'),
+      mode: 'test',
+    });
+
+    const parent = result.modules[0];
+    const appSegment = result.modules.find(
+      (module) => module.kind === 'segment' && module.segment!.displayName.includes('App')
+    );
+
+    expect(parent.code).toContain('export { PUBLIC as _auto_PUBLIC }');
+    expect(appSegment?.code).toContain('import { _auto_PUBLIC as PUBLIC } from "./test"');
+  });
+
   it('migration: variable used only by segment gets moved (not reexported)', () => {
     const result = transformModule({
       input: [

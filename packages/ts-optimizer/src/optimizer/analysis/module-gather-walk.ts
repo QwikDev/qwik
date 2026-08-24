@@ -357,7 +357,7 @@ export function gatherModuleFacts(inputs: ModuleGatherInputs): ModuleGatherFacts
         enterLoopMap(node, ctx);
         enterScopeEntries(node, ctx);
         enterSegmentUsage(node, parent, ctx);
-        enterPassiveConflicts(node, ctx);
+        enterPassiveConflicts(node, parent, ctx);
         ctx.scopeBindingsCollector?.enter(node);
         ctx.extractionCollector?.enter(node, parent);
       },
@@ -693,7 +693,11 @@ function enterSegmentUsage(node: AstNode, parent: AstNode | null, ctx: GatherEnt
   }
 }
 
-function enterPassiveConflicts(node: AstNode, ctx: GatherEnterContext): void {
+function enterPassiveConflicts(
+  node: AstNode,
+  parent: AstParentNode,
+  ctx: GatherEnterContext
+): void {
   if (!ctx.passiveEnabled) {
     return;
   }
@@ -721,7 +725,11 @@ function enterPassiveConflicts(node: AstNode, ctx: GatherEnterContext): void {
 
   for (const eventName of passiveEvents) {
     if (preventdefaultEvents.has(eventName)) {
-      ctx.passiveConflicts.push({ eventName, start: node.start, end: node.end });
+      ctx.passiveConflicts.push({
+        eventName,
+        start: node.start,
+        end: parent?.type === 'JSXElement' ? parent.end : node.end,
+      });
     }
   }
 }

@@ -301,6 +301,9 @@ export const App = component$((props) => {
     expect(passiveDiags[0].category).toBe('warning');
     expect(passiveDiags[0].message).toContain('preventdefault:click');
     expect(passiveDiags[0].message).toContain('passive:click');
+    const highlight = passiveDiags[0].highlights?.[0];
+    expect(highlight).toBeDefined();
+    expect(input.slice(highlight!.lo, highlight!.hi)).toContain('</button>');
   });
 
   it('suppresses diagnostics with @qwik-disable-next-line', () => {

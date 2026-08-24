@@ -67,14 +67,16 @@ export function stripAstPositions(
   if (node.type === 'ParenthesizedExpression' && node.expression) {
     return stripAstPositions(node.expression, ancestors);
   }
+  const parent = ancestors[0];
+  const onlyStatement = Array.isArray(node.body) && node.body.length === 1 ? node.body[0] : null;
   if (
     node.type === 'BlockStatement' &&
-    Array.isArray(node.body) &&
-    node.body.length === 1 &&
-    isRecord(node.body[0]) &&
-    BLOCK_EQUIVALENT_STATEMENTS.has(String(node.body[0].type))
+    isRecord(onlyStatement) &&
+    (BLOCK_EQUIVALENT_STATEMENTS.has(String(onlyStatement.type)) ||
+      (onlyStatement.type === 'IfStatement' &&
+        (parent?.body === node || parent?.alternate === node)))
   ) {
-    return stripAstPositions(node.body[0], ancestors);
+    return stripAstPositions(onlyStatement, ancestors);
   }
   const result: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(node)) {

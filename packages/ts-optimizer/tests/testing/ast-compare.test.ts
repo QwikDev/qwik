@@ -91,6 +91,27 @@ describe('compareAst', () => {
     expect(compareAst(expected, actual, 'test.ts').match).toBe(true);
   });
 
+  it('ignores redundant blocks around nested control flow', () => {
+    expect(
+      compareAst(
+        'for (const x of xs) if (x) use(x);',
+        'for (const x of xs) { if (x) use(x); }',
+        'test.ts'
+      ).match
+    ).toBe(true);
+    expect(
+      compareAst('if (a) x(); else if (b) y();', 'if (a) x(); else { if (b) y(); }', 'test.ts')
+        .match
+    ).toBe(true);
+  });
+
+  it('preserves blocks that control dangling else ownership', () => {
+    expect(
+      compareAst('if (a) { if (b) x(); } else y();', 'if (a) if (b) x(); else y();', 'test.ts')
+        .match
+    ).toBe(false);
+  });
+
   it('preserves blocks that create declaration scopes', () => {
     expect(compareAst('{ let value = 1; }', 'let value = 1;', 'test.ts').match).toBe(false);
   });

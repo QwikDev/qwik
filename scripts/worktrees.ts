@@ -20,7 +20,6 @@ const workTreesDir =
   path.basename(parentDir) === 'qwik.worktrees'
     ? parentDir
     : path.resolve(parentDir, 'qwik.worktrees');
-const isWindows = process.platform === 'win32';
 
 interface Worktree {
   path: string;
@@ -120,7 +119,6 @@ function printWorktreeInfo(worktreePath: string) {
 
 const dirsToSync = [
   'dist-dev',
-  'node_modules',
   'packages/create-qwik/dist',
   'packages/create-qwik/lib',
   'packages/eslint-plugin-qwik/dist',
@@ -134,7 +132,7 @@ const dirsToSync = [
 ];
 
 function copyArtifacts(worktreePath: string) {
-  log.info('Copying build artifacts and node_modules...');
+  log.info('Copying build artifacts...');
 
   for (const dir of dirsToSync) {
     const srcPath = path.resolve(rootDir, dir);
@@ -142,26 +140,14 @@ function copyArtifacts(worktreePath: string) {
 
     if (existsSync(srcPath)) {
       try {
-        if (isWindows) {
-          log.step(`  Copying ${dir}...`);
-          cpSync(srcPath, destPath, {
-            recursive: true,
-            force: true,
-            verbatimSymlinks: true,
-          });
-        } else {
-          log.step(`  Hardlinking ${dir}...`);
-          const destParent = path.dirname(destPath);
-          if (!existsSync(destParent)) {
-            mkdirSync(destParent, { recursive: true });
-          }
-          execSync(`cp -al "${srcPath}" "${destPath}"`, {
-            cwd: rootDir,
-            stdio: 'pipe',
-          });
-        }
+        log.step(`  Copying ${dir}...`);
+        cpSync(srcPath, destPath, {
+          recursive: true,
+          force: true,
+          verbatimSymlinks: true,
+        });
       } catch (err) {
-        log.warn(`  Failed to ${isWindows ? 'copy' : 'hardlink'} ${dir}: ${err}`);
+        log.warn(`  Failed to copy ${dir}: ${err}`);
       }
     }
   }

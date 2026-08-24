@@ -654,14 +654,20 @@ function applyBodyTransforms(
   parts: string[],
   captureInfo: SegmentCaptureInfo | undefined,
   nestedCallSites: NestedCallSiteInfo[] | undefined,
-  enumValueMap: Map<string, Map<string, string>> | undefined
+  enumValueMap: Map<string, Map<string, string>> | undefined,
+  preserveOffsets: boolean
 ): { bodyText: string; captureInfo: SegmentCaptureInfo | undefined } {
   // Internal helpers work on plain string; the BodyText brand applies only at
   // the ExtractionResult boundary.
   let bodyText: string = extraction.bodyText;
 
   if (nestedCallSites && nestedCallSites.length > 0) {
-    bodyText = rewriteNestedCallSitesInline(bodyText, nestedCallSites, extraction.argStart);
+    bodyText = rewriteNestedCallSitesInline(
+      bodyText,
+      nestedCallSites,
+      extraction.argStart,
+      preserveOffsets
+    );
     bodyText = applySelfRefIndirection(bodyText);
   }
 
@@ -737,7 +743,8 @@ export function generateSegmentCode(
     parts,
     captureInfo,
     nestedCallSites,
-    enumValueMap
+    enumValueMap,
+    jsxOptions?.devOptions !== undefined
   );
   const liveCaptureInfo = transformed.captureInfo;
   let bodyText = transformed.bodyText;

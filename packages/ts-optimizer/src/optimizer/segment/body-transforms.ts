@@ -157,10 +157,14 @@ function spliceWithinBody(
   bodyText: string,
   start: number,
   end: number,
-  replacement: string
+  replacement: string,
+  preserveOffsets = false
 ): string {
   if (start < 0 || end > bodyText.length) {
     return bodyText;
+  }
+  if (preserveOffsets && replacement.length < end - start) {
+    replacement += ' '.repeat(end - start - replacement.length);
   }
   return bodyText.slice(0, start) + replacement + bodyText.slice(end);
 }
@@ -169,7 +173,8 @@ function spliceWithinBody(
 export function rewriteNestedCallSitesInline(
   bodyText: string,
   nestedCallSites: NestedCallSiteInfo[],
-  bodyOffset: number
+  bodyOffset: number,
+  preserveOffsets = false
 ): string {
   const sorted = [...nestedCallSites].sort((a, b) => {
     return getNestedCallSiteStart(b) - getNestedCallSiteStart(a);
@@ -202,7 +207,8 @@ export function rewriteNestedCallSitesInline(
         bodyText,
         relStart,
         relEnd,
-        `${site.transformedPropName}={${propValueRef}}`
+        `${site.transformedPropName}={${propValueRef}}`,
+        preserveOffsets
       );
 
       if (
@@ -266,7 +272,7 @@ export function rewriteNestedCallSitesInline(
         relStart = pureAwareOverwriteStart(bodyText, relStart);
         replacement = qrlRef;
       }
-      bodyText = spliceWithinBody(bodyText, relStart, relEnd, replacement);
+      bodyText = spliceWithinBody(bodyText, relStart, relEnd, replacement, preserveOffsets);
     }
   }
 

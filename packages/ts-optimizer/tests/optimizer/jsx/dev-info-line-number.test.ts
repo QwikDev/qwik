@@ -160,4 +160,33 @@ export const App = component$(() => {
     expect(lines.has(6)).toBe(true);
     expect(lines.has(7)).toBe(true);
   });
+
+  it('keeps JSX positions after multiline nested QRLs', async () => {
+    const code = `import { component$, serverStuff$ } from '@qwik.dev/core';
+
+export const App = component$(() => {
+  serverStuff$(async () => {
+    console.log('removed');
+  });
+
+  return (
+    <Cmp>
+      <p>Hello</p>
+    </Cmp>
+  );
+});
+`;
+    const result = await transformModule({
+      srcDir: mkFilePath('/p'),
+      input: [{ code: mkSourceText(code), path: mkFilePath('test.tsx') }],
+      transpileJsx: true,
+      mode: 'dev',
+    });
+    const segment = result.modules.find(
+      (module) => module.kind === 'segment' && module.code.includes('_jsxSorted')
+    );
+
+    expect(segment).toBeDefined();
+    expect(findDevInfo(segment!.code)).toContainEqual({ lineNumber: 10, columnNumber: 7 });
+  });
 });

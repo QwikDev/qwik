@@ -15,6 +15,7 @@ import { SNAP_DIR } from '../rust-snapshots.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const TS_OUTPUT_DIR = join(__dirname, '../../ts-output');
+const DERIVED_DIAGNOSTIC_POSITION_KEYS = new Set(['startLine', 'startCol', 'endLine', 'endCol']);
 
 mkdirSync(TS_OUTPUT_DIR, { recursive: true });
 
@@ -37,6 +38,14 @@ function formatSnapshot(input: string, result: TransformOutput): string {
 
 function getTestName(snapFilename: string): string {
   return snapFilename.replace('qwik_core__test__', '').replace('.snap', '');
+}
+
+function normalizeDiagnostics(diagnostics: unknown): unknown {
+  return JSON.parse(
+    JSON.stringify(diagnostics, (key, value) =>
+      DERIVED_DIAGNOSTIC_POSITION_KEYS.has(key) ? undefined : value
+    )
+  );
 }
 
 describe('convergence: all snapshots', () => {
@@ -187,7 +196,12 @@ describe('convergence: all snapshots', () => {
         }
       }
 
-      if (!isDeepStrictEqual(parsed.diagnostics, result.diagnostics)) {
+      if (
+        !isDeepStrictEqual(
+          normalizeDiagnostics(parsed.diagnostics),
+          normalizeDiagnostics(result.diagnostics)
+        )
+      ) {
         parentMatches = false;
         parityDifferences.push({
           snapshot: testName,

@@ -30,6 +30,7 @@ export interface SegmentPostProcessOptions {
   isServer?: boolean;
   emitMode: string;
   devFile?: string;
+  prioritizeGeneratedCaptures?: boolean;
 }
 
 const pureAnnotationComment = /\/\* @__PURE__ \*\//g;
@@ -118,10 +119,20 @@ export function postProcessSegmentCode(code: string, opts: SegmentPostProcessOpt
         : undefined,
   });
 
-  return sortSegmentImports(result, filename, opts.parentModulePath);
+  return sortSegmentImports(
+    result,
+    filename,
+    opts.parentModulePath,
+    opts.prioritizeGeneratedCaptures === true
+  );
 }
 
-function sortSegmentImports(code: string, filename: string, parentModulePath: string): string {
+function sortSegmentImports(
+  code: string,
+  filename: string,
+  parentModulePath: string,
+  prioritizeGeneratedCaptures: boolean
+): string {
   const imports = parseWithRawTransfer(filename, code).program.body.filter(
     (node) => node.type === 'ImportDeclaration'
   );
@@ -137,6 +148,11 @@ function sortSegmentImports(code: string, filename: string, parentModulePath: st
     node.specifiers
       .map((specifier) => specifier.local.name)
       .sort((a, b) => (a < b ? -1 : a > b ? 1 : 0))[0] ?? '';
+  const hasExistingCaptureImport =
+    !prioritizeGeneratedCaptures &&
+    imports.some((node) =>
+      node.specifiers.some((specifier) => specifier.local.name === '_captures')
+    );
   const sorted = [...imports].sort((a, b) => {
     const rank = (node: (typeof imports)[number]): number => {
       if (node.specifiers.length === 0) {
@@ -153,6 +169,9 @@ function sortSegmentImports(code: string, filename: string, parentModulePath: st
         )
       ) {
         return 0;
+      }
+      if (hasExistingCaptureImport) {
+        return 1;
       }
       if (node.specifiers.some((specifier) => specifier.local.name === '_captures')) {
         return 1;

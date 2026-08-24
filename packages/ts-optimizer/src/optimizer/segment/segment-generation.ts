@@ -1466,6 +1466,10 @@ export function buildDefaultStrategySegment(
       isServer: options.isServer,
       emitMode,
       devFile,
+      prioritizeGeneratedCaptures:
+        effectiveCaptureInfo !== undefined &&
+        effectiveCaptureInfo.captureNames.length > 0 &&
+        !effectiveCaptureInfo.skipCaptureInjection,
     });
     segmentCode = hoistInlinedQrlBodies(segmentCode);
   }

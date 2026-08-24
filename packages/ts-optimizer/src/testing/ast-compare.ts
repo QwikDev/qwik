@@ -13,6 +13,7 @@ const BLOCK_EQUIVALENT_STATEMENTS = new Set([
   'BreakStatement',
   'ContinueStatement',
   'ExpressionStatement',
+  'ForOfStatement',
   'ReturnStatement',
   'ThrowStatement',
 ]);

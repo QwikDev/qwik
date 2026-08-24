@@ -103,6 +103,13 @@ describe('compareAst', () => {
       compareAst('if (a) x(); else if (b) y();', 'if (a) x(); else { if (b) y(); }', 'test.ts')
         .match
     ).toBe(true);
+    expect(
+      compareAst(
+        'if (ready) for (const value of values) use(value);',
+        'if (ready) { for (const value of values) use(value); }',
+        'test.ts'
+      ).match
+    ).toBe(true);
   });
 
   it('preserves blocks that control dangling else ownership', () => {

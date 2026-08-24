@@ -148,6 +148,7 @@ const STYLES = '.class {}';
     expect(code).toMatch(/\buseSignal\b/);
 
     expect(code).toMatch(/import \{ jsx as _jsx \} from ["']@qwik\.dev\/core\/jsx-runtime["']/);
+    expect(code.indexOf('const STYLES')).toBeLessThan(code.indexOf('export const Works'));
 
     const segments = result.modules.filter((m) => m.kind === 'segment');
     expect(segments.length).toBe(0);

@@ -911,6 +911,27 @@ function placeSCalls(
   s.append('\n' + groupedSCalls.join('\n'));
 }
 
+function placeLibReferencedDeclarations(ctx: RewriteContext): void {
+  const anchor = findLastMarkerExportAnchor(ctx.program);
+  if (!anchor || !ctx.moduleLevelDecls) {
+    return;
+  }
+  for (const decl of [...ctx.moduleLevelDecls].reverse()) {
+    if (decl.hasSideEffects || decl.declStart < anchor.end) {
+      continue;
+    }
+    const tester = wordBoundaryTester(decl.name);
+    if (!ctx.extractions.some((ext) => tester.test(ext.bodyText))) {
+      continue;
+    }
+    let end = decl.declEnd;
+    if (ctx.source[end] === '\n') {
+      end++;
+    }
+    ctx.s.move(decl.declStart, end, anchor.start);
+  }
+}
+
 export function assembleOutput(ctx: RewriteContext): string {
   const {
     s,
@@ -999,6 +1020,9 @@ export function assembleOutput(ctx: RewriteContext): string {
     }
   }
 
+  if (ctx.isLibMode) {
+    placeLibReferencedDeclarations(ctx);
+  }
   placeSCalls(s, program, sCalls, moduleLevelDecls);
 
   let finalCode = s.toString();

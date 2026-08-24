@@ -419,14 +419,6 @@ function collectSignalDeps(
   return { roots, allDeps };
 }
 
-function collectReactiveRoots(
-  node: AstNode,
-  importedNames: Set<string>,
-  localNames?: Set<string>
-): string[] {
-  return collectSignalDeps(node, importedNames, localNames).roots;
-}
-
 /** Rust caps the rendered fnSignal body at 150 chars; longer stays inline (inlined_fn.rs). */
 const MAX_FN_SIGNAL_BODY_LEN = 150;
 
@@ -985,11 +977,11 @@ function analyzeMemberExpression(
     if (objIdent !== null) {
       return { type: 'wrapProp', code: `_wrapProp(${objIdent})` };
     }
-    const roots = collectReactiveRoots(exprNode, importedNames, localNames);
-    if (roots.length > 0) {
-      const { hoistedFn, hoistedStr, strBodyLen } = generateFnSignal(exprNode, source, roots);
+    const { allDeps } = collectSignalDeps(exprNode, importedNames, localNames);
+    if (allDeps.length > 0) {
+      const { hoistedFn, hoistedStr, strBodyLen } = generateFnSignal(exprNode, source, allDeps);
       if (strBodyLen <= MAX_FN_SIGNAL_BODY_LEN) {
-        return { type: 'fnSignal', deps: roots, hoistedFn, hoistedStr };
+        return { type: 'fnSignal', deps: allDeps, hoistedFn, hoistedStr };
       }
     }
     const objText = source.slice(exprNode.object.start, exprNode.object.end);
@@ -997,11 +989,11 @@ function analyzeMemberExpression(
   }
 
   if (isKnownIdent && isDeepStoreAccess(exprNode, importedNames, localNames)) {
-    const roots = collectReactiveRoots(exprNode, importedNames, localNames);
-    if (roots.length > 0) {
-      const { hoistedFn, hoistedStr, strBodyLen } = generateFnSignal(exprNode, source, roots);
+    const { allDeps } = collectSignalDeps(exprNode, importedNames, localNames);
+    if (allDeps.length > 0) {
+      const { hoistedFn, hoistedStr, strBodyLen } = generateFnSignal(exprNode, source, allDeps);
       if (strBodyLen <= MAX_FN_SIGNAL_BODY_LEN) {
-        return { type: 'fnSignal', deps: roots, hoistedFn, hoistedStr };
+        return { type: 'fnSignal', deps: allDeps, hoistedFn, hoistedStr };
       }
     }
   }

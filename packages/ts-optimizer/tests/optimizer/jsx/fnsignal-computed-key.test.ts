@@ -33,6 +33,33 @@ export const C = component$(() => {
     expect(out).not.toMatch(/=> p0\.value\[name\]/);
   });
 
+  it('parameterizes a direct signal computed key', () => {
+    const input = `
+import { component$, useSignal } from '@qwik.dev/core';
+export const C = component$(() => {
+  const barWidths = useSignal({});
+  return <div>{[5, 4, 3].map((star) => <span style={barWidths.value[star]} />)}</div>;
+});`;
+    const out = run(input);
+    expect(out).toMatch(/const _hf\d+ = \(p0, ?p1\) => p0\.value\[p1\]/);
+    expect(out).toMatch(/_fnSignal\(_hf\d+, \[barWidths, star\]/);
+    expect(out).not.toMatch(/=> p0\.value\[star\]/);
+  });
+
+  it('parameterizes a computed key inside a deep store access', () => {
+    const input = `
+import { component$ } from '@qwik.dev/core';
+import { Image } from './image';
+export const C = component$((props) => {
+  const images = props.images;
+  return <div>{props.items.map((item, index) => <Image src={images[index].image} />)}</div>;
+});`;
+    const out = run(input);
+    expect(out).toMatch(/const _hf\d+ = \(p0, ?p1\) => p0\[p1\]\.image/);
+    expect(out).toMatch(/_fnSignal\(_hf\d+, \[images, index\]/);
+    expect(out).not.toMatch(/=> p0\[index\]\.image/);
+  });
+
   it('leaves a literal computed key inline (no spurious extra dep)', () => {
     const input = `
 import { component$, useSignal } from '@qwik.dev/core';

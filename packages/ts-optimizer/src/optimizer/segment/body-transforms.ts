@@ -234,7 +234,7 @@ export function rewriteNestedCallSitesInline(
             componentScopeWDecls = [];
           }
           const wCall = formatWCall(site.qrlVarName, site.hoistedCaptureNames, '        ', '    ');
-          componentScopeWDecls.push(`const ${site.hoistedSymbolName} = ${wCall};`);
+          componentScopeWDecls.unshift(`const ${site.hoistedSymbolName} = ${wCall};`);
         }
       }
     } else {

@@ -204,6 +204,35 @@ describe('body-transforms', () => {
       expect(declPos).toBeLessThan(out.indexOf('return <button'));
     });
 
+    it('keeps component-scope capture declarations in source order', () => {
+      const body = `() => {
+    const first = 1;
+    const second = 2;
+    return <><button onClick$={FIRST}/><button onClick$={SECOND}/></>;
+}`;
+      const site = (marker: string, symbol: string, capture: string): NestedCallSiteInfo => {
+        const attrStart = body.indexOf(`onClick$={${marker}}`);
+        return {
+          qrlVarName: `q_${symbol}`,
+          callStart: attrStart,
+          callEnd: attrStart + `onClick$={${marker}}`.length,
+          isJsxAttr: true,
+          attrStart,
+          attrEnd: attrStart + `onClick$={${marker}}`.length,
+          transformedPropName: 'onClick$',
+          hoistedSymbolName: symbol,
+          hoistedCaptureNames: [capture],
+        };
+      };
+      const out = rewriteNestedCallSitesInline(
+        body,
+        [site('FIRST', 'firstHandler', 'first'), site('SECOND', 'secondHandler', 'second')],
+        0
+      );
+
+      expect(out.indexOf('const firstHandler')).toBeLessThan(out.indexOf('const secondHandler'));
+    });
+
     it('ends a capture declaration at its statement, not a nested arrow semicolon', () => {
       const body = `() => {
     return items.map((item) => {

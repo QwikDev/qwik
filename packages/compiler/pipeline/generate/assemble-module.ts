@@ -101,9 +101,14 @@ export function assembleQwikModule(
     if (coreEdge !== undefined && parts.imports.size > 0) {
       // Module-top hoists follow the replaced import, keeping the authored statement order.
       const inlineHoists = placement === 'module-top' ? hoists : [];
+      // A chunk-import block ends with a blank line before the hoists; a lone core import does not.
+      const hoistSeparator = parts.chunkImports.length > 0 ? '\n\n' : '\n';
       edits.push({
         range: coreEdge.authoredOwnerRange,
-        text: [...importLines, ...inlineHoists].join('\n'),
+        text:
+          inlineHoists.length === 0
+            ? importLines.join('\n')
+            : `${importLines.join('\n')}${hoistSeparator}${inlineHoists.join('\n')}`,
       });
       header = '';
       hoists = placement === 'module-top' ? [] : hoists;

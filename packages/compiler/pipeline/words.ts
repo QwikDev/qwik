@@ -21,6 +21,7 @@ export const enum QwikWord {
   // shared
   NoopQrl = '_noopQrl',
   UseSignal = 'useSignal',
+  Captures = '_captures',
 }
 
 /** Name stems for generated locals. */

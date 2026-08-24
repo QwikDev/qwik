@@ -178,6 +178,19 @@ describe('differential oracle: staged pipeline vs legacy transformModules', () =
       false
     ));
 
+  test('event handler capturing a signal (ssr)', () =>
+    expectParity(
+      'src/component.tsx',
+      "import { useSignal } from '@qwik.dev/core';\nexport default () => {\n  const count = useSignal(0);\n  return <button onClick$={() => count.value++}>go</button>;\n};\n"
+    ));
+
+  test('event handler capturing a signal (csr)', () =>
+    expectParity(
+      'src/component.tsx',
+      "import { useSignal } from '@qwik.dev/core';\nexport default () => {\n  const count = useSignal(0);\n  return <button onClick$={() => count.value++}>go</button>;\n};\n",
+      false
+    ));
+
   test('element event handler without captures (ssr)', () =>
     expectParity(
       'src/component.tsx',

@@ -11,6 +11,7 @@ import {
   OpKind,
   PropKind,
   ProgramBodyKind,
+  QrlPayloadKind,
   ValueKind,
   type ComponentDecl,
   type LinkedModule,
@@ -236,8 +237,8 @@ function emitEventAttr(
     throw new UnsupportedError('a non-QRL event handler');
   }
   const qrl = module.qrls.find((candidate) => candidate.id === value.use.qrl);
-  if (qrl === undefined || qrl.formals.length > 0) {
-    throw new UnsupportedError('a capturing rust event handler');
+  if (qrl === undefined) {
+    throw new UnsupportedError('a non-QRL event handler');
   }
   lines.push(
     `    out.push_str(&ctx.event_attr(${rustString(prop.name)}, ${rustQrlValue(module, qrl)}));\n`
@@ -293,9 +294,14 @@ function rustQrlValue(
   module: LinkedModule,
   qrl: Parameters<typeof chunkCanonicalFilename>[1]
 ): string {
+  // Function payloads embed captures in the QrlValue; Value payloads pass them at the use site.
+  const captures =
+    qrl.payloadKind === QrlPayloadKind.Function
+      ? qrl.formals.map((formal) => `std::rc::Rc::clone(&local_${formal.binding}), `).join('')
+      : '';
   return (
     `std::rc::Rc::new(qwik::serdes::SerdesValue::Qrl(qwik::serdes::QrlValue {\n` +
-    `        chunk: ${rustString(chunkCanonicalFilename(module, qrl))}.to_string(), symbol: ${rustString(qrl.name)}.to_string(), captures: vec![],\n` +
+    `        chunk: ${rustString(chunkCanonicalFilename(module, qrl))}.to_string(), symbol: ${rustString(qrl.name)}.to_string(), captures: vec![${captures}],\n` +
     `    }))`
   );
 }

@@ -205,15 +205,27 @@ class CsrModuleEmitter {
     el: string,
     statements: string[]
   ): void {
-    const symbols = handlers.map((handler) => {
-      if (handler.h !== HandlerKind.Value || handler.value.v !== ValueKind.Qrl) {
+    const qrls = handlers.map((handler) => {
+      const value = handler.h === HandlerKind.Value ? handler.value : null;
+      if (value === null || value.v !== ValueKind.Qrl) {
         throw new UnsupportedError('a non-QRL event handler');
       }
-      return this.chunkSymbol(handler.value.use.qrl);
+      const qrl = this.module.qrls.find((candidate) => candidate.id === value.use.qrl);
+      if (qrl === undefined) {
+        throw new Error('pipeline.generateJsCsr: unknown qrl');
+      }
+      return qrl;
     });
+    if (qrls.length > 1 && qrls.some((qrl) => qrl.formals.length > 0)) {
+      throw new UnsupportedError('captures across multiple handlers of one event');
+    }
+    const symbols = qrls.map((qrl) => this.chunkSymbol(qrl.id));
+    const captures = captureNames(this.module, qrls[0]);
     const value = symbols.length === 1 ? symbols[0] : `[${symbols.join(', ')}]`;
     this.imports.add(QwikWord.SetEvent);
-    statements.push(`${QwikWord.SetEvent}(${el}, ${JSON.stringify(scopeName)}, ${value});`);
+    statements.push(
+      `${QwikWord.SetEvent}(${el}, ${JSON.stringify(scopeName)}, ${value}${captures.length === 0 ? '' : `, [${captures.join(', ')}]`});`
+    );
   }
 
   private chunkSymbol(id: string): string {

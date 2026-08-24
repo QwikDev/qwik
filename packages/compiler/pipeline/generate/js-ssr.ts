@@ -236,7 +236,10 @@ class SsrModuleEmitter {
           if (handler.h !== HandlerKind.Value || handler.value.v !== ValueKind.Qrl) {
             throw new UnsupportedError('a non-QRL event handler');
           }
-          return this.qrlReference(this.qrlById(handler.value.use.qrl));
+          const qrl = this.qrlById(handler.value.use.qrl);
+          const reference = this.qrlReference(qrl);
+          const captures = captureNames(this.module, qrl);
+          return captures.length === 0 ? reference : `${reference}.w([${captures.join(', ')}])`;
         });
         const value = values.length === 1 ? values[0] : `[${values.join(', ')}]`;
         open.push(`${this.names.ctx}.eventAttr(${JSON.stringify(prop.name)}, ${value})`);

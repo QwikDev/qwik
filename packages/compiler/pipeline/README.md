@@ -30,7 +30,9 @@ passthrough; static components (all supported declaration forms, attrs, void tag
 sibling statements, generated-name allocation, authored param reuse); element event handlers
 (QRL identity, chunks, `_noopQrl` hoists, `setEvent` wiring); dynamic text holes (invoked-segment
 mirrors + `.s()`, `q:id`, `renderSsrTextExpression`/`maybeThen`, CSR placeholder templates +
-`createTextExpressionEffect`). Expressions lower to ValueIR when the
+`createTextExpressionEffect`); `useSignal` setup + signal-read holes (subscription, no QRL);
+event handlers capturing signal locals (`.w([count])` SSR wrapper, `setEvent` captures arg,
+`_captures` chunk prelude, rust `QrlValue.captures`). Expressions lower to ValueIR when the
 vocabulary covers them (JS payload fallback), so Rust evaluates text holes natively; only
 IR-uncoverable expressions refuse on the native target. The linker is still a 1:1 materializer — folding, policies, and edges
 pending. Everything unsupported throws `UnsupportedError`; invalid authored code becomes
@@ -69,6 +71,12 @@ from a deserialized frozen plan in a fresh process.
   markers with a per-element marker counter.
 - Multi-step renders: first step eager, later steps are `invoke(invokeCtx, …)` thunks with lazy
   `??=` id claiming; the value chains nested `maybeThen`.
+- Capture placement follows payload kind: Function-payload QRLs (events) carry captures in the
+  reference (`.w([...])`, `setEvent` 4th arg, rust `QrlValue.captures`) and read them via a
+  `_captures` chunk prelude; Value-payload QRLs (expressions) take captures as chunk params and
+  keep `QrlValue.captures` empty.
+- When an authored core import is replaced in place, a chunk-import block ends with a blank line
+  before module-top hoists; a lone core import does not.
 
 ## Deliberate divergences from the legacy oracle
 
@@ -79,6 +87,11 @@ from a deserialized frozen plan in a fresh process.
   `unsupported-runtime-jsx` (NEVER the oxc fallback — that would emit react/jsx-runtime output).
   Legacy additionally embeds function renders for JSX in call arguments — resolve when that
   fixture family lands.
+- QRL extraction conventions follow the ts-optimizer (PR #8872) / rust optimizer, not legacy
+  `src`: a chunk reaches a non-exported module binding via an appended
+  `export { x as _auto_x };` alias and `import { _auto_x as x }` in the chunk — never via
+  `_captures`. Legacy's bare `export { x }` is its own drift; diverge from it on this fixture
+  family.
 
 ## Pending prerequisites from DESIGN.md Phase 0 (not yet done)
 

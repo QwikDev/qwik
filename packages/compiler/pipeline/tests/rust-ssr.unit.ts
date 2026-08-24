@@ -75,6 +75,45 @@ describe('generateRustSsr', () => {
     );
   });
 
+  test('event handler capturing a signal matches the captured crate output', async () => {
+    const plan = await analyseModule(
+      {
+        path: 'src/component.tsx',
+        code: "import { useSignal } from '@qwik.dev/core';\nexport default () => {\n  const count = useSignal(0);\n  return <button onClick$={() => count.value++}>go</button>;\n};\n",
+      },
+      { transpileTs: true }
+    );
+    const linked = linkPlans(
+      [plan],
+      [{ kind: EntryKind.Module, module: 'src/component.tsx' }],
+      serverSpecialization(),
+      { edges: {} },
+      { claims: [], policies: [], emissions: [] },
+      true
+    );
+    if (linked.kind !== LinkResultKind.Linked) {
+      throw new Error('expected linked');
+    }
+    const generated = await generateRustSsr(linked.plan, 0, {});
+    // `local_1` vs the crate's `local_2`: local numbering follows each plan's binding table.
+    expect(generated.modules[0].code).toBe(
+      'pub fn render_default(ctx: &mut qwik::render::SsrContext, out: &mut String) {\n' +
+        '    let local_1 = std::rc::Rc::new(qwik::serdes::SerdesValue::Signal(\n' +
+        '        std::cell::RefCell::new(qwik::serdes::SignalState { value: std::rc::Rc::new(qwik::serdes::SerdesValue::Number(0f64)), subs: Vec::new() }),\n' +
+        '    ));\n' +
+        '    let mut children_0 = String::new();\n' +
+        '    children_0.push_str("go");\n' +
+        '    out.push_str("<button");\n' +
+        '    out.push_str(&ctx.event_attr("q-e:click", std::rc::Rc::new(qwik::serdes::SerdesValue::Qrl(qwik::serdes::QrlValue {\n' +
+        '        chunk: "component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz".to_string(), symbol: "component_q_e_click_segment_0_2xwyg1cinvmpz".to_string(), captures: vec![std::rc::Rc::clone(&local_1), ],\n' +
+        '    }))));\n' +
+        "    out.push('>');\n" +
+        '    out.push_str(&children_0);\n' +
+        '    out.push_str("</button>");\n' +
+        '}\n'
+    );
+  });
+
   test('text hole matches the captured crate output', async () => {
     const plan = await analyseModule(
       {

@@ -19,7 +19,7 @@ import { identifierName } from './ast/utils';
 import { collectOuterRefs } from './ast/capture-analysis';
 import { UnsupportedError } from '../errors';
 import { allocateSegment, pushPayload, type LowerContext } from './lower-context';
-import { LocalKind, type SetupLocal } from './lower-setup';
+import { LocalKind } from './lower-setup';
 import { tryLowerExprIr } from './lower-expr-ir';
 
 /** Text hole: a signal `.value` read subscribes directly; other expressions become value QRLs. */
@@ -31,6 +31,9 @@ export function lowerTextHole(expression: AstNode, ctx: LowerContext): Op {
   const refs = collectOuterRefs(expression, ctx, new Set());
   if (refs.other !== null) {
     throw new UnsupportedError(`an expression capturing "${refs.other}"`);
+  }
+  if (refs.locals.length > 0) {
+    throw new UnsupportedError(`an expression capturing the signal local "${refs.locals[0].name}"`);
   }
   const range: [number, number] = [expression.start, expression.end];
   const payload = pushPayload(ctx, range);

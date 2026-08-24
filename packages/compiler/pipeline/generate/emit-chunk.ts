@@ -1,12 +1,12 @@
 import {
   FnBodyKind,
-  FormalAccess,
   QrlBodyKind,
   QrlPayloadKind,
   type LinkedModule,
   type LinkedQrl,
 } from '../schema';
 import { getSegmentDisplayName, getSegmentSymbolHash } from '../segment-identity';
+import { QWIK_CORE_IMPORT, QwikWord } from '../words';
 import { UnsupportedError } from '../errors';
 import type { GenerateOutput } from './output';
 
@@ -44,12 +44,7 @@ export function emitQrlChunks(module: LinkedModule): GenerateOutput['modules'] {
 
 /** Capture names double as the chunk fn's parameters for value-payload QRLs. */
 export function captureNames(module: LinkedModule, qrl: LinkedQrl): string[] {
-  return qrl.formals.map((formal) => {
-    if (formal.access !== FormalAccess.ComponentProp) {
-      throw new UnsupportedError('a non-props QRL capture');
-    }
-    return module.bindings[formal.binding].name;
-  });
+  return qrl.formals.map((formal) => module.bindings[formal.binding].name);
 }
 
 /** The regenerated arrow — shared by the chunk export and the SSR in-module mirror. */
@@ -65,9 +60,15 @@ export function chunkFunctionText(module: LinkedModule, qrl: LinkedQrl): string 
     qrl.payloadKind === QrlPayloadKind.Value
       ? captureNames(module, qrl)
       : qrl.origin.paramRanges.map(([start, end]) => source.slice(start, end));
+  const captureLines =
+    qrl.payloadKind === QrlPayloadKind.Function
+      ? captureNames(module, qrl)
+          .map((name, index) => `  const ${name} = ${QwikWord.Captures}[${index}];\n`)
+          .join('')
+      : '';
   const [bodyStart, bodyEnd] = qrl.origin.bodyRange;
   const async = qrl.authoredAsync ? 'async ' : '';
-  return `${async}(${params.join(', ')}) => {\n  return ${source.slice(bodyStart, bodyEnd)};\n}`;
+  return `${async}(${params.join(', ')}) => {\n${captureLines}  return ${source.slice(bodyStart, bodyEnd)};\n}`;
 }
 
 export function chunkCanonicalFilename(module: LinkedModule, qrl: LinkedQrl): string {
@@ -80,5 +81,11 @@ function moduleBasename(module: LinkedModule): string {
 }
 
 function emitChunkCode(module: LinkedModule, qrl: LinkedQrl): string {
-  return `export const ${qrl.name} = ${chunkFunctionText(module, qrl)};\n`;
+  // Function payloads receive captures through the `_captures` prelude; value payloads take them
+  // as parameters (see chunkFunctionText).
+  const prelude =
+    qrl.payloadKind === QrlPayloadKind.Function && qrl.formals.length > 0
+      ? `import { ${QwikWord.Captures} } from ${JSON.stringify(QWIK_CORE_IMPORT)};\n\n`
+      : '';
+  return `${prelude}export const ${qrl.name} = ${chunkFunctionText(module, qrl)};\n`;
 }

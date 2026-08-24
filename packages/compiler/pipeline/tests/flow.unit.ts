@@ -133,6 +133,30 @@ describe('pipeline flow', () => {
     ).rejects.toThrow('JSX outside the discovered components');
   });
 
+  test('event handlers capturing outer bindings fail loud', async () => {
+    await expect(
+      analyseModule(
+        {
+          path: 'src/counter.tsx',
+          code: 'const count = { value: 0 };\nexport default () => {\n  return <button onClick$={() => count.value++}>go</button>;\n};\n',
+        },
+        { transpileTs: true }
+      )
+    ).rejects.toThrow('an event handler capturing "count"');
+  });
+
+  test('block-bodied event handlers are not supported yet', async () => {
+    await expect(
+      analyseModule(
+        {
+          path: 'src/block.tsx',
+          code: 'export default () => {\n  return <button onClick$={() => { console.log(1); }}>go</button>;\n};\n',
+        },
+        { transpileTs: true }
+      )
+    ).rejects.toThrow('a block-bodied event handler');
+  });
+
   test('a mixed return (ternary arm with JSX) is a component candidate', async () => {
     await expect(
       analyseModule(

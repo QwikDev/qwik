@@ -7,6 +7,11 @@ export const enum QwikWord {
   // csr
   CreateTemplate = 'createTemplate',
   FirstChild = '_first',
+  SetEvent = 'setEvent',
+  // ssr
+  CreateSsrElementRecord = 'createSsrElementRecord',
+  // shared
+  NoopQrl = '_noopQrl',
 }
 
 /** Name stems for generated locals. */

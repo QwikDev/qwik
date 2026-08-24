@@ -35,3 +35,16 @@ export function foldStaticOp(op: Op, escapeTextContent: boolean): string {
       throw new UnsupportedError(`folding the op "${op.op}"`);
   }
 }
+
+/** True when the whole subtree folds to markup — no dynamic props, holes, or effects. */
+export function isFullyStaticSubtree(op: Op): boolean {
+  if (op.op === OpKind.Static) {
+    return true;
+  }
+  if (op.op !== OpKind.Element) {
+    return false;
+  }
+  return (
+    op.props.every((prop) => prop.k === PropKind.Static) && op.children.every(isFullyStaticSubtree)
+  );
+}

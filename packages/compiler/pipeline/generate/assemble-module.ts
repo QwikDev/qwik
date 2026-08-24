@@ -1,5 +1,7 @@
 import { AssemblyKind, SurfaceKind, type ComponentDecl, type LinkedModule } from '../schema';
 import { QWIK_CORE_IMPORT } from '../words';
+import { emitQrlChunks } from './emit-chunk';
+import type { GenerateOutput } from './output';
 import {
   allocateGeneratedNames,
   emitComponentFunction,
@@ -10,7 +12,34 @@ import {
 /** Insertion order IS the emitted import order. */
 export interface ModuleParts {
   imports: Set<string>;
+  chunkImports: string[];
   hoists: string[];
+}
+
+export interface QwikModuleEmitter extends ModuleParts {
+  emitProgram(component: ComponentDecl, names: GeneratedNames): ComponentEmission;
+}
+
+/** The main module (assembled over the source) plus one chunk per QRL. */
+export function generateQwikModule(
+  module: LinkedModule,
+  emitter: QwikModuleEmitter,
+  placement: 'component' | 'module-top' = 'component'
+): GenerateOutput['modules'] {
+  const main = {
+    path: module.path,
+    code: assembleQwikModule(
+      module,
+      emitter,
+      (component, names) => emitter.emitProgram(component, names),
+      placement
+    ),
+    map: null,
+    isEntry: false,
+    origPath: null,
+    segment: null,
+  };
+  return [main, ...emitQrlChunks(module)];
 }
 
 /**
@@ -55,18 +84,23 @@ export function assembleQwikModule(
     }
   }
   let prefix = '';
-  if (parts.imports.size > 0 || parts.hoists.length > 0) {
-    const importLine =
-      parts.imports.size === 0
-        ? ''
-        : `import { ${[...parts.imports].join(', ')} } from ${JSON.stringify(QWIK_CORE_IMPORT)};\n\n`;
+  if (parts.imports.size > 0 || parts.chunkImports.length > 0 || parts.hoists.length > 0) {
+    const importLines = [
+      ...(parts.imports.size === 0
+        ? []
+        : [
+            `import { ${[...parts.imports].join(', ')} } from ${JSON.stringify(QWIK_CORE_IMPORT)};`,
+          ]),
+      ...parts.chunkImports,
+    ];
+    const header = importLines.length === 0 ? '' : `${importLines.join('\n')}\n\n`;
     if (placement === 'module-top') {
-      prefix = `${importLine}${parts.hoists.join('\n')}${parts.hoists.length > 0 ? '\n' : ''}`;
+      prefix = `${header}${parts.hoists.join('\n')}${parts.hoists.length > 0 ? '\n' : ''}`;
     } else {
       if (componentEdits.length !== 1) {
         throw new Error('pipeline: imports/hoists in a module with more than one component');
       }
-      componentEdits[0].text = `${importLine}${[...parts.hoists, componentEdits[0].text].join('\n')}`;
+      componentEdits[0].text = `${header}${[...parts.hoists, componentEdits[0].text].join('\n')}`;
     }
   }
   edits.sort((a, b) => b.range[0] - a.range[0]);

@@ -149,6 +149,31 @@ describe('differential oracle: staged pipeline vs legacy transformModules', () =
       "import { something } from './helpers';\nexport default () => {\n  return <p>Hello Qwik</p>;\n};\n"
     ));
 
+  test('element event handler without captures (ssr)', () =>
+    expectParity(
+      'src/component.tsx',
+      'export default () => {\n  return <button onClick$={() => console.log(1)}>go</button>;\n};\n'
+    ));
+
+  test('element event handler without captures (csr)', () =>
+    expectParity(
+      'src/component.tsx',
+      'export default () => {\n  return <button onClick$={() => console.log(1)}>go</button>;\n};\n',
+      false
+    ));
+
+  test('event handler with a parameter (ssr)', () =>
+    expectParity(
+      'src/component.tsx',
+      'export default () => {\n  return <button onDblClick$={(ev) => console.log(ev)}>go</button>;\n};\n'
+    ));
+
+  test('event handler alongside static attributes (ssr)', () =>
+    expectParity(
+      'src/component.tsx',
+      'export default () => {\n  return <button class="cta" onClick$={() => console.log(1)} hidden>go</button>;\n};\n'
+    ));
+
   test.todo('static markup and elements (declaration kinds, attributes, void tags, JSX text)');
   test.todo('JSX in a call argument lowers as an embedded function render');
   test.todo('JSX outside any candidate rejects with unsupported-runtime-jsx');

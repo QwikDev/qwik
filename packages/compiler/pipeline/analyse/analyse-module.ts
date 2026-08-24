@@ -16,7 +16,7 @@ import { collectBindingNames } from './ast/bindings';
 import { findRuntimeJsx, hasComponentCandidates } from './ast/returns-jsx';
 import { parseModule } from './ast/parse';
 import { discoverComponents } from './discover';
-import { lowerJsx } from './lower-jsx';
+import { createLowerContext, lowerJsx } from './lower-jsx';
 import { normalizeSource } from './normalize';
 import { emptyPlan } from './plan';
 
@@ -94,10 +94,12 @@ export async function analyseModule(
     owner: LifetimeOwner.Component,
     commit: LifetimeCommit.Immediate,
   });
+  const lowerContext = createLowerContext(plan, input.path, options.scope);
   for (const component of components) {
+    lowerContext.propsParamName = component.param?.name ?? null;
     let rootOp;
     try {
-      rootOp = lowerJsx(component.jsx);
+      rootOp = lowerJsx(component.jsx, lowerContext);
     } catch (error) {
       if (error instanceof InvalidModuleError) {
         plan.kind = ModuleKind.Failed;

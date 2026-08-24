@@ -1,16 +1,22 @@
 /** `generateJsCsr(browserLinkedPlan, options)` — browser modules from the browser LinkedPlan. */
 import {
   Environment,
+  HandlerKind,
   ModuleKind,
   OpKind,
+  PropKind,
   ProgramBodyKind,
+  ValueKind,
   type ComponentDecl,
   type LinkedModule,
   type LinkedPlan,
   type Op,
+  type Prop,
 } from '../schema';
 import { QwikWord, QwikGenWord } from '../words';
-import { assembleQwikModule } from './assemble-module';
+import { UnsupportedError } from '../errors';
+import { generateQwikModule } from './assemble-module';
+import { chunkCanonicalFilename } from './emit-chunk';
 import { foldStaticOp } from './fold-static';
 import type { ComponentEmission, GeneratedNames } from './emit-component';
 import { generateForeignModule } from './foreign';
@@ -25,7 +31,7 @@ export async function generateJsCsr(
   }
   const modules: GenerateOutput['modules'] = [];
   for (const module of plan.modules) {
-    modules.push(await generateModule(module, options));
+    modules.push(...(await generateModule(module, options)));
   }
   return makeOutput(plan, modules);
 }
@@ -33,26 +39,12 @@ export async function generateJsCsr(
 async function generateModule(
   module: LinkedModule,
   options: PresentationOptions
-): Promise<GenerateOutput['modules'][number]> {
+): Promise<GenerateOutput['modules']> {
   switch (module.kind) {
     case ModuleKind.Foreign:
-      return generateForeignModule(module, options);
-    case ModuleKind.Qwik: {
-      const emitter = new CsrModuleEmitter(module);
-      return {
-        path: module.path,
-        code: assembleQwikModule(
-          module,
-          emitter,
-          (component, names) => emitter.emitProgram(component, names),
-          'module-top'
-        ),
-        map: null,
-        isEntry: false,
-        origPath: null,
-        segment: null,
-      };
-    }
+      return [await generateForeignModule(module, options)];
+    case ModuleKind.Qwik:
+      return generateQwikModule(module, new CsrModuleEmitter(module), 'module-top');
     case ModuleKind.ExportsOnly:
     case ModuleKind.Failed:
       throw new Error(
@@ -63,7 +55,9 @@ async function generateModule(
 
 class CsrModuleEmitter {
   readonly imports = new Set<string>();
+  readonly chunkImports: string[] = [];
   readonly hoists: string[] = [];
+  private readonly importedChunks = new Set<string>();
   /** Per-component: generated locals are function-scoped, so numbering restarts per render. */
   private next!: (prefix: string) => string;
 
@@ -95,23 +89,96 @@ class CsrModuleEmitter {
   ): string {
     switch (op.op) {
       case OpKind.Static:
-      case OpKind.Element: {
-        const fragment = this.next(QwikGenWord.Fragment);
-        const el = this.next(QwikGenWord.Element);
-        const template = `${component.name}_${this.next(QwikGenWord.Template)}`;
-        statements.push(`const ${fragment} = ${template}(${names.ctx}.document);`);
-        this.imports.add(QwikWord.FirstChild);
-        statements.push(`const ${el} = ${QwikWord.FirstChild}(${fragment});`);
-        // The template import and hoist land after the ops walk, matching the request order.
-        this.imports.add(QwikWord.CreateTemplate);
-        this.hoists.push(
-          `const ${template} = ${QwikWord.CreateTemplate}(${JSON.stringify(foldStaticOp(op, true))});`
-        );
-        return el;
-      }
+        return this.staticRoot(op, component, statements, names);
+      case OpKind.Element:
+        return this.elementRoot(op, component, statements, names);
       default:
         throw new Error(`pipeline.generateJsCsr: op "${op.op}" not implemented yet`);
     }
+  }
+
+  private staticRoot(
+    op: Extract<Op, { op: OpKind.Static }>,
+    component: ComponentDecl,
+    statements: string[],
+    names: GeneratedNames
+  ): string {
+    const mounted = this.mountTemplate(component, statements, names);
+    this.hoistTemplate(mounted.template, foldStaticOp(op, true));
+    return mounted.el;
+  }
+
+  private elementRoot(
+    op: Extract<Op, { op: OpKind.Element }>,
+    component: ComponentDecl,
+    statements: string[],
+    names: GeneratedNames
+  ): string {
+    const mounted = this.mountTemplate(component, statements, names);
+    for (const prop of op.props) {
+      if (prop.k === PropKind.Event) {
+        this.event(prop.name, prop.handlers, mounted.el, statements);
+      }
+    }
+    // Template markup excludes event props; text is escaped for innerHTML parsing.
+    this.hoistTemplate(
+      mounted.template,
+      foldStaticOp({ ...op, props: op.props.filter((prop) => prop.k === PropKind.Static) }, true)
+    );
+    return mounted.el;
+  }
+
+  /** Clones the template into fresh `fragmentN`/`elN` locals. */
+  private mountTemplate(
+    component: ComponentDecl,
+    statements: string[],
+    names: GeneratedNames
+  ): { el: string; template: string } {
+    const fragment = this.next(QwikGenWord.Fragment);
+    const el = this.next(QwikGenWord.Element);
+    const template = `${component.name}_${this.next(QwikGenWord.Template)}`;
+    statements.push(`const ${fragment} = ${template}(${names.ctx}.document);`);
+    this.imports.add(QwikWord.FirstChild);
+    statements.push(`const ${el} = ${QwikWord.FirstChild}(${fragment});`);
+    return { el, template };
+  }
+
+  /** After the dynamic wiring, so the template import keeps the request order. */
+  private hoistTemplate(template: string, html: string): void {
+    this.imports.add(QwikWord.CreateTemplate);
+    this.hoists.push(`const ${template} = ${QwikWord.CreateTemplate}(${JSON.stringify(html)});`);
+  }
+
+  /** Events wire the imported chunk fn onto the live element — they never enter the template. */
+  private event(
+    scopeName: string,
+    handlers: Extract<Prop, { k: PropKind.Event }>['handlers'],
+    el: string,
+    statements: string[]
+  ): void {
+    const symbols = handlers.map((handler) => {
+      if (handler.h !== HandlerKind.Value || handler.value.v !== ValueKind.Qrl) {
+        throw new UnsupportedError('a non-QRL event handler');
+      }
+      return this.chunkSymbol(handler.value.use.qrl);
+    });
+    const value = symbols.length === 1 ? symbols[0] : `[${symbols.join(', ')}]`;
+    this.imports.add(QwikWord.SetEvent);
+    statements.push(`${QwikWord.SetEvent}(${el}, ${JSON.stringify(scopeName)}, ${value});`);
+  }
+
+  private chunkSymbol(id: string): string {
+    const qrl = this.module.qrls.find((candidate) => candidate.id === id);
+    if (qrl === undefined) {
+      throw new Error(`pipeline.generateJsCsr: unknown qrl "${id}"`);
+    }
+    if (!this.importedChunks.has(qrl.id)) {
+      this.importedChunks.add(qrl.id);
+      this.chunkImports.push(
+        `import { ${qrl.name} } from ${JSON.stringify(`./${chunkCanonicalFilename(this.module, qrl)}`)};`
+      );
+    }
+    return qrl.name;
   }
 }
 

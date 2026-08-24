@@ -456,17 +456,17 @@ function transformSegmentJsx(
 
     bodyText = session.toSource();
 
-    for (const sym of jsxResult.neededImports) {
-      if (!parts.some((p) => p.includes(`{ ${sym} }`) || p.includes(`, ${sym}`))) {
-        parts.splice(parts.indexOf('//'), 0, `import { ${sym} } from "@qwik.dev/core";`);
-      }
-    }
     if (jsxResult.needsFragment && !parts.some((p) => p.includes('_Fragment'))) {
       parts.splice(
         parts.indexOf('//'),
         0,
         `import { Fragment as _Fragment } from "@qwik.dev/core/jsx-runtime";`
       );
+    }
+    for (const sym of jsxResult.neededImports) {
+      if (!parts.some((p) => p.includes(`{ ${sym} }`) || p.includes(`, ${sym}`))) {
+        parts.splice(parts.indexOf('//'), 0, `import { ${sym} } from "@qwik.dev/core";`);
+      }
     }
     if (jsxResult.hoistedDeclarations) {
       for (const decl of jsxResult.hoistedDeclarations) {
@@ -583,6 +583,11 @@ function normalizeSeparators(parts: string[]): void {
       other.push(p);
     }
   }
+  imports.sort((a, b) => {
+    const rank = (value: string) =>
+      value.includes('@qwik.dev/core/jsx-') ? 1 : value.includes('@qwik.dev/core') ? 2 : 0;
+    return rank(a) - rank(b);
+  });
 
   parts.length = 0;
   if (imports.length > 0) {

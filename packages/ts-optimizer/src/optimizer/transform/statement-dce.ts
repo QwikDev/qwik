@@ -275,6 +275,9 @@ export function applyStatementDCE(
           continue;
         }
       }
+      if (body === program.body) {
+        continue;
+      }
       if (
         id?.type === 'Identifier' &&
         !referenced.has(id.name as string) &&

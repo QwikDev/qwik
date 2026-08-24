@@ -90,4 +90,10 @@ describe('applyStatementDCE', () => {
     expect(out).not.toContain('Thing || {}');
     expect(out).toContain('})({});');
   });
+
+  it('keeps unused top-level side-effectful bindings', () => {
+    const code = 'const Header = componentQrl(q_Header);';
+
+    expect(applyStatementDCE(code, 'test.js')).toBe(code);
+  });
 });

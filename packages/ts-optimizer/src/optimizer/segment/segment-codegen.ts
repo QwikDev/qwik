@@ -611,6 +611,17 @@ function normalizeSeparators(parts: string[]): void {
   }
   if (hoisted.length > 0) {
     parts.push(...hoisted);
+    if (other.length > 0 || qrlDecls.length > 0) {
+      parts.push('//');
+    }
+  }
+  const qrlNames = qrlDecls.map((declaration) => declaration.match(qrlConstName)?.[1]);
+  const usesNestedQrl = (statement: string) =>
+    qrlNames.some((name) => name && new RegExp(`\\b${name}\\b`).test(statement));
+  const beforeQrl = other.filter((statement) => !usesNestedQrl(statement));
+  const afterQrl = other.filter(usesNestedQrl);
+  if (beforeQrl.length > 0) {
+    parts.push(...beforeQrl);
     if (qrlDecls.length > 0) {
       parts.push('//');
     }
@@ -618,7 +629,7 @@ function normalizeSeparators(parts: string[]): void {
   if (qrlDecls.length > 0) {
     parts.push(...qrlDecls, '//');
   }
-  parts.push(...other);
+  parts.push(...afterQrl);
 }
 
 function collectInitialImports(

@@ -38,6 +38,25 @@ const combinedCode = (output: TransformOutput) => output.modules.map((m) => m.co
 
 const compact = (code: string) => code.replace(/\s+/g, '');
 
+describe('segment support declaration order', () => {
+  it('keeps independent moved helpers before nested qrl declarations', () => {
+    const output = transformModule(
+      rustDefaults(`
+import { component$ } from '@qwik.dev/core';
+const helper = () => 'ok';
+export const App = component$(() => <button onClick$={() => {}}>{helper()}</button>);
+`)
+    );
+    const component = segments(output).find((module) => module.segment.ctxName === 'component$')!;
+    const helperIndex = component.code.indexOf('const helper');
+    const qrlIndex = component.code.indexOf('const q_App_component_button_q_e_click');
+
+    expect(helperIndex).toBeGreaterThan(-1);
+    expect(qrlIndex).toBeGreaterThan(-1);
+    expect(helperIndex).toBeLessThan(qrlIndex);
+  });
+});
+
 /** Rust's `get_hash`: the trailing `_`-separated part of a symbol name. */
 const getHash = (name: string) => name.split('_').at(-1)!;
 

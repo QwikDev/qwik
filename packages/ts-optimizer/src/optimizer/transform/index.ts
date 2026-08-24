@@ -936,11 +936,7 @@ function analyzeModuleCaptures(
   };
 }
 
-/**
- * Under inline/hoist, bodies stay at module level so a top-level extraction's module-scope refs
- * resolve in place — drop them from captures to keep non-serializable module singletons out of
- * `_captures`. Nested extractions (function-local captures) are left untouched.
- */
+/** Top-level module references resolve through module wiring, never QRL captures. */
 function dropTopLevelModuleScopeCaptures(
   extractions: ExtractionResult[],
   moduleLevelDeclsByName: ReadonlyMap<string, ModuleLevelDecl>
@@ -1162,6 +1158,13 @@ function attributeSegmentUsage(
   if (isInlineStrategy) {
     migrationDecisions = filterInlineStrategyMigrations(migrationDecisions);
     dropTopLevelModuleScopeCaptures(extractions, moduleLevelDeclsByName);
+  } else if (options.stripCtxName || options.stripEventHandlers) {
+    dropTopLevelModuleScopeCaptures(
+      extractions.filter((ext) =>
+        isStrippedExtraction(ext, options.stripCtxName, options.stripEventHandlers)
+      ),
+      moduleLevelDeclsByName
+    );
   }
 
   return {

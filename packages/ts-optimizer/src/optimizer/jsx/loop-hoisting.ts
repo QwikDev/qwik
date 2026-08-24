@@ -2,6 +2,7 @@ import type {
   AstFunction,
   AstNode,
   CallExpression,
+  MemberExpression,
   ForInStatement,
   ForOfStatement,
   ForStatement,
@@ -48,6 +49,8 @@ function detectMapCall(node: CallExpression): LoopContext | null {
   const callee = node.callee;
   if (
     callee?.type !== 'MemberExpression' ||
+    node.optional ||
+    hasOptionalReceiver(callee) ||
     callee.property?.type !== 'Identifier' ||
     callee.property.name !== 'map'
   ) {
@@ -76,6 +79,17 @@ function detectMapCall(node: CallExpression): LoopContext | null {
     loopBodyStart: bodyRange.start,
     loopBodyEnd: bodyRange.end,
   };
+}
+
+function hasOptionalReceiver(member: MemberExpression): boolean {
+  let current = member;
+  while (current.object.type === 'MemberExpression') {
+    if (current.optional) {
+      return true;
+    }
+    current = current.object;
+  }
+  return current.optional || current.object.type === 'ChainExpression';
 }
 
 function buildLoopContext(

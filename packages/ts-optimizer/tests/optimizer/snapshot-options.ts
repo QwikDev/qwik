@@ -526,17 +526,15 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
   should_ignore_null_inlined_qrl: {
     transpileTs: true,
     transpileJsx: true,
-    entryStrategy: { type: 'inline' },
   },
   should_not_generate_conflicting_props_identifiers: {
     transpileTs: true,
     transpileJsx: true,
-    entryStrategy: { type: 'inline' },
+    entryStrategy: { type: 'hoist' },
   },
   should_not_move_over_side_effects: {
     transpileTs: true,
     transpileJsx: true,
-    entryStrategy: { type: 'inline' },
   },
 
   root_level_self_referential_qrl_inline: {
@@ -550,22 +548,22 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
   example_props_wrapping: {
     transpileTs: true,
     transpileJsx: true,
-    entryStrategy: { type: 'hoist' },
+    entryStrategy: { type: 'inline' },
   },
   example_props_wrapping2: {
     transpileTs: true,
     transpileJsx: true,
-    entryStrategy: { type: 'hoist' },
+    entryStrategy: { type: 'inline' },
   },
   example_props_wrapping_children: {
     transpileTs: true,
     transpileJsx: true,
-    entryStrategy: { type: 'hoist' },
+    entryStrategy: { type: 'inline' },
   },
   example_props_wrapping_children2: {
     transpileTs: true,
     transpileJsx: true,
-    entryStrategy: { type: 'hoist' },
+    entryStrategy: { type: 'inline' },
   },
 
   example_qwik_router_client: {
@@ -578,7 +576,7 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
   inlined_qrl_uses_identifier_reference_when_hoisted_snapshot: {
     transpileTs: true,
     transpileJsx: true,
-    entryStrategy: { type: 'inline' },
+    entryStrategy: { type: 'hoist' },
   },
 
   should_keep_capture_free_sync_handler_direct_when_sibling_moves_captures: {

@@ -1,15 +1,9 @@
-import { createRegExp, exactly, oneOrMore, char } from 'magic-regexp';
 import { buildDisplayName, buildSymbolName } from '../../hashing/naming.js';
 import { getFileStem } from '../../paths.js';
 import type { DisplayName, SymbolName } from '../types/brands.js';
 
-const catchAllRouteParam = createRegExp(
-  exactly('[[...').and(oneOrMore(char).grouped()).and(']]').at.lineStart().at.lineEnd()
-);
-
-const dynamicRouteParam = createRegExp(
-  exactly('[').and(oneOrMore(char).grouped()).and(']').at.lineStart().at.lineEnd()
-);
+const catchAllRouteParam = /^\[\[\.\.\.(.+)\]\]$/;
+const dynamicRouteParam = /^\[(.+)\]$/;
 
 function extractFileStem(fileName: string): string {
   const stem = getFileStem(fileName);

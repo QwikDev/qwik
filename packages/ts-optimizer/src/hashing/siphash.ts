@@ -3,7 +3,6 @@
  * `-`/`_` replaced with `0`.
  */
 
-import { charIn, createRegExp, exactly, global as g, oneOrMore } from 'magic-regexp';
 import SipHash13 from 'siphash/lib/siphash13.js';
 import { type Hash, mkHash } from '../optimizer/types/brands.js';
 
@@ -38,16 +37,11 @@ function encodeHash(input: string): Hash {
   bytes[6] = (result.h >>> 16) & 0xff;
   bytes[7] = (result.h >>> 24) & 0xff;
 
-  const PLUS = createRegExp(exactly('+'), [g]);
-  const SLASH = createRegExp(exactly('/'), [g]);
-  const TRAILING_PAD = createRegExp(oneOrMore('=').at.lineEnd());
-  const DASH_UNDERSCORE = createRegExp(charIn('-_'), [g]);
-
   const base64 = btoa(String.fromCharCode(...bytes));
   const encoded = base64
-    .replace(PLUS, '-')
-    .replace(SLASH, '_')
-    .replace(TRAILING_PAD, '')
-    .replace(DASH_UNDERSCORE, '0');
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '')
+    .replace(/[-_]/g, '0');
   return mkHash(encoded);
 }

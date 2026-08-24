@@ -1,4 +1,3 @@
-import { createRegExp, exactly, maybe, whitespace } from 'magic-regexp';
 import type { AstFunction, AstMaybeNode, AstNode, AstProgram } from '../../ast-types.js';
 import type { Diagnostic, DiagnosticHighlightFlat } from '../types/types.js';
 
@@ -55,13 +54,7 @@ export function emitPassiveConflictWarning(
 
 const DIRECTIVE_MARKER = '@qwik-disable-next-line';
 
-const TRAILING_COMMENT_CLOSER = createRegExp(
-  exactly('*/')
-    .and(whitespace.times.any())
-    .and(maybe(exactly('}')))
-    .and(whitespace.times.any())
-    .at.lineEnd()
-);
+const TRAILING_COMMENT_CLOSER = /\*\/\s*}?\s*$/;
 
 export function parseDisableDirectives(sourceCode: string): Map<number, Set<string>> {
   const directives = new Map<number, Set<string>>();

@@ -3,17 +3,6 @@
  * metadata, parent module blocks, and diagnostics.
  */
 
-import {
-  createRegExp,
-  exactly,
-  oneOrMore,
-  char,
-  whitespace,
-  linefeed,
-  multiline as m,
-  global as g,
-} from 'magic-regexp';
-
 export interface SegmentMetadata {
   origin: string;
   name: string;
@@ -165,19 +154,7 @@ function extractInput(body: string): { input: string | null; rest: string } {
     afterInput = afterInput.slice(1);
   }
 
-  const delimMatch = afterInput.match(
-    createRegExp(
-      exactly('=')
-        .times.atLeast(3)
-        .and(whitespace.times.any())
-        .and(oneOrMore(char))
-        .and(whitespace.times.any())
-        .and(exactly('=='))
-        .at.lineStart()
-        .at.lineEnd(),
-      [m]
-    )
-  );
+  const delimMatch = afterInput.match(/^={3,}\s*.+\s*==$/m);
   if (!delimMatch || delimMatch.index === undefined) {
     // trimEnd() preserves leading newlines — they affect the qrlDEV lo/hi byte
     // offsets, computed from the original input including leading whitespace.
@@ -194,17 +171,7 @@ function extractInput(body: string): { input: string | null; rest: string } {
  * Section delimiter pattern: lines like ============================= filename.tsx (ENTRY POINT)==
  * ============================= filename.tsx ==
  */
-const SECTION_DELIM_RE = createRegExp(
-  exactly('=')
-    .times.atLeast(3)
-    .groupedAs('eq')
-    .and(whitespace.times.any())
-    .and(oneOrMore(char).groupedAs('name'))
-    .and(whitespace.times.any())
-    .and(exactly('==').groupedAs('end'))
-    .at.lineStart()
-    .at.lineEnd()
-);
+const SECTION_DELIM_RE = /^(?<eq>={3,})\s*(?<name>.+)\s*(?<end>==)$/;
 
 function parseSections(body: string): {
   segments: SegmentBlock[];
@@ -284,24 +251,15 @@ function extractCodeAndSourceMap(sectionBody: string): {
   code: string;
   sourceMap: string | null;
 } {
-  const someMatch = sectionBody.match(
-    createRegExp(
-      exactly('Some("')
-        .and(char.times.any().groupedAs('val'))
-        .and(exactly('")'))
-        .at.lineStart()
-        .at.lineEnd(),
-      [m]
-    )
-  );
+  const someMatch = sectionBody.match(/^Some\("(?<val>.*)"\)$/m);
 
   let sourceMap: string | null = null;
   let code: string;
 
   if (someMatch && someMatch.index !== undefined) {
     sourceMap = (someMatch.groups?.val ?? someMatch[1])!
-      .replace(createRegExp(exactly('\\"'), [g]), '"')
-      .replace(createRegExp(exactly('\\\\'), [g]), '\\');
+      .replace(/\\"/g, '"')
+      .replace(/\\\\/g, '\\');
 
     code = sectionBody.slice(0, someMatch.index).trimEnd();
   } else {
@@ -316,9 +274,7 @@ function extractCodeAndSourceMap(sectionBody: string): {
     }
   }
 
-  code = code
-    .replace(createRegExp(oneOrMore(linefeed).at.lineStart()), '')
-    .replace(createRegExp(oneOrMore(linefeed).at.lineEnd()), '');
+  code = code.replace(/^\n+/, '').replace(/\n+$/, '');
 
   return { code, sourceMap };
 }

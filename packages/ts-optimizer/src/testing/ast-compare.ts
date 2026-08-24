@@ -1,5 +1,5 @@
 import { parseSync } from 'oxc-parser';
-import equal from 'fast-deep-equal';
+import { isDeepStrictEqual } from 'node:util';
 import type { AstCompatNode } from '../ast-types.js';
 import { isAstNode } from '../optimizer/ast/guards.js';
 
@@ -75,7 +75,7 @@ export function compareAst(expected: string, actual: string, filename: string): 
   const finalExpected = stripPositions(cleanExpected);
   const finalActual = stripPositions(cleanActual);
 
-  const astMatch = equal(finalExpected, finalActual);
+  const astMatch = isDeepStrictEqual(finalExpected, finalActual);
 
   return {
     match: astMatch,

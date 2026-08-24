@@ -1,11 +1,4 @@
-import { charIn, createRegExp } from 'magic-regexp';
-
-const simpleIdentifierName = createRegExp(
-  charIn('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_$')
-    .and(charIn('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_$').times.any())
-    .at.lineStart()
-    .at.lineEnd()
-);
+const simpleIdentifierName = /^[A-Za-z_$][A-Za-z0-9_$]*$/;
 
 export function isSimpleIdentifierName(name: string): boolean {
   return simpleIdentifierName.test(name);

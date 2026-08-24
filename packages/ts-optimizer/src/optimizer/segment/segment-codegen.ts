@@ -1,4 +1,3 @@
-import { createRegExp, exactly, oneOrMore, whitespace, charNotIn } from 'magic-regexp';
 import { createTransformSession } from '../edit/transform-session.js';
 import { rewriteImportSource } from '../rewrite/rewrite-imports.js';
 import { inlineConstCaptures } from '../rewrite/index.js';
@@ -41,15 +40,7 @@ import {
 } from './body-transforms.js';
 import { recollectPostTransformImports } from './import-collection.js';
 
-const qrlConstName = createRegExp(
-  exactly('const')
-    .and(oneOrMore(whitespace))
-    .and(
-      exactly('q_')
-        .and(oneOrMore(charNotIn(' \t\n\r')))
-        .grouped()
-    )
-);
+const qrlConstName = /const\s+(q_\S+)/;
 
 /**
  * Capture/migration payloads for one segment. `skipCaptureInjection` means the body already

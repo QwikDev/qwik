@@ -1,4 +1,3 @@
-import { createRegExp, exactly, anyOf, global } from 'magic-regexp';
 import type { AstMaybeNode, AstNode } from '../../ast-types.js';
 import { forEachAstChild, someAstDescendant, memberStaticPropName } from '../ast/guards.js';
 import { lambdaBodySimplificationsCollector } from './simplify.js';
@@ -14,7 +13,7 @@ import { skipStringLiteralForward } from '../edit/text-scanning.js';
 import { stripExpressionTypes } from '../edit/strip-types.js';
 import { addBindingNamesFromPatternToSet } from '../ast/binding-pattern.js';
 
-const trailingComma = createRegExp(exactly(',').and(anyOf('}', ']', ')').grouped()), [global]);
+const trailingComma = /,([}\])])/g;
 
 export type SignalExprResult =
   | { type: 'none' }

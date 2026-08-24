@@ -1,5 +1,4 @@
 import { describe, it, expect } from 'vitest';
-import { createRegExp, oneOrMore, anyOf, letter, digit, charIn } from 'magic-regexp';
 import { qwikHash } from '../../src/hashing/siphash.js';
 import { parseSnapshot } from '../../src/testing/snapshot-parser.js';
 import { readFileSync, readdirSync } from 'node:fs';
@@ -22,8 +21,8 @@ describe('qwikHash', () => {
   it('output is exactly 11 characters of [A-Za-z0-9]', () => {
     const hash = qwikHash(undefined, 'test.tsx', 'renderHeader1');
     expect(hash).toHaveLength(11);
-    expect(hash).toMatch(createRegExp(oneOrMore(anyOf(letter, digit)).at.lineStart().at.lineEnd()));
-    expect(hash).not.toMatch(createRegExp(charIn('-_')));
+    expect(hash).toMatch(/^[A-Za-z0-9]+$/);
+    expect(hash).not.toMatch(/[-_]/);
   });
 
   it('matches all hashes across the snapshot corpus', () => {

@@ -7,7 +7,6 @@
  */
 
 import MagicString from 'magic-string';
-import { anyOf, createRegExp, wordBoundary } from 'magic-regexp';
 import type { AstMaybeNode, AstNode, AstProgram } from '../../ast-types.js';
 import { parseWithRawTransfer } from '../ast/parse.js';
 import { forEachAstChild } from '../ast/guards.js';
@@ -17,7 +16,7 @@ import { forEachAstChild } from '../ast/guards.js';
  * module without one has nothing to fold. Enumerating the _shapes_ instead would silently skip the
  * pass whenever a new one appeared — that is how constant-test ternaries went unfolded.
  */
-const booleanLiteral = createRegExp(wordBoundary.and(anyOf('true', 'false')).and(wordBoundary));
+const booleanLiteral = /\b(?:true|false)\b/;
 
 export function hasSegmentDcePatterns(code: string): boolean {
   return booleanLiteral.test(code);

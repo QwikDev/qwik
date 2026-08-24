@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { parseSync } from 'oxc-parser';
-import equal from 'fast-deep-equal';
+import { isDeepStrictEqual as equal } from 'node:util';
 import { parseSnapshot } from '../../src/testing/snapshot-parser.js';
 import { transformModule } from '../../src/optimizer/transform/index.js';
 import { getSnapshotTransformOptions } from './snapshot-options.js';

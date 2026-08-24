@@ -1,14 +1,3 @@
-import {
-  createRegExp,
-  exactly,
-  oneOrMore,
-  maybe,
-  anyOf,
-  wordChar,
-  wordBoundary,
-  whitespace,
-  global,
-} from 'magic-regexp';
 import { walk } from 'oxc-walker';
 import type { AstNode } from '../../ast-types.js';
 import {
@@ -28,20 +17,9 @@ import {
   scanMatchingParenBackward,
   scanMatchingParenForward,
 } from '../edit/text-scanning.js';
-import { replaceOutsideStrings } from '../edit/identifier-boundary.js';
+import { replaceOutsideStrings, wholeIdentifierPattern } from '../edit/identifier-boundary.js';
 
-const qwikDisableDirective = createRegExp(
-  exactly('/*')
-    .and(whitespace.times.any())
-    .and('@qwik-disable-next-line')
-    .and(oneOrMore(whitespace))
-    .and(oneOrMore(wordChar))
-    .and(whitespace.times.any())
-    .and('*/')
-    .and(whitespace.times.any())
-    .and(maybe(exactly('\n'))),
-  [global]
-);
+const qwikDisableDirective = /\/\*\s*@qwik-disable-next-line\s+\w+\s*\*\/\s*\n?/g;
 
 function getNestedCallSiteStart(site: NestedCallSiteInfo): number {
   if (!site.isJsxAttr) {
@@ -114,12 +92,8 @@ function findEnclosingArrowBodyForCapture(
 
     const bodyStart = i + 1;
     const bodySlice = text.slice(bodyStart, pos);
-    const localDeclPattern = createRegExp(
-      wordBoundary,
-      anyOf('const', 'let', 'var'),
-      oneOrMore(whitespace),
-      exactly(capturedVarName),
-      wordBoundary
+    const localDeclPattern = new RegExp(
+      `\\b(?:const|let|var)\\s+${wholeIdentifierPattern(capturedVarName).source}`
     );
     if (localDeclPattern.test(bodySlice)) {
       return bodyStart;
@@ -130,13 +104,8 @@ function findEnclosingArrowBodyForCapture(
 
 function findVarDeclarationEnd(text: string, startPos: number, varName: string): number {
   const code = blankNonCode(text);
-  const pattern = createRegExp(
-    wordBoundary,
-    anyOf('const', 'let', 'var'),
-    oneOrMore(whitespace),
-    exactly(varName),
-    whitespace.times.any(),
-    exactly('=')
+  const pattern = new RegExp(
+    `\\b(?:const|let|var)\\s+${wholeIdentifierPattern(varName).source}\\s*=`
   );
   const match = pattern.exec(code.slice(startPos));
   if (!match) {
@@ -539,7 +508,6 @@ export function stripDiagnosticsAndDirectives(bodyText: string): string {
   // original — a `passive:` or `>` inside a string can't confuse the scan.
   const code = blankNonCode(bodyText);
   const deletions: Array<{ start: number; end: number }> = [];
-  // Not converted to magic-regexp: lazy quantifiers inside capture groups aren't supported.
   for (const tag of code.matchAll(/<(\w+)([^>]*?)>/g)) {
     const attrs = tag[2];
     const attrsStart = tag.index + 1 + tag[1].length;
@@ -711,9 +679,7 @@ export function removeDeadConstLiterals(bodyText: string): string {
   const toRemove: DeadCandidate[] = [];
   for (const c of candidates) {
     const rest = bodyText.slice(0, c.stmtStart) + bodyText.slice(c.stmtEnd);
-    const escaped = createRegExp(exactly(c.name)).source;
-    const re = new RegExp(`(?<![\\w$])${escaped}(?![\\w$])`);
-    if (!re.test(rest)) {
+    if (!wholeIdentifierPattern(c.name).test(rest)) {
       toRemove.push(c);
     }
   }

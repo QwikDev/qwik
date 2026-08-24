@@ -1036,21 +1036,12 @@ importers:
 
   packages/ts-optimizer:
     dependencies:
-      '@emnapi/core':
-        specifier: 1.11.3
-        version: 1.11.3
-      '@emnapi/runtime':
-        specifier: 1.11.3
-        version: 1.11.3
       '@oxc-project/types':
         specifier: 0.144.0
         version: 0.144.0
       entities:
         specifier: 7.0.1
         version: 7.0.1
-      magic-regexp:
-        specifier: ^0.11.0
-        version: 0.11.0
       magic-string:
         specifier: ^0.30.21
         version: 0.30.21
@@ -1073,9 +1064,6 @@ importers:
       '@types/node':
         specifier: 25.6.0
         version: 25.6.0
-      fast-deep-equal:
-        specifier: 3.1.3
-        version: 3.1.3
       tsdown:
         specifier: 0.22.3
         version: 0.22.3(tsx@4.21.0)(typescript@5.9.3)

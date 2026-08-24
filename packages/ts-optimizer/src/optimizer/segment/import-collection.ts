@@ -3,7 +3,6 @@
  * from the original segmentImports; this scans the final body text and adds the missing imports.
  */
 
-import { createRegExp, oneOrMore, wordChar, wordBoundary, global } from 'magic-regexp';
 import { walk, getUndeclaredIdentifiersInFunction } from 'oxc-walker';
 import type { AstFunction, AstNode } from '../../ast-types.js';
 import { createTransformSession } from '../edit/transform-session.js';
@@ -18,10 +17,7 @@ interface SegmentImportSpec {
   importedName: string;
 }
 
-const qrlSuffixPattern = createRegExp(
-  wordBoundary.and(oneOrMore(wordChar).and('Qrl').grouped()).and(wordBoundary),
-  [global]
-);
+const qrlSuffixPattern = /\b(\w+Qrl)\b/g;
 
 function collectBodyIdentifiers(bodyText: string): Set<string> {
   const ids = new Set<string>();
@@ -67,7 +63,6 @@ function collectBodyIdentifiers(bodyText: string): Set<string> {
       }
     }
   } catch {
-    // Not converted to magic-regexp: charIn() escapes hyphens, breaking character ranges.
     const identRegex = /\b([A-Z_$][a-zA-Z0-9_$]*)\b/g;
     let match;
     while ((match = identRegex.exec(bodyText)) !== null) {

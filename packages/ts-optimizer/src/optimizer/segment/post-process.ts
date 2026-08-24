@@ -1,4 +1,3 @@
-import { createRegExp, digit, exactly, global } from 'magic-regexp';
 import { type TransformOptions } from 'oxc-transform';
 import type { SegmentCaptureInfo } from './segment-codegen.js';
 import { runDcePipeline } from '../transform/module-cleanup.js';
@@ -30,17 +29,15 @@ export interface SegmentPostProcessOptions {
   devFile?: string;
 }
 
-const pureAnnotationComment = createRegExp(exactly('/* @__PURE__ */'), [global]);
+const pureAnnotationComment = /\/\* @__PURE__ \*\//g;
 
-export const leadingSquareBracket = createRegExp(exactly('[').at.lineStart());
+export const leadingSquareBracket = /^\[/;
 
-export const trailingSquareBracket = createRegExp(exactly(']').at.lineEnd());
+export const trailingSquareBracket = /\]$/;
 
-export const leadingDot = createRegExp(exactly('.').at.lineStart());
+export const leadingDot = /^\./;
 
-export const paddingParam = createRegExp(
-  exactly('_').and(digit.times.any()).at.lineStart().at.lineEnd()
-);
+export const paddingParam = /^_\d*$/;
 
 export function getWholeWordPattern(name: string): RegExp {
   return wholeIdentifierPattern(name);

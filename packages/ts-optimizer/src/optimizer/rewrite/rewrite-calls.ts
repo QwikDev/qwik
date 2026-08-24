@@ -1,32 +1,14 @@
-import {
-  createRegExp,
-  exactly,
-  oneOrMore,
-  whitespace,
-  wordChar,
-  charIn,
-  global,
-} from 'magic-regexp';
 import { transformSync as oxcTransformSync } from 'oxc-transform';
 import { rewriteImportSource } from './rewrite-imports.js';
 import { isQwikPackageSource } from '../qwik/qwik-packages.js';
 import { quoteAsStringLiteral } from '../edit/string-literal.js';
 import { scanMatchingParenForward, skipStringLiteralForward } from '../edit/text-scanning.js';
 
-const collapsedWhitespace = createRegExp(oneOrMore(whitespace), [global]);
-
-const spacesAroundOperators = createRegExp(
-  whitespace.times
-    .any()
-    .and(charIn('{}(),:;=<>+\\-*/%&|!?.').grouped())
-    .and(whitespace.times.any()),
-  [global]
-);
+const collapsedWhitespace = /\s+/g;
+const spacesAroundOperators = /\s*([{}(),:;=<>+\-*/%&|!?.])\s*/g;
 
 // All single-ident arrow params drop their parens (rust minifier parity).
-const singleArrowParam = createRegExp(exactly('(').and(oneOrMore(wordChar).grouped()).and(')=>'), [
-  global,
-]);
+const singleArrowParam = /\((\w+)\)=>/g;
 
 interface MovedCapturesSource {
   readonly ctxKind: 'function' | 'eventHandler' | 'jSXProp';

@@ -1,4 +1,3 @@
-import { createRegExp, exactly, multiline, oneOrMore, wordChar } from 'magic-regexp';
 import MagicString from 'magic-string';
 import { walk } from 'oxc-walker';
 import { ScopeQueryTracker } from '../analysis/scope-query-tracker.js';
@@ -30,10 +29,7 @@ import type { ExtractionResult } from '../extraction/extract.js';
 import type { TransformModule } from '../types/types.js';
 import type { RelativePath } from '../types/brands.js';
 
-const exportConstLine = createRegExp(
-  exactly('export const ').and(oneOrMore(wordChar)).and(' = ').at.lineStart(),
-  [multiline]
-);
+const exportConstLine = /^export const \w+ = /m;
 
 const CONST_IMPORT_SOURCES: readonly string[] = [
   '@qwik.dev/core',

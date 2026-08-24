@@ -23,11 +23,7 @@ export function isEventHandlerOrJsxProp(ctxKind: ExtractionResult['ctxKind'] | u
   return ctxKind === 'eventHandler' || ctxKind === 'jSXProp';
 }
 
-/**
- * Whether the parameter list begins with `(_, _1, ...)` — the convention for loop callbacks where
- * the first two slots are positional placeholders for the loop's index and item; real captures
- * begin at index 2.
- */
+/** Whether the parameter list carries loop-handler positional padding. */
 export function hasUnderscorePlaceholderParams(
   paramNames: readonly string[],
   movedCaptures?: boolean
@@ -38,7 +34,7 @@ export function hasUnderscorePlaceholderParams(
   if (movedCaptures && paramNames.length >= 3) {
     return true;
   }
-  return paramNames.length >= 2 && paramNames[0] === '_' && paramNames[1] === '_1';
+  return paramNames.length >= 2 && paramNames[1] === '_1';
 }
 
 /**

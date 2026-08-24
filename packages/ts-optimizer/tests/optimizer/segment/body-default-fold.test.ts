@@ -122,4 +122,10 @@ export const C = component$(({val = SENTINEL}) => {
     expect(after).toMatch(/const b = true\b/);
     expect(after).toMatch(/const c = 'yes'/);
   });
+
+  it('keeps void expressions in their minified source form', () => {
+    const before = `() => use(void 0, undefined)`;
+
+    expect(foldBodySimplifiableExpressions(before)).toBe(before);
+  });
 });

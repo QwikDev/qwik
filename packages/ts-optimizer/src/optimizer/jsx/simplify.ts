@@ -153,7 +153,7 @@ export function formatSimplifiedLiteral(value: unknown): string {
     return `'${value.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, '\\r')}'`;
   }
   if (value === undefined) {
-    return 'undefined';
+    return 'void 0';
   }
   if (value === null) {
     return 'null';

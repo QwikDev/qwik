@@ -15,7 +15,7 @@ import { parseWithRawTransfer } from '../ast/parse.js';
 import { replaceResolvedConstIdentifiers } from '../rewrite/const-replacement.js';
 import { isRelativePathInsideBase } from '../../paths.js';
 import { applySegmentDCE, hasSegmentDcePatterns } from './dead-code.js';
-import { applyStatementDCE } from './statement-dce.js';
+import { applyStatementDCE, extractBinaryOperandIdentifiers } from './statement-dce.js';
 import {
   formatImportParts,
   formatImportStatement,
@@ -315,7 +315,7 @@ export function applySegmentSideEffectSimplification(
     if (decl.initType === 'MemberExpression' || decl.initType === 'CallExpression') {
       replacement = decl.initText + ';';
     } else if (decl.initType === 'BinaryExpression') {
-      const operandIds = extractBinaryOperandIdentifiersFromAst(decl.initNode);
+      const operandIds = extractBinaryOperandIdentifiers(decl.initNode);
       replacement = operandIds.length > 0 ? operandIds.join(', ') + ';' : decl.initText + ';';
     } else {
       continue;
@@ -647,40 +647,6 @@ export function buildParentExtractionMap(
     }
   }
   return map;
-}
-
-/**
- * Collect identifier names from a BinaryExpression subtree (`a + b + c` → `[a, b, c]`). Only real
- * `Identifier` nodes are touched, so identifier-like substrings inside string literals (`'p' + pi`)
- * are not misread as reads.
- */
-function extractBinaryOperandIdentifiersFromAst(node: AstNode): string[] {
-  const ids: string[] = [];
-  const seen = new Set<string>();
-  function visit(n: AstNode | null | undefined): void {
-    if (!n) {
-      return;
-    }
-    if (n.type === 'Identifier') {
-      if (!seen.has(n.name)) {
-        seen.add(n.name);
-        ids.push(n.name);
-      }
-      return;
-    }
-    if (n.type === 'BinaryExpression' || n.type === 'LogicalExpression') {
-      visit(n.left);
-      visit(n.right);
-      return;
-    }
-    if (n.type === 'ParenthesizedExpression') {
-      visit(n.expression);
-      return;
-    }
-    // Literals, calls, and member expressions contribute no bare-identifier reads.
-  }
-  visit(node);
-  return ids;
 }
 
 export interface DcePipelineOptions {

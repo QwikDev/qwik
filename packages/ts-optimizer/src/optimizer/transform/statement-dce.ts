@@ -22,6 +22,29 @@ function isRecordNode(value: unknown): value is Record<string, unknown> & Ranged
   return typeof value === 'object' && value !== null && 'type' in value;
 }
 
+export function extractBinaryOperandIdentifiers(node: AstNode): string[] {
+  const names: string[] = [];
+  const visit = (current: AstNode | null | undefined): boolean => {
+    if (!current) {
+      return false;
+    }
+    if (current.type === 'Identifier') {
+      names.push(current.name);
+      return true;
+    }
+    if (current.type === 'Literal') {
+      return true;
+    }
+    if (current.type === 'BinaryExpression') {
+      return visit(current.left) && visit(current.right);
+    } else if (current.type === 'ParenthesizedExpression') {
+      return visit(current.expression);
+    }
+    return false;
+  };
+  return visit(node) ? names : [];
+}
+
 /** Names referenced anywhere except declaration-name positions; dead ranges don't count. */
 function collectReferencedNames(program: AstProgram, dead: readonly RangedNode[]): Set<string> {
   const referenced = new Set<string>();
@@ -284,7 +307,14 @@ export function applyStatementDCE(
         !isPureInit(init) &&
         isRecordNode(init)
       ) {
-        preservedInitializers.push({ stmt, text: `${code.slice(init.start, init.end)};` });
+        const binaryNames =
+          init.type === 'BinaryExpression'
+            ? extractBinaryOperandIdentifiers(init as unknown as AstNode)
+            : [];
+        preservedInitializers.push({
+          stmt,
+          text: `${binaryNames.length ? binaryNames.join(', ') : code.slice(init.start, init.end)};`,
+        });
       }
     }
   }

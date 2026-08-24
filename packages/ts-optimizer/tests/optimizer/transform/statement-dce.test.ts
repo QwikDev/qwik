@@ -96,4 +96,10 @@ describe('applyStatementDCE', () => {
 
     expect(applyStatementDCE(code, 'test.js')).toBe(code);
   });
+
+  it('keeps only reads from an unused binary initializer', () => {
+    const code = 'export const seg = () => { const unused = left + right; };';
+
+    expect(applyStatementDCE(code, 'test.js')).toBe('export const seg = () => { left, right; };');
+  });
 });

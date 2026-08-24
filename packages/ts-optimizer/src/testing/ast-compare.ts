@@ -81,6 +81,19 @@ export function stripAstPositions(
     if (POSITION_KEYS.has(key) || (key === 'raw' && shouldStripRaw(node, ancestors))) {
       continue;
     }
+    if (
+      key === 'key' &&
+      node.type === 'Property' &&
+      node.computed === false &&
+      isRecord(value) &&
+      (value.type === 'Identifier' || (value.type === 'Literal' && typeof value.value === 'string'))
+    ) {
+      result[key] = {
+        type: 'Literal',
+        value: value.type === 'Identifier' ? value.name : value.value,
+      };
+      continue;
+    }
     result[key] =
       key === 'shorthand' && node.type === 'Property'
         ? false

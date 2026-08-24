@@ -79,6 +79,12 @@ describe('compareAst', () => {
     expect(compareAst('use({ value });', 'use({ value: value });', 'test.ts').match).toBe(true);
   });
 
+  it('ignores quoting on static object keys', () => {
+    expect(compareAst('use({ "value": item });', 'use({ value: item });', 'test.ts').match).toBe(
+      true
+    );
+  });
+
   it('ignores redundant control-flow blocks', () => {
     const expected = 'if (ready) return value; while (waiting) break;';
     const actual = 'if (ready) { return value; } while (waiting) { break; }';

@@ -12,6 +12,32 @@ function findParent(result: { modules: readonly TransformModule[] }): TransformM
 }
 
 describe('_jsxSplit bag split for _restProps spread + real const entry', () => {
+  it('preserves bind and spread override order', () => {
+    const input = `
+import { component$, useSignal } from '@qwik.dev/core';
+export const C = component$((props) => {
+  const value = useSignal('');
+  return <><input bind:value={value} {...props}/><input {...props} bind:value={value}/></>;
+});
+`;
+    const result = transformModule({
+      input: [{ path: mkFilePath('test.tsx'), code: mkSourceText(input) }],
+      srcDir: mkFilePath('.'),
+      entryStrategy: { type: 'segment' },
+      transpileJsx: true,
+    });
+    const segment = result.modules.find(
+      (module) => module.kind === 'segment' && module.segment.ctxName === 'component$'
+    );
+    if (!segment) {
+      throw new Error('component segment not found');
+    }
+
+    expect(segment.code).toMatch(
+      /"bind:value": value,\s*\.\.\._getVarProps\(props\)[\s\S]*\.\.\._getVarProps\(props\),\s*"bind:value": value/
+    );
+  });
+
   it('splits spread when a boolean-attribute const entry is present', () => {
     const input = `
 import { component$ } from '@qwik.dev/core';

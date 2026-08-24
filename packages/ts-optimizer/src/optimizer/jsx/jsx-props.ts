@@ -394,7 +394,12 @@ export function processProps(
     }
 
     if (isBindProp(propName) && hasSpreadAttr) {
-      pushNamed(varEntries, `"${propName}": ${valueText}`, 'var', attr.start);
+      pushNamed(
+        beforeSpread ? beforeSpreadEntries : varEntries,
+        `"${propName}": ${valueText}`,
+        'var',
+        attr.start
+      );
       continue;
     }
 

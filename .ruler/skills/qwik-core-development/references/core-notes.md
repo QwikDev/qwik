@@ -41,7 +41,7 @@ Current API and implementation facts:
   `AsyncSignalImpl` only parses options and sets `AsyncSignalFlags.ASYNC_MODE | CTX_ARG`.
 - All compute fns receive the ComputeCtx argument (`track`, `previous`, `info`, `cleanup`,
   `abortSignal`); sync computeds allocate an AsyncJob per compute and run the previous job's
-  cleanups before recomputing. `CTX_ARG` signals (useAsync$/useResource$) track only via the
+  cleanups before recomputing. `CTX_ARG` signals (`createAsyncQrl`/`useResource$`) track only via the
   explicit `ctx.track()`; computeds auto-track synchronous reads via a dedicated invoke context,
   but that context is lost after the first `await` — later reads must use `ctx.track()`.
 - A computed whose fn returns a promise lazily switches on `ASYNC_MODE` (loading state stays
@@ -94,7 +94,7 @@ Use the current test helpers already present in nearby tests:
 
 ```typescript
 await withContainer(async () => {
-  const signal = createAsync$(async () => 42) as AsyncSignalImpl<number>;
+  const signal = createAsyncQrl($(async () => 42)) as AsyncSignalImpl<number>;
 
   await retryOnPromise(() => {
     effect$(() => signal.value);

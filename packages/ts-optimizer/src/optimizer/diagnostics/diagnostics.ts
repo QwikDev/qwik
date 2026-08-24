@@ -13,6 +13,22 @@ export function emitC02(identName: string, file: string): Diagnostic {
   };
 }
 
+export function emitC03(
+  identNames: readonly string[],
+  file: string,
+  highlightSpan: DiagnosticHighlightFlat
+): Diagnostic {
+  return {
+    category: 'error',
+    code: 'C03',
+    file,
+    message: `Qrl($) scope is not a function, but it's capturing local identifiers: ${identNames.join(', ')}`,
+    highlights: [highlightSpan],
+    suggestions: null,
+    scope: 'optimizer',
+  };
+}
+
 export function emitC05(
   calleeName: string,
   qrlName: string,

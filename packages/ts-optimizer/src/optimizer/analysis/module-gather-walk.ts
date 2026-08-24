@@ -109,6 +109,10 @@ export interface ModuleGatherFacts {
   readonly extractions: readonly ExtractedSegment[];
   readonly closureFreeIdentifiers: ReadonlyMap<AstFunction, readonly string[]>;
   readonly closureLexicalScopes: Map<AstFunction, Set<string>>;
+  readonly nonFunctionCaptures: ReadonlyMap<
+    string,
+    { readonly names: readonly string[]; readonly scopeNode: AstFunction | null }
+  >;
   readonly extractionLoopMap: Map<string, LoopContext[]>;
   readonly loopBodyVarDecls: LoopBodyVarDeclMap;
   readonly allScopeEntries: ScopeEntry[];
@@ -269,6 +273,10 @@ export function gatherModuleFacts(inputs: ModuleGatherInputs): ModuleGatherFacts
   }
 
   const extractionLoopRefs = new Map<ExtractedSegment, LoopContext[]>();
+  const nonFunctionScopeRefs = new Map<
+    ExtractedSegment,
+    { bindings: Set<string>; scopeNode: AstFunction | null }
+  >();
   let extractionCollector: ExtractionCollector | undefined;
   if (inputs.extraction !== undefined) {
     const ex = inputs.extraction;
@@ -289,6 +297,18 @@ export function gatherModuleFacts(inputs: ModuleGatherInputs): ModuleGatherFacts
         }
         if (loopStack.length > 0) {
           extractionLoopRefs.set(extraction, [...loopStack]);
+        }
+        if (!closureNode) {
+          const bindings = new Set<string>();
+          for (const frame of scopeStack.slice(1)) {
+            for (const name of frame.set) {
+              bindings.add(name);
+            }
+          }
+          nonFunctionScopeRefs.set(extraction, {
+            bindings,
+            scopeNode: scopeStack[scopeStack.length - 1]?.node ?? null,
+          });
         }
       },
     });
@@ -383,6 +403,24 @@ export function gatherModuleFacts(inputs: ModuleGatherInputs): ModuleGatherFacts
   );
 
   const extractions = extractionCollector?.finish() ?? [];
+  const nonFunctionCaptures = new Map<string, { names: string[]; scopeNode: AstFunction | null }>();
+  for (const [extraction, scope] of nonFunctionScopeRefs) {
+    const names = [
+      ...new Set(
+        identifierVisits
+          .filter(
+            (visit) =>
+              visit.pos >= extraction.argStart &&
+              visit.pos < extraction.argEnd &&
+              scope.bindings.has(visit.name)
+          )
+          .map((visit) => visit.name)
+      ),
+    ];
+    if (names.length > 0) {
+      nonFunctionCaptures.set(extraction.symbolName, { names, scopeNode: scope.scopeNode });
+    }
+  }
   for (const [ext, stack] of extractionLoopRefs) {
     extractionLoopMap.set(ext.symbolName, stack);
   }
@@ -438,6 +476,7 @@ export function gatherModuleFacts(inputs: ModuleGatherInputs): ModuleGatherFacts
     extractions,
     closureFreeIdentifiers: freeIdentNames,
     closureLexicalScopes,
+    nonFunctionCaptures,
     extractionLoopMap,
     loopBodyVarDecls,
     allScopeEntries,

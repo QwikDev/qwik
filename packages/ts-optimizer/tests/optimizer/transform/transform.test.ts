@@ -151,6 +151,25 @@ export default component$(() => {
     expect(componentSegment.code).not.toContain('const render');
   });
 
+  it('reports local captures passed directly to a marker', () => {
+    const code = `import { useTask$ } from '@qwik.dev/core';
+export const useMemo$ = (qrl) => {
+  useTask$(qrl);
+};`;
+    const result = transformModule({
+      input: [{ path: mkFilePath('test.tsx'), code: mkSourceText(code) }],
+      srcDir: mkFilePath('.'),
+    });
+
+    expect(result.diagnostics).toMatchObject([
+      {
+        code: 'C03',
+        message: "Qrl($) scope is not a function, but it's capturing local identifiers: qrl",
+        highlights: [{ lo: code.indexOf('qrl);'), hi: code.indexOf('qrl);') + 3 }],
+      },
+    ]);
+  });
+
   it('rewrites @builder.io/qwik imports to @qwik.dev/core', () => {
     const result = transformModule({
       input: [

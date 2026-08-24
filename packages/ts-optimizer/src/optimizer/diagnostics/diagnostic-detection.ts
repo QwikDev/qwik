@@ -4,16 +4,18 @@ import type { ExtractionResult } from '../extraction/extract.js';
 import {
   classifyDeclarationTypeInClosure,
   emitC02,
+  emitC03,
   emitC05,
   emitPassiveConflictWarning,
 } from './diagnostics.js';
 import { collectExportNames } from '../extraction/marker-detection.js';
 import type { Diagnostic, DiagnosticHighlightFlat } from '../types/types.js';
-import type { PassiveConflict } from '../analysis/module-gather-walk.js';
+import type { ModuleGatherFacts, PassiveConflict } from '../analysis/module-gather-walk.js';
 import { getJsxAttributeName } from '../jsx/jsx-attr-name.js';
 import { plainQrlName } from '../qwik/qrl-naming.js';
 import { computeLineColFromOffset } from './source-loc.js';
 import { mkByteOffset, mkColumnNumber, mkLineNumber } from '../types/brands.js';
+import { resolveWholeBodyIdentifier } from '../rewrite/const-propagation.js';
 
 type SourceRange = { start: number; end: number };
 
@@ -28,6 +30,41 @@ function buildHighlight(source: string, lo: number, hi: number): DiagnosticHighl
     endLine: mkLineNumber(endLine),
     endCol: mkColumnNumber(endCol),
   };
+}
+
+export function detectC03Diagnostics(
+  extractions: readonly ExtractionResult[],
+  captures: ModuleGatherFacts['nonFunctionCaptures'],
+  repairedCode: string,
+  originalCode: string,
+  file: string,
+  diagnostics: Diagnostic[]
+): void {
+  for (const extraction of extractions) {
+    if (extraction.isWorkerEventWrapper) {
+      continue;
+    }
+    const capture = captures.get(extraction.symbolName);
+    if (!capture) {
+      continue;
+    }
+    const body = extraction.bodyText.trim();
+    if (
+      capture.scopeNode &&
+      capture.names.length === 1 &&
+      body === capture.names[0] &&
+      resolveWholeBodyIdentifier(capture.scopeNode, repairedCode, body)
+    ) {
+      continue;
+    }
+    diagnostics.push(
+      emitC03(
+        capture.names,
+        file,
+        buildHighlight(originalCode, extraction.loc[0], extraction.loc[1])
+      )
+    );
+  }
 }
 
 export function detectC02Diagnostics(

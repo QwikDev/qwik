@@ -93,6 +93,7 @@ import { deriveIsDev } from '../rewrite/const-replacement.js';
 import { applyModuleHygieneRenames } from './hygiene-renames.js';
 import {
   detectC02Diagnostics,
+  detectC03Diagnostics,
   detectC05Diagnostics,
   emitPassiveConflictDiagnostics,
 } from '../diagnostics/diagnostic-detection.js';
@@ -727,6 +728,7 @@ function analyzeModuleCaptures(
   const {
     closureFreeIdentifiers,
     closureLexicalScopes,
+    nonFunctionCaptures,
     extractionLoopMap,
     loopBodyVarDecls,
     allScopeEntries,
@@ -735,6 +737,15 @@ function analyzeModuleCaptures(
     passiveConflicts,
     scopeAwareBindings,
   } = extracted.facts;
+
+  detectC03Diagnostics(
+    extractions,
+    nonFunctionCaptures,
+    repairedCode,
+    mod.input.code,
+    relPath,
+    diagnostics
+  );
 
   for (const extraction of extractions) {
     const closureNode = closureNodes.get(extraction.symbolName);

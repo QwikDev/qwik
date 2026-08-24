@@ -79,6 +79,19 @@ const handler = $(() => {
     expect(code.indexOf('handler_')).toBeLessThan(code.indexOf('export const App'));
   });
 
+  it('registers a marker whose duplicate export is removed', () => {
+    const source = `
+import { auth$, serverAuth$ } from '@auth/qwik';
+export const { onRequest } = serverAuth$({});
+export const { onRequest } = auth$({});
+`;
+    const code = rewrite(source);
+
+    expect(code.match(/export const \{ onRequest \}/g)).toHaveLength(1);
+    expect(code).toMatch(/qrl\(\(\)=>import\([^;]+auth_/);
+    expect(code).not.toMatch(/const q_auth_/);
+  });
+
   it('Test 4: @builder.io/qwik rewritten to @qwik.dev/core', () => {
     const source = `import { component$ } from "@builder.io/qwik";
 export const App = component$(() => {

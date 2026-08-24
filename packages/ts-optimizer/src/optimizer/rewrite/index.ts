@@ -740,7 +740,7 @@ function removeUnusedBindings(ctx: RewriteContext): void {
     return;
   }
 
-  const { s, source, program, topLevel, explicitExtensions, outputExtension } = ctx;
+  const { s, source, program, topLevel } = ctx;
 
   // Reexported bindings (`export { X as _auto_X }`) MUST survive even when they
   // look unused here: the reexport is appended after this pass (not in the scan
@@ -806,20 +806,21 @@ function removeUnusedBindings(ctx: RewriteContext): void {
       );
       s.remove(decl.start, bareExtractions.length > 0 ? decl.end : initStart);
       for (const ext of bareExtractions) {
-        ctx.inlinedQrlSymbols.add(ext.symbolName);
+        registerUnboundQrl(ctx, ext);
       }
     }
   }
+}
 
-  for (const ext of topLevel) {
-    if (!ctx.inlinedQrlSymbols.has(ext.symbolName)) {
-      continue;
-    }
-    const inlineExt = explicitExtensions ? (outputExtension ?? '.js') : '';
-    ctx.qrlDecls.push(
-      `/*#__PURE__*/ qrl(()=>import("./${ext.canonicalFilename}${inlineExt}"), "${ext.symbolName}");`
-    );
+function registerUnboundQrl(ctx: RewriteContext, ext: ExtractionResult): void {
+  if (ctx.inlinedQrlSymbols.has(ext.symbolName)) {
+    return;
   }
+  ctx.inlinedQrlSymbols.add(ext.symbolName);
+  const inlineExt = ctx.explicitExtensions ? (ctx.outputExtension ?? '.js') : '';
+  ctx.qrlDecls.push(
+    `/*#__PURE__*/ qrl(()=>import("./${ext.canonicalFilename}${inlineExt}"), "${ext.symbolName}");`
+  );
 }
 
 function removeDuplicateExports(ctx: RewriteContext): void {
@@ -852,6 +853,15 @@ function removeDuplicateExports(ctx: RewriteContext): void {
 
     const hasDuplicate = exportedNames.some((n) => seenExportNames.has(n));
     if (hasDuplicate) {
+      for (const ext of ctx.topLevel) {
+        if (
+          !ext.isSync &&
+          ext.callStart >= declarator.init.start &&
+          ext.callEnd <= declarator.init.end
+        ) {
+          registerUnboundQrl(ctx, ext);
+        }
+      }
       ctx.s.remove(stmt.start, stmt.end);
     } else {
       for (const name of exportedNames) {

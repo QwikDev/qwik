@@ -30,8 +30,8 @@ import {
 describe('TransformModulesOptions', () => {
   it('accepts all expected fields', () => {
     const opts: TransformModulesOptions = {
-      input: [{ path: mkFilePath('test.tsx'), code: mkSourceText('const x = 1;') }],
-      srcDir: mkFilePath('/src'),
+      input: [{ path: 'test.tsx', code: 'const x = 1;' }],
+      srcDir: '/src',
       rootDir: '/root',
       entryStrategy: { type: 'smart' },
       minify: 'none',

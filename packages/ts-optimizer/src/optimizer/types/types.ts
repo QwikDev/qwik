@@ -12,12 +12,10 @@ import type {
   ColumnNumber,
   CtxName,
   DisplayName,
-  FilePath,
   Hash,
   LineNumber,
   Origin,
   RelativePath,
-  SourceText,
   SymbolName,
 } from './brands.js';
 
@@ -29,7 +27,7 @@ import type {
 export interface TransformModulesOptions {
   readonly input: readonly TransformModuleInput[];
 
-  readonly srcDir: FilePath;
+  readonly srcDir: string;
 
   readonly rootDir?: string;
 
@@ -69,9 +67,9 @@ export interface TransformModulesOptions {
  * `code`.
  */
 export interface TransformModuleInput {
-  readonly path: FilePath;
+  readonly path: string;
 
-  readonly code: SourceText;
+  readonly code: string;
 
   readonly devPath?: string;
 

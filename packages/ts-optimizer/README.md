@@ -43,22 +43,22 @@ bundler.
 ### `transformModule` — synchronous core
 
 ```ts
-import { transformModule, mkFilePath, mkSourceText } from '@qwik.dev/ts-optimizer';
+import { transformModule } from '@qwik.dev/ts-optimizer';
 
 const result = transformModule({
   input: [
     {
-      path: mkFilePath('components/counter.tsx'),
-      code: mkSourceText(`
+      path: 'components/counter.tsx',
+      code: `
         import { component$, useSignal } from '@qwik.dev/core';
         export const Counter = component$(() => {
           const count = useSignal(0);
           return <button onClick$={() => count.value++}>{count.value}</button>;
         });
-      `),
+      `,
     },
   ],
-  srcDir: mkFilePath('/app/src/'),
+  srcDir: '/app/src/',
   entryStrategy: { type: 'segment' },
   minify: 'simplify',
 });
@@ -155,13 +155,12 @@ extracts — so library-defined `name$` functions work automatically.
 
 ## Public API
 
-| Export                                                             | Kind      | Purpose                                         |
-| ------------------------------------------------------------------ | --------- | ----------------------------------------------- |
-| `transformModule(options)`                                         | function  | Synchronous core transform → `TransformOutput`  |
-| `createOptimizer()`                                                | function  | Async, SWC-NAPI-compatible optimizer instance   |
-| `mk*` (e.g. `mkFilePath`, `mkSourceText`)                          | functions | Smart constructors for the branded string types |
-| `TransformModulesOptions`, `TransformOutput`, `TransformModule`, … | types     | Input/output contracts                          |
-| `SymbolName`, `Hash`, `FilePath`, `SourceText`, …                  | types     | Branded identifier types                        |
+| Export                                                             | Kind     | Purpose                                        |
+| ------------------------------------------------------------------ | -------- | ---------------------------------------------- |
+| `transformModule(options)`                                         | function | Synchronous core transform → `TransformOutput` |
+| `createOptimizer()`                                                | function | Async, SWC-NAPI-compatible optimizer instance  |
+| `TransformModulesOptions`, `TransformOutput`, `TransformModule`, … | types    | Input/output contracts                         |
+| `SymbolName`, `Hash`, `RelativePath`, …                            | types    | Branded output metadata types                  |
 
 All other modules are internal and not part of the public contract.
 

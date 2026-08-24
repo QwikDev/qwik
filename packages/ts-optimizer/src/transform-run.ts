@@ -1,16 +1,9 @@
-// Shared synchronous transform runner: brands the raw NAPI-shaped options,
-// runs the transform, and maps the output back to plain NAPI shapes. Used by
-// both the in-process optimizer and the worker-pool worker side.
+// Shared synchronous transform runner used by both the in-process optimizer
+// and the worker-pool worker side.
 
 import { transformModule } from './optimizer/transform/index.js';
-import { mkFilePath, mkSourceText } from './optimizer/types/brands.js';
 
-import type {
-  Diagnostic,
-  SegmentAnalysis,
-  TransformModule,
-  TransformModulesOptions,
-} from './optimizer/types/types.js';
+import type { Diagnostic, SegmentAnalysis, TransformModule } from './optimizer/types/types.js';
 import type {
   NapiDiagnostic,
   NapiSegmentAnalysis,
@@ -19,18 +12,6 @@ import type {
   NapiTransformModulesOptions,
   NapiTransformOutput,
 } from './create-optimizer.js';
-
-function brandTransformOptions(opts: NapiTransformModulesOptions): TransformModulesOptions {
-  return {
-    ...opts,
-    srcDir: mkFilePath(opts.srcDir),
-    input: opts.input.map((input) => ({
-      ...input,
-      path: mkFilePath(input.path),
-      code: mkSourceText(input.code),
-    })),
-  };
-}
 
 function toNapiSegment(segment: SegmentAnalysis): NapiSegmentAnalysis {
   return { ...segment, loc: [segment.loc[0], segment.loc[1]] };
@@ -73,7 +54,7 @@ function toNapiDiagnostic(diagnostic: Diagnostic): NapiDiagnostic {
 }
 
 export function runTransform(opts: NapiTransformModulesOptions): NapiTransformOutput {
-  const output = transformModule(brandTransformOptions(opts));
+  const output = transformModule(opts);
   return {
     modules: output.modules.map(toNapiModule),
     diagnostics: output.diagnostics.map(toNapiDiagnostic),

@@ -11,7 +11,7 @@ import {
   normalizeString,
   relative,
 } from 'pathe';
-import { type FilePath, type RelativePath, mkRelativePath } from './optimizer/types/brands.js';
+import { type RelativePath, mkRelativePath } from './optimizer/types/brands.js';
 
 // High-level entry points (`computeRelPath`, `computeParentModulePath`,
 // `computeOutputExtension`) take/return branded path types; the low-level string
@@ -59,8 +59,8 @@ export function normalizePath(filePath: string): string {
  * `node_modules`-prefixed inputs. Stripping the `./` for absolute-path concatenation happens at the
  * call site.
  */
-export function computeRelPath(inputPath: FilePath, srcDir: FilePath): RelativePath {
-  const hasLeadingDotSlash = (inputPath as string).startsWith('./');
+export function computeRelPath(inputPath: string, srcDir: string): RelativePath {
+  const hasLeadingDotSlash = inputPath.startsWith('./');
   const normInput = normalizePath(inputPath);
   const normSrc = normalizePath(srcDir);
 

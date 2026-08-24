@@ -62,8 +62,10 @@ describe('worker pool', () => {
   test('transform errors reject without breaking the pool', async () => {
     const pooled = await createOptimizer({ workers: 1 });
     try {
-      const bad = transformOpts();
-      bad.input = undefined as unknown as NapiTransformModulesOptions['input'];
+      const bad = {
+        ...transformOpts(),
+        input: undefined as unknown as NapiTransformModulesOptions['input'],
+      };
       await expect(pooled.transformModules(bad)).rejects.toThrow();
       // The pool still serves subsequent good requests.
       const good = await pooled.transformModules(transformOpts());

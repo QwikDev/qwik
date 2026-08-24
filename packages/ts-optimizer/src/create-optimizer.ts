@@ -18,8 +18,7 @@ import {
 } from './worker-pool.js';
 import { runTransform } from './transform-run.js';
 
-import type { AstEcmaScriptModule, AstProgram } from './ast-types.js';
-import type { EmitMode, EntryStrategy, MinifyMode } from './optimizer/types/types.js';
+import type { TransformModuleInput, TransformModulesOptions } from './optimizer/types/types.js';
 
 /**
  * Runtime environment the optimizer is executing in. Default `'node'` — the only environment this
@@ -96,46 +95,8 @@ export interface OptimizerOptions {
   workers?: number;
 }
 
-// Raw-string transform types — the boundary the `Napi*` type family speaks.
-//
-// Consumers hand over unbranded paths and source text and read back mutable
-// arrays with `segment`/`origPath` null-arms on every module; brands are
-// established internally via the smart constructors. `NapiSegmentAnalysis.ctxKind`
-// includes `'jSXProp'` because the optimizer emits a JSX-prop segment kind.
-
-/**
- * One source file for {@link QwikOptimizer.transformModules}. `program` is an optional pre-parsed
- * Program (e.g. Rolldown's `meta.ast`) that skips the internal parse; `module` is its ESM-metadata
- * sibling.
- */
-export interface NapiTransformModuleInput {
-  path: string;
-  code: string;
-  devPath?: string;
-  program?: AstProgram;
-  module?: AstEcmaScriptModule;
-}
-
-/** Raw-string mirror of `TransformModulesOptions`. */
-export interface NapiTransformModulesOptions {
-  input: readonly NapiTransformModuleInput[];
-  srcDir: string;
-  rootDir?: string;
-  entryStrategy?: EntryStrategy;
-  minify?: MinifyMode;
-  sourceMaps?: boolean;
-  transpileTs?: boolean;
-  transpileJsx?: boolean;
-  preserveFilenames?: boolean;
-  explicitExtensions?: boolean;
-  mode?: EmitMode;
-  scope?: string;
-  stripExports?: readonly string[];
-  regCtxName?: readonly string[];
-  stripCtxName?: readonly string[];
-  stripEventHandlers?: boolean;
-  isServer?: boolean;
-}
+export type NapiTransformModuleInput = TransformModuleInput;
+export type NapiTransformModulesOptions = TransformModulesOptions;
 
 /** Plain-string mirror of `SegmentAnalysis`. */
 export interface NapiSegmentAnalysis {

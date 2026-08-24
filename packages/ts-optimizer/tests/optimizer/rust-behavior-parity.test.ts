@@ -636,6 +636,22 @@ export const value = $(ns[key]);
 });
 
 describe('hoist strategy inlinedQrl emission', () => {
+  it('keeps identifier-reference locations after inlining the value', () => {
+    const code = `
+import { inlinedQrl } from '@qwik.dev/core';
+const value = 'body';
+export const qrl = inlinedQrl(value, 'value_inline_aaaaaaaaaaa');
+`;
+    const output = transformModule(rustDefaults(code));
+    const segment = segments(output).find(
+      (module) => module.segment.name === 'value_inline_aaaaaaaaaaa'
+    )!;
+    const referenceStart = code.lastIndexOf('value,');
+
+    expect(segment.code).toContain(`'body'`);
+    expect(segment.segment.loc).toEqual([referenceStart + 1, referenceStart + 'value'.length + 1]);
+  });
+
   it('uses an identifier reference when hoisted', () => {
     const output = transformModule(
       rustDefaults(

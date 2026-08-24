@@ -1406,10 +1406,12 @@ function generateSegments(
       if (init !== null) {
         const mutable = ext as Mutable<ExtractionResult>;
         mutable.bodyText = mkBodyText(init.text);
-        mutable.loc = [
-          mkByteOffset(prepared.originalOffset(init.start) + 1),
-          mkByteOffset(prepared.originalOffset(init.end) + 1),
-        ];
+        if (!ext.isInlinedQrl) {
+          mutable.loc = [
+            mkByteOffset(prepared.originalOffset(init.start) + 1),
+            mkByteOffset(prepared.originalOffset(init.end) + 1),
+          ];
+        }
         if (ext.parent) {
           const names = inlinedIdentifiersByParent.get(ext.parent) ?? new Set<string>();
           names.add(bare);

@@ -65,14 +65,13 @@ import { component$, useSignal } from '@builder.io/qwik';
 export default component$(() => {
   const count = useSignal(0);
 
-return (
-<button onClick$={() => count.value++}>
-Increment {count.value}
-</button>
-);
+  return (
+    <button onClick$={() => count.value++}>
+      Increment {count.value}
+    </button>
+  );
 });
-
-````
+```
 </CodeSandbox>
 
 This example above shows how `useSignal()` can be used in a counter component to keep track of the count. Modifying the `count.value` property will cause the component to be updated automatically. For instance, when the property is changed in the button click handler as in the example above.
@@ -85,7 +84,7 @@ This example above shows how `useSignal()` can be used in a counter component to
 const isClosedSig = useSignal(false);
 
 return <Child isClosed={isClosedSig} />;
-````
+```
 
 ✅ **Instead do:**
 
@@ -94,6 +93,7 @@ const isClosedSig = useSignal(false);
 
 return <Child isClosed={isClosedSig.value} />;
 ```
+
 
 ## `useStore()`
 
@@ -108,19 +108,18 @@ import { component$, useStore } from '@builder.io/qwik';
 export default component$(() => {
   const state = useStore({ count: 0, name: 'Qwik' });
 
-return (
-<>
-<button onClick$={() => state.count++}>Increment</button>
+  return (
+    <>
+      <button onClick$={() => state.count++}>Increment</button>
       <p>Count: {state.count}</p>
       <input
         value={state.name}
-        onInput$={(\_, el) => (state.name = el.value)}
-/>
-</>
-);
+        onInput$={(_, el) => (state.name = el.value)}
+      />
+    </>
+  );
 });
-
-````
+```
 </CodeSandbox>
 
 > **NOTE** For reactivity to work as expected, make sure to keep a reference to the reactive object and not only to its properties. e.g. doing `let { count } = useStore({ count: 0 })` and then mutating `count` won't trigger updates of components that depend on the property.
@@ -167,8 +166,7 @@ export default component$(() => {
     </>
   );
 });
-````
-
+```
 </CodeSandbox>
 
 Notice that for `useStore()` to track all nested properties, it needs to allocate a lot of Proxy objects. This can be a performance issue if you have a lot of nested properties. In that case, you can use the `deep: false` option to only track the top-level properties.
@@ -177,34 +175,29 @@ Notice that for `useStore()` to track all nested properties, it needs to allocat
 const shallowStore = useStore(
   {
     nested: {
-      fields: { are: 'also tracked' },
+      fields: { are: 'also tracked' }
     },
     list: ['Item 1'],
   },
   { deep: false }
 );
 ```
-
 > **Handling Dynamic Object Mutations**
 >
-> When dynamically manipulating object properties, such as deleting them while they are being rendered somewhere in the app, you may encounter issues. This could happen if the component renders values dependent on an object's property that is currently being removed. To prevent this situation, use optional chaining when accessing properties. For example, if attempting to remove a property:
->
+> When dynamically manipulating object properties, such as deleting them while they are being rendered somewhere in the app, you may encounter issues.  This could happen if the component renders values dependent on an object's property that is currently being removed.  To prevent this situation, use optional chaining when accessing properties.  For example, if attempting to remove a property:
 > ```tsx
 > delete store.propertyName;
 > ```
->
 > Be sure to access this property cautiously in the component by using optional chaining ( ?. ):
->
 > ```tsx
 > const propertyValue = store.propertyName?.value;
 > ```
-
 ### Methods
 
 To provide methods on the store, you must make them into QRLs and refer to the store with `this`, like so:
 
 ```tsx
-import { component$, useStore, $, type QRL } from '@builder.io/qwik';
+import { component$, useStore, $, type QRL } from "@builder.io/qwik";
 
 type CountStore = { count: number; increment: QRL<(this: CountStore) => void> };
 
@@ -242,21 +235,20 @@ export default component$(() => {
   const componentId = useConstant(() => Math.random().toString(36).slice(2, 8));
   const count = useSignal(0);
 
-return (
-<>
-<p>Component id: {componentId}</p>
-<p>Count: {count.value}</p>
-<button onClick$={() => count.value++}>Increment</button>
-</>
-);
+  return (
+    <>
+      <p>Component id: {componentId}</p>
+      <p>Count: {count.value}</p>
+      <button onClick$={() => count.value++}>Increment</button>
+    </>
+  );
 });
-
-````
+```
 </CodeSandbox>
 
 Incrementing the counter updates the `count` signal, but `componentId` keeps its original value: `useConstant()` runs its factory only on the first render and returns that same value every time afterwards.
 
-> **NOTE** A factory that returns `undefined` is re-run on every render. Only defined values are retained, including `null`. If you need to cache the absence of a value, return `null` rather than `undefined`.
+> **NOTE** A factory that returns `undefined` is re-run on every render. Only defined values are retained — including `null`. If you need to cache the absence of a value, return `null` rather than `undefined`.
 
 > **NOTE** `useConstant()` returns the raw value directly, not a signal. Reach for `useSignal()` when the value needs to change over time, or `useComputed$()` when it should be derived from other state and kept in sync with it. Use `useConstant()` only when the value must be calculated a single time and then stay fixed.
 
@@ -296,15 +288,14 @@ export default component$(() => {
     </>
   );
 });
-````
-
+```
 </CodeSandbox>
 
-> **NOTE** Signal reads in `useComputed$()` are tracked automatically. In an async computation on Qwik v1, only reads before the first `await` are tracked, so read reactive inputs before awaiting.
+> **NOTE** Signal reads in `useComputed$()` are tracked automatically. In an async computation, only reads before the first `await` are tracked, so read reactive inputs before awaiting.
 
 ### `useResource$()`
 
-Use `useResource$()` to create a value from an external async source when you need the resource state (loading, resolved, rejected) in addition to the value.
+Use `useResource$()` to create a value from an external async source when you need the `state` of the resource (loading, resolved, rejected) in addition to the value.
 
 A common use of `useResource$()` is to fetch data from an external API within the component, which can occur either on the server or the client.
 
@@ -322,33 +313,31 @@ import {
 export default component$(() => {
   const postId = useSignal('23');
 
-const postTitle = useResource$<string>(async ({ track }) => {
-// it will run first on mount (server), then re-run whenever postId changes (client)
-// this means this code will run on the server and the browser
-track(() => postId.value);
+  const postTitle = useResource$<string>(async ({ track }) => {
+    // it will run first on mount (server), then re-run whenever postId changes (client)
+    // this means this code will run on the server and the browser
+    track(() => postId.value);
 
     const response = await fetch(
       `https://jsonplaceholder.typicode.com/posts/${postId.value}`
     );
     const data = await response.json();
     return data.title as string;
+  });
 
+  return (
+    <>
+      <input type="number" bind:value={postId} max={100} min={0} />
+      <h1>Post#{postId}:</h1>
+      <Resource
+        value={postTitle}
+        onPending={() => <p>Loading...</p>}
+        onResolved={(title) => <h2>{title}</h2>}
+      />
+    </>
+  );
 });
-
-return (
-<>
-<input type="number" bind:value={postId} max={100} min={0} />
-<h1>Post#{postId}:</h1>
-<Resource
-value={postTitle}
-onPending={() => <p>Loading...</p>}
-onResolved={(title) => <h2>{title}</h2>}
-/>
-</>
-);
-});
-
-````
+```
 </CodeSandbox>
 
 
@@ -424,8 +413,7 @@ export default component$(() => {
     </>
   );
 });
-````
-
+```
 </CodeSandbox>
 
 As we see in the example above, `useResource$()` returns a `ResourceReturn<T>` object that works like a reactive promise, containing the data and the resource state.
@@ -435,7 +423,7 @@ The state `resource.loading` can be one of the following:
 - `false` - the data is not yet available.
 - `true` - the data is available. (Either resolved or rejected.)
 
-The callback passed to [`useResource$()`](</docs/(qwik)/core/state/index.mdx#useresource>) runs right after the [`useTask$()`](</docs/(qwik)/core/tasks/index.mdx#usetask>) callbacks complete. Please refer to the [Lifecycle](../tasks/index.mdx#lifecycle) section for more details.
+The callback passed to [`useResource$()`](/docs/(qwik)/core/state/index.mdx#useresource) runs right after the [`useTask$()`](/docs/(qwik)/core/tasks/index.mdx#usetask) callbacks complete. Please refer to the [Lifecycle](../tasks/index.mdx#lifecycle) section for more details.
 
 #### `<Resource />`
 
@@ -454,6 +442,7 @@ The callback passed to [`useResource$()`](</docs/(qwik)/core/state/index.mdx#use
 
 It is worth noting that `<Resource />` is not required when using `useResource$()`. It is just a convenient way to render the resource state.
 
+
 This example shows how `useResource$` is used to perform a fetch call to the [agify.io](https://agify.io/) API. This will guess a person's age based on the name typed by the user, and will update whenever the user types in the name input.
 
 <CodeSandbox src="/src/routes/demo/state/resource-agify/index.tsx" style={{ height: '8em' }}>
@@ -468,7 +457,7 @@ import {
 export default component$(() => {
   const name = useSignal<string>();
 
-const ageResource = useResource$<{
+  const ageResource = useResource$<{
     name: string;
     age: number;
     count: number;
@@ -477,40 +466,39 @@ const ageResource = useResource$<{
     const abortController = new AbortController();
     cleanup(() => abortController.abort('cleanup'));
     const res = await fetch(`https://api.agify.io?name=${name.value}`, {
-signal: abortController.signal,
-});
-return res.json();
-});
+      signal: abortController.signal,
+    });
+    return res.json();
+  });
 
-return (
-<section>
-<div>
-<label>
-Enter your name, and I'll guess your age!
-<input onInput$={(ev, el) => (name.value = el.value)} />
-</label>
-</div>
-<Resource
-value={ageResource}
-onPending={() => <p>Loading...</p>}
-onRejected={() => <p>Failed to person data</p>}
-onResolved={(ageGuess) => {
-return (
-<p>
-{name.value && (
-<>
-{ageGuess.name} {ageGuess.age} years
-</>
-)}
-</p>
-);
-}}
-/>
-</section>
-);
+  return (
+    <section>
+      <div>
+        <label>
+          Enter your name, and I'll guess your age!
+          <input onInput$={(ev, el) => (name.value = el.value)} />
+        </label>
+      </div>
+      <Resource
+        value={ageResource}
+        onPending={() => <p>Loading...</p>}
+        onRejected={() => <p>Failed to person data</p>}
+        onResolved={(ageGuess) => {
+          return (
+            <p>
+              {name.value && (
+                <>
+                  {ageGuess.name} {ageGuess.age} years
+                </>
+              )}
+            </p>
+          );
+        }}
+      />
+    </section>
+  );
 });
-
-````
+```
 </CodeSandbox>
 
 ## Passing state
@@ -546,8 +534,7 @@ export const Child = component$<ChildProps>(({ userData }) => {
     </>
   );
 });
-````
-
+```
 </CodeSandbox>
 
 ### Using context
@@ -572,10 +559,10 @@ export const CTX = createContextId<{ count: number }>('stuff');
 export default component$(() => {
   const userData = useStore({ count: 0 });
 
-// Provide the store to the context under the context ID
-useContextProvider(CTX, userData);
+  // Provide the store to the context under the context ID
+  useContextProvider(CTX, userData);
 
-return <Child />;
+  return <Child />;
 });
 
 export const Child = component$(() => {
@@ -592,7 +579,7 @@ export const Child = component$(() => {
 
 ## `noSerialize()`
 
-Qwik ensures that all application state is always serializable. This is important to ensure that Qwik applications have a [resumability](</docs/(qwik)/concepts/resumable/index.mdx>) property.
+Qwik ensures that all application state is always serializable. This is important to ensure that Qwik applications have a [resumability](/docs/(qwik)/concepts/resumable/index.mdx) property.
 
 Sometimes, it's necessary to store data that can't be serialized; `noSerialize()` instructs Qwik not to attempt serializing the marked value.
 For example, a reference to a third-party library such as [Monaco editor](https://microsoft.github.io/monaco-editor/) will always need `noSerialize()`, as it is not serializable.
@@ -618,17 +605,15 @@ export default component$(() => {
     monacoInstance: undefined,
   });
 
-useVisibleTask$(() => {
-const editor = monacoEditor.create(editorRef.value!, {
-value: 'Hello, world!',
+  useVisibleTask$(() => {
+    const editor = monacoEditor.create(editorRef.value!, {
+      value: 'Hello, world!',
+    });
+    // Monaco is not serializable, so we can't serialize it as part of SSR
+    // We can however instantiate it on the client after the component is visible
+    store.monacoInstance = noSerialize(editor);
+  });
+  return <div ref={editorRef}>loading...</div>;
 });
-// Monaco is not serializable, so we can't serialize it as part of SSR
-// We can however instantiate it on the client after the component is visible
-store.monacoInstance = noSerialize(editor);
-});
-return <div ref={editorRef}>loading...</div>;
-});
-
 ```
 </CodeSandbox>
-```

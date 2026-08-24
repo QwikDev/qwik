@@ -1453,6 +1453,7 @@ export function buildDefaultStrategySegment(
       ctxName: ext.ctxName,
       isBare: ext.isBare,
       sourceExtensions,
+      parentModulePath,
       parentSourceExt,
       origin: { filename: relPath, text: ctx.repairedCode },
       shouldTranspileTs,

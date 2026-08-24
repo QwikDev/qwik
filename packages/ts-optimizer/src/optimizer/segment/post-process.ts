@@ -1,4 +1,5 @@
 import { type TransformOptions } from 'oxc-transform';
+import MagicString from 'magic-string';
 import type { SegmentCaptureInfo } from './segment-codegen.js';
 import { runDcePipeline } from '../transform/module-cleanup.js';
 import { deriveIsDev } from '../rewrite/const-replacement.js';
@@ -6,6 +7,7 @@ import type { EmitMode } from '../types/types.js';
 import { isAnyComponentCtx } from '../rewrite/predicates.js';
 import { wholeIdentifierPattern } from '../edit/identifier-boundary.js';
 import { stripTypeScript, type StripOrigin } from '../edit/strip-types.js';
+import { parseWithRawTransfer } from '../ast/parse.js';
 
 /**
  * `parentSourceExt` is the parent input file's extension (`.tsx`/`.ts`/`.jsx`/ `.js`), distinct
@@ -20,6 +22,7 @@ export interface SegmentPostProcessOptions {
   ctxName: string;
   isBare?: boolean;
   sourceExtensions: Map<string, string>;
+  parentModulePath: string;
   parentSourceExt: string;
   origin: StripOrigin;
   shouldTranspileTs: boolean;
@@ -115,5 +118,64 @@ export function postProcessSegmentCode(code: string, opts: SegmentPostProcessOpt
         : undefined,
   });
 
-  return result;
+  return sortSegmentImports(result, filename, opts.parentModulePath);
+}
+
+function sortSegmentImports(code: string, filename: string, parentModulePath: string): string {
+  const imports = parseWithRawTransfer(filename, code).program.body.filter(
+    (node) => node.type === 'ImportDeclaration'
+  );
+  if (imports.length < 2) {
+    return code;
+  }
+  for (let index = 1; index < imports.length; index++) {
+    if (code.slice(imports[index - 1].end, imports[index].start).trim()) {
+      return code;
+    }
+  }
+  const importKey = (node: (typeof imports)[number]): string =>
+    node.specifiers
+      .map((specifier) => specifier.local.name)
+      .sort((a, b) => (a < b ? -1 : a > b ? 1 : 0))[0] ?? '';
+  const sorted = [...imports].sort((a, b) => {
+    const rank = (node: (typeof imports)[number]): number => {
+      if (node.specifiers.length === 0) {
+        return -1;
+      }
+      if (
+        node.specifiers.some(
+          (specifier) =>
+            specifier.type === 'ImportSpecifier' &&
+            (specifier.imported.type === 'Identifier'
+              ? specifier.imported.name
+              : specifier.imported.value
+            ).startsWith('_auto_')
+        )
+      ) {
+        return 0;
+      }
+      if (node.specifiers.some((specifier) => specifier.local.name === '_captures')) {
+        return 1;
+      }
+      return node.source.value === parentModulePath ? 2 : 3;
+    };
+    const rankA = rank(a);
+    const rankB = rank(b);
+    if (rankA !== rankB) {
+      return rankA - rankB;
+    }
+    const keyA = importKey(a);
+    const keyB = importKey(b);
+    return keyA < keyB ? -1 : keyA > keyB ? 1 : 0;
+  });
+  if (sorted.every((node, index) => node === imports[index])) {
+    return code;
+  }
+  const edits = new MagicString(code);
+  edits.overwrite(
+    imports[0].start,
+    imports.at(-1)!.end,
+    sorted.map((node) => code.slice(node.start, node.end)).join('\n')
+  );
+  return edits.toString();
 }

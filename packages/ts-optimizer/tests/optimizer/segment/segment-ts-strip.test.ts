@@ -100,6 +100,7 @@ describe('foreign-runtime JSX strip probe', () => {
       extension: '.js',
       ctxName: 'x',
       sourceExtensions: new Map<string, string>(),
+      parentModulePath: './test',
       parentSourceExt: '.tsx',
       origin: { filename: 'test.tsx', text: '' },
       shouldTranspileTs: true,

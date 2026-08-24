@@ -115,12 +115,14 @@ export const App = component$(() => {
   it('emits the generated capture import before source imports', () => {
     const input = `
 import { component$, isServer, useStore, useTask$ } from '@qwik.dev/core';
+import redis from 'redis';
 import mongo from 'mongodb';
 export const App = component$(() => {
   const state = useStore({ value: '' });
   useTask$(async () => {
     if (!isServer) return;
     state.value = await mongo.users();
+    redis.set(state.value);
   });
   return <div/>;
 });
@@ -137,5 +139,6 @@ export const App = component$(() => {
 
     const code = findSegmentByCtx(result, 'useTask$').code;
     expect(code.indexOf('import { _captures }')).toBeLessThan(code.indexOf('import mongo'));
+    expect(code.indexOf('import mongo')).toBeLessThan(code.indexOf('import redis'));
   });
 });

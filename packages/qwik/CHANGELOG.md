@@ -1,5 +1,19 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.41
+
+### Major Changes
+
+- refactor: remove useAsync$ and createAsync$. Use useComputed$ or createComputed$ instead. (by [@Varixo](https://github.com/Varixo) in [#8941](https://github.com/QwikDev/qwik/pull/8941))
+
+### Patch Changes
+
+- refactor: remove unnecessary font preloading that negatively impacted performance (by [@Varixo](https://github.com/Varixo) in [#8942](https://github.com/QwikDev/qwik/pull/8942))
+
+- 🐞🩹 preserve rest properties for plain objects (by [@wermetal](https://github.com/wermetal) in [#8937](https://github.com/QwikDev/qwik/pull/8937))
+
+- 🐞🩹 widen the `vitest` peer range to `>=2 <5` so Vitest 4 no longer warns (by [@ixcans](https://github.com/ixcans) in [#8959](https://github.com/QwikDev/qwik/pull/8959))
+
 ## 2.0.0-beta.40
 
 ### Major Changes

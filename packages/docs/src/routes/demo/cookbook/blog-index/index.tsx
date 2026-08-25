@@ -11,10 +11,9 @@ type PostModule = {
   frontmatter: PostFrontmatter;
 };
 
-const postModules = import.meta.glob<PostModule>(
-  './posts/*/index.{md,mdx}',
-  { eager: true }
-);
+const postModules = import.meta.glob<PostModule>('./posts/*/index.{md,mdx}', {
+  eager: true,
+});
 
 const posts = Object.entries(postModules)
   .map(([path, mod]) => {

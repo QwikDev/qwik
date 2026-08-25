@@ -10,8 +10,6 @@
     "**/cypress/**",
     "**/.{idea,git,cache,output,temp}/**"
   ],
-  "vitest.shellType": "terminal",
-  "vitest.runtime": "node",
   "cSpell.words": [
     "bucketize",
     "Stringifiable"

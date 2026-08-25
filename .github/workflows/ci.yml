@@ -594,6 +594,8 @@ jobs:
           mv artifact-qwikreact/lib packages/qwik-react/lib
 
       - run: pnpm install --frozen-lockfile
+      - name: Check Docs Links (issue #6333)
+        run: node packages/docs/test-urls.js
       - name: Build Qwik Docs
         run: pnpm run build.packages.docs && echo ok > docs-build-completed.txt
 

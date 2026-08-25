@@ -71,6 +71,7 @@
   "private": true,
   "scripts": {
     "build": "qwik build",
+    "test.urls": "node test-urls.js",
     "build.client": "vite build",
     "build.preview": "NODE_OPTIONS=--max-old-space-size=8192 vite build --ssr src/entry.preview.tsx",
     "build.repl-sw": "vite --config vite.config-repl-sw.mts build",

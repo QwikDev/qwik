@@ -2,7 +2,7 @@ import path, { resolve } from 'node:path';
 import { assert, describe, expect, test } from 'vitest';
 import { normalizePath } from '../../../qwik/src/testing/util';
 import type { QwikManifest } from '../types';
-import { ExperimentalFeatures, createQwikPlugin } from './plugin';
+import { ExperimentalFeatures, createQwikPlugin, loadRustOptimizer } from './plugin';
 import { isServerOnlyModule } from './server-only-modules';
 import { qwikVite } from './vite';
 import type { ResolvedId } from 'rolldown';
@@ -831,5 +831,20 @@ describe('transform: globalThis.__QWIK_MANIFEST__ replacement', () => {
 
     expect(result).toBeTruthy();
     expect(result!.map).toBeTruthy();
+  });
+});
+
+describe('rust optimizer opt-in', () => {
+  test('a missing @qwik.dev/optimizer explains how to install it', async () => {
+    const failing = () => Promise.reject(new Error("Cannot find package '@qwik.dev/optimizer'"));
+    await expect(loadRustOptimizer(failing)).rejects.toThrow(/npm i -D @qwik\.dev\/optimizer/);
+    await expect(loadRustOptimizer(failing)).rejects.toThrow(/optional peer dependency/);
+    // The underlying resolution failure stays visible.
+    await expect(loadRustOptimizer(failing)).rejects.toThrow(/Cannot find package/);
+  });
+
+  test('passes the module through when it is installed', async () => {
+    const fake = { createOptimizer: () => ({}) } as unknown as typeof import('@qwik.dev/optimizer');
+    await expect(loadRustOptimizer(() => Promise.resolve(fake))).resolves.toBe(fake);
   });
 });

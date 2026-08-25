@@ -4,19 +4,51 @@
 
 ```ts
 
-import { EntryStrategy } from '@qwik.dev/optimizer';
-import { Optimizer } from '@qwik.dev/optimizer';
-import { OptimizerOptions } from '@qwik.dev/optimizer';
 import type { Plugin as Plugin_2 } from 'vite';
-import { SegmentAnalysis } from '@qwik.dev/optimizer';
-import { TransformModule } from '@qwik.dev/optimizer';
-import { TransformModuleInput } from '@qwik.dev/optimizer';
 
 // @public
 export type BundleGraphAdder = (manifest: QwikManifest) => Record<string, {
     imports?: string[];
     dynamicImports?: string[];
 }>;
+
+// @public (undocumented)
+export interface ComponentEntryStrategy {
+    // (undocumented)
+    manual?: Record<string, string>;
+    // (undocumented)
+    type: 'component';
+}
+
+// @public (undocumented)
+export const createOptimizer: (optimizerOptions?: OptimizerOptions) => Promise<Optimizer>;
+
+// @public (undocumented)
+export interface Diagnostic {
+    // (undocumented)
+    category: DiagnosticCategory;
+    // (undocumented)
+    code: string | null;
+    // (undocumented)
+    file: string;
+    // (undocumented)
+    highlights: SourceLocation[] | null;
+    // (undocumented)
+    message: string;
+    // (undocumented)
+    scope: string;
+    // (undocumented)
+    suggestions: string[] | null;
+}
+
+// @public (undocumented)
+export type DiagnosticCategory = 'error' | 'warning' | 'sourceError';
+
+// @public (undocumented)
+export type EmitMode = 'dev' | 'prod' | 'lib' | 'hmr';
+
+// @public (undocumented)
+export type EntryStrategy = InlineEntryStrategy | HoistEntryStrategy | SingleEntryStrategy | HookEntryStrategy | SegmentEntryStrategy | ComponentEntryStrategy | SmartEntryStrategy;
 
 // @public
 export enum ExperimentalFeatures {
@@ -39,6 +71,110 @@ export interface GlobalInjections {
     location: 'head' | 'body';
     // (undocumented)
     tag: string;
+}
+
+// @public (undocumented)
+export interface HoistEntryStrategy {
+    // (undocumented)
+    type: 'hoist';
+}
+
+// @public @deprecated (undocumented)
+export interface HookEntryStrategy {
+    // (undocumented)
+    manual?: Record<string, string>;
+    // (undocumented)
+    type: 'hook';
+}
+
+// @public (undocumented)
+export interface InlineEntryStrategy {
+    // (undocumented)
+    type: 'inline';
+}
+
+// @public (undocumented)
+export type MinifyMode = 'simplify' | 'none';
+
+// @public (undocumented)
+export interface Optimizer {
+    sys: OptimizerSystem;
+    transformModules(opts: TransformModulesOptions): Promise<TransformOutput>;
+}
+
+// @public (undocumented)
+export interface OptimizerOptions {
+    // (undocumented)
+    binding?: any;
+    inlineStylesUpToBytes?: number;
+    // (undocumented)
+    _optimizer?: unknown;
+    sourcemap?: boolean;
+    // (undocumented)
+    sys?: OptimizerSystem;
+    tsOptimizer?: boolean;
+}
+
+// @public (undocumented)
+export interface OptimizerSystem {
+    // (undocumented)
+    cwd: () => string;
+    // (undocumented)
+    dynamicImport: (path: string) => Promise<any>;
+    // (undocumented)
+    env: SystemEnvironment;
+    // (undocumented)
+    getInputFiles?: (rootDir: string) => Promise<TransformModuleInput[]>;
+    // (undocumented)
+    os: string;
+    // (undocumented)
+    path: Path;
+    // (undocumented)
+    strictDynamicImport: (path: string) => Promise<any>;
+}
+
+// @public (undocumented)
+export interface Path {
+    // (undocumented)
+    basename(path: string, ext?: string): string;
+    // (undocumented)
+    readonly delimiter: string;
+    // (undocumented)
+    dirname(path: string): string;
+    // (undocumented)
+    extname(path: string): string;
+    // (undocumented)
+    format(pathObject: {
+        root: string;
+        dir: string;
+        base: string;
+        ext: string;
+        name: string;
+    }): string;
+    // (undocumented)
+    isAbsolute(path: string): boolean;
+    // (undocumented)
+    join(...paths: string[]): string;
+    // (undocumented)
+    normalize(path: string): string;
+    // (undocumented)
+    parse(path: string): {
+        root: string;
+        dir: string;
+        base: string;
+        ext: string;
+        name: string;
+    };
+    // (undocumented)
+    readonly posix: Path;
+    // (undocumented)
+    relative(from: string, to: string): string;
+    // (undocumented)
+    resolve(...paths: string[]): string;
+    // (undocumented)
+    readonly sep: string;
+    // (undocumented)
+    readonly win32: null;
 }
 
 // @public (undocumented)
@@ -205,8 +341,78 @@ export interface ResolvedManifest {
     mapper: SymbolMapper;
 }
 
+// @public (undocumented)
+export interface SegmentAnalysis {
+    // (undocumented)
+    canonicalFilename: string;
+    captureNames?: string[];
+    // (undocumented)
+    captures: boolean;
+    // (undocumented)
+    ctxKind: 'eventHandler' | 'function';
+    // (undocumented)
+    ctxName: string;
+    // (undocumented)
+    displayName: string;
+    // (undocumented)
+    entry: string | null;
+    // (undocumented)
+    extension: string;
+    // (undocumented)
+    hash: string;
+    // (undocumented)
+    loc: [number, number];
+    // (undocumented)
+    name: string;
+    // (undocumented)
+    origin: string;
+    paramNames?: string[];
+    // (undocumented)
+    parent: string | null;
+}
+
+// @public (undocumented)
+export interface SegmentEntryStrategy {
+    // (undocumented)
+    manual?: Record<string, string>;
+    // (undocumented)
+    type: 'segment';
+}
+
 // @public
 export type ServerQwikManifest = Pick<QwikManifest, 'manifestHash' | 'injections' | 'bundleGraph' | 'bundleGraphAsset' | 'mapping' | 'preloader' | 'core' | 'qwikLoader'>;
+
+// @public (undocumented)
+export interface SingleEntryStrategy {
+    // (undocumented)
+    manual?: Record<string, string>;
+    // (undocumented)
+    type: 'single';
+}
+
+// @public (undocumented)
+export interface SmartEntryStrategy {
+    // (undocumented)
+    manual?: Record<string, string>;
+    // (undocumented)
+    type: 'smart';
+}
+
+// @public (undocumented)
+export interface SourceLocation {
+    // (undocumented)
+    endCol: number;
+    // (undocumented)
+    endLine: number;
+    // (undocumented)
+    hi: number;
+    // (undocumented)
+    lo: number;
+    // (undocumented)
+    startCol: number;
+    // (undocumented)
+    startLine: number;
+}
 
 // @public (undocumented)
 export type SymbolMapper = Record<string, readonly [symbol: string, chunk: string]>;
@@ -214,8 +420,90 @@ export type SymbolMapper = Record<string, readonly [symbol: string, chunk: strin
 // @public (undocumented)
 export type SymbolMapperFn = (symbolName: string, mapper: SymbolMapper | undefined, parent?: string) => readonly [symbol: string, chunk: string] | undefined;
 
+// @public (undocumented)
+export type SystemEnvironment = 'node' | 'deno' | 'bun' | 'webworker' | 'browsermain' | 'unknown';
 
-export * from "@qwik.dev/optimizer";
+// @public (undocumented)
+export interface TransformModule {
+    // (undocumented)
+    code: string;
+    // (undocumented)
+    imports?: string[];
+    // (undocumented)
+    isEntry: boolean;
+    // (undocumented)
+    map: string | null;
+    // (undocumented)
+    origPath: string | null;
+    // (undocumented)
+    path: string;
+    // (undocumented)
+    segment: SegmentAnalysis | null;
+}
+
+// @public (undocumented)
+export interface TransformModuleInput {
+    // (undocumented)
+    code: string;
+    // (undocumented)
+    devPath?: string;
+    // (undocumented)
+    path: string;
+}
+
+// @public (undocumented)
+export interface TransformModulesOptions extends TransformOptions {
+    // (undocumented)
+    input: TransformModuleInput[];
+}
+
+// @public (undocumented)
+export interface TransformOptions {
+    // (undocumented)
+    entryStrategy?: EntryStrategy;
+    // (undocumented)
+    explicitExtensions?: boolean;
+    // (undocumented)
+    isServer?: boolean;
+    // (undocumented)
+    minify?: MinifyMode;
+    // (undocumented)
+    mode?: EmitMode;
+    // (undocumented)
+    preserveFilenames?: boolean;
+    // (undocumented)
+    regCtxName?: string[];
+    // (undocumented)
+    rootDir?: string;
+    // (undocumented)
+    scope?: string;
+    // (undocumented)
+    sourceMaps?: boolean;
+    // (undocumented)
+    srcDir: string;
+    // (undocumented)
+    stripCtxName?: string[];
+    // (undocumented)
+    stripEventHandlers?: boolean;
+    // (undocumented)
+    stripExports?: string[];
+    // (undocumented)
+    transpileJsx?: boolean;
+    // (undocumented)
+    transpileTs?: boolean;
+}
+
+// @public (undocumented)
+export interface TransformOutput {
+    // (undocumented)
+    diagnostics: Diagnostic[];
+    // (undocumented)
+    isJsx: boolean;
+    // (undocumented)
+    isTypeScript: boolean;
+    // (undocumented)
+    modules: TransformModule[];
+}
 
 // (No @packageDocumentation comment for this package)
 

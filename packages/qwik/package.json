@@ -8,15 +8,23 @@
   },
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "dependencies": {
-    "@qwik.dev/optimizer": "workspace:*",
+    "@emnapi/core": "1.11.3",
+    "@emnapi/runtime": "1.11.3",
     "csstype": "^3.2.3",
     "launch-editor": "^2.14.1",
-    "magic-string": "0.30.21"
+    "magic-regexp": "^0.11.0",
+    "magic-string": "^0.30.21",
+    "oxc-parser": "^0.144.0",
+    "oxc-transform": "^0.144.0",
+    "oxc-walker": "^1.1.1",
+    "pathe": "^2.0.3",
+    "siphash": "^1.2.0"
   },
   "devDependencies": {
     "@croct/json5-parser": "0.2.2",
     "@qwik.dev/core": "workspace:*",
     "@qwik.dev/dom": "workspace:*",
+    "@qwik.dev/optimizer": "workspace:*",
     "domino": "2.1.6",
     "ignore": "5.3.1",
     "image-size": "2.0.2",
@@ -160,15 +168,19 @@
   "license": "MIT",
   "main": "./src/index.ts",
   "peerDependencies": {
+    "@qwik.dev/optimizer": "workspace:*",
     "prettier": "*",
     "vite": ">=8 <9",
     "vitest": ">=2 <5"
   },
   "peerDependenciesMeta": {
-    "vitest": {
+    "@qwik.dev/optimizer": {
       "optional": true
     },
     "prettier": {
+      "optional": true
+    },
+    "vitest": {
       "optional": true
     }
   },

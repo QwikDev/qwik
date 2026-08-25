@@ -1,0 +1,1532 @@
+/**
+ * Public entry point for the Qwik optimizer. `transformModule` accepts `TransformModulesOptions`
+ * and returns `TransformOutput`, sequencing extraction, capture analysis, variable migration,
+ * parent rewriting, and segment codegen behind one public API.
+ */
+
+import type {
+  AstEcmaScriptModule,
+  AstFunction,
+  AstNode,
+  AstProgram,
+  TSEnumDeclaration,
+} from '../../ast-types.js';
+import MagicString from 'magic-string';
+import { stripTypeScript } from '../edit/strip-types.js';
+import { blankNonCode, skipStringLiteralForward } from '../edit/text-scanning.js';
+import { parseWithRawTransfer } from '../ast/parse.js';
+import { isStrippedExtraction } from '../rewrite/predicates.js';
+import { flattenDestructureUseCalls } from '../prepare/flatten-destructures.js';
+import { normalizeInlineComponentProps } from '../prepare/inline-component-props.js';
+import { detectForeignJsxRuntime } from '../jsx/jsx-import-source.js';
+import type { ConsolidatedSegment, ExtractionResult, Mutable } from '../extraction/extract.js';
+import {
+  rewriteParentModule,
+  resolveConstLiteralsInClosure,
+  resolveWholeBodyIdentifier,
+  type InlineStrategyOptions,
+  type JsxRewriteOptions,
+  type ParentRewriteResult,
+} from '../rewrite/index.js';
+import {
+  collectImports,
+  sourceMayContainMarkers,
+  type ImportInfo,
+} from '../extraction/marker-detection.js';
+import { buildDevFilePath } from '../segment/dev-mode.js';
+import { isSimpleIdentifierName } from '../ast/identifier-name.js';
+import {
+  type SymbolName,
+  mkBodyText,
+  mkByteOffset,
+  mkRelativePath,
+  mkSymbolName,
+  type RelativePath,
+} from '../types/brands.js';
+import {
+  analyzeCaptures,
+  collectScopeIdentifiers,
+  excludeNestedExtractionCaptures,
+} from '../analysis/capture-analysis.js';
+import {
+  gatherModuleFacts,
+  type ModuleGatherFacts,
+  type PassiveConflict,
+} from '../analysis/module-gather-walk.js';
+import type { ScopeAwareCollectResult } from '../jsx/jsx.js';
+import {
+  analyzeMigration,
+  collectModuleLevelDecls,
+  filterInlineStrategyMigrations,
+  MIG_REASON,
+  type MigrationDecision,
+  type ModuleLevelDecl,
+} from '../analysis/variable-migration.js';
+import type {
+  Diagnostic,
+  EmitMode,
+  EntryStrategy,
+  TransformModuleInput,
+  TransformModulesOptions,
+  TransformOutput,
+  TransformModule,
+} from '../types/types.js';
+import {
+  classifyDeclarationType,
+  classifyDeclarationTypeInClosure,
+  parseDisableDirectives,
+  filterSuppressedDiagnostics,
+} from '../diagnostics/diagnostics.js';
+import {
+  computeOutputExtension,
+  computeParentModulePath,
+  computeRelPath,
+  getExtension,
+  stripExtension,
+} from '../../paths.js';
+import {
+  buildParentExtractionMap,
+  buildPassthroughModule,
+  runDcePipeline,
+} from './module-cleanup.js';
+import { deriveIsDev } from '../rewrite/const-replacement.js';
+import { applyModuleHygieneRenames } from './hygiene-renames.js';
+import {
+  detectC02Diagnostics,
+  detectC03Diagnostics,
+  detectC05Diagnostics,
+  emitPassiveConflictDiagnostics,
+} from '../diagnostics/diagnostic-detection.js';
+import {
+  leadingSquareBracket,
+  trailingSquareBracket,
+  paddingParam,
+} from '../segment/post-process.js';
+import {
+  promoteEventHandlerCaptures,
+  unifyParameterSlots,
+  buildElementCaptureMap,
+  type EventCaptureContext,
+} from '../jsx/event-capture-promotion.js';
+import type { LoopContext } from '../jsx/loop-hoisting.js';
+import {
+  generateAllSegmentModules,
+  type SegmentGenerationContext,
+} from '../segment/segment-generation.js';
+
+/**
+ * Collect import sources from generated text whose parse isn't cached. Patterns end at the opening
+ * quote and match on the blanked copy (string/comment contents spaced out, positions preserved), so
+ * import-shaped text inside a string or comment can't register; the source itself reads from the
+ * original through the string scanner.
+ */
+function addImportSourcesFromText(
+  code: string,
+  patterns: readonly RegExp[],
+  sources: Set<string>
+): void {
+  const blanked = blankNonCode(code);
+  for (const pattern of patterns) {
+    for (const m of blanked.matchAll(pattern)) {
+      const quoteIdx = m.index + m[0].length - 1;
+      const close = skipStringLiteralForward(code, quoteIdx);
+      if (close < code.length) {
+        sources.add(code.slice(quoteIdx + 1, close));
+      }
+    }
+  }
+}
+
+const dynamicImportOpen = /\bimport\s*\(\s*["']/g;
+const staticImportOpens = [/\bfrom\s*["']/g, /^\s*import\s*["']/gm] as const;
+
+/**
+ * Import sources present in the original module but absent from the final parent output. The vite
+ * plugin uses these to keep stripped-away imports in the module graph (SSR restore).
+ */
+function collectRemovedImportSources(
+  originalImports: ReadonlyMap<string, ImportInfo>,
+  originalCode: string,
+  cleanedCode: string
+): string[] {
+  const originalSources = new Set<string>();
+  for (const [, info] of originalImports) {
+    if (info.source) {
+      originalSources.add(info.source);
+    }
+  }
+  addImportSourcesFromText(originalCode, [dynamicImportOpen], originalSources);
+  if (originalSources.size === 0) {
+    return [];
+  }
+
+  const keptSources = new Set<string>();
+  addImportSourcesFromText(cleanedCode, [dynamicImportOpen, ...staticImportOpens], keptSources);
+
+  return [...originalSources].filter((source) => !keptSources.has(source));
+}
+
+/**
+ * Passthrough modules skip the rewrite pipeline, but isServer/isBrowser branches must still fold so
+ * client bundles never reference server-only imports.
+ */
+function applyPassthroughConstFolding(
+  module: TransformModule,
+  mod: ModuleContext
+): TransformModule {
+  const { options, relPath, ext } = mod;
+  let code = module.code;
+  if (code === '') {
+    return module;
+  }
+
+  // The Rust optimizer transpiles TS even in marker-free modules; downstream
+  // consumers (e.g. the vite plugin's literal replacements) rely on that.
+  if (options.transpileTs && (ext === '.ts' || ext === '.tsx' || ext === '.mts')) {
+    code = stripTypeScript(
+      relPath,
+      code,
+      {
+        typescript: { onlyRemoveTypeImports: false },
+        ...(ext === '.tsx' ? {} : { jsx: 'preserve' as const }),
+      },
+      `source file "${relPath}"`,
+      { filename: relPath, text: code }
+    );
+  }
+
+  code = runDcePipeline(code, relPath, {
+    isServer: options.isServer,
+    isDev: deriveIsDev(options.mode),
+    isLibMode: options.mode === 'lib',
+    onlyIfFoldChanges: true,
+  });
+
+  return code === module.code ? module : { ...module, code };
+}
+
+/**
+ * Output-level source-kind flags accumulated across input files. The accumulation is
+ * order-sensitive: a file sees `isJsx: true` if any earlier input (or itself) was JSX.
+ */
+interface ModuleKindFlags {
+  readonly isTypeScript: boolean;
+  readonly isJsx: boolean;
+}
+
+/** Per-input invariants shared by every phase helper. */
+interface ModuleContext {
+  readonly input: TransformModuleInput;
+  readonly options: TransformModulesOptions;
+  readonly relPath: RelativePath;
+  readonly ext: string;
+}
+
+/** Phase 0 + 0.5 result: prepared source and its parse. */
+interface PreparedModuleInput {
+  readonly repairedCode: string;
+  readonly originalOffset: (offset: number) => number;
+  readonly program: AstProgram;
+  readonly parserModule: AstEcmaScriptModule | undefined;
+  readonly diagnostics: readonly Diagnostic[];
+  readonly hasForeignJsxRuntime: boolean;
+  readonly foreignJsxPragmaText: string | null;
+}
+
+/**
+ * Phase 1+2 walk result: the extraction set plus every gathered per-module fact, all from the
+ * single fused program traversal.
+ */
+interface ExtractedModule {
+  readonly kind: 'extracted';
+  readonly extractions: ExtractionResult[];
+  readonly closureNodes: Map<string, AstFunction>;
+  readonly facts: ModuleGatherFacts;
+}
+
+/**
+ * Phase 1 result. `passthrough` is the early exit for inputs with no marker calls and no JSX to
+ * transpile — the module is emitted verbatim.
+ */
+type SegmentExtraction =
+  | { readonly kind: 'passthrough'; readonly module: TransformModule }
+  | ExtractedModule;
+
+/** Emit configuration derived purely from options + input extension. */
+interface EmitConfig {
+  readonly emitMode: EmitMode;
+  readonly entryStrategy: EntryStrategy;
+  readonly isInlineStrategy: boolean;
+  readonly isLibMode: boolean;
+  readonly shouldTranspileJsx: boolean;
+  readonly shouldTranspileTs: boolean;
+  readonly qrlOutputExt: string;
+  readonly parentModulePath: string;
+  readonly parentOutputPath: RelativePath;
+}
+
+/**
+ * Phase 2 result. Capture analysis also mutates `extractions` in place
+ * (captureNames/paramNames/captures and the `'captured'` phase flip). The usage maps and
+ * passive-conflict list arrive pre-built from the Phase-1 gather walk; `scopeAwareBindings` is
+ * present only when this module will run the Phase-4 JSX transform.
+ */
+interface CaptureAnalysis {
+  readonly originalImports: Map<string, ImportInfo>;
+  readonly importedNames: Set<string>;
+  readonly enclosingExtMap: Map<string, ExtractionResult>;
+  readonly extractionLoopMap: Map<string, LoopContext[]>;
+  readonly elementQpParamsMap: Map<string, string[]>;
+  readonly segmentUsage: Map<string, Set<string>>;
+  readonly rootUsage: Set<string>;
+  readonly passiveConflicts: readonly PassiveConflict[];
+  readonly scopeAwareBindings: ScopeAwareCollectResult | undefined;
+}
+
+/** Phase 3 result: module-level decl inventory + migration decisions. */
+interface MigrationAnalysis {
+  readonly moduleLevelDecls: ModuleLevelDecl[];
+  readonly moduleLevelDeclsByName: Map<string, ModuleLevelDecl>;
+  readonly segmentUsage: Map<string, Set<string>>;
+  readonly migrationDecisions: MigrationDecision[];
+}
+
+/** Phase 4 result: the rewritten parent module + rewrite byproducts. */
+interface ParentRewrite {
+  readonly parentModule: TransformModule;
+  readonly parentResult: ParentRewriteResult;
+  readonly devFile: string | undefined;
+}
+
+/** Everything one input file contributes to the final TransformOutput. */
+interface ModuleTransformResult {
+  readonly modules: readonly TransformModule[];
+  readonly diagnostics: readonly Diagnostic[];
+  readonly flags: ModuleKindFlags;
+}
+
+/**
+ * Transform Qwik source modules by extracting segments, rewriting the parent module, and generating
+ * segment module code. Public API consumed by the Qwik Vite plugin.
+ *
+ * Pipeline per input file (see `transformOneModule`): repair -> extract -> analyze captures ->
+ * migrate -> rewrite parent -> generate segments
+ */
+export function transformModule(options: TransformModulesOptions): TransformOutput {
+  const allModules: TransformModule[] = [];
+  const diagnostics: Diagnostic[] = [];
+  let flags: ModuleKindFlags = { isTypeScript: false, isJsx: false };
+
+  for (const input of options.input) {
+    const result = transformOneModule(input, options, flags);
+    allModules.push(...result.modules);
+    diagnostics.push(...result.diagnostics);
+    flags = result.flags;
+  }
+
+  return {
+    modules: allModules,
+    diagnostics: applyDiagnosticSuppression(diagnostics, options.input),
+    isTypeScript: flags.isTypeScript,
+    isJsx: flags.isJsx,
+  };
+}
+
+/**
+ * Run the full per-file pipeline for one input module. Phase 6 (diagnostic suppression) is
+ * cross-file and runs once in `transformModule`, not here.
+ */
+function transformOneModule(
+  input: TransformModuleInput,
+  options: TransformModulesOptions,
+  priorFlags: ModuleKindFlags
+): ModuleTransformResult {
+  const relPath = computeRelPath(input.path, options.srcDir);
+  const ext = getExtension(relPath);
+  const flags: ModuleKindFlags = {
+    isTypeScript: priorFlags.isTypeScript || ext === '.ts' || ext === '.tsx',
+    isJsx: priorFlags.isJsx || ext === '.tsx' || ext === '.jsx',
+  };
+  const mod: ModuleContext = { input, options, relPath, ext };
+  const diagnostics: Diagnostic[] = [];
+
+  const prepared = prepareModuleInput(mod);
+  if (prepared.diagnostics.length > 0) {
+    return {
+      modules: [
+        {
+          kind: 'parent',
+          path: relPath,
+          isEntry: false,
+          code: input.code,
+          map: null,
+          origPath: input.path,
+        },
+      ],
+      diagnostics: prepared.diagnostics,
+      flags,
+    };
+  }
+  const extracted = extractModuleSegments(mod, prepared);
+  if (extracted.kind === 'passthrough') {
+    return {
+      modules: [applyPassthroughConstFolding(extracted.module, mod)],
+      diagnostics,
+      flags,
+    };
+  }
+  const { extractions, closureNodes } = extracted;
+
+  const emit = resolveEmitConfig(mod);
+  const analysis = analyzeModuleCaptures(
+    mod,
+    prepared,
+    extracted,
+    emit.entryStrategy,
+    diagnostics,
+    emit.shouldTranspileJsx
+  );
+  const migration = attributeSegmentUsage(
+    mod,
+    prepared,
+    extractions,
+    analysis,
+    emit.isInlineStrategy
+  );
+  const preRenameSymbolName = applyProdRename(extractions, closureNodes, emit.emitMode);
+  const sourceExtensions = downgradeExtensions(
+    extractions,
+    emit.shouldTranspileJsx,
+    emit.shouldTranspileTs
+  );
+  const parent = rewriteParent(
+    mod,
+    prepared,
+    extractions,
+    closureNodes,
+    analysis,
+    migration,
+    emit,
+    diagnostics
+  );
+  const segmentModules = generateSegments(
+    mod,
+    prepared,
+    parent,
+    extractions,
+    closureNodes,
+    analysis,
+    migration,
+    emit,
+    preRenameSymbolName,
+    sourceExtensions,
+    flags.isJsx
+  );
+
+  return {
+    modules: [parent.parentModule, ...segmentModules],
+    diagnostics,
+    flags,
+  };
+}
+
+/** Phase 0 + 0.5: parse, flatten, and detect a foreign JSX runtime. */
+function prepareModuleInput(mod: ModuleContext): PreparedModuleInput {
+  const { input, relPath } = mod;
+
+  let repairedCode = input.code;
+  let program: AstProgram;
+  let parserModule: AstEcmaScriptModule | undefined;
+  let diagnostics: readonly Diagnostic[] = [];
+  if (input.program) {
+    program = input.program;
+    parserModule = input.module;
+  } else {
+    const parsed = parseWithRawTransfer(relPath, repairedCode);
+    program = parsed.program;
+    parserModule = parsed.module;
+    if (program.body.length === 0) {
+      diagnostics = (parsed.errors ?? []).map((error) => ({
+        category: 'error',
+        code: 'PARSE_ERROR',
+        file: relPath,
+        message: error.message,
+        highlights: null,
+        suggestions: null,
+        scope: 'optimizer',
+      }));
+    }
+  }
+
+  if (diagnostics.length > 0) {
+    return {
+      repairedCode,
+      originalOffset: (offset) => offset,
+      program,
+      parserModule,
+      diagnostics,
+      hasForeignJsxRuntime: false,
+      foreignJsxPragmaText: null,
+    };
+  }
+
+  const edits = new MagicString(repairedCode);
+  const flattened = flattenDestructureUseCalls(repairedCode, relPath, program, edits);
+  const inlineProps = normalizeInlineComponentProps(repairedCode, relPath, program, edits);
+  let originalOffset = (offset: number): number => offset;
+  if (flattened.changed || inlineProps.changed) {
+    originalOffset = createOriginalOffsetMapper(
+      repairedCode,
+      edits.toString(),
+      edits.generateDecodedMap({ hires: true }).mappings
+    );
+    repairedCode = edits.toString();
+    const reparsed = parseWithRawTransfer(relPath, repairedCode);
+    program = reparsed.program;
+    parserModule = reparsed.module ?? parserModule;
+  }
+
+  // Detect a foreign `@jsxImportSource` pragma once; threaded into rewrite +
+  // segment generation so both skip Qwik's JSX rewrite and defer to
+  // oxc-transform's default JSX handling for the pragma's runtime.
+  const { hasForeignJsxRuntime, pragmaText: foreignJsxPragmaText } =
+    detectForeignJsxRuntime(repairedCode);
+
+  return {
+    repairedCode,
+    originalOffset,
+    program,
+    parserModule,
+    diagnostics,
+    hasForeignJsxRuntime,
+    foreignJsxPragmaText,
+  };
+}
+
+function createOriginalOffsetMapper(
+  original: string,
+  generated: string,
+  mappings: ReturnType<MagicString['generateDecodedMap']>['mappings']
+): (offset: number) => number {
+  const lineStarts = (source: string): number[] => {
+    const starts = [0];
+    for (let i = 0; i < source.length; i++) {
+      if (source.charCodeAt(i) === 10) {
+        starts.push(i + 1);
+      }
+    }
+    return starts;
+  };
+  const originalLines = lineStarts(original);
+  const generatedLines = lineStarts(generated);
+  const offsets = new Map<number, number>([[generated.length, original.length]]);
+  for (let line = 0; line < mappings.length; line++) {
+    for (const segment of mappings[line]) {
+      const originalLine = segment[2];
+      const originalColumn = segment[3];
+      if (originalLine !== undefined && originalColumn !== undefined) {
+        offsets.set(
+          generatedLines[line] + segment[0],
+          originalLines[originalLine] + originalColumn
+        );
+      }
+    }
+  }
+  return (offset) => offsets.get(offset) ?? offset;
+}
+
+/**
+ * Drop `inlinedQrl` extractions nested as a value inside another `inlinedQrl`'s captures array. A
+ * QRL used as a capture value is not a lazy boundary; extracting it would rewrite its call site
+ * inside the outer `.w([...])` and collide with the outer capture-wrap edit. Containment is read
+ * off offsets: a call inside another inlinedQrl but after its arg0 (`callStart >= argEnd`) can only
+ * sit in the captures array.
+ */
+function filterCaptureInlinedQrls(extractions: ExtractionResult[]): ExtractionResult[] {
+  const inlined = extractions.filter((e) => e.isInlinedQrl);
+  if (inlined.length < 2) {
+    return extractions;
+  }
+
+  const captureInlined = new Set<ExtractionResult>();
+  for (const inner of inlined) {
+    for (const outer of inlined) {
+      if (inner === outer) {
+        continue;
+      }
+      if (
+        inner.callStart > outer.callStart &&
+        inner.callEnd < outer.callEnd &&
+        inner.callStart >= outer.argEnd
+      ) {
+        captureInlined.add(inner);
+        break;
+      }
+    }
+  }
+
+  if (captureInlined.size === 0) {
+    return extractions;
+  }
+  return extractions.filter((e) => !captureInlined.has(e));
+}
+
+function extractModuleSegments(
+  mod: ModuleContext,
+  prepared: PreparedModuleInput
+): SegmentExtraction {
+  const { input, options, relPath, ext } = mod;
+  const { repairedCode, program, parserModule } = prepared;
+
+  const willTranspileJsx = options.transpileJsx !== false && (ext === '.tsx' || ext === '.jsx');
+
+  // Sound prefilter: a module whose text cannot contain an extraction trigger
+  // (see `sourceMayContainMarkers`) and has no JSX to transpile is a
+  // passthrough — skipping the gather walk here cannot change behavior.
+  if (!willTranspileJsx && !sourceMayContainMarkers(repairedCode)) {
+    return {
+      kind: 'passthrough',
+      module: buildPassthroughModule(repairedCode, relPath, input.path, program),
+    };
+  }
+
+  // Closure AST nodes are threaded out keyed by post-disambiguation
+  // symbolName, so downstream phases reuse the original parse instead of
+  // re-parsing each extraction's body.
+  const closureNodes = new Map<string, AstFunction>();
+  // One fused traversal produces the extraction set and every per-module fact.
+  // Identity-dependent projections key off closures discovered mid-walk;
+  // symbolName-keyed maps are derived post-walk, after disambiguation.
+  const facts = gatherModuleFacts({
+    program,
+    repairedCode,
+    scopeEntries: true,
+    passiveConflicts: true,
+    // Gather scope bindings only when the Phase-4 JSX transform will consume
+    // them (same `willTranspileJsx` gate `rewriteParent` uses).
+    scopeBindings: willTranspileJsx,
+    extraction: {
+      source: repairedCode,
+      relPath,
+      scope: options.scope,
+      transpileJsx: willTranspileJsx,
+      // Explicit user-set flag (defaults false) for the ctxKind classifier —
+      // distinct from `willTranspileJsx`, which defaults true on .tsx/.jsx.
+      explicitTranspileJsx: options.transpileJsx === true,
+      parserModule,
+      closureNodesOut: closureNodes,
+    },
+  });
+  // The collector's `readonly ExtractedSegment[]` is widened once here; the
+  // orchestrator then advances elements in place through the `captured` →
+  // `consolidated` phases via per-mutation `Mutable` casts.
+  const extractions = facts.extractions as ExtractionResult[];
+  for (const extraction of extractions) {
+    (extraction as Mutable<ExtractionResult>).loc = [
+      mkByteOffset(prepared.originalOffset(extraction.loc[0]) + 1),
+      mkByteOffset(prepared.originalOffset(extraction.loc[1]) + 1),
+    ];
+  }
+
+  if (extractions.length === 0 && !willTranspileJsx) {
+    return {
+      kind: 'passthrough',
+      module: buildPassthroughModule(repairedCode, relPath, input.path, program),
+    };
+  }
+
+  return {
+    kind: 'extracted',
+    extractions: filterCaptureInlinedQrls(extractions),
+    closureNodes,
+    facts,
+  };
+}
+
+/** Resolve the emit configuration (pure derivation from options + ext). */
+function resolveEmitConfig(mod: ModuleContext): EmitConfig {
+  const { options, relPath, ext } = mod;
+
+  // `mode: 'lib'` emits a single-module library output: it reuses the inline
+  // pipeline, and a post-pass in `output-assembly.ts` collapses the inline
+  // shape into `inlinedQrl(body, name, [caps])`.
+  let entryStrategy: EntryStrategy;
+  if (options.mode === 'lib') {
+    entryStrategy = { type: 'inline' as const };
+  } else {
+    entryStrategy = options.entryStrategy ?? { type: 'smart' as const };
+  }
+
+  const qrlOutputExt = computeOutputExtension(ext, options.transpileTs, options.transpileJsx);
+  const parentOutputExt = ext === '.mjs' || ext === '.cjs' ? ext : qrlOutputExt;
+  const parentOutputPath = options.preserveFilenames
+    ? relPath
+    : mkRelativePath(stripExtension(relPath) + parentOutputExt);
+
+  return {
+    emitMode: options.mode ?? 'prod',
+    entryStrategy,
+    isInlineStrategy: entryStrategy.type === 'inline' || entryStrategy.type === 'hoist',
+    isLibMode: options.mode === 'lib',
+    shouldTranspileJsx: options.transpileJsx !== false,
+    shouldTranspileTs: options.transpileTs === true,
+    qrlOutputExt,
+    parentModulePath: computeParentModulePath(parentOutputPath, options.explicitExtensions),
+    parentOutputPath,
+  };
+}
+
+/**
+ * Phase 2: collect imports and analyze captures.
+ *
+ * Populates `captureNames` / `paramNames` / `captures` on every extraction (in place), runs
+ * event-handler capture-to-param promotion, emits C02 diagnostics, and flips the extraction phase
+ * discriminator to `'captured'`.
+ */
+function analyzeModuleCaptures(
+  mod: ModuleContext,
+  prepared: PreparedModuleInput,
+  extracted: ExtractedModule,
+  entryStrategy: EntryStrategy,
+  diagnostics: Diagnostic[],
+  shouldTranspileJsx = true
+): CaptureAnalysis {
+  const { options, relPath } = mod;
+  const { repairedCode, program } = prepared;
+  const { extractions, closureNodes } = extracted;
+
+  const originalImports = collectImports(program, prepared.parserModule);
+  const importedNames = new Set<string>(originalImports.keys());
+
+  const enclosingExtMap = buildParentExtractionMap(extractions);
+
+  const emitsChildFiles = entryStrategy.type !== 'inline' && entryStrategy.type !== 'hoist';
+  const childRangesByParent = new Map<string, Array<readonly [number, number]>>();
+  if (emitsChildFiles) {
+    for (const child of extractions) {
+      const parent = enclosingExtMap.get(child.symbolName);
+      if (!parent) {
+        continue;
+      }
+      const ranges = childRangesByParent.get(parent.symbolName) ?? [];
+      ranges.push([child.argStart, child.argEnd]);
+      childRangesByParent.set(parent.symbolName, ranges);
+    }
+  }
+
+  const moduleScopeIds = collectScopeIdentifiers(program, repairedCode, relPath);
+
+  // Collect each segment body's scope identifiers for nested capture analysis;
+  // the closure nodes were already threaded through, so no body re-parse.
+  const bodyScopeIds = new Map<string, Set<string>>();
+  for (const [symbolName, closureNode] of closureNodes) {
+    const bodyIds = collectScopeIdentifiers(closureNode, '', '');
+    bodyScopeIds.set(symbolName, bodyIds);
+  }
+
+  // Facts from the fused gather walk; node-identity keys (free identifiers,
+  // lexical scopes) survive the prod `s_<hash>` rename.
+  const {
+    closureFreeIdentifiers,
+    closureLexicalScopes,
+    nonFunctionCaptures,
+    extractionLoopMap,
+    loopBodyVarDecls,
+    allScopeEntries,
+    segmentUsage,
+    rootUsage,
+    passiveConflicts,
+    scopeAwareBindings,
+  } = extracted.facts;
+
+  detectC03Diagnostics(
+    extractions,
+    nonFunctionCaptures,
+    repairedCode,
+    mod.input.code,
+    relPath,
+    diagnostics
+  );
+
+  for (const extraction of extractions) {
+    const closureNode = closureNodes.get(extraction.symbolName);
+    if (!closureNode) {
+      continue;
+    }
+
+    const enclosingExt = enclosingExtMap.get(extraction.symbolName) ?? null;
+
+    const lexicalScope = closureLexicalScopes.get(closureNode);
+    const parentScopeIds: Set<string> = lexicalScope ?? moduleScopeIds;
+
+    // inlinedQrl carries explicit captures — read them rather than analyzing.
+    if (extraction.isInlinedQrl) {
+      if (extraction.explicitCaptures) {
+        const items = extraction.explicitCaptures
+          .replace(leadingSquareBracket, '')
+          .replace(trailingSquareBracket, '')
+          .split(',')
+          .map((s) => s.trim())
+          .filter((s) => s.length > 0);
+        const identCaptures = items.filter(
+          (s) =>
+            isSimpleIdentifierName(s) &&
+            s !== 'true' &&
+            s !== 'false' &&
+            s !== 'null' &&
+            s !== 'undefined'
+        );
+        extraction.captureNames = identCaptures;
+        extraction.captures = identCaptures.length > 0;
+      }
+      continue;
+    }
+
+    const result = analyzeCaptures(
+      closureNode,
+      parentScopeIds,
+      closureFreeIdentifiers.get(closureNode) ?? []
+    );
+    extraction.captureNames = result.captureNames;
+    extraction.paramNames = result.paramNames;
+    extraction.captures = result.captures;
+
+    // Function/class declarations aren't serialized captures — keep only vars.
+    if (extraction.captureNames.length > 0) {
+      const enclosingClosure = enclosingExt ? closureNodes.get(enclosingExt.symbolName) : undefined;
+      extraction.captureNames = extraction.captureNames.filter((name) => {
+        const declType = enclosingClosure
+          ? classifyDeclarationTypeInClosure(enclosingClosure, name)
+          : classifyDeclarationType(program, name);
+        return declType === 'var';
+      });
+      extraction.captures = extraction.captureNames.length > 0;
+    }
+
+    const childRanges = childRangesByParent.get(extraction.symbolName);
+    if (childRanges && extraction.captureNames.length > 0) {
+      extraction.captureNames = excludeNestedExtractionCaptures(
+        closureNode,
+        extraction.captureNames,
+        childRanges,
+        moduleScopeIds
+      );
+      extraction.captures = extraction.captureNames.length > 0;
+    }
+
+    if (extraction.captures && extraction.paramNames.length > 0) {
+      const paramSet = new Set(extraction.paramNames);
+      const allCapturesInParams = extraction.captureNames.every((name) => paramSet.has(name));
+      if (allCapturesInParams) {
+        extraction.captures = false;
+      }
+    }
+  }
+
+  // Resolve const literals for event handlers before capture-to-param promotion
+  for (const extraction of extractions) {
+    if (extraction.ctxKind !== 'eventHandler') {
+      continue;
+    }
+    if (extraction.isInlinedQrl || extraction.captureNames.length === 0) {
+      continue;
+    }
+    const enclosingExt = enclosingExtMap.get(extraction.symbolName) ?? null;
+    if (!enclosingExt) {
+      continue;
+    }
+    const enclosingClosure = closureNodes.get(enclosingExt.symbolName);
+    if (!enclosingClosure) {
+      continue;
+    }
+    const constValues = resolveConstLiteralsInClosure(
+      enclosingClosure,
+      repairedCode,
+      extraction.captureNames
+    );
+    if (constValues.size > 0) {
+      extraction.constLiterals = constValues;
+      extraction.captureNames = extraction.captureNames.filter((n) => !constValues.has(n));
+      extraction.captures = extraction.captureNames.length > 0;
+    }
+  }
+
+  const globalDeclPositions = new Map<string, number>();
+  // Only `inline` (not `hoist`) skips captures→paramNames promotion: `hoist`
+  // still needs the `(_, _1, capture)` param-padding form, while `inline`
+  // keeps captures in `captureNames` for the `_captures[N]` unpacking path.
+  const isInlineOnlyStrategy = entryStrategy.type === 'inline';
+  const eventCaptureCtx: EventCaptureContext = {
+    extractions,
+    closureNodes,
+    closureFreeIdentifiers,
+    bodyScopeIds,
+    moduleScopeIds,
+    importedNames,
+    enclosingExtMap,
+    extractionLoopMap,
+    allScopeEntries,
+    loopBodyVarDecls,
+    repairedCode,
+    isInlineStrategy: isInlineOnlyStrategy,
+    liftParentLevelHandlers: shouldTranspileJsx,
+    moduleTopLevelNames: new Set(collectModuleLevelDecls(program, repairedCode).map((d) => d.name)),
+  };
+
+  promoteEventHandlerCaptures(eventCaptureCtx, globalDeclPositions);
+
+  // A worker wrapper delegates positionally to its worker child, so it takes
+  // the child's lifted params and moved-captures marker verbatim.
+  for (const wrapper of extractions) {
+    if (!wrapper.isWorkerEventWrapper) {
+      continue;
+    }
+    const worker = extractions.find(
+      (e) =>
+        e.isWorkerEventHandler && e.callStart >= wrapper.argStart && e.callEnd <= wrapper.argEnd
+    );
+    if (!worker) {
+      continue;
+    }
+    const mut = wrapper as Mutable<ExtractionResult>;
+    mut.paramNames = [...worker.paramNames];
+    mut.movedCaptures = worker.movedCaptures;
+    mut.captureNames = [];
+    mut.captures = false;
+  }
+
+  unifyParameterSlots(eventCaptureCtx, globalDeclPositions);
+
+  // Threads strip-config so stripped event handlers' captures still populate
+  // `elementQpParamsMap` for segment-body JSX.
+  const elementQpParamsMap = buildElementCaptureMap(
+    eventCaptureCtx,
+    globalDeclPositions,
+    options.stripCtxName,
+    options.stripEventHandlers
+  );
+
+  detectC02Diagnostics(
+    extractions,
+    closureNodes,
+    closureFreeIdentifiers,
+    enclosingExtMap,
+    importedNames,
+    program,
+    relPath,
+    diagnostics
+  );
+
+  // Flip the phase discriminator to 'captured' now that captureNames /
+  // paramNames are populated. Internal-builder cast avoids a pass-through map.
+  for (const extraction of extractions) {
+    (extraction as Mutable<ExtractionResult>).phase = 'captured';
+  }
+
+  return {
+    originalImports,
+    importedNames,
+    enclosingExtMap,
+    extractionLoopMap,
+    elementQpParamsMap,
+    segmentUsage,
+    rootUsage,
+    passiveConflicts,
+    scopeAwareBindings,
+  };
+}
+
+/** Top-level module references resolve through module wiring, never QRL captures. */
+function dropTopLevelModuleScopeCaptures(
+  extractions: ExtractionResult[],
+  moduleLevelDeclsByName: ReadonlyMap<string, ModuleLevelDecl>
+): void {
+  for (const ext of extractions) {
+    if (ext.parent !== null || ext.captureNames.length === 0) {
+      continue;
+    }
+    const kept = ext.captureNames.filter((name) => !moduleLevelDeclsByName.has(name));
+    if (kept.length === ext.captureNames.length) {
+      continue;
+    }
+    const mut = ext as Mutable<ExtractionResult>;
+    mut.captureNames = kept;
+    mut.captures = kept.length > 0;
+  }
+}
+
+/** Phase 3: attribute module-level decl usage and decide migrations. */
+function attributeSegmentUsage(
+  mod: ModuleContext,
+  prepared: PreparedModuleInput,
+  extractions: ExtractionResult[],
+  analysis: CaptureAnalysis,
+  isInlineStrategy: boolean
+): MigrationAnalysis {
+  const { options } = mod;
+  const { repairedCode, program } = prepared;
+  const { enclosingExtMap } = analysis;
+
+  const moduleLevelDecls = collectModuleLevelDecls(program, repairedCode);
+  const moduleLevelDeclsByName = new Map<string, ModuleLevelDecl>();
+  for (const d of moduleLevelDecls) {
+    moduleLevelDeclsByName.set(d.name, d);
+  }
+
+  // With zero extractions nothing became dead, and the gather walk skipped
+  // usage classification (rootUsage is empty) — deciding migrations here
+  // would drop every non-exported decl as "unreferenced".
+  if (extractions.length === 0) {
+    return {
+      moduleLevelDecls,
+      moduleLevelDeclsByName,
+      segmentUsage: analysis.segmentUsage,
+      migrationDecisions: [],
+    };
+  }
+  // Module-level refs inside an `inlinedQrl` body still need migration
+  // attribution: explicit captures cover only closure variables, so
+  // body-referenced module decls arrive via the Phase-2 usage maps, not
+  // captures.
+  const { segmentUsage, rootUsage } = analysis;
+
+  // Augment segmentUsage with a `$()` body's captured names. inlinedQrl
+  // captures arrive via `_captures`, not an import — folding them in would
+  // wrongly mark them dual-use and reexport them.
+  for (const ext of extractions) {
+    if (ext.isInlinedQrl) {
+      continue;
+    }
+    const usage = segmentUsage.get(ext.symbolName);
+    if (usage && ext.captureNames) {
+      for (const name of ext.captureNames) {
+        usage.add(name);
+      }
+    }
+  }
+
+  // Captures delivered via q:p (paramNames slots >= 2) are referenced by the parent.
+  for (const ext of extractions) {
+    if (ext.ctxKind !== 'eventHandler') {
+      continue;
+    }
+    if (ext.paramNames.length < 3 || ext.paramNames[0] !== '_' || ext.paramNames[1] !== '_1') {
+      continue;
+    }
+    const parentExt = enclosingExtMap.get(ext.symbolName) ?? null;
+    if (!parentExt) {
+      continue;
+    }
+    const parentUsage = segmentUsage.get(parentExt.symbolName);
+    if (!parentUsage) {
+      continue;
+    }
+    for (let i = 2; i < ext.paramNames.length; i++) {
+      const p = ext.paramNames[i];
+      if (paddingParam.test(p)) {
+        continue;
+      }
+      parentUsage.add(p);
+    }
+  }
+
+  // With transpileTs, TS enum values are inlined into segment bodies, so their
+  // names shouldn't count as segment usage.
+  if (options.transpileTs === true) {
+    const enumNames = new Set<string>();
+    for (const node of program.body) {
+      let enumDecl: TSEnumDeclaration | null = null;
+      if (node.type === 'TSEnumDeclaration') {
+        enumDecl = node;
+      } else if (
+        node.type === 'ExportNamedDeclaration' &&
+        node.declaration?.type === 'TSEnumDeclaration'
+      ) {
+        enumDecl = node.declaration;
+      }
+      if (enumDecl?.id?.name) {
+        enumNames.add(enumDecl.id.name);
+      }
+    }
+    if (enumNames.size > 0) {
+      for (const [, usedNames] of segmentUsage) {
+        for (const name of enumNames) {
+          usedNames.delete(name);
+        }
+      }
+    }
+  }
+
+  // Stripped segments never resume, so their uses of module decls don't
+  // count; a decl consumed only by stripped segments is dropped outright,
+  // side effects included.
+  const strippedOnlyNames = new Set<string>();
+  if (options.stripCtxName || options.stripEventHandlers) {
+    const strippedSegments = new Set(
+      extractions
+        .filter((e) => isStrippedExtraction(e, options.stripCtxName, options.stripEventHandlers))
+        .map((e) => e.symbolName as string)
+    );
+    if (strippedSegments.size > 0) {
+      const usedByStripped = new Set<string>();
+      for (const [seg, names] of segmentUsage) {
+        if (strippedSegments.has(seg)) {
+          for (const name of names) {
+            usedByStripped.add(name);
+          }
+        }
+      }
+      for (const seg of strippedSegments) {
+        segmentUsage.delete(seg);
+      }
+      const usedByLiveSegment = new Set<string>();
+      for (const [, names] of segmentUsage) {
+        for (const name of names) {
+          usedByLiveSegment.add(name);
+        }
+      }
+      for (const name of usedByStripped) {
+        if (!usedByLiveSegment.has(name) && !rootUsage.has(name)) {
+          strippedOnlyNames.add(name);
+        }
+      }
+    }
+  }
+
+  let migrationDecisions = analyzeMigration(moduleLevelDecls, segmentUsage, rootUsage, program);
+  const inlinedSegmentNames = new Set<string>();
+  for (const ext of extractions) {
+    if (!ext.isInlinedQrl) {
+      continue;
+    }
+    for (const name of segmentUsage.get(ext.symbolName) ?? []) {
+      inlinedSegmentNames.add(name);
+    }
+  }
+  migrationDecisions = migrationDecisions.map((decision) =>
+    decision.action === 'reexport' &&
+    moduleLevelDeclsByName.get(decision.varName)?.isExported &&
+    !moduleLevelDeclsByName.get(decision.varName)?.isDirectlyExported &&
+    inlinedSegmentNames.has(decision.varName)
+      ? { ...decision, useAutoExport: true }
+      : decision
+  );
+  // A decl whose init holds an extraction keeps its (pure) marker-call
+  // registration as a bare statement — only the binding disappears, so
+  // whole-decl dropping would erase the registration.
+  migrationDecisions = migrationDecisions.map((d) => {
+    const decl = moduleLevelDeclsByName.get(d.varName);
+    if (!decl) {
+      return d;
+    }
+    const holdsExtraction = extractions.some(
+      (e) => e.callStart >= decl.declStart && e.callEnd <= decl.declEnd
+    );
+    if (d.action === 'drop' && holdsExtraction) {
+      return { ...d, action: 'keep' as const, reason: MIG_REASON.KEEP_UNUSED };
+    }
+    if (
+      d.action === 'keep' &&
+      strippedOnlyNames.has(d.varName) &&
+      !decl.isExported &&
+      !holdsExtraction
+    ) {
+      return { ...d, action: 'drop' as const, reason: MIG_REASON.DROP_STRIPPED_ONLY };
+    }
+    return d;
+  });
+
+  // Captures of dropped decls no longer exist at runtime; scrub them so
+  // segment metadata and `.w()` wiring don't reference removed bindings.
+  const droppedNames = new Set(
+    migrationDecisions.filter((d) => d.action === 'drop').map((d) => d.varName)
+  );
+  if (droppedNames.size > 0) {
+    for (const ext of extractions) {
+      if (ext.captureNames.length === 0) {
+        continue;
+      }
+      const kept = ext.captureNames.filter((name) => !droppedNames.has(name));
+      if (kept.length === ext.captureNames.length) {
+        continue;
+      }
+      const mut = ext as Mutable<ExtractionResult>;
+      mut.captureNames = kept;
+      mut.captures = kept.length > 0;
+    }
+  }
+  if (isInlineStrategy) {
+    migrationDecisions = filterInlineStrategyMigrations(migrationDecisions);
+    dropTopLevelModuleScopeCaptures(extractions, moduleLevelDeclsByName);
+  } else if (options.stripCtxName || options.stripEventHandlers) {
+    dropTopLevelModuleScopeCaptures(
+      extractions.filter((ext) =>
+        isStrippedExtraction(ext, options.stripCtxName, options.stripEventHandlers)
+      ),
+      moduleLevelDeclsByName
+    );
+  }
+
+  return {
+    moduleLevelDecls,
+    moduleLevelDeclsByName,
+    segmentUsage,
+    migrationDecisions,
+  };
+}
+
+/**
+ * Prod mode: rename symbols to `s_<hash>`. Returns the renamed → original map used for
+ * migration-decision keying.
+ */
+function applyProdRename(
+  extractions: ExtractionResult[],
+  closureNodes: Map<string, AstFunction>,
+  emitMode: EmitMode
+): Map<SymbolName, SymbolName> {
+  const preRenameSymbolName = new Map<SymbolName, SymbolName>();
+  if (emitMode !== 'prod') {
+    return preRenameSymbolName;
+  }
+
+  for (const ext of extractions) {
+    // inlinedQrl extractions are renamed under prod too, preserving the hash
+    // suffix. Runtime QRL resolution is hash-keyed, not name-keyed, so the
+    // rename is safe even for peer-tool-supplied names.
+    const original = ext.symbolName;
+    // Internal-builder cast: rename mutates identity in place post-extraction.
+    (ext as Mutable<ExtractionResult>).symbolName = mkSymbolName('s_' + ext.hash);
+    preRenameSymbolName.set(ext.symbolName, original);
+    // Mirror the rename in `closureNodes` so post-rename lookups still resolve.
+    const closure = closureNodes.get(original);
+    if (closure) {
+      closureNodes.delete(original);
+      closureNodes.set(ext.symbolName, closure);
+    }
+  }
+  return preRenameSymbolName;
+}
+
+/**
+ * Downgrade extraction extensions for the transpile targets. Returns the pre-downgrade extension
+ * per symbol (segment codegen needs the source dialect even after the output extension changes).
+ */
+function downgradeExtensions(
+  extractions: ExtractionResult[],
+  shouldTranspileJsx: boolean,
+  shouldTranspileTs: boolean
+): Map<string, string> {
+  const sourceExtensions = new Map<string, string>();
+  for (const extraction of extractions) {
+    sourceExtensions.set(extraction.symbolName, extraction.extension);
+  }
+
+  // In-place mutation via internal-builder cast.
+  if (shouldTranspileJsx || shouldTranspileTs) {
+    for (const extraction of extractions) {
+      const wip = extraction as Mutable<ExtractionResult>;
+      if (shouldTranspileJsx) {
+        if (wip.extension === '.tsx') {
+          wip.extension = shouldTranspileTs ? '.js' : '.ts';
+        } else if (wip.extension === '.jsx') {
+          wip.extension = '.js';
+        } else if (shouldTranspileTs && wip.extension === '.ts') {
+          wip.extension = '.js';
+        }
+      } else if (shouldTranspileTs) {
+        if (wip.extension === '.ts') {
+          wip.extension = '.js';
+        } else if (wip.extension === '.tsx') {
+          wip.extension = '.jsx';
+        }
+      }
+    }
+  }
+  return sourceExtensions;
+}
+
+/** Phase 4: rewrite the parent module; emits C05 + passive-conflict diagnostics. */
+function rewriteParent(
+  mod: ModuleContext,
+  prepared: PreparedModuleInput,
+  extractions: ExtractionResult[],
+  closureNodes: Map<string, AstFunction>,
+  analysis: CaptureAnalysis,
+  migration: MigrationAnalysis,
+  emit: EmitConfig,
+  diagnostics: Diagnostic[]
+): ParentRewrite {
+  const { input, options, relPath, ext } = mod;
+  const { repairedCode, program, parserModule, hasForeignJsxRuntime } = prepared;
+
+  const hasLocalInlinedQrl = extractions.some(
+    (e) => e.isInlinedQrl && !relPath.includes('node_modules')
+  );
+  let devFile: string | undefined;
+  if (emit.emitMode === 'dev' || emit.emitMode === 'hmr' || hasLocalInlinedQrl) {
+    devFile = buildDevFilePath(input.path, options.srcDir, input.devPath);
+  }
+
+  let jsxOptions: JsxRewriteOptions | undefined;
+  if (emit.shouldTranspileJsx && (ext === '.tsx' || ext === '.jsx')) {
+    jsxOptions = {
+      enableJsx: true,
+      importedNames: analysis.importedNames,
+      enableSignals: true,
+      // Phase-2 gather-walk projection; saves transformAllJsx its own bindings
+      // walk. Positions are plain numbers, so intervening parses can't
+      // invalidate them.
+      precomputedScopeBindings: analysis.scopeAwareBindings,
+    };
+  }
+
+  let strategyOptions: InlineStrategyOptions | undefined;
+  if (emit.isInlineStrategy) {
+    strategyOptions = {
+      inline: true,
+      entryType: emit.entryStrategy.type as 'inline' | 'hoist',
+      isLibMode: emit.isLibMode,
+      stripCtxName: options.stripCtxName,
+      stripEventHandlers: options.stripEventHandlers,
+      regCtxName: options.regCtxName,
+    };
+  } else if (options.stripCtxName || options.stripEventHandlers || options.regCtxName) {
+    strategyOptions = {
+      inline: false,
+      stripCtxName: options.stripCtxName,
+      stripEventHandlers: options.stripEventHandlers,
+      regCtxName: options.regCtxName,
+    };
+  }
+
+  const parentResult = rewriteParentModule(
+    repairedCode,
+    relPath,
+    extractions,
+    analysis.originalImports,
+    migration.migrationDecisions,
+    migration.moduleLevelDecls,
+    jsxOptions,
+    emit.emitMode,
+    devFile,
+    strategyOptions,
+    options.stripExports,
+    options.isServer,
+    options.explicitExtensions,
+    options.transpileTs,
+    options.minify,
+    emit.qrlOutputExt,
+    program,
+    closureNodes,
+    input.devPath,
+    hasForeignJsxRuntime,
+    analysis.elementQpParamsMap
+  );
+
+  const cleanedCode = runDcePipeline(parentResult.code, relPath, {
+    isServer: options.isServer,
+    isDev: deriveIsDev(options.mode),
+    isLibMode: emit.isLibMode,
+    keepRelativeSideEffects:
+      emit.isInlineStrategy && !!(options.stripCtxName?.length || options.stripEventHandlers),
+  });
+  const hygienicCode = applyModuleHygieneRenames(cleanedCode, relPath);
+  const removedImportSources = collectRemovedImportSources(
+    analysis.originalImports,
+    repairedCode,
+    hygienicCode
+  );
+  const parentModule: TransformModule = {
+    kind: 'parent',
+    path: emit.parentOutputPath,
+    isEntry: false,
+    code: hygienicCode,
+    map: null,
+    origPath: input.path,
+    imports: removedImportSources.length > 0 ? removedImportSources : undefined,
+  };
+
+  detectC05Diagnostics(
+    program,
+    parserModule,
+    analysis.originalImports,
+    repairedCode,
+    relPath,
+    diagnostics
+  );
+
+  if (ext === '.tsx' || ext === '.jsx') {
+    emitPassiveConflictDiagnostics(analysis.passiveConflicts, relPath, repairedCode, diagnostics);
+  }
+
+  return { parentModule, parentResult, devFile };
+}
+
+/**
+ * Phase 5: generate one module per non-stripped segment. Always runs the pipeline (lib mode relies
+ * on its side effects during the parent inline collapse) but returns no modules in lib mode —
+ * bodies were inlined into the parent.
+ */
+function generateSegments(
+  mod: ModuleContext,
+  prepared: PreparedModuleInput,
+  parent: ParentRewrite,
+  extractions: ExtractionResult[],
+  closureNodes: Map<string, AstFunction>,
+  analysis: CaptureAnalysis,
+  migration: MigrationAnalysis,
+  emit: EmitConfig,
+  preRenameSymbolName: Map<SymbolName, SymbolName>,
+  sourceExtensions: Map<string, string>,
+  isJsx: boolean
+): TransformModule[] {
+  const { input, options, relPath, ext } = mod;
+  const { repairedCode, program, hasForeignJsxRuntime, foreignJsxPragmaText } = prepared;
+  const { parentResult, devFile } = parent;
+
+  // `parentResult.extractions` is already `ConsolidatedSegment[]` — the parent
+  // rewrite flipped the phase discriminator after `resolveNesting`.
+  const updatedExtractions = parentResult.extractions;
+
+  // Resolve const-literal captures for child segments (default strategy only).
+  const constLiteralsMap = new Map<string, Map<string, string>>();
+  const inlinedIdentifiersByParent = new Map<string, Set<string>>();
+  if (!emit.isInlineStrategy) {
+    // A whole-body identifier (`$(render)`) inlines its const init so the
+    // segment doesn't emit a dangling reference.
+    for (const ext of updatedExtractions) {
+      if (ext.isSync) {
+        continue;
+      }
+      const bare = ext.bodyText.trim();
+      if (!isSimpleIdentifierName(bare)) {
+        continue;
+      }
+      const scopeNode = ext.parent ? closureNodes.get(ext.parent) : (program as unknown as AstNode);
+      if (!scopeNode) {
+        continue;
+      }
+      const init = resolveWholeBodyIdentifier(scopeNode as AstNode, repairedCode, bare);
+      if (init !== null) {
+        const mutable = ext as Mutable<ExtractionResult>;
+        mutable.bodyText = mkBodyText(init.text);
+        if (!ext.isInlinedQrl) {
+          mutable.loc = [
+            mkByteOffset(prepared.originalOffset(init.start) + 1),
+            mkByteOffset(prepared.originalOffset(init.end) + 1),
+          ];
+        }
+        if (ext.parent) {
+          const names = inlinedIdentifiersByParent.get(ext.parent) ?? new Set<string>();
+          names.add(bare);
+          inlinedIdentifiersByParent.set(ext.parent, names);
+        }
+      }
+    }
+    for (const ext of updatedExtractions) {
+      if (ext.isSync || ext.parent === null) {
+        continue;
+      }
+      if (ext.constLiterals && ext.constLiterals.size > 0) {
+        constLiteralsMap.set(ext.symbolName, ext.constLiterals);
+      }
+      if (ext.captureNames.length === 0) {
+        continue;
+      }
+      const parentExt = updatedExtractions.find((e) => e.symbolName === ext.parent);
+      if (!parentExt) {
+        continue;
+      }
+      const parentClosure = closureNodes.get(parentExt.symbolName);
+      if (!parentClosure) {
+        continue;
+      }
+      const constValues = resolveConstLiteralsInClosure(
+        parentClosure,
+        repairedCode,
+        ext.captureNames
+      );
+      if (constValues.size > 0) {
+        const existing = constLiteralsMap.get(ext.symbolName);
+        if (existing) {
+          for (const [k, v] of constValues) {
+            existing.set(k, v);
+          }
+        } else {
+          constLiteralsMap.set(ext.symbolName, constValues);
+        }
+        ext.captureNames = ext.captureNames.filter((n) => !constValues.has(n));
+        ext.captures = ext.captureNames.length > 0;
+      }
+    }
+  }
+
+  const segmentCtx: SegmentGenerationContext = {
+    // Same array as `updatedExtractions` (mutated in place); narrowed for Phase 5.
+    extractions: extractions as ConsolidatedSegment[],
+    updatedExtractions,
+    closureNodes,
+    program,
+    originalImports: analysis.originalImports,
+    options,
+    repairedCode,
+    relPath,
+    // Original consumer-supplied `input.path` (vs the srcDir-relative
+    // `relPath`). Segment `module.path` derives its directory from this so
+    // output paths share the input's namespace — absolute in, absolute out.
+    inputPath: input.path,
+    emitMode: emit.emitMode,
+    devFile,
+    userDevPath: input.devPath,
+    isInlineStrategy: emit.isInlineStrategy,
+    entryStrategy: emit.entryStrategy,
+    migrationDecisions: migration.migrationDecisions,
+    moduleLevelDecls: migration.moduleLevelDecls,
+    moduleLevelDeclsByName: migration.moduleLevelDeclsByName,
+    movedDeclSnapshots: parentResult.movedDeclSnapshots,
+    segmentUsage: migration.segmentUsage,
+    parentModulePath: emit.parentModulePath,
+    preRenameSymbolName,
+    qrlOutputExt: emit.qrlOutputExt,
+    sourceExtensions,
+    // Drives oxc-transform's parser-dialect selection; falls back to `.tsx`
+    // (parses both TS and JSX) when the extension is missing.
+    parentSourceExt: ext || '.tsx',
+    shouldTranspileJsx: emit.shouldTranspileJsx,
+    shouldTranspileTs: emit.shouldTranspileTs,
+    isJsx,
+    importedNames: analysis.importedNames,
+    enclosingExtMap: analysis.enclosingExtMap,
+    elementQpParamsMap: analysis.elementQpParamsMap,
+    extractionLoopMap: analysis.extractionLoopMap,
+    constLiteralsMap,
+    inlinedIdentifiersByParent,
+    parentJsxKeyCounterValue: parentResult.jsxKeyCounterValue ?? 0,
+    jsxRegionKeyBases: parentResult.jsxRegionKeyBases,
+    hasForeignJsxRuntime,
+    foreignJsxPragmaText,
+  };
+
+  const segmentModules = generateAllSegmentModules(segmentCtx);
+  // lib mode inlines segment bodies into the parent; skip emitting the
+  // separately-generated segment modules.
+  if (emit.isLibMode) {
+    return [];
+  }
+  return segmentModules;
+}
+
+/** Phase 6: apply diagnostic suppression directives (cross-file). */
+function applyDiagnosticSuppression(
+  diagnostics: Diagnostic[],
+  inputs: readonly TransformModuleInput[]
+): Diagnostic[] {
+  let filtered = diagnostics;
+  for (const input of inputs) {
+    const directives = parseDisableDirectives(input.code);
+    if (directives.size > 0) {
+      filtered = filterSuppressedDiagnostics(filtered, directives);
+    }
+  }
+  return filtered;
+}

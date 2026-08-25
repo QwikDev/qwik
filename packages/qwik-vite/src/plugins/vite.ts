@@ -128,7 +128,10 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     ? (id, type) => TRANSFORM_REGEX.test(id) || qwikViteOpts.fileFilter!(id, type)
     : () => true;
   const injections: GlobalInjections[] = [];
-  const qwikPlugin = createQwikPlugin(qwikViteOpts.optimizerOptions);
+  const qwikPlugin = createQwikPlugin({
+    tsOptimizer: qwikViteOpts.tsOptimizer,
+    ...qwikViteOpts.optimizerOptions,
+  });
 
   const bundleGraphAdders = new Set<BundleGraphAdder>();
 
@@ -1013,6 +1016,15 @@ interface QwikVitePluginCommonOptions {
    * Default `undefined`
    */
   optimizerOptions?: OptimizerOptions;
+  /**
+   * Use the TypeScript optimizer (`@qwik.dev/ts-optimizer`) instead of the Rust one.
+   *
+   * Setting this to `false` requires installing `@qwik.dev/optimizer`, which is an optional peer
+   * dependency of `@qwik.dev/core`.
+   *
+   * Default `true`
+   */
+  tsOptimizer?: boolean;
   /**
    * Hook that's called after the build and provides all of the transformed modules that were used
    * before bundling.

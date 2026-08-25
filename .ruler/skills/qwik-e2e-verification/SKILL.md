@@ -37,6 +37,14 @@ pnpm playwright test e2e/qwik-e2e/tests/events.e2e.ts --browser=chromium --confi
 pnpm playwright test e2e/qwik-e2e/tests/qwikrouter/nav.e2e.ts --browser=chromium --config e2e/qwik-e2e/playwright.config.ts
 ```
 
+The brotli budget tests in `ssg-snapshot.e2e.ts` measure the built core chunk, so they need a
+production `pnpm build.core` — `build.core.dev` leaves core unminified and blows the budget by ~4%.
+Before believing a budget failure, rebuild with `build.core` and re-run `pnpm test.e2e.router.ssg`.
+
+Playwright's `reuseExistingServer: !CI` means a dev server left over from an earlier run serves
+stale bundles, so a local pass can hide a build break that CI catches. Kill port 3301 before
+trusting a green local sweep after optimizer or bundler changes.
+
 Other suites may use named Playwright projects. Check their config before choosing flags:
 
 ```bash

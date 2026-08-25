@@ -28,7 +28,7 @@ import {
   removeExtension,
 } from '../../utils/fs';
 import { parseRoutesDir } from '../build';
-import { createBuildContext, resetBuildContext } from '../context';
+import { createBuildContext, resetBuildContext, resolveBasePathname } from '../context';
 import { createMdxTransformer, type MdxTransform } from '../markdown/mdx';
 import { transformMenu } from '../markdown/menu';
 import { generateQwikRouterEntries } from '../runtime-generation/generate-entries';
@@ -343,6 +343,9 @@ function qwikRouterPlugin(
             userOpts?.defaultLoadersSerializationStrategy || 'never'
           ),
           'globalThis.__NO_TRAILING_SLASH__': JSON.stringify(userOpts?.trailingSlash === false),
+          'globalThis.__QWIK_ROUTER_BASE_PATHNAME__': JSON.stringify(
+            resolveBasePathname(userOpts, _viteConfig.base || '/')
+          ),
           'globalThis.__SSR_CACHE_SIZE__': JSON.stringify(
             viteEnv.command === 'serve' ? 0 : (userOpts?.ssrCacheSize ?? 50)
           ),
@@ -522,6 +525,14 @@ function qwikRouterPlugin(
 
     buildStart() {
       resetBuildContext(ctx);
+      // The runtime reaches the config only via dynamic import (static imports
+      // would evaluate app route/serverPlugin modules during the runtime's own
+      // import phase — see route-loaders.ts). The client build still needs the
+      // config in its module graph for route discovery and symbol extraction,
+      // so emit it as an explicit entry chunk here.
+      if (this.environment.mode === 'build' && this.environment.config.consumer === 'client') {
+        this.emitFile({ type: 'chunk', id: QWIK_ROUTER_CONFIG_ID });
+      }
     },
 
     resolveId(id) {
@@ -782,14 +793,16 @@ function serverFnsPlugin(buildContextRef: BuildContextRef): Plugin {
             await collectServerFnModules.call(this);
           }
           if (!isServerBuild || serverFnModules.size === 0) {
-            return '// No server$ functions';
+            return 'export const importEagerModules = () => Promise.resolve();\n';
           }
-          return [...serverFnModules]
-            .map(
-              (mod, index) =>
-                `import * as serverFnModule${index} from ${JSON.stringify(mod)};\nObject.values(serverFnModule${index});`
-            )
-            .join('\n');
+          // Deliberately dynamic imports behind a function: a static import here
+          // would evaluate the server$ modules during the config's own import
+          // phase, before runtime module bodies initialize (TDZ in bundled SSR).
+          return (
+            'export const importEagerModules = () =>\n  Promise.all([\n' +
+            [...serverFnModules].map((mod) => `    import(${JSON.stringify(mod)}),`).join('\n') +
+            '\n  ]);\n'
+          );
         }
         return null;
       },

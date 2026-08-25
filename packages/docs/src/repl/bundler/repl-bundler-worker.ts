@@ -1,4 +1,13 @@
 import { rolldown, type OutputAsset, type OutputChunk } from '@rolldown/browser';
+// Browser builds of the TS optimizer's runtime deps, bundled into this worker by vite.
+// Rolldown embeds the same oxc version, so reusing its parser saves 4.5MB of extra wasm.
+// `/experimental` re-exports these as deprecated aliases; move to `/utils` once that
+// subpath ships a `browser` condition (absent as of @rolldown/browser 1.2.2).
+import * as rolldownOxc from '@rolldown/browser/experimental';
+import * as oxcWalker from 'oxc-walker';
+import * as magicRegexp from 'magic-regexp';
+import * as magicString from 'magic-string';
+import * as pathe from 'pathe';
 import type { PkgUrls, ReplInputOptions, ReplModuleOutput, ReplResult } from '../types';
 import {
   definesPlugin,
@@ -89,23 +98,96 @@ self.onmessage = async (e: MessageEvent<IncomingMessage>) => {
 };
 
 let version: number[];
+
+/**
+ * The per-version `ts-optimizer.mjs` imports its runtime deps by bare specifier. A worker has no
+ * import map, so each dep bundled into this worker is re-exported through a generated Blob module,
+ * and the fetched code's import specifiers are rewritten to those Blob URLs before importing.
+ */
+const shimUrls = new Map<string, string>();
+function getDepShimUrl(specifier: string, mod: Record<string, unknown>): string {
+  let url = shimUrls.get(specifier);
+  if (url) {
+    return url;
+  }
+  const globalKey = `__replTsOptimizerDep_${specifier.replace(/\W/g, '_')}`;
+  (globalThis as Record<string, unknown>)[globalKey] = mod;
+  const lines = [`const m = globalThis[${JSON.stringify(globalKey)}];`];
+  for (const name of Object.keys(mod)) {
+    if (name === 'default') {
+      lines.push('export default m.default;');
+    } else {
+      lines.push(`export const ${name} = m[${JSON.stringify(name)}];`);
+    }
+  }
+  url = URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/javascript' }));
+  shimUrls.set(specifier, url);
+  return url;
+}
+
+const TS_OPTIMIZER_DEPS: Record<string, Record<string, unknown>> = {
+  'oxc-parser': rolldownOxc,
+  'oxc-transform': rolldownOxc,
+  'oxc-walker': oxcWalker,
+  'magic-regexp': magicRegexp,
+  'magic-string': magicString,
+  pathe: pathe,
+};
+
+async function loadTsOptimizer(url: string) {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`${url}: ${response.status}`);
+  }
+  let code = await response.text();
+  for (const [specifier, mod] of Object.entries(TS_OPTIMIZER_DEPS)) {
+    code = code.replaceAll(
+      new RegExp(`from\\s*(['"])${specifier}\\1`, 'g'),
+      () => `from ${JSON.stringify(getDepShimUrl(specifier, mod))}`
+    );
+  }
+  const blobUrl = URL.createObjectURL(new Blob([code], { type: 'text/javascript' }));
+  try {
+    return await import(/* @vite-ignore */ blobUrl);
+  } finally {
+    URL.revokeObjectURL(blobUrl);
+  }
+}
+
 async function loadOptimizer() {
   const qwikDeps = deps[QWIK_PKG_NAME_V1];
   version = qwikDeps.version.split('.').map((v) => parseInt(v, 10));
-  const optimizerDeps = deps['@qwik.dev/optimizer'];
-  const wasmLoader = await import(/* @vite-ignore */ optimizerDeps['/bindings/qwik.wasm.mjs']);
 
-  const wasmBuffer = await fetch(optimizerDeps['/bindings/qwik_wasm_bg.wasm']).then((r) =>
-    r.arrayBuffer()
-  );
-  const wasm = await WebAssembly.compile(wasmBuffer);
-  await wasmLoader.default(wasm);
-  binding = wasmLoader;
+  const tsOptimizerUrl = qwikDeps['/dist/ts-optimizer.mjs'];
+  let tsOptimizerLoaded = false;
+  if (tsOptimizerUrl) {
+    // This core version ships the TS optimizer — no Rust wasm needed.
+    // Versions predating it 404 here and fall back to the Rust wasm.
+    try {
+      qwikOptimizerModule = await loadTsOptimizer(tsOptimizerUrl);
+      tsOptimizerLoaded = true;
+    } catch (e) {
+      console.warn(`ts-optimizer not loadable for ${qwikDeps.version}, using Rust wasm`, e);
+    }
+  }
+  if (!tsOptimizerLoaded) {
+    const optimizerDeps = deps['@qwik.dev/optimizer'];
+    const wasmLoader = await import(/* @vite-ignore */ optimizerDeps['/bindings/qwik.wasm.mjs']);
 
-  qwikOptimizerModule = await import(/* @vite-ignore */ optimizerDeps['/dist/index.mjs']);
+    const wasmBuffer = await fetch(optimizerDeps['/bindings/qwik_wasm_bg.wasm']).then((r) =>
+      r.arrayBuffer()
+    );
+    const wasm = await WebAssembly.compile(wasmBuffer);
+    await wasmLoader.default(wasm);
+    binding = wasmLoader;
+
+    qwikOptimizerModule = await import(/* @vite-ignore */ optimizerDeps['/dist/index.mjs']);
+  }
 
   qwikViteModule = await import(/* @vite-ignore */ qwikDeps['/dist/optimizer.mjs']);
-  console.warn(`Bundler for ${qwikDeps.version} ready (optimizer ${optimizerDeps.version})`);
+  console.warn(
+    `Bundler for ${qwikDeps.version} ready (${tsOptimizerLoaded ? 'ts-optimizer' : 'rust optimizer'})`
+  );
 }
 
 const getOutput = (o: OutputChunk | OutputAsset) => {

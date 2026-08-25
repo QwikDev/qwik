@@ -145,8 +145,9 @@ jobs:
           path: packages/qwik/dist
           # Note that this includes the package.json of qwik
           # qwik-vite source is bundled into packages/qwik/dist/optimizer.mjs by scripts/submodule-optimizer.ts, so its sources must invalidate this cache.
+          # ts-optimizer is bundled into packages/qwik/dist/ts-optimizer.mjs by the same script, so it must too — otherwise every job that consumes this dist builds against a stale optimizer.
           # CI-only helpers should not invalidate compiled package output caches.
-          key: ${{ hashfiles('pnpm-lock.yaml', 'scripts.json', 'scripts/**/*', '!scripts/ci-restore-artifacts.ts', 'packages/qwik/**/*', 'packages/qwik-vite/**/*', 'starters/features/**/*', 'starters/adapters/**/*', 'starters/templates/**/*', '!**/*.unit.*', '!**/*.rs', '!e2e/qwik-e2e/apps/e2e') }}
+          key: ${{ hashfiles('pnpm-lock.yaml', 'scripts.json', 'scripts/**/*', '!scripts/ci-restore-artifacts.ts', 'packages/qwik/**/*', 'packages/qwik-vite/**/*', 'packages/ts-optimizer/**/*', 'starters/features/**/*', 'starters/adapters/**/*', 'starters/templates/**/*', '!**/*.unit.*', '!**/*.rs', '!e2e/qwik-e2e/apps/e2e') }}
       - run: 'echo ${{ steps.cache-qwik.outputs.cache-primary-key }} > qwik-key.txt'
       - name: 'check cache: rust'
         id: cache-rust

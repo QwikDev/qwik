@@ -34,9 +34,17 @@ export async function submoduleOptimizer(config: BuildConfig) {
       target: target,
       minify: !config.dev,
       rolldownOptions: {
-        external: ['node:fs', 'node:path', 'launch-editor', '@qwik.dev/optimizer'],
+        external: [
+          'node:fs',
+          'node:path',
+          'launch-editor',
+          '@qwik.dev/optimizer',
+          '@qwik.dev/ts-optimizer',
+        ],
         output: {
           banner: getBanner('@qwik.dev/core/optimizer', config.distVersion),
+          // The TS optimizer ships as a sibling dist file, loaded lazily.
+          paths: { '@qwik.dev/ts-optimizer': './ts-optimizer.mjs' },
         },
       },
       lib: {
@@ -67,9 +75,45 @@ export async function submoduleOptimizer(config: BuildConfig) {
     ],
   };
 
-  // Build qwik-vite optimizer and @qwik.dev/optimizer package (via its own vite.config.ts)
+  // The TS optimizer bundles into core dist; oxc native bindings and the
+  // other runtime deps stay external (they are @qwik.dev/core dependencies).
+  const tsOptimizerConfig: UserConfig = {
+    clearScreen: false,
+    build: {
+      emptyOutDir: false,
+      outDir: config.distQwikPkgDir,
+      sourcemap: false,
+      target: target,
+      minify: !config.dev,
+      rollupOptions: {
+        external: [
+          /^node:/,
+          'oxc-parser',
+          'oxc-transform',
+          'oxc-walker',
+          'magic-regexp',
+          'magic-string',
+          'pathe',
+          'siphash',
+        ],
+        output: {
+          banner: getBanner('@qwik.dev/core ts-optimizer', config.distVersion),
+        },
+      },
+      lib: {
+        entry: join(config.packagesDir, 'ts-optimizer', 'src', 'index.ts'),
+        name: 'tsOptimizer',
+        fileName: () => `ts-optimizer.mjs`,
+        formats: ['es'],
+      },
+    },
+  };
+
+  // Build qwik-vite optimizer, the bundled TS optimizer, and the
+  // @qwik.dev/optimizer Rust wrapper (via its own vite.config.ts)
   await Promise.all([
     viteBuild(esmConfig),
+    viteBuild(tsOptimizerConfig),
     viteBuild({
       root: config.optimizerPkgDir,
       configFile: join(config.optimizerPkgDir, 'vite.config.ts'),

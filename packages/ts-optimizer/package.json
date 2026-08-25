@@ -1,0 +1,57 @@
+{
+  "name": "@qwik.dev/ts-optimizer",
+  "description": "A TypeScript implementation of the Qwik optimizer.",
+  "version": "0.0.1",
+  "bugs": "https://github.com/QwikDev/qwik/issues",
+  "dependencies": {
+    "@oxc-project/types": "0.144.0",
+    "entities": "7.0.1",
+    "magic-string": "^0.30.21",
+    "oxc-parser": "^0.144.0",
+    "oxc-transform": "^0.144.0",
+    "oxc-walker": "^1.1.1",
+    "pathe": "^2.0.3",
+    "siphash": "^1.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "25.6.0",
+    "tsdown": "0.22.3",
+    "typescript": "5.9.3",
+    "vitest": "4.1.10"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "src"
+  ],
+  "homepage": "https://github.com/QwikDev/qwik/tree/main/packages/ts-optimizer#readme",
+  "keywords": [
+    "ast",
+    "bundler",
+    "optimizer",
+    "oxc",
+    "qrl",
+    "qwik"
+  ],
+  "license": "MIT",
+  "main": "./src/index.ts",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/QwikDev/qwik.git",
+    "directory": "packages/ts-optimizer"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "prepublishOnly": "pnpm build && pnpm test",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "sideEffects": false,
+  "type": "module"
+}

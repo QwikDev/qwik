@@ -283,6 +283,20 @@
       "mdFile": "router.documentstyle.md"
     },
     {
+      "name": "Editable",
+      "id": "editable",
+      "hierarchy": [
+        {
+          "name": "Editable",
+          "id": "editable"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type Editable<T> = {\n    -readonly [P in keyof T]: T[P];\n};\n```",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
+      "mdFile": "router.editable.md"
+    },
+    {
       "name": "ErrorBoundary",
       "id": "errorboundary",
       "hierarchy": [
@@ -740,7 +754,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface QwikRouterConfig \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nbasePathname?\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\ncacheModules?\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nfallthrough?\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ When true, return null instead of rendering the 404 page, letting the adapter handle it\n\n\n</td></tr>\n<tr><td>\n\nroutes\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n[RouteData](#routedata)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nserverPlugins?\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nRouteModule\\[\\]\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\ntrailingSlash?\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
+      "content": "```typescript\nexport interface QwikRouterConfig \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nbasePathname?\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\ncacheModules?\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nfallthrough?\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_ When true, return null instead of rendering the 404 page, letting the adapter handle it\n\n\n</td></tr>\n<tr><td>\n\nimportEagerModules?\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n() =&gt; Promise&lt;unknown&gt;\n\n\n</td><td>\n\n_(Optional)_ Imports the modules containing `server$` functions so their registration side effects run. Called by the request handler before serving; deliberately async so the config module itself evaluates without touching the runtime (see the import-cycle notes in `route-loaders.ts`<!-- -->).\n\n\n</td></tr>\n<tr><td>\n\nroutes\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\n[RouteData](#routedata)\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nserverPlugins?\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nRouteModule\\[\\]\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\ntrailingSlash?\n\n\n</td><td>\n\n`readonly`\n\n\n</td><td>\n\nboolean\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.qwikrouterconfig.md"
     },
@@ -907,8 +921,8 @@
           "id": "routeactionqrl"
         }
       ],
-      "kind": "Variable",
-      "content": "```typescript\nrouteActionQrl: ActionConstructorQRL\n```",
+      "kind": "Function",
+      "content": "Hoisted function declarations (not consts) on purpose, like `routeLoaderQrl`<!-- -->: generated route modules call these factories back during their own evaluation via the `@qwik-router-config` cycle, where a `const` binding would throw a TDZ ReferenceError.\n\n\n```typescript\nexport declare function routeActionQrl(actionQrl: QRL<(form: JSONObject, event: RequestEventAction) => unknown>, ...rest: (ActionOptions | DataValidator)[]): {\n    (): Editable<ActionStore<unknown, unknown>>;\n    __brand: \"server_action\";\n    __validators: DataValidator[];\n    __qrl: QRL<(form: JSONObject, event: RequestEventAction) => unknown>;\n    __id: string;\n    __invalidate: string[] | undefined;\n};\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nactionQrl\n\n\n</td><td>\n\nQRL&lt;(form: [JSONObject](#jsonobject)<!-- -->, event: RequestEventAction) =&gt; unknown&gt;\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nrest\n\n\n</td><td>\n\n([ActionOptions](#actionoptions) \\| [DataValidator](#datavalidator)<!-- -->)\\[\\]\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n{ (): [Editable](#editable)<!-- -->&lt;[ActionStore](#actionstore)<!-- -->&lt;unknown, unknown&gt;&gt;; \\_\\_brand: \"server\\_action\"; \\_\\_validators: [DataValidator](#datavalidator)<!-- -->\\[\\]; \\_\\_qrl: QRL&lt;(form: [JSONObject](#jsonobject)<!-- -->, event: RequestEventAction) =&gt; unknown&gt;; \\_\\_id: string; \\_\\_invalidate: string\\[\\] \\| undefined; }",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/server-functions.ts",
       "mdFile": "router.routeactionqrl.md"
     },

@@ -143,6 +143,8 @@ export default defineConfig(({ mode }) => {
             'qwik-image',
             // optimizing breaks the wasm import
             '@rolldown/browser',
+            '@rolldown/browser/experimental',
+            'oxc-walker',
             '@qwik.dev/devtools',
           ],
         },
@@ -197,6 +199,11 @@ export default defineConfig(({ mode }) => {
         {
           find: '@docsearch/css',
           replacement: path.resolve(__dirname, 'node_modules/@docsearch/css/dist/style.css'),
+        },
+        {
+          // The REPL worker bundles oxc-walker, which statically imports node:module.
+          find: 'node:module',
+          replacement: path.resolve(__dirname, 'src', 'repl', 'bundler', 'node-module-shim.ts'),
         },
       ],
     },

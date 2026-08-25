@@ -115,6 +115,13 @@ export default tseslint.config(
     },
   },
   {
+    // Benchmark and rust-convergence tests report their results on stdout.
+    files: ['packages/ts-optimizer/tests/**/*.{ts,tsx}'],
+    rules: {
+      'no-console': 'off',
+    },
+  },
+  {
     files: ['packages/qwik/src/**/*.{ts,tsx}'],
     languageOptions: {
       parserOptions: {

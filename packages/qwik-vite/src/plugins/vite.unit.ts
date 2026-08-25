@@ -799,6 +799,20 @@ describe('worker qrl chunk rewrites', () => {
     );
   });
 
+  test('stops the placeholder match at an escaped quote', () => {
+    const resolver = createDevWorkerQrlChunkResolver('/e2e/src/routes/worker/index.tsx');
+
+    // A placeholder inside a double-quoted literal ends with \" — the
+    // backslash must not be swallowed into the import path.
+    const code = `const chunk = "\\"${QWIK_WORKER_QRL_SENTINEL}./index.tsx_incrementInWorker_worker_abcd.js\\";";`;
+    const rewritten = rewriteWorkerQrlChunkPlaceholders(code, resolver);
+
+    assert.equal(
+      rewritten,
+      'const chunk = "\\"/e2e/src/routes/worker/index.tsx_incrementInWorker_worker_abcd.js?worker_file&type=module\\";";'
+    );
+  });
+
   test('rewrites worker chunk placeholders to dev served qrl urls with query suffixes', () => {
     const resolver = createDevWorkerQrlChunkResolver('/e2e/src/routes/worker/index.tsx');
 

@@ -355,6 +355,12 @@ export interface QwikRouterConfig {
   readonly cacheModules?: boolean;
   /** When true, return null instead of rendering the 404 page, letting the adapter handle it */
   readonly fallthrough?: boolean;
+  /**
+   * Imports the modules containing `server$` functions so their registration side effects run.
+   * Called by the request handler before serving; deliberately async so the config module itself
+   * evaluates without touching the runtime (see the import-cycle notes in `route-loaders.ts`).
+   */
+  readonly importEagerModules?: () => Promise<unknown>;
 }
 
 /** @public */
@@ -501,6 +507,7 @@ export interface SimpleURL {
   hash: string;
 }
 
+/** @public */
 export type Editable<T> = {
   -readonly [P in keyof T]: T[P];
 };

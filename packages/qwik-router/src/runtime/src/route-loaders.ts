@@ -788,7 +788,7 @@ export const getLoaderRequestEvent = (
         enumerable: true,
       },
       params: {
-        value: {},
+        value: rootRequestEv.params,
         enumerable: true,
       },
       pathname: {

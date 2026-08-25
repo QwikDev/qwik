@@ -38,6 +38,7 @@ import { loaderHandler } from './handlers/loader-handler';
 import { jsonRequestWrapper } from './handlers/json-request-wrapper';
 import { actionHandler } from './handlers/action-handler';
 import { IsQLoader, QLoaderId } from './request-path';
+import { isStaticPath } from './static-paths';
 import type { ErrorCodes, RequestEvent, RequestEventBase, RequestHandler } from './types';
 import { QACTION_KEY, QFN_KEY } from '../../runtime/src/constants';
 import { resolveRouteConfig } from '../../runtime/src/head';
@@ -122,9 +123,7 @@ function createResolveRequestHandlers() {
       requestHandlers.push(loaderHandler(routeLoaders, route.$loaderPaths$));
       // Per-action handler: returns JSON and exits if IsQAction + Accept: json
       requestHandlers.push(actionHandler(routeActions));
-      if (!route.$notFound$) {
-        requestHandlers.push(fixTrailingSlash);
-      }
+      requestHandlers.push(route.$notFound$ ? fixStaticTrailingSlash : fixTrailingSlash);
     }
 
     if (isPageRoute) {
@@ -645,6 +644,21 @@ function createResolveRequestHandlers() {
     }
   }
 
+  /**
+   * Prerendered pages are pruned from the production server route plan, so a request missing the
+   * canonical trailing slash lands here as not found. Redirect it when the canonical path was
+   * prerendered, and leave a genuine 404 alone.
+   */
+  function fixStaticTrailingSlash(ev: RequestEvent) {
+    const canonicalUrl = new URL(ev.originalUrl);
+    canonicalUrl.pathname = globalThis.__NO_TRAILING_SLASH__
+      ? canonicalUrl.pathname.replace(/\/$/, '')
+      : ensureSlash(canonicalUrl.pathname);
+    if (isStaticPath(ev.request.method, canonicalUrl)) {
+      fixTrailingSlash(ev);
+    }
+  }
+
   function verifySerializable(data: any, qrl: QRL) {
     try {
       _verifySerializable(data, undefined);
@@ -833,6 +847,7 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
     actionsMiddleware,
     checkBrand,
     checkCSRF,
+    fixStaticTrailingSlash,
     fixTrailingSlash,
     getPathname,
     isLastModulePageRoute,
@@ -850,6 +865,7 @@ export const {
   actionsMiddleware,
   checkBrand,
   checkCSRF,
+  fixStaticTrailingSlash,
   fixTrailingSlash,
   getPathname,
   isLastModulePageRoute,

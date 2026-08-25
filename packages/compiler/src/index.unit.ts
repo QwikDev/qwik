@@ -136,6 +136,39 @@ async function formatSnapshotCode(code: string) {
 }
 
 describe('transformModules', () => {
+  test('sourcemap sources resolve from the emitted module location', async () => {
+    // Nested and srcDir-external paths: resolving `sources[0]` against the map's own
+    // directory must land back on the input file (debugger breakpoint matching).
+    for (const path of [
+      'src/routes/index.tsx',
+      '../../compiler/pipeline/generate/x.tsx',
+      'src/lib/util.ts',
+    ]) {
+      const result = await transformModules({
+        ...baseOptions(
+          {
+            path,
+            code: path.endsWith('.ts')
+              ? 'export const n: number = 1;\n'
+              : 'export default () => {\n  return <p>x</p>;\n};\n',
+          },
+          true
+        ),
+        sourceMaps: true,
+      });
+      for (const module of result.modules) {
+        if (module.map === null) {
+          continue;
+        }
+        const sources = JSON.parse(module.map).sources as string[];
+        expect(sources).toHaveLength(1);
+        expect(posix.normalize(posix.join(posix.dirname(module.path), sources[0]))).toBe(
+          posix.normalize(path)
+        );
+      }
+    }
+  });
+
   test('creates globally unique segment identities', async () => {
     const code = `import { useTask$ } from '@qwik.dev/core';
 

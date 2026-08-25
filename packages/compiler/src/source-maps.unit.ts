@@ -1,4 +1,5 @@
 import { SourceMap } from 'node:module';
+import { posix } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { transformModules } from './index';
 
@@ -28,7 +29,10 @@ export function App(props: Props) {
     for (const module of result.modules) {
       expect(module.map, module.path).not.toBeNull();
       const map = JSON.parse(module.map!);
-      expect(map.sources).toContain('src/component.tsx');
+      // Sources resolve against the map's location back to the input file.
+      expect(posix.normalize(posix.join(posix.dirname(module.path), map.sources[0]))).toBe(
+        'src/component.tsx'
+      );
       expect(map.sourcesContent).toContain(code);
     }
     const component = result.modules.find((module) => module.path.includes('_component_Button'))!;
@@ -41,7 +45,7 @@ export function App(props: Props) {
     });
     const componentEntry = componentTrace.findEntry(0, 0);
     expect(componentEntry).toMatchObject({
-      originalSource: 'src/component.tsx',
+      originalSource: 'component.tsx',
       originalLine: 2,
     });
     expect(code.slice(...component.segment!.loc)).toContain('function Button(props: Props)');

@@ -26,7 +26,7 @@ describe('assembleModule', () => {
     const map = JSON.parse(result.map!);
 
     expect(map.file).toBe('/src/input.js');
-    expect(map.sources).toEqual(['/src/input.tsx']);
+    expect(map.sources).toEqual(['input.tsx']);
     expect(map.sourcesContent).toEqual([source]);
   });
 
@@ -53,7 +53,7 @@ describe('assembleModule', () => {
     const map = JSON.parse(result.map!);
 
     expect(map.file).toBe('/src/input.js');
-    expect(map.sources).toEqual(['/src/input.tsx']);
+    expect(map.sources).toEqual(['input.tsx']);
     expect(map.sourcesContent).toEqual([original]);
   });
 

@@ -4,6 +4,7 @@ import MagicString, {
   type SourceMapSegment,
 } from 'magic-string';
 import type { SourceMap } from 'oxc-transform';
+import { sourceRelativeToMap } from './module-utils';
 import { createNodeSourceMap } from './normalization';
 import type { SourceRange } from './types';
 
@@ -89,8 +90,9 @@ function finishAssembly(
       : composeMaps(emittedMap, normalizedMap);
   const json = JSON.parse(map.toString());
   json.file = outputPath;
-  if (normalizedMap === null && json.sources.length === 1) {
-    json.sources[0] = sourcePath;
+  if (json.sources.length === 1) {
+    // Spec: `sources` entries resolve against the map's location, not srcDir.
+    json.sources[0] = sourceRelativeToMap(outputPath, sourcePath);
   }
   return { code, map: JSON.stringify(json) };
 }

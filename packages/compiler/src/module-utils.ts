@@ -16,11 +16,32 @@ export async function transformWithOxc(
     cwd: options.rootDir,
     sourcemap: !!options.sourceMaps,
   });
-  return createModule(
-    input.path,
-    result.code,
-    options.sourceMaps && result.map ? JSON.stringify(result.map) : null
-  );
+  let map: string | null = null;
+  if (options.sourceMaps && result.map) {
+    if (result.map.sources.length === 1) {
+      result.map.sources[0] = sourceRelativeToMap(input.path, input.path);
+    }
+    map = JSON.stringify(result.map);
+  }
+  return createModule(input.path, result.code, map);
+}
+
+/**
+ * Consumers resolve `sources` entries against the map's own location, so emit the source path
+ * relative to the output module's directory. Bundler-safe: no node:path (dist runs in browsers).
+ */
+export function sourceRelativeToMap(outputPath: string, sourcePath: string): string {
+  const outputDir = outputPath.split('/').slice(0, -1);
+  const source = sourcePath.split('/');
+  let shared = 0;
+  while (
+    shared < outputDir.length &&
+    shared < source.length - 1 &&
+    outputDir[shared] === source[shared]
+  ) {
+    shared++;
+  }
+  return [...outputDir.slice(shared).map(() => '..'), ...source.slice(shared)].join('/');
 }
 
 export function createModule(

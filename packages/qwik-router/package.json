@@ -147,10 +147,6 @@
       "types": "./lib/vite/index.d.ts",
       "import": "./lib/vite/index.mjs"
     },
-    "./service-worker": {
-      "types": "./service-worker.d.ts",
-      "import": "./lib/service-worker.mjs"
-    },
     "./package.json": "./package.json"
   },
   "files": [

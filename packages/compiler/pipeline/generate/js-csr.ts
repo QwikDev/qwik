@@ -120,18 +120,24 @@ class CsrModuleEmitter {
     names: GeneratedNames
   ): string {
     const mounted = this.mountTemplate(component, statements, names);
-    for (const prop of op.props) {
-      if (prop.k === PropKind.Event) {
-        this.event(prop.name, prop.handlers, mounted.el, statements);
-      }
-    }
     const holes = op.children.filter((child) => child.op === OpKind.Hole);
+    // Node lookups come in document order before event wiring; effects run last.
+    let holeText: string | null = null;
     if (holes.length > 0) {
       // A sole hole child binds the template's placeholder text node (deeper positions later).
       if (op.children.length !== 1) {
         throw new UnsupportedError('a text hole with sibling children');
       }
-      this.textHole(holes[0] as Extract<Op, { op: OpKind.Hole }>, mounted.el, statements, names);
+      holeText = this.next(QwikGenWord.Text);
+      statements.push(`const ${holeText} = ${QwikWord.FirstChild}(${mounted.el});`);
+    }
+    for (const prop of op.props) {
+      if (prop.k === PropKind.Event) {
+        this.event(prop.name, prop.handlers, mounted.el, statements);
+      }
+    }
+    if (holeText !== null) {
+      this.textHole(holes[0] as Extract<Op, { op: OpKind.Hole }>, holeText, statements, names);
     }
     // Template markup excludes event props; text is escaped for innerHTML parsing.
     this.hoistTemplate(mounted.template, foldStaticOp(templateOp(op), true));
@@ -141,15 +147,13 @@ class CsrModuleEmitter {
   /** The effect re-runs the expression chunk against the placeholder text node. */
   private textHole(
     op: Extract<Op, { op: OpKind.Hole }>,
-    el: string,
+    text: string,
     statements: string[],
     names: GeneratedNames
   ): void {
     if (op.value.v === ValueKind.Read) {
       // Signal reads bind the placeholder text node directly — no chunk involved.
       const signal = signalReadName(this.module, op.value.expr);
-      const text = this.next(QwikGenWord.Text);
-      statements.push(`const ${text} = ${QwikWord.FirstChild}(${el});`);
       const effect = this.next(QwikGenWord.Effect);
       this.imports.add(QwikWord.CreateTextNodeEffect);
       statements.push(
@@ -166,8 +170,6 @@ class CsrModuleEmitter {
     if (qrl === undefined) {
       throw new Error(`pipeline.generateJsCsr: unknown qrl "${use.qrl}"`);
     }
-    const text = this.next(QwikGenWord.Text);
-    statements.push(`const ${text} = ${QwikWord.FirstChild}(${el});`);
     const effect = this.next(QwikGenWord.Effect);
     const captures = captureNames(this.module, qrl);
     this.imports.add(QwikWord.CreateTextExpressionEffect);

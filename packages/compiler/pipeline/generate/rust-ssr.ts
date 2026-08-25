@@ -123,19 +123,39 @@ function emitDynamicElement(
   if (idVariable !== null) {
     lines.push(`    let ${idVariable} = ctx.next_id();\n`);
   }
+  if (holes.length > 0 && op.children.length !== 1) {
+    throw new UnsupportedError('a text hole with sibling children in a rust render');
+  }
+  // With dynamic props, ALL children pre-render into a buffer before the open tag.
+  const hasDynamicProps = op.props.length > 0;
   let childrenBuffer: string | null = null;
-  if (holes.length === 0 && op.children.length > 0) {
-    const childrenHtml = op.children
-      .map((child) => {
-        if (!isFullyStaticSubtree(child)) {
-          throw new UnsupportedError('a dynamic child in a rust element render');
-        }
-        return foldStaticOp(child, false);
-      })
-      .join('');
+  let inlineHoles = holes;
+  if (op.children.length > 0 && (holes.length === 0 || hasDynamicProps)) {
     childrenBuffer = `children_${temps++}`;
     lines.push(`    let mut ${childrenBuffer} = String::new();\n`);
-    lines.push(`    ${childrenBuffer}.push_str(${rustString(childrenHtml)});\n`);
+    if (holes.length === 0) {
+      const childrenHtml = op.children
+        .map((child) => {
+          if (!isFullyStaticSubtree(child)) {
+            throw new UnsupportedError('a dynamic child in a rust element render');
+          }
+          return foldStaticOp(child, false);
+        })
+        .join('');
+      lines.push(`    ${childrenBuffer}.push_str(${rustString(childrenHtml)});\n`);
+    } else {
+      for (const hole of holes) {
+        temps = emitTextHole(
+          module,
+          hole as Extract<Op, { op: OpKind.Hole }>,
+          idVariable!,
+          temps,
+          lines,
+          childrenBuffer
+        );
+      }
+      inlineHoles = [];
+    }
   }
   lines.push(`    out.push_str(${rustString(`<${op.tag}`)});\n`);
   if (idVariable !== null) {
@@ -151,16 +171,14 @@ function emitDynamicElement(
     }
   }
   lines.push(`    out.push('>');\n`);
-  if (holes.length > 0 && op.children.length !== 1) {
-    throw new UnsupportedError('a text hole with sibling children in a rust render');
-  }
-  for (const hole of holes) {
+  for (const hole of inlineHoles) {
     temps = emitTextHole(
       module,
       hole as Extract<Op, { op: OpKind.Hole }>,
       idVariable!,
       temps,
-      lines
+      lines,
+      'out'
     );
   }
   if (childrenBuffer !== null) {
@@ -177,7 +195,8 @@ function emitTextHole(
   op: Extract<Op, { op: OpKind.Hole }>,
   idVariable: string,
   temps: number,
-  lines: string[]
+  lines: string[],
+  target: string
 ): number {
   if (op.value.v === ValueKind.Read) {
     const expr = op.value.expr;
@@ -188,7 +207,7 @@ function emitTextHole(
     lines.push(`    ctx.serializer.add_root(std::rc::Rc::clone(&${local}));\n`);
     lines.push(`    ctx.subscribe_element_text(&${local}, ${idVariable});\n`);
     lines.push(
-      `    out.push_str(&qwik::escape::escape_html(&qwik::render::signal_text(&${local})));\n`
+      `    ${target}.push_str(&qwik::escape::escape_html(&qwik::render::signal_text(&${local})));\n`
     );
     return temps;
   }
@@ -218,7 +237,7 @@ function emitTextHole(
   );
   lines.push(`    }\n`);
   lines.push(
-    `    out.push_str(&qwik::escape::escape_html(&qwik::render::ssr_text_value(&${value})));\n`
+    `    ${target}.push_str(&qwik::escape::escape_html(&qwik::render::ssr_text_value(&${value})));\n`
   );
   return n + 1;
 }

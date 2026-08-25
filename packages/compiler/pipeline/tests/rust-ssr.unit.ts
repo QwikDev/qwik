@@ -75,6 +75,49 @@ describe('generateRustSsr', () => {
     );
   });
 
+  test('the counter matches the captured crate output (locals renumbered)', async () => {
+    const plan = await analyseModule(
+      {
+        path: 'src/component.tsx',
+        code: "import { useSignal } from '@qwik.dev/core';\nexport default () => {\n  const count = useSignal(0);\n  return <button onClick$={() => count.value++}>{count.value}</button>;\n};\n",
+      },
+      { transpileTs: true }
+    );
+    const linked = linkPlans(
+      [plan],
+      [{ kind: EntryKind.Module, module: 'src/component.tsx' }],
+      serverSpecialization(),
+      { edges: {} },
+      { claims: [], policies: [], emissions: [] },
+      true
+    );
+    if (linked.kind !== LinkResultKind.Linked) {
+      throw new Error('expected linked');
+    }
+    const generated = await generateRustSsr(linked.plan, 0, {});
+    // `local_1` vs the crate's `local_2`: local numbering follows each plan's binding table.
+    expect(generated.modules[0].code).toBe(
+      'pub fn render_default(ctx: &mut qwik::render::SsrContext, out: &mut String) {\n' +
+        '    let local_1 = std::rc::Rc::new(qwik::serdes::SerdesValue::Signal(\n' +
+        '        std::cell::RefCell::new(qwik::serdes::SignalState { value: std::rc::Rc::new(qwik::serdes::SerdesValue::Number(0f64)), subs: Vec::new() }),\n' +
+        '    ));\n' +
+        '    let element_id_0_0 = ctx.next_id();\n' +
+        '    let mut children_1 = String::new();\n' +
+        '    ctx.serializer.add_root(std::rc::Rc::clone(&local_1));\n' +
+        '    ctx.subscribe_element_text(&local_1, element_id_0_0);\n' +
+        '    children_1.push_str(&qwik::escape::escape_html(&qwik::render::signal_text(&local_1)));\n' +
+        '    out.push_str("<button");\n' +
+        '    out.push_str(&format!(" q:id=\\"{}\\"", element_id_0_0));\n' +
+        '    out.push_str(&ctx.event_attr("q-e:click", std::rc::Rc::new(qwik::serdes::SerdesValue::Qrl(qwik::serdes::QrlValue {\n' +
+        '        chunk: "component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz".to_string(), symbol: "component_q_e_click_segment_0_2xwyg1cinvmpz".to_string(), captures: vec![std::rc::Rc::clone(&local_1), ],\n' +
+        '    }))));\n' +
+        "    out.push('>');\n" +
+        '    out.push_str(&children_1);\n' +
+        '    out.push_str("</button>");\n' +
+        '}\n'
+    );
+  });
+
   test('event handler capturing a signal matches the captured crate output', async () => {
     const plan = await analyseModule(
       {

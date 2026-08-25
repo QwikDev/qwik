@@ -32,7 +32,8 @@ sibling statements, generated-name allocation, authored param reuse); element ev
 mirrors + `.s()`, `q:id`, `renderSsrTextExpression`/`maybeThen`, CSR placeholder templates +
 `createTextExpressionEffect`); `useSignal` setup + signal-read holes (subscription, no QRL);
 event handlers capturing signal locals (`.w([count])` SSR wrapper, `setEvent` captures arg,
-`_captures` chunk prelude, rust `QrlValue.captures`). Expressions lower to ValueIR when the
+`_captures` chunk prelude, rust `QrlValue.captures`); the counter (event + signal-read hole
+composed on one element). Expressions lower to ValueIR when the
 vocabulary covers them (JS payload fallback), so Rust evaluates text holes natively; only
 IR-uncoverable expressions refuse on the native target. The linker is still a 1:1 materializer — folding, policies, and edges
 pending. Everything unsupported throws `UnsupportedError`; invalid authored code becomes
@@ -77,6 +78,9 @@ from a deserialized frozen plan in a fresh process.
   keep `QrlValue.captures` empty.
 - When an authored core import is replaced in place, a chunk-import block ends with a blank line
   before module-top hoists; a lone core import does not.
+- Rust child placement follows the props: with dynamic props, ALL children (holes included)
+  pre-render into a `children_N` buffer BEFORE the open tag; a hole on a prop-less element emits
+  inline after `>`. CSR orders per element: node lookups, then `setEvent`, then effects.
 
 ## Deliberate divergences from the legacy oracle
 

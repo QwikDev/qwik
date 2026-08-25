@@ -17,6 +17,5 @@ export {
 } from './link/link-plans';
 export { generateJsCsr } from './generate/js-csr';
 export { generateJsSsr } from './generate/js-ssr';
-export { generateRustSsr } from './generate/rust-ssr';
 export { type GenerateOutput, type PresentationOptions } from './generate/output';
 export { transformModules } from './compat/transform-modules';

@@ -1,0 +1,123 @@
+import { describe, expect, test } from 'vitest';
+import {
+  BindingScope,
+  ExprKind,
+  FormalAccess,
+  OpKind,
+  QrlPayloadKind,
+  ValueKind,
+  VarKind,
+  type Op,
+} from '../schema';
+import { ValueIrKind } from '../../src/expr-ir';
+import type { AstNode } from '../analyse/ast/ast-types';
+import { parseModule } from '../analyse/ast/parse';
+import { lowerTextHole } from '../analyse/lower-hole';
+import { createLowerContext, type LowerContext } from '../analyse/lower-context';
+import { LocalKind } from '../analyse/lower-setup';
+import { emptyModulePlan } from './fixtures';
+
+function holeFor(expression: string, shape: (ctx: LowerContext) => void = () => {}) {
+  const source = `const a = (${expression});`;
+  const parsed = parseModule('t.tsx', source);
+  expect(parsed.errors).toEqual([]);
+  const statement = (parsed.program.body as AstNode[])[0];
+  const declarator = (statement.declarations as AstNode[])[0];
+  let node = declarator.init as AstNode;
+  while (node.type === 'ParenthesizedExpression') {
+    node = node.expression as AstNode;
+  }
+  const ctx = createLowerContext(emptyModulePlan('t.tsx', source), 't.tsx', undefined);
+  shape(ctx);
+  return { op: lowerTextHole(node, ctx), ctx };
+}
+
+function withSignalLocal(ctx: LowerContext): void {
+  ctx.plan.bindings.push({
+    id: 0,
+    name: 'count',
+    scope: BindingScope.Local,
+    varKind: VarKind.Const,
+    declarationRange: null,
+  });
+  ctx.locals = new Map([['count', { kind: LocalKind.Signal, slot: 0, binding: 0 }]]);
+}
+
+function withProps(ctx: LowerContext): void {
+  ctx.plan.bindings.push({
+    id: 0,
+    name: 'props',
+    scope: BindingScope.Param,
+    varKind: null,
+    declarationRange: null,
+  });
+  ctx.propsParamName = 'props';
+  ctx.bindingNames = new Set(['props']);
+}
+
+function holeValue(op: Op) {
+  if (op.op !== OpKind.Hole) {
+    throw new Error('expected a hole op');
+  }
+  return op.value;
+}
+
+describe('lowerTextHole', () => {
+  test('a signal .value read becomes a Read hole with SignalRead IR and no qrl', () => {
+    const { op, ctx } = holeFor('count.value', withSignalLocal);
+    expect(holeValue(op)).toMatchObject({
+      v: ValueKind.Read,
+      expr: { kind: ExprKind.Ir, ir: { kind: ValueIrKind.SignalRead, binding: 0 } },
+    });
+    expect(ctx.plan.qrls).toEqual([]);
+  });
+
+  test('a props member becomes a Computed hole with member IR and a Value-payload qrl', () => {
+    const { op, ctx } = holeFor('props.title', withProps);
+    const value = holeValue(op);
+    if (value.v !== ValueKind.Computed) {
+      throw new Error('expected a computed hole');
+    }
+    expect(value.expr).toEqual({
+      kind: ExprKind.Ir,
+      ir: {
+        kind: ValueIrKind.Member,
+        obj: { kind: ValueIrKind.BindingRead, binding: 0 },
+        name: 'title',
+      },
+    });
+    expect(ctx.plan.qrls).toHaveLength(1);
+    expect(ctx.plan.qrls[0].payloadKind).toBe(QrlPayloadKind.Value);
+    expect(ctx.plan.qrls[0].formals).toEqual([{ binding: 0, access: FormalAccess.ComponentProp }]);
+  });
+
+  test('an IR-uncoverable expression keeps a Js payload', () => {
+    const { op } = holeFor('props.list.join(",")', withProps);
+    const value = holeValue(op);
+    if (value.v !== ValueKind.Computed) {
+      throw new Error('expected a computed hole');
+    }
+    expect(value.expr.kind).toBe(ExprKind.Js);
+  });
+
+  test('an expression capturing a signal local throws', () => {
+    expect(() => holeFor('count.value + 1', withSignalLocal)).toThrow(
+      'an expression capturing the signal local "count"'
+    );
+  });
+
+  test('an expression capturing a module binding throws', () => {
+    expect(() =>
+      holeFor('title', (ctx) => {
+        ctx.plan.bindings.push({
+          id: 0,
+          name: 'title',
+          scope: BindingScope.Module,
+          varKind: VarKind.Const,
+          declarationRange: null,
+        });
+        ctx.bindingNames = new Set(['title']);
+      })
+    ).toThrow('an expression capturing "title"');
+  });
+});

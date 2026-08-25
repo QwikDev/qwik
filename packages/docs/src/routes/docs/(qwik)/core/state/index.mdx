@@ -3,7 +3,7 @@ title: State | Components
 keywords: 'useState, state management, reactivity, reactive'
 contributors:
   - nnelgxorz
-  - the-r3aper7
+  - saisrikardumpeti
   - voluntadpear
   - kawamataryo
   - JaymanW
@@ -36,7 +36,8 @@ contributors:
   - Jemsco
   - shairez
   - ianlet
-updated_at: '2023-10-04T21:48:45Z'
+  - youdie006
+updated_at: '2026-07-13T00:00:00Z'
 created_at: '2023-03-20T23:45:13Z'
 ---
 
@@ -219,20 +220,52 @@ export default component$(() => {
 
 > Do you know why you should use a regular `function(){}` instead of an arrow function in `useStore()`? This is because [arrow functions don't have their own bindings to `this`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Arrow_functions) in JavaScript. This means that if you try to access `this` using an arrow function, `this.count` could point to another object's `count` 😱.
 
+## `useConstant()`
+
+Use `useConstant()` to store a value that is computed **once** and retained for the entire lifetime of the component. Unlike `useSignal()` and `useComputed$()`, the value is not reactive: every subsequent render returns the very first value, and it is never recomputed.
+
+If the value is a function, `useConstant()` invokes it a single time (on the first render) to calculate the value. This makes it a good fit for values that should stay stable across re-renders, such as a generated id, or for a value that is expensive to create and only needs to be created once.
+
+<CodeSandbox src="/src/routes/demo/state/use-constant/index.tsx" style={{ height: '8em' }}>
+```tsx {5} /useConstant/
+import { component$, useConstant, useSignal } from '@builder.io/qwik';
+
+export default component$(() => {
+  // Computed once on the first render and never recomputed.
+  const componentId = useConstant(() => Math.random().toString(36).slice(2, 8));
+  const count = useSignal(0);
+
+  return (
+    <>
+      <p>Component id: {componentId}</p>
+      <p>Count: {count.value}</p>
+      <button onClick$={() => count.value++}>Increment</button>
+    </>
+  );
+});
+```
+</CodeSandbox>
+
+Incrementing the counter updates the `count` signal, but `componentId` keeps its original value: `useConstant()` runs its factory only on the first render and returns that same value every time afterwards.
+
+> **NOTE** A factory that returns `undefined` is re-run on every render. Only defined values are retained — including `null`. If you need to cache the absence of a value, return `null` rather than `undefined`.
+
+> **NOTE** `useConstant()` returns the raw value directly, not a signal. Reach for `useSignal()` when the value needs to change over time, or `useComputed$()` when it should be derived from other state and kept in sync with it. Use `useConstant()` only when the value must be calculated a single time and then stay fixed.
+
 ## Computed state
 
 In Qwik, there are two ways to create computed values, each with a different use case (in order of preference):
 
-1. `useComputed$()`: `useComputed$()` is the preferred way of creating computed values. Use it when the computed value can be derived synchronously purely from the source state (current application state). For example, creating a lowercase version of a string or combining first and last names into a full name.
+1. `useComputed$()`: `useComputed$()` is the preferred way of creating computed values. Use it when the computed value can be derived from the source state (current application state), either synchronously or asynchronously. For example, creating a lowercase version of a string or combining first and last names into a full name.
 
-2. [`useResource$()`](/docs/(qwik)/core/state/index.mdx#useresource): `useResource$()` is used when the computed value is asynchronous or the state comes from outside of the application. For example, fetching the current weather (external state) based on a current location (application internal state).
+2. [`useResource$()`](/docs/(qwik)/core/state/index.mdx#useresource): `useResource$()` is used when the state comes from outside of the application or you need explicit loading and error states. For example, fetching the current weather (external state) based on a current location (application internal state).
 
 
 In addition to the two ways of creating computed values described above, there is also a lower-level ([`useTask$()`](/docs/(qwik)/core/tasks/index.mdx#usetask)). This way does not produce a new signal, but rather modifies the existing state or produces a side effect.
 
 ### `useComputed$()`
 
-Use `useComputed$` to memoize a value derived synchronously from other state.
+Use `useComputed$` to memoize a value derived synchronously or asynchronously from other state.
 
 It is similar to `memo` in other frameworks, since it will only recompute the value when one of the input signals changes.
 
@@ -258,11 +291,11 @@ export default component$(() => {
 ```
 </CodeSandbox>
 
-> **NOTE** Because `useComputed$()` is synchronous it is not necessary to explicitly track the input signals.
+> **NOTE** Signal reads in `useComputed$()` are tracked automatically. In an async computation, only reads before the first `await` are tracked, so read reactive inputs before awaiting.
 
 ### `useResource$()`
 
-Use `useResource$()` to create a computed value that is derived asynchronously. It's the asynchronous version of `useComputed$()`, which includes the `state` of the resource (loading, resolved, rejected) on top of the value.
+Use `useResource$()` to create a value from an external async source when you need the `state` of the resource (loading, resolved, rejected) in addition to the value.
 
 A common use of `useResource$()` is to fetch data from an external API within the component, which can occur either on the server or the client.
 

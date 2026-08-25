@@ -10182,13 +10182,7 @@ T
 
 Returns a computed signal which is calculated from the given function. A computed signal is a signal which is calculated from other signals. When the signals change, the computed signal is recalculated, and if the result changed, all tasks which are tracking the signal will be re-run and all components that read the signal will be re-rendered.
 
-The function must be synchronous and must not have any side effects.
-
-Async functions are deprecated because:
-
-- When calculating the first time, it will see it's a promise and it will restart the render function. - Qwik can't track used signals after the first await, which leads to subtle bugs. - Both `useTask$` and `useResource$` are available, without these problems.
-
-In v2, async functions won't work.
+The function must not have any side effects. It may return a promise, but in Qwik v1 only signal reads before the first await are tracked. Read reactive inputs before awaiting.
 
 ```typescript
 useComputed$: <T>(qrl: ComputedFn<T>) => Signal<Awaited<T>>;
@@ -10273,6 +10267,8 @@ qrl
 Stores a value which is retained for the lifetime of the component.
 
 If the value is a function, the function is invoked to calculate the actual value.
+
+A factory that returns `undefined` is re-run on every render; any defined value (including `null`) is retained and returned on subsequent renders.
 
 ```typescript
 useConstant: <T>(value: (() => T) | T) => T;

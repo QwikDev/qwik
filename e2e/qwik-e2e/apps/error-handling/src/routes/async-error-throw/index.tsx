@@ -1,8 +1,8 @@
-import { component$, ErrorBoundary, Suspense, useAsync$ } from '@qwik.dev/core';
+import { component$, ErrorBoundary, Suspense, useComputed$ } from '@qwik.dev/core';
 import { defaultFallback } from '../../components/error-boundary/error-boundary';
 
 const AsyncValueThrows = component$(() => {
-  const data = useAsync$(async () => {
+  const data = useComputed$(async () => {
     throw new Error('unexpected-async-error');
   });
   return <div id="async-value">{String(data.value)}</div>;

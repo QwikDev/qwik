@@ -1,11 +1,11 @@
-import { component$, ErrorBoundary, useAsync$ } from '@qwik.dev/core';
+import { component$, ErrorBoundary, useComputed$ } from '@qwik.dev/core';
 import { defaultFallback } from '../../components/error-boundary/error-boundary';
 
 const AsyncErrorInline = component$(() => {
-  const data = useAsync$(async () => {
+  const data = useComputed$(async () => {
     throw new Error('expected-async-error');
   });
-  if (data.loading) {
+  if (data.pending) {
     return <span id="async-loading">loading</span>;
   }
   return <div id="async-error">handled: {(data.error as Error)?.message ?? 'none'}</div>;

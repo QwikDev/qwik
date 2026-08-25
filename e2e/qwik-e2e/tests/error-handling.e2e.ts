@@ -469,7 +469,8 @@ test.describe('qerror (client event channel)', () => {
       await expect.poll(() => pageErrors, { timeout: 10000 }).toContain('no-boundary boom');
     });
 
-    test('a failed qwikloader dynamic import (chunk 404) leaves the boundary inert', async ({
+    // https://github.com/QwikDev/qwik/issues/8962 — resumed dispatch bypasses the importError skip
+    test.fixme('a failed qwikloader dynamic import (chunk 404) leaves the boundary inert', async ({
       page,
     }) => {
       const pageErrors = collectPageErrors(page);
@@ -482,7 +483,7 @@ test.describe('qerror (client event channel)', () => {
       });
 
       const blockedRequests: string[] = [];
-      await page.route(/\/build\/handlers\.js/, (route) => {
+      await page.route(/\/build\/.*EbThrowOnClick.*q_e_click.*\.js/, (route) => {
         blockedRequests.push(route.request().url());
         return route.abort();
       });

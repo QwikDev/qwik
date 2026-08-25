@@ -446,6 +446,8 @@ export interface LoadedRoute {
   $loaders$?: string[];
   /** Runtime-only mapping of routeLoader$ hashes to the matched pathname used for q-loader fetches */
   $loaderPaths$?: Record<string, string>;
+  /** Runtime-only mapping of routeLoader$ hashes to params matched at their loader path */
+  $loaderParams$?: Record<string, PathParams>;
 }
 
 export interface EndpointResponse {

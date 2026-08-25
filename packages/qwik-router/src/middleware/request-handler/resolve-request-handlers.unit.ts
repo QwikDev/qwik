@@ -498,6 +498,37 @@ describe('resolve-request-handler', () => {
       expect(background).toHaveBeenCalledTimes(1);
     });
 
+    it('scopes ancestor loader params to their matched path', async () => {
+      const previousStrictLoaders = globalThis.__STRICT_LOADERS__;
+      globalThis.__STRICT_LOADERS__ = true;
+      try {
+        const layoutLoader = vi.fn(() => 'layout');
+        const route = pageRouteWithLoaders(makeLoader('layout-loader', layoutLoader));
+        Object.assign(route, {
+          $routeName$: '/[tenantSlug]/agents/',
+          $params$: { tenantSlug: 'acme' },
+          $loaderPaths$: { 'layout-loader': '/acme/' },
+          $loaderParams$: { 'layout-loader': { tenantSlug: 'acme' } },
+        });
+        const handlers = resolveRequestHandlers(undefined, route, 'GET', true, exitRender());
+        const requestEv = createRequestEvent(
+          createMockServerRequestEvent('http://localhost:3000/acme/agents/'),
+          route,
+          handlers,
+          '/',
+          vi.fn()
+        );
+
+        await requestEv.next();
+
+        expect(layoutLoader).toHaveBeenCalledWith(
+          expect.objectContaining({ params: { tenantSlug: 'acme' } })
+        );
+      } finally {
+        globalThis.__STRICT_LOADERS__ = previousStrictLoaders;
+      }
+    });
+
     it('does not await blockSSR:false loaders before render', async () => {
       let release!: () => void;
       const gate = new Promise<string>((resolve) => (release = () => resolve('late')));

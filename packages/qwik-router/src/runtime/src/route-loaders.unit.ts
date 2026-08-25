@@ -33,7 +33,7 @@ describe('route loader execution', () => {
 
   it('stores an uninitialized resume marker for never loaders', () => {
     const state = {} as RouteLoaderState;
-    const routeLoaderCtx = { loaderPaths: {} };
+    const routeLoaderCtx = { loaderPaths: {}, loaderParams: {} };
     const neverLoader = createLoader('never-loader', async () => undefined);
     const alwaysLoader = createLoader('always-loader', async () => undefined, 'always');
 
@@ -49,7 +49,7 @@ describe('route loader execution', () => {
 
   it('registers immutable loaders so nav-wide invalidation skips them', () => {
     const state = {} as RouteLoaderState;
-    const routeLoaderCtx = { loaderPaths: {} };
+    const routeLoaderCtx = { loaderPaths: {}, loaderParams: {} };
     const immutable = routeLoaderQrl(createQrl('immutable-loader'), {
       cacheControl: 'immutable',
     }) as LoaderInternal;
@@ -64,7 +64,7 @@ describe('route loader execution', () => {
 
   it('invalidates loader signals on nav, skipping resumed values and immutable loaders', () => {
     const state = {} as RouteLoaderState;
-    const routeLoaderCtx = { loaderPaths: {} };
+    const routeLoaderCtx = { loaderPaths: {}, loaderParams: {} };
     const immutable = routeLoaderQrl(createQrl('nav-immutable-loader'), {
       cacheControl: 'immutable',
     }) as LoaderInternal;

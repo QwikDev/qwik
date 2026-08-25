@@ -1,7 +1,7 @@
 {
   "name": "@qwik.dev/devtools",
   "description": "Qwik devtools package",
-  "version": "2.0.0-beta.39",
+  "version": "2.0.0-beta.41",
   "bugs": "https://github.com/QwikDev/devtools/issues",
   "dependencies": {
     "birpc": "^4.0.0",

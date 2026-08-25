@@ -1,5 +1,12 @@
 # @qwik.dev/utils
 
+## 2.0.0-beta.41
+
+### Patch Changes
+
+- Updated dependencies [[`fcced61`](https://github.com/QwikDev/qwik/commit/fcced613a9c0277203b13c2e32a815f02d4ff6cd), [`870529c`](https://github.com/QwikDev/qwik/commit/870529c8194c40fee6a35a5723e0c9171ec5f60d), [`f513eda`](https://github.com/QwikDev/qwik/commit/f513eda07a639399fff044f88607a71670e94d14), [`e4ae649`](https://github.com/QwikDev/qwik/commit/e4ae649364ab3fc7d1fc5f8e98808c5993b4f140)]:
+  - @qwik.dev/core@2.0.0-beta.41
+
 ## 2.0.0-beta.40
 
 ### Patch Changes

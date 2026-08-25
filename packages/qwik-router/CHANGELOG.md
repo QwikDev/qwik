@@ -1,5 +1,32 @@
 # @qwik.dev/city
 
+## 2.0.0-beta.41
+
+### Patch Changes
+
+- 🐞🩹 preserve route loader mappings for long windows paths (by [@Varixo](https://github.com/Varixo) in [#8939](https://github.com/QwikDev/qwik/pull/8939))
+
+- 🐞🩹 drop the `./service-worker` export — it pointed at a file the package doesn't ship, and `setupServiceWorker` is a no-op in v2 anyway (by [@ixcans](https://github.com/ixcans) in [#8963](https://github.com/QwikDev/qwik/pull/8963))
+
+- 🐞🩹 prerendered pages without a trailing slash now redirect instead of returning 404 (by [@maiieul](https://github.com/maiieul) in [#8960](https://github.com/QwikDev/qwik/pull/8960))
+
+- 🐞🩹 preserve bodyless Cloudflare responses (by [@Fnine59](https://github.com/Fnine59) in [#8949](https://github.com/QwikDev/qwik/pull/8949))
+
+- 🐞🩹 preserve document head after client head errors (by [@Fnine59](https://github.com/Fnine59) in [#8938](https://github.com/QwikDev/qwik/pull/8938))
+
+- `zod$` now detects schemas via `z.ZodType` instead of the zod-3-only `z.Schema` alias, fixing a server-side TypeError (and 500s on every zod$ action) when the router resolves zod 4 in hoisted installs. (by [@blakeley](https://github.com/blakeley) in [#8898](https://github.com/QwikDev/qwik/pull/8898))
+
+- 🐞🩹 preserve no-trailing-slash static routes (by [@ShiroKSH](https://github.com/ShiroKSH) in [#8902](https://github.com/QwikDev/qwik/pull/8902))
+
+- 🐞🩹 preserve route params on loaders using a `search` filter (by [@tidiview](https://github.com/tidiview) in [#8965](https://github.com/QwikDev/qwik/pull/8965))
+
+- 🐞🩹 HEAD requests for prerendered pages returned 404 instead of the page headers (by [@maiieul](https://github.com/maiieul) in [#8960](https://github.com/QwikDev/qwik/pull/8960))
+
+- 🐞🩹 refresh wrapped route loader data after SPA navigation (by [@Varixo](https://github.com/Varixo) in [#8948](https://github.com/QwikDev/qwik/pull/8948))
+
+- Updated dependencies [[`fcced61`](https://github.com/QwikDev/qwik/commit/fcced613a9c0277203b13c2e32a815f02d4ff6cd), [`870529c`](https://github.com/QwikDev/qwik/commit/870529c8194c40fee6a35a5723e0c9171ec5f60d), [`f513eda`](https://github.com/QwikDev/qwik/commit/f513eda07a639399fff044f88607a71670e94d14), [`e4ae649`](https://github.com/QwikDev/qwik/commit/e4ae649364ab3fc7d1fc5f8e98808c5993b4f140)]:
+  - @qwik.dev/core@2.0.0-beta.41
+
 ## 2.0.0-beta.40
 
 ### Major Changes

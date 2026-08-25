@@ -8,8 +8,8 @@ const staticPaths = new Set(['__QWIK_ROUTER_STATIC_PATHS_ARRAY__']);
  * @internal
  */
 export function isStaticPath(method: string, url: URL) {
-  const verb = method.toUpperCase();
-  if (verb !== 'GET' && verb !== 'HEAD') {
+  method = method.toUpperCase();
+  if (method !== 'GET' && method !== 'HEAD') {
     return false;
   }
   const p = url.pathname;

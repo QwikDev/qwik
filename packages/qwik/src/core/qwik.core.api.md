@@ -18,10 +18,8 @@ export const $: <T>(expression: T) => QRL<T>;
 // @internal
 export function _addProjection(container: _Container, parentVNode: _VirtualVNode, componentQRL: QRL<any>, props: Record<string, unknown>, slotName: string): _VirtualVNode;
 
-// Warning: (ae-forgotten-export) The symbol "ComputeCtx" needs to be exported by the entry point index.d.ts
-//
-// @public @deprecated
-export type AsyncFn<T> = (ctx: ComputeCtx) => ValueOrPromise<T>;
+// @public @deprecated (undocumented)
+export type AsyncFn<T> = ComputedFn<T>;
 
 // @public @deprecated
 export type AsyncSignal<T = unknown> = ComputedSignal<T>;
@@ -93,12 +91,13 @@ export interface ComponentBaseProps {
 // @internal (undocumented)
 export const componentQrl: <PROPS extends Record<any, any>>(componentQrl: QRL<OnRenderFn<PROPS>>) => Component<PROPS>;
 
+// Warning: (ae-forgotten-export) The symbol "ComputeCtx" needs to be exported by the entry point index.d.ts
+//
 // @public
 export type ComputedFn<T> = (ctx: ComputeCtx) => ValueOrPromise<T>;
 
 // @public (undocumented)
 export interface ComputedOptions<T = unknown> {
-    allowStale?: boolean;
     clientOnly?: boolean;
     concurrency?: number;
     // Warning: (ae-incompatible-release-tags) The symbol "container" is marked as @public, but its signature references "_Container" which is marked as @internal
@@ -106,11 +105,7 @@ export interface ComputedOptions<T = unknown> {
     // (undocumented)
     container?: _Container;
     eagerCleanup?: boolean;
-    expires?: number;
     initial?: Awaited<T> | (() => Awaited<T>);
-    // @deprecated (undocumented)
-    interval?: number;
-    poll?: boolean;
     // (undocumented)
     serializationStrategy?: SerializationStrategy;
     timeout?: number;
@@ -122,18 +117,15 @@ export type ComputedReturnType<T> = ComputedSignal<Awaited<T>>;
 // @public
 export interface ComputedSignal<T> extends Signal<T> {
     abort(reason?: any): void;
+    clear(): void;
     error: Error | undefined;
-    expires: number;
     // @deprecated (undocumented)
     force(): void;
-    // @deprecated (undocumented)
-    interval: number;
     invalidate(): void;
     invalidate(info?: unknown): void;
     // @deprecated (undocumented)
     loading: boolean;
     pending: boolean;
-    poll: boolean;
     promise(): Promise<void>;
     untrackedError: Error | undefined;
     // @deprecated (undocumented)
@@ -239,13 +231,10 @@ export interface CorrectedToggleEvent extends Event {
     readonly prevState: 'open' | 'closed';
 }
 
-// @public @deprecated
-export const createAsync$: <T>(qrl: (arg: ComputeCtx<T>) => Promise<T>, options?: AsyncSignalOptions<T>) => AsyncSignal<T>;
-
 // Warning: (ae-internal-missing-underscore) The name "createAsyncQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
-export const createAsyncQrl: <T>(qrl: QRL<AsyncFn<T>>, options?: AsyncSignalOptions<T>) => _AsyncSignalImpl<T>;
+export const createAsyncQrl: <T>(qrl: QRL<ComputedFn<T>>, options?: AsyncSignalOptions<T>) => _AsyncSignalImpl<T>;
 
 // @public
 export const createComputed$: <T>(qrl: (ctx: ComputeCtx) => ValueOrPromise<T>, options?: ComputedOptions<T>) => ComputedReturnType<T>;
@@ -620,9 +609,6 @@ export { isServer }
 
 // @public (undocumented)
 export const isSignal: (value: any) => value is Signal<unknown>;
-
-// @internal
-export const _isSignalNotInvalid: (signal: ComputedSignal<unknown> | undefined) => boolean;
 
 // Warning: (ae-internal-missing-underscore) The name "ISsrComponentFrame" should be prefixed with an underscore because the declaration is marked as @internal
 //
@@ -1145,7 +1131,7 @@ export type ResourceReturn<T> = {
 };
 
 // @internal (undocumented)
-export const _restProps: (props: PropsProxy, omit?: string[], target?: Props) => Props;
+export const _restProps: (props: unknown, omit?: string[], target?: Props) => Props;
 
 // @internal (undocumented)
 export const _reT: (input: TaskCtx) => void;
@@ -2055,14 +2041,6 @@ export const unwrapStore: <T>(value: T) => T;
 
 // @internal
 export function _updateProjectionProps(container: _Container, vnode: _VirtualVNode, newProps: Record<string, unknown>): void;
-
-// @public @deprecated
-export const useAsync$: <T>(qrl: AsyncFn<T>, options?: AsyncSignalOptions<T> | undefined) => AsyncSignal<T>;
-
-// Warning: (ae-internal-missing-underscore) The name "useAsyncQrl" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal @deprecated (undocumented)
-export const useAsyncQrl: <T>(qrl: QRL<AsyncFn<T>>, options?: AsyncSignalOptions<T>) => AsyncSignal<T>;
 
 // @public
 export const useComputed$: <T>(qrl: ComputedFn<T>, options?: ComputedOptions<T> | undefined) => ComputedReturnType<T>;

@@ -103,6 +103,7 @@ import {
   type SymbolToChunkResolver,
   type ValueOrPromise,
   type EffectSubscription,
+  type QRLInternal,
 } from './qwik-types';
 
 import {
@@ -1275,8 +1276,12 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         value = String(rawValue);
       } else if (typeof rawValue !== 'string') {
         rootId = this.addRoot(rawValue);
-        // We didn't add the vnode data, so we are only interested in the vnode position
         if (rootId === undefined) {
+          if (key === OnRenderProp) {
+            this.write(VNodeDataChar.RENDER_FN_CHAR);
+            this.write(VNodeDataChar.RENDER_HASH_PREFIX_CHAR);
+            this.write(encodeVNodeDataString(encodeVNodeDataKey((rawValue as QRLInternal).$hash$)));
+          }
           continue;
         }
         value = String(rootId);

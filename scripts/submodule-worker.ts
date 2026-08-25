@@ -30,7 +30,7 @@ export async function submoduleWorker(config: BuildConfig) {
         formats: ['es'],
         fileName: () => 'index.mjs',
       },
-      rollupOptions: {
+      rolldownOptions: {
         external: [
           /^@qwik\.dev\/core(?:\/|$)/,
           './worker.js?worker&url',

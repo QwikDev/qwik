@@ -1,8 +1,17 @@
+import type { Rolldown } from 'vite';
+
 export interface Loc {
   file: string;
   line: number | undefined;
   column: number | undefined;
 }
+
+export const createRolldownError = (
+  message: string,
+  id: string,
+  plugin: string,
+  loc?: Rolldown.RolldownError['loc']
+): Rolldown.RolldownError => ({ message, id, plugin, loc });
 
 export const findLocation = (e: Error): Loc | undefined => {
   const stack = e.stack;
@@ -137,3 +146,27 @@ export function parseId(originalId: string) {
 
 export const getSymbolHash = (symbolName: string) =>
   /_([a-zA-Z0-9]+)($|\.js($|\?))/.exec(symbolName)?.[1];
+
+/** Flattens a path into a chunk name under `build/`. */
+export const flattenToChunkName = (name: string) =>
+  name
+    .replace(/^[A-Za-z]:/, '')
+    .replace(/^(\.\.[/\\])+/, '')
+    .replace(/^\.[/\\]/, '')
+    .replace(/^[/\\]+/, '')
+    .replace(/[/\\]+/g, '-');
+
+// A user chunk with these names would hijack the manifest.
+const RESERVED_CHUNK_NAMES = new Set(['qwik-core', 'qwikloader', 'qwik-preloader']);
+
+/** Segment name to chunk group name, avoiding reserved names. */
+export const sanitizeChunkGroupName = (name: string | null | undefined) => {
+  if (!name) {
+    return null;
+  }
+  const chunkName = /[/\\]/.test(name) ? flattenToChunkName(name) : name;
+  if (!chunkName) {
+    return null;
+  }
+  return RESERVED_CHUNK_NAMES.has(chunkName) ? `${chunkName}-segment` : chunkName;
+};

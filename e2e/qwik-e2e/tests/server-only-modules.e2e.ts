@@ -198,7 +198,7 @@ async function buildFixtureApp(appDir: string, input = './src/root.tsx') {
     plugins: [qwikRouter(), qwikVite()],
     build: {
       minify: false,
-      rollupOptions: input ? { input: resolve(appDir, input) } : undefined,
+      rolldownOptions: input ? { input: resolve(appDir, input) } : undefined,
     },
   };
 

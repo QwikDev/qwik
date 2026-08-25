@@ -3,7 +3,8 @@ title: Upgrade to v2 | Qwik
 description: Complete guide for migrating a Qwik application from v1 (@builder.io) to v2 (@qwik.dev).
 contributors:
   - thejackshelton
-updated_at: '2026-03-19T00:00:00Z'
+  - c0deZ3R0
+updated_at: '2026-07-31T00:00:00Z'
 created_at: '2026-03-19T00:00:00Z'
 ---
 
@@ -30,7 +31,8 @@ Qwik v2 is a ground-up rewrite of the framework. This guide covers what's new, h
 2. [Handle third-party libraries](#third-party-libraries)
 3. [Check behavioral changes](#behavioral-changes)
 4. [Migrate deprecated APIs](#deprecated-apis)
-5. [Run the checklist](#verification-checklist)
+5. [Update your tests](#tests)
+6. [Run the checklist](#verification-checklist)
 
 ---
 
@@ -243,6 +245,47 @@ export default component$(() => {
 
 <Note>If your root component is reactive (reads signals), use `<QwikRouterProvider>` instead. `useQwikRouter()` only runs once during SSR.</Note>
 
+### Event attribute names changed
+
+The attributes Qwik writes into the HTML for listeners were renamed. This only matters if you inspect, query, or assert on them — JSX (`onClick$`, `document:onKeyDown$`) and `useOn*()` are unchanged.
+
+| Scope | v1 attribute | v2 attribute | v2 passive |
+|---|---|---|---|
+| Element | `on:click` | `q-e:click` | `q-ep:click` |
+| Document | `on-document:click` | `q-d:click` | `q-dp:click` |
+| Window | `on-window:click` | `q-w:click` | `q-wp:click` |
+
+Passive listeners (`{ passive: true }`) are new in v2 and get their own prefix, so a query for `q-e:scroll` will not match a passive scroll listener.
+
+The event name itself is still lowercased unless you opt into case sensitivity with a leading `-`, but v2 adds two rules: `--` is a literal `-` (`dbl--click` → `dbl-click`), and `DOMContentLoaded` is stored as `-d-o-m-content-loaded`.
+
+### Signal is a wider type
+
+In v1 `Signal<T>` was `{ value: T }`. In v2 it also has `untrackedValue` and `trigger()`:
+
+```typescript
+export interface Signal<T = any> {
+  value: T;
+  untrackedValue: T;
+  trigger(): void;
+}
+```
+
+Hand-rolled `{ value }` objects therefore no longer satisfy `Signal<T>`. This shows up most in tests and in helpers that fake a signal. Use the now-public `createSignal()` instead of a literal:
+
+```typescript
+// v1 — no longer type-checks in v2
+const fake: Signal<number> = { value: 0 };
+
+// v2
+import { createSignal } from '@qwik.dev/core';
+const fake = createSignal(0);
+```
+
+### client.devInput removed
+
+The `client.devInput` option of `qwikVite()` (v1 default `src/entry.dev.tsx`) is gone. Remove it from `vite.config.ts`. For SSR apps the dev server renders through `ssr.input`; for CSR apps (`csr: true`) it uses Vite's `index.html`.
+
 ### Module-level variable mutated inside a closure no longer builds
 
 The v2 Optimizer extracts closures more aggressively than v1. If an extracted closure mutates an exported module-level `let`, the Optimizer rewrites the reference as an `import`, and assigning to an import binding fails at build time — a path v1's less aggressive extraction didn't reach.
@@ -292,7 +335,7 @@ Still compile in v2, removed in v3.
 | Track deps | `ctx.track(() => sig.value)` | read `sig.value` directly before the first `await` (auto-tracked); use `ctx.track()` after an `await` |
 | Abort | Manual `AbortController` | `ctx.abortSignal` |
 | Previous value | - | `ctx.previous` |
-| Polling | - | `options.expires` + `options.poll` |
+| Polling | - | `usePoll(signal, ms)` from `@qwik.dev/utils` |
 | Initial value | - | `options.initial` |
 | Rendering | `<Resource onResolved={} />` | `.pending`/`.error` branching or `<Suspense>` |
 
@@ -378,6 +421,18 @@ What changed:
 - `.error` is `Error | undefined`
 - For unlimited parallel fetches, pass `{ concurrency: 0 }`
 
+### `ReadonlySignal` → `Readonly<Signal<T>>`
+
+In v1 `ReadonlySignal<T>` was an alias for `Readonly<Signal<T>>`. In v2 it is a standalone interface exposing only `value`, so it is no longer interchangeable with a real signal. Replace it:
+
+```typescript
+// v1
+const label: ReadonlySignal<string> = useComputed$(() => name.value);
+
+// v2
+const label: Readonly<Signal<string>> = useComputed$(() => name.value);
+```
+
 ### qwik-labs
 
 `@builder.io/qwik-labs` is removed in v2:
@@ -416,6 +471,40 @@ import { Insights } from '@qwik.dev/core/insights';
 ```
 
 </LongNote>
+
+---
+
+## Tests
+
+`@qwik.dev/core/testing` still exports `createDOM()` and `trigger()`, but v2 dispatches closer to what the browser does, which surfaces test code that relied on the old shortcuts.
+
+### event.target is not populated
+
+`trigger()` builds a real `Event` and invokes each handler as `handler(event, element)` rather than calling `element.dispatchEvent()`, so `event.target` stays `null`. Read the element from the second argument:
+
+```tsx
+// v1 — target was often good enough
+const onInput$ = $((event: Event) => {
+  value.value = (event.target as HTMLInputElement).value;
+});
+
+// v2 — use the element argument
+const onInput$ = $((event: Event, element: HTMLInputElement) => {
+  value.value = element.value;
+});
+```
+
+### Rendering over an existing container
+
+v2 refuses to re-render into an element that already has a `q:container`. Create a fresh DOM per test instead of reusing one across cases.
+
+### trigger() returns the event
+
+`trigger()` now returns the dispatched `Event` (or `null` if nothing matched), so you can assert on `defaultPrevented` or on payload fields you passed in. It also waits for the container to settle by default; pass `{ waitForIdle: false }` to opt out.
+
+### Faking signals
+
+Use `createSignal()` rather than a `{ value }` literal — see [Signal is a wider type](#signal-is-a-wider-type).
 
 ---
 
@@ -458,6 +547,14 @@ Add `"type": "module"` to `package.json`. Run the CLI again if this wasn't set a
 ### Calling a 'use*()' method outside 'component$(...)'
 
 Move the hook inside `component$` (error Q10).
+
+### Property 'untrackedValue' is missing in type
+
+A `{ value }` object literal used where a `Signal` is expected. See [Signal is a wider type](#signal-is-a-wider-type).
+
+### Cannot read properties of null (reading 'value') in a test
+
+`event.target` is `null` under `trigger()`. See [event.target is not populated](#eventtarget-is-not-populated).
 
 ### Cannot assign to import ... / Illegal reassignment of import ...
 

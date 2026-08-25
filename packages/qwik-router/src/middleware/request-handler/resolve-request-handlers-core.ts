@@ -364,7 +364,7 @@ function createResolveRequestHandlers() {
       Object.assign(routeLoaderCtx.loaderPaths, route.$loaderPaths$);
     }
 
-    // Store loader internals so SSG can check __expires.
+    // Store loader internals so SSG can check __cacheControl.
     setRouteLoaders(requestEv, routeLoaders);
   }
 

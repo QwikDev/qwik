@@ -282,7 +282,6 @@ function* inflateIterator(
         unknown?,
         number?,
         number?,
-        number?,
       ];
       asyncSignal.$computeQrl$ = d[0] as AsyncQRL<unknown>;
       if (d[1]) {
@@ -314,18 +313,11 @@ function* inflateIterator(
         asyncSignal.$flags$ |= ComputedSignalFlags.INVALID;
       }
 
-      // Handle old format (negative = no poll) and new format (always positive, flag in d[5])
-      const rawExpires = (d[7] ?? 0) as number;
-      asyncSignal.expires = Math.abs(rawExpires);
-      if (rawExpires < 0) {
-        asyncSignal.$flags$ |= AsyncSignalFlags.NO_POLL;
-      }
-
-      if (d[8] !== undefined && d[8] !== 1) {
-        asyncSignal.$concurrency$ = (d[8] ?? 1) as number;
+      if (d[7] !== undefined && d[7] !== 1) {
+        asyncSignal.$concurrency$ = (d[7] ?? 1) as number;
         asyncSignal.$jobs$ = [];
       }
-      asyncSignal.$timeoutMs$ = (d[9] ?? 0) as number;
+      asyncSignal.$timeoutMs$ = (d[8] ?? 0) as number;
       restoreEffectBackRefForEffects(asyncSignal.$effects$, asyncSignal);
       restoreEffectBackRefForEffects(asyncSignal.$loadingEffects$, asyncSignal);
       restoreEffectBackRefForEffects(asyncSignal.$errorEffects$, asyncSignal);

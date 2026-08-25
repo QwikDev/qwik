@@ -83,7 +83,7 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
         // the inherited objects are shared by reference with the top-level (ssr) config.
         environmentOptions.build = {
           ...environmentOptions.build,
-          rollupOptions: { ...environmentOptions.build?.rollupOptions, input: {} },
+          rolldownOptions: { ...environmentOptions.build?.rolldownOptions, input: {} },
         };
       }
     },
@@ -126,7 +126,7 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
           `import render from '${srcDir}/entry.ssr';`,
           `import qwikRouterConfig from '@qwik-router-config';`,
           `import { startWorker } from '@qwik.dev/router/ssg';`,
-          // Fire-and-forget (no top-level await): avoids a Rollup inlined-dynamic-import init-order
+          // Fire-and-forget (no top-level await): avoids an inlined-dynamic-import init-order
           // bug on the SSR target. See rollup/rollup#4166.
           `startWorker({ render, qwikRouterConfig }).catch((err) => {`,
           `  console.error(err);`,
@@ -260,6 +260,8 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
       const basePathname = qwikRouterPlugin.api.getBasePathname();
       const clientOutDir = qwikVitePlugin.api.getClientOutDir()!;
       const clientPublicOutDir = qwikVitePlugin.api.getClientPublicOutDir()!;
+      const noTrailingSlash =
+        builder.config.define?.['globalThis.__NO_TRAILING_SLASH__'] === 'true';
       const ssgEnv = builder.environments.ssg;
       const ssgOutDir = ssgOutDirFor(builder.config.root);
 
@@ -303,7 +305,8 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
         serverOutDir,
         basePathname,
         staticPaths,
-        !!opts.cleanStaticGenerated
+        !!opts.cleanStaticGenerated,
+        noTrailingSlash
       );
 
       if (typeof opts.generate === 'function') {

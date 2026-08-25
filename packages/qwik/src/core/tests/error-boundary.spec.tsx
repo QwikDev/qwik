@@ -1,7 +1,7 @@
 import {
   $,
   component$,
-  createAsync$,
+  createComputed$,
   ErrorBoundary,
   render,
   setPlatform,
@@ -66,7 +66,7 @@ const AsyncRejector = component$(
 );
 
 const AsyncSignalThrower = component$(() => {
-  const sig = createAsync$(() => Promise.reject(new Error('async signal boom')));
+  const sig = createComputed$(() => Promise.reject(new Error('async signal boom')));
   return <>{sig}</>;
 });
 

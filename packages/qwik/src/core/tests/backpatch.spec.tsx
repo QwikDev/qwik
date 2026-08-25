@@ -1,7 +1,7 @@
 import {
   createContextId,
   useContext,
-  useAsync$,
+  useComputed$,
   useContextProvider,
   useSignal,
   useTask$,
@@ -376,7 +376,7 @@ describe('SSR Backpatching', () => {
     });
 
     const Parent = component$(() => {
-      const color = useAsync$(() => Promise.resolve('red'));
+      const color = useComputed$(() => Promise.resolve('red'));
       return <Child color={color.value} />;
     });
 
@@ -404,7 +404,7 @@ describe('SSR Backpatching', () => {
     });
 
     const Parent = component$(() => {
-      const isActive = useAsync$(() => Promise.resolve(true));
+      const isActive = useComputed$(() => Promise.resolve(true));
       return <Child isActive={isActive.value} />;
     });
 

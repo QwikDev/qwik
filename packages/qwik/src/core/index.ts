@@ -155,9 +155,8 @@ export { useResource$ } from './use/use-resource-dollar';
 export { useTaskQrl } from './use/use-task';
 export { useTask$ } from './use/use-task-dollar';
 export { useVisibleTask$ } from './use/use-visible-task-dollar';
+export type { AsyncFn } from './use/use-computed';
 export { useComputed$ } from './use/use-computed';
-export type { AsyncFn } from './use/use-async';
-export { useAsyncQrl, useAsync$ } from './use/use-async';
 export {
   ErrorBoundary,
   errorBoundaryCmp as _ebC,
@@ -180,7 +179,6 @@ export {
   createSerializerQrl,
   createSerializer$,
   createAsyncQrl,
-  createAsync$,
 } from './reactive-primitives/signal.public';
 export type { ComputedOptions } from './reactive-primitives/types';
 

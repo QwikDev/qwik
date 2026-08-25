@@ -37,11 +37,11 @@ Closest tests are usually in the same subtree and named `*.unit.ts(x)` or `*.spe
 
 Current API and implementation facts:
 
-- The async engine (AsyncJob, loading/error, polling, cleanup) lives in `ComputedSignalImpl`;
+- The async engine (AsyncJob, loading/error, cleanup) lives in `ComputedSignalImpl`;
   `AsyncSignalImpl` only parses options and sets `AsyncSignalFlags.ASYNC_MODE | CTX_ARG`.
 - All compute fns receive the ComputeCtx argument (`track`, `previous`, `info`, `cleanup`,
   `abortSignal`); sync computeds allocate an AsyncJob per compute and run the previous job's
-  cleanups before recomputing. `CTX_ARG` signals (useAsync$/useResource$) track only via the
+  cleanups before recomputing. `CTX_ARG` signals (`createAsyncQrl`/`useResource$`) track only via the
   explicit `ctx.track()`; computeds auto-track synchronous reads via a dedicated invoke context,
   but that context is lost after the first `await` — later reads must use `ctx.track()`.
 - A computed whose fn returns a promise lazily switches on `ASYNC_MODE` (loading state stays
@@ -53,12 +53,11 @@ Current API and implementation facts:
   `TypeIds.AsyncSignal` and resume as `AsyncSignalImpl` instances whose serialized flags (no
   `CTX_ARG`) preserve auto-track semantics. Runtime checks must use flags, not class identity.
 - `createAsyncSignal()` passes the full `AsyncSignalOptions` object to the constructor.
-- `expires` is the current expiration duration in milliseconds.
-- `poll` controls whether expiration automatically recomputes or only marks stale.
-- `interval` remains a deprecated compatibility API: positive means `{ expires, poll: true }`,
-  negative means `{ expires: abs(interval), poll: false }`.
-- `allowStale: false` clears value only for manual invalidation and non-polling expiration. Polling
-  keeps the old value while recomputing to avoid visible loading flashes.
+- Signals have no built-in polling or expiration. Polling lives in `usePoll(signal, expires)` from
+  `@qwik.dev/utils`: an interval-based visible task (document-idle) that calls `invalidate()` and
+  resets on the `pending` flip. There is no `expires`/`poll`/`interval` option or property.
+- `invalidate()` keeps the previous value readable while recomputing; `clear()` drops the value
+  first so readers suspend (the old `allowStale: false` behavior, now explicit and one-shot).
 - `clientOnly` skips server computation and computes on first client read.
 - `eagerCleanup` schedules cleanup after subscribers drop to zero.
 
@@ -78,9 +77,6 @@ When changing AsyncSignal behavior, inspect:
   exercising first-read behavior.
 - `.value`, `.loading`, and `.error` have separate subscriber sets. Subscriber-sensitive logic must
   account for all three.
-- `expires` setter clears existing timeout, stores the new value, and reschedules only when
-  subscribers exist.
-- `poll` setter updates the `NO_POLL` flag and reschedules when needed.
 - `invalidate(info)` records the latest info and increments the info version.
 - AbortError is cancellation, not a user-visible `.error`.
 - Reading `.pending` or `.error` triggers computation when needed; serialization must read the
@@ -98,14 +94,14 @@ Use the current test helpers already present in nearby tests:
 
 ```typescript
 await withContainer(async () => {
-  const signal = createAsync$(async () => 42, { expires: 50 }) as AsyncSignalImpl<number>;
+  const signal = createAsyncQrl($(async () => 42)) as AsyncSignalImpl<number>;
 
   await retryOnPromise(() => {
     effect$(() => signal.value);
   });
 
-  expect(signal.expires).toBe(50);
-  expect(signal.poll).toBe(true);
+  await signal.promise();
+  expect(signal.value).toBe(42);
 });
 ```
 
@@ -124,15 +120,6 @@ const signal = createAsyncQrl(
 Do not capture and mutate primitive `let` bindings from `$()` tests; optimizer serialization can
 turn the binding into a const-like captured value.
 
-Compatibility tests should cover deprecated and current options when both are supported:
-
-```typescript
-const signal = createAsync$(async () => 42, { interval: -50 }) as AsyncSignalImpl<number>;
-expect(signal.expires).toBe(50);
-expect(signal.poll).toBe(false);
-expect(signal.interval).toBe(-50);
-```
-
 ## Serialization And Inflation
 
 When a core value gains serialized state:
@@ -143,7 +130,7 @@ When a core value gains serialized state:
 4. Check SSR and client resume behavior when the value affects resumed or streamed state.
 
 For AsyncSignal fields, inspect the serdes tests that deserialize async signals and verify
-`expires`, `poll`, stale value, and error/loading state behavior.
+concurrency, timeout, stale value, and error/loading state behavior.
 
 ## VNode, Cursor, And Streaming
 

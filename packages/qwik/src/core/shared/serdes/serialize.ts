@@ -649,7 +649,6 @@ export class Serializer {
         // async-mode computeds carry the same engine state and must round-trip like AsyncSignals
         const isAsync = !!(value.$flags$ & AsyncSignalFlags.ASYNC_MODE);
         const isErrored = isAsync && !!value.$untrackedError$;
-        const expires = isAsync && value.$expires$ !== 0 ? value.$expires$ : undefined;
         const concurrency = isAsync && value.$concurrency$ !== 1 ? value.$concurrency$ : undefined;
         const timeout = isAsync && value.$timeoutMs$ !== 0 ? value.$timeoutMs$ : undefined;
 
@@ -678,12 +677,7 @@ export class Serializer {
           out.push(asyncFlags || undefined);
         }
 
-        if (
-          v !== NEEDS_COMPUTATION ||
-          expires !== undefined ||
-          concurrency !== undefined ||
-          timeout !== undefined
-        ) {
+        if (v !== NEEDS_COMPUTATION || concurrency !== undefined || timeout !== undefined) {
           /**
            * If value is undefined, we need to keep it in the output. If we don't do that, later
            * during resuming, the value will be set to symbol(invalid) with flag invalid, and thats
@@ -692,7 +686,6 @@ export class Serializer {
           out.push(v === undefined ? explicitUndefined : v);
         }
         if (isAsync) {
-          out.push(expires);
           out.push(concurrency);
           out.push(timeout);
         }

@@ -1,5 +1,61 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.40
+
+### Major Changes
+
+- ✨ require Vite 8 and Rolldown. `manualChunks` is no longer supported because Qwik needs Rollup's `outputOpts.manualChunks.onlyExplicitManualChunks` which does not exist in Rolldown's `manualChunks` compatibility API. The qwikVite plugin now relies on Rolldown's equivalent `outputOpts.codeSplitting.includeDependenciesRecursively`. If you used Rollup's `manualChunks`, you need to update your code to Rolldown's `outputOpts.codeSplitting.groups` instead. (by [@maiieul](https://github.com/maiieul) in [#8909](https://github.com/QwikDev/qwik/pull/8909))
+
+### Patch Changes
+
+- Updated dependencies [[`5a824aa`](https://github.com/QwikDev/qwik/commit/5a824aad6f5aae07ec80db94bcc022e31d3ebfe5)]:
+  - @qwik.dev/optimizer@2.1.0-beta.7
+
+## 2.0.0-beta.39
+
+### Major Changes
+
+- ✨ replace the `allowStale` signal option with an explicit `.clear()` method (by [@wmertens](https://github.com/wmertens) in [#8904](https://github.com/QwikDev/qwik/pull/8904))
+
+- ✨ remove `expires`/`poll`/`interval` from computed signals, use `usePoll` from `@qwik.dev/utils` instead (by [@wmertens](https://github.com/wmertens) in [#8904](https://github.com/QwikDev/qwik/pull/8904))
+
+### Minor Changes
+
+- breaking: show suspense fallbacks only during initial loading and remove `showStale` (by [@Varixo](https://github.com/Varixo) in [#8869](https://github.com/QwikDev/qwik/pull/8869))
+
+### Patch Changes
+
+- 🐞🩹 bundle-graph no longer drops reachable dependencies while it gets optimized to avoid transitive duplicates. (by [@maiieul](https://github.com/maiieul) in [#8907](https://github.com/QwikDev/qwik/pull/8907))
+
+- 🐞🩹 support namespaced document and window event names (by [@Varixo](https://github.com/Varixo) in [#8920](https://github.com/QwikDev/qwik/pull/8920))
+
+- 🐞🩹 render nested Each components on the server (by [@Varixo](https://github.com/Varixo) in [#8921](https://github.com/QwikDev/qwik/pull/8921))
+
+- 🐞🩹 build optimizer before Vite ecosystem worker bundles (by [@gioboa](https://github.com/gioboa) in [#8905](https://github.com/QwikDev/qwik/pull/8905))
+
+- 🐞🩹 avoid rerendering unchanged components after resume (by [@Varixo](https://github.com/Varixo) in [#8931](https://github.com/QwikDev/qwik/pull/8931))
+
+- 🐞🩹 the minified build now emits valid `@__PURE__` annotations so downstream bundlers can tree-shake it (by [@maiieul](https://github.com/maiieul) in [#8908](https://github.com/QwikDev/qwik/pull/8908))
+
+- 🐞🩹 handle async component rejections during SSR flushes. (by [@Varixo](https://github.com/Varixo) in [#8851](https://github.com/QwikDev/qwik/pull/8851))
+
+- 🐞🩹 support Vite's Rolldown type definitions in the optimizer plugin (by [@gioboa](https://github.com/gioboa) in [#8874](https://github.com/QwikDev/qwik/pull/8874))
+
+- 🐞🩹 avoid eager container resume for capture-free sibling handlers (by [@Varixo](https://github.com/Varixo) in [#8919](https://github.com/QwikDev/qwik/pull/8919))
+
+- 🐞🩹 `<Link />` data prefetch doesn't fetch already present and still valid loader data (by [@wmertens](https://github.com/wmertens) in [#8870](https://github.com/QwikDev/qwik/pull/8870))
+
+- 🐞🩹 report repeated qrl chunk load failures only once (by [@Varixo](https://github.com/Varixo) in [#8845](https://github.com/QwikDev/qwik/pull/8845))
+
+- 🐞🩹 encode vnode metadata keys in script output. (by [@Varixo](https://github.com/Varixo) in [#8866](https://github.com/QwikDev/qwik/pull/8866))
+
+- 🐞🩹 require noSerialize values to carry the marker brand (by [@Varixo](https://github.com/Varixo) in [#8867](https://github.com/QwikDev/qwik/pull/8867))
+
+- 🐞🩹 avoid projecting HMR placeholders into nested components (by [@Varixo](https://github.com/Varixo) in [#8865](https://github.com/QwikDev/qwik/pull/8865))
+
+- Updated dependencies [[`53231e8`](https://github.com/QwikDev/qwik/commit/53231e8cc638346c303c48f0ccb7807a81b09530)]:
+  - @qwik.dev/optimizer@2.1.0-beta.6
+
 ## 2.0.0-beta.38
 
 ### Major Changes

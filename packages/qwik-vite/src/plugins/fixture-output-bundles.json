@@ -685,7 +685,7 @@
         "\u0000vite/preload-helper.js",
         "/home/wmertens/Projects/qwik/packages/qwik/dist/preloader.mjs"
       ],
-      "name": "preloader",
+      "name": "qwik-preloader",
       "type": "chunk",
       "dynamicImports": [],
       "fileName": "build/preloader.js",
@@ -768,7 +768,7 @@
         "/home/wmertens/Projects/qwik/packages/qwik/dist/core.min.mjs",
         "/home/wmertens/Projects/qwik/packages/qwik/handlers.mjs"
       ],
-      "name": "handlers",
+      "name": "qwik-core",
       "type": "chunk",
       "dynamicImports": [],
       "fileName": "build/handlers.js",

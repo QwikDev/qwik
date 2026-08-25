@@ -13,7 +13,6 @@ import { retryOnPromise } from '../../shared/utils/promises';
 import { invoke, newInvokeContext } from '../../use/use-core';
 import { Task, TaskFlags } from '../../use/use-task';
 import {
-  createAsync$,
   createComputed$,
   createComputedQrl,
   createSerializer$,
@@ -104,7 +103,7 @@ describe('signal types', () => {
     }
   });
   it('AsyncSignal<T>', () => async () => {
-    const signal = createAsync$(() => Promise.resolve(42));
+    const signal = createComputed$(() => Promise.resolve(42));
     expectTypeOf(signal).toEqualTypeOf<AsyncSignal<number>>();
     expectTypeOf(signal).toExtend<Signal<number>>();
     expectTypeOf(signal.trigger()).toEqualTypeOf<void>();
@@ -112,7 +111,6 @@ describe('signal types', () => {
     expectTypeOf(signal.value).toEqualTypeOf<number>();
     expectTypeOf(signal.loading).toEqualTypeOf<boolean>();
     expectTypeOf(signal.error).toEqualTypeOf<Error | undefined>();
-    expectTypeOf(signal.interval).toEqualTypeOf<number>();
     expectTypeOf(signal.untrackedValue).toEqualTypeOf<number>();
     expectTypeOf(signal.abort()).toEqualTypeOf<void>();
     expectTypeOf(signal.invalidate()).toEqualTypeOf<void>();

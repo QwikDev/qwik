@@ -1,5 +1,4 @@
 import type {
-  BuildOptions,
   ConfigEnv,
   EnvironmentOptions,
   UserConfig,
@@ -35,7 +34,7 @@ import {
   type QwikPluginDevTools,
   type QwikPluginOptions,
 } from './plugin';
-import { createRollupError, normalizeRollupOutputOptions } from './rollup';
+import { createBundlerError, normalizeRolldownOutputOptions } from './rolldown';
 import { isVirtualId } from './vite-utils';
 import {
   emitQwikWorkerCoreChunk,
@@ -62,7 +61,6 @@ const DEDUPE = [
 ];
 
 const STYLING = ['.css', '.scss', '.sass', '.less', '.styl', '.stylus'];
-const FONTS = ['.woff', '.woff2', '.ttf'];
 
 const QWIK_HMR_BRIDGE_ID = '@qwik-hmr-bridge';
 /**
@@ -104,7 +102,7 @@ const QWIK_HMR_BRIDGE_CODE = `
 type P<T> = VitePlugin<T> & { api: T; config: Extract<VitePlugin<T>['config'], Function> };
 
 /**
- * The types for Vite/Rollup don't allow us to be too specific about the return type. The correct
+ * The types for Vite/Rolldown don't allow us to be too specific about the return type. The correct
  * return type is `[QwikVitePlugin, VitePlugin<never>]`, and if you search the plugin by name you'll
  * get the `QwikVitePlugin`.
  *
@@ -121,6 +119,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   let ssrOutDir: string | null = null;
   let buildMode: QwikBuildMode = 'development';
   let viteServer: ViteDevServer | undefined;
+  let workerCoreChunkRef: string | undefined;
   // Cache the user-specified clientOutDir to use across multiple normalizeOptions calls
   const userClientOutDir = qwikViteOpts.client?.outDir;
   // Cache the resolved plugin options from config() to reuse in configResolved()
@@ -128,7 +127,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
   const fileFilter: QwikVitePluginOptions['fileFilter'] = qwikViteOpts.fileFilter
     ? (id, type) => TRANSFORM_REGEX.test(id) || qwikViteOpts.fileFilter!(id, type)
     : () => true;
-  const disableFontPreload = qwikViteOpts.disableFontPreload ?? false;
   const injections: GlobalInjections[] = [];
   const qwikPlugin = createQwikPlugin(qwikViteOpts.optimizerOptions);
 
@@ -204,7 +202,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             : qwikViteOpts.ssr?.input
           : undefined;
       const clientInput = target === 'client' ? qwikViteOpts.client?.input : undefined;
-      let input = viteConfig.build?.rollupOptions?.input || clientInput || ssrInput;
+      let input = viteConfig.build?.rolldownOptions?.input || clientInput || ssrInput;
       if (input && typeof input === 'string') {
         input = [input];
       }
@@ -310,12 +308,16 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
           dynamicImportVarsOptions: {
             exclude: [/./],
           },
-          rollupOptions: {
+          rolldownOptions: {
             external: ['node:async_hooks'],
             // This will amend the existing input
             input,
-            // temporary fix for rolldown-vite types
-          } as BuildOptions['rollupOptions'],
+            experimental: {
+              // Rolldown's default 'simple' leaks provenance comments into lib output.
+              attachDebugInfo:
+                viteConfig.build?.rolldownOptions?.experimental?.attachDebugInfo ?? 'none',
+            },
+          },
         },
         worker: getQwikWorkerConfig(viteConfig.worker, target, viteCommand),
         define: {
@@ -330,20 +332,14 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         if (opts.outDir) {
           updatedViteConfig.build!.outDir = opts.outDir;
         }
-        const origOnwarn = updatedViteConfig.build!.rollupOptions?.onwarn;
-        updatedViteConfig.build!.rollupOptions = {
-          ...updatedViteConfig.build!.rollupOptions,
-          output: await normalizeRollupOutputOptions(
+        updatedViteConfig.build!.rolldownOptions = {
+          ...updatedViteConfig.build!.rolldownOptions,
+          output: normalizeRolldownOutputOptions(
             qwikPlugin,
-            viteConfig.build?.rollupOptions?.output
+            viteConfig.build?.rolldownOptions?.output
           ),
-          preserveEntrySignatures: 'exports-only',
-          onwarn: (warning, warn) => {
-            if (warning.plugin === 'typescript' && warning.message.includes('outputToFilesystem')) {
-              return;
-            }
-            origOnwarn ? origOnwarn(warning, warn) : warn(warning);
-          },
+          // Rolldown's default 'exports-only' is invalid with includeDependenciesRecursively:false.
+          preserveEntrySignatures: 'allow-extension',
         };
 
         if (opts.target === 'ssr') {
@@ -360,7 +356,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         } else if (opts.target === 'lib') {
           // Library Build
           updatedViteConfig.build!.minify = false;
-          updatedViteConfig.build!.rollupOptions.external = [
+          updatedViteConfig.build!.rolldownOptions.external = [
             QWIK_CORE_ID,
             QWIK_CORE_INTERNAL_ID,
             QWIK_CORE_SERVER,
@@ -437,7 +433,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         !qwikViteOpts.csr &&
         qwikPlugin.getOptions().target === 'client'
       ) {
-        const names = ['vite:build-import-analysis'];
+        const names = ['vite:build-import-analysis', 'native:import-analysis-build'];
         const plugins = config.plugins as VitePlugin[];
         for (const name of names) {
           const i = plugins.findIndex((p) => p?.name === name);
@@ -460,16 +456,17 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
         diagnostics.forEach((d) => {
           const id = qwikPlugin.normalizePath(optimizer.sys.path.join(srcDir, d.file));
           if (d.category === 'error') {
-            this.error(createRollupError(id, d));
+            this.error(createBundlerError(id, d));
           } else {
-            this.warn(createRollupError(id, d));
+            this.warn(createBundlerError(id, d));
           }
         });
       });
 
       await qwikPlugin.buildStart(this);
+      workerCoreChunkRef = undefined;
       if (viteCommand === 'build' && qwikPlugin.getOptions().target === 'client') {
-        emitQwikWorkerCoreChunk(this);
+        workerCoreChunkRef = emitQwikWorkerCoreChunk(this);
       }
     },
 
@@ -571,21 +568,6 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
                     },
                   });
                 }
-              } else {
-                const selectedFont = FONTS.find((ext) => fileName.endsWith(ext));
-                if (selectedFont && !disableFontPreload) {
-                  injections.unshift({
-                    tag: 'link',
-                    location: 'head',
-                    attributes: {
-                      rel: 'preload',
-                      href: baseFilename,
-                      as: 'font',
-                      type: `font/${selectedFont.slice(1)}`,
-                      crossorigin: '',
-                    },
-                  });
-                }
               }
             }
           }
@@ -606,7 +588,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
               output.code = rewriteWorkerQrlChunkPlaceholders(output.code, resolveChunkPath);
             }
           }
-          rewriteClientWorkerCorePlaceholders(rollupBundle);
+          rewriteClientWorkerCorePlaceholders(this, rollupBundle, workerCoreChunkRef);
         } else if (isSSR) {
           rewriteSsrWorkerCorePlaceholders(rollupBundle, qwikPlugin.getOptions().manifestInput);
         }
@@ -1055,13 +1037,7 @@ interface QwikVitePluginCommonOptions {
    */
   experimental?: (keyof typeof ExperimentalFeatures)[];
 
-  /**
-   * Disables automatic preloading of font assets (WOFF/WOFF2/TTF) found in the build output. When
-   * enabled, the plugin will not add `<link rel="preload">` tags for font files in the document
-   * head.
-   *
-   * Disabling may impact Cumulative Layout Shift (CLS) metrics.
-   */
+  /** @deprecated No longer used. Automatic font preloading has been removed. */
   disableFontPreload?: boolean;
 }
 

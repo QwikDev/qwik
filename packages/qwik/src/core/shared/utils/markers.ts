@@ -2,6 +2,7 @@ import { QContainerValue } from '../types';
 
 /** State factory of the component. */
 export const OnRenderProp = 'q:renderFn';
+export const QComponentHash = 'q:componentHash';
 
 /** Target DOM element for external projection rendering. */
 export const QTargetElement = 'q:targetEl';

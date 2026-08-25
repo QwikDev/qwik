@@ -1,13 +1,8 @@
 import { join } from 'node:path';
 import { build } from 'vite';
 import { fileSize, type BuildConfig } from './util.ts';
-import { MANGLE_PROPS_REGEX } from './submodule-core.ts';
 
-/**
- * Builds the preloader script as a stand-alone ES module. Vite handles the minification via Terser
- * — we only need to pass the property-mangling regex so `$...$` internal properties stay in sync
- * with the names mangled by the core/server bundles (see `MANGLE_PROPS_REGEX`).
- */
+/** Builds the stand-alone preloader module, minified by the bundler. */
 export async function submodulePreloader(config: BuildConfig): Promise<void> {
   await build({
     build: {
@@ -18,26 +13,12 @@ export async function submodulePreloader(config: BuildConfig): Promise<void> {
         formats: ['es'],
         fileName: () => 'preloader.mjs',
       },
-      rollupOptions: {
+      rolldownOptions: {
         external: ['@qwik.dev/core/build'],
+        output: { comments: false },
+        experimental: { attachDebugInfo: 'none' },
       },
-      minify: 'terser',
-      terserOptions: {
-        compress: {
-          defaults: false,
-          module: true,
-          hoist_props: true,
-          unused: true,
-          booleans_as_integers: true,
-        },
-        mangle: {
-          toplevel: false,
-          properties: {
-            // use short attribute names for internal properties
-            regex: MANGLE_PROPS_REGEX,
-          },
-        },
-      },
+      minify: true,
       outDir: config.distQwikPkgDir,
     },
     define: { 'globalThis.qTest': 'false' }, // In vitest environments, `qTest` is `true` which allows test-only code to run, but in production builds it should be `false` to allow dead code elimination.

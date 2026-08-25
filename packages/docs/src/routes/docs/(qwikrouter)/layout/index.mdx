@@ -117,7 +117,7 @@ When you run the app, Qwik will render the `About` nested inside the `RootLayout
 
 ## Named Slots in Layouts
 
-A layout can define multiple named [`<Slot />`](/docs/components/slots/) areas (for example a sidebar, a breadcrumb bar, or a secondary action bar). Because the Qwik City router passes each page as a single component to its parent layout, using named slots requires a special technique: the page's `default export` must be an **inline component** (a plain function) instead of a `component$`.
+A layout can define multiple named [`<Slot />`](/docs/components/slots/) areas (for example a sidebar, a breadcrumb bar, or a secondary action bar). Because the Qwik Router passes each page as a single component to its parent layout, using named slots requires a special technique: the page's `default export` must be an **inline component** (a plain function) instead of a `component$`.
 
 ### Why inline components?
 

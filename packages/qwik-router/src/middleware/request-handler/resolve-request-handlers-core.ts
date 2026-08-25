@@ -767,6 +767,8 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
 
       let pipeError: unknown;
       let boundaryErrored = false;
+      let noStoreSent = false;
+      let overrodeCacheControl = false;
       const pipe = pipeSource.pipeTo(lazyResponseSink, { preventClose: true }).catch((error) => {
         pipeError = error;
       });
@@ -790,6 +792,8 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
           onBeforeFirstFlush: (info: { errorBoundaryCaught: boolean }) => {
             if (info.errorBoundaryCaught) {
               boundaryErrored = true;
+              noStoreSent = true;
+              overrodeCacheControl = responseHeaders.has('Cache-Control');
               responseHeaders.set('Cache-Control', 'no-store');
             }
           },
@@ -809,6 +813,16 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
       }
       if (pipeError) {
         throw pipeError;
+      }
+
+      // Only worth a log when the developer configured caching and the error disabled it.
+      if (boundaryErrored && (noStoreSent ? cachePlan || overrodeCacheControl : !!cachePlan)) {
+        console.warn(
+          `An <ErrorBoundary> caught during SSR of ${requestEv.url.pathname} — configured caching disabled: ` +
+            (noStoreSent
+              ? 'the response was sent with Cache-Control: no-store.'
+              : 'the SSR cache was skipped (response headers were already sent).')
+        );
       }
 
       if (cachePlan && cacheChunks && cacheChunks.length > 0 && !boundaryErrored) {

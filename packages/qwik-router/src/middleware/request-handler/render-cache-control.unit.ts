@@ -119,6 +119,63 @@ describe('render cache control', () => {
     expect(lateCatchRender).toHaveBeenCalledTimes(2);
   });
 
+  it('an errored route without caching config stays silent', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    try {
+      routeState.module = { default: () => null };
+      const { ev } = createServerRequestEvent();
+      const run = await requestHandler(ev, { render: createRender(true) as any });
+      await run!.completion;
+
+      expect(warnSpy).not.toHaveBeenCalled();
+    } finally {
+      warnSpy.mockRestore();
+    }
+  });
+
+  it('warns when no-store overrides an app-set Cache-Control', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    try {
+      routeState.module = {
+        default: () => null,
+        onGet: (ev: any) => {
+          ev.cacheControl({ maxAge: 300 });
+        },
+      };
+      const { ev, captured } = createServerRequestEvent();
+      const run = await requestHandler(ev, { render: createRender(true) as any });
+      await run!.completion;
+
+      expect(captured.headers?.get('Cache-Control')).toBe('no-store');
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      const message = warnSpy.mock.calls[0].join(' ');
+      expect(message).toContain('/');
+      expect(message).toContain('no-store');
+    } finally {
+      warnSpy.mockRestore();
+    }
+  });
+
+  it('warns when a mid-stream catch skips the configured SSR cache', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    try {
+      routeState.module = { default: () => null, routeConfig: { eTag: 'v1', cacheKey: true } };
+      const lateCatchRender = vi.fn(async (opts: any) => {
+        opts.onBeforeFirstFlush?.({ errorBoundaryCaught: false });
+        await opts.stream.write('<html>late fallback</html>');
+        return { flushes: 2, size: 10, isStatic: false, timing: {}, errorBoundaryCaught: true };
+      });
+      const { ev } = createServerRequestEvent('http://localhost/etag-late/');
+      const run = await requestHandler(ev, { render: lateCatchRender as any });
+      await run!.completion;
+
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      expect(warnSpy.mock.calls[0].join(' ')).toContain('/etag-late/');
+    } finally {
+      warnSpy.mockRestore();
+    }
+  });
+
   it('an error document responds with no-store', async () => {
     routeState.module = {
       default: () => null,

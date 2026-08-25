@@ -208,8 +208,6 @@ describe('loaderHandler', () => {
     expect(loaderEv.url.search).toBe('?q=shoes');
     expect(loaderEv.request.url).toBe('http://localhost/products/?q=shoes');
     expect(loaderEv.originalUrl.href).toBe('http://localhost/products/?q=shoes');
-    // Route params come from the pathname match, not the query string, and
-    // must be preserved on the filtered view — see #8964.
     expect(loaderEv.params).toEqual({ id: '123' });
     expect(loaderEv.query.get('q')).toBe('shoes');
     expect(loaderEv.query.has('ignored')).toBe(false);

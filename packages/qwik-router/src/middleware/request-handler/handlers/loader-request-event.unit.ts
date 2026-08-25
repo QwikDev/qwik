@@ -19,8 +19,6 @@ describe('createLoaderRequestEventFactory', () => {
     expect(pageEv.query.has('q')).toBe(false);
     expect(pageEv.request.url).toBe('http://localhost/products/?page=2');
     expect(pageEv.originalUrl.href).toBe('http://localhost/products/?page=2');
-    // Route params (matched from the pathname) are unrelated to the loader's search
-    // filter and must be preserved on the scoped view — see #8964.
     expect(pageEv.params).toEqual({ id: '123' });
 
     expect(queryEv.url.search).toBe('?q=shoes');
@@ -35,11 +33,7 @@ describe('createLoaderRequestEventFactory', () => {
   });
 
   it('preserves route params on a `search: []` loader for a dynamic route, with or without a query string (#8964)', () => {
-    // Regression test: a routeLoader$ with `{ search: [] }` on a route with a
-    // dynamic segment (e.g. `[lang]/index.tsx`) used to receive an empty
-    // `params` object as soon as the request URL carried any query string,
-    // because the scoped view unconditionally set `params: {}` instead of
-    // copying it from the root request event.
+    // Regression: params were dropped when search filtering was active.
     const requestEv = createRequestEv('http://localhost/fr/?foo=bar', { lang: 'fr' });
     const getLoaderRequestEvent = createLoaderRequestEventFactory(requestEv);
     const strictLoader = createLoader('strict-loader', []);

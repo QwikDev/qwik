@@ -1,5 +1,16 @@
 # @qwik.dev/react
 
+## 2.0.0-beta.40
+
+### Major Changes
+
+- ✨ require Vite 8 and Rolldown. `manualChunks` is no longer supported because Qwik needs Rollup's `outputOpts.manualChunks.onlyExplicitManualChunks` which does not exist in Rolldown's `manualChunks` compatibility API. The qwikVite plugin now relies on Rolldown's equivalent `outputOpts.codeSplitting.includeDependenciesRecursively`. If you used Rollup's `manualChunks`, you need to update your code to Rolldown's `outputOpts.codeSplitting.groups` instead. (by [@maiieul](https://github.com/maiieul) in [#8909](https://github.com/QwikDev/qwik/pull/8909))
+
+### Patch Changes
+
+- Updated dependencies [[`7fa1f70`](https://github.com/QwikDev/qwik/commit/7fa1f7060eb3ee0b8841c85a9101d002c7328d92)]:
+  - @qwik.dev/core@2.0.0-beta.40
+
 ## 2.0.0-beta.39
 
 ### Patch Changes

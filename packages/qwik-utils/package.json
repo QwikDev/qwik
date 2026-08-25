@@ -1,12 +1,12 @@
 {
   "name": "@qwik.dev/utils",
   "description": "Useful but less common utilities for Qwik applications",
-  "version": "2.0.0-beta.39",
+  "version": "2.0.0-beta.40",
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "devDependencies": {
     "@qwik.dev/core": "workspace:*",
     "typescript": "5.9.3",
-    "vite": "7.3.5"
+    "vite": "8.2.1"
   },
   "engines": {
     "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
@@ -24,7 +24,7 @@
   "license": "MIT",
   "main": "./lib/index.qwik.mjs",
   "peerDependencies": {
-    "@qwik.dev/core": "workspace:^"
+    "@qwik.dev/core": "workspace:*"
   },
   "publishConfig": {
     "access": "public"

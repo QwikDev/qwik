@@ -6,6 +6,8 @@ import {
   fromBucket,
   toBucket,
   toBucketTimeline,
+  vectorHasMinimumSamples,
+  vectorPercentile,
 } from './vector';
 
 test('bucketize values', () => {
@@ -66,4 +68,20 @@ test('bucketize timeline values', () => {
   assert.equal(toBucketTimeline(TIMELINE_MAX_VALUE), NUMBER_OF_BUCKETS - 1);
   assert.equal(toBucketTimeline(Number.MAX_SAFE_INTEGER), NUMBER_OF_BUCKETS - 1);
   assert.equal(toBucketTimeline(TIMELINE_MAX_VALUE - 1), NUMBER_OF_BUCKETS - 2);
+});
+
+test('computes a percentile from histogram buckets', () => {
+  const buckets = [
+    { min: 0, max: 10, avg: 5 },
+    { min: 10, max: 20, avg: 15 },
+    { min: 20, max: 30, avg: 25 },
+  ];
+
+  assert.equal(vectorPercentile([0, 1, 3], 0.75, buckets), 25);
+  assert.equal(vectorPercentile([0, 0, 0], 0.75, buckets), 0);
+});
+
+test('requires a minimum number of samples', () => {
+  assert.isFalse(vectorHasMinimumSamples([99], 100));
+  assert.isTrue(vectorHasMinimumSamples([40, 60], 100));
 });

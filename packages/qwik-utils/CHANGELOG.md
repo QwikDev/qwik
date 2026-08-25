@@ -1,5 +1,12 @@
 # @qwik.dev/utils
 
+## 2.0.0-beta.40
+
+### Patch Changes
+
+- Updated dependencies [[`7fa1f70`](https://github.com/QwikDev/qwik/commit/7fa1f7060eb3ee0b8841c85a9101d002c7328d92)]:
+  - @qwik.dev/core@2.0.0-beta.40
+
 ## 2.0.0-beta.39
 
 ### Minor Changes

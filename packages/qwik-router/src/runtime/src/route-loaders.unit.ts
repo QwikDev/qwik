@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { _UNINITIALIZED, type SerializationStrategy } from '@qwik.dev/core/internal';
 import {
+  applyClientRouteLoaderPath,
   ensureRouteLoaderSignal,
   getRouteLoaderResponse,
   invalidateNavRouteLoaders,
@@ -13,6 +14,23 @@ import { ServerError } from '../../middleware/request-handler/server-error';
 import type { LoaderInternal } from './types';
 
 describe('route loader execution', () => {
+  it('assigns candidate paths only when their loader is used', () => {
+    const routeLoaderCtx = {
+      loaderPaths: { 'unused-loader': '/previous/' },
+      routeLoaderCandidates: {
+        'session-loader': '/dashboard/',
+        'unused-loader': '/dashboard/',
+      },
+    };
+
+    applyClientRouteLoaderPath('session-loader', routeLoaderCtx);
+
+    expect(routeLoaderCtx.loaderPaths).toEqual({
+      'session-loader': '/dashboard/',
+      'unused-loader': '/previous/',
+    });
+  });
+
   it('stores an uninitialized resume marker for never loaders', () => {
     const state = {} as RouteLoaderState;
     const routeLoaderCtx = { loaderPaths: {} };

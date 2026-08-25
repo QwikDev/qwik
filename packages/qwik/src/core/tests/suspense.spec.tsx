@@ -17,7 +17,7 @@ import {
   component$,
   getDomContainer,
   type JSXOutput,
-  useAsync$,
+  useComputed$,
   useErrorBoundary,
   Slot,
   useTask$,
@@ -1564,7 +1564,7 @@ describe('ssrRenderToDom: out-of-order Suspense', () => {
     );
     const App = component$(() => {
       const page = useSignal(0);
-      const stories = useAsync$<Story[]>(async ({ track }) => {
+      const stories = useComputed$<Story[]>(async ({ track }) => {
         const pageNum = track(page);
         (globalThis as any).__ooosUnitLoopRequests.push(pageNum);
         return new Promise<Story[]>((resolve) => {

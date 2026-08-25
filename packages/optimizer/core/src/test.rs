@@ -6421,18 +6421,18 @@ export const Tree = component$((props) => {
 fn component_level_self_referential_qrl() {
 	test_input!(TestInput {
 		code: r#"
-import { component$, useAsync$ } from '@qwik.dev/core';
+import { component$, useComputed$ } from '@qwik.dev/core';
 		
 // Component-level self-referential component
 export const Foo = component$((props) => {
-	const sig = useAsync$(async ({cleanup}) => {
+	const sig = useComputed$(async ({cleanup}) => {
 		const timer = setInterval(() => {
 			sig.value++;
 		}, 1000);
 		cleanup(() => clearInterval(timer));
 		return 0;
 	});
-	const other = useAsync$(async ({cleanup}) => {
+	const other = useComputed$(async ({cleanup}) => {
 		const timer = setInterval(() => {
 			other.value++;
 		}, 900);
@@ -6876,11 +6876,11 @@ fn inlined_qrl_after_ref_identifiers_forward_ref() {
 	let res = test_input!(TestInput {
 		code: r#"
 import { component$ } from '@qwik.dev/core';
-import { useAsyncQrl } from '@qwik.dev/core';
+import { useComputedQrl } from '@qwik.dev/core';
 
 export const TestComponent = component$(() => {
 	// This should be hoisted with an identifier
-	const asyncSig = useAsyncQrl$(async () => {
+	const asyncSig = useComputedQrl$(async () => {
 		return 42;
 	});
 	return <div>{asyncSig}</div>;

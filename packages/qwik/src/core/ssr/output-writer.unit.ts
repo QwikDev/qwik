@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
-  createSsrElementRecord,
+  createSsrOpenTag,
   createSsrEventAttr,
   createSsrNodeId,
-  createSsrRecord,
+  createSsrMarkup,
   createSsrRootRef,
   createSsrRootRefPath,
 } from './output';
@@ -16,7 +16,7 @@ describe('SsrOutputWriter', () => {
 
     const result = writer.finish([
       'before',
-      [createSsrRecord('<!r=', createSsrNodeId(3), ' ', createSsrRootRef(7), '>')],
+      [createSsrMarkup('<!r=', createSsrNodeId(3), ' ', createSsrRootRef(7), '>')],
       createSsrRootRefPath([4, 2]),
       'after',
     ]);
@@ -40,7 +40,7 @@ describe('SsrOutputWriter', () => {
       },
     });
 
-    await writer.finish(['first', createSsrRecord('second-', createSsrNodeId(1)), 'third']);
+    await writer.finish(['first', createSsrMarkup('second-', createSsrNodeId(1)), 'third']);
 
     expect(chunks).toEqual(['first', 'second-1', 'third']);
     expect(maxWritesInFlight).toBe(1);
@@ -51,8 +51,7 @@ describe('SsrOutputWriter', () => {
     const writer = new SsrOutputWriter({ write: (chunk) => void chunks.push(chunk) });
 
     writer.finish(
-      createSsrElementRecord(
-        'button',
+      createSsrOpenTag(
         '<button',
         createSsrEventAttr('q-e:click', ['listener#handler#', createSsrRootRef(2)]),
         '>'

@@ -9,10 +9,10 @@ export function App() {
 
 ============================= src/component.tsx ==
 
-import { createSsrElementRecord, escapeHTML } from '@qwik.dev/core';
+import { createSsrOpenTag, escapeHTML } from '@qwik.dev/core';
 export function App(props, ctx) {
   const local = { value: 'Hello' };
-  return [createSsrElementRecord('p', '<p', '>'), escapeHTML(String(local.value ?? '')), '</p>'];
+  return [createSsrOpenTag('<p', '>'), escapeHTML(String(local.value ?? '')), '</p>'];
 }
 == SSR DIAGNOSTICS ==
 

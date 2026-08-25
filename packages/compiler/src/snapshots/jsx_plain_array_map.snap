@@ -10,7 +10,7 @@ export function App() {
 ============================= src/component.tsx ==
 
 import {
-  createSsrElementRecord,
+  createSsrOpenTag,
   createSsrNodeId,
   createSsrRangeTextTarget,
   escapeHTML,
@@ -44,8 +44,7 @@ export function App(props, ctx) {
       q_component_text_segment_3_1fh11lewq6qgx
     );
     return maybeThen(text_0, (text_0) => [
-      createSsrElementRecord(
-        'li',
+      createSsrOpenTag(
         '<li q:id="',
         createSsrNodeId(id_0),
         '"',
@@ -72,7 +71,7 @@ export function App(props, ctx) {
     0
   );
   return maybeThen(collection_result_0, (collection_result_0) => [
-    createSsrElementRecord('ul', '<ul', '>'),
+    createSsrOpenTag('<ul', '>'),
     collection_result_0,
     '</ul>',
   ]);

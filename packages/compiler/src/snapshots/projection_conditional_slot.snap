@@ -24,7 +24,7 @@ import {
   useSignal,
   _captures,
   renderSsrBranch,
-  createSsrRecord,
+  createSsrMarkup,
   createSsrNodeId,
   maybeThen,
   createSlotScope,
@@ -48,8 +48,8 @@ const component_slot_render_segment_0_3b0tagwys7lui = (ctx, rangeId) => {
     true
   );
   return maybeThen(branch_0, (branch_0) => [
-    createSsrRecord('<!s=', createSsrNodeId(rangeId), '>'),
-    createSsrRecord('<!b=', createSsrNodeId(branch_id_0), '>'),
+    createSsrMarkup('<!s=', createSsrNodeId(rangeId), '>'),
+    createSsrMarkup('<!b=', createSsrNodeId(branch_id_0), '>'),
     branch_0,
     '<!/b><!/s>',
   ]);
@@ -96,10 +96,10 @@ export function App(props, ctx) {
 import {
   _captures,
   renderSsrBranch,
-  createSsrRecord,
+  createSsrMarkup,
   createSsrNodeId,
   maybeThen,
-  createSsrElementRecord,
+  createSsrOpenTag,
   renderSsrSlot,
   getActiveInvokeContextOrNull,
   invoke,
@@ -114,7 +114,7 @@ export function Panel(props, ctx) {
     });
   return maybeThen(slot_0, (slot_0) =>
     maybeThen(slot_1(), (slot_1) => [
-      createSsrElementRecord('div', '<div', '>'),
+      createSsrOpenTag('<div', '>'),
       slot_0,
       '<span>',
       slot_1,
@@ -148,7 +148,7 @@ import {
   _noopQrl,
   _captures,
   renderSsrBranch,
-  createSsrRecord,
+  createSsrMarkup,
   createSsrNodeId,
   maybeThen,
 } from '@qwik.dev/core';
@@ -179,8 +179,8 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, rangeId) => {
     true
   );
   return maybeThen(branch_0, (branch_0) => [
-    createSsrRecord('<!s=', createSsrNodeId(rangeId), '>'),
-    createSsrRecord('<!b=', createSsrNodeId(branch_id_0), '>'),
+    createSsrMarkup('<!s=', createSsrNodeId(rangeId), '>'),
+    createSsrMarkup('<!b=', createSsrNodeId(branch_id_0), '>'),
     branch_0,
     '<!/b><!/s>',
   ]);

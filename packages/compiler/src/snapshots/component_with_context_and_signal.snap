@@ -16,9 +16,9 @@ export const App = () => {
 
 import {
   createContextId,
-  createSsrRecord,
+  createSsrMarkup,
   createSsrNodeId,
-  createSsrElementRecord,
+  createSsrOpenTag,
   createSsrElementTextTarget,
   escapeHTML,
   renderSsrTextNode,
@@ -34,8 +34,8 @@ export const App = (props, ctx) => {
   ctx.addRoot(source);
   const text_1 = renderSsrTextNode(createSsrElementTextTarget(id_0), source);
   return maybeThen(text_1, (text_1) => [
-    createSsrRecord('<!c=', context_scope_0, '>'),
-    createSsrElementRecord('p', '<p q:id="', createSsrNodeId(id_0), '"', '>'),
+    createSsrMarkup('<!c=', context_scope_0, '>'),
+    createSsrOpenTag('<p q:id="', createSsrNodeId(id_0), '"', '>'),
     escapeHTML(text_1),
     '</p><!/c>',
   ]);

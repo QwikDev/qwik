@@ -21,14 +21,14 @@ export function App() {
 
 import {
   createSsrNodeId,
-  createSsrElementRecord,
+  createSsrOpenTag,
   createSsrElementTextTarget,
   escapeHTML,
   renderSsrTextExpression,
   maybeThen,
   _captures,
   renderSsrCollection,
-  createSsrRecord,
+  createSsrMarkup,
   _wrapArray,
   _noopQrl,
 } from '@qwik.dev/core';
@@ -42,7 +42,7 @@ const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __rowId, ro
     q_component_text_segment_2_1fh117dstcoge
   );
   return maybeThen(text_0, (text_0) => [
-    createSsrElementRecord('li', '<li q:id="', createSsrNodeId(id_0), '"', ' q:row', '>'),
+    createSsrOpenTag('<li q:id="', createSsrNodeId(id_0), '"', ' q:row', '>'),
     escapeHTML(text_0),
     '</li>',
   ]);
@@ -103,8 +103,8 @@ export function App(props, ctx) {
     0
   );
   return maybeThen(collection_result_0, (collection_result_0) => [
-    createSsrElementRecord('ul', '<ul', '>'),
-    createSsrRecord('<!f=', createSsrNodeId(collection_id_0), '>'),
+    createSsrOpenTag('<ul', '>'),
+    createSsrMarkup('<!f=', createSsrNodeId(collection_id_0), '>'),
     collection_result_0,
     '<!/f></ul>',
   ]);
@@ -114,7 +114,7 @@ export function App(props, ctx) {
 import {
   _noopQrl,
   createSsrNodeId,
-  createSsrElementRecord,
+  createSsrOpenTag,
   createSsrElementTextTarget,
   escapeHTML,
   renderSsrTextExpression,
@@ -135,7 +135,7 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __ro
     q_component_text_segment_2_1fh117dstcoge
   );
   return maybeThen(text_0, (text_0) => [
-    createSsrElementRecord('li', '<li q:id="', createSsrNodeId(id_0), '"', ' q:row', '>'),
+    createSsrOpenTag('<li q:id="', createSsrNodeId(id_0), '"', ' q:row', '>'),
     escapeHTML(text_0),
     '</li>',
   ]);

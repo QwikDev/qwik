@@ -26,12 +26,12 @@ import {
   createSsrNodeId,
   renderSsrProps,
   createSsrElementTarget,
-  createSsrElementRecord,
+  createSsrOpenTag,
   renderSsrAttrExpression,
   escapeHTML,
   getActiveInvokeContextOrNull,
   invoke,
-  createSsrRecord,
+  createSsrMarkup,
   createSsrRangeTextTarget,
   renderSsrTextExpression,
   maybeThen,
@@ -97,8 +97,7 @@ const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __rowId, ro
       maybeThen(attr_2(), (attr_2) =>
         maybeThen(text_3(), (text_3) =>
           maybeThen(text_4(), (text_4) => [
-            createSsrElementRecord(
-              'li',
+            createSsrOpenTag(
               '<li q:id="',
               createSsrNodeId(id_0),
               '"',
@@ -107,7 +106,7 @@ const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __rowId, ro
               '>'
             ),
             props_0.innerHTML ?? [
-              createSsrRecord(
+              createSsrMarkup(
                 '<span q:id="',
                 createSsrNodeId(id_1),
                 '"',
@@ -124,7 +123,7 @@ const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __rowId, ro
               '<!/t>:<!t>',
               escapeHTML(text_4),
               '<!/t></span>',
-              createSsrRecord(
+              createSsrMarkup(
                 '<button',
                 ctx.eventAttr('q-e:click', q_component_q_e_click_segment_7_2xwyev96xdgoe.w([row])),
                 '>'
@@ -203,8 +202,8 @@ export function App(props, ctx) {
     0
   );
   return maybeThen(collection_result_0, (collection_result_0) => [
-    createSsrElementRecord('ul', '<ul', '>'),
-    createSsrRecord('<!f=', createSsrNodeId(collection_id_0), '>'),
+    createSsrOpenTag('<ul', '>'),
+    createSsrMarkup('<!f=', createSsrNodeId(collection_id_0), '>'),
     collection_result_0,
     '<!/f></ul>',
   ]);
@@ -216,12 +215,12 @@ import {
   createSsrNodeId,
   renderSsrProps,
   createSsrElementTarget,
-  createSsrElementRecord,
+  createSsrOpenTag,
   renderSsrAttrExpression,
   escapeHTML,
   getActiveInvokeContextOrNull,
   invoke,
-  createSsrRecord,
+  createSsrMarkup,
   createSsrRangeTextTarget,
   renderSsrTextExpression,
   maybeThen,
@@ -320,8 +319,7 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (
       maybeThen(attr_2(), (attr_2) =>
         maybeThen(text_3(), (text_3) =>
           maybeThen(text_4(), (text_4) => [
-            createSsrElementRecord(
-              'li',
+            createSsrOpenTag(
               '<li q:id="',
               createSsrNodeId(id_0),
               '"',
@@ -330,7 +328,7 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (
               '>'
             ),
             props_0.innerHTML ?? [
-              createSsrRecord(
+              createSsrMarkup(
                 '<span q:id="',
                 createSsrNodeId(id_1),
                 '"',
@@ -347,7 +345,7 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (
               '<!/t>:<!t>',
               escapeHTML(text_4),
               '<!/t></span>',
-              createSsrRecord(
+              createSsrMarkup(
                 '<button',
                 ctx.eventAttr('q-e:click', q_component_q_e_click_segment_7_2xwyev96xdgoe.w([row])),
                 '>'

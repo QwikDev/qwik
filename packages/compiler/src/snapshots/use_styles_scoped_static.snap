@@ -13,10 +13,10 @@ export function App() {
 ============================= src/use-styles-scoped.tsx ==
 
 import styles from './app.css?inline';
-import { useStylesScoped, createSsrElementRecord } from '@qwik.dev/core';
+import { useStylesScoped, createSsrOpenTag } from '@qwik.dev/core';
 export function App(props, ctx) {
   useStylesScoped(styles, 'xcbld4-0');
-  return [createSsrElementRecord('div', '<div class="⚡️xcbld4-0 container"', '>'), 'Hello</div>'];
+  return [createSsrOpenTag('<div class="⚡️xcbld4-0 container"', '>'), 'Hello</div>'];
 }
 == SSR DIAGNOSTICS ==
 

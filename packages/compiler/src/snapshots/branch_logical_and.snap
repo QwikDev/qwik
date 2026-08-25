@@ -18,7 +18,7 @@ import {
   createSsrNodeId,
   renderSsrProps,
   createSsrElementTarget,
-  createSsrElementRecord,
+  createSsrOpenTag,
   createSsrRangeTextTarget,
   escapeHTML,
   renderSsrTextNode,
@@ -26,7 +26,7 @@ import {
   invoke,
   maybeThen,
   renderSsrBranch,
-  createSsrRecord,
+  createSsrMarkup,
   _noopQrl,
 } from '@qwik.dev/core';
 const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
@@ -60,14 +60,7 @@ const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
   return maybeThen(props_0, (props_0) => {
     props_0.ref !== undefined && ctx.setRef(props_0.ref, id_0);
     return maybeThen(text_1(), (text_1) => [
-      createSsrElementRecord(
-        'span',
-        '<span q:id="',
-        createSsrNodeId(id_0),
-        '"',
-        ...props_0.attrs,
-        '>'
-      ),
+      createSsrOpenTag('<span q:id="', createSsrNodeId(id_0), '"', ...props_0.attrs, '>'),
       props_0.innerHTML ?? ['<!t>', escapeHTML(text_1), '<!/t>!'],
       '</span>',
     ]);
@@ -105,8 +98,8 @@ export function App(props, ctx) {
     undefined
   );
   return maybeThen(branch_0, (branch_0) => [
-    createSsrElementRecord('div', '<div', '>'),
-    createSsrRecord('<!b=', createSsrNodeId(branch_id_0), '>'),
+    createSsrOpenTag('<div', '>'),
+    createSsrMarkup('<!b=', createSsrNodeId(branch_id_0), '>'),
     branch_0,
     '<!/b></div>',
   ]);
@@ -150,7 +143,7 @@ import {
   createSsrNodeId,
   renderSsrProps,
   createSsrElementTarget,
-  createSsrElementRecord,
+  createSsrOpenTag,
   createSsrRangeTextTarget,
   escapeHTML,
   renderSsrTextNode,
@@ -185,14 +178,7 @@ export const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
   return maybeThen(props_0, (props_0) => {
     props_0.ref !== undefined && ctx.setRef(props_0.ref, id_0);
     return maybeThen(text_1(), (text_1) => [
-      createSsrElementRecord(
-        'span',
-        '<span q:id="',
-        createSsrNodeId(id_0),
-        '"',
-        ...props_0.attrs,
-        '>'
-      ),
+      createSsrOpenTag('<span q:id="', createSsrNodeId(id_0), '"', ...props_0.attrs, '>'),
       props_0.innerHTML ?? ['<!t>', escapeHTML(text_1), '<!/t>!'],
       '</span>',
     ]);

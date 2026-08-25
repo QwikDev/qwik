@@ -10,7 +10,7 @@ export function App(props: { count: number; label: string; hidden: boolean }) {
 
 import {
   createSsrNodeId,
-  createSsrElementRecord,
+  createSsrOpenTag,
   createSsrRangeTextTarget,
   escapeHTML,
   renderSsrTextExpression,
@@ -71,7 +71,7 @@ export function App(props, ctx) {
   return maybeThen(text_0, (text_0) =>
     maybeThen(text_1(), (text_1) =>
       maybeThen(text_2(), (text_2) => [
-        createSsrElementRecord('p', '<p q:id="', createSsrNodeId(id_0), '"', '>'),
+        createSsrOpenTag('<p q:id="', createSsrNodeId(id_0), '"', '>'),
         '<!t>',
         escapeHTML(text_0),
         '<!/t> <!t>',

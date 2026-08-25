@@ -18,7 +18,7 @@ import { DangerousInnerHTMLAttr, EMPTY_ARRAY, EMPTY_NODES, EMPTY_STRING } from '
 import { toNodes, type MaybeNodeOutput } from '../../utils/nodes';
 import { getFunctionOrResolve } from '../../utils/qrl';
 import {
-  createSsrElementRecord,
+  createSsrOpenTag,
   createSsrNodeId,
   type SsrEventAttrChunk,
   type SsrOutput,
@@ -214,7 +214,7 @@ export function renderSsrDynamicTag(
     ctx.setRef(ref, nodeId);
   }
   open.push(...attrs, '>');
-  const element = createSsrElementRecord(tag, ...open);
+  const element = createSsrOpenTag(...open);
   if (VOID_TAGS.has(tag)) {
     return element;
   }

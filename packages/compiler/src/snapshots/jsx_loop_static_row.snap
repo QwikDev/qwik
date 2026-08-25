@@ -12,9 +12,9 @@ export function App() {
 
 import {
   useSignal,
-  createSsrElementRecord,
+  createSsrOpenTag,
   renderSsrCollection,
-  createSsrRecord,
+  createSsrMarkup,
   createSsrNodeId,
   maybeThen,
   _noopQrl,
@@ -49,8 +49,8 @@ export function App(props, ctx) {
     0
   );
   return maybeThen(collection_result_0, (collection_result_0) => [
-    createSsrElementRecord('ul', '<ul', '>'),
-    createSsrRecord('<!f=', createSsrNodeId(collection_id_0), '>'),
+    createSsrOpenTag('<ul', '>'),
+    createSsrMarkup('<!f=', createSsrNodeId(collection_id_0), '>'),
     collection_result_0,
     '<!/f></ul>',
   ]);

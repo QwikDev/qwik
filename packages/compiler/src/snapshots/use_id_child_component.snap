@@ -23,10 +23,10 @@ export function App(props, ctx, _id = 'qApp-') {
 }
 ============================= src/use-id-child.tsx_component_Child.js (ENTRY POINT)==
 
-import { createSsrElementRecord } from '@qwik.dev/core';
+import { createSsrOpenTag } from '@qwik.dev/core';
 
 export function Child(props, ctx, _id = 'qChild-') {
-  return [createSsrElementRecord('span', '<span', '>'), '</span>'];
+  return [createSsrOpenTag('<span', '>'), '</span>'];
 }
 /*
 {

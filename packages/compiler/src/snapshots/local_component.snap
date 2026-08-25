@@ -31,10 +31,10 @@ import {
   createSsrElementTarget,
   renderSsrAttrExpression,
   escapeHTML,
-  createSsrElementRecord,
+  createSsrOpenTag,
   maybeThen,
   _markComponent,
-  createSsrRecord,
+  createSsrMarkup,
   createComponent,
   renderSsrContent,
   renderSsrDynamicContent,
@@ -83,8 +83,7 @@ export function App(props, ctx) {
         q_component_class_segment_0_3htuygud1guoj
       );
       return maybeThen(attr_0, (attr_0) => [
-        createSsrElementRecord(
-          'b',
+        createSsrOpenTag(
           '<b q:id="',
           createSsrNodeId(id_0),
           '"',
@@ -112,8 +111,8 @@ export function App(props, ctx) {
       });
     return maybeThen(component_0, (component_0) =>
       maybeThen(content_1(), (content_1) => [
-        createSsrElementRecord('li', '<li', '>'),
-        createSsrRecord(
+        createSsrOpenTag('<li', '>'),
+        createSsrMarkup(
           '<a',
           ctx.eventAttr(
             'q-e:click',
@@ -122,7 +121,7 @@ export function App(props, ctx) {
           '>'
         ),
         component_0,
-        createSsrRecord('<!d=', createSsrNodeId(content_id_1), '>'),
+        createSsrMarkup('<!d=', createSsrNodeId(content_id_1), '>'),
         renderSsrDynamicContent(content_1),
         '<!/d></a></li>',
       ])
@@ -132,7 +131,7 @@ export function App(props, ctx) {
   _markComponent(Filter, q_local_component_112_432_9mplpu2ebao3.w([todos]));
   const component_0 = createComponent({ name: 'All' }, (props) => Filter(props, ctx));
   return maybeThen(component_0, (component_0) => [
-    createSsrElementRecord('ul', '<ul', '>'),
+    createSsrOpenTag('<ul', '>'),
     component_0,
     '</ul>',
   ]);
@@ -209,7 +208,7 @@ import {
   createSsrElementTarget,
   renderSsrAttrExpression,
   escapeHTML,
-  createSsrElementRecord,
+  createSsrOpenTag,
   maybeThen,
 } from '@qwik.dev/core';
 import { component_class_segment_0_3htuygud1guoj } from './component.tsx_component_class_segment_0_3htuygud1guoj';
@@ -233,8 +232,7 @@ export const local_component_178_269_1v0zojj4cidpx = (props, ctx) => {
     q_component_class_segment_0_3htuygud1guoj
   );
   return maybeThen(attr_0, (attr_0) => [
-    createSsrElementRecord(
-      'b',
+    createSsrOpenTag(
       '<b q:id="',
       createSsrNodeId(id_0),
       '"',
@@ -307,10 +305,10 @@ import {
   createSsrElementTarget,
   renderSsrAttrExpression,
   escapeHTML,
-  createSsrElementRecord,
+  createSsrOpenTag,
   maybeThen,
   _markComponent,
-  createSsrRecord,
+  createSsrMarkup,
   createComponent,
   renderSsrContent,
   renderSsrDynamicContent,
@@ -348,8 +346,7 @@ export const local_component_112_432_9mplpu2ebao3 = (props, ctx) => {
       q_component_class_segment_0_3htuygud1guoj
     );
     return maybeThen(attr_0, (attr_0) => [
-      createSsrElementRecord(
-        'b',
+      createSsrOpenTag(
         '<b q:id="',
         createSsrNodeId(id_0),
         '"',
@@ -377,14 +374,14 @@ export const local_component_112_432_9mplpu2ebao3 = (props, ctx) => {
     });
   return maybeThen(component_0, (component_0) =>
     maybeThen(content_1(), (content_1) => [
-      createSsrElementRecord('li', '<li', '>'),
-      createSsrRecord(
+      createSsrOpenTag('<li', '>'),
+      createSsrMarkup(
         '<a',
         ctx.eventAttr('q-e:click', q_component_q_e_click_segment_1_2xwyfnber1kpg.w([todos, lower])),
         '>'
       ),
       component_0,
-      createSsrRecord('<!d=', createSsrNodeId(content_id_1), '>'),
+      createSsrMarkup('<!d=', createSsrNodeId(content_id_1), '>'),
       renderSsrDynamicContent(content_1),
       '<!/d></a></li>',
     ])

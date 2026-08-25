@@ -1,5 +1,5 @@
 import {
-  createSsrRecord,
+  createSsrMarkup,
   type SerializedStateRange,
   type SsrAttributePatch,
   type SsrOutput,
@@ -221,7 +221,7 @@ export class SsrScriptEmitter {
     if (eventAttrParts.every((part) => typeof part === 'string')) {
       return `${start}${eventAttrParts.join('')}>${body}</script>`;
     }
-    return [createSsrRecord(start, ...eventAttrParts, '>'), `${body}</script>`];
+    return [createSsrMarkup(start, ...eventAttrParts, '>'), `${body}</script>`];
   }
 
   private shouldSkipQwikLoader(): boolean {

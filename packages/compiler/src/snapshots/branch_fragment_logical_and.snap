@@ -25,9 +25,9 @@ import {
   useSignal,
   _captures,
   createComponent,
-  createSsrElementRecord,
+  createSsrOpenTag,
   renderSsrBranch,
-  createSsrRecord,
+  createSsrMarkup,
   createSsrNodeId,
   maybeThen,
   _noopQrl,
@@ -69,14 +69,13 @@ export function App(props, ctx) {
   );
   return maybeThen(branch_0, (branch_0) => [
     'Some text:  ',
-    createSsrElementRecord(
-      'button',
+    createSsrOpenTag(
       '<button',
       ctx.eventAttr('q-e:click', q_component_q_e_click_segment_0_2xwyg1cinvmpz.w([groupSig])),
       '>'
     ),
     'click</button>',
-    createSsrRecord('<!b=', createSsrNodeId(branch_id_0), '>'),
+    createSsrMarkup('<!b=', createSsrNodeId(branch_id_0), '>'),
     branch_0,
     '<!/b>',
   ]);

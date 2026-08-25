@@ -13,7 +13,7 @@ export function App() {
 
 ============================= src/component.tsx ==
 
-import { createSsrElementRecord, _noopQrl } from '@qwik.dev/core';
+import { createSsrOpenTag, _noopQrl } from '@qwik.dev/core';
 
 const q_component_q_e_click_segment_0_2xwyg1cinvmpz = /*#__PURE__*/ _noopQrl(
   'component_q_e_click_segment_0_2xwyg1cinvmpz'
@@ -25,8 +25,7 @@ export { buildData };
 export function App(props, ctx) {
   const rows = { value: [] };
   return [
-    createSsrElementRecord(
-      'button',
+    createSsrOpenTag(
       '<button',
       ctx.eventAttr('q-e:click', q_component_q_e_click_segment_0_2xwyg1cinvmpz.w([rows])),
       '>'

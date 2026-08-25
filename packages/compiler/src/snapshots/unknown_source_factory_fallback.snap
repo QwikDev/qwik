@@ -18,7 +18,7 @@ import {
   createSsrElementTarget,
   renderSsrAttrExpression,
   escapeHTML,
-  createSsrElementRecord,
+  createSsrOpenTag,
   createSsrElementTextTarget,
   renderSsrTextExpression,
   getActiveInvokeContextOrNull,
@@ -66,8 +66,7 @@ export function App(props, ctx) {
     });
   return maybeThen(attr_0, (attr_0) =>
     maybeThen(text_1(), (text_1) => [
-      createSsrElementRecord(
-        'div',
+      createSsrOpenTag(
         '<div q:id="',
         createSsrNodeId(id_0),
         '"',

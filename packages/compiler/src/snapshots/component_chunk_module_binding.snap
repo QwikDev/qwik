@@ -20,7 +20,7 @@ export const App = component$(() => (
 
 ============================= src/component.tsx ==
 
-import { createSsrElementRecord, createComponent, maybeThen } from '@qwik.dev/core';
+import { createSsrOpenTag, createComponent, maybeThen } from '@qwik.dev/core';
 import { Child } from './component.tsx_component_Child';
 import { Button } from './component.tsx_component_Button';
 const buttonStyle = 'btn';
@@ -30,7 +30,7 @@ export { Button };
 export const App = (props0, ctx) => {
   const component_0 = createComponent({ isWhite: true }, (props) => Button(props, ctx));
   return maybeThen(component_0, (component_0) => [
-    createSsrElementRecord('div', '<div', '>'),
+    createSsrOpenTag('<div', '>'),
     component_0,
     '</div>',
   ]);
@@ -42,7 +42,7 @@ import {
   createSsrElementTarget,
   renderSsrAttrExpression,
   escapeHTML,
-  createSsrElementRecord,
+  createSsrOpenTag,
   maybeThen,
   _noopQrl,
 } from '@qwik.dev/core';
@@ -65,8 +65,7 @@ export function Child(props, ctx) {
     q_component_class_segment_0_3htuygud1guoj
   );
   return maybeThen(attr_0, (attr_0) => [
-    createSsrElementRecord(
-      'p',
+    createSsrOpenTag(
       '<p q:id="',
       createSsrNodeId(id_0),
       '"',

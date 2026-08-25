@@ -17,9 +17,9 @@ export function App(props: { enabled: boolean; alternate: boolean }) {
 import {
   _captures,
   renderSsrBranch,
-  createSsrRecord,
+  createSsrMarkup,
   createSsrNodeId,
-  createSsrElementRecord,
+  createSsrOpenTag,
   maybeThen,
   getActiveInvokeContextOrNull,
   invoke,
@@ -72,10 +72,10 @@ const component_branch_then_segment_4_24n7dk4a4zn6t = (ctx) => {
     q_component_branch_else_segment_7_19dvs9iawhlhy
   );
   return maybeThen(branch_0, (branch_0) => [
-    createSsrRecord('<!b=', createSsrNodeId(branch_id_0), '>'),
+    createSsrMarkup('<!b=', createSsrNodeId(branch_id_0), '>'),
     branch_0,
     '<!/b>',
-    createSsrElementRecord('i', '<i', '>'),
+    createSsrOpenTag('<i', '>'),
     'Tail</i>',
   ]);
 };
@@ -172,14 +172,14 @@ export function App(props, ctx) {
   return maybeThen(branch_0, (branch_0) =>
     maybeThen(branch_1(), (branch_1) =>
       maybeThen(branch_2(), (branch_2) => [
-        createSsrElementRecord('main', '<main', '>'),
-        createSsrRecord('<!b=', createSsrNodeId(branch_id_0), '>'),
+        createSsrOpenTag('<main', '>'),
+        createSsrMarkup('<!b=', createSsrNodeId(branch_id_0), '>'),
         branch_0,
         '<!/b>',
-        createSsrRecord('<!b=', createSsrNodeId(branch_id_1), '>'),
+        createSsrMarkup('<!b=', createSsrNodeId(branch_id_1), '>'),
         branch_1,
         '<!/b>',
-        createSsrRecord('<!b=', createSsrNodeId(branch_id_2), '>'),
+        createSsrMarkup('<!b=', createSsrNodeId(branch_id_2), '>'),
         branch_2,
         '<!/b></main>',
       ])
@@ -304,9 +304,9 @@ import {
   _noopQrl,
   _captures,
   renderSsrBranch,
-  createSsrRecord,
+  createSsrMarkup,
   createSsrNodeId,
-  createSsrElementRecord,
+  createSsrOpenTag,
   maybeThen,
 } from '@qwik.dev/core';
 import { component_branch_condition_segment_5_2fzrggonbf7cm } from './component.tsx_component_branch_condition_segment_5_2fzrggonbf7cm';
@@ -339,10 +339,10 @@ export const component_branch_then_segment_4_24n7dk4a4zn6t = (ctx) => {
     q_component_branch_else_segment_7_19dvs9iawhlhy
   );
   return maybeThen(branch_0, (branch_0) => [
-    createSsrRecord('<!b=', createSsrNodeId(branch_id_0), '>'),
+    createSsrMarkup('<!b=', createSsrNodeId(branch_id_0), '>'),
     branch_0,
     '<!/b>',
-    createSsrElementRecord('i', '<i', '>'),
+    createSsrOpenTag('<i', '>'),
     'Tail</i>',
   ]);
 };

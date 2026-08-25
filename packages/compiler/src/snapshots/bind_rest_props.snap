@@ -35,7 +35,7 @@ export function App(props, ctx) {
 
 import {
   createSsrNodeId,
-  createSsrElementRecord,
+  createSsrOpenTag,
   createSsrRangeTextTarget,
   escapeHTML,
   renderSsrTextExpression,
@@ -43,7 +43,7 @@ import {
   createSsrElementTarget,
   getActiveInvokeContextOrNull,
   invoke,
-  createSsrRecord,
+  createSsrMarkup,
   maybeThen,
   _noopQrl,
 } from '@qwik.dev/core';
@@ -99,11 +99,11 @@ export function Field(props, ctx) {
     maybeThen(props_1(), (props_1) => {
       props_1.ref !== undefined && ctx.setRef(props_1.ref, id_1);
       return [
-        createSsrElementRecord('label', '<label q:id="', createSsrNodeId(id_0), '"', '>'),
+        createSsrOpenTag('<label q:id="', createSsrNodeId(id_0), '"', '>'),
         '<!t>',
         escapeHTML(text_0),
         '<!/t>',
-        createSsrRecord('<input q:id="', createSsrNodeId(id_1), '"', ...props_1.attrs, '>'),
+        createSsrMarkup('<input q:id="', createSsrNodeId(id_1), '"', ...props_1.attrs, '>'),
         props_1.innerHTML ?? '',
         '</label>',
       ];

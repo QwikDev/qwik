@@ -22,7 +22,7 @@ export function App() {
 import {
   useSignal,
   _captures,
-  createSsrElementRecord,
+  createSsrOpenTag,
   createComponent,
   readTrackedSourceValue,
   _props,
@@ -131,7 +131,7 @@ export function App(props, ctx) {
       maybeThen(component_2(), (component_2) =>
         maybeThen(component_3(), (component_3) =>
           maybeThen(component_4(), (component_4) => [
-            createSsrElementRecord('main', '<main', '>'),
+            createSsrOpenTag('<main', '>'),
             component_0,
             component_1,
             component_2,

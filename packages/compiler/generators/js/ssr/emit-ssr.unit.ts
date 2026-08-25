@@ -31,7 +31,7 @@ export function App({ delay }) {
     expect(result.diagnostics).toEqual([]);
     expect(parseSync('suspense.js', main, { lang: 'js', sourceType: 'module' }).errors).toEqual([]);
     expect(main).toMatch(/createSsrSuspense\(ctx, suspense_id_\d+, q_[\w$]+, q_[\w$]+, delay\)/);
-    expect(main).not.toContain("createSsrRecord('<!s='");
+    expect(main).not.toContain("createSsrMarkup('<!s='");
     expect(main).not.toContain('<q-s');
     expect(main).not.toContain('Reveal');
     expect(result.modules.map((module) => module.code).join('\n')).not.toContain('<Suspense');
@@ -181,13 +181,13 @@ export function App() {
     const main = result.modules[0]?.code ?? '';
 
     expect(parseSync('context.js', main, { lang: 'js', sourceType: 'module' }).errors).toEqual([]);
-    expect(main).toContain('createSsrRecord');
+    expect(main).toContain('createSsrMarkup');
     // The scope is read into a local while the provider's invoke context is still active, because
     // the marker itself is emitted after the children resolve.
     expect(main).toContain('const context_scope_0 = ctx.contextScopeRef();');
-    expect(main).toContain("createSsrRecord('<!c=', context_scope_0, '>')");
+    expect(main).toContain("createSsrMarkup('<!c=', context_scope_0, '>')");
     expect(main).not.toContain('maybeThen');
-    expect(main).toContain('createSsrElementRecord("p", "<p", ">")');
+    expect(main).toContain('createSsrOpenTag("<p", ">")');
     expect(main).toContain('"Provided</p><!/c>"');
     expect(main).not.toContain('contextScopeId');
   });
@@ -220,8 +220,8 @@ export function App() {
     expect(main).not.toContain('renderSsrForBlock');
     expect(main).not.toContain('semantic_collectionSource_');
     expect(main).not.toContain('_wrapArray(');
-    expect(main).toMatch(/createSsrElementRecord\("button", "<button", ctx\.eventAttr\(/);
-    expect(main).toMatch(/createSsrRecord\('<!f=', createSsrNodeId\(/);
+    expect(main).toMatch(/createSsrOpenTag\("<button", ctx\.eventAttr\(/);
+    expect(main).toMatch(/createSsrMarkup\('<!f=', createSsrNodeId\(/);
     expect(main).not.toContain('[object Object]');
     expect(main).not.toMatch(/ctx\.eventAttr\([^;]+\s\+\s/);
     expect(main).not.toContain('ctx.addRoot(count)');
@@ -273,8 +273,8 @@ export function App() {
     expect(parseSync('event-only.js', main, { lang: 'js', sourceType: 'module' }).errors).toEqual(
       []
     );
-    expect(main).toMatch(/import \{[^}]*createSsrElementRecord[^}]*\} from/);
-    expect(main).toContain('createSsrElementRecord("button", "<button"');
+    expect(main).toMatch(/import \{[^}]*createSsrOpenTag[^}]*\} from/);
+    expect(main).toContain('createSsrOpenTag("<button"');
     expect(main).not.toContain('q:id');
     expect(main).not.toContain('maybeThen');
   });
@@ -341,9 +341,7 @@ export function App() {
     expect(parseSync('inner-html.js', main, { lang: 'js', sourceType: 'module' }).errors).toEqual(
       []
     );
-    expect(main).toContain(
-      'createSsrElementRecord("label", "<label class=\\"field\\" for=\\"input\\"", ">")'
-    );
+    expect(main).toContain('createSsrOpenTag("<label class=\\"field\\" for=\\"input\\"", ">")');
     expect(main).toContain('Name</label>');
     expect(main).not.toContain('.innerHTML');
   });
@@ -360,7 +358,7 @@ export function App() {
     );
     const main = result.modules[0]?.code ?? '';
 
-    expect(main).not.toContain('createSsrElementRecord(');
+    expect(main).not.toContain('createSsrOpenTag(');
     expect(main).toContain('return "<main><h1>Hello</h1><p>Qwik</p></main>";');
   });
 

@@ -10,10 +10,10 @@ export function App() {
 
 ============================= src/component.tsx ==
 
-import { useSignal, createSsrElementRecord } from '@qwik.dev/core';
+import { useSignal, createSsrOpenTag } from '@qwik.dev/core';
 export function App(props, ctx) {
   const itemKey = useSignal('dynamic');
-  return [createSsrElementRecord('main', '<main', '>'), '<button>Button</button></main>'];
+  return [createSsrOpenTag('<main', '>'), '<button>Button</button></main>'];
 }
 == SSR DIAGNOSTICS ==
 

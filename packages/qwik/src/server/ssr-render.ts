@@ -4,7 +4,7 @@ import {
   createQRL,
   createSerializationContext,
   createSsrNodeId,
-  createSsrRecord,
+  createSsrMarkup,
   createSsrRootRef,
   disposeOwner,
   disposeSubscriber,
@@ -13,6 +13,7 @@ import {
   invoke,
   isPromise,
   isSsrRecordChunk,
+  type SsrRecordChunk,
   newInvokeContext,
   Owner,
   setPlatform,
@@ -166,7 +167,7 @@ export const renderToStreamCompiled = async <Props = undefined>(
     const scheduler = new SsrScheduler(notifyDeferred);
     const rootLane = scheduler.createLane(serializationCtx);
     const wrapContent = (rangeId: number, content: SsrOutput): SsrOutput => [
-      createSsrRecord('<!d=', createSsrNodeId(rangeId), '>'),
+      createSsrMarkup('<!d=', createSsrNodeId(rangeId), '>'),
       content,
       '<!/d>',
     ];
@@ -720,7 +721,7 @@ function insertAfterElement(
   }
   for (let i = 0; i < output.length; i++) {
     const child = output[i];
-    if (isSsrRecordChunk(child) && child.element === tag) {
+    if (isSsrRecordChunk(child) && recordOpensTag(child, tag)) {
       return [...output.slice(0, i + 1), ...inserted, ...output.slice(i + 1)];
     }
     const nested = insertAfterElement(child, tag, inserted);
@@ -737,7 +738,17 @@ function hasElement(output: SsrOutput, tag: string): boolean {
   if (Array.isArray(output)) {
     return output.some((child) => hasElement(child, tag));
   }
-  return isSsrRecordChunk(output) && output.element === tag;
+  return isSsrRecordChunk(output) && recordOpensTag(output, tag);
+}
+
+/** Cold path (document assembly only): identify the record by its open-tag markup. */
+function recordOpensTag(record: SsrRecordChunk, tag: string): boolean {
+  const first = record.parts[0];
+  if (!record.openTag || typeof first !== 'string' || !first.startsWith(`<${tag}`)) {
+    return false;
+  }
+  const boundary = first.charAt(tag.length + 1);
+  return boundary === '' || boundary === ' ' || boundary === '>' || boundary === '/';
 }
 
 function injectStyles(output: SsrOutput, styles: Map<string, string>): SsrOutput {

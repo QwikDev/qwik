@@ -22,13 +22,13 @@ import {
   useSignal,
   _captures,
   createSsrNodeId,
-  createSsrElementRecord,
+  createSsrOpenTag,
   createSsrRangeTextTarget,
   escapeHTML,
   renderSsrTextNode,
   maybeThen,
   renderSsrBranch,
-  createSsrRecord,
+  createSsrMarkup,
   _noopQrl,
 } from '@qwik.dev/core';
 const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
@@ -47,7 +47,7 @@ const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
   ctx.addRoot(count);
   const text_0 = renderSsrTextNode(createSsrRangeTextTarget(id_0, 0), count);
   return maybeThen(text_0, (text_0) => [
-    createSsrElementRecord('p', '<p q:id="', createSsrNodeId(id_0), '" class="even"', '>'),
+    createSsrOpenTag('<p q:id="', createSsrNodeId(id_0), '" class="even"', '>'),
     'Even <!t>',
     escapeHTML(text_0),
     '<!/t></p>',
@@ -63,8 +63,7 @@ const component_branch_else_segment_3_19dvttmqjttk2 = (ctx) => {
   ctx.addRoot(count);
   const text_0 = renderSsrTextNode(createSsrRangeTextTarget(id_0, 0), count);
   return maybeThen(text_0, (text_0) => [
-    createSsrElementRecord(
-      'button',
+    createSsrOpenTag(
       '<button q:id="',
       createSsrNodeId(id_0),
       '"',
@@ -97,8 +96,8 @@ export function App(props, ctx) {
     q_component_branch_else_segment_3_19dvttmqjttk2.w([count])
   );
   return maybeThen(branch_0, (branch_0) => [
-    createSsrElementRecord('section', '<section', '>'),
-    createSsrRecord('<!b=', createSsrNodeId(branch_id_0), '>'),
+    createSsrOpenTag('<section', '>'),
+    createSsrMarkup('<!b=', createSsrNodeId(branch_id_0), '>'),
     branch_0,
     '<!/b></section>',
   ]);
@@ -139,7 +138,7 @@ export const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
 import {
   _captures,
   createSsrNodeId,
-  createSsrElementRecord,
+  createSsrOpenTag,
   createSsrRangeTextTarget,
   escapeHTML,
   renderSsrTextNode,
@@ -152,7 +151,7 @@ export const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
   ctx.addRoot(count);
   const text_0 = renderSsrTextNode(createSsrRangeTextTarget(id_0, 0), count);
   return maybeThen(text_0, (text_0) => [
-    createSsrElementRecord('p', '<p q:id="', createSsrNodeId(id_0), '" class="even"', '>'),
+    createSsrOpenTag('<p q:id="', createSsrNodeId(id_0), '" class="even"', '>'),
     'Even <!t>',
     escapeHTML(text_0),
     '<!/t></p>',
@@ -187,7 +186,7 @@ import {
   _noopQrl,
   _captures,
   createSsrNodeId,
-  createSsrElementRecord,
+  createSsrOpenTag,
   createSsrRangeTextTarget,
   escapeHTML,
   renderSsrTextNode,
@@ -203,8 +202,7 @@ export const component_branch_else_segment_3_19dvttmqjttk2 = (ctx) => {
   ctx.addRoot(count);
   const text_0 = renderSsrTextNode(createSsrRangeTextTarget(id_0, 0), count);
   return maybeThen(text_0, (text_0) => [
-    createSsrElementRecord(
-      'button',
+    createSsrOpenTag(
       '<button q:id="',
       createSsrNodeId(id_0),
       '"',

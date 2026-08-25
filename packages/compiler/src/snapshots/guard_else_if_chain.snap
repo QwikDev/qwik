@@ -17,7 +17,7 @@ export function App(props: { kind: string }) {
 import {
   _captures,
   renderSsrBranch,
-  createSsrRecord,
+  createSsrMarkup,
   createSsrNodeId,
   maybeThen,
   _noopQrl,
@@ -52,7 +52,7 @@ const semantic_branchRender_85_180_qryptjfq5bb6 = (ctx) => {
     true
   );
   return maybeThen(branch_0, (branch_0) => [
-    createSsrRecord('<!b=', createSsrNodeId(branch_id_0), '>'),
+    createSsrMarkup('<!b=', createSsrNodeId(branch_id_0), '>'),
     branch_0,
     '<!/b>',
   ]);
@@ -97,7 +97,7 @@ export function App(props, ctx) {
     true
   );
   return maybeThen(branch_0, (branch_0) => [
-    createSsrRecord('<!b=', createSsrNodeId(branch_id_0), '>'),
+    createSsrMarkup('<!b=', createSsrNodeId(branch_id_0), '>'),
     branch_0,
     '<!/b>',
   ]);
@@ -164,7 +164,7 @@ import {
   _noopQrl,
   _captures,
   renderSsrBranch,
-  createSsrRecord,
+  createSsrMarkup,
   createSsrNodeId,
   maybeThen,
 } from '@qwik.dev/core';
@@ -198,7 +198,7 @@ export const semantic_branchRender_85_180_qryptjfq5bb6 = (ctx) => {
     true
   );
   return maybeThen(branch_0, (branch_0) => [
-    createSsrRecord('<!b=', createSsrNodeId(branch_id_0), '>'),
+    createSsrMarkup('<!b=', createSsrNodeId(branch_id_0), '>'),
     branch_0,
     '<!/b>',
   ]);

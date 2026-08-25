@@ -35,7 +35,7 @@ import {
   createSsrNodeId,
   renderSsrEvent,
   createSsrElementTarget,
-  createSsrElementRecord,
+  createSsrOpenTag,
   _noopQrl,
 } from '@qwik.dev/core';
 
@@ -62,14 +62,7 @@ export function Button(props, ctx) {
     []
   );
   return [
-    createSsrElementRecord(
-      'button',
-      '<button q:id="',
-      createSsrNodeId(id_0),
-      '"',
-      event_0 ?? '',
-      '>'
-    ),
+    createSsrOpenTag('<button q:id="', createSsrNodeId(id_0), '"', event_0 ?? '', '>'),
     'Click</button>',
   ];
 }

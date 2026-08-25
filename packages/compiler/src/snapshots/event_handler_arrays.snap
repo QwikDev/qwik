@@ -11,7 +11,7 @@ export function App() {
 
 ============================= src/component.tsx ==
 
-import { useSignal, createSsrElementRecord, _noopQrl } from '@qwik.dev/core';
+import { useSignal, createSsrOpenTag, _noopQrl } from '@qwik.dev/core';
 const q_component_q_e_click_segment_0_2xwyg1cinvmpz = /*#__PURE__*/ _noopQrl(
   'component_q_e_click_segment_0_2xwyg1cinvmpz'
 );
@@ -21,8 +21,7 @@ const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ _noopQrl(
 export function App(props, ctx) {
   const count = useSignal(0);
   return [
-    createSsrElementRecord(
-      'button',
+    createSsrOpenTag(
       '<button',
       ctx.eventAttr('q-e:click', [
         q_component_q_e_click_segment_0_2xwyg1cinvmpz,

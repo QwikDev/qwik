@@ -31,7 +31,7 @@ export function App() {
 import {
   createComponent,
   maybeThen,
-  createSsrElementRecord,
+  createSsrOpenTag,
   createSsrSuspense,
   createRevealGroup,
   getActiveInvokeContextOrNull,
@@ -106,7 +106,7 @@ export function App(props, ctx) {
     });
   return maybeThen(suspense_0, (suspense_0) =>
     maybeThen(suspense_1(), (suspense_1) => [
-      createSsrElementRecord('section', '<section', '>'),
+      createSsrOpenTag('<section', '>'),
       suspense_0,
       suspense_1,
       '</section>',
@@ -115,11 +115,11 @@ export function App(props, ctx) {
 }
 ============================= src/component.tsx_component_First.js (ENTRY POINT)==
 
-import { createComponent, maybeThen, createSsrElementRecord } from '@qwik.dev/core';
+import { createComponent, maybeThen, createSsrOpenTag } from '@qwik.dev/core';
 
 export async function First(props, ctx) {
   await Promise.resolve();
-  return [createSsrElementRecord('p', '<p', '>'), 'first</p>'];
+  return [createSsrOpenTag('<p', '>'), 'first</p>'];
 }
 /*
 {
@@ -143,11 +143,11 @@ export async function First(props, ctx) {
 */
 ============================= src/component.tsx_component_Second.js (ENTRY POINT)==
 
-import { createComponent, maybeThen, createSsrElementRecord } from '@qwik.dev/core';
+import { createComponent, maybeThen, createSsrOpenTag } from '@qwik.dev/core';
 
 export async function Second(props, ctx) {
   await Promise.resolve();
-  return [createSsrElementRecord('p', '<p', '>'), 'second</p>'];
+  return [createSsrOpenTag('<p', '>'), 'second</p>'];
 }
 /*
 {

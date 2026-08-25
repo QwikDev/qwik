@@ -27,12 +27,12 @@ import {
   readTrackedSourceValue,
   _props,
   createSsrNodeId,
-  createSsrElementRecord,
+  createSsrOpenTag,
   createSsrRangeTextTarget,
   escapeHTML,
   renderSsrTextExpression,
   renderSsrBranch,
-  createSsrRecord,
+  createSsrMarkup,
   _noopQrl,
 } from '@qwik.dev/core';
 const component_text_segment_0_1fh10fbkzokfc = (props) => {
@@ -99,7 +99,7 @@ function Counter(props, ctx) {
     q_component_text_segment_0_1fh10fbkzokfc
   );
   return maybeThen(text_0, (text_0) => [
-    createSsrElementRecord('p', '<p q:id="', createSsrNodeId(id_0), '"', '>'),
+    createSsrOpenTag('<p q:id="', createSsrNodeId(id_0), '"', '>'),
     'Count: <!t>',
     escapeHTML(text_0),
     '<!/t></p>',
@@ -116,7 +116,7 @@ function Hello(props, ctx) {
     q_component_text_segment_1_1fh10tcowimfv
   );
   return maybeThen(text_0, (text_0) => [
-    createSsrElementRecord('p', '<p q:id="', createSsrNodeId(id_0), '"', '>'),
+    createSsrOpenTag('<p q:id="', createSsrNodeId(id_0), '"', '>'),
     'Hello, <!t>',
     escapeHTML(text_0),
     '<!/t>!</p>',
@@ -136,8 +136,8 @@ export function App(props, ctx) {
     q_component_branch_else_segment_4_19dvrvh6znjhf.w([count])
   );
   return maybeThen(branch_0, (branch_0) => [
-    createSsrElementRecord('section', '<section', '>'),
-    createSsrRecord('<!b=', createSsrNodeId(branch_id_0), '>'),
+    createSsrOpenTag('<section', '>'),
+    createSsrMarkup('<!b=', createSsrNodeId(branch_id_0), '>'),
     branch_0,
     '<!/b></section>',
   ]);

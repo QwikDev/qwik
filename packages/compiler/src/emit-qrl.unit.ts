@@ -81,7 +81,7 @@ export function App() {
       expect(view?.code).toMatch(/= \(ctx, label\) =>/);
       expect(view?.code).not.toMatch(/=>\s*<i>|return\s*<i>/);
       expect(view?.code).toContain(
-        isServer ? 'createSsrElementRecord("i"' : 'createTemplate("<i> </i>")'
+        isServer ? 'createSsrOpenTag("<i' : 'createTemplate("<i> </i>")'
       );
       expect(event?.code).toMatch(/= \(event\) =>/);
     }
@@ -106,7 +106,7 @@ export function App() {
       expect(view?.code).toMatch(/= \(ctx, label\) =>/);
       expect(view?.code).not.toMatch(/=>\s*<i>|return\s*<i>/);
       expect(view?.code).toContain(
-        isServer ? 'createSsrElementRecord("i"' : 'createTemplate("<i> </i>")'
+        isServer ? 'createSsrOpenTag("<i' : 'createTemplate("<i> </i>")'
       );
     }
   });
@@ -629,7 +629,7 @@ export const B = factory$(Light);
       expect(result.diagnostics).toEqual([]);
       expectValidModules(result.modules);
       expect(main).toContain(isServer ? 'factoryQrl(' : 'factory(');
-      expect(output).toContain(isServer ? 'createSsrElementRecord("div"' : 'createTemplate("<div>');
+      expect(output).toContain(isServer ? 'createSsrOpenTag("<div"' : 'createTemplate("<div>');
       expect(output).not.toMatch(/(?:=>|return)\s*\(?\s*</);
       expect(main).not.toContain('component$(');
       expect(output).not.toContain('_markRenderQrl');
@@ -793,7 +793,7 @@ export const App = component$(() => runLater(() => <div>later</div>));
       expectValidModules(result.modules);
       expect(output).toContain('runLater(() =>');
       expect(output).toContain(
-        isServer ? 'createSsrElementRecord("div"' : 'createTemplate("<div>later</div>")'
+        isServer ? 'createSsrOpenTag("<div"' : 'createTemplate("<div>later</div>")'
       );
       expect(output).not.toMatch(/=>\s*<div/);
     }

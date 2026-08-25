@@ -2,7 +2,7 @@ import { isDev } from '@qwik.dev/core/build';
 import type { UseOnEvent, UseOnMap } from '../runtime/use-on';
 import { EventNameHtmlScope, getEventDataFromHtmlAttribute } from '../shared/utils/event-names';
 import {
-  createSsrElementRecord,
+  createSsrOpenTag,
   isSsrEventAttrChunk,
   isSsrRecordChunk,
   type SsrEventAttrChunk,
@@ -42,7 +42,7 @@ export function applyUseOnToSsrOutput(
     return output;
   }
   const placeholder: SsrOutput = [
-    { ...createSsrElementRecord('script', ...parts), headlessCarrier: true },
+    { ...createSsrOpenTag(...parts), headlessCarrier: true },
     '</script>',
   ];
   return Array.isArray(output) ? [...output, placeholder] : [output, placeholder];
@@ -64,7 +64,7 @@ function applyToFirstElement(
     }
     return { output, found: false };
   }
-  if (!isSsrRecordChunk(output) || output.element === undefined) {
+  if (!isSsrRecordChunk(output) || !output.openTag) {
     return { output, found: false };
   }
   const parts = output.parts.slice();

@@ -12,12 +12,12 @@ export function App() {
 
 import {
   useSignal,
-  createSsrElementRecord,
+  createSsrOpenTag,
   createSsrNodeId,
   createSsrElementTarget,
   renderSsrAttr,
   escapeHTML,
-  createSsrRecord,
+  createSsrMarkup,
   maybeThen,
 } from '@qwik.dev/core';
 export function App(props, ctx) {
@@ -26,8 +26,8 @@ export function App(props, ctx) {
   ctx.addRoot(classes);
   const attr_0 = renderSsrAttr(createSsrElementTarget(id_0), 'class', classes);
   return maybeThen(attr_0, (attr_0) => [
-    createSsrElementRecord('main', '<main class="shell"', '>'),
-    createSsrRecord(
+    createSsrOpenTag('<main class="shell"', '>'),
+    createSsrMarkup(
       '<button q:id="',
       createSsrNodeId(id_0),
       '"',

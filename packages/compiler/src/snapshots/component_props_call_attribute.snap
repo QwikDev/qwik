@@ -13,7 +13,7 @@ import {
   createSsrElementTarget,
   renderSsrAttrExpression,
   escapeHTML,
-  createSsrElementRecord,
+  createSsrOpenTag,
   maybeThen,
   _noopQrl,
 } from '@qwik.dev/core';
@@ -35,8 +35,7 @@ export function App(props, ctx) {
     q_component_title_segment_0_2f0r0xivypjmx
   );
   return maybeThen(attr_0, (attr_0) => [
-    createSsrElementRecord(
-      'button',
+    createSsrOpenTag(
       '<button q:id="',
       createSsrNodeId(id_0),
       '"',

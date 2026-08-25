@@ -13,10 +13,10 @@ export function App() {
 ============================= src/use-styles.tsx ==
 
 import styles from './app.css?inline';
-import { useStyles, createSsrElementRecord } from '@qwik.dev/core';
+import { useStyles, createSsrOpenTag } from '@qwik.dev/core';
 export function App(props, ctx) {
   useStyles(styles, 'hfj8g1-0');
-  return [createSsrElementRecord('div', '<div class="container"', '>'), 'Hello</div>'];
+  return [createSsrOpenTag('<div class="container"', '>'), 'Hello</div>'];
 }
 == SSR DIAGNOSTICS ==
 

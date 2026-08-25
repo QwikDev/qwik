@@ -22,12 +22,12 @@ export function Footer(props: { todos: { filter: string } }) {
 ============================= src/component.tsx ==
 
 import {
-  createSsrElementRecord,
+  createSsrOpenTag,
   createSsrNodeId,
   createSsrElementTarget,
   renderSsrAttrExpression,
   escapeHTML,
-  createSsrRecord,
+  createSsrMarkup,
   createSsrElementTextTarget,
   renderSsrTextExpression,
   getActiveInvokeContextOrNull,
@@ -80,8 +80,8 @@ export function Footer(props, ctx) {
       });
     return maybeThen(attr_0, (attr_0) =>
       maybeThen(text_1(), (text_1) => [
-        createSsrElementRecord('li', '<li', '>'),
-        createSsrRecord(
+        createSsrOpenTag('<li', '>'),
+        createSsrMarkup(
           '<a q:id="',
           createSsrNodeId(id_0),
           '"',
@@ -103,7 +103,7 @@ export function Footer(props, ctx) {
     });
   return maybeThen(component_0, (component_0) =>
     maybeThen(component_1(), (component_1) => [
-      createSsrElementRecord('ul', '<ul', '>'),
+      createSsrOpenTag('<ul', '>'),
       component_0,
       component_1,
       '</ul>',
@@ -172,12 +172,12 @@ export const component_text_segment_1_1fh10tcowimfv = (filter) => {
 import {
   _noopQrl,
   _captures,
-  createSsrElementRecord,
+  createSsrOpenTag,
   createSsrNodeId,
   createSsrElementTarget,
   renderSsrAttrExpression,
   escapeHTML,
-  createSsrRecord,
+  createSsrMarkup,
   createSsrElementTextTarget,
   renderSsrTextExpression,
   getActiveInvokeContextOrNull,
@@ -220,8 +220,8 @@ export const local_component_33_204_slxzo3femvko = (props0, ctx) => {
     });
   return maybeThen(attr_0, (attr_0) =>
     maybeThen(text_1(), (text_1) => [
-      createSsrElementRecord('li', '<li', '>'),
-      createSsrRecord(
+      createSsrOpenTag('<li', '>'),
+      createSsrMarkup(
         '<a q:id="',
         createSsrNodeId(id_0),
         '"',

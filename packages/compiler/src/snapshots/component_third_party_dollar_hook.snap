@@ -15,7 +15,7 @@ import {
   getActiveInvokeContextOrNull,
   getActiveInvokeContext,
   escapeHTML,
-  createSsrElementRecord,
+  createSsrOpenTag,
   maybeThen,
   invoke,
   _noopQrl,
@@ -35,8 +35,7 @@ export function App(props, ctx) {
     invoke(invokeCtx, () => {
       const style_scope_0 = getActiveInvokeContext().styleScopes?.join(' ');
       return [
-        createSsrElementRecord(
-          'main',
+        createSsrOpenTag(
           '<main',
           style_scope_0 ? ' class="' + escapeHTML(style_scope_0) + '"' : '',
           '>'

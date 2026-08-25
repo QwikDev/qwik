@@ -149,7 +149,7 @@ export function emitJsProductionRender(
       generator.rootRangeStatement = `const ${rootRange} = ${names.ctx}.nextId();`;
       generator.blockMarkers = [
         {
-          open: `${QwikWord.CreateSsrRecord}('<!d=', ${QwikWord.CreateSsrNodeId}(${rootRange}), '>')`,
+          open: `${QwikWord.CreateSsrMarkup}('<!d=', ${QwikWord.CreateSsrNodeId}(${rootRange}), '>')`,
           close: '<!/d>',
         },
       ];
@@ -659,11 +659,11 @@ class JsComponentGenerator {
     if (providesContext) {
       contextScope = `context_scope_${this.nextTemp++}`;
       this.statements.push(`const ${contextScope} = ${this.names.ctx}.contextScopeRef();`);
-      this.imports.add(QwikWord.CreateSsrRecord);
+      this.imports.add(QwikWord.CreateSsrMarkup);
     }
     const parts = this.ops(ssr.ops);
     if (contextScope !== null) {
-      parts.unshift(`${QwikWord.CreateSsrRecord}('<!c=', ${contextScope}, '>')`);
+      parts.unshift(`${QwikWord.CreateSsrMarkup}('<!c=', ${contextScope}, '>')`);
       const last = parts[parts.length - 1];
       if (last !== undefined && isStringLiteral(last)) {
         parts[parts.length - 1] = JSON.stringify((JSON.parse(last) as string) + '<!/c>');
@@ -687,7 +687,7 @@ class JsComponentGenerator {
     }
     // chunk markers bracket the parts, innermost first; closers merge into trailing statics
     for (const marker of this.blockMarkers) {
-      this.imports.add(QwikWord.CreateSsrRecord);
+      this.imports.add(QwikWord.CreateSsrMarkup);
       this.imports.add(QwikWord.CreateSsrNodeId);
       parts.unshift(marker.open);
       const last = parts[parts.length - 1];
@@ -813,12 +813,12 @@ class JsComponentGenerator {
     if (providesContext) {
       contextScope = `context_scope_${this.nextTemp++}`;
       this.statements.push(`const ${contextScope} = ${this.names.ctx}.contextScopeRef();`);
-      this.imports.add(QwikWord.CreateSsrRecord);
+      this.imports.add(QwikWord.CreateSsrMarkup);
     }
     const parts = this.ops(ssr.ops);
     if (contextScope !== null) {
       // provider output wraps in a context scope range
-      parts.unshift(`${QwikWord.CreateSsrRecord}('<!c=', ${contextScope}, '>')`);
+      parts.unshift(`${QwikWord.CreateSsrMarkup}('<!c=', ${contextScope}, '>')`);
       const last = parts[parts.length - 1];
       if (last !== undefined && isStringLiteral(last)) {
         parts[parts.length - 1] = JSON.stringify((JSON.parse(last) as string) + '<!/c>');
@@ -1325,7 +1325,7 @@ class JsComponentGenerator {
         const idVariable = `branch_id_${this.nextTemp}`;
         const step = `branch_${this.nextTemp++}`;
         this.imports.add(QwikWord.RenderSsrBranch);
-        this.imports.add(QwikWord.CreateSsrRecord);
+        this.imports.add(QwikWord.CreateSsrMarkup);
         this.imports.add(QwikWord.CreateSsrNodeId);
         const deferred = this.asyncSteps.length > 0;
         this.statements.push(
@@ -1338,7 +1338,7 @@ class JsComponentGenerator {
           deferred ? `${idVariable} ??= ${this.names.ctx}.nextId(); ` : undefined
         );
         parts.push(
-          `${QwikWord.CreateSsrRecord}('<!b=', ${QwikWord.CreateSsrNodeId}(${idVariable}), '>')`
+          `${QwikWord.CreateSsrMarkup}('<!b=', ${QwikWord.CreateSsrNodeId}(${idVariable}), '>')`
         );
         parts.push(step);
         pushStatic('<!/b>');
@@ -1378,7 +1378,7 @@ class JsComponentGenerator {
         const keyMeta = operation.key === null ? null : this.segment(operation.key);
         const rowMeta = this.segment(row.segment.segment);
         this.imports.add(QwikWord.RenderSsrCollection);
-        this.imports.add(QwikWord.CreateSsrRecord);
+        this.imports.add(QwikWord.CreateSsrMarkup);
         this.imports.add(QwikWord.CreateSsrNodeId);
         // deferred position: the whole render runs in a chained thunk with a lazy id claim
         if (this.asyncSteps.length > 0 && operation.source.kind === 'derived') {
@@ -1415,7 +1415,7 @@ class JsComponentGenerator {
           );
           this.asyncSteps.push({ name: step, expr: `${step}()` });
           parts.push(
-            `${QwikWord.CreateSsrRecord}('<!f=', ${QwikWord.CreateSsrNodeId}(${idVariable}), '>')`
+            `${QwikWord.CreateSsrMarkup}('<!f=', ${QwikWord.CreateSsrNodeId}(${idVariable}), '>')`
           );
           parts.push(step);
           pushStatic('<!/f>');
@@ -1456,7 +1456,7 @@ class JsComponentGenerator {
             `${idVariable} ??= ${this.names.ctx}.nextId(); `
           );
           parts.push(
-            `${QwikWord.CreateSsrRecord}('<!f=', ${QwikWord.CreateSsrNodeId}(${idVariable}), '>')`
+            `${QwikWord.CreateSsrMarkup}('<!f=', ${QwikWord.CreateSsrNodeId}(${idVariable}), '>')`
           );
           parts.push(step);
           pushStatic('<!/f>');
@@ -1497,7 +1497,7 @@ class JsComponentGenerator {
         );
         this.asyncSteps.push({ name: step, expr: step });
         parts.push(
-          `${QwikWord.CreateSsrRecord}('<!f=', ${QwikWord.CreateSsrNodeId}(${idVariable}), '>')`
+          `${QwikWord.CreateSsrMarkup}('<!f=', ${QwikWord.CreateSsrNodeId}(${idVariable}), '>')`
         );
         parts.push(step);
         pushStatic('<!/f>');
@@ -1624,7 +1624,7 @@ class JsComponentGenerator {
         const idVariable = `slot_id_${this.nextTemp}`;
         const step = `slot_${this.nextTemp++}`;
         this.imports.add(QwikWord.RenderSsrContent);
-        this.imports.add(QwikWord.CreateSsrRecord);
+        this.imports.add(QwikWord.CreateSsrMarkup);
         this.imports.add(QwikWord.CreateSsrNodeId);
         const deferred = this.asyncSteps.length > 0;
         this.statements.push(
@@ -1638,7 +1638,7 @@ class JsComponentGenerator {
           deferred ? `${idVariable} ??= ${this.names.ctx}.nextId(); ` : undefined
         );
         parts.push(
-          `${QwikWord.CreateSsrRecord}('<!d=', ${QwikWord.CreateSsrNodeId}(${idVariable}), '>')`
+          `${QwikWord.CreateSsrMarkup}('<!d=', ${QwikWord.CreateSsrNodeId}(${idVariable}), '>')`
         );
         parts.push(step);
         pushStatic('<!/d>');
@@ -2064,7 +2064,7 @@ class JsComponentGenerator {
     const idVariable = `content_id_${this.nextTemp}`;
     const step = `content_${this.nextTemp++}`;
     this.imports.add(QwikWord.RenderSsrContent);
-    this.imports.add(QwikWord.CreateSsrRecord);
+    this.imports.add(QwikWord.CreateSsrMarkup);
     this.imports.add(QwikWord.CreateSsrNodeId);
     this.imports.add(QwikWord.RenderSsrDynamicContent);
     const deferred = this.asyncSteps.length > 0;
@@ -2081,7 +2081,7 @@ class JsComponentGenerator {
       deferred ? `${idVariable} ??= ${this.names.ctx}.nextId(); ` : undefined
     );
     parts.push(
-      `${QwikWord.CreateSsrRecord}('<!d=', ${QwikWord.CreateSsrNodeId}(${idVariable}), '>')`
+      `${QwikWord.CreateSsrMarkup}('<!d=', ${QwikWord.CreateSsrNodeId}(${idVariable}), '>')`
     );
     parts.push(`${QwikWord.RenderSsrDynamicContent}(${step})`);
     pushStatic('<!/d>');
@@ -2222,16 +2222,14 @@ class JsComponentGenerator {
       // fully static element folds into the surrounding run
       pushStatic(JSON.parse(open[0]) as string);
     } else if (isRootElement || anchorsPendingAttrs) {
-      this.imports.add(QwikWord.CreateSsrElementRecord);
-      parts.push(
-        `${QwikWord.CreateSsrElementRecord}(${JSON.stringify(operation.tag)}, ${open.join(', ')})`
-      );
+      this.imports.add(QwikWord.CreateSsrOpenTag);
+      parts.push(`${QwikWord.CreateSsrOpenTag}(${open.join(', ')})`);
     } else if (open.length === 1 && isStringLiteral(open[0])) {
       // non-root static open tags fold like any literal run
       pushStatic(JSON.parse(open[0]) as string);
     } else {
-      this.imports.add(QwikWord.CreateSsrRecord);
-      parts.push(`${QwikWord.CreateSsrRecord}(${open.join(', ')})`);
+      this.imports.add(QwikWord.CreateSsrMarkup);
+      parts.push(`${QwikWord.CreateSsrMarkup}(${open.join(', ')})`);
     }
     if (innerHtmlExpr !== null) {
       // spread innerHTML falls back to the static children when absent

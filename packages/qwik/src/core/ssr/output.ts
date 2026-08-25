@@ -13,8 +13,9 @@ export type SsrRecordPart = string | SsrReferenceChunk | SsrEventAttrChunk;
 
 export interface SsrRecordChunk {
   readonly type: 'record';
-  readonly element?: string;
-  readonly headlessCarrier?: true;
+  /** Open tags may still receive attributes after the render returns (`useOn$`). */
+  readonly openTag: boolean;
+  readonly headlessCarrier: boolean;
   readonly parts: readonly SsrRecordPart[];
 }
 
@@ -43,15 +44,12 @@ export interface SsrDeferredRange {
   onCancelled?(): void;
 }
 
-export function createSsrRecord(...parts: readonly SsrRecordPart[]): SsrRecordChunk {
-  return { type: 'record', parts };
+export function createSsrMarkup(...parts: readonly SsrRecordPart[]): SsrRecordChunk {
+  return { type: 'record', openTag: false, headlessCarrier: false, parts };
 }
 
-export function createSsrElementRecord(
-  tag: string,
-  ...parts: readonly SsrRecordPart[]
-): SsrRecordChunk {
-  return { type: 'record', element: tag, parts };
+export function createSsrOpenTag(...parts: readonly SsrRecordPart[]): SsrRecordChunk {
+  return { type: 'record', openTag: true, headlessCarrier: false, parts };
 }
 
 export function createSsrEventAttr(

@@ -17,11 +17,11 @@ export function App() {
 
 import {
   useSignal,
-  createSsrElementRecord,
+  createSsrOpenTag,
   createSsrNodeId,
   createSsrElementTarget,
   renderSsrAttrExpression,
-  createSsrRecord,
+  createSsrMarkup,
   maybeThen,
   _noopQrl,
 } from '@qwik.dev/core';
@@ -48,11 +48,11 @@ export function App(props, ctx) {
     q_component_dangerouslySetInnerHTML_segment_0_x73niz9xuctt
   );
   return maybeThen(inner_html_0, (inner_html_0) => [
-    createSsrElementRecord('div', '<div', '>'),
-    createSsrRecord('<span q:id="', createSsrNodeId(id_0), '">'),
+    createSsrOpenTag('<div', '>'),
+    createSsrMarkup('<span q:id="', createSsrNodeId(id_0), '">'),
     inner_html_0 ?? '',
     '</span>',
-    createSsrRecord(
+    createSsrMarkup(
       '<button',
       ctx.eventAttr('q-e:click', q_component_q_e_click_segment_1_2xwyfnber1kpg.w([html])),
       '>'

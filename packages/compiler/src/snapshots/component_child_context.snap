@@ -22,8 +22,8 @@ import {
   useContext,
   useContextProvider,
   useSignal,
-  createSsrRecord,
-  createSsrElementRecord,
+  createSsrMarkup,
+  createSsrOpenTag,
   createComponent,
   maybeThen,
 } from '@qwik.dev/core';
@@ -36,8 +36,8 @@ export function Parent(props, ctx) {
   const context_scope_0 = ctx.contextScopeRef();
   const component_1 = createComponent({}, (props) => Child(props, ctx));
   return maybeThen(component_1, (component_1) => [
-    createSsrRecord('<!c=', context_scope_0, '>'),
-    createSsrElementRecord('section', '<section', '>'),
+    createSsrMarkup('<!c=', context_scope_0, '>'),
+    createSsrOpenTag('<section', '>'),
     component_1,
     '</section><!/c>',
   ]);
@@ -46,7 +46,7 @@ export function Parent(props, ctx) {
 
 import {
   createSsrNodeId,
-  createSsrElementRecord,
+  createSsrOpenTag,
   createSsrElementTextTarget,
   escapeHTML,
   renderSsrTextExpression,
@@ -74,7 +74,7 @@ export function Child(props, ctx) {
     q_component_text_segment_0_1fh10fbkzokfc
   );
   return maybeThen(text_0, (text_0) => [
-    createSsrElementRecord('p', '<p q:id="', createSsrNodeId(id_0), '"', '>'),
+    createSsrOpenTag('<p q:id="', createSsrNodeId(id_0), '"', '>'),
     escapeHTML(text_0),
     '</p>',
   ]);

@@ -16,14 +16,11 @@ export function App() {
 
 import red from './red.css?inline';
 import blue from './blue.css?inline';
-import { useStylesScoped, createSsrElementRecord } from '@qwik.dev/core';
+import { useStylesScoped, createSsrOpenTag } from '@qwik.dev/core';
 export function App(props, ctx) {
   useStylesScoped(red, 'o0qnhd-0');
   useStylesScoped(blue, 'o0qnhc-1');
-  return [
-    createSsrElementRecord('div', '<div class="⚡️o0qnhd-0 ⚡️o0qnhc-1 container"', '>'),
-    'Hello</div>',
-  ];
+  return [createSsrOpenTag('<div class="⚡️o0qnhd-0 ⚡️o0qnhc-1 container"', '>'), 'Hello</div>'];
 }
 == SSR DIAGNOSTICS ==
 

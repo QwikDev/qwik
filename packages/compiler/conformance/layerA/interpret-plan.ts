@@ -6,12 +6,12 @@ import {
   createSsrRootRef,
   createSlotScope,
   createSsrSuspense,
-  createSsrElementRecord,
+  createSsrOpenTag,
   createSsrElementTarget,
   createSsrElementTextTarget,
   createSsrNodeId,
   createSsrRangeTextTarget,
-  createSsrRecord,
+  createSsrMarkup,
   escapeHTML,
   getActiveInvokeContextOrNull,
   invoke,
@@ -803,7 +803,7 @@ export async function buildInterpretedRoot(
                 );
               }
             }
-            parts.push(createSsrElementRecord(op.tag, ...(open as never[])));
+            parts.push(createSsrOpenTag(...(open as never[])));
             if (innerHtmlContent !== null) {
               // static innerHTML replaces children with the raw string
               parts.push(innerHtmlContent);
@@ -894,7 +894,7 @@ export async function buildInterpretedRoot(
             );
           });
           return maybeThen(pendingBranch, (rendered) => {
-            parts.push(createSsrRecord('<!b=', createSsrNodeId(id), '>'));
+            parts.push(createSsrMarkup('<!b=', createSsrNodeId(id), '>'));
             parts.push(rendered);
             parts.push('<!/b>');
           });
@@ -1160,7 +1160,7 @@ export async function buildInterpretedRoot(
             );
           });
           return maybeThen(rendered, (output) => {
-            parts.push(createSsrRecord('<!d=', createSsrNodeId(id), '>'));
+            parts.push(createSsrMarkup('<!d=', createSsrNodeId(id), '>'));
             parts.push(output as never);
             parts.push('<!/d>');
           });
@@ -1189,7 +1189,7 @@ export async function buildInterpretedRoot(
             );
           });
           return maybeThen(rendered, (output) => {
-            parts.push(createSsrRecord('<!d=', createSsrNodeId(id), '>'));
+            parts.push(createSsrMarkup('<!d=', createSsrNodeId(id), '>'));
             parts.push(renderSsrDynamicContent(output as never) as never);
             parts.push('<!/d>');
           });
@@ -1279,7 +1279,7 @@ export async function buildInterpretedRoot(
               );
             });
             return maybeThen(rendered, (output) => {
-              parts.push(createSsrRecord('<!f=', createSsrNodeId(id), '>'));
+              parts.push(createSsrMarkup('<!f=', createSsrNodeId(id), '>'));
               parts.push(output);
               parts.push('<!/f>');
             });
@@ -1316,7 +1316,7 @@ export async function buildInterpretedRoot(
             );
           });
           return maybeThen(rendered, (output) => {
-            parts.push(createSsrRecord('<!f=', createSsrNodeId(id), '>'));
+            parts.push(createSsrMarkup('<!f=', createSsrNodeId(id), '>'));
             parts.push(output);
             parts.push('<!/f>');
           });
@@ -1332,14 +1332,14 @@ export async function buildInterpretedRoot(
       const fence = (parts: unknown) =>
         rootRangeId === null
           ? parts
-          : [createSsrRecord('<!d=', createSsrNodeId(rootRangeId), '>'), parts, '<!/d>'];
+          : [createSsrMarkup('<!d=', createSsrNodeId(rootRangeId), '>'), parts, '<!/d>'];
       if (!providesContext) {
         return maybeThen(interpretOps(ssr.ops), fence);
       }
       // provider components wrap their output in a context-scope range (root-ref id)
       const scopeRef = ctx.contextScopeRef();
       return maybeThen(interpretOps(ssr.ops), (parts) => [
-        createSsrRecord('<!c=', scopeRef, '>'),
+        createSsrMarkup('<!c=', scopeRef, '>'),
         fence(parts),
         '<!/c>',
       ]);

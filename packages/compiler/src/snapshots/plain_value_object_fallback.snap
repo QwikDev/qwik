@@ -9,11 +9,11 @@ export function App() {
 
 ============================= src/component.tsx ==
 
-import { renderDomPropsToString, createSsrElementRecord, escapeHTML } from '@qwik.dev/core';
+import { renderDomPropsToString, createSsrOpenTag, escapeHTML } from '@qwik.dev/core';
 export function App(props, ctx) {
   const foo = { value: 'hello' };
   return [
-    createSsrElementRecord('p', '<p', ...renderDomPropsToString({ title: foo.value }).attrs, '>'),
+    createSsrOpenTag('<p', ...renderDomPropsToString({ title: foo.value }).attrs, '>'),
     escapeHTML(String(foo.value ?? '')),
     '<span>',
     escapeHTML(String('Hi ' + foo.value ?? '')),

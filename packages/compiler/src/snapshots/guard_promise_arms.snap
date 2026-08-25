@@ -18,7 +18,7 @@ export function App(props: { releaseId: string | null }) {
 import {
   _captures,
   renderSsrContent,
-  createSsrRecord,
+  createSsrMarkup,
   createSsrNodeId,
   renderSsrDynamicContent,
   maybeThen,
@@ -48,7 +48,7 @@ const semantic_branchRender_117_184_cqga24q4x5d8 = (ctx) => {
     true
   );
   return maybeThen(content_0, (content_0) => [
-    createSsrRecord('<!d=', createSsrNodeId(content_id_0), '>'),
+    createSsrMarkup('<!d=', createSsrNodeId(content_id_0), '>'),
     renderSsrDynamicContent(content_0),
     '<!/d>',
   ]);
@@ -82,7 +82,7 @@ const semantic_branchRender_191_268_3mnm2yotw6hdh = (ctx) => {
     true
   );
   return maybeThen(content_0, (content_0) => [
-    createSsrRecord('<!d=', createSsrNodeId(content_id_0), '>'),
+    createSsrMarkup('<!d=', createSsrNodeId(content_id_0), '>'),
     renderSsrDynamicContent(content_0),
     '<!/d>',
   ]);
@@ -126,7 +126,7 @@ export function App(props, ctx) {
     true
   );
   return maybeThen(branch_0, (branch_0) => [
-    createSsrRecord('<!b=', createSsrNodeId(branch_id_0), '>'),
+    createSsrMarkup('<!b=', createSsrNodeId(branch_id_0), '>'),
     branch_0,
     '<!/b>',
   ]);
@@ -168,7 +168,7 @@ import {
   _noopQrl,
   _captures,
   renderSsrContent,
-  createSsrRecord,
+  createSsrMarkup,
   createSsrNodeId,
   renderSsrDynamicContent,
   maybeThen,
@@ -191,7 +191,7 @@ export const semantic_branchRender_117_184_cqga24q4x5d8 = (ctx) => {
     true
   );
   return maybeThen(content_0, (content_0) => [
-    createSsrRecord('<!d=', createSsrNodeId(content_id_0), '>'),
+    createSsrMarkup('<!d=', createSsrNodeId(content_id_0), '>'),
     renderSsrDynamicContent(content_0),
     '<!/d>',
   ]);
@@ -262,7 +262,7 @@ export const semantic_expression_124_183_2uytkwva3pdod = (props) => {
 import {
   _noopQrl,
   renderSsrContent,
-  createSsrRecord,
+  createSsrMarkup,
   createSsrNodeId,
   renderSsrDynamicContent,
   maybeThen,
@@ -283,7 +283,7 @@ export const semantic_branchRender_191_268_3mnm2yotw6hdh = (ctx) => {
     true
   );
   return maybeThen(content_0, (content_0) => [
-    createSsrRecord('<!d=', createSsrNodeId(content_id_0), '>'),
+    createSsrMarkup('<!d=', createSsrNodeId(content_id_0), '>'),
     renderSsrDynamicContent(content_0),
     '<!/d>',
   ]);

@@ -23,11 +23,11 @@ import {
   escapeHTML,
   inlinedQrl,
   _val,
-  createSsrElementRecord,
+  createSsrOpenTag,
   _chk,
   getActiveInvokeContextOrNull,
   invoke,
-  createSsrRecord,
+  createSsrMarkup,
   maybeThen,
   _noopQrl,
 } from '@qwik.dev/core';
@@ -53,8 +53,7 @@ export function App(props, ctx) {
     });
   return maybeThen(attr_0, (attr_0) =>
     maybeThen(attr_1(), (attr_1) => [
-      createSsrElementRecord(
-        'input',
+      createSsrOpenTag(
         '<input q:id="',
         createSsrNodeId(id_0),
         '"',
@@ -65,7 +64,7 @@ export function App(props, ctx) {
         ]),
         '>'
       ),
-      createSsrRecord(
+      createSsrMarkup(
         '<input q:id="',
         createSsrNodeId(id_1),
         '"',

@@ -18,10 +18,10 @@ import {
   createSsrElementTarget,
   renderSsrAttrExpression,
   escapeHTML,
-  createSsrElementRecord,
+  createSsrOpenTag,
   maybeThen,
   renderSsrBranch,
-  createSsrRecord,
+  createSsrMarkup,
   _noopQrl,
 } from '@qwik.dev/core';
 
@@ -59,8 +59,7 @@ const semantic_branchRender_73_164_2vd94kl1g8hgt = (ctx) => {
     q_component_href_segment_0_k87iiga3rwb6
   );
   return maybeThen(attr_0, (attr_0) => [
-    createSsrElementRecord(
-      'a',
+    createSsrOpenTag(
       '<a q:id="',
       createSsrNodeId(id_0),
       '"',
@@ -88,7 +87,7 @@ export function App(props, ctx) {
     true
   );
   return maybeThen(branch_0, (branch_0) => [
-    createSsrRecord('<!b=', createSsrNodeId(branch_id_0), '>'),
+    createSsrMarkup('<!b=', createSsrNodeId(branch_id_0), '>'),
     branch_0,
     '<!/b>',
   ]);
@@ -186,7 +185,7 @@ import {
   createSsrElementTarget,
   renderSsrAttrExpression,
   escapeHTML,
-  createSsrElementRecord,
+  createSsrOpenTag,
   maybeThen,
 } from '@qwik.dev/core';
 import { component_href_segment_0_k87iiga3rwb6 } from './component.tsx_component_href_segment_0_k87iiga3rwb6';
@@ -207,8 +206,7 @@ export const semantic_branchRender_73_164_2vd94kl1g8hgt = (ctx) => {
     q_component_href_segment_0_k87iiga3rwb6
   );
   return maybeThen(attr_0, (attr_0) => [
-    createSsrElementRecord(
-      'a',
+    createSsrOpenTag(
       '<a q:id="',
       createSsrNodeId(id_0),
       '"',

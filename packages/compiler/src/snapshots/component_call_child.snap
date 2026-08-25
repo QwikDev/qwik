@@ -12,9 +12,9 @@ export function App(props: { value: string }) {
 
 import { renderItem } from './render-item';
 import {
-  createSsrElementRecord,
+  createSsrOpenTag,
   renderSsrContent,
-  createSsrRecord,
+  createSsrMarkup,
   createSsrNodeId,
   renderSsrDynamicContent,
   maybeThen,
@@ -38,9 +38,9 @@ export function App(props, ctx) {
     q_semantic_expression_104_127_3po7a59ojefo5
   );
   return maybeThen(content_0, (content_0) => [
-    createSsrElementRecord('section', '<section', '>'),
+    createSsrOpenTag('<section', '>'),
     '<b>Before</b>',
-    createSsrRecord('<!d=', createSsrNodeId(content_id_0), '>'),
+    createSsrMarkup('<!d=', createSsrNodeId(content_id_0), '>'),
     renderSsrDynamicContent(content_0),
     '<!/d><i>After</i></section>',
   ]);

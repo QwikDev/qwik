@@ -45,7 +45,7 @@ export function Parent(props0, ctx) {
 
 import {
   createSsrNodeId,
-  createSsrElementRecord,
+  createSsrOpenTag,
   createSsrRangeTextTarget,
   escapeHTML,
   renderSsrTextExpression,
@@ -90,7 +90,7 @@ export function Child(props, ctx) {
     });
   return maybeThen(text_0, (text_0) =>
     maybeThen(text_1(), (text_1) => [
-      createSsrElementRecord('p', '<p q:id="', createSsrNodeId(id_0), '"', '>'),
+      createSsrOpenTag('<p q:id="', createSsrNodeId(id_0), '"', '>'),
       '<!t>',
       escapeHTML(text_0),
       '<!/t>: <!t>',

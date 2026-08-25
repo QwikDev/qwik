@@ -23,9 +23,9 @@ import {
   _captures,
   createComponent,
   maybeThen,
-  createSsrRecord,
+  createSsrMarkup,
   createSsrNodeId,
-  createSsrElementRecord,
+  createSsrOpenTag,
   renderSsrBranch,
   renderSsrSlot,
   getActiveInvokeContextOrNull,
@@ -70,8 +70,8 @@ export const Parent = (props0, ctx) => {
     undefined
   );
   return maybeThen(branch_0, (branch_0) => [
-    createSsrElementRecord('main', '<main', '>'),
-    createSsrRecord('<!b=', createSsrNodeId(branch_id_0), '>'),
+    createSsrOpenTag('<main', '>'),
+    createSsrMarkup('<!b=', createSsrNodeId(branch_id_0), '>'),
     branch_0,
     '<!/b></main>',
   ]);
@@ -80,7 +80,7 @@ export { Child };
 export const Model = (props0, ctx) => {
   const slot_0 = renderSsrSlot(ctx, '', undefined, getActiveInvokeContextOrNull());
   return maybeThen(slot_0, (slot_0) => [
-    createSsrElementRecord('div', '<div id="m"', '>'),
+    createSsrOpenTag('<div id="m"', '>'),
     'Own content',
     slot_0,
     '</div>',
@@ -92,7 +92,7 @@ import {
   _captures,
   createComponent,
   maybeThen,
-  createSsrRecord,
+  createSsrMarkup,
   createSsrNodeId,
   createSlotScope,
   registerProjection,
@@ -101,7 +101,7 @@ import {
 } from '@qwik.dev/core';
 
 const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx, rangeId) => {
-  return [createSsrRecord('<!s=', createSsrNodeId(rangeId), '>'), 'projected<!/s>'];
+  return [createSsrMarkup('<!s=', createSsrNodeId(rangeId), '>'), 'projected<!/s>'];
 };
 const q_component_slot_render_segment_3_3b0ta2vuvdjtz = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_3_3b0ta2vuvdjtz'
@@ -210,10 +210,10 @@ export const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
 */
 ============================= src/component.tsx_component_slot_render_segment_3_3b0ta2vuvdjtz.js (ENTRY POINT)==
 
-import { createSsrRecord, createSsrNodeId } from '@qwik.dev/core';
+import { createSsrMarkup, createSsrNodeId } from '@qwik.dev/core';
 
 export const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx, rangeId) => {
-  return [createSsrRecord('<!s=', createSsrNodeId(rangeId), '>'), 'projected<!/s>'];
+  return [createSsrMarkup('<!s=', createSsrNodeId(rangeId), '>'), 'projected<!/s>'];
 };
 /*
 {

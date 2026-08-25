@@ -15,7 +15,7 @@ export function App() {
 
 ============================= src/component.tsx ==
 
-import { createContextId, createSsrRecord, createSsrElementRecord } from '@qwik.dev/core';
+import { createContextId, createSsrMarkup, createSsrOpenTag } from '@qwik.dev/core';
 import { useContextProvider } from '@qwik.dev/core';
 export function App(props, ctx) {
   const firstContext = createContextId('first');
@@ -24,8 +24,8 @@ export function App(props, ctx) {
   useContextProvider(secondContext, 2);
   const context_scope_0 = ctx.contextScopeRef();
   return [
-    createSsrRecord('<!c=', context_scope_0, '>'),
-    createSsrElementRecord('p', '<p', '>'),
+    createSsrMarkup('<!c=', context_scope_0, '>'),
+    createSsrOpenTag('<p', '>'),
     'Provided</p><!/c>',
   ];
 }

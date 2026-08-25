@@ -4,8 +4,8 @@ import { inlinedQrl } from '../core/shared/qrl/qrl';
 import { _val } from '../core/runtime/bind-handlers';
 import {
   createSsrNodeId,
-  createSsrElementRecord,
-  createSsrRecord,
+  createSsrOpenTag,
+  createSsrMarkup,
   type SsrOutput,
   type SsrReferenceChunk,
 } from '../core/ssr/output';
@@ -58,7 +58,7 @@ describe('SSR context markers', () => {
       scope = getActiveInvokeContext().localContextScope!;
       firstRef = ctx.contextScopeRef();
       secondRef = ctx.contextScopeRef();
-      return [createSsrRecord('<!c=', firstRef, '>'), '<p>value</p>', '<!/c>'];
+      return [createSsrMarkup('<!c=', firstRef, '>'), '<p>value</p>', '<!/c>'];
     });
 
     expect(firstRef).toEqual({ type: 'root-ref', localId: 0 });
@@ -72,8 +72,8 @@ describe('SSR context markers', () => {
     const handler = createQRL('./listener.js', '_handler', () => {}, null, [captured]);
 
     const result = await renderToString((_props, ctx) => [
-      createSsrElementRecord('button', '<button', ctx.eventAttr('q-e:click', handler), '>'),
-      ['before', [createSsrRecord('<!r=', createSsrNodeId(ctx.nextId()), '>'), 'row', '<!/r>']],
+      createSsrOpenTag('<button', ctx.eventAttr('q-e:click', handler), '>'),
+      ['before', [createSsrMarkup('<!r=', createSsrNodeId(ctx.nextId()), '>'), 'row', '<!/r>']],
       '</button>',
     ]);
 
@@ -88,8 +88,7 @@ describe('SSR context markers', () => {
     const result = await renderToString((_props, ctx) => {
       const value = useSignal('server');
       ctx.addRoot(value);
-      return createSsrElementRecord(
-        'input',
+      return createSsrOpenTag(
         '<input',
         ctx.eventAttr('q-e:input', inlinedQrl(_val, '_val', [value])),
         '>'
@@ -106,7 +105,7 @@ describe('SSR context markers', () => {
     await renderToStream(
       (_props, ctx) => [
         'before',
-        createSsrElementRecord('span', '<span data-node="', createSsrNodeId(ctx.nextId()), '">'),
+        createSsrOpenTag('<span data-node="', createSsrNodeId(ctx.nextId()), '">'),
         'after</span>',
       ],
       {
@@ -123,9 +122,9 @@ describe('SSR context markers', () => {
     const result = await renderToString((_props, ctx) => {
       ctx.styleIds.set('sheet', 'p{color:red}');
       return [
-        createSsrElementRecord('head', '<head data-node="', createSsrNodeId(ctx.nextId()), '">'),
+        createSsrOpenTag('<head data-node="', createSsrNodeId(ctx.nextId()), '">'),
         '<title>x</title></head>',
-        createSsrElementRecord('body', '<body data-node="', createSsrNodeId(ctx.nextId()), '">'),
+        createSsrOpenTag('<body data-node="', createSsrNodeId(ctx.nextId()), '">'),
         '<p>x</p></body>',
       ];
     });
@@ -140,7 +139,7 @@ describe('SSR context markers', () => {
     const root: SsrRenderRoot = (_props, ctx) => {
       ctx.styleIds.set('sheet', 'p{}');
       return [
-        createSsrElementRecord('body', '<body data-node="', createSsrNodeId(ctx.nextId()), '">'),
+        createSsrOpenTag('<body data-node="', createSsrNodeId(ctx.nextId()), '">'),
         '<p>value</p></body>',
       ];
     };
@@ -261,8 +260,7 @@ describe('SSR context markers', () => {
               };
             })
         );
-        return createSsrElementRecord(
-          'input',
+        return createSsrOpenTag(
           '<input q:id="',
           createSsrNodeId(nodeId),
           `" aria-describedby="${description}">`
@@ -300,8 +298,7 @@ describe('SSR context markers', () => {
           [],
           createQRL('', 'title', () => pending, null, null)
         );
-        return createSsrElementRecord(
-          'input',
+        return createSsrOpenTag(
           '<input q:id="',
           createSsrNodeId(nodeId),
           '"',
@@ -344,16 +341,14 @@ describe('SSR context markers', () => {
           createQRL('', 'secondTitle', () => second, null, null)
         ) as string | null;
         return [
-          createSsrElementRecord(
-            'input',
+          createSsrOpenTag(
             '<input q:id="',
             createSsrNodeId(firstId),
             '"',
             firstTitle === null ? '' : ` title="${firstTitle}"`,
             '>'
           ),
-          createSsrElementRecord(
-            'input',
+          createSsrOpenTag(
             '<input q:id="',
             createSsrNodeId(secondId),
             '"',
@@ -665,8 +660,7 @@ describe('SSR context markers', () => {
                       };
                     })
                 );
-                return createSsrElementRecord(
-                  'input',
+                return createSsrOpenTag(
                   '<input q:id="',
                   createSsrNodeId(targetId),
                   `" title="${value}">`
@@ -719,8 +713,7 @@ describe('SSR context markers', () => {
                   [],
                   createQRL('', 'title', () => title, null, null)
                 );
-                return createSsrElementRecord(
-                  'input',
+                return createSsrOpenTag(
                   '<input q:id="',
                   createSsrNodeId(targetId),
                   value === null ? '">' : `" title="${value}">`
@@ -767,8 +760,7 @@ describe('SSR context markers', () => {
           createQRL('', 'title', () => title, null, null)
         );
         return [
-          createSsrElementRecord(
-            'input',
+          createSsrOpenTag(
             '<input q:id="',
             createSsrNodeId(targetId),
             value === null ? '">' : `" title="${value}">`
@@ -814,7 +806,7 @@ describe('SSR context markers', () => {
           createQRL('', 'title', () => title, null, null)
         );
         return [
-          createSsrElementRecord('input', '<input q:id="', createSsrNodeId(targetId), '">'),
+          createSsrOpenTag('<input q:id="', createSsrNodeId(targetId), '">'),
           createSsrSuspense(
             ctx,
             ctx.nextId(),
@@ -1223,8 +1215,7 @@ describe('SSR context markers', () => {
                       createQRL('', 'title', () => title, null, null)
                     );
                     return inner.then(() =>
-                      createSsrElementRecord(
-                        'input',
+                      createSsrOpenTag(
                         '<input q:id="',
                         createSsrNodeId(targetId),
                         value === null ? '">' : `" title="${value}">`
@@ -1331,8 +1322,7 @@ function renderPendingAttribute(pending: Promise<string>) {
       useTask(() => {
         descriptionId.value = pending;
       });
-      return createSsrElementRecord(
-        'input',
+      return createSsrOpenTag(
         '<input q:id="',
         createSsrNodeId(nodeId),
         `" aria-describedby="${description}">`

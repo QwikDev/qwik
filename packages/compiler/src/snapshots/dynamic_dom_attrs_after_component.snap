@@ -20,7 +20,7 @@ export function App() {
 
 import {
   useSignal,
-  createSsrElementRecord,
+  createSsrOpenTag,
   createComponent,
   createSsrNodeId,
   createSsrElementTarget,
@@ -28,7 +28,7 @@ import {
   escapeHTML,
   getActiveInvokeContextOrNull,
   invoke,
-  createSsrRecord,
+  createSsrMarkup,
   maybeThen,
   _noopQrl,
 } from '@qwik.dev/core';
@@ -60,9 +60,9 @@ export function App(props, ctx) {
     });
   return maybeThen(component_0, (component_0) =>
     maybeThen(attr_1(), (attr_1) => [
-      createSsrElementRecord('main', '<main', '>'),
+      createSsrOpenTag('<main', '>'),
       component_0,
-      createSsrRecord(
+      createSsrMarkup(
         '<p q:id="',
         createSsrNodeId(id_0),
         '"',

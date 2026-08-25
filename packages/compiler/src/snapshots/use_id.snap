@@ -11,13 +11,10 @@ export function App() {
 
 ============================= src/use-id.tsx ==
 
-import { escapeHTML, createSsrElementRecord } from '@qwik.dev/core';
+import { escapeHTML, createSsrOpenTag } from '@qwik.dev/core';
 export function App(props, ctx, _id = 'qApp-') {
   const id = _id + 'u0';
-  return [
-    createSsrElementRecord('label', '<label for="', escapeHTML(id), '"', '>'),
-    'Name</label>',
-  ];
+  return [createSsrOpenTag('<label for="', escapeHTML(id), '"', '>'), 'Name</label>'];
 }
 == SSR DIAGNOSTICS ==
 

@@ -24,7 +24,7 @@ import {
   useSignal,
   _captures,
   renderSsrBranch,
-  createSsrRecord,
+  createSsrMarkup,
   createSsrNodeId,
   maybeThen,
   createSlotScope,
@@ -72,8 +72,8 @@ const semantic_slotRender_239_303_0_1qpmr0k0kwq0p = (ctx, rangeId) => {
     true
   );
   return maybeThen(branch_0, (branch_0) => [
-    createSsrRecord('<!s=', createSsrNodeId(rangeId), '>'),
-    createSsrRecord('<!b=', createSsrNodeId(branch_id_0), '>'),
+    createSsrMarkup('<!s=', createSsrNodeId(rangeId), '>'),
+    createSsrMarkup('<!b=', createSsrNodeId(branch_id_0), '>'),
     branch_0,
     '<!/b><!/s>',
   ]);
@@ -96,8 +96,8 @@ const semantic_slotRender_239_303_1_1qpmqmiwo2o06 = (ctx, rangeId) => {
     true
   );
   return maybeThen(branch_0, (branch_0) => [
-    createSsrRecord('<!s=', createSsrNodeId(rangeId), '>'),
-    createSsrRecord('<!b=', createSsrNodeId(branch_id_0), '>'),
+    createSsrMarkup('<!s=', createSsrNodeId(rangeId), '>'),
+    createSsrMarkup('<!b=', createSsrNodeId(branch_id_0), '>'),
     branch_0,
     '<!/b><!/s>',
   ]);
@@ -134,10 +134,10 @@ export function App(props, ctx) {
 import {
   _captures,
   renderSsrBranch,
-  createSsrRecord,
+  createSsrMarkup,
   createSsrNodeId,
   maybeThen,
-  createSsrElementRecord,
+  createSsrOpenTag,
   renderSsrSlot,
   getActiveInvokeContextOrNull,
   invoke,
@@ -151,12 +151,7 @@ export function Panel(props, ctx) {
       return renderSsrSlot(ctx, 'y', undefined, getActiveInvokeContextOrNull());
     });
   return maybeThen(slot_0, (slot_0) =>
-    maybeThen(slot_1(), (slot_1) => [
-      createSsrElementRecord('div', '<div', '>'),
-      slot_0,
-      slot_1,
-      '</div>',
-    ])
+    maybeThen(slot_1(), (slot_1) => [createSsrOpenTag('<div', '>'), slot_0, slot_1, '</div>'])
   );
 }
 /*
@@ -266,7 +261,7 @@ import {
   _noopQrl,
   _captures,
   renderSsrBranch,
-  createSsrRecord,
+  createSsrMarkup,
   createSsrNodeId,
   maybeThen,
 } from '@qwik.dev/core';
@@ -290,8 +285,8 @@ export const semantic_slotRender_239_303_0_1qpmr0k0kwq0p = (ctx, rangeId) => {
     true
   );
   return maybeThen(branch_0, (branch_0) => [
-    createSsrRecord('<!s=', createSsrNodeId(rangeId), '>'),
-    createSsrRecord('<!b=', createSsrNodeId(branch_id_0), '>'),
+    createSsrMarkup('<!s=', createSsrNodeId(rangeId), '>'),
+    createSsrMarkup('<!b=', createSsrNodeId(branch_id_0), '>'),
     branch_0,
     '<!/b><!/s>',
   ]);
@@ -325,7 +320,7 @@ import {
   _noopQrl,
   _captures,
   renderSsrBranch,
-  createSsrRecord,
+  createSsrMarkup,
   createSsrNodeId,
   maybeThen,
 } from '@qwik.dev/core';
@@ -363,8 +358,8 @@ export const semantic_slotRender_239_303_1_1qpmqmiwo2o06 = (ctx, rangeId) => {
     true
   );
   return maybeThen(branch_0, (branch_0) => [
-    createSsrRecord('<!s=', createSsrNodeId(rangeId), '>'),
-    createSsrRecord('<!b=', createSsrNodeId(branch_id_0), '>'),
+    createSsrMarkup('<!s=', createSsrNodeId(rangeId), '>'),
+    createSsrMarkup('<!b=', createSsrNodeId(branch_id_0), '>'),
     branch_0,
     '<!/b><!/s>',
   ]);

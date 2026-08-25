@@ -22,7 +22,7 @@ export function App() {
 import parentStyles from './parent.css?inline';
 import childStyles from './child.css?inline';
 import {
-  createSsrRecord,
+  createSsrMarkup,
   createSsrNodeId,
   useStylesScoped,
   createSlotScope,
@@ -35,7 +35,7 @@ import { Child } from './use-styles-scoped-projection.tsx_component_Child';
 
 const use_styles_scoped_projection_slot_render_segment_2_ltuwbe4740jy = (ctx, rangeId) => {
   return [
-    createSsrRecord('<!s=', createSsrNodeId(rangeId), '>'),
+    createSsrMarkup('<!s=', createSsrNodeId(rangeId), '>'),
     '<span class="⚡️j8y9mo-0 projected">Projected</span><!/s>',
   ];
 };
@@ -63,10 +63,10 @@ export function App(props, ctx) {
 ============================= src/use-styles-scoped-projection.tsx_component_Child.js (ENTRY POINT)==
 
 import {
-  createSsrRecord,
+  createSsrMarkup,
   createSsrNodeId,
   useStylesScoped,
-  createSsrElementRecord,
+  createSsrOpenTag,
   renderSsrSlot,
   getActiveInvokeContextOrNull,
   maybeThen,
@@ -77,7 +77,7 @@ export function Child(props, ctx) {
   useStylesScoped(childStyles, 'f6r605-0');
   const slot_0 = renderSsrSlot(ctx, '', undefined, getActiveInvokeContextOrNull());
   return maybeThen(slot_0, (slot_0) => [
-    createSsrElementRecord('section', '<section class="⚡️f6r605-0 child"', '>'),
+    createSsrOpenTag('<section class="⚡️f6r605-0 child"', '>'),
     slot_0,
     '</section>',
   ]);
@@ -104,11 +104,11 @@ export function Child(props, ctx) {
 */
 ============================= src/use-styles-scoped-projection.tsx_use_styles_scoped_projection_slot_render_segment_2_ltuwbe4740jy.js (ENTRY POINT)==
 
-import { createSsrRecord, createSsrNodeId } from '@qwik.dev/core';
+import { createSsrMarkup, createSsrNodeId } from '@qwik.dev/core';
 
 export const use_styles_scoped_projection_slot_render_segment_2_ltuwbe4740jy = (ctx, rangeId) => {
   return [
-    createSsrRecord('<!s=', createSsrNodeId(rangeId), '>'),
+    createSsrMarkup('<!s=', createSsrNodeId(rangeId), '>'),
     '<span class="⚡️j8y9mo-0 projected">Projected</span><!/s>',
   ];
 };

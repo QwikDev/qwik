@@ -30,7 +30,7 @@ import {
   invoke,
   createComponent,
   renderSsrContent,
-  createSsrRecord,
+  createSsrMarkup,
   createSsrNodeId,
   renderSsrBranch,
   _noopQrl,
@@ -86,7 +86,7 @@ const semantic_branchRender_467_601_2t11uxu4tu6qy = (ctx) => {
     true
   );
   return maybeThen(content_0, (content_0) => [
-    createSsrRecord('<!d=', createSsrNodeId(content_id_0), '>'),
+    createSsrMarkup('<!d=', createSsrNodeId(content_id_0), '>'),
     renderSsrDynamicContent(content_0),
     '<!/d>',
   ]);
@@ -139,7 +139,7 @@ export const App = (props, ctx) => {
     true
   );
   return maybeThen(branch_0, (branch_0) => [
-    createSsrRecord('<!b=', createSsrNodeId(branch_id_0), '>'),
+    createSsrMarkup('<!b=', createSsrNodeId(branch_id_0), '>'),
     branch_0,
     '<!/b>',
   ]);
@@ -154,7 +154,7 @@ import {
   invoke,
   createComponent,
   renderSsrContent,
-  createSsrRecord,
+  createSsrMarkup,
   createSsrNodeId,
 } from '@qwik.dev/core';
 
@@ -302,7 +302,7 @@ import {
   _noopQrl,
   _captures,
   renderSsrContent,
-  createSsrRecord,
+  createSsrMarkup,
   createSsrNodeId,
   renderSsrDynamicContent,
   maybeThen,
@@ -326,7 +326,7 @@ export const semantic_branchRender_467_601_2t11uxu4tu6qy = (ctx) => {
     true
   );
   return maybeThen(content_0, (content_0) => [
-    createSsrRecord('<!d=', createSsrNodeId(content_id_0), '>'),
+    createSsrMarkup('<!d=', createSsrNodeId(content_id_0), '>'),
     renderSsrDynamicContent(content_0),
     '<!/d>',
   ]);

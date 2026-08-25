@@ -143,8 +143,8 @@ class SsrModuleEmitter {
       this.prop(prop, open);
     }
     open.push(JSON.stringify('>'));
-    this.imports.add(QwikWord.CreateSsrElementRecord);
-    parts.push(`${QwikWord.CreateSsrElementRecord}(${JSON.stringify(op.tag)}, ${open.join(', ')})`);
+    this.imports.add(QwikWord.CreateSsrOpenTag);
+    parts.push(`${QwikWord.CreateSsrOpenTag}(${open.join(', ')})`);
     // A sole hole child targets the element itself; siblings need range targets (not yet).
     if (holes.length > 0 && op.children.length !== 1) {
       throw new UnsupportedError('a text hole with sibling children (range targets)');

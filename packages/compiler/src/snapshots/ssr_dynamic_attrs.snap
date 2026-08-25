@@ -20,7 +20,7 @@ import {
   escapeHTML,
   getActiveInvokeContextOrNull,
   invoke,
-  createSsrElementRecord,
+  createSsrOpenTag,
   maybeThen,
 } from '@qwik.dev/core';
 export function App(props, ctx) {
@@ -44,8 +44,7 @@ export function App(props, ctx) {
   return maybeThen(attr_0, (attr_0) =>
     maybeThen(attr_1(), (attr_1) =>
       maybeThen(attr_2(), (attr_2) => [
-        createSsrElementRecord(
-          'div',
+        createSsrOpenTag(
           '<div q:id="',
           createSsrNodeId(id_0),
           '"',

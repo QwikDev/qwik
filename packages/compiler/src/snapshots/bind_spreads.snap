@@ -24,11 +24,11 @@ import {
   escapeHTML,
   inlinedQrl,
   _val,
-  createSsrElementRecord,
+  createSsrOpenTag,
   renderSsrProps,
   getActiveInvokeContextOrNull,
   invoke,
-  createSsrRecord,
+  createSsrMarkup,
   maybeThen,
   _noopQrl,
 } from '@qwik.dev/core';
@@ -95,8 +95,7 @@ export function App(props, ctx) {
       return maybeThen(props_2(), (props_2) => {
         props_2.ref !== undefined && ctx.setRef(props_2.ref, id_2);
         return [
-          createSsrElementRecord(
-            'input',
+          createSsrOpenTag(
             '<input q:id="',
             createSsrNodeId(id_0),
             '"',
@@ -107,9 +106,9 @@ export function App(props, ctx) {
             ' title="known"',
             '>'
           ),
-          createSsrRecord('<input q:id="', createSsrNodeId(id_1), '"', ...props_1.attrs, '>'),
+          createSsrMarkup('<input q:id="', createSsrNodeId(id_1), '"', ...props_1.attrs, '>'),
           props_1.innerHTML ?? '',
-          createSsrRecord('<input q:id="', createSsrNodeId(id_2), '"', ...props_2.attrs, '>'),
+          createSsrMarkup('<input q:id="', createSsrNodeId(id_2), '"', ...props_2.attrs, '>'),
           props_2.innerHTML ?? '',
         ];
       });

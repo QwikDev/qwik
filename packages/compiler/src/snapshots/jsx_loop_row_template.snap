@@ -35,8 +35,8 @@ import {
   createSsrElementTarget,
   renderSsrAttrExpression,
   escapeHTML,
-  createSsrElementRecord,
-  createSsrRecord,
+  createSsrOpenTag,
+  createSsrMarkup,
   createSsrElementTextTarget,
   renderSsrTextExpression,
   getActiveInvokeContextOrNull,
@@ -80,8 +80,7 @@ const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __rowId, ro
   return maybeThen(attr_0, (attr_0) =>
     maybeThen(text_1(), (text_1) =>
       maybeThen(text_2(), (text_2) => [
-        createSsrElementRecord(
-          'tr',
+        createSsrOpenTag(
           '<tr q:id="',
           createSsrNodeId(id_0),
           '"',
@@ -89,10 +88,10 @@ const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __rowId, ro
           ' q:row',
           '>'
         ),
-        createSsrRecord('<td q:id="', createSsrNodeId(id_1), '" class="col-md-1">'),
+        createSsrMarkup('<td q:id="', createSsrNodeId(id_1), '" class="col-md-1">'),
         escapeHTML(text_1),
         '</td><td class="col-md-4">',
-        createSsrRecord(
+        createSsrMarkup(
           '<a q:id="',
           createSsrNodeId(id_2),
           '"',
@@ -156,9 +155,9 @@ export function App(props, ctx) {
     0
   );
   return maybeThen(collection_result_0, (collection_result_0) => [
-    createSsrElementRecord('table', '<table', '>'),
+    createSsrOpenTag('<table', '>'),
     '<tbody>',
-    createSsrRecord('<!f=', createSsrNodeId(collection_id_0), '>'),
+    createSsrMarkup('<!f=', createSsrNodeId(collection_id_0), '>'),
     collection_result_0,
     '<!/f></tbody></table>',
   ]);
@@ -171,8 +170,8 @@ import {
   createSsrElementTarget,
   renderSsrAttrExpression,
   escapeHTML,
-  createSsrElementRecord,
-  createSsrRecord,
+  createSsrOpenTag,
+  createSsrMarkup,
   createSsrElementTextTarget,
   renderSsrTextExpression,
   getActiveInvokeContextOrNull,
@@ -233,8 +232,7 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __ro
   return maybeThen(attr_0, (attr_0) =>
     maybeThen(text_1(), (text_1) =>
       maybeThen(text_2(), (text_2) => [
-        createSsrElementRecord(
-          'tr',
+        createSsrOpenTag(
           '<tr q:id="',
           createSsrNodeId(id_0),
           '"',
@@ -242,10 +240,10 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __ro
           ' q:row',
           '>'
         ),
-        createSsrRecord('<td q:id="', createSsrNodeId(id_1), '" class="col-md-1">'),
+        createSsrMarkup('<td q:id="', createSsrNodeId(id_1), '" class="col-md-1">'),
         escapeHTML(text_1),
         '</td><td class="col-md-4">',
-        createSsrRecord(
+        createSsrMarkup(
           '<a q:id="',
           createSsrNodeId(id_2),
           '"',

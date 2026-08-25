@@ -10,7 +10,7 @@ export function App(props: { load: () => Promise<(props: any) => any> }) {
 ============================= src/component.tsx ==
 
 import {
-  createSsrElementRecord,
+  createSsrOpenTag,
   getActiveInvokeContextOrNull,
   invoke,
   createComponent,
@@ -31,11 +31,7 @@ export function App(props, ctx) {
         )
     )
   );
-  return maybeThen(content_0, (content_0) => [
-    createSsrElementRecord('div', '<div', '>'),
-    content_0,
-    '</div>',
-  ]);
+  return maybeThen(content_0, (content_0) => [createSsrOpenTag('<div', '>'), content_0, '</div>']);
 }
 == SSR DIAGNOSTICS ==
 

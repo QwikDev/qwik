@@ -9,12 +9,12 @@ export function App() {
 
 ============================= src/component.tsx ==
 
-import { createSsrElementRecord } from '@qwik.dev/core';
+import { createSsrOpenTag } from '@qwik.dev/core';
 export function App(props, ctx) {
   const item = () => {
     return '<span>Item</span>';
   };
-  return [createSsrElementRecord('div', '<div', '>'), item, item, '</div>'];
+  return [createSsrOpenTag('<div', '>'), item, item, '</div>'];
 }
 == SSR DIAGNOSTICS ==
 

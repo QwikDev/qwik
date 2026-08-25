@@ -13,7 +13,7 @@ export function Parent() {
 ============================= src/component.tsx ==
 
 import {
-  createSsrRecord,
+  createSsrMarkup,
   createSsrNodeId,
   createSlotScope,
   registerProjection,
@@ -24,7 +24,7 @@ import {
 import { Wrapper } from './component.tsx_component_Wrapper';
 
 const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, rangeId) => {
-  return [createSsrRecord('<!s=', createSsrNodeId(rangeId), '>'), '<p>Projected</p><!/s>'];
+  return [createSsrMarkup('<!s=', createSsrNodeId(rangeId), '>'), '<p>Projected</p><!/s>'];
 };
 const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_1_3b0tauy2p1nv1'
@@ -43,9 +43,9 @@ export function Parent(props0, ctx) {
 ============================= src/component.tsx_component_Wrapper.js (ENTRY POINT)==
 
 import {
-  createSsrRecord,
+  createSsrMarkup,
   createSsrNodeId,
-  createSsrElementRecord,
+  createSsrOpenTag,
   renderSsrSlot,
   getActiveInvokeContextOrNull,
   maybeThen,
@@ -53,11 +53,7 @@ import {
 
 export function Wrapper(props, ctx) {
   const slot_0 = renderSsrSlot(ctx, '', undefined, getActiveInvokeContextOrNull());
-  return maybeThen(slot_0, (slot_0) => [
-    createSsrElementRecord('section', '<section', '>'),
-    slot_0,
-    '</section>',
-  ]);
+  return maybeThen(slot_0, (slot_0) => [createSsrOpenTag('<section', '>'), slot_0, '</section>']);
 }
 /*
 {
@@ -83,10 +79,10 @@ export function Wrapper(props, ctx) {
 */
 ============================= src/component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1.js (ENTRY POINT)==
 
-import { createSsrRecord, createSsrNodeId } from '@qwik.dev/core';
+import { createSsrMarkup, createSsrNodeId } from '@qwik.dev/core';
 
 export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, rangeId) => {
-  return [createSsrRecord('<!s=', createSsrNodeId(rangeId), '>'), '<p>Projected</p><!/s>'];
+  return [createSsrMarkup('<!s=', createSsrNodeId(rangeId), '>'), '<p>Projected</p><!/s>'];
 };
 /*
 {

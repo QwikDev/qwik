@@ -194,8 +194,8 @@ export { useId } from './runtime/use-id';
 export {
   createSsrEventAttr,
   createSsrNodeId,
-  createSsrElementRecord,
-  createSsrRecord,
+  createSsrOpenTag,
+  createSsrMarkup,
   createSsrRootRef,
   createSsrRootRefPath,
   isSsrEventAttrChunk,

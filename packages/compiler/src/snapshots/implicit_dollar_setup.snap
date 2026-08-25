@@ -16,7 +16,7 @@ import {
   useComputedQrl,
   _captures,
   createSsrNodeId,
-  createSsrElementRecord,
+  createSsrOpenTag,
   createSsrElementTextTarget,
   escapeHTML,
   renderSsrTextNode,
@@ -40,7 +40,7 @@ export function App(props, ctx) {
   ctx.addRoot(double);
   const text_0 = renderSsrTextNode(createSsrElementTextTarget(id_0), double);
   return maybeThen(text_0, (text_0) => [
-    createSsrElementRecord('p', '<p q:id="', createSsrNodeId(id_0), '"', '>'),
+    createSsrOpenTag('<p q:id="', createSsrNodeId(id_0), '"', '>'),
     escapeHTML(text_0),
     '</p>',
   ]);

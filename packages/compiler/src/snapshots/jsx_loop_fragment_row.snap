@@ -22,11 +22,11 @@ export function App() {
 import {
   useSignal,
   createSsrNodeId,
-  createSsrElementRecord,
+  createSsrOpenTag,
   createSsrElementTextTarget,
   escapeHTML,
   renderSsrTextExpression,
-  createSsrRecord,
+  createSsrMarkup,
   maybeThen,
   renderSsrCollection,
   _noopQrl,
@@ -40,8 +40,8 @@ const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, rowId, item
     q_component_text_segment_2_1fh117dstcoge
   );
   return maybeThen(text_0, (text_0) => [
-    createSsrRecord('<!r=', createSsrNodeId(rowId), '>'),
-    createSsrElementRecord('span', '<span q:id="', createSsrNodeId(id_0), '"', '>'),
+    createSsrMarkup('<!r=', createSsrNodeId(rowId), '>'),
+    createSsrOpenTag('<span q:id="', createSsrNodeId(id_0), '"', '>'),
     escapeHTML(text_0),
     '</span><em>!</em><!/r>',
   ]);
@@ -80,8 +80,8 @@ export function App(props, ctx) {
     2
   );
   return maybeThen(collection_result_0, (collection_result_0) => [
-    createSsrElementRecord('p', '<p', '>'),
-    createSsrRecord('<!f=', createSsrNodeId(collection_id_0), '>'),
+    createSsrOpenTag('<p', '>'),
+    createSsrMarkup('<!f=', createSsrNodeId(collection_id_0), '>'),
     collection_result_0,
     '<!/f></p>',
   ]);
@@ -91,11 +91,11 @@ export function App(props, ctx) {
 import {
   _noopQrl,
   createSsrNodeId,
-  createSsrElementRecord,
+  createSsrOpenTag,
   createSsrElementTextTarget,
   escapeHTML,
   renderSsrTextExpression,
-  createSsrRecord,
+  createSsrMarkup,
   maybeThen,
 } from '@qwik.dev/core';
 import { component_text_segment_2_1fh117dstcoge } from './component.tsx_component_text_segment_2_1fh117dstcoge';
@@ -113,8 +113,8 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, rowI
     q_component_text_segment_2_1fh117dstcoge
   );
   return maybeThen(text_0, (text_0) => [
-    createSsrRecord('<!r=', createSsrNodeId(rowId), '>'),
-    createSsrElementRecord('span', '<span q:id="', createSsrNodeId(id_0), '"', '>'),
+    createSsrMarkup('<!r=', createSsrNodeId(rowId), '>'),
+    createSsrOpenTag('<span q:id="', createSsrNodeId(id_0), '"', '>'),
     escapeHTML(text_0),
     '</span><em>!</em><!/r>',
   ]);

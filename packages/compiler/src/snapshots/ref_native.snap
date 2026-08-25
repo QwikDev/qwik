@@ -28,12 +28,12 @@ export function App({ forwarded, rest }) {
 import {
   useSignal,
   createSsrNodeId,
-  createSsrElementRecord,
+  createSsrOpenTag,
   createSsrElementTextTarget,
   escapeHTML,
   renderSsrTextExpression,
   maybeThen,
-  createSsrRecord,
+  createSsrMarkup,
   renderSsrProps,
   createSsrElementTarget,
   createComponent,
@@ -65,7 +65,7 @@ function Child(props, ctx) {
     q_component_text_segment_0_1fh10fbkzokfc
   );
   return maybeThen(text_0, (text_0) => [
-    createSsrElementRecord('span', '<span q:id="', createSsrNodeId(id_0), '"', '>'),
+    createSsrOpenTag('<span q:id="', createSsrNodeId(id_0), '"', '>'),
     escapeHTML(text_0),
     '</span>',
   ]);
@@ -108,18 +108,18 @@ export function App(props0, ctx) {
   return maybeThen(props_0, (props_0) => {
     props_0.ref !== undefined && ctx.setRef(props_0.ref, id_5);
     return maybeThen(component_1(), (component_1) => [
-      createSsrElementRecord('section', '<section', '>'),
-      createSsrRecord('<div q:id="', createSsrNodeId(id_0), '">'),
+      createSsrOpenTag('<section', '>'),
+      createSsrMarkup('<div q:id="', createSsrNodeId(id_0), '">'),
       'Signal</div>',
-      createSsrRecord('<div q:id="', createSsrNodeId(id_1), '">'),
+      createSsrMarkup('<div q:id="', createSsrNodeId(id_1), '">'),
       'Inline</div>',
-      createSsrRecord('<div q:id="', createSsrNodeId(id_2), '">'),
+      createSsrMarkup('<div q:id="', createSsrNodeId(id_2), '">'),
       'Named</div>',
-      createSsrRecord('<div q:id="', createSsrNodeId(id_3), '">'),
+      createSsrMarkup('<div q:id="', createSsrNodeId(id_3), '">'),
       'Forwarded</div>',
-      createSsrRecord('<div q:id="', createSsrNodeId(id_4), '">'),
+      createSsrMarkup('<div q:id="', createSsrNodeId(id_4), '">'),
       'Spread</div>',
-      createSsrRecord('<div q:id="', createSsrNodeId(id_5), '"', ...props_0.attrs, '>'),
+      createSsrMarkup('<div q:id="', createSsrNodeId(id_5), '"', ...props_0.attrs, '>'),
       props_0.innerHTML ?? 'Opaque',
       '</div>',
       component_1,

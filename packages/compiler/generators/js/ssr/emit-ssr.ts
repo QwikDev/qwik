@@ -632,13 +632,13 @@ export function emitSsrSegmentRender(
         ...(planned.rowMarker
           ? [
               {
-                open: `createSsrRecord('<!r=', createSsrNodeId(${planned.runtimeParameters?.includes('rowId') ? 'rowId' : '__rowId'}), '>')`,
+                open: `createSsrMarkup('<!r=', createSsrNodeId(${planned.runtimeParameters?.includes('rowId') ? 'rowId' : '__rowId'}), '>')`,
                 close: '<!/r>',
               },
             ]
           : []),
         ...(planned.slotMarker
-          ? [{ open: `createSsrRecord('<!s=', createSsrNodeId(rangeId), '>')`, close: '<!/s>' }]
+          ? [{ open: `createSsrMarkup('<!s=', createSsrNodeId(rangeId), '>')`, close: '<!/s>' }]
           : []),
       ],
       wireBlock.props ?? null,

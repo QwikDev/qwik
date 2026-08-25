@@ -20,9 +20,9 @@ export function App() {
 
 import {
   useSignal,
-  createSsrElementRecord,
+  createSsrOpenTag,
   createSsrNodeId,
-  createSsrRecord,
+  createSsrMarkup,
   createSsrElementTextTarget,
   escapeHTML,
   renderSsrTextExpression,
@@ -63,11 +63,11 @@ export function App(props, ctx) {
     });
   return maybeThen(text_0, (text_0) =>
     maybeThen(text_1(), (text_1) => [
-      createSsrElementRecord('div', '<div', '>'),
-      createSsrRecord('<p q:id="', createSsrNodeId(id_0), '">'),
+      createSsrOpenTag('<div', '>'),
+      createSsrMarkup('<p q:id="', createSsrNodeId(id_0), '">'),
       escapeHTML(text_0),
       '</p>',
-      createSsrRecord(
+      createSsrMarkup(
         '<button q:id="',
         createSsrNodeId(id_1),
         '"',

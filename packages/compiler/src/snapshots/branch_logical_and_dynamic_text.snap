@@ -17,9 +17,9 @@ import {
   escapeHTML,
   renderSsrTextNode,
   maybeThen,
-  createSsrElementRecord,
+  createSsrOpenTag,
   renderSsrBranch,
-  createSsrRecord,
+  createSsrMarkup,
   createSsrNodeId,
   _noopQrl,
 } from '@qwik.dev/core';
@@ -60,8 +60,8 @@ export function App(props, ctx) {
     undefined
   );
   return maybeThen(branch_0, (branch_0) => [
-    createSsrElementRecord('p', '<p', '>'),
-    createSsrRecord('<!b=', createSsrNodeId(branch_id_0), '>'),
+    createSsrOpenTag('<p', '>'),
+    createSsrMarkup('<!b=', createSsrNodeId(branch_id_0), '>'),
     branch_0,
     '<!/b></p>',
   ]);

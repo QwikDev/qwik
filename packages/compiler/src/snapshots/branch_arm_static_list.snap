@@ -14,11 +14,11 @@ export const App = component$(() => {
 import {
   useSignal,
   _captures,
-  createSsrElementRecord,
+  createSsrOpenTag,
   escapeHTML,
   renderSsrCollection,
   renderSsrBranch,
-  createSsrRecord,
+  createSsrMarkup,
   createSsrNodeId,
   maybeThen,
   _noopQrl,
@@ -35,7 +35,7 @@ q_component_branch_condition_segment_0_2fzrieu6vlhf9.s(
 );
 const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
   function component_for_render_segment_2_asyu0c4tc6e5(ctx, __rangeId, __rowId, row_p0) {
-    return [createSsrElementRecord('li', '<li', '>'), escapeHTML(String(row_p0 ?? '')), '</li>'];
+    return [createSsrOpenTag('<li', '>'), escapeHTML(String(row_p0 ?? '')), '</li>'];
   }
 
   const collection_result_0 = renderSsrCollection(
@@ -49,7 +49,7 @@ const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
     false,
     0
   );
-  return [createSsrElementRecord('ul', '<ul', '>'), collection_result_0, '</ul>'];
+  return [createSsrOpenTag('<ul', '>'), collection_result_0, '</ul>'];
 };
 const q_component_branch_then_segment_1_24n7blyqktd46 = /*#__PURE__*/ _noopQrl(
   'component_branch_then_segment_1_24n7blyqktd46'
@@ -67,8 +67,8 @@ export const App = (props, ctx) => {
     undefined
   );
   return maybeThen(branch_0, (branch_0) => [
-    createSsrElementRecord('div', '<div', '>'),
-    createSsrRecord('<!b=', createSsrNodeId(branch_id_0), '>'),
+    createSsrOpenTag('<div', '>'),
+    createSsrMarkup('<!b=', createSsrNodeId(branch_id_0), '>'),
     branch_0,
     '<!/b></div>',
   ]);
@@ -106,11 +106,11 @@ export const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
 */
 ============================= src/component.tsx_component_branch_then_segment_1_24n7blyqktd46.js (ENTRY POINT)==
 
-import { createSsrElementRecord, escapeHTML, renderSsrCollection } from '@qwik.dev/core';
+import { createSsrOpenTag, escapeHTML, renderSsrCollection } from '@qwik.dev/core';
 
 export const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
   function component_for_render_segment_2_asyu0c4tc6e5(ctx, __rangeId, __rowId, row_p0) {
-    return [createSsrElementRecord('li', '<li', '>'), escapeHTML(String(row_p0 ?? '')), '</li>'];
+    return [createSsrOpenTag('<li', '>'), escapeHTML(String(row_p0 ?? '')), '</li>'];
   }
 
   const collection_result_0 = renderSsrCollection(
@@ -124,7 +124,7 @@ export const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
     false,
     0
   );
-  return [createSsrElementRecord('ul', '<ul', '>'), collection_result_0, '</ul>'];
+  return [createSsrOpenTag('<ul', '>'), collection_result_0, '</ul>'];
 };
 /*
 {

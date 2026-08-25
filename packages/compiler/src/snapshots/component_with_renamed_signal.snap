@@ -14,7 +14,7 @@ import {
   useSignal as signal,
   useSignal,
   createSsrNodeId,
-  createSsrElementRecord,
+  createSsrOpenTag,
   createSsrElementTextTarget,
   escapeHTML,
   renderSsrTextNode,
@@ -26,7 +26,7 @@ export function App(props, ctx) {
   ctx.addRoot(count);
   const text_0 = renderSsrTextNode(createSsrElementTextTarget(id_0), count);
   return maybeThen(text_0, (text_0) => [
-    createSsrElementRecord('button', '<button q:id="', createSsrNodeId(id_0), '"', '>'),
+    createSsrOpenTag('<button q:id="', createSsrNodeId(id_0), '"', '>'),
     escapeHTML(text_0),
     '</button>',
   ]);

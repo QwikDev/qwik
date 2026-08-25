@@ -15,7 +15,7 @@ import {
   useSignal,
   useOnDocument,
   createVisibleTaskHandlerQrl,
-  createSsrElementRecord,
+  createSsrOpenTag,
   _noopQrl,
 } from '@qwik.dev/core';
 const q_component_useVisibleTaskqrl_segment_0_rykj3v0khy38 = /*#__PURE__*/ _noopQrl(
@@ -27,7 +27,7 @@ export function App(props, ctx) {
     'qinit',
     createVisibleTaskHandlerQrl(q_component_useVisibleTaskqrl_segment_0_rykj3v0khy38.w([count]))
   );
-  return [createSsrElementRecord('button', '<button', '>'), 'Ready</button>'];
+  return [createSsrOpenTag('<button', '>'), 'Ready</button>'];
 }
 ============================= src/component.tsx_component_useVisibleTaskqrl_segment_0_rykj3v0khy38.js (ENTRY POINT)==
 

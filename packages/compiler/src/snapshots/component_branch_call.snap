@@ -14,11 +14,11 @@ import { renderActive, renderInactive } from './renderers';
 import {
   _captures,
   renderSsrContent,
-  createSsrRecord,
+  createSsrMarkup,
   createSsrNodeId,
   renderSsrDynamicContent,
   maybeThen,
-  createSsrElementRecord,
+  createSsrOpenTag,
   renderSsrBranch,
   _noopQrl,
 } from '@qwik.dev/core';
@@ -45,7 +45,7 @@ const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
     true
   );
   return maybeThen(content_0, (content_0) => [
-    createSsrRecord('<!d=', createSsrNodeId(content_id_0), '>'),
+    createSsrMarkup('<!d=', createSsrNodeId(content_id_0), '>'),
     renderSsrDynamicContent(content_0),
     '<!/d>',
   ]);
@@ -66,7 +66,7 @@ const component_branch_else_segment_2_19dvu7nugnvkl = (ctx) => {
     true
   );
   return maybeThen(content_0, (content_0) => [
-    createSsrRecord('<!d=', createSsrNodeId(content_id_0), '>'),
+    createSsrMarkup('<!d=', createSsrNodeId(content_id_0), '>'),
     renderSsrDynamicContent(content_0),
     '<!/d>',
   ]);
@@ -102,9 +102,9 @@ export function App(props, ctx) {
     q_component_branch_else_segment_2_19dvu7nugnvkl.w([props])
   );
   return maybeThen(branch_0, (branch_0) => [
-    createSsrElementRecord('section', '<section', '>'),
+    createSsrOpenTag('<section', '>'),
     '<b>Before</b>',
-    createSsrRecord('<!b=', createSsrNodeId(branch_id_0), '>'),
+    createSsrMarkup('<!b=', createSsrNodeId(branch_id_0), '>'),
     branch_0,
     '<!/b><i>After</i></section>',
   ]);
@@ -146,7 +146,7 @@ import {
   _noopQrl,
   _captures,
   renderSsrContent,
-  createSsrRecord,
+  createSsrMarkup,
   createSsrNodeId,
   renderSsrDynamicContent,
   maybeThen,
@@ -169,7 +169,7 @@ export const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
     true
   );
   return maybeThen(content_0, (content_0) => [
-    createSsrRecord('<!d=', createSsrNodeId(content_id_0), '>'),
+    createSsrMarkup('<!d=', createSsrNodeId(content_id_0), '>'),
     renderSsrDynamicContent(content_0),
     '<!/d>',
   ]);
@@ -203,7 +203,7 @@ import {
   _noopQrl,
   _captures,
   renderSsrContent,
-  createSsrRecord,
+  createSsrMarkup,
   createSsrNodeId,
   renderSsrDynamicContent,
   maybeThen,
@@ -226,7 +226,7 @@ export const component_branch_else_segment_2_19dvu7nugnvkl = (ctx) => {
     true
   );
   return maybeThen(content_0, (content_0) => [
-    createSsrRecord('<!d=', createSsrNodeId(content_id_0), '>'),
+    createSsrMarkup('<!d=', createSsrNodeId(content_id_0), '>'),
     renderSsrDynamicContent(content_0),
     '<!/d>',
   ]);

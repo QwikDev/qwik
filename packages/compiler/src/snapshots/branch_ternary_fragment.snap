@@ -41,9 +41,9 @@ export function App(props, ctx) {
 
 import {
   _captures,
-  createSsrElementRecord,
+  createSsrOpenTag,
   renderSsrBranch,
-  createSsrRecord,
+  createSsrMarkup,
   createSsrNodeId,
   maybeThen,
   _noopQrl,
@@ -87,8 +87,8 @@ export function Child(props, ctx) {
     q_component_branch_else_segment_2_19dvu7nugnvkl
   );
   return maybeThen(branch_0, (branch_0) => [
-    createSsrElementRecord('div', '<div', '>'),
-    createSsrRecord('<!b=', createSsrNodeId(branch_id_0), '>'),
+    createSsrOpenTag('<div', '>'),
+    createSsrMarkup('<!b=', createSsrNodeId(branch_id_0), '>'),
     branch_0,
     '<!/b></div>',
   ]);

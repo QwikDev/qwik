@@ -8,7 +8,7 @@ export function App({ label: text, count = 0, ...rest } = { label: 'Save' }) {
 
 ============================= src/component.tsx ==
 
-import { createSsrElementRecord, _noopQrl } from '@qwik.dev/core';
+import { createSsrOpenTag, _noopQrl } from '@qwik.dev/core';
 
 const q_component_q_e_click_segment_0_2xwyg1cinvmpz = /*#__PURE__*/ _noopQrl(
   'component_q_e_click_segment_0_2xwyg1cinvmpz'
@@ -16,8 +16,7 @@ const q_component_q_e_click_segment_0_2xwyg1cinvmpz = /*#__PURE__*/ _noopQrl(
 export function App(props, ctx) {
   const { label: text, count = 0, ...rest } = props ?? { label: 'Save' };
   return [
-    createSsrElementRecord(
-      'button',
+    createSsrOpenTag(
       '<button',
       ctx.eventAttr(
         'q-e:click',

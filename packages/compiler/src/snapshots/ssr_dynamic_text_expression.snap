@@ -13,7 +13,7 @@ export function App() {
 import {
   useSignal,
   createSsrNodeId,
-  createSsrElementRecord,
+  createSsrOpenTag,
   createSsrElementTextTarget,
   escapeHTML,
   renderSsrTextExpression,
@@ -37,7 +37,7 @@ export function App(props, ctx) {
     q_component_text_segment_0_1fh10fbkzokfc
   );
   return maybeThen(text_0, (text_0) => [
-    createSsrElementRecord('p', '<p q:id="', createSsrNodeId(id_0), '"', '>'),
+    createSsrOpenTag('<p q:id="', createSsrNodeId(id_0), '"', '>'),
     escapeHTML(text_0),
     '</p>',
   ]);

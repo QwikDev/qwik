@@ -1,6 +1,7 @@
-import { describe, it, expect, vi } from 'vitest';
+import { beforeEach, describe, it, expect, vi } from 'vitest';
 import {
   getPathname,
+  fixStaticTrailingSlash,
   fixTrailingSlash,
   resolveRequestHandlers,
   streamServerFunctionResult,
@@ -16,8 +17,17 @@ import { ServerError } from '@qwik.dev/router/middleware/request-handler';
 import { IsQLoader, QLoaderId } from './request-path';
 import { getRouteLoaderValues } from '../../runtime/src/route-loaders';
 
-function createMockServerRequestEvent(url = 'http://localhost:3000/test'): ServerRequestEvent {
-  const mockRequest = new Request(url);
+const { prerenderedPaths } = vi.hoisted(() => ({ prerenderedPaths: new Set<string>() }));
+vi.mock('./static-paths', () => ({
+  isStaticPath: (method: string, url: URL) =>
+    method === 'GET' && prerenderedPaths.has(url.pathname),
+}));
+
+function createMockServerRequestEvent(
+  url = 'http://localhost:3000/test',
+  method = 'GET'
+): ServerRequestEvent {
+  const mockRequest = new Request(url, { method });
 
   return {
     mode: 'server',
@@ -45,9 +55,13 @@ function createMockServerRequestEvent(url = 'http://localhost:3000/test'): Serve
 
 const justHiModule = { default: () => 'hi' };
 const mockRoute: LoadedRoute = { $routeName$: '/', $params$: {}, $mods$: [justHiModule] };
-function createMockRequestEvent(url = 'http://localhost:3000/test', trailingSlash = true) {
+function createMockRequestEvent(
+  url = 'http://localhost:3000/test',
+  trailingSlash = true,
+  method = 'GET'
+) {
   globalThis.__NO_TRAILING_SLASH__ = !trailingSlash;
-  const serverRequestEv = createMockServerRequestEvent(url);
+  const serverRequestEv = createMockServerRequestEvent(url, method);
   return createRequestEvent(serverRequestEv, mockRoute, [], '/', vi.fn());
 }
 
@@ -399,6 +413,87 @@ describe('resolve-request-handler', () => {
 
         fixTrailingSlash(requestEv);
       });
+    });
+  });
+
+  describe('fixStaticTrailingSlash', () => {
+    beforeEach(() => {
+      prerenderedPaths.clear();
+    });
+
+    it('should redirect to the trailing slash path when it is prerendered', () => {
+      prerenderedPaths.add('/docs/getting-started/');
+      const requestEv = createMockRequestEvent('http://localhost:3000/docs/getting-started', true);
+
+      expect(() => fixStaticTrailingSlash(requestEv)).toThrow(RedirectMessage);
+      expect(requestEv.headers.get('Location')).toBe('/docs/getting-started/');
+    });
+
+    it('should preserve the query string in the redirect', () => {
+      prerenderedPaths.add('/docs/getting-started/');
+      const requestEv = createMockRequestEvent(
+        'http://localhost:3000/docs/getting-started?foo=bar',
+        true
+      );
+
+      expect(() => fixStaticTrailingSlash(requestEv)).toThrow(RedirectMessage);
+      expect(requestEv.headers.get('Location')).toBe('/docs/getting-started/?foo=bar');
+    });
+
+    it('should not redirect when the trailing slash path is not prerendered', () => {
+      const requestEv = createMockRequestEvent('http://localhost:3000/does-not-exist', true);
+
+      fixStaticTrailingSlash(requestEv);
+      expect(requestEv.headers.get('Location')).toBeNull();
+    });
+
+    it('should remove the trailing slash when trailingSlash is false and the path is prerendered', () => {
+      prerenderedPaths.add('/docs/getting-started');
+      const requestEv = createMockRequestEvent(
+        'http://localhost:3000/docs/getting-started/',
+        false
+      );
+
+      expect(() => fixStaticTrailingSlash(requestEv)).toThrow(RedirectMessage);
+      expect(requestEv.headers.get('Location')).toBe('/docs/getting-started');
+    });
+
+    it('should not redirect a non-GET request', () => {
+      prerenderedPaths.add('/docs/getting-started/');
+      const requestEv = createMockRequestEvent(
+        'http://localhost:3000/docs/getting-started',
+        true,
+        'POST'
+      );
+
+      fixStaticTrailingSlash(requestEv);
+      expect(requestEv.headers.get('Location')).toBeNull();
+    });
+
+    it('should not redirect a protocol-relative pathname', () => {
+      prerenderedPaths.add('//evil.com/');
+      const requestEv = createMockRequestEvent('http://localhost:3000//evil.com', true);
+
+      fixStaticTrailingSlash(requestEv);
+      expect(requestEv.headers.get('Location')).toBeNull();
+    });
+  });
+
+  describe('trailing slash handler selection', () => {
+    it('should use fixTrailingSlash for a matched page route', () => {
+      const handlers = resolveRequestHandlers(undefined, mockRoute, 'GET', false, vi.fn());
+
+      expect(handlers).toContain(fixTrailingSlash);
+      expect(handlers).not.toContain(fixStaticTrailingSlash);
+    });
+
+    it('should use fixStaticTrailingSlash for a not-found page route', () => {
+      const notFoundRoute: LoadedRoute = { ...mockRoute, $notFound$: true };
+
+      const handlers = resolveRequestHandlers(undefined, notFoundRoute, 'GET', false, vi.fn());
+
+      expect(handlers).toContain(fixStaticTrailingSlash);
+      expect(handlers).not.toContain(fixTrailingSlash);
     });
   });
 

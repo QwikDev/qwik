@@ -1,7 +1,4 @@
-/**
- * `generateJsSsr(serverLinkedPlan, options)` — the baseline generator; consumes the exact same
- * server LinkedPlan as `generateRustSsr` (DESIGN.md rule 5).
- */
+/** `generateJsSsr(serverLinkedPlan, options)` — the baseline generator over the server LinkedPlan. */
 import {
   Environment,
   HandlerKind,
@@ -145,19 +142,25 @@ class SsrModuleEmitter {
     open.push(JSON.stringify('>'));
     this.imports.add(QwikWord.CreateSsrOpenTag);
     parts.push(`${QwikWord.CreateSsrOpenTag}(${open.join(', ')})`);
-    // A sole hole child targets the element itself; siblings need range targets (not yet).
-    if (holes.length > 0 && op.children.length !== 1) {
-      throw new UnsupportedError('a text hole with sibling children (range targets)');
-    }
+
+    let textRangeCount = 0;
     for (const child of op.children) {
-      if (child.op === OpKind.Hole) {
-        this.textHole(child, idVariable!, parts);
-        continue;
+      switch (child.op) {
+        case OpKind.Static: {
+          pushMergedStatic(parts, foldStaticOp(child, false));
+          break;
+        }
+        case OpKind.Hole: {
+          this.textHole(child, idVariable!, parts, op.children.length > 1, textRangeCount++);
+          break;
+        }
+        default: {
+          if (!isFullyStaticSubtree(child)) {
+            throw new UnsupportedError('a dynamic child inside an element record');
+          }
+          pushMergedStatic(parts, foldStaticOp(child, false));
+        }
       }
-      if (!isFullyStaticSubtree(child)) {
-        throw new UnsupportedError('a dynamic child inside an element record');
-      }
-      pushMergedStatic(parts, foldStaticOp(child, false));
     }
     if (!op.void) {
       pushMergedStatic(parts, `</${op.tag}>`);
@@ -167,35 +170,58 @@ class SsrModuleEmitter {
   private textHole(
     op: Extract<Op, { op: OpKind.Hole }>,
     idVariable: string,
-    parts: string[]
+    parts: string[],
+    hasSiblings: boolean,
+    textRangeCount: number
   ): void {
-    this.imports.add(QwikWord.CreateSsrElementTextTarget);
+    this.imports.add(
+      hasSiblings ? QwikWord.CreateSsrRangeTextTarget : QwikWord.CreateSsrElementTextTarget
+    );
     this.imports.add(QwikWord.EscapeHTML);
     const step = `${QwikGenWord.Text}_${this.tempCount++}`;
-    if (op.value.v === ValueKind.Read) {
-      // Signal reads subscribe directly — no QRL involved.
-      const signal = signalReadName(this.module, op.value.expr);
-      this.imports.add(QwikWord.RenderSsrTextNode);
-      this.pushStep(
-        step,
-        [signal],
-        `${QwikWord.RenderSsrTextNode}(${QwikWord.CreateSsrElementTextTarget}(${idVariable}), ${signal})`
-      );
-      parts.push(`${QwikWord.EscapeHTML}(${step})`);
-      return;
+
+    if (hasSiblings) {
+      pushMergedStatic(parts, '<!t>');
     }
-    if (op.value.v !== ValueKind.Computed || !('qrl' in op.value.resume)) {
-      throw new UnsupportedError('a non-computed text hole');
+
+    switch (op.value.v) {
+      case ValueKind.Read: {
+        // Signal reads subscribe directly — no QRL involved.
+        const signal = signalReadName(this.module, op.value.expr);
+        this.imports.add(QwikWord.RenderSsrTextNode);
+        const createTextFn = hasSiblings
+          ? `${QwikWord.CreateSsrRangeTextTarget}(${idVariable}, ${textRangeCount})`
+          : `${QwikWord.CreateSsrElementTextTarget}(${idVariable})`;
+        this.pushStep(step, [signal], `${QwikWord.RenderSsrTextNode}(${createTextFn}, ${signal})`);
+        parts.push(`${QwikWord.EscapeHTML}(${step})`);
+        break;
+      }
+      case ValueKind.Computed: {
+        if (!('qrl' in op.value.resume)) {
+          throw new UnsupportedError('a non-QRL computed text hole');
+        }
+        const qrl = this.qrlById(op.value.resume.qrl.qrl);
+        const captures = captureNames(this.module, qrl);
+        this.imports.add(QwikWord.RenderSsrTextExpression);
+        const createTextFn = hasSiblings
+          ? `${QwikWord.CreateSsrRangeTextTarget}(${idVariable}, ${textRangeCount})`
+          : `${QwikWord.CreateSsrElementTextTarget}(${idVariable})`;
+        this.pushStep(
+          step,
+          captures,
+          `${QwikWord.RenderSsrTextExpression}(${createTextFn}, [${captures.join(', ')}], ${this.qrlReference(qrl, true)})`
+        );
+        parts.push(`${QwikWord.EscapeHTML}(${step})`);
+        break;
+      }
+      default: {
+        throw new UnsupportedError('a non-computed text hole');
+      }
     }
-    const qrl = this.qrlById(op.value.resume.qrl.qrl);
-    const captures = captureNames(this.module, qrl);
-    this.imports.add(QwikWord.RenderSsrTextExpression);
-    this.pushStep(
-      step,
-      captures,
-      `${QwikWord.RenderSsrTextExpression}(${QwikWord.CreateSsrElementTextTarget}(${idVariable}), [${captures.join(', ')}], ${this.qrlReference(qrl, true)})`
-    );
-    parts.push(`${QwikWord.EscapeHTML}(${step})`);
+
+    if (hasSiblings) {
+      pushMergedStatic(parts, '<!/t>');
+    }
   }
 
   /** First step evaluates eagerly at its statement; later steps need invoke thunks (not yet). */

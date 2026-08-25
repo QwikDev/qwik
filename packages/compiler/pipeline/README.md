@@ -8,7 +8,6 @@ analyseModule(file, options)                         -> ModulePlan  (one file, o
 linkPlans(plans, entries, specialization, snapshots) -> LinkedPlan  (per environment + mode)
 generateJsCsr(browserLinkedPlan, options)            -> browser modules
 generateJsSsr(serverLinkedPlan, options)             -> server modules
-generateRustSsr(serverLinkedPlan, entry, options)    -> native project sources
 ```
 
 ## Layout
@@ -19,13 +18,13 @@ generateRustSsr(serverLinkedPlan, entry, options)    -> native project sources
 | `schema/`   | the plan model as compilable TypeScript — `shared` (scalars, `Predicate` + `foldPredicate`, `Maybe`), `value` (payloads, edges, `Value`, `TaskBody`), `program` (`Program`, `Op`, `Prop`, typed `Invoke`/`Setup`), `module-plan` (`Qrl`, declarations, envelope, `AssemblyIntent`), `linked-plan` (materialized `LinkedModule`s, delivery, implementations table) |
 | `analyse/`  | `analyseModule` — pure, no batch registries; one concern per file like the ts-optimizer (PR #8872): `ast/` (types, parse, walkers, capture-analysis, jsx-text), `normalize`, `discover`, `lower-context`, `lower-jsx`/`lower-event`/`lower-hole`, `events`, `plan`                                                                                                |
 | `link/`     | `linkPlans` + `ResolverSnapshot`/`PluginSnapshot`/`LinkEntry`; `complete` flag semantics                                                                                                                                                                                                                                                                          |
-| `generate/` | `generateJsSsr` (baseline), `generateJsCsr`, `generateRustSsr`; `GenerateOutput`                                                                                                                                                                                                                                                                                  |
+| `generate/` | `generateJsSsr` (baseline), `generateJsCsr`; `GenerateOutput`                                                                                                                                                                                                                                                                                                     |
 | `compat/`   | `transformModules` wrapper (hostless snapshots, `{kind:'module'}` roots)                                                                                                                                                                                                                                                                                          |
-| `tests/`    | schema gates, flow smoke, per-unit tests, rust crate goldens, and full-output file snapshots (`tests/snapshots/`, `test.todo` per pending slice)                                                                                                                                                                                                                  |
+| `tests/`    | schema gates, flow smoke, per-unit tests, and full-output file snapshots (`tests/snapshots/`, `test.todo` per pending slice)                                                                                                                                                                                                                                      |
 
 ## Current state
 
-Golden coverage (SSR + CSR full-`TransformOutput` file snapshots seeded from the legacy oracle, plus rust crate goldens) spans: foreign
+Golden coverage (SSR + CSR full-`TransformOutput` file snapshots seeded from the legacy oracle) spans: foreign
 passthrough; static components (all supported declaration forms, attrs, void tags, JSX text,
 sibling statements, generated-name allocation, authored param reuse); element event handlers
 (QRL identity, chunks, `_noopQrl` hoists, `setEvent` wiring); dynamic text holes (invoked-segment
@@ -33,7 +32,8 @@ mirrors + `.s()`, `q:id`, `renderSsrTextExpression`/`maybeThen`, CSR placeholder
 `createTextExpressionEffect`); `useSignal` setup + signal-read holes (subscription, no QRL);
 event handlers capturing signal locals (`.w([count])` SSR wrapper, `setEvent` captures arg,
 `_captures` chunk prelude, rust `QrlValue.captures`); the counter (event + signal-read hole
-composed on one element). Expressions lower to ValueIR when the
+composed on one element); text holes with sibling children (SSR range targets + `<!t>`/`<!/t>`
+markers, CSR `<!---->` comment placeholder + marker swap, shortest-path child navigation). Expressions lower to ValueIR when the
 vocabulary covers them (JS payload fallback), so Rust evaluates text holes natively; only
 IR-uncoverable expressions refuse on the native target. The linker is still a 1:1 materializer — folding, policies, and edges
 pending. Everything unsupported throws `UnsupportedError`; invalid authored code becomes
@@ -41,9 +41,12 @@ pending. Everything unsupported throws `UnsupportedError`; invalid authored code
 
 ## Workflow (vertical slices — DESIGN.md "Phases")
 
-Each slice implements analyse → link → generate end-to-end for a fixture family. Per fixture the
-gate is a file snapshot of the full `TransformOutput` (`tests/snapshots/`), SEEDED from the legacy
-oracle (`../src`) while it exists — write the failing snapshot first, implement until green.
+Each slice implements analyse → link → generate end-to-end for a fixture family. Per fixture the gate is one
+file snapshot of the full `TransformOutput` PER MODE (`tests/snapshots/<name>.{ssr,csr}.snap`),
+SEEDED from the legacy oracle (`../src`) while it exists — write the failing snapshot first, implement until green.
+The rust target is REMOVED for iteration speed (git history has `generate/rust-ssr.ts` +
+its crate goldens through eb9287f79): examples implement `generateJsSsr` + `generateJsCsr` only;
+a later dedicated pass reintroduces the rust generator and recaptures crate bytes per family.
 `vitest -u` regenerates from the STAGED pipeline, so review every snapshot diff against the
 fixture's intent (and the oracle, until cutover) before accepting. No reverse adapter, no feature
 flag: once the fixture corpus is covered the switch is a hard cutover commit.
@@ -81,6 +84,10 @@ from a deserialized frozen plan in a fresh process.
   keep `QrlValue.captures` empty.
 - When an authored core import is replaced in place, a chunk-import block ends with a blank line
   before module-top hoists; a lone core import does not.
+- CSR template placeholders: a sole hole is a single-space TEXT node (bindable directly); a hole
+  among siblings must be an empty COMMENT — a text placeholder would merge with adjacent text
+  runs. The locator counts child OPS; adjacent text statics (a dropped comment between text
+  runs) would miscount — unhandled until that fixture exists.
 - Rust child placement follows the props: with dynamic props, ALL children (holes included)
   pre-render into a `children_N` buffer BEFORE the open tag; a hole on a prop-less element emits
   inline after `>`. CSR orders per element: node lookups, then `setEvent`, then effects.
@@ -94,6 +101,12 @@ from a deserialized frozen plan in a fresh process.
   `unsupported-runtime-jsx` (NEVER the oxc fallback — that would emit react/jsx-runtime output).
   Legacy additionally embeds function renders for JSX in call arguments — resolve when that
   fixture family lands.
+- CSR child navigation picks the SHORTEST path: `_first`+n×`_next` vs `_last`+m×`_prev`, ties
+  preferring the front walk. Legacy only ever front-walks, so fixtures with a long front path
+  diverge from legacy bytes by design.
+- CSR emits a hole's target resolution together with its effect, after `setEvent` wiring. Legacy
+  splits them around `setEvent` (lookups first) — same behavior, one call site; the counter's
+  csr snapshot is regenerated from the staged pipeline accordingly.
 - QRL extraction conventions follow the ts-optimizer (PR #8872) / rust optimizer, not legacy
   `src`: a chunk reaches a non-exported module binding via an appended
   `export { x as _auto_x };` alias and `import { _auto_x as x }` in the chunk — never via

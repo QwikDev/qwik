@@ -7,6 +7,9 @@ export const enum QwikWord {
   // csr
   CreateTemplate = 'createTemplate',
   FirstChild = '_first',
+  LastChild = '_last',
+  NextSibling = '_next',
+  PreviousSibling = '_prev',
   SetEvent = 'setEvent',
   CreateTextExpressionEffect = 'createTextExpressionEffect',
   CreateTextNodeEffect = 'createTextNodeEffect',
@@ -14,6 +17,7 @@ export const enum QwikWord {
   CreateSsrOpenTag = 'createSsrOpenTag',
   CreateSsrNodeId = 'createSsrNodeId',
   CreateSsrElementTextTarget = 'createSsrElementTextTarget',
+  CreateSsrRangeTextTarget = 'createSsrRangeTextTarget',
   EscapeHTML = 'escapeHTML',
   RenderSsrTextExpression = 'renderSsrTextExpression',
   RenderSsrTextNode = 'renderSsrTextNode',
@@ -32,6 +36,7 @@ export const enum QwikGenWord {
   Text = 'text',
   Effect = 'effect',
   Id = 'id',
+  Marker = 'marker',
   ComponentProps = 'props',
   ComponentContext = 'ctx',
 }

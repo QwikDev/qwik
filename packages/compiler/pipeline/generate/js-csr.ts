@@ -18,6 +18,7 @@ import { UnsupportedError } from '../errors';
 import { generateQwikModule } from './assemble-module';
 import { captureNames, chunkCanonicalFilename } from './emit-chunk';
 import { emitJsSetup, signalReadName } from './emit-setup';
+import { escapeText } from '../html';
 import { foldStaticOp } from './fold-static';
 import type { ComponentEmission, GeneratedNames } from './emit-component';
 import { generateForeignModule } from './foreign';
@@ -120,63 +121,93 @@ class CsrModuleEmitter {
     names: GeneratedNames
   ): string {
     const mounted = this.mountTemplate(component, statements, names);
-    const holes = op.children.filter((child) => child.op === OpKind.Hole);
-    // Node lookups come in document order before event wiring; effects run last.
-    let holeText: string | null = null;
-    if (holes.length > 0) {
-      // A sole hole child binds the template's placeholder text node (deeper positions later).
-      if (op.children.length !== 1) {
-        throw new UnsupportedError('a text hole with sibling children');
-      }
-      holeText = this.next(QwikGenWord.Text);
-      statements.push(`const ${holeText} = ${QwikWord.FirstChild}(${mounted.el});`);
-    }
     for (const prop of op.props) {
-      if (prop.k === PropKind.Event) {
-        this.event(prop.name, prop.handlers, mounted.el, statements);
+      switch (prop.k) {
+        case PropKind.Event: {
+          this.event(prop.name, prop.handlers, mounted.el, statements);
+          break;
+        }
       }
     }
-    if (holeText !== null) {
-      this.textHole(holes[0] as Extract<Op, { op: OpKind.Hole }>, holeText, statements, names);
+    let nodeIndex = 0;
+    for (const child of op.children) {
+      switch (child.op) {
+        case OpKind.Static: {
+          nodeIndex++;
+          break;
+        }
+        case OpKind.Hole: {
+          this.textHole(child, mounted.el, statements, names, op.children.length, nodeIndex++);
+          break;
+        }
+        default: {
+          nodeIndex++;
+          break;
+        }
+      }
     }
-    // Template markup excludes event props; text is escaped for innerHTML parsing.
-    this.hoistTemplate(mounted.template, foldStaticOp(templateOp(op), true));
+    // Template markup excludes event props; templateOp pre-escapes text for innerHTML parsing.
+    this.hoistTemplate(mounted.template, foldStaticOp(templateOp(op), false));
     return mounted.el;
   }
 
-  /** The effect re-runs the expression chunk against the placeholder text node. */
+  /** The effect re-runs the expression chunk against the resolved target text node. */
   private textHole(
     op: Extract<Op, { op: OpKind.Hole }>,
     text: string,
     statements: string[],
-    names: GeneratedNames
+    names: GeneratedNames,
+    nodeCount: number,
+    nodeIndex: number
   ): void {
-    if (op.value.v === ValueKind.Read) {
-      // Signal reads bind the placeholder text node directly — no chunk involved.
-      const signal = signalReadName(this.module, op.value.expr);
-      const effect = this.next(QwikGenWord.Effect);
-      this.imports.add(QwikWord.CreateTextNodeEffect);
-      statements.push(
-        `const ${effect} = ${QwikWord.CreateTextNodeEffect}(${text}, ${signal}, ${names.ctx}.scheduler);`
-      );
-      statements.push(`${names.ctx}.scheduler.notify(${effect});`);
-      return;
+    const path = childPathExpression(text, nodeIndex, nodeCount, this.imports);
+    const target = this.next(QwikGenWord.Text);
+
+    if (nodeCount === 1) {
+      statements.push(`const ${target} = ${path};`);
+    } else if (nodeCount > 1) {
+      // The comment placeholder cannot carry text — swap in an empty text node.
+      const marker = this.next(QwikGenWord.Marker);
+      statements.push(`const ${marker} = ${path};`);
+      statements.push(`const ${target} = ${names.ctx}.document.createTextNode('');`);
+      statements.push(`${marker}.replaceWith(${target});`);
     }
-    if (op.value.v !== ValueKind.Computed || !('qrl' in op.value.resume)) {
-      throw new UnsupportedError('a non-computed text hole');
+
+    switch (op.value.v) {
+      case ValueKind.Read: {
+        // Signal reads bind the placeholder text node directly — no chunk involved.
+        const signal = signalReadName(this.module, op.value.expr);
+        const effect = this.next(QwikGenWord.Effect);
+        this.imports.add(QwikWord.CreateTextNodeEffect);
+        statements.push(
+          `const ${effect} = ${QwikWord.CreateTextNodeEffect}(${target}, ${signal}, ${names.ctx}.scheduler);`
+        );
+        statements.push(`${names.ctx}.scheduler.notify(${effect});`);
+        break;
+      }
+      case ValueKind.Computed: {
+        if (!('qrl' in op.value.resume)) {
+          throw new UnsupportedError('a non-QRL computed text hole');
+        }
+        const use = op.value.resume.qrl;
+        const qrl = this.module.qrls.find((candidate) => candidate.id === use.qrl);
+        if (qrl === undefined) {
+          throw new Error(`pipeline.generateJsCsr: unknown qrl "${use.qrl}"`);
+        }
+        const effect = this.next(QwikGenWord.Effect);
+        const captures = captureNames(this.module, qrl);
+        this.imports.add(QwikWord.CreateTextExpressionEffect);
+        statements.push(
+          `const ${effect} = ${QwikWord.CreateTextExpressionEffect}(${target}, [${captures.join(
+            ', '
+          )}], ${this.chunkSymbol(qrl.id)}, ${names.ctx}.scheduler);`
+        );
+        statements.push(`${names.ctx}.scheduler.notify(${effect});`);
+        break;
+      }
+      default:
+        throw new UnsupportedError('a non-computed text hole');
     }
-    const use = op.value.resume.qrl;
-    const qrl = this.module.qrls.find((candidate) => candidate.id === use.qrl);
-    if (qrl === undefined) {
-      throw new Error(`pipeline.generateJsCsr: unknown qrl "${use.qrl}"`);
-    }
-    const effect = this.next(QwikGenWord.Effect);
-    const captures = captureNames(this.module, qrl);
-    this.imports.add(QwikWord.CreateTextExpressionEffect);
-    statements.push(
-      `const ${effect} = ${QwikWord.CreateTextExpressionEffect}(${text}, [${captures.join(', ')}], ${this.chunkSymbol(qrl.id)}, ${names.ctx}.scheduler);`
-    );
-    statements.push(`${names.ctx}.scheduler.notify(${effect});`);
   }
 
   /** Clones the template into fresh `fragmentN`/`elN` locals. */
@@ -245,15 +276,62 @@ class CsrModuleEmitter {
   }
 }
 
-/** Template shape: events stripped, holes become a single-space placeholder text node. */
+/**
+ * Template shape: events stripped; a sole hole becomes a single-space text node, a hole among
+ * siblings an empty comment (adjacent text would merge with a text placeholder). Text is
+ * pre-escaped HERE so the raw comment placeholder survives the fold.
+ */
 function templateOp(op: Extract<Op, { op: OpKind.Element }>): Op {
+  const placeholder = op.children.length > 1 ? '<!---->' : ' ';
   return {
     ...op,
     props: op.props.filter((prop) => prop.k === PropKind.Static),
     children: op.children.map((child) =>
-      child.op === OpKind.Hole ? { op: OpKind.Static as const, html: ' ' } : child
+      child.op === OpKind.Hole
+        ? { op: OpKind.Static as const, html: placeholder }
+        : escapeTemplateChild(child)
     ),
   };
+}
+
+/** Recursively escapes static text runs, matching what the escaping fold used to do. */
+function escapeTemplateChild(child: Op): Op {
+  if (child.op === OpKind.Static) {
+    return { ...child, html: escapeText(child.html) };
+  }
+  if (child.op === OpKind.Element) {
+    return { ...child, children: child.children.map(escapeTemplateChild) };
+  }
+  return child;
+}
+
+/**
+ * Shortest navigation to the template child at `index` of `nodeCount` nodes; ties prefer the front
+ * walk — the only shape the legacy oracle emits.
+ */
+export function childPathExpression(
+  el: string,
+  index: number,
+  nodeCount: number,
+  imports: Set<string>
+): string {
+  const stepsFromBack = nodeCount - 1 - index;
+  if (stepsFromBack < index) {
+    imports.add(QwikWord.LastChild);
+    let path = `${QwikWord.LastChild}(${el})`;
+    for (let i = 0; i < stepsFromBack; i++) {
+      imports.add(QwikWord.PreviousSibling);
+      path = `${QwikWord.PreviousSibling}(${path})`;
+    }
+    return path;
+  }
+  imports.add(QwikWord.FirstChild);
+  let path = `${QwikWord.FirstChild}(${el})`;
+  for (let i = 0; i < index; i++) {
+    imports.add(QwikWord.NextSibling);
+    path = `${QwikWord.NextSibling}(${path})`;
+  }
+  return path;
 }
 
 /** `fragment0`, `el0`, `tmpl0`, … — one counter per prefix. */

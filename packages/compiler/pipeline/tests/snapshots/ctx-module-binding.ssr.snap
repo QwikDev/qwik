@@ -1,0 +1,18 @@
+==INPUT==
+
+const ctx = 1;
+export default () => {
+  return <p>Hello Qwik</p>;
+};
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+const ctx = 1;
+export default (props, ctx0) => {
+  return '<p>Hello Qwik</p>';
+};
+== SSR DIAGNOSTICS ==
+
+[]

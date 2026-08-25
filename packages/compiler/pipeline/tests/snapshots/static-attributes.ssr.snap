@@ -1,0 +1,16 @@
+==INPUT==
+
+export default () => {
+  return <main className="shell" htmlFor="x" hidden aria-hidden="false" title="A&B"></main>;
+};
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+export default (props, ctx) => {
+  return '<main class="shell" for="x" hidden aria-hidden="false" title="A&amp;B"></main>';
+};
+== SSR DIAGNOSTICS ==
+
+[]

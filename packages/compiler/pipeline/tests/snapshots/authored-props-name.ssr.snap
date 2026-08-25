@@ -1,0 +1,16 @@
+==INPUT==
+
+export default (myProps) => {
+  return <p>Hello Qwik</p>;
+};
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+export default (myProps, ctx) => {
+  return '<p>Hello Qwik</p>';
+};
+== SSR DIAGNOSTICS ==
+
+[]

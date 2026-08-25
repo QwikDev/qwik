@@ -1,0 +1,48 @@
+==INPUT==
+
+export default () => {
+  return <button onClick$={() => console.log(1)}>go</button>;
+};
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { _first, setEvent, createTemplate } from '@qwik.dev/core';
+import { component_q_e_click_segment_0_2xwyg1cinvmpz } from './component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz';
+
+const default_tmpl0 = createTemplate('<button>go</button>');
+export default (props, ctx) => {
+  const fragment0 = default_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  setEvent(el0, 'q-e:click', component_q_e_click_segment_0_2xwyg1cinvmpz);
+  return el0;
+};
+============================= src/component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz.js (ENTRY POINT)==
+
+export const component_q_e_click_segment_0_2xwyg1cinvmpz = () => {
+  return console.log(1);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_0_2xwyg1cinvmpz",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_0",
+  "hash": "2xwyg1cinvmpz",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    39,
+    70
+  ],
+  "paramNames": []
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

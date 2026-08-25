@@ -1,0 +1,21 @@
+==INPUT==
+
+export default () => {
+  return (
+    <p>
+      one
+      two
+    </p>
+  );
+};
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+export default (props, ctx) => {
+  return '<p>one two</p>';
+};
+== SSR DIAGNOSTICS ==
+
+[]

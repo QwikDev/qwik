@@ -1,0 +1,18 @@
+==INPUT==
+
+const title = 'Hello';
+export default () => {
+  return <p>Hello Qwik</p>;
+};
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+const title = 'Hello';
+export default (props, ctx) => {
+  return '<p>Hello Qwik</p>';
+};
+== SSR DIAGNOSTICS ==
+
+[]

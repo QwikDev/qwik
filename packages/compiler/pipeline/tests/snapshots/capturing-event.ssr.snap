@@ -1,0 +1,61 @@
+==INPUT==
+
+import { useSignal } from '@qwik.dev/core';
+export default () => {
+  const count = useSignal(0);
+  return <button onClick$={() => count.value++}>go</button>;
+};
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { useSignal, createSsrOpenTag, _noopQrl } from '@qwik.dev/core';
+const q_component_q_e_click_segment_0_2xwyg1cinvmpz = /*#__PURE__*/ _noopQrl(
+  'component_q_e_click_segment_0_2xwyg1cinvmpz'
+);
+export default (props, ctx) => {
+  const count = useSignal(0);
+  return [
+    createSsrOpenTag(
+      '<button',
+      ctx.eventAttr('q-e:click', q_component_q_e_click_segment_0_2xwyg1cinvmpz.w([count])),
+      '>'
+    ),
+    'go</button>',
+  ];
+};
+============================= src/component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_q_e_click_segment_0_2xwyg1cinvmpz = () => {
+  const count = _captures[0];
+  return count.value++;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_0_2xwyg1cinvmpz",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_0",
+  "hash": "2xwyg1cinvmpz",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    112,
+    142
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

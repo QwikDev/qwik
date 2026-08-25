@@ -1,0 +1,53 @@
+==INPUT==
+
+export default () => {
+  return <button onClick$={() => console.log(1)}>go</button>;
+};
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { createSsrOpenTag, _noopQrl } from '@qwik.dev/core';
+
+const q_component_q_e_click_segment_0_2xwyg1cinvmpz = /*#__PURE__*/ _noopQrl(
+  'component_q_e_click_segment_0_2xwyg1cinvmpz'
+);
+export default (props, ctx) => {
+  return [
+    createSsrOpenTag(
+      '<button',
+      ctx.eventAttr('q-e:click', q_component_q_e_click_segment_0_2xwyg1cinvmpz),
+      '>'
+    ),
+    'go</button>',
+  ];
+};
+============================= src/component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz.js (ENTRY POINT)==
+
+export const component_q_e_click_segment_0_2xwyg1cinvmpz = () => {
+  return console.log(1);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_0_2xwyg1cinvmpz",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_0",
+  "hash": "2xwyg1cinvmpz",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": false,
+  "loc": [
+    39,
+    70
+  ],
+  "paramNames": []
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

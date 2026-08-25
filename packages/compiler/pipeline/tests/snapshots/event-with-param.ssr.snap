@@ -1,0 +1,55 @@
+==INPUT==
+
+export default () => {
+  return <button onDblClick$={(ev) => console.log(ev)}>go</button>;
+};
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { createSsrOpenTag, _noopQrl } from '@qwik.dev/core';
+
+const q_component_q_e_dblclick_segment_0_3cy9sja0qxi3h = /*#__PURE__*/ _noopQrl(
+  'component_q_e_dblclick_segment_0_3cy9sja0qxi3h'
+);
+export default (props, ctx) => {
+  return [
+    createSsrOpenTag(
+      '<button',
+      ctx.eventAttr('q-e:dblclick', q_component_q_e_dblclick_segment_0_3cy9sja0qxi3h),
+      '>'
+    ),
+    'go</button>',
+  ];
+};
+============================= src/component.tsx_component_q_e_dblclick_segment_0_3cy9sja0qxi3h.js (ENTRY POINT)==
+
+export const component_q_e_dblclick_segment_0_3cy9sja0qxi3h = (ev) => {
+  return console.log(ev);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_dblclick_segment_0_3cy9sja0qxi3h",
+  "entry": null,
+  "displayName": "component_q_e_dblclick_segment_0",
+  "hash": "3cy9sja0qxi3h",
+  "canonicalFilename": "component.tsx_component_q_e_dblclick_segment_0_3cy9sja0qxi3h",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onDblClick$",
+  "captures": false,
+  "loc": [
+    39,
+    76
+  ],
+  "paramNames": [
+    "ev"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

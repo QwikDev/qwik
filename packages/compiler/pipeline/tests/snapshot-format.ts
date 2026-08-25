@@ -7,12 +7,10 @@ import type { TransformOutput } from '@qwik.dev/optimizer';
 
 export async function snapshotResult(
   code: string,
-  result: { ssr: TransformOutput; csr: TransformOutput }
+  label: 'SSR' | 'CSR',
+  result: TransformOutput
 ): Promise<string> {
-  let output = `==INPUT==\n\n${code}`;
-  output += await snapshotTransformOutput('SSR', result.ssr);
-  output += await snapshotTransformOutput('CSR', result.csr);
-  return output;
+  return `==INPUT==\n\n${code}` + (await snapshotTransformOutput(label, result));
 }
 
 async function snapshotTransformOutput(label: string, result: TransformOutput): Promise<string> {

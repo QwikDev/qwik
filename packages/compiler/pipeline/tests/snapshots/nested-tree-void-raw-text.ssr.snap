@@ -1,0 +1,16 @@
+==INPUT==
+
+export default () => {
+  return <section><h1 title="hi">A&B</h1><br/><p>x</p></section>;
+};
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+export default (props, ctx) => {
+  return '<section><h1 title="hi">A&B</h1><br><p>x</p></section>';
+};
+== SSR DIAGNOSTICS ==
+
+[]

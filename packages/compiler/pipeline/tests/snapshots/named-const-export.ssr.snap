@@ -1,0 +1,16 @@
+==INPUT==
+
+export const App = () => {
+  return <p>Hello Qwik</p>;
+};
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+export const App = (props, ctx) => {
+  return '<p>Hello Qwik</p>';
+};
+== SSR DIAGNOSTICS ==
+
+[]

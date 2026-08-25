@@ -1,0 +1,22 @@
+==INPUT==
+
+export const Header = () => {
+  return <h1>Hi</h1>;
+};
+export default () => {
+  return <p>Hello Qwik</p>;
+};
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+export const Header = (props, ctx) => {
+  return '<h1>Hi</h1>';
+};
+export default (props, ctx) => {
+  return '<p>Hello Qwik</p>';
+};
+== SSR DIAGNOSTICS ==
+
+[]

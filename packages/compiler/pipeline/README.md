@@ -21,11 +21,11 @@ generateRustSsr(serverLinkedPlan, entry, options)    -> native project sources
 | `link/`     | `linkPlans` + `ResolverSnapshot`/`PluginSnapshot`/`LinkEntry`; `complete` flag semantics                                                                                                                                                                                                                                                                          |
 | `generate/` | `generateJsSsr` (baseline), `generateJsCsr`, `generateRustSsr`; `GenerateOutput`                                                                                                                                                                                                                                                                                  |
 | `compat/`   | `transformModules` wrapper (hostless snapshots, `{kind:'module'}` roots)                                                                                                                                                                                                                                                                                          |
-| `tests/`    | schema gates + flow smoke (green) + differential-oracle harness (`test.todo` per slice)                                                                                                                                                                                                                                                                           |
+| `tests/`    | schema gates, flow smoke, per-unit tests, rust crate goldens, and full-output file snapshots (`tests/snapshots/`, `test.todo` per pending slice)                                                                                                                                                                                                                  |
 
 ## Current state
 
-Live byte-parity with the legacy oracle (SSR + CSR differential, Rust goldens) covers: foreign
+Golden coverage (SSR + CSR full-`TransformOutput` file snapshots seeded from the legacy oracle, plus rust crate goldens) spans: foreign
 passthrough; static components (all supported declaration forms, attrs, void tags, JSX text,
 sibling statements, generated-name allocation, authored param reuse); element event handlers
 (QRL identity, chunks, `_noopQrl` hoists, `setEvent` wiring); dynamic text holes (invoked-segment
@@ -41,9 +41,12 @@ pending. Everything unsupported throws `UnsupportedError`; invalid authored code
 
 ## Workflow (vertical slices — DESIGN.md "Phases")
 
-Each slice implements analyse → link → generate end-to-end for a fixture family and must match
-the oracle's full `TransformOutput` field-by-field before the next slice starts. No reverse
-adapter, no feature flag: after complete differential parity the switch is a hard cutover commit.
+Each slice implements analyse → link → generate end-to-end for a fixture family. Per fixture the
+gate is a file snapshot of the full `TransformOutput` (`tests/snapshots/`), SEEDED from the legacy
+oracle (`../src`) while it exists — write the failing snapshot first, implement until green.
+`vitest -u` regenerates from the STAGED pipeline, so review every snapshot diff against the
+fixture's intent (and the oracle, until cutover) before accepting. No reverse adapter, no feature
+flag: once the fixture corpus is covered the switch is a hard cutover commit.
 
 Slice gates, always:
 
@@ -59,8 +62,8 @@ from a deserialized frozen plan in a fresh process.
 
 ## Parity traps learned from the oracle (keep for slice 1)
 
-- The oracle runs LIVE in the differential tests — never reverse-engineer bytes from prettier
-  snapshots in `../src/snapshots` (those are formatted, not raw output).
+- Seed snapshot bytes from a LIVE legacy run — never from the prettier snapshots in
+  `../src/snapshots` (those are formatted, not raw output).
 - Import order in the emitted `@qwik.dev/core` line is REQUEST order, not alphabetical.
 - Static component text: whole-declaration rewrite via `emit-component.ts` forms; static text is
   NOT escaped, attrs go through `escapeAttr`; `<br/>` → `<br>`; `JSON.stringify` quoting.
@@ -96,6 +99,15 @@ from a deserialized frozen plan in a fresh process.
   `export { x as _auto_x };` alias and `import { _auto_x as x }` in the chunk — never via
   `_captures`. Legacy's bare `export { x }` is its own drift; diverge from it on this fixture
   family.
+- `useOnDocument$`/`useOnWindow$`/element-less `useVisibleTask$` carriers are emitted STATICALLY
+  when that slice lands: hook presence is always compile-time knowledge (hooks are unconditional
+  setup statements; custom hooks resolve via the linker capability closure), and a
+  `<script hidden q-d:…>` is valid in any parent, so the generators emit it inline in the
+  component's own markup (SSR bytes + CSR template — re-renders recreate it). No runtime
+  splicing, no head relocation: legacy's `applyToFirstElement`/`headlessCarrier`/
+  `relocateHeadlessCarriers` machinery existed only because a runtime-invented, unmanaged node
+  had to survive re-renders, and it dies at cutover (taking the `openTag` record flag's last
+  consumer with it).
 
 ## Pending prerequisites from DESIGN.md Phase 0 (not yet done)
 

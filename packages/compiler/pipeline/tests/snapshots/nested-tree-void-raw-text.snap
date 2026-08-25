@@ -1,0 +1,31 @@
+==INPUT==
+
+export default () => {
+  return <section><h1 title="hi">A&B</h1><br/><p>x</p></section>;
+};
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+export default (props, ctx) => {
+  return '<section><h1 title="hi">A&B</h1><br><p>x</p></section>';
+};
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { _first, createTemplate } from '@qwik.dev/core';
+
+const default_tmpl0 = createTemplate('<section><h1 title="hi">A&amp;B</h1><br><p>x</p></section>');
+export default (props, ctx) => {
+  const fragment0 = default_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  return el0;
+};
+== CSR DIAGNOSTICS ==
+
+[]

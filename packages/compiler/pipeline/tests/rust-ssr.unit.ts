@@ -236,6 +236,85 @@ describe('generateRustSsr', () => {
     );
   });
 
+  test('text hole with sibling children matches the captured crate output', async () => {
+    const plan = await analyseModule(
+      {
+        path: 'src/component.tsx',
+        code: 'export default (props) => {\n  return <p>a{props.title}b</p>;\n};\n',
+      },
+      { transpileTs: true }
+    );
+    const linked = linkPlans(
+      [plan],
+      [{ kind: EntryKind.Module, module: 'src/component.tsx' }],
+      serverSpecialization(),
+      { edges: {} },
+      { claims: [], policies: [], emissions: [] },
+      true
+    );
+    if (linked.kind !== LinkResultKind.Linked) {
+      throw new Error('expected linked');
+    }
+    const generated = await generateRustSsr(linked.plan, 0, {});
+    expect(generated.modules[0].code).toBe(
+      'pub fn render_default(ctx: &mut qwik::render::SsrContext, out: &mut String, props: &std::rc::Rc<qwik::serdes::SerdesValue>) {\n' +
+        '    let props = std::rc::Rc::clone(props);\n' +
+        '    let element_id_0_0 = ctx.next_id();\n' +
+        '    out.push_str("<p");\n' +
+        '    out.push_str(&format!(" q:id=\\"{}\\"", element_id_0_0));\n' +
+        '    out.push_str(">a<!t>");\n' +
+        '    ctx.serializer.add_root(std::rc::Rc::clone(&props));\n' +
+        '    let mut tracked_1: Vec<std::rc::Rc<qwik::serdes::SerdesValue>> = Vec::new();\n' +
+        '    let value_1 = qwik::render::member_read(&props, "title", &mut tracked_1);\n' +
+        '    if !tracked_1.is_empty() {\n' +
+        '        ctx.subscribe_text_expression(&tracked_1, element_id_0_0, 0, vec![std::rc::Rc::clone(&props), ], std::rc::Rc::new(qwik::serdes::SerdesValue::Qrl(qwik::serdes::QrlValue {\n' +
+        '        chunk: "component.tsx_component_text_segment_0_1fh10fbkzokfc".to_string(), symbol: "component_text_segment_0_1fh10fbkzokfc".to_string(), captures: vec![],\n' +
+        '    })));\n' +
+        '    }\n' +
+        '    out.push_str(&qwik::escape::escape_html(&qwik::render::ssr_text_value(&value_1)));\n' +
+        '    out.push_str("<!/t>b</p>");\n' +
+        '}\n'
+    );
+  });
+
+  test('signal-read hole with sibling children matches the captured crate output (locals renumbered)', async () => {
+    const plan = await analyseModule(
+      {
+        path: 'src/component.tsx',
+        code: "import { useSignal } from '@qwik.dev/core';\nexport default () => {\n  const count = useSignal(0);\n  return <p>Count: {count.value}!</p>;\n};\n",
+      },
+      { transpileTs: true }
+    );
+    const linked = linkPlans(
+      [plan],
+      [{ kind: EntryKind.Module, module: 'src/component.tsx' }],
+      serverSpecialization(),
+      { edges: {} },
+      { claims: [], policies: [], emissions: [] },
+      true
+    );
+    if (linked.kind !== LinkResultKind.Linked) {
+      throw new Error('expected linked');
+    }
+    const generated = await generateRustSsr(linked.plan, 0, {});
+    // `local_1` vs the crate's `local_2`: local numbering follows each plan's binding table.
+    expect(generated.modules[0].code).toBe(
+      'pub fn render_default(ctx: &mut qwik::render::SsrContext, out: &mut String) {\n' +
+        '    let local_1 = std::rc::Rc::new(qwik::serdes::SerdesValue::Signal(\n' +
+        '        std::cell::RefCell::new(qwik::serdes::SignalState { value: std::rc::Rc::new(qwik::serdes::SerdesValue::Number(0f64)), subs: Vec::new() }),\n' +
+        '    ));\n' +
+        '    let element_id_0_0 = ctx.next_id();\n' +
+        '    out.push_str("<p");\n' +
+        '    out.push_str(&format!(" q:id=\\"{}\\"", element_id_0_0));\n' +
+        '    out.push_str(">Count: <!t>");\n' +
+        '    ctx.serializer.add_root(std::rc::Rc::clone(&local_1));\n' +
+        '    ctx.subscribe_range_text(&local_1, element_id_0_0, 0);\n' +
+        '    out.push_str(&qwik::escape::escape_html(&qwik::render::signal_text(&local_1)));\n' +
+        '    out.push_str("<!/t>!</p>");\n' +
+        '}\n'
+    );
+  });
+
   test('refuses an incomplete link', async () => {
     const linked = linkPlans(
       [],

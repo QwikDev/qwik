@@ -1,0 +1,23 @@
+==INPUT==
+
+const value: number = 1;
+export default value;
+
+== SSR OUTPUT ==
+
+============================= src/plain.ts ==
+
+const value = 1;
+export default value;
+== SSR DIAGNOSTICS ==
+
+[]
+== CSR OUTPUT ==
+
+============================= src/plain.ts ==
+
+const value = 1;
+export default value;
+== CSR DIAGNOSTICS ==
+
+[]

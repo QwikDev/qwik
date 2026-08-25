@@ -20,7 +20,7 @@ import { getRouteLoaderValues } from '../../runtime/src/route-loaders';
 const { prerenderedPaths } = vi.hoisted(() => ({ prerenderedPaths: new Set<string>() }));
 vi.mock('./static-paths', () => ({
   isStaticPath: (method: string, url: URL) =>
-    method === 'GET' && prerenderedPaths.has(url.pathname),
+    (method === 'GET' || method === 'HEAD') && prerenderedPaths.has(url.pathname),
 }));
 
 function createMockServerRequestEvent(
@@ -456,6 +456,18 @@ describe('resolve-request-handler', () => {
 
       expect(() => fixStaticTrailingSlash(requestEv)).toThrow(RedirectMessage);
       expect(requestEv.headers.get('Location')).toBe('/docs/getting-started');
+    });
+
+    it('should redirect a HEAD request', () => {
+      prerenderedPaths.add('/docs/getting-started/');
+      const requestEv = createMockRequestEvent(
+        'http://localhost:3000/docs/getting-started',
+        true,
+        'HEAD'
+      );
+
+      expect(() => fixStaticTrailingSlash(requestEv)).toThrow(RedirectMessage);
+      expect(requestEv.headers.get('Location')).toBe('/docs/getting-started/');
     });
 
     it('should not redirect a non-GET request', () => {

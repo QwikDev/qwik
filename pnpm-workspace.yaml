@@ -23,10 +23,34 @@ ignoredOptionalDependencies:
 overrides:
   '@builder.io/qwik': link:./packages/qwik
   '@builder.io/qwik-city': link:./packages/qwik-router
+  '@fastify/static': 10.1.2
+  adm-zip: 0.6.0
+  brace-expansion@1: 1.1.18
+  brace-expansion@2: 2.1.4
+  brace-expansion@5: 5.0.9
+  dompurify: 3.4.13
+  esbuild@<0.25.0: 0.25.12
+  esbuild@>=0.27.3 <0.28.1: 0.28.2
+  fast-uri: 3.1.6
+  fastify: 5.8.5
+  find-my-way: 9.7.0
+  js-yaml@3: 3.15.1
+  js-yaml@4: 4.3.1
+  sharp: 0.35.0
+  shell-quote: 1.10.0
+  tar: 7.5.22
   typescript: 5.9.3
+  undici@6: 6.28.0
+  undici@7: 7.29.0
+  uuid@11: 11.1.1
+  uuid@13: 13.0.1
+  uuid@8: 11.1.1
+  ws@8: 8.21.3
 
 patchedDependencies:
   density-clustering@1.3.0: patches/density-clustering@1.3.0.patch
   domino@2.1.6: patches/domino@2.1.6.patch
+  extract-zip@2.0.1: patches/extract-zip@2.0.1.patch
+  image-size@2.0.2: patches/image-size@2.0.2.patch
 
 shellEmulator: true

@@ -1,5 +1,23 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.42
+
+### Major Changes
+
+- ✨ `<ErrorBoundary>` moves to `@qwik.dev/core` behind the experimental `errorBoundary` flag and `useErrorBoundary()` is removed. `fallback$` receives `(error, reset)`, `onError$` reports caught errors, and production redacts server-origin errors to a generic message + digest while client-origin errors render as thrown. (by [@maiieul](https://github.com/maiieul) in [#8745](https://github.com/QwikDev/qwik/pull/8745))
+
+### Minor Changes
+
+- ✨ `renderToStream` reports a pre-flush `<ErrorBoundary>` catch via `onBeforeFirstFlush`; the router sends `Cache-Control: no-store` for those pages and for error documents. (by [@maiieul](https://github.com/maiieul) in [#8745](https://github.com/QwikDev/qwik/pull/8745))
+
+### Patch Changes
+
+- 🐞🩹 redact server-origin errors when serializing errored async signals in production (by [@maiieul](https://github.com/maiieul) in [#8745](https://github.com/QwikDev/qwik/pull/8745))
+
+- 🐞🩹 show the `Suspense` fallback when a suspending child is wrapped in an `ErrorBoundary`. (by [@maiieul](https://github.com/maiieul) in [#8745](https://github.com/QwikDev/qwik/pull/8745))
+
+- 🐞🩹 a failed handler chunk import is no longer reported twice for streamed containers (by [@maiieul](https://github.com/maiieul) in [#8745](https://github.com/QwikDev/qwik/pull/8745))
+
 ## 2.0.0-beta.41
 
 ### Major Changes

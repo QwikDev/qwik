@@ -1,0 +1,36 @@
+==INPUT==
+
+import { useSignal } from '@qwik.dev/core';
+export default () => {
+  const count = useSignal(0);
+  return <div class={count.value}>x</div>;
+};
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useSignal,
+  createSsrNodeId,
+  createSsrElementTarget,
+  renderSsrAttr,
+  escapeHTML,
+  maybeThen,
+} from '@qwik.dev/core';
+export default (props, ctx) => {
+  const count = useSignal(0);
+  const id_0 = ctx.nextId();
+  ctx.addRoot(count);
+  const attr_0 = renderSsrAttr(createSsrElementTarget(id_0), 'class', count);
+  return maybeThen(attr_0, (attr_0) => [
+    '<div q:id="',
+    createSsrNodeId(id_0),
+    '"',
+    attr_0 === null ? '' : ' class' + (attr_0 === '' ? '' : '="' + escapeHTML(attr_0) + '"'),
+    '>x</div>',
+  ]);
+};
+== SSR DIAGNOSTICS ==
+
+[]

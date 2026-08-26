@@ -123,9 +123,19 @@ class CsrModuleEmitter {
     const mounted = this.mountTemplate(component, statements, names);
     for (const prop of op.props) {
       switch (prop.k) {
+        case PropKind.Static: {
+          break;
+        }
         case PropKind.Event: {
           this.event(prop.name, prop.handlers, mounted.el, statements);
           break;
+        }
+        case PropKind.Dynamic: {
+          this.dynamicProp(prop, mounted.el, statements, names);
+          break;
+        }
+        default: {
+          throw new UnsupportedError(`the prop "${prop.k}" in a csr element`);
         }
       }
     }
@@ -170,6 +180,46 @@ class CsrModuleEmitter {
         }
       }
     }
+  }
+
+  /** Dynamic attrs bind an effect against the element itself — no lookup, no marker. */
+  private dynamicProp(
+    prop: Extract<Prop, { k: PropKind.Dynamic }>,
+    el: string,
+    statements: string[],
+    names: GeneratedNames
+  ): void {
+    const effect = this.next(QwikGenWord.Effect);
+    switch (prop.value.v) {
+      case ValueKind.Read: {
+        // Signal reads bind directly — no chunk involved.
+        const signal = signalReadName(this.module, prop.value.expr);
+        this.imports.add(QwikWord.CreateAttrEffect);
+        statements.push(
+          `const ${effect} = ${QwikWord.CreateAttrEffect}(${el}, ${JSON.stringify(prop.name)}, ${signal}, ${names.ctx}.scheduler);`
+        );
+        break;
+      }
+      case ValueKind.Computed: {
+        if (!('qrl' in prop.value.resume)) {
+          throw new UnsupportedError('a non-QRL computed prop');
+        }
+        const use = prop.value.resume.qrl;
+        const qrl = this.module.qrls.find((candidate) => candidate.id === use.qrl);
+        if (qrl === undefined) {
+          throw new Error(`pipeline.generateJsCsr: unknown qrl "${use.qrl}"`);
+        }
+        const captures = captureNames(this.module, qrl);
+        this.imports.add(QwikWord.CreateAttrExpressionEffect);
+        statements.push(
+          `const ${effect} = ${QwikWord.CreateAttrExpressionEffect}(${el}, ${JSON.stringify(prop.name)}, [${captures.join(', ')}], ${this.chunkSymbol(qrl.id)}, ${names.ctx}.scheduler);`
+        );
+        break;
+      }
+      default:
+        throw new UnsupportedError(`the dynamic prop value "${prop.value.v}"`);
+    }
+    statements.push(`${names.ctx}.scheduler.notify(${effect});`);
   }
 
   /** The effect re-runs the expression chunk against the resolved target text node. */

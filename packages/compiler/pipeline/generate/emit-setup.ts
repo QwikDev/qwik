@@ -10,7 +10,7 @@ import {
   type Program,
 } from '../schema';
 import { ValueIrKind } from '../../src/expr-ir';
-import { QwikWord } from '../words';
+import { QwikHook } from '../words';
 import { UnsupportedError } from '../errors';
 
 /** Setup statements shared by the JS targets — `const count = useSignal(0);`. */
@@ -28,9 +28,9 @@ export function emitJsSetup(
       throw new UnsupportedError('a non-identifier useSignal binding');
     }
     const name = module.bindings[result.bindings[0]].name;
-    imports.add(QwikWord.UseSignal);
+    imports.add(QwikHook.UseSignal);
     const initial = entry.invoke.initial === undefined ? '' : argJs(module, entry.invoke.initial);
-    return `const ${name} = ${QwikWord.UseSignal}(${initial});`;
+    return `const ${name} = ${QwikHook.UseSignal}(${initial});`;
   });
 }
 

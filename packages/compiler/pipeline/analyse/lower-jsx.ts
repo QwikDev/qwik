@@ -7,6 +7,7 @@ import { InvalidModuleError, UnsupportedError } from '../errors';
 import { eventScopeName } from './events';
 import { lowerEventAttribute } from './lower-event';
 import { lowerTextHole } from './lower-hole';
+import { lowerExpressionValue } from './lower-expr';
 import type { LowerContext } from './lower-context';
 
 /**
@@ -83,16 +84,34 @@ function lowerAttribute(attribute: AstNode, ctx: LowerContext): Prop {
     return lowerEventAttribute(attribute, ctx, authored, scope);
   }
   const value = attribute.value;
-  if (
-    value != null &&
-    !(isNode(value) && value.type === 'Literal' && typeof value.value === 'string')
-  ) {
-    throw new UnsupportedError('a dynamic JSX attribute value');
-  }
-  return {
-    k: PropKind.Static,
-    name: normalizeAttributeName(authored),
+  if (value == null) {
     // Absent authored value = bare attribute (`<main hidden>`).
-    value: value == null ? true : (value.value as string),
-  };
+    return { k: PropKind.Static, name: normalizeAttributeName(authored), value: true };
+  }
+  if (isNode(value)) {
+    switch (value.type) {
+      case 'Literal':
+        return {
+          k: PropKind.Static,
+          name: normalizeAttributeName(authored),
+          value: value.value as string | number | boolean | null,
+        };
+      case 'JSXExpressionContainer':
+        if ((value.expression as AstNode).type === 'JSXEmptyExpression') {
+          return {
+            k: PropKind.Static,
+            name: normalizeAttributeName(authored),
+            value: null,
+          };
+        }
+        const name = normalizeAttributeName(authored);
+        return {
+          k: PropKind.Dynamic,
+          name,
+          value: lowerExpressionValue(value.expression as AstNode, ctx, name),
+          effect: null,
+        };
+    }
+  }
+  throw new UnsupportedError('a dynamic JSX attribute value');
 }

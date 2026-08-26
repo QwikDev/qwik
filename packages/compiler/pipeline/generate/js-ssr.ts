@@ -122,7 +122,9 @@ class SsrModuleEmitter {
 
   private element(op: Extract<Op, { op: OpKind.Element }>, parts: string[]): void {
     const holes = op.children.filter((child) => child.op === OpKind.Hole);
-    const idVariable = holes.length > 0 ? `${QwikGenWord.Id}_${this.idCount++}` : null;
+    const hasDynamicProps = op.props.some((prop) => prop.k === PropKind.Dynamic);
+    const idVariable =
+      holes.length > 0 || hasDynamicProps ? `${QwikGenWord.Id}_${this.idCount++}` : null;
     if (idVariable !== null) {
       // One eager step only, so the id allocates right here; lazy `??=` claiming returns with
       // the multi-step example.
@@ -136,7 +138,7 @@ class SsrModuleEmitter {
       pushMergedStatic(parts, `"`);
     }
     for (const prop of op.props) {
-      this.prop(prop, parts);
+      this.prop(prop, parts, idVariable);
     }
     pushMergedStatic(parts, '>');
 
@@ -246,7 +248,7 @@ class SsrModuleEmitter {
     return qrl;
   }
 
-  private prop(prop: Prop, parts: string[]): void {
+  private prop(prop: Prop, parts: string[], idVariable: string | null): void {
     switch (prop.k) {
       case PropKind.Static: {
         const serialized = serializeAttrValue(prop.name, prop.value ?? null);
@@ -256,6 +258,45 @@ class SsrModuleEmitter {
         pushMergedStatic(
           parts,
           serialized === '' ? ` ${prop.name}` : ` ${prop.name}="${escapeAttr(serialized)}"`
+        );
+        return;
+      }
+      case PropKind.Dynamic: {
+        const step = `${QwikGenWord.Attribute}_${this.tempCount++}`; // new gen-word stem 'attr'
+        this.imports.add(QwikWord.CreateSsrElementTarget);
+        const target = `${QwikWord.CreateSsrElementTarget}(${idVariable})`;
+        switch (prop.value.v) {
+          case ValueKind.Read: {
+            const signal = signalReadName(this.module, prop.value.expr);
+            this.imports.add(QwikWord.RenderSsrAttr);
+            this.pushStep(
+              step,
+              [signal],
+              `${QwikWord.RenderSsrAttr}(${target}, ${JSON.stringify(prop.name)}, ${signal})`
+            );
+            break;
+          }
+          case ValueKind.Computed: {
+            if (!('qrl' in prop.value.resume)) {
+              throw new UnsupportedError('a non-QRL computed prop');
+            }
+            const qrl = this.qrlById(prop.value.resume.qrl.qrl);
+            const captures = captureNames(this.module, qrl);
+            this.imports.add(QwikWord.RenderSsrAttrExpression);
+            this.pushStep(
+              step,
+              captures,
+              `${QwikWord.RenderSsrAttrExpression}(${target}, ${JSON.stringify(prop.name)}, [${captures.join(', ')}], ${this.qrlReference(qrl, true)})`
+            );
+            break;
+          }
+          default:
+            throw new UnsupportedError(`the dynamic prop value "${prop.value.v}"`);
+        }
+        // the open-tag part — attr semantics: null = absent, '' = bare, else quoted+escaped
+        this.imports.add(QwikWord.EscapeHTML);
+        parts.push(
+          `${step} === null ? '' : ' ${prop.name}' + (${step} === '' ? '' : '="' + ${QwikWord.EscapeHTML}(${step}) + '"')`
         );
         return;
       }

@@ -13,17 +13,21 @@ export const enum QwikWord {
   SetEvent = 'setEvent',
   CreateTextExpressionEffect = 'createTextExpressionEffect',
   CreateTextNodeEffect = 'createTextNodeEffect',
+  CreateAttrEffect = 'createAttrEffect',
+  CreateAttrExpressionEffect = 'createAttrExpressionEffect',
   // ssr
   CreateSsrNodeId = 'createSsrNodeId',
   CreateSsrElementTextTarget = 'createSsrElementTextTarget',
   CreateSsrRangeTextTarget = 'createSsrRangeTextTarget',
+  CreateSsrElementTarget = 'createSsrElementTarget',
+  RenderSsrAttr = 'renderSsrAttr',
+  RenderSsrAttrExpression = 'renderSsrAttrExpression',
   EscapeHTML = 'escapeHTML',
   RenderSsrTextExpression = 'renderSsrTextExpression',
   RenderSsrTextNode = 'renderSsrTextNode',
   MaybeThen = 'maybeThen',
   // shared
   NoopQrl = '_noopQrl',
-  UseSignal = 'useSignal',
   Captures = '_captures',
 }
 
@@ -38,6 +42,7 @@ export const enum QwikGenWord {
   Marker = 'marker',
   ComponentProps = 'props',
   ComponentContext = 'ctx',
+  Attribute = 'attr',
 }
 
 /** Authored hook names recognized in component setup. */

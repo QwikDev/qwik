@@ -34,8 +34,11 @@ event handlers capturing signal locals (`.w([count])` SSR wrapper, `setEvent` ca
 `_captures` chunk prelude, rust `QrlValue.captures`); the counter (event + signal-read hole
 composed on one element); text holes with sibling children (SSR range targets + `<!t>`/`<!/t>`
 markers, CSR `<!---->` comment placeholder + marker swap, shortest-path child navigation);
-holes in nested elements (recursive SSR markup records with per-element ids/markers, recursive
-CSR template placeholders + level-composed locator paths). Expressions lower to ValueIR when the
+holes in nested elements (recursive SSR emission with per-element ids/markers, recursive
+CSR template placeholders + level-composed locator paths); dynamic attributes (`renderSsrAttr`/
+`renderSsrAttrExpression` steps with the null/bare/quoted ternary, CSR `createAttrEffect`/
+`createAttrExpressionEffect` against the element, shared `lowerExpressionValue` classification
+with per-attr segment identity). Expressions lower to ValueIR when the
 vocabulary covers them (JS payload fallback), so Rust evaluates text holes natively; only
 IR-uncoverable expressions refuse on the native target. The linker is still a 1:1 materializer — folding, policies, and edges
 pending. Everything unsupported throws `UnsupportedError`; invalid authored code becomes

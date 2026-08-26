@@ -65,7 +65,7 @@ describe('JSX lowering + static folding', () => {
   test('rejects dynamic children, dynamic attributes, spreads, component tags, void children', () => {
     // A dynamic child now lowers to a hole op; only the static FOLD refuses it.
     expect(() => fold('<p>{value}</p>')).toThrow('folding the op "hole"');
-    expect(() => fold('<p title={value}></p>')).toThrow('a dynamic JSX attribute value');
+    expect(() => fold('<p title={value}></p>')).toThrow('folding the non-static prop "dynamic"');
     expect(() => fold('<p {...rest}></p>')).toThrow('a JSX spread attribute');
     expect(() => fold('<Foo></Foo>')).toThrow('a non-native JSX tag');
     expect(() => fold('<br>x</br>')).toThrow('The void element <br> cannot have children.');

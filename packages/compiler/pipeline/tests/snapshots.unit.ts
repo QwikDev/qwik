@@ -250,6 +250,26 @@ export default () => {
 `,
     });
   });
+  test('should bind a dynamic attribute reading props', async () => {
+    await testInput(mode, 'dynamic-attr-props', {
+      code: `export default (props) => {
+  return <p title={props.title}>x</p>;
+};
+`,
+    });
+  });
+
+  test('should bind a signal-read dynamic attribute', async () => {
+    await testInput(mode, 'dynamic-attr-signal', {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
+  const count = useSignal(0);
+  return <div class={count.value}>x</div>;
+};
+`,
+    });
+  });
+
   test('should render an expression hole capturing a signal', async () => {
     await testInput(mode, 'expression-hole-signal', {
       code: `import { useSignal } from '@qwik.dev/core';

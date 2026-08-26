@@ -13,7 +13,6 @@ export default () => {
 import {
   useSignal,
   createSsrNodeId,
-  createSsrOpenTag,
   createSsrElementTextTarget,
   escapeHTML,
   renderSsrTextNode,
@@ -29,13 +28,11 @@ export default (props, ctx) => {
   ctx.addRoot(count);
   const text_0 = renderSsrTextNode(createSsrElementTextTarget(id_0), count);
   return maybeThen(text_0, (text_0) => [
-    createSsrOpenTag(
-      '<button q:id="',
-      createSsrNodeId(id_0),
-      '"',
-      ctx.eventAttr('q-e:click', q_component_q_e_click_segment_0_2xwyg1cinvmpz.w([count])),
-      '>'
-    ),
+    '<button q:id="',
+    createSsrNodeId(id_0),
+    '"',
+    ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_0_2xwyg1cinvmpz.w([count])),
+    '>',
     escapeHTML(text_0),
     '</button>',
   ]);

@@ -84,6 +84,24 @@ describe('SSR context markers', () => {
     expect(result.html).not.toContain(',before');
   });
 
+  test('renders flat output: naked references and eventAttrParts, no records', async () => {
+    const captured = { value: 'captured' };
+    const handler = createQRL('./listener.js', '_handler', () => {}, null, [captured]);
+
+    const result = await renderToString((_props, ctx) => [
+      '<button q:id="',
+      createSsrNodeId(ctx.nextId()),
+      '"',
+      ctx.eventAttrParts('q-e:click', handler),
+      ctx.eventAttrParts('q-e:input', null),
+      '>go</button>',
+    ]);
+
+    expect(result.html).toContain(
+      '<button q:id="0" q-e:click="listener.js#_handler#0">go</button>'
+    );
+  });
+
   test('serializes an inlined bind handler capture once', async () => {
     const result = await renderToString((_props, ctx) => {
       const value = useSignal('server');

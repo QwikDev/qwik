@@ -14,8 +14,6 @@ export const enum QwikWord {
   CreateTextExpressionEffect = 'createTextExpressionEffect',
   CreateTextNodeEffect = 'createTextNodeEffect',
   // ssr
-  CreateSsrOpenTag = 'createSsrOpenTag',
-  CreateSsrMarkup = 'createSsrMarkup',
   CreateSsrNodeId = 'createSsrNodeId',
   CreateSsrElementTextTarget = 'createSsrElementTextTarget',
   CreateSsrRangeTextTarget = 'createSsrRangeTextTarget',

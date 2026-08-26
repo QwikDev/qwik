@@ -71,6 +71,12 @@ export interface SsrRenderContext extends ServerDataContext {
   addRoot(value: unknown): number;
   contextScopeRef(): SsrReferenceChunk;
   eventAttr(name: string, value: unknown, hasMovedCaptures?: boolean): SsrEventAttrChunk;
+  /** Flat-output form: ` name="…"` as string/reference parts, [] when there are no handlers. */
+  eventAttrParts(
+    name: string,
+    value: unknown,
+    hasMovedCaptures?: boolean
+  ): (string | SsrReferenceChunk)[];
   /** Registers a compiler-emitted sync handler; returns its table script the first time. */
   syncFn(key: string, source: string): string;
   wrapRange(rangeId: number, content: SsrOutput): SsrOutput;
@@ -245,6 +251,12 @@ export const renderToStreamCompiled = async <Props = undefined>(
       },
       eventAttr(name, value, hasMovedCaptures = false) {
         return createSsrEventAttr(serializationCtx, name, value, hasMovedCaptures || locale !== '');
+      },
+      eventAttrParts(name, value, hasMovedCaptures = false) {
+        return createSsrEventAttrParts(
+          name,
+          serializeSsrEvent(serializationCtx, name, value, hasMovedCaptures || locale !== '')
+        );
       },
       syncFn(key, source) {
         // one definition per container: repeated uses of the same handler cost nothing

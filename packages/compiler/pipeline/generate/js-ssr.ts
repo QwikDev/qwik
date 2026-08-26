@@ -120,7 +120,7 @@ class SsrModuleEmitter {
     }
   }
 
-  private element(op: Extract<Op, { op: OpKind.Element }>, parts: string[], root = true): void {
+  private element(op: Extract<Op, { op: OpKind.Element }>, parts: string[]): void {
     const holes = op.children.filter((child) => child.op === OpKind.Hole);
     const idVariable = holes.length > 0 ? `${QwikGenWord.Id}_${this.idCount++}` : null;
     if (idVariable !== null) {
@@ -128,26 +128,17 @@ class SsrModuleEmitter {
       // the multi-step example.
       this.statements.push(`const ${idVariable} = ${this.names.ctx}.nextId();`);
     }
-    const open: string[] = [];
-    pushMergedStatic(open, `<${op.tag}`);
+    pushMergedStatic(parts, `<${op.tag}`);
     if (idVariable !== null) {
       this.imports.add(QwikWord.CreateSsrNodeId);
-      pushMergedStatic(open, ` q:id="`);
-      open.push(`${QwikWord.CreateSsrNodeId}(${idVariable})`);
-      pushMergedStatic(open, `"`);
+      pushMergedStatic(parts, ` q:id="`);
+      parts.push(`${QwikWord.CreateSsrNodeId}(${idVariable})`);
+      pushMergedStatic(parts, `"`);
     }
     for (const prop of op.props) {
-      this.prop(prop, open);
+      this.prop(prop, parts);
     }
-    if (root) {
-      // The open-tag record keeps '>' as its own LAST part — useOn splices attrs before it.
-      open.push(JSON.stringify('>'));
-    } else {
-      pushMergedStatic(open, '>');
-    }
-    const record = root ? QwikWord.CreateSsrOpenTag : QwikWord.CreateSsrMarkup;
-    this.imports.add(record);
-    parts.push(`${record}(${open.join(', ')})`);
+    pushMergedStatic(parts, '>');
 
     let textRangeCount = 0;
     for (const child of op.children) {
@@ -164,7 +155,7 @@ class SsrModuleEmitter {
           if (isFullyStaticSubtree(child)) {
             pushMergedStatic(parts, foldStaticOp(child, false));
           } else {
-            this.element(child, parts, false);
+            this.element(child, parts);
           }
           break;
         }
@@ -255,7 +246,7 @@ class SsrModuleEmitter {
     return qrl;
   }
 
-  private prop(prop: Prop, open: string[]): void {
+  private prop(prop: Prop, parts: string[]): void {
     switch (prop.k) {
       case PropKind.Static: {
         const serialized = serializeAttrValue(prop.name, prop.value ?? null);
@@ -263,7 +254,7 @@ class SsrModuleEmitter {
           return;
         }
         pushMergedStatic(
-          open,
+          parts,
           serialized === '' ? ` ${prop.name}` : ` ${prop.name}="${escapeAttr(serialized)}"`
         );
         return;
@@ -279,7 +270,7 @@ class SsrModuleEmitter {
           return captures.length === 0 ? reference : `${reference}.w([${captures.join(', ')}])`;
         });
         const value = values.length === 1 ? values[0] : `[${values.join(', ')}]`;
-        open.push(`${this.names.ctx}.eventAttr(${JSON.stringify(prop.name)}, ${value})`);
+        parts.push(`${this.names.ctx}.eventAttrParts(${JSON.stringify(prop.name)}, ${value})`);
         return;
       }
       default:

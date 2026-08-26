@@ -12,9 +12,7 @@ export default () => {
 
 import {
   useSignal,
-  createSsrOpenTag,
   createSsrNodeId,
-  createSsrMarkup,
   createSsrElementTextTarget,
   escapeHTML,
   renderSsrTextNode,
@@ -26,8 +24,9 @@ export default (props, ctx) => {
   ctx.addRoot(count);
   const text_0 = renderSsrTextNode(createSsrElementTextTarget(id_0), count);
   return maybeThen(text_0, (text_0) => [
-    createSsrOpenTag('<div', '>'),
-    createSsrMarkup('<span q:id="', createSsrNodeId(id_0), '">'),
+    '<div><span q:id="',
+    createSsrNodeId(id_0),
+    '">',
     escapeHTML(text_0),
     '</span></div>',
   ]);

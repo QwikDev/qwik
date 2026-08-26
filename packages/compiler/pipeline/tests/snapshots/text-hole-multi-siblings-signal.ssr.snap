@@ -14,7 +14,6 @@ export default () => {
 import {
   useSignal,
   createSsrNodeId,
-  createSsrOpenTag,
   createSsrRangeTextTarget,
   escapeHTML,
   renderSsrTextNode,
@@ -30,8 +29,9 @@ export default (props, ctx) => {
   const text_1 = renderSsrTextNode(createSsrRangeTextTarget(id_0, 1), count);
   return maybeThen(text_0, (text_0) =>
     maybeThen(text_1, (text_1) => [
-      createSsrOpenTag('<p q:id="', createSsrNodeId(id_0), '"', '>'),
-      '<!t>',
+      '<p q:id="',
+      createSsrNodeId(id_0),
+      '"><!t>',
       escapeHTML(text_0),
       '<!/t> count: <!t>',
       escapeHTML(text_1),

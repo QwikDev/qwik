@@ -8,20 +8,16 @@ export default () => {
 
 ============================= src/component.tsx ==
 
-import { createSsrOpenTag, _noopQrl } from '@qwik.dev/core';
+import { _noopQrl } from '@qwik.dev/core';
 
 const q_component_q_e_click_segment_0_2xwyg1cinvmpz = /*#__PURE__*/ _noopQrl(
   'component_q_e_click_segment_0_2xwyg1cinvmpz'
 );
 export default (props, ctx) => {
   return [
-    createSsrOpenTag(
-      '<button class="cta"',
-      ctx.eventAttr('q-e:click', q_component_q_e_click_segment_0_2xwyg1cinvmpz),
-      ' hidden',
-      '>'
-    ),
-    'go</button>',
+    '<button class="cta"',
+    ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_0_2xwyg1cinvmpz),
+    ' hidden>go</button>',
   ];
 };
 ============================= src/component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz.js (ENTRY POINT)==

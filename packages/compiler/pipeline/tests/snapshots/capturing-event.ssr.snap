@@ -10,19 +10,16 @@ export default () => {
 
 ============================= src/component.tsx ==
 
-import { useSignal, createSsrOpenTag, _noopQrl } from '@qwik.dev/core';
+import { useSignal, _noopQrl } from '@qwik.dev/core';
 const q_component_q_e_click_segment_0_2xwyg1cinvmpz = /*#__PURE__*/ _noopQrl(
   'component_q_e_click_segment_0_2xwyg1cinvmpz'
 );
 export default (props, ctx) => {
   const count = useSignal(0);
   return [
-    createSsrOpenTag(
-      '<button',
-      ctx.eventAttr('q-e:click', q_component_q_e_click_segment_0_2xwyg1cinvmpz.w([count])),
-      '>'
-    ),
-    'go</button>',
+    '<button',
+    ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_0_2xwyg1cinvmpz.w([count])),
+    '>go</button>',
   ];
 };
 ============================= src/component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz.js (ENTRY POINT)==

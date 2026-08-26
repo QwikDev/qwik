@@ -10,7 +10,6 @@ export default (props) => {
 
 import {
   createSsrNodeId,
-  createSsrOpenTag,
   createSsrRangeTextTarget,
   escapeHTML,
   renderSsrTextExpression,
@@ -34,8 +33,9 @@ export default (props, ctx) => {
     q_component_text_segment_0_1fh10fbkzokfc
   );
   return maybeThen(text_0, (text_0) => [
-    createSsrOpenTag('<p q:id="', createSsrNodeId(id_0), '"', '>'),
-    'a<!t>',
+    '<p q:id="',
+    createSsrNodeId(id_0),
+    '">a<!t>',
     escapeHTML(text_0),
     '<!/t>b</p>',
   ]);

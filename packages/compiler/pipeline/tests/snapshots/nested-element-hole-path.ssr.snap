@@ -9,9 +9,7 @@ export default (props) => {
 ============================= src/component.tsx ==
 
 import {
-  createSsrOpenTag,
   createSsrNodeId,
-  createSsrMarkup,
   createSsrRangeTextTarget,
   escapeHTML,
   renderSsrTextExpression,
@@ -35,10 +33,9 @@ export default (props, ctx) => {
     q_component_text_segment_0_1fh10fbkzokfc
   );
   return maybeThen(text_0, (text_0) => [
-    createSsrOpenTag('<div', '>'),
-    '<b>bold</b>',
-    createSsrMarkup('<span q:id="', createSsrNodeId(id_0), '">'),
-    'a<!t>',
+    '<div><b>bold</b><span q:id="',
+    createSsrNodeId(id_0),
+    '">a<!t>',
     escapeHTML(text_0),
     '<!/t>b</span></div>',
   ]);

@@ -25,7 +25,6 @@ import type { Program } from './program';
 import type {
   AssemblyIntent,
   AssemblyKind,
-  ComponentDecl,
   DeclTable,
   HookDecl,
   ModulePlan,
@@ -58,8 +57,6 @@ export interface LinkedModule {
   payloads: Payload[];
   programs: LinkedProgram[];
   qrls: LinkedQrl[];
-  /** Targets/refs inside bodies are linked. */
-  components: ComponentDecl[];
   hooks: HookDecl[];
   callables: ModulePlan['callables'];
   values: ModulePlan['values'];

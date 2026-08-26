@@ -1,9 +1,9 @@
-import type { AstNode } from './ast-types';
-import { isNode } from './ast-types';
+import type { Node } from 'oxc-parser';
+import { isNode, type WalkableNode } from './ast-types';
 import type { LowerContext } from '../lower-context';
 import type { SetupLocal } from '../lower-setup';
 
-export interface OuterRefs {
+export interface CollectedCaptures {
   props: boolean;
   /** Reactive setup locals the boundary captures, in first-read order. */
   locals: { name: string; local: SetupLocal }[];
@@ -15,15 +15,15 @@ export interface OuterRefs {
  * Outer bindings a boundary references: the props param and reactive setup locals are capturable;
  * anything else would emit a chunk referencing names absent from the chunk module — refuse.
  */
-export function collectOuterRefs(
-  node: AstNode,
+export function collectCaptures(
+  node: Node,
   ctx: LowerContext,
   localNames: ReadonlySet<string>
-): OuterRefs {
+): CollectedCaptures {
   let props = false;
-  const locals: OuterRefs['locals'] = [];
+  const locals: CollectedCaptures['locals'] = [];
   let other: string | null = null;
-  const visit = (current: unknown, parent: AstNode | null, key: string | null): void => {
+  const visit = (current: unknown, parent: Node | null, key: string | null): void => {
     if (Array.isArray(current)) {
       for (const item of current) {
         visit(item, parent, key);
@@ -39,7 +39,7 @@ export function collectOuterRefs(
       const isPropertyKey =
         parent?.type === 'Property' && key === 'key' && parent.computed !== true;
       if (!isMemberProperty && !isPropertyKey) {
-        const name = String((current as AstNode & { name: string }).name);
+        const name = current.name;
         if (!localNames.has(name)) {
           const setupLocal = ctx.locals.get(name);
           if (name === ctx.propsParamName) {
@@ -60,11 +60,12 @@ export function collectOuterRefs(
         childKey === 'type' ||
         childKey === 'start' ||
         childKey === 'end' ||
-        childKey === 'range'
+        childKey === 'range' ||
+        childKey === 'parent'
       ) {
         continue;
       }
-      visit(current[childKey], current, childKey);
+      visit((current as WalkableNode)[childKey], current, childKey);
     }
   };
   visit(node, null, null);

@@ -1,5 +1,11 @@
+import type {
+  ArrowFunctionExpression,
+  Directive,
+  JSXElement,
+  Program,
+  Statement,
+} from 'oxc-parser';
 import { DeclarationKind } from '../schema';
-import type { AstNode } from './ast/ast-types';
 import { isNode } from './ast/ast-types';
 import { identifierName, unwrapExpression } from './ast/utils';
 import { UnsupportedError } from '../errors';
@@ -7,22 +13,22 @@ import { UnsupportedError } from '../errors';
 export interface DiscoveredComponent {
   name: string;
   declarationKind: DeclarationKind;
-  arrow: AstNode;
+  arrow: ArrowFunctionExpression;
   /** The authored props param — reused as the emitted props name. */
   param: { name: string; range: [number, number] } | null;
   /** Statements before the return — lowered as component setup. */
-  setupStatements: AstNode[];
-  jsx: AstNode;
-  statement: AstNode;
+  setupStatements: (Directive | Statement)[];
+  jsx: JSXElement;
+  statement: Statement;
 }
 
 /** Exported arrow components whose body is one `return` of fully static JSX. */
-export function discoverComponents(program: AstNode): DiscoveredComponent[] {
+export function discoverComponents(program: Program): DiscoveredComponent[] {
   const found: DiscoveredComponent[] = [];
-  for (const statement of program.body as AstNode[]) {
+  for (const statement of program.body) {
     if (statement.type === 'ExportDefaultDeclaration') {
-      const arrow = statement.declaration as AstNode;
-      if (!isNode(arrow) || arrow.type !== 'ArrowFunctionExpression') {
+      const arrow = statement.declaration;
+      if (arrow.type !== 'ArrowFunctionExpression') {
         throw new UnsupportedError('a default export that is not an arrow function');
       }
       found.push(describeComponent(statement, arrow, 'default', DeclarationKind.DefaultArrow));
@@ -33,7 +39,7 @@ export function discoverComponents(program: AstNode): DiscoveredComponent[] {
       if (declaration.type !== 'VariableDeclaration') {
         continue;
       }
-      const declarators = declaration.declarations as AstNode[];
+      const declarators = declaration.declarations;
       const declarator = declarators[0];
       const name = identifierName(declarator?.id);
       const init = unwrapExpression(declarator?.init);
@@ -60,47 +66,44 @@ export function discoverComponents(program: AstNode): DiscoveredComponent[] {
 }
 
 function describeComponent(
-  statement: AstNode,
-  arrow: AstNode,
+  statement: Statement,
+  arrow: ArrowFunctionExpression,
   name: string,
   declarationKind: DeclarationKind
 ): DiscoveredComponent {
-  const params = arrow.params as AstNode[];
+  const params = arrow.params;
   if (params.length > 1) {
     throw new UnsupportedError('more than one component parameter');
   }
-  if (params.length === 1 && params[0].type !== 'Identifier') {
+  const param = params[0];
+  if (param !== undefined && param.type !== 'Identifier') {
     throw new UnsupportedError('a destructured component parameter');
   }
   const { setupStatements, returned } = componentBody(arrow);
   if (returned === null || returned.type !== 'JSXElement') {
     throw new UnsupportedError('a return value that is not a JSX element');
   }
-  const param = params[0];
   return {
     name,
     declarationKind,
     setupStatements,
     arrow,
-    param:
-      param === undefined
-        ? null
-        : {
-            name: String((param as AstNode & { name: string }).name),
-            range: [param.start, param.end],
-          },
+    param: param === undefined ? null : { name: param.name, range: [param.start, param.end] },
     jsx: returned,
     statement,
   };
 }
 
 /** Setup statements plus the returned expression (concise body, or the final `return`). */
-function componentBody(arrow: AstNode): { setupStatements: AstNode[]; returned: AstNode | null } {
-  const body = arrow.body as AstNode;
+function componentBody(arrow: ArrowFunctionExpression): {
+  setupStatements: (Directive | Statement)[];
+  returned: ReturnType<typeof unwrapExpression>;
+} {
+  const body = arrow.body;
   if (body.type !== 'BlockStatement') {
     return { setupStatements: [], returned: unwrapExpression(body) };
   }
-  const statements = body.body as AstNode[];
+  const statements = body.body;
   const last = statements[statements.length - 1];
   if (last === undefined || last.type !== 'ReturnStatement') {
     throw new UnsupportedError('a component body without a final return statement');

@@ -1,8 +1,8 @@
 import { describe, expect, test } from 'vitest';
 import { BindingScope, VarKind } from '../schema';
-import type { AstNode } from '../analyse/ast/ast-types';
 import { parseModule } from '../analyse/ast/parse';
-import { collectOuterRefs } from '../analyse/ast/capture-analysis';
+import { unwrapExpression } from '../analyse/ast/utils';
+import { collectCaptures } from '../analyse/ast/capture-analysis';
 import { createLowerContext, type LowerContext } from '../analyse/lower-context';
 import { LocalKind, type SetupLocal } from '../analyse/lower-setup';
 import { emptyModulePlan } from './fixtures';
@@ -24,12 +24,18 @@ function contextWith(overrides: Partial<LowerContext>): LowerContext {
 function refsOf(expression: string, ctx: LowerContext, localNames: string[] = []) {
   const parsed = parseModule('t.tsx', `const a = (${expression});`);
   expect(parsed.errors).toEqual([]);
-  const statement = (parsed.program.body as AstNode[])[0];
-  const declarator = (statement.declarations as AstNode[])[0];
-  return collectOuterRefs(declarator.init as AstNode, ctx, new Set(localNames));
+  const statement = parsed.program.body[0];
+  if (statement.type !== 'VariableDeclaration') {
+    throw new Error('expected a variable declaration');
+  }
+  const node = unwrapExpression(statement.declarations[0].init);
+  if (node === null) {
+    throw new Error('expected an expression');
+  }
+  return collectCaptures(node, ctx, new Set(localNames));
 }
 
-describe('collectOuterRefs', () => {
+describe('collectCaptures', () => {
   test('a setup local is collected with its SetupLocal row', () => {
     const ctx = contextWith({ locals: new Map([['count', COUNT_LOCAL]]) });
     expect(refsOf('() => count.value++', ctx)).toEqual({

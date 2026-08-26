@@ -9,7 +9,6 @@ import {
   VarKind,
 } from '../schema';
 import { ValueIrKind } from '../../src/expr-ir';
-import type { AstNode } from '../analyse/ast/ast-types';
 import { parseModule } from '../analyse/ast/parse';
 import { createLowerContext } from '../analyse/lower-context';
 import { LocalKind, lowerSetup } from '../analyse/lower-setup';
@@ -27,7 +26,7 @@ function lower(statement: string, coreBindings: [string, string][] = [['useSigna
     declarationRange: null,
   });
   const ctx = createLowerContext(plan, 't.tsx', undefined, new Map(coreBindings));
-  return { ...lowerSetup(parsed.program.body as AstNode[], ctx), ctx };
+  return { ...lowerSetup(parsed.program.body, ctx), ctx };
 }
 
 describe('lowerSetup / useSignal', () => {

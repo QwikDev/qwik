@@ -156,7 +156,6 @@ function materializeModule(plan: ModulePlan): LinkedModule {
       ...qrl,
       delivery: { d: DeliveryKind.Chunk, chunkBase: `${plan.path}_${qrl.name}`, resolved: true },
     })),
-    components: plan.components,
     hooks: plan.hooks,
     callables: plan.callables,
     values: plan.values,

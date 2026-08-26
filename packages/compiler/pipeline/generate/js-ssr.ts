@@ -2,12 +2,13 @@
 import {
   Environment,
   HandlerKind,
+  QrlBodyKind,
+  QrlPayloadKind,
   ModuleKind,
   OpKind,
   PropKind,
   ProgramBodyKind,
   ValueKind,
-  type ComponentDecl,
   type LinkedModule,
   type LinkedPlan,
   type LinkedQrl,
@@ -17,8 +18,14 @@ import {
 import { QwikGenWord, QwikWord } from '../words';
 import { escapeAttr, serializeAttrValue } from '../html';
 import { UnsupportedError } from '../errors';
-import { generateQwikModule } from './assemble-module';
-import { captureNames, chunkFunctionText } from './emit-chunk';
+import { generateQwikModule, type QwikModuleEmitter } from './assemble-module';
+import {
+  captureNames,
+  emptyFunctionEmission,
+  functionText,
+  sourceFunctionEmission,
+  type FunctionEmission,
+} from './emit-chunk';
 import { emitJsSetup, signalReadName } from './emit-setup';
 import { foldStaticOp, isFullyStaticSubtree } from './fold-static';
 import type { ComponentEmission, GeneratedNames } from './emit-component';
@@ -62,7 +69,7 @@ interface QrlUsage {
   invoked: boolean;
 }
 
-class SsrModuleEmitter {
+class SsrModuleEmitter implements QwikModuleEmitter {
   readonly imports = new Set<string>();
   readonly chunkImports: string[] = [];
   readonly hoists: string[] = [];
@@ -75,13 +82,17 @@ class SsrModuleEmitter {
 
   constructor(private readonly module: LinkedModule) {}
 
-  emitProgram(component: ComponentDecl, names: GeneratedNames): ComponentEmission {
-    const body = this.module.programs[component.body].body;
+  emitProgram(qrl: LinkedQrl, names: GeneratedNames): ComponentEmission {
+    if (qrl.body.b !== QrlBodyKind.Program) {
+      throw new Error(`pipeline.generateJsSsr: splicing the non-program qrl "${qrl.id}"`);
+    }
+    const program = this.module.programs[qrl.body.program];
+    const body = program.body;
     if (body.kind !== ProgramBodyKind.Ops) {
       throw new Error('pipeline.generateJsSsr: js-bodied programs not implemented yet');
     }
     this.names = names;
-    this.statements = emitJsSetup(this.module, this.module.programs[component.body], this.imports);
+    this.statements = emitJsSetup(this.module, program, this.imports);
     this.asyncSteps = [];
     this.idCount = 0;
     this.tempCount = 0;
@@ -100,6 +111,27 @@ class SsrModuleEmitter {
     // QRL hoists flush after the body so their imports keep the request order.
     this.flushQrlHoists();
     return { statements: this.statements, value };
+  }
+
+  qrlFunction(qrl: LinkedQrl): FunctionEmission {
+    if (qrl.body.b === QrlBodyKind.Program) {
+      return this.programEmission(qrl.body.program);
+    }
+    return sourceFunctionEmission(this.module, qrl);
+  }
+
+  /** SSR arms fold their program to markup; an empty program renders `[]`. */
+  private programEmission(program: number): FunctionEmission {
+    const body = this.module.programs[program].body;
+    if (body.kind !== ProgramBodyKind.Ops) {
+      throw new UnsupportedError('a js-bodied arm program');
+    }
+    const emission = emptyFunctionEmission();
+    emission.value =
+      body.ops.length === 0
+        ? '[]'
+        : JSON.stringify(body.ops.map((op) => foldStaticOp(op, false)).join(''));
+    return emission;
   }
 
   private op(op: Op, parts: string[]): void {
@@ -161,6 +193,10 @@ class SsrModuleEmitter {
           }
           break;
         }
+        case OpKind.Branch: {
+          this.branch(child, parts);
+          break;
+        }
         default: {
           if (!isFullyStaticSubtree(child)) {
             throw new UnsupportedError('a dynamic child inside an element record');
@@ -172,6 +208,42 @@ class SsrModuleEmitter {
     if (!op.void) {
       pushMergedStatic(parts, `</${op.tag}>`);
     }
+  }
+
+  /** A branch renders between `<!b=N>`…`<!/b>` markers; arms swap on the client by range. */
+  private branch(op: Extract<Op, { op: OpKind.Branch }>, parts: string[]): void {
+    const idVariable = `${QwikGenWord.BranchId}_${this.idCount++}`;
+    this.statements.push(`const ${idVariable} = ${this.names.ctx}.nextId();`);
+    if (op.condition.v !== ValueKind.Qrl) {
+      throw new UnsupportedError('a non-QRL branch condition');
+    }
+    const { ref: condition, captures } = this.useQrl(op.condition.use.qrl, true);
+    const thenRef = this.qrlReference(this.armQrl(op.then), true);
+    const elseRef = op.else === null ? 'undefined' : this.qrlReference(this.armQrl(op.else), true);
+    this.imports.add(QwikWord.RenderSsrBranch);
+    const step = `${QwikGenWord.Branch}_${this.tempCount++}`;
+    this.pushStep(
+      step,
+      captures,
+      `${QwikWord.RenderSsrBranch}(${this.names.ctx}, ${idVariable}, ${condition}, ${thenRef}, ${elseRef})`
+    );
+    pushMergedStatic(parts, '<!b=');
+    this.imports.add(QwikWord.CreateSsrNodeId);
+    parts.push(`${QwikWord.CreateSsrNodeId}(${idVariable})`);
+    pushMergedStatic(parts, '>');
+    parts.push(step);
+    pushMergedStatic(parts, '<!/b>');
+  }
+
+  /** Arm programs carry no id of their own — the QRL row pointing at the program names them. */
+  private armQrl(program: number): LinkedQrl {
+    const qrl = this.module.qrls.find(
+      (candidate) => candidate.body.b === QrlBodyKind.Program && candidate.body.program === program
+    );
+    if (qrl === undefined) {
+      throw new Error(`pipeline.generateJsSsr: no qrl for the arm program ${program}`);
+    }
+    return qrl;
   }
 
   private textHole(
@@ -207,8 +279,7 @@ class SsrModuleEmitter {
         if (!('qrl' in op.value.resume)) {
           throw new UnsupportedError('a non-QRL computed text hole');
         }
-        const qrl = this.qrlById(op.value.resume.qrl.qrl);
-        const captures = captureNames(this.module, qrl);
+        const { ref, captures } = this.useQrl(op.value.resume.qrl.qrl, true);
         this.imports.add(QwikWord.RenderSsrTextExpression);
         const createTextFn = hasSiblings
           ? `${QwikWord.CreateSsrRangeTextTarget}(${idVariable}, ${textRangeCount})`
@@ -216,7 +287,7 @@ class SsrModuleEmitter {
         this.pushStep(
           step,
           captures,
-          `${QwikWord.RenderSsrTextExpression}(${createTextFn}, [${captures.join(', ')}], ${this.qrlReference(qrl, true)})`
+          `${QwikWord.RenderSsrTextExpression}(${createTextFn}, [${captures.join(', ')}], ${ref})`
         );
         parts.push(`${QwikWord.EscapeHTML}(${step})`);
         break;
@@ -238,6 +309,27 @@ class SsrModuleEmitter {
     }
     this.statements.push(`const ${step} = ${callExpr};`);
     this.asyncSteps.push(step);
+  }
+
+  /**
+   * Emission-side use of a QRL: the reference text with its capture delivery baked in. Function
+   * payloads wear `.w([captures])` (their mirror restores via `_captures`); Value payloads keep a
+   * bare reference — the call site passes `captures` as an array argument.
+   */
+  private useQrl(
+    id: string,
+    invoked: boolean
+  ): { qrl: LinkedQrl; ref: string; captures: string[] } {
+    const qrl = this.qrlById(id);
+    const captures = captureNames(this.module, qrl);
+    let ref = this.qrlReference(qrl, invoked);
+    if (qrl.payloadKind === QrlPayloadKind.Function && captures.length > 0) {
+      ref = `${ref}.w([${captures.join(', ')}])`;
+      if (invoked) {
+        this.imports.add(QwikWord.Captures);
+      }
+    }
+    return { qrl, ref, captures };
   }
 
   private qrlById(id: string): LinkedQrl {
@@ -280,13 +372,12 @@ class SsrModuleEmitter {
             if (!('qrl' in prop.value.resume)) {
               throw new UnsupportedError('a non-QRL computed prop');
             }
-            const qrl = this.qrlById(prop.value.resume.qrl.qrl);
-            const captures = captureNames(this.module, qrl);
+            const { ref, captures } = this.useQrl(prop.value.resume.qrl.qrl, true);
             this.imports.add(QwikWord.RenderSsrAttrExpression);
             this.pushStep(
               step,
               captures,
-              `${QwikWord.RenderSsrAttrExpression}(${target}, ${JSON.stringify(prop.name)}, [${captures.join(', ')}], ${this.qrlReference(qrl, true)})`
+              `${QwikWord.RenderSsrAttrExpression}(${target}, ${JSON.stringify(prop.name)}, [${captures.join(', ')}], ${ref})`
             );
             break;
           }
@@ -305,10 +396,7 @@ class SsrModuleEmitter {
           if (handler.h !== HandlerKind.Value || handler.value.v !== ValueKind.Qrl) {
             throw new UnsupportedError('a non-QRL event handler');
           }
-          const qrl = this.qrlById(handler.value.use.qrl);
-          const reference = this.qrlReference(qrl);
-          const captures = captureNames(this.module, qrl);
-          return captures.length === 0 ? reference : `${reference}.w([${captures.join(', ')}])`;
+          return this.useQrl(handler.value.use.qrl, false).ref;
         });
         const value = values.length === 1 ? values[0] : `[${values.join(', ')}]`;
         parts.push(`${this.names.ctx}.eventAttrParts(${JSON.stringify(prop.name)}, ${value})`);
@@ -334,7 +422,11 @@ class SsrModuleEmitter {
       const { qrl } = usage;
       if (usage.invoked) {
         // The server invokes render expressions in-module: mirror fn + `.s()` registration.
-        this.hoists.push(`const ${qrl.name} = ${chunkFunctionText(this.module, qrl)};`);
+        const emission = this.qrlFunction(qrl);
+        for (const name of emission.imports) {
+          this.imports.add(name);
+        }
+        this.hoists.push(`const ${qrl.name} = ${functionText(emission)};`);
         this.imports.add(QwikWord.NoopQrl);
         this.hoists.push(
           `const q_${qrl.name} = /*#__PURE__*/ ${QwikWord.NoopQrl}(${JSON.stringify(qrl.name)});`

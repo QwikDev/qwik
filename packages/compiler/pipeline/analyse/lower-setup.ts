@@ -8,8 +8,14 @@ import {
   type Setup,
 } from '../schema';
 import { ValueIrKind, type ValueIR } from '../../src/expr-ir';
-import type { AstNode } from './ast/ast-types';
-import { isNode } from './ast/ast-types';
+import type {
+  Argument,
+  BindingPattern,
+  CallExpression,
+  Directive,
+  Statement,
+  VariableDeclarator,
+} from 'oxc-parser';
 import { identifierName } from './ast/utils';
 import { UnsupportedError } from '../errors';
 import { QwikHook } from '../words';
@@ -31,7 +37,7 @@ export type SetupLocals = Map<string, SetupLocal>;
 
 /** Lowers the statements before a component's return: hook calls become typed Setup invokes. */
 export function lowerSetup(
-  statements: readonly AstNode[],
+  statements: readonly (Directive | Statement)[],
   ctx: LowerContext
 ): {
   setup: Setup[];
@@ -45,18 +51,22 @@ export function lowerSetup(
   return { setup, locals };
 }
 
-function lowerSetupStatement(statement: AstNode, ctx: LowerContext, locals: SetupLocals): Setup {
+function lowerSetupStatement(
+  statement: Directive | Statement,
+  ctx: LowerContext,
+  locals: SetupLocals
+): Setup {
   if (statement.type !== 'VariableDeclaration' || statement.kind !== 'const') {
     throw new UnsupportedError('a setup statement that is not a const declaration');
   }
-  const declarators = statement.declarations as AstNode[];
+  const declarators = statement.declarations;
   if (declarators.length !== 1) {
     throw new UnsupportedError('a setup declaration with multiple declarators');
   }
   const declarator = declarators[0];
   const name = identifierName(declarator.id);
   const init = declarator.init;
-  if (name === null || !isNode(init) || init.type !== 'CallExpression') {
+  if (name === null || init === null || init.type !== 'CallExpression') {
     throw new UnsupportedError('a setup declaration that is not a hook call');
   }
   const callee = identifierName(init.callee);
@@ -70,18 +80,18 @@ function lowerSetupStatement(statement: AstNode, ctx: LowerContext, locals: Setu
 }
 
 function lowerUseSignal(
-  declarator: AstNode,
-  init: AstNode,
+  declarator: VariableDeclarator,
+  init: CallExpression,
   name: string,
   ctx: LowerContext,
   locals: SetupLocals
 ): Setup {
-  const args = init.arguments as AstNode[];
+  const args = init.arguments;
   if (args.length > 1) {
     throw new UnsupportedError('useSignal with more than one argument');
   }
   const binding = ctx.plan.bindings.findIndex((candidate) => candidate.name === name);
-  const idNode = declarator.id as AstNode;
+  const idNode: BindingPattern = declarator.id;
   locals.set(name, { kind: LocalKind.Signal, slot: locals.size, binding });
   return {
     s: SetupKind.Invoke,
@@ -97,7 +107,7 @@ function lowerUseSignal(
   };
 }
 
-function lowerInitialArg(node: AstNode, ctx: LowerContext): Arg {
+function lowerInitialArg(node: Argument, ctx: LowerContext): Arg {
   const ir = literalIr(node);
   if (ir !== null) {
     return { a: ArgKind.Expr, expr: { kind: ExprKind.Ir, ir } };
@@ -109,7 +119,7 @@ function lowerInitialArg(node: AstNode, ctx: LowerContext): Arg {
   };
 }
 
-function literalIr(node: AstNode): ValueIR | null {
+function literalIr(node: Argument): ValueIR | null {
   if (node.type === 'Literal') {
     const value = node.value;
     if (

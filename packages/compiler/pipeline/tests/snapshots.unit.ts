@@ -270,6 +270,50 @@ export default () => {
     });
   });
 
+  test('should render a ternary branch on a signal', async () => {
+    await testInput(mode, 'branch-ternary-signal', {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
+  const show = useSignal(false);
+  return <div>{show.value ? <b>on</b> : <i>off</i>}</div>;
+};
+`,
+    });
+  });
+
+  test('should render a logical-and branch on a signal', async () => {
+    await testInput(mode, 'branch-logical-and-signal', {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
+  const show = useSignal(false);
+  return <div>{show.value && <span>yes</span>}</div>;
+};
+`,
+    });
+  });
+
+  test('should drop a null else arm like a logical-and branch', async () => {
+    await testInput(mode, 'branch-else-null', {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
+  const show = useSignal(false);
+  return <div>{show.value ? <b>on</b> : null}</div>;
+};
+`,
+    });
+  });
+
+  test('should keep an empty then program for a null then arm', async () => {
+    await testInput(mode, 'branch-then-null', {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
+  const show = useSignal(false);
+  return <div>{show.value ? null : <i>off</i>}</div>;
+};
+`,
+    });
+  });
+
   test('should render an expression hole capturing a signal', async () => {
     await testInput(mode, 'expression-hole-signal', {
       code: `import { useSignal } from '@qwik.dev/core';

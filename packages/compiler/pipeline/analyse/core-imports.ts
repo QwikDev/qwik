@@ -1,5 +1,5 @@
+import type { ImportSpecifier, Program } from 'oxc-parser';
 import { EsmEdgeKind, type ModulePlan } from '../schema';
-import type { AstNode } from './ast/ast-types';
 import { UnsupportedError } from '../errors';
 
 const CORE_SOURCES = new Set(['@qwik.dev/core', '@qwik.dev/core/build']);
@@ -9,23 +9,23 @@ const CORE_SOURCES = new Set(['@qwik.dev/core', '@qwik.dev/core/build']);
  * name map (hooks and build constants resolve through it).
  */
 export function scanCoreImports(
-  program: AstNode,
+  program: Program,
   plan: ModulePlan,
   bindingNames: readonly string[]
 ): Map<string, string> {
   const coreBindings = new Map<string, string>();
-  for (const statement of program.body as AstNode[]) {
+  for (const statement of program.body) {
     if (statement.type !== 'ImportDeclaration') {
       continue;
     }
-    const source = String((statement.source as AstNode & { value?: string }).value ?? '');
+    const source = statement.source.value;
     if (!CORE_SOURCES.has(source)) {
       continue;
     }
-    const specifiers = (statement.specifiers as AstNode[]).filter(
-      (specifier) => specifier.type === 'ImportSpecifier'
+    const specifiers = statement.specifiers.filter(
+      (specifier): specifier is ImportSpecifier => specifier.type === 'ImportSpecifier'
     );
-    if (specifiers.length !== (statement.specifiers as AstNode[]).length) {
+    if (specifiers.length !== statement.specifiers.length) {
       throw new UnsupportedError('a default or namespace import from @qwik.dev/core');
     }
     const edgeId = plan.edges.length;
@@ -36,20 +36,20 @@ export function scanCoreImports(
       typeOnly: false,
       attributes: [],
       authoredOwnerRange: [statement.start, statement.end],
-      authoredSourceRange: [(statement.source as AstNode).start, (statement.source as AstNode).end],
+      authoredSourceRange: [statement.source.start, statement.source.end],
       order: edgeId,
     });
     for (const specifier of specifiers) {
-      const imported = specifier.imported as AstNode & { name: string };
-      const local = specifier.local as AstNode & { name: string };
+      const imported = specifier.imported;
+      const local = specifier.local;
       if (imported.type !== 'Identifier') {
         throw new UnsupportedError('a string-named import from @qwik.dev/core');
       }
-      coreBindings.set(String(local.name), String(imported.name));
+      coreBindings.set(local.name, imported.name);
       plan.imports.push({
-        binding: Math.max(0, bindingNames.indexOf(String(local.name))),
+        binding: Math.max(0, bindingNames.indexOf(local.name)),
         edge: edgeId,
-        imported: String(imported.name),
+        imported: imported.name,
         authoredSpecifierRange: [local.start, local.end],
         authoredImportedRange: [imported.start, imported.end],
       });

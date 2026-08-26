@@ -1,4 +1,5 @@
-import { isNode, type AstNode } from './ast-types';
+import type { JSXElement, JSXFragment, Node, Program } from 'oxc-parser';
+import { isNode, type WalkableNode } from './ast-types';
 import { identifierName, isFunctionLike, unwrapExpression } from './utils';
 
 /**
@@ -7,7 +8,7 @@ import { identifierName, isFunctionLike, unwrapExpression } from './utils';
  * position of a return — JSX inside a call's arguments belongs to that call (`return
  * renderToStream(<Root/>)` must not get its signature rewritten).
  */
-export function hasComponentCandidates(program: AstNode): boolean {
+export function hasComponentCandidates(program: Program): boolean {
   return topLevelFunctions(program).some(
     (candidate) => hasComponentName(candidate.name) && returnPositionContainsJsx(candidate.fn)
   );
@@ -17,15 +18,15 @@ function hasComponentName(name: string | null): boolean {
   return name === null || /^[A-Z]/.test(name);
 }
 
-function topLevelFunctions(program: AstNode): { fn: AstNode; name: string | null }[] {
-  const functions: { fn: AstNode; name: string | null }[] = [];
-  const fromStatement = (statement: AstNode): void => {
+function topLevelFunctions(program: Program): { fn: Node; name: string | null }[] {
+  const functions: { fn: Node; name: string | null }[] = [];
+  const fromStatement = (statement: Node): void => {
     if (isFunctionLike(statement)) {
       functions.push({ fn: statement, name: identifierName(statement.id) });
       return;
     }
     if (statement.type === 'VariableDeclaration') {
-      for (const declarator of statement.declarations as AstNode[]) {
+      for (const declarator of statement.declarations) {
         const init = unwrapExpression(declarator.init);
         if (init !== null && isFunctionLike(init)) {
           functions.push({ fn: init, name: identifierName(declarator.id) });
@@ -33,7 +34,7 @@ function topLevelFunctions(program: AstNode): { fn: AstNode; name: string | null
       }
     }
   };
-  for (const statement of program.body as AstNode[]) {
+  for (const statement of program.body) {
     fromStatement(statement);
     if (
       (statement.type === 'ExportNamedDeclaration' ||
@@ -50,7 +51,7 @@ function topLevelFunctions(program: AstNode): { fn: AstNode; name: string | null
  * JSX left in a candidate-less module must fail loud: it would otherwise reach the generic oxc
  * fallback, which compiles JSX against `react/jsx-runtime` — never acceptable output.
  */
-export function findRuntimeJsx(node: unknown): AstNode | null {
+export function findRuntimeJsx(node: unknown): JSXElement | JSXFragment | null {
   if (Array.isArray(node)) {
     for (const child of node) {
       const found = findRuntimeJsx(child);
@@ -70,7 +71,7 @@ export function findRuntimeJsx(node: unknown): AstNode | null {
     if (key === 'type' || key === 'start' || key === 'end' || key === 'range') {
       continue;
     }
-    const found = findRuntimeJsx(node[key]);
+    const found = findRuntimeJsx((node as WalkableNode)[key]);
     if (found !== null) {
       return found;
     }
@@ -78,8 +79,8 @@ export function findRuntimeJsx(node: unknown): AstNode | null {
   return null;
 }
 
-export function returnPositionContainsJsx(fn: AstNode): boolean {
-  const body = unwrapExpression(fn.body);
+export function returnPositionContainsJsx(fn: Node): boolean {
+  const body = unwrapExpression((fn as WalkableNode).body);
   if (body?.type !== 'BlockStatement') {
     return returnsJsxValue(body);
   }
@@ -137,6 +138,6 @@ function visitReturns(node: unknown, visitor: (argument: unknown) => void, root 
     if (key === 'type' || key === 'start' || key === 'end' || key === 'range') {
       continue;
     }
-    visitReturns(node[key], visitor, false);
+    visitReturns((node as WalkableNode)[key], visitor, false);
   }
 }

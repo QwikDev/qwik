@@ -10,7 +10,7 @@ import {
   type LinkedModule,
   type LinkedQrl,
 } from '../schema';
-import { captureNames, chunkFunctionText } from '../generate/emit-chunk';
+import { captureNames, functionText, sourceFunctionEmission } from '../generate/emit-chunk';
 
 // `() => count.value++` at 10..30 with the body at 16..30; `(props) => props.title` variant below.
 const SOURCE = '/*head*/ (() => count.value++); ((props) => props.title);';
@@ -71,17 +71,23 @@ describe('captureNames', () => {
   });
 });
 
-describe('chunkFunctionText', () => {
+const textOf = (qrl: LinkedQrl) => functionText(sourceFunctionEmission(moduleWith(qrl), qrl));
+
+describe('sourceFunctionEmission', () => {
   test('a Function payload restores captures from the _captures prelude', () => {
     const qrl = qrlWith({ captures: [{ binding: 0, access: CaptureAccess.Direct }] });
-    expect(chunkFunctionText(moduleWith(qrl), qrl)).toBe(
+    const emission = sourceFunctionEmission(moduleWith(qrl), qrl);
+    expect([...emission.imports]).toEqual(['_captures']);
+    expect(functionText(emission)).toBe(
       '() => {\n  const count = _captures[0];\n  return count.value++;\n}'
     );
   });
 
   test('a capture-free Function payload has no prelude lines', () => {
     const qrl = qrlWith({});
-    expect(chunkFunctionText(moduleWith(qrl), qrl)).toBe('() => {\n  return count.value++;\n}');
+    const emission = sourceFunctionEmission(moduleWith(qrl), qrl);
+    expect(emission.imports.size).toBe(0);
+    expect(functionText(emission)).toBe('() => {\n  return count.value++;\n}');
   });
 
   test('a Value payload takes captures as parameters instead', () => {
@@ -98,24 +104,23 @@ describe('chunkFunctionText', () => {
         bodyKind: FnBodyKind.Expression,
       },
     });
-    expect(chunkFunctionText(moduleWith(qrl), qrl)).toBe('(props) => {\n  return props.title;\n}');
+    expect(textOf(qrl)).toBe('(props) => {\n  return props.title;\n}');
   });
 
   test('an authored-async body keeps its async head', () => {
     const qrl = qrlWith({ authoredAsync: true });
-    expect(chunkFunctionText(moduleWith(qrl), qrl)).toBe(
-      'async () => {\n  return count.value++;\n}'
-    );
+    expect(textOf(qrl)).toBe('async () => {\n  return count.value++;\n}');
   });
 
-  test('block bodies and program bodies refuse', () => {
+  test("program bodies refuse — render programs are the generators' job", () => {
+    const programQrl = qrlWith({ body: { b: QrlBodyKind.Program, program: 0 } });
+    expect(() => textOf(programQrl)).toThrow('emitting source for a "program" QRL body');
+  });
+
+  test('block bodies refuse', () => {
     const blockQrl = qrlWith({
       origin: { ...qrlWith({}).origin, bodyKind: FnBodyKind.Block },
     });
-    expect(() => chunkFunctionText(moduleWith(blockQrl), blockQrl)).toThrow('a block QRL body');
-    const programQrl = qrlWith({ body: { b: QrlBodyKind.Program, program: 0 } });
-    expect(() => chunkFunctionText(moduleWith(programQrl), programQrl)).toThrow(
-      'a program/task QRL body'
-    );
+    expect(() => textOf(blockQrl)).toThrow('a block QRL body');
   });
 });

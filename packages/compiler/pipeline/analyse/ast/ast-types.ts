@@ -1,11 +1,24 @@
-/** Minimal structural AST typing (oxc-parser estree-ish nodes; every node carries start/end). */
+/** Typed oxc-parser AST (estree-shaped) — re-exported as the pipeline's AST vocabulary. */
+export type {
+  ArrowFunctionExpression,
+  Argument,
+  BindingPattern,
+  Directive,
+  Expression,
+  JSXAttribute,
+  JSXAttributeItem,
+  JSXChild,
+  JSXElement,
+  JSXExpression,
+  Node,
+  ParamPattern,
+  Program,
+  Statement,
+} from 'oxc-parser';
+import type { Node } from 'oxc-parser';
 
-export interface AstNode {
-  type: string;
-  start: number;
-  end: number;
-  [key: string]: unknown;
-}
+export const isNode = (value: unknown): value is Node =>
+  typeof value === 'object' && value !== null && typeof (value as Node).type === 'string';
 
-export const isNode = (value: unknown): value is AstNode =>
-  typeof value === 'object' && value !== null && typeof (value as AstNode).type === 'string';
+/** Structural view for generic walkers that iterate a node's keys. */
+export type WalkableNode = Node & { [key: string]: unknown };

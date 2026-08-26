@@ -12,7 +12,6 @@ export function emptyPlan(path: string, code = ''): ModulePlan {
     payloads: [],
     programs: [],
     qrls: [],
-    components: [],
     hooks: [],
     callables: [],
     values: [],

@@ -1,8 +1,8 @@
 import { parseSync } from 'oxc-parser';
-import type { AstNode } from './ast-types';
+import type { Program } from 'oxc-parser';
 
 export interface ParsedModule {
-  program: AstNode;
+  program: Program;
   errors: { message?: string }[];
 }
 
@@ -14,8 +14,8 @@ export function parseModule(path: string, code: string): ParsedModule {
     range: true,
   });
   return {
-    program: parsed.program as unknown as AstNode,
-    errors: (parsed.errors ?? []) as { message?: string }[],
+    program: parsed.program,
+    errors: parsed.errors ?? [],
   };
 }
 

@@ -11,8 +11,9 @@ import {
   type Op,
 } from '../schema';
 import { ValueIrKind } from '../../src/expr-ir';
-import type { AstNode } from '../analyse/ast/ast-types';
+import type { Expression } from 'oxc-parser';
 import { parseModule } from '../analyse/ast/parse';
+import { unwrapExpression } from '../analyse/ast/utils';
 import { lowerTextHole } from '../analyse/lower-hole';
 import { createLowerContext, type LowerContext } from '../analyse/lower-context';
 import { LocalKind } from '../analyse/lower-setup';
@@ -22,15 +23,17 @@ function holeFor(expression: string, shape: (ctx: LowerContext) => void = () => 
   const source = `const a = (${expression});`;
   const parsed = parseModule('t.tsx', source);
   expect(parsed.errors).toEqual([]);
-  const statement = (parsed.program.body as AstNode[])[0];
-  const declarator = (statement.declarations as AstNode[])[0];
-  let node = declarator.init as AstNode;
-  while (node.type === 'ParenthesizedExpression') {
-    node = node.expression as AstNode;
+  const statement = parsed.program.body[0];
+  if (statement.type !== 'VariableDeclaration') {
+    throw new Error('expected a variable declaration');
+  }
+  const node = unwrapExpression(statement.declarations[0].init);
+  if (node === null) {
+    throw new Error('expected an expression');
   }
   const ctx = createLowerContext(emptyModulePlan('t.tsx', source), 't.tsx', undefined);
   shape(ctx);
-  return { op: lowerTextHole(node, ctx), ctx };
+  return { op: lowerTextHole(node as Expression, ctx), ctx };
 }
 
 function withSignalLocal(ctx: LowerContext): void {
@@ -113,6 +116,16 @@ describe('lowerTextHole', () => {
     expect(value.resume).toEqual({
       qrl: { qrl: 'segment_0', args: [{ pass: ArgPass.Binding, binding: 0 }] },
     });
+  });
+
+  test('JSX anywhere inside the expression throws — a payload chunk cannot carry JSX', () => {
+    expect(() => holeFor('count.value ? <>on</> : null', withSignalLocal)).toThrow(
+      'JSX inside an expression value'
+    );
+    expect(() => holeFor('[1, 2].map(() => <li>x</li>)')).toThrow('JSX inside an expression value');
+    expect(() => holeFor('<span>top</span>')).toThrow(
+      'the expression "JSXElement" outside a child position'
+    );
   });
 
   test('an expression capturing a module binding throws', () => {

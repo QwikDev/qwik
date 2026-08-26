@@ -1,0 +1,147 @@
+==INPUT==
+
+import { useSignal } from '@qwik.dev/core';
+export default () => {
+  const show = useSignal(false);
+  return <div>{show.value ? null : <i>off</i>}</div>;
+};
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useSignal,
+  _captures,
+  renderSsrBranch,
+  createSsrNodeId,
+  maybeThen,
+  _noopQrl,
+} from '@qwik.dev/core';
+const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
+  const show = _captures[0];
+  return show.value;
+};
+const q_component_branch_condition_segment_0_2fzrieu6vlhf9 = /*#__PURE__*/ _noopQrl(
+  'component_branch_condition_segment_0_2fzrieu6vlhf9'
+);
+q_component_branch_condition_segment_0_2fzrieu6vlhf9.s(
+  component_branch_condition_segment_0_2fzrieu6vlhf9
+);
+const component_branch_then_segment_1_24n7blyqktd46 = () => {
+  return [];
+};
+const q_component_branch_then_segment_1_24n7blyqktd46 = /*#__PURE__*/ _noopQrl(
+  'component_branch_then_segment_1_24n7blyqktd46'
+);
+q_component_branch_then_segment_1_24n7blyqktd46.s(component_branch_then_segment_1_24n7blyqktd46);
+const component_branch_else_segment_2_19dvu7nugnvkl = () => {
+  return '<i>off</i>';
+};
+const q_component_branch_else_segment_2_19dvu7nugnvkl = /*#__PURE__*/ _noopQrl(
+  'component_branch_else_segment_2_19dvu7nugnvkl'
+);
+q_component_branch_else_segment_2_19dvu7nugnvkl.s(component_branch_else_segment_2_19dvu7nugnvkl);
+export default (props, ctx) => {
+  const show = useSignal(false);
+  const branch_id_0 = ctx.nextId();
+  ctx.addRoot(show);
+  const branch_0 = renderSsrBranch(
+    ctx,
+    branch_id_0,
+    q_component_branch_condition_segment_0_2fzrieu6vlhf9.w([show]),
+    q_component_branch_then_segment_1_24n7blyqktd46,
+    q_component_branch_else_segment_2_19dvu7nugnvkl
+  );
+  return maybeThen(branch_0, (branch_0) => [
+    '<div><!b=',
+    createSsrNodeId(branch_id_0),
+    '>',
+    branch_0,
+    '<!/b></div>',
+  ]);
+};
+============================= src/component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
+  const show = _captures[0];
+  return show.value;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_branch_condition_segment_0_2fzrieu6vlhf9",
+  "entry": null,
+  "displayName": "component_branch_condition_segment_0",
+  "hash": "2fzrieu6vlhf9",
+  "canonicalFilename": "component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:condition",
+  "captures": true,
+  "loc": [
+    113,
+    123
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "show"
+  ]
+}
+*/
+============================= src/component.tsx_component_branch_then_segment_1_24n7blyqktd46.js (ENTRY POINT)==
+
+export const component_branch_then_segment_1_24n7blyqktd46 = () => {
+  return [];
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_branch_then_segment_1_24n7blyqktd46",
+  "entry": null,
+  "displayName": "component_branch_then_segment_1",
+  "hash": "24n7blyqktd46",
+  "canonicalFilename": "component.tsx_component_branch_then_segment_1_24n7blyqktd46",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:then",
+  "captures": false,
+  "loc": [
+    126,
+    130
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_branch_else_segment_2_19dvu7nugnvkl.js (ENTRY POINT)==
+
+export const component_branch_else_segment_2_19dvu7nugnvkl = () => {
+  return '<i>off</i>';
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_branch_else_segment_2_19dvu7nugnvkl",
+  "entry": null,
+  "displayName": "component_branch_else_segment_2",
+  "hash": "19dvu7nugnvkl",
+  "canonicalFilename": "component.tsx_component_branch_else_segment_2_19dvu7nugnvkl",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:else",
+  "captures": false,
+  "loc": [
+    133,
+    143
+  ],
+  "paramNames": []
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

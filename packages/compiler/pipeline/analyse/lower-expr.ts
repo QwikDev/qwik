@@ -12,19 +12,19 @@ import {
   type Value,
 } from '../schema';
 import { ValueIrKind, type ValueIR } from '../../src/expr-ir';
-import type { AstNode } from './ast/ast-types';
-import { isNode } from './ast/ast-types';
 import { identifierName } from './ast/utils';
-import { collectOuterRefs } from './ast/capture-analysis';
+import { findRuntimeJsx } from './ast/returns-jsx';
+import { collectCaptures } from './ast/capture-analysis';
 import { UnsupportedError } from '../errors';
 import { allocateSegment, pushPayload, type LowerContext } from './lower-context';
 import { LocalKind } from './lower-setup';
+import type { Expression } from 'oxc-parser';
 
 export type ReactiveValue = Extract<Value, { v: ValueKind.Read } | { v: ValueKind.Computed }>;
 
 /** Classifies a JSX expression as a reactive Value: a signal Read, or a Computed value QRL. */
 export function lowerExpressionValue(
-  expression: AstNode,
+  expression: Expression,
   ctx: LowerContext,
   /** Segment identity context: 'text' for holes, the attribute name for props. */
   nameCtx: string
@@ -33,75 +33,88 @@ export function lowerExpressionValue(
   if (read !== null) {
     return read;
   }
-  const refs = collectOuterRefs(expression, ctx, new Set());
-  if (refs.other !== null) {
-    throw new UnsupportedError(`an expression capturing "${refs.other}"`);
+  switch (expression.type) {
+    case 'JSXElement':
+    case 'JSXFragment':
+      // Branch/collection territory — handled in child position, never a chunk payload.
+      throw new UnsupportedError(`the expression "${expression.type}" outside a child position`);
+    default: {
+      // A payload chunk cannot carry NESTED JSX either — it would ride the payload verbatim.
+      if (findRuntimeJsx(expression) !== null) {
+        throw new UnsupportedError('JSX inside an expression value');
+      }
+      const refs = collectCaptures(expression, ctx, new Set());
+      if (refs.other !== null) {
+        throw new UnsupportedError(`an expression capturing "${refs.other}"`);
+      }
+      const range: [number, number] = [expression.start, expression.end];
+      const payload = pushPayload(ctx, range);
+      const ir = tryLowerExprIr(expression, ctx);
+      const expr =
+        ir === null
+          ? ({ kind: ExprKind.Js, payload } as const)
+          : ({ kind: ExprKind.Ir, ir } as const);
+      const segment = allocateSegment(ctx, nameCtx);
+      const propsBinding = refs.props
+        ? ctx.plan.bindings.findIndex((binding) => binding.name === ctx.propsParamName)
+        : -1;
+      // Captured reactive locals ride as Direct captures ahead of the props object.
+      const captures = [
+        ...refs.locals.map((entry) => ({
+          binding: entry.local.binding,
+          access: CaptureAccess.Direct as const,
+        })),
+        ...(refs.props
+          ? [{ binding: propsBinding, access: CaptureAccess.ComponentProp as const }]
+          : []),
+      ];
+      const args: QrlUse['args'] = [
+        ...refs.locals.map((entry) => ({
+          pass: ArgPass.Binding as const,
+          binding: entry.local.binding,
+        })),
+        ...(refs.props ? [{ pass: ArgPass.Props as const }] : []),
+      ];
+      ctx.plan.qrls.push({
+        id: segment.id,
+        parent: null,
+        name: segment.name,
+        ctxName: nameCtx,
+        boundary: { kind: BoundaryKind.Implicit, role: 'expression' },
+        markerAttributes: [],
+        payloadKind: QrlPayloadKind.Value,
+        authoredAsync: false,
+        body: { b: QrlBodyKind.Expr, expr, initialOnly: false },
+        captures,
+        params: { authored: 0, used: [], sources: [] },
+        origin: {
+          range,
+          functionRange: range,
+          calleeRange: null,
+          argumentRanges: [],
+          paramRanges: [],
+          bodyRange: range,
+          bodyKind: FnBodyKind.Expression,
+        },
+        propsParts: [],
+      });
+      return {
+        v: ValueKind.Computed,
+        expr,
+        resume: { qrl: { qrl: segment.id, args } },
+        compilerString: false,
+      };
+    }
   }
-  const range: [number, number] = [expression.start, expression.end];
-  const payload = pushPayload(ctx, range);
-  const ir = tryLowerExprIr(expression, ctx);
-  const expr =
-    ir === null ? ({ kind: ExprKind.Js, payload } as const) : ({ kind: ExprKind.Ir, ir } as const);
-  const segment = allocateSegment(ctx, nameCtx);
-  const propsBinding = refs.props
-    ? ctx.plan.bindings.findIndex((binding) => binding.name === ctx.propsParamName)
-    : -1;
-  // Captured reactive locals ride as Direct captures ahead of the props object.
-  const captures = [
-    ...refs.locals.map((entry) => ({
-      binding: entry.local.binding,
-      access: CaptureAccess.Direct as const,
-    })),
-    ...(refs.props
-      ? [{ binding: propsBinding, access: CaptureAccess.ComponentProp as const }]
-      : []),
-  ];
-  const args: QrlUse['args'] = [
-    ...refs.locals.map((entry) => ({
-      pass: ArgPass.Binding as const,
-      binding: entry.local.binding,
-    })),
-    ...(refs.props ? [{ pass: ArgPass.Props as const }] : []),
-  ];
-  ctx.plan.qrls.push({
-    id: segment.id,
-    parent: null,
-    name: segment.name,
-    ctxName: nameCtx,
-    boundary: { kind: BoundaryKind.Implicit, role: 'expression' },
-    markerAttributes: [],
-    payloadKind: QrlPayloadKind.Value,
-    authoredAsync: false,
-    body: { b: QrlBodyKind.Expr, expr, initialOnly: false },
-    captures,
-    params: { authored: 0, used: [], sources: [] },
-    origin: {
-      range,
-      functionRange: range,
-      calleeRange: null,
-      argumentRanges: [],
-      paramRanges: [],
-      bodyRange: range,
-      bodyKind: FnBodyKind.Expression,
-    },
-    propsParts: [],
-  });
-  return {
-    v: ValueKind.Computed,
-    expr,
-    resume: { qrl: { qrl: segment.id, args } },
-    compilerString: false,
-  };
 }
 
 /** `count.value` where `count` is a component signal local — a subscription, not a QRL. */
-function trySignalReadValue(expression: AstNode, ctx: LowerContext): ReactiveValue | null {
-  if (expression.type !== 'MemberExpression' || expression.computed === true) {
+function trySignalReadValue(expression: Expression, ctx: LowerContext): ReactiveValue | null {
+  if (expression.type !== 'MemberExpression' || expression.computed) {
     return null;
   }
-  const object = expression.object as AstNode;
-  const property = identifierName(expression.property);
-  const name = identifierName(object);
+  const property = expression.computed ? null : identifierName(expression.property);
+  const name = identifierName(expression.object);
   if (property !== 'value' || name === null) {
     return null;
   }
@@ -125,7 +138,7 @@ function trySignalReadValue(expression: AstNode, ctx: LowerContext): ReactiveVal
  * Lowers an expression to ValueIR when the vocabulary covers it — native generators evaluate IR
  * directly. Null falls back to the JS payload (which the Rust target then refuses).
  */
-export function tryLowerExprIr(node: AstNode, ctx: LowerContext): ValueIR | null {
+export function tryLowerExprIr(node: Expression, ctx: LowerContext): ValueIR | null {
   switch (node.type) {
     case 'Identifier': {
       const name = identifierName(node);
@@ -136,10 +149,10 @@ export function tryLowerExprIr(node: AstNode, ctx: LowerContext): ValueIR | null
       return null;
     }
     case 'MemberExpression': {
-      if (node.computed === true || node.optional === true) {
+      if (node.computed || node.optional) {
         return null;
       }
-      const obj = isNode(node.object) ? tryLowerExprIr(node.object, ctx) : null;
+      const obj = tryLowerExprIr(node.object, ctx);
       const name = identifierName(node.property);
       return obj === null || name === null ? null : { kind: ValueIrKind.Member, obj, name };
     }

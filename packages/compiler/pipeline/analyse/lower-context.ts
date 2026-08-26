@@ -13,6 +13,8 @@ export interface LowerContext {
   sourceName: string;
   sourceIdentity: string;
   segmentCounter: { next: number };
+  /** Branch seed ordinals, allocated in authored order. */
+  branchCounter: { next: number };
   bindingNames: ReadonlySet<string>;
   /** Local binding → imported name for `@qwik.dev/core` imports. */
   coreBindings: ReadonlyMap<string, string>;
@@ -35,6 +37,7 @@ export function createLowerContext(
     sourceName: basename.replace(/\.[cm]?[jt]sx?$/, ''),
     sourceIdentity: createSegmentSourceIdentity(path, scope),
     segmentCounter: { next: 0 },
+    branchCounter: { next: 0 },
     bindingNames: new Set(plan.bindings.map((binding) => binding.name)),
     coreBindings,
     propsParamName: null,

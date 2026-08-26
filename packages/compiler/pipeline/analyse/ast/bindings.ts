@@ -1,7 +1,8 @@
-import { isNode, type AstNode } from './ast-types';
+import type { Program } from 'oxc-parser';
+import { isNode, type WalkableNode } from './ast-types';
 
 /** Every binding name the module declares, at any depth — the generated-name collision set. */
-export function collectBindingNames(program: AstNode): string[] {
+export function collectBindingNames(program: Program): string[] {
   const names = new Set<string>();
   const pattern = (node: unknown): void => {
     if (!isNode(node)) {
@@ -9,15 +10,15 @@ export function collectBindingNames(program: AstNode): string[] {
     }
     switch (node.type) {
       case 'Identifier':
-        names.add(String((node as AstNode & { name: string }).name));
+        names.add(node.name);
         break;
       case 'ObjectPattern':
-        for (const property of node.properties as AstNode[]) {
-          pattern(property.value ?? property.argument);
+        for (const property of node.properties) {
+          pattern(property.type === 'Property' ? property.value : property.argument);
         }
         break;
       case 'ArrayPattern':
-        for (const element of (node.elements as (AstNode | null)[]) ?? []) {
+        for (const element of node.elements ?? []) {
           pattern(element);
         }
         break;
@@ -46,7 +47,7 @@ export function collectBindingNames(program: AstNode): string[] {
     }
     switch (node.type) {
       case 'ImportDeclaration':
-        for (const specifier of node.specifiers as AstNode[]) {
+        for (const specifier of node.specifiers) {
           pattern(specifier);
         }
         return;
@@ -56,7 +57,7 @@ export function collectBindingNames(program: AstNode): string[] {
         if (isNode(node.id)) {
           pattern(node.id);
         }
-        for (const param of node.params as AstNode[]) {
+        for (const param of node.params) {
           pattern(param);
         }
         walk(node.body);
@@ -71,10 +72,16 @@ export function collectBindingNames(program: AstNode): string[] {
         return;
     }
     for (const key of Object.keys(node)) {
-      if (key === 'type' || key === 'start' || key === 'end' || key === 'range') {
+      if (
+        key === 'type' ||
+        key === 'start' ||
+        key === 'end' ||
+        key === 'range' ||
+        key === 'parent'
+      ) {
         continue;
       }
-      walk(node[key]);
+      walk((node as WalkableNode)[key]);
     }
   };
   walk(program.body);

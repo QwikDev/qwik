@@ -26,6 +26,7 @@ import type { ComponentParameter, Program, Setup } from './program';
 // consumer roles → use sites; moduleStyle/visibleTaskStrategy → their single owners in Setup).
 
 export const enum BoundaryKind {
+  Component = 'component',
   Explicit = 'explicit',
   Implicit = 'implicit',
   Sync = 'sync',
@@ -68,6 +69,7 @@ export interface Qrl {
   ctxName: string;
   /** Neutral boundary facts current emitters require. */
   boundary:
+    | { kind: BoundaryKind.Component }
     | { kind: BoundaryKind.Explicit }
     | { kind: BoundaryKind.Implicit; role: string }
     | { kind: BoundaryKind.Sync };
@@ -98,7 +100,21 @@ export interface Qrl {
     | { kind: PropsPartKind.Expression; name: string; value: PayloadId }
     | { kind: PropsPartKind.Spread; value: PayloadId }
   )[];
+  /** Present when the QRL has an authored declaration site (components) — its text splices there. */
+  declaration?: QrlDeclaration;
   guard?: Predicate;
+}
+
+export interface QrlDeclaration {
+  /** Authored export name — distinct from the QRL's wire symbol. */
+  name: string;
+  binding: LocalId | null;
+  parameter: ComponentParameter | null;
+  root: { name: string };
+  replacementRange: Range;
+  declarationKind: DeclarationKind;
+  varKind?: VarKind;
+  localName: string | null;
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -109,23 +125,6 @@ export const enum DeclarationKind {
   Const = 'const',
   DefaultFunction = 'defaultFunction',
   DefaultArrow = 'defaultArrow',
-}
-
-export interface ComponentDecl {
-  name: string;
-  identity: string;
-  binding: LocalId | null;
-  parameter: ComponentParameter | null;
-  body: ProgramId;
-  /** What the component closes over. */
-  captures: LocalId[];
-  root: { name: string };
-  functionRange: Range | null;
-  replacementRange: Range;
-  declarationKind: DeclarationKind;
-  varKind?: VarKind;
-  localName: string | null;
-  guard?: Predicate;
 }
 
 export const enum HookBodyKind {
@@ -164,7 +163,6 @@ export const enum NativeTargetKind {
 
 /** Declaration tables addressable by exports and linked refs. QRLs are exportable roots. */
 export const enum DeclTable {
-  Components = 'components',
   Hooks = 'hooks',
   Callables = 'callables',
   Values = 'values',
@@ -202,7 +200,6 @@ export interface ModulePlan {
   payloads: Payload[];
   programs: Program[];
   qrls: Qrl[];
-  components: ComponentDecl[];
   hooks: HookDecl[];
   callables: { binding: LocalId | null; payload: PayloadId; async: boolean; guard?: Predicate }[];
   values: { binding: LocalId | null; payload: PayloadId; guard?: Predicate }[];
@@ -245,7 +242,8 @@ export interface ModulePlan {
 }
 
 export const enum AssemblyKind {
-  Component = 'component',
+  /** Splice a declared QRL's emission over its authored declaration range. */
+  Splice = 'splice',
   QrlBoundary = 'qrl-boundary',
   DeclarationStrip = 'declaration-strip',
   ModuleReferenceExport = 'module-reference-export',
@@ -275,8 +273,8 @@ export const enum StrippedExportForm {
 
 export type AssemblyIntent =
   | {
-      a: AssemblyKind.Component;
-      component: number;
+      a: AssemblyKind.Splice;
+      qrl: number;
       declarators?: PayloadId[];
       declaratorIndex?: number;
       statementExported?: boolean;

@@ -2,13 +2,17 @@
 import {
   AssemblyKind,
   BindingScope,
+  BoundaryKind,
   SurfaceKind,
   DeclarationKind,
   DiagnosticCategory,
+  FnBodyKind,
   LifetimeCommit,
   LifetimeOwner,
   ModuleKind,
   ProgramBodyKind,
+  QrlBodyKind,
+  QrlPayloadKind,
   type Diagnostic,
   type ModulePlan,
 } from '../schema';
@@ -144,31 +148,52 @@ export async function analyseModule(
         temps: [],
       });
     }
-    plan.components.push({
+    // A component IS a QRL: a Program body plus an authored declaration to splice over.
+    plan.qrls.push({
+      id: `${input.path}#${component.name}`,
+      parent: null,
       name: component.name,
-      identity: `${input.path}#${component.name}`,
-      binding: null,
-      parameter:
-        component.param === null
-          ? null
-          : {
-              pattern: plan.payloads.length - 1,
-              surface: {
-                kind: SurfaceKind.Identifier,
-                binding: plan.bindings.findIndex(
-                  (binding) => binding.name === component.param!.name
-                ),
-              },
-            },
-      body: plan.programs.length - 1,
+      ctxName: component.name,
+      boundary: { kind: BoundaryKind.Component },
+      markerAttributes: [],
+      payloadKind: QrlPayloadKind.Function,
+      authoredAsync: false,
+      body: { b: QrlBodyKind.Program, program: plan.programs.length - 1 },
       captures: [],
-      root: { name: `q${component.name}-` },
-      functionRange: [component.arrow.start, component.arrow.end],
-      replacementRange: [component.statement.start, component.statement.end],
-      declarationKind: component.declarationKind,
-      localName: component.declarationKind === DeclarationKind.Const ? component.name : null,
+      params: { authored: component.param === null ? 0 : 1, used: [], sources: [] },
+      origin: {
+        range: [component.statement.start, component.statement.end],
+        functionRange: [component.arrow.start, component.arrow.end],
+        calleeRange: null,
+        argumentRanges: [],
+        paramRanges: component.param === null ? [] : [component.param.range],
+        bodyRange: [component.arrow.body.start, component.arrow.body.end],
+        bodyKind:
+          component.arrow.body.type === 'BlockStatement' ? FnBodyKind.Block : FnBodyKind.Expression,
+      },
+      propsParts: [],
+      declaration: {
+        name: component.name,
+        binding: null,
+        parameter:
+          component.param === null
+            ? null
+            : {
+                pattern: plan.payloads.length - 1,
+                surface: {
+                  kind: SurfaceKind.Identifier,
+                  binding: plan.bindings.findIndex(
+                    (binding) => binding.name === component.param!.name
+                  ),
+                },
+              },
+        root: { name: `q${component.name}-` },
+        replacementRange: [component.statement.start, component.statement.end],
+        declarationKind: component.declarationKind,
+        localName: component.declarationKind === DeclarationKind.Const ? component.name : null,
+      },
     });
-    plan.assembly.push({ a: AssemblyKind.Component, component: plan.components.length - 1 });
+    plan.assembly.push({ a: AssemblyKind.Splice, qrl: plan.qrls.length - 1 });
   }
   return plan;
 }

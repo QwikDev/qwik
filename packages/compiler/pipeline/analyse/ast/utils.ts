@@ -1,6 +1,7 @@
-import { isNode, type AstNode } from './ast-types';
+import type { ArrowFunctionExpression, Function as FunctionNode, Node } from 'oxc-parser';
+import { isNode } from './ast-types';
 
-export function isFunctionLike(node: AstNode): boolean {
+export function isFunctionLike(node: Node): node is ArrowFunctionExpression | FunctionNode {
   return (
     node.type === 'ArrowFunctionExpression' ||
     node.type === 'FunctionExpression' ||
@@ -8,7 +9,7 @@ export function isFunctionLike(node: AstNode): boolean {
   );
 }
 
-export function unwrapExpression(node: unknown): AstNode | null {
+export function unwrapExpression(node: unknown): Node | null {
   let current = node;
   while (isNode(current) && current.type === 'ParenthesizedExpression') {
     current = current.expression;
@@ -17,7 +18,5 @@ export function unwrapExpression(node: unknown): AstNode | null {
 }
 
 export function identifierName(node: unknown): string | null {
-  return isNode(node) && node.type === 'Identifier'
-    ? String((node as AstNode & { name: string }).name)
-    : null;
+  return isNode(node) && node.type === 'Identifier' ? node.name : null;
 }

@@ -6,17 +6,23 @@ import {
   OpKind,
   PropKind,
   ProgramBodyKind,
+  QrlBodyKind,
   ValueKind,
-  type ComponentDecl,
   type LinkedModule,
   type LinkedPlan,
+  type LinkedQrl,
   type Op,
   type Prop,
 } from '../schema';
 import { QwikWord, QwikGenWord } from '../words';
 import { UnsupportedError } from '../errors';
-import { generateQwikModule } from './assemble-module';
-import { captureNames, chunkCanonicalFilename } from './emit-chunk';
+import { generateQwikModule, type QwikModuleEmitter } from './assemble-module';
+import {
+  captureNames,
+  chunkCanonicalFilename,
+  sourceFunctionEmission,
+  type FunctionEmission,
+} from './emit-chunk';
 import { emitJsSetup, signalReadName } from './emit-setup';
 import { escapeText } from '../html';
 import { foldStaticOp, isFullyStaticSubtree } from './fold-static';
@@ -55,49 +61,53 @@ async function generateModule(
   }
 }
 
-class CsrModuleEmitter {
+class CsrModuleEmitter implements QwikModuleEmitter {
   readonly imports = new Set<string>();
   readonly chunkImports: string[] = [];
   readonly hoists: string[] = [];
   private readonly importedChunks = new Set<string>();
+  private readonly lazyQrls = new Set<string>();
   /** Per-component: generated locals are function-scoped, so numbering restarts per render. */
   private next!: (prefix: string) => string;
 
   constructor(private readonly module: LinkedModule) {}
 
-  emitProgram(component: ComponentDecl, names: GeneratedNames): ComponentEmission {
-    const body = this.module.programs[component.body].body;
-    if (body.kind !== ProgramBodyKind.Ops) {
+  emitProgram(qrl: LinkedQrl, names: GeneratedNames): ComponentEmission {
+    if (qrl.body.b !== QrlBodyKind.Program) {
+      throw new Error(`pipeline.generateJsCsr: splicing the non-program qrl "${qrl.id}"`);
+    }
+    return this.renderProgram(qrl.body.program, qrl.declaration?.name ?? qrl.name, names);
+  }
+
+  /** The shared render core — component bodies and branch arm programs emit identically. */
+  private renderProgram(
+    programId: number,
+    ownerName: string,
+    names: GeneratedNames
+  ): ComponentEmission {
+    const program = this.module.programs[programId];
+    if (program.body.kind !== ProgramBodyKind.Ops) {
       throw new Error('pipeline.generateJsCsr: js-bodied programs not implemented yet');
     }
     this.next = createNameAllocator();
-    const statements: string[] = emitJsSetup(
-      this.module,
-      this.module.programs[component.body],
-      this.imports
-    );
+    const statements: string[] = emitJsSetup(this.module, program, this.imports);
     const roots: string[] = [];
-    for (const op of body.ops) {
-      roots.push(this.op(op, component, statements, names));
+    for (const op of program.body.ops) {
+      roots.push(this.op(op, ownerName, statements, names));
     }
-    if (roots.length !== 1) {
+    if (roots.length > 1) {
       throw new Error('pipeline.generateJsCsr: multi-root renders not implemented yet');
     }
-    return { statements, value: roots[0] };
+    return { statements, value: roots.length === 0 ? '[]' : roots[0] };
   }
 
   /** Returns the local holding the op's root node. */
-  private op(
-    op: Op,
-    component: ComponentDecl,
-    statements: string[],
-    names: GeneratedNames
-  ): string {
+  private op(op: Op, ownerName: string, statements: string[], names: GeneratedNames): string {
     switch (op.op) {
       case OpKind.Static:
-        return this.staticRoot(op, component, statements, names);
+        return this.staticRoot(op, ownerName, statements, names);
       case OpKind.Element:
-        return this.elementRoot(op, component, statements, names);
+        return this.elementRoot(op, ownerName, statements, names);
       default:
         throw new Error(`pipeline.generateJsCsr: op "${op.op}" not implemented yet`);
     }
@@ -105,22 +115,22 @@ class CsrModuleEmitter {
 
   private staticRoot(
     op: Extract<Op, { op: OpKind.Static }>,
-    component: ComponentDecl,
+    ownerName: string,
     statements: string[],
     names: GeneratedNames
   ): string {
-    const mounted = this.mountTemplate(component, statements, names);
+    const mounted = this.mountTemplate(ownerName, statements, names);
     this.hoistTemplate(mounted.template, foldStaticOp(op, true));
     return mounted.el;
   }
 
   private elementRoot(
     op: Extract<Op, { op: OpKind.Element }>,
-    component: ComponentDecl,
+    ownerName: string,
     statements: string[],
     names: GeneratedNames
   ): string {
-    const mounted = this.mountTemplate(component, statements, names);
+    const mounted = this.mountTemplate(ownerName, statements, names);
     for (const prop of op.props) {
       switch (prop.k) {
         case PropKind.Static: {
@@ -152,6 +162,11 @@ class CsrModuleEmitter {
     statements: string[],
     names: GeneratedNames
   ): void {
+    // Branches occupy TWO template nodes (their start/end comment pair).
+    const nodeCount = op.children.reduce(
+      (count, child) => count + (child.op === OpKind.Branch ? 2 : 1),
+      0
+    );
     let nodeIndex = 0;
     for (const child of op.children) {
       switch (child.op) {
@@ -160,14 +175,14 @@ class CsrModuleEmitter {
           break;
         }
         case OpKind.Hole: {
-          this.textHole(child, elementExpr, statements, names, op.children.length, nodeIndex++);
+          this.textHole(child, elementExpr, statements, names, nodeCount, nodeIndex++);
           break;
         }
         case OpKind.Element: {
           if (!isFullyStaticSubtree(child)) {
             this.walkChildren(
               child,
-              childPathExpression(elementExpr, nodeIndex, op.children.length, this.imports),
+              childPathExpression(elementExpr, nodeIndex, nodeCount, this.imports),
               statements,
               names
             );
@@ -175,11 +190,104 @@ class CsrModuleEmitter {
           nodeIndex++;
           break;
         }
+        case OpKind.Branch: {
+          this.branch(child, elementExpr, nodeIndex, nodeCount, statements, names);
+          nodeIndex += 2;
+          break;
+        }
         default: {
           throw new UnsupportedError(`the child op "${child.op}" in a csr element`);
         }
       }
     }
+  }
+
+  /** The branch swaps DOM between its start/end comment pair via a range effect. */
+  private branch(
+    op: Extract<Op, { op: OpKind.Branch }>,
+    elementExpr: string,
+    nodeIndex: number,
+    nodeCount: number,
+    statements: string[],
+    names: GeneratedNames
+  ): void {
+    const start = this.next(QwikGenWord.Start);
+    statements.push(
+      `const ${start} = ${childPathExpression(elementExpr, nodeIndex, nodeCount, this.imports)};`
+    );
+    const end = this.next(QwikGenWord.End);
+    this.imports.add(QwikWord.NextSibling);
+    statements.push(`const ${end} = ${QwikWord.NextSibling}(${start});`);
+    if (op.condition.v !== ValueKind.Qrl) {
+      throw new UnsupportedError('a non-QRL branch condition');
+    }
+    const conditionQrl = this.qrlById(op.condition.use.qrl);
+    this.imports.add(QwikWord.BranchRange);
+    this.imports.add(QwikWord.CreateBranch);
+    const conditionCaptures = captureNames(this.module, conditionQrl);
+    let condition = this.chunkSymbol(conditionQrl.id);
+    if (conditionCaptures.length > 0) {
+      this.imports.add(QwikWord.WithCaptures);
+      condition = `${QwikWord.WithCaptures}(${condition}, [${conditionCaptures.join(', ')}])`;
+    }
+    const thenRef = this.lazyQrlReference(this.armQrl(op.then));
+    const elseRef = op.else === null ? 'undefined' : this.lazyQrlReference(this.armQrl(op.else));
+    const branch = this.next(QwikGenWord.Branch);
+    statements.push(
+      `const ${branch} = ${QwikWord.CreateBranch}(${names.ctx}, new ${QwikWord.BranchRange}(${names.ctx}.document, ${start}, ${end}), ${condition}, ${thenRef}, ${elseRef});`
+    );
+    statements.push(`${names.ctx}.scheduler.notify(${branch});`);
+  }
+
+  /** An arm's function is a normal render program; source-bodied QRLs replay authored code. */
+  qrlFunction(qrl: LinkedQrl): FunctionEmission {
+    if (qrl.body.b !== QrlBodyKind.Program) {
+      return sourceFunctionEmission(this.module, qrl);
+    }
+    // A fresh emitter keeps the render's imports/hoists out of the main module.
+    const emitter = new CsrModuleEmitter(this.module);
+    const names = { props: QwikGenWord.ComponentProps, ctx: QwikGenWord.ComponentContext };
+    const emission = emitter.renderProgram(qrl.body.program, qrl.name, names);
+    return {
+      imports: emitter.imports,
+      chunkImports: emitter.chunkImports,
+      hoists: emitter.hoists,
+      params: emission.statements.length === 0 ? [] : [names.ctx],
+      statements: emission.statements,
+      value: emission.value,
+      async: false,
+    };
+  }
+
+  /** Arms load lazily: a hoisted `_qrlWithChunk` reference per arm chunk. */
+  private lazyQrlReference(qrl: LinkedQrl): string {
+    if (!this.lazyQrls.has(qrl.id)) {
+      this.lazyQrls.add(qrl.id);
+      const path = `./${chunkCanonicalFilename(this.module, qrl)}`;
+      this.imports.add(QwikWord.QrlWithChunk);
+      this.hoists.push(
+        `const q_${qrl.name} = /*#__PURE__*/ ${QwikWord.QrlWithChunk}(${JSON.stringify(path)}, () => import(${JSON.stringify(path)}), ${JSON.stringify(qrl.name)});`
+      );
+    }
+    return `q_${qrl.name}`;
+  }
+
+  private armQrl(program: number): LinkedQrl {
+    const qrl = this.module.qrls.find(
+      (candidate) => candidate.body.b === QrlBodyKind.Program && candidate.body.program === program
+    );
+    if (qrl === undefined) {
+      throw new Error(`pipeline.generateJsCsr: no qrl for the arm program ${program}`);
+    }
+    return qrl;
+  }
+
+  private qrlById(id: string): LinkedQrl {
+    const qrl = this.module.qrls.find((candidate) => candidate.id === id);
+    if (qrl === undefined) {
+      throw new Error(`pipeline.generateJsCsr: unknown qrl "${id}"`);
+    }
+    return qrl;
   }
 
   /** Dynamic attrs bind an effect against the element itself — no lookup, no marker. */
@@ -283,13 +391,13 @@ class CsrModuleEmitter {
 
   /** Clones the template into fresh `fragmentN`/`elN` locals. */
   private mountTemplate(
-    component: ComponentDecl,
+    ownerName: string,
     statements: string[],
     names: GeneratedNames
   ): { el: string; template: string } {
     const fragment = this.next(QwikGenWord.Fragment);
     const el = this.next(QwikGenWord.Element);
-    const template = `${component.name}_${this.next(QwikGenWord.Template)}`;
+    const template = `${ownerName}_${this.next(QwikGenWord.Template)}`;
     statements.push(`const ${fragment} = ${template}(${names.ctx}.document);`);
     this.imports.add(QwikWord.FirstChild);
     statements.push(`const ${el} = ${QwikWord.FirstChild}(${fragment});`);
@@ -365,6 +473,9 @@ function templateOp(op: Extract<Op, { op: OpKind.Element }>): Op {
           return templateOp(child);
         case OpKind.Static:
           return { ...child, html: escapeText(child.html) };
+        case OpKind.Branch:
+          // The branch's start/end comment pair.
+          return { op: OpKind.Static as const, html: '<!----><!---->' };
         default:
           return child;
       }

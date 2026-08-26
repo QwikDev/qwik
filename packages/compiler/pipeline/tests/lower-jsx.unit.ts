@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
-import type { AstNode } from '../analyse/ast/ast-types';
 import { parseModule } from '../analyse/ast/parse';
+import { unwrapExpression } from '../analyse/ast/utils';
 import { createLowerContext } from '../analyse/lower-context';
 import { lowerJsx } from '../analyse/lower-jsx';
 import { emptyModulePlan } from './fixtures';
@@ -9,11 +9,13 @@ import { foldStaticOp } from '../generate/fold-static';
 function fold(jsx: string, escapeTextContent = false): string {
   const parsed = parseModule('t.tsx', `const a = ${jsx};`);
   expect(parsed.errors).toEqual([]);
-  const statement = (parsed.program.body as AstNode[])[0];
-  const declarator = (statement.declarations as AstNode[])[0];
-  let element = declarator.init as AstNode;
-  while (element.type === 'ParenthesizedExpression') {
-    element = element.expression as AstNode;
+  const statement = parsed.program.body[0];
+  if (statement.type !== 'VariableDeclaration') {
+    throw new Error('expected a variable declaration');
+  }
+  const element = unwrapExpression(statement.declarations[0].init);
+  if (element?.type !== 'JSXElement') {
+    throw new Error('expected a JSX element');
   }
   const ctx = createLowerContext(emptyModulePlan('t.tsx'), 't.tsx', undefined);
   return foldStaticOp(lowerJsx(element, ctx), escapeTextContent);

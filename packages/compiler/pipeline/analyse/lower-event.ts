@@ -11,39 +11,39 @@ import {
   type Prop,
   type QrlUse,
 } from '../schema';
-import type { AstNode } from './ast/ast-types';
-import { isNode } from './ast/ast-types';
-import { collectOuterRefs } from './ast/capture-analysis';
+import type { JSXAttribute } from 'oxc-parser';
+import { collectCaptures } from './ast/capture-analysis';
 import { UnsupportedError } from '../errors';
 import { allocateSegment, pushPayload, type LowerContext } from './lower-context';
 
 /** `on…$` attribute → an event prop referencing an implicit function QRL. */
 export function lowerEventAttribute(
-  attribute: AstNode,
+  attribute: JSXAttribute,
   ctx: LowerContext,
   authored: string,
   scope: string
 ): Prop {
   const value = attribute.value;
-  if (!isNode(value) || value.type !== 'JSXExpressionContainer') {
+  if (value === null || value.type !== 'JSXExpressionContainer') {
     throw new UnsupportedError('an event attribute without a handler expression');
   }
-  const fn = value.expression as AstNode;
+  const fn = value.expression;
   if (fn.type !== 'ArrowFunctionExpression') {
     throw new UnsupportedError('an event handler that is not an inline arrow function');
   }
-  const params = fn.params as AstNode[];
-  if (params.some((param) => param.type !== 'Identifier')) {
-    throw new UnsupportedError('event handler parameters beyond identifiers');
+  const params = fn.params;
+  const paramNames = new Set<string>();
+  for (const param of params) {
+    if (param.type !== 'Identifier') {
+      throw new UnsupportedError('event handler parameters beyond identifiers');
+    }
+    paramNames.add(param.name);
   }
-  const body = fn.body as AstNode;
+  const body = fn.body;
   if (body.type === 'BlockStatement') {
     throw new UnsupportedError('a block-bodied event handler');
   }
-  const paramNames = new Set(
-    params.map((param) => String((param as AstNode & { name: string }).name))
-  );
-  const refs = collectOuterRefs(body, ctx, paramNames);
+  const refs = collectCaptures(body, ctx, paramNames);
   const captured = refs.other ?? (refs.props ? ctx.propsParamName : null);
   if (captured !== null) {
     throw new UnsupportedError(`an event handler capturing "${captured}"`);

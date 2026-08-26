@@ -1,12 +1,13 @@
+import type { JSXAttributeItem, JSXChild, JSXElement, Node } from 'oxc-parser';
 import { OpKind, PropKind, type Op, type Prop } from '../schema';
-import type { AstNode } from './ast/ast-types';
-import { isNode } from './ast/ast-types';
 import { normalizeJsxText } from './ast/jsx-text';
 import { normalizeAttributeName, VOID_ELEMENTS } from '../html';
 import { InvalidModuleError, UnsupportedError } from '../errors';
 import { eventScopeName } from './events';
 import { lowerEventAttribute } from './lower-event';
 import { lowerTextHole } from './lower-hole';
+import { lowerBranch } from './lower-branch';
+import { unwrapExpression } from './ast/utils';
 import { lowerExpressionValue } from './lower-expr';
 import type { LowerContext } from './lower-context';
 
@@ -14,18 +15,16 @@ import type { LowerContext } from './lower-context';
  * Lowers a JSX render tree to structural ops. Text stays RAW in the plan — each generator folds
  * with its own escaping (SSR streams raw, CSR templates escape). Dynamic arms land per example.
  */
-export function lowerJsx(element: AstNode, ctx: LowerContext): Op {
-  const opening = element.openingElement as AstNode;
-  const nameNode = opening.name as AstNode & { name?: string };
-  if (nameNode.type !== 'JSXIdentifier' || !/^[a-z]/.test(String(nameNode.name))) {
+export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
+  const opening = element.openingElement;
+  const nameNode = opening.name;
+  if (nameNode.type !== 'JSXIdentifier' || !/^[a-z]/.test(nameNode.name)) {
     throw new UnsupportedError('a non-native JSX tag');
   }
-  const tag = String(nameNode.name);
-  const props = (opening.attributes as AstNode[]).map((attribute) =>
-    lowerAttribute(attribute, ctx)
-  );
+  const tag = nameNode.name;
+  const props = opening.attributes.map((attribute) => lowerAttribute(attribute, ctx));
   const children: Op[] = [];
-  for (const child of (element.children as AstNode[]) ?? []) {
+  for (const child of element.children) {
     const lowered = lowerChild(child, ctx);
     if (lowered !== null) {
       children.push(lowered);
@@ -50,68 +49,126 @@ export function lowerJsx(element: AstNode, ctx: LowerContext): Op {
   };
 }
 
-function lowerChild(child: AstNode, ctx: LowerContext): Op | null {
+/** `null`/`undefined` literals in a branch arm render nothing. */
+function isNullArm(node: Node | null): boolean {
+  if (node === null) {
+    return false;
+  }
+  if (node.type === 'Literal' && node.value === null) {
+    return true;
+  }
+  return node.type === 'Identifier' && node.name === 'undefined';
+}
+
+function lowerChild(child: JSXChild, ctx: LowerContext): Op | null {
   switch (child.type) {
     case 'JSXText': {
-      const text = normalizeJsxText(String(child.value));
+      const text = normalizeJsxText(child.value);
       return text === '' ? null : { op: OpKind.Static, html: text };
     }
     case 'JSXElement':
       return lowerJsx(child, ctx);
     case 'JSXExpressionContainer': {
-      // `{/* comment */}` renders nothing.
-      if ((child.expression as AstNode).type === 'JSXEmptyExpression') {
-        return null;
+      const expression = child.expression;
+      switch (expression.type) {
+        // `{/* comment */}` renders nothing.
+        case 'JSXEmptyExpression':
+          return null;
+        case 'ConditionalExpression': {
+          const thenJsx = unwrapExpression(expression.consequent);
+          const elseJsx = unwrapExpression(expression.alternate);
+          const thenIsJsx = thenJsx?.type === 'JSXElement';
+          const elseIsJsx = elseJsx?.type === 'JSXElement';
+          if (!thenIsJsx && !elseIsJsx) {
+            return lowerTextHole(expression, ctx);
+          }
+          // A null-literal else drops the arm (like `&&`); a null-literal then stays as an
+          // EMPTY then program — legacy never inverts the condition.
+          if (!thenIsJsx && !isNullArm(thenJsx)) {
+            throw new UnsupportedError('a branch with a non-JSX arm');
+          }
+          if (!elseIsJsx && !isNullArm(elseJsx)) {
+            throw new UnsupportedError('a branch with a non-JSX arm');
+          }
+          return lowerBranch(
+            expression.test,
+            {
+              jsx: thenIsJsx ? (thenJsx as JSXElement) : null,
+              range: [expression.consequent.start, expression.consequent.end],
+            },
+            {
+              jsx: elseIsJsx ? (elseJsx as JSXElement) : null,
+              range: [expression.alternate.start, expression.alternate.end],
+            },
+            ctx
+          );
+        }
+        case 'LogicalExpression': {
+          const right = unwrapExpression(expression.right);
+          if (right?.type !== 'JSXElement') {
+            return lowerTextHole(expression, ctx);
+          }
+          if (expression.operator !== '&&') {
+            throw new UnsupportedError(`a "${expression.operator}" branch`);
+          }
+          return lowerBranch(
+            expression.left,
+            { jsx: right, range: [right.start, right.end] },
+            null,
+            ctx
+          );
+        }
+        default:
+          return lowerTextHole(expression, ctx);
       }
-      return lowerTextHole(child.expression as AstNode, ctx);
     }
     default:
       throw new UnsupportedError(`JSX child ${child.type}`);
   }
 }
 
-function lowerAttribute(attribute: AstNode, ctx: LowerContext): Prop {
+function lowerAttribute(attribute: JSXAttributeItem, ctx: LowerContext): Prop {
   if (attribute.type !== 'JSXAttribute') {
     throw new UnsupportedError('a JSX spread attribute');
   }
-  const nameNode = attribute.name as AstNode & { name?: string };
+  const nameNode = attribute.name;
   if (nameNode.type !== 'JSXIdentifier') {
     throw new UnsupportedError('a namespaced JSX attribute');
   }
-  const authored = String(nameNode.name);
+  const authored = nameNode.name;
   const scope = eventScopeName(authored);
   if (scope !== null) {
     return lowerEventAttribute(attribute, ctx, authored, scope);
   }
   const value = attribute.value;
-  if (value == null) {
+  if (value === null) {
     // Absent authored value = bare attribute (`<main hidden>`).
     return { k: PropKind.Static, name: normalizeAttributeName(authored), value: true };
   }
-  if (isNode(value)) {
-    switch (value.type) {
-      case 'Literal':
+  switch (value.type) {
+    case 'Literal':
+      return {
+        k: PropKind.Static,
+        name: normalizeAttributeName(authored),
+        value: value.value,
+      };
+    case 'JSXExpressionContainer': {
+      if (value.expression.type === 'JSXEmptyExpression') {
         return {
           k: PropKind.Static,
           name: normalizeAttributeName(authored),
-          value: value.value as string | number | boolean | null,
+          value: null,
         };
-      case 'JSXExpressionContainer':
-        if ((value.expression as AstNode).type === 'JSXEmptyExpression') {
-          return {
-            k: PropKind.Static,
-            name: normalizeAttributeName(authored),
-            value: null,
-          };
-        }
-        const name = normalizeAttributeName(authored);
-        return {
-          k: PropKind.Dynamic,
-          name,
-          value: lowerExpressionValue(value.expression as AstNode, ctx, name),
-          effect: null,
-        };
+      }
+      const name = normalizeAttributeName(authored);
+      return {
+        k: PropKind.Dynamic,
+        name,
+        value: lowerExpressionValue(value.expression, ctx, name),
+        effect: null,
+      };
     }
+    default:
+      throw new UnsupportedError('a dynamic JSX attribute value');
   }
-  throw new UnsupportedError('a dynamic JSX attribute value');
 }

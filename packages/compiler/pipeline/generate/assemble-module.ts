@@ -1,6 +1,12 @@
-import { AssemblyKind, SurfaceKind, type ComponentDecl, type LinkedModule } from '../schema';
+import {
+  AssemblyKind,
+  SurfaceKind,
+  type LinkedModule,
+  type LinkedQrl,
+  type QrlDeclaration,
+} from '../schema';
 import { QWIK_CORE_IMPORT } from '../words';
-import { emitQrlChunks } from './emit-chunk';
+import { emitQrlChunks, type FunctionEmission } from './emit-chunk';
 import type { GenerateOutput } from './output';
 import {
   allocateGeneratedNames,
@@ -17,7 +23,9 @@ export interface ModuleParts {
 }
 
 export interface QwikModuleEmitter extends ModuleParts {
-  emitProgram(component: ComponentDecl, names: GeneratedNames): ComponentEmission;
+  emitProgram(qrl: LinkedQrl, names: GeneratedNames): ComponentEmission;
+  /** Every QRL's function as one neutral emission — chunk files and SSR mirrors print it. */
+  qrlFunction(qrl: LinkedQrl): FunctionEmission;
 }
 
 /** The main module (assembled over the source) plus one chunk per QRL. */
@@ -31,7 +39,7 @@ export function generateQwikModule(
     code: assembleQwikModule(
       module,
       emitter,
-      (component, names) => emitter.emitProgram(component, names),
+      (qrl, names) => emitter.emitProgram(qrl, names),
       placement
     ),
     map: null,
@@ -39,7 +47,7 @@ export function generateQwikModule(
     origPath: null,
     segment: null,
   };
-  return [main, ...emitQrlChunks(module)];
+  return [main, ...emitQrlChunks(module, (qrl) => emitter.qrlFunction(qrl))];
 }
 
 /**
@@ -49,7 +57,7 @@ export function generateQwikModule(
 export function assembleQwikModule(
   module: LinkedModule,
   parts: ModuleParts,
-  emitProgram: (component: ComponentDecl, names: GeneratedNames) => ComponentEmission,
+  emitProgram: (qrl: LinkedQrl, names: GeneratedNames) => ComponentEmission,
   /** SSR glues imports/hoists at the component edit; CSR puts them at the top of the module. */
   placement: 'component' | 'module-top' = 'component'
 ): string {
@@ -61,19 +69,19 @@ export function assembleQwikModule(
       case AssemblyKind.StripRange:
         edits.push({ range: intent.range, text: '' });
         break;
-      case AssemblyKind.Component: {
-        const component = module.components[intent.component];
+      case AssemblyKind.Splice: {
+        const qrl = module.qrls[intent.qrl];
+        const declaration = qrl.declaration;
+        if (declaration === undefined) {
+          throw new Error(`pipeline: a splice intent on the undeclared qrl "${qrl.id}"`);
+        }
         const componentNames = {
           ...names,
-          props: authoredPropsName(module, component) ?? names.props,
+          props: authoredPropsName(module, declaration) ?? names.props,
         };
         const edit = {
-          range: component.replacementRange,
-          text: emitComponentFunction(
-            component,
-            emitProgram(component, componentNames),
-            componentNames
-          ),
+          range: declaration.replacementRange,
+          text: emitComponentFunction(qrl, emitProgram(qrl, componentNames), componentNames),
         };
         edits.push(edit);
         componentEdits.push(edit);
@@ -130,7 +138,7 @@ export function assembleQwikModule(
   return prefix + code;
 }
 
-function authoredPropsName(module: LinkedModule, component: ComponentDecl): string | null {
-  const surface = component.parameter?.surface;
+function authoredPropsName(module: LinkedModule, declaration: QrlDeclaration): string | null {
+  const surface = declaration.parameter?.surface;
   return surface?.kind === SurfaceKind.Identifier ? module.bindings[surface.binding].name : null;
 }

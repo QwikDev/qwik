@@ -76,8 +76,8 @@ from a deserialized frozen plan in a fresh process.
   hoist the bare `_noopQrl` and ship the chunk only.
 - Element text targets: sole hole child → element target; siblings → range targets + `<!t>`
   markers with a per-element marker counter.
-- Multi-step renders: first step eager, later steps are `invoke(invokeCtx, …)` thunks with lazy
-  `??=` id claiming; the value chains nested `maybeThen`.
+- Multi-step renders (LEGACY ONLY — see the divergence ledger): legacy defers later steps into
+  `invoke(invokeCtx, …)` thunks; the staged pipeline evaluates all steps eagerly instead.
 - Capture placement follows payload kind: Function-payload QRLs (events) carry captures in the
   reference (`.w([...])`, `setEvent` 4th arg, rust `QrlValue.captures`) and read them via a
   `_captures` chunk prelude; Value-payload QRLs (expressions) take captures as chunk params and
@@ -107,6 +107,14 @@ from a deserialized frozen plan in a fresh process.
 - CSR emits a hole's target resolution together with its effect, after `setEvent` wiring. Legacy
   splits them around `setEvent` (lookups first) — same behavior, one call site; the counter's
   csr snapshot is regenerated from the staged pipeline accordingly.
+- SSR multi-step renders evaluate ALL steps eagerly (before the first await, ambient context
+  still live), then chain `maybeThen` in authored order — promises run in parallel. Legacy
+  defers later steps into `invoke(invokeCtx, …)` thunks; that machinery exists only to restore
+  the context its own deferral kills, and is deliberately not ported. Revisit only if a step
+  ever needs a PRIOR step's result as input. Marker locators walked from the element stay valid
+  across `replaceWith` swaps (positions are preserved), so per-hole emission needs no
+  resolve-all-markers-first phase; the multi-hole snapshots are staged-authored under this
+  ledger entry, not oracle-seeded.
 - QRL extraction conventions follow the ts-optimizer (PR #8872) / rust optimizer, not legacy
   `src`: a chunk reaches a non-exported module binding via an appended
   `export { x as _auto_x };` alias and `import { _auto_x as x }` in the chunk — never via

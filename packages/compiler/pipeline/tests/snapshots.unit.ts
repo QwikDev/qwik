@@ -250,6 +250,17 @@ export default () => {
 `,
     });
   });
+  test('should render multiple signal-read text holes with sibling children', async () => {
+    await testInput(mode, 'text-hole-multi-siblings-signal', {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
+  const count = useSignal(0);
+  const name = useSignal('Qwik');
+  return <p>{name.value} count: {count.value}!</p>;
+};
+`,
+    });
+  });
 });
 
 describe('pending slices', () => {

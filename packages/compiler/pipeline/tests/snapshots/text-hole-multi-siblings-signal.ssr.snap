@@ -1,0 +1,44 @@
+==INPUT==
+
+import { useSignal } from '@qwik.dev/core';
+export default () => {
+  const count = useSignal(0);
+  const name = useSignal('Qwik');
+  return <p>{name.value} count: {count.value}!</p>;
+};
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useSignal,
+  createSsrNodeId,
+  createSsrOpenTag,
+  createSsrRangeTextTarget,
+  escapeHTML,
+  renderSsrTextNode,
+  maybeThen,
+} from '@qwik.dev/core';
+export default (props, ctx) => {
+  const count = useSignal(0);
+  const name = useSignal('Qwik');
+  const id_0 = ctx.nextId();
+  ctx.addRoot(name);
+  const text_0 = renderSsrTextNode(createSsrRangeTextTarget(id_0, 0), name);
+  ctx.addRoot(count);
+  const text_1 = renderSsrTextNode(createSsrRangeTextTarget(id_0, 1), count);
+  return maybeThen(text_0, (text_0) =>
+    maybeThen(text_1, (text_1) => [
+      createSsrOpenTag('<p q:id="', createSsrNodeId(id_0), '"', '>'),
+      '<!t>',
+      escapeHTML(text_0),
+      '<!/t> count: <!t>',
+      escapeHTML(text_1),
+      '<!/t>!</p>',
+    ])
+  );
+};
+== SSR DIAGNOSTICS ==
+
+[]

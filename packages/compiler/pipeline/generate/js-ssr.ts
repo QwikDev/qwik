@@ -224,11 +224,8 @@ class SsrModuleEmitter {
     }
   }
 
-  /** First step evaluates eagerly at its statement; later steps need invoke thunks (not yet). */
+  /** Every step evaluates eagerly before the first await (see the divergence ledger). */
   private pushStep(step: string, roots: readonly string[], callExpr: string): void {
-    if (this.asyncSteps.length > 0) {
-      throw new UnsupportedError('more than one async render step');
-    }
     for (const root of roots) {
       this.statements.push(`${this.names.ctx}.addRoot(${root});`);
     }

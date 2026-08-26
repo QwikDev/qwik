@@ -250,6 +250,26 @@ export default () => {
 `,
     });
   });
+  test('should render a hole inside a nested element', async () => {
+    await testInput(mode, 'nested-element-hole', {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
+  const count = useSignal(0);
+  return <div><span>{count.value}</span></div>;
+};
+`,
+    });
+  });
+
+  test('should render a sibling hole inside a nested element behind a static sibling', async () => {
+    await testInput(mode, 'nested-element-hole-path', {
+      code: `export default (props) => {
+  return <div><b>bold</b><span>a{props.title}b</span></div>;
+};
+`,
+    });
+  });
+
   test('should render multiple signal-read text holes with sibling children', async () => {
     await testInput(mode, 'text-hole-multi-siblings-signal', {
       code: `import { useSignal } from '@qwik.dev/core';

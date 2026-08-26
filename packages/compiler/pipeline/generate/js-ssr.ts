@@ -120,7 +120,7 @@ class SsrModuleEmitter {
     }
   }
 
-  private element(op: Extract<Op, { op: OpKind.Element }>, parts: string[]): void {
+  private element(op: Extract<Op, { op: OpKind.Element }>, parts: string[], root = true): void {
     const holes = op.children.filter((child) => child.op === OpKind.Hole);
     const idVariable = holes.length > 0 ? `${QwikGenWord.Id}_${this.idCount++}` : null;
     if (idVariable !== null) {
@@ -139,9 +139,15 @@ class SsrModuleEmitter {
     for (const prop of op.props) {
       this.prop(prop, open);
     }
-    open.push(JSON.stringify('>'));
-    this.imports.add(QwikWord.CreateSsrOpenTag);
-    parts.push(`${QwikWord.CreateSsrOpenTag}(${open.join(', ')})`);
+    if (root) {
+      // The open-tag record keeps '>' as its own LAST part — useOn splices attrs before it.
+      open.push(JSON.stringify('>'));
+    } else {
+      pushMergedStatic(open, '>');
+    }
+    const record = root ? QwikWord.CreateSsrOpenTag : QwikWord.CreateSsrMarkup;
+    this.imports.add(record);
+    parts.push(`${record}(${open.join(', ')})`);
 
     let textRangeCount = 0;
     for (const child of op.children) {
@@ -152,6 +158,14 @@ class SsrModuleEmitter {
         }
         case OpKind.Hole: {
           this.textHole(child, idVariable!, parts, op.children.length > 1, textRangeCount++);
+          break;
+        }
+        case OpKind.Element: {
+          if (isFullyStaticSubtree(child)) {
+            pushMergedStatic(parts, foldStaticOp(child, false));
+          } else {
+            this.element(child, parts, false);
+          }
           break;
         }
         default: {

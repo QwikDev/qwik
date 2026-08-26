@@ -33,7 +33,9 @@ mirrors + `.s()`, `q:id`, `renderSsrTextExpression`/`maybeThen`, CSR placeholder
 event handlers capturing signal locals (`.w([count])` SSR wrapper, `setEvent` captures arg,
 `_captures` chunk prelude, rust `QrlValue.captures`); the counter (event + signal-read hole
 composed on one element); text holes with sibling children (SSR range targets + `<!t>`/`<!/t>`
-markers, CSR `<!---->` comment placeholder + marker swap, shortest-path child navigation). Expressions lower to ValueIR when the
+markers, CSR `<!---->` comment placeholder + marker swap, shortest-path child navigation);
+holes in nested elements (recursive SSR markup records with per-element ids/markers, recursive
+CSR template placeholders + level-composed locator paths). Expressions lower to ValueIR when the
 vocabulary covers them (JS payload fallback), so Rust evaluates text holes natively; only
 IR-uncoverable expressions refuse on the native target. The linker is still a 1:1 materializer — folding, policies, and edges
 pending. Everything unsupported throws `UnsupportedError`; invalid authored code becomes
@@ -107,6 +109,19 @@ from a deserialized frozen plan in a fresh process.
 - CSR emits a hole's target resolution together with its effect, after `setEvent` wiring. Legacy
   splits them around `setEvent` (lookups first) — same behavior, one call site; the counter's
   csr snapshot is regenerated from the staged pipeline accordingly.
+- TARGET DESIGN — flat SSR output (decided 2026-08-26, its own slice): the record layer dies.
+  Emitted SSR values become flat arrays of strings + reference chunks; `ctx.eventAttr` returns a
+  STRING eagerly ('' elides the attribute); `useOn*` attrs come from a compiler-emitted
+  `ctx.useOnAttrs()` slot in the root open tag (setup registers before the render value builds),
+  killing `createSsrOpenTag`/`createSsrMarkup`, the record chunk type, `applyToFirstElement`/
+  `appendEvent`, `recordOpensTag` head/body matching, and `materializeRecord`. Must-solve in that
+  slice: same-event merging (compiled `onClick$` + `useOn('click')` must merge render-side —
+  duplicate HTML attrs drop the second silently) and flattening the runtime record builders
+  (`slot.ts` projections, server script emitters). The nested-hole slice landed BEFORE this refactor
+  with the legacy record shape (`createSsrMarkup` for nested id-carrying open tags, `'">'`
+  merged — the open-tag record alone keeps `'>'` separate as useOn's splice point); the flat
+  slice deletes that and reseeds. Note: naked reference chunks are already legal top-level
+  output, and only event-attr chunks require a record container today.
 - SSR multi-step renders evaluate ALL steps eagerly (before the first await, ambient context
   still live), then chain `maybeThen` in authored order — promises run in parallel. Legacy
   defers later steps into `invoke(invokeCtx, …)` thunks; that machinery exists only to restore

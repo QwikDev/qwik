@@ -19,7 +19,7 @@ import { generateQwikModule } from './assemble-module';
 import { captureNames, chunkCanonicalFilename } from './emit-chunk';
 import { emitJsSetup, signalReadName } from './emit-setup';
 import { escapeText } from '../html';
-import { foldStaticOp } from './fold-static';
+import { foldStaticOp, isFullyStaticSubtree } from './fold-static';
 import type { ComponentEmission, GeneratedNames } from './emit-component';
 import { generateForeignModule } from './foreign';
 import { makeOutput, type GenerateOutput, type PresentationOptions } from './output';
@@ -129,6 +129,19 @@ class CsrModuleEmitter {
         }
       }
     }
+    this.walkChildren(op, mounted.el, statements, names);
+    // Template markup excludes event props; templateOp pre-escapes text for innerHTML parsing.
+    this.hoistTemplate(mounted.template, foldStaticOp(templateOp(op), false));
+    return mounted.el;
+  }
+
+  /** Dispatches an element's children; nested elements compose the locator path. */
+  private walkChildren(
+    op: Extract<Op, { op: OpKind.Element }>,
+    elementExpr: string,
+    statements: string[],
+    names: GeneratedNames
+  ): void {
     let nodeIndex = 0;
     for (const child of op.children) {
       switch (child.op) {
@@ -137,18 +150,26 @@ class CsrModuleEmitter {
           break;
         }
         case OpKind.Hole: {
-          this.textHole(child, mounted.el, statements, names, op.children.length, nodeIndex++);
+          this.textHole(child, elementExpr, statements, names, op.children.length, nodeIndex++);
           break;
         }
-        default: {
+        case OpKind.Element: {
+          if (!isFullyStaticSubtree(child)) {
+            this.walkChildren(
+              child,
+              childPathExpression(elementExpr, nodeIndex, op.children.length, this.imports),
+              statements,
+              names
+            );
+          }
           nodeIndex++;
           break;
         }
+        default: {
+          throw new UnsupportedError(`the child op "${child.op}" in a csr element`);
+        }
       }
     }
-    // Template markup excludes event props; templateOp pre-escapes text for innerHTML parsing.
-    this.hoistTemplate(mounted.template, foldStaticOp(templateOp(op), false));
-    return mounted.el;
   }
 
   /** The effect re-runs the expression chunk against the resolved target text node. */
@@ -286,23 +307,19 @@ function templateOp(op: Extract<Op, { op: OpKind.Element }>): Op {
   return {
     ...op,
     props: op.props.filter((prop) => prop.k === PropKind.Static),
-    children: op.children.map((child) =>
-      child.op === OpKind.Hole
-        ? { op: OpKind.Static as const, html: placeholder }
-        : escapeTemplateChild(child)
-    ),
+    children: op.children.map((child) => {
+      switch (child.op) {
+        case OpKind.Hole:
+          return { op: OpKind.Static as const, html: placeholder };
+        case OpKind.Element:
+          return templateOp(child);
+        case OpKind.Static:
+          return { ...child, html: escapeText(child.html) };
+        default:
+          return child;
+      }
+    }),
   };
-}
-
-/** Recursively escapes static text runs, matching what the escaping fold used to do. */
-function escapeTemplateChild(child: Op): Op {
-  if (child.op === OpKind.Static) {
-    return { ...child, html: escapeText(child.html) };
-  }
-  if (child.op === OpKind.Element) {
-    return { ...child, children: child.children.map(escapeTemplateChild) };
-  }
-  return child;
 }
 
 /**

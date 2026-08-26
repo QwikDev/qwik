@@ -25,6 +25,7 @@ overrides:
   '@builder.io/qwik-city': link:./packages/qwik-router
   '@fastify/static': 10.1.2
   adm-zip: 0.6.0
+  body-parser@2.2.2: 2.3.0
   brace-expansion@1: 1.1.18
   brace-expansion@2: 2.1.4
   brace-expansion@5: 5.0.9
@@ -39,6 +40,7 @@ overrides:
   sharp: 0.35.0
   shell-quote: 1.10.0
   tar: 7.5.22
+  tmp@0.0.33: 0.2.7
   typescript: 5.9.3
   undici@6: 6.28.0
   undici@7: 7.29.0

@@ -111,9 +111,15 @@ export interface SSRContainer extends Container {
   readonly symbolToChunkResolver: SymbolToChunkResolver;
   readonly resolvedManifest: ResolvedManifest;
   readonly outOfOrderStreaming: boolean;
+  readonly $transformError$: ((error: unknown) => unknown) | undefined;
   additionalHeadNodes: Array<JSXNodeInternal>;
   additionalBodyNodes: Array<JSXNodeInternal>;
   $noScriptHere$: number;
+  /** Innermost open ErrorBoundary content host, so the walker can skip an errored subtree. */
+  $errorContentHost$: ISsrNode | null;
+
+  /** Set when an ErrorBoundary caught during this container's render. */
+  $hasBoundaryError$?: boolean;
 
   /**
    * Lets the container place a root-level `useOn` placeholder `<script>` itself when injecting it
@@ -159,7 +165,7 @@ export interface SSRContainer extends Container {
   render(jsx: JSXOutput): Promise<void>;
   renderJSX(jsx: JSXOutput, options: SSRRenderJSXOptions): Promise<void>;
   $runQueuedRender$<T>(render: () => ValueOrPromise<T>): ValueOrPromise<T>;
-  nextOutOfOrderId(): number;
+  nextOutOfOrderId(markUsed?: boolean): number;
   emitOutOfOrderSegmentScripts(scripts: string): void;
   segment(
     segmentId: string,
@@ -168,6 +174,10 @@ export interface SSRContainer extends Container {
   ): Promise<SSROutOfOrderSegment>;
   queueOutOfOrderSegment(segment: Promise<void>): void;
   emitOutOfOrderExecutorIfNeeded(): void;
+  emitErrorSwapExecutorIfNeeded(): void;
+  $registerErrorSwap$(boundaryId: number): void;
+  /** Keeps the node re-renderable after resume. */
+  $retainForResume$(node: ISsrNode | null | undefined): void;
   emitInlineScript(script: string): void;
   writeScript(attrs: Props, body?: string): void;
 
@@ -187,6 +197,7 @@ export interface SSRContainer extends Container {
 
 export interface SSRSegmentContainer extends SSRContainer {
   $rootContainer$: SSRContainer;
+  $errorSwapIds$: number[] | null;
   $recordExternalRootEffect$(
     producer: unknown,
     effect: EffectSubscription,

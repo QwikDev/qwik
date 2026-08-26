@@ -13,6 +13,7 @@ import { join, relative, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { build, type InlineConfig, type PluginOption } from 'vite';
 import type { PackageJSON } from '../../scripts/types.ts';
+import { getReleaseKey, getReleaseStore } from './utils/release-gate.ts';
 
 const isWindows = process.platform === 'win32';
 
@@ -51,21 +52,6 @@ const e2eDir = __dirname;
 const repoRoot = resolve(__dirname, '..', '..');
 const appsDir = join(e2eDir, 'apps');
 const appNames = readdirSync(appsDir).filter((p) => statSync(join(appsDir, p)).isDirectory());
-
-type OOOSReleaseStore = {
-  resolved: Set<string>;
-  resolvers: Map<string, Set<() => void>>;
-};
-
-const getOOOSReleaseStore = (): OOOSReleaseStore =>
-  ((globalThis as any).__qwikOOOSReleaseStore ||= {
-    resolved: new Set<string>(),
-    resolvers: new Map<string, Set<() => void>>(),
-  });
-
-const getOOOSReleaseKey = (requestId: string, releaseId: string): string => {
-  return `${requestId}:${releaseId}`;
-};
 
 let ooosRequestCounter = 0;
 
@@ -246,7 +232,7 @@ export { router }
               clientManifest = manifest;
             },
           },
-          experimental: ['each', 'show', 'suspense', 'blockSSR'],
+          experimental: ['each', 'show', 'suspense', 'errorBoundary', 'blockSSR'],
         }),
       ],
     })
@@ -262,7 +248,7 @@ export { router }
       plugins: [
         ...plugins,
         optimizer.qwikVite({
-          experimental: ['each', 'show', 'suspense', 'blockSSR'],
+          experimental: ['each', 'show', 'suspense', 'errorBoundary', 'blockSSR'],
           ssr: {
             manifestInput: clientManifest,
           },
@@ -453,8 +439,8 @@ async function main() {
   app.post('/__ooos-release/:requestId/:id', (req, res) => {
     const requestId = req.params.requestId;
     const id = req.params.id;
-    const store = getOOOSReleaseStore();
-    const key = getOOOSReleaseKey(requestId, id);
+    const store = getReleaseStore();
+    const key = getReleaseKey(requestId, id);
     const resolvers = store.resolvers.get(key);
     store.resolved.add(key);
     if (resolvers) {

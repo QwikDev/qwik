@@ -176,7 +176,7 @@ export interface _Container {
     // (undocumented)
     getParentHost(host: _HostElement): _HostElement | null;
     // (undocumented)
-    handleError(err: any, $host$: _HostElement | null): void;
+    handleError(err: any, $host$: _HostElement | null, phase?: ErrorBoundaryPhase): void;
     // (undocumented)
     resolveContext<T>(host: _HostElement, contextId: ContextId<T>): T | undefined;
     // Warning: (ae-forgotten-export) The symbol "SymbolToChunkResolver" needs to be exported by the entry point index.d.ts
@@ -358,7 +358,7 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     // (undocumented)
     getSyncFn(id: number): (...args: unknown[]) => unknown;
     // (undocumented)
-    handleError(err: any, host: _VNode | null): void;
+    handleError(err: any, host: _VNode | null, phase?: ErrorBoundaryPhase): void;
     // (undocumented)
     parseQRL<T = unknown>(qrlStr: string): QRL<T>;
     // (undocumented)
@@ -367,6 +367,8 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     qManifestHash: string;
     // (undocumented)
     resolveContext<T>(host: _VNode, contextId: ContextId<T>): T | undefined;
+    // (undocumented)
+    resolveContextHost(host: _VNode, contextId: ContextId<unknown>): _VNode | null;
     // (undocumented)
     rootVNode: _ElementVNode;
     // (undocumented)
@@ -398,6 +400,12 @@ export const Each: EachComponent;
 export const _eaT: (input: TaskCtx) => Promise<void>;
 
 // @internal (undocumented)
+export const _ebC: (props: ErrorBoundaryProps) => JSXOutput;
+
+// @internal (undocumented)
+export const _ebR: () => void;
+
+// @internal (undocumented)
 export const _EFFECT_BACK_REF: unique symbol;
 
 // @internal (undocumented)
@@ -427,10 +435,32 @@ export const _EMPTY_ARRAY: any[];
 // @internal (undocumented)
 export const _EMPTY_OBJ: Record<string, any>;
 
-// @public (undocumented)
-export interface ErrorBoundaryStore {
+// @public
+export const ErrorBoundary: Component<ErrorBoundaryProps>;
+
+// @public
+export interface ErrorBoundaryInfo {
+    boundaryId: string;
+    digest: string;
+    phase: ErrorBoundaryPhase;
+}
+
+// @public
+export const enum ErrorBoundaryPhase {
     // (undocumented)
-    error: any | undefined;
+    Event = "event",
+    // (undocumented)
+    Hook = "hook",
+    // (undocumented)
+    Render = "render"
+}
+
+// @public (undocumented)
+export interface ErrorBoundaryProps {
+    fallback$: QRL<(error: Error & {
+        digest?: string;
+    }, reset: QRL<() => void>) => JSXOutput>;
+    onError$?: QRL<(error: Error, info: ErrorBoundaryInfo) => void>;
 }
 
 // @public (undocumented)
@@ -522,6 +552,9 @@ export const _getVarProps: (props: PropsProxy | Record<string, unknown> | null |
 function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends {} = {}>(type: TYPE, props?: PROPS | null, ...children: any[]): JSXNode<TYPE>;
 export { h as createElement }
 export { h }
+
+// @internal (undocumented)
+export function _handleSSRError(container: SSRContainer, err: any, host: ISsrNode | null, phase: ErrorBoundaryPhase): void;
 
 // @internal (undocumented)
 export const _hasStoreEffects: (value: StoreTarget, prop: keyof StoreTarget) => boolean;
@@ -802,7 +835,8 @@ export type PublicProps<PROPS> = (PROPS extends Record<any, any> ? Omit<PROPS, `
 
 // @internal (undocumented)
 export interface _QDocument extends Document {
-    qProcessOOOS?: (boundaryId: number, content: Element | null) => void;
+    qErrorHandler?: (e: Event) => void;
+    qProcessOOOS?: (boundaryId: number, revealNode: Element | null) => void;
     qProcessVNodeDataPatch?: (script: Element | null) => void;
     // (undocumented)
     qVNodeData: WeakMap<Element, string>;
@@ -993,10 +1027,10 @@ export interface ReadonlySignal<T = unknown> {
 // Warning: (ae-forgotten-export) The symbol "SSRRevealSlotProps" needs to be exported by the entry point index.d.ts
 //
 // @internal (undocumented)
-export const _reC: (props: RevealProps) => JSXNodeInternal<InternalServerComponent<SSRRevealSlotProps>> | JSXNodeInternal<FunctionComponent<    {
+export const _reC: (props: RevealProps) => JSXNodeInternal<FunctionComponent<    {
 name?: string;
 children?: JSXChildren;
-}>>;
+}>> | JSXNodeInternal<InternalServerComponent<SSRRevealSlotProps>>;
 
 // @internal
 export const _regSymbol: (symbol: any, hash: string) => any;
@@ -1187,7 +1221,7 @@ export abstract class _SharedContainer implements _Container {
     // (undocumented)
     abstract getParentHost(host: _HostElement): _HostElement | null;
     // (undocumented)
-    abstract handleError(err: any, $host$: _HostElement | null): void;
+    abstract handleError(err: any, $host$: _HostElement | null, phase?: ErrorBoundaryPhase): void;
     // (undocumented)
     abstract resolveContext<T>(host: _HostElement, contextId: ContextId<T>): T | undefined;
     // (undocumented)
@@ -2026,9 +2060,6 @@ export const useContext: UseContext;
 
 // @public
 export const useContextProvider: <STATE>(context: ContextId<STATE>, newValue: STATE) => void;
-
-// @public (undocumented)
-export const useErrorBoundary: () => ErrorBoundaryStore;
 
 // @internal
 export function _useHmr(devPath: string): void;

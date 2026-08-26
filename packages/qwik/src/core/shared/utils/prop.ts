@@ -17,6 +17,17 @@ export function isSlotProp(prop: string): boolean {
   return !prop.startsWith('q:') && !prop.startsWith(NON_SERIALIZABLE_MARKER_PREFIX);
 }
 
+export function hasSlotProps(props: Props | null | undefined): boolean {
+  if (props) {
+    for (const prop in props) {
+      if (isSlotProp(prop)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 /** @internal */
 export const _restProps = (props: unknown, omit: string[] = [], target: Props = {}) => {
   // The optimizer can apply this transform to plain, non-component objects and

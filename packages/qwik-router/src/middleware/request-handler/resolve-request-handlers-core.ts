@@ -1,6 +1,6 @@
 import { inlinedQrl, isDev, type QRL } from '@qwik.dev/core';
 import { _serialize, _verifySerializable } from '@qwik.dev/core/internal';
-import type { Render, RenderToStringResult } from '@qwik.dev/core/server';
+import type { Render, RenderToStreamResult, RenderToStringResult } from '@qwik.dev/core/server';
 import type {
   ActionInternal,
   ContentModule,
@@ -488,6 +488,7 @@ function createResolveRequestHandlers() {
 
         const status = e.status as number;
         requestEv.status(status);
+        requestEv.headers.set('Cache-Control', 'no-store');
 
         // $errorLoader$ is the error boundary's chain, rendered as-is — a bare error.tsx in its
         // layouts, `error!.tsx` standalone. Undefined → built-in fallback.
@@ -512,6 +513,8 @@ function createResolveRequestHandlers() {
     requestEv.sharedMap.delete(RequestEvSharedActionId);
     requestEv.sharedMap.delete(RequestEvSharedActionFormData);
     requestEv.sharedMap.delete('@actionResult');
+    // The error document must never read or write the page's SSR cache entry.
+    requestEv.sharedMap.delete(RequestEvETagCacheKey);
   }
 
   async function runValidators(
@@ -753,7 +756,15 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
         | undefined;
 
       const { readable, writable } = new TextEncoderStream();
-      const writableStream = requestEv.getWritableStream();
+      // Headers commit when the response stream is created, so defer it to the first rendered
+      // chunk — onBeforeFirstFlush can still change them.
+      let responseWriter: WritableStreamDefaultWriter<Uint8Array> | undefined;
+      const lazyResponseSink = new WritableStream<Uint8Array>({
+        write(chunk) {
+          responseWriter ||= requestEv.getWritableStream().getWriter();
+          return responseWriter.write(chunk);
+        },
+      });
 
       let cacheChunks: Uint8Array[] | undefined;
       let pipeSource: ReadableStream<Uint8Array> = readable;
@@ -769,7 +780,10 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
       }
 
       let pipeError: unknown;
-      const pipe = pipeSource.pipeTo(writableStream, { preventClose: true }).catch((error) => {
+      let boundaryErrored = false;
+      let noStoreSent = false;
+      let overrodeCacheControl = false;
+      const pipe = pipeSource.pipeTo(lazyResponseSink, { preventClose: true }).catch((error) => {
         pipeError = error;
       });
       const stream = writable.getWriter();
@@ -789,20 +803,43 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
             ['q:render']: isStatic ? 'static' : '',
             ...serverData.containerAttributes,
           },
+          onBeforeFirstFlush: (info: { errorBoundaryCaught: boolean }) => {
+            if (info.errorBoundaryCaught) {
+              boundaryErrored = true;
+              noStoreSent = true;
+              overrodeCacheControl = responseHeaders.has('Cache-Control');
+              responseHeaders.set('Cache-Control', 'no-store');
+            }
+          },
         });
         if (typeof (result as any as RenderToStringResult).html === 'string') {
           await stream.write((result as any as RenderToStringResult).html);
         }
+        boundaryErrored ||= (result as RenderToStreamResult).errorBoundaryCaught === true;
       } finally {
-        await stream.ready;
-        await stream.close();
-        await pipe;
+        try {
+          await stream.ready;
+          await stream.close();
+        } finally {
+          await pipe;
+          responseWriter?.releaseLock();
+        }
       }
       if (pipeError) {
         throw pipeError;
       }
 
-      if (cachePlan && cacheChunks && cacheChunks.length > 0) {
+      // Only worth a log when the developer configured caching and the error disabled it.
+      if (boundaryErrored && (noStoreSent ? cachePlan || overrodeCacheControl : !!cachePlan)) {
+        console.warn(
+          `An <ErrorBoundary> caught during SSR of ${requestEv.url.pathname} — configured caching disabled: ` +
+            (noStoreSent
+              ? 'the response was sent with Cache-Control: no-store.'
+              : 'the SSR cache was skipped (response headers were already sent).')
+        );
+      }
+
+      if (cachePlan && cacheChunks && cacheChunks.length > 0 && !boundaryErrored) {
         const totalLength = cacheChunks.reduce((sum, chunk) => sum + chunk.length, 0);
         const combined = new Uint8Array(totalLength);
         let offset = 0;
@@ -817,7 +854,9 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
         setCachedSsr(cachePlan.key, { eTag: cachedETag, body: html });
       }
 
-      await writableStream.close();
+      if (responseWriter) {
+        await requestEv.getWritableStream().close();
+      }
     };
   }
 

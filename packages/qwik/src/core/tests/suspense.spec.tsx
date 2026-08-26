@@ -2,6 +2,7 @@ import {
   createDocument,
   domRender,
   emulateExecutionOfQwikFuncs,
+  getTestPlatform,
   ssrRenderToDom,
   trigger,
   waitForDrain,
@@ -15,18 +16,26 @@ import {
   Fragment as Projection,
   Fragment as Awaited,
   component$,
+  createContextId,
+  ErrorBoundary,
+  $,
   getDomContainer,
   type JSXOutput,
+  render,
+  setPlatform,
   useComputed$,
-  useErrorBoundary,
+  useContextProvider,
   Slot,
   useTask$,
   useSignal,
   useStylesScoped$,
   useStore,
   Fragment as Signal,
+  type Signal as SignalType,
 } from '@qwik.dev/core';
 import { ErrorProvider, emulateExecutionOfBackpatch } from '../../testing/rendering.unit-util';
+import { useErrorBoundaryStore } from '../use/use-error-boundary-store';
+import { isServerPlatform } from '../shared/platform/platform';
 import { delay } from '../shared/utils/promises';
 import { getScopedStyles } from '../shared/utils/scoped-stylesheet';
 import { TypeIds } from '../shared/serdes/constants';
@@ -279,7 +288,7 @@ describe.each([
 
   it('should bubble descendant throws to the nearest regular error boundary on the client', async () => {
     const ErrorBoundary = component$(() => {
-      const boundary = useErrorBoundary();
+      const boundary = useErrorBoundaryStore();
       return boundary.error ? <p>Error: {(boundary.error as Error).message}</p> : <Slot />;
     });
     const BadChild = component$(() => {
@@ -287,7 +296,6 @@ describe.each([
     });
 
     if (render === ssrRenderToDom) {
-      // SSR still propagates the error synchronously — Suspense is not an SSR error boundary.
       let caught: unknown;
       try {
         await render(
@@ -425,6 +433,8 @@ describe('domRender: Suspense client-side pause delay', () => {
     delete (globalThis as any).__slowResolve;
     delete (globalThis as any).__susToggle;
     delete (globalThis as any).__susResolve;
+    delete (globalThis as any).__wrapperSlowContent;
+    delete (globalThis as any).__wrapperSlowResolve;
   });
 
   it('should show fallback mid-flight and swap it for children on completion', async () => {
@@ -444,7 +454,6 @@ describe('domRender: Suspense client-side pause delay', () => {
       { debug }
     );
 
-    // Wait past the delay (10ms) so the pause-timer fires and marks fallback visible.
     await new Promise((r) => setTimeout(r, 40));
 
     (globalThis as any).__slowResolve(<p>Done</p>);
@@ -475,6 +484,76 @@ describe('domRender: Suspense client-side pause delay', () => {
     );
   });
 
+  it('should show the fallback when the deferred child is projected through a stateful wrapper component', async () => {
+    (globalThis as any).__wrapperSlowContent = new Promise<JSXOutput>((resolve) => {
+      (globalThis as any).__wrapperSlowResolve = resolve;
+    });
+    const wrapperContext = createContextId<{ renders: number }>('test-stateful-wrapper');
+    const StatefulWrapper = component$(() => {
+      const state = useStore({ renders: 0 });
+      useContextProvider(wrapperContext, state);
+      return <Slot />;
+    });
+    const SlowChild = component$(() => {
+      return <>{(globalThis as any).__wrapperSlowContent}</>;
+    });
+
+    setPlatform(getTestPlatform());
+    const document = createDocument();
+    const renderPromise = render(
+      document.body,
+      <div>
+        <Suspense fallback={<span>Loading...</span>} delay={10}>
+          <StatefulWrapper>
+            <SlowChild />
+          </StatefulWrapper>
+        </Suspense>
+      </div>
+    );
+
+    await delay(40);
+    expect(document.querySelector('div')!.innerHTML).toContain(loading);
+
+    (globalThis as any).__wrapperSlowResolve(<p>Done</p>);
+    await renderPromise;
+
+    const html = document.querySelector('div')!.innerHTML;
+    expect(html).toContain('Done');
+    expect(html).not.toContain(loading);
+  });
+
+  it('should show the fallback when the deferred child is wrapped in an ErrorBoundary', async () => {
+    (globalThis as any).__wrapperSlowContent = new Promise<JSXOutput>((resolve) => {
+      (globalThis as any).__wrapperSlowResolve = resolve;
+    });
+    const SlowChild = component$(() => {
+      return <>{(globalThis as any).__wrapperSlowContent}</>;
+    });
+
+    setPlatform(getTestPlatform());
+    const document = createDocument();
+    const renderPromise = render(
+      document.body,
+      <div>
+        <Suspense fallback={<span>Loading...</span>} delay={10}>
+          <ErrorBoundary fallback$={$(() => 'error')}>
+            <SlowChild />
+          </ErrorBoundary>
+        </Suspense>
+      </div>
+    );
+
+    await delay(40);
+    expect(document.querySelector('div')!.innerHTML).toContain(loading);
+
+    (globalThis as any).__wrapperSlowResolve(<p>Done</p>);
+    await renderPromise;
+
+    const html = document.querySelector('div')!.innerHTML;
+    expect(html).toContain('Done');
+    expect(html).not.toContain(loading);
+  });
+
   it('should keep resolved content visible when a descendant update blocks', async () => {
     (globalThis as any).__susToggle = null as any;
     (globalThis as any).__susResolve = null as any;
@@ -485,7 +564,7 @@ describe('domRender: Suspense client-side pause delay', () => {
       useTask$(({ track }) => {
         const t = track(() => toggle.value);
         if (t === 0) {
-          return; // initial: sync
+          return;
         }
         return new Promise<void>((resolve) => {
           (globalThis as any).__susResolve = resolve;
@@ -503,7 +582,6 @@ describe('domRender: Suspense client-side pause delay', () => {
       { debug }
     );
 
-    // Initial render finished; children in place, no fallback.
     let html = document.querySelector('div')!.innerHTML;
     expect(html).toContain('value=0');
     expect(html).not.toContain(loading);
@@ -526,7 +604,6 @@ describe('domRender: Suspense client-side pause delay', () => {
       </div>
     );
 
-    // Trigger an update that will pause the cursor.
     const toggle = (globalThis as any).__susToggle as { value: number };
     toggle.value = 1;
 
@@ -537,7 +614,6 @@ describe('domRender: Suspense client-side pause delay', () => {
     expect(html).toContain('value=0');
     expect(html).not.toContain(loading);
 
-    // Resolve the pending task and let the render settle.
     const resolveFn = (globalThis as any).__susResolve as () => void;
     expect(resolveFn).toBeDefined();
     resolveFn();
@@ -1698,35 +1774,35 @@ describe('ssrRenderToDom: out-of-order Suspense', () => {
     (globalThis as any).__ooosUnitStoreShellValue = 0;
     (globalThis as any).__ooosUnitStoreResolvedValue = 0;
 
-    const Slow = component$((props: { state: { count: number } }) => (
+    const Slow = component$((props: { state: { nested: { count: number } } }) => (
       <>
         {slow}
         <button
           id="ooos-unit-store-resolved-button"
           onClick$={() => {
-            props.state.count += 1;
-            (globalThis as any).__ooosUnitStoreResolvedValue = props.state.count;
+            props.state.nested.count += 1;
+            (globalThis as any).__ooosUnitStoreResolvedValue = props.state.nested.count;
           }}
         >
           Touch resolved store
         </button>
-        <span id="ooos-unit-store-resolved-count">{props.state.count}</span>
+        <span id="ooos-unit-store-resolved-count">{props.state.nested.count}</span>
       </>
     ));
     const App = component$(() => {
-      const state = useStore({ count: 0 });
+      const state = useStore({ nested: { count: 0 } });
       return (
         <main>
           <button
             id="ooos-unit-store-shell-button"
             onClick$={() => {
-              state.count += 1;
-              (globalThis as any).__ooosUnitStoreShellValue = state.count;
+              state.nested.count += 1;
+              (globalThis as any).__ooosUnitStoreShellValue = state.nested.count;
             }}
           >
             Touch shell store
           </button>
-          <span id="ooos-unit-store-shell-count">{state.count}</span>
+          <span id="ooos-unit-store-shell-count">{state.nested.count}</span>
           <Suspense fallback={<p>Waiting store</p>}>
             <Slow state={state} />
           </Suspense>
@@ -2242,5 +2318,74 @@ describe('ssrRenderToDom: out-of-order Suspense', () => {
       delete (globalThis as any).__ooosUnitFallbackValue;
       delete (globalThis as any).__ooosUnitShellValue;
     }
+  });
+});
+
+describe('ssrRenderToDom: author re-render across a deferred Suspense', () => {
+  const OOOS_OPT_IN = {
+    streaming: { inOrder: { strategy: 'disabled' as const }, outOfOrder: true },
+  };
+  const IN_ORDER = { streaming: { outOfOrder: false } };
+  const mounts = { count: 0 };
+
+  const DeferredRetry = component$<{ attempt: SignalType<number> }>((props) => {
+    if (isServerPlatform()) {
+      return delay(10).then(() => (
+        <button id="retry" onClick$={() => props.attempt.value++}>
+          mount 0
+        </button>
+      )) as unknown as JSXOutput;
+    }
+    mounts.count++;
+    return (
+      <button id="retry" onClick$={() => props.attempt.value++}>
+        mount {mounts.count}
+      </button>
+    );
+  });
+
+  const DeferOnlyApp = component$(() => {
+    const attempt = useSignal(0);
+    return (
+      <Suspense fallback={<span id="skel">loading</span>}>
+        <DeferredRetry key={attempt.value} attempt={attempt} />
+      </Suspense>
+    );
+  });
+
+  const ShellThenDeferApp = component$(() => {
+    const attempt = useSignal(0);
+    return (
+      <div>
+        <h2 id="shell">shell</h2>
+        <Suspense fallback={<span id="skel">loading</span>}>
+          <DeferredRetry key={attempt.value} attempt={attempt} />
+        </Suspense>
+      </div>
+    );
+  });
+
+  const expectRemount = async (jsx: JSXOutput, opts: object) => {
+    mounts.count = 0;
+    const { container } = await ssrRenderToDom(jsx, { debug, ...opts });
+    const el = container.element;
+    expect(el.querySelector('#retry')?.textContent).toContain('mount 0');
+
+    await trigger(el, '#retry', 'click');
+
+    expect(el.querySelector('#retry')?.textContent).toContain('mount 1');
+  };
+
+  it('should re-render an author whose only root is the Suspense (in-order)', async () => {
+    await expectRemount(<DeferOnlyApp />, IN_ORDER);
+  });
+
+  // https://github.com/QwikDev/qwik/issues/8876
+  it.skip('should re-render an author whose only root is the Suspense (out-of-order)', async () => {
+    await expectRemount(<DeferOnlyApp />, OOOS_OPT_IN);
+  });
+
+  it('should re-render an author with in-order shell content above the Suspense (out-of-order)', async () => {
+    await expectRemount(<ShellThenDeferApp />, OOOS_OPT_IN);
   });
 });

@@ -12,6 +12,9 @@ export {
   createSignal,
   CSSProperties,
   Each,
+  ErrorBoundary,
+  ErrorBoundaryInfo,
+  ErrorBoundaryProps,
   // TODO remove this
   event$,
   EventHandler,
@@ -73,7 +76,6 @@ export {
   useConstant,
   useContext,
   useContextProvider,
-  useErrorBoundary,
   useId,
   useOn,
   useOnDocument,

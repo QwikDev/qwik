@@ -18,7 +18,6 @@
     "outDir": "tmp",
     "noEmit": true,
     "types": ["node", "vite/client"],
-    "rootDir": ".",
     "paths": {
       "~/*": ["./src/*"]
     }

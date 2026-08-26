@@ -56,6 +56,7 @@ export const ReferencedDefault = component$(({first = getValue(second), second})
 ============================= test.js ==
 
 import { _restProps } from "@qwik.dev/core";
+import { untrack } from "@qwik.dev/core";
 import { componentQrl } from "@qwik.dev/core";
 import { useTaskQrl } from "@qwik.dev/core";
 import { _captures } from "@qwik.dev/core";
@@ -140,8 +141,8 @@ q_DynamicDefaults_component_useTask_Od2wjq7X07c.s(({ track })=>{
 });
 const getValue = ()=>0;
 q_DynamicDefaults_component_nZOHO1uiqf4.s((_rawProps)=>{
-    const _defaultValue = _rawProps.stuff === void 0 ? getValue() : void 0;
-    const _defaultValue1 = _rawProps.other === void 0 ? getValue() : void 0;
+    const _defaultValue = untrack(()=>_rawProps.stuff) === void 0 ? getValue() : void 0;
+    const _defaultValue1 = untrack(()=>_rawProps.other) === void 0 ? getValue() : void 0;
     console.log(_rawProps.stuff === void 0 ? _defaultValue : _rawProps.stuff);
     useTaskQrl(q_DynamicDefaults_component_useTask_Od2wjq7X07c.w([
         _defaultValue,
@@ -169,7 +170,7 @@ export const ReferencedDefault = /*#__PURE__*/ componentQrl(q_ReferencedDefault_
 export { getValue as _auto_getValue };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;;;sBAMC,QAAO;;mBAWmB,CAAA;QAAE,IAAI,KAXhC,QAAO;IAW0B,CAAA;;0BAeiB,2BAAA;;0BAAoB,2BAAA;;;;;;;;;;;wCApB7D,CAAC,EAAC,KAAK,EAAC;;IAChB,MAAM,cARP;IASC,QAAQ,GAAG,WATZ,OASoB,gBANpB,iBAFA,QAAO,aAGP,gBAAqB;;gCALU;;;;;;;;IAO/B,QAAQ,GAAG,WAHX,iBAFA,QAAO;IAMP;;;;IAIA,qBACC,UAAC;QAAI,IAAI;;;QAAQ,MAAM;;;QAAY,KAAK;wBAAa;;0BAAA;QAAM,QAAQ;;AAErE;2CAIU,CAAC,EAAC,KAAK,EAAC;;IAChB,MAAM,IAAM;IACZ,QAAQ,GAAG,CAAC;;mCAJqB,CAAC,EAAC,KAAK,EAAE,OAAO,EAAC,GAAG,EAAC,EAAC;IACxD,QAAQ,GAAG,CAAC;IACZ;;;IAIA,qBACC,WAAC;QAAI,OAAO;aAAQ;AAEtB;kDAIU,CAAC,EAAC,KAAK,EAAC;;IAChB,MAAM,cAH2C,6CAAA;IAIjD,MAAM,cAJ+D,8CAAA;IAKrE,QAAQ,GAAG,WAL+B,iBAAO,6CAAA,iBAAoB,8CAAA;;AA7BvE,MAAM,WAAW,IAAM;0CA6BmB;oCAAS,mBAAQ;qCAAY,mBAAe;IACrF,QAAQ,GAAG,WADuC,6CAAA;IAElD;;;;;IAKA,qBACC,WAAC;QAAI,KAAK;;;;;;;;AAEZ;4CAE4C,CAAC,EAAC,QAAQ,SAAS,OAAO,EAAE,MAAM,EAAC,iBAC9E,WAAC;QAAK;QAAO;;AAzCd,OAAO,MAAM,sBAAQ,4CAelB;AAEH,OAAO,MAAM,yBAAW,+CASrB;AAEH,OAAO,MAAM,gCAAkB,sDAU5B;AAEH,OAAO,MAAM,kCAAoB,wDAE9B\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;;;;sBAMC,QAAO;;mBAWmB,CAAA;QAAE,IAAI,KAXhC,QAAO;IAW0B,CAAA;;0BAeiB,2BAAA;;0BAAoB,2BAAA;;;;;;;;;;;wCApB7D,CAAC,EAAC,KAAK,EAAC;;IAChB,MAAM,cARP;IASC,QAAQ,GAAG,WATZ,OASoB,gBANpB,iBAFA,QAAO,aAGP,gBAAqB;;gCALU;;;;;;;;IAO/B,QAAQ,GAAG,WAHX,iBAFA,QAAO;IAMP;;;;IAIA,qBACC,UAAC;QAAI,IAAI;;;QAAQ,MAAM;;;QAAY,KAAK;wBAAa;;0BAAA;QAAM,QAAQ;;AAErE;2CAIU,CAAC,EAAC,KAAK,EAAC;;IAChB,MAAM,IAAM;IACZ,QAAQ,GAAG,CAAC;;mCAJqB,CAAC,EAAC,KAAK,EAAE,OAAO,EAAC,GAAG,EAAC,EAAC;IACxD,QAAQ,GAAG,CAAC;IACZ;;;IAIA,qBACC,WAAC;QAAI,OAAO;aAAQ;AAEtB;kDAIU,CAAC,EAAC,KAAK,EAAC;;IAChB,MAAM,cAH2C,6CAAA;IAIjD,MAAM,cAJ+D,8CAAA;IAKrE,QAAQ,GAAG,WAL+B,iBAAO,6CAAA,iBAAoB,8CAAA;;AA7BvE,MAAM,WAAW,IAAM;0CA6BmB;gDAAS,oBAAQ;iDAAY,oBAAe;IACrF,QAAQ,GAAG,WADuC,6CAAA;IAElD;;;;;IAKA,qBACC,WAAC;QAAI,KAAK;;;;;;;;AAEZ;4CAE4C,CAAC,EAAC,QAAQ,SAAS,OAAO,EAAE,MAAM,EAAC,iBAC9E,WAAC;QAAK;QAAO;;AAzCd,OAAO,MAAM,sBAAQ,4CAelB;AAEH,OAAO,MAAM,yBAAW,+CASrB;AAEH,OAAO,MAAM,gCAAkB,sDAU5B;AAEH,OAAO,MAAM,kCAAoB,wDAE9B\"}")
 == DIAGNOSTICS ==
 
 []

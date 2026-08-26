@@ -414,7 +414,7 @@ fn transform_pat(
 						&& !references_destructured_name(value, &destructured_names)
 					{
 						let (default_expr, default_stmt) =
-							create_dynamic_default(access, value.clone());
+							create_dynamic_default(access, value.clone(), props_transform);
 						local.push((id!(v.key), v.key.sym.clone(), default_expr));
 						default_stmts.push(default_stmt);
 					} else {
@@ -489,7 +489,7 @@ fn transform_pat(
 									span: DUMMY_SP,
 								});
 								let (default_expr, default_stmt) =
-									create_dynamic_default(access, value.clone());
+									create_dynamic_default(access, value.clone(), props_transform);
 								local.push((id!(ident.id), key_atom.clone(), default_expr));
 								default_stmts.push(default_stmt);
 							} else {
@@ -520,8 +520,27 @@ fn transform_pat(
 	Some((rest_id, local, default_stmts))
 }
 
-fn create_dynamic_default(access: ast::Expr, value: Box<ast::Expr>) -> (ast::Expr, ast::Stmt) {
+fn create_dynamic_default(
+	access: ast::Expr,
+	value: Box<ast::Expr>,
+	props_transform: &mut PropsDestructuring,
+) -> (ast::Expr, ast::Stmt) {
 	let default_ident = private_ident!("_defaultValue");
+	let untrack_fn = props_transform
+		.global_collect
+		.import(&UNTRACK, props_transform.core_module);
+	let untracked_access = ast::Expr::Call(ast::CallExpr {
+		callee: ast::Callee::Expr(Box::new(ast::Expr::Ident(new_ident_from_id(&untrack_fn)))),
+		args: vec![ast::ExprOrSpread {
+			spread: None,
+			expr: Box::new(ast::Expr::Arrow(ast::ArrowExpr {
+				params: vec![],
+				body: Box::new(ast::BlockStmtOrExpr::Expr(Box::new(access.clone()))),
+				..Default::default()
+			})),
+		}],
+		..Default::default()
+	});
 	let default_stmt = ast::Stmt::Decl(ast::Decl::Var(Box::new(ast::VarDecl {
 		kind: ast::VarDeclKind::Const,
 		decls: vec![ast::VarDeclarator {
@@ -529,7 +548,7 @@ fn create_dynamic_default(access: ast::Expr, value: Box<ast::Expr>) -> (ast::Exp
 			span: DUMMY_SP,
 			init: Some(Box::new(ast::Expr::Cond(ast::CondExpr {
 				span: DUMMY_SP,
-				test: Box::new(is_undefined(access.clone())),
+				test: Box::new(is_undefined(untracked_access)),
 				cons: value,
 				alt: ast::Expr::undefined(DUMMY_SP),
 			}))),

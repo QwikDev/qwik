@@ -571,6 +571,25 @@ export const ReferencedDefault = component$(({first = getValue(second), second})
 }
 
 #[test]
+fn dynamic_props_defaults_do_not_subscribe_component() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+const getValue = () => 0;
+export const DynamicDefault = component$(({ value = getValue() }) => {
+	console.log(value);
+	return <div>{value}</div>;
+});
+"#
+		.to_string(),
+		transpile_jsx: true,
+		entry_strategy: EntryStrategy::Inline,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn example_props_wrapping() {
 	test_input!(TestInput {
 		code: r#"

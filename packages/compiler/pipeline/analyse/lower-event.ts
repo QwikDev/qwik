@@ -1,8 +1,8 @@
 import {
-  ActualPass,
+  ArgPass,
   BoundaryKind,
   FnBodyKind,
-  FormalAccess,
+  CaptureAccess,
   HandlerKind,
   PropKind,
   QrlBodyKind,
@@ -48,9 +48,9 @@ export function lowerEventAttribute(
   if (captured !== null) {
     throw new UnsupportedError(`an event handler capturing "${captured}"`);
   }
-  const formals = refs.locals.map((entry) => ({
+  const captures = refs.locals.map((entry) => ({
     binding: entry.local.binding,
-    access: FormalAccess.Direct,
+    access: CaptureAccess.Direct,
   }));
 
   const payload = pushPayload(ctx, [fn.start, fn.end]);
@@ -65,7 +65,7 @@ export function lowerEventAttribute(
     payloadKind: QrlPayloadKind.Function,
     authoredAsync: fn.async === true,
     body: { b: QrlBodyKind.Js, payload },
-    formals,
+    captures,
     params: { authored: params.length, used: [], sources: [] },
     origin: {
       range: [attribute.start, attribute.end],
@@ -80,8 +80,8 @@ export function lowerEventAttribute(
   });
   const use: QrlUse = {
     qrl: segment.id,
-    actuals: refs.locals.map((entry) => ({
-      pass: ActualPass.Binding,
+    args: refs.locals.map((entry) => ({
+      pass: ArgPass.Binding,
       binding: entry.local.binding,
     })),
   };

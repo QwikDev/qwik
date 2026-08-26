@@ -3,7 +3,7 @@ import {
   BindingScope,
   BoundaryKind,
   FnBodyKind,
-  FormalAccess,
+  CaptureAccess,
   QrlBodyKind,
   QrlPayloadKind,
   VarKind,
@@ -44,7 +44,7 @@ function qrlWith(overrides: Partial<LinkedQrl>): LinkedQrl {
     payloadKind: QrlPayloadKind.Function,
     authoredAsync: false,
     body: { b: QrlBodyKind.Js, payload: 0 },
-    formals: [],
+    captures: [],
     params: { authored: 0, used: [], sources: [] },
     origin: {
       range: [10, 30],
@@ -60,11 +60,11 @@ function qrlWith(overrides: Partial<LinkedQrl>): LinkedQrl {
 }
 
 describe('captureNames', () => {
-  test('resolves formal bindings through the binding table in order', () => {
+  test('resolves capture bindings through the binding table in order', () => {
     const qrl = qrlWith({
-      formals: [
-        { binding: 1, access: FormalAccess.ComponentProp },
-        { binding: 0, access: FormalAccess.Direct },
+      captures: [
+        { binding: 1, access: CaptureAccess.ComponentProp },
+        { binding: 0, access: CaptureAccess.Direct },
       ],
     });
     expect(captureNames(moduleWith(qrl), qrl)).toEqual(['props', 'count']);
@@ -73,7 +73,7 @@ describe('captureNames', () => {
 
 describe('chunkFunctionText', () => {
   test('a Function payload restores captures from the _captures prelude', () => {
-    const qrl = qrlWith({ formals: [{ binding: 0, access: FormalAccess.Direct }] });
+    const qrl = qrlWith({ captures: [{ binding: 0, access: CaptureAccess.Direct }] });
     expect(chunkFunctionText(moduleWith(qrl), qrl)).toBe(
       '() => {\n  const count = _captures[0];\n  return count.value++;\n}'
     );
@@ -87,7 +87,7 @@ describe('chunkFunctionText', () => {
   test('a Value payload takes captures as parameters instead', () => {
     const qrl = qrlWith({
       payloadKind: QrlPayloadKind.Value,
-      formals: [{ binding: 1, access: FormalAccess.ComponentProp }],
+      captures: [{ binding: 1, access: CaptureAccess.ComponentProp }],
       origin: {
         range: [33, 56],
         functionRange: [33, 56],

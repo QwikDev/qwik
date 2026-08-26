@@ -250,6 +250,28 @@ export default () => {
 `,
     });
   });
+  test('should render an expression hole capturing a signal', async () => {
+    await testInput(mode, 'expression-hole-signal', {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
+  const count = useSignal(0);
+  return <p>{count.value + 1}</p>;
+};
+`,
+    });
+  });
+
+  test('should render an expression hole capturing a signal and props', async () => {
+    await testInput(mode, 'expression-hole-signal-props', {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default (props) => {
+  const count = useSignal(0);
+  return <p>{count.value + props.step}</p>;
+};
+`,
+    });
+  });
+
   test('should render a hole inside a nested element', async () => {
     await testInput(mode, 'nested-element-hole', {
       code: `import { useSignal } from '@qwik.dev/core';

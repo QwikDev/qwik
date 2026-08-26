@@ -1,8 +1,9 @@
 import { describe, expect, test } from 'vitest';
 import {
+  ArgPass,
   BindingScope,
   ExprKind,
-  FormalAccess,
+  CaptureAccess,
   OpKind,
   QrlPayloadKind,
   ValueKind,
@@ -88,7 +89,9 @@ describe('lowerTextHole', () => {
     });
     expect(ctx.plan.qrls).toHaveLength(1);
     expect(ctx.plan.qrls[0].payloadKind).toBe(QrlPayloadKind.Value);
-    expect(ctx.plan.qrls[0].formals).toEqual([{ binding: 0, access: FormalAccess.ComponentProp }]);
+    expect(ctx.plan.qrls[0].captures).toEqual([
+      { binding: 0, access: CaptureAccess.ComponentProp },
+    ]);
   });
 
   test('an IR-uncoverable expression keeps a Js payload', () => {
@@ -100,10 +103,16 @@ describe('lowerTextHole', () => {
     expect(value.expr.kind).toBe(ExprKind.Js);
   });
 
-  test('an expression capturing a signal local throws', () => {
-    expect(() => holeFor('count.value + 1', withSignalLocal)).toThrow(
-      'an expression capturing the signal local "count"'
-    );
+  test('an expression capturing a signal local gets a Direct capture and Binding arg', () => {
+    const { op, ctx } = holeFor('count.value + 1', withSignalLocal);
+    const value = holeValue(op);
+    if (value.v !== ValueKind.Computed) {
+      throw new Error('expected a computed hole');
+    }
+    expect(ctx.plan.qrls[0].captures).toEqual([{ binding: 0, access: CaptureAccess.Direct }]);
+    expect(value.resume).toEqual({
+      qrl: { qrl: 'segment_0', args: [{ pass: ArgPass.Binding, binding: 0 }] },
+    });
   });
 
   test('an expression capturing a module binding throws', () => {

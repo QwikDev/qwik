@@ -157,18 +157,6 @@ describe('pipeline flow', () => {
     ).rejects.toThrow('an expression capturing "title"');
   });
 
-  test('expressions capturing a signal local are not supported yet', async () => {
-    await expect(
-      analyseModule(
-        {
-          path: 'src/expr.tsx',
-          code: "import { useSignal } from '@qwik.dev/core';\nexport default () => {\n  const count = useSignal(0);\n  return <p>{count.value + 1}</p>;\n};\n",
-        },
-        { transpileTs: true }
-      )
-    ).rejects.toThrow('an expression capturing the signal local "count"');
-  });
-
   test('block-bodied event handlers are not supported yet', async () => {
     await expect(
       analyseModule(

@@ -32,19 +32,19 @@ export function emitQrlChunks(module: LinkedModule): GenerateOutput['modules'] {
           ? 'eventHandler'
           : 'function',
       ctxName: qrl.ctxName,
-      captures: qrl.formals.length > 0,
+      captures: qrl.captures.length > 0,
       loc: [qrl.origin.range[0], qrl.origin.range[1]],
       paramNames: qrl.origin.paramRanges.map(([start, end]) =>
         module.source.code.slice(start, end)
       ),
-      ...(qrl.formals.length > 0 ? { captureNames: captureNames(module, qrl) } : {}),
+      ...(qrl.captures.length > 0 ? { captureNames: captureNames(module, qrl) } : {}),
     },
   }));
 }
 
 /** Capture names double as the chunk fn's parameters for value-payload QRLs. */
 export function captureNames(module: LinkedModule, qrl: LinkedQrl): string[] {
-  return qrl.formals.map((formal) => module.bindings[formal.binding].name);
+  return qrl.captures.map((capture) => module.bindings[capture.binding].name);
 }
 
 /** The regenerated arrow — shared by the chunk export and the SSR in-module mirror. */
@@ -84,7 +84,7 @@ function emitChunkCode(module: LinkedModule, qrl: LinkedQrl): string {
   // Function payloads receive captures through the `_captures` prelude; value payloads take them
   // as parameters (see chunkFunctionText).
   const prelude =
-    qrl.payloadKind === QrlPayloadKind.Function && qrl.formals.length > 0
+    qrl.payloadKind === QrlPayloadKind.Function && qrl.captures.length > 0
       ? `import { ${QwikWord.Captures} } from ${JSON.stringify(QWIK_CORE_IMPORT)};\n\n`
       : '';
   return `${prelude}export const ${qrl.name} = ${chunkFunctionText(module, qrl)};\n`;

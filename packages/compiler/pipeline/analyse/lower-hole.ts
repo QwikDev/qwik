@@ -1,9 +1,9 @@
 import {
-  ActualPass,
+  ArgPass,
   BoundaryKind,
   ExprKind,
   FnBodyKind,
-  FormalAccess,
+  CaptureAccess,
   OpKind,
   PlaceKind,
   QrlBodyKind,
@@ -32,9 +32,6 @@ export function lowerTextHole(expression: AstNode, ctx: LowerContext): Op {
   if (refs.other !== null) {
     throw new UnsupportedError(`an expression capturing "${refs.other}"`);
   }
-  if (refs.locals.length > 0) {
-    throw new UnsupportedError(`an expression capturing the signal local "${refs.locals[0].name}"`);
-  }
   const range: [number, number] = [expression.start, expression.end];
   const payload = pushPayload(ctx, range);
   const ir = tryLowerExprIr(expression, ctx);
@@ -44,6 +41,23 @@ export function lowerTextHole(expression: AstNode, ctx: LowerContext): Op {
   const propsBinding = refs.props
     ? ctx.plan.bindings.findIndex((binding) => binding.name === ctx.propsParamName)
     : -1;
+  // Captured reactive locals ride as Direct captures ahead of the props object.
+  const captures = [
+    ...refs.locals.map((entry) => ({
+      binding: entry.local.binding,
+      access: CaptureAccess.Direct as const,
+    })),
+    ...(refs.props
+      ? [{ binding: propsBinding, access: CaptureAccess.ComponentProp as const }]
+      : []),
+  ];
+  const args: QrlUse['args'] = [
+    ...refs.locals.map((entry) => ({
+      pass: ArgPass.Binding as const,
+      binding: entry.local.binding,
+    })),
+    ...(refs.props ? [{ pass: ArgPass.Props as const }] : []),
+  ];
   ctx.plan.qrls.push({
     id: segment.id,
     parent: null,
@@ -54,7 +68,7 @@ export function lowerTextHole(expression: AstNode, ctx: LowerContext): Op {
     payloadKind: QrlPayloadKind.Value,
     authoredAsync: false,
     body: { b: QrlBodyKind.Expr, expr, initialOnly: false },
-    formals: refs.props ? [{ binding: propsBinding, access: FormalAccess.ComponentProp }] : [],
+    captures,
     params: { authored: 0, used: [], sources: [] },
     origin: {
       range,
@@ -67,7 +81,7 @@ export function lowerTextHole(expression: AstNode, ctx: LowerContext): Op {
     },
     propsParts: [],
   });
-  const use: QrlUse = { qrl: segment.id, actuals: refs.props ? [{ pass: ActualPass.Props }] : [] };
+  const use: QrlUse = { qrl: segment.id, args };
   return {
     op: OpKind.Hole,
     value: {

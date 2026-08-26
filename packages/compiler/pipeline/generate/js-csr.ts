@@ -270,7 +270,7 @@ class CsrModuleEmitter {
       }
       return qrl;
     });
-    if (qrls.length > 1 && qrls.some((qrl) => qrl.formals.length > 0)) {
+    if (qrls.length > 1 && qrls.some((qrl) => qrl.captures.length > 0)) {
       throw new UnsupportedError('captures across multiple handlers of one event');
     }
     const symbols = qrls.map((qrl) => this.chunkSymbol(qrl.id));

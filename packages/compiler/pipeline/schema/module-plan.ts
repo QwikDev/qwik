@@ -43,7 +43,7 @@ export const enum QrlBodyKind {
   Js = 'js',
 }
 
-export const enum FormalAccess {
+export const enum CaptureAccess {
   Direct = 'direct',
   LoopValue = 'loop-value',
   ComponentProp = 'component-prop',
@@ -81,7 +81,7 @@ export interface Qrl {
     | { b: QrlBodyKind.Expr; expr: Expr; initialOnly: boolean }
     | { b: QrlBodyKind.Js; payload: PayloadId };
   /** Names/kinds read from the binding table. */
-  formals: { binding: LocalId; access: FormalAccess }[];
+  captures: { binding: LocalId; access: CaptureAccess }[];
   /** Invocation ABI. */
   params: { authored: number; used: LocalId[]; sources: PayloadId[] };
   origin: {

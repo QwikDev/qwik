@@ -127,21 +127,21 @@ export type Value =
   | { v: ValueKind.Qrl; use: QrlUse; expr?: Expr }
   | { v: ValueKind.Render; program: ProgramId };
 
-export const enum ActualPass {
+export const enum ArgPass {
   Binding = 'binding',
   Props = 'props',
   StyleScope = 'style-scope',
 }
 
 /**
- * Use-site actuals are POSITIONS against `Qrl.formals` — names/kinds come from the binding table,
- * never duplicated here, so actuals and formals cannot disagree.
+ * Use-site args are POSITIONS against `Qrl.captures` — names/kinds come from the binding table,
+ * never duplicated here, so args and captures cannot disagree.
  */
 export interface QrlUse {
   qrl: QrlId;
-  actuals: (
-    | { pass: ActualPass.Binding; binding: LocalId }
-    | { pass: ActualPass.Props }
-    | { pass: ActualPass.StyleScope }
+  args: (
+    | { pass: ArgPass.Binding; binding: LocalId }
+    | { pass: ArgPass.Props }
+    | { pass: ArgPass.StyleScope }
   )[];
 }

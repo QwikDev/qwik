@@ -6,16 +6,20 @@ autoInstallPeers: false
 
 engineStrict: true
 
-onlyBuiltDependencies:
-  - '@parcel/watcher'
-  - '@rolldown/browser'
-  - '@tailwindcss/oxide'
-  - esbuild
-  - netlify-cli
-  - puppeteer
-  - sharp
-  - simple-git-hooks
-  - workerd
+# Speeds up things and fixes CI for pkg.pr.new (workspace version vs string)
+verifyDepsBeforeRun: false
+
+allowBuilds:
+  '@parcel/watcher': true
+  '@rolldown/browser': true
+  '@tailwindcss/oxide': true
+  esbuild: true
+  netlify-cli: true
+  puppeteer: true
+  sharp: true
+  simple-git-hooks: true
+  spawn-sync: true
+  workerd: true
 
 ignoredOptionalDependencies:
   - unix-dgram

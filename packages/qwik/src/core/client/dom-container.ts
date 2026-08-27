@@ -285,7 +285,8 @@ export class DomContainer extends _SharedContainer implements IClientContainer {
     if (!__EXPERIMENTAL__.errorBoundary) {
       const errorStore = host && this.resolveContext(host, ERROR_CONTEXT);
       if (!errorStore) {
-        throw err;
+        logErrorAndThrowAsync(err);
+        return;
       }
       errorStore.error = err;
       return;

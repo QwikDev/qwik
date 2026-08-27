@@ -95,7 +95,7 @@ When migrating from `@builder.io/qwik-auth` to `@auth/qwik`, there are a couple 
     };
     ```
 
-2. The setup function and and methods exported by it have changed in `plugin@auth.ts`. Be sure to update the imports for the `useAuthSession`, `useAuthSignin`, and `useAuthSignout` methods anywhere you use them in your app.
+2. The setup function and methods exported by it have changed in `plugin@auth.ts`. Be sure to update the imports for the `useAuthSession`, `useAuthSignin`, and `useAuthSignout` methods anywhere you use them in your app.
 
     ```diff
     import Auth0Provider from "@auth/core/providers/auth0";

@@ -29,7 +29,7 @@ import {
 import { emitJsSetup, signalReadName } from './emit-setup';
 import { escapeText } from '../html';
 import { foldStaticOp, isFullyStaticSubtree } from './fold-static';
-import type { ComponentEmission, GeneratedNames } from './emit-component';
+import { createNameAllocator, type ComponentEmission, type GeneratedNames } from './emit-component';
 import { generateForeignModule } from './foreign';
 import { makeOutput, type GenerateOutput, type PresentationOptions } from './output';
 
@@ -92,7 +92,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     if (program.body.kind !== ProgramBodyKind.Ops) {
       throw new Error('pipeline.generateJsCsr: js-bodied programs not implemented yet');
     }
-    this.next = createNameAllocator();
+    this.next = createNameAllocator(this.module);
     const statements: string[] = emitJsSetup(this.module, program, this.imports);
     const roots: string[] = [];
     for (const op of program.body.ops) {
@@ -111,9 +111,22 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         return this.staticRoot(op, ownerName, statements, names);
       case OpKind.Element:
         return this.elementRoot(op, ownerName, statements, names);
+      case OpKind.Hole:
+        return this.holeRoot(op, statements, names);
       default:
         throw new Error(`pipeline.generateJsCsr: op "${op.op}" not implemented yet`);
     }
+  }
+
+  private holeRoot(
+    op: Extract<Op, { op: OpKind.Hole }>,
+    statements: string[],
+    names: GeneratedNames
+  ): string {
+    const text = this.next(QwikGenWord.Text);
+    statements.push(`const ${text} = ${names.ctx}.document.createTextNode('');`);
+    this.bindTextHole(op, text, statements, names);
+    return text;
   }
 
   private staticRoot(
@@ -360,6 +373,15 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       statements.push(`${marker}.replaceWith(${target});`);
     }
 
+    this.bindTextHole(op, target, statements, names);
+  }
+
+  private bindTextHole(
+    op: Extract<Op, { op: OpKind.Hole }>,
+    target: string,
+    statements: string[],
+    names: GeneratedNames
+  ): void {
     switch (op.value.v) {
       case ValueKind.Read: {
         // Signal reads bind the placeholder text node directly — no chunk involved.
@@ -507,14 +529,4 @@ export function childPathExpression(
     path = `${QwikWord.NextSibling}(${path})`;
   }
   return path;
-}
-
-/** `fragment0`, `el0`, `tmpl0`, … — one counter per prefix. */
-function createNameAllocator() {
-  const indexes = new Map<string, number>();
-  return (prefix: string) => {
-    const index = indexes.get(prefix) ?? 0;
-    indexes.set(prefix, index + 1);
-    return `${prefix}${index}`;
-  };
 }

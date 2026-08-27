@@ -1,4 +1,4 @@
-import type { Expression, JSXElement } from 'oxc-parser';
+import type { Expression } from 'oxc-parser';
 import {
   BoundaryKind,
   FnBodyKind,
@@ -15,12 +15,14 @@ import {
   type Value,
 } from '../schema';
 import { lowerCaptures } from './ast/capture-analysis';
+import { unwrapExpression } from './ast/utils';
 import { pushPayload, pushQrl, type LowerContext } from './lower-context';
+import { lowerTextHole } from './lower-hole';
 import { lowerJsx } from './lower-jsx';
 
-/** A branch arm: JSX, or a null literal (`jsx: null`) spanning `range`. */
+/** A branch arm expression, or `null` for an empty arm. */
 export interface BranchArm {
-  jsx: JSXElement | null;
+  expression: Expression | null;
   range: [number, number];
 }
 
@@ -42,12 +44,12 @@ export function lowerBranch(
     owner: LifetimeOwner.Branch,
     commit: LifetimeCommit.Immediate,
   });
-  const thenProgram = lowerArm(thenArm.jsx, thenArm.range, ctx, 'branch:then', lifetime);
+  const thenProgram = lowerArm(thenArm.expression, thenArm.range, ctx, 'branch:then', lifetime);
   // A null-literal (or absent, for `&&`) else arm is DROPPED — no program, no chunk.
   const elseProgram =
-    elseArm === null || elseArm.jsx === null
+    elseArm === null || elseArm.expression === null
       ? null
-      : lowerArm(elseArm.jsx, elseArm.range, ctx, 'branch:else', lifetime);
+      : lowerArm(elseArm.expression, elseArm.range, ctx, 'branch:else', lifetime);
   return {
     op: OpKind.Branch,
     condition,
@@ -91,16 +93,16 @@ function lowerCondition(test: Expression, ctx: LowerContext): Value {
 
 /** An arm is its own render Program plus a Program-body QRL the generators chunk per target. */
 function lowerArm(
-  jsx: JSXElement | null,
+  expression: Expression | null,
   range: [number, number],
   ctx: LowerContext,
   nameCtx: string,
   lifetime: number
 ): QrlUse {
   const loweredCaptures =
-    jsx === null
+    expression === null
       ? { captures: [], args: [] }
-      : lowerCaptures(jsx, ctx, 'a branch arm', { allowProps: true });
+      : lowerCaptures(expression, ctx, 'a branch arm', { allowProps: true });
   // The arm's segment and rows come BEFORE its children's — matching legacy allocation order.
   const program = ctx.plan.programs.length;
   ctx.plan.programs.push({
@@ -134,8 +136,11 @@ function lowerArm(
     },
     loweredCaptures.args
   );
-  if (jsx !== null) {
-    ctx.plan.programs[program].body = { kind: ProgramBodyKind.Ops, ops: [lowerJsx(jsx, ctx)] };
+  if (expression !== null) {
+    const unwrapped = unwrapExpression(expression);
+    const op =
+      unwrapped?.type === 'JSXElement' ? lowerJsx(unwrapped, ctx) : lowerTextHole(expression, ctx);
+    ctx.plan.programs[program].body = { kind: ProgramBodyKind.Ops, ops: [op] };
   }
   return use;
 }

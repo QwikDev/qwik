@@ -84,36 +84,27 @@ function lowerChild(child: JSXChild, ctx: LowerContext): Op | null {
           }
           // A null-literal else drops the arm (like `&&`); a null-literal then stays as an
           // EMPTY then program — legacy never inverts the condition.
-          if (!thenIsJsx && !isNullArm(thenJsx)) {
-            throw new UnsupportedError('a branch with a non-JSX arm');
-          }
-          if (!elseIsJsx && !isNullArm(elseJsx)) {
-            throw new UnsupportedError('a branch with a non-JSX arm');
-          }
           return lowerBranch(
             expression.test,
             {
-              jsx: thenIsJsx ? (thenJsx as JSXElement) : null,
+              expression: isNullArm(thenJsx) ? null : expression.consequent,
               range: [expression.consequent.start, expression.consequent.end],
             },
             {
-              jsx: elseIsJsx ? (elseJsx as JSXElement) : null,
+              expression: isNullArm(elseJsx) ? null : expression.alternate,
               range: [expression.alternate.start, expression.alternate.end],
             },
             ctx
           );
         }
         case 'LogicalExpression': {
-          const right = unwrapExpression(expression.right);
-          if (right?.type !== 'JSXElement') {
+          if (expression.operator !== '&&') {
             return lowerTextHole(expression, ctx);
           }
-          if (expression.operator !== '&&') {
-            throw new UnsupportedError(`a "${expression.operator}" branch`);
-          }
+
           return lowerBranch(
             expression.left,
-            { jsx: right, range: [right.start, right.end] },
+            { expression: expression.right, range: [expression.right.start, expression.right.end] },
             null,
             ctx
           );

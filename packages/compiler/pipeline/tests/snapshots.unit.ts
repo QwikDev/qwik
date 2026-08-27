@@ -335,6 +335,17 @@ export default () => {
     });
   });
 
+  test('should render an expression arm of a logical-and branch', async () => {
+    await testInput(mode, 'branch-arm-expression', {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
+  const count = useSignal(0);
+  return <p>{count.value > 2 && 'Count is greater than 2 and equal to ' + count.value}</p>;
+};
+`,
+    });
+  });
+
   test('should render an expression hole capturing a signal', async () => {
     await testInput(mode, 'expression-hole-signal', {
       code: `import { useSignal } from '@qwik.dev/core';

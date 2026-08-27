@@ -16,6 +16,32 @@ import {
 import { serverSpecialization } from './fixtures';
 
 describe('pipeline flow', () => {
+  test.each([
+    ['SSR', true],
+    ['CSR', false],
+  ] as const)('generated %s locals avoid authored bindings', async (_target, isServer) => {
+    const output = await transformModules({
+      input: [
+        {
+          path: 'src/component.tsx',
+          code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
+  const text0 = useSignal(0);
+  return <p>{text0.value}</p>;
+};
+`,
+        },
+      ],
+      srcDir: 'src',
+      sourceMaps: false,
+      transpileTs: true,
+      transpileJsx: true,
+      isServer,
+    });
+    expect(output.modules[0].code.match(/\bconst text0\b/g)).toHaveLength(1);
+    expect(output.modules[0].code).toContain('const text1 =');
+  });
+
   test('compat wrapper runs a passthrough module end to end', async () => {
     const output = await transformModules({
       input: [{ path: 'src/plain.ts', code: 'const value: number = 1;\nexport default value;\n' }],

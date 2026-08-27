@@ -1,5 +1,12 @@
 import { describe, expect, test } from 'vitest';
-import { ArgPass, BindingScope, CaptureAccess, OpKind } from '../schema';
+import {
+  ArgPass,
+  BindingScope,
+  CaptureAccess,
+  OpKind,
+  ProgramBodyKind,
+  QrlBodyKind,
+} from '../schema';
 import { parseModule } from '../analyse/ast/parse';
 import { unwrapExpression } from '../analyse/ast/utils';
 import { createLowerContext } from '../analyse/lower-context';
@@ -37,6 +44,18 @@ describe('lowerBranch / arm captures', () => {
   test('a static arm lowers to a Branch op', () => {
     const { op } = lower('<div>{show.value ? <b>on</b> : null}</div>');
     expect(op.op === OpKind.Element && op.children[0].op).toBe(OpKind.Branch);
+  });
+
+  test('a mixed JSX and expression conditional lowers both arms', () => {
+    const { ctx } = lower("<div>{show.value ? <b>on</b> : 'off'}</div>");
+    const arm = ctx.plan.qrls.find((qrl) => qrl.ctxName === 'branch:else');
+    if (arm?.body.b !== QrlBodyKind.Program) {
+      throw new Error('expected an else arm program');
+    }
+    expect(ctx.plan.programs[arm.body.program].body).toMatchObject({
+      kind: ProgramBodyKind.Ops,
+      ops: [{ op: OpKind.Hole }],
+    });
   });
 
   test('an arm reading a setup local records a Direct capture on the arm qrl', () => {

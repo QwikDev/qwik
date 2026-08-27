@@ -1,5 +1,15 @@
 import { describe, expect, test } from 'vitest';
-import { childPathExpression } from '../generate/js-csr';
+import { analyseModule } from '../analyse/analyse-module';
+import { childPathExpression, generateJsCsr } from '../generate/js-csr';
+import { linkPlans } from '../link/link-plans';
+import {
+  BuildMode,
+  Environment,
+  EntryKind,
+  LinkResultKind,
+  OpKind,
+  ProgramBodyKind,
+} from '../schema';
 
 describe('childPathExpression', () => {
   function path(index: number, nodeCount: number): { code: string; imports: string[] } {
@@ -23,4 +33,41 @@ describe('childPathExpression', () => {
     expect(path(3, 5).code).toBe('_prev(_last(el0))');
     expect(path(4, 6).code).toBe('_prev(_last(el0))');
   });
+});
+
+test('emits mixed multi-root programs as an array', async () => {
+  const path = 'src/component.tsx';
+  const analysed = await analyseModule({ path, code: 'export default () => <p />;' }, {});
+  const linked = linkPlans(
+    [analysed],
+    [{ kind: EntryKind.Module, module: path }],
+    { environment: Environment.Browser, mode: BuildMode.Prod, stripExports: [] },
+    { edges: {} },
+    { claims: [], policies: [], emissions: [] },
+    false
+  );
+  if (linked.kind === LinkResultKind.Failed) {
+    throw new Error('expected the fixture to link');
+  }
+  linked.plan.modules[0].programs[0].body = {
+    kind: ProgramBodyKind.Ops,
+    ops: [
+      { op: OpKind.Static, html: 'before' },
+      {
+        op: OpKind.Element,
+        tag: 'span',
+        void: false,
+        styleScopedId: null,
+        runtimeScope: false,
+        props: [],
+        propsEffect: null,
+        children: [],
+      },
+    ],
+  };
+
+  const output = await generateJsCsr(linked.plan, {});
+  expect(output.modules[0].code).toContain('createTemplate("before")');
+  expect(output.modules[0].code).toContain('createTemplate("<span></span>")');
+  expect(output.modules[0].code).toContain('return [el0, el1];');
 });

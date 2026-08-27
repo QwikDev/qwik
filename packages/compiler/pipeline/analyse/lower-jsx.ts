@@ -5,7 +5,7 @@ import { normalizeAttributeName, VOID_ELEMENTS } from '../html';
 import { InvalidModuleError, UnsupportedError } from '../errors';
 import { eventScopeName } from './events';
 import { lowerEventAttribute } from './lower-event';
-import { lowerTextHole } from './lower-hole';
+import { lowerText } from './lower-hole';
 import { lowerBranch } from './lower-branch';
 import { unwrapExpression } from './ast/utils';
 import { lowerExpressionValue } from './lower-expr';
@@ -25,10 +25,7 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
   const props = opening.attributes.map((attribute) => lowerAttribute(attribute, ctx));
   const children: Op[] = [];
   for (const child of element.children) {
-    const lowered = lowerChild(child, ctx);
-    if (lowered !== null) {
-      children.push(lowered);
-    }
+    children.push(...lowerChild(child, ctx));
   }
   if (VOID_ELEMENTS.has(tag) && children.length > 0) {
     throw new InvalidModuleError(
@@ -60,57 +57,64 @@ function isNullArm(node: Node | null): boolean {
   return node.type === 'Identifier' && node.name === 'undefined';
 }
 
-function lowerChild(child: JSXChild, ctx: LowerContext): Op | null {
+function lowerChild(child: JSXChild, ctx: LowerContext): Op[] {
   switch (child.type) {
     case 'JSXText': {
       const text = normalizeJsxText(child.value);
-      return text === '' ? null : { op: OpKind.Static, html: text };
+      return text === '' ? [] : [{ op: OpKind.Static, html: text }];
     }
     case 'JSXElement':
-      return lowerJsx(child, ctx);
+      return [lowerJsx(child, ctx)];
     case 'JSXExpressionContainer': {
       const expression = child.expression;
       switch (expression.type) {
         // `{/* comment */}` renders nothing.
         case 'JSXEmptyExpression':
-          return null;
+          return [];
         case 'ConditionalExpression': {
           const thenJsx = unwrapExpression(expression.consequent);
           const elseJsx = unwrapExpression(expression.alternate);
           const thenIsJsx = thenJsx?.type === 'JSXElement';
           const elseIsJsx = elseJsx?.type === 'JSXElement';
           if (!thenIsJsx && !elseIsJsx) {
-            return lowerTextHole(expression, ctx);
+            return lowerText(expression, ctx);
           }
           // A null-literal else drops the arm (like `&&`); a null-literal then stays as an
           // EMPTY then program — legacy never inverts the condition.
-          return lowerBranch(
-            expression.test,
-            {
-              expression: isNullArm(thenJsx) ? null : expression.consequent,
-              range: [expression.consequent.start, expression.consequent.end],
-            },
-            {
-              expression: isNullArm(elseJsx) ? null : expression.alternate,
-              range: [expression.alternate.start, expression.alternate.end],
-            },
-            ctx
-          );
+          return [
+            lowerBranch(
+              expression.test,
+              {
+                expression: isNullArm(thenJsx) ? null : expression.consequent,
+                range: [expression.consequent.start, expression.consequent.end],
+              },
+              {
+                expression: isNullArm(elseJsx) ? null : expression.alternate,
+                range: [expression.alternate.start, expression.alternate.end],
+              },
+              ctx
+            ),
+          ];
         }
         case 'LogicalExpression': {
           if (expression.operator !== '&&') {
-            return lowerTextHole(expression, ctx);
+            return lowerText(expression, ctx);
           }
 
-          return lowerBranch(
-            expression.left,
-            { expression: expression.right, range: [expression.right.start, expression.right.end] },
-            null,
-            ctx
-          );
+          return [
+            lowerBranch(
+              expression.left,
+              {
+                expression: expression.right,
+                range: [expression.right.start, expression.right.end],
+              },
+              null,
+              ctx
+            ),
+          ];
         }
         default:
-          return lowerTextHole(expression, ctx);
+          return lowerText(expression, ctx);
       }
     }
     default:

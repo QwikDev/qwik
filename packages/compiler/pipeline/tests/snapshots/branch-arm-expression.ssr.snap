@@ -13,13 +13,13 @@ export default () => {
 import {
   useSignal,
   _captures,
+  renderSsrBranch,
+  createSsrNodeId,
+  maybeThen,
+  _noopQrl,
   createSsrRangeTextTarget,
   escapeHTML,
   renderSsrTextNode,
-  maybeThen,
-  renderSsrBranch,
-  createSsrNodeId,
-  _noopQrl,
 } from '@qwik.dev/core';
 const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
   const [count] = _captures;
@@ -31,13 +31,13 @@ const q_component_branch_condition_segment_0_2fzrieu6vlhf9 = /*#__PURE__*/ _noop
 q_component_branch_condition_segment_0_2fzrieu6vlhf9.s(
   component_branch_condition_segment_0_2fzrieu6vlhf9
 );
-const component_branch_then_segment_1_24n7blyqktd46 = (ctx, rangeId) => {
+const component_branch_then_segment_1_24n7blyqktd46 = (ctx, rangeId0) => {
   const [count] = _captures;
   ctx.addRoot(count);
-  const text_0 = renderSsrTextNode(createSsrRangeTextTarget(rangeId, 0), count);
-  return maybeThen(text_0, (text_0) => [
+  const text0 = renderSsrTextNode(createSsrRangeTextTarget(rangeId0, 0), count);
+  return maybeThen(text0, (text0) => [
     'Count is greater than 2 and equal to <!t>',
-    escapeHTML(text_0),
+    escapeHTML(text0),
     '<!/t>',
   ]);
 };
@@ -47,21 +47,21 @@ const q_component_branch_then_segment_1_24n7blyqktd46 = /*#__PURE__*/ _noopQrl(
 q_component_branch_then_segment_1_24n7blyqktd46.s(component_branch_then_segment_1_24n7blyqktd46);
 export default (props, ctx) => {
   const count = useSignal(0);
-  const branch_id_0 = ctx.nextId();
+  const branchId0 = ctx.nextId();
   ctx.addRoot(count);
   ctx.addRoot(count);
-  const branch_0 = renderSsrBranch(
+  const branch0 = renderSsrBranch(
     ctx,
-    branch_id_0,
+    branchId0,
     q_component_branch_condition_segment_0_2fzrieu6vlhf9.w([count]),
     q_component_branch_then_segment_1_24n7blyqktd46.w([count]),
     undefined
   );
-  return maybeThen(branch_0, (branch_0) => [
+  return maybeThen(branch0, (branch0) => [
     '<p><!b=',
-    createSsrNodeId(branch_id_0),
+    createSsrNodeId(branchId0),
     '>',
-    branch_0,
+    branch0,
     '<!/b></p>',
   ]);
 };
@@ -106,13 +106,13 @@ import {
   maybeThen,
 } from '@qwik.dev/core';
 
-export const component_branch_then_segment_1_24n7blyqktd46 = (ctx, rangeId) => {
+export const component_branch_then_segment_1_24n7blyqktd46 = (ctx, rangeId0) => {
   const [count] = _captures;
   ctx.addRoot(count);
-  const text_0 = renderSsrTextNode(createSsrRangeTextTarget(rangeId, 0), count);
-  return maybeThen(text_0, (text_0) => [
+  const text0 = renderSsrTextNode(createSsrRangeTextTarget(rangeId0, 0), count);
+  return maybeThen(text0, (text0) => [
     'Count is greater than 2 and equal to <!t>',
-    escapeHTML(text_0),
+    escapeHTML(text0),
     '<!/t>',
   ]);
 };

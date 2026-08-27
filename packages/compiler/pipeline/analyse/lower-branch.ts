@@ -17,7 +17,7 @@ import {
 import { lowerCaptures } from './ast/capture-analysis';
 import { unwrapExpression } from './ast/utils';
 import { pushPayload, pushQrl, type LowerContext } from './lower-context';
-import { lowerTextHole } from './lower-hole';
+import { lowerText } from './lower-hole';
 import { lowerJsx } from './lower-jsx';
 
 /** A branch arm expression, or `null` for an empty arm. */
@@ -138,9 +138,9 @@ function lowerArm(
   );
   if (expression !== null) {
     const unwrapped = unwrapExpression(expression);
-    const op =
-      unwrapped?.type === 'JSXElement' ? lowerJsx(unwrapped, ctx) : lowerTextHole(expression, ctx);
-    ctx.plan.programs[program].body = { kind: ProgramBodyKind.Ops, ops: [op] };
+    const ops =
+      unwrapped?.type === 'JSXElement' ? [lowerJsx(unwrapped, ctx)] : lowerText(expression, ctx);
+    ctx.plan.programs[program].body = { kind: ProgramBodyKind.Ops, ops };
   }
   return use;
 }

@@ -33,6 +33,8 @@ import { createNameAllocator, type ComponentEmission, type GeneratedNames } from
 import { generateForeignModule } from './foreign';
 import { makeOutput, type GenerateOutput, type PresentationOptions } from './output';
 
+type TextOp = Extract<Op, { op: OpKind.Static | OpKind.Hole }>;
+
 export async function generateJsCsr(
   plan: LinkedPlan,
   options: PresentationOptions
@@ -94,14 +96,65 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     }
     this.next = createNameAllocator(this.module);
     const statements: string[] = emitJsSetup(this.module, program, this.imports);
+    const ops = program.body.ops;
+    if (ops.length === 0) {
+      return { statements, value: '[]' };
+    }
+    if (ops.length === 1) {
+      return {
+        statements,
+        value: this.op(ops[0], ownerName, statements, names),
+      };
+    }
+    if (ops.every((op): op is TextOp => op.op === OpKind.Static || op.op === OpKind.Hole)) {
+      return {
+        statements,
+        value: `[${this.textRoots(ops, ownerName, statements, names).join(', ')}]`,
+      };
+    }
+    const roots = ops.map((op) => this.op(op, ownerName, statements, names));
+    return {
+      statements,
+      value: `[${roots.join(', ')}]`,
+    };
+  }
+
+  private textRoots(
+    ops: TextOp[],
+    ownerName: string,
+    statements: string[],
+    names: GeneratedNames
+  ): string[] {
+    const fragment = this.next(QwikGenWord.Fragment);
+    const template = `${ownerName}_${this.next(QwikGenWord.Template)}`;
+    statements.push(`const ${fragment} = ${template}(${names.ctx}.document);`);
+
+    this.imports.add(QwikWord.FirstChild);
+    this.imports.add(QwikWord.NextSibling);
     const roots: string[] = [];
-    for (const op of program.body.ops) {
-      roots.push(this.op(op, ownerName, statements, names));
+    let path = `${QwikWord.FirstChild}(${fragment})`;
+    for (const op of ops) {
+      let text: string;
+      if (op.op === OpKind.Static) {
+        text = this.next(QwikGenWord.Text);
+        statements.push(`const ${text} = ${path};`);
+      } else {
+        const marker = this.next(QwikGenWord.Marker);
+        statements.push(`const ${marker} = ${path};`);
+        text = this.next(QwikGenWord.Text);
+        statements.push(`const ${text} = ${names.ctx}.document.createTextNode('');`);
+        statements.push(`${marker}.replaceWith(${text});`);
+        this.bindTextHole(op, text, statements, names);
+      }
+      roots.push(text);
+      path = `${QwikWord.NextSibling}(${text})`;
     }
-    if (roots.length > 1) {
-      throw new Error('pipeline.generateJsCsr: multi-root renders not implemented yet');
-    }
-    return { statements, value: roots.length === 0 ? '[]' : roots[0] };
+
+    this.hoistTemplate(
+      template,
+      ops.map((op) => (op.op === OpKind.Static ? escapeText(op.html) : '<!---->')).join('')
+    );
+    return roots;
   }
 
   /** Returns the local holding the op's root node. */

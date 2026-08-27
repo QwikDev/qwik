@@ -346,6 +346,17 @@ export default () => {
     });
   });
 
+  test('should decompose a literal concat into static text and a signal hole', async () => {
+    await testInput(mode, 'text-hole-concat', {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
+  const count = useSignal(0);
+  return <p>{'Count: ' + count.value}</p>;
+};
+`,
+    });
+  });
+
   test('should render an expression hole capturing a signal', async () => {
     await testInput(mode, 'expression-hole-signal', {
       code: `import { useSignal } from '@qwik.dev/core';

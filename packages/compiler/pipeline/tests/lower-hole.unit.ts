@@ -14,7 +14,7 @@ import { ValueIrKind } from '../../src/expr-ir';
 import type { Expression } from 'oxc-parser';
 import { parseModule } from '../analyse/ast/parse';
 import { unwrapExpression } from '../analyse/ast/utils';
-import { lowerTextHole } from '../analyse/lower-hole';
+import { lowerText } from '../analyse/lower-hole';
 import { createLowerContext, type LowerContext } from '../analyse/lower-context';
 import { LocalKind } from '../analyse/lower-setup';
 import { emptyModulePlan } from './fixtures';
@@ -33,7 +33,11 @@ function holeFor(expression: string, shape: (ctx: LowerContext) => void = () => 
   }
   const ctx = createLowerContext(emptyModulePlan('t.tsx', source), 't.tsx', undefined);
   shape(ctx);
-  return { op: lowerTextHole(node as Expression, ctx), ctx };
+  const [op] = lowerText(node as Expression, ctx);
+  if (op === undefined) {
+    throw new Error('expected a text op');
+  }
+  return { op, ctx };
 }
 
 function withSignalLocal(ctx: LowerContext): void {
@@ -66,7 +70,7 @@ function holeValue(op: Op) {
   return op.value;
 }
 
-describe('lowerTextHole', () => {
+describe('lowerText', () => {
   test('a signal .value read becomes a Read hole with SignalRead IR and no qrl', () => {
     const { op, ctx } = holeFor('count.value', withSignalLocal);
     expect(holeValue(op)).toMatchObject({
@@ -126,6 +130,28 @@ describe('lowerTextHole', () => {
     expect(() => holeFor('<span>top</span>')).toThrow(
       'the expression "JSXElement" outside a child position'
     );
+  });
+
+  test('a plain literal concat decomposes; a markup-bearing literal stays one computed hole', () => {
+    const decompose = (expression: string, shape: (ctx: LowerContext) => void) => {
+      const source = `const a = (${expression});`;
+      const parsed = parseModule('t.tsx', source);
+      const statement = parsed.program.body[0];
+      if (statement.type !== 'VariableDeclaration') {
+        throw new Error('expected a variable declaration');
+      }
+      const ctx = createLowerContext(emptyModulePlan('t.tsx', source), 't.tsx', undefined);
+      shape(ctx);
+      return lowerText(unwrapExpression(statement.declarations[0].init) as Expression, ctx);
+    };
+    expect(decompose("'Count: ' + count.value", withSignalLocal).map((op) => op.op)).toEqual([
+      OpKind.Static,
+      OpKind.Hole,
+    ]);
+    // `<`/`&` in the literal would stream raw into SSR — the computed hole escapes at runtime.
+    expect(decompose("'<b> & ' + count.value", withSignalLocal).map((op) => op.op)).toEqual([
+      OpKind.Hole,
+    ]);
   });
 
   test('an expression capturing a module binding throws', () => {

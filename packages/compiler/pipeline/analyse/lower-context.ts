@@ -1,4 +1,4 @@
-import type { ModulePlan, Payload, Range } from '../schema';
+import type { ModulePlan, Payload, Qrl, QrlUse, Range } from '../schema';
 import type { SetupLocal } from './lower-setup';
 import {
   createSegmentSourceIdentity,
@@ -65,4 +65,31 @@ export function pushPayload(ctx: LowerContext, range: Range): number {
   };
   ctx.plan.payloads.push(payload);
   return ctx.plan.payloads.length - 1;
+}
+
+type QrlInput = Omit<Qrl, 'id' | 'parent' | 'name' | 'markerAttributes' | 'propsParts'> & {
+  identity: { kind: 'segment'; nameCtx: string } | { kind: 'declared'; id: string; name: string };
+};
+
+/** Adds every QRL through the same definition/use boundary. */
+export function pushQrl(
+  ctx: LowerContext,
+  input: QrlInput,
+  args: QrlUse['args'] = []
+): { index: number; use: QrlUse } {
+  const { identity, ...fields } = input;
+  const resolved = identity.kind === 'segment' ? allocateSegment(ctx, identity.nameCtx) : identity;
+  const qrl: Qrl = {
+    ...fields,
+    id: resolved.id,
+    parent: null,
+    name: resolved.name,
+    markerAttributes: [],
+    propsParts: [],
+  };
+  ctx.plan.qrls.push(qrl);
+  return {
+    index: ctx.plan.qrls.length - 1,
+    use: { qrl: qrl.id, args },
+  };
 }

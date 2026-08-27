@@ -102,8 +102,8 @@ export type Op =
       condition: Value;
       /** Set when the condition is a recognized build constant; the linker folds by it. */
       predicate?: Predicate;
-      then: ProgramId;
-      else: ProgramId | null;
+      then: QrlUse;
+      else: QrlUse | null;
       id: Seed;
       lifetime: LifetimeId;
     }

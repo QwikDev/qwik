@@ -314,6 +314,27 @@ export default () => {
     });
   });
 
+  test('should render a signal text hole inside a branch arm', async () => {
+    await testInput(mode, 'branch-arm-signal-text', {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
+  const show = useSignal(false);
+  const count = useSignal(0);
+  return <div>{show.value ? <b>{count.value}</b> : null}</div>;
+};
+`,
+    });
+  });
+
+  test('should render a props text hole inside a branch arm', async () => {
+    await testInput(mode, 'branch-arm-props-text', {
+      code: `export default (props) => {
+  return <div>{props.enabled ? <b>{props.label}</b> : null}</div>;
+};
+`,
+    });
+  });
+
   test('should render an expression hole capturing a signal', async () => {
     await testInput(mode, 'expression-hole-signal', {
       code: `import { useSignal } from '@qwik.dev/core';

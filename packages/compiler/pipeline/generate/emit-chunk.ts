@@ -1,9 +1,11 @@
 import {
+  ArgPass,
+  CaptureAccess,
   FnBodyKind,
-  QrlBodyKind,
   QrlPayloadKind,
   type LinkedModule,
   type LinkedQrl,
+  type QrlUse,
 } from '../schema';
 import { getSegmentDisplayName, getSegmentSymbolHash } from '../segment-identity';
 import { QWIK_CORE_IMPORT, QwikWord } from '../words';
@@ -23,6 +25,8 @@ export interface FunctionEmission {
   /** The return expression. */
   value: string;
   async: boolean;
+  /** QRLs the function's body references — the placement satisfies them. */
+  uses: { qrl: LinkedQrl; invoked: boolean }[];
 }
 
 /**
@@ -71,11 +75,48 @@ export function captureNames(module: LinkedModule, qrl: LinkedQrl): string[] {
   return qrl.captures.map((capture) => module.bindings[capture.binding].name);
 }
 
+/** Resolves one use site's actuals against the QRL's formal captures. */
+export function resolveQrlUse(
+  module: LinkedModule,
+  use: QrlUse,
+  propsName: string
+): { qrl: LinkedQrl; args: string[] } {
+  const qrl = module.qrls.find((candidate) => candidate.id === use.qrl);
+  if (qrl === undefined) {
+    throw new Error(`pipeline.generate: unknown qrl "${use.qrl}"`);
+  }
+  if (use.args.length !== qrl.captures.length) {
+    throw new Error(`pipeline.generate: qrl "${use.qrl}" capture arity mismatch`);
+  }
+  return {
+    qrl,
+    args: use.args.map((arg) => {
+      switch (arg.pass) {
+        case ArgPass.Binding:
+          return module.bindings[arg.binding].name;
+        case ArgPass.Props:
+          return propsName;
+        case ArgPass.StyleScope:
+          throw new UnsupportedError('a style-scope QRL argument');
+      }
+    }),
+  };
+}
+
+export function qrlPropsName(module: LinkedModule, qrl: LinkedQrl, fallback: string): string {
+  const capture = qrl.captures.find(
+    (candidate) => candidate.access === CaptureAccess.ComponentProp
+  );
+  return capture === undefined ? fallback : module.bindings[capture.binding].name;
+}
+
+/** Captures restore in one destructuring line: `const [a, b] = _captures;`. */
+export function capturePrelude(captures: readonly string[]): string[] {
+  return captures.length === 0 ? [] : [`const [${captures.join(', ')}] = ${QwikWord.Captures};`];
+}
+
 /** The authored function regenerated from its source slice — target-independent by construction. */
 export function sourceFunctionEmission(module: LinkedModule, qrl: LinkedQrl): FunctionEmission {
-  if (qrl.body.b !== QrlBodyKind.Js && qrl.body.b !== QrlBodyKind.Expr) {
-    throw new UnsupportedError(`emitting source for a "${qrl.body.b}" QRL body`);
-  }
   if (qrl.origin.bodyKind !== FnBodyKind.Expression) {
     throw new UnsupportedError('emitting a chunk for a block QRL body');
   }
@@ -88,9 +129,7 @@ export function sourceFunctionEmission(module: LinkedModule, qrl: LinkedQrl): Fu
       : qrl.origin.paramRanges.map(([start, end]) => source.slice(start, end));
   if (qrl.payloadKind === QrlPayloadKind.Function && captures.length > 0) {
     emission.imports.add(QwikWord.Captures);
-    emission.statements.push(
-      ...captures.map((name, index) => `const ${name} = ${QwikWord.Captures}[${index}];`)
-    );
+    emission.statements.push(...capturePrelude(captures));
   }
   emission.value = source.slice(qrl.origin.bodyRange[0], qrl.origin.bodyRange[1]);
   emission.async = qrl.authoredAsync;
@@ -106,6 +145,7 @@ export function emptyFunctionEmission(): FunctionEmission {
     statements: [],
     value: '',
     async: false,
+    uses: [],
   };
 }
 

@@ -19,7 +19,7 @@ import {
   _noopQrl,
 } from '@qwik.dev/core';
 const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
-  const show = _captures[0];
+  const [show] = _captures;
   return show.value;
 };
 const q_component_branch_condition_segment_0_2fzrieu6vlhf9 = /*#__PURE__*/ _noopQrl(
@@ -59,7 +59,7 @@ export default (props, ctx) => {
 import { _captures } from '@qwik.dev/core';
 
 export const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
-  const show = _captures[0];
+  const [show] = _captures;
   return show.value;
 };
 /*

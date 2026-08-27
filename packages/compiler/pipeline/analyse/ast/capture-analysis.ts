@@ -1,4 +1,6 @@
 import type { Node } from 'oxc-parser';
+import { ArgPass, CaptureAccess, type Qrl, type QrlUse } from '../../schema';
+import { UnsupportedError } from '../../errors';
 import { isNode, type WalkableNode } from './ast-types';
 import type { LowerContext } from '../lower-context';
 import type { SetupLocal } from '../lower-setup';
@@ -70,4 +72,44 @@ export function collectCaptures(
   };
   visit(node, null, null);
   return { props, locals, other };
+}
+
+export interface LoweredCaptures {
+  captures: Qrl['captures'];
+  args: QrlUse['args'];
+}
+
+/**
+ * The one capture policy: setup locals ride as Direct captures (Binding args), the props param —
+ * when the boundary supports it — as a trailing ComponentProp capture (Props arg); anything else
+ * refuses as `<subject> capturing "name"`.
+ */
+export function lowerCaptures(
+  node: Node,
+  ctx: LowerContext,
+  /** Refusal-message subject, e.g. 'a branch arm'. */
+  subject: string,
+  options: { localNames?: ReadonlySet<string>; allowProps?: boolean } = {}
+): LoweredCaptures {
+  const refs = collectCaptures(node, ctx, options.localNames ?? new Set());
+  if (refs.other !== null) {
+    throw new UnsupportedError(`${subject} capturing "${refs.other}"`);
+  }
+  if (refs.props && options.allowProps !== true) {
+    throw new UnsupportedError(`${subject} capturing "${ctx.propsParamName}"`);
+  }
+  const captures: Qrl['captures'] = refs.locals.map((entry) => ({
+    binding: entry.local.binding,
+    access: CaptureAccess.Direct,
+  }));
+  const args: QrlUse['args'] = refs.locals.map((entry) => ({
+    pass: ArgPass.Binding,
+    binding: entry.local.binding,
+  }));
+  if (refs.props) {
+    const binding = ctx.plan.bindings.findIndex((entry) => entry.name === ctx.propsParamName);
+    captures.push({ binding, access: CaptureAccess.ComponentProp });
+    args.push({ pass: ArgPass.Props });
+  }
+  return { captures, args };
 }

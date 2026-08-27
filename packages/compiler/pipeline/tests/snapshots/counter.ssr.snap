@@ -42,7 +42,7 @@ export default (props, ctx) => {
 import { _captures } from '@qwik.dev/core';
 
 export const component_q_e_click_segment_0_2xwyg1cinvmpz = () => {
-  const count = _captures[0];
+  const [count] = _captures;
   return count.value++;
 };
 /*

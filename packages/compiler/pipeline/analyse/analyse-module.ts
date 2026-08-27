@@ -22,7 +22,7 @@ import { parseModule } from './ast/parse';
 import { scanCoreImports } from './core-imports';
 import { discoverComponents } from './discover';
 import { lowerSetup } from './lower-setup';
-import { createLowerContext } from './lower-context';
+import { createLowerContext, pushQrl } from './lower-context';
 import { lowerJsx } from './lower-jsx';
 import { normalizeSource } from './normalize';
 import { emptyPlan } from './plan';
@@ -149,13 +149,14 @@ export async function analyseModule(
       });
     }
     // A component IS a QRL: a Program body plus an authored declaration to splice over.
-    plan.qrls.push({
-      id: `${input.path}#${component.name}`,
-      parent: null,
-      name: component.name,
+    const { index: qrlIndex } = pushQrl(lowerContext, {
+      identity: {
+        kind: 'declared',
+        id: `${input.path}#${component.name}`,
+        name: component.name,
+      },
       ctxName: component.name,
       boundary: { kind: BoundaryKind.Component },
-      markerAttributes: [],
       payloadKind: QrlPayloadKind.Function,
       authoredAsync: false,
       body: { b: QrlBodyKind.Program, program: plan.programs.length - 1 },
@@ -171,7 +172,6 @@ export async function analyseModule(
         bodyKind:
           component.arrow.body.type === 'BlockStatement' ? FnBodyKind.Block : FnBodyKind.Expression,
       },
-      propsParts: [],
       declaration: {
         name: component.name,
         binding: null,
@@ -193,7 +193,7 @@ export async function analyseModule(
         localName: component.declarationKind === DeclarationKind.Const ? component.name : null,
       },
     });
-    plan.assembly.push({ a: AssemblyKind.Splice, qrl: plan.qrls.length - 1 });
+    plan.assembly.push({ a: AssemblyKind.Splice, qrl: qrlIndex });
   }
   return plan;
 }

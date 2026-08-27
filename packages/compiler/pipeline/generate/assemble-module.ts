@@ -24,8 +24,10 @@ export interface ModuleParts {
 
 export interface QwikModuleEmitter extends ModuleParts {
   emitProgram(qrl: LinkedQrl, names: GeneratedNames): ComponentEmission;
-  /** Every QRL's function as one neutral emission — chunk files and SSR mirrors print it. */
+  /** Every QRL's function as one context-neutral emission — every placement prints it. */
   qrlFunction(qrl: LinkedQrl): FunctionEmission;
+  /** Satisfy the emission's QRL uses for a standalone chunk file (target policy). */
+  resolveChunkUses(emission: FunctionEmission): FunctionEmission;
 }
 
 /** The main module (assembled over the source) plus one chunk per QRL. */
@@ -47,7 +49,10 @@ export function generateQwikModule(
     origPath: null,
     segment: null,
   };
-  return [main, ...emitQrlChunks(module, (qrl) => emitter.qrlFunction(qrl))];
+  return [
+    main,
+    ...emitQrlChunks(module, (qrl) => emitter.resolveChunkUses(emitter.qrlFunction(qrl))),
+  ];
 }
 
 /**

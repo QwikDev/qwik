@@ -19,7 +19,10 @@ import { UnsupportedError } from '../errors';
 import { generateQwikModule, type QwikModuleEmitter } from './assemble-module';
 import {
   captureNames,
+  capturePrelude,
   chunkCanonicalFilename,
+  qrlPropsName,
+  resolveQrlUse,
   sourceFunctionEmission,
   type FunctionEmission,
 } from './emit-chunk';
@@ -137,7 +140,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
           break;
         }
         case PropKind.Event: {
-          this.event(prop.name, prop.handlers, mounted.el, statements);
+          this.event(prop.name, prop.handlers, mounted.el, statements, names);
           break;
         }
         case PropKind.Dynamic: {
@@ -221,17 +224,16 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     if (op.condition.v !== ValueKind.Qrl) {
       throw new UnsupportedError('a non-QRL branch condition');
     }
-    const conditionQrl = this.qrlById(op.condition.use.qrl);
+    const conditionUse = resolveQrlUse(this.module, op.condition.use, names.props);
     this.imports.add(QwikWord.BranchRange);
     this.imports.add(QwikWord.CreateBranch);
-    const conditionCaptures = captureNames(this.module, conditionQrl);
-    let condition = this.chunkSymbol(conditionQrl.id);
-    if (conditionCaptures.length > 0) {
+    let condition = this.chunkSymbol(conditionUse.qrl);
+    if (conditionUse.args.length > 0) {
       this.imports.add(QwikWord.WithCaptures);
-      condition = `${QwikWord.WithCaptures}(${condition}, [${conditionCaptures.join(', ')}])`;
+      condition = `${QwikWord.WithCaptures}(${condition}, [${conditionUse.args.join(', ')}])`;
     }
-    const thenRef = this.lazyQrlReference(this.armQrl(op.then));
-    const elseRef = op.else === null ? 'undefined' : this.lazyQrlReference(this.armQrl(op.else));
+    const thenRef = this.armReference(op.then, names.props);
+    const elseRef = op.else === null ? 'undefined' : this.armReference(op.else, names.props);
     const branch = this.next(QwikGenWord.Branch);
     statements.push(
       `const ${branch} = ${QwikWord.CreateBranch}(${names.ctx}, new ${QwikWord.BranchRange}(${names.ctx}.document, ${start}, ${end}), ${condition}, ${thenRef}, ${elseRef});`
@@ -239,24 +241,52 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     statements.push(`${names.ctx}.scheduler.notify(${branch});`);
   }
 
+  /** A lazy arm ref wears its captures via `.w([...])` — restored from `_captures` in the chunk. */
+  private armReference(use: Extract<Op, { op: OpKind.Branch }>['then'], propsName: string): string {
+    const resolved = resolveQrlUse(this.module, use, propsName);
+    const ref = this.lazyQrlReference(resolved.qrl);
+    return resolved.args.length === 0 ? ref : `${ref}.w([${resolved.args.join(', ')}])`;
+  }
+
   /** An arm's function is a normal render program; source-bodied QRLs replay authored code. */
   qrlFunction(qrl: LinkedQrl): FunctionEmission {
-    if (qrl.body.b !== QrlBodyKind.Program) {
-      return sourceFunctionEmission(this.module, qrl);
+    switch (qrl.body.b) {
+      case QrlBodyKind.Js:
+      case QrlBodyKind.Expr:
+        return sourceFunctionEmission(this.module, qrl);
+      case QrlBodyKind.Task:
+        throw new UnsupportedError('a task QRL body');
+      case QrlBodyKind.Program: {
+        // A fresh emitter keeps the render's imports/hoists out of the main module.
+        const emitter = new CsrModuleEmitter(this.module);
+        const names = {
+          props: qrlPropsName(this.module, qrl, QwikGenWord.ComponentProps),
+          ctx: QwikGenWord.ComponentContext,
+        };
+        const emission = emitter.renderProgram(qrl.body.program, qrl.name, names);
+        // Captures restore from `_captures` ahead of the render statements.
+        const captures = captureNames(this.module, qrl);
+        const statements = [...capturePrelude(captures), ...emission.statements];
+        return {
+          imports: new Set([
+            ...(captures.length > 0 ? [QwikWord.Captures] : []),
+            ...emitter.imports,
+          ]),
+          chunkImports: emitter.chunkImports,
+          hoists: emitter.hoists,
+          params: statements.length === 0 ? [] : [names.ctx],
+          statements,
+          value: emission.value,
+          async: false,
+          uses: [],
+        };
+      }
     }
-    // A fresh emitter keeps the render's imports/hoists out of the main module.
-    const emitter = new CsrModuleEmitter(this.module);
-    const names = { props: QwikGenWord.ComponentProps, ctx: QwikGenWord.ComponentContext };
-    const emission = emitter.renderProgram(qrl.body.program, qrl.name, names);
-    return {
-      imports: emitter.imports,
-      chunkImports: emitter.chunkImports,
-      hoists: emitter.hoists,
-      params: emission.statements.length === 0 ? [] : [names.ctx],
-      statements: emission.statements,
-      value: emission.value,
-      async: false,
-    };
+  }
+
+  /** CSR nested references are direct symbol imports (chunkImports) — nothing left to satisfy. */
+  resolveChunkUses(emission: FunctionEmission): FunctionEmission {
+    return emission;
   }
 
   /** Arms load lazily: a hoisted `_qrlWithChunk` reference per arm chunk. */
@@ -270,24 +300,6 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       );
     }
     return `q_${qrl.name}`;
-  }
-
-  private armQrl(program: number): LinkedQrl {
-    const qrl = this.module.qrls.find(
-      (candidate) => candidate.body.b === QrlBodyKind.Program && candidate.body.program === program
-    );
-    if (qrl === undefined) {
-      throw new Error(`pipeline.generateJsCsr: no qrl for the arm program ${program}`);
-    }
-    return qrl;
-  }
-
-  private qrlById(id: string): LinkedQrl {
-    const qrl = this.module.qrls.find((candidate) => candidate.id === id);
-    if (qrl === undefined) {
-      throw new Error(`pipeline.generateJsCsr: unknown qrl "${id}"`);
-    }
-    return qrl;
   }
 
   /** Dynamic attrs bind an effect against the element itself — no lookup, no marker. */
@@ -313,14 +325,10 @@ class CsrModuleEmitter implements QwikModuleEmitter {
           throw new UnsupportedError('a non-QRL computed prop');
         }
         const use = prop.value.resume.qrl;
-        const qrl = this.module.qrls.find((candidate) => candidate.id === use.qrl);
-        if (qrl === undefined) {
-          throw new Error(`pipeline.generateJsCsr: unknown qrl "${use.qrl}"`);
-        }
-        const captures = captureNames(this.module, qrl);
+        const resolved = resolveQrlUse(this.module, use, names.props);
         this.imports.add(QwikWord.CreateAttrExpressionEffect);
         statements.push(
-          `const ${effect} = ${QwikWord.CreateAttrExpressionEffect}(${el}, ${JSON.stringify(prop.name)}, [${captures.join(', ')}], ${this.chunkSymbol(qrl.id)}, ${names.ctx}.scheduler);`
+          `const ${effect} = ${QwikWord.CreateAttrExpressionEffect}(${el}, ${JSON.stringify(prop.name)}, [${resolved.args.join(', ')}], ${this.chunkSymbol(resolved.qrl)}, ${names.ctx}.scheduler);`
         );
         break;
       }
@@ -369,17 +377,13 @@ class CsrModuleEmitter implements QwikModuleEmitter {
           throw new UnsupportedError('a non-QRL computed text hole');
         }
         const use = op.value.resume.qrl;
-        const qrl = this.module.qrls.find((candidate) => candidate.id === use.qrl);
-        if (qrl === undefined) {
-          throw new Error(`pipeline.generateJsCsr: unknown qrl "${use.qrl}"`);
-        }
+        const resolved = resolveQrlUse(this.module, use, names.props);
         const effect = this.next(QwikGenWord.Effect);
-        const captures = captureNames(this.module, qrl);
         this.imports.add(QwikWord.CreateTextExpressionEffect);
         statements.push(
-          `const ${effect} = ${QwikWord.CreateTextExpressionEffect}(${target}, [${captures.join(
+          `const ${effect} = ${QwikWord.CreateTextExpressionEffect}(${target}, [${resolved.args.join(
             ', '
-          )}], ${this.chunkSymbol(qrl.id)}, ${names.ctx}.scheduler);`
+          )}], ${this.chunkSymbol(resolved.qrl)}, ${names.ctx}.scheduler);`
         );
         statements.push(`${names.ctx}.scheduler.notify(${effect});`);
         break;
@@ -415,36 +419,29 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     scopeName: string,
     handlers: Extract<Prop, { k: PropKind.Event }>['handlers'],
     el: string,
-    statements: string[]
+    statements: string[],
+    names: GeneratedNames
   ): void {
-    const qrls = handlers.map((handler) => {
+    const uses = handlers.map((handler) => {
       const value = handler.h === HandlerKind.Value ? handler.value : null;
       if (value === null || value.v !== ValueKind.Qrl) {
         throw new UnsupportedError('a non-QRL event handler');
       }
-      const qrl = this.module.qrls.find((candidate) => candidate.id === value.use.qrl);
-      if (qrl === undefined) {
-        throw new Error('pipeline.generateJsCsr: unknown qrl');
-      }
-      return qrl;
+      return resolveQrlUse(this.module, value.use, names.props);
     });
-    if (qrls.length > 1 && qrls.some((qrl) => qrl.captures.length > 0)) {
+    if (uses.length > 1 && uses.some((use) => use.args.length > 0)) {
       throw new UnsupportedError('captures across multiple handlers of one event');
     }
-    const symbols = qrls.map((qrl) => this.chunkSymbol(qrl.id));
-    const captures = captureNames(this.module, qrls[0]);
+    const symbols = uses.map((use) => this.chunkSymbol(use.qrl));
+    const args = uses[0].args;
     const value = symbols.length === 1 ? symbols[0] : `[${symbols.join(', ')}]`;
     this.imports.add(QwikWord.SetEvent);
     statements.push(
-      `${QwikWord.SetEvent}(${el}, ${JSON.stringify(scopeName)}, ${value}${captures.length === 0 ? '' : `, [${captures.join(', ')}]`});`
+      `${QwikWord.SetEvent}(${el}, ${JSON.stringify(scopeName)}, ${value}${args.length === 0 ? '' : `, [${args.join(', ')}]`});`
     );
   }
 
-  private chunkSymbol(id: string): string {
-    const qrl = this.module.qrls.find((candidate) => candidate.id === id);
-    if (qrl === undefined) {
-      throw new Error(`pipeline.generateJsCsr: unknown qrl "${id}"`);
-    }
+  private chunkSymbol(qrl: LinkedQrl): string {
     if (!this.importedChunks.has(qrl.id)) {
       this.importedChunks.add(qrl.id);
       this.chunkImports.push(

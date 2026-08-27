@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import {
+  ArgPass,
   BindingScope,
   BoundaryKind,
   FnBodyKind,
@@ -10,7 +11,12 @@ import {
   type LinkedModule,
   type LinkedQrl,
 } from '../schema';
-import { captureNames, functionText, sourceFunctionEmission } from '../generate/emit-chunk';
+import {
+  captureNames,
+  functionText,
+  resolveQrlUse,
+  sourceFunctionEmission,
+} from '../generate/emit-chunk';
 
 // `() => count.value++` at 10..30 with the body at 16..30; `(props) => props.title` variant below.
 const SOURCE = '/*head*/ (() => count.value++); ((props) => props.title);';
@@ -71,6 +77,19 @@ describe('captureNames', () => {
   });
 });
 
+test('resolveQrlUse takes actuals from the use site', () => {
+  const qrl = qrlWith({ captures: [{ binding: 0, access: CaptureAccess.Direct }] });
+  const resolved = resolveQrlUse(
+    moduleWith(qrl),
+    { qrl: qrl.id, args: [{ pass: ArgPass.Binding, binding: 1 }] },
+    '_props'
+  );
+  expect(resolved.args).toEqual(['props']);
+  expect(() => resolveQrlUse(moduleWith(qrl), { qrl: qrl.id, args: [] }, '_props')).toThrow(
+    'capture arity mismatch'
+  );
+});
+
 const textOf = (qrl: LinkedQrl) => functionText(sourceFunctionEmission(moduleWith(qrl), qrl));
 
 describe('sourceFunctionEmission', () => {
@@ -79,7 +98,7 @@ describe('sourceFunctionEmission', () => {
     const emission = sourceFunctionEmission(moduleWith(qrl), qrl);
     expect([...emission.imports]).toEqual(['_captures']);
     expect(functionText(emission)).toBe(
-      '() => {\n  const count = _captures[0];\n  return count.value++;\n}'
+      '() => {\n  const [count] = _captures;\n  return count.value++;\n}'
     );
   });
 
@@ -110,11 +129,6 @@ describe('sourceFunctionEmission', () => {
   test('an authored-async body keeps its async head', () => {
     const qrl = qrlWith({ authoredAsync: true });
     expect(textOf(qrl)).toBe('async () => {\n  return count.value++;\n}');
-  });
-
-  test("program bodies refuse — render programs are the generators' job", () => {
-    const programQrl = qrlWith({ body: { b: QrlBodyKind.Program, program: 0 } });
-    expect(() => textOf(programQrl)).toThrow('emitting source for a "program" QRL body');
   });
 
   test('block bodies refuse', () => {

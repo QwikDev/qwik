@@ -1,8 +1,6 @@
 import type { Expression, JSXElement } from 'oxc-parser';
 import {
-  ArgPass,
   BoundaryKind,
-  CaptureAccess,
   FnBodyKind,
   LifetimeCommit,
   LifetimeOwner,
@@ -16,9 +14,8 @@ import {
   type QrlUse,
   type Value,
 } from '../schema';
-import { collectCaptures } from './ast/capture-analysis';
-import { UnsupportedError } from '../errors';
-import { allocateSegment, pushPayload, type LowerContext } from './lower-context';
+import { lowerCaptures } from './ast/capture-analysis';
+import { pushPayload, pushQrl, type LowerContext } from './lower-context';
 import { lowerJsx } from './lower-jsx';
 
 /** A branch arm: JSX, or a null literal (`jsx: null`) spanning `range`. */
@@ -63,47 +60,32 @@ export function lowerBranch(
 
 /** The condition is a Function-payload QRL over the test expression — captures via `_captures`. */
 function lowerCondition(test: Expression, ctx: LowerContext): Value {
-  const refs = collectCaptures(test, ctx, new Set());
-  const captured = refs.other ?? (refs.props ? ctx.propsParamName : null);
-  if (captured !== null) {
-    throw new UnsupportedError(`a branch condition capturing "${captured}"`);
-  }
+  const { captures, args } = lowerCaptures(test, ctx, 'a branch condition', { allowProps: true });
   const range: [number, number] = [test.start, test.end];
   const payload = pushPayload(ctx, range);
-  const segment = allocateSegment(ctx, 'branch:condition');
-  ctx.plan.qrls.push({
-    id: segment.id,
-    parent: null,
-    name: segment.name,
-    ctxName: 'branch:condition',
-    boundary: { kind: BoundaryKind.Implicit, role: 'branch' },
-    markerAttributes: [],
-    payloadKind: QrlPayloadKind.Function,
-    authoredAsync: false,
-    body: { b: QrlBodyKind.Js, payload },
-    captures: refs.locals.map((entry) => ({
-      binding: entry.local.binding,
-      access: CaptureAccess.Direct,
-    })),
-    params: { authored: 0, used: [], sources: [] },
-    origin: {
-      range,
-      functionRange: range,
-      calleeRange: null,
-      argumentRanges: [],
-      paramRanges: [],
-      bodyRange: range,
-      bodyKind: FnBodyKind.Expression,
+  const { use } = pushQrl(
+    ctx,
+    {
+      identity: { kind: 'segment', nameCtx: 'branch:condition' },
+      ctxName: 'branch:condition',
+      boundary: { kind: BoundaryKind.Implicit, role: 'branch' },
+      payloadKind: QrlPayloadKind.Function,
+      authoredAsync: false,
+      body: { b: QrlBodyKind.Js, payload },
+      captures,
+      params: { authored: 0, used: [], sources: [] },
+      origin: {
+        range,
+        functionRange: range,
+        calleeRange: null,
+        argumentRanges: [],
+        paramRanges: [],
+        bodyRange: range,
+        bodyKind: FnBodyKind.Expression,
+      },
     },
-    propsParts: [],
-  });
-  const use: QrlUse = {
-    qrl: segment.id,
-    args: refs.locals.map((entry) => ({
-      pass: ArgPass.Binding,
-      binding: entry.local.binding,
-    })),
-  };
+    args
+  );
   return { v: ValueKind.Qrl, use };
 }
 
@@ -114,53 +96,46 @@ function lowerArm(
   ctx: LowerContext,
   nameCtx: string,
   lifetime: number
-): number {
-  if (jsx !== null) {
-    // Arm chunks carry no captures yet — a reactive arm would emit free identifiers.
-    const refs = collectCaptures(jsx, ctx, new Set());
-    if (refs.locals.length > 0) {
-      throw new UnsupportedError(`a branch arm capturing "${refs.locals[0].name}"`);
-    }
-    if (refs.props) {
-      throw new UnsupportedError(`a branch arm capturing "${ctx.propsParamName}"`);
-    }
-    if (refs.other !== null) {
-      throw new UnsupportedError(`a branch arm capturing "${refs.other}"`);
-    }
-  }
-  const ops = jsx === null ? [] : [lowerJsx(jsx, ctx)];
+): QrlUse {
+  const loweredCaptures =
+    jsx === null
+      ? { captures: [], args: [] }
+      : lowerCaptures(jsx, ctx, 'a branch arm', { allowProps: true });
+  // The arm's segment and rows come BEFORE its children's — matching legacy allocation order.
   const program = ctx.plan.programs.length;
   ctx.plan.programs.push({
-    body: { kind: ProgramBodyKind.Ops, ops },
+    body: { kind: ProgramBodyKind.Ops, ops: [] },
     setup: [],
     params: [],
     lifetime,
     needsId: false,
     async: false,
   });
-  const segment = allocateSegment(ctx, nameCtx);
-  ctx.plan.qrls.push({
-    id: segment.id,
-    parent: null,
-    name: segment.name,
-    ctxName: nameCtx,
-    boundary: { kind: BoundaryKind.Implicit, role: 'branch' },
-    markerAttributes: [],
-    payloadKind: QrlPayloadKind.Function,
-    authoredAsync: false,
-    body: { b: QrlBodyKind.Program, program },
-    captures: [],
-    params: { authored: 0, used: [], sources: [] },
-    origin: {
-      range,
-      functionRange: range,
-      calleeRange: null,
-      argumentRanges: [],
-      paramRanges: [],
-      bodyRange: range,
-      bodyKind: FnBodyKind.Expression,
+  const { use } = pushQrl(
+    ctx,
+    {
+      identity: { kind: 'segment', nameCtx },
+      ctxName: nameCtx,
+      boundary: { kind: BoundaryKind.Implicit, role: 'branch' },
+      payloadKind: QrlPayloadKind.Function,
+      authoredAsync: false,
+      body: { b: QrlBodyKind.Program, program },
+      captures: loweredCaptures.captures,
+      params: { authored: 0, used: [], sources: [] },
+      origin: {
+        range,
+        functionRange: range,
+        calleeRange: null,
+        argumentRanges: [],
+        paramRanges: [],
+        bodyRange: range,
+        bodyKind: FnBodyKind.Expression,
+      },
     },
-    propsParts: [],
-  });
-  return program;
+    loweredCaptures.args
+  );
+  if (jsx !== null) {
+    ctx.plan.programs[program].body = { kind: ProgramBodyKind.Ops, ops: [lowerJsx(jsx, ctx)] };
+  }
+  return use;
 }

@@ -141,11 +141,11 @@ type Value =
   | { v: 'qrl'; use: QrlUse; expr?: Expr }
   | { v: 'render'; program: ProgramId };
 
-// Use-site actuals are POSITIONS against Qrl.formals — names/kinds come from the binding table,
-// never duplicated here, so actuals and formals cannot disagree.
+// Use-site args are POSITIONS against Qrl.captures — names/kinds come from the binding table,
+// never duplicated here, so args and captures cannot disagree.
 interface QrlUse {
   qrl: QrlId;
-  actuals: ({ pass: 'binding'; binding: LocalId } | { pass: 'props' } | { pass: 'style-scope' })[];
+  args: ({ pass: 'binding'; binding: LocalId } | { pass: 'props' } | { pass: 'style-scope' })[];
 }
 
 // ---------- programs ----------------------------------------------------------------------
@@ -158,7 +158,7 @@ interface Program {
   needsId: boolean; // intra-module; cross-module joins land on LinkedProgram
   async: boolean;
 }
-// Ownership is one-directional (Qrl.body → ProgramId); a program's resume identity is derived.
+// Ownership is one-directional: a QrlUse reaches a Program only through Qrl.body.
 
 // ---------- ops ----------------------------------------------------------------------------
 type Seed =
@@ -192,8 +192,8 @@ type Op =
   | {
       op: 'branch';
       condition: Value;
-      then: ProgramId;
-      else: ProgramId | null;
+      then: QrlUse;
+      else: QrlUse | null;
       id: Seed;
       lifetime: LifetimeId;
     }
@@ -352,7 +352,11 @@ interface Qrl {
   name: string; // wire symbol for chunked QRLs
   ctxName: string;
   // Neutral boundary facts current emitters require:
-  boundary: { kind: 'explicit' } | { kind: 'implicit'; role: string } | { kind: 'sync' };
+  boundary:
+    | { kind: 'component' }
+    | { kind: 'explicit' }
+    | { kind: 'implicit'; role: string }
+    | { kind: 'sync' };
   markerAttributes: { key: string; value: string }[];
   payloadKind: 'function' | 'value';
   authoredAsync: boolean;
@@ -361,7 +365,7 @@ interface Qrl {
     | { b: 'task'; task: TaskBody }
     | { b: 'expr'; expr: Expr; initialOnly: boolean }
     | { b: 'js'; payload: PayloadId };
-  formals: {
+  captures: {
     binding: LocalId; // names/kinds read from the binding table
     access: 'direct' | 'loop-value' | 'component-prop';
   }[];
@@ -380,24 +384,20 @@ interface Qrl {
     | { kind: 'expression'; name: string; value: PayloadId }
     | { kind: 'spread'; value: PayloadId }
   )[];
+  declaration?: QrlDeclaration;
   guard?: Predicate;
 }
 
 // ---------- declarations, envelope --------------------------------------------------------
-interface ComponentDecl {
+interface QrlDeclaration {
   name: string;
-  identity: string;
   binding: LocalId | null;
   parameter: ComponentParameter | null;
-  body: ProgramId;
-  captures: LocalId[]; // what the component closes over
   root: { name: string };
-  functionRange: Range | null;
   replacementRange: Range;
   declarationKind: 'function' | 'const' | 'defaultFunction' | 'defaultArrow';
   varKind?: 'const' | 'let' | 'var';
   localName: string | null;
-  guard?: Predicate;
 }
 // Custom hooks are executable declarations with a full ABI:
 interface HookDecl {
@@ -437,7 +437,6 @@ interface ModulePlan {
   payloads: Payload[];
   programs: Program[];
   qrls: Qrl[];
-  components: ComponentDecl[];
   hooks: HookDecl[];
   callables: { binding: LocalId | null; payload: PayloadId; async: boolean; guard?: Predicate }[];
   values: { binding: LocalId | null; payload: PayloadId; guard?: Predicate }[];
@@ -545,7 +544,7 @@ type Unknown =
 type Maybe<T> = { ok: true; value: T } | { ok: false; reason: Unknown };
 interface DeclRef {
   module: number;
-  table: 'components' | 'hooks' | 'contexts' | 'natives' | 'callables' | 'values' | 'qrls';
+  table: 'hooks' | 'contexts' | 'natives' | 'callables' | 'values' | 'qrls';
   index: number;
 }
 
@@ -563,7 +562,6 @@ interface LinkedModule {
   payloads: Payload[]; // text materialized; reads/awaits/qrls intact
   programs: LinkedProgram[];
   qrls: LinkedQrl[];
-  components: ComponentDecl[]; // targets/refs inside bodies are linked
   hooks: HookDecl[];
   callables: ModulePlan['callables'];
   values: ModulePlan['values'];

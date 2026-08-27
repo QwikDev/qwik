@@ -1,22 +1,19 @@
 import {
-  ArgPass,
   BoundaryKind,
-  CaptureAccess,
   ExprKind,
   FnBodyKind,
   PlaceKind,
   QrlBodyKind,
   QrlPayloadKind,
   ValueKind,
-  type QrlUse,
   type Value,
 } from '../schema';
 import { ValueIrKind, type ValueIR } from '../../src/expr-ir';
 import { identifierName } from './ast/utils';
 import { findRuntimeJsx } from './ast/returns-jsx';
-import { collectCaptures } from './ast/capture-analysis';
+import { lowerCaptures } from './ast/capture-analysis';
 import { UnsupportedError } from '../errors';
-import { allocateSegment, pushPayload, type LowerContext } from './lower-context';
+import { pushPayload, pushQrl, type LowerContext } from './lower-context';
 import { LocalKind } from './lower-setup';
 import type { Expression } from 'oxc-parser';
 
@@ -43,10 +40,9 @@ export function lowerExpressionValue(
       if (findRuntimeJsx(expression) !== null) {
         throw new UnsupportedError('JSX inside an expression value');
       }
-      const refs = collectCaptures(expression, ctx, new Set());
-      if (refs.other !== null) {
-        throw new UnsupportedError(`an expression capturing "${refs.other}"`);
-      }
+      const { captures, args } = lowerCaptures(expression, ctx, 'an expression', {
+        allowProps: true,
+      });
       const range: [number, number] = [expression.start, expression.end];
       const payload = pushPayload(ctx, range);
       const ir = tryLowerExprIr(expression, ctx);
@@ -54,54 +50,33 @@ export function lowerExpressionValue(
         ir === null
           ? ({ kind: ExprKind.Js, payload } as const)
           : ({ kind: ExprKind.Ir, ir } as const);
-      const segment = allocateSegment(ctx, nameCtx);
-      const propsBinding = refs.props
-        ? ctx.plan.bindings.findIndex((binding) => binding.name === ctx.propsParamName)
-        : -1;
-      // Captured reactive locals ride as Direct captures ahead of the props object.
-      const captures = [
-        ...refs.locals.map((entry) => ({
-          binding: entry.local.binding,
-          access: CaptureAccess.Direct as const,
-        })),
-        ...(refs.props
-          ? [{ binding: propsBinding, access: CaptureAccess.ComponentProp as const }]
-          : []),
-      ];
-      const args: QrlUse['args'] = [
-        ...refs.locals.map((entry) => ({
-          pass: ArgPass.Binding as const,
-          binding: entry.local.binding,
-        })),
-        ...(refs.props ? [{ pass: ArgPass.Props as const }] : []),
-      ];
-      ctx.plan.qrls.push({
-        id: segment.id,
-        parent: null,
-        name: segment.name,
-        ctxName: nameCtx,
-        boundary: { kind: BoundaryKind.Implicit, role: 'expression' },
-        markerAttributes: [],
-        payloadKind: QrlPayloadKind.Value,
-        authoredAsync: false,
-        body: { b: QrlBodyKind.Expr, expr, initialOnly: false },
-        captures,
-        params: { authored: 0, used: [], sources: [] },
-        origin: {
-          range,
-          functionRange: range,
-          calleeRange: null,
-          argumentRanges: [],
-          paramRanges: [],
-          bodyRange: range,
-          bodyKind: FnBodyKind.Expression,
+      const { use } = pushQrl(
+        ctx,
+        {
+          identity: { kind: 'segment', nameCtx },
+          ctxName: nameCtx,
+          boundary: { kind: BoundaryKind.Implicit, role: 'expression' },
+          payloadKind: QrlPayloadKind.Value,
+          authoredAsync: false,
+          body: { b: QrlBodyKind.Expr, expr, initialOnly: false },
+          captures,
+          params: { authored: 0, used: [], sources: [] },
+          origin: {
+            range,
+            functionRange: range,
+            calleeRange: null,
+            argumentRanges: [],
+            paramRanges: [],
+            bodyRange: range,
+            bodyKind: FnBodyKind.Expression,
+          },
         },
-        propsParts: [],
-      });
+        args
+      );
       return {
         v: ValueKind.Computed,
         expr,
-        resume: { qrl: { qrl: segment.id, args } },
+        resume: { qrl: use },
         compilerString: false,
       };
     }

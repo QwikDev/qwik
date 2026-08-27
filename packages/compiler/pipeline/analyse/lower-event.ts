@@ -1,20 +1,17 @@
 import {
-  ArgPass,
   BoundaryKind,
   FnBodyKind,
-  CaptureAccess,
   HandlerKind,
   PropKind,
   QrlBodyKind,
   QrlPayloadKind,
   ValueKind,
   type Prop,
-  type QrlUse,
 } from '../schema';
 import type { JSXAttribute } from 'oxc-parser';
-import { collectCaptures } from './ast/capture-analysis';
+import { lowerCaptures } from './ast/capture-analysis';
 import { UnsupportedError } from '../errors';
-import { allocateSegment, pushPayload, type LowerContext } from './lower-context';
+import { pushPayload, pushQrl, type LowerContext } from './lower-context';
 
 /** `on…$` attribute → an event prop referencing an implicit function QRL. */
 export function lowerEventAttribute(
@@ -43,48 +40,34 @@ export function lowerEventAttribute(
   if (body.type === 'BlockStatement') {
     throw new UnsupportedError('a block-bodied event handler');
   }
-  const refs = collectCaptures(body, ctx, paramNames);
-  const captured = refs.other ?? (refs.props ? ctx.propsParamName : null);
-  if (captured !== null) {
-    throw new UnsupportedError(`an event handler capturing "${captured}"`);
-  }
-  const captures = refs.locals.map((entry) => ({
-    binding: entry.local.binding,
-    access: CaptureAccess.Direct,
-  }));
+  const { captures, args } = lowerCaptures(body, ctx, 'an event handler', {
+    localNames: paramNames,
+  });
 
   const payload = pushPayload(ctx, [fn.start, fn.end]);
-  const segment = allocateSegment(ctx, scope);
-  ctx.plan.qrls.push({
-    id: segment.id,
-    parent: null,
-    name: segment.name,
-    ctxName: authored,
-    boundary: { kind: BoundaryKind.Implicit, role: 'event' },
-    markerAttributes: [],
-    payloadKind: QrlPayloadKind.Function,
-    authoredAsync: fn.async === true,
-    body: { b: QrlBodyKind.Js, payload },
-    captures,
-    params: { authored: params.length, used: [], sources: [] },
-    origin: {
-      range: [attribute.start, attribute.end],
-      functionRange: [fn.start, fn.end],
-      calleeRange: null,
-      argumentRanges: [],
-      paramRanges: params.map((param) => [param.start, param.end] as [number, number]),
-      bodyRange: [body.start, body.end],
-      bodyKind: FnBodyKind.Expression,
+  const { use } = pushQrl(
+    ctx,
+    {
+      identity: { kind: 'segment', nameCtx: scope },
+      ctxName: authored,
+      boundary: { kind: BoundaryKind.Implicit, role: 'event' },
+      payloadKind: QrlPayloadKind.Function,
+      authoredAsync: fn.async === true,
+      body: { b: QrlBodyKind.Js, payload },
+      captures,
+      params: { authored: params.length, used: [], sources: [] },
+      origin: {
+        range: [attribute.start, attribute.end],
+        functionRange: [fn.start, fn.end],
+        calleeRange: null,
+        argumentRanges: [],
+        paramRanges: params.map((param) => [param.start, param.end] as [number, number]),
+        bodyRange: [body.start, body.end],
+        bodyKind: FnBodyKind.Expression,
+      },
     },
-    propsParts: [],
-  });
-  const use: QrlUse = {
-    qrl: segment.id,
-    args: refs.locals.map((entry) => ({
-      pass: ArgPass.Binding,
-      binding: entry.local.binding,
-    })),
-  };
+    args
+  );
   return {
     k: PropKind.Event,
     name: scope,

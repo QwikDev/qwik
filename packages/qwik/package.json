@@ -11,7 +11,7 @@
     "@qwik.dev/optimizer": "workspace:*",
     "csstype": "^3.2.3",
     "launch-editor": "^2.14.1",
-    "magic-string": "0.30.21"
+    "magic-string": "1.2.3"
   },
   "devDependencies": {
     "@croct/json5-parser": "0.2.2",

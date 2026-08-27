@@ -1,5 +1,5 @@
 import type { Transformer } from 'unified';
-import { toString } from 'hast-util-to-string';
+import { hastToString } from './hast-utils';
 import { visit } from 'unist-util-visit';
 import { refractor } from 'refractor';
 import tsxLang from 'refractor/lang/tsx.js';
@@ -32,7 +32,7 @@ export function rehypeSyntaxHighlight(): Transformer {
 }
 
 function syntaxHighlight(node: any, lang: string) {
-  const code = toString(node);
+  const code = hastToString(node);
   const result = refractor.highlight(code, lang);
   if (result && Array.isArray(node.children)) {
     node.children = result.children;

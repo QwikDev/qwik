@@ -4,6 +4,322 @@ title: \@qwik.dev/qwik-router/middleware/azure-swa API Reference
 
 # [API](/api) &rsaquo; @qwik.dev/qwik-router/middleware/azure-swa
 
+<h2 id="azurecontext">AzureContext</h2>
+
+```typescript
+export interface AzureContext
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+bindingData
+
+</td><td>
+
+</td><td>
+
+\{ [key: string]: any; }
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+bindingDefinitions
+
+</td><td>
+
+</td><td>
+
+\{ name: string; type: string; direction: 'in' \| 'out' \| 'inout'; }[]
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+bindings
+
+</td><td>
+
+</td><td>
+
+\{ [key: string]: any; }
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+executionContext
+
+</td><td>
+
+</td><td>
+
+\{ invocationId: string; functionName: string; functionDirectory: string; }
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+invocationId
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+log
+
+</td><td>
+
+</td><td>
+
+((...args: any[]) =&gt; void) &amp; \{ error(...args: any[]): void; warn(...args: any[]): void; info(...args: any[]): void; verbose(...args: any[]): void; }
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+req?
+
+</td><td>
+
+</td><td>
+
+[AzureHttpRequest](#azurehttprequest)
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+res?
+
+</td><td>
+
+</td><td>
+
+\{ [key: string]: any; }
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+traceContext
+
+</td><td>
+
+</td><td>
+
+\{ traceparent?: string \| null; tracestate?: string \| null; attributes?: \{ [key: string]: string; } \| null; }
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+<table><thead><tr><th>
+
+Method
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+[done(err, result)](#azurecontext-done)
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/azure-swa/index.ts)
+
+<h2 id="azurefunction">AzureFunction</h2>
+
+```typescript
+export type AzureFunction = (
+  context: AzureContext,
+  ...args: any[]
+) => Promise<any> | void;
+```
+
+**References:** [AzureContext](#azurecontext)
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/azure-swa/index.ts)
+
+<h2 id="azurehttprequest">AzureHttpRequest</h2>
+
+```typescript
+export interface AzureHttpRequest
+```
+
+<table><thead><tr><th>
+
+Property
+
+</th><th>
+
+Modifiers
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+body?
+
+</td><td>
+
+</td><td>
+
+any
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+bufferBody?
+
+</td><td>
+
+</td><td>
+
+Uint8Array
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+headers
+
+</td><td>
+
+</td><td>
+
+\{ [name: string]: string; }
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+method
+
+</td><td>
+
+</td><td>
+
+string \| null
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+params
+
+</td><td>
+
+</td><td>
+
+\{ [name: string]: string; }
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+query
+
+</td><td>
+
+</td><td>
+
+\{ [name: string]: string; }
+
+</td><td>
+
+</td></tr>
+<tr><td>
+
+rawBody?
+
+</td><td>
+
+</td><td>
+
+any
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+url
+
+</td><td>
+
+</td><td>
+
+string
+
+</td><td>
+
+</td></tr>
+</tbody></table>
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/azure-swa/index.ts)
+
 <h2 id="createqwikcity">createQwikCity</h2>
 
 > Warning: This API is now obsolete.
@@ -52,17 +368,68 @@ opts
 
 **Returns:**
 
-AzureFunction
+[AzureFunction](#azurefunction)
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/azure-swa/index.ts)
+
+<h2 id="azurecontext-done">done</h2>
+
+```typescript
+done(err?: Error | string | null, result?: any): void;
+```
+
+<table><thead><tr><th>
+
+Parameter
+
+</th><th>
+
+Type
+
+</th><th>
+
+Description
+
+</th></tr></thead>
+<tbody><tr><td>
+
+err
+
+</td><td>
+
+Error \| string \| null
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+<tr><td>
+
+result
+
+</td><td>
+
+any
+
+</td><td>
+
+_(Optional)_
+
+</td></tr>
+</tbody></table>
+
+**Returns:**
+
+void
 
 <h2 id="platformazure">PlatformAzure</h2>
 
 ```typescript
-export interface PlatformAzure extends Partial<Context>
+export interface PlatformAzure extends Partial<AzureContext>
 ```
 
-**Extends:** Partial&lt;Context&gt;
+**Extends:** Partial&lt;[AzureContext](#azurecontext)&gt;
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/azure-swa/index.ts)
 

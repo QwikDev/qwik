@@ -1,14 +1,14 @@
-import { equal, ok } from 'uvu/assert';
+import { assert } from 'vitest';
 import { testAppSuite } from '../utils/test-suite';
 
 const test = testAppSuite('Build Menu');
 
 test('menus found', ({ ctx: { menus } }) => {
-  equal(menus.length, 1);
+  assert.deepEqual(menus.length, 1);
 });
 
 test('docs menu', ({ ctx: { menus } }) => {
   const docsMenu = menus.find((r) => r.pathname === '/docs/')!;
-  ok(docsMenu, 'found docs menu');
-  equal(docsMenu.pathname, '/docs/');
+  assert.ok(docsMenu, 'found docs menu');
+  assert.deepEqual(docsMenu.pathname, '/docs/');
 });

@@ -3,6 +3,48 @@
   "package": "@qwik.dev/qwik-router/middleware/azure-swa",
   "members": [
     {
+      "name": "AzureContext",
+      "id": "azurecontext",
+      "hierarchy": [
+        {
+          "name": "AzureContext",
+          "id": "azurecontext"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface AzureContext \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nbindingData\n\n\n</td><td>\n\n\n</td><td>\n\n{ \\[key: string\\]: any; }\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nbindingDefinitions\n\n\n</td><td>\n\n\n</td><td>\n\n{ name: string; type: string; direction: 'in' \\| 'out' \\| 'inout'; }\\[\\]\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nbindings\n\n\n</td><td>\n\n\n</td><td>\n\n{ \\[key: string\\]: any; }\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nexecutionContext\n\n\n</td><td>\n\n\n</td><td>\n\n{ invocationId: string; functionName: string; functionDirectory: string; }\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\ninvocationId\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nlog\n\n\n</td><td>\n\n\n</td><td>\n\n((...args: any\\[\\]) =&gt; void) &amp; { error(...args: any\\[\\]): void; warn(...args: any\\[\\]): void; info(...args: any\\[\\]): void; verbose(...args: any\\[\\]): void; }\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nreq?\n\n\n</td><td>\n\n\n</td><td>\n\n[AzureHttpRequest](#azurehttprequest)\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nres?\n\n\n</td><td>\n\n\n</td><td>\n\n{ \\[key: string\\]: any; }\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\ntraceContext\n\n\n</td><td>\n\n\n</td><td>\n\n{ traceparent?: string \\| null; tracestate?: string \\| null; attributes?: { \\[key: string\\]: string; } \\| null; }\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n\n<table><thead><tr><th>\n\nMethod\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\n[done(err, result)](#azurecontext-done)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/azure-swa/index.ts",
+      "mdFile": "router.azurecontext.md"
+    },
+    {
+      "name": "AzureFunction",
+      "id": "azurefunction",
+      "hierarchy": [
+        {
+          "name": "AzureFunction",
+          "id": "azurefunction"
+        }
+      ],
+      "kind": "TypeAlias",
+      "content": "```typescript\nexport type AzureFunction = (context: AzureContext, ...args: any[]) => Promise<any> | void;\n```\n**References:** [AzureContext](#azurecontext)",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/azure-swa/index.ts",
+      "mdFile": "router.azurefunction.md"
+    },
+    {
+      "name": "AzureHttpRequest",
+      "id": "azurehttprequest",
+      "hierarchy": [
+        {
+          "name": "AzureHttpRequest",
+          "id": "azurehttprequest"
+        }
+      ],
+      "kind": "Interface",
+      "content": "```typescript\nexport interface AzureHttpRequest \n```\n\n\n<table><thead><tr><th>\n\nProperty\n\n\n</th><th>\n\nModifiers\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nbody?\n\n\n</td><td>\n\n\n</td><td>\n\nany\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nbufferBody?\n\n\n</td><td>\n\n\n</td><td>\n\nUint8Array\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nheaders\n\n\n</td><td>\n\n\n</td><td>\n\n{ \\[name: string\\]: string; }\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nmethod\n\n\n</td><td>\n\n\n</td><td>\n\nstring \\| null\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nparams\n\n\n</td><td>\n\n\n</td><td>\n\n{ \\[name: string\\]: string; }\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nquery\n\n\n</td><td>\n\n\n</td><td>\n\n{ \\[name: string\\]: string; }\n\n\n</td><td>\n\n\n</td></tr>\n<tr><td>\n\nrawBody?\n\n\n</td><td>\n\n\n</td><td>\n\nany\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nurl\n\n\n</td><td>\n\n\n</td><td>\n\nstring\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>",
+      "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/azure-swa/index.ts",
+      "mdFile": "router.azurehttprequest.md"
+    },
+    {
       "name": "createQwikCity",
       "id": "createqwikcity",
       "hierarchy": [
@@ -26,9 +68,26 @@
         }
       ],
       "kind": "Function",
-      "content": "```typescript\nexport declare function createQwikRouter(opts: QwikRouterAzureOptions): AzureFunction;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nopts\n\n\n</td><td>\n\n[QwikRouterAzureOptions](#qwikrouterazureoptions)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nAzureFunction",
+      "content": "```typescript\nexport declare function createQwikRouter(opts: QwikRouterAzureOptions): AzureFunction;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nopts\n\n\n</td><td>\n\n[QwikRouterAzureOptions](#qwikrouterazureoptions)\n\n\n</td><td>\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\n[AzureFunction](#azurefunction)",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/azure-swa/index.ts",
       "mdFile": "router.createqwikrouter.md"
+    },
+    {
+      "name": "done",
+      "id": "azurecontext-done",
+      "hierarchy": [
+        {
+          "name": "AzureContext",
+          "id": "azurecontext-done"
+        },
+        {
+          "name": "done",
+          "id": "azurecontext-done"
+        }
+      ],
+      "kind": "MethodSignature",
+      "content": "```typescript\ndone(err?: Error | string | null, result?: any): void;\n```\n\n\n<table><thead><tr><th>\n\nParameter\n\n\n</th><th>\n\nType\n\n\n</th><th>\n\nDescription\n\n\n</th></tr></thead>\n<tbody><tr><td>\n\nerr\n\n\n</td><td>\n\nError \\| string \\| null\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n<tr><td>\n\nresult\n\n\n</td><td>\n\nany\n\n\n</td><td>\n\n_(Optional)_\n\n\n</td></tr>\n</tbody></table>\n\n**Returns:**\n\nvoid",
+      "mdFile": "router.azurecontext.done.md"
     },
     {
       "name": "PlatformAzure",
@@ -40,7 +99,7 @@
         }
       ],
       "kind": "Interface",
-      "content": "```typescript\nexport interface PlatformAzure extends Partial<Context> \n```\n**Extends:** Partial&lt;Context&gt;",
+      "content": "```typescript\nexport interface PlatformAzure extends Partial<AzureContext> \n```\n**Extends:** Partial&lt;[AzureContext](#azurecontext)<!-- -->&gt;",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/middleware/azure-swa/index.ts",
       "mdFile": "router.platformazure.md"
     },

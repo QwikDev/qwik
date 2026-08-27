@@ -4,9 +4,85 @@
 
 ```ts
 
-import type { AzureFunction } from '@azure/functions';
-import type { Context } from '@azure/functions';
 import type { ServerRenderOptions } from '@qwik.dev/router/middleware/request-handler';
+
+// @public (undocumented)
+export interface AzureContext {
+    // (undocumented)
+    bindingData: {
+        [key: string]: any;
+    };
+    // (undocumented)
+    bindingDefinitions: {
+        name: string;
+        type: string;
+        direction: 'in' | 'out' | 'inout';
+    }[];
+    // (undocumented)
+    bindings: {
+        [key: string]: any;
+    };
+    // (undocumented)
+    done(err?: Error | string | null, result?: any): void;
+    // (undocumented)
+    executionContext: {
+        invocationId: string;
+        functionName: string;
+        functionDirectory: string;
+    };
+    // (undocumented)
+    invocationId: string;
+    // (undocumented)
+    log: ((...args: any[]) => void) & {
+        error(...args: any[]): void;
+        warn(...args: any[]): void;
+        info(...args: any[]): void;
+        verbose(...args: any[]): void;
+    };
+    // (undocumented)
+    req?: AzureHttpRequest;
+    // (undocumented)
+    res?: {
+        [key: string]: any;
+    };
+    // (undocumented)
+    traceContext: {
+        traceparent?: string | null;
+        tracestate?: string | null;
+        attributes?: {
+            [key: string]: string;
+        } | null;
+    };
+}
+
+// @public (undocumented)
+export type AzureFunction = (context: AzureContext, ...args: any[]) => Promise<any> | void;
+
+// @public (undocumented)
+export interface AzureHttpRequest {
+    // (undocumented)
+    body?: any;
+    // (undocumented)
+    bufferBody?: Uint8Array;
+    // (undocumented)
+    headers: {
+        [name: string]: string;
+    };
+    // (undocumented)
+    method: string | null;
+    // (undocumented)
+    params: {
+        [name: string]: string;
+    };
+    // (undocumented)
+    query: {
+        [name: string]: string;
+    };
+    // (undocumented)
+    rawBody?: any;
+    // (undocumented)
+    url: string;
+}
 
 // @public @deprecated (undocumented)
 export const createQwikCity: typeof createQwikRouter;
@@ -15,7 +91,7 @@ export const createQwikCity: typeof createQwikRouter;
 export function createQwikRouter(opts: QwikRouterAzureOptions): AzureFunction;
 
 // @public (undocumented)
-export interface PlatformAzure extends Partial<Context> {
+export interface PlatformAzure extends Partial<AzureContext> {
 }
 
 // @public @deprecated (undocumented)

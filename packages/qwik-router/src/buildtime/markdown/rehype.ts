@@ -1,10 +1,9 @@
 import type { Transformer } from 'unified';
-import Slugger from 'github-slugger';
 import type { Root } from 'mdast';
 import type { MdxjsEsm } from 'mdast-util-mdx';
-import { valueToEstree } from 'estree-util-value-to-estree';
-import { headingRank } from 'hast-util-heading-rank';
-import { toString } from 'hast-util-to-string';
+import { valueToEstree } from './value-to-estree';
+import { hastToString, headingRank } from './hast-utils';
+import { Slugger } from './slugger';
 import { visit } from 'unist-util-visit';
 import type { ContentHeading } from '../../runtime/src';
 import type { RoutingContext, NormalizedPluginOptions } from '../types';
@@ -21,7 +20,7 @@ export function rehypeSlug(): Transformer {
     visit(mdast, 'element', (node: any) => {
       const level = headingRank(node);
       if (level && node.properties) {
-        const text = toString(node);
+        const text = hastToString(node);
 
         if (!hasProperty(node, 'id')) {
           node.properties.id = slugs.slug(text);
@@ -116,7 +115,7 @@ function exportContentHeadings(mdast: Root) {
     const level = headingRank(node);
     if (level && node.properties) {
       if (hasProperty(node, 'id')) {
-        const text = toString(node);
+        const text = hastToString(node);
         headings.push({
           text,
           id: node.properties.id,

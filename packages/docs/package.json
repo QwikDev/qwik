@@ -40,7 +40,7 @@
     "fflate": "0.8.2",
     "gray-matter": "4.0.3",
     "leaflet": "1.9.4",
-    "magic-string": "0.30.21",
+    "magic-string": "1.2.3",
     "pagefind": "1.4.0",
     "playwright": "1.61.1",
     "prettier": "3.7.4",

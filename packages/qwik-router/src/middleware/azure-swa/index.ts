@@ -1,4 +1,3 @@
-import type { AzureFunction, Context, HttpRequest } from '@azure/functions';
 import { setServerPlatform } from '@qwik.dev/core/server';
 import type {
   ServerRenderOptions,
@@ -9,9 +8,53 @@ import {
   isStaticPath,
   requestHandler,
 } from '@qwik.dev/router/middleware/request-handler';
-import { parseString } from 'set-cookie-parser';
+import { parseSetCookieString } from './parse-set-cookie';
 
 // @qwik.dev/router/middleware/azure-swa
+
+// Minimal structural types matching `@azure/functions@3` declarations.
+
+/** @public */
+export interface AzureHttpRequest {
+  method: string | null;
+  url: string;
+  headers: { [name: string]: string };
+  query: { [name: string]: string };
+  params: { [name: string]: string };
+  body?: any;
+  rawBody?: any;
+  bufferBody?: Uint8Array;
+}
+
+/** @public */
+export interface AzureContext {
+  invocationId: string;
+  executionContext: {
+    invocationId: string;
+    functionName: string;
+    functionDirectory: string;
+  };
+  bindings: { [key: string]: any };
+  bindingData: { [key: string]: any };
+  bindingDefinitions: { name: string; type: string; direction: 'in' | 'out' | 'inout' }[];
+  traceContext: {
+    traceparent?: string | null;
+    tracestate?: string | null;
+    attributes?: { [key: string]: string } | null;
+  };
+  log: ((...args: any[]) => void) & {
+    error(...args: any[]): void;
+    warn(...args: any[]): void;
+    info(...args: any[]): void;
+    verbose(...args: any[]): void;
+  };
+  done(err?: Error | string | null, result?: any): void;
+  req?: AzureHttpRequest;
+  res?: { [key: string]: any };
+}
+
+/** @public */
+export type AzureFunction = (context: AzureContext, ...args: any[]) => Promise<any> | void;
 
 interface AzureResponse {
   status: number;
@@ -53,7 +96,10 @@ export function createQwikRouter(opts: QwikRouterAzureOptions): AzureFunction {
   if (opts.manifest) {
     setServerPlatform(opts.manifest);
   }
-  async function onAzureSwaRequest(context: Context, req: HttpRequest): Promise<AzureResponse> {
+  async function onAzureSwaRequest(
+    context: AzureContext,
+    req: AzureHttpRequest
+  ): Promise<AzureResponse> {
     try {
       const url = new URL(req.headers['x-ms-original-url']!);
       const options: RequestInit = {
@@ -79,7 +125,7 @@ export function createQwikRouter(opts: QwikRouterAzureOptions): AzureFunction {
           const response: AzureResponse = {
             status,
             headers: {},
-            cookies: cookies.headers().map((header) => parseString(header)),
+            cookies: cookies.headers().map((header) => parseSetCookieString(header)),
           };
           headers.forEach((value, key) => (response.headers[key] = value));
           return new WritableStream({
@@ -160,4 +206,4 @@ export interface QwikRouterAzureOptions extends ServerRenderOptions {}
 export type QwikCityAzureOptions = QwikRouterAzureOptions;
 
 /** @public */
-export interface PlatformAzure extends Partial<Context> {}
+export interface PlatformAzure extends Partial<AzureContext> {}

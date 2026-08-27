@@ -1,5 +1,5 @@
 import type { PageModule, PathParams, RouteData } from '@qwik.dev/router';
-import { bold, dim, green, magenta, red } from 'kleur/colors';
+import { bold, dim, green, magenta, red } from './ansi-colors';
 import { relative } from 'node:path';
 import { msToString } from '../utils/format';
 import { ensureSlash, getPathnameForDynamicRoute } from '../utils/pathname';

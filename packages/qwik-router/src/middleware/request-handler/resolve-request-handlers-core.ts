@@ -26,6 +26,7 @@ import { ensureSlash } from '../../utils/pathname';
 import { performETagMatch, hash, normalizeETag, setETagHeader } from './etag-hash';
 import {
   getRequestMode,
+  RequestEvErrorBoundaryCaught,
   RequestEvETagCacheKey,
   RequestEvHttpStatusMessage,
   RequestEvShareServerTiming,
@@ -816,6 +817,9 @@ The request origin "${inputOrigin}" does not match the server origin "${origin}"
           await stream.write((result as any as RenderToStringResult).html);
         }
         boundaryErrored ||= (result as RenderToStreamResult).errorBoundaryCaught === true;
+        if (boundaryErrored) {
+          requestEv.sharedMap.set(RequestEvErrorBoundaryCaught, true);
+        }
       } finally {
         try {
           await stream.ready;

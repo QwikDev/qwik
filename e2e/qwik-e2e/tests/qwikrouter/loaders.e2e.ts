@@ -110,6 +110,28 @@ test.describe('loaders', () => {
       expect(await page.evaluate(() => (window as any).__prodLoaderMarker)).toBe(true);
     });
 
+    test('releases route loader tasks across SPA navigations', async ({ page }) => {
+      const loaderRequests: string[] = [];
+      page.on('request', (request) => {
+        const pathname = new URL(request.url()).pathname;
+        if (pathname.includes('/issue8966/a/q-loader-')) {
+          loaderRequests.push(pathname);
+        }
+      });
+
+      await page.goto('/qwikrouter-test.prod/issue8966/a/');
+      await page.locator('#issue8966-b').click();
+      await page.waitForURL('**/issue8966/b/');
+      await page.waitForLoadState('networkidle');
+      loaderRequests.length = 0;
+
+      await page.locator('#issue8966-c').click();
+      await page.waitForURL('**/issue8966/c/');
+      await expect(page.locator('#issue8966-c-page')).toHaveText('C');
+      await page.waitForLoadState('networkidle');
+      expect(loaderRequests).toHaveLength(0);
+    });
+
     test('loads a wrapped route loader session after a production action redirect', async ({
       page,
     }) => {

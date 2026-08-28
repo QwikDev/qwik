@@ -32,9 +32,15 @@ import { ErrorProvider } from '../../testing/rendering.unit-util';
 import { vnode_getProp } from '../client/vnode-utils';
 import { USE_ON_LOCAL } from '../shared/utils/markers';
 import { Task, TaskFlags } from '../use/use-task';
+import type { JSXNodeInternal, JSXOutput } from '../shared/jsx/types/jsx-node';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
+
+/** A function call is left eager by the optimizer, so reading a signal through it re-renders. */
+function stringify(value: unknown) {
+  return `v${value}`;
+}
 
 export function useDelay(value: string) {
   const ready = useSignal('---');
@@ -279,6 +285,29 @@ describe.each([
     );
   });
 
+  it('should trigger in empty components returning a list of components', async () => {
+    const Child = component$(() => <span>child</span>);
+    const Cmp = component$(() => {
+      const signal = useSignal('empty');
+      useVisibleTask$(() => {
+        signal.value = 'run';
+      });
+      return [<Child key="1" />, <Child key="2" />, signal.value];
+    });
+    const { document } = await render(<Cmp />, { debug });
+    if (render === ssrRenderToDom) {
+      await trigger(document.body, 'script', 'd:qinit');
+    }
+    // the placeholder is the anchor for the visible task, so it has to be rendered
+    const anchors = document.querySelectorAll('script[q-d\\:qinit]');
+    expect(anchors.length).toBe(1);
+    if (render === ssrRenderToDom) {
+      // the attribute must hold the qrl itself (chunk#symbol) - an empty one loads nothing
+      expect(anchors[0].getAttribute('q-d:qinit')).toContain('#');
+    }
+    expect(document.body.textContent).toContain('run');
+  });
+
   it('should trigger in empty components array', async () => {
     const Cmp = component$(() => {
       const signal = useSignal('empty');
@@ -291,14 +320,17 @@ describe.each([
     if (render === ssrRenderToDom) {
       await trigger(document.body, 'script', 'd:qinit');
     }
+    // the placeholder joins the list as a sibling inside the stable wrapper
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
         <Fragment ssr-required>
-          <Signal ssr-required>{'run'}</Signal>
+          <Fragment ssr-required>
+            <Signal ssr-required>{'run'}</Signal>
+          </Fragment>
+          <Fragment ssr-required>
+            <Signal ssr-required>{'run'}</Signal>
+          </Fragment>
           <script hidden></script>
-        </Fragment>
-        <Fragment ssr-required>
-          <Signal ssr-required>{'run'}</Signal>
         </Fragment>
       </Component>
     );
@@ -904,6 +936,182 @@ describe.each([
   });
 
   describe('regression', () => {
+    it('should not re-create the root child component on re-render', async () => {
+      const Child = component$<{ text: string }>((props) => {
+        // no `track()`, so this runs once per instance and records what the instance was born with
+        const initial = useSignal('');
+        useTask$(() => {
+          initial.value = props.text;
+        });
+        return (
+          <span>
+            {props.text}|{initial.value}
+          </span>
+        );
+      });
+
+      /**
+       * The component renders no host element of its own, so `useVisibleTask$` makes it render a
+       * placeholder `<script>` next to the child, wrapped in a fragment. That wrapper is re-created
+       * on every render, so it has to keep its identity - otherwise the child below it is destroyed
+       * and rebuilt, losing its state and its DOM.
+       */
+      const Cmp = component$(() => {
+        const isLoaded = useSignal(false);
+        useVisibleTask$(() => {
+          isLoaded.value = true;
+        });
+        return <Child text={stringify(isLoaded.value)} />;
+      });
+
+      const { document } = await render(<Cmp />, { debug });
+      const spanBeforeRerender = document.querySelector('span');
+      if (render === ssrRenderToDom) {
+        await trigger(document.body, 'script', 'd:qinit');
+      }
+      await getTestPlatform().flush();
+
+      // the child sees the new prop, but it is still the instance created with the old one
+      expect(document.querySelector('span')?.textContent).toBe('vtrue|vfalse');
+      // and it is the same dom node, not a rebuilt one (only observable after a resume, because a
+      // client only render has already re-rendered by the time it returns)
+      expect(document.querySelector('span')).toBe(spanBeforeRerender);
+    });
+
+    it('should not re-create the root child when output changes from child to array', async () => {
+      const Child = component$<{ text: string }>((props) => {
+        const initial = useSignal('');
+        useTask$(() => {
+          initial.value = props.text;
+        });
+        return (
+          <span>
+            {props.text}|{initial.value}
+          </span>
+        );
+      });
+
+      const Cmp = component$(() => {
+        const isLoaded = useSignal(false);
+        useVisibleTask$(() => {
+          isLoaded.value = true;
+        });
+        const child = <Child text={stringify(isLoaded.value)} />;
+        return isLoaded.value ? [child] : child;
+      });
+
+      const { document } = await render(<Cmp />, { debug });
+      const spanBeforeRerender = document.querySelector('span');
+      if (render === ssrRenderToDom) {
+        await trigger(document.body, 'script', 'd:qinit');
+      }
+      await getTestPlatform().flush();
+
+      expect(document.querySelector('span')?.textContent).toBe('vtrue|vfalse');
+      expect(document.querySelector('span')).toBe(spanBeforeRerender);
+    });
+
+    it('should not modify a jsx node which the component returns', async () => {
+      // a component may return a node it does not rebuild - a hoisted or a shared one. Rendering it
+      // from two components renders it twice without depending on a re-render happening.
+      const shared = (<Fragment key="shared">shared</Fragment>) as JSXNodeInternal;
+
+      const WithTask = component$(() => {
+        useVisibleTask$(() => {});
+        return shared as JSXOutput;
+      });
+      // returns the same node, but registers nothing of its own
+      const NoHooks = component$(() => shared as JSXOutput);
+
+      const Cmp = component$(() => (
+        <div>
+          <WithTask />
+          <NoHooks />
+        </div>
+      ));
+
+      const { vNode, document } = await render(<Cmp />, { debug });
+      if (render === ssrRenderToDom) {
+        await trigger(document.body, 'script', 'd:qinit');
+      }
+      await getTestPlatform().flush();
+
+      // the placeholder goes into the rendered output, the returned node stays untouched
+      const children = shared.children;
+      expect(Array.isArray(children) ? children.length : 1).toBe(1);
+
+      // so only the component which registered the event renders a placeholder - otherwise the
+      // second one renders a `<script>` carrying the first component's task
+      expect(document.querySelectorAll('script[q-d\\:qinit]').length).toBe(1);
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <div>
+            <Component ssr-required>
+              <Fragment ssr-required>
+                {'shared'}
+                <script hidden></script>
+              </Fragment>
+            </Component>
+            <Component ssr-required>
+              <Fragment ssr-required>{'shared'}</Fragment>
+            </Component>
+          </div>
+        </Component>
+      );
+    });
+
+    it('should keep every instance of a headless component when there are many of them', async () => {
+      // every one of them renders the same keyed wrapper around its placeholder, and the key is
+      // only ever matched against siblings, so the instances must not be mixed up
+      const Child = component$<{ n: number; text: string }>((props) => {
+        const initial = useSignal('');
+        useTask$(() => {
+          initial.value = props.text;
+        });
+        return (
+          <span>
+            [{String(props.n)}:{props.text}|{initial.value}]
+          </span>
+        );
+      });
+
+      const Headless = component$<{ n: number }>((props) => {
+        const isLoaded = useSignal(false);
+        useVisibleTask$(() => {
+          isLoaded.value = true;
+        });
+        return <Child n={props.n} text={stringify(isLoaded.value)} />;
+      });
+
+      const COUNT = 10;
+      const Cmp = component$(() => (
+        <div>
+          {Array.from({ length: COUNT }, (_, i) => (
+            <Headless key={`k${i}`} n={i} />
+          ))}
+          {Array.from({ length: COUNT }, (_, i) => (
+            <Headless n={100 + i} />
+          ))}
+        </div>
+      ));
+
+      const { document } = await render(<Cmp />, { debug });
+      if (render === ssrRenderToDom) {
+        await trigger(document.body, 'script', 'd:qinit');
+      }
+      await getTestPlatform().flush();
+
+      const texts = Array.from(document.querySelectorAll('span')).map((s) => s.textContent);
+      // every instance kept the value it was born with, and kept its own number
+      expect(texts).toHaveLength(COUNT * 2);
+      expect(new Set(texts).size).toBe(COUNT * 2);
+      expect(texts.filter((t) => !t!.endsWith('|vfalse]'))).toEqual([]);
+      expect(texts[0]).toBe('[0:vtrue|vfalse]');
+      expect(texts[COUNT]).toBe('[100:vtrue|vfalse]');
+      // one placeholder per instance, they do not share or steal each other's
+      expect(document.querySelectorAll('script[q-d\\:qinit]').length).toBe(COUNT * 2);
+    });
+
     it('should not double-register events on component re-render', async () => {
       const Cmp = component$(() => {
         const count = useSignal(0);

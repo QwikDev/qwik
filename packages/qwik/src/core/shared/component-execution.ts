@@ -25,7 +25,7 @@ import {
   USE_ON_LOCAL_SEQ_IDX,
 } from './utils/markers';
 import { MAX_RETRY_ON_PROMISE_COUNT, isPromise, maybeThen, safeCall } from './utils/promises';
-import { isArray, isPrimitiveOrNullUndefined, type ValueOrPromise } from './utils/types';
+import { isArray, type ValueOrPromise } from './utils/types';
 import { getSubscriber } from '../reactive-primitives/subscriber';
 import { EffectProperty } from '../reactive-primitives/types';
 import { EventNameHtmlScope, getEventDataFromHtmlAttribute } from './utils/event-names';
@@ -335,46 +335,55 @@ function findFirstElementNode(jsx: JSXOutput): ValueOrPromise<JSXNodeInternal<st
 }
 
 /**
+ * Key of the fragment which wraps a headless component's output together with its `useOn`
+ * placeholder `<script>`.
+ *
+ * The wrapper is re-created on every render of the component, so it needs a stable identity.
+ * Unkeyed fragments are intentionally never matched by `expectVirtual`, which would tear down and
+ * re-create the whole subtree - and with it every component instance below it - on every
+ * re-render.
+ */
+const PLACEHOLDER_FRAGMENT_KEY = ':useOn';
+
+/**
  * Injects a placeholder <script> element into the JSX output.
  *
  * This is necessary for headless components (components that don't render a real DOM element) to
  * have an anchor point for `useOn` event listeners that target the document or window.
  *
- * @param jsx The JSX output to modify.
+ * The placeholder has to end up in the output for every shape a component can return, and it must
+ * not change the identity of what the component rendered, because this runs on every render.
+ *
+ * @param jsx The JSX output to wrap.
  * @param placeholder The placeholder element to inject.
- * @returns The modified JSX output.
+ * @returns The JSX output containing the placeholder.
  */
 function injectPlaceholderElement(jsx: JSXOutput, placeholder: JSXNodeInternal<string>): JSXOutput {
-  // For regular JSX nodes, we can append the placeholder to its children.
-  if (isJSXNode(jsx)) {
-    // Inline components may ignore children, while component$ children become projections.
-    if (jsx.type !== Fragment) {
-      return _jsxSorted(Fragment, null, null, [jsx, placeholder], 0, null);
-    }
-
-    if (jsx.children == null) {
-      jsx.children = placeholder;
-    } else if (isArray(jsx.children)) {
-      jsx.children.push(placeholder);
-    } else {
-      jsx.children = [jsx.children, placeholder];
-    }
-    return jsx;
+  // Arrays share the stable wrapper without mutating caller-owned output.
+  if (isArray(jsx)) {
+    return _jsxSorted(Fragment, null, null, [...jsx, placeholder], 0, PLACEHOLDER_FRAGMENT_KEY);
   }
 
-  // For primitives, we can't add children, so we wrap them in a fragment.
-  if (isPrimitiveOrNullUndefined(jsx)) {
-    return _jsxSorted(Fragment, null, null, [jsx, placeholder], 0, null);
+  // Preserve user keys; stabilize unkeyed fragments without mutating input.
+  if (isJSXNode(jsx) && jsx.type === Fragment) {
+    const children =
+      jsx.children == null ? [] : isArray(jsx.children) ? jsx.children : [jsx.children];
+    return _jsxSorted(
+      Fragment,
+      jsx.varProps,
+      jsx.constProps,
+      [...children, placeholder],
+      jsx.flags,
+      jsx.key ?? PLACEHOLDER_FRAGMENT_KEY,
+      jsx.dev
+    );
   }
 
-  // For an array of nodes, we inject the placeholder into the first element.
-  if (isArray(jsx) && jsx.length > 0) {
-    injectPlaceholderElement(jsx[0], placeholder);
-    return jsx;
-  }
-
-  // For anything else we do nothing.
-  return jsx;
+  // Everything else - a component, an element, text, a signal, a promise, nothing at all - cannot
+  // take the placeholder as a child, so it is wrapped in a fragment together with it. Inline
+  // components may ignore children, and `component$` children become projections, so appending to
+  // the node itself is not an option.
+  return _jsxSorted(Fragment, null, null, [jsx, placeholder], 0, PLACEHOLDER_FRAGMENT_KEY);
 }
 
 /** @returns An empty <script> element for adding qwik metadata attributes to */

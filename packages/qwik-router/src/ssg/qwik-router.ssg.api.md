@@ -41,6 +41,7 @@ export interface SsgRenderOptions extends RenderOptions {
     maxWorkers?: number;
     origin: string;
     outDir: string;
+    retries?: number;
     sitemapOutFile?: string | null;
 }
 

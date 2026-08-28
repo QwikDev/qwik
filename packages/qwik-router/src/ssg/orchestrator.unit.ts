@@ -108,14 +108,70 @@ test('should prerender <dir>/404.html for each _4 / _E boundary', async () => {
   assert.include(result.staticPaths, '/blog/404.html');
 });
 
+test('retries a failed route until it succeeds', async () => {
+  let renderCount = 0;
+  const sys = createSystem({
+    routes: { _I: async () => ({ default: () => null as any }) },
+    render: async ({ pathname }) => {
+      renderCount++;
+      return renderCount === 1 ? createFailedRenderResult(pathname) : createRenderResult(pathname);
+    },
+    retries: 2,
+  });
+
+  const result = await mainThread(sys);
+
+  assert.equal(renderCount, 2);
+  assert.equal(result.errors, 0);
+  assert.equal(result.rendered, 1);
+  assert.deepEqual(result.staticPaths, ['/']);
+});
+
+test('records the error once all retries fail', async () => {
+  let renderCount = 0;
+  const sys = createSystem({
+    routes: { _I: async () => ({ default: () => null as any }) },
+    render: async ({ pathname }) => {
+      renderCount++;
+      return createFailedRenderResult(pathname);
+    },
+    retries: 2,
+  });
+
+  const result = await mainThread(sys);
+
+  assert.equal(renderCount, 3);
+  assert.equal(result.errors, 1);
+  assert.equal(result.rendered, 0);
+  assert.deepEqual(result.staticPaths, []);
+});
+
+test('does not retry a failed route by default', async () => {
+  let renderCount = 0;
+  const sys = createSystem({
+    routes: { _I: async () => ({ default: () => null as any }) },
+    render: async ({ pathname }) => {
+      renderCount++;
+      return createFailedRenderResult(pathname);
+    },
+  });
+
+  const result = await mainThread(sys);
+
+  assert.equal(renderCount, 1);
+  assert.equal(result.errors, 1);
+});
+
 function createSystem({
   routes,
   render,
   basePathname = '/',
+  retries,
 }: {
   routes: RouteData;
   render: MainContext['render'];
   basePathname?: string;
+  retries?: number;
 }): System {
   return {
     createMainProcess: async () => ({
@@ -129,6 +185,7 @@ function createSystem({
         outDir: 'C:/tmp/out',
         origin: 'https://qwik.dev',
         basePathname,
+        retries,
         include: ['/*'],
         render: (() => null) as any,
         qwikRouterConfig: {
@@ -147,6 +204,15 @@ function createSystem({
       `C:/tmp/out${pathname}${getLoaderName(loaderId, manifestHash)}`,
     getEnv: () => undefined,
     platform: {},
+  };
+}
+
+function createFailedRenderResult(pathname: string) {
+  return {
+    ...createRenderResult(pathname),
+    ok: false,
+    error: { message: 'render blip', stack: undefined },
+    filePath: null,
   };
 }
 

@@ -268,6 +268,34 @@ test('a certain bundle still elevates its static imports to 100%', async () => {
   expect(dep!.$inverseProbability$).toBeCloseTo(0, 5);
 });
 
+test("preloads a certain bundle's dynamic imports (e.g. a lazy modal's chunk)", async () => {
+  // The core behaviour the preloader exists to provide: when a bundle is certain to run, its
+  // dynamic imports (a lazily-rendered modal, its handlers, etc.) are preloaded so the
+  // follow-up interaction is instant instead of fetching a chunk on click. This guards against
+  // regressing that into an under-preload where a certain bundle's dynamic dep is not queued.
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, {
+    MessageChannel: undefined,
+  });
+  vi.spyOn(performance, 'now').mockImplementation(() => 0);
+  vi.resetModules();
+  await installTestPlatform();
+
+  const headAppend = vi.spyOn(document.head, 'appendChild');
+  const { initPreloader } = await import('./bundle-graph');
+  const { preload } = await import('./queue');
+
+  // entry-a.js is certain and dynamically imports modal.js with a 60% edge probability (-6).
+  initPreloader(['entry-a.js', -6, 3, 'modal.js']);
+  preload('entry-a.js', 1);
+  vi.runAllTimers();
+
+  const preloaded = headAppend.mock.calls.map((call) => (call[0] as HTMLLinkElement).href);
+  // Both the certain bundle and its dynamic import get a preload link.
+  expect(preloaded.some((href) => href.includes('entry-a.js'))).toBe(true);
+  expect(preloaded.some((href) => href.includes('modal.js'))).toBe(true);
+});
+
 test('defers bundle graph re-adjustment to a later task', async () => {
   const document = installBrowserGlobals();
   Object.assign(globalThis, {

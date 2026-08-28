@@ -61,7 +61,11 @@ function trigger() {
     const inverseProbability = bundle.$inverseProbability$;
     const probability = 1 - inverseProbability;
     // We want to preload all the transitive static (1) and dynamic (0.99) dependencies, throttled by the user defined maxIdlePreloads.
-    if (probability >= 0.99 || preloadCount < config.$maxIdlePreloads$) {
+    // Bundles below $minPreloadProbability$ are not preloaded at all (the queue is sorted highest-first, so once we hit one below the floor, the rest are too).
+    if (
+      probability >= 0.99 ||
+      (probability >= config.$minPreloadProbability$ && preloadCount < config.$maxIdlePreloads$)
+    ) {
       queue.shift();
       preloadOne(bundle);
       if (performance.now() >= deadline) {

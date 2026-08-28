@@ -4,6 +4,11 @@ const minimumSpeed = 300; // kbps
 // size that takes 0.5 seconds to download at minimumSpeed
 const slowSize = 0.5 / ((minimumSpeed * 1024) / 8);
 
+// Dynamic-import fan-out up to this count is not damped (a component with a few lazy children is
+// likely to need them). Above it, each edge's probability is scaled by FANOUT_FREE / fanOut, so a
+// large registry of mutually-exclusive lazy imports doesn't preload every entry.
+const FANOUT_FREE = 5;
+
 /**
  * A function that returns a map of bundle names to their dependencies.
  *
@@ -129,6 +134,13 @@ export function convertManifestToBundleGraph(
     reduceDeps(deps, bundleName);
     const dynDeps = new Set(bundle.dynamicImports!);
     reduceDeps(dynDeps, bundleName);
+    // Fan-out damping: a bundle that dynamically imports many alternatives (a component
+    // registry, a router that can load any of N pages, a `switch` over lazy imports) is
+    // unlikely to need all of them for the current page — typically only one branch is taken.
+    // Scale each edge's probability down as the fan-out grows so these don't all get preloaded,
+    // while low fan-out (a modal, a couple of lazy children) is left untouched.
+    const fanOut = dynDeps.size;
+    const fanOutFactor = Math.min(1, FANOUT_FREE / fanOut);
     const depProbability = new Map<string, number>();
     for (const depName of dynDeps) {
       const dep = graph[depName];
@@ -159,7 +171,7 @@ export function convertManifestToBundleGraph(
         probability += 0.15;
       }
 
-      depProbability.set(depName, Math.min(probability, 0.99));
+      depProbability.set(depName, Math.min(probability * fanOutFactor, 0.99));
     }
 
     if (dynDeps.size > 0) {

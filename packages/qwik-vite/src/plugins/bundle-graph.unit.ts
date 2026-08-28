@@ -199,6 +199,42 @@ describe('convertManifestToBundleGraph', () => {
     ]);
   });
 
+  test('damps the probability of high-fan-out dynamic imports', () => {
+    // A bundle that dynamically imports many alternatives (a registry / a router that can render
+    // any of N pages) should score each edge far lower than a bundle with only a couple of lazy
+    // deps (a modal) — so a probability floor can drop the registry without dropping the modal.
+    const size = 0,
+      total = 0;
+    const dyn = (n: number, tag: string) => Array.from({ length: n }, (_, i) => `${tag}-${i}.js`);
+    const bundles: Record<string, QwikBundle> = {
+      'app.js': { size, total, dynamicImports: ['few.js', 'many.js'] },
+      'few.js': { size, total, dynamicImports: dyn(2, 'few'), symbols: ['few'] },
+      'many.js': { size, total, dynamicImports: dyn(20, 'many'), symbols: ['many'] },
+    };
+    for (const d of [...dyn(2, 'few'), ...dyn(20, 'many')]) {
+      bundles[d] = { size, total, symbols: [d] };
+    }
+    const graph = convertManifestToBundleGraph({ bundles, mapping: {} } as any);
+
+    // Decode the per-dynamic-dep probabilities of a given bundle from the flat graph.
+    const probsOf = (name: string) => {
+      const out: number[] = [];
+      let prob = 1;
+      for (let j = graph.indexOf(name) + 1; j < graph.length && typeof graph[j] !== 'string'; j++) {
+        const v = graph[j] as number;
+        v < 0 ? (prob = -v / 10) : out.push(prob);
+      }
+      return out;
+    };
+
+    const few = probsOf('few.js');
+    const many = probsOf('many.js');
+    expect(few).toHaveLength(2);
+    expect(many).toHaveLength(20);
+    // Every high-fan-out edge is damped strictly below every low-fan-out edge.
+    expect(Math.max(...many)).toBeLessThan(Math.min(...few));
+  });
+
   test(`works`, () => {
     const manifest = generateManifestFromBundles(
       path as any,
@@ -289,12 +325,12 @@ describe('convertManifestToBundleGraph', () => {
         "layout.tsx_layout_component_useStyles_MOLFIZOhXmE.js",
         38,
         "qwik-router.js",
-        -10,
-        4,
+        -8,
         9,
-        -9,
+        4,
         5,
         20,
+        -7,
         19,
         24,
         "root.js",

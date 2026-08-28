@@ -216,6 +216,58 @@ test('can yield more than once while propagating dependencies', async () => {
   expect(headAppend.mock.calls.length).toBeGreaterThan(1);
 });
 
+test('a certain bundle keeps its dynamic imports at their edge probability', async () => {
+  // Regression test: a certain (probability 1) bundle must not force-elevate its *dynamic*
+  // imports to ~99%. Only static imports ($importProbability$ === 1) are certain to load with
+  // their importer; dynamic imports keep propagating multiplicatively. Otherwise a component
+  // that references a large map of lazy imports would preload every entry in the map.
+  installBrowserGlobals();
+  Object.assign(globalThis, {
+    MessageChannel: undefined,
+  });
+  vi.spyOn(performance, 'now').mockImplementation(() => 0);
+  vi.resetModules();
+  await installTestPlatform();
+
+  const { initPreloader } = await import('./bundle-graph');
+  const { preload, bundles } = await import('./queue');
+
+  // entry-a.js dynamically imports dep-1.js with a 60% edge probability (the -6 marker).
+  initPreloader(['entry-a.js', -6, 3, 'dep-1.js']);
+  preload('entry-a.js', 1);
+  vi.runAllTimers();
+
+  // 60% probability => inverseProbability 0.4. Before the fix this was ~0.01 (99% "sure"),
+  // because the dynamic import inherited its certain importer's probability.
+  const dep = bundles.get('dep-1.js');
+  expect(dep).toBeDefined();
+  expect(dep!.$inverseProbability$).toBeCloseTo(0.4, 5);
+});
+
+test('a certain bundle still elevates its static imports to 100%', async () => {
+  // Guard the other side of the branch: static imports (probability 1, the -10 marker used by
+  // createLinearGraph) of a certain bundle stay certain (inverseProbability 0).
+  installBrowserGlobals();
+  Object.assign(globalThis, {
+    MessageChannel: undefined,
+  });
+  vi.spyOn(performance, 'now').mockImplementation(() => 0);
+  vi.resetModules();
+  await installTestPlatform();
+
+  const { initPreloader } = await import('./bundle-graph');
+  const { preload, bundles } = await import('./queue');
+
+  // entry-a.js statically imports dep-1.js (100% edge probability, the -10 marker).
+  initPreloader(['entry-a.js', -10, 3, 'dep-1.js']);
+  preload('entry-a.js', 1);
+  vi.runAllTimers();
+
+  const dep = bundles.get('dep-1.js');
+  expect(dep).toBeDefined();
+  expect(dep!.$inverseProbability$).toBeCloseTo(0, 5);
+});
+
 test('defers bundle graph re-adjustment to a later task', async () => {
   const document = installBrowserGlobals();
   Object.assign(globalThis, {

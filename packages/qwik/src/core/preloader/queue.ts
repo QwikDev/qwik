@@ -112,9 +112,15 @@ const processAdjustmentFrame = () => {
 
     const probability = 1 - bundle.$inverseProbability$;
     let newInverseProbability: number;
-    if (probability === 1 || probability >= 0.99) {
-      // bundle is requested at max probability, so elevate all its transitive static and dynamic deps to 99% sure
-      newInverseProbability = Math.min(0.01, 1 - dep.$importProbability$);
+    if ((probability === 1 || probability >= 0.99) && dep.$importProbability$ === 1) {
+      // A static import ($importProbability$ === 1) of a (near-)certain bundle is itself
+      // certain to load, so elevate it to 100% (this also lets it bypass the idle-preload
+      // throttle in trigger()). Dynamic imports must NOT inherit their importer's certainty:
+      // otherwise a certain bundle that merely references a large map of lazy imports (e.g. a
+      // CMS/router component that can render any of N components) would force all N of them to
+      // ~99% and preload every one, even though only a single branch is ever taken. Dynamic
+      // deps keep propagating multiplicatively (parentProbability * edgeProbability) below.
+      newInverseProbability = 0;
     } else {
       const newInverseImportProbability = 1 - dep.$importProbability$ * probability;
       /** We need to undo the previous adjustment */

@@ -77,6 +77,32 @@ export const App = component$(() => <button onClick$={() => {}}>{helper()}</butt
     expect(qrlIndex).toBeGreaterThan(-1);
     expect(helperIndex).toBeLessThan(qrlIndex);
   });
+
+  it('keeps captured qrls before handlers that reference them', () => {
+    const output = transformModule(
+      rustDefaults(
+        `
+import { $, component$, useSignal, useTask$ } from '@qwik.dev/core';
+export const App = component$(() => {
+  const selected = useSignal(0);
+  useTask$(() => {});
+  const select = $((index: number) => selected.value = index);
+  return <div>{[0].map((_, index) => <button onClick$={() => select(index)} />)}</div>;
+});
+`,
+        { transpileJsx: true, transpileTs: true }
+      )
+    );
+    const component = segments(output).find((module) => module.segment.ctxName === 'component$')!;
+    const select = segments(output).find((module) => module.segment.ctxName === '$')!;
+    const handler = segments(output).find((module) => module.segment.ctxKind === 'eventHandler')!;
+    const selectIndex = component.code.indexOf(`const select = q_${select.segment.name}`);
+    const handlerIndex = component.code.indexOf(`const ${handler.segment.name} =`);
+
+    expect(selectIndex).toBeGreaterThan(-1);
+    expect(handlerIndex).toBeGreaterThan(-1);
+    expect(selectIndex).toBeLessThan(handlerIndex);
+  });
 });
 
 describe('parent qrl declaration order', () => {

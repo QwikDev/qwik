@@ -161,7 +161,9 @@ export function rewriteNestedCallSitesInline(
     return getNestedCallSiteStart(b) - getNestedCallSiteStart(a);
   });
 
-  let componentScopeWDecls: string[] | undefined;
+  let componentScopeWDecls:
+    | Array<{ declaration: string; captureNames: readonly string[] }>
+    | undefined;
   const hoistDeclarations: Array<{ position: number; declaration: string }> = [];
   const replaceBodyRange = (start: number, end: number, replacement: string): void => {
     if (start < 0 || end > bodyText.length) {
@@ -234,7 +236,10 @@ export function rewriteNestedCallSitesInline(
             componentScopeWDecls = [];
           }
           const wCall = formatWCall(site.qrlVarName, site.hoistedCaptureNames, '        ', '    ');
-          componentScopeWDecls.unshift(`const ${site.hoistedSymbolName} = ${wCall};`);
+          componentScopeWDecls.unshift({
+            declaration: `const ${site.hoistedSymbolName} = ${wCall};`,
+            captureNames: site.hoistedCaptureNames,
+          });
         }
       }
     } else {
@@ -380,16 +385,24 @@ function findComponentDeclarationPrologueEnd(bodyText: string): number {
   return end;
 }
 
-function injectComponentScopeWDecls(bodyText: string, decls: string[] | undefined): string {
+function injectComponentScopeWDecls(
+  bodyText: string,
+  decls: Array<{ declaration: string; captureNames: readonly string[] }> | undefined
+): string {
   if (!decls || decls.length === 0) {
     return bodyText;
   }
 
-  const prologueEnd = findComponentDeclarationPrologueEnd(bodyText);
-  if (prologueEnd >= 0) {
-    const indent = bodyText.slice(prologueEnd).match(/^[\t ]*/)?.[0] ?? '';
-    const declBlock = indent + decls.join('\n' + indent) + '\n';
-    return bodyText.slice(0, prologueEnd) + declBlock + bodyText.slice(prologueEnd);
+  let insertionEnd = findComponentDeclarationPrologueEnd(bodyText);
+  for (const decl of decls) {
+    for (const captureName of decl.captureNames) {
+      insertionEnd = Math.max(insertionEnd, findVarDeclarationEnd(bodyText, 0, captureName));
+    }
+  }
+  if (insertionEnd >= 0) {
+    const indent = bodyText.slice(insertionEnd).match(/^[\t ]*/)?.[0] ?? '';
+    const declBlock = indent + decls.map((decl) => decl.declaration).join('\n' + indent) + '\n';
+    return bodyText.slice(0, insertionEnd) + declBlock + bodyText.slice(insertionEnd);
   }
 
   const returnIdx = findComponentReturnPosition(bodyText);
@@ -402,7 +415,7 @@ function injectComponentScopeWDecls(bodyText: string, decls: string[] | undefine
     lineStart--;
   }
   const indent = bodyText.slice(lineStart + 1, returnIdx);
-  const declBlock = decls.join('\n' + indent) + '\n' + indent;
+  const declBlock = decls.map((decl) => decl.declaration).join('\n' + indent) + '\n' + indent;
   return bodyText.slice(0, returnIdx) + declBlock + bodyText.slice(returnIdx);
 }
 

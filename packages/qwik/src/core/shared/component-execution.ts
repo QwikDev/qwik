@@ -7,8 +7,7 @@ import { invokeApply, newRenderInvokeContext, type RenderInvokeContext } from '.
 import { type EventQRL, type UseOnEvent, type UseOnMap } from '../use/use-on';
 import { isQwikComponent, type OnRenderFn } from './component.public';
 import { assertDefined } from './error/assert';
-import { Fragment, type Props } from './jsx/jsx-runtime';
-import { _jsxSorted } from './jsx/jsx-internal';
+import { type Props } from './jsx/jsx-runtime';
 import { JSXNodeImpl, isJSXNode } from './jsx/jsx-node';
 import type { JSXNodeInternal, JSXOutput } from './jsx/types/jsx-node';
 import type { KnownEventNames } from './jsx/types/jsx-qwik-events';
@@ -23,6 +22,7 @@ import {
   OnRenderProp,
   USE_ON_LOCAL,
   USE_ON_LOCAL_SEQ_IDX,
+  USE_ON_PLACEHOLDER_KEY,
 } from './utils/markers';
 import { MAX_RETRY_ON_PROMISE_COUNT, isPromise, maybeThen, safeCall } from './utils/promises';
 import { isArray, type ValueOrPromise } from './utils/types';
@@ -335,58 +335,20 @@ function findFirstElementNode(jsx: JSXOutput): ValueOrPromise<JSXNodeInternal<st
 }
 
 /**
- * Key of the fragment which wraps a headless component's output together with its `useOn`
- * placeholder `<script>`.
- *
- * The wrapper is re-created on every render of the component, so it needs a stable identity.
- * Unkeyed fragments are intentionally never matched by `expectVirtual`, which would tear down and
- * re-create the whole subtree - and with it every component instance below it - on every
- * re-render.
- */
-const PLACEHOLDER_FRAGMENT_KEY = ':useOn';
-
-/**
  * Injects a placeholder <script> element into the JSX output.
  *
  * This is necessary for headless components (components that don't render a real DOM element) to
  * have an anchor point for `useOn` event listeners that target the document or window.
  *
- * The placeholder has to end up in the output for every shape a component can return, and it must
- * not change the identity of what the component rendered, because this runs on every render.
- *
- * @param jsx The JSX output to wrap.
+ * @param jsx The JSX output of the component.
  * @param placeholder The placeholder element to inject.
- * @returns The JSX output containing the placeholder.
+ * @returns The JSX output with the placeholder as its last sibling.
  */
 function injectPlaceholderElement(jsx: JSXOutput, placeholder: JSXNodeInternal<string>): JSXOutput {
-  // Arrays share the stable wrapper without mutating caller-owned output.
-  if (isArray(jsx)) {
-    return _jsxSorted(Fragment, null, null, [...jsx, placeholder], 0, PLACEHOLDER_FRAGMENT_KEY);
-  }
-
-  // Preserve user keys; stabilize unkeyed fragments without mutating input.
-  if (isJSXNode(jsx) && jsx.type === Fragment) {
-    const children =
-      jsx.children == null ? [] : isArray(jsx.children) ? jsx.children : [jsx.children];
-    return _jsxSorted(
-      Fragment,
-      jsx.varProps,
-      jsx.constProps,
-      [...children, placeholder],
-      jsx.flags,
-      jsx.key ?? PLACEHOLDER_FRAGMENT_KEY,
-      jsx.dev
-    );
-  }
-
-  // Everything else - a component, an element, text, a signal, a promise, nothing at all - cannot
-  // take the placeholder as a child, so it is wrapped in a fragment together with it. Inline
-  // components may ignore children, and `component$` children become projections, so appending to
-  // the node itself is not an option.
-  return _jsxSorted(Fragment, null, null, [jsx, placeholder], 0, PLACEHOLDER_FRAGMENT_KEY);
+  return isArray(jsx) ? [...jsx, placeholder] : [jsx, placeholder];
 }
 
 /** @returns An empty <script> element for adding qwik metadata attributes to */
 function createPlaceholderScriptNode(): JSXNodeInternal<string> {
-  return new JSXNodeImpl('script', null, { hidden: '' }, null, 0, null);
+  return new JSXNodeImpl('script', null, { hidden: '' }, null, 0, USE_ON_PLACEHOLDER_KEY);
 }

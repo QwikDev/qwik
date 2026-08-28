@@ -88,6 +88,7 @@ export const QDefaultSlot = '';
 export const ELEMENT_ID = 'q:id';
 export const ELEMENT_KEY = 'q:key';
 export const ELEMENT_PROPS = 'q:props';
+export const USE_ON_PLACEHOLDER_KEY = ':useOn';
 /** @internal */
 export const ELEMENT_SEQ = 'q:seq';
 export const ELEMENT_SEQ_IDX = 'q:seqIdx';

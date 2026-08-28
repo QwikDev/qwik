@@ -517,6 +517,7 @@ fn example_props_optimization() {
 		code: r#"
 import { $, component$, useTask$ } from '@qwik.dev/core';
 import { CONST } from 'const';
+const getValue = () => 0;
 export const Works = component$(({
 	count,
 	some = 1+2,
@@ -545,15 +546,39 @@ export const NoWorks2 = component$(({count, stuff: {hey}}) => {
 	);
 });
 
-export const NoWorks3 = component$(({count, stuff = hola()}) => {
+export const DynamicDefaults = component$(({count, stuff = getValue(), other: value = getValue()}) => {
 	console.log(stuff);
 	useTask$(({track}) => {
-		track(() => count);
-		console.log(count);
+		track(() => stuff);
+		track(() => value);
+		console.log(count, stuff, value);
 	});
 	return (
-		<div class={count}>{count}</div>
+		<div class={stuff}>{value}</div>
 	);
+});
+
+export const ReferencedDefault = component$(({first = getValue(second), second}) => (
+	<div>{first}{second}</div>
+));
+"#
+		.to_string(),
+		transpile_jsx: true,
+		entry_strategy: EntryStrategy::Inline,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn dynamic_props_defaults_do_not_subscribe_component() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+const getValue = () => 0;
+export const DynamicDefault = component$(({ value = getValue() }) => {
+	console.log(value);
+	return <div>{value}</div>;
 });
 "#
 		.to_string(),

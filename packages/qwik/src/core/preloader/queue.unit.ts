@@ -38,7 +38,7 @@ const createLinearGraph = (length: number) => {
     const nameIndex = serialized.length;
     serialized.push(i === 0 ? 'entry-a.js' : `dep-${i}.js`);
     if (i < length - 1) {
-      serialized.push(-10);
+      serialized.push(-100);
       serialized.push(nameIndex + 3);
     }
   }
@@ -232,8 +232,8 @@ test('a certain bundle keeps its dynamic imports at their edge probability', asy
   const { initPreloader } = await import('./bundle-graph');
   const { preload, bundles } = await import('./queue');
 
-  // entry-a.js dynamically imports dep-1.js with a 60% edge probability (the -6 marker).
-  initPreloader(['entry-a.js', -6, 3, 'dep-1.js']);
+  // entry-a.js dynamically imports dep-1.js with a 60% edge probability (the -60 marker).
+  initPreloader(['entry-a.js', -60, 3, 'dep-1.js']);
   preload('entry-a.js', 1);
   vi.runAllTimers();
 
@@ -245,7 +245,7 @@ test('a certain bundle keeps its dynamic imports at their edge probability', asy
 });
 
 test('a certain bundle still elevates its static imports to 100%', async () => {
-  // Guard the other side of the branch: static imports (probability 1, the -10 marker used by
+  // Guard the other side of the branch: static imports (probability 1, the -100 marker used by
   // createLinearGraph) of a certain bundle stay certain (inverseProbability 0).
   installBrowserGlobals();
   Object.assign(globalThis, {
@@ -258,8 +258,8 @@ test('a certain bundle still elevates its static imports to 100%', async () => {
   const { initPreloader } = await import('./bundle-graph');
   const { preload, bundles } = await import('./queue');
 
-  // entry-a.js statically imports dep-1.js (100% edge probability, the -10 marker).
-  initPreloader(['entry-a.js', -10, 3, 'dep-1.js']);
+  // entry-a.js statically imports dep-1.js (100% edge probability, the -100 marker).
+  initPreloader(['entry-a.js', -100, 3, 'dep-1.js']);
   preload('entry-a.js', 1);
   vi.runAllTimers();
 
@@ -286,7 +286,7 @@ test("preloads a certain bundle's dynamic imports (e.g. a lazy modal's chunk)", 
   const { preload } = await import('./queue');
 
   // entry-a.js is certain and dynamically imports modal.js with a 60% edge probability (-6).
-  initPreloader(['entry-a.js', -6, 3, 'modal.js']);
+  initPreloader(['entry-a.js', -60, 3, 'modal.js']);
   preload('entry-a.js', 1);
   vi.runAllTimers();
 

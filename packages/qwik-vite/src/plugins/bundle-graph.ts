@@ -183,7 +183,12 @@ export function convertManifestToBundleGraph(
       for (const depName of sorted) {
         if (depProbability.get(depName)! !== lastProbability) {
           lastProbability = depProbability.get(depName)!;
-          deps.add(-Math.round(lastProbability * 10) as any as string);
+          // Serialised at 1/100 granularity (keep in sync with the decoder in
+          // core/preloader/bundle-graph.ts). Finer than 1/10 so that fan-out-damped edges keep
+          // a distinct low probability instead of rounding up to 0.1 (which compounds across a
+          // propagation chain). Floor the magnitude at 1 so a tiny probability never rounds to 0,
+          // which the decoder would read back as an index rather than a probability marker.
+          deps.add(-Math.max(1, Math.round(lastProbability * 100)) as any as string);
         }
         deps.add(depName);
       }

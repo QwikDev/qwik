@@ -48,40 +48,41 @@ describe('convertManifestToBundleGraph', () => {
   } as QwikManifest;
 
   test('trivial example', () => {
-    expect(convertManifestToBundleGraph(fakeManifest)).toEqual([
-      'app.js', // 0
-      2,
-      'static-dep.js', // 2
-      -7,
-      5,
-      // doesn't list 13 because it's also statically imported by dynamic-dep.js
-      'dynamic-dep.js', // 5
-      2,
-      12,
-      -9,
-      13,
-      -7,
-      16,
-      'transitive-dep.js', // 12
-      'has-a-symbol.js', // 13
-      -5,
-      17,
-      'boring-dep.js', // 16
-      'large-file.js', // 17
-      'sym1', // 18
-      -7,
-      5,
-      'sym2', // 21
-      -7,
-      13,
-      'sym3', // 24
-      -5,
-      17,
-    ]);
+    expect(convertManifestToBundleGraph(fakeManifest)).toMatchInlineSnapshot(`
+      [
+        "app.js",
+        2,
+        "static-dep.js",
+        -65,
+        5,
+        "dynamic-dep.js",
+        2,
+        12,
+        -90,
+        13,
+        -65,
+        16,
+        "transitive-dep.js",
+        "has-a-symbol.js",
+        -48,
+        17,
+        "boring-dep.js",
+        "large-file.js",
+        "sym1",
+        -65,
+        5,
+        "sym2",
+        -65,
+        13,
+        "sym3",
+        -48,
+        17,
+      ]
+    `);
   });
 
   test('empty', () => {
-    expect(convertManifestToBundleGraph({} as any)).toEqual([]);
+    expect(convertManifestToBundleGraph({} as any)).toMatchInlineSnapshot(`[]`);
   });
 
   test('simple file set', () => {
@@ -93,16 +94,18 @@ describe('convertManifestToBundleGraph', () => {
       } as Record<string, QwikBundle>,
       mapping: {},
     } as QwikManifest;
-    expect(convertManifestToBundleGraph(manifest)).toEqual([
-      'a.js', // 0
-      4,
-      -7,
-      7,
-      'b.js', // 4
-      -7,
-      7,
-      'c.js', // 7
-    ]);
+    expect(convertManifestToBundleGraph(manifest)).toMatchInlineSnapshot(`
+      [
+        "a.js",
+        4,
+        -65,
+        7,
+        "b.js",
+        -65,
+        7,
+        "c.js",
+      ]
+    `);
   });
 
   test('import cycle through the reduced bundle keeps reachable deps', () => {
@@ -114,14 +117,16 @@ describe('convertManifestToBundleGraph', () => {
       } as Record<string, QwikBundle>,
       mapping: {},
     } as QwikManifest;
-    expect(convertManifestToBundleGraph(manifest)).toEqual([
-      'x.js', // 0
-      3,
-      5,
-      'a.js', // 3
-      0,
-      'd.js', // 5
-    ]);
+    expect(convertManifestToBundleGraph(manifest)).toMatchInlineSnapshot(`
+      [
+        "x.js",
+        3,
+        5,
+        "a.js",
+        0,
+        "d.js",
+      ]
+    `);
   });
 
   test('import cycle keeps dynamic deps but still reduces them', () => {
@@ -134,17 +139,19 @@ describe('convertManifestToBundleGraph', () => {
       } as Record<string, QwikBundle>,
       mapping: {},
     } as QwikManifest;
-    expect(convertManifestToBundleGraph(manifest)).toEqual([
-      'x.js', // 0
-      4,
-      -7,
-      7,
-      'a.js', // 4
-      0,
-      'd.js', // 6
-      'e.js', // 7
-      6,
-    ]);
+    expect(convertManifestToBundleGraph(manifest)).toMatchInlineSnapshot(`
+      [
+        "x.js",
+        4,
+        -65,
+        7,
+        "a.js",
+        0,
+        "d.js",
+        "e.js",
+        6,
+      ]
+    `);
   });
 
   test('adder', () => {
@@ -169,34 +176,36 @@ describe('convertManifestToBundleGraph', () => {
           },
         ])
       )
-    ).toEqual([
-      'app.js', // 0
-      2,
-      'static-dep.js', // 2
-      -7,
-      5,
-      'dynamic-dep.js', // 5
-      2,
-      8,
-      'transitive-dep.js', // 8
-      'has-a-symbol.js', // 9
-      -5,
-      12,
-      'large-file.js', // 12
-      'sym1', // 13
-      -7,
-      5,
-      'sym2', // 16
-      -7,
-      9,
-      'sym3', // 19
-      -5,
-      12,
-      'dashboard/', // 22
-      2,
-      -7,
-      8,
-    ]);
+    ).toMatchInlineSnapshot(`
+      [
+        "app.js",
+        2,
+        "static-dep.js",
+        -65,
+        5,
+        "dynamic-dep.js",
+        2,
+        8,
+        "transitive-dep.js",
+        "has-a-symbol.js",
+        -48,
+        12,
+        "large-file.js",
+        "sym1",
+        -65,
+        5,
+        "sym2",
+        -65,
+        9,
+        "sym3",
+        -48,
+        12,
+        "dashboard/",
+        2,
+        -65,
+        8,
+      ]
+    `);
   });
 
   test('damps the probability of high-fan-out dynamic imports', () => {
@@ -222,7 +231,7 @@ describe('convertManifestToBundleGraph', () => {
       let prob = 1;
       for (let j = graph.indexOf(name) + 1; j < graph.length && typeof graph[j] !== 'string'; j++) {
         const v = graph[j] as number;
-        v < 0 ? (prob = -v / 10) : out.push(prob);
+        v < 0 ? (prob = -v / 100) : out.push(prob);
       }
       return out;
     };
@@ -287,7 +296,7 @@ describe('convertManifestToBundleGraph', () => {
     expect(convertManifestToBundleGraph(manifest)).toMatchInlineSnapshot(`
       [
         "index.js",
-        -9,
+        -93,
         26,
         "index.qwik.mjs_ErrorBoundary_component_6VMZkqoH00Q.js",
         "index.qwik.mjs_Form_form_onSubmit_5DbAsQLGGo4.js",
@@ -297,13 +306,13 @@ describe('convertManifestToBundleGraph', () => {
         38,
         "index.qwik.mjs_QwikRouterProvider_component_useStyles_BMutFDNOKhc.js",
         38,
-        -9,
+        -92,
         29,
-        -7,
+        -68,
         27,
-        -6,
+        -63,
         0,
-        -5,
+        -48,
         33,
         "index.qwik.mjs_routeActionQrl_action_submit_rufUrhffR5k.js",
         "index.qwik.mjs_RouterOutlet_component_q56DrQcc9VE.js",
@@ -316,144 +325,146 @@ describe('convertManifestToBundleGraph', () => {
         "index.tsx_form_component_useStyles_0pasaG6nmEA.js",
         38,
         "index.tsx_routes_component_vG0UuU4cNCg.js",
-        -5,
-        57,
+        -48,
         59,
+        61,
         "layout.js",
-        -9,
+        -93,
         36,
         "layout.tsx_layout_component_useStyles_MOLFIZOhXmE.js",
         38,
         "qwik-router.js",
-        -8,
+        -84,
         9,
+        -83,
         4,
+        -78,
         5,
         20,
-        -7,
+        -71,
         19,
         24,
         "root.js",
-        -9,
-        50,
+        -93,
+        52,
         "root.tsx_root_component_9PcKHFjikV0.js",
         38,
-        -9,
-        54,
+        -93,
+        56,
         "router-head.tsx_RouterHead_component_dAo05yeFq1I.js",
         38,
         "src-vendor-lib-helper.ts.js",
         "src-vendor-lib-libA.ts.js",
-        56,
+        58,
         "src-vendor-lib-libB.ts.js",
-        56,
+        58,
         "BjxcCeNQ9ak",
-        -9,
+        -92,
         29,
         "eevMxFvmCM8",
-        -7,
+        -68,
         36,
         "99K9SAWjPFQ",
-        -9,
+        -92,
         29,
         "LopIayqLfMo",
-        -8,
+        -76,
         9,
         "VjDx6RO4Kis",
-        -9,
+        -91,
         25,
         "HEFxKy9cwuk",
-        -9,
+        -92,
         29,
         "6VMZkqoH00Q",
-        -7,
+        -68,
         3,
         "9PcKHFjikV0",
-        -7,
-        50,
+        -68,
+        52,
         "9fcUDoGM9Wo",
-        -8,
+        -76,
         9,
         "SHtFir1Ia94",
-        -7,
+        -68,
         36,
         "cH9twROgaEg",
-        -7,
+        -68,
         7,
         "dAo05yeFq1I",
-        -7,
-        54,
+        -68,
+        56,
         "ds9jIPT1g9s",
-        -7,
+        -68,
         27,
         "lTNqDDf58lI",
-        -7,
+        -68,
         5,
         "m7u9ARcfDGU",
-        -7,
+        -68,
         26,
         "q56DrQcc9VE",
-        -7,
+        -68,
         20,
         "vG0UuU4cNCg",
-        -9,
+        -92,
         29,
         "vXTAPbOW0Ig",
-        -7,
+        -68,
         38,
         "0pasaG6nmEA",
-        -7,
+        -68,
         27,
         "BMutFDNOKhc",
-        -8,
+        -76,
         9,
         "Iyy38y0K3Hw",
-        -9,
+        -92,
         29,
         "MOLFIZOhXmE",
-        -7,
+        -68,
         36,
         "WOcPLNnm2is",
-        -7,
+        -68,
         26,
         "3mjmVvTlJqo",
-        -6,
+        -60,
         24,
         "5DbAsQLGGo4",
-        -8,
+        -75,
         4,
         "Nhj4Mq4ilm8",
-        -6,
+        -60,
         22,
         "rufUrhffR5k",
-        -6,
+        -60,
         19,
         "0xCNPioszTk",
-        -7,
+        -68,
         5,
         "1F0Ft5Y9bOI",
-        -7,
+        -68,
         3,
         "ANY7TPAnAd8",
-        -7,
+        -68,
         38,
         "BdwdOv10pp0",
-        -8,
+        -76,
         9,
         "YCi2vDzuhns",
-        -7,
+        -68,
         38,
         "dNtHVLGwESE",
-        -7,
+        -68,
         7,
         "ep3t0fF0SDA",
-        -9,
+        -92,
         29,
         "lWJp5Z4VtFs",
-        -7,
+        -68,
         5,
         "s3XioIi2Huw",
-        -8,
+        -76,
         9,
       ]
     `);

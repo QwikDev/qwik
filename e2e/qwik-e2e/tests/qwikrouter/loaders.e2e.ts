@@ -110,6 +110,48 @@ test.describe('loaders', () => {
       expect(await page.evaluate(() => (window as any).__prodLoaderMarker)).toBe(true);
     });
 
+    test('fetches a destination loader once on first SPA navigation', async ({ page }) => {
+      const loaderRequests: string[] = [];
+      page.on('request', (request) => {
+        const pathname = new URL(request.url()).pathname;
+        if (pathname.includes('/issue8966/b/q-loader-')) {
+          loaderRequests.push(pathname);
+        }
+      });
+
+      await page.goto('/qwikrouter-test.prod/issue8966/a/');
+      await page.locator('#issue8966-b').click();
+      await page.waitForURL('**/issue8966/b/');
+      await page.waitForLoadState('networkidle');
+
+      expect(loaderRequests).toHaveLength(1);
+    });
+
+    test('fetches goto loader data only from the loader signal', async ({ page }) => {
+      await page.goto('/qwikrouter-test.prod/issue8966/a/');
+      await page.evaluate(() => {
+        const originalFetch = window.fetch;
+        (window as any).__issue8966LoaderFetchSignals = [];
+        window.fetch = (...args) => {
+          const [input, init] = args;
+          const url =
+            typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+          if (url.includes('/issue8966/b/q-loader-')) {
+            (window as any).__issue8966LoaderFetchSignals.push(!!init?.signal);
+          }
+          return originalFetch(...args);
+        };
+      });
+
+      await page.locator('#issue8966-goto-b').click();
+      await page.waitForURL('**/issue8966/b/');
+      await page.waitForLoadState('networkidle');
+
+      expect(await page.evaluate(() => (window as any).__issue8966LoaderFetchSignals)).toEqual([
+        true,
+      ]);
+    });
+
     test('releases route loader tasks across SPA navigations', async ({ page }) => {
       const loaderRequests: string[] = [];
       page.on('request', (request) => {

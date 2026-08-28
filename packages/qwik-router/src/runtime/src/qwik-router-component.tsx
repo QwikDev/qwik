@@ -486,8 +486,8 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
     };
 
     if (isBrowser) {
-      // Prefetch: start loading route bundles and optionally loader data
-      prefetchRoute(dest, true, 0.8, manifestHash);
+      // Prefetch bundles; loader signals fetch navigation data below.
+      prefetchRoute(dest, false, 0.8, manifestHash, true);
     }
 
     navResolver.p = new Promise<void>((resolve) => {
@@ -610,10 +610,10 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         routeLoaderCtx.goto = noSerialize(goto);
       }
       updateRouteLoaderPaths(routeLoaderCtx, loadedRoute.$loaderPaths$, trackUrl);
-      const routeLoaders = ensureRouteLoaderSignals(contentModules, loaderState, routeLoaderCtx);
       if (!isServer) {
         invalidateNavRouteLoaders(loaderState);
       }
+      const routeLoaders = ensureRouteLoaderSignals(contentModules, loaderState, routeLoaderCtx);
       if (shouldInvalidateActionLoaders) {
         // Actions force revalidation (fetch cache: 'reload') for their loaders
         if (actionLoaderHashes !== undefined) {

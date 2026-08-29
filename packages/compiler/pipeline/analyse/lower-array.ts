@@ -1,6 +1,7 @@
 import type { ArrowFunctionExpression, Expression, JSXElement } from 'oxc-parser';
 import {
   BoundaryKind,
+  CaptureAccess,
   EachSourceKind,
   FnBodyKind,
   LifetimeCommit,
@@ -21,6 +22,7 @@ import { UnsupportedError } from '../errors';
 import { lowerCaptures } from './ast/capture-analysis';
 import { pushPayload, pushQrl, QrlIdentityKind, type LowerContext } from './lower-context';
 import { trySignalReadValue } from './lower-expr';
+import { LocalKind } from './lower-setup';
 import { lowerJsx } from './lower-jsx';
 
 /** `source.map((item) => <row key={...}/>)` in child position — a keyed, swappable row set. */
@@ -86,7 +88,7 @@ function lowerEach(
     async: false,
   });
   const rowRange: [number, number] = [body.start, body.end];
-  const { use } = pushQrl(
+  const { index: rowIndex, use } = pushQrl(
     ctx,
     {
       identity: { kind: QrlIdentityKind.Segment, nameCtx: SegmentContext.ForRender },
@@ -110,7 +112,31 @@ function lowerEach(
     rowCaptures.args
   );
   const key = lowerKey(body, callback, ctx);
+  // Inside the row, loop params are locals — holes capture them as LoopValue.
+  const outerLocals = ctx.locals;
+  const rowLocals = new Map(outerLocals);
+  callback.params.forEach((param, index) => {
+    if (param.type === 'Identifier') {
+      rowLocals.set(param.name, {
+        kind: LocalKind.LoopValue,
+        slot: -1,
+        binding: paramBindings[index],
+      });
+    }
+  });
+  ctx.locals = rowLocals;
   ctx.plan.programs[program].body = { kind: ProgramBodyKind.Ops, ops: [lowerJsx(body, ctx)] };
+  ctx.locals = outerLocals;
+  // The row ABI drops unused loop params: `used` = params some descendant QRL captured.
+  ctx.plan.qrls[rowIndex].params.used = paramBindings.filter((binding) =>
+    ctx.plan.qrls
+      .slice(rowIndex + 1)
+      .some((qrl) =>
+        qrl.captures.some(
+          (capture) => capture.access === CaptureAccess.LoopValue && capture.binding === binding
+        )
+      )
+  );
 
   return {
     op: OpKind.Each,

@@ -1,5 +1,6 @@
 import {
   ArgPass,
+  BoundaryKind,
   CaptureAccess,
   FnBodyKind,
   Shape,
@@ -9,7 +10,7 @@ import {
   type QrlUse,
 } from '../schema';
 import { getSegmentDisplayName, getSegmentSymbolHash } from '../segment-identity';
-import { QWIK_CORE_IMPORT, QwikWord } from '../words';
+import { QWIK_CORE_IMPORT, QwikWord, SegmentContext } from '../words';
 import { UnsupportedError } from '../errors';
 import type { GenerateOutput } from './output';
 
@@ -194,4 +195,26 @@ export function rowShapeCode(shape: Shape): number {
     case Shape.Unknown:
       return 3;
   }
+}
+
+/** What a Program-bodied QRL renders — each kind has its own emission wrapper per target. */
+export const enum ProgramKind {
+  Component = 'component',
+  BranchArm = 'branch-arm',
+  CollectionRow = 'collection-row',
+}
+
+export function programKind(qrl: LinkedQrl): ProgramKind {
+  if (qrl.boundary.kind === BoundaryKind.Component) {
+    return ProgramKind.Component;
+  }
+  if (qrl.boundary.kind === BoundaryKind.Implicit) {
+    if (qrl.ctxName === SegmentContext.ForRender) {
+      return ProgramKind.CollectionRow;
+    }
+    if (qrl.boundary.role === 'branch') {
+      return ProgramKind.BranchArm;
+    }
+  }
+  throw new UnsupportedError(`a program qrl with the boundary "${qrl.boundary.kind}"`);
 }

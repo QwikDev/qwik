@@ -368,6 +368,17 @@ export default () => {
     });
   });
 
+  test('should render a reactive text hole inside a collection row', async () => {
+    await testInput(mode, 'collection-reactive-row', {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
+  const items = useSignal([{ id: 'a', label: 'Alpha' }]);
+  return <ul>{items.value.map((item) => <li key={item.id}>{item.label}</li>)}</ul>;
+};
+`,
+    });
+  });
+
   test('should render an expression hole capturing a signal', async () => {
     await testInput(mode, 'expression-hole-signal', {
       code: `import { useSignal } from '@qwik.dev/core';

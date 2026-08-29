@@ -1,6 +1,5 @@
 /** `generateJsSsr(serverLinkedPlan, options)` — the baseline generator over the server LinkedPlan. */
 import {
-  BoundaryKind,
   Environment,
   HandlerKind,
   QrlBodyKind,
@@ -20,13 +19,15 @@ import {
   type QrlUse,
   type Value,
 } from '../schema';
-import { QwikAttr, QwikGenWord, QwikWord, SegmentContext } from '../words';
+import { QwikAttr, QwikGenWord, QwikWord } from '../words';
 import { escapeAttr, serializeAttrValue } from '../html';
 import { UnsupportedError } from '../errors';
 import { generateQwikModule, type QwikModuleEmitter } from './assemble-module';
 import {
   captureNames,
   capturePrelude,
+  programKind,
+  ProgramKind,
   rowShapeCode,
   chunkCanonicalFilename,
   emptyFunctionEmission,
@@ -92,6 +93,14 @@ interface SsrRootRange {
   markerIndex: number;
 }
 
+/** Per-kind needs the emission wrappers state explicitly — the core never inspects the QRL. */
+interface SsrRenderOptions {
+  /** Stamped into the root element's open tag (a row's `q:row`). */
+  rootMarker?: string;
+  /** Root holes render into a caller-supplied range id parameter (branch arms). */
+  rootRange?: boolean;
+}
+
 class SsrModuleEmitter implements QwikModuleEmitter {
   readonly imports = new Set<string>();
   readonly chunkImports: string[] = [];
@@ -111,8 +120,12 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     return emission;
   }
 
-  /** The shared render core — component bodies and branch arm programs emit identically. */
-  private renderProgram(qrl: LinkedQrl, names: GeneratedNames): SsrProgramEmission {
+  /** The kind-agnostic render core — wrappers state their needs through `options`. */
+  private renderProgram(
+    qrl: LinkedQrl,
+    names: GeneratedNames,
+    options: SsrRenderOptions = {}
+  ): SsrProgramEmission {
     if (qrl.body.b !== QrlBodyKind.Program) {
       throw new Error(`pipeline.generateJsSsr: rendering the non-program qrl "${qrl.id}"`);
     }
@@ -125,23 +138,12 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     this.statements = emitJsSetup(this.module, program, this.imports);
     this.asyncSteps = [];
     this.next = createNameAllocator(this.module);
-    if (qrl.ctxName === SegmentContext.ForRender) {
-      const root = body.ops[0];
-      if (body.ops.length !== 1 || root.op !== OpKind.Element || !isFullyStaticSubtree(root)) {
-        throw new UnsupportedError('a dynamic collection row');
-      }
-      // The reconciler finds row roots by the q:row marker on the row's root element.
-      const html = foldStaticOp(root, false);
-      const marked = `<${root.tag} ${QwikAttr.Row}${html.slice(root.tag.length + 1)}`;
-      return { statements: this.statements, value: JSON.stringify(marked), rangeIdParam: null };
-    }
-    const rootRange: SsrRootRange | null =
-      qrl.boundary.kind === BoundaryKind.Implicit && qrl.boundary.role === 'branch'
-        ? { idParam: null, markerIndex: 0 }
-        : null;
+    const rootRange: SsrRootRange | null = options.rootRange
+      ? { idParam: null, markerIndex: 0 }
+      : null;
     const parts: string[] = [];
     for (const op of body.ops) {
-      this.op(op, parts, rootRange);
+      this.op(op, parts, rootRange, options.rootMarker ?? null);
     }
     let value = parts.length === 0 ? "''" : parts.length === 1 ? parts[0] : `[${parts.join(', ')}]`;
     if (this.asyncSteps.length > 0) {
@@ -166,42 +168,84 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         return sourceFunctionEmission(this.module, qrl);
       case QrlBodyKind.Task:
         throw new UnsupportedError('a task QRL body');
-      case QrlBodyKind.Program: {
-        const body = this.module.programs[qrl.body.program].body;
-        if (body.kind !== ProgramBodyKind.Ops) {
-          throw new UnsupportedError('a js-bodied arm program');
+      case QrlBodyKind.Program:
+        switch (programKind(qrl)) {
+          case ProgramKind.BranchArm:
+            return this.armEmission(qrl);
+          case ProgramKind.CollectionRow:
+            return this.rowEmission(qrl);
+          case ProgramKind.Component:
+            throw new UnsupportedError('a component program as a chunk');
         }
-        const emission = emptyFunctionEmission();
-        if (body.ops.length === 0) {
-          emission.value = '[]';
-          return emission;
-        }
-        // A fresh emitter keeps the render's imports and QRL usages out of the main module.
-        const emitter = new SsrModuleEmitter(this.module);
-        const names = {
-          props: qrlPropsName(this.module, qrl, QwikGenWord.ComponentProps),
-          ctx: QwikGenWord.ComponentContext,
-        };
-        const core = emitter.renderProgram(qrl, names);
-        const captures = captureNames(this.module, qrl);
-        emission.statements = [...capturePrelude(captures), ...core.statements];
-        emission.value = core.value;
-        emission.params =
-          core.rangeIdParam === null
-            ? emission.statements.length === 0
-              ? []
-              : [names.ctx]
-            : [names.ctx, core.rangeIdParam];
-        if (captures.length > 0) {
-          emission.imports.add(QwikWord.Captures);
-        }
-        for (const name of emitter.imports) {
-          emission.imports.add(name);
-        }
-        emission.uses = [...emitter.usedQrls.values()];
-        return emission;
-      }
     }
+  }
+
+  /** Branch arm: any root shape; ABI `(ctx, rangeId?)` — rangeId when a root hole allocated it. */
+  private armEmission(qrl: LinkedQrl): FunctionEmission {
+    if (this.programOps(qrl).length === 0) {
+      const emission = emptyFunctionEmission();
+      emission.value = '[]';
+      return emission;
+    }
+    const { emission, core, names } = this.renderEmission(qrl, { rootRange: true });
+    emission.params =
+      core.rangeIdParam === null
+        ? emission.statements.length === 0
+          ? []
+          : [names.ctx]
+        : [names.ctx, core.rangeIdParam];
+    return emission;
+  }
+
+  /** Collection row: one element root wearing `q:row`; the runtime's positional row ABI. */
+  private rowEmission(qrl: LinkedQrl): FunctionEmission {
+    const ops = this.programOps(qrl);
+    if (ops.length !== 1 || ops[0].op !== OpKind.Element) {
+      throw new UnsupportedError('a collection row without an element root');
+    }
+    const { emission, names } = this.renderEmission(qrl, { rootMarker: QwikAttr.Row });
+    if (emission.statements.length > 0) {
+      // Unused trailing slots keep placeholder names; unused loop params are dropped.
+      const loopParams = qrl.params.used.map((binding) => this.module.bindings[binding].name);
+      emission.params = [names.ctx, '__rangeId', '__rowId', ...loopParams];
+    }
+    return emission;
+  }
+
+  /** Fresh-emitter render + capture prelude + import/uses handoff — shared by every kind. */
+  private renderEmission(
+    qrl: LinkedQrl,
+    options: SsrRenderOptions
+  ): { emission: FunctionEmission; core: SsrProgramEmission; names: GeneratedNames } {
+    const emitter = new SsrModuleEmitter(this.module);
+    const names = {
+      props: qrlPropsName(this.module, qrl, QwikGenWord.ComponentProps),
+      ctx: QwikGenWord.ComponentContext,
+    };
+    const core = emitter.renderProgram(qrl, names, options);
+    const captures = captureNames(this.module, qrl);
+    const emission = emptyFunctionEmission();
+    emission.statements = [...capturePrelude(captures), ...core.statements];
+    emission.value = core.value;
+    if (captures.length > 0) {
+      emission.imports.add(QwikWord.Captures);
+    }
+    for (const name of emitter.imports) {
+      emission.imports.add(name);
+    }
+    emission.uses = [...emitter.usedQrls.values()];
+    return { emission, core, names };
+  }
+
+  private programOps(qrl: LinkedQrl): readonly Op[] {
+    if (qrl.body.b !== QrlBodyKind.Program) {
+      throw new Error(`pipeline.generateJsSsr: rendering the non-program qrl "${qrl.id}"`);
+    }
+    const body = this.module.programs[qrl.body.program].body;
+    if (body.kind !== ProgramBodyKind.Ops) {
+      throw new UnsupportedError('a js-bodied render program');
+    }
+    return body.ops;
   }
 
   /** A chunk satisfies its uses itself: sibling-chunk import + `_noopQrl` registration. */
@@ -224,18 +268,24 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     return emission;
   }
 
-  private op(op: Op, parts: string[], rootRange: SsrRootRange | null): void {
+  private op(
+    op: Op,
+    parts: string[],
+    rootRange: SsrRootRange | null,
+    rootMarker: string | null = null
+  ): void {
     switch (op.op) {
       case OpKind.Static:
         // SSR streams raw text; adjacent static runs merge into one string part.
         pushMergedStatic(parts, foldStaticOp(op, false));
         return;
       case OpKind.Element:
-        if (isFullyStaticSubtree(op)) {
+        // A marked root always renders through element() so the marker lands in its open tag.
+        if (rootMarker === null && isFullyStaticSubtree(op)) {
           pushMergedStatic(parts, foldStaticOp(op, false));
           return;
         }
-        this.element(op, parts);
+        this.element(op, parts, rootMarker);
         return;
       case OpKind.Hole:
         if (rootRange === null) {
@@ -257,7 +307,12 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     }
   }
 
-  private element(op: Extract<Op, { op: OpKind.Element }>, parts: string[]): void {
+  private element(
+    op: Extract<Op, { op: OpKind.Element }>,
+    parts: string[],
+    /** Stamped into this element's open tag — a row root's `q:row`. */
+    rootMarker: string | null = null
+  ): void {
     const holes = op.children.filter((child) => child.op === OpKind.Hole);
     const hasDynamicProps = op.props.some((prop) => prop.k === PropKind.Dynamic);
     const idVariable = holes.length > 0 || hasDynamicProps ? this.next(QwikGenWord.Id) : null;
@@ -270,6 +325,9 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       pushMergedStatic(parts, ` ${QwikAttr.Id}="`);
       parts.push(`${QwikWord.CreateSsrNodeId}(${idVariable})`);
       pushMergedStatic(parts, `"`);
+    }
+    if (rootMarker !== null) {
+      pushMergedStatic(parts, ` ${rootMarker}`);
     }
     for (const prop of op.props) {
       this.prop(prop, parts, idVariable);

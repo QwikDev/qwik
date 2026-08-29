@@ -15,13 +15,15 @@ import {
   type Op,
   type Prop,
 } from '../schema';
-import { QwikWord, QwikGenWord, SegmentContext } from '../words';
+import { QwikWord, QwikGenWord } from '../words';
 import { UnsupportedError } from '../errors';
 import { generateQwikModule, type QwikModuleEmitter } from './assemble-module';
 import {
   captureNames,
   capturePrelude,
   emptyFunctionEmission,
+  programKind,
+  ProgramKind,
   rowShapeCode,
   chunkCanonicalFilename,
   qrlPropsName,
@@ -369,7 +371,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       case QrlBodyKind.Task:
         throw new UnsupportedError('a task QRL body');
       case QrlBodyKind.Program: {
-        if (qrl.ctxName === SegmentContext.ForRender) {
+        if (programKind(qrl) === ProgramKind.CollectionRow) {
           return this.rowFunction(qrl);
         }
         // A fresh emitter keeps the render's imports/hoists out of the main module.
@@ -404,24 +406,44 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     if (qrl.body.b !== QrlBodyKind.Program) {
       throw new UnsupportedError('a non-program collection row');
     }
-    const body = this.module.programs[qrl.body.program].body;
+    const program = this.module.programs[qrl.body.program];
+    const body = program.body;
     if (body.kind !== ProgramBodyKind.Ops) {
       throw new UnsupportedError('a js-bodied collection row');
     }
     const root = body.ops[0];
-    if (body.ops.length !== 1 || root.op !== OpKind.Element || !isFullyStaticSubtree(root)) {
-      throw new UnsupportedError('a dynamic collection row');
+    if (body.ops.length !== 1 || root.op !== OpKind.Element) {
+      throw new UnsupportedError('a collection row without an element root');
     }
+    // A fresh emitter keeps the row's imports/chunk references out of the main module.
+    const emitter = new CsrModuleEmitter(this.module);
+    emitter.next = createNameAllocator(this.module);
+    const names = {
+      props: qrlPropsName(this.module, qrl, QwikGenWord.ComponentProps),
+      ctx: QwikGenWord.ComponentContext,
+    };
     const emission = emptyFunctionEmission();
-    const template = `${qrl.name}_${QwikGenWord.Template}0`;
-    emission.imports.add(QwikWord.CreateElementTemplate);
-    emission.hoists.push(
-      `const ${template} = ${QwikWord.CreateElementTemplate}(${JSON.stringify(foldStaticOp(root, true))});`
+    const template = `${qrl.name}_${emitter.next(QwikGenWord.Template)}`;
+    const el = emitter.next(QwikGenWord.Element);
+    const statements = [`const ${el} = ${template}(${names.ctx}.document);`];
+    for (const prop of root.props) {
+      if (prop.k !== PropKind.Static) {
+        throw new UnsupportedError(`the prop "${prop.k}" in a collection row root`);
+      }
+    }
+    emitter.walkChildren(root, el, statements, names);
+    // Row roots mount through an element template — the root element IS the return value.
+    emitter.imports.add(QwikWord.CreateElementTemplate);
+    emitter.hoists.push(
+      `const ${template} = ${QwikWord.CreateElementTemplate}(${JSON.stringify(foldStaticOp(templateOp(root), false))});`
     );
-    const el = `${QwikGenWord.Element}0`;
-    emission.params = [QwikGenWord.ComponentContext];
-    emission.statements = [`const ${el} = ${template}(${QwikGenWord.ComponentContext}.document);`];
+    const loopParams = qrl.params.used.map((binding) => this.module.bindings[binding].name);
+    emission.params = statements.length === 0 ? [] : [names.ctx, ...loopParams];
+    emission.statements = statements;
     emission.value = el;
+    emission.imports = emitter.imports;
+    emission.chunkImports = emitter.chunkImports;
+    emission.hoists = emitter.hoists;
     return emission;
   }
 

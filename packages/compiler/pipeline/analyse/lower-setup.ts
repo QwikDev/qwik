@@ -24,6 +24,8 @@ import { pushPayload, type LowerContext } from './lower-context';
 /** What kind of reactive source a setup local holds — read codegen dispatches on it. */
 export const enum LocalKind {
   Signal = 'signal',
+  /** A collection row parameter — captured as LoopValue, delivered per row. */
+  LoopValue = 'loop-value',
 }
 
 export interface SetupLocal {

@@ -1401,11 +1401,13 @@ RequestEvent \| undefined
 
 ```typescript
 export type GetValidatorInputType<VALIDATOR extends TypedDataValidator> =
-  VALIDATOR extends ValibotDataValidator<infer TYPE>
-    ? v.InferInput<TYPE>
-    : VALIDATOR extends ZodDataValidator<infer TYPE>
-      ? z.input<TYPE>
-      : never;
+  VALIDATOR extends StandardSchemaDataValidator<infer TYPE>
+    ? StandardSchemaV1.InferInput<TYPE>
+    : VALIDATOR extends ValibotDataValidator<infer TYPE>
+      ? v.InferInput<TYPE>
+      : VALIDATOR extends ZodDataValidator<infer TYPE>
+        ? z.input<TYPE>
+        : never;
 ```
 
 **References:** [TypedDataValidator](#typeddatavalidator)
@@ -1416,11 +1418,13 @@ export type GetValidatorInputType<VALIDATOR extends TypedDataValidator> =
 
 ```typescript
 export type GetValidatorOutputType<VALIDATOR extends TypedDataValidator> =
-  VALIDATOR extends ValibotDataValidator<infer TYPE>
-    ? v.InferOutput<TYPE>
-    : VALIDATOR extends ZodDataValidator<infer TYPE>
-      ? z.output<TYPE>
-      : never;
+  VALIDATOR extends StandardSchemaDataValidator<infer TYPE>
+    ? StandardSchemaV1.InferOutput<TYPE>
+    : VALIDATOR extends ValibotDataValidator<infer TYPE>
+      ? v.InferOutput<TYPE>
+      : VALIDATOR extends ZodDataValidator<infer TYPE>
+        ? z.output<TYPE>
+        : never;
 ```
 
 **References:** [TypedDataValidator](#typeddatavalidator)
@@ -2489,6 +2493,41 @@ JSXOutput
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/sw-component.tsx)
 
+<h2 id="standardschema_">standardSchema$</h2>
+
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+
+```typescript
+standardSchema$: StandardSchemaConstructor;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/server-functions.ts)
+
+<h2 id="standardschemaconstructor">StandardSchemaConstructor</h2>
+
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+
+```typescript
+export type StandardSchemaConstructor = {
+  <T extends StandardSchemaV1>(schema: T): StandardSchemaDataValidator<T>;
+  <T extends StandardSchemaV1>(
+    schema: (ev: RequestEvent) => T,
+  ): StandardSchemaDataValidator<T>;
+};
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts)
+
+<h2 id="standardschemaqrl">standardSchemaQrl</h2>
+
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+
+```typescript
+standardSchemaQrl: StandardSchemaConstructorQRL;
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/server-functions.ts)
+
 <h2 id="staticgenerate">StaticGenerate</h2>
 
 ```typescript
@@ -2556,7 +2595,10 @@ export type StrictUnion<T> = Prettify<StrictUnionHelper<T, T>>;
 <h2 id="typeddatavalidator">TypedDataValidator</h2>
 
 ```typescript
-export type TypedDataValidator = ValibotDataValidator | ZodDataValidator;
+export type TypedDataValidator =
+  | ValibotDataValidator
+  | ZodDataValidator
+  | StandardSchemaDataValidator;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts)
@@ -2680,6 +2722,23 @@ valibot$: ValibotConstructor;
 ```
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/server-functions.ts)
+
+<h2 id="valibotconstructor">ValibotConstructor</h2>
+
+> This API is provided as an alpha preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+
+```typescript
+export type ValibotConstructor = {
+  <T extends v.GenericSchema | v.GenericSchemaAsync>(
+    schema: T,
+  ): ValibotDataValidator<T>;
+  <T extends v.GenericSchema | v.GenericSchemaAsync>(
+    schema: (ev: RequestEvent) => T,
+  ): ValibotDataValidator<T>;
+};
+```
+
+[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-city/src/runtime/src/types.ts)
 
 <h2 id="valibotqrl">valibotQrl</h2>
 

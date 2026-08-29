@@ -38,6 +38,9 @@ import type {
   ServerConfig,
   ServerFunction,
   ServerQRL,
+  StandardSchemaConstructorQRL,
+  StandardSchemaConstructor,
+  StandardSchemaDataValidator,
   ValidatorConstructor,
   ValidatorConstructorQRL,
   ValidatorReturn,
@@ -53,6 +56,7 @@ import { useAction, useLocation, useQwikCityEnv } from './use-functions';
 import { isDev, isServer } from '@builder.io/qwik';
 
 import type { FormSubmitCompletedDetail } from './form-component';
+import type { StandardSchemaV1 } from '@standard-schema/spec';
 
 /** @public */
 export const getRequestEvent = (): RequestEvent | undefined => {
@@ -233,6 +237,70 @@ export const validatorQrl = ((
 
 /** @public */
 export const validator$: ValidatorConstructor = /*#__PURE__*/ implicit$FirstArg(validatorQrl);
+
+const flattenStandardSchemaIssues = (issues: readonly StandardSchemaV1.Issue[]) => {
+  const fieldErrors: Record<string, string | string[]> = {};
+  let formErrors = [];
+  type Segment = StandardSchemaV1.Issue['path'] extends readonly (infer S)[] | undefined
+    ? S
+    : never;
+  const segmentKey = (segment: Segment): PropertyKey =>
+    typeof segment === 'object' && segment !== null ? segment.key : segment;
+  for (const issue of issues) {
+    if (!issue.path || issue.path.length === 0 || issue.path[0] === '')
+      formErrors.push(issue.message);
+    if (issue.path) {
+      fieldErrors[issue.path.map((seg) => String(segmentKey(seg))).join('.')] = issue.message;
+    }
+  }
+  return { formErrors, fieldErrors };
+};
+
+/** @alpha */
+export const standardSchemaQrl: StandardSchemaConstructorQRL = (
+  qrl: QRL<StandardSchemaV1 | ((ev: RequestEvent) => StandardSchemaV1)>
+): StandardSchemaDataValidator => {
+  if (!__EXPERIMENTAL__.standardSchema) {
+    throw new Error(
+      'Standard Schema validation is an experimental feature and is not enabled. Please enable the feature flag by adding `experimental: ["standardSchema"]` to your qwikVite plugin options.'
+    );
+  }
+  if (isServer) {
+    return {
+      __brand: 'standard-schema',
+      async validate(ev, inputData) {
+        const schema: StandardSchemaV1 = await qrl
+          .resolve()
+          .then((obj) => (!('~standard' in obj) && typeof obj === 'function' ? obj(ev) : obj));
+        const data = inputData ?? (await ev.parseBody());
+        const result = await schema['~standard'].validate(data);
+        if (result.issues) {
+          if (isDev) {
+            console.error(
+              `ERROR: Standard Schema (${schema['~standard'].vendor}) validation failed`,
+              result.issues
+            );
+          }
+          return {
+            success: false,
+            status: 400,
+            error: flattenStandardSchemaIssues(result.issues) as never,
+          };
+        } else {
+          return {
+            success: true,
+            data: result.value,
+          };
+        }
+      },
+    };
+  }
+  return undefined as never;
+};
+
+/** @alpha */
+export const standardSchema$: StandardSchemaConstructor =
+  /*#__PURE__*/ implicit$FirstArg(standardSchemaQrl);
 
 const flattenValibotIssues = (issues: v.GenericIssue[]) => {
   return issues.reduce<Record<string, string | string[]>>((acc, issue) => {

@@ -205,17 +205,31 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     names: GeneratedNames
   ): string {
     const mounted = this.mountTemplate(ownerName, statements, names);
+    this.elementProps(op, mounted.el, statements, names);
+    this.walkChildren(op, mounted.el, statements, names);
+    // Template markup excludes event props; templateOp pre-escapes text for innerHTML parsing.
+    this.hoistTemplate(mounted.template, foldStaticOp(templateOp(op), false));
+    return mounted.el;
+  }
+
+  /** Wires an element's non-static props — events and dynamic attributes — onto its node. */
+  private elementProps(
+    op: Extract<Op, { op: OpKind.Element }>,
+    el: string,
+    statements: string[],
+    names: GeneratedNames
+  ): void {
     for (const prop of op.props) {
       switch (prop.k) {
         case PropKind.Static: {
           break;
         }
         case PropKind.Event: {
-          this.event(prop.name, prop.handlers, mounted.el, statements, names);
+          this.event(prop.name, prop.handlers, el, statements, names);
           break;
         }
         case PropKind.Dynamic: {
-          this.dynamicProp(prop, mounted.el, statements, names);
+          this.dynamicProp(prop, el, statements, names);
           break;
         }
         default: {
@@ -223,10 +237,6 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         }
       }
     }
-    this.walkChildren(op, mounted.el, statements, names);
-    // Template markup excludes event props; templateOp pre-escapes text for innerHTML parsing.
-    this.hoistTemplate(mounted.template, foldStaticOp(templateOp(op), false));
-    return mounted.el;
   }
 
   /** Dispatches an element's children; nested elements compose the locator path. */
@@ -254,12 +264,15 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         }
         case OpKind.Element: {
           if (!isFullyStaticSubtree(child)) {
-            this.walkChildren(
-              child,
-              childPathExpression(elementExpr, nodeIndex, nodeCount, this.imports),
-              statements,
-              names
-            );
+            const path = childPathExpression(elementExpr, nodeIndex, nodeCount, this.imports);
+            if (child.props.some((prop) => prop.k !== PropKind.Static)) {
+              const el = this.next(QwikGenWord.Element);
+              statements.push(`const ${el} = ${path};`);
+              this.elementProps(child, el, statements, names);
+              this.walkChildren(child, el, statements, names);
+            } else {
+              this.walkChildren(child, path, statements, names);
+            }
           }
           nodeIndex++;
           break;

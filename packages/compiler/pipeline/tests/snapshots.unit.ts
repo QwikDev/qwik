@@ -379,6 +379,25 @@ export default () => {
     });
   });
 
+  test('should wire a row event handler capturing the loop item', async () => {
+    await testInput(mode, 'collection-row-event', {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
+  const items = useSignal([{ id: 'a' }]);
+  return (
+    <ul>
+      {items.value.map((item) => (
+        <li key={item.id}>
+          <button onClick$={() => console.log(item.id)}>x</button>
+        </li>
+      ))}
+    </ul>
+  );
+};
+`,
+    });
+  });
+
   test('should render an expression hole capturing a signal', async () => {
     await testInput(mode, 'expression-hole-signal', {
       code: `import { useSignal } from '@qwik.dev/core';

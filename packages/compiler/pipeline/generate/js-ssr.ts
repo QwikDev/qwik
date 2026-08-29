@@ -204,7 +204,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       throw new UnsupportedError('a collection row without an element root');
     }
     const { emission, names } = this.renderEmission(qrl, { rootMarker: QwikAttr.Row });
-    if (emission.statements.length > 0) {
+    if (emission.statements.length > 0 || qrl.params.used.length > 0) {
       // Unused trailing slots keep placeholder names; unused loop params are dropped.
       const loopParams = qrl.params.used.map((binding) => this.module.bindings[binding].name);
       emission.params = [names.ctx, '__rangeId', '__rowId', ...loopParams];
@@ -257,13 +257,16 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     emission.imports = new Set([QwikWord.NoopQrl, ...emission.imports]);
     for (const usage of emission.uses) {
       const nested = usage.qrl;
-      emission.chunkImports.push(
-        `import { ${nested.name} } from ${JSON.stringify(`./${chunkCanonicalFilename(this.module, nested)}`)};`
-      );
       emission.hoists.push(
         `const q_${nested.name} = /*#__PURE__*/ ${QwikWord.NoopQrl}(${JSON.stringify(nested.name)});`
       );
-      emission.hoists.push(`q_${nested.name}.s(${nested.name});`);
+      // Only invoked uses need the function itself; references stay name-only.
+      if (usage.invoked) {
+        emission.chunkImports.push(
+          `import { ${nested.name} } from ${JSON.stringify(`./${chunkCanonicalFilename(this.module, nested)}`)};`
+        );
+        emission.hoists.push(`q_${nested.name}.s(${nested.name});`);
+      }
     }
     return emission;
   }

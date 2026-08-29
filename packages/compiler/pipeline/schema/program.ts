@@ -112,7 +112,7 @@ export type Op =
       source: { s: EachSourceKind; value: Value };
       key: Value | null;
       row:
-        | { r: RowKind.Chunk; program: ProgramId }
+        | { r: RowKind.Chunk; use: QrlUse }
         /** The row symbol is generator-owned; `renderId` links declaration and call site. */
         | { r: RowKind.Inline; program: ProgramId; renderId: string };
       usesIndexSignal: boolean;

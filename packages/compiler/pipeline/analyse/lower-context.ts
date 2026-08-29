@@ -15,6 +15,7 @@ export interface LowerContext {
   segmentCounter: { next: number };
   /** Branch seed ordinals, allocated in authored order. */
   branchCounter: { next: number };
+  forCounter: { next: number };
   bindingNames: ReadonlySet<string>;
   /** Local binding → imported name for `@qwik.dev/core` imports. */
   coreBindings: ReadonlyMap<string, string>;
@@ -38,6 +39,7 @@ export function createLowerContext(
     sourceIdentity: createSegmentSourceIdentity(path, scope),
     segmentCounter: { next: 0 },
     branchCounter: { next: 0 },
+    forCounter: { next: 0 },
     bindingNames: new Set(plan.bindings.map((binding) => binding.name)),
     coreBindings,
     propsParamName: null,
@@ -67,8 +69,17 @@ export function pushPayload(ctx: LowerContext, range: Range): number {
   return ctx.plan.payloads.length - 1;
 }
 
+export const enum QrlIdentityKind {
+  /** Allocated a `segment_N` id and hashed wire symbol. */
+  Segment = 'segment',
+  /** An authored declaration carries its own id and name (components). */
+  Declared = 'declared',
+}
+
 type QrlInput = Omit<Qrl, 'id' | 'parent' | 'name' | 'markerAttributes' | 'propsParts'> & {
-  identity: { kind: 'segment'; nameCtx: string } | { kind: 'declared'; id: string; name: string };
+  identity:
+    | { kind: QrlIdentityKind.Segment; nameCtx: string }
+    | { kind: QrlIdentityKind.Declared; id: string; name: string };
 };
 
 /** Adds every QRL through the same definition/use boundary. */
@@ -78,7 +89,8 @@ export function pushQrl(
   args: QrlUse['args'] = []
 ): { index: number; use: QrlUse } {
   const { identity, ...fields } = input;
-  const resolved = identity.kind === 'segment' ? allocateSegment(ctx, identity.nameCtx) : identity;
+  const resolved =
+    identity.kind === QrlIdentityKind.Segment ? allocateSegment(ctx, identity.nameCtx) : identity;
   const qrl: Qrl = {
     ...fields,
     id: resolved.id,

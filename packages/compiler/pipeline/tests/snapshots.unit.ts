@@ -357,6 +357,17 @@ export default () => {
     });
   });
 
+  test('should render a keyed collection with a static item', async () => {
+    await testInput(mode, 'collection-static-item', {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
+  const items = useSignal([{ id: 'a' }]);
+  return <ul>{items.value.map((item) => <li key={item.id}>Item</li>)}</ul>;
+};
+`,
+    });
+  });
+
   test('should render an expression hole capturing a signal', async () => {
     await testInput(mode, 'expression-hole-signal', {
       code: `import { useSignal } from '@qwik.dev/core';

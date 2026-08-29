@@ -9,6 +9,8 @@ import {
   OpKind,
   PropKind,
   ProgramBodyKind,
+  RowKind,
+  Shape,
   ValueKind,
   type LinkedModule,
   type LinkedPlan,
@@ -16,14 +18,16 @@ import {
   type Op,
   type Prop,
   type QrlUse,
+  type Value,
 } from '../schema';
-import { QwikGenWord, QwikWord } from '../words';
+import { QwikAttr, QwikGenWord, QwikWord, SegmentContext } from '../words';
 import { escapeAttr, serializeAttrValue } from '../html';
 import { UnsupportedError } from '../errors';
 import { generateQwikModule, type QwikModuleEmitter } from './assemble-module';
 import {
   captureNames,
   capturePrelude,
+  rowShapeCode,
   chunkCanonicalFilename,
   emptyFunctionEmission,
   functionText,
@@ -121,6 +125,16 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     this.statements = emitJsSetup(this.module, program, this.imports);
     this.asyncSteps = [];
     this.next = createNameAllocator(this.module);
+    if (qrl.ctxName === SegmentContext.ForRender) {
+      const root = body.ops[0];
+      if (body.ops.length !== 1 || root.op !== OpKind.Element || !isFullyStaticSubtree(root)) {
+        throw new UnsupportedError('a dynamic collection row');
+      }
+      // The reconciler finds row roots by the q:row marker on the row's root element.
+      const html = foldStaticOp(root, false);
+      const marked = `<${root.tag} ${QwikAttr.Row}${html.slice(root.tag.length + 1)}`;
+      return { statements: this.statements, value: JSON.stringify(marked), rangeIdParam: null };
+    }
     const rootRange: SsrRootRange | null =
       qrl.boundary.kind === BoundaryKind.Implicit && qrl.boundary.role === 'branch'
         ? { idParam: null, markerIndex: 0 }
@@ -253,7 +267,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     pushMergedStatic(parts, `<${op.tag}`);
     if (idVariable !== null) {
       this.imports.add(QwikWord.CreateSsrNodeId);
-      pushMergedStatic(parts, ` q:id="`);
+      pushMergedStatic(parts, ` ${QwikAttr.Id}="`);
       parts.push(`${QwikWord.CreateSsrNodeId}(${idVariable})`);
       pushMergedStatic(parts, `"`);
     }
@@ -295,6 +309,10 @@ class SsrModuleEmitter implements QwikModuleEmitter {
           this.branch(child, parts);
           break;
         }
+        case OpKind.Each: {
+          this.each(child, parts);
+          break;
+        }
         default: {
           if (!isFullyStaticSubtree(child)) {
             throw new UnsupportedError('a dynamic child inside an element record');
@@ -306,6 +324,44 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     if (!op.void) {
       pushMergedStatic(parts, `</${op.tag}>`);
     }
+  }
+
+  /** A collection renders between `<!f=N>`…`<!/f>` markers; rows reconcile by key. */
+  private each(op: Extract<Op, { op: OpKind.Each }>, parts: string[]): void {
+    const idVariable = this.next(QwikGenWord.CollectionId);
+    this.statements.push(`const ${idVariable} = ${this.names.ctx}.nextId();`);
+    if (op.source.value.v !== ValueKind.Read) {
+      throw new UnsupportedError('a non-signal collection source');
+    }
+    const source = signalReadName(this.module, op.source.value.expr);
+    if (op.row.r !== RowKind.Chunk) {
+      throw new UnsupportedError('an inline collection row');
+    }
+    // Registration order fixes the mirror order: render first, key second.
+    const render = this.useQrl(op.row.use, true);
+    const key = op.key === null ? null : this.useQrl(this.qrlValueUse(op.key), true);
+    this.imports.add(QwikWord.RenderSsrCollection);
+    const step = this.next(QwikGenWord.Collection);
+    // Element-shaped rows wear the q:row marker, so the runtime needs no per-row id.
+    const usesRowId = op.shape !== Shape.Element;
+    this.pushStep(
+      step,
+      [source, ...render.args, ...(key?.args ?? [])],
+      `${QwikWord.RenderSsrCollection}(${this.names.ctx}, ${idVariable}, ${source}, ${key?.ref ?? 'undefined'}, ${render.ref}, ${op.usesIndexSignal}, '', ${usesRowId}, ${rowShapeCode(op.shape)})`
+    );
+    pushMergedStatic(parts, '<!f=');
+    this.imports.add(QwikWord.CreateSsrNodeId);
+    parts.push(`${QwikWord.CreateSsrNodeId}(${idVariable})`);
+    pushMergedStatic(parts, '>');
+    parts.push(step);
+    pushMergedStatic(parts, '<!/f>');
+  }
+
+  private qrlValueUse(value: Value): QrlUse {
+    if (value.v !== ValueKind.Qrl) {
+      throw new UnsupportedError(`the value "${value.v}" as a QRL reference`);
+    }
+    return value.use;
   }
 
   /** A branch renders between `<!b=N>`…`<!/b>` markers; arms swap on the client by range. */

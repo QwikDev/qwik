@@ -5,6 +5,8 @@ export const QWIK_CORE_IMPORT = '@qwik.dev/core';
 /** Runtime names imported from `@qwik.dev/core`. */
 export const enum QwikWord {
   // csr
+  CreateCollection = 'createCollection',
+  CreateElementTemplate = '_createElementTemplate',
   CreateTemplate = 'createTemplate',
   FirstChild = '_first',
   LastChild = '_last',
@@ -29,6 +31,7 @@ export const enum QwikWord {
   EscapeHTML = 'escapeHTML',
   RenderSsrTextExpression = 'renderSsrTextExpression',
   RenderSsrTextNode = 'renderSsrTextNode',
+  RenderSsrCollection = 'renderSsrCollection',
   RenderSsrBranch = 'renderSsrBranch',
   MaybeThen = 'maybeThen',
   // shared
@@ -47,6 +50,8 @@ export const enum QwikGenWord {
   Marker = 'marker',
   Branch = 'branch',
   BranchId = 'branchId',
+  Collection = 'collection',
+  CollectionId = 'collectionId',
   RangeId = 'rangeId',
   Start = 'start',
   End = 'end',
@@ -58,4 +63,21 @@ export const enum QwikGenWord {
 /** Authored hook names recognized in component setup. */
 export const enum QwikHook {
   UseSignal = 'useSignal',
+}
+
+/** Compiler-invented segment contexts — the exact legacy strings; authored names stay plain. */
+/** Qwik marker attributes the generators stamp into markup. */
+export const enum QwikAttr {
+  Id = 'q:id',
+  Row = 'q:row',
+}
+
+export const enum SegmentContext {
+  Text = 'text',
+  BranchCondition = 'branch:condition',
+  BranchThen = 'branch:then',
+  BranchElse = 'branch:else',
+  ForKey = 'for:key',
+  ForRender = 'for:render',
+  CollectionSource = 'collection:source',
 }

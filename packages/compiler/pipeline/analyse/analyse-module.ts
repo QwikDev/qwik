@@ -22,7 +22,7 @@ import { parseModule } from './ast/parse';
 import { scanCoreImports } from './core-imports';
 import { discoverComponents } from './discover';
 import { lowerSetup } from './lower-setup';
-import { createLowerContext, pushQrl } from './lower-context';
+import { createLowerContext, pushQrl, QrlIdentityKind } from './lower-context';
 import { lowerJsx } from './lower-jsx';
 import { normalizeSource } from './normalize';
 import { emptyPlan } from './plan';
@@ -151,7 +151,7 @@ export async function analyseModule(
     // A component IS a QRL: a Program body plus an authored declaration to splice over.
     const { index: qrlIndex } = pushQrl(lowerContext, {
       identity: {
-        kind: 'declared',
+        kind: QrlIdentityKind.Declared,
         id: `${input.path}#${component.name}`,
         name: component.name,
       },

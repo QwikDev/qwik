@@ -1,5 +1,6 @@
 import type { Expression } from 'oxc-parser';
 import { OpKind, Shape, type Op } from '../schema';
+import { SegmentContext } from '../words';
 import { identifierName, unwrapExpression } from './ast/utils';
 import { lowerExpressionValue } from './lower-expr';
 import type { LowerContext } from './lower-context';
@@ -45,7 +46,7 @@ export function lowerText(expression: Expression, ctx: LowerContext): Op[] {
 function createTextHole(expression: Expression, ctx: LowerContext): Op {
   return {
     op: OpKind.Hole,
-    value: lowerExpressionValue(expression, ctx, 'text'),
+    value: lowerExpressionValue(expression, ctx, SegmentContext.Text),
     shape: Shape.Text,
     effect: null,
   };

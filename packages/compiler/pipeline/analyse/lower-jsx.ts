@@ -10,6 +10,7 @@ import { lowerBranch } from './lower-branch';
 import { unwrapExpression } from './ast/utils';
 import { lowerExpressionValue } from './lower-expr';
 import type { LowerContext } from './lower-context';
+import { lowerArray } from './lower-array';
 
 /**
  * Lowers a JSX render tree to structural ops. Text stays RAW in the plan — each generator folds
@@ -22,7 +23,9 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
     throw new UnsupportedError('a non-native JSX tag');
   }
   const tag = nameNode.name;
-  const props = opening.attributes.map((attribute) => lowerAttribute(attribute, ctx));
+  const props = opening.attributes
+    .filter((attribute) => !isKeyAttribute(attribute))
+    .map((attribute) => lowerAttribute(attribute, ctx));
   const children: Op[] = [];
   for (const child of element.children) {
     children.push(...lowerChild(child, ctx));
@@ -113,6 +116,22 @@ function lowerChild(child: JSXChild, ctx: LowerContext): Op[] {
             ),
           ];
         }
+        case 'CallExpression': {
+          const callee = expression.callee;
+          const args = expression.arguments;
+          if (
+            callee.type === 'MemberExpression' &&
+            args.length === 1 &&
+            args[0].type === 'ArrowFunctionExpression'
+          ) {
+            const member = callee.property;
+            if (member.type === 'Identifier' && member.name === 'map') {
+              // handle array.map(fn) JSX children
+              return [lowerArray(expression, ctx)];
+            }
+          }
+          throw new UnsupportedError('a JSX child call expression');
+        }
         default:
           return lowerText(expression, ctx);
       }
@@ -120,6 +139,15 @@ function lowerChild(child: JSXChild, ctx: LowerContext): Op[] {
     default:
       throw new UnsupportedError(`JSX child ${child.type}`);
   }
+}
+
+/** `key` is framework-reserved — it feeds collection keying, never the rendered element. */
+function isKeyAttribute(attribute: JSXAttributeItem): boolean {
+  return (
+    attribute.type === 'JSXAttribute' &&
+    attribute.name.type === 'JSXIdentifier' &&
+    attribute.name.name === 'key'
+  );
 }
 
 function lowerAttribute(attribute: JSXAttributeItem, ctx: LowerContext): Prop {

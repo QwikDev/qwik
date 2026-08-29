@@ -2,6 +2,7 @@ import {
   ArgPass,
   CaptureAccess,
   FnBodyKind,
+  Shape,
   QrlPayloadKind,
   type LinkedModule,
   type LinkedQrl,
@@ -179,4 +180,18 @@ function chunkModuleCode(qrl: LinkedQrl, emission: FunctionEmission): string {
   const hoists = emission.hoists.length === 0 ? '' : `${emission.hoists.join('\n')}\n`;
   const separator = header === '' && hoists === '' ? '' : '\n';
   return `${header}${hoists}${separator}export const ${qrl.name} = ${functionText(emission)};\n`;
+}
+
+/** The runtime's RowOutputShape code for a row's plan Shape. */
+export function rowShapeCode(shape: Shape): number {
+  switch (shape) {
+    case Shape.Element:
+      return 0;
+    case Shape.Text:
+      return 1;
+    case Shape.Many:
+      return 2;
+    case Shape.Unknown:
+      return 3;
+  }
 }

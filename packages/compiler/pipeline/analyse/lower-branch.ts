@@ -14,9 +14,10 @@ import {
   type QrlUse,
   type Value,
 } from '../schema';
+import { SegmentContext } from '../words';
 import { lowerCaptures } from './ast/capture-analysis';
 import { unwrapExpression } from './ast/utils';
-import { pushPayload, pushQrl, type LowerContext } from './lower-context';
+import { pushPayload, pushQrl, QrlIdentityKind, type LowerContext } from './lower-context';
 import { lowerText } from './lower-hole';
 import { lowerJsx } from './lower-jsx';
 
@@ -44,12 +45,18 @@ export function lowerBranch(
     owner: LifetimeOwner.Branch,
     commit: LifetimeCommit.Immediate,
   });
-  const thenProgram = lowerArm(thenArm.expression, thenArm.range, ctx, 'branch:then', lifetime);
+  const thenProgram = lowerArm(
+    thenArm.expression,
+    thenArm.range,
+    ctx,
+    SegmentContext.BranchThen,
+    lifetime
+  );
   // A null-literal (or absent, for `&&`) else arm is DROPPED — no program, no chunk.
   const elseProgram =
     elseArm === null || elseArm.expression === null
       ? null
-      : lowerArm(elseArm.expression, elseArm.range, ctx, 'branch:else', lifetime);
+      : lowerArm(elseArm.expression, elseArm.range, ctx, SegmentContext.BranchElse, lifetime);
   return {
     op: OpKind.Branch,
     condition,
@@ -68,8 +75,8 @@ function lowerCondition(test: Expression, ctx: LowerContext): Value {
   const { use } = pushQrl(
     ctx,
     {
-      identity: { kind: 'segment', nameCtx: 'branch:condition' },
-      ctxName: 'branch:condition',
+      identity: { kind: QrlIdentityKind.Segment, nameCtx: SegmentContext.BranchCondition },
+      ctxName: SegmentContext.BranchCondition,
       boundary: { kind: BoundaryKind.Implicit, role: 'branch' },
       payloadKind: QrlPayloadKind.Function,
       authoredAsync: false,
@@ -96,7 +103,7 @@ function lowerArm(
   expression: Expression | null,
   range: [number, number],
   ctx: LowerContext,
-  nameCtx: string,
+  nameCtx: SegmentContext,
   lifetime: number
 ): QrlUse {
   const loweredCaptures =
@@ -116,7 +123,7 @@ function lowerArm(
   const { use } = pushQrl(
     ctx,
     {
-      identity: { kind: 'segment', nameCtx },
+      identity: { kind: QrlIdentityKind.Segment, nameCtx },
       ctxName: nameCtx,
       boundary: { kind: BoundaryKind.Implicit, role: 'branch' },
       payloadKind: QrlPayloadKind.Function,

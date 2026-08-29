@@ -11,7 +11,7 @@ import {
 import type { JSXAttribute } from 'oxc-parser';
 import { lowerCaptures } from './ast/capture-analysis';
 import { UnsupportedError } from '../errors';
-import { pushPayload, pushQrl, type LowerContext } from './lower-context';
+import { pushPayload, pushQrl, QrlIdentityKind, type LowerContext } from './lower-context';
 
 /** `on…$` attribute → an event prop referencing an implicit function QRL. */
 export function lowerEventAttribute(
@@ -48,7 +48,7 @@ export function lowerEventAttribute(
   const { use } = pushQrl(
     ctx,
     {
-      identity: { kind: 'segment', nameCtx: scope },
+      identity: { kind: QrlIdentityKind.Segment, nameCtx: scope },
       ctxName: authored,
       boundary: { kind: BoundaryKind.Implicit, role: 'event' },
       payloadKind: QrlPayloadKind.Function,

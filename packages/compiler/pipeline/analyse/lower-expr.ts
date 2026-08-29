@@ -13,7 +13,7 @@ import { identifierName } from './ast/utils';
 import { findRuntimeJsx } from './ast/returns-jsx';
 import { lowerCaptures } from './ast/capture-analysis';
 import { UnsupportedError } from '../errors';
-import { pushPayload, pushQrl, type LowerContext } from './lower-context';
+import { pushPayload, pushQrl, QrlIdentityKind, type LowerContext } from './lower-context';
 import { LocalKind } from './lower-setup';
 import type { Expression } from 'oxc-parser';
 
@@ -53,7 +53,7 @@ export function lowerExpressionValue(
       const { use } = pushQrl(
         ctx,
         {
-          identity: { kind: 'segment', nameCtx },
+          identity: { kind: QrlIdentityKind.Segment, nameCtx },
           ctxName: nameCtx,
           boundary: { kind: BoundaryKind.Implicit, role: 'expression' },
           payloadKind: QrlPayloadKind.Value,
@@ -84,7 +84,10 @@ export function lowerExpressionValue(
 }
 
 /** `count.value` where `count` is a component signal local — a subscription, not a QRL. */
-function trySignalReadValue(expression: Expression, ctx: LowerContext): ReactiveValue | null {
+export function trySignalReadValue(
+  expression: Expression,
+  ctx: LowerContext
+): ReactiveValue | null {
   if (expression.type !== 'MemberExpression' || expression.computed) {
     return null;
   }

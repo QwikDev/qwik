@@ -7,6 +7,7 @@ import {
   PropKind,
   ProgramBodyKind,
   QrlBodyKind,
+  RowKind,
   ValueKind,
   type LinkedModule,
   type LinkedPlan,
@@ -14,12 +15,14 @@ import {
   type Op,
   type Prop,
 } from '../schema';
-import { QwikWord, QwikGenWord } from '../words';
+import { QwikWord, QwikGenWord, SegmentContext } from '../words';
 import { UnsupportedError } from '../errors';
 import { generateQwikModule, type QwikModuleEmitter } from './assemble-module';
 import {
   captureNames,
   capturePrelude,
+  emptyFunctionEmission,
+  rowShapeCode,
   chunkCanonicalFilename,
   qrlPropsName,
   resolveQrlUse,
@@ -231,9 +234,9 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     statements: string[],
     names: GeneratedNames
   ): void {
-    // Branches occupy TWO template nodes (their start/end comment pair).
+    // Branches and collections occupy TWO template nodes (their start/end comment pair).
     const nodeCount = op.children.reduce(
-      (count, child) => count + (child.op === OpKind.Branch ? 2 : 1),
+      (count, child) => count + (child.op === OpKind.Branch || child.op === OpKind.Each ? 2 : 1),
       0
     );
     let nodeIndex = 0;
@@ -261,6 +264,11 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         }
         case OpKind.Branch: {
           this.branch(child, elementExpr, nodeIndex, nodeCount, statements, names);
+          nodeIndex += 2;
+          break;
+        }
+        case OpKind.Each: {
+          this.each(child, elementExpr, nodeIndex, nodeCount, statements, names);
           nodeIndex += 2;
           break;
         }
@@ -307,6 +315,44 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     statements.push(`${names.ctx}.scheduler.notify(${branch});`);
   }
 
+  /** Rows reconcile between the start/end pair; key and render chunks import statically. */
+  private each(
+    op: Extract<Op, { op: OpKind.Each }>,
+    elementExpr: string,
+    nodeIndex: number,
+    nodeCount: number,
+    statements: string[],
+    names: GeneratedNames
+  ): void {
+    const start = this.next(QwikGenWord.Start);
+    statements.push(
+      `const ${start} = ${childPathExpression(elementExpr, nodeIndex, nodeCount, this.imports)};`
+    );
+    const end = this.next(QwikGenWord.End);
+    this.imports.add(QwikWord.NextSibling);
+    statements.push(`const ${end} = ${QwikWord.NextSibling}(${start});`);
+    if (op.source.value.v !== ValueKind.Read) {
+      throw new UnsupportedError('a non-signal collection source');
+    }
+    const source = signalReadName(this.module, op.source.value.expr);
+    if (op.row.r !== RowKind.Chunk) {
+      throw new UnsupportedError('an inline collection row');
+    }
+    // Import order matches the seed: render chunk first, key second.
+    const render = this.chunkSymbol(resolveQrlUse(this.module, op.row.use, names.props).qrl);
+    if (op.key !== null && op.key.v !== ValueKind.Qrl) {
+      throw new UnsupportedError('a non-QRL collection key');
+    }
+    const key =
+      op.key === null
+        ? 'null'
+        : this.chunkSymbol(resolveQrlUse(this.module, op.key.use, names.props).qrl);
+    this.imports.add(QwikWord.CreateCollection);
+    statements.push(
+      `${names.ctx}.scheduler.waitFor(${QwikWord.CreateCollection}(${names.ctx}, ${start}, ${end}, ${source}, ${key}, ${render}, ${op.usesIndexSignal}, '', ${rowShapeCode(op.shape)}));`
+    );
+  }
+
   /** A lazy arm ref wears its captures via `.w([...])` — restored from `_captures` in the chunk. */
   private armReference(use: Extract<Op, { op: OpKind.Branch }>['then'], propsName: string): string {
     const resolved = resolveQrlUse(this.module, use, propsName);
@@ -323,6 +369,9 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       case QrlBodyKind.Task:
         throw new UnsupportedError('a task QRL body');
       case QrlBodyKind.Program: {
+        if (qrl.ctxName === SegmentContext.ForRender) {
+          return this.rowFunction(qrl);
+        }
         // A fresh emitter keeps the render's imports/hoists out of the main module.
         const emitter = new CsrModuleEmitter(this.module);
         const names = {
@@ -348,6 +397,32 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         };
       }
     }
+  }
+
+  /** A row mounts through an element template — the root element IS the return value. */
+  private rowFunction(qrl: LinkedQrl): FunctionEmission {
+    if (qrl.body.b !== QrlBodyKind.Program) {
+      throw new UnsupportedError('a non-program collection row');
+    }
+    const body = this.module.programs[qrl.body.program].body;
+    if (body.kind !== ProgramBodyKind.Ops) {
+      throw new UnsupportedError('a js-bodied collection row');
+    }
+    const root = body.ops[0];
+    if (body.ops.length !== 1 || root.op !== OpKind.Element || !isFullyStaticSubtree(root)) {
+      throw new UnsupportedError('a dynamic collection row');
+    }
+    const emission = emptyFunctionEmission();
+    const template = `${qrl.name}_${QwikGenWord.Template}0`;
+    emission.imports.add(QwikWord.CreateElementTemplate);
+    emission.hoists.push(
+      `const ${template} = ${QwikWord.CreateElementTemplate}(${JSON.stringify(foldStaticOp(root, true))});`
+    );
+    const el = `${QwikGenWord.Element}0`;
+    emission.params = [QwikGenWord.ComponentContext];
+    emission.statements = [`const ${el} = ${template}(${QwikGenWord.ComponentContext}.document);`];
+    emission.value = el;
+    return emission;
   }
 
   /** CSR nested references are direct symbol imports (chunkImports) — nothing left to satisfy. */
@@ -546,7 +621,8 @@ function templateOp(op: Extract<Op, { op: OpKind.Element }>): Op {
         case OpKind.Static:
           return { ...child, html: escapeText(child.html) };
         case OpKind.Branch:
-          // The branch's start/end comment pair.
+        case OpKind.Each:
+          // The boundary's start/end comment pair.
           return { op: OpKind.Static as const, html: '<!----><!---->' };
         default:
           return child;

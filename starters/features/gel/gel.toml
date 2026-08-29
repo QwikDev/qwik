@@ -1,0 +1,7 @@
+watch = []
+
+[instance]
+server-version = "6.7"
+
+[hooks]
+schema.update.after = "pnpm generate queries --file"

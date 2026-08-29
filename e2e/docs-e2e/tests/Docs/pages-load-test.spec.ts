@@ -102,6 +102,7 @@ test('docs page loads', async ({ page }) => {
     'Builder.io',
     'Cypress',
     'Drizzle',
+    'Gel',
     'i18n',
     'Icons',
     'Image Optimization',

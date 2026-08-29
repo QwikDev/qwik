@@ -1,0 +1,33 @@
+# This file contains Gel extensions used by the project.
+# Uncomment the `using extension ...` below to enable them.
+
+
+# Gel Auth is a batteries-included authentication solution
+# for your app built into the Gel server.
+#
+# See: https://docs.geldata.com/reference/auth
+#
+#using extension auth;
+
+
+# Gel AI is a set of tools designed to enable you to ship
+# AI-enabled apps with practically no effort.
+#
+# See: https://docs.geldata.com/reference/ai
+#
+#using extension ai;
+
+
+# The `ext::postgis` extension exposes the functionality of the 
+# PostGIS library. It is a vast library dedicated to handling
+# geographic and various geometric data. The scope of the Gel
+# extension is to mainly adapt the types and functions used in
+# this library with minimal changes.
+#
+# See: https://docs.geldata.com/reference/stdlib/postgis
+#
+# `ext::postgis` is not installed by default, use the command
+# `gel extension` to manage its installation, then uncomment
+# the line below to enable it.
+#
+#using extension postgis;

@@ -82,6 +82,8 @@ interface QrlUsage {
 
 interface SsrProgramEmission extends ComponentEmission {
   rangeIdParam: string | null;
+  /** The rendered value references `ctx` (e.g. event attr parts) even without statements. */
+  needsContext: boolean;
 }
 
 type SsrTextTarget =
@@ -91,6 +93,16 @@ type SsrTextTarget =
 interface SsrRootRange {
   idParam: string | null;
   markerIndex: number;
+}
+
+/** Everything one render pass accumulates — created in renderProgram, threaded explicitly. */
+interface RenderPass {
+  names: GeneratedNames;
+  statements: string[];
+  asyncSteps: string[];
+  next: (prefix: string) => string;
+  /** The rendered value references `ctx` (e.g. event attr parts) even without statements. */
+  usedCtx: boolean;
 }
 
 /** Per-kind needs the emission wrappers state explicitly — the core never inspects the QRL. */
@@ -106,10 +118,6 @@ class SsrModuleEmitter implements QwikModuleEmitter {
   readonly chunkImports: string[] = [];
   readonly hoists: string[] = [];
   private readonly usedQrls = new Map<string, QrlUsage>();
-  private statements: string[] = [];
-  private asyncSteps: string[] = [];
-  private next!: (prefix: string) => string;
-  private names!: GeneratedNames;
 
   constructor(private readonly module: LinkedModule) {}
 
@@ -134,29 +142,33 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     if (body.kind !== ProgramBodyKind.Ops) {
       throw new Error('pipeline.generateJsSsr: js-bodied programs not implemented yet');
     }
-    this.names = names;
-    this.statements = emitJsSetup(this.module, program, this.imports);
-    this.asyncSteps = [];
-    this.next = createNameAllocator(this.module);
+    const pass: RenderPass = {
+      names,
+      statements: emitJsSetup(this.module, program, this.imports),
+      asyncSteps: [],
+      next: createNameAllocator(this.module),
+      usedCtx: false,
+    };
     const rootRange: SsrRootRange | null = options.rootRange
       ? { idParam: null, markerIndex: 0 }
       : null;
     const parts: string[] = [];
     for (const op of body.ops) {
-      this.op(op, parts, rootRange, options.rootMarker ?? null);
+      this.op(pass, op, parts, rootRange, options.rootMarker ?? null);
     }
     let value = parts.length === 0 ? "''" : parts.length === 1 ? parts[0] : `[${parts.join(', ')}]`;
-    if (this.asyncSteps.length > 0) {
+    if (pass.asyncSteps.length > 0) {
       this.imports.add(QwikWord.MaybeThen);
-      value = this.asyncSteps.reduceRight(
+      value = pass.asyncSteps.reduceRight(
         (inner, step) => `${QwikWord.MaybeThen}(${step}, (${step}) => ${inner})`,
         value
       );
     }
     return {
-      statements: this.statements,
+      statements: pass.statements,
       value,
       rangeIdParam: rootRange?.idParam ?? null,
+      needsContext: pass.usedCtx || pass.statements.length > 0,
     };
   }
 
@@ -203,11 +215,13 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     if (ops.length !== 1 || ops[0].op !== OpKind.Element) {
       throw new UnsupportedError('a collection row without an element root');
     }
-    const { emission, names } = this.renderEmission(qrl, { rootMarker: QwikAttr.Row });
-    if (emission.statements.length > 0 || qrl.params.used.length > 0) {
+    const { emission, core, names } = this.renderEmission(qrl, { rootMarker: QwikAttr.Row });
+    if (qrl.params.used.length > 0) {
       // Unused trailing slots keep placeholder names; unused loop params are dropped.
       const loopParams = qrl.params.used.map((binding) => this.module.bindings[binding].name);
       emission.params = [names.ctx, '__rangeId', '__rowId', ...loopParams];
+    } else if (core.needsContext) {
+      emission.params = [names.ctx];
     }
     return emission;
   }
@@ -272,6 +286,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
   }
 
   private op(
+    pass: RenderPass,
     op: Op,
     parts: string[],
     rootRange: SsrRootRange | null,
@@ -288,20 +303,17 @@ class SsrModuleEmitter implements QwikModuleEmitter {
           pushMergedStatic(parts, foldStaticOp(op, false));
           return;
         }
-        this.element(op, parts, rootMarker);
+        this.element(pass, op, parts, rootMarker);
         return;
       case OpKind.Hole:
         if (rootRange === null) {
           throw new UnsupportedError('a root text hole outside a range');
         }
-        rootRange.idParam ??= this.next(QwikGenWord.RangeId);
+        rootRange.idParam ??= pass.next(QwikGenWord.RangeId);
         this.textHole(
+          pass,
           op,
-          {
-            kind: 'range',
-            id: rootRange.idParam,
-            markerIndex: rootRange.markerIndex++,
-          },
+          { kind: 'range', id: rootRange.idParam, markerIndex: rootRange.markerIndex++ },
           parts
         );
         return;
@@ -311,6 +323,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
   }
 
   private element(
+    pass: RenderPass,
     op: Extract<Op, { op: OpKind.Element }>,
     parts: string[],
     /** Stamped into this element's open tag — a row root's `q:row`. */
@@ -318,9 +331,9 @@ class SsrModuleEmitter implements QwikModuleEmitter {
   ): void {
     const holes = op.children.filter((child) => child.op === OpKind.Hole);
     const hasDynamicProps = op.props.some((prop) => prop.k === PropKind.Dynamic);
-    const idVariable = holes.length > 0 || hasDynamicProps ? this.next(QwikGenWord.Id) : null;
+    const idVariable = holes.length > 0 || hasDynamicProps ? pass.next(QwikGenWord.Id) : null;
     if (idVariable !== null) {
-      this.statements.push(`const ${idVariable} = ${this.names.ctx}.nextId();`);
+      pass.statements.push(`const ${idVariable} = ${pass.names.ctx}.nextId();`);
     }
     pushMergedStatic(parts, `<${op.tag}`);
     if (idVariable !== null) {
@@ -333,7 +346,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       pushMergedStatic(parts, ` ${rootMarker}`);
     }
     for (const prop of op.props) {
-      this.prop(prop, parts, idVariable);
+      this.prop(pass, prop, parts, idVariable);
     }
     pushMergedStatic(parts, '>');
 
@@ -346,6 +359,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         }
         case OpKind.Hole: {
           this.textHole(
+            pass,
             child,
             op.children.length > 1
               ? {
@@ -362,16 +376,16 @@ class SsrModuleEmitter implements QwikModuleEmitter {
           if (isFullyStaticSubtree(child)) {
             pushMergedStatic(parts, foldStaticOp(child, false));
           } else {
-            this.element(child, parts);
+            this.element(pass, child, parts);
           }
           break;
         }
         case OpKind.Branch: {
-          this.branch(child, parts);
+          this.branch(pass, child, parts);
           break;
         }
         case OpKind.Each: {
-          this.each(child, parts);
+          this.each(pass, child, parts);
           break;
         }
         default: {
@@ -388,9 +402,9 @@ class SsrModuleEmitter implements QwikModuleEmitter {
   }
 
   /** A collection renders between `<!f=N>`…`<!/f>` markers; rows reconcile by key. */
-  private each(op: Extract<Op, { op: OpKind.Each }>, parts: string[]): void {
-    const idVariable = this.next(QwikGenWord.CollectionId);
-    this.statements.push(`const ${idVariable} = ${this.names.ctx}.nextId();`);
+  private each(pass: RenderPass, op: Extract<Op, { op: OpKind.Each }>, parts: string[]): void {
+    const idVariable = pass.next(QwikGenWord.CollectionId);
+    pass.statements.push(`const ${idVariable} = ${pass.names.ctx}.nextId();`);
     if (op.source.value.v !== ValueKind.Read) {
       throw new UnsupportedError('a non-signal collection source');
     }
@@ -399,16 +413,17 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       throw new UnsupportedError('an inline collection row');
     }
     // Registration order fixes the mirror order: render first, key second.
-    const render = this.useQrl(op.row.use, true);
-    const key = op.key === null ? null : this.useQrl(this.qrlValueUse(op.key), true);
+    const render = this.useQrl(pass, op.row.use, true);
+    const key = op.key === null ? null : this.useQrl(pass, this.qrlValueUse(op.key), true);
     this.imports.add(QwikWord.RenderSsrCollection);
-    const step = this.next(QwikGenWord.Collection);
+    const step = pass.next(QwikGenWord.Collection);
     // Element-shaped rows wear the q:row marker, so the runtime needs no per-row id.
     const usesRowId = op.shape !== Shape.Element;
     this.pushStep(
+      pass,
       step,
       [source, ...render.args, ...(key?.args ?? [])],
-      `${QwikWord.RenderSsrCollection}(${this.names.ctx}, ${idVariable}, ${source}, ${key?.ref ?? 'undefined'}, ${render.ref}, ${op.usesIndexSignal}, '', ${usesRowId}, ${rowShapeCode(op.shape)})`
+      `${QwikWord.RenderSsrCollection}(${pass.names.ctx}, ${idVariable}, ${source}, ${key?.ref ?? 'undefined'}, ${render.ref}, ${op.usesIndexSignal}, '', ${usesRowId}, ${rowShapeCode(op.shape)})`
     );
     pushMergedStatic(parts, '<!f=');
     this.imports.add(QwikWord.CreateSsrNodeId);
@@ -426,21 +441,22 @@ class SsrModuleEmitter implements QwikModuleEmitter {
   }
 
   /** A branch renders between `<!b=N>`…`<!/b>` markers; arms swap on the client by range. */
-  private branch(op: Extract<Op, { op: OpKind.Branch }>, parts: string[]): void {
-    const idVariable = this.next(QwikGenWord.BranchId);
-    this.statements.push(`const ${idVariable} = ${this.names.ctx}.nextId();`);
+  private branch(pass: RenderPass, op: Extract<Op, { op: OpKind.Branch }>, parts: string[]): void {
+    const idVariable = pass.next(QwikGenWord.BranchId);
+    pass.statements.push(`const ${idVariable} = ${pass.names.ctx}.nextId();`);
     if (op.condition.v !== ValueKind.Qrl) {
       throw new UnsupportedError('a non-QRL branch condition');
     }
-    const { ref: condition, args } = this.useQrl(op.condition.use, true);
-    const thenArm = this.useQrl(op.then, true);
-    const elseArm = op.else === null ? null : this.useQrl(op.else, true);
+    const { ref: condition, args } = this.useQrl(pass, op.condition.use, true);
+    const thenArm = this.useQrl(pass, op.then, true);
+    const elseArm = op.else === null ? null : this.useQrl(pass, op.else, true);
     this.imports.add(QwikWord.RenderSsrBranch);
-    const step = this.next(QwikGenWord.Branch);
+    const step = pass.next(QwikGenWord.Branch);
     this.pushStep(
+      pass,
       step,
       [...args, ...thenArm.args, ...(elseArm?.args ?? [])],
-      `${QwikWord.RenderSsrBranch}(${this.names.ctx}, ${idVariable}, ${condition}, ${thenArm.ref}, ${elseArm?.ref ?? 'undefined'})`
+      `${QwikWord.RenderSsrBranch}(${pass.names.ctx}, ${idVariable}, ${condition}, ${thenArm.ref}, ${elseArm?.ref ?? 'undefined'})`
     );
     pushMergedStatic(parts, '<!b=');
     this.imports.add(QwikWord.CreateSsrNodeId);
@@ -451,6 +467,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
   }
 
   private textHole(
+    pass: RenderPass,
     op: Extract<Op, { op: OpKind.Hole }>,
     target: SsrTextTarget,
     parts: string[]
@@ -465,7 +482,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         : QwikWord.CreateSsrElementTextTarget
     );
     this.imports.add(QwikWord.EscapeHTML);
-    const step = this.next(QwikGenWord.Text);
+    const step = pass.next(QwikGenWord.Text);
 
     if (target.kind === 'range') {
       pushMergedStatic(parts, '<!t>');
@@ -477,6 +494,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         const signal = signalReadName(this.module, op.value.expr);
         this.imports.add(QwikWord.RenderSsrTextNode);
         this.pushStep(
+          pass,
           step,
           [signal],
           `${QwikWord.RenderSsrTextNode}(${createTextTarget}, ${signal})`
@@ -488,9 +506,10 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         if (!('qrl' in op.value.resume)) {
           throw new UnsupportedError('a non-QRL computed text hole');
         }
-        const { ref, args } = this.useQrl(op.value.resume.qrl, true);
+        const { ref, args } = this.useQrl(pass, op.value.resume.qrl, true);
         this.imports.add(QwikWord.RenderSsrTextExpression);
         this.pushStep(
+          pass,
           step,
           args,
           `${QwikWord.RenderSsrTextExpression}(${createTextTarget}, [${args.join(', ')}], ${ref})`
@@ -509,20 +528,25 @@ class SsrModuleEmitter implements QwikModuleEmitter {
   }
 
   /** Every step evaluates eagerly before the first await (see the divergence ledger). */
-  private pushStep(step: string, roots: readonly string[], callExpr: string): void {
+  private pushStep(
+    pass: RenderPass,
+    step: string,
+    roots: readonly string[],
+    callExpr: string
+  ): void {
     for (const root of roots) {
-      this.statements.push(`${this.names.ctx}.addRoot(${root});`);
+      pass.statements.push(`${pass.names.ctx}.addRoot(${root});`);
     }
-    this.statements.push(`const ${step} = ${callExpr};`);
-    this.asyncSteps.push(step);
+    pass.statements.push(`const ${step} = ${callExpr};`);
+    pass.asyncSteps.push(step);
   }
 
   /**
    * Emission-side use of a QRL: the reference text with its actual arguments baked in. Function
    * payloads wear `.w([args])`; Value payloads keep a bare reference and receive args separately.
    */
-  private useQrl(use: QrlUse, invoked: boolean) {
-    const { qrl, args } = resolveQrlUse(this.module, use, this.names.props);
+  private useQrl(pass: RenderPass, use: QrlUse, invoked: boolean) {
+    const { qrl, args } = resolveQrlUse(this.module, use, pass.names.props);
     let ref = this.qrlReference(qrl, invoked);
     if (qrl.payloadKind === QrlPayloadKind.Function && args.length > 0) {
       ref = `${ref}.w([${args.join(', ')}])`;
@@ -533,7 +557,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     return { qrl, ref, args };
   }
 
-  private prop(prop: Prop, parts: string[], idVariable: string | null): void {
+  private prop(pass: RenderPass, prop: Prop, parts: string[], idVariable: string | null): void {
     switch (prop.k) {
       case PropKind.Static: {
         const serialized = serializeAttrValue(prop.name, prop.value ?? null);
@@ -547,7 +571,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         return;
       }
       case PropKind.Dynamic: {
-        const step = this.next(QwikGenWord.Attribute);
+        const step = pass.next(QwikGenWord.Attribute);
         this.imports.add(QwikWord.CreateSsrElementTarget);
         const target = `${QwikWord.CreateSsrElementTarget}(${idVariable})`;
         switch (prop.value.v) {
@@ -555,6 +579,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
             const signal = signalReadName(this.module, prop.value.expr);
             this.imports.add(QwikWord.RenderSsrAttr);
             this.pushStep(
+              pass,
               step,
               [signal],
               `${QwikWord.RenderSsrAttr}(${target}, ${JSON.stringify(prop.name)}, ${signal})`
@@ -565,9 +590,10 @@ class SsrModuleEmitter implements QwikModuleEmitter {
             if (!('qrl' in prop.value.resume)) {
               throw new UnsupportedError('a non-QRL computed prop');
             }
-            const { ref, args } = this.useQrl(prop.value.resume.qrl, true);
+            const { ref, args } = this.useQrl(pass, prop.value.resume.qrl, true);
             this.imports.add(QwikWord.RenderSsrAttrExpression);
             this.pushStep(
+              pass,
               step,
               args,
               `${QwikWord.RenderSsrAttrExpression}(${target}, ${JSON.stringify(prop.name)}, [${args.join(', ')}], ${ref})`
@@ -589,10 +615,11 @@ class SsrModuleEmitter implements QwikModuleEmitter {
           if (handler.h !== HandlerKind.Value || handler.value.v !== ValueKind.Qrl) {
             throw new UnsupportedError('a non-QRL event handler');
           }
-          return this.useQrl(handler.value.use, false).ref;
+          return this.useQrl(pass, handler.value.use, false).ref;
         });
         const value = values.length === 1 ? values[0] : `[${values.join(', ')}]`;
-        parts.push(`${this.names.ctx}.eventAttrParts(${JSON.stringify(prop.name)}, ${value})`);
+        pass.usedCtx = true;
+        parts.push(`${pass.names.ctx}.eventAttrParts(${JSON.stringify(prop.name)}, ${value})`);
         return;
       }
       default:

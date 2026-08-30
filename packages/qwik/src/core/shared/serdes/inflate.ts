@@ -872,7 +872,8 @@ async function restoreDomEffect(
         return null;
       }
       const source = readRequiredSource(target.deps) as Source<TextExpressionValue>;
-      return { deps: target.deps, effect: new TextNodeEffect(text, source) };
+      const stringify = parts[target.depsIndex + 1] === 1;
+      return { deps: target.deps, effect: new TextNodeEffect(text, source, stringify) };
     }
     case EffectKind.TextExpression: {
       const target = readDomSubscriptionTarget(parts);

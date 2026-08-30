@@ -28,6 +28,7 @@ export const enum QwikWord {
   CreateSsrElementTarget = 'createSsrElementTarget',
   RenderSsrAttr = 'renderSsrAttr',
   RenderSsrAttrExpression = 'renderSsrAttrExpression',
+  TextValue = '_textValue',
   EscapeHTML = 'escapeHTML',
   RenderSsrTextExpression = 'renderSsrTextExpression',
   RenderSsrTextNode = 'renderSsrTextNode',

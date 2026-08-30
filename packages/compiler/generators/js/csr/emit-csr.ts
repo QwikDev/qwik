@@ -698,7 +698,7 @@ function emitCsrOperation(
           const effect = next(QwikGenWord.Effect);
           imports.add(QwikWord.CreateTextNodeEffect);
           statements.push(
-            `const ${effect} = ${QwikWord.CreateTextNodeEffect}(${text}, ${operation.value.source}, ${context.generatedNames.ctx}.scheduler);`,
+            `const ${effect} = ${QwikWord.CreateTextNodeEffect}(${text}, ${operation.value.source}, ${context.generatedNames.ctx}.scheduler${operation.value.stringify ? ', true' : ''});`,
             `${context.generatedNames.ctx}.scheduler.notify(${effect});`
           );
           return {
@@ -711,7 +711,7 @@ function emitCsrOperation(
           imports.add(QwikWord.PatchTextValue);
           imports.add(QwikWord.ReadTrackedSourceValue);
           batch.operations.push(
-            `${QwikWord.PatchTextValue}(${text}, ${QwikWord.ReadTrackedSourceValue}(${operation.value.source}))`
+            `${QwikWord.PatchTextValue}(${text}, ${QwikWord.ReadTrackedSourceValue}(${operation.value.source})${operation.value.stringify ? ', true' : ''})`
           );
         }
       } else if (operation.value.kind === 'segment') {

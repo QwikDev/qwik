@@ -1171,10 +1171,13 @@ function serializeSsrScalarDomEffect(
   const serializedDeps = deps ?? serializeSsrScalarDomEffectDeps(effect);
 
   switch (effect.kind) {
-    case EffectKind.TextNode:
+    case EffectKind.TextNode: {
+      // The stringify flag rides only when set — absent means JSX coercion.
+      const stringify = effect.stringify ? [1] : [];
       return target.kind === EffectTargetKind.RangeText
-        ? [effect.kind, target.kind, target.id, target.markerIndex, serializedDeps]
-        : [effect.kind, target.kind, target.id, serializedDeps];
+        ? [effect.kind, target.kind, target.id, target.markerIndex, serializedDeps, ...stringify]
+        : [effect.kind, target.kind, target.id, serializedDeps, ...stringify];
+    }
     case EffectKind.TextExpression:
       return target.kind === EffectTargetKind.RangeText
         ? [

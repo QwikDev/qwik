@@ -214,7 +214,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
   ): string {
     const mounted = this.mountTemplate(ownerName, statements, pass);
     this.elementProps(op, mounted.el, statements, pass);
-    this.walkChildren(op, mounted.el, statements, pass);
+    this.walkChildren(op.children, mounted.el, statements, pass);
     // Template markup excludes event props; templateOp pre-escapes text for innerHTML parsing.
     this.hoistTemplate(mounted.template, foldStaticOp(templateOp(op), false));
     return mounted.el;
@@ -247,20 +247,20 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     }
   }
 
-  /** Dispatches an element's children; nested elements compose the locator path. */
+  /** Dispatches a node's children; nested elements compose the locator path. */
   private walkChildren(
-    op: Extract<Op, { op: OpKind.Element }>,
+    children: readonly Op[],
     elementExpr: string,
     statements: string[],
     pass: RenderPass
   ): void {
     // Branches and collections occupy TWO template nodes (their start/end comment pair).
-    const nodeCount = op.children.reduce(
+    const nodeCount = children.reduce(
       (count, child) => count + (child.op === OpKind.Branch || child.op === OpKind.Each ? 2 : 1),
       0
     );
     let nodeIndex = 0;
-    for (const child of op.children) {
+    for (const child of children) {
       switch (child.op) {
         case OpKind.Static: {
           nodeIndex++;
@@ -277,9 +277,9 @@ class CsrModuleEmitter implements QwikModuleEmitter {
               const el = pass.next(QwikGenWord.Element);
               statements.push(`const ${el} = ${path};`);
               this.elementProps(child, el, statements, pass);
-              this.walkChildren(child, el, statements, pass);
+              this.walkChildren(child.children, el, statements, pass);
             } else {
-              this.walkChildren(child, path, statements, pass);
+              this.walkChildren(child.children, path, statements, pass);
             }
           }
           nodeIndex++;
@@ -411,18 +411,41 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       throw new UnsupportedError('a js-bodied inline collection row');
     }
     const root = body.ops[0];
-    if (body.ops.length !== 1 || root.op !== OpKind.Element || !isFullyStaticSubtree(root)) {
-      throw new UnsupportedError('a dynamic inline collection row');
+    if (body.ops.length !== 1 || root.op !== OpKind.Element) {
+      throw new UnsupportedError('a rootless row in an inline collection');
     }
-    const template = `${row.renderId}_${QwikGenWord.Template}0`;
+    // A fresh pass: the row is its own function scope with its own name numbering.
+    const emitter = new CsrModuleEmitter(this.module);
+    const pass: RenderPass = {
+      names: { props: QwikGenWord.ComponentProps, ctx: QwikGenWord.ComponentContext },
+      next: createNameAllocator(this.module),
+    };
+    const template = `${row.renderId}_${pass.next(QwikGenWord.Template)}`;
+    const el = pass.next(QwikGenWord.Element);
+    const rowStatements = [`const ${el} = ${template}(${pass.names.ctx}.document);`];
+    for (const prop of root.props) {
+      if (prop.k !== PropKind.Static) {
+        throw new UnsupportedError(`the prop "${prop.k}" in an inline collection row root`);
+      }
+    }
+    emitter.walkChildren(root.children, el, rowStatements, pass);
+    if (emitter.chunkImports.length > 0 || emitter.hoists.length > 0) {
+      throw new UnsupportedError('a qrl inside an inline collection row');
+    }
+    for (const name of emitter.imports) {
+      this.imports.add(name);
+    }
     this.imports.add(QwikWord.CreateElementTemplate);
     this.hoists.push(
       `const ${template} = ${QwikWord.CreateElementTemplate}(${JSON.stringify(foldStaticOp(templateOp(root), false))});`
     );
-    const el = `${QwikGenWord.Element}0`;
-    statements.push(
-      `function ${row.renderId}(ctx) {\n  const ${el} = ${template}(ctx.document);\n  return ${el};\n}`
-    );
+    const loopParams = this.module.programs[row.program].params
+      .map((binding) => `, ${this.module.bindings[binding].name}`)
+      .join('');
+    const bodyText = [...rowStatements, `return ${el};`]
+      .map((statement) => `  ${statement}`)
+      .join('\n');
+    statements.push(`function ${row.renderId}(ctx${loopParams}) {\n${bodyText}\n}`);
     return row.renderId;
   }
 
@@ -483,9 +506,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       throw new UnsupportedError('a js-bodied collection row');
     }
     const root = body.ops[0];
-    if (body.ops.length !== 1 || root.op !== OpKind.Element) {
-      throw new UnsupportedError('a collection row without an element root');
-    }
+    const elementRoot = body.ops.length === 1 && root.op === OpKind.Element;
     // A fresh emitter keeps the row's imports/chunk references out of the main module.
     const emitter = new CsrModuleEmitter(this.module);
     const pass: RenderPass = {
@@ -497,23 +518,46 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     };
     const emission = emptyFunctionEmission();
     const template = `${qrl.name}_${pass.next(QwikGenWord.Template)}`;
-    const el = pass.next(QwikGenWord.Element);
-    const statements = [`const ${el} = ${template}(${pass.names.ctx}.document);`];
-    for (const prop of root.props) {
-      if (prop.k !== PropKind.Static) {
-        throw new UnsupportedError(`the prop "${prop.k}" in a collection row root`);
+    let statements: string[];
+    let value: string;
+    if (elementRoot && root.op === OpKind.Element) {
+      const el = pass.next(QwikGenWord.Element);
+      statements = [`const ${el} = ${template}(${pass.names.ctx}.document);`];
+      for (const prop of root.props) {
+        if (prop.k !== PropKind.Static) {
+          throw new UnsupportedError(`the prop "${prop.k}" in a collection row root`);
+        }
       }
+      emitter.walkChildren(root.children, el, statements, pass);
+      // Row roots mount through an element template — the root element IS the return value.
+      emitter.imports.add(QwikWord.CreateElementTemplate);
+      emitter.hoists.push(
+        `const ${template} = ${QwikWord.CreateElementTemplate}(${JSON.stringify(foldStaticOp(templateOp(root), false))});`
+      );
+      value = el;
+    } else {
+      // Rootless rows mount a fragment template; the runtime brackets the nodes in `<!r>`.
+      const fragment = pass.next(QwikGenWord.Fragment);
+      statements = [`const ${fragment} = ${template}(${pass.names.ctx}.document);`];
+      emitter.walkChildren(body.ops, fragment, statements, pass);
+      emitter.imports.add(QwikWord.CreateTemplate);
+      const html = templateChildren(body.ops)
+        .map((child) => foldStaticOp(child, false))
+        .join('');
+      emitter.hoists.push(
+        `const ${template} = ${QwikWord.CreateTemplate}(${JSON.stringify(html)});`
+      );
+      // Mirrors Shape.Text: one text node; branches/collections span two marker nodes.
+      const singleNode =
+        body.ops.length === 1 && (root.op === OpKind.Static || root.op === OpKind.Hole);
+      value = singleNode
+        ? childPathExpression(fragment, 0, 1, emitter.imports)
+        : `[...${fragment}.childNodes]`;
     }
-    emitter.walkChildren(root, el, statements, pass);
-    // Row roots mount through an element template — the root element IS the return value.
-    emitter.imports.add(QwikWord.CreateElementTemplate);
-    emitter.hoists.push(
-      `const ${template} = ${QwikWord.CreateElementTemplate}(${JSON.stringify(foldStaticOp(templateOp(root), false))});`
-    );
     const loopParams = usedParamPrefix(this.module, qrl);
     emission.params = statements.length === 0 ? [] : [pass.names.ctx, ...loopParams];
     emission.statements = statements;
-    emission.value = el;
+    emission.value = value;
     emission.imports = emitter.imports;
     emission.chunkImports = emitter.chunkImports;
     emission.hoists = emitter.hoists;
@@ -584,6 +628,21 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     nodeIndex: number
   ): void {
     const path = childPathExpression(text, nodeIndex, nodeCount, this.imports);
+    if (op.value.v === ValueKind.Computed && op.value.resume.r === ResumeKind.Inline) {
+      // Lexical inline value: the text is fixed for the row's lifetime — no effect.
+      this.imports.add(QwikWord.TextValue);
+      const value = `${QwikWord.TextValue}(${inlineValueJs(this.module, op.value)})`;
+      if (nodeCount === 1) {
+        statements.push(`${path}.data = ${value};`);
+      } else {
+        const marker = pass.next(QwikGenWord.Marker);
+        statements.push(`const ${marker} = ${path};`);
+        statements.push(
+          `${marker}.replaceWith(${pass.names.ctx}.document.createTextNode(${value}));`
+        );
+      }
+      return;
+    }
     const target = pass.next(QwikGenWord.Text);
 
     if (nodeCount === 1) {
@@ -612,7 +671,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         const effect = pass.next(QwikGenWord.Effect);
         this.imports.add(QwikWord.CreateTextNodeEffect);
         statements.push(
-          `const ${effect} = ${QwikWord.CreateTextNodeEffect}(${target}, ${signal}, ${pass.names.ctx}.scheduler);`
+          `const ${effect} = ${QwikWord.CreateTextNodeEffect}(${target}, ${signal}, ${pass.names.ctx}.scheduler${op.stringify ? ', true' : ''});`
         );
         statements.push(`${pass.names.ctx}.scheduler.notify(${effect});`);
         break;
@@ -703,27 +762,32 @@ class CsrModuleEmitter implements QwikModuleEmitter {
  * pre-escaped HERE so the raw comment placeholder survives the fold.
  */
 function templateOp(op: Extract<Op, { op: OpKind.Element }>): Op {
-  const placeholder = op.children.length > 1 ? '<!---->' : ' ';
   return {
     ...op,
     props: op.props.filter((prop) => prop.k === PropKind.Static),
-    children: op.children.map((child) => {
-      switch (child.op) {
-        case OpKind.Hole:
-          return { op: OpKind.Static as const, html: placeholder };
-        case OpKind.Element:
-          return templateOp(child);
-        case OpKind.Static:
-          return { ...child, html: escapeText(child.html) };
-        case OpKind.Branch:
-        case OpKind.Each:
-          // The boundary's start/end comment pair.
-          return { op: OpKind.Static as const, html: '<!----><!---->' };
-        default:
-          return child;
-      }
-    }),
+    children: templateChildren(op.children),
   };
+}
+
+/** Template form of a child list — holes and boundaries become locator placeholders. */
+function templateChildren(children: readonly Op[]): Op[] {
+  const placeholder = children.length > 1 ? '<!---->' : ' ';
+  return children.map((child) => {
+    switch (child.op) {
+      case OpKind.Hole:
+        return { op: OpKind.Static as const, html: placeholder };
+      case OpKind.Element:
+        return templateOp(child);
+      case OpKind.Static:
+        return { ...child, html: escapeText(child.html) };
+      case OpKind.Branch:
+      case OpKind.Each:
+        // The boundary's start/end comment pair.
+        return { op: OpKind.Static as const, html: '<!----><!---->' };
+      default:
+        return child;
+    }
+  });
 }
 
 /**

@@ -161,6 +161,8 @@ export type PlanSsrOp =
       readonly kind: SsrOpKind.Dynamic;
       readonly output: 'text' | 'content';
       readonly value: PlanValue;
+      /** A concat operand keeps JS `String()` coercion instead of JSX text coercion. */
+      readonly stringify?: true;
       readonly ssr: {
         /** The value evaluates promise-free. */
         readonly synchronous: boolean;
@@ -806,6 +808,9 @@ export function emitSsrOpPlan(
           kind: SsrOpKind.Dynamic,
           output: operation.output,
           value: planValue(operation.value),
+          ...(operation.value.kind === 'source' && operation.value.stringify
+            ? { stringify: true as const }
+            : {}),
           ssr: {
             synchronous: operation.synchronous,
             target:

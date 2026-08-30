@@ -1122,7 +1122,8 @@ class SemanticLowerer {
       if (source === null) {
         return null;
       }
-      nodes.push(this.createDynamicValue(source, part.expressionRange, context, 'text'));
+      // The extracted operand renders alone, so its effect must keep the JS `+` coercion.
+      nodes.push(this.createDynamicValue(source, part.expressionRange, context, 'text', true));
     }
     const replacedSegment = this.findSegment('expression', range);
     if (replacedSegment !== null) {
@@ -1569,7 +1570,8 @@ class SemanticLowerer {
     expression: AstNode,
     range: SourceRange,
     context: RenderContext,
-    forcedOutput?: DynamicOutputKind
+    forcedOutput?: DynamicOutputKind,
+    stringify = false
   ): DynamicValuePlan {
     const lifetimeId = this.allocateLifetime(context.lifetimeId, 'dynamic-value', 'atomic-range');
     const output = forcedOutput ?? this.classifyDynamicOutput(expression);
@@ -1611,7 +1613,8 @@ class SemanticLowerer {
           output === 'text',
           true,
           false,
-          embeddedRoots.length > 0
+          embeddedRoots.length > 0,
+          stringify
         );
     if (embeddedRoots.length > 0 && !inlineEmbedded) {
       if (value.kind !== 'segment') {
@@ -1693,7 +1696,8 @@ class SemanticLowerer {
     allowSource = false,
     allowRenderValue = false,
     inlineExpression = false,
-    forceSegment = false
+    forceSegment = false,
+    stringify = false
   ): ValuePlan {
     const range = getRange(expression)!;
     const bindingId = expression.type === 'Identifier' ? this.bindingIdAt(range) : null;
@@ -1735,6 +1739,7 @@ class SemanticLowerer {
         expression: range,
         source,
         referenceBindingIds: this.referencesIn(range),
+        ...(stringify ? { stringify: true as const } : {}),
         ...this.valueIr(expression),
       };
     }

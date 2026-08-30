@@ -129,7 +129,7 @@ export { version } from './version';
 export { ComputedFlags, OwnerFlags, SubscriberFlags } from './reactive/flags';
 export { render } from './csr-render';
 export type { RenderOptions, RenderResult, RenderRoot } from './render-types';
-export { escapeHTML } from './shared/utils/character-escaping';
+export { escapeHTML, _textValue } from './shared/utils/character-escaping';
 export { isPromise, maybeThen, promiseAll } from './shared/utils/promises';
 export {
   isComputedSource,

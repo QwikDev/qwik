@@ -111,11 +111,17 @@ interface RenderPass {
 }
 
 /** Per-kind needs the emission wrappers state explicitly — the core never inspects the QRL. */
+/** The runtime row ABI's positional parameter names. */
+const RangeIdParam = '__rangeId';
+const RowIdParam = '__rowId';
+
 interface SsrRenderOptions {
   /** Stamped into the root element's open tag (a row's `q:row`). */
   rootMarker?: string;
   /** Root holes render into a caller-supplied range id parameter (branch arms). */
   rootRange?: boolean;
+  /** Brackets the output in `<!r=id>...<!/r>` — rows with no single element root. */
+  rowFence?: boolean;
 }
 
 class SsrModuleEmitter implements QwikModuleEmitter {
@@ -164,10 +170,22 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     };
     const rootRange: SsrRootRange | null = options.rootRange
       ? { idParam: null, markerIndex: 0 }
-      : null;
+      : options.rowFence
+        ? // Root holes in a fenced row target the row's own marker range.
+          { idParam: RowIdParam, markerIndex: 0 }
+        : null;
     const parts: string[] = [];
+    if (options.rowFence) {
+      this.imports.add(QwikWord.CreateSsrNodeId);
+      pushMergedStatic(parts, '<!r=');
+      parts.push(`${QwikWord.CreateSsrNodeId}(${RowIdParam})`);
+      pushMergedStatic(parts, '>');
+    }
     for (const op of body.ops) {
       this.op(pass, op, parts, rootRange, options.rootMarker ?? null);
+    }
+    if (options.rowFence) {
+      pushMergedStatic(parts, '<!/r>');
     }
     let value = parts.length === 0 ? "''" : parts.length === 1 ? parts[0] : `[${parts.join(', ')}]`;
     if (pass.asyncSteps.length > 0) {
@@ -222,17 +240,18 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     return emission;
   }
 
-  /** Collection row: one element root wearing `q:row`; the runtime's positional row ABI. */
+  /** Collection row: an element root wears `q:row`; any other shape brackets in `<!r=id>`. */
   private rowEmission(qrl: LinkedQrl): FunctionEmission {
     const ops = this.programOps(qrl);
-    if (ops.length !== 1 || ops[0].op !== OpKind.Element) {
-      throw new UnsupportedError('a collection row without an element root');
-    }
-    const { emission, core, names } = this.renderEmission(qrl, { rootMarker: QwikAttr.Row });
+    const elementRoot = ops.length === 1 && ops[0].op === OpKind.Element;
+    const { emission, core, names } = this.renderEmission(
+      qrl,
+      elementRoot ? { rootMarker: QwikAttr.Row } : { rowFence: true }
+    );
     const loopParams = usedParamPrefix(this.module, qrl);
-    if (loopParams.length > 0) {
+    if (!elementRoot || loopParams.length > 0) {
       // Positional ABI: trailing unused params drop, earlier ones stay under their names.
-      emission.params = [names.ctx, '__rangeId', '__rowId', ...loopParams];
+      emission.params = [names.ctx, RangeIdParam, RowIdParam, ...loopParams];
     } else if (core.needsContext) {
       emission.params = [names.ctx];
     }
@@ -342,7 +361,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     /** Stamped into this element's open tag — a row root's `q:row`. */
     rootMarker: string | null = null
   ): void {
-    const holes = op.children.filter((child) => child.op === OpKind.Hole);
+    const holes = op.children.filter((child) => child.op === OpKind.Hole && !isInlineHole(child));
     const hasDynamicProps = op.props.some((prop) => prop.k === PropKind.Dynamic);
     const idVariable = holes.length > 0 || hasDynamicProps ? pass.next(QwikGenWord.Id) : null;
     if (idVariable !== null) {
@@ -371,6 +390,10 @@ class SsrModuleEmitter implements QwikModuleEmitter {
           break;
         }
         case OpKind.Hole: {
+          if (isInlineHole(child)) {
+            this.inlineText(child, parts);
+            break;
+          }
           this.textHole(
             pass,
             child,
@@ -478,6 +501,9 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     const emitter = new SsrModuleEmitter(this.module);
     const names = { props: QwikGenWord.ComponentProps, ctx: QwikGenWord.ComponentContext };
     const core = emitter.renderProgramById(row.program, names);
+    const loopParams = this.module.programs[row.program].params
+      .map((binding) => `, ${this.module.bindings[binding].name}`)
+      .join('');
     if (emitter.usedQrls.size > 0) {
       throw new UnsupportedError('a qrl inside an inline collection row');
     }
@@ -487,7 +513,9 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     const body = [...core.statements, `return ${core.value};`]
       .map((statement) => `  ${statement}`)
       .join('\n');
-    pass.statements.push(`function ${row.renderId}(ctx, __rangeId, __rowId) {\n${body}\n}`);
+    pass.statements.push(
+      `function ${row.renderId}(ctx, ${RangeIdParam}, ${RowIdParam}${loopParams}) {\n${body}\n}`
+    );
     return row.renderId;
   }
 
@@ -524,6 +552,15 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     pushMergedStatic(parts, '<!/b>');
   }
 
+  /** Lexical inline value: coerce + escape in place — nothing ever targets this text. */
+  private inlineText(op: Extract<Op, { op: OpKind.Hole }>, parts: string[]): void {
+    this.imports.add(QwikWord.EscapeHTML);
+    this.imports.add(QwikWord.TextValue);
+    parts.push(
+      `${QwikWord.EscapeHTML}(${QwikWord.TextValue}(${inlineValueJs(this.module, op.value)}))`
+    );
+  }
+
   private textHole(
     pass: RenderPass,
     op: Extract<Op, { op: OpKind.Hole }>,
@@ -555,7 +592,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
           pass,
           step,
           [signal],
-          `${QwikWord.RenderSsrTextNode}(${createTextTarget}, ${signal})`
+          `${QwikWord.RenderSsrTextNode}(${createTextTarget}, ${signal}${op.stringify ? ', undefined, true' : ''})`
         );
         parts.push(`${QwikWord.EscapeHTML}(${step})`);
         break;
@@ -737,4 +774,8 @@ function pushMergedStatic(parts: string[], text: string): void {
   } else {
     parts.push(JSON.stringify(text));
   }
+}
+
+function isInlineHole(op: Extract<Op, { op: OpKind.Hole }>): boolean {
+  return op.value.v === ValueKind.Computed && op.value.resume.r === ResumeKind.Inline;
 }

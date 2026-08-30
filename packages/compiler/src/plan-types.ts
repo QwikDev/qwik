@@ -542,6 +542,8 @@ export type ValuePlan =
       readonly expression: SourceRange;
       readonly source: SourceRange;
       readonly referenceBindingIds: readonly BindingId[];
+      /** A concat operand keeps JS `String()` coercion instead of JSX text coercion. */
+      readonly stringify?: true;
       /** Portable lowering when the expression is IR-expressible; additive, emitters ignore it. */
       readonly ir?: ValueIR;
     }

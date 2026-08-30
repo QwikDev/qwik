@@ -539,9 +539,10 @@ export function App() {
     if (root.kind !== 'element' || root.children[0].kind !== 'branch') {
       throw new Error('Expected a branch');
     }
+    // the extracted operand renders alone — the stringify flag keeps the JS `+` coercion
     expect(root.children[0].then.render.roots).toMatchObject([
       { kind: 'static-text', value: 'Value: ' },
-      { kind: 'dynamic-value', output: 'text', value: { kind: 'source' } },
+      { kind: 'dynamic-value', output: 'text', value: { kind: 'source', stringify: true } },
     ]);
     expect(plan.segments.some((segment) => segment.ctxName === 'text')).toBe(false);
   });

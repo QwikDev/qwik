@@ -92,7 +92,14 @@ export type Op =
       propsEffect: QrlUse | null;
       children: Op[];
     }
-  | { op: OpKind.Hole; value: Value; shape: Shape; effect: number | null }
+  | {
+      op: OpKind.Hole;
+      value: Value;
+      shape: Shape;
+      effect: number | null;
+      /** A concat operand keeps JS `String()` coercion instead of JSX text coercion. */
+      stringify: boolean;
+    }
   | {
       op: OpKind.Call;
       target:

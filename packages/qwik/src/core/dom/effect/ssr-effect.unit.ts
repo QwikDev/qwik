@@ -45,6 +45,14 @@ describe('SSR DOM effect helpers', () => {
     expect(createOwned(() => renderSsrTextNode(target, text))).toBe(' ');
   });
 
+  it('a stringify SSR text node renders booleans like a JS concat operand', () => {
+    const flag = useSignal(true);
+    const target = createSsrElementTextTarget(0);
+
+    expect(createOwned(() => renderSsrTextNode(target, flag, undefined, true))).toBe('true');
+    expect(createOwned(() => renderSsrTextNode(target, flag))).toBe(' ');
+  });
+
   it('creates a text expression subscriber and collects dynamic reads from the QRL', () => {
     const count = useSignal(1);
     const target = createSsrRangeTextTarget(1, 0);

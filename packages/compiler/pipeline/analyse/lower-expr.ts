@@ -12,7 +12,7 @@ import {
 import { ValueIrKind, type ValueIR } from '../../src/expr-ir';
 import { identifierName } from './ast/utils';
 import { findRuntimeJsx } from './ast/returns-jsx';
-import { lowerCaptures } from './ast/capture-analysis';
+import { collectCaptures, lowerCaptures } from './ast/capture-analysis';
 import { UnsupportedError } from '../errors';
 import { pushPayload, pushQrl, QrlIdentityKind, type LowerContext } from './lower-context';
 import { LocalKind } from './lower-setup';
@@ -27,6 +27,9 @@ export function lowerExpressionValue(
   /** Segment identity context: 'text' for holes, the attribute name for props. */
   nameCtx: string
 ): ReactiveValue {
+  if (ctx.inlineParams !== null) {
+    return lowerInlineValue(expression, ctx);
+  }
   const read = trySignalReadValue(expression, ctx);
   if (read !== null) {
     return read;
@@ -82,6 +85,24 @@ export function lowerExpressionValue(
       };
     }
   }
+}
+
+/** Inline rows read their loop params lexically: the expression splices in place, no QRL. */
+function lowerInlineValue(expression: Expression, ctx: LowerContext): ReactiveValue {
+  if (findRuntimeJsx(expression) !== null) {
+    throw new UnsupportedError('JSX inside an expression value');
+  }
+  const refs = collectCaptures(expression, ctx, ctx.inlineParams!);
+  if (refs.props || refs.locals.length > 0 || refs.other !== null) {
+    throw new UnsupportedError('a reactive read in an inline collection row');
+  }
+  const payload = pushPayload(ctx, [expression.start, expression.end]);
+  return {
+    v: ValueKind.Computed,
+    expr: { kind: ExprKind.Js, payload },
+    resume: { r: ResumeKind.Inline },
+    compilerString: false,
+  };
 }
 
 /** `count.value` where `count` is a component signal local — a subscription, not a QRL. */

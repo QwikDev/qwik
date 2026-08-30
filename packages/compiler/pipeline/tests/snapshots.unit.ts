@@ -346,7 +346,7 @@ export default () => {
     });
   });
 
-  test('should decompose a literal concat into static text and a signal hole', async () => {
+  test('should decompose a concat into static text and a stringify signal hole', async () => {
     await testInput(mode, 'text-hole-concat', {
       code: `import { useSignal } from '@qwik.dev/core';
 export default () => {
@@ -432,6 +432,37 @@ export default () => {
 export default () => {
   const items = useSignal([{ id: 'a', label: 'Alpha' }]);
   return <ul>{items.value.map((item, index) => <li key={item.id}>{index}</li>)}</ul>;
+};
+`,
+    });
+  });
+
+  test('should wrap a fragment row in a comment marker range', async () => {
+    await testInput(mode, 'collection-fragment-row', {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
+  const items = useSignal([{ label: 'Alpha' }]);
+  return <ul>{items.value.map((item) => <>{item.label}<b>!</b></>)}</ul>;
+};
+`,
+    });
+  });
+
+  test('should wrap a text-only fragment row in a comment marker range', async () => {
+    await testInput(mode, 'collection-text-row', {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
+  const items = useSignal([{ label: 'Alpha' }]);
+  return <ul>{items.value.map((item) => <>{item.label}</>)}</ul>;
+};
+`,
+    });
+  });
+
+  test('should interpolate lexical loop params in an inline array row', async () => {
+    await testInput(mode, 'collection-array-index', {
+      code: `export default () => {
+  return <ul>{['first', 'second'].map((item, index) => <li>{index}:{item}</li>)}</ul>;
 };
 `,
     });

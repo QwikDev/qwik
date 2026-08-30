@@ -36,7 +36,7 @@ q_component_branch_condition_segment_0_2fzrieu6vlhf9.s(
 const component_branch_then_segment_1_24n7blyqktd46 = (ctx, rangeId) => {
   const count = _captures[0];
   ctx.addRoot(count);
-  const text_0 = renderSsrTextNode(createSsrRangeTextTarget(rangeId, 0), count);
+  const text_0 = renderSsrTextNode(createSsrRangeTextTarget(rangeId, 0), count, undefined, true);
   return maybeThen(text_0, (text_0) => [
     'Count is greater than 2 and equal to <!t>',
     escapeHTML(text_0),
@@ -110,7 +110,7 @@ import {
 export const component_branch_then_segment_1_24n7blyqktd46 = (ctx, rangeId) => {
   const count = _captures[0];
   ctx.addRoot(count);
-  const text_0 = renderSsrTextNode(createSsrRangeTextTarget(rangeId, 0), count);
+  const text_0 = renderSsrTextNode(createSsrRangeTextTarget(rangeId, 0), count, undefined, true);
   return maybeThen(text_0, (text_0) => [
     'Count is greater than 2 and equal to <!t>',
     escapeHTML(text_0),
@@ -226,7 +226,7 @@ export const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
   const marker0 = _next(text0);
   const text1 = ctx.document.createTextNode('');
   marker0.replaceWith(text1);
-  const effect0 = createTextNodeEffect(text1, count, ctx.scheduler);
+  const effect0 = createTextNodeEffect(text1, count, ctx.scheduler, true);
   ctx.scheduler.notify(effect0);
   return [text0, text1];
 };

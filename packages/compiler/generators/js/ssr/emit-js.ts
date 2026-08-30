@@ -2612,7 +2612,7 @@ class JsComponentGenerator {
       this.pushStep(
         step,
         [signal],
-        `${QwikWord.RenderSsrTextNode}(${targetExpr}, ${signal})`,
+        `${QwikWord.RenderSsrTextNode}(${targetExpr}, ${signal}${operation.stringify ? ', undefined, true' : ''})`,
         idPrelude
       );
     } else {

@@ -369,6 +369,16 @@ describe('inflate(TypeIds.EffectSubscription) text targets', () => {
     expect(count.subs).toBe(subscription);
   });
 
+  it('restores the stringify flag so concat operands keep JS coercion', async () => {
+    const context = createContext('<p q:id="13"><!t>true<!/t></p>');
+    const flag = useSignal<unknown>(true);
+    const subscription = await inflateTextSubscription(context, flag, 13, 0, true);
+
+    flag.value = false;
+    await context.scheduler.flushInteraction();
+    expect((subscription.effect as TextNodeEffect).text.data).toBe('false');
+  });
+
   it('does not count range boundary markers as targets', async () => {
     const context = createContext('<p q:id="11"><!t>0<!/t><!t>1</p>');
     const count = useSignal(1);
@@ -440,9 +450,10 @@ function createContext(html: string): ContainerContext {
 
 async function inflateTextSubscription(
   context: ContainerContext,
-  source: Signal<number>,
+  source: Signal<unknown>,
   elementId: number,
-  markerIndex: number
+  markerIndex: number,
+  stringify = false
 ): Promise<DomSubscription> {
   const data = [
     TypeIds.Plain,
@@ -455,6 +466,7 @@ async function inflateTextSubscription(
     markerIndex,
     TypeIds.Array,
     [TypeIds.Plain, source],
+    ...(stringify ? [TypeIds.Plain, 1] : []),
   ];
   const subscription = new DomSubscription(null!, context.scheduler);
 

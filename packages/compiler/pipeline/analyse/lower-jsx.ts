@@ -49,6 +49,15 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
   };
 }
 
+/** Lowers a JSX child list — the shared path for fragment-rooted trees. */
+export function lowerJsxChildren(children: readonly JSXChild[], ctx: LowerContext): Op[] {
+  const ops: Op[] = [];
+  for (const child of children) {
+    ops.push(...lowerChild(child, ctx));
+  }
+  return ops;
+}
+
 /** `null`/`undefined` literals in a branch arm render nothing. */
 function isNullArm(node: Node | null): boolean {
   if (node === null) {

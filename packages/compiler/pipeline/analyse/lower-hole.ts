@@ -20,7 +20,7 @@ export function lowerText(expression: Expression, ctx: LowerContext): Op[] {
     concat = tryStringConcat(node, ctx);
   }
   if (concat === null || !concat.guaranteedString) {
-    return [createTextHole(expression, ctx)];
+    return [createTextHole(expression, ctx, false)];
   }
 
   const ops: Op[] = [];
@@ -35,7 +35,8 @@ export function lowerText(expression: Expression, ctx: LowerContext): Op[] {
       ops.push({ op: OpKind.Static, html: staticText });
       staticText = '';
     }
-    ops.push(createTextHole(part.expression, ctx));
+    // An extracted operand renders alone, so the effect must keep the JS `+` coercion.
+    ops.push(createTextHole(part.expression, ctx, true));
   }
   if (staticText !== '') {
     ops.push({ op: OpKind.Static, html: staticText });
@@ -43,12 +44,13 @@ export function lowerText(expression: Expression, ctx: LowerContext): Op[] {
   return ops;
 }
 
-function createTextHole(expression: Expression, ctx: LowerContext): Op {
+function createTextHole(expression: Expression, ctx: LowerContext, stringify: boolean): Op {
   return {
     op: OpKind.Hole,
     value: lowerExpressionValue(expression, ctx, SegmentContext.Text),
     shape: Shape.Text,
     effect: null,
+    stringify,
   };
 }
 

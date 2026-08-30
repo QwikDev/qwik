@@ -1,3 +1,4 @@
+import { _textValue } from '../../shared/utils/character-escaping';
 import { EffectKind } from './effect-kind.enum';
 import { defaultScheduler, type TaskScheduler } from '../../runtime/scheduler';
 import { resolveEventHandlers, type AttrExpressionFn, type EventExpressionFn } from './effect';
@@ -85,7 +86,9 @@ export class SsrTextNodeEffect {
 
   constructor(
     readonly target: SsrEffectTarget,
-    readonly source?: Source
+    readonly source?: Source,
+    /** Concat operands keep JS `String()` coercion; JSX positions suppress nullish/booleans. */
+    readonly stringify: boolean = false
   ) {}
 }
 
@@ -313,16 +316,17 @@ export function createSsrRangeTextTarget(id: number, markerIndex: number): SsrEf
 export function renderSsrTextNode(
   target: SsrEffectTarget,
   source: Source,
-  batch?: SsrDomSubscriber
+  batch?: SsrDomSubscriber,
+  stringify = false
 ): ValueOrPromise<string> {
   const subscriber = createSsrDomEffect(
-    new SsrTextNodeEffect(target, batch ? source : undefined),
+    new SsrTextNodeEffect(target, batch ? source : undefined, stringify),
     batch
   );
   return retryOnPromise(() =>
     maybeThen(
       runWithCollector(subscriber, readTrackedSourceValue, source) as ValueOrPromise<unknown>,
-      serializeSsrTextValue
+      (value) => serializeSsrTextValue(value, stringify)
     )
   );
 }
@@ -349,8 +353,8 @@ export function renderSsrTextExpression<TArgs extends unknown[]>(
   });
 }
 
-function serializeSsrTextValue(value: unknown): string {
-  const text = value == null ? '' : String(value);
+function serializeSsrTextValue(value: unknown, stringify = false): string {
+  const text = stringify ? String(value) : _textValue(value);
   return text === '' ? ' ' : text;
 }
 

@@ -34,7 +34,7 @@ q_component_branch_condition_segment_0_2fzrieu6vlhf9.s(
 const component_branch_then_segment_1_24n7blyqktd46 = (ctx, rangeId0) => {
   const [count] = _captures;
   ctx.addRoot(count);
-  const text0 = renderSsrTextNode(createSsrRangeTextTarget(rangeId0, 0), count);
+  const text0 = renderSsrTextNode(createSsrRangeTextTarget(rangeId0, 0), count, undefined, true);
   return maybeThen(text0, (text0) => [
     'Count is greater than 2 and equal to <!t>',
     escapeHTML(text0),
@@ -109,7 +109,7 @@ import {
 export const component_branch_then_segment_1_24n7blyqktd46 = (ctx, rangeId0) => {
   const [count] = _captures;
   ctx.addRoot(count);
-  const text0 = renderSsrTextNode(createSsrRangeTextTarget(rangeId0, 0), count);
+  const text0 = renderSsrTextNode(createSsrRangeTextTarget(rangeId0, 0), count, undefined, true);
   return maybeThen(text0, (text0) => [
     'Count is greater than 2 and equal to <!t>',
     escapeHTML(text0),

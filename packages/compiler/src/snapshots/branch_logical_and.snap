@@ -55,7 +55,7 @@ const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
   const text_1 = () =>
     invoke(invokeCtx, () => {
       ctx.addRoot(label);
-      return renderSsrTextNode(createSsrRangeTextTarget(id_0, 0), label);
+      return renderSsrTextNode(createSsrRangeTextTarget(id_0, 0), label, undefined, true);
     });
   return maybeThen(props_0, (props_0) => {
     props_0.ref !== undefined && ctx.setRef(props_0.ref, id_0);
@@ -173,7 +173,7 @@ export const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
   const text_1 = () =>
     invoke(invokeCtx, () => {
       ctx.addRoot(label);
-      return renderSsrTextNode(createSsrRangeTextTarget(id_0, 0), label);
+      return renderSsrTextNode(createSsrRangeTextTarget(id_0, 0), label, undefined, true);
     });
   return maybeThen(props_0, (props_0) => {
     props_0.ref !== undefined && ctx.setRef(props_0.ref, id_0);
@@ -343,7 +343,7 @@ export const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
   ctx.scheduler.waitFor(effect0.run());
   const text0 = ctx.document.createTextNode('');
   marker0.replaceWith(text0);
-  const effect1 = createTextNodeEffect(text0, label, ctx.scheduler);
+  const effect1 = createTextNodeEffect(text0, label, ctx.scheduler, true);
   ctx.scheduler.notify(effect1);
   return el0;
 };

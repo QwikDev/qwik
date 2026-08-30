@@ -30,3 +30,8 @@ export function escapeHTML(html: string): string {
     return escapedHTML + html.substring(lastIdx);
   }
 }
+
+/** JSX text coercion: nullish and booleans render empty, everything else via String. */
+export function _textValue(value: unknown): string {
+  return value == null || typeof value === 'boolean' ? '' : String(value);
+}

@@ -86,6 +86,8 @@ export type CsrValuePlan =
       readonly kind: 'source';
       readonly expression: string;
       readonly source: string;
+      /** A concat operand keeps JS `String()` coercion instead of JSX text coercion. */
+      readonly stringify?: true;
       readonly returnMode: 'sync';
       readonly cardinality: 'unknown';
     }
@@ -1229,6 +1231,7 @@ class CsrPlanner {
         kind: 'source',
         expression: this.source.slice(value.expression[0], value.expression[1]),
         source: this.source.slice(value.source[0], value.source[1]),
+        ...(value.stringify ? { stringify: true as const } : {}),
         returnMode: 'sync',
         cardinality: 'unknown',
       };

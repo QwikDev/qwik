@@ -1,4 +1,4 @@
-import type { ArrowFunctionExpression, Expression, JSXElement } from 'oxc-parser';
+import type { ArrowFunctionExpression, Expression, JSXElement, JSXFragment } from 'oxc-parser';
 import {
   BoundaryKind,
   CaptureAccess,
@@ -29,7 +29,7 @@ import { pushPayload, pushQrl, QrlIdentityKind, type LowerContext } from './lowe
 import { createSegmentSymbolName, sanitizeSegmentName } from '../segment-identity';
 import { trySignalReadValue } from './lower-expr';
 import { LocalKind } from './lower-setup';
-import { lowerJsx } from './lower-jsx';
+import { lowerJsx, lowerJsxChildren } from './lower-jsx';
 
 /** `source.map((item) => <row key={...}/>)` in child position — a keyed, swappable row set. */
 export function lowerArray(expression: Expression, ctx: LowerContext): Op {
@@ -44,6 +44,7 @@ export function lowerArray(expression: Expression, ctx: LowerContext): Op {
       }
       switch (callback.body.type) {
         case 'JSXElement':
+        case 'JSXFragment':
           return lowerEach(expression.callee.object, callback, callback.body, ctx);
         default:
           throw new UnsupportedError(`the collection row body "${callback.body.type}"`);
@@ -57,16 +58,14 @@ export function lowerArray(expression: Expression, ctx: LowerContext): Op {
 function lowerEach(
   sourceExpression: Expression,
   callback: ArrowFunctionExpression,
-  body: JSXElement,
+  body: JSXElement | JSXFragment,
   ctx: LowerContext
 ): Op {
   if (callback.params.length > 2) {
     throw new UnsupportedError('a third collection row parameter');
   }
   const source = lowerSource(sourceExpression, ctx);
-  if (source.s === EachSourceKind.Array && callback.params.length > 1) {
-    throw new UnsupportedError('an index parameter on a static array collection');
-  }
+
   const lifetime = ctx.plan.lifetimes.length;
   ctx.plan.lifetimes.push({
     id: lifetime,
@@ -96,7 +95,8 @@ function lowerEach(
   });
   // A static array's row renders inline in the component: lexical scope, no key, no chunk.
   if (source.s === EachSourceKind.Array) {
-    lowerRowOps(body, callback, paramBindings, program, ctx);
+    lowerRowOps(body, callback, paramBindings, program, ctx, true);
+    const shape = deriveRowShape(program, ctx);
     return {
       op: OpKind.Each,
       source,
@@ -113,7 +113,7 @@ function lowerEach(
       index: IndexMode.None,
       id: { kind: SeedKind.For, ordinal: ctx.forCounter.next++ },
       lifetime,
-      shape: Shape.Element,
+      shape,
     };
   }
 
@@ -143,7 +143,7 @@ function lowerEach(
     },
     rowCaptures.args
   );
-  const key = lowerKey(body, callback, ctx);
+  const key = body.type === 'JSXElement' ? lowerKey(body, callback, ctx) : null;
   lowerRowOps(body, callback, paramBindings, program, ctx);
   // The row ABI drops unused trailing params: `used` = params some descendant QRL captured.
   const descendants = ctx.plan.qrls.slice(rowIndex + 1);
@@ -167,8 +167,28 @@ function lowerEach(
     index,
     id: { kind: SeedKind.For, ordinal: ctx.forCounter.next++ },
     lifetime,
-    shape: Shape.Element,
+    shape: deriveRowShape(program, ctx),
   };
+}
+
+/** A row's runtime shape: one element wears `q:row`; anything else needs a marker range. */
+function deriveRowShape(program: number, ctx: LowerContext): Shape {
+  const body = ctx.plan.programs[program].body;
+  if (body.kind !== ProgramBodyKind.Ops || body.ops.length === 0) {
+    throw new UnsupportedError('an empty collection row');
+  }
+  if (body.ops.length > 1) {
+    return Shape.Many;
+  }
+  switch (body.ops[0].op) {
+    case OpKind.Element:
+      return Shape.Element;
+    case OpKind.Static:
+    case OpKind.Hole:
+      return Shape.Text;
+    default:
+      return Shape.Many;
+  }
 }
 
 /** A literal array iterates inline; `signal.value` subscribes; anything else refuses (yet). */
@@ -218,12 +238,26 @@ function deriveIndexMode(indexBinding: number | undefined, descendants: readonly
 
 /** Fills the row program's ops with loop params scoped as LoopValue locals. */
 function lowerRowOps(
-  body: JSXElement,
+  body: JSXElement | JSXFragment,
   callback: ArrowFunctionExpression,
   paramBindings: number[],
   program: number,
-  ctx: LowerContext
+  ctx: LowerContext,
+  /** Inline rows read params lexically — no locals, no captures, values splice in place. */
+  lexical = false
 ): void {
+  if (lexical) {
+    const names = new Set<string>();
+    for (const param of callback.params) {
+      if (param.type === 'Identifier') {
+        names.add(param.name);
+      }
+    }
+    ctx.inlineParams = names;
+    ctx.plan.programs[program].body = { kind: ProgramBodyKind.Ops, ops: lowerRowBody(body, ctx) };
+    ctx.inlineParams = null;
+    return;
+  }
   const outerLocals = ctx.locals;
   const rowLocals = new Map(outerLocals);
   callback.params.forEach((param, position) => {
@@ -237,8 +271,12 @@ function lowerRowOps(
     }
   });
   ctx.locals = rowLocals;
-  ctx.plan.programs[program].body = { kind: ProgramBodyKind.Ops, ops: [lowerJsx(body, ctx)] };
+  ctx.plan.programs[program].body = { kind: ProgramBodyKind.Ops, ops: lowerRowBody(body, ctx) };
   ctx.locals = outerLocals;
+}
+
+function lowerRowBody(body: JSXElement | JSXFragment, ctx: LowerContext): Op[] {
+  return body.type === 'JSXElement' ? [lowerJsx(body, ctx)] : lowerJsxChildren(body.children, ctx);
 }
 
 /** The row's `key` attribute — a Function-payload QRL the runtime calls per row with the item. */

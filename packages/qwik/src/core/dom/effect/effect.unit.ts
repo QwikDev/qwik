@@ -89,6 +89,32 @@ describe('DOM effects', () => {
     expect(text.data).toBe('8');
   });
 
+  it('a stringify text node renders booleans like a JS concat operand', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const flag = useSignal<boolean | null>(true);
+    const text = createText();
+    const effect = createOwned(() => createTextNodeEffect(text, flag, scheduler, true));
+
+    scheduler.notify(effect);
+    await scheduler.flushInteraction();
+    expect(text.data).toBe('true');
+
+    flag.value = null;
+    await scheduler.flushInteraction();
+    expect(text.data).toBe('null');
+  });
+
+  it('a plain text node suppresses booleans like a JSX position', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const flag = useSignal(true);
+    const text = createText();
+    const effect = createOwned(() => createTextNodeEffect(text, flag, scheduler));
+
+    scheduler.notify(effect);
+    await scheduler.flushInteraction();
+    expect(text.data).toBe('');
+  });
+
   it('patches attributes from direct sources', async () => {
     const scheduler = new Scheduler(noopSchedule);
     const title = useSignal('hello');

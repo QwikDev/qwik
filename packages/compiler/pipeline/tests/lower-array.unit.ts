@@ -5,6 +5,7 @@ import {
   EachSourceKind,
   IndexMode,
   OpKind,
+  ProgramBodyKind,
   ResumeKind,
   RowKind,
   ValueKind,
@@ -104,6 +105,29 @@ describe('lowerArray / reactive rows', () => {
         '<ul>{items.value.map((item, i) => <li key={item.id} onClick$={() => console.log(i)}>x</li>)}</ul>'
       ).index
     ).toBe(IndexMode.Escapes);
+  });
+
+  test('inline rows interpolate lexical params and refuse reactive reads', () => {
+    const inline = lower("<ul>{['a'].map((item, index) => <li>{index}</li>)}</ul>");
+    const hole = (() => {
+      const each = inline.op.op === OpKind.Element ? inline.op.children[0] : null;
+      if (each?.op !== OpKind.Each || each.row.r !== RowKind.Inline) {
+        throw new Error('expected an inline Each');
+      }
+      const body = inline.ctx.plan.programs[each.row.program].body;
+      if (body.kind !== ProgramBodyKind.Ops || body.ops[0].op !== OpKind.Element) {
+        throw new Error('expected an element row');
+      }
+      return body.ops[0].children[0];
+    })();
+    expect(hole).toMatchObject({
+      op: OpKind.Hole,
+      value: { v: ValueKind.Computed, resume: { r: ResumeKind.Inline } },
+    });
+    expect(inline.ctx.plan.qrls).toEqual([]);
+    expect(() => lower("<ul>{['a'].map(() => <li>{items.value.length}</li>)}</ul>")).toThrow(
+      'a reactive read in an inline collection row'
+    );
   });
 
   test('the loop param stays out of scope after the row', () => {

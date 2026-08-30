@@ -16,6 +16,8 @@ export interface LowerContext {
   /** Branch seed ordinals, allocated in authored order. */
   branchCounter: { next: number };
   forCounter: { next: number };
+  /** Param names of the inline collection row being lowered; null = not inside one. */
+  inlineParams: ReadonlySet<string> | null;
   bindingNames: ReadonlySet<string>;
   /** Local binding -> imported name for `@qwik.dev/core` imports. */
   coreBindings: ReadonlyMap<string, string>;
@@ -40,6 +42,7 @@ export function createLowerContext(
     segmentCounter: { next: 0 },
     branchCounter: { next: 0 },
     forCounter: { next: 0 },
+    inlineParams: null,
     bindingNames: new Set(plan.bindings.map((binding) => binding.name)),
     coreBindings,
     propsParamName: null,

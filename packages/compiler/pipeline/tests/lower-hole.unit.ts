@@ -136,8 +136,8 @@ describe('lowerText', () => {
     );
   });
 
-  test('a plain literal concat decomposes; a markup-bearing literal stays one computed hole', () => {
-    const decompose = (expression: string, shape: (ctx: LowerContext) => void) => {
+  test('a concat with a dynamic operand stays one computed hole; all-literal concats fold', () => {
+    const lower = (expression: string, shape: (ctx: LowerContext) => void = () => {}) => {
       const source = `const a = (${expression});`;
       const parsed = parseModule('t.tsx', source);
       const statement = parsed.program.body[0];
@@ -148,14 +148,16 @@ describe('lowerText', () => {
       shape(ctx);
       return lowerText(unwrapExpression(statement.declarations[0].init) as Expression, ctx);
     };
-    expect(decompose("'Count: ' + count.value", withSignalLocal).map((op) => op.op)).toEqual([
-      OpKind.Static,
-      OpKind.Hole,
-    ]);
+    // the extracted operand renders alone — the stringify flag keeps the JS `+` coercion
+    const decomposed = lower("'Count: ' + count.value", withSignalLocal);
+    expect(decomposed.map((op) => op.op)).toEqual([OpKind.Static, OpKind.Hole]);
+    expect(decomposed[1]).toMatchObject({ stringify: true });
+    expect(lower('count.value', withSignalLocal)[0]).toMatchObject({ stringify: false });
+    expect(lower("'a' + 1 + 'b'")).toEqual([{ op: OpKind.Static, html: 'a1b' }]);
+    // `1 + 2` is numeric addition — folding the literals as text would print '12'
+    expect(lower('1 + 2').map((op) => op.op)).toEqual([OpKind.Hole]);
     // `<`/`&` in the literal would stream raw into SSR — the computed hole escapes at runtime.
-    expect(decompose("'<b> & ' + count.value", withSignalLocal).map((op) => op.op)).toEqual([
-      OpKind.Hole,
-    ]);
+    expect(lower("'<b> & ' + 'x'").map((op) => op.op)).toEqual([OpKind.Hole]);
   });
 
   test('an expression capturing a module binding throws', () => {

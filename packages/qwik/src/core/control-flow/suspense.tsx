@@ -18,9 +18,12 @@ import {
   QSuspenseResultParent,
 } from '../shared/utils/markers';
 import { resolveSlotName } from '../shared/utils/prop';
+import { ERROR_CONTEXT, type ErrorBoundaryStore } from '../shared/error/error-handling';
 import { createInternalServerComponent } from '../ssr/internal-server-component';
+import { finalizeAndSwapOutOfOrderSegment } from '../ssr/out-of-order-segment-swap';
 import type { SSRContainer, SSROutOfOrderSegment, SSRRenderJSXOptions } from '../ssr/ssr-types';
 import { useComputedQrl } from '../use/use-computed';
+import { untrack } from '../use/use-core';
 import { useCursorBoundary, type CursorBoundary } from '../use/use-cursor-boundary';
 import { useSignal } from '../use/use-signal';
 import { useTaskQrl, type TaskCtx } from '../use/use-task';
@@ -36,38 +39,36 @@ type SuspenseState = 'content' | 'fallback';
 
 type SSROutOfOrderBoundaryState = {
   contentResolved: boolean;
+  delay: number;
   delayTimer: ReturnType<typeof setTimeout> | null;
 };
 
 /** @public @experimental */
 export type SuspenseProps = {
   fallback?: JSXOutput;
-  showStale?: boolean;
   delay?: number;
 };
 
 const _hf0 = (
   p0: SuspenseProps,
   p1: Signal<SuspenseState>,
-  p2: Signal<boolean> | null,
+  p2: Signal<boolean>,
   p3: RevealRegistration | null
 ) => ({
   display:
     p1.value === 'fallback' &&
     p0.fallback != null &&
     p0.fallback !== false &&
-    (p2 === null || p2.value || !p3!.reveal.collapsed)
+    (p2.value || !p3!.reveal.collapsed)
       ? 'contents'
       : 'none',
 });
 const _hf0_str =
-  '{display:p1.value==="fallback"&&p0.fallback!=null&&p0.fallback!==false&&(p2===null||p2.value||!p3.reveal.collapsed)?"contents":"none"}';
-const _hf1 = (p0: SuspenseProps, p1: Signal<SuspenseState>, p2: Signal<boolean> | null) => ({
-  display:
-    (p1.value === 'content' || p0.showStale) && (p2 === null || p2.value) ? 'contents' : 'none',
+  '{display:p1.value==="fallback"&&p0.fallback!=null&&p0.fallback!==false&&(p2.value||!p3.reveal.collapsed)?"contents":"none"}';
+const _hf1 = (p0: Signal<SuspenseState>, p1: Signal<boolean>) => ({
+  display: p0.value === 'content' && p1.value ? 'contents' : 'none',
 });
-const _hf1_str =
-  '{display:(p1.value==="content"||p0.showStale)&&(p2===null||p2.value)?"contents":"none"}';
+const _hf1_str = '{display:p0.value==="content"&&p1.value?"contents":"none"}';
 
 /** @internal */
 export const suspenseTask = ({ track, cleanup }: TaskCtx) => {
@@ -75,7 +76,7 @@ export const suspenseTask = ({ track, cleanup }: TaskCtx) => {
     props = _captures![1] as { delay?: number },
     state = _captures![2] as Signal<SuspenseState>,
     revealRegistration = _captures![3] as RevealRegistration | null;
-  const pendingCount = track(cursorBoundary.pending);
+  const pendingCount = track(cursorBoundary);
   const isBrowserEnv = qTest ? !isServerPlatform() : isBrowser;
   if (revealRegistration !== null && isBrowserEnv) {
     revealRegistration.reveal.version.value++;
@@ -85,7 +86,7 @@ export const suspenseTask = ({ track, cleanup }: TaskCtx) => {
     return;
   }
   const delayTimer = setTimeout(() => {
-    if (cursorBoundary.pending.value > 0) {
+    if (cursorBoundary.value > 0) {
       state.value = 'fallback';
     }
   }, props.delay ?? 0);
@@ -123,15 +124,14 @@ export const suspenseCmp = (props: SuspenseProps): JSXNodeInternal<string>[] => 
     ? (revealRegistration?.reveal.ooos?.register(revealRegistration) ?? null)
     : null;
   const showOutOfOrderFallback =
-    isServerOutOfOrder && shouldRenderFallback(props.fallback, outOfOrderRevealBoundary);
+    isServerOutOfOrder &&
+    untrack(() => props.fallback != null && props.fallback !== false) &&
+    (outOfOrderRevealBoundary === null || outOfOrderRevealBoundary.showFallback);
   const outOfOrderBoundaryState =
     showOutOfOrderFallback && isPositiveDelay(props.delay)
-      ? { contentResolved: false, delayTimer: null }
+      ? { contentResolved: false, delay: props.delay, delayTimer: null }
       : null;
-  const outOfOrderFallbackStyle = isServerOutOfOrder
-    ? /*#__PURE__*/ _fnSignal(_hf0, [props, state, canReveal, revealRegistration], _hf0_str)
-    : null;
-  const contentStyle = /*#__PURE__*/ _fnSignal(_hf1, [props, state, canReveal], _hf1_str);
+  const contentStyle = /*#__PURE__*/ _fnSignal(_hf1, [state, canReveal], _hf1_str);
 
   const fallbackHost = (
     isServerOutOfOrder
@@ -139,8 +139,7 @@ export const suspenseCmp = (props: SuspenseProps): JSXNodeInternal<string>[] => 
           SSRFallback,
           {
             boundary: outOfOrderBoundaryState,
-            delay: props.delay,
-            fallbackStyle: outOfOrderFallbackStyle!,
+            fallbackStyle: _fnSignal(_hf0, [props, state, canReveal, revealRegistration], _hf0_str),
             showFallback: showOutOfOrderFallback,
             state,
           },
@@ -205,7 +204,6 @@ export const Suspense = /*#__PURE__*/ componentQrl<SuspenseProps>(
 
 type SSRFallbackProps = {
   boundary: SSROutOfOrderBoundaryState | null;
-  delay?: number;
   fallbackStyle: Signal<{ display: string }>;
   showFallback: boolean;
   state: Signal<SuspenseState>;
@@ -214,14 +212,15 @@ type SSRFallbackProps = {
 const SSRFallback = __EXPERIMENTAL__.suspense
   ? /*#__PURE__*/ createInternalServerComponent<SSRFallbackProps>((ssr, jsx, _options, enqueue) => {
       const boundaryState = jsx.varProps.boundary as SSROutOfOrderBoundaryState | null;
-      const delay = jsx.varProps.delay as number | undefined;
       const fallbackStyle = jsx.varProps.fallbackStyle as Signal<{ display: string }>;
       const showFallback = jsx.varProps.showFallback === true;
       const state = jsx.varProps.state as Signal<SuspenseState>;
-      if (showFallback && !isPositiveDelay(delay)) {
-        state.value = 'fallback';
-      } else if (boundaryState && showFallback && isPositiveDelay(delay)) {
-        enqueue(() => scheduleOutOfOrderFallbackDelay(ssr, boundaryState, state, delay));
+      if (showFallback) {
+        if (boundaryState) {
+          enqueue(() => scheduleOutOfOrderFallbackDelay(ssr, boundaryState, state));
+        } else {
+          state.value = 'fallback';
+        }
       }
       enqueue(
         /*#__PURE__*/ _jsxSorted(
@@ -247,31 +246,46 @@ type SSRDeferredSlotProps = {
 
 const SSRDeferredSlot = __EXPERIMENTAL__.suspense
   ? /*#__PURE__*/ createInternalServerComponent<SSRDeferredSlotProps>(async (ssr, jsx, options) => {
-      const boundaryId = (jsx.varProps.boundaryId as number | undefined) ?? ssr.nextOutOfOrderId();
+      const boundaryId = jsx.varProps.boundaryId as number;
       const contentSegment = `${boundaryId}`;
       const boundaryState = jsx.varProps.boundary as SSROutOfOrderBoundaryState | null;
       const contentStyle = jsx.varProps.contentStyle as Signal<{ display: string }>;
       const revealBoundary = jsx.varProps.reveal as OutOfOrderRevealBoundary | null;
+      const errorBoundaryStore =
+        __EXPERIMENTAL__.errorBoundary && options.parentComponentFrame
+          ? (ssr.resolveContext(options.parentComponentFrame.componentNode, ERROR_CONTEXT) as
+              | ErrorBoundaryStore
+              | undefined)
+          : undefined;
       const content = ssr.segment(
         contentSegment,
         createClaimedDeferredSlot(ssr, jsx, options),
         options
       );
 
-      writeOutOfOrderPlaceholder(ssr, boundaryId);
+      ssr.write(`<template ${QSuspenseResolved}="${boundaryId}"></template>`);
       ssr.emitOutOfOrderExecutorIfNeeded();
       ssr.queueOutOfOrderSegment(
-        content.then((rendered) =>
-          emitRenderedOutOfOrderSegment(
-            ssr,
-            boundaryId,
-            contentSegment,
-            rendered,
-            contentStyle,
-            revealBoundary,
-            boundaryState
+        content
+          .then((rendered) =>
+            emitRenderedOutOfOrderSegment(
+              ssr,
+              boundaryId,
+              rendered,
+              contentStyle,
+              revealBoundary,
+              boundaryState
+            )
           )
-        )
+          .catch((error) => {
+            if (errorBoundaryStore?.$emitFallback$) {
+              return errorBoundaryStore.$emitFallback$(error);
+            }
+            if (errorBoundaryStore?.error !== undefined) {
+              return;
+            }
+            throw error;
+          })
       );
     })
   : null!;
@@ -314,41 +328,29 @@ function createClaimedDeferredSlot(
 async function emitRenderedOutOfOrderSegment(
   ssr: SSRContainer,
   boundaryId: number,
-  segmentId: string,
   rendered: SSROutOfOrderSegment,
   contentStyle: Signal<{ display: string }>,
   revealBoundary: OutOfOrderRevealBoundary | null,
   boundaryState: SSROutOfOrderBoundaryState | null
 ): Promise<void> {
-  markOutOfOrderContentResolved(boundaryState);
+  if (boundaryState) {
+    boundaryState.contentResolved = true;
+    if (boundaryState.delayTimer) {
+      clearTimeout(boundaryState.delayTimer);
+      boundaryState.delayTimer = null;
+    }
+  }
   revealBoundary?.resolve();
   await ssr.$runQueuedRender$(async () => {
     ssr.addRoot(contentStyle);
-    const result = await rendered.container.$finalizeOutOfOrderSegment$(segmentId, rendered);
-    writeOutOfOrderResolvedTemplate(ssr, boundaryId, result.html, revealBoundary);
-    ssr.emitOutOfOrderSegmentScripts(result.scripts);
-    ssr.emitInlineScript(`qO(${boundaryId})`);
-    // qO() is the browser-visible handoff for this segment, so flush it immediately.
-    await ssr.streamHandler.flush();
+    await finalizeAndSwapOutOfOrderSegment(ssr, boundaryId, rendered, revealBoundary);
   });
-}
-
-function markOutOfOrderContentResolved(boundaryState: SSROutOfOrderBoundaryState | null): void {
-  if (!boundaryState) {
-    return;
-  }
-  boundaryState.contentResolved = true;
-  if (boundaryState.delayTimer) {
-    clearTimeout(boundaryState.delayTimer);
-    boundaryState.delayTimer = null;
-  }
 }
 
 function scheduleOutOfOrderFallbackDelay(
   ssr: SSRContainer,
   boundaryState: SSROutOfOrderBoundaryState,
-  state: Signal<SuspenseState>,
-  delay: number
+  state: Signal<SuspenseState>
 ): void {
   boundaryState.delayTimer = setTimeout(() => {
     boundaryState.delayTimer = null;
@@ -360,35 +362,9 @@ function scheduleOutOfOrderFallbackDelay(
       ssr.emitBackpatchDataAndExecutorIfNeeded();
       await ssr.streamHandler.flush();
     });
-  }, delay);
+  }, boundaryState.delay);
 }
 
 function isPositiveDelay(delay: number | undefined): delay is number {
   return typeof delay === 'number' && Number.isFinite(delay) && delay > 0;
-}
-
-function shouldRenderFallback(
-  fallback: JSXOutput,
-  revealBoundary: OutOfOrderRevealBoundary | null
-): boolean {
-  return (
-    fallback != null &&
-    fallback !== false &&
-    (revealBoundary === null || revealBoundary.showFallback)
-  );
-}
-
-function writeOutOfOrderPlaceholder(ssr: SSRContainer, boundaryId: number): void {
-  ssr.write(`<template ${QSuspenseResolved}="${boundaryId}"></template>`);
-}
-
-function writeOutOfOrderResolvedTemplate(
-  ssr: SSRContainer,
-  boundaryId: number,
-  html: string,
-  revealBoundary: OutOfOrderRevealBoundary | null
-): void {
-  ssr.write(`<template ${QSuspenseResolved}="${boundaryId}"${revealBoundary?.attrs ?? ''}>`);
-  ssr.write(html);
-  ssr.write('</template>');
 }

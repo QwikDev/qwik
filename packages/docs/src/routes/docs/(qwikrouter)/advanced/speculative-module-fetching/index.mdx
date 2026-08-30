@@ -64,7 +64,7 @@ The Qwik build process generates a `q-manifest.json` file. The `q-manifest.json`
 
 This is then further used to generate the `build/q-bundle-graph-xyz.json` file, which is a compact representation of the module graph, including probabilities of which bundlers are more likely to be requested next given a certain bundle has loaded, and is loaded by Qwik to preload QRL segment loading.
 
-Qwik-City also injects all routes with their dependencies into this bundlegraph file.
+Qwik Router also injects all routes with their dependencies into this bundlegraph file.
 
 When a container resumes, it will fetch the bundlegraph file (probably from the cache) and use it to prefetch modules needed for event handlers and routes.
 

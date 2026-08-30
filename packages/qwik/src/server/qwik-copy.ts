@@ -51,7 +51,6 @@ export {
   QStatePatchAttr,
   QStyle,
   QSuspenseResolved,
-  QSuspenseResultParent,
   QTemplate,
   QVersionAttr,
   QwikEvContainerReady,
@@ -80,6 +79,7 @@ export { ChoreBits } from '../core/shared/vnode/enums/chore-bits.enum';
 export { isHtmlAttributeAnEventName, isPreventDefault } from '../core/shared/utils/event-names';
 export { ITERATION_ITEM_SINGLE, ITERATION_ITEM_MULTI } from '../core/shared/utils/markers';
 export { isObjectEmpty } from '../core/shared/utils/objects';
+export { ErrorBoundaryPhase } from '../core/shared/error/error-boundary-phase';
 export {
   createStringStreamWriter,
   stringifyRootRefPath,

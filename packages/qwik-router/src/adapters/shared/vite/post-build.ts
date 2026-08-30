@@ -9,7 +9,8 @@ export async function postBuild(
   serverOutDir: string,
   pathName: string,
   userStaticPaths: string[],
-  cleanStatic: boolean
+  cleanStatic: boolean,
+  noTrailingSlash: boolean
 ) {
   if (pathName && !pathName.endsWith('/')) {
     pathName = ensureSlash(pathName);
@@ -20,7 +21,15 @@ export async function postBuild(
     pathNameBase + (globalThis.__QWIK_ASSETS_DIR__ || 'assets') + '/',
   ]);
 
-  const staticPaths = new Set(userStaticPaths.map(ensureSlash));
+  const getStaticPathname = (pathname: string) => {
+    pathname = ensureSlash(pathname);
+    if (noTrailingSlash && pathname !== pathNameBase) {
+      return pathname.slice(0, -1);
+    }
+    return pathname;
+  };
+
+  const staticPaths = new Set(userStaticPaths.map(getStaticPathname));
 
   const loadItem = async (fsDir: string, fsName: string, pathname: string) => {
     pathname = ensureSlash(pathname);
@@ -32,7 +41,7 @@ export async function postBuild(
 
     if (fsName === 'index.html') {
       // The route pathname already represents this page; clean it if that route is no longer static.
-      if (!staticPaths.has(pathname) && cleanStatic) {
+      if (!staticPaths.has(getStaticPathname(pathname)) && cleanStatic) {
         await fs.promises.unlink(fsPath);
       }
       return;
@@ -40,8 +49,9 @@ export async function postBuild(
 
     if (LOADER_REGEX.test('/' + fsName)) {
       // List the exact sidecar SSG wrote so isStaticPath only claims loaders with data on disk.
-      if (staticPaths.has(pathname)) {
-        staticPaths.add(pathname + fsName);
+      const staticPathname = getStaticPathname(pathname);
+      if (staticPaths.has(staticPathname)) {
+        staticPaths.add(ensureSlash(staticPathname) + fsName);
       } else if (cleanStatic) {
         await fs.promises.unlink(fsPath);
       }
@@ -82,7 +92,7 @@ const injectStatics = async (staticPathsCode: string, outDir: string) => {
     const code = await fs.promises.readFile(path, 'utf-8');
 
     let replaced = false;
-    const newCode = code.replace(/(['"])__QWIK_ROUTER_STATIC_PATHS_ARRAY__\1/g, () => {
+    const newCode = code.replace(/(['"`])__QWIK_ROUTER_STATIC_PATHS_ARRAY__\1/g, () => {
       replaced = true;
       return staticPathsCode;
     });

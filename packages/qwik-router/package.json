@@ -1,7 +1,7 @@
 {
   "name": "@qwik.dev/router",
   "description": "The router for Qwik.",
-  "version": "2.0.0-beta.38",
+  "version": "2.0.0-beta.42",
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "dependencies": {
     "@azure/functions": "3.5.1",
@@ -22,12 +22,11 @@
     "remark-gfm": "^4.0.1",
     "set-cookie-parser": "^2.7.2",
     "source-map": "^0.7.6",
-    "svgo": "^3.3.3",
+    "svgo": "^3.3.4",
     "unified": "^11.0.5",
     "unist-util-visit": "^5.0.0",
     "valibot": ">=0.36.0 <2",
     "vfile": "6.0.3",
-    "vite": ">=6 <9",
     "vite-imagetools": "10.0.0",
     "yaml": "^2.8.2",
     "zod": "^3.25.48"
@@ -41,7 +40,8 @@
     "@types/set-cookie-parser": "2.4.10",
     "tsm": "2.3.0",
     "typescript": "5.9.3",
-    "uvu": "0.5.6"
+    "uvu": "0.5.6",
+    "vite": "8.2.1"
   },
   "engines": {
     "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
@@ -147,10 +147,6 @@
       "types": "./lib/vite/index.d.ts",
       "import": "./lib/vite/index.mjs"
     },
-    "./service-worker": {
-      "types": "./service-worker.d.ts",
-      "import": "./lib/service-worker.mjs"
-    },
     "./package.json": "./package.json"
   },
   "files": [
@@ -169,8 +165,8 @@
   "license": "MIT",
   "main": "./lib/index.qwik.mjs",
   "peerDependencies": {
-    "@qwik.dev/core": "workspace:^",
-    "vite": ">=6 <9"
+    "@qwik.dev/core": "workspace:*",
+    "vite": ">=8 <9"
   },
   "publishConfig": {
     "access": "public"

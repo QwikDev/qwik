@@ -1,5 +1,39 @@
 # @qwik.dev/devtools
 
+## 2.0.0-beta.42
+
+### Patch Changes
+
+- 🐞🩹 drop the removed `useErrorBoundary` hook from the devtools hook lists (by [@maiieul](https://github.com/maiieul) in [#8745](https://github.com/QwikDev/qwik/pull/8745))
+
+- Updated dependencies [[`e29c4d8`](https://github.com/QwikDev/qwik/commit/e29c4d8476154aa5c0f2282cc4c685436c69fd30), [`2fb7a08`](https://github.com/QwikDev/qwik/commit/2fb7a08d1662c7a5f1a413b6836e741322ab35f7), [`9ccb82a`](https://github.com/QwikDev/qwik/commit/9ccb82a033e552052f5b77d5a36e10e4300b0164), [`50c9666`](https://github.com/QwikDev/qwik/commit/50c9666e28b761fb85060ce0a02ce880a461ee98), [`15de952`](https://github.com/QwikDev/qwik/commit/15de952ee4cd454e2c433df74ff0cfa20bc3ebc6)]:
+  - @qwik.dev/core@2.0.0-beta.42
+
+## 2.0.0-beta.41
+
+### Minor Changes
+
+- ✨ devtools now version in lockstep with core and require the exact matching core version (by [@wmertens](https://github.com/wmertens) in [#8933](https://github.com/QwikDev/qwik/pull/8933))
+
+### Patch Changes
+
+- Updated dependencies [[`fcced61`](https://github.com/QwikDev/qwik/commit/fcced613a9c0277203b13c2e32a815f02d4ff6cd), [`870529c`](https://github.com/QwikDev/qwik/commit/870529c8194c40fee6a35a5723e0c9171ec5f60d), [`f513eda`](https://github.com/QwikDev/qwik/commit/f513eda07a639399fff044f88607a71670e94d14), [`e4ae649`](https://github.com/QwikDev/qwik/commit/e4ae649364ab3fc7d1fc5f8e98808c5993b4f140)]:
+  - @qwik.dev/core@2.0.0-beta.41
+
+## 0.3.0-beta.3
+
+### Minor Changes
+
+- ✨ add a command palette (cmd/ctrl+k) to search and jump across devtools (by [@Aejkatappaja](https://github.com/Aejkatappaja) in [#8835](https://github.com/QwikDev/qwik/pull/8835))
+
+### Patch Changes
+
+- 🐞🩹 disable lifecycle scripts during package operations. (by [@Varixo](https://github.com/Varixo) in [#8855](https://github.com/QwikDev/qwik/pull/8855))
+
+- refactor: move the qwik dom protocol constants into the shared devtools kit (by [@Aejkatappaja](https://github.com/Aejkatappaja) in [#8825](https://github.com/QwikDev/qwik/pull/8825))
+
+- refactor: type-check devtools hook method names across the runtime and eval bridge (by [@Aejkatappaja](https://github.com/Aejkatappaja) in [#8824](https://github.com/QwikDev/qwik/pull/8824))
+
 ## 0.3.0-beta.2
 
 ### Minor Changes

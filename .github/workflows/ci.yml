@@ -164,11 +164,12 @@ jobs:
           path: |
             packages/qwik-router/lib
             packages/qwik-react/lib
+            packages/qwik-utils/lib
             packages/eslint-plugin-qwik/dist
             packages/create-qwik/dist
             packages/devtools/dist
           # note that all inputs need to be listed here, including qwik, for correct cache invalidation
-          key: ${{ hashfiles('qwik-key.txt', 'rust-key.txt', 'packages/qwik-router/**/*', 'packages/qwik-react/**/*', 'packages/eslint-plugin-qwik/**/*', 'packages/create-qwik/**/*', 'packages/devtools/**/*', 'starters/apps/**/*', 'e2e/qwik-e2e/apps/**/*', '!**/*.unit.*') }}
+          key: ${{ hashfiles('qwik-key.txt', 'rust-key.txt', 'packages/qwik-router/**/*', 'packages/qwik-react/**/*', 'packages/qwik-utils/**/*', 'packages/eslint-plugin-qwik/**/*', 'packages/create-qwik/**/*', 'packages/devtools/**/*', 'starters/apps/**/*', 'e2e/qwik-e2e/apps/**/*', '!**/*.unit.*') }}
       - run: 'echo ${{ steps.cache-others.outputs.cache-primary-key }} > others-key.txt'
       - name: 'check cache: docs'
         id: cache-docs
@@ -254,7 +255,7 @@ jobs:
         with:
           components: clippy,rustfmt
 
-      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
       - name: Setup Node
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
@@ -395,7 +396,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
-      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
         if: needs.changes.outputs.build-qwik == 'true' || needs.changes.outputs.build-others == 'true'
       - name: Setup Node
         if: needs.changes.outputs.build-qwik == 'true' || needs.changes.outputs.build-others == 'true'
@@ -421,7 +422,7 @@ jobs:
 
       - name: 'build: qwik and packages'
         if: needs.changes.outputs.build-qwik == 'true' && needs.changes.outputs.build-others == 'true'
-        run: pnpm build --qwik --optimizer --insights --tsc --api --qwikrouter --cli --qwikreact --eslint --devtools --set-dist-tag="${{ needs.changes.outputs.disttag }}"
+        run: pnpm build --qwik --optimizer --insights --tsc --api --qwikrouter --cli --qwikreact --qwikutils --eslint --devtools --set-dist-tag="${{ needs.changes.outputs.disttag }}"
 
       - name: 'build: qwik'
         if: needs.changes.outputs.build-qwik == 'true' && needs.changes.outputs.build-others != 'true'
@@ -457,7 +458,7 @@ jobs:
 
       - name: 'build: qwik-router & others'
         if: needs.changes.outputs.build-others == 'true' && needs.changes.outputs.build-qwik != 'true'
-        run: pnpm build --tsc --api --qwikrouter --cli --qwikreact --eslint --devtools --set-dist-tag="${{ needs.changes.outputs.disttag }}"
+        run: pnpm build --tsc --api --qwikrouter --cli --qwikreact --qwikutils --eslint --devtools --set-dist-tag="${{ needs.changes.outputs.disttag }}"
       - name: Save others cache
         if: needs.changes.outputs.build-others == 'true'
         uses: actions/cache/save@v5
@@ -466,6 +467,7 @@ jobs:
           path: |
             packages/qwik-router/lib
             packages/qwik-react/lib
+            packages/qwik-utils/lib
             packages/eslint-plugin-qwik/dist
             packages/create-qwik/dist
             packages/devtools/dist
@@ -477,6 +479,7 @@ jobs:
           path: |
             packages/qwik-router/lib
             packages/qwik-react/lib
+            packages/qwik-utils/lib
             packages/eslint-plugin-qwik/dist
             packages/create-qwik/dist
             packages/devtools/dist
@@ -505,6 +508,18 @@ jobs:
             packages/qwik-react/lib/
           if-no-files-found: error
 
+      - name: Print qwik-utils Lib Build
+        run: tree -a packages/qwik-utils/lib/
+
+      - name: Upload qwik-utils Build Artifacts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: artifact-qwikutils
+          include-hidden-files: true
+          path: |
+            packages/qwik-utils/lib/
+          if-no-files-found: error
+
       - name: Print Create Qwik CLI Dist Build
         run: tree -a packages/create-qwik/dist/
 
@@ -531,7 +546,7 @@ jobs:
         run: tree -a packages/devtools/dist/
 
       - name: Upload devtools Build Artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: artifact-devtools
           include-hidden-files: true
@@ -559,7 +574,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
-      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
       - name: Setup Node
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
@@ -570,7 +585,7 @@ jobs:
       - name: Download Package Artifacts
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
-          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,create-qwik,eslint-plugin-qwik}'
+          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,qwikutils,create-qwik,eslint-plugin-qwik}'
           merge-multiple: false
 
       - name: Move Distribution Artifacts
@@ -580,6 +595,7 @@ jobs:
           artifact-qwik
           artifact-qwikrouter
           artifact-qwikreact
+          artifact-qwikutils
           artifact-create-qwik
           artifact-eslint-plugin-qwik
 
@@ -616,7 +632,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
-      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
       - name: Setup Node
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
@@ -627,7 +643,7 @@ jobs:
       - name: Download Package Artifacts
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
-          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,create-qwik,eslint-plugin-qwik}'
+          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,qwikutils,create-qwik,eslint-plugin-qwik}'
           merge-multiple: false
 
       - name: Move Distribution Artifacts
@@ -637,6 +653,7 @@ jobs:
           artifact-qwik
           artifact-qwikrouter
           artifact-qwikreact
+          artifact-qwikutils
           artifact-create-qwik
           artifact-eslint-plugin-qwik
 
@@ -696,7 +713,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
-      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
       - name: Setup Node
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
@@ -763,7 +780,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
-      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
       - name: Setup Node
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
@@ -774,7 +791,7 @@ jobs:
       - name: Download Package Artifacts
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
-          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,create-qwik,eslint-plugin-qwik}'
+          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,qwikutils,create-qwik,eslint-plugin-qwik}'
           merge-multiple: false
 
       - name: Download Docs Artifact
@@ -790,6 +807,7 @@ jobs:
           artifact-qwik
           artifact-qwikrouter
           artifact-qwikreact
+          artifact-qwikutils
           artifact-create-qwik
           artifact-eslint-plugin-qwik
           artifact-docs
@@ -875,7 +893,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
-      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
       - name: Setup Node
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
@@ -886,7 +904,7 @@ jobs:
       - name: Download Package Artifacts
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
-          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,create-qwik,eslint-plugin-qwik}'
+          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,qwikutils,create-qwik,eslint-plugin-qwik}'
           merge-multiple: false
 
       - name: Move Distribution Artifacts
@@ -896,6 +914,7 @@ jobs:
           artifact-qwik
           artifact-qwikrouter
           artifact-qwikreact
+          artifact-qwikutils
           artifact-create-qwik
           artifact-eslint-plugin-qwik
 
@@ -951,7 +970,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
-      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
       - name: Setup Node
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
@@ -962,7 +981,7 @@ jobs:
       - name: Download Package Artifacts
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
-          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,create-qwik,eslint-plugin-qwik}'
+          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,qwikutils,create-qwik,eslint-plugin-qwik}'
           merge-multiple: false
 
       - name: Move Distribution Artifacts
@@ -972,6 +991,7 @@ jobs:
           artifact-qwik
           artifact-qwikrouter
           artifact-qwikreact
+          artifact-qwikutils
           artifact-create-qwik
           artifact-eslint-plugin-qwik
 
@@ -1091,7 +1111,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
-      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
       - name: Setup Node
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
@@ -1102,7 +1122,7 @@ jobs:
       - name: Download Package Artifacts
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
-          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,create-qwik,eslint-plugin-qwik}'
+          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,qwikutils,create-qwik,eslint-plugin-qwik}'
           merge-multiple: false
 
       - name: Move Distribution Artifacts
@@ -1112,6 +1132,7 @@ jobs:
           artifact-qwik
           artifact-qwikrouter
           artifact-qwikreact
+          artifact-qwikutils
           artifact-create-qwik
           artifact-eslint-plugin-qwik
 
@@ -1286,7 +1307,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
-      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
       - name: Setup Node
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
@@ -1297,7 +1318,7 @@ jobs:
       - name: Download Package Artifacts
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
-          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,create-qwik,eslint-plugin-qwik}'
+          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,qwikutils,create-qwik,eslint-plugin-qwik}'
           merge-multiple: false
 
       - name: Move Distribution Artifacts
@@ -1307,6 +1328,7 @@ jobs:
           artifact-qwik
           artifact-qwikrouter
           artifact-qwikreact
+          artifact-qwikutils
           artifact-create-qwik
           artifact-eslint-plugin-qwik
 
@@ -1411,7 +1433,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
-      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
       - name: Setup Node
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
@@ -1490,7 +1512,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
-      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
       - name: Setup Node
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
@@ -1501,7 +1523,7 @@ jobs:
       - name: Download Package Artifacts
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
-          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,create-qwik,eslint-plugin-qwik,devtools}'
+          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,qwikutils,create-qwik,eslint-plugin-qwik,devtools}'
           merge-multiple: false
 
       - name: Move Distribution Artifacts
@@ -1511,6 +1533,7 @@ jobs:
           artifact-qwik
           artifact-qwikrouter
           artifact-qwikreact
+          artifact-qwikutils
           artifact-create-qwik
           artifact-eslint-plugin-qwik
           artifact-devtools
@@ -1527,16 +1550,6 @@ jobs:
           publish: pnpm release
           title: V2 Version Packages
           branch: main
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # Delete this after V2 is released
-      - name: Tag with latest
-        if: steps.changesets.outputs.published == 'true'
-        run: |
-          npm dist-tag add @qwik.dev/core@${{ fromJSON(steps.changesets.outputs.publishedPackages)[0].version }} latest
-          npm dist-tag add @qwik.dev/router@${{ fromJSON(steps.changesets.outputs.publishedPackages)[0].version }} latest
-          npm dist-tag add @qwik.dev/react@${{ fromJSON(steps.changesets.outputs.publishedPackages)[0].version }} latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -1574,7 +1587,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
-      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
       - name: Setup Node
         uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
@@ -1585,7 +1598,7 @@ jobs:
       - name: Download Package Artifacts
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
-          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,create-qwik,eslint-plugin-qwik,devtools}'
+          pattern: 'artifact-{optimizer,qwik,qwikrouter,qwikreact,qwikutils,create-qwik,eslint-plugin-qwik,devtools}'
           merge-multiple: false
 
       - name: Move Distribution Artifacts
@@ -1595,6 +1608,7 @@ jobs:
           artifact-qwik
           artifact-qwikrouter
           artifact-qwikreact
+          artifact-qwikutils
           artifact-create-qwik
           artifact-eslint-plugin-qwik
           artifact-devtools

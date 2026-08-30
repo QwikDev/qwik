@@ -5,6 +5,7 @@
 ```ts
 
 import type { AbortMessage } from '@qwik.dev/router/middleware/request-handler';
+import type { CacheControl } from '@qwik.dev/router/middleware/request-handler';
 import { Component } from '@qwik.dev/core';
 import type { ComputedSignal } from '@qwik.dev/core';
 import { Cookie } from '@qwik.dev/router/middleware/request-handler';
@@ -191,11 +192,6 @@ export type DocumentStyle = Readonly<((Omit<QwikIntrinsicElements['style'], 'dan
     dangerouslySetInnerHTML?: string;
     style?: never;
 })>;
-
-// Warning: (ae-forgotten-export) The symbol "ErrorBoundaryProps" needs to be exported by the entry point index.d.ts
-//
-// @public (undocumented)
-export const ErrorBoundary: Component<ErrorBoundaryProps>;
 
 // @public
 export type ExcludeControlFlow<T> = Exclude<T, AbortMessage | ServerError>;
@@ -679,8 +675,8 @@ export const zod$: ZodConstructor;
 export type ZodConstructor = {
     <T extends z_2.ZodRawShape>(schema: T): ZodDataValidator<z_2.ZodObject<T>>;
     <T extends z_2.ZodRawShape>(schema: (zod: typeof z_2.z, ev: RequestEvent) => T): ZodDataValidator<z_2.ZodObject<T>>;
-    <T extends z_2.Schema>(schema: T): ZodDataValidator<T>;
-    <T extends z_2.Schema>(schema: (zod: typeof z_2.z, ev: RequestEvent) => T): ZodDataValidator<T>;
+    <T extends z_2.ZodType>(schema: T): ZodDataValidator<T>;
+    <T extends z_2.ZodType>(schema: (zod: typeof z_2.z, ev: RequestEvent) => T): ZodDataValidator<T>;
 };
 
 // Warning: (ae-forgotten-export) The symbol "ZodConstructorQRL" needs to be exported by the entry point index.d.ts

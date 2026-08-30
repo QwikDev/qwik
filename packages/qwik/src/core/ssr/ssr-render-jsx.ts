@@ -1,11 +1,10 @@
 import { isDev } from '@qwik.dev/core/build';
 import { _run } from '../client/run-qrl';
-import { ComputedSignalImpl } from '../reactive-primitives/impl/computed-signal-impl';
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
-import { AsyncSignalFlags, EffectProperty } from '../reactive-primitives/types';
+import { EffectProperty } from '../reactive-primitives/types';
 import { isSignal } from '../reactive-primitives/utils';
 import { isQwikComponent } from '../shared/component.public';
-import { Fragment, type Props } from '../shared/jsx/jsx-runtime';
+import { Fragment } from '../shared/jsx/jsx-runtime';
 import { directGetPropsProxyProp } from '../shared/jsx/props-proxy';
 import { Slot } from '../shared/jsx/slot.public';
 import { JSXNodeFlags, type JSXNodeInternal, type JSXOutput } from '../shared/jsx/types/jsx-node';
@@ -17,15 +16,16 @@ import {
   SSRStreamBlock,
   type SSRStreamChildren,
 } from '../shared/jsx/utils.public';
-import { type SerializationContext } from '../shared/serdes/index';
+import { ErrorBoundaryPhase } from '../shared/error/error-handling';
+import { VNodeDataFlag } from '../../server/types';
 import { DEBUG_TYPE, VirtualType } from '../shared/types';
 import { isAsyncGenerator } from '../shared/utils/async-generator';
 import { EMPTY_OBJ } from '../shared/utils/flyweight';
 import { getFileLocationFromJsx } from '../shared/utils/jsx-filename';
 import {
   ELEMENT_KEY,
-  QCursorBoundary,
   QDefaultSlot,
+  QErrorContentHost,
   QScopedStyle,
   QSlot,
   QSlotParent,
@@ -37,16 +37,18 @@ import { addComponentStylePrefix } from '../shared/utils/scoped-styles';
 import type { InnerContainer } from '../shared/utils/container';
 import { isFunction, type ValueOrPromise } from '../shared/utils/types';
 import { trackSignalAndAssignHost } from '../use/use-core';
-import type { CursorBoundary } from '../use/use-cursor-boundary';
 import {
   getInternalServerComponentHandler,
   isInternalServerComponent,
 } from './internal-server-component';
 import { applyInlineComponent, applyQwikComponentBody } from './ssr-render-component';
-import type { ISsrComponentFrame, SSRContainer, SSRRenderJSXOptions } from './ssr-types';
+import type { ISsrComponentFrame, ISsrNode, SSRContainer, SSRRenderJSXOptions } from './ssr-types';
 import { resolveSlotName } from '../shared/utils/prop';
 
 class MaybeAsyncSignal {}
+// we need to differentiate between JSX functions and ssr container functions for error boundary
+// JSX functions need to be skipped after error boundary catch an error
+class InvokeJSXFunction {}
 
 type StackFn = () => ValueOrPromise<void>;
 export type StackValue = ValueOrPromise<
@@ -56,7 +58,25 @@ export type StackValue = ValueOrPromise<
   | typeof Promise
   | AsyncGenerator
   | typeof MaybeAsyncSignal
+  | typeof InvokeJSXFunction
 >;
+
+const openBoundaryContentScope = (ssr: SSRContainer, contentHost: ISsrNode): StackFn => {
+  const enclosing = ssr.$errorContentHost$;
+  ssr.$errorContentHost$ = contentHost;
+  return () => {
+    ssr.$errorContentHost$ = enclosing;
+  };
+};
+
+const isInsideFailedBoundaryContent = (ssr: SSRContainer): boolean => {
+  const contentHost = ssr.$errorContentHost$;
+  return !!contentHost && (contentHost.vnodeData[0] & VNodeDataFlag.INERT) !== 0;
+};
+
+const markPromiseHandled = (promise: Promise<unknown>): void => {
+  promise.catch(() => {});
+};
 
 function setParentOptions(
   mutable: { currentStyleScoped: string | null; parentComponentFrame: ISsrComponentFrame | null },
@@ -77,19 +97,44 @@ export async function _walkJSX(
 ): Promise<void> {
   const stack: StackValue[] = [value];
   const enqueue = (value: StackValue) => stack.push(value);
+  const enqueuePromise = (promise: Promise<unknown>) => {
+    markPromiseHandled(promise);
+    stack.push(promise as StackValue);
+    stack.push(Promise);
+  };
   const drain = async (): Promise<void> => {
     while (stack.length) {
+      let phase = ErrorBoundaryPhase.Render;
       try {
         const value = stack.pop();
         // Reference equality first (no prototype walk), then typeof
         if (value === MaybeAsyncSignal) {
           const trackFn = stack.pop() as () => StackValue;
+          if (__EXPERIMENTAL__.errorBoundary && isInsideFailedBoundaryContent(ssr)) {
+            continue;
+          }
+          phase = ErrorBoundaryPhase.Hook;
           await retryOnPromise(() => stack.push(trackFn()));
+          continue;
+        }
+        if (__EXPERIMENTAL__.errorBoundary && value === InvokeJSXFunction) {
+          const fnChild = stack.pop() as StackFn;
+          if (isInsideFailedBoundaryContent(ssr)) {
+            continue;
+          }
+          const result = fnChild.apply(ssr);
+          if (isPromise(result)) {
+            await result;
+          }
           continue;
         }
         if (typeof value === 'function') {
           if (value === Promise) {
-            stack.push(await (stack.pop() as Promise<JSXOutput>));
+            const pending = stack.pop() as Promise<JSXOutput>;
+            if (__EXPERIMENTAL__.errorBoundary && isInsideFailedBoundaryContent(ssr)) {
+              continue;
+            }
+            stack.push(await pending);
           } else {
             const result = (value as StackFn).apply(ssr);
             if (isPromise(result)) {
@@ -98,7 +143,15 @@ export async function _walkJSX(
           }
           continue;
         }
-        processJSXNode(ssr, enqueue, value as JSXOutput, options);
+        if (__EXPERIMENTAL__.errorBoundary && isInsideFailedBoundaryContent(ssr)) {
+          if (isPromise(value)) {
+            value.catch(() => {});
+          }
+          continue;
+        }
+        processJSXNode(ssr, enqueue, enqueuePromise, value as JSXOutput, options);
+      } catch (err) {
+        ssr.handleError(err, ssr.getOrCreateLastNode(), phase);
       } finally {
         const pendingFlush = ssr.streamHandler.waitForPendingFlush();
         if (isPromise(pendingFlush)) {
@@ -110,9 +163,17 @@ export async function _walkJSX(
   await drain();
 }
 
+function enqueueJSX(enqueue: (v: StackValue) => void, value: JSXOutput) {
+  enqueue(value);
+  if (__EXPERIMENTAL__.errorBoundary && typeof value === 'function') {
+    enqueue(InvokeJSXFunction);
+  }
+}
+
 function processJSXNode(
   ssr: SSRContainer,
   enqueue: (value: StackValue) => void,
+  enqueuePromise: (promise: Promise<unknown>) => void,
   value: JSXOutput,
   options: SSRRenderJSXOptions
 ) {
@@ -128,10 +189,9 @@ function processJSXNode(
   } else if (typeof value === 'object') {
     if (Array.isArray(value)) {
       for (let i = value.length - 1; i >= 0; i--) {
-        enqueue(value[i]);
+        enqueueJSX(enqueue, value[i]);
       }
     } else if (isSignal(value)) {
-      maybeAddPollingAsyncSignalToEagerResume(ssr.serializationCtx, value);
       ssr.openFragment(isDev ? { [DEBUG_TYPE]: VirtualType.WrappedSignal } : EMPTY_OBJ);
       const signalNode = ssr.getOrCreateLastNode();
       const unwrappedSignal = value instanceof WrappedSignalImpl ? value.$unwrapIfSignal$() : value;
@@ -143,23 +203,30 @@ function processJSXNode(
     } else if (isPromise(value)) {
       ssr.openFragment(isDev ? { [DEBUG_TYPE]: VirtualType.Awaited } : EMPTY_OBJ);
       enqueue(ssr.closeFragment);
-      enqueue(value);
-      enqueue(Promise);
+      enqueuePromise(value);
       enqueue(() => ssr.streamHandler.flush());
     } else if (isAsyncGenerator(value)) {
       enqueue(async () => {
-        for await (const chunk of value) {
-          await _walkJSX(ssr, chunk as JSXOutput, {
-            currentStyleScoped: options.currentStyleScoped,
-            parentComponentFrame: options.parentComponentFrame,
-          });
-          await ssr.streamHandler.flush();
+        if (__EXPERIMENTAL__.errorBoundary && isInsideFailedBoundaryContent(ssr)) {
+          return;
+        }
+        const freshWalkOptions = () => ({
+          currentStyleScoped: options.currentStyleScoped,
+          parentComponentFrame: options.parentComponentFrame,
+        });
+        try {
+          for await (const chunk of value) {
+            await _walkJSX(ssr, chunk as JSXOutput, freshWalkOptions());
+            await ssr.streamHandler.flush();
+          }
+        } catch (err) {
+          ssr.handleError(err, ssr.getOrCreateLastNode(), ErrorBoundaryPhase.Render);
+          await _walkJSX(ssr, null, freshWalkOptions());
         }
       });
     } else {
       const jsx = value as JSXNodeInternal;
       const type = jsx.type;
-      // Below, JSXChildren allows functions and regexes, but we assume the dev only uses those as appropriate.
       if (typeof type === 'string') {
         appendClassIfScopedStyleExists(jsx, options.currentStyleScoped);
         let qwikInspectorAttrValue: string | null = null;
@@ -183,6 +250,9 @@ function processJSXNode(
           ssr.htmlNode(innerHTML);
         }
 
+        if (__EXPERIMENTAL__.errorBoundary && directGetPropsProxyProp(jsx, QErrorContentHost)) {
+          enqueue(openBoundaryContentScope(ssr, ssr.getOrCreateLastNode()));
+        }
         enqueue(ssr.closeElement);
 
         if (type === 'head') {
@@ -201,9 +271,12 @@ function processJSXNode(
         }
 
         const children = jsx.children as JSXOutput;
-        children != null && enqueue(children);
+        children != null && enqueueJSX(enqueue, children);
       } else if (isFunction(type)) {
-        if (__EXPERIMENTAL__.suspense && isInternalServerComponent(type)) {
+        if (
+          (__EXPERIMENTAL__.suspense || __EXPERIMENTAL__.errorBoundary) &&
+          isInternalServerComponent(type)
+        ) {
           enqueue(() => getInternalServerComponentHandler(type)(ssr, jsx, options, enqueue));
           return;
         } else if (type === Fragment) {
@@ -214,21 +287,15 @@ function processJSXNode(
           }
           ssr.openFragment(attrs);
           enqueue(ssr.closeFragment);
-          // In theory we could get functions or regexes, but we assume all is well
           const children = jsx.children as JSXOutput;
-          children != null && enqueue(children);
+          children != null && enqueueJSX(enqueue, children);
         } else if (type === Slot) {
           const componentFrame = options.parentComponentFrame;
           if (componentFrame) {
             const compId = componentFrame.componentNode.id || '';
-            const projectionAttrs: Props = isDev ? { [DEBUG_TYPE]: VirtualType.Projection } : {};
-            const cursorBoundary = directGetPropsProxyProp<CursorBoundary | null, any>(
-              jsx,
-              QCursorBoundary
-            );
-            if (cursorBoundary) {
-              projectionAttrs[QCursorBoundary] = cursorBoundary;
-            }
+            const projectionAttrs: Record<string, string | null> = isDev
+              ? { [DEBUG_TYPE]: VirtualType.Projection }
+              : {};
             projectionAttrs[QSlotParent] = compId;
             ssr.openProjection(projectionAttrs);
             const host = componentFrame.componentNode;
@@ -246,7 +313,7 @@ function processJSXNode(
             if (slotDefaultChildren && slotChildren !== slotDefaultChildren) {
               ssr.addUnclaimedProjection(componentFrame, QDefaultSlot, slotDefaultChildren);
             }
-            enqueue(slotChildren as JSXOutput);
+            enqueueJSX(enqueue, slotChildren as JSXOutput);
             enqueue(
               setParentOptions(
                 options,
@@ -283,14 +350,17 @@ function processJSXNode(
             value = generator;
           }
 
-          enqueue(value as StackValue);
-          isPromise(value) && enqueue(Promise);
+          if (isPromise(value)) {
+            enqueuePromise(value);
+          } else {
+            enqueue(value as StackValue);
+          }
         } else if (type === SSRRaw) {
           ssr.htmlNode(directGetPropsProxyProp(jsx, 'data'));
         } else if (type === SSRStreamBlock) {
           ssr.streamHandler.streamBlockStart();
           enqueue(() => ssr.streamHandler.streamBlockEnd());
-          enqueue(jsx.children as JSXOutput);
+          enqueueJSX(enqueue, jsx.children as JSXOutput);
         } else if (isQwikComponent(type)) {
           // prod: use new instance of an object for props, we always modify props for a component
           const componentAttrs: Record<string, string | null> = {};
@@ -299,6 +369,10 @@ function processJSXNode(
           }
           ssr.openComponent(componentAttrs);
           const host = ssr.getOrCreateLastNode();
+          enqueue(
+            setParentOptions(options, options.currentStyleScoped, options.parentComponentFrame)
+          );
+          enqueue(() => ssr.closeComponent());
           const componentFrame = ssr.getParentComponentFrame()!;
           componentFrame!.distributeChildrenIntoSlots(
             jsx.children,
@@ -307,11 +381,8 @@ function processJSXNode(
           );
 
           const jsxOutput = applyQwikComponentBody(ssr, jsx, type);
-          enqueue(
-            setParentOptions(options, options.currentStyleScoped, options.parentComponentFrame)
-          );
-          enqueue(() => ssr.closeComponent());
           if (isPromise(jsxOutput)) {
+            markPromiseHandled(jsxOutput);
             // Defer reading QScopedStyle until after the promise resolves
             enqueue(async () => {
               await ssr.streamHandler.flush();
@@ -340,29 +411,13 @@ function processJSXNode(
             type,
             jsx
           );
-          enqueue(jsxOutput);
-          isPromise(jsxOutput) && enqueue(Promise);
+          if (isPromise(jsxOutput)) {
+            enqueuePromise(jsxOutput);
+          } else {
+            enqueue(jsxOutput);
+          }
         }
       }
-    }
-  }
-}
-
-function maybeAddPollingAsyncSignalToEagerResume(
-  serializationCtx: SerializationContext,
-  signal: unknown
-) {
-  // Unwrap if it's a WrappedSignalImpl
-  const unwrappedSignal = signal instanceof WrappedSignalImpl ? signal.$unwrapIfSignal$() : signal;
-
-  if (unwrappedSignal instanceof ComputedSignalImpl) {
-    const expires = unwrappedSignal.$expires$;
-    // Don't check for $effects$ here - effects are added later during tracking.
-    // The AsyncSignal's polling mechanism will check for effects before scheduling.
-    // Only eager-resume for polling signals, not stale-only ones.
-    if (expires && !(unwrappedSignal.$flags$ & AsyncSignalFlags.NO_POLL)) {
-      serializationCtx.$addRoot$(unwrappedSignal);
-      serializationCtx.$eagerResume$.add(unwrappedSignal);
     }
   }
 }

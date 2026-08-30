@@ -7,8 +7,7 @@ import { invokeApply, newRenderInvokeContext, type RenderInvokeContext } from '.
 import { type EventQRL, type UseOnEvent, type UseOnMap } from '../use/use-on';
 import { isQwikComponent, type OnRenderFn } from './component.public';
 import { assertDefined } from './error/assert';
-import { Fragment, type Props } from './jsx/jsx-runtime';
-import { _jsxSorted } from './jsx/jsx-internal';
+import { type Props } from './jsx/jsx-runtime';
 import { JSXNodeImpl, isJSXNode } from './jsx/jsx-node';
 import type { JSXNodeInternal, JSXOutput } from './jsx/types/jsx-node';
 import type { KnownEventNames } from './jsx/types/jsx-qwik-events';
@@ -23,9 +22,10 @@ import {
   OnRenderProp,
   USE_ON_LOCAL,
   USE_ON_LOCAL_SEQ_IDX,
+  USE_ON_PLACEHOLDER_KEY,
 } from './utils/markers';
 import { MAX_RETRY_ON_PROMISE_COUNT, isPromise, maybeThen, safeCall } from './utils/promises';
-import { isArray, isPrimitiveOrNullUndefined, type ValueOrPromise } from './utils/types';
+import { isArray, type ValueOrPromise } from './utils/types';
 import { getSubscriber } from '../reactive-primitives/subscriber';
 import { EffectProperty } from '../reactive-primitives/types';
 import { EventNameHtmlScope, getEventDataFromHtmlAttribute } from './utils/event-names';
@@ -340,44 +340,15 @@ function findFirstElementNode(jsx: JSXOutput): ValueOrPromise<JSXNodeInternal<st
  * This is necessary for headless components (components that don't render a real DOM element) to
  * have an anchor point for `useOn` event listeners that target the document or window.
  *
- * @param jsx The JSX output to modify.
+ * @param jsx The JSX output of the component.
  * @param placeholder The placeholder element to inject.
- * @returns The modified JSX output.
+ * @returns The JSX output with the placeholder as its last sibling.
  */
 function injectPlaceholderElement(jsx: JSXOutput, placeholder: JSXNodeInternal<string>): JSXOutput {
-  // For regular JSX nodes, we can append the placeholder to its children.
-  if (isJSXNode(jsx)) {
-    // Inline components don't always render children, so we wrap them in Fragment which does.
-    if (jsx.type !== Fragment && !isQwikComponent(jsx.type)) {
-      return _jsxSorted(Fragment, null, null, [jsx, placeholder], 0, null);
-    }
-
-    if (jsx.children == null) {
-      jsx.children = placeholder;
-    } else if (isArray(jsx.children)) {
-      jsx.children.push(placeholder);
-    } else {
-      jsx.children = [jsx.children, placeholder];
-    }
-    return jsx;
-  }
-
-  // For primitives, we can't add children, so we wrap them in a fragment.
-  if (isPrimitiveOrNullUndefined(jsx)) {
-    return _jsxSorted(Fragment, null, null, [jsx, placeholder], 0, null);
-  }
-
-  // For an array of nodes, we inject the placeholder into the first element.
-  if (isArray(jsx) && jsx.length > 0) {
-    injectPlaceholderElement(jsx[0], placeholder);
-    return jsx;
-  }
-
-  // For anything else we do nothing.
-  return jsx;
+  return isArray(jsx) ? [...jsx, placeholder] : [jsx, placeholder];
 }
 
 /** @returns An empty <script> element for adding qwik metadata attributes to */
 function createPlaceholderScriptNode(): JSXNodeInternal<string> {
-  return new JSXNodeImpl('script', null, { hidden: '' }, null, 0, null);
+  return new JSXNodeImpl('script', null, { hidden: '' }, null, 0, USE_ON_PLACEHOLDER_KEY);
 }

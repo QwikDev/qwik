@@ -91,6 +91,99 @@ test.describe('loaders', () => {
       await page.waitForURL('**/reexported-loader/two/');
       await expect(loaderId).toHaveText('id: two');
     });
+
+    test('loads a wrapped route loader session after an action redirect', async ({ page }) => {
+      await page.goto('/qwikrouter-test/dynamic-session/login/');
+      await page.evaluate(() => ((window as any).__dynamicSessionMarker = true));
+      await page.getByRole('button', { name: 'Sign in' }).click();
+
+      expect(await page.evaluate(() => (window as any).__dynamicSessionMarker)).toBe(true);
+      await expect(page.locator('#dynamic-session-user')).toHaveText('admin');
+    });
+
+    test('loads routeLoaderQrl after production SPA navigation', async ({ page }) => {
+      await page.goto('/qwikrouter-test.prod/');
+      await page.evaluate(() => ((window as any).__prodLoaderMarker = true));
+      await page.locator('#prod-loader-link').click();
+
+      await expect(page.locator('#prod-qrl-loader')).toHaveText('qrl loader');
+      expect(await page.evaluate(() => (window as any).__prodLoaderMarker)).toBe(true);
+    });
+
+    test('fetches a destination loader once on first SPA navigation', async ({ page }) => {
+      const loaderRequests: string[] = [];
+      page.on('request', (request) => {
+        const pathname = new URL(request.url()).pathname;
+        if (pathname.includes('/issue8966/b/q-loader-')) {
+          loaderRequests.push(pathname);
+        }
+      });
+
+      await page.goto('/qwikrouter-test.prod/issue8966/a/');
+      await page.locator('#issue8966-b').click();
+      await page.waitForURL('**/issue8966/b/');
+      await page.waitForLoadState('networkidle');
+
+      expect(loaderRequests).toHaveLength(1);
+    });
+
+    test('fetches goto loader data only from the loader signal', async ({ page }) => {
+      await page.goto('/qwikrouter-test.prod/issue8966/a/');
+      await page.evaluate(() => {
+        const originalFetch = window.fetch;
+        (window as any).__issue8966LoaderFetchSignals = [];
+        window.fetch = (...args) => {
+          const [input, init] = args;
+          const url =
+            typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+          if (url.includes('/issue8966/b/q-loader-')) {
+            (window as any).__issue8966LoaderFetchSignals.push(!!init?.signal);
+          }
+          return originalFetch(...args);
+        };
+      });
+
+      await page.locator('#issue8966-goto-b').click();
+      await page.waitForURL('**/issue8966/b/');
+      await page.waitForLoadState('networkidle');
+
+      expect(await page.evaluate(() => (window as any).__issue8966LoaderFetchSignals)).toEqual([
+        true,
+      ]);
+    });
+
+    test('releases route loader tasks across SPA navigations', async ({ page }) => {
+      const loaderRequests: string[] = [];
+      page.on('request', (request) => {
+        const pathname = new URL(request.url()).pathname;
+        if (pathname.includes('/issue8966/a/q-loader-')) {
+          loaderRequests.push(pathname);
+        }
+      });
+
+      await page.goto('/qwikrouter-test.prod/issue8966/a/');
+      await page.locator('#issue8966-b').click();
+      await page.waitForURL('**/issue8966/b/');
+      await page.waitForLoadState('networkidle');
+      loaderRequests.length = 0;
+
+      await page.locator('#issue8966-c').click();
+      await page.waitForURL('**/issue8966/c/');
+      await expect(page.locator('#issue8966-c-page')).toHaveText('C');
+      await page.waitForLoadState('networkidle');
+      expect(loaderRequests).toHaveLength(0);
+    });
+
+    test('loads a wrapped route loader session after a production action redirect', async ({
+      page,
+    }) => {
+      await page.goto('/qwikrouter-test.prod/');
+      await page.evaluate(() => ((window as any).__prodSessionMarker = true));
+      await page.locator('#prod-session-sign-in').click();
+
+      expect(await page.evaluate(() => (window as any).__prodSessionMarker)).toBe(true);
+      await expect(page.locator('#prod-session-user')).toHaveText('admin');
+    });
   });
 
   function tests() {

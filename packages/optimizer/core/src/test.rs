@@ -517,6 +517,7 @@ fn example_props_optimization() {
 		code: r#"
 import { $, component$, useTask$ } from '@qwik.dev/core';
 import { CONST } from 'const';
+const getValue = () => 0;
 export const Works = component$(({
 	count,
 	some = 1+2,
@@ -545,15 +546,39 @@ export const NoWorks2 = component$(({count, stuff: {hey}}) => {
 	);
 });
 
-export const NoWorks3 = component$(({count, stuff = hola()}) => {
+export const DynamicDefaults = component$(({count, stuff = getValue(), other: value = getValue()}) => {
 	console.log(stuff);
 	useTask$(({track}) => {
-		track(() => count);
-		console.log(count);
+		track(() => stuff);
+		track(() => value);
+		console.log(count, stuff, value);
 	});
 	return (
-		<div class={count}>{count}</div>
+		<div class={stuff}>{value}</div>
 	);
+});
+
+export const ReferencedDefault = component$(({first = getValue(second), second}) => (
+	<div>{first}{second}</div>
+));
+"#
+		.to_string(),
+		transpile_jsx: true,
+		entry_strategy: EntryStrategy::Inline,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn dynamic_props_defaults_do_not_subscribe_component() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+const getValue = () => 0;
+export const DynamicDefault = component$(({ value = getValue() }) => {
+	console.log(value);
+	return <div>{value}</div>;
 });
 "#
 		.to_string(),
@@ -6044,6 +6069,29 @@ export default component$(() => {
 }
 
 #[test]
+fn should_keep_capture_free_sync_handler_direct_when_sibling_moves_captures() {
+	test_input!(TestInput {
+		code: r#"
+import { component$, sync$, useSignal } from '@qwik.dev/core';
+
+export default component$(() => {
+  const count = useSignal(0);
+  return (
+    <script
+      document:onQInit$={sync$(() => console.log('init'))}
+      document:onClick$={() => count.value++}
+    />
+  );
+});
+"#
+		.to_string(),
+		transpile_ts: true,
+		transpile_jsx: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
 fn should_transform_nested_loops_handler_captures_only_inner_scope() {
 	test_input!(TestInput {
 		code: r#"
@@ -6392,18 +6440,18 @@ export const Tree = component$((props) => {
 fn component_level_self_referential_qrl() {
 	test_input!(TestInput {
 		code: r#"
-import { component$, useAsync$ } from '@qwik.dev/core';
+import { component$, useComputed$ } from '@qwik.dev/core';
 		
 // Component-level self-referential component
 export const Foo = component$((props) => {
-	const sig = useAsync$(async ({cleanup}) => {
+	const sig = useComputed$(async ({cleanup}) => {
 		const timer = setInterval(() => {
 			sig.value++;
 		}, 1000);
 		cleanup(() => clearInterval(timer));
 		return 0;
 	});
-	const other = useAsync$(async ({cleanup}) => {
+	const other = useComputed$(async ({cleanup}) => {
 		const timer = setInterval(() => {
 			other.value++;
 		}, 900);
@@ -6847,11 +6895,11 @@ fn inlined_qrl_after_ref_identifiers_forward_ref() {
 	let res = test_input!(TestInput {
 		code: r#"
 import { component$ } from '@qwik.dev/core';
-import { useAsyncQrl } from '@qwik.dev/core';
+import { useComputedQrl } from '@qwik.dev/core';
 
 export const TestComponent = component$(() => {
 	// This should be hoisted with an identifier
-	const asyncSig = useAsyncQrl$(async () => {
+	const asyncSig = useComputedQrl$(async () => {
 		return 42;
 	});
 	return <div>{asyncSig}</div>;
@@ -7823,6 +7871,39 @@ export default component$(() => {
 		snapshot: true,
 		..TestInput::default()
 	});
+}
+
+#[test]
+fn direct_qrl_marker_in_qrl_wrapper_uses_dollar_context() {
+	let output = test_input!(TestInput {
+		code: r#"
+import { $ } from '@qwik.dev/core';
+import { routeLoaderQrl } from '@qwik.dev/router';
+
+export const useSession = routeLoaderQrl($(() => 'session'));
+export const standalone = $(() => 'standalone');
+"#
+		.to_string(),
+		snapshot: true,
+		..TestInput::default()
+	})
+	.unwrap();
+
+	let session_segment = output
+		.modules
+		.iter()
+		.filter_map(|module| module.segment.as_ref())
+		.find(|segment| segment.name.starts_with("useSession_routeLoaderQrl_"))
+		.expect("routeLoaderQrl segment should exist");
+	assert_eq!(session_segment.ctx_name.as_ref(), "routeLoader$");
+
+	let standalone_segment = output
+		.modules
+		.iter()
+		.filter_map(|module| module.segment.as_ref())
+		.find(|segment| segment.name.starts_with("standalone_"))
+		.expect("standalone segment should exist");
+	assert_eq!(standalone_segment.ctx_name.as_ref(), "$");
 }
 
 impl TestInput {

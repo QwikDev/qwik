@@ -1,9 +1,11 @@
 import { describe, it, expect, vi } from 'vitest';
 import { createDocument } from '@qwik.dev/core/testing';
+import { _createQRL } from '@qwik.dev/core/internal';
 import { ssrCreateContainer } from './ssr-container';
 import {
   QDefaultSlot,
   QError,
+  OnRenderProp,
   QSlot,
   QStyle,
   VNodeDataChar,
@@ -241,6 +243,55 @@ describe('SSR Container', () => {
     );
     expect(vnodeContent).toContain(
       `${VNodeDataChar.SEPARATOR_CHAR}${encodedValue}${VNodeDataChar.SEPARATOR_CHAR}`
+    );
+  });
+
+  it('should encode the component hash when its render QRL is not a root', () => {
+    const { container, writer } = createTestContainer();
+    container.openContainer();
+    container.serializationCtx.$roots$.push({});
+    Reflect.set(container, '$noMoreRoots$', true);
+    const componentHash = '</script>|{component}~';
+
+    (container as any).vNodeDatas = [
+      [
+        VNodeDataFlag.SERIALIZE | VNodeDataFlag.VIRTUAL_NODE,
+        { [OnRenderProp]: _createQRL(null, `s_${componentHash}`, () => undefined) },
+        OPEN_FRAGMENT,
+        CLOSE_FRAGMENT,
+      ],
+    ];
+
+    (container as any).emitVNodeData();
+
+    const encodedHash = encodeVNodeDataString(encodeVNodeDataKey(componentHash));
+    expect(writer.toString()).toContain(`${VNodeDataChar.RENDER_FN_CHAR}_${encodedHash}`);
+    expect(writer.toString()).not.toContain(`${VNodeDataChar.RENDER_FN_CHAR}_${componentHash}`);
+  });
+
+  it('should encode custom attribute names in emitVNodeData', () => {
+    const { container, writer } = createTestContainer();
+    container.openContainer();
+    container.serializationCtx.$roots$.push({});
+
+    const customKey = '</script><script>globalThis.__qwik_xss=1</script>';
+    (container as any).vNodeDatas = [
+      [
+        VNodeDataFlag.SERIALIZE | VNodeDataFlag.VIRTUAL_NODE,
+        { [customKey]: 'projection-ref' },
+        OPEN_FRAGMENT,
+        CLOSE_FRAGMENT,
+      ],
+    ];
+
+    (container as any).emitVNodeData();
+
+    const output = writer.toString();
+    const encodedKey = encodeVNodeDataString(encodeVNodeDataKey(customKey));
+
+    expect(output).not.toContain(customKey);
+    expect(output).toContain(
+      `${VNodeDataChar.SEPARATOR_CHAR}${encodedKey}${VNodeDataChar.SEPARATOR_CHAR}`
     );
   });
 

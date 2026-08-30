@@ -32,6 +32,7 @@ const artifacts: Array<{ artifact: string; src: string; dest: string }> = [
   { artifact: 'artifact-devtools', src: 'artifact-devtools', dest: 'packages/devtools/dist' },
   // qwik-react artifact nests its output in a `lib` subdirectory
   { artifact: 'artifact-qwikreact', src: 'artifact-qwikreact', dest: 'packages/qwik-react/lib' },
+  { artifact: 'artifact-qwikutils', src: 'artifact-qwikutils', dest: 'packages/qwik-utils/lib' },
   // docs build output (upload LCA is packages/docs/, so paths are relative to that)
   { artifact: 'artifact-docs', src: 'artifact-docs/dist', dest: 'packages/docs/dist' },
   { artifact: 'artifact-docs', src: 'artifact-docs/server', dest: 'packages/docs/server' },

@@ -1,20 +1,20 @@
-import bmp_1 from 'image-size/dist/types/bmp.js';
-import cur_1 from 'image-size/dist/types/cur.js';
-import dds_1 from 'image-size/dist/types/dds.js';
-import gif_1 from 'image-size/dist/types/gif.js';
-import icns_1 from 'image-size/dist/types/icns.js';
-import ico_1 from 'image-size/dist/types/ico.js';
-import j2c_1 from 'image-size/dist/types/j2c.js';
-import jp2_1 from 'image-size/dist/types/jp2.js';
-import jpg_1 from 'image-size/dist/types/jpg.js';
-import ktx_1 from 'image-size/dist/types/ktx.js';
-import png_1 from 'image-size/dist/types/png.js';
-import pnm_1 from 'image-size/dist/types/pnm.js';
-import psd_1 from 'image-size/dist/types/psd.js';
-import svg_1 from 'image-size/dist/types/svg.js';
-import tga_1 from 'image-size/dist/types/tga.js';
-import webp_1 from 'image-size/dist/types/webp.js';
-import heif_1 from 'image-size/dist/types/heif.js';
+import { BMP } from 'image-size/types/bmp';
+import { CUR } from 'image-size/types/cur';
+import { DDS } from 'image-size/types/dds';
+import { GIF } from 'image-size/types/gif';
+import { HEIF } from 'image-size/types/heif';
+import { ICNS } from 'image-size/types/icns';
+import { ICO } from 'image-size/types/ico';
+import { J2C } from 'image-size/types/j2c';
+import { JP2 } from 'image-size/types/jp2';
+import { JPG } from 'image-size/types/jpg';
+import { KTX } from 'image-size/types/ktx';
+import { PNG } from 'image-size/types/png';
+import { PNM } from 'image-size/types/pnm';
+import { PSD } from 'image-size/types/psd';
+import { SVG } from 'image-size/types/svg';
+import { TGA } from 'image-size/types/tga';
+import { WEBP } from 'image-size/types/webp';
 
 import type { Connect } from 'vite';
 import type { OptimizerSystem } from '../../types';
@@ -34,23 +34,23 @@ const firstBytes: Record<number, keyof typeof types> = {
 
 // Put in order of most common to least common
 const types = {
-  webp: webp_1.WEBP,
-  jpg: jpg_1.JPG,
-  png: png_1.PNG,
-  svg: svg_1.SVG,
-  gif: gif_1.GIF,
-  avif: heif_1.HEIF,
-  bmp: bmp_1.BMP,
-  cur: cur_1.CUR,
-  dds: dds_1.DDS,
-  icns: icns_1.ICNS,
-  ico: ico_1.ICO,
-  j2c: j2c_1.J2C,
-  jp2: jp2_1.JP2,
-  ktx: ktx_1.KTX,
-  pnm: pnm_1.PNM,
-  psd: psd_1.PSD,
-  tga: tga_1.TGA,
+  webp: WEBP,
+  jpg: JPG,
+  png: PNG,
+  svg: SVG,
+  gif: GIF,
+  avif: HEIF,
+  bmp: BMP,
+  cur: CUR,
+  dds: DDS,
+  icns: ICNS,
+  ico: ICO,
+  j2c: J2C,
+  jp2: JP2,
+  ktx: KTX,
+  pnm: PNM,
+  psd: PSD,
+  tga: TGA,
 };
 
 const keys = Object.keys(types) as (keyof typeof types)[];

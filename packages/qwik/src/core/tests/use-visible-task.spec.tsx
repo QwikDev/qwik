@@ -32,6 +32,7 @@ import { ErrorProvider } from '../../testing/rendering.unit-util';
 import { vnode_getProp } from '../client/vnode-utils';
 import { USE_ON_LOCAL } from '../shared/utils/markers';
 import { Task, TaskFlags } from '../use/use-task';
+import type { JSXNodeInternal, JSXOutput } from '../shared/jsx/types/jsx-node';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -273,10 +274,33 @@ describe.each([
       <Component ssr-required>
         <Fragment ssr-required>
           <Signal ssr-required>{'run'}</Signal>
-          <script hidden></script>
         </Fragment>
+        <script hidden></script>
       </Component>
     );
+  });
+
+  it('should trigger in empty components returning a list of components', async () => {
+    const Child = component$(() => <span>child</span>);
+    const Cmp = component$(() => {
+      const signal = useSignal('empty');
+      useVisibleTask$(() => {
+        signal.value = 'run';
+      });
+      return [<Child key="1" />, <Child key="2" />, signal.value];
+    });
+    const { document } = await render(<Cmp />, { debug });
+    if (render === ssrRenderToDom) {
+      await trigger(document.body, 'script', 'd:qinit');
+    }
+    // the placeholder is the anchor for the visible task, so it has to be rendered
+    const anchors = document.querySelectorAll('script[q-d\\:qinit]');
+    expect(anchors.length).toBe(1);
+    if (render === ssrRenderToDom) {
+      // the attribute must hold the qrl itself (chunk#symbol) - an empty one loads nothing
+      expect(anchors[0].getAttribute('q-d:qinit')).toContain('#');
+    }
+    expect(document.body.textContent).toContain('run');
   });
 
   it('should trigger in empty components array', async () => {
@@ -295,11 +319,11 @@ describe.each([
       <Component ssr-required>
         <Fragment ssr-required>
           <Signal ssr-required>{'run'}</Signal>
-          <script hidden></script>
         </Fragment>
         <Fragment ssr-required>
           <Signal ssr-required>{'run'}</Signal>
         </Fragment>
+        <script hidden></script>
       </Component>
     );
   });
@@ -318,9 +342,8 @@ describe.each([
     }
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
-        <Fragment ssr-required>
-          <script hidden></script>
-        </Fragment>
+        <Fragment ssr-required></Fragment>
+        <script hidden></script>
       </Component>
     );
   });
@@ -340,10 +363,8 @@ describe.each([
     expect((globalThis as any).log).toEqual(['task']);
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
-        <Fragment ssr-required>
-          {''}
-          <script hidden></script>
-        </Fragment>
+        {''}
+        <script hidden></script>
       </Component>
     );
   });
@@ -363,10 +384,8 @@ describe.each([
     expect((globalThis as any).log).toEqual(['task']);
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
-        <Fragment ssr-required>
-          {''}
-          <script hidden></script>
-        </Fragment>
+        {''}
+        <script hidden></script>
       </Component>
     );
   });
@@ -904,6 +923,170 @@ describe.each([
   });
 
   describe('regression', () => {
+    it('should not re-create the root child component on re-render', async () => {
+      (globalThis as any).childRenderCounter = 0;
+      (globalThis as any).childInstanceCounter = 0;
+      const Child = component$<{ text: string }>((props) => {
+        (globalThis as any).childRenderCounter++;
+        useTask$(() => {
+          // no `track()`, so this runs once per instance
+          (globalThis as any).childInstanceCounter++;
+        });
+        return <span>{props.text}</span>;
+      });
+
+      const Cmp = component$(() => {
+        const isLoaded = useSignal(false);
+        useVisibleTask$(() => {
+          isLoaded.value = true;
+        });
+        const text = `v${isLoaded.value}`;
+        return <Child text={text} />;
+      });
+
+      const { document } = await render(<Cmp />, { debug });
+      const spanBeforeRerender = document.querySelector('span');
+      if (render === ssrRenderToDom) {
+        await trigger(document.body, 'script', 'd:qinit');
+      }
+
+      expect(document.querySelector('span')?.textContent).toBe('vtrue');
+      expect((globalThis as any).childRenderCounter).toBe(1);
+      expect((globalThis as any).childInstanceCounter).toBe(1);
+      // the same dom node, not a rebuilt one (only observable after a resume, because a client only
+      // render has already re-rendered by the time it returns)
+      expect(document.querySelector('span')).toBe(spanBeforeRerender);
+      (globalThis as any).childRenderCounter = undefined;
+      (globalThis as any).childInstanceCounter = undefined;
+    });
+
+    it('should not re-create the root child when output changes from child to array', async () => {
+      (globalThis as any).childRenderCounter = 0;
+      (globalThis as any).childInstanceCounter = 0;
+      const Child = component$<{ text: string }>((props) => {
+        (globalThis as any).childRenderCounter++;
+        useTask$(() => {
+          (globalThis as any).childInstanceCounter++;
+        });
+        return <span>{props.text}</span>;
+      });
+
+      const Cmp = component$(() => {
+        const isLoaded = useSignal(false);
+        useVisibleTask$(() => {
+          isLoaded.value = true;
+        });
+        const text = `v${isLoaded.value}`;
+        const child = <Child text={text} />;
+        return isLoaded.value ? [child] : child;
+      });
+
+      const { document } = await render(<Cmp />, { debug });
+      const spanBeforeRerender = document.querySelector('span');
+      if (render === ssrRenderToDom) {
+        await trigger(document.body, 'script', 'd:qinit');
+      }
+
+      expect(document.querySelector('span')?.textContent).toBe('vtrue');
+      expect((globalThis as any).childRenderCounter).toBe(1);
+      expect((globalThis as any).childInstanceCounter).toBe(1);
+      expect(document.querySelector('span')).toBe(spanBeforeRerender);
+      (globalThis as any).childRenderCounter = undefined;
+      (globalThis as any).childInstanceCounter = undefined;
+    });
+
+    it('should not modify a jsx node which the component returns', async () => {
+      const shared = (<Fragment key="shared">shared</Fragment>) as JSXNodeInternal;
+
+      const WithTask = component$(() => {
+        useVisibleTask$(() => {});
+        return shared as JSXOutput;
+      });
+      // returns the same node, but registers nothing of its own
+      const NoHooks = component$(() => shared as JSXOutput);
+
+      const Cmp = component$(() => (
+        <div>
+          <WithTask />
+          <NoHooks />
+        </div>
+      ));
+
+      const { vNode, document } = await render(<Cmp />, { debug });
+      if (render === ssrRenderToDom) {
+        await trigger(document.body, 'script', 'd:qinit');
+      }
+
+      // the returned node stays untouched
+      expect(shared.children).toBe('shared');
+      expect(document.querySelectorAll('script[q-d\\:qinit]').length).toBe(1);
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <div>
+            <Component ssr-required>
+              <Fragment ssr-required>{'shared'}</Fragment>
+              <script hidden></script>
+            </Component>
+            <Component ssr-required>
+              <Fragment ssr-required>{'shared'}</Fragment>
+            </Component>
+          </div>
+        </Component>
+      );
+    });
+
+    it('should keep every headless component instance when the list is reordered', async () => {
+      (globalThis as any).childRenderCounter = 0;
+      (globalThis as any).childInstanceCounter = 0;
+      const Child = component$<{ label: string }>((props) => {
+        (globalThis as any).childRenderCounter++;
+        useTask$(() => {
+          (globalThis as any).childInstanceCounter++;
+        });
+        return <span>{props.label}</span>;
+      });
+
+      const Headless = component$<{ name: string; index: number }>((props) => {
+        useVisibleTask$(() => {});
+        return <Child label={`${props.name}${props.index}`} />;
+      });
+
+      const Cmp = component$(() => {
+        const names = useSignal(['a', 'b', 'c']);
+        return (
+          <div>
+            <button onClick$={() => (names.value = [...names.value].reverse())}>reverse</button>
+            {names.value.map((name, index) => (
+              <Headless key={name} name={name} index={index} />
+            ))}
+          </div>
+        );
+      });
+
+      const { document } = await render(<Cmp />, { debug });
+      if (render === ssrRenderToDom) {
+        await trigger(document.body, 'script', 'd:qinit');
+      }
+      const spansBeforeReorder = Array.from(document.querySelectorAll('span'));
+      expect(spansBeforeReorder.map((span) => span.textContent)).toEqual(['a0', 'b1', 'c2']);
+      expect((globalThis as any).childRenderCounter).toBe(3);
+      expect((globalThis as any).childInstanceCounter).toBe(3);
+
+      await trigger(document.body, 'button', 'click');
+
+      const spansAfterReorder = Array.from(document.querySelectorAll('span'));
+      expect(spansAfterReorder.map((span) => span.textContent)).toEqual(['c0', 'b1', 'a2']);
+      expect(spansAfterReorder[0]).toBe(spansBeforeReorder[2]);
+      expect(spansAfterReorder[1]).toBe(spansBeforeReorder[1]);
+      expect(spansAfterReorder[2]).toBe(spansBeforeReorder[0]);
+      expect((globalThis as any).childRenderCounter).toBe(3);
+      expect((globalThis as any).childInstanceCounter).toBe(3);
+      // one placeholder per instance, they do not share or steal each other's
+      expect(document.querySelectorAll('script[q-d\\:qinit]').length).toBe(3);
+      (globalThis as any).childRenderCounter = undefined;
+      (globalThis as any).childInstanceCounter = undefined;
+    });
+
     it('should not double-register events on component re-render', async () => {
       const Cmp = component$(() => {
         const count = useSignal(0);

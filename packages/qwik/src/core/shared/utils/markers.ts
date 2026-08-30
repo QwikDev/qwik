@@ -2,6 +2,7 @@ import { QContainerValue } from '../types';
 
 /** State factory of the component. */
 export const OnRenderProp = 'q:renderFn';
+export const QComponentHash = 'q:componentHash';
 
 /** Target DOM element for external projection rendering. */
 export const QTargetElement = 'q:targetEl';
@@ -17,6 +18,8 @@ export const QStatePatchAttr = 'q:patch';
 export const QStatePatchAttrSelector = '[q\\:patch]';
 export const QSuspenseResolved = 'q:r';
 export const QSuspenseResultParent = 'q:rp';
+export const QErrorContentHost = 'q:ebc';
+export const QErrorFallbackHost = 'q:ebf';
 export const QStyle = 'q:style';
 export const QStyleSelector = 'style[q\\:style]';
 export const QStyleSSelector = 'style[q\\:sstyle]';
@@ -48,8 +51,6 @@ export const QIgnore = 'q:ignore';
 export const QIgnoreEnd = '/' + QIgnore;
 export const QContainerAttr = 'q:container';
 export const QContainerAttrEnd = '/' + QContainerAttr;
-export const QCursorBoundary = 'q:cursorBoundary';
-
 export const QTemplate = 'q:template';
 
 // the same selector should be inside the qwik loader
@@ -87,6 +88,7 @@ export const QDefaultSlot = '';
 export const ELEMENT_ID = 'q:id';
 export const ELEMENT_KEY = 'q:key';
 export const ELEMENT_PROPS = 'q:props';
+export const USE_ON_PLACEHOLDER_KEY = ':useOn';
 /** @internal */
 export const ELEMENT_SEQ = 'q:seq';
 export const ELEMENT_SEQ_IDX = 'q:seqIdx';
@@ -100,6 +102,7 @@ export const NON_SERIALIZABLE_MARKER_PREFIX = ':';
 export const USE_ON_LOCAL = NON_SERIALIZABLE_MARKER_PREFIX + 'on';
 export const USE_ON_LOCAL_SEQ_IDX = NON_SERIALIZABLE_MARKER_PREFIX + 'onIdx';
 export const USE_ON_LOCAL_FLAGS = NON_SERIALIZABLE_MARKER_PREFIX + 'onFlags';
+export const QCursorBoundary = NON_SERIALIZABLE_MARKER_PREFIX + 'cursorBoundary';
 export const NEAREST_CURSOR_BOUNDARY = NON_SERIALIZABLE_MARKER_PREFIX + 'nearestCursorBoundary';
 
 export const Q_PROPS_SEPARATOR = ':';

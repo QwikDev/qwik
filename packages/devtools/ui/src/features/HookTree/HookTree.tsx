@@ -1,5 +1,6 @@
-import { $, component$, useSignal, useVisibleTask$ } from '@qwik.dev/core';
+import { $, component$, useComputed$, useSignal, useVisibleTask$ } from '@qwik.dev/core';
 import { Tree } from '../../components/Tree/Tree';
+import type { DevtoolsState } from '../../devtools/state';
 import type { TreeNode } from '../../components/Tree/type';
 import { getPageDataSource, type ComponentDetailEntry } from '../../devtools/page-data-source';
 import {
@@ -230,7 +231,8 @@ function expandAndScrollToNode(targetName: string) {
     }, EXPAND_ANIMATION_DELAY_MS);
   });
 }
-export const HookTree = component$(() => {
+export const HookTree = component$<{ state: DevtoolsState }>(({ state }) => {
+  const revealNode = useComputed$(() => state.componentReveal);
   const treeData = useSignal<TreeNode[]>([]);
   const treeVersion = useSignal(0);
   const lastTreeIds = useSignal('');
@@ -591,7 +593,13 @@ export const HookTree = component$(() => {
                 Waiting for component tree...
               </div>
             ) : (
-              <Tree key={treeVersion.value} data={treeData} onNodeClick={onNodeClick} />
+              <Tree
+                key={treeVersion.value}
+                data={treeData}
+                onNodeClick={onNodeClick}
+                revealNode={revealNode}
+                onRevealed$={$(() => (state.componentReveal = null))}
+              />
             )}
           </div>
         </div>

@@ -8,6 +8,7 @@ import {
   _res,
   _setEvent,
   _walkJSX,
+  _handleSSRError,
   _createQRL as createQRL,
   isSignal,
   type Signal,
@@ -27,6 +28,7 @@ import {
   ELEMENT_SEQ,
   ELEMENT_SEQ_IDX,
   EMPTY_ATTR,
+  ErrorBoundaryPhase,
   GT,
   ITERATION_ITEM_MULTI,
   ITERATION_ITEM_SINGLE,
@@ -101,6 +103,7 @@ import {
   type SymbolToChunkResolver,
   type ValueOrPromise,
   type EffectSubscription,
+  type QRLInternal,
 } from './qwik-types';
 
 import {
@@ -112,6 +115,7 @@ import { preloaderPost, preloaderPre } from './preload-impl';
 import {
   getQwikBackpatchExecutorScript,
   getQwikLoaderScript,
+  getQwikErrorSwapExecutorScript,
   getQwikOutOfOrderExecutorScript,
 } from './scripts';
 import { DomRef, SsrComponentFrame, SsrNode } from './ssr-node';
@@ -260,6 +264,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   public symbolToChunkResolver: SymbolToChunkResolver;
   public renderOptions: RenderOptions;
   public readonly outOfOrderStreaming: boolean;
+  public readonly $transformError$: ((error: unknown) => unknown) | undefined;
   public serializationCtx: SerializationContext;
   // Sometimes there is no app state, but framework metadata still points to a vnode id.
   // For example, an OOOS segment can point outside the segment to a root vnode through
@@ -285,6 +290,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   private styleIds = new Set<string>();
   private isBackpatchExecutorEmitted = false;
   private isOutOfOrderExecutorEmitted = false;
+  private isErrorSwapExecutorEmitted = false;
   private backpatchMap = new Map<number | string, BackpatchEntry[]>();
 
   private currentElementFrame: ElementFrame | null = null;
@@ -345,6 +351,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.$buildBase$ = opts.buildBase;
     this.resolvedManifest = opts.resolvedManifest;
     this.renderOptions = opts.renderOptions;
+    this.$transformError$ = opts.renderOptions.transformError;
     const outOfOrderStreaming =
       (this.renderOptions as RenderToStreamOptions).streaming?.outOfOrder === true;
     if (!__EXPERIMENTAL__.suspense) {
@@ -384,8 +391,12 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
   ensureProjectionResolved(_host: HostElement): void {}
 
-  handleError(err: any, _$host$: null): void {
-    throw err;
+  handleError(
+    err: any,
+    host: HostElement | null,
+    phase: ErrorBoundaryPhase = ErrorBoundaryPhase.Render
+  ): void {
+    _handleSSRError(this, err, host as ISsrNode | null, phase);
   }
 
   addBackpatchEntry(
@@ -457,11 +468,14 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.rootContainerReadyPromise = null;
   }
 
-  nextOutOfOrderId(): number {
-    if (!__EXPERIMENTAL__.suspense || !this.outOfOrderStreaming) {
+  nextOutOfOrderId(markUsed = true): number {
+    const ooosActive = __EXPERIMENTAL__.suspense && this.outOfOrderStreaming;
+    if (!ooosActive && !__EXPERIMENTAL__.errorBoundary) {
       return 0;
     }
-    this.outOfOrderUsed = true;
+    if (markUsed && ooosActive) {
+      this.outOfOrderUsed = true;
+    }
     return ++this.outOfOrderId;
   }
 
@@ -487,6 +501,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         'Out-of-order Suspense streaming requires `streaming.outOfOrder` to be `true`.'
       );
     }
+    this.outOfOrderUsed = true;
     this.markVNodeRefForSerialization(options.parentComponentFrame?.componentNode);
     const writer = new StringBufferSegmentWriter();
     const segmentContainer = this.createSegmentContainer(segmentId, writer);
@@ -520,8 +535,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   ): SSRSegmentContainer {
     const rootContainer = this.$getRootContainer$();
     const contentHostNode = this.getOrCreateLastNode();
-    this.addRoot(contentHostNode);
-    this.markVNodeRefForSerialization(contentHostNode);
+    this.$retainForResume$(contentHostNode);
     const rootFrame: ElementFrame = {
       tagNesting: TagNesting.ANYTHING,
       parent: null,
@@ -549,12 +563,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     const innerSegmentContainer = segmentContainer as typeof segmentContainer & InnerContainer;
     innerSegmentContainer.$isOutOfOrderSegment$ = true;
     innerSegmentContainer.$storeProxyMap$ = this.$storeProxyMap$;
-    segmentContainer.serializationCtx = segmentContainer.serializationCtxFactory(
-      SsrNode,
-      DomRef,
-      this.symbolToChunkResolver,
-      writer
-    );
+    segmentContainer.serializationCtx.$storeProxyMap$ = this.$storeProxyMap$;
     segmentContainer.serializationCtx.$addSyncFn$ = this.serializationCtx.$addSyncFn$.bind(
       this.serializationCtx
     );
@@ -668,6 +677,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   $noScriptHere$: number = 0;
+  $errorContentHost$: ISsrNode | null = null;
 
   /** Renders opening tag for DOM element */
   openElement(
@@ -1150,9 +1160,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         if (flag & VNodeDataFlag.REFERENCE) {
           this.write(VNodeDataSeparator.REFERENCE_CH);
         }
+        // Paired with serialize.ts's INERT gate: drop the vnode path AND the state root together.
         if (
-          flag &
-          (VNodeDataFlag.TEXT_DATA | VNodeDataFlag.VIRTUAL_NODE | VNodeDataFlag.ELEMENT_NODE)
+          !(flag & VNodeDataFlag.INERT) &&
+          flag & (VNodeDataFlag.TEXT_DATA | VNodeDataFlag.VIRTUAL_NODE | VNodeDataFlag.ELEMENT_NODE)
         ) {
           let fragmentAttrs: Props | null = null;
           /**
@@ -1216,6 +1227,13 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     }
   }
 
+  $retainForResume$(node: ISsrNode | null | undefined): void {
+    if (node) {
+      this.addRoot(node);
+      this.markVNodeRefForSerialization(node);
+    }
+  }
+
   private markVNodeRefForSerialization(node: ISsrNode | null | undefined): void {
     if (node) {
       this.hasVNodeRefsForSerialization = true;
@@ -1258,8 +1276,12 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         value = String(rawValue);
       } else if (typeof rawValue !== 'string') {
         rootId = this.addRoot(rawValue);
-        // We didn't add the vnode data, so we are only interested in the vnode position
         if (rootId === undefined) {
+          if (key === OnRenderProp) {
+            this.write(VNodeDataChar.RENDER_FN_CHAR);
+            this.write(VNodeDataChar.RENDER_HASH_PREFIX_CHAR);
+            this.write(encodeVNodeDataString(encodeVNodeDataKey((rawValue as QRLInternal).$hash$)));
+          }
           continue;
         }
         value = String(rootId);
@@ -1304,7 +1326,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
         default: {
           encodeValue = encodeURI;
           this.write(VNodeDataChar.SEPARATOR_CHAR);
-          this.write(encodeVNodeDataString(key));
+          this.write(encodeVNodeDataString(encodeVNodeDataKey(key)));
           this.write(VNodeDataChar.SEPARATOR_CHAR);
         }
       }
@@ -1366,7 +1388,7 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       if (!append) {
         this.write(BRACKET_OPEN);
       }
-      this.writeArray(append ? fns.slice(start) : fns, COMMA);
+      this.writeArray(fns, COMMA, append ? start : 0);
       if (!append) {
         this.write(BRACKET_CLOSE);
       }
@@ -1379,8 +1401,16 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
   }
 
   emitPatchDataIfNeeded(): void {
+    if (this.backpatchMap.size === 0) {
+      return;
+    }
     const patches: (string | number | boolean | null)[] = [];
-    for (const [elementIndex, backpatchEntries] of this.backpatchMap) {
+    // TODO(eb): create backpatch sorted instead of sorting here
+    const sortedBackpatches = [...this.backpatchMap.entries()].sort(
+      ([a], [b]) => Number(a) - Number(b)
+    );
+    for (let entryIdx = 0; entryIdx < sortedBackpatches.length; entryIdx++) {
+      const [elementIndex, backpatchEntries] = sortedBackpatches[entryIdx];
       for (let i = 0; i < backpatchEntries.length; i++) {
         const backpatchEntry = backpatchEntries[i];
         patches.push(
@@ -1395,14 +1425,12 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
 
     this.backpatchMap.clear();
 
-    if (patches.length > 0) {
-      this.isBackpatchExecutorEmitted = true;
-      const scriptAttrs: Record<string, string> = { type: ELEMENT_BACKPATCH_DATA };
-      if (this.renderOptions.serverData?.nonce) {
-        scriptAttrs['nonce'] = this.renderOptions.serverData.nonce;
-      }
-      this.writeScript(scriptAttrs, JSON.stringify(patches).replaceAll('<', '\\u003C'));
+    this.isBackpatchExecutorEmitted = true;
+    const scriptAttrs: Record<string, string> = { type: ELEMENT_BACKPATCH_DATA };
+    if (this.renderOptions.serverData?.nonce) {
+      scriptAttrs['nonce'] = this.renderOptions.serverData.nonce;
     }
+    this.writeScript(scriptAttrs, JSON.stringify(patches).replaceAll('<', '\\u003C'));
   }
 
   emitBackpatchDataAndExecutorIfNeeded(): void {
@@ -1443,6 +1471,17 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
       getQwikOutOfOrderExecutorScript({ debug: isDev })
     );
   }
+
+  emitErrorSwapExecutorIfNeeded(): void {
+    if (!__EXPERIMENTAL__.errorBoundary || this.isErrorSwapExecutorEmitted) {
+      return;
+    }
+    this.isErrorSwapExecutorEmitted = true;
+    this.emitInlineScript(getQwikErrorSwapExecutorScript({ debug: isDev }));
+  }
+
+  // Root containers emit qErr inline at the swap site; only segment containers defer ids.
+  $registerErrorSwap$(_boundaryId: number): void {}
 
   emitInlineScript(script: string): void {
     const scriptAttrs: Record<string, string> = { type: 'text/javascript' };
@@ -1689,10 +1728,10 @@ class SSRContainer extends _SharedContainer implements ISSRContainer {
     this.writer.writeRootRefDelta(id, base);
   }
 
-  writeArray(array: string[], separator: string) {
-    for (let i = 0; i < array.length; i++) {
+  writeArray(array: string[], separator: string, start = 0) {
+    for (let i = start; i < array.length; i++) {
       const element = array[i];
-      if (i > 0) {
+      if (i > start) {
         this.write(separator);
       }
       this.write(element);
@@ -1843,6 +1882,7 @@ interface SegmentRootCommit {
 export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentContainer {
   $outOfOrderState$ = OutOfOrderSegmentState.Rendering;
   $outOfOrderRootIdMap$: number[] | null = null;
+  $errorSwapIds$: number[] | null = null;
   private subscriptionPatchRecords: SubscriptionPatchRecord[] = [];
   private pendingVNodeDataPatches: PendingVNodeDataPatches | null = null;
 
@@ -1853,24 +1893,16 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
     super(opts);
   }
 
-  override nextOutOfOrderId(): number {
-    return this.$rootContainer$.nextOutOfOrderId();
+  override nextOutOfOrderId(markUsed = true): number {
+    return this.$rootContainer$.nextOutOfOrderId(markUsed);
   }
 
-  override $runQueuedRender$<T>(render: () => ValueOrPromise<T>): ValueOrPromise<T> {
-    return this.$rootContainer$.$runQueuedRender$(render);
+  override $registerErrorSwap$(boundaryId: number): void {
+    (this.$errorSwapIds$ ||= []).push(boundaryId);
   }
 
-  override queueOutOfOrderSegment(segment: Promise<void>): void {
-    this.$rootContainer$.queueOutOfOrderSegment(segment);
-  }
-
-  override emitOutOfOrderSegmentScripts(scripts: string): void {
-    this.$rootContainer$.emitOutOfOrderSegmentScripts(scripts);
-  }
-
-  override emitOutOfOrderExecutorIfNeeded(): void {
-    this.$rootContainer$.emitOutOfOrderExecutorIfNeeded();
+  override emitErrorSwapExecutorIfNeeded(): void {
+    this.$rootContainer$.emitErrorSwapExecutorIfNeeded();
   }
 
   $recordExternalRootEffect$(
@@ -1902,7 +1934,6 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
     try {
       const commit = this.$commitRoots$(rootContainer, segmentSerializationCtx);
       this.$mergeSegmentEventData$(rootContainer, segmentSerializationCtx);
-      this.$mergeSegmentSyncFns$(rootContainer, segmentSerializationCtx);
       const subscriptionPatchRootId = this.$addSubscriptionsToRoots$(
         rootContainer,
         rootReadyAtSegment,
@@ -1987,11 +2018,7 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
   }
 
   private queueLateVNodeDataPatch(node: VNodeDataSerializableNode, addedFlags: number): void {
-    if (
-      !__EXPERIMENTAL__.suspense ||
-      !this.outOfOrderStreaming ||
-      !(addedFlags & (VNodeDataFlag.SERIALIZE | VNodeDataFlag.REFERENCE))
-    ) {
+    if (!(addedFlags & (VNodeDataFlag.SERIALIZE | VNodeDataFlag.REFERENCE))) {
       return;
     }
     const owner = this.getVNodeDataOwnerFromNodeId(node.id);
@@ -2098,11 +2125,9 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
       if (segment === this) {
         continue;
       }
-      const rootObjs = segment.serializationCtx.$rootObjs$;
-      for (let j = 0; j < rootObjs.length; j++) {
-        if (rootObjs[j] === obj) {
-          return true;
-        }
+      // Preserve strict-equality behavior for NaN roots.
+      if (obj === obj && segment.serializationCtx.$hasRootId$(obj) !== undefined) {
+        return true;
       }
     }
     return false;
@@ -2153,17 +2178,7 @@ export class SSRSegmentContainer extends SSRContainer implements ISSRSegmentCont
     }
   }
 
-  private $mergeSegmentSyncFns$(
-    rootContainer: SSRContainer,
-    segmentSerializationCtx: SerializationContext
-  ): void {
-    rootContainer.serializationCtx.$syncFns$.push(...segmentSerializationCtx.$syncFns$);
-  }
-
   private collectSubscriptionPatches(rootContainer: SSRContainer, rootLimit: number) {
-    if (!__EXPERIMENTAL__.suspense || !this.outOfOrderStreaming) {
-      return;
-    }
     return collectSubscriptionPatches(
       rootContainer.serializationCtx,
       this.subscriptionPatchRecords,

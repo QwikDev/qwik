@@ -45,6 +45,7 @@ import {
   ITERATION_ITEM_SINGLE,
   OnRenderProp,
   QBackRefs,
+  QComponentHash,
   QContainerAttr,
   QDefaultSlot,
   QCursorBoundary,
@@ -758,11 +759,7 @@ function expectSlot(diffContext: DiffContext) {
     diffContext.$vNewNode$ = vnode_newVirtual();
     vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, QSlot, slotNameKey);
     vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, QCursorBoundary, cursorBoundary);
-    updateDirtySubtreeCursorBoundary(
-      diffContext.$container$,
-      diffContext.$vNewNode$ as VirtualVNode,
-      cursorBoundary
-    );
+    updateDirtySubtreeCursorBoundary(diffContext.$vNewNode$ as VirtualVNode, cursorBoundary);
     vHost && vnode_setProp(vHost as VirtualVNode, slotNameKey, diffContext.$vNewNode$);
     isDev &&
       vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, DEBUG_TYPE, VirtualType.Projection); // Nothing to project, so render content of the slot.
@@ -781,11 +778,7 @@ function expectSlot(diffContext: DiffContext) {
     diffContext.$vNewNode$ = vProjectedNode;
     vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, QSlot, slotNameKey);
     vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, QCursorBoundary, cursorBoundary);
-    updateDirtySubtreeCursorBoundary(
-      diffContext.$container$,
-      diffContext.$vNewNode$ as VirtualVNode,
-      cursorBoundary
-    );
+    updateDirtySubtreeCursorBoundary(diffContext.$vNewNode$ as VirtualVNode, cursorBoundary);
     vHost && vnode_setProp(vHost as VirtualVNode, slotNameKey, diffContext.$vNewNode$);
     isDev &&
       vnode_setProp(diffContext.$vNewNode$ as VirtualVNode, DEBUG_TYPE, VirtualType.Projection);
@@ -1772,7 +1765,9 @@ function getComponentHash(vNode: VNode | null, getObject: (id: string) => any): 
     return null;
   }
   const qrl = vnode_getProp<QRLInternal>(vNode as VirtualVNode, OnRenderProp, getObject);
-  return qrl ? qrl.$hash$ : null;
+  return qrl
+    ? qrl.$hash$
+    : vnode_getProp<string | null>(vNode as VirtualVNode, QComponentHash, null);
 }
 
 /**
@@ -1968,12 +1963,15 @@ export function cleanup(
             const obj = seq[i];
             if (isObject(obj)) {
               const objIsTask = isTask(obj);
-              if (objIsTask && obj.$flags$ & TaskFlags.VISIBLE_TASK) {
-                obj.$flags$ |= TaskFlags.NEEDS_CLEANUP;
-                markVNodeDirty(container, vCursor, ChoreBits.CLEANUP, cursorRoot);
+              if (objIsTask) {
+                clearAllEffects(container, obj);
+                if (obj.$flags$ & TaskFlags.VISIBLE_TASK) {
+                  obj.$flags$ |= TaskFlags.NEEDS_CLEANUP;
+                  markVNodeDirty(container, vCursor, ChoreBits.CLEANUP, cursorRoot);
 
-                // don't call cleanupDestroyable yet, do it by the scheduler
-                continue;
+                  // don't call cleanupDestroyable yet, do it by the scheduler
+                  continue;
+                }
               }
               // Stores and plain signals are only producers; their subscriptions are removed
               // when cleaning the consumers that read them. They don't own reactive backrefs.

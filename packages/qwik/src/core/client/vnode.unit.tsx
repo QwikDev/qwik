@@ -27,7 +27,7 @@ import type { VNode } from '../shared/vnode/vnode';
 import type { TextVNode } from '../shared/vnode/text-vnode';
 import type { VirtualVNode } from '../shared/vnode/virtual-vnode';
 import { encodeVNodeDataKey, encodeVNodeDataString } from '../shared/utils/character-escaping';
-import { QSlot } from '../shared/utils/markers';
+import { OnRenderProp, QComponentHash, QSlot } from '../shared/utils/markers';
 
 describe('vnode', () => {
   let parent: ContainerElement;
@@ -438,6 +438,27 @@ describe('vnode', () => {
           <Fragment key=":key_" />
         </test>
       );
+    });
+    it('should decode an identity-only component hash on Virtual', () => {
+      const componentHash = '</script>|{component}~';
+      const encodedHash = encodeVNodeDataString(encodeVNodeDataKey(componentHash));
+      parent.innerHTML = ``;
+      document.qVNodeData.set(parent, `{<_${encodedHash}}`);
+
+      const virtual = vnode_getFirstChild(vParent)!;
+
+      expect(vnode_getProp(virtual, QComponentHash, null)).toBe(componentHash);
+      expect(vnode_getProp(virtual, OnRenderProp, null)).toBeNull();
+    });
+    it('should decode encoded custom attribute names on Virtual', () => {
+      const attrName = '</script><script>globalThis.__qwik_xss=1</script>';
+      const encodedAttrName = encodeVNodeDataString(encodeVNodeDataKey(attrName));
+      parent.innerHTML = ``;
+      document.qVNodeData.set(parent, `{|${encodedAttrName}|value}`);
+
+      const virtual = vnode_getFirstChild(vParent)!;
+
+      expect(vnode_getProp(virtual, attrName, null)).toBe('value');
     });
     it('should decode encoded slot names on Virtual', () => {
       const slotName = '</script>|~;=?@ zażółć';

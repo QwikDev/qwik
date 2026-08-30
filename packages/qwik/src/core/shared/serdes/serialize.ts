@@ -23,6 +23,7 @@ import { Task } from '../../use/use-task';
 import type { SSRInternalStreamWriter, SSRWriteChunk } from '../../ssr/ssr-types';
 import { isQwikComponent, SERIALIZABLE_STATE } from '../component.public';
 import { qError, QError } from '../error/error';
+import { redactToGeneric } from '../error/error-handling';
 import { isJSXNode } from '../jsx/jsx-node';
 import { Fragment, type Props } from '../jsx/jsx-runtime';
 import { isPropsProxy, type PropsProxy } from '../jsx/props-proxy';
@@ -648,7 +649,6 @@ export class Serializer {
         // async-mode computeds carry the same engine state and must round-trip like AsyncSignals
         const isAsync = !!(value.$flags$ & AsyncSignalFlags.ASYNC_MODE);
         const isErrored = isAsync && !!value.$untrackedError$;
-        const expires = isAsync && value.$expires$ !== 0 ? value.$expires$ : undefined;
         const concurrency = isAsync && value.$concurrency$ !== 1 ? value.$concurrency$ : undefined;
         const timeout = isAsync && value.$timeoutMs$ !== 0 ? value.$timeoutMs$ : undefined;
 
@@ -667,17 +667,17 @@ export class Serializer {
 
         const out: unknown[] = [value.$computeQrl$, value.$effects$];
         if (isAsync) {
+          const untrackedError = value.$untrackedError$;
           // After SSR, the signal is never loading, so no need to send it
-          out.push(value.$loadingEffects$, value.$errorEffects$, value.$untrackedError$);
+          out.push(
+            value.$loadingEffects$,
+            value.$errorEffects$,
+            untrackedError === undefined || isDev ? untrackedError : redactToGeneric(untrackedError)
+          );
           out.push(asyncFlags || undefined);
         }
 
-        if (
-          v !== NEEDS_COMPUTATION ||
-          expires !== undefined ||
-          concurrency !== undefined ||
-          timeout !== undefined
-        ) {
+        if (v !== NEEDS_COMPUTATION || concurrency !== undefined || timeout !== undefined) {
           /**
            * If value is undefined, we need to keep it in the output. If we don't do that, later
            * during resuming, the value will be set to symbol(invalid) with flag invalid, and thats
@@ -686,7 +686,6 @@ export class Serializer {
           out.push(v === undefined ? explicitUndefined : v);
         }
         if (isAsync) {
-          out.push(expires);
           out.push(concurrency);
           out.push(timeout);
         }
@@ -707,23 +706,31 @@ export class Serializer {
       this.output(TypeIds.Regex, value.toString());
     } else if (value instanceof Error) {
       const out: any[] = [value.message];
-      // flatten gives us the right output
-      out.push(...Object.entries(value).flat());
+      for (const entry of Object.entries(value)) {
+        out.push(entry[0], entry[1]);
+      }
       /// In production we don't want to leak the stack trace.
       if (isDev) {
         out.push('stack', value.stack);
       }
       this.output(TypeIds.Error, out);
     } else if (this.$serializationContext$.$isSsrNode$(value)) {
+      // Paired with ssr-container's vnode-data INERT skip: drop the state root AND the path together.
+      if (
+        value.vnodeData &&
+        value.vnodeData[0] & VNodeDataFlag.INERT &&
+        /[A-Za-z]/.test(value.id)
+      ) {
+        this.output(TypeIds.Constant, Constants.Undefined);
+        return;
+      }
       const rootIndex = this.$serializationContext$.$addRoot$(value);
       this.$serializationContext$.$setProp$(value, ELEMENT_ID, rootIndex);
       // we need to output before the vnode overwrites its values
       this.output(TypeIds.VNode, value.id);
       const vNodeData = value.vnodeData;
       if (vNodeData) {
-        discoverValuesForVNodeData(vNodeData, (vNodeDataValue) => {
-          this.$serializationContext$.$addRoot$(vNodeDataValue);
-        });
+        discoverValuesForVNodeData(vNodeData, this.$serializationContext$);
         this.$serializationContext$.$markSsrNodeForSerialization$(value, VNodeDataFlag.SERIALIZE);
       }
       if (value.children) {
@@ -1003,9 +1010,12 @@ function getCustomSerializerPromise<T, S>(signal: SerializerSignalImpl<T, S>, va
   );
 }
 
-const discoverValuesForVNodeData = (vnodeData: VNodeData, callback: (value: unknown) => void) => {
+const discoverValuesForVNodeData = (
+  vnodeData: VNodeData,
+  serializationContext: SerializationContext
+) => {
   const length = vnodeData.length;
-  for (let i = 0; i < length; i++) {
+  for (let i = 1; i < length; i++) {
     const value = vnodeData[i];
     if (isSsrAttrs(value)) {
       for (const key in value) {
@@ -1020,7 +1030,7 @@ const discoverValuesForVNodeData = (vnodeData: VNodeData, callback: (value: unkn
         ) {
           continue;
         }
-        callback(attrValue);
+        serializationContext.$addRoot$(attrValue);
       }
     }
   }

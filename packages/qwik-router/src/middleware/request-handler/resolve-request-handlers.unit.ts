@@ -1,6 +1,7 @@
-import { describe, it, expect, vi } from 'vitest';
+import { beforeEach, describe, it, expect, vi } from 'vitest';
 import {
   getPathname,
+  fixStaticTrailingSlash,
   fixTrailingSlash,
   resolveRequestHandlers,
   streamServerFunctionResult,
@@ -14,9 +15,19 @@ import { checkCSRF } from './resolve-request-handlers-core';
 import type { LoadedRoute, RouteModule } from '../../runtime/src/types';
 import { ServerError } from '@qwik.dev/router/middleware/request-handler';
 import { IsQLoader, QLoaderId } from './request-path';
+import { getRouteLoaderValues } from '../../runtime/src/route-loaders';
 
-function createMockServerRequestEvent(url = 'http://localhost:3000/test'): ServerRequestEvent {
-  const mockRequest = new Request(url);
+const { prerenderedPaths } = vi.hoisted(() => ({ prerenderedPaths: new Set<string>() }));
+vi.mock('./static-paths', () => ({
+  isStaticPath: (method: string, url: URL) =>
+    (method === 'GET' || method === 'HEAD') && prerenderedPaths.has(url.pathname),
+}));
+
+function createMockServerRequestEvent(
+  url = 'http://localhost:3000/test',
+  method = 'GET'
+): ServerRequestEvent {
+  const mockRequest = new Request(url, { method });
 
   return {
     mode: 'server',
@@ -44,9 +55,13 @@ function createMockServerRequestEvent(url = 'http://localhost:3000/test'): Serve
 
 const justHiModule = { default: () => 'hi' };
 const mockRoute: LoadedRoute = { $routeName$: '/', $params$: {}, $mods$: [justHiModule] };
-function createMockRequestEvent(url = 'http://localhost:3000/test', trailingSlash = true) {
+function createMockRequestEvent(
+  url = 'http://localhost:3000/test',
+  trailingSlash = true,
+  method = 'GET'
+) {
   globalThis.__NO_TRAILING_SLASH__ = !trailingSlash;
-  const serverRequestEv = createMockServerRequestEvent(url);
+  const serverRequestEv = createMockServerRequestEvent(url, method);
   return createRequestEvent(serverRequestEv, mockRoute, [], '/', vi.fn());
 }
 
@@ -113,7 +128,7 @@ describe('resolve-request-handler', () => {
 
       const handlers = resolveRequestHandlers(undefined, route, 'GET', false, vi.fn());
 
-      await handlers[2]({
+      await handlers[3]({
         sharedMap: new Map([
           [IsQLoader, true],
           [QLoaderId, 'layout-loader'],
@@ -139,7 +154,7 @@ describe('resolve-request-handler', () => {
 
       const handlers = resolveRequestHandlers(undefined, route, 'GET', false, vi.fn());
 
-      await handlers[2]({
+      await handlers[3]({
         sharedMap: new Map([
           [IsQLoader, true],
           [QLoaderId, 'page-loader'],
@@ -147,6 +162,72 @@ describe('resolve-request-handler', () => {
       } as any);
 
       expect(pageOnRequest).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('server function request isolation', () => {
+    it('runs server functions before route middleware and route loaders', async () => {
+      const routeOnRequest = vi.fn();
+      const routeLoader = vi.fn() as any;
+      routeLoader.__brand = 'server_loader';
+      routeLoader.__id = 'route-loader';
+      const route: LoadedRoute = {
+        $routeName$: '/public/',
+        $params$: {},
+        $mods$: [
+          {
+            default: vi.fn(),
+            onRequest: routeOnRequest,
+            useRouteData: routeLoader,
+          },
+        ] as any,
+      };
+
+      const handlers = resolveRequestHandlers(undefined, route, 'POST', false, vi.fn());
+      const ev = {
+        query: new URLSearchParams('qfunc=missing-hash'),
+        request: new Request('http://localhost/public/?qfunc=missing-hash', {
+          method: 'POST',
+          headers: {
+            'X-QRL': 'missing-hash',
+            'Content-Type': 'application/qwik-json',
+          },
+        }),
+        error: vi.fn((status: number, message: string) => ({ status, message })),
+        exit: vi.fn(),
+        parseBody: vi.fn(async () => [[]]),
+        headers: new Headers(),
+      } as any;
+
+      await expect(handlers[2](ev)).rejects.toEqual({ status: 500, message: 'Invalid request' });
+
+      expect(ev.exit).toHaveBeenCalledTimes(1);
+      expect(routeOnRequest).not.toHaveBeenCalled();
+      expect(routeLoader).not.toHaveBeenCalled();
+    });
+
+    it('keeps server plugin middleware before server functions', () => {
+      const serverPluginOnRequest = vi.fn();
+      const routeOnRequest = vi.fn();
+      const route: LoadedRoute = {
+        $routeName$: '/public/',
+        $params$: {},
+        $mods$: [{ default: vi.fn(), onRequest: routeOnRequest }] as any,
+      };
+
+      const handlers = resolveRequestHandlers(
+        [{ onRequest: serverPluginOnRequest }] as any,
+        route,
+        'POST',
+        false,
+        vi.fn()
+      );
+
+      expect(handlers[2]).toBe(serverPluginOnRequest);
+      expect(handlers[3]).not.toBe(routeOnRequest);
+      expect(handlers[4]).not.toBe(routeOnRequest);
+      handlers[4]({ sharedMap: new Map() } as any);
+      expect(routeOnRequest).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -335,6 +416,99 @@ describe('resolve-request-handler', () => {
     });
   });
 
+  describe('fixStaticTrailingSlash', () => {
+    beforeEach(() => {
+      prerenderedPaths.clear();
+    });
+
+    it('should redirect to the trailing slash path when it is prerendered', () => {
+      prerenderedPaths.add('/docs/getting-started/');
+      const requestEv = createMockRequestEvent('http://localhost:3000/docs/getting-started', true);
+
+      expect(() => fixStaticTrailingSlash(requestEv)).toThrow(RedirectMessage);
+      expect(requestEv.headers.get('Location')).toBe('/docs/getting-started/');
+    });
+
+    it('should preserve the query string in the redirect', () => {
+      prerenderedPaths.add('/docs/getting-started/');
+      const requestEv = createMockRequestEvent(
+        'http://localhost:3000/docs/getting-started?foo=bar',
+        true
+      );
+
+      expect(() => fixStaticTrailingSlash(requestEv)).toThrow(RedirectMessage);
+      expect(requestEv.headers.get('Location')).toBe('/docs/getting-started/?foo=bar');
+    });
+
+    it('should not redirect when the trailing slash path is not prerendered', () => {
+      const requestEv = createMockRequestEvent('http://localhost:3000/does-not-exist', true);
+
+      fixStaticTrailingSlash(requestEv);
+      expect(requestEv.headers.get('Location')).toBeNull();
+    });
+
+    it('should remove the trailing slash when trailingSlash is false and the path is prerendered', () => {
+      prerenderedPaths.add('/docs/getting-started');
+      const requestEv = createMockRequestEvent(
+        'http://localhost:3000/docs/getting-started/',
+        false
+      );
+
+      expect(() => fixStaticTrailingSlash(requestEv)).toThrow(RedirectMessage);
+      expect(requestEv.headers.get('Location')).toBe('/docs/getting-started');
+    });
+
+    it('should redirect a HEAD request', () => {
+      prerenderedPaths.add('/docs/getting-started/');
+      const requestEv = createMockRequestEvent(
+        'http://localhost:3000/docs/getting-started',
+        true,
+        'HEAD'
+      );
+
+      expect(() => fixStaticTrailingSlash(requestEv)).toThrow(RedirectMessage);
+      expect(requestEv.headers.get('Location')).toBe('/docs/getting-started/');
+    });
+
+    it('should not redirect a non-GET request', () => {
+      prerenderedPaths.add('/docs/getting-started/');
+      const requestEv = createMockRequestEvent(
+        'http://localhost:3000/docs/getting-started',
+        true,
+        'POST'
+      );
+
+      fixStaticTrailingSlash(requestEv);
+      expect(requestEv.headers.get('Location')).toBeNull();
+    });
+
+    it('should not redirect a protocol-relative pathname', () => {
+      prerenderedPaths.add('//evil.com/');
+      const requestEv = createMockRequestEvent('http://localhost:3000//evil.com', true);
+
+      fixStaticTrailingSlash(requestEv);
+      expect(requestEv.headers.get('Location')).toBeNull();
+    });
+  });
+
+  describe('trailing slash handler selection', () => {
+    it('should use fixTrailingSlash for a matched page route', () => {
+      const handlers = resolveRequestHandlers(undefined, mockRoute, 'GET', false, vi.fn());
+
+      expect(handlers).toContain(fixTrailingSlash);
+      expect(handlers).not.toContain(fixStaticTrailingSlash);
+    });
+
+    it('should use fixStaticTrailingSlash for a not-found page route', () => {
+      const notFoundRoute: LoadedRoute = { ...mockRoute, $notFound$: true };
+
+      const handlers = resolveRequestHandlers(undefined, notFoundRoute, 'GET', false, vi.fn());
+
+      expect(handlers).toContain(fixStaticTrailingSlash);
+      expect(handlers).not.toContain(fixTrailingSlash);
+    });
+  });
+
   describe('server error handling', () => {
     it('should catch public ServerError instances in page middleware', async () => {
       const route: LoadedRoute = {
@@ -457,6 +631,26 @@ describe('resolve-request-handler', () => {
 
       expect(requestEv.status()).toBe(401);
       expect(requestEv.sharedMap.get(RequestEvHttpStatusMessage)).toBe('boom');
+    });
+
+    it('clears resolved route loader data before rendering a ServerError page', async () => {
+      const route = pageRouteWithLoaders(
+        makeLoader('protected', () => ({ secret: 'hidden' })),
+        makeLoader('guard', () => {
+          throw new ServerError(401, 'login required');
+        })
+      );
+      const renderHandler = vi.fn((requestEv: RequestEvent) => {
+        expect(getRouteLoaderValues(requestEv)).toEqual({});
+        requestEv.exit();
+      });
+      const requestEv = runPage(route, renderHandler);
+
+      await requestEv.next();
+
+      expect(renderHandler).toHaveBeenCalledOnce();
+      expect(requestEv.status()).toBe(401);
+      expect(requestEv.sharedMap.get(RequestEvHttpStatusMessage)).toBe('login required');
     });
 
     it('reports the first blockSSR loader (in route order) that errors', async () => {

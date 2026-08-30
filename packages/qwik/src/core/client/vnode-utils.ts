@@ -141,6 +141,7 @@ import {
   ITERATION_ITEM_MULTI,
   ITERATION_ITEM_SINGLE,
   OnRenderProp,
+  QComponentHash,
   Q_PROPS_SEPARATOR,
   QContainerAttr,
   QContainerAttrEnd,
@@ -2163,8 +2164,17 @@ function materializeFromVNodeData(
     } else if (peek() === VNodeDataChar.SCOPED_STYLE) {
       vnode_setProp(vParent, QScopedStyle, consumeValue());
     } else if (peek() === VNodeDataChar.RENDER_FN) {
-      (components ||= []).push(vParent as VirtualVNode);
-      vnode_setProp(vParent, OnRenderProp, consumeValue());
+      const renderRef = consumeValue();
+      if (renderRef.charCodeAt(0) === VNodeDataChar.RENDER_HASH_PREFIX) {
+        vnode_setProp(
+          vParent,
+          QComponentHash,
+          decodeURIComponent(decodeVNodeDataString(renderRef.slice(1)))
+        );
+      } else {
+        (components ||= []).push(vParent as VirtualVNode);
+        vnode_setProp(vParent, OnRenderProp, renderRef);
+      }
     } else if (peek() === VNodeDataChar.ID) {
       if (!container) {
         container = getDomContainer(element);
@@ -2202,7 +2212,7 @@ function materializeFromVNodeData(
     } else if (peek() === VNodeDataChar.SEPARATOR) {
       // Custom attribute: |key|value
       const keyValue = consumeValue();
-      const key = decodeVNodeDataString(keyValue);
+      const key = decodeURIComponent(decodeVNodeDataString(keyValue));
       const valueSeparatorIdx = dataIdx + keyValue.length + 1;
       const isEscapedValue = getChar(valueSeparatorIdx + 1) === VNodeDataChar.SEPARATOR;
       let value;

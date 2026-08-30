@@ -12,8 +12,9 @@ import type { ShikiTransformer } from '@shikijs/types';
 import tailwindcss from '@tailwindcss/vite';
 import path, { resolve } from 'node:path';
 // import { qwikDevtools } from '@qwik.dev/devtools';
-import { defineConfig, loadEnv, type Plugin, type Rollup, type UserConfig } from 'vite';
+import { defineConfig, loadEnv, type Connect, type Plugin, type UserConfig } from 'vite';
 import { compiledStringPlugin } from '../../scripts/compiled-string-plugin.js';
+import { docsUpdatedData } from './vite-docs-updated';
 import { examplesData, playgroundData, rawSource, tutorialData } from './vite.repl-apps';
 import { sourceResolver } from './vite.source-resolver';
 
@@ -27,10 +28,10 @@ const muteWarningsPlugin = (warningsToIgnore: string[][]): Plugin => {
     name: 'mute-warnings',
     enforce: 'pre',
     config: (userConfig) => {
-      const origOnLog = userConfig.build?.rollupOptions?.onLog;
+      const origOnLog = userConfig.build?.rolldownOptions?.onLog;
       return {
         build: {
-          rollupOptions: {
+          rolldownOptions: {
             onLog(type, warning, defaultHandler) {
               if (type === 'warn') {
                 if (warning.code) {
@@ -56,6 +57,28 @@ const muteWarningsPlugin = (warningsToIgnore: string[][]): Plugin => {
         this.warn('Some of your muted warnings never appeared during the build process:');
         diff.forEach((m) => this.warn(`- ${m.join(': ')}`));
       }
+    },
+  };
+};
+
+/** Paths that host the REPL, which needs crossOriginIsolated for its SharedArrayBuffer. */
+const REPL_PATHS = ['/playground', '/tutorial', '/examples', '/repl'];
+
+const crossOriginIsolateRepl = (): Plugin => {
+  const isolateRepl: Connect.NextHandleFunction = (req, res, next) => {
+    if (REPL_PATHS.some((replPath) => req.url?.startsWith(replPath))) {
+      res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+      res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
+    }
+    next();
+  };
+  return {
+    name: 'cross-origin-isolate-repl',
+    configureServer: (server) => {
+      server.middlewares.use(isolateRepl);
+    },
+    configurePreviewServer: (server) => {
+      server.middlewares.use(isolateRepl);
     },
   };
 };
@@ -94,42 +117,6 @@ function transformerMetaShowTitle(): ShikiTransformer {
         });
       }
       meta.replace(titleMatch[0], '');
-    },
-  };
-}
-
-function overrideManualChunksForRepl(): Plugin {
-  return {
-    name: 'override-manual-chunks-for-repl',
-    enforce: 'post',
-    config(userConfig) {
-      const prevOutput = userConfig.build?.rollupOptions?.output;
-      const prevManualChunks: Rollup.ManualChunksOption | undefined =
-        prevOutput && !Array.isArray(prevOutput)
-          ? (prevOutput as Rollup.OutputOptions).manualChunks
-          : undefined;
-
-      return {
-        build: {
-          rollupOptions: {
-            output: {
-              manualChunks: (id, meta) => {
-                const moduleInfo = meta.getModuleInfo(id);
-                if (moduleInfo) {
-                  // Prevent the similar optimizer plugin logic from running on the repl
-                  if (id.includes('repl') && (moduleInfo as any).meta?.qwikdeps?.length === 0) {
-                    return null;
-                  }
-                }
-
-                if (typeof prevManualChunks === 'function') {
-                  return prevManualChunks(id, meta);
-                }
-              },
-            },
-          },
-        },
-      };
     },
   };
 }
@@ -188,8 +175,6 @@ export default defineConfig(({ mode }) => {
     preview: {
       headers: {
         'Cache-Control': 'public, max-age=600',
-        'Cross-Origin-Opener-Policy': 'same-origin',
-        'Cross-Origin-Embedder-Policy': 'require-corp',
       },
     },
     define: {
@@ -217,6 +202,7 @@ export default defineConfig(({ mode }) => {
     },
 
     plugins: [
+      crossOriginIsolateRepl(),
       qds({ icons: true, asChild: true }),
       // some imported react code has sourcemap issues
       muteWarningsPlugin([
@@ -260,17 +246,17 @@ export default defineConfig(({ mode }) => {
       }),
       examplesData(routesDir),
       playgroundData(routesDir),
+      docsUpdatedData(routesDir),
       tutorialData(routesDir),
       sourceResolver(docsDir),
       qwikReact(),
       qwikInsights({ publicApiKey: insightsApiKey }),
       tailwindcss(),
-      overrideManualChunksForRepl(),
       // qwikDevtools(),
     ],
     build: {
       sourcemap: true,
-      rollupOptions: {
+      rolldownOptions: {
         output: {
           assetFileNames: 'assets/[hash]-[name].[ext]',
         },
@@ -283,11 +269,6 @@ export default defineConfig(({ mode }) => {
     clearScreen: false,
     server: {
       port: 3000,
-      // Needed for the REPL SharedArrayBuffer
-      headers: {
-        'Cross-Origin-Opener-Policy': 'same-origin',
-        'Cross-Origin-Embedder-Policy': 'require-corp',
-      },
     },
   } as UserConfig;
 });

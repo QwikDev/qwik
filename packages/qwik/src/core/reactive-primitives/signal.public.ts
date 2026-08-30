@@ -1,5 +1,5 @@
 import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
-import type { ComputeCtx, AsyncSignalOptions, ComputedOptions, SerializerArg } from './types';
+import type { ComputeCtx, ComputedOptions, SerializerArg } from './types';
 import {
   createSignal as _createSignal,
   createComputedSignal as createComputedQrl,
@@ -55,6 +55,11 @@ export interface ComputedSignal<T> extends Signal<T> {
   /** Use this to force recalculation. */
   invalidate(): void;
   /**
+   * Clear the value and recompute. Unlike `invalidate()`, readers see the loading state (reads
+   * throw the computation promise) instead of the stale value while the new value computes.
+   */
+  clear(): void;
+  /**
    * Whether the signal is currently loading. This will trigger lazy computation of the signal, so
    * you can use it like this:
    *
@@ -88,22 +93,6 @@ export interface ComputedSignal<T> extends Signal<T> {
    * Setting it will trigger listeners for `.error`.
    */
   untrackedError: Error | undefined;
-  /**
-   * Expiration time in ms. Writable and immediately effective.
-   *
-   * When set, the signal is invalidated after this many ms. Whether it auto-recomputes depends on
-   * the `poll` property. `0` means no expiration.
-   */
-  expires: number;
-  /**
-   * Whether to automatically re-run the function when the value expires. Writable and immediately
-   * effective. Only relevant when `expires` is set.
-   *
-   * Defaults to `true`.
-   */
-  poll: boolean;
-  /** @deprecated Use `expires` and `poll` instead. Will be removed before v2 */
-  interval: number;
   /** A promise that resolves when the value is computed or rejected. */
   promise(): Promise<void>;
   /** Abort the current computation and run cleanups if needed. */
@@ -182,17 +171,6 @@ export const createComputed$: <T>(
 ) => ComputedReturnType<T> = /*#__PURE__*/ implicit$FirstArg(createComputedQrl as any);
 export { createComputedQrl };
 
-/**
- * Create a signal holding a `.value` which is calculated from the given async function (QRL). The
- * standalone version of `useAsync$`.
- *
- * @deprecated Use `createComputed$` instead, it has async support now.
- * @public
- */
-export const createAsync$: <T>(
-  qrl: (arg: ComputeCtx<T>) => Promise<T>,
-  options?: AsyncSignalOptions<T>
-) => AsyncSignal<T> = /*#__PURE__*/ implicit$FirstArg(createAsyncQrl as any);
 export { createAsyncQrl };
 
 /**

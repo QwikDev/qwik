@@ -17,15 +17,32 @@ describe('createLoaderRequestEventFactory', () => {
     expect(pageEv.url.search).toBe('?page=2');
     expect(pageEv.query.get('page')).toBe('2');
     expect(pageEv.query.has('q')).toBe(false);
-    expect(pageEv.request.url).toBe(requestEv.url.href);
+    expect(pageEv.request.url).toBe('http://localhost/products/?page=2');
+    expect(pageEv.originalUrl.href).toBe('http://localhost/products/?page=2');
+    expect(pageEv.params).toEqual({ id: '123' });
 
     expect(queryEv.url.search).toBe('?q=shoes');
     expect(queryEv.query.get('q')).toBe('shoes');
     expect(queryEv.query.has('page')).toBe(false);
-    expect(queryEv.request.url).toBe(requestEv.url.href);
+    expect(queryEv.request.url).toBe('http://localhost/products/?q=shoes');
+    expect(queryEv.originalUrl.href).toBe('http://localhost/products/?q=shoes');
+    expect(queryEv.params).toEqual({ id: '123' });
 
     pageEv.sharedMap.set('shared', 'value');
     expect(requestEv.sharedMap.get('shared')).toBe('value');
+  });
+
+  it('preserves route params on a `search: []` loader for a dynamic route, with or without a query string (#8964)', () => {
+    // Regression: params were dropped when search filtering was active.
+    const requestEv = createRequestEv('http://localhost/fr/?foo=bar', { lang: 'fr' });
+    const getLoaderRequestEvent = createLoaderRequestEventFactory(requestEv);
+    const strictLoader = createLoader('strict-loader', []);
+
+    const loaderEv = getLoaderRequestEvent(strictLoader);
+
+    expect(loaderEv).not.toBe(requestEv);
+    expect(loaderEv.url.search).toBe('');
+    expect(loaderEv.params).toEqual({ lang: 'fr' });
   });
 
   it('creates a request event without search when the filtered search is empty', () => {
@@ -37,7 +54,8 @@ describe('createLoaderRequestEventFactory', () => {
     expect(missingEv).not.toBe(requestEv);
     expect(missingEv.url.search).toBe('');
     expect(missingEv.query.toString()).toBe('');
-    expect(missingEv.request.url).toBe(requestEv.url.href);
+    expect(missingEv.request.url).toBe('http://localhost/products/');
+    expect(missingEv.originalUrl.href).toBe('http://localhost/products/');
   });
 
   it('returns the original request event when there is no loader search filter', () => {
@@ -103,7 +121,9 @@ describe('createLoaderRequestEventFactory', () => {
       expect(productsEv.url.href).toBe('http://localhost/products/?page=2');
       expect(detailsEv.pathname).toBe('/products/123/');
       expect(detailsEv.url.href).toBe('http://localhost/products/123/?page=2');
-      expect(productsEv.request.url).toBe(requestEv.url.href);
+      expect(productsEv.request.url).toBe('http://localhost/products/?page=2');
+      expect(productsEv.originalUrl.href).toBe('http://localhost/products/?page=2');
+      expect(productsEv.params).toEqual({ id: '123' });
     } finally {
       globalThis.__STRICT_LOADERS__ = previousStrictLoaders;
     }
@@ -127,7 +147,8 @@ describe('createLoaderRequestEventFactory', () => {
 });
 
 function createRequestEv(
-  href = 'http://localhost/products/?q=shoes&page=2&ignored=true'
+  href = 'http://localhost/products/?q=shoes&page=2&ignored=true',
+  params: Record<string, string> = { id: '123' }
 ): RequestEventInternal {
   const url = new URL(href);
   const requestEv = {
@@ -135,6 +156,7 @@ function createRequestEv(
     headers: new Headers(),
     request: new Request(url),
     url,
+    params,
     sharedMap: new Map<string, unknown>(),
   } as any;
   requestEv.resolveValue = (loader: LoaderInternal) => loadRouteLoader(loader, requestEv);
@@ -156,11 +178,8 @@ function createLoader(
     },
     __validators: undefined,
     __serializationStrategy: 'never',
-    __expires: 0,
-    __poll: false,
     __eTag: undefined,
     __cacheKey: undefined,
     __search: search,
-    __allowStale: true,
   } as any;
 }

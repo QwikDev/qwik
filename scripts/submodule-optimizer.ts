@@ -22,10 +22,6 @@ export async function submoduleOptimizer(config: BuildConfig) {
     resolve: {
       alias: [
         {
-          find: /^image-size(?=\/|$)/,
-          replacement: join(config.packagesDir, 'qwik', 'node_modules', 'image-size'),
-        },
-        {
           find: /^launch-editor$/,
           replacement: join(config.packagesDir, 'qwik', 'node_modules', 'launch-editor'),
         },
@@ -37,7 +33,7 @@ export async function submoduleOptimizer(config: BuildConfig) {
       sourcemap: false,
       target: target,
       minify: !config.dev,
-      rollupOptions: {
+      rolldownOptions: {
         external: ['node:fs', 'node:path', 'launch-editor', '@qwik.dev/optimizer'],
         output: {
           banner: getBanner('@qwik.dev/core/optimizer', config.distVersion),

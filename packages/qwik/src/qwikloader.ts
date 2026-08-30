@@ -351,7 +351,7 @@ const dispatch = (
         defer = true;
         tasks.push(async () => {
           await waitForReady;
-          await run((await resolve(false)) || (await resolve()));
+          await run(chunk ? await resolve() : (await resolve(false)) || (await resolve()));
         });
       } else if (isPromise(handler)) {
         defer = true;
@@ -431,7 +431,7 @@ const processPassiveElementEvent = (ev: Event) =>
 const broadcast = (scope: QwikLoaderEventScope, ev: Event, allowPreventDefault = true) => {
   const kebabName = camelToKebab(ev.type);
   const scopedKebabName = scope + ':' + kebabName;
-  const elements = querySelectorAll('[q-' + scope + '\\:' + kebabName + ']');
+  const elements = querySelectorAll('[q-' + CSS.escape(scopedKebabName) + ']');
   const tasks: Task[] = [];
   for (let i = 0; i < elements.length; i++) {
     const el = elements[i];

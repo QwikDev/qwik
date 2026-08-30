@@ -3,7 +3,7 @@ import { NEEDS_COMPUTATION } from '../../reactive/constants';
 import type { AsyncSignalOptions } from '../../reactive/public-types';
 import { Branch, BranchRange, BranchSubscription } from '../../dom/branch/branch';
 import { ContentBlock, ContentSubscription, type ContentOutput } from '../../dom/content/content';
-import { ForBlock, ForRange } from '../../dom/for/for';
+import { ForBlock, ForRange, type IndexMode } from '../../dom/for/for';
 import {
   AttrEffect,
   AttrExpressionEffect,
@@ -580,7 +580,7 @@ async function restoreForBlockSubscription(
   const renderQrl = parts[4] as QRLInternal<
     (ctx: ContainerContext, item: unknown, index: unknown) => readonly Node[]
   >;
-  const usesIndexSignal = parts[5] as boolean;
+  const indexMode = parts[5] as IndexMode;
   const slotScope = (parts[6] as SlotScope | null | undefined) ?? null;
   const rowOwners = (parts[7] as Array<Owner | null> | null | undefined) ?? null;
   const indexSignals =
@@ -598,7 +598,12 @@ async function restoreForBlockSubscription(
 
   const listOwner = createOwner(subscription.owner);
   // the rows rendered under the list owner, so adopting them keeps that tree across resume
-  rowOwners?.forEach((rowOwner) => rowOwner && registerOwnerToOwner(rowOwner, listOwner));
+  if (rowOwners) {
+    for (let i = 0; i < rowOwners.length; i++) {
+      const rowOwner = rowOwners[i];
+      rowOwner && registerOwnerToOwner(rowOwner, listOwner);
+    }
+  }
   const invokeContext = await restoreInvokeContext(container, markerRange[0]);
   invokeContext.slotScope = slotScope;
   const block = new ForBlock(
@@ -606,7 +611,7 @@ async function restoreForBlockSubscription(
     deps[0] as Source<readonly unknown[]>,
     keyQrl,
     renderQrl,
-    usesIndexSignal,
+    indexMode,
     listOwner,
     invokeContext,
     container,

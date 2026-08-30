@@ -26,6 +26,7 @@ import {
   emptyFunctionEmission,
   inlineValueJs,
   programKind,
+  usedParamPrefix,
   ProgramKind,
   rowShapeCode,
   chunkCanonicalFilename,
@@ -382,7 +383,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
             ? 'null'
             : this.chunkSymbol(resolveQrlUse(this.module, op.key.use, pass.names.props).qrl);
         statements.push(
-          `${pass.names.ctx}.scheduler.waitFor(${QwikWord.CreateCollection}(${pass.names.ctx}, ${start}, ${end}, ${source}, ${key}, ${render}, ${op.usesIndexSignal}, '', ${rowShapeCode(op.shape)}));`
+          `${pass.names.ctx}.scheduler.waitFor(${QwikWord.CreateCollection}(${pass.names.ctx}, ${start}, ${end}, ${source}, ${key}, ${render}, ${op.index}, '', ${rowShapeCode(op.shape)}));`
         );
         break;
       }
@@ -393,7 +394,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         // One-shot render: local row function, transient collection, nothing awaited.
         const rowFn = this.inlineRowFunction(op.row, statements);
         statements.push(
-          `${QwikWord.CreateCollection}(${pass.names.ctx}, ${start}, ${end}, ${source}, null, ${rowFn}, ${op.usesIndexSignal}, '', ${rowShapeCode(op.shape)}, true);`
+          `${QwikWord.CreateCollection}(${pass.names.ctx}, ${start}, ${end}, ${source}, null, ${rowFn}, ${op.index}, '', ${rowShapeCode(op.shape)}, true);`
         );
         break;
       }
@@ -509,7 +510,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     emitter.hoists.push(
       `const ${template} = ${QwikWord.CreateElementTemplate}(${JSON.stringify(foldStaticOp(templateOp(root), false))});`
     );
-    const loopParams = qrl.params.used.map((binding) => this.module.bindings[binding].name);
+    const loopParams = usedParamPrefix(this.module, qrl);
     emission.params = statements.length === 0 ? [] : [pass.names.ctx, ...loopParams];
     emission.statements = statements;
     emission.value = el;

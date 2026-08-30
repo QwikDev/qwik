@@ -19,9 +19,9 @@ import {
   finalizeSsrRows,
   ForRange,
   renderSsrForBlock,
-  ROW_UNKNOWN,
+  IndexMode,
   type ForKey,
-  type RowOutputShape,
+  RowOutputShape,
 } from '../for/for';
 
 type CollectionKeyFn<T> = (item: T, index: number) => ForKey;
@@ -49,9 +49,9 @@ export function createCollection<T>(
   collection: readonly T[] | Source<readonly T[]>,
   keyFn: CollectionKeyFn<T> | QRL<CollectionKeyFn<T>> | null,
   renderFn: CollectionRenderFn<T> | QRL<CollectionRenderFn<T>>,
-  usesIndexSignal = false,
+  indexMode: IndexMode = IndexMode.None,
   idBase = '',
-  rowShape: RowOutputShape = ROW_UNKNOWN,
+  rowShape: RowOutputShape = RowOutputShape.Unknown,
   transient = false
 ): ValueOrPromise<void> {
   if (!Array.isArray(collection)) {
@@ -61,7 +61,7 @@ export function createCollection<T>(
       collection as Source<readonly T[]>,
       keyFn,
       renderFn as never,
-      usesIndexSignal,
+      indexMode,
       idBase,
       rowShape
     ).run();
@@ -127,10 +127,10 @@ export function renderSsrCollection<T>(
   collection: readonly T[] | Source<readonly T[]>,
   keyQrl: QRL<CollectionKeyFn<T>> | undefined,
   renderQrl: SsrCollectionRenderFn<T> | QRL<SsrCollectionRenderFn<T>>,
-  usesIndexSignal = false,
+  indexMode: IndexMode = IndexMode.None,
   idBase = '',
   usesRowId = true,
-  rowShape: RowOutputShape = ROW_UNKNOWN
+  rowShape: RowOutputShape = RowOutputShape.Unknown
 ): ValueOrPromise<SsrOutput> {
   if (!Array.isArray(collection)) {
     return renderSsrForBlock(
@@ -139,7 +139,7 @@ export function renderSsrCollection<T>(
       collection as Source<readonly T[]>,
       keyQrl ?? null,
       renderQrl as QRL<SsrCollectionRenderFn<T>>,
-      usesIndexSignal,
+      indexMode,
       idBase,
       usesRowId,
       rowShape

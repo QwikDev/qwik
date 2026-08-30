@@ -29,6 +29,8 @@ import {
   captureNames,
   capturePrelude,
   inlineValueJs,
+  rootArgs,
+  usedParamPrefix,
   programKind,
   ProgramKind,
   rowShapeCode,
@@ -227,9 +229,9 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       throw new UnsupportedError('a collection row without an element root');
     }
     const { emission, core, names } = this.renderEmission(qrl, { rootMarker: QwikAttr.Row });
-    if (qrl.params.used.length > 0) {
-      // Unused trailing slots keep placeholder names; unused loop params are dropped.
-      const loopParams = qrl.params.used.map((binding) => this.module.bindings[binding].name);
+    const loopParams = usedParamPrefix(this.module, qrl);
+    if (loopParams.length > 0) {
+      // Positional ABI: trailing unused params drop, earlier ones stay under their names.
       emission.params = [names.ctx, '__rangeId', '__rowId', ...loopParams];
     } else if (core.needsContext) {
       emission.params = [names.ctx];
@@ -444,7 +446,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
           pass,
           step,
           [source, ...render.args, ...(key?.args ?? [])],
-          `${QwikWord.RenderSsrCollection}(${pass.names.ctx}, ${idVariable}, ${source}, ${key?.ref ?? 'undefined'}, ${render.ref}, ${op.usesIndexSignal}, '', ${usesRowId}, ${rowShapeCode(op.shape)})`
+          `${QwikWord.RenderSsrCollection}(${pass.names.ctx}, ${idVariable}, ${source}, ${key?.ref ?? 'undefined'}, ${render.ref}, ${op.index}, '', ${usesRowId}, ${rowShapeCode(op.shape)})`
         );
         pushMergedStatic(parts, '<!f=');
         this.imports.add(QwikWord.CreateSsrNodeId);
@@ -463,7 +465,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         this.imports.add(QwikWord.RenderSsrCollection);
         const step = pass.next(QwikGenWord.Collection);
         pass.statements.push(
-          `const ${step} = ${QwikWord.RenderSsrCollection}(${pass.names.ctx}, undefined, ${source}, undefined, ${rowFn}, ${op.usesIndexSignal}, '', false, ${rowShapeCode(op.shape)});`
+          `const ${step} = ${QwikWord.RenderSsrCollection}(${pass.names.ctx}, undefined, ${source}, undefined, ${rowFn}, ${op.index}, '', false, ${rowShapeCode(op.shape)});`
         );
         parts.push(step);
         break;
@@ -562,12 +564,12 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         if (op.value.resume.r !== ResumeKind.Qrl) {
           throw new UnsupportedError('a non-QRL computed text hole');
         }
-        const { ref, args } = this.useQrl(pass, op.value.resume.qrl, true);
+        const { qrl, ref, args } = this.useQrl(pass, op.value.resume.qrl, true);
         this.imports.add(QwikWord.RenderSsrTextExpression);
         this.pushStep(
           pass,
           step,
-          args,
+          rootArgs(qrl, args),
           `${QwikWord.RenderSsrTextExpression}(${createTextTarget}, [${args.join(', ')}], ${ref})`
         );
         parts.push(`${QwikWord.EscapeHTML}(${step})`);
@@ -646,12 +648,12 @@ class SsrModuleEmitter implements QwikModuleEmitter {
             if (prop.value.resume.r !== ResumeKind.Qrl) {
               throw new UnsupportedError('a non-QRL computed prop');
             }
-            const { ref, args } = this.useQrl(pass, prop.value.resume.qrl, true);
+            const { qrl, ref, args } = this.useQrl(pass, prop.value.resume.qrl, true);
             this.imports.add(QwikWord.RenderSsrAttrExpression);
             this.pushStep(
               pass,
               step,
-              args,
+              rootArgs(qrl, args),
               `${QwikWord.RenderSsrAttrExpression}(${target}, ${JSON.stringify(prop.name)}, [${args.join(', ')}], ${ref})`
             );
             break;

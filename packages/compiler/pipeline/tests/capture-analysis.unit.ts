@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { BindingScope, VarKind } from '../schema';
+import { BindingScope, CaptureAccess, VarKind } from '../schema';
 import { parseModule } from '../analyse/ast/parse';
 import { unwrapExpression } from '../analyse/ast/utils';
 import { collectCaptures } from '../analyse/ast/capture-analysis';
@@ -7,7 +7,12 @@ import { createLowerContext, type LowerContext } from '../analyse/lower-context'
 import { LocalKind, type SetupLocal } from '../analyse/lower-setup';
 import { emptyModulePlan } from './fixtures';
 
-const COUNT_LOCAL: SetupLocal = { kind: LocalKind.Signal, slot: 0, binding: 1 };
+const COUNT_LOCAL: SetupLocal = {
+  kind: LocalKind.Signal,
+  access: CaptureAccess.Direct,
+  slot: 0,
+  binding: 1,
+};
 
 function contextWith(overrides: Partial<LowerContext>): LowerContext {
   const plan = emptyModulePlan('t.tsx');

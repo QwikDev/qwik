@@ -349,7 +349,8 @@ export {
   SSRForBlock,
   createForBlock,
   renderSsrForBlock,
-  type RowOutputShape,
+  IndexMode,
+  RowOutputShape,
 } from './dom/for/for';
 export { createCollection, renderSsrCollection } from './dom/collection/collection';
 export {

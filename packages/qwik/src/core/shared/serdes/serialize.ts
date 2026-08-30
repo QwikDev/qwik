@@ -1,4 +1,5 @@
 import { isDev, isServer } from '@qwik.dev/core/build';
+import { IndexMode } from '../../dom/for/for';
 import { NEEDS_COMPUTATION } from '../../reactive/constants';
 import { EffectKind } from '../../dom/effect/effect-kind.enum';
 import { SSRBranchSubscription as SsrBranchSubscription } from '../../dom/branch/branch';
@@ -1114,10 +1115,11 @@ function serializeForBlockSubscription(subscription: SsrForBlockSubscription): u
     serializeDeps(subscription.deps),
     effect.keyQrl,
     effect.renderQrl,
-    effect.usesIndexSignal,
+    effect.indexMode,
     effect.invokeContext?.slotScope ?? null,
     effect.rowOwners,
-    effect.indexSignals,
+    // Effects-mode indices re-derive from row position at resume — only escaped ones serialize.
+    effect.indexMode === IndexMode.Escapes ? effect.indexSignals : null,
     effect.idBase,
     effect.rowShape,
   ];

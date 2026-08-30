@@ -34,7 +34,7 @@ export default (props, ctx) => {
     ['first', 'second'],
     null,
     semantic_collectionRender_60_79_1yelvkf618fjk,
-    false,
+    0,
     '',
     0,
     true

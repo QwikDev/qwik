@@ -426,6 +426,17 @@ export default () => {
     });
   });
 
+  test('should renumber rows through a reactive index param', async () => {
+    await testInput(mode, 'collection-index-signal', {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
+  const items = useSignal([{ id: 'a', label: 'Alpha' }]);
+  return <ul>{items.value.map((item, index) => <li key={item.id}>{index}</li>)}</ul>;
+};
+`,
+    });
+  });
+
   test('should render an expression hole capturing a signal', async () => {
     await testInput(mode, 'expression-hole-signal', {
       code: `import { useSignal } from '@qwik.dev/core';

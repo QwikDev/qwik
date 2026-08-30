@@ -49,7 +49,9 @@ function withSignalLocal(ctx: LowerContext): void {
     varKind: VarKind.Const,
     declarationRange: null,
   });
-  ctx.locals = new Map([['count', { kind: LocalKind.Signal, slot: 0, binding: 0 }]]);
+  ctx.locals = new Map([
+    ['count', { kind: LocalKind.Signal, access: CaptureAccess.Direct, slot: 0, binding: 0 }],
+  ]);
 }
 
 function withProps(ctx: LowerContext): void {

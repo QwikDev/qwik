@@ -13,7 +13,7 @@ import {
   getNodeLabel,
   toArray,
 } from '../../test-utils';
-import { ForBlock, ForRange } from './for';
+import { IndexMode, ForBlock, ForRange } from './for';
 
 describe('ForBlock reorder', () => {
   const createElementNode = (label: string): Node =>
@@ -50,7 +50,7 @@ describe('ForBlock reorder', () => {
       items,
       (item) => item.id,
       () => [],
-      false,
+      IndexMode.None,
       listOwner,
       null,
       { document: startNode.ownerDocument! } as ContainerContext
@@ -79,7 +79,7 @@ describe('ForBlock reorder', () => {
       items,
       (item) => item.id,
       (_ctx, item) => [createElementNode(String((item as { id: number }).id))],
-      false,
+      IndexMode.None,
       listOwner,
       null,
       { document: startNode.ownerDocument! } as ContainerContext
@@ -194,7 +194,7 @@ describe('ForBlock reorder', () => {
       items,
       (item) => item.id,
       renderRow,
-      false,
+      IndexMode.None,
       listOwner,
       null,
       { document } as ContainerContext
@@ -245,7 +245,7 @@ describe('ForBlock reorder', () => {
       items,
       (item) => item.id,
       () => [],
-      false,
+      IndexMode.None,
       listOwner,
       null,
       { document } as ContainerContext
@@ -300,7 +300,7 @@ describe('ForBlock reorder', () => {
       items,
       (item) => item.id,
       () => [],
-      false,
+      IndexMode.None,
       listOwner,
       null,
       { document } as ContainerContext
@@ -361,9 +361,18 @@ describe('ForBlock reorder', () => {
       return row;
     };
     const range = new ForRange(document, startNode, endNode);
-    const block = new ForBlock(range, items, (item) => item.id, renderRow, false, listOwner, null, {
-      document,
-    } as ContainerContext);
+    const block = new ForBlock(
+      range,
+      items,
+      (item) => item.id,
+      renderRow,
+      IndexMode.None,
+      listOwner,
+      null,
+      {
+        document,
+      } as ContainerContext
+    );
     block.keys = [1];
     block.rows = [oldRow];
     block.owners = [createOwner(listOwner)];
@@ -461,7 +470,7 @@ describe('ForBlock reorder', () => {
       items,
       (item) => item,
       (_ctx, item) => [createElementNode(String(item))],
-      false,
+      IndexMode.None,
       listOwner,
       null,
       { document: startNode.ownerDocument! } as ContainerContext
@@ -492,7 +501,7 @@ describe('ForBlock reorder', () => {
       items,
       (item) => item,
       (_ctx, item) => createElementNode(String(item)),
-      false,
+      IndexMode.None,
       listOwner,
       null,
       { document: startNode.ownerDocument! } as ContainerContext
@@ -522,7 +531,7 @@ describe('ForBlock reorder', () => {
       items,
       (item) => item,
       (_ctx, item) => [createTestDomNode(`a${item}`), createTestDomNode(`b${item}`)],
-      false,
+      IndexMode.None,
       listOwner,
       null,
       { document: startNode.ownerDocument! } as ContainerContext
@@ -593,7 +602,7 @@ describe('ForBlock reorder', () => {
       items,
       (item) => item.id,
       renderRow,
-      true,
+      IndexMode.Effects,
       listOwner,
       null,
       { document: startNode.ownerDocument! } as ContainerContext
@@ -631,7 +640,7 @@ describe('ForBlock reorder', () => {
       items,
       (item) => item,
       (_ctx, item) => [createElementNode(String(item))],
-      false,
+      IndexMode.None,
       listOwner,
       null,
       { document: startNode.ownerDocument! } as ContainerContext
@@ -670,7 +679,7 @@ describe('ForBlock reorder', () => {
       items,
       (item) => item,
       renderRow,
-      false,
+      IndexMode.None,
       listOwner,
       null,
       { document } as ContainerContext
@@ -714,7 +723,7 @@ describe('ForBlock reorder', () => {
       items,
       (item) => `${item}:${keySuffix.value}`,
       (_ctx, item) => [createElementNode(String(item))],
-      false,
+      IndexMode.None,
       listOwner,
       null,
       { document: startNode.ownerDocument! } as ContainerContext
@@ -750,7 +759,7 @@ describe('ForBlock reorder', () => {
         createTextNodeEffect(createText(), text);
         return [createElementNode(String(item))];
       },
-      false,
+      IndexMode.None,
       listOwner,
       null,
       { document: startNode.ownerDocument! } as ContainerContext
@@ -809,7 +818,7 @@ describe('ForBlock reorder', () => {
         items,
         (item) => item,
         (_ctx, item) => [createElementNode(String(item))],
-        false,
+        IndexMode.None,
         listOwner,
         null,
         { document: start.ownerDocument! } as ContainerContext

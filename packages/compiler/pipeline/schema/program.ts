@@ -71,6 +71,15 @@ export const enum RowKind {
   Inline = 'inline',
 }
 
+/** Mirrors the runtime's IndexMode wire codes — how rows consume their index. */
+export const enum IndexMode {
+  None = 0,
+  /** Index read only by row-owned effects: in-memory signals, nothing serialized. */
+  Effects = 1,
+  /** A closure holds the index past render: signals serialize to keep identity. */
+  Escapes = 2,
+}
+
 export type Op =
   | { op: OpKind.Static; html: string }
   | {
@@ -115,7 +124,7 @@ export type Op =
         | { r: RowKind.Chunk; use: QrlUse }
         /** The row symbol is generator-owned; `renderId` links declaration and call site. */
         | { r: RowKind.Inline; program: ProgramId; renderId: string };
-      usesIndexSignal: boolean;
+      index: IndexMode;
       id: Seed;
       lifetime: LifetimeId;
       shape: Shape;

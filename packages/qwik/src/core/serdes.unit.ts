@@ -14,7 +14,7 @@ import type { AttrExpressionFn, EventExpressionFn } from './dom/effect/effect';
 import { createTextNodeEffect, type TextExpressionFn } from './dom/effect/text-effect';
 import { BranchSubscription, renderSsrBranch } from './dom/branch/branch';
 import { ContentSubscription, renderSsrContent } from './dom/content/content';
-import { renderSsrForBlock } from './dom/for/for';
+import { IndexMode, renderSsrForBlock } from './dom/for/for';
 import { ForBlockSubscription } from './dom/effect/effect';
 import {
   createSsrElementTarget,
@@ -795,7 +795,7 @@ describe('serdes emit-only', () => {
     const container = createCaptureContainer({});
 
     const html = await createOwned(() =>
-      renderSsrForBlock(container, 9, items, keyQrl, renderQrl, false)
+      renderSsrForBlock(container, 9, items, keyQrl, renderQrl, IndexMode.None)
     );
     const state = await serialize(items, label);
     const signalPayload = state[1] as unknown[];
@@ -805,8 +805,8 @@ describe('serdes emit-only', () => {
     expect(signalPayload[2]).toBe(TypeIds.EffectSubscription);
     expect(forPayload[1]).toBe(EffectKind.ForBlock);
     expect(forPayload[3]).toBe(9);
-    expect(forPayload[10]).toBe(TypeIds.Constant);
-    expect(forPayload[11]).toBe(Constants.False);
+    expect(forPayload[10]).toBe(TypeIds.Plain);
+    expect(forPayload[11]).toBe(IndexMode.None);
     expect(countSerializedValue(state, TypeIds.EffectSubscription)).toBe(2);
   });
 

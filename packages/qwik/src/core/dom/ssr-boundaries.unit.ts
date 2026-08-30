@@ -11,7 +11,7 @@ import { createOwner, getOrCreateContextOwner, type Owner } from '../runtime/own
 import type { SsrOutput } from '../ssr/output';
 import { renderSsrBranch } from './branch/branch';
 import { renderSsrCollection } from './collection/collection';
-import { renderSsrForBlock, ROW_ELEMENT } from './for/for';
+import { IndexMode, RowOutputShape, renderSsrForBlock } from './for/for';
 import { createSlotScope, registerProjection, renderSsrSlot, type SlotScope } from './slot/slot';
 
 type SsrContext = ContainerContext & { nextId(): number };
@@ -87,7 +87,7 @@ describe('structured SSR boundaries', () => {
     });
 
     const output = invokeWithScope(ctx, null, () =>
-      renderSsrForBlock(ctx, 7, items, keyQrl, renderQrl, false)
+      renderSsrForBlock(ctx, 7, items, keyQrl, renderQrl, IndexMode.None)
     );
     expect(starts).toEqual(['first']);
 
@@ -115,7 +115,7 @@ describe('structured SSR boundaries', () => {
     });
 
     const output = invokeWithScope(ctx, null, () =>
-      renderSsrCollection(ctx, 7, ['first', 'second'], undefined, renderQrl, false)
+      renderSsrCollection(ctx, 7, ['first', 'second'], undefined, renderQrl, IndexMode.None)
     );
     expect(starts).toEqual(['0:first']);
 
@@ -145,13 +145,13 @@ describe('structured SSR boundaries', () => {
         ['first', 'second'],
         undefined,
         renderQrl,
-        false,
+        IndexMode.None,
         '',
         false
       )
     );
     const reactive = invokeWithScope(ctx, null, () =>
-      renderSsrForBlock(ctx, 7, items, keyQrl, renderQrl, false, '', false)
+      renderSsrForBlock(ctx, 7, items, keyQrl, renderQrl, IndexMode.None, '', false)
     );
 
     expect(await direct).toBe('firstsecond');
@@ -168,10 +168,10 @@ describe('structured SSR boundaries', () => {
         ['first', 'second'],
         undefined,
         (_ctx, _rangeId, _rowId, item) => `<li>${item}</li>`,
-        false,
+        IndexMode.None,
         '',
         false,
-        ROW_ELEMENT
+        RowOutputShape.Element
       )
     );
 
@@ -209,7 +209,7 @@ describe('structured SSR boundaries', () => {
     });
 
     invokeWithScope(ctx, null, () =>
-      renderSsrCollection(ctx, 7, items, undefined, renderQrl, false)
+      renderSsrCollection(ctx, 7, items, undefined, renderQrl, IndexMode.None)
     );
 
     expect(renders).toBe(1);
@@ -261,7 +261,9 @@ describe('structured SSR boundaries', () => {
       });
 
       expect(() =>
-        invokeWithScope(ctx, null, () => renderSsrForBlock(ctx, 7, items, keyQrl, renderQrl, false))
+        invokeWithScope(ctx, null, () =>
+          renderSsrForBlock(ctx, 7, items, keyQrl, renderQrl, IndexMode.None)
+        )
       ).toThrow('ForBlock key must be a synchronous string or number.');
       expect(renders).toBe(0);
     }

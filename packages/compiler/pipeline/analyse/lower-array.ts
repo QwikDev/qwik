@@ -4,6 +4,7 @@ import {
   CaptureAccess,
   EachSourceKind,
   ExprKind,
+  IndexMode,
   FnBodyKind,
   LifetimeCommit,
   LifetimeOwner,
@@ -17,6 +18,7 @@ import {
   Shape,
   ValueKind,
   type Op,
+  type Qrl,
   type Value,
 } from '../schema';
 import { SegmentContext } from '../words';
@@ -58,10 +60,13 @@ function lowerEach(
   body: JSXElement,
   ctx: LowerContext
 ): Op {
-  if (callback.params.length > 1) {
-    throw new UnsupportedError('a collection index parameter');
+  if (callback.params.length > 2) {
+    throw new UnsupportedError('a third collection row parameter');
   }
   const source = lowerSource(sourceExpression, ctx);
+  if (source.s === EachSourceKind.Array && callback.params.length > 1) {
+    throw new UnsupportedError('an index parameter on a static array collection');
+  }
   const lifetime = ctx.plan.lifetimes.length;
   ctx.plan.lifetimes.push({
     id: lifetime,
@@ -105,7 +110,7 @@ function lowerEach(
           'synthetic'
         ),
       },
-      usesIndexSignal: false,
+      index: IndexMode.None,
       id: { kind: SeedKind.For, ordinal: ctx.forCounter.next++ },
       lifetime,
       shape: Shape.Element,
@@ -140,23 +145,26 @@ function lowerEach(
   );
   const key = lowerKey(body, callback, ctx);
   lowerRowOps(body, callback, paramBindings, program, ctx);
-  // The row ABI drops unused loop params: `used` = params some descendant QRL captured.
+  // The row ABI drops unused trailing params: `used` = params some descendant QRL captured.
+  const descendants = ctx.plan.qrls.slice(rowIndex + 1);
   ctx.plan.qrls[rowIndex].params.used = paramBindings.filter((binding) =>
-    ctx.plan.qrls
-      .slice(rowIndex + 1)
-      .some((qrl) =>
-        qrl.captures.some(
-          (capture) => capture.access === CaptureAccess.LoopValue && capture.binding === binding
-        )
+    descendants.some((qrl) =>
+      qrl.captures.some(
+        (capture) =>
+          (capture.access === CaptureAccess.LoopValue ||
+            capture.access === CaptureAccess.RowIndex) &&
+          capture.binding === binding
       )
+    )
   );
+  const index = deriveIndexMode(paramBindings[1], descendants);
 
   return {
     op: OpKind.Each,
     source,
     key,
     row: { r: RowKind.Chunk, use },
-    usesIndexSignal: false,
+    index,
     id: { kind: SeedKind.For, ordinal: ctx.forCounter.next++ },
     lifetime,
     shape: Shape.Element,
@@ -185,6 +193,29 @@ function lowerSource(node: Expression, ctx: LowerContext): { s: EachSourceKind; 
   return { s: EachSourceKind.Reactive, value };
 }
 
+/** Who reads the index decides its cost: effects only, or a closure that outlives render. */
+function deriveIndexMode(indexBinding: number | undefined, descendants: readonly Qrl[]): IndexMode {
+  if (indexBinding === undefined) {
+    return IndexMode.None;
+  }
+  let mode = IndexMode.None;
+  for (const qrl of descendants) {
+    if (
+      !qrl.captures.some(
+        (capture) => capture.access === CaptureAccess.RowIndex && capture.binding === indexBinding
+      )
+    ) {
+      continue;
+    }
+    const escapes = qrl.boundary.kind === BoundaryKind.Implicit && qrl.boundary.role === 'event';
+    if (escapes) {
+      return IndexMode.Escapes;
+    }
+    mode = IndexMode.Effects;
+  }
+  return mode;
+}
+
 /** Fills the row program's ops with loop params scoped as LoopValue locals. */
 function lowerRowOps(
   body: JSXElement,
@@ -195,12 +226,13 @@ function lowerRowOps(
 ): void {
   const outerLocals = ctx.locals;
   const rowLocals = new Map(outerLocals);
-  callback.params.forEach((param, index) => {
+  callback.params.forEach((param, position) => {
     if (param.type === 'Identifier') {
       rowLocals.set(param.name, {
-        kind: LocalKind.LoopValue,
+        kind: position === 1 ? LocalKind.RowIndex : LocalKind.LoopValue,
+        access: position === 1 ? CaptureAccess.RowIndex : CaptureAccess.LoopValue,
         slot: -1,
-        binding: paramBindings[index],
+        binding: paramBindings[position],
       });
     }
   });

@@ -4,6 +4,7 @@ import {
   CaptureAccess,
   ExprKind,
   FnBodyKind,
+  QrlBodyKind,
   ResumeKind,
   Shape,
   ValueKind,
@@ -13,6 +14,7 @@ import {
   type QrlUse,
   type Value,
 } from '../schema';
+import { ValueIrKind } from '../../src/expr-ir';
 import { getSegmentDisplayName, getSegmentSymbolHash } from '../segment-identity';
 import { QWIK_CORE_IMPORT, QwikWord, SegmentContext } from '../words';
 import { UnsupportedError } from '../errors';
@@ -137,7 +139,14 @@ export function sourceFunctionEmission(module: LinkedModule, qrl: LinkedQrl): Fu
     emission.imports.add(QwikWord.Captures);
     emission.statements.push(...capturePrelude(captures));
   }
-  emission.value = source.slice(qrl.origin.bodyRange[0], qrl.origin.bodyRange[1]);
+  const body = qrl.body;
+  emission.value =
+    body.b === QrlBodyKind.Expr &&
+    body.expr.kind === ExprKind.Ir &&
+    body.expr.ir.kind === ValueIrKind.SignalRead
+      ? // A signal-read body has no authored `.value` to slice — print it from the IR.
+        `${module.bindings[body.expr.ir.binding].name}.value`
+      : source.slice(qrl.origin.bodyRange[0], qrl.origin.bodyRange[1]);
   emission.async = qrl.authoredAsync;
   return emission;
 }
@@ -239,4 +248,25 @@ export function inlineValueJs(module: LinkedModule, value: Value): string {
     throw new UnsupportedError('a non-inline source value');
   }
   return extractPayloadJs(module, value.expr.payload);
+}
+
+/** Serialization roots for a use site — row-index boxes never root (the block owns them). */
+export function rootArgs(qrl: LinkedQrl, args: readonly string[]): string[] {
+  return args.filter((_, index) => qrl.captures[index]?.access !== CaptureAccess.RowIndex);
+}
+
+/** Positional row ABI: every param up to the LAST used one stays (unused keep their names). */
+export function usedParamPrefix(module: LinkedModule, qrl: LinkedQrl): string[] {
+  if (qrl.body.b !== QrlBodyKind.Program) {
+    return [];
+  }
+  const params = module.programs[qrl.body.program].params;
+  const used = new Set(qrl.params.used);
+  let lastUsed = -1;
+  params.forEach((binding, position) => {
+    if (used.has(binding)) {
+      lastUsed = position;
+    }
+  });
+  return params.slice(0, lastUsed + 1).map((binding) => module.bindings[binding].name);
 }

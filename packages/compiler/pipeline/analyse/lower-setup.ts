@@ -1,4 +1,5 @@
 import {
+  CaptureAccess,
   ArgKind,
   BindTargetKind,
   ExprKind,
@@ -26,10 +27,15 @@ export const enum LocalKind {
   Signal = 'signal',
   /** A collection row parameter — captured as LoopValue, delivered per row. */
   LoopValue = 'loop-value',
+  /** A collection index parameter — a per-row signal box updated by the reconciler. */
+  RowIndex = 'row-index',
 }
 
 export interface SetupLocal {
+  /** Read-lowering dispatch (how `x`/`x.value` lowers). */
   kind: LocalKind;
+  /** Delivery contract when a QRL captures this local. */
+  access: CaptureAccess;
   slot: number;
   binding: number;
 }
@@ -94,7 +100,12 @@ function lowerUseSignal(
   }
   const binding = ctx.plan.bindings.findIndex((candidate) => candidate.name === name);
   const idNode: BindingPattern = declarator.id;
-  locals.set(name, { kind: LocalKind.Signal, slot: locals.size, binding });
+  locals.set(name, {
+    kind: LocalKind.Signal,
+    access: CaptureAccess.Direct,
+    slot: locals.size,
+    binding,
+  });
   return {
     s: SetupKind.Invoke,
     invoke: {

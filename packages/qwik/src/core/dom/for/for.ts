@@ -32,11 +32,25 @@ import { EMPTY_ARRAY, EMPTY_NODES, NodeType } from '../../utils/consts';
 import type { SsrOutput } from '../../ssr/output';
 
 export type ForKey = string | number;
-export type RowOutputShape = 0 | 1 | 2 | 3;
-export const ROW_ELEMENT = 0;
-export const ROW_NODE = 1;
-export const ROW_MANY = 2;
-export const ROW_UNKNOWN = 3;
+
+/**
+ * How a collection's rows consume their index. `IndexMode.Effects` keeps index signals in memory
+ * only (resume re-derives them from row position); `IndexMode.Escapes` also serializes them,
+ * because a closure (event handler) holds one past render. Booleans coerce for legacy callers (true
+ * = escapes).
+ */
+export const enum IndexMode {
+  None = 0,
+  Effects = 1,
+  Escapes = 2,
+}
+
+export const enum RowOutputShape {
+  Element = 0,
+  Node = 1,
+  Many = 2,
+  Unknown = 3,
+}
 type ForKeyFn<T> = (item: T, index: number) => ForKey;
 type ForRenderIndex = number | Signal<number> | undefined;
 type SsrForContext = ContainerContext & { nextId(): number };
@@ -98,14 +112,14 @@ export class ForBlock<T = unknown> {
     readonly source: Source<readonly T[]>,
     readonly keyFn: ForKeyFn<T> | QRL<ForKeyFn<T>> | null | undefined,
     readonly renderFn: ForRenderFn<T> | QRL<ForRenderFn<T>>,
-    readonly usesIndexSignal: boolean,
+    readonly indexMode: IndexMode,
     readonly listOwner: Owner,
     readonly invokeContext: RuntimeInvokeContext | null,
     readonly container: ContainerContext,
     readonly idBase = '',
-    readonly rowShape: RowOutputShape = ROW_UNKNOWN
+    readonly rowShape: RowOutputShape = RowOutputShape.Unknown
   ) {
-    this.indexSignals = usesIndexSignal ? [] : null;
+    this.indexSignals = indexMode !== IndexMode.None ? [] : null;
     this.rowInvokeContext = createRowInvokeContext(invokeContext, listOwner, container);
   }
 
@@ -113,7 +127,7 @@ export class ForBlock<T = unknown> {
     this.keys = EMPTY_ARRAY;
     this.rows = EMPTY_ARRAY;
     this.owners = EMPTY_ARRAY;
-    this.indexSignals = this.usesIndexSignal ? EMPTY_ARRAY : null;
+    this.indexSignals = this.indexMode !== IndexMode.None ? EMPTY_ARRAY : null;
     disposeOwner(this.listOwner);
     this.range.clear();
   }
@@ -177,9 +191,8 @@ export class ForBlock<T = unknown> {
 
     const nextRows = new Array<RowDom>(nextLength);
     const nextOwners = new Array<Owner | null>(nextLength);
-    const nextIndexSignals = this.usesIndexSignal
-      ? new Array<Signal<number> | null>(nextLength)
-      : null;
+    const nextIndexSignals =
+      this.indexMode !== IndexMode.None ? new Array<Signal<number> | null>(nextLength) : null;
 
     // insert all case
     if (oldLength === 0) {
@@ -429,7 +442,7 @@ export class ForBlock<T = unknown> {
         EMPTY_ARRAY,
         EMPTY_ARRAY,
         EMPTY_ARRAY,
-        this.usesIndexSignal ? EMPTY_ARRAY : null
+        this.indexMode !== IndexMode.None ? EMPTY_ARRAY : null
       );
       disposeOwners(oldOwners, oldOwners.length);
     }
@@ -476,7 +489,8 @@ export class ForBlock<T = unknown> {
     const keys = new Array<ForKey>(length);
     const rows = new Array<RowDom>(length);
     const owners = new Array<Owner | null>(length);
-    const indexSignals = this.usesIndexSignal ? new Array<Signal<number> | null>(length) : null;
+    const indexSignals =
+      this.indexMode !== IndexMode.None ? new Array<Signal<number> | null>(length) : null;
 
     for (let i = 0; i < length; i++) {
       const key = keyFn(items[i], i);
@@ -515,7 +529,7 @@ export class ForBlock<T = unknown> {
       EMPTY_ARRAY,
       EMPTY_ARRAY,
       EMPTY_ARRAY,
-      this.usesIndexSignal ? EMPTY_ARRAY : null
+      this.indexMode !== IndexMode.None ? EMPTY_ARRAY : null
     );
   }
 
@@ -541,7 +555,7 @@ export class ForBlock<T = unknown> {
     index: number,
     renderFn: ForRenderFn<T>
   ): RowDom {
-    const indexSignal = this.usesIndexSignal ? new Signal(index) : null;
+    const indexSignal = this.indexMode !== IndexMode.None ? new Signal(index) : null;
     let nodes: MaybeNodeOutput;
 
     try {
@@ -594,9 +608,9 @@ export function createForBlock<T>(
   source: Source<readonly T[]>,
   keyFn: ForKeyFn<T> | QRL<ForKeyFn<T>> | null | undefined,
   renderFn: ForRenderFn<T> | QRL<ForRenderFn<T>>,
-  usesIndexSignal = false,
+  indexMode: IndexMode = IndexMode.None,
   idBase = '',
-  rowShape: RowOutputShape = ROW_UNKNOWN
+  rowShape: RowOutputShape = RowOutputShape.Unknown
 ): ForBlockSubscriber {
   const listOwner = createOwner();
   const block = new ForBlock(
@@ -604,7 +618,7 @@ export function createForBlock<T>(
     source,
     keyFn,
     renderFn,
-    usesIndexSignal,
+    indexMode,
     listOwner,
     getActiveInvokeContextOrNull(),
     ctx,
@@ -619,12 +633,12 @@ function createRowDom(
   output: MaybeNodeOutput,
   rowShape: RowOutputShape
 ): RowDom {
-  if (rowShape === ROW_ELEMENT) {
+  if (rowShape === RowOutputShape.Element) {
     return output as Element;
   }
 
   let normalized: readonly Node[] | null = null;
-  if (rowShape === ROW_UNKNOWN) {
+  if (rowShape === RowOutputShape.Unknown) {
     normalized = toNodes(output);
     if (normalized.length === 1 && normalized[0].nodeType === NodeType.Element) {
       return normalized[0] as Element;
@@ -635,7 +649,11 @@ function createRowDom(
   const start = document.createComment(ROW_OPEN);
   const end = document.createComment(ROW_CLOSE);
   fragment.appendChild(start);
-  appendRowOutput(fragment, normalized ?? output, normalized === null ? rowShape : ROW_MANY);
+  appendRowOutput(
+    fragment,
+    normalized ?? output,
+    normalized === null ? rowShape : RowOutputShape.Many
+  );
   fragment.appendChild(end);
   return createRangeRow(start, end);
 }
@@ -645,11 +663,11 @@ export function appendRowOutput(
   output: MaybeNodeOutput,
   rowShape: RowOutputShape
 ): void {
-  if (rowShape === ROW_ELEMENT || rowShape === ROW_NODE) {
+  if (rowShape === RowOutputShape.Element || rowShape === RowOutputShape.Node) {
     parent.appendChild(output as Node);
     return;
   }
-  const nodes = rowShape === ROW_MANY ? (output as readonly Node[]) : toNodes(output);
+  const nodes = rowShape === RowOutputShape.Many ? (output as readonly Node[]) : toNodes(output);
   for (let i = 0; i < nodes.length; i++) {
     parent.appendChild(nodes[i]);
   }
@@ -845,14 +863,14 @@ export class SSRForBlock<T = unknown> {
     readonly source: Source<readonly T[]>,
     readonly keyQrl: QRL<ForKeyFn<T>> | null | undefined,
     readonly renderQrl: QRL<SsrForRenderFn<T>>,
-    readonly usesIndexSignal: boolean,
+    readonly indexMode: IndexMode,
     readonly invokeContext: RuntimeInvokeContext | null,
     readonly container: SsrForContext,
     readonly idBase = '',
     readonly usesRowId = true,
-    readonly rowShape: RowOutputShape = ROW_UNKNOWN
+    readonly rowShape: RowOutputShape = RowOutputShape.Unknown
   ) {
-    this.indexSignals = usesIndexSignal ? [] : null;
+    this.indexSignals = indexMode !== IndexMode.None ? [] : null;
   }
 
   listOwner: Owner | null = null;
@@ -903,7 +921,7 @@ export class SSRForBlock<T = unknown> {
         }
 
         const rowId = this.usesRowId ? this.container.nextId() : 0;
-        const indexSignal = this.usesIndexSignal ? new Signal(i) : null;
+        const indexSignal = this.indexMode !== IndexMode.None ? new Signal(i) : null;
         if (indexSignal !== null) {
           this.indexSignals!.push(indexSignal);
         }
@@ -968,17 +986,17 @@ export function renderSsrForBlock<T>(
   source: Source<readonly T[]>,
   keyQrl: QRL<ForKeyFn<T>> | null | undefined,
   renderQrl: QRL<SsrForRenderFn<T>>,
-  usesIndexSignal = false,
+  indexMode: IndexMode = IndexMode.None,
   idBase = '',
   usesRowId = true,
-  rowShape: RowOutputShape = ROW_UNKNOWN
+  rowShape: RowOutputShape = RowOutputShape.Unknown
 ): ValueOrPromise<SsrOutput> {
   const block = new SSRForBlock(
     rangeId,
     source,
     keyQrl,
     renderQrl,
-    usesIndexSignal,
+    indexMode,
     getActiveInvokeContextOrNull(),
     ctx,
     idBase,

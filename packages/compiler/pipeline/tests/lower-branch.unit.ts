@@ -14,8 +14,18 @@ import { LocalKind, type SetupLocal } from '../analyse/lower-setup';
 import { lowerJsx } from '../analyse/lower-jsx';
 import { emptyModulePlan } from './fixtures';
 
-const SHOW_LOCAL: SetupLocal = { kind: LocalKind.Signal, slot: 0, binding: 0 };
-const COUNT_LOCAL: SetupLocal = { kind: LocalKind.Signal, slot: 1, binding: 1 };
+const SHOW_LOCAL: SetupLocal = {
+  kind: LocalKind.Signal,
+  access: CaptureAccess.Direct,
+  slot: 0,
+  binding: 0,
+};
+const COUNT_LOCAL: SetupLocal = {
+  kind: LocalKind.Signal,
+  access: CaptureAccess.Direct,
+  slot: 1,
+  binding: 1,
+};
 
 function lower(
   jsx: string,

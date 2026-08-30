@@ -8,7 +8,7 @@ import type { ContainerContext } from '../../runtime/container-context';
 import { getActiveInvokeContext, invoke, newInvokeContext } from '../../runtime/invoke-context';
 import { createOwner, getOrCreateContextOwner, type Owner } from '../../runtime/owner';
 import { Scheduler } from '../../runtime/scheduler';
-import { ROW_ELEMENT, ROW_MANY, ROW_NODE } from '../for/for';
+import { IndexMode, RowOutputShape } from '../for/for';
 import { createCollection } from './collection';
 
 describe('collection', () => {
@@ -24,7 +24,7 @@ describe('collection', () => {
         items,
         (item) => item,
         (_ctx, item) => row(list.ownerDocument, valueOf(item)),
-        false
+        IndexMode.None
       )
     );
 
@@ -51,7 +51,7 @@ describe('collection', () => {
         items,
         (item) => item,
         (_ctx, item) => row(list.ownerDocument, valueOf(item)),
-        false
+        IndexMode.None
       )
     );
 
@@ -77,7 +77,7 @@ describe('collection', () => {
         items,
         null,
         (_ctx, item) => row(list.ownerDocument, valueOf(item)),
-        false
+        IndexMode.None
       )
     );
 
@@ -117,7 +117,7 @@ describe('collection', () => {
           secondStarted.resolve(undefined);
           return second.promise;
         },
-        false
+        IndexMode.None
       )
     );
 
@@ -168,7 +168,7 @@ describe('collection', () => {
           fragment.appendChild(second);
           return fragment;
         },
-        false
+        IndexMode.None
       )
     );
 
@@ -186,9 +186,9 @@ describe('collection', () => {
         ['element'],
         null,
         () => row(element.list.ownerDocument, 'element'),
-        false,
+        IndexMode.None,
         '',
-        ROW_ELEMENT
+        RowOutputShape.Element
       )
     );
     expect(rowTexts(element.list)).toEqual(['element']);
@@ -202,9 +202,9 @@ describe('collection', () => {
         ['text'],
         null,
         () => node.list.ownerDocument.createTextNode('text'),
-        false,
+        IndexMode.None,
         '',
-        ROW_NODE
+        RowOutputShape.Node
       )
     );
     expect(node.list.textContent).toBe('text');
@@ -218,9 +218,9 @@ describe('collection', () => {
         ['many'],
         null,
         () => [row(many.list.ownerDocument, 'first'), row(many.list.ownerDocument, 'second')],
-        false,
+        IndexMode.None,
         '',
-        ROW_MANY
+        RowOutputShape.Many
       )
     );
     expect(rowTexts(many.list)).toEqual(['first', 'second']);
@@ -237,9 +237,9 @@ describe('collection', () => {
         ['row'],
         null,
         () => row(list.ownerDocument, 'row'),
-        false,
+        IndexMode.None,
         '',
-        ROW_ELEMENT,
+        RowOutputShape.Element,
         true
       )
     );
@@ -267,7 +267,7 @@ describe('collection', () => {
           collectionOwner = rowOwner.parent!;
           return result.promise;
         },
-        false
+        IndexMode.None
       )
     );
     const error = new Error('row failed');

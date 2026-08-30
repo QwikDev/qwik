@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import {
   ArgKind,
+  CaptureAccess,
   BindTargetKind,
   BindingScope,
   ExprKind,
@@ -49,7 +50,12 @@ describe('lowerSetup / useSignal', () => {
 
   test('registers a kinded Signal local at slot 0', () => {
     const { locals } = lower('const count = useSignal(0);');
-    expect(locals.get('count')).toEqual({ kind: LocalKind.Signal, slot: 0, binding: 0 });
+    expect(locals.get('count')).toEqual({
+      kind: LocalKind.Signal,
+      access: CaptureAccess.Direct,
+      slot: 0,
+      binding: 0,
+    });
   });
 
   test('a non-literal initial falls back to a Js payload of its source range', () => {

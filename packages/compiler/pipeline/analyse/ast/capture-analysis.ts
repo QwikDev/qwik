@@ -3,7 +3,7 @@ import { ArgPass, CaptureAccess, type Qrl, type QrlUse } from '../../schema';
 import { UnsupportedError } from '../../errors';
 import { isNode, type WalkableNode } from './ast-types';
 import type { LowerContext } from '../lower-context';
-import { LocalKind, type SetupLocal } from '../lower-setup';
+import type { SetupLocal } from '../lower-setup';
 
 export interface CollectedCaptures {
   props: boolean;
@@ -100,8 +100,7 @@ export function lowerCaptures(
   }
   const captures: Qrl['captures'] = refs.locals.map((entry) => ({
     binding: entry.local.binding,
-    access:
-      entry.local.kind === LocalKind.LoopValue ? CaptureAccess.LoopValue : CaptureAccess.Direct,
+    access: entry.local.access,
   }));
   const args: QrlUse['args'] = refs.locals.map((entry) => ({
     pass: ArgPass.Binding,

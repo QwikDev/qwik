@@ -3,7 +3,7 @@
 import { useSignal } from '@qwik.dev/core';
 export default () => {
   const items = useSignal([{ id: 'a', label: 'Alpha' }]);
-  return <ul>{items.value.map((item) => <li key={item.id}>{item.label}</li>)}</ul>;
+  return <ul>{items.value.map((item, index) => <li key={item.id}>{index}</li>)}</ul>;
 };
 
 == SSR OUTPUT ==
@@ -20,12 +20,11 @@ import {
   renderSsrTextExpression,
   _noopQrl,
 } from '@qwik.dev/core';
-const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __rowId, item) => {
+const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __rowId, item, index) => {
   const id0 = ctx.nextId();
-  ctx.addRoot(item);
   const text0 = renderSsrTextExpression(
     createSsrElementTextTarget(id0),
-    [item],
+    [index],
     q_component_text_segment_2_1fh117dstcoge
   );
   return maybeThen(text0, (text0) => [
@@ -40,15 +39,15 @@ const q_component_for_render_segment_0_asyt89wzo2d3 = /*#__PURE__*/ _noopQrl(
   'component_for_render_segment_0_asyt89wzo2d3'
 );
 q_component_for_render_segment_0_asyt89wzo2d3.s(component_for_render_segment_0_asyt89wzo2d3);
-const component_for_key_segment_1_24ursak4wzpxf = (item) => {
+const component_for_key_segment_1_24ursak4wzpxf = (item, index) => {
   return item.id;
 };
 const q_component_for_key_segment_1_24ursak4wzpxf = /*#__PURE__*/ _noopQrl(
   'component_for_key_segment_1_24ursak4wzpxf'
 );
 q_component_for_key_segment_1_24ursak4wzpxf.s(component_for_key_segment_1_24ursak4wzpxf);
-const component_text_segment_2_1fh117dstcoge = (item) => {
-  return item.label;
+const component_text_segment_2_1fh117dstcoge = (index) => {
+  return index.value;
 };
 const q_component_text_segment_2_1fh117dstcoge = /*#__PURE__*/ _noopQrl(
   'component_text_segment_2_1fh117dstcoge'
@@ -69,7 +68,7 @@ export default (props, ctx) => {
     items,
     q_component_for_key_segment_1_24ursak4wzpxf,
     q_component_for_render_segment_0_asyt89wzo2d3,
-    0,
+    1,
     '',
     false,
     0
@@ -98,12 +97,17 @@ const q_component_text_segment_2_1fh117dstcoge = /*#__PURE__*/ _noopQrl(
 );
 q_component_text_segment_2_1fh117dstcoge.s(component_text_segment_2_1fh117dstcoge);
 
-export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __rowId, item) => {
+export const component_for_render_segment_0_asyt89wzo2d3 = (
+  ctx,
+  __rangeId,
+  __rowId,
+  item,
+  index
+) => {
   const id0 = ctx.nextId();
-  ctx.addRoot(item);
   const text0 = renderSsrTextExpression(
     createSsrElementTextTarget(id0),
-    [item],
+    [index],
     q_component_text_segment_2_1fh117dstcoge
   );
   return maybeThen(text0, (text0) => [
@@ -128,17 +132,18 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __ro
   "ctxName": "for:render",
   "captures": false,
   "loc": [
-    168,
-    203
+    175,
+    205
   ],
   "paramNames": [
-    "item"
+    "item",
+    "index"
   ]
 }
 */
 ============================= src/component.tsx_component_for_key_segment_1_24ursak4wzpxf.js (ENTRY POINT)==
 
-export const component_for_key_segment_1_24ursak4wzpxf = (item) => {
+export const component_for_key_segment_1_24ursak4wzpxf = (item, index) => {
   return item.id;
 };
 /*
@@ -155,18 +160,19 @@ export const component_for_key_segment_1_24ursak4wzpxf = (item) => {
   "ctxName": "for:key",
   "captures": false,
   "loc": [
-    177,
-    184
+    184,
+    191
   ],
   "paramNames": [
-    "item"
+    "item",
+    "index"
   ]
 }
 */
 ============================= src/component.tsx_component_text_segment_2_1fh117dstcoge.js (ENTRY POINT)==
 
-export const component_text_segment_2_1fh117dstcoge = (item) => {
-  return item.label;
+export const component_text_segment_2_1fh117dstcoge = (index) => {
+  return index.value;
 };
 /*
 {
@@ -182,12 +188,12 @@ export const component_text_segment_2_1fh117dstcoge = (item) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    187,
-    197
+    194,
+    199
   ],
   "paramNames": [],
   "captureNames": [
-    "item"
+    "index"
   ]
 }
 */

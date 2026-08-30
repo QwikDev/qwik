@@ -3,6 +3,7 @@ import {
   BindingScope,
   CaptureAccess,
   EachSourceKind,
+  IndexMode,
   OpKind,
   ResumeKind,
   RowKind,
@@ -42,7 +43,9 @@ function lower(jsx: string) {
     });
   }
   const ctx = createLowerContext(plan, 't.tsx', undefined);
-  ctx.locals = new Map([['items', { kind: LocalKind.Signal, slot: 0, binding: 0 }]]);
+  ctx.locals = new Map([
+    ['items', { kind: LocalKind.Signal, access: CaptureAccess.Direct, slot: 0, binding: 0 }],
+  ]);
   return { op: lowerJsx(element, ctx), ctx };
 }
 
@@ -81,6 +84,26 @@ describe('lowerArray / reactive rows', () => {
     expect(each.row.renderId).toMatch(/^semantic_collectionRender_\d+_\d+_[a-z0-9]+$/);
     // Inline rows live in the component scope — no chunkable qrl row exists for them.
     expect(ctx.plan.qrls.filter((qrl) => qrl.ctxName === 'for:render')).toEqual([]);
+  });
+
+  test('index mode derives from who captures the index', () => {
+    const eachOf = (jsx: string) => {
+      const { op } = lower(jsx);
+      const each = op.op === OpKind.Element ? op.children[0] : null;
+      if (each?.op !== OpKind.Each) {
+        throw new Error('expected an Each op');
+      }
+      return each;
+    };
+    expect(eachOf(ROW).index).toBe(IndexMode.None);
+    expect(
+      eachOf('<ul>{items.value.map((item, i) => <li key={item.id}>{i}</li>)}</ul>').index
+    ).toBe(IndexMode.Effects);
+    expect(
+      eachOf(
+        '<ul>{items.value.map((item, i) => <li key={item.id} onClick$={() => console.log(i)}>x</li>)}</ul>'
+      ).index
+    ).toBe(IndexMode.Escapes);
   });
 
   test('the loop param stays out of scope after the row', () => {

@@ -468,6 +468,36 @@ export default () => {
     });
   });
 
+  test('should render a reactive expression inside an inline array row', async () => {
+    await testInput(mode, 'collection-inline-signal-text', {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
+  const count = useSignal(0);
+  return <ul>{['a', 'b'].map((item) => <li>{item + count.value}</li>)}</ul>;
+};
+`,
+    });
+  });
+
+  test('should render a props read inside an inline array row', async () => {
+    await testInput(mode, 'collection-inline-props-text', {
+      code: `export default (props) => {
+  return <ul>{['a', 'b'].map((item) => <li>{props.title + item}</li>)}</ul>;
+};
+`,
+    });
+  });
+
+  test('should splice a module const inside an inline array row', async () => {
+    await testInput(mode, 'collection-inline-module-const', {
+      code: `const prefix = 'p-';
+export default () => {
+  return <ul>{['a', 'b'].map((item) => <li>{prefix + item}</li>)}</ul>;
+};
+`,
+    });
+  });
+
   test('should render an expression hole capturing a signal', async () => {
     await testInput(mode, 'expression-hole-signal', {
       code: `import { useSignal } from '@qwik.dev/core';

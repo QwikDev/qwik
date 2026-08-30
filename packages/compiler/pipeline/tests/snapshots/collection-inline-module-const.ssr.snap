@@ -1,0 +1,34 @@
+==INPUT==
+
+const prefix = 'p-';
+export default () => {
+  return <ul>{['a', 'b'].map((item) => <li>{prefix + item}</li>)}</ul>;
+};
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+const prefix = 'p-';
+import { escapeHTML, _textValue, renderSsrCollection } from '@qwik.dev/core';
+
+export default (props, ctx) => {
+  function semantic_collectionRender_72_106_37502p69t12n6(ctx, __rangeId, __rowId, item) {
+    return ['<li>', escapeHTML(_textValue(prefix + item)), '</li>'];
+  }
+  const collection0 = renderSsrCollection(
+    ctx,
+    undefined,
+    ['a', 'b'],
+    undefined,
+    semantic_collectionRender_72_106_37502p69t12n6,
+    0,
+    '',
+    false,
+    0
+  );
+  return ['<ul>', collection0, '</ul>'];
+};
+== SSR DIAGNOSTICS ==
+
+[]

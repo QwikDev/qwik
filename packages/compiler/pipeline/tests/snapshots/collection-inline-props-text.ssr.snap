@@ -1,0 +1,90 @@
+==INPUT==
+
+export default (props) => {
+  return <ul>{['a', 'b'].map((item) => <li>{props.title + item}</li>)}</ul>;
+};
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  createSsrNodeId,
+  createSsrElementTextTarget,
+  escapeHTML,
+  renderSsrTextExpression,
+  maybeThen,
+  renderSsrCollection,
+  _noopQrl,
+} from '@qwik.dev/core';
+
+const component_text_segment_0_1fh10fbkzokfc = (item, props) => {
+  return props.title + item;
+};
+const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_0_1fh10fbkzokfc'
+);
+q_component_text_segment_0_1fh10fbkzokfc.s(component_text_segment_0_1fh10fbkzokfc);
+export default (props, ctx) => {
+  function semantic_collectionRender_56_95_2r1gv5hhclhth(ctx, __rangeId, __rowId, item) {
+    const id0 = ctx.nextId();
+    ctx.addRoot(item);
+    ctx.addRoot(props);
+    const text0 = renderSsrTextExpression(
+      createSsrElementTextTarget(id0),
+      [item, props],
+      q_component_text_segment_0_1fh10fbkzokfc
+    );
+    return maybeThen(text0, (text0) => [
+      '<li q:id="',
+      createSsrNodeId(id0),
+      '">',
+      escapeHTML(text0),
+      '</li>',
+    ]);
+  }
+  const collection0 = renderSsrCollection(
+    ctx,
+    undefined,
+    ['a', 'b'],
+    undefined,
+    semantic_collectionRender_56_95_2r1gv5hhclhth,
+    0,
+    '',
+    false,
+    0
+  );
+  return ['<ul>', collection0, '</ul>'];
+};
+============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
+
+export const component_text_segment_0_1fh10fbkzokfc = (item, props) => {
+  return props.title + item;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_0_1fh10fbkzokfc",
+  "entry": null,
+  "displayName": "component_text_segment_0",
+  "hash": "1fh10fbkzokfc",
+  "canonicalFilename": "component.tsx_component_text_segment_0_1fh10fbkzokfc",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    71,
+    89
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "item",
+    "props"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

@@ -28,7 +28,11 @@ export function lowerExpressionValue(
   nameCtx: string
 ): ReactiveValue {
   if (ctx.inlineParams !== null) {
-    return lowerInlineValue(expression, ctx);
+    const inline = tryLowerInlineValue(expression, ctx);
+    if (inline !== null) {
+      return inline;
+    }
+    // Reactive reads fall through to the capturing hole path; loop params capture by name.
   }
   const read = trySignalReadValue(expression, ctx);
   if (read !== null) {
@@ -88,14 +92,16 @@ export function lowerExpressionValue(
 }
 
 /** Inline rows read their loop params lexically: the expression splices in place, no QRL. */
-function lowerInlineValue(expression: Expression, ctx: LowerContext): ReactiveValue {
+function tryLowerInlineValue(expression: Expression, ctx: LowerContext): ReactiveValue | null {
   if (findRuntimeJsx(expression) !== null) {
     throw new UnsupportedError('JSX inside an expression value');
   }
   const refs = collectCaptures(expression, ctx, ctx.inlineParams!);
-  if (refs.props || refs.locals.length > 0 || refs.other !== null) {
-    throw new UnsupportedError('a reactive read in an inline collection row');
+  // A reactive read needs an effect, so it cannot splice — null defers to the hole path.
+  if (refs.props || refs.locals.length > 0) {
+    return null;
   }
+  // Module bindings stay readable: the inline row function nests inside the module scope.
   const payload = pushPayload(ctx, [expression.start, expression.end]);
   return {
     v: ValueKind.Computed,

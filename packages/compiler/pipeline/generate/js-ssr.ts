@@ -498,18 +498,12 @@ class SsrModuleEmitter implements QwikModuleEmitter {
 
   /** Inline row: a function declared in the component; renderId links declaration and call. */
   private inlineRowFunction(pass: RenderPass, row: { program: number; renderId: string }): string {
-    const emitter = new SsrModuleEmitter(this.module);
+    // Rendered on THIS emitter: hole QRLs hoist to the module scope the function nests in.
     const names = { props: QwikGenWord.ComponentProps, ctx: QwikGenWord.ComponentContext };
-    const core = emitter.renderProgramById(row.program, names);
+    const core = this.renderProgramById(row.program, names);
     const loopParams = this.module.programs[row.program].params
       .map((binding) => `, ${this.module.bindings[binding].name}`)
       .join('');
-    if (emitter.usedQrls.size > 0) {
-      throw new UnsupportedError('a qrl inside an inline collection row');
-    }
-    for (const name of emitter.imports) {
-      this.imports.add(name);
-    }
     const body = [...core.statements, `return ${core.value};`]
       .map((statement) => `  ${statement}`)
       .join('\n');

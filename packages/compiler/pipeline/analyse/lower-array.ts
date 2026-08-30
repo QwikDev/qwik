@@ -246,6 +246,20 @@ function lowerRowOps(
   /** Inline rows read params lexically — no locals, no captures, values splice in place. */
   lexical = false
 ): void {
+  const outerLocals = ctx.locals;
+  const rowLocals = new Map(outerLocals);
+  callback.params.forEach((param, position) => {
+    if (param.type === 'Identifier') {
+      rowLocals.set(param.name, {
+        // Inline params are plain iteration values — the index is a number, not a signal.
+        kind: !lexical && position === 1 ? LocalKind.RowIndex : LocalKind.LoopValue,
+        access: !lexical && position === 1 ? CaptureAccess.RowIndex : CaptureAccess.LoopValue,
+        slot: -1,
+        binding: paramBindings[position],
+      });
+    }
+  });
+  ctx.locals = rowLocals;
   if (lexical) {
     const names = new Set<string>();
     for (const param of callback.params) {
@@ -256,22 +270,9 @@ function lowerRowOps(
     ctx.inlineParams = names;
     ctx.plan.programs[program].body = { kind: ProgramBodyKind.Ops, ops: lowerRowBody(body, ctx) };
     ctx.inlineParams = null;
-    return;
+  } else {
+    ctx.plan.programs[program].body = { kind: ProgramBodyKind.Ops, ops: lowerRowBody(body, ctx) };
   }
-  const outerLocals = ctx.locals;
-  const rowLocals = new Map(outerLocals);
-  callback.params.forEach((param, position) => {
-    if (param.type === 'Identifier') {
-      rowLocals.set(param.name, {
-        kind: position === 1 ? LocalKind.RowIndex : LocalKind.LoopValue,
-        access: position === 1 ? CaptureAccess.RowIndex : CaptureAccess.LoopValue,
-        slot: -1,
-        binding: paramBindings[position],
-      });
-    }
-  });
-  ctx.locals = rowLocals;
-  ctx.plan.programs[program].body = { kind: ProgramBodyKind.Ops, ops: lowerRowBody(body, ctx) };
   ctx.locals = outerLocals;
 }
 

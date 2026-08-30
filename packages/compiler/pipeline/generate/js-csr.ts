@@ -414,8 +414,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     if (body.ops.length !== 1 || root.op !== OpKind.Element) {
       throw new UnsupportedError('a rootless row in an inline collection');
     }
-    // A fresh pass: the row is its own function scope with its own name numbering.
-    const emitter = new CsrModuleEmitter(this.module);
+    // A fresh pass for name numbering; THIS emitter keeps chunk imports and hoists module-level.
     const pass: RenderPass = {
       names: { props: QwikGenWord.ComponentProps, ctx: QwikGenWord.ComponentContext },
       next: createNameAllocator(this.module),
@@ -428,13 +427,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         throw new UnsupportedError(`the prop "${prop.k}" in an inline collection row root`);
       }
     }
-    emitter.walkChildren(root.children, el, rowStatements, pass);
-    if (emitter.chunkImports.length > 0 || emitter.hoists.length > 0) {
-      throw new UnsupportedError('a qrl inside an inline collection row');
-    }
-    for (const name of emitter.imports) {
-      this.imports.add(name);
-    }
+    this.walkChildren(root.children, el, rowStatements, pass);
     this.imports.add(QwikWord.CreateElementTemplate);
     this.hoists.push(
       `const ${template} = ${QwikWord.CreateElementTemplate}(${JSON.stringify(foldStaticOp(templateOp(root), false))});`

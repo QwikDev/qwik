@@ -107,7 +107,7 @@ describe('lowerArray / reactive rows', () => {
     ).toBe(IndexMode.Escapes);
   });
 
-  test('inline rows interpolate lexical params and refuse reactive reads', () => {
+  test('inline rows interpolate lexical params; reactive reads become capturing holes', () => {
     const inline = lower("<ul>{['a'].map((item, index) => <li>{index}</li>)}</ul>");
     const hole = (() => {
       const each = inline.op.op === OpKind.Element ? inline.op.children[0] : null;
@@ -125,9 +125,12 @@ describe('lowerArray / reactive rows', () => {
       value: { v: ValueKind.Computed, resume: { r: ResumeKind.Inline } },
     });
     expect(inline.ctx.plan.qrls).toEqual([]);
-    expect(() => lower("<ul>{['a'].map(() => <li>{items.value.length}</li>)}</ul>")).toThrow(
-      'a reactive read in an inline collection row'
-    );
+    const reactive = lower("<ul>{['a'].map((item) => <li>{item + items.value.length}</li>)}</ul>");
+    expect(reactive.ctx.plan.qrls).toHaveLength(1);
+    expect(reactive.ctx.plan.qrls[0].captures).toEqual([
+      { binding: expect.any(Number), access: CaptureAccess.LoopValue },
+      { binding: expect.any(Number), access: CaptureAccess.Direct },
+    ]);
   });
 
   test('the loop param stays out of scope after the row', () => {

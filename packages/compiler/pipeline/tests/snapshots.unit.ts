@@ -468,6 +468,17 @@ export default () => {
     });
   });
 
+  test('should reconcile an unkeyed reactive collection by position', async () => {
+    await testInput(mode, 'collection-unkeyed', {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
+  const items = useSignal([{ label: 'Alpha' }]);
+  return <ul>{items.value.map((item) => <li>{item.label}</li>)}</ul>;
+};
+`,
+    });
+  });
+
   test('should destructure the row param into member reads', async () => {
     await testInput(mode, 'collection-destructured-param', {
       code: `import { useSignal } from '@qwik.dev/core';

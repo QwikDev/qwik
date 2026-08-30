@@ -8,6 +8,7 @@ import {
   OpKind,
   PropKind,
   ProgramBodyKind,
+  ResumeKind,
   RowKind,
   Shape,
   ValueKind,
@@ -18,6 +19,7 @@ import {
   type Prop,
   type QrlUse,
   type Value,
+  EachSourceKind,
 } from '../schema';
 import { QwikAttr, QwikGenWord, QwikWord } from '../words';
 import { escapeAttr, serializeAttrValue } from '../html';
@@ -26,6 +28,7 @@ import { generateQwikModule, type QwikModuleEmitter } from './assemble-module';
 import {
   captureNames,
   capturePrelude,
+  inlineValueJs,
   programKind,
   ProgramKind,
   rowShapeCode,
@@ -137,7 +140,15 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     if (qrl.body.b !== QrlBodyKind.Program) {
       throw new Error(`pipeline.generateJsSsr: rendering the non-program qrl "${qrl.id}"`);
     }
-    const program = this.module.programs[qrl.body.program];
+    return this.renderProgramById(qrl.body.program, names, options);
+  }
+
+  private renderProgramById(
+    programId: number,
+    names: GeneratedNames,
+    options: SsrRenderOptions = {}
+  ): SsrProgramEmission {
+    const program = this.module.programs[programId];
     const body = program.body;
     if (body.kind !== ProgramBodyKind.Ops) {
       throw new Error('pipeline.generateJsSsr: js-bodied programs not implemented yet');
@@ -403,34 +414,79 @@ class SsrModuleEmitter implements QwikModuleEmitter {
 
   /** A collection renders between `<!f=N>`…`<!/f>` markers; rows reconcile by key. */
   private each(pass: RenderPass, op: Extract<Op, { op: OpKind.Each }>, parts: string[]): void {
-    const idVariable = pass.next(QwikGenWord.CollectionId);
-    pass.statements.push(`const ${idVariable} = ${pass.names.ctx}.nextId();`);
-    if (op.source.value.v !== ValueKind.Read) {
-      throw new UnsupportedError('a non-signal collection source');
+    // get source
+    let source: string;
+    switch (op.source.s) {
+      case EachSourceKind.Array:
+        source = inlineValueJs(this.module, op.source.value);
+        break;
+      case EachSourceKind.Reactive:
+        if (op.source.value.v !== ValueKind.Read) {
+          throw new UnsupportedError('a non-signal collection source');
+        }
+        source = signalReadName(this.module, op.source.value.expr);
+        break;
+      default:
+        throw new UnsupportedError(`the collection source "${op.source.s}"`);
     }
-    const source = signalReadName(this.module, op.source.value.expr);
-    if (op.row.r !== RowKind.Chunk) {
-      throw new UnsupportedError('an inline collection row');
+    switch (op.row.r) {
+      case RowKind.Chunk: {
+        const idVariable = pass.next(QwikGenWord.CollectionId);
+        pass.statements.push(`const ${idVariable} = ${pass.names.ctx}.nextId();`);
+        // Registration order fixes the mirror order: render first, key second.
+        const render = this.useQrl(pass, op.row.use, true);
+        const key = op.key === null ? null : this.useQrl(pass, this.qrlValueUse(op.key), true);
+        this.imports.add(QwikWord.RenderSsrCollection);
+        const step = pass.next(QwikGenWord.Collection);
+        // Element-shaped rows wear the q:row marker, so the runtime needs no per-row id.
+        const usesRowId = op.shape !== Shape.Element;
+        this.pushStep(
+          pass,
+          step,
+          [source, ...render.args, ...(key?.args ?? [])],
+          `${QwikWord.RenderSsrCollection}(${pass.names.ctx}, ${idVariable}, ${source}, ${key?.ref ?? 'undefined'}, ${render.ref}, ${op.usesIndexSignal}, '', ${usesRowId}, ${rowShapeCode(op.shape)})`
+        );
+        pushMergedStatic(parts, '<!f=');
+        this.imports.add(QwikWord.CreateSsrNodeId);
+        parts.push(`${QwikWord.CreateSsrNodeId}(${idVariable})`);
+        pushMergedStatic(parts, '>');
+        parts.push(step);
+        pushMergedStatic(parts, '<!/f>');
+        break;
+      }
+      case RowKind.Inline: {
+        if (op.key !== null) {
+          throw new UnsupportedError('a keyed inline collection row');
+        }
+        // One-shot render: no id, no markers, no roots — the row is a plain local function.
+        const rowFn = this.inlineRowFunction(pass, op.row);
+        this.imports.add(QwikWord.RenderSsrCollection);
+        const step = pass.next(QwikGenWord.Collection);
+        pass.statements.push(
+          `const ${step} = ${QwikWord.RenderSsrCollection}(${pass.names.ctx}, undefined, ${source}, undefined, ${rowFn}, ${op.usesIndexSignal}, '', false, ${rowShapeCode(op.shape)});`
+        );
+        parts.push(step);
+        break;
+      }
     }
-    // Registration order fixes the mirror order: render first, key second.
-    const render = this.useQrl(pass, op.row.use, true);
-    const key = op.key === null ? null : this.useQrl(pass, this.qrlValueUse(op.key), true);
-    this.imports.add(QwikWord.RenderSsrCollection);
-    const step = pass.next(QwikGenWord.Collection);
-    // Element-shaped rows wear the q:row marker, so the runtime needs no per-row id.
-    const usesRowId = op.shape !== Shape.Element;
-    this.pushStep(
-      pass,
-      step,
-      [source, ...render.args, ...(key?.args ?? [])],
-      `${QwikWord.RenderSsrCollection}(${pass.names.ctx}, ${idVariable}, ${source}, ${key?.ref ?? 'undefined'}, ${render.ref}, ${op.usesIndexSignal}, '', ${usesRowId}, ${rowShapeCode(op.shape)})`
-    );
-    pushMergedStatic(parts, '<!f=');
-    this.imports.add(QwikWord.CreateSsrNodeId);
-    parts.push(`${QwikWord.CreateSsrNodeId}(${idVariable})`);
-    pushMergedStatic(parts, '>');
-    parts.push(step);
-    pushMergedStatic(parts, '<!/f>');
+  }
+
+  /** Inline row: a function declared in the component; renderId links declaration and call. */
+  private inlineRowFunction(pass: RenderPass, row: { program: number; renderId: string }): string {
+    const emitter = new SsrModuleEmitter(this.module);
+    const names = { props: QwikGenWord.ComponentProps, ctx: QwikGenWord.ComponentContext };
+    const core = emitter.renderProgramById(row.program, names);
+    if (emitter.usedQrls.size > 0) {
+      throw new UnsupportedError('a qrl inside an inline collection row');
+    }
+    for (const name of emitter.imports) {
+      this.imports.add(name);
+    }
+    const body = [...core.statements, `return ${core.value};`]
+      .map((statement) => `  ${statement}`)
+      .join('\n');
+    pass.statements.push(`function ${row.renderId}(ctx, __rangeId, __rowId) {\n${body}\n}`);
+    return row.renderId;
   }
 
   private qrlValueUse(value: Value): QrlUse {
@@ -503,7 +559,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         break;
       }
       case ValueKind.Computed: {
-        if (!('qrl' in op.value.resume)) {
+        if (op.value.resume.r !== ResumeKind.Qrl) {
           throw new UnsupportedError('a non-QRL computed text hole');
         }
         const { ref, args } = this.useQrl(pass, op.value.resume.qrl, true);
@@ -587,7 +643,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
             break;
           }
           case ValueKind.Computed: {
-            if (!('qrl' in prop.value.resume)) {
+            if (prop.value.resume.r !== ResumeKind.Qrl) {
               throw new UnsupportedError('a non-QRL computed prop');
             }
             const { ref, args } = this.useQrl(pass, prop.value.resume.qrl, true);

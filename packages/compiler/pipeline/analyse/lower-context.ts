@@ -17,7 +17,7 @@ export interface LowerContext {
   branchCounter: { next: number };
   forCounter: { next: number };
   bindingNames: ReadonlySet<string>;
-  /** Local binding → imported name for `@qwik.dev/core` imports. */
+  /** Local binding -> imported name for `@qwik.dev/core` imports. */
   coreBindings: ReadonlyMap<string, string>;
   /** The current component's props param name. */
   propsParamName: string | null;

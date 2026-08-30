@@ -135,7 +135,7 @@ type Value =
   | {
       v: 'computed';
       expr: Expr;
-      resume: { qrl: QrlUse } | { initialOnly: true } | { inline: true };
+      resume: { r: 'qrl'; qrl: QrlUse } | { r: 'initial-only' } | { r: 'inline' };
       compilerString: boolean;
     }
   | { v: 'qrl'; use: QrlUse; expr?: Expr }

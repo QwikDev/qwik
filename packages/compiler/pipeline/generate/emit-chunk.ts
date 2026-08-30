@@ -2,12 +2,16 @@ import {
   ArgPass,
   BoundaryKind,
   CaptureAccess,
+  ExprKind,
   FnBodyKind,
+  ResumeKind,
   Shape,
+  ValueKind,
   QrlPayloadKind,
   type LinkedModule,
   type LinkedQrl,
   type QrlUse,
+  type Value,
 } from '../schema';
 import { getSegmentDisplayName, getSegmentSymbolHash } from '../segment-identity';
 import { QWIK_CORE_IMPORT, QwikWord, SegmentContext } from '../words';
@@ -217,4 +221,22 @@ export function programKind(qrl: LinkedQrl): ProgramKind {
     }
   }
   throw new UnsupportedError(`a program qrl with the boundary "${qrl.boundary.kind}"`);
+}
+
+/** The payload's authored JS, verbatim — the plan stores ranges, never text. */
+export function extractPayloadJs(module: LinkedModule, payload: number): string {
+  const [start, end] = module.payloads[payload].range;
+  return module.source.code.slice(start, end);
+}
+
+/** Only an `inline`-resumed Js value may splice its payload at the use site. */
+export function inlineValueJs(module: LinkedModule, value: Value): string {
+  if (
+    value.v !== ValueKind.Computed ||
+    value.expr.kind !== ExprKind.Js ||
+    value.resume.r !== ResumeKind.Inline
+  ) {
+    throw new UnsupportedError('a non-inline source value');
+  }
+  return extractPayloadJs(module, value.expr.payload);
 }

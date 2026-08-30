@@ -6,6 +6,7 @@ import {
   CaptureAccess,
   OpKind,
   QrlPayloadKind,
+  ResumeKind,
   ValueKind,
   VarKind,
   type Op,
@@ -118,6 +119,7 @@ describe('lowerText', () => {
     }
     expect(ctx.plan.qrls[0].captures).toEqual([{ binding: 0, access: CaptureAccess.Direct }]);
     expect(value.resume).toEqual({
+      r: ResumeKind.Qrl,
       qrl: { qrl: 'segment_0', args: [{ pass: ArgPass.Binding, binding: 0 }] },
     });
   });

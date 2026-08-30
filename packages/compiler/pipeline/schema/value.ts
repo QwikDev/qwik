@@ -113,6 +113,12 @@ export const enum ValueKind {
   Render = 'render',
 }
 
+export const enum ResumeKind {
+  Qrl = 'qrl',
+  InitialOnly = 'initial-only',
+  Inline = 'inline',
+}
+
 export type Value =
   /** Absent `value` = undefined. */
   | { v: ValueKind.Static; value?: string | number | boolean | null }
@@ -121,7 +127,10 @@ export type Value =
   | {
       v: ValueKind.Computed;
       expr: Expr;
-      resume: { qrl: QrlUse } | { initialOnly: true } | { inline: true };
+      resume:
+        | { r: ResumeKind.Qrl; qrl: QrlUse }
+        | { r: ResumeKind.InitialOnly }
+        | { r: ResumeKind.Inline };
       compilerString: boolean;
     }
   | { v: ValueKind.Qrl; use: QrlUse; expr?: Expr }

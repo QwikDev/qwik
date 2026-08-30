@@ -417,6 +417,15 @@ export default () => {
     });
   });
 
+  test('should render a literal array collection with an inline row', async () => {
+    await testInput(mode, 'collection-array-source', {
+      code: `export default () => {
+  return <ul>{['first', 'second'].map(() => <li>Item</li>)}</ul>;
+};
+`,
+    });
+  });
+
   test('should render an expression hole capturing a signal', async () => {
     await testInput(mode, 'expression-hole-signal', {
       code: `import { useSignal } from '@qwik.dev/core';

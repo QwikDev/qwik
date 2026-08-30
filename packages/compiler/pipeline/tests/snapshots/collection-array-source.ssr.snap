@@ -1,0 +1,32 @@
+==INPUT==
+
+export default () => {
+  return <ul>{['first', 'second'].map(() => <li>Item</li>)}</ul>;
+};
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { renderSsrCollection } from '@qwik.dev/core';
+
+export default (props, ctx) => {
+  function semantic_collectionRender_60_79_1yelvkf618fjk(ctx, __rangeId, __rowId) {
+    return '<li>Item</li>';
+  }
+  const collection0 = renderSsrCollection(
+    ctx,
+    undefined,
+    ['first', 'second'],
+    undefined,
+    semantic_collectionRender_60_79_1yelvkf618fjk,
+    false,
+    '',
+    false,
+    0
+  );
+  return ['<ul>', collection0, '</ul>'];
+};
+== SSR DIAGNOSTICS ==
+
+[]

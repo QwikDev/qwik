@@ -5,8 +5,10 @@ import {
   ModuleKind,
   OpKind,
   PropKind,
+  EachSourceKind,
   ProgramBodyKind,
   QrlBodyKind,
+  ResumeKind,
   RowKind,
   ValueKind,
   type LinkedModule,
@@ -22,6 +24,7 @@ import {
   captureNames,
   capturePrelude,
   emptyFunctionEmission,
+  inlineValueJs,
   programKind,
   ProgramKind,
   rowShapeCode,
@@ -350,26 +353,76 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     const end = pass.next(QwikGenWord.End);
     this.imports.add(QwikWord.NextSibling);
     statements.push(`const ${end} = ${QwikWord.NextSibling}(${start});`);
-    if (op.source.value.v !== ValueKind.Read) {
-      throw new UnsupportedError('a non-signal collection source');
+    let source: string;
+    switch (op.source.s) {
+      case EachSourceKind.Array:
+        source = inlineValueJs(this.module, op.source.value);
+        break;
+      case EachSourceKind.Reactive:
+        if (op.source.value.v !== ValueKind.Read) {
+          throw new UnsupportedError('a non-signal collection source');
+        }
+        source = signalReadName(this.module, op.source.value.expr);
+        break;
+      default:
+        throw new UnsupportedError(`the collection source "${op.source.s}"`);
     }
-    const source = signalReadName(this.module, op.source.value.expr);
-    if (op.row.r !== RowKind.Chunk) {
-      throw new UnsupportedError('an inline collection row');
-    }
-    // Import order matches the seed: render chunk first, key second.
-    const render = this.chunkSymbol(resolveQrlUse(this.module, op.row.use, pass.names.props).qrl);
-    if (op.key !== null && op.key.v !== ValueKind.Qrl) {
-      throw new UnsupportedError('a non-QRL collection key');
-    }
-    const key =
-      op.key === null
-        ? 'null'
-        : this.chunkSymbol(resolveQrlUse(this.module, op.key.use, pass.names.props).qrl);
     this.imports.add(QwikWord.CreateCollection);
-    statements.push(
-      `${pass.names.ctx}.scheduler.waitFor(${QwikWord.CreateCollection}(${pass.names.ctx}, ${start}, ${end}, ${source}, ${key}, ${render}, ${op.usesIndexSignal}, '', ${rowShapeCode(op.shape)}));`
+    switch (op.row.r) {
+      case RowKind.Chunk: {
+        // Import order matches the seed: render chunk first, key second.
+        const render = this.chunkSymbol(
+          resolveQrlUse(this.module, op.row.use, pass.names.props).qrl
+        );
+        if (op.key !== null && op.key.v !== ValueKind.Qrl) {
+          throw new UnsupportedError('a non-QRL collection key');
+        }
+        const key =
+          op.key === null
+            ? 'null'
+            : this.chunkSymbol(resolveQrlUse(this.module, op.key.use, pass.names.props).qrl);
+        statements.push(
+          `${pass.names.ctx}.scheduler.waitFor(${QwikWord.CreateCollection}(${pass.names.ctx}, ${start}, ${end}, ${source}, ${key}, ${render}, ${op.usesIndexSignal}, '', ${rowShapeCode(op.shape)}));`
+        );
+        break;
+      }
+      case RowKind.Inline: {
+        if (op.key !== null) {
+          throw new UnsupportedError('a keyed inline collection row');
+        }
+        // One-shot render: local row function, transient collection, nothing awaited.
+        const rowFn = this.inlineRowFunction(op.row, statements);
+        statements.push(
+          `${QwikWord.CreateCollection}(${pass.names.ctx}, ${start}, ${end}, ${source}, null, ${rowFn}, ${op.usesIndexSignal}, '', ${rowShapeCode(op.shape)}, true);`
+        );
+        break;
+      }
+    }
+  }
+
+  /** Inline row: a local function over a module-hoisted element template. */
+  private inlineRowFunction(
+    row: { program: number; renderId: string },
+    statements: string[]
+  ): string {
+    const body = this.module.programs[row.program].body;
+    if (body.kind !== ProgramBodyKind.Ops) {
+      throw new UnsupportedError('a js-bodied inline collection row');
+    }
+    const root = body.ops[0];
+    if (body.ops.length !== 1 || root.op !== OpKind.Element || !isFullyStaticSubtree(root)) {
+      throw new UnsupportedError('a dynamic inline collection row');
+    }
+    const template = `${row.renderId}_${QwikGenWord.Template}0`;
+    this.imports.add(QwikWord.CreateElementTemplate);
+    this.hoists.push(
+      `const ${template} = ${QwikWord.CreateElementTemplate}(${JSON.stringify(foldStaticOp(templateOp(root), false))});`
     );
+    const el = `${QwikGenWord.Element}0`;
+    statements.push(
+      `function ${row.renderId}(ctx) {\n  const ${el} = ${template}(ctx.document);\n  return ${el};\n}`
+    );
+    return row.renderId;
   }
 
   /** A lazy arm ref wears its captures via `.w([...])` — restored from `_captures` in the chunk. */
@@ -503,7 +556,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         break;
       }
       case ValueKind.Computed: {
-        if (!('qrl' in prop.value.resume)) {
+        if (prop.value.resume.r !== ResumeKind.Qrl) {
           throw new UnsupportedError('a non-QRL computed prop');
         }
         const use = prop.value.resume.qrl;
@@ -564,7 +617,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         break;
       }
       case ValueKind.Computed: {
-        if (!('qrl' in op.value.resume)) {
+        if (op.value.resume.r !== ResumeKind.Qrl) {
           throw new UnsupportedError('a non-QRL computed text hole');
         }
         const use = op.value.resume.qrl;

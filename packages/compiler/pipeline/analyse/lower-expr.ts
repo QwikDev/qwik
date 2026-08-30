@@ -5,6 +5,7 @@ import {
   PlaceKind,
   QrlBodyKind,
   QrlPayloadKind,
+  ResumeKind,
   ValueKind,
   type Value,
 } from '../schema';
@@ -76,7 +77,7 @@ export function lowerExpressionValue(
       return {
         v: ValueKind.Computed,
         expr,
-        resume: { qrl: use },
+        resume: { r: ResumeKind.Qrl, qrl: use },
         compilerString: false,
       };
     }

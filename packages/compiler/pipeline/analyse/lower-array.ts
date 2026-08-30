@@ -3,6 +3,7 @@ import {
   BoundaryKind,
   CaptureAccess,
   EachSourceKind,
+  ExprKind,
   FnBodyKind,
   LifetimeCommit,
   LifetimeOwner,
@@ -10,6 +11,7 @@ import {
   ProgramBodyKind,
   QrlBodyKind,
   QrlPayloadKind,
+  ResumeKind,
   RowKind,
   SeedKind,
   Shape,
@@ -20,7 +22,9 @@ import {
 import { SegmentContext } from '../words';
 import { UnsupportedError } from '../errors';
 import { lowerCaptures } from './ast/capture-analysis';
+import { unwrapExpression } from './ast/utils';
 import { pushPayload, pushQrl, QrlIdentityKind, type LowerContext } from './lower-context';
+import { createSegmentSymbolName, sanitizeSegmentName } from '../segment-identity';
 import { trySignalReadValue } from './lower-expr';
 import { LocalKind } from './lower-setup';
 import { lowerJsx } from './lower-jsx';
@@ -57,7 +61,7 @@ function lowerEach(
   if (callback.params.length > 1) {
     throw new UnsupportedError('a collection index parameter');
   }
-  const source = lowerReactiveSource(sourceExpression, ctx);
+  const source = lowerSource(sourceExpression, ctx);
   const lifetime = ctx.plan.lifetimes.length;
   ctx.plan.lifetimes.push({
     id: lifetime,
@@ -76,8 +80,6 @@ function lowerEach(
     paramBindings.push(ctx.plan.bindings.findIndex((binding) => binding.name === param.name));
   }
 
-  // The row's segment comes first (legacy order: for_render before for_key), children after.
-  const rowCaptures = lowerCaptures(body, ctx, 'a collection row', { localNames: paramNames });
   const program = ctx.plan.programs.length;
   ctx.plan.programs.push({
     body: { kind: ProgramBodyKind.Ops, ops: [] },
@@ -87,6 +89,31 @@ function lowerEach(
     needsId: false,
     async: false,
   });
+  // A static array's row renders inline in the component: lexical scope, no key, no chunk.
+  if (source.s === EachSourceKind.Array) {
+    lowerRowOps(body, callback, paramBindings, program, ctx);
+    return {
+      op: OpKind.Each,
+      source,
+      key: null,
+      row: {
+        r: RowKind.Inline,
+        program,
+        renderId: createSegmentSymbolName(
+          ctx.sourceIdentity,
+          sanitizeSegmentName(`semantic_collectionRender_${callback.start}_${callback.end}`),
+          'synthetic'
+        ),
+      },
+      usesIndexSignal: false,
+      id: { kind: SeedKind.For, ordinal: ctx.forCounter.next++ },
+      lifetime,
+      shape: Shape.Element,
+    };
+  }
+
+  // The row's segment comes first (legacy order: for_render before for_key), children after.
+  const rowCaptures = lowerCaptures(body, ctx, 'a collection row', { localNames: paramNames });
   const rowRange: [number, number] = [body.start, body.end];
   const { index: rowIndex, use } = pushQrl(
     ctx,
@@ -112,21 +139,7 @@ function lowerEach(
     rowCaptures.args
   );
   const key = lowerKey(body, callback, ctx);
-  // Inside the row, loop params are locals — holes capture them as LoopValue.
-  const outerLocals = ctx.locals;
-  const rowLocals = new Map(outerLocals);
-  callback.params.forEach((param, index) => {
-    if (param.type === 'Identifier') {
-      rowLocals.set(param.name, {
-        kind: LocalKind.LoopValue,
-        slot: -1,
-        binding: paramBindings[index],
-      });
-    }
-  });
-  ctx.locals = rowLocals;
-  ctx.plan.programs[program].body = { kind: ProgramBodyKind.Ops, ops: [lowerJsx(body, ctx)] };
-  ctx.locals = outerLocals;
+  lowerRowOps(body, callback, paramBindings, program, ctx);
   // The row ABI drops unused loop params: `used` = params some descendant QRL captured.
   ctx.plan.qrls[rowIndex].params.used = paramBindings.filter((binding) =>
     ctx.plan.qrls
@@ -150,16 +163,50 @@ function lowerEach(
   };
 }
 
-/** `signal.value.map(...)` — the runtime iterates the signal container and subscribes. */
-function lowerReactiveSource(
-  node: Expression,
-  ctx: LowerContext
-): { s: EachSourceKind; value: Value } {
+/** A literal array iterates inline; `signal.value` subscribes; anything else refuses (yet). */
+function lowerSource(node: Expression, ctx: LowerContext): { s: EachSourceKind; value: Value } {
+  const unwrapped = unwrapExpression(node);
+  if (unwrapped?.type === 'ArrayExpression') {
+    const payload = pushPayload(ctx, [unwrapped.start, unwrapped.end]);
+    return {
+      s: EachSourceKind.Array,
+      value: {
+        v: ValueKind.Computed,
+        expr: { kind: ExprKind.Js, payload },
+        resume: { r: ResumeKind.Inline },
+        compilerString: false,
+      },
+    };
+  }
   const value = trySignalReadValue(node, ctx);
   if (value === null) {
     throw new UnsupportedError('a collection source that is not a signal read');
   }
   return { s: EachSourceKind.Reactive, value };
+}
+
+/** Fills the row program's ops with loop params scoped as LoopValue locals. */
+function lowerRowOps(
+  body: JSXElement,
+  callback: ArrowFunctionExpression,
+  paramBindings: number[],
+  program: number,
+  ctx: LowerContext
+): void {
+  const outerLocals = ctx.locals;
+  const rowLocals = new Map(outerLocals);
+  callback.params.forEach((param, index) => {
+    if (param.type === 'Identifier') {
+      rowLocals.set(param.name, {
+        kind: LocalKind.LoopValue,
+        slot: -1,
+        binding: paramBindings[index],
+      });
+    }
+  });
+  ctx.locals = rowLocals;
+  ctx.plan.programs[program].body = { kind: ProgramBodyKind.Ops, ops: [lowerJsx(body, ctx)] };
+  ctx.locals = outerLocals;
 }
 
 /** The row's `key` attribute — a Function-payload QRL the runtime calls per row with the item. */

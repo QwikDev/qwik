@@ -1,5 +1,14 @@
 import { describe, expect, test } from 'vitest';
-import { BindingScope, CaptureAccess, OpKind, RowKind, VarKind } from '../schema';
+import {
+  BindingScope,
+  CaptureAccess,
+  EachSourceKind,
+  OpKind,
+  ResumeKind,
+  RowKind,
+  ValueKind,
+  VarKind,
+} from '../schema';
 import { parseModule } from '../analyse/ast/parse';
 import { unwrapExpression } from '../analyse/ast/utils';
 import { createLowerContext } from '../analyse/lower-context';
@@ -52,6 +61,26 @@ describe('lowerArray / reactive rows', () => {
     const { ctx } = lower(ROW);
     const text = ctx.plan.qrls.find((qrl) => qrl.ctxName === 'text');
     expect(text?.captures).toEqual([{ binding: 1, access: CaptureAccess.LoopValue }]);
+  });
+
+  test('a literal array source lowers to an inline row with no key and no qrl', () => {
+    const { op, ctx } = lower("<ul>{['first', 'second'].map(() => <li>Item</li>)}</ul>");
+    const each = op.op === OpKind.Element ? op.children[0] : null;
+    if (each?.op !== OpKind.Each) {
+      throw new Error('expected an Each op');
+    }
+    expect(each.source.s).toBe(EachSourceKind.Array);
+    expect(each.source.value).toMatchObject({
+      v: ValueKind.Computed,
+      resume: { r: ResumeKind.Inline },
+    });
+    expect(each.key).toBeNull();
+    if (each.row.r !== RowKind.Inline) {
+      throw new Error('expected an inline row');
+    }
+    expect(each.row.renderId).toMatch(/^semantic_collectionRender_\d+_\d+_[a-z0-9]+$/);
+    // Inline rows live in the component scope — no chunkable qrl row exists for them.
+    expect(ctx.plan.qrls.filter((qrl) => qrl.ctxName === 'for:render')).toEqual([]);
   });
 
   test('the loop param stays out of scope after the row', () => {

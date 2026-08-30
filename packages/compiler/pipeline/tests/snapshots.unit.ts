@@ -468,6 +468,28 @@ export default () => {
     });
   });
 
+  test('should destructure the row param into member reads', async () => {
+    await testInput(mode, 'collection-destructured-param', {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
+  const items = useSignal([{ id: 'a', label: 'Alpha' }]);
+  return <ul>{items.value.map(({ id, label }) => <li key={id}>{label}</li>)}</ul>;
+};
+`,
+    });
+  });
+
+  test('should rewrite destructured names inside an opaque row expression', async () => {
+    await testInput(mode, 'collection-destructured-opaque', {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
+  const items = useSignal([{ id: 'a', label: 'Alpha' }]);
+  return <ul>{items.value.map(({ id, label }) => <li key={id}>{label + '!' + id}</li>)}</ul>;
+};
+`,
+    });
+  });
+
   test('should bind a dynamic class on a collection row root', async () => {
     await testInput(mode, 'collection-row-dynamic-class', {
       code: `import { useSignal } from '@qwik.dev/core';

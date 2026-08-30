@@ -5,6 +5,7 @@ import {
   PlaceKind,
   QrlBodyKind,
   QrlPayloadKind,
+  ReadRole,
   ResumeKind,
   ValueKind,
   type Value,
@@ -48,11 +49,25 @@ export function lowerExpressionValue(
       if (findRuntimeJsx(expression) !== null) {
         throw new UnsupportedError('JSX inside an expression value');
       }
-      const { captures, args } = lowerCaptures(expression, ctx, 'an expression', {
+      const { captures, args, refs } = lowerCaptures(expression, ctx, 'an expression', {
         allowProps: true,
       });
       const range: [number, number] = [expression.start, expression.end];
       const payload = pushPayload(ctx, range);
+      // Alias reads materialize as member reads of their container when the payload prints.
+      for (const entry of refs.locals) {
+        if (entry.local.kind !== LocalKind.PropMember) {
+          continue;
+        }
+        for (const read of entry.reads) {
+          ctx.plan.payloads[payload].reads.push({
+            range: read,
+            binding: entry.local.binding,
+            role: ReadRole.Read,
+            memberPath: [entry.local.member],
+          });
+        }
+      }
       const ir = tryLowerExprIr(expression, ctx);
       const expr =
         ir === null
@@ -159,6 +174,12 @@ export function tryLowerExprIr(node: Expression, ctx: LowerContext): ValueIR | n
       const local = ctx.locals.get(name);
       if (local?.kind === LocalKind.RowIndex) {
         return { kind: ValueIrKind.SignalRead, binding: local.binding };
+      } else if (local?.kind === LocalKind.PropMember) {
+        return {
+          kind: ValueIrKind.Member,
+          obj: { kind: ValueIrKind.BindingRead, binding: local.binding },
+          name: local.member,
+        };
       }
       return null;
     }

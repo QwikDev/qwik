@@ -3,9 +3,11 @@ import {
   BindingScope,
   CaptureAccess,
   EachSourceKind,
+  ExprKind,
   IndexMode,
   OpKind,
   ProgramBodyKind,
+  QrlBodyKind,
   ResumeKind,
   RowKind,
   ValueKind,
@@ -105,6 +107,33 @@ describe('lowerArray / reactive rows', () => {
         '<ul>{items.value.map((item, i) => <li key={item.id} onClick$={() => console.log(i)}>x</li>)}</ul>'
       ).index
     ).toBe(IndexMode.Escapes);
+  });
+
+  test('destructured names in an opaque expression rewrite through payload reads', () => {
+    const source =
+      "<ul>{items.value.map(({ id, label }) => <li key={id}>{label + '!' + id}</li>)}</ul>";
+    const { ctx } = lower(source);
+    const text = ctx.plan.qrls.find((qrl) => qrl.ctxName === 'text');
+    if (text?.body.b !== QrlBodyKind.Expr || text.body.expr.kind !== ExprKind.Js) {
+      throw new Error('expected a Js-payload text segment');
+    }
+    // one container capture despite two aliases
+    expect(text.captures).toHaveLength(1);
+    const payload = ctx.plan.payloads[text.body.expr.payload];
+    expect(payload.reads).toEqual([
+      {
+        range: expect.anything(),
+        binding: text.captures[0].binding,
+        role: 'read',
+        memberPath: ['label'],
+      },
+      {
+        range: expect.anything(),
+        binding: text.captures[0].binding,
+        role: 'read',
+        memberPath: ['id'],
+      },
+    ]);
   });
 
   test('inline rows interpolate lexical params; reactive reads become capturing holes', () => {

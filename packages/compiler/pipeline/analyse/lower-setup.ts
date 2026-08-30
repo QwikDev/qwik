@@ -29,16 +29,26 @@ export const enum LocalKind {
   LoopValue = 'loop-value',
   /** A collection index parameter — a per-row signal box updated by the reconciler. */
   RowIndex = 'row-index',
+  /** A prop member for wrapped destructured props */
+  PropMember = 'prop-member',
 }
 
-export interface SetupLocal {
-  /** Read-lowering dispatch (how `x`/`x.value` lowers). */
-  kind: LocalKind;
-  /** Delivery contract when a QRL captures this local. */
-  access: CaptureAccess;
-  slot: number;
-  binding: number;
-}
+export type SetupLocal =
+  | {
+      /** Read-lowering dispatch (how `x`/`x.value` lowers). */
+      kind: Exclude<LocalKind, LocalKind.PropMember>;
+      /** Delivery contract when a QRL captures this local. */
+      access: CaptureAccess;
+      slot: number;
+      binding: number;
+    }
+  | {
+      kind: LocalKind.PropMember;
+      access: CaptureAccess.LoopValue;
+      slot: -1;
+      binding: number;
+      member: string;
+    };
 
 /** Component-local reactive sources, resolvable by holes (`count.value` → signal read). */
 export type SetupLocals = Map<string, SetupLocal>;

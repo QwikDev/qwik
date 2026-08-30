@@ -45,14 +45,16 @@ describe('collectCaptures', () => {
     const ctx = contextWith({ locals: new Map([['count', COUNT_LOCAL]]) });
     expect(refsOf('() => count.value++', ctx)).toEqual({
       props: false,
-      locals: [{ name: 'count', local: COUNT_LOCAL }],
+      locals: [{ name: 'count', local: COUNT_LOCAL, reads: [[17, 22]] }],
       other: null,
     });
   });
 
-  test('a repeated read dedupes to one entry in first-read order', () => {
+  test('a repeated read dedupes to one entry collecting every occurrence', () => {
     const ctx = contextWith({ locals: new Map([['count', COUNT_LOCAL]]) });
-    expect(refsOf('() => count.value + count.value', ctx).locals).toHaveLength(1);
+    const locals = refsOf('() => count.value + count.value', ctx).locals;
+    expect(locals).toHaveLength(1);
+    expect(locals[0].reads).toHaveLength(2);
   });
 
   test('the props param sets the props flag, not a local entry', () => {

@@ -1,5 +1,5 @@
 import type { Node } from 'oxc-parser';
-import { ArgPass, CaptureAccess, type Qrl, type QrlUse } from '../../schema';
+import { ArgPass, CaptureAccess, type Qrl, type QrlUse, type Range } from '../../schema';
 import { UnsupportedError } from '../../errors';
 import { isNode, type WalkableNode } from './ast-types';
 import type { LowerContext } from '../lower-context';
@@ -8,7 +8,7 @@ import type { SetupLocal } from '../lower-setup';
 export interface CollectedCaptures {
   props: boolean;
   /** Reactive setup locals the boundary captures, in first-read order. */
-  locals: { name: string; local: SetupLocal }[];
+  locals: { name: string; local: SetupLocal; reads: Range[] }[];
   /** A referenced binding no capture mechanism covers yet. */
   other: string | null;
 }
@@ -47,8 +47,12 @@ export function collectCaptures(
           if (name === ctx.propsParamName) {
             props = true;
           } else if (setupLocal !== undefined) {
-            if (!locals.some((entry) => entry.name === name)) {
-              locals.push({ name, local: setupLocal });
+            const read: Range = [current.start, current.end];
+            const entry = locals.find((candidate) => candidate.name === name);
+            if (entry === undefined) {
+              locals.push({ name, local: setupLocal, reads: [read] });
+            } else {
+              entry.reads.push(read);
             }
           } else if (ctx.bindingNames.has(name)) {
             other = name;
@@ -77,6 +81,7 @@ export function collectCaptures(
 export interface LoweredCaptures {
   captures: Qrl['captures'];
   args: QrlUse['args'];
+  refs: CollectedCaptures;
 }
 
 /**
@@ -98,18 +103,20 @@ export function lowerCaptures(
   if (refs.props && options.allowProps !== true) {
     throw new UnsupportedError(`${subject} capturing "${ctx.propsParamName}"`);
   }
-  const captures: Qrl['captures'] = refs.locals.map((entry) => ({
-    binding: entry.local.binding,
-    access: entry.local.access,
-  }));
-  const args: QrlUse['args'] = refs.locals.map((entry) => ({
-    pass: ArgPass.Binding,
-    binding: entry.local.binding,
-  }));
+  const captures: Qrl['captures'] = [];
+  const args: QrlUse['args'] = [];
+  for (const entry of refs.locals) {
+    // Aliases of one destructured param share a binding — the container captures once.
+    if (captures.some((capture) => capture.binding === entry.local.binding)) {
+      continue;
+    }
+    captures.push({ binding: entry.local.binding, access: entry.local.access });
+    args.push({ pass: ArgPass.Binding, binding: entry.local.binding });
+  }
   if (refs.props) {
     const binding = ctx.plan.bindings.findIndex((entry) => entry.name === ctx.propsParamName);
     captures.push({ binding, access: CaptureAccess.ComponentProp });
     args.push({ pass: ArgPass.Props });
   }
-  return { captures, args };
+  return { captures, args, refs };
 }

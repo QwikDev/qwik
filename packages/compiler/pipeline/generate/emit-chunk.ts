@@ -14,7 +14,7 @@ import {
   type QrlUse,
   type Value,
 } from '../schema';
-import { ValueIrKind } from '../../src/expr-ir';
+import { ValueIrKind, type ValueIR } from '../../src/expr-ir';
 import { getSegmentDisplayName, getSegmentSymbolHash } from '../segment-identity';
 import { QWIK_CORE_IMPORT, QwikWord, SegmentContext } from '../words';
 import { UnsupportedError } from '../errors';
@@ -140,15 +140,31 @@ export function sourceFunctionEmission(module: LinkedModule, qrl: LinkedQrl): Fu
     emission.statements.push(...capturePrelude(captures));
   }
   const body = qrl.body;
+  // An Ir body always prints from the IR: aliases (destructured params) have no authored
+  // source to slice, and the IR is complete by construction when the analysis chose Ir.
   emission.value =
-    body.b === QrlBodyKind.Expr &&
-    body.expr.kind === ExprKind.Ir &&
-    body.expr.ir.kind === ValueIrKind.SignalRead
-      ? // A signal-read body has no authored `.value` to slice — print it from the IR.
-        `${module.bindings[body.expr.ir.binding].name}.value`
+    body.b === QrlBodyKind.Expr
+      ? body.expr.kind === ExprKind.Ir
+        ? valueIrJs(module, body.expr.ir)
+        : // The payload shares the body range and materializes alias reads.
+          extractPayloadJs(module, body.expr.payload)
       : source.slice(qrl.origin.bodyRange[0], qrl.origin.bodyRange[1]);
   emission.async = qrl.authoredAsync;
   return emission;
+}
+
+/** Prints a plan-complete IR body; kinds join as examples demand them. */
+function valueIrJs(module: LinkedModule, ir: ValueIR): string {
+  switch (ir.kind) {
+    case ValueIrKind.SignalRead:
+      return `${module.bindings[ir.binding].name}.value`;
+    case ValueIrKind.BindingRead:
+      return module.bindings[ir.binding].name;
+    case ValueIrKind.Member:
+      return `${valueIrJs(module, ir.obj)}.${ir.name}`;
+    default:
+      throw new UnsupportedError(`printing the IR "${ir.kind}"`);
+  }
 }
 
 export function emptyFunctionEmission(): FunctionEmission {
@@ -232,10 +248,20 @@ export function programKind(qrl: LinkedQrl): ProgramKind {
   throw new UnsupportedError(`a program qrl with the boundary "${qrl.boundary.kind}"`);
 }
 
-/** The payload's authored JS, verbatim — the plan stores ranges, never text. */
+/** The payload's authored JS with member-path reads materialized over their source ranges. */
 export function extractPayloadJs(module: LinkedModule, payload: number): string {
-  const [start, end] = module.payloads[payload].range;
-  return module.source.code.slice(start, end);
+  const { range, reads } = module.payloads[payload];
+  const [start, end] = range;
+  let text = module.source.code.slice(start, end);
+  // Bottom-up so earlier offsets stay valid while later reads splice.
+  const materialized = reads
+    .filter((read) => read.memberPath !== undefined)
+    .sort((a, b) => b.range[0] - a.range[0]);
+  for (const read of materialized) {
+    const replacement = [module.bindings[read.binding].name, ...read.memberPath!].join('.');
+    text = text.slice(0, read.range[0] - start) + replacement + text.slice(read.range[1] - start);
+  }
+  return text;
 }
 
 /** Only an `inline`-resumed Js value may splice its payload at the use site. */

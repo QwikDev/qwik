@@ -44,7 +44,7 @@ const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
     ['a', 'b'],
     undefined,
     component_for_render_segment_2_asyu0c4tc6e5,
-    false,
+    0,
     '',
     false,
     0
@@ -119,7 +119,7 @@ export const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
     ['a', 'b'],
     undefined,
     component_for_render_segment_2_asyu0c4tc6e5,
-    false,
+    0,
     '',
     false,
     0

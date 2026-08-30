@@ -22,7 +22,7 @@ export function App(props, ctx) {
     items,
     undefined,
     semantic_collectionRender_83_102_1szakjy0f6p92,
-    false,
+    0,
     '',
     false,
     0

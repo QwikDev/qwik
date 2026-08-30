@@ -1,3 +1,4 @@
+import { IndexMode } from '../../../pipeline/schema';
 import type { SourceRange } from '../../../src/types';
 import {
   emitComponentFunction,
@@ -1283,9 +1284,7 @@ function emitCsrOperation(
           operation.source.expression
         }, ${
           operation.key === null ? 'null' : emitPlannedFunctionReference(operation.key, context)
-        }, ${emitPlannedFunctionReference(operation.row.reference, context)}, ${
-          operation.usesIndexSignal
-        }, ${
+        }, ${emitPlannedFunctionReference(operation.row.reference, context)}, ${operation.usesIndexSignal ? IndexMode.Escapes : IndexMode.None}, ${
           operation.idBase === null ? "''" : operation.idBase
         }, ${emitRowShape(operation.rowShape)})`;
         return {
@@ -1330,9 +1329,7 @@ function emitCsrOperation(
       }
       const call = `${QwikWord.CreateCollection}(${context.generatedNames.ctx}, ${range.start}, ${range.end}, ${collectionSource}, ${
         operation.key === null ? 'null' : emitPlannedFunctionReference(operation.key, context)
-      }, ${emitPlannedFunctionReference(operation.row.reference, context)}, ${
-        operation.usesIndexSignal
-      }${
+      }, ${emitPlannedFunctionReference(operation.row.reference, context)}, ${operation.usesIndexSignal ? IndexMode.Escapes : IndexMode.None}${
         operation.idBase === null ? ", ''" : `, ${operation.idBase}`
       }, ${emitRowShape(operation.rowShape)})`;
       if (isRoot) {

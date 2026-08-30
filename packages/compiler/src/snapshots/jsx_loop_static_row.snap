@@ -43,7 +43,7 @@ export function App(props, ctx) {
     items,
     q_component_for_key_segment_1_24ursak4wzpxf,
     q_component_for_render_segment_0_asyt89wzo2d3,
-    false,
+    0,
     '',
     false,
     0
@@ -135,7 +135,7 @@ export function App(props, ctx) {
       items,
       component_for_key_segment_1_24ursak4wzpxf,
       component_for_render_segment_0_asyt89wzo2d3,
-      false,
+      0,
       '',
       0
     )

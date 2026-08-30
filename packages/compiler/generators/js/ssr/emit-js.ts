@@ -1,3 +1,4 @@
+import { IndexMode } from '../../../pipeline/schema';
 import type { PlanSsrOp, PlanSsrProp } from '../../../src/emit-plan-ssr';
 import { SsrOpKind } from '../../../src/emit-plan-ssr';
 import type { QwikSsrPlan } from '../../../src/link-plan';
@@ -1404,7 +1405,7 @@ class JsComponentGenerator {
           inner.push(
             `const ${wrapped} = ${QwikWord.WrapArray}(${this.qrlExpression(source)}${operation.source.keepSource === true ? ', true' : ''});`,
             `if (!Array.isArray(${wrapped})) ${this.names.ctx}.addRoot(${wrapped});`,
-            `return ${QwikWord.RenderSsrCollection}(${this.names.ctx}, ${idVariable}, ${wrapped}, ${operation.key === null ? 'undefined' : this.qrlExpression(deferredKeyMeta!)}, ${this.qrlExpression(deferredRowMeta)}, ${operation.usesIndexSignal}, ${operation.ssr.idBase === null ? "''" : operation.ssr.idBase}, ${operation.ssr.usesRowId}, ${operation.ssr.rowShape});`
+            `return ${QwikWord.RenderSsrCollection}(${this.names.ctx}, ${idVariable}, ${wrapped}, ${operation.key === null ? 'undefined' : this.qrlExpression(deferredKeyMeta!)}, ${this.qrlExpression(deferredRowMeta)}, ${operation.usesIndexSignal ? IndexMode.Escapes : IndexMode.None}, ${operation.ssr.idBase === null ? "''" : operation.ssr.idBase}, ${operation.ssr.usesRowId}, ${operation.ssr.rowShape});`
           );
           const invokeCtx = this.invokeCtx();
           this.imports.add(QwikWord.Invoke);
@@ -1452,7 +1453,7 @@ class JsComponentGenerator {
           this.pushStep(
             step,
             roots,
-            `${QwikWord.RenderSsrCollection}(${this.names.ctx}, ${idVariable}, ${sourceValue}, ${keyQrl}, ${renderQrl}, ${operation.usesIndexSignal}, ${operation.ssr.idBase === null ? "''" : operation.ssr.idBase}, ${operation.ssr.usesRowId}, ${operation.ssr.rowShape})`,
+            `${QwikWord.RenderSsrCollection}(${this.names.ctx}, ${idVariable}, ${sourceValue}, ${keyQrl}, ${renderQrl}, ${operation.usesIndexSignal ? IndexMode.Escapes : IndexMode.None}, ${operation.ssr.idBase === null ? "''" : operation.ssr.idBase}, ${operation.ssr.usesRowId}, ${operation.ssr.rowShape})`,
             `${idVariable} ??= ${this.names.ctx}.nextId(); `
           );
           parts.push(
@@ -1493,7 +1494,7 @@ class JsComponentGenerator {
         const keyQrl = keyMeta === null ? 'undefined' : this.qrlExpression(keyMeta);
         const renderQrl = this.qrlExpression(rowMeta);
         this.statements.push(
-          `const ${step} = ${QwikWord.RenderSsrCollection}(${this.names.ctx}, ${idVariable}, ${collectionValue}, ${keyQrl}, ${renderQrl}, ${operation.usesIndexSignal}, ${operation.ssr.idBase === null ? "''" : operation.ssr.idBase}, ${operation.ssr.usesRowId}, ${operation.ssr.rowShape});`
+          `const ${step} = ${QwikWord.RenderSsrCollection}(${this.names.ctx}, ${idVariable}, ${collectionValue}, ${keyQrl}, ${renderQrl}, ${operation.usesIndexSignal ? IndexMode.Escapes : IndexMode.None}, ${operation.ssr.idBase === null ? "''" : operation.ssr.idBase}, ${operation.ssr.usesRowId}, ${operation.ssr.rowShape});`
         );
         this.asyncSteps.push({ name: step, expr: step });
         parts.push(
@@ -2042,7 +2043,7 @@ class JsComponentGenerator {
     this.pushStep(
       step,
       [],
-      `${QwikWord.RenderSsrCollection}(${this.names.ctx}, undefined, ${this.irJs(sourceIr)}, undefined, ${row.symbolName}, ${operation.usesIndexSignal}, ${operation.ssr.idBase ?? "''"}, ${operation.ssr.usesRowId}, ${operation.ssr.rowShape})`
+      `${QwikWord.RenderSsrCollection}(${this.names.ctx}, undefined, ${this.irJs(sourceIr)}, undefined, ${row.symbolName}, ${operation.usesIndexSignal ? IndexMode.Escapes : IndexMode.None}, ${operation.ssr.idBase ?? "''"}, ${operation.ssr.usesRowId}, ${operation.ssr.rowShape})`
     );
     parts.push(step);
   }

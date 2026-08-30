@@ -65,7 +65,7 @@ export function App(props, ctx) {
     items,
     undefined,
     component_for_render_segment_0_asyt89wzo2d3,
-    false,
+    0,
     '',
     false,
     0

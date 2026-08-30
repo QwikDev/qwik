@@ -172,7 +172,7 @@ export function App(props, ctx) {
         [1, 2],
         undefined,
         component_for_render_segment_9_asyppzxs5k8c,
-        false,
+        0,
         '',
         false,
         3

@@ -49,7 +49,6 @@ export default (props, ctx) => {
   const count = useSignal(0);
   const branchId0 = ctx.nextId();
   ctx.addRoot(count);
-  ctx.addRoot(count);
   const branch0 = renderSsrBranch(
     ctx,
     branchId0,

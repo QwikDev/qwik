@@ -516,11 +516,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     if (elementRoot && root.op === OpKind.Element) {
       const el = pass.next(QwikGenWord.Element);
       statements = [`const ${el} = ${template}(${pass.names.ctx}.document);`];
-      for (const prop of root.props) {
-        if (prop.k !== PropKind.Static) {
-          throw new UnsupportedError(`the prop "${prop.k}" in a collection row root`);
-        }
-      }
+      emitter.elementProps(root, el, statements, pass);
       emitter.walkChildren(root.children, el, statements, pass);
       // Row roots mount through an element template — the root element IS the return value.
       emitter.imports.add(QwikWord.CreateElementTemplate);

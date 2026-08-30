@@ -108,6 +108,8 @@ interface RenderPass {
   next: (prefix: string) => string;
   /** The rendered value references `ctx` (e.g. event attr parts) even without statements. */
   usedCtx: boolean;
+  /** Names already rooted in this pass — repeat effects skip the addRoot call. */
+  rooted: Set<string>;
 }
 
 /** Per-kind needs the emission wrappers state explicitly — the core never inspects the QRL. */
@@ -167,6 +169,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       asyncSteps: [],
       next: createNameAllocator(this.module),
       usedCtx: false,
+      rooted: new Set(),
     };
     const rootRange: SsrRootRange | null = options.rootRange
       ? { idParam: null, markerIndex: 0 }
@@ -624,7 +627,11 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     callExpr: string
   ): void {
     for (const root of roots) {
-      pass.statements.push(`${pass.names.ctx}.addRoot(${root});`);
+      // One addRoot per name and pass — the runtime dedupes too, this keeps the output clean.
+      if (!pass.rooted.has(root)) {
+        pass.rooted.add(root);
+        pass.statements.push(`${pass.names.ctx}.addRoot(${root});`);
+      }
     }
     pass.statements.push(`const ${step} = ${callExpr};`);
     pass.asyncSteps.push(step);

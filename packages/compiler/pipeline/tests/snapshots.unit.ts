@@ -468,6 +468,17 @@ export default () => {
     });
   });
 
+  test('should bind a dynamic class on a collection row root', async () => {
+    await testInput(mode, 'collection-row-dynamic-class', {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
+  const items = useSignal([{ id: 'a', label: 'Alpha', done: false }]);
+  return <ul>{items.value.map((item) => <li key={item.id} class={item.done ? 'done' : 'todo'}>{item.label}</li>)}</ul>;
+};
+`,
+    });
+  });
+
   test('should render a reactive expression inside an inline array row', async () => {
     await testInput(mode, 'collection-inline-signal-text', {
       code: `import { useSignal } from '@qwik.dev/core';

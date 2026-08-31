@@ -8,8 +8,6 @@ export async function updateDependencies() {
   // TODO(migrate-v2): rely on workspaceRoot instead?
   const packageJson = await readPackageJson(process.cwd());
 
-  const version = await getPackageTag();
-
   const dependencyNames = [
     'dependencies',
     'devDependencies',
@@ -19,6 +17,8 @@ export async function updateDependencies() {
 
   for (let i = 0; i < packageNames.length; i++) {
     const name = packageNames[i];
+    // each package is versioned independently, so its tags must be resolved on its own
+    const version = await getPackageTag(name);
     for (let j = 0; j < dependencyNames.length; j++) {
       const propName = dependencyNames[j];
       const prop = packageJson[propName];
@@ -36,13 +36,12 @@ export async function updateDependencies() {
 }
 
 /**
- * Resolve the list of available package tags for the "@qwik.dev/core" and get the best match of
+ * Resolve the list of available package tags for the given package name and get the best match of
  * ^2.0.0 based on the "versionTagPriority"
  */
-async function getPackageTag() {
+async function getPackageTag(packageName: string) {
   const { major } = await import('semver');
-  // we assume all migrated packages have the same set of tags
-  const tags: [tag: string, version: string][] = execSync('npm dist-tag @qwik.dev/core', {
+  const tags: [tag: string, version: string][] = execSync(`npm dist-tag ${packageName}`, {
     encoding: 'utf-8',
   })
     ?.split('\n')
@@ -71,7 +70,9 @@ async function getPackageTag() {
       return version;
     }
   }
-  log.warn('Failed to resolve the Qwik version tag, version "2.0.0" will be installed');
+  log.warn(
+    `Failed to resolve the version tag for "${packageName}", version "2.0.0" will be installed`
+  );
   return '2.0.0';
 }
 

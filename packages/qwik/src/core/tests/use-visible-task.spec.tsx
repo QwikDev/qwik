@@ -540,14 +540,7 @@ describe.each([
     const { document } = await render(<Cmp />, { debug });
     await trigger(document.body, 'script', 'd:qinit');
 
-    expect((globalThis as any).counter).toBe(
-      render === ssrRenderToDom
-        ? // visible + inline
-          2
-        : // TODO: is it correct?
-          // visible itself from scheduling it + inline + visible from triggering document:qinit
-          3
-    );
+    expect((globalThis as any).counter).toBe(2);
 
     (globalThis as any).counter = undefined;
   });
@@ -920,6 +913,24 @@ describe.each([
         </Fragment>
       </Component>
     );
+  });
+
+  it('should run the visible task only once even when qvisible fires again', async () => {
+    (globalThis as any).visibleTaskRunCounter = 0;
+    const VisibleCmp = component$(() => {
+      useVisibleTask$(() => {
+        (globalThis as any).visibleTaskRunCounter++;
+      });
+      return <span>test</span>;
+    });
+
+    const { container } = await render(<VisibleCmp />, { debug });
+    const span = container.element.querySelector('span');
+    expect(span?.hasAttribute('q-e:qvisible')).toBe(true);
+    await trigger(container.element, 'span', 'qvisible');
+    await trigger(container.element, 'span', 'qvisible');
+    expect((globalThis as any).visibleTaskRunCounter).toBe(1);
+    (globalThis as any).visibleTaskRunCounter = undefined;
   });
 
   describe('regression', () => {

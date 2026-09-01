@@ -30,6 +30,7 @@ export const enum TaskFlags {
   RENDER_BLOCKING = 1 << 3,
   NEEDS_CLEANUP = 1 << 4,
   EVENTS_REGISTERED = 1 << 5,
+  EXECUTED = 1 << 6,
 }
 
 // <docs markdown="../readme.md#Tracker">
@@ -182,7 +183,7 @@ export const runTask = (
     return pendingTask;
   }
 
-  task.$flags$ &= ~TaskFlags.DIRTY;
+  task.$flags$ = (task.$flags$ & ~TaskFlags.DIRTY) | TaskFlags.EXECUTED;
   const handleError = (reason: unknown) => {
     tagErrorPhase(reason, ErrorBoundaryPhase.Hook);
     container.handleError(reason, host, ErrorBoundaryPhase.Hook);
@@ -265,6 +266,10 @@ export function scheduleTask(this: string, _event: Event, element: Element) {
     const task = _captures![0] as Task;
     if (!task.$el$) {
       // An ErrorBoundary tore the host down; the task has nothing left to run against.
+      return;
+    }
+    if (task.$flags$ & (TaskFlags.DIRTY | TaskFlags.EXECUTED)) {
+      // the trigger event only performs the initial run
       return;
     }
     task.$flags$ |= TaskFlags.DIRTY;

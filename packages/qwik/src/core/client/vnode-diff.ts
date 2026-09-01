@@ -31,7 +31,7 @@ import type { JSXNodeInternal } from '../shared/jsx/types/jsx-node';
 import type { EventHandler, JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
 import { SSRComment, SSRRaw, SkipRender } from '../shared/jsx/utils.public';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
-import type { QElement, qWindow } from '../shared/types';
+import type { QElement } from '../shared/types';
 import { DEBUG_TYPE, QContainerValue, VirtualType } from '../shared/types';
 import { directSetAttribute } from '../shared/utils/attribute';
 import { escapeHTML } from '../shared/utils/character-escaping';
@@ -51,6 +51,7 @@ import {
   QCursorBoundary,
   QSlot,
   QTemplate,
+  QVisibleScopedEvent,
   dangerouslySetInnerHTML,
   debugStyleScopeIdPrefixAttr,
 } from '../shared/utils/markers';
@@ -74,6 +75,7 @@ import { VNodeFlags, type ClientContainer } from './types';
 import { mapApp_findIndx, mapArray_set } from './util-mapArray';
 import { getNewElementNamespaceData } from './vnode-namespace';
 import {
+  registerQwikLoaderEvent,
   vnode_ensureElementInflated,
   vnode_getDomParentVNode,
   vnode_getElementName,
@@ -1101,12 +1103,12 @@ function registerEventHandlers(
     );
   }
 
-  // window and document events need attrs so qwik loader can find them
+  // window, document and qvisible events need attrs so qwik loader can find them
   // TODO only do these when not already present
-  if (key.charAt(2) !== 'e') {
+  if (key.charAt(2) !== 'e' || scopedKebabName === QVisibleScopedEvent) {
     vnode_setAttr(diffContext.$journal$, vnode, key, '');
   }
-  registerQwikLoaderEvent(diffContext, scopedKebabName);
+  registerQwikLoaderEvent(diffContext.$container$, scopedKebabName);
 }
 
 function createElementWithNamespace(diffContext: DiffContext, elementName: string): Element {
@@ -1295,15 +1297,6 @@ const patchProperty = (
     originalValue
   );
 };
-
-function registerQwikLoaderEvent(diffContext: DiffContext, eventName: string) {
-  const qWindow = qTest
-    ? (diffContext.$container$.document.defaultView as qWindow | null)
-    : (window as unknown as qWindow);
-  if (qWindow) {
-    (qWindow._qwikEv ||= [] as any).push(eventName);
-  }
-}
 
 function retrieveChildWithKey(
   diffContext: DiffContext,

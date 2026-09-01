@@ -1,8 +1,18 @@
-import { vnode_journalToString, type VNodeJournal } from '../../client/vnode-utils';
+import type { ClientContainer } from '../../client/types';
+import {
+  registerQwikLoaderEvent,
+  vnode_journalToString,
+  type VNodeJournal,
+} from '../../client/vnode-utils';
 import { runTask } from '../../use/use-task';
 import { QContainerValue, type Container } from '../types';
 import { directSetAttribute } from '../utils/attribute';
-import { dangerouslySetInnerHTML, QContainerAttr } from '../utils/markers';
+import {
+  dangerouslySetInnerHTML,
+  QContainerAttr,
+  QVisibleAttr,
+  QVisibleScopedEvent,
+} from '../utils/markers';
 import { serializeAttribute } from '../utils/styles';
 import {
   DeleteOperation,
@@ -28,8 +38,22 @@ export function executeFlushPhase(cursor: Cursor, container: Container): void {
   if (journal && journal.length > 0) {
     _flushJournal(journal);
     cursorData.journal = null;
+    if (journalAddsQVisibleListener(journal)) {
+      // re-notify so the loader observes elements flushed after its initial scan
+      registerQwikLoaderEvent(container as ClientContainer, QVisibleScopedEvent);
+    }
   }
   executeAfterFlush(container, cursorData);
+}
+
+function journalAddsQVisibleListener(journal: VNodeJournal): boolean {
+  for (let i = 0; i < journal.length; i++) {
+    const operation = journal[i];
+    if (operation instanceof SetAttributeOperation && operation.attrName === QVisibleAttr) {
+      return true;
+    }
+  }
+  return false;
 }
 
 let _insertBefore: typeof Element.prototype.insertBefore | null = null;

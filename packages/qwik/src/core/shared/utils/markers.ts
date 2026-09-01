@@ -74,6 +74,10 @@ export const XML_NS = 'http://www.w3.org/XML/1998/namespace';
 export const RenderEvent = 'qRender';
 export const TaskEvent = 'qTask';
 
+/** Scoped qvisible listener attribute; the qwik loader observes elements carrying it. */
+export const QVisibleAttr = 'q-e:qvisible';
+export const QVisibleScopedEvent = 'e:qvisible';
+
 /** `<q:slot name="...">` */
 export const QDefaultSlot = '';
 

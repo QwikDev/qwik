@@ -1,5 +1,20 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.43
+
+### Patch Changes
+
+- 🐞🩹 release task subscriptions when components are removed (by [@Varixo](https://github.com/Varixo) in [#8982](https://github.com/QwikDev/qwik/pull/8982))
+
+- 🐞🩹 handle malformed images during dimension inspection (by [@gioboa](https://github.com/gioboa) in [#8969](https://github.com/QwikDev/qwik/pull/8969))
+
+- 🐞🩹 a component without its own dom element no longer rebuilds its children on re-render and keeps its `useOn` document and window events (by [@wermetal](https://github.com/wermetal) in [#8981](https://github.com/QwikDev/qwik/pull/8981))
+
+- 🐞🩹 keep sibling updates running after uncaught render errors (by [@Varixo](https://github.com/Varixo) in [#8976](https://github.com/QwikDev/qwik/pull/8976))
+
+- Updated dependencies [[`1d62cd9`](https://github.com/QwikDev/qwik/commit/1d62cd929204e171ea85a6af927533490c3908d1)]:
+  - @qwik.dev/optimizer@2.1.0-beta.8
+
 ## 2.0.0-beta.42
 
 ### Major Changes

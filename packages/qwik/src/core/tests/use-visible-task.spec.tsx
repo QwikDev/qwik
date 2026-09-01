@@ -59,9 +59,7 @@ describe.each([
     });
 
     const { vNode, document } = await render(<VisibleCmp />, { debug });
-    if (render === ssrRenderToDom) {
-      await trigger(document.body, 'span', 'qvisible');
-    }
+    await trigger(document.body, 'span', 'qvisible');
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
         <span>
@@ -138,9 +136,7 @@ describe.each([
       return <span>{state.value}</span>;
     });
     const { vNode, document } = await render(<VisibleCmp />, { debug });
-    if (render === ssrRenderToDom) {
-      await trigger(document.body, 'span', 'qvisible');
-    }
+    await trigger(document.body, 'span', 'qvisible');
     await vi.waitFor(() => {
       expect((globalThis as any).log).toEqual(['VisibleCmp', 'render', 'task', 'resolved']);
       expect(vNode).toMatchVDOM(
@@ -169,9 +165,7 @@ describe.each([
       </ErrorProvider>,
       { debug }
     );
-    if (render === ssrRenderToDom) {
-      await trigger(document.body, 'span', 'qvisible');
-    }
+    await trigger(document.body, 'span', 'qvisible');
     expect(ErrorProvider.error).toBe(render === domRender ? error : null);
   });
 
@@ -191,8 +185,8 @@ describe.each([
       </ErrorProvider>,
       { debug }
     );
+    await trigger(document.body, 'span', 'qvisible');
     if (render === ssrRenderToDom) {
-      await trigger(document.body, 'span', 'qvisible');
       expect(ErrorProvider.error).toBe(null);
       return;
     }
@@ -234,9 +228,7 @@ describe.each([
 
     const { vNode, document, container } = await render(<Counter />, { debug });
 
-    if (render === ssrRenderToDom) {
-      await trigger(document.body, 'span', 'qvisible');
-    }
+    await trigger(document.body, 'span', 'qvisible');
     await allDone;
     await waitForDrain(container);
 
@@ -432,9 +424,7 @@ describe.each([
       });
 
       const { vNode, document } = await render(<Counter />, { debug });
-      if (render === ssrRenderToDom) {
-        await trigger(document.body, 'button', 'qvisible');
-      }
+      await trigger(document.body, 'button', 'qvisible');
       expect(vNode).toMatchVDOM(
         <Component ssr-required>
           <button>
@@ -463,9 +453,7 @@ describe.each([
       });
 
       const { vNode, document } = await render(<Counter />, { debug });
-      if (render === ssrRenderToDom) {
-        await trigger(document.body, 'button', 'qvisible');
-      }
+      await trigger(document.body, 'button', 'qvisible');
       expect(vNode).toMatchVDOM(
         <Component ssr-required>
           <button>
@@ -571,9 +559,7 @@ describe.each([
       });
 
       const { vNode, document } = await render(<Counter />, { debug });
-      if (render === ssrRenderToDom) {
-        await trigger(document.body, 'button', 'qvisible');
-      }
+      await trigger(document.body, 'button', 'qvisible');
       expect((globalThis as any).log).toEqual([
         'Counter',
         'quadruple',
@@ -631,9 +617,7 @@ describe.each([
       });
 
       const { vNode, document } = await render(<Counter />, { debug });
-      if (render === ssrRenderToDom) {
-        await trigger(document.body, 'button', 'qvisible');
-      }
+      await trigger(document.body, 'button', 'qvisible');
       expect((globalThis as any).log).toEqual(['Counter: 0', 'visible task: 0']);
       expect(vNode).toMatchVDOM(
         <Component ssr-required>
@@ -689,10 +673,7 @@ describe.each([
       });
 
       const { vNode, document } = await render(<Parent />, { debug });
-      if (render === ssrRenderToDom) {
-        // only if it is SSR do we need to trigger the qvisible event, in CSR visibleTasks run automatically
-        await trigger(document.body, 'span', 'qvisible');
-      }
+      await trigger(document.body, 'span', 'qvisible');
       expect((globalThis as any).log).toEqual(['Child', 'visible_task:']);
       expect(vNode).toMatchVDOM(
         <Component ssr-required>
@@ -714,6 +695,7 @@ describe.each([
       );
       (globalThis as any).log = [];
       await trigger(document.body, 'button', 'click');
+      await trigger(document.body, 'span', 'qvisible');
 
       expect((globalThis as any).log).toEqual(['Child', 'visible_task:']);
       expect(vNode).toMatchVDOM(
@@ -761,16 +743,12 @@ describe.each([
 
       const { vNode, container } = await render(<Cmp />, { debug });
 
-      if (render === ssrRenderToDom) {
+      await trigger(container.element, 'span', 'qvisible');
+
+      for (let i = 0; i < 6; i++) {
+        await trigger(container.element, 'button', 'click');
         await trigger(container.element, 'span', 'qvisible');
       }
-
-      await trigger(container.element, 'button', 'click');
-      await trigger(container.element, 'button', 'click');
-      await trigger(container.element, 'button', 'click');
-      await trigger(container.element, 'button', 'click');
-      await trigger(container.element, 'button', 'click');
-      await trigger(container.element, 'button', 'click');
 
       expect(vNode).toMatchVDOM(
         <Component ssr-required>
@@ -800,9 +778,7 @@ describe.each([
         return <p>Should have a number: "{promise.value}"</p>;
       });
       const { vNode, document } = await render(<MyComp />, { debug });
-      if (render === ssrRenderToDom) {
-        await trigger(document.body, 'p', 'qvisible');
-      }
+      await trigger(document.body, 'p', 'qvisible');
       expect(vNode).toMatchVDOM(
         <Component ssr-required>
           <p>
@@ -851,6 +827,12 @@ describe.each([
         </Component>
       );
     } else {
+      expect(vNode).toMatchVDOM(
+        <Component ssr-required>
+          <button>task 1 | task 2</button>
+        </Component>
+      );
+      await trigger(document.body, 'button', 'qvisible');
       expect(vNode).toMatchVDOM(
         <Component ssr-required>
           <button>task 1 | task 2 | visible task</button>
@@ -1115,9 +1097,7 @@ describe.each([
 
       const { document, vNode, container } = await render(<Cmp />, { debug });
 
-      if (render === ssrRenderToDom) {
-        await trigger(document.body, 'div', 'qvisible');
-      }
+      await trigger(document.body, 'div', 'qvisible');
       const seq = vnode_getProp<any[]>(vNode!, ELEMENT_SEQ, container.$getObjectById$)!;
       const task = seq.find((task) => task instanceof Task)!;
       expect((task.$flags$ & TaskFlags.EVENTS_REGISTERED) === TaskFlags.EVENTS_REGISTERED).toBe(
@@ -1149,9 +1129,7 @@ describe.each([
 
       const { vNode, document } = await render(<Issue1717 />, { debug });
 
-      if (render === ssrRenderToDom) {
-        await trigger(document.body, 'div', 'qvisible');
-      }
+      await trigger(document.body, 'div', 'qvisible');
 
       expect(vNode).toMatchVDOM(
         <Component ssr-required>
@@ -1214,9 +1192,7 @@ describe.each([
 
       const { vNode, document } = await render(<Issue4432 />, { debug });
 
-      if (render === ssrRenderToDom) {
-        await trigger(document.body, 'p', 'qvisible');
-      }
+      await trigger(document.body, 'p', 'qvisible');
 
       expect(vNode).toMatchVDOM(
         <Component ssr-required>
@@ -1313,13 +1289,13 @@ describe.each([
       });
 
       const { container } = await render(<Cmp />, { debug });
-      if (render === ssrRenderToDom) {
-        await trigger(container.document.body, 'div', 'qvisible');
-      }
+      await trigger(container.document.body, 'div', 'qvisible');
       expect((globalThis as any).log).toEqual(['entry /']);
       await trigger(container.document.body, 'button', 'click');
+      await trigger(container.document.body, 'div', 'qvisible');
       expect((globalThis as any).log).toEqual(['entry /', 'cleanup /', 'return /', 'entry /foo']);
       await trigger(container.document.body, 'button', 'click');
+      await trigger(container.document.body, 'div', 'qvisible');
       expect((globalThis as any).log).toEqual([
         'entry /',
         'cleanup /',
@@ -1350,10 +1326,8 @@ describe.each([
       });
 
       const { document, container } = await render(<Counter />, { debug });
-      if (render === ssrRenderToDom) {
-        await trigger(document.body, 'button', 'qvisible');
-        await waitForDrain(container);
-      }
+      await trigger(document.body, 'button', 'qvisible');
+      await waitForDrain(container);
       expect((globalThis as any).log).toEqual(['task:0']);
 
       await trigger(document.body, 'button', 'click');
@@ -1393,7 +1367,8 @@ describe('render() does not wait for visible tasks', () => {
         return <span>{state.value}</span>;
       });
 
-      const { vNode } = await domRender(<Cmp />);
+      const { vNode, document } = await domRender(<Cmp />);
+      await trigger(document.body, 'span', 'qvisible', {}, { waitForIdle: false });
 
       expect((globalThis as any).log).toEqual(['task-start']);
       expect(vNode).toMatchVDOM(
@@ -1435,6 +1410,7 @@ describe('render() does not wait for visible tasks', () => {
     setPlatform(getTestPlatform());
     const document = createDocument();
     const result = await render(document.body, <Cmp />);
+    await trigger(document.body, 'span', 'qvisible');
     expect((globalThis as any).log).toContain('task');
     const container = _getDomContainer(document.body);
     result.cleanup();

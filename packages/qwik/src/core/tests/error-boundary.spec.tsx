@@ -1730,6 +1730,7 @@ describe('ErrorBoundary + fallback$', () => {
           </ErrorBoundary>,
           { debug }
         );
+        await trigger(container.element, 'span', 'qvisible');
         await waitForDrain(container);
 
         const el = container.element;

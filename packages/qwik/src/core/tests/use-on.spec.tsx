@@ -193,16 +193,14 @@ describe.each([
     });
 
     const { vNode, container } = await render(<Counter initial={123} />, { debug });
-    if (render === ssrRenderToDom) {
-      expect(vNode).toMatchVDOM(
-        <Component>
-          <button>
-            Count: <Signal ssr-required>{'123'}</Signal>!
-          </button>
-        </Component>
-      );
-      await trigger(container.element, 'button', 'qvisible');
-    }
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <button>
+          Count: <Signal ssr-required>{'123'}</Signal>!
+        </button>
+      </Component>
+    );
+    await trigger(container.element, 'button', 'qvisible');
     expect(vNode).toMatchVDOM(
       <Component>
         <button>
@@ -314,16 +312,14 @@ describe.each([
       });
 
       const { vNode, container } = await render(<Counter initial={123} />, { debug });
-      if (render === ssrRenderToDom) {
-        expect(vNode).toMatchVDOM(
-          <Component>
-            <button>
-              Count: <Signal ssr-required>{'123'}</Signal>!
-            </button>
-          </Component>
-        );
-        await trigger(container.element, 'button', 'qvisible');
-      }
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            Count: <Signal ssr-required>{'123'}</Signal>!
+          </button>
+        </Component>
+      );
+      await trigger(container.element, 'button', 'qvisible');
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
@@ -710,16 +706,14 @@ describe.each([
       });
 
       const { vNode, container } = await render(<Counter initial={123} />, { debug });
-      if (render === ssrRenderToDom) {
-        expect(vNode).toMatchVDOM(
-          <Component>
-            <button>
-              Count: <Signal ssr-required>{'123'}</Signal>!
-            </button>
-          </Component>
-        );
-        await trigger(container.element, 'button', 'qvisible');
-      }
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            Count: <Signal ssr-required>{'123'}</Signal>!
+          </button>
+        </Component>
+      );
+      await trigger(container.element, 'button', 'qvisible');
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
@@ -864,16 +858,14 @@ describe.each([
     });
 
     const { vNode, container } = await render(<Counter initial={123} />, { debug });
-    if (render === ssrRenderToDom) {
-      expect(vNode).toMatchVDOM(
-        <Component>
-          <button>
-            Count: <Signal ssr-required>{'123'}</Signal>!
-          </button>
-        </Component>
-      );
-      await trigger(container.element, 'button', 'qvisible');
-    }
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <button>
+          Count: <Signal ssr-required>{'123'}</Signal>!
+        </button>
+      </Component>
+    );
+    await trigger(container.element, 'button', 'qvisible');
     expect(vNode).toMatchVDOM(
       <Component>
         <button>

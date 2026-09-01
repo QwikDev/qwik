@@ -36,14 +36,17 @@ test.describe('qvisible', () => {
     await expect(taskRuns).toHaveText('1');
   });
 
-  test('should run a client-created visible task exactly once', async ({ page }) => {
+  test('should run a client-created visible task when it scrolls into view, exactly once', async ({
+    page,
+  }) => {
     const log = page.locator('#log');
     const taskRuns = page.locator('#task-runs');
     await page.locator('#show-task').click();
     const csrTaskSentinel = page.locator('#csr-task-sentinel');
     await expect(csrTaskSentinel).toHaveText('csr-task sentinel');
-    await expect(log).toHaveText('csr-task;');
+    await expect(log).toHaveText('');
     await csrTaskSentinel.scrollIntoViewIfNeeded();
+    await expect(log).toContainText('csr-task;');
     await expect(taskRuns).toHaveText('1');
   });
 });

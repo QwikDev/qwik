@@ -19,7 +19,38 @@ test.describe('Docs site smoke tests', () => {
     // Verify sidebar has multiple link groups
     const links = sidebar.locator('a[href]');
     expect(await links.count()).toBeGreaterThanOrEqual(5);
+    await expect(sidebar.locator('a[href^="/"]:not([q\\:link])')).toHaveCount(0);
+    expect(await sidebar.locator('svg.vanilla-icon').count()).toBeGreaterThanOrEqual(5);
+    await expect(sidebar.locator('details').first()).toBeVisible();
+    await expect(sidebar.locator('a[aria-current="page"]')).toHaveCount(1);
+    await expect(page.locator('.docs-shell ~ [data-docs-sidebar]')).toHaveCount(1);
   });
+
+  for (const viewport of [
+    { name: 'mobile', width: 390, height: 844 },
+    { name: 'tablet', width: 1024, height: 768 },
+  ]) {
+    test(`${viewport.name} docs sidebar closes manually and after SPA navigation`, async ({
+      page,
+    }) => {
+      await page.setViewportSize(viewport);
+      await page.goto('/docs/');
+
+      const sidebar = page.locator('[data-docs-sidebar] nav');
+      await expect(sidebar).not.toBeInViewport();
+      await page.getByRole('button', { name: 'Open sidebar' }).click();
+      await expect(page.getByRole('button', { name: 'Close sidebar' })).toBeVisible();
+      await expect(sidebar).toBeInViewport();
+      await page.getByRole('button', { name: 'Close sidebar' }).click();
+      await expect(sidebar).not.toBeInViewport();
+
+      await page.getByRole('button', { name: 'Open sidebar' }).click();
+      await sidebar.getByRole('link', { name: 'Getting Started', exact: true }).click();
+      await expect(page).toHaveURL(/\/docs\/getting-started\/$/);
+      await expect(page.getByRole('button', { name: 'Open sidebar' })).toBeVisible();
+      await expect(sidebar).not.toBeInViewport();
+    });
+  }
 
   test('getting started page loads', async ({ page }) => {
     await page.goto('/docs/getting-started/');

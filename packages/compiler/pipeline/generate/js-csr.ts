@@ -40,7 +40,12 @@ import { escapeText } from '../html';
 import { foldStaticOp, isFullyStaticSubtree } from './fold-static';
 import { createNameAllocator, type ComponentEmission, type GeneratedNames } from './emit-component';
 import { generateForeignModule } from './foreign';
-import { makeOutput, type GenerateOutput, type PresentationOptions } from './output';
+import {
+  createFailedModule,
+  makeOutput,
+  type GenerateOutput,
+  type PresentationOptions,
+} from './output';
 
 type TextOp = Extract<Op, { op: OpKind.Static | OpKind.Hole }>;
 
@@ -67,8 +72,9 @@ async function generateModule(
       return [await generateForeignModule(module, options)];
     case ModuleKind.Qwik:
       return generateQwikModule(module, new CsrModuleEmitter(module), options, 'module-top');
-    case ModuleKind.ExportsOnly:
     case ModuleKind.Failed:
+      return [createFailedModule(module.path)];
+    case ModuleKind.ExportsOnly:
       throw new Error(
         `pipeline.generateJsCsr: ${module.kind} modules not implemented yet (slice 2): ${module.path}`
       );

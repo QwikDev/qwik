@@ -33,3 +33,14 @@ export function makeOutput(plan: LinkedPlan, modules: GenerateOutput['modules'])
     isJsx: plan.modules.some((module) => isJsxPath(module.path)),
   };
 }
+
+export function createFailedModule(path: string): GenerateOutput['modules'][number] {
+  return {
+    path,
+    code: '',
+    map: null,
+    isEntry: false,
+    origPath: null,
+    segment: null,
+  };
+}

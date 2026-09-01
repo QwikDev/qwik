@@ -46,7 +46,12 @@ import { emitJsSetup, signalReadName } from './emit-setup';
 import { foldStaticOp, isFullyStaticSubtree } from './fold-static';
 import { createNameAllocator, type ComponentEmission, type GeneratedNames } from './emit-component';
 import { generateForeignModule } from './foreign';
-import { makeOutput, type GenerateOutput, type PresentationOptions } from './output';
+import {
+  createFailedModule,
+  makeOutput,
+  type GenerateOutput,
+  type PresentationOptions,
+} from './output';
 
 export async function generateJsSsr(
   plan: LinkedPlan,
@@ -71,8 +76,9 @@ async function generateModule(
       return [await generateForeignModule(module, options)];
     case ModuleKind.Qwik:
       return generateQwikModule(module, new SsrModuleEmitter(module), options);
-    case ModuleKind.ExportsOnly:
     case ModuleKind.Failed:
+      return [createFailedModule(module.path)];
+    case ModuleKind.ExportsOnly:
       throw new Error(
         `pipeline.generateJsSsr: ${module.kind} modules not implemented yet (slice 1): ${module.path}`
       );

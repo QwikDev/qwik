@@ -12,6 +12,7 @@ import {
   visit,
 } from './ast-utils';
 import { getJsxMapKeyAttribute, getStaticJsxAttributeValue } from './jsx-ast-utils';
+import { createSourceLocation } from './source-location';
 import type { AstNode, SourceRange } from './types';
 import type {
   BindingInfo,
@@ -833,29 +834,4 @@ export function locatedDiagnostic(
       suggestions: null,
     },
   };
-}
-
-function createSourceLocation(source: string, range: SourceRange) {
-  const start = offsetLocation(source, range[0]);
-  const end = offsetLocation(source, range[1]);
-  return {
-    lo: range[0],
-    hi: range[1],
-    startLine: start.line,
-    startCol: start.column + 1,
-    endLine: end.line,
-    endCol: end.column,
-  };
-}
-
-function offsetLocation(source: string, offset: number): { line: number; column: number } {
-  let line = 1;
-  let lineStart = 0;
-  for (let i = 0; i < offset && i < source.length; i++) {
-    if (source.charCodeAt(i) === 10) {
-      line++;
-      lineStart = i + 1;
-    }
-  }
-  return { line, column: offset - lineStart };
 }

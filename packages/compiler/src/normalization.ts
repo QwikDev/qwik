@@ -6,6 +6,7 @@ import type {
 import { SourceMap as NodeSourceMap } from 'node:module';
 import { transform, type SourceMap } from 'oxc-transform';
 import { getLang, isJsxPath, isTypeScriptPath } from './module-utils';
+import { offsetLocation } from './source-location';
 import type { CompilerTransformInput, SourceRange } from './types';
 
 export async function normalizeTransformInput(
@@ -160,9 +161,4 @@ function offsetToPosition(starts: readonly number[], offset: number) {
     }
   }
   return { line: low + 1, column: offset - starts[low] };
-}
-
-function offsetLocation(source: string, offset: number): { line: number; column: number } {
-  const position = offsetToPosition(lineStarts(source), offset);
-  return { line: position.line, column: position.column };
 }

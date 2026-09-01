@@ -224,11 +224,12 @@ export function readBlogArticles(articlesDir: string, siteUrl = BLOG_SITE_URL): 
 
 function renderArticle(article: BlogRssArticle): string {
   const guid = article.guid ?? article.url;
+  const isGuidPermalink = article.guid === undefined;
   const lines = [
     '    <item>',
     `      <title>${escapeXml(article.title)}</title>`,
     `      <link>${escapeXml(article.url)}</link>`,
-    `      <guid isPermaLink="true">${escapeXml(guid)}</guid>`,
+    `      <guid isPermaLink="${isGuidPermalink}">${escapeXml(guid)}</guid>`,
     `      <pubDate>${escapeXml(article.date.toUTCString())}</pubDate>`,
   ];
 

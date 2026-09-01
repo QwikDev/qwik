@@ -122,6 +122,7 @@ describe('blog RSS generation', () => {
           tags: ['News'],
           date: new Date('2024-01-01T00:00:00Z'),
           url: 'https://qwik.dev/blog/older/',
+          guid: 'qwik-blog:older',
         },
         {
           title: 'Newest',
@@ -139,6 +140,8 @@ describe('blog RSS generation', () => {
     );
     expect(feed).toContain('<dc:creator>A &lt;B&gt;</dc:creator>');
     expect(feed).toContain('<category>News</category>');
+    expect(feed).toContain('<guid isPermaLink="false">qwik-blog:older</guid>');
+    expect(feed).toContain('<guid isPermaLink="true">https://qwik.dev/blog/newest/</guid>');
     expect(feed).toContain('type="application/rss+xml"');
     expect(renderRssFeed([], 'https://qwik.dev')).not.toContain('<lastBuildDate>');
   });

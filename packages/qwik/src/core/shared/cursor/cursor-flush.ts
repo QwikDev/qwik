@@ -7,12 +7,7 @@ import {
 import { runTask } from '../../use/use-task';
 import { QContainerValue, type Container } from '../types';
 import { directSetAttribute } from '../utils/attribute';
-import {
-  dangerouslySetInnerHTML,
-  QContainerAttr,
-  QVisibleAttr,
-  QVisibleScopedEvent,
-} from '../utils/markers';
+import { dangerouslySetInnerHTML, QContainerAttr } from '../utils/markers';
 import { serializeAttribute } from '../utils/styles';
 import {
   DeleteOperation,
@@ -38,22 +33,15 @@ export function executeFlushPhase(cursor: Cursor, container: Container): void {
   if (journal && journal.length > 0) {
     _flushJournal(journal);
     cursorData.journal = null;
-    if (journalAddsQVisibleListener(journal)) {
-      // re-notify so the loader observes elements flushed after its initial scan
-      registerQwikLoaderEvent(container as ClientContainer, QVisibleScopedEvent);
+  }
+  const loaderEvents = cursorData.notifyQwikLoaderEvents;
+  if (loaderEvents) {
+    cursorData.notifyQwikLoaderEvents = null;
+    for (let i = 0; i < loaderEvents.length; i++) {
+      registerQwikLoaderEvent(container as ClientContainer, loaderEvents[i]);
     }
   }
   executeAfterFlush(container, cursorData);
-}
-
-function journalAddsQVisibleListener(journal: VNodeJournal): boolean {
-  for (let i = 0; i < journal.length; i++) {
-    const operation = journal[i];
-    if (operation instanceof SetAttributeOperation && operation.attrName === QVisibleAttr) {
-      return true;
-    }
-  }
-  return false;
 }
 
 let _insertBefore: typeof Element.prototype.insertBefore | null = null;

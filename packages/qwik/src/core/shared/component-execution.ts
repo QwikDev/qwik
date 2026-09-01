@@ -34,8 +34,7 @@ import { isServerPlatform } from './platform/platform';
 import type { ISsrNode, SSRContainer } from '../ssr/ssr-types';
 import { ChoreBits } from './vnode/enums/chore-bits.enum';
 import type { SignalImpl } from '../reactive-primitives/impl/signal-impl';
-import { isTask, TaskFlags } from '../use/use-task';
-import { markVNodeDirty } from './vnode/vnode-dirty';
+import { isTask } from '../use/use-task';
 
 /**
  * Use `executeComponent` to execute a component.
@@ -216,11 +215,6 @@ function addUseOnEvents(
         if (targetElement) {
           if (targetElement.type === 'script' && key === QVisibleAttr) {
             eventKey = 'q-d:qinit';
-            const isSsr = qTest ? isServerPlatform() : isServer;
-            if (!isSsr) {
-              // qinit already fired, so run the visible tasks now
-              scheduleVisibleTasksNow(container, useOnEvents[key].qrls);
-            }
             if (isDev) {
               const sourceLocation = getUseOnSourceLocation(useOnEvents[key].qrls);
               logWarn(
@@ -238,19 +232,6 @@ function addUseOnEvents(
     }
     return jsxResult;
   });
-}
-
-function scheduleVisibleTasksNow(
-  container: Container,
-  eventQrls: EventQRL<KnownEventNames>[]
-): void {
-  for (let i = 0; i < eventQrls.length; i++) {
-    const task = eventQrls[i]?.getCaptured()?.[0];
-    if (isTask(task) && !(task.$flags$ & (TaskFlags.DIRTY | TaskFlags.EXECUTED))) {
-      task.$flags$ |= TaskFlags.DIRTY;
-      markVNodeDirty(container, task.$el$, ChoreBits.TASKS);
-    }
-  }
 }
 
 function getUseOnSourceLocation(eventQrls: EventQRL<KnownEventNames>[]): string | null {

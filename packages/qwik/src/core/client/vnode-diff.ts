@@ -1108,7 +1108,28 @@ function registerEventHandlers(
   if (key.charAt(2) !== 'e' || scopedKebabName === QVisibleScopedEvent) {
     vnode_setAttr(diffContext.$journal$, vnode, key, '');
   }
-  registerQwikLoaderEvent(diffContext.$container$, scopedKebabName);
+  if (
+    scopedKebabName === QVisibleScopedEvent ||
+    scopedKebabName === 'd:qinit' ||
+    scopedKebabName === 'd:qidle'
+  ) {
+    // the loader scans the DOM for these, so notify it only after the flush
+    queueQwikLoaderEventAfterFlush(diffContext, scopedKebabName);
+  } else {
+    registerQwikLoaderEvent(diffContext.$container$, scopedKebabName);
+  }
+}
+
+function queueQwikLoaderEventAfterFlush(diffContext: DiffContext, eventName: string) {
+  const cursorData = getCursorData(diffContext.$cursor$);
+  if (cursorData) {
+    const loaderEvents = (cursorData.notifyQwikLoaderEvents ||= []);
+    if (!loaderEvents.includes(eventName)) {
+      loaderEvents.push(eventName);
+    }
+  } else {
+    registerQwikLoaderEvent(diffContext.$container$, eventName);
+  }
 }
 
 function createElementWithNamespace(diffContext: DiffContext, elementName: string): Element {

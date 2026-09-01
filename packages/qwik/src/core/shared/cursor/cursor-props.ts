@@ -17,6 +17,8 @@ export const INLINE_COMPONENT_DATA_KEY = ':inlineComponentData';
 
 export interface CursorData {
   afterFlushTasks: Task[] | null;
+  /** Qwik loader events to (re)register after the journal is flushed to the DOM. */
+  notifyQwikLoaderEvents: string[] | null;
   extraPromises: Promise<void>[] | null;
   journal: VNodeJournal | null;
   container: Container;
@@ -72,6 +74,16 @@ export function mergeCursorData(newCursorData: CursorData, oldCursorData: Cursor
       newAfterFlushTasks.push(...oldAfterFlushTasks);
     } else {
       newCursorData.afterFlushTasks = oldAfterFlushTasks;
+    }
+  }
+  // merge qwik loader event notifications
+  const oldLoaderEvents = oldCursorData.notifyQwikLoaderEvents;
+  if (oldLoaderEvents && oldLoaderEvents.length > 0) {
+    const newLoaderEvents = (newCursorData.notifyQwikLoaderEvents ||= []);
+    for (let i = 0; i < oldLoaderEvents.length; i++) {
+      if (!newLoaderEvents.includes(oldLoaderEvents[i])) {
+        newLoaderEvents.push(oldLoaderEvents[i]);
+      }
     }
   }
   // merge extra promises

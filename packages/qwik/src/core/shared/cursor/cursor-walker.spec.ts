@@ -343,6 +343,7 @@ describe('tryDescendDirtyChildren', () => {
       journal: null,
       extraPromises: null,
       afterFlushTasks: null,
+      notifyQwikLoaderEvents: null,
       priority: 0,
       boundaries: null,
     };
@@ -671,6 +672,7 @@ describe('setCursorPosition', () => {
       journal: null,
       extraPromises: null,
       afterFlushTasks: null,
+      notifyQwikLoaderEvents: null,
       priority: 0,
       boundaries: null,
     };
@@ -713,6 +715,7 @@ describe('abandonCursor', () => {
       journal,
       extraPromises: null,
       afterFlushTasks: null,
+      notifyQwikLoaderEvents: null,
       priority: 0,
       boundaries: null,
     };

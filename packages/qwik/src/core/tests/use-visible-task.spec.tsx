@@ -259,9 +259,7 @@ describe.each([
       return <>{signal.value}</>;
     });
     const { vNode, document } = await render(<Cmp />, { debug });
-    if (render === ssrRenderToDom) {
-      await trigger(document.body, 'script', 'd:qinit');
-    }
+    await trigger(document.body, 'script', 'd:qinit');
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
         <Fragment ssr-required>
@@ -282,9 +280,7 @@ describe.each([
       return [<Child key="1" />, <Child key="2" />, signal.value];
     });
     const { document } = await render(<Cmp />, { debug });
-    if (render === ssrRenderToDom) {
-      await trigger(document.body, 'script', 'd:qinit');
-    }
+    await trigger(document.body, 'script', 'd:qinit');
     // the placeholder is the anchor for the visible task, so it has to be rendered
     const anchors = document.querySelectorAll('script[q-d\\:qinit]');
     expect(anchors.length).toBe(1);
@@ -304,9 +300,7 @@ describe.each([
       return [<>{signal.value}</>, <>{signal.value}</>];
     });
     const { vNode, document } = await render(<Cmp />, { debug });
-    if (render === ssrRenderToDom) {
-      await trigger(document.body, 'script', 'd:qinit');
-    }
+    await trigger(document.body, 'script', 'd:qinit');
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
         <Fragment ssr-required>
@@ -329,9 +323,7 @@ describe.each([
       return <></>;
     });
     const { vNode, document } = await render(<Cmp />, { debug });
-    if (render === ssrRenderToDom) {
-      await trigger(document.body, 'script', 'd:qinit');
-    }
+    await trigger(document.body, 'script', 'd:qinit');
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
         <Fragment ssr-required></Fragment>
@@ -349,9 +341,7 @@ describe.each([
       return null;
     });
     const { vNode, document } = await render(<Cmp />, { debug });
-    if (render === ssrRenderToDom) {
-      await trigger(document.body, 'script', 'd:qinit');
-    }
+    await trigger(document.body, 'script', 'd:qinit');
     expect((globalThis as any).log).toEqual(['task']);
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
@@ -370,9 +360,7 @@ describe.each([
       return undefined;
     });
     const { vNode, document } = await render(<Cmp />, { debug });
-    if (render === ssrRenderToDom) {
-      await trigger(document.body, 'script', 'd:qinit');
-    }
+    await trigger(document.body, 'script', 'd:qinit');
     expect((globalThis as any).log).toEqual(['task']);
     expect(vNode).toMatchVDOM(
       <Component ssr-required>
@@ -397,9 +385,7 @@ describe.each([
       return <></>;
     });
     const { document } = await render(<Cmp />, { debug });
-    if (render === ssrRenderToDom) {
-      await trigger(document.body, 'script', 'd:qinit');
-    }
+    await trigger(document.body, 'script', 'd:qinit');
     expect((globalThis as any).log).toEqual(['task1', 'task2']);
   });
 
@@ -482,9 +468,7 @@ describe.each([
     });
 
     const { document } = await render(<Cmp />, { debug });
-    if (render === ssrRenderToDom) {
-      await trigger(document.body, 'script', 'd:qinit');
-    }
+    await trigger(document.body, 'script', 'd:qinit');
 
     expect((globalThis as any).counter).toBe(1);
 
@@ -501,9 +485,7 @@ describe.each([
     });
 
     const { document } = await render(<Cmp />, { debug });
-    if (render === ssrRenderToDom) {
-      await trigger(document.body, 'script[hidden]', 'd:qinit');
-    }
+    await trigger(document.body, 'script[hidden]', 'd:qinit');
 
     expect((globalThis as any).counter).toBe(1);
 
@@ -939,9 +921,7 @@ describe.each([
 
       const { document } = await render(<Cmp />, { debug });
       const spanBeforeRerender = document.querySelector('span');
-      if (render === ssrRenderToDom) {
-        await trigger(document.body, 'script', 'd:qinit');
-      }
+      await trigger(document.body, 'script', 'd:qinit');
 
       expect(document.querySelector('span')?.textContent).toBe('vtrue');
       expect((globalThis as any).childRenderCounter).toBe(1);
@@ -976,9 +956,7 @@ describe.each([
 
       const { document } = await render(<Cmp />, { debug });
       const spanBeforeRerender = document.querySelector('span');
-      if (render === ssrRenderToDom) {
-        await trigger(document.body, 'script', 'd:qinit');
-      }
+      await trigger(document.body, 'script', 'd:qinit');
 
       expect(document.querySelector('span')?.textContent).toBe('vtrue');
       expect((globalThis as any).childRenderCounter).toBe(1);
@@ -1006,9 +984,7 @@ describe.each([
       ));
 
       const { vNode, document } = await render(<Cmp />, { debug });
-      if (render === ssrRenderToDom) {
-        await trigger(document.body, 'script', 'd:qinit');
-      }
+      await trigger(document.body, 'script', 'd:qinit');
 
       // the returned node stays untouched
       expect(shared.children).toBe('shared');
@@ -1057,9 +1033,7 @@ describe.each([
       });
 
       const { document } = await render(<Cmp />, { debug });
-      if (render === ssrRenderToDom) {
-        await trigger(document.body, 'script', 'd:qinit');
-      }
+      await trigger(document.body, 'script', 'd:qinit');
       const spansBeforeReorder = Array.from(document.querySelectorAll('span'));
       expect(spansBeforeReorder.map((span) => span.textContent)).toEqual(['a0', 'b1', 'c2']);
       expect((globalThis as any).childRenderCounter).toBe(3);

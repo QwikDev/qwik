@@ -1071,9 +1071,7 @@ describe.each([
         );
       });
       const { vNode, document } = await render(<LayoutTest />, { debug });
-      if (render === ssrRenderToDom) {
-        await trigger(document.body, 'script', 'd:qinit');
-      }
+      await trigger(document.body, 'script', 'd:qinit');
       await trigger(document.body, 'script', 'd:click');
       await trigger(document.body, 'script', 'w:resize');
       expect((globalThis as any).counter).toBe(3);

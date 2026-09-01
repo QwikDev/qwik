@@ -76,10 +76,12 @@ function tryStringConcat(expression: Expression, ctx: LowerContext): StringConca
     case 'MemberExpression': {
       const name = identifierName(node.object);
       const property = node.computed ? null : identifierName(node.property);
+      const binding = ctx.bindings.reference(node.object);
       if (
         property !== 'value' ||
         name === null ||
-        ctx.locals.get(name)?.kind !== LocalKind.Signal
+        binding === null ||
+        ctx.locals.get(binding)?.kind !== LocalKind.Signal
       ) {
         return null;
       }

@@ -1,7 +1,6 @@
 /** `analyseModule(file, options) -> ModulePlan` — one file, one plan, pure (DESIGN.md rule 7). */
 import {
   AssemblyKind,
-  BindingScope,
   BoundaryKind,
   SurfaceKind,
   DeclarationKind,
@@ -16,7 +15,7 @@ import {
   type Diagnostic,
   type ModulePlan,
 } from '../schema';
-import { collectBindingNames } from './ast/bindings';
+import { createBindingGraph } from './ast/bindings';
 import { findRuntimeJsx, hasComponentCandidates } from './ast/returns-jsx';
 import { parseModule } from './ast/parse';
 import { scanCoreImports } from './core-imports';
@@ -87,13 +86,8 @@ export async function analyseModule(
   }
 
   plan.kind = ModuleKind.Qwik;
-  plan.bindings = collectBindingNames(parsed.program).map((name, id) => ({
-    id,
-    name,
-    scope: BindingScope.Module,
-    varKind: null,
-    declarationRange: null,
-  }));
+  const bindings = createBindingGraph(parsed.program);
+  plan.bindings = bindings.bindings;
   plan.source.code = normalized.code;
   plan.lifetimes.push({
     id: 0,
@@ -101,14 +95,11 @@ export async function analyseModule(
     owner: LifetimeOwner.Component,
     commit: LifetimeCommit.Immediate,
   });
-  const coreBindings = scanCoreImports(
-    parsed.program,
-    plan,
-    plan.bindings.map((binding) => binding.name)
-  );
-  const lowerContext = createLowerContext(plan, input.path, options.scope, coreBindings);
+  const coreBindings = scanCoreImports(parsed.program, plan, bindings);
+  const lowerContext = createLowerContext(plan, input.path, options.scope, bindings, coreBindings);
   for (const component of components) {
-    lowerContext.propsParamName = component.param?.name ?? null;
+    lowerContext.propsBinding =
+      component.param === null ? null : bindings.declaration(component.param.node);
     let rootOp;
     let setup;
     try {
@@ -182,9 +173,7 @@ export async function analyseModule(
                 pattern: plan.payloads.length - 1,
                 surface: {
                   kind: SurfaceKind.Identifier,
-                  binding: plan.bindings.findIndex(
-                    (binding) => binding.name === component.param!.name
-                  ),
+                  binding: lowerContext.propsBinding!,
                 },
               },
         root: { name: `q${component.name}-` },

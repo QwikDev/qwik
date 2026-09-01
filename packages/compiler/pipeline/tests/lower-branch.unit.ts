@@ -1,18 +1,11 @@
 import { describe, expect, test } from 'vitest';
-import {
-  ArgPass,
-  BindingScope,
-  CaptureAccess,
-  OpKind,
-  ProgramBodyKind,
-  QrlBodyKind,
-} from '../schema';
+import { ArgPass, CaptureAccess, OpKind, ProgramBodyKind, QrlBodyKind } from '../schema';
 import { parseModule } from '../analyse/ast/parse';
 import { unwrapExpression } from '../analyse/ast/utils';
 import { createLowerContext } from '../analyse/lower-context';
 import { LocalKind, type SetupLocal } from '../analyse/lower-setup';
 import { lowerJsx } from '../analyse/lower-jsx';
-import { emptyModulePlan } from './fixtures';
+import { createTestLowerContext } from './fixtures';
 
 const SHOW_LOCAL: SetupLocal = {
   kind: LocalKind.Signal,
@@ -31,20 +24,22 @@ function lower(
   jsx: string,
   shape: (ctx: ReturnType<typeof createLowerContext>) => void = () => {}
 ) {
-  const parsed = parseModule('t.tsx', `const a = ${jsx};`);
+  const source = `const show = null; const count = null; const title = null; const render = (props) => ${jsx};`;
+  const parsed = parseModule('t.tsx', source);
   expect(parsed.errors).toEqual([]);
-  const statement = parsed.program.body[0];
+  const statement = parsed.program.body[3];
   if (statement.type !== 'VariableDeclaration') {
     throw new Error('expected a variable declaration');
   }
-  const element = unwrapExpression(statement.declarations[0].init);
+  const render = unwrapExpression(statement.declarations[0].init);
+  const element = render?.type === 'ArrowFunctionExpression' ? unwrapExpression(render.body) : null;
   if (element?.type !== 'JSXElement') {
     throw new Error('expected a JSX element');
   }
-  const ctx = createLowerContext(emptyModulePlan('t.tsx', `const a = ${jsx};`), 't.tsx', undefined);
+  const { ctx } = createTestLowerContext(parsed.program, source);
   ctx.locals = new Map([
-    ['show', SHOW_LOCAL],
-    ['count', COUNT_LOCAL],
+    [0, SHOW_LOCAL],
+    [1, COUNT_LOCAL],
   ]);
   shape(ctx);
   return { op: lowerJsx(element, ctx), ctx };
@@ -80,17 +75,12 @@ describe('lowerBranch / arm captures', () => {
 
   test('an arm reading the props param records a trailing ComponentProp capture', () => {
     const { op, ctx } = lower('<div>{show.value ? <b>{props.title}</b> : null}</div>', (ctx) => {
-      ctx.plan.bindings.push({
-        id: 0,
-        name: 'props',
-        scope: BindingScope.Param,
-        varKind: null,
-        declarationRange: null,
-      });
-      ctx.propsParamName = 'props';
+      ctx.propsBinding = ctx.plan.bindings.find((binding) => binding.name === 'props')!.id;
     });
     const arm = ctx.plan.qrls.find((qrl) => qrl.ctxName === 'branch:then');
-    expect(arm?.captures).toEqual([{ binding: 0, access: CaptureAccess.ComponentProp }]);
+    expect(arm?.captures).toEqual([
+      { binding: ctx.propsBinding, access: CaptureAccess.ComponentProp },
+    ]);
     expect(op.op === OpKind.Element && op.children[0]).toMatchObject({
       op: OpKind.Branch,
       then: { qrl: arm?.id, args: [{ pass: ArgPass.Props }] },
@@ -98,10 +88,8 @@ describe('lowerBranch / arm captures', () => {
   });
 
   test('an arm reading a module binding refuses', () => {
-    expect(() =>
-      lower('<div>{show.value ? <b>{title}</b> : null}</div>', (ctx) => {
-        ctx.bindingNames = new Set(['title']);
-      })
-    ).toThrow('a branch arm capturing "title"');
+    expect(() => lower('<div>{show.value ? <b>{title}</b> : null}</div>')).toThrow(
+      'a branch arm capturing "title"'
+    );
   });
 });

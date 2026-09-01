@@ -29,19 +29,23 @@ export function lowerEventAttribute(
     throw new UnsupportedError('an event handler that is not an inline arrow function');
   }
   const params = fn.params;
-  const paramNames = new Set<string>();
+  const paramBindings = new Set<number>();
   for (const param of params) {
     if (param.type !== 'Identifier') {
       throw new UnsupportedError('event handler parameters beyond identifiers');
     }
-    paramNames.add(param.name);
+    const binding = ctx.bindings.declaration(param);
+    if (binding === null) {
+      throw new UnsupportedError(`the unresolved event parameter "${param.name}"`);
+    }
+    paramBindings.add(binding);
   }
   const body = fn.body;
   if (body.type === 'BlockStatement') {
     throw new UnsupportedError('a block-bodied event handler');
   }
   const { captures, args } = lowerCaptures(body, ctx, 'an event handler', {
-    localNames: paramNames,
+    localBindings: paramBindings,
   });
 
   const payload = pushPayload(ctx, [fn.start, fn.end]);

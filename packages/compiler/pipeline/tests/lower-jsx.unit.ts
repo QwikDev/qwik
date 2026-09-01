@@ -1,13 +1,13 @@
 import { describe, expect, test } from 'vitest';
 import { parseModule } from '../analyse/ast/parse';
 import { unwrapExpression } from '../analyse/ast/utils';
-import { createLowerContext } from '../analyse/lower-context';
 import { lowerJsx } from '../analyse/lower-jsx';
-import { emptyModulePlan } from './fixtures';
+import { createTestLowerContext } from './fixtures';
 import { foldStaticOp } from '../generate/fold-static';
 
 function fold(jsx: string, escapeTextContent = false): string {
-  const parsed = parseModule('t.tsx', `const a = ${jsx};`);
+  const source = `const a = ${jsx};`;
+  const parsed = parseModule('t.tsx', source);
   expect(parsed.errors).toEqual([]);
   const statement = parsed.program.body[0];
   if (statement.type !== 'VariableDeclaration') {
@@ -17,7 +17,7 @@ function fold(jsx: string, escapeTextContent = false): string {
   if (element?.type !== 'JSXElement') {
     throw new Error('expected a JSX element');
   }
-  const ctx = createLowerContext(emptyModulePlan('t.tsx'), 't.tsx', undefined);
+  const { ctx } = createTestLowerContext(parsed.program, source);
   return foldStaticOp(lowerJsx(element, ctx), escapeTextContent);
 }
 

@@ -1,5 +1,12 @@
 import type { Node } from 'oxc-parser';
-import { ArgPass, CaptureAccess, type Qrl, type QrlUse, type Range } from '../../schema';
+import {
+  ArgPass,
+  CaptureAccess,
+  type LocalId,
+  type Qrl,
+  type QrlUse,
+  type Range,
+} from '../../schema';
 import { UnsupportedError } from '../../errors';
 import { isNode, type WalkableNode } from './ast-types';
 import type { LowerContext } from '../lower-context';
@@ -20,15 +27,15 @@ export interface CollectedCaptures {
 export function collectCaptures(
   node: Node,
   ctx: LowerContext,
-  localNames: ReadonlySet<string>
+  localBindings: ReadonlySet<LocalId>
 ): CollectedCaptures {
   let props = false;
   const locals: CollectedCaptures['locals'] = [];
   let other: string | null = null;
-  const visit = (current: unknown, parent: Node | null, key: string | null): void => {
+  const visit = (current: unknown): void => {
     if (Array.isArray(current)) {
       for (const item of current) {
-        visit(item, parent, key);
+        visit(item);
       }
       return;
     }
@@ -36,28 +43,23 @@ export function collectCaptures(
       return;
     }
     if (current.type === 'Identifier') {
-      const isMemberProperty =
-        parent?.type === 'MemberExpression' && key === 'property' && parent.computed !== true;
-      const isPropertyKey =
-        parent?.type === 'Property' && key === 'key' && parent.computed !== true;
-      if (!isMemberProperty && !isPropertyKey) {
-        const name = current.name;
-        if (!localNames.has(name)) {
-          const setupLocal = ctx.locals.get(name);
-          if (name === ctx.propsParamName) {
-            props = true;
-          } else if (setupLocal !== undefined) {
-            const read: Range = [current.start, current.end];
-            const entry = locals.find((candidate) => candidate.name === name);
-            if (entry === undefined) {
-              locals.push({ name, local: setupLocal, reads: [read] });
-            } else {
-              entry.reads.push(read);
-            }
-          } else if (ctx.bindingNames.has(name)) {
-            other = name;
-          }
+      const binding = ctx.bindings.reference(current);
+      if (binding === null || localBindings.has(binding) || isDeclaredWithin(ctx, binding, node)) {
+        return;
+      }
+      const setupLocal = ctx.locals.get(binding);
+      if (binding === ctx.propsBinding) {
+        props = true;
+      } else if (setupLocal !== undefined) {
+        const read: Range = [current.start, current.end];
+        const entry = locals.find((candidate) => candidate.local === setupLocal);
+        if (entry === undefined) {
+          locals.push({ name: current.name, local: setupLocal, reads: [read] });
+        } else {
+          entry.reads.push(read);
         }
+      } else {
+        other = ctx.plan.bindings[binding].name;
       }
       return;
     }
@@ -71,11 +73,16 @@ export function collectCaptures(
       ) {
         continue;
       }
-      visit((current as WalkableNode)[childKey], current, childKey);
+      visit((current as WalkableNode)[childKey]);
     }
   };
-  visit(node, null, null);
+  visit(node);
   return { props, locals, other };
+}
+
+function isDeclaredWithin(ctx: LowerContext, binding: LocalId, node: Node): boolean {
+  const range = ctx.plan.bindings[binding].declarationRange;
+  return range !== null && range[0] >= node.start && range[1] <= node.end;
 }
 
 export interface LoweredCaptures {
@@ -94,14 +101,16 @@ export function lowerCaptures(
   ctx: LowerContext,
   /** Refusal-message subject, e.g. 'a branch arm'. */
   subject: string,
-  options: { localNames?: ReadonlySet<string>; allowProps?: boolean } = {}
+  options: { localBindings?: ReadonlySet<LocalId>; allowProps?: boolean } = {}
 ): LoweredCaptures {
-  const refs = collectCaptures(node, ctx, options.localNames ?? new Set());
+  const refs = collectCaptures(node, ctx, options.localBindings ?? new Set());
   if (refs.other !== null) {
     throw new UnsupportedError(`${subject} capturing "${refs.other}"`);
   }
   if (refs.props && options.allowProps !== true) {
-    throw new UnsupportedError(`${subject} capturing "${ctx.propsParamName}"`);
+    throw new UnsupportedError(
+      `${subject} capturing "${ctx.plan.bindings[ctx.propsBinding!].name}"`
+    );
   }
   const captures: Qrl['captures'] = [];
   const args: QrlUse['args'] = [];
@@ -114,8 +123,7 @@ export function lowerCaptures(
     args.push({ pass: ArgPass.Binding, binding: entry.local.binding });
   }
   if (refs.props) {
-    const binding = ctx.plan.bindings.findIndex((entry) => entry.name === ctx.propsParamName);
-    captures.push({ binding, access: CaptureAccess.ComponentProp });
+    captures.push({ binding: ctx.propsBinding!, access: CaptureAccess.ComponentProp });
     args.push({ pass: ArgPass.Props });
   }
   return { captures, args, refs };

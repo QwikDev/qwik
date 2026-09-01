@@ -1,5 +1,6 @@
 import type {
   ArrowFunctionExpression,
+  BindingIdentifier,
   Directive,
   JSXElement,
   Program,
@@ -15,7 +16,7 @@ export interface DiscoveredComponent {
   declarationKind: DeclarationKind;
   arrow: ArrowFunctionExpression;
   /** The authored props param — reused as the emitted props name. */
-  param: { name: string; range: [number, number] } | null;
+  param: { node: BindingIdentifier; range: [number, number] } | null;
   /** Statements before the return — lowered as component setup. */
   setupStatements: (Directive | Statement)[];
   jsx: JSXElement;
@@ -88,7 +89,7 @@ function describeComponent(
     declarationKind,
     setupStatements,
     arrow,
-    param: param === undefined ? null : { name: param.name, range: [param.start, param.end] },
+    param: param === undefined ? null : { node: param, range: [param.start, param.end] },
     jsx: returned,
     statement,
   };

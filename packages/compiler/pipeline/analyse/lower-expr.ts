@@ -139,7 +139,11 @@ export function trySignalReadValue(
   if (property !== 'value' || name === null) {
     return null;
   }
-  const local = ctx.locals.get(name);
+  const binding = ctx.bindings.reference(expression.object);
+  if (binding === null) {
+    return null;
+  }
+  const local = ctx.locals.get(binding);
   if (local === undefined) {
     return null;
   }
@@ -163,15 +167,15 @@ export function tryLowerExprIr(node: Expression, ctx: LowerContext): ValueIR | n
   switch (node.type) {
     case 'Identifier': {
       const name = identifierName(node);
-      if (name === null) {
+      const binding = ctx.bindings.reference(node);
+      if (name === null || binding === null) {
         return null;
       }
-      if (name === ctx.propsParamName) {
-        const binding = ctx.plan.bindings.findIndex((candidate) => candidate.name === name);
-        return binding < 0 ? null : { kind: ValueIrKind.BindingRead, binding };
+      if (binding === ctx.propsBinding) {
+        return { kind: ValueIrKind.BindingRead, binding };
       }
       // A bare row-index read IS a signal read — the box unwraps at the use site.
-      const local = ctx.locals.get(name);
+      const local = ctx.locals.get(binding);
       if (local?.kind === LocalKind.RowIndex) {
         return { kind: ValueIrKind.SignalRead, binding: local.binding };
       } else if (local?.kind === LocalKind.PropMember) {

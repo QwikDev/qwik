@@ -1,6 +1,7 @@
 import type { ImportSpecifier, Program } from 'oxc-parser';
-import { EsmEdgeKind, type ModulePlan } from '../schema';
+import { EsmEdgeKind, type LocalId, type ModulePlan } from '../schema';
 import { UnsupportedError } from '../errors';
+import type { BindingGraph } from './ast/bindings';
 
 const CORE_SOURCES = new Set(['@qwik.dev/core', '@qwik.dev/core/build']);
 
@@ -11,9 +12,9 @@ const CORE_SOURCES = new Set(['@qwik.dev/core', '@qwik.dev/core/build']);
 export function scanCoreImports(
   program: Program,
   plan: ModulePlan,
-  bindingNames: readonly string[]
-): Map<string, string> {
-  const coreBindings = new Map<string, string>();
+  bindings: BindingGraph
+): Map<LocalId, string> {
+  const coreBindings = new Map<LocalId, string>();
   for (const statement of program.body) {
     if (statement.type !== 'ImportDeclaration') {
       continue;
@@ -45,9 +46,13 @@ export function scanCoreImports(
       if (imported.type !== 'Identifier') {
         throw new UnsupportedError('a string-named import from @qwik.dev/core');
       }
-      coreBindings.set(local.name, imported.name);
+      const binding = bindings.declaration(local);
+      if (binding === null) {
+        throw new UnsupportedError(`the unresolved core import "${local.name}"`);
+      }
+      coreBindings.set(binding, imported.name);
       plan.imports.push({
-        binding: Math.max(0, bindingNames.indexOf(local.name)),
+        binding,
         edge: edgeId,
         imported: imported.name,
         authoredSpecifierRange: [local.start, local.end],

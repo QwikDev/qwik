@@ -6,6 +6,7 @@ import {
   InvokeKind,
   SetupKind,
   type Arg,
+  type LocalId,
   type Setup,
 } from '../schema';
 import { ValueIrKind, type ValueIR } from '../../src/expr-ir';
@@ -51,7 +52,7 @@ export type SetupLocal =
     };
 
 /** Component-local reactive sources, resolvable by holes (`count.value` → signal read). */
-export type SetupLocals = Map<string, SetupLocal>;
+export type SetupLocals = Map<LocalId, SetupLocal>;
 
 /** Lowers the statements before a component's return: hook calls become typed Setup invokes. */
 export function lowerSetup(
@@ -88,7 +89,8 @@ function lowerSetupStatement(
     throw new UnsupportedError('a setup declaration that is not a hook call');
   }
   const callee = identifierName(init.callee);
-  const hook = callee === null ? undefined : ctx.coreBindings.get(callee);
+  const calleeBinding = ctx.bindings.reference(init.callee);
+  const hook = calleeBinding === null ? undefined : ctx.coreBindings.get(calleeBinding);
   switch (hook) {
     case QwikHook.UseSignal:
       return lowerUseSignal(declarator, init, name, ctx, locals);
@@ -108,9 +110,12 @@ function lowerUseSignal(
   if (args.length > 1) {
     throw new UnsupportedError('useSignal with more than one argument');
   }
-  const binding = ctx.plan.bindings.findIndex((candidate) => candidate.name === name);
   const idNode: BindingPattern = declarator.id;
-  locals.set(name, {
+  const binding = ctx.bindings.declaration(idNode);
+  if (binding === null) {
+    throw new UnsupportedError(`the unresolved setup binding "${name}"`);
+  }
+  locals.set(binding, {
     kind: LocalKind.Signal,
     access: CaptureAccess.Direct,
     slot: locals.size,

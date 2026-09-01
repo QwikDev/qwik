@@ -1,14 +1,12 @@
 import { describe, expect, test } from 'vitest';
 import {
   ArgPass,
-  BindingScope,
   ExprKind,
   CaptureAccess,
   OpKind,
   QrlPayloadKind,
   ResumeKind,
   ValueKind,
-  VarKind,
   type Op,
 } from '../schema';
 import { ValueIrKind } from '../../src/expr-ir';
@@ -16,25 +14,31 @@ import type { Expression } from 'oxc-parser';
 import { parseModule } from '../analyse/ast/parse';
 import { unwrapExpression } from '../analyse/ast/utils';
 import { lowerText } from '../analyse/lower-hole';
-import { createLowerContext, type LowerContext } from '../analyse/lower-context';
+import type { LowerContext } from '../analyse/lower-context';
 import { LocalKind } from '../analyse/lower-setup';
-import { emptyModulePlan } from './fixtures';
+import { createTestLowerContext } from './fixtures';
 
-function holeFor(expression: string, shape: (ctx: LowerContext) => void = () => {}) {
-  const source = `const a = (${expression});`;
+function lowerFor(expression: string, shape: (ctx: LowerContext) => void = () => {}) {
+  const source = `const count = null; const title = null; const render = (props) => (${expression});`;
   const parsed = parseModule('t.tsx', source);
   expect(parsed.errors).toEqual([]);
-  const statement = parsed.program.body[0];
+  const statement = parsed.program.body[2];
   if (statement.type !== 'VariableDeclaration') {
     throw new Error('expected a variable declaration');
   }
-  const node = unwrapExpression(statement.declarations[0].init);
+  const render = unwrapExpression(statement.declarations[0].init);
+  const node = render?.type === 'ArrowFunctionExpression' ? unwrapExpression(render.body) : null;
   if (node === null) {
     throw new Error('expected an expression');
   }
-  const ctx = createLowerContext(emptyModulePlan('t.tsx', source), 't.tsx', undefined);
+  const { ctx } = createTestLowerContext(parsed.program, source);
   shape(ctx);
-  const [op] = lowerText(node as Expression, ctx);
+  return { ops: lowerText(node as Expression, ctx), ctx };
+}
+
+function holeFor(expression: string, shape: (ctx: LowerContext) => void = () => {}) {
+  const { ops, ctx } = lowerFor(expression, shape);
+  const [op] = ops;
   if (op === undefined) {
     throw new Error('expected a text op');
   }
@@ -42,28 +46,14 @@ function holeFor(expression: string, shape: (ctx: LowerContext) => void = () => 
 }
 
 function withSignalLocal(ctx: LowerContext): void {
-  ctx.plan.bindings.push({
-    id: 0,
-    name: 'count',
-    scope: BindingScope.Local,
-    varKind: VarKind.Const,
-    declarationRange: null,
-  });
+  const count = ctx.plan.bindings.find((binding) => binding.name === 'count')!.id;
   ctx.locals = new Map([
-    ['count', { kind: LocalKind.Signal, access: CaptureAccess.Direct, slot: 0, binding: 0 }],
+    [count, { kind: LocalKind.Signal, access: CaptureAccess.Direct, slot: 0, binding: count }],
   ]);
 }
 
 function withProps(ctx: LowerContext): void {
-  ctx.plan.bindings.push({
-    id: 0,
-    name: 'props',
-    scope: BindingScope.Param,
-    varKind: null,
-    declarationRange: null,
-  });
-  ctx.propsParamName = 'props';
-  ctx.bindingNames = new Set(['props']);
+  ctx.propsBinding = ctx.plan.bindings.find((binding) => binding.name === 'props')!.id;
 }
 
 function holeValue(op: Op) {
@@ -76,15 +66,17 @@ function holeValue(op: Op) {
 describe('lowerText', () => {
   test('a signal .value read becomes a Read hole with SignalRead IR and no qrl', () => {
     const { op, ctx } = holeFor('count.value', withSignalLocal);
+    const count = ctx.plan.bindings.find((binding) => binding.name === 'count')!.id;
     expect(holeValue(op)).toMatchObject({
       v: ValueKind.Read,
-      expr: { kind: ExprKind.Ir, ir: { kind: ValueIrKind.SignalRead, binding: 0 } },
+      expr: { kind: ExprKind.Ir, ir: { kind: ValueIrKind.SignalRead, binding: count } },
     });
     expect(ctx.plan.qrls).toEqual([]);
   });
 
   test('a props member becomes a Computed hole with member IR and a Value-payload qrl', () => {
     const { op, ctx } = holeFor('props.title', withProps);
+    const props = ctx.propsBinding!;
     const value = holeValue(op);
     if (value.v !== ValueKind.Computed) {
       throw new Error('expected a computed hole');
@@ -93,14 +85,14 @@ describe('lowerText', () => {
       kind: ExprKind.Ir,
       ir: {
         kind: ValueIrKind.Member,
-        obj: { kind: ValueIrKind.BindingRead, binding: 0 },
+        obj: { kind: ValueIrKind.BindingRead, binding: props },
         name: 'title',
       },
     });
     expect(ctx.plan.qrls).toHaveLength(1);
     expect(ctx.plan.qrls[0].payloadKind).toBe(QrlPayloadKind.Value);
     expect(ctx.plan.qrls[0].captures).toEqual([
-      { binding: 0, access: CaptureAccess.ComponentProp },
+      { binding: props, access: CaptureAccess.ComponentProp },
     ]);
   });
 
@@ -115,14 +107,15 @@ describe('lowerText', () => {
 
   test('an expression capturing a signal local gets a Direct capture and Binding arg', () => {
     const { op, ctx } = holeFor('count.value + 1', withSignalLocal);
+    const count = ctx.plan.bindings.find((binding) => binding.name === 'count')!.id;
     const value = holeValue(op);
     if (value.v !== ValueKind.Computed) {
       throw new Error('expected a computed hole');
     }
-    expect(ctx.plan.qrls[0].captures).toEqual([{ binding: 0, access: CaptureAccess.Direct }]);
+    expect(ctx.plan.qrls[0].captures).toEqual([{ binding: count, access: CaptureAccess.Direct }]);
     expect(value.resume).toEqual({
       r: ResumeKind.Qrl,
-      qrl: { qrl: 'segment_0', args: [{ pass: ArgPass.Binding, binding: 0 }] },
+      qrl: { qrl: 'segment_0', args: [{ pass: ArgPass.Binding, binding: count }] },
     });
   });
 
@@ -137,17 +130,8 @@ describe('lowerText', () => {
   });
 
   test('a concat with a dynamic operand stays one computed hole; all-literal concats fold', () => {
-    const lower = (expression: string, shape: (ctx: LowerContext) => void = () => {}) => {
-      const source = `const a = (${expression});`;
-      const parsed = parseModule('t.tsx', source);
-      const statement = parsed.program.body[0];
-      if (statement.type !== 'VariableDeclaration') {
-        throw new Error('expected a variable declaration');
-      }
-      const ctx = createLowerContext(emptyModulePlan('t.tsx', source), 't.tsx', undefined);
-      shape(ctx);
-      return lowerText(unwrapExpression(statement.declarations[0].init) as Expression, ctx);
-    };
+    const lower = (expression: string, shape?: (ctx: LowerContext) => void) =>
+      lowerFor(expression, shape).ops;
     // the extracted operand renders alone — the stringify flag keeps the JS `+` coercion
     const decomposed = lower("'Count: ' + count.value", withSignalLocal);
     expect(decomposed.map((op) => op.op)).toEqual([OpKind.Static, OpKind.Hole]);
@@ -161,17 +145,6 @@ describe('lowerText', () => {
   });
 
   test('an expression capturing a module binding throws', () => {
-    expect(() =>
-      holeFor('title', (ctx) => {
-        ctx.plan.bindings.push({
-          id: 0,
-          name: 'title',
-          scope: BindingScope.Module,
-          varKind: VarKind.Const,
-          declarationRange: null,
-        });
-        ctx.bindingNames = new Set(['title']);
-      })
-    ).toThrow('an expression capturing "title"');
+    expect(() => holeFor('title')).toThrow('an expression capturing "title"');
   });
 });

@@ -1,44 +1,45 @@
 import { describe, expect, test } from 'vitest';
-import {
-  ArgKind,
-  CaptureAccess,
-  BindTargetKind,
-  BindingScope,
-  ExprKind,
-  InvokeKind,
-  SetupKind,
-  VarKind,
-} from '../schema';
+import { ArgKind, CaptureAccess, BindTargetKind, ExprKind, InvokeKind, SetupKind } from '../schema';
 import { ValueIrKind } from '../../src/expr-ir';
 import { parseModule } from '../analyse/ast/parse';
-import { createLowerContext } from '../analyse/lower-context';
 import { LocalKind, lowerSetup } from '../analyse/lower-setup';
-import { emptyModulePlan } from './fixtures';
+import { createTestLowerContext } from './fixtures';
 
 function lower(statement: string, coreBindings: [string, string][] = [['useSignal', 'useSignal']]) {
-  const parsed = parseModule('t.tsx', statement);
+  const imports = coreBindings
+    .map(([local, imported]) => `${imported}${local === imported ? '' : ` as ${local}`}`)
+    .join(', ');
+  const source = `${imports === '' ? '' : `import { ${imports} } from '@qwik.dev/core';`} ${statement}`;
+  const parsed = parseModule('t.tsx', source);
   expect(parsed.errors).toEqual([]);
-  const plan = emptyModulePlan('t.tsx', statement);
-  plan.bindings.push({
-    id: 0,
-    name: 'count',
-    scope: BindingScope.Local,
-    varKind: VarKind.Const,
-    declarationRange: null,
-  });
-  const ctx = createLowerContext(plan, 't.tsx', undefined, new Map(coreBindings));
-  return { ...lowerSetup(parsed.program.body, ctx), ctx };
+  const { bindings, ctx } = createTestLowerContext(parsed.program, source);
+  const imported = new Map<number, string>();
+  if (imports !== '') {
+    const declaration = parsed.program.body[0];
+    if (declaration.type !== 'ImportDeclaration') {
+      throw new Error('expected an import');
+    }
+    for (const specifier of declaration.specifiers) {
+      if (specifier.type === 'ImportSpecifier' && specifier.imported.type === 'Identifier') {
+        imported.set(bindings.declaration(specifier.local)!, specifier.imported.name);
+      }
+    }
+  }
+  const statements = parsed.program.body.filter((node) => node.type !== 'ImportDeclaration');
+  ctx.coreBindings = imported;
+  const count = ctx.plan.bindings.find((binding) => binding.name === 'count')!.id;
+  return { ...lowerSetup(statements, ctx), ctx, count };
 }
 
 describe('lowerSetup / useSignal', () => {
   test('a literal initial lowers to an Invoke row with Lit IR', () => {
-    const { setup } = lower('const count = useSignal(0);');
+    const { setup, count } = lower('const count = useSignal(0);');
     expect(setup).toEqual([
       {
         s: SetupKind.Invoke,
         invoke: {
           op: InvokeKind.UseSignal,
-          result: { bind: BindTargetKind.Pattern, pattern: 0, bindings: [0] },
+          result: { bind: BindTargetKind.Pattern, pattern: 0, bindings: [count] },
           initial: {
             a: ArgKind.Expr,
             expr: { kind: ExprKind.Ir, ir: { kind: ValueIrKind.Lit, value: 0 } },
@@ -49,12 +50,12 @@ describe('lowerSetup / useSignal', () => {
   });
 
   test('registers a kinded Signal local at slot 0', () => {
-    const { locals } = lower('const count = useSignal(0);');
-    expect(locals.get('count')).toEqual({
+    const { locals, count } = lower('const count = useSignal(0);');
+    expect(locals.get(count)).toEqual({
       kind: LocalKind.Signal,
       access: CaptureAccess.Direct,
       slot: 0,
-      binding: 0,
+      binding: count,
     });
   });
 
@@ -70,7 +71,7 @@ describe('lowerSetup / useSignal', () => {
       throw new Error('expected a Js-payload initial');
     }
     const [start, end] = ctx.plan.payloads[expr.payload].range;
-    expect(source.slice(start, end)).toBe('compute()');
+    expect(ctx.plan.source.code.slice(start, end)).toBe('compute()');
   });
 
   test('an omitted initial omits the field', () => {
@@ -84,7 +85,7 @@ describe('lowerSetup / useSignal', () => {
 
   test('hooks are recognized by import: an alias works, an imposter throws', () => {
     const aliased = lower('const count = sig(0);', [['sig', 'useSignal']]);
-    expect(aliased.locals.get('count')?.kind).toBe(LocalKind.Signal);
+    expect(aliased.locals.get(aliased.count)?.kind).toBe(LocalKind.Signal);
     expect(() => lower('const count = useSignal(0);', [])).toThrow('the setup call "useSignal"');
   });
 

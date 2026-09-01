@@ -6,8 +6,19 @@ import {
   type LinkedPlan,
   type Specialization,
 } from '../schema';
+import type { Program } from 'oxc-parser';
+import { createBindingGraph } from '../analyse/ast/bindings';
+import { createLowerContext } from '../analyse/lower-context';
+import { emptyPlan } from '../analyse/plan';
 
-export { emptyPlan as emptyModulePlan } from '../analyse/plan';
+export { emptyPlan as emptyModulePlan };
+
+export function createTestLowerContext(program: Program, source: string, path = 't.tsx') {
+  const plan = emptyPlan(path, source);
+  const bindings = createBindingGraph(program);
+  plan.bindings = bindings.bindings;
+  return { bindings, ctx: createLowerContext(plan, path, undefined, bindings) };
+}
 
 export function serverSpecialization(): Specialization {
   return { environment: Environment.Server, mode: BuildMode.Prod, stripExports: [] };

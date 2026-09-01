@@ -18,6 +18,7 @@ import {
   Shape,
   ValueKind,
   type Op,
+  type LocalId,
   type Qrl,
   type Value,
   BindingScope,
@@ -77,34 +78,33 @@ function lowerEach(
     commit: LifetimeCommit.AtomicReconcile,
   });
 
-  const paramNames = new Set<string>();
-  const paramAliases = new Map<string, { base: number; member: string }>();
-  const paramBindings: number[] = [];
-
-  const findBindingIndex = (name: string) =>
-    ctx.plan.bindings.findIndex((binding) => binding.name === name);
+  const localBindings = new Set<LocalId>();
+  const paramAliases = new Map<LocalId, { base: LocalId; member: string }>();
+  const paramBindings: LocalId[] = [];
 
   for (const param of callback.params) {
     switch (param.type) {
       case 'Identifier': {
-        paramNames.add(param.name);
-        paramBindings.push(findBindingIndex(param.name));
+        const binding = ctx.bindings.declaration(param);
+        if (binding === null) {
+          throw new UnsupportedError(`the unresolved collection parameter "${param.name}"`);
+        }
+        ctx.plan.bindings[binding].scope = BindingScope.Loop;
+        localBindings.add(binding);
+        paramBindings.push(binding);
         break;
       }
       case 'ObjectPattern': {
-        const binding = ctx.plan.bindings.length;
+        const binding = ctx.bindings.addSynthetic(DESTRUCTURED_WRAPPED_PARAM, BindingScope.Loop);
         const freshName =
           DESTRUCTURED_WRAPPED_PARAM +
-          (findBindingIndex(DESTRUCTURED_WRAPPED_PARAM) !== -1 ? `_${binding}` : '');
-        paramNames.add(freshName);
-        const index = ctx.plan.bindings.push({
-          id: binding,
-          name: freshName,
-          scope: BindingScope.Module,
-          varKind: null,
-          declarationRange: null,
-        });
-        paramBindings.push(index - 1);
+          (ctx.plan.bindings.some(
+            (candidate) => candidate.id !== binding && candidate.name === DESTRUCTURED_WRAPPED_PARAM
+          )
+            ? `_${binding}`
+            : '');
+        ctx.plan.bindings[binding].name = freshName;
+        paramBindings.push(binding);
 
         for (const property of param.properties) {
           if (property.type === 'RestElement' || property.value.type !== 'Identifier') {
@@ -114,8 +114,15 @@ function lowerEach(
             throw new UnsupportedError('a destructured collection row parameter');
           }
           // { id } -> 'id'/'id'; { a: b } → klucz 'a', lokalna nazwa 'b'
-          paramAliases.set(property.value.name, { base: binding, member: property.key.name });
-          paramNames.add(property.value.name);
+          const alias = ctx.bindings.declaration(property.value);
+          if (alias === null) {
+            throw new UnsupportedError(
+              `the unresolved collection parameter "${property.value.name}"`
+            );
+          }
+          ctx.plan.bindings[alias].scope = BindingScope.Loop;
+          paramAliases.set(alias, { base: binding, member: property.key.name });
+          localBindings.add(alias);
         }
         break;
       }
@@ -136,7 +143,7 @@ function lowerEach(
   });
   // A static array's row renders inline in the component: lexical scope, no key, no chunk.
   if (source.s === EachSourceKind.Array) {
-    lowerRowOps(body, callback, paramBindings, paramAliases, program, ctx, true);
+    lowerRowOps(body, callback, paramBindings, paramAliases, localBindings, program, ctx, true);
     const shape = deriveRowShape(program, ctx);
     return {
       op: OpKind.Each,
@@ -159,7 +166,7 @@ function lowerEach(
   }
 
   // The row's segment comes first (legacy order: for_render before for_key), children after.
-  const rowCaptures = lowerCaptures(body, ctx, 'a collection row', { localNames: paramNames });
+  const rowCaptures = lowerCaptures(body, ctx, 'a collection row', { localBindings });
   const rowRange: [number, number] = [body.start, body.end];
   const { index: rowIndex, use } = pushQrl(
     ctx,
@@ -184,8 +191,8 @@ function lowerEach(
     },
     rowCaptures.args
   );
-  const key = body.type === 'JSXElement' ? lowerKey(body, callback, ctx, paramNames) : null;
-  lowerRowOps(body, callback, paramBindings, paramAliases, program, ctx);
+  const key = body.type === 'JSXElement' ? lowerKey(body, callback, ctx, localBindings) : null;
+  lowerRowOps(body, callback, paramBindings, paramAliases, localBindings, program, ctx);
   // The row ABI drops unused trailing params: `used` = params some descendant QRL captured.
   const descendants = ctx.plan.qrls.slice(rowIndex + 1);
   ctx.plan.qrls[rowIndex].params.used = paramBindings.filter((binding) =>
@@ -281,8 +288,9 @@ function deriveIndexMode(indexBinding: number | undefined, descendants: readonly
 function lowerRowOps(
   body: JSXElement | JSXFragment,
   callback: ArrowFunctionExpression,
-  paramBindings: number[],
-  paramAliases: Map<string, { base: number; member: string }>,
+  paramBindings: LocalId[],
+  paramAliases: Map<LocalId, { base: LocalId; member: string }>,
+  localBindings: ReadonlySet<LocalId>,
   program: number,
   ctx: LowerContext,
   /** Inline rows read params lexically — no locals, no captures, values splice in place. */
@@ -292,7 +300,7 @@ function lowerRowOps(
   const rowLocals = new Map(outerLocals);
   callback.params.forEach((param, position) => {
     if (param.type === 'Identifier') {
-      rowLocals.set(param.name, {
+      rowLocals.set(paramBindings[position], {
         // Inline params are plain iteration values — the index is a number, not a signal.
         kind: !lexical && position === 1 ? LocalKind.RowIndex : LocalKind.LoopValue,
         access: !lexical && position === 1 ? CaptureAccess.RowIndex : CaptureAccess.LoopValue,
@@ -302,8 +310,8 @@ function lowerRowOps(
     }
   });
 
-  for (const [name, { base, member }] of paramAliases) {
-    rowLocals.set(name, {
+  for (const [binding, { base, member }] of paramAliases) {
+    rowLocals.set(binding, {
       kind: LocalKind.PropMember,
       access: CaptureAccess.LoopValue,
       slot: -1,
@@ -314,13 +322,7 @@ function lowerRowOps(
 
   ctx.locals = rowLocals;
   if (lexical) {
-    const names = new Set<string>();
-    for (const param of callback.params) {
-      if (param.type === 'Identifier') {
-        names.add(param.name);
-      }
-    }
-    ctx.inlineParams = names;
+    ctx.inlineParams = localBindings;
     ctx.plan.programs[program].body = { kind: ProgramBodyKind.Ops, ops: lowerRowBody(body, ctx) };
     ctx.inlineParams = null;
   } else {
@@ -338,7 +340,7 @@ function lowerKey(
   row: JSXElement,
   callback: ArrowFunctionExpression,
   ctx: LowerContext,
-  paramNames: Set<string>
+  localBindings: ReadonlySet<LocalId>
 ): Value | null {
   const attribute = row.openingElement.attributes.find(
     (candidate) => candidate.type === 'JSXAttribute' && candidate.name.name === 'key'
@@ -357,7 +359,7 @@ function lowerKey(
     return null;
   }
   const { captures, args } = lowerCaptures(keyExpression, ctx, 'a collection key', {
-    localNames: paramNames,
+    localBindings,
   });
   const range: [number, number] = [keyExpression.start, keyExpression.end];
   const payload = pushPayload(ctx, range);

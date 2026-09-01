@@ -1,4 +1,5 @@
-import type { ModulePlan, Payload, Qrl, QrlUse, Range } from '../schema';
+import type { LocalId, ModulePlan, Payload, Qrl, QrlUse, Range } from '../schema';
+import type { BindingGraph } from './ast/bindings';
 import type { SetupLocal } from './lower-setup';
 import {
   createSegmentSourceIdentity,
@@ -16,22 +17,23 @@ export interface LowerContext {
   /** Branch seed ordinals, allocated in authored order. */
   branchCounter: { next: number };
   forCounter: { next: number };
-  /** Param names of the inline collection row being lowered; null = not inside one. */
-  inlineParams: ReadonlySet<string> | null;
-  bindingNames: ReadonlySet<string>;
+  /** Param bindings of the inline collection row; null = not inside one. */
+  inlineParams: ReadonlySet<LocalId> | null;
+  bindings: BindingGraph;
   /** Local binding -> imported name for `@qwik.dev/core` imports. */
-  coreBindings: ReadonlyMap<string, string>;
-  /** The current component's props param name. */
-  propsParamName: string | null;
-  /** The current component's reactive locals (name → kind/slot/binding). */
-  locals: ReadonlyMap<string, SetupLocal>;
+  coreBindings: ReadonlyMap<LocalId, string>;
+  /** The current component's props param binding. */
+  propsBinding: LocalId | null;
+  /** The current component's reactive locals (binding → kind/slot/binding). */
+  locals: ReadonlyMap<LocalId, SetupLocal>;
 }
 
 export function createLowerContext(
   plan: ModulePlan,
   path: string,
   scope: string | undefined,
-  coreBindings: ReadonlyMap<string, string> = new Map()
+  bindings: BindingGraph,
+  coreBindings: ReadonlyMap<LocalId, string> = new Map()
 ): LowerContext {
   const slash = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
   const basename = slash === -1 ? path : path.slice(slash + 1);
@@ -43,9 +45,9 @@ export function createLowerContext(
     branchCounter: { next: 0 },
     forCounter: { next: 0 },
     inlineParams: null,
-    bindingNames: new Set(plan.bindings.map((binding) => binding.name)),
+    bindings,
     coreBindings,
-    propsParamName: null,
+    propsBinding: null,
     locals: new Map(),
   };
 }

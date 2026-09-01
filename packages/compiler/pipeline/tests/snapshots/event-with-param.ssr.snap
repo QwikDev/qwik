@@ -39,8 +39,8 @@ export const component_q_e_dblclick_segment_0_3cy9sja0qxi3h = (ev) => {
   "ctxName": "onDblClick$",
   "captures": false,
   "loc": [
-    39,
-    76
+    40,
+    77
   ],
   "paramNames": [
     "ev"

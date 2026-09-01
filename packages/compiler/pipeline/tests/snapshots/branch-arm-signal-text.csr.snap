@@ -68,8 +68,8 @@ export const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    142,
-    152
+    145,
+    155
   ],
   "paramNames": [],
   "captureNames": [
@@ -105,8 +105,8 @@ export const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
   "ctxName": "branch:then",
   "captures": true,
   "loc": [
-    155,
-    175
+    158,
+    178
   ],
   "paramNames": [],
   "captureNames": [

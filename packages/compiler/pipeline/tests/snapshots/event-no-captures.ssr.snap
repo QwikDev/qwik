@@ -39,8 +39,8 @@ export const component_q_e_click_segment_0_2xwyg1cinvmpz = () => {
   "ctxName": "onClick$",
   "captures": false,
   "loc": [
-    39,
-    70
+    40,
+    71
   ],
   "paramNames": []
 }

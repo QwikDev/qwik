@@ -36,6 +36,8 @@ export function scanCoreImports(
       specifier: source,
       typeOnly: false,
       attributes: [],
+      ownerRange: [statement.start, statement.end],
+      sourceRange: [statement.source.start, statement.source.end],
       authoredOwnerRange: [statement.start, statement.end],
       authoredSourceRange: [statement.source.start, statement.source.end],
       order: edgeId,
@@ -55,6 +57,8 @@ export function scanCoreImports(
         binding,
         edge: edgeId,
         imported: imported.name,
+        specifierRange: [local.start, local.end],
+        importedRange: [imported.start, imported.end],
         authoredSpecifierRange: [local.start, local.end],
         authoredImportedRange: [imported.start, imported.end],
       });

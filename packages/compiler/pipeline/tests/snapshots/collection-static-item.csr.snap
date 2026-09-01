@@ -59,8 +59,8 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (ctx) => {
   "ctxName": "for:render",
   "captures": false,
   "loc": [
-    147,
-    174
+    149,
+    176
   ],
   "paramNames": [
     "item"
@@ -86,8 +86,8 @@ export const component_for_key_segment_1_24ursak4wzpxf = (item) => {
   "ctxName": "for:key",
   "captures": false,
   "loc": [
-    156,
-    163
+    158,
+    165
   ],
   "paramNames": [
     "item"

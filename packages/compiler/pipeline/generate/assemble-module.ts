@@ -6,8 +6,10 @@ import {
   type QrlDeclaration,
 } from '../schema';
 import { QWIK_CORE_IMPORT } from '../words';
+import { assembleModule, type AssembledModule } from '../../src/module-assembly';
+import type { SourceMap } from 'oxc-transform';
 import { emitQrlChunks, type FunctionEmission } from './emit-chunk';
-import type { GenerateOutput } from './output';
+import type { GenerateOutput, PresentationOptions } from './output';
 import {
   allocateGeneratedNames,
   emitComponentFunction,
@@ -34,24 +36,27 @@ export interface QwikModuleEmitter extends ModuleParts {
 export function generateQwikModule(
   module: LinkedModule,
   emitter: QwikModuleEmitter,
+  options: PresentationOptions,
   placement: 'component' | 'module-top' = 'component'
 ): GenerateOutput['modules'] {
+  const assembled = assembleQwikModule(
+    module,
+    emitter,
+    (qrl, names) => emitter.emitProgram(qrl, names),
+    options,
+    placement
+  );
   const main = {
     path: module.path,
-    code: assembleQwikModule(
-      module,
-      emitter,
-      (qrl, names) => emitter.emitProgram(qrl, names),
-      placement
-    ),
-    map: null,
+    code: assembled.code,
+    map: assembled.map,
     isEntry: false,
     origPath: null,
     segment: null,
   };
   return [
     main,
-    ...emitQrlChunks(module, (qrl) => emitter.resolveChunkUses(emitter.qrlFunction(qrl))),
+    ...emitQrlChunks(module, (qrl) => emitter.resolveChunkUses(emitter.qrlFunction(qrl)), options),
   ];
 }
 
@@ -63,9 +68,10 @@ export function assembleQwikModule(
   module: LinkedModule,
   parts: ModuleParts,
   emitProgram: (qrl: LinkedQrl, names: GeneratedNames) => ComponentEmission,
+  options: PresentationOptions,
   /** SSR glues imports/hoists at the component edit; CSR puts them at the top of the module. */
   placement: 'component' | 'module-top' = 'component'
-): string {
+): AssembledModule {
   const names = allocateGeneratedNames(module);
   const edits: { range: [number, number]; text: string }[] = [];
   const componentEdits: { range: [number, number]; text: string }[] = [];
@@ -117,7 +123,7 @@ export function assembleQwikModule(
       // A chunk-import block ends with a blank line before the hoists; a lone core import does not.
       const hoistSeparator = parts.chunkImports.length > 0 ? '\n\n' : '\n';
       edits.push({
-        range: coreEdge.authoredOwnerRange,
+        range: coreEdge.ownerRange,
         text:
           inlineHoists.length === 0
             ? importLines.join('\n')
@@ -135,12 +141,17 @@ export function assembleQwikModule(
       componentEdits[0].text = `${header}${[...hoists, componentEdits[0].text].join('\n')}`;
     }
   }
-  edits.sort((a, b) => b.range[0] - a.range[0]);
-  let code = module.source.code;
-  for (const edit of edits) {
-    code = code.slice(0, edit.range[0]) + edit.text + code.slice(edit.range[1]);
+  if (prefix !== '') {
+    edits.push({ range: [0, 0], text: prefix });
   }
-  return prefix + code;
+  return assembleModule(
+    module.source.code,
+    module.source.originalPath,
+    module.path,
+    edits.map((edit) => ({ range: edit.range, value: edit.text })),
+    options.outputSourceMaps === true,
+    module.source.normalizationMap as SourceMap | null
+  );
 }
 
 function authoredPropsName(module: LinkedModule, declaration: QrlDeclaration): string | null {

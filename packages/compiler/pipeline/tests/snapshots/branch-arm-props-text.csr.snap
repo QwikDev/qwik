@@ -62,8 +62,8 @@ export const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    42,
-    55
+    43,
+    56
   ],
   "paramNames": [],
   "captureNames": [
@@ -105,8 +105,8 @@ export const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
   "ctxName": "branch:then",
   "captures": true,
   "loc": [
-    58,
-    78
+    59,
+    79
   ],
   "paramNames": [],
   "captureNames": [
@@ -133,8 +133,8 @@ export const component_text_segment_2_1fh117dstcoge = (props) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    62,
-    73
+    63,
+    74
   ],
   "paramNames": [],
   "captureNames": [

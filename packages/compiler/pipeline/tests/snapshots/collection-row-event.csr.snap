@@ -72,8 +72,8 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, item) => {
   "ctxName": "for:render",
   "captures": false,
   "loc": [
-    154,
-    253
+    172,
+    271
   ],
   "paramNames": [
     "item"
@@ -99,8 +99,8 @@ export const component_for_key_segment_1_24ursak4wzpxf = (item) => {
   "ctxName": "for:key",
   "captures": false,
   "loc": [
-    163,
-    170
+    181,
+    188
   ],
   "paramNames": [
     "item"
@@ -129,8 +129,8 @@ export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    191,
-    228
+    209,
+    246
   ],
   "paramNames": [],
   "captureNames": [

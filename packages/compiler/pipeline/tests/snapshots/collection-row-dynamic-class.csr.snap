@@ -88,8 +88,8 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, item) => {
   "ctxName": "for:render",
   "captures": false,
   "loc": [
-    183,
-    254
+    178,
+    249
   ],
   "paramNames": [
     "item"
@@ -115,8 +115,8 @@ export const component_for_key_segment_1_24ursak4wzpxf = (item) => {
   "ctxName": "for:key",
   "captures": false,
   "loc": [
-    192,
-    199
+    187,
+    194
   ],
   "paramNames": [
     "item"
@@ -142,8 +142,8 @@ export const component_class_segment_2_3htuz8wkv4ypl = (item) => {
   "ctxName": "class",
   "captures": true,
   "loc": [
-    208,
-    235
+    203,
+    230
   ],
   "paramNames": [],
   "captureNames": [
@@ -170,8 +170,8 @@ export const component_text_segment_3_1fh11lewq6qgx = (item) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    238,
-    248
+    233,
+    243
   ],
   "paramNames": [],
   "captureNames": [

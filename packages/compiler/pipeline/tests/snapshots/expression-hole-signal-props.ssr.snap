@@ -63,8 +63,8 @@ export const component_text_segment_0_1fh10fbkzokfc = (count, props) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    113,
-    137
+    115,
+    139
   ],
   "paramNames": [],
   "captureNames": [

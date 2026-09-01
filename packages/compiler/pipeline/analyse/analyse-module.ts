@@ -25,6 +25,7 @@ import { createLowerContext, pushQrl, QrlIdentityKind } from './lower-context';
 import { lowerJsx } from './lower-jsx';
 import { normalizeSource } from './normalize';
 import { emptyPlan } from './plan';
+import { createOriginalRangeMapper } from '../../src/normalization';
 
 import { InvalidModuleError, UnsupportedError } from '../errors';
 
@@ -47,13 +48,15 @@ export async function analyseModule(
 ): Promise<ModulePlan> {
   const plan = emptyPlan(input.path, input.code);
   const normalized = await normalizeSource(input.path, input.code, options);
+  plan.source.normalizationMap = normalized.map as ModulePlan['source']['normalizationMap'];
+  const finish = () => finishPlan(plan, normalized.code, input.code);
   if (normalized.errors.length > 0) {
-    return failedPlan(plan, normalized.errors);
+    return finishPlan(failedPlan(plan, normalized.errors), normalized.code, input.code);
   }
 
   const parsed = parseModule(input.path, normalized.code);
   if (parsed.errors.length > 0) {
-    return failedPlan(plan, parsed.errors);
+    return finishPlan(failedPlan(plan, parsed.errors), normalized.code, input.code);
   }
 
   if (!hasComponentCandidates(parsed.program)) {
@@ -67,10 +70,11 @@ export async function analyseModule(
         span: [leftoverJsx.start, leftoverJsx.end],
         category: DiagnosticCategory.Error,
       });
-      return plan;
+      return finish();
     }
     // Non-Qwik module: authored source kept, transpiled at generate.
     plan.kind = ModuleKind.Foreign;
+    plan.source.normalizationMap = null;
     return plan;
   }
 
@@ -115,7 +119,7 @@ export async function analyseModule(
           span: error.span,
           category: DiagnosticCategory.Error,
         });
-        return plan;
+        return finish();
       }
       throw error;
     }
@@ -184,6 +188,30 @@ export async function analyseModule(
     });
     plan.assembly.push({ a: AssemblyKind.Splice, qrl: qrlIndex });
   }
+  return finish();
+}
+
+function finishPlan(plan: ModulePlan, normalizedCode: string, authoredCode: string): ModulePlan {
+  if (plan.source.normalizationMap === null || normalizedCode === authoredCode) {
+    return plan;
+  }
+  const mapRange = createOriginalRangeMapper(
+    normalizedCode,
+    authoredCode,
+    plan.source.normalizationMap as Parameters<typeof createOriginalRangeMapper>[2]
+  );
+  for (const edge of plan.edges) {
+    edge.authoredOwnerRange = mapRange(edge.ownerRange);
+    edge.authoredSourceRange = mapRange(edge.sourceRange);
+  }
+  for (const imported of plan.imports) {
+    imported.authoredSpecifierRange = mapRange(imported.specifierRange);
+    imported.authoredImportedRange = mapRange(imported.importedRange);
+  }
+  plan.diagnostics = plan.diagnostics.map((diagnostic) => ({
+    ...diagnostic,
+    span: diagnostic.span === null ? null : mapRange(diagnostic.span),
+  }));
   return plan;
 }
 

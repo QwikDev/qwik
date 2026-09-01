@@ -35,8 +35,7 @@ export interface Payload {
 }
 
 // ---------------------------------------------------------------------------------------------
-// ESM edges: import/export facts scanned on AUTHORED source (type-only edges do not survive
-// transpilation); ranges are AUTHORED coordinates — never remapped into normalized space.
+// ESM edges retain normalized ranges for assembly and authored ranges for external locations.
 
 export const enum EsmEdgeKind {
   Static = 'static',
@@ -52,6 +51,8 @@ export interface EsmEdge {
   specifier: string;
   typeOnly: boolean;
   attributes: { key: string; value: string }[];
+  ownerRange: Range;
+  sourceRange: Range;
   authoredOwnerRange: Range;
   authoredSourceRange: Range;
   order: number;

@@ -18,7 +18,10 @@ import { ValueIrKind, type ValueIR } from '../../src/expr-ir';
 import { getSegmentDisplayName, getSegmentSymbolHash } from '../segment-identity';
 import { QWIK_CORE_IMPORT, QwikWord, SegmentContext } from '../words';
 import { UnsupportedError } from '../errors';
-import type { GenerateOutput } from './output';
+import { assembleGeneratedModule } from '../../src/module-assembly';
+import { createOriginalRangeMapper } from '../../src/normalization';
+import type { SourceMap } from 'oxc-transform';
+import type { GenerateOutput, PresentationOptions } from './output';
 
 /** One function, as neutral data — printed into chunk files, SSR mirrors, and spliced bodies. */
 export interface FunctionEmission {
@@ -43,39 +46,60 @@ export interface FunctionEmission {
  */
 export function emitQrlChunks(
   module: LinkedModule,
-  qrlFunction: (qrl: LinkedQrl) => FunctionEmission
+  qrlFunction: (qrl: LinkedQrl) => FunctionEmission,
+  options: PresentationOptions
 ): GenerateOutput['modules'] {
+  const mapRange =
+    module.source.normalizationMap === null
+      ? (range: [number, number]) => range
+      : createOriginalRangeMapper(
+          module.source.code,
+          module.source.normalizationMap.sourcesContent?.[0] ?? module.source.code,
+          module.source.normalizationMap as Parameters<typeof createOriginalRangeMapper>[2]
+        );
   // Declared QRLs (components) splice over their authored range — no chunk file (yet).
   return module.qrls
     .filter((qrl) => qrl.declaration === undefined)
-    .map((qrl) => ({
-      path: `${module.path}_${qrl.name}.js`,
-      code: chunkModuleCode(qrl, qrlFunction(qrl)),
-      map: null,
-      isEntry: true,
-      origPath: module.path,
-      segment: {
-        origin: moduleBasename(module),
-        name: qrl.name,
-        entry: null,
-        displayName: getSegmentDisplayName(qrl.name),
-        hash: getSegmentSymbolHash(qrl.name),
-        canonicalFilename: chunkCanonicalFilename(module, qrl),
-        extension: 'js',
-        parent: null,
-        ctxKind:
-          qrl.boundary.kind === 'implicit' && qrl.boundary.role === 'event'
-            ? 'eventHandler'
-            : 'function',
-        ctxName: qrl.ctxName,
-        captures: qrl.captures.length > 0,
-        loc: [qrl.origin.range[0], qrl.origin.range[1]],
-        paramNames: qrl.origin.paramRanges.map(([start, end]) =>
-          module.source.code.slice(start, end)
-        ),
-        ...(qrl.captures.length > 0 ? { captureNames: captureNames(module, qrl) } : {}),
-      },
-    }));
+    .map((qrl) => {
+      const path = `${module.path}_${qrl.name}.js`;
+      const assembled = assembleGeneratedModule(
+        module.source.code,
+        module.source.originalPath,
+        path,
+        chunkModuleCode(qrl, qrlFunction(qrl)),
+        qrl.origin.range,
+        options.outputSourceMaps === true,
+        module.source.normalizationMap as SourceMap | null
+      );
+      return {
+        path,
+        code: assembled.code,
+        map: assembled.map,
+        isEntry: true,
+        origPath: module.path,
+        segment: {
+          origin: moduleBasename(module),
+          name: qrl.name,
+          entry: null,
+          displayName: getSegmentDisplayName(qrl.name),
+          hash: getSegmentSymbolHash(qrl.name),
+          canonicalFilename: chunkCanonicalFilename(module, qrl),
+          extension: 'js',
+          parent: null,
+          ctxKind:
+            qrl.boundary.kind === 'implicit' && qrl.boundary.role === 'event'
+              ? 'eventHandler'
+              : 'function',
+          ctxName: qrl.ctxName,
+          captures: qrl.captures.length > 0,
+          loc: mapRange(qrl.origin.range),
+          paramNames: qrl.origin.paramRanges.map(([start, end]) =>
+            module.source.code.slice(start, end)
+          ),
+          ...(qrl.captures.length > 0 ? { captureNames: captureNames(module, qrl) } : {}),
+        },
+      };
+    });
 }
 
 /** Capture names double as the chunk fn's parameters for value-payload QRLs. */

@@ -70,7 +70,7 @@ async function generateModule(
     case ModuleKind.Foreign:
       return [await generateForeignModule(module, options)];
     case ModuleKind.Qwik:
-      return generateQwikModule(module, new SsrModuleEmitter(module));
+      return generateQwikModule(module, new SsrModuleEmitter(module), options);
     case ModuleKind.ExportsOnly:
     case ModuleKind.Failed:
       throw new Error(

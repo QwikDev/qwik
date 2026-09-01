@@ -1,9 +1,10 @@
-import { transform } from 'oxc-transform';
+import { transform, type SourceMap } from 'oxc-transform';
 import { getLang, isJsxPath, isTypeScriptPath } from './ast/parse';
 import type { AnalyseOptions } from './analyse-module';
 
 export interface NormalizedSource {
   code: string;
+  map: SourceMap | null;
   errors: { message?: string }[];
 }
 
@@ -14,14 +15,14 @@ export async function normalizeSource(
   options: AnalyseOptions
 ): Promise<NormalizedSource> {
   if (options.transpileTs !== true || !isTypeScriptPath(path)) {
-    return { code, errors: [] };
+    return { code, map: null, errors: [] };
   }
   const normalized = await transform(path, code, {
     lang: getLang(path),
     sourceType: 'module',
     cwd: options.rootDir,
-    sourcemap: false,
+    sourcemap: true,
     jsx: isJsxPath(path) ? 'preserve' : undefined,
   });
-  return { code: normalized.code, errors: normalized.errors };
+  return { code: normalized.code, map: normalized.map ?? null, errors: normalized.errors };
 }

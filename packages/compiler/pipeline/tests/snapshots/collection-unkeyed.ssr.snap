@@ -116,8 +116,8 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __ro
   "ctxName": "for:render",
   "captures": false,
   "loc": [
-    154,
-    175
+    156,
+    177
   ],
   "paramNames": [
     "item"
@@ -143,8 +143,8 @@ export const component_text_segment_1_1fh10tcowimfv = (item) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    159,
-    169
+    161,
+    171
   ],
   "paramNames": [],
   "captureNames": [

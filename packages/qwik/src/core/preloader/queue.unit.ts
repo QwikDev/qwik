@@ -88,6 +88,28 @@ test('appends preloads directly to head within a trigger slice', async () => {
   expect(document.head.querySelectorAll('link').length).toBe(2);
 });
 
+test('limits speculative preloads to ten by default', async () => {
+  const document = installBrowserGlobals();
+  Object.assign(globalThis, {
+    MessageChannel: undefined,
+  });
+  vi.spyOn(performance, 'now').mockImplementation(() => 0);
+  vi.resetModules();
+  await installTestPlatform();
+
+  const headAppend = vi.spyOn(document.head, 'appendChild');
+  const { initPreloader } = await import('./bundle-graph');
+  const { preload } = await import('./queue');
+
+  const bundles = Array.from({ length: 11 }, (_, index) => `entry-${index}.js`);
+  initPreloader(bundles);
+  preload(bundles, 0.8);
+  vi.runAllTimers();
+
+  expect(headAppend).toHaveBeenCalledTimes(11);
+  expect(document.head.querySelectorAll('link').length).toBe(11);
+});
+
 test('yields after the frame budget and resumes later', async () => {
   const document = installBrowserGlobals();
   Object.assign(globalThis, {

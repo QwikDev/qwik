@@ -17,17 +17,6 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
 })(window,document,'script','dataLayer','GTM-NR2STLN');`}
       />
-
-      <script
-        type="text/partytown"
-        src="https://cdn.jsdelivr.net/npm/@builder.io/persist-attribution@0.0.1-beta-2/dist/persist-attribution.min.js"
-        id="persist-attribution-init"
-        data-send-page-view-events="true"
-      />
-
-      {/*  DNS Prefetch  */}
-      <link rel="dns-prefetch" href="https://cdn.jsdelivr.net/" />
-      <link rel="dns-prefetch" href="https://cdn.builder.io/" />
     </>
   );
 };

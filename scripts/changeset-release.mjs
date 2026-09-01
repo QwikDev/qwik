@@ -40,11 +40,18 @@ const savedManifests = new Map(
 for (const [path, source] of savedManifests) {
   writeFileSync(path, JSON.stringify({ private: true, ...JSON.parse(source) }, null, 2));
 }
+// The two passes are independent; a failure in one must not block the other.
+let latestError;
 try {
   publish('latest');
+} catch (error) {
+  latestError = error;
 } finally {
   for (const [path, source] of savedManifests) {
     writeFileSync(path, source);
   }
 }
 publish('beta');
+if (latestError) {
+  throw latestError;
+}

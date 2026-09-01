@@ -52,6 +52,7 @@ export const enum OpKind {
 
 export const enum CallTargetKind {
   Raw = 'raw',
+  Declaration = 'declaration',
   Dynamic = 'dynamic',
 }
 

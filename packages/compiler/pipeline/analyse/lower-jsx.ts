@@ -1,5 +1,13 @@
 import type { JSXAttributeItem, JSXChild, JSXElement, Node } from 'oxc-parser';
-import { OpKind, PropKind, type Op, type Prop } from '../schema';
+import {
+  CallPropsKind,
+  CallTargetKind,
+  OpKind,
+  PropKind,
+  SeedKind,
+  type Op,
+  type Prop,
+} from '../schema';
 import { normalizeJsxText } from './ast/jsx-text';
 import { normalizeAttributeName, VOID_ELEMENTS } from '../html';
 import { InvalidModuleError, UnsupportedError } from '../errors';
@@ -19,7 +27,32 @@ import { lowerArray } from './lower-array';
 export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
   const opening = element.openingElement;
   const nameNode = opening.name;
-  if (nameNode.type !== 'JSXIdentifier' || !/^[a-z]/.test(nameNode.name)) {
+  if (nameNode.type !== 'JSXIdentifier') {
+    throw new UnsupportedError('a non-native JSX tag');
+  }
+  if (/^[A-Z]/.test(nameNode.name)) {
+    if (opening.attributes.length > 0 || element.children.length > 0) {
+      throw new UnsupportedError('component props or children');
+    }
+    const binding = ctx.bindings.reference(nameNode);
+    if (binding === null) {
+      throw new InvalidModuleError(
+        'unresolved-component',
+        `The component "${nameNode.name}" is not declared in this scope.`,
+        [nameNode.start, nameNode.end]
+      );
+    }
+    return {
+      op: OpKind.Call,
+      target: { t: CallTargetKind.Raw, binding },
+      props: { c: CallPropsKind.Entries, props: [] },
+      projections: [],
+      id: { kind: SeedKind.Component, ordinal: ctx.componentCounter.next++ },
+      lifetime: 0,
+      blockingSuspense: false,
+    };
+  }
+  if (!/^[a-z]/.test(nameNode.name)) {
     throw new UnsupportedError('a non-native JSX tag');
   }
   const tag = nameNode.name;

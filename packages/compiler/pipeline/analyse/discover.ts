@@ -13,6 +13,7 @@ import { UnsupportedError } from '../errors';
 
 export interface DiscoveredComponent {
   name: string;
+  bindingNode: BindingIdentifier | null;
   declarationKind: DeclarationKind;
   arrow: ArrowFunctionExpression;
   /** The authored props param — reused as the emitted props name. */
@@ -32,7 +33,9 @@ export function discoverComponents(program: Program): DiscoveredComponent[] {
       if (arrow.type !== 'ArrowFunctionExpression') {
         throw new UnsupportedError('a default export that is not an arrow function');
       }
-      found.push(describeComponent(statement, arrow, 'default', DeclarationKind.DefaultArrow));
+      found.push(
+        describeComponent(statement, arrow, 'default', DeclarationKind.DefaultArrow, null)
+      );
       continue;
     }
     if (statement.type === 'ExportNamedDeclaration' && isNode(statement.declaration)) {
@@ -48,6 +51,9 @@ export function discoverComponents(program: Program): DiscoveredComponent[] {
       if (name === null || !/^[A-Z]/.test(name) || init === null) {
         continue;
       }
+      if (declarator.id.type !== 'Identifier') {
+        throw new UnsupportedError('a destructured component declaration');
+      }
       if (init.type !== 'ArrowFunctionExpression') {
         throw new UnsupportedError('a component declaration that is not an arrow function');
       }
@@ -57,7 +63,7 @@ export function discoverComponents(program: Program): DiscoveredComponent[] {
       if (declaration.kind !== 'const') {
         throw new UnsupportedError(`a component declared with "${declaration.kind}"`);
       }
-      found.push(describeComponent(statement, init, name, DeclarationKind.Const));
+      found.push(describeComponent(statement, init, name, DeclarationKind.Const, declarator.id));
     }
   }
   if (found.length === 0) {
@@ -70,7 +76,8 @@ function describeComponent(
   statement: Statement,
   arrow: ArrowFunctionExpression,
   name: string,
-  declarationKind: DeclarationKind
+  declarationKind: DeclarationKind,
+  bindingNode: BindingIdentifier | null
 ): DiscoveredComponent {
   const params = arrow.params;
   if (params.length > 1) {
@@ -86,6 +93,7 @@ function describeComponent(
   }
   return {
     name,
+    bindingNode,
     declarationKind,
     setupStatements,
     arrow,

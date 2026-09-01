@@ -1396,9 +1396,9 @@ export const App = component$(() => {
     expect(result.diagnostics).toEqual([]);
     const main = result.modules.find((module) => module.path.endsWith('qrl-values.tsx'))!.code;
     // explicit $() values keep their v2 qrl identity: lazy chunk, .w captures
-    expect(main).not.toMatch(/_withCaptures\(\w+_\qrl_segment/);
-    expect(main).toMatch(/const onClick\$ = q_\w+_\qrl_segment_\d+_\w+\.w\(\[sig\]\)/);
-    expect(main).toMatch(/const moduleQrl = q_\w+_\qrl_segment/);
+    expect(main).not.toMatch(/_withCaptures\(\w+_qrl_segment/);
+    expect(main).toMatch(/const onClick\$ = q_\w+_qrl_segment_\d+_\w+\.w\(\[sig\]\)/);
+    expect(main).toMatch(/const moduleQrl = q_\w+_qrl_segment/);
     // a handler passed as a component prop escapes into the child: qrl too
     expect(main).toMatch(/"onClick\$": q_\w+_q_e_click_segment_\d+_\w+\.w\(\[sig\]\)/);
     // structural sinks keep the direct fast path
@@ -1408,8 +1408,8 @@ export const App = component$(() => {
       module.path.includes('useTaskqrl_segment')
     )!.code;
     // $() nested in another segment body keeps qrl identity there too
-    expect(taskChunk).not.toMatch(/_withCaptures\(\w+_\qrl_segment/);
-    expect(taskChunk).toMatch(/q_\w+_\qrl_segment_\d+_\w+\.w\(\[sig\]\)/);
+    expect(taskChunk).not.toMatch(/_withCaptures\(\w+_qrl_segment/);
+    expect(taskChunk).toMatch(/q_\w+_qrl_segment_\d+_\w+\.w\(\[sig\]\)/);
   });
 });
 
@@ -1740,9 +1740,7 @@ export const App = component$(() => {
       const all = result.modules.map((module) => module.code).join('\n');
       // eventQrl is identity, so the boundary is just a qrl — no `event` runtime callee
       expect(all, `isServer ${isServer}`).not.toMatch(/\bevent\(/);
-      expect(all, `isServer ${isServer}`).toMatch(
-        /q_\w+_event\qrl_segment_\d+_\w+\.w\(\[count\]\)/
-      );
+      expect(all, `isServer ${isServer}`).toMatch(/q_\w+_eventqrl_segment_\d+_\w+\.w\(\[count\]\)/);
     }
   });
 });

@@ -31,6 +31,7 @@ const ignores = [
   'packages/docs/src/routes/examples/apps',
   'packages/docs/src/routes/playground/app',
   'packages/docs/src/routes/tutorial',
+  'packages/compiler/conformance/layerA/.generated',
   'packages/optimizer/core/src/fixtures',
   'packages/optimizer/bindings',
   'packages/qwik-labs/lib',

@@ -580,6 +580,7 @@ export async function buildInterpretedRoot(
           const names = [...namedLocals.keys()];
           const returned = [...new Set([...names, ...declared])];
           const body = `${op.src}\n;return { ${returned.join(', ')} };`;
+          // eslint-disable-next-line no-new-func
           const evaluate = new Function('props', ...names, body) as (
             ...args: unknown[]
           ) => Record<string, unknown>;

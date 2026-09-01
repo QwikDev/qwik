@@ -7,7 +7,6 @@ import {
   type Arg,
   type Expr,
   type LinkedModule,
-  type Program,
 } from '../schema';
 import { ValueIrKind } from '../../src/expr-ir';
 import { QwikHook } from '../words';
@@ -16,7 +15,7 @@ import { UnsupportedError } from '../errors';
 /** Setup statements shared by the JS targets — `const count = useSignal(0);`. */
 export function emitJsSetup(
   module: LinkedModule,
-  program: Program,
+  program: { setup: LinkedModule['programs'][number]['setup'] },
   imports: Set<string>
 ): string[] {
   return program.setup.map((entry) => {

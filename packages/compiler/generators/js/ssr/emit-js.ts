@@ -58,7 +58,6 @@ export function emitJsModule(plan: QwikSsrPlan, componentIndex = plan.entry): st
   } catch (error) {
     if (error === UNGENERATABLE) {
       if (process.env.QWIK_JSGEN_DEBUG === '1') {
-        // eslint-disable-next-line no-console
         console.error((error as { stack?: string } & symbol).description, UNGENERATABLE_SITE);
       }
       return null;
@@ -164,7 +163,6 @@ export function emitJsProductionRender(
   } catch (error) {
     if (error === UNGENERATABLE) {
       if (process.env.QWIK_JSGEN_DEBUG === '1') {
-        // eslint-disable-next-line no-console
         console.error('production', UNGENERATABLE_SITE);
       }
       return null;
@@ -258,7 +256,6 @@ export function emitJsSegmentBlock(
   } catch (error) {
     if (error === UNGENERATABLE) {
       if (process.env.QWIK_JSGEN_DEBUG === '1') {
-        // eslint-disable-next-line no-console
         console.error('chunk', UNGENERATABLE_SITE);
       }
       return null;

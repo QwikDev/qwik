@@ -1,10 +1,7 @@
 /**
  * LinkedPlan — materialized linked modules (DESIGN.md "Model" — LinkedPlan).
  *
- * The linker MATERIALIZES linked modules: same table layout as ModulePlan with linked leaves — raw
- * targets become `Maybe<DeclRef>`, guard-carrying entries are folded away or kept, branches with
- * decided constants are folded, ValueIR build-constant leaves are folded. Nothing is
- * overlay-addressed by string keys.
+ * Imports and raw targets become typed linked leaves, never overlays.
  */
 import type {
   LINKED_PLAN_VERSION,
@@ -16,12 +13,13 @@ import type {
   Maybe,
   ModuleKind,
   ModuleSource,
+  LocalId,
   PayloadId,
   PlanFormat,
   Range,
 } from './shared';
 import type { EsmEdge, Payload } from './value';
-import type { Program } from './program';
+import { CallTargetKind, OpKind, ProgramBodyKind, type Op, type Program } from './program';
 import type {
   AssemblyIntent,
   AssemblyKind,
@@ -71,6 +69,7 @@ export interface LinkedModule {
   }[];
   defs: ModulePlan['defs'];
   edges: (EsmEdge & { target: Maybe<number>; runtime: boolean })[];
+  imports: LinkedImport[];
   exports: ModulePlan['exports'];
   /** Plus linked edits on preserved spans: constant folds and pruned ranges (dead imports). */
   assembly: (
@@ -82,7 +81,26 @@ export interface LinkedModule {
   diagnostics: Diagnostic[];
 }
 
-export interface LinkedProgram extends Program {
+type ElementOp = Extract<Op, { op: OpKind.Element }>;
+type CallOp = Extract<Op, { op: OpKind.Call }>;
+
+export type LinkedOp =
+  | Exclude<Op, ElementOp | CallOp>
+  | (Omit<ElementOp, 'children'> & { children: LinkedOp[] })
+  | (Omit<CallOp, 'target'> & {
+      target:
+        | {
+            t: CallTargetKind.Declaration;
+            binding: LocalId;
+            declaration: Maybe<DeclRef>;
+          }
+        | Extract<CallOp['target'], { t: CallTargetKind.Dynamic }>;
+    });
+
+export interface LinkedProgram extends Omit<Program, 'body'> {
+  body:
+    | { kind: ProgramBodyKind.Ops; ops: LinkedOp[] }
+    | Extract<Program['body'], { kind: ProgramBodyKind.Js }>;
   /** Cross-module joins land HERE — the owner the raw plan cannot have. */
   facts: {
     needsId: Maybe<boolean>;
@@ -91,6 +109,19 @@ export interface LinkedProgram extends Program {
     runtimeScope: Maybe<boolean>;
   };
 }
+
+export const enum ImportTargetKind {
+  Declaration = 'declaration',
+  Namespace = 'namespace',
+  TypeOnly = 'type-only',
+}
+
+type ImportSource = ModulePlan['imports'][number];
+
+export type LinkedImport =
+  | { kind: ImportTargetKind.Declaration; source: ImportSource; target: Maybe<DeclRef> }
+  | { kind: ImportTargetKind.Namespace; source: ImportSource; target: Maybe<number> }
+  | { kind: ImportTargetKind.TypeOnly; source: ImportSource };
 
 export const enum DeliveryKind {
   Chunk = 'chunk',

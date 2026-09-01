@@ -1,4 +1,11 @@
-import type { ArrowFunctionExpression, BindingPattern, Function, Node, Program } from 'oxc-parser';
+import type {
+  ArrowFunctionExpression,
+  BindingIdentifier,
+  BindingPattern,
+  Function,
+  Node,
+  Program,
+} from 'oxc-parser';
 import { BindingScope, VarKind, type LocalId, type ModulePlan } from '../../schema';
 import { isNode, type WalkableNode } from './ast-types';
 
@@ -14,7 +21,26 @@ export interface BindingGraph {
   readonly bindings: Binding[];
   declaration(node: Node): LocalId | null;
   reference(node: Node): LocalId | null;
-  addSynthetic(name: string, scope: BindingScope): LocalId;
+  addSynthetic(name: string, scope: BindingScope, declarationRange?: [number, number]): LocalId;
+}
+
+export function bindingIdentifiers(pattern: BindingPattern): BindingIdentifier[] {
+  switch (pattern.type) {
+    case 'Identifier':
+      return [pattern];
+    case 'AssignmentPattern':
+      return bindingIdentifiers(pattern.left);
+    case 'ArrayPattern':
+      return pattern.elements.flatMap((element) =>
+        element === null
+          ? []
+          : bindingIdentifiers(element.type === 'RestElement' ? element.argument : element)
+      );
+    case 'ObjectPattern':
+      return pattern.properties.flatMap((property) =>
+        bindingIdentifiers(property.type === 'Property' ? property.value : property.argument)
+      );
+  }
 }
 
 export function createBindingGraph(program: Program): BindingGraph {
@@ -56,35 +82,8 @@ export function createBindingGraph(program: Program): BindingGraph {
     bindingScope: BindingScope,
     varKind: VarKind | null
   ): void => {
-    switch (pattern.type) {
-      case 'Identifier':
-        declare(pattern, scope, bindingScope, varKind);
-        return;
-      case 'ObjectPattern':
-        for (const property of pattern.properties) {
-          declarePattern(
-            property.type === 'Property' ? property.value : property.argument,
-            scope,
-            bindingScope,
-            varKind
-          );
-        }
-        return;
-      case 'ArrayPattern':
-        for (const element of pattern.elements) {
-          if (element !== null) {
-            declarePattern(
-              element.type === 'RestElement' ? element.argument : element,
-              scope,
-              bindingScope,
-              varKind
-            );
-          }
-        }
-        return;
-      case 'AssignmentPattern':
-        declarePattern(pattern.left, scope, bindingScope, varKind);
-        return;
+    for (const identifier of bindingIdentifiers(pattern)) {
+      declare(identifier, scope, bindingScope, varKind);
     }
   };
 
@@ -279,6 +278,13 @@ export function createBindingGraph(program: Program): BindingGraph {
       }
       return;
     }
+    if (value.type === 'JSXIdentifier' && isJsxTagReference(parent, key)) {
+      const binding = findBinding(activeScope, value.name);
+      if (binding !== null) {
+        references.set(value, binding);
+      }
+      return;
+    }
     for (const childKey of Object.keys(value)) {
       if (!IGNORED_KEYS.has(childKey)) {
         resolveReferences((value as WalkableNode)[childKey], activeScope, value, childKey);
@@ -291,12 +297,18 @@ export function createBindingGraph(program: Program): BindingGraph {
     bindings,
     declaration: (node) => declarations.get(node) ?? null,
     reference: (node) => references.get(node) ?? null,
-    addSynthetic: (name, scope) => {
+    addSynthetic: (name, scope, declarationRange) => {
       const id = bindings.length;
-      bindings.push({ id, name, scope, varKind: null, declarationRange: null });
+      bindings.push({ id, name, scope, varKind: null, declarationRange: declarationRange ?? null });
       return id;
     },
   };
+}
+
+function isJsxTagReference(parent: Node | null, key: string): boolean {
+  return (
+    key === 'name' && (parent?.type === 'JSXOpeningElement' || parent?.type === 'JSXClosingElement')
+  );
 }
 
 function createScope(parent: Scope | null, functionBoundary: boolean): Scope {

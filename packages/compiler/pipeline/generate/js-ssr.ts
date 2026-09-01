@@ -15,7 +15,7 @@ import {
   type LinkedModule,
   type LinkedPlan,
   type LinkedQrl,
-  type Op,
+  type LinkedOp,
   type Prop,
   type QrlUse,
   type Value,
@@ -292,7 +292,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     return { emission, core, names };
   }
 
-  private programOps(qrl: LinkedQrl): readonly Op[] {
+  private programOps(qrl: LinkedQrl): readonly LinkedOp[] {
     if (qrl.body.b !== QrlBodyKind.Program) {
       throw new Error(`pipeline.generateJsSsr: rendering the non-program qrl "${qrl.id}"`);
     }
@@ -328,7 +328,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
 
   private op(
     pass: RenderPass,
-    op: Op,
+    op: LinkedOp,
     parts: string[],
     rootRange: SsrRootRange | null,
     rootMarker: string | null = null
@@ -365,7 +365,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
 
   private element(
     pass: RenderPass,
-    op: Extract<Op, { op: OpKind.Element }>,
+    op: Extract<LinkedOp, { op: OpKind.Element }>,
     parts: string[],
     /** Stamped into this element's open tag — a row root's `q:row`. */
     rootMarker: string | null = null
@@ -447,7 +447,11 @@ class SsrModuleEmitter implements QwikModuleEmitter {
   }
 
   /** A collection renders between `<!f=N>`…`<!/f>` markers; rows reconcile by key. */
-  private each(pass: RenderPass, op: Extract<Op, { op: OpKind.Each }>, parts: string[]): void {
+  private each(
+    pass: RenderPass,
+    op: Extract<LinkedOp, { op: OpKind.Each }>,
+    parts: string[]
+  ): void {
     // get source
     let source: string;
     switch (op.source.s) {
@@ -530,7 +534,11 @@ class SsrModuleEmitter implements QwikModuleEmitter {
   }
 
   /** A branch renders between `<!b=N>`…`<!/b>` markers; arms swap on the client by range. */
-  private branch(pass: RenderPass, op: Extract<Op, { op: OpKind.Branch }>, parts: string[]): void {
+  private branch(
+    pass: RenderPass,
+    op: Extract<LinkedOp, { op: OpKind.Branch }>,
+    parts: string[]
+  ): void {
     const idVariable = pass.next(QwikGenWord.BranchId);
     pass.statements.push(`const ${idVariable} = ${pass.names.ctx}.nextId();`);
     if (op.condition.v !== ValueKind.Qrl) {
@@ -556,7 +564,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
   }
 
   /** Lexical inline value: coerce + escape in place — nothing ever targets this text. */
-  private inlineText(op: Extract<Op, { op: OpKind.Hole }>, parts: string[]): void {
+  private inlineText(op: Extract<LinkedOp, { op: OpKind.Hole }>, parts: string[]): void {
     this.imports.add(QwikWord.EscapeHTML);
     this.imports.add(QwikWord.TextValue);
     parts.push(
@@ -566,7 +574,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
 
   private textHole(
     pass: RenderPass,
-    op: Extract<Op, { op: OpKind.Hole }>,
+    op: Extract<LinkedOp, { op: OpKind.Hole }>,
     target: SsrTextTarget,
     parts: string[]
   ): void {
@@ -783,6 +791,6 @@ function pushMergedStatic(parts: string[], text: string): void {
   }
 }
 
-function isInlineHole(op: Extract<Op, { op: OpKind.Hole }>): boolean {
+function isInlineHole(op: Extract<LinkedOp, { op: OpKind.Hole }>): boolean {
   return op.value.v === ValueKind.Computed && op.value.resume.r === ResumeKind.Inline;
 }

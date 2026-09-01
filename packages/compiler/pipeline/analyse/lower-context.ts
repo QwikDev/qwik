@@ -16,6 +16,7 @@ export interface LowerContext {
   segmentCounter: { next: number };
   /** Branch seed ordinals, allocated in authored order. */
   branchCounter: { next: number };
+  componentCounter: { next: number };
   forCounter: { next: number };
   /** Param bindings of the inline collection row; null = not inside one. */
   inlineParams: ReadonlySet<LocalId> | null;
@@ -43,6 +44,7 @@ export function createLowerContext(
     sourceIdentity: createSegmentSourceIdentity(path, scope),
     segmentCounter: { next: 0 },
     branchCounter: { next: 0 },
+    componentCounter: { next: 0 },
     forCounter: { next: 0 },
     inlineParams: null,
     bindings,

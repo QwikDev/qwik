@@ -1,4 +1,4 @@
-import { OpKind, PropKind, type Op } from '../schema';
+import { OpKind, PropKind, type LinkedOp, type Op } from '../schema';
 import { escapeAttr, escapeText, serializeAttrValue } from '../html';
 import { UnsupportedError } from '../errors';
 
@@ -6,7 +6,7 @@ import { UnsupportedError } from '../errors';
  * Folds a fully static op tree to markup. Attribute bytes are identical everywhere; TEXT differs
  * per target: SSR streams it raw, CSR template markup escapes it.
  */
-export function foldStaticOp(op: Op, escapeTextContent: boolean): string {
+export function foldStaticOp(op: Op | LinkedOp, escapeTextContent: boolean): string {
   switch (op.op) {
     case OpKind.Static:
       return escapeTextContent ? escapeText(op.html) : op.html;
@@ -37,7 +37,7 @@ export function foldStaticOp(op: Op, escapeTextContent: boolean): string {
 }
 
 /** True when the whole subtree folds to markup — no dynamic props, holes, or effects. */
-export function isFullyStaticSubtree(op: Op): boolean {
+export function isFullyStaticSubtree(op: Op | LinkedOp): boolean {
   if (op.op === OpKind.Static) {
     return true;
   }

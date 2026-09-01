@@ -14,7 +14,7 @@ import {
   type LinkedModule,
   type LinkedPlan,
   type LinkedQrl,
-  type Op,
+  type LinkedOp,
   type Prop,
 } from '../schema';
 import { QwikWord, QwikGenWord } from '../words';
@@ -47,7 +47,7 @@ import {
   type PresentationOptions,
 } from './output';
 
-type TextOp = Extract<Op, { op: OpKind.Static | OpKind.Hole }>;
+type TextOp = Extract<LinkedOp, { op: OpKind.Static | OpKind.Hole }>;
 
 export async function generateJsCsr(
   plan: LinkedPlan,
@@ -177,7 +177,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
   }
 
   /** Returns the local holding the op's root node. */
-  private op(op: Op, ownerName: string, statements: string[], pass: RenderPass): string {
+  private op(op: LinkedOp, ownerName: string, statements: string[], pass: RenderPass): string {
     switch (op.op) {
       case OpKind.Static:
         return this.staticRoot(op, ownerName, statements, pass);
@@ -191,7 +191,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
   }
 
   private holeRoot(
-    op: Extract<Op, { op: OpKind.Hole }>,
+    op: Extract<LinkedOp, { op: OpKind.Hole }>,
     statements: string[],
     pass: RenderPass
   ): string {
@@ -202,7 +202,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
   }
 
   private staticRoot(
-    op: Extract<Op, { op: OpKind.Static }>,
+    op: Extract<LinkedOp, { op: OpKind.Static }>,
     ownerName: string,
     statements: string[],
     pass: RenderPass
@@ -213,7 +213,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
   }
 
   private elementRoot(
-    op: Extract<Op, { op: OpKind.Element }>,
+    op: Extract<LinkedOp, { op: OpKind.Element }>,
     ownerName: string,
     statements: string[],
     pass: RenderPass
@@ -228,7 +228,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
 
   /** Wires an element's non-static props — events and dynamic attributes — onto its node. */
   private elementProps(
-    op: Extract<Op, { op: OpKind.Element }>,
+    op: Extract<LinkedOp, { op: OpKind.Element }>,
     el: string,
     statements: string[],
     pass: RenderPass
@@ -255,7 +255,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
 
   /** Dispatches a node's children; nested elements compose the locator path. */
   private walkChildren(
-    children: readonly Op[],
+    children: readonly LinkedOp[],
     elementExpr: string,
     statements: string[],
     pass: RenderPass
@@ -310,7 +310,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
 
   /** The branch swaps DOM between its start/end comment pair via a range effect. */
   private branch(
-    op: Extract<Op, { op: OpKind.Branch }>,
+    op: Extract<LinkedOp, { op: OpKind.Branch }>,
     elementExpr: string,
     nodeIndex: number,
     nodeCount: number,
@@ -346,7 +346,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
 
   /** Rows reconcile between the start/end pair; key and render chunks import statically. */
   private each(
-    op: Extract<Op, { op: OpKind.Each }>,
+    op: Extract<LinkedOp, { op: OpKind.Each }>,
     elementExpr: string,
     nodeIndex: number,
     nodeCount: number,
@@ -449,7 +449,10 @@ class CsrModuleEmitter implements QwikModuleEmitter {
   }
 
   /** A lazy arm ref wears its captures via `.w([...])` — restored from `_captures` in the chunk. */
-  private armReference(use: Extract<Op, { op: OpKind.Branch }>['then'], propsName: string): string {
+  private armReference(
+    use: Extract<LinkedOp, { op: OpKind.Branch }>['then'],
+    propsName: string
+  ): string {
     const resolved = resolveQrlUse(this.module, use, propsName);
     const ref = this.lazyQrlReference(resolved.qrl);
     return resolved.args.length === 0 ? ref : `${ref}.w([${resolved.args.join(', ')}])`;
@@ -615,7 +618,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
 
   /** The effect re-runs the expression chunk against the resolved target text node. */
   private textHole(
-    op: Extract<Op, { op: OpKind.Hole }>,
+    op: Extract<LinkedOp, { op: OpKind.Hole }>,
     text: string,
     statements: string[],
     pass: RenderPass,
@@ -654,7 +657,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
   }
 
   private bindTextHole(
-    op: Extract<Op, { op: OpKind.Hole }>,
+    op: Extract<LinkedOp, { op: OpKind.Hole }>,
     target: string,
     statements: string[],
     pass: RenderPass
@@ -756,7 +759,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
  * siblings an empty comment (adjacent text would merge with a text placeholder). Text is
  * pre-escaped HERE so the raw comment placeholder survives the fold.
  */
-function templateOp(op: Extract<Op, { op: OpKind.Element }>): Op {
+function templateOp(op: Extract<LinkedOp, { op: OpKind.Element }>): LinkedOp {
   return {
     ...op,
     props: op.props.filter((prop) => prop.k === PropKind.Static),
@@ -765,7 +768,7 @@ function templateOp(op: Extract<Op, { op: OpKind.Element }>): Op {
 }
 
 /** Template form of a child list — holes and boundaries become locator placeholders. */
-function templateChildren(children: readonly Op[]): Op[] {
+function templateChildren(children: readonly LinkedOp[]): LinkedOp[] {
   const placeholder = children.length > 1 ? '<!---->' : ' ';
   return children.map((child) => {
     switch (child.op) {

@@ -225,6 +225,7 @@ export interface ModulePlan {
     binding: LocalId;
     edge: number;
     imported: string | 'default' | '*';
+    typeOnly: boolean;
     specifierRange: Range;
     importedRange: Range;
     authoredSpecifierRange: Range;

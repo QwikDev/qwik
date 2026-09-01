@@ -2,10 +2,13 @@
 import {
   AssemblyKind,
   BoundaryKind,
+  DeclTable,
   SurfaceKind,
   DeclarationKind,
   DiagnosticCategory,
   FnBodyKind,
+  ExportKind,
+  ExportTargetKind,
   LifetimeCommit,
   LifetimeOwner,
   ModuleKind,
@@ -18,7 +21,7 @@ import {
 import { createBindingGraph } from './ast/bindings';
 import { findRuntimeJsx, hasComponentCandidates } from './ast/returns-jsx';
 import { parseModule } from './ast/parse';
-import { scanCoreImports } from './core-imports';
+import { scanModuleSurface } from './module-surface';
 import { discoverComponents } from './discover';
 import { lowerSetup } from './lower-setup';
 import { createLowerContext, pushQrl, QrlIdentityKind } from './lower-context';
@@ -73,6 +76,11 @@ export async function analyseModule(
       return finish();
     }
     // Non-Qwik module: authored source kept, transpiled at generate.
+    const surfaceProgram =
+      normalized.map === null ? parsed.program : parseModule(input.path, input.code).program;
+    const surfaceBindings = createBindingGraph(surfaceProgram);
+    plan.bindings = surfaceBindings.bindings;
+    scanModuleSurface(surfaceProgram, null, plan, surfaceBindings);
     plan.kind = ModuleKind.Foreign;
     plan.source.normalizationMap = null;
     return plan;
@@ -99,9 +107,13 @@ export async function analyseModule(
     owner: LifetimeOwner.Component,
     commit: LifetimeCommit.Immediate,
   });
-  const coreBindings = scanCoreImports(parsed.program, plan, bindings);
+  const authoredProgram =
+    normalized.map === null ? null : parseModule(input.path, input.code).program;
+  const coreBindings = scanModuleSurface(parsed.program, authoredProgram, plan, bindings);
   const lowerContext = createLowerContext(plan, input.path, options.scope, bindings, coreBindings);
   for (const component of components) {
+    const componentBinding =
+      component.bindingNode === null ? null : bindings.declaration(component.bindingNode);
     lowerContext.propsBinding =
       component.param === null ? null : bindings.declaration(component.param.node);
     let rootOp;
@@ -169,7 +181,7 @@ export async function analyseModule(
       },
       declaration: {
         name: component.name,
-        binding: null,
+        binding: componentBinding,
         parameter:
           component.param === null
             ? null
@@ -186,6 +198,17 @@ export async function analyseModule(
         localName: component.declarationKind === DeclarationKind.Const ? component.name : null,
       },
     });
+    if (componentBinding === null) {
+      const componentExport = plan.exports.find(
+        (entry): entry is Extract<(typeof plan.exports)[number], { e: ExportKind.Local }> =>
+          entry.e === ExportKind.Local && entry.exported === component.name
+      )!;
+      componentExport.target = {
+        t: ExportTargetKind.Declaration as const,
+        table: DeclTable.Qrls,
+        index: qrlIndex,
+      };
+    }
     plan.assembly.push({ a: AssemblyKind.Splice, qrl: qrlIndex });
   }
   return finish();
@@ -201,12 +224,16 @@ function finishPlan(plan: ModulePlan, normalizedCode: string, authoredCode: stri
     plan.source.normalizationMap as Parameters<typeof createOriginalRangeMapper>[2]
   );
   for (const edge of plan.edges) {
-    edge.authoredOwnerRange = mapRange(edge.ownerRange);
-    edge.authoredSourceRange = mapRange(edge.sourceRange);
+    if (edge.ownerRange[0] !== edge.ownerRange[1]) {
+      edge.authoredOwnerRange = mapRange(edge.ownerRange);
+      edge.authoredSourceRange = mapRange(edge.sourceRange);
+    }
   }
   for (const imported of plan.imports) {
-    imported.authoredSpecifierRange = mapRange(imported.specifierRange);
-    imported.authoredImportedRange = mapRange(imported.importedRange);
+    if (imported.specifierRange[0] !== imported.specifierRange[1]) {
+      imported.authoredSpecifierRange = mapRange(imported.specifierRange);
+      imported.authoredImportedRange = mapRange(imported.importedRange);
+    }
   }
   plan.diagnostics = plan.diagnostics.map((diagnostic) => ({
     ...diagnostic,

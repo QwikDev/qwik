@@ -422,7 +422,7 @@ interface ClaimSite {
 
 interface ModulePlan {
   format: 'qwik/module-plan';
-  version: 1; // pre-release — the new contract starts at 1
+  version: 2;
   path: string;
   kind: 'qwik' | 'foreign' | 'failed';
   source: ModuleSource;
@@ -460,6 +460,9 @@ interface ModulePlan {
     binding: LocalId;
     edge: number;
     imported: string | 'default' | '*';
+    typeOnly: boolean;
+    specifierRange: Range;
+    importedRange: Range;
     authoredSpecifierRange: Range;
     authoredImportedRange: Range;
   }[];
@@ -549,7 +552,8 @@ interface DeclRef {
 }
 
 // The linker MATERIALIZES linked modules — same table layout as ModulePlan, with linked leaves:
-// raw `{t:'raw'}` targets → `Maybe<DeclRef>`; guard-carrying entries folded away or kept;
+// every import is materialized once; raw call targets consume that result as a `DeclRef`;
+// guard-carrying entries are folded away or kept;
 // branches with decided constants folded (their arm programs inlined into reachability);
 // residual branches kept live; setup/ops rewritten where folding reached inside them; ValueIR
 // build-constant leaves folded. Nothing is overlay-addressed by string keys.
@@ -581,11 +585,18 @@ interface LinkedModule {
   }[];
   defs: ModulePlan['defs'];
   edges: (EsmEdge & { target: Maybe<number>; runtime: boolean })[];
+  imports: (
+    | { kind: 'declaration'; source: ModulePlan['imports'][number]; target: Maybe<DeclRef> }
+    | { kind: 'namespace'; source: ModulePlan['imports'][number]; target: Maybe<number> }
+    | { kind: 'type-only'; source: ModulePlan['imports'][number] }
+  )[];
   exports: ModulePlan['exports'];
   assembly: AssemblyIntent[]; // + linked 'constant-fold' edits on preserved spans
   diagnostics: Diagnostic[]; // guards folded
 }
-interface LinkedProgram extends Program {
+interface LinkedProgram extends Omit<Program, 'body'> {
+  // `call.raw` becomes `call.declaration`; the authored binding remains as provenance.
+  body: { kind: 'ops'; ops: LinkedOp[] } | { kind: 'js'; payload: PayloadId };
   // cross-module joins land HERE — the owner the raw plan cannot have:
   facts: {
     needsId: Maybe<boolean>;
@@ -607,7 +618,7 @@ interface LinkedQrl extends Qrl {
 
 interface LinkedPlan {
   format: 'qwik/linked-plan';
-  version: 1;
+  version: 2;
   specialization: Specialization;
   complete: boolean; // incomplete = per-module transform link; artifacts and
   //   native generation REQUIRE complete

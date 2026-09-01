@@ -80,7 +80,9 @@ export default () => {
       true
     );
     expect(linked.kind).toBe(LinkResultKind.Linked);
-    if (linked.kind !== LinkResultKind.Linked) return;
+    if (linked.kind !== LinkResultKind.Linked) {
+      return;
+    }
     expect(linked.plan.entries).toEqual([{ kind: EntryKind.Module, module: 0 }]);
     const generated = await generateJsSsr(linked.plan, {});
     expect(generated.modules[0].code).toBe('export const n = 1;\n');
@@ -107,7 +109,9 @@ export default () => {
       { claims: [], policies: [], emissions: [] },
       false
     );
-    if (linked.kind !== LinkResultKind.Linked) throw new Error('expected linked');
+    if (linked.kind !== LinkResultKind.Linked) {
+      throw new Error('expected linked');
+    }
     await expect(generateJsSsr(linked.plan, {})).rejects.toThrow('server LinkedPlan');
   });
 

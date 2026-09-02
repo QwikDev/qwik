@@ -12,6 +12,7 @@ import {
   type LinkedOp,
   type LinkedQrl,
   type QrlUse,
+  type Value,
 } from '../schema';
 import { UnsupportedError } from '../errors';
 import { QwikGenWord, QwikWord } from '../words';
@@ -77,9 +78,16 @@ function emitComponentProps(
     throw new UnsupportedError('a component props proxy');
   }
   const entries: string[] = [];
-  const sources: string[] = [];
+  const mergeInputs: string[] = [];
+  const reactiveSources: string[] = [];
   const roots: string[] = [];
   const statements: string[] = [];
+  const flushEntries = () => {
+    if (entries.length > 0) {
+      mergeInputs.push(`{ ${entries.join(', ')} }`);
+      entries.length = 0;
+    }
+  };
   for (const prop of component.props.props) {
     switch (prop.k) {
       case PropKind.Static:
@@ -102,28 +110,12 @@ function emitComponentProps(
             roots: [signal],
           };
         } else if (prop.value.v === ValueKind.Computed) {
-          if (prop.value.resume.r !== ResumeKind.Qrl) {
-            throw new UnsupportedError('a non-QRL computed component prop');
-          }
-          const { qrl, reference, args } = resolveQrl(prop.value.resume.qrl, true);
-          if (qrl.payloadKind !== QrlPayloadKind.Value) {
-            throw new UnsupportedError('a non-value component prop QRL');
-          }
-          const propQrl = pass.next(QwikGenWord.PropQrl);
-          imports.add(QwikWord.ReadExpression);
-          value = {
-            statements: [
-              `const ${propQrl} = ${args.length === 0 ? reference : `${reference}.w([${args.join(', ')}])`};`,
-            ],
-            expression: `${QwikWord.ReadExpression}(${propQrl})`,
-            source: propQrl,
-            roots: rootArgs(qrl, args),
-          };
+          value = emitComponentExpression(prop.value, pass, imports, resolveQrl);
         } else {
           throw new UnsupportedError(`the component prop value "${prop.value.v}"`);
         }
         entries.push(`get ${JSON.stringify(prop.name)}() { return ${value.expression}; }`);
-        sources.push(`${JSON.stringify(prop.name)}: ${value.source}`);
+        reactiveSources.push(`${JSON.stringify(prop.name)}: ${value.source}`);
         roots.push(...value.roots);
         statements.push(...value.statements);
         break;
@@ -145,19 +137,65 @@ function emitComponentProps(
         roots.push(...rootArgs(qrl, args));
         break;
       }
+      case PropKind.Spread: {
+        flushEntries();
+        if (prop.value.v === ValueKind.Computed) {
+          const value = emitComponentExpression(prop.value, pass, imports, resolveQrl);
+          mergeInputs.push(value.expression);
+          roots.push(...value.roots);
+          statements.push(...value.statements);
+        } else {
+          throw new UnsupportedError(`the component spread value "${prop.value.v}"`);
+        }
+        break;
+      }
       default:
         throw new UnsupportedError(`the component prop "${prop.k}"`);
     }
   }
-  const expression = entries.length === 0 ? '{}' : `{ ${entries.join(', ')} }`;
-  if (sources.length === 0) {
+  flushEntries();
+  let expression: string;
+  if (mergeInputs.length === 0) {
+    expression = '{}';
+  } else if (mergeInputs.length === 1) {
+    expression = mergeInputs[0];
+  } else {
+    imports.add(QwikWord.MergeProps);
+    expression = `${QwikWord.MergeProps}(${mergeInputs.join(', ')})`;
+  }
+  if (reactiveSources.length === 0) {
     return { expression, roots, statements };
   }
   imports.add(QwikWord.Props);
   return {
-    expression: `${QwikWord.Props}(${expression}, { ${sources.join(', ')} })`,
+    expression: `${QwikWord.Props}(${expression}, { ${reactiveSources.join(', ')} })`,
     roots,
     statements,
+  };
+}
+
+function emitComponentExpression(
+  value: Extract<Value, { v: ValueKind.Computed }>,
+  pass: ComponentRenderPass,
+  imports: Set<string>,
+  resolveQrl: ResolveComponentQrl
+) {
+  if (value.resume.r !== ResumeKind.Qrl) {
+    throw new UnsupportedError('a non-QRL computed component value');
+  }
+  const { qrl, reference, args } = resolveQrl(value.resume.qrl, true);
+  if (qrl.payloadKind !== QrlPayloadKind.Value) {
+    throw new UnsupportedError('a non-value component QRL');
+  }
+  const propQrl = pass.next(QwikGenWord.PropQrl);
+  imports.add(QwikWord.ReadExpression);
+  return {
+    statements: [
+      `const ${propQrl} = ${args.length === 0 ? reference : `${reference}.w([${args.join(', ')}])`};`,
+    ],
+    expression: `${QwikWord.ReadExpression}(${propQrl})`,
+    source: propQrl,
+    roots: rootArgs(qrl, args),
   };
 }
 

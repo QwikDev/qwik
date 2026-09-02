@@ -639,6 +639,16 @@ export default () => {
     });
   });
 
+  test('should merge component prop spreads in authored order', async () => {
+    await testInput(mode, 'component-props-spread', {
+      code: `export const Child = (props) => <strong>{props.label}</strong>;
+export default (props) => (
+  <Child label="before" {...props.base} middle="middle" {...props.overrides} label="after" />
+);
+`,
+    });
+  });
+
   test('should forward an event prop through a component', async () => {
     await testInput(mode, 'component-event-prop', {
       code: `import { useSignal } from '@qwik.dev/core';
@@ -673,7 +683,7 @@ describe('pending slices', () => {
   test.todo('JSX in a call argument lowers as an embedded function render');
   test.todo('JSX outside any candidate rejects with unsupported-runtime-jsx');
   test.todo('dynamic props, holes, events, bind, refs');
-  test.todo('spread component props, projections, slots');
+  test.todo('reactive component props proxies, projections, slots');
   test.todo('branches (incl. build-constant conditions and residual isDev)');
   test.todo('collections (array/reactive/derived, inline and chunk rows)');
   test.todo('suspense, reveal, dynamic slots');

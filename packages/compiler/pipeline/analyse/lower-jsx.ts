@@ -200,8 +200,15 @@ function lowerAttribute(
   ctx: LowerContext,
   target: 'component' | 'element'
 ): Prop {
-  if (attribute.type !== 'JSXAttribute') {
-    throw new UnsupportedError('a JSX spread attribute');
+  if (attribute.type === 'JSXSpreadAttribute') {
+    if (target !== 'component') {
+      throw new UnsupportedError('a JSX spread attribute');
+    }
+    return {
+      k: PropKind.Spread,
+      value: lowerExpressionValue(attribute.argument, ctx, 'props'),
+      effect: null,
+    };
   }
   const nameNode = attribute.name;
   if (nameNode.type !== 'JSXIdentifier') {

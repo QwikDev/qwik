@@ -1,0 +1,163 @@
+==INPUT==
+
+export const Child = (props) => <strong>{props.label}</strong>;
+export default (props) => (
+  <Child label="before" {...props.base} middle="middle" {...props.overrides} label="after" />
+);
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  createSsrNodeId,
+  createSsrElementTextTarget,
+  escapeHTML,
+  renderSsrTextExpression,
+  maybeThen,
+  _noopQrl,
+  readExpression,
+  mergeProps,
+  createComponent,
+} from '@qwik.dev/core';
+
+const component_text_segment_0_1fh10fbkzokfc = (props) => {
+  return props.label;
+};
+const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_0_1fh10fbkzokfc'
+);
+q_component_text_segment_0_1fh10fbkzokfc.s(component_text_segment_0_1fh10fbkzokfc);
+const component_props_segment_1_208o0sfi1se76 = (props) => {
+  return props.base;
+};
+const q_component_props_segment_1_208o0sfi1se76 = /*#__PURE__*/ _noopQrl(
+  'component_props_segment_1_208o0sfi1se76'
+);
+q_component_props_segment_1_208o0sfi1se76.s(component_props_segment_1_208o0sfi1se76);
+const component_props_segment_2_208o0eee4yc6n = (props) => {
+  return props.overrides;
+};
+const q_component_props_segment_2_208o0eee4yc6n = /*#__PURE__*/ _noopQrl(
+  'component_props_segment_2_208o0eee4yc6n'
+);
+q_component_props_segment_2_208o0eee4yc6n.s(component_props_segment_2_208o0eee4yc6n);
+export const Child = (props, ctx) => {
+  const id0 = ctx.nextId();
+  ctx.addRoot(props);
+  const text0 = renderSsrTextExpression(
+    createSsrElementTextTarget(id0),
+    [props],
+    q_component_text_segment_0_1fh10fbkzokfc
+  );
+  return maybeThen(text0, (text0) => [
+    '<strong q:id="',
+    createSsrNodeId(id0),
+    '">',
+    escapeHTML(text0),
+    '</strong>',
+  ]);
+};
+export default (props, ctx) => {
+  ctx.addRoot(props);
+  const propQrl0 = q_component_props_segment_1_208o0sfi1se76.w([props]);
+  const propQrl1 = q_component_props_segment_2_208o0eee4yc6n.w([props]);
+  const component0 = createComponent(
+    mergeProps(
+      { label: 'before' },
+      readExpression(propQrl0),
+      { middle: 'middle' },
+      readExpression(propQrl1),
+      { label: 'after' }
+    ),
+    (props) => Child(props, ctx)
+  );
+  return maybeThen(component0, (component0) => component0);
+};
+============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
+
+export const component_text_segment_0_1fh10fbkzokfc = (props) => {
+  return props.label;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_0_1fh10fbkzokfc",
+  "entry": null,
+  "displayName": "component_text_segment_0",
+  "hash": "1fh10fbkzokfc",
+  "canonicalFilename": "component.tsx_component_text_segment_0_1fh10fbkzokfc",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    41,
+    52
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_props_segment_1_208o0sfi1se76.js (ENTRY POINT)==
+
+export const component_props_segment_1_208o0sfi1se76 = (props) => {
+  return props.base;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_1_208o0sfi1se76",
+  "entry": null,
+  "displayName": "component_props_segment_1",
+  "hash": "208o0sfi1se76",
+  "canonicalFilename": "component.tsx_component_props_segment_1_208o0sfi1se76",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": true,
+  "loc": [
+    120,
+    130
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_props_segment_2_208o0eee4yc6n.js (ENTRY POINT)==
+
+export const component_props_segment_2_208o0eee4yc6n = (props) => {
+  return props.overrides;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_2_208o0eee4yc6n",
+  "entry": null,
+  "displayName": "component_props_segment_2",
+  "hash": "208o0eee4yc6n",
+  "canonicalFilename": "component.tsx_component_props_segment_2_208o0eee4yc6n",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": true,
+  "loc": [
+    152,
+    167
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

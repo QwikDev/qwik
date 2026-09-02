@@ -42,6 +42,7 @@ export const enum QwikWord {
   MaybeThen = 'maybeThen',
   // shared
   CreateComponent = 'createComponent',
+  MergeProps = 'mergeProps',
   Props = '_props',
   NoopQrl = '_noopQrl',
   Captures = '_captures',

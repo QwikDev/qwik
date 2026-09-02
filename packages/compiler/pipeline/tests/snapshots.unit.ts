@@ -711,6 +711,23 @@ export default () => {
     });
   });
 
+  test('should project component children through props.children', async () => {
+    await testInput(mode, 'component-children-props', {
+      code: `export const Wrapper = (props) => <section>{props.children}</section>;
+export default () => <Wrapper><p>Projected</p></Wrapper>;
+`,
+    });
+  });
+
+  test('should project component children through the Slot marker', async () => {
+    await testInput(mode, 'component-children-slot', {
+      code: `import { Slot } from '@qwik.dev/core';
+export const Wrapper = () => <section><Slot /></section>;
+export default () => <Wrapper><p>Projected</p></Wrapper>;
+`,
+    });
+  });
+
   test('should render an aliased component imported from another module', async () => {
     await testInputs(mode, 'component-call-import', [
       {

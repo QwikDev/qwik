@@ -9,6 +9,7 @@ import {
   OpKind,
   PropKind,
   PropsPartKind,
+  ProgramBodyKind,
   QrlBodyKind,
   QrlPayloadKind,
   SeedKind,
@@ -24,13 +25,14 @@ import { eventScopeName } from './events';
 import { lowerEventAttribute } from './lower-event';
 import { lowerText } from './lower-hole';
 import { lowerBranch } from './lower-branch';
-import { unwrapExpression } from './ast/utils';
+import { identifierName, unwrapExpression } from './ast/utils';
 import { lowerExpressionValue, recordPayloadAliasReads, trySignalReadValue } from './lower-expr';
 import type { LowerContext } from './lower-context';
 import { pushPayload, pushQrl, QrlIdentityKind } from './lower-context';
 import { lowerArray } from './lower-array';
 import { lowerCaptures } from './ast/capture-analysis';
 import { findRuntimeJsx } from './ast/returns-jsx';
+import { SegmentContext } from '../words';
 
 /**
  * Lowers a JSX render tree to structural ops. Text stays RAW in the plan — each generator folds
@@ -43,9 +45,6 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
     throw new UnsupportedError('a non-native JSX tag');
   }
   if (/^[A-Z]/.test(nameNode.name)) {
-    if (element.children.length > 0) {
-      throw new UnsupportedError('component children');
-    }
     const binding = ctx.bindings.reference(nameNode);
     if (binding === null) {
       throw new InvalidModuleError(
@@ -54,11 +53,14 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
         [nameNode.start, nameNode.end]
       );
     }
+    if (ctx.coreBindings.get(binding) === 'Slot') {
+      return lowerSlotMarker(element, ctx);
+    }
     return {
       op: OpKind.Component,
       target: { t: ComponentTargetKind.Raw, binding },
       props: lowerComponentProps(opening.attributes, ctx),
-      projections: [],
+      projections: lowerProjections(element.children, ctx),
       id: { kind: SeedKind.Component, ordinal: ctx.componentCounter.next++ },
       lifetime: 0,
       blockingSuspense: false,
@@ -239,6 +241,9 @@ function lowerChild(child: JSXChild, ctx: LowerContext): Op[] {
       return [lowerJsx(child, ctx)];
     case 'JSXExpressionContainer': {
       const expression = child.expression;
+      if (isPropsChildren(expression, ctx)) {
+        return [createDefaultSlot(ctx)];
+      }
       switch (expression.type) {
         // `{/* comment */}` renders nothing.
         case 'JSXEmptyExpression':
@@ -308,6 +313,101 @@ function lowerChild(child: JSXChild, ctx: LowerContext): Op[] {
     default:
       throw new UnsupportedError(`JSX child ${child.type}`);
   }
+}
+
+function lowerSlotMarker(element: JSXElement, ctx: LowerContext): Op {
+  if (element.openingElement.attributes.length > 0) {
+    throw new UnsupportedError('Slot attributes');
+  }
+  if (element.children.some(isProjectionChild)) {
+    throw new UnsupportedError('Slot fallback children');
+  }
+  return createDefaultSlot(ctx);
+}
+
+function createDefaultSlot(ctx: LowerContext): Op {
+  return {
+    op: OpKind.Slot,
+    name: '',
+    fallback: null,
+    id: { kind: SeedKind.Slot, ordinal: ctx.slotCounter.next++ },
+  };
+}
+
+function isPropsChildren(node: Node, ctx: LowerContext): boolean {
+  const expression = unwrapExpression(node);
+  if (
+    expression?.type !== 'MemberExpression' ||
+    expression.computed ||
+    identifierName(expression.property) !== 'children'
+  ) {
+    return false;
+  }
+  const object = unwrapExpression(expression.object);
+  return (
+    object?.type === 'Identifier' &&
+    ctx.propsBinding !== null &&
+    ctx.bindings.reference(object) === ctx.propsBinding
+  );
+}
+
+function lowerProjections(
+  children: readonly JSXChild[],
+  ctx: LowerContext
+): Extract<Op, { op: OpKind.Component }>['projections'] {
+  return children.filter(isProjectionChild).map((child) => {
+    const range: [number, number] = [child.start, child.end];
+    const { captures, args } = lowerCaptures(child, ctx, 'a component projection', {
+      allowProps: true,
+    });
+    const program = ctx.plan.programs.length;
+    ctx.plan.programs.push({
+      body: { kind: ProgramBodyKind.Ops, ops: [] },
+      setup: [],
+      params: [],
+      lifetime: 0,
+      needsId: false,
+      async: false,
+    });
+    const { use } = pushQrl(
+      ctx,
+      {
+        identity: { kind: QrlIdentityKind.Segment, nameCtx: SegmentContext.Projection },
+        ctxName: SegmentContext.Projection,
+        boundary: { kind: BoundaryKind.Implicit, role: 'projection' },
+        payloadKind: QrlPayloadKind.Function,
+        authoredAsync: false,
+        body: { b: QrlBodyKind.Program, program },
+        captures,
+        params: { authored: 0, used: [], sources: [] },
+        origin: {
+          range,
+          functionRange: range,
+          calleeRange: null,
+          argumentRanges: [],
+          paramRanges: [],
+          bodyRange: range,
+          bodyKind: FnBodyKind.Expression,
+        },
+      },
+      args
+    );
+    ctx.plan.programs[program].body = { kind: ProgramBodyKind.Ops, ops: lowerChild(child, ctx) };
+    return {
+      name: '',
+      use,
+      id: { kind: SeedKind.Projection, ordinal: ctx.projectionCounter.next++ },
+    };
+  });
+}
+
+function isProjectionChild(child: JSXChild): boolean {
+  if (child.type === 'JSXText') {
+    return normalizeJsxText(child.value) !== '';
+  }
+  return !(
+    child.type === 'JSXExpressionContainer' && child.expression.type === 'JSXEmptyExpression'
+  );
 }
 
 /** `key` is framework-reserved — it feeds collection keying, never the rendered element. */

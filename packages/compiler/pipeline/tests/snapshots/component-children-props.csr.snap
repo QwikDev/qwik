@@ -1,0 +1,82 @@
+==INPUT==
+
+export const Wrapper = (props) => <section>{props.children}</section>;
+export default () => <Wrapper><p>Projected</p></Wrapper>;
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  _first,
+  _next,
+  createSlot,
+  maybeThen,
+  createTemplate,
+  createSlotScope,
+  registerProjection,
+  _qrlWithChunk,
+  createComponent,
+} from '@qwik.dev/core';
+
+const Wrapper_tmpl0 = createTemplate('<section><!----><!----></section>');
+const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_slot_render_segment_0_3b0tagwys7lui',
+  () => import('./component.tsx_component_slot_render_segment_0_3b0tagwys7lui'),
+  'component_slot_render_segment_0_3b0tagwys7lui'
+);
+export const Wrapper = (props, ctx) => {
+  const fragment0 = Wrapper_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  const start0 = _first(el0);
+  const end0 = _next(start0);
+  ctx.scheduler.waitFor(
+    maybeThen(createSlot(), (slot0) => {
+      for (const node of slot0) {
+        end0.parentNode.insertBefore(node, end0);
+      }
+    })
+  );
+  return el0;
+};
+export default (props0, ctx) => {
+  const slotScope0 = createSlotScope();
+  registerProjection(slotScope0, '', q_component_slot_render_segment_0_3b0tagwys7lui);
+  const component0 = createComponent({}, (props0) => Wrapper(props0, ctx), {
+    slotScope: slotScope0,
+  });
+  return component0;
+};
+============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
+
+import { _first, createTemplate } from '@qwik.dev/core';
+const component_slot_render_segment_0_3b0tagwys7lui_tmpl0 = createTemplate('<p>Projected</p>');
+
+export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
+  const fragment0 = component_slot_render_segment_0_3b0tagwys7lui_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  return el0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_slot_render_segment_0_3b0tagwys7lui",
+  "entry": null,
+  "displayName": "component_slot_render_segment_0",
+  "hash": "3b0tagwys7lui",
+  "canonicalFilename": "component.tsx_component_slot_render_segment_0_3b0tagwys7lui",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot:render",
+  "captures": false,
+  "loc": [
+    101,
+    117
+  ],
+  "paramNames": []
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

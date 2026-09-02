@@ -184,7 +184,7 @@ type Op =
       op: 'call';
       target: { t: 'raw'; binding: LocalId } | { t: 'dynamic'; place: PlaceIR };
       props: { c: 'entries'; props: Prop[] } | { c: 'proxy'; compute: QrlUse };
-      projections: { name: string; program: ProgramId; id: Seed }[];
+      projections: { name: string; use: QrlUse; id: Seed }[];
       id: Seed;
       lifetime: LifetimeId;
       blockingSuspense: boolean;

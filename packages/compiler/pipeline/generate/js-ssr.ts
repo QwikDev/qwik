@@ -231,6 +231,8 @@ class SsrModuleEmitter implements QwikModuleEmitter {
             return this.armEmission(qrl);
           case ProgramKind.CollectionRow:
             return this.rowEmission(qrl);
+          case ProgramKind.Projection:
+            return this.projectionEmission(qrl);
           case ProgramKind.Component:
             throw new UnsupportedError('a component program as a chunk');
         }
@@ -269,6 +271,16 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     } else if (core.needsContext) {
       emission.params = [names.ctx];
     }
+    return emission;
+  }
+
+  /** Projection chunks own their resume-time slot marker range. */
+  private projectionEmission(qrl: LinkedQrl): FunctionEmission {
+    const { emission, core, names } = this.renderEmission(qrl, {});
+    emission.imports.add(QwikWord.CreateSsrMarkup);
+    emission.imports.add(QwikWord.CreateSsrNodeId);
+    emission.params = [names.ctx, RangeIdParam];
+    emission.value = `[${QwikWord.CreateSsrMarkup}('<!s=', ${QwikWord.CreateSsrNodeId}(${RangeIdParam}), '>'), ${core.value}, '<!/s>']`;
     return emission;
   }
 
@@ -366,6 +378,9 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       case OpKind.Component:
         this.component(pass, op, parts);
         return;
+      case OpKind.Slot:
+        this.slot(pass, parts);
+        return;
       default:
         throw new Error(`pipeline.generateJsSsr: op "${op.op}" not implemented yet`);
     }
@@ -381,6 +396,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       const { qrl, args } = resolveQrlUse(this.module, use, pass.names.props);
       return { qrl, reference: this.qrlReference(qrl, invoked), args };
     });
+    pass.statements.push(...call.rootDeclarations);
     this.pushStep(pass, component, call.roots, call.expression, call.statements);
     parts.push(component);
   }
@@ -461,6 +477,10 @@ class SsrModuleEmitter implements QwikModuleEmitter {
           this.component(pass, child, parts);
           break;
         }
+        case OpKind.Slot: {
+          this.slot(pass, parts);
+          break;
+        }
         default: {
           if (!isFullyStaticSubtree(child)) {
             throw new UnsupportedError('a dynamic child inside an element record');
@@ -472,6 +492,13 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     if (!op.void) {
       pushMergedStatic(parts, `</${op.tag}>`);
     }
+  }
+
+  private slot(pass: RenderPass, parts: string[]): void {
+    const slot = pass.next(QwikGenWord.Slot);
+    this.imports.add(QwikWord.RenderSsrSlot);
+    this.pushStep(pass, slot, [], `${QwikWord.RenderSsrSlot}(${pass.names.ctx})`);
+    parts.push(slot);
   }
 
   /** A collection renders between `<!f=N>`…`<!/f>` markers; rows reconcile by key. */

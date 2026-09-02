@@ -25,8 +25,12 @@ export const enum QwikWord {
   CreateEventEffect = 'createEventEffect',
   ReadTrackedSourceValue = 'readTrackedSourceValue',
   ReadExpression = 'readExpression',
+  CreateSlot = 'createSlot',
+  CreateSlotScope = 'createSlotScope',
+  RegisterProjection = 'registerProjection',
   // ssr
   CreateSsrNodeId = 'createSsrNodeId',
+  CreateSsrMarkup = 'createSsrMarkup',
   CreateSsrElementTextTarget = 'createSsrElementTextTarget',
   CreateSsrRangeTextTarget = 'createSsrRangeTextTarget',
   CreateSsrElementTarget = 'createSsrElementTarget',
@@ -39,6 +43,7 @@ export const enum QwikWord {
   RenderSsrTextNode = 'renderSsrTextNode',
   RenderSsrCollection = 'renderSsrCollection',
   RenderSsrBranch = 'renderSsrBranch',
+  RenderSsrSlot = 'renderSsrSlot',
   MaybeThen = 'maybeThen',
   // shared
   CreateComponent = 'createComponent',
@@ -63,6 +68,8 @@ export const enum QwikGenWord {
   Collection = 'collection',
   CollectionId = 'collectionId',
   Component = 'component',
+  Slot = 'slot',
+  SlotScope = 'slotScope',
   PropQrl = 'propQrl',
   RangeId = 'rangeId',
   Start = 'start',
@@ -93,4 +100,5 @@ export const enum SegmentContext {
   ForKey = 'for:key',
   ForRender = 'for:render',
   CollectionSource = 'collection:source',
+  Projection = 'slot:render',
 }

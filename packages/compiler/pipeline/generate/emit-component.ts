@@ -54,16 +54,46 @@ export function emitComponentCall(
   if (component.target.t !== ComponentTargetKind.Declaration) {
     throw new UnsupportedError('a dynamic component call');
   }
-  if (component.projections.length > 0) {
-    throw new UnsupportedError('component children');
-  }
   const props = emitComponentProps(module, component, pass, imports, resolveQrl);
+  const projections = emitComponentProjections(component, pass, imports, resolveQrl);
   const target = module.bindings[component.target.binding].name;
   imports.add(QwikWord.CreateComponent);
   return {
-    expression: `${QwikWord.CreateComponent}(${props.expression}, (${pass.names.props}) => ${target}(${pass.names.props}, ${pass.names.ctx}))`,
-    roots: props.roots,
-    statements: props.statements,
+    expression: `${QwikWord.CreateComponent}(${props.expression}, (${pass.names.props}) => ${target}(${pass.names.props}, ${pass.names.ctx})${projections.options})`,
+    roots: [...props.roots, ...projections.roots],
+    rootDeclarations: projections.declarations,
+    statements: [...props.statements, ...projections.statements],
+  };
+}
+
+function emitComponentProjections(
+  component: ComponentOp,
+  pass: ComponentRenderPass,
+  imports: Set<string>,
+  resolveQrl: ResolveComponentQrl
+): { options: string; roots: string[]; declarations: string[]; statements: string[] } {
+  if (component.projections.length === 0) {
+    return { options: '', roots: [], declarations: [], statements: [] };
+  }
+  imports.add(QwikWord.CreateSlotScope);
+  imports.add(QwikWord.RegisterProjection);
+  const scope = pass.next(QwikGenWord.SlotScope);
+  const statements: string[] = [];
+  for (const projection of component.projections) {
+    const { qrl, reference, args } = resolveQrl(projection.use, true);
+    if (qrl.payloadKind !== QrlPayloadKind.Function) {
+      throw new UnsupportedError('a non-function component projection QRL');
+    }
+    const render = args.length === 0 ? reference : `${reference}.w([${args.join(', ')}])`;
+    statements.push(
+      `${QwikWord.RegisterProjection}(${scope}, ${JSON.stringify(projection.name)}, ${render});`
+    );
+  }
+  return {
+    options: `, { slotScope: ${scope} }`,
+    roots: [scope],
+    declarations: [`const ${scope} = ${QwikWord.CreateSlotScope}();`],
+    statements,
   };
 }
 

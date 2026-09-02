@@ -1,0 +1,68 @@
+==INPUT==
+
+import { Slot } from '@qwik.dev/core';
+export const Wrapper = () => <section><Slot /></section>;
+export default () => <Wrapper><p>Projected</p></Wrapper>;
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  renderSsrSlot,
+  maybeThen,
+  createSlotScope,
+  registerProjection,
+  createComponent,
+  createSsrMarkup,
+  createSsrNodeId,
+  _noopQrl,
+} from '@qwik.dev/core';
+const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
+  return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), '<p>Projected</p>', '<!/s>'];
+};
+const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _noopQrl(
+  'component_slot_render_segment_0_3b0tagwys7lui'
+);
+q_component_slot_render_segment_0_3b0tagwys7lui.s(component_slot_render_segment_0_3b0tagwys7lui);
+export const Wrapper = (props, ctx) => {
+  const slot0 = renderSsrSlot(ctx);
+  return maybeThen(slot0, (slot0) => ['<section>', slot0, '</section>']);
+};
+export default (props, ctx) => {
+  const slotScope0 = createSlotScope();
+  ctx.addRoot(slotScope0);
+  registerProjection(slotScope0, '', q_component_slot_render_segment_0_3b0tagwys7lui);
+  const component0 = createComponent({}, (props) => Wrapper(props, ctx), { slotScope: slotScope0 });
+  return maybeThen(component0, (component0) => component0);
+};
+============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
+
+import { createSsrMarkup, createSsrNodeId } from '@qwik.dev/core';
+
+export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
+  return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), '<p>Projected</p>', '<!/s>'];
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_slot_render_segment_0_3b0tagwys7lui",
+  "entry": null,
+  "displayName": "component_slot_render_segment_0",
+  "hash": "3b0tagwys7lui",
+  "canonicalFilename": "component.tsx_component_slot_render_segment_0_3b0tagwys7lui",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot:render",
+  "captures": false,
+  "loc": [
+    127,
+    143
+  ],
+  "paramNames": []
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

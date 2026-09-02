@@ -193,6 +193,9 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         return this.holeRoot(op, statements, pass);
       case OpKind.Component:
         return this.createComponent(op, statements, pass);
+      case OpKind.Slot:
+        this.imports.add(QwikWord.CreateSlot);
+        return `${QwikWord.CreateSlot}()`;
       default:
         throw new Error(`pipeline.generateJsCsr: op "${op.op}" not implemented yet`);
     }
@@ -208,7 +211,11 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       const { qrl, args } = resolveQrlUse(this.module, use, pass.names.props);
       return { qrl, reference: this.lazyQrlReference(qrl), args };
     });
-    statements.push(...call.statements, `const ${component} = ${call.expression};`);
+    statements.push(
+      ...call.rootDeclarations,
+      ...call.statements,
+      `const ${component} = ${call.expression};`
+    );
     return component;
   }
 
@@ -324,6 +331,11 @@ class CsrModuleEmitter implements QwikModuleEmitter {
           nodeIndex += 2;
           break;
         }
+        case OpKind.Slot: {
+          this.mountSlot(elementExpr, nodeIndex, nodeCount, statements, pass);
+          nodeIndex += 2;
+          break;
+        }
         default: {
           throw new UnsupportedError(`the child op "${child.op}" in a csr element`);
         }
@@ -347,6 +359,22 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     );
     statements.push(`${start}.remove();`);
     statements.push(`${end}.remove();`);
+  }
+
+  private mountSlot(
+    elementExpr: string,
+    nodeIndex: number,
+    nodeCount: number,
+    statements: string[],
+    pass: RenderPass
+  ): void {
+    const { end } = this.locateRange(elementExpr, nodeIndex, nodeCount, statements, pass);
+    const slot = pass.next(QwikGenWord.Slot);
+    this.imports.add(QwikWord.CreateSlot);
+    this.imports.add(QwikWord.MaybeThen);
+    statements.push(
+      `${pass.names.ctx}.scheduler.waitFor(${QwikWord.MaybeThen}(${QwikWord.CreateSlot}(), (${slot}) => { for (const node of ${slot}) { ${end}.parentNode.insertBefore(node, ${end}); } }));`
+    );
   }
 
   /** The branch swaps DOM between its start/end comment pair via a range effect. */
@@ -857,6 +885,7 @@ function templateChildren(children: readonly LinkedOp[]): LinkedOp[] {
       case OpKind.Branch:
       case OpKind.Each:
       case OpKind.Component:
+      case OpKind.Slot:
         // A dynamic range's start/end comment pair.
         return { op: OpKind.Static as const, html: '<!----><!---->' };
       default:
@@ -870,6 +899,7 @@ function templateNodeCount(op: LinkedOp): number {
     case OpKind.Branch:
     case OpKind.Each:
     case OpKind.Component:
+    case OpKind.Slot:
       return 2;
     default:
       return 1;

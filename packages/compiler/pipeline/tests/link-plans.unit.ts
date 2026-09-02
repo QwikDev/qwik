@@ -165,6 +165,46 @@ describe('linkPlans', () => {
     });
   });
 
+  test.each([false, true])(
+    'reports an invalid projection QRL in complete=%s mode',
+    async (complete) => {
+      const plan = await analyse(
+        'src/app.tsx',
+        `export const Wrapper = (props) => <section>{props.children}</section>;
+export default () => <Wrapper><p>Projected</p></Wrapper>;
+`
+      );
+      const component = plan.programs
+        .flatMap((program) => (program.body.kind === ProgramBodyKind.Ops ? program.body.ops : []))
+        .find((op) => op.op === OpKind.Component);
+      expect(component?.op).toBe(OpKind.Component);
+      if (component?.op !== OpKind.Component) {
+        return;
+      }
+      component.projections[0].use.qrl = 'missing';
+
+      expect(
+        linkPlans(
+          [plan],
+          [{ kind: EntryKind.Export, module: 'src/app.tsx', export: 'default' }],
+          serverSpecialization(),
+          { edges: {} },
+          plugins,
+          complete
+        )
+      ).toEqual({
+        kind: LinkResultKind.Failed,
+        diagnostics: [
+          {
+            module: 'src/app.tsx',
+            code: 'invalid-qrl-reference',
+            message: 'Projection references unknown QRL "missing".',
+          },
+        ],
+      });
+    }
+  );
+
   test('links default and namespace imports without consumer-specific logic', async () => {
     const app = await analyse(
       'src/app.tsx',

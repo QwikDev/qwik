@@ -109,7 +109,7 @@ export type Op =
       props:
         | { c: ComponentPropsKind.Entries; props: Prop[] }
         | { c: ComponentPropsKind.Proxy; compute: QrlUse };
-      projections: { name: string; program: ProgramId; id: Seed }[];
+      projections: { name: string; use: QrlUse; id: Seed }[];
       id: Seed;
       lifetime: LifetimeId;
       blockingSuspense: boolean;

@@ -106,6 +106,38 @@ export function linkPlans(
     return failed(diagnostics);
   }
 
+  const qrlIndexes = plans.map(
+    (plan) => new Map(plan.qrls.map((qrl, index) => [qrl.id, index] as const))
+  );
+  plans.forEach((plan, module) => {
+    const visit = (op: Op): void => {
+      if (op.op === OpKind.Element) {
+        op.children.forEach(visit);
+        return;
+      }
+      if (op.op !== OpKind.Component) {
+        return;
+      }
+      for (const projection of op.projections) {
+        if (!qrlIndexes[module].has(projection.use.qrl)) {
+          diagnostics.push({
+            module: plan.path,
+            code: 'invalid-qrl-reference',
+            message: `Projection references unknown QRL "${projection.use.qrl}".`,
+          });
+        }
+      }
+    };
+    for (const program of plan.programs) {
+      if (program.body.kind === ProgramBodyKind.Ops) {
+        program.body.ops.forEach(visit);
+      }
+    }
+  });
+  if (diagnostics.length > 0) {
+    return failed(diagnostics);
+  }
+
   const linkedEdges: LinkedModule['edges'][] = plans.map((plan) =>
     plan.edges.map((edge) => {
       const resolution = resolver.edges[plan.path]?.[edge.id];
@@ -447,6 +479,12 @@ export function linkPlans(
     }
     if (op.op !== OpKind.Component) {
       return;
+    }
+    for (const projection of op.projections) {
+      const qrl = qrlIndexes[module].get(projection.use.qrl);
+      if (qrl !== undefined) {
+        visitDecl({ module, table: DeclTable.Qrls, index: qrl });
+      }
     }
     const target = op.target;
     if (target.t === ComponentTargetKind.Dynamic) {

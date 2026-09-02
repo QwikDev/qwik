@@ -25,7 +25,7 @@ export interface CollectedCaptures {
  * anything else would emit a chunk referencing names absent from the chunk module — refuse.
  */
 export function collectCaptures(
-  node: Node,
+  node: Node | Node[],
   ctx: LowerContext,
   localBindings: ReadonlySet<LocalId>
 ): CollectedCaptures {
@@ -80,9 +80,10 @@ export function collectCaptures(
   return { props, locals, other };
 }
 
-function isDeclaredWithin(ctx: LowerContext, binding: LocalId, node: Node): boolean {
+function isDeclaredWithin(ctx: LowerContext, binding: LocalId, node: Node | Node[]): boolean {
   const range = ctx.plan.bindings[binding].declarationRange;
-  return range !== null && range[0] >= node.start && range[1] <= node.end;
+  const roots = Array.isArray(node) ? node : [node];
+  return range !== null && roots.some((root) => range[0] >= root.start && range[1] <= root.end);
 }
 
 export interface LoweredCaptures {
@@ -97,7 +98,7 @@ export interface LoweredCaptures {
  * refuses as `<subject> capturing "name"`.
  */
 export function lowerCaptures(
-  node: Node,
+  node: Node | Node[],
   ctx: LowerContext,
   /** Refusal-message subject, e.g. 'a branch arm'. */
   subject: string,

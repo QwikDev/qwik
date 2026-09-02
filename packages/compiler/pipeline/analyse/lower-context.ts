@@ -84,6 +84,7 @@ export const enum QrlIdentityKind {
 }
 
 type QrlInput = Omit<Qrl, 'id' | 'parent' | 'name' | 'markerAttributes' | 'propsParts'> & {
+  propsParts?: Qrl['propsParts'];
   identity:
     | { kind: QrlIdentityKind.Segment; nameCtx: string }
     | { kind: QrlIdentityKind.Declared; id: string; name: string };
@@ -95,7 +96,7 @@ export function pushQrl(
   input: QrlInput,
   args: QrlUse['args'] = []
 ): { index: number; use: QrlUse } {
-  const { identity, ...fields } = input;
+  const { identity, propsParts = [], ...fields } = input;
   const resolved =
     identity.kind === QrlIdentityKind.Segment ? allocateSegment(ctx, identity.nameCtx) : identity;
   const qrl: Qrl = {
@@ -104,7 +105,7 @@ export function pushQrl(
     parent: null,
     name: resolved.name,
     markerAttributes: [],
-    propsParts: [],
+    propsParts,
   };
   ctx.plan.qrls.push(qrl);
   return {

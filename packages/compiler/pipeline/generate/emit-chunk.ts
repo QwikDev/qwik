@@ -4,6 +4,7 @@ import {
   CaptureAccess,
   ExprKind,
   FnBodyKind,
+  PropsPartKind,
   QrlBodyKind,
   ResumeKind,
   Shape,
@@ -167,14 +168,27 @@ export function sourceFunctionEmission(module: LinkedModule, qrl: LinkedQrl): Fu
   // An Ir body always prints from the IR: aliases (destructured params) have no authored
   // source to slice, and the IR is complete by construction when the analysis chose Ir.
   emission.value =
-    body.b === QrlBodyKind.Expr
-      ? body.expr.kind === ExprKind.Ir
-        ? valueIrJs(module, body.expr.ir)
-        : // The payload shares the body range and materializes alias reads.
-          extractPayloadJs(module, body.expr.payload)
-      : source.slice(qrl.origin.bodyRange[0], qrl.origin.bodyRange[1]);
+    qrl.propsParts.length > 0
+      ? `{ ${qrl.propsParts.map((part) => propsPartJs(module, part)).join(', ')} }`
+      : body.b === QrlBodyKind.Expr
+        ? body.expr.kind === ExprKind.Ir
+          ? valueIrJs(module, body.expr.ir)
+          : // The payload shares the body range and materializes alias reads.
+            extractPayloadJs(module, body.expr.payload)
+        : source.slice(qrl.origin.bodyRange[0], qrl.origin.bodyRange[1]);
   emission.async = qrl.authoredAsync;
   return emission;
+}
+
+function propsPartJs(module: LinkedModule, part: LinkedQrl['propsParts'][number]): string {
+  switch (part.kind) {
+    case PropsPartKind.Static:
+      return `${JSON.stringify(part.name)}: ${JSON.stringify(part.value)}`;
+    case PropsPartKind.Expression:
+      return `${JSON.stringify(part.name)}: ${extractPayloadJs(module, part.value)}`;
+    case PropsPartKind.Spread:
+      return `...${extractPayloadJs(module, part.value)}`;
+  }
 }
 
 /** Prints a plan-complete IR body; kinds join as examples demand them. */

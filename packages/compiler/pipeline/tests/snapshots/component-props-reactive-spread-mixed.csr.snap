@@ -1,0 +1,158 @@
+==INPUT==
+
+import { useSignal } from '@qwik.dev/core';
+export const Child = (props) => <strong>{props.title}: {props.count}</strong>;
+export default () => {
+  const count = useSignal(1);
+  const attributes = useSignal({ title: 'spread' });
+  return <Child title="before" {...attributes.value} count={count.value} title="after" />;
+};
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  _first,
+  createTextExpressionEffect,
+  _last,
+  createTemplate,
+  useSignal,
+  _qrlWithChunk,
+  createPropsProxy,
+  useComputedQrl,
+  createComponent,
+} from '@qwik.dev/core';
+import { component_text_segment_0_1fh10fbkzokfc } from './component.tsx_component_text_segment_0_1fh10fbkzokfc';
+import { component_text_segment_1_1fh10tcowimfv } from './component.tsx_component_text_segment_1_1fh10tcowimfv';
+
+const Child_tmpl0 = createTemplate('<strong><!---->: <!----></strong>');
+const q_component_props_segment_2_208o0eee4yc6n = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_props_segment_2_208o0eee4yc6n',
+  () => import('./component.tsx_component_props_segment_2_208o0eee4yc6n'),
+  'component_props_segment_2_208o0eee4yc6n'
+);
+export const Child = (props, ctx) => {
+  const fragment0 = Child_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  const marker0 = _first(el0);
+  const text0 = ctx.document.createTextNode('');
+  marker0.replaceWith(text0);
+  const effect0 = createTextExpressionEffect(
+    text0,
+    [props],
+    component_text_segment_0_1fh10fbkzokfc,
+    ctx.scheduler
+  );
+  ctx.scheduler.notify(effect0);
+  const marker1 = _last(el0);
+  const text1 = ctx.document.createTextNode('');
+  marker1.replaceWith(text1);
+  const effect1 = createTextExpressionEffect(
+    text1,
+    [props],
+    component_text_segment_1_1fh10tcowimfv,
+    ctx.scheduler
+  );
+  ctx.scheduler.notify(effect1);
+  return el0;
+};
+export default (props0, ctx) => {
+  const count = useSignal(1);
+  const attributes = useSignal({ title: 'spread' });
+  const component0 = createComponent(
+    createPropsProxy(
+      useComputedQrl(q_component_props_segment_2_208o0eee4yc6n.w([attributes, count]))
+    ),
+    (props0) => Child(props0, ctx)
+  );
+  return component0;
+};
+============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
+
+export const component_text_segment_0_1fh10fbkzokfc = (props) => {
+  return props.title;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_0_1fh10fbkzokfc",
+  "entry": null,
+  "displayName": "component_text_segment_0",
+  "hash": "1fh10fbkzokfc",
+  "canonicalFilename": "component.tsx_component_text_segment_0_1fh10fbkzokfc",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    85,
+    96
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_text_segment_1_1fh10tcowimfv.js (ENTRY POINT)==
+
+export const component_text_segment_1_1fh10tcowimfv = (props) => {
+  return props.count;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_1_1fh10tcowimfv",
+  "entry": null,
+  "displayName": "component_text_segment_1",
+  "hash": "1fh10tcowimfv",
+  "canonicalFilename": "component.tsx_component_text_segment_1_1fh10tcowimfv",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    100,
+    111
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_props_segment_2_208o0eee4yc6n.js (ENTRY POINT)==
+
+export const component_props_segment_2_208o0eee4yc6n = (attributes, count) => {
+  return { title: 'before', ...attributes.value, count: count.value, title: 'after' };
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_2_208o0eee4yc6n",
+  "entry": null,
+  "displayName": "component_props_segment_2",
+  "hash": "208o0eee4yc6n",
+  "canonicalFilename": "component.tsx_component_props_segment_2_208o0eee4yc6n",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": true,
+  "loc": [
+    245,
+    315
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "attributes",
+    "count"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

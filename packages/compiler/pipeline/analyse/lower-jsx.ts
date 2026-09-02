@@ -1,12 +1,19 @@
-import type { JSXAttributeItem, JSXChild, JSXElement, Node } from 'oxc-parser';
+import type { Expression, JSXAttributeItem, JSXChild, JSXElement, Node } from 'oxc-parser';
 import {
+  BoundaryKind,
   ComponentPropsKind,
   ComponentTargetKind,
+  ExprKind,
+  FnBodyKind,
   OpKind,
   PropKind,
+  PropsPartKind,
+  QrlBodyKind,
+  QrlPayloadKind,
   SeedKind,
   type Op,
   type Prop,
+  type Qrl,
 } from '../schema';
 import { normalizeJsxText } from './ast/jsx-text';
 import { normalizeAttributeName, VOID_ELEMENTS } from '../html';
@@ -16,13 +23,12 @@ import { lowerEventAttribute } from './lower-event';
 import { lowerText } from './lower-hole';
 import { lowerBranch } from './lower-branch';
 import { unwrapExpression } from './ast/utils';
-import {
-  lowerComputedExpressionValue,
-  lowerExpressionValue,
-  trySignalReadValue,
-} from './lower-expr';
+import { lowerExpressionValue, recordPayloadAliasReads, trySignalReadValue } from './lower-expr';
 import type { LowerContext } from './lower-context';
+import { pushPayload, pushQrl, QrlIdentityKind } from './lower-context';
 import { lowerArray } from './lower-array';
+import { lowerCaptures } from './ast/capture-analysis';
+import { findRuntimeJsx } from './ast/returns-jsx';
 
 /**
  * Lowers a JSX render tree to structural ops. Text stays RAW in the plan — each generator folds
@@ -87,23 +93,103 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
 }
 
 function lowerComponentProps(attributes: readonly JSXAttributeItem[], ctx: LowerContext) {
-  const attribute = attributes.length === 1 ? attributes[0] : null;
   if (
-    attribute?.type === 'JSXSpreadAttribute' &&
-    trySignalReadValue(attribute.argument, ctx) !== null
+    attributes.some(
+      (attribute) =>
+        attribute.type === 'JSXSpreadAttribute' &&
+        trySignalReadValue(attribute.argument, ctx) !== null
+    )
   ) {
-    return {
-      c: ComponentPropsKind.Proxy as const,
-      compute: lowerComputedExpressionValue(attribute.argument, ctx, 'props', [
-        attribute.start,
-        attribute.end,
-      ]).resume.qrl,
-    };
+    return lowerComponentPropsProxy(attributes, ctx);
   }
   return {
     c: ComponentPropsKind.Entries as const,
     props: attributes.map((attribute) => lowerAttribute(attribute, ctx, 'component')),
   };
+}
+
+function lowerComponentPropsProxy(attributes: readonly JSXAttributeItem[], ctx: LowerContext) {
+  const parts: Qrl['propsParts'] = [];
+  const expressions: Expression[] = [];
+  const payloads: number[] = [];
+  const addExpression = (
+    expression: Expression,
+    part: { kind: PropsPartKind.Spread } | { kind: PropsPartKind.Expression; name: string }
+  ) => {
+    if (findRuntimeJsx(expression) !== null) {
+      throw new UnsupportedError('JSX inside an expression value');
+    }
+    const payload = pushPayload(ctx, [expression.start, expression.end]);
+    expressions.push(expression);
+    payloads.push(payload);
+    parts.push({ ...part, value: payload });
+  };
+  for (const attribute of attributes) {
+    if (attribute.type === 'JSXSpreadAttribute') {
+      addExpression(attribute.argument, { kind: PropsPartKind.Spread });
+      continue;
+    }
+    if (attribute.name.type !== 'JSXIdentifier') {
+      throw new UnsupportedError('a namespaced JSX attribute');
+    }
+    const name = attribute.name.name;
+    if (name === 'key') {
+      throw new UnsupportedError('a component key');
+    }
+    if (eventScopeName(name) !== null) {
+      throw new UnsupportedError('an event-bearing reactive component props proxy');
+    }
+    const value = attribute.value;
+    if (value === null) {
+      parts.push({ kind: PropsPartKind.Static, name, value: true });
+    } else if (value.type === 'Literal') {
+      parts.push({ kind: PropsPartKind.Static, name, value: value.value });
+    } else if (value.type === 'JSXExpressionContainer') {
+      if (value.expression.type === 'JSXEmptyExpression') {
+        parts.push({ kind: PropsPartKind.Static, name, value: null });
+      } else {
+        addExpression(value.expression, { kind: PropsPartKind.Expression, name });
+      }
+    } else {
+      throw new UnsupportedError('a dynamic JSX attribute value');
+    }
+  }
+  const { captures, args, refs } = lowerCaptures(expressions, ctx, 'component props', {
+    allowProps: true,
+  });
+  for (const payload of payloads) {
+    recordPayloadAliasReads(ctx, payload, refs);
+  }
+  const range: [number, number] = [attributes[0].start, attributes[attributes.length - 1].end];
+  const { use } = pushQrl(
+    ctx,
+    {
+      identity: { kind: QrlIdentityKind.Segment, nameCtx: 'props' },
+      ctxName: 'props',
+      boundary: { kind: BoundaryKind.Implicit, role: 'expression' },
+      payloadKind: QrlPayloadKind.Value,
+      authoredAsync: false,
+      body: {
+        b: QrlBodyKind.Expr,
+        expr: { kind: ExprKind.Js, payload: payloads[0] },
+        initialOnly: false,
+      },
+      captures,
+      params: { authored: 0, used: [], sources: [] },
+      origin: {
+        range,
+        functionRange: range,
+        calleeRange: null,
+        argumentRanges: [],
+        paramRanges: [],
+        bodyRange: range,
+        bodyKind: FnBodyKind.Expression,
+      },
+      propsParts: parts,
+    },
+    args
+  );
+  return { c: ComponentPropsKind.Proxy as const, compute: use };
 }
 
 /** Lowers a JSX child list — the shared path for fragment-rooted trees. */

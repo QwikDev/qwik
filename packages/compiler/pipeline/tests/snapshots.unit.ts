@@ -661,6 +661,19 @@ export default () => {
     });
   });
 
+  test('should proxy mixed reactive component props in authored order', async () => {
+    await testInput(mode, 'component-props-reactive-spread-mixed', {
+      code: `import { useSignal } from '@qwik.dev/core';
+export const Child = (props) => <strong>{props.title}: {props.count}</strong>;
+export default () => {
+  const count = useSignal(1);
+  const attributes = useSignal({ title: 'spread' });
+  return <Child title="before" {...attributes.value} count={count.value} title="after" />;
+};
+`,
+    });
+  });
+
   test('should forward an event prop through a component', async () => {
     await testInput(mode, 'component-event-prop', {
       code: `import { useSignal } from '@qwik.dev/core';
@@ -695,7 +708,7 @@ describe('pending slices', () => {
   test.todo('JSX in a call argument lowers as an embedded function render');
   test.todo('JSX outside any candidate rejects with unsupported-runtime-jsx');
   test.todo('dynamic props, holes, events, bind, refs');
-  test.todo('mixed reactive component props proxies, projections, slots');
+  test.todo('event-bearing reactive component props proxies, projections, slots');
   test.todo('branches (incl. build-constant conditions and residual isDev)');
   test.todo('collections (array/reactive/derived, inline and chunk rows)');
   test.todo('suspense, reveal, dynamic slots');

@@ -8,13 +8,13 @@ import {
   ReadRole,
   ResumeKind,
   ValueKind,
-  type Range,
+  type PayloadId,
   type Value,
 } from '../schema';
 import { ValueIrKind, type ValueIR } from '../../src/expr-ir';
 import { identifierName } from './ast/utils';
 import { findRuntimeJsx } from './ast/returns-jsx';
-import { collectCaptures, lowerCaptures } from './ast/capture-analysis';
+import { collectCaptures, lowerCaptures, type CollectedCaptures } from './ast/capture-analysis';
 import { UnsupportedError } from '../errors';
 import { pushPayload, pushQrl, QrlIdentityKind, type LowerContext } from './lower-context';
 import { LocalKind } from './lower-setup';
@@ -40,15 +40,10 @@ export function lowerExpressionValue(
   if (read !== null) {
     return read;
   }
-  return lowerComputedExpressionValue(expression, ctx, nameCtx, [expression.start, expression.end]);
+  return lowerComputedExpressionValue(expression, ctx, nameCtx);
 }
 
-export function lowerComputedExpressionValue(
-  expression: Expression,
-  ctx: LowerContext,
-  nameCtx: string,
-  range: Range
-) {
+function lowerComputedExpressionValue(expression: Expression, ctx: LowerContext, nameCtx: string) {
   switch (expression.type) {
     case 'JSXElement':
     case 'JSXFragment':
@@ -62,25 +57,10 @@ export function lowerComputedExpressionValue(
       const { captures, args, refs } = lowerCaptures(expression, ctx, 'an expression', {
         allowProps: true,
       });
+      const range: [number, number] = [expression.start, expression.end];
       const payload = pushPayload(ctx, range);
-      // Alias reads materialize as member reads of their container when the payload prints.
-      for (const entry of refs.locals) {
-        if (entry.local.kind !== LocalKind.PropMember) {
-          continue;
-        }
-        for (const read of entry.reads) {
-          ctx.plan.payloads[payload].reads.push({
-            range: read,
-            binding: entry.local.binding,
-            role: ReadRole.Read,
-            memberPath: [entry.local.member],
-          });
-        }
-      }
-      const ir =
-        range[0] === expression.start && range[1] === expression.end
-          ? tryLowerExprIr(expression, ctx)
-          : null;
+      recordPayloadAliasReads(ctx, payload, refs);
+      const ir = tryLowerExprIr(expression, ctx);
       const expr =
         ir === null
           ? ({ kind: ExprKind.Js, payload } as const)
@@ -114,6 +94,30 @@ export function lowerComputedExpressionValue(
         resume: { r: ResumeKind.Qrl as const, qrl: use },
         compilerString: false,
       };
+    }
+  }
+}
+
+export function recordPayloadAliasReads(
+  ctx: LowerContext,
+  payload: PayloadId,
+  refs: CollectedCaptures
+): void {
+  const target = ctx.plan.payloads[payload];
+  for (const entry of refs.locals) {
+    if (entry.local.kind !== LocalKind.PropMember) {
+      continue;
+    }
+    for (const read of entry.reads) {
+      if (read[0] < target.range[0] || read[1] > target.range[1]) {
+        continue;
+      }
+      target.reads.push({
+        range: read,
+        binding: entry.local.binding,
+        role: ReadRole.Read,
+        memberPath: [entry.local.member],
+      });
     }
   }
 }

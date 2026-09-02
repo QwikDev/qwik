@@ -50,6 +50,7 @@ function qrlWith(overrides: Partial<LinkedQrl>): LinkedQrl {
     payloadKind: QrlPayloadKind.Function,
     authoredAsync: false,
     body: { b: QrlBodyKind.Js, payload: 0 },
+    propsParts: [],
     captures: [],
     params: { authored: 0, used: [], sources: [] },
     origin: {

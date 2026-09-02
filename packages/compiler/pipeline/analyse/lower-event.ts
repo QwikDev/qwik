@@ -8,7 +8,7 @@ import {
   ValueKind,
   type Prop,
 } from '../schema';
-import type { JSXAttribute } from 'oxc-parser';
+import type { Expression, JSXAttribute } from 'oxc-parser';
 import { lowerCaptures } from './ast/capture-analysis';
 import { UnsupportedError } from '../errors';
 import { pushPayload, pushQrl, QrlIdentityKind, type LowerContext } from './lower-context';
@@ -20,21 +20,22 @@ export function lowerEventAttribute(
   ctx: LowerContext,
   authored: string,
   scope: string
-): Extract<Prop, { k: PropKind.Event }> {
-  const value = attribute.value;
-  if (value === null || value.type !== 'JSXExpressionContainer') {
-    throw new UnsupportedError('an event attribute without a handler expression');
-  }
-  const expression = value.expression;
-  if (expression.type === 'JSXEmptyExpression') {
-    throw new UnsupportedError('an event attribute without a handler expression');
+): { event: Extract<Prop, { k: PropKind.Event }>; expression: Expression } | null {
+  const expression = eventHandlerExpression(attribute);
+  if (expression === null) {
+    return null;
   }
   if (expression.type !== 'ArrowFunctionExpression') {
     return {
-      k: PropKind.Event,
-      name: scope,
-      passive: false,
-      handlers: [{ h: HandlerKind.Value, value: lowerExpressionValue(expression, ctx, authored) }],
+      expression,
+      event: {
+        k: PropKind.Event,
+        name: scope,
+        passive: false,
+        handlers: [
+          { h: HandlerKind.Value, value: lowerExpressionValue(expression, ctx, authored) },
+        ],
+      },
     };
   }
   const fn = expression;
@@ -83,9 +84,27 @@ export function lowerEventAttribute(
     args
   );
   return {
-    k: PropKind.Event,
-    name: scope,
-    passive: false,
-    handlers: [{ h: HandlerKind.Value, value: { v: ValueKind.Qrl, use } }],
+    expression,
+    event: {
+      k: PropKind.Event,
+      name: scope,
+      passive: false,
+      handlers: [{ h: HandlerKind.Value, value: { v: ValueKind.Qrl, use } }],
+    },
   };
+}
+
+function eventHandlerExpression(attribute: JSXAttribute): Expression | null {
+  const value = attribute.value;
+  if (value === null) {
+    return null;
+  }
+  if (value.type !== 'JSXExpressionContainer') {
+    throw new UnsupportedError('an event attribute without a handler expression');
+  }
+  const expression = value.expression;
+  if (expression.type === 'JSXEmptyExpression') {
+    return null;
+  }
+  return expression;
 }

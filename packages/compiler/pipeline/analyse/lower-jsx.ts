@@ -5,12 +5,14 @@ import {
   ComponentTargetKind,
   ExprKind,
   FnBodyKind,
+  HandlerKind,
   OpKind,
   PropKind,
   PropsPartKind,
   QrlBodyKind,
   QrlPayloadKind,
   SeedKind,
+  ValueKind,
   type Op,
   type Prop,
   type Qrl,
@@ -68,7 +70,8 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
   const tag = nameNode.name;
   const props = opening.attributes
     .filter((attribute) => !isKeyAttribute(attribute))
-    .map((attribute) => lowerAttribute(attribute, ctx, 'element'));
+    .map((attribute) => lowerAttribute(attribute, ctx, 'element'))
+    .filter((prop) => prop !== null);
   const children: Op[] = [];
   for (const child of element.children) {
     children.push(...lowerChild(child, ctx));
@@ -104,7 +107,9 @@ function lowerComponentProps(attributes: readonly JSXAttributeItem[], ctx: Lower
   }
   return {
     c: ComponentPropsKind.Entries as const,
-    props: attributes.map((attribute) => lowerAttribute(attribute, ctx, 'component')),
+    props: attributes
+      .map((attribute) => lowerAttribute(attribute, ctx, 'component'))
+      .filter((prop) => prop !== null),
   };
 }
 
@@ -136,8 +141,20 @@ function lowerComponentPropsProxy(attributes: readonly JSXAttributeItem[], ctx: 
     if (name === 'key') {
       throw new UnsupportedError('a component key');
     }
-    if (eventScopeName(name) !== null) {
-      throw new UnsupportedError('an event-bearing reactive component props proxy');
+    const scope = eventScopeName(name);
+    if (scope !== null) {
+      const lowered = lowerEventAttribute(attribute, ctx, name, scope);
+      if (lowered === null) {
+        continue;
+      }
+      const { event, expression } = lowered;
+      const handler = event.handlers.length === 1 ? event.handlers[0] : null;
+      if (handler?.h !== HandlerKind.Value || handler.value.v !== ValueKind.Qrl) {
+        throw new UnsupportedError('a non-QRL component event handler');
+      }
+      expressions.push(expression);
+      parts.push({ kind: PropsPartKind.Event, name, use: handler.value.use });
+      continue;
     }
     const value = attribute.value;
     if (value === null) {
@@ -306,7 +323,7 @@ function lowerAttribute(
   attribute: JSXAttributeItem,
   ctx: LowerContext,
   target: 'component' | 'element'
-): Prop {
+): Prop | null {
   if (attribute.type === 'JSXSpreadAttribute') {
     if (target !== 'component') {
       throw new UnsupportedError('a JSX spread attribute');
@@ -327,7 +344,11 @@ function lowerAttribute(
   }
   const scope = eventScopeName(authored);
   if (scope !== null) {
-    const event = lowerEventAttribute(attribute, ctx, authored, scope);
+    const lowered = lowerEventAttribute(attribute, ctx, authored, scope);
+    if (lowered === null) {
+      return null;
+    }
+    const event = lowered.event;
     return target === 'component' ? { ...event, name: authored } : event;
   }
   const name = target === 'component' ? authored : normalizeAttributeName(authored);

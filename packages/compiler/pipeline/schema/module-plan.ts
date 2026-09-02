@@ -61,6 +61,7 @@ export const enum PropsPartKind {
   Static = 'static',
   Expression = 'expression',
   Spread = 'spread',
+  Event = 'event',
 }
 
 export interface Qrl {
@@ -101,6 +102,7 @@ export interface Qrl {
     | { kind: PropsPartKind.Static; name: string; value?: string | number | boolean | null }
     | { kind: PropsPartKind.Expression; name: string; value: PayloadId }
     | { kind: PropsPartKind.Spread; value: PayloadId }
+    | { kind: PropsPartKind.Event; name: string; use: QrlUse }
   )[];
   /** Present when the QRL has an authored declaration site (components) — its text splices there. */
   declaration?: QrlDeclaration;

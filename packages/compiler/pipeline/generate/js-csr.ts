@@ -608,8 +608,14 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     return emission;
   }
 
-  /** CSR nested references are direct symbol imports (chunkImports) — nothing left to satisfy. */
+  /** Source-bodied chunks keep nested QRL values lazy. */
   resolveChunkUses(emission: FunctionEmission): FunctionEmission {
+    if (emission.uses.length === 0) {
+      return emission;
+    }
+    for (const { qrl } of emission.uses) {
+      this.addLazyQrlReference(qrl, emission);
+    }
     return emission;
   }
 
@@ -617,13 +623,20 @@ class CsrModuleEmitter implements QwikModuleEmitter {
   private lazyQrlReference(qrl: LinkedQrl): string {
     if (!this.lazyQrls.has(qrl.id)) {
       this.lazyQrls.add(qrl.id);
-      const path = `./${chunkCanonicalFilename(this.module, qrl)}`;
-      this.imports.add(QwikWord.QrlWithChunk);
-      this.hoists.push(
-        `const q_${qrl.name} = /*#__PURE__*/ ${QwikWord.QrlWithChunk}(${JSON.stringify(path)}, () => import(${JSON.stringify(path)}), ${JSON.stringify(qrl.name)});`
-      );
+      this.addLazyQrlReference(qrl, this);
     }
     return `q_${qrl.name}`;
+  }
+
+  private addLazyQrlReference(
+    qrl: LinkedQrl,
+    target: Pick<FunctionEmission, 'imports' | 'hoists'>
+  ): void {
+    const path = `./${chunkCanonicalFilename(this.module, qrl)}`;
+    target.imports.add(QwikWord.QrlWithChunk);
+    target.hoists.push(
+      `const q_${qrl.name} = /*#__PURE__*/ ${QwikWord.QrlWithChunk}(${JSON.stringify(path)}, () => import(${JSON.stringify(path)}), ${JSON.stringify(qrl.name)});`
+    );
   }
 
   /** Dynamic attrs bind an effect against the element itself — no lookup, no marker. */

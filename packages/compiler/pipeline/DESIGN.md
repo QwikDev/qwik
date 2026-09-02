@@ -383,6 +383,7 @@ interface Qrl {
     | { kind: 'static'; name: string; value?: string | number | boolean | null }
     | { kind: 'expression'; name: string; value: PayloadId }
     | { kind: 'spread'; value: PayloadId }
+    | { kind: 'event'; name: string; use: QrlUse }
   )[];
   declaration?: QrlDeclaration;
   guard?: Predicate;

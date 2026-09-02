@@ -169,7 +169,7 @@ export function sourceFunctionEmission(module: LinkedModule, qrl: LinkedQrl): Fu
   // source to slice, and the IR is complete by construction when the analysis chose Ir.
   emission.value =
     qrl.propsParts.length > 0
-      ? `{ ${qrl.propsParts.map((part) => propsPartJs(module, part)).join(', ')} }`
+      ? `{ ${qrl.propsParts.map((part) => propsPartJs(module, qrl, part, emission)).join(', ')} }`
       : body.b === QrlBodyKind.Expr
         ? body.expr.kind === ExprKind.Ir
           ? valueIrJs(module, body.expr.ir)
@@ -180,7 +180,12 @@ export function sourceFunctionEmission(module: LinkedModule, qrl: LinkedQrl): Fu
   return emission;
 }
 
-function propsPartJs(module: LinkedModule, part: LinkedQrl['propsParts'][number]): string {
+function propsPartJs(
+  module: LinkedModule,
+  owner: LinkedQrl,
+  part: LinkedQrl['propsParts'][number],
+  emission: FunctionEmission
+): string {
   switch (part.kind) {
     case PropsPartKind.Static:
       return `${JSON.stringify(part.name)}: ${JSON.stringify(part.value)}`;
@@ -188,6 +193,17 @@ function propsPartJs(module: LinkedModule, part: LinkedQrl['propsParts'][number]
       return `${JSON.stringify(part.name)}: ${extractPayloadJs(module, part.value)}`;
     case PropsPartKind.Spread:
       return `...${extractPayloadJs(module, part.value)}`;
+    case PropsPartKind.Event: {
+      const { qrl, args } = resolveQrlUse(module, part.use, qrlPropsName(module, owner, 'props'));
+      if (qrl.payloadKind !== QrlPayloadKind.Function) {
+        throw new UnsupportedError('a non-function component event QRL');
+      }
+      if (!emission.uses.some((usage) => usage.qrl.id === qrl.id)) {
+        emission.uses.push({ qrl, invoked: false });
+      }
+      const reference = `q_${qrl.name}`;
+      return `${JSON.stringify(part.name)}: ${args.length === 0 ? reference : `${reference}.w([${args.join(', ')}])`}`;
+    }
   }
 }
 

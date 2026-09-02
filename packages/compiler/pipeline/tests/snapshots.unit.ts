@@ -728,6 +728,18 @@ export default () => <Wrapper><p>Projected</p></Wrapper>;
     });
   });
 
+  test('should capture signals used by projected component children', async () => {
+    await testInput(mode, 'component-children-signal', {
+      code: `import { useSignal } from '@qwik.dev/core';
+export const Wrapper = (props) => <section>{props.children}</section>;
+export default () => {
+  const count = useSignal(1);
+  return <Wrapper><p>{count.value}</p></Wrapper>;
+};
+`,
+    });
+  });
+
   test('should render an aliased component imported from another module', async () => {
     await testInputs(mode, 'component-call-import', [
       {

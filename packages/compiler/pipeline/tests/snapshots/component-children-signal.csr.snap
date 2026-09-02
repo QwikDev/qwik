@@ -1,0 +1,94 @@
+==INPUT==
+
+import { useSignal } from '@qwik.dev/core';
+export const Wrapper = (props) => <section>{props.children}</section>;
+export default () => {
+  const count = useSignal(1);
+  return <Wrapper><p>{count.value}</p></Wrapper>;
+};
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  _first,
+  _next,
+  createSlot,
+  maybeThen,
+  createTemplate,
+  useSignal,
+  createSlotScope,
+  registerProjection,
+  _qrlWithChunk,
+  createComponent,
+} from '@qwik.dev/core';
+const Wrapper_tmpl0 = createTemplate('<section><!----><!----></section>');
+const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_slot_render_segment_0_3b0tagwys7lui',
+  () => import('./component.tsx_component_slot_render_segment_0_3b0tagwys7lui'),
+  'component_slot_render_segment_0_3b0tagwys7lui'
+);
+export const Wrapper = (props, ctx) => {
+  const fragment0 = Wrapper_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  const start0 = _first(el0);
+  const end0 = _next(start0);
+  ctx.scheduler.waitFor(
+    maybeThen(createSlot(), (slot0) => {
+      for (const node of slot0) {
+        end0.parentNode.insertBefore(node, end0);
+      }
+    })
+  );
+  return el0;
+};
+export default (props0, ctx) => {
+  const count = useSignal(1);
+  const slotScope0 = createSlotScope();
+  registerProjection(slotScope0, '', q_component_slot_render_segment_0_3b0tagwys7lui.w([count]));
+  const component0 = createComponent({}, (props0) => Wrapper(props0, ctx), {
+    slotScope: slotScope0,
+  });
+  return component0;
+};
+============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
+
+import { _captures, _first, createTextNodeEffect, createTemplate } from '@qwik.dev/core';
+const component_slot_render_segment_0_3b0tagwys7lui_tmpl0 = createTemplate('<p> </p>');
+
+export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
+  const [count] = _captures;
+  const fragment0 = component_slot_render_segment_0_3b0tagwys7lui_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  const text0 = _first(el0);
+  const effect0 = createTextNodeEffect(text0, count, ctx.scheduler);
+  ctx.scheduler.notify(effect0);
+  return el0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_slot_render_segment_0_3b0tagwys7lui",
+  "entry": null,
+  "displayName": "component_slot_render_segment_0",
+  "hash": "3b0tagwys7lui",
+  "canonicalFilename": "component.tsx_component_slot_render_segment_0_3b0tagwys7lui",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot:render",
+  "captures": true,
+  "loc": [
+    186,
+    206
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

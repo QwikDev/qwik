@@ -1,0 +1,118 @@
+==INPUT==
+
+import { useSignal } from '@qwik.dev/core';
+export const Wrapper = (props) => <section>{props.children}</section>;
+export default () => {
+  const count = useSignal(1);
+  return <Wrapper><p>{count.value}</p></Wrapper>;
+};
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  renderSsrSlot,
+  maybeThen,
+  useSignal,
+  createSlotScope,
+  registerProjection,
+  createComponent,
+  _captures,
+  createSsrNodeId,
+  createSsrElementTextTarget,
+  escapeHTML,
+  renderSsrTextNode,
+  createSsrMarkup,
+  _noopQrl,
+} from '@qwik.dev/core';
+const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
+  const [count] = _captures;
+  const id0 = ctx.nextId();
+  ctx.addRoot(count);
+  const text0 = renderSsrTextNode(createSsrElementTextTarget(id0), count);
+  return [
+    createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'),
+    maybeThen(text0, (text0) => [
+      '<p q:id="',
+      createSsrNodeId(id0),
+      '">',
+      escapeHTML(text0),
+      '</p>',
+    ]),
+    '<!/s>',
+  ];
+};
+const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _noopQrl(
+  'component_slot_render_segment_0_3b0tagwys7lui'
+);
+q_component_slot_render_segment_0_3b0tagwys7lui.s(component_slot_render_segment_0_3b0tagwys7lui);
+export const Wrapper = (props, ctx) => {
+  const slot0 = renderSsrSlot(ctx);
+  return maybeThen(slot0, (slot0) => ['<section>', slot0, '</section>']);
+};
+export default (props0, ctx) => {
+  const count = useSignal(1);
+  const slotScope0 = createSlotScope();
+  ctx.addRoot(slotScope0);
+  registerProjection(slotScope0, '', q_component_slot_render_segment_0_3b0tagwys7lui.w([count]));
+  const component0 = createComponent({}, (props0) => Wrapper(props0, ctx), {
+    slotScope: slotScope0,
+  });
+  return maybeThen(component0, (component0) => component0);
+};
+============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
+
+import {
+  _captures,
+  createSsrNodeId,
+  createSsrElementTextTarget,
+  escapeHTML,
+  renderSsrTextNode,
+  maybeThen,
+  createSsrMarkup,
+} from '@qwik.dev/core';
+
+export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
+  const [count] = _captures;
+  const id0 = ctx.nextId();
+  ctx.addRoot(count);
+  const text0 = renderSsrTextNode(createSsrElementTextTarget(id0), count);
+  return [
+    createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'),
+    maybeThen(text0, (text0) => [
+      '<p q:id="',
+      createSsrNodeId(id0),
+      '">',
+      escapeHTML(text0),
+      '</p>',
+    ]),
+    '<!/s>',
+  ];
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_slot_render_segment_0_3b0tagwys7lui",
+  "entry": null,
+  "displayName": "component_slot_render_segment_0",
+  "hash": "3b0tagwys7lui",
+  "canonicalFilename": "component.tsx_component_slot_render_segment_0_3b0tagwys7lui",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot:render",
+  "captures": true,
+  "loc": [
+    186,
+    206
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

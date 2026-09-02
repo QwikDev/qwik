@@ -15,10 +15,29 @@ export const ERROR_DATA_KEY = ':errorData';
 export const HOST_SIGNAL = ':signal';
 export const INLINE_COMPONENT_DATA_KEY = ':inlineComponentData';
 
+/** Qwik loader events to (re)register once the cursor's journal is flushed to the DOM. */
+const pendingQwikLoaderEvents = new WeakMap<CursorData, string[]>();
+
+export function queueQwikLoaderEvent(cursorData: CursorData, eventName: string): void {
+  let loaderEvents = pendingQwikLoaderEvents.get(cursorData);
+  if (!loaderEvents) {
+    pendingQwikLoaderEvents.set(cursorData, (loaderEvents = []));
+  }
+  if (!loaderEvents.includes(eventName)) {
+    loaderEvents.push(eventName);
+  }
+}
+
+export function takeQwikLoaderEvents(cursorData: CursorData): string[] | undefined {
+  const loaderEvents = pendingQwikLoaderEvents.get(cursorData);
+  if (loaderEvents) {
+    pendingQwikLoaderEvents.delete(cursorData);
+  }
+  return loaderEvents;
+}
+
 export interface CursorData {
   afterFlushTasks: Task[] | null;
-  /** Qwik loader events to (re)register after the journal is flushed to the DOM. */
-  notifyQwikLoaderEvents: string[] | null;
   extraPromises: Promise<void>[] | null;
   journal: VNodeJournal | null;
   container: Container;
@@ -77,13 +96,10 @@ export function mergeCursorData(newCursorData: CursorData, oldCursorData: Cursor
     }
   }
   // merge qwik loader event notifications
-  const oldLoaderEvents = oldCursorData.notifyQwikLoaderEvents;
-  if (oldLoaderEvents && oldLoaderEvents.length > 0) {
-    const newLoaderEvents = (newCursorData.notifyQwikLoaderEvents ||= []);
+  const oldLoaderEvents = takeQwikLoaderEvents(oldCursorData);
+  if (oldLoaderEvents) {
     for (let i = 0; i < oldLoaderEvents.length; i++) {
-      if (!newLoaderEvents.includes(oldLoaderEvents[i])) {
-        newLoaderEvents.push(oldLoaderEvents[i]);
-      }
+      queueQwikLoaderEvent(newCursorData, oldLoaderEvents[i]);
     }
   }
   // merge extra promises

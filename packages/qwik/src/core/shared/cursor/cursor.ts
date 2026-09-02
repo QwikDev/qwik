@@ -28,7 +28,6 @@ export function addCursor(container: Container, root: VNode, priority: number): 
   }
   const cursorData: CursorData = {
     afterFlushTasks: null,
-    notifyQwikLoaderEvents: null,
     extraPromises: null,
     journal: null,
     container: container,

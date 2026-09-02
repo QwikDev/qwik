@@ -15,7 +15,7 @@ import { isSignal } from '../reactive-primitives/utils';
 import { SERIALIZABLE_STATE, type OnRenderFn } from '../shared/component.public';
 import { isCursor, type Cursor } from '../shared/cursor/cursor';
 import { abandonCursor } from '../shared/cursor/cursor-queue';
-import { getCursorData } from '../shared/cursor/cursor-props';
+import { getCursorData, queueQwikLoaderEvent } from '../shared/cursor/cursor-props';
 import { assertDefined, assertFalse, assertTrue } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
 import { JSXNodeImpl, isJSXNode } from '../shared/jsx/jsx-node';
@@ -51,7 +51,7 @@ import {
   QCursorBoundary,
   QSlot,
   QTemplate,
-  QVisibleScopedEvent,
+  QwikLoaderScanEvent,
   dangerouslySetInnerHTML,
   debugStyleScopeIdPrefixAttr,
 } from '../shared/utils/markers';
@@ -1103,32 +1103,21 @@ function registerEventHandlers(
     );
   }
 
+  const isQVisible = scopedKebabName === QwikLoaderScanEvent.qvisible;
   // window, document and qvisible events need attrs so qwik loader can find them
   // TODO only do these when not already present
-  if (key.charAt(2) !== 'e' || scopedKebabName === QVisibleScopedEvent) {
+  if (key.charAt(2) !== 'e' || isQVisible) {
     vnode_setAttr(diffContext.$journal$, vnode, key, '');
   }
   if (
-    scopedKebabName === QVisibleScopedEvent ||
-    scopedKebabName === 'd:qinit' ||
-    scopedKebabName === 'd:qidle'
+    isQVisible ||
+    scopedKebabName === QwikLoaderScanEvent.qinit ||
+    scopedKebabName === QwikLoaderScanEvent.qidle
   ) {
     // the loader scans the DOM for these, so notify it only after the flush
-    queueQwikLoaderEventAfterFlush(diffContext, scopedKebabName);
+    queueQwikLoaderEvent(getCursorData(diffContext.$cursor$)!, scopedKebabName);
   } else {
     registerQwikLoaderEvent(diffContext.$container$, scopedKebabName);
-  }
-}
-
-function queueQwikLoaderEventAfterFlush(diffContext: DiffContext, eventName: string) {
-  const cursorData = getCursorData(diffContext.$cursor$);
-  if (cursorData) {
-    const loaderEvents = (cursorData.notifyQwikLoaderEvents ||= []);
-    if (!loaderEvents.includes(eventName)) {
-      loaderEvents.push(eventName);
-    }
-  } else {
-    registerQwikLoaderEvent(diffContext.$container$, eventName);
   }
 }
 

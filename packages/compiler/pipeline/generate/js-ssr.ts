@@ -44,7 +44,12 @@ import {
 } from './emit-chunk';
 import { emitJsSetup, signalReadName } from './emit-setup';
 import { foldStaticOp, isFullyStaticSubtree } from './fold-static';
-import { createNameAllocator, type ComponentEmission, type GeneratedNames } from './emit-component';
+import {
+  createNameAllocator,
+  componentCallExpression,
+  type ComponentEmission,
+  type GeneratedNames,
+} from './emit-component';
 import { generateForeignModule } from './foreign';
 import {
   createFailedModule,
@@ -358,9 +363,23 @@ class SsrModuleEmitter implements QwikModuleEmitter {
           parts
         );
         return;
+      case OpKind.Component:
+        this.component(pass, op, parts);
+        return;
       default:
         throw new Error(`pipeline.generateJsSsr: op "${op.op}" not implemented yet`);
     }
+  }
+
+  private component(
+    pass: RenderPass,
+    op: Extract<LinkedOp, { op: OpKind.Component }>,
+    parts: string[]
+  ): void {
+    const component = pass.next(QwikGenWord.Component);
+    this.imports.add(QwikWord.CreateComponent);
+    this.pushStep(pass, component, [], componentCallExpression(this.module, op, pass.names));
+    parts.push(component);
   }
 
   private element(
@@ -431,6 +450,10 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         }
         case OpKind.Each: {
           this.each(pass, child, parts);
+          break;
+        }
+        case OpKind.Component: {
+          this.component(pass, child, parts);
           break;
         }
         default: {

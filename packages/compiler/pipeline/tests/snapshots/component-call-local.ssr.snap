@@ -1,0 +1,21 @@
+==INPUT==
+
+export const Child = () => <strong>child</strong>;
+export default () => <Child />;
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { createComponent, maybeThen } from '@qwik.dev/core';
+
+export const Child = (props, ctx) => {
+  return '<strong>child</strong>';
+};
+export default (props, ctx) => {
+  const component0 = createComponent({}, (props) => Child(props, ctx));
+  return maybeThen(component0, (component0) => component0);
+};
+== SSR DIAGNOSTICS ==
+
+[]

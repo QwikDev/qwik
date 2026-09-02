@@ -62,7 +62,7 @@ export function generateQwikModule(
 
 /**
  * Walks the module's assembly intents, splicing each component's emission over its replacement
- * range; collected imports and hoists attach in front of the (single) component edit.
+ * range; collected imports and hoists attach in front of the first component edit.
  */
 export function assembleQwikModule(
   module: LinkedModule,
@@ -74,7 +74,7 @@ export function assembleQwikModule(
 ): AssembledModule {
   const names = allocateGeneratedNames(module);
   const edits: { range: [number, number]; text: string }[] = [];
-  const componentEdits: { range: [number, number]; text: string }[] = [];
+  let firstComponentEdit: { range: [number, number]; text: string } | null = null;
   for (const intent of module.assembly) {
     switch (intent.a) {
       case AssemblyKind.StripRange:
@@ -95,7 +95,7 @@ export function assembleQwikModule(
           text: emitComponentFunction(qrl, emitProgram(qrl, componentNames), componentNames),
         };
         edits.push(edit);
-        componentEdits.push(edit);
+        firstComponentEdit ??= edit;
         break;
       }
       default:
@@ -135,10 +135,10 @@ export function assembleQwikModule(
     if (placement === 'module-top') {
       prefix = `${header}${hoists.join('\n')}${hoists.length > 0 ? '\n' : ''}`;
     } else {
-      if (componentEdits.length !== 1) {
-        throw new Error('pipeline: imports/hoists in a module with more than one component');
+      if (firstComponentEdit === null) {
+        throw new Error('pipeline: imports/hoists without a component');
       }
-      componentEdits[0].text = `${header}${[...hoists, componentEdits[0].text].join('\n')}`;
+      firstComponentEdit.text = `${header}${[...hoists, firstComponentEdit.text].join('\n')}`;
     }
   }
   if (prefix !== '') {

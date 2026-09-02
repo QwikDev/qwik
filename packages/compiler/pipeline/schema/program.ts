@@ -42,7 +42,7 @@ export const enum OpKind {
   Static = 'static',
   Element = 'element',
   Hole = 'hole',
-  Call = 'call',
+  Component = 'component',
   Branch = 'branch',
   Each = 'each',
   Slot = 'slot',
@@ -50,13 +50,13 @@ export const enum OpKind {
   Suspense = 'suspense',
 }
 
-export const enum CallTargetKind {
+export const enum ComponentTargetKind {
   Raw = 'raw',
   Declaration = 'declaration',
   Dynamic = 'dynamic',
 }
 
-export const enum CallPropsKind {
+export const enum ComponentPropsKind {
   Entries = 'entries',
   Proxy = 'proxy',
 }
@@ -102,13 +102,13 @@ export type Op =
       stringify: boolean;
     }
   | {
-      op: OpKind.Call;
+      op: OpKind.Component;
       target:
-        | { t: CallTargetKind.Raw; binding: LocalId }
-        | { t: CallTargetKind.Dynamic; place: PlaceIR };
+        | { t: ComponentTargetKind.Raw; binding: LocalId }
+        | { t: ComponentTargetKind.Dynamic; place: PlaceIR };
       props:
-        | { c: CallPropsKind.Entries; props: Prop[] }
-        | { c: CallPropsKind.Proxy; compute: QrlUse };
+        | { c: ComponentPropsKind.Entries; props: Prop[] }
+        | { c: ComponentPropsKind.Proxy; compute: QrlUse };
       projections: { name: string; program: ProgramId; id: Seed }[];
       id: Seed;
       lifetime: LifetimeId;

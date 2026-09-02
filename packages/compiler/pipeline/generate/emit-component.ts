@@ -1,5 +1,14 @@
-import { DeclarationKind, type LinkedModule, type LinkedQrl } from '../schema';
-import { QwikGenWord } from '../words';
+import {
+  ComponentPropsKind,
+  ComponentTargetKind,
+  DeclarationKind,
+  OpKind,
+  type LinkedModule,
+  type LinkedOp,
+  type LinkedQrl,
+} from '../schema';
+import { UnsupportedError } from '../errors';
+import { QwikGenWord, QwikWord } from '../words';
 
 export interface ComponentEmission {
   statements: string[];
@@ -9,6 +18,27 @@ export interface ComponentEmission {
 export interface GeneratedNames {
   props: string;
   ctx: string;
+}
+
+type ComponentOp = Extract<LinkedOp, { op: OpKind.Component }>;
+
+/** Emits the target-independent invocation; each renderer owns placement of its result. */
+export function componentCallExpression(
+  module: LinkedModule,
+  component: ComponentOp,
+  names: GeneratedNames
+): string {
+  if (component.target.t !== ComponentTargetKind.Declaration) {
+    throw new UnsupportedError('a dynamic component call');
+  }
+  if (component.props.c !== ComponentPropsKind.Entries || component.props.props.length > 0) {
+    throw new UnsupportedError('component props');
+  }
+  if (component.projections.length > 0) {
+    throw new UnsupportedError('component children');
+  }
+  const target = module.bindings[component.target.binding].name;
+  return `${QwikWord.CreateComponent}({}, (${names.props}) => ${target}(${names.props}, ${names.ctx}))`;
 }
 
 /** Allocates function locals without shadowing authored bindings. */

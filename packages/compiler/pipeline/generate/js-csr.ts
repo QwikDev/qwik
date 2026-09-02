@@ -38,7 +38,12 @@ import {
 import { emitJsSetup, signalReadName } from './emit-setup';
 import { escapeText } from '../html';
 import { foldStaticOp, isFullyStaticSubtree } from './fold-static';
-import { createNameAllocator, type ComponentEmission, type GeneratedNames } from './emit-component';
+import {
+  createNameAllocator,
+  componentCallExpression,
+  type ComponentEmission,
+  type GeneratedNames,
+} from './emit-component';
 import { generateForeignModule } from './foreign';
 import {
   createFailedModule,
@@ -185,9 +190,24 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         return this.elementRoot(op, ownerName, statements, pass);
       case OpKind.Hole:
         return this.holeRoot(op, statements, pass);
+      case OpKind.Component:
+        return this.createComponent(op, statements, pass);
       default:
         throw new Error(`pipeline.generateJsCsr: op "${op.op}" not implemented yet`);
     }
+  }
+
+  private createComponent(
+    op: Extract<LinkedOp, { op: OpKind.Component }>,
+    statements: string[],
+    pass: RenderPass
+  ): string {
+    const component = pass.next(QwikGenWord.Component);
+    this.imports.add(QwikWord.CreateComponent);
+    statements.push(
+      `const ${component} = ${componentCallExpression(this.module, op, pass.names)};`
+    );
+    return component;
   }
 
   private holeRoot(
@@ -260,11 +280,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     statements: string[],
     pass: RenderPass
   ): void {
-    // Branches and collections occupy TWO template nodes (their start/end comment pair).
-    const nodeCount = children.reduce(
-      (count, child) => count + (child.op === OpKind.Branch || child.op === OpKind.Each ? 2 : 1),
-      0
-    );
+    const nodeCount = children.reduce((count, child) => count + templateNodeCount(child), 0);
     let nodeIndex = 0;
     for (const child of children) {
       switch (child.op) {
@@ -301,11 +317,34 @@ class CsrModuleEmitter implements QwikModuleEmitter {
           nodeIndex += 2;
           break;
         }
+        case OpKind.Component: {
+          this.mountComponent(child, elementExpr, nodeIndex, nodeCount, statements, pass);
+          nodeIndex += 2;
+          break;
+        }
         default: {
           throw new UnsupportedError(`the child op "${child.op}" in a csr element`);
         }
       }
     }
+  }
+
+  private mountComponent(
+    op: Extract<LinkedOp, { op: OpKind.Component }>,
+    elementExpr: string,
+    nodeIndex: number,
+    nodeCount: number,
+    statements: string[],
+    pass: RenderPass
+  ): void {
+    const { start, end } = this.locateRange(elementExpr, nodeIndex, nodeCount, statements, pass);
+    const component = this.createComponent(op, statements, pass);
+    this.imports.add(QwikWord.ToNodes);
+    statements.push(
+      `for (const node of ${QwikWord.ToNodes}(${component})) { ${end}.parentNode.insertBefore(node, ${end}); }`
+    );
+    statements.push(`${start}.remove();`);
+    statements.push(`${end}.remove();`);
   }
 
   /** The branch swaps DOM between its start/end comment pair via a range effect. */
@@ -317,13 +356,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     statements: string[],
     pass: RenderPass
   ): void {
-    const start = pass.next(QwikGenWord.Start);
-    statements.push(
-      `const ${start} = ${childPathExpression(elementExpr, nodeIndex, nodeCount, this.imports)};`
-    );
-    const end = pass.next(QwikGenWord.End);
-    this.imports.add(QwikWord.NextSibling);
-    statements.push(`const ${end} = ${QwikWord.NextSibling}(${start});`);
+    const { start, end } = this.locateRange(elementExpr, nodeIndex, nodeCount, statements, pass);
     if (op.condition.v !== ValueKind.Qrl) {
       throw new UnsupportedError('a non-QRL branch condition');
     }
@@ -353,13 +386,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     statements: string[],
     pass: RenderPass
   ): void {
-    const start = pass.next(QwikGenWord.Start);
-    statements.push(
-      `const ${start} = ${childPathExpression(elementExpr, nodeIndex, nodeCount, this.imports)};`
-    );
-    const end = pass.next(QwikGenWord.End);
-    this.imports.add(QwikWord.NextSibling);
-    statements.push(`const ${end} = ${QwikWord.NextSibling}(${start});`);
+    const { start, end } = this.locateRange(elementExpr, nodeIndex, nodeCount, statements, pass);
     let source: string;
     switch (op.source.s) {
       case EachSourceKind.Array:
@@ -405,6 +432,23 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         break;
       }
     }
+  }
+
+  private locateRange(
+    elementExpr: string,
+    nodeIndex: number,
+    nodeCount: number,
+    statements: string[],
+    pass: RenderPass
+  ): { start: string; end: string } {
+    const start = pass.next(QwikGenWord.Start);
+    statements.push(
+      `const ${start} = ${childPathExpression(elementExpr, nodeIndex, nodeCount, this.imports)};`
+    );
+    const end = pass.next(QwikGenWord.End);
+    this.imports.add(QwikWord.NextSibling);
+    statements.push(`const ${end} = ${QwikWord.NextSibling}(${start});`);
+    return { start, end };
   }
 
   /** Inline row: a local function over a module-hoisted element template. */
@@ -780,12 +824,24 @@ function templateChildren(children: readonly LinkedOp[]): LinkedOp[] {
         return { ...child, html: escapeText(child.html) };
       case OpKind.Branch:
       case OpKind.Each:
-        // The boundary's start/end comment pair.
+      case OpKind.Component:
+        // A dynamic range's start/end comment pair.
         return { op: OpKind.Static as const, html: '<!----><!---->' };
       default:
         return child;
     }
   });
+}
+
+function templateNodeCount(op: LinkedOp): number {
+  switch (op.op) {
+    case OpKind.Branch:
+    case OpKind.Each:
+    case OpKind.Component:
+      return 2;
+    default:
+      return 1;
+  }
 }
 
 /**

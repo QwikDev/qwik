@@ -19,7 +19,7 @@ import type {
   Range,
 } from './shared';
 import type { EsmEdge, Payload } from './value';
-import { CallTargetKind, OpKind, ProgramBodyKind, type Op, type Program } from './program';
+import { ComponentTargetKind, OpKind, ProgramBodyKind, type Op, type Program } from './program';
 import type {
   AssemblyIntent,
   AssemblyKind,
@@ -82,19 +82,19 @@ export interface LinkedModule {
 }
 
 type ElementOp = Extract<Op, { op: OpKind.Element }>;
-type CallOp = Extract<Op, { op: OpKind.Call }>;
+type ComponentOp = Extract<Op, { op: OpKind.Component }>;
 
 export type LinkedOp =
-  | Exclude<Op, ElementOp | CallOp>
+  | Exclude<Op, ElementOp | ComponentOp>
   | (Omit<ElementOp, 'children'> & { children: LinkedOp[] })
-  | (Omit<CallOp, 'target'> & {
+  | (Omit<ComponentOp, 'target'> & {
       target:
         | {
-            t: CallTargetKind.Declaration;
+            t: ComponentTargetKind.Declaration;
             binding: LocalId;
             declaration: Maybe<DeclRef>;
           }
-        | Extract<CallOp['target'], { t: CallTargetKind.Dynamic }>;
+        | Extract<ComponentOp['target'], { t: ComponentTargetKind.Dynamic }>;
     });
 
 export interface LinkedProgram extends Omit<Program, 'body'> {

@@ -14,16 +14,27 @@ interface TestInput {
 }
 
 async function testInput(mode: 'ssr' | 'csr', snapshotName: string, input: TestInput) {
+  return testInputs(mode, snapshotName, [input]);
+}
+
+async function testInputs(mode: 'ssr' | 'csr', snapshotName: string, inputs: readonly TestInput[]) {
   const output = await transformModules({
     srcDir: 'src',
     sourceMaps: false,
     transpileTs: true,
     transpileJsx: true,
     isServer: mode === 'ssr',
-    input: [{ path: input.path ?? 'src/component.tsx', code: input.code }],
+    input: inputs.map((input) => ({
+      path: input.path ?? 'src/component.tsx',
+      code: input.code,
+    })),
   });
+  const source =
+    inputs.length === 1
+      ? inputs[0].code
+      : inputs.map((input) => `// ${input.path ?? 'src/component.tsx'}\n${input.code}`).join('\n');
   await expect(
-    await snapshotResult(input.code, mode === 'ssr' ? 'SSR' : 'CSR', output)
+    await snapshotResult(source, mode === 'ssr' ? 'SSR' : 'CSR', output)
   ).toMatchFileSnapshot(`snapshots/${snapshotName}.${mode}.snap`);
   return output;
 }
@@ -594,6 +605,30 @@ export default () => {
 };
 `,
     });
+  });
+
+  test('should render a local component call', async () => {
+    await testInput(mode, 'component-call-local', {
+      code: `export const Child = () => <strong>child</strong>;
+export default () => <Child />;
+`,
+    });
+  });
+
+  test('should render an aliased component imported from another module', async () => {
+    await testInputs(mode, 'component-call-import', [
+      {
+        path: 'src/app.tsx',
+        code: `import { Child as RenamedChild } from './child';
+export default () => <main><RenamedChild /></main>;
+`,
+      },
+      {
+        path: 'src/child.tsx',
+        code: `export const Child = () => <strong>child</strong>;
+`,
+      },
+    ]);
   });
 });
 

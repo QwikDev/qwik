@@ -17,6 +17,7 @@ export const enum QwikWord {
   CreateBranch = 'createBranch',
   WithCaptures = '_withCaptures',
   QrlWithChunk = '_qrlWithChunk',
+  ToNodes = '_toNodes',
   CreateTextExpressionEffect = 'createTextExpressionEffect',
   CreateTextNodeEffect = 'createTextNodeEffect',
   CreateAttrEffect = 'createAttrEffect',
@@ -36,6 +37,7 @@ export const enum QwikWord {
   RenderSsrBranch = 'renderSsrBranch',
   MaybeThen = 'maybeThen',
   // shared
+  CreateComponent = 'createComponent',
   NoopQrl = '_noopQrl',
   Captures = '_captures',
 }
@@ -53,6 +55,7 @@ export const enum QwikGenWord {
   BranchId = 'branchId',
   Collection = 'collection',
   CollectionId = 'collectionId',
+  Component = 'component',
   RangeId = 'rangeId',
   Start = 'start',
   End = 'end',

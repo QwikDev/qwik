@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest';
 import { analyseModule } from '../analyse/analyse-module';
 import { linkPlans, ResolutionKind, SideEffects } from '../link/link-plans';
 import {
-  CallTargetKind,
+  ComponentTargetKind,
   DeclTable,
   EntryKind,
   ImportTargetKind,
@@ -97,9 +97,9 @@ describe('linkPlans', () => {
       return;
     }
     expect(root.children[0]).toMatchObject({
-      op: OpKind.Call,
+      op: OpKind.Component,
       target: {
-        t: CallTargetKind.Declaration,
+        t: ComponentTargetKind.Declaration,
         declaration: { ok: true, value: target },
       },
     });

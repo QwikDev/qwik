@@ -1,6 +1,6 @@
 /** Pure module linking over plans and host-provided resolver/plugin snapshots. */
 import {
-  CallTargetKind,
+  ComponentTargetKind,
   DeclTable,
   DeliveryKind,
   EntryKind,
@@ -275,11 +275,11 @@ export function linkPlans(
     if (op.op === OpKind.Element) {
       return { ...op, children: op.children.map((child) => linkOperation(module, child)) };
     }
-    if (op.op !== OpKind.Call) {
+    if (op.op !== OpKind.Component) {
       return op;
     }
     const target = op.target;
-    if (target.t === CallTargetKind.Dynamic) {
+    if (target.t === ComponentTargetKind.Dynamic) {
       return { ...op, target };
     }
     const imported = linkedImports[module].find((entry) => entry.source.binding === target.binding);
@@ -292,7 +292,7 @@ export function linkPlans(
     return {
       ...op,
       target: {
-        t: CallTargetKind.Declaration,
+        t: ComponentTargetKind.Declaration,
         binding: target.binding,
         declaration,
       },
@@ -445,11 +445,11 @@ export function linkPlans(
       }
       return;
     }
-    if (op.op !== OpKind.Call) {
+    if (op.op !== OpKind.Component) {
       return;
     }
     const target = op.target;
-    if (target.t === CallTargetKind.Dynamic) {
+    if (target.t === ComponentTargetKind.Dynamic) {
       return;
     }
     const imported = linkedModules[module].imports.find(

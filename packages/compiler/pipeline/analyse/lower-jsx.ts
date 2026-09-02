@@ -1,7 +1,7 @@
 import type { JSXAttributeItem, JSXChild, JSXElement, Node } from 'oxc-parser';
 import {
-  CallPropsKind,
-  CallTargetKind,
+  ComponentPropsKind,
+  ComponentTargetKind,
   OpKind,
   PropKind,
   SeedKind,
@@ -43,9 +43,9 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
       );
     }
     return {
-      op: OpKind.Call,
-      target: { t: CallTargetKind.Raw, binding },
-      props: { c: CallPropsKind.Entries, props: [] },
+      op: OpKind.Component,
+      target: { t: ComponentTargetKind.Raw, binding },
+      props: { c: ComponentPropsKind.Entries, props: [] },
       projections: [],
       id: { kind: SeedKind.Component, ordinal: ctx.componentCounter.next++ },
       lifetime: 0,

@@ -4,14 +4,18 @@ import {
   DeclarationKind,
   OpKind,
   PropKind,
+  QrlPayloadKind,
+  ResumeKind,
   ValueKind,
   type LinkedModule,
   type LinkedOp,
   type LinkedQrl,
+  type QrlUse,
 } from '../schema';
 import { UnsupportedError } from '../errors';
 import { QwikGenWord, QwikWord } from '../words';
 import { signalReadName } from './emit-setup';
+import { rootArgs } from './emit-chunk';
 
 export interface ComponentEmission {
   statements: string[];
@@ -24,13 +28,23 @@ export interface GeneratedNames {
 }
 
 type ComponentOp = Extract<LinkedOp, { op: OpKind.Component }>;
+interface ComponentRenderPass {
+  names: GeneratedNames;
+  next: (prefix: string) => string;
+}
+type ResolveComputedProp = (use: QrlUse) => {
+  qrl: LinkedQrl;
+  reference: string;
+  args: string[];
+};
 
 /** Emits the renderer-independent call; each renderer owns placement of its result. */
 export function emitComponentCall(
   module: LinkedModule,
   component: ComponentOp,
-  names: GeneratedNames,
-  imports: Set<string>
+  pass: ComponentRenderPass,
+  imports: Set<string>,
+  resolveComputedProp: ResolveComputedProp
 ) {
   if (component.target.t !== ComponentTargetKind.Declaration) {
     throw new UnsupportedError('a dynamic component call');
@@ -38,42 +52,76 @@ export function emitComponentCall(
   if (component.projections.length > 0) {
     throw new UnsupportedError('component children');
   }
-  const props = emitComponentProps(module, component, imports);
+  const props = emitComponentProps(module, component, pass, imports, resolveComputedProp);
   const target = module.bindings[component.target.binding].name;
   imports.add(QwikWord.CreateComponent);
   return {
-    expression: `${QwikWord.CreateComponent}(${props.expression}, (${names.props}) => ${target}(${names.props}, ${names.ctx}))`,
+    expression: `${QwikWord.CreateComponent}(${props.expression}, (${pass.names.props}) => ${target}(${pass.names.props}, ${pass.names.ctx}))`,
     roots: props.roots,
+    statements: props.statements,
   };
 }
 
 function emitComponentProps(
   module: LinkedModule,
   component: ComponentOp,
-  imports: Set<string>
-): { expression: string; roots: string[] } {
+  pass: ComponentRenderPass,
+  imports: Set<string>,
+  resolveComputedProp: ResolveComputedProp
+): { expression: string; roots: string[]; statements: string[] } {
   if (component.props.c !== ComponentPropsKind.Entries) {
     throw new UnsupportedError('a component props proxy');
   }
   const entries: string[] = [];
   const sources: string[] = [];
   const roots: string[] = [];
+  const statements: string[] = [];
   for (const prop of component.props.props) {
     switch (prop.k) {
       case PropKind.Static:
         entries.push(`${JSON.stringify(prop.name)}: ${JSON.stringify(prop.value)}`);
         break;
       case PropKind.Dynamic: {
-        if (prop.value.v !== ValueKind.Read) {
-          throw new UnsupportedError('a computed component prop');
+        let value: {
+          statements: string[];
+          expression: string;
+          source: string;
+          roots: string[];
+        };
+        if (prop.value.v === ValueKind.Read) {
+          const signal = signalReadName(module, prop.value.expr);
+          imports.add(QwikWord.ReadTrackedSourceValue);
+          value = {
+            statements: [],
+            expression: `${QwikWord.ReadTrackedSourceValue}(${signal})`,
+            source: signal,
+            roots: [signal],
+          };
+        } else if (prop.value.v === ValueKind.Computed) {
+          if (prop.value.resume.r !== ResumeKind.Qrl) {
+            throw new UnsupportedError('a non-QRL computed component prop');
+          }
+          const { qrl, reference, args } = resolveComputedProp(prop.value.resume.qrl);
+          if (qrl.payloadKind !== QrlPayloadKind.Value) {
+            throw new UnsupportedError('a non-value component prop QRL');
+          }
+          const propQrl = pass.next(QwikGenWord.PropQrl);
+          imports.add(QwikWord.ReadExpression);
+          value = {
+            statements: [
+              `const ${propQrl} = ${args.length === 0 ? reference : `${reference}.w([${args.join(', ')}])`};`,
+            ],
+            expression: `${QwikWord.ReadExpression}(${propQrl})`,
+            source: propQrl,
+            roots: rootArgs(qrl, args),
+          };
+        } else {
+          throw new UnsupportedError(`the component prop value "${prop.value.v}"`);
         }
-        const signal = signalReadName(module, prop.value.expr);
-        imports.add(QwikWord.ReadTrackedSourceValue);
-        entries.push(
-          `get ${JSON.stringify(prop.name)}() { return ${QwikWord.ReadTrackedSourceValue}(${signal}); }`
-        );
-        sources.push(`${JSON.stringify(prop.name)}: ${signal}`);
-        roots.push(signal);
+        entries.push(`get ${JSON.stringify(prop.name)}() { return ${value.expression}; }`);
+        sources.push(`${JSON.stringify(prop.name)}: ${value.source}`);
+        roots.push(...value.roots);
+        statements.push(...value.statements);
         break;
       }
       default:
@@ -82,12 +130,13 @@ function emitComponentProps(
   }
   const expression = entries.length === 0 ? '{}' : `{ ${entries.join(', ')} }`;
   if (sources.length === 0) {
-    return { expression, roots };
+    return { expression, roots, statements };
   }
   imports.add(QwikWord.Props);
   return {
     expression: `${QwikWord.Props}(${expression}, { ${sources.join(', ')} })`,
     roots,
+    statements,
   };
 }
 

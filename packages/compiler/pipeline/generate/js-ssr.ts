@@ -377,8 +377,11 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     parts: string[]
   ): void {
     const component = pass.next(QwikGenWord.Component);
-    const call = emitComponentCall(this.module, op, pass.names, this.imports);
-    this.pushStep(pass, component, call.roots, call.expression);
+    const call = emitComponentCall(this.module, op, pass, this.imports, (use) => {
+      const { qrl, ref, args } = this.useQrl(pass, use, true);
+      return { qrl, reference: ref, args };
+    });
+    this.pushStep(pass, component, call.roots, call.expression, call.statements);
     parts.push(component);
   }
 
@@ -661,7 +664,8 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     pass: RenderPass,
     step: string,
     roots: readonly string[],
-    callExpr: string
+    callExpr: string,
+    statements: readonly string[] = []
   ): void {
     for (const root of roots) {
       // One addRoot per name and pass — the runtime dedupes too, this keeps the output clean.
@@ -670,6 +674,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         pass.statements.push(`${pass.names.ctx}.addRoot(${root});`);
       }
     }
+    pass.statements.push(...statements);
     pass.statements.push(`const ${step} = ${callExpr};`);
     pass.asyncSteps.push(step);
   }

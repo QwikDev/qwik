@@ -23,6 +23,7 @@ export const enum QwikWord {
   CreateAttrEffect = 'createAttrEffect',
   CreateAttrExpressionEffect = 'createAttrExpressionEffect',
   ReadTrackedSourceValue = 'readTrackedSourceValue',
+  ReadExpression = 'readExpression',
   // ssr
   CreateSsrNodeId = 'createSsrNodeId',
   CreateSsrElementTextTarget = 'createSsrElementTextTarget',
@@ -58,6 +59,7 @@ export const enum QwikGenWord {
   Collection = 'collection',
   CollectionId = 'collectionId',
   Component = 'component',
+  PropQrl = 'propQrl',
   RangeId = 'rangeId',
   Start = 'start',
   End = 'end',

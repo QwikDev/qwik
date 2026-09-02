@@ -85,6 +85,11 @@ export const enum QwikHook {
   UseSignal = 'useSignal',
 }
 
+/** Authored Qwik JSX directives recognized by the compiler. */
+export const enum QwikDirective {
+  Slot = 'q:slot',
+}
+
 /** Compiler-invented segment contexts — the exact legacy strings; authored names stay plain. */
 /** Qwik marker attributes the generators stamp into markup. */
 export const enum QwikAttr {

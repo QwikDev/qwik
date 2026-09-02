@@ -1,0 +1,127 @@
+==INPUT==
+
+import { Slot } from '@qwik.dev/core';
+export const Card = () => <article><header><Slot name="header" /></header><Slot /></article>;
+export default () => <Card><h1 q:slot="header">Title</h1><p>Content</p></Card>;
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  _first,
+  _next,
+  createSlot,
+  maybeThen,
+  createTemplate,
+  createSlotScope,
+  registerProjection,
+  _qrlWithChunk,
+  createComponent,
+} from '@qwik.dev/core';
+const Card_tmpl0 = createTemplate(
+  '<article><header><!----><!----></header><!----><!----></article>'
+);
+const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_slot_render_segment_0_3b0tagwys7lui',
+  () => import('./component.tsx_component_slot_render_segment_0_3b0tagwys7lui'),
+  'component_slot_render_segment_0_3b0tagwys7lui'
+);
+const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1',
+  () => import('./component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1'),
+  'component_slot_render_segment_1_3b0tauy2p1nv1'
+);
+export const Card = (props, ctx) => {
+  const fragment0 = Card_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  const start0 = _first(_first(el0));
+  const end0 = _next(start0);
+  ctx.scheduler.waitFor(
+    maybeThen(createSlot('header'), (slot0) => {
+      for (const node of slot0) {
+        end0.parentNode.insertBefore(node, end0);
+      }
+    })
+  );
+  const start1 = _next(_first(el0));
+  const end1 = _next(start1);
+  ctx.scheduler.waitFor(
+    maybeThen(createSlot(), (slot1) => {
+      for (const node of slot1) {
+        end1.parentNode.insertBefore(node, end1);
+      }
+    })
+  );
+  return el0;
+};
+export default (props, ctx) => {
+  const slotScope0 = createSlotScope();
+  registerProjection(slotScope0, 'header', q_component_slot_render_segment_0_3b0tagwys7lui);
+  registerProjection(slotScope0, '', q_component_slot_render_segment_1_3b0tauy2p1nv1);
+  const component0 = createComponent({}, (props) => Card(props, ctx), { slotScope: slotScope0 });
+  return component0;
+};
+============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
+
+import { _first, createTemplate } from '@qwik.dev/core';
+const component_slot_render_segment_0_3b0tagwys7lui_tmpl0 = createTemplate('<h1>Title</h1>');
+
+export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
+  const fragment0 = component_slot_render_segment_0_3b0tagwys7lui_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  return el0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_slot_render_segment_0_3b0tagwys7lui",
+  "entry": null,
+  "displayName": "component_slot_render_segment_0",
+  "hash": "3b0tagwys7lui",
+  "canonicalFilename": "component.tsx_component_slot_render_segment_0_3b0tagwys7lui",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot:render",
+  "captures": false,
+  "loc": [
+    160,
+    190
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1.js (ENTRY POINT)==
+
+import { _first, createTemplate } from '@qwik.dev/core';
+const component_slot_render_segment_1_3b0tauy2p1nv1_tmpl0 = createTemplate('<p>Content</p>');
+
+export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx) => {
+  const fragment0 = component_slot_render_segment_1_3b0tauy2p1nv1_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  return el0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_slot_render_segment_1_3b0tauy2p1nv1",
+  "entry": null,
+  "displayName": "component_slot_render_segment_1",
+  "hash": "3b0tauy2p1nv1",
+  "canonicalFilename": "component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot:render",
+  "captures": false,
+  "loc": [
+    190,
+    204
+  ],
+  "paramNames": []
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

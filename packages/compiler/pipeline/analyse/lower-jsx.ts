@@ -32,7 +32,7 @@ import { pushPayload, pushQrl, QrlIdentityKind } from './lower-context';
 import { lowerArray } from './lower-array';
 import { lowerCaptures } from './ast/capture-analysis';
 import { findRuntimeJsx } from './ast/returns-jsx';
-import { SegmentContext } from '../words';
+import { QwikDirective, SegmentContext } from '../words';
 
 /**
  * Lowers a JSX render tree to structural ops. Text stays RAW in the plan — each generator folds
@@ -134,6 +134,9 @@ function lowerComponentPropsProxy(attributes: readonly JSXAttributeItem[], ctx: 
   for (const attribute of attributes) {
     if (attribute.type === 'JSXSpreadAttribute') {
       addExpression(attribute.argument, { kind: PropsPartKind.Spread });
+      continue;
+    }
+    if (jsxAttributeName(attribute) === QwikDirective.Slot) {
       continue;
     }
     if (attribute.name.type !== 'JSXIdentifier') {
@@ -242,7 +245,7 @@ function lowerChild(child: JSXChild, ctx: LowerContext): Op[] {
     case 'JSXExpressionContainer': {
       const expression = child.expression;
       if (isPropsChildren(expression, ctx)) {
-        return [createDefaultSlot(ctx)];
+        return [createSlotOp(ctx)];
       }
       switch (expression.type) {
         // `{/* comment */}` renders nothing.
@@ -316,19 +319,21 @@ function lowerChild(child: JSXChild, ctx: LowerContext): Op[] {
 }
 
 function lowerSlotMarker(element: JSXElement, ctx: LowerContext): Op {
-  if (element.openingElement.attributes.length > 0) {
+  const attributes = element.openingElement.attributes;
+  const nameAttribute = attributes.find((attribute) => jsxAttributeName(attribute) === 'name');
+  if (attributes.some((attribute) => attribute !== nameAttribute)) {
     throw new UnsupportedError('Slot attributes');
   }
   if (element.children.some(isProjectionChild)) {
     throw new UnsupportedError('Slot fallback children');
   }
-  return createDefaultSlot(ctx);
+  return createSlotOp(ctx, nameAttribute === undefined ? '' : readStaticSlotName(nameAttribute));
 }
 
-function createDefaultSlot(ctx: LowerContext): Op {
+function createSlotOp(ctx: LowerContext, name = ''): Op {
   return {
     op: OpKind.Slot,
-    name: '',
+    name,
     fallback: null,
     id: { kind: SeedKind.Slot, ordinal: ctx.slotCounter.next++ },
   };
@@ -394,7 +399,7 @@ function lowerProjections(
     );
     ctx.plan.programs[program].body = { kind: ProgramBodyKind.Ops, ops: lowerChild(child, ctx) };
     return {
-      name: '',
+      name: readProjectionName(child),
       use,
       id: { kind: SeedKind.Projection, ordinal: ctx.projectionCounter.next++ },
     };
@@ -408,6 +413,45 @@ function isProjectionChild(child: JSXChild): boolean {
   return !(
     child.type === 'JSXExpressionContainer' && child.expression.type === 'JSXEmptyExpression'
   );
+}
+
+function readProjectionName(child: JSXChild): string {
+  if (child.type !== 'JSXElement') {
+    return '';
+  }
+  const attribute = child.openingElement.attributes.find(
+    (attribute) => jsxAttributeName(attribute) === QwikDirective.Slot
+  );
+  return attribute === undefined ? '' : readStaticSlotName(attribute);
+}
+
+function readStaticSlotName(attribute: JSXAttributeItem): string {
+  if (attribute.type !== 'JSXAttribute') {
+    throw new UnsupportedError('a dynamic slot name');
+  }
+  const value = attribute.value;
+  if (value?.type === 'Literal' && typeof value.value === 'string') {
+    return value.value;
+  }
+  if (
+    value?.type === 'JSXExpressionContainer' &&
+    value.expression.type === 'Literal' &&
+    typeof value.expression.value === 'string'
+  ) {
+    return value.expression.value;
+  }
+  throw new UnsupportedError('a dynamic slot name');
+}
+
+function jsxAttributeName(attribute: JSXAttributeItem): string | null {
+  if (attribute.type !== 'JSXAttribute') {
+    return null;
+  }
+  const name = attribute.name;
+  if (name.type === 'JSXIdentifier') {
+    return name.name;
+  }
+  return name.type === 'JSXNamespacedName' ? `${name.namespace.name}:${name.name.name}` : null;
 }
 
 /** `key` is framework-reserved — it feeds collection keying, never the rendered element. */
@@ -434,11 +478,13 @@ function lowerAttribute(
       effect: null,
     };
   }
-  const nameNode = attribute.name;
-  if (nameNode.type !== 'JSXIdentifier') {
+  if (jsxAttributeName(attribute) === QwikDirective.Slot) {
+    return null;
+  }
+  if (attribute.name.type !== 'JSXIdentifier') {
     throw new UnsupportedError('a namespaced JSX attribute');
   }
-  const authored = nameNode.name;
+  const authored = attribute.name.name;
   if (target === 'component' && authored === 'key') {
     throw new UnsupportedError('a component key');
   }

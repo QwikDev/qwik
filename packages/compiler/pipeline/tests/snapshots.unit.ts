@@ -740,6 +740,15 @@ export default () => {
     });
   });
 
+  test('should project component children through static named slots', async () => {
+    await testInput(mode, 'component-children-named-slot', {
+      code: `import { Slot } from '@qwik.dev/core';
+export const Card = () => <article><header><Slot name="header" /></header><Slot /></article>;
+export default () => <Card><h1 q:slot="header">Title</h1><p>Content</p></Card>;
+`,
+    });
+  });
+
   test('should render an aliased component imported from another module', async () => {
     await testInputs(mode, 'component-call-import', [
       {

@@ -195,7 +195,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         return this.createComponent(op, statements, pass);
       case OpKind.Slot:
         this.imports.add(QwikWord.CreateSlot);
-        return `${QwikWord.CreateSlot}()`;
+        return `${QwikWord.CreateSlot}(${slotNameArgument(op)})`;
       default:
         throw new Error(`pipeline.generateJsCsr: op "${op.op}" not implemented yet`);
     }
@@ -332,7 +332,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
           break;
         }
         case OpKind.Slot: {
-          this.mountSlot(elementExpr, nodeIndex, nodeCount, statements, pass);
+          this.mountSlot(child, elementExpr, nodeIndex, nodeCount, statements, pass);
           nodeIndex += 2;
           break;
         }
@@ -362,6 +362,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
   }
 
   private mountSlot(
+    op: Extract<LinkedOp, { op: OpKind.Slot }>,
     elementExpr: string,
     nodeIndex: number,
     nodeCount: number,
@@ -373,7 +374,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     this.imports.add(QwikWord.CreateSlot);
     this.imports.add(QwikWord.MaybeThen);
     statements.push(
-      `${pass.names.ctx}.scheduler.waitFor(${QwikWord.MaybeThen}(${QwikWord.CreateSlot}(), (${slot}) => { for (const node of ${slot}) { ${end}.parentNode.insertBefore(node, ${end}); } }));`
+      `${pass.names.ctx}.scheduler.waitFor(${QwikWord.MaybeThen}(${QwikWord.CreateSlot}(${slotNameArgument(op)}), (${slot}) => { for (const node of ${slot}) { ${end}.parentNode.insertBefore(node, ${end}); } }));`
     );
   }
 
@@ -856,6 +857,10 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     }
     return qrl.name;
   }
+}
+
+function slotNameArgument(op: Extract<LinkedOp, { op: OpKind.Slot }>): string {
+  return op.name === '' ? '' : JSON.stringify(op.name);
 }
 
 /**

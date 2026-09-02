@@ -379,7 +379,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         this.component(pass, op, parts);
         return;
       case OpKind.Slot:
-        this.slot(pass, parts);
+        this.slot(pass, op, parts);
         return;
       default:
         throw new Error(`pipeline.generateJsSsr: op "${op.op}" not implemented yet`);
@@ -478,7 +478,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
           break;
         }
         case OpKind.Slot: {
-          this.slot(pass, parts);
+          this.slot(pass, child, parts);
           break;
         }
         default: {
@@ -494,10 +494,15 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     }
   }
 
-  private slot(pass: RenderPass, parts: string[]): void {
+  private slot(
+    pass: RenderPass,
+    op: Extract<LinkedOp, { op: OpKind.Slot }>,
+    parts: string[]
+  ): void {
     const slot = pass.next(QwikGenWord.Slot);
     this.imports.add(QwikWord.RenderSsrSlot);
-    this.pushStep(pass, slot, [], `${QwikWord.RenderSsrSlot}(${pass.names.ctx})`);
+    const name = op.name === '' ? '' : `, ${JSON.stringify(op.name)}`;
+    this.pushStep(pass, slot, [], `${QwikWord.RenderSsrSlot}(${pass.names.ctx}${name})`);
     parts.push(slot);
   }
 

@@ -31,8 +31,8 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
     throw new UnsupportedError('a non-native JSX tag');
   }
   if (/^[A-Z]/.test(nameNode.name)) {
-    if (opening.attributes.length > 0 || element.children.length > 0) {
-      throw new UnsupportedError('component props or children');
+    if (element.children.length > 0) {
+      throw new UnsupportedError('component children');
     }
     const binding = ctx.bindings.reference(nameNode);
     if (binding === null) {
@@ -45,7 +45,10 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
     return {
       op: OpKind.Component,
       target: { t: ComponentTargetKind.Raw, binding },
-      props: { c: ComponentPropsKind.Entries, props: [] },
+      props: {
+        c: ComponentPropsKind.Entries,
+        props: opening.attributes.map((attribute) => lowerAttribute(attribute, ctx, 'component')),
+      },
       projections: [],
       id: { kind: SeedKind.Component, ordinal: ctx.componentCounter.next++ },
       lifetime: 0,
@@ -58,7 +61,7 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
   const tag = nameNode.name;
   const props = opening.attributes
     .filter((attribute) => !isKeyAttribute(attribute))
-    .map((attribute) => lowerAttribute(attribute, ctx));
+    .map((attribute) => lowerAttribute(attribute, ctx, 'element'));
   const children: Op[] = [];
   for (const child of element.children) {
     children.push(...lowerChild(child, ctx));
@@ -192,7 +195,11 @@ function isKeyAttribute(attribute: JSXAttributeItem): boolean {
   );
 }
 
-function lowerAttribute(attribute: JSXAttributeItem, ctx: LowerContext): Prop {
+function lowerAttribute(
+  attribute: JSXAttributeItem,
+  ctx: LowerContext,
+  target: 'component' | 'element'
+): Prop {
   if (attribute.type !== 'JSXAttribute') {
     throw new UnsupportedError('a JSX spread attribute');
   }
@@ -201,31 +208,37 @@ function lowerAttribute(attribute: JSXAttributeItem, ctx: LowerContext): Prop {
     throw new UnsupportedError('a namespaced JSX attribute');
   }
   const authored = nameNode.name;
+  if (target === 'component' && authored === 'key') {
+    throw new UnsupportedError('a component key');
+  }
   const scope = eventScopeName(authored);
   if (scope !== null) {
+    if (target === 'component') {
+      throw new UnsupportedError('a component event prop');
+    }
     return lowerEventAttribute(attribute, ctx, authored, scope);
   }
+  const name = target === 'component' ? authored : normalizeAttributeName(authored);
   const value = attribute.value;
   if (value === null) {
     // Absent authored value = bare attribute (`<main hidden>`).
-    return { k: PropKind.Static, name: normalizeAttributeName(authored), value: true };
+    return { k: PropKind.Static, name, value: true };
   }
   switch (value.type) {
     case 'Literal':
       return {
         k: PropKind.Static,
-        name: normalizeAttributeName(authored),
+        name,
         value: value.value,
       };
     case 'JSXExpressionContainer': {
       if (value.expression.type === 'JSXEmptyExpression') {
         return {
           k: PropKind.Static,
-          name: normalizeAttributeName(authored),
+          name,
           value: null,
         };
       }
-      const name = normalizeAttributeName(authored);
       return {
         k: PropKind.Dynamic,
         name,

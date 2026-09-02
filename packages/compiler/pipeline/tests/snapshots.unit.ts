@@ -615,6 +615,18 @@ export default () => <Child />;
     });
   });
 
+  test('should pass static and signal props to a component', async () => {
+    await testInput(mode, 'component-props', {
+      code: `import { useSignal } from '@qwik.dev/core';
+export const Child = (props) => <strong>{props.className}: {props.count}</strong>;
+export default () => {
+  const count = useSignal(1);
+  return <Child className="total" count={count.value} />;
+};
+`,
+    });
+  });
+
   test('should render an aliased component imported from another module', async () => {
     await testInputs(mode, 'component-call-import', [
       {
@@ -637,7 +649,7 @@ describe('pending slices', () => {
   test.todo('JSX in a call argument lowers as an embedded function render');
   test.todo('JSX outside any candidate rejects with unsupported-runtime-jsx');
   test.todo('dynamic props, holes, events, bind, refs');
-  test.todo('component calls, projections, slots');
+  test.todo('computed/spread component props, projections, slots');
   test.todo('branches (incl. build-constant conditions and residual isDev)');
   test.todo('collections (array/reactive/derived, inline and chunk rows)');
   test.todo('suspense, reveal, dynamic slots');

@@ -40,7 +40,7 @@ import { escapeText } from '../html';
 import { foldStaticOp, isFullyStaticSubtree } from './fold-static';
 import {
   createNameAllocator,
-  componentCallExpression,
+  emitComponentCall,
   type ComponentEmission,
   type GeneratedNames,
 } from './emit-component';
@@ -203,10 +203,8 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     pass: RenderPass
   ): string {
     const component = pass.next(QwikGenWord.Component);
-    this.imports.add(QwikWord.CreateComponent);
-    statements.push(
-      `const ${component} = ${componentCallExpression(this.module, op, pass.names)};`
-    );
+    const call = emitComponentCall(this.module, op, pass.names, this.imports);
+    statements.push(`const ${component} = ${call.expression};`);
     return component;
   }
 

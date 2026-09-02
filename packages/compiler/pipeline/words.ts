@@ -22,6 +22,7 @@ export const enum QwikWord {
   CreateTextNodeEffect = 'createTextNodeEffect',
   CreateAttrEffect = 'createAttrEffect',
   CreateAttrExpressionEffect = 'createAttrExpressionEffect',
+  ReadTrackedSourceValue = 'readTrackedSourceValue',
   // ssr
   CreateSsrNodeId = 'createSsrNodeId',
   CreateSsrElementTextTarget = 'createSsrElementTextTarget',
@@ -38,6 +39,7 @@ export const enum QwikWord {
   MaybeThen = 'maybeThen',
   // shared
   CreateComponent = 'createComponent',
+  Props = '_props',
   NoopQrl = '_noopQrl',
   Captures = '_captures',
 }

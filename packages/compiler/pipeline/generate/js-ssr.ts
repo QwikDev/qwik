@@ -46,7 +46,7 @@ import { emitJsSetup, signalReadName } from './emit-setup';
 import { foldStaticOp, isFullyStaticSubtree } from './fold-static';
 import {
   createNameAllocator,
-  componentCallExpression,
+  emitComponentCall,
   type ComponentEmission,
   type GeneratedNames,
 } from './emit-component';
@@ -377,8 +377,8 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     parts: string[]
   ): void {
     const component = pass.next(QwikGenWord.Component);
-    this.imports.add(QwikWord.CreateComponent);
-    this.pushStep(pass, component, [], componentCallExpression(this.module, op, pass.names));
+    const call = emitComponentCall(this.module, op, pass.names, this.imports);
+    this.pushStep(pass, component, call.roots, call.expression);
     parts.push(component);
   }
 

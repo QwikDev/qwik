@@ -3,12 +3,15 @@ import {
   ComponentTargetKind,
   DeclarationKind,
   OpKind,
+  PropKind,
+  ValueKind,
   type LinkedModule,
   type LinkedOp,
   type LinkedQrl,
 } from '../schema';
 import { UnsupportedError } from '../errors';
 import { QwikGenWord, QwikWord } from '../words';
+import { signalReadName } from './emit-setup';
 
 export interface ComponentEmission {
   statements: string[];
@@ -22,23 +25,70 @@ export interface GeneratedNames {
 
 type ComponentOp = Extract<LinkedOp, { op: OpKind.Component }>;
 
-/** Emits the target-independent invocation; each renderer owns placement of its result. */
-export function componentCallExpression(
+/** Emits the renderer-independent call; each renderer owns placement of its result. */
+export function emitComponentCall(
   module: LinkedModule,
   component: ComponentOp,
-  names: GeneratedNames
-): string {
+  names: GeneratedNames,
+  imports: Set<string>
+) {
   if (component.target.t !== ComponentTargetKind.Declaration) {
     throw new UnsupportedError('a dynamic component call');
-  }
-  if (component.props.c !== ComponentPropsKind.Entries || component.props.props.length > 0) {
-    throw new UnsupportedError('component props');
   }
   if (component.projections.length > 0) {
     throw new UnsupportedError('component children');
   }
+  const props = emitComponentProps(module, component, imports);
   const target = module.bindings[component.target.binding].name;
-  return `${QwikWord.CreateComponent}({}, (${names.props}) => ${target}(${names.props}, ${names.ctx}))`;
+  imports.add(QwikWord.CreateComponent);
+  return {
+    expression: `${QwikWord.CreateComponent}(${props.expression}, (${names.props}) => ${target}(${names.props}, ${names.ctx}))`,
+    roots: props.roots,
+  };
+}
+
+function emitComponentProps(
+  module: LinkedModule,
+  component: ComponentOp,
+  imports: Set<string>
+): { expression: string; roots: string[] } {
+  if (component.props.c !== ComponentPropsKind.Entries) {
+    throw new UnsupportedError('a component props proxy');
+  }
+  const entries: string[] = [];
+  const sources: string[] = [];
+  const roots: string[] = [];
+  for (const prop of component.props.props) {
+    switch (prop.k) {
+      case PropKind.Static:
+        entries.push(`${JSON.stringify(prop.name)}: ${JSON.stringify(prop.value)}`);
+        break;
+      case PropKind.Dynamic: {
+        if (prop.value.v !== ValueKind.Read) {
+          throw new UnsupportedError('a computed component prop');
+        }
+        const signal = signalReadName(module, prop.value.expr);
+        imports.add(QwikWord.ReadTrackedSourceValue);
+        entries.push(
+          `get ${JSON.stringify(prop.name)}() { return ${QwikWord.ReadTrackedSourceValue}(${signal}); }`
+        );
+        sources.push(`${JSON.stringify(prop.name)}: ${signal}`);
+        roots.push(signal);
+        break;
+      }
+      default:
+        throw new UnsupportedError(`the component prop "${prop.k}"`);
+    }
+  }
+  const expression = entries.length === 0 ? '{}' : `{ ${entries.join(', ')} }`;
+  if (sources.length === 0) {
+    return { expression, roots };
+  }
+  imports.add(QwikWord.Props);
+  return {
+    expression: `${QwikWord.Props}(${expression}, { ${sources.join(', ')} })`,
+    roots,
+  };
 }
 
 /** Allocates function locals without shadowing authored bindings. */

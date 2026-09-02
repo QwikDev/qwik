@@ -2,6 +2,7 @@ import {
   ComponentPropsKind,
   ComponentTargetKind,
   DeclarationKind,
+  HandlerKind,
   OpKind,
   PropKind,
   QrlPayloadKind,
@@ -32,7 +33,10 @@ interface ComponentRenderPass {
   names: GeneratedNames;
   next: (prefix: string) => string;
 }
-type ResolveComputedProp = (use: QrlUse) => {
+type ResolveComponentQrl = (
+  use: QrlUse,
+  invoked: boolean
+) => {
   qrl: LinkedQrl;
   reference: string;
   args: string[];
@@ -44,7 +48,7 @@ export function emitComponentCall(
   component: ComponentOp,
   pass: ComponentRenderPass,
   imports: Set<string>,
-  resolveComputedProp: ResolveComputedProp
+  resolveQrl: ResolveComponentQrl
 ) {
   if (component.target.t !== ComponentTargetKind.Declaration) {
     throw new UnsupportedError('a dynamic component call');
@@ -52,7 +56,7 @@ export function emitComponentCall(
   if (component.projections.length > 0) {
     throw new UnsupportedError('component children');
   }
-  const props = emitComponentProps(module, component, pass, imports, resolveComputedProp);
+  const props = emitComponentProps(module, component, pass, imports, resolveQrl);
   const target = module.bindings[component.target.binding].name;
   imports.add(QwikWord.CreateComponent);
   return {
@@ -67,7 +71,7 @@ function emitComponentProps(
   component: ComponentOp,
   pass: ComponentRenderPass,
   imports: Set<string>,
-  resolveComputedProp: ResolveComputedProp
+  resolveQrl: ResolveComponentQrl
 ): { expression: string; roots: string[]; statements: string[] } {
   if (component.props.c !== ComponentPropsKind.Entries) {
     throw new UnsupportedError('a component props proxy');
@@ -101,7 +105,7 @@ function emitComponentProps(
           if (prop.value.resume.r !== ResumeKind.Qrl) {
             throw new UnsupportedError('a non-QRL computed component prop');
           }
-          const { qrl, reference, args } = resolveComputedProp(prop.value.resume.qrl);
+          const { qrl, reference, args } = resolveQrl(prop.value.resume.qrl, true);
           if (qrl.payloadKind !== QrlPayloadKind.Value) {
             throw new UnsupportedError('a non-value component prop QRL');
           }
@@ -122,6 +126,23 @@ function emitComponentProps(
         sources.push(`${JSON.stringify(prop.name)}: ${value.source}`);
         roots.push(...value.roots);
         statements.push(...value.statements);
+        break;
+      }
+      case PropKind.Event: {
+        if (prop.handlers.length !== 1) {
+          throw new UnsupportedError('multiple component event handlers');
+        }
+        const handler = prop.handlers[0];
+        if (handler.h !== HandlerKind.Value || handler.value.v !== ValueKind.Qrl) {
+          throw new UnsupportedError('a non-QRL component event handler');
+        }
+        const { qrl, reference, args } = resolveQrl(handler.value.use, false);
+        if (qrl.payloadKind !== QrlPayloadKind.Function) {
+          throw new UnsupportedError('a non-function component event QRL');
+        }
+        const eventQrl = args.length === 0 ? reference : `${reference}.w([${args.join(', ')}])`;
+        entries.push(`${JSON.stringify(prop.name)}: ${eventQrl}`);
+        roots.push(...rootArgs(qrl, args));
         break;
       }
       default:

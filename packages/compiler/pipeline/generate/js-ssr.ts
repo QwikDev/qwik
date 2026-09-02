@@ -377,9 +377,9 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     parts: string[]
   ): void {
     const component = pass.next(QwikGenWord.Component);
-    const call = emitComponentCall(this.module, op, pass, this.imports, (use) => {
-      const { qrl, ref, args } = this.useQrl(pass, use, true);
-      return { qrl, reference: ref, args };
+    const call = emitComponentCall(this.module, op, pass, this.imports, (use, invoked) => {
+      const { qrl, args } = resolveQrlUse(this.module, use, pass.names.props);
+      return { qrl, reference: this.qrlReference(qrl, invoked), args };
     });
     this.pushStep(pass, component, call.roots, call.expression, call.statements);
     parts.push(component);

@@ -1,0 +1,106 @@
+==INPUT==
+
+import { useSignal } from '@qwik.dev/core';
+export const Child = () => <button>save</button>;
+export default () => {
+  const count = useSignal(0);
+  return <Child onSave$={() => count.value++} on-save$={() => count.value--} />;
+};
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { _first, createTemplate, useSignal, _qrlWithChunk, createComponent } from '@qwik.dev/core';
+const Child_tmpl0 = createTemplate('<button>save</button>');
+const q_component_q_e_save_segment_0_3krcb4prq1efa = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_q_e_save_segment_0_3krcb4prq1efa',
+  () => import('./component.tsx_component_q_e_save_segment_0_3krcb4prq1efa'),
+  'component_q_e_save_segment_0_3krcb4prq1efa'
+);
+const q_component_q_e_save_segment_1_3krcbiqvmvgft = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_q_e_save_segment_1_3krcbiqvmvgft',
+  () => import('./component.tsx_component_q_e_save_segment_1_3krcbiqvmvgft'),
+  'component_q_e_save_segment_1_3krcbiqvmvgft'
+);
+export const Child = (props, ctx) => {
+  const fragment0 = Child_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  return el0;
+};
+export default (props, ctx) => {
+  const count = useSignal(0);
+  const component0 = createComponent(
+    {
+      onSave$: q_component_q_e_save_segment_0_3krcb4prq1efa.w([count]),
+      'on-save$': q_component_q_e_save_segment_1_3krcbiqvmvgft.w([count]),
+    },
+    (props) => Child(props, ctx)
+  );
+  return component0;
+};
+============================= src/component.tsx_component_q_e_save_segment_0_3krcb4prq1efa.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_q_e_save_segment_0_3krcb4prq1efa = () => {
+  const [count] = _captures;
+  return count.value++;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_save_segment_0_3krcb4prq1efa",
+  "entry": null,
+  "displayName": "component_q_e_save_segment_0",
+  "hash": "3krcb4prq1efa",
+  "canonicalFilename": "component.tsx_component_q_e_save_segment_0_3krcb4prq1efa",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onSave$",
+  "captures": true,
+  "loc": [
+    163,
+    192
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_q_e_save_segment_1_3krcbiqvmvgft.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_q_e_save_segment_1_3krcbiqvmvgft = () => {
+  const [count] = _captures;
+  return count.value--;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_save_segment_1_3krcbiqvmvgft",
+  "entry": null,
+  "displayName": "component_q_e_save_segment_1",
+  "hash": "3krcbiqvmvgft",
+  "canonicalFilename": "component.tsx_component_q_e_save_segment_1_3krcbiqvmvgft",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "on-save$",
+  "captures": true,
+  "loc": [
+    193,
+    223
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

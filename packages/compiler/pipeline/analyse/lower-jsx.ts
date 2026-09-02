@@ -213,10 +213,8 @@ function lowerAttribute(
   }
   const scope = eventScopeName(authored);
   if (scope !== null) {
-    if (target === 'component') {
-      throw new UnsupportedError('a component event prop');
-    }
-    return lowerEventAttribute(attribute, ctx, authored, scope);
+    const event = lowerEventAttribute(attribute, ctx, authored, scope);
+    return target === 'component' ? { ...event, name: authored } : event;
   }
   const name = target === 'component' ? authored : normalizeAttributeName(authored);
   const value = attribute.value;

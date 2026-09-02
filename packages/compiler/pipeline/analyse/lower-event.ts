@@ -19,7 +19,7 @@ export function lowerEventAttribute(
   ctx: LowerContext,
   authored: string,
   scope: string
-): Prop {
+): Extract<Prop, { k: PropKind.Event }> {
   const value = attribute.value;
   if (value === null || value.type !== 'JSXExpressionContainer') {
     throw new UnsupportedError('an event attribute without a handler expression');

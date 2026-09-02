@@ -22,6 +22,7 @@ export const enum QwikWord {
   CreateTextNodeEffect = 'createTextNodeEffect',
   CreateAttrEffect = 'createAttrEffect',
   CreateAttrExpressionEffect = 'createAttrExpressionEffect',
+  CreateEventEffect = 'createEventEffect',
   ReadTrackedSourceValue = 'readTrackedSourceValue',
   ReadExpression = 'readExpression',
   // ssr
@@ -31,6 +32,7 @@ export const enum QwikWord {
   CreateSsrElementTarget = 'createSsrElementTarget',
   RenderSsrAttr = 'renderSsrAttr',
   RenderSsrAttrExpression = 'renderSsrAttrExpression',
+  RenderSsrEvent = 'renderSsrEvent',
   TextValue = '_textValue',
   EscapeHTML = 'escapeHTML',
   RenderSsrTextExpression = 'renderSsrTextExpression',

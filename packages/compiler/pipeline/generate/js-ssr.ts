@@ -393,7 +393,9 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     rootMarker: string | null = null
   ): void {
     const holes = op.children.filter((child) => child.op === OpKind.Hole && !isInlineHole(child));
-    const hasDynamicProps = op.props.some((prop) => prop.k === PropKind.Dynamic);
+    const hasDynamicProps = op.props.some(
+      (prop) => prop.k === PropKind.Dynamic || isDynamicEvent(prop)
+    );
     const idVariable = holes.length > 0 || hasDynamicProps ? pass.next(QwikGenWord.Id) : null;
     if (idVariable !== null) {
       pass.statements.push(`const ${idVariable} = ${pass.names.ctx}.nextId();`);
@@ -749,6 +751,31 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         return;
       }
       case PropKind.Event: {
+        const dynamic = prop.handlers.length === 1 ? prop.handlers[0] : null;
+        if (dynamic?.h === HandlerKind.Value && dynamic.value.v === ValueKind.Computed) {
+          if (dynamic.value.resume.r !== ResumeKind.Qrl) {
+            throw new UnsupportedError('a non-QRL computed event handler');
+          }
+          if (idVariable === null) {
+            throw new Error('pipeline: a dynamic event requires an element id');
+          }
+          const { qrl, ref, args } = this.useQrl(pass, dynamic.value.resume.qrl, true);
+          if (qrl.payloadKind !== QrlPayloadKind.Value) {
+            throw new UnsupportedError('a non-value computed event QRL');
+          }
+          const step = pass.next(QwikGenWord.Effect);
+          this.imports.add(QwikWord.CreateSsrElementTarget);
+          this.imports.add(QwikWord.RenderSsrEvent);
+          pass.usedCtx = true;
+          this.pushStep(
+            pass,
+            step,
+            rootArgs(qrl, args),
+            `${QwikWord.RenderSsrEvent}(${QwikWord.CreateSsrElementTarget}(${idVariable}), ${JSON.stringify(prop.name)}, [${args.join(', ')}], ${ref}, ${pass.names.ctx}.eventAttr)`
+          );
+          parts.push(`${step} ?? ''`);
+          return;
+        }
         const values = prop.handlers.map((handler) => {
           if (handler.h !== HandlerKind.Value || handler.value.v !== ValueKind.Qrl) {
             throw new UnsupportedError('a non-QRL event handler');
@@ -821,4 +848,13 @@ function pushMergedStatic(parts: string[], text: string): void {
 
 function isInlineHole(op: Extract<LinkedOp, { op: OpKind.Hole }>): boolean {
   return op.value.v === ValueKind.Computed && op.value.resume.r === ResumeKind.Inline;
+}
+
+function isDynamicEvent(prop: Prop): boolean {
+  return (
+    prop.k === PropKind.Event &&
+    prop.handlers.some(
+      (handler) => handler.h === HandlerKind.Value && handler.value.v === ValueKind.Computed
+    )
+  );
 }

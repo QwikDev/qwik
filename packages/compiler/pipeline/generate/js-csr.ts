@@ -8,6 +8,7 @@ import {
   EachSourceKind,
   ProgramBodyKind,
   QrlBodyKind,
+  QrlPayloadKind,
   ResumeKind,
   RowKind,
   ValueKind,
@@ -769,6 +770,23 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     statements: string[],
     pass: RenderPass
   ): void {
+    const dynamic = handlers.length === 1 ? handlers[0] : null;
+    if (dynamic?.h === HandlerKind.Value && dynamic.value.v === ValueKind.Computed) {
+      if (dynamic.value.resume.r !== ResumeKind.Qrl) {
+        throw new UnsupportedError('a non-QRL computed event handler');
+      }
+      const { qrl, args } = resolveQrlUse(this.module, dynamic.value.resume.qrl, pass.names.props);
+      if (qrl.payloadKind !== QrlPayloadKind.Value) {
+        throw new UnsupportedError('a non-value computed event QRL');
+      }
+      const effect = pass.next(QwikGenWord.Effect);
+      this.imports.add(QwikWord.CreateEventEffect);
+      statements.push(
+        `const ${effect} = ${QwikWord.CreateEventEffect}(${el}, ${JSON.stringify(scopeName)}, [${args.join(', ')}], ${this.chunkSymbol(qrl)}, ${pass.names.ctx}.scheduler);`,
+        `${pass.names.ctx}.scheduler.waitFor(${effect}.run());`
+      );
+      return;
+    }
     const uses = handlers.map((handler) => {
       const value = handler.h === HandlerKind.Value ? handler.value : null;
       if (value === null || value.v !== ValueKind.Qrl) {

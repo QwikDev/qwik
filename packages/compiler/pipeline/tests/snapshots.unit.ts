@@ -639,10 +639,10 @@ export default () => {
     });
   });
 
-  test('should pass an event prop to a component', async () => {
+  test('should forward an event prop through a component', async () => {
     await testInput(mode, 'component-event-prop', {
       code: `import { useSignal } from '@qwik.dev/core';
-export const Child = () => <button>save</button>;
+export const Child = (props) => <button onClick$={props.onSave$}>save</button>;
 export default () => {
   const count = useSignal(0);
   return <Child onSave$={() => count.value++} on-save$={() => count.value--} />;

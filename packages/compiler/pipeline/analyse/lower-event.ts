@@ -12,8 +12,9 @@ import type { JSXAttribute } from 'oxc-parser';
 import { lowerCaptures } from './ast/capture-analysis';
 import { UnsupportedError } from '../errors';
 import { pushPayload, pushQrl, QrlIdentityKind, type LowerContext } from './lower-context';
+import { lowerExpressionValue } from './lower-expr';
 
-/** `on…$` attribute → an event prop referencing an implicit function QRL. */
+/** `on…$` attribute → an event prop with an authored handler value. */
 export function lowerEventAttribute(
   attribute: JSXAttribute,
   ctx: LowerContext,
@@ -24,10 +25,19 @@ export function lowerEventAttribute(
   if (value === null || value.type !== 'JSXExpressionContainer') {
     throw new UnsupportedError('an event attribute without a handler expression');
   }
-  const fn = value.expression;
-  if (fn.type !== 'ArrowFunctionExpression') {
-    throw new UnsupportedError('an event handler that is not an inline arrow function');
+  const expression = value.expression;
+  if (expression.type === 'JSXEmptyExpression') {
+    throw new UnsupportedError('an event attribute without a handler expression');
   }
+  if (expression.type !== 'ArrowFunctionExpression') {
+    return {
+      k: PropKind.Event,
+      name: scope,
+      passive: false,
+      handlers: [{ h: HandlerKind.Value, value: lowerExpressionValue(expression, ctx, authored) }],
+    };
+  }
+  const fn = expression;
   const params = fn.params;
   const paramBindings = new Set<number>();
   for (const param of params) {

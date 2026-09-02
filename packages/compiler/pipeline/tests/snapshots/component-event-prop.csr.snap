@@ -1,7 +1,7 @@
 ==INPUT==
 
 import { useSignal } from '@qwik.dev/core';
-export const Child = () => <button>save</button>;
+export const Child = (props) => <button onClick$={props.onSave$}>save</button>;
 export default () => {
   const count = useSignal(0);
   return <Child onSave$={() => count.value++} on-save$={() => count.value--} />;
@@ -11,62 +11,76 @@ export default () => {
 
 ============================= src/component.tsx ==
 
-import { _first, createTemplate, useSignal, _qrlWithChunk, createComponent } from '@qwik.dev/core';
+import {
+  _first,
+  createEventEffect,
+  createTemplate,
+  useSignal,
+  _qrlWithChunk,
+  createComponent,
+} from '@qwik.dev/core';
+import { component_onClickqrl_segment_0_3rzjkie0i362z } from './component.tsx_component_onClickqrl_segment_0_3rzjkie0i362z';
+
 const Child_tmpl0 = createTemplate('<button>save</button>');
-const q_component_q_e_save_segment_0_3krcb4prq1efa = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_q_e_save_segment_0_3krcb4prq1efa',
-  () => import('./component.tsx_component_q_e_save_segment_0_3krcb4prq1efa'),
-  'component_q_e_save_segment_0_3krcb4prq1efa'
-);
 const q_component_q_e_save_segment_1_3krcbiqvmvgft = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_q_e_save_segment_1_3krcbiqvmvgft',
   () => import('./component.tsx_component_q_e_save_segment_1_3krcbiqvmvgft'),
   'component_q_e_save_segment_1_3krcbiqvmvgft'
 );
+const q_component_q_e_save_segment_2_3krcacnjwdae8 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_q_e_save_segment_2_3krcacnjwdae8',
+  () => import('./component.tsx_component_q_e_save_segment_2_3krcacnjwdae8'),
+  'component_q_e_save_segment_2_3krcacnjwdae8'
+);
 export const Child = (props, ctx) => {
   const fragment0 = Child_tmpl0(ctx.document);
   const el0 = _first(fragment0);
+  const effect0 = createEventEffect(
+    el0,
+    'q-e:click',
+    [props],
+    component_onClickqrl_segment_0_3rzjkie0i362z,
+    ctx.scheduler
+  );
+  ctx.scheduler.waitFor(effect0.run());
   return el0;
 };
-export default (props, ctx) => {
+export default (props0, ctx) => {
   const count = useSignal(0);
   const component0 = createComponent(
     {
-      onSave$: q_component_q_e_save_segment_0_3krcb4prq1efa.w([count]),
-      'on-save$': q_component_q_e_save_segment_1_3krcbiqvmvgft.w([count]),
+      onSave$: q_component_q_e_save_segment_1_3krcbiqvmvgft.w([count]),
+      'on-save$': q_component_q_e_save_segment_2_3krcacnjwdae8.w([count]),
     },
-    (props) => Child(props, ctx)
+    (props0) => Child(props0, ctx)
   );
   return component0;
 };
-============================= src/component.tsx_component_q_e_save_segment_0_3krcb4prq1efa.js (ENTRY POINT)==
+============================= src/component.tsx_component_onClickqrl_segment_0_3rzjkie0i362z.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
-
-export const component_q_e_save_segment_0_3krcb4prq1efa = () => {
-  const [count] = _captures;
-  return count.value++;
+export const component_onClickqrl_segment_0_3rzjkie0i362z = (props) => {
+  return props.onSave$;
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_q_e_save_segment_0_3krcb4prq1efa",
+  "name": "component_onClickqrl_segment_0_3rzjkie0i362z",
   "entry": null,
-  "displayName": "component_q_e_save_segment_0",
-  "hash": "3krcb4prq1efa",
-  "canonicalFilename": "component.tsx_component_q_e_save_segment_0_3krcb4prq1efa",
+  "displayName": "component_onClickqrl_segment_0",
+  "hash": "3rzjkie0i362z",
+  "canonicalFilename": "component.tsx_component_onClickqrl_segment_0_3rzjkie0i362z",
   "extension": "js",
   "parent": null,
-  "ctxKind": "eventHandler",
-  "ctxName": "onSave$",
+  "ctxKind": "function",
+  "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    163,
-    192
+    94,
+    107
   ],
   "paramNames": [],
   "captureNames": [
-    "count"
+    "props"
   ]
 }
 */
@@ -76,7 +90,7 @@ import { _captures } from '@qwik.dev/core';
 
 export const component_q_e_save_segment_1_3krcbiqvmvgft = () => {
   const [count] = _captures;
-  return count.value--;
+  return count.value++;
 };
 /*
 {
@@ -89,11 +103,42 @@ export const component_q_e_save_segment_1_3krcbiqvmvgft = () => {
   "extension": "js",
   "parent": null,
   "ctxKind": "eventHandler",
-  "ctxName": "on-save$",
+  "ctxName": "onSave$",
   "captures": true,
   "loc": [
     193,
-    223
+    222
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_q_e_save_segment_2_3krcacnjwdae8.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_q_e_save_segment_2_3krcacnjwdae8 = () => {
+  const [count] = _captures;
+  return count.value--;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_save_segment_2_3krcacnjwdae8",
+  "entry": null,
+  "displayName": "component_q_e_save_segment_2",
+  "hash": "3krcacnjwdae8",
+  "canonicalFilename": "component.tsx_component_q_e_save_segment_2_3krcacnjwdae8",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "on-save$",
+  "captures": true,
+  "loc": [
+    223,
+    253
   ],
   "paramNames": [],
   "captureNames": [

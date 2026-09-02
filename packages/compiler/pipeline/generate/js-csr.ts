@@ -195,7 +195,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         return this.createComponent(op, statements, pass);
       case OpKind.Slot:
         this.imports.add(QwikWord.CreateSlot);
-        return `${QwikWord.CreateSlot}(${slotNameArgument(op)})`;
+        return `${QwikWord.CreateSlot}(${this.slotArguments(op, pass.names.props)})`;
       default:
         throw new Error(`pipeline.generateJsCsr: op "${op.op}" not implemented yet`);
     }
@@ -328,7 +328,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         }
         case OpKind.Component: {
           this.mountComponent(child, elementExpr, nodeIndex, nodeCount, statements, pass);
-          nodeIndex += 2;
+          nodeIndex++;
           break;
         }
         case OpKind.Slot: {
@@ -351,14 +351,13 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     statements: string[],
     pass: RenderPass
   ): void {
-    const { start, end } = this.locateRange(elementExpr, nodeIndex, nodeCount, statements, pass);
+    const marker = pass.next(QwikGenWord.Marker);
+    statements.push(
+      `const ${marker} = ${childPathExpression(elementExpr, nodeIndex, nodeCount, this.imports)};`
+    );
     const component = this.createComponent(op, statements, pass);
     this.imports.add(QwikWord.ToNodes);
-    statements.push(
-      `for (const node of ${QwikWord.ToNodes}(${component})) { ${end}.parentNode.insertBefore(node, ${end}); }`
-    );
-    statements.push(`${start}.remove();`);
-    statements.push(`${end}.remove();`);
+    statements.push(`${marker}.replaceWith(...${QwikWord.ToNodes}(${component}));`);
   }
 
   private mountSlot(
@@ -374,8 +373,18 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     this.imports.add(QwikWord.CreateSlot);
     this.imports.add(QwikWord.MaybeThen);
     statements.push(
-      `${pass.names.ctx}.scheduler.waitFor(${QwikWord.MaybeThen}(${QwikWord.CreateSlot}(${slotNameArgument(op)}), (${slot}) => { for (const node of ${slot}) { ${end}.parentNode.insertBefore(node, ${end}); } }));`
+      `${pass.names.ctx}.scheduler.waitFor(${QwikWord.MaybeThen}(${QwikWord.CreateSlot}(${this.slotArguments(op, pass.names.props)}), (${slot}) => { for (const node of ${slot}) { ${end}.parentNode.insertBefore(node, ${end}); } }));`
     );
+  }
+
+  private slotArguments(op: Extract<LinkedOp, { op: OpKind.Slot }>, propsName: string): string {
+    if (op.fallback === null) {
+      return op.name === '' ? '' : JSON.stringify(op.name);
+    }
+    const { qrl, args } = resolveQrlUse(this.module, op.fallback, propsName);
+    const reference = this.lazyQrlReference(qrl);
+    const fallback = args.length === 0 ? reference : `${reference}.w([${args.join(', ')}])`;
+    return `${JSON.stringify(op.name)}, ${fallback}`;
   }
 
   /** The branch swaps DOM between its start/end comment pair via a range effect. */
@@ -859,10 +868,6 @@ class CsrModuleEmitter implements QwikModuleEmitter {
   }
 }
 
-function slotNameArgument(op: Extract<LinkedOp, { op: OpKind.Slot }>): string {
-  return op.name === '' ? '' : JSON.stringify(op.name);
-}
-
 /**
  * Template shape: events stripped; a sole hole becomes a single-space text node, a hole among
  * siblings an empty comment (adjacent text would merge with a text placeholder). Text is
@@ -889,10 +894,11 @@ function templateChildren(children: readonly LinkedOp[]): LinkedOp[] {
         return { ...child, html: escapeText(child.html) };
       case OpKind.Branch:
       case OpKind.Each:
-      case OpKind.Component:
       case OpKind.Slot:
         // A dynamic range's start/end comment pair.
         return { op: OpKind.Static as const, html: '<!----><!---->' };
+      case OpKind.Component:
+        return { op: OpKind.Static as const, html: '<!---->' };
       default:
         return child;
     }
@@ -903,7 +909,6 @@ function templateNodeCount(op: LinkedOp): number {
   switch (op.op) {
     case OpKind.Branch:
     case OpKind.Each:
-    case OpKind.Component:
     case OpKind.Slot:
       return 2;
     default:

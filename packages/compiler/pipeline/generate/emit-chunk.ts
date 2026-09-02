@@ -286,6 +286,7 @@ export const enum ProgramKind {
   BranchArm = 'branch-arm',
   CollectionRow = 'collection-row',
   Projection = 'projection',
+  SlotFallback = 'slot-fallback',
 }
 
 export function programKind(qrl: LinkedQrl): ProgramKind {
@@ -301,6 +302,9 @@ export function programKind(qrl: LinkedQrl): ProgramKind {
     }
     if (qrl.boundary.role === 'projection') {
       return ProgramKind.Projection;
+    }
+    if (qrl.boundary.role === 'slot-fallback') {
+      return ProgramKind.SlotFallback;
     }
   }
   throw new UnsupportedError(`a program qrl with the boundary "${qrl.boundary.kind}"`);

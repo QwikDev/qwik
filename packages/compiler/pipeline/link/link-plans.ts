@@ -115,6 +115,16 @@ export function linkPlans(
         op.children.forEach(visit);
         return;
       }
+      if (op.op === OpKind.Slot) {
+        if (op.fallback !== null && !qrlIndexes[module].has(op.fallback.qrl)) {
+          diagnostics.push({
+            module: plan.path,
+            code: 'invalid-qrl-reference',
+            message: `Slot fallback references unknown QRL "${op.fallback.qrl}".`,
+          });
+        }
+        return;
+      }
       if (op.op !== OpKind.Component) {
         return;
       }
@@ -474,6 +484,15 @@ export function linkPlans(
     if (op.op === OpKind.Element) {
       for (const child of op.children) {
         visitOp(module, child);
+      }
+      return;
+    }
+    if (op.op === OpKind.Slot) {
+      if (op.fallback !== null) {
+        const qrl = qrlIndexes[module].get(op.fallback.qrl);
+        if (qrl !== undefined) {
+          visitDecl({ module, table: DeclTable.Qrls, index: qrl });
+        }
       }
       return;
     }

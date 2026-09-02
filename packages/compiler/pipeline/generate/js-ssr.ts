@@ -232,7 +232,8 @@ class SsrModuleEmitter implements QwikModuleEmitter {
           case ProgramKind.CollectionRow:
             return this.rowEmission(qrl);
           case ProgramKind.Projection:
-            return this.projectionEmission(qrl);
+          case ProgramKind.SlotFallback:
+            return this.slotContentEmission(qrl);
           case ProgramKind.Component:
             throw new UnsupportedError('a component program as a chunk');
         }
@@ -274,8 +275,8 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     return emission;
   }
 
-  /** Projection chunks own their resume-time slot marker range. */
-  private projectionEmission(qrl: LinkedQrl): FunctionEmission {
+  /** Slot content chunks own their resume-time marker range. */
+  private slotContentEmission(qrl: LinkedQrl): FunctionEmission {
     const { emission, core, names } = this.renderEmission(qrl, {});
     emission.imports.add(QwikWord.CreateSsrMarkup);
     emission.imports.add(QwikWord.CreateSsrNodeId);
@@ -501,8 +502,20 @@ class SsrModuleEmitter implements QwikModuleEmitter {
   ): void {
     const slot = pass.next(QwikGenWord.Slot);
     this.imports.add(QwikWord.RenderSsrSlot);
-    const name = op.name === '' ? '' : `, ${JSON.stringify(op.name)}`;
-    this.pushStep(pass, slot, [], `${QwikWord.RenderSsrSlot}(${pass.names.ctx}${name})`);
+    if (op.fallback === null) {
+      const name = op.name === '' ? '' : `, ${JSON.stringify(op.name)}`;
+      this.pushStep(pass, slot, [], `${QwikWord.RenderSsrSlot}(${pass.names.ctx}${name})`);
+    } else {
+      const { qrl, args } = resolveQrlUse(this.module, op.fallback, pass.names.props);
+      const reference = this.qrlReference(qrl, true);
+      const fallback = args.length === 0 ? reference : `${reference}.w([${args.join(', ')}])`;
+      this.pushStep(
+        pass,
+        slot,
+        rootArgs(qrl, args),
+        `${QwikWord.RenderSsrSlot}(${pass.names.ctx}, ${JSON.stringify(op.name)}, ${fallback})`
+      );
+    }
     parts.push(slot);
   }
 

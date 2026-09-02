@@ -324,17 +324,33 @@ function lowerSlotMarker(element: JSXElement, ctx: LowerContext): Op {
   if (attributes.some((attribute) => attribute !== nameAttribute)) {
     throw new UnsupportedError('Slot attributes');
   }
-  if (element.children.some(isProjectionChild)) {
-    throw new UnsupportedError('Slot fallback children');
-  }
-  return createSlotOp(ctx, nameAttribute === undefined ? '' : readStaticSlotName(nameAttribute));
+  const fallbackChildren = element.children.filter(isProjectionChild);
+  const fallback =
+    fallbackChildren.length === 0
+      ? null
+      : lowerRenderQrl(
+          fallbackChildren,
+          ctx,
+          'a slot fallback',
+          SegmentContext.Projection,
+          'slot-fallback'
+        );
+  return createSlotOp(
+    ctx,
+    nameAttribute === undefined ? '' : readStaticSlotName(nameAttribute),
+    fallback
+  );
 }
 
-function createSlotOp(ctx: LowerContext, name = ''): Op {
+function createSlotOp(
+  ctx: LowerContext,
+  name = '',
+  fallback: Extract<Op, { op: OpKind.Slot }>['fallback'] = null
+): Op {
   return {
     op: OpKind.Slot,
     name,
-    fallback: null,
+    fallback,
     id: { kind: SeedKind.Slot, ordinal: ctx.slotCounter.next++ },
   };
 }
@@ -361,49 +377,67 @@ function lowerProjections(
   ctx: LowerContext
 ): Extract<Op, { op: OpKind.Component }>['projections'] {
   return children.filter(isProjectionChild).map((child) => {
-    const range: [number, number] = [child.start, child.end];
-    const { captures, args } = lowerCaptures(child, ctx, 'a component projection', {
-      allowProps: true,
-    });
-    const program = ctx.plan.programs.length;
-    ctx.plan.programs.push({
-      body: { kind: ProgramBodyKind.Ops, ops: [] },
-      setup: [],
-      params: [],
-      lifetime: 0,
-      needsId: false,
-      async: false,
-    });
-    const { use } = pushQrl(
+    const use = lowerRenderQrl(
+      [child],
       ctx,
-      {
-        identity: { kind: QrlIdentityKind.Segment, nameCtx: SegmentContext.Projection },
-        ctxName: SegmentContext.Projection,
-        boundary: { kind: BoundaryKind.Implicit, role: 'projection' },
-        payloadKind: QrlPayloadKind.Function,
-        authoredAsync: false,
-        body: { b: QrlBodyKind.Program, program },
-        captures,
-        params: { authored: 0, used: [], sources: [] },
-        origin: {
-          range,
-          functionRange: range,
-          calleeRange: null,
-          argumentRanges: [],
-          paramRanges: [],
-          bodyRange: range,
-          bodyKind: FnBodyKind.Expression,
-        },
-      },
-      args
+      'a component projection',
+      SegmentContext.Projection,
+      'projection'
     );
-    ctx.plan.programs[program].body = { kind: ProgramBodyKind.Ops, ops: lowerChild(child, ctx) };
     return {
       name: readProjectionName(child),
       use,
       id: { kind: SeedKind.Projection, ordinal: ctx.projectionCounter.next++ },
     };
   });
+}
+
+function lowerRenderQrl(
+  children: JSXChild[],
+  ctx: LowerContext,
+  subject: string,
+  nameCtx: SegmentContext,
+  role: string
+) {
+  const range: [number, number] = [children[0].start, children[children.length - 1].end];
+  const { captures, args } = lowerCaptures(children, ctx, subject, { allowProps: true });
+  const program = ctx.plan.programs.length;
+  ctx.plan.programs.push({
+    body: { kind: ProgramBodyKind.Ops, ops: [] },
+    setup: [],
+    params: [],
+    lifetime: 0,
+    needsId: false,
+    async: false,
+  });
+  const { use } = pushQrl(
+    ctx,
+    {
+      identity: { kind: QrlIdentityKind.Segment, nameCtx },
+      ctxName: nameCtx,
+      boundary: { kind: BoundaryKind.Implicit, role },
+      payloadKind: QrlPayloadKind.Function,
+      authoredAsync: false,
+      body: { b: QrlBodyKind.Program, program },
+      captures,
+      params: { authored: 0, used: [], sources: [] },
+      origin: {
+        range,
+        functionRange: range,
+        calleeRange: null,
+        argumentRanges: [],
+        paramRanges: [],
+        bodyRange: range,
+        bodyKind: FnBodyKind.Expression,
+      },
+    },
+    args
+  );
+  ctx.plan.programs[program].body = {
+    kind: ProgramBodyKind.Ops,
+    ops: lowerJsxChildren(children, ctx),
+  };
+  return use;
 }
 
 function isProjectionChild(child: JSXChild): boolean {

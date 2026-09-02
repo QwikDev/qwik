@@ -749,6 +749,15 @@ export default () => <Card><h1 q:slot="header">Title</h1><p>Content</p></Card>;
     });
   });
 
+  test('should render a slot fallback only without a projection', async () => {
+    await testInput(mode, 'component-slot-fallback', {
+      code: `import { Slot } from '@qwik.dev/core';
+export const Card = () => <section><Slot><p>Empty</p></Slot></section>;
+export default () => <main><Card /><Card><p>Projected</p></Card></main>;
+`,
+    });
+  });
+
   test('should render an aliased component imported from another module', async () => {
     await testInputs(mode, 'component-call-import', [
       {
@@ -763,6 +772,14 @@ export default () => <main><RenamedChild /></main>;
 `,
       },
     ]);
+  });
+});
+
+test('csr replaces an embedded component marker in place', async () => {
+  await testInput('csr', 'component-call-siblings', {
+    code: `export const Child = () => <strong>child</strong>;
+export default () => <main><span>before</span><Child /><span>after</span></main>;
+`,
   });
 });
 

@@ -205,6 +205,47 @@ export default () => <Wrapper><p>Projected</p></Wrapper>;
     }
   );
 
+  test.each([false, true])(
+    'reports an invalid slot fallback QRL in complete=%s mode',
+    async (complete) => {
+      const plan = await analyse(
+        'src/app.tsx',
+        `import { Slot } from '@qwik.dev/core';
+export default () => <section><Slot><p>Fallback</p></Slot></section>;
+`
+      );
+      const slot = plan.programs
+        .flatMap((program) => (program.body.kind === ProgramBodyKind.Ops ? program.body.ops : []))
+        .flatMap((op) => (op.op === OpKind.Element ? op.children : []))
+        .find((op) => op.op === OpKind.Slot);
+      expect(slot?.op).toBe(OpKind.Slot);
+      if (slot?.op !== OpKind.Slot || slot.fallback === null) {
+        return;
+      }
+      slot.fallback.qrl = 'missing';
+
+      expect(
+        linkPlans(
+          [plan],
+          [{ kind: EntryKind.Export, module: 'src/app.tsx', export: 'default' }],
+          serverSpecialization(),
+          { edges: {} },
+          plugins,
+          complete
+        )
+      ).toEqual({
+        kind: LinkResultKind.Failed,
+        diagnostics: [
+          {
+            module: 'src/app.tsx',
+            code: 'invalid-qrl-reference',
+            message: 'Slot fallback references unknown QRL "missing".',
+          },
+        ],
+      });
+    }
+  );
+
   test('links default and namespace imports without consumer-specific logic', async () => {
     const app = await analyse(
       'src/app.tsx',

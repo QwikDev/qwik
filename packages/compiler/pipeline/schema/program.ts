@@ -137,7 +137,7 @@ export type Op =
       lifetime: LifetimeId;
       shape: Shape;
     }
-  | { op: OpKind.Slot; name: string; nameValue?: Value; fallback: ProgramId | null; id: Seed }
+  | { op: OpKind.Slot; name: string; nameValue?: Value; fallback: QrlUse | null; id: Seed }
   | { op: OpKind.DynamicSlot; program: ProgramId; id: Seed }
   | {
       op: OpKind.Suspense;

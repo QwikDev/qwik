@@ -8,6 +8,7 @@ import {
   ReadRole,
   ResumeKind,
   ValueKind,
+  type Range,
   type Value,
 } from '../schema';
 import { ValueIrKind, type ValueIR } from '../../src/expr-ir';
@@ -39,6 +40,15 @@ export function lowerExpressionValue(
   if (read !== null) {
     return read;
   }
+  return lowerComputedExpressionValue(expression, ctx, nameCtx, [expression.start, expression.end]);
+}
+
+export function lowerComputedExpressionValue(
+  expression: Expression,
+  ctx: LowerContext,
+  nameCtx: string,
+  range: Range
+) {
   switch (expression.type) {
     case 'JSXElement':
     case 'JSXFragment':
@@ -52,7 +62,6 @@ export function lowerExpressionValue(
       const { captures, args, refs } = lowerCaptures(expression, ctx, 'an expression', {
         allowProps: true,
       });
-      const range: [number, number] = [expression.start, expression.end];
       const payload = pushPayload(ctx, range);
       // Alias reads materialize as member reads of their container when the payload prints.
       for (const entry of refs.locals) {
@@ -68,7 +77,10 @@ export function lowerExpressionValue(
           });
         }
       }
-      const ir = tryLowerExprIr(expression, ctx);
+      const ir =
+        range[0] === expression.start && range[1] === expression.end
+          ? tryLowerExprIr(expression, ctx)
+          : null;
       const expr =
         ir === null
           ? ({ kind: ExprKind.Js, payload } as const)
@@ -97,9 +109,9 @@ export function lowerExpressionValue(
         args
       );
       return {
-        v: ValueKind.Computed,
+        v: ValueKind.Computed as const,
         expr,
-        resume: { r: ResumeKind.Qrl, qrl: use },
+        resume: { r: ResumeKind.Qrl as const, qrl: use },
         compilerString: false,
       };
     }

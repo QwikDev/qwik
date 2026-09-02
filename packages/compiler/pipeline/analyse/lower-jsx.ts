@@ -16,7 +16,11 @@ import { lowerEventAttribute } from './lower-event';
 import { lowerText } from './lower-hole';
 import { lowerBranch } from './lower-branch';
 import { unwrapExpression } from './ast/utils';
-import { lowerExpressionValue } from './lower-expr';
+import {
+  lowerComputedExpressionValue,
+  lowerExpressionValue,
+  trySignalReadValue,
+} from './lower-expr';
 import type { LowerContext } from './lower-context';
 import { lowerArray } from './lower-array';
 
@@ -45,10 +49,7 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
     return {
       op: OpKind.Component,
       target: { t: ComponentTargetKind.Raw, binding },
-      props: {
-        c: ComponentPropsKind.Entries,
-        props: opening.attributes.map((attribute) => lowerAttribute(attribute, ctx, 'component')),
-      },
+      props: lowerComponentProps(opening.attributes, ctx),
       projections: [],
       id: { kind: SeedKind.Component, ordinal: ctx.componentCounter.next++ },
       lifetime: 0,
@@ -82,6 +83,26 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
     props,
     propsEffect: null,
     children,
+  };
+}
+
+function lowerComponentProps(attributes: readonly JSXAttributeItem[], ctx: LowerContext) {
+  const attribute = attributes.length === 1 ? attributes[0] : null;
+  if (
+    attribute?.type === 'JSXSpreadAttribute' &&
+    trySignalReadValue(attribute.argument, ctx) !== null
+  ) {
+    return {
+      c: ComponentPropsKind.Proxy as const,
+      compute: lowerComputedExpressionValue(attribute.argument, ctx, 'props', [
+        attribute.start,
+        attribute.end,
+      ]).resume.qrl,
+    };
+  }
+  return {
+    c: ComponentPropsKind.Entries as const,
+    props: attributes.map((attribute) => lowerAttribute(attribute, ctx, 'component')),
   };
 }
 

@@ -42,6 +42,7 @@ export const enum QwikWord {
   MaybeThen = 'maybeThen',
   // shared
   CreateComponent = 'createComponent',
+  CreatePropsProxy = 'createPropsProxy',
   MergeProps = 'mergeProps',
   Props = '_props',
   NoopQrl = '_noopQrl',
@@ -73,6 +74,7 @@ export const enum QwikGenWord {
 
 /** Authored hook names recognized in component setup. */
 export const enum QwikHook {
+  UseComputedQrl = 'useComputedQrl',
   UseSignal = 'useSignal',
 }
 

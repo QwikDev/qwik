@@ -15,7 +15,7 @@ import {
   type Value,
 } from '../schema';
 import { UnsupportedError } from '../errors';
-import { QwikGenWord, QwikWord } from '../words';
+import { QwikGenWord, QwikHook, QwikWord } from '../words';
 import { signalReadName } from './emit-setup';
 import { rootArgs } from './emit-chunk';
 
@@ -74,8 +74,19 @@ function emitComponentProps(
   imports: Set<string>,
   resolveQrl: ResolveComponentQrl
 ): { expression: string; roots: string[]; statements: string[] } {
-  if (component.props.c !== ComponentPropsKind.Entries) {
-    throw new UnsupportedError('a component props proxy');
+  if (component.props.c === ComponentPropsKind.Proxy) {
+    const { qrl, reference, args } = resolveQrl(component.props.compute, true);
+    if (qrl.payloadKind !== QrlPayloadKind.Value) {
+      throw new UnsupportedError('a non-value component props QRL');
+    }
+    imports.add(QwikWord.CreatePropsProxy);
+    imports.add(QwikHook.UseComputedQrl);
+    const computeQrl = args.length === 0 ? reference : `${reference}.w([${args.join(', ')}])`;
+    return {
+      expression: `${QwikWord.CreatePropsProxy}(${QwikHook.UseComputedQrl}(${computeQrl}))`,
+      roots: rootArgs(qrl, args),
+      statements: [],
+    };
   }
   const entries: string[] = [];
   const mergeInputs: string[] = [];

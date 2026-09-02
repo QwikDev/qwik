@@ -649,6 +649,18 @@ export default (props) => (
     });
   });
 
+  test('should proxy a reactive component prop spread', async () => {
+    await testInput(mode, 'component-props-reactive-spread', {
+      code: `import { useSignal } from '@qwik.dev/core';
+export const Child = (props) => <strong>{props.label}</strong>;
+export default () => {
+  const attributes = useSignal({ label: 'first' });
+  return <Child {...attributes.value} />;
+};
+`,
+    });
+  });
+
   test('should forward an event prop through a component', async () => {
     await testInput(mode, 'component-event-prop', {
       code: `import { useSignal } from '@qwik.dev/core';
@@ -683,7 +695,7 @@ describe('pending slices', () => {
   test.todo('JSX in a call argument lowers as an embedded function render');
   test.todo('JSX outside any candidate rejects with unsupported-runtime-jsx');
   test.todo('dynamic props, holes, events, bind, refs');
-  test.todo('reactive component props proxies, projections, slots');
+  test.todo('mixed reactive component props proxies, projections, slots');
   test.todo('branches (incl. build-constant conditions and residual isDev)');
   test.todo('collections (array/reactive/derived, inline and chunk rows)');
   test.todo('suspense, reveal, dynamic slots');

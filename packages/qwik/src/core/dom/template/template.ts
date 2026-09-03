@@ -1,32 +1,30 @@
 export type TemplateFactory = (document: Document) => DocumentFragment;
 export type ElementTemplateFactory = (document: Document) => Element;
 
-export function createTemplate(html: string): TemplateFactory {
-  const templates = new WeakMap<Document, HTMLTemplateElement>();
+const templates = new WeakMap<Document, Map<string, HTMLTemplateElement>>();
 
-  return (document) => {
-    let template = templates.get(document);
-    if (template === undefined) {
-      template = document.createElement('template');
-      template.innerHTML = html;
-      templates.set(document, template);
-    }
-    return template.content.cloneNode(true) as DocumentFragment;
-  };
+function getTemplate(document: Document, html: string): HTMLTemplateElement {
+  let documentTemplates = templates.get(document);
+  if (documentTemplates === undefined) {
+    documentTemplates = new Map();
+    templates.set(document, documentTemplates);
+  }
+
+  let template = documentTemplates.get(html);
+  if (template === undefined) {
+    template = document.createElement('template');
+    template.innerHTML = html;
+    documentTemplates.set(html, template);
+  }
+  return template;
+}
+
+export function createTemplate(html: string): TemplateFactory {
+  return (document) => getTemplate(document, html).content.cloneNode(true) as DocumentFragment;
 }
 
 /** @internal */
 export function createElementTemplate(html: string): ElementTemplateFactory {
-  const templates = new WeakMap<Document, Element>();
-
-  return (document) => {
-    let element = templates.get(document);
-    if (element === undefined) {
-      const template = document.createElement('template');
-      template.innerHTML = html;
-      element = template.content.firstElementChild!;
-      templates.set(document, element);
-    }
-    return element.cloneNode(true) as Element;
-  };
+  return (document) =>
+    getTemplate(document, html).content.firstElementChild!.cloneNode(true) as Element;
 }

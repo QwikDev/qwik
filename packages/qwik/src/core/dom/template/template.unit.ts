@@ -28,6 +28,16 @@ describe('createTemplate', () => {
     expect(fake.templates[0].html).toBe('<span> </span>');
   });
 
+  it('shares parsed templates between factories', () => {
+    const fake = createFakeDocument();
+
+    createTemplate('<p> </p>')(fake.document);
+    createTemplate('<p> </p>')(fake.document);
+    createElementTemplate('<p> </p>')(fake.document);
+
+    expect(fake.createElement).toHaveBeenCalledOnce();
+  });
+
   it('returns fresh element clones without cloning the fragment', () => {
     const first = createFakeDocument();
     const second = createFakeDocument();

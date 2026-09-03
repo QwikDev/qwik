@@ -53,6 +53,7 @@ export const Child = (props, ctx) => {
 export default (props0, ctx) => {
   const count = useSignal(1);
   const component0 = createComponent(
+    Child,
     _props(
       {
         className: 'total',
@@ -62,7 +63,7 @@ export default (props0, ctx) => {
       },
       { count: count }
     ),
-    (props0) => Child(props0, ctx)
+    ctx
   );
   return component0;
 };

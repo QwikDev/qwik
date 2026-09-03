@@ -18,6 +18,9 @@ import { qTest } from '../shared/utils/qdev';
 import { isServerPlatform } from '../shared/platform/platform';
 import { applyUseOnToSsrOutput } from '../ssr/use-on';
 import type { SsrEventAttrChunk, SsrOutput } from '../ssr/output';
+import { EMPTY_OBJ } from '../shared/utils/flyweight';
+
+const NO_RENDER_CONTEXT = Symbol();
 
 export type ComponentOutput = NodeOutput | string;
 export type ComponentRenderFn<TProps = unknown> = (
@@ -30,6 +33,12 @@ export interface ComponentOptions {
   slotScope?: SlotScope | null;
 }
 
+export function createComponent<TProps, TRenderContext>(
+  render: (props: TProps, context: TRenderContext) => ValueOrPromise<ComponentOutput | void>,
+  props: TProps | null,
+  renderContext: TRenderContext,
+  options?: ComponentOptions
+): ValueOrPromise<ComponentOutput | void>;
 export function createComponent<TProps>(
   props: TProps,
   render: (props: TProps) => ValueOrPromise<string>,
@@ -55,17 +64,26 @@ export function createComponent<TProps>(
   render: ComponentRenderFn<TProps>,
   options?: ComponentOptions
 ): ValueOrPromise<ComponentOutput | void>;
-export function createComponent<TProps>(
-  props: TProps,
-  render: ComponentRenderFn<TProps>,
-  options?: ComponentOptions
+export function createComponent(
+  propsOrRender: unknown,
+  renderOrProps: unknown,
+  contextOrOptions?: unknown,
+  directOptions?: ComponentOptions
 ): ValueOrPromise<ComponentOutput | void> {
-  return createComponentAttempt(props, render, options, 0);
+  const isDirectCall = typeof propsOrRender === 'function' && typeof renderOrProps !== 'function';
+  return createComponentAttempt(
+    isDirectCall ? (renderOrProps ?? EMPTY_OBJ) : propsOrRender,
+    (isDirectCall ? propsOrRender : renderOrProps) as ComponentRenderFn<unknown>,
+    isDirectCall ? contextOrOptions : NO_RENDER_CONTEXT,
+    (isDirectCall ? directOptions : contextOrOptions) as ComponentOptions | undefined,
+    0
+  );
 }
 
 function createComponentAttempt<TProps>(
   props: TProps,
   render: ComponentRenderFn<TProps>,
+  renderContext: unknown,
   options: ComponentOptions | undefined,
   retryCount: number
 ): ValueOrPromise<ComponentOutput | void> {
@@ -102,7 +120,7 @@ function createComponentAttempt<TProps>(
       if (retryCount < MAX_RETRY_ON_PROMISE_COUNT) {
         const retryOptions: ComponentOptions = { ...options, invokeContext: parentInvokeContext };
         return (error as Promise<unknown>).then(() =>
-          createComponentAttempt(props, render, retryOptions, retryCount + 1)
+          createComponentAttempt(props, render, renderContext, retryOptions, retryCount + 1)
         );
       }
       // never rethrow the promise itself: a thenable error is silently adopted upstream
@@ -117,7 +135,16 @@ function createComponentAttempt<TProps>(
 
   let nodes: ValueOrPromise<ComponentOutput | void>;
   try {
-    nodes = untrack(invoke, invokeContext, render, props);
+    nodes =
+      renderContext === NO_RENDER_CONTEXT
+        ? untrack(invoke, invokeContext, render, props)
+        : untrack(
+            invoke,
+            invokeContext,
+            render as (props: TProps, context: unknown) => ValueOrPromise<ComponentOutput | void>,
+            props,
+            renderContext
+          );
   } catch (error) {
     return retryOnPending(error);
   }

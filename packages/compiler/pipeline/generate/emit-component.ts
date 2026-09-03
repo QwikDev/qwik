@@ -60,7 +60,7 @@ export function emitComponentCall(
   const target = module.bindings[component.target.binding].name;
   imports.add(QwikWord.CreateComponent);
   return {
-    expression: `${QwikWord.CreateComponent}(${props.expression}, (${pass.names.props}) => ${target}(${pass.names.props}, ${pass.names.ctx})${projections.options})`,
+    expression: `${QwikWord.CreateComponent}(${target}, ${props.expression}, ${pass.names.ctx}${projections.options})`,
     roots: [...props.roots, ...projections.roots],
     rootDeclarations: projections.declarations,
     statements: [...props.statements, ...projections.statements],
@@ -217,7 +217,7 @@ function emitComponentProps(
   flushEntries();
   let expression: string;
   if (mergeInputs.length === 0) {
-    expression = '{}';
+    expression = 'null';
   } else if (mergeInputs.length === 1) {
     expression = mergeInputs[0];
   } else {

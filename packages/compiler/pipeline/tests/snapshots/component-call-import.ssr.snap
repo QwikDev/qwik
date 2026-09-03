@@ -15,7 +15,7 @@ import { Child as RenamedChild } from './child';
 import { createComponent, maybeThen } from '@qwik.dev/core';
 
 export default (props, ctx) => {
-  const component0 = createComponent({}, (props) => RenamedChild(props, ctx));
+  const component0 = createComponent(RenamedChild, null, ctx);
   return maybeThen(component0, (component0) => ['<main>', component0, '</main>']);
 };
 ============================= src/child.tsx ==

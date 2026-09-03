@@ -48,11 +48,12 @@ export const Child = (props, ctx) => {
 export default (props0, ctx) => {
   const count = useSignal(0);
   const component0 = createComponent(
+    Child,
     {
       onSave$: q_component_q_e_save_segment_1_3krcbiqvmvgft.w([count]),
       'on-save$': q_component_q_e_save_segment_2_3krcacnjwdae8.w([count]),
     },
-    (props0) => Child(props0, ctx)
+    ctx
   );
   return component0;
 };

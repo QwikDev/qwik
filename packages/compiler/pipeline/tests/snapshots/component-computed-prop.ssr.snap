@@ -58,6 +58,7 @@ export default (props0, ctx) => {
   ctx.addRoot(count);
   const propQrl0 = q_component_total_segment_1_33cb9ycgfz3ta.w([count]);
   const component0 = createComponent(
+    Child,
     _props(
       {
         get total() {
@@ -66,7 +67,7 @@ export default (props0, ctx) => {
       },
       { total: propQrl0 }
     ),
-    (props0) => Child(props0, ctx)
+    ctx
   );
   return maybeThen(component0, (component0) => component0);
 };

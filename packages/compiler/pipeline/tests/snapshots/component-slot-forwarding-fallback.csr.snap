@@ -52,7 +52,7 @@ export const Inner = (props, ctx) => {
 export const Wrapper = (props, ctx) => {
   const slotScope0 = createSlotScope();
   forwardSlot(slotScope0, 'title', 'heading', q_component_slot_render_segment_0_3b0tagwys7lui);
-  const component0 = createComponent({}, (props) => Inner(props, ctx), { slotScope: slotScope0 });
+  const component0 = createComponent(Inner, null, ctx, { slotScope: slotScope0 });
   return component0;
 };
 export default (props, ctx) => {
@@ -61,10 +61,10 @@ export default (props, ctx) => {
   const marker0 = _first(el0);
   const slotScope0 = createSlotScope();
   registerProjection(slotScope0, 'heading', q_component_slot_render_segment_1_3b0tauy2p1nv1);
-  const component0 = createComponent({}, (props) => Wrapper(props, ctx), { slotScope: slotScope0 });
+  const component0 = createComponent(Wrapper, null, ctx, { slotScope: slotScope0 });
   marker0.replaceWith(..._toNodes(component0));
   const marker1 = _last(el0);
-  const component1 = createComponent({}, (props) => Wrapper(props, ctx));
+  const component1 = createComponent(Wrapper, null, ctx);
   marker1.replaceWith(..._toNodes(component1));
   return el0;
 };

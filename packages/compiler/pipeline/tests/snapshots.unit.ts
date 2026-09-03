@@ -608,11 +608,12 @@ export default () => {
   });
 
   test('should render a local component call', async () => {
-    await testInput(mode, 'component-call-local', {
+    const output = await testInput(mode, 'component-call-local', {
       code: `export const Child = () => <strong>child</strong>;
 export default () => <Child />;
 `,
     });
+    expect(output.modules[0].code).toContain('createComponent(Child, null, ctx)');
   });
 
   test('should pass static and signal props to a component', async () => {

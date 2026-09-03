@@ -111,6 +111,52 @@ describe('components and invoke contexts', () => {
     expect(html).toBe('<span>Qwik</span>');
   });
 
+  it('passes render context without an adapter callback', () => {
+    const renderContext = { prefix: 'Hello' };
+    const slotScope: SlotScope = { slots: new Map() };
+    let activeContext!: RuntimeInvokeContext;
+
+    const html = createComponent(
+      (props: Record<string, unknown>, context: typeof renderContext) => {
+        activeContext = getActiveInvokeContext();
+        return `${context.prefix} ${String(props.name)}`;
+      },
+      { name: 'Qwik' },
+      renderContext,
+      { slotScope }
+    );
+    const emptyProps = createComponent(
+      (props: Record<string, unknown>, context: typeof renderContext) =>
+        `${context.prefix} ${Object.keys(props).length}`,
+      null,
+      renderContext
+    );
+
+    expect(html).toBe('Hello Qwik');
+    expect(emptyProps).toBe('Hello 0');
+    expect(activeContext.slotScope).toBe(slotScope);
+  });
+
+  it('preserves render context when retrying a direct component call', async () => {
+    const renderContext = { value: 'ready' };
+    const pending = Promise.resolve();
+    let attempts = 0;
+
+    const output = createComponent(
+      (_props: Record<string, unknown>, context: typeof renderContext) => {
+        if (attempts++ === 0) {
+          throw pending;
+        }
+        return context.value;
+      },
+      null,
+      renderContext
+    );
+
+    await expect(output).resolves.toBe('ready');
+    expect(attempts).toBe(2);
+  });
+
   it('disposes component work when render throws', () => {
     const source = useSignal('value');
     const text = createText();

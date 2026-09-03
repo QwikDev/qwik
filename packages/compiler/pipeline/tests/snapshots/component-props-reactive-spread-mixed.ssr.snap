@@ -76,10 +76,11 @@ export default (props0, ctx) => {
   ctx.addRoot(attributes);
   ctx.addRoot(count);
   const component0 = createComponent(
+    Child,
     createPropsProxy(
       useComputedQrl(q_component_props_segment_2_208o0eee4yc6n.w([attributes, count]))
     ),
-    (props0) => Child(props0, ctx)
+    ctx
   );
   return maybeThen(component0, (component0) => component0);
 };

@@ -57,10 +57,11 @@ export default (props0, ctx) => {
   const count = useSignal(0);
   const attributes = useSignal({ title: 'save' });
   const component0 = createComponent(
+    Child,
     createPropsProxy(
       useComputedQrl(q_component_props_segment_3_208o00da84a64.w([attributes, count]))
     ),
-    (props0) => Child(props0, ctx)
+    ctx
   );
   return component0;
 };

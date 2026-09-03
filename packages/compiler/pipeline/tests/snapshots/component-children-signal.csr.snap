@@ -47,9 +47,7 @@ export default (props0, ctx) => {
   const count = useSignal(1);
   const slotScope0 = createSlotScope();
   registerProjection(slotScope0, '', q_component_slot_render_segment_0_3b0tagwys7lui.w([count]));
-  const component0 = createComponent({}, (props0) => Wrapper(props0, ctx), {
-    slotScope: slotScope0,
-  });
+  const component0 = createComponent(Wrapper, null, ctx, { slotScope: slotScope0 });
   return component0;
 };
 ============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==

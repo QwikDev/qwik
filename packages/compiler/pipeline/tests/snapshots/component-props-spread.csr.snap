@@ -48,6 +48,7 @@ export default (props, ctx) => {
   const propQrl0 = q_component_props_segment_1_208o0sfi1se76.w([props]);
   const propQrl1 = q_component_props_segment_2_208o0eee4yc6n.w([props]);
   const component0 = createComponent(
+    Child,
     mergeProps(
       { label: 'before' },
       readExpression(propQrl0),
@@ -55,7 +56,7 @@ export default (props, ctx) => {
       readExpression(propQrl1),
       { label: 'after' }
     ),
-    (props) => Child(props, ctx)
+    ctx
   );
   return component0;
 };

@@ -57,8 +57,9 @@ export default (props0, ctx) => {
   const attributes = useSignal({ title: 'save' });
   ctx.addRoot(attributes);
   const component0 = createComponent(
+    Child,
     createPropsProxy(useComputedQrl(q_component_props_segment_1_208o0sfi1se76.w([attributes]))),
-    (props0) => Child(props0, ctx)
+    ctx
   );
   return maybeThen(component0, (component0) => component0);
 };

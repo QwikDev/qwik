@@ -37,11 +37,11 @@ export const Card = (props, ctx) => {
   return maybeThen(slot0, (slot0) => ['<section>', slot0, '</section>']);
 };
 export default (props, ctx) => {
-  const component0 = createComponent({}, (props) => Card(props, ctx));
+  const component0 = createComponent(Card, null, ctx);
   const slotScope0 = createSlotScope();
   ctx.addRoot(slotScope0);
   registerProjection(slotScope0, '', q_component_slot_render_segment_1_3b0tauy2p1nv1);
-  const component1 = createComponent({}, (props) => Card(props, ctx), { slotScope: slotScope0 });
+  const component1 = createComponent(Card, null, ctx, { slotScope: slotScope0 });
   return maybeThen(component0, (component0) =>
     maybeThen(component1, (component1) => ['<main>', component0, component1, '</main>'])
   );

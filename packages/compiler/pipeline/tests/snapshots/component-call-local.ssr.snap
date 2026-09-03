@@ -7,14 +7,14 @@ export default () => <Child />;
 
 ============================= src/component.tsx ==
 
-import { createComponent, maybeThen } from '@qwik.dev/core';
+import { createComponent } from '@qwik.dev/core';
 
 export const Child = (props, ctx) => {
   return '<strong>child</strong>';
 };
 export default (props, ctx) => {
   const component0 = createComponent(Child, null, ctx);
-  return maybeThen(component0, (component0) => component0);
+  return component0;
 };
 == SSR DIAGNOSTICS ==
 

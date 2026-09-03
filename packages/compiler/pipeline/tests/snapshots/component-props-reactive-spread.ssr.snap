@@ -61,7 +61,7 @@ export default (props0, ctx) => {
     createPropsProxy(useComputedQrl(q_component_props_segment_1_208o0sfi1se76.w([attributes]))),
     ctx
   );
-  return maybeThen(component0, (component0) => component0);
+  return component0;
 };
 ============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
 

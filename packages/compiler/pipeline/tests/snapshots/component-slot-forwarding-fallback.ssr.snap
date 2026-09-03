@@ -43,7 +43,7 @@ export const Wrapper = (props, ctx) => {
   ctx.addRoot(slotScope0);
   forwardSlot(slotScope0, 'title', 'heading', q_component_slot_render_segment_0_3b0tagwys7lui);
   const component0 = createComponent(Inner, null, ctx, { slotScope: slotScope0 });
-  return maybeThen(component0, (component0) => component0);
+  return component0;
 };
 export default (props, ctx) => {
   const slotScope0 = createSlotScope();

@@ -121,7 +121,7 @@ export default (props, ctx) => {
   registerProjection(slotScope0, 'x', q_component_slot_render_segment_0_3b0tagwys7lui.w([flip]));
   registerProjection(slotScope0, 'y', q_component_slot_render_segment_3_3b0ta2vuvdjtz.w([flip]));
   const component0 = createComponent(Panel, null, ctx, { slotScope: slotScope0 });
-  return maybeThen(component0, (component0) => component0);
+  return component0;
 };
 ============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
 

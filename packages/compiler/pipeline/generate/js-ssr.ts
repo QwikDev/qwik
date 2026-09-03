@@ -202,9 +202,11 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       pushMergedStatic(parts, '<!/r>');
     }
     let value = parts.length === 0 ? "''" : parts.length === 1 ? parts[0] : `[${parts.join(', ')}]`;
-    if (pass.asyncSteps.length > 0) {
+    const lastStep = pass.asyncSteps[pass.asyncSteps.length - 1];
+    const stepsToSequence = value === lastStep ? pass.asyncSteps.slice(0, -1) : pass.asyncSteps;
+    if (stepsToSequence.length > 0) {
       this.imports.add(QwikWord.MaybeThen);
-      value = pass.asyncSteps.reduceRight(
+      value = stepsToSequence.reduceRight(
         (inner, step) => `${QwikWord.MaybeThen}(${step}, (${step}) => ${inner})`,
         value
       );

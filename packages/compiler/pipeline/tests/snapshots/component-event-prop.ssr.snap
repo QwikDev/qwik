@@ -62,7 +62,7 @@ export default (props0, ctx) => {
     },
     ctx
   );
-  return maybeThen(component0, (component0) => component0);
+  return component0;
 };
 ============================= src/component.tsx_component_onClickqrl_segment_0_3rzjkie0i362z.js (ENTRY POINT)==
 

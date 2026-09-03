@@ -1077,6 +1077,11 @@ export interface RenderSSROptions {
     stream: StreamWriter;
 }
 
+// Warning: (ae-forgotten-export) The symbol "Preload" needs to be exported by the entry point index.d.ts
+//
+// @internal (undocumented)
+export const _requestPreload: Preload;
+
 // @internal (undocumented)
 export const _reR: () => boolean;
 

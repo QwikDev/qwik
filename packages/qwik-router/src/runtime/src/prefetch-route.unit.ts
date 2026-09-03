@@ -12,8 +12,6 @@ vi.mock('@qwik-router-config', () => ({
   basePathname: '/',
 }));
 
-vi.mock('@qwik.dev/core/preloader', () => ({ p: vi.fn() }));
-
 vi.mock('./route-loaders', async (importOriginal) => ({
   ...(await importOriginal<object>()),
   fetchRouteLoaderData: fetchRouteLoaderDataMock,

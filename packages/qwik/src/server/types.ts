@@ -39,7 +39,7 @@ export interface PreloaderOptions {
    * Bundles that reach 100% probability (static imports of other bundles) will always be preloaded
    * immediately, no limit.
    *
-   * Defaults to `25`
+   * Defaults to `20`
    */
   maxIdlePreloads?: number;
 }

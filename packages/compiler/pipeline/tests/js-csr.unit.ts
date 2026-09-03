@@ -68,6 +68,6 @@ test('emits mixed multi-root programs as an array', async () => {
 
   const output = await generateJsCsr(linked.plan, {});
   expect(output.modules[0].code).toContain('createTemplate("before")');
-  expect(output.modules[0].code).toContain('createTemplate("<span></span>")');
+  expect(output.modules[0].code).toContain('_createElementTemplate("<span></span>")');
   expect(output.modules[0].code).toContain('return [el0, el1];');
 });

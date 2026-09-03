@@ -240,7 +240,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     statements: string[],
     pass: RenderPass
   ): string {
-    const mounted = this.mountTemplate(ownerName, statements, pass);
+    const mounted = this.mountFragmentTemplate(ownerName, statements, pass);
     this.hoistTemplate(mounted.template, foldStaticOp(op, true));
     return mounted.el;
   }
@@ -251,11 +251,15 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     statements: string[],
     pass: RenderPass
   ): string {
-    const mounted = this.mountTemplate(ownerName, statements, pass);
+    const mounted = this.mountElementTemplate(ownerName, statements, pass);
     this.elementProps(op, mounted.el, statements, pass);
     this.walkChildren(op.children, mounted.el, statements, pass);
     // Template markup excludes event props; templateOp pre-escapes text for innerHTML parsing.
-    this.hoistTemplate(mounted.template, foldStaticOp(templateOp(op), false));
+    this.hoistTemplate(
+      mounted.template,
+      foldStaticOp(templateOp(op), false),
+      QwikWord.CreateElementTemplate
+    );
     return mounted.el;
   }
 
@@ -603,9 +607,10 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       }
     }
     this.walkChildren(root.children, el, rowStatements, pass);
-    this.imports.add(QwikWord.CreateElementTemplate);
-    this.hoists.push(
-      `const ${template} = ${QwikWord.CreateElementTemplate}(${JSON.stringify(foldStaticOp(templateOp(root), false))});`
+    this.hoistTemplate(
+      template,
+      foldStaticOp(templateOp(root), false),
+      QwikWord.CreateElementTemplate
     );
     const loopParams = this.module.programs[row.program].params
       .map((binding) => `, ${this.module.bindings[binding].name}`)
@@ -694,9 +699,10 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       emitter.elementProps(root, el, statements, pass);
       emitter.walkChildren(root.children, el, statements, pass);
       // Row roots mount through an element template — the root element IS the return value.
-      emitter.imports.add(QwikWord.CreateElementTemplate);
-      emitter.hoists.push(
-        `const ${template} = ${QwikWord.CreateElementTemplate}(${JSON.stringify(foldStaticOp(templateOp(root), false))});`
+      emitter.hoistTemplate(
+        template,
+        foldStaticOp(templateOp(root), false),
+        QwikWord.CreateElementTemplate
       );
       value = el;
     } else {
@@ -874,8 +880,18 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     }
   }
 
-  /** Clones the template into fresh `fragmentN`/`elN` locals. */
-  private mountTemplate(
+  private mountElementTemplate(
+    ownerName: string,
+    statements: string[],
+    pass: RenderPass
+  ): { el: string; template: string } {
+    const el = pass.next(QwikGenWord.Element);
+    const template = `${ownerName}_${pass.next(QwikGenWord.Template)}`;
+    statements.push(`const ${el} = ${template}(${pass.names.ctx}.document);`);
+    return { el, template };
+  }
+
+  private mountFragmentTemplate(
     ownerName: string,
     statements: string[],
     pass: RenderPass
@@ -890,9 +906,13 @@ class CsrModuleEmitter implements QwikModuleEmitter {
   }
 
   /** After the dynamic wiring, so the template import keeps the request order. */
-  private hoistTemplate(template: string, html: string): void {
-    this.imports.add(QwikWord.CreateTemplate);
-    this.hoists.push(`const ${template} = ${QwikWord.CreateTemplate}(${JSON.stringify(html)});`);
+  private hoistTemplate(
+    template: string,
+    html: string,
+    factory: QwikWord.CreateTemplate | QwikWord.CreateElementTemplate = QwikWord.CreateTemplate
+  ): void {
+    this.imports.add(factory);
+    this.hoists.push(`const ${template} = ${factory}(${JSON.stringify(html)});`);
   }
 
   /** Events wire the imported chunk fn onto the live element — they never enter the template. */

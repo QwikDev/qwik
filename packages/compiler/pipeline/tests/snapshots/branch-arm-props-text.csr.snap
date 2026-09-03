@@ -15,7 +15,7 @@ import {
   createBranch,
   _withCaptures,
   _qrlWithChunk,
-  createTemplate,
+  _createElementTemplate,
 } from '@qwik.dev/core';
 import { component_branch_condition_segment_0_2fzrieu6vlhf9 } from './component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9';
 
@@ -24,10 +24,9 @@ const q_component_branch_then_segment_1_24n7blyqktd46 = /*#__PURE__*/ _qrlWithCh
   () => import('./component.tsx_component_branch_then_segment_1_24n7blyqktd46'),
   'component_branch_then_segment_1_24n7blyqktd46'
 );
-const default_tmpl0 = createTemplate('<div><!><!></div>');
+const default_tmpl0 = _createElementTemplate('<div><!><!></div>');
 export default (props, ctx) => {
-  const fragment0 = default_tmpl0(ctx.document);
-  const el0 = _first(fragment0);
+  const el0 = default_tmpl0(ctx.document);
   const start0 = _first(el0);
   const end0 = _next(start0);
   const branch0 = createBranch(
@@ -73,14 +72,18 @@ export const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
 */
 ============================= src/component.tsx_component_branch_then_segment_1_24n7blyqktd46.js (ENTRY POINT)==
 
-import { _captures, _first, createTextExpressionEffect, createTemplate } from '@qwik.dev/core';
+import {
+  _captures,
+  _first,
+  createTextExpressionEffect,
+  _createElementTemplate,
+} from '@qwik.dev/core';
 import { component_text_segment_2_1fh117dstcoge } from './component.tsx_component_text_segment_2_1fh117dstcoge';
-const component_branch_then_segment_1_24n7blyqktd46_tmpl0 = createTemplate('<b> </b>');
+const component_branch_then_segment_1_24n7blyqktd46_tmpl0 = _createElementTemplate('<b> </b>');
 
 export const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
   const [props] = _captures;
-  const fragment0 = component_branch_then_segment_1_24n7blyqktd46_tmpl0(ctx.document);
-  const el0 = _first(fragment0);
+  const el0 = component_branch_then_segment_1_24n7blyqktd46_tmpl0(ctx.document);
   const text0 = _first(el0);
   const effect0 = createTextExpressionEffect(
     text0,

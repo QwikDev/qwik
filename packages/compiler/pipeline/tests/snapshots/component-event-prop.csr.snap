@@ -12,16 +12,15 @@ export default () => {
 ============================= src/component.tsx ==
 
 import {
-  _first,
   createEventEffect,
-  createTemplate,
+  _createElementTemplate,
   useSignal,
   _qrlWithChunk,
   createComponent,
 } from '@qwik.dev/core';
 import { component_onClickqrl_segment_0_3rzjkie0i362z } from './component.tsx_component_onClickqrl_segment_0_3rzjkie0i362z';
 
-const Child_tmpl0 = createTemplate('<button>save</button>');
+const Child_tmpl0 = _createElementTemplate('<button>save</button>');
 const q_component_q_e_save_segment_1_3krcbiqvmvgft = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_q_e_save_segment_1_3krcbiqvmvgft',
   () => import('./component.tsx_component_q_e_save_segment_1_3krcbiqvmvgft'),
@@ -33,8 +32,7 @@ const q_component_q_e_save_segment_2_3krcacnjwdae8 = /*#__PURE__*/ _qrlWithChunk
   'component_q_e_save_segment_2_3krcacnjwdae8'
 );
 export const Child = (props, ctx) => {
-  const fragment0 = Child_tmpl0(ctx.document);
-  const el0 = _first(fragment0);
+  const el0 = Child_tmpl0(ctx.document);
   const effect0 = createEventEffect(
     el0,
     'q-e:click',

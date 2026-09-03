@@ -17,14 +17,13 @@ import {
   createTextNodeEffect,
   _last,
   _prev,
-  createTemplate,
+  _createElementTemplate,
 } from '@qwik.dev/core';
-const default_tmpl0 = createTemplate('<p><!> count: <!>!</p>');
+const default_tmpl0 = _createElementTemplate('<p><!> count: <!>!</p>');
 export default (props, ctx) => {
   const count = useSignal(0);
   const name = useSignal('Qwik');
-  const fragment0 = default_tmpl0(ctx.document);
-  const el0 = _first(fragment0);
+  const el0 = default_tmpl0(ctx.document);
   const marker0 = _first(el0);
   const text0 = ctx.document.createTextNode('');
   marker0.replaceWith(text0);

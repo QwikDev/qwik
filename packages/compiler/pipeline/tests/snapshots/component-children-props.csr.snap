@@ -11,22 +11,21 @@ import {
   _first,
   maybeThen,
   createSlot,
-  createTemplate,
+  _createElementTemplate,
   createSlotScope,
   registerProjection,
   _qrlWithChunk,
   createComponent,
 } from '@qwik.dev/core';
 
-const Wrapper_tmpl0 = createTemplate('<section><!></section>');
+const Wrapper_tmpl0 = _createElementTemplate('<section><!></section>');
 const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_slot_render_segment_0_3b0tagwys7lui',
   () => import('./component.tsx_component_slot_render_segment_0_3b0tagwys7lui'),
   'component_slot_render_segment_0_3b0tagwys7lui'
 );
 export const Wrapper = (props, ctx) => {
-  const fragment0 = Wrapper_tmpl0(ctx.document);
-  const el0 = _first(fragment0);
+  const el0 = Wrapper_tmpl0(ctx.document);
   const marker0 = _first(el0);
   ctx.scheduler.waitFor(maybeThen(createSlot(), (slot0) => marker0.replaceWith(...slot0)));
   return el0;
@@ -39,12 +38,12 @@ export default (props0, ctx) => {
 };
 ============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
 
-import { _first, createTemplate } from '@qwik.dev/core';
-const component_slot_render_segment_0_3b0tagwys7lui_tmpl0 = createTemplate('<p>Projected</p>');
+import { _createElementTemplate } from '@qwik.dev/core';
+const component_slot_render_segment_0_3b0tagwys7lui_tmpl0 =
+  _createElementTemplate('<p>Projected</p>');
 
 export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
-  const fragment0 = component_slot_render_segment_0_3b0tagwys7lui_tmpl0(ctx.document);
-  const el0 = _first(fragment0);
+  const el0 = component_slot_render_segment_0_3b0tagwys7lui_tmpl0(ctx.document);
   return el0;
 };
 /*

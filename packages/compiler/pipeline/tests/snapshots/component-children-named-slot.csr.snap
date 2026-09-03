@@ -13,13 +13,13 @@ import {
   maybeThen,
   createSlot,
   _last,
-  createTemplate,
+  _createElementTemplate,
   createSlotScope,
   registerProjection,
   _qrlWithChunk,
   createComponent,
 } from '@qwik.dev/core';
-const Card_tmpl0 = createTemplate('<article><header><!></header><!></article>');
+const Card_tmpl0 = _createElementTemplate('<article><header><!></header><!></article>');
 const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_slot_render_segment_0_3b0tagwys7lui',
   () => import('./component.tsx_component_slot_render_segment_0_3b0tagwys7lui'),
@@ -31,8 +31,7 @@ const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _qrlWithCh
   'component_slot_render_segment_1_3b0tauy2p1nv1'
 );
 export const Card = (props, ctx) => {
-  const fragment0 = Card_tmpl0(ctx.document);
-  const el0 = _first(fragment0);
+  const el0 = Card_tmpl0(ctx.document);
   const marker0 = _first(_first(el0));
   ctx.scheduler.waitFor(maybeThen(createSlot('header'), (slot0) => marker0.replaceWith(...slot0)));
   const marker1 = _last(el0);
@@ -48,12 +47,12 @@ export default (props, ctx) => {
 };
 ============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
 
-import { _first, createTemplate } from '@qwik.dev/core';
-const component_slot_render_segment_0_3b0tagwys7lui_tmpl0 = createTemplate('<h1>Title</h1>');
+import { _createElementTemplate } from '@qwik.dev/core';
+const component_slot_render_segment_0_3b0tagwys7lui_tmpl0 =
+  _createElementTemplate('<h1>Title</h1>');
 
 export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
-  const fragment0 = component_slot_render_segment_0_3b0tagwys7lui_tmpl0(ctx.document);
-  const el0 = _first(fragment0);
+  const el0 = component_slot_render_segment_0_3b0tagwys7lui_tmpl0(ctx.document);
   return el0;
 };
 /*
@@ -78,12 +77,12 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
 */
 ============================= src/component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1.js (ENTRY POINT)==
 
-import { _first, createTemplate } from '@qwik.dev/core';
-const component_slot_render_segment_1_3b0tauy2p1nv1_tmpl0 = createTemplate('<p>Content</p>');
+import { _createElementTemplate } from '@qwik.dev/core';
+const component_slot_render_segment_1_3b0tauy2p1nv1_tmpl0 =
+  _createElementTemplate('<p>Content</p>');
 
 export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx) => {
-  const fragment0 = component_slot_render_segment_1_3b0tauy2p1nv1_tmpl0(ctx.document);
-  const el0 = _first(fragment0);
+  const el0 = component_slot_render_segment_1_3b0tauy2p1nv1_tmpl0(ctx.document);
   return el0;
 };
 /*

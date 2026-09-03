@@ -25,7 +25,7 @@ import {
 const component_slot_dynamic_segment_0_2ikf7n1jp8rfp = (ctx) => {
   const [props] = _captures;
   const slotName0 = props.name;
-  const slot0 = renderSsrSlot(ctx, slotName0, undefined);
+  const slot0 = renderSsrSlot(ctx, slotName0);
   return slot0;
 };
 const q_component_slot_dynamic_segment_0_2ikf7n1jp8rfp = /*#__PURE__*/ _noopQrl(
@@ -95,7 +95,7 @@ import { _captures, renderSsrSlot } from '@qwik.dev/core';
 export const component_slot_dynamic_segment_0_2ikf7n1jp8rfp = (ctx) => {
   const [props] = _captures;
   const slotName0 = props.name;
-  const slot0 = renderSsrSlot(ctx, slotName0, undefined);
+  const slot0 = renderSsrSlot(ctx, slotName0);
   return slot0;
 };
 /*

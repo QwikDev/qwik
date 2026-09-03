@@ -537,7 +537,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       roots = rootArgs(qrl, args);
     }
     const call =
-      op.fallback === null && op.nameValue === undefined
+      op.fallback === null
         ? `${QwikWord.RenderSsrSlot}(${pass.names.ctx}${name === '' ? '' : `, ${name}`})`
         : `${QwikWord.RenderSsrSlot}(${pass.names.ctx}, ${name === '' ? "''" : name}, ${fallback})`;
     this.pushStep(pass, slot, roots, call);

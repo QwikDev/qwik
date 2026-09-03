@@ -32,7 +32,7 @@ const q_component_branch_else_segment_2_19dvu7nugnvkl = /*#__PURE__*/ _qrlWithCh
   () => import('./component.tsx_component_branch_else_segment_2_19dvu7nugnvkl'),
   'component_branch_else_segment_2_19dvu7nugnvkl'
 );
-const default_tmpl0 = createTemplate('<div><!----><!----></div>');
+const default_tmpl0 = createTemplate('<div><!><!></div>');
 export default (props, ctx) => {
   const show = useSignal(false);
   const fragment0 = default_tmpl0(ctx.document);

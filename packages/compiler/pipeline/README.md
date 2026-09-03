@@ -33,7 +33,7 @@ mirrors + `.s()`, `q:id`, `renderSsrTextExpression`/`maybeThen`, CSR placeholder
 event handlers capturing signal locals (`.w([count])` SSR wrapper, `setEvent` captures arg,
 `_captures` chunk prelude, rust `QrlValue.captures`); the counter (event + signal-read hole
 composed on one element); text holes with sibling children (SSR range targets + `<!t>`/`<!/t>`
-markers, CSR `<!---->` comment placeholder + marker swap, shortest-path child navigation);
+markers, CSR `<!>` comment placeholder + marker swap, shortest-path child navigation);
 holes in nested elements (recursive SSR emission with per-element ids/markers, recursive
 CSR template placeholders + level-composed locator paths); dynamic attributes (`renderSsrAttr`/
 `renderSsrAttrExpression` steps with the null/bare/quoted ternary, CSR `createAttrEffect`/

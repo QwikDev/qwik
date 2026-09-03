@@ -13,7 +13,7 @@ export default () => {
 import { useSignal, _first, _next, createCollection, createTemplate } from '@qwik.dev/core';
 import { component_for_render_segment_0_asyt89wzo2d3 } from './component.tsx_component_for_render_segment_0_asyt89wzo2d3';
 
-const default_tmpl0 = createTemplate('<ul><!----><!----></ul>');
+const default_tmpl0 = createTemplate('<ul><!><!></ul>');
 export default (props, ctx) => {
   const items = useSignal([{ label: 'Alpha' }]);
   const fragment0 = default_tmpl0(ctx.document);
@@ -39,7 +39,7 @@ export default (props, ctx) => {
 
 import { _first, createTextExpressionEffect, createTemplate } from '@qwik.dev/core';
 import { component_text_segment_1_1fh10tcowimfv } from './component.tsx_component_text_segment_1_1fh10tcowimfv';
-const component_for_render_segment_0_asyt89wzo2d3_tmpl0 = createTemplate('<!----><b>!</b>');
+const component_for_render_segment_0_asyt89wzo2d3_tmpl0 = createTemplate('<!><b>!</b>');
 
 export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, item) => {
   const fragment0 = component_for_render_segment_0_asyt89wzo2d3_tmpl0(ctx.document);

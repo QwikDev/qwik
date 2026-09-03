@@ -19,7 +19,7 @@ import {
 } from '@qwik.dev/core';
 
 const semantic_collectionRender_72_106_37502p69t12n6_tmpl0 = _createElementTemplate('<li> </li>');
-const default_tmpl0 = createTemplate('<ul><!----><!----></ul>');
+const default_tmpl0 = createTemplate('<ul><!><!></ul>');
 const prefix = 'p-';
 export default (props, ctx) => {
   const fragment0 = default_tmpl0(ctx.document);

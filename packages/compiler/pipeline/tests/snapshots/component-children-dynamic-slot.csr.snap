@@ -20,7 +20,7 @@ import {
   registerProjection,
   createComponent,
 } from '@qwik.dev/core';
-const Switch_tmpl0 = createTemplate('<!----><!---->');
+const Switch_tmpl0 = createTemplate('<!><!>');
 const q_component_slot_dynamic_segment_0_2ikf7n1jp8rfp = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_slot_dynamic_segment_0_2ikf7n1jp8rfp',
   () => import('./component.tsx_component_slot_dynamic_segment_0_2ikf7n1jp8rfp'),

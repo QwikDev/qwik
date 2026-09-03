@@ -11,7 +11,7 @@ export default () => {
 ============================= src/component.tsx ==
 
 import { useSignal, _first, _last, createTextNodeEffect, createTemplate } from '@qwik.dev/core';
-const default_tmpl0 = createTemplate('<p>Count: <!----></p>');
+const default_tmpl0 = createTemplate('<p>Count: <!></p>');
 export default (props, ctx) => {
   const count = useSignal(0);
   const fragment0 = default_tmpl0(ctx.document);

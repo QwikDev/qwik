@@ -21,7 +21,7 @@ import {
   registerProjection,
   _qrlWithChunk,
 } from '@qwik.dev/core';
-const Inner_tmpl0 = createTemplate('<article><!----><!----></article>');
+const Inner_tmpl0 = createTemplate('<article><!><!></article>');
 const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_slot_render_segment_0_3b0tagwys7lui',
   () => import('./component.tsx_component_slot_render_segment_0_3b0tagwys7lui'),

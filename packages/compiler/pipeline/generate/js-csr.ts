@@ -182,7 +182,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
 
     this.hoistTemplate(
       template,
-      ops.map((op) => (op.op === OpKind.Static ? escapeText(op.html) : '<!---->')).join('')
+      ops.map((op) => (op.op === OpKind.Static ? escapeText(op.html) : '<!>')).join('')
     );
     return roots;
   }
@@ -437,7 +437,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     );
     this.imports.add(QwikWord.FirstChild);
     this.imports.add(QwikWord.NextSibling);
-    this.hoistTemplate(template, '<!----><!---->');
+    this.hoistTemplate(template, '<!><!>');
     return { start, end };
   }
 
@@ -961,7 +961,7 @@ function templateOp(op: Extract<LinkedOp, { op: OpKind.Element }>): LinkedOp {
 
 /** Template form of a child list — holes and boundaries become locator placeholders. */
 function templateChildren(children: readonly LinkedOp[]): LinkedOp[] {
-  const placeholder = children.length > 1 ? '<!---->' : ' ';
+  const placeholder = children.length > 1 ? '<!>' : ' ';
   return children.map((child) => {
     switch (child.op) {
       case OpKind.Hole:
@@ -975,9 +975,9 @@ function templateChildren(children: readonly LinkedOp[]): LinkedOp[] {
       case OpKind.Slot:
       case OpKind.DynamicSlot:
         // A dynamic range's start/end comment pair.
-        return { op: OpKind.Static as const, html: '<!----><!---->' };
+        return { op: OpKind.Static as const, html: '<!><!>' };
       case OpKind.Component:
-        return { op: OpKind.Static as const, html: '<!---->' };
+        return { op: OpKind.Static as const, html: '<!>' };
       default:
         return child;
     }

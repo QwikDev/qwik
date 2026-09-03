@@ -19,7 +19,7 @@ import {
   _prev,
   createTemplate,
 } from '@qwik.dev/core';
-const default_tmpl0 = createTemplate('<p><!----> count: <!---->!</p>');
+const default_tmpl0 = createTemplate('<p><!> count: <!>!</p>');
 export default (props, ctx) => {
   const count = useSignal(0);
   const name = useSignal('Qwik');

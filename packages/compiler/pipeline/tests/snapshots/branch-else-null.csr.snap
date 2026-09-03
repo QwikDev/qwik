@@ -27,7 +27,7 @@ const q_component_branch_then_segment_1_24n7blyqktd46 = /*#__PURE__*/ _qrlWithCh
   () => import('./component.tsx_component_branch_then_segment_1_24n7blyqktd46'),
   'component_branch_then_segment_1_24n7blyqktd46'
 );
-const default_tmpl0 = createTemplate('<div><!----><!----></div>');
+const default_tmpl0 = createTemplate('<div><!><!></div>');
 export default (props, ctx) => {
   const show = useSignal(false);
   const fragment0 = default_tmpl0(ctx.document);

@@ -22,7 +22,7 @@ import { useSignal, _first, _next, createCollection, createTemplate } from '@qwi
 import { component_for_render_segment_0_asyt89wzo2d3 } from './component.tsx_component_for_render_segment_0_asyt89wzo2d3';
 import { component_for_key_segment_1_24ursak4wzpxf } from './component.tsx_component_for_key_segment_1_24ursak4wzpxf';
 
-const default_tmpl0 = createTemplate('<ul><!----><!----></ul>');
+const default_tmpl0 = createTemplate('<ul><!><!></ul>');
 export default (props, ctx) => {
   const items = useSignal([{ id: 'a' }]);
   const fragment0 = default_tmpl0(ctx.document);

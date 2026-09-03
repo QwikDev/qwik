@@ -19,9 +19,7 @@ import {
   _qrlWithChunk,
   createComponent,
 } from '@qwik.dev/core';
-const Card_tmpl0 = createTemplate(
-  '<article><header><!----><!----></header><!----><!----></article>'
-);
+const Card_tmpl0 = createTemplate('<article><header><!><!></header><!><!></article>');
 const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_slot_render_segment_0_3b0tagwys7lui',
   () => import('./component.tsx_component_slot_render_segment_0_3b0tagwys7lui'),

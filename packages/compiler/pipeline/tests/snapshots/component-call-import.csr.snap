@@ -13,7 +13,7 @@ export const Child = () => <strong>child</strong>;
 
 import { _first, createComponent, _toNodes, createTemplate } from '@qwik.dev/core';
 
-const default_tmpl0 = createTemplate('<main><!----></main>');
+const default_tmpl0 = createTemplate('<main><!></main>');
 import { Child as RenamedChild } from './child';
 export default (props, ctx) => {
   const fragment0 = default_tmpl0(ctx.document);

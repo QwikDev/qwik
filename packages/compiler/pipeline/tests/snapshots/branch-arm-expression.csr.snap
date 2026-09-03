@@ -27,7 +27,7 @@ const q_component_branch_then_segment_1_24n7blyqktd46 = /*#__PURE__*/ _qrlWithCh
   () => import('./component.tsx_component_branch_then_segment_1_24n7blyqktd46'),
   'component_branch_then_segment_1_24n7blyqktd46'
 );
-const default_tmpl0 = createTemplate('<p><!----><!----></p>');
+const default_tmpl0 = createTemplate('<p><!><!></p>');
 export default (props, ctx) => {
   const count = useSignal(0);
   const fragment0 = default_tmpl0(ctx.document);
@@ -79,7 +79,7 @@ export const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
 
 import { _captures, _first, _next, createTextNodeEffect, createTemplate } from '@qwik.dev/core';
 const component_branch_then_segment_1_24n7blyqktd46_tmpl0 = createTemplate(
-  'Count is greater than 2 and equal to <!---->'
+  'Count is greater than 2 and equal to <!>'
 );
 
 export const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {

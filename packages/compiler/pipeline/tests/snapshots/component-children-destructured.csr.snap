@@ -9,9 +9,8 @@ export default () => <Wrapper><p>Projected</p></Wrapper>;
 
 import {
   _first,
-  _next,
-  createSlot,
   maybeThen,
+  createSlot,
   createTemplate,
   createSlotScope,
   registerProjection,
@@ -19,7 +18,7 @@ import {
   createComponent,
 } from '@qwik.dev/core';
 
-const Wrapper_tmpl0 = createTemplate('<section><!><!></section>');
+const Wrapper_tmpl0 = createTemplate('<section><!></section>');
 const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_slot_render_segment_0_3b0tagwys7lui',
   () => import('./component.tsx_component_slot_render_segment_0_3b0tagwys7lui'),
@@ -28,15 +27,8 @@ const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _qrlWithCh
 export const Wrapper = (props, ctx) => {
   const fragment0 = Wrapper_tmpl0(ctx.document);
   const el0 = _first(fragment0);
-  const start0 = _first(el0);
-  const end0 = _next(start0);
-  ctx.scheduler.waitFor(
-    maybeThen(createSlot(), (slot0) => {
-      for (const node of slot0) {
-        end0.parentNode.insertBefore(node, end0);
-      }
-    })
-  );
+  const marker0 = _first(el0);
+  ctx.scheduler.waitFor(maybeThen(createSlot(), (slot0) => marker0.replaceWith(...slot0)));
   return el0;
 };
 export default (props, ctx) => {

@@ -55,10 +55,7 @@ import {
 } from './output';
 
 type TextOp = Extract<LinkedOp, { op: OpKind.Static | OpKind.Hole }>;
-type RangeOp = Extract<
-  LinkedOp,
-  { op: OpKind.Branch | OpKind.Each | OpKind.Slot | OpKind.DynamicSlot }
->;
+type RangeOp = Extract<LinkedOp, { op: OpKind.Branch | OpKind.Each | OpKind.DynamicSlot }>;
 
 export async function generateJsCsr(
   plan: LinkedPlan,
@@ -325,7 +322,6 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         }
         case OpKind.Branch:
         case OpKind.Each:
-        case OpKind.Slot:
         case OpKind.DynamicSlot: {
           const { start, end } = this.locateRange(
             elementExpr,
@@ -336,6 +332,11 @@ class CsrModuleEmitter implements QwikModuleEmitter {
           );
           this.mountRange(child, start, end, statements, pass);
           nodeIndex += 2;
+          break;
+        }
+        case OpKind.Slot: {
+          this.mountSlot(child, elementExpr, nodeIndex, nodeCount, statements, pass);
+          nodeIndex++;
           break;
         }
         case OpKind.Component: {
@@ -365,6 +366,25 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     const component = this.createComponent(op, statements, pass);
     this.imports.add(QwikWord.ToNodes);
     statements.push(`${marker}.replaceWith(...${QwikWord.ToNodes}(${component}));`);
+  }
+
+  private mountSlot(
+    op: Extract<LinkedOp, { op: OpKind.Slot }>,
+    elementExpr: string,
+    nodeIndex: number,
+    nodeCount: number,
+    statements: string[],
+    pass: RenderPass
+  ): void {
+    const marker = pass.next(QwikGenWord.Marker);
+    const slot = pass.next(QwikGenWord.Slot);
+    statements.push(
+      `const ${marker} = ${childPathExpression(elementExpr, nodeIndex, nodeCount, this.imports)};`
+    );
+    this.imports.add(QwikWord.MaybeThen);
+    statements.push(
+      `${pass.names.ctx}.scheduler.waitFor(${QwikWord.MaybeThen}(${this.createSlot(op, statements, pass)}, (${slot}) => ${marker}.replaceWith(...${slot})));`
+    );
   }
 
   private createSlot(
@@ -418,8 +438,6 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         return this.createBranchBlock(op, start, end, statements, pass);
       case OpKind.Each:
         return this.createCollectionBlock(op, start, end, statements, pass);
-      case OpKind.Slot:
-        return this.insertSlot(op, end, statements, pass);
       case OpKind.DynamicSlot:
         return this.createDynamicSlotBlock(op, start, end, statements, pass);
     }
@@ -439,20 +457,6 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     this.imports.add(QwikWord.NextSibling);
     this.hoistTemplate(template, '<!><!>');
     return { start, end };
-  }
-
-  private insertSlot(
-    op: Extract<RangeOp, { op: OpKind.Slot }>,
-    end: string,
-    statements: string[],
-    pass: RenderPass
-  ): void {
-    const slot = pass.next(QwikGenWord.Slot);
-    this.imports.add(QwikWord.CreateSlot);
-    this.imports.add(QwikWord.MaybeThen);
-    statements.push(
-      `${pass.names.ctx}.scheduler.waitFor(${QwikWord.MaybeThen}(${this.createSlot(op, statements, pass)}, (${slot}) => { for (const node of ${slot}) { ${end}.parentNode.insertBefore(node, ${end}); } }));`
-    );
   }
 
   private createDynamicSlotBlock(
@@ -972,10 +976,10 @@ function templateChildren(children: readonly LinkedOp[]): LinkedOp[] {
         return { ...child, html: escapeText(child.html) };
       case OpKind.Branch:
       case OpKind.Each:
-      case OpKind.Slot:
       case OpKind.DynamicSlot:
         // A dynamic range's start/end comment pair.
         return { op: OpKind.Static as const, html: '<!><!>' };
+      case OpKind.Slot:
       case OpKind.Component:
         return { op: OpKind.Static as const, html: '<!>' };
       default:
@@ -988,7 +992,6 @@ function templateNodeCount(op: LinkedOp): number {
   switch (op.op) {
     case OpKind.Branch:
     case OpKind.Each:
-    case OpKind.Slot:
     case OpKind.DynamicSlot:
       return 2;
     default:

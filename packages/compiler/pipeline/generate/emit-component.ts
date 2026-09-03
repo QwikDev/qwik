@@ -83,7 +83,11 @@ function emitComponentProjections(
     if (projection.kind === ProjectionKind.Forward) {
       imports.add(QwikWord.ForwardSlot);
       const args = [scope];
-      if (projection.sourceName !== '') {
+      const fallback =
+        projection.fallback === null ? null : emitProjectionQrl(projection.fallback, resolveQrl);
+      if (fallback !== null) {
+        args.push(JSON.stringify(projection.name), JSON.stringify(projection.sourceName), fallback);
+      } else if (projection.sourceName !== '') {
         args.push(JSON.stringify(projection.name), JSON.stringify(projection.sourceName));
       } else if (projection.name !== '') {
         args.push(JSON.stringify(projection.name));
@@ -92,11 +96,7 @@ function emitComponentProjections(
       continue;
     }
     imports.add(QwikWord.RegisterProjection);
-    const { qrl, reference, args } = resolveQrl(projection.use, true);
-    if (qrl.payloadKind !== QrlPayloadKind.Function) {
-      throw new UnsupportedError('a non-function component projection QRL');
-    }
-    const render = args.length === 0 ? reference : `${reference}.w([${args.join(', ')}])`;
+    const render = emitProjectionQrl(projection.use, resolveQrl);
     statements.push(
       `${QwikWord.RegisterProjection}(${scope}, ${JSON.stringify(projection.name)}, ${render});`
     );
@@ -107,6 +107,14 @@ function emitComponentProjections(
     declarations: [`const ${scope} = ${QwikWord.CreateSlotScope}();`],
     statements,
   };
+}
+
+function emitProjectionQrl(use: QrlUse, resolveQrl: ResolveComponentQrl): string {
+  const { qrl, reference, args } = resolveQrl(use, true);
+  if (qrl.payloadKind !== QrlPayloadKind.Function) {
+    throw new UnsupportedError('a non-function component projection QRL');
+  }
+  return args.length === 0 ? reference : `${reference}.w([${args.join(', ')}])`;
 }
 
 function emitComponentProps(

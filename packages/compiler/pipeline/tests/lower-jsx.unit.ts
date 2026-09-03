@@ -96,6 +96,7 @@ export default () => <Inner><Slot name="source" q:slot="target" /></Inner>;
     kind: ProjectionKind.Forward,
     name: 'target',
     sourceName: 'source',
+    fallback: null,
     id: { kind: SeedKind.Projection, ordinal: 0 },
   });
 });

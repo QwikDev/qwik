@@ -126,10 +126,14 @@ export function registerProjection(
 export function forwardSlot(
   scope: SlotScope,
   targetName: string = EMPTY_STRING,
-  sourceName: string = EMPTY_STRING
+  sourceName: string = EMPTY_STRING,
+  fallbackQrl?: unknown
 ): void {
   const source = resolveSlot(getActiveInvokeContext().slotScope, sourceName);
   if (source.length === 0) {
+    if (fallbackQrl !== undefined) {
+      registerProjection(scope, targetName, fallbackQrl);
+    }
     return;
   }
   const forwarded = source.map(

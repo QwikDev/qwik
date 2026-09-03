@@ -18,6 +18,7 @@ import {
   type Op,
   type Prop,
   type Qrl,
+  type QrlUse,
 } from '../schema';
 import { normalizeJsxText } from './ast/jsx-text';
 import { normalizeAttributeName, VOID_ELEMENTS } from '../html';
@@ -325,22 +326,24 @@ function lowerSlotMarker(element: JSXElement, ctx: LowerContext): Op {
   if (attributes.some((attribute) => attribute !== nameAttribute)) {
     throw new UnsupportedError('Slot attributes');
   }
-  const fallbackChildren = element.children.filter(isProjectionChild);
-  const fallback =
-    fallbackChildren.length === 0
-      ? null
-      : lowerRenderQrl(
-          fallbackChildren,
-          ctx,
-          'a slot fallback',
-          SegmentContext.Projection,
-          'slot-fallback'
-        );
   return createSlotOp(
     ctx,
     nameAttribute === undefined ? '' : readStaticSlotName(nameAttribute),
-    fallback
+    lowerSlotFallback(element.children, ctx)
   );
+}
+
+function lowerSlotFallback(children: readonly JSXChild[], ctx: LowerContext): QrlUse | null {
+  const fallbackChildren = children.filter(isProjectionChild);
+  return fallbackChildren.length === 0
+    ? null
+    : lowerRenderQrl(
+        fallbackChildren,
+        ctx,
+        'a slot fallback',
+        SegmentContext.Projection,
+        'slot-fallback'
+      );
 }
 
 function createSlotOp(
@@ -380,9 +383,15 @@ function lowerProjections(
   return children.filter(isProjectionChild).map((child) => {
     const name = readProjectionName(child);
     const id = { kind: SeedKind.Projection, ordinal: ctx.projectionCounter.next++ } as const;
-    const sourceName = readForwardedSlotName(child, ctx);
-    if (sourceName !== null) {
-      return { kind: ProjectionKind.Forward, name, sourceName, id };
+    const forwardedSlot = readForwardedSlot(child, ctx);
+    if (forwardedSlot !== null) {
+      return {
+        kind: ProjectionKind.Forward,
+        name,
+        sourceName: forwardedSlot.sourceName,
+        fallback: lowerSlotFallback(forwardedSlot.children, ctx),
+        id,
+      };
     }
     const use = lowerRenderQrl(
       [child],
@@ -400,12 +409,11 @@ function lowerProjections(
   });
 }
 
-function readForwardedSlotName(child: JSXChild, ctx: LowerContext): string | null {
-  if (
-    child.type !== 'JSXElement' ||
-    child.children.some(isProjectionChild) ||
-    child.openingElement.name.type !== 'JSXIdentifier'
-  ) {
+function readForwardedSlot(
+  child: JSXChild,
+  ctx: LowerContext
+): { sourceName: string; children: readonly JSXChild[] } | null {
+  if (child.type !== 'JSXElement' || child.openingElement.name.type !== 'JSXIdentifier') {
     return null;
   }
   const binding = ctx.bindings.reference(child.openingElement.name);
@@ -422,7 +430,10 @@ function readForwardedSlotName(child: JSXChild, ctx: LowerContext): string | nul
     return null;
   }
   const nameAttribute = attributes.find((attribute) => jsxAttributeName(attribute) === 'name');
-  return nameAttribute === undefined ? '' : readStaticSlotName(nameAttribute);
+  return {
+    sourceName: nameAttribute === undefined ? '' : readStaticSlotName(nameAttribute),
+    children: child.children,
+  };
 }
 
 function lowerRenderQrl(

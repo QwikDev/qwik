@@ -130,14 +130,16 @@ export function linkPlans(
         return;
       }
       for (const projection of op.projections) {
-        if (projection.kind === ProjectionKind.Forward) {
+        const use =
+          projection.kind === ProjectionKind.Forward ? projection.fallback : projection.use;
+        if (use === null) {
           continue;
         }
-        if (!qrlIndexes[module].has(projection.use.qrl)) {
+        if (!qrlIndexes[module].has(use.qrl)) {
           diagnostics.push({
             module: plan.path,
             code: 'invalid-qrl-reference',
-            message: `Projection references unknown QRL "${projection.use.qrl}".`,
+            message: `Projection references unknown QRL "${use.qrl}".`,
           });
         }
       }
@@ -504,10 +506,11 @@ export function linkPlans(
       return;
     }
     for (const projection of op.projections) {
-      if (projection.kind === ProjectionKind.Forward) {
+      const use = projection.kind === ProjectionKind.Forward ? projection.fallback : projection.use;
+      if (use === null) {
         continue;
       }
-      const qrl = qrlIndexes[module].get(projection.use.qrl);
+      const qrl = qrlIndexes[module].get(use.qrl);
       if (qrl !== undefined) {
         visitDecl({ module, table: DeclTable.Qrls, index: qrl });
       }

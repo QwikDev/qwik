@@ -186,7 +186,13 @@ type Op =
       props: { c: 'entries'; props: Prop[] } | { c: 'proxy'; compute: QrlUse };
       projections: (
         | { kind: 'render'; name: string; use: QrlUse; id: Seed }
-        | { kind: 'forward'; name: string; sourceName: string; id: Seed }
+        | {
+            kind: 'forward';
+            name: string;
+            sourceName: string;
+            fallback: QrlUse | null;
+            id: Seed;
+          }
       )[];
       id: Seed;
       lifetime: LifetimeId;

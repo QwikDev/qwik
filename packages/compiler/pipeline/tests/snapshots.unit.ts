@@ -769,6 +769,28 @@ export default () => <Wrapper><p>Forwarded</p></Wrapper>;
     expect(output.modules).toHaveLength(2);
   });
 
+  test('should forward a named projection under a different name', async () => {
+    const output = await testInput(mode, 'component-slot-forwarding-named', {
+      code: `import { Slot } from '@qwik.dev/core';
+export const Inner = () => <article><Slot name="title" /></article>;
+export const Wrapper = () => <Inner><Slot name="heading" q:slot="title" /></Inner>;
+export default () => <Wrapper><h1 q:slot="heading">Hello</h1></Wrapper>;
+`,
+    });
+    expect(output.modules).toHaveLength(2);
+  });
+
+  test('should use a fallback when a forwarded named projection is absent', async () => {
+    const output = await testInput(mode, 'component-slot-forwarding-fallback', {
+      code: `import { Slot } from '@qwik.dev/core';
+export const Inner = () => <article><Slot name="title" /></article>;
+export const Wrapper = () => <Inner><Slot name="heading" q:slot="title"><h2>Fallback</h2></Slot></Inner>;
+export default () => <main><Wrapper><h1 q:slot="heading">Provided</h1></Wrapper><Wrapper /></main>;
+`,
+    });
+    expect(output.modules).toHaveLength(3);
+  });
+
   test('should render an aliased component imported from another module', async () => {
     await testInputs(mode, 'component-call-import', [
       {

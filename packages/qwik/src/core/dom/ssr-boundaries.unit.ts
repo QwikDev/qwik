@@ -29,15 +29,33 @@ describe('structured SSR boundaries', () => {
     const ctx = createSsrContext();
     const sourceScope = createSlotScope();
     const renderQrl = {};
+    const fallbackQrl = {};
     const projection = registerProjection(sourceScope, 'source', renderQrl, null);
     const targetScope = createSlotScope();
 
-    invokeWithScope(ctx, sourceScope, () => forwardSlot(targetScope, 'target', 'source'));
+    invokeWithScope(ctx, sourceScope, () =>
+      forwardSlot(targetScope, 'target', 'source', fallbackQrl)
+    );
 
     const forwarded = resolveSlot(targetScope, 'target')[0];
     expect(forwarded).not.toBe(projection);
     expect(forwarded.renderQrl).toBe(renderQrl);
     expect(forwarded.slotScope).toBe(projection.slotScope);
+  });
+
+  it('registers a forwarded slot fallback when the source is absent', () => {
+    const ctx = createSsrContext();
+    const sourceScope = createSlotScope();
+    const fallbackQrl = {};
+    const targetScope = createSlotScope();
+
+    invokeWithScope(ctx, sourceScope, () =>
+      forwardSlot(targetScope, 'target', 'source', fallbackQrl)
+    );
+
+    const fallback = resolveSlot(targetScope, 'target')[0];
+    expect(fallback.renderQrl).toBe(fallbackQrl);
+    expect(fallback.slotScope).toBe(sourceScope);
   });
 
   it('keeps nested slot projection output structured on the synchronous fast path', () => {

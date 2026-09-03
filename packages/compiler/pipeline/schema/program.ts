@@ -68,7 +68,13 @@ export const enum ProjectionKind {
 
 export type ComponentProjection =
   | { kind: ProjectionKind.Render; name: string; use: QrlUse; id: Seed }
-  | { kind: ProjectionKind.Forward; name: string; sourceName: string; id: Seed };
+  | {
+      kind: ProjectionKind.Forward;
+      name: string;
+      sourceName: string;
+      fallback: QrlUse | null;
+      id: Seed;
+    };
 
 export const enum EachSourceKind {
   Array = 'array',

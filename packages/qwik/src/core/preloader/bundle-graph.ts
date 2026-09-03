@@ -29,7 +29,8 @@ export const parseBundleGraph = (serialized: (string | number)[]) => {
     let probability = 1;
     while (((idx = serialized[i]), typeof idx === 'number')) {
       if (idx < 0) {
-        probability = -idx / 10;
+        // Encoded at 1/100 granularity by convertManifestToBundleGraph (keep in sync).
+        probability = -idx / 100;
       } else {
         deps.push({
           $name$: serialized[idx] as string,

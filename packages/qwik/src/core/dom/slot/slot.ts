@@ -168,6 +168,9 @@ export function createSlot(
       ? EMPTY_NODES
       : maybeThen(runWithCollector(null, fallback, context.container!, idBase), toNodes);
   }
+  if (projections.length === 1) {
+    return project(projections[0], context.container!, context);
+  }
 
   const nodes: Node[] = [];
   for (let i = 0; i < projections.length; i++) {
@@ -292,6 +295,16 @@ export function renderSsrSlot(
     return fallback === undefined
       ? EMPTY_STRING
       : renderSsrProjection(ctx, fallback, null, context, idBase);
+  }
+  if (projections.length === 1) {
+    const projection = projections[0];
+    return renderSsrProjection(
+      ctx,
+      projection.renderQrl,
+      projection.slotScope,
+      context,
+      projection.idBase
+    );
   }
 
   const output: SsrOutput[] = [];

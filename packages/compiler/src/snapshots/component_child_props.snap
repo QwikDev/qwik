@@ -28,6 +28,7 @@ export function Parent(props0, ctx) {
   const count = useSignal(1);
   ctx.addRoot(count);
   const component_0 = createComponent(
+    (props) => Child(props, ctx),
     _props(
       {
         label: 'Hi',
@@ -36,8 +37,7 @@ export function Parent(props0, ctx) {
         },
       },
       { count: count }
-    ),
-    (props) => Child(props, ctx)
+    )
   );
   return maybeThen(component_0, (component_0) => component_0);
 }
@@ -190,6 +190,7 @@ export { Child };
 export function Parent(props0, ctx) {
   const count = useSignal(1);
   return createComponent(
+    (props) => Child(props, ctx),
     _props(
       {
         label: 'Hi',
@@ -198,8 +199,7 @@ export function Parent(props0, ctx) {
         },
       },
       { count: count }
-    ),
-    (props) => Child(props, ctx)
+    )
   );
 }
 ============================= src/component.tsx_component_Child.js (ENTRY POINT)==

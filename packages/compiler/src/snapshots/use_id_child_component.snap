@@ -19,7 +19,7 @@ import { createComponent } from '@qwik.dev/core';
 import { Child } from './use-id-child.tsx_component_Child';
 export { Child };
 export function App(props, ctx, _id = 'qApp-') {
-  return createComponent({}, (props) => Child(props, ctx, _id + 'c0-'));
+  return createComponent((props) => Child(props, ctx, _id + 'c0-'), {});
 }
 ============================= src/use-id-child.tsx_component_Child.js (ENTRY POINT)==
 
@@ -59,7 +59,7 @@ import { createComponent } from '@qwik.dev/core';
 import { Child } from './use-id-child.tsx_component_Child';
 export { Child };
 export function App(props, ctx, _id = 'qApp-') {
-  return createComponent({}, (props) => Child(props, ctx, _id + 'c0-'));
+  return createComponent((props) => Child(props, ctx, _id + 'c0-'), {});
 }
 ============================= src/use-id-child.tsx_component_Child.js (ENTRY POINT)==
 

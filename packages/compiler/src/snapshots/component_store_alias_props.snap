@@ -63,6 +63,7 @@ export function Alias(props, ctx) {
   ctx.addRoot(store);
   const prop_qrl_0 = q_component_label_segment_0_871tb4lt4479.w([store]);
   const component_1 = createComponent(
+    (props) => Child(props, ctx),
     _props(
       {
         get label() {
@@ -73,8 +74,7 @@ export function Alias(props, ctx) {
         },
       },
       { label: prop_qrl_0, deep: getMemberSource(store.nested, 'flip') }
-    ),
-    (props) => Child(props, ctx)
+    )
   );
   return maybeThen(component_1, (component_1) => component_1);
 }
@@ -83,6 +83,7 @@ export function Shallow(props, ctx) {
   ctx.addRoot(store);
   const prop_qrl_0 = q_component_label_segment_2_871sj2dzg067.w([store]);
   const component_1 = createComponent(
+    (props) => Child(props, ctx),
     _props(
       {
         get label() {
@@ -93,8 +94,7 @@ export function Shallow(props, ctx) {
         },
       },
       { label: prop_qrl_0, own: getStoreSource(store, 'nested') }
-    ),
-    (props) => Child(props, ctx)
+    )
   );
   return maybeThen(component_1, (component_1) => component_1);
 }
@@ -226,31 +226,25 @@ import { component_own_segment_3_22sa58ebd2o5q } from './component.tsx_component
 export function Alias(props, ctx) {
   const store = useStore({ nested: { flip: false } });
   const { nested } = store;
-  return createComponent(
-    {
-      get label() {
-        return component_label_segment_0_871tb4lt4479(store);
-      },
-      get deep() {
-        return component_deep_segment_1_1j8241i7aafxu(store);
-      },
+  return createComponent((props) => Child(props, ctx), {
+    get label() {
+      return component_label_segment_0_871tb4lt4479(store);
     },
-    (props) => Child(props, ctx)
-  );
+    get deep() {
+      return component_deep_segment_1_1j8241i7aafxu(store);
+    },
+  });
 }
 export function Shallow(props, ctx) {
   const store = useStore({ nested: { flip: false } }, { deep: false });
-  return createComponent(
-    {
-      get label() {
-        return component_label_segment_2_871sj2dzg067(store);
-      },
-      get own() {
-        return component_own_segment_3_22sa58ebd2o5q(store);
-      },
+  return createComponent((props) => Child(props, ctx), {
+    get label() {
+      return component_label_segment_2_871sj2dzg067(store);
     },
-    (props) => Child(props, ctx)
-  );
+    get own() {
+      return component_own_segment_3_22sa58ebd2o5q(store);
+    },
+  });
 }
 ============================= src/component.tsx_component_label_segment_0_871tb4lt4479.js (ENTRY POINT)==
 

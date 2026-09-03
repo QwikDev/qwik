@@ -1115,12 +1115,11 @@ function emitCsrOperation(
         }for (const node of ${nodes}) ${range.end}.parentNode.insertBefore(node, ${range.end});`;
         mounted = nodes;
       }
-      const options = slotScope === null ? '' : `, { slotScope: ${slotScope} }`;
-      const call = `${QwikWord.CreateComponent}(${emitComponentProps(
-        operation.props,
-        context,
-        operation.propsSource
-      )}, (props) => ${emitComponentChildCall(operation, context)}${options})`;
+      const options = slotScope === null ? '' : `, undefined, { slotScope: ${slotScope} }`;
+      const call = `${QwikWord.CreateComponent}((props) => ${emitComponentChildCall(
+        operation,
+        context
+      )}, ${emitComponentProps(operation.props, context, operation.propsSource)}${options})`;
       if (operation.returnMode === 'sync') {
         if (roots !== null) {
           operationNames.set(operation.id, mounted);
@@ -1407,12 +1406,11 @@ function emitDirectComponent(
 ): string {
   const slotScope = emitSlotScope(component.slots, context, statements);
   context.imports.add(QwikWord.CreateComponent);
-  return `${QwikWord.CreateComponent}(${emitComponentProps(
-    component.props,
-    context,
-    component.propsSource
-  )}, (props) => ${emitComponentChildCall(component, context)}${
-    slotScope === null ? '' : `, { slotScope: ${slotScope} }`
+  return `${QwikWord.CreateComponent}((props) => ${emitComponentChildCall(
+    component,
+    context
+  )}, ${emitComponentProps(component.props, context, component.propsSource)}${
+    slotScope === null ? '' : `, undefined, { slotScope: ${slotScope} }`
   })`;
 }
 

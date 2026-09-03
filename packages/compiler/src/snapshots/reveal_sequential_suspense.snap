@@ -49,7 +49,7 @@ const q_component_fallbackqrl_segment_0_3grqaiepfwcws = /*#__PURE__*/ _noopQrl(
 );
 q_component_fallbackqrl_segment_0_3grqaiepfwcws.s(component_fallbackqrl_segment_0_3grqaiepfwcws);
 const component_suspense_content_segment_1_oznzhxo2l2hq = (ctx) => {
-  const component_0 = createComponent({}, (props) => First(props, ctx));
+  const component_0 = createComponent((props) => First(props, ctx), {});
   return maybeThen(component_0, (component_0) => component_0);
 };
 const q_component_suspense_content_segment_1_oznzhxo2l2hq = /*#__PURE__*/ _noopQrl(
@@ -66,7 +66,7 @@ const q_component_fallbackqrl_segment_2_3grqbagx9kgxu = /*#__PURE__*/ _noopQrl(
 );
 q_component_fallbackqrl_segment_2_3grqbagx9kgxu.s(component_fallbackqrl_segment_2_3grqbagx9kgxu);
 const component_suspense_content_segment_3_oznypvg8wygo = (ctx) => {
-  const component_0 = createComponent({}, (props) => Second(props, ctx));
+  const component_0 = createComponent((props) => Second(props, ctx), {});
   return maybeThen(component_0, (component_0) => component_0);
 };
 const q_component_suspense_content_segment_3_oznypvg8wygo = /*#__PURE__*/ _noopQrl(
@@ -200,7 +200,7 @@ import { First } from './component.tsx_component_First';
 import { createComponent, maybeThen } from '@qwik.dev/core';
 
 export const component_suspense_content_segment_1_oznzhxo2l2hq = (ctx) => {
-  const component_0 = createComponent({}, (props) => First(props, ctx));
+  const component_0 = createComponent((props) => First(props, ctx), {});
   return maybeThen(component_0, (component_0) => component_0);
 };
 /*
@@ -254,7 +254,7 @@ import { Second } from './component.tsx_component_Second';
 import { createComponent, maybeThen } from '@qwik.dev/core';
 
 export const component_suspense_content_segment_3_oznypvg8wygo = (ctx) => {
-  const component_0 = createComponent({}, (props) => Second(props, ctx));
+  const component_0 = createComponent((props) => Second(props, ctx), {});
   return maybeThen(component_0, (component_0) => component_0);
 };
 /*
@@ -448,7 +448,7 @@ import { First } from './component.tsx_component_First';
 import { createComponent } from '@qwik.dev/core';
 
 export const component_suspense_content_segment_1_oznzhxo2l2hq = (ctx) => {
-  return createComponent({}, (props) => First(props, ctx));
+  return createComponent((props) => First(props, ctx), {});
 };
 /*
 {
@@ -507,7 +507,7 @@ import { Second } from './component.tsx_component_Second';
 import { createComponent } from '@qwik.dev/core';
 
 export const component_suspense_content_segment_3_oznypvg8wygo = (ctx) => {
-  return createComponent({}, (props) => Second(props, ctx));
+  return createComponent((props) => Second(props, ctx), {});
 };
 /*
 {

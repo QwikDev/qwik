@@ -20,20 +20,17 @@ import { Pager } from './component.tsx_component_Pager';
 export { Pager };
 export function App(props0, ctx) {
   const page = useSignal(1);
-  const component_0 = createComponent(
-    {
-      get 'bind:page'() {
-        return page;
-      },
-      get 'bind:value'() {
-        return page;
-      },
-      get 'bind:checked'() {
-        return page;
-      },
+  const component_0 = createComponent((props) => Pager(props, ctx), {
+    get 'bind:page'() {
+      return page;
     },
-    (props) => Pager(props, ctx)
-  );
+    get 'bind:value'() {
+      return page;
+    },
+    get 'bind:checked'() {
+      return page;
+    },
+  });
   return maybeThen(component_0, (component_0) => component_0);
 }
 ============================= src/component.tsx_component_Pager.js (ENTRY POINT)==
@@ -132,20 +129,17 @@ import { Pager } from './component.tsx_component_Pager';
 export { Pager };
 export function App(props0, ctx) {
   const page = useSignal(1);
-  return createComponent(
-    {
-      get 'bind:page'() {
-        return page;
-      },
-      get 'bind:value'() {
-        return page;
-      },
-      get 'bind:checked'() {
-        return page;
-      },
+  return createComponent((props) => Pager(props, ctx), {
+    get 'bind:page'() {
+      return page;
     },
-    (props) => Pager(props, ctx)
-  );
+    get 'bind:value'() {
+      return page;
+    },
+    get 'bind:checked'() {
+      return page;
+    },
+  });
 }
 ============================= src/component.tsx_component_Pager.js (ENTRY POINT)==
 

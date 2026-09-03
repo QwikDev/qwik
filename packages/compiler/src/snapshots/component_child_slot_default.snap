@@ -37,7 +37,7 @@ export function Parent(props, ctx) {
   const slot_scope_0 = createSlotScope();
   ctx.addRoot(slot_scope_0);
   registerProjection(slot_scope_0, '', q_component_slot_render_segment_0_3b0tagwys7lui);
-  const component_1 = createComponent({}, (props) => Wrapper(props, ctx), {
+  const component_1 = createComponent((props) => Wrapper(props, ctx), {}, undefined, {
     slotScope: slot_scope_0,
   });
   return maybeThen(component_1, (component_1) => component_1);
@@ -118,7 +118,7 @@ export { Wrapper };
 export function Parent(props, ctx) {
   const slotScope0 = createSlotScope();
   registerProjection(slotScope0, '', component_slot_render_segment_0_3b0tagwys7lui);
-  return createComponent({}, (props) => Wrapper(props, ctx), { slotScope: slotScope0 });
+  return createComponent((props) => Wrapper(props, ctx), {}, undefined, { slotScope: slotScope0 });
 }
 ============================= src/component.tsx_component_Wrapper.js (ENTRY POINT)==
 

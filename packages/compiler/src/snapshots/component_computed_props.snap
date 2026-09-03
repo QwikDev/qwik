@@ -80,6 +80,7 @@ export function App(props, ctx) {
   const CONST = 10;
   ctx.addRoot(selected);
   const component_0 = createComponent(
+    (props) => Child(props, ctx),
     _props(
       {
         a: 'static',
@@ -91,8 +92,7 @@ export function App(props, ctx) {
         },
       },
       { c: selected }
-    ),
-    (props) => Child(props, ctx)
+    )
   );
   const invokeCtx = getActiveInvokeContextOrNull();
   const component_3 = () =>
@@ -102,6 +102,7 @@ export function App(props, ctx) {
       ctx.addRoot(selected);
       const prop_qrl_2 = q_component_label_segment_3_871s51a2ly5o.w([selected]);
       return createComponent(
+        (props) => Child(props, ctx),
         _props(
           {
             get active() {
@@ -112,42 +113,36 @@ export function App(props, ctx) {
             },
           },
           { active: prop_qrl_1, label: prop_qrl_2 }
-        ),
-        (props) => Child(props, ctx)
+        )
       );
     });
   const component_4 = () =>
     invoke(invokeCtx, () => {
-      return createComponent(
-        {
-          get initial() {
-            return CONST * 2;
-          },
-          get imported() {
-            return IMPORTED + 1;
-          },
+      return createComponent((props) => Child(props, ctx), {
+        get initial() {
+          return CONST * 2;
         },
-        (props) => Child(props, ctx)
-      );
+        get imported() {
+          return IMPORTED + 1;
+        },
+      });
     });
   const component_5 = () =>
     invoke(invokeCtx, () => {
       ctx.addRoot(selected);
-      return createComponent(
-        {
-          get qrl() {
-            return q_component_qrl_segment_7_2fpouwe2h89sr.w([selected]);
-          },
-          onPick$: q_component_q_e_pick_segment_8_8323mpce5pk2.w([selected]),
+      return createComponent((props) => Child(props, ctx), {
+        get qrl() {
+          return q_component_qrl_segment_7_2fpouwe2h89sr.w([selected]);
         },
-        (props) => Child(props, ctx)
-      );
+        onPick$: q_component_q_e_pick_segment_8_8323mpce5pk2.w([selected]),
+      });
     });
   function component_for_render_segment_9_asyppzxs5k8c(ctx, __rangeId, __rowId, row_p0) {
     ctx.addRoot(selected);
     ctx.addRoot(row_p0);
     const prop_qrl_0 = q_component_active_segment_12_1kya7ncf5yzsc.w([selected, row_p0]);
     const component_1 = createComponent(
+      (props) => Child(props, ctx),
       _props(
         {
           get value() {
@@ -158,8 +153,7 @@ export function App(props, ctx) {
           },
         },
         { active: prop_qrl_0 }
-      ),
-      (props) => Child(props, ctx)
+      )
     );
     return maybeThen(component_1, (component_1) => component_1);
   }
@@ -428,6 +422,7 @@ export function App(props, ctx) {
   ctx.scheduler.waitFor(
     maybeThen(
       createComponent(
+        (props) => Child(props, ctx),
         _props(
           {
             a: 'static',
@@ -439,8 +434,7 @@ export function App(props, ctx) {
             },
           },
           { c: selected }
-        ),
-        (props) => Child(props, ctx)
+        )
       ),
       (component0) => {
         const nodes0 = _toNodes(component0);
@@ -452,17 +446,14 @@ export function App(props, ctx) {
   );
   ctx.scheduler.waitFor(
     maybeThen(
-      createComponent(
-        {
-          get active() {
-            return component_active_segment_2_2hs32stx99tk3(selected);
-          },
-          get label() {
-            return component_label_segment_3_871s51a2ly5o(selected);
-          },
+      createComponent((props) => Child(props, ctx), {
+        get active() {
+          return component_active_segment_2_2hs32stx99tk3(selected);
         },
-        (props) => Child(props, ctx)
-      ),
+        get label() {
+          return component_label_segment_3_871s51a2ly5o(selected);
+        },
+      }),
       (component1) => {
         const nodes1 = _toNodes(component1);
         for (const node of nodes1) end1.parentNode.insertBefore(node, end1);
@@ -473,17 +464,14 @@ export function App(props, ctx) {
   );
   ctx.scheduler.waitFor(
     maybeThen(
-      createComponent(
-        {
-          get initial() {
-            return component_initial_segment_4_3ga3f7w1o8xxv(CONST);
-          },
-          get imported() {
-            return IMPORTED + 1;
-          },
+      createComponent((props) => Child(props, ctx), {
+        get initial() {
+          return component_initial_segment_4_3ga3f7w1o8xxv(CONST);
         },
-        (props) => Child(props, ctx)
-      ),
+        get imported() {
+          return IMPORTED + 1;
+        },
+      }),
       (component2) => {
         const nodes2 = _toNodes(component2);
         for (const node of nodes2) end2.parentNode.insertBefore(node, end2);
@@ -494,15 +482,12 @@ export function App(props, ctx) {
   );
   ctx.scheduler.waitFor(
     maybeThen(
-      createComponent(
-        {
-          get qrl() {
-            return q_component_qrl_segment_7_2fpouwe2h89sr.w([selected]);
-          },
-          onPick$: q_component_q_e_pick_segment_8_8323mpce5pk2.w([selected]),
+      createComponent((props) => Child(props, ctx), {
+        get qrl() {
+          return q_component_qrl_segment_7_2fpouwe2h89sr.w([selected]);
         },
-        (props) => Child(props, ctx)
-      ),
+        onPick$: q_component_q_e_pick_segment_8_8323mpce5pk2.w([selected]),
+      }),
       (component3) => {
         const nodes3 = _toNodes(component3);
         for (const node of nodes3) end3.parentNode.insertBefore(node, end3);
@@ -512,17 +497,14 @@ export function App(props, ctx) {
     )
   );
   function component_for_render_segment_9_asyppzxs5k8c(ctx, value) {
-    return createComponent(
-      {
-        get value() {
-          return value;
-        },
-        get active() {
-          return component_active_segment_12_1kya7ncf5yzsc(selected, value);
-        },
+    return createComponent((props) => Child(props, ctx), {
+      get value() {
+        return value;
       },
-      (props) => Child(props, ctx)
-    );
+      get active() {
+        return component_active_segment_12_1kya7ncf5yzsc(selected, value);
+      },
+    });
   }
   ctx.scheduler.waitFor(
     createCollection(

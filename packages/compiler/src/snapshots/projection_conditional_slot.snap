@@ -86,7 +86,7 @@ export function App(props, ctx) {
     'start',
     q_component_slot_render_segment_0_3b0tagwys7lui.w([show])
   );
-  const component_1 = createComponent({}, (props) => Panel(props, ctx), {
+  const component_1 = createComponent((props) => Panel(props, ctx), {}, undefined, {
     slotScope: slot_scope_0,
   });
   return maybeThen(component_1, (component_1) => component_1);
@@ -289,7 +289,7 @@ export function App(props, ctx) {
     'start',
     _withCaptures(component_slot_render_segment_0_3b0tagwys7lui, [show])
   );
-  return createComponent({}, (props) => Panel(props, ctx), { slotScope: slotScope0 });
+  return createComponent((props) => Panel(props, ctx), {}, undefined, { slotScope: slotScope0 });
 }
 ============================= src/component.tsx_component_Panel.js (ENTRY POINT)==
 

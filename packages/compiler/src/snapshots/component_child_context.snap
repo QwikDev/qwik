@@ -34,7 +34,7 @@ export function Parent(props, ctx) {
   const value = useSignal('provided');
   useContextProvider(Context, value);
   const context_scope_0 = ctx.contextScopeRef();
-  const component_1 = createComponent({}, (props) => Child(props, ctx));
+  const component_1 = createComponent((props) => Child(props, ctx), {});
   return maybeThen(component_1, (component_1) => [
     createSsrMarkup('<!c=', context_scope_0, '>'),
     createSsrOpenTag('<section', '>'),
@@ -155,7 +155,7 @@ export function Parent(props, ctx) {
   const el0 = _first(fragment0);
   const start0 = _first(el0);
   const end0 = _next(start0);
-  const component0 = createComponent({}, (props) => Child(props, ctx));
+  const component0 = createComponent((props) => Child(props, ctx), {});
   end0.parentNode.insertBefore(component0, end0);
   start0.remove();
   end0.remove();

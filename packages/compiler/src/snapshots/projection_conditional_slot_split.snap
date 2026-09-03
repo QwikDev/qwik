@@ -124,7 +124,7 @@ export function App(props, ctx) {
   registerProjection(slot_scope_0, 'x', q_semantic_slotRender_239_303_0_1qpmr0k0kwq0p.w([flip]));
   ctx.addRoot(flip);
   registerProjection(slot_scope_0, 'y', q_semantic_slotRender_239_303_1_1qpmqmiwo2o06.w([flip]));
-  const component_1 = createComponent({}, (props) => Panel(props, ctx), {
+  const component_1 = createComponent((props) => Panel(props, ctx), {}, undefined, {
     slotScope: slot_scope_0,
   });
   return maybeThen(component_1, (component_1) => component_1);
@@ -443,7 +443,7 @@ export function App(props, ctx) {
     'y',
     _withCaptures(semantic_slotRender_239_303_1_1qpmqmiwo2o06, [flip])
   );
-  return createComponent({}, (props) => Panel(props, ctx), { slotScope: slotScope0 });
+  return createComponent((props) => Panel(props, ctx), {}, undefined, { slotScope: slotScope0 });
 }
 ============================= src/component.tsx_component_Panel.js (ENTRY POINT)==
 

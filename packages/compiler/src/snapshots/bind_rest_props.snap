@@ -20,15 +20,12 @@ import { Field } from './component.tsx_component_Field';
 export { Field };
 export function App(props, ctx) {
   const value = useSignal('');
-  const component_0 = createComponent(
-    {
-      label: 'Name',
-      get 'bind:value'() {
-        return value;
-      },
+  const component_0 = createComponent((props) => Field(props, ctx), {
+    label: 'Name',
+    get 'bind:value'() {
+      return value;
     },
-    (props) => Field(props, ctx)
-  );
+  });
   return maybeThen(component_0, (component_0) => component_0);
 }
 ============================= src/component.tsx_component_Field.js (ENTRY POINT)==
@@ -237,15 +234,12 @@ import { Field } from './component.tsx_component_Field';
 export { Field };
 export function App(props, ctx) {
   const value = useSignal('');
-  return createComponent(
-    {
-      label: 'Name',
-      get 'bind:value'() {
-        return value;
-      },
+  return createComponent((props) => Field(props, ctx), {
+    label: 'Name',
+    get 'bind:value'() {
+      return value;
     },
-    (props) => Field(props, ctx)
-  );
+  });
 }
 ============================= src/component.tsx_component_Field.js (ENTRY POINT)==
 

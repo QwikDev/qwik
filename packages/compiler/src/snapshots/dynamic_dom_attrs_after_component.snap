@@ -44,7 +44,7 @@ function Child(props, ctx) {
 }
 export function App(props, ctx) {
   const count = useSignal(0);
-  const component_0 = createComponent({}, (props) => Child(props, ctx));
+  const component_0 = createComponent((props) => Child(props, ctx), {});
   let id_0;
   const invokeCtx = getActiveInvokeContextOrNull();
   const attr_1 = () =>
@@ -132,7 +132,7 @@ export function App(props, ctx) {
   const start0 = _first(el0);
   const end0 = _next(start0);
   const el1 = _next(end0);
-  const component0 = createComponent({}, (props) => Child(props, ctx));
+  const component0 = createComponent((props) => Child(props, ctx), {});
   end0.parentNode.insertBefore(component0, end0);
   start0.remove();
   end0.remove();

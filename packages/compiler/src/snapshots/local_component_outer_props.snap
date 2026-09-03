@@ -95,11 +95,11 @@ export function Footer(props, ctx) {
   }
 
   _markComponent(Filter, q_local_component_33_204_slxzo3femvko.w([props]));
-  const component_0 = createComponent({ filter: 'all' }, (props) => Filter(props, ctx));
+  const component_0 = createComponent((props) => Filter(props, ctx), { filter: 'all' });
   const invokeCtx = getActiveInvokeContextOrNull();
   const component_1 = () =>
     invoke(invokeCtx, () => {
-      return createComponent({ filter: 'active' }, (props) => Filter(props, ctx));
+      return createComponent((props) => Filter(props, ctx), { filter: 'active' });
     });
   return maybeThen(component_0, (component_0) =>
     maybeThen(component_1(), (component_1) => [
@@ -321,7 +321,7 @@ export function Footer(props, ctx) {
   const end1 = _next(start1);
   ctx.scheduler.waitFor(
     maybeThen(
-      createComponent({ filter: 'all' }, (props) => Filter(props, ctx)),
+      createComponent((props) => Filter(props, ctx), { filter: 'all' }),
       (component0) => {
         const nodes0 = _toNodes(component0);
         for (const node of nodes0) end0.parentNode.insertBefore(node, end0);
@@ -332,7 +332,7 @@ export function Footer(props, ctx) {
   );
   ctx.scheduler.waitFor(
     maybeThen(
-      createComponent({ filter: 'active' }, (props) => Filter(props, ctx)),
+      createComponent((props) => Filter(props, ctx), { filter: 'active' }),
       (component1) => {
         const nodes1 = _toNodes(component1);
         for (const node of nodes1) end1.parentNode.insertBefore(node, end1);

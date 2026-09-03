@@ -95,7 +95,7 @@ export function App(props, ctx) {
     }
 
     _markComponent(Star, q_local_component_178_269_1v0zojj4cidpx.w([todos, lower]));
-    const component_0 = createComponent({ on: true }, (props) => Star(props, ctx));
+    const component_0 = createComponent((props) => Star(props, ctx), { on: true });
     let content_id_1;
     const invokeCtx = getActiveInvokeContextOrNull();
     const content_1 = () =>
@@ -129,7 +129,7 @@ export function App(props, ctx) {
   }
 
   _markComponent(Filter, q_local_component_112_432_9mplpu2ebao3.w([todos]));
-  const component_0 = createComponent({ name: 'All' }, (props) => Filter(props, ctx));
+  const component_0 = createComponent((props) => Filter(props, ctx), { name: 'All' });
   return maybeThen(component_0, (component_0) => [
     createSsrOpenTag('<ul', '>'),
     component_0,
@@ -358,7 +358,7 @@ export const local_component_112_432_9mplpu2ebao3 = (props, ctx) => {
   }
 
   _markComponent(Star, q_local_component_178_269_1v0zojj4cidpx.w([todos, lower]));
-  const component_0 = createComponent({ on: true }, (props) => Star(props, ctx));
+  const component_0 = createComponent((props) => Star(props, ctx), { on: true });
   let content_id_1;
   const invokeCtx = getActiveInvokeContextOrNull();
   const content_1 = () =>
@@ -480,7 +480,7 @@ export function App(props, ctx) {
     setEvent(el1, 'q-e:click', component_q_e_click_segment_1_2xwyfnber1kpg, [todos, lower]);
     ctx.scheduler.waitFor(
       maybeThen(
-        createComponent({ on: true }, (props) => Star(props, ctx)),
+        createComponent((props) => Star(props, ctx), { on: true }),
         (component0) => {
           const nodes0 = _toNodes(component0);
           for (const node of nodes0) end0.parentNode.insertBefore(node, end0);
@@ -505,7 +505,7 @@ export function App(props, ctx) {
   const end0 = _next(start0);
   ctx.scheduler.waitFor(
     maybeThen(
-      createComponent({ name: 'All' }, (props) => Filter(props, ctx)),
+      createComponent((props) => Filter(props, ctx), { name: 'All' }),
       (component0) => {
         const nodes0 = _toNodes(component0);
         for (const node of nodes0) end0.parentNode.insertBefore(node, end0);
@@ -713,7 +713,7 @@ export const local_component_112_432_9mplpu2ebao3 = (props, ctx) => {
   setEvent(el1, 'q-e:click', component_q_e_click_segment_1_2xwyfnber1kpg, [todos, lower]);
   ctx.scheduler.waitFor(
     maybeThen(
-      createComponent({ on: true }, (props) => Star(props, ctx)),
+      createComponent((props) => Star(props, ctx), { on: true }),
       (component0) => {
         const nodes0 = _toNodes(component0);
         for (const node of nodes0) end0.parentNode.insertBefore(node, end0);

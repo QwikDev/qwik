@@ -77,12 +77,13 @@ q_component_componentProps_segment_5_1y122wpzrogxn.s(
 export function App(props, ctx) {
   const count = useSignal(1);
   const attributes = useSignal({ title: 'spread' });
-  const component_0 = createComponent(importedAttrs, (props) => Child(props, ctx));
+  const component_0 = createComponent((props) => Child(props, ctx), importedAttrs);
   const invokeCtx = getActiveInvokeContextOrNull();
   const component_1 = () =>
     invoke(invokeCtx, () => {
       ctx.addRoot(count);
       return createComponent(
+        (props) => Child(props, ctx),
         _props(
           {
             get count() {
@@ -90,18 +91,17 @@ export function App(props, ctx) {
             },
           },
           { count: count }
-        ),
-        (props) => Child(props, ctx)
+        )
       );
     });
   const component_2 = () =>
     invoke(invokeCtx, () => {
       ctx.addRoot(attributes);
       return createComponent(
+        (props) => Child(props, ctx),
         createPropsProxy(
           useComputedQrl(q_component_componentProps_segment_2_1y124uvjbur0a.w([attributes]))
-        ),
-        (props) => Child(props, ctx)
+        )
       );
     });
   const component_3 = () =>
@@ -110,20 +110,20 @@ export function App(props, ctx) {
       ctx.addRoot(count);
       ctx.addRoot(count);
       return createComponent(
+        (props) => Child(props, ctx),
         createPropsProxy(
           useComputedQrl(q_component_componentProps_segment_3_1y1258wn8ot0t.w([attributes, count]))
-        ),
-        (props) => Child(props, ctx)
+        )
       );
     });
   const component_4 = () =>
     invoke(invokeCtx, () => {
       ctx.addRoot(count);
       return createComponent(
+        (props) => Child(props, ctx),
         createPropsProxy(
           useComputedQrl(q_component_componentProps_segment_5_1y122wpzrogxn.w([count]))
-        ),
-        (props) => Child(props, ctx)
+        )
       );
     });
   return maybeThen(component_0, (component_0) =>
@@ -327,7 +327,7 @@ export function App(props, ctx) {
   const end4 = _next(start4);
   ctx.scheduler.waitFor(
     maybeThen(
-      createComponent(importedAttrs, (props) => Child(props, ctx)),
+      createComponent((props) => Child(props, ctx), importedAttrs),
       (component0) => {
         const nodes0 = _toNodes(component0);
         for (const node of nodes0) end0.parentNode.insertBefore(node, end0);
@@ -339,6 +339,7 @@ export function App(props, ctx) {
   ctx.scheduler.waitFor(
     maybeThen(
       createComponent(
+        (props) => Child(props, ctx),
         _props(
           {
             get count() {
@@ -346,8 +347,7 @@ export function App(props, ctx) {
             },
           },
           { count: count }
-        ),
-        (props) => Child(props, ctx)
+        )
       ),
       (component1) => {
         const nodes1 = _toNodes(component1);
@@ -360,10 +360,10 @@ export function App(props, ctx) {
   ctx.scheduler.waitFor(
     maybeThen(
       createComponent(
+        (props) => Child(props, ctx),
         createPropsProxy(
           useComputed(_withCaptures(component_componentProps_segment_2_1y124uvjbur0a, [attributes]))
-        ),
-        (props) => Child(props, ctx)
+        )
       ),
       (component2) => {
         const nodes2 = _toNodes(component2);
@@ -376,12 +376,12 @@ export function App(props, ctx) {
   ctx.scheduler.waitFor(
     maybeThen(
       createComponent(
+        (props) => Child(props, ctx),
         createPropsProxy(
           useComputed(
             _withCaptures(component_componentProps_segment_3_1y1258wn8ot0t, [attributes, count])
           )
-        ),
-        (props) => Child(props, ctx)
+        )
       ),
       (component3) => {
         const nodes3 = _toNodes(component3);
@@ -394,10 +394,10 @@ export function App(props, ctx) {
   ctx.scheduler.waitFor(
     maybeThen(
       createComponent(
+        (props) => Child(props, ctx),
         createPropsProxy(
           useComputed(_withCaptures(component_componentProps_segment_5_1y122wpzrogxn, [count]))
-        ),
-        (props) => Child(props, ctx)
+        )
       ),
       (component4) => {
         const nodes4 = _toNodes(component4);

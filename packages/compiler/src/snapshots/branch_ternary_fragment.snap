@@ -34,7 +34,7 @@ import { useSignal, _captures, createComponent, maybeThen } from '@qwik.dev/core
 import { Child } from './component.tsx_component_Child';
 export { Child };
 export function App(props, ctx) {
-  const component_0 = createComponent({}, (props) => Child(props, ctx));
+  const component_0 = createComponent((props) => Child(props, ctx), {});
   return maybeThen(component_0, (component_0) => component_0);
 }
 ============================= src/component.tsx_component_Child.js (ENTRY POINT)==
@@ -205,7 +205,7 @@ import { useSignal, createComponent } from '@qwik.dev/core';
 import { Child } from './component.tsx_component_Child';
 export { Child };
 export function App(props, ctx) {
-  return createComponent({}, (props) => Child(props, ctx));
+  return createComponent((props) => Child(props, ctx), {});
 }
 ============================= src/component.tsx_component_Child.js (ENTRY POINT)==
 

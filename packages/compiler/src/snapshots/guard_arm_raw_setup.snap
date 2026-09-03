@@ -64,7 +64,7 @@ const semantic_expression_419_459_2uol5fqdfdeli = (requestId, releaseId) => {
   return waitFor(requestId, releaseId, () =>
     invoke(invokeCtx, () =>
       (() => {
-        return createComponent({}, (props) => Inner(props, ctx));
+        return createComponent((props) => Inner(props, ctx), {});
       })()
     )
   );
@@ -104,7 +104,7 @@ const semantic_expression_521_600_swe3lf3ujkpy = (delay) => {
         resolve(() =>
           invoke(invokeCtx, () =>
             (() => {
-              return createComponent({}, (props) => Inner(props, ctx));
+              return createComponent((props) => Inner(props, ctx), {});
             })()
           )
         ),
@@ -267,7 +267,7 @@ export const semantic_expression_419_459_2uol5fqdfdeli = (requestId, releaseId) 
   return waitFor(requestId, releaseId, () =>
     invoke(invokeCtx, () =>
       (() => {
-        return createComponent({}, (props) => Inner(props, ctx));
+        return createComponent((props) => Inner(props, ctx), {});
       })()
     )
   );
@@ -368,7 +368,7 @@ export const semantic_expression_521_600_swe3lf3ujkpy = (delay) => {
         resolve(() =>
           invoke(invokeCtx, () =>
             (() => {
-              return createComponent({}, (props) => Inner(props, ctx));
+              return createComponent((props) => Inner(props, ctx), {});
             })()
           )
         ),
@@ -413,7 +413,7 @@ const waitFor = (a, b, v) => Promise.resolve(v);
 export const App = (props, ctx) => {
   const url = useServerData('url');
   const requestId = useServerData('id');
-  return createComponent({}, (props) => Inner(props, ctx));
+  return createComponent((props) => Inner(props, ctx), {});
 };
 ============================= src/component.tsx_component_Inner.js (ENTRY POINT)==
 

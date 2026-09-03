@@ -25,11 +25,11 @@ export function Parent(props, ctx) {
   const attrs = { title: 'Save' };
   const label = 'clicked';
   const component_0 = createComponent(
+    (props) => Button(props, ctx),
     mergeProps(attrs, {
       kind: 'primary',
       onClick$: q_component_q_e_click_segment_2_2xwygteqhjqr1.w([label]),
-    }),
-    (props) => Button(props, ctx)
+    })
   );
   return maybeThen(component_0, (component_0) => component_0);
 }
@@ -186,11 +186,11 @@ export function Parent(props, ctx) {
   const attrs = { title: 'Save' };
   const label = 'clicked';
   return createComponent(
+    (props) => Button(props, ctx),
     mergeProps(attrs, {
       kind: 'primary',
       onClick$: q_component_q_e_click_segment_2_2xwygteqhjqr1.w([label]),
-    }),
-    (props) => Button(props, ctx)
+    })
   );
 }
 ============================= src/component.tsx_component_Button.js (ENTRY POINT)==

@@ -44,14 +44,11 @@ q_component_branch_condition_segment_0_2fzrieu6vlhf9.s(
   component_branch_condition_segment_0_2fzrieu6vlhf9
 );
 const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
-  const component_0 = createComponent(
-    {
-      get model() {
-        return Model;
-      },
+  const component_0 = createComponent((props) => Child(props, ctx), {
+    get model() {
+      return Model;
     },
-    (props) => Child(props, ctx)
-  );
+  });
   return maybeThen(component_0, (component_0) => component_0);
 };
 const q_component_branch_then_segment_1_24n7blyqktd46 = /*#__PURE__*/ _noopQrl(
@@ -113,9 +110,12 @@ export function Child(props, ctx) {
   const slot_scope_0 = createSlotScope();
   ctx.addRoot(slot_scope_0);
   registerProjection(slot_scope_0, '', q_component_slot_render_segment_3_3b0ta2vuvdjtz);
-  const component_1 = createComponent({}, (props) => renderSsrDynamicTag(Cmp, props, ctx), {
-    slotScope: slot_scope_0,
-  });
+  const component_1 = createComponent(
+    (props) => renderSsrDynamicTag(Cmp, props, ctx),
+    {},
+    undefined,
+    { slotScope: slot_scope_0 }
+  );
   return maybeThen(component_1, (component_1) => component_1);
 }
 /*
@@ -178,14 +178,11 @@ import { Model } from './component';
 import { createComponent, maybeThen } from '@qwik.dev/core';
 
 export const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
-  const component_0 = createComponent(
-    {
-      get model() {
-        return Model;
-      },
+  const component_0 = createComponent((props) => Child(props, ctx), {
+    get model() {
+      return Model;
     },
-    (props) => Child(props, ctx)
-  );
+  });
   return maybeThen(component_0, (component_0) => component_0);
 };
 /*
@@ -307,7 +304,7 @@ export function Child(props, ctx) {
   const Cmp = props.model;
   const slotScope0 = createSlotScope();
   registerProjection(slotScope0, '', component_slot_render_segment_3_3b0ta2vuvdjtz);
-  return createComponent({}, (props) => createDynamicTag(Cmp, props, ctx), {
+  return createComponent((props) => createDynamicTag(Cmp, props, ctx), {}, undefined, {
     slotScope: slotScope0,
   });
 }
@@ -371,14 +368,11 @@ import { Model } from './component';
 import { createComponent } from '@qwik.dev/core';
 
 export const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
-  return createComponent(
-    {
-      get model() {
-        return Model;
-      },
+  return createComponent((props) => Child(props, ctx), {
+    get model() {
+      return Model;
     },
-    (props) => Child(props, ctx)
-  );
+  });
 };
 /*
 {

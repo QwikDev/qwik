@@ -55,7 +55,7 @@ export function App(props, ctx) {
     '',
     q_use_styles_scoped_projection_slot_render_segment_2_ltuwbe4740jy
   );
-  const component_1 = createComponent({}, (props) => Child(props, ctx), {
+  const component_1 = createComponent((props) => Child(props, ctx), {}, undefined, {
     slotScope: slot_scope_0,
   });
   return maybeThen(component_1, (component_1) => component_1);
@@ -158,7 +158,7 @@ export function App(props, ctx) {
     '',
     use_styles_scoped_projection_slot_render_segment_2_ltuwbe4740jy
   );
-  return createComponent({}, (props) => Child(props, ctx), { slotScope: slotScope0 });
+  return createComponent((props) => Child(props, ctx), {}, undefined, { slotScope: slotScope0 });
 }
 ============================= src/use-styles-scoped-projection.tsx_component_Child.js (ENTRY POINT)==
 

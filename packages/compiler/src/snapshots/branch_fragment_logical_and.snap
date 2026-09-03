@@ -46,7 +46,7 @@ q_component_branch_condition_segment_1_2fzri0t2yrfeq.s(
   component_branch_condition_segment_1_2fzri0t2yrfeq
 );
 const component_branch_then_segment_2_24n7b7xmnzb3n = (ctx) => {
-  return createComponent({}, (props) => InnerCmp(props, ctx));
+  return createComponent((props) => InnerCmp(props, ctx), {});
 };
 const q_component_branch_then_segment_2_24n7b7xmnzb3n = /*#__PURE__*/ _noopQrl(
   'component_branch_then_segment_2_24n7b7xmnzb3n'
@@ -148,7 +148,7 @@ import { InnerCmp } from './component';
 import { createComponent } from '@qwik.dev/core';
 
 export const component_branch_then_segment_2_24n7b7xmnzb3n = (ctx) => {
-  return createComponent({}, (props) => InnerCmp(props, ctx));
+  return createComponent((props) => InnerCmp(props, ctx), {});
 };
 /*
 {
@@ -292,7 +292,7 @@ import { InnerCmp } from './component';
 import { createComponent } from '@qwik.dev/core';
 
 export const component_branch_then_segment_2_24n7b7xmnzb3n = (ctx) => {
-  return createComponent({}, (props) => InnerCmp(props, ctx));
+  return createComponent((props) => InnerCmp(props, ctx), {});
 };
 /*
 {

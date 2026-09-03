@@ -62,7 +62,7 @@ q_component_branch_condition_segment_2_2fzrhmrz1xde7.s(
   component_branch_condition_segment_2_2fzrhmrz1xde7
 );
 const component_branch_then_segment_3_24n7atwir5934 = (ctx) => {
-  const component_0 = createComponent({ name: 'Qwik' }, (props) => Hello(props, ctx));
+  const component_0 = createComponent((props) => Hello(props, ctx), { name: 'Qwik' });
   return maybeThen(component_0, (component_0) => component_0);
 };
 const q_component_branch_then_segment_3_24n7atwir5934 = /*#__PURE__*/ _noopQrl(
@@ -73,6 +73,7 @@ const component_branch_else_segment_4_19dvrvh6znjhf = (ctx) => {
   const count = _captures[0];
   ctx.addRoot(count);
   const component_0 = createComponent(
+    (props) => Counter(props, ctx),
     _props(
       {
         get count() {
@@ -80,8 +81,7 @@ const component_branch_else_segment_4_19dvrvh6znjhf = (ctx) => {
         },
       },
       { count: count }
-    ),
-    (props) => Counter(props, ctx)
+    )
   );
   return maybeThen(component_0, (component_0) => component_0);
 };
@@ -237,7 +237,7 @@ import { Hello } from './component';
 import { createComponent, maybeThen } from '@qwik.dev/core';
 
 export const component_branch_then_segment_3_24n7atwir5934 = (ctx) => {
-  const component_0 = createComponent({ name: 'Qwik' }, (props) => Hello(props, ctx));
+  const component_0 = createComponent((props) => Hello(props, ctx), { name: 'Qwik' });
   return maybeThen(component_0, (component_0) => component_0);
 };
 /*
@@ -275,6 +275,7 @@ export const component_branch_else_segment_4_19dvrvh6znjhf = (ctx) => {
   const count = _captures[0];
   ctx.addRoot(count);
   const component_0 = createComponent(
+    (props) => Counter(props, ctx),
     _props(
       {
         get count() {
@@ -282,8 +283,7 @@ export const component_branch_else_segment_4_19dvrvh6znjhf = (ctx) => {
         },
       },
       { count: count }
-    ),
-    (props) => Counter(props, ctx)
+    )
   );
   return maybeThen(component_0, (component_0) => component_0);
 };
@@ -490,7 +490,7 @@ import { Hello } from './component';
 import { createComponent } from '@qwik.dev/core';
 
 export const component_branch_then_segment_3_24n7atwir5934 = (ctx) => {
-  return createComponent({ name: 'Qwik' }, (props) => Hello(props, ctx));
+  return createComponent((props) => Hello(props, ctx), { name: 'Qwik' });
 };
 /*
 {
@@ -520,6 +520,7 @@ import { _captures, createComponent, readTrackedSourceValue, _props } from '@qwi
 export const component_branch_else_segment_4_19dvrvh6znjhf = (ctx) => {
   const count = _captures[0];
   return createComponent(
+    (props) => Counter(props, ctx),
     _props(
       {
         get count() {
@@ -527,8 +528,7 @@ export const component_branch_else_segment_4_19dvrvh6znjhf = (ctx) => {
         },
       },
       { count: count }
-    ),
-    (props) => Counter(props, ctx)
+    )
   );
 };
 /*

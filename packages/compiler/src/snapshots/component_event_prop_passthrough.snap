@@ -24,10 +24,9 @@ const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ _noopQrl(
 export { Button };
 export function Parent(props, ctx) {
   const value = 1;
-  return createComponent(
-    { onClick$: q_component_q_e_click_segment_1_2xwyfnber1kpg.w([value]) },
-    (props) => Button(props, ctx)
-  );
+  return createComponent((props) => Button(props, ctx), {
+    onClick$: q_component_q_e_click_segment_1_2xwyfnber1kpg.w([value]),
+  });
 }
 ============================= src/component.tsx_component_Button.js (ENTRY POINT)==
 
@@ -166,10 +165,9 @@ const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ _qrlWithChun
 export { Button };
 export function Parent(props, ctx) {
   const value = 1;
-  return createComponent(
-    { onClick$: q_component_q_e_click_segment_1_2xwyfnber1kpg.w([value]) },
-    (props) => Button(props, ctx)
-  );
+  return createComponent((props) => Button(props, ctx), {
+    onClick$: q_component_q_e_click_segment_1_2xwyfnber1kpg.w([value]),
+  });
 }
 ============================= src/component.tsx_component_Button.js (ENTRY POINT)==
 

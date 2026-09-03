@@ -1947,7 +1947,7 @@ class JsComponentGenerator {
       propsExpr = `${QwikWord.Props}(${propsExpr}, { ${sourceEntries.join(', ')} })`;
     }
     this.imports.add(QwikWord.CreateComponent);
-    const options = slotScope === null ? '' : `, { slotScope: ${slotScope} }`;
+    const options = slotScope === null ? '' : `, undefined, { slotScope: ${slotScope} }`;
     const childContext = operation.ssr.blockingSuspense
       ? `${this.names.ctx}.inOrder()`
       : this.names.ctx;
@@ -1957,7 +1957,7 @@ class JsComponentGenerator {
       this.imports.add(QwikWord.RenderSsrDynamicTag);
       childCall = `${QwikWord.RenderSsrDynamicTag}(${childName}, ${childArgs})`;
     }
-    const call = `${QwikWord.CreateComponent}(${propsExpr}, (props) => ${childCall}${options})`;
+    const call = `${QwikWord.CreateComponent}((props) => ${childCall}, ${propsExpr}${options})`;
     prepStatements.unshift(...slotPrep);
     if (operation.ssr.returnMode === 'sync' && this.synchronous) {
       // sync child in a sync block renders inline, matching the legacy direct path

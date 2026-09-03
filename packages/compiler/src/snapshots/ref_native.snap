@@ -96,14 +96,11 @@ export function App(props0, ctx) {
   const invokeCtx = getActiveInvokeContextOrNull();
   const component_1 = () =>
     invoke(invokeCtx, () => {
-      return createComponent(
-        {
-          get ref() {
-            return signalRef;
-          },
+      return createComponent((props) => Child(props, ctx), {
+        get ref() {
+          return signalRef;
         },
-        (props) => Child(props, ctx)
-      );
+      });
     });
   return maybeThen(props_0, (props_0) => {
     props_0.ref !== undefined && ctx.setRef(props_0.ref, id_5);
@@ -248,14 +245,11 @@ export function App(props0, ctx) {
     ctx.scheduler
   );
   ctx.scheduler.waitFor(effect0.run());
-  const component0 = createComponent(
-    {
-      get ref() {
-        return signalRef;
-      },
+  const component0 = createComponent((props) => Child(props, ctx), {
+    get ref() {
+      return signalRef;
     },
-    (props) => Child(props, ctx)
-  );
+  });
   end0.parentNode.insertBefore(component0, end0);
   start0.remove();
   end0.remove();

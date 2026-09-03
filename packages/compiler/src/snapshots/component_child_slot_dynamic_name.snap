@@ -59,6 +59,7 @@ export function Parent(props, ctx) {
   registerProjection(slot_scope_0, 'a', q_component_slot_render_segment_2_3b0t9ouqyjhtg);
   registerProjection(slot_scope_0, 'b', q_component_slot_render_segment_3_3b0ta2vuvdjtz);
   const component_1 = createComponent(
+    (props) => Switch(props, ctx),
     _props(
       {
         get name() {
@@ -67,7 +68,7 @@ export function Parent(props, ctx) {
       },
       { name: getPropSource(props, 'pick') }
     ),
-    (props) => Switch(props, ctx),
+    undefined,
     { slotScope: slot_scope_0 }
   );
   return maybeThen(component_1, (component_1) => component_1);
@@ -279,12 +280,13 @@ export function Parent(props, ctx) {
   registerProjection(slotScope0, 'a', component_slot_render_segment_2_3b0t9ouqyjhtg);
   registerProjection(slotScope0, 'b', component_slot_render_segment_3_3b0ta2vuvdjtz);
   return createComponent(
+    (props) => Switch(props, ctx),
     {
       get name() {
         return component_name_segment_1_80s3opa72ppn(props);
       },
     },
-    (props) => Switch(props, ctx),
+    undefined,
     { slotScope: slotScope0 }
   );
 }

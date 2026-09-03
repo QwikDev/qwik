@@ -25,7 +25,7 @@ export function App(props, ctx) {
       (Cmp) => () =>
         invoke(invokeCtx, () =>
           (() => {
-            const component_0 = createComponent({ name: 'late' }, (props) => Cmp(props, ctx));
+            const component_0 = createComponent((props) => Cmp(props, ctx), { name: 'late' });
             return maybeThen(component_0, (component_0) => component_0);
           })()
         )
@@ -67,7 +67,7 @@ export function App(props, ctx) {
             (Cmp) => () =>
               invoke(invokeCtx, () =>
                 (() => {
-                  return createComponent({ name: 'late' }, (props) => Cmp(props, ctx));
+                  return createComponent((props) => Cmp(props, ctx), { name: 'late' });
                 })()
               )
           );

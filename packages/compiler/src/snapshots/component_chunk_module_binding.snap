@@ -28,7 +28,7 @@ export { buttonStyle };
 export { Child };
 export { Button };
 export const App = (props0, ctx) => {
-  const component_0 = createComponent({ isWhite: true }, (props) => Button(props, ctx));
+  const component_0 = createComponent((props) => Button(props, ctx), { isWhite: true });
   return maybeThen(component_0, (component_0) => [
     createSsrOpenTag('<div', '>'),
     component_0,
@@ -114,6 +114,7 @@ q_component_class_segment_1_3htuy2t94mso0.s(component_class_segment_1_3htuy2t94m
 export function Button(props, ctx) {
   const prop_qrl_0 = q_component_class_segment_1_3htuy2t94mso0.w([props]);
   const component_1 = createComponent(
+    (props) => Child(props, ctx),
     _props(
       {
         get class() {
@@ -121,8 +122,7 @@ export function Button(props, ctx) {
         },
       },
       { class: prop_qrl_0 }
-    ),
-    (props) => Child(props, ctx)
+    )
   );
   return maybeThen(component_1, (component_1) => component_1);
 }
@@ -237,7 +237,7 @@ export const App = (props0, ctx) => {
   const el0 = _first(fragment0);
   const start0 = _first(el0);
   const end0 = _next(start0);
-  const component0 = createComponent({ isWhite: true }, (props) => Button(props, ctx));
+  const component0 = createComponent((props) => Button(props, ctx), { isWhite: true });
   end0.parentNode.insertBefore(component0, end0);
   start0.remove();
   end0.remove();
@@ -293,14 +293,11 @@ import { buttonStyle } from './component';
 import { Child } from './component.tsx_component_Child';
 
 export function Button(props, ctx) {
-  return createComponent(
-    {
-      get class() {
-        return component_class_segment_1_3htuy2t94mso0(props);
-      },
+  return createComponent((props) => Child(props, ctx), {
+    get class() {
+      return component_class_segment_1_3htuy2t94mso0(props);
     },
-    (props) => Child(props, ctx)
-  );
+  });
 }
 /*
 {

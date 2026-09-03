@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createWindow } from '../../../testing/document';
 import { EffectKind } from '../../dom/effect/effect-kind.enum';
-import { DomSubscription } from '../../dom/effect/dom-subscription';
-import { EventEffect } from '../../dom/effect/effect';
+import { DomEffect } from '../../dom/effect/dom-effect';
+import { AttrExpressionEffect, DomBatchEffect, EventEffect } from '../../dom/effect/effect';
 import { EffectTargetKind } from '../../dom/effect/ssr-effect';
 import { TextNodeEffect } from '../../dom/effect/text-effect';
 import { ComputedQrl } from '../../reactive/computed-qrl';
@@ -18,6 +18,7 @@ import { createContainerContext, type ContainerContext } from '../../runtime/con
 import { createContextScope, isContextScope } from '../../runtime/context-scope';
 import { Constants, TypeIds } from './constants';
 import { inflate } from './inflate';
+import { allocateDomEffect } from './allocate';
 import { toArray } from '../../test-utils';
 import type { QElement } from '../../shared/types';
 
@@ -124,9 +125,7 @@ describe('inflate(TypeIds.EffectSubscription) text targets', () => {
     let calls = 0;
     const subs = createLazySourceSubs(2, () => {
       calls++;
-      return new LazySerialized(
-        async () => new DomSubscription(null!, createContext('').scheduler)
-      );
+      return new LazySerialized(async () => new DomBatchEffect(null!, createContext('').scheduler));
     });
 
     expect(calls).toBe(0);
@@ -169,7 +168,7 @@ describe('inflate(TypeIds.EffectSubscription) text targets', () => {
     }
 
     expect(toArray(signal.subs).some(isLazySerialized)).toBe(false);
-    expect(toArray(signal.subs)[0]).toBeInstanceOf(DomSubscription);
+    expect(toArray(signal.subs)[0]).toBeInstanceOf(TextNodeEffect);
     expect(context.element.querySelector('p')?.textContent).toBe('2');
   });
 
@@ -247,7 +246,7 @@ describe('inflate(TypeIds.EffectSubscription) text targets', () => {
 
     expect(toArray(signal.subs)).toHaveLength(2);
     expect(toArray(signal.subs).every(isLazySerialized)).toBe(true);
-    expect(toArray(signal.subs).some((sub) => sub instanceof DomSubscription)).toBe(false);
+    expect(toArray(signal.subs).some((sub) => sub instanceof DomEffect)).toBe(false);
   });
 
   it('keeps computed subscribers lazy until the computed notifies', async () => {
@@ -291,13 +290,13 @@ describe('inflate(TypeIds.EffectSubscription) text targets', () => {
     }
 
     expect(toArray(computed.subs).some(isLazySerialized)).toBe(false);
-    expect(toArray(computed.subs)[0]).toBeInstanceOf(DomSubscription);
+    expect(toArray(computed.subs)[0]).toBeInstanceOf(TextNodeEffect);
     expect(context.element.querySelector('p')?.textContent).toBe('2');
   });
 
   it('restores DOM batches as functions', async () => {
     const context = createContext('');
-    const subscription = new DomSubscription(null!, context.scheduler);
+    const subscription = allocateDomEffect(context, EffectKind.DomBatch) as DomBatchEffect;
 
     await inflate(context, subscription, TypeIds.EffectSubscription, [
       TypeIds.Plain,
@@ -308,7 +307,7 @@ describe('inflate(TypeIds.EffectSubscription) text targets', () => {
       [],
     ]);
 
-    expect(subscription.effect).toBeTypeOf('function');
+    expect(subscription.fn).toBeTypeOf('function');
   });
 
   it('restores event effects and updates handlers', async () => {
@@ -318,7 +317,7 @@ describe('inflate(TypeIds.EffectSubscription) text targets', () => {
     const qrl = {
       resolve: async () => (source: Signal<boolean>) => (source.value ? handler : undefined),
     };
-    const subscription = new DomSubscription(null!, context.scheduler);
+    const subscription = allocateDomEffect(context, EffectKind.Event) as EventEffect;
 
     await inflate(context, subscription, TypeIds.EffectSubscription, [
       TypeIds.Plain,
@@ -341,8 +340,8 @@ describe('inflate(TypeIds.EffectSubscription) text targets', () => {
       [],
     ]);
 
-    expect(subscription.effect).toBeInstanceOf(EventEffect);
     expect(subscription.deps).toEqual([enabled]);
+    expect(enabled.subs).toBe(subscription);
 
     enabled.value = true;
     await context.scheduler.flushInteraction();
@@ -358,13 +357,47 @@ describe('inflate(TypeIds.EffectSubscription) text targets', () => {
     expect(element._qDispatch?.['e:click']).toBeUndefined();
   });
 
+  it('restores attr expression effects without a subscription wrapper', async () => {
+    const context = createContext('<button q:id="10"></button>');
+    const active = useSignal(false);
+    const qrl = {
+      resolve: async () => (source: Signal<boolean>) => (source.value ? 'active' : undefined),
+    };
+    const effect = allocateDomEffect(context, EffectKind.AttrExpression) as AttrExpressionEffect;
+
+    await inflate(context, effect, TypeIds.EffectSubscription, [
+      TypeIds.Plain,
+      EffectKind.AttrExpression,
+      TypeIds.Plain,
+      EffectTargetKind.Element,
+      TypeIds.Plain,
+      10,
+      TypeIds.Array,
+      [TypeIds.Plain, active],
+      TypeIds.Plain,
+      'class',
+      TypeIds.Array,
+      [TypeIds.Plain, active],
+      TypeIds.Plain,
+      qrl,
+      TypeIds.Plain,
+      null,
+    ]);
+
+    expect(active.subs).toBe(effect);
+
+    active.value = true;
+    await context.scheduler.flushInteraction();
+    expect(context.element.querySelector('button')?.getAttribute('class')).toBe('active');
+  });
+
   it('resolves range text from a local marker index', async () => {
     const context = createContext('<p q:id="10">A<!t>0<!/t> B<!t>1</p>');
     const count = useSignal(1);
     const subscription = await inflateTextSubscription(context, count, 10, 1);
 
-    expect(subscription.effect).toBeInstanceOf(TextNodeEffect);
-    expect((subscription.effect as TextNodeEffect).text.data).toBe('1');
+    expect(subscription).toBeInstanceOf(TextNodeEffect);
+    expect(subscription.text.data).toBe('1');
     expect(subscription.deps).toEqual([count]);
     expect(count.subs).toBe(subscription);
   });
@@ -376,7 +409,7 @@ describe('inflate(TypeIds.EffectSubscription) text targets', () => {
 
     flag.value = false;
     await context.scheduler.flushInteraction();
-    expect((subscription.effect as TextNodeEffect).text.data).toBe('false');
+    expect(subscription.text.data).toBe('false');
   });
 
   it('does not count range boundary markers as targets', async () => {
@@ -384,7 +417,7 @@ describe('inflate(TypeIds.EffectSubscription) text targets', () => {
     const count = useSignal(1);
     const subscription = await inflateTextSubscription(context, count, 11, 1);
 
-    expect((subscription.effect as TextNodeEffect).text.data).toBe('1');
+    expect(subscription.text.data).toBe('1');
   });
 
   it('throws when a range marker is not followed by a text node', async () => {
@@ -454,7 +487,7 @@ async function inflateTextSubscription(
   elementId: number,
   markerIndex: number,
   stringify = false
-): Promise<DomSubscription> {
+): Promise<TextNodeEffect> {
   const data = [
     TypeIds.Plain,
     EffectKind.TextNode,
@@ -468,7 +501,7 @@ async function inflateTextSubscription(
     [TypeIds.Plain, source],
     ...(stringify ? [TypeIds.Plain, 1] : []),
   ];
-  const subscription = new DomSubscription(null!, context.scheduler);
+  const subscription = allocateDomEffect(context, EffectKind.TextNode) as TextNodeEffect;
 
   await inflate(context, subscription, TypeIds.EffectSubscription, data);
 

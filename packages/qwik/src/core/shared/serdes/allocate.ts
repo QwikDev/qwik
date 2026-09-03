@@ -1,5 +1,13 @@
-import { ForBlockSubscription } from '../../dom/effect/effect';
-import { DomSubscription } from '../../dom/effect/dom-subscription';
+import {
+  AttrEffect,
+  AttrExpressionEffect,
+  DomBatchEffect,
+  EventEffect,
+  ForBlockSubscription,
+  PropsEffect,
+} from '../../dom/effect/effect';
+import { DomEffect } from '../../dom/effect/dom-effect';
+import { TextExpressionEffect, TextNodeEffect } from '../../dom/effect/text-effect';
 import { BranchSubscription } from '../../dom/branch/branch';
 import { ContentSubscription } from '../../dom/content/content';
 import { EffectKind } from '../../dom/effect/effect-kind.enum';
@@ -187,16 +195,17 @@ export const allocate = (
       return new Uint8Array(decodedLength);
     }
     case TypeIds.EffectSubscription: {
-      if (Array.isArray(value) && value[1] === EffectKind.Branch) {
+      const effectKind = Array.isArray(value) ? value[1] : undefined;
+      if (effectKind === EffectKind.Branch) {
         return new BranchSubscription(null!, context.scheduler);
       }
-      if (Array.isArray(value) && value[1] === EffectKind.ForBlock) {
+      if (effectKind === EffectKind.ForBlock) {
         return new ForBlockSubscription(null!, context.scheduler);
       }
-      if (Array.isArray(value) && value[1] === EffectKind.Content) {
+      if (effectKind === EffectKind.Content) {
         return new ContentSubscription(null!, context.scheduler);
       }
-      return new DomSubscription(null!, context.scheduler);
+      return allocateDomEffect(context, effectKind);
     }
     case TypeIds.Task: {
       const phase = Array.isArray(value) ? value[1] : undefined;
@@ -225,3 +234,27 @@ export const allocate = (
       throw qError(QError.serializeErrorCannotAllocate, [typeId]);
   }
 };
+
+export function allocateDomEffect(
+  context: ContainerContext,
+  kind: EffectKind | undefined
+): DomEffect {
+  switch (kind) {
+    case EffectKind.TextNode:
+      return new TextNodeEffect(null!, null!, context.scheduler);
+    case EffectKind.TextExpression:
+      return new TextExpressionEffect(null!, null!, null!, context.scheduler);
+    case EffectKind.Attr:
+      return new AttrEffect(null!, null!, null!, context.scheduler);
+    case EffectKind.AttrExpression:
+      return new AttrExpressionEffect(null!, null!, null!, null!, context.scheduler);
+    case EffectKind.Props:
+      return new PropsEffect(null!, null!, null!, context.scheduler);
+    case EffectKind.Event:
+      return new EventEffect(null!, null!, null!, null!, context.scheduler);
+    case EffectKind.DomBatch:
+      return new DomBatchEffect(null!, context.scheduler);
+    default:
+      throw qError(QError.serializeErrorNotImplemented, [kind]);
+  }
+}

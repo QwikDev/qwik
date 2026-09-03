@@ -357,6 +357,7 @@ export { createCollection, renderSsrCollection } from './dom/collection/collecti
 export {
   AttrEffect,
   AttrExpressionEffect,
+  DomBatchEffect,
   EventEffect,
   ForBlockSubscription,
   PropsEffect,
@@ -368,7 +369,7 @@ export {
   type AttrExpressionFn,
   type EventExpressionFn,
 } from './dom/effect/effect';
-export { DomSubscription, type DomEffect } from './dom/effect/dom-subscription';
+export { DomEffect } from './dom/effect/dom-effect';
 export {
   TextExpressionEffect,
   TextNodeEffect,

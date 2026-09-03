@@ -7,13 +7,14 @@ import { ForBlock, ForRange, type IndexMode } from '../../dom/for/for';
 import {
   AttrEffect,
   AttrExpressionEffect,
+  DomBatchEffect,
   EventEffect,
   ForBlockSubscription,
   PropsEffect,
   type AttrExpressionFn,
 } from '../../dom/effect/effect';
 import type { QDispatchHandler } from '../../shared/types';
-import type { DomEffect } from '../../dom/effect/dom-subscription';
+import type { DomEffect } from '../../dom/effect/dom-effect';
 import {
   TextExpressionEffect,
   TextNodeEffect,
@@ -88,7 +89,7 @@ import { withCaptures } from '../qrl/qrl-captures';
 import type { QRLInternal } from '../qrl/qrl-class';
 import { isPromise, maybeThen } from '../utils/promises';
 import type { ValueOrPromise } from '../utils/types';
-import { allocate, pendingStoreTargets, resolvers } from './allocate';
+import { allocate, allocateDomEffect, pendingStoreTargets, resolvers } from './allocate';
 import { PromiseRoot, unwrapPromiseRoot } from './promise-root';
 import { EMPTY_OBJECT_PAYLOAD, TypeIds } from './constants';
 import { needsInflation } from './constants';
@@ -465,18 +466,17 @@ const inflateResolved = (
         case EffectKind.TextNode:
         case EffectKind.TextExpression:
         case EffectKind.Attr:
+        case EffectKind.AttrExpression:
         case EffectKind.Props:
         case EffectKind.Event: {
-          return restoreDomSubscription(container, target as Writeable<DomSubscriber>, parts).then(
-            () => ensureDeserializedOwner(subscription)
+          return restoreDomEffect(container, target as Writeable<DomEffect>, parts).then(() =>
+            ensureDeserializedOwner(subscription)
           );
         }
         case EffectKind.DomBatch: {
-          return restoreDomBatchSubscription(
-            container,
-            target as Writeable<DomSubscriber>,
-            parts
-          ).then(() => ensureDeserializedOwner(subscription));
+          return restoreDomBatchEffect(container, target as Writeable<DomBatchEffect>, parts).then(
+            () => ensureDeserializedOwner(subscription)
+          );
         }
         default:
           throw qError(QError.serializeErrorNotImplemented, [kind]);
@@ -810,23 +810,22 @@ function ensureDeserializedOwner(subscriber: Subscriber): void {
   }
 }
 
-async function restoreDomSubscription(
+async function restoreDomEffect(
   container: ContainerContext,
-  subscription: Writeable<DomSubscriber>,
+  effect: Writeable<DomEffect>,
   parts: unknown[]
 ): Promise<void> {
-  const restored = await restoreDomEffect(container, parts);
-  if (restored === null) {
-    // its element is gone, so the effect can never run: leave the subscription unsubscribed
+  const deps = await populateDomEffect(container, effect, parts);
+  if (deps === null) {
+    // Its element is gone, so the effect can never run.
     return;
   }
-  subscription.effect = restored.effect;
-  restoreDependencies(subscription, restored.deps);
+  restoreDependencies(effect, deps);
 }
 
-async function restoreDomBatchSubscription(
+async function restoreDomBatchEffect(
   container: ContainerContext,
-  subscription: Writeable<DomSubscriber>,
+  batch: Writeable<DomBatchEffect>,
   parts: unknown[]
 ): Promise<void> {
   const deps = parts[1] as Source[];
@@ -834,34 +833,36 @@ async function restoreDomBatchSubscription(
   const effects: DomEffect[] = [];
 
   for (let i = 0; i < effectParts.length; i++) {
-    const restored = await restoreDomEffect(container, effectParts[i]);
-    if (restored !== null) {
-      effects.push(restored.effect);
+    const effectPartsAtIndex = effectParts[i];
+    const effect = allocateDomEffect(container, effectPartsAtIndex[0] as EffectKind);
+    if ((await populateDomEffect(container, effect, effectPartsAtIndex)) !== null) {
+      effects.push(effect);
     }
   }
 
-  subscription.effect = () => {
+  batch.fn = () => {
     let pending: Promise<void>[] | undefined;
     for (let i = 0; i < effects.length; i++) {
-      const value = effects[i].run();
+      const value = effects[i].execute();
       if (isPromise(value)) {
         (pending ??= []).push(value);
       }
     }
     return pending === undefined ? undefined : Promise.all(pending).then(() => undefined);
   };
-  restoreDependencies(subscription, deps);
+  restoreDependencies(batch, deps);
 }
 
 /** Null when the effect's element is gone: a removed subtree leaves its serialized effects behind. */
-async function restoreDomEffect(
+async function populateDomEffect(
   container: ContainerContext,
+  effect: Writeable<DomEffect>,
   parts: unknown[]
-): Promise<{ effect: DomEffect; deps: Source[] } | null> {
+): Promise<Source[] | null> {
   const kind = parts[0] as EffectKind;
   switch (kind) {
     case EffectKind.TextNode: {
-      const target = readDomSubscriptionTarget(parts);
+      const target = readDomEffectTarget(parts);
       const text = resolveTextTarget(
         container,
         target.targetKind,
@@ -873,10 +874,14 @@ async function restoreDomEffect(
       }
       const source = readRequiredSource(target.deps) as Source<TextExpressionValue>;
       const stringify = parts[target.depsIndex + 1] === 1;
-      return { deps: target.deps, effect: new TextNodeEffect(text, source, stringify) };
+      const textEffect = effect as Writeable<TextNodeEffect>;
+      textEffect.text = text;
+      textEffect.source = source;
+      textEffect.stringify = stringify;
+      return target.deps;
     }
     case EffectKind.TextExpression: {
-      const target = readDomSubscriptionTarget(parts);
+      const target = readDomEffectTarget(parts);
       const text = resolveTextTarget(
         container,
         target.targetKind,
@@ -889,37 +894,49 @@ async function restoreDomEffect(
       const qrl = parts[target.depsIndex + 2] as QRLInternal<TextExpressionFn>;
       const args = parts[target.depsIndex + 1] as unknown[];
       const fn = withCaptures(await qrl.resolve(), args);
-      return {
-        deps: target.deps,
-        effect: new TextExpressionEffect(text, args, fn),
-      };
+      const textEffect = effect as Writeable<TextExpressionEffect>;
+      textEffect.text = text;
+      textEffect.args = args;
+      textEffect.fn = fn;
+      return target.deps;
     }
     case EffectKind.Attr: {
-      const target = readDomSubscriptionTarget(parts);
+      const target = readDomEffectTarget(parts);
       const element = resolveElementTarget(container, target.targetKind, target.targetId);
       if (element === null) {
         return null;
       }
       const name = String(parts[target.depsIndex + 1]);
-      if (parts.length > target.depsIndex + 3) {
-        const args = parts[target.depsIndex + 2] as unknown[];
-        const qrl = parts[target.depsIndex + 3] as QRLInternal<AttrExpressionFn>;
-        const styleScopedId = parts[target.depsIndex + 4] as string | null;
-        const fn = withCaptures(await qrl.resolve(), args);
-        return {
-          deps: target.deps,
-          effect: new AttrExpressionEffect(element, name, args, fn, styleScopedId ?? undefined),
-        };
-      }
       const source = readRequiredDomSource(target.deps, target.targetKind);
       const styleScopedId = parts[target.depsIndex + 2] as string | null;
-      return {
-        deps: target.deps,
-        effect: new AttrEffect(element, name, source, styleScopedId ?? undefined),
-      };
+      const attrEffect = effect as Writeable<AttrEffect>;
+      attrEffect.element = element;
+      attrEffect.name = name;
+      attrEffect.source = source;
+      attrEffect.styleScopedId = styleScopedId ?? undefined;
+      return target.deps;
+    }
+    case EffectKind.AttrExpression: {
+      const target = readDomEffectTarget(parts);
+      const element = resolveElementTarget(container, target.targetKind, target.targetId);
+      if (element === null) {
+        return null;
+      }
+      const name = String(parts[target.depsIndex + 1]);
+      const args = parts[target.depsIndex + 2] as unknown[];
+      const qrl = parts[target.depsIndex + 3] as QRLInternal<AttrExpressionFn>;
+      const styleScopedId = parts[target.depsIndex + 4] as string | null;
+      const fn = withCaptures(await qrl.resolve(), args);
+      const attrEffect = effect as Writeable<AttrExpressionEffect>;
+      attrEffect.element = element;
+      attrEffect.name = name;
+      attrEffect.args = args;
+      attrEffect.fn = fn;
+      attrEffect.styleScopedId = styleScopedId ?? undefined;
+      return target.deps;
     }
     case EffectKind.Props: {
-      const target = readDomSubscriptionTarget(parts);
+      const target = readDomEffectTarget(parts);
       const element = resolveElementTarget(container, target.targetKind, target.targetId);
       if (element === null) {
         return null;
@@ -930,13 +947,15 @@ async function restoreDomEffect(
       const args = parts[target.depsIndex + 1] as unknown[];
       const styleScopedId = parts[target.depsIndex + 3] as string | null;
       const fn = withCaptures(await qrl.resolve(), args);
-      return {
-        deps: target.deps,
-        effect: new PropsEffect(element, args, fn, styleScopedId ?? undefined),
-      };
+      const propsEffect = effect as Writeable<PropsEffect>;
+      propsEffect.element = element;
+      propsEffect.args = args;
+      propsEffect.fn = fn;
+      propsEffect.styleScopedId = styleScopedId ?? undefined;
+      return target.deps;
     }
     case EffectKind.Event: {
-      const target = readDomSubscriptionTarget(parts);
+      const target = readDomEffectTarget(parts);
       const element = resolveElementTarget(container, target.targetKind, target.targetId);
       if (element === null) {
         return null;
@@ -947,17 +966,21 @@ async function restoreDomEffect(
       const before = parts[target.depsIndex + 4] as QDispatchHandler[];
       const after = parts[target.depsIndex + 5] as QDispatchHandler[];
       const fn = withCaptures(await qrl.resolve(), args);
-      return {
-        deps: target.deps,
-        effect: new EventEffect(element, name, args, fn, before, after),
-      };
+      const eventEffect = effect as Writeable<EventEffect>;
+      eventEffect.element = element;
+      eventEffect.name = name;
+      eventEffect.args = args;
+      eventEffect.fn = fn;
+      eventEffect.before = before;
+      eventEffect.after = after;
+      return target.deps;
     }
     default:
       throw qError(QError.serializeErrorNotImplemented, [kind]);
   }
 }
 
-function readDomSubscriptionTarget(parts: unknown[]): {
+function readDomEffectTarget(parts: unknown[]): {
   targetKind: EffectTargetKind;
   targetId: number;
   markerIndex: number | undefined;

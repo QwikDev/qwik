@@ -105,7 +105,7 @@ export class SsrAttrEffect {
 }
 
 export class SsrAttrExpressionEffect<TArgs extends unknown[] = unknown[]> {
-  readonly kind = EffectKind.Attr;
+  readonly kind = EffectKind.AttrExpression;
 
   constructor(
     readonly target: SsrEffectTarget,
@@ -182,9 +182,9 @@ export class SsrDomSubscription implements SsrDomSubscriber {
     const effect = this.effect;
     // only attributes on elements are supported for backpatch
     if (
-      effect.kind !== EffectKind.Attr ||
+      (effect.kind !== EffectKind.Attr && effect.kind !== EffectKind.AttrExpression) ||
       effect.target.kind !== EffectTargetKind.Element ||
-      (effect instanceof SsrAttrEffect && effect.source === undefined)
+      (effect.kind === EffectKind.Attr && effect.source === undefined)
     ) {
       return;
     }
@@ -195,16 +195,14 @@ export class SsrDomSubscription implements SsrDomSubscriber {
         if (isSubscriberDisposed(this)) {
           return;
         }
-        if (effect instanceof SsrAttrEffect) {
+        if (effect.kind === EffectKind.Attr) {
           return runWithCollector(this, readTrackedSourceValue, effect.source!);
         }
-        if (effect instanceof SsrAttrExpressionEffect) {
-          const fn = effect.qrl.resolved;
-          if (fn === undefined) {
-            throw effect.qrl.resolve();
-          }
-          return runWithCollector(this, withCaptures(fn, effect.args), ...effect.args);
+        const fn = effect.qrl.resolved;
+        if (fn === undefined) {
+          throw effect.qrl.resolve();
         }
+        return runWithCollector(this, withCaptures(fn, effect.args), ...effect.args);
       });
     const commit = (resolved: unknown) => {
       this.patch = [

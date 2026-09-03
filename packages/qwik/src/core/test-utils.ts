@@ -22,7 +22,7 @@ import {
 } from '../testing/resume-session';
 import type { CsrRenderRoot } from './csr-render';
 import type { BranchRange } from './dom/branch/branch';
-import { createTextExpressionEffect } from './dom/effect/text-effect';
+import { createTextExpressionEffect, type TextExpressionEffect } from './dom/effect/text-effect';
 import { SubscriberFlags } from './reactive/flags';
 import { runWithCollector } from './reactive/tracking';
 import {
@@ -34,12 +34,7 @@ import {
 } from './runtime/owner';
 import { invoke, newInvokeContext } from './runtime/invoke-context';
 import { defaultScheduler, Phase } from './runtime/scheduler';
-import {
-  SubscriberKind,
-  type DomSubscriber,
-  type IdleSubscriber,
-  type TaskSubscriber,
-} from './runtime/subscriber';
+import { SubscriberKind, type IdleSubscriber, type TaskSubscriber } from './runtime/subscriber';
 import { Task, TaskSubscription } from './runtime/task';
 import { bootQwikLoader, type QwikLoaderTestDriver } from './qwikloader-test-driver';
 import { deserializeCaptures } from './shared/serdes/captures';
@@ -422,7 +417,7 @@ export function createOrderTextExpressionEffect(
   scheduler: Scheduler,
   label: string,
   order: string[]
-): DomSubscriber {
+): TextExpressionEffect {
   const create = () =>
     createTextExpressionEffect(
       createText(),

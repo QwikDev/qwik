@@ -10,13 +10,7 @@ import { retryOnPromise } from '../../shared/utils/promises';
 import type { ValueOrPromise } from '../../shared/utils/types';
 import { isSubscriberDisposed } from '../../runtime/subscriber';
 
-export interface DomEffect {
-  run(): ValueOrPromise<void>;
-}
-
-export type DomEffectFn = () => ValueOrPromise<void>;
-
-export class DomSubscription implements DomSubscriber {
+export abstract class DomEffect implements DomSubscriber {
   readonly kind = SubscriberKind.Dom;
   owner: Owner | null = null;
   flags = SubscriberFlags.None;
@@ -25,10 +19,9 @@ export class DomSubscription implements DomSubscriber {
   declare private asyncInvalidation: Promise<void> | undefined;
   declare private invalidateAsync: (() => void) | undefined;
 
-  constructor(
-    readonly effect: DomEffect | DomEffectFn,
-    readonly scheduler: Scheduler = defaultScheduler
-  ) {}
+  constructor(readonly scheduler: Scheduler = getActiveScheduler()) {}
+
+  abstract execute(): ValueOrPromise<void>;
 
   invalidate(): void {
     const invalidate = this.invalidateAsync;
@@ -48,7 +41,7 @@ export class DomSubscription implements DomSubscriber {
       cleanupDeps(this);
       return isSubscriberDisposed(this)
         ? undefined
-        : runWithCollector1(this, runDomEffect, this.effect);
+        : runWithCollector1(this, executeDomEffect, this);
     });
   }
 
@@ -70,15 +63,12 @@ export class DomSubscription implements DomSubscriber {
   }
 }
 
-export function createDomSubscription(
-  effect: DomEffect | DomEffectFn,
-  scheduler: Scheduler | undefined
-): DomSubscriber {
-  return registerSubscriberToOwner(new DomSubscription(effect, scheduler ?? getActiveScheduler()));
+export function registerDomEffect<T extends DomEffect>(effect: T): T {
+  return registerSubscriberToOwner(effect);
 }
 
-function runDomEffect(effect: DomEffect | DomEffectFn): ValueOrPromise<void> {
-  return typeof effect === 'function' ? effect() : effect.run();
+function executeDomEffect(effect: DomEffect): ValueOrPromise<void> {
+  return effect.execute();
 }
 
 export function commitDomPromise<T>(

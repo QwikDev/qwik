@@ -8,4 +8,5 @@ export const enum EffectKind {
   DomBatch = 6,
   Content = 7,
   Event = 8,
+  AttrExpression = 9,
 }

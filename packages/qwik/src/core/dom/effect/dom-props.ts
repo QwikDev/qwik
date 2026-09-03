@@ -12,7 +12,7 @@ import { inlinedQrl } from '../../shared/qrl/qrl';
 import { _chk, _val } from '../../runtime/bind-handlers';
 import type { SsrEventAttrChunk, SsrRecordPart } from '../../ssr/output';
 import { removeEvent, setEvent } from '../event/event';
-import { commitDomPromise } from './dom-subscription';
+import { commitDomPromise } from './dom-effect';
 import {
   CheckedAttr,
   ClassAttr,

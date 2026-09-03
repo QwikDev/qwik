@@ -19,7 +19,7 @@ import {
   invokeWithCollector4,
   runWithCollector,
 } from '../reactive/tracking';
-import { createTextNodeEffect } from '../dom/effect/text-effect';
+import { createTextNodeEffect, type TextExpressionEffect } from '../dom/effect/text-effect';
 import {
   createOwner,
   disposeOwner,
@@ -177,8 +177,8 @@ describe('runtime scheduler and owner lifecycle', () => {
     const scheduler = new Scheduler(noopSchedule);
     const owner = createOwner();
     const started: string[] = [];
-    let first!: DomSubscriber;
-    let second!: DomSubscriber;
+    let first!: TextExpressionEffect;
+    let second!: TextExpressionEffect;
     let resolveFirst!: () => void;
     let resolveSecond!: () => void;
     const firstPromise = new Promise<void>((resolve) => {
@@ -192,11 +192,11 @@ describe('runtime scheduler and owner lifecycle', () => {
       first = createOrderTextExpressionEffect(scheduler, 'first', []);
       second = createOrderTextExpressionEffect(scheduler, 'second', []);
     });
-    (first.effect as { run: () => Promise<void> }).run = () => {
+    first.execute = () => {
       started.push('first');
       return firstPromise;
     };
-    (second.effect as { run: () => Promise<void> }).run = () => {
+    second.execute = () => {
       started.push('second');
       return secondPromise;
     };
@@ -303,11 +303,11 @@ describe('runtime scheduler and owner lifecycle', () => {
         run() {
           for (let i = 0; i < 32; i++) {
             const child = createOwner(parent);
-            let effect!: DomSubscriber;
+            let effect!: TextExpressionEffect;
             runWithOwner(child, () => {
               effect = createOrderTextExpressionEffect(scheduler, String(i), []);
             });
-            (effect.effect as { run: () => void }).run = () => {
+            effect.execute = () => {
               order.push(i);
               if (i === 0) {
                 queueMicrotask(() => (observed = order.length));

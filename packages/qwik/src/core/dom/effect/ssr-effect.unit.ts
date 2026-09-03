@@ -134,7 +134,7 @@ describe('SSR DOM effect helpers', () => {
     expect(value).toBe('color:red');
     expect(subscriber).toBeInstanceOf(SsrDomSubscription);
     expect(subscriber.deps).toEqual([count]);
-    expect(subscriber.effect.kind).toBe(EffectKind.Attr);
+    expect(subscriber.effect.kind).toBe(EffectKind.AttrExpression);
     expect((subscriber.effect as any).target).toBe(target);
   });
 

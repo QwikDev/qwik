@@ -11,18 +11,28 @@ import { useSignal, useComputed } from '../../reactive/public-api';
 import { createOwner, runWithOwner } from '../../runtime/owner';
 import { Scheduler } from '../../runtime/scheduler';
 import {
+  AttrEffect,
+  AttrExpressionEffect,
   createAttrEffect,
   createAttrExpressionEffect,
   createDomBatchEffect,
   createEventEffect,
   createPropsEffect,
+  DomBatchEffect,
+  EventEffect,
+  PropsEffect,
   resolveEventHandlers,
 } from './effect';
-import { createTextExpressionEffect, createTextNodeEffect, patchTextValue } from './text-effect';
+import {
+  createTextExpressionEffect,
+  createTextNodeEffect,
+  patchTextValue,
+  TextExpressionEffect,
+  TextNodeEffect,
+} from './text-effect';
 import { applyDomProps, patchAttrValue, renderDomPropsToString, setRef } from './dom-props';
 import { _chk, _val } from '../../runtime/bind-handlers';
 import { setCaptures } from '../../shared/qrl/qrl-class';
-import { DomSubscription } from './dom-subscription';
 import { createCapturedEvent } from '../event/event';
 
 describe('DOM effects', () => {
@@ -37,6 +47,7 @@ describe('DOM effects', () => {
     scheduler.notify(effect);
     await scheduler.flushInteraction();
 
+    expect(effect).toBeInstanceOf(TextExpressionEffect);
     expect(text.data).toBe('7');
   });
 
@@ -83,7 +94,8 @@ describe('DOM effects', () => {
     await scheduler.flushInteraction();
 
     expect(text.data).toBe('7');
-    expect(toArray(count.subs)).toContain(effect);
+    expect(effect).toBeInstanceOf(TextNodeEffect);
+    expect(toArray(count.subs)[0]).toBe(effect);
 
     count.value = 8;
     await scheduler.flushInteraction();
@@ -126,6 +138,7 @@ describe('DOM effects', () => {
     scheduler.notify(effect);
     await scheduler.flushInteraction();
 
+    expect(effect).toBeInstanceOf(AttrEffect);
     expect(attrs.get('title')).toBe('hello');
 
     title.value = 'world';
@@ -151,6 +164,7 @@ describe('DOM effects', () => {
     scheduler.notify(effect);
     await scheduler.flushInteraction();
 
+    expect(effect).toBeInstanceOf(AttrExpressionEffect);
     expect(attrs.get('style')).toBe('color:blue');
 
     count.value = 1;
@@ -171,6 +185,7 @@ describe('DOM effects', () => {
 
     scheduler.notify(effect);
     await scheduler.flushInteraction();
+    expect(effect).toBeInstanceOf(EventEffect);
     expect((element as any)._qDispatch).toBeUndefined();
 
     handler.value = first;
@@ -328,6 +343,7 @@ describe('DOM effects', () => {
     scheduler.notify(effect);
     await scheduler.flushInteraction();
 
+    expect(effect).toBeInstanceOf(PropsEffect);
     expect(attrs.get('title')).toBe('hello');
     expect(attrs.get('class')).toBe('active');
     expect(attrs.get('style')).toBe('opacity:0.5');
@@ -580,9 +596,9 @@ describe('DOM effects', () => {
     const third = createOwned(() => createTextNodeEffect(createText(), order, scheduler));
     const seen: string[] = [];
 
-    (first.effect as { run: () => void }).run = () => void seen.push('first');
-    (second.effect as { run: () => void }).run = () => void seen.push('second');
-    (third.effect as { run: () => void }).run = () => void seen.push('third');
+    (first as { execute: () => void }).execute = () => void seen.push('first');
+    (second as { execute: () => void }).execute = () => void seen.push('second');
+    (third as { execute: () => void }).execute = () => void seen.push('third');
 
     scheduler.notify(third);
     scheduler.notify(first);
@@ -639,7 +655,8 @@ describe('DOM effects', () => {
     };
     const effect = createOwned(() => createDomBatchEffect(update, scheduler));
 
-    expect((effect as DomSubscription).effect).toBe(update);
+    expect(effect).toBeInstanceOf(DomBatchEffect);
+    expect(effect.fn).toBe(update);
     expect(effect.deps).toEqual([count, active]);
     expect(count.subs).toBe(effect);
     expect(active.subs).toBe(effect);

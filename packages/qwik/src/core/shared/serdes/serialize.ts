@@ -7,8 +7,6 @@ import { SSRContentSubscription as SsrContentSubscription } from '../../dom/cont
 import { SSRForBlockSubscription as SsrForBlockSubscription } from '../../dom/effect/ssr-effect';
 import {
   EffectTargetKind,
-  SsrAttrEffect,
-  SsrAttrExpressionEffect,
   SsrDomSubscription,
   type SsrScalarDomEffect,
   type SsrDomEffect,
@@ -1191,24 +1189,23 @@ function serializeSsrScalarDomEffect(
           ]
         : [effect.kind, target.kind, target.id, serializedDeps, effect.args, effect.qrl];
     case EffectKind.Attr:
-      if (effect instanceof SsrAttrExpressionEffect) {
-        return [
-          effect.kind,
-          target.kind,
-          target.id,
-          serializedDeps,
-          effect.name,
-          effect.args,
-          effect.qrl,
-          effect.styleScopedId,
-        ];
-      }
       return [
         effect.kind,
         target.kind,
         target.id,
         serializedDeps,
         effect.name,
+        effect.styleScopedId,
+      ];
+    case EffectKind.AttrExpression:
+      return [
+        effect.kind,
+        target.kind,
+        target.id,
+        serializedDeps,
+        effect.name,
+        effect.args,
+        effect.qrl,
         effect.styleScopedId,
       ];
     case EffectKind.Props:
@@ -1243,9 +1240,7 @@ function serializeSsrScalarDomEffectDeps(effect: SsrScalarDomEffect): readonly S
     case EffectKind.TextNode:
       return effect.source === undefined ? EMPTY_ARRAY : [effect.source];
     case EffectKind.Attr:
-      return effect instanceof SsrAttrEffect && effect.source !== undefined
-        ? [effect.source]
-        : EMPTY_ARRAY;
+      return effect.source === undefined ? EMPTY_ARRAY : [effect.source];
     default:
       return EMPTY_ARRAY;
   }

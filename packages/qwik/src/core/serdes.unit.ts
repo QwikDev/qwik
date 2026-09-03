@@ -681,7 +681,7 @@ describe('serdes emit-only', () => {
     const signalPayload = state[1] as unknown[];
     const effectPayload = signalPayload[3] as unknown[];
 
-    expect(effectPayload[1]).toBe(EffectKind.Attr);
+    expect(effectPayload[1]).toBe(EffectKind.AttrExpression);
     expect(effectPayload[3]).toBe(EffectTargetKind.Element);
     expect(effectPayload[5]).toBe(2);
     expect(effectPayload[9]).toBe('style');

@@ -1,17 +1,13 @@
 import type { ValueOrPromise } from '../../shared/utils/types';
 import { SubscriberFlags } from '../../reactive/flags';
 import { defaultScheduler, type Scheduler } from '../../runtime/scheduler';
-import {
-  SubscriberKind,
-  type DomSubscriber,
-  type ForBlockSubscriber,
-} from '../../runtime/subscriber';
+import { SubscriberKind, type ForBlockSubscriber } from '../../runtime/subscriber';
 import type { Source } from '../../reactive/source';
 import { runWithCollector0 } from '../../reactive/tracking';
 import type { Owner } from '../../runtime/owner';
 import type { ForBlock } from '../for/for';
 import { applyDomProps, patchAttrValue } from './dom-props';
-import { createDomSubscription } from './dom-subscription';
+import { DomEffect, registerDomEffect } from './dom-effect';
 import { readTrackedSourceValue } from './text-effect';
 import { removeEvent, setEvent } from '../event/event';
 import type { CapturedEventHandler, QDispatchHandler } from '../../shared/types';
@@ -26,15 +22,18 @@ type DomPropsFn<TArgs extends unknown[] = unknown[]> = (
 export type EventExpressionFn<TArgs extends unknown[] = unknown[]> = (...args: TArgs) => unknown;
 export type DomBatchFn = () => ValueOrPromise<void>;
 
-export class AttrEffect {
+export class AttrEffect extends DomEffect {
   constructor(
     readonly element: Element,
     readonly name: string,
     readonly source: Source,
+    scheduler?: Scheduler,
     readonly styleScopedId?: string
-  ) {}
+  ) {
+    super(scheduler);
+  }
 
-  run(): ValueOrPromise<void> {
+  execute(): ValueOrPromise<void> {
     return patchAttrValue(
       this.element,
       this.name,
@@ -44,31 +43,37 @@ export class AttrEffect {
   }
 }
 
-export class AttrExpressionEffect<TArgs extends unknown[] = unknown[]> {
+export class AttrExpressionEffect<TArgs extends unknown[] = unknown[]> extends DomEffect {
   constructor(
     readonly element: Element,
     readonly name: string,
     readonly args: TArgs,
     readonly fn: AttrExpressionFn<TArgs>,
+    scheduler?: Scheduler,
     readonly styleScopedId?: string
-  ) {}
+  ) {
+    super(scheduler);
+  }
 
-  run(): ValueOrPromise<void> {
+  execute(): ValueOrPromise<void> {
     return patchAttrValue(this.element, this.name, this.fn(...this.args), this.styleScopedId);
   }
 }
 
-export class PropsEffect<TArgs extends unknown[] = unknown[]> {
+export class PropsEffect<TArgs extends unknown[] = unknown[]> extends DomEffect {
   private prevProps: Record<string, unknown> | null = null;
 
   constructor(
     readonly element: Element,
     readonly args: TArgs,
     readonly fn: DomPropsFn<TArgs>,
+    scheduler?: Scheduler,
     readonly styleScopedId?: string
-  ) {}
+  ) {
+    super(scheduler);
+  }
 
-  run(): void {
+  execute(): void {
     this.prevProps = applyDomProps(
       this.element,
       this.fn(...this.args),
@@ -78,17 +83,20 @@ export class PropsEffect<TArgs extends unknown[] = unknown[]> {
   }
 }
 
-export class EventEffect<TArgs extends unknown[] = unknown[]> {
+export class EventEffect<TArgs extends unknown[] = unknown[]> extends DomEffect {
   constructor(
     readonly element: Element,
     readonly name: string,
     readonly args: TArgs,
     readonly fn: EventExpressionFn<TArgs>,
+    scheduler?: Scheduler,
     readonly before: readonly QDispatchHandler[] = EMPTY_ARRAY,
     readonly after: readonly QDispatchHandler[] = EMPTY_ARRAY
-  ) {}
+  ) {
+    super(scheduler);
+  }
 
-  run(): void {
+  execute(): void {
     const handlers = resolveEventHandlers(this.fn(...this.args), this.before, this.after);
     if (handlers === null) {
       removeEvent(this.element, this.name);
@@ -114,14 +122,27 @@ export class ForBlockSubscription<T = unknown> implements ForBlockSubscriber {
   }
 }
 
+export class DomBatchEffect extends DomEffect {
+  constructor(
+    readonly fn: DomBatchFn,
+    scheduler?: Scheduler
+  ) {
+    super(scheduler);
+  }
+
+  execute(): ValueOrPromise<void> {
+    return this.fn();
+  }
+}
+
 export function createAttrEffect(
   element: Element,
   name: string,
   source: Source,
   scheduler?: Scheduler,
   styleScopedId?: string
-): DomSubscriber {
-  return createDomSubscription(new AttrEffect(element, name, source, styleScopedId), scheduler);
+): AttrEffect {
+  return registerDomEffect(new AttrEffect(element, name, source, scheduler, styleScopedId));
 }
 
 export function createAttrExpressionEffect<TArgs extends unknown[]>(
@@ -131,10 +152,9 @@ export function createAttrExpressionEffect<TArgs extends unknown[]>(
   fn: AttrExpressionFn<TArgs>,
   scheduler?: Scheduler,
   styleScopedId?: string
-): DomSubscriber {
-  return createDomSubscription(
-    new AttrExpressionEffect(element, name, args, fn, styleScopedId),
-    scheduler
+): AttrExpressionEffect<TArgs> {
+  return registerDomEffect(
+    new AttrExpressionEffect(element, name, args, fn, scheduler, styleScopedId)
   );
 }
 
@@ -144,8 +164,8 @@ export function createPropsEffect<TArgs extends unknown[]>(
   fn: DomPropsFn<TArgs>,
   scheduler?: Scheduler,
   styleScopedId?: string
-): DomSubscriber {
-  return createDomSubscription(new PropsEffect(element, args, fn, styleScopedId), scheduler);
+): PropsEffect<TArgs> {
+  return registerDomEffect(new PropsEffect(element, args, fn, scheduler, styleScopedId));
 }
 
 export function createEventEffect<TArgs extends unknown[]>(
@@ -156,14 +176,14 @@ export function createEventEffect<TArgs extends unknown[]>(
   scheduler?: Scheduler,
   before: readonly QDispatchHandler[] = EMPTY_ARRAY,
   after: readonly QDispatchHandler[] = EMPTY_ARRAY
-): DomSubscriber {
-  return createDomSubscription(new EventEffect(element, name, args, fn, before, after), scheduler);
+): EventEffect<TArgs> {
+  return registerDomEffect(new EventEffect(element, name, args, fn, scheduler, before, after));
 }
 
-export function createDomBatchEffect(fn: DomBatchFn, scheduler?: Scheduler): DomSubscriber {
-  const subscriber = createDomSubscription(fn, scheduler);
-  runWithCollector0(subscriber, fn);
-  return subscriber;
+export function createDomBatchEffect(fn: DomBatchFn, scheduler?: Scheduler): DomBatchEffect {
+  const effect = registerDomEffect(new DomBatchEffect(fn, scheduler));
+  runWithCollector0(effect, fn);
+  return effect;
 }
 
 export function resolveEventHandlers(

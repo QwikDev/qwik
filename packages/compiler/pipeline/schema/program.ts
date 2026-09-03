@@ -61,6 +61,15 @@ export const enum ComponentPropsKind {
   Proxy = 'proxy',
 }
 
+export const enum ProjectionKind {
+  Render = 'render',
+  Forward = 'forward',
+}
+
+export type ComponentProjection =
+  | { kind: ProjectionKind.Render; name: string; use: QrlUse; id: Seed }
+  | { kind: ProjectionKind.Forward; name: string; sourceName: string; id: Seed };
+
 export const enum EachSourceKind {
   Array = 'array',
   Reactive = 'reactive',
@@ -109,7 +118,7 @@ export type Op =
       props:
         | { c: ComponentPropsKind.Entries; props: Prop[] }
         | { c: ComponentPropsKind.Proxy; compute: QrlUse };
-      projections: { name: string; use: QrlUse; id: Seed }[];
+      projections: ComponentProjection[];
       id: Seed;
       lifetime: LifetimeId;
       blockingSuspense: boolean;

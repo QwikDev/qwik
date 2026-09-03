@@ -27,6 +27,7 @@ export const enum QwikWord {
   ReadExpression = 'readExpression',
   CreateSlot = 'createSlot',
   CreateSlotScope = 'createSlotScope',
+  ForwardSlot = 'forwardSlot',
   RegisterProjection = 'registerProjection',
   // ssr
   CreateSsrNodeId = 'createSsrNodeId',

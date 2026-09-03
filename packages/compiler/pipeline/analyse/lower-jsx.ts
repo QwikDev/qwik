@@ -7,6 +7,7 @@ import {
   FnBodyKind,
   HandlerKind,
   OpKind,
+  ProjectionKind,
   PropKind,
   PropsPartKind,
   ProgramBodyKind,
@@ -377,6 +378,12 @@ function lowerProjections(
   ctx: LowerContext
 ): Extract<Op, { op: OpKind.Component }>['projections'] {
   return children.filter(isProjectionChild).map((child) => {
+    const name = readProjectionName(child);
+    const id = { kind: SeedKind.Projection, ordinal: ctx.projectionCounter.next++ } as const;
+    const sourceName = readForwardedSlotName(child, ctx);
+    if (sourceName !== null) {
+      return { kind: ProjectionKind.Forward, name, sourceName, id };
+    }
     const use = lowerRenderQrl(
       [child],
       ctx,
@@ -385,11 +392,37 @@ function lowerProjections(
       'projection'
     );
     return {
-      name: readProjectionName(child),
+      kind: ProjectionKind.Render,
+      name,
       use,
-      id: { kind: SeedKind.Projection, ordinal: ctx.projectionCounter.next++ },
+      id,
     };
   });
+}
+
+function readForwardedSlotName(child: JSXChild, ctx: LowerContext): string | null {
+  if (
+    child.type !== 'JSXElement' ||
+    child.children.some(isProjectionChild) ||
+    child.openingElement.name.type !== 'JSXIdentifier'
+  ) {
+    return null;
+  }
+  const binding = ctx.bindings.reference(child.openingElement.name);
+  if (binding === null || ctx.coreBindings.get(binding) !== 'Slot') {
+    return null;
+  }
+  const attributes = child.openingElement.attributes;
+  if (
+    attributes.some((attribute) => {
+      const name = jsxAttributeName(attribute);
+      return name !== 'name' && name !== QwikDirective.Slot;
+    })
+  ) {
+    return null;
+  }
+  const nameAttribute = attributes.find((attribute) => jsxAttributeName(attribute) === 'name');
+  return nameAttribute === undefined ? '' : readStaticSlotName(nameAttribute);
 }
 
 function lowerRenderQrl(

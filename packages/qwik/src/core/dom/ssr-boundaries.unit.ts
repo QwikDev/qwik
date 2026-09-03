@@ -12,12 +12,34 @@ import type { SsrOutput } from '../ssr/output';
 import { renderSsrBranch } from './branch/branch';
 import { renderSsrCollection } from './collection/collection';
 import { IndexMode, RowOutputShape, renderSsrForBlock } from './for/for';
-import { createSlotScope, registerProjection, renderSsrSlot, type SlotScope } from './slot/slot';
+import {
+  createSlotScope,
+  forwardSlot,
+  registerProjection,
+  renderSsrSlot,
+  resolveSlot,
+  type SlotScope,
+} from './slot/slot';
 
 type SsrContext = ContainerContext & { nextId(): number };
 type SsrBranchRender = (ctx: ContainerContext, rangeId: number) => ValueOrPromise<SsrOutput>;
 
 describe('structured SSR boundaries', () => {
+  it('forwards the QRL without sharing mutable projection state', () => {
+    const ctx = createSsrContext();
+    const sourceScope = createSlotScope();
+    const renderQrl = {};
+    const projection = registerProjection(sourceScope, 'source', renderQrl, null);
+    const targetScope = createSlotScope();
+
+    invokeWithScope(ctx, sourceScope, () => forwardSlot(targetScope, 'target', 'source'));
+
+    const forwarded = resolveSlot(targetScope, 'target')[0];
+    expect(forwarded).not.toBe(projection);
+    expect(forwarded.renderQrl).toBe(renderQrl);
+    expect(forwarded.slotScope).toBe(projection.slotScope);
+  });
+
   it('keeps nested slot projection output structured on the synchronous fast path', () => {
     const ctx = createSsrContext();
     const slotScope = createSlotScope();

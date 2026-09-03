@@ -12,6 +12,7 @@ import {
   LinkResultKind,
   OpKind,
   PlanFormat,
+  ProjectionKind,
   ProgramBodyKind,
   QrlBodyKind,
   UnknownWhy,
@@ -129,6 +130,9 @@ export function linkPlans(
         return;
       }
       for (const projection of op.projections) {
+        if (projection.kind === ProjectionKind.Forward) {
+          continue;
+        }
         if (!qrlIndexes[module].has(projection.use.qrl)) {
           diagnostics.push({
             module: plan.path,
@@ -500,6 +504,9 @@ export function linkPlans(
       return;
     }
     for (const projection of op.projections) {
+      if (projection.kind === ProjectionKind.Forward) {
+        continue;
+      }
       const qrl = qrlIndexes[module].get(projection.use.qrl);
       if (qrl !== undefined) {
         visitDecl({ module, table: DeclTable.Qrls, index: qrl });

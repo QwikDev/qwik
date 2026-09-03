@@ -181,10 +181,13 @@ type Op =
     }
   | { op: 'hole'; value: Value; shape: Shape; effect: number | null }
   | {
-      op: 'call';
+      op: 'component';
       target: { t: 'raw'; binding: LocalId } | { t: 'dynamic'; place: PlaceIR };
       props: { c: 'entries'; props: Prop[] } | { c: 'proxy'; compute: QrlUse };
-      projections: { name: string; use: QrlUse; id: Seed }[];
+      projections: (
+        | { kind: 'render'; name: string; use: QrlUse; id: Seed }
+        | { kind: 'forward'; name: string; sourceName: string; id: Seed }
+      )[];
       id: Seed;
       lifetime: LifetimeId;
       blockingSuspense: boolean;

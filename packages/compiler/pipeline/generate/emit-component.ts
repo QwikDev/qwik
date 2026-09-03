@@ -5,6 +5,7 @@ import {
   HandlerKind,
   OpKind,
   PropKind,
+  ProjectionKind,
   QrlPayloadKind,
   ResumeKind,
   ValueKind,
@@ -76,10 +77,21 @@ function emitComponentProjections(
     return { options: '', roots: [], declarations: [], statements: [] };
   }
   imports.add(QwikWord.CreateSlotScope);
-  imports.add(QwikWord.RegisterProjection);
   const scope = pass.next(QwikGenWord.SlotScope);
   const statements: string[] = [];
   for (const projection of component.projections) {
+    if (projection.kind === ProjectionKind.Forward) {
+      imports.add(QwikWord.ForwardSlot);
+      const args = [scope];
+      if (projection.sourceName !== '') {
+        args.push(JSON.stringify(projection.name), JSON.stringify(projection.sourceName));
+      } else if (projection.name !== '') {
+        args.push(JSON.stringify(projection.name));
+      }
+      statements.push(`${QwikWord.ForwardSlot}(${args.join(', ')});`);
+      continue;
+    }
+    imports.add(QwikWord.RegisterProjection);
     const { qrl, reference, args } = resolveQrl(projection.use, true);
     if (qrl.payloadKind !== QrlPayloadKind.Function) {
       throw new UnsupportedError('a non-function component projection QRL');

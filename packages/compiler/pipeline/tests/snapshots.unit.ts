@@ -759,13 +759,14 @@ export default () => <main><Card /><Card><p>Projected</p></Card></main>;
   });
 
   test('should forward a projection through a nested slot', async () => {
-    await testInput(mode, 'component-slot-forwarding', {
+    const output = await testInput(mode, 'component-slot-forwarding', {
       code: `import { Slot } from '@qwik.dev/core';
 export const Inner = () => <article><Slot /></article>;
 export const Wrapper = () => <Inner><Slot /></Inner>;
 export default () => <Wrapper><p>Forwarded</p></Wrapper>;
 `,
     });
+    expect(output.modules).toHaveLength(2);
   });
 
   test('should render an aliased component imported from another module', async () => {

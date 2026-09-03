@@ -17,9 +17,9 @@ export const enum PlanFormat {
   LinkedPlan = 'qwik/linked-plan',
 }
 
-// Pre-release contracts; bump both when their serialized shape changes.
-export const MODULE_PLAN_VERSION = 2;
-export const LINKED_PLAN_VERSION = 2;
+// Keep pre-release contracts at 1 until the first compatibility boundary.
+export const MODULE_PLAN_VERSION = 1;
+export const LINKED_PLAN_VERSION = 1;
 
 export const enum Environment {
   Server = 'server',

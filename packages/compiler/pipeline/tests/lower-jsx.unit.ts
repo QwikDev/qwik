@@ -1,9 +1,11 @@
 import { describe, expect, test } from 'vitest';
 import { parseModule } from '../analyse/ast/parse';
 import { unwrapExpression } from '../analyse/ast/utils';
+import { analyseModule } from '../analyse/analyse-module';
 import { lowerJsx } from '../analyse/lower-jsx';
 import { createTestLowerContext } from './fixtures';
 import { foldStaticOp } from '../generate/fold-static';
+import { OpKind, ProgramBodyKind, ProjectionKind, SeedKind } from '../schema';
 
 function fold(jsx: string, escapeTextContent = false): string {
   const source = `const a = ${jsx};`;
@@ -71,5 +73,29 @@ describe('JSX lowering + static folding', () => {
     expect(() => fold('<p {...rest}></p>')).toThrow('a JSX spread attribute');
     expect(() => fold('<Foo></Foo>')).toThrow('The component "Foo" is not declared in this scope.');
     expect(() => fold('<br>x</br>')).toThrow('The void element <br> cannot have children.');
+  });
+});
+
+test('a direct Slot child forwards its named projection without a render QRL', async () => {
+  const plan = await analyseModule(
+    {
+      path: 'src/app.tsx',
+      code: `import { Slot } from '@qwik.dev/core';
+export const Inner = () => <Slot name="target" />;
+export default () => <Inner><Slot name="source" q:slot="target" /></Inner>;
+`,
+    },
+    { transpileTs: true }
+  );
+  const projection = plan.programs
+    .flatMap((program) => (program.body.kind === ProgramBodyKind.Ops ? program.body.ops : []))
+    .flatMap((op) => (op.op === OpKind.Component ? op.projections : []))
+    .find((projection) => projection.kind === ProjectionKind.Forward);
+
+  expect(projection).toEqual({
+    kind: ProjectionKind.Forward,
+    name: 'target',
+    sourceName: 'source',
+    id: { kind: SeedKind.Projection, ordinal: 0 },
   });
 });

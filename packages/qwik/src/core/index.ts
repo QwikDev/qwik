@@ -256,6 +256,7 @@ export {
   createSlot,
   createDynamicTag,
   createSlotScope,
+  forwardSlot,
   isProjection,
   isSlotScope,
   registerProjection,

@@ -13,31 +13,20 @@ import {
   renderSsrSlot,
   maybeThen,
   createSlotScope,
-  registerProjection,
+  forwardSlot,
   createComponent,
+  registerProjection,
   createSsrMarkup,
   createSsrNodeId,
   _noopQrl,
 } from '@qwik.dev/core';
 const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
-  const slot0 = renderSsrSlot(ctx);
-  return [
-    createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'),
-    maybeThen(slot0, (slot0) => slot0),
-    '<!/s>',
-  ];
+  return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), '<p>Forwarded</p>', '<!/s>'];
 };
 const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_0_3b0tagwys7lui'
 );
 q_component_slot_render_segment_0_3b0tagwys7lui.s(component_slot_render_segment_0_3b0tagwys7lui);
-const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId) => {
-  return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), '<p>Forwarded</p>', '<!/s>'];
-};
-const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _noopQrl(
-  'component_slot_render_segment_1_3b0tauy2p1nv1'
-);
-q_component_slot_render_segment_1_3b0tauy2p1nv1.s(component_slot_render_segment_1_3b0tauy2p1nv1);
 export const Inner = (props, ctx) => {
   const slot0 = renderSsrSlot(ctx);
   return maybeThen(slot0, (slot0) => ['<article>', slot0, '</article>']);
@@ -45,28 +34,23 @@ export const Inner = (props, ctx) => {
 export const Wrapper = (props, ctx) => {
   const slotScope0 = createSlotScope();
   ctx.addRoot(slotScope0);
-  registerProjection(slotScope0, '', q_component_slot_render_segment_0_3b0tagwys7lui);
+  forwardSlot(slotScope0);
   const component0 = createComponent({}, (props) => Inner(props, ctx), { slotScope: slotScope0 });
   return maybeThen(component0, (component0) => component0);
 };
 export default (props, ctx) => {
   const slotScope0 = createSlotScope();
   ctx.addRoot(slotScope0);
-  registerProjection(slotScope0, '', q_component_slot_render_segment_1_3b0tauy2p1nv1);
+  registerProjection(slotScope0, '', q_component_slot_render_segment_0_3b0tagwys7lui);
   const component0 = createComponent({}, (props) => Wrapper(props, ctx), { slotScope: slotScope0 });
   return maybeThen(component0, (component0) => component0);
 };
 ============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
 
-import { renderSsrSlot, maybeThen, createSsrMarkup, createSsrNodeId } from '@qwik.dev/core';
+import { createSsrMarkup, createSsrNodeId } from '@qwik.dev/core';
 
 export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
-  const slot0 = renderSsrSlot(ctx);
-  return [
-    createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'),
-    maybeThen(slot0, (slot0) => slot0),
-    '<!/s>',
-  ];
+  return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), '<p>Forwarded</p>', '<!/s>'];
 };
 /*
 {
@@ -76,33 +60,6 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) =>
   "displayName": "component_slot_render_segment_0",
   "hash": "3b0tagwys7lui",
   "canonicalFilename": "component.tsx_component_slot_render_segment_0_3b0tagwys7lui",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "slot:render",
-  "captures": false,
-  "loc": [
-    131,
-    139
-  ],
-  "paramNames": []
-}
-*/
-============================= src/component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1.js (ENTRY POINT)==
-
-import { createSsrMarkup, createSsrNodeId } from '@qwik.dev/core';
-
-export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId) => {
-  return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), '<p>Forwarded</p>', '<!/s>'];
-};
-/*
-{
-  "origin": "component.tsx",
-  "name": "component_slot_render_segment_1_3b0tauy2p1nv1",
-  "entry": null,
-  "displayName": "component_slot_render_segment_1",
-  "hash": "3b0tauy2p1nv1",
-  "canonicalFilename": "component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

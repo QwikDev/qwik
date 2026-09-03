@@ -41,12 +41,20 @@ import { createWindow } from '../testing/document';
 import type { ValueOrPromise } from './shared/utils/types';
 import { createContainerContext, type ContainerContext } from './runtime/container-context';
 import { createContextScope } from './runtime/context-scope';
+import { invoke, newInvokeContext } from './runtime/invoke-context';
 import { createOwner, registerSubscriberToOwner, runWithOwner } from './runtime/owner';
 import { Phase, Scheduler } from './runtime/scheduler';
 import { useTaskQrl, Task, TaskSubscription, type TaskFn } from './runtime/task';
 import { runWithCollector } from './reactive/tracking';
 import { createCaptureContainer, createText, runWithTestContainer, toArray } from './test-utils';
 import { _props, createPropsProxy, getPropsProxySource, getPropsSources } from './component/props';
+import {
+  createSlotScope,
+  forwardSlot,
+  registerProjection,
+  resolveSlot,
+  type SlotScope,
+} from './dom/slot/slot';
 
 type BranchConditionFn = () => boolean;
 type BranchRenderFn = (ctx: ContainerContext) => ValueOrPromise<string>;
@@ -68,6 +76,23 @@ class TestDomRef {
 }
 
 describe('serdes emit-only', () => {
+  it('round-trips one QRL shared by independent forwarded projections', async () => {
+    const sourceScope = createSlotScope();
+    const renderQrl = createQRL('chunk', 'projection', () => null);
+    registerProjection(sourceScope, '', renderQrl, null);
+    const targetScope = createSlotScope();
+    invoke(newInvokeContext({ slotScope: sourceScope }), () => forwardSlot(targetScope));
+
+    const [restoredSource, restoredTarget] = await _deserialize<[SlotScope, SlotScope]>(
+      await _serialize([sourceScope, targetScope])
+    );
+
+    const sourceProjection = resolveSlot(restoredSource)[0];
+    const targetProjection = resolveSlot(restoredTarget)[0];
+    expect(targetProjection).not.toBe(sourceProjection);
+    expect(targetProjection.renderQrl).toBe(sourceProjection.renderQrl);
+  });
+
   it('serializes an object through its own SerializerSymbol', async () => {
     class LoaderCapture {
       constructor(readonly hash: string) {}

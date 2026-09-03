@@ -123,6 +123,28 @@ export function registerProjection(
   return registered;
 }
 
+export function forwardSlot(
+  scope: SlotScope,
+  targetName: string = EMPTY_STRING,
+  sourceName: string = EMPTY_STRING
+): void {
+  const source = resolveSlot(getActiveInvokeContext().slotScope, sourceName);
+  if (source.length === 0) {
+    return;
+  }
+  const forwarded = source.map(
+    (projection) =>
+      new ProjectionState(projection.renderQrl, projection.slotScope, projection.idBase)
+  );
+  const normalized = targetName || EMPTY_STRING;
+  const projections = scope.slots.get(normalized);
+  if (projections === undefined) {
+    scope.slots.set(normalized, forwarded);
+  } else {
+    projections.push(...forwarded);
+  }
+}
+
 export function resolveSlot(
   scope: SlotScope | null,
   name: string = EMPTY_STRING

@@ -8,6 +8,7 @@ import {
   ImportTargetKind,
   LinkResultKind,
   OpKind,
+  ProjectionKind,
   ProgramBodyKind,
   UnknownWhy,
 } from '../schema';
@@ -181,7 +182,12 @@ export default () => <Wrapper><p>Projected</p></Wrapper>;
       if (component?.op !== OpKind.Component) {
         return;
       }
-      component.projections[0].use.qrl = 'missing';
+      const projection = component.projections[0];
+      expect(projection.kind).toBe(ProjectionKind.Render);
+      if (projection.kind !== ProjectionKind.Render) {
+        return;
+      }
+      projection.use.qrl = 'missing';
 
       expect(
         linkPlans(

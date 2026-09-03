@@ -16,20 +16,16 @@ import {
   maybeThen,
   createTemplate,
   createSlotScope,
+  forwardSlot,
+  createComponent,
   registerProjection,
   _qrlWithChunk,
-  createComponent,
 } from '@qwik.dev/core';
 const Inner_tmpl0 = createTemplate('<article><!----><!----></article>');
 const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_slot_render_segment_0_3b0tagwys7lui',
   () => import('./component.tsx_component_slot_render_segment_0_3b0tagwys7lui'),
   'component_slot_render_segment_0_3b0tagwys7lui'
-);
-const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1',
-  () => import('./component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1'),
-  'component_slot_render_segment_1_3b0tauy2p1nv1'
 );
 export const Inner = (props, ctx) => {
   const fragment0 = Inner_tmpl0(ctx.document);
@@ -47,22 +43,25 @@ export const Inner = (props, ctx) => {
 };
 export const Wrapper = (props, ctx) => {
   const slotScope0 = createSlotScope();
-  registerProjection(slotScope0, '', q_component_slot_render_segment_0_3b0tagwys7lui);
+  forwardSlot(slotScope0);
   const component0 = createComponent({}, (props) => Inner(props, ctx), { slotScope: slotScope0 });
   return component0;
 };
 export default (props, ctx) => {
   const slotScope0 = createSlotScope();
-  registerProjection(slotScope0, '', q_component_slot_render_segment_1_3b0tauy2p1nv1);
+  registerProjection(slotScope0, '', q_component_slot_render_segment_0_3b0tagwys7lui);
   const component0 = createComponent({}, (props) => Wrapper(props, ctx), { slotScope: slotScope0 });
   return component0;
 };
 ============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
 
-import { createSlot } from '@qwik.dev/core';
+import { _first, createTemplate } from '@qwik.dev/core';
+const component_slot_render_segment_0_3b0tagwys7lui_tmpl0 = createTemplate('<p>Forwarded</p>');
 
-export const component_slot_render_segment_0_3b0tagwys7lui = () => {
-  return createSlot();
+export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
+  const fragment0 = component_slot_render_segment_0_3b0tagwys7lui_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  return el0;
 };
 /*
 {
@@ -72,36 +71,6 @@ export const component_slot_render_segment_0_3b0tagwys7lui = () => {
   "displayName": "component_slot_render_segment_0",
   "hash": "3b0tagwys7lui",
   "canonicalFilename": "component.tsx_component_slot_render_segment_0_3b0tagwys7lui",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "slot:render",
-  "captures": false,
-  "loc": [
-    131,
-    139
-  ],
-  "paramNames": []
-}
-*/
-============================= src/component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1.js (ENTRY POINT)==
-
-import { _first, createTemplate } from '@qwik.dev/core';
-const component_slot_render_segment_1_3b0tauy2p1nv1_tmpl0 = createTemplate('<p>Forwarded</p>');
-
-export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx) => {
-  const fragment0 = component_slot_render_segment_1_3b0tauy2p1nv1_tmpl0(ctx.document);
-  const el0 = _first(fragment0);
-  return el0;
-};
-/*
-{
-  "origin": "component.tsx",
-  "name": "component_slot_render_segment_1_3b0tauy2p1nv1",
-  "entry": null,
-  "displayName": "component_slot_render_segment_1",
-  "hash": "3b0tauy2p1nv1",
-  "canonicalFilename": "component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

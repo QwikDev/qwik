@@ -759,6 +759,30 @@ export default (props) => <Switch name={props.pick}><i q:slot="a">Alpha</i><b q:
     });
   });
 
+  test('should project a conditional child into its statically named slot', async () => {
+    await testInput(mode, 'component-children-conditional-slot', {
+      code: `import { Slot, useSignal } from '@qwik.dev/core';
+export const Panel = () => <main><Slot name="start" /><Slot /></main>;
+export default () => {
+  const show = useSignal(true);
+  return <Panel>{show.value && <span q:slot="start">start</span>}</Panel>;
+};
+`,
+    });
+  });
+
+  test('should split a conditional child across its statically named slots', async () => {
+    await testInput(mode, 'component-children-conditional-slot-split', {
+      code: `import { Slot, useSignal } from '@qwik.dev/core';
+export const Panel = () => <main><Slot name="x" /><Slot name="y" /></main>;
+export default () => {
+  const flip = useSignal(false);
+  return <Panel>{flip.value ? <a q:slot="x">alpha</a> : <b q:slot="y">bravo</b>}</Panel>;
+};
+`,
+    });
+  });
+
   test('should render a slot fallback only without a projection', async () => {
     await testInput(mode, 'component-slot-fallback', {
       code: `import { Slot } from '@qwik.dev/core';

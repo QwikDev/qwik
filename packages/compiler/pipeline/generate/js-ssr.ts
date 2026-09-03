@@ -394,6 +394,9 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       case OpKind.DynamicSlot:
         this.dynamicSlot(pass, op, parts);
         return;
+      case OpKind.Branch:
+        this.branch(pass, op, parts);
+        return;
       default:
         throw new Error(`pipeline.generateJsSsr: op "${op.op}" not implemented yet`);
     }

@@ -55,6 +55,10 @@ import {
 } from './output';
 
 type TextOp = Extract<LinkedOp, { op: OpKind.Static | OpKind.Hole }>;
+type RangeOp = Extract<
+  LinkedOp,
+  { op: OpKind.Branch | OpKind.Each | OpKind.Slot | OpKind.DynamicSlot }
+>;
 
 export async function generateJsCsr(
   plan: LinkedPlan,
@@ -196,8 +200,9 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         return this.createComponent(op, statements, pass);
       case OpKind.Slot:
         return this.createSlot(op, statements, pass);
+      case OpKind.Branch:
       case OpKind.DynamicSlot:
-        return this.dynamicSlotRoot(op, ownerName, statements, pass);
+        return this.rangeRoot(op, ownerName, statements, pass);
       default:
         throw new Error(`pipeline.generateJsCsr: op "${op.op}" not implemented yet`);
     }
@@ -318,29 +323,24 @@ class CsrModuleEmitter implements QwikModuleEmitter {
           nodeIndex++;
           break;
         }
-        case OpKind.Branch: {
-          this.branch(child, elementExpr, nodeIndex, nodeCount, statements, pass);
-          nodeIndex += 2;
-          break;
-        }
-        case OpKind.Each: {
-          this.each(child, elementExpr, nodeIndex, nodeCount, statements, pass);
+        case OpKind.Branch:
+        case OpKind.Each:
+        case OpKind.Slot:
+        case OpKind.DynamicSlot: {
+          const { start, end } = this.locateRange(
+            elementExpr,
+            nodeIndex,
+            nodeCount,
+            statements,
+            pass
+          );
+          this.mountRange(child, start, end, statements, pass);
           nodeIndex += 2;
           break;
         }
         case OpKind.Component: {
           this.mountComponent(child, elementExpr, nodeIndex, nodeCount, statements, pass);
           nodeIndex++;
-          break;
-        }
-        case OpKind.Slot: {
-          this.mountSlot(child, elementExpr, nodeIndex, nodeCount, statements, pass);
-          nodeIndex += 2;
-          break;
-        }
-        case OpKind.DynamicSlot: {
-          this.mountDynamicSlot(child, elementExpr, nodeIndex, nodeCount, statements, pass);
-          nodeIndex += 2;
           break;
         }
         default: {
@@ -365,23 +365,6 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     const component = this.createComponent(op, statements, pass);
     this.imports.add(QwikWord.ToNodes);
     statements.push(`${marker}.replaceWith(...${QwikWord.ToNodes}(${component}));`);
-  }
-
-  private mountSlot(
-    op: Extract<LinkedOp, { op: OpKind.Slot }>,
-    elementExpr: string,
-    nodeIndex: number,
-    nodeCount: number,
-    statements: string[],
-    pass: RenderPass
-  ): void {
-    const { end } = this.locateRange(elementExpr, nodeIndex, nodeCount, statements, pass);
-    const slot = pass.next(QwikGenWord.Slot);
-    this.imports.add(QwikWord.CreateSlot);
-    this.imports.add(QwikWord.MaybeThen);
-    statements.push(
-      `${pass.names.ctx}.scheduler.waitFor(${QwikWord.MaybeThen}(${this.createSlot(op, statements, pass)}, (${slot}) => { for (const node of ${slot}) { ${end}.parentNode.insertBefore(node, ${end}); } }));`
-    );
   }
 
   private createSlot(
@@ -412,12 +395,37 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     return `${name === '' ? "''" : name}, ${fallback}`;
   }
 
-  private dynamicSlotRoot(
-    op: Extract<LinkedOp, { op: OpKind.DynamicSlot }>,
+  private rangeRoot(
+    op: Extract<RangeOp, { op: OpKind.Branch | OpKind.DynamicSlot }>,
     ownerName: string,
     statements: string[],
     pass: RenderPass
   ): string {
+    const { start, end } = this.createRangeRoot(ownerName, statements, pass);
+    this.mountRange(op, start, end, statements, pass);
+    return `[${start}, ${end}]`;
+  }
+
+  private mountRange(
+    op: RangeOp,
+    start: string,
+    end: string,
+    statements: string[],
+    pass: RenderPass
+  ): void {
+    switch (op.op) {
+      case OpKind.Branch:
+        return this.createBranchBlock(op, start, end, statements, pass);
+      case OpKind.Each:
+        return this.createCollectionBlock(op, start, end, statements, pass);
+      case OpKind.Slot:
+        return this.insertSlot(op, end, statements, pass);
+      case OpKind.DynamicSlot:
+        return this.createDynamicSlotBlock(op, start, end, statements, pass);
+    }
+  }
+
+  private createRangeRoot(ownerName: string, statements: string[], pass: RenderPass) {
     const fragment = pass.next(QwikGenWord.Fragment);
     const template = `${ownerName}_${pass.next(QwikGenWord.Template)}`;
     const start = pass.next(QwikGenWord.Start);
@@ -430,20 +438,21 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     this.imports.add(QwikWord.FirstChild);
     this.imports.add(QwikWord.NextSibling);
     this.hoistTemplate(template, '<!----><!---->');
-    this.createDynamicSlotBlock(op, start, end, statements, pass);
-    return `[${start}, ${end}]`;
+    return { start, end };
   }
 
-  private mountDynamicSlot(
-    op: Extract<LinkedOp, { op: OpKind.DynamicSlot }>,
-    elementExpr: string,
-    nodeIndex: number,
-    nodeCount: number,
+  private insertSlot(
+    op: Extract<RangeOp, { op: OpKind.Slot }>,
+    end: string,
     statements: string[],
     pass: RenderPass
   ): void {
-    const { start, end } = this.locateRange(elementExpr, nodeIndex, nodeCount, statements, pass);
-    this.createDynamicSlotBlock(op, start, end, statements, pass);
+    const slot = pass.next(QwikGenWord.Slot);
+    this.imports.add(QwikWord.CreateSlot);
+    this.imports.add(QwikWord.MaybeThen);
+    statements.push(
+      `${pass.names.ctx}.scheduler.waitFor(${QwikWord.MaybeThen}(${this.createSlot(op, statements, pass)}, (${slot}) => { for (const node of ${slot}) { ${end}.parentNode.insertBefore(node, ${end}); } }));`
+    );
   }
 
   private createDynamicSlotBlock(
@@ -463,15 +472,13 @@ class CsrModuleEmitter implements QwikModuleEmitter {
   }
 
   /** The branch swaps DOM between its start/end comment pair via a range effect. */
-  private branch(
+  private createBranchBlock(
     op: Extract<LinkedOp, { op: OpKind.Branch }>,
-    elementExpr: string,
-    nodeIndex: number,
-    nodeCount: number,
+    start: string,
+    end: string,
     statements: string[],
     pass: RenderPass
   ): void {
-    const { start, end } = this.locateRange(elementExpr, nodeIndex, nodeCount, statements, pass);
     if (op.condition.v !== ValueKind.Qrl) {
       throw new UnsupportedError('a non-QRL branch condition');
     }
@@ -494,15 +501,13 @@ class CsrModuleEmitter implements QwikModuleEmitter {
   }
 
   /** Rows reconcile between the start/end pair; key and render chunks import statically. */
-  private each(
-    op: Extract<LinkedOp, { op: OpKind.Each }>,
-    elementExpr: string,
-    nodeIndex: number,
-    nodeCount: number,
+  private createCollectionBlock(
+    op: Extract<RangeOp, { op: OpKind.Each }>,
+    start: string,
+    end: string,
     statements: string[],
     pass: RenderPass
   ): void {
-    const { start, end } = this.locateRange(elementExpr, nodeIndex, nodeCount, statements, pass);
     let source: string;
     switch (op.source.s) {
       case EachSourceKind.Array:

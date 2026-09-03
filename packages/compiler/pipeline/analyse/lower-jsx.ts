@@ -443,33 +443,97 @@ function lowerProjections(
   children: readonly JSXChild[],
   ctx: LowerContext
 ): Extract<Op, { op: OpKind.Component }>['projections'] {
-  return children.filter(isProjectionChild).map((child) => {
-    const name = readProjectionName(child);
-    const id = { kind: SeedKind.Projection, ordinal: ctx.projectionCounter.next++ } as const;
-    const forwardedSlot = readForwardedSlot(child, ctx);
-    if (forwardedSlot !== null) {
-      return {
-        kind: ProjectionKind.Forward,
-        name,
-        sourceName: forwardedSlot.sourceName,
-        fallback: lowerSlotFallback(forwardedSlot.children, ctx),
-        id,
-      };
-    }
-    const use = lowerRenderQrl(
-      [child],
-      ctx,
-      'a component projection',
-      SegmentContext.Projection,
-      'projection'
-    );
+  return children.filter(isProjectionChild).flatMap((child) => {
+    const conditionalNames = conditionalProjectionNames(child);
+    const names = conditionalNames ?? [readProjectionName(child)];
+    return names.map((name) => lowerProjection(child, name, conditionalNames !== null, ctx));
+  });
+}
+
+function lowerProjection(
+  child: JSXChild,
+  name: string,
+  filterConditionalArms: boolean,
+  ctx: LowerContext
+): Extract<Op, { op: OpKind.Component }>['projections'][number] {
+  const id = { kind: SeedKind.Projection, ordinal: ctx.projectionCounter.next++ } as const;
+  const forwardedSlot = readForwardedSlot(child, ctx);
+  if (forwardedSlot !== null) {
     return {
-      kind: ProjectionKind.Render,
+      kind: ProjectionKind.Forward,
       name,
-      use,
+      sourceName: forwardedSlot.sourceName,
+      fallback: lowerSlotFallback(forwardedSlot.children, ctx),
       id,
     };
-  });
+  }
+  const use = lowerRenderQrl(
+    [child],
+    ctx,
+    'a component projection',
+    SegmentContext.Projection,
+    'projection',
+    filterConditionalArms ? () => lowerConditionalProjection(child, name, ctx) : undefined
+  );
+  return {
+    kind: ProjectionKind.Render,
+    name,
+    use,
+    id,
+  };
+}
+
+function conditionalProjectionNames(child: JSXChild): string[] | null {
+  if (child.type !== 'JSXExpressionContainer') {
+    return null;
+  }
+  const expression = child.expression;
+  let names: (string | null)[];
+  if (expression.type === 'ConditionalExpression') {
+    names = [projectionName(expression.consequent), projectionName(expression.alternate)];
+  } else if (expression.type === 'LogicalExpression' && expression.operator === '&&') {
+    names = [projectionName(expression.right)];
+  } else {
+    return null;
+  }
+  const unique = [...new Set(names.filter((name): name is string => name !== null))];
+  return unique.some((name) => name !== '') ? unique : null;
+}
+
+function projectionName(expression: Expression): string | null {
+  const unwrapped = unwrapExpression(expression);
+  if (isNullArm(unwrapped)) {
+    return null;
+  }
+  return unwrapped?.type === 'JSXElement' ? readProjectionName(unwrapped) : '';
+}
+
+function lowerConditionalProjection(child: JSXChild, name: string, ctx: LowerContext): Op[] {
+  if (child.type !== 'JSXExpressionContainer') {
+    throw new Error('pipeline.lowerJsx: expected a conditional projection');
+  }
+  const expression = child.expression;
+  if (expression.type === 'ConditionalExpression') {
+    return [
+      lowerBranch(
+        expression.test,
+        projectionArm(expression.consequent, name),
+        projectionArm(expression.alternate, name),
+        ctx
+      ),
+    ];
+  }
+  if (expression.type === 'LogicalExpression' && expression.operator === '&&') {
+    return [lowerBranch(expression.left, projectionArm(expression.right, name), null, ctx)];
+  }
+  throw new Error('pipeline.lowerJsx: expected a conditional projection');
+}
+
+function projectionArm(expression: Expression, name: string) {
+  return {
+    expression: projectionName(expression) === name ? expression : null,
+    range: [expression.start, expression.end] as [number, number],
+  };
 }
 
 function readForwardedSlot(
@@ -504,7 +568,8 @@ function lowerRenderQrl(
   ctx: LowerContext,
   subject: string,
   nameCtx: SegmentContext,
-  role: string
+  role: string,
+  lowerBody?: () => Op[]
 ) {
   const range: [number, number] = [children[0].start, children[children.length - 1].end];
   const { captures, args } = lowerCaptures(children, ctx, subject, { allowProps: true });
@@ -542,7 +607,7 @@ function lowerRenderQrl(
   );
   ctx.plan.programs[program].body = {
     kind: ProgramBodyKind.Ops,
-    ops: lowerJsxChildren(children, ctx),
+    ops: lowerBody?.() ?? lowerJsxChildren(children, ctx),
   };
   return use;
 }

@@ -147,3 +147,46 @@ export default (props) => <Slot name={props.name} />;
   });
   expect(plan.qrls).toHaveLength(2);
 });
+
+test('a conditional child projects into its statically named slot', async () => {
+  const plan = await analyseModule(
+    {
+      path: 'src/app.tsx',
+      code: `import { Slot, useSignal } from '@qwik.dev/core';
+export const Panel = () => <Slot name="start" />;
+export default () => {
+  const show = useSignal(true);
+  return <Panel>{show.value && <span q:slot="start">start</span>}</Panel>;
+};
+`,
+    },
+    { transpileTs: true }
+  );
+
+  expect(componentProjectionNames(plan)).toEqual(['start']);
+});
+
+test('a conditional child splits across its statically named slots', async () => {
+  const plan = await analyseModule(
+    {
+      path: 'src/app.tsx',
+      code: `import { Slot, useSignal } from '@qwik.dev/core';
+export const Panel = () => <main><Slot name="x" /><Slot name="y" /></main>;
+export default () => {
+  const flip = useSignal(false);
+  return <Panel>{flip.value ? <a q:slot="x">alpha</a> : <b q:slot="y">bravo</b>}</Panel>;
+};
+`,
+    },
+    { transpileTs: true }
+  );
+
+  expect(componentProjectionNames(plan)).toEqual(['x', 'y']);
+});
+
+function componentProjectionNames(plan: Awaited<ReturnType<typeof analyseModule>>): string[] {
+  return plan.programs
+    .flatMap((program) => (program.body.kind === ProgramBodyKind.Ops ? program.body.ops : []))
+    .flatMap((op) => (op.op === OpKind.Component ? op.projections : []))
+    .map((projection) => projection.name);
+}

@@ -20,8 +20,6 @@ import { applyUseOnToSsrOutput } from '../ssr/use-on';
 import type { SsrEventAttrChunk, SsrOutput } from '../ssr/output';
 import { EMPTY_OBJ } from '../shared/utils/flyweight';
 
-const NO_RENDER_CONTEXT = Symbol();
-
 export type ComponentOutput = NodeOutput | string;
 export type ComponentRenderFn<TProps = unknown> = (
   props: TProps
@@ -34,56 +32,48 @@ export interface ComponentOptions {
 }
 
 export function createComponent<TProps, TRenderContext>(
-  render: (props: TProps, context: TRenderContext) => ValueOrPromise<ComponentOutput | void>,
+  render: (props: TProps, context: TRenderContext) => ValueOrPromise<string>,
   props: TProps | null,
-  renderContext: TRenderContext,
-  options?: ComponentOptions
-): ValueOrPromise<ComponentOutput | void>;
-export function createComponent<TProps>(
-  props: TProps,
-  render: (props: TProps) => ValueOrPromise<string>,
+  renderContext?: TRenderContext,
   options?: ComponentOptions
 ): ValueOrPromise<string>;
-export function createComponent<TProps>(
-  props: TProps,
-  render: (props: TProps) => readonly Node[] | void,
+export function createComponent<TProps, TRenderContext>(
+  render: (props: TProps, context: TRenderContext) => readonly Node[] | void,
+  props: TProps | null,
+  renderContext?: TRenderContext,
   options?: ComponentOptions
 ): readonly Node[];
-export function createComponent<TProps>(
-  props: TProps,
-  render: (props: TProps) => Node | void,
+export function createComponent<TProps, TRenderContext>(
+  render: (props: TProps, context: TRenderContext) => Node | void,
+  props: TProps | null,
+  renderContext?: TRenderContext,
   options?: ComponentOptions
 ): Node | readonly Node[];
-export function createComponent<TProps>(
-  props: TProps,
-  render: (props: TProps) => NodeOutput | void,
+export function createComponent<TProps, TRenderContext>(
+  render: (props: TProps, context: TRenderContext) => NodeOutput | void,
+  props: TProps | null,
+  renderContext?: TRenderContext,
   options?: ComponentOptions
 ): NodeOutput;
-export function createComponent<TProps>(
-  props: TProps,
-  render: ComponentRenderFn<TProps>,
+export function createComponent<TProps, TRenderContext>(
+  render: (props: TProps, context: TRenderContext) => ValueOrPromise<ComponentOutput | void>,
+  props: TProps | null,
+  renderContext?: TRenderContext,
   options?: ComponentOptions
 ): ValueOrPromise<ComponentOutput | void>;
 export function createComponent(
-  propsOrRender: unknown,
-  renderOrProps: unknown,
-  contextOrOptions?: unknown,
-  directOptions?: ComponentOptions
+  render: (props: unknown, context: unknown) => ValueOrPromise<ComponentOutput | void>,
+  props: unknown,
+  renderContext?: unknown,
+  options?: ComponentOptions
 ): ValueOrPromise<ComponentOutput | void> {
-  const isDirectCall = typeof propsOrRender === 'function' && typeof renderOrProps !== 'function';
-  return createComponentAttempt(
-    isDirectCall ? (renderOrProps ?? EMPTY_OBJ) : propsOrRender,
-    (isDirectCall ? propsOrRender : renderOrProps) as ComponentRenderFn<unknown>,
-    isDirectCall ? contextOrOptions : NO_RENDER_CONTEXT,
-    (isDirectCall ? directOptions : contextOrOptions) as ComponentOptions | undefined,
-    0
-  );
+  return createComponentAttempt(props ?? EMPTY_OBJ, render, renderContext, options, 0);
 }
 
-function createComponentAttempt<TProps>(
+function createComponentAttempt<TProps, TRenderContext>(
   props: TProps,
-  render: ComponentRenderFn<TProps>,
-  renderContext: unknown,
+  render: (props: TProps, context: TRenderContext) => ValueOrPromise<ComponentOutput | void>,
+  renderContext: TRenderContext,
   options: ComponentOptions | undefined,
   retryCount: number
 ): ValueOrPromise<ComponentOutput | void> {
@@ -135,16 +125,7 @@ function createComponentAttempt<TProps>(
 
   let nodes: ValueOrPromise<ComponentOutput | void>;
   try {
-    nodes =
-      renderContext === NO_RENDER_CONTEXT
-        ? untrack(invoke, invokeContext, render, props)
-        : untrack(
-            invoke,
-            invokeContext,
-            render as (props: TProps, context: unknown) => ValueOrPromise<ComponentOutput | void>,
-            props,
-            renderContext
-          );
+    nodes = untrack(invoke, invokeContext, render, props, renderContext);
   } catch (error) {
     return retryOnPending(error);
   }

@@ -31,11 +31,11 @@ describe('components and invoke contexts', () => {
     const count = useSignal(1);
     const node = createNode('component');
 
-    const nodes = createComponent(count, (source) => {
+    const nodes = createComponent((source) => {
       expect(getActiveCollector()).toBeNull();
       source.value;
       return [node];
-    });
+    }, count);
 
     expect(nodes).toEqual([node]);
     expect(count.subs).toBeNull();
@@ -44,7 +44,7 @@ describe('components and invoke contexts', () => {
   it('returns scalar node component output', () => {
     const node = createNode('component');
 
-    const output = createComponent(null, () => node);
+    const output = createComponent(() => node, null);
 
     expect(output).toBe(node);
   });
@@ -56,10 +56,10 @@ describe('components and invoke contexts', () => {
     const node = createNode('component');
 
     runWithCollector(collector, () => {
-      const nodes = createComponent(count, (source) => {
+      const nodes = createComponent((source) => {
         source.value;
         return [node];
-      });
+      }, count);
 
       expect(nodes).toEqual([node]);
     });
@@ -78,11 +78,14 @@ describe('components and invoke contexts', () => {
     let effect!: DomSubscriber;
 
     runWithOwner(owner, () => {
-      nodes = createComponent({ source, text }, (props) => {
-        effect = createTextNodeEffect(props.text, props.source, scheduler);
-        scheduler.notify(effect);
-        return [node];
-      });
+      nodes = createComponent(
+        (props) => {
+          effect = createTextNodeEffect(props.text, props.source, scheduler);
+          scheduler.notify(effect);
+          return [node];
+        },
+        { source, text }
+      );
     });
     await scheduler.flushInteraction();
 
@@ -102,11 +105,11 @@ describe('components and invoke contexts', () => {
   it('allows async component renderers to propagate through SSR', async () => {
     const render = (() => Promise.resolve([])) as unknown as ComponentRenderFn<null>;
 
-    await expect(createComponent(null, render)).resolves.toEqual([]);
+    await expect(createComponent(render, null)).resolves.toEqual([]);
   });
 
   it('returns component strings for server renderers', () => {
-    const html = createComponent({ name: 'Qwik' }, (props) => `<span>${props.name}</span>`);
+    const html = createComponent((props) => `<span>${props.name}</span>`, { name: 'Qwik' });
 
     expect(html).toBe('<span>Qwik</span>');
   });
@@ -165,10 +168,10 @@ describe('components and invoke contexts', () => {
 
     expect(() => {
       runWithOwner(owner, () => {
-        createComponent(null, () => {
+        createComponent(() => {
           effect = createTextNodeEffect(text, source);
           throw new Error('render failed');
-        });
+        }, null);
       });
     }).toThrow('render failed');
 
@@ -196,9 +199,9 @@ describe('components and invoke contexts', () => {
     let activeContext!: RuntimeInvokeContext;
 
     const nodes = invoke(parentContext, () =>
-      createComponent(null, () => {
+      createComponent(() => {
         activeContext = getActiveInvokeContext();
-      })
+      }, null)
     );
 
     expect(nodes).toEqual([]);

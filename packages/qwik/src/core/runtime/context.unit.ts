@@ -51,12 +51,12 @@ describe('context runtime', () => {
 
     const outerValue = invoke(invokeContext, () => {
       useContextProvider(contextId, 'outer');
-      createComponent(null, () => {
+      createComponent(() => {
         useContextProvider(contextId, 'inner');
-        createComponent(null, () => {
+        createComponent(() => {
           innerValue = useContext(contextId);
-        });
-      });
+        }, null);
+      }, null);
       return useContext(contextId);
     });
 
@@ -71,11 +71,11 @@ describe('context runtime', () => {
 
     invoke(invokeContext, () => {
       useContextProvider(contextId, 'visible');
-      createComponent(null, () => {
-        createComponent(null, () => {
+      createComponent(() => {
+        createComponent(() => {
           value = useContext(contextId);
-        });
-      });
+        }, null);
+      }, null);
     });
 
     expect(value).toBe('visible');
@@ -88,13 +88,13 @@ describe('context runtime', () => {
     let siblingValue = '';
 
     invoke(invokeContext, () => {
-      createComponent(null, () => {
+      createComponent(() => {
         useContextProvider(contextId, 'child');
         providedValue = useContext(contextId);
-      });
-      createComponent(null, () => {
+      }, null);
+      createComponent(() => {
         siblingValue = useContext(contextId, 'fallback');
-      });
+      }, null);
     });
 
     expect(providedValue).toBe('child');
@@ -176,10 +176,10 @@ describe('context runtime', () => {
         range,
         () => visible.value,
         () => {
-          createComponent(null, () => {
+          createComponent(() => {
             branchContext = getActiveInvokeContext();
             branchValue = useContext(contextId);
-          });
+          }, null);
           return [branchNode];
         }
       );

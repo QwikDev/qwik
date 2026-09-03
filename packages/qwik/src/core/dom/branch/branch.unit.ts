@@ -135,10 +135,10 @@ describe('branches', () => {
           return visible.value;
         },
         () => {
-          const nodes = createComponent(null, () => {
+          const nodes = createComponent(() => {
             componentContext = getActiveInvokeContext();
             return [componentNode];
-          });
+          }, null);
           return nodes.length === 0 ? [branchNode] : nodes;
         }
       )

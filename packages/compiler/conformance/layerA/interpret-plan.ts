@@ -1082,10 +1082,10 @@ export async function buildInterpretedRoot(
             const renderer =
               renderTarget ?? ((childProps: unknown) => interpretComponent(ref!, childProps, ctx));
             return op.slots.length > 0
-              ? createComponent(componentProps as never, renderer, {
+              ? createComponent(renderer, componentProps as never, undefined, {
                   slotScope: slotScope as never,
                 })
-              : createComponent(componentProps as never, renderer);
+              : createComponent(renderer, componentProps as never);
           });
           return maybeThen(pendingComponent, (rendered) => {
             parts.push(rendered);

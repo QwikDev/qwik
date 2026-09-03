@@ -14,7 +14,8 @@ import { applyDomProps, patchAttrValue } from './dom-props';
 import { createDomSubscription } from './dom-subscription';
 import { readTrackedSourceValue } from './text-effect';
 import { removeEvent, setEvent } from '../event/event';
-import type { QDispatchHandler } from '../../shared/types';
+import type { CapturedEventHandler, QDispatchHandler } from '../../shared/types';
+import { EMPTY_ARRAY } from '../../utils/consts';
 
 export type AttrExpressionFn<TArgs extends unknown[] = unknown[]> = (
   ...args: TArgs
@@ -83,8 +84,8 @@ export class EventEffect<TArgs extends unknown[] = unknown[]> {
     readonly name: string,
     readonly args: TArgs,
     readonly fn: EventExpressionFn<TArgs>,
-    readonly before: readonly QDispatchHandler[] = [],
-    readonly after: readonly QDispatchHandler[] = []
+    readonly before: readonly QDispatchHandler[] = EMPTY_ARRAY,
+    readonly after: readonly QDispatchHandler[] = EMPTY_ARRAY
   ) {}
 
   run(): void {
@@ -153,8 +154,8 @@ export function createEventEffect<TArgs extends unknown[]>(
   args: TArgs,
   fn: EventExpressionFn<TArgs>,
   scheduler?: Scheduler,
-  before: readonly QDispatchHandler[] = [],
-  after: readonly QDispatchHandler[] = []
+  before: readonly QDispatchHandler[] = EMPTY_ARRAY,
+  after: readonly QDispatchHandler[] = EMPTY_ARRAY
 ): DomSubscriber {
   return createDomSubscription(new EventEffect(element, name, args, fn, before, after), scheduler);
 }
@@ -167,11 +168,31 @@ export function createDomBatchEffect(fn: DomBatchFn, scheduler?: Scheduler): Dom
 
 export function resolveEventHandlers(
   value: unknown,
-  before: readonly QDispatchHandler[] = [],
-  after: readonly QDispatchHandler[] = []
+  before: readonly QDispatchHandler[] = EMPTY_ARRAY,
+  after: readonly QDispatchHandler[] = EMPTY_ARRAY
 ): QDispatchHandler | QDispatchHandler[] | null {
-  const handlers = [...before, value, ...after]
-    .flat(Infinity)
-    .filter((handler): handler is QDispatchHandler => handler != null && handler !== false);
+  if (before.length === 0 && after.length === 0 && !isEventHandlerList(value)) {
+    return value == null || value === false ? null : (value as QDispatchHandler);
+  }
+
+  const handlers: QDispatchHandler[] = [];
+  appendEventHandlers(handlers, before);
+  appendEventHandlers(handlers, value);
+  appendEventHandlers(handlers, after);
   return handlers.length === 0 ? null : handlers.length === 1 ? handlers[0] : handlers;
 }
+
+function appendEventHandlers(handlers: QDispatchHandler[], value: unknown): void {
+  if (isEventHandlerList(value)) {
+    for (let i = 0; i < value.length; i++) {
+      appendEventHandlers(handlers, value[i]);
+    }
+    return;
+  }
+  if (value != null && value !== false) {
+    handlers.push(value as QDispatchHandler);
+  }
+}
+
+const isEventHandlerList = (value: unknown): value is unknown[] =>
+  Array.isArray(value) && (value as CapturedEventHandler)._qRun === undefined;

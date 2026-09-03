@@ -22,6 +22,7 @@ import { SubscriberFlags } from '../../reactive/flags';
 import { cleanupDeps } from '../../reactive/cleanup';
 import { getActiveInvokeContextOrNull } from '../../runtime/invoke-context';
 import { isSubscriberDisposed } from '../../runtime/subscriber';
+import { EMPTY_ARRAY } from '../../utils/consts';
 
 export type TextExpressionQrl<TArgs extends unknown[] = unknown[]> = QRLInternal<
   (...args: TArgs) => ValueOrPromise<TextExpressionValue>
@@ -134,8 +135,8 @@ export class SsrEventEffect<TArgs extends unknown[] = unknown[]> {
     readonly name: string,
     readonly args: TArgs,
     readonly qrl: EventExpressionQrl<TArgs>,
-    readonly before: readonly QDispatchHandler[] = [],
-    readonly after: readonly QDispatchHandler[] = []
+    readonly before: readonly QDispatchHandler[] = EMPTY_ARRAY,
+    readonly after: readonly QDispatchHandler[] = EMPTY_ARRAY
   ) {}
 }
 
@@ -434,8 +435,8 @@ export function renderSsrEvent<TArgs extends unknown[]>(
   args: TArgs,
   qrl: EventExpressionQrl<TArgs>,
   eventAttr: (name: string, value: unknown) => SsrEventAttrChunk,
-  before: readonly QDispatchHandler[] = [],
-  after: readonly QDispatchHandler[] = [],
+  before: readonly QDispatchHandler[] = EMPTY_ARRAY,
+  after: readonly QDispatchHandler[] = EMPTY_ARRAY,
   batch?: SsrDomSubscriber
 ): ValueOrPromise<SsrEventAttrChunk | null> {
   const subscriber = createSsrDomEffect(

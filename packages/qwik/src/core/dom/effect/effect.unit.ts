@@ -16,12 +16,14 @@ import {
   createDomBatchEffect,
   createEventEffect,
   createPropsEffect,
+  resolveEventHandlers,
 } from './effect';
 import { createTextExpressionEffect, createTextNodeEffect, patchTextValue } from './text-effect';
 import { applyDomProps, patchAttrValue, renderDomPropsToString, setRef } from './dom-props';
 import { _chk, _val } from '../../runtime/bind-handlers';
 import { setCaptures } from '../../shared/qrl/qrl-class';
 import { DomSubscription } from './dom-subscription';
+import { createCapturedEvent } from '../event/event';
 
 describe('DOM effects', () => {
   it('patches text expression data', async () => {
@@ -196,7 +198,7 @@ describe('DOM effects', () => {
         element,
         'q-e:input',
         [],
-        () => (enabled.value ? [dynamic] : undefined),
+        () => (enabled.value ? [[dynamic]] : undefined),
         scheduler,
         [before],
         [after]
@@ -210,6 +212,14 @@ describe('DOM effects', () => {
     enabled.value = true;
     await scheduler.flushInteraction();
     expect(dispatchStored(element, 'e:input')).toEqual([1, 2, 3]);
+  });
+
+  it('keeps a captured event handler atomic', () => {
+    const before = () => undefined;
+    const captured = createCapturedEvent(() => undefined, ['capture']);
+
+    expect(resolveEventHandlers(captured)).toBe(captured);
+    expect(resolveEventHandlers(captured, [before])).toEqual([before, captured]);
   });
 
   it('patches serialized class values through className', () => {

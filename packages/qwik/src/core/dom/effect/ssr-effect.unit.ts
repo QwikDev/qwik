@@ -4,8 +4,14 @@ import type { AttrExpressionFn, EventExpressionFn } from './effect';
 import { EffectKind } from './effect-kind.enum';
 import type { TextExpressionFn } from './text-effect';
 import {
-  SsrDomSubscription,
   EffectTargetKind,
+  SsrAttrEffect,
+  SsrAttrExpressionEffect,
+  SsrDomSubscription,
+  SsrEventEffect,
+  SsrPropsEffect,
+  SsrTextExpressionEffect,
+  SsrTextNodeEffect,
   createSsrDomBatchEffect,
   createSsrElementTarget,
   createSsrElementTextTarget,
@@ -29,13 +35,12 @@ describe('SSR DOM effect helpers', () => {
     const target = createSsrRangeTextTarget(0, 0);
 
     const value = createOwned(() => renderSsrTextNode(target, count));
-    const subscriber = toArray(count.subs)[0] as SsrDomSubscription;
+    const effect = toArray(count.subs)[0] as SsrTextNodeEffect;
 
     expect(value).toBe('1');
-    expect(subscriber).toBeInstanceOf(SsrDomSubscription);
-    expect(subscriber.deps).toEqual([count]);
-    expect(subscriber.effect.kind).toBe(EffectKind.TextNode);
-    expect((subscriber.effect as any).target).toBe(target);
+    expect(effect).toBeInstanceOf(SsrTextNodeEffect);
+    expect(effect.deps).toEqual([count]);
+    expect(effect.target).toBe(target);
   });
 
   it('serializes empty SSR text nodes as a text anchor', () => {
@@ -65,13 +70,12 @@ describe('SSR DOM effect helpers', () => {
     );
 
     const value = createOwned(() => renderSsrTextExpression(target, [count], qrl));
-    const subscriber = toArray(count.subs)[0] as SsrDomSubscription;
+    const effect = toArray(count.subs)[0] as SsrTextExpressionEffect;
 
     expect(value).toBe('one');
-    expect(subscriber).toBeInstanceOf(SsrDomSubscription);
-    expect(subscriber.deps).toEqual([count]);
-    expect(subscriber.effect.kind).toBe(EffectKind.TextExpression);
-    expect((subscriber.effect as any).target).toBe(target);
+    expect(effect).toBeInstanceOf(SsrTextExpressionEffect);
+    expect(effect.deps).toEqual([count]);
+    expect(effect.target).toBe(target);
   });
 
   it('serializes empty SSR text expressions as a text anchor', () => {
@@ -106,15 +110,15 @@ describe('SSR DOM effect helpers', () => {
     expect(createOwned(() => renderSsrAttr(target, 'class', className))).toBe('active');
     expect(createOwned(() => renderSsrAttr(target, 'style', style))).toBe('color:red');
 
-    const attrSubscriber = toArray(title.subs)[0] as SsrDomSubscription;
-    const classSubscriber = toArray(className.subs)[0] as SsrDomSubscription;
-    const styleSubscriber = toArray(style.subs)[0] as SsrDomSubscription;
+    const attrEffect = toArray(title.subs)[0] as SsrAttrEffect;
+    const classEffect = toArray(className.subs)[0] as SsrAttrEffect;
+    const styleEffect = toArray(style.subs)[0] as SsrAttrEffect;
 
-    expect(attrSubscriber.effect.kind).toBe(EffectKind.Attr);
-    expect(classSubscriber.effect.kind).toBe(EffectKind.Attr);
-    expect(styleSubscriber.effect.kind).toBe(EffectKind.Attr);
-    expect((classSubscriber.effect as any).name).toBe('class');
-    expect((styleSubscriber.effect as any).name).toBe('style');
+    expect(attrEffect).toBeInstanceOf(SsrAttrEffect);
+    expect(classEffect).toBeInstanceOf(SsrAttrEffect);
+    expect(styleEffect).toBeInstanceOf(SsrAttrEffect);
+    expect(classEffect.name).toBe('class');
+    expect(styleEffect.name).toBe('style');
   });
 
   it('creates attr expression subscribers', () => {
@@ -129,13 +133,12 @@ describe('SSR DOM effect helpers', () => {
     );
 
     const value = createOwned(() => renderSsrAttrExpression(target, 'style', [], qrl));
-    const subscriber = toArray(count.subs)[0] as SsrDomSubscription;
+    const effect = toArray(count.subs)[0] as SsrAttrExpressionEffect;
 
     expect(value).toBe('color:red');
-    expect(subscriber).toBeInstanceOf(SsrDomSubscription);
-    expect(subscriber.deps).toEqual([count]);
-    expect(subscriber.effect.kind).toBe(EffectKind.AttrExpression);
-    expect((subscriber.effect as any).target).toBe(target);
+    expect(effect).toBeInstanceOf(SsrAttrExpressionEffect);
+    expect(effect.deps).toEqual([count]);
+    expect(effect.target).toBe(target);
   });
 
   it('defers Promise attributes and rejects Promise DOM props', () => {
@@ -191,7 +194,7 @@ describe('SSR DOM effect helpers', () => {
     expect(count.subs).toBe(batch.subscriber);
     expect(active.subs).toBe(batch.subscriber);
     expect(batch.subscriber.deps).toEqual([count, active]);
-    expect(batch.subscriber.effect.kind).toBe(EffectKind.DomBatch);
+    expect(batch.subscriber.effect.effectKind).toBe(EffectKind.DomBatch);
     expect((batch.subscriber.effect as any).effects).toHaveLength(2);
   });
 
@@ -225,15 +228,14 @@ describe('SSR DOM effect helpers', () => {
     );
 
     const rendered = createOwned(() => renderSsrProps(target, [], qrl));
-    const subscriber = toArray(title.subs)[0] as SsrDomSubscription;
+    const effect = toArray(title.subs)[0] as SsrPropsEffect;
 
     expect(rendered).toEqual({
       attrs: [' title="hello" class="active"'],
       innerHTML: '<b>html</b>',
     });
-    expect(subscriber).toBeInstanceOf(SsrDomSubscription);
-    expect(subscriber.deps).toEqual([title]);
-    expect(subscriber.effect.kind).toBe(EffectKind.Props);
+    expect(effect).toBeInstanceOf(SsrPropsEffect);
+    expect(effect.deps).toEqual([title]);
   });
 
   it('tracks an initially missing event for resume', () => {
@@ -256,11 +258,11 @@ describe('SSR DOM effect helpers', () => {
     const rendered = createOwned(() =>
       renderSsrEvent(target, 'q-e:input', [enabled], qrl, eventAttr)
     );
-    const subscriber = toArray(enabled.subs)[0] as SsrDomSubscription;
+    const effect = toArray(enabled.subs)[0] as SsrEventEffect;
 
     expect(rendered).toBeNull();
-    expect(subscriber.deps).toEqual([enabled]);
-    expect(subscriber.effect.kind).toBe(EffectKind.Event);
+    expect(effect).toBeInstanceOf(SsrEventEffect);
+    expect(effect.deps).toEqual([enabled]);
   });
 
   it('creates element text targets with ids', () => {

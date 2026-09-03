@@ -410,6 +410,7 @@ export {
   EffectTargetKind,
   SsrAttrEffect,
   SsrAttrExpressionEffect,
+  SsrDomEffectBase,
   SsrEventEffect,
   SsrDomSubscription,
   SSRForBlockSubscription,

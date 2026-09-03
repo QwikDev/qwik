@@ -7,6 +7,7 @@ import { SSRContentSubscription as SsrContentSubscription } from '../../dom/cont
 import { SSRForBlockSubscription as SsrForBlockSubscription } from '../../dom/effect/ssr-effect';
 import {
   EffectTargetKind,
+  SsrDomEffectBase,
   SsrDomSubscription,
   type SsrScalarDomEffect,
   type SsrDomEffect,
@@ -540,6 +541,7 @@ export class Serializer {
     } else if (value instanceof StorePropSource) {
       this.output(TypeIds.StoreProp, this.serializeStoreProp(value));
     } else if (
+      value instanceof SsrDomEffectBase ||
       value instanceof SsrDomSubscription ||
       value instanceof SsrBranchSubscription ||
       value instanceof SsrForBlockSubscription ||
@@ -1026,6 +1028,7 @@ function serializeAsyncSignalOptions(signal: Computed<unknown>): Record<string, 
 
 function serializeEffectSubscription(
   subscription:
+    | SsrDomEffectBase
     | SsrDomSubscription
     | SsrBranchSubscription
     | SsrForBlockSubscription
@@ -1146,19 +1149,20 @@ function serializeProjection(projection: Projection): unknown[] {
   return [projection.renderQrl, projection.slotScope, projection.idBase];
 }
 
-function serializeDomSubscription(subscription: SsrDomSubscription): unknown[] {
-  const effect = subscription.effect;
-  const deps = serializeDeps(subscription.deps);
-
-  if (effect.kind === EffectKind.DomBatch) {
+function serializeDomSubscription(subscription: SsrDomEffectBase | SsrDomSubscription): unknown[] {
+  if (subscription instanceof SsrDomSubscription) {
+    const effect = subscription.effect;
     return [
-      effect.kind,
-      deps,
+      effect.effectKind,
+      serializeDeps(subscription.deps),
       effect.effects.map((scalarEffect) => serializeSsrScalarDomEffect(scalarEffect)),
     ];
   }
 
-  return serializeSsrScalarDomEffect(effect, deps);
+  return serializeSsrScalarDomEffect(
+    subscription as SsrScalarDomEffect,
+    serializeDeps(subscription.deps)
+  );
 }
 
 function serializeSsrScalarDomEffect(
@@ -1168,18 +1172,25 @@ function serializeSsrScalarDomEffect(
   const target = effect.target;
   const serializedDeps = deps ?? serializeSsrScalarDomEffectDeps(effect);
 
-  switch (effect.kind) {
+  switch (effect.effectKind) {
     case EffectKind.TextNode: {
       // The stringify flag rides only when set — absent means JSX coercion.
       const stringify = effect.stringify ? [1] : [];
       return target.kind === EffectTargetKind.RangeText
-        ? [effect.kind, target.kind, target.id, target.markerIndex, serializedDeps, ...stringify]
-        : [effect.kind, target.kind, target.id, serializedDeps, ...stringify];
+        ? [
+            effect.effectKind,
+            target.kind,
+            target.id,
+            target.markerIndex,
+            serializedDeps,
+            ...stringify,
+          ]
+        : [effect.effectKind, target.kind, target.id, serializedDeps, ...stringify];
     }
     case EffectKind.TextExpression:
       return target.kind === EffectTargetKind.RangeText
         ? [
-            effect.kind,
+            effect.effectKind,
             target.kind,
             target.id,
             target.markerIndex,
@@ -1187,10 +1198,10 @@ function serializeSsrScalarDomEffect(
             effect.args,
             effect.qrl,
           ]
-        : [effect.kind, target.kind, target.id, serializedDeps, effect.args, effect.qrl];
+        : [effect.effectKind, target.kind, target.id, serializedDeps, effect.args, effect.qrl];
     case EffectKind.Attr:
       return [
-        effect.kind,
+        effect.effectKind,
         target.kind,
         target.id,
         serializedDeps,
@@ -1199,7 +1210,7 @@ function serializeSsrScalarDomEffect(
       ];
     case EffectKind.AttrExpression:
       return [
-        effect.kind,
+        effect.effectKind,
         target.kind,
         target.id,
         serializedDeps,
@@ -1210,7 +1221,7 @@ function serializeSsrScalarDomEffect(
       ];
     case EffectKind.Props:
       return [
-        effect.kind,
+        effect.effectKind,
         target.kind,
         target.id,
         serializedDeps,
@@ -1220,7 +1231,7 @@ function serializeSsrScalarDomEffect(
       ];
     case EffectKind.Event:
       return [
-        effect.kind,
+        effect.effectKind,
         target.kind,
         target.id,
         serializedDeps,
@@ -1236,7 +1247,7 @@ function serializeSsrScalarDomEffect(
 }
 
 function serializeSsrScalarDomEffectDeps(effect: SsrScalarDomEffect): readonly Source[] {
-  switch (effect.kind) {
+  switch (effect.effectKind) {
     case EffectKind.TextNode:
       return effect.source === undefined ? EMPTY_ARRAY : [effect.source];
     case EffectKind.Attr:
@@ -1281,7 +1292,7 @@ function serializeSubscribers(subs: SourceSubs): readonly Subscriber[] {
 }
 
 function assertNeverSsrDomEffect(effect: never): never {
-  throw qError(QError.serializeErrorUnknownType, [(effect as SsrDomEffect).kind]);
+  throw qError(QError.serializeErrorUnknownType, [(effect as SsrDomEffect).effectKind]);
 }
 
 /**

@@ -1,5 +1,6 @@
 import {
   isPromise,
+  SsrDomEffectBase,
   SsrDomSubscription,
   type PhaseSubscriber,
   type SsrAttributePatch,
@@ -15,7 +16,7 @@ export interface SsrLaneSerializationContext {
 
 const NO_ERROR = Symbol();
 const NOOP = () => {};
-type SsrWork = TaskSubscriber | SsrDomSubscription;
+type SsrWork = TaskSubscriber | SsrDomEffectBase | SsrDomSubscription;
 interface SsrSchedulerState {
   error: unknown;
   notifyRenderer: () => void;
@@ -97,7 +98,7 @@ export class SsrLane implements TaskScheduler {
       return;
     }
     // backpatching attributes
-    if (subscriber instanceof SsrDomSubscription) {
+    if (subscriber instanceof SsrDomEffectBase || subscriber instanceof SsrDomSubscription) {
       subscriber.invalidate();
       if (!(subscriber.flags & SubscriberFlags.Dirty)) {
         subscriber.flags |= SubscriberFlags.Dirty;
@@ -206,13 +207,18 @@ export class SsrLane implements TaskScheduler {
   private drain(current: SsrWork | null): void | Promise<void> {
     while (current !== null) {
       const subscriber = current;
-      if (subscriber instanceof SsrDomSubscription) {
+      if (subscriber instanceof SsrDomEffectBase) {
         const result = subscriber.run();
         if (isPromise(result)) {
           this.observeDom(result, subscriber);
         } else {
           this.collectPatch(subscriber);
         }
+        current = this.takeNext();
+        continue;
+      }
+      if (subscriber instanceof SsrDomSubscription) {
+        subscriber.run();
         current = this.takeNext();
         continue;
       }
@@ -224,7 +230,7 @@ export class SsrLane implements TaskScheduler {
     }
   }
 
-  private observeDom(result: Promise<void>, subscriber: SsrDomSubscription): void {
+  private observeDom(result: Promise<void>, subscriber: SsrDomEffectBase): void {
     const pending = result
       .then(
         () => {
@@ -259,7 +265,7 @@ export class SsrLane implements TaskScheduler {
     return queue[this.queueIndex++];
   }
 
-  private collectPatch(subscriber: SsrDomSubscription): void {
+  private collectPatch(subscriber: SsrDomEffectBase): void {
     const patch = subscriber.patch;
     subscriber.patch = null;
     if (patch === null) {

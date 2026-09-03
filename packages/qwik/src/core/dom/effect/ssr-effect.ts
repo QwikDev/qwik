@@ -72,81 +72,10 @@ export interface SsrElementTarget {
   readonly id: number;
 }
 
-export class SsrTextExpressionEffect<TArgs extends unknown[] = unknown[]> {
-  readonly kind = EffectKind.TextExpression;
-
-  constructor(
-    readonly target: SsrEffectTarget,
-    readonly args: TArgs,
-    readonly qrl: TextExpressionQrl<TArgs>
-  ) {}
-}
-
-export class SsrTextNodeEffect {
-  readonly kind = EffectKind.TextNode;
-
-  constructor(
-    readonly target: SsrEffectTarget,
-    readonly source?: Source,
-    /** Concat operands keep JS `String()` coercion; JSX positions suppress nullish/booleans. */
-    readonly stringify: boolean = false
-  ) {}
-}
-
-export class SsrAttrEffect {
-  readonly kind = EffectKind.Attr;
-
-  constructor(
-    readonly target: SsrEffectTarget,
-    readonly name: string,
-    readonly source?: Source,
-    readonly styleScopedId: string | null = null
-  ) {}
-}
-
-export class SsrAttrExpressionEffect<TArgs extends unknown[] = unknown[]> {
-  readonly kind = EffectKind.AttrExpression;
-
-  constructor(
-    readonly target: SsrEffectTarget,
-    readonly name: string,
-    readonly args: TArgs,
-    readonly qrl: AttrExpressionQrl<TArgs>,
-    readonly styleScopedId: string | null = null
-  ) {}
-}
-
-export class SsrPropsEffect<TArgs extends unknown[] = unknown[]> {
-  readonly kind = EffectKind.Props;
-
-  constructor(
-    readonly target: SsrEffectTarget,
-    readonly args: TArgs,
-    readonly qrl: DomPropsQrl<TArgs>,
-    readonly styleScopedId: string | null = null
-  ) {}
-}
-
-export class SsrEventEffect<TArgs extends unknown[] = unknown[]> {
-  readonly kind = EffectKind.Event;
-
-  constructor(
-    readonly target: SsrEffectTarget,
-    readonly name: string,
-    readonly args: TArgs,
-    readonly qrl: EventExpressionQrl<TArgs>,
-    readonly before: readonly QDispatchHandler[] = EMPTY_ARRAY,
-    readonly after: readonly QDispatchHandler[] = EMPTY_ARRAY
-  ) {}
-}
-
-export class SsrDomBatchEffect {
-  readonly kind = EffectKind.DomBatch;
-  readonly effects: SsrScalarDomEffect[] = [];
-}
-
-export class SsrDomSubscription implements SsrDomSubscriber {
+export abstract class SsrDomEffectBase implements SsrDomSubscriber {
   readonly kind = SubscriberKind.Dom;
+  abstract readonly effectKind: EffectKind;
+  abstract readonly target: SsrEffectTarget;
   owner: Owner | null = null;
   flags = SubscriberFlags.None;
   deps: Source[] | null = null;
@@ -155,7 +84,6 @@ export class SsrDomSubscription implements SsrDomSubscriber {
   private cancelAsync: (() => void) | undefined;
 
   constructor(
-    readonly effect: SsrDomEffect,
     readonly scheduler: TaskScheduler = getActiveInvokeContextOrNull()?.container?.scheduler ??
       defaultScheduler
   ) {}
@@ -179,12 +107,10 @@ export class SsrDomSubscription implements SsrDomSubscriber {
     const pendingValue = this.pendingValue;
     this.invalidate();
     this.patch = null;
-    const effect = this.effect;
-    // only attributes on elements are supported for backpatch
     if (
-      (effect.kind !== EffectKind.Attr && effect.kind !== EffectKind.AttrExpression) ||
-      effect.target.kind !== EffectTargetKind.Element ||
-      (effect.kind === EffectKind.Attr && effect.source === undefined)
+      !isSsrAttributeEffect(this) ||
+      this.target.kind !== EffectTargetKind.Element ||
+      (this.effectKind === EffectKind.Attr && this.source === undefined)
     ) {
       return;
     }
@@ -195,20 +121,20 @@ export class SsrDomSubscription implements SsrDomSubscriber {
         if (isSubscriberDisposed(this)) {
           return;
         }
-        if (effect.kind === EffectKind.Attr) {
-          return runWithCollector(this, readTrackedSourceValue, effect.source!);
+        if (this.effectKind === EffectKind.Attr) {
+          return runWithCollector(this, readTrackedSourceValue, this.source!);
         }
-        const fn = effect.qrl.resolved;
+        const fn = this.qrl.resolved;
         if (fn === undefined) {
-          throw effect.qrl.resolve();
+          throw this.qrl.resolve();
         }
-        return runWithCollector(this, withCaptures(fn, effect.args), ...effect.args);
+        return runWithCollector(this, withCaptures(fn, this.args), ...this.args);
       });
     const commit = (resolved: unknown) => {
       this.patch = [
-        effect.target.id,
-        effect.name,
-        serializeAttrExpressionValue(effect.name, resolved, effect.styleScopedId ?? undefined),
+        this.target.id,
+        this.name,
+        serializeAttrExpressionValue(this.name, resolved, this.styleScopedId ?? undefined),
       ];
     };
     return isPromise(value) ? this.trackPromise(value, commit) : commit(value);
@@ -233,6 +159,111 @@ export class SsrDomSubscription implements SsrDomSubscriber {
   }
 }
 
+export class SsrTextExpressionEffect<TArgs extends unknown[] = unknown[]> extends SsrDomEffectBase {
+  readonly effectKind = EffectKind.TextExpression;
+
+  constructor(
+    readonly target: SsrEffectTarget,
+    readonly args: TArgs,
+    readonly qrl: TextExpressionQrl<TArgs>
+  ) {
+    super();
+  }
+}
+
+export class SsrTextNodeEffect extends SsrDomEffectBase {
+  readonly effectKind = EffectKind.TextNode;
+
+  constructor(
+    readonly target: SsrEffectTarget,
+    readonly source?: Source,
+    /** Concat operands keep JS `String()` coercion; JSX positions suppress nullish/booleans. */
+    readonly stringify: boolean = false
+  ) {
+    super();
+  }
+}
+
+export class SsrAttrEffect extends SsrDomEffectBase {
+  readonly effectKind = EffectKind.Attr;
+
+  constructor(
+    readonly target: SsrEffectTarget,
+    readonly name: string,
+    readonly source?: Source,
+    readonly styleScopedId: string | null = null,
+    scheduler?: TaskScheduler
+  ) {
+    super(scheduler);
+  }
+}
+
+export class SsrAttrExpressionEffect<TArgs extends unknown[] = unknown[]> extends SsrDomEffectBase {
+  readonly effectKind = EffectKind.AttrExpression;
+
+  constructor(
+    readonly target: SsrEffectTarget,
+    readonly name: string,
+    readonly args: TArgs,
+    readonly qrl: AttrExpressionQrl<TArgs>,
+    readonly styleScopedId: string | null = null
+  ) {
+    super();
+  }
+}
+
+export class SsrPropsEffect<TArgs extends unknown[] = unknown[]> extends SsrDomEffectBase {
+  readonly effectKind = EffectKind.Props;
+
+  constructor(
+    readonly target: SsrEffectTarget,
+    readonly args: TArgs,
+    readonly qrl: DomPropsQrl<TArgs>,
+    readonly styleScopedId: string | null = null
+  ) {
+    super();
+  }
+}
+
+export class SsrEventEffect<TArgs extends unknown[] = unknown[]> extends SsrDomEffectBase {
+  readonly effectKind = EffectKind.Event;
+
+  constructor(
+    readonly target: SsrEffectTarget,
+    readonly name: string,
+    readonly args: TArgs,
+    readonly qrl: EventExpressionQrl<TArgs>,
+    readonly before: readonly QDispatchHandler[] = EMPTY_ARRAY,
+    readonly after: readonly QDispatchHandler[] = EMPTY_ARRAY
+  ) {
+    super();
+  }
+}
+
+export class SsrDomBatchEffect {
+  readonly effectKind = EffectKind.DomBatch;
+  readonly effects: SsrScalarDomEffect[] = [];
+}
+
+export class SsrDomSubscription implements SsrDomSubscriber {
+  readonly kind = SubscriberKind.Dom;
+  owner: Owner | null = null;
+  flags = SubscriberFlags.None;
+  deps: Source[] | null = null;
+
+  constructor(
+    readonly effect: SsrDomBatchEffect,
+    readonly scheduler: TaskScheduler = getActiveInvokeContextOrNull()?.container?.scheduler ??
+      defaultScheduler
+  ) {}
+
+  invalidate(): void {}
+
+  run(): void {
+    takeDirty(this);
+  }
+}
+
 export class SSRForBlockSubscription<T = unknown> implements SsrForBlockSubscriber {
   readonly kind = SubscriberKind.ForBlock;
   readonly scheduler = null;
@@ -247,24 +278,24 @@ export class SSRForBlockSubscription<T = unknown> implements SsrForBlockSubscrib
   }
 }
 
-export function createSsrTextNodeEffect(target: SsrEffectTarget): SsrDomSubscriber {
-  return createSsrDomEffect(new SsrTextNodeEffect(target));
+export function createSsrTextNodeEffect(target: SsrEffectTarget): SsrTextNodeEffect {
+  return registerSubscriberToOwner(new SsrTextNodeEffect(target));
 }
 
 export function createSsrTextExpressionEffect<TArgs extends unknown[]>(
   target: SsrEffectTarget,
   args: TArgs,
   qrl: TextExpressionQrl<TArgs>
-): SsrDomSubscriber {
-  return createSsrDomEffect(new SsrTextExpressionEffect(target, args, qrl));
+): SsrTextExpressionEffect<TArgs> {
+  return registerSubscriberToOwner(new SsrTextExpressionEffect(target, args, qrl));
 }
 
 export function createSsrAttrEffect(
   target: SsrEffectTarget,
   name: string,
   styleScopedId?: string
-): SsrDomSubscriber {
-  return createSsrDomEffect(new SsrAttrEffect(target, name, undefined, styleScopedId));
+): SsrAttrEffect {
+  return registerSubscriberToOwner(new SsrAttrEffect(target, name, undefined, styleScopedId));
 }
 
 export function createSsrAttrExpressionEffect<TArgs extends unknown[]>(
@@ -273,8 +304,10 @@ export function createSsrAttrExpressionEffect<TArgs extends unknown[]>(
   args: TArgs,
   qrl: AttrExpressionQrl<TArgs>,
   styleScopedId?: string
-): SsrDomSubscriber {
-  return createSsrDomEffect(new SsrAttrExpressionEffect(target, name, args, qrl, styleScopedId));
+): SsrAttrExpressionEffect<TArgs> {
+  return registerSubscriberToOwner(
+    new SsrAttrExpressionEffect(target, name, args, qrl, styleScopedId)
+  );
 }
 
 export function createSsrPropsEffect<TArgs extends unknown[]>(
@@ -282,8 +315,8 @@ export function createSsrPropsEffect<TArgs extends unknown[]>(
   args: TArgs,
   qrl: DomPropsQrl<TArgs>,
   styleScopedId?: string
-): SsrDomSubscriber {
-  return createSsrDomEffect(new SsrPropsEffect(target, args, qrl, styleScopedId));
+): SsrPropsEffect<TArgs> {
+  return registerSubscriberToOwner(new SsrPropsEffect(target, args, qrl, styleScopedId));
 }
 
 export function createSsrDomBatchEffect(): SsrDomSubscriber {
@@ -464,11 +497,11 @@ function createSsrDomEffect(
     addSsrBatchEffect(batch, effect);
     return batch;
   }
-  return registerSubscriberToOwner(new SsrDomSubscription(effect));
+  return registerSubscriberToOwner(effect);
 }
 
 function addSsrBatchEffect(batch: SsrDomSubscriber, effect: SsrScalarDomEffect): void {
-  const batchEffect = batch.effect;
+  const batchEffect = (batch as SsrDomSubscription).effect;
   if (isDev && !(batchEffect instanceof SsrDomBatchEffect)) {
     throw new Error('Expected SSR DOM batch effect.');
   }
@@ -487,13 +520,19 @@ function serializeOrScheduleAttr(
   styleScopedId?: string
 ): ValueOrPromise<string | null> {
   if (isPromise(value)) {
-    if (subscriber.effect.kind === EffectKind.DomBatch) {
+    if (subscriber instanceof SsrDomSubscription) {
       return maybeThen(value, (resolved) =>
         serializeAttrExpressionValue(name, resolved, styleScopedId)
       );
     }
-    (subscriber as SsrDomSubscription).schedulePromise(value);
+    (subscriber as SsrScalarDomEffect).schedulePromise(value);
     return null;
   }
   return serializeAttrExpressionValue(name, value, styleScopedId);
+}
+
+function isSsrAttributeEffect(
+  effect: SsrDomEffectBase
+): effect is SsrAttrEffect | SsrAttrExpressionEffect {
+  return effect.effectKind === EffectKind.Attr || effect.effectKind === EffectKind.AttrExpression;
 }

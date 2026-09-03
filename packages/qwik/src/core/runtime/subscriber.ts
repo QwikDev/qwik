@@ -5,7 +5,6 @@ import type { ForBlock, SSRForBlock } from '../dom/for/for';
 import type { ValueOrPromise } from '../shared/utils/types';
 import type { ComputedSource, Source } from '../reactive/source';
 import type { Task, VisibleTask } from './task';
-import type { SsrDomEffect } from '../dom/effect/ssr-effect';
 import type { Owner } from './owner';
 import type { TaskScheduler } from './scheduler';
 
@@ -112,7 +111,6 @@ export interface IdleSubscriber extends ScheduledSubscriber {
 
 export interface SsrDomSubscriber extends Collector, ScheduledSubscriber {
   readonly kind: SubscriberKind.Dom;
-  readonly effect: SsrDomEffect;
   invalidate(): void;
   run(): ValueOrPromise<void>;
 }

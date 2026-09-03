@@ -6,7 +6,6 @@ import {
   Phase,
   registerSubscriberToOwner,
   SsrAttrEffect,
-  SsrDomSubscription,
   Task,
   TaskSubscription,
   useSignal,
@@ -32,10 +31,10 @@ function createTask(lane: SsrLane, run: TaskFn): TaskSubscription {
   );
 }
 
-function createDom(lane: SsrLane, promise: Promise<string>): SsrDomSubscription {
+function createDom(lane: SsrLane, promise: Promise<string>): SsrAttrEffect {
   const source = useSignal('initial');
   const subscriber = registerSubscriberToOwner(
-    new SsrDomSubscription(new SsrAttrEffect(createSsrElementTarget(0), 'title', source), lane),
+    new SsrAttrEffect(createSsrElementTarget(0), 'title', source, null, lane),
     createOwner(null)
   );
   subscriber.schedulePromise(promise);
@@ -147,7 +146,7 @@ describe('SsrScheduler', () => {
 
     resolve('stale');
     await Promise.resolve();
-    const source = (subscriber.effect as SsrAttrEffect).source!;
+    const source = subscriber.source!;
     source.v = 'final';
     lane.notify(subscriber);
     lane.flush();

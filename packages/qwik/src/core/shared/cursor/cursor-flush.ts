@@ -1,4 +1,9 @@
-import { vnode_journalToString, type VNodeJournal } from '../../client/vnode-utils';
+import type { ClientContainer } from '../../client/types';
+import {
+  registerQwikLoaderEvent,
+  vnode_journalToString,
+  type VNodeJournal,
+} from '../../client/vnode-utils';
 import { runTask } from '../../use/use-task';
 import { QContainerValue, type Container } from '../types';
 import { directSetAttribute } from '../utils/attribute';
@@ -12,7 +17,7 @@ import {
   SetTextOperation,
 } from '../vnode/types/dom-vnode-operation';
 import type { Cursor } from './cursor';
-import { getCursorData, type CursorData } from './cursor-props';
+import { getCursorData, takeQwikLoaderEvents, type CursorData } from './cursor-props';
 
 const DEBUG = false;
 
@@ -28,6 +33,12 @@ export function executeFlushPhase(cursor: Cursor, container: Container): void {
   if (journal && journal.length > 0) {
     _flushJournal(journal);
     cursorData.journal = null;
+  }
+  const loaderEvents = takeQwikLoaderEvents(cursorData);
+  if (loaderEvents) {
+    for (let i = 0; i < loaderEvents.length; i++) {
+      registerQwikLoaderEvent(container as ClientContainer, loaderEvents[i]);
+    }
   }
   executeAfterFlush(container, cursorData);
 }

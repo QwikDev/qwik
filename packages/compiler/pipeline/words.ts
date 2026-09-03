@@ -29,6 +29,7 @@ export const enum QwikWord {
   CreateSlotScope = 'createSlotScope',
   ForwardSlot = 'forwardSlot',
   RegisterProjection = 'registerProjection',
+  CreateContentBlock = 'createContentBlock',
   // ssr
   CreateSsrNodeId = 'createSsrNodeId',
   CreateSsrMarkup = 'createSsrMarkup',
@@ -45,6 +46,7 @@ export const enum QwikWord {
   RenderSsrCollection = 'renderSsrCollection',
   RenderSsrBranch = 'renderSsrBranch',
   RenderSsrSlot = 'renderSsrSlot',
+  RenderSsrContent = 'renderSsrContent',
   MaybeThen = 'maybeThen',
   // shared
   CreateComponent = 'createComponent',
@@ -69,7 +71,9 @@ export const enum QwikGenWord {
   Collection = 'collection',
   CollectionId = 'collectionId',
   Component = 'component',
+  Content = 'content',
   Slot = 'slot',
+  SlotName = 'slotName',
   SlotScope = 'slotScope',
   PropQrl = 'propQrl',
   RangeId = 'rangeId',
@@ -107,4 +111,5 @@ export const enum SegmentContext {
   ForRender = 'for:render',
   CollectionSource = 'collection:source',
   Projection = 'slot:render',
+  DynamicSlot = 'slot:dynamic',
 }

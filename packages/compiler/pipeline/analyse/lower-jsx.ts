@@ -6,6 +6,8 @@ import {
   ExprKind,
   FnBodyKind,
   HandlerKind,
+  LifetimeCommit,
+  LifetimeOwner,
   OpKind,
   ProjectionKind,
   PropKind,
@@ -28,7 +30,12 @@ import { lowerEventAttribute } from './lower-event';
 import { lowerText } from './lower-hole';
 import { lowerBranch } from './lower-branch';
 import { identifierName, unwrapExpression } from './ast/utils';
-import { lowerExpressionValue, recordPayloadAliasReads, trySignalReadValue } from './lower-expr';
+import {
+  lowerExpressionValue,
+  lowerInlineExpressionValue,
+  recordPayloadAliasReads,
+  trySignalReadValue,
+} from './lower-expr';
 import type { LowerContext } from './lower-context';
 import { pushPayload, pushQrl, QrlIdentityKind } from './lower-context';
 import { lowerArray } from './lower-array';
@@ -326,11 +333,65 @@ function lowerSlotMarker(element: JSXElement, ctx: LowerContext): Op {
   if (attributes.some((attribute) => attribute !== nameAttribute)) {
     throw new UnsupportedError('Slot attributes');
   }
-  return createSlotOp(
+  if (nameAttribute === undefined) {
+    return createSlotOp(ctx, '', lowerSlotFallback(element.children, ctx));
+  }
+  const name = readSlotName(nameAttribute);
+  return typeof name === 'string'
+    ? createSlotOp(ctx, name, lowerSlotFallback(element.children, ctx))
+    : lowerDynamicSlot(element, name, ctx);
+}
+
+/** A changing slot name owns one reactive render range. */
+function lowerDynamicSlot(element: JSXElement, name: Expression, ctx: LowerContext): Op {
+  const captures = lowerCaptures([name, ...element.children], ctx, 'a dynamic slot', {
+    allowProps: true,
+  });
+  const lifetime = ctx.plan.lifetimes.length;
+  ctx.plan.lifetimes.push({
+    id: lifetime,
+    parent: 0,
+    owner: LifetimeOwner.Slot,
+    commit: LifetimeCommit.AtomicRange,
+  });
+  const program = ctx.plan.programs.length;
+  ctx.plan.programs.push({
+    body: { kind: ProgramBodyKind.Ops, ops: [] },
+    setup: [],
+    params: [],
+    lifetime,
+    needsId: false,
+    async: false,
+  });
+  const range: [number, number] = [element.start, element.end];
+  const { use } = pushQrl(
     ctx,
-    nameAttribute === undefined ? '' : readStaticSlotName(nameAttribute),
-    lowerSlotFallback(element.children, ctx)
+    {
+      identity: { kind: QrlIdentityKind.Segment, nameCtx: SegmentContext.DynamicSlot },
+      ctxName: SegmentContext.DynamicSlot,
+      boundary: { kind: BoundaryKind.Implicit, role: 'dynamic-slot' },
+      payloadKind: QrlPayloadKind.Function,
+      authoredAsync: false,
+      body: { b: QrlBodyKind.Program, program },
+      captures: captures.captures,
+      params: { authored: 0, used: [], sources: [] },
+      origin: {
+        range,
+        functionRange: range,
+        calleeRange: null,
+        argumentRanges: [],
+        paramRanges: [],
+        bodyRange: range,
+        bodyKind: FnBodyKind.Expression,
+      },
+    },
+    captures.args
   );
+  const slot = createSlotOp(ctx, '', lowerSlotFallback(element.children, ctx), {
+    nameValue: lowerInlineExpressionValue(name, ctx, captures.refs),
+  });
+  ctx.plan.programs[program].body = { kind: ProgramBodyKind.Ops, ops: [slot] };
+  return { op: OpKind.DynamicSlot, render: use, id: slot.id, lifetime };
 }
 
 function lowerSlotFallback(children: readonly JSXChild[], ctx: LowerContext): QrlUse | null {
@@ -349,11 +410,13 @@ function lowerSlotFallback(children: readonly JSXChild[], ctx: LowerContext): Qr
 function createSlotOp(
   ctx: LowerContext,
   name = '',
-  fallback: Extract<Op, { op: OpKind.Slot }>['fallback'] = null
-): Op {
+  fallback: Extract<Op, { op: OpKind.Slot }>['fallback'] = null,
+  options: Pick<Extract<Op, { op: OpKind.Slot }>, 'nameValue'> = {}
+): Extract<Op, { op: OpKind.Slot }> {
   return {
     op: OpKind.Slot,
     name,
+    ...options,
     fallback,
     id: { kind: SeedKind.Slot, ordinal: ctx.slotCounter.next++ },
   };
@@ -504,6 +567,14 @@ function readProjectionName(child: JSXChild): string {
 }
 
 function readStaticSlotName(attribute: JSXAttributeItem): string {
+  const name = readSlotName(attribute);
+  if (typeof name === 'string') {
+    return name;
+  }
+  throw new UnsupportedError('a dynamic slot name');
+}
+
+function readSlotName(attribute: JSXAttributeItem): string | Expression {
   if (attribute.type !== 'JSXAttribute') {
     throw new UnsupportedError('a dynamic slot name');
   }
@@ -517,6 +588,9 @@ function readStaticSlotName(attribute: JSXAttributeItem): string {
     typeof value.expression.value === 'string'
   ) {
     return value.expression.value;
+  }
+  if (value?.type === 'JSXExpressionContainer' && value.expression.type !== 'JSXEmptyExpression') {
+    return value.expression;
   }
   throw new UnsupportedError('a dynamic slot name');
 }

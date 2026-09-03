@@ -1,0 +1,208 @@
+==INPUT==
+
+import { Slot } from '@qwik.dev/core';
+export const Switch = (props) => <Slot name={props.name} />;
+export default (props) => <Switch name={props.pick}><i q:slot="a">Alpha</i><b q:slot="b">Bravo</b></Switch>;
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  _captures,
+  renderSsrContent,
+  createSsrNodeId,
+  maybeThen,
+  renderSsrSlot,
+  _noopQrl,
+  readExpression,
+  _props,
+  createSlotScope,
+  registerProjection,
+  createComponent,
+  createSsrMarkup,
+} from '@qwik.dev/core';
+const component_slot_dynamic_segment_0_2ikf7n1jp8rfp = (ctx) => {
+  const [props] = _captures;
+  const slotName0 = props.name;
+  const slot0 = renderSsrSlot(ctx, slotName0, undefined);
+  return maybeThen(slot0, (slot0) => slot0);
+};
+const q_component_slot_dynamic_segment_0_2ikf7n1jp8rfp = /*#__PURE__*/ _noopQrl(
+  'component_slot_dynamic_segment_0_2ikf7n1jp8rfp'
+);
+q_component_slot_dynamic_segment_0_2ikf7n1jp8rfp.s(component_slot_dynamic_segment_0_2ikf7n1jp8rfp);
+const component_name_segment_1_80s3opa72ppn = (props) => {
+  return props.pick;
+};
+const q_component_name_segment_1_80s3opa72ppn = /*#__PURE__*/ _noopQrl(
+  'component_name_segment_1_80s3opa72ppn'
+);
+q_component_name_segment_1_80s3opa72ppn.s(component_name_segment_1_80s3opa72ppn);
+const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId) => {
+  return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), '<i>Alpha</i>', '<!/s>'];
+};
+const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ _noopQrl(
+  'component_slot_render_segment_2_3b0t9ouqyjhtg'
+);
+q_component_slot_render_segment_2_3b0t9ouqyjhtg.s(component_slot_render_segment_2_3b0t9ouqyjhtg);
+const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx, __rangeId) => {
+  return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), '<b>Bravo</b>', '<!/s>'];
+};
+const q_component_slot_render_segment_3_3b0ta2vuvdjtz = /*#__PURE__*/ _noopQrl(
+  'component_slot_render_segment_3_3b0ta2vuvdjtz'
+);
+q_component_slot_render_segment_3_3b0ta2vuvdjtz.s(component_slot_render_segment_3_3b0ta2vuvdjtz);
+export const Switch = (props, ctx) => {
+  const id0 = ctx.nextId();
+  ctx.addRoot(props);
+  const content0 = renderSsrContent(
+    ctx,
+    id0,
+    [],
+    q_component_slot_dynamic_segment_0_2ikf7n1jp8rfp.w([props]),
+    false,
+    true
+  );
+  return maybeThen(content0, (content0) => ['<!d=', createSsrNodeId(id0), '>', content0, '<!/d>']);
+};
+export default (props, ctx) => {
+  const slotScope0 = createSlotScope();
+  ctx.addRoot(props);
+  ctx.addRoot(slotScope0);
+  const propQrl0 = q_component_name_segment_1_80s3opa72ppn.w([props]);
+  registerProjection(slotScope0, 'a', q_component_slot_render_segment_2_3b0t9ouqyjhtg);
+  registerProjection(slotScope0, 'b', q_component_slot_render_segment_3_3b0ta2vuvdjtz);
+  const component0 = createComponent(
+    Switch,
+    _props(
+      {
+        get name() {
+          return readExpression(propQrl0);
+        },
+      },
+      { name: propQrl0 }
+    ),
+    ctx,
+    { slotScope: slotScope0 }
+  );
+  return maybeThen(component0, (component0) => component0);
+};
+============================= src/component.tsx_component_slot_dynamic_segment_0_2ikf7n1jp8rfp.js (ENTRY POINT)==
+
+import { _captures, renderSsrSlot, maybeThen } from '@qwik.dev/core';
+
+export const component_slot_dynamic_segment_0_2ikf7n1jp8rfp = (ctx) => {
+  const [props] = _captures;
+  const slotName0 = props.name;
+  const slot0 = renderSsrSlot(ctx, slotName0, undefined);
+  return maybeThen(slot0, (slot0) => slot0);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_slot_dynamic_segment_0_2ikf7n1jp8rfp",
+  "entry": null,
+  "displayName": "component_slot_dynamic_segment_0",
+  "hash": "2ikf7n1jp8rfp",
+  "canonicalFilename": "component.tsx_component_slot_dynamic_segment_0_2ikf7n1jp8rfp",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot:dynamic",
+  "captures": true,
+  "loc": [
+    72,
+    98
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_name_segment_1_80s3opa72ppn.js (ENTRY POINT)==
+
+export const component_name_segment_1_80s3opa72ppn = (props) => {
+  return props.pick;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_name_segment_1_80s3opa72ppn",
+  "entry": null,
+  "displayName": "component_name_segment_1",
+  "hash": "80s3opa72ppn",
+  "canonicalFilename": "component.tsx_component_name_segment_1_80s3opa72ppn",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "name",
+  "captures": true,
+  "loc": [
+    140,
+    150
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg.js (ENTRY POINT)==
+
+import { createSsrMarkup, createSsrNodeId } from '@qwik.dev/core';
+
+export const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId) => {
+  return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), '<i>Alpha</i>', '<!/s>'];
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_slot_render_segment_2_3b0t9ouqyjhtg",
+  "entry": null,
+  "displayName": "component_slot_render_segment_2",
+  "hash": "3b0t9ouqyjhtg",
+  "canonicalFilename": "component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot:render",
+  "captures": false,
+  "loc": [
+    152,
+    175
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_slot_render_segment_3_3b0ta2vuvdjtz.js (ENTRY POINT)==
+
+import { createSsrMarkup, createSsrNodeId } from '@qwik.dev/core';
+
+export const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx, __rangeId) => {
+  return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), '<b>Bravo</b>', '<!/s>'];
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_slot_render_segment_3_3b0ta2vuvdjtz",
+  "entry": null,
+  "displayName": "component_slot_render_segment_3",
+  "hash": "3b0ta2vuvdjtz",
+  "canonicalFilename": "component.tsx_component_slot_render_segment_3_3b0ta2vuvdjtz",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot:render",
+  "captures": false,
+  "loc": [
+    175,
+    198
+  ],
+  "paramNames": []
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

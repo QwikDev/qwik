@@ -285,6 +285,7 @@ export const enum ProgramKind {
   Component = 'component',
   BranchArm = 'branch-arm',
   CollectionRow = 'collection-row',
+  DynamicSlot = 'dynamic-slot',
   Projection = 'projection',
   SlotFallback = 'slot-fallback',
 }
@@ -306,6 +307,9 @@ export function programKind(qrl: LinkedQrl): ProgramKind {
     if (qrl.boundary.role === 'slot-fallback') {
       return ProgramKind.SlotFallback;
     }
+    if (qrl.boundary.role === 'dynamic-slot') {
+      return ProgramKind.DynamicSlot;
+    }
   }
   throw new UnsupportedError(`a program qrl with the boundary "${qrl.boundary.kind}"`);
 }
@@ -326,16 +330,14 @@ export function extractPayloadJs(module: LinkedModule, payload: number): string 
   return text;
 }
 
-/** Only an `inline`-resumed Js value may splice its payload at the use site. */
+/** Only an `inline`-resumed value may execute at its authored use site. */
 export function inlineValueJs(module: LinkedModule, value: Value): string {
-  if (
-    value.v !== ValueKind.Computed ||
-    value.expr.kind !== ExprKind.Js ||
-    value.resume.r !== ResumeKind.Inline
-  ) {
+  if (value.v !== ValueKind.Computed || value.resume.r !== ResumeKind.Inline) {
     throw new UnsupportedError('a non-inline source value');
   }
-  return extractPayloadJs(module, value.expr.payload);
+  return value.expr.kind === ExprKind.Ir
+    ? valueIrJs(module, value.expr.ir)
+    : extractPayloadJs(module, value.expr.payload);
 }
 
 /** Serialization roots for a use site — row-index boxes never root (the block owns them). */

@@ -17,6 +17,7 @@ import {
   type LinkedQrl,
   type LinkedOp,
   type Prop,
+  type QrlUse,
 } from '../schema';
 import { QwikWord, QwikGenWord } from '../words';
 import { UnsupportedError } from '../errors';
@@ -194,8 +195,9 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       case OpKind.Component:
         return this.createComponent(op, statements, pass);
       case OpKind.Slot:
-        this.imports.add(QwikWord.CreateSlot);
-        return `${QwikWord.CreateSlot}(${this.slotArguments(op, pass.names.props)})`;
+        return this.createSlot(op, statements, pass);
+      case OpKind.DynamicSlot:
+        return this.dynamicSlotRoot(op, ownerName, statements, pass);
       default:
         throw new Error(`pipeline.generateJsCsr: op "${op.op}" not implemented yet`);
     }
@@ -336,6 +338,11 @@ class CsrModuleEmitter implements QwikModuleEmitter {
           nodeIndex += 2;
           break;
         }
+        case OpKind.DynamicSlot: {
+          this.mountDynamicSlot(child, elementExpr, nodeIndex, nodeCount, statements, pass);
+          nodeIndex += 2;
+          break;
+        }
         default: {
           throw new UnsupportedError(`the child op "${child.op}" in a csr element`);
         }
@@ -373,18 +380,86 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     this.imports.add(QwikWord.CreateSlot);
     this.imports.add(QwikWord.MaybeThen);
     statements.push(
-      `${pass.names.ctx}.scheduler.waitFor(${QwikWord.MaybeThen}(${QwikWord.CreateSlot}(${this.slotArguments(op, pass.names.props)}), (${slot}) => { for (const node of ${slot}) { ${end}.parentNode.insertBefore(node, ${end}); } }));`
+      `${pass.names.ctx}.scheduler.waitFor(${QwikWord.MaybeThen}(${this.createSlot(op, statements, pass)}, (${slot}) => { for (const node of ${slot}) { ${end}.parentNode.insertBefore(node, ${end}); } }));`
     );
   }
 
-  private slotArguments(op: Extract<LinkedOp, { op: OpKind.Slot }>, propsName: string): string {
+  private createSlot(
+    op: Extract<LinkedOp, { op: OpKind.Slot }>,
+    statements: string[],
+    pass: RenderPass
+  ): string {
+    let name = op.name === '' ? '' : JSON.stringify(op.name);
+    if (op.nameValue !== undefined) {
+      name = pass.next(QwikGenWord.SlotName);
+      statements.push(`const ${name} = ${inlineValueJs(this.module, op.nameValue)};`);
+    }
+    this.imports.add(QwikWord.CreateSlot);
+    return `${QwikWord.CreateSlot}(${this.slotArguments(op, pass.names.props, name)})`;
+  }
+
+  private slotArguments(
+    op: Extract<LinkedOp, { op: OpKind.Slot }>,
+    propsName: string,
+    name: string
+  ): string {
     if (op.fallback === null) {
-      return op.name === '' ? '' : JSON.stringify(op.name);
+      return name;
     }
     const { qrl, args } = resolveQrlUse(this.module, op.fallback, propsName);
     const reference = this.lazyQrlReference(qrl);
     const fallback = args.length === 0 ? reference : `${reference}.w([${args.join(', ')}])`;
-    return `${JSON.stringify(op.name)}, ${fallback}`;
+    return `${name === '' ? "''" : name}, ${fallback}`;
+  }
+
+  private dynamicSlotRoot(
+    op: Extract<LinkedOp, { op: OpKind.DynamicSlot }>,
+    ownerName: string,
+    statements: string[],
+    pass: RenderPass
+  ): string {
+    const fragment = pass.next(QwikGenWord.Fragment);
+    const template = `${ownerName}_${pass.next(QwikGenWord.Template)}`;
+    const start = pass.next(QwikGenWord.Start);
+    const end = pass.next(QwikGenWord.End);
+    statements.push(
+      `const ${fragment} = ${template}(${pass.names.ctx}.document);`,
+      `const ${start} = ${QwikWord.FirstChild}(${fragment});`,
+      `const ${end} = ${QwikWord.NextSibling}(${start});`
+    );
+    this.imports.add(QwikWord.FirstChild);
+    this.imports.add(QwikWord.NextSibling);
+    this.hoistTemplate(template, '<!----><!---->');
+    this.createDynamicSlotBlock(op, start, end, statements, pass);
+    return `[${start}, ${end}]`;
+  }
+
+  private mountDynamicSlot(
+    op: Extract<LinkedOp, { op: OpKind.DynamicSlot }>,
+    elementExpr: string,
+    nodeIndex: number,
+    nodeCount: number,
+    statements: string[],
+    pass: RenderPass
+  ): void {
+    const { start, end } = this.locateRange(elementExpr, nodeIndex, nodeCount, statements, pass);
+    this.createDynamicSlotBlock(op, start, end, statements, pass);
+  }
+
+  private createDynamicSlotBlock(
+    op: Extract<LinkedOp, { op: OpKind.DynamicSlot }>,
+    start: string,
+    end: string,
+    statements: string[],
+    pass: RenderPass
+  ): void {
+    const render = this.lazyRenderReference(op.render, pass.names.props);
+    const content = pass.next(QwikGenWord.Content);
+    this.imports.add(QwikWord.CreateContentBlock);
+    statements.push(
+      `const ${content} = ${QwikWord.CreateContentBlock}(${pass.names.ctx}, ${start}, ${end}, [], ${render}, false, true);`,
+      `${pass.names.ctx}.scheduler.notify(${content});`
+    );
   }
 
   /** The branch swaps DOM between its start/end comment pair via a range effect. */
@@ -408,8 +483,9 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       this.imports.add(QwikWord.WithCaptures);
       condition = `${QwikWord.WithCaptures}(${condition}, [${conditionUse.args.join(', ')}])`;
     }
-    const thenRef = this.armReference(op.then, pass.names.props);
-    const elseRef = op.else === null ? 'undefined' : this.armReference(op.else, pass.names.props);
+    const thenRef = this.lazyRenderReference(op.then, pass.names.props);
+    const elseRef =
+      op.else === null ? 'undefined' : this.lazyRenderReference(op.else, pass.names.props);
     const branch = pass.next(QwikGenWord.Branch);
     statements.push(
       `const ${branch} = ${QwikWord.CreateBranch}(${pass.names.ctx}, new ${QwikWord.BranchRange}(${pass.names.ctx}.document, ${start}, ${end}), ${condition}, ${thenRef}, ${elseRef});`
@@ -533,10 +609,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
   }
 
   /** A lazy arm ref wears its captures via `.w([...])` — restored from `_captures` in the chunk. */
-  private armReference(
-    use: Extract<LinkedOp, { op: OpKind.Branch }>['then'],
-    propsName: string
-  ): string {
+  private lazyRenderReference(use: QrlUse, propsName: string): string {
     const resolved = resolveQrlUse(this.module, use, propsName);
     const ref = this.lazyQrlReference(resolved.qrl);
     return resolved.args.length === 0 ? ref : `${ref}.w([${resolved.args.join(', ')}])`;
@@ -895,6 +968,7 @@ function templateChildren(children: readonly LinkedOp[]): LinkedOp[] {
       case OpKind.Branch:
       case OpKind.Each:
       case OpKind.Slot:
+      case OpKind.DynamicSlot:
         // A dynamic range's start/end comment pair.
         return { op: OpKind.Static as const, html: '<!----><!---->' };
       case OpKind.Component:
@@ -910,6 +984,7 @@ function templateNodeCount(op: LinkedOp): number {
     case OpKind.Branch:
     case OpKind.Each:
     case OpKind.Slot:
+    case OpKind.DynamicSlot:
       return 2;
     default:
       return 1;

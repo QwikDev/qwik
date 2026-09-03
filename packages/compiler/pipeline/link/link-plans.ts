@@ -126,6 +126,16 @@ export function linkPlans(
         }
         return;
       }
+      if (op.op === OpKind.DynamicSlot) {
+        if (!qrlIndexes[module].has(op.render.qrl)) {
+          diagnostics.push({
+            module: plan.path,
+            code: 'invalid-qrl-reference',
+            message: `Dynamic slot references unknown QRL "${op.render.qrl}".`,
+          });
+        }
+        return;
+      }
       if (op.op !== OpKind.Component) {
         return;
       }
@@ -499,6 +509,13 @@ export function linkPlans(
         if (qrl !== undefined) {
           visitDecl({ module, table: DeclTable.Qrls, index: qrl });
         }
+      }
+      return;
+    }
+    if (op.op === OpKind.DynamicSlot) {
+      const qrl = qrlIndexes[module].get(op.render.qrl);
+      if (qrl !== undefined) {
+        visitDecl({ module, table: DeclTable.Qrls, index: qrl });
       }
       return;
     }

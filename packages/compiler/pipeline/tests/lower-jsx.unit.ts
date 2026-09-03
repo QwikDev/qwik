@@ -5,7 +5,16 @@ import { analyseModule } from '../analyse/analyse-module';
 import { lowerJsx } from '../analyse/lower-jsx';
 import { createTestLowerContext } from './fixtures';
 import { foldStaticOp } from '../generate/fold-static';
-import { OpKind, ProgramBodyKind, ProjectionKind, SeedKind } from '../schema';
+import {
+  ArgPass,
+  OpKind,
+  ProgramBodyKind,
+  ProjectionKind,
+  QrlBodyKind,
+  ResumeKind,
+  SeedKind,
+  ValueKind,
+} from '../schema';
 
 function fold(jsx: string, escapeTextContent = false): string {
   const source = `const a = ${jsx};`;
@@ -99,4 +108,42 @@ export default () => <Inner><Slot name="source" q:slot="target" /></Inner>;
     fallback: null,
     id: { kind: SeedKind.Projection, ordinal: 0 },
   });
+});
+
+test('a dynamic Slot name lowers inside one render QRL', async () => {
+  const plan = await analyseModule(
+    {
+      path: 'src/app.tsx',
+      code: `import { Slot } from '@qwik.dev/core';
+export default (props) => <Slot name={props.name} />;
+`,
+    },
+    { transpileTs: true }
+  );
+  const dynamicSlot = plan.programs
+    .flatMap((program) => (program.body.kind === ProgramBodyKind.Ops ? program.body.ops : []))
+    .find((op) => op.op === OpKind.DynamicSlot);
+
+  expect(dynamicSlot).toMatchObject({
+    op: OpKind.DynamicSlot,
+    render: { args: [{ pass: ArgPass.Props }] },
+  });
+  if (dynamicSlot?.op !== OpKind.DynamicSlot) {
+    throw new Error('expected a dynamic slot');
+  }
+  const render = plan.qrls.find((qrl) => qrl.id === dynamicSlot.render.qrl);
+  expect(render?.body.b).toBe(QrlBodyKind.Program);
+  if (render?.body.b !== QrlBodyKind.Program) {
+    throw new Error('expected a render program');
+  }
+  const body = plan.programs[render.body.program].body;
+  expect(body.kind).toBe(ProgramBodyKind.Ops);
+  if (body.kind !== ProgramBodyKind.Ops || body.ops[0]?.op !== OpKind.Slot) {
+    throw new Error('expected a slot render operation');
+  }
+  expect(body.ops[0].nameValue).toMatchObject({
+    v: ValueKind.Computed,
+    resume: { r: ResumeKind.Inline },
+  });
+  expect(plan.qrls).toHaveLength(2);
 });

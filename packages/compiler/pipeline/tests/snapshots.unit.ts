@@ -750,6 +750,15 @@ export default () => <Card><h1 q:slot="header">Title</h1><p>Content</p></Card>;
     });
   });
 
+  test('should switch component children through a dynamic slot name', async () => {
+    await testInput(mode, 'component-children-dynamic-slot', {
+      code: `import { Slot } from '@qwik.dev/core';
+export const Switch = (props) => <Slot name={props.name} />;
+export default (props) => <Switch name={props.pick}><i q:slot="a">Alpha</i><b q:slot="b">Bravo</b></Switch>;
+`,
+    });
+  });
+
   test('should render a slot fallback only without a projection', async () => {
     await testInput(mode, 'component-slot-fallback', {
       code: `import { Slot } from '@qwik.dev/core';
@@ -825,7 +834,7 @@ describe('pending slices', () => {
   test.todo('projections and slots');
   test.todo('branches (incl. build-constant conditions and residual isDev)');
   test.todo('collections (array/reactive/derived, inline and chunk rows)');
-  test.todo('suspense, reveal, dynamic slots');
+  test.todo('suspense, reveal, dynamic q:slot names');
   test.todo('styles, context, custom hooks, tasks');
   test.todo('natives-as-JS, library mode');
   test.todo('incomplete link during per-module transform matches legacy conservative output');

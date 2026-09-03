@@ -231,6 +231,8 @@ class SsrModuleEmitter implements QwikModuleEmitter {
             return this.armEmission(qrl);
           case ProgramKind.CollectionRow:
             return this.rowEmission(qrl);
+          case ProgramKind.DynamicSlot:
+            return this.dynamicSlotEmission(qrl);
           case ProgramKind.Projection:
           case ProgramKind.SlotFallback:
             return this.slotContentEmission(qrl);
@@ -282,6 +284,13 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     emission.imports.add(QwikWord.CreateSsrNodeId);
     emission.params = [names.ctx, RangeIdParam];
     emission.value = `[${QwikWord.CreateSsrMarkup}('<!s=', ${QwikWord.CreateSsrNodeId}(${RangeIdParam}), '>'), ${core.value}, '<!/s>']`;
+    return emission;
+  }
+
+  /** Dynamic slot selection re-runs inside the caller-owned content range. */
+  private dynamicSlotEmission(qrl: LinkedQrl): FunctionEmission {
+    const { emission, names } = this.renderEmission(qrl, {});
+    emission.params = [names.ctx];
     return emission;
   }
 
@@ -381,6 +390,9 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         return;
       case OpKind.Slot:
         this.slot(pass, op, parts);
+        return;
+      case OpKind.DynamicSlot:
+        this.dynamicSlot(pass, op, parts);
         return;
       default:
         throw new Error(`pipeline.generateJsSsr: op "${op.op}" not implemented yet`);
@@ -482,6 +494,10 @@ class SsrModuleEmitter implements QwikModuleEmitter {
           this.slot(pass, child, parts);
           break;
         }
+        case OpKind.DynamicSlot: {
+          this.dynamicSlot(pass, child, parts);
+          break;
+        }
         default: {
           if (!isFullyStaticSubtree(child)) {
             throw new UnsupportedError('a dynamic child inside an element record');
@@ -501,22 +517,50 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     parts: string[]
   ): void {
     const slot = pass.next(QwikGenWord.Slot);
+    let name = op.name === '' ? '' : JSON.stringify(op.name);
+    if (op.nameValue !== undefined) {
+      name = pass.next(QwikGenWord.SlotName);
+      pass.statements.push(`const ${name} = ${inlineValueJs(this.module, op.nameValue)};`);
+    }
     this.imports.add(QwikWord.RenderSsrSlot);
-    if (op.fallback === null) {
-      const name = op.name === '' ? '' : `, ${JSON.stringify(op.name)}`;
-      this.pushStep(pass, slot, [], `${QwikWord.RenderSsrSlot}(${pass.names.ctx}${name})`);
-    } else {
+    let fallback = 'undefined';
+    let roots: string[] = [];
+    if (op.fallback !== null) {
       const { qrl, args } = resolveQrlUse(this.module, op.fallback, pass.names.props);
       const reference = this.qrlReference(qrl, true);
-      const fallback = args.length === 0 ? reference : `${reference}.w([${args.join(', ')}])`;
-      this.pushStep(
-        pass,
-        slot,
-        rootArgs(qrl, args),
-        `${QwikWord.RenderSsrSlot}(${pass.names.ctx}, ${JSON.stringify(op.name)}, ${fallback})`
-      );
+      fallback = args.length === 0 ? reference : `${reference}.w([${args.join(', ')}])`;
+      roots = rootArgs(qrl, args);
     }
+    const call =
+      op.fallback === null && op.nameValue === undefined
+        ? `${QwikWord.RenderSsrSlot}(${pass.names.ctx}${name === '' ? '' : `, ${name}`})`
+        : `${QwikWord.RenderSsrSlot}(${pass.names.ctx}, ${name === '' ? "''" : name}, ${fallback})`;
+    this.pushStep(pass, slot, roots, call);
     parts.push(slot);
+  }
+
+  private dynamicSlot(
+    pass: RenderPass,
+    op: Extract<LinkedOp, { op: OpKind.DynamicSlot }>,
+    parts: string[]
+  ): void {
+    const id = pass.next(QwikGenWord.Id);
+    pass.statements.push(`const ${id} = ${pass.names.ctx}.nextId();`);
+    const render = this.useQrl(pass, op.render, true);
+    const content = pass.next(QwikGenWord.Content);
+    this.imports.add(QwikWord.RenderSsrContent);
+    this.pushStep(
+      pass,
+      content,
+      rootArgs(render.qrl, render.args),
+      `${QwikWord.RenderSsrContent}(${pass.names.ctx}, ${id}, [], ${render.ref}, false, true)`
+    );
+    this.imports.add(QwikWord.CreateSsrNodeId);
+    pushMergedStatic(parts, '<!d=');
+    parts.push(`${QwikWord.CreateSsrNodeId}(${id})`);
+    pushMergedStatic(parts, '>');
+    parts.push(content);
+    pushMergedStatic(parts, '<!/d>');
   }
 
   /** A collection renders between `<!f=N>`…`<!/f>` markers; rows reconcile by key. */

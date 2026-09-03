@@ -133,10 +133,24 @@ function tryLowerInlineValue(expression: Expression, ctx: LowerContext): Reactiv
     return null;
   }
   // Module bindings stay readable: the inline row function nests inside the module scope.
+  return lowerInlineExpressionValue(expression, ctx, refs);
+}
+
+/** Lowers a value executed inside its enclosing render QRL. */
+export function lowerInlineExpressionValue(
+  expression: Expression,
+  ctx: LowerContext,
+  refs: CollectedCaptures
+): Extract<Value, { v: ValueKind.Computed }> {
+  if (findRuntimeJsx(expression) !== null) {
+    throw new UnsupportedError('JSX inside an expression value');
+  }
   const payload = pushPayload(ctx, [expression.start, expression.end]);
+  recordPayloadAliasReads(ctx, payload, refs);
+  const ir = tryLowerExprIr(expression, ctx);
   return {
     v: ValueKind.Computed,
-    expr: { kind: ExprKind.Js, payload },
+    expr: ir === null ? { kind: ExprKind.Js, payload } : { kind: ExprKind.Ir, ir },
     resume: { r: ResumeKind.Inline },
     compilerString: false,
   };

@@ -153,7 +153,12 @@ export type Op =
       shape: Shape;
     }
   | { op: OpKind.Slot; name: string; nameValue?: Value; fallback: QrlUse | null; id: Seed }
-  | { op: OpKind.DynamicSlot; program: ProgramId; id: Seed }
+  | {
+      op: OpKind.DynamicSlot;
+      render: QrlUse;
+      id: Seed;
+      lifetime: LifetimeId;
+    }
   | {
       op: OpKind.Suspense;
       content: ProgramId;

@@ -218,8 +218,8 @@ type Op =
       lifetime: LifetimeId;
       shape: Shape;
     }
-  | { op: 'slot'; name: string; nameValue?: Value; fallback: ProgramId | null; id: Seed }
-  | { op: 'dynamic-slot'; program: ProgramId; id: Seed }
+  | { op: 'slot'; name: string; nameValue?: Value; fallback: QrlUse | null; id: Seed }
+  | { op: 'dynamic-slot'; render: QrlUse; id: Seed; lifetime: LifetimeId }
   | {
       op: 'suspense';
       content: ProgramId;

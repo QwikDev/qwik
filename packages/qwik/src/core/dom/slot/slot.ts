@@ -166,7 +166,7 @@ export function createSlot(
   if (projections.length === 0) {
     return fallback === undefined
       ? EMPTY_NODES
-      : maybeThen(fallback(context.container!, idBase), (output) => toNodes(output));
+      : maybeThen(runWithCollector(null, fallback, context.container!, idBase), toNodes);
   }
 
   const nodes: Node[] = [];
@@ -378,7 +378,7 @@ function renderSsrProjection(
       slotScope,
     });
     return safeCall(
-      () => invoke(invokeContext, render, ctx, rangeId, idBase),
+      () => runWithCollector(null, invoke, invokeContext, render, ctx, rangeId, idBase),
       (output) => output,
       (error) => {
         if (invokeContext.owner !== null) {

@@ -37,7 +37,7 @@
     "@unpic/core": "0.0.42",
     "@unpic/qwik": "0.0.38",
     "algoliasearch": "4.16.0",
-    "fflate": "0.8.2",
+    "fflate": "0.8.3",
     "gray-matter": "4.0.3",
     "leaflet": "1.9.4",
     "magic-string": "0.30.21",

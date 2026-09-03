@@ -1,6 +1,7 @@
 import type {
   ArrowFunctionExpression,
   BindingIdentifier,
+  BindingPattern,
   Directive,
   JSXElement,
   Program,
@@ -16,8 +17,8 @@ export interface DiscoveredComponent {
   bindingNode: BindingIdentifier | null;
   declarationKind: DeclarationKind;
   arrow: ArrowFunctionExpression;
-  /** The authored props param — reused as the emitted props name. */
-  param: { node: BindingIdentifier; range: [number, number] } | null;
+  /** The authored props parameter pattern. */
+  param: { node: BindingPattern; range: [number, number] } | null;
   /** Statements before the return — lowered as component setup. */
   setupStatements: (Directive | Statement)[];
   jsx: JSXElement;
@@ -84,7 +85,17 @@ function describeComponent(
     throw new UnsupportedError('more than one component parameter');
   }
   const param = params[0];
-  if (param !== undefined && param.type !== 'Identifier') {
+  if (
+    param !== undefined &&
+    param.type !== 'Identifier' &&
+    (param.type !== 'ObjectPattern' ||
+      param.properties.some(
+        (property) =>
+          property.type !== 'Property' ||
+          !property.shorthand ||
+          property.value.type !== 'Identifier'
+      ))
+  ) {
     throw new UnsupportedError('a destructured component parameter');
   }
   const { setupStatements, returned } = componentBody(arrow);

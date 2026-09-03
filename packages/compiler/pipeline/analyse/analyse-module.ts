@@ -15,10 +15,11 @@ import {
   ProgramBodyKind,
   QrlBodyKind,
   QrlPayloadKind,
+  type ComponentParameter,
   type Diagnostic,
   type ModulePlan,
 } from '../schema';
-import { createBindingGraph } from './ast/bindings';
+import { bindingIdentifiers, createBindingGraph } from './ast/bindings';
 import { findRuntimeJsx, hasComponentCandidates } from './ast/returns-jsx';
 import { parseModule } from './ast/parse';
 import { scanModuleSurface } from './module-surface';
@@ -114,8 +115,32 @@ export async function analyseModule(
   for (const component of components) {
     const componentBinding =
       component.bindingNode === null ? null : bindings.declaration(component.bindingNode);
+    const parameterBindings =
+      component.param === null
+        ? []
+        : bindingIdentifiers(component.param.node).map((node) => bindings.declaration(node)!);
+    const parameterSurface: ComponentParameter['surface'] | null =
+      component.param === null
+        ? null
+        : component.param.node.type === 'Identifier'
+          ? {
+              kind: SurfaceKind.Identifier,
+              binding: parameterBindings[0]!,
+            }
+          : {
+              kind: SurfaceKind.Object,
+              bindings: parameterBindings.map((binding) => ({
+                binding,
+                name: plan.bindings[binding].name,
+              })),
+            };
     lowerContext.propsBinding =
-      component.param === null ? null : bindings.declaration(component.param.node);
+      parameterSurface?.kind === SurfaceKind.Identifier ? parameterSurface.binding : null;
+    lowerContext.propsMembers = new Map(
+      parameterSurface?.kind === SurfaceKind.Object
+        ? parameterSurface.bindings.map(({ binding, name }) => [binding, name])
+        : []
+    );
     let rootOp;
     let setup;
     try {
@@ -155,6 +180,10 @@ export async function analyseModule(
         temps: [],
       });
     }
+    const parameter =
+      parameterSurface === null
+        ? null
+        : { pattern: plan.payloads.length - 1, surface: parameterSurface };
     // A component IS a QRL: a Program body plus an authored declaration to splice over.
     const { index: qrlIndex } = pushQrl(lowerContext, {
       identity: {
@@ -182,16 +211,7 @@ export async function analyseModule(
       declaration: {
         name: component.name,
         binding: componentBinding,
-        parameter:
-          component.param === null
-            ? null
-            : {
-                pattern: plan.payloads.length - 1,
-                surface: {
-                  kind: SurfaceKind.Identifier,
-                  binding: lowerContext.propsBinding!,
-                },
-              },
+        parameter,
         root: { name: `q${component.name}-` },
         replacementRange: [component.statement.start, component.statement.end],
         declarationKind: component.declarationKind,

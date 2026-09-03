@@ -27,6 +27,8 @@ export interface LowerContext {
   coreBindings: ReadonlyMap<LocalId, string>;
   /** The current component's props param binding. */
   propsBinding: LocalId | null;
+  /** Destructured prop binding -> authored property name. */
+  propsMembers: ReadonlyMap<LocalId, string>;
   /** The current component's reactive locals (binding → kind/slot/binding). */
   locals: ReadonlyMap<LocalId, SetupLocal>;
 }
@@ -54,6 +56,7 @@ export function createLowerContext(
     bindings,
     coreBindings,
     propsBinding: null,
+    propsMembers: new Map(),
     locals: new Map(),
   };
 }

@@ -424,6 +424,10 @@ function createSlotOp(
 
 function isPropsChildren(node: Node, ctx: LowerContext): boolean {
   const expression = unwrapExpression(node);
+  if (expression?.type === 'Identifier') {
+    const binding = ctx.bindings.reference(expression);
+    return binding !== null && ctx.propsMembers.get(binding) === 'children';
+  }
   if (
     expression?.type !== 'MemberExpression' ||
     expression.computed ||

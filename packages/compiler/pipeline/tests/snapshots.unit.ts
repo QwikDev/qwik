@@ -720,6 +720,14 @@ export default () => <Wrapper><p>Projected</p></Wrapper>;
     });
   });
 
+  test('should project component children through a destructured prop', async () => {
+    await testInput(mode, 'component-children-destructured', {
+      code: `export const Wrapper = ({ children }) => <section>{children}</section>;
+export default () => <Wrapper><p>Projected</p></Wrapper>;
+`,
+    });
+  });
+
   test('should project component children through the Slot marker', async () => {
     await testInput(mode, 'component-children-slot', {
       code: `import { Slot } from '@qwik.dev/core';

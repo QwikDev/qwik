@@ -7317,6 +7317,38 @@ export function qwikifyQrl(reactCmp$, opts) {
 }
 
 #[test]
+fn inlined_qrl_in_capture_is_extracted() {
+	let output = test_input!(TestInput {
+		code: r#"
+import { inlinedQrl } from '@qwik.dev/core';
+
+const context = {};
+export const handler = inlinedQrl(() => {}, "outer_abc", [
+	inlinedQrl(() => {}, "inner_def", [context]),
+]);
+"#
+		.to_string(),
+		entry_strategy: EntryStrategy::Segment,
+		mode: EmitMode::Prod,
+		is_server: Some(true),
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+
+	let segments: Vec<_> = output
+		.modules
+		.iter()
+		.filter_map(|module| module.segment.as_ref())
+		.map(|segment| segment.name.as_ref())
+		.collect();
+	assert!(
+		segments.contains(&"s_def"),
+		"nested QRL captured by another QRL must be emitted as a segment, got {segments:?}"
+	);
+}
+
+#[test]
 fn inlined_qrl_preserves_destructured_captures() {
 	// Simulates a library .qwik.mjs file being processed by the app optimizer in SSR dev mode.
 	// The library has destructured useCustomSignal() return value, and inner inlinedQrl captures

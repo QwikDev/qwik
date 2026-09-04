@@ -133,6 +133,9 @@ export async function executeReconcileChore(
   ssrNode: ISsrNode
 ): Promise<void> {
   ssrNode.dirty &= ~ChoreBits.RECONCILE;
+  if (!__EXPERIMENTAL__.each) {
+    return;
+  }
   const host = ssrNode;
   const props = container.getHostProp<Props | null>(host, ELEMENT_PROPS) || null;
   if (!props) {

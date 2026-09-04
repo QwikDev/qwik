@@ -4,13 +4,13 @@ import {
   implicit$FirstArg,
   isDev,
   isServer,
+  useServerData,
   type ComputedSignal,
   type NoSerialize,
   type QRL,
 } from '@qwik.dev/core';
 import {
   _deserialize,
-  _getContextEvent,
   _injectAsyncSignalValue,
   _markSignalAsExternallyOwned,
   _resolveContextWithoutSequentialScope,
@@ -41,6 +41,7 @@ import type {
   LoaderConstructorQRL,
   LoaderInternal,
   LoaderOptions,
+  QwikRouterEnvData,
   RequestEvent,
   RequestEventLoader,
   RouteNavigate,
@@ -147,7 +148,7 @@ class ServerRouteLoaderCapture {
   ) {}
 
   load() {
-    const requestEv = this.requestEv ?? getRequestEvent();
+    const requestEv = this.requestEv;
     if (!requestEv) {
       throw new Error('Unable to determine the current RequestEvent.');
     }
@@ -292,7 +293,7 @@ const createRouteLoaderSignal = (
         loader.__qrl,
         loader.__validators,
         loader.__blockSSR,
-        requestEv
+        requestEv ?? useServerData<QwikRouterEnvData>('qwikrouter')?.ev
       )
     : id;
   const searchFilter = loader.__search;
@@ -500,7 +501,7 @@ export const getRequestEvent = (thisArg?: unknown): RequestEvent | undefined => 
   if (!isServer) {
     throw new Error('getRequestEvent() can only be used on the server.');
   }
-  return _asyncRequestStore?.getStore() || [thisArg, _getContextEvent()].find(isRequestEvent);
+  return _asyncRequestStore?.getStore() ?? (isRequestEvent(thisArg) ? thisArg : undefined);
 };
 
 const REQUEST_ROUTE_LOADER_VALUES = '@routeLoaderValues';
@@ -917,12 +918,7 @@ export const routeLoaderQrl = ((
   function loader() {
     const state = _resolveContextWithoutSequentialScope(RouteStateContext)!;
     const routeLoaderCtx = _resolveContextWithoutSequentialScope(RouteLoaderCtxContext)!;
-    const signal = ensureRouteLoaderSignal(
-      loader,
-      state,
-      routeLoaderCtx,
-      isServer ? getRequestEvent() : undefined
-    );
+    const signal = ensureRouteLoaderSignal(loader, state, routeLoaderCtx);
     void signal.promise();
     return signal;
   }

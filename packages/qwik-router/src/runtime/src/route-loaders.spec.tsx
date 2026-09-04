@@ -27,6 +27,7 @@ import {
 } from '@qwik.dev/core/internal';
 import { createDocument } from '@qwik.dev/core/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { RouteLoaderCtxContext, RouteStateContext } from './contexts';
 import {
   ensureRouteLoaderSignal,
   getModuleRouteLoaders,
@@ -285,6 +286,36 @@ describe('route loader store + computed signal tracking', () => {
 
     expect(signal.error).toBeUndefined();
     expect(signal.value).toBe('late-loader-value');
+  });
+
+  it('passes the RequestEvent to a loader created during render', async () => {
+    let resolve!: (value: string) => void;
+    const pendingValue = new Promise<string>((r) => (resolve = r));
+    const loader = routeLoaderQrl(
+      createQRL(null, 'render-loader', () => pendingValue)
+    ) as LoaderInternal;
+    const requestEv = {
+      sharedMap: new Map(),
+      cookie: {},
+      url: new URL('http://localhost/'),
+    } as unknown as RequestEvent;
+    const loaderPromise = loadRouteLoader(loader, requestEv);
+    const host = vnode_newVirtual();
+    container.setContext(host, RouteStateContext, {});
+    container.setContext(host, RouteLoaderCtxContext, { loaderPaths: {} });
+    container.$serverData$.qwikrouter = { ev: requestEv };
+    const ctx = newInvokeContext();
+    ctx.$container$ = container;
+    ctx.$hostElement$ = host;
+
+    const signal = invoke(ctx, loader);
+
+    resolve('render-loader-value');
+    await loaderPromise;
+    await signal.promise();
+
+    expect(signal.error).toBeUndefined();
+    expect(signal.value).toBe('render-loader-value');
   });
 
   it('should verify store is reactive', async () => {

@@ -167,6 +167,7 @@ async function submoduleCoreProd(config: BuildConfig): Promise<object | undefine
           const esmMinCode = esmMinifyResult.code!;
           const esmCleanCode = fixPureAnnotations(esmMinCode.replace(/__self__/g, '__SELF__'));
           validateNoBareExperimentalReferences(esmCleanCode, 'core.min.mjs');
+          validateNoHmrReferences(esmCleanCode, 'core.min.mjs');
 
           const selfIdx = esmCleanCode.indexOf('self');
           const indx = Math.max(selfIdx);
@@ -320,6 +321,7 @@ async function submoduleCoreProduction(
   });
   code = fixPureAnnotations(result.code!);
   validateNoBareExperimentalReferences(code, 'core.prod.mjs');
+  validateNoHmrReferences(code, 'core.prod.mjs');
 
   await writeFile(outPath, code + '\n');
 
@@ -335,6 +337,12 @@ function validateNoBareExperimentalReferences(code: string, filename: string) {
       `"${filename}" should only reference experimental flags as "__EXPERIMENTAL__.feature".\n` +
         code.substring(Math.max(0, index - 100), index + 300)
     );
+  }
+}
+
+function validateNoHmrReferences(code: string, filename: string) {
+  if (code.includes('import.meta.hot')) {
+    throw new Error(`"${filename}" should not contain HMR code.`);
   }
 }
 

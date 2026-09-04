@@ -207,7 +207,8 @@ export class LazyRef<TYPE = unknown> {
   }
 }
 
-isBrowser &&
+qDev &&
+  isBrowser &&
   import.meta.hot &&
   setupHmr(LazyRef, (fn) => {
     getLazyRef = fn;

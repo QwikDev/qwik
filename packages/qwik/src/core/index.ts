@@ -2,6 +2,7 @@
 // Protect against duplicate imports
 //////////////////////////////////////////////////////////////////////////////////////////
 import { QError, qError } from '../server/qwik-copy';
+import { isDev } from '@qwik.dev/core/build';
 import { version } from './version';
 
 if ((globalThis as any).__qwik) {
@@ -9,7 +10,7 @@ if ((globalThis as any).__qwik) {
 }
 (globalThis as any).__qwik = version;
 
-if (import.meta.hot) {
+if (isDev && import.meta.hot) {
   import.meta.hot.dispose(() => {
     (globalThis as any).__qwik = undefined;
   });

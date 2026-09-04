@@ -27,8 +27,15 @@ import {
 } from '@qwik.dev/core/internal';
 import { createDocument } from '@qwik.dev/core/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { getModuleRouteLoaders, routeLoaderQrl, setLoaderSignalValue } from './route-loaders';
-import type { LoaderInternal, RouteModule } from './types';
+import { RouteLoaderCtxContext, RouteStateContext } from './contexts';
+import {
+  ensureRouteLoaderSignal,
+  getModuleRouteLoaders,
+  loadRouteLoader,
+  routeLoaderQrl,
+  setLoaderSignalValue,
+} from './route-loaders';
+import type { LoaderInternal, RequestEvent, RouteModule } from './types';
 
 const taskFlag = 1 << 1; // TaskFlags.TASK
 
@@ -241,6 +248,74 @@ describe('route loader store + computed signal tracking', () => {
       await signal.promise();
       expect(signal.value).toBe('loaded:/page3');
     });
+  });
+
+  it('resolves a pending blockSSR:false loader without AsyncLocalStorage', async () => {
+    let resolve!: (value: string) => void;
+    const pendingValue = new Promise<string>((r) => (resolve = r));
+    const loader = Object.assign(() => {}, {
+      __brand: 'server_loader' as const,
+      __id: 'late-loader',
+      __qrl: createQRL(null, 'late-loader', () => pendingValue),
+      __validators: undefined,
+      __serializationStrategy: 'never' as const,
+      __cacheControl: undefined,
+      __eTag: undefined,
+      __cacheKey: undefined,
+      __search: undefined,
+      __blockSSR: false,
+    }) as unknown as LoaderInternal;
+    const requestEv = {
+      sharedMap: new Map(),
+      cookie: {},
+      url: new URL('http://localhost/'),
+    } as unknown as RequestEvent;
+
+    const loaderPromise = loadRouteLoader(loader, requestEv);
+    const ctx = newInvokeContext();
+    ctx.$container$ = container;
+    const signal = invoke(ctx, () => {
+      const signal = ensureRouteLoaderSignal(loader, {}, { loaderPaths: {} }, requestEv);
+      void signal.promise();
+      return signal;
+    });
+
+    resolve('late-loader-value');
+    await loaderPromise;
+    await signal.promise();
+
+    expect(signal.error).toBeUndefined();
+    expect(signal.value).toBe('late-loader-value');
+  });
+
+  it('passes the RequestEvent to a loader created during render', async () => {
+    let resolve!: (value: string) => void;
+    const pendingValue = new Promise<string>((r) => (resolve = r));
+    const loader = routeLoaderQrl(
+      createQRL(null, 'render-loader', () => pendingValue)
+    ) as LoaderInternal;
+    const requestEv = {
+      sharedMap: new Map(),
+      cookie: {},
+      url: new URL('http://localhost/'),
+    } as unknown as RequestEvent;
+    const loaderPromise = loadRouteLoader(loader, requestEv);
+    const host = vnode_newVirtual();
+    container.setContext(host, RouteStateContext, {});
+    container.setContext(host, RouteLoaderCtxContext, { loaderPaths: {} });
+    container.$serverData$.qwikrouter = { ev: requestEv };
+    const ctx = newInvokeContext();
+    ctx.$container$ = container;
+    ctx.$hostElement$ = host;
+
+    const signal = invoke(ctx, loader);
+
+    resolve('render-loader-value');
+    await loaderPromise;
+    await signal.promise();
+
+    expect(signal.error).toBeUndefined();
+    expect(signal.value).toBe('render-loader-value');
   });
 
   it('should verify store is reactive', async () => {

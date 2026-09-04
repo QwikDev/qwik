@@ -142,11 +142,12 @@ class ServerRouteLoaderCapture {
     readonly hash: string,
     readonly qrl: QRL<(event: RequestEventLoader) => unknown>,
     readonly validators: DataValidator[] | undefined,
-    readonly blockSSR: boolean
+    readonly blockSSR: boolean,
+    readonly requestEv?: RequestEvent
   ) {}
 
   load() {
-    const requestEv = getRequestEvent();
+    const requestEv = this.requestEv ?? getRequestEvent();
     if (!requestEv) {
       throw new Error('Unable to determine the current RequestEvent.');
     }
@@ -279,13 +280,20 @@ export const fetchRouteLoaderData = async (
 const createRouteLoaderSignal = (
   loader: LoaderInternal,
   routeLoaderCtx: RouteLoaderCtx,
-  state: RouteLoaderState
+  state: RouteLoaderState,
+  requestEv?: RequestEvent
 ) => {
   const id = loader.__id;
   const stateValues = state as Record<string, unknown>;
   const resumeValueKey = getRouteLoaderValueStateKey(id);
   const capture = isServer
-    ? new ServerRouteLoaderCapture(id, loader.__qrl, loader.__validators, loader.__blockSSR)
+    ? new ServerRouteLoaderCapture(
+        id,
+        loader.__qrl,
+        loader.__validators,
+        loader.__blockSSR,
+        requestEv
+      )
     : id;
   const searchFilter = loader.__search;
   // Raw text of the last successful fetch, to skip deserialization and keep object
@@ -643,7 +651,8 @@ export const applyClientRouteLoaderPath = (loaderId: string, ctx: RouteLoaderCtx
 export const ensureRouteLoaderSignal = (
   loader: LoaderInternal,
   state: RouteLoaderState,
-  routeLoaderCtx: RouteLoaderCtx
+  routeLoaderCtx: RouteLoaderCtx,
+  requestEv?: RequestEvent
 ) => {
   if (!isServer && routeLoaderCtx.pagePathname) {
     applyClientRouteLoaderPath(loader.__id, routeLoaderCtx);
@@ -654,17 +663,18 @@ export const ensureRouteLoaderSignal = (
   if (isServer && loader.__serializationStrategy === 'never') {
     (state as Record<string, unknown>)[getRouteLoaderValueStateKey(loader.__id)] = _UNINITIALIZED;
   }
-  return (state[loader.__id] ||= createRouteLoaderSignal(loader, routeLoaderCtx, state));
+  return (state[loader.__id] ||= createRouteLoaderSignal(loader, routeLoaderCtx, state, requestEv));
 };
 
 export const ensureRouteLoaderSignals = (
   mods: readonly (RouteModule | undefined)[],
   state: RouteLoaderState,
-  routeLoaderCtx: RouteLoaderCtx
+  routeLoaderCtx: RouteLoaderCtx,
+  requestEv?: RequestEvent
 ) => {
   const loaders = getModuleRouteLoaders(mods);
   for (let i = 0; i < loaders.length; i++) {
-    ensureRouteLoaderSignal(loaders[i], state, routeLoaderCtx);
+    ensureRouteLoaderSignal(loaders[i], state, routeLoaderCtx, requestEv);
   }
   return loaders;
 };
@@ -907,7 +917,12 @@ export const routeLoaderQrl = ((
   function loader() {
     const state = _resolveContextWithoutSequentialScope(RouteStateContext)!;
     const routeLoaderCtx = _resolveContextWithoutSequentialScope(RouteLoaderCtxContext)!;
-    const signal = ensureRouteLoaderSignal(loader, state, routeLoaderCtx);
+    const signal = ensureRouteLoaderSignal(
+      loader,
+      state,
+      routeLoaderCtx,
+      isServer ? getRequestEvent() : undefined
+    );
     void signal.promise();
     return signal;
   }

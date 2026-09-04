@@ -587,6 +587,7 @@ impl<'a> QwikTransform<'a> {
 
 		self.segment_stack.push(symbol_name.clone());
 		let folded = *first_arg.expr.fold_with(self);
+		let third_arg = third_arg.map(|arg| arg.fold_with(self));
 		self.segment_stack.pop();
 
 		// Inline const initializer if the value is a simple ident referencing a local const.

@@ -758,6 +758,38 @@ export default () => <Card><h1 q:slot="header">Title</h1><p>Content</p></Card>;
     });
   });
 
+  test('should project nested fragments into default and named slots', async () => {
+    const code = `import { Slot, useSignal } from '@qwik.dev/core';
+export const Card = () => <article><header><Slot name="header" /></header><Slot /></article>;
+export default () => {
+  const count = useSignal(1);
+  return <Card><><h1 q:slot="header">Title</h1><>{/* comment */}<p>Count:<> </>{count.value}<i /><b /><em /></p></></></Card>;
+};
+`;
+    const flattened = await transformModules({
+      srcDir: 'src',
+      transpileTs: true,
+      transpileJsx: true,
+      isServer: mode === 'ssr',
+      input: [{ path: 'src/component.tsx', code: code.replaceAll('<>', '').replaceAll('</>', '') }],
+    });
+    const output = await testInput(mode, 'component-children-fragments', { code });
+    expect(output.modules.map((module) => module.code)).toEqual(
+      flattened.modules.map((module) => module.code)
+    );
+  });
+
+  test('should forward slots and render fallback through fragments', async () => {
+    const output = await testInput(mode, 'component-slot-forwarding-fragments', {
+      code: `import { Slot } from '@qwik.dev/core';
+export const Inner = () => <article><Slot name="title" /></article>;
+export const Wrapper = () => <Inner>{(<><Slot name="heading" q:slot="title"><><h2>Fallback</h2></></Slot></>)}</Inner>;
+export default () => <main><Wrapper><><h1 q:slot="heading">Provided</h1></></Wrapper><Wrapper><>{/* empty */}<></></></Wrapper></main>;
+`,
+    });
+    expect(output.modules).toHaveLength(3);
+  });
+
   test('should switch component children through a dynamic slot name', async () => {
     await testInput(mode, 'component-children-dynamic-slot', {
       code: `import { Slot } from '@qwik.dev/core';

@@ -83,10 +83,7 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
     .filter((attribute) => !isKeyAttribute(attribute))
     .map((attribute) => lowerAttribute(attribute, ctx, 'element'))
     .filter((prop) => prop !== null);
-  const children: Op[] = [];
-  for (const child of element.children) {
-    children.push(...lowerChild(child, ctx));
-  }
+  const children = lowerJsxChildren(element.children, ctx);
   if (VOID_ELEMENTS.has(tag) && children.length > 0) {
     throw new InvalidModuleError(
       'invalid-void-children',
@@ -226,10 +223,25 @@ function lowerComponentPropsProxy(attributes: readonly JSXAttributeItem[], ctx: 
 /** Lowers a JSX child list — the shared path for fragment-rooted trees. */
 export function lowerJsxChildren(children: readonly JSXChild[], ctx: LowerContext): Op[] {
   const ops: Op[] = [];
-  for (const child of children) {
-    ops.push(...lowerChild(child, ctx));
+  for (const child of flattenJsxChildren(children)) {
+    for (const op of lowerChild(child, ctx)) {
+      const previous = ops[ops.length - 1];
+      if (previous?.op === OpKind.Static && op.op === OpKind.Static) {
+        previous.html += op.html;
+      } else {
+        ops.push(op);
+      }
+    }
   }
   return ops;
+}
+
+function flattenJsxChildren(children: readonly JSXChild[]): JSXChild[] {
+  return children.flatMap((child) => {
+    const expression =
+      child.type === 'JSXExpressionContainer' ? unwrapExpression(child.expression) : child;
+    return expression?.type === 'JSXFragment' ? flattenJsxChildren(expression.children) : [child];
+  });
 }
 
 /** `null`/`undefined` literals in a branch arm render nothing. */
@@ -395,7 +407,7 @@ function lowerDynamicSlot(element: JSXElement, name: Expression, ctx: LowerConte
 }
 
 function lowerSlotFallback(children: readonly JSXChild[], ctx: LowerContext): QrlUse | null {
-  const fallbackChildren = children.filter(isProjectionChild);
+  const fallbackChildren = flattenJsxChildren(children).filter(isProjectionChild);
   return fallbackChildren.length === 0
     ? null
     : lowerRenderQrl(
@@ -447,11 +459,13 @@ function lowerProjections(
   children: readonly JSXChild[],
   ctx: LowerContext
 ): Extract<Op, { op: OpKind.Component }>['projections'] {
-  return children.filter(isProjectionChild).flatMap((child) => {
-    const conditionalNames = conditionalProjectionNames(child);
-    const names = conditionalNames ?? [readProjectionName(child)];
-    return names.map((name) => lowerProjection(child, name, conditionalNames !== null, ctx));
-  });
+  return flattenJsxChildren(children)
+    .filter(isProjectionChild)
+    .flatMap((child) => {
+      const conditionalNames = conditionalProjectionNames(child);
+      const names = conditionalNames ?? [readProjectionName(child)];
+      return names.map((name) => lowerProjection(child, name, conditionalNames !== null, ctx));
+    });
 }
 
 function lowerProjection(

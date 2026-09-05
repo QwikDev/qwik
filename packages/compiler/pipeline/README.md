@@ -91,14 +91,17 @@ from a deserialized frozen plan in a fresh process.
   before module-top hoists; a lone core import does not.
 - CSR template placeholders: a sole hole is a single-space TEXT node (bindable directly); a hole
   among siblings must be an empty COMMENT — a text placeholder would merge with adjacent text
-  runs. The locator counts child OPS; adjacent text statics (a dropped comment between text
-  runs) would miscount — unhandled until that fixture exists.
+  runs. Analysis merges adjacent static text ops so locators count parsed DOM nodes correctly.
 - Rust child placement follows the props: with dynamic props, ALL children (holes included)
   pre-render into a `children_N` buffer BEFORE the open tag; a hole on a prop-less element emits
   inline after `>`. CSR orders per element: node lookups, then `setEvent`, then effects.
 
 ## Deliberate divergences from the legacy oracle
 
+- Child-list fragments are transparent: analysis expands them before slot assignment and reuses
+  ordinary child lowering for elements and fallback. Expansion stops at element boundaries;
+  empty fragments allocate no projection or fallback QRL. Fragment snapshots also compare emitted
+  code against the same input without fragment wrappers.
 - Component candidates require an Uppercased name (anonymous default exports exempt). The legacy
   compiler has no such rule — a differential fixture with a lowercase-named component will
   diverge; that is this decision, not a parity bug.

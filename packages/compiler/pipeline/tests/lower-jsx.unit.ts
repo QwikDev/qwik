@@ -75,6 +75,37 @@ describe('JSX lowering + static folding', () => {
     expect(fold('<p>{/* note */}x</p>')).toBe('<p>x</p>');
   });
 
+  test('fragments preserve child order and introduce no markup', () => {
+    expect(fold('<p>before<><i>one</i>{(<><b>two</b></>)}</>after</p>')).toBe(
+      '<p>before<i>one</i><b>two</b>after</p>'
+    );
+  });
+
+  test('adjacent text across fragments lowers to one text node', async () => {
+    const plan = await analyseModule(
+      {
+        path: 'src/app.tsx',
+        code: 'export default (props) => <p>one<>two</>{props.value}<i /><b /><em /></p>;',
+      },
+      {}
+    );
+    expect(plan.programs[0].body).toMatchObject({
+      kind: ProgramBodyKind.Ops,
+      ops: [
+        {
+          op: OpKind.Element,
+          children: [
+            { op: OpKind.Static, html: 'onetwo' },
+            { op: OpKind.Hole },
+            { op: OpKind.Element, tag: 'i' },
+            { op: OpKind.Element, tag: 'b' },
+            { op: OpKind.Element, tag: 'em' },
+          ],
+        },
+      ],
+    });
+  });
+
   test('rejects dynamic children, dynamic attributes, spreads, unresolved components, void children', () => {
     // A dynamic child now lowers to a hole op; only the static FOLD refuses it.
     expect(() => fold('<p>{value}</p>')).toThrow('folding the op "hole"');
@@ -83,6 +114,43 @@ describe('JSX lowering + static folding', () => {
     expect(() => fold('<Foo></Foo>')).toThrow('The component "Foo" is not declared in this scope.');
     expect(() => fold('<br>x</br>')).toThrow('The void element <br> cannot have children.');
   });
+});
+
+test('fragment projections preserve slot names without crossing element boundaries', async () => {
+  const plan = await analyseModule(
+    {
+      path: 'src/app.tsx',
+      code: `import { Slot } from '@qwik.dev/core';
+export const Card = () => <Slot />;
+export default () => <Card><><h1 q:slot="header">Title</h1><section><p q:slot="nested">Body</p></section></><p>After</p></Card>;
+`,
+    },
+    { transpileTs: true }
+  );
+
+  expect(componentProjectionNames(plan)).toEqual(['header', '', '']);
+  expect(plan.qrls).toHaveLength(5);
+});
+
+test('empty fragments create neither projections nor fallback QRLs', async () => {
+  const plan = await analyseModule(
+    {
+      path: 'src/app.tsx',
+      code: `import { Slot } from '@qwik.dev/core';
+export const Card = () => <Slot><>{/* empty */}{(<></>)}</></Slot>;
+export default () => <Card><><></>{/* empty */}</></Card>;
+`,
+    },
+    { transpileTs: true }
+  );
+  const slots = plan.programs
+    .flatMap((program) => (program.body.kind === ProgramBodyKind.Ops ? program.body.ops : []))
+    .filter((op) => op.op === OpKind.Slot);
+
+  expect(componentProjectionNames(plan)).toEqual([]);
+  expect(slots).toHaveLength(1);
+  expect(slots[0].fallback).toBeNull();
+  expect(plan.qrls).toHaveLength(2);
 });
 
 test('a direct Slot child forwards its named projection without a render QRL', async () => {

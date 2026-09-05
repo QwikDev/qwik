@@ -14,6 +14,9 @@ import {
   ResumeKind,
   SeedKind,
   ValueKind,
+  type ModulePlan,
+  type Op,
+  type QrlUse,
 } from '../schema';
 
 function fold(jsx: string, escapeTextContent = false): string {
@@ -252,9 +255,81 @@ export default () => {
   expect(componentProjectionNames(plan)).toEqual(['x', 'y']);
 });
 
-function componentProjectionNames(plan: Awaited<ReturnType<typeof analyseModule>>): string[] {
+test.each([
+  [
+    'props.show && <><h1 q:slot="header">Title</h1>{props.details && <p>Details</p>}</>',
+    ['header', ''],
+    [['h1'], ['p']],
+  ],
+  [
+    'props.show ? (props.details ? <h1 q:slot="header">Title</h1> : <h2 q:slot="header">Short</h2>) : <p>Empty</p>',
+    ['header', ''],
+    [['h1', 'h2'], ['p']],
+  ],
+  [
+    'props.show ? <><h1 q:slot="header">Title</h1><section><b q:slot="nested">Body</b></section></> : <><h2 q:slot="header">Short</h2><p>Empty</p></>',
+    ['header', ''],
+    [
+      ['h1', 'h2'],
+      ['section', 'b', 'p'],
+    ],
+  ],
+  ['props.show && <>{/* empty */}<></></>', [], []],
+])(
+  'conditional projections select only their own children: %s',
+  async (expression, names, tags) => {
+    const plan = await analyseModule(
+      {
+        path: 'src/app.tsx',
+        code: `import { Slot } from '@qwik.dev/core';
+export const Panel = () => <main><Slot name="header" /><Slot /></main>;
+export default (props) => <Panel>{${expression}}</Panel>;
+`,
+      },
+      { transpileTs: true }
+    );
+    expect(componentProjectionNames(plan)).toEqual(names);
+    expect(
+      componentProjections(plan).map((projection) => {
+        if (projection.kind !== ProjectionKind.Render) {
+          throw new Error('expected a rendered projection');
+        }
+        return renderedTags(plan, projection.use);
+      })
+    ).toEqual(tags);
+  }
+);
+
+function renderedTags(plan: ModulePlan, use: QrlUse): string[] {
+  const qrl = plan.qrls.find((qrl) => qrl.id === use.qrl);
+  if (qrl?.body.b !== QrlBodyKind.Program) {
+    throw new Error('expected a render program');
+  }
+  const body = plan.programs[qrl.body.program].body;
+  if (body.kind !== ProgramBodyKind.Ops) {
+    throw new Error('expected render operations');
+  }
+  const visit = (op: Op): string[] => {
+    if (op.op === OpKind.Element) {
+      return [op.tag, ...op.children.flatMap(visit)];
+    }
+    if (op.op === OpKind.Branch) {
+      return [
+        ...renderedTags(plan, op.then),
+        ...(op.else === null ? [] : renderedTags(plan, op.else)),
+      ];
+    }
+    return [];
+  };
+  return body.ops.flatMap(visit);
+}
+
+function componentProjectionNames(plan: ModulePlan): string[] {
+  return componentProjections(plan).map((projection) => projection.name);
+}
+
+function componentProjections(plan: ModulePlan) {
   return plan.programs
     .flatMap((program) => (program.body.kind === ProgramBodyKind.Ops ? program.body.ops : []))
-    .flatMap((op) => (op.op === OpKind.Component ? op.projections : []))
-    .map((projection) => projection.name);
+    .flatMap((op) => (op.op === OpKind.Component ? op.projections : []));
 }

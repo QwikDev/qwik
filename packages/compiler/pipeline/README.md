@@ -102,6 +102,11 @@ from a deserialized frozen plan in a fresh process.
   ordinary child lowering for elements and fallback. Expansion stops at element boundaries;
   empty fragments allocate no projection or fallback QRL. Fragment snapshots also compare emitted
   code against the same input without fragment wrappers.
+- Branch arms reuse render-expression lowering, including fragments and nested conditions.
+  Projection names are collected recursively through fragments and condition arms, never element
+  descendants. Selection keeps the authored branch structure; text-only ternaries remain expressions.
+  Projection lowering owns selection and delegates selected leaves to JSX lowering. Generic JSX
+  and branch lowerers receive no slot name; branch construction remains shared through arm callbacks.
 - Component candidates require an Uppercased name (anonymous default exports exempt). The legacy
   compiler has no such rule — a differential fixture with a lowercase-named component will
   diverge; that is this decision, not a parity bug.

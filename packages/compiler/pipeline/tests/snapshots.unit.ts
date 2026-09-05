@@ -832,6 +832,15 @@ export default () => <main><Card /><Card><p>Projected</p></Card></main>;
     });
   });
 
+  test('should split nested conditional fragments into named and default projections', async () => {
+    await testInput(mode, 'component-children-nested-conditional-fragments', {
+      code: `import { Slot } from '@qwik.dev/core';
+export const Panel = () => <main><Slot name="header" /><Slot /></main>;
+export default (props) => <Panel>{props.show ? <><h1 q:slot="header">Title</h1>{props.details && <><p>Details</p><p>More</p></>}</> : null}</Panel>;
+`,
+    });
+  });
+
   test('should forward a projection through a nested slot', async () => {
     const output = await testInput(mode, 'component-slot-forwarding', {
       code: `import { Slot } from '@qwik.dev/core';

@@ -16,10 +16,9 @@ import {
 } from '../schema';
 import { SegmentContext } from '../words';
 import { lowerCaptures } from './ast/capture-analysis';
-import { unwrapExpression } from './ast/utils';
 import { pushPayload, pushQrl, QrlIdentityKind, type LowerContext } from './lower-context';
-import { lowerText } from './lower-hole';
-import { lowerJsx } from './lower-jsx';
+
+type ArmLowering = (expression: Expression) => Op[];
 
 /** A branch arm expression, or `null` for an empty arm. */
 export interface BranchArm {
@@ -35,7 +34,8 @@ export function lowerBranch(
   test: Expression,
   thenArm: BranchArm,
   elseArm: BranchArm | null,
-  ctx: LowerContext
+  ctx: LowerContext,
+  lowerBody: ArmLowering
 ): Op {
   const condition = lowerCondition(test, ctx);
   const lifetime = ctx.plan.lifetimes.length;
@@ -45,18 +45,12 @@ export function lowerBranch(
     owner: LifetimeOwner.Branch,
     commit: LifetimeCommit.Immediate,
   });
-  const thenProgram = lowerArm(
-    thenArm.expression,
-    thenArm.range,
-    ctx,
-    SegmentContext.BranchThen,
-    lifetime
-  );
+  const thenProgram = lowerArm(thenArm, ctx, SegmentContext.BranchThen, lifetime, lowerBody);
   // A null-literal (or absent, for `&&`) else arm is DROPPED — no program, no chunk.
   const elseProgram =
     elseArm === null || elseArm.expression === null
       ? null
-      : lowerArm(elseArm.expression, elseArm.range, ctx, SegmentContext.BranchElse, lifetime);
+      : lowerArm(elseArm, ctx, SegmentContext.BranchElse, lifetime, lowerBody);
   return {
     op: OpKind.Branch,
     condition,
@@ -100,11 +94,11 @@ function lowerCondition(test: Expression, ctx: LowerContext): Value {
 
 /** An arm is its own render Program plus a Program-body QRL the generators chunk per target. */
 function lowerArm(
-  expression: Expression | null,
-  range: [number, number],
+  { expression, range }: BranchArm,
   ctx: LowerContext,
   nameCtx: SegmentContext,
-  lifetime: number
+  lifetime: number,
+  lowerBody: ArmLowering
 ): QrlUse {
   const loweredCaptures =
     expression === null
@@ -144,10 +138,7 @@ function lowerArm(
     loweredCaptures.args
   );
   if (expression !== null) {
-    const unwrapped = unwrapExpression(expression);
-    const ops =
-      unwrapped?.type === 'JSXElement' ? [lowerJsx(unwrapped, ctx)] : lowerText(expression, ctx);
-    ctx.plan.programs[program].body = { kind: ProgramBodyKind.Ops, ops };
+    ctx.plan.programs[program].body = { kind: ProgramBodyKind.Ops, ops: lowerBody(expression) };
   }
   return use;
 }

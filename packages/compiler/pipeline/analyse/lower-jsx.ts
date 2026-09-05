@@ -28,7 +28,7 @@ import { InvalidModuleError, UnsupportedError } from '../errors';
 import { eventScopeName } from './events';
 import { lowerEventAttribute } from './lower-event';
 import { lowerText } from './lower-hole';
-import { lowerBranch } from './lower-branch';
+import { lowerBranch, type BranchArm } from './lower-branch';
 import { identifierName, unwrapExpression } from './ast/utils';
 import {
   lowerExpressionValue,
@@ -40,7 +40,7 @@ import type { LowerContext } from './lower-context';
 import { pushPayload, pushQrl, QrlIdentityKind } from './lower-context';
 import { lowerArray } from './lower-array';
 import { lowerCaptures } from './ast/capture-analysis';
-import { findRuntimeJsx } from './ast/returns-jsx';
+import { findRuntimeJsx, returnsJsxValue } from './ast/returns-jsx';
 import { QwikDirective, SegmentContext } from '../words';
 
 /**
@@ -222,18 +222,20 @@ function lowerComponentPropsProxy(attributes: readonly JSXAttributeItem[], ctx: 
 
 /** Lowers a JSX child list — the shared path for fragment-rooted trees. */
 export function lowerJsxChildren(children: readonly JSXChild[], ctx: LowerContext): Op[] {
-  const ops: Op[] = [];
-  for (const child of flattenJsxChildren(children)) {
-    for (const op of lowerChild(child, ctx)) {
-      const previous = ops[ops.length - 1];
-      if (previous?.op === OpKind.Static && op.op === OpKind.Static) {
-        previous.html += op.html;
-      } else {
-        ops.push(op);
-      }
+  return mergeStaticText(flattenJsxChildren(children).flatMap((child) => lowerChild(child, ctx)));
+}
+
+function mergeStaticText(ops: Op[]): Op[] {
+  const merged: Op[] = [];
+  for (const op of ops) {
+    const previous = merged[merged.length - 1];
+    if (previous?.op === OpKind.Static && op.op === OpKind.Static) {
+      previous.html += op.html;
+    } else {
+      merged.push(op);
     }
   }
-  return ops;
+  return merged;
 }
 
 function flattenJsxChildren(children: readonly JSXChild[]): JSXChild[] {
@@ -263,80 +265,70 @@ function lowerChild(child: JSXChild, ctx: LowerContext): Op[] {
     }
     case 'JSXElement':
       return [lowerJsx(child, ctx)];
-    case 'JSXExpressionContainer': {
-      const expression = child.expression;
-      if (isPropsChildren(expression, ctx)) {
-        return [createSlotOp(ctx)];
-      }
-      switch (expression.type) {
-        // `{/* comment */}` renders nothing.
-        case 'JSXEmptyExpression':
-          return [];
-        case 'ConditionalExpression': {
-          const thenJsx = unwrapExpression(expression.consequent);
-          const elseJsx = unwrapExpression(expression.alternate);
-          const thenIsJsx = thenJsx?.type === 'JSXElement';
-          const elseIsJsx = elseJsx?.type === 'JSXElement';
-          if (!thenIsJsx && !elseIsJsx) {
-            return lowerText(expression, ctx);
-          }
-          // A null-literal else drops the arm (like `&&`); a null-literal then stays as an
-          // EMPTY then program — legacy never inverts the condition.
-          return [
-            lowerBranch(
-              expression.test,
-              {
-                expression: isNullArm(thenJsx) ? null : expression.consequent,
-                range: [expression.consequent.start, expression.consequent.end],
-              },
-              {
-                expression: isNullArm(elseJsx) ? null : expression.alternate,
-                range: [expression.alternate.start, expression.alternate.end],
-              },
-              ctx
-            ),
-          ];
-        }
-        case 'LogicalExpression': {
-          if (expression.operator !== '&&') {
-            return lowerText(expression, ctx);
-          }
-
-          return [
-            lowerBranch(
-              expression.left,
-              {
-                expression: expression.right,
-                range: [expression.right.start, expression.right.end],
-              },
-              null,
-              ctx
-            ),
-          ];
-        }
-        case 'CallExpression': {
-          const callee = expression.callee;
-          const args = expression.arguments;
-          if (
-            callee.type === 'MemberExpression' &&
-            args.length === 1 &&
-            args[0].type === 'ArrowFunctionExpression'
-          ) {
-            const member = callee.property;
-            if (member.type === 'Identifier' && member.name === 'map') {
-              // handle array.map(fn) JSX children
-              return [lowerArray(expression, ctx)];
-            }
-          }
-          throw new UnsupportedError('a JSX child call expression');
-        }
-        default:
-          return lowerText(expression, ctx);
-      }
-    }
+    case 'JSXExpressionContainer':
+      return child.expression.type === 'JSXEmptyExpression'
+        ? []
+        : lowerRenderExpression(child.expression, ctx);
     default:
       throw new UnsupportedError(`JSX child ${child.type}`);
   }
+}
+
+function lowerRenderExpression(expression: Expression, ctx: LowerContext): Op[] {
+  if (isPropsChildren(expression, ctx)) {
+    return [createSlotOp(ctx)];
+  }
+  const branch = readRenderBranch(expression);
+  if (branch !== null) {
+    return [
+      lowerBranch(branch.test, branch.then, branch.else, ctx, (arm) =>
+        lowerRenderExpression(arm, ctx)
+      ),
+    ];
+  }
+  switch (expression.type) {
+    case 'ParenthesizedExpression':
+      return lowerRenderExpression(expression.expression, ctx);
+    case 'JSXElement':
+      return [lowerJsx(expression, ctx)];
+    case 'JSXFragment':
+      return lowerJsxChildren(expression.children, ctx);
+    case 'CallExpression': {
+      const callee = expression.callee;
+      const args = expression.arguments;
+      if (
+        callee.type === 'MemberExpression' &&
+        identifierName(callee.property) === 'map' &&
+        args.length === 1 &&
+        args[0].type === 'ArrowFunctionExpression'
+      ) {
+        return [lowerArray(expression, ctx)];
+      }
+      break;
+    }
+  }
+  return lowerText(expression, ctx);
+}
+
+function readRenderBranch(expression: Expression) {
+  if (expression.type === 'ConditionalExpression' && returnsJsxValue(expression)) {
+    return {
+      test: expression.test,
+      then: createBranchArm(expression.consequent),
+      else: createBranchArm(expression.alternate),
+    };
+  }
+  if (expression.type === 'LogicalExpression' && expression.operator === '&&') {
+    return { test: expression.left, then: createBranchArm(expression.right), else: null };
+  }
+  return null;
+}
+
+function createBranchArm(expression: Expression): BranchArm {
+  return {
+    expression: isNullArm(unwrapExpression(expression)) ? null : expression,
+    range: [expression.start, expression.end],
+  };
 }
 
 function lowerSlotMarker(element: JSXElement, ctx: LowerContext): Op {
@@ -462,16 +454,14 @@ function lowerProjections(
   return flattenJsxChildren(children)
     .filter(isProjectionChild)
     .flatMap((child) => {
-      const conditionalNames = conditionalProjectionNames(child);
-      const names = conditionalNames ?? [readProjectionName(child)];
-      return names.map((name) => lowerProjection(child, name, conditionalNames !== null, ctx));
+      const names = [...new Set(collectProjectionNames(child))];
+      return names.map((name) => lowerProjection(child, name, ctx));
     });
 }
 
 function lowerProjection(
   child: JSXChild,
   name: string,
-  filterConditionalArms: boolean,
   ctx: LowerContext
 ): Extract<Op, { op: OpKind.Component }>['projections'][number] {
   const id = { kind: SeedKind.Projection, ordinal: ctx.projectionCounter.next++ } as const;
@@ -491,7 +481,7 @@ function lowerProjection(
     'a component projection',
     SegmentContext.Projection,
     'projection',
-    filterConditionalArms ? () => lowerConditionalProjection(child, name, ctx) : undefined
+    () => lowerProjectedChildren([child], name, ctx)
   );
   return {
     kind: ProjectionKind.Render,
@@ -501,57 +491,83 @@ function lowerProjection(
   };
 }
 
-function conditionalProjectionNames(child: JSXChild): string[] | null {
-  if (child.type !== 'JSXExpressionContainer') {
-    return null;
-  }
-  const expression = child.expression;
-  let names: (string | null)[];
-  if (expression.type === 'ConditionalExpression') {
-    names = [projectionName(expression.consequent), projectionName(expression.alternate)];
-  } else if (expression.type === 'LogicalExpression' && expression.operator === '&&') {
-    names = [projectionName(expression.right)];
-  } else {
-    return null;
-  }
-  const unique = [...new Set(names.filter((name): name is string => name !== null))];
-  return unique.some((name) => name !== '') ? unique : null;
+function lowerProjectedChildren(
+  children: readonly JSXChild[],
+  name: string,
+  ctx: LowerContext
+): Op[] {
+  return mergeStaticText(
+    flattenJsxChildren(children).flatMap((child) => {
+      if (!collectProjectionNames(child).includes(name)) {
+        return [];
+      }
+      if (
+        child.type === 'JSXExpressionContainer' &&
+        child.expression.type !== 'JSXEmptyExpression'
+      ) {
+        return lowerProjectedExpression(child.expression, name, ctx);
+      }
+      return lowerChild(child, ctx);
+    })
+  );
 }
 
-function projectionName(expression: Expression): string | null {
-  const unwrapped = unwrapExpression(expression);
-  if (isNullArm(unwrapped)) {
-    return null;
+function lowerProjectedExpression(expression: Expression, name: string, ctx: LowerContext): Op[] {
+  if (expression.type === 'ParenthesizedExpression') {
+    return lowerProjectedExpression(expression.expression, name, ctx);
   }
-  return unwrapped?.type === 'JSXElement' ? readProjectionName(unwrapped) : '';
-}
-
-function lowerConditionalProjection(child: JSXChild, name: string, ctx: LowerContext): Op[] {
-  if (child.type !== 'JSXExpressionContainer') {
-    throw new Error('pipeline.lowerJsx: expected a conditional projection');
+  if (expression.type === 'JSXFragment') {
+    return lowerProjectedChildren(expression.children, name, ctx);
   }
-  const expression = child.expression;
-  if (expression.type === 'ConditionalExpression') {
+  const branch = readRenderBranch(expression);
+  if (branch !== null) {
     return [
       lowerBranch(
-        expression.test,
-        projectionArm(expression.consequent, name),
-        projectionArm(expression.alternate, name),
-        ctx
+        branch.test,
+        selectProjectionArm(branch.then, name),
+        branch.else === null ? null : selectProjectionArm(branch.else, name),
+        ctx,
+        (arm) => lowerProjectedExpression(arm, name, ctx)
       ),
     ];
   }
-  if (expression.type === 'LogicalExpression' && expression.operator === '&&') {
-    return [lowerBranch(expression.left, projectionArm(expression.right, name), null, ctx)];
-  }
-  throw new Error('pipeline.lowerJsx: expected a conditional projection');
+  return lowerRenderExpression(expression, ctx);
 }
 
-function projectionArm(expression: Expression, name: string) {
-  return {
-    expression: projectionName(expression) === name ? expression : null,
-    range: [expression.start, expression.end] as [number, number],
-  };
+function selectProjectionArm(arm: BranchArm, name: string): BranchArm {
+  if (arm.expression === null || collectProjectionNames(arm.expression).includes(name)) {
+    return arm;
+  }
+  return { ...arm, expression: null };
+}
+
+function collectProjectionNames(node: Node): string[] {
+  const expression = unwrapExpression(node);
+  if (expression === null || isNullArm(expression)) {
+    return [];
+  }
+  switch (expression.type) {
+    case 'JSXElement':
+      return [readProjectionName(expression)];
+    case 'JSXFragment':
+      return expression.children.flatMap(collectProjectionNames);
+    case 'JSXExpressionContainer':
+      return collectProjectionNames(expression.expression);
+    case 'JSXEmptyExpression':
+      return [];
+    case 'JSXText':
+      return normalizeJsxText(expression.value) === '' ? [] : [''];
+    case 'ConditionalExpression':
+      return [
+        ...collectProjectionNames(expression.consequent),
+        ...collectProjectionNames(expression.alternate),
+      ];
+    case 'LogicalExpression':
+      if (expression.operator === '&&') {
+        return collectProjectionNames(expression.right);
+      }
+  }
+  return [''];
 }
 
 function readForwardedSlot(

@@ -91,7 +91,7 @@ export function returnPositionContainsJsx(fn: Node): boolean {
   return found;
 }
 
-function returnsJsxValue(node: unknown): boolean {
+export function returnsJsxValue(node: unknown): boolean {
   const value = unwrapExpression(node);
   if (!isNode(value)) {
     return false;

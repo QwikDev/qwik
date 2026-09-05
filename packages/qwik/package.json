@@ -77,6 +77,12 @@
         "default": "./dist/build/index.mjs"
       }
     },
+    "./async-local-storage": {
+      "types": "./dist/async-local-storage.d.ts",
+      "edge-light": "./dist/async-local-storage.node.mjs",
+      "node": "./dist/async-local-storage.node.mjs",
+      "default": "./dist/async-local-storage.mjs"
+    },
     "./loader": {
       "types": "./dist/loader/index.d.ts",
       "import": "./dist/loader/index.mjs"

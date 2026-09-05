@@ -571,6 +571,24 @@ describe('executeComponentChore', () => {
     await result;
   });
 
+  it('should clear only COMPONENT dirty bit when the component import rejects', async () => {
+    const error = new TypeError('Failed to fetch dynamically imported module');
+    const componentQRL = {
+      resolved: undefined,
+      resolve: vi.fn().mockRejectedValue(error),
+    };
+    container.setHostProp(vNode, OnRenderProp, componentQRL);
+    vNode.dirty |= ChoreBits.CHILDREN;
+
+    const result = executeComponentChore(vNode, container, journal, cursor);
+
+    expect(vNode.dirty & ChoreBits.COMPONENT).toBeTruthy();
+    await expect(result).rejects.toBe(error);
+    expect(vNode.dirty).toBe(ChoreBits.CHILDREN);
+    expect(executeComponent).not.toHaveBeenCalled();
+    expect(vnode_diff).not.toHaveBeenCalled();
+  });
+
   it('should not mark component execution clean until it has actually started', async () => {
     let resolveQrl!: () => void;
     const componentQRL = {
@@ -598,11 +616,22 @@ describe('executeComponentChore', () => {
     resolveQrl();
     await 1;
     expect(executeComponent).toHaveBeenCalledTimes(0);
+    expect(vNode.dirty & ChoreBits.COMPONENT).toBeTruthy();
+    const updatedProps = { id: 'updated' } as Props;
+    container.setHostProp(vNode, ELEMENT_PROPS, updatedProps);
     const freshResult = executeComponentChore(vNode, container, journal, cursor);
     await freshResult;
     await staleResult;
 
     expect(executeComponent).toHaveBeenCalledTimes(1);
+    expect(executeComponent).toHaveBeenCalledWith(
+      container,
+      vNode,
+      vNode,
+      componentQRL,
+      updatedProps
+    );
+    expect(vNode.dirty & ChoreBits.COMPONENT).toBe(0);
     expect(vnode_diff).toHaveBeenCalledTimes(1);
   });
 });

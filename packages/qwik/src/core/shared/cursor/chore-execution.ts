@@ -241,7 +241,10 @@ export function executeComponentChore(
      * it. We just return the promise and we'll be called again, possibly with updated props, which
      * is why we don't clear the dirty bit yet.
      */
-    return componentQRL.resolve();
+    return componentQRL.resolve().catch((error) => {
+      vNode.dirty &= ~ChoreBits.COMPONENT;
+      throw error;
+    });
   }
   vNode.dirty &= ~ChoreBits.COMPONENT;
   if (!componentQRL) {

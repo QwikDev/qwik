@@ -205,17 +205,21 @@ export type FailOfRest<REST extends readonly DataValidator[]> = REST extends rea
 export type FailReturn<T> = T & Failed;
 
 // @public (undocumented)
-export const Form: <O, I>(input: FormProps<O, I>, key: string | null) => JSXOutput;
+export const Form: <O, I>(props: FormProps<O, I>, key: string | null) => JSXOutput;
 
 // @public (undocumented)
-export interface FormProps<O, I> extends Omit<QwikJSX.IntrinsicElements['form'], 'action' | 'method'> {
-    action?: ActionStore<O, I, true | false>;
-    // (undocumented)
-    key?: string | number | null;
-    onSubmitCompleted$?: QRLEventHandlerMulti<CustomEvent<FormSubmitSuccessDetail<O>>, HTMLFormElement> | undefined;
+export type FormProps<O, I> = Omit<QwikJSX.IntrinsicElements['form'], 'action' | 'method'> & {
     reloadDocument?: boolean;
     spaReset?: boolean;
-}
+    onSubmitCompleted$?: QRLEventHandlerMulti<CustomEvent<FormSubmitSuccessDetail<O>>, HTMLFormElement> | undefined;
+    key?: string | number | null;
+} & ({
+    action: ActionStore<O, I, true | false>;
+    method?: never;
+} | {
+    action?: never;
+    method: 'get';
+});
 
 // @public (undocumented)
 export interface FormSubmitSuccessDetail<T> {

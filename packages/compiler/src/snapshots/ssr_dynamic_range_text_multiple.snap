@@ -15,7 +15,6 @@ import {
   useSignal,
   createSsrNodeId,
   createSsrOpenTag,
-  createSsrRangeTextTarget,
   escapeHTML,
   renderSsrTextNode,
   getActiveInvokeContextOrNull,
@@ -27,12 +26,12 @@ export function App(props, ctx) {
   const second = useSignal(2);
   const id_0 = ctx.nextId();
   ctx.addRoot(first);
-  const text_0 = renderSsrTextNode(createSsrRangeTextTarget(id_0, 0), first);
+  const text_0 = renderSsrTextNode(id_0, 0, first);
   const invokeCtx = getActiveInvokeContextOrNull();
   const text_1 = () =>
     invoke(invokeCtx, () => {
       ctx.addRoot(second);
-      return renderSsrTextNode(createSsrRangeTextTarget(id_0, 1), second);
+      return renderSsrTextNode(id_0, 1, second);
     });
   return maybeThen(text_0, (text_0) =>
     maybeThen(text_1(), (text_1) => [

@@ -19,7 +19,6 @@ export function App(props) {
 import {
   useSignal,
   createSsrNodeId,
-  createSsrElementTarget,
   renderSsrAttr,
   escapeHTML,
   inlinedQrl,
@@ -61,7 +60,7 @@ export function App(props, ctx) {
   const second = useSignal('second');
   const id_0 = ctx.nextId();
   ctx.addRoot(first);
-  const attr_0 = renderSsrAttr(createSsrElementTarget(id_0), 'value', first);
+  const attr_0 = renderSsrAttr(id_0, 'value', first);
   let id_1;
   const invokeCtx = getActiveInvokeContextOrNull();
   const props_1 = () =>
@@ -70,7 +69,7 @@ export function App(props, ctx) {
       ctx.addRoot(first);
       ctx.addRoot(props);
       return renderSsrProps(
-        createSsrElementTarget(id_1),
+        id_1,
         [first, props],
         q_component_props_segment_0_208o16glymg7p,
         ctx.eventAttr
@@ -83,7 +82,7 @@ export function App(props, ctx) {
       ctx.addRoot(props);
       ctx.addRoot(second);
       return renderSsrProps(
-        createSsrElementTarget(id_2),
+        id_2,
         [props, second],
         q_component_props_segment_1_208o0sfi1se76,
         ctx.eventAttr

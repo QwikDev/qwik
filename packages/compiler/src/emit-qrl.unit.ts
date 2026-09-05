@@ -1573,7 +1573,7 @@ export const App = component$(() => {
         const _store = useStore({ counter: { n: 1 } });
         const { counter } = _store;
         ctx.addRoot(_store);
-        const text_0 = renderSsrTextExpression(createSsrElementTextTarget(id_0), [_store], q_destructured_call_init_text_segment_0_3u9qqib92m0nu);"
+        const text_0 = renderSsrTextExpression(id_0, null, [_store], q_destructured_call_init_text_segment_0_3u9qqib92m0nu);"
     `);
   });
 

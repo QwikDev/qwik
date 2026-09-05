@@ -28,7 +28,6 @@ export function App() {
 import {
   useStore,
   createSsrNodeId,
-  createSsrElementTarget,
   renderSsrAttrExpression,
   escapeHTML,
   createSsrOpenTag,
@@ -77,7 +76,7 @@ export function App(props, ctx) {
       ctx.addRoot(todos);
       ctx.addRoot(lower);
       const attr_0 = renderSsrAttrExpression(
-        createSsrElementTarget(id_0),
+        id_0,
         'class',
         [on, todos, lower],
         q_component_class_segment_0_3htuygud1guoj
@@ -205,7 +204,6 @@ import {
   _noopQrl,
   _captures,
   createSsrNodeId,
-  createSsrElementTarget,
   renderSsrAttrExpression,
   escapeHTML,
   createSsrOpenTag,
@@ -226,7 +224,7 @@ export const local_component_178_269_1v0zojj4cidpx = (props, ctx) => {
   ctx.addRoot(todos);
   ctx.addRoot(lower);
   const attr_0 = renderSsrAttrExpression(
-    createSsrElementTarget(id_0),
+    id_0,
     'class',
     [on, todos, lower],
     q_component_class_segment_0_3htuygud1guoj
@@ -302,7 +300,6 @@ import {
   _noopQrl,
   _captures,
   createSsrNodeId,
-  createSsrElementTarget,
   renderSsrAttrExpression,
   escapeHTML,
   createSsrOpenTag,
@@ -340,7 +337,7 @@ export const local_component_112_432_9mplpu2ebao3 = (props, ctx) => {
     ctx.addRoot(todos);
     ctx.addRoot(lower);
     const attr_0 = renderSsrAttrExpression(
-      createSsrElementTarget(id_0),
+      id_0,
       'class',
       [on, todos, lower],
       q_component_class_segment_0_3htuygud1guoj

@@ -13,7 +13,6 @@ import { useSignal } from '@qwik.dev/core';
 import {
   useSignal,
   createSsrNodeId,
-  createSsrElementTarget,
   renderSsrAttr,
   escapeHTML,
   createSsrOpenTag,
@@ -23,7 +22,7 @@ export function App(props, ctx) {
   const count = useSignal(0);
   const id_0 = ctx.nextId();
   ctx.addRoot(count);
-  const attr_0 = renderSsrAttr(createSsrElementTarget(id_0), 'test', count);
+  const attr_0 = renderSsrAttr(id_0, 'test', count);
   return maybeThen(attr_0, (attr_0) => [
     createSsrOpenTag(
       '<button q:id="',

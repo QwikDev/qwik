@@ -18,7 +18,6 @@ export function App() {
 import {
   useSignal,
   createSsrNodeId,
-  createSsrElementTarget,
   renderSsrAttr,
   escapeHTML,
   inlinedQrl,
@@ -42,14 +41,14 @@ export function App(props, ctx) {
   const checked = useSignal(false);
   const id_0 = ctx.nextId();
   ctx.addRoot(value);
-  const attr_0 = renderSsrAttr(createSsrElementTarget(id_0), 'value', value);
+  const attr_0 = renderSsrAttr(id_0, 'value', value);
   let id_1;
   const invokeCtx = getActiveInvokeContextOrNull();
   const attr_1 = () =>
     invoke(invokeCtx, () => {
       id_1 ??= ctx.nextId();
       ctx.addRoot(checked);
-      return renderSsrAttr(createSsrElementTarget(id_1), 'checked', checked);
+      return renderSsrAttr(id_1, 'checked', checked);
     });
   return maybeThen(attr_0, (attr_0) =>
     maybeThen(attr_1(), (attr_1) => [

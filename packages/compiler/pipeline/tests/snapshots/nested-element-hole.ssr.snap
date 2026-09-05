@@ -13,7 +13,6 @@ export default () => {
 import {
   useSignal,
   createSsrNodeId,
-  createSsrElementTextTarget,
   escapeHTML,
   renderSsrTextNode,
   maybeThen,
@@ -22,7 +21,7 @@ export default (props, ctx) => {
   const count = useSignal(0);
   const id0 = ctx.nextId();
   ctx.addRoot(count);
-  const text0 = renderSsrTextNode(createSsrElementTextTarget(id0), count);
+  const text0 = renderSsrTextNode(id0, null, count);
   return maybeThen(text0, (text0) => [
     '<div><span q:id="',
     createSsrNodeId(id0),

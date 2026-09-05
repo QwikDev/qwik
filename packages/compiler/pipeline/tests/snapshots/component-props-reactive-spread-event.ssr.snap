@@ -14,9 +14,7 @@ export default () => {
 
 import {
   createSsrNodeId,
-  createSsrElementTarget,
   renderSsrEvent,
-  createSsrElementTextTarget,
   escapeHTML,
   renderSsrTextExpression,
   maybeThen,
@@ -54,14 +52,15 @@ export const Child = (props, ctx) => {
   const id0 = ctx.nextId();
   ctx.addRoot(props);
   const effect0 = renderSsrEvent(
-    createSsrElementTarget(id0),
+    id0,
     'q-e:click',
     [props],
     q_component_onClickqrl_segment_0_3rzjkie0i362z,
     ctx.eventAttr
   );
   const text0 = renderSsrTextExpression(
-    createSsrElementTextTarget(id0),
+    id0,
+    null,
     [props],
     q_component_text_segment_1_1fh10tcowimfv
   );

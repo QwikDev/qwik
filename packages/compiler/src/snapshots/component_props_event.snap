@@ -10,13 +10,7 @@ export function App(props: { onClick$: QRL<() => void> }) {
 
 ============================= src/component.tsx ==
 
-import {
-  createSsrNodeId,
-  renderSsrEvent,
-  createSsrElementTarget,
-  createSsrOpenTag,
-  _noopQrl,
-} from '@qwik.dev/core';
+import { createSsrNodeId, renderSsrEvent, createSsrOpenTag, _noopQrl } from '@qwik.dev/core';
 
 const component_onClickqrl_segment_0_3rzjkie0i362z = (props) => {
   return props.onClick$;
@@ -29,7 +23,7 @@ export function App(props, ctx) {
   const id_0 = ctx.nextId();
   ctx.addRoot(props);
   const event_0 = renderSsrEvent(
-    createSsrElementTarget(id_0),
+    id_0,
     'q-e:click',
     [props],
     q_component_onClickqrl_segment_0_3rzjkie0i362z,

@@ -24,11 +24,9 @@ export function Footer(props: { todos: { filter: string } }) {
 import {
   createSsrOpenTag,
   createSsrNodeId,
-  createSsrElementTarget,
   renderSsrAttrExpression,
   escapeHTML,
   createSsrMarkup,
-  createSsrElementTextTarget,
   renderSsrTextExpression,
   getActiveInvokeContextOrNull,
   invoke,
@@ -63,7 +61,7 @@ export function Footer(props, ctx) {
     ctx.addRoot(props);
     ctx.addRoot(lMode);
     const attr_0 = renderSsrAttrExpression(
-      createSsrElementTarget(id_0),
+      id_0,
       'class',
       [props, lMode],
       q_component_class_segment_0_3htuygud1guoj
@@ -73,7 +71,8 @@ export function Footer(props, ctx) {
       invoke(invokeCtx, () => {
         ctx.addRoot(filter);
         return renderSsrTextExpression(
-          createSsrElementTextTarget(id_0),
+          id_0,
+          null,
           [filter],
           q_component_text_segment_1_1fh10tcowimfv
         );
@@ -174,11 +173,9 @@ import {
   _captures,
   createSsrOpenTag,
   createSsrNodeId,
-  createSsrElementTarget,
   renderSsrAttrExpression,
   escapeHTML,
   createSsrMarkup,
-  createSsrElementTextTarget,
   renderSsrTextExpression,
   getActiveInvokeContextOrNull,
   invoke,
@@ -203,7 +200,7 @@ export const local_component_33_204_slxzo3femvko = (props0, ctx) => {
   ctx.addRoot(props);
   ctx.addRoot(lMode);
   const attr_0 = renderSsrAttrExpression(
-    createSsrElementTarget(id_0),
+    id_0,
     'class',
     [props, lMode],
     q_component_class_segment_0_3htuygud1guoj
@@ -213,7 +210,8 @@ export const local_component_33_204_slxzo3femvko = (props0, ctx) => {
     invoke(invokeCtx, () => {
       ctx.addRoot(filter);
       return renderSsrTextExpression(
-        createSsrElementTextTarget(id_0),
+        id_0,
+        null,
         [filter],
         q_component_text_segment_1_1fh10tcowimfv
       );

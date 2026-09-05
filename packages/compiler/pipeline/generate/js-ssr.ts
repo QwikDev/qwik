@@ -700,15 +700,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     target: SsrTextTarget,
     parts: string[]
   ): void {
-    const createTextTarget =
-      target.kind === 'range'
-        ? `${QwikWord.CreateSsrRangeTextTarget}(${target.id}, ${target.markerIndex})`
-        : `${QwikWord.CreateSsrElementTextTarget}(${target.id})`;
-    this.imports.add(
-      target.kind === 'range'
-        ? QwikWord.CreateSsrRangeTextTarget
-        : QwikWord.CreateSsrElementTextTarget
-    );
+    const targetArgs = `${target.id}, ${target.kind === 'range' ? target.markerIndex : 'null'}`;
     this.imports.add(QwikWord.EscapeHTML);
     const step = pass.next(QwikGenWord.Text);
 
@@ -725,7 +717,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
           pass,
           step,
           [signal],
-          `${QwikWord.RenderSsrTextNode}(${createTextTarget}, ${signal}${op.stringify ? ', undefined, true' : ''})`
+          `${QwikWord.RenderSsrTextNode}(${targetArgs}, ${signal}${op.stringify ? ', undefined, true' : ''})`
         );
         parts.push(`${QwikWord.EscapeHTML}(${step})`);
         break;
@@ -740,7 +732,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
           pass,
           step,
           rootArgs(qrl, args),
-          `${QwikWord.RenderSsrTextExpression}(${createTextTarget}, [${args.join(', ')}], ${ref})`
+          `${QwikWord.RenderSsrTextExpression}(${targetArgs}, [${args.join(', ')}], ${ref})`
         );
         parts.push(`${QwikWord.EscapeHTML}(${step})`);
         break;
@@ -806,8 +798,6 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       }
       case PropKind.Dynamic: {
         const step = pass.next(QwikGenWord.Attribute);
-        this.imports.add(QwikWord.CreateSsrElementTarget);
-        const target = `${QwikWord.CreateSsrElementTarget}(${idVariable})`;
         switch (prop.value.v) {
           case ValueKind.Read: {
             const signal = signalReadName(this.module, prop.value.expr);
@@ -816,7 +806,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
               pass,
               step,
               [signal],
-              `${QwikWord.RenderSsrAttr}(${target}, ${JSON.stringify(prop.name)}, ${signal})`
+              `${QwikWord.RenderSsrAttr}(${idVariable}, ${JSON.stringify(prop.name)}, ${signal})`
             );
             break;
           }
@@ -830,7 +820,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
               pass,
               step,
               rootArgs(qrl, args),
-              `${QwikWord.RenderSsrAttrExpression}(${target}, ${JSON.stringify(prop.name)}, [${args.join(', ')}], ${ref})`
+              `${QwikWord.RenderSsrAttrExpression}(${idVariable}, ${JSON.stringify(prop.name)}, [${args.join(', ')}], ${ref})`
             );
             break;
           }
@@ -858,14 +848,13 @@ class SsrModuleEmitter implements QwikModuleEmitter {
             throw new UnsupportedError('a non-value computed event QRL');
           }
           const step = pass.next(QwikGenWord.Effect);
-          this.imports.add(QwikWord.CreateSsrElementTarget);
           this.imports.add(QwikWord.RenderSsrEvent);
           pass.usedCtx = true;
           this.pushStep(
             pass,
             step,
             rootArgs(qrl, args),
-            `${QwikWord.RenderSsrEvent}(${QwikWord.CreateSsrElementTarget}(${idVariable}), ${JSON.stringify(prop.name)}, [${args.join(', ')}], ${ref}, ${pass.names.ctx}.eventAttr)`
+            `${QwikWord.RenderSsrEvent}(${idVariable}, ${JSON.stringify(prop.name)}, [${args.join(', ')}], ${ref}, ${pass.names.ctx}.eventAttr)`
           );
           parts.push(`${step} ?? ''`);
           return;

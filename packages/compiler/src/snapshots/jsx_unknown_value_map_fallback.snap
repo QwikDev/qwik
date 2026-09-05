@@ -22,7 +22,6 @@ export function App() {
 import {
   createSsrNodeId,
   createSsrOpenTag,
-  createSsrElementTextTarget,
   escapeHTML,
   renderSsrTextExpression,
   maybeThen,
@@ -37,7 +36,8 @@ const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __rowId, ro
   const id_0 = ctx.nextId();
   ctx.addRoot(row);
   const text_0 = renderSsrTextExpression(
-    createSsrElementTextTarget(id_0),
+    id_0,
+    null,
     [row],
     q_component_text_segment_2_1fh117dstcoge
   );
@@ -115,7 +115,6 @@ import {
   _noopQrl,
   createSsrNodeId,
   createSsrOpenTag,
-  createSsrElementTextTarget,
   escapeHTML,
   renderSsrTextExpression,
   maybeThen,
@@ -130,7 +129,8 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __ro
   const id_0 = ctx.nextId();
   ctx.addRoot(row);
   const text_0 = renderSsrTextExpression(
-    createSsrElementTextTarget(id_0),
+    id_0,
+    null,
     [row],
     q_component_text_segment_2_1fh117dstcoge
   );

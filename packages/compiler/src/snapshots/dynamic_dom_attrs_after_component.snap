@@ -23,7 +23,6 @@ import {
   createSsrOpenTag,
   createComponent,
   createSsrNodeId,
-  createSsrElementTarget,
   renderSsrAttrExpression,
   escapeHTML,
   getActiveInvokeContextOrNull,
@@ -52,7 +51,7 @@ export function App(props, ctx) {
       id_0 ??= ctx.nextId();
       ctx.addRoot(count);
       return renderSsrAttrExpression(
-        createSsrElementTarget(id_0),
+        id_0,
         'style',
         [count],
         q_component_style_segment_0_cgm2y3mz6tq2

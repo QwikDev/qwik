@@ -4,7 +4,6 @@ import type { AttrExpressionFn, EventExpressionFn } from './effect';
 import { EffectKind } from './effect-kind.enum';
 import type { TextExpressionFn } from './text-effect';
 import {
-  EffectTargetKind,
   SsrAttrEffect,
   SsrAttrExpressionEffect,
   SsrDomSubscription,
@@ -13,9 +12,6 @@ import {
   SsrTextExpressionEffect,
   SsrTextNodeEffect,
   createSsrDomBatchEffect,
-  createSsrElementTarget,
-  createSsrElementTextTarget,
-  createSsrRangeTextTarget,
   renderSsrAttr,
   renderSsrAttrExpression,
   renderSsrEvent,
@@ -32,35 +28,30 @@ import { toArray } from '../../test-utils';
 describe('SSR DOM effect helpers', () => {
   it('creates a text node subscriber and collects the source dependency', () => {
     const count = useSignal(1);
-    const target = createSsrRangeTextTarget(0, 0);
-
-    const value = createOwned(() => renderSsrTextNode(target, count));
+    const value = createOwned(() => renderSsrTextNode(0, 0, count));
     const effect = toArray(count.subs)[0] as SsrTextNodeEffect;
 
     expect(value).toBe('1');
     expect(effect).toBeInstanceOf(SsrTextNodeEffect);
     expect(effect.deps).toEqual([count]);
-    expect(effect.target).toBe(target);
+    expect(effect.targetId).toBe(0);
+    expect(effect.markerIndex).toBe(0);
+    expect(effect).not.toHaveProperty('target');
   });
 
   it('serializes empty SSR text nodes as a text anchor', () => {
     const text = useSignal('');
-    const target = createSsrElementTextTarget(0);
-
-    expect(createOwned(() => renderSsrTextNode(target, text))).toBe(' ');
+    expect(createOwned(() => renderSsrTextNode(0, null, text))).toBe(' ');
   });
 
   it('a stringify SSR text node renders booleans like a JS concat operand', () => {
     const flag = useSignal(true);
-    const target = createSsrElementTextTarget(0);
-
-    expect(createOwned(() => renderSsrTextNode(target, flag, undefined, true))).toBe('true');
-    expect(createOwned(() => renderSsrTextNode(target, flag))).toBe(' ');
+    expect(createOwned(() => renderSsrTextNode(0, null, flag, undefined, true))).toBe('true');
+    expect(createOwned(() => renderSsrTextNode(0, null, flag))).toBe(' ');
   });
 
   it('creates a text expression subscriber and collects dynamic reads from the QRL', () => {
     const count = useSignal(1);
-    const target = createSsrRangeTextTarget(1, 0);
     const qrl = createQRL<TextExpressionFn<[Signal<number>]>>(
       './counter.text.js',
       'label',
@@ -69,24 +60,24 @@ describe('SSR DOM effect helpers', () => {
       null
     );
 
-    const value = createOwned(() => renderSsrTextExpression(target, [count], qrl));
+    const value = createOwned(() => renderSsrTextExpression(1, 0, [count], qrl));
     const effect = toArray(count.subs)[0] as SsrTextExpressionEffect;
 
     expect(value).toBe('one');
     expect(effect).toBeInstanceOf(SsrTextExpressionEffect);
     expect(effect.deps).toEqual([count]);
-    expect(effect.target).toBe(target);
+    expect(effect.targetId).toBe(1);
+    expect(effect.markerIndex).toBe(0);
+    expect(effect).not.toHaveProperty('target');
   });
 
   it('serializes empty SSR text expressions as a text anchor', () => {
-    const target = createSsrRangeTextTarget(2, 0);
     const qrl = createQRL<TextExpressionFn<[]>>('./empty.text.js', 'empty', () => '', null, null);
 
-    expect(createOwned(() => renderSsrTextExpression(target, [], qrl))).toBe(' ');
+    expect(createOwned(() => renderSsrTextExpression(2, 0, [], qrl))).toBe(' ');
   });
 
   it('awaits returned Promises from SSR text expressions', async () => {
-    const target = createSsrRangeTextTarget(2, 0);
     const qrl = createQRL<() => Promise<string>>(
       './async.text.js',
       'asyncText',
@@ -95,7 +86,7 @@ describe('SSR DOM effect helpers', () => {
       null
     );
 
-    await expect(createOwned(() => renderSsrTextExpression(target, [], qrl))).resolves.toBe(
+    await expect(createOwned(() => renderSsrTextExpression(2, 0, [], qrl))).resolves.toBe(
       'resolved'
     );
   });
@@ -104,7 +95,7 @@ describe('SSR DOM effect helpers', () => {
     const title = useSignal('hello');
     const className = useSignal<unknown>({ active: true });
     const style = useSignal({ color: 'red' });
-    const target = createSsrElementTarget(2);
+    const target = 2;
 
     expect(createOwned(() => renderSsrAttr(target, 'title', title))).toBe('hello');
     expect(createOwned(() => renderSsrAttr(target, 'class', className))).toBe('active');
@@ -117,13 +108,15 @@ describe('SSR DOM effect helpers', () => {
     expect(attrEffect).toBeInstanceOf(SsrAttrEffect);
     expect(classEffect).toBeInstanceOf(SsrAttrEffect);
     expect(styleEffect).toBeInstanceOf(SsrAttrEffect);
+    expect(attrEffect.targetId).toBe(2);
+    expect(attrEffect).not.toHaveProperty('target');
     expect(classEffect.name).toBe('class');
     expect(styleEffect.name).toBe('style');
   });
 
   it('creates attr expression subscribers', () => {
     const count = useSignal(1);
-    const target = createSsrElementTarget(3);
+    const target = 3;
     const qrl = createQRL<AttrExpressionFn<[]>>(
       './style.attr.js',
       'style',
@@ -138,11 +131,12 @@ describe('SSR DOM effect helpers', () => {
     expect(value).toBe('color:red');
     expect(effect).toBeInstanceOf(SsrAttrExpressionEffect);
     expect(effect.deps).toEqual([count]);
-    expect(effect.target).toBe(target);
+    expect(effect.targetId).toBe(3);
+    expect(effect).not.toHaveProperty('target');
   });
 
   it('defers Promise attributes and rejects Promise DOM props', () => {
-    const target = createSsrElementTarget(3);
+    const target = 3;
     const title = useSignal<unknown>(Promise.resolve('late'));
     const attrQrl = createQRL<AttrExpressionFn<[]>>(
       './async.attr.js',
@@ -172,8 +166,6 @@ describe('SSR DOM effect helpers', () => {
   it('batches SSR DOM effects under one subscriber', () => {
     const count = useSignal(1);
     const active = useSignal(false);
-    const textTarget = createSsrRangeTextTarget(4, 0);
-    const attrTarget = createSsrElementTarget(5);
     const qrl = createQRL<AttrExpressionFn<[]>>(
       './class.attr.js',
       'className',
@@ -184,8 +176,8 @@ describe('SSR DOM effect helpers', () => {
 
     const batch = createOwned(() => {
       const subscriber = createSsrDomBatchEffect() as SsrDomSubscription;
-      const text = renderSsrTextNode(textTarget, count, subscriber);
-      const attr = renderSsrAttrExpression(attrTarget, 'class', [], qrl, subscriber);
+      const text = renderSsrTextNode(4, 0, count, subscriber);
+      const attr = renderSsrAttrExpression(5, 'class', [], qrl, subscriber);
       return { attr, subscriber, text };
     });
 
@@ -203,7 +195,7 @@ describe('SSR DOM effect helpers', () => {
 
     const value = createOwned(() => {
       const batch = createSsrDomBatchEffect();
-      return renderSsrAttr(createSsrElementTarget(5), 'title', title, batch);
+      return renderSsrAttr(5, 'title', title, batch);
     });
 
     await expect(value).resolves.toBe('late');
@@ -211,7 +203,7 @@ describe('SSR DOM effect helpers', () => {
 
   it('renders spread DOM props without children and collects getter dependencies', () => {
     const title = useSignal('hello');
-    const target = createSsrElementTarget(4);
+    const target = 4;
     const qrl = createQRL<DomPropsFn<[]>>(
       './props.js',
       'props',
@@ -236,12 +228,14 @@ describe('SSR DOM effect helpers', () => {
     });
     expect(effect).toBeInstanceOf(SsrPropsEffect);
     expect(effect.deps).toEqual([title]);
+    expect(effect.targetId).toBe(4);
+    expect(effect).not.toHaveProperty('target');
   });
 
   it('tracks an initially missing event for resume', () => {
     const enabled = useSignal(false);
     const handler = () => undefined;
-    const target = createSsrElementTarget(5);
+    const target = 5;
     const qrl = createQRL<EventExpressionFn<[Signal<boolean>]>>(
       './event.js',
       'event',
@@ -263,25 +257,8 @@ describe('SSR DOM effect helpers', () => {
     expect(rendered).toBeNull();
     expect(effect).toBeInstanceOf(SsrEventEffect);
     expect(effect.deps).toEqual([enabled]);
-  });
-
-  it('creates element text targets with ids', () => {
-    const target = createSsrElementTextTarget(3);
-
-    expect(target).toEqual({
-      kind: EffectTargetKind.ElementText,
-      id: 3,
-    });
-  });
-
-  it('creates range text targets with local marker indexes', () => {
-    const target = createSsrRangeTextTarget(3, 2);
-
-    expect(target).toEqual({
-      kind: EffectTargetKind.RangeText,
-      id: 3,
-      markerIndex: 2,
-    });
+    expect(effect.targetId).toBe(5);
+    expect(effect).not.toHaveProperty('target');
   });
 });
 

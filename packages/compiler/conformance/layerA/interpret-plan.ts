@@ -7,10 +7,7 @@ import {
   createSlotScope,
   createSsrSuspense,
   createSsrOpenTag,
-  createSsrElementTarget,
-  createSsrElementTextTarget,
   createSsrNodeId,
-  createSsrRangeTextTarget,
   createSsrMarkup,
   escapeHTML,
   getActiveInvokeContextOrNull,
@@ -698,7 +695,7 @@ export async function buildInterpretedRoot(
                 ? invoke(invokeCtx, () => {
                     const signal = localSignal(valueIr(dynamic.value), `attr ${dynamic.name}`);
                     ctx.addRoot(signal);
-                    return renderSsrAttr(createSsrElementTarget(id), dynamic.name, signal as never);
+                    return renderSsrAttr(id, dynamic.name, signal as never);
                   })
                 : invoke(invokeCtx, () => {
                     // expression attrs (class objects etc.) render via their segment
@@ -713,7 +710,7 @@ export async function buildInterpretedRoot(
                       ctx.addRoot(captureValue);
                     }
                     return renderSsrAttrExpression(
-                      createSsrElementTarget(id),
+                      id,
                       dynamic.name,
                       captureValues as never,
                       qrls.get(segmentId) as never
@@ -787,7 +784,7 @@ export async function buildInterpretedRoot(
                   }
                   return (
                     renderSsrEvent(
-                      createSsrElementTarget(id!),
+                      id!,
                       deferred.name,
                       captureValues as never,
                       qrls.get(deferred.segment!) as never,
@@ -825,17 +822,14 @@ export async function buildInterpretedRoot(
           if (runtimeId === undefined || runtimeId === null) {
             throw new Error(`dynamic text targets unopened element ${planTarget.id}`);
           }
-          const target =
-            planTarget.kind === 'element'
-              ? createSsrElementTextTarget(runtimeId)
-              : createSsrRangeTextTarget(runtimeId, planTarget.marker);
+          const markerIndex = planTarget.kind === 'range' ? planTarget.marker : null;
           const ir = valueIr(op.value);
           let pendingText: unknown;
           if (ir !== undefined && ir.kind === 'signal-read') {
             const signal = localSignal(ir, 'dynamic text');
             pendingText = invoke(invokeCtx, () => {
               ctx.addRoot(signal);
-              return renderSsrTextNode(target, signal as never);
+              return renderSsrTextNode(runtimeId, markerIndex, signal as never);
             });
           } else if (valueSegment(op.value) !== undefined) {
             const segmentId = valueSegment(op.value);
@@ -853,7 +847,7 @@ export async function buildInterpretedRoot(
               for (const captureValue of captureValues) {
                 ctx.addRoot(captureValue);
               }
-              return renderSsrTextExpression(target, captureValues, qrl as never);
+              return renderSsrTextExpression(runtimeId, markerIndex, captureValues, qrl as never);
             });
           } else {
             throw new Error('dynamic text needs a signal-read ir or an expression segment');

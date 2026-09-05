@@ -23,7 +23,6 @@ import {
   _captures,
   createSsrNodeId,
   createSsrOpenTag,
-  createSsrRangeTextTarget,
   escapeHTML,
   renderSsrTextNode,
   maybeThen,
@@ -45,7 +44,7 @@ const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
   const count = _captures[0];
   const id_0 = ctx.nextId();
   ctx.addRoot(count);
-  const text_0 = renderSsrTextNode(createSsrRangeTextTarget(id_0, 0), count);
+  const text_0 = renderSsrTextNode(id_0, 0, count);
   return maybeThen(text_0, (text_0) => [
     createSsrOpenTag('<p q:id="', createSsrNodeId(id_0), '" class="even"', '>'),
     'Even <!t>',
@@ -61,7 +60,7 @@ const component_branch_else_segment_3_19dvttmqjttk2 = (ctx) => {
   const count = _captures[0];
   const id_0 = ctx.nextId();
   ctx.addRoot(count);
-  const text_0 = renderSsrTextNode(createSsrRangeTextTarget(id_0, 0), count);
+  const text_0 = renderSsrTextNode(id_0, 0, count);
   return maybeThen(text_0, (text_0) => [
     createSsrOpenTag(
       '<button q:id="',
@@ -139,7 +138,6 @@ import {
   _captures,
   createSsrNodeId,
   createSsrOpenTag,
-  createSsrRangeTextTarget,
   escapeHTML,
   renderSsrTextNode,
   maybeThen,
@@ -149,7 +147,7 @@ export const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
   const count = _captures[0];
   const id_0 = ctx.nextId();
   ctx.addRoot(count);
-  const text_0 = renderSsrTextNode(createSsrRangeTextTarget(id_0, 0), count);
+  const text_0 = renderSsrTextNode(id_0, 0, count);
   return maybeThen(text_0, (text_0) => [
     createSsrOpenTag('<p q:id="', createSsrNodeId(id_0), '" class="even"', '>'),
     'Even <!t>',
@@ -187,7 +185,6 @@ import {
   _captures,
   createSsrNodeId,
   createSsrOpenTag,
-  createSsrRangeTextTarget,
   escapeHTML,
   renderSsrTextNode,
   maybeThen,
@@ -200,7 +197,7 @@ export const component_branch_else_segment_3_19dvttmqjttk2 = (ctx) => {
   const count = _captures[0];
   const id_0 = ctx.nextId();
   ctx.addRoot(count);
-  const text_0 = renderSsrTextNode(createSsrRangeTextTarget(id_0, 0), count);
+  const text_0 = renderSsrTextNode(id_0, 0, count);
   return maybeThen(text_0, (text_0) => [
     createSsrOpenTag(
       '<button q:id="',

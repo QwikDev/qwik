@@ -33,11 +33,9 @@ export function App(props, ctx) {
 import {
   createSsrNodeId,
   createSsrOpenTag,
-  createSsrRangeTextTarget,
   escapeHTML,
   renderSsrTextExpression,
   renderSsrProps,
-  createSsrElementTarget,
   getActiveInvokeContextOrNull,
   invoke,
   createSsrMarkup,
@@ -75,7 +73,8 @@ export function Field(props, ctx) {
   const id_0 = ctx.nextId();
   ctx.addRoot(props);
   const text_0 = renderSsrTextExpression(
-    createSsrRangeTextTarget(id_0, 0),
+    id_0,
+    0,
     [props],
     q_component_text_segment_0_1fh10fbkzokfc
   );
@@ -86,7 +85,7 @@ export function Field(props, ctx) {
       id_1 ??= ctx.nextId();
       ctx.addRoot(props);
       return renderSsrProps(
-        createSsrElementTarget(id_1),
+        id_1,
         [props],
         q_component_props_segment_1_208o0sfi1se76,
         ctx.eventAttr

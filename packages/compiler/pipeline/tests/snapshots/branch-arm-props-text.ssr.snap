@@ -14,7 +14,6 @@ import {
   createSsrNodeId,
   maybeThen,
   _noopQrl,
-  createSsrElementTextTarget,
   escapeHTML,
   renderSsrTextExpression,
 } from '@qwik.dev/core';
@@ -34,7 +33,8 @@ const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
   const id0 = ctx.nextId();
   ctx.addRoot(props);
   const text0 = renderSsrTextExpression(
-    createSsrElementTextTarget(id0),
+    id0,
+    null,
     [props],
     q_component_text_segment_2_1fh117dstcoge
   );
@@ -112,7 +112,6 @@ import {
   _noopQrl,
   _captures,
   createSsrNodeId,
-  createSsrElementTextTarget,
   escapeHTML,
   renderSsrTextExpression,
   maybeThen,
@@ -128,7 +127,8 @@ export const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
   const id0 = ctx.nextId();
   ctx.addRoot(props);
   const text0 = renderSsrTextExpression(
-    createSsrElementTextTarget(id0),
+    id0,
+    null,
     [props],
     q_component_text_segment_2_1fh117dstcoge
   );

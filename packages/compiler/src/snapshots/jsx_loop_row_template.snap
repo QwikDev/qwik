@@ -32,12 +32,10 @@ export function App() {
 import {
   useSignal,
   createSsrNodeId,
-  createSsrElementTarget,
   renderSsrAttrExpression,
   escapeHTML,
   createSsrOpenTag,
   createSsrMarkup,
-  createSsrElementTextTarget,
   renderSsrTextExpression,
   getActiveInvokeContextOrNull,
   invoke,
@@ -49,7 +47,7 @@ const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __rowId, ro
   const id_0 = ctx.nextId();
   ctx.addRoot(row);
   const attr_0 = renderSsrAttrExpression(
-    createSsrElementTarget(id_0),
+    id_0,
     'class',
     [row],
     q_component_className_segment_2_kvlfr6myf532
@@ -60,22 +58,14 @@ const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __rowId, ro
     invoke(invokeCtx, () => {
       id_1 ??= ctx.nextId();
       ctx.addRoot(row);
-      return renderSsrTextExpression(
-        createSsrElementTextTarget(id_1),
-        [row],
-        q_component_text_segment_3_1fh11lewq6qgx
-      );
+      return renderSsrTextExpression(id_1, null, [row], q_component_text_segment_3_1fh11lewq6qgx);
     });
   let id_2;
   const text_2 = () =>
     invoke(invokeCtx, () => {
       id_2 ??= ctx.nextId();
       ctx.addRoot(row);
-      return renderSsrTextExpression(
-        createSsrElementTextTarget(id_2),
-        [row],
-        q_component_text_segment_5_1fh12dh4juuhz
-      );
+      return renderSsrTextExpression(id_2, null, [row], q_component_text_segment_5_1fh12dh4juuhz);
     });
   return maybeThen(attr_0, (attr_0) =>
     maybeThen(text_1(), (text_1) =>
@@ -167,12 +157,10 @@ export function App(props, ctx) {
 import {
   _noopQrl,
   createSsrNodeId,
-  createSsrElementTarget,
   renderSsrAttrExpression,
   escapeHTML,
   createSsrOpenTag,
   createSsrMarkup,
-  createSsrElementTextTarget,
   renderSsrTextExpression,
   getActiveInvokeContextOrNull,
   invoke,
@@ -201,7 +189,7 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __ro
   const id_0 = ctx.nextId();
   ctx.addRoot(row);
   const attr_0 = renderSsrAttrExpression(
-    createSsrElementTarget(id_0),
+    id_0,
     'class',
     [row],
     q_component_className_segment_2_kvlfr6myf532
@@ -212,22 +200,14 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __ro
     invoke(invokeCtx, () => {
       id_1 ??= ctx.nextId();
       ctx.addRoot(row);
-      return renderSsrTextExpression(
-        createSsrElementTextTarget(id_1),
-        [row],
-        q_component_text_segment_3_1fh11lewq6qgx
-      );
+      return renderSsrTextExpression(id_1, null, [row], q_component_text_segment_3_1fh11lewq6qgx);
     });
   let id_2;
   const text_2 = () =>
     invoke(invokeCtx, () => {
       id_2 ??= ctx.nextId();
       ctx.addRoot(row);
-      return renderSsrTextExpression(
-        createSsrElementTextTarget(id_2),
-        [row],
-        q_component_text_segment_5_1fh12dh4juuhz
-      );
+      return renderSsrTextExpression(id_2, null, [row], q_component_text_segment_5_1fh12dh4juuhz);
     });
   return maybeThen(attr_0, (attr_0) =>
     maybeThen(text_1(), (text_1) =>

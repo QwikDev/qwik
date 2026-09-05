@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
   createOwner,
-  createSsrElementTarget,
   disposeSubscriber,
   Phase,
   registerSubscriberToOwner,
@@ -34,7 +33,7 @@ function createTask(lane: SsrLane, run: TaskFn): TaskSubscription {
 function createDom(lane: SsrLane, promise: Promise<string>): SsrAttrEffect {
   const source = useSignal('initial');
   const subscriber = registerSubscriberToOwner(
-    new SsrAttrEffect(createSsrElementTarget(0), 'title', source, null, lane),
+    new SsrAttrEffect(0, 'title', source, null, lane),
     createOwner(null)
   );
   subscriber.schedulePromise(promise);

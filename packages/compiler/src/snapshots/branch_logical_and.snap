@@ -17,9 +17,7 @@ import {
   _captures,
   createSsrNodeId,
   renderSsrProps,
-  createSsrElementTarget,
   createSsrOpenTag,
-  createSsrRangeTextTarget,
   escapeHTML,
   renderSsrTextNode,
   getActiveInvokeContextOrNull,
@@ -46,7 +44,7 @@ const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
   ctx.addRoot(attrs);
   ctx.addRoot(label);
   const props_0 = renderSsrProps(
-    createSsrElementTarget(id_0),
+    id_0,
     [attrs, label],
     q_component_props_segment_2_208o0eee4yc6n,
     ctx.eventAttr
@@ -55,7 +53,7 @@ const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
   const text_1 = () =>
     invoke(invokeCtx, () => {
       ctx.addRoot(label);
-      return renderSsrTextNode(createSsrRangeTextTarget(id_0, 0), label, undefined, true);
+      return renderSsrTextNode(id_0, 0, label, undefined, true);
     });
   return maybeThen(props_0, (props_0) => {
     props_0.ref !== undefined && ctx.setRef(props_0.ref, id_0);
@@ -142,9 +140,7 @@ import {
   _captures,
   createSsrNodeId,
   renderSsrProps,
-  createSsrElementTarget,
   createSsrOpenTag,
-  createSsrRangeTextTarget,
   escapeHTML,
   renderSsrTextNode,
   getActiveInvokeContextOrNull,
@@ -164,7 +160,7 @@ export const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
   ctx.addRoot(attrs);
   ctx.addRoot(label);
   const props_0 = renderSsrProps(
-    createSsrElementTarget(id_0),
+    id_0,
     [attrs, label],
     q_component_props_segment_2_208o0eee4yc6n,
     ctx.eventAttr
@@ -173,7 +169,7 @@ export const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
   const text_1 = () =>
     invoke(invokeCtx, () => {
       ctx.addRoot(label);
-      return renderSsrTextNode(createSsrRangeTextTarget(id_0, 0), label, undefined, true);
+      return renderSsrTextNode(id_0, 0, label, undefined, true);
     });
   return maybeThen(props_0, (props_0) => {
     props_0.ref !== undefined && ctx.setRef(props_0.ref, id_0);

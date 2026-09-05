@@ -8,7 +8,6 @@ export default (props) => <p>{props.name}</p>;
 
 import {
   createSsrNodeId,
-  createSsrElementTextTarget,
   escapeHTML,
   renderSsrTextExpression,
   maybeThen,
@@ -26,7 +25,8 @@ export default (props, ctx) => {
   const id0 = ctx.nextId();
   ctx.addRoot(props);
   const text0 = renderSsrTextExpression(
-    createSsrElementTextTarget(id0),
+    id0,
+    null,
     [props],
     q_component_text_segment_0_1fh10fbkzokfc
   );

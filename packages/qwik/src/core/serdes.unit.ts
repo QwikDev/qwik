@@ -17,9 +17,6 @@ import { ContentSubscription, renderSsrContent } from './dom/content/content';
 import { IndexMode, renderSsrForBlock } from './dom/for/for';
 import { ForBlockSubscription } from './dom/effect/effect';
 import {
-  createSsrElementTarget,
-  createSsrElementTextTarget,
-  createSsrRangeTextTarget,
   createSsrDomBatchEffect,
   createSsrAttrEffect,
   createSsrAttrExpressionEffect,
@@ -303,9 +300,9 @@ describe('serdes emit-only', () => {
     expect(state).toEqual([TypeIds.Signal, [TypeIds.Plain, 0]]);
   });
 
-  it('serializes a signal with an SSR text node subscriber', async () => {
+  it.each([null, 0, 2])('serializes an SSR text node with marker index %s', async (markerIndex) => {
     const count = useSignal(0);
-    const effect = createOwned(() => createSsrTextNodeEffect(createSsrElementTextTarget(7)));
+    const effect = createOwned(() => createSsrTextNodeEffect(7, markerIndex));
 
     runWithCollector(effect, () => count.value);
 
@@ -319,11 +316,16 @@ describe('serdes emit-only', () => {
     expect(effectPayload[0]).toBe(TypeIds.Plain);
     expect(effectPayload[1]).toBe(EffectKind.TextNode);
     expect(effectPayload[2]).toBe(TypeIds.Plain);
-    expect(effectPayload[3]).toBe(EffectTargetKind.ElementText);
+    expect(effectPayload[3]).toBe(
+      markerIndex === null ? EffectTargetKind.ElementText : EffectTargetKind.RangeText
+    );
     expect(effectPayload[4]).toBe(TypeIds.Plain);
     expect(effectPayload[5]).toBe(7);
-    expect(effectPayload[6]).toBe(TypeIds.Array);
-    expect(effectPayload[7]).toEqual([TypeIds.RootRef, 0]);
+    expect(effectPayload.slice(6)).toEqual([
+      ...(markerIndex === null ? [] : [TypeIds.Plain, markerIndex]),
+      TypeIds.Array,
+      [TypeIds.RootRef, 0],
+    ]);
   });
 
   it('serializes store prop subscribers as source dependencies', async () => {
@@ -335,9 +337,7 @@ describe('serdes emit-only', () => {
       null,
       null
     );
-    const effect = createOwned(() =>
-      createSsrTextExpressionEffect(createSsrElementTextTarget(7), [state], qrl)
-    );
+    const effect = createOwned(() => createSsrTextExpressionEffect(7, null, [state], qrl));
 
     runWithCollector(effect, () => state.deep.count);
 
@@ -363,9 +363,7 @@ describe('serdes emit-only', () => {
       null,
       null
     );
-    const effect = createOwned(() =>
-      createSsrTextExpressionEffect(createSsrElementTextTarget(7), [state], qrl)
-    );
+    const effect = createOwned(() => createSsrTextExpressionEffect(7, null, [state], qrl));
     runWithCollector(effect, () => state.nested.count);
 
     const serialized = await serialize(state);
@@ -414,7 +412,7 @@ describe('serdes emit-only', () => {
       return 6;
     });
     const signal = createOwned(() => useAsyncQrl(qrl, { initial: 5 }));
-    const effect = createOwned(() => createSsrTextNodeEffect(createSsrElementTextTarget(7)));
+    const effect = createOwned(() => createSsrTextNodeEffect(7, null));
 
     runWithCollector(effect, () => signal.value);
     await signal.promise();
@@ -590,7 +588,7 @@ describe('serdes emit-only', () => {
   it('does not serialize orphan SSR effect targets', async () => {
     const count = useSignal(0);
 
-    expect(createOwned(() => renderSsrTextNode(createSsrElementTextTarget(8), count))).toBe('0');
+    expect(createOwned(() => renderSsrTextNode(8, null, count))).toBe('0');
 
     const state = await serialize();
 
@@ -608,9 +606,7 @@ describe('serdes emit-only', () => {
       '0',
       container
     );
-    const effect = createOwned(() =>
-      createSsrTextExpressionEffect(createSsrRangeTextTarget(3, 2), [count], qrl)
-    );
+    const effect = createOwned(() => createSsrTextExpressionEffect(3, 2, [count], qrl));
 
     await qrl.resolve(container);
     runWithCollector(effect, () => qrl.resolved!(count));
@@ -635,11 +631,7 @@ describe('serdes emit-only', () => {
     const classSource = useSignal('active');
     const styleSource = useSignal('color:red');
     const [classEffect, styleEffect] = createOwned(
-      () =>
-        [
-          createSsrAttrEffect(createSsrElementTarget(2), 'class'),
-          createSsrAttrEffect(createSsrElementTarget(2), 'style'),
-        ] as const
+      () => [createSsrAttrEffect(2, 'class'), createSsrAttrEffect(2, 'style')] as const
     );
 
     runWithCollector(classEffect, () => classSource.value);
@@ -670,9 +662,7 @@ describe('serdes emit-only', () => {
       '0',
       container
     );
-    const effect = createOwned(() =>
-      createSsrAttrExpressionEffect(createSsrElementTarget(2), 'style', [count], qrl)
-    );
+    const effect = createOwned(() => createSsrAttrExpressionEffect(2, 'style', [count], qrl));
 
     await qrl.resolve(container);
     runWithCollector(effect, () => qrl.resolved!(count));
@@ -705,7 +695,7 @@ describe('serdes emit-only', () => {
     await qrl.resolve(container);
     createOwned(() =>
       renderSsrEvent(
-        createSsrElementTarget(2),
+        2,
         'q-e:click',
         [enabled],
         qrl,
@@ -735,8 +725,8 @@ describe('serdes emit-only', () => {
 
     createOwned(() => {
       const batch = createSsrDomBatchEffect() as SsrDomSubscription;
-      renderSsrTextNode(createSsrElementTextTarget(4), count, batch);
-      renderSsrAttr(createSsrElementTarget(5), 'class', classSource, batch);
+      renderSsrTextNode(4, null, count, batch);
+      renderSsrAttr(5, 'class', classSource, batch);
     });
 
     const state = await serialize(count, classSource);
@@ -766,7 +756,7 @@ describe('serdes emit-only', () => {
     const thenQrl = createQRL<BranchRenderFn>(
       './branch.then.js',
       'renderThen',
-      () => renderSsrTextNode(createSsrElementTextTarget(11), child),
+      () => renderSsrTextNode(11, null, child),
       null,
       null
     );
@@ -812,7 +802,7 @@ describe('serdes emit-only', () => {
       './for.render.js',
       'render',
       (_ctx, _rangeId, rowId, row) => {
-        return `<span q:id="${rowId}" q:row>${renderSsrTextNode(createSsrElementTextTarget(rowId), row.label)}</span>`;
+        return `<span q:id="${rowId}" q:row>${renderSsrTextNode(rowId, null, row.label)}</span>`;
       },
       null,
       null
@@ -1022,11 +1012,7 @@ describe('serdes emit-only', () => {
     );
     await qrl.resolve(container);
     const [doubled, effect] = createOwned(
-      () =>
-        [
-          useComputedQrl(qrl, undefined, container),
-          createSsrTextNodeEffect(createSsrElementTextTarget(4)),
-        ] as const
+      () => [useComputedQrl(qrl, undefined, container), createSsrTextNodeEffect(4, null)] as const
     );
 
     runWithCollector(effect, () => doubled.value);

@@ -20,7 +20,6 @@ import {
   createComponent,
   _captures,
   createSsrNodeId,
-  createSsrElementTextTarget,
   escapeHTML,
   renderSsrTextNode,
   createSsrMarkup,
@@ -30,7 +29,7 @@ const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
   const [count] = _captures;
   const id0 = ctx.nextId();
   ctx.addRoot(count);
-  const text0 = renderSsrTextNode(createSsrElementTextTarget(id0), count);
+  const text0 = renderSsrTextNode(id0, null, count);
   return [
     createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'),
     maybeThen(text0, (text0) => [
@@ -64,7 +63,6 @@ export default (props0, ctx) => {
 import {
   _captures,
   createSsrNodeId,
-  createSsrElementTextTarget,
   escapeHTML,
   renderSsrTextNode,
   maybeThen,
@@ -75,7 +73,7 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) =>
   const [count] = _captures;
   const id0 = ctx.nextId();
   ctx.addRoot(count);
-  const text0 = renderSsrTextNode(createSsrElementTextTarget(id0), count);
+  const text0 = renderSsrTextNode(id0, null, count);
   return [
     createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'),
     maybeThen(text0, (text0) => [

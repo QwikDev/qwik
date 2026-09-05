@@ -10,19 +10,12 @@ export default () => {
 
 ============================= src/component.tsx ==
 
-import {
-  useSignal,
-  createSsrNodeId,
-  createSsrElementTarget,
-  renderSsrAttr,
-  escapeHTML,
-  maybeThen,
-} from '@qwik.dev/core';
+import { useSignal, createSsrNodeId, renderSsrAttr, escapeHTML, maybeThen } from '@qwik.dev/core';
 export default (props, ctx) => {
   const count = useSignal(0);
   const id0 = ctx.nextId();
   ctx.addRoot(count);
-  const attr0 = renderSsrAttr(createSsrElementTarget(id0), 'class', count);
+  const attr0 = renderSsrAttr(id0, 'class', count);
   return maybeThen(attr0, (attr0) => [
     '<div q:id="',
     createSsrNodeId(id0),

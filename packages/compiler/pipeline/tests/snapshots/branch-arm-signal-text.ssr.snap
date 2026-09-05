@@ -18,7 +18,6 @@ import {
   createSsrNodeId,
   maybeThen,
   _noopQrl,
-  createSsrElementTextTarget,
   escapeHTML,
   renderSsrTextNode,
 } from '@qwik.dev/core';
@@ -36,7 +35,7 @@ const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
   const [count] = _captures;
   const id0 = ctx.nextId();
   ctx.addRoot(count);
-  const text0 = renderSsrTextNode(createSsrElementTextTarget(id0), count);
+  const text0 = renderSsrTextNode(id0, null, count);
   return maybeThen(text0, (text0) => [
     '<b q:id="',
     createSsrNodeId(id0),
@@ -106,7 +105,6 @@ export const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
 import {
   _captures,
   createSsrNodeId,
-  createSsrElementTextTarget,
   escapeHTML,
   renderSsrTextNode,
   maybeThen,
@@ -116,7 +114,7 @@ export const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
   const [count] = _captures;
   const id0 = ctx.nextId();
   ctx.addRoot(count);
-  const text0 = renderSsrTextNode(createSsrElementTextTarget(id0), count);
+  const text0 = renderSsrTextNode(id0, null, count);
   return maybeThen(text0, (text0) => [
     '<b q:id="',
     createSsrNodeId(id0),

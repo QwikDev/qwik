@@ -1169,41 +1169,53 @@ function serializeSsrScalarDomEffect(
   effect: SsrScalarDomEffect,
   deps?: readonly Source[]
 ): unknown[] {
-  const target = effect.target;
   const serializedDeps = deps ?? serializeSsrScalarDomEffectDeps(effect);
 
   switch (effect.effectKind) {
     case EffectKind.TextNode: {
       // The stringify flag rides only when set — absent means JSX coercion.
       const stringify = effect.stringify ? [1] : [];
-      return target.kind === EffectTargetKind.RangeText
+      return effect.markerIndex !== null
         ? [
             effect.effectKind,
-            target.kind,
-            target.id,
-            target.markerIndex,
+            EffectTargetKind.RangeText,
+            effect.targetId,
+            effect.markerIndex,
             serializedDeps,
             ...stringify,
           ]
-        : [effect.effectKind, target.kind, target.id, serializedDeps, ...stringify];
+        : [
+            effect.effectKind,
+            EffectTargetKind.ElementText,
+            effect.targetId,
+            serializedDeps,
+            ...stringify,
+          ];
     }
     case EffectKind.TextExpression:
-      return target.kind === EffectTargetKind.RangeText
+      return effect.markerIndex !== null
         ? [
             effect.effectKind,
-            target.kind,
-            target.id,
-            target.markerIndex,
+            EffectTargetKind.RangeText,
+            effect.targetId,
+            effect.markerIndex,
             serializedDeps,
             effect.args,
             effect.qrl,
           ]
-        : [effect.effectKind, target.kind, target.id, serializedDeps, effect.args, effect.qrl];
+        : [
+            effect.effectKind,
+            EffectTargetKind.ElementText,
+            effect.targetId,
+            serializedDeps,
+            effect.args,
+            effect.qrl,
+          ];
     case EffectKind.Attr:
       return [
         effect.effectKind,
-        target.kind,
-        target.id,
+        EffectTargetKind.Element,
+        effect.targetId,
         serializedDeps,
         effect.name,
         effect.styleScopedId,
@@ -1211,8 +1223,8 @@ function serializeSsrScalarDomEffect(
     case EffectKind.AttrExpression:
       return [
         effect.effectKind,
-        target.kind,
-        target.id,
+        EffectTargetKind.Element,
+        effect.targetId,
         serializedDeps,
         effect.name,
         effect.args,
@@ -1222,8 +1234,8 @@ function serializeSsrScalarDomEffect(
     case EffectKind.Props:
       return [
         effect.effectKind,
-        target.kind,
-        target.id,
+        EffectTargetKind.Element,
+        effect.targetId,
         serializedDeps,
         effect.args,
         effect.qrl,
@@ -1232,8 +1244,8 @@ function serializeSsrScalarDomEffect(
     case EffectKind.Event:
       return [
         effect.effectKind,
-        target.kind,
-        target.id,
+        EffectTargetKind.Element,
+        effect.targetId,
         serializedDeps,
         effect.name,
         effect.args,

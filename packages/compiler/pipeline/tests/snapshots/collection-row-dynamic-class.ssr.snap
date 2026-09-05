@@ -15,10 +15,8 @@ import {
   renderSsrCollection,
   createSsrNodeId,
   maybeThen,
-  createSsrElementTarget,
   renderSsrAttrExpression,
   escapeHTML,
-  createSsrElementTextTarget,
   renderSsrTextExpression,
   _noopQrl,
 } from '@qwik.dev/core';
@@ -26,13 +24,14 @@ const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __rowId, it
   const id0 = ctx.nextId();
   ctx.addRoot(item);
   const attr0 = renderSsrAttrExpression(
-    createSsrElementTarget(id0),
+    id0,
     'class',
     [item],
     q_component_class_segment_2_3htuz8wkv4ypl
   );
   const text0 = renderSsrTextExpression(
-    createSsrElementTextTarget(id0),
+    id0,
+    null,
     [item],
     q_component_text_segment_3_1fh11lewq6qgx
   );
@@ -107,10 +106,8 @@ export default (props, ctx) => {
 import {
   _noopQrl,
   createSsrNodeId,
-  createSsrElementTarget,
   renderSsrAttrExpression,
   escapeHTML,
-  createSsrElementTextTarget,
   renderSsrTextExpression,
   maybeThen,
 } from '@qwik.dev/core';
@@ -129,13 +126,14 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __ro
   const id0 = ctx.nextId();
   ctx.addRoot(item);
   const attr0 = renderSsrAttrExpression(
-    createSsrElementTarget(id0),
+    id0,
     'class',
     [item],
     q_component_class_segment_2_3htuz8wkv4ypl
   );
   const text0 = renderSsrTextExpression(
-    createSsrElementTextTarget(id0),
+    id0,
+    null,
     [item],
     q_component_text_segment_3_1fh11lewq6qgx
   );

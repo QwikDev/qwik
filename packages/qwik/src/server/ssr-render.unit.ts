@@ -1,33 +1,30 @@
 import { describe, expect, test, vi } from 'vitest';
-import { createQRL } from '../core/shared/qrl/qrl-class';
-import { inlinedQrl } from '../core/shared/qrl/qrl';
-import { _val } from '../core/runtime/bind-handlers';
 import {
+  createQRL,
+  inlinedQrl,
+  _val,
   createSsrNodeId,
   createSsrOpenTag,
   createSsrMarkup,
-  type SsrOutput,
-  type SsrReferenceChunk,
-} from '../core/ssr/output';
-import { useContextProvider, type ContextId } from '../core/runtime/context';
-import type { ContextScope } from '../core/runtime/context-scope';
-import { getActiveInvokeContext } from '../core/runtime/invoke-context';
-import { useTask } from '../core/runtime/task';
-import { getLocale } from '../core/runtime/use-locale';
-import { useServerData } from '../core/runtime/use-server-data';
-import { useSignal } from '../core/reactive/public-api';
-import { useOnDocument } from '../core/runtime/use-on';
-import { renderSsrDynamicContent } from '../core/dom/content/content';
-import { createSsrSuspense } from '../core/dom/content/suspense-ssr';
-import { createRevealGroup } from '../core/dom/content/reveal';
-import { _await } from '../core/reactive/tracking';
-import {
-  createSsrElementTarget,
-  createSsrElementTextTarget,
+  useContextProvider,
+  getActiveInvokeContext,
+  useTask,
+  getLocale,
+  useServerData,
+  useSignal,
+  useOnDocument,
+  renderSsrDynamicContent,
+  createSsrSuspense,
+  createRevealGroup,
+  _await,
   renderSsrAttr,
   renderSsrAttrExpression,
   renderSsrTextNode,
-} from '../core/dom/effect/ssr-effect';
+  type ContextId,
+  type ContextScope,
+  type SsrOutput,
+  type SsrReferenceChunk,
+} from '@qwik.dev/core';
 import {
   renderToStreamCompiled as renderToStream,
   renderToStringCompiled as renderToString,
@@ -36,8 +33,7 @@ import {
 
 const FINAL_ATTRIBUTE_PATCH = '[0,"aria-describedby","final-id"]';
 
-const maybeThenAll = (parts: unknown[]) =>
-  Promise.all(parts) as Promise<import('../core/ssr/output').SsrOutput[]> as never;
+const maybeThenAll = (parts: unknown[]) => Promise.all(parts) as Promise<SsrOutput[]> as never;
 
 describe('SSR context markers', () => {
   test('passes root props without a JSX wrapper', async () => {
@@ -263,11 +259,7 @@ describe('SSR context markers', () => {
       async (_props, ctx) => {
         const descriptionId = useSignal('initial-id');
         const nodeId = ctx.nextId();
-        const description = renderSsrAttr(
-          createSsrElementTarget(nodeId),
-          'aria-describedby',
-          descriptionId
-        );
+        const description = renderSsrAttr(nodeId, 'aria-describedby', descriptionId);
         useTask(
           () =>
             new Promise<void>((resolve) => {
@@ -311,7 +303,7 @@ describe('SSR context markers', () => {
       async (_props, ctx) => {
         const nodeId = ctx.nextId();
         const title = await renderSsrAttrExpression(
-          createSsrElementTarget(nodeId),
+          nodeId,
           'title',
           [],
           createQRL('', 'title', () => pending, null, null)
@@ -347,13 +339,13 @@ describe('SSR context markers', () => {
         const firstId = ctx.nextId();
         const secondId = ctx.nextId();
         const firstTitle = renderSsrAttrExpression(
-          createSsrElementTarget(firstId),
+          firstId,
           'title',
           [],
           createQRL('', 'firstTitle', () => first, null, null)
         ) as string | null;
         const secondTitle = renderSsrAttrExpression(
-          createSsrElementTarget(secondId),
+          secondId,
           'title',
           [],
           createQRL('', 'secondTitle', () => second, null, null)
@@ -667,7 +659,7 @@ describe('SSR context markers', () => {
                 resume();
                 const title = useSignal('initial');
                 targetId = contentCtx.nextId();
-                const value = renderSsrAttr(createSsrElementTarget(targetId), 'title', title);
+                const value = renderSsrAttr(targetId, 'title', title);
                 useTask(
                   () =>
                     new Promise<void>((resolve) => {
@@ -726,7 +718,7 @@ describe('SSR context markers', () => {
                 resume();
                 targetId = contentCtx.nextId();
                 const value = renderSsrAttrExpression(
-                  createSsrElementTarget(targetId),
+                  targetId,
                   'title',
                   [],
                   createQRL('', 'title', () => title, null, null)
@@ -772,7 +764,7 @@ describe('SSR context markers', () => {
       (_props, ctx) => {
         const targetId = ctx.nextId();
         const value = renderSsrAttrExpression(
-          createSsrElementTarget(targetId),
+          targetId,
           'title',
           [],
           createQRL('', 'title', () => title, null, null)
@@ -818,7 +810,7 @@ describe('SSR context markers', () => {
       (_props, ctx) => {
         const targetId = ctx.nextId();
         renderSsrAttrExpression(
-          createSsrElementTarget(targetId),
+          targetId,
           'title',
           [],
           createQRL('', 'title', () => title, null, null)
@@ -924,7 +916,7 @@ describe('SSR context markers', () => {
             () =>
               _await(content).then((resume) => {
                 resume();
-                return `<p>${renderSsrTextNode(createSsrElementTextTarget(0), count)}</p>`;
+                return `<p>${renderSsrTextNode(0, null, count)}</p>`;
               }),
             null,
             null
@@ -1227,7 +1219,7 @@ describe('SSR context markers', () => {
                   (innerCtx) => {
                     const targetId = innerCtx.nextId();
                     const value = renderSsrAttrExpression(
-                      createSsrElementTarget(targetId),
+                      targetId,
                       'title',
                       [],
                       createQRL('', 'title', () => title, null, null)
@@ -1332,11 +1324,7 @@ function renderPendingAttribute(pending: Promise<string>) {
     (_props, ctx) => {
       descriptionId = useSignal<string | Promise<string>>('initial-id');
       const nodeId = ctx.nextId();
-      const description = renderSsrAttr(
-        createSsrElementTarget(nodeId),
-        'aria-describedby',
-        descriptionId
-      );
+      const description = renderSsrAttr(nodeId, 'aria-describedby', descriptionId);
       useTask(() => {
         descriptionId.value = pending;
       });

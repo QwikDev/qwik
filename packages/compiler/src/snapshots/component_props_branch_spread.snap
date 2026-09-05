@@ -15,7 +15,6 @@ export function Logical(props: { attrs: object | null }) {
 import {
   createSsrNodeId,
   renderSsrProps,
-  createSsrElementTarget,
   createSsrOpenTag,
   maybeThen,
   _noopQrl,
@@ -39,7 +38,7 @@ export function Conditional(props, ctx) {
   const id_0 = ctx.nextId();
   ctx.addRoot(props);
   const props_0 = renderSsrProps(
-    createSsrElementTarget(id_0),
+    id_0,
     [props],
     q_component_props_segment_0_208o16glymg7p,
     ctx.eventAttr
@@ -57,7 +56,7 @@ export function Logical(props, ctx) {
   const id_0 = ctx.nextId();
   ctx.addRoot(props);
   const props_0 = renderSsrProps(
-    createSsrElementTarget(id_0),
+    id_0,
     [props],
     q_component_props_segment_1_208o0sfi1se76,
     ctx.eventAttr

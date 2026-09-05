@@ -38,7 +38,6 @@ export function App(props0, ctx) {
 import {
   createSsrNodeId,
   createSsrOpenTag,
-  createSsrElementTextTarget,
   escapeHTML,
   renderSsrTextExpression,
   maybeThen,
@@ -57,7 +56,8 @@ export function Pager(props, ctx) {
   const id_0 = ctx.nextId();
   ctx.addRoot(props);
   const text_0 = renderSsrTextExpression(
-    createSsrElementTextTarget(id_0),
+    id_0,
+    null,
     [props],
     q_component_text_segment_0_1fh10fbkzokfc
   );

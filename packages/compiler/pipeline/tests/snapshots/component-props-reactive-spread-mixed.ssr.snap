@@ -14,7 +14,6 @@ export default () => {
 
 import {
   createSsrNodeId,
-  createSsrRangeTextTarget,
   escapeHTML,
   renderSsrTextExpression,
   maybeThen,
@@ -48,16 +47,8 @@ q_component_props_segment_2_208o0eee4yc6n.s(component_props_segment_2_208o0eee4y
 export const Child = (props, ctx) => {
   const id0 = ctx.nextId();
   ctx.addRoot(props);
-  const text0 = renderSsrTextExpression(
-    createSsrRangeTextTarget(id0, 0),
-    [props],
-    q_component_text_segment_0_1fh10fbkzokfc
-  );
-  const text1 = renderSsrTextExpression(
-    createSsrRangeTextTarget(id0, 1),
-    [props],
-    q_component_text_segment_1_1fh10tcowimfv
-  );
+  const text0 = renderSsrTextExpression(id0, 0, [props], q_component_text_segment_0_1fh10fbkzokfc);
+  const text1 = renderSsrTextExpression(id0, 1, [props], q_component_text_segment_1_1fh10tcowimfv);
   return maybeThen(text0, (text0) =>
     maybeThen(text1, (text1) => [
       '<strong q:id="',

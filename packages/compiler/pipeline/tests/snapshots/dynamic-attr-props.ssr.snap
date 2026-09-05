@@ -10,7 +10,6 @@ export default (props) => {
 
 import {
   createSsrNodeId,
-  createSsrElementTarget,
   renderSsrAttrExpression,
   escapeHTML,
   maybeThen,
@@ -28,7 +27,7 @@ export default (props, ctx) => {
   const id0 = ctx.nextId();
   ctx.addRoot(props);
   const attr0 = renderSsrAttrExpression(
-    createSsrElementTarget(id0),
+    id0,
     'title',
     [props],
     q_component_title_segment_0_2f0r0xivypjmx

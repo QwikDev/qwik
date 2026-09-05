@@ -23,7 +23,6 @@ import {
   _await,
   createSsrNodeId,
   createSsrOpenTag,
-  createSsrElementTextTarget,
   escapeHTML,
   renderSsrTextNode,
   maybeThen,
@@ -46,7 +45,7 @@ export function App(props, ctx) {
   });
   const id_0 = ctx.nextId();
   ctx.addRoot(data);
-  const text_0 = renderSsrTextNode(createSsrElementTextTarget(id_0), data);
+  const text_0 = renderSsrTextNode(id_0, null, data);
   return maybeThen(text_0, (text_0) => [
     createSsrOpenTag('<button q:id="', createSsrNodeId(id_0), '"', '>'),
     escapeHTML(text_0),

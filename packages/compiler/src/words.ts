@@ -54,8 +54,6 @@ export const enum QwikWord {
   LastChild = '_last',
   ToNodes = '_toNodes',
   // ssr
-  CreateSsrElementTarget = 'createSsrElementTarget',
-  CreateSsrElementTextTarget = 'createSsrElementTextTarget',
   CreateSsrDomBatchEffect = 'createSsrDomBatchEffect',
   CreateSsrNodeId = 'createSsrNodeId',
   CreateSsrMarkup = 'createSsrMarkup',
@@ -64,7 +62,6 @@ export const enum QwikWord {
   RenderSsrAttrExpression = 'renderSsrAttrExpression',
   RenderSsrEvent = 'renderSsrEvent',
   RenderSsrProps = 'renderSsrProps',
-  CreateSsrRangeTextTarget = 'createSsrRangeTextTarget',
   RenderSsrTextNode = 'renderSsrTextNode',
   RenderSsrTextExpression = 'renderSsrTextExpression',
   RenderSsrBranch = 'renderSsrBranch',

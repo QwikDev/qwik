@@ -18,7 +18,6 @@ import {
   useSignal,
   useStylesScoped,
   createSsrNodeId,
-  createSsrElementTarget,
   renderSsrAttrExpression,
   escapeHTML,
   createSsrOpenTag,
@@ -47,7 +46,7 @@ export function App(props, ctx) {
   const id_0 = ctx.nextId();
   ctx.addRoot(active);
   const attr_0 = renderSsrAttrExpression(
-    createSsrElementTarget(id_0),
+    id_0,
     'class',
     [active],
     q_use_styles_scoped_dynamic_class_segment_1_3grhh2wv1i202,

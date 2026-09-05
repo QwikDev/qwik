@@ -25,14 +25,12 @@ import {
   useSignal,
   createSsrNodeId,
   renderSsrProps,
-  createSsrElementTarget,
   createSsrOpenTag,
   renderSsrAttrExpression,
   escapeHTML,
   getActiveInvokeContextOrNull,
   invoke,
   createSsrMarkup,
-  createSsrRangeTextTarget,
   renderSsrTextExpression,
   maybeThen,
   renderSsrCollection,
@@ -42,7 +40,7 @@ const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __rowId, ro
   const id_0 = ctx.nextId();
   ctx.addRoot(row);
   const props_0 = renderSsrProps(
-    createSsrElementTarget(id_0),
+    id_0,
     [row],
     q_component_props_segment_2_208o0eee4yc6n,
     ctx.eventAttr
@@ -54,7 +52,7 @@ const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __rowId, ro
       id_1 ??= ctx.nextId();
       ctx.addRoot(index);
       return renderSsrAttrExpression(
-        createSsrElementTarget(id_1),
+        id_1,
         'data-index',
         [index],
         q_component_data_index_segment_3_156l37xe00ta5
@@ -65,7 +63,7 @@ const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __rowId, ro
       id_1 ??= ctx.nextId();
       ctx.addRoot(row);
       return renderSsrAttrExpression(
-        createSsrElementTarget(id_1),
+        id_1,
         'class',
         [row],
         q_component_className_segment_4_kvlgj8us3944
@@ -75,21 +73,13 @@ const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __rowId, ro
     invoke(invokeCtx, () => {
       id_1 ??= ctx.nextId();
       ctx.addRoot(row);
-      return renderSsrTextExpression(
-        createSsrRangeTextTarget(id_1, 0),
-        [row],
-        q_component_text_segment_5_1fh12dh4juuhz
-      );
+      return renderSsrTextExpression(id_1, 0, [row], q_component_text_segment_5_1fh12dh4juuhz);
     });
   const text_4 = () =>
     invoke(invokeCtx, () => {
       id_1 ??= ctx.nextId();
       ctx.addRoot(index);
-      return renderSsrTextExpression(
-        createSsrRangeTextTarget(id_1, 1),
-        [index],
-        q_component_text_segment_6_1fh12ri8gowii
-      );
+      return renderSsrTextExpression(id_1, 1, [index], q_component_text_segment_6_1fh12ri8gowii);
     });
   return maybeThen(props_0, (props_0) => {
     props_0.ref !== undefined && ctx.setRef(props_0.ref, id_0);
@@ -214,14 +204,12 @@ import {
   _noopQrl,
   createSsrNodeId,
   renderSsrProps,
-  createSsrElementTarget,
   createSsrOpenTag,
   renderSsrAttrExpression,
   escapeHTML,
   getActiveInvokeContextOrNull,
   invoke,
   createSsrMarkup,
-  createSsrRangeTextTarget,
   renderSsrTextExpression,
   maybeThen,
 } from '@qwik.dev/core';
@@ -264,7 +252,7 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (
   const id_0 = ctx.nextId();
   ctx.addRoot(row);
   const props_0 = renderSsrProps(
-    createSsrElementTarget(id_0),
+    id_0,
     [row],
     q_component_props_segment_2_208o0eee4yc6n,
     ctx.eventAttr
@@ -276,7 +264,7 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (
       id_1 ??= ctx.nextId();
       ctx.addRoot(index);
       return renderSsrAttrExpression(
-        createSsrElementTarget(id_1),
+        id_1,
         'data-index',
         [index],
         q_component_data_index_segment_3_156l37xe00ta5
@@ -287,7 +275,7 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (
       id_1 ??= ctx.nextId();
       ctx.addRoot(row);
       return renderSsrAttrExpression(
-        createSsrElementTarget(id_1),
+        id_1,
         'class',
         [row],
         q_component_className_segment_4_kvlgj8us3944
@@ -297,21 +285,13 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (
     invoke(invokeCtx, () => {
       id_1 ??= ctx.nextId();
       ctx.addRoot(row);
-      return renderSsrTextExpression(
-        createSsrRangeTextTarget(id_1, 0),
-        [row],
-        q_component_text_segment_5_1fh12dh4juuhz
-      );
+      return renderSsrTextExpression(id_1, 0, [row], q_component_text_segment_5_1fh12dh4juuhz);
     });
   const text_4 = () =>
     invoke(invokeCtx, () => {
       id_1 ??= ctx.nextId();
       ctx.addRoot(index);
-      return renderSsrTextExpression(
-        createSsrRangeTextTarget(id_1, 1),
-        [index],
-        q_component_text_segment_6_1fh12ri8gowii
-      );
+      return renderSsrTextExpression(id_1, 1, [index], q_component_text_segment_6_1fh12ri8gowii);
     });
   return maybeThen(props_0, (props_0) => {
     props_0.ref !== undefined && ctx.setRef(props_0.ref, id_0);

@@ -13,7 +13,6 @@ export function App() {
 import {
   useSignal,
   _captures,
-  createSsrRangeTextTarget,
   escapeHTML,
   renderSsrTextNode,
   maybeThen,
@@ -36,7 +35,7 @@ q_component_branch_condition_segment_0_2fzrieu6vlhf9.s(
 const component_branch_then_segment_1_24n7blyqktd46 = (ctx, rangeId) => {
   const count = _captures[0];
   ctx.addRoot(count);
-  const text_0 = renderSsrTextNode(createSsrRangeTextTarget(rangeId, 0), count, undefined, true);
+  const text_0 = renderSsrTextNode(rangeId, 0, count, undefined, true);
   return maybeThen(text_0, (text_0) => [
     'Count is greater than 2 and equal to <!t>',
     escapeHTML(text_0),
@@ -99,18 +98,12 @@ export const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
 */
 ============================= src/component.tsx_component_branch_then_segment_1_24n7blyqktd46.js (ENTRY POINT)==
 
-import {
-  _captures,
-  createSsrRangeTextTarget,
-  escapeHTML,
-  renderSsrTextNode,
-  maybeThen,
-} from '@qwik.dev/core';
+import { _captures, escapeHTML, renderSsrTextNode, maybeThen } from '@qwik.dev/core';
 
 export const component_branch_then_segment_1_24n7blyqktd46 = (ctx, rangeId) => {
   const count = _captures[0];
   ctx.addRoot(count);
-  const text_0 = renderSsrTextNode(createSsrRangeTextTarget(rangeId, 0), count, undefined, true);
+  const text_0 = renderSsrTextNode(rangeId, 0, count, undefined, true);
   return maybeThen(text_0, (text_0) => [
     'Count is greater than 2 and equal to <!t>',
     escapeHTML(text_0),

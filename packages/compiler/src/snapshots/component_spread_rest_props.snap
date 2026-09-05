@@ -38,7 +38,6 @@ export function Parent(props, ctx) {
 import {
   createSsrNodeId,
   renderSsrProps,
-  createSsrElementTarget,
   createSsrOpenTag,
   maybeThen,
   _noopQrl,
@@ -64,7 +63,7 @@ export function Button(props, ctx) {
   ctx.addRoot(props);
   ctx.addRoot(props);
   const props_0 = renderSsrProps(
-    createSsrElementTarget(id_0),
+    id_0,
     [props, props],
     q_component_props_segment_0_208o16glymg7p,
     ctx.eventAttr

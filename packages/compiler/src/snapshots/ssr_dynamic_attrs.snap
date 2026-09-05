@@ -15,7 +15,6 @@ export function App() {
 import {
   useSignal,
   createSsrNodeId,
-  createSsrElementTarget,
   renderSsrAttr,
   escapeHTML,
   getActiveInvokeContextOrNull,
@@ -29,17 +28,17 @@ export function App(props, ctx) {
   const style = useSignal('color:red');
   const id_0 = ctx.nextId();
   ctx.addRoot(title);
-  const attr_0 = renderSsrAttr(createSsrElementTarget(id_0), 'title', title);
+  const attr_0 = renderSsrAttr(id_0, 'title', title);
   const invokeCtx = getActiveInvokeContextOrNull();
   const attr_1 = () =>
     invoke(invokeCtx, () => {
       ctx.addRoot(classes);
-      return renderSsrAttr(createSsrElementTarget(id_0), 'class', classes);
+      return renderSsrAttr(id_0, 'class', classes);
     });
   const attr_2 = () =>
     invoke(invokeCtx, () => {
       ctx.addRoot(style);
-      return renderSsrAttr(createSsrElementTarget(id_0), 'style', style);
+      return renderSsrAttr(id_0, 'style', style);
     });
   return maybeThen(attr_0, (attr_0) =>
     maybeThen(attr_1(), (attr_1) =>

@@ -14,7 +14,6 @@ import {
   useSignal,
   createSsrOpenTag,
   createSsrNodeId,
-  createSsrElementTarget,
   renderSsrAttr,
   escapeHTML,
   createSsrMarkup,
@@ -24,7 +23,7 @@ export function App(props, ctx) {
   const classes = useSignal('active');
   const id_0 = ctx.nextId();
   ctx.addRoot(classes);
-  const attr_0 = renderSsrAttr(createSsrElementTarget(id_0), 'class', classes);
+  const attr_0 = renderSsrAttr(id_0, 'class', classes);
   return maybeThen(attr_0, (attr_0) => [
     createSsrOpenTag('<main class="shell"', '>'),
     createSsrMarkup(

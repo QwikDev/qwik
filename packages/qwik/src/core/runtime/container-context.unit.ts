@@ -10,7 +10,7 @@ import type { Source } from '../reactive/source';
 import { createSerializationContext } from '../shared/serdes/serialization-context';
 import { useSignal } from '../reactive/public-api';
 import { createOwner, runWithOwner } from './owner';
-import { createSsrElementTextTarget, renderSsrTextNode } from '../dom/effect/ssr-effect';
+import { renderSsrTextNode } from '../dom/effect/ssr-effect';
 import type { Subscriber } from './subscriber';
 import { Scheduler } from './scheduler';
 import type { Signal } from '../reactive/signal';
@@ -126,7 +126,7 @@ describe('ContainerContext', () => {
     const shellState = serialization.$writer$.toString();
     let serverSubscriber!: Subscriber;
     runWithOwner(createOwner(null), () => {
-      renderSsrTextNode(createSsrElementTextTarget(4), serverCount);
+      renderSsrTextNode(4, null, serverCount);
       serverSubscriber = toArray(serverCount.subs)[0] as Subscriber;
     });
     const subscriberId = serialization.$addRoot$(serverSubscriber);

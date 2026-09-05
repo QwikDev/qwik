@@ -15,11 +15,9 @@ export function App() {
 
 import {
   createSsrNodeId,
-  createSsrElementTarget,
   renderSsrAttrExpression,
   escapeHTML,
   createSsrOpenTag,
-  createSsrElementTextTarget,
   renderSsrTextExpression,
   getActiveInvokeContextOrNull,
   invoke,
@@ -49,7 +47,7 @@ export function App(props, ctx) {
   const id_0 = ctx.nextId();
   ctx.addRoot(foo);
   const attr_0 = renderSsrAttrExpression(
-    createSsrElementTarget(id_0),
+    id_0,
     'title',
     [foo],
     q_component_title_segment_0_2f0r0xivypjmx
@@ -58,11 +56,7 @@ export function App(props, ctx) {
   const text_1 = () =>
     invoke(invokeCtx, () => {
       ctx.addRoot(foo);
-      return renderSsrTextExpression(
-        createSsrElementTextTarget(id_0),
-        [foo],
-        q_component_text_segment_1_1fh10tcowimfv
-      );
+      return renderSsrTextExpression(id_0, null, [foo], q_component_text_segment_1_1fh10tcowimfv);
     });
   return maybeThen(attr_0, (attr_0) =>
     maybeThen(text_1(), (text_1) => [

@@ -15,7 +15,6 @@ import {
   renderSsrCollection,
   createSsrNodeId,
   maybeThen,
-  createSsrElementTextTarget,
   escapeHTML,
   renderSsrTextExpression,
   _noopQrl,
@@ -23,7 +22,8 @@ import {
 const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __rowId, item, index) => {
   const id0 = ctx.nextId();
   const text0 = renderSsrTextExpression(
-    createSsrElementTextTarget(id0),
+    id0,
+    null,
     [index],
     q_component_text_segment_2_1fh117dstcoge
   );
@@ -86,7 +86,6 @@ export default (props, ctx) => {
 import {
   _noopQrl,
   createSsrNodeId,
-  createSsrElementTextTarget,
   escapeHTML,
   renderSsrTextExpression,
   maybeThen,
@@ -106,7 +105,8 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (
 ) => {
   const id0 = ctx.nextId();
   const text0 = renderSsrTextExpression(
-    createSsrElementTextTarget(id0),
+    id0,
+    null,
     [index],
     q_component_text_segment_2_1fh117dstcoge
   );

@@ -19,7 +19,6 @@ import {
   useSignal,
   createSsrNodeId,
   renderSsrProps,
-  createSsrElementTarget,
   createSsrOpenTag,
   maybeThen,
   _noopQrl,
@@ -54,7 +53,7 @@ export function App(props, ctx) {
   ctx.addRoot(attrs);
   ctx.addRoot(title);
   const props_0 = renderSsrProps(
-    createSsrElementTarget(id_0),
+    id_0,
     [attrs, title],
     q_component_props_segment_0_208o16glymg7p,
     ctx.eventAttr

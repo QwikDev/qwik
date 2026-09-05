@@ -13,7 +13,6 @@ export default (props) => {
 import {
   useSignal,
   createSsrNodeId,
-  createSsrElementTextTarget,
   escapeHTML,
   renderSsrTextExpression,
   maybeThen,
@@ -32,7 +31,8 @@ export default (props, ctx) => {
   ctx.addRoot(count);
   ctx.addRoot(props);
   const text0 = renderSsrTextExpression(
-    createSsrElementTextTarget(id0),
+    id0,
+    null,
     [count, props],
     q_component_text_segment_0_1fh10fbkzokfc
   );

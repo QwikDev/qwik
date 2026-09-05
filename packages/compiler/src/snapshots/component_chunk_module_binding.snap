@@ -39,7 +39,6 @@ export const App = (props0, ctx) => {
 
 import {
   createSsrNodeId,
-  createSsrElementTarget,
   renderSsrAttrExpression,
   escapeHTML,
   createSsrOpenTag,
@@ -59,7 +58,7 @@ export function Child(props, ctx) {
   const id_0 = ctx.nextId();
   ctx.addRoot(props);
   const attr_0 = renderSsrAttrExpression(
-    createSsrElementTarget(id_0),
+    id_0,
     'class',
     [props],
     q_component_class_segment_0_3htuygud1guoj

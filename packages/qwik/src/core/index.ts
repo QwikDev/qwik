@@ -420,9 +420,6 @@ export {
   createSsrDomBatchEffect,
   createSsrAttrEffect,
   createSsrAttrExpressionEffect,
-  createSsrElementTarget,
-  createSsrElementTextTarget,
-  createSsrRangeTextTarget,
   createSsrPropsEffect,
   createSsrTextExpressionEffect,
   createSsrTextNodeEffect,
@@ -437,7 +434,6 @@ export {
   type EventExpressionQrl,
   type DomPropsQrl,
   type SsrDomEffect,
-  type SsrEffectTarget,
   type TextExpressionQrl,
 } from './dom/effect/ssr-effect';
 export {

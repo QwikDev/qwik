@@ -15,7 +15,6 @@ export function App(props: { releaseId: string | null }) {
 import {
   _captures,
   createSsrNodeId,
-  createSsrElementTarget,
   renderSsrAttrExpression,
   escapeHTML,
   createSsrOpenTag,
@@ -53,7 +52,7 @@ const semantic_branchRender_73_164_2vd94kl1g8hgt = (ctx) => {
   const id_0 = ctx.nextId();
   ctx.addRoot(releaseUrl);
   const attr_0 = renderSsrAttrExpression(
-    createSsrElementTarget(id_0),
+    id_0,
     'href',
     [releaseUrl],
     q_component_href_segment_0_k87iiga3rwb6
@@ -182,7 +181,6 @@ import {
   _noopQrl,
   _captures,
   createSsrNodeId,
-  createSsrElementTarget,
   renderSsrAttrExpression,
   escapeHTML,
   createSsrOpenTag,
@@ -200,7 +198,7 @@ export const semantic_branchRender_73_164_2vd94kl1g8hgt = (ctx) => {
   const id_0 = ctx.nextId();
   ctx.addRoot(releaseUrl);
   const attr_0 = renderSsrAttrExpression(
-    createSsrElementTarget(id_0),
+    id_0,
     'href',
     [releaseUrl],
     q_component_href_segment_0_k87iiga3rwb6

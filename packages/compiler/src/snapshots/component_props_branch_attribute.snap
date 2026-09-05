@@ -14,7 +14,6 @@ export function Logical(props: { label?: string }) {
 
 import {
   createSsrNodeId,
-  createSsrElementTarget,
   renderSsrAttrExpression,
   escapeHTML,
   createSsrOpenTag,
@@ -40,7 +39,7 @@ export function Conditional(props, ctx) {
   const id_0 = ctx.nextId();
   ctx.addRoot(props);
   const attr_0 = renderSsrAttrExpression(
-    createSsrElementTarget(id_0),
+    id_0,
     'title',
     [props],
     q_component_title_segment_0_2f0r0xivypjmx
@@ -60,7 +59,7 @@ export function Logical(props, ctx) {
   const id_0 = ctx.nextId();
   ctx.addRoot(props);
   const attr_0 = renderSsrAttrExpression(
-    createSsrElementTarget(id_0),
+    id_0,
     'aria-label',
     [props],
     q_component_aria_label_segment_1_qu41fijikfc8

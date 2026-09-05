@@ -10,7 +10,6 @@ export default (props) => {
 
 import {
   createSsrNodeId,
-  createSsrRangeTextTarget,
   escapeHTML,
   renderSsrTextExpression,
   maybeThen,
@@ -27,11 +26,7 @@ q_component_text_segment_0_1fh10fbkzokfc.s(component_text_segment_0_1fh10fbkzokf
 export default (props, ctx) => {
   const id0 = ctx.nextId();
   ctx.addRoot(props);
-  const text0 = renderSsrTextExpression(
-    createSsrRangeTextTarget(id0, 0),
-    [props],
-    q_component_text_segment_0_1fh10fbkzokfc
-  );
+  const text0 = renderSsrTextExpression(id0, 0, [props], q_component_text_segment_0_1fh10fbkzokfc);
   return maybeThen(text0, (text0) => [
     '<div><b>bold</b><span q:id="',
     createSsrNodeId(id0),

@@ -21,7 +21,6 @@ import {
   _captures,
   createSsrNodeId,
   createSsrOpenTag,
-  createSsrElementTextTarget,
   escapeHTML,
   renderSsrTextExpression,
   maybeThen,
@@ -54,7 +53,8 @@ export function App(props, ctx) {
   const id_0 = ctx.nextId();
   ctx.addRoot(custom);
   const text_0 = renderSsrTextExpression(
-    createSsrElementTextTarget(id_0),
+    id_0,
+    null,
     [custom],
     q_component_text_segment_1_1fh10tcowimfv
   );

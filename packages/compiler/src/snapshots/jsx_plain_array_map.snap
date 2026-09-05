@@ -12,7 +12,6 @@ export function App() {
 import {
   createSsrOpenTag,
   createSsrNodeId,
-  createSsrRangeTextTarget,
   escapeHTML,
   renderSsrTextExpression,
   maybeThen,
@@ -39,7 +38,8 @@ export function App(props, ctx) {
     const id_0 = ctx.nextId();
     ctx.addRoot(row_p0);
     const text_0 = renderSsrTextExpression(
-      createSsrRangeTextTarget(id_0, 0),
+      id_0,
+      0,
       [row_p0],
       q_component_text_segment_3_1fh11lewq6qgx
     );

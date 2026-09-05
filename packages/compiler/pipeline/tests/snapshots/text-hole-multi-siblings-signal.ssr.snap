@@ -14,7 +14,6 @@ export default () => {
 import {
   useSignal,
   createSsrNodeId,
-  createSsrRangeTextTarget,
   escapeHTML,
   renderSsrTextNode,
   maybeThen,
@@ -24,9 +23,9 @@ export default (props, ctx) => {
   const name = useSignal('Qwik');
   const id0 = ctx.nextId();
   ctx.addRoot(name);
-  const text0 = renderSsrTextNode(createSsrRangeTextTarget(id0, 0), name);
+  const text0 = renderSsrTextNode(id0, 0, name);
   ctx.addRoot(count);
-  const text1 = renderSsrTextNode(createSsrRangeTextTarget(id0, 1), count);
+  const text1 = renderSsrTextNode(id0, 1, count);
   return maybeThen(text0, (text0) =>
     maybeThen(text1, (text1) => [
       '<p q:id="',

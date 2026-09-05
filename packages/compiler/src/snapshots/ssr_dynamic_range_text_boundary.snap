@@ -14,7 +14,6 @@ import {
   useSignal,
   createSsrNodeId,
   createSsrOpenTag,
-  createSsrRangeTextTarget,
   escapeHTML,
   renderSsrTextNode,
   maybeThen,
@@ -23,7 +22,7 @@ export function App(props, ctx) {
   const count = useSignal(0);
   const id_0 = ctx.nextId();
   ctx.addRoot(count);
-  const text_0 = renderSsrTextNode(createSsrRangeTextTarget(id_0, 0), count);
+  const text_0 = renderSsrTextNode(id_0, 0, count);
   return maybeThen(text_0, (text_0) => [
     createSsrOpenTag('<p q:id="', createSsrNodeId(id_0), '"', '>'),
     'Hello <!t>',

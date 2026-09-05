@@ -19,7 +19,6 @@ import {
   useSignal,
   createSsrOpenTag,
   createSsrNodeId,
-  createSsrElementTarget,
   renderSsrAttrExpression,
   createSsrMarkup,
   maybeThen,
@@ -42,7 +41,7 @@ export function App(props, ctx) {
   const id_0 = ctx.nextId();
   ctx.addRoot(html);
   const inner_html_0 = renderSsrAttrExpression(
-    createSsrElementTarget(id_0),
+    id_0,
     'dangerouslySetInnerHTML',
     [html],
     q_component_dangerouslySetInnerHTML_segment_0_x73niz9xuctt

@@ -16,7 +16,7 @@ import { disposeSubscriber } from '../../reactive/cleanup';
 import { OwnerFlags } from '../../reactive/flags';
 import { useSignal } from '../../reactive/public-api';
 import { createTextExpressionEffect, createTextNodeEffect } from '../effect/text-effect';
-import { createSsrElementTextTarget, renderSsrTextNode } from '../effect/ssr-effect';
+import { renderSsrTextNode } from '../effect/ssr-effect';
 import {
   getActiveInvokeContext,
   getActiveInvokeContextOrNull,
@@ -714,7 +714,7 @@ describe('branches', () => {
     const ctx = { scheduler } as ContainerContext;
     const conditionQrl = createQRL<BranchConditionFn>('chunk', 'condition', () => visible.value);
     const thenQrl = createQRL<SsrBranchRenderFn>('chunk', 'renderThen', () => {
-      return renderSsrTextNode(createSsrElementTextTarget(11), child);
+      return renderSsrTextNode(11, null, child);
     });
 
     const html = await createOwned(() => renderSsrBranch(ctx, 0, conditionQrl, thenQrl, undefined));

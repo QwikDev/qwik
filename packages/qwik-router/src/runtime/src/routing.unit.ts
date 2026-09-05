@@ -729,6 +729,43 @@ test('loadRoute — exact child dead end does not fall back to sibling _M catcha
   assert.notDeepEqual(result.$params$, { catchall: 'loader-redirect/notexist' });
 });
 
+// ─── Backtracking and specificity tests ──────────────────────────────────────────
+
+test('loadRoute — a static prefix that dead-ends backtracks to a dynamic route in another group', async () => {
+  // routes/(marketing)/pricing/index.tsx and routes/(app)/[a]/[b]/[c]/index.tsx.
+  // /pricing/x/y must reach the dynamic route even though `pricing` matched first.
+  const pricingLoader = makeLoader();
+  const dynamicLoader = makeLoader();
+  const routes: RouteData = {
+    _M: [
+      { pricing: { _I: pricingLoader } },
+      { _W: { _P: 'a', _W: { _P: 'b', _W: { _P: 'c', _I: dynamicLoader } } } },
+    ],
+  };
+  const result = await loadRoute(routes, false, '/pricing/x/y');
+  assert.isFalse(result.$notFound$);
+  assert.deepEqual(result.$params$, { a: 'pricing', b: 'x', c: 'y' });
+  assert.equal(result.$routeName$, '/[a]/[b]/[c]');
+});
+
+test('loadRoute — a later segment being static outranks an all-dynamic match', async () => {
+  // [x]/static.xml beats [a]/[b] for /foo/static.xml, whichever group comes first.
+  const staticLoader = makeLoader();
+  const dynamicLoader = makeLoader();
+  const staticGroup = { _W: { _P: 'x', 'static.xml': { _I: staticLoader } } };
+  const dynamicGroup = { _W: { _P: 'a', _W: { _P: 'b', _I: dynamicLoader } } };
+
+  for (const groups of [
+    [staticGroup, dynamicGroup],
+    [dynamicGroup, staticGroup],
+  ]) {
+    const result = await loadRoute({ _M: groups }, false, '/foo/static.xml');
+    assert.isFalse(result.$notFound$);
+    assert.deepEqual(result.$params$, { x: 'foo' });
+    assert.equal(result.$routeName$, '/[x]/static.xml');
+  }
+});
+
 // ─── Menu (_N) trie tests ───────────────────────────────────────────────────────
 
 test('loadRoute — _N menu from ancestor is used for child route', async () => {

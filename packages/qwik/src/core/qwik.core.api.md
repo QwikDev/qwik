@@ -4,8 +4,8 @@
 
 ```ts
 
-import type { AsyncLocalStorage } from 'node:async_hooks';
 import type * as CSS_2 from 'csstype';
+import { getAsyncLocalStorage as _getAsyncLocalStorage } from '@qwik.dev/core/async-local-storage';
 import { isBrowser } from '@qwik.dev/core/build';
 import { isDev } from '@qwik.dev/core/build';
 import { isServer } from '@qwik.dev/core/build';
@@ -503,8 +503,7 @@ export type FunctionComponent<P = unknown> = {
     renderFn(props: P, key: string | null, flags: number, dev?: DevJSX): JSXOutput;
 }['renderFn'];
 
-// @internal (undocumented)
-export const _getAsyncLocalStorage: () => (new <T>() => AsyncLocalStorage<T>) | undefined;
+export { _getAsyncLocalStorage }
 
 // @public
 export const getClientManifest: () => ServerQwikManifest | undefined;

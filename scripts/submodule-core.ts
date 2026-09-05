@@ -4,6 +4,7 @@ import { type InputOptions, type OutputOptions, rollup } from 'rollup';
 import { minify } from 'terser';
 import {
   type BuildConfig,
+  copyFile,
   fileSize,
   getBanner,
   readFile,
@@ -35,6 +36,24 @@ function fixPureAnnotations(code: string): string {
  * mangling and keep $...$ names in sync across both bundles.
  */
 export async function submoduleCore(config: BuildConfig): Promise<object | undefined> {
+  const platformDir = join(config.srcQwikDir, 'core', 'shared', 'platform');
+  await build({
+    entryPoints: [
+      join(platformDir, 'async-local-storage.ts'),
+      join(platformDir, 'async-local-storage.node.ts'),
+    ],
+    outdir: config.distQwikPkgDir,
+    bundle: true,
+    format: 'esm',
+    outExtension: { '.js': '.mjs' },
+    external: ['node:async_hooks'],
+    target,
+  });
+  await copyFile(
+    join(config.dtsDir, 'packages/qwik/src/core/shared/platform/async-local-storage.d.ts'),
+    join(config.distQwikPkgDir, 'async-local-storage.d.ts')
+  );
+
   if (config.dev) {
     await submoduleCoreDev(config);
     return undefined;
@@ -46,7 +65,12 @@ async function submoduleCoreProd(config: BuildConfig): Promise<object | undefine
   const input: InputOptions = {
     input: join(config.tscDir, 'packages', 'qwik', 'src', 'core', 'index.js'),
     onwarn: rollupOnWarn,
-    external: ['@qwik.dev/core/build', '@qwik.dev/core/preloader', 'node:async_hooks'],
+    external: [
+      '@qwik.dev/core/build',
+      '@qwik.dev/core/preloader',
+      'node:async_hooks',
+      '@qwik.dev/core/async-local-storage',
+    ],
     plugins: [
       {
         name: 'setVersion',
@@ -97,6 +121,9 @@ async function submoduleCoreProd(config: BuildConfig): Promise<object | undefine
       {
         name: 'build',
         resolveId(id) {
+          if (id === '@qwik.dev/core/async-local-storage') {
+            return join(config.distQwikPkgDir, 'async-local-storage.mjs');
+          }
           if (id === '@index.min') {
             return id;
           }
@@ -210,7 +237,11 @@ async function prepareProdCode(config: BuildConfig): Promise<string> {
 
   const inputProd: InputOptions = {
     input: join(config.distQwikPkgDir, 'core.mjs'),
-    external: ['@qwik.dev/core/preloader', 'node:async_hooks'],
+    external: [
+      '@qwik.dev/core/preloader',
+      'node:async_hooks',
+      '@qwik.dev/core/async-local-storage',
+    ],
     onwarn: rollupOnWarn,
     plugins: [
       {
@@ -355,7 +386,12 @@ async function submoduleCoreDev(config: BuildConfig) {
 
   await build({
     ...opts,
-    external: ['@qwik.dev/core/build', '@qwik.dev/core/preloader', 'node:async_hooks'],
+    external: [
+      '@qwik.dev/core/build',
+      '@qwik.dev/core/preloader',
+      'node:async_hooks',
+      '@qwik.dev/core/async-local-storage',
+    ],
     format: 'esm',
     outExtension: { '.js': '.mjs' },
   });

@@ -9,6 +9,7 @@ import {
   QrlBodyKind,
   ResumeKind,
   RowKind,
+  Shape,
   ValueKind,
 } from '../schema';
 import { parseModule } from '../analyse/ast/parse';
@@ -40,6 +41,62 @@ function lower(jsx: string) {
 const ROW = '<ul>{items.value.map((item) => <li key={item.id}>{item.label}</li>)}</ul>';
 
 describe('lowerArray / reactive rows', () => {
+  test.each([
+    ['{ return <li />; }', 'the collection row body "BlockStatement"'],
+    ['render(<li />)', 'JSX inside an expression value'],
+  ])('rejects unsupported row bodies: %s', (row, error) => {
+    expect(() => lower(`<ul>{items.value.map((item) => ${row})}</ul>`)).toThrow(error);
+  });
+
+  test.each([
+    'item.enabled ? <li>{item.label}</li> : null',
+    'item.enabled && <li>{item.label}</li>',
+  ])('lowers a conditional row through a branch: %s', (row) => {
+    const { op, ctx } = lower(`<ul>{items.value.map((item) => ${row})}</ul>`);
+    const each = op.op === OpKind.Element ? op.children[0] : null;
+    if (each?.op !== OpKind.Each || each.row.r !== RowKind.Chunk) {
+      throw new Error('expected a chunk row');
+    }
+    expect(each.shape).toBe(Shape.Many);
+    expect(each.key).toBeNull();
+    const use = each.row.use;
+    const rowQrl = ctx.plan.qrls.find((qrl) => qrl.id === use.qrl);
+    if (rowQrl?.body.b !== QrlBodyKind.Program) {
+      throw new Error('expected a row program');
+    }
+    expect(ctx.plan.programs[rowQrl.body.program].body).toMatchObject({
+      kind: ProgramBodyKind.Ops,
+      ops: [{ op: OpKind.Branch, else: null }],
+    });
+    const item = ctx.plan.bindings.find((binding) => binding.name === 'item')!.id;
+    expect(rowQrl.params.used).toEqual([item]);
+    expect(ctx.plan.qrls.find((qrl) => qrl.ctxName === 'branch:condition')?.captures).toEqual([
+      { binding: item, access: CaptureAccess.LoopValue },
+    ]);
+  });
+
+  test.each(['items.value', "[{ enabled: true, label: 'Row' }]"])(
+    'condition reads preserve destructured bindings and index semantics: %s',
+    (source) => {
+      const { ctx } = lower(
+        `<ul>{${source}.map(({ enabled, label }, index) => enabled && index === 0 ? <li>{label}</li> : null)}</ul>`
+      );
+      const condition = ctx.plan.qrls.find((qrl) => qrl.ctxName === 'branch:condition');
+      if (condition?.body.b !== QrlBodyKind.Expr || condition.body.expr.kind !== ExprKind.Js) {
+        throw new Error('expected a condition expression payload');
+      }
+      const reads = ctx.plan.payloads[condition.body.expr.payload].reads;
+      expect(reads.map((read) => [ctx.plan.bindings[read.binding].name, read.memberPath])).toEqual(
+        source === 'items.value'
+          ? [
+              ['item', ['enabled']],
+              ['index', ['value']],
+            ]
+          : [['item', ['enabled']]]
+      );
+    }
+  );
+
   test('a keyed map lowers to an Each op with a chunk row', () => {
     const { op } = lower(ROW);
     expect(op.op === OpKind.Element && op.children[0]).toMatchObject({

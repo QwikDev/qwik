@@ -125,10 +125,11 @@ describe('lowerBranch / arm captures', () => {
     });
   });
 
-  test('JSX inside a condition cannot leak into a JavaScript payload', () => {
-    expect(() => lower("<div>{show.value(<b />) ? 'on' : 'off'}</div>")).toThrow(
-      'JSX inside an expression value'
-    );
+  test.each([
+    "<div>{show.value(<b />) ? 'on' : 'off'}</div>",
+    '<div>{show.value(<b />) ? <i>on</i> : null}</div>',
+  ])('JSX inside a condition cannot leak into a JavaScript payload: %s', (jsx) => {
+    expect(() => lower(jsx)).toThrow('JSX inside an expression value');
   });
 
   test('an arm reading the props param records a trailing ComponentProp capture', () => {

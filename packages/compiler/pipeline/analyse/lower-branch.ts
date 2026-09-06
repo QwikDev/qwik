@@ -16,7 +16,8 @@ import {
 } from '../schema';
 import { SegmentContext } from '../words';
 import { lowerCaptures } from './ast/capture-analysis';
-import { pushPayload, pushQrl, QrlIdentityKind, type LowerContext } from './lower-context';
+import { pushQrl, QrlIdentityKind, type LowerContext } from './lower-context';
+import { lowerInlineExpressionValue } from './lower-expr';
 
 type ArmLowering = (expression: Expression) => Op[];
 
@@ -63,9 +64,11 @@ export function lowerBranch(
 
 /** The condition is a Function-payload QRL over the test expression — captures via `_captures`. */
 function lowerCondition(test: Expression, ctx: LowerContext): Value {
-  const { captures, args } = lowerCaptures(test, ctx, 'a branch condition', { allowProps: true });
+  const { captures, args, refs } = lowerCaptures(test, ctx, 'a branch condition', {
+    allowProps: true,
+  });
   const range: [number, number] = [test.start, test.end];
-  const payload = pushPayload(ctx, range);
+  const { expr } = lowerInlineExpressionValue(test, ctx, refs);
   const { use } = pushQrl(
     ctx,
     {
@@ -74,7 +77,7 @@ function lowerCondition(test: Expression, ctx: LowerContext): Value {
       boundary: { kind: BoundaryKind.Implicit, role: 'branch' },
       payloadKind: QrlPayloadKind.Function,
       authoredAsync: false,
-      body: { b: QrlBodyKind.Js, payload },
+      body: { b: QrlBodyKind.Expr, expr, initialOnly: false },
       captures,
       params: { authored: 0, used: [], sources: [] },
       origin: {

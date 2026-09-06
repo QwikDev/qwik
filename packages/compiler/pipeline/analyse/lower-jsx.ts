@@ -274,7 +274,7 @@ function lowerChild(child: JSXChild, ctx: LowerContext): Op[] {
   }
 }
 
-function lowerRenderExpression(expression: Expression, ctx: LowerContext): Op[] {
+export function lowerRenderExpression(expression: Expression, ctx: LowerContext): Op[] {
   if (isPropsChildren(expression, ctx)) {
     return [createSlotOp(ctx)];
   }
@@ -568,7 +568,7 @@ function collectProjectionNames(node: Node): string[] {
       return normalizeJsxText(expression.value) === '' ? [] : [''];
     case 'CallExpression': {
       const row = readCollectionCallback(expression)?.body;
-      if (row?.type === 'JSXElement' || row?.type === 'JSXFragment') {
+      if (row !== undefined) {
         return collectProjectionNames(row);
       }
       break;

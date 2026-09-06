@@ -817,6 +817,22 @@ export default () => {
     expect(output.diagnostics).toEqual([]);
   });
 
+  test.each([
+    ['reactive', 'items.value'],
+    ['array', "[{ title: 'Title', featured: true, visible: false }]"],
+  ])('should project conditional mapped rows: %s', async (kind, source) => {
+    const output = await testInput(mode, `component-children-mapped-conditions-${kind}`, {
+      code: `import { Slot, useSignal } from '@qwik.dev/core';
+export const Panel = () => <main><Slot name="header" /><Slot /></main>;
+export default () => {
+  const items = useSignal([{ title: 'Title', featured: true, visible: false }]);
+  return <Panel>{${source}.map(({ title, featured, visible }, index) => featured && index === 0 ? <h2 q:slot="header">{index}:{title}</h2> : visible && <p>{title}</p>)}</Panel>;
+};
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+  });
+
   test('should forward slots and render fallback through fragments', async () => {
     const output = await testInput(mode, 'component-slot-forwarding-fragments', {
       code: `import { Slot } from '@qwik.dev/core';

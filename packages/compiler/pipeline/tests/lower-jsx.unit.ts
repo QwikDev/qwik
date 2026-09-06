@@ -289,7 +289,18 @@ export default () => {
     ],
     ['<><h2 q:slot="header">{item.title}</h2></>', ['header'], [['h2']]],
     ['<>{/* empty */}<></></>', [], []],
-  ])('selects mapped fragment children: %s', async (row, names, tags) => {
+    [
+      'item.featured ? <h2 q:slot="header">{item.title}</h2> : <p>{item.title}</p>',
+      ['header', ''],
+      [['h2'], ['p']],
+    ],
+    ['item.featured && <h2 q:slot="header">{item.title}</h2>', ['header'], [['h2']]],
+    [
+      'item.featured ? null : <><h2 q:slot="header">{item.title}</h2><p>{item.title}</p></>',
+      ['header', ''],
+      [['h2'], ['p']],
+    ],
+  ])('selects mapped row children: %s', async (row, names, tags) => {
     const plan = await analyseModule(
       {
         path: 'src/app.tsx',

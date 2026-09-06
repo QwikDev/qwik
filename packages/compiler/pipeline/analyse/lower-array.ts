@@ -1,4 +1,4 @@
-import type { ArrowFunctionExpression, Expression, JSXElement, JSXFragment } from 'oxc-parser';
+import type { ArrowFunctionExpression, Expression, JSXElement } from 'oxc-parser';
 import {
   BoundaryKind,
   CaptureAccess,
@@ -31,17 +31,17 @@ import { pushPayload, pushQrl, QrlIdentityKind, type LowerContext } from './lowe
 import { createSegmentSymbolName, sanitizeSegmentName } from '../segment-identity';
 import { trySignalReadValue } from './lower-expr';
 import { LocalKind } from './lower-setup';
-import { lowerJsx, lowerJsxChildren } from './lower-jsx';
+import { lowerRenderExpression } from './lower-jsx';
 
 export const DESTRUCTURED_WRAPPED_PARAM = 'item';
 
-type RowLowering = (body: JSXElement | JSXFragment, ctx: LowerContext) => Op[];
+type RowLowering = (body: Expression, ctx: LowerContext) => Op[];
 
 /** `source.map((item) => <row key={...}/>)` in child position — a keyed, swappable row set. */
 export function lowerArray(
   expression: Expression,
   ctx: LowerContext,
-  lowerBody: RowLowering = lowerRowBody
+  lowerBody: RowLowering = lowerRenderExpression
 ): Op {
   switch (expression.type) {
     case 'CallExpression': {
@@ -52,13 +52,10 @@ export function lowerArray(
       ) {
         throw new UnsupportedError('a collection without an inline arrow row');
       }
-      switch (callback.body.type) {
-        case 'JSXElement':
-        case 'JSXFragment':
-          return lowerEach(expression.callee.object, callback, callback.body, ctx, lowerBody);
-        default:
-          throw new UnsupportedError(`the collection row body "${callback.body.type}"`);
+      if (callback.body.type === 'BlockStatement') {
+        throw new UnsupportedError(`the collection row body "${callback.body.type}"`);
       }
+      return lowerEach(expression.callee.object, callback, callback.body, ctx, lowerBody);
     }
     default:
       throw new UnsupportedError(`the collection call "${expression.type}"`);
@@ -68,7 +65,7 @@ export function lowerArray(
 function lowerEach(
   sourceExpression: Expression,
   callback: ArrowFunctionExpression,
-  body: JSXElement | JSXFragment,
+  body: Expression,
   ctx: LowerContext,
   lowerBody: RowLowering
 ): Op {
@@ -303,7 +300,7 @@ function deriveIndexMode(indexBinding: number | undefined, descendants: readonly
 
 /** Fills the row program's ops with loop params scoped as LoopValue locals. */
 function lowerRowOps(
-  body: JSXElement | JSXFragment,
+  body: Expression,
   callback: ArrowFunctionExpression,
   paramBindings: LocalId[],
   paramAliases: Map<LocalId, { base: LocalId; member: string }>,
@@ -346,10 +343,6 @@ function lowerRowOps(
   ctx.plan.programs[program].body = { kind: ProgramBodyKind.Ops, ops: lowerBody(body, ctx) };
   ctx.inlineParams = outerInlineParams;
   ctx.locals = outerLocals;
-}
-
-function lowerRowBody(body: JSXElement | JSXFragment, ctx: LowerContext): Op[] {
-  return body.type === 'JSXElement' ? [lowerJsx(body, ctx)] : lowerJsxChildren(body.children, ctx);
 }
 
 /** The row's `key` attribute — a Function-payload QRL the runtime calls per row with the item. */

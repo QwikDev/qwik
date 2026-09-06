@@ -112,6 +112,9 @@ from a deserialized frozen plan in a fresh process.
   name. Row shapes derive from selected operations. CSR inline rows reuse program emission, and
   collection roots return all fragment nodes because initial rendering can synchronously insert rows
   and remove transient markers.
+- Collection callbacks reuse render-expression lowering, including ternaries and logical-and branches.
+  Projected rows select each arm by slot name. Conditions use expression lowering for destructured
+  fields and reactive index reads; block-bodied callbacks remain deferred.
 - Component candidates require an Uppercased name (anonymous default exports exempt). The legacy
   compiler has no such rule — a differential fixture with a lowercase-named component will
   diverge; that is this decision, not a parity bug.

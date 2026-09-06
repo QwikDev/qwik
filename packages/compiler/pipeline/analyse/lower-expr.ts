@@ -105,7 +105,8 @@ export function recordPayloadAliasReads(
 ): void {
   const target = ctx.plan.payloads[payload];
   for (const entry of refs.locals) {
-    if (entry.local.kind !== LocalKind.PropMember) {
+    const local = entry.local;
+    if (local.kind !== LocalKind.PropMember && local.kind !== LocalKind.RowIndex) {
       continue;
     }
     for (const read of entry.reads) {
@@ -116,7 +117,7 @@ export function recordPayloadAliasReads(
         range: read,
         binding: entry.local.binding,
         role: ReadRole.Read,
-        memberPath: [entry.local.member],
+        memberPath: [local.kind === LocalKind.PropMember ? local.member : 'value'],
       });
     }
   }

@@ -114,7 +114,8 @@ from a deserialized frozen plan in a fresh process.
   and remove transient markers.
 - Collection callbacks reuse render-expression lowering, including ternaries and logical-and branches.
   Projected rows select each arm by slot name. Conditions use expression lowering for destructured
-  fields and reactive index reads; block-bodied callbacks remain deferred.
+  fields and reactive index reads. Concise callbacks and single-return blocks share expression
+  extraction; blocks with additional statements or a bare return remain deferred.
 - Component candidates require an Uppercased name (anonymous default exports exempt). The legacy
   compiler has no such rule — a differential fixture with a lowercase-named component will
   diverge; that is this decision, not a parity bug.

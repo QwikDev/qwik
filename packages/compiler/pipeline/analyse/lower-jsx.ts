@@ -29,7 +29,7 @@ import { eventScopeName } from './events';
 import { lowerEventAttribute } from './lower-event';
 import { lowerText } from './lower-hole';
 import { lowerBranch, type BranchArm } from './lower-branch';
-import { identifierName, unwrapExpression } from './ast/utils';
+import { identifierName, readReturnedExpression, unwrapExpression } from './ast/utils';
 import {
   lowerExpressionValue,
   lowerInlineExpressionValue,
@@ -567,8 +567,12 @@ function collectProjectionNames(node: Node): string[] {
     case 'JSXText':
       return normalizeJsxText(expression.value) === '' ? [] : [''];
     case 'CallExpression': {
-      const row = readCollectionCallback(expression)?.body;
-      if (row !== undefined) {
+      const callback = readCollectionCallback(expression);
+      if (callback === null) {
+        break;
+      }
+      const row = readReturnedExpression(callback.body);
+      if (row !== null) {
         return collectProjectionNames(row);
       }
       break;

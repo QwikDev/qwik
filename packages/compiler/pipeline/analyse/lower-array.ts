@@ -26,7 +26,7 @@ import {
 import { SegmentContext } from '../words';
 import { UnsupportedError } from '../errors';
 import { lowerCaptures } from './ast/capture-analysis';
-import { unwrapExpression } from './ast/utils';
+import { readReturnedExpression, unwrapExpression } from './ast/utils';
 import { pushPayload, pushQrl, QrlIdentityKind, type LowerContext } from './lower-context';
 import { createSegmentSymbolName, sanitizeSegmentName } from '../segment-identity';
 import { trySignalReadValue } from './lower-expr';
@@ -52,10 +52,11 @@ export function lowerArray(
       ) {
         throw new UnsupportedError('a collection without an inline arrow row');
       }
-      if (callback.body.type === 'BlockStatement') {
+      const body = readReturnedExpression(callback.body);
+      if (body === null) {
         throw new UnsupportedError(`the collection row body "${callback.body.type}"`);
       }
-      return lowerEach(expression.callee.object, callback, callback.body, ctx, lowerBody);
+      return lowerEach(expression.callee.object, callback, body, ctx, lowerBody);
     }
     default:
       throw new UnsupportedError(`the collection call "${expression.type}"`);

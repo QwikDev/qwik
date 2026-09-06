@@ -290,6 +290,16 @@ export default () => {
     ['<><h2 q:slot="header">{item.title}</h2></>', ['header'], [['h2']]],
     ['<>{/* empty */}<></></>', [], []],
     [
+      '{ return <><h2 q:slot="header">{item.title}</h2><p>{item.title}</p></>; }',
+      ['header', ''],
+      [['h2'], ['p']],
+    ],
+    [
+      '{ return item.featured ? <h2 q:slot="header">{item.title}</h2> : <p>{item.title}</p>; }',
+      ['header', ''],
+      [['h2'], ['p']],
+    ],
+    [
       'item.featured ? <h2 q:slot="header">{item.title}</h2> : <p>{item.title}</p>',
       ['header', ''],
       [['h2'], ['p']],

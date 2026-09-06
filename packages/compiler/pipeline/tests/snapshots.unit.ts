@@ -833,6 +833,37 @@ export default () => {
     expect(output.diagnostics).toEqual([]);
   });
 
+  test.each([
+    ['reactive', 'items.value'],
+    ['array', "[{ title: 'Title' }]"],
+  ])('should project rows with a single return block: %s', async (kind, source) => {
+    const row = '<h2 q:slot="header">{title}</h2>';
+    const callback = `({ title }) => { /* row */ return (${row}); }`;
+    const code = `import { Slot, useSignal } from '@qwik.dev/core';
+export const Panel = () => <main><Slot name="header" /></main>;
+export default () => {
+  const items = useSignal([{ title: 'Title' }]);
+  return <Panel>{${source}.map(${callback})}</Panel>;
+};
+`;
+    const output = await testInput(mode, `component-children-mapped-return-${kind}`, { code });
+    expect(output.diagnostics).toEqual([]);
+    if (kind === 'reactive') {
+      const concise = await transformModules({
+        srcDir: 'src',
+        transpileTs: true,
+        transpileJsx: true,
+        isServer: mode === 'ssr',
+        input: [
+          { path: 'src/component.tsx', code: code.replace(callback, `({ title }) => ${row}`) },
+        ],
+      });
+      expect(output.modules.map((module) => module.code)).toEqual(
+        concise.modules.map((module) => module.code)
+      );
+    }
+  });
+
   test('should forward slots and render fallback through fragments', async () => {
     const output = await testInput(mode, 'component-slot-forwarding-fragments', {
       code: `import { Slot } from '@qwik.dev/core';

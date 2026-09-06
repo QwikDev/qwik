@@ -42,10 +42,34 @@ const ROW = '<ul>{items.value.map((item) => <li key={item.id}>{item.label}</li>)
 
 describe('lowerArray / reactive rows', () => {
   test.each([
-    ['{ return <li />; }', 'the collection row body "BlockStatement"'],
+    [
+      '{ const label = item.label; return <li>{label}</li>; }',
+      'the collection row body "BlockStatement"',
+    ],
+    [
+      '{ if (item.enabled) return <li />; return null; }',
+      'the collection row body "BlockStatement"',
+    ],
+    ['{ log(item); return <li />; }', 'the collection row body "BlockStatement"'],
+    ['{ return; }', 'the collection row body "BlockStatement"'],
     ['render(<li />)', 'JSX inside an expression value'],
   ])('rejects unsupported row bodies: %s', (row, error) => {
     expect(() => lower(`<ul>{items.value.map((item) => ${row})}</ul>`)).toThrow(error);
+  });
+
+  test('a single-return block preserves row keys, parameters and captures', () => {
+    const { op, ctx } = lower(
+      '<ul>{items.value.map((item) => { /* row */ return (<li key={item.id}>{item.label}</li>); })}</ul>'
+    );
+    const concise = lower(ROW);
+    expect(op).toEqual(concise.op);
+    expect(ctx.plan.qrls.map((qrl) => [qrl.id, qrl.captures, qrl.params])).toEqual(
+      concise.ctx.plan.qrls.map((qrl) => [qrl.id, qrl.captures, qrl.params])
+    );
+    const row = ctx.plan.qrls.find((qrl) => qrl.ctxName === 'for:render')!;
+    expect(ctx.plan.source.code.slice(...row.origin.bodyRange)).toBe(
+      '<li key={item.id}>{item.label}</li>'
+    );
   });
 
   test.each([

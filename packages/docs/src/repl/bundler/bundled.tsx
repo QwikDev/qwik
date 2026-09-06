@@ -5,6 +5,7 @@ import qBuild from '../../../node_modules/@qwik.dev/core/dist/build/index.d.ts?r
 import qCoreDts from '../../../node_modules/@qwik.dev/core/dist/core-internal.d.ts?raw-source';
 import qCoreMinMjs from '../../../node_modules/@qwik.dev/core/dist/core.min.mjs?raw-source';
 import qCoreMjs from '../../../node_modules/@qwik.dev/core/dist/core.mjs?raw-source';
+import qAsyncLocalStorageMjs from '../../../node_modules/@qwik.dev/core/dist/async-local-storage.mjs?raw-source';
 import qViteMjs from '../../../node_modules/@qwik.dev/core/dist/optimizer.mjs?raw-source';
 import qPreloaderMjs from '../../../node_modules/@qwik.dev/core/dist/preloader.mjs?raw-source';
 import qHandlersMjs from '../../../node_modules/@qwik.dev/core/handlers.mjs?raw-source';
@@ -67,6 +68,7 @@ const qwikUrls: PkgUrls[string] = {
   '/dist/core.d.ts': qCoreDts,
   '/dist/core.min.mjs': qCoreMinMjs,
   '/dist/core.mjs': qCoreMjs,
+  '/dist/async-local-storage.mjs': qAsyncLocalStorageMjs,
   '/dist/optimizer.mjs': qViteMjs,
   '/dist/server.mjs': qServerMjs,
   '/dist/server.d.ts': qServerDts,
@@ -103,6 +105,7 @@ export const getDeps = (qwikVersion: string) => {
     };
     for (const p of [
       `/dist/core.mjs`,
+      `/dist/async-local-storage.mjs`,
       `/dist/core.min.mjs`,
       `/dist/optimizer.mjs`,
       `/dist/server.mjs`,

@@ -6,6 +6,7 @@ export const QWIK_CORE_IMPORT = '@qwik.dev/core';
 export const enum QwikWord {
   // csr
   CreateCollection = 'createCollection',
+  WrapArray = '_wrapArray',
   CreateElementTemplate = '_createElementTemplate',
   CreateTemplate = 'createTemplate',
   FirstChild = '_first',
@@ -67,6 +68,7 @@ export const enum QwikGenWord {
   BranchId = 'branchId',
   Collection = 'collection',
   CollectionId = 'collectionId',
+  CollectionSource = 'collectionSource',
   Component = 'component',
   Content = 'content',
   Slot = 'slot',

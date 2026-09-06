@@ -19,7 +19,6 @@ import {
   type Prop,
   type QrlUse,
   type Value,
-  EachSourceKind,
 } from '../schema';
 import { QwikAttr, QwikGenWord, QwikWord } from '../words';
 import { escapeAttr, serializeAttrValue } from '../html';
@@ -43,6 +42,7 @@ import {
   type FunctionEmission,
 } from './emit-chunk';
 import { emitJsSetup, signalReadName } from './emit-setup';
+import { emitCollectionSource } from './emit-collection';
 import { foldStaticOp, isFullyStaticSubtree } from './fold-static';
 import {
   createNameAllocator,
@@ -577,21 +577,13 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     op: Extract<LinkedOp, { op: OpKind.Each }>,
     parts: string[]
   ): void {
-    // get source
-    let source: string;
-    switch (op.source.s) {
-      case EachSourceKind.Array:
-        source = inlineValueJs(this.module, op.source.value);
-        break;
-      case EachSourceKind.Reactive:
-        if (op.source.value.v !== ValueKind.Read) {
-          throw new UnsupportedError('a non-signal collection source');
-        }
-        source = signalReadName(this.module, op.source.value.expr);
-        break;
-      default:
-        throw new UnsupportedError(`the collection source "${op.source.s}"`);
-    }
+    const source = emitCollectionSource(
+      this.module,
+      op,
+      pass,
+      this.imports,
+      (use) => this.useQrl(pass, use, true).ref
+    );
     switch (op.row.r) {
       case RowKind.Chunk: {
         const idVariable = pass.next(QwikGenWord.CollectionId);

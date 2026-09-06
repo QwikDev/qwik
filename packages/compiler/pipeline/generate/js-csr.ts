@@ -5,7 +5,6 @@ import {
   ModuleKind,
   OpKind,
   PropKind,
-  EachSourceKind,
   ProgramBodyKind,
   QrlBodyKind,
   QrlPayloadKind,
@@ -38,6 +37,7 @@ import {
   type FunctionEmission,
 } from './emit-chunk';
 import { emitJsSetup, signalReadName } from './emit-setup';
+import { emitCollectionSource } from './emit-collection';
 import { escapeText } from '../html';
 import { foldStaticOp, isFullyStaticSubtree } from './fold-static';
 import {
@@ -512,20 +512,13 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     statements: string[],
     pass: RenderPass
   ): void {
-    let source: string;
-    switch (op.source.s) {
-      case EachSourceKind.Array:
-        source = inlineValueJs(this.module, op.source.value);
-        break;
-      case EachSourceKind.Reactive:
-        if (op.source.value.v !== ValueKind.Read) {
-          throw new UnsupportedError('a non-signal collection source');
-        }
-        source = signalReadName(this.module, op.source.value.expr);
-        break;
-      default:
-        throw new UnsupportedError(`the collection source "${op.source.s}"`);
-    }
+    const source = emitCollectionSource(
+      this.module,
+      op,
+      { statements, next: pass.next },
+      this.imports,
+      (use) => this.lazyRenderReference(use, pass.names.props)
+    );
     this.imports.add(QwikWord.CreateCollection);
     switch (op.row.r) {
       case RowKind.Chunk: {

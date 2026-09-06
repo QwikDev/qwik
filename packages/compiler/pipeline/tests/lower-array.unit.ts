@@ -10,6 +10,7 @@ import {
   OpKind,
   ProgramBodyKind,
   QrlBodyKind,
+  QrlPayloadKind,
   ResumeKind,
   RowKind,
   SetupKind,
@@ -47,6 +48,34 @@ function lower(jsx: string) {
 const ROW = '<ul>{items.value.map((item) => <li key={item.id}>{item.label}</li>)}</ul>';
 
 describe('lowerArray / reactive rows', () => {
+  test('a derived source gets a function QRL with captures and preserves its row key', () => {
+    const { op, ctx } = lower(
+      '<ul>{items.value.filter((item) => item.visible).map((item, index) => <li key={item.id}>{index}:{item.label}</li>)}</ul>'
+    );
+    const each = op.op === OpKind.Element ? op.children[0] : null;
+    expect(each).toMatchObject({
+      op: OpKind.Each,
+      source: {
+        s: EachSourceKind.Derived,
+        value: { v: ValueKind.Computed, resume: { r: ResumeKind.Qrl } },
+      },
+      key: { v: ValueKind.Qrl },
+      index: IndexMode.Effects,
+    });
+    const source = ctx.plan.qrls.find((qrl) => qrl.ctxName === 'collection:source')!;
+    expect(source.payloadKind).toBe(QrlPayloadKind.Function);
+    expect(
+      source.captures.map((capture) => [ctx.plan.bindings[capture.binding].name, capture.access])
+    ).toEqual([['items', CaptureAccess.Direct]]);
+    expect(source.origin.paramRanges).toEqual([]);
+  });
+
+  test('derived sources require a row key', () => {
+    expect(() =>
+      lower('<ul>{items.value.filter((item) => item.visible).map((item) => <li />)}</ul>')
+    ).toThrow('A derived collection requires a row key');
+  });
+
   test.each([
     [
       '{ let label = item.label; return <li>{label}</li>; }',

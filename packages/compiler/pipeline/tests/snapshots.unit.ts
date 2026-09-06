@@ -906,6 +906,25 @@ export default () => {
     expect(output.diagnostics).toEqual([]);
   });
 
+  test.each([
+    ['props', 'props.items', '(item)', 'item.title'],
+    [
+      'filtered',
+      'items.value.filter((item) => item.visible)',
+      '(item, index)',
+      'index + item.title',
+    ],
+  ])('should render expression collection sources: %s', async (kind, source, params, text) => {
+    const output = await testInput(mode, `collection-source-${kind}`, {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default (props) => {
+  const items = useSignal([{ id: 1, title: 'Title', visible: true }]);
+  return <ul>{${source}.map(${params} => <li key={item.id}>{${text}}</li>)}</ul>;
+};`,
+    });
+    expect(output.diagnostics).toEqual([]);
+  });
+
   test('should forward slots and render fallback through fragments', async () => {
     const output = await testInput(mode, 'component-slot-forwarding-fragments', {
       code: `import { Slot } from '@qwik.dev/core';

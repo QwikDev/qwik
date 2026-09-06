@@ -29,12 +29,12 @@ import {
   BindingScope,
 } from '../schema';
 import { SegmentContext } from '../words';
-import { UnsupportedError } from '../errors';
+import { InvalidModuleError, UnsupportedError } from '../errors';
 import { collectCaptures, lowerCaptures } from './ast/capture-analysis';
 import { readReturnedBody, unwrapExpression } from './ast/utils';
 import { pushPayload, pushQrl, QrlIdentityKind, type LowerContext } from './lower-context';
 import { createSegmentSymbolName, sanitizeSegmentName } from '../segment-identity';
-import { trySignalReadValue } from './lower-expr';
+import { lowerComputedExpressionValue, trySignalReadValue } from './lower-expr';
 import { LocalKind, lowerConstDeclaration } from './lower-setup';
 import { lowerRenderExpression } from './lower-jsx';
 
@@ -225,6 +225,12 @@ function lowerEach(
     rowCaptures.args
   );
   const key = body.type === 'JSXElement' ? lowerKey(body, callback, ctx, localBindings) : null;
+  if (source.s === EachSourceKind.Derived && key === null) {
+    throw new InvalidModuleError('for-key', 'A derived collection requires a row key', [
+      body.start,
+      body.end,
+    ]);
+  }
   const setupReads = lowerRowProgram(
     body,
     statements,
@@ -288,7 +294,7 @@ function deriveRowShape(program: number, ctx: LowerContext): Shape {
   }
 }
 
-/** A literal array iterates inline; `signal.value` subscribes; anything else refuses (yet). */
+/** Literal arrays render inline; other expressions become direct or derived Sources. */
 function lowerSource(node: Expression, ctx: LowerContext): { s: EachSourceKind; value: Value } {
   const unwrapped = unwrapExpression(node);
   if (unwrapped?.type === 'ArrayExpression') {
@@ -303,11 +309,19 @@ function lowerSource(node: Expression, ctx: LowerContext): { s: EachSourceKind; 
       },
     };
   }
-  const value = trySignalReadValue(node, ctx);
-  if (value === null) {
-    throw new UnsupportedError('a collection source that is not a signal read');
+  const value = trySignalReadValue(unwrapped, ctx);
+  if (value !== null) {
+    return { s: EachSourceKind.Reactive, value };
   }
-  return { s: EachSourceKind.Reactive, value };
+  return {
+    s: EachSourceKind.Derived,
+    value: lowerComputedExpressionValue(
+      unwrapped,
+      ctx,
+      SegmentContext.CollectionSource,
+      QrlPayloadKind.Function
+    ),
+  };
 }
 
 /** Who reads the index decides its cost: effects only, or a closure that outlives render. */

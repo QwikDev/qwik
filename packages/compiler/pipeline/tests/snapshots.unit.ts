@@ -175,6 +175,23 @@ export default () => {
     });
   });
 
+  test('should lower component const setup with hook and event captures', async () => {
+    const output = await testInput(mode, 'component-const-setup', {
+      code: `import { useSignal } from '@qwik.dev/core';
+export const Card = (props) => {
+  const { title = 'Untitled', ...rest } = props;
+  const label = title.toUpperCase(), suffix = rest.suffix;
+  const count = useSignal(props.start), initial = count.value;
+  return <button onClick$={() => console.log(count.value++, label)}>
+    {label + suffix + initial}:{count.value}
+  </button>;
+};`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const event = output.modules.find((module) => module.segment?.ctxName === 'onClick$');
+    expect(event?.segment?.captureNames).toEqual(['count', 'label']);
+  });
+
   test('should render a text hole in an expression-body arrow', async () => {
     await testInput(mode, 'text-hole-expression-body', {
       code: `export default (props) => <p>{props.name}</p>;

@@ -19,7 +19,7 @@ import type {
   Statement,
   VariableDeclarator,
 } from 'oxc-parser';
-import { identifierName } from './ast/utils';
+import { identifierName, unwrapExpression } from './ast/utils';
 import { UnsupportedError } from '../errors';
 import { QwikHook } from '../words';
 import { pushPayload, type LowerContext } from './lower-context';
@@ -106,7 +106,7 @@ export type SetupLocal =
 /** Local bindings and their expression-read and capture contracts. */
 export type SetupLocals = Map<LocalId, SetupLocal>;
 
-/** Lowers the statements before a component's return: hook calls become typed Setup invokes. */
+/** Component setup shares const lowering while retaining typed hook invokes. */
 export function lowerSetup(
   statements: readonly (Directive | Statement)[],
   ctx: LowerContext
@@ -116,38 +116,46 @@ export function lowerSetup(
 } {
   const setup: Setup[] = [];
   const locals: SetupLocals = new Map();
-  for (const statement of statements) {
-    setup.push(lowerSetupStatement(statement, ctx, locals));
+  const outerLocals = ctx.locals;
+  ctx.locals = locals;
+  try {
+    for (const statement of statements) {
+      if (statement.type !== 'VariableDeclaration' || statement.kind !== 'const') {
+        throw new UnsupportedError('a setup statement that is not a const declaration');
+      }
+      for (const declarator of statement.declarations) {
+        setup.push(lowerSetupDeclaration(declarator, ctx, locals));
+      }
+    }
+  } finally {
+    ctx.locals = outerLocals;
   }
   return { setup, locals };
 }
 
-function lowerSetupStatement(
-  statement: Directive | Statement,
+function lowerSetupDeclaration(
+  declarator: VariableDeclarator,
   ctx: LowerContext,
   locals: SetupLocals
 ): Setup {
-  if (statement.type !== 'VariableDeclaration' || statement.kind !== 'const') {
-    throw new UnsupportedError('a setup statement that is not a const declaration');
+  const init = unwrapExpression(declarator.init);
+  if (init?.type !== 'CallExpression') {
+    return lowerConstDeclaration(declarator, ctx, locals);
   }
-  const declarators = statement.declarations;
-  if (declarators.length !== 1) {
-    throw new UnsupportedError('a setup declaration with multiple declarators');
-  }
-  const declarator = declarators[0];
-  const name = identifierName(declarator.id);
-  const init = declarator.init;
-  if (name === null || init === null || init.type !== 'CallExpression') {
-    throw new UnsupportedError('a setup declaration that is not a hook call');
-  }
-  const callee = identifierName(init.callee);
   const calleeBinding = ctx.bindings.reference(init.callee);
   const hook = calleeBinding === null ? undefined : ctx.coreBindings.get(calleeBinding);
+  if (hook === undefined) {
+    return lowerConstDeclaration(declarator, ctx, locals);
+  }
+  const name = identifierName(declarator.id);
+  if (name === null) {
+    throw new UnsupportedError('a non-identifier hook binding');
+  }
   switch (hook) {
     case QwikHook.UseSignal:
       return lowerUseSignal(declarator, init, name, ctx, locals);
     default:
-      throw new UnsupportedError(`the setup call "${callee ?? '?'}"`);
+      throw new UnsupportedError(`the setup call "${identifierName(init.callee) ?? '?'}"`);
   }
 }
 

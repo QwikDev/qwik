@@ -199,16 +199,31 @@ export default () => {
     ).rejects.toThrow('a block-bodied event handler');
   });
 
-  test('non-hook setup statements fail loud', async () => {
+  test('ordinary component setup calls retain authored JavaScript', async () => {
+    const output = await transformModules({
+      input: [
+        {
+          path: 'src/setup.tsx',
+          code: 'export default (props) => { const x = props.compute(); return <p>{x.value}</p>; };',
+        },
+      ],
+      isServer: true,
+      transpileTs: true,
+    });
+    expect(output.diagnostics).toEqual([]);
+    expect(output.modules[0].code).toContain('const x = props.compute();');
+  });
+
+  test('JSX inside a const initializer remains unsupported', async () => {
     await expect(
       analyseModule(
         {
           path: 'src/setup.tsx',
-          code: 'export default () => {\n  const x = compute();\n  return <p>{x.value}</p>;\n};\n',
+          code: 'export default () => { const x = <b>nested</b>; return <p>{x}</p>; };',
         },
         { transpileTs: true }
       )
-    ).rejects.toThrow('the setup call "compute"');
+    ).rejects.toThrow('JSX inside an expression value');
   });
 
   test('a mixed return (ternary arm with JSX) is a component candidate', async () => {

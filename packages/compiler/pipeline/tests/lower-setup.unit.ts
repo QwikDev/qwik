@@ -1,9 +1,20 @@
 import { describe, expect, test } from 'vitest';
-import { ArgKind, CaptureAccess, BindTargetKind, ExprKind, InvokeKind, SetupKind } from '../schema';
+import {
+  ArgKind,
+  CaptureAccess,
+  BindTargetKind,
+  ExprKind,
+  InvokeKind,
+  SetupKind,
+  LinkResultKind,
+} from '../schema';
 import { ValueIrKind } from '../../src/expr-ir';
 import { parseModule } from '../analyse/ast/parse';
 import { LocalKind, lowerSetup } from '../analyse/lower-setup';
-import { createTestLowerContext } from './fixtures';
+import { createTestLowerContext, serverSpecialization } from './fixtures';
+import { linkPlans } from '../link/link-plans';
+import { emitJsSetup } from '../generate/emit-setup';
+import { runInNewContext } from 'node:vm';
 
 function lower(statement: string, coreBindings: [string, string][] = [['useSignal', 'useSignal']]) {
   const imports = coreBindings
@@ -83,16 +94,97 @@ describe('lowerSetup / useSignal', () => {
     expect(invoke.initial).toBeUndefined();
   });
 
-  test('hooks are recognized by import: an alias works, an imposter throws', () => {
+  test('hooks are recognized by import, not by the local function name', () => {
     const aliased = lower('const count = sig(0);', [['sig', 'useSignal']]);
     expect(aliased.locals.get(aliased.count)?.kind).toBe(LocalKind.Signal);
-    expect(() => lower('const count = useSignal(0);', [])).toThrow('the setup call "useSignal"');
+    const ordinary = lower('const useSignal = (value) => value; const count = useSignal(0);', []);
+    expect(ordinary.locals.get(ordinary.count)?.kind).toBe(LocalKind.Const);
+    expect(ordinary.setup.every((entry) => entry.s === SetupKind.Const)).toBe(true);
   });
 
-  test('non-const and non-call setup statements throw', () => {
+  test('non-const statements and unsupported core hooks still throw', () => {
     expect(() => lower('let count = useSignal(0);')).toThrow(
       'a setup statement that is not a const declaration'
     );
-    expect(() => lower('const count = 1;')).toThrow('a setup declaration that is not a hook call');
+    expect(() =>
+      lower('const count = useComputed$(() => 1);', [['useComputed$', 'useComputed$']])
+    ).toThrow('the setup call "useComputed$"');
   });
+});
+
+test('component const setup preserves order, patterns, calls and signal snapshots', () => {
+  const { setup, ctx, locals, count } = lower(`
+const count = props.read('initial');
+const { [props.read('field')]: { label = props.read('fallback') }, ...rest } = props.read('record');
+const [first, , ...tail] = props.read('array');
+const format = (value) => value.toUpperCase();
+const title = format(label), suffix = rest.suffix;
+const signal = useSignal(count), snapshot = signal.value;
+`);
+  expect(locals.get(count)?.kind).toBe(LocalKind.Const);
+  const linked = linkPlans(
+    [ctx.plan],
+    [],
+    serverSpecialization(),
+    { edges: {} },
+    { claims: [], policies: [], emissions: [] },
+    false
+  );
+  if (linked.kind === LinkResultKind.Failed) {
+    throw new Error('expected a linked module');
+  }
+  const imports = new Set<string>();
+  const statements = emitJsSetup(linked.plan.modules[0], { setup }, imports);
+  expect([...imports]).toEqual(['useSignal']);
+  const reads: string[] = [];
+  const values: Record<string, unknown> = {
+    initial: 3,
+    field: 'details',
+    fallback: 'default',
+    record: { details: {}, suffix: '!' },
+    array: [1, 2, 3, 4],
+  };
+  const result = runInNewContext(
+    `(() => {
+    ${statements.join('\n')}
+    return { title, suffix, first, tail, signal, snapshot };
+  })()`,
+    {
+      props: {
+        read(name: string) {
+          reads.push(name);
+          return values[name];
+        },
+      },
+      useSignal(value: unknown) {
+        return { value };
+      },
+    }
+  );
+  expect(reads).toEqual(['initial', 'record', 'field', 'fallback', 'array']);
+  expect(result).toEqual({
+    title: 'DEFAULT',
+    suffix: '!',
+    first: 1,
+    tail: [3, 4],
+    signal: { value: 3 },
+    snapshot: 3,
+  });
+  result.signal.value = 4;
+  expect(result.snapshot).toBe(3);
+});
+
+test('component setup restores the surrounding local scope on success and failure', () => {
+  for (const source of ['const count = 1;', 'const count = 1; let other = 2;']) {
+    const parsed = parseModule('t.tsx', source);
+    const { ctx } = createTestLowerContext(parsed.program, source);
+    const outerLocals = ctx.locals;
+    if (source.includes('let')) {
+      expect(() => lowerSetup(parsed.program.body, ctx)).toThrow();
+    } else {
+      expect(lowerSetup(parsed.program.body, ctx).locals.size).toBe(1);
+    }
+    expect(ctx.locals).toBe(outerLocals);
+    expect(ctx.locals.size).toBe(0);
+  }
 });

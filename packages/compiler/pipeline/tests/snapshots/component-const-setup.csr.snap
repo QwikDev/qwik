@@ -1,0 +1,118 @@
+==INPUT==
+
+import { useSignal } from '@qwik.dev/core';
+export const Card = (props) => {
+  const { title = 'Untitled', ...rest } = props;
+  const label = title.toUpperCase(), suffix = rest.suffix;
+  const count = useSignal(props.start), initial = count.value;
+  return <button onClick$={() => console.log(count.value++, label)}>
+    {label + suffix + initial}:{count.value}
+  </button>;
+};
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useSignal,
+  setEvent,
+  _first,
+  createTextExpressionEffect,
+  _last,
+  createTextNodeEffect,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_q_e_click_segment_0_2xwyg1cinvmpz } from './component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz';
+import { component_text_segment_1_1fh10tcowimfv } from './component.tsx_component_text_segment_1_1fh10tcowimfv';
+
+const Card_tmpl0 = _createElementTemplate('<button><!>:<!></button>');
+export const Card = (props, ctx) => {
+  const { title = 'Untitled', ...rest } = props;
+  const label = title.toUpperCase();
+  const suffix = rest.suffix;
+  const count = useSignal(props.start);
+  const initial = count.value;
+  const el0 = Card_tmpl0(ctx.document);
+  setEvent(el0, 'q-e:click', component_q_e_click_segment_0_2xwyg1cinvmpz, [count, label]);
+  const marker0 = _first(el0);
+  const text0 = ctx.document.createTextNode('');
+  marker0.replaceWith(text0);
+  const effect0 = createTextExpressionEffect(
+    text0,
+    [label, suffix, initial],
+    component_text_segment_1_1fh10tcowimfv,
+    ctx.scheduler
+  );
+  ctx.scheduler.notify(effect0);
+  const marker1 = _last(el0);
+  const text1 = ctx.document.createTextNode('');
+  marker1.replaceWith(text1);
+  const effect1 = createTextNodeEffect(text1, count, ctx.scheduler);
+  ctx.scheduler.notify(effect1);
+  return el0;
+};
+============================= src/component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_q_e_click_segment_0_2xwyg1cinvmpz = () => {
+  const [count, label] = _captures;
+  return console.log(count.value++, label);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_0_2xwyg1cinvmpz",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_0",
+  "hash": "2xwyg1cinvmpz",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    265,
+    315
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count",
+    "label"
+  ]
+}
+*/
+============================= src/component.tsx_component_text_segment_1_1fh10tcowimfv.js (ENTRY POINT)==
+
+export const component_text_segment_1_1fh10tcowimfv = (label, suffix, initial) => {
+  return label + suffix + initial;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_1_1fh10tcowimfv",
+  "entry": null,
+  "displayName": "component_text_segment_1",
+  "hash": "1fh10tcowimfv",
+  "canonicalFilename": "component.tsx_component_text_segment_1_1fh10tcowimfv",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    322,
+    346
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "label",
+    "suffix",
+    "initial"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

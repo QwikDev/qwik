@@ -36,6 +36,12 @@ collection callback bodies. Element children and arbitrary call arguments remain
 Consumers decide which shapes they support and how to interpret `key` or `q:slot`; the analysis
 does not emit IR or collect captures. Its index stays out of `ModulePlan`.
 
+Component setup and collection rows share `lowerConstDeclaration()` and `Setup.Const` emission.
+Declarations run in authored order, including multiple declarators and destructuring patterns.
+Setup reads see preceding locals; extracted expressions and handlers capture their computed values.
+Direct core hook calls retain typed invokes; unsupported hooks, mutable declarations and JSX
+initializers remain rejected. A plain const reading a signal stores a snapshot, not a computed signal.
+
 Linking indexes declaration targets and imports by binding once per module. Component linking and
 reachability share the import index; duplicate declaration targets remain ambiguous. Each JS module
 emitter owns a QRL resolver shared with source-function emission. Its symbol index is reused across

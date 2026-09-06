@@ -956,6 +956,35 @@ export default () => {
     expect(output.diagnostics).toEqual([]);
   });
 
+  test.each(['items.value', 'props.items'])(
+    'should key both conditional collection arms: %s',
+    async (source) => {
+      const output = await testInput(
+        mode,
+        source === 'items.value'
+          ? 'collection-key-conditional-reactive'
+          : 'collection-key-conditional-derived',
+        {
+          code: `import { useSignal } from '@qwik.dev/core';
+export const Done = (props) => <b>{props.title}</b>;
+export default (props) => {
+  const items = useSignal([]);
+  const selected = useSignal(true);
+  return <ul>{${source}.map(({ id, done }, index) => {
+    const visible = done && selected.value;
+    const prefix = props.prefix;
+    const title = props.title;
+    return visible
+      ? <Done key={prefix + id} title={title} />
+      : <li key={index + ':' + id}>{title}</li>;
+  })}</ul>;
+};`,
+        }
+      );
+      expect(output.diagnostics).toEqual([]);
+    }
+  );
+
   test('should select collection key setup by binding dependencies', async () => {
     const output = await testInput(mode, 'collection-key-const', {
       code: `import { useSignal } from '@qwik.dev/core';

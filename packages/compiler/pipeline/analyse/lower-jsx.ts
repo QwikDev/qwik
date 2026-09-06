@@ -53,6 +53,7 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
   if (nameNode.type !== 'JSXIdentifier') {
     throw new UnsupportedError('a non-native JSX tag');
   }
+  const attributes = opening.attributes.filter((attribute) => !isKeyAttribute(attribute));
   if (/^[A-Z]/.test(nameNode.name)) {
     const binding = ctx.bindings.reference(nameNode);
     if (binding === null) {
@@ -68,7 +69,7 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
     return {
       op: OpKind.Component,
       target: { t: ComponentTargetKind.Raw, binding },
-      props: lowerComponentProps(opening.attributes, ctx),
+      props: lowerComponentProps(attributes, ctx),
       projections: lowerProjections(element.children, ctx),
       id: { kind: SeedKind.Component, ordinal: ctx.componentCounter.next++ },
       lifetime: 0,
@@ -79,8 +80,7 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
     throw new UnsupportedError('a non-native JSX tag');
   }
   const tag = nameNode.name;
-  const props = opening.attributes
-    .filter((attribute) => !isKeyAttribute(attribute))
+  const props = attributes
     .map((attribute) => lowerAttribute(attribute, ctx, 'element'))
     .filter((prop) => prop !== null);
   const children = lowerJsxChildren(element.children, ctx);
@@ -149,9 +149,6 @@ function lowerComponentPropsProxy(attributes: readonly JSXAttributeItem[], ctx: 
       throw new UnsupportedError('a namespaced JSX attribute');
     }
     const name = attribute.name.name;
-    if (name === 'key') {
-      throw new UnsupportedError('a component key');
-    }
     const scope = eventScopeName(name);
     if (scope !== null) {
       const lowered = lowerEventAttribute(attribute, ctx, name, scope);
@@ -756,9 +753,6 @@ function lowerAttribute(
     throw new UnsupportedError('a namespaced JSX attribute');
   }
   const authored = attribute.name.name;
-  if (target === 'component' && authored === 'key') {
-    throw new UnsupportedError('a component key');
-  }
   const scope = eventScopeName(authored);
   if (scope !== null) {
     const lowered = lowerEventAttribute(attribute, ctx, authored, scope);

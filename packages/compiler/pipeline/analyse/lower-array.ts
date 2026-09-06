@@ -2,7 +2,6 @@ import type {
   ArrowFunctionExpression,
   BindingPattern,
   Expression,
-  JSXElement,
   VariableDeclaration,
   VariableDeclarator,
 } from 'oxc-parser';
@@ -26,7 +25,7 @@ import {
   ValueKind,
   type Op,
   type LocalId,
-  type PayloadId,
+  type Expr,
   type Qrl,
   type Value,
   BindingScope,
@@ -38,7 +37,11 @@ import { collectCaptures, lowerCaptures } from './ast/capture-analysis';
 import { readReturnedBody, unwrapExpression } from './ast/utils';
 import { pushPayload, pushQrl, QrlIdentityKind, type LowerContext } from './lower-context';
 import { createSegmentSymbolName, sanitizeSegmentName } from '../segment-identity';
-import { lowerComputedExpressionValue, trySignalReadValue } from './lower-expr';
+import {
+  lowerComputedExpressionValue,
+  lowerInlineExpressionValue,
+  trySignalReadValue,
+} from './lower-expr';
 import {
   LocalKind,
   lowerConstBinding,
@@ -256,10 +259,15 @@ function lowerEach(
     },
     rowCaptures.args
   );
-  const key =
-    body.type === 'JSXElement'
-      ? lowerKey(body, callback, statements, ctx, localBindings, paramBindings, paramPatterns)
-      : null;
+  const key = lowerKey(
+    body,
+    callback,
+    statements,
+    ctx,
+    localBindings,
+    paramBindings,
+    paramPatterns
+  );
   if (source.s === EachSourceKind.Derived && key === null) {
     throw new InvalidModuleError('for-key', 'A derived collection requires a row key', [
       body.start,
@@ -517,7 +525,7 @@ function lowerParameterPatterns(
 
 /** The row's `key` attribute — a Function-payload QRL the runtime calls per row with the item. */
 function lowerKey(
-  row: JSXElement,
+  row: Expression,
   callback: ArrowFunctionExpression,
   statements: VariableDeclaration[],
   ctx: LowerContext,
@@ -525,24 +533,19 @@ function lowerKey(
   paramBindings: LocalId[],
   paramPatterns: Map<LocalId, BindingPattern>
 ): Value | null {
-  const attribute = row.openingElement.attributes.find(
-    (candidate) => candidate.type === 'JSXAttribute' && candidate.name.name === 'key'
-  );
-  if (attribute === undefined || attribute.type !== 'JSXAttribute') {
+  const conditional = row.type === 'ConditionalExpression' ? row : null;
+  const consequent = readRowKey(conditional?.consequent ?? row);
+  const alternate = conditional === null ? null : readRowKey(conditional.alternate);
+  if (consequent === null && alternate === null) {
     return null;
   }
-  const value = attribute.value;
-  const keyExpression =
-    value?.type === 'JSXExpressionContainer'
-      ? value.expression.type === 'JSXEmptyExpression'
-        ? null
-        : value.expression
-      : (value ?? null);
-  if (keyExpression === null) {
-    return null;
+  if (consequent === null || (conditional !== null && alternate === null)) {
+    throw new UnsupportedError('a conditional collection row without keys in both arms');
   }
+  const expressions =
+    conditional === null ? [consequent] : [conditional.test, consequent, alternate!];
   const declarations = ctx.bindings.dependenciesOf(
-    keyExpression,
+    expressions,
     statements.flatMap((statement) => statement.declarations)
   );
   const keyPatterns = new Map(paramPatterns);
@@ -557,8 +560,8 @@ function lowerKey(
       }
     });
   }
-  const { captures, args } = lowerCaptures(
-    [...keyPatterns.values(), ...declarations, keyExpression],
+  const { captures, args, refs } = lowerCaptures(
+    [...keyPatterns.values(), ...declarations, ...expressions],
     ctx,
     'a collection key',
     {
@@ -566,9 +569,21 @@ function lowerKey(
       allowProps: true,
     }
   );
-  const range: [number, number] = [keyExpression.start, keyExpression.end];
-  const payload = pushPayload(ctx, range);
-  const keyBody = lowerKeyBody(payload, paramBindings, keyPatterns, declarations, ctx);
+  const origin = conditional ?? consequent;
+  const range: [number, number] = [origin.start, origin.end];
+  const leaves = expressions.map(
+    (expression) => lowerInlineExpressionValue(expression, ctx, refs).expr
+  );
+  const expr: Expr =
+    conditional === null
+      ? leaves[0]
+      : {
+          kind: ExprKind.Conditional,
+          test: leaves[0],
+          then: leaves[1],
+          else: leaves[2],
+        };
+  const keyBody = lowerKeyBody(expr, paramBindings, keyPatterns, declarations, ctx);
   const { use } = pushQrl(
     ctx,
     {
@@ -597,15 +612,34 @@ function lowerKey(
   return { v: ValueKind.Qrl, use };
 }
 
+function readRowKey(expression: Expression): Expression | null {
+  const row = unwrapExpression(expression);
+  if (row?.type !== 'JSXElement') {
+    return null;
+  }
+  const attribute = row.openingElement.attributes.find(
+    (candidate) => candidate.type === 'JSXAttribute' && candidate.name.name === 'key'
+  );
+  if (attribute === undefined || attribute.type !== 'JSXAttribute') {
+    return null;
+  }
+  const value = attribute.value;
+  return value?.type === 'JSXExpressionContainer'
+    ? value.expression.type === 'JSXEmptyExpression'
+      ? null
+      : value.expression
+    : (value ?? null);
+}
+
 function lowerKeyBody(
-  payload: PayloadId,
+  expr: Expr,
   paramBindings: LocalId[],
   paramPatterns: Map<LocalId, BindingPattern>,
   declarations: VariableDeclarator[],
   ctx: LowerContext
 ): Qrl['body'] {
   if (paramPatterns.size === 0 && declarations.length === 0) {
-    return { b: QrlBodyKind.Js, payload };
+    return { b: QrlBodyKind.Expr, expr, initialOnly: false };
   }
   const outerLocals = ctx.locals;
   const keyLocals = new Map(outerLocals);
@@ -625,7 +659,7 @@ function lowerKeyBody(
     }
     const program = ctx.plan.programs.length;
     ctx.plan.programs.push({
-      body: { kind: ProgramBodyKind.Js, payload },
+      body: { kind: ProgramBodyKind.Expr, expr },
       setup,
       params: paramBindings,
       lifetime: 0,

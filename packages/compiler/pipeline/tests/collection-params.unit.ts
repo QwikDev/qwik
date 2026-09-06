@@ -17,6 +17,79 @@ function loadFunction(module: { path: string; code: string }, captures: unknown[
 }
 
 test.each([false, true])(
+  'conditional keys evaluate only the selected arm (SSR: %s)',
+  async (isServer) => {
+    for (const setup of [false, true]) {
+      const output = await transformModules({
+        srcDir: 'src',
+        isServer,
+        transpileTs: true,
+        input: [
+          {
+            path: 'src/component.tsx',
+            code: `import { useSignal } from '@qwik.dev/core';
+export default (props) => {
+  const selected = useSignal(true);
+  return <ul>{props.items.map(({ id }, index) => ${
+    setup
+      ? `{
+    const enabled = selected.value;
+    const prefix = props.prefix;
+    const title = props.title;
+    return`
+      : ''
+  } ${setup ? 'enabled' : 'selected.value'}
+      ? <li key={${setup ? 'prefix' : 'props.prefix'} + id + props.yes}>{props.title}</li>
+      : <li key={index + props.no}>{props.title}</li>${setup ? '; }' : ''})}</ul>;
+};`,
+          },
+        ],
+      });
+      expect(output.diagnostics).toEqual([]);
+      const key = output.modules.find((module) => module.segment?.ctxName === 'for:key');
+      expect(key).toBeDefined();
+      if (key === undefined) {
+        return;
+      }
+      let tests = 0;
+      let yes = 0;
+      let no = 0;
+      let enabled = true;
+      const captures = {
+        selected: {
+          get value() {
+            tests++;
+            return enabled;
+          },
+        },
+        props: {
+          prefix: '#',
+          get yes() {
+            yes++;
+            return '!';
+          },
+          get no() {
+            no++;
+            return '?';
+          },
+        },
+      };
+      const getKey = loadFunction(
+        key,
+        key.segment!.captureNames.map((name) => captures[name as keyof typeof captures])
+      );
+      expect(getKey({ id: 'first' }, 2)).toBe('#first!');
+      expect([tests, yes, no]).toEqual([1, 1, 0]);
+      enabled = false;
+      expect(getKey({ id: 'second' }, 3)).toBe('3?');
+      expect([tests, yes, no]).toEqual([2, 1, 1]);
+      expect(key.code).not.toContain('props.title');
+      expect(key.code).not.toContain('<li');
+    }
+  }
+);
+
+test.each([false, true])(
   'key setup follows const dependencies without executing row-only setup (SSR: %s)',
   async (isServer) => {
     const output = await transformModules({

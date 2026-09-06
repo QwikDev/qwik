@@ -100,7 +100,7 @@ export type LinkedOp =
 export interface LinkedProgram extends Omit<Program, 'body'> {
   body:
     | { kind: ProgramBodyKind.Ops; ops: LinkedOp[] }
-    | Extract<Program['body'], { kind: ProgramBodyKind.Js }>;
+    | Extract<Program['body'], { kind: ProgramBodyKind.Expr }>;
   /** Cross-module joins land HERE — the owner the raw plan cannot have. */
   facts: {
     needsId: Maybe<boolean>;

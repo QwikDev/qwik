@@ -38,6 +38,36 @@ function fold(jsx: string, escapeTextContent = false): string {
 }
 
 describe('JSX lowering + static folding', () => {
+  test.each(['', '{...spread.value}'])(
+    'component keys stay outside props and props proxies: %s',
+    async (spread) => {
+      const source = `import { useSignal } from '@qwik.dev/core';
+export const Child = () => <b />;
+export default (props) => {
+  const spread = useSignal({ title: 'Title' });
+  return <Child ${spread} key={props.keyOnly} title="Title" />;
+};`;
+      const withKey = await analyseModule(
+        { path: 'src/app.tsx', code: source },
+        { transpileTs: true }
+      );
+      const withoutKey = await analyseModule(
+        {
+          path: 'src/app.tsx',
+          code: source.replace('key={props.keyOnly}', ' '.repeat('key={props.keyOnly}'.length)),
+        },
+        { transpileTs: true }
+      );
+      expect(withKey.programs).toEqual(withoutKey.programs);
+      expect(withKey.qrls.map((qrl) => qrl.captures)).toEqual(
+        withoutKey.qrls.map((qrl) => qrl.captures)
+      );
+      expect(withKey.qrls.map((qrl) => qrl.propsParts)).toEqual(
+        withoutKey.qrls.map((qrl) => qrl.propsParts)
+      );
+    }
+  );
+
   test('element with text', () => {
     expect(fold('<p>Hello Qwik</p>')).toBe('<p>Hello Qwik</p>');
   });

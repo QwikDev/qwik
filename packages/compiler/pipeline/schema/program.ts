@@ -19,11 +19,11 @@ import type { Expr, QrlUse, Value } from './value';
 
 export const enum ProgramBodyKind {
   Ops = 'ops',
-  Js = 'js',
+  Expr = 'expr',
 }
 
 export interface Program {
-  body: { kind: ProgramBodyKind.Ops; ops: Op[] } | { kind: ProgramBodyKind.Js; payload: PayloadId };
+  body: { kind: ProgramBodyKind.Ops; ops: Op[] } | { kind: ProgramBodyKind.Expr; expr: Expr };
   setup: Setup[];
   params: LocalId[];
   lifetime: LifetimeId;

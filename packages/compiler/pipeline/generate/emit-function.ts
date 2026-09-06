@@ -1,5 +1,4 @@
 import {
-  ExprKind,
   FnBodyKind,
   ProgramBodyKind,
   PropsPartKind,
@@ -17,7 +16,7 @@ import {
   extractPayloadJs,
   qrlPropsName,
   type QrlResolver,
-  valueIrJs,
+  expressionJs,
   type FunctionEmission,
 } from './emit-chunk';
 import { emitJsSetup } from './emit-setup';
@@ -37,12 +36,12 @@ export function sourceFunctionEmission(
   const body = qrl.body;
   if (body.b === QrlBodyKind.Program) {
     const program = module.programs[body.program];
-    if (program.body.kind !== ProgramBodyKind.Js) {
+    if (program.body.kind !== ProgramBodyKind.Expr) {
       throw new UnsupportedError('an expression function with render operations');
     }
     emission.params = program.params.map((binding) => module.bindings[binding].name);
     emission.statements.push(...emitJsSetup(module, program, emission.imports));
-    emission.value = extractPayloadJs(module, program.body.payload);
+    emission.value = expressionJs(module, program.body.expr);
     emission.async = program.async;
     return emission;
   }
@@ -59,9 +58,7 @@ export function sourceFunctionEmission(
     qrl.propsParts.length > 0
       ? `{ ${qrl.propsParts.map((part) => propsPartJs(module, qrl, part, emission, resolveQrlUse)).join(', ')} }`
       : body.b === QrlBodyKind.Expr
-        ? body.expr.kind === ExprKind.Ir
-          ? valueIrJs(module, body.expr.ir)
-          : extractPayloadJs(module, body.expr.payload)
+        ? expressionJs(module, body.expr)
         : source.slice(qrl.origin.bodyRange[0], qrl.origin.bodyRange[1]);
   emission.async = qrl.authoredAsync;
   return emission;

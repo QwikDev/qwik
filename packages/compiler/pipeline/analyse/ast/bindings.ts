@@ -29,7 +29,7 @@ export interface BindingGraph {
   declarationsOf(binding: LocalId): readonly Node[];
   bindingsOf(pattern: BindingPattern): readonly LocalId[];
   freeReferences(roots: Node | Node[]): BindingReference[];
-  dependenciesOf<T extends Node>(expression: Node, candidates: readonly T[]): T[];
+  dependenciesOf<T extends Node>(expression: Node | Node[], candidates: readonly T[]): T[];
   addSynthetic(name: string, scope: BindingScope, declarationRange?: [number, number]): LocalId;
 }
 
@@ -366,7 +366,7 @@ export function createBindingGraph(program: Program): BindingGraph {
     dependenciesOf: (expression, candidates) => {
       const allowed = new Set<Node>(candidates);
       const selected = new Set<Node>();
-      const pending = [expression];
+      const pending = Array.isArray(expression) ? [...expression] : [expression];
       for (const node of pending) {
         for (const { binding } of freeReferences(node)) {
           for (const declaration of declarationNodes[binding] ?? []) {

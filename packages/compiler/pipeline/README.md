@@ -134,6 +134,11 @@ from a deserialized frozen plan in a fresh process.
   Setup-only parameter reads stay in the row ABI. Row-local keys select transitive `const`
   dependencies by binding identity and evaluate them in source order, separately from row rendering.
   Unrelated row setup is omitted from key functions; selected declarations retain native patterns.
+  Ternary rows with an explicit key on both JSX arms compose a conditional `Expr`; the key QRL
+  evaluates the condition once and only the selected key expression. Condition and arm dependencies
+  share declaration selection. Expression programs reuse the same emission with local setup.
+  Keys are excluded from element and component props, including props proxies. Partially keyed
+  ternaries are unsupported; null arms and nested conditional keys remain deferred.
   Async callbacks, non-const statements and early returns remain deferred.
 - Complex collection parameter patterns reuse `Setup.Const`: nested fields, defaults, computed
   properties, array holes and rest retain native evaluation order. Render and key functions restore

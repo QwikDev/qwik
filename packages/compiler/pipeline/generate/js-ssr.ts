@@ -233,7 +233,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       case QrlBodyKind.Task:
         throw new UnsupportedError('a task QRL body');
       case QrlBodyKind.Program:
-        if (this.module.programs[qrl.body.program].body.kind === ProgramBodyKind.Js) {
+        if (this.module.programs[qrl.body.program].body.kind === ProgramBodyKind.Expr) {
           return sourceFunctionEmission(this.module, qrl, this.resolveQrlUse);
         }
         switch (programKind(qrl)) {

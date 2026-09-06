@@ -1,0 +1,590 @@
+==INPUT==
+
+import { useSignal } from '@qwik.dev/core';
+export const Done = (props) => <b>{props.title}</b>;
+export default (props) => {
+  const items = useSignal([]);
+  const selected = useSignal(true);
+  return <ul>{props.items.map(({ id, done }, index) => {
+    const visible = done && selected.value;
+    const prefix = props.prefix;
+    const title = props.title;
+    return visible
+      ? <Done key={prefix + id} title={title} />
+      : <li key={index + ':' + id}>{title}</li>;
+  })}</ul>;
+};
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  createSsrNodeId,
+  escapeHTML,
+  renderSsrTextExpression,
+  maybeThen,
+  _noopQrl,
+  useSignal,
+  _captures,
+  _wrapArray,
+  renderSsrCollection,
+  renderSsrBranch,
+  readExpression,
+  _props,
+  createComponent,
+} from '@qwik.dev/core';
+const component_text_segment_0_1fh10fbkzokfc = (props) => {
+  return props.title;
+};
+const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_0_1fh10fbkzokfc'
+);
+q_component_text_segment_0_1fh10fbkzokfc.s(component_text_segment_0_1fh10fbkzokfc);
+const component_collection_source_segment_1_21yfmque5ruw0 = () => {
+  const [props] = _captures;
+  return props.items;
+};
+const q_component_collection_source_segment_1_21yfmque5ruw0 = /*#__PURE__*/ _noopQrl(
+  'component_collection_source_segment_1_21yfmque5ruw0'
+);
+q_component_collection_source_segment_1_21yfmque5ruw0.s(
+  component_collection_source_segment_1_21yfmque5ruw0
+);
+const component_for_render_segment_2_asyu0c4tc6e5 = (ctx, __rangeId, __rowId, item, index) => {
+  const [selected, props] = _captures;
+  const visible = item.done && selected.value;
+  const prefix = props.prefix;
+  const title = props.title;
+  const branchId0 = ctx.nextId();
+  ctx.addRoot(visible);
+  ctx.addRoot(prefix);
+  ctx.addRoot(item);
+  ctx.addRoot(title);
+  ctx.addRoot(index);
+  const branch0 = renderSsrBranch(
+    ctx,
+    branchId0,
+    q_component_branch_condition_segment_4_2fzrgupr899d5.w([visible]),
+    q_component_branch_then_segment_5_24n7d63685l6a.w([prefix, item, title]),
+    q_component_branch_else_segment_7_19dvs9iawhlhy.w([index, item, title])
+  );
+  return maybeThen(branch0, (branch0) => [
+    '<!r=',
+    createSsrNodeId(__rowId),
+    '><!b=',
+    createSsrNodeId(branchId0),
+    '>',
+    branch0,
+    '<!/b><!/r>',
+  ]);
+};
+const q_component_for_render_segment_2_asyu0c4tc6e5 = /*#__PURE__*/ _noopQrl(
+  'component_for_render_segment_2_asyu0c4tc6e5'
+);
+q_component_for_render_segment_2_asyu0c4tc6e5.s(component_for_render_segment_2_asyu0c4tc6e5);
+const component_for_key_segment_3_24urt2mcqntyh = (item, index) => {
+  const [selected, props] = _captures;
+  const { id, done } = item;
+  const visible = done && selected.value;
+  const prefix = props.prefix;
+  return visible ? prefix + id : index + ':' + id;
+};
+const q_component_for_key_segment_3_24urt2mcqntyh = /*#__PURE__*/ _noopQrl(
+  'component_for_key_segment_3_24urt2mcqntyh'
+);
+q_component_for_key_segment_3_24urt2mcqntyh.s(component_for_key_segment_3_24urt2mcqntyh);
+const component_branch_condition_segment_4_2fzrgupr899d5 = () => {
+  const [visible] = _captures;
+  return visible;
+};
+const q_component_branch_condition_segment_4_2fzrgupr899d5 = /*#__PURE__*/ _noopQrl(
+  'component_branch_condition_segment_4_2fzrgupr899d5'
+);
+q_component_branch_condition_segment_4_2fzrgupr899d5.s(
+  component_branch_condition_segment_4_2fzrgupr899d5
+);
+const component_branch_then_segment_5_24n7d63685l6a = (ctx) => {
+  const [prefix, item, title] = _captures;
+  ctx.addRoot(title);
+  const propQrl0 = q_component_title_segment_6_2f0r1pl3sdnnz.w([title]);
+  const component0 = createComponent(
+    Done,
+    _props(
+      {
+        get title() {
+          return readExpression(propQrl0);
+        },
+      },
+      { title: propQrl0 }
+    ),
+    ctx
+  );
+  return component0;
+};
+const q_component_branch_then_segment_5_24n7d63685l6a = /*#__PURE__*/ _noopQrl(
+  'component_branch_then_segment_5_24n7d63685l6a'
+);
+q_component_branch_then_segment_5_24n7d63685l6a.s(component_branch_then_segment_5_24n7d63685l6a);
+const component_branch_else_segment_7_19dvs9iawhlhy = (ctx) => {
+  const [index, item, title] = _captures;
+  const id0 = ctx.nextId();
+  ctx.addRoot(title);
+  const text0 = renderSsrTextExpression(
+    id0,
+    null,
+    [title],
+    q_component_text_segment_8_1fh0xb2pp04b4
+  );
+  return maybeThen(text0, (text0) => [
+    '<li q:id="',
+    createSsrNodeId(id0),
+    '">',
+    escapeHTML(text0),
+    '</li>',
+  ]);
+};
+const q_component_branch_else_segment_7_19dvs9iawhlhy = /*#__PURE__*/ _noopQrl(
+  'component_branch_else_segment_7_19dvs9iawhlhy'
+);
+q_component_branch_else_segment_7_19dvs9iawhlhy.s(component_branch_else_segment_7_19dvs9iawhlhy);
+const component_title_segment_6_2f0r1pl3sdnnz = (title) => {
+  return title;
+};
+const q_component_title_segment_6_2f0r1pl3sdnnz = /*#__PURE__*/ _noopQrl(
+  'component_title_segment_6_2f0r1pl3sdnnz'
+);
+q_component_title_segment_6_2f0r1pl3sdnnz.s(component_title_segment_6_2f0r1pl3sdnnz);
+const component_text_segment_8_1fh0xb2pp04b4 = (title) => {
+  return title;
+};
+const q_component_text_segment_8_1fh0xb2pp04b4 = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_8_1fh0xb2pp04b4'
+);
+q_component_text_segment_8_1fh0xb2pp04b4.s(component_text_segment_8_1fh0xb2pp04b4);
+export const Done = (props, ctx) => {
+  const id0 = ctx.nextId();
+  ctx.addRoot(props);
+  const text0 = renderSsrTextExpression(
+    id0,
+    null,
+    [props],
+    q_component_text_segment_0_1fh10fbkzokfc
+  );
+  return maybeThen(text0, (text0) => [
+    '<b q:id="',
+    createSsrNodeId(id0),
+    '">',
+    escapeHTML(text0),
+    '</b>',
+  ]);
+};
+export default (props, ctx) => {
+  const items = useSignal([]);
+  const selected = useSignal(true);
+  const collectionSource0 = _wrapArray(
+    q_component_collection_source_segment_1_21yfmque5ruw0.w([props]),
+    true
+  );
+  const collectionId0 = ctx.nextId();
+  ctx.addRoot(collectionSource0);
+  ctx.addRoot(selected);
+  ctx.addRoot(props);
+  const collection0 = renderSsrCollection(
+    ctx,
+    collectionId0,
+    collectionSource0,
+    q_component_for_key_segment_3_24urt2mcqntyh.w([selected, props]),
+    q_component_for_render_segment_2_asyu0c4tc6e5.w([selected, props]),
+    1,
+    '',
+    true,
+    2
+  );
+  return maybeThen(collection0, (collection0) => [
+    '<ul><!f=',
+    createSsrNodeId(collectionId0),
+    '>',
+    collection0,
+    '<!/f></ul>',
+  ]);
+};
+============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
+
+export const component_text_segment_0_1fh10fbkzokfc = (props) => {
+  return props.title;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_0_1fh10fbkzokfc",
+  "entry": null,
+  "displayName": "component_text_segment_0",
+  "hash": "1fh10fbkzokfc",
+  "canonicalFilename": "component.tsx_component_text_segment_0_1fh10fbkzokfc",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    79,
+    90
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_collection_source_segment_1_21yfmque5ruw0.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_collection_source_segment_1_21yfmque5ruw0 = () => {
+  const [props] = _captures;
+  return props.items;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_collection_source_segment_1_21yfmque5ruw0",
+  "entry": null,
+  "displayName": "component_collection_source_segment_1",
+  "hash": "21yfmque5ruw0",
+  "canonicalFilename": "component.tsx_component_collection_source_segment_1_21yfmque5ruw0",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "collection:source",
+  "captures": true,
+  "loc": [
+    206,
+    217
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_for_render_segment_2_asyu0c4tc6e5.js (ENTRY POINT)==
+
+import { _noopQrl, _captures, createSsrNodeId, renderSsrBranch, maybeThen } from '@qwik.dev/core';
+import { component_branch_condition_segment_4_2fzrgupr899d5 } from './component.tsx_component_branch_condition_segment_4_2fzrgupr899d5';
+import { component_branch_then_segment_5_24n7d63685l6a } from './component.tsx_component_branch_then_segment_5_24n7d63685l6a';
+import { component_branch_else_segment_7_19dvs9iawhlhy } from './component.tsx_component_branch_else_segment_7_19dvs9iawhlhy';
+const q_component_branch_condition_segment_4_2fzrgupr899d5 = /*#__PURE__*/ _noopQrl(
+  'component_branch_condition_segment_4_2fzrgupr899d5'
+);
+q_component_branch_condition_segment_4_2fzrgupr899d5.s(
+  component_branch_condition_segment_4_2fzrgupr899d5
+);
+const q_component_branch_then_segment_5_24n7d63685l6a = /*#__PURE__*/ _noopQrl(
+  'component_branch_then_segment_5_24n7d63685l6a'
+);
+q_component_branch_then_segment_5_24n7d63685l6a.s(component_branch_then_segment_5_24n7d63685l6a);
+const q_component_branch_else_segment_7_19dvs9iawhlhy = /*#__PURE__*/ _noopQrl(
+  'component_branch_else_segment_7_19dvs9iawhlhy'
+);
+q_component_branch_else_segment_7_19dvs9iawhlhy.s(component_branch_else_segment_7_19dvs9iawhlhy);
+
+export const component_for_render_segment_2_asyu0c4tc6e5 = (
+  ctx,
+  __rangeId,
+  __rowId,
+  item,
+  index
+) => {
+  const [selected, props] = _captures;
+  const visible = item.done && selected.value;
+  const prefix = props.prefix;
+  const title = props.title;
+  const branchId0 = ctx.nextId();
+  ctx.addRoot(visible);
+  ctx.addRoot(prefix);
+  ctx.addRoot(item);
+  ctx.addRoot(title);
+  ctx.addRoot(index);
+  const branch0 = renderSsrBranch(
+    ctx,
+    branchId0,
+    q_component_branch_condition_segment_4_2fzrgupr899d5.w([visible]),
+    q_component_branch_then_segment_5_24n7d63685l6a.w([prefix, item, title]),
+    q_component_branch_else_segment_7_19dvs9iawhlhy.w([index, item, title])
+  );
+  return maybeThen(branch0, (branch0) => [
+    '<!r=',
+    createSsrNodeId(__rowId),
+    '><!b=',
+    createSsrNodeId(branchId0),
+    '>',
+    branch0,
+    '<!/b><!/r>',
+  ]);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_for_render_segment_2_asyu0c4tc6e5",
+  "entry": null,
+  "displayName": "component_for_render_segment_2",
+  "hash": "asyu0c4tc6e5",
+  "canonicalFilename": "component.tsx_component_for_render_segment_2_asyu0c4tc6e5",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "for:render",
+  "captures": true,
+  "loc": [
+    247,
+    373
+  ],
+  "paramNames": [
+    "{ id, done }",
+    "index"
+  ],
+  "captureNames": [
+    "selected",
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_for_key_segment_3_24urt2mcqntyh.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_for_key_segment_3_24urt2mcqntyh = (item, index) => {
+  const [selected, props] = _captures;
+  const { id, done } = item;
+  const visible = done && selected.value;
+  const prefix = props.prefix;
+  return visible ? prefix + id : index + ':' + id;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_for_key_segment_3_24urt2mcqntyh",
+  "entry": null,
+  "displayName": "component_for_key_segment_3",
+  "hash": "24urt2mcqntyh",
+  "canonicalFilename": "component.tsx_component_for_key_segment_3_24urt2mcqntyh",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "for:key",
+  "captures": true,
+  "loc": [
+    368,
+    472
+  ],
+  "paramNames": [
+    "{ id, done }",
+    "index"
+  ],
+  "captureNames": [
+    "selected",
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_branch_condition_segment_4_2fzrgupr899d5.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_branch_condition_segment_4_2fzrgupr899d5 = () => {
+  const [visible] = _captures;
+  return visible;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_branch_condition_segment_4_2fzrgupr899d5",
+  "entry": null,
+  "displayName": "component_branch_condition_segment_4",
+  "hash": "2fzrgupr899d5",
+  "canonicalFilename": "component.tsx_component_branch_condition_segment_4_2fzrgupr899d5",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:condition",
+  "captures": true,
+  "loc": [
+    368,
+    375
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "visible"
+  ]
+}
+*/
+============================= src/component.tsx_component_branch_then_segment_5_24n7d63685l6a.js (ENTRY POINT)==
+
+import { _noopQrl, _captures, readExpression, _props, createComponent } from '@qwik.dev/core';
+import { component_title_segment_6_2f0r1pl3sdnnz } from './component.tsx_component_title_segment_6_2f0r1pl3sdnnz';
+const q_component_title_segment_6_2f0r1pl3sdnnz = /*#__PURE__*/ _noopQrl(
+  'component_title_segment_6_2f0r1pl3sdnnz'
+);
+q_component_title_segment_6_2f0r1pl3sdnnz.s(component_title_segment_6_2f0r1pl3sdnnz);
+
+export const component_branch_then_segment_5_24n7d63685l6a = (ctx) => {
+  const [prefix, item, title] = _captures;
+  ctx.addRoot(title);
+  const propQrl0 = q_component_title_segment_6_2f0r1pl3sdnnz.w([title]);
+  const component0 = createComponent(
+    Done,
+    _props(
+      {
+        get title() {
+          return readExpression(propQrl0);
+        },
+      },
+      { title: propQrl0 }
+    ),
+    ctx
+  );
+  return component0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_branch_then_segment_5_24n7d63685l6a",
+  "entry": null,
+  "displayName": "component_branch_then_segment_5",
+  "hash": "24n7d63685l6a",
+  "canonicalFilename": "component.tsx_component_branch_then_segment_5_24n7d63685l6a",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:then",
+  "captures": true,
+  "loc": [
+    384,
+    424
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "prefix",
+    "item",
+    "title"
+  ]
+}
+*/
+============================= src/component.tsx_component_title_segment_6_2f0r1pl3sdnnz.js (ENTRY POINT)==
+
+export const component_title_segment_6_2f0r1pl3sdnnz = (title) => {
+  return title;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_title_segment_6_2f0r1pl3sdnnz",
+  "entry": null,
+  "displayName": "component_title_segment_6",
+  "hash": "2f0r1pl3sdnnz",
+  "canonicalFilename": "component.tsx_component_title_segment_6_2f0r1pl3sdnnz",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "title",
+  "captures": true,
+  "loc": [
+    415,
+    420
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "title"
+  ]
+}
+*/
+============================= src/component.tsx_component_branch_else_segment_7_19dvs9iawhlhy.js (ENTRY POINT)==
+
+import {
+  _noopQrl,
+  _captures,
+  createSsrNodeId,
+  escapeHTML,
+  renderSsrTextExpression,
+  maybeThen,
+} from '@qwik.dev/core';
+import { component_text_segment_8_1fh0xb2pp04b4 } from './component.tsx_component_text_segment_8_1fh0xb2pp04b4';
+const q_component_text_segment_8_1fh0xb2pp04b4 = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_8_1fh0xb2pp04b4'
+);
+q_component_text_segment_8_1fh0xb2pp04b4.s(component_text_segment_8_1fh0xb2pp04b4);
+
+export const component_branch_else_segment_7_19dvs9iawhlhy = (ctx) => {
+  const [index, item, title] = _captures;
+  const id0 = ctx.nextId();
+  ctx.addRoot(title);
+  const text0 = renderSsrTextExpression(
+    id0,
+    null,
+    [title],
+    q_component_text_segment_8_1fh0xb2pp04b4
+  );
+  return maybeThen(text0, (text0) => [
+    '<li q:id="',
+    createSsrNodeId(id0),
+    '">',
+    escapeHTML(text0),
+    '</li>',
+  ]);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_branch_else_segment_7_19dvs9iawhlhy",
+  "entry": null,
+  "displayName": "component_branch_else_segment_7",
+  "hash": "19dvs9iawhlhy",
+  "canonicalFilename": "component.tsx_component_branch_else_segment_7_19dvs9iawhlhy",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:else",
+  "captures": true,
+  "loc": [
+    433,
+    472
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "index",
+    "item",
+    "title"
+  ]
+}
+*/
+============================= src/component.tsx_component_text_segment_8_1fh0xb2pp04b4.js (ENTRY POINT)==
+
+export const component_text_segment_8_1fh0xb2pp04b4 = (title) => {
+  return title;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_8_1fh0xb2pp04b4",
+  "entry": null,
+  "displayName": "component_text_segment_8",
+  "hash": "1fh0xb2pp04b4",
+  "canonicalFilename": "component.tsx_component_text_segment_8_1fh0xb2pp04b4",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    461,
+    466
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "title"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

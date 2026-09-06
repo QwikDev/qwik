@@ -66,9 +66,13 @@ export interface EsmEdge {
 export const enum ExprKind {
   Ir = 'ir',
   Js = 'js',
+  Conditional = 'conditional',
 }
 
-export type Expr = { kind: ExprKind.Ir; ir: ValueIR } | { kind: ExprKind.Js; payload: PayloadId };
+export type Expr =
+  | { kind: ExprKind.Ir; ir: ValueIR }
+  | { kind: ExprKind.Js; payload: PayloadId }
+  | { kind: ExprKind.Conditional; test: Expr; then: Expr; else: Expr };
 
 export interface TaskBody {
   steps: TaskStep[];

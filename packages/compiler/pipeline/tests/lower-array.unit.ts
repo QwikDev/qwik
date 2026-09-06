@@ -213,6 +213,16 @@ describe('lowerArray / reactive rows', () => {
   });
 
   test.each([
+    'item.done ? <li key={item.id} /> : <li />',
+    'item.done ? <li /> : <li key={item.id} />',
+    'item.done ? <li key={item.id} /> : null',
+  ])('rejects partially keyed conditional rows: %s', (row) => {
+    expect(() => lower(`<ul>{items.value.map((item) => ${row})}</ul>`)).toThrow(
+      'a conditional collection row without keys in both arms'
+    );
+  });
+
+  test.each([
     [
       '{ let label = item.label; return <li>{label}</li>; }',
       'the collection row body "BlockStatement"',

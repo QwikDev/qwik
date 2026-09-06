@@ -11,6 +11,7 @@ import {
   type LinkedQrl,
   type QrlUse,
   type Value,
+  type Expr,
 } from '../schema';
 import { ValueIrKind, type ValueIR } from '../../src/expr-ir';
 import { getSegmentDisplayName, getSegmentSymbolHash } from '../segment-identity';
@@ -279,9 +280,18 @@ export function inlineValueJs(module: LinkedModule, value: Value): string {
   if (value.v !== ValueKind.Computed || value.resume.r !== ResumeKind.Inline) {
     throw new UnsupportedError('a non-inline source value');
   }
-  return value.expr.kind === ExprKind.Ir
-    ? valueIrJs(module, value.expr.ir)
-    : extractPayloadJs(module, value.expr.payload);
+  return expressionJs(module, value.expr);
+}
+
+export function expressionJs(module: LinkedModule, expr: Expr): string {
+  switch (expr.kind) {
+    case ExprKind.Ir:
+      return valueIrJs(module, expr.ir);
+    case ExprKind.Js:
+      return extractPayloadJs(module, expr.payload);
+    case ExprKind.Conditional:
+      return `(${expressionJs(module, expr.test)}) ? (${expressionJs(module, expr.then)}) : (${expressionJs(module, expr.else)})`;
+  }
 }
 
 /** Serialization roots for a use site — row-index boxes never root (the block owns them). */

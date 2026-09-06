@@ -50,6 +50,9 @@ function argJs(module: LinkedModule, arg: Arg): string {
     const [start, end] = module.payloads[arg.expr.payload].range;
     return module.source.code.slice(start, end);
   }
+  if (arg.expr.kind !== ExprKind.Ir) {
+    throw new UnsupportedError(`the expression "${arg.expr.kind}" as a JS argument`);
+  }
   const ir = arg.expr.ir;
   if (ir.kind !== ValueIrKind.Lit) {
     throw new UnsupportedError(`the IR "${ir.kind}" as a JS argument`);

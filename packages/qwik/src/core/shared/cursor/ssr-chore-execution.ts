@@ -26,11 +26,12 @@ export function _executeSsrChores(
   ssrNode: ISsrNode
 ): ValueOrPromise<void> {
   if (!(ssrNode.flags & SsrNodeFlags.Updatable)) {
+    let result: ValueOrPromise<void> = undefined;
     if (ssrNode.dirty & ChoreBits.NODE_PROPS) {
       executeNodePropChore(container, ssrNode);
     }
     if (ssrNode.dirty & ChoreBits.COMPUTE) {
-      executeCompute(ssrNode, container);
+      result = executeCompute(ssrNode, container);
     }
     if (
       isDev &&
@@ -54,7 +55,7 @@ export function _executeSsrChores(
       logWarn(warningMessage);
     }
     ssrNode.dirty &= ~ChoreBits.DIRTY_MASK;
-    return;
+    return result;
   }
 
   let promise: ValueOrPromise<void> | null = null;

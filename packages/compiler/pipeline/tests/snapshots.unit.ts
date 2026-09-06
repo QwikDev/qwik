@@ -985,6 +985,19 @@ export default (props) => {
     }
   );
 
+  test('should keep collection keys independent of empty arms', async () => {
+    const output = await testInput(mode, 'collection-key-empty-arms', {
+      code: `export default (props) => <ul>{props.items.map(({ id, primary }, index) => {
+  const visible = props.visible;
+  const key = props.prefix + id;
+  return primary
+    ? (visible ? <li key={key}>{id}</li> : null)
+    : visible && <li key={index}>{id}</li>;
+})}</ul>;`,
+    });
+    expect(output.diagnostics).toEqual([]);
+  });
+
   test('should key nested conditional collection arms', async () => {
     const output = await testInput(mode, 'collection-key-nested-conditional', {
       code: `export const Primary = () => <b>Primary</b>;

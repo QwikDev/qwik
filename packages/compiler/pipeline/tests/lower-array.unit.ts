@@ -19,6 +19,7 @@ import {
 } from '../schema';
 import { parseModule } from '../analyse/ast/parse';
 import { unwrapExpression } from '../analyse/ast/utils';
+import { JsxValueKind } from '../analyse/ast/jsx-analysis';
 import { LocalKind } from '../analyse/lower-setup';
 import { lowerJsx } from '../analyse/lower-jsx';
 import { createTestLowerContext, serverSpecialization } from './fixtures';
@@ -42,7 +43,7 @@ function lower(jsx: string) {
   ctx.locals = new Map([
     [items, { kind: LocalKind.Signal, access: CaptureAccess.Direct, slot: 0, binding: items }],
   ]);
-  return { op: lowerJsx(element, ctx), ctx };
+  return { op: lowerJsx(element, ctx), ctx, element };
 }
 
 const ROW = '<ul>{items.value.map((item) => <li key={item.id}>{item.label}</li>)}</ul>';
@@ -215,13 +216,13 @@ describe('lowerArray / reactive rows', () => {
   test.each([
     'item.done ? <li key={item.id} /> : <li />',
     'item.done ? <li /> : <li key={item.id} />',
-    'item.done ? <li key={item.id} /> : null',
     'item.done ? (item.visible ? <li key={item.id} /> : <li />) : <li key={item.id} />',
     'item.done ? (item.visible ? <li /> : <li />) : <li key={item.id} />',
-    'item.done ? <li key={item.id} /> : (item.visible ? <li key={item.id} /> : null)',
+    'item.done ? <li key={item.id} /> : (item.visible ? <li /> : null)',
+    'item.done ? <li key={item.id} /> : (item.visible && <li />)',
   ])('rejects partially keyed conditional rows: %s', (row) => {
     expect(() => lower(`<ul>{items.value.map((item) => ${row})}</ul>`)).toThrow(
-      'a conditional collection row without keys in both arms'
+      'a conditional collection row without keys in all non-empty arms'
     );
   });
 
@@ -233,6 +234,22 @@ describe('lowerArray / reactive rows', () => {
       op: OpKind.Each,
       key: null,
     });
+  });
+
+  test('key selection preserves the shared JSX analysis for rendering', () => {
+    const { ctx, element } = lower(
+      '<ul>{items.value.map((item) => item.done ? (item.visible && <li key={item.id} />) : <li key={item.id} />)}</ul>'
+    );
+    const collection = ctx.jsx.read(element.children[0]);
+    expect(collection.kind).toBe(JsxValueKind.Collection);
+    if (
+      collection.kind !== JsxValueKind.Collection ||
+      collection.row?.kind !== JsxValueKind.Conditional
+    ) {
+      throw new Error('expected a conditional collection row');
+    }
+    expect(collection.row.then.kind).toBe(JsxValueKind.Logical);
+    expect(ctx.jsx.read(collection.node)).toBe(collection);
   });
 
   test.each([

@@ -17,6 +17,140 @@ function loadFunction(module: { path: string; code: string }, captures: unknown[
 }
 
 test.each([false, true])(
+  'empty arms do not affect collection keys or key captures (SSR: %s)',
+  async (isServer) => {
+    for (const row of [
+      'visible ? <li key={key} /> : null',
+      'visible ? null : <li key={key} />',
+      'visible ? <li key={key} /> : undefined',
+      'visible && <li key={key} />',
+      'visible && (props.other ? <li key={key} /> : null)',
+      'visible ? <li key={key} /> : (props.other ? null : undefined)',
+    ]) {
+      for (const source of ['items.value', 'props.items']) {
+        const output = await transformModules({
+          srcDir: 'src',
+          isServer,
+          transpileTs: true,
+          input: [
+            {
+              path: 'src/component.tsx',
+              code: `import { useSignal } from '@qwik.dev/core';
+export default (props) => {
+  const items = useSignal([]);
+  return <ul>{${source}.map(({ id }) => {
+    const visible = props.visible;
+    const key = props.prefix + id;
+    return ${row};
+  })}</ul>;
+};`,
+            },
+          ],
+        });
+        expect(output.diagnostics).toEqual([]);
+        const key = output.modules.find((module) => module.segment?.ctxName === 'for:key')!;
+        expect(key).toBeDefined();
+        expect(key.segment!.captureNames).toEqual(['props']);
+        const getKey = loadFunction(key, [
+          {
+            prefix: '#',
+            get visible() {
+              throw new Error('visibility does not determine row identity');
+            },
+            get other() {
+              throw new Error('empty branches do not determine row identity');
+            },
+          },
+        ]);
+        const rows = [{ id: 'a' }, { id: 'b' }, { id: 'c' }];
+        expect(rows.map(getKey)).toEqual(['#a', '#b', '#c']);
+        expect([...rows].reverse().map(getKey)).toEqual(['#c', '#b', '#a']);
+        expect(key.code).not.toContain('props.visible');
+        expect(key.code).not.toContain('props.other');
+      }
+    }
+  }
+);
+
+test.each([false, true])(
+  'empty arms preserve conditions that choose between keys (SSR: %s)',
+  async (isServer) => {
+    const output = await transformModules({
+      srcDir: 'src',
+      isServer,
+      input: [
+        {
+          path: 'src/component.tsx',
+          code: `export default (props) => <ul>{props.items.map(item => props.choose
+  ? (props.visible && <li key={item.id + props.a} />)
+  : (props.visible ? null : <li key={item.id + props.b} />))}</ul>;`,
+        },
+      ],
+    });
+    expect(output.diagnostics).toEqual([]);
+    const key = output.modules.find((module) => module.segment?.ctxName === 'for:key')!;
+    const reads: string[] = [];
+    let choose = true;
+    const getKey = loadFunction(key, [
+      {
+        get choose() {
+          reads.push('choose');
+          return choose;
+        },
+        get visible() {
+          throw new Error('visibility is not part of the key');
+        },
+        get a() {
+          reads.push('a');
+          return 'a';
+        },
+        get b() {
+          reads.push('b');
+          return 'b';
+        },
+      },
+    ]);
+    expect(getKey({ id: '1' })).toBe('1a');
+    expect(reads).toEqual(['choose', 'a']);
+    choose = false;
+    reads.length = 0;
+    expect(getKey({ id: '1' })).toBe('1b');
+    expect(reads).toEqual(['choose', 'b']);
+  }
+);
+
+test.each([false, true])(
+  'key errors are not hidden by collection visibility (SSR: %s)',
+  async (isServer) => {
+    const output = await transformModules({
+      srcDir: 'src',
+      isServer,
+      input: [
+        {
+          path: 'src/component.tsx',
+          code: 'export default (props) => <ul>{props.items.map(item => item.visible && <li key={item.details.id} />)}</ul>;',
+        },
+      ],
+    });
+    expect(output.diagnostics).toEqual([]);
+    const key = output.modules.find((module) => module.segment?.ctxName === 'for:key')!;
+    expect(key).toBeDefined();
+    const getKey = loadFunction(key);
+    expect(getKey({ visible: false, details: { id: 'hidden' } })).toBe('hidden');
+    expect(() => getKey({ visible: false, details: null })).toThrow();
+    const error = new Error('key failed');
+    expect(() =>
+      getKey({
+        visible: false,
+        get details() {
+          throw error;
+        },
+      })
+    ).toThrow(error);
+  }
+);
+
+test.each([false, true])(
   'nested keys visit only conditions and keys on the selected path (SSR: %s)',
   async (isServer) => {
     for (const source of ['items.value', 'props.items']) {

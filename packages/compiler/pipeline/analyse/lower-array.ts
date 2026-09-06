@@ -3,6 +3,7 @@ import type {
   BindingPattern,
   Expression,
   JSXElement,
+  Node,
   VariableDeclaration,
   VariableDeclarator,
 } from 'oxc-parser';
@@ -524,8 +525,9 @@ function lowerKey(
   paramPatterns: Map<LocalId, BindingPattern>
 ): Value | null {
   const value = ctx.jsx.read(row);
-  const sources = new Map<JsxValue, Expression>();
-  if (!collectRowKeySources(value, sources)) {
+  const sources = new Map<Node, Expression>();
+  const keyedValue = selectRowKey(value, sources);
+  if (keyedValue === null || keyedValue.kind === JsxValueKind.Empty) {
     return null;
   }
   const expressions = [...sources.values()];
@@ -556,7 +558,7 @@ function lowerKey(
   );
   const origin = value.kind === JsxValueKind.Conditional ? value.node : expressions[0];
   const range: [number, number] = [origin.start, origin.end];
-  const expr = lowerRowKeyExpression(value, sources, ctx, refs);
+  const expr = lowerRowKeyExpression(keyedValue, sources, ctx, refs);
   const keyBody = lowerKeyBody(expr, paramBindings, keyPatterns, declarations, ctx);
   const { use } = pushQrl(
     ctx,
@@ -586,31 +588,46 @@ function lowerKey(
   return { v: ValueKind.Qrl, use };
 }
 
-function collectRowKeySources(value: JsxValue, sources: Map<JsxValue, Expression>): boolean {
+function selectRowKey(value: JsxValue, sources: Map<Node, Expression>): JsxValue | null {
   if (value.kind === JsxValueKind.Conditional) {
-    sources.set(value, value.node.test);
-    const hasThenKey = collectRowKeySources(value.then, sources);
-    const hasElseKey = collectRowKeySources(value.else, sources);
-    if (hasThenKey !== hasElseKey) {
-      throw new UnsupportedError('a conditional collection row without keys in both arms');
+    sources.set(value.node, value.node.test);
+    const then = selectRowKey(value.then, sources);
+    const otherwise = selectRowKey(value.else, sources);
+    if (then?.kind === JsxValueKind.Empty || otherwise?.kind === JsxValueKind.Empty) {
+      sources.delete(value.node);
+      return then?.kind === JsxValueKind.Empty ? otherwise : then;
     }
-    return hasThenKey;
+    if ((then === null) !== (otherwise === null)) {
+      throw new UnsupportedError('a conditional collection row without keys in all non-empty arms');
+    }
+    if (then === null || otherwise === null) {
+      return null;
+    }
+    return then === value.then && otherwise === value.else
+      ? value
+      : { ...value, then, else: otherwise };
+  }
+  if (value.kind === JsxValueKind.Logical && value.node.operator === '&&') {
+    return selectRowKey(value.right, sources);
+  }
+  if (value.kind === JsxValueKind.Empty) {
+    return value;
   }
   const key = value.kind === JsxValueKind.Element ? readRowKey(value.node) : null;
   if (key === null) {
-    return false;
+    return null;
   }
-  sources.set(value, key);
-  return true;
+  sources.set(value.node, key);
+  return value;
 }
 
 function lowerRowKeyExpression(
   value: JsxValue,
-  sources: ReadonlyMap<JsxValue, Expression>,
+  sources: ReadonlyMap<Node, Expression>,
   ctx: LowerContext,
   refs: CollectedCaptures
 ): Expr {
-  const expr = lowerInlineExpressionValue(sources.get(value)!, ctx, refs).expr;
+  const expr = lowerInlineExpressionValue(sources.get(value.node)!, ctx, refs).expr;
   if (value.kind !== JsxValueKind.Conditional) {
     return expr;
   }

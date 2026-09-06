@@ -144,8 +144,12 @@ from a deserialized frozen plan in a fresh process.
   evaluates the condition once and only the selected key expression. Condition and arm dependencies
   share declaration selection. Expression programs reuse the same emission with local setup.
   Keys are excluded from element and component props, including props proxies. Partially keyed
-  ternaries are unsupported; null arms remain deferred. Nested ternaries preserve their authored
+  non-empty arms are unsupported. Nested ternaries preserve their authored
   branch structure and evaluate only conditions and key expressions on the selected path.
+  Empty arms and logical-and visibility guards do not choose row identity: key selection omits
+  them without changing render lowering. Each source item, including a hidden one, requires a
+  stable synchronous string or number key. Key expressions must be valid independently of visibility;
+  errors propagate without an implicit index fallback. Conditions choosing between keys remain lazy.
   Async callbacks, non-const statements and early returns remain deferred.
 - Complex collection parameter patterns reuse `Setup.Const`: nested fields, defaults, computed
   properties, array holes and rest retain native evaluation order. Render and key functions restore

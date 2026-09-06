@@ -11,12 +11,8 @@ import {
   type LinkedModule,
   type LinkedQrl,
 } from '../schema';
-import {
-  captureNames,
-  functionText,
-  resolveQrlUse,
-  sourceFunctionEmission,
-} from '../generate/emit-chunk';
+import { captureNames, functionText, resolveQrlUse } from '../generate/emit-chunk';
+import { sourceFunctionEmission } from '../generate/emit-function';
 
 // `() => count.value++` at 10..30 with the body at 16..30; `(props) => props.title` variant below.
 const SOURCE = '/*head*/ (() => count.value++); ((props) => props.title);';

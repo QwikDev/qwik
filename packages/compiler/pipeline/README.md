@@ -121,6 +121,11 @@ from a deserialized frozen plan in a fresh process.
   expressions participate in capture analysis and parameter-read rewriting.
   Setup-only parameter reads stay in the row ABI. Async callbacks, non-const statements,
   early returns and row-local keys remain deferred.
+- Complex collection parameter patterns reuse `Setup.Const`: nested fields, defaults, computed
+  properties, array holes and rest retain native evaluation order. Render and key functions restore
+  captures before binding parameters; descendants capture the resulting locals directly.
+  Simple object aliases retain their member-read fast path. Whole-parameter defaults and references
+  to later parameters remain unsupported.
 - Expression collection sources reuse `_wrapArray` with a captured function QRL and require a key.
   Sources without dependencies can become plain arrays; rows using an index retain a reactive source.
   CSR and SSR materialize the wrapper once, with SSR rooting that same source for resume.

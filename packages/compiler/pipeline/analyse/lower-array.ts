@@ -1,5 +1,6 @@
 import type {
   ArrowFunctionExpression,
+  BindingPattern,
   Expression,
   JSXElement,
   VariableDeclaration,
@@ -24,18 +25,26 @@ import {
   ValueKind,
   type Op,
   type LocalId,
+  type PayloadId,
   type Qrl,
   type Value,
   BindingScope,
 } from '../schema';
 import { SegmentContext } from '../words';
+import { ValueIrKind } from '../../src/expr-ir';
+import { bindingIdentifiers } from './ast/bindings';
 import { InvalidModuleError, UnsupportedError } from '../errors';
 import { collectCaptures, lowerCaptures } from './ast/capture-analysis';
 import { readReturnedBody, unwrapExpression } from './ast/utils';
 import { pushPayload, pushQrl, QrlIdentityKind, type LowerContext } from './lower-context';
 import { createSegmentSymbolName, sanitizeSegmentName } from '../segment-identity';
 import { lowerComputedExpressionValue, trySignalReadValue } from './lower-expr';
-import { LocalKind, lowerConstDeclaration } from './lower-setup';
+import {
+  LocalKind,
+  lowerConstBinding,
+  lowerConstDeclaration,
+  type SetupLocals,
+} from './lower-setup';
 import { lowerRenderExpression } from './lower-jsx';
 
 export const DESTRUCTURED_WRAPPED_PARAM = 'item';
@@ -102,6 +111,7 @@ function lowerEach(
   const localBindings = new Set<LocalId>();
   const paramAliases = new Map<LocalId, { base: LocalId; member: string }>();
   const paramBindings: LocalId[] = [];
+  const paramPatterns = new Map<LocalId, BindingPattern>();
 
   for (const param of callback.params) {
     switch (param.type) {
@@ -115,7 +125,8 @@ function lowerEach(
         paramBindings.push(binding);
         break;
       }
-      case 'ObjectPattern': {
+      case 'ObjectPattern':
+      case 'ArrayPattern': {
         const binding = ctx.bindings.addSynthetic(DESTRUCTURED_WRAPPED_PARAM, BindingScope.Loop);
         const freshName =
           DESTRUCTURED_WRAPPED_PARAM +
@@ -127,22 +138,25 @@ function lowerEach(
         ctx.plan.bindings[binding].name = freshName;
         paramBindings.push(binding);
 
-        for (const property of param.properties) {
-          if (property.type === 'RestElement' || property.value.type !== 'Identifier') {
-            throw new UnsupportedError('a destructured collection row parameter');
+        const aliases = readParameterAliases(param, ctx);
+        if (aliases === null) {
+          paramPatterns.set(binding, param);
+          for (const identifier of bindingIdentifiers(param)) {
+            const local = ctx.bindings.declaration(identifier);
+            if (local === null) {
+              throw new UnsupportedError(
+                `the unresolved collection parameter "${identifier.name}"`
+              );
+            }
+            ctx.plan.bindings[local].scope = BindingScope.Loop;
+            localBindings.add(local);
           }
-          if (property.key.type !== 'Identifier' || property.computed) {
-            throw new UnsupportedError('a destructured collection row parameter');
-          }
-          // { id } -> 'id'/'id'; { a: b } → klucz 'a', lokalna nazwa 'b'
-          const alias = ctx.bindings.declaration(property.value);
-          if (alias === null) {
-            throw new UnsupportedError(
-              `the unresolved collection parameter "${property.value.name}"`
-            );
-          }
+          break;
+        }
+
+        for (const [alias, member] of aliases) {
           ctx.plan.bindings[alias].scope = BindingScope.Loop;
-          paramAliases.set(alias, { base: binding, member: property.key.name });
+          paramAliases.set(alias, { base: binding, member });
           localBindings.add(alias);
         }
         break;
@@ -151,6 +165,16 @@ function lowerEach(
         throw new UnsupportedError('a destructured collection row parameter');
       }
     }
+  }
+
+  if (paramPatterns.size > 0) {
+    paramPatterns.clear();
+    paramAliases.clear();
+    callback.params.forEach((param, position) => {
+      if (param.type === 'ObjectPattern' || param.type === 'ArrayPattern') {
+        paramPatterns.set(paramBindings[position], param);
+      }
+    });
   }
 
   const program = ctx.plan.programs.length;
@@ -170,6 +194,7 @@ function lowerEach(
       callback,
       paramBindings,
       paramAliases,
+      paramPatterns,
       localBindings,
       program,
       ctx,
@@ -199,7 +224,15 @@ function lowerEach(
 
   // The row's segment comes first (legacy order: for_render before for_key), children after.
   const originBody = statements.length === 0 ? body : callback.body;
-  const rowCaptures = lowerCaptures(originBody, ctx, 'a collection row', { localBindings });
+  const rowCaptures = lowerCaptures(
+    [...paramPatterns.values(), originBody],
+    ctx,
+    'a collection row',
+    {
+      localBindings,
+      allowProps: true,
+    }
+  );
   const rowRange: [number, number] = [originBody.start, originBody.end];
   const { index: rowIndex, use } = pushQrl(
     ctx,
@@ -224,7 +257,10 @@ function lowerEach(
     },
     rowCaptures.args
   );
-  const key = body.type === 'JSXElement' ? lowerKey(body, callback, ctx, localBindings) : null;
+  const key =
+    body.type === 'JSXElement'
+      ? lowerKey(body, callback, ctx, localBindings, paramBindings, paramPatterns)
+      : null;
   if (source.s === EachSourceKind.Derived && key === null) {
     throw new InvalidModuleError('for-key', 'A derived collection requires a row key', [
       body.start,
@@ -237,6 +273,7 @@ function lowerEach(
     callback,
     paramBindings,
     paramAliases,
+    paramPatterns,
     localBindings,
     program,
     ctx,
@@ -246,6 +283,7 @@ function lowerEach(
   const descendants = ctx.plan.qrls.slice(rowIndex + 1);
   ctx.plan.qrls[rowIndex].params.used = paramBindings.filter(
     (binding) =>
+      paramPatterns.has(binding) ||
       setupReads.locals.some(({ local }) => local.binding === binding) ||
       descendants.some((qrl) =>
         qrl.captures.some(
@@ -259,7 +297,8 @@ function lowerEach(
   const index = deriveIndexMode(
     paramBindings[1],
     descendants,
-    setupReads.locals.some(({ local }) => local.kind === LocalKind.RowIndex)
+    paramPatterns.has(paramBindings[1]) ||
+      setupReads.locals.some(({ local }) => local.kind === LocalKind.RowIndex)
   );
 
   return {
@@ -272,6 +311,33 @@ function lowerEach(
     lifetime,
     shape: deriveRowShape(program, ctx),
   };
+}
+
+/** Simple object fields retain the existing member-read fast path. */
+function readParameterAliases(
+  pattern: BindingPattern,
+  ctx: LowerContext
+): Map<LocalId, string> | null {
+  if (pattern.type !== 'ObjectPattern') {
+    return null;
+  }
+  const aliases = new Map<LocalId, string>();
+  for (const property of pattern.properties) {
+    if (
+      property.type === 'RestElement' ||
+      property.value.type !== 'Identifier' ||
+      property.key.type !== 'Identifier' ||
+      property.computed
+    ) {
+      return null;
+    }
+    const binding = ctx.bindings.declaration(property.value);
+    if (binding === null) {
+      throw new UnsupportedError(`the unresolved collection parameter "${property.value.name}"`);
+    }
+    aliases.set(binding, property.key.name);
+  }
+  return aliases;
 }
 
 /** A row's runtime shape: one element wears `q:row`; anything else needs a marker range. */
@@ -358,6 +424,7 @@ function lowerRowProgram(
   callback: ArrowFunctionExpression,
   paramBindings: LocalId[],
   paramAliases: Map<LocalId, { base: LocalId; member: string }>,
+  paramPatterns: Map<LocalId, BindingPattern>,
   localBindings: ReadonlySet<LocalId>,
   program: number,
   ctx: LowerContext,
@@ -368,7 +435,7 @@ function lowerRowProgram(
   const outerLocals = ctx.locals;
   const rowLocals = new Map(outerLocals);
   callback.params.forEach((param, position) => {
-    if (param.type === 'Identifier') {
+    if (param.type === 'Identifier' || paramPatterns.has(paramBindings[position])) {
       rowLocals.set(paramBindings[position], {
         // Inline params are plain iteration values — the index is a number, not a signal.
         kind: !lexical && position === 1 ? LocalKind.RowIndex : LocalKind.LoopValue,
@@ -393,10 +460,16 @@ function lowerRowProgram(
   const outerInlineParams = ctx.inlineParams;
   ctx.inlineParams = lexical ? localBindings : null;
   try {
-    const setupReads = collectCaptures(statements, ctx, new Set());
-    ctx.plan.programs[program].setup = statements.flatMap((statement) =>
-      statement.declarations.map((declarator) => lowerConstDeclaration(declarator, ctx, rowLocals))
-    );
+    const setupReads = collectCaptures([...paramPatterns.values(), ...statements], ctx, new Set());
+    const parameterSetup = lowerParameterPatterns(paramPatterns, paramBindings, ctx, rowLocals);
+    ctx.plan.programs[program].setup = [
+      ...parameterSetup,
+      ...statements.flatMap((statement) =>
+        statement.declarations.map((declarator) =>
+          lowerConstDeclaration(declarator, ctx, rowLocals)
+        )
+      ),
+    ];
     ctx.plan.programs[program].body = { kind: ProgramBodyKind.Ops, ops: lowerBody(body, ctx) };
     return setupReads;
   } finally {
@@ -405,12 +478,48 @@ function lowerRowProgram(
   }
 }
 
+function lowerParameterPatterns(
+  patterns: Map<LocalId, BindingPattern>,
+  params: LocalId[],
+  ctx: LowerContext,
+  locals: SetupLocals
+) {
+  return [...patterns].map(([binding, pattern]) => {
+    const reads = collectCaptures(pattern, ctx, new Set());
+    if (reads.locals.some(({ local }) => params.indexOf(local.binding) > params.indexOf(binding))) {
+      throw new UnsupportedError('a collection parameter referencing a later parameter');
+    }
+    return lowerConstBinding(
+      pattern,
+      {
+        v: ValueKind.Computed,
+        expr: {
+          kind: ExprKind.Ir,
+          ir: {
+            kind:
+              ctx.locals.get(binding)?.kind === LocalKind.RowIndex
+                ? ValueIrKind.SignalRead
+                : ValueIrKind.BindingRead,
+            binding,
+          },
+        },
+        resume: { r: ResumeKind.Inline },
+        compilerString: false,
+      },
+      ctx,
+      locals
+    );
+  });
+}
+
 /** The row's `key` attribute — a Function-payload QRL the runtime calls per row with the item. */
 function lowerKey(
   row: JSXElement,
   callback: ArrowFunctionExpression,
   ctx: LowerContext,
-  localBindings: ReadonlySet<LocalId>
+  localBindings: ReadonlySet<LocalId>,
+  paramBindings: LocalId[],
+  paramPatterns: Map<LocalId, BindingPattern>
 ): Value | null {
   const attribute = row.openingElement.attributes.find(
     (candidate) => candidate.type === 'JSXAttribute' && candidate.name.name === 'key'
@@ -428,11 +537,18 @@ function lowerKey(
   if (keyExpression === null) {
     return null;
   }
-  const { captures, args } = lowerCaptures(keyExpression, ctx, 'a collection key', {
-    localBindings,
-  });
+  const { captures, args } = lowerCaptures(
+    [...paramPatterns.values(), keyExpression],
+    ctx,
+    'a collection key',
+    {
+      localBindings,
+      allowProps: true,
+    }
+  );
   const range: [number, number] = [keyExpression.start, keyExpression.end];
   const payload = pushPayload(ctx, range);
+  const keyBody = lowerKeyBody(payload, paramBindings, paramPatterns, ctx);
   const { use } = pushQrl(
     ctx,
     {
@@ -441,7 +557,7 @@ function lowerKey(
       boundary: { kind: BoundaryKind.Implicit, role: 'for' },
       payloadKind: QrlPayloadKind.Function,
       authoredAsync: false,
-      body: { b: QrlBodyKind.Js, payload },
+      body: keyBody,
       captures,
       params: { authored: callback.params.length, used: [], sources: [] },
       origin: {
@@ -457,4 +573,41 @@ function lowerKey(
     args
   );
   return { v: ValueKind.Qrl, use };
+}
+
+function lowerKeyBody(
+  payload: PayloadId,
+  paramBindings: LocalId[],
+  paramPatterns: Map<LocalId, BindingPattern>,
+  ctx: LowerContext
+): Qrl['body'] {
+  if (paramPatterns.size === 0) {
+    return { b: QrlBodyKind.Js, payload };
+  }
+  const outerLocals = ctx.locals;
+  const keyLocals = new Map(outerLocals);
+  ctx.locals = keyLocals;
+  try {
+    for (const binding of paramBindings) {
+      keyLocals.set(binding, {
+        kind: LocalKind.LoopValue,
+        access: CaptureAccess.LoopValue,
+        binding,
+        slot: -1,
+      });
+    }
+    const setup = lowerParameterPatterns(paramPatterns, paramBindings, ctx, keyLocals);
+    const program = ctx.plan.programs.length;
+    ctx.plan.programs.push({
+      body: { kind: ProgramBodyKind.Js, payload },
+      setup,
+      params: paramBindings,
+      lifetime: 0,
+      needsId: false,
+      async: false,
+    });
+    return { b: QrlBodyKind.Program, program };
+  } finally {
+    ctx.locals = outerLocals;
+  }
 }

@@ -38,10 +38,10 @@ import {
   functionText,
   qrlPropsName,
   resolveQrlUse,
-  sourceFunctionEmission,
   type FunctionEmission,
 } from './emit-chunk';
 import { emitJsSetup, signalReadName } from './emit-setup';
+import { sourceFunctionEmission } from './emit-function';
 import { emitCollectionSource } from './emit-collection';
 import { foldStaticOp, isFullyStaticSubtree } from './fold-static';
 import {
@@ -228,6 +228,9 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       case QrlBodyKind.Task:
         throw new UnsupportedError('a task QRL body');
       case QrlBodyKind.Program:
+        if (this.module.programs[qrl.body.program].body.kind === ProgramBodyKind.Js) {
+          return sourceFunctionEmission(this.module, qrl);
+        }
         switch (programKind(qrl)) {
           case ProgramKind.BranchArm:
             return this.armEmission(qrl);

@@ -925,6 +925,21 @@ export default (props) => {
     expect(output.diagnostics).toEqual([]);
   });
 
+  test.each([
+    ['object', '{ id, details: { title = fallback.value }, ...rest }', 'title + rest.suffix'],
+    ['array', '[id, , title = fallback.value, ...rest]', 'title + rest.length'],
+  ])('should destructure collection parameters: %s', async (kind, pattern, text) => {
+    const output = await testInput(mode, `collection-param-${kind}`, {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
+  const items = useSignal([]);
+  const fallback = useSignal('Untitled');
+  return <ul>{items.value.map((${pattern}) => <li key={id} onClick$={() => console.log(title)}>{${text}}</li>)}</ul>;
+};`,
+    });
+    expect(output.diagnostics).toEqual([]);
+  });
+
   test('should forward slots and render fallback through fragments', async () => {
     const output = await testInput(mode, 'component-slot-forwarding-fragments', {
       code: `import { Slot } from '@qwik.dev/core';

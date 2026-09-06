@@ -8,6 +8,7 @@ import {
   type Arg,
   type LocalId,
   type Setup,
+  type Value,
 } from '../schema';
 import { ValueIrKind, type ValueIR } from '../../src/expr-ir';
 import type {
@@ -47,20 +48,31 @@ export function lowerConstDeclaration(
   if (declarator.init === null) {
     throw new UnsupportedError('a const declaration without an initializer');
   }
-  if (findRuntimeJsx(declarator.id) !== null) {
+  const { refs } = lowerCaptures(declarator, ctx, 'a const initializer', { allowProps: true });
+  const value = lowerInlineExpressionValue(declarator.init, ctx, refs);
+  return lowerConstBinding(declarator.id, value, ctx, locals);
+}
+
+/** Authored patterns keep native defaults, rest and evaluation order. */
+export function lowerConstBinding(
+  pattern: BindingPattern,
+  value: Value,
+  ctx: LowerContext,
+  locals: SetupLocals
+): Setup {
+  if (findRuntimeJsx(pattern) !== null) {
     throw new UnsupportedError('JSX inside a binding pattern');
   }
-  const bindings = bindingIdentifiers(declarator.id).map((identifier) => {
+  const bindings = bindingIdentifiers(pattern).map((identifier) => {
     const binding = ctx.bindings.declaration(identifier);
     if (binding === null) {
       throw new UnsupportedError(`the unresolved setup binding "${identifier.name}"`);
     }
     return binding;
   });
-  const { refs } = lowerCaptures(declarator, ctx, 'a const initializer', { allowProps: true });
-  const value = lowerInlineExpressionValue(declarator.init, ctx, refs);
-  const pattern = pushPayload(ctx, [declarator.id.start, declarator.id.end]);
-  recordPayloadAliasReads(ctx, pattern, refs);
+  const { refs } = lowerCaptures(pattern, ctx, 'a binding pattern', { allowProps: true });
+  const payload = pushPayload(ctx, [pattern.start, pattern.end]);
+  recordPayloadAliasReads(ctx, payload, refs);
   for (const binding of bindings) {
     locals.set(binding, { kind: LocalKind.Const, access: CaptureAccess.Direct, slot: -1, binding });
   }
@@ -68,7 +80,7 @@ export function lowerConstDeclaration(
     s: SetupKind.Const,
     result: {
       bind: BindTargetKind.Pattern,
-      pattern,
+      pattern: payload,
       bindings,
     },
     value,

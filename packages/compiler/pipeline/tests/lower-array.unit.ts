@@ -48,6 +48,85 @@ function lower(jsx: string) {
 const ROW = '<ul>{items.value.map((item) => <li key={item.id}>{item.label}</li>)}</ul>';
 
 describe('lowerArray / reactive rows', () => {
+  test.each(['items.value', '[{}]'])(
+    'parameter defaults preserve evaluation order: %s',
+    (source) => {
+      const { ctx } = lower(
+        `<ul>{${source}.map(({ [items.value.field]: label = items.value.fallback, copy = label, ...rest }) => <li>{copy}</li>)}</ul>`
+      );
+      const linked = linkPlans(
+        [ctx.plan],
+        [],
+        serverSpecialization(),
+        { edges: {} },
+        { claims: [], policies: [], emissions: [] },
+        false
+      );
+      if (linked.kind === LinkResultKind.Failed) {
+        throw new Error('expected the fixture to link');
+      }
+      const module = linked.plan.modules[0];
+      const program = module.programs.find((program) => program.setup.length > 0)!;
+      const calls: string[] = [];
+      const result = runInNewContext(
+        `(() => {
+      ${emitJsSetup(module, program, new Set()).join('\n')}
+      return [label, copy, rest.extra];
+    })()`,
+        {
+          item: {
+            get 0() {
+              calls.push('get');
+              return undefined;
+            },
+            extra: 'rest',
+          },
+          items: {
+            value: {
+              field: 0,
+              get fallback() {
+                calls.push('default');
+                return 'fallback';
+              },
+            },
+          },
+        }
+      );
+      expect(result).toEqual(['fallback', 'fallback', 'rest']);
+      expect(calls).toEqual(['get', 'default']);
+      const row = module.qrls.find((qrl) => qrl.ctxName === 'for:render');
+      if (row !== undefined) {
+        expect(row.params.used.map((binding) => module.bindings[binding].name)).toEqual(['item']);
+      }
+    }
+  );
+
+  test('does not turn a parameter TDZ into a successful read', () => {
+    expect(() =>
+      lower('<ul>{items.value.map(({ title = index }, index) => <li>{title}</li>)}</ul>')
+    ).toThrow('a collection parameter referencing a later parameter');
+  });
+
+  test.each(['items.value', '[{}]'])('complex row patterns lower to const setup: %s', (source) => {
+    const { ctx } = lower(
+      `<ul>{${source}.map(({ id, details: { title = items.value.length }, ...rest }) => <li key={id}>{title + rest.suffix}</li>)}</ul>`
+    );
+    const program = ctx.plan.programs.find((program) => program.setup.length > 0)!;
+    expect(program.setup[0]).toMatchObject({
+      s: SetupKind.Const,
+      result: { bind: BindTargetKind.Pattern },
+    });
+    const result = program.setup[0].s === SetupKind.Const ? program.setup[0].result : null;
+    if (result?.bind !== BindTargetKind.Pattern) {
+      throw new Error('expected a pattern binding');
+    }
+    expect(result.bindings.map((binding) => ctx.plan.bindings[binding].name)).toEqual([
+      'id',
+      'title',
+      'rest',
+    ]);
+  });
+
   test('a derived source gets a function QRL with captures and preserves its row key', () => {
     const { op, ctx } = lower(
       '<ul>{items.value.filter((item) => item.visible).map((item, index) => <li key={item.id}>{index}:{item.label}</li>)}</ul>'

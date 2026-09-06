@@ -3,13 +3,10 @@ import {
   BoundaryKind,
   CaptureAccess,
   ExprKind,
-  FnBodyKind,
-  PropsPartKind,
   QrlBodyKind,
   ResumeKind,
   Shape,
   ValueKind,
-  QrlPayloadKind,
   type LinkedModule,
   type LinkedQrl,
   type QrlUse,
@@ -148,67 +145,8 @@ export function capturePrelude(captures: readonly string[]): string[] {
   return captures.length === 0 ? [] : [`const [${captures.join(', ')}] = ${QwikWord.Captures};`];
 }
 
-/** The authored function regenerated from its source slice — target-independent by construction. */
-export function sourceFunctionEmission(module: LinkedModule, qrl: LinkedQrl): FunctionEmission {
-  if (qrl.origin.bodyKind !== FnBodyKind.Expression) {
-    throw new UnsupportedError('emitting a chunk for a block QRL body');
-  }
-  const source = module.source.code;
-  const captures = captureNames(module, qrl);
-  const emission = emptyFunctionEmission();
-  emission.params =
-    qrl.payloadKind === QrlPayloadKind.Value
-      ? captures
-      : qrl.origin.paramRanges.map(([start, end]) => source.slice(start, end));
-  if (qrl.payloadKind === QrlPayloadKind.Function && captures.length > 0) {
-    emission.imports.add(QwikWord.Captures);
-    emission.statements.push(...capturePrelude(captures));
-  }
-  const body = qrl.body;
-  // An Ir body always prints from the IR: aliases (destructured params) have no authored
-  // source to slice, and the IR is complete by construction when the analysis chose Ir.
-  emission.value =
-    qrl.propsParts.length > 0
-      ? `{ ${qrl.propsParts.map((part) => propsPartJs(module, qrl, part, emission)).join(', ')} }`
-      : body.b === QrlBodyKind.Expr
-        ? body.expr.kind === ExprKind.Ir
-          ? valueIrJs(module, body.expr.ir)
-          : // The payload shares the body range and materializes alias reads.
-            extractPayloadJs(module, body.expr.payload)
-        : source.slice(qrl.origin.bodyRange[0], qrl.origin.bodyRange[1]);
-  emission.async = qrl.authoredAsync;
-  return emission;
-}
-
-function propsPartJs(
-  module: LinkedModule,
-  owner: LinkedQrl,
-  part: LinkedQrl['propsParts'][number],
-  emission: FunctionEmission
-): string {
-  switch (part.kind) {
-    case PropsPartKind.Static:
-      return `${JSON.stringify(part.name)}: ${JSON.stringify(part.value)}`;
-    case PropsPartKind.Expression:
-      return `${JSON.stringify(part.name)}: ${extractPayloadJs(module, part.value)}`;
-    case PropsPartKind.Spread:
-      return `...${extractPayloadJs(module, part.value)}`;
-    case PropsPartKind.Event: {
-      const { qrl, args } = resolveQrlUse(module, part.use, qrlPropsName(module, owner, 'props'));
-      if (qrl.payloadKind !== QrlPayloadKind.Function) {
-        throw new UnsupportedError('a non-function component event QRL');
-      }
-      if (!emission.uses.some((usage) => usage.qrl.id === qrl.id)) {
-        emission.uses.push({ qrl, invoked: false });
-      }
-      const reference = `q_${qrl.name}`;
-      return `${JSON.stringify(part.name)}: ${args.length === 0 ? reference : `${reference}.w([${args.join(', ')}])`}`;
-    }
-  }
-}
-
 /** Prints a plan-complete IR body; kinds join as examples demand them. */
-function valueIrJs(module: LinkedModule, ir: ValueIR): string {
+export function valueIrJs(module: LinkedModule, ir: ValueIR): string {
   switch (ir.kind) {
     case ValueIrKind.SignalRead:
       return `${module.bindings[ir.binding].name}.value`;

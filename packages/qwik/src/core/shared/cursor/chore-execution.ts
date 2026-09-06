@@ -497,6 +497,9 @@ export function executeReconcile(
   cursor: Cursor
 ): ValueOrPromise<void> {
   vNode.dirty &= ~ChoreBits.RECONCILE;
+  if (!__EXPERIMENTAL__.each) {
+    return;
+  }
   const host = vNode as ElementVNode;
   const props = container.getHostProp<Props | null>(host, ELEMENT_PROPS) || null;
   if (!props) {

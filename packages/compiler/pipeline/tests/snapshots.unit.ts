@@ -956,6 +956,22 @@ export default () => {
     expect(output.diagnostics).toEqual([]);
   });
 
+  test('should select collection key setup by binding dependencies', async () => {
+    const output = await testInput(mode, 'collection-key-const', {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default (props) => {
+  const items = useSignal([]);
+  const separator = useSignal(':');
+  return <ul>{items.value.map(({ id, type }, index) => {
+    const prefix = type + separator.value, title = props.title;
+    const key = prefix + id + index;
+    return <li key={key}>{title}</li>;
+  })}</ul>;
+};`,
+    });
+    expect(output.diagnostics).toEqual([]);
+  });
+
   test('should forward slots and render fallback through fragments', async () => {
     const output = await testInput(mode, 'component-slot-forwarding-fragments', {
       code: `import { Slot } from '@qwik.dev/core';

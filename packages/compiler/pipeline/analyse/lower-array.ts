@@ -3,7 +3,9 @@ import type {
   BindingPattern,
   Expression,
   JSXElement,
+  Node,
   VariableDeclaration,
+  VariableDeclarator,
 } from 'oxc-parser';
 import {
   BoundaryKind,
@@ -32,6 +34,7 @@ import {
 } from '../schema';
 import { SegmentContext } from '../words';
 import { ValueIrKind } from '../../src/expr-ir';
+import { visit } from '../../src/jsx-ast-utils';
 import { bindingIdentifiers } from './ast/bindings';
 import { InvalidModuleError, UnsupportedError } from '../errors';
 import { collectCaptures, lowerCaptures } from './ast/capture-analysis';
@@ -264,7 +267,7 @@ function lowerEach(
   );
   const key =
     body.type === 'JSXElement'
-      ? lowerKey(body, callback, ctx, localBindings, paramBindings, paramPatterns)
+      ? lowerKey(body, callback, statements, ctx, localBindings, paramBindings, paramPatterns)
       : null;
   if (source.s === EachSourceKind.Derived && key === null) {
     throw new InvalidModuleError('for-key', 'A derived collection requires a row key', [
@@ -525,6 +528,7 @@ function lowerParameterPatterns(
 function lowerKey(
   row: JSXElement,
   callback: ArrowFunctionExpression,
+  statements: VariableDeclaration[],
   ctx: LowerContext,
   localBindings: ReadonlySet<LocalId>,
   paramBindings: LocalId[],
@@ -546,8 +550,21 @@ function lowerKey(
   if (keyExpression === null) {
     return null;
   }
+  const declarations = selectKeyDeclarations(keyExpression, statements, ctx);
+  const keyPatterns = new Map(paramPatterns);
+  if (declarations.length > 0) {
+    callback.params.map(readCollectionParameter).forEach((param, index) => {
+      if (
+        param.type === 'ObjectPattern' ||
+        param.type === 'ArrayPattern' ||
+        param.type === 'AssignmentPattern'
+      ) {
+        keyPatterns.set(paramBindings[index], param);
+      }
+    });
+  }
   const { captures, args } = lowerCaptures(
-    [...paramPatterns.values(), keyExpression],
+    [...keyPatterns.values(), ...declarations, keyExpression],
     ctx,
     'a collection key',
     {
@@ -557,7 +574,7 @@ function lowerKey(
   );
   const range: [number, number] = [keyExpression.start, keyExpression.end];
   const payload = pushPayload(ctx, range);
-  const keyBody = lowerKeyBody(payload, paramBindings, paramPatterns, ctx);
+  const keyBody = lowerKeyBody(payload, paramBindings, keyPatterns, declarations, ctx);
   const { use } = pushQrl(
     ctx,
     {
@@ -586,13 +603,45 @@ function lowerKey(
   return { v: ValueKind.Qrl, use };
 }
 
+function selectKeyDeclarations(
+  expression: Node,
+  statements: VariableDeclaration[],
+  ctx: LowerContext
+): VariableDeclarator[] {
+  const declarations = statements.flatMap((statement) => statement.declarations);
+  const byBinding = new Map<LocalId, VariableDeclarator>();
+  for (const declaration of declarations) {
+    for (const identifier of bindingIdentifiers(declaration.id)) {
+      const binding = ctx.bindings.declaration(identifier);
+      if (binding !== null) {
+        byBinding.set(binding, declaration);
+      }
+    }
+  }
+  const selected = new Set<VariableDeclarator>();
+  function selectDependencies(expression: Node) {
+    visit(expression, (node) => {
+      const binding = ctx.bindings.reference(node);
+      const declaration = binding === null ? undefined : byBinding.get(binding);
+      if (declaration === undefined || selected.has(declaration)) {
+        return;
+      }
+      selected.add(declaration);
+      selectDependencies(declaration);
+    });
+  }
+  selectDependencies(expression);
+  return declarations.filter((declaration) => selected.has(declaration));
+}
+
 function lowerKeyBody(
   payload: PayloadId,
   paramBindings: LocalId[],
   paramPatterns: Map<LocalId, BindingPattern>,
+  declarations: VariableDeclarator[],
   ctx: LowerContext
 ): Qrl['body'] {
-  if (paramPatterns.size === 0) {
+  if (paramPatterns.size === 0 && declarations.length === 0) {
     return { b: QrlBodyKind.Js, payload };
   }
   const outerLocals = ctx.locals;
@@ -608,6 +657,9 @@ function lowerKeyBody(
       });
     }
     const setup = lowerParameterPatterns(paramPatterns, paramBindings, ctx, keyLocals);
+    for (const declaration of declarations) {
+      setup.push(lowerConstDeclaration(declaration, ctx, keyLocals));
+    }
     const program = ctx.plan.programs.length;
     ctx.plan.programs.push({
       body: { kind: ProgramBodyKind.Js, payload },

@@ -17,6 +17,88 @@ function loadFunction(module: { path: string; code: string }, captures: unknown[
 }
 
 test.each([false, true])(
+  'key setup follows const dependencies without executing row-only setup (SSR: %s)',
+  async (isServer) => {
+    const output = await transformModules({
+      srcDir: 'src',
+      isServer,
+      transpileTs: true,
+      input: [
+        {
+          path: 'src/component.tsx',
+          code: `import { useSignal } from '@qwik.dev/core';
+export default (props) => {
+  const items = useSignal([]);
+  const fallback = useSignal('fallback');
+  return <ul>{items.value.map((item, index) => {
+    const unused = props.renderOnly;
+    const { [props.field]: id = fallback.value } = item;
+    const prefix = props.prefix, title = props.title;
+    const key = prefix + id + index + ((unused) => unused)('!');
+    return <li key={key}>{title + unused}</li>;
+  })}</ul>;
+};`,
+        },
+      ],
+    });
+    expect(output.diagnostics).toEqual([]);
+    const key = output.modules.find((module) => module.segment?.ctxName === 'for:key')!;
+    expect(key.code).not.toContain('props.renderOnly');
+    expect(key.code).not.toContain('props.title');
+    const captures = {
+      props: { field: 'id', prefix: '#' },
+      fallback: { value: 'fallback' },
+    };
+    const getKey = loadFunction(
+      key,
+      key.segment!.captureNames.map((name) => captures[name as keyof typeof captures])
+    );
+    expect(getKey({ id: 'first' }, 2)).toBe('#first2!');
+    expect(getKey({}, 0)).toBe('#fallback0!');
+    captures.fallback.value = 'next';
+    expect(getKey({}, 1)).toBe('#next1!');
+    const row = output.modules.find((module) => module.segment?.ctxName === 'for:render')!;
+    expect(row.code).toContain('props.renderOnly');
+    expect(row.code).toContain('props.title');
+  }
+);
+
+test.each([false, true])(
+  'local keys reuse parameter binding patterns and numeric indexes (SSR: %s)',
+  async (isServer) => {
+    for (const [pattern, read, provided] of [
+      ['{ id }', 'id', { id: 'given' }],
+      ['[id]', 'id', ['given']],
+      ['item = fallback.value', 'item.id', undefined],
+      ['{ id } = fallback.value', 'id', undefined],
+    ] as const) {
+      const output = await transformModules({
+        srcDir: 'src',
+        isServer,
+        transpileTs: true,
+        input: [
+          {
+            path: 'src/component.tsx',
+            code: `import { useSignal } from '@qwik.dev/core';
+export default (props) => {
+  const fallback = useSignal({ id: 'given' });
+  return <ul>{props.items.map((${pattern}, index) => {
+    const key = ${read} + index;
+    return <li key={key}>Row</li>;
+  })}</ul>;
+};`,
+          },
+        ],
+      });
+      expect(output.diagnostics).toEqual([]);
+      const key = output.modules.find((module) => module.segment?.ctxName === 'for:key')!;
+      const getKey = loadFunction(key, [{ value: { id: 'given' } }]);
+      expect(getKey(provided, 2)).toBe('given2');
+    }
+  }
+);
+
+test.each([false, true])(
   'whole-parameter defaults are lazy and undefined-only (SSR: %s)',
   async (isServer) => {
     for (const [pattern, keyExpression, provided, fallback] of [

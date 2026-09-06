@@ -119,8 +119,10 @@ from a deserialized frozen plan in a fresh process.
   entries, evaluated once per row render; descendant QRLs capture their results directly.
   Object and array binding patterns retain native defaults, rest and evaluation order; pattern
   expressions participate in capture analysis and parameter-read rewriting.
-  Setup-only parameter reads stay in the row ABI. Async callbacks, non-const statements,
-  early returns and row-local keys remain deferred.
+  Setup-only parameter reads stay in the row ABI. Row-local keys select transitive `const`
+  dependencies by binding identity and evaluate them in source order, separately from row rendering.
+  Unrelated row setup is omitted from key functions; selected declarations retain native patterns.
+  Async callbacks, non-const statements and early returns remain deferred.
 - Complex collection parameter patterns reuse `Setup.Const`: nested fields, defaults, computed
   properties, array holes and rest retain native evaluation order. Render and key functions restore
   captures before binding parameters; descendants capture the resulting locals directly.

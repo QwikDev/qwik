@@ -41,8 +41,8 @@ When an agent uses a skill and current source contradicts it:
 - Human setup guide: `.ruler/README.md`
 - Ruler config: `.ruler/ruler.toml`
 - Source skills: `.ruler/skills/**/SKILL.md`
-- Generated outputs (committed): root `AGENTS.md`, root `CLAUDE.md`, and `.claude/skills/` /
-  `.codex/skills/`; other `.claude/`/`.codex/`/`.cursor/` files stay local
+- Generated outputs (committed): root `AGENTS.md` and root `CLAUDE.md`; generated skill copies in
+  `.claude/skills/` and `.codex/skills/` are gitignored, as are other assistant-local files
 
 ## Rule And Skill Workflow
 

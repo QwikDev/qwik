@@ -213,6 +213,12 @@ When a change affects published packages, add a changeset under `.changeset/`.
 #### Modularity
 
 - Keep functions focused on one responsibility.
+- Before adding a local scan, index, or dependency traversal, identify which phase already owns
+  that information and inspect how other consumers obtain it.
+- Reuse shared analysis results, not just traversal helpers. Keep reusable facts in the owning
+  phase and feature-specific decisions in consumers; avoid parallel registries and speculative caches.
+- Small increments limit feature scope, not architectural responsibility. Review similar consumers
+  before finishing; passing output tests alone does not prove the code belongs in the right place.
 - Extract a helper when a block has a clear name, is reused, or hides the main path.
 - Do not extract helpers only to move complexity around; the caller should become easier to read.
 - Keep helpers close to their first use unless they are shared across files.

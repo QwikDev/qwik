@@ -17,6 +17,87 @@ function loadFunction(module: { path: string; code: string }, captures: unknown[
 }
 
 test.each([false, true])(
+  'nested keys visit only conditions and keys on the selected path (SSR: %s)',
+  async (isServer) => {
+    for (const source of ['items.value', 'props.items']) {
+      const output = await transformModules({
+        srcDir: 'src',
+        isServer,
+        transpileTs: true,
+        input: [
+          {
+            path: 'src/component.tsx',
+            code: `import { useSignal } from '@qwik.dev/core';
+export default (props) => {
+  const items = useSignal([]);
+  return <ul>{${source}.map(({ id }, index) => {
+    const prefix = props.prefix;
+    const last = prefix + index;
+    const title = props.title;
+    return props.outer
+      ? (props.left ? <li key={id + props.a}>{title}</li> : <li key={id + props.b}>{title}</li>)
+      : (props.right ? <li key={id + props.c}>{title}</li> : <li key={last + props.d}>{title}</li>);
+  })}</ul>;
+};`,
+          },
+        ],
+      });
+      expect(output.diagnostics).toEqual([]);
+      const key = output.modules.find((module) => module.segment?.ctxName === 'for:key')!;
+      const reads: string[] = [];
+      const choices = { outer: true, left: true, right: true };
+      const props = {
+        prefix: '#',
+        get outer() {
+          reads.push('outer');
+          return choices.outer;
+        },
+        get left() {
+          reads.push('left');
+          return choices.left;
+        },
+        get right() {
+          reads.push('right');
+          return choices.right;
+        },
+        get a() {
+          reads.push('a');
+          return 'A';
+        },
+        get b() {
+          reads.push('b');
+          return 'B';
+        },
+        get c() {
+          reads.push('c');
+          return 'C';
+        },
+        get d() {
+          reads.push('d');
+          return 'D';
+        },
+      };
+      expect(key.segment!.captureNames).toEqual(['props']);
+      const getKey = loadFunction(key, [props]);
+      for (const [outer, inner, expected, path] of [
+        [true, true, 'idA', ['outer', 'left', 'a']],
+        [true, false, 'idB', ['outer', 'left', 'b']],
+        [false, true, 'idC', ['outer', 'right', 'c']],
+        [false, false, '#2D', ['outer', 'right', 'd']],
+      ] as const) {
+        choices.outer = outer;
+        choices.left = choices.right = inner;
+        reads.length = 0;
+        expect(getKey({ id: 'id' }, 2)).toBe(expected);
+        expect(reads).toEqual(path);
+      }
+      expect(key.code).not.toContain('props.title');
+      expect(key.code).not.toContain('<li');
+    }
+  }
+);
+
+test.each([false, true])(
   'conditional keys evaluate only the selected arm (SSR: %s)',
   async (isServer) => {
     for (const setup of [false, true]) {

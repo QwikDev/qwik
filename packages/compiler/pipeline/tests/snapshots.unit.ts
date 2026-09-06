@@ -985,6 +985,20 @@ export default (props) => {
     }
   );
 
+  test('should key nested conditional collection arms', async () => {
+    const output = await testInput(mode, 'collection-key-nested-conditional', {
+      code: `export const Primary = () => <b>Primary</b>;
+export default (props) => <ul>{props.items.map(({ id, primary, secondary }, index) => {
+  const prefix = props.prefix;
+  const key = prefix + id;
+  return primary ? <Primary key={key} /> : (
+    secondary ? <li key={id}>Secondary</li> : <li key={index}>Other</li>
+  );
+})}</ul>;`,
+    });
+    expect(output.diagnostics).toEqual([]);
+  });
+
   test('should select collection key setup by binding dependencies', async () => {
     const output = await testInput(mode, 'collection-key-const', {
       code: `import { useSignal } from '@qwik.dev/core';

@@ -2,6 +2,7 @@ import type {
   ArrowFunctionExpression,
   BindingPattern,
   Expression,
+  JSXElement,
   VariableDeclaration,
   VariableDeclarator,
 } from 'oxc-parser';
@@ -33,8 +34,9 @@ import {
 import { SegmentContext } from '../words';
 import { ValueIrKind } from '../../src/expr-ir';
 import { InvalidModuleError, UnsupportedError } from '../errors';
-import { collectCaptures, lowerCaptures } from './ast/capture-analysis';
-import { readReturnedBody, unwrapExpression } from './ast/utils';
+import { collectCaptures, lowerCaptures, type CollectedCaptures } from './ast/capture-analysis';
+import { unwrapExpression } from './ast/utils';
+import { JsxValueKind, type JsxValue } from './ast/jsx-analysis';
 import { pushPayload, pushQrl, QrlIdentityKind, type LowerContext } from './lower-context';
 import { createSegmentSymbolName, sanitizeSegmentName } from '../segment-identity';
 import {
@@ -60,34 +62,22 @@ export function lowerArray(
   ctx: LowerContext,
   lowerBody: RowLowering = lowerRenderExpression
 ): Op {
-  switch (expression.type) {
-    case 'CallExpression': {
-      const callback = expression.arguments[0];
-      if (
-        expression.callee.type !== 'MemberExpression' ||
-        callback?.type !== 'ArrowFunctionExpression'
-      ) {
-        throw new UnsupportedError('a collection without an inline arrow row');
-      }
-      if (callback.async) {
-        throw new UnsupportedError('an async collection row');
-      }
-      const body = readReturnedBody(callback.body);
-      if (body === null) {
-        throw new UnsupportedError(`the collection row body "${callback.body.type}"`);
-      }
-      return lowerEach(
-        expression.callee.object,
-        callback,
-        body.expression,
-        body.statements,
-        ctx,
-        lowerBody
-      );
-    }
-    default:
-      throw new UnsupportedError(`the collection call "${expression.type}"`);
+  const collection = ctx.jsx.read(expression);
+  if (collection.kind !== JsxValueKind.Collection) {
+    throw new UnsupportedError(
+      expression.type === 'CallExpression'
+        ? 'a collection without an inline arrow row'
+        : `the collection call "${expression.type}"`
+    );
   }
+  const { callback, body } = collection;
+  if (callback.async) {
+    throw new UnsupportedError('an async collection row');
+  }
+  if (body === null) {
+    throw new UnsupportedError(`the collection row body "${callback.body.type}"`);
+  }
+  return lowerEach(collection.source, callback, body.expression, body.statements, ctx, lowerBody);
 }
 
 function lowerEach(
@@ -533,17 +523,12 @@ function lowerKey(
   paramBindings: LocalId[],
   paramPatterns: Map<LocalId, BindingPattern>
 ): Value | null {
-  const conditional = row.type === 'ConditionalExpression' ? row : null;
-  const consequent = readRowKey(conditional?.consequent ?? row);
-  const alternate = conditional === null ? null : readRowKey(conditional.alternate);
-  if (consequent === null && alternate === null) {
+  const value = ctx.jsx.read(row);
+  const sources = new Map<JsxValue, Expression>();
+  if (!collectRowKeySources(value, sources)) {
     return null;
   }
-  if (consequent === null || (conditional !== null && alternate === null)) {
-    throw new UnsupportedError('a conditional collection row without keys in both arms');
-  }
-  const expressions =
-    conditional === null ? [consequent] : [conditional.test, consequent, alternate!];
+  const expressions = [...sources.values()];
   const declarations = ctx.bindings.dependenciesOf(
     expressions,
     statements.flatMap((statement) => statement.declarations)
@@ -569,20 +554,9 @@ function lowerKey(
       allowProps: true,
     }
   );
-  const origin = conditional ?? consequent;
+  const origin = value.kind === JsxValueKind.Conditional ? value.node : expressions[0];
   const range: [number, number] = [origin.start, origin.end];
-  const leaves = expressions.map(
-    (expression) => lowerInlineExpressionValue(expression, ctx, refs).expr
-  );
-  const expr: Expr =
-    conditional === null
-      ? leaves[0]
-      : {
-          kind: ExprKind.Conditional,
-          test: leaves[0],
-          then: leaves[1],
-          else: leaves[2],
-        };
+  const expr = lowerRowKeyExpression(value, sources, ctx, refs);
   const keyBody = lowerKeyBody(expr, paramBindings, keyPatterns, declarations, ctx);
   const { use } = pushQrl(
     ctx,
@@ -612,11 +586,43 @@ function lowerKey(
   return { v: ValueKind.Qrl, use };
 }
 
-function readRowKey(expression: Expression): Expression | null {
-  const row = unwrapExpression(expression);
-  if (row?.type !== 'JSXElement') {
-    return null;
+function collectRowKeySources(value: JsxValue, sources: Map<JsxValue, Expression>): boolean {
+  if (value.kind === JsxValueKind.Conditional) {
+    sources.set(value, value.node.test);
+    const hasThenKey = collectRowKeySources(value.then, sources);
+    const hasElseKey = collectRowKeySources(value.else, sources);
+    if (hasThenKey !== hasElseKey) {
+      throw new UnsupportedError('a conditional collection row without keys in both arms');
+    }
+    return hasThenKey;
   }
+  const key = value.kind === JsxValueKind.Element ? readRowKey(value.node) : null;
+  if (key === null) {
+    return false;
+  }
+  sources.set(value, key);
+  return true;
+}
+
+function lowerRowKeyExpression(
+  value: JsxValue,
+  sources: ReadonlyMap<JsxValue, Expression>,
+  ctx: LowerContext,
+  refs: CollectedCaptures
+): Expr {
+  const expr = lowerInlineExpressionValue(sources.get(value)!, ctx, refs).expr;
+  if (value.kind !== JsxValueKind.Conditional) {
+    return expr;
+  }
+  return {
+    kind: ExprKind.Conditional,
+    test: expr,
+    then: lowerRowKeyExpression(value.then, sources, ctx, refs),
+    else: lowerRowKeyExpression(value.else, sources, ctx, refs),
+  };
+}
+
+function readRowKey(row: JSXElement): Expression | null {
   const attribute = row.openingElement.attributes.find(
     (candidate) => candidate.type === 'JSXAttribute' && candidate.name.name === 'key'
   );

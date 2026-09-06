@@ -1,6 +1,7 @@
 import type { JSXElement, JSXFragment, Node, Program } from 'oxc-parser';
 import { isNode, type WalkableNode } from './ast-types';
 import { identifierName, isFunctionLike, unwrapExpression } from './utils';
+import type { JsxAnalysis } from './jsx-analysis';
 
 /**
  * A top-level function qualifies as a component candidate only when its name is Uppercased (JSX
@@ -8,9 +9,9 @@ import { identifierName, isFunctionLike, unwrapExpression } from './utils';
  * position of a return — JSX inside a call's arguments belongs to that call (`return
  * renderToStream(<Root/>)` must not get its signature rewritten).
  */
-export function hasComponentCandidates(program: Program): boolean {
+export function hasComponentCandidates(program: Program, jsx: JsxAnalysis): boolean {
   return topLevelFunctions(program).some(
-    (candidate) => hasComponentName(candidate.name) && returnPositionContainsJsx(candidate.fn)
+    (candidate) => hasComponentName(candidate.name) && returnPositionContainsJsx(candidate.fn, jsx)
   );
 }
 
@@ -79,41 +80,17 @@ export function findRuntimeJsx(node: unknown): JSXElement | JSXFragment | null {
   return null;
 }
 
-export function returnPositionContainsJsx(fn: Node): boolean {
+function returnPositionContainsJsx(fn: Node, jsx: JsxAnalysis): boolean {
   const body = unwrapExpression((fn as WalkableNode).body);
   if (body?.type !== 'BlockStatement') {
-    return returnsJsxValue(body);
+    return body !== null && jsx.read(body).hasJsxValue;
   }
   let found = false;
   visitReturns(body, (argument) => {
-    found ||= returnsJsxValue(unwrapExpression(argument));
+    const value = unwrapExpression(argument);
+    found ||= value !== null && jsx.read(value).hasJsxValue;
   });
   return found;
-}
-
-export function returnsJsxValue(node: unknown): boolean {
-  const value = unwrapExpression(node);
-  if (!isNode(value)) {
-    return false;
-  }
-  switch (value.type) {
-    case 'JSXElement':
-    case 'JSXFragment':
-      return true;
-    case 'ConditionalExpression':
-      return returnsJsxValue(value.consequent) || returnsJsxValue(value.alternate);
-    case 'LogicalExpression':
-      return returnsJsxValue(value.left) || returnsJsxValue(value.right);
-    case 'SequenceExpression': {
-      const expressions = value.expressions as unknown[];
-      return returnsJsxValue(expressions[expressions.length - 1]);
-    }
-    case 'ArrayExpression':
-      return (value.elements as unknown[]).some((element) => returnsJsxValue(element));
-    default:
-      // Pre-compiled `jsx()` calls need jsx-import tracking — lands with the bindings table.
-      return false;
-  }
 }
 
 /** Returns of nested functions are not the outer function's returns. */

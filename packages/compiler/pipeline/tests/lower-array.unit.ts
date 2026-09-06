@@ -216,10 +216,23 @@ describe('lowerArray / reactive rows', () => {
     'item.done ? <li key={item.id} /> : <li />',
     'item.done ? <li /> : <li key={item.id} />',
     'item.done ? <li key={item.id} /> : null',
+    'item.done ? (item.visible ? <li key={item.id} /> : <li />) : <li key={item.id} />',
+    'item.done ? (item.visible ? <li /> : <li />) : <li key={item.id} />',
+    'item.done ? <li key={item.id} /> : (item.visible ? <li key={item.id} /> : null)',
   ])('rejects partially keyed conditional rows: %s', (row) => {
     expect(() => lower(`<ul>{items.value.map((item) => ${row})}</ul>`)).toThrow(
       'a conditional collection row without keys in both arms'
     );
+  });
+
+  test('nested element keys do not become collection row keys', () => {
+    const { op } = lower(
+      '<ul>{items.value.map((item) => item.done ? <li><b key={item.id} /></li> : <li><i key={item.id} /></li>)}</ul>'
+    );
+    expect(op.op === OpKind.Element ? op.children[0] : null).toMatchObject({
+      op: OpKind.Each,
+      key: null,
+    });
   });
 
   test.each([

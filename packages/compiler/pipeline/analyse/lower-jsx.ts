@@ -29,7 +29,8 @@ import { eventScopeName } from './events';
 import { lowerEventAttribute } from './lower-event';
 import { lowerText } from './lower-hole';
 import { lowerBranch, type BranchArm } from './lower-branch';
-import { identifierName, readReturnedBody, unwrapExpression } from './ast/utils';
+import { identifierName, unwrapExpression } from './ast/utils';
+import { JsxValueKind, type JsxValue } from './ast/jsx-analysis';
 import {
   lowerExpressionValue,
   lowerInlineExpressionValue,
@@ -40,7 +41,7 @@ import type { LowerContext } from './lower-context';
 import { pushPayload, pushQrl, QrlIdentityKind } from './lower-context';
 import { lowerArray } from './lower-array';
 import { lowerCaptures } from './ast/capture-analysis';
-import { findRuntimeJsx, returnsJsxValue } from './ast/returns-jsx';
+import { findRuntimeJsx } from './ast/returns-jsx';
 import { QwikDirective, SegmentContext } from '../words';
 
 /**
@@ -219,7 +220,9 @@ function lowerComponentPropsProxy(attributes: readonly JSXAttributeItem[], ctx: 
 
 /** Lowers a JSX child list — the shared path for fragment-rooted trees. */
 export function lowerJsxChildren(children: readonly JSXChild[], ctx: LowerContext): Op[] {
-  return mergeStaticText(flattenJsxChildren(children).flatMap((child) => lowerChild(child, ctx)));
+  return mergeStaticText(
+    flattenJsxChildren(children, ctx).flatMap((child) => lowerChild(child, ctx))
+  );
 }
 
 function mergeStaticText(ops: Op[]): Op[] {
@@ -235,23 +238,13 @@ function mergeStaticText(ops: Op[]): Op[] {
   return merged;
 }
 
-function flattenJsxChildren(children: readonly JSXChild[]): JSXChild[] {
+function flattenJsxChildren(children: readonly JSXChild[], ctx: LowerContext): JSXChild[] {
   return children.flatMap((child) => {
-    const expression =
-      child.type === 'JSXExpressionContainer' ? unwrapExpression(child.expression) : child;
-    return expression?.type === 'JSXFragment' ? flattenJsxChildren(expression.children) : [child];
+    const value = ctx.jsx.read(child);
+    return value.kind === JsxValueKind.Fragment
+      ? flattenJsxChildren(value.node.children, ctx)
+      : [child];
   });
-}
-
-/** `null`/`undefined` literals in a branch arm render nothing. */
-function isNullArm(node: Node | null): boolean {
-  if (node === null) {
-    return false;
-  }
-  if (node.type === 'Literal' && node.value === null) {
-    return true;
-  }
-  return node.type === 'Identifier' && node.name === 'undefined';
 }
 
 function lowerChild(child: JSXChild, ctx: LowerContext): Op[] {
@@ -272,10 +265,12 @@ function lowerChild(child: JSXChild, ctx: LowerContext): Op[] {
 }
 
 export function lowerRenderExpression(expression: Expression, ctx: LowerContext): Op[] {
+  expression = unwrapExpression(expression);
   if (isPropsChildren(expression, ctx)) {
     return [createSlotOp(ctx)];
   }
-  const branch = readRenderBranch(expression);
+  const value = ctx.jsx.read(expression);
+  const branch = readRenderBranch(value);
   if (branch !== null) {
     return [
       lowerBranch(branch.test, branch.then, branch.else, ctx, (arm) =>
@@ -283,53 +278,38 @@ export function lowerRenderExpression(expression: Expression, ctx: LowerContext)
       ),
     ];
   }
-  switch (expression.type) {
-    case 'ParenthesizedExpression':
-      return lowerRenderExpression(expression.expression, ctx);
-    case 'JSXElement':
-      return [lowerJsx(expression, ctx)];
-    case 'JSXFragment':
-      return lowerJsxChildren(expression.children, ctx);
-    case 'CallExpression': {
-      if (readCollectionCallback(expression) !== null) {
-        return [lowerArray(expression, ctx)];
-      }
-      break;
-    }
+  switch (value.kind) {
+    case JsxValueKind.Element:
+      return [lowerJsx(value.node, ctx)];
+    case JsxValueKind.Fragment:
+      return lowerJsxChildren(value.node.children, ctx);
+    case JsxValueKind.Collection:
+      return [lowerArray(value.node, ctx)];
   }
   return lowerText(expression, ctx);
 }
 
-function readCollectionCallback(expression: Node) {
-  if (
-    expression.type === 'CallExpression' &&
-    expression.callee.type === 'MemberExpression' &&
-    identifierName(expression.callee.property) === 'map' &&
-    expression.arguments.length === 1 &&
-    expression.arguments[0].type === 'ArrowFunctionExpression'
-  ) {
-    return expression.arguments[0];
-  }
-  return null;
-}
-
-function readRenderBranch(expression: Expression) {
-  if (expression.type === 'ConditionalExpression' && returnsJsxValue(expression)) {
+function readRenderBranch(value: JsxValue) {
+  if (value.kind === JsxValueKind.Conditional && value.hasJsxValue) {
     return {
-      test: expression.test,
-      then: createBranchArm(expression.consequent),
-      else: createBranchArm(expression.alternate),
+      test: value.node.test,
+      then: createBranchArm(value.node.consequent, value.then),
+      else: createBranchArm(value.node.alternate, value.else),
     };
   }
-  if (expression.type === 'LogicalExpression' && expression.operator === '&&') {
-    return { test: expression.left, then: createBranchArm(expression.right), else: null };
+  if (value.kind === JsxValueKind.Logical && value.node.operator === '&&') {
+    return {
+      test: value.node.left,
+      then: createBranchArm(value.node.right, value.right),
+      else: null,
+    };
   }
   return null;
 }
 
-function createBranchArm(expression: Expression): BranchArm {
+function createBranchArm(expression: Expression, value: JsxValue): BranchArm {
   return {
-    expression: isNullArm(unwrapExpression(expression)) ? null : expression,
+    expression: value.kind === JsxValueKind.Empty ? null : expression,
     range: [expression.start, expression.end],
   };
 }
@@ -402,7 +382,7 @@ function lowerDynamicSlot(element: JSXElement, name: Expression, ctx: LowerConte
 }
 
 function lowerSlotFallback(children: readonly JSXChild[], ctx: LowerContext): QrlUse | null {
-  const fallbackChildren = flattenJsxChildren(children).filter(isProjectionChild);
+  const fallbackChildren = flattenJsxChildren(children, ctx).filter(isProjectionChild);
   return fallbackChildren.length === 0
     ? null
     : lowerRenderQrl(
@@ -454,10 +434,10 @@ function lowerProjections(
   children: readonly JSXChild[],
   ctx: LowerContext
 ): Extract<Op, { op: OpKind.Component }>['projections'] {
-  return flattenJsxChildren(children)
+  return flattenJsxChildren(children, ctx)
     .filter(isProjectionChild)
     .flatMap((child) => {
-      const names = [...new Set(collectProjectionNames(child))];
+      const names = [...new Set(collectProjectionNames(ctx.jsx.read(child)))];
       return names.map((name) => lowerProjection(child, name, ctx));
     });
 }
@@ -500,8 +480,8 @@ function lowerProjectedChildren(
   ctx: LowerContext
 ): Op[] {
   return mergeStaticText(
-    flattenJsxChildren(children).flatMap((child) => {
-      if (!collectProjectionNames(child).includes(name)) {
+    flattenJsxChildren(children, ctx).flatMap((child) => {
+      if (!collectProjectionNames(ctx.jsx.read(child)).includes(name)) {
         return [];
       }
       if (
@@ -516,22 +496,21 @@ function lowerProjectedChildren(
 }
 
 function lowerProjectedExpression(expression: Expression, name: string, ctx: LowerContext): Op[] {
-  if (expression.type === 'ParenthesizedExpression') {
-    return lowerProjectedExpression(expression.expression, name, ctx);
+  expression = unwrapExpression(expression);
+  const value = ctx.jsx.read(expression);
+  if (value.kind === JsxValueKind.Fragment) {
+    return lowerProjectedChildren(value.node.children, name, ctx);
   }
-  if (expression.type === 'JSXFragment') {
-    return lowerProjectedChildren(expression.children, name, ctx);
+  if (value.kind === JsxValueKind.Collection) {
+    return [lowerArray(value.node, ctx, (row) => lowerProjectedExpression(row, name, ctx))];
   }
-  if (readCollectionCallback(expression) !== null) {
-    return [lowerArray(expression, ctx, (row) => lowerProjectedExpression(row, name, ctx))];
-  }
-  const branch = readRenderBranch(expression);
+  const branch = readRenderBranch(value);
   if (branch !== null) {
     return [
       lowerBranch(
         branch.test,
-        selectProjectionArm(branch.then, name),
-        branch.else === null ? null : selectProjectionArm(branch.else, name),
+        selectProjectionArm(branch.then, name, ctx),
+        branch.else === null ? null : selectProjectionArm(branch.else, name, ctx),
         ctx,
         (arm) => lowerProjectedExpression(arm, name, ctx)
       ),
@@ -540,48 +519,36 @@ function lowerProjectedExpression(expression: Expression, name: string, ctx: Low
   return lowerRenderExpression(expression, ctx);
 }
 
-function selectProjectionArm(arm: BranchArm, name: string): BranchArm {
-  if (arm.expression === null || collectProjectionNames(arm.expression).includes(name)) {
+function selectProjectionArm(arm: BranchArm, name: string, ctx: LowerContext): BranchArm {
+  if (
+    arm.expression === null ||
+    collectProjectionNames(ctx.jsx.read(arm.expression)).includes(name)
+  ) {
     return arm;
   }
   return { ...arm, expression: null };
 }
 
-function collectProjectionNames(node: Node): string[] {
-  const expression = unwrapExpression(node);
-  if (expression === null || isNullArm(expression)) {
-    return [];
-  }
-  switch (expression.type) {
-    case 'JSXElement':
-      return [readProjectionName(expression)];
-    case 'JSXFragment':
-      return expression.children.flatMap(collectProjectionNames);
-    case 'JSXExpressionContainer':
-      return collectProjectionNames(expression.expression);
-    case 'JSXEmptyExpression':
+function collectProjectionNames(value: JsxValue): string[] {
+  switch (value.kind) {
+    case JsxValueKind.Element:
+      return [readProjectionName(value.node)];
+    case JsxValueKind.Fragment:
+      return value.children.flatMap(collectProjectionNames);
+    case JsxValueKind.Empty:
       return [];
-    case 'JSXText':
-      return normalizeJsxText(expression.value) === '' ? [] : [''];
-    case 'CallExpression': {
-      const callback = readCollectionCallback(expression);
-      if (callback === null) {
-        break;
-      }
-      const row = readReturnedBody(callback.body);
-      if (row !== null) {
-        return collectProjectionNames(row.expression);
+    case JsxValueKind.Text:
+      return normalizeJsxText(value.node.value) === '' ? [] : [''];
+    case JsxValueKind.Collection:
+      if (value.row !== null) {
+        return collectProjectionNames(value.row);
       }
       break;
-    }
-    case 'ConditionalExpression':
-      return [
-        ...collectProjectionNames(expression.consequent),
-        ...collectProjectionNames(expression.alternate),
-      ];
-    case 'LogicalExpression':
-      if (expression.operator === '&&') {
-        return collectProjectionNames(expression.right);
+    case JsxValueKind.Conditional:
+      return [...collectProjectionNames(value.then), ...collectProjectionNames(value.else)];
+    case JsxValueKind.Logical:
+      if (value.node.operator === '&&') {
+        return collectProjectionNames(value.right);
       }
   }
   return [''];

@@ -20,6 +20,7 @@ import {
   type ModulePlan,
 } from '../schema';
 import { createBindingGraph } from './ast/bindings';
+import { createJsxAnalysis } from './ast/jsx-analysis';
 import { findRuntimeJsx, hasComponentCandidates } from './ast/returns-jsx';
 import { parseModule } from './ast/parse';
 import { scanModuleSurface } from './module-surface';
@@ -63,7 +64,8 @@ export async function analyseModule(
     return finishPlan(failedPlan(plan, parsed.errors), normalized.code, input.code);
   }
 
-  if (!hasComponentCandidates(parsed.program)) {
+  const jsx = createJsxAnalysis();
+  if (!hasComponentCandidates(parsed.program, jsx)) {
     const leftoverJsx = findRuntimeJsx(parsed.program);
     if (leftoverJsx !== null) {
       // Fail closed — the foreign fallback would compile this JSX against react/jsx-runtime.
@@ -111,7 +113,14 @@ export async function analyseModule(
   const authoredProgram =
     normalized.map === null ? null : parseModule(input.path, input.code).program;
   const coreBindings = scanModuleSurface(parsed.program, authoredProgram, plan, bindings);
-  const lowerContext = createLowerContext(plan, input.path, options.scope, bindings, coreBindings);
+  const lowerContext = createLowerContext(
+    plan,
+    input.path,
+    options.scope,
+    bindings,
+    coreBindings,
+    jsx
+  );
   for (const component of components) {
     const componentBinding =
       component.bindingNode === null ? null : bindings.declaration(component.bindingNode);

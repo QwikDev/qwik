@@ -30,6 +30,12 @@ walking the AST again; `dependenciesOf()` selects transitive declarations within
 boundary, preserving candidate order. Capture policy remains context-dependent and is not cached
 in the graph. These AST indexes stay out of the serializable `ModulePlan`.
 
+`JsxAnalysis` owns render-value structure, indexed by original AST nodes per module. Discovery,
+render lowering, projections and collection keys share these results, including branch arms and
+collection callback bodies. Element children and arbitrary call arguments remain separate boundaries.
+Consumers decide which shapes they support and how to interpret `key` or `q:slot`; the analysis
+does not emit IR or collect captures. Its index stays out of `ModulePlan`.
+
 Linking indexes declaration targets and imports by binding once per module. Component linking and
 reachability share the import index; duplicate declaration targets remain ambiguous. Each JS module
 emitter owns a QRL resolver shared with source-function emission. Its symbol index is reused across
@@ -138,7 +144,8 @@ from a deserialized frozen plan in a fresh process.
   evaluates the condition once and only the selected key expression. Condition and arm dependencies
   share declaration selection. Expression programs reuse the same emission with local setup.
   Keys are excluded from element and component props, including props proxies. Partially keyed
-  ternaries are unsupported; null arms and nested conditional keys remain deferred.
+  ternaries are unsupported; null arms remain deferred. Nested ternaries preserve their authored
+  branch structure and evaluate only conditions and key expressions on the selected path.
   Async callbacks, non-const statements and early returns remain deferred.
 - Complex collection parameter patterns reuse `Setup.Const`: nested fields, defaults, computed
   properties, array holes and rest retain native evaluation order. Render and key functions restore

@@ -1,5 +1,6 @@
 import type { LocalId, ModulePlan, Payload, Qrl, QrlUse, Range } from '../schema';
 import type { BindingGraph } from './ast/bindings';
+import { createJsxAnalysis, type JsxAnalysis } from './ast/jsx-analysis';
 import type { SetupLocal } from './lower-setup';
 import {
   createSegmentSourceIdentity,
@@ -23,6 +24,7 @@ export interface LowerContext {
   /** Param bindings of the inline collection row; null = not inside one. */
   inlineParams: ReadonlySet<LocalId> | null;
   bindings: BindingGraph;
+  jsx: JsxAnalysis;
   /** Local binding -> imported name for `@qwik.dev/core` imports. */
   coreBindings: ReadonlyMap<LocalId, string>;
   /** The current component's props param binding. */
@@ -38,7 +40,8 @@ export function createLowerContext(
   path: string,
   scope: string | undefined,
   bindings: BindingGraph,
-  coreBindings: ReadonlyMap<LocalId, string> = new Map()
+  coreBindings: ReadonlyMap<LocalId, string> = new Map(),
+  jsx: JsxAnalysis = createJsxAnalysis()
 ): LowerContext {
   const slash = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
   const basename = slash === -1 ? path : path.slice(slash + 1);
@@ -54,6 +57,7 @@ export function createLowerContext(
     forCounter: { next: 0 },
     inlineParams: null,
     bindings,
+    jsx,
     coreBindings,
     propsBinding: null,
     propsMembers: new Map(),

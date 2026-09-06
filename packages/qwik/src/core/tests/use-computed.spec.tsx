@@ -15,7 +15,6 @@ import {
   untrack,
   useComputed$,
   useComputedQrl,
-  useErrorBoundary,
   useSignal,
   useStore,
   useTask$,
@@ -27,6 +26,7 @@ import type { ComputedSignalImpl } from '../reactive-primitives/impl/computed-si
 import { getSubscriber } from '../reactive-primitives/subscriber';
 import { EffectProperty, NEEDS_COMPUTATION } from '../reactive-primitives/types';
 import { delay } from '../shared/utils/promises';
+import { useErrorBoundaryStore } from '../use/use-error-boundary-store';
 
 const debug = false; //true;
 Error.stackTraceLimit = 100;
@@ -341,6 +341,35 @@ describe.each([
   });
 
   describe('async', () => {
+    it('should auto-track synchronous reads', async () => {
+      const Counter = component$(() => {
+        const explicitlyTracked = useSignal(1);
+        const autoTracked = useSignal(10);
+        const sum = useComputed$(({ track }) => {
+          return Promise.resolve(track(explicitlyTracked) + autoTracked.value);
+        });
+        return (
+          <div>
+            <button id="explicit" onClick$={() => explicitlyTracked.value++}></button>
+            <button id="auto" onClick$={() => autoTracked.value++}></button>
+            <span>{sum.value}</span>
+          </div>
+        );
+      });
+
+      const { container } = await render(<Counter />, { debug });
+      const renderedSum = () => container.document.querySelector('span')!.textContent;
+      expect(renderedSum()).toBe('11');
+
+      await trigger(container.element, 'button#auto', 'click');
+      await waitForDrain(container);
+      expect(renderedSum()).toBe('12');
+
+      await trigger(container.element, 'button#explicit', 'click');
+      await waitForDrain(container);
+      expect(renderedSum()).toBe('13');
+    });
+
     it('should compute async computed result from async computed result', async () => {
       const Counter = component$(() => {
         const count = useSignal(1);
@@ -414,7 +443,7 @@ describe.each([
     it('should throw error on value if promise is rejected', async () => {
       (globalThis as any).log = [];
       const ErrorBoundary = component$(() => {
-        const store = useErrorBoundary();
+        const store = useErrorBoundaryStore();
         (globalThis as any).log.push(`rendering error boundary, ${store.error || 'no error'}`);
         return store.error ? <div>{JSON.stringify(store.error)}</div> : <Slot />;
       });

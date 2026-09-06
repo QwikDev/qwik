@@ -1,6 +1,6 @@
 import {
   component$,
-  createAsync$,
+  createComputed$,
   Fragment as Component,
   useSignal,
   type Signal,
@@ -18,7 +18,7 @@ describe('Cursor Behavior', () => {
     });
 
     const Blocked = component$(() => {
-      const slow = createAsync$(() => new Promise<string>(() => {}));
+      const slow = createComputed$(() => new Promise<string>(() => {}));
       return (
         <div>
           <h1 id="blocked">Blocked</h1>

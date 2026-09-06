@@ -475,7 +475,6 @@ export function buildInlineSCalls(ctx: RewriteContext): void {
     alreadyImported,
     qrlVarNames,
     inlinedQrlSymbols,
-    mode,
     migrationDecisions,
   } = ctx;
   const allNonSync = extractions.filter((e) => !e.isSync && !inlinedQrlSymbols.has(e.symbolName));

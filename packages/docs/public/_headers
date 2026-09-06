@@ -1,5 +1,20 @@
 /*
   Cache-Control: public, max-age=3600, s-maxage=3600;
+
+# Only the REPL needs crossOriginIsolated; site-wide it blocks third-party images.
+/playground*
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: require-corp
+
+/tutorial*
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: require-corp
+
+/examples*
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: require-corp
+
+/repl*
   Cross-Origin-Opener-Policy: same-origin
   Cross-Origin-Embedder-Policy: require-corp
 

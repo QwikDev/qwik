@@ -16,8 +16,9 @@ import Test7 from './test7';
 import Test8 from './test8';
 import Test9 from './test9';
 import { useTheme } from './use-theme';
-import { Collapsible, Modal } from '../headless';
 import { testLogger } from './test-logger';
+import { VisibleTaskDialog } from '../dialog/visible-task-dialog';
+import DialogCounter from '../dialog/dialog-counter';
 
 export const TestImporter = component$(() => {
   const theme = useTheme();
@@ -35,19 +36,9 @@ export const TestImporter = component$(() => {
         }}
       >
         <p>TestImporter</p>
-        <Collapsible.Root>
-          <Collapsible.Trigger>COLLAPSIBLE</Collapsible.Trigger>
-          <Collapsible.Content>
-            <p>Hello</p>
-          </Collapsible.Content>
-        </Collapsible.Root>
-        <Modal.Root>
-          <Modal.Trigger>Modal</Modal.Trigger>
-          <Modal.Panel>
-            <Modal.Title>Modal Title</Modal.Title>
-            <Modal.Description>Modal Description</Modal.Description>
-          </Modal.Panel>
-        </Modal.Root>
+        <VisibleTaskDialog>
+          <DialogCounter />
+        </VisibleTaskDialog>
         <Test1 />
         <Test2 />
         <Test3 />

@@ -40,6 +40,7 @@ export const MIME_TYPES: { [ext: string]: string } = {
   tiff: 'image/tiff',
   ts: 'video/mp2t',
   txt: 'text/plain',
+  wasm: 'application/wasm',
   wbmp: 'image/vnd.wap.wbmp',
   webm: 'video/webm',
   webp: 'image/webp',

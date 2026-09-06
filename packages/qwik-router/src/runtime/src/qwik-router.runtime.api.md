@@ -198,11 +198,6 @@ export type Editable<T> = {
     -readonly [P in keyof T]: T[P];
 };
 
-// Warning: (ae-forgotten-export) The symbol "ErrorBoundaryProps" needs to be exported by the entry point index.d.ts
-//
-// @public (undocumented)
-export const ErrorBoundary: Component<ErrorBoundaryProps>;
-
 // @public
 export type ExcludeControlFlow<T> = Exclude<T, AbortMessage | ServerError>;
 
@@ -698,14 +693,14 @@ export const zod$: ZodConstructor;
 export type ZodConstructor = {
     <T extends z_2.ZodRawShape>(schema: T): ZodDataValidator<z_2.ZodObject<T>>;
     <T extends z_2.ZodRawShape>(schema: (zod: typeof z_2.z, ev: RequestEvent) => T): ZodDataValidator<z_2.ZodObject<T>>;
-    <T extends z_2.Schema>(schema: T): ZodDataValidator<T>;
-    <T extends z_2.Schema>(schema: (zod: typeof z_2.z, ev: RequestEvent) => T): ZodDataValidator<T>;
+    <T extends z_2.ZodType>(schema: T): ZodDataValidator<T>;
+    <T extends z_2.ZodType>(schema: (zod: typeof z_2.z, ev: RequestEvent) => T): ZodDataValidator<T>;
 };
 
 // Warning: (ae-internal-missing-underscore) The name "zodQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
-export function zodQrl(qrl: QRL<z_2.ZodRawShape | z_2.Schema | ((z: z, ev: RequestEvent) => z_2.ZodRawShape)>): ZodDataValidator;
+export function zodQrl(qrl: QRL<z_2.ZodRawShape | z_2.ZodType | ((z: z, ev: RequestEvent) => z_2.ZodRawShape)>): ZodDataValidator;
 
 // (No @packageDocumentation comment for this package)
 

@@ -260,6 +260,8 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
       const basePathname = qwikRouterPlugin.api.getBasePathname();
       const clientOutDir = qwikVitePlugin.api.getClientOutDir()!;
       const clientPublicOutDir = qwikVitePlugin.api.getClientPublicOutDir()!;
+      const noTrailingSlash =
+        builder.config.define?.['globalThis.__NO_TRAILING_SLASH__'] === 'true';
       const ssgEnv = builder.environments.ssg;
       const ssgOutDir = ssgOutDirFor(builder.config.root);
 
@@ -303,7 +305,8 @@ export function viteAdapter(opts: ViteAdapterPluginOptions) {
         serverOutDir,
         basePathname,
         staticPaths,
-        !!opts.cleanStaticGenerated
+        !!opts.cleanStaticGenerated,
+        noTrailingSlash
       );
 
       if (typeof opts.generate === 'function') {

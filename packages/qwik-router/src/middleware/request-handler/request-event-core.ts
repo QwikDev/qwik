@@ -43,6 +43,7 @@ export const RequestEvSharedNonce = '@nonce';
 export const RequestEvIsRewrite = '@rewrite';
 export const RequestEvShareServerTiming = '@serverTiming';
 export const RequestEvETagCacheKey = '@eTagCacheKey';
+export const RequestEvErrorBoundaryCaught = '@errorBoundaryCaught';
 export const RequestEvHttpStatusMessage = '@httpStatusMessage';
 
 export function createRequestEvent(

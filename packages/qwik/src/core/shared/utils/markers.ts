@@ -18,6 +18,8 @@ export const QStatePatchAttr = 'q:patch';
 export const QStatePatchAttrSelector = '[q\\:patch]';
 export const QSuspenseResolved = 'q:r';
 export const QSuspenseResultParent = 'q:rp';
+export const QErrorContentHost = 'q:ebc';
+export const QErrorFallbackHost = 'q:ebf';
 export const QStyle = 'q:style';
 export const QStyleSelector = 'style[q\\:style]';
 export const QStyleSSelector = 'style[q\\:sstyle]';
@@ -86,6 +88,7 @@ export const QDefaultSlot = '';
 export const ELEMENT_ID = 'q:id';
 export const ELEMENT_KEY = 'q:key';
 export const ELEMENT_PROPS = 'q:props';
+export const USE_ON_PLACEHOLDER_KEY = ':useOn';
 /** @internal */
 export const ELEMENT_SEQ = 'q:seq';
 export const ELEMENT_SEQ_IDX = 'q:seqIdx';

@@ -15,6 +15,7 @@ describe('loaderHandler', () => {
       headers,
       request: new Request(`http://localhost/products/${getLoaderName('loader-id', 'manifest')}`),
       url: new URL('http://localhost/products/?q=shoes&page=2&ignored=true'),
+      params: { id: '123' },
       headersSent: false,
       exited: false,
       cacheControl: vi.fn(),
@@ -207,7 +208,7 @@ describe('loaderHandler', () => {
     expect(loaderEv.url.search).toBe('?q=shoes');
     expect(loaderEv.request.url).toBe('http://localhost/products/?q=shoes');
     expect(loaderEv.originalUrl.href).toBe('http://localhost/products/?q=shoes');
-    expect(loaderEv.params).toEqual({});
+    expect(loaderEv.params).toEqual({ id: '123' });
     expect(loaderEv.query.get('q')).toBe('shoes');
     expect(loaderEv.query.has('ignored')).toBe(false);
     expect(requestEv.send).toHaveBeenCalledWith(200, expect.any(String));

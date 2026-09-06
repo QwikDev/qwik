@@ -7,6 +7,7 @@ import {
   component$,
   useSignal,
   useStore,
+  useTask$,
   type JSXChildren,
   type JSXOutput,
 } from '@qwik.dev/core';
@@ -2019,6 +2020,32 @@ describe('vNode-diff', () => {
       _flushJournal(journal2);
       await container.$renderPromise$;
       expect(store!.$effects$?.size).toBe(0);
+    });
+
+    it('should clear task effects when removing a component', async () => {
+      const { vParent, container } = vnode_fromJSX(<Fragment />);
+      const signal = createSignal('initial') as SignalImpl;
+
+      const Child = component$(() => {
+        useTask$(({ track }) => track(signal));
+        return <span />;
+      });
+
+      const child = _jsxSorted(Child, null, null, null, 3, null) as unknown as JSXChildren;
+      const journal: VNodeJournal = [];
+      vnode_setProp(vParent, NODE_DIFF_DATA_KEY, child);
+      markVNodeDirty(container, vParent, ChoreBits.NODE_DIFF);
+      _flushJournal(journal);
+      await container.$renderPromise$;
+
+      expect(signal.$effects$?.size).toBeGreaterThan(0);
+
+      const cleanupJournal: VNodeJournal = [];
+      await vnode_diff(container, cleanupJournal, <Fragment />, vParent, vParent, null);
+      _flushJournal(cleanupJournal);
+      await container.$renderPromise$;
+
+      expect(signal.$effects$?.size).toBe(0);
     });
   });
 });

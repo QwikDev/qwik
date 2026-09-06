@@ -1963,12 +1963,15 @@ export function cleanup(
             const obj = seq[i];
             if (isObject(obj)) {
               const objIsTask = isTask(obj);
-              if (objIsTask && obj.$flags$ & TaskFlags.VISIBLE_TASK) {
-                obj.$flags$ |= TaskFlags.NEEDS_CLEANUP;
-                markVNodeDirty(container, vCursor, ChoreBits.CLEANUP, cursorRoot);
+              if (objIsTask) {
+                clearAllEffects(container, obj);
+                if (obj.$flags$ & TaskFlags.VISIBLE_TASK) {
+                  obj.$flags$ |= TaskFlags.NEEDS_CLEANUP;
+                  markVNodeDirty(container, vCursor, ChoreBits.CLEANUP, cursorRoot);
 
-                // don't call cleanupDestroyable yet, do it by the scheduler
-                continue;
+                  // don't call cleanupDestroyable yet, do it by the scheduler
+                  continue;
+                }
               }
               // Stores and plain signals are only producers; their subscriptions are removed
               // when cleaning the consumers that read them. They don't own reactive backrefs.

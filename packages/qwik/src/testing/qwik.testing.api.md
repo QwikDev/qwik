@@ -114,6 +114,7 @@ export function ssrRenderToDom(jsx: JSXOutput, opts?: {
     streaming?: StreamingOptions;
     resume?: boolean;
     onBeforeResume?: (document: Document) => void;
+    transformError?: (error: unknown) => Error | undefined | null | void;
 }): Promise<{
     container: _DomContainer;
     document: Document;

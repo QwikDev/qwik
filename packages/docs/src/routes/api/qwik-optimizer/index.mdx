@@ -345,6 +345,8 @@ export type EntryStrategy =
 
 **References:** [InlineEntryStrategy](#inlineentrystrategy), [HoistEntryStrategy](#hoistentrystrategy), [SingleEntryStrategy](#singleentrystrategy), [HookEntryStrategy](#hookentrystrategy), [SegmentEntryStrategy](#segmententrystrategy), [ComponentEntryStrategy](#componententrystrategy), [SmartEntryStrategy](#smartentrystrategy)
 
+<h2 id="experimentalfeatures-errorboundary">errorBoundary</h2>
+
 <h2 id="experimentalfeatures">ExperimentalFeatures</h2>
 
 Use `__EXPERIMENTAL__.x` to check if feature `x` is enabled. It will be replaced with `true` or `false` via an exact string replacement.
@@ -392,6 +394,19 @@ each
 </td><td>
 
 Enable the Each keyed-list primitive
+
+</td></tr>
+<tr><td>
+
+errorBoundary
+
+</td><td>
+
+`"errorBoundary"`
+
+</td><td>
+
+Enable the ErrorBoundary primitive
 
 </td></tr>
 <tr><td>

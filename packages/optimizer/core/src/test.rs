@@ -517,6 +517,7 @@ fn example_props_optimization() {
 		code: r#"
 import { $, component$, useTask$ } from '@qwik.dev/core';
 import { CONST } from 'const';
+const getValue = () => 0;
 export const Works = component$(({
 	count,
 	some = 1+2,
@@ -545,15 +546,39 @@ export const NoWorks2 = component$(({count, stuff: {hey}}) => {
 	);
 });
 
-export const NoWorks3 = component$(({count, stuff = hola()}) => {
+export const DynamicDefaults = component$(({count, stuff = getValue(), other: value = getValue()}) => {
 	console.log(stuff);
 	useTask$(({track}) => {
-		track(() => count);
-		console.log(count);
+		track(() => stuff);
+		track(() => value);
+		console.log(count, stuff, value);
 	});
 	return (
-		<div class={count}>{count}</div>
+		<div class={stuff}>{value}</div>
 	);
+});
+
+export const ReferencedDefault = component$(({first = getValue(second), second}) => (
+	<div>{first}{second}</div>
+));
+"#
+		.to_string(),
+		transpile_jsx: true,
+		entry_strategy: EntryStrategy::Inline,
+		transpile_ts: true,
+		..TestInput::default()
+	});
+}
+
+#[test]
+fn dynamic_props_defaults_do_not_subscribe_component() {
+	test_input!(TestInput {
+		code: r#"
+import { component$ } from '@qwik.dev/core';
+const getValue = () => 0;
+export const DynamicDefault = component$(({ value = getValue() }) => {
+	console.log(value);
+	return <div>{value}</div>;
 });
 "#
 		.to_string(),
@@ -6418,18 +6443,18 @@ export const Tree = component$((props) => {
 fn component_level_self_referential_qrl() {
 	test_input!(TestInput {
 		code: r#"
-import { component$, useAsync$ } from '@qwik.dev/core';
+import { component$, useComputed$ } from '@qwik.dev/core';
 		
 // Component-level self-referential component
 export const Foo = component$((props) => {
-	const sig = useAsync$(async ({cleanup}) => {
+	const sig = useComputed$(async ({cleanup}) => {
 		const timer = setInterval(() => {
 			sig.value++;
 		}, 1000);
 		cleanup(() => clearInterval(timer));
 		return 0;
 	});
-	const other = useAsync$(async ({cleanup}) => {
+	const other = useComputed$(async ({cleanup}) => {
 		const timer = setInterval(() => {
 			other.value++;
 		}, 900);
@@ -6873,11 +6898,11 @@ fn inlined_qrl_after_ref_identifiers_forward_ref() {
 	let res = test_input!(TestInput {
 		code: r#"
 import { component$ } from '@qwik.dev/core';
-import { useAsyncQrl } from '@qwik.dev/core';
+import { useComputedQrl } from '@qwik.dev/core';
 
 export const TestComponent = component$(() => {
 	// This should be hoisted with an identifier
-	const asyncSig = useAsyncQrl$(async () => {
+	const asyncSig = useComputedQrl$(async () => {
 		return 42;
 	});
 	return <div>{asyncSig}</div>;
@@ -7292,6 +7317,38 @@ export function qwikifyQrl(reactCmp$, opts) {
 			name, captures_str, combined_code
 		);
 	}
+}
+
+#[test]
+fn inlined_qrl_in_capture_is_extracted() {
+	let output = test_input!(TestInput {
+		code: r#"
+import { inlinedQrl } from '@qwik.dev/core';
+
+const context = {};
+export const handler = inlinedQrl(() => {}, "outer_abc", [
+	inlinedQrl(() => {}, "inner_def", [context]),
+]);
+"#
+		.to_string(),
+		entry_strategy: EntryStrategy::Segment,
+		mode: EmitMode::Prod,
+		is_server: Some(true),
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+
+	let segments: Vec<_> = output
+		.modules
+		.iter()
+		.filter_map(|module| module.segment.as_ref())
+		.map(|segment| segment.name.as_ref())
+		.collect();
+	assert!(
+		segments.contains(&"s_def"),
+		"nested QRL captured by another QRL must be emitted as a segment, got {segments:?}"
+	);
 }
 
 #[test]

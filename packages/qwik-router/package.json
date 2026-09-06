@@ -1,7 +1,7 @@
 {
   "name": "@qwik.dev/router",
   "description": "The router for Qwik.",
-  "version": "2.0.0-beta.40",
+  "version": "2.0.0-beta.43",
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "dependencies": {
     "@azure/functions": "3.5.1",
@@ -146,10 +146,6 @@
     "./vite": {
       "types": "./lib/vite/index.d.ts",
       "import": "./lib/vite/index.mjs"
-    },
-    "./service-worker": {
-      "types": "./service-worker.d.ts",
-      "import": "./lib/service-worker.mjs"
     },
     "./package.json": "./package.json"
   },

@@ -82,6 +82,12 @@ export const renderToStream = async (
     renderOptions: opts,
   });
 
+  const onBeforeFirstFlush = opts.onBeforeFirstFlush;
+  if (onBeforeFirstFlush) {
+    streamHandler.onFirstWrite = () =>
+      onBeforeFirstFlush({ errorBoundaryCaught: ssrContainer.$hasBoundaryError$ === true });
+  }
+
   await setServerPlatform(opts, resolvedManifest);
   await ssrContainer.render(jsx);
   await ssrContainer.$renderPromise$;
@@ -95,6 +101,7 @@ export const renderToStream = async (
     size: ssrContainer.size,
     isStatic: false,
     timing: timing,
+    errorBoundaryCaught: ssrContainer.$hasBoundaryError$ === true,
   };
 
   return result;

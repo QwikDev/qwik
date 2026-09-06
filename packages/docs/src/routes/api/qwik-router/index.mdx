@@ -794,14 +794,6 @@ export type Editable<T> = {
 
 [Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts)
 
-<h2 id="errorboundary">ErrorBoundary</h2>
-
-```typescript
-ErrorBoundary: import("@qwik.dev/core").Component<ErrorBoundaryProps>;
-```
-
-[Edit this section](https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/error-boundary.tsx)
-
 <h2 id="excludecontrolflow">ExcludeControlFlow</h2>
 
 Drops control-flow signals (`ev.redirect()`, `ev.error()`, etc.) from a loader/action return type: those are thrown, not surfaced as data. `ev.fail()` is plain data and is kept.
@@ -3224,8 +3216,8 @@ export type ZodConstructor = {
   <T extends z.ZodRawShape>(
     schema: (zod: typeof z.z, ev: RequestEvent) => T,
   ): ZodDataValidator<z.ZodObject<T>>;
-  <T extends z.Schema>(schema: T): ZodDataValidator<T>;
-  <T extends z.Schema>(
+  <T extends z.ZodType>(schema: T): ZodDataValidator<T>;
+  <T extends z.ZodType>(
     schema: (zod: typeof z.z, ev: RequestEvent) => T,
   ): ZodDataValidator<T>;
 };

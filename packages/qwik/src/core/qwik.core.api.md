@@ -4,8 +4,8 @@
 
 ```ts
 
-import type { AsyncLocalStorage } from 'node:async_hooks';
 import type * as CSS_2 from 'csstype';
+import { getAsyncLocalStorage as _getAsyncLocalStorage } from '@qwik.dev/core/async-local-storage';
 import { isBrowser } from '@qwik.dev/core/build';
 import { isDev } from '@qwik.dev/core/build';
 import { isServer } from '@qwik.dev/core/build';
@@ -18,10 +18,8 @@ export const $: <T>(expression: T) => QRL<T>;
 // @internal
 export function _addProjection(container: _Container, parentVNode: _VirtualVNode, componentQRL: QRL<any>, props: Record<string, unknown>, slotName: string): _VirtualVNode;
 
-// Warning: (ae-forgotten-export) The symbol "ComputeCtx" needs to be exported by the entry point index.d.ts
-//
-// @public @deprecated
-export type AsyncFn<T> = (ctx: ComputeCtx) => ValueOrPromise<T>;
+// @public @deprecated (undocumented)
+export type AsyncFn<T> = ComputedFn<T>;
 
 // @public @deprecated
 export type AsyncSignal<T = unknown> = ComputedSignal<T>;
@@ -93,6 +91,8 @@ export interface ComponentBaseProps {
 // @internal (undocumented)
 export const componentQrl: <PROPS extends Record<any, any>>(componentQrl: QRL<OnRenderFn<PROPS>>) => Component<PROPS>;
 
+// Warning: (ae-forgotten-export) The symbol "ComputeCtx" needs to be exported by the entry point index.d.ts
+//
 // @public
 export type ComputedFn<T> = (ctx: ComputeCtx) => ValueOrPromise<T>;
 
@@ -176,7 +176,7 @@ export interface _Container {
     // (undocumented)
     getParentHost(host: _HostElement): _HostElement | null;
     // (undocumented)
-    handleError(err: any, $host$: _HostElement | null): void;
+    handleError(err: any, $host$: _HostElement | null, phase?: ErrorBoundaryPhase): void;
     // (undocumented)
     resolveContext<T>(host: _HostElement, contextId: ContextId<T>): T | undefined;
     // Warning: (ae-forgotten-export) The symbol "SymbolToChunkResolver" needs to be exported by the entry point index.d.ts
@@ -231,13 +231,10 @@ export interface CorrectedToggleEvent extends Event {
     readonly prevState: 'open' | 'closed';
 }
 
-// @public @deprecated
-export const createAsync$: <T>(qrl: (arg: ComputeCtx<T>) => Promise<T>, options?: AsyncSignalOptions<T>) => AsyncSignal<T>;
-
 // Warning: (ae-internal-missing-underscore) The name "createAsyncQrl" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
-export const createAsyncQrl: <T>(qrl: QRL<AsyncFn<T>>, options?: AsyncSignalOptions<T>) => _AsyncSignalImpl<T>;
+export const createAsyncQrl: <T>(qrl: QRL<ComputedFn<T>>, options?: AsyncSignalOptions<T>) => _AsyncSignalImpl<T>;
 
 // @public
 export const createComputed$: <T>(qrl: (ctx: ComputeCtx) => ValueOrPromise<T>, options?: ComputedOptions<T>) => ComputedReturnType<T>;
@@ -361,7 +358,7 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     // (undocumented)
     getSyncFn(id: number): (...args: unknown[]) => unknown;
     // (undocumented)
-    handleError(err: any, host: _VNode | null): void;
+    handleError(err: any, host: _VNode | null, phase?: ErrorBoundaryPhase): void;
     // (undocumented)
     parseQRL<T = unknown>(qrlStr: string): QRL<T>;
     // (undocumented)
@@ -370,6 +367,8 @@ class DomContainer extends _SharedContainer implements ClientContainer {
     qManifestHash: string;
     // (undocumented)
     resolveContext<T>(host: _VNode, contextId: ContextId<T>): T | undefined;
+    // (undocumented)
+    resolveContextHost(host: _VNode, contextId: ContextId<unknown>): _VNode | null;
     // (undocumented)
     rootVNode: _ElementVNode;
     // (undocumented)
@@ -401,6 +400,12 @@ export const Each: EachComponent;
 export const _eaT: (input: TaskCtx) => Promise<void>;
 
 // @internal (undocumented)
+export const _ebC: (props: ErrorBoundaryProps) => JSXOutput;
+
+// @internal (undocumented)
+export const _ebR: () => void;
+
+// @internal (undocumented)
 export const _EFFECT_BACK_REF: unique symbol;
 
 // @internal (undocumented)
@@ -430,10 +435,32 @@ export const _EMPTY_ARRAY: any[];
 // @internal (undocumented)
 export const _EMPTY_OBJ: Record<string, any>;
 
-// @public (undocumented)
-export interface ErrorBoundaryStore {
+// @public
+export const ErrorBoundary: Component<ErrorBoundaryProps>;
+
+// @public
+export interface ErrorBoundaryInfo {
+    boundaryId: string;
+    digest: string;
+    phase: ErrorBoundaryPhase;
+}
+
+// @public
+export const enum ErrorBoundaryPhase {
     // (undocumented)
-    error: any | undefined;
+    Event = "event",
+    // (undocumented)
+    Hook = "hook",
+    // (undocumented)
+    Render = "render"
+}
+
+// @public (undocumented)
+export interface ErrorBoundaryProps {
+    fallback$: QRL<(error: Error & {
+        digest?: string;
+    }, reset: QRL<() => void>) => JSXOutput>;
+    onError$?: QRL<(error: Error, info: ErrorBoundaryInfo) => void>;
 }
 
 // @public (undocumented)
@@ -476,8 +503,7 @@ export type FunctionComponent<P = unknown> = {
     renderFn(props: P, key: string | null, flags: number, dev?: DevJSX): JSXOutput;
 }['renderFn'];
 
-// @internal (undocumented)
-export const _getAsyncLocalStorage: () => (new <T>() => AsyncLocalStorage<T>) | undefined;
+export { _getAsyncLocalStorage }
 
 // @public
 export const getClientManifest: () => ServerQwikManifest | undefined;
@@ -525,6 +551,9 @@ export const _getVarProps: (props: PropsProxy | Record<string, unknown> | null |
 function h<TYPE extends string | FunctionComponent<PROPS>, PROPS extends {} = {}>(type: TYPE, props?: PROPS | null, ...children: any[]): JSXNode<TYPE>;
 export { h as createElement }
 export { h }
+
+// @internal (undocumented)
+export function _handleSSRError(container: SSRContainer, err: any, host: ISsrNode | null, phase: ErrorBoundaryPhase): void;
 
 // @internal (undocumented)
 export const _hasStoreEffects: (value: StoreTarget, prop: keyof StoreTarget) => boolean;
@@ -805,7 +834,8 @@ export type PublicProps<PROPS> = (PROPS extends Record<any, any> ? Omit<PROPS, `
 
 // @internal (undocumented)
 export interface _QDocument extends Document {
-    qProcessOOOS?: (boundaryId: number, content: Element | null) => void;
+    qErrorHandler?: (e: Event) => void;
+    qProcessOOOS?: (boundaryId: number, revealNode: Element | null) => void;
     qProcessVNodeDataPatch?: (script: Element | null) => void;
     // (undocumented)
     qVNodeData: WeakMap<Element, string>;
@@ -996,10 +1026,10 @@ export interface ReadonlySignal<T = unknown> {
 // Warning: (ae-forgotten-export) The symbol "SSRRevealSlotProps" needs to be exported by the entry point index.d.ts
 //
 // @internal (undocumented)
-export const _reC: (props: RevealProps) => JSXNodeInternal<InternalServerComponent<SSRRevealSlotProps>> | JSXNodeInternal<FunctionComponent<    {
+export const _reC: (props: RevealProps) => JSXNodeInternal<FunctionComponent<    {
 name?: string;
 children?: JSXChildren;
-}>>;
+}>> | JSXNodeInternal<InternalServerComponent<SSRRevealSlotProps>>;
 
 // @internal
 export const _regSymbol: (symbol: any, hash: string) => any;
@@ -1190,7 +1220,7 @@ export abstract class _SharedContainer implements _Container {
     // (undocumented)
     abstract getParentHost(host: _HostElement): _HostElement | null;
     // (undocumented)
-    abstract handleError(err: any, $host$: _HostElement | null): void;
+    abstract handleError(err: any, $host$: _HostElement | null, phase?: ErrorBoundaryPhase): void;
     // (undocumented)
     abstract resolveContext<T>(host: _HostElement, contextId: ContextId<T>): T | undefined;
     // (undocumented)
@@ -2011,14 +2041,6 @@ export const unwrapStore: <T>(value: T) => T;
 // @internal
 export function _updateProjectionProps(container: _Container, vnode: _VirtualVNode, newProps: Record<string, unknown>): void;
 
-// @public @deprecated
-export const useAsync$: <T>(qrl: AsyncFn<T>, options?: AsyncSignalOptions<T> | undefined) => AsyncSignal<T>;
-
-// Warning: (ae-internal-missing-underscore) The name "useAsyncQrl" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal @deprecated (undocumented)
-export const useAsyncQrl: <T>(qrl: QRL<AsyncFn<T>>, options?: AsyncSignalOptions<T>) => AsyncSignal<T>;
-
 // @public
 export const useComputed$: <T>(qrl: ComputedFn<T>, options?: ComputedOptions<T> | undefined) => ComputedReturnType<T>;
 
@@ -2037,9 +2059,6 @@ export const useContext: UseContext;
 
 // @public
 export const useContextProvider: <STATE>(context: ContextId<STATE>, newValue: STATE) => void;
-
-// @public (undocumented)
-export const useErrorBoundary: () => ErrorBoundaryStore;
 
 // @internal
 export function _useHmr(devPath: string): void;

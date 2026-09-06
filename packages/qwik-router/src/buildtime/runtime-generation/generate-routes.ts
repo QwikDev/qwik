@@ -4,8 +4,9 @@ import {
   errorBoundaryName,
   isModuleExt,
   isPageExt,
-  removeExtension,
+  normalizePathKey,
   parseRouteIndexName,
+  removeExtension,
 } from '../../utils/fs';
 import type { BuildTrieNode, BuiltRoute, RoutingContext, RouteSourceFile } from '../types';
 import { getImportPath } from './utils';
@@ -324,7 +325,7 @@ function serializeBuildTrie(
         // entirely so the runtime routing code doesn't see a stale placeholder.
         const nodeLoaderHashes: string[] = [];
         for (const filePath of routeLoaderFiles) {
-          const hashes = loadersByFile.get(filePath);
+          const hashes = loadersByFile.get(normalizePathKey(filePath));
           if (hashes) {
             nodeLoaderHashes.push(...hashes);
           }

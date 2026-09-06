@@ -1,5 +1,15 @@
 # eslint-plugin-qwik
 
+## 2.0.0-beta.43
+
+## 2.0.0-beta.42
+
+## 2.0.0-beta.41
+
+### Patch Changes
+
+- refactor: remove useAsync$ and createAsync$. Use useComputed$ or createComputed$ instead. (by [@Varixo](https://github.com/Varixo) in [#8941](https://github.com/QwikDev/qwik/pull/8941))
+
 ## 2.0.0-beta.40
 
 ## 2.0.0-beta.39

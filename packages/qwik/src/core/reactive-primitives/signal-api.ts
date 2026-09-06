@@ -13,7 +13,6 @@ import {
 import { SerializerSignalImpl } from './impl/serializer-signal-impl';
 import { AsyncSignalImpl } from './impl/async-signal-impl';
 import { getComputedSignalFlags } from './utils';
-import type { AsyncFn } from '../use/use-async';
 import type { ComputedFn } from '../use/use-computed';
 
 /** @internal */
@@ -36,7 +35,7 @@ export const createComputedSignal = <T>(
 
 /** @internal */
 export const createAsyncSignal = <T>(
-  qrl: QRL<AsyncFn<T>>,
+  qrl: QRL<ComputedFn<T>>,
   options?: AsyncSignalOptions<T>
 ): AsyncSignalImpl<T> => {
   return new AsyncSignalImpl<T>(

@@ -1,5 +1,5 @@
 import { implicit$FirstArg } from '../shared/qrl/implicit_dollar';
-import type { ComputeCtx, AsyncSignalOptions, ComputedOptions, SerializerArg } from './types';
+import type { ComputeCtx, ComputedOptions, SerializerArg } from './types';
 import {
   createSignal as _createSignal,
   createComputedSignal as createComputedQrl,
@@ -171,17 +171,6 @@ export const createComputed$: <T>(
 ) => ComputedReturnType<T> = /*#__PURE__*/ implicit$FirstArg(createComputedQrl as any);
 export { createComputedQrl };
 
-/**
- * Create a signal holding a `.value` which is calculated from the given async function (QRL). The
- * standalone version of `useAsync$`.
- *
- * @deprecated Use `createComputed$` instead, it has async support now.
- * @public
- */
-export const createAsync$: <T>(
-  qrl: (arg: ComputeCtx<T>) => Promise<T>,
-  options?: AsyncSignalOptions<T>
-) => AsyncSignal<T> = /*#__PURE__*/ implicit$FirstArg(createAsyncQrl as any);
 export { createAsyncQrl };
 
 /**

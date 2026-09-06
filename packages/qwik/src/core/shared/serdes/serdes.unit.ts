@@ -2,7 +2,6 @@ import {
   $,
   _verifySerializable,
   componentQrl,
-  createAsync$,
   createComputed$,
   createSerializer$,
   createSignal,
@@ -733,6 +732,15 @@ describe('shared-serialization', () => {
         (450 chars)"
       `);
     });
+    it('dev keeps the raw error on an errored async signal', async () => {
+      const errored = createAsyncSignal(
+        inlinedQrl(() => Promise.reject(new Error('raw-dev-boom')), 'boom', [])
+      );
+      await (errored as any).promise().catch(() => {});
+      const objs = await serialize(errored);
+      expect(JSON.stringify(objs)).toContain('raw-dev-boom');
+    });
+
     it(title(TypeIds.AsyncSignal), async () => {
       const foo = createSignal(1);
       const dirty = createAsyncSignal(
@@ -1407,7 +1415,7 @@ describe('shared-serialization', () => {
     it.todo(title(TypeIds.ComputedSignal));
     it.todo(title(TypeIds.SerializerSignal));
     it(`${title(TypeIds.AsyncSignal)} valid`, async () => {
-      const asyncSignal = createAsync$(async () => 123);
+      const asyncSignal = createAsyncSignal($(async () => 123));
       expect(
         (asyncSignal as AsyncSignalImpl<number>).$flags$ & ComputedSignalFlags.INVALID
       ).toBeTruthy();
@@ -1422,10 +1430,13 @@ describe('shared-serialization', () => {
       ).toBeFalsy();
     });
     it(`${title(TypeIds.AsyncSignal)} invalid`, async () => {
-      const asyncSignal = createAsync$(async () => 123, {
-        timeout: 1000,
-        concurrency: 3,
-      });
+      const asyncSignal = createAsyncSignal(
+        $(async () => 123),
+        {
+          timeout: 1000,
+          concurrency: 3,
+        }
+      );
       const objs = await serialize(asyncSignal);
       const restored = deserialize(objs)[0] as AsyncSignal<number>;
       expect(isSignal(restored)).toBeTruthy();

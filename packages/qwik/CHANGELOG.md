@@ -1,5 +1,52 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.43
+
+### Patch Changes
+
+- 🐞🩹 release task subscriptions when components are removed (by [@Varixo](https://github.com/Varixo) in [#8982](https://github.com/QwikDev/qwik/pull/8982))
+
+- 🐞🩹 handle malformed images during dimension inspection (by [@gioboa](https://github.com/gioboa) in [#8969](https://github.com/QwikDev/qwik/pull/8969))
+
+- 🐞🩹 a component without its own dom element no longer rebuilds its children on re-render and keeps its `useOn` document and window events (by [@wermetal](https://github.com/wermetal) in [#8981](https://github.com/QwikDev/qwik/pull/8981))
+
+- 🐞🩹 keep sibling updates running after uncaught render errors (by [@Varixo](https://github.com/Varixo) in [#8976](https://github.com/QwikDev/qwik/pull/8976))
+
+- Updated dependencies [[`1d62cd9`](https://github.com/QwikDev/qwik/commit/1d62cd929204e171ea85a6af927533490c3908d1)]:
+  - @qwik.dev/optimizer@2.1.0-beta.8
+
+## 2.0.0-beta.42
+
+### Major Changes
+
+- ✨ `<ErrorBoundary>` moves to `@qwik.dev/core` behind the experimental `errorBoundary` flag and `useErrorBoundary()` is removed. `fallback$` receives `(error, reset)`, `onError$` reports caught errors, and production redacts server-origin errors to a generic message + digest while client-origin errors render as thrown. (by [@maiieul](https://github.com/maiieul) in [#8745](https://github.com/QwikDev/qwik/pull/8745))
+
+### Minor Changes
+
+- ✨ `renderToStream` reports a pre-flush `<ErrorBoundary>` catch via `onBeforeFirstFlush`; the router sends `Cache-Control: no-store` for those pages and for error documents. (by [@maiieul](https://github.com/maiieul) in [#8745](https://github.com/QwikDev/qwik/pull/8745))
+
+### Patch Changes
+
+- 🐞🩹 redact server-origin errors when serializing errored async signals in production (by [@maiieul](https://github.com/maiieul) in [#8745](https://github.com/QwikDev/qwik/pull/8745))
+
+- 🐞🩹 show the `Suspense` fallback when a suspending child is wrapped in an `ErrorBoundary`. (by [@maiieul](https://github.com/maiieul) in [#8745](https://github.com/QwikDev/qwik/pull/8745))
+
+- 🐞🩹 a failed handler chunk import is no longer reported twice for streamed containers (by [@maiieul](https://github.com/maiieul) in [#8745](https://github.com/QwikDev/qwik/pull/8745))
+
+## 2.0.0-beta.41
+
+### Major Changes
+
+- refactor: remove useAsync$ and createAsync$. Use useComputed$ or createComputed$ instead. (by [@Varixo](https://github.com/Varixo) in [#8941](https://github.com/QwikDev/qwik/pull/8941))
+
+### Patch Changes
+
+- refactor: remove unnecessary font preloading that negatively impacted performance (by [@Varixo](https://github.com/Varixo) in [#8942](https://github.com/QwikDev/qwik/pull/8942))
+
+- 🐞🩹 preserve rest properties for plain objects (by [@wermetal](https://github.com/wermetal) in [#8937](https://github.com/QwikDev/qwik/pull/8937))
+
+- 🐞🩹 widen the `vitest` peer range to `>=2 <5` so Vitest 4 no longer warns (by [@ixcans](https://github.com/ixcans) in [#8959](https://github.com/QwikDev/qwik/pull/8959))
+
 ## 2.0.0-beta.40
 
 ### Major Changes

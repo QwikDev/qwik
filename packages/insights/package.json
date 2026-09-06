@@ -3,7 +3,7 @@
   "description": "Qwik Insights dashboard",
   "version": "0.1.0",
   "dependencies": {
-    "@auth/qwik": "0.9.1",
+    "@auth/qwik": "0.9.3",
     "@libsql/client": "^0.15.11",
     "@modular-forms/qwik": "^0.29.1",
     "@typescript/analyze-trace": "^0.10.1",
@@ -26,7 +26,7 @@
     "eslint": "10.0.3",
     "eslint-plugin-qwik": "workspace:*",
     "globals": "17.0.0",
-    "netlify-cli": "24.5.1",
+    "netlify-cli": "27.1.2",
     "postcss": "8.5.23",
     "prettier": "3.7.4",
     "prettier-plugin-tailwindcss": "0.7.2",

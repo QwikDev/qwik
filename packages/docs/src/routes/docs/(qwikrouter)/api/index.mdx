@@ -443,7 +443,7 @@ test('should render the button and navigate', async () => {
 <Note>If you are using `routeLoader$`s in a Qwik Component that you want to test, you can provide a `loaders` prop to mock the data returned by the loaders</Note>
 
 ```ts title="src/loaders/product.loader.ts"
-import { routeLoader$ } from '@builder.io/qwik-city';
+import { routeLoader$ } from '@qwik.dev/router';
 
 export const useProductData = routeLoader$(async () => {
   const res = await fetch('https://.../product');

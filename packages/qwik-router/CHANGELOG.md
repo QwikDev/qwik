@@ -1,5 +1,60 @@
 # @qwik.dev/city
 
+## 2.0.0-beta.43
+
+### Patch Changes
+
+- 🐞🩹 redirect prerendered routes to the configured slash form (by [@wmertens](https://github.com/wmertens) in [#8973](https://github.com/QwikDev/qwik/pull/8973))
+
+- 🐞🩹 avoid duplicate loader fetches during SPA navigation (by [@Varixo](https://github.com/Varixo) in [#8982](https://github.com/QwikDev/qwik/pull/8982))
+
+- 🐞🩹 fail the SSG route when an `<ErrorBoundary>` catches instead of baking the fallback at 200 (by [@maiieul](https://github.com/maiieul) in [#8978](https://github.com/QwikDev/qwik/pull/8978))
+
+- 🐞🩹 serve wasm files with the correct content type (by [@NiltonCadamuro](https://github.com/NiltonCadamuro) in [#8972](https://github.com/QwikDev/qwik/pull/8972))
+
+- Updated dependencies [[`7ddca83`](https://github.com/QwikDev/qwik/commit/7ddca83ef78fa1b46ed3d747c1be5515617a3137), [`f2db108`](https://github.com/QwikDev/qwik/commit/f2db108d91938ad604769330ff1ff7466dab6c85), [`aec4012`](https://github.com/QwikDev/qwik/commit/aec401259f1cb44fa21a892281642b4ff5408c00), [`1ecc815`](https://github.com/QwikDev/qwik/commit/1ecc815d368f34056b2c5d3491d31f05b84d18c4)]:
+  - @qwik.dev/core@2.0.0-beta.43
+
+## 2.0.0-beta.42
+
+### Major Changes
+
+- ✨ `<ErrorBoundary>` moves to `@qwik.dev/core` behind the experimental `errorBoundary` flag and `useErrorBoundary()` is removed. `fallback$` receives `(error, reset)`, `onError$` reports caught errors, and production redacts server-origin errors to a generic message + digest while client-origin errors render as thrown. (by [@maiieul](https://github.com/maiieul) in [#8745](https://github.com/QwikDev/qwik/pull/8745))
+
+### Patch Changes
+
+- ✨ `renderToStream` reports a pre-flush `<ErrorBoundary>` catch via `onBeforeFirstFlush`; the router sends `Cache-Control: no-store` for those pages and for error documents. (by [@maiieul](https://github.com/maiieul) in [#8745](https://github.com/QwikDev/qwik/pull/8745))
+
+- Updated dependencies [[`e29c4d8`](https://github.com/QwikDev/qwik/commit/e29c4d8476154aa5c0f2282cc4c685436c69fd30), [`2fb7a08`](https://github.com/QwikDev/qwik/commit/2fb7a08d1662c7a5f1a413b6836e741322ab35f7), [`9ccb82a`](https://github.com/QwikDev/qwik/commit/9ccb82a033e552052f5b77d5a36e10e4300b0164), [`50c9666`](https://github.com/QwikDev/qwik/commit/50c9666e28b761fb85060ce0a02ce880a461ee98), [`15de952`](https://github.com/QwikDev/qwik/commit/15de952ee4cd454e2c433df74ff0cfa20bc3ebc6)]:
+  - @qwik.dev/core@2.0.0-beta.42
+
+## 2.0.0-beta.41
+
+### Patch Changes
+
+- 🐞🩹 preserve route loader mappings for long windows paths (by [@Varixo](https://github.com/Varixo) in [#8939](https://github.com/QwikDev/qwik/pull/8939))
+
+- 🐞🩹 drop the `./service-worker` export — it pointed at a file the package doesn't ship, and `setupServiceWorker` is a no-op in v2 anyway (by [@ixcans](https://github.com/ixcans) in [#8963](https://github.com/QwikDev/qwik/pull/8963))
+
+- 🐞🩹 prerendered pages without a trailing slash now redirect instead of returning 404 (by [@maiieul](https://github.com/maiieul) in [#8960](https://github.com/QwikDev/qwik/pull/8960))
+
+- 🐞🩹 preserve bodyless Cloudflare responses (by [@Fnine59](https://github.com/Fnine59) in [#8949](https://github.com/QwikDev/qwik/pull/8949))
+
+- 🐞🩹 preserve document head after client head errors (by [@Fnine59](https://github.com/Fnine59) in [#8938](https://github.com/QwikDev/qwik/pull/8938))
+
+- `zod$` now detects schemas via `z.ZodType` instead of the zod-3-only `z.Schema` alias, fixing a server-side TypeError (and 500s on every zod$ action) when the router resolves zod 4 in hoisted installs. (by [@blakeley](https://github.com/blakeley) in [#8898](https://github.com/QwikDev/qwik/pull/8898))
+
+- 🐞🩹 preserve no-trailing-slash static routes (by [@ShiroKSH](https://github.com/ShiroKSH) in [#8902](https://github.com/QwikDev/qwik/pull/8902))
+
+- 🐞🩹 preserve route params on loaders using a `search` filter (by [@tidiview](https://github.com/tidiview) in [#8965](https://github.com/QwikDev/qwik/pull/8965))
+
+- 🐞🩹 HEAD requests for prerendered pages returned 404 instead of the page headers (by [@maiieul](https://github.com/maiieul) in [#8960](https://github.com/QwikDev/qwik/pull/8960))
+
+- 🐞🩹 refresh wrapped route loader data after SPA navigation (by [@Varixo](https://github.com/Varixo) in [#8948](https://github.com/QwikDev/qwik/pull/8948))
+
+- Updated dependencies [[`fcced61`](https://github.com/QwikDev/qwik/commit/fcced613a9c0277203b13c2e32a815f02d4ff6cd), [`870529c`](https://github.com/QwikDev/qwik/commit/870529c8194c40fee6a35a5723e0c9171ec5f60d), [`f513eda`](https://github.com/QwikDev/qwik/commit/f513eda07a639399fff044f88607a71670e94d14), [`e4ae649`](https://github.com/QwikDev/qwik/commit/e4ae649364ab3fc7d1fc5f8e98808c5993b4f140)]:
+  - @qwik.dev/core@2.0.0-beta.41
+
 ## 2.0.0-beta.40
 
 ### Major Changes

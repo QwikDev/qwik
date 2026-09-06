@@ -9,5 +9,8 @@ describe('getRouteDetailsHref', () => {
     expect(href).toBe('/app/public-key/routes/%2Furl%2Fdo%2Ftrasy%2Fktora%2Fchcesz/');
     expect(decodeURIComponent(href.split('/').at(-2)!)).toBe(route);
     expect(getRouteDetailsHref('public-key', '/')).toBe('/app/public-key/routes/%2F/');
+    expect(getRouteDetailsHref('public-key', '/', 'manifest/hash')).toBe(
+      '/app/public-key/routes/%2F/?manifest=manifest%2Fhash'
+    );
   });
 });

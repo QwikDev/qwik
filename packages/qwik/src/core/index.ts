@@ -1,7 +1,8 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 // Protect against duplicate imports
 //////////////////////////////////////////////////////////////////////////////////////////
-import { QError, qError } from '../server/qwik-copy';
+import { QError, qError } from './shared/error/error';
+import { isDev } from '@qwik.dev/core/build';
 import { version } from './version';
 
 if ((globalThis as any).__qwik) {
@@ -9,7 +10,7 @@ if ((globalThis as any).__qwik) {
 }
 (globalThis as any).__qwik = version;
 
-if (import.meta.hot) {
+if (isDev && import.meta.hot) {
   import.meta.hot.dispose(() => {
     (globalThis as any).__qwik = undefined;
   });
@@ -155,11 +156,16 @@ export { useResource$ } from './use/use-resource-dollar';
 export { useTaskQrl } from './use/use-task';
 export { useTask$ } from './use/use-task-dollar';
 export { useVisibleTask$ } from './use/use-visible-task-dollar';
+export type { AsyncFn } from './use/use-computed';
 export { useComputed$ } from './use/use-computed';
-export type { AsyncFn } from './use/use-async';
-export { useAsyncQrl, useAsync$ } from './use/use-async';
-export { useErrorBoundary } from './use/use-error-boundary';
-export type { ErrorBoundaryStore } from './shared/error/error-handling';
+export {
+  ErrorBoundary,
+  errorBoundaryCmp as _ebC,
+  errorBoundaryReset as _ebR,
+} from './shared/error/error-boundary';
+export type { ErrorBoundaryProps } from './shared/error/error-boundary';
+export { ErrorBoundaryPhase } from './shared/error/error-boundary-phase';
+export type { ErrorBoundaryInfo } from './shared/error/error-handling';
 export {
   type ReadonlySignal,
   type AsyncSignal,
@@ -174,7 +180,6 @@ export {
   createSerializerQrl,
   createSerializer$,
   createAsyncQrl,
-  createAsync$,
 } from './reactive-primitives/signal.public';
 export type { ComputedOptions } from './reactive-primitives/types';
 

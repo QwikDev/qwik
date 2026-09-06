@@ -18,6 +18,11 @@ import { useConstant } from './use-signal';
 // ctx is not `ComputeCtx<T>`: putting T in a parameter position breaks return-type inference, so
 // `ctx.previous` is `unknown` and must be cast if its type is needed.
 export type ComputedFn<T> = (ctx: ComputeCtx) => ValueOrPromise<T>;
+/**
+ * @deprecated Use `ComputedFn` instead.
+ * @public
+ */
+export type AsyncFn<T> = ComputedFn<T>;
 /** @public */
 export type ComputedReturnType<T> = ComputedSignal<Awaited<T>>;
 

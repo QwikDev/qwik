@@ -788,8 +788,8 @@ fn collect_declared_idents(item: &ast::ModuleItem, out: &mut HashSet<Id>) {
 // Filter out hoisted QRLs that reference identifiers already defined in the module
 // This prevents forward reference errors for self-referential components
 // Fix self-referential variable declarations in function bodies
-// Transforms: const sig = useAsyncQrl(qrl(... [sig]))
-// Into: const _ref = {}; _ref.sig = useAsyncQrl(qrl(... [_ref.sig])); const {sig} = _ref;
+// Transforms: const sig = useComputedQrl(qrl(... [sig]))
+// Into: const _ref = {}; _ref.sig = useComputedQrl(qrl(... [_ref.sig])); const {sig} = _ref;
 fn fix_self_referential_vars_in_function(expr: ast::Expr) -> ast::Expr {
 	match expr {
 		ast::Expr::Arrow(arrow) => ast::Expr::Arrow(fix_arrow_body_self_refs(arrow)),

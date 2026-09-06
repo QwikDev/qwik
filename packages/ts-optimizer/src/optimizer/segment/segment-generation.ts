@@ -1305,7 +1305,6 @@ export function buildDefaultStrategySegment(
     constLiteralsMap,
   } = ctx;
   const {
-    extBySymbol,
     sortedExtractions,
     sameFileSymbols,
     defaultExportedNames,

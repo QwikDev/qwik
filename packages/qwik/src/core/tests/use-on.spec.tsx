@@ -363,8 +363,9 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component ssr-required>
           <Fragment ssr-required>
-            Count: <Signal ssr-required>{'123'}</Signal>!<script hidden></script>
+            Count: <Signal ssr-required>{'123'}</Signal>!
           </Fragment>
+          <script hidden></script>
         </Component>
       );
 
@@ -372,8 +373,9 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component ssr-required>
           <Fragment ssr-required>
-            Count: <Signal ssr-required>{'124'}</Signal>!<script hidden></script>
+            Count: <Signal ssr-required>{'124'}</Signal>!
           </Fragment>
+          <script hidden></script>
         </Component>
       );
     });
@@ -412,28 +414,24 @@ describe.each([
       const { vNode, container } = await render(<Counter initial={123} />, { debug });
       expect(vNode).toMatchVDOM(
         <Component ssr-required>
-          <Fragment ssr-required>
-            <InlineComponent ssr-required>
-              <Fragment ssr-required>
-                Count: <Signal ssr-required>{'123'}</Signal>!
-              </Fragment>
-            </InlineComponent>
-            <script hidden />
-          </Fragment>
+          <InlineComponent ssr-required>
+            <Fragment ssr-required>
+              Count: <Signal ssr-required>{'123'}</Signal>!
+            </Fragment>
+          </InlineComponent>
+          <script hidden />
         </Component>
       );
 
       await trigger(container.element, 'script', 'd:click');
       expect(vNode).toMatchVDOM(
         <Component ssr-required>
-          <Fragment ssr-required>
-            <InlineComponent ssr-required>
-              <Fragment ssr-required>
-                Count: <Signal ssr-required>{'124'}</Signal>!
-              </Fragment>
-            </InlineComponent>
-            <script hidden />
-          </Fragment>
+          <InlineComponent ssr-required>
+            <Fragment ssr-required>
+              Count: <Signal ssr-required>{'124'}</Signal>!
+            </Fragment>
+          </InlineComponent>
+          <script hidden />
         </Component>
       );
     });
@@ -625,8 +623,9 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component ssr-required>
           <Fragment ssr-required>
-            Count: <Signal ssr-required>{'123'}</Signal>!<script hidden></script>
+            Count: <Signal ssr-required>{'123'}</Signal>!
           </Fragment>
+          <script hidden></script>
         </Component>
       );
 
@@ -634,8 +633,9 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component ssr-required>
           <Fragment ssr-required>
-            Count: <Signal ssr-required>{'124'}</Signal>!<script hidden></script>
+            Count: <Signal ssr-required>{'124'}</Signal>!
           </Fragment>
+          <script hidden></script>
         </Component>
       );
     });
@@ -1059,11 +1059,9 @@ describe.each([
         <Component ssr-required>
           <Component ssr-required>
             <Component ssr-required>
-              <Component ssr-required>
-                <div>test</div>
-              </Component>
-              <script hidden></script>
+              <div>test</div>
             </Component>
+            <script hidden></script>
           </Component>
         </Component>
       );
@@ -1089,12 +1087,10 @@ describe.each([
       expect(vNode).toMatchVDOM(
         <Component ssr-required>
           <Component ssr-required>
-            <Component ssr-required>
-              <Projection ssr-required>
-                <div>test</div>
-              </Projection>
-              <script hidden></script>
-            </Component>
+            <Projection ssr-required>
+              <div>test</div>
+            </Projection>
+            <script hidden></script>
           </Component>
         </Component>
       );

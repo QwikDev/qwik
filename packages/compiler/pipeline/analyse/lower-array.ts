@@ -112,8 +112,9 @@ function lowerEach(
   const paramAliases = new Map<LocalId, { base: LocalId; member: string }>();
   const paramBindings: LocalId[] = [];
   const paramPatterns = new Map<LocalId, BindingPattern>();
+  const parameters = callback.params.map(readCollectionParameter);
 
-  for (const param of callback.params) {
+  for (const param of parameters) {
     switch (param.type) {
       case 'Identifier': {
         const binding = ctx.bindings.declaration(param);
@@ -126,6 +127,7 @@ function lowerEach(
         break;
       }
       case 'ObjectPattern':
+      case 'AssignmentPattern':
       case 'ArrayPattern': {
         const binding = ctx.bindings.addSynthetic(DESTRUCTURED_WRAPPED_PARAM, BindingScope.Loop);
         const freshName =
@@ -170,8 +172,12 @@ function lowerEach(
   if (paramPatterns.size > 0) {
     paramPatterns.clear();
     paramAliases.clear();
-    callback.params.forEach((param, position) => {
-      if (param.type === 'ObjectPattern' || param.type === 'ArrayPattern') {
+    parameters.forEach((param, position) => {
+      if (
+        param.type === 'ObjectPattern' ||
+        param.type === 'ArrayPattern' ||
+        param.type === 'AssignmentPattern'
+      ) {
         paramPatterns.set(paramBindings[position], param);
       }
     });
@@ -191,7 +197,6 @@ function lowerEach(
     lowerRowProgram(
       body,
       statements,
-      callback,
       paramBindings,
       paramAliases,
       paramPatterns,
@@ -270,7 +275,6 @@ function lowerEach(
   const setupReads = lowerRowProgram(
     body,
     statements,
-    callback,
     paramBindings,
     paramAliases,
     paramPatterns,
@@ -311,6 +315,14 @@ function lowerEach(
     lifetime,
     shape: deriveRowShape(program, ctx),
   };
+}
+
+/** The runtime always supplies the index, making its default unreachable. */
+function readCollectionParameter(
+  param: ArrowFunctionExpression['params'][number],
+  position: number
+) {
+  return position === 1 && param.type === 'AssignmentPattern' ? param.left : param;
 }
 
 /** Simple object fields retain the existing member-read fast path. */
@@ -421,7 +433,6 @@ function deriveIndexMode(
 function lowerRowProgram(
   body: Expression,
   statements: VariableDeclaration[],
-  callback: ArrowFunctionExpression,
   paramBindings: LocalId[],
   paramAliases: Map<LocalId, { base: LocalId; member: string }>,
   paramPatterns: Map<LocalId, BindingPattern>,
@@ -434,16 +445,14 @@ function lowerRowProgram(
 ) {
   const outerLocals = ctx.locals;
   const rowLocals = new Map(outerLocals);
-  callback.params.forEach((param, position) => {
-    if (param.type === 'Identifier' || paramPatterns.has(paramBindings[position])) {
-      rowLocals.set(paramBindings[position], {
-        // Inline params are plain iteration values — the index is a number, not a signal.
-        kind: !lexical && position === 1 ? LocalKind.RowIndex : LocalKind.LoopValue,
-        access: !lexical && position === 1 ? CaptureAccess.RowIndex : CaptureAccess.LoopValue,
-        slot: -1,
-        binding: paramBindings[position],
-      });
-    }
+  paramBindings.forEach((binding, position) => {
+    rowLocals.set(binding, {
+      // Inline params are plain iteration values — the index is a number, not a signal.
+      kind: !lexical && position === 1 ? LocalKind.RowIndex : LocalKind.LoopValue,
+      access: !lexical && position === 1 ? CaptureAccess.RowIndex : CaptureAccess.LoopValue,
+      slot: -1,
+      binding,
+    });
   });
 
   for (const [binding, { base, member }] of paramAliases) {
@@ -565,7 +574,9 @@ function lowerKey(
         functionRange: [callback.start, callback.end],
         calleeRange: null,
         argumentRanges: [],
-        paramRanges: callback.params.map((param) => [param.start, param.end] as [number, number]),
+        paramRanges: callback.params
+          .map(readCollectionParameter)
+          .map((param) => [param.start, param.end] as [number, number]),
         bodyRange: range,
         bodyKind: FnBodyKind.Expression,
       },

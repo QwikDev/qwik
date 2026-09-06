@@ -71,7 +71,12 @@ export function lowerConstBinding(
     return binding;
   });
   const { refs } = lowerCaptures(pattern, ctx, 'a binding pattern', { allowProps: true });
-  const payload = pushPayload(ctx, [pattern.start, pattern.end]);
+  const target = pattern.type === 'AssignmentPattern' ? pattern.left : pattern;
+  const defaultValue =
+    pattern.type === 'AssignmentPattern'
+      ? lowerInlineExpressionValue(pattern.right, ctx, refs)
+      : undefined;
+  const payload = pushPayload(ctx, [target.start, target.end]);
   recordPayloadAliasReads(ctx, payload, refs);
   for (const binding of bindings) {
     locals.set(binding, { kind: LocalKind.Const, access: CaptureAccess.Direct, slot: -1, binding });
@@ -84,6 +89,7 @@ export function lowerConstBinding(
       bindings,
     },
     value,
+    ...(defaultValue === undefined ? {} : { defaultValue }),
   };
 }
 

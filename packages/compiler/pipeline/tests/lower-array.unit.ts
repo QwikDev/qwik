@@ -48,6 +48,63 @@ function lower(jsx: string) {
 const ROW = '<ul>{items.value.map((item) => <li key={item.id}>{item.label}</li>)}</ul>';
 
 describe('lowerArray / reactive rows', () => {
+  test.each(['items.value', '[undefined]'])(
+    'whole-parameter defaults share row setup: %s',
+    (source) => {
+      const { ctx } = lower(
+        `<ul>{${source}.map(({ id, title = id } = items.value, index = 10) => <li key={id}>{index}:{title}</li>)}</ul>`
+      );
+      const linked = linkPlans(
+        [ctx.plan],
+        [],
+        serverSpecialization(),
+        { edges: {} },
+        { claims: [], policies: [], emissions: [] },
+        false
+      );
+      if (linked.kind === LinkResultKind.Failed) {
+        throw new Error('expected the fixture to link');
+      }
+      const module = linked.plan.modules[0];
+      const program = module.programs.find((program) => program.setup.length > 0)!;
+      const statements = emitJsSetup(module, program, new Set());
+      let reads = 0;
+      const run = (item: unknown) =>
+        runInNewContext(
+          `(() => {
+      ${statements.join('\n')}
+      return [id, title];
+    })()`,
+          {
+            item,
+            items: {
+              get value() {
+                reads++;
+                return { id: 'fallback' };
+              },
+            },
+          }
+        );
+      expect(run({ id: 'provided', title: null })).toEqual(['provided', null]);
+      expect(() => run(null)).toThrow();
+      expect(reads).toBe(0);
+      expect(run(undefined)).toEqual(['fallback', 'fallback']);
+      expect(reads).toBe(1);
+      const row = module.qrls.find((qrl) => qrl.ctxName === 'for:render');
+      if (row !== undefined) {
+        expect(row.params.used.map((binding) => module.bindings[binding].name)).toEqual([
+          'item',
+          'index',
+        ]);
+        expect(
+          module.qrls.some((qrl) =>
+            qrl.captures.some((capture) => capture.access === CaptureAccess.RowIndex)
+          )
+        ).toBe(true);
+      }
+    }
+  );
+
   test.each(['items.value', '[{}]'])(
     'parameter defaults preserve evaluation order: %s',
     (source) => {

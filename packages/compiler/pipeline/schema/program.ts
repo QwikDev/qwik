@@ -311,7 +311,14 @@ export const enum SetupKind {
 
 export type Setup =
   /** Plain consts AND `$()` consts (value: {v: ValueKind.Qrl}). */
-  | { s: SetupKind.Const; result: BindTarget; value: Value; guard?: Predicate }
+  | {
+      s: SetupKind.Const;
+      result: BindTarget;
+      value: Value;
+      /** Fallback for an already-bound argument, evaluated only for undefined. */
+      defaultValue?: Value;
+      guard?: Predicate;
+    }
   | { s: SetupKind.Invoke; invoke: Invoke; guard?: Predicate }
   | {
       s: SetupKind.Hook;

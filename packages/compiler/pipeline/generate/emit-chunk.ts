@@ -32,7 +32,7 @@ export interface FunctionEmission {
   hoists: string[];
   params: string[];
   statements: string[];
-  /** The return expression. */
+  /** Return expression, or empty for a statement-only body. */
   value: string;
   async: boolean;
   /** QRLs the function's body references — the placement satisfies them. */
@@ -181,7 +181,10 @@ export function emptyFunctionEmission(): FunctionEmission {
 
 /** The one arrow printer — chunk exports, SSR mirrors, and spliced bodies share these bytes. */
 export function functionText(emission: FunctionEmission): string {
-  const body = [...emission.statements, `return ${emission.value};`]
+  const body = [
+    ...emission.statements,
+    ...(emission.value === '' ? [] : [`return ${emission.value};`]),
+  ]
     .map((statement) => `  ${statement}`)
     .join('\n');
   return `${emission.async ? 'async ' : ''}(${emission.params.join(', ')}) => {\n${body}\n}`;

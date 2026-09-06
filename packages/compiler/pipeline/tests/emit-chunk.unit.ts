@@ -159,10 +159,21 @@ describe('sourceFunctionEmission', () => {
     expect(textOf(qrl)).toBe('async () => {\n  return count.value++;\n}');
   });
 
-  test('block bodies refuse', () => {
+  test('block bodies restore captures without adding a return expression', () => {
+    const source = '{ if (count.value > 10) return; count.value++; }';
     const blockQrl = qrlWith({
-      origin: { ...qrlWith({}).origin, bodyKind: FnBodyKind.Block },
+      captures: [{ binding: 0, access: CaptureAccess.Direct }],
+      origin: { ...qrlWith({}).origin, bodyKind: FnBodyKind.Block, bodyRange: [0, source.length] },
     });
-    expect(() => textOf(blockQrl)).toThrow('a block QRL body');
+    const module = moduleWith(blockQrl);
+    module.source.code = source;
+    const emission = sourceFunctionEmission(
+      deepFreeze(module),
+      blockQrl,
+      createQrlResolver(module)
+    );
+    expect(functionText(emission)).toBe(
+      '() => {\n  const [count] = _captures;\n  if (count.value > 10) return; count.value++;\n}'
+    );
   });
 });

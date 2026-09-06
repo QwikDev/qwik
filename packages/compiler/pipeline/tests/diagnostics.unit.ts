@@ -39,10 +39,10 @@ export default (props: Props) => {
     await expect(
       transformModules(
         options(`export default () => {
-  return <button onClick$={() => { console.log(1); }}>go</button>;
+  return <button onClick$={({ type }) => console.log(type)}>go</button>;
 };
 `)
       )
-    ).rejects.toThrow('pipeline does not support: a block-bodied event handler');
+    ).rejects.toThrow('pipeline does not support: event handler parameters beyond identifiers');
   });
 });

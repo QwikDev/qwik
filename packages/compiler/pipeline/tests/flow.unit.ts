@@ -187,17 +187,20 @@ export default () => {
     ).rejects.toThrow('an expression capturing "title"');
   });
 
-  test('block-bodied event handlers are not supported yet', async () => {
-    await expect(
-      analyseModule(
-        {
-          path: 'src/block.tsx',
-          code: 'export default () => {\n  return <button onClick$={() => { console.log(1); }}>go</button>;\n};\n',
-        },
-        { transpileTs: true }
-      )
-    ).rejects.toThrow('a block-bodied event handler');
-  });
+  test.each(['() => <b />', '() => { return <b />; }'])(
+    'JSX in event handlers remains unsupported: %s',
+    async (handler) => {
+      await expect(
+        analyseModule(
+          {
+            path: 'src/block.tsx',
+            code: `export default () => <button onClick$={${handler}}>go</button>;`,
+          },
+          { transpileTs: true }
+        )
+      ).rejects.toThrow('JSX inside an event handler');
+    }
+  );
 
   test('ordinary component setup calls retain authored JavaScript', async () => {
     const output = await transformModules({

@@ -1,20 +1,6 @@
-import { runInNewContext } from 'node:vm';
 import { expect, test } from 'vitest';
-import { parseModule } from '../analyse/ast/parse';
 import { transformModules } from '../compat/transform-modules';
-
-function loadFunction(module: { path: string; code: string }, captures: unknown[] = []) {
-  const declaration = parseModule(module.path, module.code).program.body.find(
-    (statement) => statement.type === 'ExportNamedDeclaration'
-  )?.declaration;
-  if (declaration?.type !== 'VariableDeclaration') {
-    throw new Error('expected an exported function');
-  }
-  const expression = declaration.declarations[0].init!;
-  return runInNewContext(`(${module.code.slice(expression.start, expression.end)})`, {
-    _captures: captures,
-  });
-}
+import { loadChunkFunction } from './fixtures';
 
 test.each([false, true])(
   'empty arms do not affect collection keys or key captures (SSR: %s)',
@@ -51,7 +37,7 @@ export default (props) => {
         const key = output.modules.find((module) => module.segment?.ctxName === 'for:key')!;
         expect(key).toBeDefined();
         expect(key.segment!.captureNames).toEqual(['props']);
-        const getKey = loadFunction(key, [
+        const getKey = loadChunkFunction(key, [
           {
             prefix: '#',
             get visible() {
@@ -91,7 +77,7 @@ test.each([false, true])(
     const key = output.modules.find((module) => module.segment?.ctxName === 'for:key')!;
     const reads: string[] = [];
     let choose = true;
-    const getKey = loadFunction(key, [
+    const getKey = loadChunkFunction(key, [
       {
         get choose() {
           reads.push('choose');
@@ -135,7 +121,7 @@ test.each([false, true])(
     expect(output.diagnostics).toEqual([]);
     const key = output.modules.find((module) => module.segment?.ctxName === 'for:key')!;
     expect(key).toBeDefined();
-    const getKey = loadFunction(key);
+    const getKey = loadChunkFunction(key);
     expect(getKey({ visible: false, details: { id: 'hidden' } })).toBe('hidden');
     expect(() => getKey({ visible: false, details: null })).toThrow();
     const error = new Error('key failed');
@@ -212,7 +198,7 @@ export default (props) => {
         },
       };
       expect(key.segment!.captureNames).toEqual(['props']);
-      const getKey = loadFunction(key, [props]);
+      const getKey = loadChunkFunction(key, [props]);
       for (const [outer, inner, expected, path] of [
         [true, true, 'idA', ['outer', 'left', 'a']],
         [true, false, 'idB', ['outer', 'left', 'b']],
@@ -289,7 +275,7 @@ export default (props) => {
           },
         },
       };
-      const getKey = loadFunction(
+      const getKey = loadChunkFunction(
         key,
         key.segment!.captureNames.map((name) => captures[name as keyof typeof captures])
       );
@@ -337,7 +323,7 @@ export default (props) => {
       props: { field: 'id', prefix: '#' },
       fallback: { value: 'fallback' },
     };
-    const getKey = loadFunction(
+    const getKey = loadChunkFunction(
       key,
       key.segment!.captureNames.map((name) => captures[name as keyof typeof captures])
     );
@@ -380,7 +366,7 @@ export default (props) => {
       });
       expect(output.diagnostics).toEqual([]);
       const key = output.modules.find((module) => module.segment?.ctxName === 'for:key')!;
-      const getKey = loadFunction(key, [{ value: { id: 'given' } }]);
+      const getKey = loadChunkFunction(key, [{ value: { id: 'given' } }]);
       expect(getKey(provided, 2)).toBe('given2');
     }
   }
@@ -413,7 +399,7 @@ export default () => {
       expect(output.diagnostics).toEqual([]);
       const key = output.modules.find((module) => module.segment?.ctxName === 'for:key')!;
       let reads = 0;
-      const getKey = loadFunction(key, [
+      const getKey = loadChunkFunction(key, [
         {
           get value() {
             reads++;
@@ -460,7 +446,7 @@ export default (props) => {
     const key = output.modules.find((module) => module.segment?.ctxName === 'for:key')!;
     const captures = { fallback: { value: 'fallback' }, props: { field: 'id' } };
     const captureNames = key.segment!.captureNames as (keyof typeof captures)[];
-    const getKey = loadFunction(
+    const getKey = loadChunkFunction(
       key,
       captureNames.map((name) => captures[name])
     );
@@ -492,7 +478,7 @@ export default (props) => {
     expect(output.diagnostics).toEqual([]);
     const key = output.modules.find((module) => module.segment?.ctxName === 'for:key')!;
     expect(key.code).not.toContain('props.unused');
-    expect(loadFunction(key)({ id: 'given' }, 0)).toBe('given');
+    expect(loadChunkFunction(key)({ id: 'given' }, 0)).toBe('given');
     const text = output.modules.find((module) => module.segment?.ctxName === 'text')!;
     expect(text.code).toContain('index.value');
   }

@@ -175,6 +175,22 @@ export default () => {
     });
   });
 
+  test('should emit block event handlers through the shared QRL emitter', async () => {
+    const output = await testInput(mode, 'event-block-body', {
+      code: `import { useSignal } from '@qwik.dev/core';
+export const Button = (props) => <button onClick$={props.onSave$}>save</button>;
+export default () => {
+  const count = useSignal(0);
+  return <Button onSave$={() => {
+    const next = count.value + 1;
+    if (next > 10) return;
+    count.value = next;
+  }} />;
+};`,
+    });
+    expect(output.diagnostics).toEqual([]);
+  });
+
   test('should lower component const setup with hook and event captures', async () => {
     const output = await testInput(mode, 'component-const-setup', {
       code: `import { useSignal } from '@qwik.dev/core';

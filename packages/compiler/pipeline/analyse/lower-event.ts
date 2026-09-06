@@ -13,6 +13,7 @@ import { lowerCaptures } from './ast/capture-analysis';
 import { UnsupportedError } from '../errors';
 import { pushPayload, pushQrl, QrlIdentityKind, type LowerContext } from './lower-context';
 import { lowerExpressionValue } from './lower-expr';
+import { findRuntimeJsx } from './ast/returns-jsx';
 
 /** `on…$` attribute → an event prop with an authored handler value. */
 export function lowerEventAttribute(
@@ -52,8 +53,8 @@ export function lowerEventAttribute(
     paramBindings.add(binding);
   }
   const body = fn.body;
-  if (body.type === 'BlockStatement') {
-    throw new UnsupportedError('a block-bodied event handler');
+  if (findRuntimeJsx(body) !== null) {
+    throw new UnsupportedError('JSX inside an event handler');
   }
   const { captures, args } = lowerCaptures(body, ctx, 'an event handler', {
     localBindings: paramBindings,
@@ -78,7 +79,7 @@ export function lowerEventAttribute(
         argumentRanges: [],
         paramRanges: params.map((param) => [param.start, param.end] as [number, number]),
         bodyRange: [body.start, body.end],
-        bodyKind: FnBodyKind.Expression,
+        bodyKind: body.type === 'BlockStatement' ? FnBodyKind.Block : FnBodyKind.Expression,
       },
     },
     args

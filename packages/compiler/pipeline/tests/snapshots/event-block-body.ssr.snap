@@ -1,0 +1,126 @@
+==INPUT==
+
+import { useSignal } from '@qwik.dev/core';
+export const Button = (props) => <button onClick$={props.onSave$}>save</button>;
+export default () => {
+  const count = useSignal(0);
+  return <Button onSave$={() => {
+    const next = count.value + 1;
+    if (next > 10) return;
+    count.value = next;
+  }} />;
+};
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  createSsrNodeId,
+  renderSsrEvent,
+  maybeThen,
+  _noopQrl,
+  useSignal,
+  createComponent,
+} from '@qwik.dev/core';
+const component_onClickqrl_segment_0_3rzjkie0i362z = (props) => {
+  return props.onSave$;
+};
+const q_component_onClickqrl_segment_0_3rzjkie0i362z = /*#__PURE__*/ _noopQrl(
+  'component_onClickqrl_segment_0_3rzjkie0i362z'
+);
+q_component_onClickqrl_segment_0_3rzjkie0i362z.s(component_onClickqrl_segment_0_3rzjkie0i362z);
+const q_component_q_e_save_segment_1_3krcbiqvmvgft = /*#__PURE__*/ _noopQrl(
+  'component_q_e_save_segment_1_3krcbiqvmvgft'
+);
+export const Button = (props, ctx) => {
+  const id0 = ctx.nextId();
+  ctx.addRoot(props);
+  const effect0 = renderSsrEvent(
+    id0,
+    'q-e:click',
+    [props],
+    q_component_onClickqrl_segment_0_3rzjkie0i362z,
+    ctx.eventAttr
+  );
+  return maybeThen(effect0, (effect0) => [
+    '<button q:id="',
+    createSsrNodeId(id0),
+    '"',
+    effect0 ?? '',
+    '>save</button>',
+  ]);
+};
+export default (props0, ctx) => {
+  const count = useSignal(0);
+  ctx.addRoot(count);
+  const component0 = createComponent(
+    Button,
+    { onSave$: q_component_q_e_save_segment_1_3krcbiqvmvgft.w([count]) },
+    ctx
+  );
+  return component0;
+};
+============================= src/component.tsx_component_onClickqrl_segment_0_3rzjkie0i362z.js (ENTRY POINT)==
+
+export const component_onClickqrl_segment_0_3rzjkie0i362z = (props) => {
+  return props.onSave$;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_onClickqrl_segment_0_3rzjkie0i362z",
+  "entry": null,
+  "displayName": "component_onClickqrl_segment_0",
+  "hash": "3rzjkie0i362z",
+  "canonicalFilename": "component.tsx_component_onClickqrl_segment_0_3rzjkie0i362z",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    95,
+    108
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_q_e_save_segment_1_3krcbiqvmvgft.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_q_e_save_segment_1_3krcbiqvmvgft = () => {
+  const [count] = _captures;
+  const next = count.value + 1;
+  if (next > 10) return;
+  count.value = next;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_save_segment_1_3krcbiqvmvgft",
+  "entry": null,
+  "displayName": "component_q_e_save_segment_1",
+  "hash": "3krcbiqvmvgft",
+  "canonicalFilename": "component.tsx_component_q_e_save_segment_1_3krcbiqvmvgft",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onSave$",
+  "captures": true,
+  "loc": [
+    195,
+    278
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

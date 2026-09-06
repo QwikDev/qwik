@@ -7,11 +7,29 @@ import {
   type Specialization,
 } from '../schema';
 import type { Program } from 'oxc-parser';
+import { runInNewContext } from 'node:vm';
+import { parseModule } from '../analyse/ast/parse';
 import { createBindingGraph } from '../analyse/ast/bindings';
 import { createLowerContext } from '../analyse/lower-context';
 import { emptyPlan } from '../analyse/plan';
 
 export { emptyPlan as emptyModulePlan };
+
+export function loadChunkFunction(
+  module: { path: string; code: string },
+  captures: unknown[] = []
+) {
+  const declaration = parseModule(module.path, module.code).program.body.find(
+    (statement) => statement.type === 'ExportNamedDeclaration'
+  )?.declaration;
+  if (declaration?.type !== 'VariableDeclaration') {
+    throw new Error('expected an exported function');
+  }
+  const expression = declaration.declarations[0].init!;
+  return runInNewContext(`(${module.code.slice(expression.start, expression.end)})`, {
+    _captures: captures,
+  });
+}
 
 export function createTestLowerContext(program: Program, source: string, path = 't.tsx') {
   const plan = emptyPlan(path, source);

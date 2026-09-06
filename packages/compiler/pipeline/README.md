@@ -36,6 +36,11 @@ collection callback bodies. Element children and arbitrary call arguments remain
 Consumers decide which shapes they support and how to interpret `key` or `q:slot`; the analysis
 does not emit IR or collect captures. Its index stays out of `ModulePlan`.
 
+Block event handlers reuse the authored QRL emitter and binding-graph capture analysis.
+Local declarations, control flow, returns and async bodies remain JavaScript; no statement IR is added.
+The shared function printer omits an implicit return for statement-only bodies. JSX inside handlers
+is rejected before chunk emission for both expression and block bodies.
+
 Component setup and collection rows share `lowerConstDeclaration()` and `Setup.Const` emission.
 Declarations run in authored order, including multiple declarators and destructuring patterns.
 Setup reads see preceding locals; extracted expressions and handlers capture their computed values.

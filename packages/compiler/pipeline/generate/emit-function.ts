@@ -21,7 +21,7 @@ import {
 } from './emit-chunk';
 import { emitJsSetup } from './emit-setup';
 
-/** Expression QRLs share capture restoration across authored and lowered bodies. */
+/** QRL functions share capture restoration across authored and lowered bodies. */
 export function sourceFunctionEmission(
   module: LinkedModule,
   qrl: LinkedQrl,
@@ -45,14 +45,17 @@ export function sourceFunctionEmission(
     emission.async = program.async;
     return emission;
   }
-  if (qrl.origin.bodyKind !== FnBodyKind.Expression) {
-    throw new UnsupportedError('emitting a chunk for a block QRL body');
-  }
   const source = module.source.code;
   emission.params =
     qrl.payloadKind === QrlPayloadKind.Value
       ? captures
       : qrl.origin.paramRanges.map(([start, end]) => source.slice(start, end));
+  emission.async = qrl.authoredAsync;
+  if (qrl.origin.bodyKind === FnBodyKind.Block) {
+    const [start, end] = qrl.origin.bodyRange;
+    emission.statements.push(source.slice(start + 1, end - 1).trim());
+    return emission;
+  }
   // IR bodies preserve lowered aliases instead of replaying authored identifiers.
   emission.value =
     qrl.propsParts.length > 0
@@ -60,7 +63,6 @@ export function sourceFunctionEmission(
       : body.b === QrlBodyKind.Expr
         ? expressionJs(module, body.expr)
         : source.slice(qrl.origin.bodyRange[0], qrl.origin.bodyRange[1]);
-  emission.async = qrl.authoredAsync;
   return emission;
 }
 

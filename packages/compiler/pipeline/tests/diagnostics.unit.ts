@@ -39,10 +39,10 @@ export default (props: Props) => {
     await expect(
       transformModules(
         options(`export default () => {
-  return <button onClick$={({ type }) => console.log(type)}>go</button>;
+  return <button onClick$={() => <span />}>go</button>;
 };
 `)
       )
-    ).rejects.toThrow('pipeline does not support: event handler parameters beyond identifiers');
+    ).rejects.toThrow('pipeline does not support: JSX inside an event handler');
   });
 });

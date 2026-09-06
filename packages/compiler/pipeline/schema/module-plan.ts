@@ -88,7 +88,13 @@ export interface Qrl {
   /** Names/kinds read from the binding table. */
   captures: { binding: LocalId; access: CaptureAccess }[];
   /** Invocation ABI. */
-  params: { authored: number; used: LocalId[]; sources: PayloadId[] };
+  params: {
+    authored: number;
+    used: LocalId[];
+    sources: PayloadId[];
+    /** Parameter expressions need the enclosing capture scope. */
+    capturesBeforeParams?: true;
+  };
   origin: {
     range: Range;
     functionRange: Range;

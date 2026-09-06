@@ -30,6 +30,43 @@ function identifiers(root: Node, name: string): Node[] {
 }
 
 describe('createBindingGraph', () => {
+  test.each(['const', 'var', 'function'])(
+    'parameter defaults cannot see body %s declarations',
+    (kind) => {
+      const body = kind === 'function' ? 'function value() {}' : `${kind} value = 99;`;
+      const { program } = parseModule(
+        'bindings.ts',
+        `const value = 7;
+const fn = (read = () => value) => { ${body} return value; };`
+      );
+      const graph = createBindingGraph(deepFreeze(program));
+      const values = identifiers(program, 'value');
+      expect(graph.reference(values[1])).toBe(graph.declaration(values[0]));
+      expect(graph.reference(values[3])).toBe(graph.declaration(values[2]));
+      expect(graph.declaration(values[2])).not.toBe(graph.declaration(values[0]));
+    }
+  );
+
+  test.each([
+    ['value', false],
+    ['{ value }', false],
+    ['{ value = 1 }', true],
+    ['{ [key]: value }', true],
+    ['[value = 1]', true],
+  ])('parameter %s and body var binding identity', (parameter, separate) => {
+    const { program } = parseModule(
+      'bindings.ts',
+      `function fn(${parameter}) { var value; return value; }`
+    );
+    const graph = createBindingGraph(deepFreeze(program));
+    const values = identifiers(program, 'value');
+    const declarations = values
+      .map((node) => graph.declaration(node))
+      .filter((binding) => binding !== null);
+    expect(declarations[0] !== declarations[1]).toBe(separate);
+    expect(graph.reference(values[values.length - 1])).toBe(declarations[1]);
+  });
+
   test('indexes declaration owners and destructured bindings', () => {
     const { program } = parseModule(
       'bindings.ts',

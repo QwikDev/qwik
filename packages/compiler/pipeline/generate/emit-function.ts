@@ -20,6 +20,7 @@ import {
   type FunctionEmission,
 } from './emit-chunk';
 import { emitJsSetup } from './emit-setup';
+import { createNameAllocator } from './names';
 
 /** QRL functions share capture restoration across authored and lowered bodies. */
 export function sourceFunctionEmission(
@@ -34,6 +35,13 @@ export function sourceFunctionEmission(
     emission.statements.push(...capturePrelude(captures));
   }
   const body = qrl.body;
+  // Native parameter scopes preserve defaults, closures, and mutable bindings.
+  if (body.b === QrlBodyKind.Js && qrl.params.capturesBeforeParams) {
+    const args = createNameAllocator(module)('args');
+    emission.params = [`...${args}`];
+    emission.value = `(${extractPayloadJs(module, body.payload)})(...${args})`;
+    return emission;
+  }
   if (body.b === QrlBodyKind.Program) {
     const program = module.programs[body.program];
     if (program.body.kind !== ProgramBodyKind.Expr) {

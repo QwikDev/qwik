@@ -1,7 +1,9 @@
 import { describe, expect, test } from 'vitest';
 import { eventScopeName } from '../analyse/events';
 import { transformModules } from '../compat/transform-modules';
-import { loadChunkFunction } from './fixtures';
+import { analyseModule, generateJsSsr, linkPlans } from '../index';
+import { EntryKind, LinkResultKind } from '../schema';
+import { deepFreeze, loadChunkFunction, serverSpecialization } from './fixtures';
 
 test.each([false, true])(
   'block handlers preserve control flow and captures (SSR: %s)',
@@ -82,6 +84,163 @@ test.each([false, true])(
     }
   }
 );
+
+test.each([false, true])('handler parameter semantics (SSR: %s)', async (isServer) => {
+  for (const { handler, args, expected, captures = [] } of [
+    {
+      handler:
+        '({ nested: { value }, ...rest }, [first, ...tail], ...extra) => [value, rest, first, tail, extra]',
+      args: [{ nested: { value: 1 }, label: 'rest' }, [2, 3, 4], 5, 6],
+      expected: [1, { label: 'rest' }, 2, [3, 4], [5, 6]],
+    },
+    {
+      handler: '({ value }) => value + fallback',
+      args: [{ value: 2 }],
+      expected: 9,
+      captures: ['fallback'],
+    },
+    {
+      handler: '({ value = fallback } = {}, next = value, ...rest) => [value, next, rest]',
+      args: [undefined, undefined, 3],
+      expected: [7, 7, [3]],
+      captures: ['fallback'],
+    },
+    {
+      handler: '(value = fallback) => value',
+      args: [null],
+      expected: null,
+      captures: ['fallback'],
+    },
+    {
+      handler: '({ value = fallback } = {}) => { value++; return value; }',
+      args: [],
+      expected: 8,
+      captures: ['fallback'],
+    },
+    {
+      handler: '(read = () => fallback) => { const fallback = 99; return [read(), fallback]; }',
+      args: [],
+      expected: [7, 99],
+      captures: ['fallback'],
+    },
+    {
+      handler:
+        '(value = fallback, read = () => value) => { var value = 99; return [read(), value]; }',
+      args: [],
+      expected: [7, 99],
+      captures: ['fallback'],
+    },
+    {
+      handler: '({ [fallback]: value }) => value',
+      args: [{ 7: 'selected' }],
+      expected: 'selected',
+      captures: ['fallback'],
+    },
+    {
+      handler: '({ fallback = 3 } = {}) => fallback',
+      args: [],
+      expected: 3,
+    },
+    {
+      handler:
+        'async ({ value = fallback } = {}, ...args0) => { return await Promise.resolve([value, args0]); }',
+      args: [undefined, 2],
+      expected: [7, [2]],
+      captures: ['fallback'],
+    },
+  ]) {
+    const output = await transformModules({
+      srcDir: 'src',
+      isServer,
+      input: [
+        {
+          path: 'src/component.tsx',
+          code: `export default () => {
+  const fallback = 7;
+  return <button onClick$={${handler}}>go</button>;
+};`,
+        },
+      ],
+    });
+    expect(output.diagnostics).toEqual([]);
+    const chunk = output.modules.find((module) => module.segment?.ctxName === 'onClick$')!;
+    expect(chunk.segment!.captureNames ?? [], handler).toEqual(captures);
+    expect(
+      await loadChunkFunction(
+        chunk,
+        captures.map(() => 7)
+      )(...args)
+    ).toEqual(expected);
+  }
+});
+
+test.each([false, true])('handler defaults retain parameter TDZ (SSR: %s)', async (isServer) => {
+  for (const handler of [
+    '(first = later, later = fallback) => first',
+    '(first = first, later = fallback) => first',
+  ]) {
+    const output = await transformModules({
+      srcDir: 'src',
+      isServer,
+      input: [
+        {
+          path: 'src/component.tsx',
+          code: `export default () => {
+  const fallback = 7;
+  return <button onClick$={${handler}}>go</button>;
+};`,
+        },
+      ],
+    });
+    expect(output.diagnostics).toEqual([]);
+    const chunk = output.modules.find((module) => module.segment?.ctxName === 'onClick$')!;
+    expect(() => loadChunkFunction(chunk, [7])()).toThrow(/before initialization/);
+  }
+});
+
+test('captured parameter plans survive serialization and immutable linking', async () => {
+  const plan = await analyseModule(
+    {
+      path: 'src/component.tsx',
+      code: `export default () => {
+  const fallback = 7;
+  return <button onClick$={(value = fallback) => value} />;
+};`,
+    },
+    {}
+  );
+  const frozen = deepFreeze(JSON.parse(JSON.stringify(plan)));
+  const linked = linkPlans(
+    [frozen],
+    [{ kind: EntryKind.Module, module: plan.path }],
+    serverSpecialization(),
+    { edges: {} },
+    { claims: [], policies: [], emissions: [] },
+    true
+  );
+  expect(linked.kind).toBe(LinkResultKind.Linked);
+  if (linked.kind !== LinkResultKind.Linked) {
+    throw new Error('expected linked handler');
+  }
+  const output = await generateJsSsr(deepFreeze(JSON.parse(JSON.stringify(linked.plan))), {});
+  const chunk = output.modules.find((module) => module.segment?.ctxName === 'onClick$')!;
+  expect(loadChunkFunction(chunk, [7])()).toBe(7);
+  expect(frozen).toEqual(plan);
+});
+
+test('rejects JSX in event parameter defaults', async () => {
+  await expect(
+    transformModules({
+      srcDir: 'src',
+      input: [
+        {
+          path: 'src/component.tsx',
+          code: 'export default () => <button onClick$={(value = <span />) => value} />;',
+        },
+      ],
+    })
+  ).rejects.toThrow('JSX inside an event handler');
+});
 
 describe('eventScopeName', () => {
   test('element events map to q-e: scope keys', () => {

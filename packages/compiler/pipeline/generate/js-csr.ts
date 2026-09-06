@@ -41,12 +41,8 @@ import { sourceFunctionEmission } from './emit-function';
 import { emitCollectionSource } from './emit-collection';
 import { escapeText } from '../html';
 import { foldStaticOp, isFullyStaticSubtree } from './fold-static';
-import {
-  createNameAllocator,
-  emitComponentCall,
-  type ComponentEmission,
-  type GeneratedNames,
-} from './emit-component';
+import { emitComponentCall, type ComponentEmission, type GeneratedNames } from './emit-component';
+import { createNameAllocator } from './names';
 import { generateForeignModule } from './foreign';
 import {
   createFailedModule,

@@ -191,6 +191,19 @@ export default () => {
     expect(output.diagnostics).toEqual([]);
   });
 
+  test('should preserve event parameter patterns and captured defaults', async () => {
+    await testInput(mode, 'event-parameter-patterns', {
+      code: `export const Button = (props) => <button onClick$={props.onSave$}>save</button>;
+export default () => {
+  const fallback = 'click';
+  return <Button
+    onSave$={({ type = fallback } = {}, ...rest) => [type, rest.length]}
+    onReset$={([first, ...rest], { id = 'button' }) => [first, rest, id]}
+  />;
+};`,
+    });
+  });
+
   test('should lower component const setup with hook and event captures', async () => {
     const output = await testInput(mode, 'component-const-setup', {
       code: `import { useSignal } from '@qwik.dev/core';

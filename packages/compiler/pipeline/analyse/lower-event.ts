@@ -41,24 +41,14 @@ export function lowerEventAttribute(
   }
   const fn = expression;
   const params = fn.params;
-  const paramBindings = new Set<number>();
-  for (const param of params) {
-    if (param.type !== 'Identifier') {
-      throw new UnsupportedError('event handler parameters beyond identifiers');
-    }
-    const binding = ctx.bindings.declaration(param);
-    if (binding === null) {
-      throw new UnsupportedError(`the unresolved event parameter "${param.name}"`);
-    }
-    paramBindings.add(binding);
-  }
   const body = fn.body;
-  if (findRuntimeJsx(body) !== null) {
+  if (findRuntimeJsx(fn) !== null) {
     throw new UnsupportedError('JSX inside an event handler');
   }
-  const { captures, args } = lowerCaptures(body, ctx, 'an event handler', {
-    localBindings: paramBindings,
-  });
+  const { captures, args, refs } = lowerCaptures(fn, ctx, 'an event handler');
+  const capturesBeforeParams = refs.locals.some(({ reads }) =>
+    reads.some(([start]) => start < body.start)
+  );
 
   const payload = pushPayload(ctx, [fn.start, fn.end]);
   const { use } = pushQrl(
@@ -71,7 +61,12 @@ export function lowerEventAttribute(
       authoredAsync: fn.async === true,
       body: { b: QrlBodyKind.Js, payload },
       captures,
-      params: { authored: params.length, used: [], sources: [] },
+      params: {
+        authored: params.length,
+        used: [],
+        sources: [],
+        ...(capturesBeforeParams ? { capturesBeforeParams: true } : {}),
+      },
       origin: {
         range: [attribute.start, attribute.end],
         functionRange: [fn.start, fn.end],

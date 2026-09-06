@@ -119,6 +119,7 @@ export function createBindingGraph(program: Program): BindingGraph {
     if (node.type === 'FunctionExpression' && node.id !== null) {
       declare(node.id, nameScope, BindingScope.Local, null, node);
     }
+    let hasParameterExpressions = false;
     for (const param of node.params) {
       const pattern =
         param.type === 'TSParameterProperty'
@@ -127,16 +128,18 @@ export function createBindingGraph(program: Program): BindingGraph {
             ? param.argument
             : param;
       declarePattern(pattern, functionScope, BindingScope.Param, null);
-      collectPatternExpressions(pattern, functionScope);
+      hasParameterExpressions =
+        collectPatternExpressions(pattern, functionScope) || hasParameterExpressions;
     }
     if (node.body === null) {
       return;
     }
-    scopes.set(node.body, functionScope);
+    const bodyScope = hasParameterExpressions ? createScope(functionScope, true) : functionScope;
+    scopes.set(node.body, bodyScope);
     if (node.body.type === 'BlockStatement') {
-      node.body.body.forEach((statement) => collect(statement, functionScope));
+      node.body.body.forEach((statement) => collect(statement, bodyScope));
     } else {
-      collect(node.body, functionScope);
+      collect(node.body, bodyScope);
     }
   }
 
@@ -156,35 +159,39 @@ export function createBindingGraph(program: Program): BindingGraph {
     collect(node.body, classScope);
   }
 
-  function collectPatternExpressions(pattern: BindingPattern, scope: Scope): void {
+  function collectPatternExpressions(pattern: BindingPattern, scope: Scope): boolean {
+    let hasExpressions = false;
     switch (pattern.type) {
       case 'Identifier':
-        return;
+        return false;
       case 'AssignmentPattern':
         collect(pattern.right, scope);
         collectPatternExpressions(pattern.left, scope);
-        return;
+        return true;
       case 'ArrayPattern':
         for (const element of pattern.elements) {
           if (element !== null) {
-            collectPatternExpressions(
-              element.type === 'RestElement' ? element.argument : element,
-              scope
-            );
+            hasExpressions =
+              collectPatternExpressions(
+                element.type === 'RestElement' ? element.argument : element,
+                scope
+              ) || hasExpressions;
           }
         }
-        return;
+        return hasExpressions;
       case 'ObjectPattern':
         for (const property of pattern.properties) {
           if (property.type === 'Property') {
             if (property.computed) {
               collect(property.key, scope);
+              hasExpressions = true;
             }
-            collectPatternExpressions(property.value, scope);
+            hasExpressions = collectPatternExpressions(property.value, scope) || hasExpressions;
           } else {
-            collectPatternExpressions(property.argument, scope);
+            hasExpressions = collectPatternExpressions(property.argument, scope) || hasExpressions;
           }
         }
+        return hasExpressions;
     }
   }
 

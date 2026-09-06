@@ -1,0 +1,153 @@
+==INPUT==
+
+export const Button = (props) => <button onClick$={props.onSave$}>save</button>;
+export default () => {
+  const fallback = 'click';
+  return <Button
+    onSave$={({ type = fallback } = {}, ...rest) => [type, rest.length]}
+    onReset$={([first, ...rest], { id = 'button' }) => [first, rest, id]}
+  />;
+};
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  createEventEffect,
+  _createElementTemplate,
+  _qrlWithChunk,
+  createComponent,
+} from '@qwik.dev/core';
+import { component_onClickqrl_segment_0_3rzjkie0i362z } from './component.tsx_component_onClickqrl_segment_0_3rzjkie0i362z';
+
+const Button_tmpl0 = _createElementTemplate('<button>save</button>');
+const q_component_q_e_save_segment_1_3krcbiqvmvgft = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_q_e_save_segment_1_3krcbiqvmvgft',
+  () => import('./component.tsx_component_q_e_save_segment_1_3krcbiqvmvgft'),
+  'component_q_e_save_segment_1_3krcbiqvmvgft'
+);
+const q_component_q_e_reset_segment_2_3clnjugf9bxli = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_q_e_reset_segment_2_3clnjugf9bxli',
+  () => import('./component.tsx_component_q_e_reset_segment_2_3clnjugf9bxli'),
+  'component_q_e_reset_segment_2_3clnjugf9bxli'
+);
+export const Button = (props, ctx) => {
+  const el0 = Button_tmpl0(ctx.document);
+  const effect0 = createEventEffect(
+    el0,
+    'q-e:click',
+    [props],
+    component_onClickqrl_segment_0_3rzjkie0i362z,
+    ctx.scheduler
+  );
+  ctx.scheduler.waitFor(effect0.run());
+  return el0;
+};
+export default (props0, ctx) => {
+  const fallback = 'click';
+  const component0 = createComponent(
+    Button,
+    {
+      onSave$: q_component_q_e_save_segment_1_3krcbiqvmvgft.w([fallback]),
+      onReset$: q_component_q_e_reset_segment_2_3clnjugf9bxli,
+    },
+    ctx
+  );
+  return component0;
+};
+============================= src/component.tsx_component_onClickqrl_segment_0_3rzjkie0i362z.js (ENTRY POINT)==
+
+export const component_onClickqrl_segment_0_3rzjkie0i362z = (props) => {
+  return props.onSave$;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_onClickqrl_segment_0_3rzjkie0i362z",
+  "entry": null,
+  "displayName": "component_onClickqrl_segment_0",
+  "hash": "3rzjkie0i362z",
+  "canonicalFilename": "component.tsx_component_onClickqrl_segment_0_3rzjkie0i362z",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    51,
+    64
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_q_e_save_segment_1_3krcbiqvmvgft.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_q_e_save_segment_1_3krcbiqvmvgft = (...args0) => {
+  const [fallback] = _captures;
+  return (({ type = fallback } = {}, ...rest) => [type, rest.length])(...args0);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_save_segment_1_3krcbiqvmvgft",
+  "entry": null,
+  "displayName": "component_q_e_save_segment_1",
+  "hash": "3krcbiqvmvgft",
+  "canonicalFilename": "component.tsx_component_q_e_save_segment_1_3krcbiqvmvgft",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onSave$",
+  "captures": true,
+  "loc": [
+    153,
+    221
+  ],
+  "paramNames": [
+    "{ type = fallback } = {}",
+    "...rest"
+  ],
+  "captureNames": [
+    "fallback"
+  ]
+}
+*/
+============================= src/component.tsx_component_q_e_reset_segment_2_3clnjugf9bxli.js (ENTRY POINT)==
+
+export const component_q_e_reset_segment_2_3clnjugf9bxli = (
+  [first, ...rest],
+  { id = 'button' }
+) => {
+  return [first, rest, id];
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_reset_segment_2_3clnjugf9bxli",
+  "entry": null,
+  "displayName": "component_q_e_reset_segment_2",
+  "hash": "3clnjugf9bxli",
+  "canonicalFilename": "component.tsx_component_q_e_reset_segment_2_3clnjugf9bxli",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onReset$",
+  "captures": false,
+  "loc": [
+    226,
+    295
+  ],
+  "paramNames": [
+    "[first, ...rest]",
+    "{ id = \"button\" }"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

@@ -23,7 +23,9 @@ import { UnsupportedError } from '../errors';
 import { QwikHook } from '../words';
 import { pushPayload, type LowerContext } from './lower-context';
 import { lowerCaptures } from './ast/capture-analysis';
-import { lowerInlineExpressionValue } from './lower-expr';
+import { lowerInlineExpressionValue, recordPayloadAliasReads } from './lower-expr';
+import { bindingIdentifiers } from './ast/bindings';
+import { findRuntimeJsx } from './ast/returns-jsx';
 
 /** Local value semantics shared by expression and capture lowering. */
 export const enum LocalKind {
@@ -42,22 +44,32 @@ export function lowerConstDeclaration(
   ctx: LowerContext,
   locals: SetupLocals
 ): Setup {
-  if (declarator.id.type !== 'Identifier' || declarator.init === null) {
-    throw new UnsupportedError('a const declaration without an identifier and initializer');
+  if (declarator.init === null) {
+    throw new UnsupportedError('a const declaration without an initializer');
   }
-  const binding = ctx.bindings.declaration(declarator.id);
-  if (binding === null) {
-    throw new UnsupportedError(`the unresolved setup binding "${declarator.id.name}"`);
+  if (findRuntimeJsx(declarator.id) !== null) {
+    throw new UnsupportedError('JSX inside a binding pattern');
   }
-  const { refs } = lowerCaptures(declarator.init, ctx, 'a const initializer', { allowProps: true });
+  const bindings = bindingIdentifiers(declarator.id).map((identifier) => {
+    const binding = ctx.bindings.declaration(identifier);
+    if (binding === null) {
+      throw new UnsupportedError(`the unresolved setup binding "${identifier.name}"`);
+    }
+    return binding;
+  });
+  const { refs } = lowerCaptures(declarator, ctx, 'a const initializer', { allowProps: true });
   const value = lowerInlineExpressionValue(declarator.init, ctx, refs);
-  locals.set(binding, { kind: LocalKind.Const, access: CaptureAccess.Direct, slot: -1, binding });
+  const pattern = pushPayload(ctx, [declarator.id.start, declarator.id.end]);
+  recordPayloadAliasReads(ctx, pattern, refs);
+  for (const binding of bindings) {
+    locals.set(binding, { kind: LocalKind.Const, access: CaptureAccess.Direct, slot: -1, binding });
+  }
   return {
     s: SetupKind.Const,
     result: {
       bind: BindTargetKind.Pattern,
-      pattern: pushPayload(ctx, [declarator.id.start, declarator.id.end]),
-      bindings: [binding],
+      pattern,
+      bindings,
     },
     value,
   };

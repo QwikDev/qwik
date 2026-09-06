@@ -115,10 +115,12 @@ from a deserialized frozen plan in a fresh process.
 - Collection callbacks reuse render-expression lowering, including ternaries and logical-and branches.
   Projected rows select each arm by slot name. Conditions use expression lowering for destructured
   fields and reactive index reads. Concise callbacks and blocks ending in a single return share
-  body extraction. Identifier `const` declarations before the return lower to ordered `Setup.Const`
+  body extraction. `const` declarations before the return lower to ordered `Setup.Const`
   entries, evaluated once per row render; descendant QRLs capture their results directly.
-  Setup-only parameter reads stay in the row ABI. Async callbacks, destructured declarations,
-  non-const statements, early returns and row-local keys remain deferred.
+  Object and array binding patterns retain native defaults, rest and evaluation order; pattern
+  expressions participate in capture analysis and parameter-read rewriting.
+  Setup-only parameter reads stay in the row ABI. Async callbacks, non-const statements,
+  early returns and row-local keys remain deferred.
 - Component candidates require an Uppercased name (anonymous default exports exempt). The legacy
   compiler has no such rule — a differential fixture with a lowercase-named component will
   diverge; that is this decision, not a parity bug.

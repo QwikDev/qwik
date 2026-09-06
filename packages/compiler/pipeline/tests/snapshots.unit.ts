@@ -885,6 +885,27 @@ export default () => {
     expect(output.diagnostics).toEqual([]);
   });
 
+  test.each([
+    ['reactive', 'items.value'],
+    ['array', "[{ details: { parts: ['First', 'Skip', 'Last'] }, fallback: 'Title' }]"],
+  ])('should destructure local consts in mapped projections: %s', async (kind, source) => {
+    const output = await testInput(mode, `component-children-mapped-destructure-${kind}`, {
+      code: `import { Slot, useSignal } from '@qwik.dev/core';
+export const Panel = () => <main><Slot name="header" /></main>;
+export default () => {
+  const suffix = useSignal('!');
+  const items = useSignal([{ details: { parts: ['First', 'Skip', 'Last'] }, fallback: 'Title' }]);
+  return <Panel>{${source}.map(({ details, fallback }, index) => {
+    const { title: label = fallback, copy = label, [index]: position = suffix.value, ...rest } = details;
+    const [first = copy, , ...tail] = rest.parts;
+    return <h2 q:slot="header" onClick$={() => console.log(label, first, tail)}>{label}:{first}:{position}:{tail.length}</h2>;
+  })}</Panel>;
+};
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+  });
+
   test('should forward slots and render fallback through fragments', async () => {
     const output = await testInput(mode, 'component-slot-forwarding-fragments', {
       code: `import { Slot } from '@qwik.dev/core';

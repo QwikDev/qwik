@@ -1,9 +1,12 @@
 import { describe, expect, test } from 'vitest';
+import { runInNewContext } from 'node:vm';
 import {
   CaptureAccess,
+  BindTargetKind,
   EachSourceKind,
   ExprKind,
   IndexMode,
+  LinkResultKind,
   OpKind,
   ProgramBodyKind,
   QrlBodyKind,
@@ -17,7 +20,9 @@ import { parseModule } from '../analyse/ast/parse';
 import { unwrapExpression } from '../analyse/ast/utils';
 import { LocalKind } from '../analyse/lower-setup';
 import { lowerJsx } from '../analyse/lower-jsx';
-import { createTestLowerContext } from './fixtures';
+import { createTestLowerContext, serverSpecialization } from './fixtures';
+import { linkPlans } from '../link/link-plans';
+import { emitJsSetup } from '../generate/emit-setup';
 
 function lower(jsx: string) {
   const source = `const items = null; const a = ${jsx};`;
@@ -56,8 +61,8 @@ describe('lowerArray / reactive rows', () => {
     ['{ const label = <b />; return <li>{label}</li>; }', 'JSX inside an expression value'],
     ['{ const key = item.id; return <li key={key} />; }', 'a collection key capturing "key"'],
     [
-      '{ const { label } = item; return <li>{label}</li>; }',
-      'a const declaration without an identifier and initializer',
+      '{ const { label = <b /> } = item; return <li>{label}</li>; }',
+      'JSX inside a binding pattern',
     ],
     ['render(<li />)', 'JSX inside an expression value'],
   ])('rejects unsupported row bodies: %s', (row, error) => {
@@ -71,6 +76,61 @@ describe('lowerArray / reactive rows', () => {
       )
     ).toThrow('an async collection row');
   });
+
+  test.each(['items.value', '[{}]'])(
+    'destructured consts retain bindings and reads inside patterns: %s',
+    (source) => {
+      const { ctx } = lower(`<ul>{${source}.map(({ details, fallback }, index) => {
+        const { title: label = fallback, copy = label, [index]: position = items.value.length, ...rest } = details;
+        const [first = copy, , { nested }, ...tail] = rest.parts;
+        return <li onClick$={() => console.log(label, first, nested, tail)}>{position}</li>;
+      })}</ul>`);
+      const program = ctx.plan.programs.find((program) => program.setup.length > 0)!;
+      const names = (bindings: number[]) =>
+        bindings.map((binding) => ctx.plan.bindings[binding].name);
+      expect(
+        program.setup.map((entry) => {
+          if (entry.s !== SetupKind.Const || entry.result.bind !== BindTargetKind.Pattern) {
+            throw new Error('expected a const binding pattern');
+          }
+          return names(entry.result.bindings);
+        })
+      ).toEqual([
+        ['label', 'copy', 'position', 'rest'],
+        ['first', 'nested', 'tail'],
+      ]);
+      const object = program.setup[0];
+      if (object.s !== SetupKind.Const || object.result.bind !== BindTargetKind.Pattern) {
+        throw new Error('expected an object binding pattern');
+      }
+      expect(
+        ctx.plan.payloads[object.result.pattern].reads.map((read) => [
+          ctx.plan.bindings[read.binding].name,
+          read.memberPath,
+        ])
+      ).toEqual(
+        source === 'items.value'
+          ? [
+              ['item', ['fallback']],
+              ['index', ['value']],
+            ]
+          : [['item', ['fallback']]]
+      );
+      const event = ctx.plan.qrls.find((qrl) => qrl.ctxName === 'onClick$')!;
+      expect(names(event.captures.map((capture) => capture.binding))).toEqual([
+        'label',
+        'first',
+        'nested',
+        'tail',
+      ]);
+      expect(event.captures.every((capture) => capture.access === CaptureAccess.Direct)).toBe(true);
+      const row = ctx.plan.qrls.find((qrl) => qrl.ctxName === 'for:render');
+      if (source === 'items.value') {
+        expect(names(row!.params.used)).toEqual(['item', 'index']);
+        expect(names(row!.captures.map((capture) => capture.binding))).toEqual(['items']);
+      }
+    }
+  );
 
   test('a single-return block preserves row keys, parameters and captures', () => {
     const { op, ctx } = lower(
@@ -86,6 +146,84 @@ describe('lowerArray / reactive rows', () => {
       '<li key={item.id}>{item.label}</li>'
     );
   });
+
+  test.each([undefined, null, 'Provided'])(
+    'destructuring evaluates initializers, getters and defaults in authored order: %s',
+    (provided) => {
+      const { ctx } = lower(`<ul>{items.value.map(({ read, fallback }, index) => {
+        const { title: label = fallback(), copy = label, [index]: position, ...rest } = read();
+        const [first = copy, , { nested }, ...tail] = rest.values;
+        const {} = rest.touch();
+        return <li>{label}</li>;
+      })}</ul>`);
+      const linked = linkPlans(
+        [ctx.plan],
+        [],
+        serverSpecialization(),
+        { edges: {} },
+        { claims: [], policies: [], emissions: [] },
+        false
+      );
+      if (linked.kind === LinkResultKind.Failed) {
+        throw new Error('expected the fixture to link');
+      }
+      const module = linked.plan.modules[0];
+      const program = module.programs.find((program) => program.setup.length > 0)!;
+      const statements = emitJsSetup(module, program, new Set());
+      const calls: string[] = [];
+      const result = runInNewContext(
+        `(() => {
+        ${statements.join('\n')}
+        return { label, copy, position, first, nested, tail, extra: rest.extra };
+      })()`,
+        {
+          index: { value: 0 },
+          item: {
+            read() {
+              calls.push('read');
+              return {
+                get title() {
+                  calls.push('title');
+                  return provided;
+                },
+                0: 'Position',
+                values: [undefined, 'Skip', { nested: 'Nested' }, 'Tail'],
+                get extra() {
+                  calls.push('extra');
+                  return 'Extra';
+                },
+                touch() {
+                  calls.push('touch');
+                  return {};
+                },
+              };
+            },
+            fallback() {
+              calls.push('fallback');
+              return 'Default';
+            },
+          },
+        }
+      );
+      const label = provided === undefined ? 'Default' : provided;
+      expect(result).toEqual({
+        label,
+        copy: label,
+        position: 'Position',
+        first: label,
+        nested: 'Nested',
+        tail: ['Tail'],
+        extra: 'Extra',
+      });
+      expect(calls).toEqual([
+        'read',
+        'title',
+        ...(provided === undefined ? ['fallback'] : []),
+        'extra',
+        'touch',
+      ]);
+    }
+  );
 
   test.each(['items.value', "[{ label: 'Row' }]"])(
     'row consts preserve setup order, captures and enclosing locals: %s',

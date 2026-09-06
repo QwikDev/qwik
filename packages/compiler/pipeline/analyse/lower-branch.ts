@@ -64,9 +64,7 @@ export function lowerBranch(
 
 /** The condition is a Function-payload QRL over the test expression — captures via `_captures`. */
 function lowerCondition(test: Expression, ctx: LowerContext): Value {
-  const { captures, args, refs } = lowerCaptures(test, ctx, 'a branch condition', {
-    allowProps: true,
-  });
+  const { captures, args, refs } = lowerCaptures(test, ctx, 'a branch condition');
   const range: [number, number] = [test.start, test.end];
   const { expr } = lowerInlineExpressionValue(test, ctx, refs);
   const { use } = pushQrl(
@@ -106,7 +104,7 @@ function lowerArm(
   const loweredCaptures =
     expression === null
       ? { captures: [], args: [] }
-      : lowerCaptures(expression, ctx, 'a branch arm', { allowProps: true });
+      : lowerCaptures(expression, ctx, 'a branch arm');
   // The arm's segment and rows come BEFORE its children's — matching legacy allocation order.
   const program = ctx.plan.programs.length;
   ctx.plan.programs.push({

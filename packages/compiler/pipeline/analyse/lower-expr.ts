@@ -59,9 +59,7 @@ export function lowerComputedExpressionValue(
       if (findRuntimeJsx(expression) !== null) {
         throw new UnsupportedError('JSX inside an expression value');
       }
-      const { captures, args, refs } = lowerCaptures(expression, ctx, 'an expression', {
-        allowProps: true,
-      });
+      const { captures, args, refs } = lowerCaptures(expression, ctx, 'an expression');
       const range: [number, number] = [expression.start, expression.end];
       const payload = pushPayload(ctx, range);
       recordPayloadAliasReads(ctx, payload, refs);
@@ -135,7 +133,7 @@ function tryLowerInlineValue(expression: Expression, ctx: LowerContext): Reactiv
   }
   const refs = collectCaptures(expression, ctx, ctx.inlineParams!);
   // A reactive read needs an effect, so it cannot splice — null defers to the hole path.
-  if (refs.props || refs.locals.length > 0) {
+  if (refs.propsReads.length > 0 || refs.locals.length > 0) {
     return null;
   }
   // Module bindings stay readable: the inline row function nests inside the module scope.

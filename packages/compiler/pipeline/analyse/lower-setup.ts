@@ -47,7 +47,7 @@ export function lowerConstDeclaration(
   if (declarator.init === null) {
     throw new UnsupportedError('a const declaration without an initializer');
   }
-  const { refs } = lowerCaptures(declarator, ctx, 'a const initializer', { allowProps: true });
+  const { refs } = lowerCaptures(declarator, ctx, 'a const initializer');
   const value = lowerInlineExpressionValue(declarator.init, ctx, refs);
   return lowerConstBinding(declarator.id, value, ctx, locals);
 }
@@ -63,7 +63,7 @@ export function lowerConstBinding(
     throw new UnsupportedError('JSX inside a binding pattern');
   }
   const bindings = [...ctx.bindings.bindingsOf(pattern)];
-  const { refs } = lowerCaptures(pattern, ctx, 'a binding pattern', { allowProps: true });
+  const { refs } = lowerCaptures(pattern, ctx, 'a binding pattern');
   const target = pattern.type === 'AssignmentPattern' ? pattern.left : pattern;
   const defaultValue =
     pattern.type === 'AssignmentPattern'

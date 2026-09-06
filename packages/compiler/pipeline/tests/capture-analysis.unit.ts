@@ -61,7 +61,7 @@ describe('collectCaptures', () => {
   test('a setup local is collected with its SetupLocal row', () => {
     const refs = refsOf('() => count.value++', { count: true });
     expect(refs).toMatchObject({
-      props: false,
+      propsReads: [],
       locals: [{ name: 'count', local: COUNT_LOCAL }],
       other: null,
     });
@@ -74,12 +74,19 @@ describe('collectCaptures', () => {
     expect(locals[0].reads).toHaveLength(2);
   });
 
-  test('the props param sets the props flag, not a local entry', () => {
-    expect(refsOf('props.title', { props: true })).toEqual({
-      props: true,
+  test('props reads retain their locations without becoming local entries', () => {
+    const refs = refsOf('(value = props.initial) => props.onSave$(value)', { props: true });
+    expect(refs).toEqual({
+      propsReads: [
+        [expect.any(Number), expect.any(Number)],
+        [expect.any(Number), expect.any(Number)],
+      ],
       locals: [],
       other: null,
     });
+    expect(refs.propsReads.map(([start, end]) => end - start)).toEqual([5, 5]);
+    expect(refs.propsReads[0][1]).toBeLessThan(refs.propsReads[1][0]);
+    expect(refsOf('(props) => props.title', { props: true }).propsReads).toEqual([]);
   });
 
   test('a module binding lands in other', () => {
@@ -88,7 +95,7 @@ describe('collectCaptures', () => {
 
   test('handler params shadow outer names', () => {
     expect(refsOf('(count) => count.value', { count: true })).toEqual({
-      props: false,
+      propsReads: [],
       locals: [],
       other: null,
     });
@@ -101,7 +108,7 @@ describe('collectCaptures', () => {
 
   test('unknown globals are ignored entirely', () => {
     expect(refsOf('() => console.log(1)')).toEqual({
-      props: false,
+      propsReads: [],
       locals: [],
       other: null,
     });

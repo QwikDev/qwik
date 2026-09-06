@@ -198,13 +198,84 @@ test.each([false, true])('handler defaults retain parameter TDZ (SSR: %s)', asyn
   }
 });
 
+test.each([false, true])(
+  'event handlers capture live component props (SSR: %s)',
+  async (isServer) => {
+    for (const { handler, captures, expected, expectedAfterUpdate } of [
+      {
+        handler: '() => input.onSave$(input.id + suffix)',
+        captures: ['suffix', 'input'],
+        expected: 'first!',
+        expectedAfterUpdate: 'second!',
+      },
+      {
+        handler: '(value = input.id) => value',
+        captures: ['input'],
+        expected: 'first',
+        expectedAfterUpdate: 'second',
+      },
+      {
+        handler: '({ value = input.id } = {}) => { return input.onSave$(value + suffix); }',
+        captures: ['suffix', 'input'],
+        expected: 'first!',
+        expectedAfterUpdate: 'second!',
+      },
+      {
+        handler:
+          '(read = () => input.id) => { const input = { id: "shadow" }; return [read(), input.id]; }',
+        captures: ['input'],
+        expected: ['first', 'shadow'],
+        expectedAfterUpdate: ['second', 'shadow'],
+      },
+      {
+        handler:
+          'async (value = input.id) => { await Promise.resolve(); return input.onSave$(value); }',
+        captures: ['input'],
+        expected: 'first',
+        expectedAfterUpdate: 'second',
+      },
+      {
+        handler: '(input = { id: "shadow" }) => input.id',
+        captures: [],
+        expected: 'shadow',
+        expectedAfterUpdate: 'shadow',
+      },
+    ]) {
+      const output = await transformModules({
+        srcDir: 'src',
+        isServer,
+        input: [
+          {
+            path: 'src/component.tsx',
+            code: `export default (input) => {
+  const suffix = '!';
+  return <button onClick$={${handler}}>save</button>;
+};`,
+          },
+        ],
+      });
+      expect(output.diagnostics).toEqual([]);
+      const chunk = output.modules.find((module) => module.segment?.ctxName === 'onClick$')!;
+      expect(chunk.segment!.captureNames ?? [], handler).toEqual(captures);
+      const input = { id: 'first', onSave$: (value: string) => value };
+      const invoke = loadChunkFunction(
+        chunk,
+        captures.map((name) => (name === 'input' ? input : '!'))
+      );
+      expect(await invoke()).toEqual(expected);
+      input.id = 'second';
+      expect(await invoke()).toEqual(expectedAfterUpdate);
+    }
+  }
+);
+
 test('captured parameter plans survive serialization and immutable linking', async () => {
   const plan = await analyseModule(
     {
       path: 'src/component.tsx',
-      code: `export default () => {
+      code: `export default (props) => {
   const fallback = 7;
-  return <button onClick$={(value = fallback) => value} />;
+  return <button onClick$={(value = props.initial + fallback) => value} />;
 };`,
     },
     {}
@@ -224,7 +295,8 @@ test('captured parameter plans survive serialization and immutable linking', asy
   }
   const output = await generateJsSsr(deepFreeze(JSON.parse(JSON.stringify(linked.plan))), {});
   const chunk = output.modules.find((module) => module.segment?.ctxName === 'onClick$')!;
-  expect(loadChunkFunction(chunk, [7])()).toBe(7);
+  expect(chunk.segment!.captureNames).toEqual(['fallback', 'props']);
+  expect(loadChunkFunction(chunk, [7, { initial: 2 }])()).toBe(9);
   expect(frozen).toEqual(plan);
 });
 

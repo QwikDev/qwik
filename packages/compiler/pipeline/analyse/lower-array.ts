@@ -221,10 +221,7 @@ function lowerEach(
     [...paramPatterns.values(), originBody],
     ctx,
     'a collection row',
-    {
-      localBindings,
-      allowProps: true,
-    }
+    localBindings
   );
   const rowRange: [number, number] = [originBody.start, originBody.end];
   const { index: rowIndex, use } = pushQrl(
@@ -551,10 +548,7 @@ function lowerKey(
     [...keyPatterns.values(), ...declarations, ...expressions],
     ctx,
     'a collection key',
-    {
-      localBindings,
-      allowProps: true,
-    }
+    localBindings
   );
   const origin = value.kind === JsxValueKind.Conditional ? value.node : expressions[0];
   const range: [number, number] = [origin.start, origin.end];

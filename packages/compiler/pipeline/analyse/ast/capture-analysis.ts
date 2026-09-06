@@ -12,7 +12,7 @@ import type { LowerContext } from '../lower-context';
 import type { SetupLocal } from '../lower-setup';
 
 export interface CollectedCaptures {
-  props: boolean;
+  propsReads: Range[];
   /** Reactive setup locals the boundary captures, in first-read order. */
   locals: { name: string; local: SetupLocal; reads: Range[] }[];
   /** A referenced binding no capture mechanism covers yet. */
@@ -28,7 +28,7 @@ export function collectCaptures(
   ctx: LowerContext,
   localBindings: ReadonlySet<LocalId>
 ): CollectedCaptures {
-  let props = false;
+  const propsReads: Range[] = [];
   const locals: CollectedCaptures['locals'] = [];
   let other: string | null = null;
   for (const { node: current, binding } of ctx.bindings.freeReferences(node)) {
@@ -37,7 +37,7 @@ export function collectCaptures(
     }
     const setupLocal = ctx.locals.get(binding);
     if (binding === ctx.propsBinding) {
-      props = true;
+      propsReads.push([current.start, current.end]);
     } else if (setupLocal !== undefined) {
       const read: Range = [current.start, current.end];
       const entry = locals.find((candidate) => candidate.local === setupLocal);
@@ -51,7 +51,7 @@ export function collectCaptures(
       break;
     }
   }
-  return { props, locals, other };
+  return { propsReads, locals, other };
 }
 
 export interface LoweredCaptures {
@@ -60,26 +60,17 @@ export interface LoweredCaptures {
   refs: CollectedCaptures;
 }
 
-/**
- * The one capture policy: setup locals ride as Direct captures (Binding args), the props param —
- * when the boundary supports it — as a trailing ComponentProp capture (Props arg); anything else
- * refuses as `<subject> capturing "name"`.
- */
+/** Captures share one ABI: setup locals first, component props last. */
 export function lowerCaptures(
   node: Node | Node[],
   ctx: LowerContext,
   /** Refusal-message subject, e.g. 'a branch arm'. */
   subject: string,
-  options: { localBindings?: ReadonlySet<LocalId>; allowProps?: boolean } = {}
+  localBindings: ReadonlySet<LocalId> = new Set()
 ): LoweredCaptures {
-  const refs = collectCaptures(node, ctx, options.localBindings ?? new Set());
+  const refs = collectCaptures(node, ctx, localBindings);
   if (refs.other !== null) {
     throw new UnsupportedError(`${subject} capturing "${refs.other}"`);
-  }
-  if (refs.props && options.allowProps !== true) {
-    throw new UnsupportedError(
-      `${subject} capturing "${ctx.plan.bindings[ctx.propsBinding!].name}"`
-    );
   }
   const captures: Qrl['captures'] = [];
   const args: QrlUse['args'] = [];
@@ -91,7 +82,7 @@ export function lowerCaptures(
     captures.push({ binding: entry.local.binding, access: entry.local.access });
     args.push({ pass: ArgPass.Binding, binding: entry.local.binding });
   }
-  if (refs.props) {
+  if (refs.propsReads.length > 0) {
     captures.push({ binding: ctx.propsBinding!, access: CaptureAccess.ComponentProp });
     args.push({ pass: ArgPass.Props });
   }

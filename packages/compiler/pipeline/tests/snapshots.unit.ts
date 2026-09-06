@@ -204,6 +204,19 @@ export default () => {
     });
   });
 
+  test('should capture component props in event bodies and defaults', async () => {
+    await testInput(mode, 'event-props-captures', {
+      code: `export const Button = (props) => <button onClick$={props.onSave$}>save</button>;
+export default (input) => {
+  const suffix = '!';
+  return <main>
+    <button onClick$={() => input.onSave$(input.id + suffix)}>save</button>
+    <Button onSave$={({ value = input.initial } = {}) => input.onSave$(value)} />
+  </main>;
+};`,
+    });
+  });
+
   test('should lower component const setup with hook and event captures', async () => {
     const output = await testInput(mode, 'component-const-setup', {
       code: `import { useSignal } from '@qwik.dev/core';

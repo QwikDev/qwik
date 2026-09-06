@@ -180,9 +180,7 @@ function lowerComponentPropsProxy(attributes: readonly JSXAttributeItem[], ctx: 
       throw new UnsupportedError('a dynamic JSX attribute value');
     }
   }
-  const { captures, args, refs } = lowerCaptures(expressions, ctx, 'component props', {
-    allowProps: true,
-  });
+  const { captures, args, refs } = lowerCaptures(expressions, ctx, 'component props');
   for (const payload of payloads) {
     recordPayloadAliasReads(ctx, payload, refs);
   }
@@ -331,9 +329,7 @@ function lowerSlotMarker(element: JSXElement, ctx: LowerContext): Op {
 
 /** A changing slot name owns one reactive render range. */
 function lowerDynamicSlot(element: JSXElement, name: Expression, ctx: LowerContext): Op {
-  const captures = lowerCaptures([name, ...element.children], ctx, 'a dynamic slot', {
-    allowProps: true,
-  });
+  const captures = lowerCaptures([name, ...element.children], ctx, 'a dynamic slot');
   const lifetime = ctx.plan.lifetimes.length;
   ctx.plan.lifetimes.push({
     id: lifetime,
@@ -590,7 +586,7 @@ function lowerRenderQrl(
   lowerBody?: () => Op[]
 ) {
   const range: [number, number] = [children[0].start, children[children.length - 1].end];
-  const { captures, args } = lowerCaptures(children, ctx, subject, { allowProps: true });
+  const { captures, args } = lowerCaptures(children, ctx, subject);
   const program = ctx.plan.programs.length;
   ctx.plan.programs.push({
     body: { kind: ProgramBodyKind.Ops, ops: [] },

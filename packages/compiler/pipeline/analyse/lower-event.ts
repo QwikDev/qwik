@@ -46,9 +46,9 @@ export function lowerEventAttribute(
     throw new UnsupportedError('JSX inside an event handler');
   }
   const { captures, args, refs } = lowerCaptures(fn, ctx, 'an event handler');
-  const capturesBeforeParams = refs.locals.some(({ reads }) =>
-    reads.some(([start]) => start < body.start)
-  );
+  const capturesBeforeParams =
+    refs.propsReads.some(([start]) => start < body.start) ||
+    refs.locals.some(({ reads }) => reads.some(([start]) => start < body.start));
 
   const payload = pushPayload(ctx, [fn.start, fn.end]);
   const { use } = pushQrl(

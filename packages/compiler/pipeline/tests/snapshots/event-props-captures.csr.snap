@@ -1,0 +1,156 @@
+==INPUT==
+
+export const Button = (props) => <button onClick$={props.onSave$}>save</button>;
+export default (input) => {
+  const suffix = '!';
+  return <main>
+    <button onClick$={() => input.onSave$(input.id + suffix)}>save</button>
+    <Button onSave$={({ value = input.initial } = {}) => input.onSave$(value)} />
+  </main>;
+};
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  createEventEffect,
+  _createElementTemplate,
+  _first,
+  setEvent,
+  _last,
+  _qrlWithChunk,
+  createComponent,
+  _toNodes,
+} from '@qwik.dev/core';
+import { component_onClickqrl_segment_0_3rzjkie0i362z } from './component.tsx_component_onClickqrl_segment_0_3rzjkie0i362z';
+import { component_q_e_click_segment_1_2xwyfnber1kpg } from './component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg';
+
+const Button_tmpl0 = _createElementTemplate('<button>save</button>');
+const q_component_q_e_save_segment_2_3krcacnjwdae8 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_q_e_save_segment_2_3krcacnjwdae8',
+  () => import('./component.tsx_component_q_e_save_segment_2_3krcacnjwdae8'),
+  'component_q_e_save_segment_2_3krcacnjwdae8'
+);
+const default_tmpl0 = _createElementTemplate('<main><button>save</button><!></main>');
+export const Button = (props, ctx) => {
+  const el0 = Button_tmpl0(ctx.document);
+  const effect0 = createEventEffect(
+    el0,
+    'q-e:click',
+    [props],
+    component_onClickqrl_segment_0_3rzjkie0i362z,
+    ctx.scheduler
+  );
+  ctx.scheduler.waitFor(effect0.run());
+  return el0;
+};
+export default (input, ctx) => {
+  const suffix = '!';
+  const el0 = default_tmpl0(ctx.document);
+  const el1 = _first(el0);
+  setEvent(el1, 'q-e:click', component_q_e_click_segment_1_2xwyfnber1kpg, [suffix, input]);
+  const marker0 = _last(el0);
+  const component0 = createComponent(
+    Button,
+    { onSave$: q_component_q_e_save_segment_2_3krcacnjwdae8.w([input]) },
+    ctx
+  );
+  marker0.replaceWith(..._toNodes(component0));
+  return el0;
+};
+============================= src/component.tsx_component_onClickqrl_segment_0_3rzjkie0i362z.js (ENTRY POINT)==
+
+export const component_onClickqrl_segment_0_3rzjkie0i362z = (props) => {
+  return props.onSave$;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_onClickqrl_segment_0_3rzjkie0i362z",
+  "entry": null,
+  "displayName": "component_onClickqrl_segment_0",
+  "hash": "3rzjkie0i362z",
+  "canonicalFilename": "component.tsx_component_onClickqrl_segment_0_3rzjkie0i362z",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    51,
+    64
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
+  const [suffix, input] = _captures;
+  return input.onSave$(input.id + suffix);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_1_2xwyfnber1kpg",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_1",
+  "hash": "2xwyfnber1kpg",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    159,
+    208
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "suffix",
+    "input"
+  ]
+}
+*/
+============================= src/component.tsx_component_q_e_save_segment_2_3krcacnjwdae8.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_q_e_save_segment_2_3krcacnjwdae8 = (...args0) => {
+  const [input] = _captures;
+  return (({ value = input.initial } = {}) => input.onSave$(value))(...args0);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_save_segment_2_3krcacnjwdae8",
+  "entry": null,
+  "displayName": "component_q_e_save_segment_2",
+  "hash": "3krcacnjwdae8",
+  "canonicalFilename": "component.tsx_component_q_e_save_segment_2_3krcacnjwdae8",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onSave$",
+  "captures": true,
+  "loc": [
+    235,
+    301
+  ],
+  "paramNames": [
+    "{ value = input.initial } = {}"
+  ],
+  "captureNames": [
+    "input"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

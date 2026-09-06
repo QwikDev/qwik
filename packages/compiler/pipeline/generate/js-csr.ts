@@ -32,7 +32,8 @@ import {
   rowShapeCode,
   chunkCanonicalFilename,
   qrlPropsName,
-  resolveQrlUse,
+  createQrlResolver,
+  type QrlResolver,
   type FunctionEmission,
 } from './emit-chunk';
 import { emitJsSetup, signalReadName } from './emit-setup';
@@ -102,7 +103,11 @@ class CsrModuleEmitter implements QwikModuleEmitter {
   private readonly importedChunks = new Set<string>();
   private readonly lazyQrls = new Set<string>();
 
-  constructor(private readonly module: LinkedModule) {}
+  private readonly resolveQrlUse: QrlResolver;
+
+  constructor(private readonly module: LinkedModule) {
+    this.resolveQrlUse = createQrlResolver(module);
+  }
 
   emitProgram(qrl: LinkedQrl, names: GeneratedNames): ComponentEmission {
     if (qrl.body.b !== QrlBodyKind.Program) {
@@ -213,7 +218,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
   ): string {
     const component = pass.next(QwikGenWord.Component);
     const call = emitComponentCall(this.module, op, pass, this.imports, (use) => {
-      const { qrl, args } = resolveQrlUse(this.module, use, pass.names.props);
+      const { qrl, args } = this.resolveQrlUse(use, pass.names.props);
       return { qrl, reference: this.lazyQrlReference(qrl), args };
     });
     statements.push(
@@ -414,7 +419,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     if (op.fallback === null) {
       return name;
     }
-    const { qrl, args } = resolveQrlUse(this.module, op.fallback, propsName);
+    const { qrl, args } = this.resolveQrlUse(op.fallback, propsName);
     const reference = this.lazyQrlReference(qrl);
     const fallback = args.length === 0 ? reference : `${reference}.w([${args.join(', ')}])`;
     return `${name === '' ? "''" : name}, ${fallback}`;
@@ -584,13 +589,13 @@ class CsrModuleEmitter implements QwikModuleEmitter {
 
   /** A lazy arm ref wears its captures via `.w([...])` — restored from `_captures` in the chunk. */
   private lazyRenderReference(use: QrlUse, propsName: string): string {
-    const resolved = resolveQrlUse(this.module, use, propsName);
+    const resolved = this.resolveQrlUse(use, propsName);
     const ref = this.lazyQrlReference(resolved.qrl);
     return resolved.args.length === 0 ? ref : `${ref}.w([${resolved.args.join(', ')}])`;
   }
 
   private capturedChunkReference(use: QrlUse, propsName: string): string {
-    const resolved = resolveQrlUse(this.module, use, propsName);
+    const resolved = this.resolveQrlUse(use, propsName);
     const ref = this.chunkSymbol(resolved.qrl);
     if (resolved.args.length === 0) {
       return ref;
@@ -604,12 +609,12 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     switch (qrl.body.b) {
       case QrlBodyKind.Js:
       case QrlBodyKind.Expr:
-        return sourceFunctionEmission(this.module, qrl);
+        return sourceFunctionEmission(this.module, qrl, this.resolveQrlUse);
       case QrlBodyKind.Task:
         throw new UnsupportedError('a task QRL body');
       case QrlBodyKind.Program: {
         if (this.module.programs[qrl.body.program].body.kind === ProgramBodyKind.Js) {
-          return sourceFunctionEmission(this.module, qrl);
+          return sourceFunctionEmission(this.module, qrl, this.resolveQrlUse);
         }
         if (programKind(qrl) === ProgramKind.CollectionRow) {
           return this.rowFunction(qrl);
@@ -769,7 +774,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
           throw new UnsupportedError('a non-QRL computed prop');
         }
         const use = prop.value.resume.qrl;
-        const resolved = resolveQrlUse(this.module, use, pass.names.props);
+        const resolved = this.resolveQrlUse(use, pass.names.props);
         this.imports.add(QwikWord.CreateAttrExpressionEffect);
         statements.push(
           `const ${effect} = ${QwikWord.CreateAttrExpressionEffect}(${el}, ${JSON.stringify(prop.name)}, [${resolved.args.join(', ')}], ${this.chunkSymbol(resolved.qrl)}, ${pass.names.ctx}.scheduler);`
@@ -845,7 +850,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
           throw new UnsupportedError('a non-QRL computed text hole');
         }
         const use = op.value.resume.qrl;
-        const resolved = resolveQrlUse(this.module, use, pass.names.props);
+        const resolved = this.resolveQrlUse(use, pass.names.props);
         const effect = pass.next(QwikGenWord.Effect);
         this.imports.add(QwikWord.CreateTextExpressionEffect);
         statements.push(
@@ -909,7 +914,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       if (dynamic.value.resume.r !== ResumeKind.Qrl) {
         throw new UnsupportedError('a non-QRL computed event handler');
       }
-      const { qrl, args } = resolveQrlUse(this.module, dynamic.value.resume.qrl, pass.names.props);
+      const { qrl, args } = this.resolveQrlUse(dynamic.value.resume.qrl, pass.names.props);
       if (qrl.payloadKind !== QrlPayloadKind.Value) {
         throw new UnsupportedError('a non-value computed event QRL');
       }
@@ -926,7 +931,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       if (value === null || value.v !== ValueKind.Qrl) {
         throw new UnsupportedError('a non-QRL event handler');
       }
-      return resolveQrlUse(this.module, value.use, pass.names.props);
+      return this.resolveQrlUse(value.use, pass.names.props);
     });
     if (uses.length > 1 && uses.some((use) => use.args.length > 0)) {
       throw new UnsupportedError('captures across multiple handlers of one event');

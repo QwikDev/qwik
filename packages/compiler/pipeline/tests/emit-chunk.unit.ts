@@ -11,8 +11,9 @@ import {
   type LinkedModule,
   type LinkedQrl,
 } from '../schema';
-import { captureNames, functionText, resolveQrlUse } from '../generate/emit-chunk';
+import { captureNames, createQrlResolver, functionText } from '../generate/emit-chunk';
 import { sourceFunctionEmission } from '../generate/emit-function';
+import { deepFreeze } from './fixtures';
 
 // `() => count.value++` at 10..30 with the body at 16..30; `(props) => props.title` variant below.
 const SOURCE = '/*head*/ (() => count.value++); ((props) => props.title);';
@@ -76,23 +77,53 @@ describe('captureNames', () => {
 
 test('resolveQrlUse takes actuals from the use site', () => {
   const qrl = qrlWith({ captures: [{ binding: 0, access: CaptureAccess.Direct }] });
+  const resolveQrlUse = createQrlResolver(deepFreeze(moduleWith(qrl)));
   const resolved = resolveQrlUse(
-    moduleWith(qrl),
     { qrl: qrl.id, args: [{ pass: ArgPass.Binding, binding: 1 }] },
     '_props'
   );
   expect(resolved.args).toEqual(['props']);
-  expect(() => resolveQrlUse(moduleWith(qrl), { qrl: qrl.id, args: [] }, '_props')).toThrow(
+  const propsUse = { qrl: qrl.id, args: [{ pass: ArgPass.Props as const }] };
+  expect(resolveQrlUse(propsUse, 'firstProps').args).toEqual(['firstProps']);
+  expect(resolveQrlUse(propsUse, 'secondProps').args).toEqual(['secondProps']);
+  expect(() => resolveQrlUse({ qrl: qrl.id, args: [] }, '_props')).toThrow(
     'capture arity mismatch'
   );
 });
 
-const textOf = (qrl: LinkedQrl) => functionText(sourceFunctionEmission(moduleWith(qrl), qrl));
+test('QRL resolvers stay local to a generation and reject missing symbols', () => {
+  const first = qrlWith({ name: 'first' });
+  const second = qrlWith({ name: 'second' });
+  const resolveFirst = createQrlResolver(deepFreeze(moduleWith(first)));
+  const resolveSecond = createQrlResolver(deepFreeze(moduleWith(second)));
+  const use = { qrl: first.id, args: [] };
+  expect(resolveFirst(use, 'props').qrl).toBe(first);
+  expect(resolveSecond(use, 'props').qrl).toBe(second);
+  expect(resolveFirst(use, 'props').qrl).toBe(first);
+  expect(() => resolveFirst({ qrl: 'missing', args: [] }, 'props')).toThrow(
+    'pipeline.generate: unknown qrl "missing"'
+  );
+});
+
+test('QRL indexing preserves the first match for duplicate ids', () => {
+  const first = qrlWith({ name: 'first' });
+  const module = moduleWith(first);
+  module.qrls.push(qrlWith({ name: 'second' }));
+  const resolve = createQrlResolver(deepFreeze(module));
+  expect(resolve({ qrl: first.id, args: [] }, 'props').qrl).toBe(first);
+});
+
+function emissionOf(qrl: LinkedQrl) {
+  const module = moduleWith(qrl);
+  return sourceFunctionEmission(module, qrl, createQrlResolver(module));
+}
+
+const textOf = (qrl: LinkedQrl) => functionText(emissionOf(qrl));
 
 describe('sourceFunctionEmission', () => {
   test('a Function payload restores captures from the _captures prelude', () => {
     const qrl = qrlWith({ captures: [{ binding: 0, access: CaptureAccess.Direct }] });
-    const emission = sourceFunctionEmission(moduleWith(qrl), qrl);
+    const emission = emissionOf(qrl);
     expect([...emission.imports]).toEqual(['_captures']);
     expect(functionText(emission)).toBe(
       '() => {\n  const [count] = _captures;\n  return count.value++;\n}'
@@ -101,7 +132,7 @@ describe('sourceFunctionEmission', () => {
 
   test('a capture-free Function payload has no prelude lines', () => {
     const qrl = qrlWith({});
-    const emission = sourceFunctionEmission(moduleWith(qrl), qrl);
+    const emission = emissionOf(qrl);
     expect(emission.imports.size).toBe(0);
     expect(functionText(emission)).toBe('() => {\n  return count.value++;\n}');
   });

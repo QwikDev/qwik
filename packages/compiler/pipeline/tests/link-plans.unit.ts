@@ -48,6 +48,40 @@ export default () => <main><RenamedChild /></main>;
 }
 
 describe('linkPlans', () => {
+  test.each(['same-table', 'cross-table'])('preserves %s binding ambiguity', async (kind) => {
+    const [app, child] = await crossModulePlans();
+    const declaration = child.qrls[0];
+    const binding = declaration.declaration!.binding!;
+    if (kind === 'same-table') {
+      child.qrls.push({ ...declaration, id: 'duplicate', name: 'duplicate' });
+    } else {
+      child.contexts.push({ binding, name: 'Child' });
+    }
+    const plans = deepFreeze([app, child]);
+    const entries = [{ kind: EntryKind.Export as const, module: app.path, export: 'default' }];
+    const resolver = { edges: { [app.path]: { 0: resolved(child.path) } } };
+    expect(linkPlans(plans, [], serverSpecialization(), resolver, plugins, true).kind).toBe(
+      LinkResultKind.Linked
+    );
+    const incomplete = linkPlans(plans, entries, serverSpecialization(), resolver, plugins, false);
+    expect(incomplete.kind).toBe(LinkResultKind.Linked);
+    if (incomplete.kind !== LinkResultKind.Linked) {
+      return;
+    }
+    expect(incomplete.plan.modules[0].imports[0]).toMatchObject({
+      target: {
+        ok: false,
+        reason: { why: UnknownWhy.Opaque, code: 'ambiguous-local-binding' },
+      },
+    });
+    expect(
+      linkPlans(plans, entries, serverSpecialization(), resolver, plugins, true)
+    ).toMatchObject({
+      kind: LinkResultKind.Failed,
+      diagnostics: [{ code: 'ambiguous-local-binding' }],
+    });
+  });
+
   test('links an aliased component import through the generic import table', async () => {
     const analysed = await crossModulePlans();
     const serialized = JSON.stringify(analysed);

@@ -37,7 +37,8 @@ import {
   emptyFunctionEmission,
   functionText,
   qrlPropsName,
-  resolveQrlUse,
+  createQrlResolver,
+  type QrlResolver,
   type FunctionEmission,
 } from './emit-chunk';
 import { emitJsSetup, signalReadName } from './emit-setup';
@@ -143,7 +144,11 @@ class SsrModuleEmitter implements QwikModuleEmitter {
   readonly hoists: string[] = [];
   private readonly usedQrls = new Map<string, QrlUsage>();
 
-  constructor(private readonly module: LinkedModule) {}
+  private readonly resolveQrlUse: QrlResolver;
+
+  constructor(private readonly module: LinkedModule) {
+    this.resolveQrlUse = createQrlResolver(module);
+  }
 
   emitProgram(qrl: LinkedQrl, names: GeneratedNames): ComponentEmission {
     const emission = this.renderProgram(qrl, names);
@@ -224,12 +229,12 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     switch (qrl.body.b) {
       case QrlBodyKind.Js:
       case QrlBodyKind.Expr:
-        return sourceFunctionEmission(this.module, qrl);
+        return sourceFunctionEmission(this.module, qrl, this.resolveQrlUse);
       case QrlBodyKind.Task:
         throw new UnsupportedError('a task QRL body');
       case QrlBodyKind.Program:
         if (this.module.programs[qrl.body.program].body.kind === ProgramBodyKind.Js) {
-          return sourceFunctionEmission(this.module, qrl);
+          return sourceFunctionEmission(this.module, qrl, this.resolveQrlUse);
         }
         switch (programKind(qrl)) {
           case ProgramKind.BranchArm:
@@ -417,7 +422,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
   ): void {
     const component = pass.next(QwikGenWord.Component);
     const call = emitComponentCall(this.module, op, pass, this.imports, (use, invoked) => {
-      const { qrl, args } = resolveQrlUse(this.module, use, pass.names.props);
+      const { qrl, args } = this.resolveQrlUse(use, pass.names.props);
       return { qrl, reference: this.qrlReference(qrl, invoked), args };
     });
     pass.statements.push(...call.rootDeclarations);
@@ -537,7 +542,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     let fallback = 'undefined';
     let roots: string[] = [];
     if (op.fallback !== null) {
-      const { qrl, args } = resolveQrlUse(this.module, op.fallback, pass.names.props);
+      const { qrl, args } = this.resolveQrlUse(op.fallback, pass.names.props);
       const reference = this.qrlReference(qrl, true);
       fallback = args.length === 0 ? reference : `${reference}.w([${args.join(', ')}])`;
       roots = rootArgs(qrl, args);
@@ -770,7 +775,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
    * payloads wear `.w([args])`; Value payloads keep a bare reference and receive args separately.
    */
   private useQrl(pass: RenderPass, use: QrlUse, invoked: boolean) {
-    const { qrl, args } = resolveQrlUse(this.module, use, pass.names.props);
+    const { qrl, args } = this.resolveQrlUse(use, pass.names.props);
     let ref = this.qrlReference(qrl, invoked);
     if (qrl.payloadKind === QrlPayloadKind.Function && args.length > 0) {
       ref = `${ref}.w([${args.join(', ')}])`;

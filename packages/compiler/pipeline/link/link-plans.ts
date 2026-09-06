@@ -23,6 +23,7 @@ import {
   type LinkedPlan,
   type LinkedProgram,
   type LinkResult,
+  type LocalId,
   type Maybe,
   type ModulePlan,
   type Op,
@@ -189,56 +190,10 @@ export function linkPlans(
     })
   );
 
-  const bindingCache = new Map<string, Maybe<DeclRef>>();
+  const declarationsByBinding = plans.map(indexLocalDeclarations);
   const exportCache = new Map<string, Maybe<DeclRef>>();
-  const resolveLocalBinding = (module: number, binding: number): Maybe<DeclRef> => {
-    const key = `${module}:${binding}`;
-    const cached = bindingCache.get(key);
-    if (cached !== undefined) {
-      return cached;
-    }
-    const plan = plans[module];
-    const candidates: { table: DeclTable; index: number }[] = [];
-    plan.qrls.forEach((qrl, index) => {
-      if (qrl.declaration?.binding === binding) {
-        candidates.push({ table: DeclTable.Qrls, index });
-      }
-    });
-    plan.hooks.forEach((hook, index) => {
-      if (hook.binding === binding) {
-        candidates.push({ table: DeclTable.Hooks, index });
-      }
-    });
-    plan.callables.forEach((callable, index) => {
-      if (callable.binding === binding) {
-        candidates.push({ table: DeclTable.Callables, index });
-      }
-    });
-    plan.values.forEach((value, index) => {
-      if (value.binding === binding) {
-        candidates.push({ table: DeclTable.Values, index });
-      }
-    });
-    plan.contexts.forEach((context, index) => {
-      if (context.binding === binding) {
-        candidates.push({ table: DeclTable.Contexts, index });
-      }
-    });
-    plan.natives.forEach((native, index) => {
-      if (native.binding === binding) {
-        candidates.push({ table: DeclTable.Natives, index });
-      }
-    });
-    const result: Maybe<DeclRef> =
-      candidates.length === 1
-        ? { ok: true, value: { module, ...candidates[0] } }
-        : unknown(
-            UnknownWhy.Opaque,
-            candidates.length === 0 ? 'non-portable-export' : 'ambiguous-local-binding'
-          );
-    bindingCache.set(key, result);
-    return result;
-  };
+  const resolveLocalBinding = (module: number, binding: LocalId): Maybe<DeclRef> =>
+    declarationsByBinding[module].get(binding) ?? unknown(UnknownWhy.Opaque, 'non-portable-export');
 
   const resolvingExports = new Set<string>();
   const resolveExport = (module: number, exported: string): Maybe<DeclRef> => {
@@ -328,6 +283,15 @@ export function linkPlans(
       };
     })
   );
+  const importsByBinding = linkedImports.map((imports) => {
+    const index = new Map<LocalId, LinkedImport>();
+    for (const imported of imports) {
+      if (!index.has(imported.source.binding)) {
+        index.set(imported.source.binding, imported);
+      }
+    }
+    return index;
+  });
 
   const linkOperation = (module: number, op: Op): LinkedOp => {
     if (op.op === OpKind.Element) {
@@ -340,7 +304,7 @@ export function linkPlans(
     if (target.t === ComponentTargetKind.Dynamic) {
       return { ...op, target };
     }
-    const imported = linkedImports[module].find((entry) => entry.source.binding === target.binding);
+    const imported = importsByBinding[module].get(target.binding);
     const declaration: Maybe<DeclRef> =
       imported === undefined
         ? resolveLocalBinding(module, target.binding)
@@ -536,9 +500,7 @@ export function linkPlans(
     if (target.t === ComponentTargetKind.Dynamic) {
       return;
     }
-    const imported = linkedModules[module].imports.find(
-      (entry) => entry.source.binding === target.binding
-    );
+    const imported = importsByBinding[module].get(target.binding);
     if (imported !== undefined) {
       linkedModules[module].edges[imported.source.edge].runtime = !imported.source.typeOnly;
       const targetModule = linkedModules[module].edges[imported.source.edge].target;
@@ -600,6 +562,32 @@ export function linkPlans(
       ),
     },
   };
+}
+
+function indexLocalDeclarations(plan: ModulePlan, module: number): Map<LocalId, Maybe<DeclRef>> {
+  const targets = new Map<LocalId, Maybe<DeclRef>>();
+  const add = (binding: LocalId | null, table: DeclTable, index: number): void => {
+    if (binding === null) {
+      return;
+    }
+    targets.set(
+      binding,
+      targets.has(binding)
+        ? unknown(UnknownWhy.Opaque, 'ambiguous-local-binding')
+        : { ok: true, value: { module, table, index } }
+    );
+  };
+  plan.qrls.forEach((qrl, index) => add(qrl.declaration?.binding ?? null, DeclTable.Qrls, index));
+  for (const [table, declarations] of [
+    [DeclTable.Hooks, plan.hooks],
+    [DeclTable.Callables, plan.callables],
+    [DeclTable.Values, plan.values],
+    [DeclTable.Contexts, plan.contexts],
+    [DeclTable.Natives, plan.natives],
+  ] as const) {
+    declarations.forEach((declaration, index) => add(declaration.binding, table, index));
+  }
+  return targets;
 }
 
 function materializeModule(

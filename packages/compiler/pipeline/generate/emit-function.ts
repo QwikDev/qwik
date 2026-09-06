@@ -16,14 +16,18 @@ import {
   emptyFunctionEmission,
   extractPayloadJs,
   qrlPropsName,
-  resolveQrlUse,
+  type QrlResolver,
   valueIrJs,
   type FunctionEmission,
 } from './emit-chunk';
 import { emitJsSetup } from './emit-setup';
 
 /** Expression QRLs share capture restoration across authored and lowered bodies. */
-export function sourceFunctionEmission(module: LinkedModule, qrl: LinkedQrl): FunctionEmission {
+export function sourceFunctionEmission(
+  module: LinkedModule,
+  qrl: LinkedQrl,
+  resolveQrlUse: QrlResolver
+): FunctionEmission {
   const captures = captureNames(module, qrl);
   const emission = emptyFunctionEmission();
   if (qrl.payloadKind === QrlPayloadKind.Function && captures.length > 0) {
@@ -53,7 +57,7 @@ export function sourceFunctionEmission(module: LinkedModule, qrl: LinkedQrl): Fu
   // IR bodies preserve lowered aliases instead of replaying authored identifiers.
   emission.value =
     qrl.propsParts.length > 0
-      ? `{ ${qrl.propsParts.map((part) => propsPartJs(module, qrl, part, emission)).join(', ')} }`
+      ? `{ ${qrl.propsParts.map((part) => propsPartJs(module, qrl, part, emission, resolveQrlUse)).join(', ')} }`
       : body.b === QrlBodyKind.Expr
         ? body.expr.kind === ExprKind.Ir
           ? valueIrJs(module, body.expr.ir)
@@ -67,7 +71,8 @@ function propsPartJs(
   module: LinkedModule,
   owner: LinkedQrl,
   part: LinkedQrl['propsParts'][number],
-  emission: FunctionEmission
+  emission: FunctionEmission,
+  resolveQrlUse: QrlResolver
 ): string {
   switch (part.kind) {
     case PropsPartKind.Static:
@@ -77,7 +82,7 @@ function propsPartJs(
     case PropsPartKind.Spread:
       return `...${extractPayloadJs(module, part.value)}`;
     case PropsPartKind.Event: {
-      const { qrl, args } = resolveQrlUse(module, part.use, qrlPropsName(module, owner, 'props'));
+      const { qrl, args } = resolveQrlUse(part.use, qrlPropsName(module, owner, 'props'));
       if (qrl.payloadKind !== QrlPayloadKind.Function) {
         throw new UnsupportedError('a non-function component event QRL');
       }

@@ -30,6 +30,12 @@ walking the AST again; `dependenciesOf()` selects transitive declarations within
 boundary, preserving candidate order. Capture policy remains context-dependent and is not cached
 in the graph. These AST indexes stay out of the serializable `ModulePlan`.
 
+Linking indexes declaration targets and imports by binding once per module. Component linking and
+reachability share the import index; duplicate declaration targets remain ambiguous. Each JS module
+emitter owns a QRL resolver shared with source-function emission. Its symbol index is reused across
+uses, while capture arguments are resolved per use site. Neither phase stores indexes in the plan
+or shares them across runs.
+
 Golden coverage (SSR + CSR full-`TransformOutput` file snapshots seeded from the legacy oracle) spans: foreign
 passthrough; static components (all supported declaration forms, attrs, void tags, JSX text,
 sibling statements, generated-name allocation, authored param reuse); element event handlers

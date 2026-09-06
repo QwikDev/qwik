@@ -105,31 +105,37 @@ export function captureNames(module: LinkedModule, qrl: LinkedQrl): string[] {
   return qrl.captures.map((capture) => module.bindings[capture.binding].name);
 }
 
-/** Resolves one use site's actuals against the QRL's formal captures. */
-export function resolveQrlUse(
-  module: LinkedModule,
-  use: QrlUse,
-  propsName: string
-): { qrl: LinkedQrl; args: string[] } {
-  const qrl = module.qrls.find((candidate) => candidate.id === use.qrl);
-  if (qrl === undefined) {
-    throw new Error(`pipeline.generate: unknown qrl "${use.qrl}"`);
+export type QrlResolver = ReturnType<typeof createQrlResolver>;
+
+/** Each module generation owns its index; use-site arguments remain uncached. */
+export function createQrlResolver(module: LinkedModule) {
+  const qrlsById = new Map<string, LinkedQrl>();
+  for (const qrl of module.qrls) {
+    if (!qrlsById.has(qrl.id)) {
+      qrlsById.set(qrl.id, qrl);
+    }
   }
-  if (use.args.length !== qrl.captures.length) {
-    throw new Error(`pipeline.generate: qrl "${use.qrl}" capture arity mismatch`);
-  }
-  return {
-    qrl,
-    args: use.args.map((arg) => {
-      switch (arg.pass) {
-        case ArgPass.Binding:
-          return module.bindings[arg.binding].name;
-        case ArgPass.Props:
-          return propsName;
-        case ArgPass.StyleScope:
-          throw new UnsupportedError('a style-scope QRL argument');
-      }
-    }),
+  return (use: QrlUse, propsName: string): { qrl: LinkedQrl; args: string[] } => {
+    const qrl = qrlsById.get(use.qrl);
+    if (qrl === undefined) {
+      throw new Error(`pipeline.generate: unknown qrl "${use.qrl}"`);
+    }
+    if (use.args.length !== qrl.captures.length) {
+      throw new Error(`pipeline.generate: qrl "${use.qrl}" capture arity mismatch`);
+    }
+    return {
+      qrl,
+      args: use.args.map((arg) => {
+        switch (arg.pass) {
+          case ArgPass.Binding:
+            return module.bindings[arg.binding].name;
+          case ArgPass.Props:
+            return propsName;
+          case ArgPass.StyleScope:
+            throw new UnsupportedError('a style-scope QRL argument');
+        }
+      }),
+    };
   };
 }
 

@@ -801,6 +801,22 @@ export default () => {
     }
   });
 
+  test.each([
+    ['reactive', 'items.value'],
+    ['array', "[{ title: 'Title', description: 'Body' }]"],
+  ])('should split mapped fragments into slots: %s', async (kind, source) => {
+    const output = await testInput(mode, `component-children-mapped-fragments-${kind}`, {
+      code: `import { Slot, useSignal } from '@qwik.dev/core';
+export const Panel = () => <main><Slot name="header" /><Slot /></main>;
+export default () => {
+  const items = useSignal([{ title: 'Title', description: 'Body' }]);
+  return <Panel>{${source}.map((item) => <><h2 q:slot="header">{item.title}</h2><><b q:slot="header">!</b><p>{item.description}</p></></>)}</Panel>;
+};
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+  });
+
   test('should forward slots and render fallback through fragments', async () => {
     const output = await testInput(mode, 'component-slot-forwarding-fragments', {
       code: `import { Slot } from '@qwik.dev/core';

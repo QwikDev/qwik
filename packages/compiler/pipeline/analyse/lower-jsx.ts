@@ -525,6 +525,9 @@ function lowerProjectedExpression(expression: Expression, name: string, ctx: Low
   if (expression.type === 'JSXFragment') {
     return lowerProjectedChildren(expression.children, name, ctx);
   }
+  if (readCollectionCallback(expression) !== null) {
+    return [lowerArray(expression, ctx, (row) => lowerProjectedExpression(row, name, ctx))];
+  }
   const branch = readRenderBranch(expression);
   if (branch !== null) {
     return [
@@ -565,8 +568,8 @@ function collectProjectionNames(node: Node): string[] {
       return normalizeJsxText(expression.value) === '' ? [] : [''];
     case 'CallExpression': {
       const row = readCollectionCallback(expression)?.body;
-      if (row?.type === 'JSXElement') {
-        return [readProjectionName(row)];
+      if (row?.type === 'JSXElement' || row?.type === 'JSXFragment') {
+        return collectProjectionNames(row);
       }
       break;
     }

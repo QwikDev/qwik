@@ -277,6 +277,42 @@ export default () => {
       sourceKind === EachSourceKind.Reactive ? ['items'] : []
     );
   });
+
+  test.each([
+    [
+      '<><h2 q:slot="header">{item.title}</h2><><b q:slot="header">!</b><section><i q:slot="nested">{item.title}</i></section></></>',
+      ['header', ''],
+      [
+        ['h2', 'b'],
+        ['section', 'i'],
+      ],
+    ],
+    ['<><h2 q:slot="header">{item.title}</h2></>', ['header'], [['h2']]],
+    ['<>{/* empty */}<></></>', [], []],
+  ])('selects mapped fragment children: %s', async (row, names, tags) => {
+    const plan = await analyseModule(
+      {
+        path: 'src/app.tsx',
+        code: `import { Slot, useSignal } from '@qwik.dev/core';
+export const Panel = () => <main><Slot name="header" /><Slot /></main>;
+export default () => {
+  const items = useSignal([{ id: 1, title: 'Title' }]);
+  return <Panel>{${source}.map((item) => ${row})}</Panel>;
+};
+`,
+      },
+      { transpileTs: true }
+    );
+    expect(componentProjectionNames(plan)).toEqual(names);
+    expect(
+      componentProjections(plan).map((projection) => {
+        if (projection.kind !== ProjectionKind.Render) {
+          throw new Error('expected a rendered projection');
+        }
+        return renderedTags(plan, projection.use);
+      })
+    ).toEqual(tags);
+  });
 });
 
 test('a conditional child splits across its statically named slots', async () => {
@@ -347,7 +383,11 @@ function renderedTags(plan: ModulePlan, use: QrlUse): string[] {
   if (qrl?.body.b !== QrlBodyKind.Program) {
     throw new Error('expected a render program');
   }
-  const body = plan.programs[qrl.body.program].body;
+  return renderedProgramTags(plan, qrl.body.program);
+}
+
+function renderedProgramTags(plan: ModulePlan, program: number): string[] {
+  const body = plan.programs[program].body;
   if (body.kind !== ProgramBodyKind.Ops) {
     throw new Error('expected render operations');
   }
@@ -360,6 +400,11 @@ function renderedTags(plan: ModulePlan, use: QrlUse): string[] {
         ...renderedTags(plan, op.then),
         ...(op.else === null ? [] : renderedTags(plan, op.else)),
       ];
+    }
+    if (op.op === OpKind.Each) {
+      return op.row.r === RowKind.Inline
+        ? renderedProgramTags(plan, op.row.program)
+        : renderedTags(plan, op.row.use);
     }
     return [];
   };

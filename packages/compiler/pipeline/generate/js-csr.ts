@@ -581,42 +581,17 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     return { start, end };
   }
 
-  /** Inline row: a local function over a module-hoisted element template. */
+  /** Inline rows reuse program emission without creating a QRL. */
   private inlineRowFunction(
     row: { program: number; renderId: string },
     statements: string[]
   ): string {
-    const body = this.module.programs[row.program].body;
-    if (body.kind !== ProgramBodyKind.Ops) {
-      throw new UnsupportedError('a js-bodied inline collection row');
-    }
-    const root = body.ops[0];
-    if (body.ops.length !== 1 || root.op !== OpKind.Element) {
-      throw new UnsupportedError('a rootless row in an inline collection');
-    }
-    // A fresh pass for name numbering; THIS emitter keeps chunk imports and hoists module-level.
-    const pass: RenderPass = {
-      names: { props: QwikGenWord.ComponentProps, ctx: QwikGenWord.ComponentContext },
-      next: createNameAllocator(this.module),
-    };
-    const template = `${row.renderId}_${pass.next(QwikGenWord.Template)}`;
-    const el = pass.next(QwikGenWord.Element);
-    const rowStatements = [`const ${el} = ${template}(${pass.names.ctx}.document);`];
-    for (const prop of root.props) {
-      if (prop.k !== PropKind.Static) {
-        throw new UnsupportedError(`the prop "${prop.k}" in an inline collection row root`);
-      }
-    }
-    this.walkChildren(root.children, el, rowStatements, pass);
-    this.hoistTemplate(
-      template,
-      foldStaticOp(templateOp(root), false),
-      QwikWord.CreateElementTemplate
-    );
+    const names = { props: QwikGenWord.ComponentProps, ctx: QwikGenWord.ComponentContext };
+    const emission = this.renderProgram(row.program, row.renderId, names);
     const loopParams = this.module.programs[row.program].params
       .map((binding) => `, ${this.module.bindings[binding].name}`)
       .join('');
-    const bodyText = [...rowStatements, `return ${el};`]
+    const bodyText = [...emission.statements, `return ${emission.value};`]
       .map((statement) => `  ${statement}`)
       .join('\n');
     statements.push(`function ${row.renderId}(ctx${loopParams}) {\n${bodyText}\n}`);

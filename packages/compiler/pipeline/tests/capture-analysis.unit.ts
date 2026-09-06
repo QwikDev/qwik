@@ -39,6 +39,25 @@ function refsOf(expression: string, options: { count?: boolean; props?: boolean 
 }
 
 describe('collectCaptures', () => {
+  test('the same indexed references follow the current lowering context', () => {
+    const source = 'const count = 0; count + count;';
+    const { program } = parseModule('t.tsx', source);
+    const { ctx } = createTestLowerContext(program, source);
+    const expression = program.body[1];
+    const binding = ctx.plan.bindings[0].id;
+    expect(collectCaptures(expression, ctx, new Set()).other).toBe('count');
+    const local = { ...COUNT_LOCAL, binding };
+    ctx.locals = new Map([[binding, local]]);
+    const refs = collectCaptures(expression, ctx, new Set());
+    expect(refs.other).toBeNull();
+    expect(refs.locals[0].local).toBe(local);
+    expect(refs.locals[0].reads.map(([start, end]) => source.slice(start, end))).toEqual([
+      'count',
+      'count',
+    ]);
+    expect(collectCaptures(expression, ctx, new Set([binding])).locals).toEqual([]);
+  });
+
   test('a setup local is collected with its SetupLocal row', () => {
     const refs = refsOf('() => count.value++', { count: true });
     expect(refs).toMatchObject({

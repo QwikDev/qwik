@@ -25,7 +25,6 @@ import { QwikHook } from '../words';
 import { pushPayload, type LowerContext } from './lower-context';
 import { lowerCaptures } from './ast/capture-analysis';
 import { lowerInlineExpressionValue, recordPayloadAliasReads } from './lower-expr';
-import { bindingIdentifiers } from './ast/bindings';
 import { findRuntimeJsx } from './ast/returns-jsx';
 
 /** Local value semantics shared by expression and capture lowering. */
@@ -63,13 +62,7 @@ export function lowerConstBinding(
   if (findRuntimeJsx(pattern) !== null) {
     throw new UnsupportedError('JSX inside a binding pattern');
   }
-  const bindings = bindingIdentifiers(pattern).map((identifier) => {
-    const binding = ctx.bindings.declaration(identifier);
-    if (binding === null) {
-      throw new UnsupportedError(`the unresolved setup binding "${identifier.name}"`);
-    }
-    return binding;
-  });
+  const bindings = [...ctx.bindings.bindingsOf(pattern)];
   const { refs } = lowerCaptures(pattern, ctx, 'a binding pattern', { allowProps: true });
   const target = pattern.type === 'AssignmentPattern' ? pattern.left : pattern;
   const defaultValue =

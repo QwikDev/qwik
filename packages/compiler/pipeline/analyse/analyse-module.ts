@@ -19,7 +19,7 @@ import {
   type Diagnostic,
   type ModulePlan,
 } from '../schema';
-import { bindingIdentifiers, createBindingGraph } from './ast/bindings';
+import { createBindingGraph } from './ast/bindings';
 import { findRuntimeJsx, hasComponentCandidates } from './ast/returns-jsx';
 import { parseModule } from './ast/parse';
 import { scanModuleSurface } from './module-surface';
@@ -116,9 +116,7 @@ export async function analyseModule(
     const componentBinding =
       component.bindingNode === null ? null : bindings.declaration(component.bindingNode);
     const parameterBindings =
-      component.param === null
-        ? []
-        : bindingIdentifiers(component.param.node).map((node) => bindings.declaration(node)!);
+      component.param === null ? [] : [...bindings.bindingsOf(component.param.node)];
     const parameterSurface: ComponentParameter['surface'] | null =
       component.param === null
         ? null

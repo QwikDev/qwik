@@ -15,7 +15,7 @@ import {
   type ModulePlan,
   type Range,
 } from '../schema';
-import { bindingIdentifiers, type BindingGraph } from './ast/bindings';
+import type { BindingGraph } from './ast/bindings';
 
 const CORE_SOURCES = new Set(['@qwik.dev/core', '@qwik.dev/core/build']);
 
@@ -263,11 +263,8 @@ function scanVariableExports(
   bindings: BindingGraph
 ): void {
   for (const declarator of declaration.declarations) {
-    for (const identifier of bindingIdentifiers(declarator.id)) {
-      const binding = bindings.declaration(identifier);
-      if (binding !== null) {
-        addLocalExport(plan, identifier.name, binding);
-      }
+    for (const binding of bindings.bindingsOf(declarator.id)) {
+      addLocalExport(plan, bindings.bindings[binding].name, binding);
     }
   }
 }

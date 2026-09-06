@@ -3,7 +3,6 @@ import type {
   BindingPattern,
   Expression,
   JSXElement,
-  Node,
   VariableDeclaration,
   VariableDeclarator,
 } from 'oxc-parser';
@@ -34,8 +33,6 @@ import {
 } from '../schema';
 import { SegmentContext } from '../words';
 import { ValueIrKind } from '../../src/expr-ir';
-import { visit } from '../../src/jsx-ast-utils';
-import { bindingIdentifiers } from './ast/bindings';
 import { InvalidModuleError, UnsupportedError } from '../errors';
 import { collectCaptures, lowerCaptures } from './ast/capture-analysis';
 import { readReturnedBody, unwrapExpression } from './ast/utils';
@@ -146,13 +143,7 @@ function lowerEach(
         const aliases = readParameterAliases(param, ctx);
         if (aliases === null) {
           paramPatterns.set(binding, param);
-          for (const identifier of bindingIdentifiers(param)) {
-            const local = ctx.bindings.declaration(identifier);
-            if (local === null) {
-              throw new UnsupportedError(
-                `the unresolved collection parameter "${identifier.name}"`
-              );
-            }
+          for (const local of ctx.bindings.bindingsOf(param)) {
             ctx.plan.bindings[local].scope = BindingScope.Loop;
             localBindings.add(local);
           }
@@ -550,7 +541,10 @@ function lowerKey(
   if (keyExpression === null) {
     return null;
   }
-  const declarations = selectKeyDeclarations(keyExpression, statements, ctx);
+  const declarations = ctx.bindings.dependenciesOf(
+    keyExpression,
+    statements.flatMap((statement) => statement.declarations)
+  );
   const keyPatterns = new Map(paramPatterns);
   if (declarations.length > 0) {
     callback.params.map(readCollectionParameter).forEach((param, index) => {
@@ -601,37 +595,6 @@ function lowerKey(
     args
   );
   return { v: ValueKind.Qrl, use };
-}
-
-function selectKeyDeclarations(
-  expression: Node,
-  statements: VariableDeclaration[],
-  ctx: LowerContext
-): VariableDeclarator[] {
-  const declarations = statements.flatMap((statement) => statement.declarations);
-  const byBinding = new Map<LocalId, VariableDeclarator>();
-  for (const declaration of declarations) {
-    for (const identifier of bindingIdentifiers(declaration.id)) {
-      const binding = ctx.bindings.declaration(identifier);
-      if (binding !== null) {
-        byBinding.set(binding, declaration);
-      }
-    }
-  }
-  const selected = new Set<VariableDeclarator>();
-  function selectDependencies(expression: Node) {
-    visit(expression, (node) => {
-      const binding = ctx.bindings.reference(node);
-      const declaration = binding === null ? undefined : byBinding.get(binding);
-      if (declaration === undefined || selected.has(declaration)) {
-        return;
-      }
-      selected.add(declaration);
-      selectDependencies(declaration);
-    });
-  }
-  selectDependencies(expression);
-  return declarations.filter((declaration) => selected.has(declaration));
 }
 
 function lowerKeyBody(

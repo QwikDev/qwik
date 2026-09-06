@@ -8,7 +8,6 @@ import {
   type Range,
 } from '../../schema';
 import { UnsupportedError } from '../../errors';
-import { isNode, type WalkableNode } from './ast-types';
 import type { LowerContext } from '../lower-context';
 import type { SetupLocal } from '../lower-setup';
 
@@ -32,58 +31,27 @@ export function collectCaptures(
   let props = false;
   const locals: CollectedCaptures['locals'] = [];
   let other: string | null = null;
-  const visit = (current: unknown): void => {
-    if (Array.isArray(current)) {
-      for (const item of current) {
-        visit(item);
-      }
-      return;
+  for (const { node: current, binding } of ctx.bindings.freeReferences(node)) {
+    if (current.type !== 'Identifier' || localBindings.has(binding)) {
+      continue;
     }
-    if (!isNode(current) || other !== null) {
-      return;
-    }
-    if (current.type === 'Identifier') {
-      const binding = ctx.bindings.reference(current);
-      if (binding === null || localBindings.has(binding) || isDeclaredWithin(ctx, binding, node)) {
-        return;
-      }
-      const setupLocal = ctx.locals.get(binding);
-      if (binding === ctx.propsBinding) {
-        props = true;
-      } else if (setupLocal !== undefined) {
-        const read: Range = [current.start, current.end];
-        const entry = locals.find((candidate) => candidate.local === setupLocal);
-        if (entry === undefined) {
-          locals.push({ name: current.name, local: setupLocal, reads: [read] });
-        } else {
-          entry.reads.push(read);
-        }
+    const setupLocal = ctx.locals.get(binding);
+    if (binding === ctx.propsBinding) {
+      props = true;
+    } else if (setupLocal !== undefined) {
+      const read: Range = [current.start, current.end];
+      const entry = locals.find((candidate) => candidate.local === setupLocal);
+      if (entry === undefined) {
+        locals.push({ name: current.name, local: setupLocal, reads: [read] });
       } else {
-        other = ctx.plan.bindings[binding].name;
+        entry.reads.push(read);
       }
-      return;
+    } else {
+      other = ctx.plan.bindings[binding].name;
+      break;
     }
-    for (const childKey of Object.keys(current)) {
-      if (
-        childKey === 'type' ||
-        childKey === 'start' ||
-        childKey === 'end' ||
-        childKey === 'range' ||
-        childKey === 'parent'
-      ) {
-        continue;
-      }
-      visit((current as WalkableNode)[childKey]);
-    }
-  };
-  visit(node);
+  }
   return { props, locals, other };
-}
-
-function isDeclaredWithin(ctx: LowerContext, binding: LocalId, node: Node | Node[]): boolean {
-  const range = ctx.plan.bindings[binding].declarationRange;
-  const roots = Array.isArray(node) ? node : [node];
-  return range !== null && roots.some((root) => range[0] >= root.start && range[1] <= root.end);
 }
 
 export interface LoweredCaptures {

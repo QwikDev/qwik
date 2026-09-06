@@ -24,6 +24,12 @@ generateJsSsr(serverLinkedPlan, options)             -> server modules
 
 ## Current state
 
+Lexical analysis belongs to `BindingGraph`: declaration owners, pattern bindings and reference
+spans are indexed independently of lowering. `freeReferences()` queries that index without
+walking the AST again; `dependenciesOf()` selects transitive declarations within a caller-supplied
+boundary, preserving candidate order. Capture policy remains context-dependent and is not cached
+in the graph. These AST indexes stay out of the serializable `ModulePlan`.
+
 Golden coverage (SSR + CSR full-`TransformOutput` file snapshots seeded from the legacy oracle) spans: foreign
 passthrough; static components (all supported declaration forms, attrs, void tags, JSX text,
 sibling statements, generated-name allocation, authored param reuse); element event handlers

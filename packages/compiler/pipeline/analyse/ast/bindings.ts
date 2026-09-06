@@ -17,14 +17,23 @@ interface Scope {
   functionBoundary: boolean;
 }
 
+interface BindingReference {
+  node: Extract<Node, { type: 'Identifier' | 'JSXIdentifier' }>;
+  binding: LocalId;
+}
+
 export interface BindingGraph {
   readonly bindings: Binding[];
   declaration(node: Node): LocalId | null;
   reference(node: Node): LocalId | null;
+  declarationsOf(binding: LocalId): readonly Node[];
+  bindingsOf(pattern: BindingPattern): readonly LocalId[];
+  freeReferences(roots: Node | Node[]): BindingReference[];
+  dependenciesOf<T extends Node>(expression: Node, candidates: readonly T[]): T[];
   addSynthetic(name: string, scope: BindingScope, declarationRange?: [number, number]): LocalId;
 }
 
-export function bindingIdentifiers(pattern: BindingPattern): BindingIdentifier[] {
+function bindingIdentifiers(pattern: BindingPattern): BindingIdentifier[] {
   switch (pattern.type) {
     case 'Identifier':
       return [pattern];
@@ -47,6 +56,10 @@ export function createBindingGraph(program: Program): BindingGraph {
   const bindings: Binding[] = [];
   const declarations = new WeakMap<Node, LocalId>();
   const references = new WeakMap<Node, LocalId>();
+  const declarationNodes: Node[][] = [];
+  const patternBindings = new WeakMap<BindingPattern, LocalId[]>();
+  const orderedReferences: BindingReference[] = [];
+  const referenceSpans = new WeakMap<Node, [number, number]>();
   const scopes = new WeakMap<Node, Scope>();
   const moduleScope = createScope(null, true);
   scopes.set(program, moduleScope);
@@ -55,12 +68,16 @@ export function createBindingGraph(program: Program): BindingGraph {
     node: Node,
     scope: Scope,
     bindingScope: BindingScope,
-    varKind: VarKind | null
+    varKind: VarKind | null,
+    owner: Node = node
   ): LocalId => {
     const name = node.type === 'Identifier' ? node.name : '';
     const existing = scope.bindings.get(name);
     if (existing !== undefined) {
       declarations.set(node, existing);
+      if (!declarationNodes[existing].includes(owner)) {
+        declarationNodes[existing].push(owner);
+      }
       return existing;
     }
     const id = bindings.length;
@@ -73,6 +90,7 @@ export function createBindingGraph(program: Program): BindingGraph {
     });
     scope.bindings.set(name, id);
     declarations.set(node, id);
+    declarationNodes.push([owner]);
     return id;
   };
 
@@ -80,11 +98,15 @@ export function createBindingGraph(program: Program): BindingGraph {
     pattern: BindingPattern,
     scope: Scope,
     bindingScope: BindingScope,
-    varKind: VarKind | null
+    varKind: VarKind | null,
+    owner: Node = pattern
   ): void => {
-    for (const identifier of bindingIdentifiers(pattern)) {
-      declare(identifier, scope, bindingScope, varKind);
-    }
+    patternBindings.set(
+      pattern,
+      bindingIdentifiers(pattern).map((identifier) =>
+        declare(identifier, scope, bindingScope, varKind, owner)
+      )
+    );
   };
 
   function collectFunction(node: Function | ArrowFunctionExpression, parentScope: Scope): void {
@@ -95,7 +117,7 @@ export function createBindingGraph(program: Program): BindingGraph {
     const functionScope = createScope(nameScope, true);
     scopes.set(node, functionScope);
     if (node.type === 'FunctionExpression' && node.id !== null) {
-      declare(node.id, nameScope, BindingScope.Local, null);
+      declare(node.id, nameScope, BindingScope.Local, null, node);
     }
     for (const param of node.params) {
       const pattern =
@@ -125,7 +147,7 @@ export function createBindingGraph(program: Program): BindingGraph {
     const classScope = createScope(parentScope, false);
     scopes.set(node, classScope);
     if (node.type === 'ClassExpression' && node.id !== null) {
-      declare(node.id, classScope, BindingScope.Local, null);
+      declare(node.id, classScope, BindingScope.Local, null, node);
     }
     if (node.superClass !== null) {
       scopes.set(node.superClass, parentScope);
@@ -180,7 +202,7 @@ export function createBindingGraph(program: Program): BindingGraph {
         return;
       case 'ImportDeclaration':
         for (const specifier of value.specifiers) {
-          declare(specifier.local, scope, BindingScope.Import, null);
+          declare(specifier.local, scope, BindingScope.Import, null, specifier);
         }
         return;
       case 'VariableDeclaration': {
@@ -188,7 +210,7 @@ export function createBindingGraph(program: Program): BindingGraph {
         const bindingScope = target.parent === null ? BindingScope.Module : BindingScope.Local;
         const varKind = toVarKind(value.kind);
         for (const declarator of value.declarations) {
-          declarePattern(declarator.id, target, bindingScope, varKind);
+          declarePattern(declarator.id, target, bindingScope, varKind, declarator);
           collectPatternExpressions(declarator.id, scope);
           collect(declarator.init, scope);
         }
@@ -200,7 +222,8 @@ export function createBindingGraph(program: Program): BindingGraph {
             value.id,
             scope,
             scope.parent === null ? BindingScope.Module : BindingScope.Local,
-            null
+            null,
+            value
           );
         }
         collectFunction(value, scope);
@@ -240,7 +263,8 @@ export function createBindingGraph(program: Program): BindingGraph {
             value.id,
             scope,
             scope.parent === null ? BindingScope.Module : BindingScope.Local,
-            null
+            null,
+            value
           );
         }
         collectClass(value, scope);
@@ -268,35 +292,93 @@ export function createBindingGraph(program: Program): BindingGraph {
     if (!isNode(value)) {
       return;
     }
+    const start = orderedReferences.length;
     const activeScope = scopes.get(value) ?? scope;
     if (value.type === 'Identifier') {
       if (!declarations.has(value) && isReference(parent, key)) {
         const binding = findBinding(activeScope, value.name);
         if (binding !== null) {
           references.set(value, binding);
+          orderedReferences.push({ node: value, binding });
         }
       }
-      return;
-    }
-    if (value.type === 'JSXIdentifier' && isJsxTagReference(parent, key)) {
+    } else if (value.type === 'JSXIdentifier' && isJsxTagReference(parent, key)) {
       const binding = findBinding(activeScope, value.name);
       if (binding !== null) {
         references.set(value, binding);
+        orderedReferences.push({ node: value, binding });
       }
-      return;
+    } else {
+      for (const childKey of Object.keys(value)) {
+        if (!IGNORED_KEYS.has(childKey)) {
+          resolveReferences((value as WalkableNode)[childKey], activeScope, value, childKey);
+        }
+      }
     }
-    for (const childKey of Object.keys(value)) {
-      if (!IGNORED_KEYS.has(childKey)) {
-        resolveReferences((value as WalkableNode)[childKey], activeScope, value, childKey);
-      }
+    if (start !== orderedReferences.length) {
+      referenceSpans.set(value, [start, orderedReferences.length]);
     }
   };
   resolveReferences(program, moduleScope, null, '');
 
+  const freeReferences = (node: Node | Node[]): BindingReference[] => {
+    const roots = Array.isArray(node) ? node : [node];
+    const free: BindingReference[] = [];
+    for (const root of roots) {
+      const span = referenceSpans.get(root);
+      if (span === undefined) {
+        continue;
+      }
+      for (let index = span[0]; index < span[1]; index++) {
+        const reference = orderedReferences[index];
+        const range = bindings[reference.binding].declarationRange;
+        if (
+          range === null ||
+          !roots.some((root) => range[0] >= root.start && range[1] <= root.end)
+        ) {
+          free.push(reference);
+        }
+      }
+    }
+    return free;
+  };
+
   return {
     bindings,
+    freeReferences,
     declaration: (node) => declarations.get(node) ?? null,
     reference: (node) => references.get(node) ?? null,
+    declarationsOf: (binding) => declarationNodes[binding] ?? [],
+    bindingsOf: (pattern) => {
+      let found = patternBindings.get(pattern);
+      if (found === undefined) {
+        found = bindingIdentifiers(pattern).map((identifier) => {
+          const binding = declarations.get(identifier);
+          if (binding === undefined) {
+            throw new Error(`Unknown declaration "${identifier.name}"`);
+          }
+          return binding;
+        });
+        patternBindings.set(pattern, found);
+      }
+      return found;
+    },
+    dependenciesOf: (expression, candidates) => {
+      const allowed = new Set<Node>(candidates);
+      const selected = new Set<Node>();
+      const pending = [expression];
+      for (const node of pending) {
+        for (const { binding } of freeReferences(node)) {
+          for (const declaration of declarationNodes[binding] ?? []) {
+            if (allowed.has(declaration) && !selected.has(declaration)) {
+              selected.add(declaration);
+              pending.push(declaration);
+            }
+          }
+        }
+      }
+      return candidates.filter((candidate) => selected.has(candidate));
+    },
     addSynthetic: (name, scope, declarationRange) => {
       const id = bindings.length;
       bindings.push({ id, name, scope, varKind: null, declarationRange: declarationRange ?? null });

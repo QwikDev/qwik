@@ -1,4 +1,9 @@
-import type { ArrowFunctionExpression, Expression, JSXElement } from 'oxc-parser';
+import type {
+  ArrowFunctionExpression,
+  Expression,
+  JSXElement,
+  VariableDeclaration,
+} from 'oxc-parser';
 import {
   BoundaryKind,
   CaptureAccess,
@@ -25,12 +30,12 @@ import {
 } from '../schema';
 import { SegmentContext } from '../words';
 import { UnsupportedError } from '../errors';
-import { lowerCaptures } from './ast/capture-analysis';
-import { readReturnedExpression, unwrapExpression } from './ast/utils';
+import { collectCaptures, lowerCaptures } from './ast/capture-analysis';
+import { readReturnedBody, unwrapExpression } from './ast/utils';
 import { pushPayload, pushQrl, QrlIdentityKind, type LowerContext } from './lower-context';
 import { createSegmentSymbolName, sanitizeSegmentName } from '../segment-identity';
 import { trySignalReadValue } from './lower-expr';
-import { LocalKind } from './lower-setup';
+import { LocalKind, lowerConstDeclaration } from './lower-setup';
 import { lowerRenderExpression } from './lower-jsx';
 
 export const DESTRUCTURED_WRAPPED_PARAM = 'item';
@@ -52,11 +57,21 @@ export function lowerArray(
       ) {
         throw new UnsupportedError('a collection without an inline arrow row');
       }
-      const body = readReturnedExpression(callback.body);
+      if (callback.async) {
+        throw new UnsupportedError('an async collection row');
+      }
+      const body = readReturnedBody(callback.body);
       if (body === null) {
         throw new UnsupportedError(`the collection row body "${callback.body.type}"`);
       }
-      return lowerEach(expression.callee.object, callback, body, ctx, lowerBody);
+      return lowerEach(
+        expression.callee.object,
+        callback,
+        body.expression,
+        body.statements,
+        ctx,
+        lowerBody
+      );
     }
     default:
       throw new UnsupportedError(`the collection call "${expression.type}"`);
@@ -67,6 +82,7 @@ function lowerEach(
   sourceExpression: Expression,
   callback: ArrowFunctionExpression,
   body: Expression,
+  statements: VariableDeclaration[],
   ctx: LowerContext,
   lowerBody: RowLowering
 ): Op {
@@ -148,8 +164,9 @@ function lowerEach(
   });
   // A static array's row renders inline in the component: lexical scope, no key, no chunk.
   if (source.s === EachSourceKind.Array) {
-    lowerRowOps(
+    lowerRowProgram(
       body,
+      statements,
       callback,
       paramBindings,
       paramAliases,
@@ -181,8 +198,9 @@ function lowerEach(
   }
 
   // The row's segment comes first (legacy order: for_render before for_key), children after.
-  const rowCaptures = lowerCaptures(body, ctx, 'a collection row', { localBindings });
-  const rowRange: [number, number] = [body.start, body.end];
+  const originBody = statements.length === 0 ? body : callback.body;
+  const rowCaptures = lowerCaptures(originBody, ctx, 'a collection row', { localBindings });
+  const rowRange: [number, number] = [originBody.start, originBody.end];
   const { index: rowIndex, use } = pushQrl(
     ctx,
     {
@@ -200,27 +218,43 @@ function lowerEach(
         calleeRange: null,
         argumentRanges: [],
         paramRanges: callback.params.map((param) => [param.start, param.end] as [number, number]),
-        bodyRange: [body.start, body.end],
-        bodyKind: FnBodyKind.Expression,
+        bodyRange: rowRange,
+        bodyKind: originBody.type === 'BlockStatement' ? FnBodyKind.Block : FnBodyKind.Expression,
       },
     },
     rowCaptures.args
   );
   const key = body.type === 'JSXElement' ? lowerKey(body, callback, ctx, localBindings) : null;
-  lowerRowOps(body, callback, paramBindings, paramAliases, localBindings, program, ctx, lowerBody);
-  // The row ABI drops unused trailing params: `used` = params some descendant QRL captured.
-  const descendants = ctx.plan.qrls.slice(rowIndex + 1);
-  ctx.plan.qrls[rowIndex].params.used = paramBindings.filter((binding) =>
-    descendants.some((qrl) =>
-      qrl.captures.some(
-        (capture) =>
-          (capture.access === CaptureAccess.LoopValue ||
-            capture.access === CaptureAccess.RowIndex) &&
-          capture.binding === binding
-      )
-    )
+  const setupReads = lowerRowProgram(
+    body,
+    statements,
+    callback,
+    paramBindings,
+    paramAliases,
+    localBindings,
+    program,
+    ctx,
+    lowerBody
   );
-  const index = deriveIndexMode(paramBindings[1], descendants);
+  // Preserve parameters read by setup or captured by descendant QRLs.
+  const descendants = ctx.plan.qrls.slice(rowIndex + 1);
+  ctx.plan.qrls[rowIndex].params.used = paramBindings.filter(
+    (binding) =>
+      setupReads.locals.some(({ local }) => local.binding === binding) ||
+      descendants.some((qrl) =>
+        qrl.captures.some(
+          (capture) =>
+            (capture.access === CaptureAccess.LoopValue ||
+              capture.access === CaptureAccess.RowIndex) &&
+            capture.binding === binding
+        )
+      )
+  );
+  const index = deriveIndexMode(
+    paramBindings[1],
+    descendants,
+    setupReads.locals.some(({ local }) => local.kind === LocalKind.RowIndex)
+  );
 
   return {
     op: OpKind.Each,
@@ -277,11 +311,15 @@ function lowerSource(node: Expression, ctx: LowerContext): { s: EachSourceKind; 
 }
 
 /** Who reads the index decides its cost: effects only, or a closure that outlives render. */
-function deriveIndexMode(indexBinding: number | undefined, descendants: readonly Qrl[]): IndexMode {
+function deriveIndexMode(
+  indexBinding: number | undefined,
+  descendants: readonly Qrl[],
+  readsSetupIndex: boolean
+): IndexMode {
   if (indexBinding === undefined) {
     return IndexMode.None;
   }
-  let mode = IndexMode.None;
+  let mode = readsSetupIndex ? IndexMode.Effects : IndexMode.None;
   for (const qrl of descendants) {
     if (
       !qrl.captures.some(
@@ -299,9 +337,10 @@ function deriveIndexMode(indexBinding: number | undefined, descendants: readonly
   return mode;
 }
 
-/** Fills the row program's ops with loop params scoped as LoopValue locals. */
-function lowerRowOps(
+/** Lowers row setup and rendering within the callback's lexical scope. */
+function lowerRowProgram(
   body: Expression,
+  statements: VariableDeclaration[],
   callback: ArrowFunctionExpression,
   paramBindings: LocalId[],
   paramAliases: Map<LocalId, { base: LocalId; member: string }>,
@@ -311,7 +350,7 @@ function lowerRowOps(
   lowerBody: RowLowering,
   /** Inline rows read params lexically — no locals, no captures, values splice in place. */
   lexical = false
-): void {
+) {
   const outerLocals = ctx.locals;
   const rowLocals = new Map(outerLocals);
   callback.params.forEach((param, position) => {
@@ -338,12 +377,18 @@ function lowerRowOps(
 
   ctx.locals = rowLocals;
   const outerInlineParams = ctx.inlineParams;
-  if (lexical) {
-    ctx.inlineParams = localBindings;
+  ctx.inlineParams = lexical ? localBindings : null;
+  try {
+    const setupReads = collectCaptures(statements, ctx, new Set());
+    ctx.plan.programs[program].setup = statements.flatMap((statement) =>
+      statement.declarations.map((declarator) => lowerConstDeclaration(declarator, ctx, rowLocals))
+    );
+    ctx.plan.programs[program].body = { kind: ProgramBodyKind.Ops, ops: lowerBody(body, ctx) };
+    return setupReads;
+  } finally {
+    ctx.inlineParams = outerInlineParams;
+    ctx.locals = outerLocals;
   }
-  ctx.plan.programs[program].body = { kind: ProgramBodyKind.Ops, ops: lowerBody(body, ctx) };
-  ctx.inlineParams = outerInlineParams;
-  ctx.locals = outerLocals;
 }
 
 /** The row's `key` attribute — a Function-payload QRL the runtime calls per row with the item. */

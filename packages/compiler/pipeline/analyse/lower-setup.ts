@@ -22,9 +22,12 @@ import { identifierName } from './ast/utils';
 import { UnsupportedError } from '../errors';
 import { QwikHook } from '../words';
 import { pushPayload, type LowerContext } from './lower-context';
+import { lowerCaptures } from './ast/capture-analysis';
+import { lowerInlineExpressionValue } from './lower-expr';
 
-/** What kind of reactive source a setup local holds — read codegen dispatches on it. */
+/** Local value semantics shared by expression and capture lowering. */
 export const enum LocalKind {
+  Const = 'const',
   Signal = 'signal',
   /** A collection row parameter — captured as LoopValue, delivered per row. */
   LoopValue = 'loop-value',
@@ -32,6 +35,32 @@ export const enum LocalKind {
   RowIndex = 'row-index',
   /** A prop member for wrapped destructured props */
   PropMember = 'prop-member',
+}
+
+export function lowerConstDeclaration(
+  declarator: VariableDeclarator,
+  ctx: LowerContext,
+  locals: SetupLocals
+): Setup {
+  if (declarator.id.type !== 'Identifier' || declarator.init === null) {
+    throw new UnsupportedError('a const declaration without an identifier and initializer');
+  }
+  const binding = ctx.bindings.declaration(declarator.id);
+  if (binding === null) {
+    throw new UnsupportedError(`the unresolved setup binding "${declarator.id.name}"`);
+  }
+  const { refs } = lowerCaptures(declarator.init, ctx, 'a const initializer', { allowProps: true });
+  const value = lowerInlineExpressionValue(declarator.init, ctx, refs);
+  locals.set(binding, { kind: LocalKind.Const, access: CaptureAccess.Direct, slot: -1, binding });
+  return {
+    s: SetupKind.Const,
+    result: {
+      bind: BindTargetKind.Pattern,
+      pattern: pushPayload(ctx, [declarator.id.start, declarator.id.end]),
+      bindings: [binding],
+    },
+    value,
+  };
 }
 
 export type SetupLocal =
@@ -51,7 +80,7 @@ export type SetupLocal =
       member: string;
     };
 
-/** Component-local reactive sources, resolvable by holes (`count.value` → signal read). */
+/** Local bindings and their expression-read and capture contracts. */
 export type SetupLocals = Map<LocalId, SetupLocal>;
 
 /** Lowers the statements before a component's return: hook calls become typed Setup invokes. */

@@ -179,6 +179,8 @@ export function trySignalReadValue(
     return null;
   }
   switch (local.kind) {
+    case LocalKind.Const:
+      return null;
     case LocalKind.Signal:
       return {
         v: ValueKind.Read,

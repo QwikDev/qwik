@@ -3,6 +3,7 @@ import type {
   Expression,
   Function as FunctionNode,
   Node,
+  VariableDeclaration,
 } from 'oxc-parser';
 import { isNode } from './ast-types';
 
@@ -28,17 +29,24 @@ export function identifierName(node: unknown): string | null {
   return isNode(node) && node.type === 'Identifier' ? node.name : null;
 }
 
-export function readReturnedExpression(body: ArrowFunctionExpression['body']) {
+export function readReturnedBody(body: ArrowFunctionExpression['body']): {
+  expression: Expression;
+  statements: VariableDeclaration[];
+} | null {
   if (body.type !== 'BlockStatement') {
-    return unwrapExpression(body);
+    return { expression: unwrapExpression(body), statements: [] };
   }
-  const statement = body.body[0];
+  const statement = body.body.at(-1);
+  const statements = body.body.slice(0, -1);
   if (
-    body.body.length !== 1 ||
-    statement.type !== 'ReturnStatement' ||
-    statement.argument === null
+    statement?.type !== 'ReturnStatement' ||
+    statement.argument === null ||
+    !statements.every(
+      (statement): statement is VariableDeclaration =>
+        statement.type === 'VariableDeclaration' && statement.kind === 'const'
+    )
   ) {
     return null;
   }
-  return unwrapExpression(statement.argument);
+  return { expression: unwrapExpression(statement.argument), statements };
 }

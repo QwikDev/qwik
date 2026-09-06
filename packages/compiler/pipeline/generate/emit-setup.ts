@@ -11,14 +11,18 @@ import {
 import { ValueIrKind } from '../../src/expr-ir';
 import { QwikHook } from '../words';
 import { UnsupportedError } from '../errors';
+import { extractPayloadJs, inlineValueJs } from './emit-chunk';
 
-/** Setup statements shared by the JS targets — `const count = useSignal(0);`. */
+/** Setup declarations shared by CSR and SSR render programs. */
 export function emitJsSetup(
   module: LinkedModule,
   program: { setup: LinkedModule['programs'][number]['setup'] },
   imports: Set<string>
 ): string[] {
   return program.setup.map((entry) => {
+    if (entry.s === SetupKind.Const && entry.result.bind === BindTargetKind.Pattern) {
+      return `const ${extractPayloadJs(module, entry.result.pattern)} = ${inlineValueJs(module, entry.value)};`;
+    }
     if (entry.s !== SetupKind.Invoke || entry.invoke.op !== InvokeKind.UseSignal) {
       throw new UnsupportedError(`the setup entry "${entry.s}" in a JS render`);
     }

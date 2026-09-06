@@ -29,7 +29,7 @@ import { eventScopeName } from './events';
 import { lowerEventAttribute } from './lower-event';
 import { lowerText } from './lower-hole';
 import { lowerBranch, type BranchArm } from './lower-branch';
-import { identifierName, readReturnedExpression, unwrapExpression } from './ast/utils';
+import { identifierName, readReturnedBody, unwrapExpression } from './ast/utils';
 import {
   lowerExpressionValue,
   lowerInlineExpressionValue,
@@ -571,9 +571,9 @@ function collectProjectionNames(node: Node): string[] {
       if (callback === null) {
         break;
       }
-      const row = readReturnedExpression(callback.body);
+      const row = readReturnedBody(callback.body);
       if (row !== null) {
-        return collectProjectionNames(row);
+        return collectProjectionNames(row.expression);
       }
       break;
     }

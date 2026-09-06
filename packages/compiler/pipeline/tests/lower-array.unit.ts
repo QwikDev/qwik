@@ -9,6 +9,7 @@ import {
   QrlBodyKind,
   ResumeKind,
   RowKind,
+  SetupKind,
   Shape,
   ValueKind,
 } from '../schema';
@@ -43,7 +44,7 @@ const ROW = '<ul>{items.value.map((item) => <li key={item.id}>{item.label}</li>)
 describe('lowerArray / reactive rows', () => {
   test.each([
     [
-      '{ const label = item.label; return <li>{label}</li>; }',
+      '{ let label = item.label; return <li>{label}</li>; }',
       'the collection row body "BlockStatement"',
     ],
     [
@@ -52,9 +53,23 @@ describe('lowerArray / reactive rows', () => {
     ],
     ['{ log(item); return <li />; }', 'the collection row body "BlockStatement"'],
     ['{ return; }', 'the collection row body "BlockStatement"'],
+    ['{ const label = <b />; return <li>{label}</li>; }', 'JSX inside an expression value'],
+    ['{ const key = item.id; return <li key={key} />; }', 'a collection key capturing "key"'],
+    [
+      '{ const { label } = item; return <li>{label}</li>; }',
+      'a const declaration without an identifier and initializer',
+    ],
     ['render(<li />)', 'JSX inside an expression value'],
   ])('rejects unsupported row bodies: %s', (row, error) => {
     expect(() => lower(`<ul>{items.value.map((item) => ${row})}</ul>`)).toThrow(error);
+  });
+
+  test('rejects async row setup instead of emitting await in a synchronous renderer', () => {
+    expect(() =>
+      lower(
+        '<ul>{items.value.map(async (item) => { const label = await item.label; return <li>{label}</li>; })}</ul>'
+      )
+    ).toThrow('an async collection row');
   });
 
   test('a single-return block preserves row keys, parameters and captures', () => {
@@ -71,6 +86,41 @@ describe('lowerArray / reactive rows', () => {
       '<li key={item.id}>{item.label}</li>'
     );
   });
+
+  test.each(['items.value', "[{ label: 'Row' }]"])(
+    'row consts preserve setup order, captures and enclosing locals: %s',
+    (source) => {
+      const { ctx } = lower(`<ul>{${source}.map(({ label }, index) => {
+        const title = label.toUpperCase() + items.value.length;
+        const numbered = index + title, visible = numbered.length > 0;
+        return visible && <li title={title} onClick$={() => console.log(numbered)}>{title}{numbered}</li>;
+      })}</ul>`);
+      const program = ctx.plan.programs.find((program) => program.setup.length > 0)!;
+      expect(program.setup.map((entry) => entry.s)).toEqual([
+        SetupKind.Const,
+        SetupKind.Const,
+        SetupKind.Const,
+      ]);
+      const row = ctx.plan.qrls.find((qrl) => qrl.ctxName === 'for:render');
+      const names = (bindings: number[]) =>
+        bindings.map((binding) => ctx.plan.bindings[binding].name);
+      if (source === 'items.value') {
+        expect(names(row!.params.used)).toEqual(['item', 'index']);
+        expect(names(row!.captures.map((capture) => capture.binding))).toEqual(['items']);
+      }
+      const condition = ctx.plan.qrls.find((qrl) => qrl.ctxName === 'branch:condition')!;
+      expect(
+        condition.captures.map((capture) => [
+          ctx.plan.bindings[capture.binding].name,
+          capture.access,
+        ])
+      ).toEqual([['visible', CaptureAccess.Direct]]);
+      expect([...ctx.locals.keys()].map((binding) => ctx.plan.bindings[binding].name)).toEqual([
+        'items',
+      ]);
+      expect(ctx.inlineParams).toBeNull();
+    }
+  );
 
   test.each([
     'item.enabled ? <li>{item.label}</li> : null',

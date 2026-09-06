@@ -864,6 +864,27 @@ export default () => {
     }
   });
 
+  test.each([
+    ['reactive', 'items.value'],
+    ['array', "[{ title: 'Title' }]"],
+  ])('should preserve local consts in mapped projections: %s', async (kind, source) => {
+    const output = await testInput(mode, `component-children-mapped-const-${kind}`, {
+      code: `import { Slot, useSignal } from '@qwik.dev/core';
+export const Panel = () => <main><Slot name="header" /></main>;
+export default () => {
+  const suffix = useSignal('!');
+  const items = useSignal([{ title: 'Title' }]);
+  return <Panel>{${source}.map(({ title }, index) => {
+    const label = title.toUpperCase() + suffix.value;
+    const numbered = index + ':' + label, visible = label.length > 0;
+    return visible && <h2 q:slot="header" title={numbered} onClick$={() => console.log(label)}>{label}:{numbered}</h2>;
+  })}</Panel>;
+};
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+  });
+
   test('should forward slots and render fallback through fragments', async () => {
     const output = await testInput(mode, 'component-slot-forwarding-fragments', {
       code: `import { Slot } from '@qwik.dev/core';

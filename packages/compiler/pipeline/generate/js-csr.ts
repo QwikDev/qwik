@@ -491,14 +491,9 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     if (op.condition.v !== ValueKind.Qrl) {
       throw new UnsupportedError('a non-QRL branch condition');
     }
-    const conditionUse = resolveQrlUse(this.module, op.condition.use, pass.names.props);
     this.imports.add(QwikWord.BranchRange);
     this.imports.add(QwikWord.CreateBranch);
-    let condition = this.chunkSymbol(conditionUse.qrl);
-    if (conditionUse.args.length > 0) {
-      this.imports.add(QwikWord.WithCaptures);
-      condition = `${QwikWord.WithCaptures}(${condition}, [${conditionUse.args.join(', ')}])`;
-    }
+    const condition = this.capturedChunkReference(op.condition.use, pass.names.props);
     const thenRef = this.lazyRenderReference(op.then, pass.names.props);
     const elseRef =
       op.else === null ? 'undefined' : this.lazyRenderReference(op.else, pass.names.props);
@@ -535,16 +530,12 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     switch (op.row.r) {
       case RowKind.Chunk: {
         // Import order matches the seed: render chunk first, key second.
-        const render = this.chunkSymbol(
-          resolveQrlUse(this.module, op.row.use, pass.names.props).qrl
-        );
+        const render = this.capturedChunkReference(op.row.use, pass.names.props);
         if (op.key !== null && op.key.v !== ValueKind.Qrl) {
           throw new UnsupportedError('a non-QRL collection key');
         }
         const key =
-          op.key === null
-            ? 'null'
-            : this.chunkSymbol(resolveQrlUse(this.module, op.key.use, pass.names.props).qrl);
+          op.key === null ? 'null' : this.capturedChunkReference(op.key.use, pass.names.props);
         statements.push(
           `${pass.names.ctx}.scheduler.waitFor(${QwikWord.CreateCollection}(${pass.names.ctx}, ${start}, ${end}, ${source}, ${key}, ${render}, ${op.index}, '', ${rowShapeCode(op.shape)}));`
         );
@@ -603,6 +594,16 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     const resolved = resolveQrlUse(this.module, use, propsName);
     const ref = this.lazyQrlReference(resolved.qrl);
     return resolved.args.length === 0 ? ref : `${ref}.w([${resolved.args.join(', ')}])`;
+  }
+
+  private capturedChunkReference(use: QrlUse, propsName: string): string {
+    const resolved = resolveQrlUse(this.module, use, propsName);
+    const ref = this.chunkSymbol(resolved.qrl);
+    if (resolved.args.length === 0) {
+      return ref;
+    }
+    this.imports.add(QwikWord.WithCaptures);
+    return `${QwikWord.WithCaptures}(${ref}, [${resolved.args.join(', ')}])`;
   }
 
   /** An arm's function is a normal render program; source-bodied QRLs replay authored code. */
@@ -702,7 +703,15 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     }
     const loopParams = usedParamPrefix(this.module, qrl);
     emission.params = statements.length === 0 ? [] : [pass.names.ctx, ...loopParams];
-    emission.statements = statements;
+    const captures = captureNames(this.module, qrl);
+    if (captures.length > 0) {
+      emitter.imports.add(QwikWord.Captures);
+    }
+    emission.statements = [
+      ...capturePrelude(captures),
+      ...emitJsSetup(this.module, program, emitter.imports),
+      ...statements,
+    ];
     emission.value = value;
     emission.imports = emitter.imports;
     emission.chunkImports = emitter.chunkImports;

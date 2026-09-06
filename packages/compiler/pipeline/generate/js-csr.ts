@@ -198,6 +198,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       case OpKind.Slot:
         return this.createSlot(op, statements, pass);
       case OpKind.Branch:
+      case OpKind.Each:
       case OpKind.DynamicSlot:
         return this.rangeRoot(op, ownerName, statements, pass);
       default:
@@ -420,14 +421,14 @@ class CsrModuleEmitter implements QwikModuleEmitter {
   }
 
   private rangeRoot(
-    op: Extract<RangeOp, { op: OpKind.Branch | OpKind.DynamicSlot }>,
+    op: RangeOp,
     ownerName: string,
     statements: string[],
     pass: RenderPass
   ): string {
-    const { start, end } = this.createRangeRoot(ownerName, statements, pass);
+    const { fragment, start, end } = this.createRangeRoot(ownerName, statements, pass);
     this.mountRange(op, start, end, statements, pass);
-    return `[${start}, ${end}]`;
+    return op.op === OpKind.Each ? `[...${fragment}.childNodes]` : `[${start}, ${end}]`;
   }
 
   private mountRange(
@@ -460,7 +461,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     this.imports.add(QwikWord.FirstChild);
     this.imports.add(QwikWord.NextSibling);
     this.hoistTemplate(template, '<!><!>');
-    return { start, end };
+    return { fragment, start, end };
   }
 
   private createDynamicSlotBlock(

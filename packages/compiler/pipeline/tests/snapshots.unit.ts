@@ -779,6 +779,28 @@ export default () => {
     );
   });
 
+  test('should project mapped rows into static named slots', async () => {
+    const output = await testInput(mode, 'component-children-mapped-slots', {
+      code: `import { Slot, useSignal } from '@qwik.dev/core';
+export const Panel = () => <main><Slot name="header" /><Slot name="footer" /><Slot /></main>;
+export default () => {
+  const items = useSignal([{ id: 1, title: 'Title' }]);
+  return <Panel>{items.value.map((item) => <h2 key={item.id} q:slot="header">{item.title}</h2>)}{['End'].map((label) => <p q:slot="footer">{label}</p>)}{items.value.map((item) => <section key={item.id}><span q:slot="nested">{item.title}</span></section>)}</Panel>;
+};
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    if (mode === 'csr') {
+      const projections = output.modules.filter(
+        (module) => module.segment?.ctxName === 'slot:render'
+      );
+      expect(projections).toHaveLength(3);
+      for (const projection of projections) {
+        expect(projection.code).toContain('return [...fragment0.childNodes];');
+      }
+    }
+  });
+
   test('should forward slots and render fallback through fragments', async () => {
     const output = await testInput(mode, 'component-slot-forwarding-fragments', {
       code: `import { Slot } from '@qwik.dev/core';

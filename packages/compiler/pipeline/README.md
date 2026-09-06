@@ -107,6 +107,10 @@ from a deserialized frozen plan in a fresh process.
   descendants. Selection keeps the authored branch structure; text-only ternaries remain expressions.
   Projection lowering owns selection and delegates selected leaves to JSX lowering. Generic JSX
   and branch lowerers receive no slot name; branch construction remains shared through arm callbacks.
+- Mapped projections read static slot names from element row roots, not descendants. The existing
+  collection lowering and emitters handle the rows; CSR collection roots return all fragment nodes
+  because initial rendering can synchronously insert rows and remove transient markers. Splitting
+  fragment rows across named slots remains deferred.
 - Component candidates require an Uppercased name (anonymous default exports exempt). The legacy
   compiler has no such rule — a differential fixture with a lowercase-named component will
   diverge; that is this decision, not a parity bug.

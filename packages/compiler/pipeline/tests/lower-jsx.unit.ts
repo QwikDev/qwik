@@ -7,11 +7,13 @@ import { createTestLowerContext } from './fixtures';
 import { foldStaticOp } from '../generate/fold-static';
 import {
   ArgPass,
+  EachSourceKind,
   OpKind,
   ProgramBodyKind,
   ProjectionKind,
   QrlBodyKind,
   ResumeKind,
+  RowKind,
   SeedKind,
   ValueKind,
   type ModulePlan,
@@ -235,6 +237,46 @@ export default () => {
   );
 
   expect(componentProjectionNames(plan)).toEqual(['start']);
+});
+
+describe.each([
+  ['items.value', EachSourceKind.Reactive, RowKind.Chunk],
+  ["[{ id: 1, title: 'Title' }]", EachSourceKind.Array, RowKind.Inline],
+] as const)('collection projections from %s', (source, sourceKind, rowKind) => {
+  test.each([
+    ['q:slot="header"', '{item.title}', 'header'],
+    ['', '<span q:slot="nested">{item.title}</span>', ''],
+  ])('uses only the row root slot: %s', async (attribute, children, name) => {
+    const plan = await analyseModule(
+      {
+        path: 'src/app.tsx',
+        code: `import { Slot, useSignal } from '@qwik.dev/core';
+export const Panel = () => <main><Slot name="header" /><Slot /></main>;
+export default () => {
+  const items = useSignal([{ id: 1, title: 'Title' }]);
+  return <Panel>{${source}.map((item) => <h2 key={item.id} ${attribute}>${children}</h2>)}</Panel>;
+};
+`,
+      },
+      { transpileTs: true }
+    );
+    expect(componentProjectionNames(plan)).toEqual([name]);
+    const [projection] = componentProjections(plan);
+    if (projection.kind !== ProjectionKind.Render) {
+      throw new Error('expected a rendered projection');
+    }
+    const qrl = plan.qrls.find((qrl) => qrl.id === projection.use.qrl);
+    if (qrl?.body.b !== QrlBodyKind.Program) {
+      throw new Error('expected a projection program');
+    }
+    expect(plan.programs[qrl.body.program].body).toMatchObject({
+      kind: ProgramBodyKind.Ops,
+      ops: [{ op: OpKind.Each, source: { s: sourceKind }, row: { r: rowKind } }],
+    });
+    expect(qrl.captures.map((capture) => plan.bindings[capture.binding].name)).toEqual(
+      sourceKind === EachSourceKind.Reactive ? ['items'] : []
+    );
+  });
 });
 
 test('a conditional child splits across its statically named slots', async () => {

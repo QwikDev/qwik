@@ -294,20 +294,26 @@ function lowerRenderExpression(expression: Expression, ctx: LowerContext): Op[] 
     case 'JSXFragment':
       return lowerJsxChildren(expression.children, ctx);
     case 'CallExpression': {
-      const callee = expression.callee;
-      const args = expression.arguments;
-      if (
-        callee.type === 'MemberExpression' &&
-        identifierName(callee.property) === 'map' &&
-        args.length === 1 &&
-        args[0].type === 'ArrowFunctionExpression'
-      ) {
+      if (readCollectionCallback(expression) !== null) {
         return [lowerArray(expression, ctx)];
       }
       break;
     }
   }
   return lowerText(expression, ctx);
+}
+
+function readCollectionCallback(expression: Node) {
+  if (
+    expression.type === 'CallExpression' &&
+    expression.callee.type === 'MemberExpression' &&
+    identifierName(expression.callee.property) === 'map' &&
+    expression.arguments.length === 1 &&
+    expression.arguments[0].type === 'ArrowFunctionExpression'
+  ) {
+    return expression.arguments[0];
+  }
+  return null;
 }
 
 function readRenderBranch(expression: Expression) {
@@ -557,6 +563,13 @@ function collectProjectionNames(node: Node): string[] {
       return [];
     case 'JSXText':
       return normalizeJsxText(expression.value) === '' ? [] : [''];
+    case 'CallExpression': {
+      const row = readCollectionCallback(expression)?.body;
+      if (row?.type === 'JSXElement') {
+        return [readProjectionName(row)];
+      }
+      break;
+    }
     case 'ConditionalExpression':
       return [
         ...collectProjectionNames(expression.consequent),

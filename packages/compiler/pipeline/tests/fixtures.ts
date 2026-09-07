@@ -28,6 +28,9 @@ export function loadDefaultFunction(
       if (statement.type === 'ExportDefaultDeclaration') {
         return `(${module.code.slice(statement.declaration.start, statement.declaration.end)})`;
       }
+      if (statement.type === 'ExportNamedDeclaration' && statement.declaration !== null) {
+        return module.code.slice(statement.declaration.start, statement.declaration.end);
+      }
       return module.code.slice(statement.start, statement.end);
     })
     .join('\n');

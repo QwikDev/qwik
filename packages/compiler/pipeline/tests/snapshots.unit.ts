@@ -40,6 +40,29 @@ async function testInputs(mode: 'ssr' | 'csr', snapshotName: string, inputs: rea
 }
 
 describe.each(['ssr', 'csr'] as const)('%s', (mode) => {
+  test('should pass context through nested component scopes', async () => {
+    const output = await testInput(mode, 'setup-context', {
+      code: `import { createContextId, useSignal, useContextProvider as provide, useContext as read } from '@qwik.dev/core';
+const Counter = createContextId('counter');
+export const Child = () => {
+  const count = read(Counter);
+  return <button onClick$={() => count.value++}>{count.value}</button>;
+};
+export const Nested = () => {
+  const count = useSignal(10);
+  provide(Counter, count);
+  return <Child />;
+};
+export default () => {
+  const count = useSignal(1);
+  provide(Counter, count);
+  return <main><Child /><Nested /><Child /></main>;
+};
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+  });
+
   test('should compile store setup through a plain hook call', async () => {
     const output = await testInput(mode, 'setup-store', {
       code: `import { useStore as store } from '@qwik.dev/core';

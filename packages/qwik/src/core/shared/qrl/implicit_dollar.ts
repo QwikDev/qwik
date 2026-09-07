@@ -1,4 +1,5 @@
 import { dollar, type QRL } from './qrl.public';
+import { isQrl } from './qrl-utils';
 
 // <docs markdown="../../readme.md#implicit$FirstArg">
 // !!DO NOT EDIT THIS COMMENT DIRECTLY!!!
@@ -44,6 +45,6 @@ export function implicit$FirstArg<FIRST, REST extends any[], RET>(
   fn: (qrl: QRL<FIRST>, ...rest: REST) => RET
 ): (qrl: FIRST, ...rest: REST) => RET {
   return function (first: FIRST, ...rest: REST): RET {
-    return fn.call(null, dollar(first), ...rest);
+    return fn.call(null, isQrl<FIRST>(first) ? first : dollar(first), ...rest);
   };
 }

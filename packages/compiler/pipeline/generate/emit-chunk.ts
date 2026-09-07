@@ -159,6 +159,8 @@ export function capturePrelude(captures: readonly string[]): string[] {
 /** Prints a plan-complete IR body; kinds join as examples demand them. */
 export function valueIrJs(module: LinkedModule, ir: ValueIR): string {
   switch (ir.kind) {
+    case ValueIrKind.Lit:
+      return JSON.stringify(ir.value);
     case ValueIrKind.SignalRead:
       return `${module.bindings[ir.binding].name}.value`;
     case ValueIrKind.BindingRead:

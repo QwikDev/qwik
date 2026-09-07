@@ -13,7 +13,8 @@ import {
 import { ValueIrKind } from '../../src/expr-ir';
 import { QwikHook } from '../words';
 import { UnsupportedError } from '../errors';
-import { extractPayloadJs, inlineValueJs } from './emit-chunk';
+import { expressionJs, extractPayloadJs, inlineValueJs } from './emit-chunk';
+import { requestBindingImport } from './emit-import';
 
 /** Setup declarations shared by CSR and SSR render programs. */
 export function emitJsSetup(
@@ -23,6 +24,18 @@ export function emitJsSetup(
   emitQrl: (use: QrlUse) => string
 ): string[] {
   return program.setup.map((entry) => {
+    if (entry.s === SetupKind.Hook) {
+      requestBindingImport(module, entry.binding, imports);
+      const args = entry.args.map((arg) => argJs(module, arg, emitQrl)).join(', ');
+      const call = `${module.bindings[entry.binding].name}(${args})`;
+      if (entry.result === null) {
+        return `${call};`;
+      }
+      if (entry.result.bind !== BindTargetKind.Pattern) {
+        throw new UnsupportedError('a hook result without a binding pattern');
+      }
+      return `const ${extractPayloadJs(module, entry.result.pattern)} = ${call};`;
+    }
     if (entry.s === SetupKind.Const && entry.result.bind === BindTargetKind.Pattern) {
       const value =
         entry.value.v === ValueKind.Qrl
@@ -53,27 +66,24 @@ export function emitJsSetup(
         ? emitQrl(entry.invoke.qrl)
         : entry.invoke.initial === undefined
           ? ''
-          : argJs(module, entry.invoke.initial);
+          : argJs(module, entry.invoke.initial, emitQrl);
     return `const ${name} = ${hook}(${initial});`;
   });
 }
 
-function argJs(module: LinkedModule, arg: Arg): string {
-  if (arg.a !== ArgKind.Expr) {
-    throw new UnsupportedError(`the arg kind "${arg.a}" in a JS render`);
+function argJs(module: LinkedModule, arg: Arg, emitQrl: (use: QrlUse) => string): string {
+  switch (arg.a) {
+    case ArgKind.Qrl:
+      return emitQrl(arg.use);
+    case ArgKind.Expr:
+      return expressionJs(module, arg.expr);
+    case ArgKind.Spread:
+      return `...(${expressionJs(module, arg.expr)})`;
+    case ArgKind.Value:
+      return arg.value.v === ValueKind.Qrl
+        ? emitQrl(arg.value.use)
+        : inlineValueJs(module, arg.value);
   }
-  if (arg.expr.kind === ExprKind.Js) {
-    const [start, end] = module.payloads[arg.expr.payload].range;
-    return module.source.code.slice(start, end);
-  }
-  if (arg.expr.kind !== ExprKind.Ir) {
-    throw new UnsupportedError(`the expression "${arg.expr.kind}" as a JS argument`);
-  }
-  const ir = arg.expr.ir;
-  if (ir.kind !== ValueIrKind.Lit) {
-    throw new UnsupportedError(`the IR "${ir.kind}" as a JS argument`);
-  }
-  return JSON.stringify(ir.value);
 }
 
 /** The signal local a `Read` hole subscribes — resolved from its SignalRead IR. */

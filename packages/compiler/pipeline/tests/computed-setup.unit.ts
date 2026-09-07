@@ -187,7 +187,8 @@ test('a local useComputed$ function is not a core hook', async () => {
     },
     {}
   );
-  expect(
-    plan.programs.flatMap((program) => program.setup).every((entry) => entry.s === SetupKind.Const)
-  ).toBe(true);
+  expect(plan.programs.flatMap((program) => program.setup).map((entry) => entry.s)).toEqual([
+    SetupKind.Const,
+    SetupKind.Hook,
+  ]);
 });

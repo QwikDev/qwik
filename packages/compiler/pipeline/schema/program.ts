@@ -239,6 +239,7 @@ export type BindTarget =
   | { bind: BindTargetKind.Pattern; pattern: PayloadId; bindings: LocalId[] };
 
 export const enum ArgKind {
+  Spread = 'spread',
   Value = 'value',
   Expr = 'expr',
   Qrl = 'qrl',
@@ -248,6 +249,7 @@ export const enum ArgKind {
 export type Arg =
   | { a: ArgKind.Value; value: Value }
   | { a: ArgKind.Expr; expr: Expr }
+  | { a: ArgKind.Spread; expr: Expr }
   | { a: ArgKind.Qrl; use: QrlUse };
 
 export const enum InvokeKind {

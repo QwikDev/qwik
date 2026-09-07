@@ -285,6 +285,7 @@ type BindTarget =
 type Arg =
   | { a: 'value'; value: Value }
   | { a: 'expr'; expr: Expr } // plain callbacks/factories
+  | { a: 'spread'; expr: Expr }
   | { a: 'qrl'; use: QrlUse };
 type Invoke =
   | { op: 'use-signal'; result: BindTarget; initial?: Arg }

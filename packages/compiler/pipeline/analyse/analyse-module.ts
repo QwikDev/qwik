@@ -113,6 +113,21 @@ export async function analyseModule(
   const authoredProgram =
     normalized.map === null ? null : parseModule(input.path, input.code).program;
   const coreBindings = scanModuleSurface(parsed.program, authoredProgram, plan, bindings);
+  const authoredStatements = parsed.program.body.filter(
+    (statement) => statement.type !== 'ImportDeclaration' && !componentStatements.has(statement)
+  );
+  const retainedBindings = new Set(
+    bindings.freeReferences(authoredStatements).map((reference) => reference.binding)
+  );
+  for (const imported of plan.imports) {
+    if (coreBindings.has(imported.binding) && retainedBindings.has(imported.binding)) {
+      plan.assembly.push({
+        a: AssemblyKind.Import,
+        edge: imported.edge,
+        binding: imported.binding,
+      });
+    }
+  }
   const lowerContext = createLowerContext(
     plan,
     input.path,

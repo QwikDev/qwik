@@ -40,6 +40,38 @@ async function testInputs(mode: 'ssr' | 'csr', snapshotName: string, inputs: rea
 }
 
 describe.each(['ssr', 'csr'] as const)('%s', (mode) => {
+  test('should compile generic setup hooks by their imported binding', async () => {
+    await testInput(mode, 'setup-custom-hook', {
+      code: `import { useSignal } from '@qwik.dev/core';
+import { useCustom$ as custom } from './hooks';
+export default (props) => {
+  const count = useSignal(1);
+  const { label } = custom(() => count.value, props.options);
+  custom(() => props.title, ...props.args);
+  return <span>{label}</span>;
+};
+`,
+    });
+  });
+
+  test('should compile local implicit hooks and task setup', async () => {
+    await testInput(mode, 'setup-task-hook', {
+      code: `import { implicit$FirstArg, useTaskQrl, useTask$ as task, useSignal } from '@qwik.dev/core';
+const useCustom$ = implicit$FirstArg(useTaskQrl);
+export default () => {
+  const count = useSignal(1);
+  useCustom$(({ cleanup }) => {
+    const value = count.value;
+    console.log(value);
+    cleanup(() => console.log('cleanup', value));
+  });
+  task(() => console.log(count.value), { deferUpdates: true });
+  return <span>{count.value}</span>;
+};
+`,
+    });
+  });
+
   test('should compile a synchronous computed setup signal', async () => {
     await testInput(mode, 'setup-computed', {
       code: `import { useSignal, useComputed$ } from '@qwik.dev/core';

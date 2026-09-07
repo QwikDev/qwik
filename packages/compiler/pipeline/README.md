@@ -73,6 +73,18 @@ IR-uncoverable expressions refuse on the native target. The linker is still a 1:
 pending. Everything unsupported throws `UnsupportedError`; invalid authored code becomes
 `InvalidModuleError` diagnostics.
 
+## Setup hook boundaries
+
+Direct `use*$` calls in component setup share first-argument QRL extraction, including local
+hooks and aliased named imports. Generic calls use `SetupKind.Hook`: they keep the authored
+callee, return binding and remaining arguments, including spreads. `implicit$FirstArg` accepts
+the compiled QRL without wrapping or resolving it again. Core-specific result semantics remain
+separate (`useComputed$` produces a signal).
+
+This slice supports inline first callbacks. Member calls, non-inline callbacks and boundary
+extraction inside otherwise untouched module functions remain deferred. Async source can be
+extracted, but restoring tracking or hook context after `await` is not implemented here.
+
 ## Workflow (vertical slices — DESIGN.md "Phases")
 
 Each slice implements analyse → link → generate end-to-end for a fixture family. Per fixture the gate is one

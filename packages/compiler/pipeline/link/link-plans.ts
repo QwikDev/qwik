@@ -15,6 +15,7 @@ import {
   ProjectionKind,
   ProgramBodyKind,
   QrlBodyKind,
+  SetupKind,
   UnknownWhy,
   type DeclRef,
   type LinkedImport,
@@ -452,7 +453,13 @@ export function linkPlans(
     }
   };
   const visitProgram = (module: number, program: number): void => {
-    const body = linkedModules[module].programs[program]?.body;
+    const plan = linkedModules[module].programs[program];
+    for (const setup of plan?.setup ?? []) {
+      if (setup.s === SetupKind.Hook) {
+        visitImport(module, setup.binding);
+      }
+    }
+    const body = plan?.body;
     if (body?.kind !== ProgramBodyKind.Ops) {
       return;
     }
@@ -500,24 +507,33 @@ export function linkPlans(
     if (target.t === ComponentTargetKind.Dynamic) {
       return;
     }
-    const imported = importsByBinding[module].get(target.binding);
-    if (imported !== undefined) {
-      linkedModules[module].edges[imported.source.edge].runtime = !imported.source.typeOnly;
-      const targetModule = linkedModules[module].edges[imported.source.edge].target;
-      if (
-        targetModule.ok &&
-        imported.kind === ImportTargetKind.Declaration &&
-        imported.source.imported !== '*'
-      ) {
-        visitModuleSideEffects(targetModule.value);
-        markExportPath(targetModule.value, imported.source.imported);
-      }
-      if (complete) {
-        reportImport(module, imported);
-      }
-    }
+    visitImport(module, target.binding);
     if (target.declaration.ok) {
       visitDecl(target.declaration.value);
+    }
+  };
+  const visitImport = (module: number, binding: LocalId): void => {
+    const imported = importsByBinding[module].get(binding);
+    const key = `import:${module}:${binding}`;
+    if (imported === undefined || visited.has(key)) {
+      return;
+    }
+    visited.add(key);
+    linkedModules[module].edges[imported.source.edge].runtime = !imported.source.typeOnly;
+    const targetModule = linkedModules[module].edges[imported.source.edge].target;
+    if (
+      targetModule.ok &&
+      imported.kind === ImportTargetKind.Declaration &&
+      imported.source.imported !== '*'
+    ) {
+      visitModuleSideEffects(targetModule.value);
+      markExportPath(targetModule.value, imported.source.imported);
+    }
+    if (complete) {
+      reportImport(module, imported);
+    }
+    if (imported.kind === ImportTargetKind.Declaration && imported.target.ok) {
+      visitDecl(imported.target.value);
     }
   };
 

@@ -64,6 +64,24 @@ export function lowerConstBinding(
   ctx: LowerContext,
   locals: SetupLocals
 ): Setup {
+  return {
+    s: SetupKind.Const,
+    ...lowerSetupBinding(
+      pattern,
+      ctx,
+      locals,
+      value.v === ValueKind.Qrl ? LocalKind.Qrl : LocalKind.Const
+    ),
+    value,
+  };
+}
+
+function lowerSetupBinding(
+  pattern: BindingPattern,
+  ctx: LowerContext,
+  locals: SetupLocals,
+  kind: LocalKind.Const | LocalKind.Qrl = LocalKind.Const
+): Pick<Extract<Setup, { s: SetupKind.Const }>, 'result' | 'defaultValue'> {
   if (findRuntimeJsx(pattern) !== null) {
     throw new UnsupportedError('JSX inside a binding pattern');
   }
@@ -76,19 +94,16 @@ export function lowerConstBinding(
       : undefined;
   const payload = pushPayload(ctx, [target.start, target.end]);
   recordPayloadAliasReads(ctx, payload, refs);
+  const localKind = target.type === 'Identifier' ? kind : LocalKind.Const;
   for (const binding of bindings) {
-    const kind =
-      target.type === 'Identifier' && value.v === ValueKind.Qrl ? LocalKind.Qrl : LocalKind.Const;
-    locals.set(binding, { kind, access: CaptureAccess.Direct, slot: -1, binding });
+    locals.set(binding, { kind: localKind, access: CaptureAccess.Direct, slot: -1, binding });
   }
   return {
-    s: SetupKind.Const,
     result: {
       bind: BindTargetKind.Pattern,
       pattern: payload,
       bindings,
     },
-    value,
     ...(defaultValue === undefined ? {} : { defaultValue }),
   };
 }
@@ -127,6 +142,14 @@ export function lowerSetup(
   ctx.locals = locals;
   try {
     for (const statement of statements) {
+      if (statement.type === 'ExpressionStatement') {
+        const call = unwrapExpression(statement.expression);
+        const hook = call.type === 'CallExpression' ? resolveSetupHook(call, ctx) : null;
+        if (hook !== null && call.type === 'CallExpression') {
+          setup.push(lowerSetupHook(call, hook, null, ctx, locals));
+          continue;
+        }
+      }
       if (statement.type !== 'VariableDeclaration' || statement.kind !== 'const') {
         throw new UnsupportedError('a setup statement that is not a const declaration');
       }
@@ -151,6 +174,10 @@ function lowerSetupDeclaration(
   }
   const calleeBinding = ctx.bindings.reference(init.callee);
   const coreApi = calleeBinding === null ? undefined : ctx.coreBindings.get(calleeBinding);
+  const hook = resolveSetupHook(init, ctx);
+  if (hook !== null && coreApi !== QwikHook.UseComputed) {
+    return lowerSetupHook(init, hook, declarator.id, ctx, locals);
+  }
   if (coreApi === undefined) {
     return lowerConstDeclaration(declarator, ctx, locals);
   }
@@ -184,17 +211,20 @@ function lowerSetupDeclaration(
 function lowerSetupCallback(
   init: CallExpression,
   name: string,
-  coreApi: QwikMarker.Dollar | QwikHook.UseComputed,
+  calleeName: string,
   ctx: LowerContext
 ) {
+  const binding = ctx.bindings.reference(init.callee);
+  const coreApi = binding === null ? undefined : ctx.coreBindings.get(binding);
   const argument = init.arguments[0];
   const fn = argument?.type === 'SpreadElement' ? null : unwrapExpression(argument);
   if (
     init.optional ||
-    init.arguments.length !== 1 ||
+    ((coreApi === QwikMarker.Dollar || coreApi === QwikHook.UseComputed) &&
+      init.arguments.length !== 1) ||
     (fn?.type !== 'ArrowFunctionExpression' && fn?.type !== 'FunctionExpression')
   ) {
-    throw new UnsupportedError(`${coreApi}() without a single inline callback`);
+    throw new UnsupportedError(`${calleeName}() without an inline first callback`);
   }
   if (coreApi === QwikHook.UseComputed && fn.async) {
     throw new UnsupportedError('an async useComputed$ callback');
@@ -202,7 +232,7 @@ function lowerSetupCallback(
   return lowerFunctionQrl(fn, ctx, {
     nameCtx: name,
     subject: 'a QRL callback',
-    ctxName: coreApi,
+    ctxName: calleeName,
     boundary:
       coreApi === QwikMarker.Dollar
         ? { kind: BoundaryKind.Explicit }
@@ -210,9 +240,48 @@ function lowerSetupCallback(
     origin: {
       range: [init.start, init.end],
       calleeRange: [init.callee.start, init.callee.end],
-      argumentRanges: [[argument.start, argument.end]],
+      argumentRanges: init.arguments.map((arg) => [arg.start, arg.end]),
     },
   });
+}
+
+function resolveSetupHook(call: CallExpression, ctx: LowerContext) {
+  const binding = ctx.bindings.reference(call.callee);
+  if (binding === null) {
+    return null;
+  }
+  const imported = ctx.plan.imports.find((entry) => entry.binding === binding);
+  const name =
+    imported !== undefined && imported.imported !== 'default' && imported.imported !== '*'
+      ? imported.imported
+      : ctx.plan.bindings[binding].name;
+  return /^use.+\$$/.test(name) ? { binding, name } : null;
+}
+
+function lowerSetupHook(
+  call: CallExpression,
+  hook: { binding: LocalId; name: string },
+  pattern: BindingPattern | null,
+  ctx: LowerContext,
+  locals: SetupLocals
+): Setup {
+  const qrl = lowerSetupCallback(call, identifierName(pattern) ?? hook.name, hook.name, ctx);
+  const args: Arg[] = [{ a: ArgKind.Qrl, use: qrl }];
+  for (const argument of call.arguments.slice(1)) {
+    const expression = argument.type === 'SpreadElement' ? argument.argument : argument;
+    const { refs } = lowerCaptures(expression, ctx, 'a hook argument');
+    const value = lowerInlineExpressionValue(expression, ctx, refs);
+    args.push({
+      a: argument.type === 'SpreadElement' ? ArgKind.Spread : ArgKind.Expr,
+      expr: value.expr,
+    });
+  }
+  return {
+    s: SetupKind.Hook,
+    binding: hook.binding,
+    args,
+    result: pattern === null ? null : lowerSetupBinding(pattern, ctx, locals).result,
+  };
 }
 
 function lowerUseSignal(

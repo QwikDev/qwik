@@ -9,6 +9,7 @@ import { QWIK_CORE_IMPORT } from '../words';
 import { assembleModule, type AssembledModule } from '../../src/module-assembly';
 import type { SourceMap } from 'oxc-transform';
 import { emitQrlChunks, type FunctionEmission } from './emit-chunk';
+import { replacedCoreImport, requestBindingImport } from './emit-import';
 import type { GenerateOutput, PresentationOptions } from './output';
 import {
   allocateGeneratedNames,
@@ -77,6 +78,11 @@ export function assembleQwikModule(
   let firstComponentEdit: { range: [number, number]; text: string } | null = null;
   for (const intent of module.assembly) {
     switch (intent.a) {
+      case AssemblyKind.Import:
+        if (intent.binding !== null) {
+          requestBindingImport(module, intent.binding, parts.imports);
+        }
+        break;
       case AssemblyKind.StripRange:
         edits.push({ range: intent.range, text: '' });
         break;
@@ -115,7 +121,7 @@ export function assembleQwikModule(
     let header = importLines.length === 0 ? '' : `${importLines.join('\n')}\n\n`;
     // An authored core import is replaced in place (authored names merge into the request set);
     // otherwise the header block is synthesized in front of the component.
-    const coreEdge = module.edges.find((edge) => edge.specifier.startsWith(QWIK_CORE_IMPORT));
+    const coreEdge = replacedCoreImport(module);
     let hoists = parts.hoists;
     if (coreEdge !== undefined && parts.imports.size > 0) {
       // Module-top hoists follow the replaced import, keeping the authored statement order.

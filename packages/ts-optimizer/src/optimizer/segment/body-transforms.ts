@@ -7,7 +7,7 @@ import {
   type FunctionTransformSession,
 } from '../edit/transform-session.js';
 import { buildSyncTransform, needsPureAnnotation } from '../rewrite/rewrite-calls.js';
-import { formatWCall } from '../qwik/w-call.js';
+import { formatWCall, parseArrayItems } from '../qwik/w-call.js';
 import { applyRawPropsTransform, consolidateRawPropsInWCalls } from '../rewrite/index.js';
 import type { NestedCallSiteInfo } from './segment-codegen.js';
 import {
@@ -157,9 +157,22 @@ export function rewriteNestedCallSitesInline(
     outerSession?.fn.body?.type === 'BlockStatement'
       ? outerSession.fn.body.start - outerSession.offset + 1
       : -1;
-  const sorted = [...nestedCallSites].sort((a, b) => {
-    return getNestedCallSiteStart(b) - getNestedCallSiteStart(a);
-  });
+  const sorted = nestedCallSites
+    .map((site) => {
+      const captureStart =
+        site.explicitCaptures && site.argEnd !== undefined
+          ? bodyText.indexOf(site.explicitCaptures, site.argEnd - bodyOffset)
+          : -1;
+      return {
+        ...site,
+        explicitCaptureStart: captureStart >= 0 ? captureStart + bodyOffset : undefined,
+        explicitCaptureEnd:
+          captureStart >= 0 && site.explicitCaptures
+            ? captureStart + bodyOffset + site.explicitCaptures.length
+            : undefined,
+      };
+    })
+    .sort((a, b) => getNestedCallSiteStart(b) - getNestedCallSiteStart(a));
 
   let componentScopeWDecls:
     | Array<{ declaration: string; captureNames: readonly string[] }>
@@ -173,9 +186,35 @@ export function rewriteNestedCallSitesInline(
       replacement += ' '.repeat(end - start - replacement.length);
     }
     const offsetChange = replacement.length - (end - start);
+    const absoluteEnd = end + bodyOffset;
     for (const hoist of hoistDeclarations) {
       if (hoist.position >= end) {
         hoist.position += offsetChange;
+      }
+    }
+    for (const pendingSite of sorted) {
+      if (
+        pendingSite.explicitCaptureStart !== undefined &&
+        pendingSite.explicitCaptureStart >= absoluteEnd
+      ) {
+        pendingSite.explicitCaptureStart += offsetChange;
+      }
+      if (
+        pendingSite.explicitCaptureEnd !== undefined &&
+        pendingSite.explicitCaptureEnd >= absoluteEnd
+      ) {
+        pendingSite.explicitCaptureEnd += offsetChange;
+      }
+      if (pendingSite.callStart >= absoluteEnd) pendingSite.callStart += offsetChange;
+      if (pendingSite.callEnd >= absoluteEnd) pendingSite.callEnd += offsetChange;
+      if (pendingSite.argEnd !== undefined && pendingSite.argEnd >= absoluteEnd) {
+        pendingSite.argEnd += offsetChange;
+      }
+      if (pendingSite.attrStart !== undefined && pendingSite.attrStart >= absoluteEnd) {
+        pendingSite.attrStart += offsetChange;
+      }
+      if (pendingSite.attrEnd !== undefined && pendingSite.attrEnd >= absoluteEnd) {
+        pendingSite.attrEnd += offsetChange;
       }
     }
     bodyText = bodyText.slice(0, start) + replacement + bodyText.slice(end);
@@ -248,9 +287,19 @@ export function rewriteNestedCallSitesInline(
       let qrlRef = site.qrlVarName;
       // Full inlinedQrl captures win over identifier-only captureNames here:
       // dropping a non-identifier capture leaves `_captures[i]` undefined.
+      const liveExplicitCaptures =
+        site.explicitCaptureStart !== undefined && site.explicitCaptureEnd !== undefined
+          ? bodyText.slice(
+              site.explicitCaptureStart - bodyOffset,
+              site.explicitCaptureEnd - bodyOffset
+            )
+          : undefined;
+      const explicitCaptureItems = liveExplicitCaptures
+        ? parseArrayItems(liveExplicitCaptures)
+        : site.explicitCaptureItems;
       const wrapItems =
-        site.explicitCaptureItems && site.explicitCaptureItems.length > 0
-          ? site.explicitCaptureItems
+        explicitCaptureItems && explicitCaptureItems.length > 0
+          ? explicitCaptureItems
           : site.captureNames;
       if (wrapItems && wrapItems.length > 0) {
         qrlRef = formatWCall(site.qrlVarName, wrapItems, '        ', '    ');

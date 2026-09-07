@@ -107,28 +107,62 @@ export function transformInlineSegmentBody(
 
   if (nested.length > 0) {
     const bodyOffset = ext.argStart;
-    const sortedNested = [...nested].sort((a, b) => b.callStart - a.callStart);
+    const sortedNested = nested
+      .map((child) => {
+        const captureStart = child.explicitCaptures
+          ? body.indexOf(child.explicitCaptures, child.argEnd - bodyOffset)
+          : -1;
+        return {
+          child,
+          callStart: Number(child.callStart),
+          callEnd: Number(child.callEnd),
+          argEnd: Number(child.argEnd),
+          explicitCaptureStart: captureStart >= 0 ? captureStart + bodyOffset : undefined,
+          explicitCaptureEnd:
+            captureStart >= 0 && child.explicitCaptures
+              ? captureStart + bodyOffset + child.explicitCaptures.length
+              : undefined,
+        };
+      })
+      .sort((a, b) => b.callStart - a.callStart);
     const strippedLoopWDecls: Array<{ decl: string; symbolName: string }> = [];
+    const replaceBodyRange = (start: number, end: number, replacement: string): void => {
+      const offsetChange = replacement.length - (end - start);
+      const absoluteEnd = end + bodyOffset;
+      for (const pending of sortedNested) {
+        if (pending.callStart >= absoluteEnd) pending.callStart += offsetChange;
+        if (pending.callEnd >= absoluteEnd) pending.callEnd += offsetChange;
+        if (pending.argEnd >= absoluteEnd) pending.argEnd += offsetChange;
+        if (
+          pending.explicitCaptureStart !== undefined &&
+          pending.explicitCaptureStart >= absoluteEnd
+        ) {
+          pending.explicitCaptureStart += offsetChange;
+        }
+        if (pending.explicitCaptureEnd !== undefined && pending.explicitCaptureEnd >= absoluteEnd) {
+          pending.explicitCaptureEnd += offsetChange;
+        }
+      }
+      body = body.slice(0, start) + replacement + body.slice(end);
+    };
 
-    for (const child of sortedNested) {
+    for (const site of sortedNested) {
+      const child = site.child;
       const childVarName = qrlVarNames.get(child.symbolName) ?? `q_${child.symbolName}`;
 
-      const relCallStart = child.callStart - bodyOffset;
-      const relCallEnd = child.callEnd - bodyOffset;
+      const relCallStart = site.callStart - bodyOffset;
+      const relCallEnd = site.callEnd - bodyOffset;
 
       if (relCallStart >= 0 && relCallEnd <= body.length) {
         if (child.isSync) {
           additionalImports.set('_qrlSync', '@qwik.dev/core');
-          body =
-            body.slice(0, relCallStart) +
-            buildSyncTransform(child.bodyText) +
-            body.slice(relCallEnd);
+          replaceBodyRange(relCallStart, relCallEnd, buildSyncTransform(child.bodyText));
         } else if (child.isBare) {
           let replacement = childVarName;
           if (child.captureNames.length > 0) {
             replacement += wCallSuffix(child.captureNames, '        ', '    ');
           }
-          body = body.slice(0, relCallStart) + replacement + body.slice(relCallEnd);
+          replaceBodyRange(relCallStart, relCallEnd, replacement);
         } else if (isEventHandlerOrJsxProp(child.ctxKind) && !child.qrlCallee) {
           const propName = eventHandlerPropName(
             child.ctxName,
@@ -186,7 +220,7 @@ export function transformInlineSegmentBody(
           // attr name and let the JSX pass emit the final quoted key.
           const attrName = /:-/.test(propName) ? child.ctxName : propName;
           const replacement = child.isJsxObjectProp ? qrlRef : `${attrName}={${qrlRef}}`;
-          body = body.slice(0, relCallStart) + replacement + body.slice(relCallEnd);
+          replaceBodyRange(relCallStart, relCallEnd, replacement);
         } else if (child.qrlCallee) {
           let replacement = child.qrlCallee + '(' + childVarName;
 
@@ -195,13 +229,13 @@ export function transformInlineSegmentBody(
           }
 
           // Preserve arguments after the extracted closure (e.g. task options).
-          const relArgEnd = child.argEnd - bodyOffset;
+          const relArgEnd = site.argEnd - bodyOffset;
           const trailingArgs =
             relArgEnd > relCallStart && relArgEnd < relCallEnd
               ? body.slice(relArgEnd, relCallEnd - 1)
               : '';
           replacement += trailingArgs + ')';
-          body = body.slice(0, relCallStart) + replacement + body.slice(relCallEnd);
+          replaceBodyRange(relCallStart, relCallEnd, replacement);
 
           additionalImports.set(
             child.qrlCallee,
@@ -213,14 +247,21 @@ export function transformInlineSegmentBody(
           // Explicit capture arrays pass through verbatim — the body indexes
           // `_captures[N]`, so dropping or reordering entries breaks it.
           let replacement = childVarName;
+          const liveExplicitCaptures =
+            site.explicitCaptureStart !== undefined && site.explicitCaptureEnd !== undefined
+              ? body.slice(
+                  site.explicitCaptureStart - bodyOffset,
+                  site.explicitCaptureEnd - bodyOffset
+                )
+              : child.explicitCaptures;
           const childCaptureItems =
-            child.isInlinedQrl && child.explicitCaptures
-              ? parseArrayItems(child.explicitCaptures)
+            child.isInlinedQrl && liveExplicitCaptures
+              ? parseArrayItems(liveExplicitCaptures)
               : child.captureNames;
           if (childCaptureItems.length > 0) {
             replacement += wCallSuffix(childCaptureItems, '        ', '    ');
           }
-          body = body.slice(0, relCallStart) + replacement + body.slice(relCallEnd);
+          replaceBodyRange(relCallStart, relCallEnd, replacement);
         }
       }
     }

@@ -3,7 +3,7 @@ import { parseSync } from 'oxc-parser';
 import { transformModule } from '../../../src/optimizer/transform/index.js';
 import { mkFilePath, mkSourceText } from '../../../src/optimizer/types/brands.js';
 
-function transform(source: string, entryType: 'smart' | 'segment' = 'smart') {
+function transform(source: string, entryType: 'smart' | 'segment' | 'hoist' = 'smart') {
   return transformModule({
     input: [{ path: mkFilePath('test.tsx'), code: mkSourceText(source) }],
     srcDir: mkFilePath('.'),
@@ -38,6 +38,21 @@ describe('inlinedQrl nested inside another inlinedQrl captures array', () => {
       const parsed = parseSync('m.js', m.code, { lang: 'jsx' });
       expect(parsed.errors, `module ${m.path} must parse:\n${m.code}`).toHaveLength(0);
     }
+  });
+
+  it('keeps hoisted modules valid after a later sibling rewrite', () => {
+    const source = NESTED_CAPTURE_QRL.replace(
+      '  return /* @__PURE__ */ _jsxSorted',
+      `  const handler = inlinedQrl(() => {}, 'C_handler_abc', [context]);
+  return /* @__PURE__ */ _jsxSorted`
+    );
+    const hoisted = transform(source, 'hoist');
+    for (const module of hoisted.modules) {
+      const parsed = parseSync('m.js', module.code, { lang: 'jsx' });
+      expect(parsed.errors, `module ${module.path} must parse:\n${module.code}`).toHaveLength(0);
+    }
+    const owner = hoisted.modules.find((module) => module.code.includes('s_HTDRsvUbLiE'));
+    expect(owner?.code).toContain('q_s_kbFhYQZkoVA.w([');
   });
 
   it('extracts the capture-position QRL into its own segment', () => {

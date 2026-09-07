@@ -123,6 +123,7 @@ export interface NestedCallSiteInfo {
   liftedNonConst?: boolean;
   qrlCallee?: string;
   captureNames?: string[];
+  explicitCaptures?: string;
   explicitCaptureItems?: string[];
   importSource?: string;
 }

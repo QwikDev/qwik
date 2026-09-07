@@ -203,6 +203,37 @@ describe('body-transforms', () => {
       );
     };
 
+    it('keeps containing call ranges aligned after rewriting a nested call', () => {
+      const innerCall = 'inner(1)';
+      const outerCall = `outer(${innerCall})`;
+      const body = `() => {
+    const value = ${outerCall};
+    return value;
+}`;
+      const outerStart = body.indexOf(outerCall);
+      const innerStart = body.indexOf(innerCall);
+      const out = rewriteNestedCallSitesInline(
+        body,
+        [
+          {
+            qrlVarName: 'q_outer',
+            callStart: outerStart,
+            callEnd: outerStart + outerCall.length,
+            isJsxAttr: false,
+          },
+          {
+            qrlVarName: 'q_inner',
+            callStart: innerStart,
+            callEnd: innerStart + innerCall.length,
+            isJsxAttr: false,
+          },
+        ],
+        0
+      );
+
+      expect(out).toContain('const value = q_outer;\n');
+    });
+
     it('finds the component return past a comment with an apostrophe', () => {
       const body = `() => {
     const msg = state.msg;

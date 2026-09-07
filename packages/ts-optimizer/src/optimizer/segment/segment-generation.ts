@@ -1290,6 +1290,7 @@ export function buildNestedCallSites(
         isJsxAttr: false,
         qrlCallee: child.isBare ? undefined : child.qrlCallee || undefined,
         captureNames: child.captureNames.length > 0 ? child.captureNames : undefined,
+        explicitCaptures: child.explicitCaptures || undefined,
         explicitCaptureItems:
           explicitCaptureItems && explicitCaptureItems.length > 0
             ? explicitCaptureItems

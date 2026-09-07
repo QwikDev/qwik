@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest';
+import { ValueIrKind } from '../../src/expr-ir';
 import { runInNewContext } from 'node:vm';
 import {
   CaptureAccess,
@@ -49,6 +50,23 @@ function lower(jsx: string) {
 const ROW = '<ul>{items.value.map((item) => <li key={item.id}>{item.label}</li>)}</ul>';
 
 describe('lowerArray / reactive rows', () => {
+  test('conditional keys share value IR and preserve opaque JS leaves', () => {
+    const { ctx } = lower(
+      '<ul>{items.value.map(item => item.enabled ? <li key={item.key()} /> : <li key={item.fallback()} />)}</ul>'
+    );
+    const key = ctx.plan.qrls.find((qrl) => qrl.ctxName === 'for:key');
+    expect(key?.body).toMatchObject({
+      b: QrlBodyKind.Expr,
+      expr: {
+        kind: ExprKind.Ir,
+        ir: {
+          kind: ValueIrKind.Cond,
+          then: { kind: ExprKind.Js, payload: expect.any(Number) },
+          else: { kind: ExprKind.Js, payload: expect.any(Number) },
+        },
+      },
+    });
+  });
   test.each(['items.value', '[undefined]'])(
     'whole-parameter defaults share row setup: %s',
     (source) => {
@@ -310,15 +328,15 @@ describe('lowerArray / reactive rows', () => {
       expect(
         ctx.plan.payloads[object.result.pattern].reads.map((read) => [
           ctx.plan.bindings[read.binding].name,
-          read.memberPath,
+          read.value,
         ])
       ).toEqual(
         source === 'items.value'
           ? [
-              ['item', ['fallback']],
-              ['index', ['value']],
+              ['item', expect.objectContaining({ kind: ValueIrKind.Member, name: 'fallback' })],
+              ['index', expect.objectContaining({ kind: ValueIrKind.SignalRead })],
             ]
-          : [['item', ['fallback']]]
+          : [['item', expect.objectContaining({ kind: ValueIrKind.Member, name: 'fallback' })]]
       );
       const event = ctx.plan.qrls.find((qrl) => qrl.ctxName === 'onClick$')!;
       expect(names(event.captures.map((capture) => capture.binding))).toEqual([
@@ -502,13 +520,13 @@ describe('lowerArray / reactive rows', () => {
         throw new Error('expected a condition expression payload');
       }
       const reads = ctx.plan.payloads[condition.body.expr.payload].reads;
-      expect(reads.map((read) => [ctx.plan.bindings[read.binding].name, read.memberPath])).toEqual(
+      expect(reads.map((read) => [ctx.plan.bindings[read.binding].name, read.value])).toEqual(
         source === 'items.value'
           ? [
-              ['item', ['enabled']],
-              ['index', ['value']],
+              ['item', expect.objectContaining({ kind: ValueIrKind.Member, name: 'enabled' })],
+              ['index', expect.objectContaining({ kind: ValueIrKind.SignalRead })],
             ]
-          : [['item', ['enabled']]]
+          : [['item', expect.objectContaining({ kind: ValueIrKind.Member, name: 'enabled' })]]
       );
     }
   );
@@ -584,13 +602,21 @@ describe('lowerArray / reactive rows', () => {
         range: expect.anything(),
         binding: text.captures[0].binding,
         role: 'read',
-        memberPath: ['label'],
+        value: {
+          kind: ValueIrKind.Member,
+          obj: { kind: ValueIrKind.BindingRead, binding: text.captures[0].binding },
+          name: 'label',
+        },
       },
       {
         range: expect.anything(),
         binding: text.captures[0].binding,
         role: 'read',
-        memberPath: ['id'],
+        value: {
+          kind: ValueIrKind.Member,
+          obj: { kind: ValueIrKind.BindingRead, binding: text.captures[0].binding },
+          name: 'id',
+        },
       },
     ]);
   });

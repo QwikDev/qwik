@@ -14,9 +14,9 @@ import {
 } from '../schema';
 import { ValueIrKind } from '../../src/expr-ir';
 import { UnsupportedError } from '../errors';
-import { expressionJs, extractPayloadJs, inlineValueJs, valueIrJs } from './emit-chunk';
+import { expressionJs, extractPayloadJs, inlineValueJs, memberJs, valueIrJs } from './emit-chunk';
 import { requestBindingImport } from './emit-import';
-import { QwikHook } from '../words';
+import { QwikHook, QwikWord } from '../words';
 
 const coreCallImports: Record<CoreOperation, QwikHook> = {
   [CoreOperation.CreateSignal]: QwikHook.UseSignal,
@@ -31,6 +31,12 @@ export function emitJsSetup(
   emitQrl: (use: QrlUse) => string
 ): string[] {
   return program.setup.map((entry) => {
+    if (entry.s === SetupKind.PropDefault) {
+      imports.add(QwikWord.Untrack);
+      const prop = memberJs(module.bindings[entry.props].name, entry.name);
+      const initializer = expressionJs(module, entry.initializer);
+      return `const ${module.bindings[entry.result].name} = ${QwikWord.Untrack}(() => ${prop} === void 0) ? (${initializer}) : void 0;`;
+    }
     if (entry.s === SetupKind.Call) {
       const callee = callTargetJs(module, entry.target, imports);
       const args = entry.args.map((arg) => argJs(module, arg, emitQrl)).join(', ');

@@ -40,6 +40,17 @@ async function testInputs(mode: 'ssr' | 'csr', snapshotName: string, inputs: rea
 }
 
 describe.each(['ssr', 'csr'] as const)('%s', (mode) => {
+  test('should initialize prop defaults once and retain reactive alias reads', async () => {
+    const output = await testInput(mode, 'component-prop-defaults', {
+      code: `import { createTitle, createHandler } from './defaults';
+export default ({ title: heading = createTitle(), suffix = '!', onSave$: save = createHandler() }) => {
+  const initial = heading;
+  return <button title={heading} onClick$={() => save({ heading, initial })}>{heading + suffix}</button>;
+};`,
+    });
+    expect(output.diagnostics).toEqual([]);
+  });
+
   test('should preserve reactive prop aliases and aliased children', async () => {
     const output = await testInput(mode, 'component-prop-aliases', {
       code: `export const Card = ({ title: heading, 'data-label': label, onSave$: save, children: content }) => (

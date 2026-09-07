@@ -58,6 +58,7 @@ export const enum QwikWord {
   NoopQrl = '_noopQrl',
   Captures = '_captures',
   Await = '_await',
+  Untrack = 'untrack',
 }
 
 /** Name stems for generated locals. */
@@ -86,6 +87,7 @@ export const enum QwikGenWord {
   ComponentProps = 'props',
   ComponentContext = 'ctx',
   Attribute = 'attr',
+  DefaultValue = 'defaultValue',
 }
 
 /** Authored hook names recognized in component setup. */

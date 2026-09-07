@@ -1,10 +1,8 @@
 /** `analyseModule(file, options) -> ModulePlan` — one file, one plan, pure (DESIGN.md rule 7). */
 import {
   AssemblyKind,
-  BindingScope,
   BoundaryKind,
   DeclTable,
-  SurfaceKind,
   DiagnosticCategory,
   FnBodyKind,
   ExportKind,
@@ -15,16 +13,16 @@ import {
   ProgramBodyKind,
   QrlBodyKind,
   QrlPayloadKind,
-  type ComponentParameter,
   type Diagnostic,
   type ModulePlan,
 } from '../schema';
-import { createBindingGraph, type BindingGraph } from './ast/bindings';
+import { createBindingGraph } from './ast/bindings';
 import { createJsxAnalysis } from './ast/jsx-analysis';
 import { findRuntimeJsx, findComponentCandidates } from './ast/returns-jsx';
 import { parseModule } from './ast/parse';
 import { scanModuleSurface } from './module-surface';
-import { discoverComponents, type DiscoveredComponent } from './discover';
+import { discoverComponents } from './discover';
+import { lowerComponentParameter } from './lower-parameter';
 import { lowerSetup } from './lower-setup';
 import { createLowerContext, pushQrl, QrlIdentityKind } from './lower-context';
 import { lowerRenderExpression } from './lower-jsx';
@@ -33,8 +31,6 @@ import { emptyPlan } from './plan';
 import { createOriginalRangeMapper } from '../../src/normalization';
 
 import { InvalidModuleError, UnsupportedError } from '../errors';
-import { allocateGeneratedName } from '../names';
-import { QwikGenWord } from '../words';
 
 export interface AnalyseOptions {
   transpileTs?: boolean;
@@ -120,7 +116,12 @@ export async function analyseModule(
     (statement) => statement.type !== 'ImportDeclaration' && !componentStatements.has(statement)
   );
   const retainedBindings = new Set(
-    bindings.freeReferences(authoredStatements).map((reference) => reference.binding)
+    bindings
+      .freeReferences([
+        ...authoredStatements,
+        ...components.flatMap(({ param }) => (param === null ? [] : [param.node])),
+      ])
+      .map((reference) => reference.binding)
   );
   for (const imported of plan.imports) {
     if (coreBindings.has(imported.binding) && retainedBindings.has(imported.binding)) {
@@ -142,17 +143,12 @@ export async function analyseModule(
   for (const component of components) {
     const componentBinding =
       component.bindingNode === null ? null : bindings.declaration(component.bindingNode);
-    const parameterSurface = lowerParameterSurface(component.param, bindings);
-    lowerContext.propsBinding = parameterSurface?.binding ?? null;
-    lowerContext.propsMembers = new Map(
-      parameterSurface?.kind === SurfaceKind.Object
-        ? parameterSurface.bindings.map(({ binding, name }) => [binding, name])
-        : []
-    );
+    let loweredParameter;
     let rootOps;
     let setup;
     try {
-      setup = lowerSetup(component.setupStatements, lowerContext);
+      loweredParameter = lowerComponentParameter(component, lowerContext);
+      setup = lowerSetup(component.setupStatements, lowerContext, loweredParameter.locals);
       lowerContext.locals = setup.locals;
       rootOps = lowerRenderExpression(component.renderExpression, lowerContext);
     } catch (error) {
@@ -170,7 +166,7 @@ export async function analyseModule(
     }
     plan.programs.push({
       body: { kind: ProgramBodyKind.Ops, ops: rootOps },
-      setup: setup.setup,
+      setup: [...loweredParameter.setup, ...setup.setup],
       params: [],
       lifetime: 0,
       needsId: false,
@@ -189,9 +185,9 @@ export async function analyseModule(
       });
     }
     const parameter =
-      parameterSurface === null
+      loweredParameter.surface === null
         ? null
-        : { pattern: plan.payloads.length - 1, surface: parameterSurface };
+        : { pattern: plan.payloads.length - 1, surface: loweredParameter.surface };
     const body = component.fn.body!;
     // A component IS a QRL: a Program body plus an authored declaration to splice over.
     const { index: qrlIndex } = pushQrl(lowerContext, {
@@ -243,33 +239,6 @@ export async function analyseModule(
     plan.assembly.push({ a: AssemblyKind.Splice, qrl: qrlIndex });
   }
   return finish();
-}
-
-function lowerParameterSurface(
-  parameter: DiscoveredComponent['param'],
-  bindings: BindingGraph
-): ComponentParameter['surface'] | null {
-  if (parameter === null) {
-    return null;
-  }
-  if (parameter.node.type === 'Identifier') {
-    return { kind: SurfaceKind.Identifier, binding: bindings.declaration(parameter.node)! };
-  }
-  const members = parameter.members!;
-  const binding = members.some((member) => member.name !== 'children')
-    ? bindings.addSynthetic(
-        allocateGeneratedName(
-          QwikGenWord.ComponentProps,
-          bindings.bindings.map((binding) => binding.name)
-        ),
-        BindingScope.Param
-      )
-    : null;
-  return {
-    kind: SurfaceKind.Object,
-    binding,
-    bindings: members.map(({ node, name }) => ({ binding: bindings.declaration(node)!, name })),
-  };
 }
 
 function finishPlan(plan: ModulePlan, normalizedCode: string, authoredCode: string): ModulePlan {

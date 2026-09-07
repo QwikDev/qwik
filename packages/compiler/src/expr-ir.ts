@@ -15,6 +15,7 @@ export const enum ValueIrKind {
   StoreRead = 'store-read',
   BindingRead = 'binding-read',
   Member = 'member',
+  PropRead = 'prop-read',
   Index = 'index',
   Unary = 'unary',
   Bin = 'bin',
@@ -28,50 +29,67 @@ export const enum ValueIrKind {
   PluginCall = 'plugin-call',
 }
 
-export type ValueIR =
+export type ValueIR<TExtension = never> =
+  | TExtension
   | { readonly kind: ValueIrKind.Lit; readonly value: string | number | boolean | null }
   | { readonly kind: ValueIrKind.Undef }
   | { readonly kind: ValueIrKind.SignalRead; readonly binding: BindingId }
   | {
       readonly kind: ValueIrKind.StoreRead;
       readonly binding: BindingId;
-      readonly path: readonly (string | ValueIR)[];
+      readonly path: readonly (string | ValueIR<TExtension>)[];
     }
   | { readonly kind: ValueIrKind.BindingRead; readonly binding: BindingId }
   | {
+      readonly kind: ValueIrKind.PropRead;
+      readonly binding: BindingId;
+      readonly name: string;
+      readonly fallback: ValueIR<TExtension>;
+    }
+  | {
       readonly kind: ValueIrKind.Member;
-      readonly obj: ValueIR;
+      readonly obj: ValueIR<TExtension>;
       readonly name: string;
       readonly optional?: true;
     }
   | {
       readonly kind: ValueIrKind.Index;
-      readonly obj: ValueIR;
-      readonly key: ValueIR;
+      readonly obj: ValueIR<TExtension>;
+      readonly key: ValueIR<TExtension>;
       readonly optional?: true;
     }
-  | { readonly kind: ValueIrKind.Unary; readonly op: ValueIrUnaryOp; readonly operand: ValueIR }
+  | {
+      readonly kind: ValueIrKind.Unary;
+      readonly op: ValueIrUnaryOp;
+      readonly operand: ValueIR<TExtension>;
+    }
   | {
       readonly kind: ValueIrKind.Bin;
       readonly op: ValueIrBinOp;
-      readonly left: ValueIR;
-      readonly right: ValueIR;
+      readonly left: ValueIR<TExtension>;
+      readonly right: ValueIR<TExtension>;
     }
   | {
       readonly kind: ValueIrKind.Logic;
       readonly op: ValueIrLogicOp;
-      readonly left: ValueIR;
-      readonly right: ValueIR;
+      readonly left: ValueIR<TExtension>;
+      readonly right: ValueIR<TExtension>;
     }
   | {
       readonly kind: ValueIrKind.Cond;
-      readonly test: ValueIR;
-      readonly then: ValueIR;
-      readonly else: ValueIR;
+      readonly test: ValueIR<TExtension>;
+      readonly then: ValueIR<TExtension>;
+      readonly else: ValueIR<TExtension>;
     }
-  | { readonly kind: ValueIrKind.Template; readonly parts: readonly (string | ValueIR)[] }
-  | { readonly kind: ValueIrKind.Array; readonly items: readonly ValueIR[] }
-  | { readonly kind: ValueIrKind.Object; readonly entries: readonly (readonly [string, ValueIR])[] }
+  | {
+      readonly kind: ValueIrKind.Template;
+      readonly parts: readonly (string | ValueIR<TExtension>)[];
+    }
+  | { readonly kind: ValueIrKind.Array; readonly items: readonly ValueIR<TExtension>[] }
+  | {
+      readonly kind: ValueIrKind.Object;
+      readonly entries: readonly (readonly [string, ValueIR<TExtension>])[];
+    }
   | {
       readonly kind: ValueIrKind.Call;
       /**
@@ -79,14 +97,19 @@ export type ValueIR =
        * type.
        */
       readonly fn: string;
-      readonly receiver: ValueIR | null;
-      readonly args: readonly (ValueIR | LambdaIR | RenderArgIR | FnArgIR)[];
+      readonly receiver: ValueIR<TExtension> | null;
+      readonly args: readonly (
+        | ValueIR<TExtension>
+        | LambdaIR<TExtension>
+        | RenderArgIR
+        | FnArgIR
+      )[];
     }
   | {
       readonly kind: ValueIrKind.DefCall;
       /** Index into the module's `defs` table. */
       readonly def: number;
-      readonly args: readonly ValueIR[];
+      readonly args: readonly ValueIR<TExtension>[];
     }
   | {
       readonly kind: ValueIrKind.PluginCall;
@@ -94,7 +117,13 @@ export type ValueIR =
       readonly fnId: string;
       /** The import specifier as written, which is what JS emission must import from. */
       readonly source: string;
-      readonly args: readonly (ValueIR | LambdaIR | RenderArgIR | FnArgIR | QrlArgIR)[];
+      readonly args: readonly (
+        | ValueIR<TExtension>
+        | LambdaIR<TExtension>
+        | RenderArgIR
+        | FnArgIR
+        | QrlArgIR
+      )[];
     };
 
 /** A QRL-backed callback argument: emitted as the resolved segment fn with its captures. */
@@ -126,10 +155,10 @@ export interface RenderArgIR {
 }
 
 /** Restricted lambda: only as a direct argument to a higher-order op; pure by construction. */
-export interface LambdaIR {
+export interface LambdaIR<TExtension = never> {
   readonly kind: 'lambda';
   readonly params: readonly { readonly name: string; readonly binding: BindingId | null }[];
-  readonly body: ValueIR;
+  readonly body: ValueIR<TExtension>;
 }
 
 export type ValueIrUnaryOp = '!' | '-' | '+' | 'typeof';
@@ -163,7 +192,11 @@ export function collectIrBindingIds(
   if (ir === undefined || ir === null) {
     return;
   }
-  if (ir.kind === ValueIrKind.BindingRead || ir.kind === ValueIrKind.SignalRead) {
+  if (
+    ir.kind === ValueIrKind.BindingRead ||
+    ir.kind === ValueIrKind.SignalRead ||
+    ir.kind === ValueIrKind.PropRead
+  ) {
     into.add(ir.binding);
   }
   for (const value of Object.values(ir)) {

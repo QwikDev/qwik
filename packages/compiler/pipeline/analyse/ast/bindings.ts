@@ -31,6 +31,7 @@ export interface BindingGraph {
   declarationsOf(binding: LocalId): readonly Node[];
   bindingsOf(pattern: BindingPattern): readonly LocalId[];
   freeReferences(roots: Node | Node[]): BindingReference[];
+  hasShadowedReferences(node: Node, destination: Node): boolean;
   dependenciesOf<T extends Node>(expression: Node | Node[], candidates: readonly T[]): T[];
   awaitsOf(fn: ArrowFunctionExpression | Function): readonly AwaitExpression[];
   addSynthetic(name: string, scope: BindingScope, declarationRange?: [number, number]): LocalId;
@@ -61,7 +62,10 @@ export function createBindingGraph(program: Program): BindingGraph {
   const references = new WeakMap<Node, LocalId>();
   const declarationNodes: Node[][] = [];
   const patternBindings = new WeakMap<BindingPattern, LocalId[]>();
-  const orderedReferences: BindingReference[] = [];
+  const orderedReferences: (
+    | BindingReference
+    | (Omit<BindingReference, 'binding'> & { binding: null })
+  )[] = [];
   const referenceSpans = new WeakMap<Node, [number, number]>();
   const scopes = new WeakMap<Node, Scope>();
   const awaitsByScope = new WeakMap<Scope, AwaitExpression[]>();
@@ -321,12 +325,8 @@ export function createBindingGraph(program: Program): BindingGraph {
         const binding = findBinding(activeScope, value.name);
         if (binding !== null) {
           references.set(value, binding);
-          orderedReferences.push({
-            node: value,
-            binding,
-            role: referenceRole(parent, key),
-          });
         }
+        orderedReferences.push({ node: value, binding, role: referenceRole(parent, key) });
       }
     } else if (value.type === 'JSXIdentifier' && isJsxTagReference(parent, key)) {
       const binding = findBinding(activeScope, value.name);
@@ -359,6 +359,9 @@ export function createBindingGraph(program: Program): BindingGraph {
       }
       for (let index = span[0]; index < span[1]; index++) {
         const reference = orderedReferences[index];
+        if (reference.binding === null) {
+          continue;
+        }
         const range = bindings[reference.binding].declarationRange;
         if (
           range === null ||
@@ -378,6 +381,27 @@ export function createBindingGraph(program: Program): BindingGraph {
       return scope === undefined ? [] : (awaitsByScope.get(scope) ?? []);
     },
     freeReferences,
+    hasShadowedReferences(node, destination) {
+      const scope = scopes.get(destination);
+      if (scope === undefined) {
+        throw new Error('Expected a destination scope');
+      }
+      const span = referenceSpans.get(node);
+      if (span === undefined) {
+        return false;
+      }
+      for (let index = span[0]; index < span[1]; index++) {
+        const { node: reference, binding } = orderedReferences[index];
+        const range = binding === null ? null : bindings[binding].declarationRange;
+        if (range !== null && range[0] >= node.start && range[1] <= node.end) {
+          continue;
+        }
+        if (findBinding(scope, reference.name) !== binding) {
+          return true;
+        }
+      }
+      return false;
+    },
     declaration: (node) => declarations.get(node) ?? null,
     reference: (node) => references.get(node) ?? null,
     declarationsOf: (binding) => declarationNodes[binding] ?? [],

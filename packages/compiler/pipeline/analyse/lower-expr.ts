@@ -16,7 +16,7 @@ import { findRuntimeJsx } from './ast/returns-jsx';
 import { collectCaptures, lowerCaptures, type CollectedCaptures } from './ast/capture-analysis';
 import { UnsupportedError } from '../errors';
 import { pushPayload, pushQrl, QrlIdentityKind, type LowerContext } from './lower-context';
-import { LocalKind } from './locals';
+import { LocalKind, localReadIr } from './locals';
 import type { Expression, Node } from 'oxc-parser';
 
 export type ReactiveValue = Extract<Value, { v: ValueKind.Read } | { v: ValueKind.Computed }>;
@@ -112,8 +112,8 @@ export function recordPayloadAliasReads(
 ): void {
   const target = ctx.plan.payloads[payload];
   for (const entry of refs.locals) {
-    const local = entry.local;
-    if (local.kind !== LocalKind.PropMember && local.kind !== LocalKind.RowIndex) {
+    const value = localReadIr(entry.local);
+    if (value === null) {
       continue;
     }
     for (const { range, role } of entry.reads) {
@@ -124,7 +124,7 @@ export function recordPayloadAliasReads(
         range,
         binding: entry.local.binding,
         role,
-        memberPath: [local.kind === LocalKind.PropMember ? local.member : 'value'],
+        value,
       });
     }
   }
@@ -225,18 +225,8 @@ export function tryLowerExprIr(node: Expression, ctx: LowerContext): ValueIR | n
       if (binding === ctx.propsBinding) {
         return { kind: ValueIrKind.BindingRead, binding };
       }
-      // A bare row-index read IS a signal read — the box unwraps at the use site.
       const local = ctx.locals.get(binding);
-      if (local?.kind === LocalKind.RowIndex) {
-        return { kind: ValueIrKind.SignalRead, binding: local.binding };
-      } else if (local?.kind === LocalKind.PropMember) {
-        return {
-          kind: ValueIrKind.Member,
-          obj: { kind: ValueIrKind.BindingRead, binding: local.binding },
-          name: local.member,
-        };
-      }
-      return null;
+      return local === undefined ? null : localReadIr(local);
     }
     case 'MemberExpression': {
       if (node.computed || node.optional) {

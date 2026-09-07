@@ -92,7 +92,7 @@ interface Payload {
     range: Range;
     binding: LocalId;
     role: 'read' | 'write' | 'call' | 'shorthand';
-    memberPath?: string[];
+    value?: ValueIR;
   }[];
   awaits: { range: Range; argumentRange: Range }[];
   useIds: { range: Range; ordinal: number }[];
@@ -116,7 +116,9 @@ interface EsmEdge {
 }
 
 // ---------- values ------------------------------------------------------------------------
-type Expr = { kind: 'ir'; ir: ValueIR } | { kind: 'js'; payload: PayloadId };
+type JsExpression = { kind: 'js'; payload: PayloadId };
+type ExpressionIR = ValueIR<JsExpression>;
+type Expr = { kind: 'ir'; ir: ExpressionIR } | JsExpression;
 // ValueIR / SetupOp / TaskBody are today's IR stacks EXTENDED. TaskBody's final shape:
 type TaskBody = { steps: TaskStep[] };
 type TaskStep =
@@ -288,6 +290,14 @@ type Arg =
   | { a: 'spread'; expr: Expr }
   | QrlArg;
 type Setup =
+  | {
+      s: 'prop-default';
+      result: LocalId;
+      props: LocalId;
+      name: string;
+      initializer: Expr;
+      guard?: Predicate;
+    }
   | { s: 'const'; result: BindTarget; value: Value; guard?: Predicate }
   // plain consts AND `$()` consts (value: {v:'qrl'})
   | {

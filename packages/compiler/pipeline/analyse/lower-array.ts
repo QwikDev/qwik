@@ -29,6 +29,7 @@ import {
   type Op,
   type LocalId,
   type Expr,
+  type ExpressionIR,
   type Qrl,
   type Value,
   BindingScope,
@@ -318,7 +319,7 @@ function readParameterAliases(
   ctx: LowerContext
 ): Map<LocalId, string> | null {
   const members = readParameterMembers(pattern);
-  if (members === null) {
+  if (members === null || members.some((member) => member.defaultValue !== null)) {
     return null;
   }
   const aliases = new Map<LocalId, string>();
@@ -542,7 +543,8 @@ function lowerKey(
   );
   const origin = value.kind === JsxValueKind.Conditional ? value.node : expressions[0];
   const range: [number, number] = [origin.start, origin.end];
-  const expr = lowerRowKeyExpression(keyedValue, sources, ctx, refs);
+  const ir = lowerRowKeyExpression(keyedValue, sources, ctx, refs);
+  const expr: Expr = ir.kind === ExprKind.Js ? ir : { kind: ExprKind.Ir, ir };
   const keyBody = lowerKeyBody(expr, paramBindings, keyPatterns, declarations, ctx);
   const { use } = pushQrl(
     ctx,
@@ -610,14 +612,15 @@ function lowerRowKeyExpression(
   sources: ReadonlyMap<Node, Expression>,
   ctx: LowerContext,
   refs: CollectedCaptures
-): Expr {
+): ExpressionIR {
   const expr = lowerInlineExpressionValue(sources.get(value.node)!, ctx, refs).expr;
+  const ir = expr.kind === ExprKind.Ir ? expr.ir : expr;
   if (value.kind !== JsxValueKind.Conditional) {
-    return expr;
+    return ir;
   }
   return {
-    kind: ExprKind.Conditional,
-    test: expr,
+    kind: ValueIrKind.Cond,
+    test: ir,
     then: lowerRowKeyExpression(value.then, sources, ctx, refs),
     else: lowerRowKeyExpression(value.else, sources, ctx, refs),
   };

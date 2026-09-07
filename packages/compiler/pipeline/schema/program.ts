@@ -255,6 +255,7 @@ export type Arg =
   | QrlArg;
 
 export const enum SetupKind {
+  PropDefault = 'prop-default',
   Const = 'const',
   Call = 'call',
   UseId = 'use-id',
@@ -282,6 +283,15 @@ export type CallTarget =
   | { kind: CallTargetKind.Value; value: ValueIR };
 
 export type Setup =
+  /** Cache the initializer for an initially undefined prop; checking never subscribes. */
+  | {
+      s: SetupKind.PropDefault;
+      result: LocalId;
+      props: LocalId;
+      name: string;
+      initializer: Expr;
+      guard?: Predicate;
+    }
   /** Plain consts AND `$()` consts (value: {v: ValueKind.Qrl}). */
   | {
       s: SetupKind.Const;

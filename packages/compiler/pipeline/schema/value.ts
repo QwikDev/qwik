@@ -26,7 +26,7 @@ export interface Payload {
     range: Range;
     binding: LocalId;
     role: ReadRole;
-    memberPath?: string[];
+    value?: ValueIR;
   }[];
   awaits: { range: Range; argumentRange: Range }[];
   useIds: { range: Range; ordinal: number }[];
@@ -66,13 +66,14 @@ export interface EsmEdge {
 export const enum ExprKind {
   Ir = 'ir',
   Js = 'js',
-  Conditional = 'conditional',
 }
 
-export type Expr =
-  | { kind: ExprKind.Ir; ir: ValueIR }
-  | { kind: ExprKind.Js; payload: PayloadId }
-  | { kind: ExprKind.Conditional; test: Expr; then: Expr; else: Expr };
+type JsExpression = { kind: ExprKind.Js; payload: PayloadId };
+
+/** Opaque JS leaves remain explicit, outside the portable IR vocabulary. */
+export type ExpressionIR = ValueIR<JsExpression>;
+
+export type Expr = { kind: ExprKind.Ir; ir: ExpressionIR } | JsExpression;
 
 export interface TaskBody {
   steps: TaskStep[];

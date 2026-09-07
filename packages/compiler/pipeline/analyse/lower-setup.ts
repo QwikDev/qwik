@@ -113,26 +113,13 @@ function lowerSetupBinding(
 /** Component setup shares call lowering and result binding classification. */
 export function lowerSetup(
   statements: readonly (Directive | Statement)[],
-  ctx: LowerContext
+  ctx: LowerContext,
+  locals: SetupLocals = new Map()
 ): {
   setup: Setup[];
   locals: SetupLocals;
 } {
   const setup: Setup[] = [];
-  const locals: SetupLocals = new Map();
-  if (ctx.propsBinding !== null) {
-    for (const [binding, member] of ctx.propsMembers) {
-      if (member !== 'children') {
-        locals.set(binding, {
-          kind: LocalKind.PropMember,
-          access: CaptureAccess.ComponentProp,
-          binding: ctx.propsBinding,
-          member,
-          slot: -1,
-        });
-      }
-    }
-  }
   const outerLocals = ctx.locals;
   ctx.locals = locals;
   try {

@@ -10,7 +10,8 @@ import {
 } from '../../schema';
 import { UnsupportedError } from '../../errors';
 import type { LowerContext } from '../lower-context';
-import type { SetupLocal } from '../locals';
+import { LocalKind, type SetupLocal } from '../locals';
+import { collectIrBindingIds } from '../../../src/expr-ir';
 
 export interface CollectedCaptures {
   propsReads: Range[];
@@ -78,13 +79,21 @@ export function lowerCaptures(
   }
   const captures: Qrl['captures'] = [];
   const args: QrlUse['args'] = [];
-  for (const entry of refs.locals) {
-    // Aliases of one destructured param share a binding — the container captures once.
-    if (captures.some((capture) => capture.binding === entry.local.binding)) {
-      continue;
+  const addCapture = (binding: LocalId, access: CaptureAccess) => {
+    if (!captures.some((capture) => capture.binding === binding)) {
+      captures.push({ binding, access });
+      args.push({ pass: ArgPass.Binding, binding });
     }
-    captures.push({ binding: entry.local.binding, access: entry.local.access });
-    args.push({ pass: ArgPass.Binding, binding: entry.local.binding });
+  };
+  for (const entry of refs.locals) {
+    addCapture(entry.local.binding, entry.local.access);
+    if (entry.local.kind === LocalKind.PropMember && entry.local.defaultValue !== undefined) {
+      const defaults = new Set<LocalId>();
+      collectIrBindingIds(entry.local.defaultValue, defaults);
+      for (const binding of defaults) {
+        addCapture(binding, CaptureAccess.Direct);
+      }
+    }
   }
   if (refs.propsReads.length > 0) {
     captures.push({ binding: ctx.propsBinding!, access: CaptureAccess.ComponentProp });

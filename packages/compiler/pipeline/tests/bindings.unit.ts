@@ -6,6 +6,21 @@ import { isNode, type WalkableNode } from '../analyse/ast/ast-types';
 import type { Node } from 'oxc-parser';
 import { deepFreeze } from './fixtures';
 
+test.each([
+  ['createTitle()', 'const createTitle = 1;', true],
+  ['createTitle()', 'const other = 1;', false],
+  ['() => createTitle()', 'const createTitle = 1;', true],
+  ['(createTitle => createTitle)(1)', 'const createTitle = 1;', false],
+])('checks scope relocation using indexed references: %s', (initializer, body, shadowed) => {
+  const { program } = parseModule('scope.ts', `function read(title = ${initializer}) { ${body} }`);
+  const graph = createBindingGraph(deepFreeze(program));
+  const fn = program.body[0];
+  if (fn.type !== 'FunctionDeclaration' || fn.params[0].type !== 'AssignmentPattern') {
+    throw new Error('expected a function with a parameter default');
+  }
+  expect(graph.hasShadowedReferences(fn.params[0].right, fn.body!)).toBe(shadowed);
+});
+
 function identifiers(root: Node, name: string): Node[] {
   const found: Node[] = [];
   const visit = (value: unknown): void => {

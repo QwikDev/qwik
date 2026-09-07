@@ -13,9 +13,10 @@ import {
   type QrlUse,
   type Value,
   type Expr,
+  type ExpressionIR,
   type Range,
 } from '../schema';
-import { ValueIrKind, type ValueIR } from '../../src/expr-ir';
+import { ValueIrKind } from '../../src/expr-ir';
 import { getSegmentDisplayName, getSegmentSymbolHash } from '../segment-identity';
 import { QWIK_CORE_IMPORT, QwikWord, SegmentContext } from '../words';
 import { UnsupportedError } from '../errors';
@@ -158,22 +159,30 @@ export function capturePrelude(captures: readonly string[]): string[] {
 }
 
 /** Prints a plan-complete IR body; kinds join as examples demand them. */
-export function valueIrJs(module: LinkedModule, ir: ValueIR): string {
+export function valueIrJs(module: LinkedModule, ir: ExpressionIR): string {
   switch (ir.kind) {
+    case ExprKind.Js:
+      return `(${extractPayloadJs(module, ir.payload)})`;
     case ValueIrKind.Lit:
       return JSON.stringify(ir.value);
+    case ValueIrKind.Cond:
+      return `(${valueIrJs(module, ir.test)} ? ${valueIrJs(module, ir.then)} : ${valueIrJs(module, ir.else)})`;
     case ValueIrKind.SignalRead:
       return `${module.bindings[ir.binding].name}.value`;
     case ValueIrKind.BindingRead:
       return module.bindings[ir.binding].name;
     case ValueIrKind.Member:
       return memberJs(valueIrJs(module, ir.obj), ir.name);
+    case ValueIrKind.PropRead: {
+      const prop = memberJs(module.bindings[ir.binding].name, ir.name);
+      return `(${prop} === void 0 ? ${valueIrJs(module, ir.fallback)} : ${prop})`;
+    }
     default:
       throw new UnsupportedError(`printing the IR "${ir.kind}"`);
   }
 }
 
-function memberJs(base: string, name: string): string {
+export function memberJs(base: string, name: string): string {
   return /^[A-Za-z_$][\w$]*$/.test(name) ? `${base}.${name}` : `${base}[${JSON.stringify(name)}]`;
 }
 
@@ -289,10 +298,10 @@ export function extractPayloadJs(
   const [start, end] = range;
   const replacements: { range: Range; value: string }[] = [];
   const materialized = reads.filter(
-    (read) => read.memberPath !== undefined && read.range[0] >= start && read.range[1] <= end
+    (read) => read.value !== undefined && read.range[0] >= start && read.range[1] <= end
   );
   for (const read of materialized) {
-    const member = read.memberPath!.reduce(memberJs, module.bindings[read.binding].name);
+    const member = valueIrJs(module, read.value!);
     let replacement = member;
     if (read.role === ReadRole.Shorthand) {
       replacement = `${module.source.code.slice(...read.range)}: ${member}`;
@@ -328,8 +337,6 @@ export function expressionJs(module: LinkedModule, expr: Expr): string {
       return valueIrJs(module, expr.ir);
     case ExprKind.Js:
       return extractPayloadJs(module, expr.payload);
-    case ExprKind.Conditional:
-      return `(${expressionJs(module, expr.test)}) ? (${expressionJs(module, expr.then)}) : (${expressionJs(module, expr.else)})`;
   }
 }
 

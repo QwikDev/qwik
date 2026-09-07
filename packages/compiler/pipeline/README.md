@@ -51,7 +51,15 @@ Simple component parameter fields, including aliases and string keys, remain liv
 Discovery and collection parameters share the same field classification; lowering records aliases
 against one generated props binding. Captures retain that object rather than field snapshots.
 `children` aliases remain slot markers without reading or capturing the children value.
-Defaults, rest, nested patterns and computed keys in component parameters remain deferred.
+Literal defaults remain inline, with strict `undefined` checks rather than nullish coalescing.
+Other defaults initialize once before component setup, only when the prop starts as `undefined`.
+Only that initial prop check is untracked; the initializer keeps its authored tracking context.
+Later reads select between the live prop and the cached fallback, and QRLs capture both bindings.
+`Setup.PropDefault` describes initialization; `ValueIR.PropRead` describes a live read with fallback.
+Only the backend chooses their control flow and tracking implementation. Payload alias reads use
+the same IR as extracted expressions.
+Defaults referencing parameter bindings or names shadowed by component setup are rejected using
+the binding graph. Children defaults, rest, nested patterns and computed keys remain deferred.
 
 Linking indexes declaration targets and imports by binding once per module. Component linking and
 reachability share the import index; duplicate declaration targets remain ambiguous. Each JS module
@@ -193,9 +201,11 @@ from a deserialized frozen plan in a fresh process.
   Setup-only parameter reads stay in the row ABI. Row-local keys select transitive `const`
   dependencies by binding identity and evaluate them in source order, separately from row rendering.
   Unrelated row setup is omitted from key functions; selected declarations retain native patterns.
-  Ternary rows with an explicit key on both JSX arms compose a conditional `Expr`; the key QRL
+  Ternary rows with an explicit key on both JSX arms reuse `ValueIR.Cond`; the key QRL
   evaluates the condition once and only the selected key expression. Condition and arm dependencies
   share declaration selection. Expression programs reuse the same emission with local setup.
+  `ExpressionIR` extends the shared value vocabulary with explicit opaque JS payload leaves;
+  portable `ValueIR` keeps excluding those leaves, without a second conditional representation.
   Keys are excluded from element and component props, including props proxies. Partially keyed
   non-empty arms are unsupported. Nested ternaries preserve their authored
   branch structure and evaluate only conditions and key expressions on the selected path.

@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest';
+import { ValueIrKind } from '../../src/expr-ir';
 import {
   ArgPass,
   BindingScope,
@@ -143,8 +144,22 @@ test('payload subranges materialize only their own reads without mutating the pl
   module.source.code = 'id + index';
   module.payloads[0].range = [0, 10];
   module.payloads[0].reads = [
-    { range: [0, 2], binding: 0, role: ReadRole.Read, memberPath: ['id'] },
-    { range: [5, 10], binding: 1, role: ReadRole.Read, memberPath: ['value'] },
+    {
+      range: [0, 2],
+      binding: 0,
+      role: ReadRole.Read,
+      value: {
+        kind: ValueIrKind.Member,
+        obj: { kind: ValueIrKind.BindingRead, binding: 0 },
+        name: 'id',
+      },
+    },
+    {
+      range: [5, 10],
+      binding: 1,
+      role: ReadRole.Read,
+      value: { kind: ValueIrKind.SignalRead, binding: 1 },
+    },
   ];
   const frozen = deepFreeze(JSON.parse(JSON.stringify(module)));
   expect(extractPayloadJs(frozen, 0)).toBe('count.id + props.value');

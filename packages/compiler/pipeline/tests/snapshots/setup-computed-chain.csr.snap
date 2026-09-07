@@ -1,0 +1,151 @@
+==INPUT==
+
+import { useSignal, useComputed$ as computed } from '@qwik.dev/core';
+export default (props) => {
+  const count = useSignal(1);
+  const doubled = computed(() => count.value * 2);
+  const label = computed(function () {
+    const value = doubled.value;
+    return props.prefix + value;
+  });
+  return <button title={label.value} onClick$={() => count.value++}>{label.value}</button>;
+};
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useSignal,
+  useComputedQrl,
+  _qrlWithChunk,
+  createAttrEffect,
+  setEvent,
+  _first,
+  createTextNodeEffect,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_q_e_click_segment_2_2xwygteqhjqr1 } from './component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1';
+
+const q_component_doubled_segment_0_2yvob8vshk72o = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_doubled_segment_0_2yvob8vshk72o',
+  () => import('./component.tsx_component_doubled_segment_0_2yvob8vshk72o'),
+  'component_doubled_segment_0_2yvob8vshk72o'
+);
+const q_component_label_segment_1_871sx3hwa26q = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_label_segment_1_871sx3hwa26q',
+  () => import('./component.tsx_component_label_segment_1_871sx3hwa26q'),
+  'component_label_segment_1_871sx3hwa26q'
+);
+const default_tmpl0 = _createElementTemplate('<button> </button>');
+export default (props, ctx) => {
+  const count = useSignal(1);
+  const doubled = useComputedQrl(q_component_doubled_segment_0_2yvob8vshk72o.w([count]));
+  const label = useComputedQrl(q_component_label_segment_1_871sx3hwa26q.w([doubled, props]));
+  const el0 = default_tmpl0(ctx.document);
+  const effect0 = createAttrEffect(el0, 'title', label, ctx.scheduler);
+  ctx.scheduler.notify(effect0);
+  setEvent(el0, 'q-e:click', component_q_e_click_segment_2_2xwygteqhjqr1, [count]);
+  const text0 = _first(el0);
+  const effect1 = createTextNodeEffect(text0, label, ctx.scheduler);
+  ctx.scheduler.notify(effect1);
+  return el0;
+};
+============================= src/component.tsx_component_doubled_segment_0_2yvob8vshk72o.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_doubled_segment_0_2yvob8vshk72o = () => {
+  const [count] = _captures;
+  return count.value * 2;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_doubled_segment_0_2yvob8vshk72o",
+  "entry": null,
+  "displayName": "component_doubled_segment_0",
+  "hash": "2yvob8vshk72o",
+  "canonicalFilename": "component.tsx_component_doubled_segment_0_2yvob8vshk72o",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "useComputed$",
+  "captures": true,
+  "loc": [
+    146,
+    177
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_label_segment_1_871sx3hwa26q.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_label_segment_1_871sx3hwa26q = function () {
+  const [doubled, props] = _captures;
+  const value = doubled.value;
+  return props.prefix + value;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_label_segment_1_871sx3hwa26q",
+  "entry": null,
+  "displayName": "component_label_segment_1",
+  "hash": "871sx3hwa26q",
+  "canonicalFilename": "component.tsx_component_label_segment_1_871sx3hwa26q",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "useComputed$",
+  "captures": true,
+  "loc": [
+    195,
+    288
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "doubled",
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
+  const [count] = _captures;
+  return count.value++;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_2_2xwygteqhjqr1",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_2",
+  "hash": "2xwygteqhjqr1",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    327,
+    357
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

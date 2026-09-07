@@ -106,9 +106,9 @@ describe('lowerSetup / useSignal', () => {
     expect(() => lower('let count = useSignal(0);')).toThrow(
       'a setup statement that is not a const declaration'
     );
-    expect(() =>
-      lower('const count = useComputed$(() => 1);', [['useComputed$', 'useComputed$']])
-    ).toThrow('the setup call "useComputed$"');
+    expect(() => lower('const count = useTask$(() => 1);', [['useTask$', 'useTask$']])).toThrow(
+      'the setup call "useTask$"'
+    );
   });
 });
 

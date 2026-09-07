@@ -34,17 +34,27 @@ export function emitJsSetup(
           : `${value} === void 0 ? (${inlineValueJs(module, entry.defaultValue)}) : ${value}`;
       return `const ${extractPayloadJs(module, entry.result.pattern)} = ${initial};`;
     }
-    if (entry.s !== SetupKind.Invoke || entry.invoke.op !== InvokeKind.UseSignal) {
+    if (
+      entry.s !== SetupKind.Invoke ||
+      (entry.invoke.op !== InvokeKind.UseSignal && entry.invoke.op !== InvokeKind.UseComputed)
+    ) {
       throw new UnsupportedError(`the setup entry "${entry.s}" in a JS render`);
     }
     const result = entry.invoke.result;
     if (result.bind !== BindTargetKind.Pattern || result.bindings.length !== 1) {
-      throw new UnsupportedError('a non-identifier useSignal binding');
+      throw new UnsupportedError('a non-identifier signal hook binding');
     }
     const name = module.bindings[result.bindings[0]].name;
-    imports.add(QwikHook.UseSignal);
-    const initial = entry.invoke.initial === undefined ? '' : argJs(module, entry.invoke.initial);
-    return `const ${name} = ${QwikHook.UseSignal}(${initial});`;
+    const hook =
+      entry.invoke.op === InvokeKind.UseComputed ? QwikHook.UseComputedQrl : QwikHook.UseSignal;
+    imports.add(hook);
+    const initial =
+      entry.invoke.op === InvokeKind.UseComputed
+        ? emitQrl(entry.invoke.qrl)
+        : entry.invoke.initial === undefined
+          ? ''
+          : argJs(module, entry.invoke.initial);
+    return `const ${name} = ${hook}(${initial});`;
   });
 }
 

@@ -7,6 +7,7 @@ import {
   SetupKind,
   BoundaryKind,
   ValueKind,
+  type BindTarget,
   type Arg,
   type LocalId,
   type Setup,
@@ -159,7 +160,20 @@ function lowerSetupDeclaration(
   }
   switch (coreApi) {
     case QwikMarker.Dollar:
-      return lowerSetupQrl(declarator, init, name, ctx, locals);
+    case QwikHook.UseComputed: {
+      const qrl = lowerSetupCallback(init, name, coreApi, ctx);
+      if (coreApi === QwikMarker.Dollar) {
+        return lowerConstBinding(declarator.id, { v: ValueKind.Qrl, use: qrl }, ctx, locals);
+      }
+      return {
+        s: SetupKind.Invoke,
+        invoke: {
+          op: InvokeKind.UseComputed,
+          result: lowerSignalBinding(declarator.id, name, ctx, locals),
+          qrl,
+        },
+      };
+    }
     case QwikHook.UseSignal:
       return lowerUseSignal(declarator, init, name, ctx, locals);
     default:
@@ -167,13 +181,12 @@ function lowerSetupDeclaration(
   }
 }
 
-function lowerSetupQrl(
-  declarator: VariableDeclarator,
+function lowerSetupCallback(
   init: CallExpression,
   name: string,
-  ctx: LowerContext,
-  locals: SetupLocals
-): Setup {
+  coreApi: QwikMarker.Dollar | QwikHook.UseComputed,
+  ctx: LowerContext
+) {
   const argument = init.arguments[0];
   const fn = argument?.type === 'SpreadElement' ? null : unwrapExpression(argument);
   if (
@@ -181,20 +194,25 @@ function lowerSetupQrl(
     init.arguments.length !== 1 ||
     (fn?.type !== 'ArrowFunctionExpression' && fn?.type !== 'FunctionExpression')
   ) {
-    throw new UnsupportedError('$() without a single inline callback');
+    throw new UnsupportedError(`${coreApi}() without a single inline callback`);
   }
-  const use = lowerFunctionQrl(fn, ctx, {
+  if (coreApi === QwikHook.UseComputed && fn.async) {
+    throw new UnsupportedError('an async useComputed$ callback');
+  }
+  return lowerFunctionQrl(fn, ctx, {
     nameCtx: name,
     subject: 'a QRL callback',
-    ctxName: QwikMarker.Dollar,
-    boundary: { kind: BoundaryKind.Explicit },
+    ctxName: coreApi,
+    boundary:
+      coreApi === QwikMarker.Dollar
+        ? { kind: BoundaryKind.Explicit }
+        : { kind: BoundaryKind.Implicit, role: 'hook' },
     origin: {
       range: [init.start, init.end],
       calleeRange: [init.callee.start, init.callee.end],
       argumentRanges: [[argument.start, argument.end]],
     },
   });
-  return lowerConstBinding(declarator.id, { v: ValueKind.Qrl, use }, ctx, locals);
 }
 
 function lowerUseSignal(
@@ -208,7 +226,22 @@ function lowerUseSignal(
   if (args.length > 1) {
     throw new UnsupportedError('useSignal with more than one argument');
   }
-  const idNode: BindingPattern = declarator.id;
+  return {
+    s: SetupKind.Invoke,
+    invoke: {
+      op: InvokeKind.UseSignal,
+      result: lowerSignalBinding(declarator.id, name, ctx, locals),
+      ...(args.length === 1 ? { initial: lowerInitialArg(args[0], ctx) } : {}),
+    },
+  };
+}
+
+function lowerSignalBinding(
+  idNode: BindingPattern,
+  name: string,
+  ctx: LowerContext,
+  locals: SetupLocals
+): BindTarget {
   const binding = ctx.bindings.declaration(idNode);
   if (binding === null) {
     throw new UnsupportedError(`the unresolved setup binding "${name}"`);
@@ -220,16 +253,9 @@ function lowerUseSignal(
     binding,
   });
   return {
-    s: SetupKind.Invoke,
-    invoke: {
-      op: InvokeKind.UseSignal,
-      result: {
-        bind: BindTargetKind.Pattern,
-        pattern: pushPayload(ctx, [idNode.start, idNode.end]),
-        bindings: [binding],
-      },
-      ...(args.length === 1 ? { initial: lowerInitialArg(args[0], ctx) } : {}),
-    },
+    bind: BindTargetKind.Pattern,
+    pattern: pushPayload(ctx, [idNode.start, idNode.end]),
+    bindings: [binding],
   };
 }
 

@@ -40,6 +40,34 @@ async function testInputs(mode: 'ssr' | 'csr', snapshotName: string, inputs: rea
 }
 
 describe.each(['ssr', 'csr'] as const)('%s', (mode) => {
+  test('should compile a synchronous computed setup signal', async () => {
+    await testInput(mode, 'setup-computed', {
+      code: `import { useSignal, useComputed$ } from '@qwik.dev/core';
+export default () => {
+  const count = useSignal(1);
+  const doubled = useComputed$(() => count.value * 2);
+  return <span>{doubled.value}</span>;
+};
+`,
+    });
+  });
+
+  test('should chain computed setup signals with captured props', async () => {
+    await testInput(mode, 'setup-computed-chain', {
+      code: `import { useSignal, useComputed$ as computed } from '@qwik.dev/core';
+export default (props) => {
+  const count = useSignal(1);
+  const doubled = computed(() => count.value * 2);
+  const label = computed(function () {
+    const value = doubled.value;
+    return props.prefix + value;
+  });
+  return <button title={label.value} onClick$={() => count.value++}>{label.value}</button>;
+};
+`,
+    });
+  });
+
   test('should reuse an explicit setup QRL across events', async () => {
     await testInput(mode, 'setup-qrl', {
       code: `import { $, useSignal } from '@qwik.dev/core';

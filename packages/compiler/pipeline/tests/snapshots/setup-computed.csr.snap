@@ -1,0 +1,70 @@
+==INPUT==
+
+import { useSignal, useComputed$ } from '@qwik.dev/core';
+export default () => {
+  const count = useSignal(1);
+  const doubled = useComputed$(() => count.value * 2);
+  return <span>{doubled.value}</span>;
+};
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useSignal,
+  useComputedQrl,
+  _qrlWithChunk,
+  _first,
+  createTextNodeEffect,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+const q_component_doubled_segment_0_2yvob8vshk72o = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_doubled_segment_0_2yvob8vshk72o',
+  () => import('./component.tsx_component_doubled_segment_0_2yvob8vshk72o'),
+  'component_doubled_segment_0_2yvob8vshk72o'
+);
+const default_tmpl0 = _createElementTemplate('<span> </span>');
+export default (props, ctx) => {
+  const count = useSignal(1);
+  const doubled = useComputedQrl(q_component_doubled_segment_0_2yvob8vshk72o.w([count]));
+  const el0 = default_tmpl0(ctx.document);
+  const text0 = _first(el0);
+  const effect0 = createTextNodeEffect(text0, doubled, ctx.scheduler);
+  ctx.scheduler.notify(effect0);
+  return el0;
+};
+============================= src/component.tsx_component_doubled_segment_0_2yvob8vshk72o.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_doubled_segment_0_2yvob8vshk72o = () => {
+  const [count] = _captures;
+  return count.value * 2;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_doubled_segment_0_2yvob8vshk72o",
+  "entry": null,
+  "displayName": "component_doubled_segment_0",
+  "hash": "2yvob8vshk72o",
+  "canonicalFilename": "component.tsx_component_doubled_segment_0_2yvob8vshk72o",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "useComputed$",
+  "captures": true,
+  "loc": [
+    129,
+    164
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

@@ -89,6 +89,7 @@ export const enum QwikGenWord {
 
 /** Authored hook names recognized in component setup. */
 export const enum QwikHook {
+  UseComputed = 'useComputed$',
   UseComputedQrl = 'useComputedQrl',
   UseSignal = 'useSignal',
 }

@@ -15,6 +15,25 @@ import { emptyPlan } from '../analyse/plan';
 
 export { emptyPlan as emptyModulePlan };
 
+export function loadDefaultFunction(
+  module: { path: string; code: string },
+  globals: Record<string, unknown>
+) {
+  const { program } = parseModule(module.path, module.code);
+  const script = program.body
+    .map((statement) => {
+      if (statement.type === 'ImportDeclaration') {
+        return '';
+      }
+      if (statement.type === 'ExportDefaultDeclaration') {
+        return `(${module.code.slice(statement.declaration.start, statement.declaration.end)})`;
+      }
+      return module.code.slice(statement.start, statement.end);
+    })
+    .join('\n');
+  return runInNewContext(script, globals);
+}
+
 export function loadChunkFunction(
   module: { path: string; code: string },
   captures: unknown[] = []

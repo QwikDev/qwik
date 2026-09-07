@@ -1,11 +1,9 @@
 import { expect, test } from 'vitest';
 import { transformModules } from '../compat/transform-modules';
-import { loadChunkFunction } from './fixtures';
+import { loadChunkFunction, loadDefaultFunction } from './fixtures';
 import { analyseModule } from '../index';
 import { BoundaryKind, SetupKind, ValueKind, QrlPayloadKind, ArgPass } from '../schema';
 import { UnsupportedError } from '../errors';
-import { runInNewContext } from 'node:vm';
-import { parseModule } from '../analyse/ast/parse';
 import { _noopQrl, inlinedQrl } from '../../../qwik/src/core/shared/qrl/qrl';
 import { _captures } from '../../../qwik/src/core/shared/qrl/qrl-captures';
 import type { QRLInternal } from '../../../qwik/src/core/shared/qrl/qrl-class';
@@ -150,19 +148,7 @@ export default (props) => {
     ],
   });
   const component = output.modules.find((module) => !module.segment)!;
-  const { program } = parseModule(component.path, component.code);
-  const script = program.body
-    .map((statement) => {
-      if (statement.type === 'ImportDeclaration') {
-        return '';
-      }
-      if (statement.type === 'ExportDefaultDeclaration') {
-        return `(${component.code.slice(statement.declaration.start, statement.declaration.end)})`;
-      }
-      return component.code.slice(statement.start, statement.end);
-    })
-    .join('\n');
-  const render = runInNewContext(script, {
+  const render = loadDefaultFunction(component, {
     _noopQrl,
     get _captures() {
       return _captures;

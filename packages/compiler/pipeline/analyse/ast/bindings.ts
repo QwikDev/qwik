@@ -6,7 +6,7 @@ import type {
   Node,
   Program,
 } from 'oxc-parser';
-import { BindingScope, VarKind, type LocalId, type ModulePlan } from '../../schema';
+import { BindingScope, ReadRole, VarKind, type LocalId, type ModulePlan } from '../../schema';
 import { isNode, type WalkableNode } from './ast-types';
 
 type Binding = ModulePlan['bindings'][number];
@@ -20,6 +20,7 @@ interface Scope {
 interface BindingReference {
   node: Extract<Node, { type: 'Identifier' | 'JSXIdentifier' }>;
   binding: LocalId;
+  role: ReadRole;
 }
 
 export interface BindingGraph {
@@ -306,14 +307,19 @@ export function createBindingGraph(program: Program): BindingGraph {
         const binding = findBinding(activeScope, value.name);
         if (binding !== null) {
           references.set(value, binding);
-          orderedReferences.push({ node: value, binding });
+          orderedReferences.push({
+            node: value,
+            binding,
+            role:
+              parent?.type === 'Property' && parent.shorthand ? ReadRole.Shorthand : ReadRole.Read,
+          });
         }
       }
     } else if (value.type === 'JSXIdentifier' && isJsxTagReference(parent, key)) {
       const binding = findBinding(activeScope, value.name);
       if (binding !== null) {
         references.set(value, binding);
-        orderedReferences.push({ node: value, binding });
+        orderedReferences.push({ node: value, binding, role: ReadRole.Read });
       }
     } else {
       for (const childKey of Object.keys(value)) {

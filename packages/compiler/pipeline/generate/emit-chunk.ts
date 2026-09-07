@@ -4,6 +4,7 @@ import {
   CaptureAccess,
   ExprKind,
   QrlBodyKind,
+  ReadRole,
   ResumeKind,
   Shape,
   ValueKind,
@@ -12,6 +13,7 @@ import {
   type QrlUse,
   type Value,
   type Expr,
+  type Range,
 } from '../schema';
 import { ValueIrKind, type ValueIR } from '../../src/expr-ir';
 import { getSegmentDisplayName, getSegmentSymbolHash } from '../segment-identity';
@@ -263,16 +265,26 @@ export function programKind(qrl: LinkedQrl): ProgramKind {
 }
 
 /** The payload's authored JS with member-path reads materialized over their source ranges. */
-export function extractPayloadJs(module: LinkedModule, payload: number): string {
-  const { range, reads } = module.payloads[payload];
+export function extractPayloadJs(
+  module: LinkedModule,
+  payload: number,
+  range: Range = module.payloads[payload].range
+): string {
+  const { reads } = module.payloads[payload];
   const [start, end] = range;
   let text = module.source.code.slice(start, end);
   // Bottom-up so earlier offsets stay valid while later reads splice.
   const materialized = reads
-    .filter((read) => read.memberPath !== undefined)
+    .filter(
+      (read) => read.memberPath !== undefined && read.range[0] >= start && read.range[1] <= end
+    )
     .sort((a, b) => b.range[0] - a.range[0]);
   for (const read of materialized) {
-    const replacement = [module.bindings[read.binding].name, ...read.memberPath!].join('.');
+    const member = [module.bindings[read.binding].name, ...read.memberPath!].join('.');
+    const replacement =
+      read.role === ReadRole.Shorthand
+        ? `${module.source.code.slice(...read.range)}: ${member}`
+        : member;
     text = text.slice(0, read.range[0] - start) + replacement + text.slice(read.range[1] - start);
   }
   return text;

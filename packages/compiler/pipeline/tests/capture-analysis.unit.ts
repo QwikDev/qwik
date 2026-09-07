@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { CaptureAccess, type LocalId } from '../schema';
+import { CaptureAccess, ReadRole, type LocalId } from '../schema';
 import { parseModule } from '../analyse/ast/parse';
 import { unwrapExpression } from '../analyse/ast/utils';
 import { collectCaptures } from '../analyse/ast/capture-analysis';
@@ -51,7 +51,7 @@ describe('collectCaptures', () => {
     const refs = collectCaptures(expression, ctx, new Set());
     expect(refs.other).toBeNull();
     expect(refs.locals[0].local).toBe(local);
-    expect(refs.locals[0].reads.map(([start, end]) => source.slice(start, end))).toEqual([
+    expect(refs.locals[0].reads.map(({ range }) => source.slice(...range))).toEqual([
       'count',
       'count',
     ]);
@@ -72,6 +72,16 @@ describe('collectCaptures', () => {
     const locals = refsOf('() => count.value + count.value', { count: true }).locals;
     expect(locals).toHaveLength(1);
     expect(locals[0].reads).toHaveLength(2);
+  });
+
+  test('capture reads preserve shorthand roles from the binding graph', () => {
+    const refs = refsOf('() => ({ count, explicit: count, [count]: count })', { count: true });
+    expect(refs.locals[0].reads.map(({ role }) => role)).toEqual([
+      ReadRole.Shorthand,
+      ReadRole.Read,
+      ReadRole.Read,
+      ReadRole.Read,
+    ]);
   });
 
   test('props reads retain their locations without becoming local entries', () => {

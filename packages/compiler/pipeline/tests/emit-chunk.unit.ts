@@ -7,11 +7,17 @@ import {
   CaptureAccess,
   QrlBodyKind,
   QrlPayloadKind,
+  ReadRole,
   VarKind,
   type LinkedModule,
   type LinkedQrl,
 } from '../schema';
-import { captureNames, createQrlResolver, functionText } from '../generate/emit-chunk';
+import {
+  captureNames,
+  createQrlResolver,
+  extractPayloadJs,
+  functionText,
+} from '../generate/emit-chunk';
 import { sourceFunctionEmission } from '../generate/emit-function';
 import { deepFreeze } from './fixtures';
 
@@ -33,6 +39,18 @@ function moduleWith(qrl: LinkedQrl): LinkedModule {
       { id: 1, name: 'props', scope: BindingScope.Param, varKind: null, declarationRange: null },
     ],
     qrls: [qrl],
+    payloads: [
+      {
+        range: qrl.origin.functionRange,
+        constants: [],
+        qrls: [],
+        reads: [],
+        awaits: [],
+        useIds: [],
+        renders: [],
+        temps: [],
+      },
+    ],
   } as LinkedModule;
 }
 
@@ -119,6 +137,21 @@ function emissionOf(qrl: LinkedQrl) {
 }
 
 const textOf = (qrl: LinkedQrl) => functionText(emissionOf(qrl));
+
+test('payload subranges materialize only their own reads without mutating the plan', () => {
+  const module = moduleWith(qrlWith({}));
+  module.source.code = 'id + index';
+  module.payloads[0].range = [0, 10];
+  module.payloads[0].reads = [
+    { range: [0, 2], binding: 0, role: ReadRole.Read, memberPath: ['id'] },
+    { range: [5, 10], binding: 1, role: ReadRole.Read, memberPath: ['value'] },
+  ];
+  const frozen = deepFreeze(JSON.parse(JSON.stringify(module)));
+  expect(extractPayloadJs(frozen, 0)).toBe('count.id + props.value');
+  expect(extractPayloadJs(frozen, 0, [0, 2])).toBe('count.id');
+  expect(extractPayloadJs(frozen, 0, [5, 10])).toBe('props.value');
+  expect(frozen).toEqual(module);
+});
 
 describe('sourceFunctionEmission', () => {
   test('a Function payload restores captures from the _captures prelude', () => {

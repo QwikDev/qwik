@@ -1,0 +1,242 @@
+==INPUT==
+
+import { useSignal } from '@qwik.dev/core';
+export default () => {
+  const rows = useSignal([{ id: 'a', label: 'Alpha' }]);
+  return <ul>{rows.value.map(({ id, label }, index) =>
+    <li key={id}>
+      <button title={JSON.stringify({ id, label, index })} onClick$={() => ({ id, label, index })}>read</button>
+      <button onClick$={(value = id, position = index) => {
+        const read = (id) => id;
+        return [value, position, label, read('shadow')];
+      }}>default</button>
+    </li>
+  )}</ul>;
+};
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { useSignal, _first, _next, createCollection, _createElementTemplate } from '@qwik.dev/core';
+import { component_for_render_segment_0_asyt89wzo2d3 } from './component.tsx_component_for_render_segment_0_asyt89wzo2d3';
+import { component_for_key_segment_1_24ursak4wzpxf } from './component.tsx_component_for_key_segment_1_24ursak4wzpxf';
+
+const default_tmpl0 = _createElementTemplate('<ul><!><!></ul>');
+export default (props, ctx) => {
+  const rows = useSignal([
+    {
+      id: 'a',
+      label: 'Alpha',
+    },
+  ]);
+  const el0 = default_tmpl0(ctx.document);
+  const start0 = _first(el0);
+  const end0 = _next(start0);
+  ctx.scheduler.waitFor(
+    createCollection(
+      ctx,
+      start0,
+      end0,
+      rows,
+      component_for_key_segment_1_24ursak4wzpxf,
+      component_for_render_segment_0_asyt89wzo2d3,
+      2,
+      '',
+      0
+    )
+  );
+  return el0;
+};
+============================= src/component.tsx_component_for_render_segment_0_asyt89wzo2d3.js (ENTRY POINT)==
+
+import {
+  _first,
+  createAttrExpressionEffect,
+  setEvent,
+  _last,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_title_segment_2_2f0r05go51flv } from './component.tsx_component_title_segment_2_2f0r05go51flv';
+import { component_q_e_click_segment_3_2xwygfdmkpoqi } from './component.tsx_component_q_e_click_segment_3_2xwygfdmkpoqi';
+import { component_q_e_click_segment_4_2xwyeh830jenv } from './component.tsx_component_q_e_click_segment_4_2xwyeh830jenv';
+const component_for_render_segment_0_asyt89wzo2d3_tmpl0 = _createElementTemplate(
+  '<li><button>read</button><button>default</button></li>'
+);
+
+export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, item, index) => {
+  const el0 = component_for_render_segment_0_asyt89wzo2d3_tmpl0(ctx.document);
+  const el1 = _first(el0);
+  const effect0 = createAttrExpressionEffect(
+    el1,
+    'title',
+    [item, index],
+    component_title_segment_2_2f0r05go51flv,
+    ctx.scheduler
+  );
+  ctx.scheduler.notify(effect0);
+  setEvent(el1, 'q-e:click', component_q_e_click_segment_3_2xwygfdmkpoqi, [item, index]);
+  const el2 = _last(el0);
+  setEvent(el2, 'q-e:click', component_q_e_click_segment_4_2xwyeh830jenv, [item, index]);
+  return el0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_for_render_segment_0_asyt89wzo2d3",
+  "entry": null,
+  "displayName": "component_for_render_segment_0",
+  "hash": "asyt89wzo2d3",
+  "canonicalFilename": "component.tsx_component_for_render_segment_0_asyt89wzo2d3",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "for:render",
+  "captures": false,
+  "loc": [
+    183,
+    495
+  ],
+  "paramNames": [
+    "{ id, label }",
+    "index"
+  ]
+}
+*/
+============================= src/component.tsx_component_for_key_segment_1_24ursak4wzpxf.js (ENTRY POINT)==
+
+export const component_for_key_segment_1_24ursak4wzpxf = ({ id, label }, index) => {
+  return id;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_for_key_segment_1_24ursak4wzpxf",
+  "entry": null,
+  "displayName": "component_for_key_segment_1",
+  "hash": "24ursak4wzpxf",
+  "canonicalFilename": "component.tsx_component_for_key_segment_1_24ursak4wzpxf",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "for:key",
+  "captures": false,
+  "loc": [
+    192,
+    194
+  ],
+  "paramNames": [
+    "{ id, label }",
+    "index"
+  ]
+}
+*/
+============================= src/component.tsx_component_title_segment_2_2f0r05go51flv.js (ENTRY POINT)==
+
+export const component_title_segment_2_2f0r05go51flv = (item, index) => {
+  return JSON.stringify({
+    id: item.id,
+    label: item.label,
+    index: index.value,
+  });
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_title_segment_2_2f0r05go51flv",
+  "entry": null,
+  "displayName": "component_title_segment_2",
+  "hash": "2f0r05go51flv",
+  "canonicalFilename": "component.tsx_component_title_segment_2_2f0r05go51flv",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "title",
+  "captures": true,
+  "loc": [
+    218,
+    254
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "item",
+    "index"
+  ]
+}
+*/
+============================= src/component.tsx_component_q_e_click_segment_3_2xwygfdmkpoqi.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_q_e_click_segment_3_2xwygfdmkpoqi = () => {
+  const [item, index] = _captures;
+  return {
+    id: item.id,
+    label: item.label,
+    index: index.value,
+  };
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_3_2xwygfdmkpoqi",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_3",
+  "hash": "2xwygfdmkpoqi",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_3_2xwygfdmkpoqi",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    256,
+    295
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "item",
+    "index"
+  ]
+}
+*/
+============================= src/component.tsx_component_q_e_click_segment_4_2xwyeh830jenv.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_q_e_click_segment_4_2xwyeh830jenv = (...args0) => {
+  const [item, index] = _captures;
+  return ((value = item.id, position = index.value) => {
+    const read = (id) => id;
+    return [value, position, item.label, read('shadow')];
+  })(...args0);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_4_2xwyeh830jenv",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_4",
+  "hash": "2xwyeh830jenv",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_4_2xwyeh830jenv",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    324,
+    458
+  ],
+  "paramNames": [
+    "value = id",
+    "position = index"
+  ],
+  "captureNames": [
+    "item",
+    "index"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

@@ -5,7 +5,6 @@ import {
   PlaceKind,
   QrlBodyKind,
   QrlPayloadKind,
-  ReadRole,
   ResumeKind,
   ValueKind,
   type PayloadId,
@@ -112,14 +111,14 @@ export function recordPayloadAliasReads(
     if (local.kind !== LocalKind.PropMember && local.kind !== LocalKind.RowIndex) {
       continue;
     }
-    for (const read of entry.reads) {
-      if (read[0] < target.range[0] || read[1] > target.range[1]) {
+    for (const { range, role } of entry.reads) {
+      if (range[0] < target.range[0] || range[1] > target.range[1]) {
         continue;
       }
       target.reads.push({
-        range: read,
+        range,
         binding: entry.local.binding,
-        role: ReadRole.Read,
+        role,
         memberPath: [local.kind === LocalKind.PropMember ? local.member : 'value'],
       });
     }

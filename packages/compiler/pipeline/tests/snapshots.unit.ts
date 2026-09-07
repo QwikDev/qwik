@@ -468,6 +468,24 @@ export default () => {
     });
   });
 
+  test('should materialize collection aliases in event handlers', async () => {
+    await testInput(mode, 'collection-event-aliases', {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
+  const rows = useSignal([{ id: 'a', label: 'Alpha' }]);
+  return <ul>{rows.value.map(({ id, label }, index) =>
+    <li key={id}>
+      <button title={JSON.stringify({ id, label, index })} onClick$={() => ({ id, label, index })}>read</button>
+      <button onClick$={(value = id, position = index) => {
+        const read = (id) => id;
+        return [value, position, label, read('shadow')];
+      }}>default</button>
+    </li>
+  )}</ul>;
+};`,
+    });
+  });
+
   test('should give a capture-less row handler the plain ctx signature', async () => {
     await testInput(mode, 'collection-row-event-plain', {
       code: `import { useSignal } from '@qwik.dev/core';

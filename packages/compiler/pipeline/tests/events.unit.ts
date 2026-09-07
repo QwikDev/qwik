@@ -269,6 +269,74 @@ test.each([false, true])(
   }
 );
 
+test.each([false, true])(
+  'row handlers materialize captured aliases (SSR: %s)',
+  async (isServer) => {
+    for (const { handler, expected, updated } of [
+      {
+        handler: '() => [id, label, index]',
+        expected: ['a', 'Alpha', 0],
+        updated: ['b', 'Beta', 2],
+      },
+      {
+        handler: '() => ({ id, label, index })',
+        expected: { id: 'a', label: 'Alpha', index: 0 },
+        updated: { id: 'b', label: 'Beta', index: 2 },
+      },
+      {
+        handler:
+          '() => { const read = (id, index) => ({ id, index }); return [id, label, index, read("shadow", 9)]; }',
+        expected: ['a', 'Alpha', 0, { id: 'shadow', index: 9 }],
+        updated: ['b', 'Beta', 2, { id: 'shadow', index: 9 }],
+      },
+      {
+        handler: '(value = id, position = index) => [value, label, position]',
+        expected: ['a', 'Alpha', 0],
+        updated: ['b', 'Beta', 2],
+      },
+      {
+        handler: '(value = { id, label, index }) => value',
+        expected: { id: 'a', label: 'Alpha', index: 0 },
+        updated: { id: 'b', label: 'Beta', index: 2 },
+      },
+      {
+        handler: 'async () => { await Promise.resolve(); return [id, label, index]; }',
+        expected: ['a', 'Alpha', 0],
+        updated: ['b', 'Beta', 2],
+      },
+    ]) {
+      const output = await transformModules({
+        srcDir: 'src',
+        isServer,
+        input: [
+          {
+            path: 'src/component.tsx',
+            code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
+  const rows = useSignal([]);
+  return <ul>{rows.value.map(({ id, label }, index) => <button key={id} title={JSON.stringify({ id, label, index })} onClick$={${handler}}>read</button>)}</ul>;
+};`,
+          },
+        ],
+      });
+      expect(output.diagnostics).toEqual([]);
+      const chunk = output.modules.find((module) => module.segment?.ctxName === 'onClick$')!;
+      expect(chunk.segment!.captureNames).toEqual(['item', 'index']);
+      const row = { id: 'a', label: 'Alpha' };
+      const index = { value: 0 };
+      const invoke = loadChunkFunction(chunk, [row, index]);
+      const titleChunk = output.modules.find((module) => module.segment?.ctxName === 'title')!;
+      const readTitle = loadChunkFunction(titleChunk);
+      expect(readTitle(row, index)).toBe(JSON.stringify({ id: 'a', label: 'Alpha', index: 0 }));
+      expect(await invoke(), handler).toEqual(expected);
+      row.id = 'b';
+      row.label = 'Beta';
+      index.value = 2;
+      expect(await invoke(), handler).toEqual(updated);
+    }
+  }
+);
+
 test('captured parameter plans survive serialization and immutable linking', async () => {
   const plan = await analyseModule(
     {

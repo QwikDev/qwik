@@ -12,7 +12,7 @@ import type { Expression, JSXAttribute } from 'oxc-parser';
 import { lowerCaptures } from './ast/capture-analysis';
 import { UnsupportedError } from '../errors';
 import { pushPayload, pushQrl, QrlIdentityKind, type LowerContext } from './lower-context';
-import { lowerExpressionValue } from './lower-expr';
+import { lowerExpressionValue, recordPayloadAliasReads } from './lower-expr';
 import { findRuntimeJsx } from './ast/returns-jsx';
 
 /** `on…$` attribute → an event prop with an authored handler value. */
@@ -48,9 +48,10 @@ export function lowerEventAttribute(
   const { captures, args, refs } = lowerCaptures(fn, ctx, 'an event handler');
   const capturesBeforeParams =
     refs.propsReads.some(([start]) => start < body.start) ||
-    refs.locals.some(({ reads }) => reads.some(([start]) => start < body.start));
+    refs.locals.some(({ reads }) => reads.some(({ range }) => range[0] < body.start));
 
   const payload = pushPayload(ctx, [fn.start, fn.end]);
+  recordPayloadAliasReads(ctx, payload, refs);
   const { use } = pushQrl(
     ctx,
     {

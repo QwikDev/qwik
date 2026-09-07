@@ -6,6 +6,7 @@ import {
   QrlPayloadKind,
   type LinkedModule,
   type LinkedQrl,
+  type Range,
 } from '../schema';
 import { UnsupportedError } from '../errors';
 import { QwikWord } from '../words';
@@ -54,14 +55,16 @@ export function sourceFunctionEmission(
     return emission;
   }
   const source = module.source.code;
+  const readSource = (range: Range) =>
+    body.b === QrlBodyKind.Js
+      ? extractPayloadJs(module, body.payload, range)
+      : source.slice(...range);
   emission.params =
-    qrl.payloadKind === QrlPayloadKind.Value
-      ? captures
-      : qrl.origin.paramRanges.map(([start, end]) => source.slice(start, end));
+    qrl.payloadKind === QrlPayloadKind.Value ? captures : qrl.origin.paramRanges.map(readSource);
   emission.async = qrl.authoredAsync;
   if (qrl.origin.bodyKind === FnBodyKind.Block) {
     const [start, end] = qrl.origin.bodyRange;
-    emission.statements.push(source.slice(start + 1, end - 1).trim());
+    emission.statements.push(readSource([start + 1, end - 1]).trim());
     return emission;
   }
   // IR bodies preserve lowered aliases instead of replaying authored identifiers.
@@ -70,7 +73,7 @@ export function sourceFunctionEmission(
       ? `{ ${qrl.propsParts.map((part) => propsPartJs(module, qrl, part, emission, resolveQrlUse)).join(', ')} }`
       : body.b === QrlBodyKind.Expr
         ? expressionJs(module, body.expr)
-        : source.slice(qrl.origin.bodyRange[0], qrl.origin.bodyRange[1]);
+        : readSource(qrl.origin.bodyRange);
   return emission;
 }
 

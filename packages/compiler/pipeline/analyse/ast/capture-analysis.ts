@@ -6,6 +6,7 @@ import {
   type Qrl,
   type QrlUse,
   type Range,
+  type Payload,
 } from '../../schema';
 import { UnsupportedError } from '../../errors';
 import type { LowerContext } from '../lower-context';
@@ -14,7 +15,11 @@ import type { SetupLocal } from '../lower-setup';
 export interface CollectedCaptures {
   propsReads: Range[];
   /** Reactive setup locals the boundary captures, in first-read order. */
-  locals: { name: string; local: SetupLocal; reads: Range[] }[];
+  locals: {
+    name: string;
+    local: SetupLocal;
+    reads: Pick<Payload['reads'][number], 'range' | 'role'>[];
+  }[];
   /** A referenced binding no capture mechanism covers yet. */
   other: string | null;
 }
@@ -31,7 +36,7 @@ export function collectCaptures(
   const propsReads: Range[] = [];
   const locals: CollectedCaptures['locals'] = [];
   let other: string | null = null;
-  for (const { node: current, binding } of ctx.bindings.freeReferences(node)) {
+  for (const { node: current, binding, role } of ctx.bindings.freeReferences(node)) {
     if (current.type !== 'Identifier' || localBindings.has(binding)) {
       continue;
     }
@@ -39,7 +44,7 @@ export function collectCaptures(
     if (binding === ctx.propsBinding) {
       propsReads.push([current.start, current.end]);
     } else if (setupLocal !== undefined) {
-      const read: Range = [current.start, current.end];
+      const read = { range: [current.start, current.end] as Range, role };
       const entry = locals.find((candidate) => candidate.local === setupLocal);
       if (entry === undefined) {
         locals.push({ name: current.name, local: setupLocal, reads: [read] });

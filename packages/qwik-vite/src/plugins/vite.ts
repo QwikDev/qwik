@@ -1019,10 +1019,7 @@ interface QwikVitePluginCommonOptions {
   /**
    * Use the TypeScript optimizer (`@qwik.dev/ts-optimizer`) instead of the Rust one.
    *
-   * Setting this to `false` requires installing `@qwik.dev/optimizer`, which is an optional peer
-   * dependency of `@qwik.dev/core`.
-   *
-   * Default `true`
+   * Default `false`
    */
   tsOptimizer?: boolean;
   /**

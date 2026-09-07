@@ -246,6 +246,7 @@ export default defineConfig(({ mode }) => {
       }),
       qwikVite({
         debug: false,
+        tsOptimizer: true,
         experimental: ['each', 'show', 'suspense', 'insights'],
         devTools: { hmr: false },
       }),

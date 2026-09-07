@@ -102,28 +102,6 @@ export interface QwikPackages {
   path: string;
 }
 
-/**
- * Load the Rust optimizer, which `tsOptimizer: false` opts into. It is an optional peer dependency
- * of `@qwik.dev/core`, so the common way to reach this is asking for it without installing it — a
- * bare resolution failure would not say that.
- */
-export async function loadRustOptimizer(
-  importRustOptimizer: () => Promise<typeof import('@qwik.dev/optimizer')> = () =>
-    import('@qwik.dev/optimizer')
-): Promise<typeof import('@qwik.dev/optimizer')> {
-  try {
-    return await importRustOptimizer();
-  } catch (err) {
-    throw new Error(
-      `Qwik: "tsOptimizer: false" selects the Rust optimizer, but "@qwik.dev/optimizer" could not be loaded.\n` +
-        `It is an optional peer dependency, so install it:\n` +
-        `  npm i -D @qwik.dev/optimizer\n` +
-        `Or remove "tsOptimizer: false" from qwikVite() to use the default TypeScript optimizer.\n` +
-        `Original error: ${err instanceof Error ? err.message : String(err)}`
-    );
-  }
-}
-
 export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
   const id = `${Math.round(Math.random() * 899) + 100}`;
 
@@ -180,10 +158,10 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         if (optimizerOptions._optimizer) {
           return optimizerOptions._optimizer as typeof import('@qwik.dev/optimizer');
         }
-        if (optimizerOptions.tsOptimizer !== false) {
+        if (optimizerOptions.tsOptimizer) {
           return (await import('@qwik.dev/ts-optimizer')) as unknown as typeof import('@qwik.dev/optimizer');
         }
-        return loadRustOptimizer();
+        return import('@qwik.dev/optimizer');
       };
       const createOptimizer = (await loadOptimizerModule()).createOptimizer;
       internalOptimizer = await createOptimizer(optimizerOptions);

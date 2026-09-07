@@ -225,14 +225,6 @@ export { router }
       plugins: [
         ...plugins,
         optimizer.qwikVite({
-          // QWIK_AB_RUST=1 selects the rust optimizer, for A/B parity comparison.
-          ...(process.env.QWIK_AB_RUST
-            ? {
-                optimizerOptions: {
-                  tsOptimizer: false,
-                } as any,
-              }
-            : {}),
           entryStrategy: { type: 'segment' },
           client: {
             outDir: join(appDistDir, appName),
@@ -260,14 +252,6 @@ export { router }
       plugins: [
         ...plugins,
         optimizer.qwikVite({
-          // QWIK_AB_RUST=1 selects the rust optimizer, for A/B parity comparison.
-          ...(process.env.QWIK_AB_RUST
-            ? {
-                optimizerOptions: {
-                  tsOptimizer: false,
-                } as any,
-              }
-            : {}),
           experimental: ['each', 'show', 'suspense', 'errorBoundary', 'blockSSR'],
           ssr: {
             manifestInput: clientManifest,

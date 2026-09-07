@@ -18,7 +18,7 @@ export interface OptimizerOptions {
   /**
    * Use the TypeScript optimizer (`@qwik.dev/ts-optimizer`) instead of the Rust one.
    *
-   * Default `true`
+   * Default `false`
    */
   tsOptimizer?: boolean;
   _optimizer?: unknown;

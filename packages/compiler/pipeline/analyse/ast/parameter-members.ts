@@ -1,12 +1,20 @@
 import type { BindingIdentifier, BindingPattern, Expression } from 'oxc-parser';
 
 /** Simple fields can remain live reads instead of eager destructuring. */
-export function readParameterMembers(pattern: BindingPattern) {
+export function readObjectParameter(pattern: BindingPattern) {
   if (pattern.type !== 'ObjectPattern') {
     return null;
   }
   const members: { node: BindingIdentifier; name: string; defaultValue: Expression | null }[] = [];
+  let rest: BindingIdentifier | null = null;
   for (const property of pattern.properties) {
+    if (property.type === 'RestElement') {
+      if (property.argument.type !== 'Identifier') {
+        return null;
+      }
+      rest = property.argument;
+      continue;
+    }
     if (property.type !== 'Property' || property.computed) {
       return null;
     }
@@ -30,5 +38,5 @@ export function readParameterMembers(pattern: BindingPattern) {
       defaultValue: pattern.type === 'AssignmentPattern' ? pattern.right : null,
     });
   }
-  return members;
+  return { members, rest };
 }

@@ -44,7 +44,7 @@ import { Phase, Scheduler } from './runtime/scheduler';
 import { useTaskQrl, Task, TaskSubscription, type TaskFn } from './runtime/task';
 import { runWithCollector } from './reactive/tracking';
 import { createCaptureContainer, createText, runWithTestContainer, toArray } from './test-utils';
-import { _props, createPropsProxy, getPropsProxySource, getPropsSources } from './component/props';
+import { _props, createPropsProxy, getPropsProxyState, getPropsSources } from './component/props';
 import {
   createSlotScope,
   forwardSlot,
@@ -107,13 +107,63 @@ describe('serdes emit-only', () => {
     const source = useSignal({ label: 'initial' });
     const proxy = createPropsProxy(source);
     const restoredProxy = await _deserialize<{ label: string }>(await _serialize(proxy));
-    const restoredSource = getPropsProxySource(restoredProxy) as Signal<{ label: string }>;
+    const restoredSource = getPropsProxyState(restoredProxy)!.source as Signal<{ label: string }>;
 
     expect(restoredProxy.label).toBe('initial');
 
     restoredSource.value = { label: 'updated' };
 
     expect(restoredProxy.label).toBe('updated');
+  });
+
+  it('round-trips a rest view with live keys and exclusions', async () => {
+    const source = useSignal<Record<string, unknown>>({ title: 'excluded', label: 'initial' });
+    const props = createPropsProxy(source);
+    const rest = createPropsProxy(props, ['title', 'children']);
+    const [restored, restoredSource] = await _deserialize<
+      [Record<string, unknown>, Signal<Record<string, unknown>>]
+    >(await _serialize([rest, source]));
+    expect(Object.keys(restored)).toEqual(['label']);
+    expect(restored.label).toBe('initial');
+    expect(restored.title).toBeUndefined();
+    restoredSource.value = { title: 'still excluded', second: 'updated' };
+    expect(restored.label).toBeUndefined();
+    expect(restored.second).toBe('updated');
+    expect(Object.keys(restored)).toEqual(['second']);
+    expect('title' in restored).toBe(false);
+  });
+
+  it('round-trips a rest view over reactive prop getters', async () => {
+    const label = useSignal('initial');
+    const props = _props(
+      {
+        title: 'excluded',
+        get label() {
+          return label.value;
+        },
+      },
+      { label }
+    );
+    const rest = createPropsProxy(props, ['title']);
+    const [restored, restoredLabel] = await _deserialize<[typeof rest, Signal<string>]>(
+      await _serialize([rest, label])
+    );
+    restoredLabel.value = 'updated';
+    expect(restored.label).toBe('updated');
+    expect(Object.keys(restored)).toEqual(['label']);
+  });
+
+  it.each([
+    [null, null],
+    [1, null],
+    [{}, 'invalid'],
+    [{}, null, 1],
+  ])('rejects invalid props view metadata: %j', async (...values) => {
+    const proxy = createPropsProxy(useSignal({}));
+    const data = values.flatMap((value) => [TypeIds.Plain, value]);
+    await expect(async () =>
+      inflate(createCaptureContainer({}), proxy, TypeIds.PropsProxy, data)
+    ).rejects.toThrow('Invalid PropsProxy view');
   });
 
   it('round-trips reactive props keeping their sources live', async () => {

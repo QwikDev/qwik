@@ -41,7 +41,8 @@ import {
 import type { LowerContext } from './lower-context';
 import { pushPayload, pushQrl, QrlIdentityKind } from './lower-context';
 import { lowerArray } from './lower-array';
-import { lowerCaptures } from './ast/capture-analysis';
+import { collectCaptures, lowerCaptures } from './ast/capture-analysis';
+import { LocalKind } from './locals';
 import { findRuntimeJsx } from './ast/returns-jsx';
 import { QwikDirective, SegmentContext } from '../words';
 
@@ -106,11 +107,35 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
 }
 
 function lowerComponentProps(attributes: readonly JSXAttributeItem[], ctx: LowerContext) {
+  const onlyAttribute = attributes.length === 1 ? attributes[0] : null;
+  if (onlyAttribute?.type === 'JSXSpreadAttribute') {
+    const expression = unwrapExpression(onlyAttribute.argument);
+    const binding = ctx.bindings.reference(expression);
+    if (binding !== null && ctx.locals.get(binding)?.kind === LocalKind.PropRest) {
+      return {
+        c: ComponentPropsKind.Entries as const,
+        props: [
+          {
+            k: PropKind.Spread as const,
+            value: lowerInlineExpressionValue(
+              expression,
+              ctx,
+              collectCaptures(expression, ctx, new Set())
+            ),
+            effect: null,
+          },
+        ],
+      };
+    }
+  }
   if (
     attributes.some(
       (attribute) =>
         attribute.type === 'JSXSpreadAttribute' &&
-        trySignalReadValue(attribute.argument, ctx) !== null
+        (trySignalReadValue(attribute.argument, ctx) !== null ||
+          ctx.bindings
+            .freeReferences(attribute.argument)
+            .some(({ binding }) => ctx.locals.get(binding)?.kind === LocalKind.PropRest))
     )
   ) {
     return lowerComponentPropsProxy(attributes, ctx);
@@ -200,7 +225,7 @@ function lowerComponentPropsProxy(attributes: readonly JSXAttributeItem[], ctx: 
       identity: { kind: QrlIdentityKind.Segment, nameCtx: 'props' },
       ctxName: 'props',
       boundary: { kind: BoundaryKind.Implicit, role: 'expression' },
-      payloadKind: QrlPayloadKind.Value,
+      payloadKind: QrlPayloadKind.Function,
       authoredAsync: false,
       body: {
         b: QrlBodyKind.Expr,
@@ -563,6 +588,9 @@ function readForwardedSlot(
   child: JSXChild,
   ctx: LowerContext
 ): { sourceName: string; children: readonly JSXChild[] } | null {
+  if (child.type === 'JSXExpressionContainer' && isPropsChildren(child.expression, ctx)) {
+    return { sourceName: '', children: [] };
+  }
   if (child.type !== 'JSXElement' || child.openingElement.name.type !== 'JSXIdentifier') {
     return null;
   }

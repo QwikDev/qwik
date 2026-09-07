@@ -5,9 +5,9 @@ import { readSourceValue, type Source } from '../reactive/source';
 import { track } from '../reactive/tracking';
 import { qError, QError } from '../shared/error/error';
 
-interface PropsProxyState<T extends object> {
-  source: Source<T> | null;
-}
+type PropsProxyState<T extends object> =
+  | { source: Source<T> | null; excluded: null }
+  | { source: T | null; excluded: readonly string[] };
 
 const propsProxyStates = new WeakMap<object, PropsProxyState<object>>();
 
@@ -65,35 +65,45 @@ export function mergeProps(
   return target;
 }
 
-export function createPropsProxy<T extends object>(source: Source<T>): T {
-  return createPropsProxyState(source);
+export function createPropsProxy<T extends object>(source: Source<T>): T;
+export function createPropsProxy<T extends object>(props: T, excluded: readonly string[]): T;
+export function createPropsProxy<T extends object>(
+  source: Source<T> | T,
+  excluded?: readonly string[]
+): T {
+  return createPropsProxyState(
+    excluded === undefined
+      ? { source: source as Source<T>, excluded: null }
+      : { source: source as T, excluded }
+  );
 }
 
 export function allocatePropsProxy(): object {
-  return createPropsProxyState(null);
+  return createPropsProxyState({ source: null, excluded: null });
 }
 
-export function getPropsProxySource(proxy: object): Source<object> | null | undefined {
-  return propsProxyStates.get(proxy)?.source;
+export function getPropsProxyState(proxy: object): PropsProxyState<object> | undefined {
+  return propsProxyStates.get(proxy);
 }
 
-export function restorePropsProxySource(proxy: object, source: Source<object>): void {
+export function restorePropsProxyState(proxy: object, restored: PropsProxyState<object>): void {
   const state = propsProxyStates.get(proxy);
   if (state === undefined) {
     throw new Error('Invalid props proxy');
   }
-  state.source = source;
+  Object.assign(state, restored);
 }
 
-function createPropsProxyState<T extends object>(source: Source<T> | null): T {
-  const state: PropsProxyState<T> = { source };
+function createPropsProxyState<T extends object>(state: PropsProxyState<T>): T {
   const readProps = (): T => {
-    const source = state.source;
-    if (source === null) {
+    if (state.source === null) {
       throw qError(QError.uninitializedPropsProxy);
     }
-    track(source);
-    return readSourceValue(source);
+    if (state.excluded !== null) {
+      return state.source;
+    }
+    track(state.source);
+    return readSourceValue(state.source);
   };
   const proxy = new Proxy(Object.create(null), {
     get: (_target, property) => {
@@ -101,15 +111,41 @@ function createPropsProxyState<T extends object>(source: Source<T> | null): T {
         return undefined;
       }
       const props = readProps();
-      return Reflect.get(props, property, props);
+      return isIncludedProp(props, property, state.excluded)
+        ? Reflect.get(props, property, props)
+        : undefined;
     },
-    has: (_target, property) => Reflect.has(readProps(), property),
-    ownKeys: () => Reflect.ownKeys(readProps()),
+    has: (_target, property) => {
+      const props = readProps();
+      return isIncludedProp(props, property, state.excluded) && Reflect.has(props, property);
+    },
+    ownKeys: () => {
+      const props = readProps();
+      const keys = Reflect.ownKeys(props);
+      return state.excluded === null
+        ? keys
+        : keys.filter((key) => isIncludedProp(props, key, state.excluded));
+    },
     getOwnPropertyDescriptor: (_target, property) => {
-      const descriptor = Reflect.getOwnPropertyDescriptor(readProps(), property);
+      const props = readProps();
+      const descriptor = isIncludedProp(props, property, state.excluded)
+        ? Reflect.getOwnPropertyDescriptor(props, property)
+        : undefined;
       return descriptor === undefined ? undefined : { ...descriptor, configurable: true };
     },
   }) as T;
   propsProxyStates.set(proxy, state as PropsProxyState<object>);
   return proxy;
+}
+
+function isIncludedProp(
+  props: object,
+  property: string | symbol,
+  excluded: readonly string[] | null
+): boolean {
+  return (
+    excluded === null ||
+    (!(typeof property === 'string' && excluded.includes(property)) &&
+      Object.prototype.propertyIsEnumerable.call(props, property))
+  );
 }

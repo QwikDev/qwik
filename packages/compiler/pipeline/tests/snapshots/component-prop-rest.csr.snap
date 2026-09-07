@@ -1,29 +1,29 @@
 ==INPUT==
 
-import { useSignal } from '@qwik.dev/core';
-export const Child = (props) => <button onClick$>{props.title}</button>;
-export default () => {
-  const attributes = useSignal({ title: 'save' });
-  return <Child {...attributes.value} onSave$ />;
-};
-
+export const Child = ({ label, children }) => <section title={label}>{children}</section>;
+export default ({ title: heading = 'heading', children: content, ...rest }) => (
+  <Child {...rest} title={heading}>{content}</Child>
+);
 == CSR OUTPUT ==
 
 ============================= src/component.tsx ==
 
 import {
+  createAttrExpressionEffect,
   _first,
-  createTextExpressionEffect,
+  maybeThen,
+  createSlot,
   _createElementTemplate,
-  useSignal,
-  _qrlWithChunk,
   createPropsProxy,
+  _qrlWithChunk,
   useComputedQrl,
+  createSlotScope,
+  forwardSlot,
   createComponent,
 } from '@qwik.dev/core';
-import { component_text_segment_0_1fh10fbkzokfc } from './component.tsx_component_text_segment_0_1fh10fbkzokfc';
+import { component_title_segment_0_2f0r0xivypjmx } from './component.tsx_component_title_segment_0_2f0r0xivypjmx';
 
-const Child_tmpl0 = _createElementTemplate('<button> </button>');
+const Child_tmpl0 = _createElementTemplate('<section><!></section>');
 const q_component_props_segment_1_208o0sfi1se76 = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_props_segment_1_208o0sfi1se76',
   () => import('./component.tsx_component_props_segment_1_208o0sfi1se76'),
@@ -31,46 +31,51 @@ const q_component_props_segment_1_208o0sfi1se76 = /*#__PURE__*/ _qrlWithChunk(
 );
 export const Child = (props, ctx) => {
   const el0 = Child_tmpl0(ctx.document);
-  const text0 = _first(el0);
-  const effect0 = createTextExpressionEffect(
-    text0,
+  const effect0 = createAttrExpressionEffect(
+    el0,
+    'title',
     [props],
-    component_text_segment_0_1fh10fbkzokfc,
+    component_title_segment_0_2f0r0xivypjmx,
     ctx.scheduler
   );
   ctx.scheduler.notify(effect0);
+  const marker0 = _first(el0);
+  ctx.scheduler.waitFor(maybeThen(createSlot(), (slot0) => marker0.replaceWith(...slot0)));
   return el0;
 };
 export default (props0, ctx) => {
-  const attributes = useSignal({ title: 'save' });
+  const rest = createPropsProxy(props0, ['children', 'title']);
+  const slotScope0 = createSlotScope();
+  forwardSlot(slotScope0);
   const component0 = createComponent(
     Child,
-    createPropsProxy(useComputedQrl(q_component_props_segment_1_208o0sfi1se76.w([attributes]))),
-    ctx
+    createPropsProxy(useComputedQrl(q_component_props_segment_1_208o0sfi1se76.w([rest, props0]))),
+    ctx,
+    { slotScope: slotScope0 }
   );
   return component0;
 };
-============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
+============================= src/component.tsx_component_title_segment_0_2f0r0xivypjmx.js (ENTRY POINT)==
 
-export const component_text_segment_0_1fh10fbkzokfc = (props) => {
-  return props.title;
+export const component_title_segment_0_2f0r0xivypjmx = (props) => {
+  return props.label;
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_text_segment_0_1fh10fbkzokfc",
+  "name": "component_title_segment_0_2f0r0xivypjmx",
   "entry": null,
-  "displayName": "component_text_segment_0",
-  "hash": "1fh10fbkzokfc",
-  "canonicalFilename": "component.tsx_component_text_segment_0_1fh10fbkzokfc",
+  "displayName": "component_title_segment_0",
+  "hash": "2f0r0xivypjmx",
+  "canonicalFilename": "component.tsx_component_title_segment_0_2f0r0xivypjmx",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
-  "ctxName": "text",
+  "ctxName": "title",
   "captures": true,
   "loc": [
-    94,
-    105
+    62,
+    67
   ],
   "paramNames": [],
   "captureNames": [
@@ -83,8 +88,8 @@ export const component_text_segment_0_1fh10fbkzokfc = (props) => {
 import { _captures } from '@qwik.dev/core';
 
 export const component_props_segment_1_208o0sfi1se76 = () => {
-  const [attributes] = _captures;
-  return { ...attributes.value };
+  const [rest, props0] = _captures;
+  return { ...rest, title: props0.title === void 0 ? 'heading' : props0.title };
 };
 /*
 {
@@ -100,12 +105,13 @@ export const component_props_segment_1_208o0sfi1se76 = () => {
   "ctxName": "props",
   "captures": true,
   "loc": [
-    201,
-    236
+    175,
+    206
   ],
   "paramNames": [],
   "captureNames": [
-    "attributes"
+    "rest",
+    "props0"
   ]
 }
 */

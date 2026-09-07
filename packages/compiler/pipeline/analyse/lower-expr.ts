@@ -189,6 +189,7 @@ export function trySignalReadValue(
     case LocalKind.Const:
     case LocalKind.Qrl:
     case LocalKind.PropMember:
+    case LocalKind.PropRest:
       return null;
     case LocalKind.Signal:
       return {

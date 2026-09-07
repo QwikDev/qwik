@@ -94,7 +94,7 @@ import { PromiseRoot, unwrapPromiseRoot } from './promise-root';
 import { EMPTY_OBJECT_PAYLOAD, TypeIds } from './constants';
 import { needsInflation } from './constants';
 import type { SerializedOwnerItems } from './serialize';
-import { _props, restorePropsProxySource } from '../../component/props';
+import { _props, restorePropsProxyState } from '../../component/props';
 
 export { allocate, needsInflation };
 
@@ -234,10 +234,30 @@ const inflateResolved = (
     case TypeIds.PropsProxy: {
       const values = data as unknown[];
       const source = values[0];
-      if (!(source instanceof ReactiveSignal) && !(source instanceof StorePropSource)) {
+      // A null separator marks views before their excluded keys.
+      if (values.length >= 2) {
+        const excluded = values.slice(2);
+        if (
+          values[1] !== null ||
+          source === null ||
+          typeof source !== 'object' ||
+          !excluded.every((key) => typeof key === 'string')
+        ) {
+          throw new Error('Invalid PropsProxy view');
+        }
+        restorePropsProxyState(target as object, { source, excluded });
+        break;
+      }
+      if (
+        values.length !== 1 ||
+        (!(source instanceof ReactiveSignal) && !(source instanceof StorePropSource))
+      ) {
         throw new Error('Invalid PropsProxy source');
       }
-      restorePropsProxySource(target as object, source as Source<object>);
+      restorePropsProxyState(target as object, {
+        source: source as Source<object>,
+        excluded: null,
+      });
       break;
     }
     case TypeIds.ComputedSignal: {

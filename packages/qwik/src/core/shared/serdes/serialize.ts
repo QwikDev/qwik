@@ -31,7 +31,7 @@ import { isContextScope } from '../../runtime/context-scope';
 import { TaskSubscription, VisibleTaskSubscription } from '../../runtime/task';
 import { Phase } from '../../runtime/scheduler';
 import { isProjection, isSlotScope, type Projection, type SlotScope } from '../../dom/slot/slot';
-import { getPropsProxySource, getPropsSources } from '../../component/props';
+import { getPropsProxyState, getPropsSources } from '../../component/props';
 import { Owner } from '../../runtime/owner';
 import type { Subscriber } from '../../runtime/subscriber';
 import type { RuntimeInvokeContext } from '../../runtime/invoke-context';
@@ -515,7 +515,7 @@ export class Serializer {
   }
 
   private writeObjectValue(value: {}, index: number) {
-    let propsProxySource: Source<object> | null | undefined;
+    let propsProxy: ReturnType<typeof getPropsProxyState>;
     let propsSources: Record<string, unknown> | undefined;
     if (value instanceof SerializerSignal) {
       const maybeValue = getSerializerSignalValue(value);
@@ -565,11 +565,16 @@ export class Serializer {
       this.output(TypeIds.Projection, serializeProjection(value));
     } else if (this.$serializationContext$.$isDomRef$(value)) {
       this.output(TypeIds.RefVNode, value.$nodeId$);
-    } else if ((propsProxySource = getPropsProxySource(value)) !== undefined) {
-      if (propsProxySource === null) {
+    } else if ((propsProxy = getPropsProxyState(value)) !== undefined) {
+      if (propsProxy.source === null) {
         throw qError(QError.serializeErrorUnknownType, ['uninitialized props proxy']);
       }
-      this.output(TypeIds.PropsProxy, [propsProxySource]);
+      this.output(
+        TypeIds.PropsProxy,
+        propsProxy.excluded === null
+          ? [propsProxy.source]
+          : [propsProxy.source, null, ...propsProxy.excluded]
+      );
     } else if ((propsSources = getPropsSources(value)) !== undefined) {
       const statics: unknown[] = [];
       for (const key in value) {

@@ -33,15 +33,17 @@ export function lowerComponentParameter(component: DiscoveredComponent, ctx: Low
     surface = { kind: SurfaceKind.Identifier, binding: ctx.propsBinding };
     return { surface, setup, locals };
   }
-  const members = parameter.members!;
+  const { members, rest } = parameter.object!;
+  const restBinding = rest === null ? null : ctx.bindings.declaration(rest)!;
   const fields = members.map(({ node, name }) => ({
     binding: ctx.bindings.declaration(node)!,
     name,
   }));
   ctx.propsMembers = new Map(fields.map(({ binding, name }) => [binding, name]));
-  ctx.propsBinding = members.some((member) => member.name !== 'children')
-    ? generatedBinding(QwikGenWord.ComponentProps, BindingScope.Param, ctx)
-    : null;
+  ctx.propsBinding =
+    rest !== null || members.some((member) => member.name !== 'children')
+      ? generatedBinding(QwikGenWord.ComponentProps, BindingScope.Param, ctx)
+      : null;
   surface = { kind: SurfaceKind.Object, binding: ctx.propsBinding, bindings: fields };
   for (const { node, name, defaultValue } of members) {
     if (name === 'children') {
@@ -62,7 +64,9 @@ export function lowerComponentParameter(component: DiscoveredComponent, ctx: Low
       continue;
     }
     if (
-      ctx.bindings.freeReferences(defaultValue).some(({ binding }) => ctx.propsMembers.has(binding))
+      ctx.bindings
+        .freeReferences(defaultValue)
+        .some(({ binding }) => ctx.propsMembers.has(binding) || binding === restBinding)
     ) {
       throw new UnsupportedError('a prop default referencing another parameter binding');
     }
@@ -73,6 +77,17 @@ export function lowerComponentParameter(component: DiscoveredComponent, ctx: Low
     if (initializer !== null) {
       setup.push(initializer);
     }
+  }
+  if (rest !== null) {
+    const binding = restBinding!;
+    const excluded = [...new Set(['children', ...members.map((member) => member.name)])];
+    setup.push({ s: SetupKind.PropRest, result: binding, props: ctx.propsBinding!, excluded });
+    locals.set(binding, {
+      kind: LocalKind.PropRest,
+      access: CaptureAccess.Direct,
+      binding,
+      slot: -1,
+    });
   }
   return { surface, setup, locals };
 }

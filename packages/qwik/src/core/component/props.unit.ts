@@ -12,6 +12,51 @@ import {
 import { getStoreSource, useStore } from '../reactive/store';
 
 describe('component props', () => {
+  it('views remaining own props without copying values or reading excluded keys', () => {
+    const symbol = Symbol('prop');
+    const props = Object.create({ inherited: 'ignored' });
+    Object.defineProperties(props, {
+      children: {
+        enumerable: true,
+        get() {
+          throw new Error('children read');
+        },
+      },
+      title: {
+        enumerable: true,
+        get() {
+          throw new Error('excluded read');
+        },
+      },
+      hidden: { value: 'ignored' },
+      label: {
+        enumerable: true,
+        get() {
+          return this.current;
+        },
+      },
+      current: { writable: true, value: 'label' },
+    });
+    Object.defineProperty(props, '__proto__', { enumerable: true, value: 'safe' });
+    props[symbol] = 'symbol';
+    const rest = createPropsProxy(props, ['children', 'title']);
+    expect(Reflect.ownKeys(rest)).toEqual(['label', '__proto__', symbol]);
+    expect(rest.label).toBe('label');
+    expect(rest[symbol]).toBe('symbol');
+    expect(rest.title).toBeUndefined();
+    expect(rest.children).toBeUndefined();
+    expect(rest.hidden).toBeUndefined();
+    expect(rest.inherited).toBeUndefined();
+    expect('title' in rest).toBe(false);
+    expect(Object.getOwnPropertyDescriptor(rest, 'title')).toBeUndefined();
+    expect(Object.getPrototypeOf(rest)).toBeNull();
+    expect(rest.__proto__).toBe('safe');
+    props.current = 'updated';
+    props.added = 'new';
+    expect(rest.label).toBe('updated');
+    expect(rest.added).toBe('new');
+    expect(Object.keys(rest)).toEqual(['label', '__proto__', 'added']);
+  });
   it('resolves a registered prop source and drops undefined entries', () => {
     const id = useSignal(0);
     const props = _props({ id: 0, label: 'static' }, { id, label: undefined });

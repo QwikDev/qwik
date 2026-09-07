@@ -59,7 +59,12 @@ Later reads select between the live prop and the cached fallback, and QRLs captu
 Only the backend chooses their control flow and tracking implementation. Payload alias reads use
 the same IR as extracted expressions.
 Defaults referencing parameter bindings or names shadowed by component setup are rejected using
-the binding graph. Children defaults, rest, nested patterns and computed keys remain deferred.
+the binding graph. Children defaults, nested patterns and computed keys remain deferred.
+
+Component parameter rest is a filtered props view, preserving getters and key changes without copying.
+`Setup.PropRest` carries the source binding and excluded keys; no computed or QRL is needed.
+Explicit fields are excluded by property name, and `children` always remains a projection.
+Rest bindings reuse ordinary captures and props-proxy serialization, including in user callbacks.
 
 Linking indexes declaration targets and imports by binding once per module. Component linking and
 reachability share the import index; duplicate declaration targets remain ambiguous. Each JS module

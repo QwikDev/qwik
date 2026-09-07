@@ -127,8 +127,8 @@ function emitComponentProps(
 ): { expression: string; roots: string[]; statements: string[] } {
   if (component.props.c === ComponentPropsKind.Proxy) {
     const { qrl, reference, args } = resolveQrl(component.props.compute, true);
-    if (qrl.payloadKind !== QrlPayloadKind.Value) {
-      throw new UnsupportedError('a non-value component props QRL');
+    if (qrl.payloadKind !== QrlPayloadKind.Function) {
+      throw new UnsupportedError('a non-function component props QRL');
     }
     imports.add(QwikWord.CreatePropsProxy);
     imports.add(QwikHook.UseComputedQrl);
@@ -212,6 +212,10 @@ function emitComponentProps(
       case PropKind.Spread: {
         flushEntries();
         if (prop.value.v === ValueKind.Computed) {
+          if (prop.value.resume.r === ResumeKind.Inline) {
+            mergeInputs.push(inlineValueJs(module, prop.value));
+            break;
+          }
           const value = emitComponentExpression(prop.value, pass, imports, resolveQrl);
           mergeInputs.push(value.expression);
           roots.push(...value.roots);

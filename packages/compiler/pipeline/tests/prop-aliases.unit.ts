@@ -193,7 +193,7 @@ test('aliased children remain a slot without reading the props object', async ()
   );
 });
 
-test.each(['...rest', '[key]: heading', 'nested: { title }'])(
+test.each(['[key]: heading', 'nested: { title }'])(
   'keeps unsupported prop patterns explicit: %s',
   async (pattern) => {
     await expect(

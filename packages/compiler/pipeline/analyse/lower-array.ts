@@ -1,4 +1,4 @@
-import { readParameterMembers } from './ast/parameter-members';
+import { readObjectParameter } from './ast/parameter-members';
 import type {
   ArrowFunctionExpression,
   BindingPattern,
@@ -318,12 +318,16 @@ function readParameterAliases(
   pattern: BindingPattern,
   ctx: LowerContext
 ): Map<LocalId, string> | null {
-  const members = readParameterMembers(pattern);
-  if (members === null || members.some((member) => member.defaultValue !== null)) {
+  const object = readObjectParameter(pattern);
+  if (
+    object === null ||
+    object.rest !== null ||
+    object.members.some((member) => member.defaultValue !== null)
+  ) {
     return null;
   }
   const aliases = new Map<LocalId, string>();
-  for (const { node, name } of members) {
+  for (const { node, name } of object.members) {
     const binding = ctx.bindings.declaration(node);
     if (binding === null) {
       throw new UnsupportedError(`the unresolved collection parameter "${node.name}"`);

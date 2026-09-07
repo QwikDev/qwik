@@ -12,6 +12,7 @@ export const enum LocalKind {
   RowIndex = 'row-index',
   /** A prop member for wrapped destructured props */
   PropMember = 'prop-member',
+  PropRest = 'prop-rest',
 }
 
 export type SetupLocal =

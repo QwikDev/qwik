@@ -31,6 +31,10 @@ export function emitJsSetup(
   emitQrl: (use: QrlUse) => string
 ): string[] {
   return program.setup.map((entry) => {
+    if (entry.s === SetupKind.PropRest) {
+      imports.add(QwikWord.CreatePropsProxy);
+      return `const ${module.bindings[entry.result].name} = ${QwikWord.CreatePropsProxy}(${module.bindings[entry.props].name}, ${JSON.stringify(entry.excluded)});`;
+    }
     if (entry.s === SetupKind.PropDefault) {
       imports.add(QwikWord.Untrack);
       const prop = memberJs(module.bindings[entry.props].name, entry.name);

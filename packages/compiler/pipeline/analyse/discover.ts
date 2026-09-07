@@ -11,7 +11,7 @@ import { DeclarationKind } from '../schema';
 import { unwrapExpression } from './ast/utils';
 import type { ComponentCandidate } from './ast/returns-jsx';
 import { UnsupportedError } from '../errors';
-import { readParameterMembers } from './ast/parameter-members';
+import { readObjectParameter } from './ast/parameter-members';
 
 export interface DiscoveredComponent {
   name: string;
@@ -22,7 +22,7 @@ export interface DiscoveredComponent {
   param: {
     node: BindingPattern;
     range: [number, number];
-    members: ReturnType<typeof readParameterMembers>;
+    object: ReturnType<typeof readObjectParameter>;
   } | null;
   /** Statements before the return — lowered as component setup. */
   setupStatements: (Directive | Statement)[];
@@ -85,11 +85,11 @@ function describeComponent(
     throw new UnsupportedError('more than one component parameter');
   }
   const param = params[0];
-  const members = param?.type === 'ObjectPattern' ? readParameterMembers(param) : null;
+  const object = param?.type === 'ObjectPattern' ? readObjectParameter(param) : null;
   if (
     param !== undefined &&
     param.type !== 'Identifier' &&
-    (param.type !== 'ObjectPattern' || members === null)
+    (param.type !== 'ObjectPattern' || object === null)
   ) {
     throw new UnsupportedError('a destructured component parameter');
   }
@@ -103,7 +103,7 @@ function describeComponent(
     declarationKind,
     setupStatements,
     fn,
-    param: param === undefined ? null : { node: param, range: [param.start, param.end], members },
+    param: param === undefined ? null : { node: param, range: [param.start, param.end], object },
     renderExpression: returned,
     statement,
   };

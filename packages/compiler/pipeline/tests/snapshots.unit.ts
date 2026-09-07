@@ -40,6 +40,15 @@ async function testInputs(mode: 'ssr' | 'csr', snapshotName: string, inputs: rea
 }
 
 describe.each(['ssr', 'csr'] as const)('%s', (mode) => {
+  test('should forward reactive component rest props and project children', async () => {
+    const output = await testInput(mode, 'component-prop-rest', {
+      code: `export const Child = ({ label, children }) => <section title={label}>{children}</section>;
+export default ({ title: heading = 'heading', children: content, ...rest }) => (
+  <Child {...rest} title={heading}>{content}</Child>
+);`,
+    });
+    expect(output.diagnostics).toEqual([]);
+  });
   test('should initialize prop defaults once and retain reactive alias reads', async () => {
     const output = await testInput(mode, 'component-prop-defaults', {
       code: `import { createTitle, createHandler } from './defaults';

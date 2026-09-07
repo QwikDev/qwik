@@ -1,0 +1,140 @@
+==INPUT==
+
+export const Child = ({ label, children }) => <section title={label}>{children}</section>;
+export default ({ title: heading = 'heading', children: content, ...rest }) => (
+  <Child {...rest} title={heading}>{content}</Child>
+);
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  createSsrNodeId,
+  renderSsrAttrExpression,
+  escapeHTML,
+  renderSsrSlot,
+  maybeThen,
+  _noopQrl,
+  createPropsProxy,
+  useComputedQrl,
+  createSlotScope,
+  forwardSlot,
+  createComponent,
+  _captures,
+} from '@qwik.dev/core';
+
+const component_title_segment_0_2f0r0xivypjmx = (props) => {
+  return props.label;
+};
+const q_component_title_segment_0_2f0r0xivypjmx = /*#__PURE__*/ _noopQrl(
+  'component_title_segment_0_2f0r0xivypjmx'
+);
+q_component_title_segment_0_2f0r0xivypjmx.s(component_title_segment_0_2f0r0xivypjmx);
+const component_props_segment_1_208o0sfi1se76 = () => {
+  const [rest, props0] = _captures;
+  return { ...rest, title: props0.title === void 0 ? 'heading' : props0.title };
+};
+const q_component_props_segment_1_208o0sfi1se76 = /*#__PURE__*/ _noopQrl(
+  'component_props_segment_1_208o0sfi1se76'
+);
+q_component_props_segment_1_208o0sfi1se76.s(component_props_segment_1_208o0sfi1se76);
+export const Child = (props, ctx) => {
+  const id0 = ctx.nextId();
+  ctx.addRoot(props);
+  const attr0 = renderSsrAttrExpression(
+    id0,
+    'title',
+    [props],
+    q_component_title_segment_0_2f0r0xivypjmx
+  );
+  const slot0 = renderSsrSlot(ctx);
+  return maybeThen(attr0, (attr0) =>
+    maybeThen(slot0, (slot0) => [
+      '<section q:id="',
+      createSsrNodeId(id0),
+      '"',
+      attr0 === null ? '' : ' title' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
+      '>',
+      slot0,
+      '</section>',
+    ])
+  );
+};
+export default (props0, ctx) => {
+  const rest = createPropsProxy(props0, ['children', 'title']);
+  const slotScope0 = createSlotScope();
+  ctx.addRoot(rest);
+  ctx.addRoot(props0);
+  ctx.addRoot(slotScope0);
+  forwardSlot(slotScope0);
+  const component0 = createComponent(
+    Child,
+    createPropsProxy(useComputedQrl(q_component_props_segment_1_208o0sfi1se76.w([rest, props0]))),
+    ctx,
+    { slotScope: slotScope0 }
+  );
+  return component0;
+};
+============================= src/component.tsx_component_title_segment_0_2f0r0xivypjmx.js (ENTRY POINT)==
+
+export const component_title_segment_0_2f0r0xivypjmx = (props) => {
+  return props.label;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_title_segment_0_2f0r0xivypjmx",
+  "entry": null,
+  "displayName": "component_title_segment_0",
+  "hash": "2f0r0xivypjmx",
+  "canonicalFilename": "component.tsx_component_title_segment_0_2f0r0xivypjmx",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "title",
+  "captures": true,
+  "loc": [
+    62,
+    67
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_props_segment_1_208o0sfi1se76.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_props_segment_1_208o0sfi1se76 = () => {
+  const [rest, props0] = _captures;
+  return { ...rest, title: props0.title === void 0 ? 'heading' : props0.title };
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_props_segment_1_208o0sfi1se76",
+  "entry": null,
+  "displayName": "component_props_segment_1",
+  "hash": "208o0sfi1se76",
+  "canonicalFilename": "component.tsx_component_props_segment_1_208o0sfi1se76",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "props",
+  "captures": true,
+  "loc": [
+    175,
+    206
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "rest",
+    "props0"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

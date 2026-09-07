@@ -126,7 +126,10 @@ export const component_text_segment_1_1fh10tcowimfv = (props) => {
 */
 ============================= src/component.tsx_component_props_segment_2_208o0eee4yc6n.js (ENTRY POINT)==
 
-export const component_props_segment_2_208o0eee4yc6n = (attributes, count) => {
+import { _captures } from '@qwik.dev/core';
+
+export const component_props_segment_2_208o0eee4yc6n = () => {
+  const [attributes, count] = _captures;
   return { title: 'before', ...attributes.value, count: count.value, title: 'after' };
 };
 /*

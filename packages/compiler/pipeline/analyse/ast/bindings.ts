@@ -310,8 +310,7 @@ export function createBindingGraph(program: Program): BindingGraph {
           orderedReferences.push({
             node: value,
             binding,
-            role:
-              parent?.type === 'Property' && parent.shorthand ? ReadRole.Shorthand : ReadRole.Read,
+            role: referenceRole(parent, key),
           });
         }
       }
@@ -321,6 +320,8 @@ export function createBindingGraph(program: Program): BindingGraph {
         references.set(value, binding);
         orderedReferences.push({ node: value, binding, role: ReadRole.Read });
       }
+    } else if (value.type === 'ParenthesizedExpression') {
+      resolveReferences(value.expression, activeScope, parent, key);
     } else {
       for (const childKey of Object.keys(value)) {
         if (!IGNORED_KEYS.has(childKey)) {
@@ -441,6 +442,19 @@ function toVarKind(kind: string): VarKind | null {
     default:
       return null;
   }
+}
+
+function referenceRole(parent: Node | null, key: string): ReadRole {
+  if (parent?.type === 'Property' && parent.shorthand) {
+    return ReadRole.Shorthand;
+  }
+  if (
+    (parent?.type === 'CallExpression' && key === 'callee') ||
+    (parent?.type === 'TaggedTemplateExpression' && key === 'tag')
+  ) {
+    return ReadRole.Call;
+  }
+  return ReadRole.Read;
 }
 
 function isReference(parent: Node | null, key: string): boolean {

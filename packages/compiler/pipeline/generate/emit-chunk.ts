@@ -281,10 +281,12 @@ export function extractPayloadJs(
     .sort((a, b) => b.range[0] - a.range[0]);
   for (const read of materialized) {
     const member = [module.bindings[read.binding].name, ...read.memberPath!].join('.');
-    const replacement =
-      read.role === ReadRole.Shorthand
-        ? `${module.source.code.slice(...read.range)}: ${member}`
-        : member;
+    let replacement = member;
+    if (read.role === ReadRole.Shorthand) {
+      replacement = `${module.source.code.slice(...read.range)}: ${member}`;
+    } else if (read.role === ReadRole.Call) {
+      replacement = `(0, ${member})`;
+    }
     text = text.slice(0, read.range[0] - start) + replacement + text.slice(read.range[1] - start);
   }
   return text;

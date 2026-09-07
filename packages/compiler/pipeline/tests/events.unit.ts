@@ -337,6 +337,47 @@ export default () => {
   }
 );
 
+test.each([false, true])('alias calls preserve authored receivers (SSR: %s)', async (isServer) => {
+  for (const [handler, expected] of [
+    ['() => save()', 'bare'],
+    ['() => (save)()', 'bare'],
+    ['() => save?.()', 'bare'],
+    ['() => save`tag`', 'bare'],
+    ['(value = save()) => value', 'bare'],
+    ['() => api.save()', 'api'],
+    ['() => save.call(api)', 'api'],
+    ['() => { const save = () => "shadow"; return [save(), api.save()]; }', ['shadow', 'api']],
+  ] as const) {
+    const output = await transformModules({
+      srcDir: 'src',
+      isServer,
+      input: [
+        {
+          path: 'src/component.tsx',
+          code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
+  const rows = useSignal([]);
+  return <ul>{rows.value.map(({ id, save, api }) => <button key={id} title={save()} onClick$={${handler}}>save</button>)}</ul>;
+};`,
+        },
+      ],
+    });
+    expect(output.diagnostics).toEqual([]);
+    function save(this: { name: string } | undefined) {
+      return this === undefined ? 'bare' : this.name;
+    }
+    const row = { name: 'row', save, api: { name: 'api', save } };
+    const chunk = output.modules.find((module) => module.segment?.ctxName === 'onClick$')!;
+    expect(chunk.segment!.captureNames).toEqual(['item']);
+    expect(loadChunkFunction(chunk, [row])(), handler).toEqual(expected);
+    const title = output.modules.find((module) => module.segment?.ctxName === 'title')!;
+    expect(loadChunkFunction(title)(row)).toBe('bare');
+    if (handler === '() => save?.()') {
+      expect(loadChunkFunction(chunk, [{ save: null }])()).toBeUndefined();
+    }
+  }
+});
+
 test('captured parameter plans survive serialization and immutable linking', async () => {
   const plan = await analyseModule(
     {

@@ -486,6 +486,19 @@ export default () => {
     });
   });
 
+  test('should preserve receivers when calling collection aliases', async () => {
+    await testInput(mode, 'collection-alias-calls', {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
+  const rows = useSignal([]);
+  return <ul>{rows.value.map(({ id, save, api }) => <li key={id}>
+    <button title={save()} onClick$={() => save()}>save</button>
+    <button onClick$={(value = save?.()) => [value, (save)(), api.save()]}>optional</button>
+  </li>)}</ul>;
+};`,
+    });
+  });
+
   test('should give a capture-less row handler the plain ctx signature', async () => {
     await testInput(mode, 'collection-row-event-plain', {
       code: `import { useSignal } from '@qwik.dev/core';

@@ -84,6 +84,18 @@ describe('collectCaptures', () => {
     ]);
   });
 
+  test.each([
+    ['count()', ReadRole.Call],
+    ['(count)()', ReadRole.Call],
+    ['count?.()', ReadRole.Call],
+    ['count`tag`', ReadRole.Call],
+    ['count.method()', ReadRole.Read],
+    ['count.call(null)', ReadRole.Read],
+    ['new count()', ReadRole.Read],
+  ])('classifies the receiver role of %s', (expression, role) => {
+    expect(refsOf(expression, { count: true }).locals[0].reads[0].role).toBe(role);
+  });
+
   test('props reads retain their locations without becoming local entries', () => {
     const refs = refsOf('(value = props.initial) => props.onSave$(value)', { props: true });
     expect(refs).toEqual({

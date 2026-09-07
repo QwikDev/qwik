@@ -26,7 +26,7 @@ import { scanModuleSurface } from './module-surface';
 import { discoverComponents } from './discover';
 import { lowerSetup } from './lower-setup';
 import { createLowerContext, pushQrl, QrlIdentityKind } from './lower-context';
-import { lowerJsx } from './lower-jsx';
+import { lowerRenderExpression } from './lower-jsx';
 import { normalizeSource } from './normalize';
 import { emptyPlan } from './plan';
 import { createOriginalRangeMapper } from '../../src/normalization';
@@ -163,12 +163,12 @@ export async function analyseModule(
         ? parameterSurface.bindings.map(({ binding, name }) => [binding, name])
         : []
     );
-    let rootOp;
+    let rootOps;
     let setup;
     try {
       setup = lowerSetup(component.setupStatements, lowerContext);
       lowerContext.locals = setup.locals;
-      rootOp = lowerJsx(component.jsx, lowerContext);
+      rootOps = lowerRenderExpression(component.renderExpression, lowerContext);
     } catch (error) {
       if (error instanceof InvalidModuleError) {
         plan.kind = ModuleKind.Failed;
@@ -183,7 +183,7 @@ export async function analyseModule(
       throw error;
     }
     plan.programs.push({
-      body: { kind: ProgramBodyKind.Ops, ops: [rootOp] },
+      body: { kind: ProgramBodyKind.Ops, ops: rootOps },
       setup: setup.setup,
       params: [],
       lifetime: 0,

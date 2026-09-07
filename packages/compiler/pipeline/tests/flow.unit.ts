@@ -309,15 +309,14 @@ export default function App() {
   });
 
   test('a mixed return (ternary arm with JSX) is a component candidate', async () => {
-    await expect(
-      analyseModule(
-        {
-          path: 'src/mixed.tsx',
-          code: 'export default (cond) => {\n  return cond ? <p>x</p> : "text";\n};\n',
-        },
-        { transpileTs: true }
-      )
-    ).rejects.toThrow('a return value that is not a JSX element');
+    const plan = await analyseModule(
+      {
+        path: 'src/mixed.tsx',
+        code: 'export default (cond) => {\n  return cond ? <p>x</p> : "text";\n};\n',
+      },
+      { transpileTs: true }
+    );
+    expect(plan.kind).toBe(ModuleKind.Qwik);
   });
 
   test('invalid authored JSX (void-tag children) fails with a spanned diagnostic', async () => {

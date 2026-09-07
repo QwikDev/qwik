@@ -142,11 +142,32 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         value: `[${this.textRoots(ops, ownerName, statements, pass).join(', ')}]`,
       };
     }
-    const roots = ops.map((op) => this.op(op, ownerName, statements, pass));
+    const template = `${ownerName}_${pass.next(QwikGenWord.Template)}`;
     return {
       statements,
-      value: `[${roots.join(', ')}]`,
+      value: this.fragmentRoot(ops, template, statements, pass),
     };
+  }
+
+  private fragmentRoot(
+    ops: LinkedOp[],
+    template: string,
+    statements: string[],
+    pass: RenderPass
+  ): string {
+    const fragment = pass.next(QwikGenWord.Fragment);
+    statements.push(`const ${fragment} = ${template}(${pass.names.ctx}.document);`);
+    this.walkChildren(ops, fragment, statements, pass);
+    this.imports.add(QwikWord.CreateTemplate);
+    const html = templateChildren(ops)
+      .map((child) => foldStaticOp(child, false))
+      .join('');
+    this.hoists.push(`const ${template} = ${QwikWord.CreateTemplate}(${JSON.stringify(html)});`);
+    const singleNode =
+      ops.length === 1 && (ops[0].op === OpKind.Static || ops[0].op === OpKind.Hole);
+    return singleNode
+      ? childPathExpression(fragment, 0, 1, this.imports)
+      : `[...${fragment}.childNodes]`;
   }
 
   private textRoots(
@@ -683,22 +704,8 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       value = el;
     } else {
       // Rootless rows mount a fragment template; the runtime brackets the nodes in `<!r>`.
-      const fragment = pass.next(QwikGenWord.Fragment);
-      statements = [`const ${fragment} = ${template}(${pass.names.ctx}.document);`];
-      emitter.walkChildren(body.ops, fragment, statements, pass);
-      emitter.imports.add(QwikWord.CreateTemplate);
-      const html = templateChildren(body.ops)
-        .map((child) => foldStaticOp(child, false))
-        .join('');
-      emitter.hoists.push(
-        `const ${template} = ${QwikWord.CreateTemplate}(${JSON.stringify(html)});`
-      );
-      // Mirrors Shape.Text: one text node; branches/collections span two marker nodes.
-      const singleNode =
-        body.ops.length === 1 && (root.op === OpKind.Static || root.op === OpKind.Hole);
-      value = singleNode
-        ? childPathExpression(fragment, 0, 1, emitter.imports)
-        : `[...${fragment}.childNodes]`;
+      statements = [];
+      value = emitter.fragmentRoot(body.ops, template, statements, pass);
     }
     const loopParams = usedParamPrefix(this.module, qrl);
     emission.params = statements.length === 0 ? [] : [pass.names.ctx, ...loopParams];

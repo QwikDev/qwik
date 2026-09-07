@@ -352,15 +352,14 @@ export const component_branch_condition_segment_6_2fzrg2njel5c3 = () => {
 */
 ============================= src/component.tsx_component_branch_then_segment_7_24n7ce0yehh58.js (ENTRY POINT)==
 
-import { _createElementTemplate } from '@qwik.dev/core';
-const component_branch_then_segment_7_24n7ce0yehh58_tmpl0 =
-  _createElementTemplate('<p>Details</p>');
-const component_branch_then_segment_7_24n7ce0yehh58_tmpl1 = _createElementTemplate('<p>More</p>');
+import { createTemplate } from '@qwik.dev/core';
+const component_branch_then_segment_7_24n7ce0yehh58_tmpl0 = createTemplate(
+  '<p>Details</p><p>More</p>'
+);
 
 export const component_branch_then_segment_7_24n7ce0yehh58 = (ctx) => {
-  const el0 = component_branch_then_segment_7_24n7ce0yehh58_tmpl0(ctx.document);
-  const el1 = component_branch_then_segment_7_24n7ce0yehh58_tmpl1(ctx.document);
-  return [el0, el1];
+  const fragment0 = component_branch_then_segment_7_24n7ce0yehh58_tmpl0(ctx.document);
+  return [...fragment0.childNodes];
 };
 /*
 {

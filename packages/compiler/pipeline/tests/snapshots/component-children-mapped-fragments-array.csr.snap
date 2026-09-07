@@ -57,27 +57,18 @@ export default (props, ctx) => {
 };
 ============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
 
-import {
-  _first,
-  _next,
-  createTemplate,
-  createCollection,
-  _textValue,
-  _createElementTemplate,
-} from '@qwik.dev/core';
+import { _first, _next, createTemplate, createCollection, _textValue } from '@qwik.dev/core';
 const component_slot_render_segment_0_3b0tagwys7lui_tmpl0 = createTemplate('<!><!>');
-const semantic_collectionRender_286_392_1dya5dm9rmx0a_tmpl0 = _createElementTemplate('<h2> </h2>');
-const semantic_collectionRender_286_392_1dya5dm9rmx0a_tmpl1 = _createElementTemplate('<b>!</b>');
+const semantic_collectionRender_286_392_1dya5dm9rmx0a_tmpl0 = createTemplate('<h2> </h2><b>!</b>');
 
 export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
   const fragment0 = component_slot_render_segment_0_3b0tagwys7lui_tmpl0(ctx.document);
   const start0 = _first(fragment0);
   const end0 = _next(start0);
   function semantic_collectionRender_286_392_1dya5dm9rmx0a(ctx, item) {
-    const el0 = semantic_collectionRender_286_392_1dya5dm9rmx0a_tmpl0(ctx.document);
-    _first(el0).data = _textValue(item.title);
-    const el1 = semantic_collectionRender_286_392_1dya5dm9rmx0a_tmpl1(ctx.document);
-    return [el0, el1];
+    const fragment0 = semantic_collectionRender_286_392_1dya5dm9rmx0a_tmpl0(ctx.document);
+    _first(_first(fragment0)).data = _textValue(item.title);
+    return [...fragment0.childNodes];
   }
   createCollection(
     ctx,

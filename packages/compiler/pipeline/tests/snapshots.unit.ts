@@ -40,6 +40,18 @@ async function testInputs(mode: 'ssr' | 'csr', snapshotName: string, inputs: rea
 }
 
 describe.each(['ssr', 'csr'] as const)('%s', (mode) => {
+  test.each([
+    ['fragment', '<><Child /><b>tail</b></>'],
+    ['conditional', 'props.visible ? <b>on</b> : null'],
+    ['logical', 'props.visible && <b>on</b>'],
+  ])('should lower a %s component return through render expressions', async (name, expression) => {
+    const output = await testInput(mode, `component-return-${name}`, {
+      code: `const Child = () => <><span>first</span><span>second</span></>;
+export default (props) => { return ${expression}; };`,
+    });
+    expect(output.diagnostics).toEqual([]);
+  });
+
   test('should preserve function component declarations and default bindings', async () => {
     const output = await testInput(mode, 'component-function-declarations', {
       code: `import { useSignal } from '@qwik.dev/core';

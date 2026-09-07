@@ -211,6 +211,8 @@ from a deserialized frozen plan in a fresh process.
   arrows and synchronous function declarations retain their local/exported forms and bindings.
   Named default functions retain their local name; separate export aliases stay authored.
   Modules with function components initialize generated hoists before authored statements.
+- Component returns use the shared render-expression lowering, including fragments and conditional
+  JSX with empty or text alternatives. CSR multi-root output shares fragment mounting with rows.
 - Candidate detection is the routing gate; JSX left outside any candidate fails closed with
   `unsupported-runtime-jsx` (NEVER the oxc fallback — that would emit react/jsx-runtime output).
   Legacy additionally embeds function renders for JSX in call arguments — resolve when that

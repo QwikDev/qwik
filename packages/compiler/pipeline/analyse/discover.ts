@@ -4,7 +4,7 @@ import type {
   BindingPattern,
   Directive,
   Function as FunctionNode,
-  JSXElement,
+  Expression,
   Statement,
 } from 'oxc-parser';
 import { DeclarationKind } from '../schema';
@@ -21,7 +21,7 @@ export interface DiscoveredComponent {
   param: { node: BindingPattern; range: [number, number] } | null;
   /** Statements before the return — lowered as component setup. */
   setupStatements: (Directive | Statement)[];
-  jsx: JSXElement;
+  renderExpression: Expression;
   statement: Statement;
 }
 
@@ -94,8 +94,8 @@ function describeComponent(
     throw new UnsupportedError('a destructured component parameter');
   }
   const { setupStatements, returned } = componentBody(fn);
-  if (returned === null || returned.type !== 'JSXElement') {
-    throw new UnsupportedError('a return value that is not a JSX element');
+  if (returned === null) {
+    throw new UnsupportedError('a component without a return value');
   }
   return {
     name,
@@ -104,7 +104,7 @@ function describeComponent(
     setupStatements,
     fn,
     param: param === undefined ? null : { node: param, range: [param.start, param.end] },
-    jsx: returned,
+    renderExpression: returned,
     statement,
   };
 }
@@ -112,7 +112,7 @@ function describeComponent(
 /** Setup statements plus the returned expression (concise body, or the final `return`). */
 function componentBody(fn: ArrowFunctionExpression | FunctionNode): {
   setupStatements: (Directive | Statement)[];
-  returned: ReturnType<typeof unwrapExpression>;
+  returned: Expression | null;
 } {
   const body = fn.body;
   if (body === null) {
@@ -128,6 +128,6 @@ function componentBody(fn: ArrowFunctionExpression | FunctionNode): {
   }
   return {
     setupStatements: statements.slice(0, -1),
-    returned: unwrapExpression(last.argument),
+    returned: last.argument === null ? null : unwrapExpression(last.argument),
   };
 }

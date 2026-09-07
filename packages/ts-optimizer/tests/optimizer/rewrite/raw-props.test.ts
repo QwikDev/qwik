@@ -18,12 +18,14 @@ describe('raw-props', () => {
     );
   });
 
-  it('aborts consolidation for call-expression default (parity gate)', () => {
+  it('evaluates call-expression defaults once without tracking props', () => {
     const body = '({ count, label = getLabel() }) => ({ count, label, total: count + 1 })';
 
     const result = applyRawPropsTransform(body);
 
-    expect(result).toBe(body);
+    expect(result).toBe(
+      '(_rawProps) => {\nconst _defaultValue = untrack(() => _rawProps.label) === void 0 ? getLabel() : void 0;\nreturn ({ count: _rawProps.count, label: _rawProps.label === void 0 ? _defaultValue : _rawProps.label, total: _rawProps.count + 1 });\n}'
+    );
   });
 
   it('aborts consolidation for nested ObjectPattern field (parity gate)', () => {
@@ -141,10 +143,16 @@ describe('raw-props', () => {
     expect(extractDestructuredFieldDefaultsMap(body)).toEqual(info.fieldDefaults);
   });
 
-  it('combined extractor honors the all-or-nothing unsafe gate for both maps', () => {
+  it('combined extractor exposes dynamic default bindings', () => {
     const info = extractDestructuredFieldInfo('({ count, label = getLabel() }) => count + label');
 
-    expect(info.fieldMap.size).toBe(0);
+    expect(info.fieldMap).toEqual(
+      new Map([
+        ['count', 'count'],
+        ['label', 'label'],
+      ])
+    );
     expect(info.fieldDefaults.size).toBe(0);
+    expect(info.fieldDynamicDefaults).toEqual(new Map([['label', '_defaultValue']]));
   });
 });

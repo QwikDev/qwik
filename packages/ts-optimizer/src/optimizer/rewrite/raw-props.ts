@@ -99,6 +99,8 @@ interface RawPropsField {
   key: string;
   local: string;
   defaultValue?: string;
+  dynamicDefaultName?: string;
+  dynamicDefaultReferences?: Set<string>;
 }
 
 /**
@@ -125,6 +127,8 @@ interface RawPropsTransformPlan {
   restLineInPlace?: boolean;
   fieldLocalToKey: Map<string, string>;
   fieldLocalToDefault: Map<string, string>;
+  fieldLocalToDynamicDefault: Map<string, string>;
+  dynamicDefaultLines: string[];
   excludedRanges: SourceRange[];
 }
 
@@ -134,6 +138,10 @@ export interface DestructuredFieldInfo {
   readonly fieldMap: Map<string, string>;
   /** Local binding name → destructure-default source text (`some` → `1+2`). */
   readonly fieldDefaults: Map<string, string>;
+  /** Local binding name → generated dynamic-default binding. */
+  readonly fieldDynamicDefaults: Map<string, string>;
+  /** Module-scope names referenced by dynamic defaults. */
+  readonly dynamicDefaultReferences: Set<string>;
 }
 
 /**
@@ -143,7 +151,14 @@ export interface DestructuredFieldInfo {
 export function extractDestructuredFieldInfo(body: string): DestructuredFieldInfo {
   const fieldMap = new Map<string, string>();
   const fieldDefaults = new Map<string, string>();
-  const result: DestructuredFieldInfo = { fieldMap, fieldDefaults };
+  const fieldDynamicDefaults = new Map<string, string>();
+  const dynamicDefaultReferences = new Set<string>();
+  const result: DestructuredFieldInfo = {
+    fieldMap,
+    fieldDefaults,
+    fieldDynamicDefaults,
+    dynamicDefaultReferences,
+  };
 
   const session = createFunctionTransformSession(body);
   if (!session) {
@@ -160,7 +175,13 @@ export function extractDestructuredFieldInfo(body: string): DestructuredFieldInf
     return result;
   }
 
-  const bindings = collectPatternBindings(firstParam, body, session.offset);
+  const bindings = collectPatternBindings(
+    firstParam,
+    body,
+    session.offset,
+    true,
+    collectIdentifierNames(session.program)
+  );
   // Aborted destructure — return empty maps so downstream consolidation skips
   // this parent entirely rather than partially consolidating safe fields only.
   if (bindings.unsafe) {
@@ -169,7 +190,12 @@ export function extractDestructuredFieldInfo(body: string): DestructuredFieldInf
 
   for (const field of bindings.fields) {
     fieldMap.set(field.local, field.key);
-    if (field.defaultValue !== undefined) {
+    if (field.dynamicDefaultName !== undefined) {
+      fieldDynamicDefaults.set(field.local, field.dynamicDefaultName);
+      for (const name of field.dynamicDefaultReferences ?? []) {
+        dynamicDefaultReferences.add(name);
+      }
+    } else if (field.defaultValue !== undefined) {
       fieldDefaults.set(field.local, field.defaultValue);
     }
   }
@@ -197,7 +223,10 @@ export function extractDestructuredFieldDefaultsMap(body: string): Map<string, s
 function collectPatternBindings(
   pattern: unknown,
   sourceText?: string,
-  offset = 0
+  offset = 0,
+  allowDynamicDefaults = false,
+  takenNames: Set<string> = new Set(),
+  preferredDynamicDefaultNames?: ReadonlyMap<string, string>
 ): RawPropsBindingInfo {
   const fields: RawPropsField[] = [];
   const defaultNodes: (unknown | undefined)[] = [];
@@ -255,29 +284,48 @@ function collectPatternBindings(
     defaultNodes.push(defaultNode);
   }
 
-  // After the loop: needs the full binding set; any non-const default aborts.
+  // After the loop: sibling-binding defaults must keep their source destructure.
   if (!unsafe) {
     const bindingLocals = new Set<string>(fields.map((f) => f.local));
     if (restElementName) {
       bindingLocals.add(restElementName);
     }
-    for (const node of defaultNodes) {
-      if (node !== undefined && defaultExprIsNonConst(node, bindingLocals)) {
+    let dynamicDefaultIndex = 0;
+    for (let index = 0; index < defaultNodes.length; index++) {
+      const node = defaultNodes[index];
+      if (node === undefined) {
+        continue;
+      }
+      if (referencesDestructuredName(node, bindingLocals)) {
         unsafe = true;
         break;
       }
+      if (!defaultExprIsDynamic(node)) {
+        continue;
+      }
+      if (!allowDynamicDefaults) {
+        unsafe = true;
+        break;
+      }
+      let name = preferredDynamicDefaultNames?.get(fields[index].local);
+      if (name === undefined) {
+        do {
+          name =
+            dynamicDefaultIndex === 0 ? '_defaultValue' : `_defaultValue${dynamicDefaultIndex}`;
+          dynamicDefaultIndex++;
+        } while (takenNames.has(name));
+      }
+      takenNames.add(name);
+      fields[index].dynamicDefaultName = name;
+      fields[index].dynamicDefaultReferences = collectReferenceNames(node);
     }
   }
 
   return { fields, restElementName, unsafe };
 }
 
-/**
- * A destructure default is non-const — not inline-safe — when its expression contains a call, a
- * member access, or a sibling-binding reference (which would dangle once the destructure is
- * eliminated). Arrow/function bodies aren't descended; object-literal keys aren't references.
- */
-function defaultExprIsNonConst(node: unknown, bindingLocals: ReadonlySet<string>): boolean {
+/** Dynamic defaults need one untracked evaluation before field references are rewritten. */
+function defaultExprIsDynamic(node: unknown): boolean {
   if (!isAstNode(node)) {
     return false;
   }
@@ -291,9 +339,6 @@ function defaultExprIsNonConst(node: unknown, bindingLocals: ReadonlySet<string>
   if (t === 'ArrowFunctionExpression' || t === 'FunctionExpression') {
     return false;
   }
-  if (isIdentifierNode(node)) {
-    return bindingLocals.has(node.name);
-  }
 
   let found = false;
   forEachAstChild(node, (child, key, parent) => {
@@ -305,11 +350,72 @@ function defaultExprIsNonConst(node: unknown, bindingLocals: ReadonlySet<string>
     if (isPropertyKey) {
       return;
     }
-    if (defaultExprIsNonConst(child, bindingLocals)) {
+    if (defaultExprIsDynamic(child)) {
       found = true;
     }
   });
   return found;
+}
+
+function referencesDestructuredName(node: unknown, bindingLocals: ReadonlySet<string>): boolean {
+  if (!isAstNode(node)) {
+    return false;
+  }
+  if (node.type === 'ArrowFunctionExpression' || node.type === 'FunctionExpression') {
+    return false;
+  }
+  if (isIdentifierNode(node) && bindingLocals.has(node.name)) {
+    return true;
+  }
+
+  let found = false;
+  forEachAstChild(node, (child, key, parent) => {
+    if (found) {
+      return;
+    }
+    const isPropertyKey =
+      key === 'key' &&
+      parent.type === 'Property' &&
+      (parent as { computed?: boolean }).computed !== true;
+    if (!isPropertyKey && referencesDestructuredName(child, bindingLocals)) {
+      found = true;
+    }
+  });
+  return found;
+}
+
+function collectIdentifierNames(node: unknown, names = new Set<string>()): Set<string> {
+  if (!isAstNode(node)) {
+    return names;
+  }
+  if (isIdentifierNode(node)) {
+    names.add(node.name);
+  }
+  forEachAstChild(node, (child) => collectIdentifierNames(child, names));
+  return names;
+}
+
+function collectReferenceNames(node: unknown, names = new Set<string>()): Set<string> {
+  if (!isAstNode(node)) {
+    return names;
+  }
+  if (node.type === 'ArrowFunctionExpression' || node.type === 'FunctionExpression') {
+    return names;
+  }
+  if (isIdentifierNode(node)) {
+    names.add(node.name);
+    return names;
+  }
+  forEachAstChild(node, (child, key, parent) => {
+    const isPropertyKey =
+      key === 'key' &&
+      parent.type === 'Property' &&
+      (parent as { computed?: boolean }).computed !== true;
+    if (!isPropertyKey) {
+      collectReferenceNames(child, names);
+    }
+  });
+  return names;
 }
 
 function toFieldLocalToKey(fields: RawPropsField[]): Map<string, string> {
@@ -323,11 +429,33 @@ function toFieldLocalToKey(fields: RawPropsField[]): Map<string, string> {
 function toFieldLocalToDefault(fields: RawPropsField[]): Map<string, string> {
   const fieldLocalToDefault = new Map<string, string>();
   for (const field of fields) {
-    if (field.defaultValue !== undefined) {
+    if (field.defaultValue !== undefined && field.dynamicDefaultName === undefined) {
       fieldLocalToDefault.set(field.local, field.defaultValue);
     }
   }
   return fieldLocalToDefault;
+}
+
+function toFieldLocalToDynamicDefault(fields: RawPropsField[]): Map<string, string> {
+  const dynamicDefaults = new Map<string, string>();
+  for (const field of fields) {
+    if (field.dynamicDefaultName !== undefined) {
+      dynamicDefaults.set(field.local, field.dynamicDefaultName);
+    }
+  }
+  return dynamicDefaults;
+}
+
+function buildDynamicDefaultLines(baseName: string, fields: RawPropsField[]): string[] {
+  return fields.flatMap((field) => {
+    if (field.defaultValue === undefined || field.dynamicDefaultName === undefined) {
+      return [];
+    }
+    const accessor = buildPropertyAccessor(baseName, field.key);
+    return [
+      `const ${field.dynamicDefaultName} = untrack(() => ${accessor}) === void 0 ? ${field.defaultValue} : void 0;`,
+    ];
+  });
 }
 
 function buildRestPropsLine(
@@ -382,7 +510,8 @@ function arrowBodyLooksLikeComponent(body: AstMaybeNode): boolean {
 
 function analyzeRawPropsTransform(
   session: FunctionTransformSession,
-  body: string
+  body: string,
+  preferredDynamicDefaultNames?: ReadonlyMap<string, string>
 ): RawPropsTransformPlan | null {
   const { fn, offset } = session;
   const firstParam = fn.params[0];
@@ -402,7 +531,14 @@ function analyzeRawPropsTransform(
     return null;
   }
 
-  const bindings = collectPatternBindings(firstParam, body, offset);
+  const bindings = collectPatternBindings(
+    firstParam,
+    body,
+    offset,
+    true,
+    collectIdentifierNames(session.program),
+    preferredDynamicDefaultNames
+  );
   // Abort the whole pattern rewrite when any field has an unsupported shape
   // (nested pattern, call-expression default, non-ident rest) — preserve the
   // source destructure verbatim.
@@ -421,6 +557,8 @@ function analyzeRawPropsTransform(
       : undefined,
     fieldLocalToKey: toFieldLocalToKey(bindings.fields),
     fieldLocalToDefault: toFieldLocalToDefault(bindings.fields),
+    fieldLocalToDynamicDefault: toFieldLocalToDynamicDefault(bindings.fields),
+    dynamicDefaultLines: buildDynamicDefaultLines('_rawProps', bindings.fields),
     excludedRanges: [{ start: firstParam.start, end: firstParam.end }],
   };
 }
@@ -527,6 +665,8 @@ function analyzeBodyDestructureDeclarator(
     restLineInPlace: baseName !== firstParamName,
     fieldLocalToKey: toFieldLocalToKey(bindings.fields),
     fieldLocalToDefault: toFieldLocalToDefault(bindings.fields),
+    fieldLocalToDynamicDefault: new Map(),
+    dynamicDefaultLines: [],
     excludedRanges: [{ start: stmt.start, end: stmt.end }],
   };
 }
@@ -646,14 +786,19 @@ function applyIdentifierReplacements(
   session: TransformSession,
   replacements: IdentifierReplacement[],
   baseName: string,
-  defaultValues?: Map<string, string>
+  defaultValues: ReadonlyMap<string, string>,
+  dynamicDefaults: ReadonlyMap<string, string>
 ): void {
   for (const replacement of replacements) {
     const baseAccessor = buildPropertyAccessor(baseName, replacement.key);
     const defaultValue = defaultValues?.get(replacement.local);
+    const dynamicDefaultName = dynamicDefaults.get(replacement.local);
     // Parens only when parent precedence requires them (via `replacement.needsParens`).
     let accessor: string;
-    if (defaultValue === undefined) {
+    if (dynamicDefaultName !== undefined) {
+      const conditional = `${baseAccessor} === void 0 ? ${dynamicDefaultName} : ${baseAccessor}`;
+      accessor = replacement.needsParens ? `(${conditional})` : conditional;
+    } else if (defaultValue === undefined) {
       accessor = baseAccessor;
     } else {
       accessor = replacement.needsParens
@@ -762,13 +907,16 @@ export function consolidateRawPropsInWCalls(body: string): string {
   return session.toSource();
 }
 
-export function applyRawPropsTransform(body: string): string {
+export function applyRawPropsTransform(
+  body: string,
+  preferredDynamicDefaultNames?: ReadonlyMap<string, string>
+): string {
   const session = createFunctionTransformSession(body);
   if (!session) {
     return body;
   }
 
-  const plan = analyzeRawPropsTransform(session, body);
+  const plan = analyzeRawPropsTransform(session, body, preferredDynamicDefaultNames);
   if (!plan) {
     return body;
   }
@@ -780,6 +928,7 @@ export function applyRawPropsTransform(body: string): string {
       '_rawProps'
     );
   }
+  const prologueLines = [...plan.dynamicDefaultLines];
   if (plan.removeRange) {
     // A props-derived local declared mid-body would hit a TDZ if the rest line
     // were inserted at the prologue, so emit it in place of the destructure.
@@ -788,11 +937,11 @@ export function applyRawPropsTransform(body: string): string {
     } else {
       session.edits.remove(plan.removeRange.start, plan.removeRange.end);
       if (plan.restLine) {
-        insertFunctionBodyPrologue(session, session.fn, plan.restLine);
+        prologueLines.push(plan.restLine);
       }
     }
   } else if (plan.restLine) {
-    insertFunctionBodyPrologue(session, session.fn, plan.restLine);
+    prologueLines.push(plan.restLine);
   }
   if (plan.fieldLocalToKey.size > 0) {
     const replacements = collectIdentifierReplacements(
@@ -805,11 +954,21 @@ export function applyRawPropsTransform(body: string): string {
       session,
       replacements,
       plan.replacementBaseName,
-      plan.fieldLocalToDefault
+      plan.fieldLocalToDefault,
+      plan.fieldLocalToDynamicDefault
     );
   }
 
-  return session.toSource();
+  const transformed = session.toSource();
+  if (prologueLines.length === 0) {
+    return transformed;
+  }
+  const prologueSession = createFunctionTransformSession(transformed);
+  if (!prologueSession) {
+    return transformed;
+  }
+  insertFunctionBodyPrologue(prologueSession, prologueSession.fn, prologueLines.join('\n'));
+  return prologueSession.toSource();
 }
 
 export function bodyConsolidatesToRawProps(body: string): boolean {
@@ -846,10 +1005,12 @@ export function consolidateQpCaptureValues(
 export function replacePropsFieldReferencesInBody(
   body: string,
   fieldMap: Map<string, string>,
-  defaultValues?: ReadonlyMap<string, string>
+  defaultValues?: ReadonlyMap<string, string>,
+  dynamicDefaults?: ReadonlyMap<string, string>
 ): string {
   return rewritePropsFieldReferences(body, fieldMap, {
     memberPropertyMode: 'nonComputed',
     defaultValues,
+    dynamicDefaults,
   });
 }

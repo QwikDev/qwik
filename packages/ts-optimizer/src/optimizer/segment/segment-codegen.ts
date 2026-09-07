@@ -4,7 +4,7 @@ import {
 } from '../edit/transform-session.js';
 import { formatBindingPattern } from '../ast/binding-pattern.js';
 import { rewriteImportSource } from '../rewrite/rewrite-imports.js';
-import { inlineConstCaptures } from '../rewrite/index.js';
+import { extractDestructuredFieldInfo, inlineConstCaptures } from '../rewrite/index.js';
 import { hasUnderscorePlaceholderParams } from '../rewrite/predicates.js';
 import type { ConsolidatedSegment } from '../extraction/extract.js';
 import {
@@ -64,6 +64,7 @@ export interface SegmentCaptureInfo {
   skipCaptureInjection?: boolean;
   propsFieldCaptures?: Map<string, string>;
   propsFieldDefaults?: Map<string, string>;
+  propsFieldDynamicDefaults?: Map<string, string>;
   constLiterals?: Map<string, string>;
 }
 
@@ -134,11 +135,13 @@ interface SegmentImportSpec {
 function replacePropsFieldReferences(
   bodyText: string,
   fieldMap: Map<string, string>,
-  defaultValues?: ReadonlyMap<string, string>
+  defaultValues?: ReadonlyMap<string, string>,
+  dynamicDefaults?: ReadonlyMap<string, string>
 ): string {
   return rewritePropsFieldReferences(bodyText, fieldMap, {
     memberPropertyMode: 'all',
     defaultValues,
+    dynamicDefaults,
   });
 }
 
@@ -660,6 +663,9 @@ function applyBodyTransforms(
   // Internal helpers work on plain string; the BodyText brand applies only at
   // the ExtractionResult boundary.
   let bodyText: string = extraction.bodyText;
+  const rawPropsInfo = !extraction.isInlinedQrl
+    ? extractDestructuredFieldInfo(bodyText)
+    : undefined;
 
   if (nestedCallSites && nestedCallSites.length > 0) {
     bodyText = rewriteNestedCallSitesInline(
@@ -682,7 +688,7 @@ function applyBodyTransforms(
   // original binding and dropped the closing brace, producing an unbalanced,
   // unparseable segment.
   if (!extraction.isInlinedQrl) {
-    bodyText = applyRawPropsToSegmentBody(bodyText, parts);
+    bodyText = applyRawPropsToSegmentBody(bodyText, parts, rawPropsInfo?.fieldDynamicDefaults);
   }
   bodyText = stripDiagnosticsAndDirectives(bodyText);
 
@@ -693,7 +699,8 @@ function applyBodyTransforms(
     bodyText = replacePropsFieldReferences(
       bodyText,
       propsFieldCaptures,
-      captureInfo?.propsFieldDefaults
+      captureInfo?.propsFieldDefaults,
+      captureInfo?.propsFieldDynamicDefaults
     );
   }
 

@@ -137,6 +137,8 @@ interface ExtractionPhaseFields {
    * would. Keyed by local-binding name.
    */
   propsFieldDefaults?: Map<string, string>;
+  /** Dynamic prop defaults keyed by their original local binding. */
+  propsFieldDynamicDefaults?: Map<string, string>;
   constLiterals?: Map<string, string>;
 }
 
@@ -932,14 +934,13 @@ export function createExtractionCollector(
         if (arg0 && nameValue && !isNullBody) {
           const bodyText = source.slice(arg0.start, arg0.end);
 
-          // Split into display + hash portion. The 8+-alphanumeric gate matches
-          // `HASH_SHAPE` in `types/brands.ts`, so `lastPart` is always a valid `Hash`.
+          // Split the final underscore suffix as the peer optimizer does.
           const lastUnder = nameValue.lastIndexOf('_');
           let inlinedHash: Hash;
           let displayNameSuffix: string;
           if (lastUnder > 0) {
             const lastPart = nameValue.slice(lastUnder + 1);
-            if (lastPart.length >= 8 && /^[a-zA-Z0-9]+$/.test(lastPart)) {
+            if (/^[a-zA-Z0-9]+$/.test(lastPart)) {
               inlinedHash = mkHash(lastPart);
               displayNameSuffix = nameValue.slice(0, lastUnder);
             } else {

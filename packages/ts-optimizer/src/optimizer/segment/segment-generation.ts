@@ -340,6 +340,7 @@ export interface SegmentGenerationPrep {
   enumValueMap: Map<string, Map<string, string>>;
   fieldMaps: ReadonlyMap<string, ReadonlyMap<string, string>>;
   fieldDefaultsMaps: ReadonlyMap<string, ReadonlyMap<string, string>>;
+  fieldDynamicDefaultsMaps: ReadonlyMap<string, ReadonlyMap<string, string>>;
 }
 
 /**
@@ -355,6 +356,7 @@ export interface RawPropsConsolidation {
   propsFieldCaptures: Map<string, string>;
   newCaptureNames: string[];
   propsFieldDefaults?: Map<string, string>;
+  propsFieldDynamicDefaults?: Map<string, string>;
 }
 
 /**
@@ -365,10 +367,12 @@ export interface RawPropsConsolidation {
 export function consolidateRawPropsCaptures(
   captureNames: readonly string[],
   fieldMap: ReadonlyMap<string, string>,
-  fieldDefaults?: ReadonlyMap<string, string>
+  fieldDefaults?: ReadonlyMap<string, string>,
+  fieldDynamicDefaults?: ReadonlyMap<string, string>
 ): RawPropsConsolidation | null {
   const propsFieldCaptures = new Map<string, string>();
   const propsFieldDefaults = new Map<string, string>();
+  const propsFieldDynamicDefaults = new Map<string, string>();
   const nonPropsCaptures: string[] = [];
   for (const name of captureNames) {
     const fieldExpr = fieldMap.get(name);
@@ -377,6 +381,11 @@ export function consolidateRawPropsCaptures(
       const defaultExpr = fieldDefaults?.get(name);
       if (defaultExpr !== undefined) {
         propsFieldDefaults.set(name, defaultExpr);
+      }
+      const dynamicDefaultName = fieldDynamicDefaults?.get(name);
+      if (dynamicDefaultName !== undefined) {
+        propsFieldDynamicDefaults.set(name, dynamicDefaultName);
+        nonPropsCaptures.push(dynamicDefaultName);
       }
     } else {
       nonPropsCaptures.push(name);
@@ -389,6 +398,8 @@ export function consolidateRawPropsCaptures(
     propsFieldCaptures,
     newCaptureNames: [...nonPropsCaptures, '_rawProps'].sort(),
     propsFieldDefaults: propsFieldDefaults.size > 0 ? propsFieldDefaults : undefined,
+    propsFieldDynamicDefaults:
+      propsFieldDynamicDefaults.size > 0 ? propsFieldDynamicDefaults : undefined,
   };
 }
 
@@ -398,6 +409,7 @@ function buildParentFieldMaps(
 ): {
   fieldMaps: ReadonlyMap<string, ReadonlyMap<string, string>>;
   fieldDefaultsMaps: ReadonlyMap<string, ReadonlyMap<string, string>>;
+  fieldDynamicDefaultsMaps: ReadonlyMap<string, ReadonlyMap<string, string>>;
 } {
   const parentSymbolNames = new Set<string>();
   for (const ext of extractions) {
@@ -407,15 +419,17 @@ function buildParentFieldMaps(
   }
   const fieldMaps = new Map<string, ReadonlyMap<string, string>>();
   const fieldDefaultsMaps = new Map<string, ReadonlyMap<string, string>>();
+  const fieldDynamicDefaultsMaps = new Map<string, ReadonlyMap<string, string>>();
   for (const symbolName of parentSymbolNames) {
     const parentExt = extBySymbol.get(symbolName);
     if (parentExt !== undefined) {
       const info = extractDestructuredFieldInfo(parentExt.bodyText);
       fieldMaps.set(symbolName, info.fieldMap);
       fieldDefaultsMaps.set(symbolName, info.fieldDefaults);
+      fieldDynamicDefaultsMaps.set(symbolName, info.fieldDynamicDefaults);
     }
   }
-  return { fieldMaps, fieldDefaultsMaps };
+  return { fieldMaps, fieldDefaultsMaps, fieldDynamicDefaultsMaps };
 }
 
 /**
@@ -436,7 +450,13 @@ function tryConsolidateRawProps(
     return null;
   }
   const fieldDefaults = prep.fieldDefaultsMaps.get(ext.parent);
-  return consolidateRawPropsCaptures(ext.captureNames, fieldMap, fieldDefaults);
+  const fieldDynamicDefaults = prep.fieldDynamicDefaultsMaps.get(ext.parent);
+  return consolidateRawPropsCaptures(
+    ext.captureNames,
+    fieldMap,
+    fieldDefaults,
+    fieldDynamicDefaults
+  );
 }
 
 /**
@@ -502,7 +522,7 @@ export function computeSegmentGenerationPrep(ctx: SegmentGenerationContext): Seg
 
   const enumValueMap = collectEnumValueMap(ctx.program, ctx.shouldTranspileTs);
 
-  const { fieldMaps, fieldDefaultsMaps } = buildParentFieldMaps(
+  const { fieldMaps, fieldDefaultsMaps, fieldDynamicDefaultsMaps } = buildParentFieldMaps(
     ctx.updatedExtractions,
     extBySymbol
   );
@@ -517,6 +537,7 @@ export function computeSegmentGenerationPrep(ctx: SegmentGenerationContext): Seg
     enumValueMap,
     fieldMaps,
     fieldDefaultsMaps,
+    fieldDynamicDefaultsMaps,
   };
 }
 
@@ -540,6 +561,9 @@ export function buildInlineStrategySegment(
     ext.propsFieldCaptures = rawProps.propsFieldCaptures;
     if (rawProps.propsFieldDefaults !== undefined) {
       ext.propsFieldDefaults = rawProps.propsFieldDefaults;
+    }
+    if (rawProps.propsFieldDynamicDefaults !== undefined) {
+      ext.propsFieldDynamicDefaults = rawProps.propsFieldDynamicDefaults;
     }
     ext.captureNames = rawProps.newCaptureNames;
     ext.captures = rawProps.newCaptureNames.length > 0;
@@ -1345,6 +1369,9 @@ export function buildDefaultStrategySegment(
     if (rawProps.propsFieldDefaults !== undefined) {
       captureInfo.propsFieldDefaults = rawProps.propsFieldDefaults;
     }
+    if (rawProps.propsFieldDynamicDefaults !== undefined) {
+      captureInfo.propsFieldDynamicDefaults = rawProps.propsFieldDynamicDefaults;
+    }
     ext.captureNames = rawProps.newCaptureNames;
     ext.captures = rawProps.newCaptureNames.length > 0;
   } else if (ext.propsFieldCaptures && ext.propsFieldCaptures.size > 0) {
@@ -1353,6 +1380,9 @@ export function buildDefaultStrategySegment(
     captureInfo.propsFieldCaptures = ext.propsFieldCaptures;
     if (ext.propsFieldDefaults) {
       captureInfo.propsFieldDefaults = ext.propsFieldDefaults;
+    }
+    if (ext.propsFieldDynamicDefaults) {
+      captureInfo.propsFieldDynamicDefaults = ext.propsFieldDynamicDefaults;
     }
   }
 

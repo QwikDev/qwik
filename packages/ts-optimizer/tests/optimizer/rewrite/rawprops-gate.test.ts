@@ -28,7 +28,8 @@ export const C = component$(({count, stuff: {hey}}) => {
   console.log(hey);
   useTask$(({track}) => {
     track(() => count);
-    console.log(count);
+    track(() => stuff);
+    console.log(count, stuff);
   });
   return <div class={count}>{count}</div>;
 });
@@ -47,7 +48,7 @@ export const C = component$(({count, stuff: {hey}}) => {
     expect(code).toMatch(/\.w\(\[\s*count\s*\]\)/);
   });
 
-  it('preserves call-expression default (NoWorks3 shape)', () => {
+  it('evaluates dynamic defaults without subscribing the component', () => {
     const input = `
 import { component$, useTask$ } from '@qwik.dev/core';
 import { hola } from 'some-lib';
@@ -56,7 +57,8 @@ export const C = component$(({count, stuff = hola()}) => {
   console.log(stuff);
   useTask$(({track}) => {
     track(() => count);
-    console.log(count);
+    track(() => stuff);
+    console.log(count, stuff);
   });
   return <div class={count}>{count}</div>;
 });
@@ -69,10 +71,15 @@ export const C = component$(({count, stuff = hola()}) => {
 
     const code = findParent(result).code;
 
-    expect(code).toMatch(/\(\{\s*count,\s*stuff\s*=\s*hola\(\)\s*\}\)\s*=>/);
-    expect(code).not.toMatch(/\(_rawProps\)\s*=>/);
-    expect(code).toContain('console.log(stuff)');
-    expect(code).toMatch(/\.w\(\[\s*count\s*\]\)/);
+    expect(code).toMatch(/\(_rawProps\)\s*=>/);
+    expect(code).toContain('untrack');
+    expect(code).toMatch(
+      /const _defaultValue\d* = untrack\(\(\) => _rawProps\.stuff\) === void 0 \? hola\(\) : void 0;/
+    );
+    expect(code).toMatch(
+      /console\.log\(_rawProps\.stuff === void 0 \? _defaultValue\d* : _rawProps\.stuff\)/
+    );
+    expect(code).toMatch(/\.w\(\[\s*_defaultValue\d*,\s*_rawProps\s*\]\)/);
   });
 
   it('preserves a default that references a sibling binding (no dangling ref)', () => {
@@ -194,7 +201,7 @@ export const C = component$(({count, plain}) => {
 import { component$, useTask$ } from '@qwik.dev/core';
 import { hola } from 'some-lib';
 
-export const C = component$(({count, stuff = hola()}) => {
+export const C = component$(({count, stuff = hola(count)}) => {
   useTask$(({track}) => {
     track(() => count);
     console.log(count);
@@ -209,8 +216,8 @@ export const C = component$(({count, stuff = hola()}) => {
     });
 
     const code = findParent(result).code;
-    expect(code).not.toContain('_rawProps');
-    expect(code).toMatch(/\(\{\s*count,\s*stuff\s*=\s*hola\(\)\s*\}\)\s*=>/);
+    expect(code).not.toContain('const _defaultValue');
+    expect(code).toMatch(/\(\{\s*count,\s*stuff\s*=\s*hola\(count\)\s*\}\)\s*=>/);
   });
 });
 

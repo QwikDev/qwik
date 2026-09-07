@@ -3,11 +3,11 @@ import { parseSync } from 'oxc-parser';
 import { transformModule } from '../../../src/optimizer/transform/index.js';
 import { mkFilePath, mkSourceText } from '../../../src/optimizer/types/brands.js';
 
-function transform(source: string) {
+function transform(source: string, entryType: 'smart' | 'segment' = 'smart') {
   return transformModule({
     input: [{ path: mkFilePath('test.tsx'), code: mkSourceText(source) }],
     srcDir: mkFilePath('.'),
-    entryStrategy: { type: 'smart' },
+    entryStrategy: { type: entryType },
     minify: 'simplify',
     transpileTs: true,
     transpileJsx: true,
@@ -40,23 +40,39 @@ describe('inlinedQrl nested inside another inlinedQrl captures array', () => {
     }
   });
 
-  it('does not extract the capture-position QRL into its own segment', () => {
+  it('extracts the capture-position QRL into its own segment', () => {
     const names = segments.map((m) => (m.kind === 'segment' ? m.segment.name : ''));
     expect(
       names.some((n) => /kbFhYQZkoVA/.test(n)),
       `segments: ${names.join(', ')}`
-    ).toBe(false);
+    ).toBe(true);
   });
 
-  it('hoists the capture-position QRL body to a top-level _inlined_ const and keeps the call inline', () => {
+  it('rewrites the capture-position QRL to its segment reference', () => {
     const owner = segments.find((m) => m.kind === 'segment' && /HTDRsvUbLiE/.test(m.segment.name));
     if (owner?.kind !== 'segment') {
       throw new Error('owner segment not found');
     }
-    expect(owner.code).toMatch(/const _inlined_C_component_isActive_useComputed_kbFhYQZkoVA\s*=/);
-    expect(owner.code).toMatch(
-      /inlinedQrl\(_inlined_C_component_isActive_useComputed_kbFhYQZkoVA,/
+    expect(owner.code).toMatch(/useComputedQrl\(q_s_kbFhYQZkoVA\.w\(\[context,\s*itemValue\]\)\)/);
+    expect(owner.code).not.toMatch(/_inlined_C_component_isActive_useComputed_kbFhYQZkoVA/);
+  });
+
+  it('extracts a QRL captured by a top-level QRL', () => {
+    const result = transform(
+      `
+import { inlinedQrl } from '@qwik.dev/core';
+
+const context = {};
+export const handler = inlinedQrl(() => {}, 'outer_abc', [
+  inlinedQrl(() => {}, 'inner_def', [context]),
+]);
+`,
+      'segment'
     );
-    expect(owner.code).not.toMatch(/q_s_kbFhYQZkoVA/);
+
+    const names = result.modules
+      .filter((module) => module.kind === 'segment')
+      .map((module) => module.segment.name);
+    expect(names, `segments: ${names.join(', ')}`).toContain('s_def');
   });
 });

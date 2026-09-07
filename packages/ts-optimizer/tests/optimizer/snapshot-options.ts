@@ -350,6 +350,11 @@ export const SNAPSHOT_OPTIONS: Record<string, SnapshotOptions> = {
     entryStrategy: { type: 'inline' },
     transpileTs: true,
   },
+  dynamic_props_defaults_do_not_subscribe_component: {
+    transpileJsx: true,
+    entryStrategy: { type: 'inline' },
+    transpileTs: true,
+  },
   example_input_bind: {
     entryStrategy: { type: 'inline' },
     transpileTs: true,

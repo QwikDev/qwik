@@ -98,11 +98,10 @@ export function transformInlineSegmentBody(
 
   const nested = allExtractions.filter((e) => e.parent === ext.symbolName);
 
-  const rawPropsFieldMap: ReadonlyMap<string, string> | undefined = bodyConsolidatesToRawProps(
-    ext.bodyText
-  )
-    ? extractDestructuredFieldInfo(ext.bodyText).fieldMap
+  const rawPropsInfo = bodyConsolidatesToRawProps(ext.bodyText)
+    ? extractDestructuredFieldInfo(ext.bodyText)
     : undefined;
+  const rawPropsFieldMap = rawPropsInfo?.fieldMap;
   const qpValues = (params: string[]): string[] =>
     rawPropsFieldMap === undefined ? params : consolidateQpCaptureValues(params, rawPropsFieldMap);
 
@@ -317,11 +316,16 @@ export function transformInlineSegmentBody(
     // Consolidate any destructured first param (component props AND hook
     // contexts like useComputed$'s { cleanup }) — a bare destructured method
     // call loses `this`. inlinedQrl bodies are pre-compiled and excluded.
-    const rawPropsResult = !ext.isInlinedQrl ? applyRawPropsTransform(body) : body;
+    const rawPropsResult = !ext.isInlinedQrl
+      ? applyRawPropsTransform(body, rawPropsInfo?.fieldDynamicDefaults)
+      : body;
     if (rawPropsResult !== body) {
       body = rawPropsResult;
       if (body.includes('_restProps(')) {
         additionalImports.set('_restProps', '@qwik.dev/core');
+      }
+      if (body.includes('untrack(')) {
+        additionalImports.set('untrack', '@qwik.dev/core');
       }
       body = consolidateRawPropsInWCalls(body);
     }
@@ -329,7 +333,12 @@ export function transformInlineSegmentBody(
 
   if (ext.propsFieldCaptures && ext.propsFieldCaptures.size > 0) {
     // Pass `propsFieldDefaults` so defaulted fields emit `(_rawProps.<key> ?? <default>)`.
-    body = replacePropsFieldReferencesInBody(body, ext.propsFieldCaptures, ext.propsFieldDefaults);
+    body = replacePropsFieldReferencesInBody(
+      body,
+      ext.propsFieldCaptures,
+      ext.propsFieldDefaults,
+      ext.propsFieldDynamicDefaults
+    );
   }
 
   body = propagateConstLiteralsInBody(body);

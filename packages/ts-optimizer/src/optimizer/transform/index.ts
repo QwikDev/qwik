@@ -16,6 +16,7 @@ import { stripTypeScript } from '../edit/strip-types.js';
 import { blankNonCode, skipStringLiteralForward } from '../edit/text-scanning.js';
 import { parseWithRawTransfer } from '../ast/parse.js';
 import { isStrippedExtraction } from '../rewrite/predicates.js';
+import { extractDestructuredFieldInfo } from '../rewrite/raw-props.js';
 import { flattenDestructureUseCalls } from '../prepare/flatten-destructures.js';
 import { normalizeInlineComponentProps } from '../prepare/inline-component-props.js';
 import { detectForeignJsxRuntime } from '../jsx/jsx-import-source.js';
@@ -535,42 +536,6 @@ function createOriginalOffsetMapper(
   return (offset) => offsets.get(offset) ?? offset;
 }
 
-/**
- * Drop `inlinedQrl` extractions nested as a value inside another `inlinedQrl`'s captures array. A
- * QRL used as a capture value is not a lazy boundary; extracting it would rewrite its call site
- * inside the outer `.w([...])` and collide with the outer capture-wrap edit. Containment is read
- * off offsets: a call inside another inlinedQrl but after its arg0 (`callStart >= argEnd`) can only
- * sit in the captures array.
- */
-function filterCaptureInlinedQrls(extractions: ExtractionResult[]): ExtractionResult[] {
-  const inlined = extractions.filter((e) => e.isInlinedQrl);
-  if (inlined.length < 2) {
-    return extractions;
-  }
-
-  const captureInlined = new Set<ExtractionResult>();
-  for (const inner of inlined) {
-    for (const outer of inlined) {
-      if (inner === outer) {
-        continue;
-      }
-      if (
-        inner.callStart > outer.callStart &&
-        inner.callEnd < outer.callEnd &&
-        inner.callStart >= outer.argEnd
-      ) {
-        captureInlined.add(inner);
-        break;
-      }
-    }
-  }
-
-  if (captureInlined.size === 0) {
-    return extractions;
-  }
-  return extractions.filter((e) => !captureInlined.has(e));
-}
-
 function extractModuleSegments(
   mod: ModuleContext,
   prepared: PreparedModuleInput
@@ -637,7 +602,7 @@ function extractModuleSegments(
 
   return {
     kind: 'extracted',
-    extractions: filterCaptureInlinedQrls(extractions),
+    extractions,
     closureNodes,
     facts,
   };
@@ -1098,6 +1063,29 @@ function attributeSegmentUsage(
   }
 
   let migrationDecisions = analyzeMigration(moduleLevelDecls, segmentUsage, rootUsage, program);
+  if (isInlineStrategy) {
+    const dynamicDefaultOwners = new Map<string, string>();
+    for (const extraction of extractions) {
+      for (const name of extractDestructuredFieldInfo(extraction.bodyText)
+        .dynamicDefaultReferences) {
+        if (!dynamicDefaultOwners.has(name)) {
+          dynamicDefaultOwners.set(name, extraction.symbolName);
+        }
+      }
+    }
+    migrationDecisions = migrationDecisions.map((decision) =>
+      (decision.action === 'move' || decision.action === 'reexport') &&
+      dynamicDefaultOwners.has(decision.varName) &&
+      !moduleLevelDeclsByName.get(decision.varName)?.isExported
+        ? {
+            action: 'reexport',
+            varName: decision.varName,
+            targetSegment: dynamicDefaultOwners.get(decision.varName),
+            reason: MIG_REASON.REEXPORT_DYNAMIC_PROP_DEFAULT,
+          }
+        : decision
+    );
+  }
   const inlinedSegmentNames = new Set<string>();
   for (const ext of extractions) {
     if (!ext.isInlinedQrl) {

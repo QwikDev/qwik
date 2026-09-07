@@ -15,6 +15,8 @@ interface RewritePropsFieldReferencesOptions {
    * <default>)` instead of bare `_rawProps.<key>`.
    */
   defaultValues?: ReadonlyMap<string, string>;
+  /** LocalName → generated binding holding a dynamic default. */
+  dynamicDefaults?: ReadonlyMap<string, string>;
 }
 
 /**
@@ -24,6 +26,7 @@ interface RewritePropsFieldReferencesOptions {
 function propsFieldIdentifierCollector(
   fieldMap: ReadonlyMap<string, string>,
   defaultValues: ReadonlyMap<string, string> | undefined,
+  dynamicDefaults: ReadonlyMap<string, string> | undefined,
   memberPropertyMode: 'all' | 'nonComputed' | undefined
 ): RangeReplacementCollector {
   return (node, ctx) => {
@@ -50,8 +53,13 @@ function propsFieldIdentifierCollector(
 
     const baseAccessor = buildPropertyAccessor('_rawProps', key);
     const defaultExpr = defaultValues?.get(localName);
+    const dynamicDefaultName = dynamicDefaults?.get(localName);
     let accessor: string;
-    if (defaultExpr === undefined) {
+    if (dynamicDefaultName !== undefined) {
+      const conditional = `${baseAccessor} === void 0 ? ${dynamicDefaultName} : ${baseAccessor}`;
+      const needsParens = !isShorthandValue && expressionNeedsParens(ctx.parentKey, ctx.parentNode);
+      accessor = needsParens ? `(${conditional})` : conditional;
+    } else if (defaultExpr === undefined) {
       accessor = baseAccessor;
     } else {
       // Shorthand expands to Property-value position, which is precedence-safe.
@@ -102,6 +110,7 @@ export function rewritePropsFieldReferences(
   const collector = propsFieldIdentifierCollector(
     fieldMap,
     options.defaultValues,
+    options.dynamicDefaults,
     options.memberPropertyMode
   );
 

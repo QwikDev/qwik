@@ -968,6 +968,37 @@ function placeLibReferencedDeclarations(ctx: RewriteContext): void {
   }
 }
 
+function interleaveDynamicDefaultDeclarations(ctx: RewriteContext): Set<string> {
+  const movedRanges = new Set<string>();
+  if (!ctx.migrationDecisions || !ctx.moduleLevelDecls) {
+    return movedRanges;
+  }
+
+  for (const decision of [...ctx.migrationDecisions].reverse()) {
+    if (decision.reason !== MIG_REASON.REEXPORT_DYNAMIC_PROP_DEFAULT || !decision.targetSegment) {
+      continue;
+    }
+    const declaration = ctx.moduleLevelDecls.find(
+      (candidate) => candidate.name === decision.varName
+    );
+    if (!declaration) {
+      continue;
+    }
+    const qrlName = ctx.qrlVarNames.get(decision.targetSegment) ?? `q_${decision.targetSegment}`;
+    const callIndex = ctx.sCalls.findIndex((call) => wordBoundaryTester(qrlName).test(call));
+    if (callIndex < 0) {
+      continue;
+    }
+    const rangeKey = `${declaration.declStart}:${declaration.declEnd}`;
+    if (movedRanges.has(rangeKey)) {
+      continue;
+    }
+    ctx.sCalls.splice(callIndex, 0, declaration.declText);
+    movedRanges.add(rangeKey);
+  }
+  return movedRanges;
+}
+
 export function assembleOutput(ctx: RewriteContext): string {
   const {
     s,
@@ -984,6 +1015,7 @@ export function assembleOutput(ctx: RewriteContext): string {
     jsxOptions,
     transpileTs,
   } = ctx;
+  const interleavedDeclarationRanges = interleaveDynamicDefaultDeclarations(ctx);
 
   const importStatements = orderedNeededImports(ctx).map(
     ([symbol, src]) => `import { ${symbol} } from "${src}";`
@@ -1033,6 +1065,15 @@ export function assembleOutput(ctx: RewriteContext): string {
       }
       const rangeKey = `${decl.declStart}:${decl.declEnd}`;
       if (removedRanges.has(rangeKey)) {
+        continue;
+      }
+      if (interleavedDeclarationRanges.has(rangeKey)) {
+        let end = decl.declEnd;
+        if (end < source.length && source[end] === '\n') {
+          end++;
+        }
+        s.remove(decl.declStart, end);
+        removedRanges.add(rangeKey);
         continue;
       }
       if (

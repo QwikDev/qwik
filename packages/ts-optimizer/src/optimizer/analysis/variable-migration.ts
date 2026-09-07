@@ -538,6 +538,7 @@ export const MIG_REASON = {
   REEXPORT_SHARED_DESTRUCTURE: 'part of shared destructuring pattern (MIG-05)',
   REEXPORT_MOVED_DECL_DEP: 'still referenced by a declaration migrating into a segment (MIG-06)',
   REEXPORT_ROUTER_MARKER: 'router loader/action reached through its _auto_ export (MIG-07)',
+  REEXPORT_DYNAMIC_PROP_DEFAULT: 'dynamic prop default evaluated from parent module (MIG-08)',
   KEEP_EXPORTED: 'exported but not used by any segment',
   KEEP_ROUTER_MARKER: 'router loader/action, exported as _auto_ even when unused',
   KEEP_ROOT_USED: 'used only by root code',
@@ -550,6 +551,7 @@ const INLINE_STRATEGY_REEXPORT_REASONS: ReadonlySet<string> = new Set([
   MIG_REASON.REEXPORT_EXPORTED,
   MIG_REASON.REEXPORT_DUAL_USE,
   MIG_REASON.REEXPORT_MULTI_SEGMENT,
+  MIG_REASON.REEXPORT_DYNAMIC_PROP_DEFAULT,
 ]);
 
 /**

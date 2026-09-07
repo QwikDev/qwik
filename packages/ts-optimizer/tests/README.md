@@ -78,8 +78,7 @@ pnpm vitest run -t "example_1"
 BENCH=1 pnpm vitest run tests/benchmark/optimizer-benchmark.test.ts --no-file-parallelism
 ```
 
-## Current State
+## Parity Gate
 
-The convergence tests are a **measurement tool**, not a parity gate. They fail on transform errors and report how many snapshots strictly match or diverge.
-
-Check the test output for the current pass rate — it's printed as a summary at the end of the convergence test run.
+The convergence suite requires every Rust snapshot to match. Its summary reports divergence, then
+fails when any parent module, segment, metadata record, diagnostic, or input differs.

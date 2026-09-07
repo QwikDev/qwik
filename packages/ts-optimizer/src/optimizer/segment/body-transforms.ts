@@ -8,7 +8,11 @@ import {
 } from '../edit/transform-session.js';
 import { buildSyncTransform, needsPureAnnotation } from '../rewrite/rewrite-calls.js';
 import { formatWCall } from '../qwik/w-call.js';
-import { applyRawPropsTransform, consolidateRawPropsInWCalls } from '../rewrite/index.js';
+import {
+  applyRawPropsTransform,
+  consolidateRawPropsInWCalls,
+  extractDestructuredFieldInfo,
+} from '../rewrite/index.js';
 import type { NestedCallSiteInfo } from './segment-codegen.js';
 import {
   blankNonCode,
@@ -511,8 +515,12 @@ export function applySelfRefIndirection(bodyText: string): string {
   return session.toSource();
 }
 
-export function applyRawPropsToSegmentBody(bodyText: string, parts: string[]): string {
-  const result = applyRawPropsTransform(bodyText);
+export function applyRawPropsToSegmentBody(
+  bodyText: string,
+  parts: string[],
+  preferredDynamicDefaultNames?: ReadonlyMap<string, string>
+): string {
+  const result = applyRawPropsTransform(bodyText, preferredDynamicDefaultNames);
   if (result === bodyText) {
     return bodyText;
   }
@@ -520,6 +528,9 @@ export function applyRawPropsToSegmentBody(bodyText: string, parts: string[]): s
   bodyText = consolidateRawPropsInWCalls(result);
   if (bodyText.includes('_restProps(') && !parts.some((p) => p.includes('_restProps'))) {
     insertImportBeforeSeparator(parts, `import { _restProps } from "@qwik.dev/core";`);
+  }
+  if (bodyText.includes('untrack(') && !parts.some((p) => p.includes('untrack'))) {
+    insertImportBeforeSeparator(parts, `import { untrack } from "@qwik.dev/core";`);
   }
   return bodyText;
 }

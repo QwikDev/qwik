@@ -46,6 +46,7 @@ export interface RewriteContext {
   survivingUserImports: string[];
   survivingImportInfos: SurvivingImportInfo[];
   topLevel: ExtractionResult[];
+  captureParentSymbols: Map<string, string>;
   earlyQrlVarNames: Map<string, string>;
   neededImports: Map<string, string>;
   injectedImportAliases: Map<string, string>;

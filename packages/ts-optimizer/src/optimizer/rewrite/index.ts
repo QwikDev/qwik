@@ -186,6 +186,7 @@ export function rewriteParentModule(
     survivingUserImports: [],
     survivingImportInfos: [],
     topLevel: [],
+    captureParentSymbols: new Map(),
     earlyQrlVarNames: new Map(),
     neededImports: new Map(),
     injectedImportAliases: new Map(),
@@ -482,6 +483,8 @@ function resolveNesting(ctx: RewriteContext): void {
   for (let i = 0; i < sorted.length; i++) {
     let bestParent: (typeof sorted)[0] | null = null;
     let bestRange = Infinity;
+    let captureParent: (typeof sorted)[0] | null = null;
+    let captureRange = Infinity;
     for (let j = 0; j < sorted.length; j++) {
       if (i === j) {
         continue;
@@ -493,9 +496,25 @@ function resolveNesting(ctx: RewriteContext): void {
           bestParent = sorted[j];
         }
       }
+      if (
+        sorted[i].isInlinedQrl &&
+        sorted[j].isInlinedQrl &&
+        sorted[i].callStart > sorted[j].callStart &&
+        sorted[i].callEnd < sorted[j].callEnd &&
+        sorted[i].callStart >= sorted[j].argEnd
+      ) {
+        const range = sorted[j].callEnd - sorted[j].callStart;
+        if (range < captureRange) {
+          captureRange = range;
+          captureParent = sorted[j];
+        }
+      }
     }
     if (bestParent) {
       (sorted[i] as Mutable<ConsolidatedSegment>).parent = bestParent.symbolName;
+    }
+    if (captureParent) {
+      ctx.captureParentSymbols.set(sorted[i].symbolName, captureParent.symbolName);
     }
   }
 
@@ -531,9 +550,11 @@ function preConsolidateRawPropsCaptures(ctx: RewriteContext): void {
 
     // Defaults let nested-segment field rewrites emit `(_rawProps.<key> ?? <default>)`
     // for fields the parent destructure defaulted; undefaulted fields stay bare.
-    const { fieldMap, fieldDefaults: fieldDefaultsMap } = extractDestructuredFieldInfo(
-      parentExt.bodyText
-    );
+    const {
+      fieldMap,
+      fieldDefaults: fieldDefaultsMap,
+      fieldDynamicDefaults,
+    } = extractDestructuredFieldInfo(parentExt.bodyText);
     if (fieldMap.size === 0) {
       continue;
     }
@@ -542,6 +563,7 @@ function preConsolidateRawPropsCaptures(ctx: RewriteContext): void {
     let hasPropsFields = false;
     const propsFieldCaptures = new Map<string, string>();
     const propsFieldDefaults = new Map<string, string>();
+    const propsFieldDynamicDefaults = new Map<string, string>();
     const collectField = (name: string): boolean => {
       if (!fieldMap.has(name)) {
         return false;
@@ -551,6 +573,11 @@ function preConsolidateRawPropsCaptures(ctx: RewriteContext): void {
       const defaultExpr = fieldDefaultsMap.get(name);
       if (defaultExpr !== undefined) {
         propsFieldDefaults.set(name, defaultExpr);
+      }
+      const dynamicDefaultName = fieldDynamicDefaults.get(name);
+      if (dynamicDefaultName !== undefined) {
+        propsFieldDynamicDefaults.set(name, dynamicDefaultName);
+        nonPropsCaptures.push(dynamicDefaultName);
       }
       return true;
     };
@@ -581,6 +608,9 @@ function preConsolidateRawPropsCaptures(ctx: RewriteContext): void {
       wip.propsFieldCaptures = propsFieldCaptures;
       if (propsFieldDefaults.size > 0) {
         wip.propsFieldDefaults = propsFieldDefaults;
+      }
+      if (propsFieldDynamicDefaults.size > 0) {
+        wip.propsFieldDynamicDefaults = propsFieldDynamicDefaults;
       }
       if (consolidatedParams) {
         wip.paramNames = consolidatedParams;
@@ -645,6 +675,9 @@ function rewriteCallSites(ctx: RewriteContext): void {
   const { s, topLevel, inlineOptions } = ctx;
 
   for (const ext of topLevel) {
+    if (ctx.captureParentSymbols.has(ext.symbolName)) {
+      continue;
+    }
     if (ext.isSync) {
       s.overwrite(ext.callStart, ext.callEnd, buildSyncTransform(ext.bodyText));
     } else if (ext.isInlinedQrl) {
@@ -884,6 +917,9 @@ function addCaptureWrapping(ctx: RewriteContext): void {
   );
 
   for (const ext of topLevel) {
+    if (ctx.captureParentSymbols.has(ext.symbolName)) {
+      continue;
+    }
     if (ext.isSync) {
       continue;
     }
@@ -892,7 +928,7 @@ function addCaptureWrapping(ctx: RewriteContext): void {
       if (!ext.explicitCaptures) {
         continue;
       }
-      const captureItems = parseArrayItems(ext.explicitCaptures);
+      const captureItems = rewriteExplicitCaptureItems(ctx, ext);
       if (captureItems.length === 0) {
         continue;
       }
@@ -923,6 +959,33 @@ function addCaptureWrapping(ctx: RewriteContext): void {
       s.appendLeft(ext.argEnd, wText);
     }
   }
+}
+
+function rewriteExplicitCaptureItems(ctx: RewriteContext, extraction: ExtractionResult): string[] {
+  const captures = extraction.explicitCaptures;
+  if (!captures) {
+    return [];
+  }
+  const captureStart = ctx.source.indexOf(captures, extraction.argEnd);
+  if (captureStart < 0 || captureStart >= extraction.callEnd) {
+    return parseArrayItems(captures);
+  }
+
+  let rewritten = captures;
+  const children = ctx.extractions
+    .filter((child) => ctx.captureParentSymbols.get(child.symbolName) === extraction.symbolName)
+    .sort((a, b) => b.callStart - a.callStart);
+  for (const child of children) {
+    const start = child.callStart - captureStart;
+    const end = child.callEnd - captureStart;
+    const captureItems = rewriteExplicitCaptureItems(ctx, child);
+    let replacement = getQrlVarName(ctx, child.symbolName);
+    if (captureItems.length > 0) {
+      replacement += wCallSuffix(captureItems, '        ', '    ');
+    }
+    rewritten = rewritten.slice(0, start) + replacement + rewritten.slice(end);
+  }
+  return parseArrayItems(rewritten);
 }
 
 function runJsxTransform(ctx: RewriteContext): void {

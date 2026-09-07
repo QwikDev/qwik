@@ -17,10 +17,18 @@
   @variant xl {
     @apply mx-auto grid items-start px-4;
     grid-column: 2;
+    grid-row: 1;
     grid-template-columns: minmax(0, 733px) 300px;
     column-gap: 40px;
     width: fit-content;
     max-width: 100%;
+  }
+}
+
+.docs-grid > [data-docs-sidebar] {
+  @variant xl {
+    grid-column: 1;
+    grid-row: 1;
   }
 }
 
@@ -53,6 +61,7 @@
   @variant xl {
     @apply order-3;
     grid-column: 2 / -1;
+    grid-row: 2;
   }
 }
 

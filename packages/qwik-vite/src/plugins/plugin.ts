@@ -463,6 +463,18 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
           preserveSignature: 'allow-extension',
         });
       }
+      // Emit explicitly because raw-source imports can share its chunk group.
+      // The manifest must reference this entry, not an asset URL wrapper.
+      const preloader = await _ctx.resolve(QWIK_PRELOADER_ID, undefined, {
+        skipSelf: true,
+      });
+      if (preloader) {
+        preloaderChunkRef = _ctx.emitFile({
+          id: preloader.id,
+          type: 'chunk',
+          preserveSignature: 'allow-extension',
+        });
+      }
     }
   };
 
@@ -742,11 +754,13 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         skipSelf: true,
       });
       if (preloader) {
-        preloaderChunkRef = ctx.emitFile({
-          id: preloader.id,
-          type: 'chunk',
-          preserveSignature: 'allow-extension',
-        });
+        if (!preloaderChunkRef) {
+          preloaderChunkRef = ctx.emitFile({
+            id: preloader.id,
+            type: 'chunk',
+            preserveSignature: 'allow-extension',
+          });
+        }
         return preloader;
       }
     } else if (pathId.endsWith(QWIK_HANDLERS_ID)) {

@@ -12,14 +12,58 @@ test.describe('Docs site smoke tests', () => {
     await page.goto('/docs/');
     await expect(page).toHaveTitle(/Qwik/);
 
-    // The sidebar is an <aside> containing a <nav> with links
-    const sidebar = page.locator('aside nav');
-    await expect(sidebar.first()).toBeVisible();
+    const fontPreloads = page.locator('link[rel="preload"][as="font"]');
+    await expect(fontPreloads).toHaveCount(3);
+    await expect(
+      page.locator('link[rel="preload"][as="font"][href*="tomorrow-latin-600-normal"]')
+    ).toHaveCount(1);
+    await expect(
+      page.locator('link[rel="preload"][as="font"][href*="ubuntu-sans-latin-600-normal"]')
+    ).toHaveCount(1);
+    await expect(
+      page.locator('link[rel="preload"][as="font"][href*="ubuntu-sans-latin-700-normal"]')
+    ).toHaveCount(1);
+    await expect(
+      page.locator('link[rel="preload"][as="font"][href*="karmatic-arcade"]')
+    ).toHaveCount(0);
 
-    // Verify sidebar has multiple link groups
+    const sidebar = page.locator('[data-docs-sidebar]');
+    await expect(sidebar).toBeVisible();
+
     const links = sidebar.locator('a[href]');
     expect(await links.count()).toBeGreaterThanOrEqual(5);
+    await expect(sidebar.locator('a[href^="/"]:not([q\\:link])')).toHaveCount(0);
+    expect(await sidebar.locator('svg.vanilla-icon').count()).toBeGreaterThanOrEqual(5);
+    await expect(sidebar.locator('details').first()).toBeVisible();
+    await expect(sidebar.locator('a[aria-current="page"]')).toHaveCount(1);
+    await expect(page.locator('.docs-shell ~ [data-docs-sidebar]')).toHaveCount(1);
   });
+
+  for (const viewport of [
+    { name: 'mobile', width: 390, height: 844 },
+    { name: 'tablet', width: 1024, height: 768 },
+  ]) {
+    test(`${viewport.name} docs sidebar closes manually and after SPA navigation`, async ({
+      page,
+    }) => {
+      await page.setViewportSize(viewport);
+      await page.goto('/docs/');
+
+      const sidebar = page.locator('[data-docs-sidebar] nav');
+      await expect(sidebar).not.toBeInViewport();
+      await page.getByRole('button', { name: 'Open sidebar' }).click();
+      await expect(page.getByRole('button', { name: 'Close sidebar' })).toBeVisible();
+      await expect(sidebar).toBeInViewport();
+      await page.getByRole('button', { name: 'Close sidebar' }).click();
+      await expect(sidebar).not.toBeInViewport();
+
+      await page.getByRole('button', { name: 'Open sidebar' }).click();
+      await sidebar.getByRole('link', { name: 'Getting Started', exact: true }).click();
+      await expect(page).toHaveURL(/\/docs\/getting-started\/$/);
+      await expect(page.getByRole('button', { name: 'Open sidebar' })).toBeVisible();
+      await expect(sidebar).not.toBeInViewport();
+    });
+  }
 
   test('getting started page loads', async ({ page }) => {
     await page.goto('/docs/getting-started/');

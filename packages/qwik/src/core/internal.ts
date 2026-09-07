@@ -109,6 +109,7 @@ export {
 } from './shared/projection/external-projection';
 export { delay as _delay, retryOnPromise as _retryOnPromise } from './shared/utils/promises';
 export { _createDeserializeContainer } from './shared/serdes/serdes.public';
+export { requestPreload as _requestPreload } from './preloader/bridge';
 
 /** TESTING */
 export {

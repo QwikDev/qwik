@@ -285,7 +285,7 @@ export type Invoke =
   | { op: InvokeKind.UseConstant; result: BindTarget; callback: Arg; extraArgs: Arg[] }
   | { op: InvokeKind.UseServerData; result: BindTarget; key: Arg; fallback?: Arg }
   /** Resumable ⇒ QRL required; async-ness is runtime-discovered. */
-  | { op: InvokeKind.UseComputed; result: BindTarget; qrl: QrlArg }
+  | { op: InvokeKind.UseComputed; result: BindTarget; args: [QrlArg, ...Arg[]] }
   | { op: InvokeKind.UseAsync; result: BindTarget; qrl: QrlUse; options?: Arg }
   | { op: InvokeKind.UseSerializer; result: BindTarget; qrl: QrlUse }
   | { op: InvokeKind.UseTask; qrl: QrlUse; deferUpdates?: boolean }

@@ -91,6 +91,8 @@ emission composes those edits with capture aliases for both CSR chunks and SSR m
 ordinary functions retain their own awaits. Implicit suspension in `for await` remains deferred.
 Async `useComputed$` callbacks use the same QRL lowering and computed runtime as synchronous
 callbacks; SSR waits for their values through the existing signal-read retry path.
+Computed options share ordinary hook argument lowering, including spreads and existing QRLs;
+the runtime owns option semantics, including initial values and factories.
 
 ## Workflow (vertical slices — DESIGN.md "Phases")
 

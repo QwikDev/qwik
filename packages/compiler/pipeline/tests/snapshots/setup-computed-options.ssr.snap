@@ -1,0 +1,120 @@
+==INPUT==
+
+import { $, useComputed$ as computed } from '@qwik.dev/core';
+export default (props) => {
+  const initial = props.initial;
+  const options = { initial, timeout: 1000 };
+  const read = $(async () => 42);
+  const first = computed(async () => 42, { ...options, initial: () => initial });
+  const second = computed(read, ...[options]);
+  return <span>{first.value}:{second.value}</span>;
+};
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useComputedQrl,
+  createSsrNodeId,
+  escapeHTML,
+  renderSsrTextNode,
+  maybeThen,
+  _noopQrl,
+} from '@qwik.dev/core';
+const component_read_segment_0_1zbzildyw5vrf = async () => {
+  return 42;
+};
+const q_component_read_segment_0_1zbzildyw5vrf = /*#__PURE__*/ _noopQrl(
+  'component_read_segment_0_1zbzildyw5vrf'
+);
+q_component_read_segment_0_1zbzildyw5vrf.s(component_read_segment_0_1zbzildyw5vrf);
+const component_first_segment_1_bivl4x5fgl56 = async () => {
+  return 42;
+};
+const q_component_first_segment_1_bivl4x5fgl56 = /*#__PURE__*/ _noopQrl(
+  'component_first_segment_1_bivl4x5fgl56'
+);
+q_component_first_segment_1_bivl4x5fgl56.s(component_first_segment_1_bivl4x5fgl56);
+export default (props, ctx) => {
+  const initial = props.initial;
+  const options = {
+    initial,
+    timeout: 1e3,
+  };
+  const read = q_component_read_segment_0_1zbzildyw5vrf;
+  const first = useComputedQrl(q_component_first_segment_1_bivl4x5fgl56, {
+    ...options,
+    initial: () => initial,
+  });
+  const second = useComputedQrl(read, ...[options]);
+  const id0 = ctx.nextId();
+  ctx.addRoot(first);
+  const text0 = renderSsrTextNode(id0, 0, first);
+  ctx.addRoot(second);
+  const text1 = renderSsrTextNode(id0, 1, second);
+  return maybeThen(text0, (text0) =>
+    maybeThen(text1, (text1) => [
+      '<span q:id="',
+      createSsrNodeId(id0),
+      '"><!t>',
+      escapeHTML(text0),
+      '<!/t>:<!t>',
+      escapeHTML(text1),
+      '<!/t></span>',
+    ])
+  );
+};
+============================= src/component.tsx_component_read_segment_0_1zbzildyw5vrf.js (ENTRY POINT)==
+
+export const component_read_segment_0_1zbzildyw5vrf = async () => {
+  return 42;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_read_segment_0_1zbzildyw5vrf",
+  "entry": null,
+  "displayName": "component_read_segment_0",
+  "hash": "1zbzildyw5vrf",
+  "canonicalFilename": "component.tsx_component_read_segment_0_1zbzildyw5vrf",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    184,
+    201
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_first_segment_1_bivl4x5fgl56.js (ENTRY POINT)==
+
+export const component_first_segment_1_bivl4x5fgl56 = async () => {
+  return 42;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_first_segment_1_bivl4x5fgl56",
+  "entry": null,
+  "displayName": "component_first_segment_1",
+  "hash": "bivl4x5fgl56",
+  "canonicalFilename": "component.tsx_component_first_segment_1_bivl4x5fgl56",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "useComputed$",
+  "captures": false,
+  "loc": [
+    219,
+    283
+  ],
+  "paramNames": []
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

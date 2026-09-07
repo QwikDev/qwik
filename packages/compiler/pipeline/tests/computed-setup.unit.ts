@@ -1,4 +1,4 @@
-import { expect, test } from 'vitest';
+import { describe, expect, test } from 'vitest';
 import { analyseModule, linkPlans } from '../index';
 import {
   BoundaryKind,
@@ -148,7 +148,7 @@ export default () => {
   }
 });
 
-test('SSR waits for async computed text and escapes the resolved value', async () => {
+test('SSR waits beyond the initial computed value and escapes resolved text', async () => {
   const output = await transformModules({
     srcDir: 'src',
     isServer: true,
@@ -157,7 +157,7 @@ test('SSR waits for async computed text and escapes the resolved value', async (
         path: 'src/component.tsx',
         code: `import { useComputed$ } from '@qwik.dev/core';
 export default () => {
-  const label = useComputed$(async () => await loadLabel());
+  const label = useComputed$(async () => await loadLabel(), { initial: () => '<initial&>' });
   return <span>{label.value}</span>;
 };`,
       },
@@ -197,6 +197,67 @@ export default () => {
   expect(runs).toBe(1);
 });
 
+describe.each([false, true])('computed options (forwarded QRL: %s)', (forwarded) => {
+  test.each(['options', '...extras', 'readOptions(seed)', '{ initial: () => seed }'])(
+    'preserves initial value and evaluates options once: %s',
+    async (argument) => {
+      const output = await transformModules({
+        srcDir: 'src',
+        isServer: true,
+        input: [
+          {
+            path: 'src/component.tsx',
+            code: `import { $, useComputed$ } from '@qwik.dev/core';
+export default (props) => {
+  const seed = props.initial;
+  const options = props.options;
+  const extras = [options];
+  ${forwarded ? 'const read = $(async () => 42);' : ''}
+  const answer = useComputed$(${forwarded ? 'read' : 'async () => 42'}, ${argument});
+  return <span />;
+};`,
+          },
+        ],
+      });
+      expect(output.diagnostics).toEqual([]);
+      expect(output.modules.filter((module) => module.segment)).toHaveLength(1);
+      let computed!: ComputedQrl<unknown>;
+      let optionReads = 0;
+      const options = { initial: 7 };
+      const render = loadDefaultFunction(output.modules.find((module) => !module.segment)!, {
+        ...core,
+        get _captures() {
+          return core._captures;
+        },
+        readOptions(seed: number) {
+          expect(seed).toBe(7);
+          optionReads++;
+          return options;
+        },
+        useComputedQrl(...args: Parameters<typeof core.useComputedQrl>) {
+          if (argument !== '{ initial: () => seed }') {
+            expect(args[1]).toBe(options);
+          }
+          computed = core.useComputedQrl(...args);
+          return computed;
+        },
+      });
+      const owner = core.createOwner(null);
+      try {
+        core.runWithOwner(owner, render, { initial: 7, options }, {});
+        expect(computed.value).toBe(7);
+        expect(computed.pending).toBe(true);
+        await computed.promise();
+        expect(computed.value).toBe(42);
+        expect(computed.pending).toBe(false);
+        expect(optionReads).toBe(argument === 'readOptions(seed)' ? 1 : 0);
+      } finally {
+        await core.disposeOwner(owner);
+      }
+    }
+  );
+});
+
 test('computed setup uses existing invocation and signal-read plans', async () => {
   const plan = await analyseModule(
     {
@@ -204,7 +265,7 @@ test('computed setup uses existing invocation and signal-read plans', async () =
       code: `import { useSignal, useComputed$ as computed } from '@qwik.dev/core';
 export default () => {
   const count = useSignal(1);
-  const doubled = computed(() => count.value * 2);
+  const doubled = computed(() => count.value * 2, { initial: count.value });
   return <span>{doubled.value}</span>;
 };`,
     },
@@ -222,7 +283,10 @@ export default () => {
   ]);
   expect(program.setup[1]).toMatchObject({
     s: SetupKind.Invoke,
-    invoke: { op: InvokeKind.UseComputed, qrl: { a: ArgKind.Qrl, use: { qrl: callback.id } } },
+    invoke: {
+      op: InvokeKind.UseComputed,
+      args: [{ a: ArgKind.Qrl, use: { qrl: callback.id } }, { a: ArgKind.Expr }],
+    },
   });
   expect(program.body).toMatchObject({
     kind: ProgramBodyKind.Ops,
@@ -241,23 +305,21 @@ export default () => {
   expect(plan).toEqual(restored);
 });
 
-test.each([
-  'useComputed$()',
-  'useComputed$(callback)',
-  'useComputed$(...callbacks)',
-  'useComputed$(() => 1, { initial: 0 })',
-])('deferred computed forms remain unsupported: %s', async (initializer) => {
-  await expect(
-    analyseModule(
-      {
-        path: 'component.tsx',
-        code: `import { useComputed$ } from '@qwik.dev/core';
+test.each(['useComputed$()', 'useComputed$(callback)', 'useComputed$(...callbacks)'])(
+  'deferred computed forms remain unsupported: %s',
+  async (initializer) => {
+    await expect(
+      analyseModule(
+        {
+          path: 'component.tsx',
+          code: `import { useComputed$ } from '@qwik.dev/core';
 export default () => { const result = ${initializer}; return <span>{result.value}</span>; };`,
-      },
-      {}
-    )
-  ).rejects.toThrow(UnsupportedError);
-});
+        },
+        {}
+      )
+    ).rejects.toThrow(UnsupportedError);
+  }
+);
 
 test.each([false, true])(
   'a capture-free computed keeps a single callback (SSR: %s)',

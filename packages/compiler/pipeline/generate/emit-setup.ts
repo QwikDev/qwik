@@ -61,13 +61,13 @@ export function emitJsSetup(
     const hook =
       entry.invoke.op === InvokeKind.UseComputed ? QwikHook.UseComputedQrl : QwikHook.UseSignal;
     imports.add(hook);
-    const initial =
+    const args =
       entry.invoke.op === InvokeKind.UseComputed
-        ? argJs(module, entry.invoke.qrl, emitQrl)
+        ? entry.invoke.args
         : entry.invoke.initial === undefined
-          ? ''
-          : argJs(module, entry.invoke.initial, emitQrl);
-    return `const ${name} = ${hook}(${initial});`;
+          ? []
+          : [entry.invoke.initial];
+    return `const ${name} = ${hook}(${args.map((arg) => argJs(module, arg, emitQrl)).join(', ')});`;
   });
 }
 

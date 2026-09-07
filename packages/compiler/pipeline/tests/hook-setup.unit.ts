@@ -314,7 +314,7 @@ export default () => {
   }
 );
 
-test.each(['useTask$?.(callback)', 'useComputed$(callback, {})', 'useTask$(...callback)'])(
+test.each(['useTask$?.(callback)', 'useComputed$?.(callback, {})', 'useTask$(...callback)'])(
   'forwarded QRLs still validate the call form: %s',
   async (call) => {
     await expect(

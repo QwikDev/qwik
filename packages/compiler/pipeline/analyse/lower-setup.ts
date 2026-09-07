@@ -202,13 +202,13 @@ function lowerSetupDeclaration(
         locals
       );
     case QwikHook.UseComputed: {
-      const qrl = lowerHookCallback(init, name, coreApi, ctx);
+      const args = lowerHookArgs(init, name, coreApi, ctx);
       return {
         s: SetupKind.Invoke,
         invoke: {
           op: InvokeKind.UseComputed,
           result: lowerSignalBinding(declarator.id, name, ctx, locals),
-          qrl,
+          args,
         },
       };
     }
@@ -228,10 +228,7 @@ function lowerHookCallback(
   const argument = call.arguments[0];
   const expression = argument?.type === 'SpreadElement' ? null : unwrapExpression(argument);
   const binding = expression === null ? null : resolveQrlBinding(expression, ctx);
-  const calleeBinding = ctx.bindings.reference(call.callee);
-  const isComputed =
-    calleeBinding !== null && ctx.coreBindings.get(calleeBinding) === QwikHook.UseComputed;
-  if (binding !== null && !call.optional && (!isComputed || call.arguments.length === 1)) {
+  if (binding !== null && !call.optional) {
     return { a: ArgKind.QrlBinding, binding };
   }
   return { a: ArgKind.Qrl, use: lowerSetupCallback(call, name, calleeName, ctx) };
@@ -249,8 +246,7 @@ function lowerSetupCallback(
   const fn = argument?.type === 'SpreadElement' ? null : unwrapExpression(argument);
   if (
     init.optional ||
-    ((coreApi === QwikMarker.Dollar || coreApi === QwikHook.UseComputed) &&
-      init.arguments.length !== 1) ||
+    (coreApi === QwikMarker.Dollar && init.arguments.length !== 1) ||
     (fn?.type !== 'ArrowFunctionExpression' && fn?.type !== 'FunctionExpression')
   ) {
     throw new UnsupportedError(`${calleeName}() without an inline first callback`);
@@ -291,9 +287,22 @@ function lowerSetupHook(
   ctx: LowerContext,
   locals: SetupLocals
 ): Setup {
-  const args: Arg[] = [
-    lowerHookCallback(call, identifierName(pattern) ?? hook.name, hook.name, ctx),
-  ];
+  const args = lowerHookArgs(call, identifierName(pattern) ?? hook.name, hook.name, ctx);
+  return {
+    s: SetupKind.Hook,
+    binding: hook.binding,
+    args,
+    result: pattern === null ? null : lowerSetupBinding(pattern, ctx, locals).result,
+  };
+}
+
+function lowerHookArgs(
+  call: CallExpression,
+  name: string,
+  calleeName: string,
+  ctx: LowerContext
+): [QrlArg, ...Arg[]] {
+  const args: [QrlArg, ...Arg[]] = [lowerHookCallback(call, name, calleeName, ctx)];
   for (const argument of call.arguments.slice(1)) {
     const expression = argument.type === 'SpreadElement' ? argument.argument : argument;
     const { refs } = lowerCaptures(expression, ctx, 'a hook argument');
@@ -303,12 +312,7 @@ function lowerSetupHook(
       expr: value.expr,
     });
   }
-  return {
-    s: SetupKind.Hook,
-    binding: hook.binding,
-    args,
-    result: pattern === null ? null : lowerSetupBinding(pattern, ctx, locals).result,
-  };
+  return args;
 }
 
 function lowerUseSignal(

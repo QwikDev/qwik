@@ -130,6 +130,23 @@ export default () => {
     expect(output.diagnostics).toEqual([]);
   });
 
+  test('should forward computed options for inline and existing QRLs', async () => {
+    const output = await testInput(mode, 'setup-computed-options', {
+      code: `import { $, useComputed$ as computed } from '@qwik.dev/core';
+export default (props) => {
+  const initial = props.initial;
+  const options = { initial, timeout: 1000 };
+  const read = $(async () => 42);
+  const first = computed(async () => 42, { ...options, initial: () => initial });
+  const second = computed(read, ...[options]);
+  return <span>{first.value}:{second.value}</span>;
+};
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    expect(output.modules.filter((module) => module.segment)).toHaveLength(2);
+  });
+
   test('should compile a synchronous computed setup signal', async () => {
     await testInput(mode, 'setup-computed', {
       code: `import { useSignal, useComputed$ } from '@qwik.dev/core';

@@ -40,6 +40,18 @@ async function testInputs(mode: 'ssr' | 'csr', snapshotName: string, inputs: rea
 }
 
 describe.each(['ssr', 'csr'] as const)('%s', (mode) => {
+  test('should compile store setup through a plain hook call', async () => {
+    const output = await testInput(mode, 'setup-store', {
+      code: `import { useStore as store } from '@qwik.dev/core';
+export default (props) => {
+  const state = store(() => ({ count: props.initial }), { deep: false });
+  return <button onClick$={() => state.count++}>{state.count}</button>;
+};
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+  });
+
   test('should restore await context across hook, explicit and event QRLs', async () => {
     await testInput(mode, 'qrl-await', {
       code: `import { $, useSignal, useTask$ } from '@qwik.dev/core';

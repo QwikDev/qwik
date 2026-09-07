@@ -11,6 +11,70 @@ import type { QRL } from '../../../qwik/src/core/shared/qrl/qrl.public';
 import { UnsupportedError } from '../errors';
 
 test.each([
+  ["import { useCustom as hook } from './hooks';", 'hook'],
+  ["import useCustom from './hooks';", 'useCustom'],
+  ['function useCustom(...args) { return globalHook(...args); }', 'useCustom'],
+])('plain hooks keep ordinary arguments and result bindings: %s', async (declaration, callee) => {
+  const output = await transformModules({
+    srcDir: 'src',
+    isServer: true,
+    input: [
+      {
+        path: 'src/component.tsx',
+        code: `${declaration}
+export default (props) => {
+  const { label } = ${callee}(() => props.label, first(), ...rest());
+  ${callee}(label);
+  ${callee}();
+  return <span />;
+};`,
+      },
+    ],
+  });
+  expect(output.diagnostics).toEqual([]);
+  expect(output.modules.filter((module) => module.segment)).toHaveLength(0);
+  const calls: unknown[][] = [];
+  const order: string[] = [];
+  const hook = (...args: unknown[]) => {
+    calls.push(args);
+    order.push('hook');
+    return { label: 'result' };
+  };
+  const render = loadDefaultFunction(output.modules[0], {
+    ...core,
+    [callee]: hook,
+    globalHook: hook,
+    first: () => {
+      order.push('first');
+      return 1;
+    },
+    rest: () => {
+      order.push('rest');
+      return [2, 3];
+    },
+  });
+  render({ label: 'authored' }, {});
+  expect(order).toEqual(['first', 'rest', 'hook', 'hook', 'hook']);
+  expect(calls[0].slice(1)).toEqual([1, 2, 3]);
+  expect(isQrl(calls[0][0])).toBe(false);
+  expect((calls[0][0] as () => string)()).toBe('authored');
+  expect(calls.slice(1)).toEqual([['result'], []]);
+});
+
+test('optional plain hook calls remain explicitly unsupported', async () => {
+  await expect(
+    analyseModule(
+      {
+        path: 'component.tsx',
+        code: `import { useCustom } from './hooks';
+export default () => { useCustom?.(); return <span />; };`,
+      },
+      {}
+    )
+  ).rejects.toThrow(UnsupportedError);
+});
+
+test.each([
   ["import { useCustom$ as hook } from './hooks';", 'hook'],
   ["import useCustom$ from './hooks';", 'useCustom$'],
   ['function useCustom$(callback) { return callback; }', 'useCustom$'],

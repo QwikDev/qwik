@@ -75,6 +75,10 @@ pending. Everything unsupported throws `UnsupportedError`; invalid authored code
 
 ## Setup hook boundaries
 
+Plain `use*` calls share `SetupKind.Hook` without callback extraction, including `useStore`,
+custom hooks and named import aliases. Arguments, factories and spreads remain ordinary JS;
+runtime semantics determine whether returned values are reactive.
+
 Direct `use*$` calls in component setup share first-argument QRL extraction, including local
 hooks and aliased named imports. Generic calls use `SetupKind.Hook`: they keep the authored
 callee, return binding and remaining arguments, including spreads. `implicit$FirstArg` accepts

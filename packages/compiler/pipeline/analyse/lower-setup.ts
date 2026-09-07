@@ -179,44 +179,49 @@ function lowerSetupDeclaration(
   }
   const calleeBinding = ctx.bindings.reference(init.callee);
   const coreApi = calleeBinding === null ? undefined : ctx.coreBindings.get(calleeBinding);
+  if (
+    coreApi === QwikMarker.Dollar ||
+    coreApi === QwikHook.UseComputed ||
+    coreApi === QwikHook.UseSignal
+  ) {
+    const name = identifierName(declarator.id);
+    if (name === null) {
+      throw new UnsupportedError('a non-identifier core API binding');
+    }
+    switch (coreApi) {
+      case QwikMarker.Dollar:
+        return lowerConstBinding(
+          declarator.id,
+          {
+            v: ValueKind.Qrl,
+            use: lowerSetupCallback(init, name, coreApi, ctx),
+          },
+          ctx,
+          locals
+        );
+      case QwikHook.UseComputed: {
+        const args = lowerQrlHookArgs(init, name, coreApi, ctx);
+        return {
+          s: SetupKind.Invoke,
+          invoke: {
+            op: InvokeKind.UseComputed,
+            result: lowerSignalBinding(declarator.id, name, ctx, locals),
+            args,
+          },
+        };
+      }
+      case QwikHook.UseSignal:
+        return lowerUseSignal(declarator, init, name, ctx, locals);
+    }
+  }
   const hook = resolveSetupHook(init, ctx);
-  if (hook !== null && coreApi !== QwikHook.UseComputed) {
+  if (hook !== null) {
     return lowerSetupHook(init, hook, declarator.id, ctx, locals);
   }
   if (coreApi === undefined) {
     return lowerConstDeclaration(declarator, ctx, locals);
   }
-  const name = identifierName(declarator.id);
-  if (name === null) {
-    throw new UnsupportedError('a non-identifier core API binding');
-  }
-  switch (coreApi) {
-    case QwikMarker.Dollar:
-      return lowerConstBinding(
-        declarator.id,
-        {
-          v: ValueKind.Qrl,
-          use: lowerSetupCallback(init, name, coreApi, ctx),
-        },
-        ctx,
-        locals
-      );
-    case QwikHook.UseComputed: {
-      const args = lowerHookArgs(init, name, coreApi, ctx);
-      return {
-        s: SetupKind.Invoke,
-        invoke: {
-          op: InvokeKind.UseComputed,
-          result: lowerSignalBinding(declarator.id, name, ctx, locals),
-          args,
-        },
-      };
-    }
-    case QwikHook.UseSignal:
-      return lowerUseSignal(declarator, init, name, ctx, locals);
-    default:
-      throw new UnsupportedError(`the setup call "${identifierName(init.callee) ?? '?'}"`);
-  }
+  throw new UnsupportedError(`the setup call "${identifierName(init.callee) ?? '?'}"`);
 }
 
 function lowerHookCallback(
@@ -277,7 +282,7 @@ function resolveSetupHook(call: CallExpression, ctx: LowerContext) {
     imported !== undefined && imported.imported !== 'default' && imported.imported !== '*'
       ? imported.imported
       : ctx.plan.bindings[binding].name;
-  return /^use.+\$$/.test(name) ? { binding, name } : null;
+  return /^use.+/.test(name) ? { binding, name } : null;
 }
 
 function lowerSetupHook(
@@ -287,7 +292,12 @@ function lowerSetupHook(
   ctx: LowerContext,
   locals: SetupLocals
 ): Setup {
-  const args = lowerHookArgs(call, identifierName(pattern) ?? hook.name, hook.name, ctx);
+  if (call.optional) {
+    throw new UnsupportedError('an optional setup hook call');
+  }
+  const args = hook.name.endsWith('$')
+    ? lowerQrlHookArgs(call, identifierName(pattern) ?? hook.name, hook.name, ctx)
+    : call.arguments.map((argument) => lowerHookArg(argument, ctx));
   return {
     s: SetupKind.Hook,
     binding: hook.binding,
@@ -296,7 +306,7 @@ function lowerSetupHook(
   };
 }
 
-function lowerHookArgs(
+function lowerQrlHookArgs(
   call: CallExpression,
   name: string,
   calleeName: string,
@@ -304,15 +314,19 @@ function lowerHookArgs(
 ): [QrlArg, ...Arg[]] {
   const args: [QrlArg, ...Arg[]] = [lowerHookCallback(call, name, calleeName, ctx)];
   for (const argument of call.arguments.slice(1)) {
-    const expression = argument.type === 'SpreadElement' ? argument.argument : argument;
-    const { refs } = lowerCaptures(expression, ctx, 'a hook argument');
-    const value = lowerInlineExpressionValue(expression, ctx, refs);
-    args.push({
-      a: argument.type === 'SpreadElement' ? ArgKind.Spread : ArgKind.Expr,
-      expr: value.expr,
-    });
+    args.push(lowerHookArg(argument, ctx));
   }
   return args;
+}
+
+function lowerHookArg(argument: Argument, ctx: LowerContext): Arg {
+  const expression = argument.type === 'SpreadElement' ? argument.argument : argument;
+  const { refs } = lowerCaptures(expression, ctx, 'a hook argument');
+  const value = lowerInlineExpressionValue(expression, ctx, refs);
+  return {
+    a: argument.type === 'SpreadElement' ? ArgKind.Spread : ArgKind.Expr,
+    expr: value.expr,
+  };
 }
 
 function lowerUseSignal(

@@ -99,16 +99,16 @@ describe('lowerSetup / useSignal', () => {
     expect(aliased.locals.get(aliased.count)?.kind).toBe(LocalKind.Signal);
     const ordinary = lower('const useSignal = (value) => value; const count = useSignal(0);', []);
     expect(ordinary.locals.get(ordinary.count)?.kind).toBe(LocalKind.Const);
-    expect(ordinary.setup.every((entry) => entry.s === SetupKind.Const)).toBe(true);
+    expect(ordinary.setup.map((entry) => entry.s)).toEqual([SetupKind.Const, SetupKind.Hook]);
   });
 
-  test('non-const statements and unsupported core hooks still throw', () => {
+  test('non-const statements and unsupported core calls still throw', () => {
     expect(() => lower('let count = useSignal(0);')).toThrow(
       'a setup statement that is not a const declaration'
     );
-    expect(() => lower('const count = useStore({});', [['useStore', 'useStore']])).toThrow(
-      'the setup call "useStore"'
-    );
+    expect(() =>
+      lower('const count = component$(() => null);', [['component$', 'component$']])
+    ).toThrow('the setup call "component$"');
   });
 });
 

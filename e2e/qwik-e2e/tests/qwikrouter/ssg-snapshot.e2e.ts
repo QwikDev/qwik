@@ -203,6 +203,7 @@ async function buildFixtureApp() {
         ...plugins,
         captureRouterConfig(),
         qwikVite({
+          tsOptimizer: true,
           client: {
             outDir: distDir,
           },
@@ -221,7 +222,7 @@ async function buildFixtureApp() {
       plugins: [
         ...serverPlugins,
         // No manifestInput: the server build reads the client manifest from disk, like real apps.
-        qwikVite(),
+        qwikVite({ tsOptimizer: true }),
         ssgAdapter({
           origin: 'https://snapshot.qwik.dev',
           include: ['/*'],

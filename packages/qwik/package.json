@@ -8,10 +8,18 @@
   },
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "dependencies": {
+    "@emnapi/core": "1.11.3",
+    "@emnapi/runtime": "1.11.3",
     "@qwik.dev/optimizer": "workspace:*",
     "csstype": "^3.2.3",
     "launch-editor": "^2.14.1",
-    "magic-string": "0.30.21"
+    "magic-regexp": "^0.11.0",
+    "magic-string": "^0.30.21",
+    "oxc-parser": "^0.144.0",
+    "oxc-transform": "^0.144.0",
+    "oxc-walker": "^1.1.1",
+    "pathe": "^2.0.3",
+    "siphash": "^1.2.0"
   },
   "devDependencies": {
     "@croct/json5-parser": "0.2.2",
@@ -171,10 +179,10 @@
     "vitest": ">=2 <5"
   },
   "peerDependenciesMeta": {
-    "vitest": {
+    "prettier": {
       "optional": true
     },
-    "prettier": {
+    "vitest": {
       "optional": true
     }
   },

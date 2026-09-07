@@ -6,6 +6,24 @@ autoInstallPeers: false
 
 engineStrict: true
 
+supportedArchitectures:
+  cpu:
+    - current
+    - wasm32
+  os:
+    - current
+    - any
+  libc:
+    - current
+    - any
+
+peerDependencyRules:
+  allowedVersions:
+    eslint-plugin-import>eslint: '10'
+  ignoreMissing:
+    - '@builder.io/qwik'
+    - '@builder.io/qwik-city'
+
 # Speeds up things and fixes CI for pkg.pr.new (workspace version vs string)
 verifyDepsBeforeRun: false
 

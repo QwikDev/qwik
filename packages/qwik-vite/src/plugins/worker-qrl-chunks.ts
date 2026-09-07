@@ -4,7 +4,8 @@ const QWIK_WORKER_QRL_SENTINEL_NAME = '__QWIK_WORKER_QRL__';
 export const QWIK_WORKER_QRL_SENTINEL = `${QWIK_WORKER_QRL_SENTINEL_NAME}:`;
 export const QWIK_WORKER_CORE_SENTINEL = '__QWIK_WORKER_CORE__';
 
-const QWIK_WORKER_QRL_RE = new RegExp(`${QWIK_WORKER_QRL_SENTINEL}([^"'\\\`\\s]+)`, 'g');
+// Exclude backslash so escaped quotes (\") in string literals end the match.
+const QWIK_WORKER_QRL_RE = new RegExp(`${QWIK_WORKER_QRL_SENTINEL}([^"'\\\`\\s\\\\]+)`, 'g');
 
 const joinPublicPath = (basePathname: string, fileName: string) => {
   const base = basePathname.endsWith('/') ? basePathname : `${basePathname}/`;

@@ -138,7 +138,7 @@ export const App = () => {
 		);
 	});
 	return Header;
-});
+};
 "#
 		.to_string(),
 		..TestInput::default()
@@ -2276,7 +2276,7 @@ export const App = component$((props) => {
 			>
 				<p>Hello Qwik</p>
 			</Div>
-			[].map(() => (
+			{[].map(() => (
 				<Model
 					class={state}
 					remove$={remove}
@@ -2287,7 +2287,7 @@ export const App = component$((props) => {
 					mutable2={(() => console.log(state.count))()}
 					mutable3={[1, 2, state, null, {}]}
 				/>
-			));
+			))}
 		</>
 	);
 });
@@ -3485,6 +3485,9 @@ export const Local = component$(() => {
 	)
 });
 "#;
+	let snapshot_inputs = format!(
+		"==INPUT ../../node_modules/dep/dist/lib.mjs==\n\n{dep}\n==INPUT components/main.tsx==\n\n{code}"
+	);
 	let res = transform_modules(TransformModulesOptions {
 		src_dir: "/path/to/app/src/thing".into(),
 		root_dir: Some("/path/to/app/".into()),
@@ -3517,7 +3520,7 @@ export const Local = component$(() => {
 		reg_ctx_name: None,
 		is_server: None,
 	});
-	snapshot_res!(&res, "".into());
+	snapshot_res!(&res, snapshot_inputs);
 }
 #[test]
 fn consistent_hashes() {

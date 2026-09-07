@@ -67,7 +67,10 @@ const REPL_PATHS = ['/playground', '/tutorial', '/examples', '/repl'];
 
 const crossOriginIsolateRepl = (): Plugin => {
   const isolateRepl: Connect.NextHandleFunction = (req, res, next) => {
-    if (REPL_PATHS.some((replPath) => req.url?.startsWith(replPath))) {
+    if (
+      REPL_PATHS.some((replPath) => req.url?.startsWith(replPath)) ||
+      new URL(req.url || '/', 'http://localhost').searchParams.has('worker_file')
+    ) {
       res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
       res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
     }

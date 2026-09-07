@@ -125,10 +125,17 @@ export function examplesData(routesDir: string): Plugin {
   return {
     name: 'examplesData',
 
-    resolveId(id) {
-      if (id === '@examples-data') {
-        return id;
-      }
+    resolveId: {
+      order: 'pre',
+      handler(id, importer) {
+        // Watched example sources are data, not executable client imports.
+        if (
+          id === '@examples-data' ||
+          (importer === '@examples-data' && id.startsWith(dir + '/'))
+        ) {
+          return id;
+        }
+      },
     },
 
     async load(id) {
@@ -243,10 +250,17 @@ export function tutorialData(routesDir: string): Plugin {
   return {
     name: 'tutorialData',
 
-    resolveId(id) {
-      if (id === '@tutorial-data') {
-        return id;
-      }
+    resolveId: {
+      order: 'pre',
+      handler(id, importer) {
+        // Watched tutorial sources are data, not executable client imports.
+        if (
+          id === '@tutorial-data' ||
+          (importer === '@tutorial-data' && id.startsWith(dir + '/'))
+        ) {
+          return id;
+        }
+      },
     },
 
     async load(id) {

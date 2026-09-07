@@ -89,7 +89,7 @@ export interface OptimizerOptions {
   _optimizer?: unknown;
   /**
    * Number of worker threads for transforms (Node only). Workers isolate transform allocations from
-   * the host heap and run independent calls in parallel. `0`/`1` runs in-process. Default: `min(4,
+   * the host heap and run independent calls in parallel. `0` runs in-process. Default: `min(4,
    * cores - 1)`, overridable via `QWIK_TS_OPTIMIZER_WORKERS`; disabled under vitest.
    */
   workers?: number;

@@ -472,7 +472,7 @@ function prepareModuleInput(mod: ModuleContext): PreparedModuleInput {
   }
 
   const edits = new MagicString(repairedCode);
-  const flattened = flattenDestructureUseCalls(repairedCode, relPath, program, edits);
+  const flattened = flattenDestructureUseCalls(repairedCode, program, edits);
   const inlineProps = normalizeInlineComponentProps(repairedCode, relPath, program, edits);
   let originalOffset = (offset: number): number => offset;
   if (flattened.changed || inlineProps.changed) {
@@ -877,7 +877,6 @@ function analyzeModuleCaptures(
     closureFreeIdentifiers,
     enclosingExtMap,
     importedNames,
-    program,
     relPath,
     diagnostics
   );

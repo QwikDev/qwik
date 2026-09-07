@@ -35,7 +35,7 @@ export interface TransformWorkerPool {
 
 const isNode = typeof process === 'object' && !!process.versions?.node;
 
-/** Resolve the pool size: explicit option > env override > default. 0/1 disables the pool. */
+/** Resolve the pool size: explicit option > env override > default. 0 disables the pool. */
 export function resolvePoolSize(workers?: number): number {
   if (typeof workers === 'number') {
     return Math.floor(workers);
@@ -57,7 +57,7 @@ export function resolvePoolSize(workers?: number): number {
 }
 
 /**
- * Create a transform worker pool, or `null` when unsupported (non-node, size < 2 spawn failure).
+ * Create a transform worker pool, or `null` when unsupported (non-node, size < 1, spawn failure).
  * Worker crashes after startup permanently fall back to in-process transforms for pending and
  * future calls — behavior stays identical, only isolation is lost.
  */

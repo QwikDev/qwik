@@ -14,7 +14,6 @@ type Substitution = { from: string; to: string };
 
 export function flattenDestructureUseCalls(
   source: string,
-  relPath: string,
   program: AstProgram,
   target?: MagicString
 ): { source: string; changed: boolean } {

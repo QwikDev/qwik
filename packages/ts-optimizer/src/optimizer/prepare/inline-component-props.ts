@@ -9,7 +9,7 @@
 import type { AstNode, AstProgram } from '../../ast-types.js';
 import MagicString from 'magic-string';
 import { parseWithRawTransfer } from '../ast/parse.js';
-import { forEachAstChild } from '../ast/guards.js';
+import { forEachAstChild, someAstDescendant } from '../ast/guards.js';
 import { applyReplacements } from '../edit/range-replace.js';
 import { isNonReferenceIdentifier } from '../analysis/variable-migration.js';
 
@@ -25,19 +25,10 @@ interface NormalizeResult {
 }
 
 function containsJsx(node: AstNode): boolean {
-  let found = false;
-  const visit = (n: AstNode | null | undefined): void => {
-    if (!n || found) {
-      return;
-    }
-    if (n.type === 'JSXElement' || n.type === 'JSXFragment') {
-      found = true;
-      return;
-    }
-    forEachAstChild(n, (child) => visit(child as AstNode));
-  };
-  visit(node);
-  return found;
+  return someAstDescendant(
+    node,
+    (descendant) => descendant.type === 'JSXElement' || descendant.type === 'JSXFragment'
+  );
 }
 
 /** Key → local name, or null when the pattern has unsupported shapes. */

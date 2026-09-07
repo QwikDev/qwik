@@ -5,7 +5,7 @@ import { flattenDestructureUseCalls } from '../../../src/optimizer/prepare/flatt
 
 function flatten(source: string): { source: string; changed: boolean } {
   const { program } = parseWithRawTransfer('test.tsx', source);
-  return flattenDestructureUseCalls(source, 'test.tsx', program);
+  return flattenDestructureUseCalls(source, program);
 }
 
 function parseErrorCount(source: string): number {

@@ -73,7 +73,6 @@ export function detectC02Diagnostics(
   closureFreeIdentifiers: ReadonlyMap<AstFunction, readonly string[]>,
   enclosingExtMap: Map<string, ExtractionResult>,
   importedNames: Set<string>,
-  program: AstProgram,
   file: string,
   diagnostics: Diagnostic[]
 ): void {

@@ -208,7 +208,9 @@ from a deserialized frozen plan in a fresh process.
   compiler has no such rule — a differential fixture with a lowercase-named component will
   diverge; that is this decision, not a parity bug.
 - Candidate detection and discovery share one list of JSX-returning functions. Top-level const
-  arrow components retain local or exported declarations; separate export aliases stay authored.
+  arrows and synchronous function declarations retain their local/exported forms and bindings.
+  Named default functions retain their local name; separate export aliases stay authored.
+  Modules with function components initialize generated hoists before authored statements.
 - Candidate detection is the routing gate; JSX left outside any candidate fails closed with
   `unsupported-runtime-jsx` (NEVER the oxc fallback — that would emit react/jsx-runtime output).
   Legacy additionally embeds function renders for JSX in call arguments — resolve when that

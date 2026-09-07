@@ -1,0 +1,17 @@
+==INPUT==
+
+export default function () { return <span>child</span>; }
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { _createElementTemplate } from '@qwik.dev/core';
+
+const default_tmpl0 = _createElementTemplate('<span>child</span>');
+export default function (props, ctx) {
+  const el0 = default_tmpl0(ctx.document);
+  return el0;
+}
+== CSR DIAGNOSTICS ==
+
+[]

@@ -13,7 +13,7 @@ import {
   ModuleKind,
   PlanFormat,
 } from '../schema';
-import { serverSpecialization } from './fixtures';
+import { loadDefaultFunction, serverSpecialization } from './fixtures';
 
 describe('pipeline flow', () => {
   test.each([
@@ -139,17 +139,69 @@ export default () => {
     expect(plan.diagnostics[0].code).toBe('unsupported-runtime-jsx');
   });
 
-  test('an Uppercased function returning JSX is a component candidate', async () => {
-    await expect(
-      analyseModule(
-        {
-          path: 'src/app.tsx',
-          code: 'export function App() {\n  return <p>x</p>;\n}\n',
-        },
-        { transpileTs: true }
-      )
-    ).rejects.toThrow('a component declaration that is not an arrow function');
-  });
+  test.each(['', 'export ', 'export default '])(
+    'function components remain callable before their declaration: %s',
+    async (prefix) => {
+      const output = await transformModules({
+        input: [
+          {
+            path: 'src/app.tsx',
+            code: `observe(App());
+${prefix}function App() { return <p>child</p>; }
+${prefix === 'export default ' ? '' : 'export default () => <main />;'}`,
+          },
+        ],
+        isServer: true,
+      });
+      expect(output.diagnostics).toEqual([]);
+      const observed: unknown[] = [];
+      const render = loadDefaultFunction(output.modules[0], {
+        observe: (value: unknown) => observed.push(value),
+      });
+      expect(observed).toEqual(['<p>child</p>']);
+      expect(render()).toBe(prefix === 'export default ' ? '<p>child</p>' : '<main></main>');
+    }
+  );
+
+  test.each(['function*', 'async function'])(
+    'rejects unsupported function component execution: %s',
+    async (declaration) => {
+      await expect(
+        analyseModule(
+          {
+            path: 'src/app.tsx',
+            code: `export ${declaration} App() { return <p />; }`,
+          },
+          {}
+        )
+      ).rejects.toThrow('an async or generator component function');
+    }
+  );
+
+  test.each([true, false])(
+    'initializes function component hoists before authored calls: SSR=%s',
+    async (isServer) => {
+      const output = await transformModules({
+        input: [
+          {
+            path: 'src/app.tsx',
+            code: `observe(App);
+import { useSignal } from '@qwik.dev/core';
+export default function App() {
+  const count = useSignal(1);
+  return <p>{count.value + 1}</p>;
+}`,
+          },
+        ],
+        isServer,
+      });
+      expect(output.diagnostics).toEqual([]);
+      const code = output.modules[0].code;
+      const hoist = code.indexOf(isServer ? 'const q_' : 'const default_tmpl');
+      expect(hoist).toBeGreaterThanOrEqual(0);
+      expect(hoist).toBeLessThan(code.indexOf('observe(App)'));
+    }
+  );
 
   test.each(['', 'export { Child as Renamed };', 'export default 42;'])(
     'discovers a local component without an exported component: %s',

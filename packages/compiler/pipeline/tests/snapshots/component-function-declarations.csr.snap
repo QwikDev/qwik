@@ -1,0 +1,75 @@
+==INPUT==
+
+import { useSignal } from '@qwik.dev/core';
+export function Wrapper() { return <App />; }
+export default function App() { return <Child />; }
+function Child() {
+  const count = useSignal(1);
+  return <button onClick$={() => count.value++}>{count.value}</button>;
+}
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+const Child_tmpl0 = _createElementTemplate('<button> </button>');
+import {
+  createComponent,
+  useSignal,
+  setEvent,
+  _first,
+  createTextNodeEffect,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_q_e_click_segment_0_2xwyg1cinvmpz } from './component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz';
+export function Wrapper(props, ctx) {
+  const component0 = createComponent(App, null, ctx);
+  return component0;
+}
+export default function App(props, ctx) {
+  const component0 = createComponent(Child, null, ctx);
+  return component0;
+}
+function Child(props, ctx) {
+  const count = useSignal(1);
+  const el0 = Child_tmpl0(ctx.document);
+  setEvent(el0, 'q-e:click', component_q_e_click_segment_0_2xwyg1cinvmpz, [count]);
+  const text0 = _first(el0);
+  const effect0 = createTextNodeEffect(text0, count, ctx.scheduler);
+  ctx.scheduler.notify(effect0);
+  return el0;
+}
+============================= src/component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_q_e_click_segment_0_2xwyg1cinvmpz = () => {
+  const [count] = _captures;
+  return count.value++;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_0_2xwyg1cinvmpz",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_0",
+  "hash": "2xwyg1cinvmpz",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    208,
+    238
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

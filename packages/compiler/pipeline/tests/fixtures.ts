@@ -26,6 +26,10 @@ export function loadDefaultFunction(
         return '';
       }
       if (statement.type === 'ExportDefaultDeclaration') {
+        const declaration = statement.declaration;
+        if (declaration.type === 'FunctionDeclaration' && declaration.id !== null) {
+          return `${module.code.slice(declaration.start, declaration.end)}\n${declaration.id.name};`;
+        }
         return `(${module.code.slice(statement.declaration.start, statement.declaration.end)})`;
       }
       if (statement.type === 'ExportNamedDeclaration' && statement.declaration !== null) {

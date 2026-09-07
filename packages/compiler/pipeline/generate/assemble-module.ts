@@ -1,5 +1,6 @@
 import {
   AssemblyKind,
+  DeclarationKind,
   SurfaceKind,
   type LinkedModule,
   type LinkedQrl,
@@ -76,6 +77,7 @@ export function assembleQwikModule(
   const names = allocateGeneratedNames(module);
   const edits: { range: [number, number]; text: string }[] = [];
   let firstComponentEdit: { range: [number, number]; text: string } | null = null;
+  let hasHoistedComponent = false;
   for (const intent of module.assembly) {
     switch (intent.a) {
       case AssemblyKind.Import:
@@ -92,6 +94,9 @@ export function assembleQwikModule(
         if (declaration === undefined) {
           throw new Error(`pipeline: a splice intent on the undeclared qrl "${qrl.id}"`);
         }
+        hasHoistedComponent ||=
+          declaration.declarationKind === DeclarationKind.Function ||
+          declaration.declarationKind === DeclarationKind.DefaultFunction;
         const componentNames = {
           ...names,
           props: authoredPropsName(module, declaration) ?? names.props,
@@ -125,7 +130,7 @@ export function assembleQwikModule(
     let hoists = parts.hoists;
     if (coreEdge !== undefined && parts.imports.size > 0) {
       // Module-top hoists follow the replaced import, keeping the authored statement order.
-      const inlineHoists = placement === 'module-top' ? hoists : [];
+      const inlineHoists = placement === 'module-top' && !hasHoistedComponent ? hoists : [];
       // A chunk-import block ends with a blank line before the hoists; a lone core import does not.
       const hoistSeparator = parts.chunkImports.length > 0 ? '\n\n' : '\n';
       edits.push({
@@ -136,9 +141,12 @@ export function assembleQwikModule(
             : `${importLines.join('\n')}${hoistSeparator}${inlineHoists.join('\n')}`,
       });
       header = '';
-      hoists = placement === 'module-top' ? [] : hoists;
+      if (inlineHoists.length > 0) {
+        hoists = [];
+      }
     }
-    if (placement === 'module-top') {
+    // Hoisted components can execute before any authored statement.
+    if (placement === 'module-top' || hasHoistedComponent) {
       prefix = `${header}${hoists.join('\n')}${hoists.length > 0 ? '\n' : ''}`;
     } else {
       if (firstComponentEdit === null) {

@@ -40,6 +40,27 @@ async function testInputs(mode: 'ssr' | 'csr', snapshotName: string, inputs: rea
 }
 
 describe.each(['ssr', 'csr'] as const)('%s', (mode) => {
+  test('should preserve function component declarations and default bindings', async () => {
+    const output = await testInput(mode, 'component-function-declarations', {
+      code: `import { useSignal } from '@qwik.dev/core';
+export function Wrapper() { return <App />; }
+export default function App() { return <Child />; }
+function Child() {
+  const count = useSignal(1);
+  return <button onClick$={() => count.value++}>{count.value}</button>;
+}
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+  });
+
+  test('should preserve an anonymous default function component', async () => {
+    const output = await testInput(mode, 'component-default-function', {
+      code: 'export default function () { return <span>child</span>; }',
+    });
+    expect(output.diagnostics).toEqual([]);
+  });
+
   test('should preserve local component declarations without exporting them', async () => {
     const output = await testInput(mode, 'component-local-declaration', {
       code: `const Settings = { label: 'ordinary value' };

@@ -4,7 +4,6 @@ import {
   BoundaryKind,
   DeclTable,
   SurfaceKind,
-  DeclarationKind,
   DiagnosticCategory,
   FnBodyKind,
   ExportKind,
@@ -207,6 +206,7 @@ export async function analyseModule(
       parameterSurface === null
         ? null
         : { pattern: plan.payloads.length - 1, surface: parameterSurface };
+    const body = component.fn.body!;
     // A component IS a QRL: a Program body plus an authored declaration to splice over.
     const { index: qrlIndex } = pushQrl(lowerContext, {
       identity: {
@@ -223,13 +223,12 @@ export async function analyseModule(
       params: { authored: component.param === null ? 0 : 1, used: [], sources: [] },
       origin: {
         range: [component.statement.start, component.statement.end],
-        functionRange: [component.arrow.start, component.arrow.end],
+        functionRange: [component.fn.start, component.fn.end],
         calleeRange: null,
         argumentRanges: [],
         paramRanges: component.param === null ? [] : [component.param.range],
-        bodyRange: [component.arrow.body.start, component.arrow.body.end],
-        bodyKind:
-          component.arrow.body.type === 'BlockStatement' ? FnBodyKind.Block : FnBodyKind.Expression,
+        bodyRange: [body.start, body.end],
+        bodyKind: body.type === 'BlockStatement' ? FnBodyKind.Block : FnBodyKind.Expression,
       },
       declaration: {
         name: component.name,
@@ -241,7 +240,7 @@ export async function analyseModule(
         isExported:
           component.statement.type === 'ExportNamedDeclaration' ||
           component.statement.type === 'ExportDefaultDeclaration',
-        localName: component.declarationKind === DeclarationKind.Const ? component.name : null,
+        localName: componentBinding === null ? null : plan.bindings[componentBinding].name,
       },
     });
     if (componentBinding === null) {

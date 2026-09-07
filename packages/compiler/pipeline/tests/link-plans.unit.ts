@@ -48,6 +48,41 @@ export default () => <main><RenamedChild /></main>;
 }
 
 describe('linkPlans', () => {
+  test.each(['App', ''])(
+    'links a default function component by its authored binding: "%s"',
+    async (name) => {
+      const child = await analyse(
+        'src/child.tsx',
+        `export default function ${name}() { return <span />; }`
+      );
+      const app = await analyse(
+        'src/app.tsx',
+        `import Child from './child';
+export function Wrapper() { return <Child />; }`
+      );
+      const declaration = child.qrls[0].declaration!;
+      expect(declaration.binding).toBe(
+        name === '' ? null : child.bindings.find((binding) => binding.name === name)!.id
+      );
+      expect(declaration.localName).toBe(name === '' ? null : name);
+      const result = linkPlans(
+        deepFreeze([app, child]),
+        [{ kind: EntryKind.Export, module: app.path, export: 'Wrapper' }],
+        serverSpecialization(),
+        { edges: { [app.path]: { 0: resolved(child.path) } } },
+        plugins,
+        true
+      );
+      expect(result.kind).toBe(LinkResultKind.Linked);
+      if (result.kind !== LinkResultKind.Linked) {
+        throw new Error('expected a linked function component');
+      }
+      expect(result.plan.modules[0].imports[0]).toMatchObject({
+        target: { ok: true, value: { module: 1, table: DeclTable.Qrls, index: 0 } },
+      });
+    }
+  );
+
   test.each(['', 'export { Child as Renamed };'])(
     'links local components by binding independently of exports: %s',
     async (exports) => {

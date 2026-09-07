@@ -1,0 +1,13 @@
+==INPUT==
+
+export default function () { return <span>child</span>; }
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+export default function (props, ctx) {
+  return '<span>child</span>';
+}
+== SSR DIAGNOSTICS ==
+
+[]

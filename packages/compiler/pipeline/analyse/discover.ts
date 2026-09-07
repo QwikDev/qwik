@@ -3,6 +3,7 @@ import type {
   BindingIdentifier,
   BindingPattern,
   Directive,
+  Function as FunctionNode,
   JSXElement,
   Statement,
 } from 'oxc-parser';
@@ -15,7 +16,7 @@ export interface DiscoveredComponent {
   name: string;
   bindingNode: BindingIdentifier | null;
   declarationKind: DeclarationKind;
-  arrow: ArrowFunctionExpression;
+  fn: ArrowFunctionExpression | FunctionNode;
   /** The authored props parameter pattern. */
   param: { node: BindingPattern; range: [number, number] } | null;
   /** Statements before the return — lowered as component setup. */
@@ -29,6 +30,19 @@ export function discoverComponents(
   candidates: readonly ComponentCandidate[]
 ): DiscoveredComponent[] {
   return candidates.map(({ statement, fn, name }) => {
+    if (fn.type === 'FunctionDeclaration') {
+      if (fn.async || fn.generator) {
+        throw new UnsupportedError('an async or generator component function');
+      }
+      const isDefault = statement.type === 'ExportDefaultDeclaration';
+      return describeComponent(
+        statement,
+        fn,
+        isDefault ? 'default' : name!,
+        isDefault ? DeclarationKind.DefaultFunction : DeclarationKind.Function,
+        fn.id
+      );
+    }
     if (fn.type !== 'ArrowFunctionExpression') {
       throw new UnsupportedError('a component declaration that is not an arrow function');
     }
@@ -56,12 +70,12 @@ export function discoverComponents(
 
 function describeComponent(
   statement: Statement,
-  arrow: ArrowFunctionExpression,
+  fn: ArrowFunctionExpression | FunctionNode,
   name: string,
   declarationKind: DeclarationKind,
   bindingNode: BindingIdentifier | null
 ): DiscoveredComponent {
-  const params = arrow.params;
+  const params = fn.params;
   if (params.length > 1) {
     throw new UnsupportedError('more than one component parameter');
   }
@@ -79,7 +93,7 @@ function describeComponent(
   ) {
     throw new UnsupportedError('a destructured component parameter');
   }
-  const { setupStatements, returned } = componentBody(arrow);
+  const { setupStatements, returned } = componentBody(fn);
   if (returned === null || returned.type !== 'JSXElement') {
     throw new UnsupportedError('a return value that is not a JSX element');
   }
@@ -88,7 +102,7 @@ function describeComponent(
     bindingNode,
     declarationKind,
     setupStatements,
-    arrow,
+    fn,
     param: param === undefined ? null : { node: param, range: [param.start, param.end] },
     jsx: returned,
     statement,
@@ -96,11 +110,14 @@ function describeComponent(
 }
 
 /** Setup statements plus the returned expression (concise body, or the final `return`). */
-function componentBody(arrow: ArrowFunctionExpression): {
+function componentBody(fn: ArrowFunctionExpression | FunctionNode): {
   setupStatements: (Directive | Statement)[];
   returned: ReturnType<typeof unwrapExpression>;
 } {
-  const body = arrow.body;
+  const body = fn.body;
+  if (body === null) {
+    throw new UnsupportedError('a component without a body');
+  }
   if (body.type !== 'BlockStatement') {
     return { setupStatements: [], returned: unwrapExpression(body) };
   }

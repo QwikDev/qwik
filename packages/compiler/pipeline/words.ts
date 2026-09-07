@@ -57,6 +57,7 @@ export const enum QwikWord {
   Props = '_props',
   NoopQrl = '_noopQrl',
   Captures = '_captures',
+  Await = '_await',
 }
 
 /** Name stems for generated locals. */

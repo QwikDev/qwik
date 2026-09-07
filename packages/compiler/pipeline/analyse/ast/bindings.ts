@@ -1,5 +1,6 @@
 import type {
   ArrowFunctionExpression,
+  AwaitExpression,
   BindingIdentifier,
   BindingPattern,
   Function,
@@ -31,6 +32,7 @@ export interface BindingGraph {
   bindingsOf(pattern: BindingPattern): readonly LocalId[];
   freeReferences(roots: Node | Node[]): BindingReference[];
   dependenciesOf<T extends Node>(expression: Node | Node[], candidates: readonly T[]): T[];
+  awaitsOf(fn: ArrowFunctionExpression | Function): readonly AwaitExpression[];
   addSynthetic(name: string, scope: BindingScope, declarationRange?: [number, number]): LocalId;
 }
 
@@ -62,6 +64,7 @@ export function createBindingGraph(program: Program): BindingGraph {
   const orderedReferences: BindingReference[] = [];
   const referenceSpans = new WeakMap<Node, [number, number]>();
   const scopes = new WeakMap<Node, Scope>();
+  const awaitsByScope = new WeakMap<Scope, AwaitExpression[]>();
   const moduleScope = createScope(null, true);
   scopes.set(program, moduleScope);
 
@@ -205,6 +208,17 @@ export function createBindingGraph(program: Program): BindingGraph {
       return;
     }
     switch (value.type) {
+      case 'AwaitExpression': {
+        const owner = nearestFunctionScope(scope);
+        const awaits = awaitsByScope.get(owner);
+        if (awaits === undefined) {
+          awaitsByScope.set(owner, [value]);
+        } else {
+          awaits.push(value);
+        }
+        collect(value.argument, scope);
+        return;
+      }
       case 'Program':
         value.body.forEach((statement) => collect(statement, scope));
         return;
@@ -359,6 +373,10 @@ export function createBindingGraph(program: Program): BindingGraph {
 
   return {
     bindings,
+    awaitsOf: (fn) => {
+      const scope = fn.body === null ? undefined : scopes.get(fn.body);
+      return scope === undefined ? [] : (awaitsByScope.get(scope) ?? []);
+    },
     freeReferences,
     declaration: (node) => declarations.get(node) ?? null,
     reference: (node) => references.get(node) ?? null,

@@ -40,6 +40,31 @@ async function testInputs(mode: 'ssr' | 'csr', snapshotName: string, inputs: rea
 }
 
 describe.each(['ssr', 'csr'] as const)('%s', (mode) => {
+  test('should restore await context across hook, explicit and event QRLs', async () => {
+    await testInput(mode, 'qrl-await', {
+      code: `import { $, useSignal, useTask$ } from '@qwik.dev/core';
+export default (props) => {
+  const count = useSignal(1);
+  const run = $(async function run(value = props.initial) {
+    await Promise.resolve(value);
+    return count.value;
+  });
+  useTask$(async () => {
+    await (await Promise.resolve(props.initial));
+    const nested = async () => { await Promise.resolve(); };
+    await nested();
+    console.log(count.value);
+  });
+  return <button onClick$={async () => {
+    try { await Promise.reject(props.initial); }
+    catch { console.log(count.value); }
+    await run();
+  }}>run</button>;
+};
+`,
+    });
+  });
+
   test('should reuse one setup QRL across hooks and events', async () => {
     const output = await testInput(mode, 'setup-hook-qrl', {
       code: `import { $, useSignal, useTask$, useComputed$ } from '@qwik.dev/core';

@@ -36,7 +36,8 @@ export function loadDefaultFunction(
 
 export function loadChunkFunction(
   module: { path: string; code: string },
-  captures: unknown[] = []
+  captures: unknown[] = [],
+  globals: Record<string, unknown> = {}
 ) {
   const declaration = parseModule(module.path, module.code).program.body.find(
     (statement) => statement.type === 'ExportNamedDeclaration'
@@ -46,6 +47,7 @@ export function loadChunkFunction(
   }
   const expression = declaration.declarations[0].init!;
   return runInNewContext(`'use strict'; (${module.code.slice(expression.start, expression.end)})`, {
+    ...globals,
     _captures: captures,
   });
 }

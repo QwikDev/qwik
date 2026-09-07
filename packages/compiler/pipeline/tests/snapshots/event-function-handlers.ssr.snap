@@ -161,11 +161,11 @@ export const component_q_e_save_segment_2_3krcacnjwdae8 = function () {
 */
 ============================= src/component.tsx_component_q_e_click_segment_3_2xwygfdmkpoqi.js (ENTRY POINT)==
 
-import { _captures } from '@qwik.dev/core';
+import { _captures, _await } from '@qwik.dev/core';
 
 export const component_q_e_click_segment_3_2xwygfdmkpoqi = async function (event) {
   const [props] = _captures;
-  await Promise.resolve();
+  (await _await(Promise.resolve()))();
   return props.onSave$(event.type);
 };
 /*

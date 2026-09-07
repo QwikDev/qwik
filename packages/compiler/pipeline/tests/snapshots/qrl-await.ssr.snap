@@ -1,0 +1,182 @@
+==INPUT==
+
+import { $, useSignal, useTask$ } from '@qwik.dev/core';
+export default (props) => {
+  const count = useSignal(1);
+  const run = $(async function run(value = props.initial) {
+    await Promise.resolve(value);
+    return count.value;
+  });
+  useTask$(async () => {
+    await (await Promise.resolve(props.initial));
+    const nested = async () => { await Promise.resolve(); };
+    await nested();
+    console.log(count.value);
+  });
+  return <button onClick$={async () => {
+    try { await Promise.reject(props.initial); }
+    catch { console.log(count.value); }
+    await run();
+  }}>run</button>;
+};
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { useSignal, _captures, useTask$, _await, _noopQrl } from '@qwik.dev/core';
+const component_run_segment_0_3puv0fmsn52m6 = function () {
+  const [count, props] = _captures;
+  return async function run(value = props.initial) {
+    (await _await(Promise.resolve(value)))();
+    return count.value;
+  }.apply(this, arguments);
+};
+const q_component_run_segment_0_3puv0fmsn52m6 = /*#__PURE__*/ _noopQrl(
+  'component_run_segment_0_3puv0fmsn52m6'
+);
+q_component_run_segment_0_3puv0fmsn52m6.s(component_run_segment_0_3puv0fmsn52m6);
+const component_useTaskqrl_segment_1_1og80wrqqnv5v = async () => {
+  const [count, props] = _captures;
+  (await _await((await _await(Promise.resolve(props.initial)))()))();
+  const nested = async () => {
+    await Promise.resolve();
+  };
+  (await _await(nested()))();
+  console.log(count.value);
+};
+const q_component_useTaskqrl_segment_1_1og80wrqqnv5v = /*#__PURE__*/ _noopQrl(
+  'component_useTaskqrl_segment_1_1og80wrqqnv5v'
+);
+q_component_useTaskqrl_segment_1_1og80wrqqnv5v.s(component_useTaskqrl_segment_1_1og80wrqqnv5v);
+const q_component_q_e_click_segment_2_2xwygteqhjqr1 = /*#__PURE__*/ _noopQrl(
+  'component_q_e_click_segment_2_2xwygteqhjqr1'
+);
+export default (props, ctx) => {
+  const count = useSignal(1);
+  const run = q_component_run_segment_0_3puv0fmsn52m6.w([count, props]);
+  useTask$(q_component_useTaskqrl_segment_1_1og80wrqqnv5v.w([count, props]));
+  return [
+    '<button',
+    ctx.eventAttrParts(
+      'q-e:click',
+      q_component_q_e_click_segment_2_2xwygteqhjqr1.w([count, run, props])
+    ),
+    '>run</button>',
+  ];
+};
+============================= src/component.tsx_component_run_segment_0_3puv0fmsn52m6.js (ENTRY POINT)==
+
+import { _captures, _await } from '@qwik.dev/core';
+
+export const component_run_segment_0_3puv0fmsn52m6 = function () {
+  const [count, props] = _captures;
+  return async function run(value = props.initial) {
+    (await _await(Promise.resolve(value)))();
+    return count.value;
+  }.apply(this, arguments);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_run_segment_0_3puv0fmsn52m6",
+  "entry": null,
+  "displayName": "component_run_segment_0",
+  "hash": "3puv0fmsn52m6",
+  "canonicalFilename": "component.tsx_component_run_segment_0_3puv0fmsn52m6",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    129,
+    237
+  ],
+  "paramNames": [
+    "value = props.initial"
+  ],
+  "captureNames": [
+    "count",
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_useTaskqrl_segment_1_1og80wrqqnv5v.js (ENTRY POINT)==
+
+import { _captures, _await } from '@qwik.dev/core';
+
+export const component_useTaskqrl_segment_1_1og80wrqqnv5v = async () => {
+  const [count, props] = _captures;
+  (await _await((await _await(Promise.resolve(props.initial)))()))();
+  const nested = async () => {
+    await Promise.resolve();
+  };
+  (await _await(nested()))();
+  console.log(count.value);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_useTaskqrl_segment_1_1og80wrqqnv5v",
+  "entry": null,
+  "displayName": "component_useTaskqrl_segment_1",
+  "hash": "1og80wrqqnv5v",
+  "canonicalFilename": "component.tsx_component_useTaskqrl_segment_1_1og80wrqqnv5v",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "useTask$",
+  "captures": true,
+  "loc": [
+    241,
+    429
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count",
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1.js (ENTRY POINT)==
+
+import { _captures, _await } from '@qwik.dev/core';
+
+export const component_q_e_click_segment_2_2xwygteqhjqr1 = async () => {
+  const [count, run, props] = _captures;
+  try {
+    (await _await(Promise.reject(props.initial)))();
+  } catch {
+    console.log(count.value);
+  }
+  (await _await(run()))();
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_2_2xwygteqhjqr1",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_2",
+  "hash": "2xwygteqhjqr1",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    448,
+    566
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count",
+    "run",
+    "props"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

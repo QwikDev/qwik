@@ -31,6 +31,10 @@ export function lowerFunctionQrl(
     refs.propsReads.some(([start]) => start < body.start) ||
     refs.locals.some(({ reads }) => reads.some(({ range }) => range[0] < body.start));
   const payload = pushPayload(ctx, [fn.start, fn.end]);
+  ctx.plan.payloads[payload].awaits = ctx.bindings.awaitsOf(fn).map((node) => ({
+    range: [node.start, node.end],
+    argumentRange: [node.argument.start, node.argument.end],
+  }));
   recordPayloadAliasReads(ctx, payload, refs);
   return pushQrl(
     ctx,

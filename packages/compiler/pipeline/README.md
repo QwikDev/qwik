@@ -83,8 +83,12 @@ separate (`useComputed$` produces a signal).
 
 This slice supports inline first callbacks and local QRL bindings created by `$()`; forwarding
 keeps the existing instance and captures without another segment. Member calls, ordinary function references and boundary
-extraction inside otherwise untouched module functions remain deferred. Async source can be
-extracted, but restoring tracking or hook context after `await` is not implemented here.
+extraction inside otherwise untouched module functions remain deferred.
+
+Callback-owned await expressions use the existing `_await` runtime to restore tracking and invoke
+context on fulfillment or rejection. Lexical scope analysis records await ownership; payload
+emission composes those edits with capture aliases for both CSR chunks and SSR mirrors. Nested
+ordinary functions retain their own awaits. Implicit suspension in `for await` remains deferred.
 
 ## Workflow (vertical slices — DESIGN.md "Phases")
 

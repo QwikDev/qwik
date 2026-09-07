@@ -20,6 +20,7 @@ import { getSegmentDisplayName, getSegmentSymbolHash } from '../segment-identity
 import { QWIK_CORE_IMPORT, QwikWord, SegmentContext } from '../words';
 import { UnsupportedError } from '../errors';
 import { assembleGeneratedModule } from '../../src/module-assembly';
+import { applyReplacements } from '../../src/emit-qrl';
 import { createOriginalRangeMapper } from '../../src/normalization';
 import type { SourceMap } from 'oxc-transform';
 import type { GenerateOutput, PresentationOptions } from './output';
@@ -273,21 +274,19 @@ export function programKind(qrl: LinkedQrl): ProgramKind {
   throw new UnsupportedError(`a program qrl with the boundary "${qrl.boundary.kind}"`);
 }
 
-/** The payload's authored JS with member-path reads materialized over their source ranges. */
+/** Materializes payload edits together so nested source ranges remain valid. */
 export function extractPayloadJs(
   module: LinkedModule,
   payload: number,
-  range: Range = module.payloads[payload].range
+  range: Range = module.payloads[payload].range,
+  awaitName: string = QwikWord.Await
 ): string {
-  const { reads } = module.payloads[payload];
+  const { reads, awaits } = module.payloads[payload];
   const [start, end] = range;
-  let text = module.source.code.slice(start, end);
-  // Bottom-up so earlier offsets stay valid while later reads splice.
-  const materialized = reads
-    .filter(
-      (read) => read.memberPath !== undefined && read.range[0] >= start && read.range[1] <= end
-    )
-    .sort((a, b) => b.range[0] - a.range[0]);
+  const replacements: { range: Range; value: string }[] = [];
+  const materialized = reads.filter(
+    (read) => read.memberPath !== undefined && read.range[0] >= start && read.range[1] <= end
+  );
   for (const read of materialized) {
     const member = [module.bindings[read.binding].name, ...read.memberPath!].join('.');
     let replacement = member;
@@ -296,9 +295,19 @@ export function extractPayloadJs(
     } else if (read.role === ReadRole.Call) {
       replacement = `(0, ${member})`;
     }
-    text = text.slice(0, read.range[0] - start) + replacement + text.slice(read.range[1] - start);
+    replacements.push({ range: read.range, value: replacement });
   }
-  return text;
+  for (const {
+    range: [awaitStart, awaitEnd],
+  } of awaits) {
+    if (awaitStart >= start && awaitEnd <= end) {
+      replacements.push(
+        { range: [awaitStart, awaitStart + 'await'.length], value: `(await ${awaitName}(` },
+        { range: [awaitEnd, awaitEnd], value: '))()' }
+      );
+    }
+  }
+  return applyReplacements(module.source.code, range, replacements);
 }
 
 /** Only an `inline`-resumed value may execute at its authored use site. */

@@ -37,11 +37,24 @@ export function sourceFunctionEmission(
     emission.statements.push(...capturePrelude(captures));
   }
   const body = qrl.body;
+  let awaitName: string = QwikWord.Await;
+  if (body.b === QrlBodyKind.Js && module.payloads[body.payload].awaits.length > 0) {
+    if (module.bindings.some((binding) => binding.name === awaitName)) {
+      awaitName = createNameAllocator(module)(QwikWord.Await);
+    }
+    emission.imports.add(
+      awaitName === QwikWord.Await ? awaitName : `${QwikWord.Await} as ${awaitName}`
+    );
+  }
+  const readSource = (range: Range) =>
+    body.b === QrlBodyKind.Js
+      ? extractPayloadJs(module, body.payload, range, awaitName)
+      : module.source.code.slice(...range);
   if (body.b === QrlBodyKind.Js && body.functionName !== undefined) {
     emission.functionName = body.functionName;
     if (captures.length > 0 && (body.functionName !== null || qrl.params.capturesBeforeParams)) {
       emission.functionName = null;
-      emission.value = `(${extractPayloadJs(module, body.payload)}).apply(this, arguments)`;
+      emission.value = `(${readSource(module.payloads[body.payload].range)}).apply(this, arguments)`;
       return emission;
     }
   }
@@ -49,7 +62,7 @@ export function sourceFunctionEmission(
   if (body.b === QrlBodyKind.Js && qrl.params.capturesBeforeParams) {
     const args = createNameAllocator(module)('args');
     emission.params = [`...${args}`];
-    emission.value = `(${extractPayloadJs(module, body.payload)})(...${args})`;
+    emission.value = `(${readSource(module.payloads[body.payload].range)})(...${args})`;
     return emission;
   }
   if (body.b === QrlBodyKind.Program) {
@@ -67,11 +80,6 @@ export function sourceFunctionEmission(
     emission.async = program.async;
     return emission;
   }
-  const source = module.source.code;
-  const readSource = (range: Range) =>
-    body.b === QrlBodyKind.Js
-      ? extractPayloadJs(module, body.payload, range)
-      : source.slice(...range);
   emission.params =
     qrl.payloadKind === QrlPayloadKind.Value ? captures : qrl.origin.paramRanges.map(readSource);
   emission.async = qrl.authoredAsync;

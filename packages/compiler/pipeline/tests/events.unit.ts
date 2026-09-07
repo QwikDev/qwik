@@ -11,6 +11,7 @@ import {
 } from './fixtures';
 import { parseModule } from '../analyse/ast/parse';
 import { lowerEventAttribute } from '../analyse/lower-event';
+import { _await } from '../../../qwik/src/core/reactive/tracking';
 
 test('bodyless handlers are ignored without allocating a QRL', () => {
   const source = 'const view = <button onClick$={function () {}} />;';
@@ -113,7 +114,7 @@ test.each([false, true])(
       expect(output.diagnostics).toEqual([]);
       const chunk = output.modules.find((module) => module.segment?.ctxName === 'onClick$')!;
       expect(chunk.segment!.captureNames).toBeUndefined();
-      expect(await loadChunkFunction(chunk)()).toBe(expected);
+      expect(await loadChunkFunction(chunk, [], { _await })()).toBe(expected);
     }
   }
 );
@@ -201,7 +202,8 @@ test.each([false, true])('handler parameter semantics (SSR: %s)', async (isServe
     expect(
       await loadChunkFunction(
         chunk,
-        captures.map(() => 7)
+        captures.map(() => 7),
+        { _await }
       )(...args)
     ).toEqual(expected);
   }
@@ -293,7 +295,8 @@ test.each([false, true])(
       const input = { id: 'first', onSave$: (value: string) => value };
       const invoke = loadChunkFunction(
         chunk,
-        captures.map((name) => (name === 'input' ? input : '!'))
+        captures.map((name) => (name === 'input' ? input : '!')),
+        { _await }
       );
       expect(await invoke()).toEqual(expected);
       input.id = 'second';
@@ -367,7 +370,7 @@ export default () => {
       expect(chunk.segment!.captureNames).toEqual(['item', 'index']);
       const row = { id: 'a', label: 'Alpha' };
       const index = { value: 0 };
-      const invoke = loadChunkFunction(chunk, [row, index]);
+      const invoke = loadChunkFunction(chunk, [row, index], { _await });
       const titleChunk = output.modules.find((module) => module.segment?.ctxName === 'title')!;
       const readTitle = loadChunkFunction(titleChunk);
       expect(readTitle(row, index)).toBe(JSON.stringify({ id: 'a', label: 'Alpha', index: 0 }));
@@ -485,7 +488,8 @@ test.each([false, true])(
       expect(chunk.segment!.captureNames ?? []).toEqual(captures);
       const invoke = loadChunkFunction(
         chunk,
-        captures.map(() => ({ label: 'outer' }))
+        captures.map(() => ({ label: 'outer' })),
+        { _await }
       );
       expect(await invoke.call({ label: 'receiver' }, ...args), handler).toEqual(expected);
     }

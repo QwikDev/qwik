@@ -40,6 +40,16 @@ async function testInputs(mode: 'ssr' | 'csr', snapshotName: string, inputs: rea
 }
 
 describe.each(['ssr', 'csr'] as const)('%s', (mode) => {
+  test('should preserve reactive prop aliases and aliased children', async () => {
+    const output = await testInput(mode, 'component-prop-aliases', {
+      code: `export const Card = ({ title: heading, 'data-label': label, onSave$: save, children: content }) => (
+  <section><h2>{heading}</h2><button onClick$={() => save({ label })}>{label}</button>{content}</section>
+);
+export default () => <Card title="Title" data-label="Label"><p>Projected</p></Card>;`,
+    });
+    expect(output.diagnostics).toEqual([]);
+  });
+
   test.each([
     ['fragment', '<><Child /><b>tail</b></>'],
     ['conditional', 'props.visible ? <b>on</b> : null'],

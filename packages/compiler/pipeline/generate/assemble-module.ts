@@ -1,7 +1,6 @@
 import {
   AssemblyKind,
   DeclarationKind,
-  SurfaceKind,
   type LinkedModule,
   type LinkedQrl,
   type QrlDeclaration,
@@ -99,7 +98,7 @@ export function assembleQwikModule(
           declaration.declarationKind === DeclarationKind.DefaultFunction;
         const componentNames = {
           ...names,
-          props: authoredPropsName(module, declaration) ?? names.props,
+          props: componentPropsName(module, declaration) ?? names.props,
         };
         const edit = {
           range: declaration.replacementRange,
@@ -168,7 +167,7 @@ export function assembleQwikModule(
   );
 }
 
-function authoredPropsName(module: LinkedModule, declaration: QrlDeclaration): string | null {
+function componentPropsName(module: LinkedModule, declaration: QrlDeclaration): string | null {
   const surface = declaration.parameter?.surface;
-  return surface?.kind === SurfaceKind.Identifier ? module.bindings[surface.binding].name : null;
+  return surface?.binding == null ? null : module.bindings[surface.binding].name;
 }

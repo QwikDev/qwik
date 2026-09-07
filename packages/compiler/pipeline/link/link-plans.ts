@@ -1,6 +1,7 @@
 /** Pure module linking over plans and host-provided resolver/plugin snapshots. */
 import {
   ComponentTargetKind,
+  CallTargetKind,
   DeclTable,
   DeliveryKind,
   EntryKind,
@@ -455,8 +456,8 @@ export function linkPlans(
   const visitProgram = (module: number, program: number): void => {
     const plan = linkedModules[module].programs[program];
     for (const setup of plan?.setup ?? []) {
-      if (setup.s === SetupKind.Call) {
-        visitImport(module, setup.binding);
+      if (setup.s === SetupKind.Call && setup.target.kind === CallTargetKind.Binding) {
+        visitImport(module, setup.target.binding);
       }
     }
     const body = plan?.body;

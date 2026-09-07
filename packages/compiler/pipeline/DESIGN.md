@@ -292,8 +292,7 @@ type Setup =
   // plain consts AND `$()` consts (value: {v:'qrl'})
   | {
       s: 'call';
-      binding: LocalId;
-      importName?: string; // compiler-selected core export, otherwise authored binding
+      target: CallTarget;
       args: Arg[];
       result: BindTarget | null;
       guard?: Predicate;
@@ -320,10 +319,15 @@ type Setup =
   | { s: 'js'; payload: PayloadId; guard?: Predicate }; // runtime needs derive from the
 //   payload rewrites — no
 //   second op list to maintain
+type CallTarget =
+  | { kind: 'binding'; binding: LocalId }
+  | { kind: 'core'; operation: 'create-signal' | 'create-computed' }
+  | { kind: 'value'; value: ValueIR }; // invoke the value without a receiver
+
 interface ComponentParameter {
   pattern: PayloadId;
   surface:
-    | { kind: 'object'; bindings: { binding: LocalId; name: string }[] }
+    | { kind: 'object'; binding: LocalId | null; bindings: { binding: LocalId; name: string }[] }
     | { kind: 'identifier'; binding: LocalId };
 }
 type PlaceIR =

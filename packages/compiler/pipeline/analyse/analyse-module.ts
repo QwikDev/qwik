@@ -1,6 +1,7 @@
 /** `analyseModule(file, options) -> ModulePlan` — one file, one plan, pure (DESIGN.md rule 7). */
 import {
   AssemblyKind,
+  BindingScope,
   BoundaryKind,
   DeclTable,
   SurfaceKind,
@@ -18,12 +19,12 @@ import {
   type Diagnostic,
   type ModulePlan,
 } from '../schema';
-import { createBindingGraph } from './ast/bindings';
+import { createBindingGraph, type BindingGraph } from './ast/bindings';
 import { createJsxAnalysis } from './ast/jsx-analysis';
 import { findRuntimeJsx, findComponentCandidates } from './ast/returns-jsx';
 import { parseModule } from './ast/parse';
 import { scanModuleSurface } from './module-surface';
-import { discoverComponents } from './discover';
+import { discoverComponents, type DiscoveredComponent } from './discover';
 import { lowerSetup } from './lower-setup';
 import { createLowerContext, pushQrl, QrlIdentityKind } from './lower-context';
 import { lowerRenderExpression } from './lower-jsx';
@@ -32,6 +33,8 @@ import { emptyPlan } from './plan';
 import { createOriginalRangeMapper } from '../../src/normalization';
 
 import { InvalidModuleError, UnsupportedError } from '../errors';
+import { allocateGeneratedName } from '../names';
+import { QwikGenWord } from '../words';
 
 export interface AnalyseOptions {
   transpileTs?: boolean;
@@ -139,25 +142,8 @@ export async function analyseModule(
   for (const component of components) {
     const componentBinding =
       component.bindingNode === null ? null : bindings.declaration(component.bindingNode);
-    const parameterBindings =
-      component.param === null ? [] : [...bindings.bindingsOf(component.param.node)];
-    const parameterSurface: ComponentParameter['surface'] | null =
-      component.param === null
-        ? null
-        : component.param.node.type === 'Identifier'
-          ? {
-              kind: SurfaceKind.Identifier,
-              binding: parameterBindings[0]!,
-            }
-          : {
-              kind: SurfaceKind.Object,
-              bindings: parameterBindings.map((binding) => ({
-                binding,
-                name: plan.bindings[binding].name,
-              })),
-            };
-    lowerContext.propsBinding =
-      parameterSurface?.kind === SurfaceKind.Identifier ? parameterSurface.binding : null;
+    const parameterSurface = lowerParameterSurface(component.param, bindings);
+    lowerContext.propsBinding = parameterSurface?.binding ?? null;
     lowerContext.propsMembers = new Map(
       parameterSurface?.kind === SurfaceKind.Object
         ? parameterSurface.bindings.map(({ binding, name }) => [binding, name])
@@ -257,6 +243,33 @@ export async function analyseModule(
     plan.assembly.push({ a: AssemblyKind.Splice, qrl: qrlIndex });
   }
   return finish();
+}
+
+function lowerParameterSurface(
+  parameter: DiscoveredComponent['param'],
+  bindings: BindingGraph
+): ComponentParameter['surface'] | null {
+  if (parameter === null) {
+    return null;
+  }
+  if (parameter.node.type === 'Identifier') {
+    return { kind: SurfaceKind.Identifier, binding: bindings.declaration(parameter.node)! };
+  }
+  const members = parameter.members!;
+  const binding = members.some((member) => member.name !== 'children')
+    ? bindings.addSynthetic(
+        allocateGeneratedName(
+          QwikGenWord.ComponentProps,
+          bindings.bindings.map((binding) => binding.name)
+        ),
+        BindingScope.Param
+      )
+    : null;
+  return {
+    kind: SurfaceKind.Object,
+    binding,
+    bindings: members.map(({ node, name }) => ({ binding: bindings.declaration(node)!, name })),
+  };
 }
 
 function finishPlan(plan: ModulePlan, normalizedCode: string, authoredCode: string): ModulePlan {

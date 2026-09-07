@@ -19,6 +19,7 @@ import { UnsupportedError } from '../errors';
 import { QwikGenWord, QwikHook, QwikWord } from '../words';
 import { signalReadName } from './emit-setup';
 import { inlineValueJs, rootArgs } from './emit-chunk';
+import { allocateGeneratedName } from '../names';
 
 export interface ComponentEmission {
   statements: string[];
@@ -277,18 +278,6 @@ export function allocateGeneratedNames(module: LinkedModule): GeneratedNames {
     props: allocateGeneratedName(QwikGenWord.ComponentProps, bound),
     ctx: allocateGeneratedName(QwikGenWord.ComponentContext, bound),
   };
-}
-
-function allocateGeneratedName(base: string, bound: readonly string[]): string {
-  if (!bound.includes(base)) {
-    return base;
-  }
-  for (let index = 0; ; index++) {
-    const candidate = `${base}${index}`;
-    if (!bound.includes(candidate)) {
-      return candidate;
-    }
-  }
 }
 
 export function emitComponentFunction(

@@ -1,8 +1,9 @@
 import { QwikHook } from '../words';
+import { CoreOperation } from '../schema';
 import { LocalKind } from './locals';
 
 interface SetupCallContract {
-  importName: string;
+  operation: CoreOperation;
   result: LocalKind.Const | LocalKind.Qrl | LocalKind.Signal;
   maxArgs?: number;
 }
@@ -12,7 +13,7 @@ export const coreSetupCalls: ReadonlyMap<string, SetupCallContract> = new Map([
   [
     QwikHook.UseSignal,
     {
-      importName: QwikHook.UseSignal,
+      operation: CoreOperation.CreateSignal,
       result: LocalKind.Signal,
       maxArgs: 1,
     },
@@ -20,7 +21,7 @@ export const coreSetupCalls: ReadonlyMap<string, SetupCallContract> = new Map([
   [
     QwikHook.UseComputed,
     {
-      importName: QwikHook.UseComputedQrl,
+      operation: CoreOperation.CreateComputed,
       result: LocalKind.Signal,
     },
   ],

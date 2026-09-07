@@ -6,6 +6,8 @@ import {
   OpKind,
   ProgramBodyKind,
   SetupKind,
+  CallTargetKind,
+  CoreOperation,
   ValueKind,
   EntryKind,
   ArgKind,
@@ -272,9 +274,9 @@ export default () => {
     {}
   );
   const program = plan.programs.find((program) => program.setup.length > 0)!;
-  expect(program.setup.map((entry) => entry.s === SetupKind.Call && entry.importName)).toEqual([
-    'useSignal',
-    'useComputedQrl',
+  expect(program.setup.map((entry) => entry.s === SetupKind.Call && entry.target)).toEqual([
+    { kind: CallTargetKind.Core, operation: CoreOperation.CreateSignal },
+    { kind: CallTargetKind.Core, operation: CoreOperation.CreateComputed },
   ]);
   const callback = plan.qrls.find((qrl) => qrl.ctxName === 'useComputed$')!;
   expect(callback.boundary).toEqual({ kind: BoundaryKind.Implicit, role: 'hook' });
@@ -300,7 +302,7 @@ export default () => {
   );
   expect(linked.kind).toBe(LinkResultKind.Linked);
   if (linked.kind === LinkResultKind.Linked) {
-    expect(linked.plan.modules[0].edges[0].runtime).toBe(true);
+    expect(linked.plan.modules[0].edges[0].runtime).toBe(false);
   }
   expect(plan).toEqual(restored);
 });

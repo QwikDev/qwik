@@ -24,7 +24,7 @@ export type SetupLocal =
     }
   | {
       kind: LocalKind.PropMember;
-      access: CaptureAccess.LoopValue;
+      access: CaptureAccess.LoopValue | CaptureAccess.ComponentProp;
       slot: -1;
       binding: number;
       member: string;

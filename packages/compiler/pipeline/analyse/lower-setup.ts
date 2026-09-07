@@ -5,6 +5,10 @@ import {
   SetupKind,
   BoundaryKind,
   ValueKind,
+  CallTargetKind,
+  type CallTarget,
+  type CoreOperation,
+  type LocalId,
   type Arg,
   type QrlArg,
   type Setup,
@@ -29,6 +33,7 @@ import {
   lowerInlineExpressionValue,
   recordPayloadAliasReads,
   resolveQrlBinding,
+  tryLowerExprIr,
 } from './lower-expr';
 import { findRuntimeJsx } from './ast/returns-jsx';
 import { lowerFunctionQrl } from './lower-function';
@@ -115,6 +120,19 @@ export function lowerSetup(
 } {
   const setup: Setup[] = [];
   const locals: SetupLocals = new Map();
+  if (ctx.propsBinding !== null) {
+    for (const [binding, member] of ctx.propsMembers) {
+      if (member !== 'children') {
+        locals.set(binding, {
+          kind: LocalKind.PropMember,
+          access: CaptureAccess.ComponentProp,
+          binding: ctx.propsBinding,
+          member,
+          slot: -1,
+        });
+      }
+    }
+  }
   const outerLocals = ctx.locals;
   ctx.locals = locals;
   try {
@@ -257,12 +275,26 @@ function lowerSetupCall(
     : call.arguments.map((argument) => lowerHookArg(argument, ctx));
   return {
     s: SetupKind.Call,
-    binding: callee.binding,
-    ...(contract === undefined ? {} : { importName: contract.importName }),
+    target: lowerCallTarget(call.callee, callee.binding, contract?.operation, ctx),
     args,
     result:
       pattern === null ? null : lowerSetupBinding(pattern, ctx, locals, contract?.result).result,
   };
+}
+
+function lowerCallTarget(
+  expression: CallExpression['callee'],
+  binding: LocalId,
+  operation: CoreOperation | undefined,
+  ctx: LowerContext
+): CallTarget {
+  if (operation !== undefined) {
+    return { kind: CallTargetKind.Core, operation };
+  }
+  const value = tryLowerExprIr(expression, ctx);
+  return value === null
+    ? { kind: CallTargetKind.Binding, binding }
+    : { kind: CallTargetKind.Value, value };
 }
 
 function lowerQrlHookArgs(

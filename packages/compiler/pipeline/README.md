@@ -47,6 +47,12 @@ Setup reads see preceding locals; extracted expressions and handlers capture the
 Core and custom hooks share call plans; mutable declarations and JSX initializers remain rejected.
 A plain const reading a signal stores a snapshot, not a computed signal.
 
+Simple component parameter fields, including aliases and string keys, remain live props reads.
+Discovery and collection parameters share the same field classification; lowering records aliases
+against one generated props binding. Captures retain that object rather than field snapshots.
+`children` aliases remain slot markers without reading or capturing the children value.
+Defaults, rest, nested patterns and computed keys in component parameters remain deferred.
+
 Linking indexes declaration targets and imports by binding once per module. Component linking and
 reachability share the import index; duplicate declaration targets remain ambiguous. Each JS module
 emitter owns a QRL resolver shared with source-function emission. Its symbol index is reused across
@@ -85,11 +91,16 @@ callee, return binding and remaining arguments, including spreads. `implicit$Fir
 the compiled QRL without wrapping or resolving it again. Core-specific result semantics remain
 separate (`useComputed$` produces a signal).
 
-`analyse/setup-api.ts` owns core call contracts: result classification, canonical imports and
+`analyse/setup-api.ts` owns core call contracts: semantic operations, result classification and
 argument limits. `analyse/locals.ts` exposes the resulting binding facts to expression and capture
 lowering. Calls share one emitter; it does not recognize hook names. `$()` remains a compiler
 marker producing a QRL value, not a runtime call. Direct calls to setup locals use the same call
 plan; other authored expressions retain their JS payloads.
+
+Each setup call has one target: an authored binding, a core operation, or a `ValueIR` callable
+read without a receiver. The linker follows binding imports; generators map core operations to
+their own implementations. Only the JS emitter selects runtime export names or emits `(0, fn)`.
+An IR callable read does not guarantee native execution support for the resulting function.
 
 This slice supports inline first callbacks and local QRL bindings created by `$()`; forwarding
 keeps the existing instance and captures without another segment. Member calls, ordinary function references and boundary

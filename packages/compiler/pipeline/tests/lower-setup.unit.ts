@@ -5,6 +5,8 @@ import {
   BindTargetKind,
   ExprKind,
   SetupKind,
+  CallTargetKind,
+  CoreOperation,
   LinkResultKind,
 } from '../schema';
 import { ValueIrKind } from '../../src/expr-ir';
@@ -49,8 +51,7 @@ describe('lowerSetup / useSignal', () => {
     expect(setup).toEqual([
       {
         s: SetupKind.Call,
-        binding: 0,
-        importName: 'useSignal',
+        target: { kind: CallTargetKind.Core, operation: CoreOperation.CreateSignal },
         result: { bind: BindTargetKind.Pattern, pattern: 1, bindings: [count] },
         args: [
           {
@@ -221,6 +222,6 @@ export default (props) => {
   );
   expect(plan.programs[0].setup[1]).toMatchObject({
     s: SetupKind.Call,
-    importName: 'useSignal',
+    target: { kind: CallTargetKind.Core, operation: CoreOperation.CreateSignal },
   });
 });

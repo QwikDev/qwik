@@ -10,6 +10,7 @@ import type {
   Shape,
 } from './shared';
 import type { Expr, QrlUse, Value } from './value';
+import type { ValueIR } from '../../src/expr-ir';
 
 // ---------------------------------------------------------------------------------------------
 // Program: ONE shape for every render scope — component body, branch arm, row, projection,
@@ -263,6 +264,23 @@ export const enum SetupKind {
   Js = 'js',
 }
 
+export const enum CallTargetKind {
+  Binding = 'binding',
+  Core = 'core',
+  Value = 'value',
+}
+
+export const enum CoreOperation {
+  CreateSignal = 'create-signal',
+  CreateComputed = 'create-computed',
+}
+
+export type CallTarget =
+  | { kind: CallTargetKind.Binding; binding: LocalId }
+  | { kind: CallTargetKind.Core; operation: CoreOperation }
+  /** Value calls do not supply a receiver. */
+  | { kind: CallTargetKind.Value; value: ValueIR };
+
 export type Setup =
   /** Plain consts AND `$()` consts (value: {v: ValueKind.Qrl}). */
   | {
@@ -275,9 +293,7 @@ export type Setup =
     }
   | {
       s: SetupKind.Call;
-      binding: LocalId;
-      /** Compiler-selected core export; omission preserves the authored callee. */
-      importName?: string;
+      target: CallTarget;
       args: Arg[];
       result: BindTarget | null;
       guard?: Predicate;
@@ -319,6 +335,10 @@ export const enum SurfaceKind {
 export interface ComponentParameter {
   pattern: PayloadId;
   surface:
-    | { kind: SurfaceKind.Object; bindings: { binding: LocalId; name: string }[] }
+    | {
+        kind: SurfaceKind.Object;
+        binding: LocalId | null;
+        bindings: { binding: LocalId; name: string }[];
+      }
     | { kind: SurfaceKind.Identifier; binding: LocalId };
 }

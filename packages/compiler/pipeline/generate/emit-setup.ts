@@ -1,5 +1,7 @@
 import {
   ArgKind,
+  CallTargetKind,
+  CoreOperation,
   BindTargetKind,
   ExprKind,
   SetupKind,
@@ -8,11 +10,18 @@ import {
   type Arg,
   type Expr,
   type LinkedModule,
+  type CallTarget,
 } from '../schema';
 import { ValueIrKind } from '../../src/expr-ir';
 import { UnsupportedError } from '../errors';
-import { expressionJs, extractPayloadJs, inlineValueJs } from './emit-chunk';
+import { expressionJs, extractPayloadJs, inlineValueJs, valueIrJs } from './emit-chunk';
 import { requestBindingImport } from './emit-import';
+import { QwikHook } from '../words';
+
+const coreCallImports: Record<CoreOperation, QwikHook> = {
+  [CoreOperation.CreateSignal]: QwikHook.UseSignal,
+  [CoreOperation.CreateComputed]: QwikHook.UseComputedQrl,
+};
 
 /** Setup declarations shared by CSR and SSR render programs. */
 export function emitJsSetup(
@@ -23,12 +32,7 @@ export function emitJsSetup(
 ): string[] {
   return program.setup.map((entry) => {
     if (entry.s === SetupKind.Call) {
-      if (entry.importName === undefined) {
-        requestBindingImport(module, entry.binding, imports);
-      } else {
-        imports.add(entry.importName);
-      }
-      const callee = entry.importName ?? module.bindings[entry.binding].name;
+      const callee = callTargetJs(module, entry.target, imports);
       const args = entry.args.map((arg) => argJs(module, arg, emitQrl)).join(', ');
       const call = `${callee}(${args})`;
       if (entry.result === null) {
@@ -52,6 +56,21 @@ export function emitJsSetup(
     }
     throw new UnsupportedError(`the setup entry "${entry.s}" in a JS render`);
   });
+}
+
+function callTargetJs(module: LinkedModule, target: CallTarget, imports: Set<string>): string {
+  switch (target.kind) {
+    case CallTargetKind.Binding:
+      requestBindingImport(module, target.binding, imports);
+      return module.bindings[target.binding].name;
+    case CallTargetKind.Core: {
+      const name = coreCallImports[target.operation];
+      imports.add(name);
+      return name;
+    }
+    case CallTargetKind.Value:
+      return `(0, ${valueIrJs(module, target.value)})`;
+  }
 }
 
 function argJs(module: LinkedModule, arg: Arg, emitQrl: (use: QrlUse) => string): string {

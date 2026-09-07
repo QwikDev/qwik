@@ -167,10 +167,14 @@ export function valueIrJs(module: LinkedModule, ir: ValueIR): string {
     case ValueIrKind.BindingRead:
       return module.bindings[ir.binding].name;
     case ValueIrKind.Member:
-      return `${valueIrJs(module, ir.obj)}.${ir.name}`;
+      return memberJs(valueIrJs(module, ir.obj), ir.name);
     default:
       throw new UnsupportedError(`printing the IR "${ir.kind}"`);
   }
+}
+
+function memberJs(base: string, name: string): string {
+  return /^[A-Za-z_$][\w$]*$/.test(name) ? `${base}.${name}` : `${base}[${JSON.stringify(name)}]`;
 }
 
 export function emptyFunctionEmission(): FunctionEmission {
@@ -288,7 +292,7 @@ export function extractPayloadJs(
     (read) => read.memberPath !== undefined && read.range[0] >= start && read.range[1] <= end
   );
   for (const read of materialized) {
-    const member = [module.bindings[read.binding].name, ...read.memberPath!].join('.');
+    const member = read.memberPath!.reduce(memberJs, module.bindings[read.binding].name);
     let replacement = member;
     if (read.role === ReadRole.Shorthand) {
       replacement = `${module.source.code.slice(...read.range)}: ${member}`;

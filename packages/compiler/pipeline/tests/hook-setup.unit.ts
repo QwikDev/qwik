@@ -1,6 +1,13 @@
 import { expect, test } from 'vitest';
 import { analyseModule, linkPlans } from '../index';
-import { ArgKind, BoundaryKind, EntryKind, LinkResultKind, SetupKind } from '../schema';
+import {
+  ArgKind,
+  BoundaryKind,
+  CallTargetKind,
+  EntryKind,
+  LinkResultKind,
+  SetupKind,
+} from '../schema';
 import { ResolutionKind } from '../link/link-plans';
 import { transformModules } from '../compat/transform-modules';
 import { deepFreeze, loadDefaultFunction, serverSpecialization } from './fixtures';
@@ -128,7 +135,7 @@ export default (props) => {
   const hook = plan.programs.flatMap((program) => program.setup)[0];
   expect(hook).toMatchObject({
     s: SetupKind.Call,
-    binding: plan.imports[0].binding,
+    target: { kind: CallTargetKind.Binding, binding: plan.imports[0].binding },
     args: [{ a: ArgKind.Qrl }, { a: ArgKind.Expr }],
   });
   const callback = plan.qrls.find((qrl) => qrl.ctxName === 'useCustom$')!;

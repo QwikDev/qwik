@@ -255,9 +255,6 @@ function lowerSetupCallback(
   ) {
     throw new UnsupportedError(`${calleeName}() without an inline first callback`);
   }
-  if (coreApi === QwikHook.UseComputed && fn.async) {
-    throw new UnsupportedError('an async useComputed$ callback');
-  }
   return lowerFunctionQrl(fn, ctx, {
     nameCtx: name,
     subject: 'a QRL callback',

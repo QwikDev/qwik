@@ -86,6 +86,117 @@ export default () => {
   expect(result.html).toContain('&lt;value:2&gt;</span>');
 });
 
+test('async computed setup caches, tracks after await and recovers from errors', async () => {
+  const output = await transformModules({
+    srcDir: 'src',
+    isServer: true,
+    input: [
+      {
+        path: 'src/component.tsx',
+        code: `import { useSignal, useComputed$ } from '@qwik.dev/core';
+export default () => {
+  const count = useSignal(1);
+  const doubled = useComputed$(async function () {
+    await ready();
+    if (count.value < 0) throw new Error('negative');
+    return count.value * 2;
+  });
+  return <span />;
+};`,
+      },
+    ],
+  });
+  expect(output.diagnostics).toEqual([]);
+  let count!: core.Signal<number>;
+  let doubled!: ComputedQrl<unknown>;
+  let runs = 0;
+  const render = loadDefaultFunction(output.modules.find((module) => !module.segment)!, {
+    ...core,
+    get _captures() {
+      return core._captures;
+    },
+    async ready() {
+      runs++;
+    },
+    useSignal(initial: number) {
+      count = core.useSignal(initial);
+      return count;
+    },
+    useComputedQrl(...args: Parameters<typeof core.useComputedQrl>) {
+      doubled = core.useComputedQrl(...args);
+      return doubled;
+    },
+  });
+  const owner = core.createOwner(null);
+  try {
+    core.runWithOwner(owner, render, undefined, {});
+    await doubled.promise();
+    expect(doubled.value).toBe(2);
+    expect(doubled.value).toBe(2);
+    expect(runs).toBe(1);
+    count.value = -1;
+    await doubled.promise();
+    expect(doubled.error?.message).toBe('negative');
+    expect(() => doubled.value).toThrow('negative');
+    count.value = 3;
+    await doubled.promise();
+    expect(doubled.value).toBe(6);
+    expect(doubled.error).toBeUndefined();
+    expect(runs).toBe(3);
+  } finally {
+    await core.disposeOwner(owner);
+  }
+});
+
+test('SSR waits for async computed text and escapes the resolved value', async () => {
+  const output = await transformModules({
+    srcDir: 'src',
+    isServer: true,
+    input: [
+      {
+        path: 'src/component.tsx',
+        code: `import { useComputed$ } from '@qwik.dev/core';
+export default () => {
+  const label = useComputed$(async () => await loadLabel());
+  return <span>{label.value}</span>;
+};`,
+      },
+    ],
+  });
+  expect(output.diagnostics).toEqual([]);
+  let release!: (value: string) => void;
+  const label = new Promise<string>((resolve) => {
+    release = resolve;
+  });
+  let started!: () => void;
+  const loading = new Promise<void>((resolve) => {
+    started = resolve;
+  });
+  let runs = 0;
+  let finished = false;
+  const render = loadDefaultFunction(output.modules.find((module) => !module.segment)!, {
+    ...core,
+    get _captures() {
+      return core._captures;
+    },
+    loadLabel() {
+      runs++;
+      started();
+      return label;
+    },
+  });
+  const rendering = renderToString(render).then((result) => {
+    finished = true;
+    return result;
+  });
+  await loading;
+  expect(finished).toBe(false);
+  release('<value&>');
+  const result = await rendering;
+  expect(result.html).toContain('&lt;value&amp;&gt;</span>');
+  expect(runs).toBe(1);
+});
+
 test('computed setup uses existing invocation and signal-read plans', async () => {
   const plan = await analyseModule(
     {
@@ -135,7 +246,6 @@ test.each([
   'useComputed$(callback)',
   'useComputed$(...callbacks)',
   'useComputed$(() => 1, { initial: 0 })',
-  'useComputed$(async () => 1)',
 ])('deferred computed forms remain unsupported: %s', async (initializer) => {
   await expect(
     analyseModule(

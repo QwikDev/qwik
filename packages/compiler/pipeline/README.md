@@ -89,6 +89,8 @@ Callback-owned await expressions use the existing `_await` runtime to restore tr
 context on fulfillment or rejection. Lexical scope analysis records await ownership; payload
 emission composes those edits with capture aliases for both CSR chunks and SSR mirrors. Nested
 ordinary functions retain their own awaits. Implicit suspension in `for await` remains deferred.
+Async `useComputed$` callbacks use the same QRL lowering and computed runtime as synchronous
+callbacks; SSR waits for their values through the existing signal-read retry path.
 
 ## Workflow (vertical slices — DESIGN.md "Phases")
 

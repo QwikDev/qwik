@@ -114,6 +114,22 @@ export default () => {
     });
   });
 
+  test('should compile an async computed setup signal', async () => {
+    const output = await testInput(mode, 'setup-computed-async', {
+      code: `import { useSignal, useComputed$ } from '@qwik.dev/core';
+export default () => {
+  const count = useSignal(1);
+  const doubled = useComputed$(async () => {
+    await Promise.resolve();
+    return count.value * 2;
+  });
+  return <span>{doubled.value}</span>;
+};
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+  });
+
   test('should compile a synchronous computed setup signal', async () => {
     await testInput(mode, 'setup-computed', {
       code: `import { useSignal, useComputed$ } from '@qwik.dev/core';

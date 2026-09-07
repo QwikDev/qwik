@@ -37,6 +37,8 @@ export interface FunctionEmission {
   /** Return expression, or empty for a statement-only body. */
   value: string;
   async: boolean;
+  /** Undefined denotes arrows; null denotes anonymous function expressions. */
+  functionName?: string | null;
   /** QRLs the function's body references — the placement satisfies them. */
   uses: { qrl: LinkedQrl; invoked: boolean }[];
 }
@@ -181,7 +183,7 @@ export function emptyFunctionEmission(): FunctionEmission {
   };
 }
 
-/** The one arrow printer — chunk exports, SSR mirrors, and spliced bodies share these bytes. */
+/** Chunks and SSR mirrors share the same function syntax. */
 export function functionText(emission: FunctionEmission): string {
   const body = [
     ...emission.statements,
@@ -189,7 +191,12 @@ export function functionText(emission: FunctionEmission): string {
   ]
     .map((statement) => `  ${statement}`)
     .join('\n');
-  return `${emission.async ? 'async ' : ''}(${emission.params.join(', ')}) => {\n${body}\n}`;
+  const params = `(${emission.params.join(', ')})`;
+  const head =
+    emission.functionName === undefined
+      ? `${params} =>`
+      : `function${emission.functionName === null ? '' : ` ${emission.functionName}`}${params}`;
+  return `${emission.async ? 'async ' : ''}${head} {\n${body}\n}`;
 }
 
 export function chunkCanonicalFilename(module: LinkedModule, qrl: LinkedQrl): string {

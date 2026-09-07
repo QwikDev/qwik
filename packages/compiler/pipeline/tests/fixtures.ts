@@ -26,7 +26,7 @@ export function loadChunkFunction(
     throw new Error('expected an exported function');
   }
   const expression = declaration.declarations[0].init!;
-  return runInNewContext(`(${module.code.slice(expression.start, expression.end)})`, {
+  return runInNewContext(`'use strict'; (${module.code.slice(expression.start, expression.end)})`, {
     _captures: captures,
   });
 }

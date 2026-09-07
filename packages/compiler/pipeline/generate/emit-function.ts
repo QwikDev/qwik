@@ -36,6 +36,14 @@ export function sourceFunctionEmission(
     emission.statements.push(...capturePrelude(captures));
   }
   const body = qrl.body;
+  if (body.b === QrlBodyKind.Js && body.functionName !== undefined) {
+    emission.functionName = body.functionName;
+    if (captures.length > 0 && (body.functionName !== null || qrl.params.capturesBeforeParams)) {
+      emission.functionName = null;
+      emission.value = `(${extractPayloadJs(module, body.payload)}).apply(this, arguments)`;
+      return emission;
+    }
+  }
   // Native parameter scopes preserve defaults, closures, and mutable bindings.
   if (body.b === QrlBodyKind.Js && qrl.params.capturesBeforeParams) {
     const args = createNameAllocator(module)('args');

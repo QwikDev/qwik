@@ -84,7 +84,12 @@ export interface Qrl {
     | { b: QrlBodyKind.Program; program: ProgramId }
     | { b: QrlBodyKind.Task; task: TaskBody }
     | { b: QrlBodyKind.Expr; expr: Expr; initialOnly: boolean }
-    | { b: QrlBodyKind.Js; payload: PayloadId };
+    | {
+        b: QrlBodyKind.Js;
+        payload: PayloadId;
+        /** Undefined denotes arrows; null denotes anonymous function expressions. */
+        functionName?: string | null;
+      };
   /** Names/kinds read from the binding table. */
   captures: { binding: LocalId; access: CaptureAccess }[];
   /** Invocation ABI. */

@@ -3,7 +3,40 @@ import { eventScopeName } from '../analyse/events';
 import { transformModules } from '../compat/transform-modules';
 import { analyseModule, generateJsSsr, linkPlans } from '../index';
 import { EntryKind, LinkResultKind } from '../schema';
-import { deepFreeze, loadChunkFunction, serverSpecialization } from './fixtures';
+import {
+  createTestLowerContext,
+  deepFreeze,
+  loadChunkFunction,
+  serverSpecialization,
+} from './fixtures';
+import { parseModule } from '../analyse/ast/parse';
+import { lowerEventAttribute } from '../analyse/lower-event';
+
+test('bodyless handlers are ignored without allocating a QRL', () => {
+  const source = 'const view = <button onClick$={function () {}} />;';
+  const { program } = parseModule('component.tsx', source);
+  const statement = program.body[0];
+  if (statement.type !== 'VariableDeclaration') {
+    throw new Error('expected a variable declaration');
+  }
+  const element = statement.declarations[0].init;
+  if (element?.type !== 'JSXElement') {
+    throw new Error('expected JSX');
+  }
+  const attribute = element.openingElement.attributes[0];
+  if (
+    attribute.type !== 'JSXAttribute' ||
+    attribute.value?.type !== 'JSXExpressionContainer' ||
+    attribute.value.expression.type !== 'FunctionExpression'
+  ) {
+    throw new Error('expected a function handler');
+  }
+  attribute.value.expression.body = null;
+  const { ctx } = createTestLowerContext(program, source);
+  expect(lowerEventAttribute(attribute, ctx, 'onClick$', 'q-e:click')).toBeNull();
+  expect(ctx.plan.qrls).toEqual([]);
+  expect(ctx.plan.payloads).toEqual([]);
+});
 
 test.each([false, true])(
   'block handlers preserve control flow and captures (SSR: %s)',
@@ -304,6 +337,16 @@ test.each([false, true])(
         expected: ['a', 'Alpha', 0],
         updated: ['b', 'Beta', 2],
       },
+      {
+        handler: 'function () { return [id, label, index]; }',
+        expected: ['a', 'Alpha', 0],
+        updated: ['b', 'Beta', 2],
+      },
+      {
+        handler: 'function read(value = id) { return [value, label, index, arguments.length]; }',
+        expected: ['a', 'Alpha', 0, 0],
+        updated: ['b', 'Beta', 2, 0],
+      },
     ]) {
       const output = await transformModules({
         srcDir: 'src',
@@ -378,13 +421,142 @@ export default () => {
   }
 });
 
+test.each([false, true])(
+  'native function handlers preserve their scope (SSR: %s)',
+  async (isServer) => {
+    for (const { handler, args, expected, captures = [] } of [
+      {
+        handler: 'function (value) { return [this.label, arguments.length, value]; }',
+        args: [3, 4],
+        expected: ['receiver', 2, 3],
+      },
+      {
+        handler:
+          'function factorial(value) { return value <= 1 ? 1 : value * factorial(value - 1); }',
+        args: [4],
+        expected: 24,
+      },
+      {
+        handler: 'function (value) { return [this.label, props.label, arguments.length, value]; }',
+        args: [3],
+        expected: ['receiver', 'outer', 1, 3],
+        captures: ['props'],
+      },
+      {
+        handler:
+          'function named({ value = props.label } = {}, ...rest) { return [this.label, value, rest, arguments.length]; }',
+        args: [undefined, 3],
+        expected: ['receiver', 'outer', [3], 2],
+        captures: ['props'],
+      },
+      {
+        handler:
+          'function (read = () => props.label) { const props = { label: "inner" }; return [read(), props.label]; }',
+        args: [],
+        expected: ['outer', 'inner'],
+        captures: ['props'],
+      },
+      {
+        handler:
+          'async function named(value = props.label) { await Promise.resolve(); return [this.label, arguments.length, value]; }',
+        args: [],
+        expected: ['receiver', 0, 'outer'],
+        captures: ['props'],
+      },
+      {
+        handler: 'function (props) { return props.label; }',
+        args: [{ label: 'parameter' }],
+        expected: 'parameter',
+      },
+    ]) {
+      const output = await transformModules({
+        srcDir: 'src',
+        isServer,
+        input: [
+          {
+            path: 'src/component.tsx',
+            code: `export default (props) => <button onClick$={${handler}}>save</button>;`,
+          },
+        ],
+      });
+      expect(output.diagnostics).toEqual([]);
+      const chunk = output.modules.find((module) => module.segment?.ctxName === 'onClick$')!;
+      expect(chunk.segment!.ctxKind).toBe('eventHandler');
+      expect(chunk.segment!.captureNames ?? []).toEqual(captures);
+      const invoke = loadChunkFunction(
+        chunk,
+        captures.map(() => ({ label: 'outer' }))
+      );
+      expect(await invoke.call({ label: 'receiver' }, ...args), handler).toEqual(expected);
+    }
+  }
+);
+
+test.each([false, true])(
+  'named handlers retain captures through their self reference (SSR: %s)',
+  async (isServer) => {
+    const output = await transformModules({
+      srcDir: 'src',
+      isServer,
+      input: [
+        {
+          path: 'src/component.tsx',
+          code: `export default (props) =>
+  <button onClick$={function read(value) { return value ? props.label : read; }} />;`,
+        },
+      ],
+    });
+    expect(output.diagnostics).toEqual([]);
+    const chunk = output.modules.find((module) => module.segment?.ctxName === 'onClick$')!;
+    const captures = [{ label: 'outer' }];
+    const read = loadChunkFunction(chunk, captures)(false);
+    captures[0] = { label: 'different invocation' };
+    expect(read(true)).toBe('outer');
+  }
+);
+
+test.each(['function () { return this; }', 'function read(value = props.label) { return this; }'])(
+  'function handler preserves strict receivers: %s',
+  async (handler) => {
+    const output = await transformModules({
+      srcDir: 'src',
+      input: [
+        {
+          path: 'src/component.tsx',
+          code: `export default (props) => <button onClick$={${handler}} />;`,
+        },
+      ],
+    });
+    expect(output.diagnostics).toEqual([]);
+    const chunk = output.modules.find((module) => module.segment?.ctxName === 'onClick$')!;
+    const invoke = loadChunkFunction(chunk, [{ label: 'outer' }]);
+    expect(invoke()).toBeUndefined();
+    expect(invoke.call(null)).toBeNull();
+    expect(invoke.call(3)).toBe(3);
+  }
+);
+
+test('generator handlers remain explicitly unsupported', async () => {
+  await expect(
+    transformModules({
+      srcDir: 'src',
+      input: [
+        {
+          path: 'src/component.tsx',
+          code: 'export default () => <button onClick$={function* () { yield 1; }} />;',
+        },
+      ],
+    })
+  ).rejects.toThrow('a generator event handler');
+});
+
 test('captured parameter plans survive serialization and immutable linking', async () => {
   const plan = await analyseModule(
     {
       path: 'src/component.tsx',
       code: `export default (props) => {
   const fallback = 7;
-  return <button onClick$={(value = props.initial + fallback) => value} />;
+  return <button onClick$={function read(value = props.initial + fallback) { return value; }} />;
 };`,
     },
     {}

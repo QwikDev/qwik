@@ -14,6 +14,7 @@ import { UnsupportedError } from '../errors';
 import { pushPayload, pushQrl, QrlIdentityKind, type LowerContext } from './lower-context';
 import { lowerExpressionValue, recordPayloadAliasReads } from './lower-expr';
 import { findRuntimeJsx } from './ast/returns-jsx';
+import { unwrapExpression } from './ast/utils';
 
 /** `on…$` attribute → an event prop with an authored handler value. */
 export function lowerEventAttribute(
@@ -26,7 +27,7 @@ export function lowerEventAttribute(
   if (expression === null) {
     return null;
   }
-  if (expression.type !== 'ArrowFunctionExpression') {
+  if (expression.type !== 'ArrowFunctionExpression' && expression.type !== 'FunctionExpression') {
     return {
       expression,
       event: {
@@ -42,6 +43,12 @@ export function lowerEventAttribute(
   const fn = expression;
   const params = fn.params;
   const body = fn.body;
+  if (body === null) {
+    return null;
+  }
+  if (fn.type === 'FunctionExpression' && fn.generator) {
+    throw new UnsupportedError('a generator event handler');
+  }
   if (findRuntimeJsx(fn) !== null) {
     throw new UnsupportedError('JSX inside an event handler');
   }
@@ -60,7 +67,11 @@ export function lowerEventAttribute(
       boundary: { kind: BoundaryKind.Implicit, role: 'event' },
       payloadKind: QrlPayloadKind.Function,
       authoredAsync: fn.async === true,
-      body: { b: QrlBodyKind.Js, payload },
+      body: {
+        b: QrlBodyKind.Js,
+        payload,
+        ...(fn.type === 'FunctionExpression' ? { functionName: fn.id?.name ?? null } : {}),
+      },
       captures,
       params: {
         authored: params.length,
@@ -103,5 +114,5 @@ function eventHandlerExpression(attribute: JSXAttribute): Expression | null {
   if (expression.type === 'JSXEmptyExpression') {
     return null;
   }
-  return expression;
+  return unwrapExpression(expression);
 }

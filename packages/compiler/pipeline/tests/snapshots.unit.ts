@@ -191,6 +191,17 @@ export default () => {
     expect(output.diagnostics).toEqual([]);
   });
 
+  test('should extract native function event handlers', async () => {
+    await testInput(mode, 'event-function-handlers', {
+      code: `export const Button = (props) => <button onClick$={props.onSave$}>save</button>;
+export default (props) => <main>
+  <button onClick$={function onClick(event) { return [this, arguments.length, event.type]; }}>plain</button>
+  <Button onSave$={function save(value = props.initial) { return props.onSave$(value); }} />
+  <button onClick$={async function (event) { await Promise.resolve(); return props.onSave$(event.type); }}>async</button>
+</main>;`,
+    });
+  });
+
   test('should preserve event parameter patterns and captured defaults', async () => {
     await testInput(mode, 'event-parameter-patterns', {
       code: `export const Button = (props) => <button onClick$={props.onSave$}>save</button>;

@@ -7,6 +7,7 @@ import {
   type LinkedModule,
   type LinkedQrl,
   type Range,
+  type QrlUse,
 } from '../schema';
 import { UnsupportedError } from '../errors';
 import { QwikWord } from '../words';
@@ -57,7 +58,11 @@ export function sourceFunctionEmission(
       throw new UnsupportedError('an expression function with render operations');
     }
     emission.params = program.params.map((binding) => module.bindings[binding].name);
-    emission.statements.push(...emitJsSetup(module, program, emission.imports));
+    emission.statements.push(
+      ...emitJsSetup(module, program, emission.imports, (use) =>
+        emitFunctionQrl(use, qrlPropsName(module, qrl, 'props'), emission, resolveQrlUse, true)
+      )
+    );
     emission.value = expressionJs(module, program.body.expr);
     emission.async = program.async;
     return emission;
@@ -100,15 +105,28 @@ function propsPartJs(
     case PropsPartKind.Spread:
       return `...${extractPayloadJs(module, part.value)}`;
     case PropsPartKind.Event: {
-      const { qrl, args } = resolveQrlUse(part.use, qrlPropsName(module, owner, 'props'));
-      if (qrl.payloadKind !== QrlPayloadKind.Function) {
-        throw new UnsupportedError('a non-function component event QRL');
-      }
-      if (!emission.uses.some((usage) => usage.qrl.id === qrl.id)) {
-        emission.uses.push({ qrl, invoked: false });
-      }
-      const reference = `q_${qrl.name}`;
-      return `${JSON.stringify(part.name)}: ${args.length === 0 ? reference : `${reference}.w([${args.join(', ')}])`}`;
+      return `${JSON.stringify(part.name)}: ${emitFunctionQrl(part.use, qrlPropsName(module, owner, 'props'), emission, resolveQrlUse, false)}`;
     }
   }
+}
+
+function emitFunctionQrl(
+  use: QrlUse,
+  propsName: string,
+  emission: FunctionEmission,
+  resolveQrlUse: QrlResolver,
+  invoked: boolean
+): string {
+  const { qrl, args } = resolveQrlUse(use, propsName);
+  if (qrl.payloadKind !== QrlPayloadKind.Function) {
+    throw new UnsupportedError('a non-function QRL');
+  }
+  const usage = emission.uses.find((usage) => usage.qrl.id === qrl.id);
+  if (usage === undefined) {
+    emission.uses.push({ qrl, invoked });
+  } else {
+    usage.invoked ||= invoked;
+  }
+  const reference = `q_${qrl.name}`;
+  return args.length === 0 ? reference : `${reference}.w([${args.join(', ')}])`;
 }

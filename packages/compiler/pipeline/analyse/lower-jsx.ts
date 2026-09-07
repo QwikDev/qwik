@@ -1,5 +1,6 @@
 import type { Expression, JSXAttributeItem, JSXChild, JSXElement, Node } from 'oxc-parser';
 import {
+  ResumeKind,
   BoundaryKind,
   ComponentPropsKind,
   ComponentTargetKind,
@@ -158,6 +159,14 @@ function lowerComponentPropsProxy(attributes: readonly JSXAttributeItem[], ctx: 
       }
       const { event, expression } = lowered;
       const handler = event.handlers.length === 1 ? event.handlers[0] : null;
+      if (
+        handler?.h === HandlerKind.Value &&
+        handler.value.v === ValueKind.Computed &&
+        handler.value.resume.r === ResumeKind.Inline
+      ) {
+        addExpression(expression, { kind: PropsPartKind.Expression, name });
+        continue;
+      }
       if (handler?.h !== HandlerKind.Value || handler.value.v !== ValueKind.Qrl) {
         throw new UnsupportedError('a non-QRL component event handler');
       }

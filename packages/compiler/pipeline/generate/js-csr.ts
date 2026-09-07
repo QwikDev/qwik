@@ -123,7 +123,9 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       throw new Error('pipeline.generateJsCsr: js-bodied programs not implemented yet');
     }
     const pass: RenderPass = { names, next: createNameAllocator(this.module) };
-    const statements: string[] = emitJsSetup(this.module, program, this.imports);
+    const statements = emitJsSetup(this.module, program, this.imports, (use) =>
+      this.lazyRenderReference(use, names.props)
+    );
     const ops = program.body.ops;
     if (ops.length === 0) {
       return { statements, value: '[]' };
@@ -706,7 +708,9 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     }
     emission.statements = [
       ...capturePrelude(captures),
-      ...emitJsSetup(this.module, program, emitter.imports),
+      ...emitJsSetup(this.module, program, emitter.imports, (use) =>
+        emitter.lazyRenderReference(use, pass.names.props)
+      ),
       ...statements,
     ];
     emission.value = value;
@@ -907,6 +911,13 @@ class CsrModuleEmitter implements QwikModuleEmitter {
   ): void {
     const dynamic = handlers.length === 1 ? handlers[0] : null;
     if (dynamic?.h === HandlerKind.Value && dynamic.value.v === ValueKind.Computed) {
+      if (dynamic.value.resume.r === ResumeKind.Inline) {
+        this.imports.add(QwikWord.SetEvent);
+        statements.push(
+          `${QwikWord.SetEvent}(${el}, ${JSON.stringify(scopeName)}, ${inlineValueJs(this.module, dynamic.value)});`
+        );
+        return;
+      }
       if (dynamic.value.resume.r !== ResumeKind.Qrl) {
         throw new UnsupportedError('a non-QRL computed event handler');
       }

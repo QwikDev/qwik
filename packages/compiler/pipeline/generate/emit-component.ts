@@ -18,7 +18,7 @@ import {
 import { UnsupportedError } from '../errors';
 import { QwikGenWord, QwikHook, QwikWord } from '../words';
 import { signalReadName } from './emit-setup';
-import { rootArgs } from './emit-chunk';
+import { inlineValueJs, rootArgs } from './emit-chunk';
 
 export interface ComponentEmission {
   statements: string[];
@@ -186,6 +186,16 @@ function emitComponentProps(
           throw new UnsupportedError('multiple component event handlers');
         }
         const handler = prop.handlers[0];
+        if (
+          handler.h === HandlerKind.Value &&
+          handler.value.v === ValueKind.Computed &&
+          handler.value.resume.r === ResumeKind.Inline
+        ) {
+          const reference = inlineValueJs(module, handler.value);
+          entries.push(`${JSON.stringify(prop.name)}: ${reference}`);
+          roots.push(reference);
+          break;
+        }
         if (handler.h !== HandlerKind.Value || handler.value.v !== ValueKind.Qrl) {
           throw new UnsupportedError('a non-QRL component event handler');
         }

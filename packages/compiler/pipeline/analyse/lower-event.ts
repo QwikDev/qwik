@@ -1,19 +1,11 @@
-import {
-  BoundaryKind,
-  FnBodyKind,
-  HandlerKind,
-  PropKind,
-  QrlBodyKind,
-  QrlPayloadKind,
-  ValueKind,
-  type Prop,
-} from '../schema';
+import { BoundaryKind, HandlerKind, PropKind, ValueKind, type Prop, type Value } from '../schema';
 import type { Expression, JSXAttribute } from 'oxc-parser';
 import { lowerCaptures } from './ast/capture-analysis';
 import { UnsupportedError } from '../errors';
-import { pushPayload, pushQrl, QrlIdentityKind, type LowerContext } from './lower-context';
-import { lowerExpressionValue, recordPayloadAliasReads } from './lower-expr';
-import { findRuntimeJsx } from './ast/returns-jsx';
+import type { LowerContext } from './lower-context';
+import { lowerExpressionValue, lowerInlineExpressionValue } from './lower-expr';
+import { lowerFunctionQrl } from './lower-function';
+import { LocalKind } from './lower-setup';
 import { unwrapExpression } from './ast/utils';
 
 /** `on…$` attribute → an event prop with an authored handler value. */
@@ -27,77 +19,41 @@ export function lowerEventAttribute(
   if (expression === null) {
     return null;
   }
+  let value: Value;
   if (expression.type !== 'ArrowFunctionExpression' && expression.type !== 'FunctionExpression') {
-    return {
-      expression,
-      event: {
-        k: PropKind.Event,
-        name: scope,
-        passive: false,
-        handlers: [
-          { h: HandlerKind.Value, value: lowerExpressionValue(expression, ctx, authored) },
-        ],
-      },
-    };
-  }
-  const fn = expression;
-  const params = fn.params;
-  const body = fn.body;
-  if (body === null) {
-    return null;
-  }
-  if (fn.type === 'FunctionExpression' && fn.generator) {
-    throw new UnsupportedError('a generator event handler');
-  }
-  if (findRuntimeJsx(fn) !== null) {
-    throw new UnsupportedError('JSX inside an event handler');
-  }
-  const { captures, args, refs } = lowerCaptures(fn, ctx, 'an event handler');
-  const capturesBeforeParams =
-    refs.propsReads.some(([start]) => start < body.start) ||
-    refs.locals.some(({ reads }) => reads.some(({ range }) => range[0] < body.start));
-
-  const payload = pushPayload(ctx, [fn.start, fn.end]);
-  recordPayloadAliasReads(ctx, payload, refs);
-  const { use } = pushQrl(
-    ctx,
-    {
-      identity: { kind: QrlIdentityKind.Segment, nameCtx: scope },
+    const binding = ctx.bindings.reference(expression);
+    const isQrl = binding !== null && ctx.locals.get(binding)?.kind === LocalKind.Qrl;
+    value = isQrl
+      ? lowerInlineExpressionValue(
+          expression,
+          ctx,
+          lowerCaptures(expression, ctx, 'an event handler').refs
+        )
+      : lowerExpressionValue(expression, ctx, authored);
+  } else {
+    if (expression.body === null) {
+      return null;
+    }
+    const use = lowerFunctionQrl(expression, ctx, {
+      nameCtx: scope,
+      subject: 'an event handler',
       ctxName: authored,
       boundary: { kind: BoundaryKind.Implicit, role: 'event' },
-      payloadKind: QrlPayloadKind.Function,
-      authoredAsync: fn.async === true,
-      body: {
-        b: QrlBodyKind.Js,
-        payload,
-        ...(fn.type === 'FunctionExpression' ? { functionName: fn.id?.name ?? null } : {}),
-      },
-      captures,
-      params: {
-        authored: params.length,
-        used: [],
-        sources: [],
-        ...(capturesBeforeParams ? { capturesBeforeParams: true } : {}),
-      },
       origin: {
         range: [attribute.start, attribute.end],
-        functionRange: [fn.start, fn.end],
         calleeRange: null,
         argumentRanges: [],
-        paramRanges: params.map((param) => [param.start, param.end] as [number, number]),
-        bodyRange: [body.start, body.end],
-        bodyKind: body.type === 'BlockStatement' ? FnBodyKind.Block : FnBodyKind.Expression,
       },
-    },
-    args
-  );
+    });
+    value = { v: ValueKind.Qrl, use };
+  }
   return {
     expression,
     event: {
       k: PropKind.Event,
       name: scope,
       passive: false,
-      handlers: [{ h: HandlerKind.Value, value: { v: ValueKind.Qrl, use } }],
+      handlers: [{ h: HandlerKind.Value, value }],
     },
   };
 }

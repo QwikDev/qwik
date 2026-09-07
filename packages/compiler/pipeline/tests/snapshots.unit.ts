@@ -40,6 +40,21 @@ async function testInputs(mode: 'ssr' | 'csr', snapshotName: string, inputs: rea
 }
 
 describe.each(['ssr', 'csr'] as const)('%s', (mode) => {
+  test('should reuse an explicit setup QRL across events', async () => {
+    await testInput(mode, 'setup-qrl', {
+      code: `import { $, useSignal } from '@qwik.dev/core';
+export default (props) => {
+  const count = useSignal(0);
+  const onSave = $((event) => {
+    count.value++;
+    props.onSave$(props.id, event.type);
+  });
+  return <main><button onClick$={onSave}>save</button><button onClick$={onSave}>again</button></main>;
+};
+`,
+    });
+  });
+
   test('should pass through a foreign TypeScript module', async () => {
     await testInput(mode, 'foreign-passthrough-ts', {
       path: 'src/plain.ts',

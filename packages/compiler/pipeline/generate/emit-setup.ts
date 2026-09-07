@@ -4,6 +4,8 @@ import {
   ExprKind,
   InvokeKind,
   SetupKind,
+  ValueKind,
+  type QrlUse,
   type Arg,
   type Expr,
   type LinkedModule,
@@ -17,11 +19,15 @@ import { extractPayloadJs, inlineValueJs } from './emit-chunk';
 export function emitJsSetup(
   module: LinkedModule,
   program: { setup: LinkedModule['programs'][number]['setup'] },
-  imports: Set<string>
+  imports: Set<string>,
+  emitQrl: (use: QrlUse) => string
 ): string[] {
   return program.setup.map((entry) => {
     if (entry.s === SetupKind.Const && entry.result.bind === BindTargetKind.Pattern) {
-      const value = inlineValueJs(module, entry.value);
+      const value =
+        entry.value.v === ValueKind.Qrl
+          ? emitQrl(entry.value.use)
+          : inlineValueJs(module, entry.value);
       const initial =
         entry.defaultValue === undefined
           ? value

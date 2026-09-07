@@ -177,12 +177,15 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     }
     const pass: RenderPass = {
       names,
-      statements: emitJsSetup(this.module, program, this.imports),
+      statements: [],
       asyncSteps: [],
       next: createNameAllocator(this.module),
       usedCtx: false,
       rooted: new Set(),
     };
+    pass.statements.push(
+      ...emitJsSetup(this.module, program, this.imports, (use) => this.useQrl(pass, use, true).ref)
+    );
     const rootRange: SsrRootRange | null = options.rootRange
       ? { idParam: null, markerIndex: 0 }
       : options.rowFence
@@ -834,15 +837,16 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         return;
       }
       case PropKind.Event: {
-        const dynamic = prop.handlers.length === 1 ? prop.handlers[0] : null;
-        if (dynamic?.h === HandlerKind.Value && dynamic.value.v === ValueKind.Computed) {
-          if (dynamic.value.resume.r !== ResumeKind.Qrl) {
+        const singleHandler = prop.handlers.length === 1 ? prop.handlers[0] : null;
+        const value = singleHandler?.h === HandlerKind.Value ? singleHandler.value : null;
+        if (value?.v === ValueKind.Computed && value.resume.r !== ResumeKind.Inline) {
+          if (value.resume.r !== ResumeKind.Qrl) {
             throw new UnsupportedError('a non-QRL computed event handler');
           }
           if (idVariable === null) {
             throw new Error('pipeline: a dynamic event requires an element id');
           }
-          const { qrl, ref, args } = this.useQrl(pass, dynamic.value.resume.qrl, true);
+          const { qrl, ref, args } = this.useQrl(pass, value.resume.qrl, true);
           if (qrl.payloadKind !== QrlPayloadKind.Value) {
             throw new UnsupportedError('a non-value computed event QRL');
           }
@@ -859,14 +863,16 @@ class SsrModuleEmitter implements QwikModuleEmitter {
           return;
         }
         const values = prop.handlers.map((handler) => {
-          if (handler.h !== HandlerKind.Value || handler.value.v !== ValueKind.Qrl) {
+          if (handler.h !== HandlerKind.Value) {
             throw new UnsupportedError('a non-QRL event handler');
           }
-          return this.useQrl(pass, handler.value.use, false).ref;
+          return handler.value.v === ValueKind.Qrl
+            ? this.useQrl(pass, handler.value.use, false).ref
+            : inlineValueJs(this.module, handler.value);
         });
-        const value = values.length === 1 ? values[0] : `[${values.join(', ')}]`;
+        const eventValue = values.length === 1 ? values[0] : `[${values.join(', ')}]`;
         pass.usedCtx = true;
-        parts.push(`${pass.names.ctx}.eventAttrParts(${JSON.stringify(prop.name)}, ${value})`);
+        parts.push(`${pass.names.ctx}.eventAttrParts(${JSON.stringify(prop.name)}, ${eventValue})`);
         return;
       }
       default:
@@ -936,7 +942,10 @@ function isDynamicEvent(prop: Prop): boolean {
   return (
     prop.k === PropKind.Event &&
     prop.handlers.some(
-      (handler) => handler.h === HandlerKind.Value && handler.value.v === ValueKind.Computed
+      (handler) =>
+        handler.h === HandlerKind.Value &&
+        handler.value.v === ValueKind.Computed &&
+        handler.value.resume.r !== ResumeKind.Inline
     )
   );
 }

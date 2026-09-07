@@ -547,7 +547,7 @@ test('generator handlers remain explicitly unsupported', async () => {
         },
       ],
     })
-  ).rejects.toThrow('a generator event handler');
+  ).rejects.toThrow('a generator QRL callback');
 });
 
 test('captured parameter plans survive serialization and immutable linking', async () => {

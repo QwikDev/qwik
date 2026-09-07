@@ -5,6 +5,8 @@ import {
   ExprKind,
   InvokeKind,
   SetupKind,
+  BoundaryKind,
+  ValueKind,
   type Arg,
   type LocalId,
   type Setup,
@@ -21,15 +23,17 @@ import type {
 } from 'oxc-parser';
 import { identifierName, unwrapExpression } from './ast/utils';
 import { UnsupportedError } from '../errors';
-import { QwikHook } from '../words';
+import { QwikHook, QwikMarker } from '../words';
 import { pushPayload, type LowerContext } from './lower-context';
 import { lowerCaptures } from './ast/capture-analysis';
 import { lowerInlineExpressionValue, recordPayloadAliasReads } from './lower-expr';
 import { findRuntimeJsx } from './ast/returns-jsx';
+import { lowerFunctionQrl } from './lower-function';
 
 /** Local value semantics shared by expression and capture lowering. */
 export const enum LocalKind {
   Const = 'const',
+  Qrl = 'qrl',
   Signal = 'signal',
   /** A collection row parameter — captured as LoopValue, delivered per row. */
   LoopValue = 'loop-value',
@@ -72,7 +76,9 @@ export function lowerConstBinding(
   const payload = pushPayload(ctx, [target.start, target.end]);
   recordPayloadAliasReads(ctx, payload, refs);
   for (const binding of bindings) {
-    locals.set(binding, { kind: LocalKind.Const, access: CaptureAccess.Direct, slot: -1, binding });
+    const kind =
+      target.type === 'Identifier' && value.v === ValueKind.Qrl ? LocalKind.Qrl : LocalKind.Const;
+    locals.set(binding, { kind, access: CaptureAccess.Direct, slot: -1, binding });
   }
   return {
     s: SetupKind.Const,
@@ -143,20 +149,52 @@ function lowerSetupDeclaration(
     return lowerConstDeclaration(declarator, ctx, locals);
   }
   const calleeBinding = ctx.bindings.reference(init.callee);
-  const hook = calleeBinding === null ? undefined : ctx.coreBindings.get(calleeBinding);
-  if (hook === undefined) {
+  const coreApi = calleeBinding === null ? undefined : ctx.coreBindings.get(calleeBinding);
+  if (coreApi === undefined) {
     return lowerConstDeclaration(declarator, ctx, locals);
   }
   const name = identifierName(declarator.id);
   if (name === null) {
-    throw new UnsupportedError('a non-identifier hook binding');
+    throw new UnsupportedError('a non-identifier core API binding');
   }
-  switch (hook) {
+  switch (coreApi) {
+    case QwikMarker.Dollar:
+      return lowerSetupQrl(declarator, init, name, ctx, locals);
     case QwikHook.UseSignal:
       return lowerUseSignal(declarator, init, name, ctx, locals);
     default:
       throw new UnsupportedError(`the setup call "${identifierName(init.callee) ?? '?'}"`);
   }
+}
+
+function lowerSetupQrl(
+  declarator: VariableDeclarator,
+  init: CallExpression,
+  name: string,
+  ctx: LowerContext,
+  locals: SetupLocals
+): Setup {
+  const argument = init.arguments[0];
+  const fn = argument?.type === 'SpreadElement' ? null : unwrapExpression(argument);
+  if (
+    init.optional ||
+    init.arguments.length !== 1 ||
+    (fn?.type !== 'ArrowFunctionExpression' && fn?.type !== 'FunctionExpression')
+  ) {
+    throw new UnsupportedError('$() without a single inline callback');
+  }
+  const use = lowerFunctionQrl(fn, ctx, {
+    nameCtx: name,
+    subject: 'a QRL callback',
+    ctxName: QwikMarker.Dollar,
+    boundary: { kind: BoundaryKind.Explicit },
+    origin: {
+      range: [init.start, init.end],
+      calleeRange: [init.callee.start, init.callee.end],
+      argumentRanges: [[argument.start, argument.end]],
+    },
+  });
+  return lowerConstBinding(declarator.id, { v: ValueKind.Qrl, use }, ctx, locals);
 }
 
 function lowerUseSignal(

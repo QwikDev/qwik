@@ -134,7 +134,7 @@ const signal = useSignal(count), snapshot = signal.value;
     throw new Error('expected a linked module');
   }
   const imports = new Set<string>();
-  const statements = emitJsSetup(linked.plan.modules[0], { setup }, imports);
+  const statements = emitJsSetup(linked.plan.modules[0], { setup }, imports, (use) => use.qrl);
   expect([...imports]).toEqual(['useSignal']);
   const reads: string[] = [];
   const values: Record<string, unknown> = {

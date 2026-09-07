@@ -1,0 +1,75 @@
+==INPUT==
+
+import { $, useSignal } from '@qwik.dev/core';
+export default (props) => {
+  const count = useSignal(0);
+  const onSave = $((event) => {
+    count.value++;
+    props.onSave$(props.id, event.type);
+  });
+  return <main><button onClick$={onSave}>save</button><button onClick$={onSave}>again</button></main>;
+};
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { useSignal, _captures, _noopQrl } from '@qwik.dev/core';
+const component_onSave_segment_0_2tdav5vx5sjh3 = (event) => {
+  const [count, props] = _captures;
+  count.value++;
+  props.onSave$(props.id, event.type);
+};
+const q_component_onSave_segment_0_2tdav5vx5sjh3 = /*#__PURE__*/ _noopQrl(
+  'component_onSave_segment_0_2tdav5vx5sjh3'
+);
+q_component_onSave_segment_0_2tdav5vx5sjh3.s(component_onSave_segment_0_2tdav5vx5sjh3);
+export default (props, ctx) => {
+  const count = useSignal(0);
+  const onSave = q_component_onSave_segment_0_2tdav5vx5sjh3.w([count, props]);
+  return [
+    '<main><button',
+    ctx.eventAttrParts('q-e:click', onSave),
+    '>save</button><button',
+    ctx.eventAttrParts('q-e:click', onSave),
+    '>again</button></main>',
+  ];
+};
+============================= src/component.tsx_component_onSave_segment_0_2tdav5vx5sjh3.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_onSave_segment_0_2tdav5vx5sjh3 = (event) => {
+  const [count, props] = _captures;
+  count.value++;
+  props.onSave$(props.id, event.type);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_onSave_segment_0_2tdav5vx5sjh3",
+  "entry": null,
+  "displayName": "component_onSave_segment_0",
+  "hash": "2tdav5vx5sjh3",
+  "canonicalFilename": "component.tsx_component_onSave_segment_0_2tdav5vx5sjh3",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    122,
+    201
+  ],
+  "paramNames": [
+    "event"
+  ],
+  "captureNames": [
+    "count",
+    "props"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

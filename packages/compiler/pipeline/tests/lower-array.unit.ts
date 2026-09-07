@@ -68,7 +68,7 @@ describe('lowerArray / reactive rows', () => {
       }
       const module = linked.plan.modules[0];
       const program = module.programs.find((program) => program.setup.length > 0)!;
-      const statements = emitJsSetup(module, program, new Set());
+      const statements = emitJsSetup(module, program, new Set(), (use) => use.qrl);
       let reads = 0;
       const run = (item: unknown) =>
         runInNewContext(
@@ -128,7 +128,7 @@ describe('lowerArray / reactive rows', () => {
       const calls: string[] = [];
       const result = runInNewContext(
         `(() => {
-      ${emitJsSetup(module, program, new Set()).join('\n')}
+      ${emitJsSetup(module, program, new Set(), (use) => use.qrl).join('\n')}
       return [label, copy, rest.extra];
     })()`,
         {
@@ -373,7 +373,7 @@ describe('lowerArray / reactive rows', () => {
       }
       const module = linked.plan.modules[0];
       const program = module.programs.find((program) => program.setup.length > 0)!;
-      const statements = emitJsSetup(module, program, new Set());
+      const statements = emitJsSetup(module, program, new Set(), (use) => use.qrl);
       const calls: string[] = [];
       const result = runInNewContext(
         `(() => {

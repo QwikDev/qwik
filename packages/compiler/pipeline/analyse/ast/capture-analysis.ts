@@ -10,7 +10,7 @@ import {
 } from '../../schema';
 import { UnsupportedError } from '../../errors';
 import type { LowerContext } from '../lower-context';
-import type { SetupLocal } from '../lower-setup';
+import type { SetupLocal } from '../locals';
 
 export interface CollectedCaptures {
   propsReads: Range[];
@@ -52,8 +52,7 @@ export function collectCaptures(
         entry.reads.push(read);
       }
     } else {
-      other = ctx.plan.bindings[binding].name;
-      break;
+      other ??= ctx.plan.bindings[binding].name;
     }
   }
   return { propsReads, locals, other };

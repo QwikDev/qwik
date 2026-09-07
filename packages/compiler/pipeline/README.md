@@ -44,8 +44,8 @@ is rejected before chunk emission for both expression and block bodies.
 Component setup and collection rows share `lowerConstDeclaration()` and `Setup.Const` emission.
 Declarations run in authored order, including multiple declarators and destructuring patterns.
 Setup reads see preceding locals; extracted expressions and handlers capture their computed values.
-Direct core hook calls retain typed invokes; unsupported hooks, mutable declarations and JSX
-initializers remain rejected. A plain const reading a signal stores a snapshot, not a computed signal.
+Core and custom hooks share call plans; mutable declarations and JSX initializers remain rejected.
+A plain const reading a signal stores a snapshot, not a computed signal.
 
 Linking indexes declaration targets and imports by binding once per module. Component linking and
 reachability share the import index; duplicate declaration targets remain ambiguous. Each JS module
@@ -75,15 +75,21 @@ pending. Everything unsupported throws `UnsupportedError`; invalid authored code
 
 ## Setup hook boundaries
 
-Plain `use*` calls share `SetupKind.Hook` without callback extraction, including `useStore`,
+Plain `use*` calls share `SetupKind.Call` without callback extraction, including `useStore`,
 custom hooks and named import aliases. Arguments, factories and spreads remain ordinary JS;
 runtime semantics determine whether returned values are reactive.
 
 Direct `use*$` calls in component setup share first-argument QRL extraction, including local
-hooks and aliased named imports. Generic calls use `SetupKind.Hook`: they keep the authored
+hooks and aliased named imports. Generic calls use `SetupKind.Call`: they keep the authored
 callee, return binding and remaining arguments, including spreads. `implicit$FirstArg` accepts
 the compiled QRL without wrapping or resolving it again. Core-specific result semantics remain
 separate (`useComputed$` produces a signal).
+
+`analyse/setup-api.ts` owns core call contracts: result classification, canonical imports and
+argument limits. `analyse/locals.ts` exposes the resulting binding facts to expression and capture
+lowering. Calls share one emitter; it does not recognize hook names. `$()` remains a compiler
+marker producing a QRL value, not a runtime call. Direct calls to setup locals use the same call
+plan; other authored expressions retain their JS payloads.
 
 This slice supports inline first callbacks and local QRL bindings created by `$()`; forwarding
 keeps the existing instance and captures without another segment. Member calls, ordinary function references and boundary

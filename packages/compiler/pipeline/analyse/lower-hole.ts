@@ -4,7 +4,7 @@ import { SegmentContext } from '../words';
 import { identifierName, unwrapExpression } from './ast/utils';
 import { lowerExpressionValue } from './lower-expr';
 import type { LowerContext } from './lower-context';
-import { LocalKind } from './lower-setup';
+import { LocalKind } from './locals';
 
 type TextPart = { kind: 'static'; text: string } | { kind: 'expression'; expression: Expression };
 

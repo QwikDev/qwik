@@ -2,19 +2,14 @@ import {
   CaptureAccess,
   ArgKind,
   BindTargetKind,
-  ExprKind,
-  InvokeKind,
   SetupKind,
   BoundaryKind,
   ValueKind,
-  type BindTarget,
   type Arg,
   type QrlArg,
-  type LocalId,
   type Setup,
   type Value,
 } from '../schema';
-import { ValueIrKind, type ValueIR } from '../../src/expr-ir';
 import type {
   Argument,
   BindingPattern,
@@ -25,9 +20,11 @@ import type {
 } from 'oxc-parser';
 import { identifierName, unwrapExpression } from './ast/utils';
 import { UnsupportedError } from '../errors';
-import { QwikHook, QwikMarker } from '../words';
+import { QwikMarker } from '../words';
+import { coreSetupCalls } from './setup-api';
+import { LocalKind, type SetupLocals } from './locals';
 import { pushPayload, type LowerContext } from './lower-context';
-import { lowerCaptures } from './ast/capture-analysis';
+import { collectCaptures, lowerCaptures } from './ast/capture-analysis';
 import {
   lowerInlineExpressionValue,
   recordPayloadAliasReads,
@@ -35,19 +32,6 @@ import {
 } from './lower-expr';
 import { findRuntimeJsx } from './ast/returns-jsx';
 import { lowerFunctionQrl } from './lower-function';
-
-/** Local value semantics shared by expression and capture lowering. */
-export const enum LocalKind {
-  Const = 'const',
-  Qrl = 'qrl',
-  Signal = 'signal',
-  /** A collection row parameter — captured as LoopValue, delivered per row. */
-  LoopValue = 'loop-value',
-  /** A collection index parameter — a per-row signal box updated by the reconciler. */
-  RowIndex = 'row-index',
-  /** A prop member for wrapped destructured props */
-  PropMember = 'prop-member',
-}
 
 export function lowerConstDeclaration(
   declarator: VariableDeclarator,
@@ -85,10 +69,13 @@ function lowerSetupBinding(
   pattern: BindingPattern,
   ctx: LowerContext,
   locals: SetupLocals,
-  kind: LocalKind.Const | LocalKind.Qrl = LocalKind.Const
+  kind: LocalKind.Const | LocalKind.Qrl | LocalKind.Signal = LocalKind.Const
 ): Pick<Extract<Setup, { s: SetupKind.Const }>, 'result' | 'defaultValue'> {
   if (findRuntimeJsx(pattern) !== null) {
     throw new UnsupportedError('JSX inside a binding pattern');
+  }
+  if (kind === LocalKind.Signal && pattern.type !== 'Identifier') {
+    throw new UnsupportedError('a non-identifier core API binding');
   }
   const bindings = [...ctx.bindings.bindingsOf(pattern)];
   const { refs } = lowerCaptures(pattern, ctx, 'a binding pattern');
@@ -101,7 +88,12 @@ function lowerSetupBinding(
   recordPayloadAliasReads(ctx, payload, refs);
   const localKind = target.type === 'Identifier' ? kind : LocalKind.Const;
   for (const binding of bindings) {
-    locals.set(binding, { kind: localKind, access: CaptureAccess.Direct, slot: -1, binding });
+    locals.set(binding, {
+      kind: localKind,
+      access: CaptureAccess.Direct,
+      slot: localKind === LocalKind.Signal ? locals.size : -1,
+      binding,
+    });
   }
   return {
     result: {
@@ -113,27 +105,7 @@ function lowerSetupBinding(
   };
 }
 
-export type SetupLocal =
-  | {
-      /** Read-lowering dispatch (how `x`/`x.value` lowers). */
-      kind: Exclude<LocalKind, LocalKind.PropMember>;
-      /** Delivery contract when a QRL captures this local. */
-      access: CaptureAccess;
-      slot: number;
-      binding: number;
-    }
-  | {
-      kind: LocalKind.PropMember;
-      access: CaptureAccess.LoopValue;
-      slot: -1;
-      binding: number;
-      member: string;
-    };
-
-/** Local bindings and their expression-read and capture contracts. */
-export type SetupLocals = Map<LocalId, SetupLocal>;
-
-/** Component setup shares const lowering while retaining typed hook invokes. */
+/** Component setup shares call lowering and result binding classification. */
 export function lowerSetup(
   statements: readonly (Directive | Statement)[],
   ctx: LowerContext
@@ -149,9 +121,9 @@ export function lowerSetup(
     for (const statement of statements) {
       if (statement.type === 'ExpressionStatement') {
         const call = unwrapExpression(statement.expression);
-        const hook = call.type === 'CallExpression' ? resolveSetupHook(call, ctx) : null;
-        if (hook !== null && call.type === 'CallExpression') {
-          setup.push(lowerSetupHook(call, hook, null, ctx, locals));
+        const hook = call.type === 'CallExpression' ? resolveSetupCall(call, ctx) : null;
+        if (hook !== null && /^use.+/.test(hook.name) && call.type === 'CallExpression') {
+          setup.push(lowerSetupCall(call, hook, null, ctx, locals));
           continue;
         }
       }
@@ -179,44 +151,21 @@ function lowerSetupDeclaration(
   }
   const calleeBinding = ctx.bindings.reference(init.callee);
   const coreApi = calleeBinding === null ? undefined : ctx.coreBindings.get(calleeBinding);
-  if (
-    coreApi === QwikMarker.Dollar ||
-    coreApi === QwikHook.UseComputed ||
-    coreApi === QwikHook.UseSignal
-  ) {
+  if (coreApi === QwikMarker.Dollar) {
     const name = identifierName(declarator.id);
     if (name === null) {
       throw new UnsupportedError('a non-identifier core API binding');
     }
-    switch (coreApi) {
-      case QwikMarker.Dollar:
-        return lowerConstBinding(
-          declarator.id,
-          {
-            v: ValueKind.Qrl,
-            use: lowerSetupCallback(init, name, coreApi, ctx),
-          },
-          ctx,
-          locals
-        );
-      case QwikHook.UseComputed: {
-        const args = lowerQrlHookArgs(init, name, coreApi, ctx);
-        return {
-          s: SetupKind.Invoke,
-          invoke: {
-            op: InvokeKind.UseComputed,
-            result: lowerSignalBinding(declarator.id, name, ctx, locals),
-            args,
-          },
-        };
-      }
-      case QwikHook.UseSignal:
-        return lowerUseSignal(declarator, init, name, ctx, locals);
-    }
+    return lowerConstBinding(
+      declarator.id,
+      { v: ValueKind.Qrl, use: lowerSetupCallback(init, name, coreApi, ctx) },
+      ctx,
+      locals
+    );
   }
-  const hook = resolveSetupHook(init, ctx);
-  if (hook !== null) {
-    return lowerSetupHook(init, hook, declarator.id, ctx, locals);
+  const callee = resolveSetupCall(init, ctx);
+  if (callee !== null) {
+    return lowerSetupCall(init, callee, declarator.id, ctx, locals);
   }
   if (coreApi === undefined) {
     return lowerConstDeclaration(declarator, ctx, locals);
@@ -272,37 +221,47 @@ function lowerSetupCallback(
   });
 }
 
-function resolveSetupHook(call: CallExpression, ctx: LowerContext) {
+function resolveSetupCall(call: CallExpression, ctx: LowerContext) {
   const binding = ctx.bindings.reference(call.callee);
   if (binding === null) {
     return null;
   }
   const imported = ctx.plan.imports.find((entry) => entry.binding === binding);
+  const coreApi = ctx.coreBindings.get(binding);
   const name =
-    imported !== undefined && imported.imported !== 'default' && imported.imported !== '*'
+    coreApi ??
+    (imported !== undefined && imported.imported !== 'default' && imported.imported !== '*'
       ? imported.imported
-      : ctx.plan.bindings[binding].name;
-  return /^use.+/.test(name) ? { binding, name } : null;
+      : ctx.plan.bindings[binding].name);
+  return /^use.+/.test(name) || ctx.locals.has(binding)
+    ? { binding, name, contract: coreApi === undefined ? undefined : coreSetupCalls.get(coreApi) }
+    : null;
 }
 
-function lowerSetupHook(
+function lowerSetupCall(
   call: CallExpression,
-  hook: { binding: LocalId; name: string },
+  callee: NonNullable<ReturnType<typeof resolveSetupCall>>,
   pattern: BindingPattern | null,
   ctx: LowerContext,
   locals: SetupLocals
 ): Setup {
   if (call.optional) {
-    throw new UnsupportedError('an optional setup hook call');
+    throw new UnsupportedError('an optional setup call');
   }
-  const args = hook.name.endsWith('$')
-    ? lowerQrlHookArgs(call, identifierName(pattern) ?? hook.name, hook.name, ctx)
+  const contract = pattern === null ? undefined : callee.contract;
+  if (contract?.maxArgs !== undefined && call.arguments.length > contract.maxArgs) {
+    throw new UnsupportedError(`${callee.name} with more than ${contract.maxArgs} arguments`);
+  }
+  const args = /^use.+\$$/.test(callee.name)
+    ? lowerQrlHookArgs(call, identifierName(pattern) ?? callee.name, callee.name, ctx)
     : call.arguments.map((argument) => lowerHookArg(argument, ctx));
   return {
-    s: SetupKind.Hook,
-    binding: hook.binding,
+    s: SetupKind.Call,
+    binding: callee.binding,
+    ...(contract === undefined ? {} : { importName: contract.importName }),
     args,
-    result: pattern === null ? null : lowerSetupBinding(pattern, ctx, locals).result,
+    result:
+      pattern === null ? null : lowerSetupBinding(pattern, ctx, locals, contract?.result).result,
   };
 }
 
@@ -321,81 +280,11 @@ function lowerQrlHookArgs(
 
 function lowerHookArg(argument: Argument, ctx: LowerContext): Arg {
   const expression = argument.type === 'SpreadElement' ? argument.argument : argument;
-  const { refs } = lowerCaptures(expression, ctx, 'a hook argument');
+  // Inline arguments retain module references and rewrite local aliases.
+  const refs = collectCaptures(expression, ctx, new Set());
   const value = lowerInlineExpressionValue(expression, ctx, refs);
   return {
     a: argument.type === 'SpreadElement' ? ArgKind.Spread : ArgKind.Expr,
     expr: value.expr,
   };
-}
-
-function lowerUseSignal(
-  declarator: VariableDeclarator,
-  init: CallExpression,
-  name: string,
-  ctx: LowerContext,
-  locals: SetupLocals
-): Setup {
-  const args = init.arguments;
-  if (args.length > 1) {
-    throw new UnsupportedError('useSignal with more than one argument');
-  }
-  return {
-    s: SetupKind.Invoke,
-    invoke: {
-      op: InvokeKind.UseSignal,
-      result: lowerSignalBinding(declarator.id, name, ctx, locals),
-      ...(args.length === 1 ? { initial: lowerInitialArg(args[0], ctx) } : {}),
-    },
-  };
-}
-
-function lowerSignalBinding(
-  idNode: BindingPattern,
-  name: string,
-  ctx: LowerContext,
-  locals: SetupLocals
-): BindTarget {
-  const binding = ctx.bindings.declaration(idNode);
-  if (binding === null) {
-    throw new UnsupportedError(`the unresolved setup binding "${name}"`);
-  }
-  locals.set(binding, {
-    kind: LocalKind.Signal,
-    access: CaptureAccess.Direct,
-    slot: locals.size,
-    binding,
-  });
-  return {
-    bind: BindTargetKind.Pattern,
-    pattern: pushPayload(ctx, [idNode.start, idNode.end]),
-    bindings: [binding],
-  };
-}
-
-function lowerInitialArg(node: Argument, ctx: LowerContext): Arg {
-  const ir = literalIr(node);
-  if (ir !== null) {
-    return { a: ArgKind.Expr, expr: { kind: ExprKind.Ir, ir } };
-  }
-  // IR-uncoverable initials carry source text; native targets refuse them.
-  return {
-    a: ArgKind.Expr,
-    expr: { kind: ExprKind.Js, payload: pushPayload(ctx, [node.start, node.end]) },
-  };
-}
-
-function literalIr(node: Argument): ValueIR | null {
-  if (node.type === 'Literal') {
-    const value = node.value;
-    if (
-      typeof value === 'string' ||
-      typeof value === 'number' ||
-      typeof value === 'boolean' ||
-      value === null
-    ) {
-      return { kind: ValueIrKind.Lit, value };
-    }
-  }
-  return null;
 }

@@ -45,12 +45,8 @@ import {
   lowerInlineExpressionValue,
   trySignalReadValue,
 } from './lower-expr';
-import {
-  LocalKind,
-  lowerConstBinding,
-  lowerConstDeclaration,
-  type SetupLocals,
-} from './lower-setup';
+import { lowerConstBinding, lowerConstDeclaration } from './lower-setup';
+import { LocalKind, type SetupLocals } from './locals';
 import { lowerRenderExpression } from './lower-jsx';
 
 export const DESTRUCTURED_WRAPPED_PARAM = 'item';

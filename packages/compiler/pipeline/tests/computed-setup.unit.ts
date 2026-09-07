@@ -2,7 +2,6 @@ import { describe, expect, test } from 'vitest';
 import { analyseModule, linkPlans } from '../index';
 import {
   BoundaryKind,
-  InvokeKind,
   LinkResultKind,
   OpKind,
   ProgramBodyKind,
@@ -13,6 +12,7 @@ import {
 } from '../schema';
 import { deepFreeze, serverSpecialization, loadDefaultFunction } from './fixtures';
 import { UnsupportedError } from '../errors';
+import { ResolutionKind } from '../link/link-plans';
 import { transformModules } from '../compat/transform-modules';
 import * as core from '../../../qwik/src/core/index';
 import { renderToStringCompiled as renderToString } from '../../../qwik/src/server/ssr-render';
@@ -272,9 +272,9 @@ export default () => {
     {}
   );
   const program = plan.programs.find((program) => program.setup.length > 0)!;
-  expect(program.setup.map((entry) => entry.s === SetupKind.Invoke && entry.invoke.op)).toEqual([
-    InvokeKind.UseSignal,
-    InvokeKind.UseComputed,
+  expect(program.setup.map((entry) => entry.s === SetupKind.Call && entry.importName)).toEqual([
+    'useSignal',
+    'useComputedQrl',
   ]);
   const callback = plan.qrls.find((qrl) => qrl.ctxName === 'useComputed$')!;
   expect(callback.boundary).toEqual({ kind: BoundaryKind.Implicit, role: 'hook' });
@@ -282,11 +282,8 @@ export default () => {
     'count',
   ]);
   expect(program.setup[1]).toMatchObject({
-    s: SetupKind.Invoke,
-    invoke: {
-      op: InvokeKind.UseComputed,
-      args: [{ a: ArgKind.Qrl, use: { qrl: callback.id } }, { a: ArgKind.Expr }],
-    },
+    s: SetupKind.Call,
+    args: [{ a: ArgKind.Qrl, use: { qrl: callback.id } }, { a: ArgKind.Expr }],
   });
   expect(program.body).toMatchObject({
     kind: ProgramBodyKind.Ops,
@@ -297,11 +294,14 @@ export default () => {
     deepFreeze([restored]),
     [{ kind: EntryKind.Module, module: plan.path }],
     serverSpecialization(),
-    { edges: {} },
+    { edges: { [plan.path]: { 0: { r: ResolutionKind.External } } } },
     { claims: [], policies: [], emissions: [] },
     true
   );
   expect(linked.kind).toBe(LinkResultKind.Linked);
+  if (linked.kind === LinkResultKind.Linked) {
+    expect(linked.plan.modules[0].edges[0].runtime).toBe(true);
+  }
   expect(plan).toEqual(restored);
 });
 
@@ -362,6 +362,6 @@ test('a local useComputed$ function is not a core hook', async () => {
   );
   expect(plan.programs.flatMap((program) => program.setup).map((entry) => entry.s)).toEqual([
     SetupKind.Const,
-    SetupKind.Hook,
+    SetupKind.Call,
   ]);
 });

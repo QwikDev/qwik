@@ -1,7 +1,7 @@
 import type { LocalId, ModulePlan, Payload, Qrl, QrlUse, Range } from '../schema';
 import type { BindingGraph } from './ast/bindings';
 import { createJsxAnalysis, type JsxAnalysis } from './ast/jsx-analysis';
-import type { SetupLocal } from './lower-setup';
+import type { SetupLocal } from './locals';
 import {
   createSegmentSourceIdentity,
   createSegmentSymbolName,

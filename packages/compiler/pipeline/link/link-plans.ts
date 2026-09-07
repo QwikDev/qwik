@@ -455,7 +455,7 @@ export function linkPlans(
   const visitProgram = (module: number, program: number): void => {
     const plan = linkedModules[module].programs[program];
     for (const setup of plan?.setup ?? []) {
-      if (setup.s === SetupKind.Hook) {
+      if (setup.s === SetupKind.Call) {
         visitImport(module, setup.binding);
       }
     }

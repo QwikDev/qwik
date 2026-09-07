@@ -88,7 +88,7 @@ export default () => { ${callee}(() => 1); return <span />; };`,
     {}
   );
   expect(plan.programs.flatMap((program) => program.setup)[0]).toMatchObject({
-    s: SetupKind.Hook,
+    s: SetupKind.Call,
     args: [{ a: ArgKind.Qrl }],
     result: null,
   });
@@ -127,7 +127,7 @@ export default (props) => {
   );
   const hook = plan.programs.flatMap((program) => program.setup)[0];
   expect(hook).toMatchObject({
-    s: SetupKind.Hook,
+    s: SetupKind.Call,
     binding: plan.imports[0].binding,
     args: [{ a: ArgKind.Qrl }, { a: ArgKind.Expr }],
   });
@@ -283,7 +283,7 @@ export default () => { useComputed$(async () => 1, { custom: true }); return <sp
     },
     {}
   );
-  expect(plan.programs.flatMap((program) => program.setup)[0].s).toBe(SetupKind.Hook);
+  expect(plan.programs.flatMap((program) => program.setup)[0].s).toBe(SetupKind.Call);
 });
 
 test('forwarded setup QRLs retain identity and per-render captures across hooks', async () => {

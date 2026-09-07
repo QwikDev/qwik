@@ -16,7 +16,7 @@ import { findRuntimeJsx } from './ast/returns-jsx';
 import { collectCaptures, lowerCaptures, type CollectedCaptures } from './ast/capture-analysis';
 import { UnsupportedError } from '../errors';
 import { pushPayload, pushQrl, QrlIdentityKind, type LowerContext } from './lower-context';
-import { LocalKind } from './lower-setup';
+import { LocalKind } from './locals';
 import type { Expression, Node } from 'oxc-parser';
 
 export type ReactiveValue = Extract<Value, { v: ValueKind.Read } | { v: ValueKind.Computed }>;
@@ -206,6 +206,15 @@ export function trySignalReadValue(
  */
 export function tryLowerExprIr(node: Expression, ctx: LowerContext): ValueIR | null {
   switch (node.type) {
+    case 'Literal': {
+      const value = node.value;
+      return value === null ||
+        typeof value === 'string' ||
+        typeof value === 'number' ||
+        typeof value === 'boolean'
+        ? { kind: ValueIrKind.Lit, value }
+        : null;
+    }
     case 'Identifier': {
       const name = identifierName(node);
       const binding = ctx.bindings.reference(node);

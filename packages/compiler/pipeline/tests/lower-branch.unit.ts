@@ -3,7 +3,7 @@ import { ArgPass, CaptureAccess, OpKind, ProgramBodyKind, QrlBodyKind } from '..
 import { parseModule } from '../analyse/ast/parse';
 import { unwrapExpression } from '../analyse/ast/utils';
 import { createLowerContext } from '../analyse/lower-context';
-import { LocalKind, type SetupLocal } from '../analyse/lower-setup';
+import { LocalKind, type SetupLocal } from '../analyse/locals';
 import { lowerJsx } from '../analyse/lower-jsx';
 import { createTestLowerContext } from './fixtures';
 

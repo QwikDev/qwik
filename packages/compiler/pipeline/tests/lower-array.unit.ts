@@ -20,7 +20,7 @@ import {
 import { parseModule } from '../analyse/ast/parse';
 import { unwrapExpression } from '../analyse/ast/utils';
 import { JsxValueKind } from '../analyse/ast/jsx-analysis';
-import { LocalKind } from '../analyse/lower-setup';
+import { LocalKind } from '../analyse/locals';
 import { lowerJsx } from '../analyse/lower-jsx';
 import { createTestLowerContext, serverSpecialization } from './fixtures';
 import { linkPlans } from '../link/link-plans';

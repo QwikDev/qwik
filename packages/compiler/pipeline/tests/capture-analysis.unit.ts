@@ -3,7 +3,7 @@ import { CaptureAccess, ReadRole, type LocalId } from '../schema';
 import { parseModule } from '../analyse/ast/parse';
 import { unwrapExpression } from '../analyse/ast/utils';
 import { collectCaptures } from '../analyse/ast/capture-analysis';
-import { LocalKind, type SetupLocal } from '../analyse/lower-setup';
+import { LocalKind, type SetupLocal } from '../analyse/locals';
 import { createTestLowerContext } from './fixtures';
 
 const COUNT_LOCAL: SetupLocal = {

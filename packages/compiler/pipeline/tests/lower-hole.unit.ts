@@ -15,7 +15,7 @@ import { parseModule } from '../analyse/ast/parse';
 import { unwrapExpression } from '../analyse/ast/utils';
 import { lowerText } from '../analyse/lower-hole';
 import type { LowerContext } from '../analyse/lower-context';
-import { LocalKind } from '../analyse/lower-setup';
+import { LocalKind } from '../analyse/locals';
 import { createTestLowerContext } from './fixtures';
 
 function lowerFor(expression: string, shape: (ctx: LowerContext) => void = () => {}) {

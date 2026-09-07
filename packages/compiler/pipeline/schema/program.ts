@@ -225,9 +225,7 @@ export type Prop =
   | { k: PropKind.InnerHtml; value: Value; effect: number | null };
 
 // ---------------------------------------------------------------------------------------------
-// Setup: closed per-op invocations. One invocation MACHINERY (result binding, guards, QRL args),
-// but each op's signature is TYPED — a result-bearing use-on or a QRL-free use-task is
-// unrepresentable. Custom hooks stay separate (`SetupKind.Hook`).
+// Setup calls share arguments and result bindings; QRL arguments remain explicit.
 
 export const enum BindTargetKind {
   Slot = 'slot',
@@ -255,58 +253,9 @@ export type Arg =
   | { a: ArgKind.Spread; expr: Expr }
   | QrlArg;
 
-export const enum InvokeKind {
-  UseSignal = 'use-signal',
-  UseStore = 'use-store',
-  UseConstant = 'use-constant',
-  UseServerData = 'use-server-data',
-  UseComputed = 'use-computed',
-  UseAsync = 'use-async',
-  UseSerializer = 'use-serializer',
-  UseTask = 'use-task',
-  UseVisibleTask = 'use-visible-task',
-  UseOn = 'use-on',
-  UseOnDocument = 'use-on-document',
-  UseOnWindow = 'use-on-window',
-  UseContext = 'use-context',
-  UseContextProvider = 'use-context-provider',
-}
-
-export const enum VisibleTaskStrategy {
-  IntersectionObserver = 'intersection-observer',
-  DocumentReady = 'document-ready',
-  DocumentIdle = 'document-idle',
-}
-
-export type Invoke =
-  | { op: InvokeKind.UseSignal; result: BindTarget; initial?: Arg }
-  | { op: InvokeKind.UseStore; result: BindTarget; initial: Arg; deep: boolean; reactive: boolean }
-  /** Untracked, variadic. */
-  | { op: InvokeKind.UseConstant; result: BindTarget; callback: Arg; extraArgs: Arg[] }
-  | { op: InvokeKind.UseServerData; result: BindTarget; key: Arg; fallback?: Arg }
-  /** Resumable ⇒ QRL required; async-ness is runtime-discovered. */
-  | { op: InvokeKind.UseComputed; result: BindTarget; args: [QrlArg, ...Arg[]] }
-  | { op: InvokeKind.UseAsync; result: BindTarget; qrl: QrlUse; options?: Arg }
-  | { op: InvokeKind.UseSerializer; result: BindTarget; qrl: QrlUse }
-  | { op: InvokeKind.UseTask; qrl: QrlUse; deferUpdates?: boolean }
-  /** ONE owner for the strategy. */
-  | { op: InvokeKind.UseVisibleTask; qrl: QrlUse; strategy: VisibleTaskStrategy }
-  /** Event may be array/dynamic. */
-  | {
-      op: InvokeKind.UseOn | InvokeKind.UseOnDocument | InvokeKind.UseOnWindow;
-      event: Arg;
-      handler: Arg;
-      passive?: boolean;
-      capture?: boolean;
-    }
-  /** Overloads = ordered args. */
-  | { op: InvokeKind.UseContext; result: BindTarget; context: LocalId; extraArgs: Arg[] }
-  | { op: InvokeKind.UseContextProvider; context: LocalId; value: Arg };
-
 export const enum SetupKind {
   Const = 'const',
-  Invoke = 'invoke',
-  Hook = 'hook',
+  Call = 'call',
   UseId = 'use-id',
   Style = 'style',
   LocalComponent = 'local-component',
@@ -324,10 +273,11 @@ export type Setup =
       defaultValue?: Value;
       guard?: Predicate;
     }
-  | { s: SetupKind.Invoke; invoke: Invoke; guard?: Predicate }
   | {
-      s: SetupKind.Hook;
+      s: SetupKind.Call;
       binding: LocalId;
+      /** Compiler-selected core export; omission preserves the authored callee. */
+      importName?: string;
       args: Arg[];
       result: BindTarget | null;
       guard?: Predicate;

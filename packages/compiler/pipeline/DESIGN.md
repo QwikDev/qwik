@@ -276,9 +276,8 @@ interface Lifetime {
   commit: 'immediate' | 'atomic-range' | 'atomic-reconcile';
 }
 
-// ---------- setup: closed per-op invocations ----------------------------------------------
-// One invocation MACHINERY (result binding, guards, QRL args), but each op's signature is TYPED —
-// a result-bearing use-on or a QRL-free use-task is unrepresentable. Custom hooks stay separate.
+// ---------- setup: calls, argument boundaries and binding facts ---------------------------
+// Core API contracts classify results; call emission remains API-independent.
 type BindTarget =
   | { bind: 'slot'; slot: number }
   | { bind: 'pattern'; pattern: PayloadId; bindings: LocalId[] };
@@ -288,35 +287,17 @@ type Arg =
   | { a: 'expr'; expr: Expr } // plain callbacks/factories
   | { a: 'spread'; expr: Expr }
   | QrlArg;
-type Invoke =
-  | { op: 'use-signal'; result: BindTarget; initial?: Arg }
-  | { op: 'use-store'; result: BindTarget; initial: Arg; deep: boolean; reactive: boolean }
-  | { op: 'use-constant'; result: BindTarget; callback: Arg; extraArgs: Arg[] } // untracked,
-  // variadic
-  | { op: 'use-server-data'; result: BindTarget; key: Arg; fallback?: Arg }
-  | { op: 'use-computed'; result: BindTarget; qrl: QrlArg } // resumable ⇒ QRL required;
-  | { op: 'use-async'; result: BindTarget; qrl: QrlUse; options?: Arg } // async-ness is
-  | { op: 'use-serializer'; result: BindTarget; qrl: QrlUse } // runtime-discovered
-  | { op: 'use-task'; qrl: QrlUse; deferUpdates?: boolean }
-  | {
-      op: 'use-visible-task';
-      qrl: QrlUse;
-      strategy: 'intersection-observer' | 'document-ready' | 'document-idle';
-    } // ONE owner
-  | {
-      op: 'use-on' | 'use-on-document' | 'use-on-window';
-      event: Arg;
-      handler: Arg; // event may be array/dynamic
-      passive?: boolean;
-      capture?: boolean;
-    }
-  | { op: 'use-context'; result: BindTarget; context: LocalId; extraArgs: Arg[] } // overloads =
-  | { op: 'use-context-provider'; context: LocalId; value: Arg }; //   ordered args
 type Setup =
   | { s: 'const'; result: BindTarget; value: Value; guard?: Predicate }
   // plain consts AND `$()` consts (value: {v:'qrl'})
-  | { s: 'invoke'; invoke: Invoke; guard?: Predicate }
-  | { s: 'hook'; binding: LocalId; args: Arg[]; result: BindTarget | null; guard?: Predicate }
+  | {
+      s: 'call';
+      binding: LocalId;
+      importName?: string; // compiler-selected core export, otherwise authored binding
+      args: Arg[];
+      result: BindTarget | null;
+      guard?: Predicate;
+    }
   | { s: 'use-id'; result: BindTarget; ordinal: number; guard?: Predicate } // compiler intrinsic
   | {
       s: 'style';
@@ -769,8 +750,8 @@ async function transformModules(options: TransformModulesOptions): Promise<Trans
 | conditionals incl. build constants; residual isDev                                                                       | `Op.branch`; linker folds decided constants; residual stays live                                                                           |
 | `isServer` on declarations/setup/diagnostics                                                                             | `guard?: Predicate`; in IR: `build-constant` leaf; in payloads: `constants`                                                                |
 | signal/store read / computed / `$()` value / local JSX                                                                   | the five `Value` arms                                                                                                                      |
-| every built-in hook incl. `useServerData`, store modes, `useConstant` variadics, `useOn*` arrays, `useContext` overloads | typed `Invoke` union — invalid calls unrepresentable; resumable ops require their QRL                                                      |
-| custom hooks (params, defaults, async, JS fallback)                                                                      | `HookDecl` full ABI; calls via `Setup.hook`                                                                                                |
+| every built-in hook incl. `useServerData`, store modes, `useConstant` variadics, `useOn*` arrays, `useContext` overloads | shared `Setup.call`; API contracts classify results, argument boundaries remain explicit                                                   |
+| custom hooks (params, defaults, async, JS fallback)                                                                      | `HookDecl` full ABI; calls via `Setup.call`                                                                                                |
 | `useId` / styles (module-level included)                                                                                 | `Setup.use-id` / `Setup.style` — single owners, authored ordinals                                                                          |
 | tasks with cleanup/awaits/plugin calls                                                                                   | `TaskBody` discriminated steps                                                                                                             |
 | `$()` bodies of every kind                                                                                               | `Qrl.body` union + `awaits` on `Payload` (restoration everywhere)                                                                          |

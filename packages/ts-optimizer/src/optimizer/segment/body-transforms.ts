@@ -162,6 +162,7 @@ function spliceWithinBody(
   start: number,
   end: number,
   replacement: string,
+  positionAnchors: Array<{ position: number }>,
   preserveOffsets = false
 ): string {
   if (start < 0 || end > bodyText.length) {
@@ -169,6 +170,12 @@ function spliceWithinBody(
   }
   if (preserveOffsets && replacement.length < end - start) {
     replacement += ' '.repeat(end - start - replacement.length);
+  }
+  const positionShift = replacement.length - (end - start);
+  for (const anchor of positionAnchors) {
+    if (anchor.position >= end) {
+      anchor.position += positionShift;
+    }
   }
   return bodyText.slice(0, start) + replacement + bodyText.slice(end);
 }
@@ -212,6 +219,7 @@ export function rewriteNestedCallSitesInline(
         relStart,
         relEnd,
         `${site.transformedPropName}={${propValueRef}}`,
+        hoistDeclarations,
         preserveOffsets
       );
 
@@ -276,7 +284,14 @@ export function rewriteNestedCallSitesInline(
         relStart = pureAwareOverwriteStart(bodyText, relStart);
         replacement = qrlRef;
       }
-      bodyText = spliceWithinBody(bodyText, relStart, relEnd, replacement, preserveOffsets);
+      bodyText = spliceWithinBody(
+        bodyText,
+        relStart,
+        relEnd,
+        replacement,
+        hoistDeclarations,
+        preserveOffsets
+      );
     }
   }
 

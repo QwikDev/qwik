@@ -117,6 +117,26 @@ export const Cmp = component$(() => {
     );
   });
 
+  it('places a loop handler binding after a preceding conditional declaration', () => {
+    expect(() =>
+      transform(`
+import { $, component$, useStore } from '@qwik.dev/core';
+
+export default component$(({ vector, buckets }) => {
+  const callout = useStore({ index: 0, value: 0 });
+  const selectBucket = $((index) => {
+    callout.index = index;
+    callout.value = vector[index] + buckets[index];
+  });
+  const calloutPosition = vector.length > 1 ? callout.index / (vector.length - 1) : 0;
+  return <div style={{ left: \`\${calloutPosition}%\` }}>
+    {vector.map((value, index) => <button onClick$={() => selectBucket(index)}>{value}</button>)}
+  </div>;
+});
+`)
+    ).not.toThrow();
+  });
+
   it('keeps a document: event attr that kebab-cases into an unparseable JSX name', () => {
     const result = transform(`
 import { component$, useSignal } from '@qwik.dev/core';

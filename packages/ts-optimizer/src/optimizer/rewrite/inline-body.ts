@@ -130,9 +130,15 @@ export function transformInlineSegmentBody(
       const offsetChange = replacement.length - (end - start);
       const absoluteEnd = end + bodyOffset;
       for (const pending of sortedNested) {
-        if (pending.callStart >= absoluteEnd) pending.callStart += offsetChange;
-        if (pending.callEnd >= absoluteEnd) pending.callEnd += offsetChange;
-        if (pending.argEnd >= absoluteEnd) pending.argEnd += offsetChange;
+        if (pending.callStart >= absoluteEnd) {
+          pending.callStart += offsetChange;
+        }
+        if (pending.callEnd >= absoluteEnd) {
+          pending.callEnd += offsetChange;
+        }
+        if (pending.argEnd >= absoluteEnd) {
+          pending.argEnd += offsetChange;
+        }
         if (
           pending.explicitCaptureStart !== undefined &&
           pending.explicitCaptureStart >= absoluteEnd

@@ -205,8 +205,12 @@ export function rewriteNestedCallSitesInline(
       ) {
         pendingSite.explicitCaptureEnd += offsetChange;
       }
-      if (pendingSite.callStart >= absoluteEnd) pendingSite.callStart += offsetChange;
-      if (pendingSite.callEnd >= absoluteEnd) pendingSite.callEnd += offsetChange;
+      if (pendingSite.callStart >= absoluteEnd) {
+        pendingSite.callStart += offsetChange;
+      }
+      if (pendingSite.callEnd >= absoluteEnd) {
+        pendingSite.callEnd += offsetChange;
+      }
       if (pendingSite.argEnd !== undefined && pendingSite.argEnd >= absoluteEnd) {
         pendingSite.argEnd += offsetChange;
       }

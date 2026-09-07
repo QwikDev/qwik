@@ -21,6 +21,6 @@ export function computeKeyPrefix(relPath: string): string {
   bytes[7] = (result.h >>> 24) & 0xff;
 
   return btoa(String.fromCharCode(...bytes))
-    .replace(/[+\/]/g, '0')
+    .replace(/[+/]/g, '0')
     .substring(0, 2);
 }

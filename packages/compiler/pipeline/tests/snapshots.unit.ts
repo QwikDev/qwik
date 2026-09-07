@@ -40,6 +40,19 @@ async function testInputs(mode: 'ssr' | 'csr', snapshotName: string, inputs: rea
 }
 
 describe.each(['ssr', 'csr'] as const)('%s', (mode) => {
+  test('should preserve local component declarations without exporting them', async () => {
+    const output = await testInput(mode, 'component-local-declaration', {
+      code: `const Settings = { label: 'ordinary value' };
+export const Format = (value) => value;
+const Child = (props) => <strong>{props.label}</strong>;
+export default () => <main><Child label="child" /></main>;
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    expect(output.modules[0].code).toContain('const Child = (props, ctx) =>');
+    expect(output.modules[0].code).not.toContain('export const Child');
+  });
+
   test('should pass context through nested component scopes', async () => {
     const output = await testInput(mode, 'setup-context', {
       code: `import { createContextId, useSignal, useContextProvider as provide, useContext as read } from '@qwik.dev/core';

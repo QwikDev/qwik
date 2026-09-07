@@ -48,6 +48,52 @@ export default () => <main><RenamedChild /></main>;
 }
 
 describe('linkPlans', () => {
+  test.each(['', 'export { Child as Renamed };'])(
+    'links local components by binding independently of exports: %s',
+    async (exports) => {
+      const module = await analyse(
+        'src/app.tsx',
+        `const Child = () => <strong>child</strong>;
+${exports}
+export default () => <Child />;`
+      );
+      const binding = module.bindings.find((binding) => binding.name === 'Child')!.id;
+      const qrl = module.qrls.findIndex((qrl) => qrl.declaration?.binding === binding);
+      expect(qrl).toBeGreaterThanOrEqual(0);
+      expect(module.qrls[qrl].declaration!.isExported).toBe(false);
+      expect(module.exports).not.toContainEqual(expect.objectContaining({ exported: 'Child' }));
+      const result = linkPlans(
+        deepFreeze([module]),
+        (exports === '' ? ['default'] : ['default', 'Renamed']).map((name) => ({
+          kind: EntryKind.Export,
+          module: module.path,
+          export: name,
+        })),
+        serverSpecialization(),
+        { edges: {} },
+        plugins,
+        true
+      );
+      expect(result.kind).toBe(LinkResultKind.Linked);
+      if (result.kind !== LinkResultKind.Linked) {
+        throw new Error('expected a linked local component');
+      }
+      expect(result.plan.modules[0].programs.at(-1)!.body).toMatchObject({
+        kind: ProgramBodyKind.Ops,
+        ops: [
+          {
+            op: OpKind.Component,
+            target: {
+              t: ComponentTargetKind.Declaration,
+              binding,
+              declaration: { ok: true, value: { module: 0, table: DeclTable.Qrls, index: qrl } },
+            },
+          },
+        ],
+      });
+    }
+  );
+
   test.each(['same-table', 'cross-table'])('preserves %s binding ambiguity', async (kind) => {
     const [app, child] = await crossModulePlans();
     const declaration = child.qrls[0];

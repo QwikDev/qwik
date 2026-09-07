@@ -301,17 +301,18 @@ export function emitComponentFunction(
     throw new Error(`pipeline: emitting a declaration for the undeclared qrl "${qrl.id}"`);
   }
   const params = `${names.props}, ${names.ctx}`;
+  const exportPrefix = declaration.isExported ? 'export ' : '';
   const body = [...emission.statements, `return ${emission.value};`]
     .map((statement) => `  ${statement}`)
     .join('\n');
   switch (declaration.declarationKind) {
     case DeclarationKind.Const:
-      return `export const ${declaration.name} = (${params}) => {\n${body}\n};`;
+      return `${exportPrefix}const ${declaration.name} = (${params}) => {\n${body}\n};`;
     case DeclarationKind.DefaultArrow:
       return `export default (${params}) => {\n${body}\n};`;
     case DeclarationKind.DefaultFunction:
       return `export default function${declaration.localName ? ` ${declaration.localName}` : ''}(${params}) {\n${body}\n}`;
     case DeclarationKind.Function:
-      return `export function ${declaration.name}(${params}) {\n${body}\n}`;
+      return `${exportPrefix}function ${declaration.name}(${params}) {\n${body}\n}`;
   }
 }

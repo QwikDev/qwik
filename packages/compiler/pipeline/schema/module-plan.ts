@@ -121,13 +121,14 @@ export interface Qrl {
 }
 
 export interface QrlDeclaration {
-  /** Authored export name — distinct from the QRL's wire symbol. */
+  /** Authored declaration name — distinct from the QRL's wire symbol. */
   name: string;
   binding: LocalId | null;
   parameter: ComponentParameter | null;
   root: { name: string };
   replacementRange: Range;
   declarationKind: DeclarationKind;
+  isExported: boolean;
   varKind?: VarKind;
   localName: string | null;
 }

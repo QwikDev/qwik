@@ -1,0 +1,74 @@
+==INPUT==
+
+const Settings = { label: 'ordinary value' };
+export const Format = (value) => value;
+const Child = (props) => <strong>{props.label}</strong>;
+export default () => <main><Child label="child" /></main>;
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  _first,
+  createTextExpressionEffect,
+  _createElementTemplate,
+  createComponent,
+  _toNodes,
+} from '@qwik.dev/core';
+import { component_text_segment_0_1fh10fbkzokfc } from './component.tsx_component_text_segment_0_1fh10fbkzokfc';
+
+const Child_tmpl0 = _createElementTemplate('<strong> </strong>');
+const default_tmpl0 = _createElementTemplate('<main><!></main>');
+const Settings = { label: 'ordinary value' };
+export const Format = (value) => value;
+const Child = (props, ctx) => {
+  const el0 = Child_tmpl0(ctx.document);
+  const text0 = _first(el0);
+  const effect0 = createTextExpressionEffect(
+    text0,
+    [props],
+    component_text_segment_0_1fh10fbkzokfc,
+    ctx.scheduler
+  );
+  ctx.scheduler.notify(effect0);
+  return el0;
+};
+export default (props0, ctx) => {
+  const el0 = default_tmpl0(ctx.document);
+  const marker0 = _first(el0);
+  const component0 = createComponent(Child, { label: 'child' }, ctx);
+  marker0.replaceWith(..._toNodes(component0));
+  return el0;
+};
+============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
+
+export const component_text_segment_0_1fh10fbkzokfc = (props) => {
+  return props.label;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_0_1fh10fbkzokfc",
+  "entry": null,
+  "displayName": "component_text_segment_0",
+  "hash": "1fh10fbkzokfc",
+  "canonicalFilename": "component.tsx_component_text_segment_0_1fh10fbkzokfc",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    120,
+    131
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

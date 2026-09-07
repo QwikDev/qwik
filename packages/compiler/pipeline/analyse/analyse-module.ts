@@ -21,7 +21,7 @@ import {
 } from '../schema';
 import { createBindingGraph } from './ast/bindings';
 import { createJsxAnalysis } from './ast/jsx-analysis';
-import { findRuntimeJsx, hasComponentCandidates } from './ast/returns-jsx';
+import { findRuntimeJsx, findComponentCandidates } from './ast/returns-jsx';
 import { parseModule } from './ast/parse';
 import { scanModuleSurface } from './module-surface';
 import { discoverComponents } from './discover';
@@ -65,7 +65,8 @@ export async function analyseModule(
   }
 
   const jsx = createJsxAnalysis();
-  if (!hasComponentCandidates(parsed.program, jsx)) {
+  const candidates = findComponentCandidates(parsed.program, jsx);
+  if (candidates.length === 0) {
     const leftoverJsx = findRuntimeJsx(parsed.program);
     if (leftoverJsx !== null) {
       // Fail closed — the foreign fallback would compile this JSX against react/jsx-runtime.
@@ -89,7 +90,7 @@ export async function analyseModule(
     return plan;
   }
 
-  const components = discoverComponents(parsed.program);
+  const components = discoverComponents(candidates);
   const componentStatements = new Set(components.map((component) => component.statement));
   for (const statement of parsed.program.body as unknown[]) {
     if (!componentStatements.has(statement as never)) {
@@ -237,6 +238,9 @@ export async function analyseModule(
         root: { name: `q${component.name}-` },
         replacementRange: [component.statement.start, component.statement.end],
         declarationKind: component.declarationKind,
+        isExported:
+          component.statement.type === 'ExportNamedDeclaration' ||
+          component.statement.type === 'ExportDefaultDeclaration',
         localName: component.declarationKind === DeclarationKind.Const ? component.name : null,
       },
     });

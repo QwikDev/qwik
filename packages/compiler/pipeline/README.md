@@ -207,6 +207,8 @@ from a deserialized frozen plan in a fresh process.
 - Component candidates require an Uppercased name (anonymous default exports exempt). The legacy
   compiler has no such rule — a differential fixture with a lowercase-named component will
   diverge; that is this decision, not a parity bug.
+- Candidate detection and discovery share one list of JSX-returning functions. Top-level const
+  arrow components retain local or exported declarations; separate export aliases stay authored.
 - Candidate detection is the routing gate; JSX left outside any candidate fails closed with
   `unsupported-runtime-jsx` (NEVER the oxc fallback — that would emit react/jsx-runtime output).
   Legacy additionally embeds function renders for JSX in call arguments — resolve when that

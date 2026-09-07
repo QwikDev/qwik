@@ -1,4 +1,4 @@
-import type { JSXElement, JSXFragment, Node, Program } from 'oxc-parser';
+import type { JSXElement, JSXFragment, Node, Program, Statement } from 'oxc-parser';
 import { isNode, type WalkableNode } from './ast-types';
 import { identifierName, isFunctionLike, unwrapExpression } from './utils';
 import type { JsxAnalysis } from './jsx-analysis';
@@ -9,8 +9,8 @@ import type { JsxAnalysis } from './jsx-analysis';
  * position of a return — JSX inside a call's arguments belongs to that call (`return
  * renderToStream(<Root/>)` must not get its signature rewritten).
  */
-export function hasComponentCandidates(program: Program, jsx: JsxAnalysis): boolean {
-  return topLevelFunctions(program).some(
+export function findComponentCandidates(program: Program, jsx: JsxAnalysis): ComponentCandidate[] {
+  return topLevelFunctions(program).filter(
     (candidate) => hasComponentName(candidate.name) && returnPositionContainsJsx(candidate.fn, jsx)
   );
 }
@@ -19,30 +19,37 @@ function hasComponentName(name: string | null): boolean {
   return name === null || /^[A-Z]/.test(name);
 }
 
-function topLevelFunctions(program: Program): { fn: Node; name: string | null }[] {
-  const functions: { fn: Node; name: string | null }[] = [];
-  const fromStatement = (statement: Node): void => {
-    if (isFunctionLike(statement)) {
-      functions.push({ fn: statement, name: identifierName(statement.id) });
+export interface ComponentCandidate {
+  statement: Statement;
+  fn: Node;
+  name: string | null;
+}
+
+function topLevelFunctions(program: Program): ComponentCandidate[] {
+  const functions: ComponentCandidate[] = [];
+  const fromDeclaration = (declaration: Node, statement: Statement): void => {
+    if (isFunctionLike(declaration)) {
+      functions.push({ statement, fn: declaration, name: identifierName(declaration.id) });
       return;
     }
-    if (statement.type === 'VariableDeclaration') {
-      for (const declarator of statement.declarations) {
+    if (declaration.type === 'VariableDeclaration') {
+      for (const declarator of declaration.declarations) {
         const init = unwrapExpression(declarator.init);
         if (init !== null && isFunctionLike(init)) {
-          functions.push({ fn: init, name: identifierName(declarator.id) });
+          functions.push({ statement, fn: init, name: identifierName(declarator.id) });
         }
       }
     }
   };
   for (const statement of program.body) {
-    fromStatement(statement);
     if (
       (statement.type === 'ExportNamedDeclaration' ||
         statement.type === 'ExportDefaultDeclaration') &&
       isNode(statement.declaration)
     ) {
-      fromStatement(statement.declaration);
+      fromDeclaration(statement.declaration, statement);
+    } else {
+      fromDeclaration(statement, statement);
     }
   }
   return functions;

@@ -4,12 +4,11 @@ import type {
   BindingPattern,
   Directive,
   JSXElement,
-  Program,
   Statement,
 } from 'oxc-parser';
 import { DeclarationKind } from '../schema';
-import { isNode } from './ast/ast-types';
-import { identifierName, unwrapExpression } from './ast/utils';
+import { unwrapExpression } from './ast/utils';
+import type { ComponentCandidate } from './ast/returns-jsx';
 import { UnsupportedError } from '../errors';
 
 export interface DiscoveredComponent {
@@ -25,52 +24,34 @@ export interface DiscoveredComponent {
   statement: Statement;
 }
 
-/** Exported arrow components whose body is one `return` of fully static JSX. */
-export function discoverComponents(program: Program): DiscoveredComponent[] {
-  const found: DiscoveredComponent[] = [];
-  for (const statement of program.body) {
+/** Validate candidate declarations before lowering their setup and JSX. */
+export function discoverComponents(
+  candidates: readonly ComponentCandidate[]
+): DiscoveredComponent[] {
+  return candidates.map(({ statement, fn, name }) => {
+    if (fn.type !== 'ArrowFunctionExpression') {
+      throw new UnsupportedError('a component declaration that is not an arrow function');
+    }
     if (statement.type === 'ExportDefaultDeclaration') {
-      const arrow = statement.declaration;
-      if (arrow.type !== 'ArrowFunctionExpression') {
-        throw new UnsupportedError('a default export that is not an arrow function');
-      }
-      found.push(
-        describeComponent(statement, arrow, 'default', DeclarationKind.DefaultArrow, null)
-      );
-      continue;
+      return describeComponent(statement, fn, 'default', DeclarationKind.DefaultArrow, null);
     }
-    if (statement.type === 'ExportNamedDeclaration' && isNode(statement.declaration)) {
-      const declaration = statement.declaration;
-      if (declaration.type !== 'VariableDeclaration') {
-        continue;
-      }
-      const declarators = declaration.declarations;
-      const declarator = declarators[0];
-      const name = identifierName(declarator?.id);
-      const init = unwrapExpression(declarator?.init);
-      // Only Uppercased names are components; lowercase JSX-returning exports stay untouched.
-      if (name === null || !/^[A-Z]/.test(name) || init === null) {
-        continue;
-      }
-      if (declarator.id.type !== 'Identifier') {
-        throw new UnsupportedError('a destructured component declaration');
-      }
-      if (init.type !== 'ArrowFunctionExpression') {
-        throw new UnsupportedError('a component declaration that is not an arrow function');
-      }
-      if (declarators.length !== 1) {
-        throw new UnsupportedError('a component sharing its declaration with other declarators');
-      }
-      if (declaration.kind !== 'const') {
-        throw new UnsupportedError(`a component declared with "${declaration.kind}"`);
-      }
-      found.push(describeComponent(statement, init, name, DeclarationKind.Const, declarator.id));
+    const declaration =
+      statement.type === 'ExportNamedDeclaration' ? statement.declaration : statement;
+    if (declaration?.type !== 'VariableDeclaration') {
+      throw new UnsupportedError('a component without a variable declaration');
     }
-  }
-  if (found.length === 0) {
-    throw new UnsupportedError('JSX outside an exported component');
-  }
-  return found;
+    if (declaration.declarations.length !== 1) {
+      throw new UnsupportedError('a component sharing its declaration with other declarators');
+    }
+    const declarator = declaration.declarations[0];
+    if (declarator.id.type !== 'Identifier' || name === null) {
+      throw new UnsupportedError('a destructured component declaration');
+    }
+    if (declaration.kind !== 'const') {
+      throw new UnsupportedError(`a component declared with "${declaration.kind}"`);
+    }
+    return describeComponent(statement, fn, name, DeclarationKind.Const, declarator.id);
+  });
 }
 
 function describeComponent(

@@ -389,6 +389,7 @@ interface QrlDeclaration {
   root: { name: string };
   replacementRange: Range;
   declarationKind: 'function' | 'const' | 'defaultFunction' | 'defaultArrow';
+  isExported: boolean;
   varKind?: 'const' | 'let' | 'var';
   localName: string | null;
 }

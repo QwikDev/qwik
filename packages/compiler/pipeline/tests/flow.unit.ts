@@ -148,8 +148,35 @@ export default () => {
         },
         { transpileTs: true }
       )
-    ).rejects.toThrow('JSX outside an exported component');
+    ).rejects.toThrow('a component declaration that is not an arrow function');
   });
+
+  test.each(['', 'export { Child as Renamed };', 'export default 42;'])(
+    'discovers a local component without an exported component: %s',
+    async (exports) => {
+      const output = await transformModules({
+        input: [
+          { path: 'src/local.tsx', code: `const Child = () => <span>child</span>;\n${exports}` },
+        ],
+        isServer: true,
+      });
+      expect(output.diagnostics).toEqual([]);
+      expect(output.modules[0].code).toContain('const Child = (props, ctx) =>');
+      expect(output.modules[0].code).not.toContain('export const Child');
+      if (exports !== '') {
+        expect(output.modules[0].code).toContain(exports);
+      }
+    }
+  );
+
+  test.each(['const value = 1, Child = () => <span />;', 'let Child = () => <span />;'])(
+    'rejects unsupported local declarations without discarding authored code: %s',
+    async (code) => {
+      await expect(analyseModule({ path: 'src/local.tsx', code }, {})).rejects.toThrow(
+        code.startsWith('const') ? 'sharing its declaration' : 'declared with "let"'
+      );
+    }
+  );
 
   test('JSX in a non-component sibling of a component fails loud', async () => {
     await expect(

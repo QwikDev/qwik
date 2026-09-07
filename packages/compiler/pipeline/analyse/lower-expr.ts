@@ -17,9 +17,14 @@ import { collectCaptures, lowerCaptures, type CollectedCaptures } from './ast/ca
 import { UnsupportedError } from '../errors';
 import { pushPayload, pushQrl, QrlIdentityKind, type LowerContext } from './lower-context';
 import { LocalKind } from './lower-setup';
-import type { Expression } from 'oxc-parser';
+import type { Expression, Node } from 'oxc-parser';
 
 export type ReactiveValue = Extract<Value, { v: ValueKind.Read } | { v: ValueKind.Computed }>;
+
+export function resolveQrlBinding(expression: Node, ctx: LowerContext) {
+  const binding = ctx.bindings.reference(expression);
+  return binding !== null && ctx.locals.get(binding)?.kind === LocalKind.Qrl ? binding : null;
+}
 
 /** Classifies a JSX expression as a reactive Value: a signal Read, or a Computed value QRL. */
 export function lowerExpressionValue(

@@ -9,6 +9,7 @@ import {
   SetupKind,
   ValueKind,
   EntryKind,
+  ArgKind,
 } from '../schema';
 import { deepFreeze, serverSpecialization, loadDefaultFunction } from './fixtures';
 import { UnsupportedError } from '../errors';
@@ -110,7 +111,7 @@ export default () => {
   ]);
   expect(program.setup[1]).toMatchObject({
     s: SetupKind.Invoke,
-    invoke: { op: InvokeKind.UseComputed, qrl: { qrl: callback.id } },
+    invoke: { op: InvokeKind.UseComputed, qrl: { a: ArgKind.Qrl, use: { qrl: callback.id } } },
   });
   expect(program.body).toMatchObject({
     kind: ProgramBodyKind.Ops,

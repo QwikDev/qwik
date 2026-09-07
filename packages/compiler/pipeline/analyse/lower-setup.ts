@@ -9,6 +9,7 @@ import {
   ValueKind,
   type BindTarget,
   type Arg,
+  type QrlArg,
   type LocalId,
   type Setup,
   type Value,
@@ -27,7 +28,11 @@ import { UnsupportedError } from '../errors';
 import { QwikHook, QwikMarker } from '../words';
 import { pushPayload, type LowerContext } from './lower-context';
 import { lowerCaptures } from './ast/capture-analysis';
-import { lowerInlineExpressionValue, recordPayloadAliasReads } from './lower-expr';
+import {
+  lowerInlineExpressionValue,
+  recordPayloadAliasReads,
+  resolveQrlBinding,
+} from './lower-expr';
 import { findRuntimeJsx } from './ast/returns-jsx';
 import { lowerFunctionQrl } from './lower-function';
 
@@ -187,11 +192,17 @@ function lowerSetupDeclaration(
   }
   switch (coreApi) {
     case QwikMarker.Dollar:
+      return lowerConstBinding(
+        declarator.id,
+        {
+          v: ValueKind.Qrl,
+          use: lowerSetupCallback(init, name, coreApi, ctx),
+        },
+        ctx,
+        locals
+      );
     case QwikHook.UseComputed: {
-      const qrl = lowerSetupCallback(init, name, coreApi, ctx);
-      if (coreApi === QwikMarker.Dollar) {
-        return lowerConstBinding(declarator.id, { v: ValueKind.Qrl, use: qrl }, ctx, locals);
-      }
+      const qrl = lowerHookCallback(init, name, coreApi, ctx);
       return {
         s: SetupKind.Invoke,
         invoke: {
@@ -206,6 +217,24 @@ function lowerSetupDeclaration(
     default:
       throw new UnsupportedError(`the setup call "${identifierName(init.callee) ?? '?'}"`);
   }
+}
+
+function lowerHookCallback(
+  call: CallExpression,
+  name: string,
+  calleeName: string,
+  ctx: LowerContext
+): QrlArg {
+  const argument = call.arguments[0];
+  const expression = argument?.type === 'SpreadElement' ? null : unwrapExpression(argument);
+  const binding = expression === null ? null : resolveQrlBinding(expression, ctx);
+  const calleeBinding = ctx.bindings.reference(call.callee);
+  const isComputed =
+    calleeBinding !== null && ctx.coreBindings.get(calleeBinding) === QwikHook.UseComputed;
+  if (binding !== null && !call.optional && (!isComputed || call.arguments.length === 1)) {
+    return { a: ArgKind.QrlBinding, binding };
+  }
+  return { a: ArgKind.Qrl, use: lowerSetupCallback(call, name, calleeName, ctx) };
 }
 
 function lowerSetupCallback(
@@ -265,8 +294,9 @@ function lowerSetupHook(
   ctx: LowerContext,
   locals: SetupLocals
 ): Setup {
-  const qrl = lowerSetupCallback(call, identifierName(pattern) ?? hook.name, hook.name, ctx);
-  const args: Arg[] = [{ a: ArgKind.Qrl, use: qrl }];
+  const args: Arg[] = [
+    lowerHookCallback(call, identifierName(pattern) ?? hook.name, hook.name, ctx),
+  ];
   for (const argument of call.arguments.slice(1)) {
     const expression = argument.type === 'SpreadElement' ? argument.argument : argument;
     const { refs } = lowerCaptures(expression, ctx, 'a hook argument');

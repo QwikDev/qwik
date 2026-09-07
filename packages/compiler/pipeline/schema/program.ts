@@ -243,14 +243,17 @@ export const enum ArgKind {
   Value = 'value',
   Expr = 'expr',
   Qrl = 'qrl',
+  QrlBinding = 'qrl-binding',
 }
+
+export type QrlArg = { a: ArgKind.Qrl; use: QrlUse } | { a: ArgKind.QrlBinding; binding: LocalId };
 
 /** Plain callbacks/factories pass as value/expr; resumable ops require their QRL. */
 export type Arg =
   | { a: ArgKind.Value; value: Value }
   | { a: ArgKind.Expr; expr: Expr }
   | { a: ArgKind.Spread; expr: Expr }
-  | { a: ArgKind.Qrl; use: QrlUse };
+  | QrlArg;
 
 export const enum InvokeKind {
   UseSignal = 'use-signal',
@@ -282,7 +285,7 @@ export type Invoke =
   | { op: InvokeKind.UseConstant; result: BindTarget; callback: Arg; extraArgs: Arg[] }
   | { op: InvokeKind.UseServerData; result: BindTarget; key: Arg; fallback?: Arg }
   /** Resumable ⇒ QRL required; async-ness is runtime-discovered. */
-  | { op: InvokeKind.UseComputed; result: BindTarget; qrl: QrlUse }
+  | { op: InvokeKind.UseComputed; result: BindTarget; qrl: QrlArg }
   | { op: InvokeKind.UseAsync; result: BindTarget; qrl: QrlUse; options?: Arg }
   | { op: InvokeKind.UseSerializer; result: BindTarget; qrl: QrlUse }
   | { op: InvokeKind.UseTask; qrl: QrlUse; deferUpdates?: boolean }

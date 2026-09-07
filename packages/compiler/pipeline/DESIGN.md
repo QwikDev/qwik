@@ -282,18 +282,19 @@ interface Lifetime {
 type BindTarget =
   | { bind: 'slot'; slot: number }
   | { bind: 'pattern'; pattern: PayloadId; bindings: LocalId[] };
+type QrlArg = { a: 'qrl'; use: QrlUse } | { a: 'qrl-binding'; binding: LocalId };
 type Arg =
   | { a: 'value'; value: Value }
   | { a: 'expr'; expr: Expr } // plain callbacks/factories
   | { a: 'spread'; expr: Expr }
-  | { a: 'qrl'; use: QrlUse };
+  | QrlArg;
 type Invoke =
   | { op: 'use-signal'; result: BindTarget; initial?: Arg }
   | { op: 'use-store'; result: BindTarget; initial: Arg; deep: boolean; reactive: boolean }
   | { op: 'use-constant'; result: BindTarget; callback: Arg; extraArgs: Arg[] } // untracked,
   // variadic
   | { op: 'use-server-data'; result: BindTarget; key: Arg; fallback?: Arg }
-  | { op: 'use-computed'; result: BindTarget; qrl: QrlUse } // resumable ⇒ QRL required;
+  | { op: 'use-computed'; result: BindTarget; qrl: QrlArg } // resumable ⇒ QRL required;
   | { op: 'use-async'; result: BindTarget; qrl: QrlUse; options?: Arg } // async-ness is
   | { op: 'use-serializer'; result: BindTarget; qrl: QrlUse } // runtime-discovered
   | { op: 'use-task'; qrl: QrlUse; deferUpdates?: boolean }

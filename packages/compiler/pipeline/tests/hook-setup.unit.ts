@@ -221,3 +221,116 @@ export default () => { useComputed$(async () => 1, { custom: true }); return <sp
   );
   expect(plan.programs.flatMap((program) => program.setup)[0].s).toBe(SetupKind.Hook);
 });
+
+test('forwarded setup QRLs retain identity and per-render captures across hooks', async () => {
+  const output = await transformModules({
+    srcDir: 'src',
+    isServer: true,
+    input: [
+      {
+        path: 'src/component.tsx',
+        code: `
+import { $, useSignal, useTask$, useComputed$ } from '@qwik.dev/core';
+import { useCustom$ } from './hooks';
+export default () => {
+  const count = useSignal(1);
+  const read = $(() => count.value);
+  useTask$(read);
+  useCustom$(read);
+  const total = useComputed$(read);
+  return <span />;
+};`,
+      },
+    ],
+  });
+  expect(output.modules.filter((module) => module.segment)).toHaveLength(1);
+  const callbacks: QRL<() => number>[] = [];
+  const signals: core.Signal<number>[] = [];
+  const computeds: ReturnType<typeof core.useComputedQrl>[] = [];
+  const render = loadDefaultFunction(output.modules.find((module) => !module.segment)!, {
+    ...core,
+    get _captures() {
+      return core._captures;
+    },
+    useSignal(initial: number) {
+      const signal = core.useSignal(initial);
+      signals.push(signal);
+      return signal;
+    },
+    useTask$: core.implicit$FirstArg((qrl: QRL<() => number>) => {
+      callbacks.push(qrl);
+      return core.useTaskQrl(qrl);
+    }),
+    useCustom$: core.implicit$FirstArg((qrl: QRL<() => number>) => callbacks.push(qrl)),
+    useComputedQrl(qrl: QRL<() => number>) {
+      callbacks.push(qrl);
+      const computed = core.useComputedQrl(qrl);
+      computeds.push(computed);
+      return computed;
+    },
+  });
+  const owner = core.createOwner(null);
+  try {
+    core.runWithOwner(owner, render, undefined, {});
+    core.runWithOwner(owner, render, undefined, {});
+    await defaultScheduler.flushInteraction();
+    expect(callbacks).toHaveLength(6);
+    expect(callbacks[1]).toBe(callbacks[0]);
+    expect(callbacks[2]).toBe(callbacks[0]);
+    expect(callbacks[4]).toBe(callbacks[3]);
+    expect(callbacks[5]).toBe(callbacks[3]);
+    expect(callbacks[3]).not.toBe(callbacks[0]);
+    expect(callbacks[0].getCaptured()).toEqual([signals[0]]);
+    expect(callbacks[3].getCaptured()).toEqual([signals[1]]);
+    signals[0].value = 5;
+    await defaultScheduler.flushInteraction();
+    expect(computeds.map((computed) => computed.value)).toEqual([5, 1]);
+    expect(await callbacks[0]()).toBe(5);
+    expect(await callbacks[3]()).toBe(1);
+  } finally {
+    await core.disposeOwner(owner);
+  }
+});
+
+test.each(['useTask$', 'useComputed$', 'useCustom$'])(
+  'does not treat ordinary function bindings as QRLs in %s',
+  async (hook) => {
+    await expect(
+      analyseModule(
+        {
+          path: 'component.tsx',
+          code: `
+import { useTask$, useComputed$ } from '@qwik.dev/core';
+import { useCustom$ } from './hooks';
+export default () => {
+  const callback = () => 1;
+  const result = ${hook}(callback);
+  return <span />;
+};`,
+        },
+        {}
+      )
+    ).rejects.toThrow(UnsupportedError);
+  }
+);
+
+test.each(['useTask$?.(callback)', 'useComputed$(callback, {})', 'useTask$(...callback)'])(
+  'forwarded QRLs still validate the call form: %s',
+  async (call) => {
+    await expect(
+      analyseModule(
+        {
+          path: 'component.tsx',
+          code: `
+import { $, useTask$, useComputed$ } from '@qwik.dev/core';
+export default () => {
+  const callback = $(() => 1);
+  const result = ${call};
+  return <span />;
+};`,
+        },
+        {}
+      )
+    ).rejects.toThrow(UnsupportedError);
+  }
+);

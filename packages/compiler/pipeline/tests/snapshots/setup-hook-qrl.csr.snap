@@ -1,0 +1,81 @@
+==INPUT==
+
+import { $, useSignal, useTask$, useComputed$ } from '@qwik.dev/core';
+import { useCustom$ as custom } from './hooks';
+export default (props) => {
+  const count = useSignal(1);
+  const read = $(() => count.value);
+  useTask$((read));
+  custom(read, props.options);
+  const total = useComputed$(read);
+  return <button onClick$={read}>{total.value}</button>;
+};
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useSignal,
+  _qrlWithChunk,
+  useTask$,
+  useComputedQrl,
+  setEvent,
+  _first,
+  createTextNodeEffect,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+const q_component_read_segment_0_1zbzildyw5vrf = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_read_segment_0_1zbzildyw5vrf',
+  () => import('./component.tsx_component_read_segment_0_1zbzildyw5vrf'),
+  'component_read_segment_0_1zbzildyw5vrf'
+);
+const default_tmpl0 = _createElementTemplate('<button> </button>');
+import { useCustom$ as custom } from './hooks';
+export default (props, ctx) => {
+  const count = useSignal(1);
+  const read = q_component_read_segment_0_1zbzildyw5vrf.w([count]);
+  useTask$(read);
+  custom(read, props.options);
+  const total = useComputedQrl(read);
+  const el0 = default_tmpl0(ctx.document);
+  setEvent(el0, 'q-e:click', read);
+  const text0 = _first(el0);
+  const effect0 = createTextNodeEffect(text0, total, ctx.scheduler);
+  ctx.scheduler.notify(effect0);
+  return el0;
+};
+============================= src/component.tsx_component_read_segment_0_1zbzildyw5vrf.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_read_segment_0_1zbzildyw5vrf = () => {
+  const [count] = _captures;
+  return count.value;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_read_segment_0_1zbzildyw5vrf",
+  "entry": null,
+  "displayName": "component_read_segment_0",
+  "hash": "1zbzildyw5vrf",
+  "canonicalFilename": "component.tsx_component_read_segment_0_1zbzildyw5vrf",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    192,
+    212
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

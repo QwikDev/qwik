@@ -81,7 +81,8 @@ callee, return binding and remaining arguments, including spreads. `implicit$Fir
 the compiled QRL without wrapping or resolving it again. Core-specific result semantics remain
 separate (`useComputed$` produces a signal).
 
-This slice supports inline first callbacks. Member calls, non-inline callbacks and boundary
+This slice supports inline first callbacks and local QRL bindings created by `$()`; forwarding
+keeps the existing instance and captures without another segment. Member calls, ordinary function references and boundary
 extraction inside otherwise untouched module functions remain deferred. Async source can be
 extracted, but restoring tracking or hook context after `await` is not implemented here.
 

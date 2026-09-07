@@ -40,6 +40,23 @@ async function testInputs(mode: 'ssr' | 'csr', snapshotName: string, inputs: rea
 }
 
 describe.each(['ssr', 'csr'] as const)('%s', (mode) => {
+  test('should reuse one setup QRL across hooks and events', async () => {
+    const output = await testInput(mode, 'setup-hook-qrl', {
+      code: `import { $, useSignal, useTask$, useComputed$ } from '@qwik.dev/core';
+import { useCustom$ as custom } from './hooks';
+export default (props) => {
+  const count = useSignal(1);
+  const read = $(() => count.value);
+  useTask$((read));
+  custom(read, props.options);
+  const total = useComputed$(read);
+  return <button onClick$={read}>{total.value}</button>;
+};
+`,
+    });
+    expect(output.modules.filter((module) => module.segment)).toHaveLength(1);
+  });
+
   test('should compile generic setup hooks by their imported binding', async () => {
     await testInput(mode, 'setup-custom-hook', {
       code: `import { useSignal } from '@qwik.dev/core';

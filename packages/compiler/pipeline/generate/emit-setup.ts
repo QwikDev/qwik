@@ -63,7 +63,7 @@ export function emitJsSetup(
     imports.add(hook);
     const initial =
       entry.invoke.op === InvokeKind.UseComputed
-        ? emitQrl(entry.invoke.qrl)
+        ? argJs(module, entry.invoke.qrl, emitQrl)
         : entry.invoke.initial === undefined
           ? ''
           : argJs(module, entry.invoke.initial, emitQrl);
@@ -75,6 +75,8 @@ function argJs(module: LinkedModule, arg: Arg, emitQrl: (use: QrlUse) => string)
   switch (arg.a) {
     case ArgKind.Qrl:
       return emitQrl(arg.use);
+    case ArgKind.QrlBinding:
+      return module.bindings[arg.binding].name;
     case ArgKind.Expr:
       return expressionJs(module, arg.expr);
     case ArgKind.Spread:

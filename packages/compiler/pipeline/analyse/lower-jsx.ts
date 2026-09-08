@@ -36,6 +36,7 @@ import {
   lowerComputedExpressionValue,
   lowerExpressionValue,
   lowerInlineExpressionValue,
+  recordPayloadJsx,
   recordPayloadReads,
   trySignalReadValue,
 } from './lower-expr';
@@ -44,7 +45,6 @@ import { pushPayload, pushQrl, QrlIdentityKind } from './lower-context';
 import { lowerArray } from './lower-array';
 import { collectCaptures, lowerCaptures } from './ast/capture-analysis';
 import { LocalKind } from './locals';
-import { findRuntimeJsx } from './ast/returns-jsx';
 import { QwikDirective, SegmentContext } from '../words';
 
 /**
@@ -157,10 +157,8 @@ function lowerComponentPropsProxy(attributes: readonly JSXAttributeItem[], ctx: 
     expression: Expression,
     part: { kind: PropsPartKind.Spread } | { kind: PropsPartKind.Expression; name: string }
   ) => {
-    if (findRuntimeJsx(expression) !== null) {
-      throw new UnsupportedError('JSX inside an expression value');
-    }
     const payload = pushPayload(ctx, [expression.start, expression.end]);
+    recordPayloadJsx(ctx, payload, expression);
     expressions.push(expression);
     payloads.push(payload);
     parts.push({ ...part, value: payload });

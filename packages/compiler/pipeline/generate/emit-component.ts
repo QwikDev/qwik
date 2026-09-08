@@ -144,6 +144,11 @@ function emitComponentProps(
   const reactiveSources: string[] = [];
   const roots: string[] = [];
   const statements: string[] = [];
+  const inlineQrl = (use: QrlUse) => {
+    const { qrl, reference, args } = resolveQrl(use, true);
+    roots.push(...rootArgs(qrl, args));
+    return args.length === 0 ? reference : `${reference}.w([${args.join(', ')}])`;
+  };
   const flushEntries = () => {
     if (entries.length > 0) {
       mergeInputs.push(`{ ${entries.join(', ')} }`);
@@ -156,6 +161,12 @@ function emitComponentProps(
         entries.push(`${JSON.stringify(prop.name)}: ${JSON.stringify(prop.value)}`);
         break;
       case PropKind.Dynamic: {
+        if (prop.value.v === ValueKind.Computed && prop.value.resume.r === ResumeKind.Inline) {
+          entries.push(
+            `${JSON.stringify(prop.name)}: ${inlineValueJs(module, prop.value, inlineQrl)}`
+          );
+          break;
+        }
         let value: {
           statements: string[];
           expression: string;

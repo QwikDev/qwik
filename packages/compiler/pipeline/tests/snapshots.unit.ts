@@ -40,6 +40,22 @@ async function testInputs(mode: 'ssr' | 'csr', snapshotName: string, inputs: rea
 }
 
 describe.each(['ssr', 'csr'] as const)('%s', (mode) => {
+  test('passes JSX values in component props', async () => {
+    const output = await testInput(mode, 'jsx-prop', {
+      code: `import { useSignal } from '@qwik.dev/core';
+import { Display } from './display';
+export function Direct() { return <Display fallback={<b>ready</b>} />; }
+export function Spread() {
+  const options = useSignal({ title: 'title' });
+  return <Display {...options.value} fallback={<b>ready</b>} />;
+}
+export function Rows() {
+  return <ul>{[1, 2].map(row => <li><Display fallback={<b>{row}</b>} /></li>)}</ul>;
+}`,
+    });
+    expect(output.diagnostics).toEqual([]);
+  });
+
   test('preserves native calls with embedded JSX arguments', async () => {
     const output = await testInput(mode, 'jsx-call', {
       code: `import { component$, useSignal } from '@qwik.dev/core';

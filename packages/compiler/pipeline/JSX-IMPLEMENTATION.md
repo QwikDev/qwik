@@ -87,7 +87,7 @@ destructuring and loop-target writes through `$` are diagnosed; local callback w
 - [x] JSX initializers: `const content = <div />`.
 - [x] JSX in arrays, objects and nested structures.
 - [x] JSX call arguments: `wrap(<Child />)`, `render(<App />)`.
-- [ ] JSX-valued props: `fallback={<Loading />}`.
+- [x] JSX-valued props: `fallback={<Loading />}`.
 - [ ] JSX-returning props and children: render props, `onResolved` callbacks and factories.
 - [ ] JSX inside `$`, event handlers, hooks and ordinary callbacks.
 - [ ] JSX inside `.then()`, `Promise.resolve()` and async functions.
@@ -118,6 +118,10 @@ their receiver, argument order and single evaluation. Verified by `jsx-call.unit
 CSR/SSR snapshots and `jsx-value.spec.tsx` in CSR and resume, including component instances,
 event captures, reactive result replacement and escaped primitive results. JSX inside callbacks
 and calls outside components remain covered by the separate open items in this group.
+
+JSX-valued props compile to render values, including alongside reactive spreads and inside inline
+collection rows. Verified by `jsx-prop.unit.ts` and new CSR/SSR snapshots. Classification of values
+read by the receiving component belongs to group 3 below.
 
 ## 3. Dynamic render results
 

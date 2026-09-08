@@ -94,7 +94,7 @@ export function sourceFunctionEmission(
   // IR bodies preserve lowered aliases instead of replaying authored identifiers.
   emission.value =
     qrl.propsParts.length > 0
-      ? `{ ${qrl.propsParts.map((part) => propsPartJs(module, qrl, part, emission, resolveQrlUse)).join(', ')} }`
+      ? `{ ${qrl.propsParts.map((part) => propsPartJs(module, qrl, part, emission, resolveQrlUse, emitQrl)).join(', ')} }`
       : body.b === QrlBodyKind.Expr
         ? expressionJs(module, body.expr, emitQrl)
         : readSource(qrl.origin.bodyRange);
@@ -106,15 +106,16 @@ function propsPartJs(
   owner: LinkedQrl,
   part: LinkedQrl['propsParts'][number],
   emission: FunctionEmission,
-  resolveQrlUse: QrlResolver
+  resolveQrlUse: QrlResolver,
+  emitQrl: (use: QrlUse) => string
 ): string {
   switch (part.kind) {
     case PropsPartKind.Static:
       return `${JSON.stringify(part.name)}: ${JSON.stringify(part.value)}`;
     case PropsPartKind.Expression:
-      return `${JSON.stringify(part.name)}: ${extractPayloadJs(module, part.value)}`;
+      return `${JSON.stringify(part.name)}: ${extractPayloadJs(module, part.value, undefined, undefined, [], emitQrl)}`;
     case PropsPartKind.Spread:
-      return `...${extractPayloadJs(module, part.value)}`;
+      return `...${extractPayloadJs(module, part.value, undefined, undefined, [], emitQrl)}`;
     case PropsPartKind.Event: {
       return `${JSON.stringify(part.name)}: ${emitFunctionQrl(part.use, qrlPropsName(module, owner, 'props'), emission, resolveQrlUse, false)}`;
     }

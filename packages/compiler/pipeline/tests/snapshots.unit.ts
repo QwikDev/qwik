@@ -40,6 +40,23 @@ async function testInputs(mode: 'ssr' | 'csr', snapshotName: string, inputs: rea
 }
 
 describe.each(['ssr', 'csr'] as const)('%s', (mode) => {
+  test('passes JSX factories as props and callable children', async () => {
+    const output = await testInput(mode, 'jsx-factory-prop', {
+      code: `import { useSignal } from '@qwik.dev/core';
+import { Display } from './display';
+export default function App() {
+  const count = useSignal(0);
+  const options = useSignal({ title: 'title' });
+  return <main>
+    <Display render={(value) => <button onClick$={() => count.value += value}>{value}</button>} />
+    <Display {...options.value} onResolved={({ label }) => { const text = label; return <b>{text}</b>; }} />
+    <Display>{(value) => <i>{value}</i>}</Display>
+  </main>;
+}`,
+    });
+    expect(output.diagnostics).toEqual([]);
+  });
+
   test('passes JSX values in component props', async () => {
     const output = await testInput(mode, 'jsx-prop', {
       code: `import { useSignal } from '@qwik.dev/core';

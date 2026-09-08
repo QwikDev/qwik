@@ -3,6 +3,7 @@ import type {
   CallExpression,
   ConditionalExpression,
   Expression,
+  Function as FunctionNode,
   JSXElement,
   JSXFragment,
   JSXText,
@@ -10,9 +11,15 @@ import type {
   Node,
 } from 'oxc-parser';
 import type { BindingGraph } from './bindings';
-import { identifierName, readReturnedBody, unwrapExpression } from './utils';
+import { identifierName, isFunctionLike, readReturnedBody, unwrapExpression } from './utils';
 import { findRuntimeJsx } from './returns-jsx';
 import { UnsupportedError } from '../../errors';
+import { isNode, type WalkableNode } from './ast-types';
+
+export interface JsxFactory {
+  fn: ArrowFunctionExpression | FunctionNode;
+  roots: (JSXElement | JSXFragment)[];
+}
 
 export const enum JsxValueKind {
   Element = 'element',
@@ -52,11 +59,13 @@ export type JsxValue = Readonly<
 export interface JsxAnalysis {
   read(node: Node): JsxValue;
   expressionRoots(node: Node): (JSXElement | JSXFragment)[];
+  factory(node: Node): JsxFactory | null;
 }
 
 /** Share value structure without entering element children or callback bodies. */
 export function createJsxAnalysis(bindings?: BindingGraph): JsxAnalysis {
   const values = new WeakMap<Node, JsxValue>();
+  const factories = new WeakMap<Node, JsxFactory | null>();
   function read(source: Node): JsxValue {
     const node = unwrapExpression(source)!;
     if (node.type === 'JSXExpressionContainer') {
@@ -190,7 +199,52 @@ export function createJsxAnalysis(bindings?: BindingGraph): JsxAnalysis {
     return { kind: JsxValueKind.Value, node, hasJsxValue: false };
   }
 
-  return { read, expressionRoots };
+  return {
+    read,
+    expressionRoots,
+    factory(source) {
+      const node = unwrapExpression(source)!;
+      if (!factories.has(node)) {
+        factories.set(node, readFactory(node));
+      }
+      return factories.get(node)!;
+    },
+  };
+}
+
+function readFactory(source: Node): JsxFactory | null {
+  const fn = unwrapExpression(source)!;
+  if (fn.type !== 'ArrowFunctionExpression' && fn.type !== 'FunctionExpression') {
+    return null;
+  }
+  const roots: JsxFactory['roots'] = [];
+  const visit = (node: unknown): void => {
+    if (Array.isArray(node)) {
+      node.forEach(visit);
+      return;
+    }
+    if (!isNode(node)) {
+      return;
+    }
+    if (node.type === 'JSXElement' || node.type === 'JSXFragment') {
+      roots.push(node);
+      return;
+    }
+    if (isFunctionLike(node)) {
+      if (findRuntimeJsx(node) !== null) {
+        throw new UnsupportedError('JSX inside a nested factory callback');
+      }
+      return;
+    }
+    for (const key of Object.keys(node)) {
+      if (key !== 'parent') {
+        visit((node as WalkableNode)[key]);
+      }
+    }
+  };
+  visit(fn.params);
+  visit(fn.body);
+  return roots.length === 0 ? null : { fn, roots };
 }
 
 /** Containers preserve native evaluation while embedded JSX becomes render values. */

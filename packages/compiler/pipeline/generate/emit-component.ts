@@ -161,6 +161,10 @@ function emitComponentProps(
         entries.push(`${JSON.stringify(prop.name)}: ${JSON.stringify(prop.value)}`);
         break;
       case PropKind.Dynamic: {
+        if (prop.value.v === ValueKind.Qrl) {
+          entries.push(`${JSON.stringify(prop.name)}: ${inlineQrl(prop.value.use)}`);
+          break;
+        }
         if (prop.value.v === ValueKind.Computed && prop.value.resume.r === ResumeKind.Inline) {
           entries.push(
             `${JSON.stringify(prop.name)}: ${inlineValueJs(module, prop.value, inlineQrl)}`

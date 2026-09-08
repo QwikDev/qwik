@@ -88,7 +88,7 @@ destructuring and loop-target writes through `$` are diagnosed; local callback w
 - [x] JSX in arrays, objects and nested structures.
 - [x] JSX call arguments: `wrap(<Child />)`, `render(<App />)`.
 - [x] JSX-valued props: `fallback={<Loading />}`.
-- [ ] JSX-returning props and children: render props, `onResolved` callbacks and factories.
+- [x] JSX-returning props and children: render props, `onResolved` callbacks and factories.
 - [ ] JSX inside `$`, event handlers, hooks and ordinary callbacks.
 - [ ] JSX inside `.then()`, `Promise.resolve()` and async functions.
 - [ ] JSX outside top-level components: helpers, factories and local functions.
@@ -103,7 +103,7 @@ and `jsx-value.spec.tsx` in CSR and resume. Direct element/fragment initializers
 `const`, `let` and `var`, aliases, block scope, and collection rows. Each use has its own content
 range; hiding one instance disposes its subscriptions without affecting its sibling.
 Local component targets captured by a JSX value remain unsupported and are diagnosed explicitly;
-module-level component targets work. JSX inside callbacks remains open.
+module-level component targets work. JSX inside general callbacks remains open.
 
 Arrays and nested objects preserve native construction, spreads, computed keys and destructuring.
 Verified by `jsx-value.unit.ts`, `jsx-analysis.unit.ts`, the `jsx-structures` CSR/SSR snapshots,
@@ -122,6 +122,12 @@ and calls outside components remain covered by the separate open items in this g
 JSX-valued props compile to render values, including alongside reactive spreads and inside inline
 collection rows. Verified by `jsx-prop.unit.ts` and new CSR/SSR snapshots. Classification of values
 read by the receiving component belongs to group 3 below.
+
+Inline JSX factories in component props and function children preserve their parameters, local
+statements and per-call captures. Function children are passed as the callable `children` prop.
+Verified by `jsx-factory-prop.unit.ts`, new CSR/SSR snapshots and `jsx-factory-prop.spec.tsx` in CSR
+and resume. Existing prop readers and ordinary projections retain their output. Referenced factories
+and JSX inside general callbacks remain covered by the separate open items above.
 
 ## 3. Dynamic render results
 

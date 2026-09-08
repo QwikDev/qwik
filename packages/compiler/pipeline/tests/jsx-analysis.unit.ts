@@ -96,6 +96,20 @@ test('extracts JSX call arguments without entering callback bodies', () => {
   );
 });
 
+test('shares factory roots without classifying the function as a JSX value', () => {
+  const node = expression(
+    '(value) => { const content = <A>{value}</A>; return ok ? content : <B />; }'
+  );
+  const jsx = createJsxAnalysis();
+  const factory = jsx.factory(node);
+  expect(factory?.fn).toBe(node);
+  expect(factory?.roots).toHaveLength(2);
+  expect(jsx.factory(node)).toBe(factory);
+  expect(jsx.read(node).hasJsxValue).toBe(false);
+  expect(() => jsx.expressionRoots(node)).toThrow('JSX inside an expression value');
+  expect(jsx.factory(expression('(value) => value'))).toBeNull();
+});
+
 test('analysis is local to a module and does not mutate frozen AST nodes', () => {
   const node = expression('ok ? <A /> : <B />');
   const before = JSON.stringify(node);

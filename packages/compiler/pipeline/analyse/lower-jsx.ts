@@ -46,6 +46,7 @@ import { lowerArray } from './lower-array';
 import { collectCaptures, lowerCaptures } from './ast/capture-analysis';
 import { LocalKind } from './locals';
 import { QwikDirective, SegmentContext } from '../words';
+import { lowerFunctionQrl } from './lower-function';
 
 /**
  * Lowers a JSX render tree to structural ops. Text stays RAW in the plan — each generator folds
@@ -70,11 +71,19 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
     if (ctx.coreBindings.get(binding) === 'Slot') {
       return lowerSlotMarker(element, ctx);
     }
+    const children = element.children.filter(isProjectionChild);
+    const child = children.length === 1 ? children[0] : null;
+    const factoryChild =
+      child?.type === 'JSXExpressionContainer' &&
+      child.expression.type !== 'JSXEmptyExpression' &&
+      ctx.jsx.factory(child.expression) !== null
+        ? child.expression
+        : null;
     return {
       op: OpKind.Component,
       target: { t: ComponentTargetKind.Raw, binding },
-      props: lowerComponentProps(attributes, ctx),
-      projections: lowerProjections(element.children, ctx),
+      props: lowerComponentProps(attributes, ctx, factoryChild),
+      projections: factoryChild === null ? lowerProjections(element.children, ctx) : [],
       id: { kind: SeedKind.Component, ordinal: ctx.componentCounter.next++ },
       lifetime: 0,
       blockingSuspense: false,
@@ -107,9 +116,13 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
   };
 }
 
-function lowerComponentProps(attributes: readonly JSXAttributeItem[], ctx: LowerContext) {
+function lowerComponentProps(
+  attributes: readonly JSXAttributeItem[],
+  ctx: LowerContext,
+  factoryChild: Expression | null
+) {
   const onlyAttribute = attributes.length === 1 ? attributes[0] : null;
-  if (onlyAttribute?.type === 'JSXSpreadAttribute') {
+  if (factoryChild === null && onlyAttribute?.type === 'JSXSpreadAttribute') {
     const expression = unwrapExpression(onlyAttribute.argument);
     const binding = ctx.bindings.reference(expression);
     if (binding !== null && ctx.locals.get(binding)?.kind === LocalKind.PropRest) {
@@ -139,17 +152,27 @@ function lowerComponentProps(attributes: readonly JSXAttributeItem[], ctx: Lower
             .some(({ binding }) => ctx.locals.get(binding)?.kind === LocalKind.PropRest))
     )
   ) {
-    return lowerComponentPropsProxy(attributes, ctx);
+    return lowerComponentPropsProxy(attributes, ctx, factoryChild);
   }
-  return {
-    c: ComponentPropsKind.Entries as const,
-    props: attributes
-      .map((attribute) => lowerAttribute(attribute, ctx, 'component'))
-      .filter((prop) => prop !== null),
-  };
+  const props = attributes
+    .map((attribute) => lowerAttribute(attribute, ctx, 'component'))
+    .filter((prop) => prop !== null);
+  if (factoryChild !== null) {
+    props.push({
+      k: PropKind.Dynamic,
+      name: 'children',
+      value: lowerComponentPropValue(factoryChild, ctx, 'children'),
+      effect: null,
+    });
+  }
+  return { c: ComponentPropsKind.Entries as const, props };
 }
 
-function lowerComponentPropsProxy(attributes: readonly JSXAttributeItem[], ctx: LowerContext) {
+function lowerComponentPropsProxy(
+  attributes: readonly JSXAttributeItem[],
+  ctx: LowerContext,
+  factoryChild: Expression | null
+) {
   const parts: Qrl['propsParts'] = [];
   const expressions: Expression[] = [];
   const payloads: number[] = [];
@@ -158,7 +181,16 @@ function lowerComponentPropsProxy(attributes: readonly JSXAttributeItem[], ctx: 
     part: { kind: PropsPartKind.Spread } | { kind: PropsPartKind.Expression; name: string }
   ) => {
     const payload = pushPayload(ctx, [expression.start, expression.end]);
-    recordPayloadJsx(ctx, payload, expression);
+    const factory =
+      part.kind === PropsPartKind.Expression ? lowerPropFactory(expression, ctx, part.name) : null;
+    if (factory === null) {
+      recordPayloadJsx(ctx, payload, expression);
+    } else {
+      ctx.plan.payloads[payload].qrls.push({
+        range: [expression.start, expression.end],
+        use: factory,
+      });
+    }
     expressions.push(expression);
     payloads.push(payload);
     parts.push({ ...part, value: payload });
@@ -212,6 +244,9 @@ function lowerComponentPropsProxy(attributes: readonly JSXAttributeItem[], ctx: 
     } else {
       throw new UnsupportedError('a dynamic JSX attribute value');
     }
+  }
+  if (factoryChild !== null) {
+    addExpression(factoryChild, { kind: PropsPartKind.Expression, name: 'children' });
   }
   const { captures, args, refs } = lowerCaptures(expressions, ctx, 'component props');
   for (const payload of payloads) {
@@ -760,6 +795,36 @@ function isKeyAttribute(attribute: JSXAttributeItem): boolean {
   );
 }
 
+function lowerPropFactory(expression: Expression, ctx: LowerContext, name: string) {
+  const factory = ctx.jsx.factory(expression);
+  if (factory === null) {
+    return null;
+  }
+  return lowerFunctionQrl(
+    factory.fn,
+    ctx,
+    {
+      nameCtx: name,
+      subject: 'a JSX prop factory',
+      ctxName: name,
+      boundary: { kind: BoundaryKind.Implicit, role: 'jsx-factory' },
+      origin: {
+        range: [expression.start, expression.end],
+        calleeRange: null,
+        argumentRanges: [],
+      },
+    },
+    factory.roots
+  );
+}
+
+function lowerComponentPropValue(expression: Expression, ctx: LowerContext, name: string) {
+  const use = lowerPropFactory(expression, ctx, name);
+  return use === null
+    ? lowerExpressionValue(expression, ctx, name)
+    : { v: ValueKind.Qrl as const, use };
+}
+
 function lowerAttribute(
   attribute: JSXAttributeItem,
   ctx: LowerContext,
@@ -815,7 +880,10 @@ function lowerAttribute(
       return {
         k: PropKind.Dynamic,
         name,
-        value: lowerExpressionValue(value.expression, ctx, name),
+        value:
+          target === 'component'
+            ? lowerComponentPropValue(value.expression, ctx, name)
+            : lowerExpressionValue(value.expression, ctx, name),
         effect: null,
       };
     }

@@ -72,6 +72,46 @@ for (const target of ['csr', 'ssr', 'resume'] as const) {
   });
 }
 
+test('resolves generated chunks from a CSR test root', async () => {
+  const harness = createTestResume();
+  harness.configure('csr');
+  try {
+    const result = await harness.transform(
+      {
+        input: [
+          {
+            path: 'counter.tsx',
+            code: `import { useSignal } from '@qwik.dev/core';
+export const Counter = () => {
+  const count = useSignal(0);
+  return <button onClick$={() => count.value++}>{count.value}</button>;
+};`,
+          },
+        ],
+        isServer: false,
+        srcDir: '/src',
+        transpileTs: true,
+      },
+      '/src/counter.tsx',
+      '/src',
+      path,
+      (id) => id
+    );
+    const chunk = result!.modules.find((module) => module.segment !== null)!;
+    const resolution = await harness.resolveId(
+      {} as any,
+      `./${chunk.path}`,
+      '/src/counter.tsx',
+      false,
+      (id) => id
+    );
+
+    assert.equal(typeof resolution === 'object' && resolution?.id, `/src/${chunk.path}`);
+  } finally {
+    harness.clear();
+  }
+});
+
 test('keeps SSR node resolution and resumes through transitive browser resolution', async () => {
   const root = await realpath(await mkdtemp(path.join(tmpdir(), 'qwik-vite-resume-')));
   const srcDir = path.join(root, 'src');

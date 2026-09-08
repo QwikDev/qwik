@@ -77,6 +77,7 @@ export interface ExtractedRenderRoot {
   argumentEnd: number;
   code: string;
   exportName: string;
+  sourceIndex: number;
 }
 
 /** @internal */
@@ -94,7 +95,13 @@ export function extractRenderRoots(path: string, code: string): ExtractedRenderR
   const imports = parsed.program.body
     .filter((statement) => statement.type === 'ImportDeclaration')
     .map((statement) => code.slice(statement.start, statement.end));
-  const roots: ExtractedRenderRoot[] = [];
+  const roots: Array<{
+    argumentStart: number;
+    argumentEnd: number;
+    exportName: string;
+    declarations: SourceDeclaration[];
+    scope: SourceNode;
+  }> = [];
   visitTestSource(parsed.program as unknown as SourceNode, [], (call, ancestors) => {
     if (!isRenderCall(call)) {
       return;
@@ -105,18 +112,44 @@ export function extractRenderRoots(path: string, code: string): ExtractedRenderR
     }
     const rootName = argument.name as string;
     const declarations = collectScopedDeclarations(ancestors, call.start, code);
-    if (!declarations.has(rootName)) {
+    const rootDeclaration = declarations.get(rootName);
+    if (rootDeclaration === undefined) {
       return;
     }
-    const reachable = collectReachableDeclarations(declarations, rootName);
     roots.push({
       argumentStart: argument.start,
       argumentEnd: argument.end,
-      code: `${imports.join('\n')}\n${reachable.map((declaration) => declaration.source).join('\n')}\n`,
       exportName: rootName,
+      declarations: collectReachableDeclarations(declarations, rootName),
+      scope: rootDeclaration.scope,
     });
   });
-  return roots;
+  const sources = new Map<
+    SourceNode,
+    { index: number; declarations: Map<number, SourceDeclaration> }
+  >();
+  for (const root of roots) {
+    let source = sources.get(root.scope);
+    if (source === undefined) {
+      source = { index: sources.size, declarations: new Map() };
+      sources.set(root.scope, source);
+    }
+    for (const declaration of root.declarations) {
+      source.declarations.set(declaration.node.start, declaration);
+    }
+  }
+  return roots.map(({ argumentStart, argumentEnd, exportName, scope }) => {
+    const source = sources.get(scope)!;
+    return {
+      argumentStart,
+      argumentEnd,
+      code: `${imports.join('\n')}\n${[...source.declarations.values()]
+        .map((declaration) => declaration.source)
+        .join('\n')}\n`,
+      exportName,
+      sourceIndex: source.index,
+    };
+  });
 }
 
 interface SourceNode {
@@ -128,6 +161,7 @@ interface SourceNode {
 
 interface SourceDeclaration {
   node: SourceNode;
+  scope: SourceNode;
   source: string;
 }
 
@@ -191,6 +225,7 @@ function collectScopedDeclarations(
           if (id.type === 'Identifier') {
             declarations.set(id.name as string, {
               node: declaration,
+              scope,
               source: `export ${kind} ${code.slice(declaration.start, declaration.end)};`,
             });
           }
@@ -203,6 +238,7 @@ function collectScopedDeclarations(
         if (id?.type === 'Identifier') {
           declarations.set(id.name as string, {
             node: statement,
+            scope,
             source: `export ${code.slice(statement.start, statement.end)}`,
           });
         }

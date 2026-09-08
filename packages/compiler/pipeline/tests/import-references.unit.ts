@@ -163,3 +163,27 @@ export default () => { const languages = [locale()]; return <p>{languages[0]}</p
   expect(output.diagnostics).toEqual([]);
   expect(output.modules[0].code).toContain('getLocale as locale');
 });
+
+test.each([true, false])('merges retained core imports (SSR: %s)', async (isServer) => {
+  const output = await transformModules({
+    input: [
+      {
+        path: 'app.tsx',
+        code: `import { component$ } from '@qwik.dev/core';
+import { getLocale as locale } from '@qwik.dev/core';
+import { useSignal } from '@qwik.dev/core';
+export const readLocale = () => locale();
+export const App = component$(() => {
+  const count = useSignal(0);
+  return <button>{count.value}</button>;
+});`,
+      },
+    ],
+    isServer,
+    srcDir: 'src',
+  });
+
+  expect(output.diagnostics).toEqual([]);
+  expect(output.modules[0].code.match(/from ["']@qwik\.dev\/core["']/g)).toHaveLength(1);
+  expect(output.modules[0].code).toContain('getLocale as locale');
+});

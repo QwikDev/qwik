@@ -56,7 +56,7 @@ export function requestBindingImport(module: LinkedModule, binding: LocalId, imp
   const source = module.imports.find((entry) => entry.source.binding === binding)?.source;
   if (
     source === undefined ||
-    module.edges[source.edge] !== replacedCoreImport(module) ||
+    !replacedCoreImports(module).includes(module.edges[source.edge]) ||
     source.typeOnly
   ) {
     return;
@@ -65,8 +65,8 @@ export function requestBindingImport(module: LinkedModule, binding: LocalId, imp
   imports.add(namedSpecifier(source.imported, name));
 }
 
-export function replacedCoreImport(module: LinkedModule) {
-  return module.edges.find(
+export function replacedCoreImports(module: LinkedModule) {
+  return module.edges.filter(
     (edge, index) =>
       edge.specifier === QWIK_CORE_IMPORT &&
       module.imports.some((entry) => entry.source.edge === index) &&

@@ -41,11 +41,14 @@ captures, component props and spreads, basic events, branches, collections, proj
 
 ## 0. Unblock the current test harness
 
-- [ ] Resolve generated chunks in the CSR project (`Cannot find module` failures).
-- [ ] Eliminate collisions between retained authored imports and generated imports, including
+- [x] Resolve generated chunks in the CSR project (`Cannot find module` failures).
+- [x] Eliminate collisions between retained authored imports and generated imports, including
       duplicate `useSignal` bindings.
-- [ ] Preserve shared bindings when extracting render roots from test-local scopes.
-- [ ] Verify the same fixtures in CSR and resume, not only generated-source snapshots.
+- [x] Preserve shared bindings when extracting render roots from test-local scopes.
+- [x] Verify the same fixtures in CSR and resume, not only generated-source snapshots.
+
+Verified by `test-resume.unit.ts`, `analysis.unit.ts`, `import-references.unit.ts` and
+`compiler-harness.spec.tsx` in both CSR and resume projects.
 
 Relevant code: `packages/qwik-vite/src/plugins/test-resume.ts`, render-root extraction and
 `generate/assemble-module.ts` / `generate/emit-import.ts`.

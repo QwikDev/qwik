@@ -193,6 +193,7 @@ describe('suite', () => {
       argumentStart: code.indexOf('App);'),
       argumentEnd: code.indexOf('App);') + 3,
       exportName: 'App',
+      sourceIndex: 0,
       code: expect.stringContaining('export const Child = component$'),
     },
   ]);
@@ -221,4 +222,23 @@ test('extracts roots passed to render methods', () => {
 });`;
 
   expect(extractRenderRoots('src/example.spec.tsx', code)).toHaveLength(1);
+});
+
+test('keeps render roots from one test scope in one source module', () => {
+  const code = `import { component$ } from '@qwik.dev/core';
+it('renders', async () => {
+  const shared = {};
+  const First = component$(() => <main>{shared}</main>);
+  const Second = component$(() => <aside>{shared}</aside>);
+  await render(First);
+  await render(Second);
+});`;
+
+  const [first, second] = extractRenderRoots('src/example.spec.tsx', code);
+
+  expect(first.sourceIndex).toBe(second.sourceIndex);
+  expect(first.code).toBe(second.code);
+  expect(first.code.match(/export const shared/g)).toHaveLength(1);
+  expect(first.code).toContain('export const First = component$');
+  expect(first.code).toContain('export const Second = component$');
 });

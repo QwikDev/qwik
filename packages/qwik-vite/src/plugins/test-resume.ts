@@ -92,7 +92,7 @@ export function createTestResume() {
       for (let i = roots.length - 1; i >= 0; i--) {
         const root = roots[i];
         const alias = `__qwik_test_root_${i}`;
-        const sourceId = `${pathId}.qwik-test-root-${i}.tsx`;
+        const sourceId = `${pathId}.qwik-test-root-${root.sourceIndex}.tsx`;
         testSources.set(sourceId, root.code);
         imports.unshift(
           `import { ${root.exportName} as ${alias} } from ${JSON.stringify(sourceId)};`
@@ -201,7 +201,13 @@ export function createTestResume() {
       isServer: boolean,
       normalizePath: (id: string) => string
     ): Promise<Rollup.ResolveIdResult | undefined> {
-      if (!isEnabled || !isServer || !server || !importerId || !clientModuleIds.has(importerId)) {
+      if (
+        !isEnabled ||
+        (!isServer && testTarget !== 'csr') ||
+        !server ||
+        !importerId ||
+        !clientModuleIds.has(importerId)
+      ) {
         return;
       }
 
@@ -211,10 +217,13 @@ export function createTestResume() {
         pathId.startsWith('.') ? resolve(dirname(clientImporter), pathId) : pathId
       );
       for (const candidate of [sourceId, `${sourceId}.js`]) {
-        const clientId = toClientId(candidate);
+        const clientId = testTarget === 'resume' ? toClientId(candidate) : candidate;
         if (clientOutputs.has(clientId)) {
           return { id: clientId, external: false };
         }
+      }
+      if (!isServer) {
+        return;
       }
       const resolved = await server.environments.client.pluginContainer.resolveId(
         id,
@@ -225,7 +234,7 @@ export function createTestResume() {
       }
       const resolution = typeof resolved === 'string' ? { id: resolved } : resolved;
       const normalizedId = normalizePath(parseId(resolution.id).pathId);
-      const clientId = toClientId(normalizedId);
+      const clientId = testTarget === 'resume' ? toClientId(normalizedId) : normalizedId;
       if (clientOutputs.has(clientId)) {
         clientModuleIds.add(clientId);
         return { ...resolution, id: clientId, external: false };

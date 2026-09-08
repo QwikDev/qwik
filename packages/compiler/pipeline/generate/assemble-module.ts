@@ -9,7 +9,7 @@ import { QWIK_CORE_IMPORT } from '../words';
 import { assembleModule, type AssembledModule } from '../../src/module-assembly';
 import type { SourceMap } from 'oxc-transform';
 import { emitQrlChunks, type FunctionEmission } from './emit-chunk';
-import { planModuleBindingExports, replacedCoreImport, requestBindingImport } from './emit-import';
+import { planModuleBindingExports, replacedCoreImports, requestBindingImport } from './emit-import';
 import type { GenerateOutput, PresentationOptions } from './output';
 import {
   allocateGeneratedNames,
@@ -136,7 +136,8 @@ export function assembleQwikModule(
     let header = importLines.length === 0 ? '' : `${importLines.join('\n')}\n\n`;
     // An authored core import is replaced in place (authored names merge into the request set);
     // otherwise the header block is synthesized in front of the component.
-    const coreEdge = replacedCoreImport(module);
+    const coreEdges = replacedCoreImports(module);
+    const coreEdge = coreEdges[0];
     let hoists = parts.hoists;
     if (coreEdge !== undefined && parts.imports.size > 0) {
       // Module-top hoists follow the replaced import, keeping the authored statement order.
@@ -150,6 +151,11 @@ export function assembleQwikModule(
             ? importLines.join('\n')
             : `${importLines.join('\n')}${hoistSeparator}${inlineHoists.join('\n')}`,
       });
+      for (const extraCoreEdge of coreEdges.slice(1)) {
+        if (extraCoreEdge.ownerRange[0] !== extraCoreEdge.ownerRange[1]) {
+          edits.push({ range: extraCoreEdge.ownerRange, text: '' });
+        }
+      }
       header = '';
       if (inlineHoists.length > 0) {
         hoists = [];

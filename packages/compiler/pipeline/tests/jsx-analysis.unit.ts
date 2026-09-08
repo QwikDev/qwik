@@ -64,10 +64,24 @@ test.each([
   ['(<A />, 1)', false],
   ['(1, <A />)', true],
   ['[null, <A />]', true],
+  ['({ body: [<A />] }).body', true],
+  ['({ body: <A /> })?.body', true],
   ['ok || <A />', true],
   ['ok ? 1 : 2', false],
 ])('identifies JSX only in value positions: %s', (source, expected) => {
   expect(createJsxAnalysis().read(expression(source)).hasJsxValue).toBe(expected);
+});
+
+test('extracts outer JSX roots from nested containers in evaluation order', () => {
+  const node = expression('{ [key]: <A><Nested /></A>, body: [null, ...[<B />], ok && <C />] }');
+  const roots = createJsxAnalysis().expressionRoots(node);
+  expect(
+    roots.map((root) =>
+      root.type === 'JSXElement'
+        ? root.openingElement.name.type === 'JSXIdentifier' && root.openingElement.name.name
+        : null
+    )
+  ).toEqual(['A', 'B', 'C']);
 });
 
 test('analysis is local to a module and does not mutate frozen AST nodes', () => {

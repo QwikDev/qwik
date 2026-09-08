@@ -85,7 +85,7 @@ destructuring and loop-target writes through `$` are diagnosed; local callback w
 ## 2. JSX as a value — one shared mechanism
 
 - [x] JSX initializers: `const content = <div />`.
-- [ ] JSX in arrays, objects and nested structures.
+- [x] JSX in arrays, objects and nested structures.
 - [ ] JSX call arguments: `wrap(<Child />)`, `render(<App />)`.
 - [ ] JSX-valued props: `fallback={<Loading />}`.
 - [ ] JSX-returning props and children: render props, `onResolved` callbacks and factories.
@@ -103,7 +103,14 @@ and `jsx-value.spec.tsx` in CSR and resume. Direct element/fragment initializers
 `const`, `let` and `var`, aliases, block scope, and collection rows. Each use has its own content
 range; hiding one instance disposes its subscriptions without affecting its sibling.
 Local component targets captured by a JSX value remain unsupported and are diagnosed explicitly;
-module-level component targets work. Nested structures, JSX call arguments and callbacks remain open.
+module-level component targets work. JSX call arguments and callbacks remain open.
+
+Arrays and nested objects preserve native construction, spreads, computed keys and destructuring.
+Verified by `jsx-value.unit.ts`, `jsx-analysis.unit.ts`, the `jsx-structures` CSR/SSR snapshots,
+and `jsx-value.spec.tsx` in CSR and resume. Coverage includes reactive member selection, events,
+repeated instance cleanup, mixed escaped text and single evaluation of keys and spread getters.
+`content.unit.ts` verifies ordering when nested JSX QRL imports resolve out of order.
+Direct sparse arrays render empty entries; capturing sparse arrays remains unsupported by serialization.
 
 ## 3. Dynamic render results
 
@@ -349,3 +356,10 @@ their checkboxes; do not silently reinterpret the original completion estimate a
   SSR escaping; compiler type checks, ESLint, formatting and CSR/SSR snapshots pass. Core and
   compiler dev builds complete; the core declaration pass reports two existing TS7006 errors in
   `packages/qwik-vite/src/plugins/plugin.ts`. No Playwright run was performed for this increment.
+- 2026-09-08: Added JSX in arrays and nested objects through shared expression payloads and
+  render QRLs. Native spreads, computed keys, destructuring and evaluation order are preserved.
+  Dynamic content recursively renders arrays, retaining order across delayed imports and escaping
+  primitive text in SSR. Verification: 883 tests pass across 44 suites (16 existing TODOs), including
+  CSR/resume cleanup and reactive member selection; compiler types, ESLint and formatting pass.
+  CSR/SSR snapshots cover the new structures. The core dev build completes with the same two
+  existing TS7006 declaration errors in `packages/qwik-vite/src/plugins/plugin.ts`.

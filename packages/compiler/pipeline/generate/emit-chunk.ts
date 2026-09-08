@@ -303,17 +303,31 @@ export function extractPayloadJs(
   payload: number,
   range: Range = module.payloads[payload].range,
   awaitName: string = QwikWord.Await,
-  edits: { range: Range; value: string }[] = []
+  edits: { range: Range; value: string }[] = [],
+  emitQrl?: (use: QrlUse) => string
 ): string {
   const { reads, awaits } = module.payloads[payload];
   const [start, end] = range;
   const replacements: { range: Range; value: string }[] = [...edits];
+  for (const entry of module.payloads[payload].qrls) {
+    if (
+      entry.range[0] < start ||
+      entry.range[1] > end ||
+      edits.some(({ range }) => entry.range[0] >= range[0] && entry.range[1] <= range[1])
+    ) {
+      continue;
+    }
+    if (emitQrl === undefined) {
+      throw new UnsupportedError('an embedded QRL without an emitter');
+    }
+    replacements.push({ range: entry.range, value: emitQrl(entry.use) });
+  }
   const materialized = reads.filter(
     (read) =>
       read.value !== undefined &&
       read.range[0] >= start &&
       read.range[1] <= end &&
-      !edits.some(({ range }) => read.range[0] >= range[0] && read.range[1] <= range[1])
+      !replacements.some(({ range }) => read.range[0] >= range[0] && read.range[1] <= range[1])
   );
   for (const read of materialized) {
     const member = valueIrJs(module, read.value!);
@@ -339,19 +353,27 @@ export function extractPayloadJs(
 }
 
 /** Only an `inline`-resumed value may execute at its authored use site. */
-export function inlineValueJs(module: LinkedModule, value: Value): string {
+export function inlineValueJs(
+  module: LinkedModule,
+  value: Value,
+  emitQrl?: (use: QrlUse) => string
+): string {
   if (value.v !== ValueKind.Computed || value.resume.r !== ResumeKind.Inline) {
     throw new UnsupportedError('a non-inline source value');
   }
-  return expressionJs(module, value.expr);
+  return expressionJs(module, value.expr, emitQrl);
 }
 
-export function expressionJs(module: LinkedModule, expr: Expr): string {
+export function expressionJs(
+  module: LinkedModule,
+  expr: Expr,
+  emitQrl?: (use: QrlUse) => string
+): string {
   switch (expr.kind) {
     case ExprKind.Ir:
       return valueIrJs(module, expr.ir);
     case ExprKind.Js:
-      return extractPayloadJs(module, expr.payload);
+      return extractPayloadJs(module, expr.payload, undefined, undefined, [], emitQrl);
   }
 }
 

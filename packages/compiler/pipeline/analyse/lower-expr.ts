@@ -12,7 +12,8 @@ import {
 } from '../schema';
 import { ValueIrKind, type ValueIR } from '../../src/expr-ir';
 import { identifierName } from './ast/utils';
-import { findRuntimeJsx } from './ast/returns-jsx';
+import { lowerRenderExpression, lowerRenderQrl } from './lower-jsx';
+import { SegmentContext } from '../words';
 import { collectCaptures, lowerCaptures, type CollectedCaptures } from './ast/capture-analysis';
 import { UnsupportedError } from '../errors';
 import { pushPayload, pushQrl, QrlIdentityKind, type LowerContext } from './lower-context';
@@ -54,56 +55,41 @@ export function lowerComputedExpressionValue(
   payloadKind = QrlPayloadKind.Value,
   role = 'expression'
 ) {
-  switch (expression.type) {
-    case 'JSXElement':
-    case 'JSXFragment':
-      // Branch/collection territory — handled in child position, never a chunk payload.
-      throw new UnsupportedError(`the expression "${expression.type}" outside a child position`);
-    default: {
-      // A payload chunk cannot carry NESTED JSX either — it would ride the payload verbatim.
-      if (findRuntimeJsx(expression) !== null) {
-        throw new UnsupportedError('JSX inside an expression value');
-      }
-      const { captures, args, refs } = lowerCaptures(expression, ctx, 'an expression');
-      const range: [number, number] = [expression.start, expression.end];
-      const payload = pushPayload(ctx, range);
-      recordPayloadReads(ctx, payload, refs);
-      const ir = tryLowerExprIr(expression, ctx);
-      const expr =
-        ir === null
-          ? ({ kind: ExprKind.Js, payload } as const)
-          : ({ kind: ExprKind.Ir, ir } as const);
-      const { use } = pushQrl(
-        ctx,
-        {
-          identity: { kind: QrlIdentityKind.Segment, nameCtx },
-          ctxName: nameCtx,
-          boundary: { kind: BoundaryKind.Implicit, role },
-          payloadKind,
-          authoredAsync: false,
-          body: { b: QrlBodyKind.Expr, expr, initialOnly: false },
-          captures,
-          params: { authored: 0, used: [], sources: [] },
-          origin: {
-            range,
-            functionRange: range,
-            calleeRange: null,
-            argumentRanges: [],
-            paramRanges: [],
-            bodyRange: range,
-            bodyKind: FnBodyKind.Expression,
-          },
-        },
-        args
-      );
-      return {
-        v: ValueKind.Computed as const,
-        expr,
-        resume: { r: ResumeKind.Qrl as const, qrl: use },
-        compilerString: false,
-      };
-    }
-  }
+  const { captures, args, refs } = lowerCaptures(expression, ctx, 'an expression');
+  const range: [number, number] = [expression.start, expression.end];
+  const payload = lowerExpressionPayload(expression, ctx, refs);
+  const ir = tryLowerExprIr(expression, ctx);
+  const expr =
+    ir === null ? ({ kind: ExprKind.Js, payload } as const) : ({ kind: ExprKind.Ir, ir } as const);
+  const { use } = pushQrl(
+    ctx,
+    {
+      identity: { kind: QrlIdentityKind.Segment, nameCtx },
+      ctxName: nameCtx,
+      boundary: { kind: BoundaryKind.Implicit, role },
+      payloadKind,
+      authoredAsync: false,
+      body: { b: QrlBodyKind.Expr, expr, initialOnly: false },
+      captures,
+      params: { authored: 0, used: [], sources: [] },
+      origin: {
+        range,
+        functionRange: range,
+        calleeRange: null,
+        argumentRanges: [],
+        paramRanges: [],
+        bodyRange: range,
+        bodyKind: FnBodyKind.Expression,
+      },
+    },
+    args
+  );
+  return {
+    v: ValueKind.Computed as const,
+    expr,
+    resume: { r: ResumeKind.Qrl as const, qrl: use },
+    compilerString: false,
+  };
 }
 
 export function recordPayloadReads(
@@ -138,9 +124,6 @@ export function recordPayloadReads(
 
 /** Inline rows read their loop params lexically: the expression splices in place, no QRL. */
 function tryLowerInlineValue(expression: Expression, ctx: LowerContext): ReactiveValue | null {
-  if (findRuntimeJsx(expression) !== null) {
-    throw new UnsupportedError('JSX inside an expression value');
-  }
   const refs = collectCaptures(expression, ctx, ctx.inlineParams!);
   // A reactive read needs an effect, so it cannot splice — null defers to the hole path.
   if (refs.propsReads.length > 0 || refs.locals.length > 0) {
@@ -156,11 +139,7 @@ export function lowerInlineExpressionValue(
   ctx: LowerContext,
   refs: CollectedCaptures
 ): Extract<Value, { v: ValueKind.Computed }> {
-  if (findRuntimeJsx(expression) !== null) {
-    throw new UnsupportedError('JSX inside an expression value');
-  }
-  const payload = pushPayload(ctx, [expression.start, expression.end]);
-  recordPayloadReads(ctx, payload, refs);
+  const payload = lowerExpressionPayload(expression, ctx, refs);
   const ir = tryLowerExprIr(expression, ctx);
   return {
     v: ValueKind.Computed,
@@ -168,6 +147,28 @@ export function lowerInlineExpressionValue(
     resume: { r: ResumeKind.Inline },
     compilerString: false,
   };
+}
+
+/** Embedded JSX shares render lowering with standalone initializers and projections. */
+function lowerExpressionPayload(
+  expression: Expression,
+  ctx: LowerContext,
+  refs: CollectedCaptures
+): PayloadId {
+  const payload = pushPayload(ctx, [expression.start, expression.end]);
+  recordPayloadReads(ctx, payload, refs);
+  for (const root of ctx.jsx.expressionRoots(expression)) {
+    const use = lowerRenderQrl(
+      [root],
+      ctx,
+      'a JSX value',
+      SegmentContext.JsxValue,
+      'jsx-value',
+      () => lowerRenderExpression(root, ctx)
+    );
+    ctx.plan.payloads[payload].qrls.push({ range: [root.start, root.end], use });
+  }
+  return payload;
 }
 
 /** `count.value` where `count` is a component signal local — a subscription, not a QRL. */

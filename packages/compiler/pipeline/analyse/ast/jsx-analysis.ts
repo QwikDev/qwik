@@ -11,6 +11,8 @@ import type {
 } from 'oxc-parser';
 import type { BindingGraph } from './bindings';
 import { identifierName, readReturnedBody, unwrapExpression } from './utils';
+import { findRuntimeJsx } from './returns-jsx';
+import { UnsupportedError } from '../../errors';
 
 export const enum JsxValueKind {
   Element = 'element',
@@ -49,6 +51,7 @@ export type JsxValue = Readonly<
 
 export interface JsxAnalysis {
   read(node: Node): JsxValue;
+  expressionRoots(node: Node): (JSXElement | JSXFragment)[];
 }
 
 /** Share value structure without entering element children or arbitrary calls. */
@@ -137,6 +140,22 @@ export function createJsxAnalysis(bindings?: BindingGraph): JsxAnalysis {
             (element) => element !== null && read(element).hasJsxValue
           ),
         };
+      case 'ObjectExpression':
+        return {
+          kind: JsxValueKind.Value,
+          node,
+          hasJsxValue: node.properties.some(
+            (property) =>
+              read(property.type === 'SpreadElement' ? property.argument : property.value)
+                .hasJsxValue
+          ),
+        };
+      case 'SpreadElement':
+        return { kind: JsxValueKind.Value, node, hasJsxValue: read(node.argument).hasJsxValue };
+      case 'MemberExpression':
+        return { kind: JsxValueKind.Value, node, hasJsxValue: read(node.object).hasJsxValue };
+      case 'ChainExpression':
+        return { kind: JsxValueKind.Value, node, hasJsxValue: read(node.expression).hasJsxValue };
       case 'JSXText':
         return { kind: JsxValueKind.Text, node, hasJsxValue: false };
       case 'JSXEmptyExpression':
@@ -154,7 +173,6 @@ export function createJsxAnalysis(bindings?: BindingGraph): JsxAnalysis {
             .some(
               (declaration) =>
                 declaration.type === 'VariableDeclarator' &&
-                declaration.id.type === 'Identifier' &&
                 declaration.init !== null &&
                 read(declaration.init).hasJsxValue
             );
@@ -168,5 +186,38 @@ export function createJsxAnalysis(bindings?: BindingGraph): JsxAnalysis {
     return { kind: JsxValueKind.Value, node, hasJsxValue: false };
   }
 
-  return { read };
+  return { read, expressionRoots };
+}
+
+/** Containers preserve native evaluation while embedded JSX becomes render values. */
+function expressionRoots(source: Node): (JSXElement | JSXFragment)[] {
+  const node = unwrapExpression(source)!;
+  switch (node.type) {
+    case 'JSXElement':
+    case 'JSXFragment':
+      return [node];
+    case 'ArrayExpression':
+      return node.elements.flatMap((element) => (element === null ? [] : expressionRoots(element)));
+    case 'ObjectExpression':
+      return node.properties.flatMap((property) =>
+        property.type === 'SpreadElement'
+          ? expressionRoots(property.argument)
+          : [...expressionRoots(property.key), ...expressionRoots(property.value)]
+      );
+    case 'SpreadElement':
+      return expressionRoots(node.argument);
+    case 'ConditionalExpression':
+      return [node.test, node.consequent, node.alternate].flatMap(expressionRoots);
+    case 'LogicalExpression':
+      return [node.left, node.right].flatMap(expressionRoots);
+    case 'MemberExpression':
+      return [node.object, ...(node.computed ? [node.property] : [])].flatMap(expressionRoots);
+    case 'ChainExpression':
+      return expressionRoots(node.expression);
+    default:
+      if (findRuntimeJsx(node) !== null) {
+        throw new UnsupportedError('JSX inside an expression value');
+      }
+      return [];
+  }
 }

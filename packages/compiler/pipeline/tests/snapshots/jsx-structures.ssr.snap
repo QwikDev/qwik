@@ -1,0 +1,454 @@
+==INPUT==
+
+import { component$, useSignal } from '@qwik.dev/core';
+export default component$(({ label = 'count' }) => {
+  const count = useSignal(0);
+  const views = { header: <h1>{label}</h1>, body: [<button onClick$={() => count.value++}>{count.value}</button>, [null, '<unsafe>']] };
+  const content = { ...views, footer: <small>end</small> };
+  return <main>{content.header}{content.body}{content.footer}</main>;
+});
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useSignal,
+  _captures,
+  renderSsrContent,
+  createSsrNodeId,
+  maybeThen,
+  escapeHTML,
+  renderSsrTextExpression,
+  _noopQrl,
+  renderSsrTextNode,
+  renderSsrDynamicContent,
+} from '@qwik.dev/core';
+const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
+  const [props] = _captures;
+  const id0 = ctx.nextId();
+  ctx.addRoot(props);
+  const text0 = renderSsrTextExpression(
+    id0,
+    null,
+    [props],
+    q_component_text_segment_1_1fh10tcowimfv
+  );
+  return maybeThen(text0, (text0) => [
+    '<h1 q:id="',
+    createSsrNodeId(id0),
+    '">',
+    escapeHTML(text0),
+    '</h1>',
+  ]);
+};
+const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ _noopQrl(
+  'component_jsx_segment_0_38vnjku9rukc6'
+);
+q_component_jsx_segment_0_38vnjku9rukc6.s(component_jsx_segment_0_38vnjku9rukc6);
+const component_jsx_segment_2_38vniss1y6gb4 = (ctx) => {
+  const [count] = _captures;
+  const id0 = ctx.nextId();
+  ctx.addRoot(count);
+  const text0 = renderSsrTextNode(id0, null, count);
+  return maybeThen(text0, (text0) => [
+    '<button q:id="',
+    createSsrNodeId(id0),
+    '"',
+    ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_3_2xwygfdmkpoqi.w([count])),
+    '>',
+    escapeHTML(text0),
+    '</button>',
+  ]);
+};
+const q_component_jsx_segment_2_38vniss1y6gb4 = /*#__PURE__*/ _noopQrl(
+  'component_jsx_segment_2_38vniss1y6gb4'
+);
+q_component_jsx_segment_2_38vniss1y6gb4.s(component_jsx_segment_2_38vniss1y6gb4);
+const component_jsx_segment_4_38vnl4ypf6sea = (ctx) => {
+  return '<small>end</small>';
+};
+const q_component_jsx_segment_4_38vnl4ypf6sea = /*#__PURE__*/ _noopQrl(
+  'component_jsx_segment_4_38vnl4ypf6sea'
+);
+q_component_jsx_segment_4_38vnl4ypf6sea.s(component_jsx_segment_4_38vnl4ypf6sea);
+const component_content_segment_5_18525souwghet = (ctx0) => {
+  const [content] = _captures;
+  return renderSsrDynamicContent(content.header, ctx0);
+};
+const q_component_content_segment_5_18525souwghet = /*#__PURE__*/ _noopQrl(
+  'component_content_segment_5_18525souwghet'
+);
+q_component_content_segment_5_18525souwghet.s(component_content_segment_5_18525souwghet);
+const component_content_segment_6_18524mlj5ybd8 = (ctx0) => {
+  const [content] = _captures;
+  return renderSsrDynamicContent(content.body, ctx0);
+};
+const q_component_content_segment_6_18524mlj5ybd8 = /*#__PURE__*/ _noopQrl(
+  'component_content_segment_6_18524mlj5ybd8'
+);
+q_component_content_segment_6_18524mlj5ybd8.s(component_content_segment_6_18524mlj5ybd8);
+const component_content_segment_7_185250mn2sddr = (ctx0) => {
+  const [content] = _captures;
+  return renderSsrDynamicContent(content.footer, ctx0);
+};
+const q_component_content_segment_7_185250mn2sddr = /*#__PURE__*/ _noopQrl(
+  'component_content_segment_7_185250mn2sddr'
+);
+q_component_content_segment_7_185250mn2sddr.s(component_content_segment_7_185250mn2sddr);
+const component_text_segment_1_1fh10tcowimfv = (props) => {
+  return props.label === void 0 ? 'count' : props.label;
+};
+const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_1_1fh10tcowimfv'
+);
+q_component_text_segment_1_1fh10tcowimfv.s(component_text_segment_1_1fh10tcowimfv);
+const q_component_q_e_click_segment_3_2xwygfdmkpoqi = /*#__PURE__*/ _noopQrl(
+  'component_q_e_click_segment_3_2xwygfdmkpoqi'
+);
+export default (props, ctx) => {
+  const count = useSignal(0);
+  const views = {
+    header: q_component_jsx_segment_0_38vnjku9rukc6.w([props]),
+    body: [q_component_jsx_segment_2_38vniss1y6gb4.w([count]), [null, '<unsafe>']],
+  };
+  const content = {
+    ...views,
+    footer: q_component_jsx_segment_4_38vnl4ypf6sea,
+  };
+  const id0 = ctx.nextId();
+  ctx.addRoot(content);
+  const content0 = renderSsrContent(
+    ctx,
+    id0,
+    [],
+    q_component_content_segment_5_18525souwghet.w([content]),
+    false,
+    true
+  );
+  const id1 = ctx.nextId();
+  const content1 = renderSsrContent(
+    ctx,
+    id1,
+    [],
+    q_component_content_segment_6_18524mlj5ybd8.w([content]),
+    false,
+    true
+  );
+  const id2 = ctx.nextId();
+  const content2 = renderSsrContent(
+    ctx,
+    id2,
+    [],
+    q_component_content_segment_7_185250mn2sddr.w([content]),
+    false,
+    true
+  );
+  return maybeThen(content0, (content0) =>
+    maybeThen(content1, (content1) =>
+      maybeThen(content2, (content2) => [
+        '<main><!d=',
+        createSsrNodeId(id0),
+        '>',
+        content0,
+        '<!/d><!d=',
+        createSsrNodeId(id1),
+        '>',
+        content1,
+        '<!/d><!d=',
+        createSsrNodeId(id2),
+        '>',
+        content2,
+        '<!/d></main>',
+      ])
+    )
+  );
+};
+============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
+
+import {
+  _noopQrl,
+  _captures,
+  createSsrNodeId,
+  escapeHTML,
+  renderSsrTextExpression,
+  maybeThen,
+} from '@qwik.dev/core';
+import { component_text_segment_1_1fh10tcowimfv } from './component.tsx_component_text_segment_1_1fh10tcowimfv';
+const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_1_1fh10tcowimfv'
+);
+q_component_text_segment_1_1fh10tcowimfv.s(component_text_segment_1_1fh10tcowimfv);
+
+export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
+  const [props] = _captures;
+  const id0 = ctx.nextId();
+  ctx.addRoot(props);
+  const text0 = renderSsrTextExpression(
+    id0,
+    null,
+    [props],
+    q_component_text_segment_1_1fh10tcowimfv
+  );
+  return maybeThen(text0, (text0) => [
+    '<h1 q:id="',
+    createSsrNodeId(id0),
+    '">',
+    escapeHTML(text0),
+    '</h1>',
+  ]);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_jsx_segment_0_38vnjku9rukc6",
+  "entry": null,
+  "displayName": "component_jsx_segment_0",
+  "hash": "38vnjku9rukc6",
+  "canonicalFilename": "component.tsx_component_jsx_segment_0_38vnjku9rukc6",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "jsx",
+  "captures": true,
+  "loc": [
+    165,
+    181
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_text_segment_1_1fh10tcowimfv.js (ENTRY POINT)==
+
+export const component_text_segment_1_1fh10tcowimfv = (props) => {
+  return props.label === void 0 ? 'count' : props.label;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_1_1fh10tcowimfv",
+  "entry": null,
+  "displayName": "component_text_segment_1",
+  "hash": "1fh10tcowimfv",
+  "canonicalFilename": "component.tsx_component_text_segment_1_1fh10tcowimfv",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    170,
+    175
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_jsx_segment_2_38vniss1y6gb4.js (ENTRY POINT)==
+
+import {
+  _noopQrl,
+  _captures,
+  createSsrNodeId,
+  escapeHTML,
+  renderSsrTextNode,
+  maybeThen,
+} from '@qwik.dev/core';
+const q_component_q_e_click_segment_3_2xwygfdmkpoqi = /*#__PURE__*/ _noopQrl(
+  'component_q_e_click_segment_3_2xwygfdmkpoqi'
+);
+
+export const component_jsx_segment_2_38vniss1y6gb4 = (ctx) => {
+  const [count] = _captures;
+  const id0 = ctx.nextId();
+  ctx.addRoot(count);
+  const text0 = renderSsrTextNode(id0, null, count);
+  return maybeThen(text0, (text0) => [
+    '<button q:id="',
+    createSsrNodeId(id0),
+    '"',
+    ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_3_2xwygfdmkpoqi.w([count])),
+    '>',
+    escapeHTML(text0),
+    '</button>',
+  ]);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_jsx_segment_2_38vniss1y6gb4",
+  "entry": null,
+  "displayName": "component_jsx_segment_2",
+  "hash": "38vniss1y6gb4",
+  "canonicalFilename": "component.tsx_component_jsx_segment_2_38vniss1y6gb4",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "jsx",
+  "captures": true,
+  "loc": [
+    190,
+    251
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_q_e_click_segment_3_2xwygfdmkpoqi.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_q_e_click_segment_3_2xwygfdmkpoqi = () => {
+  const [count] = _captures;
+  return count.value++;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_3_2xwygfdmkpoqi",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_3",
+  "hash": "2xwygfdmkpoqi",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_3_2xwygfdmkpoqi",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    198,
+    228
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_jsx_segment_4_38vnl4ypf6sea.js (ENTRY POINT)==
+
+export const component_jsx_segment_4_38vnl4ypf6sea = (ctx) => {
+  return '<small>end</small>';
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_jsx_segment_4_38vnl4ypf6sea",
+  "entry": null,
+  "displayName": "component_jsx_segment_4",
+  "hash": "38vnl4ypf6sea",
+  "canonicalFilename": "component.tsx_component_jsx_segment_4_38vnl4ypf6sea",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "jsx",
+  "captures": false,
+  "loc": [
+    314,
+    332
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_content_segment_5_18525souwghet.js (ENTRY POINT)==
+
+import { _captures, renderSsrDynamicContent } from '@qwik.dev/core';
+
+export const component_content_segment_5_18525souwghet = (ctx0) => {
+  const [content] = _captures;
+  return renderSsrDynamicContent(content.header, ctx0);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_content_segment_5_18525souwghet",
+  "entry": null,
+  "displayName": "component_content_segment_5",
+  "hash": "18525souwghet",
+  "canonicalFilename": "component.tsx_component_content_segment_5_18525souwghet",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "content",
+  "captures": true,
+  "loc": [
+    352,
+    366
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "content"
+  ]
+}
+*/
+============================= src/component.tsx_component_content_segment_6_18524mlj5ybd8.js (ENTRY POINT)==
+
+import { _captures, renderSsrDynamicContent } from '@qwik.dev/core';
+
+export const component_content_segment_6_18524mlj5ybd8 = (ctx0) => {
+  const [content] = _captures;
+  return renderSsrDynamicContent(content.body, ctx0);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_content_segment_6_18524mlj5ybd8",
+  "entry": null,
+  "displayName": "component_content_segment_6",
+  "hash": "18524mlj5ybd8",
+  "canonicalFilename": "component.tsx_component_content_segment_6_18524mlj5ybd8",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "content",
+  "captures": true,
+  "loc": [
+    368,
+    380
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "content"
+  ]
+}
+*/
+============================= src/component.tsx_component_content_segment_7_185250mn2sddr.js (ENTRY POINT)==
+
+import { _captures, renderSsrDynamicContent } from '@qwik.dev/core';
+
+export const component_content_segment_7_185250mn2sddr = (ctx0) => {
+  const [content] = _captures;
+  return renderSsrDynamicContent(content.footer, ctx0);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_content_segment_7_185250mn2sddr",
+  "entry": null,
+  "displayName": "component_content_segment_7",
+  "hash": "185250mn2sddr",
+  "canonicalFilename": "component.tsx_component_content_segment_7_185250mn2sddr",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "content",
+  "captures": true,
+  "loc": [
+    382,
+    396
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "content"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

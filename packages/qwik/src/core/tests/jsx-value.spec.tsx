@@ -5,6 +5,85 @@ import { testRenderer } from '../test-utils';
 const { name, render } = testRenderer;
 
 describe(`${name}: stored JSX values`, () => {
+  it('resumes nested structures and cleans up each use independently', async () => {
+    const App = component$(({ label = 'content' }: { label?: string }) => {
+      const count = useSignal(0);
+      const visible = useSignal(true);
+      const shared = { content: <p title={label}>{count.value}</p> };
+      const views = {
+        label,
+        ...shared,
+        controls: [
+          <button id="increment" onClick$={() => count.value++}>
+            increment
+          </button>,
+        ],
+        nested: { body: [[shared.content], null, false, '<unsafe>', <b>end</b>] },
+      };
+      const {
+        nested: { body },
+      } = views;
+      return (
+        <main>
+          {views.controls}
+          <button id="toggle" onClick$={() => (visible.value = !visible.value)}>
+            toggle
+          </button>
+          <section>{visible.value && body}</section>
+          <aside>{views.content}</aside>
+        </main>
+      );
+    });
+    const { container, cleanup, qwikLoader } = await render(App, { props: {} });
+    try {
+      const removed = container.querySelector('section p')!;
+      expect(removed.getAttribute('title')).toBe('content');
+      expect(container.querySelector('section')?.textContent).toBe('0<unsafe>end');
+      expect(container.querySelector('unsafe')).toBeFalsy();
+      await qwikLoader?.dispatch(container.querySelector('#increment')!, 'click');
+      expect(removed.textContent).toBe('1');
+      expect(container.querySelector('aside p')?.textContent).toBe('1');
+      await qwikLoader?.dispatch(container.querySelector('#toggle')!, 'click');
+      await qwikLoader?.dispatch(container.querySelector('#increment')!, 'click');
+      expect(removed.textContent).toBe('1');
+      expect(container.querySelector('aside p')?.textContent).toBe('2');
+      await qwikLoader?.dispatch(container.querySelector('#toggle')!, 'click');
+      expect(container.querySelector('section')?.textContent).toBe('2<unsafe>end');
+      expect(container.querySelector('section p')).not.toBe(removed);
+    } finally {
+      cleanup();
+    }
+  });
+
+  it('reactively selects nested entries using computed property names', async () => {
+    const App = component$(() => {
+      const selected = useSignal('first');
+      const views = { first: [<b>one</b>], second: { body: <i>two</i> } };
+      const choices = { first: views.first, second: views.second.body };
+      return (
+        <main>
+          <button
+            onClick$={() => (selected.value = selected.value === 'first' ? 'second' : 'first')}
+          >
+            switch
+          </button>
+          <section>{choices[selected.value as keyof typeof choices]}</section>
+        </main>
+      );
+    });
+    const { container, cleanup, qwikLoader } = await render(App);
+    try {
+      expect(container.querySelector('section b')?.textContent).toBe('one');
+      await qwikLoader?.dispatch(container.querySelector('button')!, 'click');
+      expect(container.querySelector('section b')).toBeFalsy();
+      expect(container.querySelector('section i')?.textContent).toBe('two');
+      await qwikLoader?.dispatch(container.querySelector('button')!, 'click');
+      expect(container.querySelector('section b')?.textContent).toBe('one');
+    } finally {
+      cleanup();
+    }
+  });
+
   it('disposes subscriptions owned by one use while preserving its sibling', async () => {
     const App = component$(() => {
       const count = useSignal(0);

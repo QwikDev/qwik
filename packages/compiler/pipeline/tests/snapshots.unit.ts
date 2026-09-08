@@ -40,6 +40,19 @@ async function testInputs(mode: 'ssr' | 'csr', snapshotName: string, inputs: rea
 }
 
 describe.each(['ssr', 'csr'] as const)('%s', (mode) => {
+  test('preserves native containers with embedded JSX values', async () => {
+    const output = await testInput(mode, 'jsx-structures', {
+      code: `import { component$, useSignal } from '@qwik.dev/core';
+export default component$(({ label = 'count' }) => {
+  const count = useSignal(0);
+  const views = { header: <h1>{label}</h1>, body: [<button onClick$={() => count.value++}>{count.value}</button>, [null, '<unsafe>']] };
+  const content = { ...views, footer: <small>end</small> };
+  return <main>{content.header}{content.body}{content.footer}</main>;
+});`,
+    });
+    expect(output.diagnostics).toEqual([]);
+  });
+
   test('renders stored JSX through shared content ranges', async () => {
     const output = await testInput(mode, 'jsx-value', {
       code: `import { component$, useSignal } from '@qwik.dev/core';

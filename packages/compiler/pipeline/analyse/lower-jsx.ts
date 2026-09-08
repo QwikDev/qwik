@@ -324,7 +324,7 @@ export function lowerRenderExpression(expression: Expression, ctx: LowerContext)
     case JsxValueKind.Collection:
       return [lowerArray(value.node, ctx)];
   }
-  if (value.hasJsxValue && expression.type === 'Identifier') {
+  if (value.hasJsxValue) {
     const computed = lowerComputedExpressionValue(
       expression,
       ctx,

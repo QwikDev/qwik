@@ -56,7 +56,7 @@ export function emitJsSetup(
           value: statement ? `return ${value};` : value,
         });
       }
-      return extractPayloadJs(module, entry.payload, payload.range, undefined, edits);
+      return extractPayloadJs(module, entry.payload, payload.range, undefined, edits, emitQrl);
     }
     if (entry.s === SetupKind.LocalComponent) {
       if (render === undefined || names === undefined) {
@@ -87,7 +87,7 @@ export function emitJsSetup(
     if (entry.s === SetupKind.PropDefault) {
       imports.add(QwikWord.Untrack);
       const prop = memberJs(module.bindings[entry.props].name, entry.name);
-      const initializer = expressionJs(module, entry.initializer);
+      const initializer = expressionJs(module, entry.initializer, emitQrl);
       return `const ${module.bindings[entry.result].name} = ${QwikWord.Untrack}(() => ${prop} === void 0) ? (${initializer}) : void 0;`;
     }
     if (entry.s === SetupKind.Call) {
@@ -109,11 +109,11 @@ export function emitJsSetup(
       const value =
         entry.value.v === ValueKind.Qrl
           ? emitQrl(entry.value.use)
-          : inlineValueJs(module, entry.value);
+          : inlineValueJs(module, entry.value, emitQrl);
       const initial =
         entry.defaultValue === undefined
           ? value
-          : `${value} === void 0 ? (${inlineValueJs(module, entry.defaultValue)}) : ${value}`;
+          : `${value} === void 0 ? (${inlineValueJs(module, entry.defaultValue, emitQrl)}) : ${value}`;
       return `${entry.declarationKind ?? 'const'} ${extractPayloadJs(module, entry.result.pattern)} = ${initial};`;
     }
     throw new UnsupportedError(`the setup entry "${entry.s}" in a JS render`);
@@ -142,13 +142,13 @@ function argJs(module: LinkedModule, arg: Arg, emitQrl: (use: QrlUse) => string)
     case ArgKind.QrlBinding:
       return module.bindings[arg.binding].name;
     case ArgKind.Expr:
-      return expressionJs(module, arg.expr);
+      return expressionJs(module, arg.expr, emitQrl);
     case ArgKind.Spread:
-      return `...(${expressionJs(module, arg.expr)})`;
+      return `...(${expressionJs(module, arg.expr, emitQrl)})`;
     case ArgKind.Value:
       return arg.value.v === ValueKind.Qrl
         ? emitQrl(arg.value.use)
-        : inlineValueJs(module, arg.value);
+        : inlineValueJs(module, arg.value, emitQrl);
   }
 }
 

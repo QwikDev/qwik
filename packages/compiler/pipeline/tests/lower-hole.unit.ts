@@ -119,14 +119,8 @@ describe('lowerText', () => {
     });
   });
 
-  test('JSX anywhere inside the expression throws — a payload chunk cannot carry JSX', () => {
-    expect(() => holeFor('count.value ? <>on</> : null', withSignalLocal)).toThrow(
-      'JSX inside an expression value'
-    );
+  test('JSX inside callbacks remains unsupported in expression payloads', () => {
     expect(() => holeFor('[1, 2].map(() => <li>x</li>)')).toThrow('JSX inside an expression value');
-    expect(() => holeFor('<span>top</span>')).toThrow(
-      'the expression "JSXElement" outside a child position'
-    );
   });
 
   test('a concat with a dynamic operand stays one computed hole; all-literal concats fold', () => {

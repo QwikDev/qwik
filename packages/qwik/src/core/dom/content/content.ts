@@ -1,6 +1,12 @@
 import type { QRL } from '../../shared/qrl/qrl.public';
 import type { FunctionComponent, JSXOutput } from '../../shared/jsx/types/jsx-node';
-import { isPromise, maybeThen, retryOnPromise, safeCall } from '../../shared/utils/promises';
+import {
+  isPromise,
+  maybeThen,
+  promiseAll,
+  retryOnPromise,
+  safeCall,
+} from '../../shared/utils/promises';
 import type { ValueOrPromise } from '../../shared/utils/types';
 import { SubscriberFlags } from '../../reactive/flags';
 import type { Source } from '../../reactive/source';
@@ -63,11 +69,13 @@ export const renderSsrDynamicContent = (
   ctx?: ContainerContext
 ): ValueOrPromise<SsrOutput> =>
   maybeThen(value, (v) =>
-    typeof v === 'function'
-      ? (v as (ctx?: ContainerContext) => ValueOrPromise<SsrOutput>)(ctx)
-      : v == null || v === true || v === false
-        ? ''
-        : escapeHTML(String(v))
+    Array.isArray(v)
+      ? promiseAll(Array.from(v, (child) => renderSsrDynamicContent(child, ctx)))
+      : typeof v === 'function'
+        ? (v as (ctx?: ContainerContext) => ValueOrPromise<SsrOutput>)(ctx)
+        : v == null || v === true || v === false
+          ? ''
+          : escapeHTML(String(v))
   );
 
 /** The client peer of {@link renderSsrDynamicContent}: nodes instead of bytes. */
@@ -76,11 +84,16 @@ export const createDynamicContent = (
   ctx: ContainerContext
 ): ValueOrPromise<readonly Node[]> =>
   maybeThen(value, (v) =>
-    typeof v === 'function'
-      ? maybeThen((v as (ctx: ContainerContext) => ValueOrPromise<MaybeNodeOutput>)(ctx), toNodes)
-      : v == null || v === true || v === false
-        ? EMPTY_NODES
-        : [ctx.document.createTextNode(String(v))]
+    Array.isArray(v)
+      ? maybeThen(
+          promiseAll(Array.from(v, (child) => createDynamicContent(child, ctx))),
+          (children) => children.flat()
+        )
+      : typeof v === 'function'
+        ? maybeThen((v as (ctx: ContainerContext) => ValueOrPromise<MaybeNodeOutput>)(ctx), toNodes)
+        : v == null || v === true || v === false
+          ? EMPTY_NODES
+          : [ctx.document.createTextNode(String(v))]
   );
 
 /** Content results are user values, so they must never reach the stream as markup. */

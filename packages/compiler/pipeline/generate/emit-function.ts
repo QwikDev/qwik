@@ -37,6 +37,8 @@ export function sourceFunctionEmission(
     emission.imports.add(QwikWord.Captures);
     emission.statements.push(...capturePrelude(captures));
   }
+  const emitQrl = (use: QrlUse) =>
+    emitFunctionQrl(use, qrlPropsName(module, qrl, 'props'), emission, resolveQrlUse, true);
   const body = qrl.body;
   let awaitName: string = QwikWord.Await;
   if (body.b === QrlBodyKind.Js && module.payloads[body.payload].awaits.length > 0) {
@@ -49,7 +51,7 @@ export function sourceFunctionEmission(
   }
   const readSource = (range: Range) =>
     body.b === QrlBodyKind.Js
-      ? extractPayloadJs(module, body.payload, range, awaitName)
+      ? extractPayloadJs(module, body.payload, range, awaitName, [], emitQrl)
       : module.source.code.slice(...range);
   if (body.b === QrlBodyKind.Js && body.functionName !== undefined) {
     emission.functionName = body.functionName;
@@ -77,7 +79,7 @@ export function sourceFunctionEmission(
         emitFunctionQrl(use, qrlPropsName(module, qrl, 'props'), emission, resolveQrlUse, true)
       )
     );
-    emission.value = expressionJs(module, program.body.expr);
+    emission.value = expressionJs(module, program.body.expr, emitQrl);
     emission.async = program.async;
     return emission;
   }
@@ -94,7 +96,7 @@ export function sourceFunctionEmission(
     qrl.propsParts.length > 0
       ? `{ ${qrl.propsParts.map((part) => propsPartJs(module, qrl, part, emission, resolveQrlUse)).join(', ')} }`
       : body.b === QrlBodyKind.Expr
-        ? expressionJs(module, body.expr)
+        ? expressionJs(module, body.expr, emitQrl)
         : readSource(qrl.origin.bodyRange);
   return emission;
 }

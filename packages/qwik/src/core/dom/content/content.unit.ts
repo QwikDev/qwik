@@ -11,7 +11,46 @@ import { Scheduler } from '../../runtime/scheduler';
 import { BranchRange } from '../branch/branch';
 import { createTextNodeEffect } from '../effect/text-effect';
 import { toArray } from '../../test-utils';
-import { createContentBlock, createSuspense, type ContentOutput } from './content';
+import {
+  createContentBlock,
+  createDynamicContent,
+  createSuspense,
+  type ContentOutput,
+} from './content';
+
+it('preserves nested array order when JSX QRL chunks resolve out of order', async () => {
+  const document = createDocument({ html: '<div></div>' });
+  const host = document.querySelector('div')!;
+  const ctx = createContainerContext(host, new Scheduler(() => {}));
+  const first = deferred<{ first: RenderFn }>();
+  const second = deferred<{ second: RenderFn }>();
+  const contexts: (ContainerContext | undefined)[] = [];
+  const output = invoke(newInvokeContext({ container: ctx, owner: createOwner(null) }), () =>
+    createDynamicContent(
+      [
+        createQRL<RenderFn>('first-chunk', 'first', null, () => first.promise),
+        [null, createQRL<RenderFn>('second-chunk', 'second', null, () => second.promise), 'tail'],
+      ],
+      ctx
+    )
+  );
+  second.resolve({
+    second: (context) => {
+      contexts.push(context);
+      return document.createTextNode('second');
+    },
+  });
+  await settle();
+  first.resolve({
+    first: (context) => {
+      contexts.push(context);
+      return document.createTextNode('first');
+    },
+  });
+  const nodes = await output;
+  expect(nodes.map((node) => node.textContent)).toEqual(['first', 'second', 'tail']);
+  expect(contexts).toEqual([ctx, ctx]);
+});
 
 describe('ContentBlock', () => {
   it('renders initially and replaces content when a dependency changes', async () => {

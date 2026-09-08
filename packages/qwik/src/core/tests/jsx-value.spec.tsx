@@ -4,7 +4,110 @@ import { testRenderer } from '../test-utils';
 
 const { name, render } = testRenderer;
 
+function wrap<T>(content: T): T {
+  return content;
+}
+
+function selectContent<T>(visible: boolean, content: T): T | string {
+  return visible ? content : '<unsafe>';
+}
+
 describe(`${name}: stored JSX values`, () => {
+  it('renders wrapped inline collection rows with captured events', async () => {
+    const App = component$(() => {
+      const total = useSignal(0);
+      return (
+        <main>
+          <output>{total.value}</output>
+          {[1, 2].map((row) => wrap(<button onClick$={() => (total.value += row)}>{row}</button>))}
+        </main>
+      );
+    });
+    const { container, cleanup, qwikLoader } = await render(App);
+    try {
+      const buttons = Array.from(container.querySelectorAll('button'));
+      expect(buttons.map((button) => button.textContent)).toEqual(['1', '2']);
+      await qwikLoader?.dispatch(buttons[1], 'click');
+      expect(container.querySelector('output')?.textContent).toBe('2');
+      await qwikLoader?.dispatch(buttons[0], 'click');
+      expect(container.querySelector('output')?.textContent).toBe('3');
+    } finally {
+      cleanup();
+    }
+  });
+
+  it('resumes wrapped components and replaces call results with independent ownership', async () => {
+    const Counter = component$(() => {
+      const count = useSignal(0);
+      return (
+        <button class="counter" onClick$={() => count.value++}>
+          {count.value}
+        </button>
+      );
+    });
+    const App = component$(() => {
+      const visible = useSignal(true);
+      const content = wrap(<Counter />);
+      return (
+        <main>
+          <button id="toggle" onClick$={() => (visible.value = !visible.value)}>
+            toggle
+          </button>
+          <section>{selectContent(visible.value, content)}</section>
+          <aside>{wrap(content)}</aside>
+        </main>
+      );
+    });
+    const { container, cleanup, qwikLoader } = await render(App);
+    try {
+      const first = container.querySelector('section .counter')!;
+      const sibling = container.querySelector('aside .counter')!;
+      await qwikLoader?.dispatch(first, 'click');
+      expect(first.textContent).toBe('1');
+      expect(sibling.textContent).toBe('0');
+      await qwikLoader?.dispatch(container.querySelector('#toggle')!, 'click');
+      expect(container.querySelector('section')?.textContent).toBe('<unsafe>');
+      expect(container.querySelector('unsafe')).toBeFalsy();
+      await qwikLoader?.dispatch(sibling, 'click');
+      expect(sibling.textContent).toBe('1');
+      await qwikLoader?.dispatch(container.querySelector('#toggle')!, 'click');
+      const replacement = container.querySelector('section .counter')!;
+      expect(replacement).not.toBe(first);
+      expect(replacement.textContent).toBe('0');
+      expect(container.querySelector('aside .counter')).toBe(sibling);
+      await qwikLoader?.dispatch(replacement, 'click');
+      expect(replacement.textContent).toBe('1');
+    } finally {
+      cleanup();
+    }
+  });
+
+  it('passes JSX through setup calls and root wrappers with props and event captures', async () => {
+    const App = component$(({ label }: { label: string }) => {
+      const count = useSignal(0);
+      const content = [<span>{label}</span>];
+      content.push(
+        wrap(
+          <button title={label} onClick$={() => count.value++}>
+            {count.value}
+          </button>
+        )
+      );
+      return wrap(content);
+    });
+    const { container, cleanup, qwikLoader } = await render(App, { props: { label: 'wrapped' } });
+    try {
+      expect(container.querySelector('span')?.textContent).toBe('wrapped');
+      const button = container.querySelector('button')!;
+      expect(button.getAttribute('title')).toBe('wrapped');
+      expect(button.textContent).toBe('0');
+      await qwikLoader?.dispatch(button, 'click');
+      expect(button.textContent).toBe('1');
+    } finally {
+      cleanup();
+    }
+  });
+
   it('resumes nested structures and cleans up each use independently', async () => {
     const App = component$(({ label = 'content' }: { label?: string }) => {
       const count = useSignal(0);

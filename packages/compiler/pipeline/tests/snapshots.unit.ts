@@ -40,6 +40,20 @@ async function testInputs(mode: 'ssr' | 'csr', snapshotName: string, inputs: rea
 }
 
 describe.each(['ssr', 'csr'] as const)('%s', (mode) => {
+  test('preserves native calls with embedded JSX arguments', async () => {
+    const output = await testInput(mode, 'jsx-call', {
+      code: `import { component$, useSignal } from '@qwik.dev/core';
+import { wrap, consume } from './wrappers';
+export default component$(({ label }) => {
+  const count = useSignal(0);
+  consume(<span>{label}</span>);
+  const content = wrap(<button onClick$={() => count.value++}>{count.value}</button>);
+  return <main>{wrap(content)}{wrap(<b>{label}</b>)}{[1, 2].map(row => wrap(<i>{row}</i>))}</main>;
+});`,
+    });
+    expect(output.diagnostics).toEqual([]);
+  });
+
   test('preserves native containers with embedded JSX values', async () => {
     const output = await testInput(mode, 'jsx-structures', {
       code: `import { component$, useSignal } from '@qwik.dev/core';

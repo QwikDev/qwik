@@ -86,7 +86,7 @@ destructuring and loop-target writes through `$` are diagnosed; local callback w
 
 - [x] JSX initializers: `const content = <div />`.
 - [x] JSX in arrays, objects and nested structures.
-- [ ] JSX call arguments: `wrap(<Child />)`, `render(<App />)`.
+- [x] JSX call arguments: `wrap(<Child />)`, `render(<App />)`.
 - [ ] JSX-valued props: `fallback={<Loading />}`.
 - [ ] JSX-returning props and children: render props, `onResolved` callbacks and factories.
 - [ ] JSX inside `$`, event handlers, hooks and ordinary callbacks.
@@ -103,7 +103,7 @@ and `jsx-value.spec.tsx` in CSR and resume. Direct element/fragment initializers
 `const`, `let` and `var`, aliases, block scope, and collection rows. Each use has its own content
 range; hiding one instance disposes its subscriptions without affecting its sibling.
 Local component targets captured by a JSX value remain unsupported and are diagnosed explicitly;
-module-level component targets work. JSX call arguments and callbacks remain open.
+module-level component targets work. JSX inside callbacks remains open.
 
 Arrays and nested objects preserve native construction, spreads, computed keys and destructuring.
 Verified by `jsx-value.unit.ts`, `jsx-analysis.unit.ts`, the `jsx-structures` CSR/SSR snapshots,
@@ -111,6 +111,13 @@ and `jsx-value.spec.tsx` in CSR and resume. Coverage includes reactive member se
 repeated instance cleanup, mixed escaped text and single evaluation of keys and spread getters.
 `content.unit.ts` verifies ordering when nested JSX QRL imports resolve out of order.
 Direct sparse arrays render empty entries; capturing sparse arrays remains unsupported by serialization.
+
+Call arguments share the same JSX lowering in component setup and render expressions, including
+nested calls, spreads, optional calls, branch conditions and collection rows. Native calls preserve
+their receiver, argument order and single evaluation. Verified by `jsx-call.unit.ts`, the `jsx-call`
+CSR/SSR snapshots and `jsx-value.spec.tsx` in CSR and resume, including component instances,
+event captures, reactive result replacement and escaped primitive results. JSX inside callbacks
+and calls outside components remain covered by the separate open items in this group.
 
 ## 3. Dynamic render results
 
@@ -363,3 +370,10 @@ their checkboxes; do not silently reinterpret the original completion estimate a
   CSR/resume cleanup and reactive member selection; compiler types, ESLint and formatting pass.
   CSR/SSR snapshots cover the new structures. The core dev build completes with the same two
   existing TS7006 declaration errors in `packages/qwik-vite/src/plugins/plugin.ts`.
+- 2026-09-08: Added JSX call arguments in component setup, return values, children and collection
+  rows through shared expression payloads. Calls retain native receivers, ordering, spreads and
+  optional evaluation. Static SSR collections now resolve asynchronous row output before emitting
+  their enclosing markup. Verification: 912 tests pass across 45 suites (16 existing TODOs),
+  including CSR/resume event captures, independent component replacement and SSR escaping.
+  Compiler dev build, compiler types, ESLint, formatting and CSR/SSR snapshots pass. The core dev
+  build completes with the same two existing TS7006 declaration errors in `qwik-vite`.

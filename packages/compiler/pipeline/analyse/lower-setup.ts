@@ -36,6 +36,7 @@ import { pushPayload, type LowerContext } from './lower-context';
 import { collectCaptures, lowerCaptures } from './ast/capture-analysis';
 import {
   lowerInlineExpressionValue,
+  recordPayloadJsx,
   recordPayloadReads,
   resolveQrlBinding,
   tryLowerExprIr,
@@ -383,6 +384,10 @@ function lowerJsStatement(
           ? { range: [node.start, node.end], program, statement: true }
           : { range: [node.argument.start, node.argument.end], program }
       );
+      return;
+    }
+    if (node.type === 'CallExpression') {
+      recordPayloadJsx(ctx, payload, node);
       return;
     }
     if (node.type === 'JSXElement' || node.type === 'JSXFragment') {

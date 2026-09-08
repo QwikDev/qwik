@@ -54,7 +54,7 @@ export default (props, ctx) => {
     false,
     0
   );
-  return ['<ul>', collection0, '</ul>'];
+  return maybeThen(collection0, (collection0) => ['<ul>', collection0, '</ul>']);
 };
 ============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
 

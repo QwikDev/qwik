@@ -126,9 +126,9 @@ describe('lowerBranch / arm captures', () => {
   });
 
   test.each([
-    "<div>{show.value(<b />) ? 'on' : 'off'}</div>",
-    '<div>{show.value(<b />) ? <i>on</i> : null}</div>',
-  ])('JSX inside a condition cannot leak into a JavaScript payload: %s', (jsx) => {
+    "<div>{show.value(() => <b />) ? 'on' : 'off'}</div>",
+    '<div>{show.value(() => <b />) ? <i>on</i> : null}</div>',
+  ])('JSX inside a condition callback cannot leak into a JavaScript payload: %s', (jsx) => {
     expect(() => lower(jsx)).toThrow('JSX inside an expression value');
   });
 

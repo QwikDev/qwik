@@ -10,7 +10,7 @@ export default () => {
 ============================= src/component.tsx ==
 
 const prefix = 'p-';
-import { escapeHTML, _textValue, renderSsrCollection } from '@qwik.dev/core';
+import { escapeHTML, _textValue, renderSsrCollection, maybeThen } from '@qwik.dev/core';
 
 export default (props, ctx) => {
   function semantic_collectionRender_72_106_37502p69t12n6(ctx, __rangeId, __rowId, item) {
@@ -27,7 +27,7 @@ export default (props, ctx) => {
     false,
     0
   );
-  return ['<ul>', collection0, '</ul>'];
+  return maybeThen(collection0, (collection0) => ['<ul>', collection0, '</ul>']);
 };
 == SSR DIAGNOSTICS ==
 

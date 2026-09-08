@@ -54,7 +54,7 @@ export interface JsxAnalysis {
   expressionRoots(node: Node): (JSXElement | JSXFragment)[];
 }
 
-/** Share value structure without entering element children or arbitrary calls. */
+/** Share value structure without entering element children or callback bodies. */
 export function createJsxAnalysis(bindings?: BindingGraph): JsxAnalysis {
   const values = new WeakMap<Node, JsxValue>();
   function read(source: Node): JsxValue {
@@ -124,7 +124,11 @@ export function createJsxAnalysis(bindings?: BindingGraph): JsxAnalysis {
             hasJsxValue: false,
           };
         }
-        break;
+        return {
+          kind: JsxValueKind.Value,
+          node,
+          hasJsxValue: node.arguments.some((argument) => read(argument).hasJsxValue),
+        };
       }
       case 'SequenceExpression':
         return {
@@ -214,6 +218,8 @@ function expressionRoots(source: Node): (JSXElement | JSXFragment)[] {
       return [node.object, ...(node.computed ? [node.property] : [])].flatMap(expressionRoots);
     case 'ChainExpression':
       return expressionRoots(node.expression);
+    case 'CallExpression':
+      return [node.callee, ...node.arguments].flatMap(expressionRoots);
     default:
       if (findRuntimeJsx(node) !== null) {
         throw new UnsupportedError('JSX inside an expression value');

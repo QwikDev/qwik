@@ -157,6 +157,11 @@ function lowerExpressionPayload(
 ): PayloadId {
   const payload = pushPayload(ctx, [expression.start, expression.end]);
   recordPayloadReads(ctx, payload, refs);
+  recordPayloadJsx(ctx, payload, expression);
+  return payload;
+}
+
+export function recordPayloadJsx(ctx: LowerContext, payload: PayloadId, expression: Node): void {
   for (const root of ctx.jsx.expressionRoots(expression)) {
     const use = lowerRenderQrl(
       [root],
@@ -168,7 +173,6 @@ function lowerExpressionPayload(
     );
     ctx.plan.payloads[payload].qrls.push({ range: [root.start, root.end], use });
   }
-  return payload;
 }
 
 /** `count.value` where `count` is a component signal local — a subscription, not a QRL. */

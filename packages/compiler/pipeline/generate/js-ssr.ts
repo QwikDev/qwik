@@ -642,8 +642,11 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         const rowFn = this.inlineRowFunction(pass, op.row);
         this.imports.add(QwikWord.RenderSsrCollection);
         const step = pass.next(QwikGenWord.Collection);
-        pass.statements.push(
-          `const ${step} = ${QwikWord.RenderSsrCollection}(${pass.names.ctx}, undefined, ${source}, undefined, ${rowFn}, ${op.index}, '', false, ${rowShapeCode(op.shape)});`
+        this.pushStep(
+          pass,
+          step,
+          [],
+          `${QwikWord.RenderSsrCollection}(${pass.names.ctx}, undefined, ${source}, undefined, ${rowFn}, ${op.index}, '', false, ${rowShapeCode(op.shape)})`
         );
         parts.push(step);
         break;

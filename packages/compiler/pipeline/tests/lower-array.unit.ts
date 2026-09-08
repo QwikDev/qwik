@@ -285,7 +285,6 @@ describe('lowerArray / reactive rows', () => {
       '{ const { label = <b /> } = item; return <li>{label}</li>; }',
       'JSX inside a binding pattern',
     ],
-    ['render(<li />)', 'JSX inside an expression value'],
   ])('rejects unsupported row bodies: %s', (row, error) => {
     expect(() => lower(`<ul>{items.value.map((item) => ${row})}</ul>`)).toThrow(error);
   });

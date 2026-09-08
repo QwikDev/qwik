@@ -59,7 +59,11 @@ test('collection analysis retains callback setup and shares its row', () => {
 });
 
 test.each([
-  ['render(<A />)', false],
+  ['render(<A />)', true],
+  ['wrap(render(<A />))', true],
+  ['render(...[<A />])', true],
+  ['render?.(<A />)', true],
+  ['render(1)', false],
   ['() => <A />', false],
   ['(<A />, 1)', false],
   ['(1, <A />)', true],
@@ -82,6 +86,14 @@ test('extracts outer JSX roots from nested containers in evaluation order', () =
         : null
     )
   ).toEqual(['A', 'B', 'C']);
+});
+
+test('extracts JSX call arguments without entering callback bodies', () => {
+  const jsx = createJsxAnalysis();
+  expect(jsx.expressionRoots(expression('wrap(<A />, ...[render(<B />)])'))).toHaveLength(2);
+  expect(() => jsx.expressionRoots(expression('wrap(() => <A />)'))).toThrow(
+    'JSX inside an expression value'
+  );
 });
 
 test('analysis is local to a module and does not mutate frozen AST nodes', () => {

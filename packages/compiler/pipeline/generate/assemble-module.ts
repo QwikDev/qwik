@@ -104,6 +104,9 @@ export function assembleQwikModule(
           range: declaration.replacementRange,
           text: emitComponentFunction(qrl, emitProgram(qrl, componentNames), componentNames),
         };
+        for (const binding of qrl.dependencies.bindings) {
+          requestBindingImport(module, binding, parts.imports);
+        }
         edits.push(edit);
         firstComponentEdit ??= edit;
         break;

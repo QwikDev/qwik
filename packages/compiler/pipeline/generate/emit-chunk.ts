@@ -25,6 +25,7 @@ import { applyReplacements } from '../../src/emit-qrl';
 import { createOriginalRangeMapper } from '../../src/normalization';
 import type { SourceMap } from 'oxc-transform';
 import type { GenerateOutput, PresentationOptions } from './output';
+import { emitBindingImports } from './emit-import';
 
 /** One function, as neutral data — printed into chunk files, SSR mirrors, and spliced bodies. */
 export interface FunctionEmission {
@@ -71,7 +72,7 @@ export function emitQrlChunks(
         module.source.code,
         module.source.originalPath,
         path,
-        chunkModuleCode(qrl, qrlFunction(qrl)),
+        chunkModuleCode(module, qrl, qrlFunction(qrl)),
         qrl.origin.range,
         options.outputSourceMaps === true,
         module.source.normalizationMap as SourceMap | null
@@ -224,7 +225,8 @@ function moduleBasename(module: LinkedModule): string {
   return slash === -1 ? module.path : module.path.slice(slash + 1);
 }
 
-function chunkModuleCode(qrl: LinkedQrl, emission: FunctionEmission): string {
+function chunkModuleCode(module: LinkedModule, qrl: LinkedQrl, emission: FunctionEmission): string {
+  const bindingImports = emitBindingImports(module, qrl.dependencies.bindings, emission.imports);
   const importLines = [
     ...(emission.imports.size === 0
       ? []
@@ -232,6 +234,7 @@ function chunkModuleCode(qrl: LinkedQrl, emission: FunctionEmission): string {
           `import { ${[...emission.imports].join(', ')} } from ${JSON.stringify(QWIK_CORE_IMPORT)};`,
         ]),
     ...emission.chunkImports,
+    ...bindingImports,
   ];
   const header = importLines.length === 0 ? '' : `${importLines.join('\n')}\n`;
   const hoists = emission.hoists.length === 0 ? '' : `${emission.hoists.join('\n')}\n`;

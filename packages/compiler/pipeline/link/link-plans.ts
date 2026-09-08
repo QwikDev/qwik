@@ -1,7 +1,6 @@
 /** Pure module linking over plans and host-provided resolver/plugin snapshots. */
 import {
   ComponentTargetKind,
-  CallTargetKind,
   DeclTable,
   DeliveryKind,
   EntryKind,
@@ -15,8 +14,6 @@ import {
   PlanFormat,
   ProjectionKind,
   ProgramBodyKind,
-  QrlBodyKind,
-  SetupKind,
   UnknownWhy,
   type DeclRef,
   type LinkedImport,
@@ -32,6 +29,7 @@ import {
   type Specialization,
   type Unknown,
 } from '../schema';
+import { collectQrlDependencies } from './qrl-dependencies';
 
 export const enum ResolutionKind {
   Resolved = 'resolved',
@@ -449,68 +447,18 @@ export function linkPlans(
       return;
     }
     const qrl = linkedModules[decl.module].qrls[decl.index];
-    if (qrl?.body.b === QrlBodyKind.Program) {
-      visitProgram(decl.module, qrl.body.program);
-    }
-  };
-  const visitProgram = (module: number, program: number): void => {
-    const plan = linkedModules[module].programs[program];
-    for (const setup of plan?.setup ?? []) {
-      if (setup.s === SetupKind.Call && setup.target.kind === CallTargetKind.Binding) {
-        visitImport(module, setup.target.binding);
+    for (const binding of qrl.dependencies.bindings) {
+      visitImport(decl.module, binding);
+      const local = resolveLocalBinding(decl.module, binding);
+      if (local.ok) {
+        visitDecl(local.value);
       }
     }
-    const body = plan?.body;
-    if (body?.kind !== ProgramBodyKind.Ops) {
-      return;
-    }
-    for (const op of body.ops) {
-      visitOp(module, op);
-    }
-  };
-  const visitOp = (module: number, op: LinkedOp): void => {
-    if (op.op === OpKind.Element) {
-      for (const child of op.children) {
-        visitOp(module, child);
+    for (const id of qrl.dependencies.qrls) {
+      const index = qrlIndexes[decl.module].get(id);
+      if (index !== undefined) {
+        visitDecl({ module: decl.module, table: DeclTable.Qrls, index });
       }
-      return;
-    }
-    if (op.op === OpKind.Slot) {
-      if (op.fallback !== null) {
-        const qrl = qrlIndexes[module].get(op.fallback.qrl);
-        if (qrl !== undefined) {
-          visitDecl({ module, table: DeclTable.Qrls, index: qrl });
-        }
-      }
-      return;
-    }
-    if (op.op === OpKind.DynamicSlot) {
-      const qrl = qrlIndexes[module].get(op.render.qrl);
-      if (qrl !== undefined) {
-        visitDecl({ module, table: DeclTable.Qrls, index: qrl });
-      }
-      return;
-    }
-    if (op.op !== OpKind.Component) {
-      return;
-    }
-    for (const projection of op.projections) {
-      const use = projection.kind === ProjectionKind.Forward ? projection.fallback : projection.use;
-      if (use === null) {
-        continue;
-      }
-      const qrl = qrlIndexes[module].get(use.qrl);
-      if (qrl !== undefined) {
-        visitDecl({ module, table: DeclTable.Qrls, index: qrl });
-      }
-    }
-    const target = op.target;
-    if (target.t === ComponentTargetKind.Dynamic) {
-      return;
-    }
-    visitImport(module, target.binding);
-    if (target.declaration.ok) {
-      visitDecl(target.declaration.value);
     }
   };
   const visitImport = (module: number, binding: LocalId): void => {
@@ -623,6 +571,7 @@ function materializeModule(
     programs,
     qrls: plan.qrls.map((qrl) => ({
       ...qrl,
+      dependencies: collectQrlDependencies(plan, qrl),
       delivery: { d: DeliveryKind.Chunk, chunkBase: `${plan.path}_${qrl.name}`, resolved: true },
     })),
     hooks: plan.hooks,

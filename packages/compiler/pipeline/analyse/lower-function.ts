@@ -4,7 +4,7 @@ import { UnsupportedError } from '../errors';
 import { lowerCaptures } from './ast/capture-analysis';
 import { findRuntimeJsx } from './ast/returns-jsx';
 import { pushPayload, pushQrl, QrlIdentityKind, type LowerContext } from './lower-context';
-import { recordPayloadAliasReads } from './lower-expr';
+import { recordPayloadReads } from './lower-expr';
 
 /** Explicit and implicit boundaries share callback extraction and capture semantics. */
 export function lowerFunctionQrl(
@@ -35,7 +35,7 @@ export function lowerFunctionQrl(
     range: [node.start, node.end],
     argumentRange: [node.argument.start, node.argument.end],
   }));
-  recordPayloadAliasReads(ctx, payload, refs);
+  recordPayloadReads(ctx, payload, refs);
   return pushQrl(
     ctx,
     {

@@ -31,7 +31,7 @@ import { pushPayload, type LowerContext } from './lower-context';
 import { collectCaptures, lowerCaptures } from './ast/capture-analysis';
 import {
   lowerInlineExpressionValue,
-  recordPayloadAliasReads,
+  recordPayloadReads,
   resolveQrlBinding,
   tryLowerExprIr,
 } from './lower-expr';
@@ -90,7 +90,7 @@ function lowerSetupBinding(
       ? lowerInlineExpressionValue(pattern.right, ctx, refs)
       : undefined;
   const payload = pushPayload(ctx, [target.start, target.end]);
-  recordPayloadAliasReads(ctx, payload, refs);
+  recordPayloadReads(ctx, payload, refs);
   const localKind = target.type === 'Identifier' ? kind : LocalKind.Const;
   for (const binding of bindings) {
     locals.set(binding, {
@@ -150,7 +150,8 @@ function lowerSetupDeclaration(
   ctx: LowerContext,
   locals: SetupLocals
 ): Setup {
-  const init = unwrapExpression(declarator.init);
+  const expression = unwrapExpression(declarator.init);
+  const init = expression?.type === 'ChainExpression' ? expression.expression : expression;
   if (init?.type !== 'CallExpression') {
     return lowerConstDeclaration(declarator, ctx, locals);
   }
@@ -169,6 +170,9 @@ function lowerSetupDeclaration(
     );
   }
   const callee = resolveSetupCall(init, ctx);
+  if (expression?.type === 'ChainExpression' && (callee === null || !/^use.+/.test(callee.name))) {
+    return lowerConstDeclaration(declarator, ctx, locals);
+  }
   if (callee !== null) {
     return lowerSetupCall(init, callee, declarator.id, ctx, locals);
   }

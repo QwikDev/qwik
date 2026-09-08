@@ -35,7 +35,7 @@ import { JsxValueKind, type JsxValue } from './ast/jsx-analysis';
 import {
   lowerExpressionValue,
   lowerInlineExpressionValue,
-  recordPayloadAliasReads,
+  recordPayloadReads,
   trySignalReadValue,
 } from './lower-expr';
 import type { LowerContext } from './lower-context';
@@ -216,7 +216,7 @@ function lowerComponentPropsProxy(attributes: readonly JSXAttributeItem[], ctx: 
   }
   const { captures, args, refs } = lowerCaptures(expressions, ctx, 'component props');
   for (const payload of payloads) {
-    recordPayloadAliasReads(ctx, payload, refs);
+    recordPayloadReads(ctx, payload, refs);
   }
   const range: [number, number] = [attributes[0].start, attributes[attributes.length - 1].end];
   const { use } = pushQrl(

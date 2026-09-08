@@ -103,6 +103,7 @@ describe('collectCaptures', () => {
         [expect.any(Number), expect.any(Number)],
         [expect.any(Number), expect.any(Number)],
       ],
+      imports: [],
       locals: [],
       other: null,
     });
@@ -118,6 +119,7 @@ describe('collectCaptures', () => {
   test('handler params shadow outer names', () => {
     expect(refsOf('(count) => count.value', { count: true })).toEqual({
       propsReads: [],
+      imports: [],
       locals: [],
       other: null,
     });
@@ -131,6 +133,7 @@ describe('collectCaptures', () => {
   test('unknown globals are ignored entirely', () => {
     expect(refsOf('() => console.log(1)')).toEqual({
       propsReads: [],
+      imports: [],
       locals: [],
       other: null,
     });

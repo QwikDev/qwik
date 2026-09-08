@@ -16,6 +16,7 @@ import type {
   LocalId,
   PayloadId,
   PlanFormat,
+  QrlId,
   Range,
 } from './shared';
 import type { EsmEdge, Payload } from './value';
@@ -134,6 +135,8 @@ export const enum DeliveryKind {
 }
 
 export interface LinkedQrl extends Qrl {
+  /** Direct executable references, excluding bodies behind another QRL boundary. */
+  dependencies: { bindings: LocalId[]; qrls: QrlId[] };
   /** Full delivery states, per environment link; chunk naming decided at link, not in neutral data. */
   delivery:
     | { d: DeliveryKind.Chunk; chunkBase: string; resolved: boolean }

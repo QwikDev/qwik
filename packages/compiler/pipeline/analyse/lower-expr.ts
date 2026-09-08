@@ -66,7 +66,7 @@ export function lowerComputedExpressionValue(
       const { captures, args, refs } = lowerCaptures(expression, ctx, 'an expression');
       const range: [number, number] = [expression.start, expression.end];
       const payload = pushPayload(ctx, range);
-      recordPayloadAliasReads(ctx, payload, refs);
+      recordPayloadReads(ctx, payload, refs);
       const ir = tryLowerExprIr(expression, ctx);
       const expr =
         ir === null
@@ -105,12 +105,17 @@ export function lowerComputedExpressionValue(
   }
 }
 
-export function recordPayloadAliasReads(
+export function recordPayloadReads(
   ctx: LowerContext,
   payload: PayloadId,
   refs: CollectedCaptures
 ): void {
   const target = ctx.plan.payloads[payload];
+  target.reads.push(
+    ...refs.imports.filter(
+      ({ range }) => range[0] >= target.range[0] && range[1] <= target.range[1]
+    )
+  );
   for (const entry of refs.locals) {
     const value = localReadIr(entry.local);
     if (value === null) {
@@ -154,7 +159,7 @@ export function lowerInlineExpressionValue(
     throw new UnsupportedError('JSX inside an expression value');
   }
   const payload = pushPayload(ctx, [expression.start, expression.end]);
-  recordPayloadAliasReads(ctx, payload, refs);
+  recordPayloadReads(ctx, payload, refs);
   const ir = tryLowerExprIr(expression, ctx);
   return {
     v: ValueKind.Computed,

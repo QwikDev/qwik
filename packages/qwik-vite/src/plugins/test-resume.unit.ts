@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, realpath, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -55,7 +55,7 @@ for (const target of ['csr', 'ssr', 'resume'] as const) {
 }
 
 test('keeps SSR node resolution and resumes through transitive browser resolution', async () => {
-  const root = await mkdtemp(path.join(tmpdir(), 'qwik-vite-resume-'));
+  const root = await realpath(await mkdtemp(path.join(tmpdir(), 'qwik-vite-resume-')));
   const srcDir = path.join(root, 'src');
   const callbacks: string[] = [];
 

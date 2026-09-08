@@ -2,6 +2,7 @@ import type { Node } from 'oxc-parser';
 import {
   ArgPass,
   CaptureAccess,
+  BindingScope,
   type LocalId,
   type Qrl,
   type QrlUse,
@@ -15,6 +16,7 @@ import { collectIrBindingIds } from '../../../src/expr-ir';
 
 export interface CollectedCaptures {
   propsReads: Range[];
+  imports: Payload['reads'];
   /** Reactive setup locals the boundary captures, in first-read order. */
   locals: {
     name: string;
@@ -25,10 +27,7 @@ export interface CollectedCaptures {
   other: string | null;
 }
 
-/**
- * Outer bindings a boundary references: the props param and reactive setup locals are capturable;
- * anything else would emit a chunk referencing names absent from the chunk module — refuse.
- */
+/** Imports retain module identity; supported setup bindings become captures. */
 export function collectCaptures(
   node: Node | Node[],
   ctx: LowerContext,
@@ -36,6 +35,7 @@ export function collectCaptures(
 ): CollectedCaptures {
   const propsReads: Range[] = [];
   const locals: CollectedCaptures['locals'] = [];
+  const imports: Payload['reads'] = [];
   let other: string | null = null;
   for (const { node: current, binding, role } of ctx.bindings.freeReferences(node)) {
     if (current.type !== 'Identifier' || localBindings.has(binding)) {
@@ -52,11 +52,16 @@ export function collectCaptures(
       } else {
         entry.reads.push(read);
       }
+    } else if (
+      ctx.plan.bindings[binding].scope === BindingScope.Import &&
+      ctx.plan.imports.some((entry) => entry.binding === binding && !entry.typeOnly)
+    ) {
+      imports.push({ range: [current.start, current.end], binding, role });
     } else {
       other ??= ctx.plan.bindings[binding].name;
     }
   }
-  return { propsReads, locals, other };
+  return { propsReads, locals, imports, other };
 }
 
 export interface LoweredCaptures {

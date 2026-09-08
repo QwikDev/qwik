@@ -40,6 +40,20 @@ async function testInputs(mode: 'ssr' | 'csr', snapshotName: string, inputs: rea
 }
 
 describe.each(['ssr', 'csr'] as const)('%s', (mode) => {
+  test('should import module references in event computed and task chunks', async () => {
+    const output = await testInput(mode, 'qrl-imports', {
+      code: `import { useSignal, useComputed$, useTask$ } from '@qwik.dev/core';
+import { calculate, save } from './pricing';
+export default () => {
+  const count = useSignal(2);
+  const total = useComputed$(() => calculate(count.value));
+  useTask$(() => save(total.value));
+  return <button onClick$={() => save(count.value)}>{total.value}</button>;
+};`,
+    });
+    expect(output.diagnostics).toEqual([]);
+  });
+
   test('should lower component$ through the ordinary component pipeline', async () => {
     const output = await testInput(mode, 'component-marker', {
       code: `import { component$ as component, useSignal } from '@qwik.dev/core';

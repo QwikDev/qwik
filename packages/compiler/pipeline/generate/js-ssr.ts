@@ -43,6 +43,7 @@ import {
 } from './emit-chunk';
 import { emitJsSetup, signalReadName } from './emit-setup';
 import { sourceFunctionEmission } from './emit-function';
+import { requestBindingImport } from './emit-import';
 import { emitCollectionSource } from './emit-collection';
 import { foldStaticOp, isFullyStaticSubtree } from './fold-static';
 import { emitComponentCall, type ComponentEmission, type GeneratedNames } from './emit-component';
@@ -896,6 +897,9 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       if (usage.invoked) {
         // The server invokes render expressions in-module: mirror fn + `.s()` registration.
         const emission = this.qrlFunction(qrl);
+        for (const binding of qrl.dependencies.bindings) {
+          requestBindingImport(this.module, binding, this.imports);
+        }
         for (const name of emission.imports) {
           this.imports.add(name);
         }

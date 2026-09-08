@@ -36,9 +36,6 @@ export function discoverComponents(
 ): DiscoveredComponent[] {
   return candidates.map(({ statement, fn, name }) => {
     if (fn.type === 'FunctionDeclaration') {
-      if (fn.async || fn.generator) {
-        throw new UnsupportedError('an async or generator component function');
-      }
       const isDefault = statement.type === 'ExportDefaultDeclaration';
       return describeComponent(
         statement,
@@ -48,8 +45,8 @@ export function discoverComponents(
         fn.id
       );
     }
-    if (fn.type !== 'ArrowFunctionExpression') {
-      throw new UnsupportedError('a component declaration that is not an arrow function');
+    if (fn.type !== 'ArrowFunctionExpression' && fn.type !== 'FunctionExpression') {
+      throw new UnsupportedError('a component declaration without an inline function');
     }
     if (statement.type === 'ExportDefaultDeclaration') {
       return describeComponent(statement, fn, 'default', DeclarationKind.DefaultArrow, null);
@@ -80,6 +77,9 @@ function describeComponent(
   declarationKind: DeclarationKind,
   bindingNode: BindingIdentifier | null
 ): DiscoveredComponent {
+  if (fn.async || (fn.type !== 'ArrowFunctionExpression' && fn.generator)) {
+    throw new UnsupportedError('an async or generator component function');
+  }
   const params = fn.params;
   if (params.length > 1) {
     throw new UnsupportedError('more than one component parameter');

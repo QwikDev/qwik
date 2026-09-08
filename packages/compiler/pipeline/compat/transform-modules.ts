@@ -21,6 +21,7 @@ import {
   type Specialization,
 } from '../schema';
 
+/** @internal */
 export async function transformModules(options: TransformModulesOptions): Promise<TransformOutput> {
   const sourceByPath = new Map(options.input.map((input) => [input.path, input.code]));
   const plans = await Promise.all(

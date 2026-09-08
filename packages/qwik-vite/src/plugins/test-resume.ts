@@ -1,19 +1,10 @@
-import * as compiler from '@qwik.dev/compiler';
+import {
+  extractRenderRoots,
+  transformPipelineModules as transformModules,
+} from '@qwik.dev/compiler';
 import type { Rollup, ViteDevServer } from 'vite';
 import type { TransformModule, TransformModulesOptions, TransformOutput } from '../types';
 import { parseId } from './vite-utils';
-
-const { extractRenderRoots, transformModules } = compiler as typeof compiler & {
-  extractRenderRoots: (
-    path: string,
-    code: string
-  ) => Array<{
-    argumentStart: number;
-    argumentEnd: number;
-    code: string;
-    exportName: string;
-  }>;
-};
 
 const TEST_RESUME_REGISTRY_NAME = '@qwik.dev/core/testing/resume';
 const TEST_RESUME_REGISTRY = Symbol.for(TEST_RESUME_REGISTRY_NAME);

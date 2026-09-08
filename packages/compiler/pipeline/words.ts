@@ -4,6 +4,7 @@ export const QWIK_CORE_IMPORT = '@qwik.dev/core';
 
 export const enum QwikMarker {
   Dollar = '$',
+  Component = 'component$',
 }
 
 /** Runtime names imported from `@qwik.dev/core`. */

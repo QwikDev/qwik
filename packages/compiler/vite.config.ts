@@ -17,7 +17,7 @@ export default defineConfig(({ mode }) => ({
     target: 'safari15.4',
     minify: mode === 'development' ? false : 'esbuild',
     lib: {
-      entry: 'src/index.ts',
+      entry: resolve(__dirname, 'src/index.ts'),
       name: 'compiler',
       fileName: () => 'index.mjs',
       formats: ['es'],
@@ -32,11 +32,12 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     dts({
+      pathsToAliases: false,
       tsconfigPath: resolve(__dirname, 'tsconfig.json'),
       compilerOptions: {
-        rootDir: join(__dirname, 'src'),
+        rootDir: __dirname,
       },
-      rollupTypes: true,
+      insertTypesEntry: true,
     }),
   ],
 }));

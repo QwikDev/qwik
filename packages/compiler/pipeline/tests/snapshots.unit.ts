@@ -40,6 +40,18 @@ async function testInputs(mode: 'ssr' | 'csr', snapshotName: string, inputs: rea
 }
 
 describe.each(['ssr', 'csr'] as const)('%s', (mode) => {
+  test('should lower component$ through the ordinary component pipeline', async () => {
+    const output = await testInput(mode, 'component-marker', {
+      code: `import { component$ as component, useSignal } from '@qwik.dev/core';
+export const Counter = component(({ initial = 0 }) => {
+  const count = useSignal(initial);
+  return <button onClick$={() => count.value++}>{count.value}</button>;
+});
+export default component(() => <Counter initial={1} />);`,
+    });
+    expect(output.diagnostics).toEqual([]);
+  });
+
   test('should forward reactive component rest props and project children', async () => {
     const output = await testInput(mode, 'component-prop-rest', {
       code: `export const Child = ({ label, children }) => <section title={label}>{children}</section>;

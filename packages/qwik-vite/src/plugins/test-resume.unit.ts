@@ -4,8 +4,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createServer } from 'vite';
 import { assert, test } from 'vitest';
+import { transformModules } from '../../../compiler/pipeline/compat/transform-modules';
 import type { OptimizerOptions } from '../types';
-import type { TestResumeTransformMetadata } from './test-resume';
+import { createTestResume, type TestResumeTransformMetadata } from './test-resume';
 import { qwikVite, type QwikVitePlugin } from './vite';
 
 const TEST_RESUME_REGISTRY = Symbol.for('@qwik.dev/core/testing/resume');
@@ -13,6 +14,45 @@ const TEST_COMPILED = Symbol.for('@qwik.dev/core/testing/compiled');
 const TEST_TARGET = Symbol.for('@qwik.dev/core/testing/target');
 const coreSource = fileURLToPath(new URL('../../../qwik/dist/core.mjs', import.meta.url));
 const preloaderSource = fileURLToPath(new URL('../../../qwik/dist/preloader.mjs', import.meta.url));
+
+for (const target of ['csr', 'ssr', 'resume'] as const) {
+  test(`uses pipeline output for both sides of the ${target} harness`, async () => {
+    const harness = createTestResume();
+    harness.configure(target);
+    const options = {
+      input: [
+        {
+          path: 'counter.tsx',
+          code: `
+        import { useSignal } from '@qwik.dev/core';
+        export const Counter = () => {
+          const count = useSignal(0);
+          return <button onClick$={() => count.value++}>{count.value}</button>;
+        };
+      `,
+        },
+      ],
+      isServer: target !== 'csr',
+      transpileTs: true,
+    };
+    try {
+      const expectedServer = await transformModules(options);
+      const expectedClient = await transformModules({
+        ...options,
+        isServer: false,
+        entryStrategy: { type: 'segment' },
+      });
+      const result = await harness.transform(options, '/src/counter.tsx', '/src', path, (id) => id);
+      const clientModules = expectedClient.modules.filter(
+        (module) => module.isEntry || module.segment
+      );
+      assert.deepEqual(result?.output.modules, expectedServer.modules);
+      assert.deepEqual(result?.modules.slice(-clientModules.length), clientModules);
+    } finally {
+      harness.clear();
+    }
+  });
+}
 
 test('keeps SSR node resolution and resumes through transitive browser resolution', async () => {
   const root = await mkdtemp(path.join(tmpdir(), 'qwik-vite-resume-'));

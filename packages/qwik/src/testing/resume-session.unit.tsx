@@ -25,12 +25,12 @@ const failRender = (): never => {
   throw new Error('render failed');
 };
 
-const Broken = component$(() => failRender());
+const Broken = () => failRender();
 
 const cleanups: Array<() => void> = [];
 
 afterEach(() => {
-  for (const cleanup of cleanups.splice(0)) {
+  for (const cleanup of cleanups.splice(0).values()) {
     cleanup();
   }
 });

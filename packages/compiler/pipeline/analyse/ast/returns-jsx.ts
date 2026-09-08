@@ -2,18 +2,10 @@ import type { JSXElement, JSXFragment, Node, Program, Statement } from 'oxc-pars
 import { isNode, type WalkableNode } from './ast-types';
 import { identifierName, isFunctionLike, unwrapExpression } from './utils';
 import type { JsxAnalysis } from './jsx-analysis';
-
-/**
- * A top-level function qualifies as a component candidate only when its name is Uppercased (JSX
- * component convention; anonymous default exports have no name to judge) AND JSX sits in VALUE
- * position of a return — JSX inside a call's arguments belongs to that call (`return
- * renderToStream(<Root/>)` must not get its signature rewritten).
- */
-export function findComponentCandidates(program: Program, jsx: JsxAnalysis): ComponentCandidate[] {
-  return topLevelFunctions(program).filter(
-    (candidate) => hasComponentName(candidate.name) && returnPositionContainsJsx(candidate.fn, jsx)
-  );
-}
+import type { BindingGraph } from './bindings';
+import type { LocalId } from '../../schema';
+import { QwikMarker } from '../../words';
+import { UnsupportedError } from '../../errors';
 
 function hasComponentName(name: string | null): boolean {
   return name === null || /^[A-Z]/.test(name);
@@ -25,21 +17,54 @@ export interface ComponentCandidate {
   name: string | null;
 }
 
-function topLevelFunctions(program: Program): ComponentCandidate[] {
+/** Explicit markers and JSX-returning functions share component discovery. */
+export function findComponentCandidates(
+  program: Program,
+  jsx: JsxAnalysis,
+  bindings: BindingGraph,
+  coreBindings: ReadonlyMap<LocalId, string>
+): ComponentCandidate[] {
   const functions: ComponentCandidate[] = [];
-  const fromDeclaration = (declaration: Node, statement: Statement): void => {
-    if (isFunctionLike(declaration)) {
-      functions.push({ statement, fn: declaration, name: identifierName(declaration.id) });
-      return;
+  const addCandidate = (value: Node, name: string | null, statement: Statement): void => {
+    let fn = unwrapExpression(value);
+    let isMarked = false;
+    if (fn?.type === 'CallExpression') {
+      const binding = bindings.reference(fn.callee);
+      if (binding === null || coreBindings.get(binding) !== QwikMarker.Component) {
+        return;
+      }
+      const argument = fn.arguments[0];
+      if (fn.arguments.length !== 1 || argument.type === 'SpreadElement') {
+        throw new UnsupportedError('component$ without exactly one inline function');
+      }
+      fn = unwrapExpression(argument);
+      if (fn === null || !isFunctionLike(fn)) {
+        throw new UnsupportedError('component$ without an inline function');
+      }
+      isMarked = true;
     }
+    if (
+      fn !== null &&
+      isFunctionLike(fn) &&
+      (isMarked || (hasComponentName(name) && returnPositionContainsJsx(fn, jsx)))
+    ) {
+      functions.push({ statement, fn, name });
+    }
+  };
+  const fromDeclaration = (declaration: Node, statement: Statement): void => {
     if (declaration.type === 'VariableDeclaration') {
       for (const declarator of declaration.declarations) {
-        const init = unwrapExpression(declarator.init);
-        if (init !== null && isFunctionLike(init)) {
-          functions.push({ statement, fn: init, name: identifierName(declarator.id) });
+        if (declarator.init !== null) {
+          addCandidate(declarator.init, identifierName(declarator.id), statement);
         }
       }
+      return;
     }
+    addCandidate(
+      declaration,
+      isFunctionLike(declaration) ? identifierName(declaration.id) : null,
+      statement
+    );
   };
   for (const statement of program.body) {
     if (

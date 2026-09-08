@@ -23,6 +23,9 @@ export { linkSsrPlan } from './link-plan';
 export type { LinkedComponent, LinkedModule, QwikSsrPlan } from './link-plan';
 export type { QwikModulePlan } from './emit-plan';
 
+/** @internal */
+export { transformModules as transformPipelineModules } from '../pipeline/compat/transform-modules';
+
 export async function transformModules(options: TransformModulesOptions): Promise<TransformOutput> {
   // native$ crosses modules: register every declaration before any module lowers a call to it
   registerNativeFns(options.input);

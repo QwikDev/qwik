@@ -311,6 +311,11 @@ export function lowerRenderExpression(expression: Expression, ctx: LowerContext)
     ];
   }
   switch (value.kind) {
+    case JsxValueKind.Empty:
+      if (expression.type !== 'Identifier' || ctx.bindings.reference(expression) === null) {
+        return [];
+      }
+      break;
     case JsxValueKind.Element:
       return [lowerJsx(value.node, ctx)];
     case JsxValueKind.Fragment:

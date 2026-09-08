@@ -3,6 +3,7 @@
  * the stage bodies are mocks. Foreign (non-Qwik) modules already flow to real output.
  */
 import { describe, expect, test } from 'vitest';
+import { format } from 'prettier';
 import { analyseModule, generateJsSsr, linkPlans, transformModules } from '../index';
 import {
   BuildMode,
@@ -16,6 +17,92 @@ import {
 import { loadDefaultFunction, serverSpecialization } from './fixtures';
 
 describe('pipeline flow', () => {
+  test('a binding named undefined is not empty render output', async () => {
+    const plan = await analyseModule(
+      { path: 'src/app.tsx', code: 'export default (undefined) => <p>{undefined}</p>;' },
+      {}
+    );
+    expect(plan.kind).toBe(ModuleKind.Qwik);
+    expect(plan.qrls.some((qrl) => qrl.ctxName === 'text')).toBe(true);
+  });
+
+  test.each([
+    'component$()',
+    'component$(...callbacks)',
+    'component$(() => <p />, options)',
+    'component$(callback)',
+  ])(
+    'rejects unsupported marker calls without discarding authored execution: %s',
+    async (expression) => {
+      await expect(
+        analyseModule(
+          {
+            path: 'src/app.tsx',
+            code: `import { component$ } from '@qwik.dev/core';\nexport const App = ${expression};`,
+          },
+          {}
+        )
+      ).rejects.toThrow('component$');
+    }
+  );
+
+  test.each([true, false])(
+    'component$ and plain components emit identical code (SSR: %s)',
+    async (isServer) => {
+      const fn = `({ title = 'default', children, ...rest }) => <section title={title}>{children}</section>`;
+      for (const declaration of ['export const App =', 'export default']) {
+        const compile = (expression: string) =>
+          transformModules({
+            input: [
+              {
+                path: 'src/app.tsx',
+                code: `import { component$ } from '@qwik.dev/core';\n${declaration} ${expression};`,
+              },
+            ],
+            isServer,
+            transpileTs: true,
+          });
+        const plain = await compile(fn);
+        const marked = await compile(`component$(${fn})`);
+        expect(marked.diagnostics).toEqual([]);
+        const formatted = (output: typeof plain) =>
+          Promise.all(output.modules.map(({ code }) => format(code, { parser: 'babel' })));
+        expect(await formatted(marked)).toEqual(await formatted(plain));
+      }
+    }
+  );
+
+  test.each([
+    `import { component$ } from './other';`,
+    `const component$ = (fn) => fn;`,
+    `import type { component$ } from '@qwik.dev/core';`,
+  ])('does not recognize unrelated component$ bindings: %s', async (prefix) => {
+    const plan = await analyseModule(
+      { path: 'src/app.tsx', code: `${prefix}\nexport const App = component$(() => <p />);` },
+      {}
+    );
+    expect(plan.kind).toBe(ModuleKind.Failed);
+    expect(plan.diagnostics[0].code).toBe('unsupported-runtime-jsx');
+  });
+
+  test.each(['() => null', 'function () { return null; }'])(
+    'component$ explicitly marks a headless component: %s',
+    async (fn) => {
+      const output = await transformModules({
+        input: [
+          {
+            path: 'src/app.tsx',
+            code: `import { component$ } from '@qwik.dev/core';\nexport default component$(${fn});`,
+          },
+        ],
+        isServer: true,
+      });
+      expect(output.diagnostics).toEqual([]);
+      expect(output.modules[0].code).not.toContain('component$(');
+      expect(loadDefaultFunction(output.modules[0], {})()).toBe('');
+    }
+  );
+
   test.each([
     ['SSR', true],
     ['CSR', false],

@@ -63,7 +63,12 @@ export async function analyseModule(
   }
 
   const jsx = createJsxAnalysis();
-  const candidates = findComponentCandidates(parsed.program, jsx);
+  const bindings = createBindingGraph(parsed.program);
+  plan.bindings = bindings.bindings;
+  const authoredProgram =
+    normalized.map === null ? null : parseModule(input.path, input.code).program;
+  const coreBindings = scanModuleSurface(parsed.program, authoredProgram, plan, bindings);
+  const candidates = findComponentCandidates(parsed.program, jsx, bindings, coreBindings);
   if (candidates.length === 0) {
     const leftoverJsx = findRuntimeJsx(parsed.program);
     if (leftoverJsx !== null) {
@@ -78,11 +83,14 @@ export async function analyseModule(
       return finish();
     }
     // Non-Qwik module: authored source kept, transpiled at generate.
-    const surfaceProgram =
-      normalized.map === null ? parsed.program : parseModule(input.path, input.code).program;
-    const surfaceBindings = createBindingGraph(surfaceProgram);
-    plan.bindings = surfaceBindings.bindings;
-    scanModuleSurface(surfaceProgram, null, plan, surfaceBindings);
+    if (authoredProgram !== null) {
+      const foreignPlan = emptyPlan(input.path, input.code);
+      const surfaceBindings = createBindingGraph(authoredProgram);
+      foreignPlan.bindings = surfaceBindings.bindings;
+      scanModuleSurface(authoredProgram, null, foreignPlan, surfaceBindings);
+      foreignPlan.kind = ModuleKind.Foreign;
+      return foreignPlan;
+    }
     plan.kind = ModuleKind.Foreign;
     plan.source.normalizationMap = null;
     return plan;
@@ -100,8 +108,6 @@ export async function analyseModule(
   }
 
   plan.kind = ModuleKind.Qwik;
-  const bindings = createBindingGraph(parsed.program);
-  plan.bindings = bindings.bindings;
   plan.source.code = normalized.code;
   plan.lifetimes.push({
     id: 0,
@@ -109,9 +115,6 @@ export async function analyseModule(
     owner: LifetimeOwner.Component,
     commit: LifetimeCommit.Immediate,
   });
-  const authoredProgram =
-    normalized.map === null ? null : parseModule(input.path, input.code).program;
-  const coreBindings = scanModuleSurface(parsed.program, authoredProgram, plan, bindings);
   const authoredStatements = parsed.program.body.filter(
     (statement) => statement.type !== 'ImportDeclaration' && !componentStatements.has(statement)
   );

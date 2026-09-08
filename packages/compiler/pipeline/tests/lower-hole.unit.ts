@@ -119,8 +119,9 @@ describe('lowerText', () => {
     });
   });
 
-  test('JSX inside callbacks remains unsupported in expression payloads', () => {
-    expect(() => holeFor('[1, 2].map(() => <li>x</li>)')).toThrow('JSX inside an expression value');
+  test('JSX inside callbacks becomes a render value in expression payloads', () => {
+    const { ctx } = holeFor('[1, 2].map(() => <li>x</li>)');
+    expect(ctx.plan.payloads.flatMap((payload) => payload.qrls)).toHaveLength(1);
   });
 
   test('a concat with a dynamic operand stays one computed hole; all-literal concats fold', () => {

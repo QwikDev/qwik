@@ -362,7 +362,7 @@ export default function App() {
   });
 
   test.each(['() => <b />', '() => { return <b />; }'])(
-    'JSX in event handlers remains unsupported: %s',
+    'JSX in event handlers becomes a render value: %s',
     async (handler) => {
       await expect(
         analyseModule(
@@ -372,7 +372,11 @@ export default function App() {
           },
           { transpileTs: true }
         )
-      ).rejects.toThrow('JSX inside an event handler');
+      ).resolves.toMatchObject({
+        qrls: expect.arrayContaining([
+          expect.objectContaining({ boundary: { kind: 'implicit', role: 'jsx-value' } }),
+        ]),
+      });
     }
   );
 

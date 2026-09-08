@@ -18,8 +18,10 @@ import { isNode, type WalkableNode } from './ast-types';
 
 export interface JsxFactory {
   fn: ArrowFunctionExpression | FunctionNode;
-  roots: (JSXElement | JSXFragment)[];
+  roots: JsxExpressionRoot[];
 }
+
+export type JsxExpressionRoot = JSXElement | JSXFragment | ArrowFunctionExpression | FunctionNode;
 
 export const enum JsxValueKind {
   Element = 'element',
@@ -58,11 +60,11 @@ export type JsxValue = Readonly<
 
 export interface JsxAnalysis {
   read(node: Node): JsxValue;
-  expressionRoots(node: Node): (JSXElement | JSXFragment)[];
+  expressionRoots(node: Node): JsxExpressionRoot[];
   factory(node: Node): JsxFactory | null;
 }
 
-/** Share value structure without entering element children or callback bodies. */
+/** Share JSX value structure and callback scopes across lowering consumers. */
 export function createJsxAnalysis(bindings?: BindingGraph): JsxAnalysis {
   const values = new WeakMap<Node, JsxValue>();
   const factories = new WeakMap<Node, JsxFactory | null>();
@@ -199,22 +201,19 @@ export function createJsxAnalysis(bindings?: BindingGraph): JsxAnalysis {
     return { kind: JsxValueKind.Value, node, hasJsxValue: false };
   }
 
-  return {
-    read,
-    expressionRoots,
-    factory(source) {
-      const node = unwrapExpression(source)!;
-      if (!factories.has(node)) {
-        factories.set(node, readFactory(node));
-      }
-      return factories.get(node)!;
-    },
-  };
+  function factory(source: Node): JsxFactory | null {
+    const node = unwrapExpression(source)!;
+    if (!factories.has(node)) {
+      factories.set(node, readFactory(node, factory));
+    }
+    return factories.get(node)!;
+  }
+  return { read, expressionRoots: (node) => expressionRoots(node, factory), factory };
 }
 
-function readFactory(source: Node): JsxFactory | null {
+function readFactory(source: Node, factory: JsxAnalysis['factory']): JsxFactory | null {
   const fn = unwrapExpression(source)!;
-  if (fn.type !== 'ArrowFunctionExpression' && fn.type !== 'FunctionExpression') {
+  if (!isFunctionLike(fn)) {
     return null;
   }
   const roots: JsxFactory['roots'] = [];
@@ -231,8 +230,8 @@ function readFactory(source: Node): JsxFactory | null {
       return;
     }
     if (isFunctionLike(node)) {
-      if (findRuntimeJsx(node) !== null) {
-        throw new UnsupportedError('JSX inside a nested factory callback');
+      if (factory(node) !== null) {
+        roots.push(node);
       }
       return;
     }
@@ -248,32 +247,37 @@ function readFactory(source: Node): JsxFactory | null {
 }
 
 /** Containers preserve native evaluation while embedded JSX becomes render values. */
-function expressionRoots(source: Node): (JSXElement | JSXFragment)[] {
+function expressionRoots(source: Node, factory: JsxAnalysis['factory']): JsxExpressionRoot[] {
   const node = unwrapExpression(source)!;
+  const read = (child: Node) => expressionRoots(child, factory);
   switch (node.type) {
     case 'JSXElement':
     case 'JSXFragment':
       return [node];
     case 'ArrayExpression':
-      return node.elements.flatMap((element) => (element === null ? [] : expressionRoots(element)));
+      return node.elements.flatMap((element) => (element === null ? [] : read(element)));
     case 'ObjectExpression':
       return node.properties.flatMap((property) =>
         property.type === 'SpreadElement'
-          ? expressionRoots(property.argument)
-          : [...expressionRoots(property.key), ...expressionRoots(property.value)]
+          ? read(property.argument)
+          : [...read(property.key), ...read(property.value)]
       );
     case 'SpreadElement':
-      return expressionRoots(node.argument);
+      return read(node.argument);
     case 'ConditionalExpression':
-      return [node.test, node.consequent, node.alternate].flatMap(expressionRoots);
+      return [node.test, node.consequent, node.alternate].flatMap(read);
     case 'LogicalExpression':
-      return [node.left, node.right].flatMap(expressionRoots);
+      return [node.left, node.right].flatMap(read);
     case 'MemberExpression':
-      return [node.object, ...(node.computed ? [node.property] : [])].flatMap(expressionRoots);
+      return [node.object, ...(node.computed ? [node.property] : [])].flatMap(read);
     case 'ChainExpression':
-      return expressionRoots(node.expression);
+      return read(node.expression);
     case 'CallExpression':
-      return [node.callee, ...node.arguments].flatMap(expressionRoots);
+      return [node.callee, ...node.arguments].flatMap(read);
+    case 'ArrowFunctionExpression':
+    case 'FunctionExpression':
+    case 'FunctionDeclaration':
+      return factory(node) === null ? [] : [node];
     default:
       if (findRuntimeJsx(node) !== null) {
         throw new UnsupportedError('JSX inside an expression value');

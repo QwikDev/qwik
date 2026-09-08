@@ -179,14 +179,11 @@ const signal = useSignal(count), snapshot = signal.value;
 });
 
 test('component setup restores the surrounding local scope on success and failure', () => {
-  for (const source of [
-    'const count = 1;',
-    'const count = 1; const other = wrap(() => <span />);',
-  ]) {
+  for (const source of ['const count = 1;', 'const count = 1; for (;;) {}']) {
     const parsed = parseModule('t.tsx', source);
     const { ctx } = createTestLowerContext(parsed.program, source);
     const outerLocals = ctx.locals;
-    if (source.includes('<span')) {
+    if (source.includes('for')) {
       expect(() => lowerSetup(parsed.program.body, ctx)).toThrow();
     } else {
       expect(lowerSetup(parsed.program.body, ctx).locals.size).toBe(1);

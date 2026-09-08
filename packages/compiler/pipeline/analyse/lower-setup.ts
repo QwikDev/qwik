@@ -42,7 +42,7 @@ import {
   tryLowerExprIr,
 } from './lower-expr';
 import { findRuntimeJsx } from './ast/returns-jsx';
-import { lowerFunctionQrl } from './lower-function';
+import { lowerFunctionQrl, recordFunctionJsx } from './lower-function';
 import { isNode, type WalkableNode } from './ast/ast-types';
 import { isFunctionLike } from './ast/utils';
 import { lowerRenderExpression } from './lower-jsx';
@@ -362,9 +362,10 @@ function lowerJsStatement(
       return;
     }
     if (isFunctionLike(node)) {
-      if (findRuntimeJsx(node) !== null) {
+      if (node.type === 'FunctionDeclaration' && findRuntimeJsx(node) !== null) {
         throw new UnsupportedError('JSX inside an ordinary setup function');
       }
+      recordFunctionJsx(ctx, payload, node);
       return;
     }
     if (node.type === 'ReturnStatement') {

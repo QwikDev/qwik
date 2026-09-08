@@ -11,7 +11,7 @@ import {
   type Value,
 } from '../schema';
 import { ValueIrKind, type ValueIR } from '../../src/expr-ir';
-import { identifierName } from './ast/utils';
+import { identifierName, isFunctionLike } from './ast/utils';
 import { lowerRenderExpression, lowerRenderQrl } from './lower-jsx';
 import { SegmentContext } from '../words';
 import { collectCaptures, lowerCaptures, type CollectedCaptures } from './ast/capture-analysis';
@@ -19,6 +19,7 @@ import { UnsupportedError } from '../errors';
 import { pushPayload, pushQrl, QrlIdentityKind, type LowerContext } from './lower-context';
 import { LocalKind, localReadIr } from './locals';
 import type { Expression, Node } from 'oxc-parser';
+import { recordFunctionJsx } from './lower-function';
 
 export type ReactiveValue = Extract<Value, { v: ValueKind.Read } | { v: ValueKind.Computed }>;
 
@@ -163,6 +164,10 @@ function lowerExpressionPayload(
 
 export function recordPayloadJsx(ctx: LowerContext, payload: PayloadId, expression: Node): void {
   for (const root of ctx.jsx.expressionRoots(expression)) {
+    if (isFunctionLike(root)) {
+      recordFunctionJsx(ctx, payload, root);
+      continue;
+    }
     const use = lowerRenderQrl(
       [root],
       ctx,

@@ -39,10 +39,10 @@ export default (props: Props) => {
     await expect(
       transformModules(
         options(`export default () => {
-  return <button onClick$={() => <span />}>go</button>;
+  return <button onClick$={function* () { yield 1; }}>go</button>;
 };
 `)
       )
-    ).rejects.toThrow('pipeline does not support: JSX inside an event handler');
+    ).rejects.toThrow('pipeline does not support: a generator QRL callback');
   });
 });

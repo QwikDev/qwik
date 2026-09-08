@@ -585,7 +585,7 @@ test('captured parameter plans survive serialization and immutable linking', asy
   expect(frozen).toEqual(plan);
 });
 
-test('rejects JSX in event parameter defaults', async () => {
+test('compiles JSX in event parameter defaults', async () => {
   await expect(
     transformModules({
       srcDir: 'src',
@@ -596,7 +596,7 @@ test('rejects JSX in event parameter defaults', async () => {
         },
       ],
     })
-  ).rejects.toThrow('JSX inside an event handler');
+  ).resolves.toMatchObject({ diagnostics: [] });
 });
 
 describe('eventScopeName', () => {

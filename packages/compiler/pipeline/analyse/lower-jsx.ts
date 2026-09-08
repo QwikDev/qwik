@@ -800,22 +800,17 @@ function lowerPropFactory(expression: Expression, ctx: LowerContext, name: strin
   if (factory === null) {
     return null;
   }
-  return lowerFunctionQrl(
-    factory.fn,
-    ctx,
-    {
-      nameCtx: name,
-      subject: 'a JSX prop factory',
-      ctxName: name,
-      boundary: { kind: BoundaryKind.Implicit, role: 'jsx-factory' },
-      origin: {
-        range: [expression.start, expression.end],
-        calleeRange: null,
-        argumentRanges: [],
-      },
+  return lowerFunctionQrl(factory.fn, ctx, {
+    nameCtx: name,
+    subject: 'a JSX prop factory',
+    ctxName: name,
+    boundary: { kind: BoundaryKind.Implicit, role: 'jsx-factory' },
+    origin: {
+      range: [expression.start, expression.end],
+      calleeRange: null,
+      argumentRanges: [],
     },
-    factory.roots
-  );
+  });
 }
 
 function lowerComponentPropValue(expression: Expression, ctx: LowerContext, name: string) {

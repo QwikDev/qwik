@@ -40,6 +40,25 @@ async function testInputs(mode: 'ssr' | 'csr', snapshotName: string, inputs: rea
 }
 
 describe.each(['ssr', 'csr'] as const)('%s', (mode) => {
+  test('compiles JSX in QRL and ordinary callback bodies', async () => {
+    const output = await testInput(mode, 'jsx-callback', {
+      code: `import { $, useSignal, useTask$, useComputed$ } from '@qwik.dev/core';
+import { consume } from './consumer';
+export default function App() {
+  const count = useSignal(0);
+  const factory = $((value) => <b>{value}</b>);
+  const computed = useComputed$(() => <i>computed</i>);
+  useTask$(() => consume(<span>task</span>));
+  consume((value) => { const label = value; return <strong>{label}</strong>; });
+  return <button onClick$={() => {
+    const native = (value) => <small>{value}</small>;
+    consume(native(count.value), factory, computed.value, <b>event</b>);
+  }}>run</button>;
+}`,
+    });
+    expect(output.diagnostics).toEqual([]);
+  });
+
   test('passes JSX factories as props and callable children', async () => {
     const output = await testInput(mode, 'jsx-factory-prop', {
       code: `import { useSignal } from '@qwik.dev/core';

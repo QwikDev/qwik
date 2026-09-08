@@ -88,12 +88,12 @@ test('extracts outer JSX roots from nested containers in evaluation order', () =
   ).toEqual(['A', 'B', 'C']);
 });
 
-test('extracts JSX call arguments without entering callback bodies', () => {
+test('retains callback scopes alongside JSX call arguments', () => {
   const jsx = createJsxAnalysis();
   expect(jsx.expressionRoots(expression('wrap(<A />, ...[render(<B />)])'))).toHaveLength(2);
-  expect(() => jsx.expressionRoots(expression('wrap(() => <A />)'))).toThrow(
-    'JSX inside an expression value'
-  );
+  const roots = jsx.expressionRoots(expression('wrap(() => <A />)'));
+  expect(roots.map((root) => root.type)).toEqual(['ArrowFunctionExpression']);
+  expect(jsx.factory(roots[0])?.roots.map((root) => root.type)).toEqual(['JSXElement']);
 });
 
 test('shares factory roots without classifying the function as a JSX value', () => {
@@ -106,7 +106,7 @@ test('shares factory roots without classifying the function as a JSX value', () 
   expect(factory?.roots).toHaveLength(2);
   expect(jsx.factory(node)).toBe(factory);
   expect(jsx.read(node).hasJsxValue).toBe(false);
-  expect(() => jsx.expressionRoots(node)).toThrow('JSX inside an expression value');
+  expect(jsx.expressionRoots(node)).toEqual([node]);
   expect(jsx.factory(expression('(value) => value'))).toBeNull();
 });
 

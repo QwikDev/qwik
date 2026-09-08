@@ -1,0 +1,248 @@
+==INPUT==
+
+import { component$, useSignal } from '@qwik.dev/core';
+export default component$(() => {
+  const count = useSignal(0);
+  const content = <><button onClick$={() => count.value++}>{count.value}</button><span>stored</span></>;
+  const alias = content;
+  return <main>{alias}{content}</main>;
+});
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useSignal,
+  _captures,
+  renderSsrContent,
+  createSsrNodeId,
+  maybeThen,
+  escapeHTML,
+  renderSsrTextNode,
+  _noopQrl,
+  renderSsrDynamicContent,
+} from '@qwik.dev/core';
+const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
+  const [count] = _captures;
+  const id0 = ctx.nextId();
+  ctx.addRoot(count);
+  const text0 = renderSsrTextNode(id0, null, count);
+  return maybeThen(text0, (text0) => [
+    '<button q:id="',
+    createSsrNodeId(id0),
+    '"',
+    ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_1_2xwyfnber1kpg.w([count])),
+    '>',
+    escapeHTML(text0),
+    '</button><span>stored</span>',
+  ]);
+};
+const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ _noopQrl(
+  'component_jsx_segment_0_38vnjku9rukc6'
+);
+q_component_jsx_segment_0_38vnjku9rukc6.s(component_jsx_segment_0_38vnjku9rukc6);
+const component_content_segment_2_185232h3im3b4 = (ctx0) => {
+  const [alias] = _captures;
+  return renderSsrDynamicContent(alias, ctx0);
+};
+const q_component_content_segment_2_185232h3im3b4 = /*#__PURE__*/ _noopQrl(
+  'component_content_segment_2_185232h3im3b4'
+);
+q_component_content_segment_2_185232h3im3b4.s(component_content_segment_2_185232h3im3b4);
+const component_content_segment_3_18523gi7fg5bn = (ctx0) => {
+  const [content] = _captures;
+  return renderSsrDynamicContent(content, ctx0);
+};
+const q_component_content_segment_3_18523gi7fg5bn = /*#__PURE__*/ _noopQrl(
+  'component_content_segment_3_18523gi7fg5bn'
+);
+q_component_content_segment_3_18523gi7fg5bn.s(component_content_segment_3_18523gi7fg5bn);
+const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ _noopQrl(
+  'component_q_e_click_segment_1_2xwyfnber1kpg'
+);
+export default (props, ctx) => {
+  const count = useSignal(0);
+  const content = q_component_jsx_segment_0_38vnjku9rukc6.w([count]);
+  const alias = content;
+  const id0 = ctx.nextId();
+  ctx.addRoot(alias);
+  const content0 = renderSsrContent(
+    ctx,
+    id0,
+    [],
+    q_component_content_segment_2_185232h3im3b4.w([alias]),
+    false,
+    true
+  );
+  const id1 = ctx.nextId();
+  ctx.addRoot(content);
+  const content1 = renderSsrContent(
+    ctx,
+    id1,
+    [],
+    q_component_content_segment_3_18523gi7fg5bn.w([content]),
+    false,
+    true
+  );
+  return maybeThen(content0, (content0) =>
+    maybeThen(content1, (content1) => [
+      '<main><!d=',
+      createSsrNodeId(id0),
+      '>',
+      content0,
+      '<!/d><!d=',
+      createSsrNodeId(id1),
+      '>',
+      content1,
+      '<!/d></main>',
+    ])
+  );
+};
+============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
+
+import {
+  _noopQrl,
+  _captures,
+  createSsrNodeId,
+  escapeHTML,
+  renderSsrTextNode,
+  maybeThen,
+} from '@qwik.dev/core';
+const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ _noopQrl(
+  'component_q_e_click_segment_1_2xwyfnber1kpg'
+);
+
+export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
+  const [count] = _captures;
+  const id0 = ctx.nextId();
+  ctx.addRoot(count);
+  const text0 = renderSsrTextNode(id0, null, count);
+  return maybeThen(text0, (text0) => [
+    '<button q:id="',
+    createSsrNodeId(id0),
+    '"',
+    ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_1_2xwyfnber1kpg.w([count])),
+    '>',
+    escapeHTML(text0),
+    '</button><span>stored</span>',
+  ]);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_jsx_segment_0_38vnjku9rukc6",
+  "entry": null,
+  "displayName": "component_jsx_segment_0",
+  "hash": "38vnjku9rukc6",
+  "canonicalFilename": "component.tsx_component_jsx_segment_0_38vnjku9rukc6",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "jsx",
+  "captures": true,
+  "loc": [
+    138,
+    223
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
+  const [count] = _captures;
+  return count.value++;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_1_2xwyfnber1kpg",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_1",
+  "hash": "2xwyfnber1kpg",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    148,
+    178
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_content_segment_2_185232h3im3b4.js (ENTRY POINT)==
+
+import { _captures, renderSsrDynamicContent } from '@qwik.dev/core';
+
+export const component_content_segment_2_185232h3im3b4 = (ctx0) => {
+  const [alias] = _captures;
+  return renderSsrDynamicContent(alias, ctx0);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_content_segment_2_185232h3im3b4",
+  "entry": null,
+  "displayName": "component_content_segment_2",
+  "hash": "185232h3im3b4",
+  "canonicalFilename": "component.tsx_component_content_segment_2_185232h3im3b4",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "content",
+  "captures": true,
+  "loc": [
+    266,
+    271
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "alias"
+  ]
+}
+*/
+============================= src/component.tsx_component_content_segment_3_18523gi7fg5bn.js (ENTRY POINT)==
+
+import { _captures, renderSsrDynamicContent } from '@qwik.dev/core';
+
+export const component_content_segment_3_18523gi7fg5bn = (ctx0) => {
+  const [content] = _captures;
+  return renderSsrDynamicContent(content, ctx0);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_content_segment_3_18523gi7fg5bn",
+  "entry": null,
+  "displayName": "component_content_segment_3",
+  "hash": "18523gi7fg5bn",
+  "canonicalFilename": "component.tsx_component_content_segment_3_18523gi7fg5bn",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "content",
+  "captures": true,
+  "loc": [
+    273,
+    280
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "content"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

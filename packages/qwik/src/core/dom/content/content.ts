@@ -58,10 +58,13 @@ export const Suspense: FunctionComponent<SuspenseProps & { children?: JSXOutput 
  * A child value the compiler could not classify: exactly what it would have emitted had it known
  * the shape — a compiled JSX closure renders, empty values vanish, everything else is text.
  */
-export const renderSsrDynamicContent = (value: unknown): ValueOrPromise<SsrOutput> =>
+export const renderSsrDynamicContent = (
+  value: unknown,
+  ctx?: ContainerContext
+): ValueOrPromise<SsrOutput> =>
   maybeThen(value, (v) =>
     typeof v === 'function'
-      ? (v as () => ValueOrPromise<SsrOutput>)()
+      ? (v as (ctx?: ContainerContext) => ValueOrPromise<SsrOutput>)(ctx)
       : v == null || v === true || v === false
         ? ''
         : escapeHTML(String(v))

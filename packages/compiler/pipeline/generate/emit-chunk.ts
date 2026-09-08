@@ -268,7 +268,7 @@ export const enum ProgramKind {
   Component = 'component',
   BranchArm = 'branch-arm',
   CollectionRow = 'collection-row',
-  DynamicSlot = 'dynamic-slot',
+  Content = 'content',
   Projection = 'projection',
   SlotFallback = 'slot-fallback',
 }
@@ -290,8 +290,8 @@ export function programKind(qrl: LinkedQrl): ProgramKind {
     if (qrl.boundary.role === 'slot-fallback') {
       return ProgramKind.SlotFallback;
     }
-    if (qrl.boundary.role === 'dynamic-slot') {
-      return ProgramKind.DynamicSlot;
+    if (qrl.boundary.role === 'dynamic-slot' || qrl.boundary.role === 'jsx-value') {
+      return ProgramKind.Content;
     }
   }
   throw new UnsupportedError(`a program qrl with the boundary "${qrl.boundary.kind}"`);

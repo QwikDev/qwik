@@ -37,11 +37,16 @@ import {
   type FunctionEmission,
 } from './emit-chunk';
 import { emitJsSetup, signalReadName } from './emit-setup';
-import { sourceFunctionEmission } from './emit-function';
+import { sourceFunctionEmission, contentFunctionEmission } from './emit-function';
 import { emitCollectionSource } from './emit-collection';
 import { escapeText } from '../html';
 import { foldStaticOp, isFullyStaticSubtree } from './fold-static';
-import { emitComponentCall, type ComponentEmission, type GeneratedNames } from './emit-component';
+import {
+  allocateGeneratedNames,
+  emitComponentCall,
+  type ComponentEmission,
+  type GeneratedNames,
+} from './emit-component';
 import { createNameAllocator } from './names';
 import { generateForeignModule } from './foreign';
 import {
@@ -52,7 +57,7 @@ import {
 } from './output';
 
 type TextOp = Extract<LinkedOp, { op: OpKind.Static | OpKind.Hole }>;
-type RangeOp = Extract<LinkedOp, { op: OpKind.Branch | OpKind.Each | OpKind.DynamicSlot }>;
+type RangeOp = Extract<LinkedOp, { op: OpKind.Branch | OpKind.Each | OpKind.Content }>;
 
 export async function generateJsCsr(
   plan: LinkedPlan,
@@ -229,7 +234,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         return this.createSlot(op, statements, pass);
       case OpKind.Branch:
       case OpKind.Each:
-      case OpKind.DynamicSlot:
+      case OpKind.Content:
         return this.rangeRoot(op, ownerName, statements, pass);
       default:
         throw new Error(`pipeline.generateJsCsr: op "${op.op}" not implemented yet`);
@@ -357,7 +362,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         }
         case OpKind.Branch:
         case OpKind.Each:
-        case OpKind.DynamicSlot: {
+        case OpKind.Content: {
           const { start, end } = this.locateRange(
             elementExpr,
             nodeIndex,
@@ -473,8 +478,8 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         return this.createBranchBlock(op, start, end, statements, pass);
       case OpKind.Each:
         return this.createCollectionBlock(op, start, end, statements, pass);
-      case OpKind.DynamicSlot:
-        return this.createDynamicSlotBlock(op, start, end, statements, pass);
+      case OpKind.Content:
+        return this.createContentBlock(op, start, end, statements, pass);
     }
   }
 
@@ -494,8 +499,8 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     return { fragment, start, end };
   }
 
-  private createDynamicSlotBlock(
-    op: Extract<LinkedOp, { op: OpKind.DynamicSlot }>,
+  private createContentBlock(
+    op: Extract<LinkedOp, { op: OpKind.Content }>,
     start: string,
     end: string,
     statements: string[],
@@ -600,7 +605,10 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     row: { program: number; renderId: string },
     statements: string[]
   ): string {
-    const names = { props: QwikGenWord.ComponentProps, ctx: QwikGenWord.ComponentContext };
+    const names = {
+      props: QwikGenWord.ComponentProps,
+      ctx: allocateGeneratedNames(this.module).ctx,
+    };
     const emission = this.renderProgram(row.program, row.renderId, names);
     const loopParams = this.module.programs[row.program].params
       .map((binding) => `, ${this.module.bindings[binding].name}`)
@@ -634,7 +642,12 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     switch (qrl.body.b) {
       case QrlBodyKind.Js:
       case QrlBodyKind.Expr:
-        return sourceFunctionEmission(this.module, qrl, this.resolveQrlUse);
+        return contentFunctionEmission(
+          this.module,
+          qrl,
+          this.resolveQrlUse,
+          QwikWord.CreateDynamicContent
+        );
       case QrlBodyKind.Task:
         throw new UnsupportedError('a task QRL body');
       case QrlBodyKind.Program: {
@@ -648,7 +661,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         const emitter = new CsrModuleEmitter(this.module);
         const names = {
           props: qrlPropsName(this.module, qrl, QwikGenWord.ComponentProps),
-          ctx: QwikGenWord.ComponentContext,
+          ctx: allocateGeneratedNames(this.module).ctx,
         };
         const emission = emitter.renderProgram(qrl.body.program, qrl.name, names);
         // Captures restore from `_captures` ahead of the render statements.
@@ -688,7 +701,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     const pass: RenderPass = {
       names: {
         props: qrlPropsName(this.module, qrl, QwikGenWord.ComponentProps),
-        ctx: QwikGenWord.ComponentContext,
+        ctx: allocateGeneratedNames(this.module).ctx,
       },
       next: createNameAllocator(this.module),
     };
@@ -1002,7 +1015,7 @@ function templateChildren(children: readonly LinkedOp[]): LinkedOp[] {
         return { ...child, html: escapeText(child.html) };
       case OpKind.Branch:
       case OpKind.Each:
-      case OpKind.DynamicSlot:
+      case OpKind.Content:
         // A dynamic range's start/end comment pair.
         return { op: OpKind.Static as const, html: '<!><!>' };
       case OpKind.Slot:
@@ -1018,7 +1031,7 @@ function templateNodeCount(op: LinkedOp): number {
   switch (op.op) {
     case OpKind.Branch:
     case OpKind.Each:
-    case OpKind.DynamicSlot:
+    case OpKind.Content:
       return 2;
     default:
       return 1;

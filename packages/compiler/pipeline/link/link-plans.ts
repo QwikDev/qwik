@@ -127,12 +127,12 @@ export function linkPlans(
         }
         return;
       }
-      if (op.op === OpKind.DynamicSlot) {
+      if (op.op === OpKind.Content) {
         if (!qrlIndexes[module].has(op.render.qrl)) {
           diagnostics.push({
             module: plan.path,
             code: 'invalid-qrl-reference',
-            message: `Dynamic slot references unknown QRL "${op.render.qrl}".`,
+            message: `Content range references unknown QRL "${op.render.qrl}".`,
           });
         }
         return;

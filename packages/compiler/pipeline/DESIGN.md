@@ -221,7 +221,7 @@ type Op =
       shape: Shape;
     }
   | { op: 'slot'; name: string; nameValue?: Value; fallback: QrlUse | null; id: Seed }
-  | { op: 'dynamic-slot'; render: QrlUse; id: Seed; lifetime: LifetimeId }
+  | { op: 'content'; render: QrlUse; id: Seed; lifetime: LifetimeId }
   | {
       op: 'suspense';
       content: ProgramId;
@@ -772,7 +772,7 @@ async function transformModules(options: TransformModulesOptions): Promise<Trans
 | `$()` bodies of every kind                                                                                               | `Qrl.body` union + `awaits` on `Payload` (restoration everywhere)                                                                          |
 | refs, dynamic handler values, event-value expressions                                                                    | server-evaluated; unsupported-variant error arms in native generators                                                                      |
 | `bind:value/checked`                                                                                                     | one `Prop.bind`; event handler references it                                                                                               |
-| collections / slots / dynamic slots / Suspense                                                                           | `Op.each` / `Op.slot` / `Op.dynamic-slot(id)` / `Op.suspense(contentId, fallbackId)`                                                       |
+| collections / slots / dynamic content / Suspense                                                                         | `Op.each` / `Op.slot` / `Op.content(id)` / `Op.suspense(contentId, fallbackId)`                                                            |
 | reactive lifetimes/effects/commit modes                                                                                  | `Lifetime` table + `lifetime`/`effect` fields                                                                                              |
 | `native$`                                                                                                                | `natives` + linked `implementations` mapping (module, native, language) → entry                                                            |
 | Qwik Router (loaders, actions, `server$`, routes) — EXTERNAL                                                             | Router's plugin: claims + policies + generic `LinkEntry` roots + linked export/QRL resolution; its manifest and adapters live outside core |

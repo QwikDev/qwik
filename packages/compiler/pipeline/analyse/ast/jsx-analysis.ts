@@ -9,6 +9,7 @@ import type {
   LogicalExpression,
   Node,
 } from 'oxc-parser';
+import type { BindingGraph } from './bindings';
 import { identifierName, readReturnedBody, unwrapExpression } from './utils';
 
 export const enum JsxValueKind {
@@ -51,7 +52,7 @@ export interface JsxAnalysis {
 }
 
 /** Share value structure without entering element children or arbitrary calls. */
-export function createJsxAnalysis(): JsxAnalysis {
+export function createJsxAnalysis(bindings?: BindingGraph): JsxAnalysis {
   const values = new WeakMap<Node, JsxValue>();
   function read(source: Node): JsxValue {
     const node = unwrapExpression(source)!;
@@ -62,6 +63,7 @@ export function createJsxAnalysis(): JsxAnalysis {
     if (known !== undefined) {
       return known;
     }
+    values.set(node, { kind: JsxValueKind.Value, node, hasJsxValue: false });
     const value = analyse(node);
     values.set(node, value);
     return value;
@@ -144,10 +146,24 @@ export function createJsxAnalysis(): JsxAnalysis {
           return { kind: JsxValueKind.Empty, node, hasJsxValue: false };
         }
         break;
-      case 'Identifier':
+      case 'Identifier': {
+        const binding = bindings?.reference(node);
+        if (bindings !== undefined && binding != null) {
+          const hasJsxValue = bindings
+            .declarationsOf(binding)
+            .some(
+              (declaration) =>
+                declaration.type === 'VariableDeclarator' &&
+                declaration.id.type === 'Identifier' &&
+                declaration.init !== null &&
+                read(declaration.init).hasJsxValue
+            );
+          return { kind: JsxValueKind.Value, node, hasJsxValue };
+        }
         if (node.name === 'undefined') {
           return { kind: JsxValueKind.Empty, node, hasJsxValue: false };
         }
+      }
     }
     return { kind: JsxValueKind.Value, node, hasJsxValue: false };
   }

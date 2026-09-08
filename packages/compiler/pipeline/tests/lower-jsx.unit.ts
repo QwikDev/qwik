@@ -225,13 +225,13 @@ export default (props) => <Slot name={props.name} />;
   );
   const dynamicSlot = plan.programs
     .flatMap((program) => (program.body.kind === ProgramBodyKind.Ops ? program.body.ops : []))
-    .find((op) => op.op === OpKind.DynamicSlot);
+    .find((op) => op.op === OpKind.Content);
 
   expect(dynamicSlot).toMatchObject({
-    op: OpKind.DynamicSlot,
+    op: OpKind.Content,
     render: { args: [{ pass: ArgPass.Props }] },
   });
-  if (dynamicSlot?.op !== OpKind.DynamicSlot) {
+  if (dynamicSlot?.op !== OpKind.Content) {
     throw new Error('expected a dynamic slot');
   }
   const render = plan.qrls.find((qrl) => qrl.id === dynamicSlot.render.qrl);

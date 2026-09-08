@@ -181,6 +181,7 @@ export const enum ModuleKind {
 // counted) — folding never renumbers.
 
 export const enum SeedKind {
+  Content = 'content',
   Root = 'root',
   Component = 'c',
   Branch = 'b',

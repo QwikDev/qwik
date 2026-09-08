@@ -51,7 +51,8 @@ export function lowerComputedExpressionValue(
   expression: Expression,
   ctx: LowerContext,
   nameCtx: string,
-  payloadKind = QrlPayloadKind.Value
+  payloadKind = QrlPayloadKind.Value,
+  role = 'expression'
 ) {
   switch (expression.type) {
     case 'JSXElement':
@@ -77,7 +78,7 @@ export function lowerComputedExpressionValue(
         {
           identity: { kind: QrlIdentityKind.Segment, nameCtx },
           ctxName: nameCtx,
-          boundary: { kind: BoundaryKind.Implicit, role: 'expression' },
+          boundary: { kind: BoundaryKind.Implicit, role },
           payloadKind,
           authoredAsync: false,
           body: { b: QrlBodyKind.Expr, expr, initialOnly: false },

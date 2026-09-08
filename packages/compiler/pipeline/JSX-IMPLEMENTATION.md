@@ -84,7 +84,7 @@ destructuring and loop-target writes through `$` are diagnosed; local callback w
 
 ## 2. JSX as a value — one shared mechanism
 
-- [ ] JSX initializers: `const content = <div />`.
+- [x] JSX initializers: `const content = <div />`.
 - [ ] JSX in arrays, objects and nested structures.
 - [ ] JSX call arguments: `wrap(<Child />)`, `render(<App />)`.
 - [ ] JSX-valued props: `fallback={<Loading />}`.
@@ -92,11 +92,18 @@ destructuring and loop-target writes through `$` are diagnosed; local callback w
 - [ ] JSX inside `$`, event handlers, hooks and ordinary callbacks.
 - [ ] JSX inside `.then()`, `Promise.resolve()` and async functions.
 - [ ] JSX outside top-level components: helpers, factories and local functions.
-- [ ] Repeated use of a stored JSX value with correct instance ownership and cleanup.
+- [x] Repeated use of a stored JSX value with correct instance ownership and cleanup.
 - [ ] Explicit `<Fragment>` and imported aliases, not only `<>`.
 
 Relevant code: `analyse/ast/jsx-analysis.ts`, `analyse/ast/returns-jsx.ts`,
 `analyse/lower-expr.ts`, `analyse/lower-function.ts` and shared render lowering.
+
+Verified by `jsx-value.unit.ts`, `jsx-analysis.unit.ts`, the `jsx-value` CSR/SSR snapshots,
+and `jsx-value.spec.tsx` in CSR and resume. Direct element/fragment initializers work with
+`const`, `let` and `var`, aliases, block scope, and collection rows. Each use has its own content
+range; hiding one instance disposes its subscriptions without affecting its sibling.
+Local component targets captured by a JSX value remain unsupported and are diagnosed explicitly;
+module-level component targets work. Nested structures, JSX call arguments and callbacks remain open.
 
 ## 3. Dynamic render results
 
@@ -332,3 +339,13 @@ their checkboxes; do not silently reinterpret the original completion estimate a
   SSR writer, SSR effects, event attributes, server rendering and script emission (16 existing TODOs).
   Core/compiler builds, type generation, runtime/compiler ESLint and CSR/SSR snapshots pass.
   The script-emitter test retains five pre-existing lint errors outside the changed expectation.
+
+- 2026-09-08: Added stored JSX values using shared render QRLs and content ranges, including aliases,
+  fragments, mutable declarations and collection-row setup. Verified independent instances,
+  replacement, cleanup, event captures and reactive text in CSR and resume. Dynamic slots now use
+  the same content operation. SSR forwards the container context and escapes primitive values;
+  generated render context names avoid authored bindings. Local component captures are diagnosed.
+  Verification: 860 tests pass across 44 suites (16 existing TODOs), including CSR/resume and
+  SSR escaping; compiler type checks, ESLint, formatting and CSR/SSR snapshots pass. Core and
+  compiler dev builds complete; the core declaration pass reports two existing TS7006 errors in
+  `packages/qwik-vite/src/plugins/plugin.ts`. No Playwright run was performed for this increment.

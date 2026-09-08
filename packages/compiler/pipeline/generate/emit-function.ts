@@ -1,4 +1,5 @@
 import {
+  BoundaryKind,
   FnBodyKind,
   ProgramBodyKind,
   PropsPartKind,
@@ -137,4 +138,21 @@ function emitFunctionQrl(
   }
   const reference = `q_${qrl.name}`;
   return args.length === 0 ? reference : `${reference}.w([${args.join(', ')}])`;
+}
+
+/** Content expressions render inside their caller-owned range. */
+export function contentFunctionEmission(
+  module: LinkedModule,
+  qrl: LinkedQrl,
+  resolveQrlUse: QrlResolver,
+  helper: QwikWord.CreateDynamicContent | QwikWord.RenderSsrDynamicContent
+): FunctionEmission {
+  const emission = sourceFunctionEmission(module, qrl, resolveQrlUse);
+  if (qrl.boundary.kind === BoundaryKind.Implicit && qrl.boundary.role === 'content') {
+    const ctx = createNameAllocator(module)('ctx');
+    emission.params = [ctx];
+    emission.imports.add(helper);
+    emission.value = `${helper}(${emission.value}, ${ctx})`;
+  }
+  return emission;
 }

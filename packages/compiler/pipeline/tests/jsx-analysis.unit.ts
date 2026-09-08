@@ -2,6 +2,7 @@ import { expect, test } from 'vitest';
 import { parseModule } from '../analyse/ast/parse';
 import { createJsxAnalysis, JsxValueKind } from '../analyse/ast/jsx-analysis';
 import { deepFreeze } from './fixtures';
+import { createBindingGraph } from '../analyse/ast/bindings';
 
 function expression(source: string) {
   const parsed = parseModule('test.tsx', `const value = ${source};`);
@@ -75,4 +76,38 @@ test('analysis is local to a module and does not mutate frozen AST nodes', () =>
   deepFreeze(node);
   expect(createJsxAnalysis().read(node)).not.toBe(createJsxAnalysis().read(node));
   expect(JSON.stringify(node)).toBe(before);
+});
+
+test('follows initializer aliases by binding without crossing shadowed names', () => {
+  const { program } = parseModule(
+    'test.tsx',
+    `
+    const content = <p />;
+    const alias = content;
+    { const content = 'text'; const alias = content; }
+  `
+  );
+  const jsx = createJsxAnalysis(createBindingGraph(program));
+  const outer = program.body[1];
+  const block = program.body[2];
+  if (outer.type !== 'VariableDeclaration' || block.type !== 'BlockStatement') {
+    throw new Error('expected declarations');
+  }
+  const inner = block.body[1];
+  if (inner.type !== 'VariableDeclaration') {
+    throw new Error('expected a shadowed declaration');
+  }
+  expect(jsx.read(outer.declarations[0].init!).hasJsxValue).toBe(true);
+  expect(jsx.read(inner.declarations[0].init!).hasJsxValue).toBe(false);
+});
+
+test('terminates analysis of cyclic initializer references', () => {
+  const { program } = parseModule('test.tsx', 'var first = second; var second = first;');
+  const jsx = createJsxAnalysis(createBindingGraph(program));
+  for (const statement of program.body) {
+    if (statement.type !== 'VariableDeclaration') {
+      throw new Error('expected a declaration');
+    }
+    expect(jsx.read(statement.declarations[0].init!).hasJsxValue).toBe(false);
+  }
 });

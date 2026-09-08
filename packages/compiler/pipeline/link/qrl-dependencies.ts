@@ -245,7 +245,7 @@ export function collectQrlDependencies(module: ModulePlan, qrl: Qrl): LinkedQrl[
           visitValue(entry.nameValue);
         }
         break;
-      case OpKind.DynamicSlot:
+      case OpKind.Content:
         visitQrlUse(entry.render);
         break;
       case OpKind.Suspense:

@@ -49,7 +49,7 @@ export const enum OpKind {
   Branch = 'branch',
   Each = 'each',
   Slot = 'slot',
-  DynamicSlot = 'dynamic-slot',
+  Content = 'content',
   Suspense = 'suspense',
 }
 
@@ -157,7 +157,7 @@ export type Op =
     }
   | { op: OpKind.Slot; name: string; nameValue?: Value; fallback: QrlUse | null; id: Seed }
   | {
-      op: OpKind.DynamicSlot;
+      op: OpKind.Content;
       render: QrlUse;
       id: Seed;
       lifetime: LifetimeId;

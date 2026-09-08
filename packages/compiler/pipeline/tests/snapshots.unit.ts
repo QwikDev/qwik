@@ -40,6 +40,19 @@ async function testInputs(mode: 'ssr' | 'csr', snapshotName: string, inputs: rea
 }
 
 describe.each(['ssr', 'csr'] as const)('%s', (mode) => {
+  test('renders stored JSX through shared content ranges', async () => {
+    const output = await testInput(mode, 'jsx-value', {
+      code: `import { component$, useSignal } from '@qwik.dev/core';
+export default component$(() => {
+  const count = useSignal(0);
+  const content = <><button onClick$={() => count.value++}>{count.value}</button><span>stored</span></>;
+  const alias = content;
+  return <main>{alias}{content}</main>;
+});`,
+    });
+    expect(output.diagnostics).toEqual([]);
+  });
+
   test('preserves ordinary component bodies and explicit shared state', async () => {
     const output = await testInput(mode, 'ordinary-component-body', {
       code: `import { $, component$, createContextId, getLocale, useSignal } from '@qwik.dev/core';

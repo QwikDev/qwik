@@ -281,7 +281,6 @@ describe('lowerArray / reactive rows', () => {
     ],
     ['{ log(item); return <li />; }', 'the collection row body "BlockStatement"'],
     ['{ return; }', 'the collection row body "BlockStatement"'],
-    ['{ const label = <b />; return <li>{label}</li>; }', 'JSX inside an expression value'],
     [
       '{ const { label = <b /> } = item; return <li>{label}</li>; }',
       'JSX inside a binding pattern',

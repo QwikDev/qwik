@@ -33,6 +33,7 @@ import { lowerBranch, type BranchArm } from './lower-branch';
 import { identifierName, unwrapExpression } from './ast/utils';
 import { JsxValueKind, type JsxValue } from './ast/jsx-analysis';
 import {
+  lowerComputedExpressionValue,
   lowerExpressionValue,
   lowerInlineExpressionValue,
   recordPayloadReads,
@@ -323,6 +324,30 @@ export function lowerRenderExpression(expression: Expression, ctx: LowerContext)
     case JsxValueKind.Collection:
       return [lowerArray(value.node, ctx)];
   }
+  if (value.hasJsxValue && expression.type === 'Identifier') {
+    const computed = lowerComputedExpressionValue(
+      expression,
+      ctx,
+      'content',
+      QrlPayloadKind.Function,
+      'content'
+    );
+    const lifetime = ctx.plan.lifetimes.length;
+    ctx.plan.lifetimes.push({
+      id: lifetime,
+      parent: 0,
+      owner: LifetimeOwner.DynamicValue,
+      commit: LifetimeCommit.AtomicRange,
+    });
+    return [
+      {
+        op: OpKind.Content,
+        render: computed.resume.qrl,
+        id: { kind: SeedKind.Content, ordinal: ctx.contentCounter.next++ },
+        lifetime,
+      },
+    ];
+  }
   return lowerText(expression, ctx);
 }
 
@@ -413,7 +438,7 @@ function lowerDynamicSlot(element: JSXElement, name: Expression, ctx: LowerConte
     nameValue: lowerInlineExpressionValue(name, ctx, captures.refs),
   });
   ctx.plan.programs[program].body = { kind: ProgramBodyKind.Ops, ops: [slot] };
-  return { op: OpKind.DynamicSlot, render: use, id: slot.id, lifetime };
+  return { op: OpKind.Content, render: use, id: slot.id, lifetime };
 }
 
 function lowerSlotFallback(children: readonly JSXChild[], ctx: LowerContext): QrlUse | null {
@@ -425,7 +450,8 @@ function lowerSlotFallback(children: readonly JSXChild[], ctx: LowerContext): Qr
         ctx,
         'a slot fallback',
         SegmentContext.Projection,
-        'slot-fallback'
+        'slot-fallback',
+        () => lowerJsxChildren(fallbackChildren, ctx)
       );
 }
 
@@ -619,13 +645,13 @@ function readForwardedSlot(
   };
 }
 
-function lowerRenderQrl(
+export function lowerRenderQrl(
   children: JSXChild[],
   ctx: LowerContext,
   subject: string,
   nameCtx: SegmentContext,
   role: string,
-  lowerBody?: () => Op[]
+  lowerBody: () => Op[]
 ) {
   const range: [number, number] = [children[0].start, children[children.length - 1].end];
   const { captures, args } = lowerCaptures(children, ctx, subject);
@@ -663,7 +689,7 @@ function lowerRenderQrl(
   );
   ctx.plan.programs[program].body = {
     kind: ProgramBodyKind.Ops,
-    ops: lowerBody?.() ?? lowerJsxChildren(children, ctx),
+    ops: lowerBody(),
   };
   return use;
 }

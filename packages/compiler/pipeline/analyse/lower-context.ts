@@ -18,6 +18,7 @@ export interface LowerContext {
   /** Branch seed ordinals, allocated in authored order. */
   branchCounter: { next: number };
   componentCounter: { next: number };
+  contentCounter: { next: number };
   projectionCounter: { next: number };
   slotCounter: { next: number };
   forCounter: { next: number };
@@ -41,7 +42,7 @@ export function createLowerContext(
   scope: string | undefined,
   bindings: BindingGraph,
   coreBindings: ReadonlyMap<LocalId, string> = new Map(),
-  jsx: JsxAnalysis = createJsxAnalysis()
+  jsx: JsxAnalysis = createJsxAnalysis(bindings)
 ): LowerContext {
   const slash = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
   const basename = slash === -1 ? path : path.slice(slash + 1);
@@ -52,6 +53,7 @@ export function createLowerContext(
     segmentCounter: { next: 0 },
     branchCounter: { next: 0 },
     componentCounter: { next: 0 },
+    contentCounter: { next: 0 },
     projectionCounter: { next: 0 },
     slotCounter: { next: 0 },
     forCounter: { next: 0 },

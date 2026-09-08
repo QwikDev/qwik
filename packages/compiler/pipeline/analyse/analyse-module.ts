@@ -63,8 +63,8 @@ export async function analyseModule(
     return finishPlan(failedPlan(plan, parsed.errors), normalized.code, input.code);
   }
 
-  const jsx = createJsxAnalysis();
   const bindings = createBindingGraph(parsed.program);
+  const jsx = createJsxAnalysis(bindings);
   plan.bindings = bindings.bindings;
   const authoredProgram =
     normalized.map === null ? null : parseModule(input.path, input.code).program;

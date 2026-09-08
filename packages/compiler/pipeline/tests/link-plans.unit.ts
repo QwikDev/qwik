@@ -378,9 +378,9 @@ export default (props) => <Slot name={props.name} />;
       );
       const dynamicSlot = plan.programs
         .flatMap((program) => (program.body.kind === ProgramBodyKind.Ops ? program.body.ops : []))
-        .find((op) => op.op === OpKind.DynamicSlot);
-      expect(dynamicSlot?.op).toBe(OpKind.DynamicSlot);
-      if (dynamicSlot?.op !== OpKind.DynamicSlot) {
+        .find((op) => op.op === OpKind.Content);
+      expect(dynamicSlot?.op).toBe(OpKind.Content);
+      if (dynamicSlot?.op !== OpKind.Content) {
         return;
       }
       dynamicSlot.render.qrl = 'missing';
@@ -400,7 +400,7 @@ export default (props) => <Slot name={props.name} />;
           {
             module: 'src/app.tsx',
             code: 'invalid-qrl-reference',
-            message: 'Dynamic slot references unknown QRL "missing".',
+            message: 'Content range references unknown QRL "missing".',
           },
         ],
       });

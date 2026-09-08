@@ -42,11 +42,16 @@ import {
   type FunctionEmission,
 } from './emit-chunk';
 import { emitJsSetup, signalReadName } from './emit-setup';
-import { sourceFunctionEmission } from './emit-function';
+import { sourceFunctionEmission, contentFunctionEmission } from './emit-function';
 import { requestBindingImport } from './emit-import';
 import { emitCollectionSource } from './emit-collection';
 import { foldStaticOp, isFullyStaticSubtree } from './fold-static';
-import { emitComponentCall, type ComponentEmission, type GeneratedNames } from './emit-component';
+import {
+  allocateGeneratedNames,
+  emitComponentCall,
+  type ComponentEmission,
+  type GeneratedNames,
+} from './emit-component';
 import { createNameAllocator } from './names';
 import { generateForeignModule } from './foreign';
 import {
@@ -236,7 +241,12 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     switch (qrl.body.b) {
       case QrlBodyKind.Js:
       case QrlBodyKind.Expr:
-        return sourceFunctionEmission(this.module, qrl, this.resolveQrlUse);
+        return contentFunctionEmission(
+          this.module,
+          qrl,
+          this.resolveQrlUse,
+          QwikWord.RenderSsrDynamicContent
+        );
       case QrlBodyKind.Task:
         throw new UnsupportedError('a task QRL body');
       case QrlBodyKind.Program:
@@ -248,8 +258,8 @@ class SsrModuleEmitter implements QwikModuleEmitter {
             return this.armEmission(qrl);
           case ProgramKind.CollectionRow:
             return this.rowEmission(qrl);
-          case ProgramKind.DynamicSlot:
-            return this.dynamicSlotEmission(qrl);
+          case ProgramKind.Content:
+            return this.contentEmission(qrl);
           case ProgramKind.Projection:
           case ProgramKind.SlotFallback:
             return this.slotContentEmission(qrl);
@@ -304,8 +314,8 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     return emission;
   }
 
-  /** Dynamic slot selection re-runs inside the caller-owned content range. */
-  private dynamicSlotEmission(qrl: LinkedQrl): FunctionEmission {
+  /** Content programs render inside the caller-owned range. */
+  private contentEmission(qrl: LinkedQrl): FunctionEmission {
     const { emission, names } = this.renderEmission(qrl, {});
     emission.params = [names.ctx];
     return emission;
@@ -319,7 +329,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     const emitter = new SsrModuleEmitter(this.module);
     const names = {
       props: qrlPropsName(this.module, qrl, QwikGenWord.ComponentProps),
-      ctx: QwikGenWord.ComponentContext,
+      ctx: allocateGeneratedNames(this.module).ctx,
     };
     const core = emitter.renderProgram(qrl, names, options);
     const captures = captureNames(this.module, qrl);
@@ -408,8 +418,8 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       case OpKind.Slot:
         this.slot(pass, op, parts);
         return;
-      case OpKind.DynamicSlot:
-        this.dynamicSlot(pass, op, parts);
+      case OpKind.Content:
+        this.content(pass, op, parts);
         return;
       case OpKind.Branch:
         this.branch(pass, op, parts);
@@ -517,8 +527,8 @@ class SsrModuleEmitter implements QwikModuleEmitter {
           this.slot(pass, child, parts);
           break;
         }
-        case OpKind.DynamicSlot: {
-          this.dynamicSlot(pass, child, parts);
+        case OpKind.Content: {
+          this.content(pass, child, parts);
           break;
         }
         default: {
@@ -562,9 +572,9 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     parts.push(slot);
   }
 
-  private dynamicSlot(
+  private content(
     pass: RenderPass,
-    op: Extract<LinkedOp, { op: OpKind.DynamicSlot }>,
+    op: Extract<LinkedOp, { op: OpKind.Content }>,
     parts: string[]
   ): void {
     const id = pass.next(QwikGenWord.Id);
@@ -644,7 +654,10 @@ class SsrModuleEmitter implements QwikModuleEmitter {
   /** Inline row: a function declared in the component; renderId links declaration and call. */
   private inlineRowFunction(pass: RenderPass, row: { program: number; renderId: string }): string {
     // Rendered on THIS emitter: hole QRLs hoist to the module scope the function nests in.
-    const names = { props: QwikGenWord.ComponentProps, ctx: QwikGenWord.ComponentContext };
+    const names = {
+      props: QwikGenWord.ComponentProps,
+      ctx: allocateGeneratedNames(this.module).ctx,
+    };
     const core = this.renderProgramById(row.program, names);
     const loopParams = this.module.programs[row.program].params
       .map((binding) => `, ${this.module.bindings[binding].name}`)

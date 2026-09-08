@@ -29,7 +29,7 @@ import type {
 } from 'oxc-parser';
 import { identifierName, unwrapExpression } from './ast/utils';
 import { UnsupportedError } from '../errors';
-import { QwikMarker } from '../words';
+import { QwikMarker, SegmentContext } from '../words';
 import { coreSetupCalls } from './setup-api';
 import { LocalKind, type SetupLocals } from './locals';
 import { pushPayload, type LowerContext } from './lower-context';
@@ -44,7 +44,7 @@ import { findRuntimeJsx } from './ast/returns-jsx';
 import { lowerFunctionQrl } from './lower-function';
 import { isNode, type WalkableNode } from './ast/ast-types';
 import { isFunctionLike } from './ast/utils';
-import { lowerRenderExpression } from './lower-jsx';
+import { lowerRenderExpression, lowerRenderQrl } from './lower-jsx';
 import { findComponentCandidates } from './ast/returns-jsx';
 import { discoverComponents } from './discover';
 import { lowerComponentParameter } from './lower-parameter';
@@ -56,6 +56,18 @@ export function lowerConstDeclaration(
 ): Setup {
   if (declarator.init === null) {
     throw new UnsupportedError('a const declaration without an initializer');
+  }
+  const expression = unwrapExpression(declarator.init);
+  if (expression.type === 'JSXElement' || expression.type === 'JSXFragment') {
+    const use = lowerRenderQrl(
+      [expression],
+      ctx,
+      'a JSX value',
+      SegmentContext.JsxValue,
+      'jsx-value',
+      () => lowerRenderExpression(expression, ctx)
+    );
+    return lowerConstBinding(declarator.id, { v: ValueKind.Qrl, use }, ctx, locals);
   }
   const { refs } = lowerCaptures(declarator.init, ctx, 'a const initializer');
   const value = lowerInlineExpressionValue(declarator.init, ctx, refs);

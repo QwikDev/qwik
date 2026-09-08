@@ -391,7 +391,7 @@ export default function App() {
     expect(output.modules[0].code).toContain('const x = props.compute();');
   });
 
-  test('JSX inside a const initializer remains unsupported', async () => {
+  test('JSX inside a const initializer lowers to a render QRL', async () => {
     await expect(
       analyseModule(
         {
@@ -400,7 +400,7 @@ export default function App() {
         },
         { transpileTs: true }
       )
-    ).rejects.toThrow('JSX inside an expression value');
+    ).resolves.toMatchObject({ kind: ModuleKind.Qwik, diagnostics: [] });
   });
 
   test('a mixed return (ternary arm with JSX) is a component candidate', async () => {

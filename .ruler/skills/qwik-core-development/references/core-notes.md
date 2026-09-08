@@ -138,9 +138,10 @@ deserialization never runs.
 - Avoid manual QRL construction unless nearby tests already need it.
 - If runtime behavior relies on optimizer output, inspect the transform and snapshot.
 - For JSX or event behavior, keep compiler output, runtime ABI, and qwikloader aligned.
-- In SSR emit, `renderSsrContent` results are user values and are escaped, while the synchronous
-  dynamic-content path carries compiler-lowered markup — a local `const el = <span/>` becomes a
-  function returning raw HTML. Escaping is per-path, so check which one a change feeds.
+- Keep SSR content escaping at the value-to-output boundary: `renderSsrDynamicContent` escapes
+  primitive values and invokes compiled JSX QRLs with the container context. `renderSsrContent`
+  carries their already-lowered output; it must not escape that markup again. Share content ranges
+  and ownership for stored JSX and dynamic slots.
 
 ## Focused Verification
 

@@ -36,6 +36,8 @@ export const enum QwikWord {
   ForwardSlot = 'forwardSlot',
   RegisterProjection = 'registerProjection',
   CreateContentBlock = 'createContentBlock',
+  CreateDynamicContent = 'createDynamicContent',
+  RenderSsrDynamicContent = 'renderSsrDynamicContent',
   // ssr
   CreateSsrNodeId = 'createSsrNodeId',
   CreateSsrMarkup = 'createSsrMarkup',
@@ -111,6 +113,7 @@ export const enum QwikAttr {
 }
 
 export const enum SegmentContext {
+  JsxValue = 'jsx',
   Text = 'text',
   BranchCondition = 'branch:condition',
   BranchThen = 'branch:then',

@@ -40,6 +40,14 @@ export function collectCaptures(
   let other: string | null = null;
   let capturedWrite: CollectedCaptures['capturedWrite'] = null;
   for (const { node: current, binding, role, isWrite } of ctx.bindings.freeReferences(node)) {
+    if (
+      current.type === 'JSXIdentifier' &&
+      ctx.locals.has(binding) &&
+      !localBindings.has(binding)
+    ) {
+      other ??= current.name;
+      continue;
+    }
     if (current.type !== 'Identifier' || localBindings.has(binding)) {
       continue;
     }

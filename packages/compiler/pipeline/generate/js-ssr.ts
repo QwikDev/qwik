@@ -25,6 +25,7 @@ import { escapeAttr, serializeAttrValue } from '../html';
 import { UnsupportedError } from '../errors';
 import { generateQwikModule, type QwikModuleEmitter } from './assemble-module';
 import {
+  extractPayloadJs,
   captureNames,
   capturePrelude,
   inlineValueJs,
@@ -150,6 +151,19 @@ class SsrModuleEmitter implements QwikModuleEmitter {
 
   constructor(private readonly module: LinkedModule) {
     this.resolveQrlUse = createQrlResolver(module);
+  }
+
+  emitPayload(payload: number, names: GeneratedNames): string {
+    const source = extractPayloadJs(
+      this.module,
+      payload,
+      undefined,
+      undefined,
+      [],
+      (use) => this.useQrl({ names }, use, true).ref
+    );
+    this.flushQrlHoists();
+    return source;
   }
 
   emitProgram(qrl: LinkedQrl, names: GeneratedNames): ComponentEmission {
@@ -797,7 +811,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
    * Emission-side use of a QRL: the reference text with its actual arguments baked in. Function
    * payloads wear `.w([args])`; Value payloads keep a bare reference and receive args separately.
    */
-  private useQrl(pass: RenderPass, use: QrlUse, invoked: boolean) {
+  private useQrl(pass: Pick<RenderPass, 'names'>, use: QrlUse, invoked: boolean) {
     const { qrl, args } = this.resolveQrlUse(use, pass.names.props);
     let ref = this.qrlReference(qrl, invoked);
     if (qrl.payloadKind === QrlPayloadKind.Function && args.length > 0) {

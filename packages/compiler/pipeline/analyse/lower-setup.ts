@@ -362,9 +362,6 @@ function lowerJsStatement(
       return;
     }
     if (isFunctionLike(node)) {
-      if (node.type === 'FunctionDeclaration' && findRuntimeJsx(node) !== null) {
-        throw new UnsupportedError('JSX inside an ordinary setup function');
-      }
       recordFunctionJsx(ctx, payload, node);
       return;
     }

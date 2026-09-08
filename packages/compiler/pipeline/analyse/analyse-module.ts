@@ -18,18 +18,20 @@ import {
 } from '../schema';
 import { createBindingGraph } from './ast/bindings';
 import { createJsxAnalysis } from './ast/jsx-analysis';
-import { findRuntimeJsx, findComponentCandidates } from './ast/returns-jsx';
+import { findComponentCandidates } from './ast/returns-jsx';
 import { parseModule } from './ast/parse';
 import { scanModuleSurface } from './module-surface';
 import { discoverComponents } from './discover';
 import { lowerComponentParameter } from './lower-parameter';
 import { lowerSetup } from './lower-setup';
-import { createLowerContext, pushQrl, QrlIdentityKind } from './lower-context';
+import { createLowerContext, pushPayload, pushQrl, QrlIdentityKind } from './lower-context';
 import { lowerRenderExpression } from './lower-jsx';
 import { normalizeSource } from './normalize';
 import { emptyPlan } from './plan';
 import { createOriginalRangeMapper } from '../../src/normalization';
 
+import { isFunctionLike } from './ast/utils';
+import { recordFunctionJsx } from './lower-function';
 import { InvalidModuleError, UnsupportedError } from '../errors';
 import type { Node } from 'oxc-parser';
 
@@ -70,33 +72,6 @@ export async function analyseModule(
     normalized.map === null ? null : parseModule(input.path, input.code).program;
   const coreBindings = scanModuleSurface(parsed.program, authoredProgram, plan, bindings);
   const candidates = findComponentCandidates(parsed.program, jsx, bindings, coreBindings);
-  if (candidates.length === 0) {
-    const leftoverJsx = findRuntimeJsx(parsed.program);
-    if (leftoverJsx !== null) {
-      // Fail closed — the foreign fallback would compile this JSX against react/jsx-runtime.
-      plan.kind = ModuleKind.Failed;
-      plan.diagnostics.push({
-        code: 'unsupported-runtime-jsx',
-        message: 'JSX must belong to a supported component or resumable boundary.',
-        span: [leftoverJsx.start, leftoverJsx.end],
-        category: DiagnosticCategory.Error,
-      });
-      return finish();
-    }
-    // Non-Qwik module: authored source kept, transpiled at generate.
-    if (authoredProgram !== null) {
-      const foreignPlan = emptyPlan(input.path, input.code);
-      const surfaceBindings = createBindingGraph(authoredProgram);
-      foreignPlan.bindings = surfaceBindings.bindings;
-      scanModuleSurface(authoredProgram, null, foreignPlan, surfaceBindings);
-      foreignPlan.kind = ModuleKind.Foreign;
-      return foreignPlan;
-    }
-    plan.kind = ModuleKind.Foreign;
-    plan.source.normalizationMap = null;
-    return plan;
-  }
-
   const components = discoverComponents(candidates);
   const componentStatements = new Set(components.map((component) => component.statement));
   const authoredStatements: Node[] = parsed.program.body.flatMap((statement): Node[] => {
@@ -114,10 +89,35 @@ export async function analyseModule(
         )
       : [];
   });
-  for (const statement of authoredStatements) {
-    if (findRuntimeJsx(statement) !== null) {
-      throw new UnsupportedError('JSX outside the discovered components');
+  const helperRoots = jsx.scopedRoots(authoredStatements);
+  const leftoverJsx = helperRoots.find((root) => !isFunctionLike(root));
+  if (leftoverJsx !== undefined) {
+    if (candidates.length === 0) {
+      // Fail closed — the foreign fallback would compile this JSX against react/jsx-runtime.
+      plan.kind = ModuleKind.Failed;
+      plan.diagnostics.push({
+        code: 'unsupported-runtime-jsx',
+        message: 'JSX must belong to a supported component or function.',
+        span: [leftoverJsx.start, leftoverJsx.end],
+        category: DiagnosticCategory.Error,
+      });
+      return finish();
     }
+    throw new UnsupportedError('JSX outside the discovered components');
+  }
+  if (candidates.length === 0 && helperRoots.length === 0) {
+    // Non-Qwik module: authored source kept, transpiled at generate.
+    if (authoredProgram !== null) {
+      const foreignPlan = emptyPlan(input.path, input.code);
+      const surfaceBindings = createBindingGraph(authoredProgram);
+      foreignPlan.bindings = surfaceBindings.bindings;
+      scanModuleSurface(authoredProgram, null, foreignPlan, surfaceBindings);
+      foreignPlan.kind = ModuleKind.Foreign;
+      return foreignPlan;
+    }
+    plan.kind = ModuleKind.Foreign;
+    plan.source.normalizationMap = null;
+    return plan;
   }
 
   plan.kind = ModuleKind.Qwik;
@@ -153,6 +153,19 @@ export async function analyseModule(
     coreBindings,
     jsx
   );
+  try {
+    for (const fn of helperRoots) {
+      if (!isFunctionLike(fn)) {
+        continue;
+      }
+      const payload = pushPayload(lowerContext, [fn.start, fn.end]);
+      recordFunctionJsx(lowerContext, payload, fn);
+      plan.assembly.push({ a: AssemblyKind.Payload, payload });
+    }
+  } catch (error) {
+    recordModuleError(plan, error);
+    return finish();
+  }
   for (const component of components) {
     const componentBinding =
       component.bindingNode === null ? null : bindings.declaration(component.bindingNode);
@@ -168,17 +181,8 @@ export async function analyseModule(
           ? []
           : lowerRenderExpression(component.renderExpression, lowerContext);
     } catch (error) {
-      if (error instanceof InvalidModuleError) {
-        plan.kind = ModuleKind.Failed;
-        plan.diagnostics.push({
-          code: error.code,
-          message: error.message,
-          span: error.span,
-          category: DiagnosticCategory.Error,
-        });
-        return finish();
-      }
-      throw error;
+      recordModuleError(plan, error);
+      return finish();
     }
     plan.programs.push({
       body: { kind: ProgramBodyKind.Ops, ops: rootOps },
@@ -256,6 +260,19 @@ export async function analyseModule(
     plan.assembly.push({ a: AssemblyKind.Splice, qrl: qrlIndex });
   }
   return finish();
+}
+
+function recordModuleError(plan: ModulePlan, error: unknown): void {
+  if (!(error instanceof InvalidModuleError)) {
+    throw error;
+  }
+  plan.kind = ModuleKind.Failed;
+  plan.diagnostics.push({
+    code: error.code,
+    message: error.message,
+    span: error.span,
+    category: DiagnosticCategory.Error,
+  });
 }
 
 function finishPlan(plan: ModulePlan, normalizedCode: string, authoredCode: string): ModulePlan {

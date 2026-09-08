@@ -91,7 +91,7 @@ destructuring and loop-target writes through `$` are diagnosed; local callback w
 - [x] JSX-returning props and children: render props, `onResolved` callbacks and factories.
 - [x] JSX inside `$`, event handlers, hooks and ordinary callbacks.
 - [x] JSX inside `.then()`, `Promise.resolve()` and async functions.
-- [ ] JSX outside top-level components: helpers, factories and local functions.
+- [x] JSX outside top-level components: helpers, factories and local functions.
 - [x] Repeated use of a stored JSX value with correct instance ownership and cleanup.
 - [ ] Explicit `<Fragment>` and imported aliases, not only `<>`.
 
@@ -116,8 +116,8 @@ Call arguments share the same JSX lowering in component setup and render express
 nested calls, spreads, optional calls, branch conditions and collection rows. Native calls preserve
 their receiver, argument order and single evaluation. Verified by `jsx-call.unit.ts`, the `jsx-call`
 CSR/SSR snapshots and `jsx-value.spec.tsx` in CSR and resume, including component instances,
-event captures, reactive result replacement and escaped primitive results. Calls outside components
-remain covered by a separate open item in this group.
+event captures, reactive result replacement and escaped primitive results. Calls inside helpers
+use the same mechanism described below.
 
 JSX-valued props compile to render values, including alongside reactive spreads and inside inline
 collection rows. Verified by `jsx-prop.unit.ts` and new CSR/SSR snapshots. Classification of values
@@ -126,8 +126,8 @@ read by the receiving component belongs to group 3 below.
 Inline JSX factories in component props and function children preserve their parameters, local
 statements and per-call captures. Function children are passed as the callable `children` prop.
 Verified by `jsx-factory-prop.unit.ts`, new CSR/SSR snapshots and `jsx-factory-prop.spec.tsx` in CSR
-and resume. Existing prop readers and ordinary projections retain their output. Factories outside
-components remain covered by a separate open item above.
+and resume. Existing prop readers and ordinary projections retain their output. Module and local
+helper factories share the same lowering described below.
 
 JSX inside `$`, event handlers, hooks and ordinary callbacks shares scoped expression lowering.
 Native callbacks retain synchronous calls, parameters, receiver, local statements and mutations;
@@ -140,6 +140,12 @@ identity and per-call JSX captures. Nested async JSX callbacks inside QRLs reuse
 tracking after suspension. Verified by `jsx-async.unit.ts`, new CSR/SSR snapshots and
 `jsx-async.spec.tsx` in CSR and resume, including rejection, `catch` and `finally`. Async components
 and classification of arbitrary Promise render results remain outside this item.
+
+Module helpers, factories and local function declarations retain native calls, exports, hoisting
+and per-invocation captures. Their embedded JSX shares function payload lowering, including modules
+without components. Verified by `jsx-helper.unit.ts`, new CSR/SSR snapshots and `jsx-helper.spec.tsx`
+in CSR and resume, including captured events, early calls, parameter defaults and SSR escaping.
+Existing valid snapshots are unchanged.
 
 ## 3. Dynamic render results
 

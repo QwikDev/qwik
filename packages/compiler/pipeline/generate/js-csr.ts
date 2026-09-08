@@ -22,6 +22,7 @@ import { QwikWord, QwikGenWord } from '../words';
 import { UnsupportedError } from '../errors';
 import { generateQwikModule, type QwikModuleEmitter } from './assemble-module';
 import {
+  extractPayloadJs,
   captureNames,
   capturePrelude,
   emptyFunctionEmission,
@@ -108,6 +109,12 @@ class CsrModuleEmitter implements QwikModuleEmitter {
 
   constructor(private readonly module: LinkedModule) {
     this.resolveQrlUse = createQrlResolver(module);
+  }
+
+  emitPayload(payload: number, names: GeneratedNames): string {
+    return extractPayloadJs(this.module, payload, undefined, undefined, [], (use) =>
+      this.lazyRenderReference(use, names.props)
+    );
   }
 
   emitProgram(qrl: LinkedQrl, names: GeneratedNames): ComponentEmission {

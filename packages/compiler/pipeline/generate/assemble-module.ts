@@ -19,13 +19,11 @@ import {
 } from './emit-component';
 
 /** Insertion order IS the emitted import order. */
-export interface ModuleParts {
+export interface QwikModuleEmitter {
   imports: Set<string>;
   chunkImports: string[];
   hoists: string[];
-}
-
-export interface QwikModuleEmitter extends ModuleParts {
+  emitPayload(payload: number, names: GeneratedNames): string;
   emitProgram(qrl: LinkedQrl, names: GeneratedNames): ComponentEmission;
   /** Every QRL's function as one context-neutral emission — every placement prints it. */
   qrlFunction(qrl: LinkedQrl): FunctionEmission;
@@ -41,14 +39,7 @@ export function generateQwikModule(
   placement: 'component' | 'module-top' = 'component'
 ): GenerateOutput['modules'] {
   const bindingExports = planModuleBindingExports(module);
-  const assembled = assembleQwikModule(
-    module,
-    emitter,
-    (qrl, names) => emitter.emitProgram(qrl, names),
-    options,
-    placement,
-    bindingExports.code
-  );
+  const assembled = assembleQwikModule(module, emitter, options, placement, bindingExports.code);
   const main = {
     path: module.path,
     code: assembled.code,
@@ -68,14 +59,10 @@ export function generateQwikModule(
   ];
 }
 
-/**
- * Walks the module's assembly intents, splicing each component's emission over its replacement
- * range; collected imports and hoists attach in front of the first component edit.
- */
+/** Splice components and helper payloads, then attach imports and hoists. */
 export function assembleQwikModule(
   module: LinkedModule,
-  parts: ModuleParts,
-  emitProgram: (qrl: LinkedQrl, names: GeneratedNames) => ComponentEmission,
+  parts: QwikModuleEmitter,
   options: PresentationOptions,
   /** SSR glues imports/hoists at the component edit; CSR puts them at the top of the module. */
   placement: 'component' | 'module-top',
@@ -87,6 +74,13 @@ export function assembleQwikModule(
   let needsModulePrelude = false;
   for (const intent of module.assembly) {
     switch (intent.a) {
+      case AssemblyKind.Payload:
+        needsModulePrelude = true;
+        edits.push({
+          range: module.payloads[intent.payload].range,
+          text: parts.emitPayload(intent.payload, names),
+        });
+        break;
       case AssemblyKind.Import:
         if (intent.binding !== null) {
           requestBindingImport(module, intent.binding, parts.imports);
@@ -111,7 +105,7 @@ export function assembleQwikModule(
         };
         const edit = {
           range: declaration.replacementRange,
-          text: emitComponentFunction(qrl, emitProgram(qrl, componentNames), componentNames),
+          text: emitComponentFunction(qrl, parts.emitProgram(qrl, componentNames), componentNames),
         };
         for (const binding of qrl.dependencies.bindings) {
           requestBindingImport(module, binding, parts.imports);

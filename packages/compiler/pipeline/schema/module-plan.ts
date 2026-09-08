@@ -264,6 +264,7 @@ export interface ModulePlan {
 export const enum AssemblyKind {
   /** Splice a declared QRL's emission over its authored declaration range. */
   Splice = 'splice',
+  Payload = 'payload',
   QrlBoundary = 'qrl-boundary',
   DeclarationStrip = 'declaration-strip',
   ModuleReferenceExport = 'module-reference-export',
@@ -292,6 +293,7 @@ export const enum StrippedExportForm {
 }
 
 export type AssemblyIntent =
+  | { a: AssemblyKind.Payload; payload: PayloadId }
   | {
       a: AssemblyKind.Splice;
       qrl: number;

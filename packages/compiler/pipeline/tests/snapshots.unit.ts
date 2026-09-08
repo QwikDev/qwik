@@ -40,6 +40,29 @@ async function testInputs(mode: 'ssr' | 'csr', snapshotName: string, inputs: rea
 }
 
 describe.each(['ssr', 'csr'] as const)('%s', (mode) => {
+  test('should preserve module and local JSX helper functions', async () => {
+    await testInputs(mode, 'jsx-helper', [
+      {
+        path: 'src/helper.tsx',
+        code: `export function makeNode(label) { return <b>{label}</b>; }
+export const makeFactory = (prefix) => (label) => <i>{prefix + label}</i>;
+`,
+      },
+      {
+        path: 'src/app.tsx',
+        code: `import { makeNode, makeFactory } from './helper';
+import { Display } from './display';
+const sibling = (label) => <u>{label}</u>, App = () => {
+  const values = [makeNode('one'), makeFactory('prefix:')('two'), local('three'), sibling('four')];
+  function local(label) { return <span>{label}</span>; }
+  return <Display values={values} />;
+};
+export default App;
+`,
+      },
+    ]);
+  });
+
   test('preserves native Promises and nested async JSX callbacks', async () => {
     const output = await testInput(mode, 'jsx-async', {
       code: `import { useSignal, useComputed$ } from '@qwik.dev/core';

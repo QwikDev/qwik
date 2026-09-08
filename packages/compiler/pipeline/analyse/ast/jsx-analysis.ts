@@ -62,6 +62,7 @@ export interface JsxAnalysis {
   read(node: Node): JsxValue;
   expressionRoots(node: Node): JsxExpressionRoot[];
   factory(node: Node): JsxFactory | null;
+  scopedRoots(nodes: readonly Node[]): JsxExpressionRoot[];
 }
 
 /** Share JSX value structure and callback scopes across lowering consumers. */
@@ -208,7 +209,12 @@ export function createJsxAnalysis(bindings?: BindingGraph): JsxAnalysis {
     }
     return factories.get(node)!;
   }
-  return { read, expressionRoots: (node) => expressionRoots(node, factory), factory };
+  return {
+    read,
+    expressionRoots: (node) => expressionRoots(node, factory),
+    factory,
+    scopedRoots: (nodes) => scopedRoots(nodes, factory),
+  };
 }
 
 function readFactory(source: Node, factory: JsxAnalysis['factory']): JsxFactory | null {
@@ -216,7 +222,12 @@ function readFactory(source: Node, factory: JsxAnalysis['factory']): JsxFactory 
   if (!isFunctionLike(fn)) {
     return null;
   }
-  const roots: JsxFactory['roots'] = [];
+  const roots = scopedRoots([...fn.params, ...(fn.body === null ? [] : [fn.body])], factory);
+  return roots.length === 0 ? null : { fn, roots };
+}
+
+function scopedRoots(nodes: readonly Node[], factory: JsxAnalysis['factory']): JsxExpressionRoot[] {
+  const roots: JsxExpressionRoot[] = [];
   const visit = (node: unknown): void => {
     if (Array.isArray(node)) {
       node.forEach(visit);
@@ -241,9 +252,8 @@ function readFactory(source: Node, factory: JsxAnalysis['factory']): JsxFactory 
       }
     }
   };
-  visit(fn.params);
-  visit(fn.body);
-  return roots.length === 0 ? null : { fn, roots };
+  visit(nodes);
+  return roots;
 }
 
 /** Containers preserve native evaluation while embedded JSX becomes render values. */

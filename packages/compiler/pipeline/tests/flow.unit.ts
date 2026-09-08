@@ -6,6 +6,7 @@ import { describe, expect, test } from 'vitest';
 import { format } from 'prettier';
 import { analyseModule, generateJsSsr, linkPlans, transformModules } from '../index';
 import {
+  BoundaryKind,
   BuildMode,
   DiagnosticCategory,
   Environment,
@@ -81,8 +82,8 @@ describe('pipeline flow', () => {
       { path: 'src/app.tsx', code: `${prefix}\nexport const App = component$(() => <p />);` },
       {}
     );
-    expect(plan.kind).toBe(ModuleKind.Failed);
-    expect(plan.diagnostics[0].code).toBe('unsupported-runtime-jsx');
+    expect(plan.kind).toBe(ModuleKind.Qwik);
+    expect(plan.qrls.some((qrl) => qrl.boundary.kind === BoundaryKind.Component)).toBe(false);
   });
 
   test.each(['() => null', 'function () { return null; }'])(
@@ -206,7 +207,7 @@ export default () => {
     const plan = await analyseModule(
       {
         path: 'src/entry.tsx',
-        code: 'export default function main() {\n  return render(<p>x</p>);\n}\n',
+        code: 'render(<p>x</p>);',
       },
       { transpileTs: true }
     );
@@ -222,8 +223,9 @@ export default () => {
       },
       { transpileTs: true }
     );
-    expect(plan.kind).toBe(ModuleKind.Failed);
-    expect(plan.diagnostics[0].code).toBe('unsupported-runtime-jsx');
+    expect(plan.kind).toBe(ModuleKind.Qwik);
+    expect(plan.diagnostics).toEqual([]);
+    expect(plan.qrls.every((qrl) => qrl.boundary.kind !== BoundaryKind.Component)).toBe(true);
   });
 
   test.each(['', 'export ', 'export default '])(
@@ -317,12 +319,12 @@ export default function App() {
     }
   );
 
-  test('JSX in a non-component sibling of a component fails loud', async () => {
+  test('JSX outside functions in a component module fails loud', async () => {
     await expect(
       analyseModule(
         {
           path: 'src/mixed.tsx',
-          code: 'export function makeNode() {\n  return <p>x</p>;\n}\nexport default () => {\n  return <p>Hello</p>;\n};\n',
+          code: 'const content = <p>x</p>;\nexport default () => <p>Hello</p>;',
         },
         { transpileTs: true }
       )

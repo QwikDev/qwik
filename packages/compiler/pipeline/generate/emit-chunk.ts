@@ -302,13 +302,18 @@ export function extractPayloadJs(
   module: LinkedModule,
   payload: number,
   range: Range = module.payloads[payload].range,
-  awaitName: string = QwikWord.Await
+  awaitName: string = QwikWord.Await,
+  edits: { range: Range; value: string }[] = []
 ): string {
   const { reads, awaits } = module.payloads[payload];
   const [start, end] = range;
-  const replacements: { range: Range; value: string }[] = [];
+  const replacements: { range: Range; value: string }[] = [...edits];
   const materialized = reads.filter(
-    (read) => read.value !== undefined && read.range[0] >= start && read.range[1] <= end
+    (read) =>
+      read.value !== undefined &&
+      read.range[0] >= start &&
+      read.range[1] <= end &&
+      !edits.some(({ range }) => read.range[0] >= range[0] && read.range[1] <= range[1])
   );
   for (const read of materialized) {
     const member = valueIrJs(module, read.value!);

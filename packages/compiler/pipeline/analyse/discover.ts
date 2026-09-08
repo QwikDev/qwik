@@ -26,7 +26,9 @@ export interface DiscoveredComponent {
   } | null;
   /** Statements before the return — lowered as component setup. */
   setupStatements: (Directive | Statement)[];
-  renderExpression: Expression;
+  renderExpression: Expression | null;
+  replacementRange: [number, number];
+  expressionOnly?: boolean;
   statement: Statement;
 }
 
@@ -56,17 +58,21 @@ export function discoverComponents(
     if (declaration?.type !== 'VariableDeclaration') {
       throw new UnsupportedError('a component without a variable declaration');
     }
-    if (declaration.declarations.length !== 1) {
-      throw new UnsupportedError('a component sharing its declaration with other declarators');
-    }
-    const declarator = declaration.declarations[0];
-    if (declarator.id.type !== 'Identifier' || name === null) {
+    const declarator = declaration.declarations.find(
+      (entry) => entry.id.type === 'Identifier' && entry.id.name === name
+    );
+    if (declarator === undefined || declarator.id.type !== 'Identifier' || name === null) {
       throw new UnsupportedError('a destructured component declaration');
     }
     if (declaration.kind !== 'const') {
       throw new UnsupportedError(`a component declared with "${declaration.kind}"`);
     }
-    return describeComponent(statement, fn, name, DeclarationKind.Const, declarator.id);
+    const component = describeComponent(statement, fn, name, DeclarationKind.Const, declarator.id);
+    if (declaration.declarations.length > 1) {
+      component.replacementRange = [declarator.init!.start, declarator.init!.end];
+      component.expressionOnly = true;
+    }
+    return component;
   });
 }
 
@@ -94,9 +100,6 @@ function describeComponent(
     throw new UnsupportedError('a destructured component parameter');
   }
   const { setupStatements, returned } = componentBody(fn);
-  if (returned === null) {
-    throw new UnsupportedError('a component without a return value');
-  }
   return {
     name,
     bindingNode,
@@ -106,6 +109,7 @@ function describeComponent(
     param: param === undefined ? null : { node: param, range: [param.start, param.end], object },
     renderExpression: returned,
     statement,
+    replacementRange: [statement.start, statement.end],
   };
 }
 
@@ -124,7 +128,7 @@ function componentBody(fn: ArrowFunctionExpression | FunctionNode): {
   const statements = body.body;
   const last = statements[statements.length - 1];
   if (last === undefined || last.type !== 'ReturnStatement') {
-    throw new UnsupportedError('a component body without a final return statement');
+    return { setupStatements: statements, returned: null };
   }
   return {
     setupStatements: statements.slice(0, -1),

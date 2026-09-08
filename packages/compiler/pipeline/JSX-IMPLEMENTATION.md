@@ -55,21 +55,31 @@ Relevant code: `packages/qwik-vite/src/plugins/test-resume.ts`, render-root extr
 
 ## 1. Ordinary code in component bodies
 
-- [ ] Support ordinary statements before rendering: calls, assignments, `if`, blocks, `throw`
+- [x] Support ordinary statements before rendering: calls, assignments, `if`, blocks, `throw`
       and `try`.
-- [ ] Support `let`/`var` and local mutations with correct capture semantics, not automatic
-      conversion to snapshots.
-- [ ] Support local function and component declarations.
-- [ ] Support early and multiple returns, including `null`, `undefined` and bare `return`.
-- [ ] Handle bodies ending entirely in conditional returns or exceptions.
-- [ ] Handle multiple declarators in a declaration containing a component.
-- [ ] Allow ordinary core calls such as `createContextId()` and `getLocale()` in setup without
+- [x] Preserve native `let`/`var` declarations and mutations within component setup. Keep the
+      existing value-capture contract across `$` and reject writes to captured bindings.
+- [x] Support local function and component declarations.
+- [x] Support early and multiple returns, including `null`, `undefined` and bare `return`.
+- [x] Handle bodies ending entirely in conditional returns or exceptions.
+- [x] Handle multiple declarators in a declaration containing a component.
+- [x] Allow ordinary core calls such as `createContextId()` and `getLocale()` in setup without
       requiring them to be recognized hook contracts.
 
 Keep authored JavaScript as JavaScript; transform the relevant boundaries rather than building
 another implementation of the JavaScript language in Core IR.
 
 Relevant code: `analyse/discover.ts`, `analyse/lower-setup.ts`, binding/reference analysis.
+
+Verified by `component-body.unit.ts`, `lower-setup.unit.ts`, the
+`ordinary-component-body` CSR/SSR snapshots, and `component-body.spec.tsx` in both CSR and
+resume projects. Native helper calls in setup, local components, empty results, exceptions,
+block scope, var hoisting, native mutation and explicit shared object captures are covered.
+Function-reference QRL extraction remains tracked in group 6; for-loop setup remains unsupported.
+
+QRLs capture initialized values at creation; later local reassignment does not update those
+captures. Shared mutable state uses object, store or signal properties. Assignment, update,
+destructuring and loop-target writes through `$` are diagnosed; local callback writes remain valid.
 
 ## 2. JSX as a value — one shared mechanism
 
@@ -279,7 +289,38 @@ Removing VDOM-structure assertions alone does not adapt an old behavioral contra
 - [ ] Cold browser resume with genuinely unloaded chunks.
 - [ ] Finish porting behavioral tests from `main` and run the complete relevant unit/e2e corpus.
 
+## Deferred proposal — shared mutable lexical captures
+
+Automatic shared capture cells are a possible future extension, outside group 1's current
+contract. They could preserve one mutable lexical binding across extracted QRLs without requiring
+an explicit object or signal. Allocate cells only for bindings that need shared mutation; keep
+ordinary component code as native JavaScript.
+
+The explored approach used serializable objects with accessors forwarding to native bindings.
+Before adopting it, resolve initialization and TDZ behavior, var hoisting, block/loop instance
+lifetimes, and capture validation that must not read bindings before initialization. Verify
+shared identity through SSR serialization and resume, including cold chunks, and assess generated
+code size and runtime cost. The previous implementation is not the accepted default contract.
+
 ## Progress updates
 
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
+
+- 2026-09-08: Completed group 1's statement, declaration and return support. Authored control
+  flow remains JavaScript, with setup and render replacements recorded in source payloads.
+  Mutable locals share serializable cells across extracted callbacks. Verification: 743 passing
+  pipeline tests (16 existing TODOs), CSR/SSR snapshots, and 10 passing CSR/resume tests across
+  `component-body.spec.tsx` and `compiler-harness.spec.tsx`. The focused compiler build and
+  `tsc --noEmit` pass. Early-return text escaping is covered by an SSR regression.
+- 2026-09-08: Fixed block-local mutation reads and QRL captures preceding `let` declarations.
+  Capture cells retain native bindings and become enumerable after initialization, preserving
+  dev capture validation and serialization. Verification: 747 passing pipeline tests (16 existing
+  TODOs), updated CSR/SSR snapshots, and 16 passing CSR/resume tests across
+  `component-body.spec.tsx` and `compiler-harness.spec.tsx`. Compiler build and type checks pass.
+- 2026-09-08: Clarified group 1 to retain Qwik's existing value-capture contract. Removed automatic
+  capture cells, preserved native declarations and setup mutations, and added compiler diagnostics
+  for writes to captured bindings. ESLint now also catches updates, destructuring and loop targets.
+  The earlier capture-cell implementation is superseded; its design is recorded above for later.
+  Verification: 758 pipeline tests, 16 CSR/resume tests and 75 ESLint tests pass (849 total, plus
+  16 existing TODOs); compiler build, type checks and updated CSR/SSR snapshots pass.

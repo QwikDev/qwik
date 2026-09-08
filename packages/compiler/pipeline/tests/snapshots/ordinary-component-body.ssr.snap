@@ -1,0 +1,231 @@
+==INPUT==
+
+import { $, component$, createContextId, getLocale, useSignal } from '@qwik.dev/core';
+const before = observe('before'), Header = () => <h1>Title</h1>, after = observe('after');
+export default component$((props) => {
+  let count = useSignal(1);
+  var suffix = '!';
+  const context = createContextId('body');
+  const locale = getLocale();
+  const label = useSignal('ready');
+  const increment = $(() => { count.value++; });
+  count.value = 4;
+  function format(value) { return String(value); }
+  label.value = format(count.value);
+  suffix += '!';
+  function Child() { return <p>{props.title}</p>; }
+  if (props.hidden) return;
+  try {
+    if (props.failed) throw new Error('failed');
+    return <section><Header /><Child /><button onClick$={increment}>increment</button><button onClick$={() => { label.value = count.value + suffix; }}>{label.value}</button></section>;
+  } catch (error) {
+    observe(error);
+    return null;
+  } finally {
+    observe(context, locale);
+  }
+});
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+const component_increment_segment_0_sk08s17xutli = () => {
+  const [count] = _captures;
+  count.value++;
+};
+const q_component_increment_segment_0_sk08s17xutli = /*#__PURE__*/ _noopQrl(
+  'component_increment_segment_0_sk08s17xutli'
+);
+q_component_increment_segment_0_sk08s17xutli.s(component_increment_segment_0_sk08s17xutli);
+const component_text_segment_1_1fh10tcowimfv = (props) => {
+  return props.title;
+};
+const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_1_1fh10tcowimfv'
+);
+q_component_text_segment_1_1fh10tcowimfv.s(component_text_segment_1_1fh10tcowimfv);
+const q_component_q_e_click_segment_2_2xwygteqhjqr1 = /*#__PURE__*/ _noopQrl(
+  'component_q_e_click_segment_2_2xwygteqhjqr1'
+);
+import {
+  useSignal,
+  _captures,
+  createSsrNodeId,
+  escapeHTML,
+  renderSsrTextExpression,
+  maybeThen,
+  createComponent,
+  renderSsrTextNode,
+  _noopQrl,
+  createContextId,
+  getLocale,
+} from '@qwik.dev/core';
+const before = observe('before'),
+  Header = (props0, ctx) => {
+    return '<h1>Title</h1>';
+  },
+  after = observe('after');
+export default (props, ctx) => {
+  let count = useSignal(1);
+  var suffix = '!';
+  const context = createContextId('body');
+  const locale = getLocale();
+  const label = useSignal('ready');
+  const increment = q_component_increment_segment_0_sk08s17xutli.w([count]);
+  count.value = 4;
+  function format(value) {
+    return String(value);
+  }
+  label.value = format(count.value);
+  suffix += '!';
+  function Child(props0, ctx) {
+    const id0 = ctx.nextId();
+    ctx.addRoot(props);
+    const text0 = renderSsrTextExpression(
+      id0,
+      null,
+      [props],
+      q_component_text_segment_1_1fh10tcowimfv
+    );
+    return maybeThen(text0, (text0) => [
+      '<p q:id="',
+      createSsrNodeId(id0),
+      '">',
+      escapeHTML(text0),
+      '</p>',
+    ]);
+  }
+  if (props.hidden) return '';
+  try {
+    if (props.failed) throw new Error('failed');
+    return (() => {
+      const component0 = createComponent(Header, null, ctx);
+      const component1 = createComponent(Child, null, ctx);
+      const id0 = ctx.nextId();
+      ctx.addRoot(label);
+      const text0 = renderSsrTextNode(id0, null, label);
+      return maybeThen(component0, (component0) =>
+        maybeThen(component1, (component1) =>
+          maybeThen(text0, (text0) => [
+            '<section>',
+            component0,
+            component1,
+            '<button',
+            ctx.eventAttrParts('q-e:click', increment),
+            '>increment</button><button q:id="',
+            createSsrNodeId(id0),
+            '"',
+            ctx.eventAttrParts(
+              'q-e:click',
+              q_component_q_e_click_segment_2_2xwygteqhjqr1.w([label, count, suffix])
+            ),
+            '>',
+            escapeHTML(text0),
+            '</button></section>',
+          ])
+        )
+      );
+    })();
+  } catch (error) {
+    observe(error);
+    return '';
+  } finally {
+    observe(context, locale);
+  }
+  return '';
+};
+============================= src/component.tsx_component_increment_segment_0_sk08s17xutli.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_increment_segment_0_sk08s17xutli = () => {
+  const [count] = _captures;
+  count.value++;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_increment_segment_0_sk08s17xutli",
+  "entry": null,
+  "displayName": "component_increment_segment_0",
+  "hash": "sk08s17xutli",
+  "canonicalFilename": "component.tsx_component_increment_segment_0_sk08s17xutli",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    394,
+    421
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_text_segment_1_1fh10tcowimfv.js (ENTRY POINT)==
+
+export const component_text_segment_1_1fh10tcowimfv = (props) => {
+  return props.title;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_1_1fh10tcowimfv",
+  "entry": null,
+  "displayName": "component_text_segment_1",
+  "hash": "1fh10tcowimfv",
+  "canonicalFilename": "component.tsx_component_text_segment_1_1fh10tcowimfv",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    579,
+    590
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
+  const [label, count, suffix] = _captures;
+  label.value = count.value + suffix;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_2_2xwygteqhjqr1",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_2",
+  "hash": "2xwygteqhjqr1",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    778,
+    797
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "label",
+    "count",
+    "suffix"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

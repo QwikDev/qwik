@@ -60,6 +60,7 @@ export function collectQrlDependencies(module: ModulePlan, qrl: Qrl): LinkedQrl[
     }
     source.qrls.forEach((entry) => visitQrlUse(entry.use));
     source.renders.forEach((entry) => visitProgram(entry.program));
+    source.setups?.forEach((entry) => entry.setup.forEach(visitSetup));
     source.temps.forEach((entry) => visitPayload(entry.init));
   }
 
@@ -146,7 +147,9 @@ export function collectQrlDependencies(module: ModulePlan, qrl: Qrl): LinkedQrl[
         visitPattern(entry.result);
         break;
       case SetupKind.Const:
-        visitValue(entry.value);
+        if (entry.value !== undefined) {
+          visitValue(entry.value);
+        }
         if (entry.defaultValue !== undefined) {
           visitValue(entry.defaultValue);
         }

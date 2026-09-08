@@ -15,6 +15,7 @@ import { LocalKind, type SetupLocal } from '../locals';
 import { collectIrBindingIds } from '../../../src/expr-ir';
 
 export interface CollectedCaptures {
+  capturedWrite: { name: string; range: Range } | null;
   propsReads: Range[];
   moduleReads: Payload['reads'];
   /** Reactive setup locals the boundary captures, in first-read order. */
@@ -37,11 +38,15 @@ export function collectCaptures(
   const locals: CollectedCaptures['locals'] = [];
   const moduleReads: Payload['reads'] = [];
   let other: string | null = null;
+  let capturedWrite: CollectedCaptures['capturedWrite'] = null;
   for (const { node: current, binding, role, isWrite } of ctx.bindings.freeReferences(node)) {
     if (current.type !== 'Identifier' || localBindings.has(binding)) {
       continue;
     }
     const setupLocal = ctx.locals.get(binding);
+    if (isWrite && (setupLocal !== undefined || binding === ctx.propsBinding)) {
+      capturedWrite ??= { name: current.name, range: [current.start, current.end] };
+    }
     if (binding === ctx.propsBinding) {
       propsReads.push([current.start, current.end]);
     } else if (setupLocal !== undefined) {
@@ -63,7 +68,7 @@ export function collectCaptures(
       other ??= ctx.plan.bindings[binding].name;
     }
   }
-  return { propsReads, locals, moduleReads, other };
+  return { propsReads, locals, moduleReads, other, capturedWrite };
 }
 
 export interface LoweredCaptures {

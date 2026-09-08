@@ -1,0 +1,217 @@
+==INPUT==
+
+import { $, component$, createContextId, getLocale, useSignal } from '@qwik.dev/core';
+const before = observe('before'), Header = () => <h1>Title</h1>, after = observe('after');
+export default component$((props) => {
+  let count = useSignal(1);
+  var suffix = '!';
+  const context = createContextId('body');
+  const locale = getLocale();
+  const label = useSignal('ready');
+  const increment = $(() => { count.value++; });
+  count.value = 4;
+  function format(value) { return String(value); }
+  label.value = format(count.value);
+  suffix += '!';
+  function Child() { return <p>{props.title}</p>; }
+  if (props.hidden) return;
+  try {
+    if (props.failed) throw new Error('failed');
+    return <section><Header /><Child /><button onClick$={increment}>increment</button><button onClick$={() => { label.value = count.value + suffix; }}>{label.value}</button></section>;
+  } catch (error) {
+    observe(error);
+    return null;
+  } finally {
+    observe(context, locale);
+  }
+});
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+const Header_tmpl0 = _createElementTemplate('<h1>Title</h1>');
+const q_component_increment_segment_0_sk08s17xutli = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_increment_segment_0_sk08s17xutli',
+  () => import('./component.tsx_component_increment_segment_0_sk08s17xutli'),
+  'component_increment_segment_0_sk08s17xutli'
+);
+const default_1_tmpl0 = _createElementTemplate('<p> </p>');
+const default_3_tmpl0 = _createElementTemplate(
+  '<section><!><!><button>increment</button><button> </button></section>'
+);
+import {
+  _createElementTemplate,
+  useSignal,
+  _qrlWithChunk,
+  _first,
+  createTextExpressionEffect,
+  createComponent,
+  _toNodes,
+  _next,
+  _last,
+  _prev,
+  setEvent,
+  createTextNodeEffect,
+  createContextId,
+  getLocale,
+} from '@qwik.dev/core';
+import { component_text_segment_1_1fh10tcowimfv } from './component.tsx_component_text_segment_1_1fh10tcowimfv';
+import { component_q_e_click_segment_2_2xwygteqhjqr1 } from './component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1';
+const before = observe('before'),
+  Header = (props0, ctx) => {
+    const el0 = Header_tmpl0(ctx.document);
+    return el0;
+  },
+  after = observe('after');
+export default (props, ctx) => {
+  let count = useSignal(1);
+  var suffix = '!';
+  const context = createContextId('body');
+  const locale = getLocale();
+  const label = useSignal('ready');
+  const increment = q_component_increment_segment_0_sk08s17xutli.w([count]);
+  count.value = 4;
+  function format(value) {
+    return String(value);
+  }
+  label.value = format(count.value);
+  suffix += '!';
+  function Child(props0, ctx) {
+    const el0 = default_1_tmpl0(ctx.document);
+    const text0 = _first(el0);
+    const effect0 = createTextExpressionEffect(
+      text0,
+      [props],
+      component_text_segment_1_1fh10tcowimfv,
+      ctx.scheduler
+    );
+    ctx.scheduler.notify(effect0);
+    return el0;
+  }
+  if (props.hidden) return [];
+  try {
+    if (props.failed) throw new Error('failed');
+    return (() => {
+      const el0 = default_3_tmpl0(ctx.document);
+      const marker0 = _first(el0);
+      const component0 = createComponent(Header, null, ctx);
+      marker0.replaceWith(..._toNodes(component0));
+      const marker1 = _next(_first(el0));
+      const component1 = createComponent(Child, null, ctx);
+      marker1.replaceWith(..._toNodes(component1));
+      const el1 = _prev(_last(el0));
+      setEvent(el1, 'q-e:click', increment);
+      const el2 = _last(el0);
+      setEvent(el2, 'q-e:click', component_q_e_click_segment_2_2xwygteqhjqr1, [
+        label,
+        count,
+        suffix,
+      ]);
+      const text0 = _first(el2);
+      const effect0 = createTextNodeEffect(text0, label, ctx.scheduler);
+      ctx.scheduler.notify(effect0);
+      return el0;
+    })();
+  } catch (error) {
+    observe(error);
+    return [];
+  } finally {
+    observe(context, locale);
+  }
+  return [];
+};
+============================= src/component.tsx_component_increment_segment_0_sk08s17xutli.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_increment_segment_0_sk08s17xutli = () => {
+  const [count] = _captures;
+  count.value++;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_increment_segment_0_sk08s17xutli",
+  "entry": null,
+  "displayName": "component_increment_segment_0",
+  "hash": "sk08s17xutli",
+  "canonicalFilename": "component.tsx_component_increment_segment_0_sk08s17xutli",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    394,
+    421
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_text_segment_1_1fh10tcowimfv.js (ENTRY POINT)==
+
+export const component_text_segment_1_1fh10tcowimfv = (props) => {
+  return props.title;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_1_1fh10tcowimfv",
+  "entry": null,
+  "displayName": "component_text_segment_1",
+  "hash": "1fh10tcowimfv",
+  "canonicalFilename": "component.tsx_component_text_segment_1_1fh10tcowimfv",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    579,
+    590
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
+  const [label, count, suffix] = _captures;
+  label.value = count.value + suffix;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_2_2xwygteqhjqr1",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_2",
+  "hash": "2xwygteqhjqr1",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    778,
+    797
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "label",
+    "count",
+    "suffix"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

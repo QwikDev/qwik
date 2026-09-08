@@ -6,6 +6,7 @@ import {
   ExprKind,
   SetupKind,
   ValueKind,
+  DeclarationKind,
   type QrlUse,
   type Arg,
   type Expr,
@@ -16,7 +17,9 @@ import { ValueIrKind } from '../../src/expr-ir';
 import { UnsupportedError } from '../errors';
 import { expressionJs, extractPayloadJs, inlineValueJs, memberJs, valueIrJs } from './emit-chunk';
 import { requestBindingImport } from './emit-import';
-import { QwikHook, QwikWord } from '../words';
+import { QwikGenWord, QwikHook, QwikWord } from '../words';
+import { allocateGeneratedName } from '../names';
+import type { ComponentEmission, GeneratedNames } from './emit-component';
 
 const coreCallImports: Record<CoreOperation, QwikHook> = {
   [CoreOperation.CreateSignal]: QwikHook.UseSignal,
@@ -28,9 +31,55 @@ export function emitJsSetup(
   module: LinkedModule,
   program: { setup: LinkedModule['programs'][number]['setup'] },
   imports: Set<string>,
-  emitQrl: (use: QrlUse) => string
+  emitQrl: (use: QrlUse) => string,
+  render?: (program: number, names?: GeneratedNames) => ComponentEmission,
+  names?: GeneratedNames
 ): string[] {
   return program.setup.map((entry) => {
+    if (entry.s === SetupKind.Js) {
+      const payload = module.payloads[entry.payload];
+      const edits = (payload.setups ?? []).map(({ range, setup, block }) => {
+        const value = emitJsSetup(module, { setup }, imports, emitQrl, render, names).join('\n');
+        return { range, value: block ? `{\n${value}\n}` : value };
+      });
+      for (const { range, program, statement } of payload.renders) {
+        if (render === undefined) {
+          throw new UnsupportedError('a render payload without a renderer');
+        }
+        const emission = render(program);
+        const value =
+          emission.statements.length === 0
+            ? emission.value
+            : `(() => {\n${emission.statements.join('\n')}\nreturn ${emission.value};\n})()`;
+        edits.push({
+          range,
+          value: statement ? `return ${value};` : value,
+        });
+      }
+      return extractPayloadJs(module, entry.payload, payload.range, undefined, edits);
+    }
+    if (entry.s === SetupKind.LocalComponent) {
+      if (render === undefined || names === undefined) {
+        throw new UnsupportedError('a local component without a renderer');
+      }
+      const binding = entry.parameter?.surface.binding;
+      const localNames = {
+        ...names,
+        props:
+          binding == null
+            ? allocateGeneratedName(
+                QwikGenWord.ComponentProps,
+                module.bindings.map((entry) => entry.name)
+              )
+            : module.bindings[binding].name,
+      };
+      const emission = render(entry.program, localNames);
+      const body = `${emission.statements.join('\n')}\nreturn ${emission.value};`;
+      const params = `${localNames.props}, ${localNames.ctx}`;
+      return entry.declarationKind === DeclarationKind.Const
+        ? `const ${entry.name} = (${params}) => {\n${body}\n};`
+        : `function ${entry.name}(${params}) {\n${body}\n}`;
+    }
     if (entry.s === SetupKind.PropRest) {
       imports.add(QwikWord.CreatePropsProxy);
       return `const ${module.bindings[entry.result].name} = ${QwikWord.CreatePropsProxy}(${module.bindings[entry.props].name}, ${JSON.stringify(entry.excluded)});`;
@@ -51,9 +100,12 @@ export function emitJsSetup(
       if (entry.result.bind !== BindTargetKind.Pattern) {
         throw new UnsupportedError('a call result without a binding pattern');
       }
-      return `const ${extractPayloadJs(module, entry.result.pattern)} = ${call};`;
+      return `${entry.declarationKind ?? 'const'} ${extractPayloadJs(module, entry.result.pattern)} = ${call};`;
     }
     if (entry.s === SetupKind.Const && entry.result.bind === BindTargetKind.Pattern) {
+      if (entry.value === undefined) {
+        return `${entry.declarationKind} ${extractPayloadJs(module, entry.result.pattern)};`;
+      }
       const value =
         entry.value.v === ValueKind.Qrl
           ? emitQrl(entry.value.use)
@@ -62,7 +114,7 @@ export function emitJsSetup(
         entry.defaultValue === undefined
           ? value
           : `${value} === void 0 ? (${inlineValueJs(module, entry.defaultValue)}) : ${value}`;
-      return `const ${extractPayloadJs(module, entry.result.pattern)} = ${initial};`;
+      return `${entry.declarationKind ?? 'const'} ${extractPayloadJs(module, entry.result.pattern)} = ${initial};`;
     }
     throw new UnsupportedError(`the setup entry "${entry.s}" in a JS render`);
   });

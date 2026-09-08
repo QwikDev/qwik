@@ -192,6 +192,7 @@ export function trySignalReadValue(
   }
   switch (local.kind) {
     case LocalKind.Const:
+    case LocalKind.Mutable:
     case LocalKind.Qrl:
     case LocalKind.PropMember:
     case LocalKind.PropRest:

@@ -298,6 +298,9 @@ export function emitComponentFunction(
   const body = [...emission.statements, `return ${emission.value};`]
     .map((statement) => `  ${statement}`)
     .join('\n');
+  if (declaration.expressionOnly) {
+    return `(${params}) => {\n${body}\n}`;
+  }
   switch (declaration.declarationKind) {
     case DeclarationKind.Const:
       return `${exportPrefix}const ${declaration.name} = (${params}) => {\n${body}\n};`;

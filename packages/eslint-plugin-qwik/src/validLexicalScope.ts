@@ -114,17 +114,15 @@ export const validLexicalScope = createRule({
             }
 
             if (ownerDeclared !== dollarScope) {
-              if (identifier.parent && identifier.parent.type === 'AssignmentExpression') {
-                if (identifier.parent.left === identifier) {
-                  context.report({
-                    messageId: 'mutableIdentifier',
-                    node: ref.identifier,
-                    data: {
-                      varName: ref.identifier.name,
-                      dollarName: dollarIdentifier,
-                    },
-                  });
-                }
+              if (ref.isWrite()) {
+                context.report({
+                  messageId: 'mutableIdentifier',
+                  node: ref.identifier,
+                  data: {
+                    varName: ref.identifier.name,
+                    dollarName: dollarIdentifier,
+                  },
+                });
               }
 
               const reason = canCapture(context, typeChecker, tsNode, ref.identifier, opts);

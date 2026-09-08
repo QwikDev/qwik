@@ -308,11 +308,11 @@ export default function App() {
     }
   );
 
-  test.each(['const value = 1, Child = () => <span />;', 'let Child = () => <span />;'])(
+  test.each(['let Child = () => <span />;'])(
     'rejects unsupported local declarations without discarding authored code: %s',
     async (code) => {
       await expect(analyseModule({ path: 'src/local.tsx', code }, {})).rejects.toThrow(
-        code.startsWith('const') ? 'sharing its declaration' : 'declared with "let"'
+        'declared with "let"'
       );
     }
   );

@@ -121,6 +121,7 @@ export interface Qrl {
 }
 
 export interface QrlDeclaration {
+  expressionOnly?: boolean;
   /** Authored declaration name — distinct from the QRL's wire symbol. */
   name: string;
   binding: LocalId | null;

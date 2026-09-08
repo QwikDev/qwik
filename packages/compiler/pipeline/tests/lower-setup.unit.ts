@@ -105,13 +105,14 @@ describe('lowerSetup / useSignal', () => {
     expect(ordinary.setup.map((entry) => entry.s)).toEqual([SetupKind.Const, SetupKind.Call]);
   });
 
-  test('non-const statements and unsupported core calls still throw', () => {
-    expect(() => lower('let count = useSignal(0);')).toThrow(
-      'a setup statement that is not a const declaration'
-    );
-    expect(() =>
-      lower('const count = component$(() => null);', [['component$', 'component$']])
-    ).toThrow('the setup call "component$"');
+  test('mutable setup bindings and local components lower explicitly', () => {
+    expect(lower('let count = useSignal(0);').setup[0]).toMatchObject({
+      s: SetupKind.Call,
+      declarationKind: 'let',
+    });
+    expect(
+      lower('const count = component$(() => null);', [['component$', 'component$']]).setup[0].s
+    ).toBe(SetupKind.LocalComponent);
   });
 });
 
@@ -178,11 +179,11 @@ const signal = useSignal(count), snapshot = signal.value;
 });
 
 test('component setup restores the surrounding local scope on success and failure', () => {
-  for (const source of ['const count = 1;', 'const count = 1; let other = 2;']) {
+  for (const source of ['const count = 1;', 'const count = 1; const other = <span />;']) {
     const parsed = parseModule('t.tsx', source);
     const { ctx } = createTestLowerContext(parsed.program, source);
     const outerLocals = ctx.locals;
-    if (source.includes('let')) {
+    if (source.includes('<span')) {
       expect(() => lowerSetup(parsed.program.body, ctx)).toThrow();
     } else {
       expect(lowerSetup(parsed.program.body, ctx).locals.size).toBe(1);

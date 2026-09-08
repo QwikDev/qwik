@@ -40,6 +40,37 @@ async function testInputs(mode: 'ssr' | 'csr', snapshotName: string, inputs: rea
 }
 
 describe.each(['ssr', 'csr'] as const)('%s', (mode) => {
+  test('preserves ordinary component bodies and explicit shared state', async () => {
+    const output = await testInput(mode, 'ordinary-component-body', {
+      code: `import { $, component$, createContextId, getLocale, useSignal } from '@qwik.dev/core';
+const before = observe('before'), Header = () => <h1>Title</h1>, after = observe('after');
+export default component$((props) => {
+  let count = useSignal(1);
+  var suffix = '!';
+  const context = createContextId('body');
+  const locale = getLocale();
+  const label = useSignal('ready');
+  const increment = $(() => { count.value++; });
+  count.value = 4;
+  function format(value) { return String(value); }
+  label.value = format(count.value);
+  suffix += '!';
+  function Child() { return <p>{props.title}</p>; }
+  if (props.hidden) return;
+  try {
+    if (props.failed) throw new Error('failed');
+    return <section><Header /><Child /><button onClick$={increment}>increment</button><button onClick$={() => { label.value = count.value + suffix; }}>{label.value}</button></section>;
+  } catch (error) {
+    observe(error);
+    return null;
+  } finally {
+    observe(context, locale);
+  }
+});`,
+    });
+    expect(output.diagnostics).toEqual([]);
+  });
+
   test('should share module bindings with QRL chunks', async () => {
     const output = await testInput(mode, 'qrl-module-bindings', {
       code: `import { useSignal, useComputed$, useTask$ } from '@qwik.dev/core';

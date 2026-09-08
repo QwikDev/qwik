@@ -31,6 +31,8 @@ export interface BindingGraph {
   reference(node: Node): LocalId | null;
   declarationsOf(binding: LocalId): readonly Node[];
   bindingsOf(pattern: BindingPattern): readonly LocalId[];
+  /** Authored declarations in the enclosing function, including block scopes. */
+  declaredWithin(roots: readonly Node[]): readonly LocalId[];
   freeReferences(roots: Node | Node[]): BindingReference[];
   hasShadowedReferences(node: Node, destination: Node): boolean;
   dependenciesOf<T extends Node>(expression: Node | Node[], candidates: readonly T[]): T[];
@@ -62,6 +64,8 @@ export function createBindingGraph(program: Program): BindingGraph {
   const declarations = new WeakMap<Node, LocalId>();
   const references = new WeakMap<Node, LocalId>();
   const declarationNodes: Node[][] = [];
+  const declarationScopes: Scope[] = [];
+  const parentScopes = new WeakMap<Node, Scope>();
   const patternBindings = new WeakMap<BindingPattern, LocalId[]>();
   const orderedReferences: (
     | BindingReference
@@ -100,6 +104,7 @@ export function createBindingGraph(program: Program): BindingGraph {
     scope.bindings.set(name, id);
     declarations.set(node, id);
     declarationNodes.push([owner]);
+    declarationScopes.push(scope);
     return id;
   };
 
@@ -212,6 +217,7 @@ export function createBindingGraph(program: Program): BindingGraph {
     if (!isNode(value)) {
       return;
     }
+    parentScopes.set(value, scope);
     switch (value.type) {
       case 'AwaitExpression': {
         const owner = nearestFunctionScope(scope);
@@ -389,6 +395,21 @@ export function createBindingGraph(program: Program): BindingGraph {
       return scope === undefined ? [] : (awaitsByScope.get(scope) ?? []);
     },
     freeReferences,
+    declaredWithin: (roots) =>
+      bindings
+        .filter(
+          ({ id, declarationRange: range }) =>
+            declarationScopes[id] !== undefined &&
+            range !== null &&
+            roots.some(
+              (root) =>
+                range[0] >= root.start &&
+                range[1] <= root.end &&
+                nearestFunctionScope(declarationScopes[id]) ===
+                  nearestFunctionScope(parentScopes.get(root)!)
+            )
+        )
+        .map(({ id }) => id),
     hasShadowedReferences(node, destination) {
       const scope = scopes.get(destination);
       if (scope === undefined) {

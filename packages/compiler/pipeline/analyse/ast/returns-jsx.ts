@@ -19,7 +19,7 @@ export interface ComponentCandidate {
 
 /** Explicit markers and JSX-returning functions share component discovery. */
 export function findComponentCandidates(
-  program: Program,
+  program: Pick<Program, 'body'>,
   jsx: JsxAnalysis,
   bindings: BindingGraph,
   coreBindings: ReadonlyMap<LocalId, string>

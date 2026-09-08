@@ -1,6 +1,6 @@
 import type { ArrowFunctionExpression, Function as FunctionNode } from 'oxc-parser';
 import { FnBodyKind, QrlBodyKind, QrlPayloadKind, type Qrl } from '../schema';
-import { UnsupportedError } from '../errors';
+import { InvalidModuleError, UnsupportedError } from '../errors';
 import { lowerCaptures } from './ast/capture-analysis';
 import { findRuntimeJsx } from './ast/returns-jsx';
 import { pushPayload, pushQrl, QrlIdentityKind, type LowerContext } from './lower-context';
@@ -27,6 +27,13 @@ export function lowerFunctionQrl(
     throw new UnsupportedError(`JSX inside ${boundary.subject}`);
   }
   const { captures, args, refs } = lowerCaptures(fn, ctx, boundary.subject);
+  if (refs.capturedWrite !== null) {
+    throw new InvalidModuleError(
+      'mutable-capture',
+      `Mutating captured binding "${refs.capturedWrite.name}" inside a $ boundary is not allowed; mutate an object, store or signal property instead.`,
+      refs.capturedWrite.range
+    );
+  }
   const capturesBeforeParams =
     refs.propsReads.some(([start]) => start < body.start) ||
     refs.locals.some(({ reads }) => reads.some(({ range }) => range[0] < body.start));

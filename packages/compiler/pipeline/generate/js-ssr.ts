@@ -185,7 +185,14 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       rooted: new Set(),
     };
     pass.statements.push(
-      ...emitJsSetup(this.module, program, this.imports, (use) => this.useQrl(pass, use, true).ref)
+      ...emitJsSetup(
+        this.module,
+        program,
+        this.imports,
+        (use) => this.useQrl(pass, use, true).ref,
+        (nested, localNames = names) => this.renderProgramById(nested, localNames),
+        names
+      )
     );
     const rootRange: SsrRootRange | null = options.rootRange
       ? { idParam: null, markerIndex: 0 }

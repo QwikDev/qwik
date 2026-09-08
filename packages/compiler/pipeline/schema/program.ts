@@ -8,9 +8,11 @@ import type {
   ProgramId,
   Seed,
   Shape,
+  VarKind,
 } from './shared';
 import type { Expr, QrlUse, Value } from './value';
 import type { ValueIR } from '../../src/expr-ir';
+import type { DeclarationKind } from './module-plan';
 
 // ---------------------------------------------------------------------------------------------
 // Program: ONE shape for every render scope — component body, branch arm, row, projection,
@@ -299,17 +301,19 @@ export type Setup =
       initializer: Expr;
       guard?: Predicate;
     }
-  /** Plain consts AND `$()` consts (value: {v: ValueKind.Qrl}). */
+  /** Authored declarations, including uninitialized locals and QRL values. */
   | {
       s: SetupKind.Const;
+      declarationKind?: VarKind;
       result: BindTarget;
-      value: Value;
+      value?: Value;
       /** Fallback for an already-bound argument, evaluated only for undefined. */
       defaultValue?: Value;
       guard?: Predicate;
     }
   | {
       s: SetupKind.Call;
+      declarationKind?: VarKind;
       target: CallTarget;
       args: Arg[];
       result: BindTarget | null;
@@ -328,6 +332,7 @@ export type Setup =
     }
   | {
       s: SetupKind.LocalComponent;
+      declarationKind?: DeclarationKind;
       program: ProgramId;
       id: string;
       name: string;

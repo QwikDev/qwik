@@ -31,6 +31,7 @@ import { emptyPlan } from './plan';
 import { createOriginalRangeMapper } from '../../src/normalization';
 
 import { InvalidModuleError, UnsupportedError } from '../errors';
+import type { Node } from 'oxc-parser';
 
 export interface AnalyseOptions {
   transpileTs?: boolean;
@@ -98,12 +99,24 @@ export async function analyseModule(
 
   const components = discoverComponents(candidates);
   const componentStatements = new Set(components.map((component) => component.statement));
-  for (const statement of parsed.program.body as unknown[]) {
-    if (!componentStatements.has(statement as never)) {
-      const leftover = findRuntimeJsx(statement);
-      if (leftover !== null) {
-        throw new UnsupportedError('JSX outside the discovered components');
-      }
+  const authoredStatements: Node[] = parsed.program.body.flatMap((statement): Node[] => {
+    if (statement.type === 'ImportDeclaration') {
+      return [];
+    }
+    if (!componentStatements.has(statement)) {
+      return [statement];
+    }
+    const declaration =
+      statement.type === 'ExportNamedDeclaration' ? statement.declaration : statement;
+    return declaration?.type === 'VariableDeclaration'
+      ? declaration.declarations.filter(
+          (declarator) => !components.some((component) => component.bindingNode === declarator.id)
+        )
+      : [];
+  });
+  for (const statement of authoredStatements) {
+    if (findRuntimeJsx(statement) !== null) {
+      throw new UnsupportedError('JSX outside the discovered components');
     }
   }
 
@@ -115,9 +128,6 @@ export async function analyseModule(
     owner: LifetimeOwner.Component,
     commit: LifetimeCommit.Immediate,
   });
-  const authoredStatements = parsed.program.body.filter(
-    (statement) => statement.type !== 'ImportDeclaration' && !componentStatements.has(statement)
-  );
   const retainedBindings = new Set(
     bindings
       .freeReferences([
@@ -153,7 +163,10 @@ export async function analyseModule(
       loweredParameter = lowerComponentParameter(component, lowerContext);
       setup = lowerSetup(component.setupStatements, lowerContext, loweredParameter.locals);
       lowerContext.locals = setup.locals;
-      rootOps = lowerRenderExpression(component.renderExpression, lowerContext);
+      rootOps =
+        component.renderExpression === null
+          ? []
+          : lowerRenderExpression(component.renderExpression, lowerContext);
     } catch (error) {
       if (error instanceof InvalidModuleError) {
         plan.kind = ModuleKind.Failed;
@@ -220,7 +233,8 @@ export async function analyseModule(
         binding: componentBinding,
         parameter,
         root: { name: `q${component.name}-` },
-        replacementRange: [component.statement.start, component.statement.end],
+        replacementRange: component.replacementRange,
+        ...(component.expressionOnly ? { expressionOnly: true } : {}),
         declarationKind: component.declarationKind,
         isExported:
           component.statement.type === 'ExportNamedDeclaration' ||

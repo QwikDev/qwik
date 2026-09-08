@@ -1,6 +1,7 @@
 /** Payloads, ESM edges, expressions, tasks, and the five-arm `Value` union (DESIGN.md "Model"). */
 import type { ValueIR } from '../../src/expr-ir';
 import type { BuildConstant, LocalId, PayloadId, PlaceIR, ProgramId, QrlId, Range } from './shared';
+import type { Setup } from './program';
 
 // ---------------------------------------------------------------------------------------------
 // Payloads: source text + references. Executable, and RESTORABLE: awaits live here so EVERY
@@ -30,7 +31,8 @@ export interface Payload {
   }[];
   awaits: { range: Range; argumentRange: Range }[];
   useIds: { range: Range; ordinal: number }[];
-  renders: { range: Range; program: ProgramId }[];
+  renders: { range: Range; program: ProgramId; statement?: true }[];
+  setups?: { range: Range; setup: Setup[]; block: boolean }[];
   temps: { binding: LocalId; statementStart: number; init: PayloadId }[];
 }
 

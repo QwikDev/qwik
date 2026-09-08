@@ -61,6 +61,7 @@ describe('collectCaptures', () => {
   test('a setup local is collected with its SetupLocal row', () => {
     const refs = refsOf('() => count.value++', { count: true });
     expect(refs).toMatchObject({
+      capturedWrite: null,
       propsReads: [],
       locals: [{ name: 'count', local: COUNT_LOCAL }],
       other: null,
@@ -99,6 +100,7 @@ describe('collectCaptures', () => {
   test('props reads retain their locations without becoming local entries', () => {
     const refs = refsOf('(value = props.initial) => props.onSave$(value)', { props: true });
     expect(refs).toEqual({
+      capturedWrite: null,
       propsReads: [
         [expect.any(Number), expect.any(Number)],
         [expect.any(Number), expect.any(Number)],
@@ -123,6 +125,7 @@ describe('collectCaptures', () => {
 
   test('handler params shadow outer names', () => {
     expect(refsOf('(count) => count.value', { count: true })).toEqual({
+      capturedWrite: null,
       propsReads: [],
       moduleReads: [],
       locals: [],
@@ -137,6 +140,7 @@ describe('collectCaptures', () => {
 
   test('unknown globals are ignored entirely', () => {
     expect(refsOf('() => console.log(1)')).toEqual({
+      capturedWrite: null,
       propsReads: [],
       moduleReads: [],
       locals: [],

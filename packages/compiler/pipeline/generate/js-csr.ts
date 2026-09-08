@@ -123,8 +123,14 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       throw new Error('pipeline.generateJsCsr: js-bodied programs not implemented yet');
     }
     const pass: RenderPass = { names, next: createNameAllocator(this.module) };
-    const statements = emitJsSetup(this.module, program, this.imports, (use) =>
-      this.lazyRenderReference(use, names.props)
+    const statements = emitJsSetup(
+      this.module,
+      program,
+      this.imports,
+      (use) => this.lazyRenderReference(use, names.props),
+      (nested, localNames = names) =>
+        this.renderProgram(nested, `${ownerName}_${nested}`, localNames),
+      names
     );
     const ops = program.body.ops;
     if (ops.length === 0) {

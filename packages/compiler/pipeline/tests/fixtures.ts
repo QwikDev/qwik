@@ -7,7 +7,7 @@ import {
   type Specialization,
 } from '../schema';
 import type { Program } from 'oxc-parser';
-import { runInNewContext } from 'node:vm';
+import { compileFunction, runInNewContext } from 'node:vm';
 import { parseModule } from '../analyse/ast/parse';
 import { createBindingGraph } from '../analyse/ast/bindings';
 import { createLowerContext } from '../analyse/lower-context';
@@ -17,7 +17,9 @@ export { emptyPlan as emptyModulePlan };
 
 export function loadDefaultFunction(
   module: { path: string; code: string },
-  globals: Record<string, unknown>
+  globals: Record<string, unknown>,
+  /** Serialized objects must share the runtime's prototypes. */
+  useCurrentRealm = false
 ) {
   const { program } = parseModule(module.path, module.code);
   const script = program.body
@@ -28,9 +30,9 @@ export function loadDefaultFunction(
       if (statement.type === 'ExportDefaultDeclaration') {
         const declaration = statement.declaration;
         if (declaration.type === 'FunctionDeclaration' && declaration.id !== null) {
-          return `${module.code.slice(declaration.start, declaration.end)}\n${declaration.id.name};`;
+          return `${module.code.slice(declaration.start, declaration.end)}\n${useCurrentRealm ? 'return ' : ''}${declaration.id.name};`;
         }
-        return `(${module.code.slice(statement.declaration.start, statement.declaration.end)})`;
+        return `${useCurrentRealm ? 'return ' : ''}(${module.code.slice(statement.declaration.start, statement.declaration.end)})`;
       }
       if (statement.type === 'ExportNamedDeclaration' && statement.declaration !== null) {
         return module.code.slice(statement.declaration.start, statement.declaration.end);
@@ -38,7 +40,9 @@ export function loadDefaultFunction(
       return module.code.slice(statement.start, statement.end);
     })
     .join('\n');
-  return runInNewContext(script, globals);
+  return useCurrentRealm
+    ? compileFunction(script, [], { contextExtensions: [globals] })()
+    : runInNewContext(script, globals);
 }
 
 export function loadChunkFunction(

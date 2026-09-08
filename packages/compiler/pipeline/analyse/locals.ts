@@ -4,6 +4,7 @@ import { ValueIrKind, type ValueIR } from '../../src/expr-ir';
 /** Local value semantics shared by expression and capture lowering. */
 export const enum LocalKind {
   Const = 'const',
+  Mutable = 'mutable',
   Qrl = 'qrl',
   Signal = 'signal',
   /** A collection row parameter — captured as LoopValue, delivered per row. */

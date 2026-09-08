@@ -13,6 +13,25 @@ const docsRoot = join(__dirname, '../../packages/docs');
 const distDir = join(docsRoot, 'dist');
 const serverEntry = join(docsRoot, 'server', 'entry.cloudflare-pages.js');
 
+const headerRules = readFileSync(join(distDir, '_headers'), 'utf8')
+  .split(/\r?\n(?=\/)/)
+  .map((block) => {
+    const [pattern, ...lines] = block.split(/\r?\n/);
+    const matcher = new RegExp(
+      '^' +
+        pattern
+          .trim()
+          .split('*')
+          .map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+          .join('.*') +
+        '$'
+    );
+    return {
+      matcher,
+      lines: lines.map((line) => line.trim()).filter((line) => line && !line.startsWith('#')),
+    };
+  });
+
 const MIME_TYPES: Record<string, string> = {
   '.html': 'text/html',
   '.js': 'application/javascript',
@@ -51,8 +70,22 @@ function serveStatic(pathname: string): Response | null {
         const content = readFileSync(filePath);
         const ext = extname(filePath);
         const contentType = MIME_TYPES[ext] || 'application/octet-stream';
+        const headers = new Headers({ 'Content-Type': contentType });
+        for (const { matcher, lines } of headerRules) {
+          if (!matcher.test(pathname)) {
+            continue;
+          }
+          for (const line of lines) {
+            if (line.startsWith('! ')) {
+              headers.delete(line.slice(2).trim());
+            } else {
+              const separator = line.indexOf(':');
+              headers.set(line.slice(0, separator), line.slice(separator + 1).trim());
+            }
+          }
+        }
         return new Response(content, {
-          headers: { 'Content-Type': contentType },
+          headers,
         });
       } catch {
         // fall through
@@ -113,9 +146,6 @@ async function main() {
       const response: Response = await cfFetch(request, env, ctx);
 
       const responseHeaders = Object.fromEntries(response.headers.entries());
-      // Required for SharedArrayBuffer (REPL uses worker threads in-browser)
-      responseHeaders['cross-origin-opener-policy'] = 'same-origin';
-      responseHeaders['cross-origin-embedder-policy'] = 'credentialless';
       res.writeHead(response.status, responseHeaders);
       if (response.body) {
         const reader = response.body.getReader();

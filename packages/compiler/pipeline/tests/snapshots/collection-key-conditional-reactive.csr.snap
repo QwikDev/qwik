@@ -236,6 +236,7 @@ export const component_branch_condition_segment_3_2fzrh8qv53bdo = () => {
 ============================= src/component.tsx_component_branch_then_segment_4_24n7dk4a4zn6t.js (ENTRY POINT)==
 
 import { _captures, _qrlWithChunk, readExpression, _props, createComponent } from '@qwik.dev/core';
+import { Done } from './component.tsx';
 const q_component_title_segment_5_2f0r23m7p7poi = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_title_segment_5_2f0r23m7p7poi',
   () => import('./component.tsx_component_title_segment_5_2f0r23m7p7poi'),

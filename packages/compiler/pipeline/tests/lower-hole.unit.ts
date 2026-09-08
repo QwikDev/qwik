@@ -144,7 +144,13 @@ describe('lowerText', () => {
     expect(lower("'<b> & ' + 'x'").map((op) => op.op)).toEqual([OpKind.Hole]);
   });
 
-  test('an expression capturing a module binding throws', () => {
-    expect(() => holeFor('title')).toThrow('an expression capturing "title"');
+  test('an expression records module reads without captures', () => {
+    const { ctx } = holeFor('title');
+    expect(ctx.plan.qrls[0].captures).toEqual([]);
+    expect(
+      ctx.plan.payloads
+        .flatMap((payload) => payload.reads)
+        .map((read) => ctx.plan.bindings[read.binding].name)
+    ).toContain('title');
   });
 });

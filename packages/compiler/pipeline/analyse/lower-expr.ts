@@ -112,7 +112,7 @@ export function recordPayloadReads(
 ): void {
   const target = ctx.plan.payloads[payload];
   target.reads.push(
-    ...refs.imports.filter(
+    ...refs.moduleReads.filter(
       ({ range }) => range[0] >= target.range[0] && range[1] <= target.range[1]
     )
   );

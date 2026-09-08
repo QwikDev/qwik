@@ -45,6 +45,25 @@ function identifiers(root: Node, name: string): Node[] {
 }
 
 describe('createBindingGraph', () => {
+  test.each([
+    ['value++', true],
+    ['value = 1', true],
+    ['({ value } = source)', true],
+    ['[value = source] = []', true],
+    ['({...value} = source)', true],
+    ['for (value of source) {}', true],
+    ['value.field++', false],
+    ['({ [value]: target } = source)', false],
+    ['[target = value] = source', false],
+  ])('classifies assignment targets independently of reference roles: %s', (code, isWrite) => {
+    const { program } = parseModule('bindings.ts', `let value; ${code};`);
+    const graph = createBindingGraph(deepFreeze(program));
+    const references = graph.freeReferences(program.body.slice(1));
+    expect(
+      references.filter((entry) => entry.node.name === 'value').map((entry) => entry.isWrite)
+    ).toEqual([isWrite]);
+  });
+
   test.each(['const', 'var', 'function'])(
     'parameter defaults cannot see body %s declarations',
     (kind) => {

@@ -16,7 +16,7 @@ import { collectIrBindingIds } from '../../../src/expr-ir';
 
 export interface CollectedCaptures {
   propsReads: Range[];
-  imports: Payload['reads'];
+  moduleReads: Payload['reads'];
   /** Reactive setup locals the boundary captures, in first-read order. */
   locals: {
     name: string;
@@ -27,7 +27,7 @@ export interface CollectedCaptures {
   other: string | null;
 }
 
-/** Imports retain module identity; supported setup bindings become captures. */
+/** Module references retain identity; supported setup bindings become captures. */
 export function collectCaptures(
   node: Node | Node[],
   ctx: LowerContext,
@@ -35,9 +35,9 @@ export function collectCaptures(
 ): CollectedCaptures {
   const propsReads: Range[] = [];
   const locals: CollectedCaptures['locals'] = [];
-  const imports: Payload['reads'] = [];
+  const moduleReads: Payload['reads'] = [];
   let other: string | null = null;
-  for (const { node: current, binding, role } of ctx.bindings.freeReferences(node)) {
+  for (const { node: current, binding, role, isWrite } of ctx.bindings.freeReferences(node)) {
     if (current.type !== 'Identifier' || localBindings.has(binding)) {
       continue;
     }
@@ -53,15 +53,17 @@ export function collectCaptures(
         entry.reads.push(read);
       }
     } else if (
-      ctx.plan.bindings[binding].scope === BindingScope.Import &&
-      ctx.plan.imports.some((entry) => entry.binding === binding && !entry.typeOnly)
+      !isWrite &&
+      (ctx.plan.bindings[binding].scope === BindingScope.Module ||
+        (ctx.plan.bindings[binding].scope === BindingScope.Import &&
+          ctx.plan.imports.some((entry) => entry.binding === binding && !entry.typeOnly)))
     ) {
-      imports.push({ range: [current.start, current.end], binding, role });
+      moduleReads.push({ range: [current.start, current.end], binding, role });
     } else {
       other ??= ctx.plan.bindings[binding].name;
     }
   }
-  return { propsReads, locals, imports, other };
+  return { propsReads, locals, moduleReads, other };
 }
 
 export interface LoweredCaptures {

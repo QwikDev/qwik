@@ -15,6 +15,24 @@ const TEST_TARGET = Symbol.for('@qwik.dev/core/testing/target');
 const coreSource = fileURLToPath(new URL('../../../qwik/dist/core.mjs', import.meta.url));
 const preloaderSource = fileURLToPath(new URL('../../../qwik/dist/preloader.mjs', import.meta.url));
 
+test('does not alias ordinary modules without generated chunks', async () => {
+  const harness = createTestResume();
+  harness.configure('resume');
+  try {
+    await harness.transform(
+      { input: [{ path: 'helper.ts', code: 'export const value = {};' }], isServer: true },
+      '/src/helper.ts',
+      '/src',
+      path,
+      (id) => id
+    );
+    assert.equal(harness.hasOutput('/src/helper.ts'), false);
+    assert.equal(harness.hasOutput('/src/helper.qwik-test-client.ts'), false);
+  } finally {
+    harness.clear();
+  }
+});
+
 for (const target of ['csr', 'ssr', 'resume'] as const) {
   test(`uses pipeline output for both sides of the ${target} harness`, async () => {
     const harness = createTestResume();
@@ -75,8 +93,15 @@ test('keeps SSR node resolution and resumes through transitive browser resolutio
 import { target } from 'resume-condition';
 
 export const serverTarget = target;
+const state = { calls: 0 };
+function format() { return target + ':' + ++state.calls; }
+export const readCalls = () => state.calls;
 export const App = component$(() => (
-  <button onClick$={() => target}>resume</button>
+  <main>
+    <button onClick$={() => target}>resume</button>
+    <button onClick$={() => ({ state, result: format() })}>first</button>
+    <button onClick$={() => ({ state, result: format() })}>second</button>
+  </main>
 ));
 `
   );
@@ -117,14 +142,29 @@ export const App = component$(() => (
     >;
     const metadata = registry.get(path.join(srcDir, 'entry.tsx').replaceAll('\\', '/'));
     assert.ok(metadata);
-    const eventModule = metadata.client.find(
+    const eventModules = metadata.client.filter(
       (module) => module.segment?.ctxKind === 'eventHandler'
     );
+    const [eventModule, firstModule, secondModule] = eventModules;
     assert.ok(eventModule?.segment);
+    assert.ok(firstModule?.segment);
+    assert.ok(secondModule?.segment);
 
     const event = await server.ssrLoadModule(eventModule.path);
     assert.equal(await event[eventModule.segment.name](), 'browser:browser-child');
-    assert.deepEqual(callbacks, [eventModule.segment.name]);
+    const firstEvent = await server.ssrLoadModule(firstModule.path);
+    const first = await firstEvent[firstModule.segment.name]();
+    const secondEvent = await server.ssrLoadModule(secondModule.path);
+    const second = await secondEvent[secondModule.segment.name]();
+    assert.equal(first.result, 'browser:browser-child:1');
+    assert.equal(second.result, 'browser:browser-child:2');
+    assert.equal(first.state, second.state);
+    assert.equal(first.state.calls, 2);
+    assert.equal(entry.readCalls(), 0);
+    assert.deepEqual(
+      callbacks,
+      eventModules.map((module) => module.segment!.name)
+    );
     assert.ok(metadata.server.length > 0);
     assert.equal(registry.get(path.join(srcDir, 'entry.tsx').replaceAll('\\', '/')), metadata);
   } finally {

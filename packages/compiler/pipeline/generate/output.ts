@@ -1,6 +1,6 @@
 /** Generator output — a true superset of the legacy `TransformOutput` data. */
 import type { SegmentAnalysis } from '@qwik.dev/optimizer';
-import type { Diagnostic, LinkedPlan } from '../schema';
+import type { Diagnostic, LinkedModule, LinkedPlan } from '../schema';
 import { isJsxPath, isTypeScriptPath } from '../analyse/ast/parse';
 
 export interface GenerateOutput {
@@ -23,6 +23,11 @@ export interface PresentationOptions {
   explicitExtensions?: boolean;
   /** Working directory for foreign-module transpilation (oxc `cwd`). */
   rootDir?: string;
+}
+
+export function moduleBasename(module: LinkedModule): string {
+  const slash = Math.max(module.path.lastIndexOf('/'), module.path.lastIndexOf('\\'));
+  return slash === -1 ? module.path : module.path.slice(slash + 1);
 }
 
 export function makeOutput(plan: LinkedPlan, modules: GenerateOutput['modules']): GenerateOutput {

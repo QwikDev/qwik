@@ -22,6 +22,7 @@ interface BindingReference {
   node: Extract<Node, { type: 'Identifier' | 'JSXIdentifier' }>;
   binding: LocalId;
   role: ReadRole;
+  isWrite: boolean;
 }
 
 export interface BindingGraph {
@@ -309,10 +310,11 @@ export function createBindingGraph(program: Program): BindingGraph {
     value: unknown,
     scope: Scope,
     parent: Node | null,
-    key: string
+    key: string,
+    isWrite = false
   ): void => {
     if (Array.isArray(value)) {
-      value.forEach((item) => resolveReferences(item, scope, parent, key));
+      value.forEach((item) => resolveReferences(item, scope, parent, key, isWrite));
       return;
     }
     if (!isNode(value)) {
@@ -326,20 +328,26 @@ export function createBindingGraph(program: Program): BindingGraph {
         if (binding !== null) {
           references.set(value, binding);
         }
-        orderedReferences.push({ node: value, binding, role: referenceRole(parent, key) });
+        orderedReferences.push({ node: value, binding, role: referenceRole(parent, key), isWrite });
       }
     } else if (value.type === 'JSXIdentifier' && isJsxTagReference(parent, key)) {
       const binding = findBinding(activeScope, value.name);
       if (binding !== null) {
         references.set(value, binding);
-        orderedReferences.push({ node: value, binding, role: ReadRole.Read });
+        orderedReferences.push({ node: value, binding, role: ReadRole.Read, isWrite: false });
       }
     } else if (value.type === 'ParenthesizedExpression') {
-      resolveReferences(value.expression, activeScope, parent, key);
+      resolveReferences(value.expression, activeScope, parent, key, isWrite);
     } else {
       for (const childKey of Object.keys(value)) {
         if (!IGNORED_KEYS.has(childKey)) {
-          resolveReferences((value as WalkableNode)[childKey], activeScope, value, childKey);
+          resolveReferences(
+            (value as WalkableNode)[childKey],
+            activeScope,
+            value,
+            childKey,
+            isAssignmentTarget(value, childKey, isWrite)
+          );
         }
       }
     }
@@ -483,6 +491,28 @@ function toVarKind(kind: string): VarKind | null {
       return VarKind.Var;
     default:
       return null;
+  }
+}
+
+function isAssignmentTarget(parent: Node, key: string, inherited: boolean): boolean {
+  switch (parent.type) {
+    case 'AssignmentExpression':
+    case 'ForInStatement':
+    case 'ForOfStatement':
+      return key === 'left';
+    case 'UpdateExpression':
+      return key === 'argument';
+    case 'ObjectPattern':
+    case 'ArrayPattern':
+      return inherited;
+    case 'Property':
+      return inherited && key === 'value';
+    case 'AssignmentPattern':
+      return inherited && key === 'left';
+    case 'RestElement':
+      return inherited && key === 'argument';
+    default:
+      return false;
   }
 }
 

@@ -45,7 +45,7 @@ describe('collectCaptures', () => {
     const { ctx } = createTestLowerContext(program, source);
     const expression = program.body[1];
     const binding = ctx.plan.bindings[0].id;
-    expect(collectCaptures(expression, ctx, new Set()).other).toBe('count');
+    expect(collectCaptures(expression, ctx, new Set()).moduleReads).toHaveLength(2);
     const local = { ...COUNT_LOCAL, binding };
     ctx.locals = new Map([[binding, local]]);
     const refs = collectCaptures(expression, ctx, new Set());
@@ -103,7 +103,7 @@ describe('collectCaptures', () => {
         [expect.any(Number), expect.any(Number)],
         [expect.any(Number), expect.any(Number)],
       ],
-      imports: [],
+      moduleReads: [],
       locals: [],
       other: null,
     });
@@ -112,14 +112,19 @@ describe('collectCaptures', () => {
     expect(refsOf('(props) => props.title', { props: true }).propsReads).toEqual([]);
   });
 
-  test('a module binding lands in other', () => {
-    expect(refsOf('title').other).toBe('title');
+  test('module reads are recorded without captures', () => {
+    const refs = refsOf('title');
+    expect(refs.other).toBeNull();
+    expect(refs.locals).toEqual([]);
+    expect(refs.moduleReads).toEqual([
+      { binding: 0, range: [expect.any(Number), expect.any(Number)], role: ReadRole.Read },
+    ]);
   });
 
   test('handler params shadow outer names', () => {
     expect(refsOf('(count) => count.value', { count: true })).toEqual({
       propsReads: [],
-      imports: [],
+      moduleReads: [],
       locals: [],
       other: null,
     });
@@ -133,7 +138,7 @@ describe('collectCaptures', () => {
   test('unknown globals are ignored entirely', () => {
     expect(refsOf('() => console.log(1)')).toEqual({
       propsReads: [],
-      imports: [],
+      moduleReads: [],
       locals: [],
       other: null,
     });

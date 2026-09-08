@@ -146,9 +146,13 @@ describe('lowerBranch / arm captures', () => {
     });
   });
 
-  test('an arm reading a module binding refuses', () => {
-    expect(() => lower('<div>{show.value ? <b>{title}</b> : null}</div>')).toThrow(
-      'a branch arm capturing "title"'
-    );
+  test('an arm reading a module binding does not capture it', () => {
+    const { ctx } = lower('<div>{show.value ? <b>{title}</b> : null}</div>');
+    expect(ctx.plan.qrls.find((qrl) => qrl.ctxName === 'branch:then')?.captures).toEqual([]);
+    expect(
+      ctx.plan.payloads
+        .flatMap((payload) => payload.reads)
+        .some((read) => ctx.plan.bindings[read.binding].name === 'title')
+    ).toBe(true);
   });
 });

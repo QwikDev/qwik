@@ -15,6 +15,7 @@ import {
   type Expr,
   type ExpressionIR,
   type Range,
+  type LocalId,
 } from '../schema';
 import { ValueIrKind } from '../../src/expr-ir';
 import { getSegmentDisplayName, getSegmentSymbolHash } from '../segment-identity';
@@ -24,7 +25,7 @@ import { assembleGeneratedModule } from '../../src/module-assembly';
 import { applyReplacements } from '../../src/emit-qrl';
 import { createOriginalRangeMapper } from '../../src/normalization';
 import type { SourceMap } from 'oxc-transform';
-import type { GenerateOutput, PresentationOptions } from './output';
+import { moduleBasename, type GenerateOutput, type PresentationOptions } from './output';
 import { emitBindingImports } from './emit-import';
 
 /** One function, as neutral data — printed into chunk files, SSR mirrors, and spliced bodies. */
@@ -53,7 +54,8 @@ export interface FunctionEmission {
 export function emitQrlChunks(
   module: LinkedModule,
   qrlFunction: (qrl: LinkedQrl) => FunctionEmission,
-  options: PresentationOptions
+  options: PresentationOptions,
+  moduleExports: ReadonlyMap<LocalId, string>
 ): GenerateOutput['modules'] {
   const mapRange =
     module.source.normalizationMap === null
@@ -72,7 +74,7 @@ export function emitQrlChunks(
         module.source.code,
         module.source.originalPath,
         path,
-        chunkModuleCode(module, qrl, qrlFunction(qrl)),
+        chunkModuleCode(module, qrl, qrlFunction(qrl), moduleExports),
         qrl.origin.range,
         options.outputSourceMaps === true,
         module.source.normalizationMap as SourceMap | null
@@ -220,13 +222,18 @@ export function chunkCanonicalFilename(module: LinkedModule, qrl: LinkedQrl): st
   return `${moduleBasename(module)}_${qrl.name}`;
 }
 
-function moduleBasename(module: LinkedModule): string {
-  const slash = Math.max(module.path.lastIndexOf('/'), module.path.lastIndexOf('\\'));
-  return slash === -1 ? module.path : module.path.slice(slash + 1);
-}
-
-function chunkModuleCode(module: LinkedModule, qrl: LinkedQrl, emission: FunctionEmission): string {
-  const bindingImports = emitBindingImports(module, qrl.dependencies.bindings, emission.imports);
+function chunkModuleCode(
+  module: LinkedModule,
+  qrl: LinkedQrl,
+  emission: FunctionEmission,
+  moduleExports: ReadonlyMap<LocalId, string>
+): string {
+  const bindingImports = emitBindingImports(
+    module,
+    qrl.dependencies.bindings,
+    emission.imports,
+    moduleExports
+  );
   const importLines = [
     ...(emission.imports.size === 0
       ? []

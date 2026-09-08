@@ -1,0 +1,156 @@
+==INPUT==
+
+import { useSignal, useComputed$, useTask$ } from '@qwik.dev/core';
+const prefix = 'Saved';
+const settings = { suffix: '!' };
+function format(value) { return prefix + ': ' + value; }
+export default () => {
+  const count = useSignal(2);
+  const title = useComputed$(() => format(count.value));
+  useTask$(() => console.log(settings.suffix, title.value));
+  return <button onClick$={() => console.log(format(count.value), settings)}>{title.value}</button>;
+};
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useSignal,
+  useComputedQrl,
+  _qrlWithChunk,
+  useTask$,
+  setEvent,
+  _first,
+  createTextNodeEffect,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_q_e_click_segment_2_2xwygteqhjqr1 } from './component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1';
+
+const q_component_title_segment_0_2f0r0xivypjmx = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_title_segment_0_2f0r0xivypjmx',
+  () => import('./component.tsx_component_title_segment_0_2f0r0xivypjmx'),
+  'component_title_segment_0_2f0r0xivypjmx'
+);
+const q_component_useTaskqrl_segment_1_1og80wrqqnv5v = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_useTaskqrl_segment_1_1og80wrqqnv5v',
+  () => import('./component.tsx_component_useTaskqrl_segment_1_1og80wrqqnv5v'),
+  'component_useTaskqrl_segment_1_1og80wrqqnv5v'
+);
+const default_tmpl0 = _createElementTemplate('<button> </button>');
+const prefix = 'Saved';
+const settings = { suffix: '!' };
+function format(value) {
+  return prefix + ': ' + value;
+}
+export default (props, ctx) => {
+  const count = useSignal(2);
+  const title = useComputedQrl(q_component_title_segment_0_2f0r0xivypjmx.w([count]));
+  useTask$(q_component_useTaskqrl_segment_1_1og80wrqqnv5v.w([title]));
+  const el0 = default_tmpl0(ctx.document);
+  setEvent(el0, 'q-e:click', component_q_e_click_segment_2_2xwygteqhjqr1, [count]);
+  const text0 = _first(el0);
+  const effect0 = createTextNodeEffect(text0, title, ctx.scheduler);
+  ctx.scheduler.notify(effect0);
+  return el0;
+};
+
+export { format as __qwik_format, settings as __qwik_settings };
+============================= src/component.tsx_component_title_segment_0_2f0r0xivypjmx.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+import { __qwik_format as format } from './component.tsx';
+
+export const component_title_segment_0_2f0r0xivypjmx = () => {
+  const [count] = _captures;
+  return format(count.value);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_title_segment_0_2f0r0xivypjmx",
+  "entry": null,
+  "displayName": "component_title_segment_0",
+  "hash": "2f0r0xivypjmx",
+  "canonicalFilename": "component.tsx_component_title_segment_0_2f0r0xivypjmx",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "useComputed$",
+  "captures": true,
+  "loc": [
+    252,
+    291
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_useTaskqrl_segment_1_1og80wrqqnv5v.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+import { __qwik_settings as settings } from './component.tsx';
+
+export const component_useTaskqrl_segment_1_1og80wrqqnv5v = () => {
+  const [title] = _captures;
+  return console.log(settings.suffix, title.value);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_useTaskqrl_segment_1_1og80wrqqnv5v",
+  "entry": null,
+  "displayName": "component_useTaskqrl_segment_1",
+  "hash": "1og80wrqqnv5v",
+  "canonicalFilename": "component.tsx_component_useTaskqrl_segment_1_1og80wrqqnv5v",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "useTask$",
+  "captures": true,
+  "loc": [
+    295,
+    352
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "title"
+  ]
+}
+*/
+============================= src/component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+import { __qwik_format as format, __qwik_settings as settings } from './component.tsx';
+
+export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
+  const [count] = _captures;
+  return console.log(format(count.value), settings);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_2_2xwygteqhjqr1",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_2",
+  "hash": "2xwygteqhjqr1",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    371,
+    430
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

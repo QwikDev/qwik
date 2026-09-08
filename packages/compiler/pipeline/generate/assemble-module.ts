@@ -9,7 +9,7 @@ import { QWIK_CORE_IMPORT } from '../words';
 import { assembleModule, type AssembledModule } from '../../src/module-assembly';
 import type { SourceMap } from 'oxc-transform';
 import { emitQrlChunks, type FunctionEmission } from './emit-chunk';
-import { replacedCoreImport, requestBindingImport } from './emit-import';
+import { planModuleBindingExports, replacedCoreImport, requestBindingImport } from './emit-import';
 import type { GenerateOutput, PresentationOptions } from './output';
 import {
   allocateGeneratedNames,
@@ -40,12 +40,14 @@ export function generateQwikModule(
   options: PresentationOptions,
   placement: 'component' | 'module-top' = 'component'
 ): GenerateOutput['modules'] {
+  const bindingExports = planModuleBindingExports(module);
   const assembled = assembleQwikModule(
     module,
     emitter,
     (qrl, names) => emitter.emitProgram(qrl, names),
     options,
-    placement
+    placement,
+    bindingExports.code
   );
   const main = {
     path: module.path,
@@ -57,7 +59,12 @@ export function generateQwikModule(
   };
   return [
     main,
-    ...emitQrlChunks(module, (qrl) => emitter.resolveChunkUses(emitter.qrlFunction(qrl)), options),
+    ...emitQrlChunks(
+      module,
+      (qrl) => emitter.resolveChunkUses(emitter.qrlFunction(qrl)),
+      options,
+      bindingExports.names
+    ),
   ];
 }
 
@@ -71,7 +78,8 @@ export function assembleQwikModule(
   emitProgram: (qrl: LinkedQrl, names: GeneratedNames) => ComponentEmission,
   options: PresentationOptions,
   /** SSR glues imports/hoists at the component edit; CSR puts them at the top of the module. */
-  placement: 'component' | 'module-top' = 'component'
+  placement: 'component' | 'module-top',
+  bindingExports: string
 ): AssembledModule {
   const names = allocateGeneratedNames(module);
   const edits: { range: [number, number]; text: string }[] = [];
@@ -159,6 +167,10 @@ export function assembleQwikModule(
   }
   if (prefix !== '') {
     edits.push({ range: [0, 0], text: prefix });
+  }
+  if (bindingExports !== '') {
+    const end = module.source.code.length;
+    edits.push({ range: [end, end], text: bindingExports });
   }
   return assembleModule(
     module.source.code,

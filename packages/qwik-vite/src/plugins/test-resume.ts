@@ -3,6 +3,7 @@ import {
   transformPipelineModules as transformModules,
 } from '@qwik.dev/compiler';
 import type { Rollup, ViteDevServer } from 'vite';
+import { dirname, resolve } from 'node:path';
 import type { TransformModule, TransformModulesOptions, TransformOutput } from '../types';
 import { parseId } from './vite-utils';
 
@@ -148,10 +149,12 @@ export function createTestResume() {
       const clientModules = client.modules.filter((module) => isAdditionalFile(module));
       const useClientAliases = testTarget === 'resume';
 
-      registerRootAlias(serverOutputs, serverRoot, parentId, normalizePath);
-      clientModuleIds.add(
-        registerRootAlias(clientOutputs, clientRoot, parentId, normalizePath, useClientAliases)
-      );
+      if (clientModules.length > 0) {
+        registerRootAlias(serverOutputs, serverRoot, parentId, normalizePath);
+        clientModuleIds.add(
+          registerRootAlias(clientOutputs, clientRoot, parentId, normalizePath, useClientAliases)
+        );
+      }
 
       for (const module of serverModules) {
         registerOutput(serverOutputs, module, parentId, srcDir, path, normalizePath);
@@ -202,12 +205,17 @@ export function createTestResume() {
         return;
       }
 
-      const directClientId = toClientId(normalizePath(parseId(id).pathId));
-      if (clientOutputs.has(directClientId)) {
-        return { id: directClientId, external: false };
-      }
-
       const clientImporter = parentIds.get(importerId) ?? importerId;
+      const pathId = parseId(id).pathId;
+      const sourceId = normalizePath(
+        pathId.startsWith('.') ? resolve(dirname(clientImporter), pathId) : pathId
+      );
+      for (const candidate of [sourceId, `${sourceId}.js`]) {
+        const clientId = toClientId(candidate);
+        if (clientOutputs.has(clientId)) {
+          return { id: clientId, external: false };
+        }
+      }
       const resolved = await server.environments.client.pluginContainer.resolveId(
         id,
         clientImporter
@@ -215,21 +223,17 @@ export function createTestResume() {
       if (!resolved) {
         return null;
       }
-      const resolvedId = typeof resolved === 'string' ? resolved : resolved.id;
-      const normalizedId = normalizePath(parseId(resolvedId).pathId);
+      const resolution = typeof resolved === 'string' ? { id: resolved } : resolved;
+      const normalizedId = normalizePath(parseId(resolution.id).pathId);
       const clientId = toClientId(normalizedId);
       if (clientOutputs.has(clientId)) {
         clientModuleIds.add(clientId);
-        return typeof resolved === 'string'
-          ? { id: clientId, external: false }
-          : { ...resolved, id: clientId, external: false };
+        return { ...resolution, id: clientId, external: false };
       }
       if (normalizedId !== parseId(clientImporter).pathId) {
         clientModuleIds.add(normalizedId);
       }
-      return typeof resolved === 'string'
-        ? { id: resolved, external: false }
-        : { ...resolved, external: false };
+      return { ...resolution, external: false };
     },
   };
 
@@ -258,7 +262,7 @@ export function createTestResume() {
     normalizePath: (id: string) => string,
     isClient = false
   ): string {
-    const outputId = normalizePath(parentId.replace(/\.[cm]?[jt]sx?$/, '.js'));
+    const outputId = normalizePath(parentId);
     const id = isClient ? toClientId(outputId) : outputId;
     outputs.set(id, [module, parentId]);
     parentIds.set(id, parentId);

@@ -422,6 +422,7 @@ export const component_branch_condition_segment_4_2fzrgupr899d5 = () => {
 
 import { _noopQrl, _captures, readExpression, _props, createComponent } from '@qwik.dev/core';
 import { component_title_segment_6_2f0r1pl3sdnnz } from './component.tsx_component_title_segment_6_2f0r1pl3sdnnz';
+import { Done } from './component.tsx';
 const q_component_title_segment_6_2f0r1pl3sdnnz = /*#__PURE__*/ _noopQrl(
   'component_title_segment_6_2f0r1pl3sdnnz'
 );

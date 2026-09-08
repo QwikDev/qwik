@@ -3,6 +3,9 @@
 From-scratch implementation of [DESIGN.md](./DESIGN.md). The legacy pipeline in `../src` stays
 intact and untouched as the **differential oracle** until the cutover commit deletes it.
 
+Follow [JSX implementation checklist](./JSX-IMPLEMENTATION.md) for the agreed incremental roadmap
+to replace legacy and pass core unit tests and e2e tests.
+
 ```
 analyseModule(file, options)                         -> ModulePlan  (one file, one plan, pure)
 linkPlans(plans, entries, specialization, snapshots) -> LinkedPlan  (per environment + mode)

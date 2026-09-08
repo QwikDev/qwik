@@ -329,7 +329,7 @@ export default function App() {
     ).rejects.toThrow('JSX outside the discovered components');
   });
 
-  test('event handlers capturing outer bindings fail loud', async () => {
+  test('event handlers preserve module binding references', async () => {
     await expect(
       analyseModule(
         {
@@ -338,10 +338,14 @@ export default function App() {
         },
         { transpileTs: true }
       )
-    ).rejects.toThrow('an event handler capturing "count"');
+    ).resolves.toMatchObject({
+      qrls: expect.arrayContaining([
+        expect.objectContaining({ ctxName: 'onClick$', captures: [] }),
+      ]),
+    });
   });
 
-  test('expressions capturing module bindings fail loud', async () => {
+  test('expressions preserve module binding references', async () => {
     await expect(
       analyseModule(
         {
@@ -350,7 +354,11 @@ export default function App() {
         },
         { transpileTs: true }
       )
-    ).rejects.toThrow('an expression capturing "title"');
+    ).resolves.toMatchObject({
+      qrls: expect.arrayContaining([
+        expect.objectContaining({ payloadKind: 'value', captures: [] }),
+      ]),
+    });
   });
 
   test.each(['() => <b />', '() => { return <b />; }'])(

@@ -352,6 +352,7 @@ export const component_branch_condition_segment_3_2fzrh8qv53bdo = () => {
 ============================= src/component.tsx_component_branch_then_segment_4_24n7dk4a4zn6t.js (ENTRY POINT)==
 
 import { _captures, createComponent } from '@qwik.dev/core';
+import { Primary } from './component.tsx';
 
 export const component_branch_then_segment_4_24n7dk4a4zn6t = (ctx) => {
   const [key] = _captures;

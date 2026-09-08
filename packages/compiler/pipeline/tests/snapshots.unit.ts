@@ -40,6 +40,22 @@ async function testInputs(mode: 'ssr' | 'csr', snapshotName: string, inputs: rea
 }
 
 describe.each(['ssr', 'csr'] as const)('%s', (mode) => {
+  test('should share module bindings with QRL chunks', async () => {
+    const output = await testInput(mode, 'qrl-module-bindings', {
+      code: `import { useSignal, useComputed$, useTask$ } from '@qwik.dev/core';
+const prefix = 'Saved';
+const settings = { suffix: '!' };
+function format(value) { return prefix + ': ' + value; }
+export default () => {
+  const count = useSignal(2);
+  const title = useComputed$(() => format(count.value));
+  useTask$(() => console.log(settings.suffix, title.value));
+  return <button onClick$={() => console.log(format(count.value), settings)}>{title.value}</button>;
+};`,
+    });
+    expect(output.diagnostics).toEqual([]);
+  });
+
   test('should import module references in event computed and task chunks', async () => {
     const output = await testInput(mode, 'qrl-imports', {
       code: `import { useSignal, useComputed$, useTask$ } from '@qwik.dev/core';

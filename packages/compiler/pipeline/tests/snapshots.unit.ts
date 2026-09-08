@@ -1135,6 +1135,20 @@ export default () => {
     });
   });
 
+  test('should render mutable QRL event bindings', async () => {
+    const output = await testInput(mode, 'mutable-qrl-event', {
+      code: `import { $, useSignal } from '@qwik.dev/core';
+export default (props) => {
+  const count = useSignal(0);
+  let action = $(() => { count.value++; });
+  if (props.disabled) action = null;
+  return <button onClick$={action}>{count.value}</button>;
+};
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+  });
+
   test('should forward an event prop through a component', async () => {
     await testInput(mode, 'component-event-prop', {
       code: `import { useSignal } from '@qwik.dev/core';

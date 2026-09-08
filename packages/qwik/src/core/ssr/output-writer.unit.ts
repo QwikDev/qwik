@@ -10,6 +10,35 @@ import {
 import { SsrOutputWriter } from './output-writer';
 
 describe('SsrOutputWriter', () => {
+  it('omits null markup parts while preserving references and event attributes', () => {
+    const chunks: string[] = [];
+    const writer = new SsrOutputWriter({ write: (chunk) => void chunks.push(chunk) });
+
+    writer.finish(
+      createSsrMarkup(
+        null,
+        '<button q:id="',
+        createSsrNodeId(0),
+        '"',
+        null,
+        createSsrEventAttr('q-e:click', ['listener#handler#', createSsrRootRef(2)]),
+        '>',
+        null
+      )
+    );
+
+    expect(chunks).toEqual(['<button q:id="0" q-e:click="listener#handler#2">']);
+  });
+
+  it('does not write empty or null-only markup records', () => {
+    const chunks: string[] = [];
+    const writer = new SsrOutputWriter({ write: (chunk) => void chunks.push(chunk) });
+
+    writer.finish([createSsrMarkup(), createSsrMarkup(null), createSsrMarkup(null, null)]);
+
+    expect(chunks).toEqual([]);
+  });
+
   it('writes recursive output in order and materializes each record atomically', () => {
     const chunks: string[] = [];
     const writer = new SsrOutputWriter({ write: (chunk) => void chunks.push(chunk) });

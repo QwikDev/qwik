@@ -75,6 +75,7 @@ Verified by `component-body.unit.ts`, `lower-setup.unit.ts`, the
 `ordinary-component-body` CSR/SSR snapshots, and `component-body.spec.tsx` in both CSR and
 resume projects. Native helper calls in setup, local components, empty results, exceptions,
 block scope, var hoisting, native mutation and explicit shared object captures are covered.
+Mutable QRL event bindings, reassignment and null handlers are verified in CSR and resume.
 Function-reference QRL extraction remains tracked in group 6; for-loop setup remains unsupported.
 
 QRLs capture initialized values at creation; later local reassignment does not update those
@@ -324,3 +325,10 @@ their checkboxes; do not silently reinterpret the original completion estimate a
   The earlier capture-cell implementation is superseded; its design is recorded above for later.
   Verification: 758 pipeline tests, 16 CSR/resume tests and 75 ESLint tests pass (849 total, plus
   16 existing TODOs); compiler build, type checks and updated CSR/SSR snapshots pass.
+- 2026-09-08: Fixed dynamic event output in SSR by emitting event attributes inside markup records.
+  `createSsrMarkup` omits null parts, so event emission needs no separate null check.
+  The mutable-handler regression covers the initial QRL, reassignment, null and repeated clicks in
+  CSR and resume. Verification: 928 tests pass across the pipeline, component/harness, ESLint,
+  SSR writer, SSR effects, event attributes, server rendering and script emission (16 existing TODOs).
+  Core/compiler builds, type generation, runtime/compiler ESLint and CSR/SSR snapshots pass.
+  The script-emitter test retains five pre-existing lint errors outside the changed expectation.

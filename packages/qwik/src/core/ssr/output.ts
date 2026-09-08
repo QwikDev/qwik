@@ -44,8 +44,13 @@ export interface SsrDeferredRange {
   onCancelled?(): void;
 }
 
-export function createSsrMarkup(...parts: readonly SsrRecordPart[]): SsrRecordChunk {
-  return { type: 'record', openTag: false, headlessCarrier: false, parts };
+export function createSsrMarkup(...parts: readonly (SsrRecordPart | null)[]): SsrRecordChunk {
+  return {
+    type: 'record',
+    openTag: false,
+    headlessCarrier: false,
+    parts: parts.filter((part) => part !== null),
+  };
 }
 
 export function createSsrOpenTag(...parts: readonly SsrRecordPart[]): SsrRecordChunk {

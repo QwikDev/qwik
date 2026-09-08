@@ -860,6 +860,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
           }
           const step = pass.next(QwikGenWord.Effect);
           this.imports.add(QwikWord.RenderSsrEvent);
+          this.imports.add(QwikWord.CreateSsrMarkup);
           pass.usedCtx = true;
           this.pushStep(
             pass,
@@ -867,7 +868,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
             rootArgs(qrl, args),
             `${QwikWord.RenderSsrEvent}(${idVariable}, ${JSON.stringify(prop.name)}, [${args.join(', ')}], ${ref}, ${pass.names.ctx}.eventAttr)`
           );
-          parts.push(`${step} ?? ''`);
+          parts.push(`${QwikWord.CreateSsrMarkup}(${step})`);
           return;
         }
         const values = prop.handlers.map((handler) => {

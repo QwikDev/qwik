@@ -5,6 +5,37 @@ import { testRenderer } from '../test-utils';
 const { name, render } = testRenderer;
 
 describe(`${name}: component bodies`, () => {
+  it('uses the current mutable QRL binding for events', async () => {
+    const App = component$((props: { mode: number }) => {
+      const count = useSignal(0);
+      let action: QRL<() => void> | null = $(() => {
+        count.value++;
+      });
+      const replacement = $(() => {
+        count.value += 2;
+      });
+      if (props.mode === 1) {
+        action = replacement;
+      } else if (props.mode === 2) {
+        action = null;
+      }
+      return <button onClick$={action}>{count.value}</button>;
+    });
+    for (let mode = 0; mode < 3; mode++) {
+      const { container, cleanup, qwikLoader } = await render(App, { props: { mode } });
+      try {
+        const button = container.querySelector('button')!;
+        expect(button.textContent).toBe('0');
+        await qwikLoader?.dispatch(button, 'click');
+        expect(button.textContent).toBe(mode === 2 ? '0' : String(mode + 1));
+        await qwikLoader?.dispatch(button, 'click');
+        expect(button.textContent).toBe(mode === 2 ? '0' : String((mode + 1) * 2));
+      } finally {
+        cleanup();
+      }
+    }
+  });
+
   it('preserves mutations in block conditions and thrown values', async () => {
     const App = component$(() => {
       try {

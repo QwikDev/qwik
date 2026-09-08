@@ -13,6 +13,7 @@ export default (props) => <main>
 import {
   createSsrNodeId,
   renderSsrEvent,
+  createSsrMarkup,
   maybeThen,
   _noopQrl,
   createComponent,
@@ -48,7 +49,7 @@ export const Button = (props, ctx) => {
     '<button q:id="',
     createSsrNodeId(id0),
     '"',
-    effect0 ?? '',
+    createSsrMarkup(effect0),
     '>save</button>',
   ]);
 };

@@ -61,6 +61,8 @@ describe('SsrScriptEmitter', () => {
     expect(output).toEqual([
       {
         type: 'record',
+        openTag: false,
+        headlessCarrier: false,
         parts: [
           '<script type="qwik/state" q:base="0" q:len="1"',
           ' q-d:qidle="resume#',

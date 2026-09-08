@@ -90,7 +90,7 @@ destructuring and loop-target writes through `$` are diagnosed; local callback w
 - [x] JSX-valued props: `fallback={<Loading />}`.
 - [x] JSX-returning props and children: render props, `onResolved` callbacks and factories.
 - [x] JSX inside `$`, event handlers, hooks and ordinary callbacks.
-- [ ] JSX inside `.then()`, `Promise.resolve()` and async functions.
+- [x] JSX inside `.then()`, `Promise.resolve()` and async functions.
 - [ ] JSX outside top-level components: helpers, factories and local functions.
 - [x] Repeated use of a stored JSX value with correct instance ownership and cleanup.
 - [ ] Explicit `<Fragment>` and imported aliases, not only `<>`.
@@ -133,7 +133,13 @@ JSX inside `$`, event handlers, hooks and ordinary callbacks shares scoped expre
 Native callbacks retain synchronous calls, parameters, receiver, local statements and mutations;
 only their embedded JSX becomes captured render values. Verified by `jsx-callback.unit.ts`, new
 CSR/SSR snapshots and `jsx-callback.spec.tsx` in CSR and resume. Existing valid snapshots are unchanged.
-Async/Promise behavior and rendering unknown callback results remain separate checklist items.
+Rendering unknown callback results remains a separate checklist item.
+
+`Promise.resolve`, `.then()` callbacks and async factories preserve Promise ordering, rejection
+identity and per-call JSX captures. Nested async JSX callbacks inside QRLs reuse `_await` to restore
+tracking after suspension. Verified by `jsx-async.unit.ts`, new CSR/SSR snapshots and
+`jsx-async.spec.tsx` in CSR and resume, including rejection, `catch` and `finally`. Async components
+and classification of arbitrary Promise render results remain outside this item.
 
 ## 3. Dynamic render results
 

@@ -40,6 +40,29 @@ async function testInputs(mode: 'ssr' | 'csr', snapshotName: string, inputs: rea
 }
 
 describe.each(['ssr', 'csr'] as const)('%s', (mode) => {
+  test('preserves native Promises and nested async JSX callbacks', async () => {
+    const output = await testInput(mode, 'jsx-async', {
+      code: `import { useSignal, useComputed$ } from '@qwik.dev/core';
+import { register, load } from './consumer';
+export default function App() {
+  const count = useSignal(0);
+  register(value => Promise.resolve(<b>{value}</b>));
+  register(value => load(value).then(label => <i>{label}</i>));
+  register(async value => { const label = await load(value); return <b>{label}</b>; });
+  const result = useComputed$(async () => {
+    const create = async (_await) => {
+      await load(_await);
+      const label = count.value;
+      return { label, view: <b>{label}</b> };
+    };
+    return create('ready');
+  });
+  return <output>{result.value?.label}</output>;
+}`,
+    });
+    expect(output.diagnostics).toEqual([]);
+  });
+
   test('compiles JSX in QRL and ordinary callback bodies', async () => {
     const output = await testInput(mode, 'jsx-callback', {
       code: `import { $, useSignal, useTask$, useComputed$ } from '@qwik.dev/core';

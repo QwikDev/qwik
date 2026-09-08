@@ -42,12 +42,8 @@ export function lowerFunctionQrl(
     refs.propsReads.some(([start]) => start < body.start) ||
     refs.locals.some(({ reads }) => reads.some(({ range }) => range[0] < body.start));
   const payload = pushPayload(ctx, [fn.start, fn.end]);
-  ctx.plan.payloads[payload].awaits = ctx.bindings.awaitsOf(fn).map((node) => ({
-    range: [node.start, node.end],
-    argumentRange: [node.argument.start, node.argument.end],
-  }));
   recordPayloadReads(ctx, payload, refs);
-  recordFunctionJsx(ctx, payload, fn);
+  recordFunctionJsx(ctx, payload, fn, true);
   return pushQrl(
     ctx,
     {
@@ -84,8 +80,17 @@ export function lowerFunctionQrl(
 export function recordFunctionJsx(
   ctx: LowerContext,
   payload: PayloadId,
-  fn: ArrowFunctionExpression | FunctionNode
+  fn: ArrowFunctionExpression | FunctionNode,
+  preserveAsyncContext = false
 ): void {
+  if (preserveAsyncContext) {
+    for (const node of ctx.bindings.awaitsOf(fn)) {
+      ctx.plan.payloads[payload].awaits.push({
+        range: [node.start, node.end],
+        argumentRange: [node.argument.start, node.argument.end],
+      });
+    }
+  }
   const factory = ctx.jsx.factory(fn);
   if (factory === null || fn.body === null) {
     return;
@@ -114,6 +119,6 @@ export function recordFunctionJsx(
   }
   const callbackContext = { ...ctx, locals, inlineParams: null };
   for (const root of factory.roots) {
-    recordPayloadJsx(callbackContext, payload, root);
+    recordPayloadJsx(callbackContext, payload, root, preserveAsyncContext);
   }
 }

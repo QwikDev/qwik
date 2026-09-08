@@ -162,10 +162,15 @@ function lowerExpressionPayload(
   return payload;
 }
 
-export function recordPayloadJsx(ctx: LowerContext, payload: PayloadId, expression: Node): void {
+export function recordPayloadJsx(
+  ctx: LowerContext,
+  payload: PayloadId,
+  expression: Node,
+  preserveAsyncContext = false
+): void {
   for (const root of ctx.jsx.expressionRoots(expression)) {
     if (isFunctionLike(root)) {
-      recordFunctionJsx(ctx, payload, root);
+      recordFunctionJsx(ctx, payload, root, preserveAsyncContext);
       continue;
     }
     const use = lowerRenderQrl(

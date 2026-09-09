@@ -11,6 +11,7 @@ import type {
   Node,
 } from 'oxc-parser';
 import type { BindingGraph } from './bindings';
+import type { LocalId } from '../../schema';
 import { identifierName, isFunctionLike, readReturnedBody, unwrapExpression } from './utils';
 import { findRuntimeJsx } from './returns-jsx';
 import { UnsupportedError } from '../../errors';
@@ -37,7 +38,7 @@ export const enum JsxValueKind {
 export type JsxValue = Readonly<
   { hasJsxValue: boolean } & (
     | { kind: JsxValueKind.Element; node: JSXElement }
-    | { kind: JsxValueKind.Fragment; node: JSXFragment; children: readonly JsxValue[] }
+    | { kind: JsxValueKind.Fragment; node: JSXFragment | JSXElement; children: readonly JsxValue[] }
     | {
         kind: JsxValueKind.Conditional;
         node: ConditionalExpression;
@@ -66,7 +67,10 @@ export interface JsxAnalysis {
 }
 
 /** Share JSX value structure and callback scopes across lowering consumers. */
-export function createJsxAnalysis(bindings?: BindingGraph): JsxAnalysis {
+export function createJsxAnalysis(
+  bindings?: BindingGraph,
+  coreBindings: ReadonlyMap<LocalId, string> = new Map()
+): JsxAnalysis {
   const values = new WeakMap<Node, JsxValue>();
   const factories = new WeakMap<Node, JsxFactory | null>();
   function read(source: Node): JsxValue {
@@ -87,8 +91,29 @@ export function createJsxAnalysis(bindings?: BindingGraph): JsxAnalysis {
   function analyse(node: Node): JsxValue {
     switch (node.type) {
       case 'JSXElement':
-        return { kind: JsxValueKind.Element, node, hasJsxValue: true };
       case 'JSXFragment':
+        if (node.type === 'JSXElement') {
+          const name = node.openingElement.name;
+          const binding = bindings?.reference(name);
+          if (
+            name.type !== 'JSXIdentifier' ||
+            !/^[A-Z]/.test(name.name) ||
+            binding == null ||
+            coreBindings.get(binding) !== 'Fragment'
+          ) {
+            return { kind: JsxValueKind.Element, node, hasJsxValue: true };
+          }
+          if (
+            node.openingElement.attributes.some(
+              (attribute) =>
+                attribute.type !== 'JSXAttribute' ||
+                attribute.name.type !== 'JSXIdentifier' ||
+                attribute.name.name !== 'key'
+            )
+          ) {
+            throw new UnsupportedError('Fragment attributes other than key');
+          }
+        }
         return {
           kind: JsxValueKind.Fragment,
           node,

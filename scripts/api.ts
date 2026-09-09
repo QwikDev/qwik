@@ -6,7 +6,7 @@ import { type BuildConfig, copyFile, ensureDir, panic } from './util.ts';
 
 // jsx-runtime just re-exports JSX, so skip api-extractor.
 export function writeJsxRuntimeDts(config: BuildConfig) {
-  const jsxContent = `export declare const Fragment: symbol;
+  const jsxContent = `export { Fragment } from './core';
 export declare const jsx: (_type: unknown, _props: unknown) => never;
 export declare const jsxs: (_type: unknown, _props: unknown) => never;
 export declare const jsxDEV: (_type: unknown, _props: unknown) => never;

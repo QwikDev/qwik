@@ -135,6 +135,11 @@ export type EventHandler<EV = Event, EL = Element> = {
 export function forceStoreEffects<T extends object>(value: T, prop: keyof T): void;
 
 // @public
+export const Fragment: FunctionComponent<{
+    children?: JSXChildren;
+}>;
+
+// @public
 export type FunctionComponent<P = unknown> = {
     bivarianceHack(props: P): JSXOutput;
 }['bivarianceHack'];

@@ -603,7 +603,7 @@ function selectRowKey(value: JsxValue, sources: Map<Node, Expression>): JsxValue
   if (value.kind === JsxValueKind.Empty) {
     return value;
   }
-  const key = value.kind === JsxValueKind.Element ? readRowKey(value.node) : null;
+  const key = value.node.type === 'JSXElement' ? readRowKey(value.node) : null;
   if (key === null) {
     return null;
   }

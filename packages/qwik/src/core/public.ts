@@ -29,6 +29,7 @@ export type {
   QRLEventHandlerMulti,
   QwikAttributes,
 } from './shared/jsx/types/jsx-qwik-attributes';
+export { Fragment } from './shared/jsx/compiler-runtime';
 export type { FunctionComponent, JSXOutput } from './shared/jsx/types/jsx-node';
 export type { QwikDOMAttributes, QwikJSX, QwikJSX as JSX } from './shared/jsx/types/jsx-qwik';
 export type { QwikIntrinsicElements } from './shared/jsx/types/jsx-qwik-elements';

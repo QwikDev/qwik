@@ -42,7 +42,7 @@ export function createLowerContext(
   scope: string | undefined,
   bindings: BindingGraph,
   coreBindings: ReadonlyMap<LocalId, string> = new Map(),
-  jsx: JsxAnalysis = createJsxAnalysis(bindings)
+  jsx: JsxAnalysis = createJsxAnalysis(bindings, coreBindings)
 ): LowerContext {
   const slash = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
   const basename = slash === -1 ? path : path.slice(slash + 1);

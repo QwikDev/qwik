@@ -93,7 +93,7 @@ destructuring and loop-target writes through `$` are diagnosed; local callback w
 - [x] JSX inside `.then()`, `Promise.resolve()` and async functions.
 - [x] JSX outside top-level components: helpers, factories and local functions.
 - [x] Repeated use of a stored JSX value with correct instance ownership and cleanup.
-- [ ] Explicit `<Fragment>` and imported aliases, not only `<>`.
+- [x] Explicit `<Fragment>` and imported aliases, not only `<>`.
 
 Relevant code: `analyse/ast/jsx-analysis.ts`, `analyse/ast/returns-jsx.ts`,
 `analyse/lower-expr.ts`, `analyse/lower-function.ts` and shared render lowering.
@@ -146,6 +146,12 @@ and per-invocation captures. Their embedded JSX shares function payload lowering
 without components. Verified by `jsx-helper.unit.ts`, new CSR/SSR snapshots and `jsx-helper.spec.tsx`
 in CSR and resume, including captured events, early calls, parameter defaults and SSR escaping.
 Existing valid snapshots are unchanged.
+
+Explicit `Fragment` imports from `@qwik.dev/core`, including aliases, share shorthand fragment
+analysis and lowering. Projections, stored values, helpers and keyed collection rows preserve their
+existing behavior. Other fragment attributes are diagnosed explicitly. Verified by
+`jsx-fragment.unit.ts`, new CSR/SSR snapshots and `jsx-fragment.spec.tsx` in CSR and resume,
+including keyed instance reuse and captured events after reordering. Existing snapshots are unchanged.
 
 ## 3. Dynamic render results
 

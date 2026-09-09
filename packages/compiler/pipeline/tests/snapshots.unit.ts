@@ -40,6 +40,20 @@ async function testInputs(mode: 'ssr' | 'csr', snapshotName: string, inputs: rea
 }
 
 describe.each(['ssr', 'csr'] as const)('%s', (mode) => {
+  test('should flatten imported fragments and retain collection keys', async () => {
+    await testInput(mode, 'jsx-fragment', {
+      code: `import { Fragment, Fragment as F, Slot, useSignal } from '@qwik.dev/core';
+const Frame = () => <article><Slot name="title" /><Slot /></article>;
+export default () => {
+  const rows = useSignal([{ id: 'one' }, { id: 'two' }]);
+  const stored = <F><em>stored</em><F /></F>;
+  return <Fragment><Frame><F><h1 q:slot="title">title</h1>{stored}</F></Frame>
+    <section>{rows.value.map(row => <F key={row.id}><b>{row.id}</b><i>end</i></F>)}</section>
+  </Fragment>;
+};`,
+    });
+  });
+
   test('should preserve module and local JSX helper functions', async () => {
     await testInputs(mode, 'jsx-helper', [
       {

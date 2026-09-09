@@ -66,11 +66,11 @@ export async function analyseModule(
   }
 
   const bindings = createBindingGraph(parsed.program);
-  const jsx = createJsxAnalysis(bindings);
   plan.bindings = bindings.bindings;
   const authoredProgram =
     normalized.map === null ? null : parseModule(input.path, input.code).program;
   const coreBindings = scanModuleSurface(parsed.program, authoredProgram, plan, bindings);
+  const jsx = createJsxAnalysis(bindings, coreBindings);
   const candidates = findComponentCandidates(parsed.program, jsx, bindings, coreBindings);
   const components = discoverComponents(candidates);
   const componentStatements = new Set(components.map((component) => component.statement));

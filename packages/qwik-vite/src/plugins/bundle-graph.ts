@@ -44,6 +44,8 @@ export function convertManifestToBundleGraph(
   }
   // All known chunks and symbols
   const graph = { ...manifest.bundles };
+  // Symbol and adder nodes carry their own edges; only chunk edges get the qrl rule
+  const trustedNodes = new Set<string>();
   for (const [symbol, bundleName] of Object.entries(manifest.mapping)) {
     if (symbol.startsWith('_') && symbol.length < 10) {
       // internal QRLs are not included in the bundle graph
@@ -56,6 +58,7 @@ export function convertManifestToBundleGraph(
        * symbol. We still confirm load at 100% probability with the bundle name.
        */
       graph[hash] = { dynamicImports: [bundleName] } as QwikBundle;
+      trustedNodes.add(hash);
     }
   }
   // Routes etc
@@ -65,25 +68,21 @@ export function convertManifestToBundleGraph(
       const result = adder(combined);
       if (result) {
         Object.assign(graph, result);
+        for (const name of Object.keys(result)) {
+          trustedNodes.add(name);
+        }
       }
     }
   }
 
-  // Filter out external and non-segment dynamic imports
+  // A user import() is a cut point: chunks only follow their qrl edges
   for (const bundleName of Object.keys(graph)) {
     const bundle = graph[bundleName];
     const imports = bundle.imports?.filter((dep) => graph[dep]) || [];
-    const dynamicImports =
-      bundle.dynamicImports?.filter(
-        // we only want to include dynamic imports that belong to the app
-        // e.g. not all languages supported by shiki
-        (dep) =>
-          graph[dep] &&
-          // either there are qrls
-          (graph[dep].symbols ||
-            // or it's a dynamic import from the app source
-            graph[dep].origins?.some((o) => !o.includes('node_modules')))
-      ) || [];
+    const followedImports = trustedNodes.has(bundleName)
+      ? bundle.dynamicImports
+      : bundle.qrlImports;
+    const dynamicImports = followedImports?.filter((dep) => graph[dep]) || [];
 
     /**
      * Overwrite so we don't mutate the given objects. Be sure to copy all properties we use during

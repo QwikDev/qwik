@@ -1194,6 +1194,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
 
   const createOutputAnalyzer = (
     rollupBundle: Rolldown.OutputBundle,
+    getModuleInfo: Rolldown.PluginContext['getModuleInfo'],
     qwikLoaderFileName?: string,
     preloaderFileName?: string,
     handlersFileName?: string
@@ -1226,6 +1227,7 @@ export function createQwikPlugin(optimizerOptions: OptimizerOptions = {}) {
         opts,
         debug,
         canonPath,
+        getModuleInfo,
         qwikLoaderFileName,
         preloaderFileName,
         handlersFileName
@@ -1434,6 +1436,7 @@ export const isDev = ${JSON.stringify(isDev)};
     const handlersFileName = handlersChunkRef ? ctx.getFileName(handlersChunkRef) : undefined;
     const outputAnalyzer = createOutputAnalyzer(
       rollupBundle,
+      (id) => ctx.getModuleInfo(id),
       qwikLoaderFileName,
       preloaderFileName,
       handlersFileName

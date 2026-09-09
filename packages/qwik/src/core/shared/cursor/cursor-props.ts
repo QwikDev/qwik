@@ -28,7 +28,7 @@ export function queueQwikLoaderEvent(cursorData: CursorData, eventName: string):
   }
 }
 
-export function takeQwikLoaderEvents(cursorData: CursorData): string[] | undefined {
+export function getPendingQwikLoaderEvents(cursorData: CursorData): string[] | undefined {
   const loaderEvents = pendingQwikLoaderEvents.get(cursorData);
   if (loaderEvents) {
     pendingQwikLoaderEvents.delete(cursorData);
@@ -96,7 +96,7 @@ export function mergeCursorData(newCursorData: CursorData, oldCursorData: Cursor
     }
   }
   // merge qwik loader event notifications
-  const oldLoaderEvents = takeQwikLoaderEvents(oldCursorData);
+  const oldLoaderEvents = getPendingQwikLoaderEvents(oldCursorData);
   if (oldLoaderEvents) {
     for (let i = 0; i < oldLoaderEvents.length; i++) {
       queueQwikLoaderEvent(newCursorData, oldLoaderEvents[i]);

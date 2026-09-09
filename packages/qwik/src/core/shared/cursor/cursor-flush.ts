@@ -17,7 +17,7 @@ import {
   SetTextOperation,
 } from '../vnode/types/dom-vnode-operation';
 import type { Cursor } from './cursor';
-import { getCursorData, takeQwikLoaderEvents, type CursorData } from './cursor-props';
+import { getCursorData, getPendingQwikLoaderEvents, type CursorData } from './cursor-props';
 
 const DEBUG = false;
 
@@ -34,7 +34,7 @@ export function executeFlushPhase(cursor: Cursor, container: Container): void {
     _flushJournal(journal);
     cursorData.journal = null;
   }
-  const loaderEvents = takeQwikLoaderEvents(cursorData);
+  const loaderEvents = getPendingQwikLoaderEvents(cursorData);
   if (loaderEvents) {
     for (let i = 0; i < loaderEvents.length; i++) {
       registerQwikLoaderEvent(container as ClientContainer, loaderEvents[i]);

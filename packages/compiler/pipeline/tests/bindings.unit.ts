@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { BindingScope } from '../schema';
-import { createBindingGraph } from '../analyse/ast/bindings';
+import { createBindingGraph, ImplicitBindingKind } from '../analyse/ast/bindings';
 import { parseModule } from '../analyse/ast/parse';
 import { isNode, type WalkableNode } from '../analyse/ast/ast-types';
 import type { Node } from 'oxc-parser';
@@ -45,6 +45,45 @@ function identifiers(root: Node, name: string): Node[] {
 }
 
 describe('createBindingGraph', () => {
+  test('indexes implicit function bindings across arrows and native function scopes', () => {
+    const { program } = parseModule(
+      'bindings.ts',
+      `function outer(value = this) {
+      return [this, arguments, () => [this, arguments], function () { return [this, arguments]; }];
+    }`
+    );
+    const fn = program.body[0];
+    if (fn.type !== 'FunctionDeclaration' || fn.body === null) {
+      throw new Error('expected a function');
+    }
+    const graph = createBindingGraph(deepFreeze(program));
+    const reads = graph.freeReferences(fn.body);
+    expect(reads.map(({ binding }) => graph.implicitKind(binding))).toEqual([
+      ImplicitBindingKind.This,
+      ImplicitBindingKind.Arguments,
+      ImplicitBindingKind.This,
+      ImplicitBindingKind.Arguments,
+    ]);
+    expect(reads[0].binding).toBe(reads[2].binding);
+    expect(reads[1].binding).toBe(reads[3].binding);
+    expect(graph.freeReferences(fn)).toEqual([]);
+  });
+
+  test('class instance fields do not capture the surrounding function receiver', () => {
+    const { program } = parseModule(
+      'bindings.ts',
+      `function outer() {
+      return () => { class Value { field = this; } return new Value(); };
+    }`
+    );
+    const fn = program.body[0];
+    if (fn.type !== 'FunctionDeclaration' || fn.body === null) {
+      throw new Error('expected a function');
+    }
+    const graph = createBindingGraph(deepFreeze(program));
+    expect(graph.freeReferences(fn.body)).toEqual([]);
+  });
+
   test.each([
     ['value++', true],
     ['value = 1', true],
@@ -60,7 +99,9 @@ describe('createBindingGraph', () => {
     const graph = createBindingGraph(deepFreeze(program));
     const references = graph.freeReferences(program.body.slice(1));
     expect(
-      references.filter((entry) => entry.node.name === 'value').map((entry) => entry.isWrite)
+      references
+        .filter((entry) => entry.node.type === 'Identifier' && entry.node.name === 'value')
+        .map((entry) => entry.isWrite)
     ).toEqual([isWrite]);
   });
 

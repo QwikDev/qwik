@@ -35,8 +35,8 @@ export function sourceFunctionEmission(
   const emission = emptyFunctionEmission();
   if (qrl.payloadKind === QrlPayloadKind.Function && captures.length > 0) {
     emission.imports.add(QwikWord.Captures);
-    emission.statements.push(...capturePrelude(captures));
   }
+  emission.statements.push(...capturePrelude(module, qrl));
   const emitQrl = (use: QrlUse) =>
     emitFunctionQrl(use, qrlPropsName(module, qrl, 'props'), emission, resolveQrlUse, true);
   const body = qrl.body;

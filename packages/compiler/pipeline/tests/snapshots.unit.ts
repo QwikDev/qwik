@@ -40,6 +40,16 @@ async function testInputs(mode: 'ssr' | 'csr', snapshotName: string, inputs: rea
 }
 
 describe.each(['ssr', 'csr'] as const)('%s', (mode) => {
+  test('preserves native context in captured JSX values', async () => {
+    await testInput(mode, 'jsx-function-context', {
+      code: `export function makeNode(label) {
+  return (() => <button onClick$={() => this.total.value += arguments[0].length}>
+    {this.prefix + arguments[0]}:{arguments.length}
+  </button>)();
+}`,
+    });
+  });
+
   test('should flatten imported fragments and retain collection keys', async () => {
     await testInput(mode, 'jsx-fragment', {
       code: `import { Fragment, Fragment as F, Slot, useSignal } from '@qwik.dev/core';

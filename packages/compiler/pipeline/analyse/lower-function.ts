@@ -8,7 +8,7 @@ import {
   type Qrl,
 } from '../schema';
 import { InvalidModuleError, UnsupportedError } from '../errors';
-import { lowerCaptures } from './ast/capture-analysis';
+import { createCapturedContext, lowerCaptures } from './ast/capture-analysis';
 import { pushPayload, pushQrl, QrlIdentityKind, type LowerContext } from './lower-context';
 import { recordPayloadJsx, recordPayloadReads } from './lower-expr';
 import { LocalKind } from './locals';
@@ -31,6 +31,7 @@ export function lowerFunctionQrl(
     throw new UnsupportedError('a generator QRL callback');
   }
   const { captures, args, refs } = lowerCaptures(fn, ctx, boundary.subject);
+  ctx = createCapturedContext(ctx, captures);
   if (refs.capturedWrite !== null) {
     throw new InvalidModuleError(
       'mutable-capture',

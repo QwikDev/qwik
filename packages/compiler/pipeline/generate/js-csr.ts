@@ -673,7 +673,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         const emission = emitter.renderProgram(qrl.body.program, qrl.name, names);
         // Captures restore from `_captures` ahead of the render statements.
         const captures = captureNames(this.module, qrl);
-        const statements = [...capturePrelude(captures), ...emission.statements];
+        const statements = [...capturePrelude(this.module, qrl), ...emission.statements];
         return {
           imports: new Set([
             ...(captures.length > 0 ? [QwikWord.Captures] : []),
@@ -740,7 +740,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       emitter.imports.add(QwikWord.Captures);
     }
     emission.statements = [
-      ...capturePrelude(captures),
+      ...capturePrelude(this.module, qrl),
       ...emitJsSetup(this.module, program, emitter.imports, (use) =>
         emitter.lazyRenderReference(use, pass.names.props)
       ),

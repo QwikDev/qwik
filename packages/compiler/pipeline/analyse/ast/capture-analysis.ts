@@ -1,4 +1,5 @@
 import type { Node } from 'oxc-parser';
+import { ImplicitBindingKind } from './bindings';
 import {
   ArgPass,
   CaptureAccess,
@@ -48,12 +49,22 @@ export function collectCaptures(
       other ??= current.name;
       continue;
     }
-    if (current.type !== 'Identifier' || localBindings.has(binding)) {
+    if (current.type === 'JSXIdentifier' || localBindings.has(binding)) {
       continue;
     }
-    const setupLocal = ctx.locals.get(binding);
+    const name = current.type === 'ThisExpression' ? 'this' : current.name;
+    const setupLocal =
+      ctx.locals.get(binding) ??
+      (ctx.bindings.implicitKind(binding) === null
+        ? undefined
+        : {
+            kind: LocalKind.Const,
+            access: CaptureAccess.Direct,
+            slot: -1,
+            binding,
+          });
     if (isWrite && (setupLocal !== undefined || binding === ctx.propsBinding)) {
-      capturedWrite ??= { name: current.name, range: [current.start, current.end] };
+      capturedWrite ??= { name, range: [current.start, current.end] };
     }
     if (binding === ctx.propsBinding) {
       propsReads.push([current.start, current.end]);
@@ -61,7 +72,7 @@ export function collectCaptures(
       const read = { range: [current.start, current.end] as Range, role };
       const entry = locals.find((candidate) => candidate.local === setupLocal);
       if (entry === undefined) {
-        locals.push({ name: current.name, local: setupLocal, reads: [read] });
+        locals.push({ name, local: setupLocal, reads: [read] });
       } else {
         entry.reads.push(read);
       }
@@ -101,8 +112,21 @@ export function lowerCaptures(
   const args: QrlUse['args'] = [];
   const addCapture = (binding: LocalId, access: CaptureAccess) => {
     if (!captures.some((capture) => capture.binding === binding)) {
-      captures.push({ binding, access });
-      args.push({ pass: ArgPass.Binding, binding });
+      const implicit = ctx.bindings.implicitKind(binding);
+      const isCaptured = ctx.locals.has(binding);
+      captures.push({
+        binding,
+        access: implicit === ImplicitBindingKind.Arguments ? CaptureAccess.Arguments : access,
+      });
+      if (implicit === ImplicitBindingKind.Arguments) {
+        args.push({ pass: ArgPass.Arguments, binding: isCaptured ? binding : null });
+      } else {
+        args.push(
+          implicit === ImplicitBindingKind.This && !isCaptured
+            ? { pass: ArgPass.This }
+            : { pass: ArgPass.Binding, binding }
+        );
+      }
     }
   };
   for (const entry of refs.locals) {
@@ -120,4 +144,23 @@ export function lowerCaptures(
     args.push({ pass: ArgPass.Props });
   }
   return { captures, args, refs };
+}
+
+/** Extracted scopes read captured aliases instead of native function context. */
+export function createCapturedContext(ctx: LowerContext, captures: Qrl['captures']): LowerContext {
+  if (!captures.some(({ binding }) => ctx.bindings.implicitKind(binding) !== null)) {
+    return ctx;
+  }
+  const locals = new Map(ctx.locals);
+  for (const { binding } of captures) {
+    if (ctx.bindings.implicitKind(binding) !== null) {
+      locals.set(binding, {
+        kind: LocalKind.Const,
+        access: CaptureAccess.Direct,
+        slot: -1,
+        binding,
+      });
+    }
+  }
+  return { ...ctx, locals };
 }

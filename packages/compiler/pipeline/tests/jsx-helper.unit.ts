@@ -13,6 +13,39 @@ const helpers = [
   'function makeNode(value, content = <b>{value}</b>) { return content; }',
 ];
 
+test.each([
+  'function makeNode(value) { return <b>{this.prefix + value}</b>; }',
+  'function makeNode(value) { return <b>{arguments[0]}</b>; }',
+  'function makeNode(value) { const _this = ""; const _arguments = ""; const _argumentsValues0 = ""; return <b>{this.prefix + arguments[0] + _this + _arguments + _argumentsValues0}</b>; }',
+  'function makeNode(value) { return <b>{Array.isArray(arguments) ? "wrong" : [...arguments].join("")}</b>; }',
+  'function makeNode(value) { return (() => <b>{this.prefix + arguments[0]}</b>)(); }',
+  'function makeNode(value, content = <b>{this.prefix + arguments[0]}</b>) { return content; }',
+  'function makeNode(value) { return { render() { return <b>{this.prefix + arguments[0]}</b>; } }.render.call(this, value); }',
+])('preserves native function context inside helper JSX: %s', async (helper) => {
+  const output = await transformModules({
+    srcDir: 'src',
+    isServer: true,
+    input: [{ path: 'src/helper.tsx', code: `${helper}\nexport default makeNode;` }],
+  });
+  expect(output.diagnostics).toEqual([]);
+  const factory = loadDefaultFunction(
+    output.modules.find((module) => !module.segment)!,
+    {
+      ...core,
+      get _captures() {
+        return core._captures;
+      },
+    },
+    true
+  );
+  const values = ['one', '<unsafe>'].map((value) => factory.call({ prefix: '' }, value));
+  const { html } = await renderToStringCompiled((_props, ctx) =>
+    core.renderSsrDynamicContent(values, ctx)
+  );
+  expect(html).toContain('>one</b>');
+  expect(html).toContain('>&lt;unsafe&gt;</b>');
+});
+
 test.each(helpers)('renders independent module helper results: %s', async (helper) => {
   const output = await transformModules({
     srcDir: 'src',

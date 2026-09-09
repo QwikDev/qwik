@@ -14,6 +14,7 @@ test.each([
     'receiver',
     'consume(function (value) { const label = this.prefix + arguments[0]; return <b>{label}</b>; });',
   ],
+  ['JSX receiver', 'consume(function (value) { return <b>{this.prefix + arguments[0]}</b>; });'],
   ['destructured', 'consume(([value]) => <b>{value}</b>);'],
   [
     'outer mutation',

@@ -30,6 +30,10 @@ test.each([
     'native receiver',
     '<Display render={function (value) { const label = this.prefix + arguments[0]; return <b>{label}</b>; }} />',
   ],
+  [
+    'JSX receiver',
+    '<Display render={function (value) { return <b>{this.prefix + arguments[0]}</b>; }} />',
+  ],
 ])('passes a JSX factory without executing it: %s', async (name, jsx) => {
   const output = await transformModules({
     srcDir: 'src',

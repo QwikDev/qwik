@@ -46,6 +46,7 @@ export const enum QrlBodyKind {
 
 export const enum CaptureAccess {
   Direct = 'direct',
+  Arguments = 'arguments',
   LoopValue = 'loop-value',
   /** The row's reactive index box — delivered per row, never a serialization root. */
   RowIndex = 'row-index',

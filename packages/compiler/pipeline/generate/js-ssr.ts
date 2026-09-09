@@ -348,7 +348,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     const core = emitter.renderProgram(qrl, names, options);
     const captures = captureNames(this.module, qrl);
     const emission = emptyFunctionEmission();
-    emission.statements = [...capturePrelude(captures), ...core.statements];
+    emission.statements = [...capturePrelude(this.module, qrl), ...core.statements];
     emission.value = core.value;
     if (captures.length > 0) {
       emission.imports.add(QwikWord.Captures);

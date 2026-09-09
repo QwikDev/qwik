@@ -43,7 +43,7 @@ import {
 import type { LowerContext } from './lower-context';
 import { pushPayload, pushQrl, QrlIdentityKind } from './lower-context';
 import { lowerArray } from './lower-array';
-import { collectCaptures, lowerCaptures } from './ast/capture-analysis';
+import { createCapturedContext, collectCaptures, lowerCaptures } from './ast/capture-analysis';
 import { LocalKind } from './locals';
 import { QwikDirective, SegmentContext } from '../words';
 import { lowerFunctionQrl } from './lower-function';
@@ -484,7 +484,7 @@ function lowerSlotFallback(children: readonly JSXChild[], ctx: LowerContext): Qr
         'a slot fallback',
         SegmentContext.Projection,
         'slot-fallback',
-        () => lowerJsxChildren(fallbackChildren, ctx)
+        (renderContext) => lowerJsxChildren(fallbackChildren, renderContext)
       );
 }
 
@@ -558,7 +558,7 @@ function lowerProjection(
     'a component projection',
     SegmentContext.Projection,
     'projection',
-    () => lowerProjectedChildren([child], name, ctx)
+    (renderContext) => lowerProjectedChildren([child], name, renderContext)
   );
   return {
     kind: ProjectionKind.Render,
@@ -684,7 +684,7 @@ export function lowerRenderQrl(
   subject: string,
   nameCtx: SegmentContext,
   role: string,
-  lowerBody: () => Op[]
+  lowerBody: (ctx: LowerContext) => Op[]
 ) {
   const range: [number, number] = [children[0].start, children[children.length - 1].end];
   const { captures, args } = lowerCaptures(children, ctx, subject);
@@ -722,7 +722,7 @@ export function lowerRenderQrl(
   );
   ctx.plan.programs[program].body = {
     kind: ProgramBodyKind.Ops,
-    ops: lowerBody(),
+    ops: lowerBody(createCapturedContext(ctx, captures)),
   };
   return use;
 }

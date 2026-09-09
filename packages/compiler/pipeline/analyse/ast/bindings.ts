@@ -12,14 +12,20 @@ import { isNode, type WalkableNode } from './ast-types';
 
 type Binding = ModulePlan['bindings'][number];
 
+export const enum ImplicitBindingKind {
+  This = 'this',
+  Arguments = 'arguments',
+}
+
 interface Scope {
   parent: Scope | null;
   bindings: Map<string, LocalId>;
   functionBoundary: boolean;
+  receiverOwner: Node | null;
 }
 
 interface BindingReference {
-  node: Extract<Node, { type: 'Identifier' | 'JSXIdentifier' }>;
+  node: Extract<Node, { type: 'Identifier' | 'JSXIdentifier' | 'ThisExpression' }>;
   binding: LocalId;
   role: ReadRole;
   isWrite: boolean;
@@ -37,6 +43,7 @@ export interface BindingGraph {
   hasShadowedReferences(node: Node, destination: Node): boolean;
   dependenciesOf<T extends Node>(expression: Node | Node[], candidates: readonly T[]): T[];
   awaitsOf(fn: ArrowFunctionExpression | Function): readonly AwaitExpression[];
+  implicitKind(binding: LocalId): ImplicitBindingKind | null;
   addSynthetic(name: string, scope: BindingScope, declarationRange?: [number, number]): LocalId;
 }
 
@@ -74,6 +81,8 @@ export function createBindingGraph(program: Program): BindingGraph {
   const referenceSpans = new WeakMap<Node, [number, number]>();
   const scopes = new WeakMap<Node, Scope>();
   const awaitsByScope = new WeakMap<Scope, AwaitExpression[]>();
+  const implicitBindings = new WeakMap<Node, Map<ImplicitBindingKind, LocalId>>();
+  const implicitKinds = new Map<LocalId, ImplicitBindingKind>();
   const moduleScope = createScope(null, true);
   scopes.set(program, moduleScope);
 
@@ -129,6 +138,9 @@ export function createBindingGraph(program: Program): BindingGraph {
         ? createScope(parentScope, false)
         : parentScope;
     const functionScope = createScope(nameScope, true);
+    if (node.type !== 'ArrowFunctionExpression') {
+      functionScope.receiverOwner = node;
+    }
     scopes.set(node, functionScope);
     if (node.type === 'FunctionExpression' && node.id !== null) {
       declare(node.id, nameScope, BindingScope.Local, null, node);
@@ -305,12 +317,59 @@ export function createBindingGraph(program: Program): BindingGraph {
       case 'ClassExpression':
         collectClass(value, scope);
         return;
+      case 'PropertyDefinition': {
+        collect(value.key, scope);
+        const initializerScope = createScope(scope, false);
+        initializerScope.receiverOwner = value;
+        if (value.value !== null) {
+          scopes.set(value.value, initializerScope);
+        }
+        collect(value.value, initializerScope);
+        return;
+      }
+      case 'StaticBlock': {
+        const initializerScope = createScope(scope, true);
+        initializerScope.receiverOwner = value;
+        scopes.set(value, initializerScope);
+        value.body.forEach((statement) => collect(statement, initializerScope));
+        return;
+      }
       default:
         collectChildren(value, (child) => collect(child, scope));
     }
   };
 
   collect(program, moduleScope);
+
+  const addSynthetic: BindingGraph['addSynthetic'] = (name, scope, declarationRange) => {
+    const id = bindings.length;
+    bindings.push({ id, name, scope, varKind: null, declarationRange: declarationRange ?? null });
+    return id;
+  };
+
+  const implicitBinding = (scope: Scope, kind: ImplicitBindingKind): LocalId | null => {
+    const owner = scope.receiverOwner;
+    if (owner === null) {
+      return null;
+    }
+    let ownerBindings = implicitBindings.get(owner);
+    if (ownerBindings === undefined) {
+      ownerBindings = new Map();
+      implicitBindings.set(owner, ownerBindings);
+    }
+    const existing = ownerBindings.get(kind);
+    if (existing !== undefined) {
+      return existing;
+    }
+    let name = `_${kind}`;
+    while (bindings.some((binding) => binding.name === name)) {
+      name += '_';
+    }
+    const id = addSynthetic(name, BindingScope.Local, [owner.start, owner.end]);
+    implicitKinds.set(id, kind);
+    ownerBindings.set(kind, id);
+    return id;
+  };
 
   const resolveReferences = (
     value: unknown,
@@ -330,12 +389,22 @@ export function createBindingGraph(program: Program): BindingGraph {
     const activeScope = scopes.get(value) ?? scope;
     if (value.type === 'Identifier') {
       if (!declarations.has(value) && isReference(parent, key)) {
-        const binding = findBinding(activeScope, value.name);
+        const binding =
+          value.name === 'arguments'
+            ? (findBinding(activeScope, value.name, activeScope.receiverOwner) ??
+              implicitBinding(activeScope, ImplicitBindingKind.Arguments))
+            : findBinding(activeScope, value.name);
         if (binding !== null) {
           references.set(value, binding);
         }
         orderedReferences.push({ node: value, binding, role: referenceRole(parent, key), isWrite });
       }
+    } else if (value.type === 'ThisExpression') {
+      const binding = implicitBinding(activeScope, ImplicitBindingKind.This);
+      if (binding !== null) {
+        references.set(value, binding);
+      }
+      orderedReferences.push({ node: value, binding, role: ReadRole.Read, isWrite: false });
     } else if (value.type === 'JSXIdentifier' && isJsxTagReference(parent, key)) {
       const binding = findBinding(activeScope, value.name);
       if (binding !== null) {
@@ -390,6 +459,7 @@ export function createBindingGraph(program: Program): BindingGraph {
 
   return {
     bindings,
+    implicitKind: (binding) => implicitKinds.get(binding) ?? null,
     awaitsOf: (fn) => {
       const scope = fn.body === null ? undefined : scopes.get(fn.body);
       return scope === undefined ? [] : (awaitsByScope.get(scope) ?? []);
@@ -425,7 +495,13 @@ export function createBindingGraph(program: Program): BindingGraph {
         if (range !== null && range[0] >= node.start && range[1] <= node.end) {
           continue;
         }
-        if (findBinding(scope, reference.name) !== binding) {
+        if (binding !== null && implicitKinds.has(binding)) {
+          if (scope.receiverOwner !== parentScopes.get(reference)?.receiverOwner) {
+            return true;
+          }
+          continue;
+        }
+        if (reference.type !== 'ThisExpression' && findBinding(scope, reference.name) !== binding) {
           return true;
         }
       }
@@ -464,11 +540,7 @@ export function createBindingGraph(program: Program): BindingGraph {
       }
       return candidates.filter((candidate) => selected.has(candidate));
     },
-    addSynthetic: (name, scope, declarationRange) => {
-      const id = bindings.length;
-      bindings.push({ id, name, scope, varKind: null, declarationRange: declarationRange ?? null });
-      return id;
-    },
+    addSynthetic,
   };
 }
 
@@ -479,7 +551,12 @@ function isJsxTagReference(parent: Node | null, key: string): boolean {
 }
 
 function createScope(parent: Scope | null, functionBoundary: boolean): Scope {
-  return { parent, bindings: new Map(), functionBoundary };
+  return {
+    parent,
+    bindings: new Map(),
+    functionBoundary,
+    receiverOwner: parent?.receiverOwner ?? null,
+  };
 }
 
 function nearestFunctionScope(scope: Scope): Scope {
@@ -490,9 +567,12 @@ function nearestFunctionScope(scope: Scope): Scope {
   return current;
 }
 
-function findBinding(scope: Scope, name: string): LocalId | null {
+function findBinding(scope: Scope, name: string, receiverOwner?: Node | null): LocalId | null {
   let current: Scope | null = scope;
-  while (current !== null) {
+  while (
+    current !== null &&
+    (receiverOwner === undefined || current.receiverOwner === receiverOwner)
+  ) {
     const binding = current.bindings.get(name);
     if (binding !== undefined) {
       return binding;

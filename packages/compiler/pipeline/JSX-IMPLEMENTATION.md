@@ -135,6 +135,12 @@ only their embedded JSX becomes captured render values. Verified by `jsx-callbac
 CSR/SSR snapshots and `jsx-callback.spec.tsx` in CSR and resume. Existing valid snapshots are unchanged.
 Rendering unknown callback results remains a separate checklist item.
 
+Direct `this` and `arguments` reads inside JSX retain their native function owner, including
+lexical arrows and parameter defaults. Argument values cross QRL boundaries as serializable
+snapshots and restore native argument objects. Verified by `bindings.unit.ts`, `jsx-helper.unit.ts`,
+`jsx-callback.unit.ts`, `jsx-factory-prop.unit.ts`, the `jsx-function-context` CSR/SSR snapshots,
+and `jsx-helper.spec.tsx` in CSR and resume.
+
 `Promise.resolve`, `.then()` callbacks and async factories preserve Promise ordering, rejection
 identity and per-call JSX captures. Nested async JSX callbacks inside QRLs reuse `_await` to restore
 tracking after suspension. Verified by `jsx-async.unit.ts`, new CSR/SSR snapshots and

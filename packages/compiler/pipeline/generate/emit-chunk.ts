@@ -4,6 +4,7 @@ import {
   CaptureAccess,
   ExprKind,
   QrlBodyKind,
+  QrlPayloadKind,
   ReadRole,
   ResumeKind,
   Shape,
@@ -27,6 +28,7 @@ import { createOriginalRangeMapper } from '../../src/normalization';
 import type { SourceMap } from 'oxc-transform';
 import { moduleBasename, type GenerateOutput, type PresentationOptions } from './output';
 import { emitBindingImports } from './emit-import';
+import { createNameAllocator } from './names';
 
 /** One function, as neutral data — printed into chunk files, SSR mirrors, and spliced bodies. */
 export interface FunctionEmission {
@@ -112,7 +114,11 @@ export function emitQrlChunks(
 
 /** Capture names double as the chunk fn's parameters for value-payload QRLs. */
 export function captureNames(module: LinkedModule, qrl: LinkedQrl): string[] {
-  return qrl.captures.map((capture) => module.bindings[capture.binding].name);
+  const allocate = createNameAllocator(module);
+  return qrl.captures.map((capture) => {
+    const name = module.bindings[capture.binding].name;
+    return capture.access === CaptureAccess.Arguments ? allocate(`${name}Values`) : name;
+  });
 }
 
 export type QrlResolver = ReturnType<typeof createQrlResolver>;
@@ -139,6 +145,10 @@ export function createQrlResolver(module: LinkedModule) {
         switch (arg.pass) {
           case ArgPass.Binding:
             return module.bindings[arg.binding].name;
+          case ArgPass.This:
+            return 'this';
+          case ArgPass.Arguments:
+            return `[...${arg.binding === null ? 'arguments' : module.bindings[arg.binding].name}]`;
           case ArgPass.Props:
             return propsName;
           case ArgPass.StyleScope:
@@ -156,9 +166,21 @@ export function qrlPropsName(module: LinkedModule, qrl: LinkedQrl, fallback: str
   return capture === undefined ? fallback : module.bindings[capture.binding].name;
 }
 
-/** Captures restore in one destructuring line: `const [a, b] = _captures;`. */
-export function capturePrelude(captures: readonly string[]): string[] {
-  return captures.length === 0 ? [] : [`const [${captures.join(', ')}] = ${QwikWord.Captures};`];
+/** Restore native arguments from serializable values at extracted boundaries. */
+export function capturePrelude(module: LinkedModule, qrl: LinkedQrl): string[] {
+  const captures = captureNames(module, qrl);
+  const statements =
+    captures.length > 0 && qrl.payloadKind === QrlPayloadKind.Function
+      ? [`const [${captures.join(', ')}] = ${QwikWord.Captures};`]
+      : [];
+  qrl.captures.forEach((capture, index) => {
+    if (capture.access === CaptureAccess.Arguments) {
+      statements.push(
+        `const ${module.bindings[capture.binding].name} = (function () { 'use strict'; return arguments; })(...${captures[index]});`
+      );
+    }
+  });
+  return statements;
 }
 
 /** Prints a plan-complete IR body; kinds join as examples demand them. */

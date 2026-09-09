@@ -14,7 +14,12 @@ import { ValueIrKind, type ValueIR } from '../../src/expr-ir';
 import { identifierName, isFunctionLike } from './ast/utils';
 import { lowerRenderExpression, lowerRenderQrl } from './lower-jsx';
 import { SegmentContext } from '../words';
-import { collectCaptures, lowerCaptures, type CollectedCaptures } from './ast/capture-analysis';
+import {
+  createCapturedContext,
+  collectCaptures,
+  lowerCaptures,
+  type CollectedCaptures,
+} from './ast/capture-analysis';
 import { UnsupportedError } from '../errors';
 import { pushPayload, pushQrl, QrlIdentityKind, type LowerContext } from './lower-context';
 import { LocalKind, localReadIr } from './locals';
@@ -57,6 +62,7 @@ export function lowerComputedExpressionValue(
   role = 'expression'
 ) {
   const { captures, args, refs } = lowerCaptures(expression, ctx, 'an expression');
+  ctx = createCapturedContext(ctx, captures);
   const range: [number, number] = [expression.start, expression.end];
   const payload = lowerExpressionPayload(expression, ctx, refs);
   const ir = tryLowerExprIr(expression, ctx);
@@ -105,7 +111,10 @@ export function recordPayloadReads(
     )
   );
   for (const entry of refs.locals) {
-    const value = localReadIr(entry.local);
+    const value =
+      ctx.bindings.implicitKind(entry.local.binding) !== null && ctx.locals.has(entry.local.binding)
+        ? { kind: ValueIrKind.BindingRead as const, binding: entry.local.binding }
+        : localReadIr(entry.local);
     if (value === null) {
       continue;
     }
@@ -179,7 +188,7 @@ export function recordPayloadJsx(
       'a JSX value',
       SegmentContext.JsxValue,
       'jsx-value',
-      () => lowerRenderExpression(root, ctx)
+      (renderContext) => lowerRenderExpression(root, renderContext)
     );
     ctx.plan.payloads[payload].qrls.push({ range: [root.start, root.end], use });
   }

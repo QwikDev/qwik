@@ -146,6 +146,8 @@ export type Value =
 
 export const enum ArgPass {
   Binding = 'binding',
+  This = 'this',
+  Arguments = 'arguments',
   Props = 'props',
   StyleScope = 'style-scope',
 }
@@ -158,6 +160,8 @@ export interface QrlUse {
   qrl: QrlId;
   args: (
     | { pass: ArgPass.Binding; binding: LocalId }
+    | { pass: ArgPass.This }
+    | { pass: ArgPass.Arguments; binding: LocalId | null }
     | { pass: ArgPass.Props }
     | { pass: ArgPass.StyleScope }
   )[];

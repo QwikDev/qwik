@@ -40,6 +40,18 @@ async function testInputs(mode: 'ssr' | 'csr', snapshotName: string, inputs: rea
 }
 
 describe.each(['ssr', 'csr'] as const)('%s', (mode) => {
+  test('shares JSX lowering across constructor arguments and assignments', async () => {
+    await testInput(mode, 'jsx-assignment', {
+      code: `import { Box } from './box';
+export default function App() {
+  let content;
+  content = new Box(<b>assigned</b>).value;
+  const alias = content;
+  return <main>{content}{alias}</main>;
+}`,
+    });
+  });
+
   test('preserves native context in captured JSX values', async () => {
     await testInput(mode, 'jsx-function-context', {
       code: `export function makeNode(label) {

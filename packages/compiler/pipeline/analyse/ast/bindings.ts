@@ -36,6 +36,7 @@ export interface BindingGraph {
   declaration(node: Node): LocalId | null;
   reference(node: Node): LocalId | null;
   declarationsOf(binding: LocalId): readonly Node[];
+  assignedValuesOf(binding: LocalId): readonly Node[];
   bindingsOf(pattern: BindingPattern): readonly LocalId[];
   /** Authored declarations in the enclosing function, including block scopes. */
   declaredWithin(roots: readonly Node[]): readonly LocalId[];
@@ -71,6 +72,7 @@ export function createBindingGraph(program: Program): BindingGraph {
   const declarations = new WeakMap<Node, LocalId>();
   const references = new WeakMap<Node, LocalId>();
   const declarationNodes: Node[][] = [];
+  const assignments = new Map<LocalId, Node[]>();
   const declarationScopes: Scope[] = [];
   const parentScopes = new WeakMap<Node, Scope>();
   const patternBindings = new WeakMap<BindingPattern, LocalId[]>();
@@ -429,6 +431,22 @@ export function createBindingGraph(program: Program): BindingGraph {
     if (start !== orderedReferences.length) {
       referenceSpans.set(value, [start, orderedReferences.length]);
     }
+    if (
+      value.type === 'AssignmentExpression' &&
+      ['=', '&&=', '||=', '??='].includes(value.operator)
+    ) {
+      const span = referenceSpans.get(value.left);
+      if (span !== undefined) {
+        for (let index = span[0]; index < span[1]; index++) {
+          const reference = orderedReferences[index];
+          if (reference.isWrite && reference.binding !== null) {
+            const assigned = assignments.get(reference.binding) ?? [];
+            assigned.push(value.right);
+            assignments.set(reference.binding, assigned);
+          }
+        }
+      }
+    }
   };
   resolveReferences(program, moduleScope, null, '');
 
@@ -510,6 +528,14 @@ export function createBindingGraph(program: Program): BindingGraph {
     declaration: (node) => declarations.get(node) ?? null,
     reference: (node) => references.get(node) ?? null,
     declarationsOf: (binding) => declarationNodes[binding] ?? [],
+    assignedValuesOf: (binding) => [
+      ...(declarationNodes[binding] ?? []).flatMap((declaration) =>
+        declaration.type === 'VariableDeclarator' && declaration.init !== null
+          ? [declaration.init]
+          : []
+      ),
+      ...(assignments.get(binding) ?? []),
+    ],
     bindingsOf: (pattern) => {
       let found = patternBindings.get(pattern);
       if (found === undefined) {

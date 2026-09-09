@@ -1,4 +1,4 @@
-import { component$, useSignal } from '@qwik.dev/core';
+import { component$, useSignal, type JSXOutput } from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
 import { testRenderer } from '../test-utils';
 
@@ -12,7 +12,43 @@ function selectContent<T>(visible: boolean, content: T): T | string {
   return visible ? content : '<unsafe>';
 }
 
+class JsxBox<T> {
+  constructor(public value: T) {}
+}
+
 describe(`${name}: stored JSX values`, () => {
+  it('renders assigned constructor results with independent resumed instances', async () => {
+    const App = component$(() => {
+      const total = useSignal(0);
+      const visible = useSignal(true);
+      let content: JSXOutput;
+      // eslint-disable-next-line prefer-const -- Exercise assignment separately from declaration.
+      content = new JsxBox(<button onClick$={() => total.value++}>{total.value}</button>).value;
+      return (
+        <main>
+          <section>{visible.value && content}</section>
+          <aside>{content}</aside>
+          <button class="toggle" onClick$={() => (visible.value = !visible.value)}>
+            toggle
+          </button>
+        </main>
+      );
+    });
+    const { container, cleanup, qwikLoader } = await render(App);
+    try {
+      const remaining = container.querySelector('aside button')!;
+      await qwikLoader?.dispatch(remaining, 'click');
+      expect(container.querySelector('section button')?.textContent).toBe('1');
+      expect(remaining.textContent).toBe('1');
+      await qwikLoader?.dispatch(container.querySelector('.toggle')!, 'click');
+      expect(container.querySelectorAll('section button')).toHaveLength(0);
+      await qwikLoader?.dispatch(remaining, 'click');
+      expect(remaining.textContent).toBe('2');
+    } finally {
+      cleanup();
+    }
+  });
+
   it('renders wrapped inline collection rows with captured events', async () => {
     const App = component$(() => {
       const total = useSignal(0);

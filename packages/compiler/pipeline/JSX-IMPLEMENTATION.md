@@ -119,6 +119,11 @@ CSR/SSR snapshots and `jsx-value.spec.tsx` in CSR and resume, including componen
 event captures, reactive result replacement and escaped primitive results. Calls inside helpers
 use the same mechanism described below.
 
+Constructor arguments and setup assignments share the same scoped JSX root discovery as callbacks.
+Assigned values, including aliases and destructuring, use binding analysis for render classification.
+Verified by `bindings.unit.ts`, `jsx-call.unit.ts`, `jsx-value.unit.ts`, the `jsx-assignment`
+CSR/SSR snapshots, and `jsx-value.spec.tsx` in CSR and resume.
+
 JSX-valued props compile to render values, including alongside reactive spreads and inside inline
 collection rows. Verified by `jsx-prop.unit.ts` and new CSR/SSR snapshots. Classification of values
 read by the receiving component belongs to group 3 below.

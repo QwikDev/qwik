@@ -19,6 +19,9 @@ async function renderBody(body: string, globals: Record<string, unknown> = {}) {
         return core._captures;
       },
       wrap: (value: unknown) => value,
+      Box: class {
+        constructor(public value: unknown) {}
+      },
       ...globals,
     },
     true
@@ -31,6 +34,11 @@ test.each([
   ['root', 'return wrap(<b>one</b>);'],
   ['child', 'return <main>{wrap(<b>one</b>)}</main>;'],
   ['nested call', 'return wrap(wrap(<b>one</b>));'],
+  ['constructor', 'const content = new Box(<b>one</b>).value; return content;'],
+  [
+    'callback constructor',
+    'const content = [<i />, (() => new Box(<b>one</b>).value)()]; return content;',
+  ],
   ['spread arguments', 'return wrap(...[<b>one</b>]);'],
   ['stored argument', 'const content = <b>one</b>; return wrap(content);'],
   ['nested structure', 'return wrap({ body: [<b>one</b>] }).body;'],
@@ -41,6 +49,33 @@ test.each([
   ],
 ])('renders JSX passed as a call argument: %s', async (_name, body) => {
   expect(await renderBody(body)).toContain('<b>one</b>');
+});
+
+test('preserves constructor lookup, argument order and single evaluation', async () => {
+  const calls: string[] = [];
+  const html = await renderBody(
+    `const content = new constructors.Box(record('before'), <b>one</b>, record('after')).value; return content;`,
+    {
+      constructors: {
+        get Box() {
+          calls.push('constructor');
+          return class {
+            value: unknown;
+            constructor(before: string, value: unknown, after: string) {
+              calls.push(before, typeof value, after);
+              this.value = value;
+            }
+          };
+        },
+      },
+      record: (value: string) => {
+        calls.push(value);
+        return value;
+      },
+    }
+  );
+  expect(html).toContain('<b>one</b>');
+  expect(calls).toEqual(['constructor', 'before', 'after', 'before', 'function', 'after']);
 });
 
 test('preserves the receiver and evaluates callee and arguments once in order', async () => {

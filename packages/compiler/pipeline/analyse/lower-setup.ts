@@ -384,12 +384,13 @@ function lowerJsStatement(
       );
       return;
     }
-    if (node.type === 'CallExpression') {
+    if (
+      node.type === 'CallExpression' ||
+      node.type === 'JSXElement' ||
+      node.type === 'JSXFragment'
+    ) {
       recordPayloadJsx(ctx, payload, node);
       return;
-    }
-    if (node.type === 'JSXElement' || node.type === 'JSXFragment') {
-      throw new UnsupportedError('JSX outside a setup return');
     }
     for (const key of Object.keys(node)) {
       if (key !== 'parent') {

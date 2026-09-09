@@ -60,6 +60,7 @@ test('collection analysis retains callback setup and shares its row', () => {
 
 test.each([
   ['render(<A />)', true],
+  ['new Box(<A />).value', true],
   ['wrap(render(<A />))', true],
   ['render(...[<A />])', true],
   ['render?.(<A />)', true],

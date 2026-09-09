@@ -45,6 +45,17 @@ function identifiers(root: Node, name: string): Node[] {
 }
 
 describe('createBindingGraph', () => {
+  test('indexes assigned values without mixing shadowed bindings or member writes', () => {
+    const source = `let content = 'initial'; content = 'assigned'; [content] = ['destructured'];
+content.field = 'member'; { let content = 'inner'; content = 'shadowed'; }`;
+    const { program } = parseModule('bindings.ts', source);
+    const graph = createBindingGraph(deepFreeze(program));
+    const binding = graph.declaration(identifiers(program, 'content')[0])!;
+    expect(
+      graph.assignedValuesOf(binding).map((value) => source.slice(value.start, value.end))
+    ).toEqual(["'initial'", "'assigned'", "['destructured']"]);
+  });
+
   test('indexes implicit function bindings across arrows and native function scopes', () => {
     const { program } = parseModule(
       'bindings.ts',

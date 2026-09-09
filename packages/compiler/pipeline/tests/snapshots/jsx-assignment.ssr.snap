@@ -1,0 +1,174 @@
+==INPUT==
+
+import { Box } from './box';
+export default function App() {
+  let content;
+  content = new Box(<b>assigned</b>).value;
+  const alias = content;
+  return <main>{content}{alias}</main>;
+}
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  _captures,
+  renderSsrContent,
+  createSsrNodeId,
+  maybeThen,
+  _noopQrl,
+  renderSsrDynamicContent,
+} from '@qwik.dev/core';
+
+const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
+  return '<b>assigned</b>';
+};
+const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ _noopQrl(
+  'component_jsx_segment_0_38vnjku9rukc6'
+);
+q_component_jsx_segment_0_38vnjku9rukc6.s(component_jsx_segment_0_38vnjku9rukc6);
+const component_content_segment_1_185248kf949cp = (ctx0) => {
+  const [content] = _captures;
+  return renderSsrDynamicContent(content, ctx0);
+};
+const q_component_content_segment_1_185248kf949cp = /*#__PURE__*/ _noopQrl(
+  'component_content_segment_1_185248kf949cp'
+);
+q_component_content_segment_1_185248kf949cp.s(component_content_segment_1_185248kf949cp);
+const component_content_segment_2_185232h3im3b4 = (ctx0) => {
+  const [alias] = _captures;
+  return renderSsrDynamicContent(alias, ctx0);
+};
+const q_component_content_segment_2_185232h3im3b4 = /*#__PURE__*/ _noopQrl(
+  'component_content_segment_2_185232h3im3b4'
+);
+q_component_content_segment_2_185232h3im3b4.s(component_content_segment_2_185232h3im3b4);
+import { Box } from './box';
+export default function App(props, ctx) {
+  let content;
+  content = new Box(q_component_jsx_segment_0_38vnjku9rukc6).value;
+  const alias = content;
+  const id0 = ctx.nextId();
+  ctx.addRoot(content);
+  const content0 = renderSsrContent(
+    ctx,
+    id0,
+    [],
+    q_component_content_segment_1_185248kf949cp.w([content]),
+    false,
+    true
+  );
+  const id1 = ctx.nextId();
+  ctx.addRoot(alias);
+  const content1 = renderSsrContent(
+    ctx,
+    id1,
+    [],
+    q_component_content_segment_2_185232h3im3b4.w([alias]),
+    false,
+    true
+  );
+  return maybeThen(content0, (content0) =>
+    maybeThen(content1, (content1) => [
+      '<main><!d=',
+      createSsrNodeId(id0),
+      '>',
+      content0,
+      '<!/d><!d=',
+      createSsrNodeId(id1),
+      '>',
+      content1,
+      '<!/d></main>',
+    ])
+  );
+}
+============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
+
+export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
+  return '<b>assigned</b>';
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_jsx_segment_0_38vnjku9rukc6",
+  "entry": null,
+  "displayName": "component_jsx_segment_0",
+  "hash": "38vnjku9rukc6",
+  "canonicalFilename": "component.tsx_component_jsx_segment_0_38vnjku9rukc6",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "jsx",
+  "captures": false,
+  "loc": [
+    96,
+    111
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_content_segment_1_185248kf949cp.js (ENTRY POINT)==
+
+import { _captures, renderSsrDynamicContent } from '@qwik.dev/core';
+
+export const component_content_segment_1_185248kf949cp = (ctx0) => {
+  const [content] = _captures;
+  return renderSsrDynamicContent(content, ctx0);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_content_segment_1_185248kf949cp",
+  "entry": null,
+  "displayName": "component_content_segment_1",
+  "hash": "185248kf949cp",
+  "canonicalFilename": "component.tsx_component_content_segment_1_185248kf949cp",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "content",
+  "captures": true,
+  "loc": [
+    161,
+    168
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "content"
+  ]
+}
+*/
+============================= src/component.tsx_component_content_segment_2_185232h3im3b4.js (ENTRY POINT)==
+
+import { _captures, renderSsrDynamicContent } from '@qwik.dev/core';
+
+export const component_content_segment_2_185232h3im3b4 = (ctx0) => {
+  const [alias] = _captures;
+  return renderSsrDynamicContent(alias, ctx0);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_content_segment_2_185232h3im3b4",
+  "entry": null,
+  "displayName": "component_content_segment_2",
+  "hash": "185232h3im3b4",
+  "canonicalFilename": "component.tsx_component_content_segment_2_185232h3im3b4",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "content",
+  "captures": true,
+  "loc": [
+    170,
+    175
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "alias"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

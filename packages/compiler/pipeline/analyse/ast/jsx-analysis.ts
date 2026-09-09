@@ -13,7 +13,6 @@ import type {
 import type { BindingGraph } from './bindings';
 import type { LocalId } from '../../schema';
 import { identifierName, isFunctionLike, readReturnedBody, unwrapExpression } from './utils';
-import { findRuntimeJsx } from './returns-jsx';
 import { UnsupportedError } from '../../errors';
 import { isNode, type WalkableNode } from './ast-types';
 
@@ -142,9 +141,11 @@ export function createJsxAnalysis(
           hasJsxValue: left.hasJsxValue || right.hasJsxValue,
         };
       }
-      case 'CallExpression': {
+      case 'CallExpression':
+      case 'NewExpression': {
         const callback = node.arguments[0];
         if (
+          node.type === 'CallExpression' &&
           node.callee.type === 'MemberExpression' &&
           identifierName(node.callee.property) === 'map' &&
           node.arguments.length === 1 &&
@@ -210,13 +211,8 @@ export function createJsxAnalysis(
         const binding = bindings?.reference(node);
         if (bindings !== undefined && binding != null) {
           const hasJsxValue = bindings
-            .declarationsOf(binding)
-            .some(
-              (declaration) =>
-                declaration.type === 'VariableDeclarator' &&
-                declaration.init !== null &&
-                read(declaration.init).hasJsxValue
-            );
+            .assignedValuesOf(binding)
+            .some((assigned) => read(assigned).hasJsxValue);
           return { kind: JsxValueKind.Value, node, hasJsxValue };
         }
         if (node.name === 'undefined') {
@@ -236,7 +232,7 @@ export function createJsxAnalysis(
   }
   return {
     read,
-    expressionRoots: (node) => expressionRoots(node, factory),
+    expressionRoots: (node) => scopedRoots([node], factory),
     factory,
     scopedRoots: (nodes) => scopedRoots(nodes, factory),
   };
@@ -279,44 +275,4 @@ function scopedRoots(nodes: readonly Node[], factory: JsxAnalysis['factory']): J
   };
   visit(nodes);
   return roots;
-}
-
-/** Containers preserve native evaluation while embedded JSX becomes render values. */
-function expressionRoots(source: Node, factory: JsxAnalysis['factory']): JsxExpressionRoot[] {
-  const node = unwrapExpression(source)!;
-  const read = (child: Node) => expressionRoots(child, factory);
-  switch (node.type) {
-    case 'JSXElement':
-    case 'JSXFragment':
-      return [node];
-    case 'ArrayExpression':
-      return node.elements.flatMap((element) => (element === null ? [] : read(element)));
-    case 'ObjectExpression':
-      return node.properties.flatMap((property) =>
-        property.type === 'SpreadElement'
-          ? read(property.argument)
-          : [...read(property.key), ...read(property.value)]
-      );
-    case 'SpreadElement':
-      return read(node.argument);
-    case 'ConditionalExpression':
-      return [node.test, node.consequent, node.alternate].flatMap(read);
-    case 'LogicalExpression':
-      return [node.left, node.right].flatMap(read);
-    case 'MemberExpression':
-      return [node.object, ...(node.computed ? [node.property] : [])].flatMap(read);
-    case 'ChainExpression':
-      return read(node.expression);
-    case 'CallExpression':
-      return [node.callee, ...node.arguments].flatMap(read);
-    case 'ArrowFunctionExpression':
-    case 'FunctionExpression':
-    case 'FunctionDeclaration':
-      return factory(node) === null ? [] : [node];
-    default:
-      if (findRuntimeJsx(node) !== null) {
-        throw new UnsupportedError('JSX inside an expression value');
-      }
-      return [];
-  }
 }

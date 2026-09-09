@@ -50,6 +50,37 @@ test.each([
   ['optional member', 'const views = { body: <b>one</b> }; return views?.body;', '<b>one</b>'],
   ['let', 'let content = <p>stored</p>; return content;', '<p>stored</p>'],
   ['var', 'var content = <p>stored</p>; return content;', '<p>stored</p>'],
+  ['assignment', 'let content; content = <p>stored</p>; return content;', '<p>stored</p>'],
+  [
+    'reassignment',
+    'let content = "unused"; content = <p>stored</p>; return content;',
+    '<p>stored</p>',
+  ],
+  [
+    'conditional assignment',
+    'let content; if (true) { content = <p>stored</p>; } return content;',
+    '<p>stored</p>',
+  ],
+  [
+    'destructuring assignment',
+    'let content; [content] = [<p>stored</p>]; return content;',
+    '<p>stored</p>',
+  ],
+  [
+    'assigned alias',
+    'let content; content = <p>stored</p>; const alias = content; return alias;',
+    '<p>stored</p>',
+  ],
+  [
+    'logical assignment',
+    'let content; content ??= <p>stored</p>; return content;',
+    '<p>stored</p>',
+  ],
+  [
+    'skipped assignment',
+    'let content = "kept"; if (false) { content = <p>unused</p>; } return content;',
+    'kept',
+  ],
   [
     'replaced value',
     "let content = <p>unused</p>; content = '<unsafe>'; return content;",

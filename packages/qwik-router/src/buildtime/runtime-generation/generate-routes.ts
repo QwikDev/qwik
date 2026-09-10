@@ -11,13 +11,6 @@ import {
 import type { BuildTrieNode, BuiltRoute, RoutingContext, RouteSourceFile } from '../types';
 import { getImportPath } from './utils';
 
-/** Info about a layout at a trie level, used for ancestor stack during codegen */
-interface LayoutInfo {
-  id: string;
-  layoutName: string;
-  layoutType: 'top' | 'nested';
-}
-
 export type RouteLoaderSourceFiles = ReadonlyMap<string, readonly string[]>;
 
 /** Check if a build trie key is a group directory name like `(common)` */
@@ -141,7 +134,6 @@ export function createRoutes(
     layoutIdMap,
     routeIdMap,
     menuIdMap,
-    [],
     isSSR,
     '',
     loadersByFile,
@@ -175,12 +167,7 @@ function collectFiles(
   }
 }
 
-/**
- * Serialize a BuildTrieNode to a JS object literal string.
- *
- * The ancestor stack tracks layouts from parent nodes for layout chain resolution (needed for
- * layout stops and named layouts).
- */
+/** Serialize a BuildTrieNode using the resolved route layout chains. */
 function serializeBuildTrie(
   ctx: RoutingContext,
   qwikPlugin: QwikVitePlugin,
@@ -188,7 +175,6 @@ function serializeBuildTrie(
   layoutIdMap: Map<string, string>,
   routeIdMap: Map<string, string>,
   menuIdMap: Map<string, string>,
-  ancestorLayouts: LayoutInfo[],
   isSSR: boolean,
   indent: string,
   loadersByFile?: Map<string, string[]>,
@@ -210,7 +196,7 @@ function serializeBuildTrie(
 
   // _G rewrite target
   if (node._G != null) {
-    lines.push(`${nextIndent}_G: ${JSON.stringify(node._G)},`);
+    lines.push(`${nextIndent}_G: ${JSON.stringify(ctx.opts.basePathname + node._G)},`);
   }
 
   // Process _files at this node
@@ -220,12 +206,9 @@ function serializeBuildTrie(
   let notFoundExpr: string | undefined;
   let menuExpr: string | undefined;
   let bundleRoute: BuiltRoute | undefined;
+  let pageFile: RouteSourceFile | undefined;
+  let pageLayouts: BuiltRoute['layouts'] | undefined;
 
-  // Collect layout info for this node
-  const nodeLayouts: LayoutInfo[] = [];
-
-  // First pass: collect layouts and menus (must run before routes so that
-  // resolveNamedLayoutChain can find named layouts at this node level)
   for (const file of node._files) {
     if (file.type === 'menu') {
       const menuId = menuIdMap.get(file.filePath);
@@ -235,29 +218,14 @@ function serializeBuildTrie(
     } else if (file.type === 'layout') {
       const layoutId = layoutIdMap.get(file.filePath);
       if (layoutId) {
-        // Determine layout name and type for ancestor tracking
-        let extlessName = file.extlessName;
-        let layoutType: 'top' | 'nested' = 'nested';
-        if (extlessName.endsWith('!')) {
-          layoutType = 'top';
-          extlessName = extlessName.slice(0, -1);
-        }
-        const layoutName = extlessName.startsWith('layout-')
-          ? extlessName.slice('layout-'.length)
-          : '';
-
-        nodeLayouts.push({ id: layoutId, layoutName, layoutType });
-
-        // Only the default layout (no name) goes into _L.
-        // Named layouts (layout-api, etc.) are only referenced via override _I arrays.
-        if (layoutName === '') {
+        if (file.extlessName === 'layout' || file.extlessName === 'layout!') {
           layoutExpr = layoutId;
         }
       }
     }
   }
 
-  // Second pass: collect routes (after layouts so nodeLayouts is fully populated)
+  // Collect pages and boundaries.
   for (const file of node._files) {
     if (file.type !== 'route') {
       continue;
@@ -267,7 +235,8 @@ function serializeBuildTrie(
       continue;
     }
 
-    const expr = buildLoaderChainExpr(file.extlessName, loaderExpr, ancestorLayouts, nodeLayouts);
+    const route = ctx.routes.find((route) => route.filePath === file.filePath);
+    const expr = buildLoaderChainExpr(file.extlessName, loaderExpr, route?.layouts ?? []);
 
     // error.tsx / 404.tsx (+ optional layout modifier) are boundaries, not navigable pages.
     const boundary = errorBoundaryName(file.extlessName);
@@ -277,8 +246,11 @@ function serializeBuildTrie(
       errorExpr = expr;
     } else {
       indexExpr = expr;
+      pageFile = file;
+      const { layoutName, layoutStop } = parseRouteIndexName(file.extlessName);
+      pageLayouts = layoutStop || layoutName ? (route?.layouts ?? []) : undefined;
       // Find the BuiltRoute for bundle names
-      bundleRoute = ctx.routes.find((r) => r.filePath === file.filePath);
+      bundleRoute = route;
     }
   }
 
@@ -300,46 +272,42 @@ function serializeBuildTrie(
     }
   }
 
-  // Emit _R: routeLoader$ hashes for this node.
-  // In dev mode (loadersByFile populated after invalidation), emit directly.
-  // In build mode, emit placeholder string for renderChunk replacement.
-  {
+  // Layout and plugin loaders are inherited; page loaders are not.
+  for (const field of ['_R', '_D'] as const) {
     const routeFiles: string[] = [];
-    for (const file of node._files
-      // Mirror the _I pass: only count route files still in the plan, so a server-excluded route
-      // adds no _R and its emptied node prunes. Layouts always count.
-      .filter((f) => f.type === 'layout' || (f.type === 'route' && routeIdMap.has(f.filePath)))) {
-      routeFiles.push(file.filePath, ...(routeLoaderSourceFiles?.get(file.filePath) ?? []));
+    for (const file of node._files) {
+      const isLayout = file.type === 'layout' && !file.extlessName.startsWith('layout-');
+      const isPage = file === pageFile;
+      if ((field === '_R' && isLayout) || (field === '_D' && isPage)) {
+        routeFiles.push(file.filePath);
+      }
     }
-    // Include server plugin files at the root trie node (they apply to all routes)
-    if (node === ctx.routeTrie) {
+    if (field === '_D' && pageLayouts) {
+      routeFiles.push(...pageLayouts.map((layout) => layout.filePath));
+    }
+    if ((field === '_R' && node === ctx.routeTrie) || (field === '_D' && pageLayouts)) {
       for (const plugin of ctx.serverPlugins) {
-        routeFiles.push(plugin.filePath, ...(routeLoaderSourceFiles?.get(plugin.filePath) ?? []));
+        routeFiles.push(plugin.filePath);
       }
     }
-    const routeLoaderFiles = [...new Set(routeFiles)];
-    if (routeLoaderFiles.length > 0) {
-      if (loadersByFile) {
-        // Dev mode: the loader hashes are already known, emit them directly. When no
-        // routeLoader$ was found in any of the referenced files, skip emitting _R
-        // entirely so the runtime routing code doesn't see a stale placeholder.
-        const nodeLoaderHashes: string[] = [];
-        for (const filePath of routeLoaderFiles) {
-          const hashes = loadersByFile.get(normalizePathKey(filePath));
-          if (hashes) {
-            nodeLoaderHashes.push(...hashes);
-          }
-        }
-        if (nodeLoaderHashes.length > 0) {
-          lines.push(`${nextIndent}_R: ${JSON.stringify(nodeLoaderHashes)},`);
-        }
-      } else {
-        // Build mode: emit placeholder "__LOADERS:path1|path2__" — replaceLoaderPlaceholders
-        // in the qwikRouter vite plugin rewrites it to the real array (or strips the whole
-        // `_R: ...,` entry if no loaders were found).
-        const placeholder = `__LOADERS:${routeLoaderFiles.join('|')}__`;
-        lines.push(`${nextIndent}_R: ${JSON.stringify(placeholder)},`);
+    const routeLoaderFiles = [
+      ...new Set(
+        routeFiles.flatMap((path) => [path, ...(routeLoaderSourceFiles?.get(path) ?? [])])
+      ),
+    ];
+    if (routeLoaderFiles.length === 0) {
+      continue;
+    }
+    if (loadersByFile) {
+      const hashes = routeLoaderFiles.flatMap(
+        (filePath) => loadersByFile.get(normalizePathKey(filePath)) ?? []
+      );
+      if (hashes.length > 0) {
+        lines.push(`${nextIndent}${field}: ${JSON.stringify(hashes)},`);
       }
+    } else {
+      const placeholder = `__LOADERS:${routeLoaderFiles.join('|')}__`;
+      lines.push(`${nextIndent}${field}: ${JSON.stringify(placeholder)},`);
     }
   }
 
@@ -353,9 +321,6 @@ function serializeBuildTrie(
   if (menuExpr) {
     lines.push(`${nextIndent}_N: ${menuExpr},`);
   }
-
-  // Build ancestor stack for children: include this node's layouts
-  const childAncestors = [...ancestorLayouts, ...nodeLayouts];
 
   // Separate children into groups and regular children
   const groupChildren: [string, BuildTrieNode][] = [];
@@ -381,7 +346,6 @@ function serializeBuildTrie(
         layoutIdMap,
         routeIdMap,
         menuIdMap,
-        childAncestors,
         isSSR,
         nextIndent,
         loadersByFile,
@@ -405,7 +369,6 @@ function serializeBuildTrie(
       layoutIdMap,
       routeIdMap,
       menuIdMap,
-      childAncestors,
       isSSR,
       nextIndent,
       loadersByFile,
@@ -430,56 +393,13 @@ function serializeBuildTrie(
 function buildLoaderChainExpr(
   extlessName: string,
   loaderExpr: string,
-  ancestorLayouts: LayoutInfo[],
-  nodeLayouts: LayoutInfo[]
+  layouts: BuiltRoute['layouts']
 ): string {
   const { layoutName, layoutStop } = parseRouteIndexName(extlessName);
-  if (layoutStop) {
-    return `[ ${loaderExpr} ]`;
-  }
-  if (layoutName) {
-    const chain = resolveNamedLayoutChain(ancestorLayouts, nodeLayouts, layoutName);
-    return `[ ${[...chain.map((l) => l.id), loaderExpr].join(', ')} ]`;
+  if (layoutStop || layoutName) {
+    return `[ ${[...layouts.map((layout) => layout.id), loaderExpr].join(', ')} ]`;
   }
   return loaderExpr;
-}
-
-/**
- * For a named layout `index@name.tsx`, walk up ancestors to find the named layout and collect
- * default layouts above it.
- *
- * Returns the layout chain in order: [outermost default..., named layout]
- */
-function resolveNamedLayoutChain(
-  ancestorLayouts: LayoutInfo[],
-  nodeLayouts: LayoutInfo[],
-  targetName: string
-): LayoutInfo[] {
-  const allLayouts = [...ancestorLayouts, ...nodeLayouts];
-  const result: LayoutInfo[] = [];
-  let foundNamed = false;
-
-  // Walk from innermost to outermost
-  for (let i = allLayouts.length - 1; i >= 0; i--) {
-    const layout = allLayouts[i];
-
-    if (!foundNamed) {
-      if (layout.layoutName === targetName) {
-        result.unshift(layout);
-        foundNamed = true;
-      }
-    } else {
-      // After finding named, collect default layouts
-      if (layout.layoutName === '') {
-        result.unshift(layout);
-        if (layout.layoutType === 'top') {
-          break;
-        }
-      }
-    }
-  }
-
-  return result;
 }
 
 function getClientRouteBundleNames(qwikPlugin: QwikVitePlugin, r: BuiltRoute) {

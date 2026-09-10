@@ -326,8 +326,10 @@ export interface RouteData {
   _M?: RouteData[];
   /** Menu loader for this subtree (from menu.md). Runtime uses nearest ancestor during traversal. */
   _N?: MenuModuleLoader;
-  /** Array of routeLoader$ hashes for this node's loaders */
+  /** Inherited layout and server plugin routeLoader$ hashes. */
   _R?: string[];
+  /** Page loader hashes; override pages include their selected layouts and plugins. */
+  _D?: string[];
   /** Child route segments (any key not starting with `_`) */
   [part: string]:
     | RouteData

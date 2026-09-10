@@ -13,7 +13,7 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 // at or below the budget is fine. Bump the budget intentionally when a real feature justifies
 // the growth.
 const PRELOADER_BROTLI_BUDGET = 1800; // We currently group the vite preload helper with the preloader, adding ~500bytes brotli.
-const CORE_BROTLI_BUDGET = 33400;
+const CORE_BROTLI_BUDGET = 33500;
 const QWIKLOADER_BROTLI_BUDGET = 2100;
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
@@ -58,6 +58,10 @@ test.describe('router ssg snapshot', () => {
     // wrong URL and 404. The hash is wildcarded (optimizer-derived); the route path "/" is stable.
     expect(normalizedState).toMatch(
       /"loaderPaths"\s+Object \[\s+\{string\} "[^"]+"\s+\{string\} "\/"/
+    );
+
+    expect(normalizedState).not.toMatch(
+      /\{string\} "(?:client|routeLoaderIds|committed|navigationKey)"/
     );
 
     let expectedHtml = (await readFile(expectedHtmlPath, 'utf-8').catch(() => '')).replace(

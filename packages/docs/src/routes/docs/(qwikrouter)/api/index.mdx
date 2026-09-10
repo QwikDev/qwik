@@ -528,6 +528,8 @@ The `Form` component is a wrapper around the native `<form>` element, and it's d
 
 Since this component uses the native `<form>` element, it will work with any browser with and without JavaScript enabled. In addition, it enhances the native `<form>` element by capturing the `submit` event and preventing the default behavior, so it will behave like an SPA (Single Page Application) instead of a full page reload.
 
+Pass an `action` to submit a server action, or set `method="get"` explicitly to navigate using the form fields as query parameters. A `Form` without either is invalid; use a native `<form>` when handling submission yourself.
+
 ```tsx title="src/routes/login/index.tsx"
 import { component$ } from '@qwik.dev/core';
 import { Form, routeAction$ } from '@qwik.dev/router';
@@ -551,6 +553,15 @@ export default component$(() => {
     </Form>
   );
 });
+```
+
+For a GET form, declare the navigation intent explicitly:
+
+```tsx
+<Form method="get">
+  <input type="search" name="q" />
+  <button type="submit">Search</button>
+</Form>
 ```
 
 ## `<Link>`

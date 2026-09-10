@@ -1,5 +1,80 @@
 # @qwik.dev/core
 
+## 2.0.0-beta.44
+
+### Minor Changes
+
+- ✨ the optimizer runs transforms in worker threads, isolating memory and parallelizing builds (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- ✨ the Rust optimizer is now an optional peer dependency, installed only if you set `tsOptimizer: false` (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- ✨ add `tsOptimizer` flag to qwikVite, selecting the TypeScript optimizer by default (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+### Patch Changes
+
+- 🐞🩹 prevent development image tooling from requesting private network resources (by [@gioboa](https://github.com/gioboa) in [`cd3f0e3`](https://github.com/QwikDev/qwik/commit/cd3f0e3db01f07568dc30956d08a15f54c50bd8e))
+
+- 🐞🩹 preserve captured qrl declaration order (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- 🐞🩹 build constants in shorthand object properties fold to `key: value` instead of corrupting the key (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- 🐞🩹 un-exported route loaders and actions no longer break the build (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- 🐞🩹 preserve async request and locale context on edge runtimes (by [@Varixo](https://github.com/Varixo) in [#8999](https://github.com/QwikDev/qwik/pull/8999))
+
+- 🐞🩹 honour a JSDoc-style `@jsxImportSource` pragma, and survive a failed raw-transfer allocation (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- 🐞🩹 hoisted signal functions could reference the wrong body in multi-component files (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- 🐞🩹 components referenced as JSX tags inside function scopes are captured like any other binding (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- 🐞🩹 files without any $ extraction no longer lose module-level declarations (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- 🐞🩹 arguments after a $ closure (e.g. task options) are no longer dropped (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- 🐞🩹 SSR and client builds now assign identical JSX keys, preventing full subtree recreation on first rerender (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- 🐞🩹 stop letting regex pre-checks decide whether the TS strip and constant folding run (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- 🐞🩹 statement labels no longer pull same-named module variables into segments (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- 🐞🩹 preserve nested optimizer call boundaries (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- 🐞🩹 drop code a folded isServer/isBrowser branch made unreachable, so server-only imports leave the client bundle (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- 🐞🩹 passive event scopes survive the server build's handler rewrite (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- 🐞🩹 serialized q:ps capture arrays follow the client's handler slot order on multi-handler elements (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- 🐞🩹 prevent infinite retries after component chunk imports fail (by [@Varixo](https://github.com/Varixo) in [#8998](https://github.com/QwikDev/qwik/pull/8998))
+
+- 🐞🩹 ref props are no longer hoisted into read-only signals, and same-line spaces between sibling elements are preserved (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- perf: cut optimizer wall time ~18% by reusing parses and rewriting the code/comment blanking pass (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- 🐞🩹 props spread after a named prop now overrides it, including with multiple spreads (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- 🐞🩹 await asynchronous computations on streamed server nodes (by [@Varixo](https://github.com/Varixo) in [#8998](https://github.com/QwikDev/qwik/pull/8998))
+
+- 🐞🩹 serialized reactive expressions no longer leak typescript casts into browser scripts (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- 🐞🩹 stripped loop event handlers no longer lose their lexical captures (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- 🐞🩹 keep CRLF sources and third-party `$` marker packages correct in segments (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- 🐞🩹 restore the Rust optimizer as the default (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- 🐞🩹 prevent stalled renders when suspended tasks encounter rejected promises (by [@Varixo](https://github.com/Varixo) in [#8998](https://github.com/QwikDev/qwik/pull/8998))
+
+- 🐞🩹 don't declare the private ts-optimizer as a dependency, it is bundled into core/optimizer (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- 🐞🩹 string-keyed prop destructures, multi-capital event names, and manual qrl captures no longer break the transform (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- 🐞🩹 worker qrl chunk rewrite no longer breaks on escaped quotes (by [@scottweaver](https://github.com/scottweaver) in [#8872](https://github.com/QwikDev/qwik/pull/8872))
+
+- Updated dependencies [[`7f59af3`](https://github.com/QwikDev/qwik/commit/7f59af37edf165d03a724d633e022dd03d79c5a7)]:
+  - @qwik.dev/optimizer@2.1.0-beta.9
+
 ## 2.0.0-beta.43
 
 ### Patch Changes

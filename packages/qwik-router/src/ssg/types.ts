@@ -60,6 +60,11 @@ export interface SsgRenderOptions extends RenderOptions {
   /** Maximum number of tasks to be running at one time per worker. Defaults to `20`. */
   maxTasksPerWorker?: number;
   /**
+   * Number of times to re-render a route whose render failed before the route is recorded as an
+   * error. Defaults to `0` (a failed render fails the route right away).
+   */
+  retries?: number;
+  /**
    * File system path to write the `sitemap.xml` to. Defaults to `sitemap.xml` and written to the
    * root of the `outDir`. Setting to `null` will prevent the sitemap from being created.
    */

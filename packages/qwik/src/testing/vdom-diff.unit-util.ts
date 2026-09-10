@@ -62,16 +62,17 @@ import { isElement, prettyHtml } from './html';
 import { prettyJSX } from './jsx';
 
 expect.extend({
-  toMatchVDOM(
-    this: { isNot: boolean },
-    received: _VNode,
-    expected: JSXNodeInternal,
-    isCsr?: boolean
-  ) {
+  toMatchVDOM(this: { isNot: boolean }, received: _VNode, expected: JSXOutput, isCsr?: boolean) {
     const { isNot } = this;
     const container = getContainerElement(received);
     const isSsr = typeof isCsr === 'boolean' ? !isCsr : isSsrRenderer(container);
-    const diffs = diffJsxVNode(received, expected, [], container, isSsr);
+    const diffs = diffJsxVNode(
+      received,
+      expected as JSXNodeInternal | string,
+      [],
+      container,
+      isSsr
+    );
     return {
       pass: isNot ? diffs.length !== 0 : diffs.length === 0,
       message: () => diffs.join('\n'),

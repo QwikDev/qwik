@@ -1,6 +1,8 @@
 import type { CompileOptions } from '@mdx-js/mdx';
-import type { Config as SVGOConfig } from 'svgo';
-import type { BuiltinsWithOptionalParams as SVGOBuiltinPluginsWithOptionalParams } from 'svgo/plugins/plugins-types';
+import type {
+  BuiltinsWithOptionalParams as SVGOBuiltinPluginsWithOptionalParams,
+  Config as SVGOConfig,
+} from 'svgo';
 import type { Plugin as VitePlugin } from 'vite';
 import type { MdxTransform } from '../markdown/mdx';
 import type { RoutingContext, BuiltEntry, BuiltRoute, MdxPlugins, PluginOptions } from '../types';

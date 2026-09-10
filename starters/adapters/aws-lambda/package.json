@@ -2,23 +2,16 @@
   "description": "AWS Lambda",
   "scripts": {
     "build.server": "qwik check-client src dist && vite build -c adapters/aws-lambda/vite.config.ts",
-    "serve": "qwik build && serverless offline",
-    "deploy": "serverless deploy"
+    "deploy": "make deploy"
   },
   "devDependencies": {
     "source-map-support": "^0.5.21",
-    "serverless": "^3.38.0",
-    "serverless-http": "^3.2.0",
-    "serverless-offline": "^13.3.2"
+    "serverless-http": "^4.0.0"
   },
   "__qwik__": {
     "priority": 30,
     "displayName": "Adapter: AWS Lambda",
-    "docs": [
-      "https://qwik.dev/docs/deployments/aws-lambda/",
-      "https://aws.amazon.com/es/lambda/",
-      "https://www.serverless.com/cloud/docs/get-started"
-    ]
+    "docs": ["https://qwik.dev/docs/deployments/aws-lambda/", "https://aws.amazon.com/lambda/"]
   },
   "type": "module"
 }

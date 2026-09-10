@@ -5,12 +5,7 @@ import { clearAllEffects, clearEffectSubscription } from '../reactive-primitives
 import { WrappedSignalImpl } from '../reactive-primitives/impl/wrapped-signal-impl';
 import type { Signal } from '../reactive-primitives/signal.public';
 import { SubscriptionData } from '../reactive-primitives/subscription-data';
-import {
-  AsyncSignalFlags,
-  ComputedSignalFlags,
-  EffectProperty,
-  type Consumer,
-} from '../reactive-primitives/types';
+import { ComputedSignalFlags, EffectProperty, type Consumer } from '../reactive-primitives/types';
 import { isSignal } from '../reactive-primitives/utils';
 import { SERIALIZABLE_STATE, type OnRenderFn } from '../shared/component.public';
 import { isCursor, type Cursor } from '../shared/cursor/cursor';
@@ -1972,21 +1967,19 @@ export function cleanup(
                   // don't call cleanupDestroyable yet, do it by the scheduler
                   continue;
                 }
+                cleanupDestroyable(obj);
               }
               // Stores and plain signals are only producers; their subscriptions are removed
               // when cleaning the consumers that read them. They don't own reactive backrefs.
               else if (obj instanceof ComputedSignalImpl || obj instanceof WrappedSignalImpl) {
-                if (!(obj.$flags$ & ComputedSignalFlags.PRESERVE_ON_SEQ_CLEANUP)) {
+                if (obj.$flags$ & ComputedSignalFlags.PRESERVE_ON_SEQ_CLEANUP) {
+                  continue;
+                }
+                if (obj instanceof ComputedSignalImpl) {
+                  obj.$dispose();
+                } else {
                   clearAllEffects(container, obj as Consumer);
                 }
-              }
-
-              if (
-                objIsTask ||
-                (obj instanceof ComputedSignalImpl &&
-                  (obj.$flags$ & AsyncSignalFlags.ASYNC_MODE || obj.$current$))
-              ) {
-                cleanupDestroyable(obj);
               }
             }
           }

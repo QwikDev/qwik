@@ -81,17 +81,15 @@ export function qwikRouter(userOpts?: QwikRouterVitePluginOptions): PluginOption
   ];
 }
 
-/** Replace or strip `_R: "__LOADERS:path1|path2__"` placeholders in a bundle chunk. */
+/** Replace or strip loader placeholders in a bundle chunk. */
 export function replaceLoaderPlaceholders(
   code: string,
   loadersByFile: Map<string, string[]>
 ): string {
-  // Replace `_R: "__LOADERS:path1|path2__"` with the actual hash array, or strip the whole
-  // `_R: ...` entry when no routeLoader$ was found — that way the client-side routing code
-  // never sees a stale placeholder string and spreads it character-by-character.
+  // Missing loaders must not leave placeholder strings in the trie.
   return code.replace(
-    /_R\s*:\s*(["'`])__LOADERS:([^"'`]+)__\1\s*,?/g,
-    (_match, _q, paths: string) => {
+    /(_R|_D)\s*:\s*(["'`])__LOADERS:([^"'`]+)__\2\s*,?/g,
+    (_match, field: string, _q, paths: string) => {
       const filePaths = (JSON.parse(`"${paths}"`) as string).split('|');
       const hashes: string[] = [];
       for (const filePath of filePaths) {
@@ -101,7 +99,7 @@ export function replaceLoaderPlaceholders(
         }
       }
       if (hashes.length > 0) {
-        return `_R: ${JSON.stringify(hashes)},`;
+        return `${field}: ${JSON.stringify(hashes)},`;
       }
       // Trailing commas inside object literals are legal, so removing a mid-object entry
       // (and the trailing comma it emitted with) leaves the surrounding trie literal valid.
@@ -446,7 +444,7 @@ function qwikRouterPlugin(
         if (segment.ctxName === 'routeLoader$') {
           const changed = addRouteLoaderHash(loadersByFile, parentId, segment.hash);
 
-          // In dev: invalidate @qwik-router-config so it re-emits _R with loader info.
+          // Refresh the dev route plan with newly discovered loaders.
           if (changed && devServer) {
             invalidateRouterConfigModules(devServer);
           }

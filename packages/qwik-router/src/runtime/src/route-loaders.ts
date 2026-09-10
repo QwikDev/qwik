@@ -3,6 +3,7 @@ import {
   implicit$FirstArg,
   isDev,
   isServer,
+  untrack,
   useServerData,
   type ComputedSignal,
   type NoSerialize,
@@ -16,6 +17,7 @@ import {
   _verifySerializable,
   _UNINITIALIZED,
   SerializerSymbol,
+  type _AsyncSignalImpl,
   type SerializationStrategy,
 } from '@qwik.dev/core/internal';
 import type {
@@ -96,9 +98,11 @@ export type LoaderFetchResult = {
  * and prevents repeat hover fetches. Cleared after each navigation kicks off its loader fetches;
  * across navigations the browser HTTP cache is the freshness authority.
  */
-const navFetchCache = new Map<string, Promise<LoaderFetchResult | undefined>>();
+let navFetchCache = new Map<string, Promise<LoaderFetchResult | undefined>>();
 
-export const clearNavFetchCache = () => navFetchCache.clear();
+export const clearNavFetchCache = () => {
+  navFetchCache = new Map();
+};
 
 const isRedirectStatus = (status: number) => status >= 300 && status < 400;
 
@@ -114,25 +118,81 @@ const wrapWithAbort = <T>(promise: Promise<T>, signal: AbortSignal): Promise<T> 
   });
 };
 
-/**
- * Reactive context for route loaders. On the server this is stored in sharedMap, on the client it's
- * a store that gets updated on navigation.
- *
- * - `loaderPaths`: loader ID → fetch path (the longest route path for that loader)
- * - `pagePathname` / `pageSearch`: client-only navigation state used for loader invalidation and
- *   q-loader fetches. They are intentionally omitted from SSR state and fall back to `location`
- *   until the first SPA navigation.
- */
+/** Shared SSR paths and client-only loader navigation state. */
 export type RouteLoaderCtx = {
   loaderPaths: Record<string, string | undefined>;
-  pagePathname?: string;
-  pageSearch?: string;
   /** SPA navigation function. Client-only and intentionally omitted from SSR state. */
   goto?: NoSerialize<RouteNavigate>;
   /** Client manifest hash for q-loader fetch URLs. */
   manifestHash?: string;
-  routeLoaderCandidates?: Record<string, string>;
 };
+
+type LoaderRequest = {
+  routePath: string;
+  pageUrl: string;
+  active: boolean;
+  hash?: string;
+};
+
+type LoaderNavigation = {
+  requests: Map<ComputedSignal<unknown>, LoaderRequest>;
+  paths: Record<string, string | undefined>;
+  pageUrl: string;
+};
+
+type ClientRouteLoaders = {
+  current: LoaderNavigation;
+  committed: LoaderNavigation;
+  navCount?: number;
+  navigationKey?: object;
+};
+
+const clientRouteLoaders = new WeakMap<RouteLoaderCtx, ClientRouteLoaders>();
+
+export function getClientRouteLoaders(ctx: RouteLoaderCtx, pageUrl?: string): ClientRouteLoaders {
+  let client = clientRouteLoaders.get(ctx);
+  if (!client) {
+    const current = {
+      requests: new Map(),
+      paths: { ...ctx.loaderPaths },
+      pageUrl: pageUrl || location.href,
+    };
+    client = { current, committed: current };
+    clientRouteLoaders.set(ctx, client);
+  }
+  return client;
+}
+
+function getLoaderRequest(ctx: RouteLoaderCtx, state: RouteLoaderState, id: string, hash: string) {
+  return untrack(() => {
+    const client = getClientRouteLoaders(ctx);
+    const { requests, paths, pageUrl } = client.current;
+    let request = requests.get(state[id]);
+    if (!request) {
+      const path = paths[id] || paths[hash];
+      request = {
+        routePath: path || new URL(pageUrl).pathname,
+        pageUrl,
+        active: client.navCount === undefined || !!path,
+        hash,
+      };
+      requests.set(state[id], request);
+    }
+    return request;
+  });
+}
+
+function assertCurrentLoaderRequest(
+  ctx: RouteLoaderCtx,
+  signal: ComputedSignal<unknown>,
+  request: LoaderRequest,
+  abortSignal: AbortSignal
+) {
+  abortSignal.throwIfAborted();
+  if (!request.active || clientRouteLoaders.get(ctx)?.current.requests.get(signal) !== request) {
+    throw new DOMException(isDev ? 'Route loader navigation was superseded' : '', 'AbortError');
+  }
+}
 
 export type RouteLoaderState = Record<string, ComputedSignal<unknown>>;
 
@@ -219,19 +279,22 @@ export const fetchRouteLoaderData = async (
   }
 
   const cacheKey = `${url}\n${headers[FULLPATH_HEADER] ?? ''}`;
+  const cache = navFetchCache;
   if (!opts?.ignoreCache) {
-    const entry = navFetchCache.get(cacheKey);
+    const entry = cache.get(cacheKey);
     if (entry) {
       return opts?.signal ? wrapWithAbort(entry, opts.signal) : entry;
     }
   }
 
   const request = async (): Promise<LoaderFetchResult | undefined> => {
+    opts?.signal?.throwIfAborted();
     const response = await fetch(url, {
       signal: opts?.signal,
       cache: opts?.ignoreCache ? 'reload' : 'default',
       headers,
     });
+    opts?.signal?.throwIfAborted();
     // Middleware redirects produce HTTP 3xx — convert to a redirect result
     if (response.redirected) {
       return { r: response.url };
@@ -245,7 +308,9 @@ export const fetchRouteLoaderData = async (
     if (!response.ok) {
       return undefined;
     }
-    return { raw: await response.text() };
+    const raw = await response.text();
+    opts?.signal?.throwIfAborted();
+    return { raw };
   };
 
   if (opts?.ignoreCache) {
@@ -255,8 +320,9 @@ export const fetchRouteLoaderData = async (
   if (opts?.signal) {
     // Don't share an abortable request while pending, but reuse it after completion.
     return request().then((value) => {
-      if (value !== undefined && !navFetchCache.has(cacheKey)) {
-        navFetchCache.set(cacheKey, Promise.resolve(value));
+      opts.signal!.throwIfAborted();
+      if (value !== undefined && !cache.has(cacheKey)) {
+        cache.set(cacheKey, Promise.resolve(value));
       }
       return value;
     });
@@ -265,16 +331,16 @@ export const fetchRouteLoaderData = async (
   const promise = request().then(
     (value) => {
       if (value === undefined) {
-        navFetchCache.delete(cacheKey);
+        cache.delete(cacheKey);
       }
       return value;
     },
     (err) => {
-      navFetchCache.delete(cacheKey);
+      cache.delete(cacheKey);
       throw err;
     }
   );
-  navFetchCache.set(cacheKey, promise);
+  cache.set(cacheKey, promise);
   return promise;
 };
 
@@ -297,18 +363,14 @@ const createRouteLoaderSignal = (
       )
     : id;
   const searchFilter = loader.__search;
+  const loaderHash = isDev ? loader.__qrl.getHash() : id;
   // Raw text of the last successful fetch, to skip deserialization and keep object
   // identity (no rerenders) when a refetch returns unchanged data.
   const lastFetch: { raw?: string } = {};
   const signal = createComputed$(
     async (ctx) => {
-      const { track, info, previous, abortSignal } = ctx;
+      const { info, previous, abortSignal } = ctx;
       const hasInjectedValue = !!info && typeof info === 'object' && '__v' in (info as object);
-      // Track route dependencies before any early return: the SSR and injected-value paths
-      // must also subscribe so a resumed loader re-fetches on the first SPA navigation.
-      const trackedRoutePath = track(routeLoaderCtx.loaderPaths, id) as string | undefined;
-      const trackedPagePathname = track(routeLoaderCtx, 'pagePathname') as string | undefined;
-      const trackedPageSearch = track(routeLoaderCtx, 'pageSearch') as string | undefined;
       // Pre-loaded value injection (from middleware via setLoaderSignalValue, or from
       // an action response).
       if (hasInjectedValue) {
@@ -323,24 +385,21 @@ const createRouteLoaderSignal = (
       if (isServer) {
         return (capture as ServerRouteLoaderCapture).load();
       }
-      const routePath = trackedRoutePath;
-      // The client page path/search fields are only assigned on SPA navigation; before
-      // that, `location` is the source of truth and avoids serializing a duplicate URL in SSR state.
-      const pagePathname = trackedPagePathname || location.pathname;
-      const pageSearch = trackedPageSearch || location.search;
-      const pageUrl = new URL(pagePathname + pageSearch, location.href);
-      const mHash = routeLoaderCtx.manifestHash || 'dev';
-      const basePath = basePathname;
-      const needsResumeFetch = stateValues[resumeValueKey] === _UNINITIALIZED;
-      const fetchRoutePath = routePath || (needsResumeFetch ? pageUrl.pathname : undefined);
-      // A loader that's never been on any route we've visited has no fetch path yet —
-      // return whatever value it has (undefined on the very first run). In practice
-      // this branch only fires on the initial client-side read for a loader that
-      // wasn't prefilled by SSR; normal navs leave stale entries in loaderPaths so
-      // this compute only runs when there's a fresh path to fetch against.
-      if (!fetchRoutePath) {
+      const request = getLoaderRequest(routeLoaderCtx, state, id, loaderHash);
+      if (!request.active) {
+        if (previous === undefined) {
+          return new Promise((_, reject) => {
+            abortSignal.throwIfAborted();
+            abortSignal.addEventListener('abort', () => reject(abortSignal.reason), { once: true });
+          });
+        }
         return previous;
       }
+      const pageUrl = new URL(request.pageUrl);
+      const mHash = untrack(() => routeLoaderCtx.manifestHash) || 'dev';
+      const basePath = basePathname;
+      const needsResumeFetch = stateValues[resumeValueKey] === _UNINITIALIZED;
+      const fetchRoutePath = request.routePath;
 
       // Build a URL with only the allowed search params for the fetch
       let fetchUrl = pageUrl;
@@ -357,6 +416,7 @@ const createRouteLoaderSignal = (
         ignoreCache: info === true,
         signal: abortSignal,
       });
+      assertCurrentLoaderRequest(routeLoaderCtx, state[id], request, abortSignal);
       if (!result) {
         throw new Error(`Loader ${id} returned empty response`);
       }
@@ -374,6 +434,7 @@ const createRouteLoaderSignal = (
           throw new Error(`Loader ${id} returned empty response`);
         }
       }
+      assertCurrentLoaderRequest(routeLoaderCtx, state[id], request, abortSignal);
       if (response.r) {
         // Redirect — fire SPA goto if available, else full page nav. We don't
         // await or coordinate with the current nav: the new nav starts while
@@ -571,23 +632,6 @@ export function getRouteLoaderCtx(requestEv: RequestEventBase): RouteLoaderCtx {
   return ctx;
 }
 
-/** Update route loader matching state on navigation. */
-export const updateRouteLoaderPaths = (
-  ctx: RouteLoaderCtx,
-  loaderPaths: Record<string, string> | undefined,
-  pageUrl: URL
-) => {
-  if (!isServer) {
-    ctx.pagePathname = pageUrl.pathname;
-    ctx.pageSearch = pageUrl.search;
-    ctx.routeLoaderCandidates = loaderPaths;
-  } else if (loaderPaths) {
-    for (const key in loaderPaths) {
-      ctx.loaderPaths[key] = loaderPaths[key];
-    }
-  }
-};
-
 export const getModuleRouteLoaders = (mods: readonly (RouteModule | undefined)[]) => {
   const routeLoaders: LoaderInternal[] = [];
   const seen = new Map<string, LoaderInternal>();
@@ -620,36 +664,135 @@ export const getModuleRouteLoaders = (mods: readonly (RouteModule | undefined)[]
 
 /**
  * Loader ids declared `cacheControl: 'immutable'`. Their data cannot change until a rebuild, so
- * nav-wide invalidation skips them; they still re-fetch when their tracked URL inputs change.
- * Registered on every nav via ensureRouteLoaderSignal, so resumed signals are covered too.
+ * navigation skips them unless their request inputs change. Registered on every nav via
+ * ensureRouteLoaderSignal, so resumed signals are covered too.
  */
 const immutableLoaderIds = new Set<string>();
 
 export const isImmutableLoader = (loaderId: string) => immutableLoaderIds.has(loaderId);
 
-/**
- * Invalidate every loader signal on navigation: the browser HTTP cache (driven by each loader's
- * cacheControl) decides freshness. Unsubscribed signals only mark stale and refetch lazily when
- * read again. Immutable loaders are skipped — their data cannot change until a rebuild; tracked URL
- * inputs still invalidate them.
- */
-export const invalidateNavRouteLoaders = (state: RouteLoaderState) => {
-  for (const id in state) {
-    // The state also holds resumed loader values under prefixed keys, which are not signals
-    if (!id.startsWith(ROUTE_LOADER_VALUE_PREFIX) && !immutableLoaderIds.has(id)) {
-      state[id].invalidate();
+export function abortRouteLoaderNavigation(ctx: RouteLoaderCtx) {
+  for (const signal of clientRouteLoaders.get(ctx)?.current.requests.keys() ?? []) {
+    signal.abort();
+  }
+}
+
+export function prepareRouteLoaders(
+  mods: readonly (RouteModule | undefined)[],
+  state: RouteLoaderState,
+  ctx: RouteLoaderCtx,
+  paths: Record<string, string> | undefined,
+  pageUrl: URL,
+  previousUrl: URL,
+  navCount: number,
+  forceIds?: readonly string[] | null,
+  navigationKey?: object
+) {
+  const client = getClientRouteLoaders(ctx, previousUrl.href);
+  if (navigationKey && client.navigationKey === navigationKey) {
+    return ensureRouteLoaderSignals(mods, state, ctx);
+  }
+  const previous = client.current;
+  if (client.navCount === undefined) {
+    for (const id in state) {
+      if (!id.startsWith(ROUTE_LOADER_VALUE_PREFIX)) {
+        getLoaderRequest(ctx, state, id, id);
+      }
     }
   }
-};
-
-export const applyClientRouteLoaderPath = (loaderId: string, ctx: RouteLoaderCtx) => {
-  const currentPath = ctx.routeLoaderCandidates?.[loaderId];
-  if (currentPath) {
-    ctx.loaderPaths[loaderId] = currentPath;
-  } else if (isDev && ctx.pagePathname) {
-    ctx.loaderPaths[loaderId] = ctx.pagePathname;
+  client.navCount = navCount;
+  client.navigationKey = navigationKey;
+  const current = (client.current = {
+    requests: new Map(),
+    paths: { ...paths },
+    pageUrl: pageUrl.href,
+  });
+  const loaders = ensureRouteLoaderSignals(mods, state, ctx);
+  const hashes = new Map<string, string>();
+  for (const loader of loaders) {
+    const hash = loader.__qrl.getHash();
+    hashes.set(loader.__id, hash);
+    current.paths[loader.__id] ||= current.paths[hash] || pageUrl.pathname;
   }
-};
+  for (const id in state) {
+    if (id.startsWith(ROUTE_LOADER_VALUE_PREFIX)) {
+      continue;
+    }
+    const signal = state[id];
+    const old = previous.requests.get(signal);
+    const hash = hashes.get(id) || old?.hash;
+    const routePath = current.paths[id] || (hash && current.paths[hash]);
+    if (!routePath) {
+      if (old) {
+        current.requests.set(signal, { ...old, active: false });
+      }
+      signal.abort();
+      continue;
+    }
+    const unchanged = old?.active && old.routePath === routePath && old.pageUrl === pageUrl.href;
+    const keepImmutable = unchanged && isImmutableLoader(id);
+    current.requests.set(
+      signal,
+      keepImmutable ? old : { routePath, pageUrl: pageUrl.href, active: true, hash }
+    );
+    ctx.loaderPaths[id] = routePath;
+    const force = forceIds === null || forceIds?.some((value) => value === id || value === hash);
+    if (force) {
+      signal.invalidate(true);
+    } else if (old && !keepImmutable) {
+      signal.invalidate();
+    }
+  }
+  return loaders;
+}
+
+function pruneRouteLoaders(state: RouteLoaderState, ctx: RouteLoaderCtx) {
+  const { requests } = clientRouteLoaders.get(ctx)!.current;
+  const paths: Record<string, string> = {};
+  for (const id in state) {
+    if (id.startsWith(ROUTE_LOADER_VALUE_PREFIX)) {
+      continue;
+    }
+    const signal = state[id];
+    const request = requests.get(signal);
+    if (request?.active) {
+      paths[id] = request.routePath;
+    } else {
+      (signal as _AsyncSignalImpl<unknown>).$dispose();
+      requests.delete(signal);
+      delete state[id];
+      delete (state as Record<string, unknown>)[getRouteLoaderValueStateKey(id)];
+    }
+  }
+  ctx.loaderPaths = paths;
+}
+
+export function commitRouteLoaders(state: RouteLoaderState, ctx: RouteLoaderCtx, navCount: number) {
+  const client = clientRouteLoaders.get(ctx);
+  if (!client || client.navCount !== navCount) {
+    return false;
+  }
+  pruneRouteLoaders(state, ctx);
+  client.committed = client.current;
+  return true;
+}
+
+export function restoreRouteLoaders(
+  state: RouteLoaderState,
+  ctx: RouteLoaderCtx,
+  navCount: number
+) {
+  const client = clientRouteLoaders.get(ctx);
+  if (!client || client.navCount !== navCount) {
+    return;
+  }
+  client.navigationKey = undefined;
+  client.current = client.committed;
+  pruneRouteLoaders(state, ctx);
+  for (const signal of client.current.requests.keys()) {
+    signal.invalidate();
+  }
+}
 
 export const ensureRouteLoaderSignal = (
   loader: LoaderInternal,
@@ -657,9 +800,6 @@ export const ensureRouteLoaderSignal = (
   routeLoaderCtx: RouteLoaderCtx,
   requestEv?: RequestEvent
 ) => {
-  if (!isServer && routeLoaderCtx.pagePathname) {
-    applyClientRouteLoaderPath(loader.__id, routeLoaderCtx);
-  }
   if (loader.__cacheControl === 'immutable') {
     immutableLoaderIds.add(loader.__id);
   }

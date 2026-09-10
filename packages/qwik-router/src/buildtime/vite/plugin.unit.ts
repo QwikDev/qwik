@@ -149,8 +149,13 @@ describe('qwikRouter plugin', () => {
       addRouteLoaderHash(loadersByFile, loaderPath, 'loader_hash');
 
       for (const placeholderPath of [loaderPath, 'C:/deep/project/src/routes/index.tsx']) {
-        const code = `{ _R: ${JSON.stringify(`__LOADERS:${placeholderPath}__`)}, }`;
-        expect(replaceLoaderPlaceholders(code, loadersByFile)).toContain('_R: ["loader_hash"],');
+        for (const field of ['_R', '_D']) {
+          const code = `{ ${field}: ${JSON.stringify(`__LOADERS:${placeholderPath}__`)}, }`;
+          expect(replaceLoaderPlaceholders(code, loadersByFile)).toContain(
+            `${field}: ["loader_hash"],`
+          );
+          expect(replaceLoaderPlaceholders(code, new Map())).not.toContain('__LOADERS:');
+        }
       }
     });
 

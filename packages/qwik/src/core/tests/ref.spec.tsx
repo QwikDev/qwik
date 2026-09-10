@@ -32,9 +32,7 @@ describe.each([
 
       const { document } = await render(<Cmp />, { debug });
 
-      if (render === ssrRenderToDom) {
-        await trigger(document.body, 'p', 'qvisible');
-      }
+      await trigger(document.body, 'p', 'qvisible');
 
       await expect(document.querySelector('p')).toMatchDOM(<p>Abcd</p>);
     });
@@ -80,9 +78,7 @@ describe.each([
 
     const { document } = await render(<Parent />, { debug });
 
-    if (ssrRenderToDom === render) {
-      await trigger(document.body, 'div', 'qvisible');
-    }
+    await trigger(document.body, 'div', 'qvisible');
 
     expect(isElement((globalThis as any).element[0])).toBeTruthy();
     (globalThis as any).element = undefined;
@@ -103,9 +99,7 @@ describe.each([
 
     const { document } = await render(<Parent />, { debug });
 
-    if (ssrRenderToDom === render) {
-      await trigger(document.body, 'div', 'qvisible');
-    }
+    await trigger(document.body, 'div', 'qvisible');
 
     expect(isElement((globalThis as any).element[0])).toBeTruthy();
     (globalThis as any).element = undefined;
@@ -126,9 +120,7 @@ describe.each([
 
     const { document } = await render(<Parent />, { debug });
 
-    if (ssrRenderToDom === render) {
-      await trigger(document.body, 'div', 'qvisible');
-    }
+    await trigger(document.body, 'div', 'qvisible');
 
     expect(isElement((globalThis as any).element[0])).toBeTruthy();
     (globalThis as any).element = undefined;
@@ -162,9 +154,7 @@ describe.each([
 
       const { document } = await render(<Parent />, { debug });
 
-      if (ssrRenderToDom === render) {
-        await trigger(document.body, 'div', 'qvisible');
-      }
+      await trigger(document.body, 'div', 'qvisible');
 
       expect(isElement((globalThis as any).element[0])).toBeTruthy();
       (globalThis as any).element = undefined;
@@ -197,9 +187,7 @@ describe.each([
 
       const { document } = await render(<Parent />, { debug });
 
-      if (ssrRenderToDom === render) {
-        await trigger(document.body, 'div', 'qvisible');
-      }
+      await trigger(document.body, 'div', 'qvisible');
 
       expect(isElement((globalThis as any).element[0])).toBeTruthy();
       (globalThis as any).element = undefined;
@@ -253,9 +241,7 @@ describe.each([
     });
 
     const { vNode, document } = await render(<Cmp />, { debug });
-    if (render === ssrRenderToDom) {
-      await trigger(document.body, '[id="ref-test"]', 'qvisible');
-    }
+    await trigger(document.body, '[id="ref-test"]', 'qvisible');
 
     expect(vNode).toMatchVDOM(
       <Component>

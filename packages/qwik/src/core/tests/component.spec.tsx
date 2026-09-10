@@ -1257,8 +1257,8 @@ describe.each([
           </div>
         </Component>
       );
-      await trigger(document.body, '#parent', 'qvisible');
     }
+    await trigger(document.body, '#parent', 'qvisible');
 
     expect(vNode).toMatchVDOM(
       <Component>
@@ -2451,9 +2451,7 @@ describe.each([
     });
 
     const { document } = await render(<Cmp />, { debug });
-    if (render === ssrRenderToDom) {
-      await trigger(document.body, 'div', 'qvisible');
-    }
+    await trigger(document.body, 'div', 'qvisible');
     await trigger(document.body, 'button', 'click');
     expect(document.body.innerHTML).toContain('I am the innerHTML content!');
   });

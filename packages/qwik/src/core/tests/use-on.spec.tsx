@@ -193,16 +193,14 @@ describe.each([
     });
 
     const { vNode, container } = await render(<Counter initial={123} />, { debug });
-    if (render === ssrRenderToDom) {
-      expect(vNode).toMatchVDOM(
-        <Component>
-          <button>
-            Count: <Signal ssr-required>{'123'}</Signal>!
-          </button>
-        </Component>
-      );
-      await trigger(container.element, 'button', 'qvisible');
-    }
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <button>
+          Count: <Signal ssr-required>{'123'}</Signal>!
+        </button>
+      </Component>
+    );
+    await trigger(container.element, 'button', 'qvisible');
     expect(vNode).toMatchVDOM(
       <Component>
         <button>
@@ -314,16 +312,14 @@ describe.each([
       });
 
       const { vNode, container } = await render(<Counter initial={123} />, { debug });
-      if (render === ssrRenderToDom) {
-        expect(vNode).toMatchVDOM(
-          <Component>
-            <button>
-              Count: <Signal ssr-required>{'123'}</Signal>!
-            </button>
-          </Component>
-        );
-        await trigger(container.element, 'button', 'qvisible');
-      }
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            Count: <Signal ssr-required>{'123'}</Signal>!
+          </button>
+        </Component>
+      );
+      await trigger(container.element, 'button', 'qvisible');
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
@@ -710,16 +706,14 @@ describe.each([
       });
 
       const { vNode, container } = await render(<Counter initial={123} />, { debug });
-      if (render === ssrRenderToDom) {
-        expect(vNode).toMatchVDOM(
-          <Component>
-            <button>
-              Count: <Signal ssr-required>{'123'}</Signal>!
-            </button>
-          </Component>
-        );
-        await trigger(container.element, 'button', 'qvisible');
-      }
+      expect(vNode).toMatchVDOM(
+        <Component>
+          <button>
+            Count: <Signal ssr-required>{'123'}</Signal>!
+          </button>
+        </Component>
+      );
+      await trigger(container.element, 'button', 'qvisible');
       expect(vNode).toMatchVDOM(
         <Component>
           <button>
@@ -864,16 +858,14 @@ describe.each([
     });
 
     const { vNode, container } = await render(<Counter initial={123} />, { debug });
-    if (render === ssrRenderToDom) {
-      expect(vNode).toMatchVDOM(
-        <Component>
-          <button>
-            Count: <Signal ssr-required>{'123'}</Signal>!
-          </button>
-        </Component>
-      );
-      await trigger(container.element, 'button', 'qvisible');
-    }
+    expect(vNode).toMatchVDOM(
+      <Component>
+        <button>
+          Count: <Signal ssr-required>{'123'}</Signal>!
+        </button>
+      </Component>
+    );
+    await trigger(container.element, 'button', 'qvisible');
     expect(vNode).toMatchVDOM(
       <Component>
         <button>
@@ -1013,6 +1005,38 @@ describe.each([
     await expect(document.querySelector('div')).toMatchDOM(<div>1</div>);
   });
 
+  describe('qvisible', () => {
+    it('should render the q-e:qvisible attribute so the loader can observe the element', async () => {
+      const Cmp = component$(() => {
+        const text = useSignal('pending');
+        return <button onQVisible$={() => (text.value = 'seen')}>{text.value}</button>;
+      });
+
+      const { container } = await render(<Cmp />, { debug });
+      const button = container.element.querySelector('button');
+      expect(button?.hasAttribute('q-e:qvisible')).toBe(true);
+      await trigger(container.element, 'button', 'qvisible');
+      expect(button?.textContent).toBe('seen');
+    });
+
+    it('should render the q-e:qvisible attribute for useOn qvisible', async () => {
+      const Cmp = component$(() => {
+        const text = useSignal('pending');
+        useOn(
+          'qvisible',
+          $(() => (text.value = 'seen'))
+        );
+        return <button>{text.value}</button>;
+      });
+
+      const { container } = await render(<Cmp />, { debug });
+      const button = container.element.querySelector('button');
+      expect(button?.hasAttribute('q-e:qvisible')).toBe(true);
+      await trigger(container.element, 'button', 'qvisible');
+      expect(button?.textContent).toBe('seen');
+    });
+  });
+
   describe('regression', () => {
     it('#7230 - when multiple useOn are used in a component that is headless, it should still execute the events', async () => {
       (globalThis as any).counter = 0;
@@ -1047,9 +1071,7 @@ describe.each([
         );
       });
       const { vNode, document } = await render(<LayoutTest />, { debug });
-      if (render === ssrRenderToDom) {
-        await trigger(document.body, 'script', 'd:qinit');
-      }
+      await trigger(document.body, 'script', 'd:qinit');
       await trigger(document.body, 'script', 'd:click');
       await trigger(document.body, 'script', 'w:resize');
       expect((globalThis as any).counter).toBe(3);

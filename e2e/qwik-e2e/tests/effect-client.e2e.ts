@@ -25,8 +25,10 @@ test.describe('effect-client', () => {
     await expect(msg).toHaveText('empty');
     await expect(msgEager).toHaveText('run');
     await expect(msgClientSide1).toHaveText('run');
-    await expect(msgClientSide2).toHaveText('run');
     await expect(msgClientSide3).toHaveText('run');
+    await expect(msgClientSide2).toHaveText('empty 2');
+    await msgClientSide2.scrollIntoViewIfNeeded();
+    await expect(msgClientSide2).toHaveText('run');
 
     await counter.scrollIntoViewIfNeeded();
 

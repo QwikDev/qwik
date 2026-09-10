@@ -699,9 +699,7 @@ describe.each([
     });
 
     const { vNode, document } = await render(<Cmp />, { debug });
-    if (render === ssrRenderToDom) {
-      await trigger(document.body, 'div', 'qvisible');
-    }
+    await trigger(document.body, 'div', 'qvisible');
     expect(vNode).toMatchVDOM(
       <Component>
         <div></div>
@@ -910,9 +908,7 @@ describe.each([
 
     const { vNode, document } = await render(<Parent />, { debug });
 
-    if (render === ssrRenderToDom) {
-      await trigger(document.body, 'div', 'qvisible');
-    }
+    await trigger(document.body, 'div', 'qvisible');
     expect(vNode).toMatchVDOM(
       <Component>
         <div>
@@ -1038,9 +1034,7 @@ describe.each([
         toFake: ['setInterval', 'clearInterval'],
       });
       const { vNode, document, container } = await render(<Cmp />, { debug });
-      if (render === ssrRenderToDom) {
-        await trigger(document.body, 'div', 'qvisible');
-      }
+      await trigger(document.body, 'div', 'qvisible');
       expect(vNode).toMatchVDOM(
         <Component ssr-required>
           <Fragment ssr-required>

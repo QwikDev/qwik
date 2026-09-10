@@ -14,6 +14,7 @@ import path, { resolve } from 'node:path';
 // import { qwikDevtools } from '@qwik.dev/devtools';
 import { defineConfig, loadEnv, type Connect, type Plugin, type UserConfig } from 'vite';
 import { compiledStringPlugin } from '../../scripts/compiled-string-plugin.js';
+import { blogRssData } from './vite-blog-rss';
 import { docsUpdatedData } from './vite-docs-updated';
 import { examplesData, playgroundData, rawSource, tutorialData } from './vite.repl-apps';
 import { sourceResolver } from './vite.source-resolver';
@@ -66,7 +67,10 @@ const REPL_PATHS = ['/playground', '/tutorial', '/examples', '/repl'];
 
 const crossOriginIsolateRepl = (): Plugin => {
   const isolateRepl: Connect.NextHandleFunction = (req, res, next) => {
-    if (REPL_PATHS.some((replPath) => req.url?.startsWith(replPath))) {
+    if (
+      REPL_PATHS.some((replPath) => req.url?.startsWith(replPath)) ||
+      new URL(req.url || '/', 'http://localhost').searchParams.has('worker_file')
+    ) {
       res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
       res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
     }
@@ -143,6 +147,8 @@ export default defineConfig(({ mode }) => {
             'qwik-image',
             // optimizing breaks the wasm import
             '@rolldown/browser',
+            '@rolldown/browser/experimental',
+            'oxc-walker',
             '@qwik.dev/devtools',
           ],
         },
@@ -198,6 +204,11 @@ export default defineConfig(({ mode }) => {
           find: '@docsearch/css',
           replacement: path.resolve(__dirname, 'node_modules/@docsearch/css/dist/style.css'),
         },
+        {
+          // The REPL worker bundles oxc-walker, which statically imports node:module.
+          find: 'node:module',
+          replacement: path.resolve(__dirname, 'src', 'repl', 'bundler', 'node-module-shim.ts'),
+        },
       ],
     },
 
@@ -238,6 +249,7 @@ export default defineConfig(({ mode }) => {
       }),
       qwikVite({
         debug: false,
+        tsOptimizer: true,
         experimental: ['each', 'show', 'suspense', 'insights'],
         devTools: { hmr: false },
       }),
@@ -246,6 +258,7 @@ export default defineConfig(({ mode }) => {
       }),
       examplesData(routesDir),
       playgroundData(routesDir),
+      blogRssData(routesDir),
       docsUpdatedData(routesDir),
       tutorialData(routesDir),
       sourceResolver(docsDir),

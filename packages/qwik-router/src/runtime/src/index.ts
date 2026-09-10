@@ -22,6 +22,8 @@ export type {
   DocumentMeta,
   DocumentScript,
   DocumentStyle,
+  // Surfaces in routeActionQrl's inferred return type, so it belongs to the public API.
+  Editable,
   ExcludeControlFlow,
   FailReturn,
   HttpStatus as HttpErrorProps,

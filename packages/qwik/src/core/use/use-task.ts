@@ -209,7 +209,7 @@ export const runTask = (
               task.$taskPromise$ = null;
             }
             return runTask(task, container, host);
-          });
+          }, handleError);
         } else {
           handleError(err);
         }

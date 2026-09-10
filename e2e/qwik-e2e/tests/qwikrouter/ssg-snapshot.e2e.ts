@@ -13,7 +13,7 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 // at or below the budget is fine. Bump the budget intentionally when a real feature justifies
 // the growth.
 const PRELOADER_BROTLI_BUDGET = 1800; // We currently group the vite preload helper with the preloader, adding ~500bytes brotli.
-const CORE_BROTLI_BUDGET = 35400;
+const CORE_BROTLI_BUDGET = 33400;
 const QWIKLOADER_BROTLI_BUDGET = 2100;
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
@@ -203,6 +203,7 @@ async function buildFixtureApp() {
         ...plugins,
         captureRouterConfig(),
         qwikVite({
+          tsOptimizer: true,
           client: {
             outDir: distDir,
           },
@@ -221,7 +222,7 @@ async function buildFixtureApp() {
       plugins: [
         ...serverPlugins,
         // No manifestInput: the server build reads the client manifest from disk, like real apps.
-        qwikVite(),
+        qwikVite({ tsOptimizer: true }),
         ssgAdapter({
           origin: 'https://snapshot.qwik.dev',
           include: ['/*'],

@@ -1,0 +1,206 @@
+import type { AstFunction, AstMaybeNode, AstNode, AstProgram } from '../../ast-types.js';
+import type { Diagnostic, DiagnosticHighlightFlat } from '../types/types.js';
+
+export function emitC02(identName: string, file: string): Diagnostic {
+  return {
+    category: 'error',
+    code: 'C02',
+    file,
+    message: `Reference to identifier '${identName}' can not be used inside a Qrl($) scope because it's a function`,
+    highlights: null,
+    suggestions: null,
+    scope: 'optimizer',
+  };
+}
+
+export function emitC03(
+  identNames: readonly string[],
+  file: string,
+  highlightSpan: DiagnosticHighlightFlat
+): Diagnostic {
+  return {
+    category: 'error',
+    code: 'C03',
+    file,
+    message: `Qrl($) scope is not a function, but it's capturing local identifiers: ${identNames.join(', ')}`,
+    highlights: [highlightSpan],
+    suggestions: null,
+    scope: 'optimizer',
+  };
+}
+
+export function emitC05(
+  calleeName: string,
+  qrlName: string,
+  file: string,
+  highlightSpan?: DiagnosticHighlightFlat
+): Diagnostic {
+  return {
+    category: 'error',
+    code: 'C05',
+    file,
+    message: `Found '${calleeName}' but did not find the corresponding '${qrlName}' exported in the same file. Please check that it is exported and spelled correctly`,
+    highlights: highlightSpan ? [highlightSpan] : null,
+    suggestions: null,
+    scope: 'optimizer',
+  };
+}
+
+export function emitPassiveConflictWarning(
+  eventName: string,
+  file: string,
+  highlightSpan?: DiagnosticHighlightFlat
+): Diagnostic {
+  return {
+    category: 'warning',
+    code: 'preventdefault-passive-check',
+    file,
+    message: `preventdefault:${eventName} has no effect when passive:${eventName} is also set; passive event listeners cannot call preventDefault()`,
+    highlights: highlightSpan ? [highlightSpan] : null,
+    suggestions: null,
+    scope: 'optimizer',
+  };
+}
+
+const DIRECTIVE_MARKER = '@qwik-disable-next-line';
+
+const TRAILING_COMMENT_CLOSER = /\*\/\s*}?\s*$/;
+
+export function parseDisableDirectives(sourceCode: string): Map<number, Set<string>> {
+  const directives = new Map<number, Set<string>>();
+  const lines = sourceCode.split('\n');
+
+  for (let i = 0; i < lines.length; i++) {
+    const idx = lines[i].indexOf(DIRECTIVE_MARKER);
+    if (idx === -1) {
+      continue;
+    }
+
+    const afterMarker = lines[i].slice(idx + DIRECTIVE_MARKER.length).trim();
+    const cleaned = afterMarker.replace(TRAILING_COMMENT_CLOSER, '').trim();
+    if (!cleaned) {
+      continue;
+    }
+
+    const codes = cleaned
+      .split(',')
+      .map((c) => c.trim())
+      .filter(Boolean);
+    if (codes.length === 0) {
+      continue;
+    }
+
+    // Line i (0-based) suppresses line i+2 (1-based)
+    const suppressedLine = i + 2;
+    const existing = directives.get(suppressedLine) ?? new Set<string>();
+    for (const code of codes) {
+      existing.add(code);
+    }
+    directives.set(suppressedLine, existing);
+  }
+
+  return directives;
+}
+
+export function filterSuppressedDiagnostics(
+  diagnostics: Diagnostic[],
+  directives: Map<number, Set<string>>
+): Diagnostic[] {
+  if (directives.size === 0) {
+    return diagnostics;
+  }
+
+  return diagnostics.filter((diag) => {
+    if (!diag.highlights || diag.highlights.length === 0) {
+      return true;
+    }
+
+    const suppressedCodes = directives.get(diag.highlights[0].startLine);
+    return !suppressedCodes?.has(diag.code);
+  });
+}
+
+type DeclKind = 'var' | 'fn' | 'class';
+
+export function classifyDeclarationType(program: AstProgram, identName: string): DeclKind {
+  return classifyInStatements(program.body, identName);
+}
+
+/**
+ * Walks a closure body directly, avoiding a re-parse when the caller already holds the closure AST
+ * node.
+ */
+export function classifyDeclarationTypeInClosure(
+  closure: AstFunction,
+  identName: string
+): DeclKind {
+  if (closure.body?.type === 'BlockStatement') {
+    return classifyInStatements(closure.body.body ?? [], identName);
+  }
+  return classifyInExpression(closure.body, identName);
+}
+
+function classifyInStatements(stmts: ReadonlyArray<AstNode>, identName: string): DeclKind {
+  for (const stmt of stmts) {
+    if (stmt.type === 'FunctionDeclaration' && stmt.id?.name === identName) {
+      return 'fn';
+    }
+    if (stmt.type === 'ClassDeclaration' && stmt.id?.name === identName) {
+      return 'class';
+    }
+
+    let result: DeclKind = 'var';
+
+    if (stmt.type === 'ExpressionStatement' && stmt.expression) {
+      result = classifyInExpression(stmt.expression, identName);
+    } else if (stmt.type === 'ReturnStatement' && stmt.argument) {
+      result = classifyInExpression(stmt.argument, identName);
+    } else if (stmt.type === 'VariableDeclaration') {
+      for (const decl of stmt.declarations ?? []) {
+        if (decl.init) {
+          result = classifyInExpression(decl.init, identName);
+          if (result !== 'var') {
+            break;
+          }
+        }
+      }
+    } else if (stmt.type === 'ExportNamedDeclaration' && stmt.declaration) {
+      result = classifyInStatements([stmt.declaration], identName);
+    } else if (stmt.type === 'ExportDefaultDeclaration' && stmt.declaration) {
+      result = classifyInExpression(stmt.declaration, identName);
+    }
+
+    if (result !== 'var') {
+      return result;
+    }
+  }
+  return 'var';
+}
+
+function classifyInExpression(node: AstMaybeNode, identName: string): DeclKind {
+  if (!node) {
+    return 'var';
+  }
+
+  if (node.type === 'ParenthesizedExpression') {
+    return classifyInExpression(node.expression, identName);
+  }
+
+  if (node.type === 'ArrowFunctionExpression' || node.type === 'FunctionExpression') {
+    if (node.body?.type === 'BlockStatement') {
+      return classifyInStatements(node.body.body ?? [], identName);
+    }
+    return classifyInExpression(node.body, identName);
+  }
+
+  if (node.type === 'CallExpression') {
+    for (const arg of node.arguments ?? []) {
+      const result = classifyInExpression(arg, identName);
+      if (result !== 'var') {
+        return result;
+      }
+    }
+  }
+
+  return 'var';
+}

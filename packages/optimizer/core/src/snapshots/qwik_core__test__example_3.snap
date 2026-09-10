@@ -1,6 +1,5 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 130
 expression: output
 ---
 ==INPUT==
@@ -15,7 +14,7 @@ export const App = () => {
 		);
 	});
 	return Header;
-});
+};
 
 ============================= test.tsx_App_Header_component_B9F3YeqcO1w.tsx (ENTRY POINT)==
 
@@ -92,7 +91,7 @@ export const App = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAEA,OAAO,MAAM,MAAM;IAClB,MAAM,uBAAS;IAMf,OAAO;AACR,EAAG\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;AAEA,OAAO,MAAM,MAAM;IAClB,MAAM,uBAAS;IAMf,OAAO;AACR,EAAE\"}")
 == DIAGNOSTICS ==
 
 []

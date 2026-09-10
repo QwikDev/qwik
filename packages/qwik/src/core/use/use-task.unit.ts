@@ -67,6 +67,27 @@ const createTask = (fn: (...args: any[]) => any) => {
 };
 
 describe('runTask', () => {
+  it('reports a rejected thrown promise once and allows a later rerun', async () => {
+    const error = new Error('dependency failed');
+    const container = createMockContainer();
+    const taskFn = vi.fn().mockImplementationOnce(() => {
+      throw Promise.reject(error);
+    });
+    const { host, task } = createTask(taskFn);
+
+    await expect(runTask(task, container, host)).resolves.toBeUndefined();
+
+    expect(container.handleError).toHaveBeenCalledExactlyOnceWith(error, host, 'hook');
+    expect(taskFn).toHaveBeenCalledTimes(1);
+    expect(task.$flags$ & TaskFlags.DIRTY).toBe(0);
+    expect(task.$taskPromise$).toBeNull();
+
+    task.$flags$ |= TaskFlags.DIRTY;
+    await runTask(task, container, host);
+    expect(taskFn).toHaveBeenCalledTimes(2);
+    expect(container.handleError).toHaveBeenCalledTimes(1);
+  });
+
   it('awaits async cleanup registered with cleanup() before rerun', async () => {
     const log: string[] = [];
     const container = createMockContainer();

@@ -349,6 +349,26 @@ export function computeTotals(graph: QwikManifest['bundles']): void {
   }
 }
 
+/** The bundles this chunk reaches through `qrl(() => import(segment))`, per rollup module info. */
+function getQrlImports(
+  outputBundle: Rolldown.OutputChunk,
+  bundleFileName: string,
+  bundleByModuleId: Map<string, string>,
+  getModuleInfo: Rolldown.PluginContext['getModuleInfo']
+) {
+  const qrlImports = new Set<string>();
+  for (const moduleId of Object.keys(outputBundle.modules)) {
+    for (const importedId of getModuleInfo(moduleId)?.dynamicallyImportedIds || []) {
+      const importedBundle = bundleByModuleId.get(importedId);
+      const isSegment = getModuleInfo(importedId)?.meta.segment;
+      if (importedBundle && importedBundle !== bundleFileName && isSegment) {
+        qrlImports.add(importedBundle);
+      }
+    }
+  }
+  return [...qrlImports];
+}
+
 /**
  * Generates the Qwik build manifest from the Rollup output bundles. It also figures out the bundle
  * files for the preloader, core, qwikloader and handlers. This information is used during SSR.
@@ -361,6 +381,7 @@ export function generateManifestFromBundles(
   opts: NormalizedQwikPluginOptions,
   debug: (...args: any[]) => void,
   canonPath: (p: string) => string,
+  getModuleInfo: Rolldown.PluginContext['getModuleInfo'],
   qwikLoaderFileName?: string,
   preloaderFileName?: string,
   handlersFileName?: string
@@ -425,6 +446,14 @@ export function generateManifestFromBundles(
   }
   // We need to find our QRL exports
   const qrlNames = new Set(segments.map((h) => h.name));
+  const bundleByModuleId = new Map<string, string>();
+  for (const outputBundle of Object.values(outputBundles)) {
+    if (outputBundle.type === 'chunk') {
+      for (const moduleId of Object.keys(outputBundle.modules)) {
+        bundleByModuleId.set(moduleId, getBundleName(outputBundle.fileName)!);
+      }
+    }
+  }
   for (const outputBundle of Object.values(outputBundles)) {
     if (outputBundle.type === 'asset') {
       // we don't record map files as assets
@@ -465,6 +494,15 @@ export function generateManifestFromBundles(
       .filter(Boolean) as string[];
     if (bundleDynamicImports.length > 0) {
       bundle.dynamicImports = bundleDynamicImports;
+      const qrlImports = getQrlImports(
+        outputBundle,
+        bundleFileName,
+        bundleByModuleId,
+        getModuleInfo
+      );
+      if (qrlImports.length > 0) {
+        bundle.qrlImports = qrlImports;
+      }
     }
 
     const ids = outputBundle.moduleIds || Object.keys(outputBundle.modules);

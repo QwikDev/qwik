@@ -196,6 +196,7 @@ export interface QwikBundle {
     imports?: string[];
     interactivity?: number;
     origins?: string[];
+    qrlImports?: string[];
     size: number;
     symbols?: string[];
     total: number;

@@ -35,6 +35,18 @@ test.each(['browser', 'edge-light', 'node'])('selects ALS for the %s bundle', as
   if (runtime === 'browser') {
     expect(_getAsyncLocalStorage()).toBeUndefined();
     expect(require).not.toHaveBeenCalled();
+    await withLocale('zh-CN', async () => {
+      expect(getLocale()).toBe('zh-CN');
+      await Promise.resolve();
+      expect(getLocale()).toBe('zh-CN');
+    });
+    await expect(
+      withLocale('zh-CN', async () => {
+        await Promise.resolve();
+        throw new Error('boom');
+      })
+    ).rejects.toThrow('boom');
+    expect(getLocale('outside')).toBe('outside');
     return;
   }
 

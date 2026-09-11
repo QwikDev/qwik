@@ -46,7 +46,7 @@ export function planModuleBindingExports(module: LinkedModule) {
   return { names, code: additions.length === 0 ? '' : `\nexport { ${additions.join(', ')} };\n` };
 }
 
-function namedSpecifier(imported: string, local: string): string {
+export function namedSpecifier(imported: string, local: string): string {
   const name = /^[A-Za-z_$][\w$]*$/.test(imported) ? imported : JSON.stringify(imported);
   return imported === local ? local : `${name} as ${local}`;
 }

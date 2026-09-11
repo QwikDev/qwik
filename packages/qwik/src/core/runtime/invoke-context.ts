@@ -16,7 +16,8 @@ export interface RuntimeInvokeContext {
   useOnEvents?: UseOnMap;
   inheritedUseOnEvents?: readonly UseOnMap[];
   styleScopes?: string[];
-  initialTaskPromise?: Promise<void>;
+  /** Work that hooks chain here, which a compiled render waits on before it commits. */
+  pendingSetup?: Promise<void>;
 }
 
 export interface NewInvokeContextOptions {

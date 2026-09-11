@@ -32,6 +32,7 @@ import {
 import { collectQrlDependencies } from './qrl-dependencies';
 import { linkRenderResults } from './render-results';
 import { linkContent } from './link-content';
+import { linkHookTwins } from './link-hooks';
 import { ValueIrKind } from '../../src/expr-ir';
 
 export const enum ResolutionKind {
@@ -83,7 +84,10 @@ export type LinkEntry =
   | { kind: EntryKind.Module; module: string; exposeExports?: boolean }
   | { kind: EntryKind.Export; module: string; export: string };
 
-type LinkDiagnostic = Extract<LinkResult, { kind: LinkResultKind.Failed }>['diagnostics'][number];
+export type LinkDiagnostic = Extract<
+  LinkResult,
+  { kind: LinkResultKind.Failed }
+>['diagnostics'][number];
 
 export function linkPlans(
   plans: readonly ModulePlan[],
@@ -573,6 +577,7 @@ export function linkPlans(
     }
   }
 
+  linkedModules.forEach((module) => linkHookTwins(module, diagnostics));
   if (complete && diagnostics.length > 0) {
     return failed(diagnostics);
   }

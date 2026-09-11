@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { analyseModule } from '../index';
 import { transformModules } from '../compat/transform-modules';
-import { deepFreeze, loadDefaultFunction, loadChunkFunction } from './fixtures';
+import { deepFreeze, loadDefaultFunction, loadChunkFunction, setupOnlyContext } from './fixtures';
 import { QrlBodyKind } from '../schema';
 import * as core from '../../../qwik/src/core/index';
 import { defaultScheduler } from '../../../qwik/src/core/runtime/scheduler';
@@ -128,7 +128,7 @@ export default () => {
     });
     const owner = core.createOwner(null);
     try {
-      core.runWithOwner(owner, render, undefined, {});
+      core.runWithOwner(owner, render, undefined, setupOnlyContext);
       await defaultScheduler.flushInteraction();
       expect(owners.every((seen) => seen === owner)).toBe(true);
       expect(logs).toEqual(reject ? ['result', 1] : [1]);

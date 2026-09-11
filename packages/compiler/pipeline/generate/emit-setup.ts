@@ -7,24 +7,36 @@ import {
   SetupKind,
   ValueKind,
   DeclarationKind,
+  HookTwinKind,
   VisibleTaskEvent,
+  type HookTwin,
   type QrlUse,
   type Arg,
   type Expr,
   type LinkedModule,
   type CallTarget,
+  type Setup,
 } from '../schema';
 import { ValueIrKind } from '../../src/expr-ir';
 import { UnsupportedError } from '../errors';
 import { expressionJs, extractPayloadJs, inlineValueJs, memberJs, valueIrJs } from './emit-chunk';
-import { requestBindingImport } from './emit-import';
+import { namedSpecifier, requestBindingImport } from './emit-import';
 import { QwikGenWord, QwikHook, QwikWord } from '../words';
 import { allocateGeneratedName } from '../names';
 import type { ComponentEmission, GeneratedNames } from './emit-component';
 
-const coreCallImports: Record<CoreOperation, QwikHook> = {
-  [CoreOperation.CreateSignal]: QwikHook.UseSignal,
-  [CoreOperation.CreateComputed]: QwikHook.UseComputedQrl,
+/** Runtime names per core operation: the `Qrl` form and the client function fast path. */
+const coreCallNames: Record<CoreOperation, { qrl: QwikHook; fn: QwikHook }> = {
+  [CoreOperation.CreateSignal]: { qrl: QwikHook.UseSignal, fn: QwikHook.UseSignal },
+  [CoreOperation.CreateComputed]: {
+    qrl: QwikHook.UseComputedQrl,
+    fn: QwikHook.UseComputedFunction,
+  },
+  [CoreOperation.Task]: { qrl: QwikHook.UseTaskQrl, fn: QwikHook.UseTaskFunction },
+  [CoreOperation.VisibleTask]: {
+    qrl: QwikHook.UseVisibleTaskQrl,
+    fn: QwikHook.UseVisibleTaskFunction,
+  },
 };
 
 /** Setup declarations shared by CSR and SSR render programs. */
@@ -35,21 +47,15 @@ export function emitJsSetup(
   emitQrl: (use: QrlUse) => string,
   render?: (program: number, names?: GeneratedNames) => ComponentEmission,
   names?: GeneratedNames,
-  isServer = false
+  target: SetupEmitTarget = {}
 ): string[] {
   return program.setup.map((entry) => {
     if (entry.s === SetupKind.Js) {
       const payload = module.payloads[entry.payload];
       const edits = (payload.setups ?? []).map(({ range, setup, block }) => {
-        const value = emitJsSetup(
-          module,
-          { setup },
-          imports,
-          emitQrl,
-          render,
-          names,
-          isServer
-        ).join('\n');
+        const value = emitJsSetup(module, { setup }, imports, emitQrl, render, names, target).join(
+          '\n'
+        );
         return { range, value: block ? `{\n${value}\n}` : value };
       });
       for (const { range, program, statement } of payload.renders) {
@@ -101,7 +107,7 @@ export function emitJsSetup(
       return `const ${module.bindings[entry.result].name} = ${QwikWord.Untrack}(() => ${prop} === void 0) ? (${initializer}) : void 0;`;
     }
     if (entry.s === SetupKind.Call) {
-      if (isServer && entry.visibleTaskEvent !== undefined) {
+      if (target.isServer && entry.visibleTaskEvent !== undefined) {
         // The server never runs visible tasks; the client wakes the serialized task on this event.
         const useOn =
           entry.visibleTaskEvent === VisibleTaskEvent.Visible
@@ -111,9 +117,19 @@ export function emitJsSetup(
         imports.add(QwikWord.CreateVisibleTaskHandlerQrl);
         return `${useOn}(${JSON.stringify(entry.visibleTaskEvent)}, ${QwikWord.CreateVisibleTaskHandlerQrl}(${argJs(module, entry.args[0], emitQrl)}));`;
       }
-      const callee = callTargetJs(module, entry.target, imports);
-      const args = entry.args.map((arg) => argJs(module, arg, emitQrl)).join(', ');
-      const call = `${callee}(${args})`;
+      const [first] = entry.args;
+      // The client fast path: the callback ships with the component as a plain function.
+      const isFunctionTwin =
+        target.staticQrl !== undefined &&
+        first?.a === ArgKind.Qrl &&
+        (entry.target.kind === CallTargetKind.Core || entry.target.kind === CallTargetKind.Marker);
+      const callee = hookCalleeJs(module, entry.target, isFunctionTwin, imports, target);
+      const args = entry.args.map((arg, index) =>
+        isFunctionTwin && index === 0 && arg.a === ArgKind.Qrl
+          ? target.staticQrl!(arg.use)
+          : argJs(module, arg, emitQrl)
+      );
+      const call = `${callee}(${args.join(', ')})`;
       if (entry.result === null) {
         return `${call};`;
       }
@@ -140,19 +156,97 @@ export function emitJsSetup(
   });
 }
 
-function callTargetJs(module: LinkedModule, target: CallTarget, imports: Set<string>): string {
+export interface SetupEmitTarget {
+  /** SSR registers visible tasks as events and keeps task hooks on their QRLs. */
+  isServer?: boolean;
+  /** CSR delivers hook callbacks statically, as plain functions with their captures. */
+  staticQrl?: (use: QrlUse) => string;
+  /** Header import lines of the module emitter, for hook twins outside `@qwik.dev/core`. */
+  chunkImports?: string[];
+}
+
+/** Whether any setup hook, including those nested in authored statements, may start a task. */
+export function blocksInitialRender(module: LinkedModule, setup: readonly Setup[]): boolean {
+  return setup.some((entry) =>
+    entry.s === SetupKind.Call
+      ? entry.blocksInitialRender === true
+      : entry.s === SetupKind.Js &&
+        (module.payloads[entry.payload].setups ?? []).some((nested) =>
+          blocksInitialRender(module, nested.setup)
+        )
+  );
+}
+
+/**
+ * Defers the render after `setupCount` statements until `pending` settles, keeping the invoke
+ * context.
+ */
+export function deferRenderAfterTasks(
+  imports: Set<string>,
+  next: (prefix: string) => string,
+  pending: (invokeContext: string) => string,
+  statements: readonly string[],
+  setupCount: number,
+  value: string
+): ComponentEmission {
+  imports.add(QwikWord.GetActiveInvokeContextOrNull);
+  imports.add(QwikWord.MaybeThen);
+  imports.add(QwikWord.Invoke);
+  const invokeContext = next(QwikGenWord.InvokeContext);
+  const body = `{\n${statements.slice(setupCount).join('\n')}\nreturn ${value};\n}`;
+  return {
+    statements: [
+      `const ${invokeContext} = ${QwikWord.GetActiveInvokeContextOrNull}();`,
+      ...statements.slice(0, setupCount),
+    ],
+    value: `${QwikWord.MaybeThen}(${pending(invokeContext)}, () => ${QwikWord.Invoke}(${invokeContext}, () => ${body}))`,
+  };
+}
+
+function hookCalleeJs(
+  module: LinkedModule,
+  target: CallTarget,
+  isFunctionTwin: boolean,
+  imports: Set<string>,
+  emitter: SetupEmitTarget
+): string {
+  const form = isFunctionTwin ? 'fn' : 'qrl';
   switch (target.kind) {
     case CallTargetKind.Binding:
       requestBindingImport(module, target.binding, imports);
       return module.bindings[target.binding].name;
     case CallTargetKind.Core: {
-      const name = coreCallImports[target.operation];
+      const name = coreCallNames[target.operation][form];
       imports.add(name);
       return name;
     }
     case CallTargetKind.Value:
       return `(0, ${valueIrJs(module, target.value)})`;
+    case CallTargetKind.Marker: {
+      if (target.twins === undefined) {
+        throw new UnsupportedError(`${target.stem}$ without its ${form} twin`);
+      }
+      return hookTwinJs(module, target.twins[form], emitter.chunkImports);
+    }
   }
+}
+
+function hookTwinJs(
+  module: LinkedModule,
+  twin: HookTwin,
+  chunkImports: string[] | undefined
+): string {
+  if (twin.t === HookTwinKind.Binding) {
+    return module.bindings[twin.binding].name;
+  }
+  if (chunkImports === undefined) {
+    throw new UnsupportedError(`importing ${twin.imported} outside a module emitter`);
+  }
+  const line = `import { ${namedSpecifier(twin.imported, twin.local)} } from ${JSON.stringify(module.edges[twin.edge].specifier)};`;
+  if (!chunkImports.includes(line)) {
+    chunkImports.push(line);
+  }
+  return twin.local;
 }
 
 function argJs(module: LinkedModule, arg: Arg, emitQrl: (use: QrlUse) => string): string {

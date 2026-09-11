@@ -18,14 +18,17 @@ export default (props) => {
 import {
   useSignal,
   _captures,
-  useTask$,
+  useTaskQrl,
   useComputedQrl,
   createSsrNodeId,
   escapeHTML,
   renderSsrTextNode,
   maybeThen,
+  getActiveInvokeContextOrNull,
+  invoke,
   _noopQrl,
 } from '@qwik.dev/core';
+import { useCustomQrl } from './hooks';
 import { useCustom$ as custom } from './hooks';
 const component_read_segment_0_1zbzildyw5vrf = () => {
   const [count] = _captures;
@@ -36,23 +39,28 @@ const q_component_read_segment_0_1zbzildyw5vrf = /*#__PURE__*/ _noopQrl(
 );
 q_component_read_segment_0_1zbzildyw5vrf.s(component_read_segment_0_1zbzildyw5vrf);
 export default (props, ctx) => {
+  const invokeCtx0 = getActiveInvokeContextOrNull();
   const count = useSignal(1);
   const read = q_component_read_segment_0_1zbzildyw5vrf.w([count]);
-  useTask$(read);
-  custom(read, props.options);
+  useTaskQrl(read);
+  useCustomQrl(read, props.options);
   const total = useComputedQrl(read);
-  const id0 = ctx.nextId();
-  ctx.addRoot(total);
-  const text0 = renderSsrTextNode(id0, null, total);
-  return maybeThen(text0, (text0) => [
-    '<button q:id="',
-    createSsrNodeId(id0),
-    '"',
-    ctx.eventAttrParts('q-e:click', read),
-    '>',
-    escapeHTML(text0),
-    '</button>',
-  ]);
+  return maybeThen(ctx.scheduler.flush(), () =>
+    invoke(invokeCtx0, () => {
+      const id0 = ctx.nextId();
+      ctx.addRoot(total);
+      const text0 = renderSsrTextNode(id0, null, total);
+      return maybeThen(text0, (text0) => [
+        '<button q:id="',
+        createSsrNodeId(id0),
+        '"',
+        ctx.eventAttrParts('q-e:click', read),
+        '>',
+        escapeHTML(text0),
+        '</button>',
+      ]);
+    })
+  );
 };
 ============================= src/component.tsx_component_read_segment_0_1zbzildyw5vrf.js (ENTRY POINT)==
 

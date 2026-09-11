@@ -372,7 +372,11 @@ export default () => {
     expect(chunks).toHaveLength(1);
     expect(chunks[0].segment!.captures).toBe(false);
     const component = output.modules.find((module) => !module.segment)!.code;
-    expect(component).toContain(`useComputedQrl(q_${chunks[0].segment!.name})`);
+    expect(component).toContain(
+      isServer
+        ? `useComputedQrl(q_${chunks[0].segment!.name})`
+        : `useComputed(${chunks[0].segment!.name})`
+    );
   }
 );
 

@@ -18,13 +18,18 @@ export default (props) => {
 import {
   useSignal,
   _qrlWithChunk,
-  useTask$,
+  useTaskQrl,
   useComputedQrl,
   setEvent,
   _first,
   createTextNodeEffect,
   _createElementTemplate,
+  getActiveInvokeContextOrNull,
+  maybeThen,
+  invoke,
 } from '@qwik.dev/core';
+import { useCustomQrl } from './hooks';
+
 const q_component_read_segment_0_1zbzildyw5vrf = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_read_segment_0_1zbzildyw5vrf',
   () => import('./component.tsx_component_read_segment_0_1zbzildyw5vrf'),
@@ -33,17 +38,22 @@ const q_component_read_segment_0_1zbzildyw5vrf = /*#__PURE__*/ _qrlWithChunk(
 const default_tmpl0 = _createElementTemplate('<button> </button>');
 import { useCustom$ as custom } from './hooks';
 export default (props, ctx) => {
+  const invokeCtx0 = getActiveInvokeContextOrNull();
   const count = useSignal(1);
   const read = q_component_read_segment_0_1zbzildyw5vrf.w([count]);
-  useTask$(read);
-  custom(read, props.options);
+  useTaskQrl(read);
+  useCustomQrl(read, props.options);
   const total = useComputedQrl(read);
-  const el0 = default_tmpl0(ctx.document);
-  setEvent(el0, 'q-e:click', read);
-  const text0 = _first(el0);
-  const effect0 = createTextNodeEffect(text0, total, ctx.scheduler);
-  ctx.scheduler.notify(effect0);
-  return el0;
+  return maybeThen(invokeCtx0.pendingSetup, () =>
+    invoke(invokeCtx0, () => {
+      const el0 = default_tmpl0(ctx.document);
+      setEvent(el0, 'q-e:click', read);
+      const text0 = _first(el0);
+      const effect0 = createTextNodeEffect(text0, total, ctx.scheduler);
+      ctx.scheduler.notify(effect0);
+      return el0;
+    })
+  );
 };
 ============================= src/component.tsx_component_read_segment_0_1zbzildyw5vrf.js (ENTRY POINT)==
 

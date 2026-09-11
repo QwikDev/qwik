@@ -10,7 +10,12 @@ import {
 } from '../schema';
 import { ResolutionKind } from '../link/link-plans';
 import { transformModules } from '../compat/transform-modules';
-import { deepFreeze, loadDefaultFunction, serverSpecialization } from './fixtures';
+import {
+  deepFreeze,
+  loadDefaultFunction,
+  serverSpecialization,
+  setupOnlyContext,
+} from './fixtures';
 import * as core from '../../../qwik/src/core/index';
 import { defaultScheduler } from '../../../qwik/src/core/runtime/scheduler';
 import { isQrl } from '../../../qwik/src/core/shared/qrl/qrl-utils';
@@ -60,7 +65,7 @@ export default (props) => {
       return [2, 3];
     },
   });
-  render({ label: 'authored' }, {});
+  render({ label: 'authored' }, setupOnlyContext);
   expect(order).toEqual(['first', 'rest', 'hook', 'hook', 'hook']);
   expect(calls[0].slice(1)).toEqual([1, 2, 3]);
   expect(isQrl(calls[0][0])).toBe(false);
@@ -135,7 +140,11 @@ export default (props) => {
   const hook = plan.programs.flatMap((program) => program.setup)[0];
   expect(hook).toMatchObject({
     s: SetupKind.Call,
-    target: { kind: CallTargetKind.Binding, binding: plan.imports[0].binding },
+    target: {
+      kind: CallTargetKind.Marker,
+      binding: plan.imports[0].binding,
+      stem: 'useCustom',
+    },
     args: [{ a: ArgKind.Qrl }, { a: ArgKind.Expr }],
   });
   const callback = plan.qrls.find((qrl) => qrl.ctxName === 'useCustom$')!;
@@ -176,15 +185,15 @@ export default () => {
   });
   const calls: { qrl: QRL<() => unknown>; args: unknown[] }[] = [];
   const order: string[] = [];
-  const custom = core.implicit$FirstArg((qrl: QRL<() => unknown>, ...args: unknown[]) => {
+  const useCustomQrl = (qrl: QRL<() => unknown>, ...args: unknown[]) => {
     expect(isQrl(qrl)).toBe(true);
     calls.push({ qrl, args });
     order.push('hook');
     return { label: 'result' };
-  });
+  };
   const render = loadDefaultFunction(output.modules.find((module) => !module.segment)!, {
     ...core,
-    custom,
+    useCustomQrl,
     get _captures() {
       return core._captures;
     },
@@ -201,7 +210,7 @@ export default () => {
       return [2, 3];
     },
   });
-  render({}, {});
+  render({}, setupOnlyContext);
   expect(order).toEqual(['first', 'rest', 'hook', 'hook']);
   expect(calls[0].args).toEqual([1, 2, 3]);
   expect(await calls[0].qrl()).toBe(42);
@@ -255,7 +264,7 @@ export default () => {
   });
   const owner = core.createOwner(null);
   try {
-    core.runWithOwner(owner, render, undefined, {});
+    core.runWithOwner(owner, render, undefined, setupOnlyContext);
     await defaultScheduler.flushInteraction();
     expect(logs).toEqual([
       ['custom', 1],
@@ -279,6 +288,27 @@ export default () => {
     ['cleanup-custom', 2],
   ]);
 });
+
+test.each([true, false])(
+  'an exported $ hook needs its twin exported in the same module (server: %s)',
+  async (isServer) => {
+    await expect(
+      transformModules({
+        srcDir: 'src',
+        isServer,
+        input: [
+          {
+            path: 'src/component.tsx',
+            code: `import { implicit$FirstArg } from '@qwik.dev/core';
+const useLocalQrl = (qrl) => qrl;
+export const useLocal$ = implicit$FirstArg(useLocalQrl);
+export default () => { useLocal$(() => 1); return <span />; };`,
+          },
+        ],
+      })
+    ).rejects.toThrow(UnsupportedError);
+  }
+);
 
 test('a custom useComputed$ name does not inherit core callback restrictions', async () => {
   const plan = await analyseModule(
@@ -328,11 +358,11 @@ export default () => {
       signals.push(signal);
       return signal;
     },
-    useTask$: core.implicit$FirstArg((qrl: QRL<() => number>) => {
+    useTaskQrl(qrl: QRL<() => number>) {
       callbacks.push(qrl);
       return core.useTaskQrl(qrl);
-    }),
-    useCustom$: core.implicit$FirstArg((qrl: QRL<() => number>) => callbacks.push(qrl)),
+    },
+    useCustomQrl: (qrl: QRL<() => number>) => callbacks.push(qrl),
     useComputedQrl(qrl: QRL<() => number>) {
       callbacks.push(qrl);
       const computed = core.useComputedQrl(qrl);
@@ -342,8 +372,8 @@ export default () => {
   });
   const owner = core.createOwner(null);
   try {
-    core.runWithOwner(owner, render, undefined, {});
-    core.runWithOwner(owner, render, undefined, {});
+    core.runWithOwner(owner, render, undefined, setupOnlyContext);
+    core.runWithOwner(owner, render, undefined, setupOnlyContext);
     await defaultScheduler.flushInteraction();
     expect(callbacks).toHaveLength(6);
     expect(callbacks[1]).toBe(callbacks[0]);

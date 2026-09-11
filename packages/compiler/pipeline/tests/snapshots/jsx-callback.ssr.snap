@@ -116,32 +116,39 @@ q_component_text_segment_1_1fh10tcowimfv.s(component_text_segment_1_1fh10tcowimf
 import {
   useSignal,
   useComputedQrl,
-  useTask$,
+  useTaskQrl,
   _captures,
+  getActiveInvokeContextOrNull,
+  maybeThen,
+  invoke,
   _noopQrl,
   createSsrNodeId,
   escapeHTML,
   renderSsrTextExpression,
-  maybeThen,
 } from '@qwik.dev/core';
 import { consume } from './consumer';
 export default function App(props, ctx) {
+  const invokeCtx0 = getActiveInvokeContextOrNull();
   const count = useSignal(0);
   const factory = q_component_factory_segment_2_1uubroervc02z;
   const computed = useComputedQrl(q_component_computed_segment_4_2s31kgmgmz0s);
-  useTask$(q_component_useTaskqrl_segment_6_1og82uxaau58i);
+  useTaskQrl(q_component_useTaskqrl_segment_6_1og82uxaau58i);
   consume((value) => {
     const label = value;
     return q_component_jsx_segment_7_38vnkqxlicqdr.w([label]);
   });
-  return [
-    '<button',
-    ctx.eventAttrParts(
-      'q-e:click',
-      q_component_q_e_click_segment_12_3lkvrpkpzrkb6.w([count, factory, computed])
-    ),
-    '>run</button>',
-  ];
+  return maybeThen(ctx.scheduler.flush(), () =>
+    invoke(invokeCtx0, () => {
+      return [
+        '<button',
+        ctx.eventAttrParts(
+          'q-e:click',
+          q_component_q_e_click_segment_12_3lkvrpkpzrkb6.w([count, factory, computed])
+        ),
+        '>run</button>',
+      ];
+    })
+  );
 }
 ============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
 

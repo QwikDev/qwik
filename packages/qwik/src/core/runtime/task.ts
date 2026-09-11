@@ -140,9 +140,9 @@ export function useTask(run: TaskFn, options?: TaskOptions): TaskSubscriber {
     return subscriber;
   }
   subscriber.flags |= SubscriberFlags.Dirty;
-  const result = maybeThen(invokeContext.initialTaskPromise, () => subscriber.run());
+  const result = maybeThen(invokeContext.pendingSetup, () => subscriber.run());
   if (isPromise(result)) {
-    invokeContext.initialTaskPromise = result;
+    invokeContext.pendingSetup = result;
     void result.catch(() => {});
   }
   return subscriber;

@@ -17,31 +17,25 @@ export default (props) => {
 
 import {
   useSignal,
-  useComputedQrl,
-  _qrlWithChunk,
+  useComputed,
+  _withCaptures,
   createAttrEffect,
   setEvent,
   _first,
   createTextNodeEffect,
   _createElementTemplate,
 } from '@qwik.dev/core';
+import { component_doubled_segment_0_2yvob8vshk72o } from './component.tsx_component_doubled_segment_0_2yvob8vshk72o';
+import { component_label_segment_1_871sx3hwa26q } from './component.tsx_component_label_segment_1_871sx3hwa26q';
 import { component_q_e_click_segment_2_2xwygteqhjqr1 } from './component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1';
 
-const q_component_doubled_segment_0_2yvob8vshk72o = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_doubled_segment_0_2yvob8vshk72o',
-  () => import('./component.tsx_component_doubled_segment_0_2yvob8vshk72o'),
-  'component_doubled_segment_0_2yvob8vshk72o'
-);
-const q_component_label_segment_1_871sx3hwa26q = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_label_segment_1_871sx3hwa26q',
-  () => import('./component.tsx_component_label_segment_1_871sx3hwa26q'),
-  'component_label_segment_1_871sx3hwa26q'
-);
 const default_tmpl0 = _createElementTemplate('<button> </button>');
 export default (props, ctx) => {
   const count = useSignal(1);
-  const doubled = useComputedQrl(q_component_doubled_segment_0_2yvob8vshk72o.w([count]));
-  const label = useComputedQrl(q_component_label_segment_1_871sx3hwa26q.w([doubled, props]));
+  const doubled = useComputed(_withCaptures(component_doubled_segment_0_2yvob8vshk72o, [count]));
+  const label = useComputed(
+    _withCaptures(component_label_segment_1_871sx3hwa26q, [doubled, props])
+  );
   const el0 = default_tmpl0(ctx.document);
   const effect0 = createAttrEffect(el0, 'title', label, ctx.scheduler);
   ctx.scheduler.notify(effect0);

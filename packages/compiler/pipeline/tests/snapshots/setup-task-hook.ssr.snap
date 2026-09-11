@@ -22,11 +22,12 @@ import {
   useTaskQrl,
   useSignal,
   _captures,
-  useTask$ as task,
   createSsrNodeId,
   escapeHTML,
   renderSsrTextNode,
   maybeThen,
+  getActiveInvokeContextOrNull,
+  invoke,
   _noopQrl,
 } from '@qwik.dev/core';
 const useCustom$ = implicit$FirstArg(useTaskQrl);
@@ -49,19 +50,24 @@ const q_component_useTaskqrl_segment_1_1og80wrqqnv5v = /*#__PURE__*/ _noopQrl(
 );
 q_component_useTaskqrl_segment_1_1og80wrqqnv5v.s(component_useTaskqrl_segment_1_1og80wrqqnv5v);
 export default (props, ctx) => {
+  const invokeCtx0 = getActiveInvokeContextOrNull();
   const count = useSignal(1);
   useCustom$(q_component_useCustomqrl_segment_0_heif5ecaq0pq.w([count]));
-  task(q_component_useTaskqrl_segment_1_1og80wrqqnv5v.w([count]), { deferUpdates: true });
-  const id0 = ctx.nextId();
-  ctx.addRoot(count);
-  const text0 = renderSsrTextNode(id0, null, count);
-  return maybeThen(text0, (text0) => [
-    '<span q:id="',
-    createSsrNodeId(id0),
-    '">',
-    escapeHTML(text0),
-    '</span>',
-  ]);
+  useTaskQrl(q_component_useTaskqrl_segment_1_1og80wrqqnv5v.w([count]), { deferUpdates: true });
+  return maybeThen(ctx.scheduler.flush(), () =>
+    invoke(invokeCtx0, () => {
+      const id0 = ctx.nextId();
+      ctx.addRoot(count);
+      const text0 = renderSsrTextNode(id0, null, count);
+      return maybeThen(text0, (text0) => [
+        '<span q:id="',
+        createSsrNodeId(id0),
+        '">',
+        escapeHTML(text0),
+        '</span>',
+      ]);
+    })
+  );
 };
 ============================= src/component.tsx_component_useCustomqrl_segment_0_heif5ecaq0pq.js (ENTRY POINT)==
 

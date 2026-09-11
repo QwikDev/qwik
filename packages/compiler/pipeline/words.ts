@@ -1,6 +1,9 @@
 /** Emission vocabulary (the pipeline's `src/words.ts` peer) — grows as ops land. */
 
 export const QWIK_CORE_IMPORT = '@qwik.dev/core';
+/** `foo$` calls its `fooQrl` twin on the server and its `foo` twin on the client. */
+export const QRL_SUFFIX = '$';
+export const QRL_TWIN_SUFFIX = 'Qrl';
 
 export const enum QwikMarker {
   Dollar = '$',
@@ -65,6 +68,8 @@ export const enum QwikWord {
   Captures = '_captures',
   Await = '_await',
   Untrack = 'untrack',
+  Invoke = 'invoke',
+  GetActiveInvokeContextOrNull = 'getActiveInvokeContextOrNull',
 }
 
 /** Name stems for generated locals. */
@@ -94,14 +99,21 @@ export const enum QwikGenWord {
   ComponentContext = 'ctx',
   Attribute = 'attr',
   DefaultValue = 'defaultValue',
+  InvokeContext = 'invokeCtx',
 }
 
 /** Authored hook names recognized in component setup. */
 export const enum QwikHook {
   UseComputed = 'useComputed$',
   UseComputedQrl = 'useComputedQrl',
+  UseComputedFunction = 'useComputed',
   UseSignal = 'useSignal',
   UseVisibleTask = 'useVisibleTask$',
+  UseVisibleTaskQrl = 'useVisibleTaskQrl',
+  UseVisibleTaskFunction = 'useVisibleTask',
+  UseTask = 'useTask$',
+  UseTaskQrl = 'useTaskQrl',
+  UseTaskFunction = 'useTask',
 }
 
 /** Authored Qwik JSX directives recognized by the compiler. */

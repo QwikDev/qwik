@@ -321,6 +321,8 @@ Do not restore serialization of a children tree merely to reproduce old VNode op
 - [ ] Preserve context/owner across every newly supported rendering callback.
 - [x] Register `useVisibleTask$` in SSR as a client wake event (`qvisible`, or `qinit`/`qidle`
       for the document strategies) instead of calling the hook on the server.
+- [x] Defer a component's render until its initial tasks settle: SSR awaits the lane, CSR awaits
+      the invoke context's initial task chain, and custom hooks count as possible task starters.
 - [ ] Verify `useId`, `useOn*`, tasks and cleanup for headless components and new root shapes.
 
 Much of the hook runtime already exists; complete compiler output and scope propagation rather
@@ -380,6 +382,19 @@ code size and runtime cost. The previous implementation is not the accepted defa
 
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
+
+- 2026-09-11: Setup calls to `$` hooks follow the Rust optimizer's marker rule: core hooks lower
+  to typed core operations that each generator names itself; a named custom `$` import from any
+  source, or an exported same-file `$` binding, calls its `Qrl` twin on the server and its
+  function twin on the client. The linker resolves the twins from the hook's own source into the
+  plan (`missing-hook-twin` when absent), so generators only print them. Client callbacks ship statically with their captures instead of a chunk; a QRL
+  held in a binding keeps the `Qrl` twin. Components whose setup calls `useTask$` or any
+  non-core hook render inside `maybeThen(<pending work>, () => invoke(ctx, ...))`: SSR waits on
+  `ctx.scheduler.flush()`, CSR on the invoke context's `pendingSetup`, which `useTask` chains.
+  Verification: 1023 pipeline tests (16 existing TODOs), the `setup-marker-hooks` and
+  `setup-task-wait` CSR/SSR snapshots, and `task.spec.tsx` green in CSR and resume. Core spec
+  corpus: CSR 8 → 4 failed, resume 14 → 9 failed. Compiler unit harnesses that call a compiled
+  render directly pass `setupOnlyContext` from `fixtures.ts` for the lane flush.
 
 - 2026-09-11: SSR output registers `useVisibleTask$` through `useOn`/`useOnDocument` with
   `createVisibleTaskHandlerQrl`, mapping the `strategy` option to `qvisible`, `qinit` or `qidle`;

@@ -22,16 +22,6 @@ const q_component_factory_segment_2_1uubroervc02z = /*#__PURE__*/ _qrlWithChunk(
   () => import('./component.tsx_component_factory_segment_2_1uubroervc02z'),
   'component_factory_segment_2_1uubroervc02z'
 );
-const q_component_computed_segment_4_2s31kgmgmz0s = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_computed_segment_4_2s31kgmgmz0s',
-  () => import('./component.tsx_component_computed_segment_4_2s31kgmgmz0s'),
-  'component_computed_segment_4_2s31kgmgmz0s'
-);
-const q_component_useTaskqrl_segment_6_1og82uxaau58i = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_useTaskqrl_segment_6_1og82uxaau58i',
-  () => import('./component.tsx_component_useTaskqrl_segment_6_1og82uxaau58i'),
-  'component_useTaskqrl_segment_6_1og82uxaau58i'
-);
 const q_component_jsx_segment_7_38vnkqxlicqdr = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_jsx_segment_7_38vnkqxlicqdr',
   () => import('./component.tsx_component_jsx_segment_7_38vnkqxlicqdr'),
@@ -41,29 +31,39 @@ const default_tmpl0 = _createElementTemplate('<button>run</button>');
 import {
   useSignal,
   _qrlWithChunk,
-  useComputedQrl,
-  useTask$,
+  useComputed,
+  useTask,
   setEvent,
   _createElementTemplate,
+  getActiveInvokeContextOrNull,
+  maybeThen,
+  invoke,
 } from '@qwik.dev/core';
+import { component_computed_segment_4_2s31kgmgmz0s } from './component.tsx_component_computed_segment_4_2s31kgmgmz0s';
+import { component_useTaskqrl_segment_6_1og82uxaau58i } from './component.tsx_component_useTaskqrl_segment_6_1og82uxaau58i';
 import { component_q_e_click_segment_12_3lkvrpkpzrkb6 } from './component.tsx_component_q_e_click_segment_12_3lkvrpkpzrkb6';
 import { consume } from './consumer';
 export default function App(props, ctx) {
+  const invokeCtx0 = getActiveInvokeContextOrNull();
   const count = useSignal(0);
   const factory = q_component_factory_segment_2_1uubroervc02z;
-  const computed = useComputedQrl(q_component_computed_segment_4_2s31kgmgmz0s);
-  useTask$(q_component_useTaskqrl_segment_6_1og82uxaau58i);
+  const computed = useComputed(component_computed_segment_4_2s31kgmgmz0s);
+  useTask(component_useTaskqrl_segment_6_1og82uxaau58i);
   consume((value) => {
     const label = value;
     return q_component_jsx_segment_7_38vnkqxlicqdr.w([label]);
   });
-  const el0 = default_tmpl0(ctx.document);
-  setEvent(el0, 'q-e:click', component_q_e_click_segment_12_3lkvrpkpzrkb6, [
-    count,
-    factory,
-    computed,
-  ]);
-  return el0;
+  return maybeThen(invokeCtx0.pendingSetup, () =>
+    invoke(invokeCtx0, () => {
+      const el0 = default_tmpl0(ctx.document);
+      setEvent(el0, 'q-e:click', component_q_e_click_segment_12_3lkvrpkpzrkb6, [
+        count,
+        factory,
+        computed,
+      ]);
+      return el0;
+    })
+  );
 }
 ============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
 

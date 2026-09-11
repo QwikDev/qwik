@@ -42,7 +42,12 @@ import {
   type QrlResolver,
   type FunctionEmission,
 } from './emit-chunk';
-import { emitJsSetup, signalReadName } from './emit-setup';
+import {
+  blocksInitialRender,
+  deferRenderAfterTasks,
+  emitJsSetup,
+  signalReadName,
+} from './emit-setup';
 import { sourceFunctionEmission, contentFunctionEmission } from './emit-function';
 import { requestBindingImport } from './emit-import';
 import { emitCollectionSource } from './emit-collection';
@@ -211,9 +216,10 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         (use) => this.useQrl(pass, use, true).ref,
         (nested, localNames = names) => this.renderProgramById(nested, localNames),
         names,
-        true
+        { isServer: true, chunkImports: this.chunkImports }
       )
     );
+    const setupCount = pass.statements.length;
     const ownRange =
       !options.rootRange && !options.rowFence && body.ops.some((op) => op.op === OpKind.Hole)
         ? pass.next(QwikGenWord.RangeId)
@@ -262,8 +268,19 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         value
       );
     }
+    let statements = pass.statements;
+    if (blocksInitialRender(this.module, program.setup)) {
+      ({ statements, value } = deferRenderAfterTasks(
+        this.imports,
+        pass.next,
+        () => `${names.ctx}.scheduler.flush()`,
+        statements,
+        setupCount,
+        value
+      ));
+    }
     return {
-      statements: pass.statements,
+      statements,
       value,
       rangeIdParam: ownRange === null ? (rootRange?.idParam ?? null) : null,
       needsContext: pass.usedCtx || pass.statements.length > 0,

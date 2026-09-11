@@ -14,38 +14,38 @@ export default () => {
 
 import {
   useSignal,
-  useComputedQrl,
-  _qrlWithChunk,
-  useTask$,
+  useComputed,
+  _withCaptures,
+  useTask,
   setEvent,
   _first,
   createTextNodeEffect,
   _createElementTemplate,
+  getActiveInvokeContextOrNull,
+  maybeThen,
+  invoke,
 } from '@qwik.dev/core';
+import { component_total_segment_0_33cbacdkct5tt } from './component.tsx_component_total_segment_0_33cbacdkct5tt';
+import { component_useTaskqrl_segment_1_1og80wrqqnv5v } from './component.tsx_component_useTaskqrl_segment_1_1og80wrqqnv5v';
 import { component_q_e_click_segment_2_2xwygteqhjqr1 } from './component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1';
 
-const q_component_total_segment_0_33cbacdkct5tt = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_total_segment_0_33cbacdkct5tt',
-  () => import('./component.tsx_component_total_segment_0_33cbacdkct5tt'),
-  'component_total_segment_0_33cbacdkct5tt'
-);
-const q_component_useTaskqrl_segment_1_1og80wrqqnv5v = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_useTaskqrl_segment_1_1og80wrqqnv5v',
-  () => import('./component.tsx_component_useTaskqrl_segment_1_1og80wrqqnv5v'),
-  'component_useTaskqrl_segment_1_1og80wrqqnv5v'
-);
 const default_tmpl0 = _createElementTemplate('<button> </button>');
 import { calculate, save } from './pricing';
 export default (props, ctx) => {
+  const invokeCtx0 = getActiveInvokeContextOrNull();
   const count = useSignal(2);
-  const total = useComputedQrl(q_component_total_segment_0_33cbacdkct5tt.w([count]));
-  useTask$(q_component_useTaskqrl_segment_1_1og80wrqqnv5v.w([total]));
-  const el0 = default_tmpl0(ctx.document);
-  setEvent(el0, 'q-e:click', component_q_e_click_segment_2_2xwygteqhjqr1, [count]);
-  const text0 = _first(el0);
-  const effect0 = createTextNodeEffect(text0, total, ctx.scheduler);
-  ctx.scheduler.notify(effect0);
-  return el0;
+  const total = useComputed(_withCaptures(component_total_segment_0_33cbacdkct5tt, [count]));
+  useTask(_withCaptures(component_useTaskqrl_segment_1_1og80wrqqnv5v, [total]));
+  return maybeThen(invokeCtx0.pendingSetup, () =>
+    invoke(invokeCtx0, () => {
+      const el0 = default_tmpl0(ctx.document);
+      setEvent(el0, 'q-e:click', component_q_e_click_segment_2_2xwygteqhjqr1, [count]);
+      const text0 = _first(el0);
+      const effect0 = createTextNodeEffect(text0, total, ctx.scheduler);
+      ctx.scheduler.notify(effect0);
+      return el0;
+    })
+  );
 };
 ============================= src/component.tsx_component_total_segment_0_33cbacdkct5tt.js (ENTRY POINT)==
 

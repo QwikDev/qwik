@@ -24,7 +24,16 @@ export default (props) => {
 
 ============================= src/component.tsx ==
 
-import { useSignal, _captures, useTask$, _await, _noopQrl } from '@qwik.dev/core';
+import {
+  useSignal,
+  _captures,
+  useTaskQrl,
+  getActiveInvokeContextOrNull,
+  maybeThen,
+  invoke,
+  _await,
+  _noopQrl,
+} from '@qwik.dev/core';
 const component_run_segment_0_3puv0fmsn52m6 = function () {
   const [count, props] = _captures;
   return async function run(value = props.initial) {
@@ -53,17 +62,22 @@ const q_component_q_e_click_segment_2_2xwygteqhjqr1 = /*#__PURE__*/ _noopQrl(
   'component_q_e_click_segment_2_2xwygteqhjqr1'
 );
 export default (props, ctx) => {
+  const invokeCtx0 = getActiveInvokeContextOrNull();
   const count = useSignal(1);
   const run = q_component_run_segment_0_3puv0fmsn52m6.w([count, props]);
-  useTask$(q_component_useTaskqrl_segment_1_1og80wrqqnv5v.w([count, props]));
-  return [
-    '<button',
-    ctx.eventAttrParts(
-      'q-e:click',
-      q_component_q_e_click_segment_2_2xwygteqhjqr1.w([count, run, props])
-    ),
-    '>run</button>',
-  ];
+  useTaskQrl(q_component_useTaskqrl_segment_1_1og80wrqqnv5v.w([count, props]));
+  return maybeThen(ctx.scheduler.flush(), () =>
+    invoke(invokeCtx0, () => {
+      return [
+        '<button',
+        ctx.eventAttrParts(
+          'q-e:click',
+          q_component_q_e_click_segment_2_2xwygteqhjqr1.w([count, run, props])
+        ),
+        '>run</button>',
+      ];
+    })
+  );
 };
 ============================= src/component.tsx_component_run_segment_0_3puv0fmsn52m6.js (ENTRY POINT)==
 

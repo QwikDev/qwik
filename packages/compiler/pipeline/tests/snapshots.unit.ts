@@ -482,6 +482,66 @@ export default () => {
     }
   });
 
+  test('should rewrite $ hooks to their Qrl and function twins', async () => {
+    const output = await testInput(mode, 'setup-marker-hooks', {
+      code: `import { $, implicit$FirstArg, useComputed$, useSignal, useTask$ } from '@qwik.dev/core';
+import { useCustom$ } from './hooks';
+export const useLocalQrl = (qrl) => qrl;
+export const useLocal = (fn) => fn;
+export const useLocal$ = implicit$FirstArg(useLocalQrl);
+export default () => {
+  const count = useSignal(1);
+  const read = $(() => count.value);
+  useTask$(read);
+  const total = useComputed$(() => count.value * 2, { initial: 0 });
+  useCustom$(() => count.value);
+  useLocal$(() => count.value);
+  return <span>{total.value}</span>;
+};
+`,
+    });
+    const code = output.modules.map((module) => module.code).join('\n');
+    expect(code).toContain('useTaskQrl(read)');
+    if (mode === 'ssr') {
+      expect(code).toContain('import { useCustomQrl } from "./hooks";');
+      expect(code).toContain('useComputedQrl(');
+      expect(code).toContain('useCustomQrl(');
+      expect(code).toContain('useLocalQrl(');
+    } else {
+      expect(code).toContain('import { useCustom } from "./hooks";');
+      expect(code).toContain('useComputed(_withCaptures(');
+      expect(code).toContain('useCustom(_withCaptures(');
+      expect(code).toContain('useLocal(_withCaptures(');
+    }
+    expect(code).not.toContain('useCustom$(');
+    expect(code).not.toContain('useLocal$(');
+  });
+
+  test('should wait for initial tasks before rendering', async () => {
+    const output = await testInput(mode, 'setup-task-wait', {
+      code: `import { useTask$, useSignal } from '@qwik.dev/core';
+export const Child = () => <b>child</b>;
+export default () => {
+  const ready = useSignal('pending');
+  useTask$(async () => {
+    await Promise.resolve();
+    ready.value = 'done';
+  });
+  return <section><span>{ready.value}</span><Child /></section>;
+};
+`,
+    });
+    const code = output.modules.map((module) => module.code).join('\n');
+    expect(code).toContain(
+      mode === 'ssr'
+        ? 'maybeThen(ctx.scheduler.flush(), () => invoke(invokeCtx0, () => {'
+        : 'maybeThen(invokeCtx0.pendingSetup, () => invoke(invokeCtx0, () => {'
+    );
+    if (mode === 'csr') {
+      expect(code).toContain('useTask(_withCaptures(component_useTaskqrl_segment_0_');
+    }
+  });
+
   test('should compile local implicit hooks and task setup', async () => {
     await testInput(mode, 'setup-task-hook', {
       code: `import { implicit$FirstArg, useTaskQrl, useTask$ as task, useSignal } from '@qwik.dev/core';

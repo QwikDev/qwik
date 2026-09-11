@@ -283,18 +283,38 @@ export const enum CallTargetKind {
   Binding = 'binding',
   Core = 'core',
   Value = 'value',
+  Marker = 'marker',
 }
 
 export const enum CoreOperation {
   CreateSignal = 'create-signal',
   CreateComputed = 'create-computed',
+  Task = 'task',
+  VisibleTask = 'visible-task',
 }
+
+export const enum HookTwinKind {
+  Binding = 'binding',
+  Import = 'import',
+}
+
+/** Where a custom hook's twin lives: an existing binding, or an import the linker adds. */
+export type HookTwin =
+  | { t: HookTwinKind.Binding; binding: LocalId }
+  | { t: HookTwinKind.Import; edge: number; imported: string; local: string };
 
 export type CallTarget =
   | { kind: CallTargetKind.Binding; binding: LocalId }
   | { kind: CallTargetKind.Core; operation: CoreOperation }
   /** Value calls do not supply a receiver. */
-  | { kind: CallTargetKind.Value; value: ValueIR };
+  | { kind: CallTargetKind.Value; value: ValueIR }
+  /** A custom `$` hook; the linker resolves its `Qrl` and function twins from the same source. */
+  | {
+      kind: CallTargetKind.Marker;
+      binding: LocalId;
+      stem: string;
+      twins?: { qrl: HookTwin; fn: HookTwin };
+    };
 
 export type Setup =
   | {
@@ -330,6 +350,8 @@ export type Setup =
       result: BindTarget | null;
       /** SSR registers the task on this client event instead of calling the hook. */
       visibleTaskEvent?: VisibleTaskEvent;
+      /** The call may start a task whose initial run must finish before the render. */
+      blocksInitialRender?: true;
       guard?: Predicate;
     }
   /** Compiler intrinsic. */

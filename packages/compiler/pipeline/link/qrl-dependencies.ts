@@ -143,7 +143,11 @@ export function collectQrlDependencies(
   function visitSetup(entry: Setup) {
     switch (entry.s) {
       case SetupKind.Call:
-        if (entry.target.kind === CallTargetKind.Binding) {
+        // A hook's twins come from its own source, so that edge stays a runtime dependency.
+        if (
+          entry.target.kind === CallTargetKind.Binding ||
+          entry.target.kind === CallTargetKind.Marker
+        ) {
           bindings.add(entry.target.binding);
         } else if (entry.target.kind === CallTargetKind.Value) {
           visitExpressionIr(entry.target.value);

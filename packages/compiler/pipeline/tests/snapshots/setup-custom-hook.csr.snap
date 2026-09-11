@@ -15,42 +15,43 @@ export default (props: { title: string; options: object; args: unknown[] }) => {
 
 import {
   useSignal,
-  _qrlWithChunk,
+  _withCaptures,
   _first,
   createTextExpressionEffect,
   _createElementTemplate,
+  getActiveInvokeContextOrNull,
+  maybeThen,
+  invoke,
 } from '@qwik.dev/core';
+import { useCustom } from './hooks';
+import { component_useCustomqrl_segment_0_heif5ecaq0pq } from './component.tsx_component_useCustomqrl_segment_0_heif5ecaq0pq';
+import { component_useCustomqrl_segment_1_heifjfg7k2q9 } from './component.tsx_component_useCustomqrl_segment_1_heifjfg7k2q9';
 import { component_text_segment_2_1fh117dstcoge } from './component.tsx_component_text_segment_2_1fh117dstcoge';
 
-const q_component_useCustomqrl_segment_0_heif5ecaq0pq = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_useCustomqrl_segment_0_heif5ecaq0pq',
-  () => import('./component.tsx_component_useCustomqrl_segment_0_heif5ecaq0pq'),
-  'component_useCustomqrl_segment_0_heif5ecaq0pq'
-);
-const q_component_useCustomqrl_segment_1_heifjfg7k2q9 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_useCustomqrl_segment_1_heifjfg7k2q9',
-  () => import('./component.tsx_component_useCustomqrl_segment_1_heifjfg7k2q9'),
-  'component_useCustomqrl_segment_1_heifjfg7k2q9'
-);
 const default_tmpl0 = _createElementTemplate('<span> </span>');
 import { useCustom$ as custom } from './hooks';
 export default (props, ctx) => {
+  const invokeCtx0 = getActiveInvokeContextOrNull();
   const count = useSignal(1);
-  const { label } = custom(
-    q_component_useCustomqrl_segment_0_heif5ecaq0pq.w([count]),
+  const { label } = useCustom(
+    _withCaptures(component_useCustomqrl_segment_0_heif5ecaq0pq, [count]),
     props.options
   );
-  custom(q_component_useCustomqrl_segment_1_heifjfg7k2q9.w([props]), ...props.args);
-  const el0 = default_tmpl0(ctx.document);
-  const text0 = _first(el0);
-  const effect0 = createTextExpressionEffect(
-    text0,
-    [label],
-    component_text_segment_2_1fh117dstcoge,
-    ctx.scheduler
+  useCustom(_withCaptures(component_useCustomqrl_segment_1_heifjfg7k2q9, [props]), ...props.args);
+  return maybeThen(invokeCtx0.pendingSetup, () =>
+    invoke(invokeCtx0, () => {
+      const el0 = default_tmpl0(ctx.document);
+      const text0 = _first(el0);
+      const effect0 = createTextExpressionEffect(
+        text0,
+        [label],
+        component_text_segment_2_1fh117dstcoge,
+        ctx.scheduler
+      );
+      ctx.scheduler.notify(effect0);
+      return el0;
+    })
   );
-  ctx.scheduler.notify(effect0);
-  return el0;
 };
 ============================= src/component.tsx_component_useCustomqrl_segment_0_heif5ecaq0pq.js (ENTRY POINT)==
 

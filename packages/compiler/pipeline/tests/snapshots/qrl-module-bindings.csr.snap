@@ -16,26 +16,21 @@ export default () => {
 
 import {
   useSignal,
-  useComputedQrl,
-  _qrlWithChunk,
-  useTask$,
+  useComputed,
+  _withCaptures,
+  useTask,
   setEvent,
   _first,
   createTextNodeEffect,
   _createElementTemplate,
+  getActiveInvokeContextOrNull,
+  maybeThen,
+  invoke,
 } from '@qwik.dev/core';
+import { component_title_segment_0_2f0r0xivypjmx } from './component.tsx_component_title_segment_0_2f0r0xivypjmx';
+import { component_useTaskqrl_segment_1_1og80wrqqnv5v } from './component.tsx_component_useTaskqrl_segment_1_1og80wrqqnv5v';
 import { component_q_e_click_segment_2_2xwygteqhjqr1 } from './component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1';
 
-const q_component_title_segment_0_2f0r0xivypjmx = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_title_segment_0_2f0r0xivypjmx',
-  () => import('./component.tsx_component_title_segment_0_2f0r0xivypjmx'),
-  'component_title_segment_0_2f0r0xivypjmx'
-);
-const q_component_useTaskqrl_segment_1_1og80wrqqnv5v = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_useTaskqrl_segment_1_1og80wrqqnv5v',
-  () => import('./component.tsx_component_useTaskqrl_segment_1_1og80wrqqnv5v'),
-  'component_useTaskqrl_segment_1_1og80wrqqnv5v'
-);
 const default_tmpl0 = _createElementTemplate('<button> </button>');
 const prefix = 'Saved';
 const settings = { suffix: '!' };
@@ -43,15 +38,20 @@ function format(value) {
   return prefix + ': ' + value;
 }
 export default (props, ctx) => {
+  const invokeCtx0 = getActiveInvokeContextOrNull();
   const count = useSignal(2);
-  const title = useComputedQrl(q_component_title_segment_0_2f0r0xivypjmx.w([count]));
-  useTask$(q_component_useTaskqrl_segment_1_1og80wrqqnv5v.w([title]));
-  const el0 = default_tmpl0(ctx.document);
-  setEvent(el0, 'q-e:click', component_q_e_click_segment_2_2xwygteqhjqr1, [count]);
-  const text0 = _first(el0);
-  const effect0 = createTextNodeEffect(text0, title, ctx.scheduler);
-  ctx.scheduler.notify(effect0);
-  return el0;
+  const title = useComputed(_withCaptures(component_title_segment_0_2f0r0xivypjmx, [count]));
+  useTask(_withCaptures(component_useTaskqrl_segment_1_1og80wrqqnv5v, [title]));
+  return maybeThen(invokeCtx0.pendingSetup, () =>
+    invoke(invokeCtx0, () => {
+      const el0 = default_tmpl0(ctx.document);
+      setEvent(el0, 'q-e:click', component_q_e_click_segment_2_2xwygteqhjqr1, [count]);
+      const text0 = _first(el0);
+      const effect0 = createTextNodeEffect(text0, title, ctx.scheduler);
+      ctx.scheduler.notify(effect0);
+      return el0;
+    })
+  );
 };
 
 export { format as __qwik_format, settings as __qwik_settings };

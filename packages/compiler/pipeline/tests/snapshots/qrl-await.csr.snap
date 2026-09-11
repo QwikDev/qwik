@@ -27,10 +27,15 @@ export default (props) => {
 import {
   useSignal,
   _qrlWithChunk,
-  useTask$,
+  useTask,
+  _withCaptures,
   setEvent,
   _createElementTemplate,
+  getActiveInvokeContextOrNull,
+  maybeThen,
+  invoke,
 } from '@qwik.dev/core';
+import { component_useTaskqrl_segment_1_1og80wrqqnv5v } from './component.tsx_component_useTaskqrl_segment_1_1og80wrqqnv5v';
 import { component_q_e_click_segment_2_2xwygteqhjqr1 } from './component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1';
 
 const q_component_run_segment_0_3puv0fmsn52m6 = /*#__PURE__*/ _qrlWithChunk(
@@ -38,19 +43,19 @@ const q_component_run_segment_0_3puv0fmsn52m6 = /*#__PURE__*/ _qrlWithChunk(
   () => import('./component.tsx_component_run_segment_0_3puv0fmsn52m6'),
   'component_run_segment_0_3puv0fmsn52m6'
 );
-const q_component_useTaskqrl_segment_1_1og80wrqqnv5v = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_useTaskqrl_segment_1_1og80wrqqnv5v',
-  () => import('./component.tsx_component_useTaskqrl_segment_1_1og80wrqqnv5v'),
-  'component_useTaskqrl_segment_1_1og80wrqqnv5v'
-);
 const default_tmpl0 = _createElementTemplate('<button>run</button>');
 export default (props, ctx) => {
+  const invokeCtx0 = getActiveInvokeContextOrNull();
   const count = useSignal(1);
   const run = q_component_run_segment_0_3puv0fmsn52m6.w([count, props]);
-  useTask$(q_component_useTaskqrl_segment_1_1og80wrqqnv5v.w([count, props]));
-  const el0 = default_tmpl0(ctx.document);
-  setEvent(el0, 'q-e:click', component_q_e_click_segment_2_2xwygteqhjqr1, [count, run, props]);
-  return el0;
+  useTask(_withCaptures(component_useTaskqrl_segment_1_1og80wrqqnv5v, [count, props]));
+  return maybeThen(invokeCtx0.pendingSetup, () =>
+    invoke(invokeCtx0, () => {
+      const el0 = default_tmpl0(ctx.document);
+      setEvent(el0, 'q-e:click', component_q_e_click_segment_2_2xwygteqhjqr1, [count, run, props]);
+      return el0;
+    })
+  );
 };
 ============================= src/component.tsx_component_run_segment_0_3puv0fmsn52m6.js (ENTRY POINT)==
 

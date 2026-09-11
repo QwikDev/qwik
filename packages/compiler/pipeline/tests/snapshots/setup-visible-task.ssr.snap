@@ -24,7 +24,6 @@ import {
   renderSsrTextNode,
   maybeThen,
   _noopQrl,
-  useVisibleTask$,
 } from '@qwik.dev/core';
 const component_useVisibleTaskqrl_segment_0_rykj3v0khy38 = () => {
   const [status] = _captures;

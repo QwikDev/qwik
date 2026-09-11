@@ -1,6 +1,11 @@
 import { expect, test } from 'vitest';
 import { transformModules } from '../compat/transform-modules';
-import { loadChunkFunction, loadDefaultFunction, readRenderedText } from './fixtures';
+import {
+  loadChunkFunction,
+  loadDefaultFunction,
+  readRenderedText,
+  setupOnlyContext,
+} from './fixtures';
 import * as core from '../../../qwik/src/core/index';
 import { createDocument } from '../../../qwik/src/testing/document';
 import { Scheduler } from '../../../qwik/src/core/runtime/scheduler';
@@ -207,7 +212,7 @@ test('aliased children remain a slot without reading the props object', async ()
       throw new Error('children must not be read');
     },
   };
-  expect((await render(props, {})).flat(Infinity).join('')).toBe(
+  expect((await render(props, setupOnlyContext)).flat(Infinity).join('')).toBe(
     '<section><b>projected</b></section>'
   );
 });

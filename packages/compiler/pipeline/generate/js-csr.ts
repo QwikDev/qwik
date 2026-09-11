@@ -37,7 +37,12 @@ import {
   type QrlResolver,
   type FunctionEmission,
 } from './emit-chunk';
-import { emitJsSetup, signalReadName } from './emit-setup';
+import {
+  blocksInitialRender,
+  deferRenderAfterTasks,
+  emitJsSetup,
+  signalReadName,
+} from './emit-setup';
 import { sourceFunctionEmission, contentFunctionEmission } from './emit-function';
 import { emitCollectionSource } from './emit-collection';
 import { escapeText } from '../html';
@@ -142,29 +147,36 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       (use) => this.lazyRenderReference(use, names.props),
       (nested, localNames = names) =>
         this.renderProgram(nested, `${ownerName}_${nested}`, localNames),
-      names
+      names,
+      {
+        staticQrl: (use) => this.capturedChunkReference(use, names.props),
+        chunkImports: this.chunkImports,
+      }
     );
+    const setupCount = statements.length;
+    const finish = (value: string): ComponentEmission =>
+      blocksInitialRender(this.module, program.setup)
+        ? deferRenderAfterTasks(
+            this.imports,
+            pass.next,
+            (invokeContext) => `${invokeContext}.pendingSetup`,
+            statements,
+            setupCount,
+            value
+          )
+        : { statements, value };
     const ops = program.body.ops;
     if (ops.length === 0) {
-      return { statements, value: '[]' };
+      return finish('[]');
     }
     if (ops.length === 1) {
-      return {
-        statements,
-        value: this.op(ops[0], ownerName, statements, pass),
-      };
+      return finish(this.op(ops[0], ownerName, statements, pass));
     }
     if (ops.every((op): op is TextOp => op.op === OpKind.Static || op.op === OpKind.Hole)) {
-      return {
-        statements,
-        value: `[${this.textRoots(ops, ownerName, statements, pass).join(', ')}]`,
-      };
+      return finish(`[${this.textRoots(ops, ownerName, statements, pass).join(', ')}]`);
     }
     const template = `${ownerName}_${pass.next(QwikGenWord.Template)}`;
-    return {
-      statements,
-      value: this.fragmentRoot(ops, template, statements, pass),
-    };
+    return finish(this.fragmentRoot(ops, template, statements, pass));
   }
 
   private fragmentRoot(

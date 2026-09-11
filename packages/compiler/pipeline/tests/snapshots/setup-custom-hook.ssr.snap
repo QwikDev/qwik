@@ -20,8 +20,11 @@ import {
   escapeHTML,
   renderSsrTextExpression,
   maybeThen,
+  getActiveInvokeContextOrNull,
+  invoke,
   _noopQrl,
 } from '@qwik.dev/core';
+import { useCustomQrl } from './hooks';
 import { useCustom$ as custom } from './hooks';
 const component_useCustomqrl_segment_0_heif5ecaq0pq = () => {
   const [count] = _captures;
@@ -47,27 +50,32 @@ const q_component_text_segment_2_1fh117dstcoge = /*#__PURE__*/ _noopQrl(
 );
 q_component_text_segment_2_1fh117dstcoge.s(component_text_segment_2_1fh117dstcoge);
 export default (props, ctx) => {
+  const invokeCtx0 = getActiveInvokeContextOrNull();
   const count = useSignal(1);
-  const { label } = custom(
+  const { label } = useCustomQrl(
     q_component_useCustomqrl_segment_0_heif5ecaq0pq.w([count]),
     props.options
   );
-  custom(q_component_useCustomqrl_segment_1_heifjfg7k2q9.w([props]), ...props.args);
-  const id0 = ctx.nextId();
-  ctx.addRoot(label);
-  const text0 = renderSsrTextExpression(
-    id0,
-    null,
-    [label],
-    q_component_text_segment_2_1fh117dstcoge
+  useCustomQrl(q_component_useCustomqrl_segment_1_heifjfg7k2q9.w([props]), ...props.args);
+  return maybeThen(ctx.scheduler.flush(), () =>
+    invoke(invokeCtx0, () => {
+      const id0 = ctx.nextId();
+      ctx.addRoot(label);
+      const text0 = renderSsrTextExpression(
+        id0,
+        null,
+        [label],
+        q_component_text_segment_2_1fh117dstcoge
+      );
+      return maybeThen(text0, (text0) => [
+        '<span q:id="',
+        createSsrNodeId(id0),
+        '">',
+        escapeHTML(text0),
+        '</span>',
+      ]);
+    })
   );
-  return maybeThen(text0, (text0) => [
-    '<span q:id="',
-    createSsrNodeId(id0),
-    '">',
-    escapeHTML(text0),
-    '</span>',
-  ]);
 };
 ============================= src/component.tsx_component_useCustomqrl_segment_0_heif5ecaq0pq.js (ENTRY POINT)==
 

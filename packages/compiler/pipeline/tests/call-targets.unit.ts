@@ -35,7 +35,15 @@ test('setup calls have one semantic target, independent of JS spelling', async (
       },
     },
   ]);
-  for (const call of calls) {
+  // Only the custom hook may start a task the render must wait for.
+  expect(calls.map((call) => call.blocksInitialRender)).toEqual([
+    undefined,
+    undefined,
+    true,
+    undefined,
+    undefined,
+  ]);
+  for (const { blocksInitialRender: _, ...call } of calls) {
     expect(Object.keys(call).sort()).toEqual(['args', 'result', 's', 'target']);
   }
 });

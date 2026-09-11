@@ -331,8 +331,11 @@ type Setup =
 //   second op list to maintain
 type CallTarget =
   | { kind: 'binding'; binding: LocalId }
-  | { kind: 'core'; operation: 'create-signal' | 'create-computed' }
-  | { kind: 'value'; value: ValueIR }; // invoke the value without a receiver
+  | { kind: 'core'; operation: 'create-signal' | 'create-computed' | 'task' | 'visible-task' }
+  | { kind: 'value'; value: ValueIR } // invoke the value without a receiver
+  // a custom `$` hook; the linker resolves its `Qrl` (server) and function (client) twins from
+  // the hook's own source, so generators only print them
+  | { kind: 'marker'; binding: LocalId; stem: string; twins?: { qrl: HookTwin; fn: HookTwin } };
 
 interface ComponentParameter {
   pattern: PayloadId;

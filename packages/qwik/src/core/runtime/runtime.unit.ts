@@ -110,7 +110,7 @@ describe('runtime scheduler and owner lifecycle', () => {
 
     expect(order).toEqual(['first:start']);
     resolveFirst();
-    await context.initialTaskPromise;
+    await context.pendingSetup;
     expect(order).toEqual(['first:start', 'second']);
   });
 

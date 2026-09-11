@@ -36,20 +36,17 @@ const q_component_jsx_segment_4_38vnl4ypf6sea = /*#__PURE__*/ _qrlWithChunk(
   () => import('./component.tsx_component_jsx_segment_4_38vnl4ypf6sea'),
   'component_jsx_segment_4_38vnl4ypf6sea'
 );
-const q_component_result_segment_8_1732eo28f3tsm = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_result_segment_8_1732eo28f3tsm',
-  () => import('./component.tsx_component_result_segment_8_1732eo28f3tsm'),
-  'component_result_segment_8_1732eo28f3tsm'
-);
 const default_tmpl0 = _createElementTemplate('<output> </output>');
 import {
   useSignal,
   _qrlWithChunk,
-  useComputedQrl,
+  useComputed,
+  _withCaptures,
   _first,
   createTextExpressionEffect,
   _createElementTemplate,
 } from '@qwik.dev/core';
+import { component_result_segment_8_1732eo28f3tsm } from './component.tsx_component_result_segment_8_1732eo28f3tsm';
 import { component_text_segment_9_1fh0xp3tlu6bn } from './component.tsx_component_text_segment_9_1fh0xp3tlu6bn';
 import { register, load } from './consumer';
 export default function App(props, ctx) {
@@ -62,7 +59,7 @@ export default function App(props, ctx) {
     const label = await load(value);
     return q_component_jsx_segment_4_38vnl4ypf6sea.w([label]);
   });
-  const result = useComputedQrl(q_component_result_segment_8_1732eo28f3tsm.w([count]));
+  const result = useComputed(_withCaptures(component_result_segment_8_1732eo28f3tsm, [count]));
   const el0 = default_tmpl0(ctx.document);
   const text0 = _first(el0);
   const effect0 = createTextExpressionEffect(

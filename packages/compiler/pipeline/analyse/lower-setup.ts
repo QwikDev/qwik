@@ -2,6 +2,8 @@ import {
   CaptureAccess,
   ArgKind,
   BindTargetKind,
+  ExportKind,
+  ExportTargetKind,
   SetupKind,
   VisibleTaskEvent,
   BoundaryKind,
@@ -10,8 +12,7 @@ import {
   VarKind,
   CallTargetKind,
   type CallTarget,
-  type CoreOperation,
-  type LocalId,
+  CoreOperation,
   type Arg,
   type QrlArg,
   type Setup,
@@ -30,7 +31,7 @@ import type {
 } from 'oxc-parser';
 import { identifierName, unwrapExpression } from './ast/utils';
 import { UnsupportedError } from '../errors';
-import { QwikHook, QwikMarker } from '../words';
+import { QRL_SUFFIX, QwikMarker } from '../words';
 import { coreSetupCalls } from './setup-api';
 import { LocalKind, type SetupLocals } from './locals';
 import { pushPayload, type LowerContext } from './lower-context';
@@ -461,14 +462,35 @@ function resolveSetupCall(call: CallExpression, ctx: LowerContext) {
   }
   const imported = ctx.plan.imports.find((entry) => entry.binding === binding);
   const coreApi = ctx.coreBindings.get(binding);
+  if (coreApi === QwikMarker.Dollar || coreApi === QwikMarker.Component) {
+    return null;
+  }
   const name =
     coreApi ??
     (imported !== undefined && imported.imported !== 'default' && imported.imported !== '*'
       ? imported.imported
       : ctx.plan.bindings[binding].name);
-  return /^use.+/.test(name) || ctx.locals.has(binding)
-    ? { binding, name, contract: coreApi === undefined ? undefined : coreSetupCalls.get(coreApi) }
-    : null;
+  if (!/^use.+/.test(name) && !name.endsWith(QRL_SUFFIX) && !ctx.locals.has(binding)) {
+    return null;
+  }
+  // Named `$` imports and exported `$` locals have twins by convention; other `$` bindings keep their call.
+  const hasTwins =
+    coreApi === undefined &&
+    name.endsWith(QRL_SUFFIX) &&
+    (imported !== undefined
+      ? imported.imported === name
+      : ctx.plan.exports.some(
+          (entry) =>
+            entry.e === ExportKind.Local &&
+            entry.target.t === ExportTargetKind.Binding &&
+            entry.target.binding === binding
+        ));
+  return {
+    binding,
+    name,
+    contract: coreApi === undefined ? undefined : coreSetupCalls.get(coreApi),
+    stem: hasTwins ? name.slice(0, -QRL_SUFFIX.length) : null,
+  };
 }
 
 function lowerSetupCall(
@@ -485,17 +507,27 @@ function lowerSetupCall(
   if (contract?.maxArgs !== undefined && call.arguments.length > contract.maxArgs) {
     throw new UnsupportedError(`${callee.name} with more than ${contract.maxArgs} arguments`);
   }
-  const args = /^use.+\$$/.test(callee.name)
+  const args = callee.name.endsWith(QRL_SUFFIX)
     ? lowerQrlHookArgs(call, identifierName(pattern) ?? callee.name, callee.name, ctx)
     : call.arguments.map((argument) => lowerHookArg(argument, ctx));
-  const isVisibleTask = ctx.coreBindings.get(callee.binding) === QwikHook.UseVisibleTask;
+  const coreApi = ctx.coreBindings.get(callee.binding);
+  const isVisibleTask = callee.contract?.operation === CoreOperation.VisibleTask;
+  const localKind = ctx.locals.get(callee.binding)?.kind;
+  // Custom hooks may wrap tasks, so they wait; core hooks wait only when their contract says so.
+  const blocksInitialRender =
+    coreApi === undefined
+      ? (callee.stem !== null || /^use/.test(callee.name)) &&
+        localKind !== LocalKind.PropMember &&
+        localKind !== LocalKind.PropRest
+      : callee.contract?.blocksRender === true;
   return {
     s: SetupKind.Call,
-    target: lowerCallTarget(call.callee, callee.binding, contract?.operation, ctx),
+    target: lowerCallTarget(call.callee, callee, ctx),
     args,
     result:
       pattern === null ? null : lowerSetupBinding(pattern, ctx, locals, contract?.result).result,
     ...(isVisibleTask ? { visibleTaskEvent: visibleTaskEvent(call.arguments[1]) } : {}),
+    ...(blocksInitialRender ? { blocksInitialRender: true as const } : {}),
   };
 }
 
@@ -531,12 +563,14 @@ function visibleTaskEvent(options: Argument | undefined): VisibleTaskEvent {
 
 function lowerCallTarget(
   expression: CallExpression['callee'],
-  binding: LocalId,
-  operation: CoreOperation | undefined,
+  { binding, stem, contract }: NonNullable<ReturnType<typeof resolveSetupCall>>,
   ctx: LowerContext
 ): CallTarget {
-  if (operation !== undefined) {
-    return { kind: CallTargetKind.Core, operation };
+  if (stem !== null) {
+    return { kind: CallTargetKind.Marker, binding, stem };
+  }
+  if (contract !== undefined) {
+    return { kind: CallTargetKind.Core, operation: contract.operation };
   }
   const value = tryLowerExprIr(expression, ctx);
   return value === null

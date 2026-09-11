@@ -16,6 +16,9 @@ import { createDocument } from '../../../qwik/src/testing/document';
 
 export { emptyPlan as emptyModulePlan };
 
+/** Setup-only renders never await the SSR lane. */
+export const setupOnlyContext = { scheduler: { flush() {} } };
+
 export function readRenderedText(html: string, selector: string): (string | null)[] {
   const document = createDocument({ html });
   return Array.from(document.querySelectorAll(selector), (element) => element.textContent);

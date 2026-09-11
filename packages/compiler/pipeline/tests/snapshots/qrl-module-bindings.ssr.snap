@@ -18,11 +18,13 @@ import {
   useSignal,
   useComputedQrl,
   _captures,
-  useTask$,
+  useTaskQrl,
   createSsrNodeId,
   escapeHTML,
   renderSsrTextNode,
   maybeThen,
+  getActiveInvokeContextOrNull,
+  invoke,
   _noopQrl,
 } from '@qwik.dev/core';
 const prefix = 'Saved';
@@ -50,21 +52,26 @@ const q_component_q_e_click_segment_2_2xwygteqhjqr1 = /*#__PURE__*/ _noopQrl(
   'component_q_e_click_segment_2_2xwygteqhjqr1'
 );
 export default (props, ctx) => {
+  const invokeCtx0 = getActiveInvokeContextOrNull();
   const count = useSignal(2);
   const title = useComputedQrl(q_component_title_segment_0_2f0r0xivypjmx.w([count]));
-  useTask$(q_component_useTaskqrl_segment_1_1og80wrqqnv5v.w([title]));
-  const id0 = ctx.nextId();
-  ctx.addRoot(title);
-  const text0 = renderSsrTextNode(id0, null, title);
-  return maybeThen(text0, (text0) => [
-    '<button q:id="',
-    createSsrNodeId(id0),
-    '"',
-    ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_2_2xwygteqhjqr1.w([count])),
-    '>',
-    escapeHTML(text0),
-    '</button>',
-  ]);
+  useTaskQrl(q_component_useTaskqrl_segment_1_1og80wrqqnv5v.w([title]));
+  return maybeThen(ctx.scheduler.flush(), () =>
+    invoke(invokeCtx0, () => {
+      const id0 = ctx.nextId();
+      ctx.addRoot(title);
+      const text0 = renderSsrTextNode(id0, null, title);
+      return maybeThen(text0, (text0) => [
+        '<button q:id="',
+        createSsrNodeId(id0),
+        '"',
+        ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_2_2xwygteqhjqr1.w([count])),
+        '>',
+        escapeHTML(text0),
+        '</button>',
+      ]);
+    })
+  );
 };
 
 export { format as __qwik_format, settings as __qwik_settings };

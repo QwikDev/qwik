@@ -1,0 +1,224 @@
+==INPUT==
+
+import { $, implicit$FirstArg, useComputed$, useSignal, useTask$ } from '@qwik.dev/core';
+import { useCustom$ } from './hooks';
+export const useLocalQrl = (qrl) => qrl;
+export const useLocal = (fn) => fn;
+export const useLocal$ = implicit$FirstArg(useLocalQrl);
+export default () => {
+  const count = useSignal(1);
+  const read = $(() => count.value);
+  useTask$(read);
+  const total = useComputed$(() => count.value * 2, { initial: 0 });
+  useCustom$(() => count.value);
+  useLocal$(() => count.value);
+  return <span>{total.value}</span>;
+};
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  implicit$FirstArg,
+  useSignal,
+  _captures,
+  useTaskQrl,
+  useComputedQrl,
+  createSsrNodeId,
+  escapeHTML,
+  renderSsrTextNode,
+  maybeThen,
+  getActiveInvokeContextOrNull,
+  invoke,
+  _noopQrl,
+} from '@qwik.dev/core';
+import { useCustomQrl } from './hooks';
+import { useCustom$ } from './hooks';
+export const useLocalQrl = (qrl) => qrl;
+export const useLocal = (fn) => fn;
+export const useLocal$ = implicit$FirstArg(useLocalQrl);
+const component_read_segment_0_1zbzildyw5vrf = () => {
+  const [count] = _captures;
+  return count.value;
+};
+const q_component_read_segment_0_1zbzildyw5vrf = /*#__PURE__*/ _noopQrl(
+  'component_read_segment_0_1zbzildyw5vrf'
+);
+q_component_read_segment_0_1zbzildyw5vrf.s(component_read_segment_0_1zbzildyw5vrf);
+const component_total_segment_1_33cb9ycgfz3ta = () => {
+  const [count] = _captures;
+  return count.value * 2;
+};
+const q_component_total_segment_1_33cb9ycgfz3ta = /*#__PURE__*/ _noopQrl(
+  'component_total_segment_1_33cb9ycgfz3ta'
+);
+q_component_total_segment_1_33cb9ycgfz3ta.s(component_total_segment_1_33cb9ycgfz3ta);
+const component_useCustomqrl_segment_2_heiedc4h1woo = () => {
+  const [count] = _captures;
+  return count.value;
+};
+const q_component_useCustomqrl_segment_2_heiedc4h1woo = /*#__PURE__*/ _noopQrl(
+  'component_useCustomqrl_segment_2_heiedc4h1woo'
+);
+q_component_useCustomqrl_segment_2_heiedc4h1woo.s(component_useCustomqrl_segment_2_heiedc4h1woo);
+const component_useLocalqrl_segment_3_34296ojkgual = () => {
+  const [count] = _captures;
+  return count.value;
+};
+const q_component_useLocalqrl_segment_3_34296ojkgual = /*#__PURE__*/ _noopQrl(
+  'component_useLocalqrl_segment_3_34296ojkgual'
+);
+q_component_useLocalqrl_segment_3_34296ojkgual.s(component_useLocalqrl_segment_3_34296ojkgual);
+export default (props, ctx) => {
+  const invokeCtx0 = getActiveInvokeContextOrNull();
+  const count = useSignal(1);
+  const read = q_component_read_segment_0_1zbzildyw5vrf.w([count]);
+  useTaskQrl(read);
+  const total = useComputedQrl(q_component_total_segment_1_33cb9ycgfz3ta.w([count]), {
+    initial: 0,
+  });
+  useCustomQrl(q_component_useCustomqrl_segment_2_heiedc4h1woo.w([count]));
+  useLocalQrl(q_component_useLocalqrl_segment_3_34296ojkgual.w([count]));
+  return maybeThen(ctx.scheduler.flush(), () =>
+    invoke(invokeCtx0, () => {
+      const id0 = ctx.nextId();
+      ctx.addRoot(total);
+      const text0 = renderSsrTextNode(id0, null, total);
+      return maybeThen(text0, (text0) => [
+        '<span q:id="',
+        createSsrNodeId(id0),
+        '">',
+        escapeHTML(text0),
+        '</span>',
+      ]);
+    })
+  );
+};
+============================= src/component.tsx_component_read_segment_0_1zbzildyw5vrf.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_read_segment_0_1zbzildyw5vrf = () => {
+  const [count] = _captures;
+  return count.value;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_read_segment_0_1zbzildyw5vrf",
+  "entry": null,
+  "displayName": "component_read_segment_0",
+  "hash": "1zbzildyw5vrf",
+  "canonicalFilename": "component.tsx_component_read_segment_0_1zbzildyw5vrf",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    330,
+    350
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_total_segment_1_33cb9ycgfz3ta.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_total_segment_1_33cb9ycgfz3ta = () => {
+  const [count] = _captures;
+  return count.value * 2;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_total_segment_1_33cb9ycgfz3ta",
+  "entry": null,
+  "displayName": "component_total_segment_1",
+  "hash": "33cb9ycgfz3ta",
+  "canonicalFilename": "component.tsx_component_total_segment_1_33cb9ycgfz3ta",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "useComputed$",
+  "captures": true,
+  "loc": [
+    386,
+    437
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_useCustomqrl_segment_2_heiedc4h1woo.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_useCustomqrl_segment_2_heiedc4h1woo = () => {
+  const [count] = _captures;
+  return count.value;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_useCustomqrl_segment_2_heiedc4h1woo",
+  "entry": null,
+  "displayName": "component_useCustomqrl_segment_2",
+  "hash": "heiedc4h1woo",
+  "canonicalFilename": "component.tsx_component_useCustomqrl_segment_2_heiedc4h1woo",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "useCustom$",
+  "captures": true,
+  "loc": [
+    441,
+    470
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_useLocalqrl_segment_3_34296ojkgual.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_useLocalqrl_segment_3_34296ojkgual = () => {
+  const [count] = _captures;
+  return count.value;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_useLocalqrl_segment_3_34296ojkgual",
+  "entry": null,
+  "displayName": "component_useLocalqrl_segment_3",
+  "hash": "34296ojkgual",
+  "canonicalFilename": "component.tsx_component_useLocalqrl_segment_3_34296ojkgual",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "useLocal$",
+  "captures": true,
+  "loc": [
+    474,
+    502
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

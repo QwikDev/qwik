@@ -213,13 +213,29 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         names
       )
     );
-    const rootRange: SsrRootRange | null = options.rootRange
-      ? { idParam: null, markerIndex: 0 }
-      : options.rowFence
-        ? // Root holes in a fenced row target the row's own marker range.
-          { idParam: RowIdParam, markerIndex: 0 }
+    const ownRange =
+      !options.rootRange && !options.rowFence && body.ops.some((op) => op.op === OpKind.Hole)
+        ? pass.next(QwikGenWord.RangeId)
         : null;
+    if (ownRange !== null) {
+      pass.statements.push(`const ${ownRange} = ${names.ctx}.nextId();`);
+      this.imports.add(QwikWord.CreateSsrNodeId);
+    }
+    const rootRange: SsrRootRange | null =
+      ownRange !== null
+        ? { idParam: ownRange, markerIndex: 0 }
+        : options.rootRange
+          ? { idParam: null, markerIndex: 0 }
+          : options.rowFence
+            ? // Root holes in a fenced row target the row's own marker range.
+              { idParam: RowIdParam, markerIndex: 0 }
+            : null;
     const parts: string[] = [];
+    if (ownRange !== null) {
+      pushMergedStatic(parts, '<!b=');
+      parts.push(`${QwikWord.CreateSsrNodeId}(${ownRange})`);
+      pushMergedStatic(parts, '>');
+    }
     if (options.rowFence) {
       this.imports.add(QwikWord.CreateSsrNodeId);
       pushMergedStatic(parts, '<!r=');
@@ -231,6 +247,9 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     }
     if (options.rowFence) {
       pushMergedStatic(parts, '<!/r>');
+    }
+    if (ownRange !== null) {
+      pushMergedStatic(parts, '<!/b>');
     }
     let value = parts.length === 0 ? "''" : parts.length === 1 ? parts[0] : `[${parts.join(', ')}]`;
     const lastStep = pass.asyncSteps[pass.asyncSteps.length - 1];
@@ -245,7 +264,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     return {
       statements: pass.statements,
       value,
-      rangeIdParam: rootRange?.idParam ?? null,
+      rangeIdParam: ownRange === null ? (rootRange?.idParam ?? null) : null,
       needsContext: pass.usedCtx || pass.statements.length > 0,
     };
   }

@@ -166,19 +166,24 @@ including keyed instance reuse and captured events after reordering. Existing sn
 
 ## 3. Dynamic render results
 
-- [ ] Distinguish text from renderable JSX values instead of routing every unknown expression
+- [x] Distinguish text from renderable JSX values instead of routing every unknown expression
       through a text hole.
 - [ ] Render nested child arrays, mixed text/elements and empty values.
 - [ ] Support transitions between text, elements, arrays and empty output.
 - [ ] Render JSX results supplied by functions, promises, signals and stores.
 - [ ] Support direct signal children if retaining that API contract from `main`.
-- [ ] Render dynamic text as the complete component result in SSR without the
+- [x] Render dynamic text as the complete component result in SSR without the
       `a root text hole outside a range` rejection.
 - [ ] Handle `||`, `??` and sequence expressions containing JSX while preserving short-circuit
       behavior and single evaluation.
 
 Reuse `ContentBlock` and dynamic-content helpers in `packages/qwik/src/core/dom/content/`;
 complete their contract rather than introducing a parallel renderer.
+
+Prop-dependent holes are resolved at application link time, including imported neutral library
+plans. Proven text retains text effects; mixed or unresolved values use existing content ranges.
+See [Linked render results](./LINKED-RENDER-RESULTS.md) for the artifact contract, verification,
+snapshot audit and remaining production-build blockers.
 
 ## 4. Component targets and factories
 
@@ -373,6 +378,23 @@ code size and runtime cost. The previous implementation is not the accepted defa
 
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
+
+- 2026-09-11: Replaced partial TypeScript syntax interpretation with declared-contract queries
+  through the TypeScript checker. Named, generic and imported types resolve before generation;
+  the default build collects type-only dependencies without emitting their runtime code.
+  Neutral module and linked plans use version 3. Existing snapshots remain unchanged.
+  Verification: 1141 tests pass (16 existing TODOs), including CSR/resume and real build-host
+  tests. Compiler build, compiler/plugin type checks, ESLint and formatting pass.
+
+- 2026-09-09: Added linked render-result analysis, neutral library artifacts and application-wide
+  linking in the default build host. Known text retains text effects; unresolved or mixed holes
+  use existing content operations. Verification: 985 pipeline tests, 8 real build-host tests,
+  plugin tests, content/serialization unit tests and CSR/resume integration tests pass (1112 tests
+  in total, 16 existing TODOs). Compiler build, compiler/plugin types, ESLint and formatting pass.
+  Typed examples preserve their original executable CSR/SSR output across 48 snapshots; only
+  inputs and source locations change. See `LINKED-RENDER-RESULTS.md` for the contract audit.
+  The full core/Router build remains blocked by unsupported Router constructs; group 15 is
+  incomplete. No cold-browser e2e run was performed.
 
 - 2026-09-08: Completed group 1's statement, declaration and return support. Authored control
   flow remains JavaScript, with setup and render replacements recorded in source payloads.

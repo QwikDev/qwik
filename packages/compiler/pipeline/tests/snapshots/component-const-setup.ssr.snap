@@ -1,7 +1,7 @@
 ==INPUT==
 
 import { useSignal } from '@qwik.dev/core';
-export const Card = (props) => {
+export const Card = (props: { title?: string; suffix: string; start: number }) => {
   const { title = 'Untitled', ...rest } = props;
   const label = title.toUpperCase(), suffix = rest.suffix;
   const count = useSignal(props.start), initial = count.value;
@@ -89,8 +89,8 @@ export const component_q_e_click_segment_0_2xwyg1cinvmpz = () => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    265,
-    315
+    316,
+    366
   ],
   "paramNames": [],
   "captureNames": [
@@ -118,8 +118,8 @@ export const component_text_segment_1_1fh10tcowimfv = (label, suffix, initial) =
   "ctxName": "text",
   "captures": true,
   "loc": [
-    322,
-    346
+    373,
+    397
   ],
   "paramNames": [],
   "captureNames": [

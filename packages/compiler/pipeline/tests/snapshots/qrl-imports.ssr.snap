@@ -4,7 +4,7 @@ import { useSignal, useComputed$, useTask$ } from '@qwik.dev/core';
 import { calculate, save } from './pricing';
 export default () => {
   const count = useSignal(2);
-  const total = useComputed$(() => calculate(count.value));
+  const total: { value: number } = useComputed$(() => calculate(count.value));
   useTask$(() => save(total.value));
   return <button onClick$={() => save(count.value)}>{total.value}</button>;
 };
@@ -83,8 +83,8 @@ export const component_total_segment_0_33cbacdkct5tt = () => {
   "ctxName": "useComputed$",
   "captures": true,
   "loc": [
-    182,
-    224
+    201,
+    243
   ],
   "paramNames": [],
   "captureNames": [
@@ -115,8 +115,8 @@ export const component_useTaskqrl_segment_1_1og80wrqqnv5v = () => {
   "ctxName": "useTask$",
   "captures": true,
   "loc": [
-    228,
-    261
+    247,
+    280
   ],
   "paramNames": [],
   "captureNames": [
@@ -147,8 +147,8 @@ export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    280,
-    314
+    299,
+    333
   ],
   "paramNames": [],
   "captureNames": [

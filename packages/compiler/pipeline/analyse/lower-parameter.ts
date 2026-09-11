@@ -16,6 +16,7 @@ import { QwikGenWord } from '../words';
 import { ValueIrKind } from '../../src/expr-ir';
 import { UnsupportedError } from '../errors';
 import type { Expression } from 'oxc-parser';
+import { patternResult } from './results';
 
 export function lowerComponentParameter(component: DiscoveredComponent, ctx: LowerContext) {
   const parameter = component.param;
@@ -45,6 +46,19 @@ export function lowerComponentParameter(component: DiscoveredComponent, ctx: Low
       ? generatedBinding(QwikGenWord.ComponentProps, BindingScope.Param, ctx)
       : null;
   surface = { kind: SurfaceKind.Object, binding: ctx.propsBinding, bindings: fields };
+  if (ctx.propsBinding !== null) {
+    for (const binding of ctx.bindings.bindingsOf(parameter.node)) {
+      const value = patternResult(
+        parameter.node,
+        binding,
+        { kind: ValueIrKind.BindingRead, binding: ctx.propsBinding },
+        ctx
+      );
+      if (value !== null) {
+        ctx.plan.bindings[binding].result = { value, writes: [], escapes: [] };
+      }
+    }
+  }
   for (const { node, name, defaultValue } of members) {
     if (name === 'children') {
       if (defaultValue !== null) {

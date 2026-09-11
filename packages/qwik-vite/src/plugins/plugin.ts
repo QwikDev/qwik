@@ -35,6 +35,7 @@ import {
   rewriteWorkerQrlChunkPlaceholders,
 } from './worker-qrl-chunks';
 import type { createTestResume } from './test-resume';
+import { createLinkedBuild, isLinkedBuildId } from './linked-build';
 
 const REG_CTX_NAME = ['server'];
 
@@ -108,6 +109,9 @@ export function createQwikPlugin(
   optimizerOptions: OptimizerOptions = {},
   testResume?: ReturnType<typeof createTestResume>
 ) {
+  const linkedBuild = createLinkedBuild();
+  const usesLinkedBuild = () =>
+    !devServer && (opts.target === 'client' || opts.target === 'ssr' || opts.target === 'lib');
   const id = `${Math.round(Math.random() * 899) + 100}`;
 
   const clientResults = new Map<string, TransformOutput>();
@@ -472,6 +476,33 @@ export function createQwikPlugin(
     clientTransformedOutputs.clear();
     serverTransformedOutputs.clear();
     testResume?.clear();
+    if (usesLinkedBuild()) {
+      await linkedBuild.buildStart(_ctx, {
+        entries: Array.isArray(opts.input) ? opts.input : Object.values(opts.input ?? {}),
+        rootDir: opts.rootDir,
+        scope: opts.scope || undefined,
+        server: getIsServer(_ctx),
+        library: opts.target === 'lib',
+        development: opts.buildMode === 'development',
+        sourceMaps: !!opts.sourcemap,
+        stripExports: [...SERVER_STRIP_EXPORTS, ...(opts.strip.exports ?? [])],
+        stripCtxName: [...SERVER_STRIP_CTX_NAME, ...(opts.strip.ctxName ?? [])],
+        onOutput(output) {
+          for (const module of output.modules) {
+            if (module.segment === null) {
+              continue;
+            }
+            parentIds.set(module.path, module.origPath!);
+            for (const callback of segmentCallbacks) {
+              callback(module.origPath!, module.segment);
+            }
+          }
+          if (!getIsServer(_ctx)) {
+            clientResults.set(opts.rootDir, { ...output, diagnostics: [] });
+          }
+        },
+      });
+    }
 
     qwikLoaderChunkRef = undefined;
     preloaderChunkRef = undefined;
@@ -671,6 +702,9 @@ export function createQwikPlugin(
     importerId: string | undefined,
     resolveOpts?: QwikResolveIdOptions
   ) => {
+    if (isLinkedBuildId(id) || (importerId !== undefined && isLinkedBuildId(importerId))) {
+      return linkedBuild.resolveId(ctx, id, importerId);
+    }
     if (isVirtualId(id)) {
       return;
     }
@@ -914,6 +948,9 @@ export function createQwikPlugin(
     id: string,
     loadOpts?: Parameters<Extract<Plugin['load'], Function>>[1]
   ): Promise<Rolldown.LoadResult> => {
+    if (isLinkedBuildId(id)) {
+      return linkedBuild.load(ctx, id);
+    }
     if (id === '\0editor') {
       // This doesn't get used, but we need to return something
       return '"opening in editor"';
@@ -1049,6 +1086,17 @@ export function createQwikPlugin(
     id: string,
     transformOpts = {} as Parameters<Extract<Plugin['transform'], Function>>[2]
   ): Promise<Rolldown.SourceDescription | undefined> {
+    if (usesLinkedBuild()) {
+      assertClientCanImport(
+        normalizePath(parseId(id).pathId),
+        undefined,
+        getIsServer(ctx, transformOpts)
+      );
+      const linked = await linkedBuild.transform(code, normalizePath(id));
+      if (linked !== null) {
+        return linked;
+      }
+    }
     // `.qwik.jsx` virtual modules (image ?jsx imports) carry real JSX and must be compiled
     if (isVirtualId(id) && !parseId(id).pathId.endsWith('.qwik.jsx')) {
       return;
@@ -1621,6 +1669,7 @@ export const isDev = ${JSON.stringify(isDev)};
   }
 
   return {
+    linkedBuild,
     buildStart,
     createOutputAnalyzer,
     getQwikBuildModule,

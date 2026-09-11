@@ -6,9 +6,9 @@ export default function App() {
   const count = useSignal(0);
   const options = useSignal({ title: 'title' });
   return <main>
-    <Display render={(value) => <button onClick$={() => count.value += value}>{value}</button>} />
-    <Display {...options.value} onResolved={({ label }) => { const text = label; return <b>{text}</b>; }} />
-    <Display>{(value) => <i>{value}</i>}</Display>
+    <Display render={(value: number) => <button onClick$={() => count.value += value}>{value}</button>} />
+    <Display {...options.value} onResolved={({ label }: { label: string }) => { const text = label; return <b>{text}</b>; }} />
+    <Display>{(value: string) => <i>{value}</i>}</Display>
   </main>;
 }
 == CSR OUTPUT ==
@@ -112,8 +112,8 @@ export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
   "ctxName": "jsx",
   "captures": true,
   "loc": [
-    240,
-    302
+    248,
+    310
   ],
   "paramNames": [],
   "captureNames": [
@@ -144,8 +144,8 @@ export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    248,
-    285
+    256,
+    293
   ],
   "paramNames": [],
   "captureNames": [
@@ -173,8 +173,8 @@ export const component_text_segment_2_1fh117dstcoge = (value) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    287,
-    292
+    295,
+    300
   ],
   "paramNames": [],
   "captureNames": [
@@ -210,7 +210,7 @@ export const component_render_segment_3_1kxav1tcxzeqy = (value) => {
   "captures": true,
   "loc": [
     221,
-    302
+    310
   ],
   "paramNames": [
     "value"
@@ -258,8 +258,8 @@ export const component_jsx_segment_4_38vnl4ypf6sea = (ctx) => {
   "ctxName": "jsx",
   "captures": true,
   "loc": [
-    395,
-    408
+    422,
+    435
   ],
   "paramNames": [],
   "captureNames": [
@@ -286,8 +286,8 @@ export const component_text_segment_5_1fh12dh4juuhz = (text) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    399,
-    403
+    426,
+    430
   ],
   "paramNames": [],
   "captureNames": [
@@ -322,8 +322,8 @@ export const component_onResolved_segment_6_cb9rinp6vivg = ({ label }) => {
   "ctxName": "onResolved",
   "captures": false,
   "loc": [
-    339,
-    388
+    347,
+    415
   ],
   "paramNames": [
     "{ label }"
@@ -357,8 +357,8 @@ export const component_props_segment_7_208nyg8uks240 = () => {
   "ctxName": "props",
   "captures": true,
   "loc": [
-    312,
-    389
+    320,
+    416
   ],
   "paramNames": [],
   "captureNames": [
@@ -404,8 +404,8 @@ export const component_jsx_segment_8_38vnmp352j0ge = (ctx) => {
   "ctxName": "jsx",
   "captures": true,
   "loc": [
-    441,
-    455
+    476,
+    490
   ],
   "paramNames": [],
   "captureNames": [
@@ -432,8 +432,8 @@ export const component_text_segment_9_1fh0xp3tlu6bn = (value) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    445,
-    450
+    480,
+    485
   ],
   "paramNames": [],
   "captureNames": [
@@ -467,8 +467,8 @@ export const component_children_segment_10_24gaz6g6wdnk5 = (value) => {
   "ctxName": "children",
   "captures": false,
   "loc": [
-    421,
-    455
+    448,
+    490
   ],
   "paramNames": [
     "value"

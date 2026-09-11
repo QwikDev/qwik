@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { transformModules } from '../compat/transform-modules';
-import { loadDefaultFunction } from './fixtures';
+import { loadDefaultFunction, readRenderedText } from './fixtures';
 import * as core from '../../../qwik/src/core/index';
 import { renderToStringCompiled } from '../../../qwik/src/server/ssr-render';
 
@@ -8,7 +8,7 @@ const bodies = [
   [
     'escaping in an early return',
     `if (true) { const label = '<script>&'; return <p>{label}</p>; }`,
-    '&lt;script&gt;&amp;',
+    '<script>&',
   ],
   [
     'statements',
@@ -181,7 +181,10 @@ export default component$((props) => { ${body} });`,
       true
     );
     const result = await renderToStringCompiled((_, ctx) => render({}, ctx));
-    expect(result.html).toContain(`${expected}</p>`);
+    expect(readRenderedText(result.html, 'p')).toEqual([expected]);
+    if (_name === 'escaping in an early return') {
+      expect(result.html).toContain('&lt;script&gt;&amp;');
+    }
     if (_name === 'try and finally') {
       expect(calls).toEqual([['finally']]);
     }

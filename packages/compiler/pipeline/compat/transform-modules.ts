@@ -1,7 +1,4 @@
-/**
- * Legacy `transformModules` surface over analyse → link(complete: false) → generate; must match the
- * legacy pipeline's full `TransformOutput` field-by-field until cutover.
- */
+/** Adapts transformModules to analysis, incomplete linking and generation. */
 import type {
   Diagnostic as OptimizerDiagnostic,
   TransformModulesOptions,
@@ -9,7 +6,13 @@ import type {
 } from '@qwik.dev/optimizer';
 import { createSourceLocation } from '../../src/source-location';
 import { analyseModule } from '../analyse/analyse-module';
-import { linkPlans, type LinkEntry } from '../link/link-plans';
+import {
+  linkPlans,
+  ResolutionKind,
+  SideEffects,
+  type LinkEntry,
+  type ResolverSnapshot,
+} from '../link/link-plans';
 import { generateJsCsr } from '../generate/js-csr';
 import { generateJsSsr } from '../generate/js-ssr';
 import {
@@ -19,6 +22,7 @@ import {
   LinkResultKind,
   type Diagnostic,
   type Specialization,
+  type ModulePlan,
 } from '../schema';
 
 /** @internal */
@@ -50,7 +54,7 @@ export async function transformModules(options: TransformModulesOptions): Promis
     plans,
     entries,
     specialization,
-    { edges: {} },
+    resolveInputEdges(plans),
     { claims: [], policies: [], emissions: [] },
     false
   );
@@ -78,6 +82,40 @@ export async function transformModules(options: TransformModulesOptions): Promis
     }),
     isTypeScript: generated.isTypeScript,
     isJsx: generated.isJsx,
+  };
+}
+
+function resolveInputEdges(plans: readonly ModulePlan[]): ResolverSnapshot {
+  const url = (path: string) => new URL(path.replaceAll('\\', '/'), 'file:///').href;
+  const paths = new Map(plans.map((plan) => [url(plan.path), plan.path]));
+  return {
+    edges: Object.fromEntries(
+      plans.map((plan) => [
+        plan.path,
+        Object.fromEntries(
+          plan.edges.map((edge) => {
+            if (!edge.specifier.startsWith('.')) {
+              return [edge.id, { r: ResolutionKind.Unresolved }];
+            }
+            const base = new URL(edge.specifier, url(plan.path)).href;
+            const target = [
+              base,
+              ...['.tsx', '.ts', '.jsx', '.js', '/index.tsx', '/index.ts', '/index.js'].map(
+                (suffix) => base + suffix
+              ),
+            ]
+              .map((candidate) => paths.get(candidate))
+              .find((path) => path !== undefined);
+            return [
+              edge.id,
+              target === undefined
+                ? { r: ResolutionKind.Unresolved }
+                : { r: ResolutionKind.Resolved, path: target, sideEffects: SideEffects.Unknown },
+            ];
+          })
+        ),
+      ])
+    ),
   };
 }
 

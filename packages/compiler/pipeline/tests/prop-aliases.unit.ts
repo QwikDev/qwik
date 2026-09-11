@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { transformModules } from '../compat/transform-modules';
-import { loadChunkFunction, loadDefaultFunction } from './fixtures';
+import { loadChunkFunction, loadDefaultFunction, readRenderedText } from './fixtures';
 import * as core from '../../../qwik/src/core/index';
 import { createDocument } from '../../../qwik/src/testing/document';
 import { Scheduler } from '../../../qwik/src/core/runtime/scheduler';
@@ -30,18 +30,24 @@ test.each([
   let reads = 0;
   let receiver: unknown = 'not called';
   let saved: unknown;
-  const props = {
-    get [propertyName]() {
-      reads++;
-      return value.value;
+  const props = core._props(
+    {
+      get [propertyName]() {
+        reads++;
+        return value.value;
+      },
+      onSave: core.inlinedQrl(function onSave(this: unknown, result: unknown) {
+        receiver = this;
+        saved = result;
+      }, 'onSave'),
     },
-    onSave(this: unknown, result: unknown) {
-      receiver = this;
-      saved = result;
-    },
-  };
+    { [propertyName]: value }
+  );
   const globals: Record<string, unknown> = {
     ...core,
+    _qrlWithChunk(chunk: string, _importer: unknown, symbol: string) {
+      return core._qrlWithChunk(chunk, async () => ({ [symbol]: globals[symbol] }), symbol);
+    },
     get _captures() {
       return core._captures;
     },
@@ -51,13 +57,15 @@ test.each([
       const symbol = module.segment.name;
       globals[symbol] = loadDefaultFunction(
         { ...module, code: `${module.code}\nexport default ${symbol};` },
-        globals
+        globals,
+        true
       );
     }
   }
   const renderComponent = loadDefaultFunction(
     output.modules.find((module) => !module.segment)!,
-    globals
+    globals,
+    true
   );
   const save = loadChunkFunction(event, [props]);
   const document = createDocument();
@@ -72,7 +80,7 @@ test.each([
     value.value = 'second';
     await scheduler.flushInteraction();
     expect(button.textContent).toBe('second');
-    save();
+    await save();
     expect(saved).toEqual({ heading: 'second' });
     expect(receiver).toBeUndefined();
   } finally {
@@ -98,14 +106,19 @@ export default ({ ${JSON.stringify(key)}: props }) => {
       ],
     });
     expect(output.diagnostics).toEqual([]);
-    const renderComponent = loadDefaultFunction(output.modules.find((module) => !module.segment)!, {
-      ...core,
-      get _captures() {
-        return core._captures;
+    const renderComponent = loadDefaultFunction(
+      output.modules.find((module) => !module.segment)!,
+      {
+        ...core,
+        get _captures() {
+          return core._captures;
+        },
       },
-    });
+      true
+    );
     const result = await renderToString(renderComponent, { props: { [key]: '<unsafe>' } });
-    expect(result.html).toContain('&lt;UNSAFE&gt;</strong>');
+    expect(result.html).toContain('&lt;UNSAFE&gt;');
+    expect(readRenderedText(result.html, 'strong')).toEqual(['<UNSAFE>']);
   }
 );
 
@@ -126,7 +139,7 @@ test.each(['format', 'useFormat'])('calls the prop alias %s in setup', async (al
   expect(output.diagnostics).toEqual([]);
   let receiver: unknown = 'not called';
   let argument: unknown;
-  const renderComponent = loadDefaultFunction(output.modules[0], core);
+  const renderComponent = loadDefaultFunction(output.modules[0], core, true);
   renderComponent(
     {
       format(this: unknown, value: unknown) {
@@ -152,13 +165,15 @@ test('a signal passed through a prop alias remains reactive', async () => {
     ],
   });
   expect(output.diagnostics).toEqual([]);
-  const read = loadChunkFunction(
-    output.modules.find((module) => module.segment?.ctxName === 'text')!
-  );
   const count = core.useSignal(1);
+  const read = loadChunkFunction(
+    output.modules.find((module) => module.segment?.ctxName === 'text')!,
+    [{ count }],
+    { createDynamicContent: (value: unknown) => value }
+  );
   const owner = core.createOwner(null);
   try {
-    const value = core.runWithOwner(owner, () => core.useComputed(() => read({ count })));
+    const value = core.runWithOwner(owner, () => core.useComputed(() => read()));
     expect(value.value).toBe(1);
     count.value = 2;
     expect(value.value).toBe(2);
@@ -179,10 +194,14 @@ test('aliased children remain a slot without reading the props object', async ()
     ],
   });
   expect(output.diagnostics).toEqual([]);
-  const render = loadDefaultFunction(output.modules[0], {
-    ...core,
-    renderSsrSlot: () => '<b>projected</b>',
-  });
+  const render = loadDefaultFunction(
+    output.modules[0],
+    {
+      ...core,
+      renderSsrSlot: () => '<b>projected</b>',
+    },
+    true
+  );
   const props = {
     get children() {
       throw new Error('children must not be read');

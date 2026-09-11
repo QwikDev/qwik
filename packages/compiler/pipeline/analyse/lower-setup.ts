@@ -304,6 +304,8 @@ function lowerLocalComponent(
       }) - 1;
     return {
       s: SetupKind.LocalComponent,
+      binding:
+        component.bindingNode === null ? null : ctx.bindings.declaration(component.bindingNode),
       program,
       id: component.name,
       name: component.name,

@@ -1,7 +1,7 @@
 ==INPUT==
 
 import { useSignal } from '@qwik.dev/core';
-export default (props) => {
+export default (props: { title: string }) => {
   const items = useSignal([]);
   const separator = useSignal(':');
   return <ul>{items.value.map(({ id, type }, index) => {
@@ -88,8 +88,8 @@ export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, item, index) =>
   "ctxName": "for:render",
   "captures": true,
   "loc": [
-    194,
-    301
+    213,
+    320
   ],
   "paramNames": [
     "{ id, type }",
@@ -126,8 +126,8 @@ export const component_for_key_segment_1_24ursak4wzpxf = (item, index) => {
   "ctxName": "for:key",
   "captures": true,
   "loc": [
-    317,
-    320
+    336,
+    339
   ],
   "paramNames": [
     "{ id, type }",
@@ -157,8 +157,8 @@ export const component_text_segment_2_1fh117dstcoge = (title) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    323,
-    328
+    342,
+    347
   ],
   "paramNames": [],
   "captureNames": [

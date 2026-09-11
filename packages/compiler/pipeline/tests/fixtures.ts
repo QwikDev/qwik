@@ -12,8 +12,14 @@ import { parseModule } from '../analyse/ast/parse';
 import { createBindingGraph } from '../analyse/ast/bindings';
 import { createLowerContext } from '../analyse/lower-context';
 import { emptyPlan } from '../analyse/plan';
+import { createDocument } from '../../../qwik/src/testing/document';
 
 export { emptyPlan as emptyModulePlan };
+
+export function readRenderedText(html: string, selector: string): (string | null)[] {
+  const document = createDocument({ html });
+  return Array.from(document.querySelectorAll(selector), (element) => element.textContent);
+}
 
 export function loadDefaultFunction(
   module: { path: string; code: string },

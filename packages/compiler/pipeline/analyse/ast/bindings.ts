@@ -33,10 +33,14 @@ interface BindingReference {
 
 export interface BindingGraph {
   readonly bindings: Binding[];
+  readonly dynamicImports: Extract<Node, { type: 'ImportExpression' }>[];
+  readonly calls: Extract<Node, { type: 'CallExpression' }>[];
   declaration(node: Node): LocalId | null;
   reference(node: Node): LocalId | null;
   declarationsOf(binding: LocalId): readonly Node[];
   assignedValuesOf(binding: LocalId): readonly Node[];
+  referencesOf(binding: LocalId): readonly BindingReference[];
+  parentOf(node: Node): Node | null;
   bindingsOf(pattern: BindingPattern): readonly LocalId[];
   /** Authored declarations in the enclosing function, including block scopes. */
   declaredWithin(roots: readonly Node[]): readonly LocalId[];
@@ -44,6 +48,9 @@ export interface BindingGraph {
   hasShadowedReferences(node: Node, destination: Node): boolean;
   dependenciesOf<T extends Node>(expression: Node | Node[], candidates: readonly T[]): T[];
   awaitsOf(fn: ArrowFunctionExpression | Function): readonly AwaitExpression[];
+  returnsOf(
+    fn: ArrowFunctionExpression | Function
+  ): readonly Extract<Node, { type: 'ReturnStatement' }>[];
   implicitKind(binding: LocalId): ImplicitBindingKind | null;
   addSynthetic(name: string, scope: BindingScope, declarationRange?: [number, number]): LocalId;
 }
@@ -69,8 +76,12 @@ function bindingIdentifiers(pattern: BindingPattern): BindingIdentifier[] {
 
 export function createBindingGraph(program: Program): BindingGraph {
   const bindings: Binding[] = [];
+  const dynamicImports: Extract<Node, { type: 'ImportExpression' }>[] = [];
+  const calls: Extract<Node, { type: 'CallExpression' }>[] = [];
   const declarations = new WeakMap<Node, LocalId>();
   const references = new WeakMap<Node, LocalId>();
+  const parents = new WeakMap<Node, Node>();
+  const referencesByBinding = new Map<LocalId, BindingReference[]>();
   const declarationNodes: Node[][] = [];
   const assignments = new Map<LocalId, Node[]>();
   const declarationScopes: Scope[] = [];
@@ -83,6 +94,7 @@ export function createBindingGraph(program: Program): BindingGraph {
   const referenceSpans = new WeakMap<Node, [number, number]>();
   const scopes = new WeakMap<Node, Scope>();
   const awaitsByScope = new WeakMap<Scope, AwaitExpression[]>();
+  const returnsByScope = new WeakMap<Scope, Extract<Node, { type: 'ReturnStatement' }>[]>();
   const implicitBindings = new WeakMap<Node, Map<ImplicitBindingKind, LocalId>>();
   const implicitKinds = new Map<LocalId, ImplicitBindingKind>();
   const moduleScope = createScope(null, true);
@@ -233,6 +245,25 @@ export function createBindingGraph(program: Program): BindingGraph {
     }
     parentScopes.set(value, scope);
     switch (value.type) {
+      case 'CallExpression':
+        calls.push(value);
+        collectChildren(value, (child) => collect(child, scope));
+        return;
+      case 'ReturnStatement': {
+        const owner = nearestFunctionScope(scope);
+        const returns = returnsByScope.get(owner);
+        if (returns === undefined) {
+          returnsByScope.set(owner, [value]);
+        } else {
+          returns.push(value);
+        }
+        collect(value.argument, scope);
+        return;
+      }
+      case 'ImportExpression':
+        dynamicImports.push(value);
+        collectChildren(value, (child) => collect(child, scope));
+        return;
       case 'AwaitExpression': {
         const owner = nearestFunctionScope(scope);
         const awaits = awaitsByScope.get(owner);
@@ -388,6 +419,9 @@ export function createBindingGraph(program: Program): BindingGraph {
       return;
     }
     const start = orderedReferences.length;
+    if (parent !== null) {
+      parents.set(value, parent);
+    }
     const activeScope = scopes.get(value) ?? scope;
     if (value.type === 'Identifier') {
       if (!declarations.has(value) && isReference(parent, key)) {
@@ -449,6 +483,13 @@ export function createBindingGraph(program: Program): BindingGraph {
     }
   };
   resolveReferences(program, moduleScope, null, '');
+  for (const reference of orderedReferences) {
+    if (reference.binding !== null) {
+      const list = referencesByBinding.get(reference.binding) ?? [];
+      list.push(reference as BindingReference);
+      referencesByBinding.set(reference.binding, list);
+    }
+  }
 
   const freeReferences = (node: Node | Node[]): BindingReference[] => {
     const roots = Array.isArray(node) ? node : [node];
@@ -477,6 +518,14 @@ export function createBindingGraph(program: Program): BindingGraph {
 
   return {
     bindings,
+    dynamicImports,
+    calls,
+    referencesOf: (binding) => referencesByBinding.get(binding) ?? [],
+    parentOf: (node) => parents.get(node) ?? null,
+    returnsOf(fn) {
+      const scope = scopes.get(fn.body ?? fn);
+      return scope === undefined ? [] : (returnsByScope.get(scope) ?? []);
+    },
     implicitKind: (binding) => implicitKinds.get(binding) ?? null,
     awaitsOf: (fn) => {
       const scope = fn.body === null ? undefined : scopes.get(fn.body);

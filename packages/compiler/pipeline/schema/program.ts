@@ -12,7 +12,7 @@ import type {
 } from './shared';
 import type { Expr, QrlUse, Value } from './value';
 import type { ValueIR } from '../../src/expr-ir';
-import type { DeclarationKind } from './module-plan';
+import type { DeclarationKind, Qrl } from './module-plan';
 
 // ---------------------------------------------------------------------------------------------
 // Program: ONE shape for every render scope — component body, branch arm, row, projection,
@@ -118,6 +118,8 @@ export type Op =
       effect: number | null;
       /** A concat operand keeps JS `String()` coercion instead of JSX text coercion. */
       stringify: boolean;
+      /** Lexical reads need captures only if linking selects a content range. */
+      contentCaptures?: { captures: Qrl['captures']; args: QrlUse['args'] };
     }
   | {
       op: OpKind.Component;
@@ -158,6 +160,8 @@ export type Op =
   | { op: OpKind.Slot; name: string; nameValue?: Value; fallback: QrlUse | null; id: Seed }
   | {
       op: OpKind.Content;
+      /** Result resolved by application linking. */
+      shape?: Shape;
       render: QrlUse;
       id: Seed;
       lifetime: LifetimeId;
@@ -332,6 +336,7 @@ export type Setup =
     }
   | {
       s: SetupKind.LocalComponent;
+      binding?: LocalId | null;
       declarationKind?: DeclarationKind;
       program: ProgramId;
       id: string;

@@ -46,10 +46,12 @@ export function createLowerContext(
 ): LowerContext {
   const slash = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
   const basename = slash === -1 ? path : path.slice(slash + 1);
+  const sourceIdentity = createSegmentSourceIdentity(path, scope);
+  plan.source.symbolNamespace = createSegmentSymbolName(sourceIdentity, 'module', 'synthetic');
   return {
     plan,
     sourceName: basename.replace(/\.[cm]?[jt]sx?$/, ''),
-    sourceIdentity: createSegmentSourceIdentity(path, scope),
+    sourceIdentity,
     segmentCounter: { next: 0 },
     branchCounter: { next: 0 },
     componentCounter: { next: 0 },

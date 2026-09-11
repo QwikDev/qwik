@@ -25,6 +25,8 @@ export type { QwikModulePlan } from './emit-plan';
 
 /** @internal */
 export { transformModules as transformPipelineModules } from '../pipeline/compat/transform-modules';
+/** @internal */
+export * as pipeline from '../pipeline';
 
 export async function transformModules(options: TransformModulesOptions): Promise<TransformOutput> {
   // native$ crosses modules: register every declaration before any module lowers a call to it

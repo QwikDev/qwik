@@ -3,7 +3,7 @@
 import { createContextId, useSignal, useContextProvider as provide, useContext as read } from '@qwik.dev/core';
 const Counter = createContextId('counter');
 export const Child = () => {
-  const count = read(Counter);
+  const count: { value: number } = read(Counter);
   return <button onClick$={() => count.value++}>{count.value}</button>;
 };
 export const Nested = () => {
@@ -110,8 +110,8 @@ export const component_q_e_click_segment_0_2xwyg1cinvmpz = () => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    233,
-    263
+    252,
+    282
   ],
   "paramNames": [],
   "captureNames": [
@@ -138,8 +138,8 @@ export const component_text_segment_1_1fh10tcowimfv = (count) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    265,
-    276
+    284,
+    295
   ],
   "paramNames": [],
   "captureNames": [

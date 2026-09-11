@@ -51,6 +51,7 @@ export interface LinkedModule {
   kind: ModuleKind;
   source: ModuleSource;
   bindings: ModulePlan['bindings'];
+  invocations?: ModulePlan['invocations'];
   lifetimes: Lifetime[];
   /** Text materialized; reads/awaits/qrls intact. */
   payloads: Payload[];

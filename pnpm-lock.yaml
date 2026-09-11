@@ -336,6 +336,9 @@ importers:
       oxc-transform:
         specifier: 0.115.0
         version: 0.115.0(@emnapi/core@1.9.2)(@emnapi/runtime@2.0.0-alpha.3)
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
 
   packages/create-qwik:
     dependencies:

@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { transformModules } from '../compat/transform-modules';
-import { loadDefaultFunction } from './fixtures';
+import { loadDefaultFunction, readRenderedText } from './fixtures';
 import * as core from '../../../qwik/src/core/index';
 import { renderToStringCompiled } from '../../../qwik/src/server/ssr-render';
 import {
@@ -83,8 +83,11 @@ export default function App() {
   );
   const { html } = await renderToStringCompiled(render);
   const prefix = name === 'captured local' ? 'prefix:' : '';
-  expect(html).toContain(`>${prefix}one</b>`);
-  expect(html).toContain(
-    `>${prefix}${name === 'destructured default' ? 'default' : '&lt;unsafe&gt;'}</b>`
-  );
+  expect(readRenderedText(html, 'b')).toEqual([
+    `${prefix}one`,
+    `${prefix}${name === 'destructured default' ? 'default' : '<unsafe>'}`,
+  ]);
+  if (name !== 'destructured default') {
+    expect(html).toContain('&lt;unsafe&gt;');
+  }
 });

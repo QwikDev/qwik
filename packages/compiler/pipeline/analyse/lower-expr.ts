@@ -25,6 +25,7 @@ import { pushPayload, pushQrl, QrlIdentityKind, type LowerContext } from './lowe
 import { LocalKind, localReadIr } from './locals';
 import type { Expression, Node } from 'oxc-parser';
 import { recordFunctionJsx } from './lower-function';
+import { expressionResult } from './results';
 
 export type ReactiveValue = Extract<Value, { v: ValueKind.Read } | { v: ValueKind.Computed }>;
 
@@ -61,6 +62,7 @@ export function lowerComputedExpressionValue(
   payloadKind = QrlPayloadKind.Value,
   role = 'expression'
 ) {
+  const result = expressionResult(expression, ctx);
   const { captures, args, refs } = lowerCaptures(expression, ctx, 'an expression');
   ctx = createCapturedContext(ctx, captures);
   const range: [number, number] = [expression.start, expression.end];
@@ -93,6 +95,7 @@ export function lowerComputedExpressionValue(
   );
   return {
     v: ValueKind.Computed as const,
+    result,
     expr,
     resume: { r: ResumeKind.Qrl as const, qrl: use },
     compilerString: false,
@@ -153,6 +156,8 @@ export function lowerInlineExpressionValue(
   const ir = tryLowerExprIr(expression, ctx);
   return {
     v: ValueKind.Computed,
+    range: [expression.start, expression.end],
+    result: expressionResult(expression, ctx),
     expr: ir === null ? { kind: ExprKind.Js, payload } : { kind: ExprKind.Ir, ir },
     resume: { r: ResumeKind.Inline },
     compilerString: false,
@@ -177,6 +182,7 @@ export function recordPayloadJsx(
   expression: Node,
   preserveAsyncContext = false
 ): void {
+  ctx.plan.payloads[payload].result = expressionResult(expression, ctx);
   for (const root of ctx.jsx.expressionRoots(expression)) {
     if (isFunctionLike(root)) {
       recordFunctionJsx(ctx, payload, root, preserveAsyncContext);
@@ -225,6 +231,8 @@ export function trySignalReadValue(
     case LocalKind.Signal:
       return {
         v: ValueKind.Read,
+        range: [expression.start, expression.end],
+        result: expressionResult(expression, ctx),
         place: { at: PlaceKind.Slot, index: local.slot },
         expr: { kind: ExprKind.Ir, ir: { kind: ValueIrKind.SignalRead, binding: local.binding } },
       };

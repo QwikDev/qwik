@@ -30,6 +30,9 @@ import {
   type Unknown,
 } from '../schema';
 import { collectQrlDependencies } from './qrl-dependencies';
+import { linkRenderResults } from './render-results';
+import { linkContent } from './link-content';
+import { ValueIrKind } from '../../src/expr-ir';
 
 export const enum ResolutionKind {
   Resolved = 'resolved',
@@ -77,7 +80,7 @@ export interface PluginSnapshot {
 }
 
 export type LinkEntry =
-  | { kind: EntryKind.Module; module: string }
+  | { kind: EntryKind.Module; module: string; exposeExports?: boolean }
   | { kind: EntryKind.Export; module: string; export: string };
 
 type LinkDiagnostic = Extract<LinkResult, { kind: LinkResultKind.Failed }>['diagnostics'][number];
@@ -192,8 +195,37 @@ export function linkPlans(
 
   const declarationsByBinding = plans.map(indexLocalDeclarations);
   const exportCache = new Map<string, Maybe<DeclRef>>();
-  const resolveLocalBinding = (module: number, binding: LocalId): Maybe<DeclRef> =>
-    declarationsByBinding[module].get(binding) ?? unknown(UnknownWhy.Opaque, 'non-portable-export');
+  const resolveLocalBinding = (
+    module: number,
+    binding: LocalId,
+    aliases = new Set<LocalId>()
+  ): Maybe<DeclRef> => {
+    if (aliases.has(binding)) {
+      return unknown(UnknownWhy.Cycle);
+    }
+    aliases.add(binding);
+    const declaration = declarationsByBinding[module].get(binding);
+    if (declaration !== undefined) {
+      return declaration;
+    }
+    const imported = plans[module].imports.find(
+      (entry) => entry.binding === binding && !entry.typeOnly
+    );
+    if (imported !== undefined && imported.imported !== '*') {
+      const target = linkedEdges[module][imported.edge].target;
+      return target.ok ? resolveExport(target.value, imported.imported) : target;
+    }
+    let result = plans[module].bindings[binding]?.result?.value;
+    while (result?.kind === 'union-result' && result.values.length === 1) {
+      result = result.values[0];
+    }
+    if (result?.kind === ValueIrKind.BindingRead) {
+      return resolveLocalBinding(module, result.binding, aliases);
+    }
+    return plans[module].bindings[binding]?.result === undefined
+      ? unknown(UnknownWhy.Opaque, 'non-portable-export')
+      : { ok: true, value: { module, table: DeclTable.Bindings, index: binding } };
+  };
 
   const resolvingExports = new Set<string>();
   const resolveExport = (module: number, exported: string): Maybe<DeclRef> => {
@@ -348,6 +380,28 @@ export function linkPlans(
   );
 
   const linkedEntries: LinkedPlan['entries'] = [];
+  const exportedNames = (module: number, seen = new Set<number>()): Set<string> => {
+    const names = new Set<string>();
+    if (seen.has(module)) {
+      return names;
+    }
+    seen.add(module);
+    for (const exported of plans[module].exports) {
+      if (exported.e !== ExportKind.Star) {
+        names.add(exported.exported);
+      } else {
+        const target = linkedEdges[module][exported.edge].target;
+        if (target.ok) {
+          for (const name of exportedNames(target.value, seen)) {
+            if (name !== 'default') {
+              names.add(name);
+            }
+          }
+        }
+      }
+    }
+    return names;
+  };
   for (const entry of entries) {
     const module = moduleByPath.get(entry.module);
     if (module === undefined) {
@@ -360,6 +414,16 @@ export function linkPlans(
     }
     if (entry.kind === EntryKind.Module) {
       linkedEntries.push({ kind: EntryKind.Module, module });
+      if (entry.exposeExports) {
+        for (const name of exportedNames(module)) {
+          linkedEntries.push({
+            kind: EntryKind.Export,
+            module,
+            export: name,
+            target: resolveExport(module, name),
+          });
+        }
+      }
     } else {
       linkedEntries.push({
         kind: EntryKind.Export,
@@ -490,7 +554,7 @@ export function linkPlans(
     if (entry.kind === EntryKind.Export) {
       if (entry.target.ok) {
         visitDecl(entry.target.value);
-      } else if (complete) {
+      } else if (complete && entry.target.reason.why !== UnknownWhy.External) {
         diagnostics.push(
           exportDiagnostic(plans[entry.module].path, entry.export, entry.target.reason)
         );
@@ -512,21 +576,21 @@ export function linkPlans(
   if (complete && diagnostics.length > 0) {
     return failed(diagnostics);
   }
-  return {
-    kind: LinkResultKind.Linked,
-    plan: {
-      format: PlanFormat.LinkedPlan,
-      version: LINKED_PLAN_VERSION,
-      specialization,
-      complete,
-      entries: linkedEntries,
-      modules: linkedModules,
-      implementations: [],
-      diagnostics: plans.flatMap((plan, module) =>
-        plan.diagnostics.map((diagnostic) => ({ module, diagnostic }))
-      ),
-    },
+  const plan: LinkedPlan = {
+    format: PlanFormat.LinkedPlan,
+    version: LINKED_PLAN_VERSION,
+    specialization,
+    complete,
+    entries: linkedEntries,
+    modules: linkedModules,
+    implementations: [],
+    diagnostics: plans.flatMap((plan, module) =>
+      plan.diagnostics.map((diagnostic) => ({ module, diagnostic }))
+    ),
   };
+  linkRenderResults(plan, visited, qrlIndexes, importsByBinding, resolveLocalBinding);
+  plan.modules.forEach(linkContent);
+  return { kind: LinkResultKind.Linked, plan };
 }
 
 function indexLocalDeclarations(plan: ModulePlan, module: number): Map<LocalId, Maybe<DeclRef>> {
@@ -566,6 +630,7 @@ function materializeModule(
     kind: plan.kind,
     source: plan.source,
     bindings: plan.bindings,
+    invocations: plan.invocations,
     lifetimes: plan.lifetimes,
     payloads: plan.payloads,
     programs,

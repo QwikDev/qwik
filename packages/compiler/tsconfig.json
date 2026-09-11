@@ -8,6 +8,7 @@
   "include": ["src", "generators", "pipeline"],
   "exclude": [
     "dist",
+    "pipeline/tests",
     "**/*.unit.ts",
     "**/*.unit.tsx",
     "**/*.spec.ts",

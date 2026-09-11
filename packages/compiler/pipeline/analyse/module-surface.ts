@@ -104,12 +104,49 @@ export function scanModuleSurface(
       }
     }
   }
+  for (const statement of importProgram.body) {
+    if (
+      (statement.type !== 'ExportNamedDeclaration' && statement.type !== 'ExportAllDeclaration') ||
+      statement.source === null
+    ) {
+      continue;
+    }
+    if (plan.edges.some((edge) => edge.specifier === statement.source!.value)) {
+      continue;
+    }
+    pushEdge(
+      plan,
+      statement.type === 'ExportAllDeclaration' ? EsmEdgeKind.ExportStar : EsmEdgeKind.Reexport,
+      statement.source.value,
+      true,
+      statement.attributes,
+      [0, 0],
+      [0, 0],
+      {
+        owner: [statement.start, statement.end],
+        source: [statement.source.start, statement.source.end],
+      }
+    );
+  }
   [...plan.edges]
     .sort((left, right) => left.authoredOwnerRange[0] - right.authoredOwnerRange[0])
     .forEach((edge, order) => {
       edge.order = order;
     });
 
+  for (const imported of bindings.dynamicImports) {
+    if (imported.source.type === 'Literal' && typeof imported.source.value === 'string') {
+      pushEdge(
+        plan,
+        EsmEdgeKind.DynamicLiteral,
+        imported.source.value,
+        false,
+        [],
+        [imported.start, imported.end],
+        [imported.source.start, imported.source.end]
+      );
+    }
+  }
   return coreBindings;
 }
 

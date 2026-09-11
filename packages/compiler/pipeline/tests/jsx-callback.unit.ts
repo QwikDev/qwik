@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { transformModules } from '../compat/transform-modules';
-import { loadDefaultFunction } from './fixtures';
+import { loadDefaultFunction, readRenderedText } from './fixtures';
 import * as core from '../../../qwik/src/core/index';
 import { renderToStringCompiled } from '../../../qwik/src/server/ssr-render';
 
@@ -57,8 +57,8 @@ export default function App() { ${body} return <Display />; }`,
     true
   );
   const { html } = await renderToStringCompiled(render);
-  expect(html).toContain('>one</b>');
-  expect(html).toContain('>&lt;unsafe&gt;</b>');
+  expect(readRenderedText(html, 'b')).toEqual(['one', '<unsafe>']);
+  expect(html).toContain('&lt;unsafe&gt;');
   expect(counts).toEqual(name === 'outer mutation' ? [2] : []);
 });
 

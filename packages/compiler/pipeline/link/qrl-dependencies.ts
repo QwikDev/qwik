@@ -21,6 +21,8 @@ import {
   type Expr,
   type ExpressionIR,
   type LinkedQrl,
+  type LinkedModule,
+  type LinkedOp,
   type LocalId,
   type ModulePlan,
   type Op,
@@ -34,7 +36,10 @@ import {
 import { ValueIrKind, collectIrBindingIds, type ValueIR } from '../../src/expr-ir';
 
 /** Dependencies follow executable edges, never enclosing authored source ranges. */
-export function collectQrlDependencies(module: ModulePlan, qrl: Qrl): LinkedQrl['dependencies'] {
+export function collectQrlDependencies(
+  module: ModulePlan | LinkedModule,
+  qrl: Qrl
+): LinkedQrl['dependencies'] {
   const bindings = new Set<LocalId>();
   const qrls = new Set<QrlId>();
   const programs = new Set<number>();
@@ -198,7 +203,7 @@ export function collectQrlDependencies(module: ModulePlan, qrl: Qrl): LinkedQrl[
     }
   }
 
-  function visitOp(entry: Op) {
+  function visitOp(entry: Op | LinkedOp) {
     switch (entry.op) {
       case OpKind.Element:
         entry.props.forEach(visitProp);
@@ -209,7 +214,10 @@ export function collectQrlDependencies(module: ModulePlan, qrl: Qrl): LinkedQrl[
         visitValue(entry.value);
         break;
       case OpKind.Component:
-        if (entry.target.t === ComponentTargetKind.Raw) {
+        if (
+          entry.target.t === ComponentTargetKind.Raw ||
+          entry.target.t === ComponentTargetKind.Declaration
+        ) {
           bindings.add(entry.target.binding);
         }
         if (entry.props.c === ComponentPropsKind.Entries) {

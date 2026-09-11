@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { transformModules } from '../compat/transform-modules';
-import { loadDefaultFunction } from './fixtures';
+import { loadDefaultFunction, readRenderedText } from './fixtures';
 import * as core from '../../../qwik/src/core/index';
 import { renderToStringCompiled } from '../../../qwik/src/server/ssr-render';
 
@@ -42,8 +42,8 @@ test.each([
   const { html } = await renderToStringCompiled((_props, ctx) =>
     core.renderSsrDynamicContent(values, ctx)
   );
-  expect(html).toContain('>one</b>');
-  expect(html).toContain('>&lt;unsafe&gt;</b>');
+  expect(readRenderedText(html, 'b')).toEqual(['one', '<unsafe>']);
+  expect(html).toContain('&lt;unsafe&gt;');
 });
 
 test.each(helpers)('renders independent module helper results: %s', async (helper) => {
@@ -71,8 +71,8 @@ test.each(helpers)('renders independent module helper results: %s', async (helpe
   const { html } = await renderToStringCompiled((_props, ctx) =>
     core.renderSsrDynamicContent([first, second], ctx)
   );
-  expect(html).toContain('>one</b>');
-  expect(html).toContain('>&lt;unsafe&gt;</b>');
+  expect(readRenderedText(html, 'b')).toEqual(['one', '<unsafe>']);
+  expect(html).toContain('&lt;unsafe&gt;');
 });
 
 test.each(['module', 'local'])(

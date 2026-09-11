@@ -1,3 +1,5 @@
+import { _props, createPropsProxy } from '../../component/props';
+import { Signal } from '../../reactive/signal';
 import { describe, it, expect } from 'vitest';
 import {
   verifySerializable,
@@ -312,4 +314,25 @@ describe('edge cases', () => {
     };
     expect(verifySerializable(value)).toEqual(value);
   });
+});
+
+it('validates serialized prop sources without invoking their getters', () => {
+  let reads = 0;
+  const props = _props(
+    {
+      get value() {
+        reads++;
+        throw Promise.resolve();
+      },
+    },
+    { value: new Signal('text') }
+  );
+  expect(() => verifySerializable(props)).not.toThrow();
+  expect(reads).toBe(0);
+  expect(() => verifySerializable(createPropsProxy(props, ['children']))).not.toThrow();
+  expect(reads).toBe(0);
+});
+
+it('still rejects nonserializable static prop values', () => {
+  expect(() => verifySerializable(_props({ value() {} }, {}))).toThrow();
 });

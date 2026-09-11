@@ -1,7 +1,7 @@
 ==INPUT==
 
 import { useStore as store } from '@qwik.dev/core';
-export default (props) => {
+export default (props: { initial: number }) => {
   const state = store(() => ({ count: props.initial }), { deep: false });
   return <button onClick$={() => state.count++}>{state.count}</button>;
 };
@@ -70,8 +70,8 @@ export const component_q_e_click_segment_0_2xwyg1cinvmpz = () => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    171,
-    201
+    192,
+    222
   ],
   "paramNames": [],
   "captureNames": [
@@ -98,8 +98,8 @@ export const component_text_segment_1_1fh10tcowimfv = (state) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    203,
-    214
+    224,
+    235
   ],
   "paramNames": [],
   "captureNames": [

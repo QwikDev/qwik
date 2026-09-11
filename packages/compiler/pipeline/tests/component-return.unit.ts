@@ -46,7 +46,7 @@ test.each([
       expect(result.html).toContain('<!b=');
       expect(result.html).toContain('<!/b>');
       if (!visible && name === 'text alternative') {
-        expect(result.html).toContain('<!t>&lt;unsafe&gt;<!/t>');
+        expect(result.html).toMatch(/<!d=[^>]+>&lt;unsafe&gt;<!\/d>/);
       } else if (!visible) {
         expect(result.html).toMatch(/<!b=[^>]+><!\/b>/);
       }

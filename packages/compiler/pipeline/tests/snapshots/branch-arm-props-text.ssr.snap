@@ -1,6 +1,6 @@
 ==INPUT==
 
-export default (props) => {
+export default (props: { enabled: boolean; label: string }) => {
   return <div>{props.enabled ? <b>{props.label}</b> : null}</div>;
 };
 
@@ -97,8 +97,8 @@ export const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    43,
-    56
+    80,
+    93
   ],
   "paramNames": [],
   "captureNames": [
@@ -154,8 +154,8 @@ export const component_branch_then_segment_1_24n7blyqktd46 = (ctx) => {
   "ctxName": "branch:then",
   "captures": true,
   "loc": [
-    59,
-    79
+    96,
+    116
   ],
   "paramNames": [],
   "captureNames": [
@@ -182,8 +182,8 @@ export const component_text_segment_2_1fh117dstcoge = (props) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    63,
-    74
+    100,
+    111
   ],
   "paramNames": [],
   "captureNames": [

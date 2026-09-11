@@ -19,6 +19,7 @@ import type {
 } from './shared';
 import type { EsmEdge, Expr, Payload, QrlUse, TaskBody, Value } from './value';
 import type { ComponentParameter, Program, Setup } from './program';
+import type { BindingResult, Result } from './result';
 
 // ---------------------------------------------------------------------------------------------
 // Qrl — the legacy SegmentPlan minus explicit evictions (stripped/registerSymbol → link policy
@@ -181,6 +182,7 @@ export const enum NativeTargetKind {
 
 /** Declaration tables addressable by exports and linked refs. QRLs are exportable roots. */
 export const enum DeclTable {
+  Bindings = 'bindings',
   Hooks = 'hooks',
   Callables = 'callables',
   Values = 'values',
@@ -213,7 +215,9 @@ export interface ModulePlan {
     scope: BindingScope;
     varKind: VarKind | null;
     declarationRange: Range | null;
+    result?: BindingResult;
   }[];
+  invocations?: { callee: Result; args: Result[] }[];
   lifetimes: Lifetime[];
   payloads: Payload[];
   programs: Program[];

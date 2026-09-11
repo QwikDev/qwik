@@ -2,7 +2,7 @@
 
 import { $, component$, createContextId, getLocale, useSignal } from '@qwik.dev/core';
 const before = observe('before'), Header = () => <h1>Title</h1>, after = observe('after');
-export default component$((props) => {
+export default component$((props: { title: string; hidden?: boolean; failed?: boolean }) => {
   let count = useSignal(1);
   var suffix = '!';
   const context = createContextId('body');
@@ -156,8 +156,8 @@ export const component_increment_segment_0_sk08s17xutli = () => {
   "ctxName": "$",
   "captures": true,
   "loc": [
-    394,
-    421
+    449,
+    476
   ],
   "paramNames": [],
   "captureNames": [
@@ -184,8 +184,8 @@ export const component_text_segment_1_1fh10tcowimfv = (props) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    579,
-    590
+    634,
+    645
   ],
   "paramNames": [],
   "captureNames": [
@@ -215,8 +215,8 @@ export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    778,
-    797
+    833,
+    852
   ],
   "paramNames": [],
   "captureNames": [

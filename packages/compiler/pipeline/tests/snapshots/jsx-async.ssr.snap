@@ -4,9 +4,9 @@ import { useSignal, useComputed$ } from '@qwik.dev/core';
 import { register, load } from './consumer';
 export default function App() {
   const count = useSignal(0);
-  register(value => Promise.resolve(<b>{value}</b>));
-  register(value => load(value).then(label => <i>{label}</i>));
-  register(async value => { const label = await load(value); return <b>{label}</b>; });
+  register((value: string) => Promise.resolve(<b>{value}</b>));
+  register((value: string) => load(value).then((label: string) => <i>{label}</i>));
+  register(async (value: string) => { const label: string = await load(value); return <b>{label}</b>; });
   const result = useComputed$(async () => {
     const create = async (_await) => {
       await load(_await);
@@ -247,8 +247,8 @@ export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
   "ctxName": "jsx",
   "captures": true,
   "loc": [
-    201,
-    215
+    211,
+    225
   ],
   "paramNames": [],
   "captureNames": [
@@ -275,8 +275,8 @@ export const component_text_segment_1_1fh10tcowimfv = (value) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    205,
-    210
+    215,
+    220
   ],
   "paramNames": [],
   "captureNames": [
@@ -332,8 +332,8 @@ export const component_jsx_segment_2_38vniss1y6gb4 = (ctx) => {
   "ctxName": "jsx",
   "captures": true,
   "loc": [
-    265,
-    279
+    295,
+    309
   ],
   "paramNames": [],
   "captureNames": [
@@ -360,8 +360,8 @@ export const component_text_segment_3_1fh11lewq6qgx = (label) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    269,
-    274
+    299,
+    304
   ],
   "paramNames": [],
   "captureNames": [
@@ -417,8 +417,8 @@ export const component_jsx_segment_4_38vnl4ypf6sea = (ctx) => {
   "ctxName": "jsx",
   "captures": true,
   "loc": [
-    351,
-    365
+    399,
+    413
   ],
   "paramNames": [],
   "captureNames": [
@@ -445,8 +445,8 @@ export const component_text_segment_5_1fh12dh4juuhz = (label) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    355,
-    360
+    403,
+    408
   ],
   "paramNames": [],
   "captureNames": [
@@ -502,8 +502,8 @@ export const component_jsx_segment_6_38vnkcwhliod8 = (ctx) => {
   "ctxName": "jsx",
   "captures": true,
   "loc": [
-    541,
-    555
+    589,
+    603
   ],
   "paramNames": [],
   "captureNames": [
@@ -530,8 +530,8 @@ export const component_text_segment_7_1fh135jcdiyj1 = (label) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    545,
-    550
+    593,
+    598
   ],
   "paramNames": [],
   "captureNames": [
@@ -575,8 +575,8 @@ export const component_result_segment_8_1732eo28f3tsm = async () => {
   "ctxName": "useComputed$",
   "captures": true,
   "loc": [
-    388,
-    598
+    436,
+    646
   ],
   "paramNames": [],
   "captureNames": [
@@ -603,8 +603,8 @@ export const component_text_segment_9_1fh0xp3tlu6bn = (result) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    618,
-    637
+    666,
+    685
   ],
   "paramNames": [],
   "captureNames": [

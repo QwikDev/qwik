@@ -2,9 +2,9 @@
 
 import { useSignal } from '@qwik.dev/core';
 import { useCustom$ as custom } from './hooks';
-export default (props) => {
+export default (props: { title: string; options: object; args: unknown[] }) => {
   const count = useSignal(1);
-  const { label } = custom(() => count.value, props.options);
+  const { label }: { label: string } = custom(() => count.value, props.options);
   custom(() => props.title, ...props.args);
   return <span>{label}</span>;
 };
@@ -74,8 +74,8 @@ export const component_useCustomqrl_segment_0_heif5ecaq0pq = () => {
   "ctxName": "useCustom$",
   "captures": true,
   "loc": [
-    170,
-    210
+    242,
+    282
   ],
   "paramNames": [],
   "captureNames": [
@@ -105,8 +105,8 @@ export const component_useCustomqrl_segment_1_heifjfg7k2q9 = () => {
   "ctxName": "useCustom$",
   "captures": true,
   "loc": [
-    214,
-    254
+    286,
+    326
   ],
   "paramNames": [],
   "captureNames": [
@@ -133,8 +133,8 @@ export const component_text_segment_2_1fh117dstcoge = (label) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    272,
-    277
+    344,
+    349
   ],
   "paramNames": [],
   "captureNames": [

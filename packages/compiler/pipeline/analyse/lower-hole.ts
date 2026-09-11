@@ -1,10 +1,11 @@
 import type { Expression } from 'oxc-parser';
-import { OpKind, Shape, type Op } from '../schema';
+import { OpKind, Shape, ValueKind, ResumeKind, type Op } from '../schema';
 import { SegmentContext } from '../words';
 import { identifierName, unwrapExpression } from './ast/utils';
 import { lowerExpressionValue } from './lower-expr';
 import type { LowerContext } from './lower-context';
 import { LocalKind } from './locals';
+import { lowerCaptures } from './ast/capture-analysis';
 
 type TextPart = { kind: 'static'; text: string } | { kind: 'expression'; expression: Expression };
 
@@ -45,12 +46,20 @@ export function lowerText(expression: Expression, ctx: LowerContext): Op[] {
 }
 
 function createTextHole(expression: Expression, ctx: LowerContext, stringify: boolean): Op {
+  const value = lowerExpressionValue(expression, ctx, SegmentContext.Text);
+  const captured =
+    value.v === ValueKind.Computed && value.resume.r === ResumeKind.Inline
+      ? lowerCaptures(expression, ctx, 'dynamic content')
+      : null;
   return {
     op: OpKind.Hole,
-    value: lowerExpressionValue(expression, ctx, SegmentContext.Text),
+    value,
     shape: Shape.Text,
     effect: null,
     stringify,
+    ...(captured === null
+      ? {}
+      : { contentCaptures: { captures: captured.captures, args: captured.args } }),
   };
 }
 

@@ -4,10 +4,10 @@ import { $, useSignal, useTask$, useComputed$ } from '@qwik.dev/core';
 import { consume } from './consumer';
 export default function App() {
   const count = useSignal(0);
-  const factory = $((value) => <b>{value}</b>);
+  const factory = $((value: number) => <b>{value}</b>);
   const computed = useComputed$(() => <i>computed</i>);
   useTask$(() => consume(<span>task</span>));
-  consume((value) => { const label = value; return <strong>{label}</strong>; });
+  consume((value: string) => { const label = value; return <strong>{label}</strong>; });
   return <button onClick$={() => {
     const native = (value) => <small>{value}</small>;
     consume(native(count.value), factory, computed.value, <b>event</b>);
@@ -191,8 +191,8 @@ export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
   "ctxName": "jsx",
   "captures": true,
   "loc": [
-    202,
-    216
+    210,
+    224
   ],
   "paramNames": [],
   "captureNames": [
@@ -219,8 +219,8 @@ export const component_text_segment_1_1fh10tcowimfv = (value) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    206,
-    211
+    214,
+    219
   ],
   "paramNames": [],
   "captureNames": [
@@ -255,7 +255,7 @@ export const component_factory_segment_2_1uubroervc02z = (value) => {
   "captures": false,
   "loc": [
     189,
-    217
+    225
   ],
   "paramNames": [
     "value"
@@ -281,8 +281,8 @@ export const component_jsx_segment_3_38vnj6t5v0ibn = (ctx) => {
   "ctxName": "jsx",
   "captures": false,
   "loc": [
-    257,
-    272
+    265,
+    280
   ],
   "paramNames": []
 }
@@ -313,8 +313,8 @@ export const component_computed_segment_4_2s31kgmgmz0s = () => {
   "ctxName": "useComputed$",
   "captures": false,
   "loc": [
-    238,
-    273
+    246,
+    281
   ],
   "paramNames": []
 }
@@ -338,8 +338,8 @@ export const component_jsx_segment_5_38vnliztc0uet = (ctx) => {
   "ctxName": "jsx",
   "captures": false,
   "loc": [
-    300,
-    317
+    308,
+    325
   ],
   "paramNames": []
 }
@@ -371,8 +371,8 @@ export const component_useTaskqrl_segment_6_1og82uxaau58i = () => {
   "ctxName": "useTask$",
   "captures": false,
   "loc": [
-    277,
-    319
+    285,
+    327
   ],
   "paramNames": []
 }
@@ -425,8 +425,8 @@ export const component_jsx_segment_7_38vnkqxlicqdr = (ctx) => {
   "ctxName": "jsx",
   "captures": true,
   "loc": [
-    372,
-    396
+    388,
+    412
   ],
   "paramNames": [],
   "captureNames": [
@@ -453,8 +453,8 @@ export const component_text_segment_8_1fh0xb2pp04b4 = (label) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    381,
-    386
+    397,
+    402
   ],
   "paramNames": [],
   "captureNames": [
@@ -510,8 +510,8 @@ export const component_jsx_segment_9_38vnn348zd2gx = (ctx) => {
   "ctxName": "jsx",
   "captures": true,
   "loc": [
-    467,
-    489
+    483,
+    505
   ],
   "paramNames": [],
   "captureNames": [
@@ -538,8 +538,8 @@ export const component_text_segment_10_2cdl418j88efl = (value) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    475,
-    480
+    491,
+    496
   ],
   "paramNames": [],
   "captureNames": [
@@ -566,8 +566,8 @@ export const component_jsx_segment_11_2wo80qpf8geko = (ctx) => {
   "ctxName": "jsx",
   "captures": false,
   "loc": [
-    549,
-    561
+    565,
+    577
   ],
   "paramNames": []
 }
@@ -606,8 +606,8 @@ export const component_q_e_click_segment_12_3lkvrpkpzrkb6 = () => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    419,
-    496
+    435,
+    512
   ],
   "paramNames": [],
   "captureNames": [

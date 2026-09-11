@@ -7,7 +7,7 @@ export default (props) => {
   const read = $(() => count.value);
   useTask$((read));
   custom(read, props.options);
-  const total = useComputed$(read);
+  const total: { value: number } = useComputed$(read);
   return <button onClick$={read}>{total.value}</button>;
 };
 

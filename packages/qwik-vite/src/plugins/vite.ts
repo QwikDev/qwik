@@ -1,3 +1,4 @@
+import { isLinkedBuildId } from './linked-build';
 import type {
   ConfigEnv,
   EnvironmentOptions,
@@ -204,7 +205,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
             : qwikViteOpts.ssr?.input
           : undefined;
       const clientInput = target === 'client' ? qwikViteOpts.client?.input : undefined;
-      let input = viteConfig.build?.rolldownOptions?.input || clientInput || ssrInput;
+      const libraryInput = viteConfig.build?.lib ? viteConfig.build.lib.entry : undefined;
+      let input =
+        viteConfig.build?.rolldownOptions?.input || clientInput || ssrInput || libraryInput;
       if (input && typeof input === 'string') {
         input = [input];
       }
@@ -540,6 +543,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     },
 
     resolveId(id, importer, resolveIdOpts) {
+      if (isLinkedBuildId(id) || (importer !== undefined && isLinkedBuildId(importer))) {
+        return qwikPlugin.resolveId(this, id, importer, resolveIdOpts);
+      }
       if (testResume.getTestSource(id) !== undefined) {
         return id;
       }
@@ -557,6 +563,9 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     },
 
     load(id, loadOpts) {
+      if (isLinkedBuildId(id)) {
+        return qwikPlugin.load(this, id, loadOpts);
+      }
       const testSource = testResume.getTestSource(id);
       if (testSource !== undefined) {
         return { code: testSource };
@@ -620,6 +629,7 @@ export function qwikVite(qwikViteOpts: QwikVitePluginOptions = {}): any {
     generateBundle: {
       order: 'post',
       async handler(_, rollupBundle) {
+        qwikPlugin.linkedBuild.generateBundle(this, rollupBundle);
         const isClient = this.environment.config.consumer === 'client';
         const isSSR = this.environment.config.consumer === 'server';
 

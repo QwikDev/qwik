@@ -1,7 +1,7 @@
 ==INPUT==
 
 import { useSignal } from '@qwik.dev/core';
-export default (props) => {
+export default (props: { items: { id: number; title: string; visible: boolean }[] }) => {
   const items = useSignal([{ id: 1, title: 'Title', visible: true }]);
   return <ul>{items.value.filter((item) => item.visible).map((item, index) => <li key={item.id}>{index + item.title}</li>)}</ul>;
 };
@@ -79,8 +79,8 @@ export const component_collection_source_segment_0_21yfn4vi2lwwj = () => {
   "ctxName": "collection:source",
   "captures": true,
   "loc": [
-    157,
-    199
+    219,
+    261
   ],
   "paramNames": [],
   "captureNames": [
@@ -120,8 +120,8 @@ export const component_for_render_segment_1_asysu8t2u0ck = (ctx, item, index) =>
   "ctxName": "for:render",
   "captures": false,
   "loc": [
-    221,
-    264
+    283,
+    326
   ],
   "paramNames": [
     "item",
@@ -148,8 +148,8 @@ export const component_for_key_segment_2_24ursol8ttrxy = (item, index) => {
   "ctxName": "for:key",
   "captures": false,
   "loc": [
-    230,
-    237
+    292,
+    299
   ],
   "paramNames": [
     "item",
@@ -176,8 +176,8 @@ export const component_text_segment_3_1fh11lewq6qgx = (index, item) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    240,
-    258
+    302,
+    320
   ],
   "paramNames": [],
   "captureNames": [

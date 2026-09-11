@@ -134,7 +134,7 @@ test('non-literal defaults retain the same object across reads and captures', as
   const renderComponent = loadDefaultFunction(output.modules[0], {
     ...core,
     createMetadata: () => metadata,
-    renderSsrTextExpression: () => '',
+    renderSsrContent: () => '',
   });
   renderComponent(
     {},
@@ -185,8 +185,13 @@ export default ({ title: heading = createTitle() }) => <button onClick$={() => (
         calls++;
         return 'fallback';
       },
-      renderSsrTextExpression(_id: unknown, _range: unknown, captures: unknown[]) {
-        captured.push(captures);
+      renderSsrContent(
+        _ctx: unknown,
+        _id: unknown,
+        _args: unknown[],
+        qrl: { getCaptured(): unknown[] }
+      ) {
+        captured.push(qrl.getCaptured());
         return '';
       },
     });
@@ -204,13 +209,15 @@ export default ({ title: heading = createTitle() }) => <button onClick$={() => (
       );
       expect(calls).toBe(initial === undefined ? 1 : 0);
       const read = loadChunkFunction(
-        output.modules.find((module) => module.segment?.ctxName === 'text')!
+        output.modules.find((module) => module.segment?.ctxName === 'text')!,
+        captured[0],
+        { renderSsrDynamicContent: (value: unknown) => value }
       );
       const event = loadChunkFunction(
         output.modules.find((module) => module.segment?.ctxName === 'onClick$')!,
         eventCaptures[0]
       );
-      const value = core.runWithOwner(owner, () => core.useComputed(() => read(...captured[0])));
+      const value = core.runWithOwner(owner, () => core.useComputed(() => read()));
       for (const next of [initial, 'changed', undefined, null, 'again']) {
         source.value = next;
         const expected =

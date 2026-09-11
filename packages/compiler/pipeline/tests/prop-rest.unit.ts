@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { transformModules } from '../compat/transform-modules';
-import { loadDefaultFunction } from './fixtures';
+import { loadDefaultFunction, readRenderedText } from './fixtures';
 import * as core from '../../../qwik/src/core/index';
 import { createDocument } from '../../../qwik/src/testing/document';
 import { Scheduler } from '../../../qwik/src/core/runtime/scheduler';
@@ -32,7 +32,8 @@ export default ({ title: heading, children, ...rest }) => <Child {...rest} title
       if (!isServer && module.segment !== null) {
         globals[module.segment.name] = loadDefaultFunction(
           { ...module, code: `${module.code}\nexport default ${module.segment.name};` },
-          globals
+          globals,
+          true
         );
       }
     }
@@ -48,7 +49,7 @@ export default ({ title: heading, children, ...rest }) => <Child {...rest} title
     };
     globals.Child = () => [];
     globals.forwardSlot = () => {};
-    const renderComponent = loadDefaultFunction(output.modules[0], globals);
+    const renderComponent = loadDefaultFunction(output.modules[0], globals, true);
     const owner = core.createOwner(null);
     const source = core.useSignal<Record<string, unknown>>({ title: 'Title', label: 'first' });
     const props = core.createPropsProxy(source);
@@ -93,12 +94,16 @@ export default ({ ${pattern} }) => {
       ],
     });
     expect(output.diagnostics).toEqual([]);
-    const render = loadDefaultFunction(output.modules[0], {
-      ...core,
-      get _captures() {
-        return core._captures;
+    const render = loadDefaultFunction(
+      output.modules[0],
+      {
+        ...core,
+        get _captures() {
+          return core._captures;
+        },
       },
-    });
+      true
+    );
     const result = await renderToStringCompiled(render, {
       props: Object.defineProperty({ label: '<unsafe>' }, 'children', {
         get() {
@@ -106,7 +111,8 @@ export default ({ ${pattern} }) => {
         },
       }),
     });
-    expect(result.html).toContain('&lt;UNSAFE&gt;</strong>');
+    expect(result.html).toContain('&lt;UNSAFE&gt;');
+    expect(readRenderedText(result.html, 'strong')).toEqual(['<UNSAFE>']);
   }
 );
 

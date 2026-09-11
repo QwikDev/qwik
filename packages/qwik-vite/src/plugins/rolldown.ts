@@ -1,3 +1,4 @@
+import { isLinkedBuildId } from './linked-build';
 import type { OutputOptions } from 'rolldown';
 import type { Rolldown } from 'vite';
 import type {
@@ -91,6 +92,9 @@ export function qwikRolldown(qwikRolldownOpts: QwikRolldownPluginOptions = {}): 
     },
 
     resolveId(id, importer) {
+      if (isLinkedBuildId(id) || (importer !== undefined && isLinkedBuildId(importer))) {
+        return qwikPlugin.resolveId(this, id, importer);
+      }
       if (isVirtualId(id)) {
         return null;
       }
@@ -98,6 +102,9 @@ export function qwikRolldown(qwikRolldownOpts: QwikRolldownPluginOptions = {}): 
     },
 
     load(id) {
+      if (isLinkedBuildId(id)) {
+        return qwikPlugin.load(this, id);
+      }
       if (isVirtualId(id)) {
         return null;
       }
@@ -112,6 +119,7 @@ export function qwikRolldown(qwikRolldownOpts: QwikRolldownPluginOptions = {}): 
     },
 
     async generateBundle(_, rollupBundle) {
+      qwikPlugin.linkedBuild.generateBundle(this, rollupBundle);
       const opts = qwikPlugin.getOptions();
 
       if (opts.target === 'client') {

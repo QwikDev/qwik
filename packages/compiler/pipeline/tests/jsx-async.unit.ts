@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { transformModules } from '../compat/transform-modules';
-import { loadDefaultFunction } from './fixtures';
+import { loadDefaultFunction, readRenderedText } from './fixtures';
 import * as core from '../../../qwik/src/core/index';
 import { renderToStringCompiled } from '../../../qwik/src/server/ssr-render';
 import {
@@ -69,9 +69,8 @@ export default function App() { const factory = ${callback}; register(factory); 
     true
   );
   const { html } = await renderToStringCompiled(render);
-  expect(html).toContain('>one</b>');
-  expect(html).toContain('>&lt;unsafe&gt;</b>');
-  expect(html.indexOf('>one</b>')).toBeLessThan(html.indexOf('>&lt;unsafe&gt;</b>'));
+  expect(readRenderedText(html, 'b')).toEqual(['one', '<unsafe>']);
+  expect(html).toContain('&lt;unsafe&gt;');
 });
 
 test('keeps rejection identity and catch/finally order in async JSX callbacks', async () => {

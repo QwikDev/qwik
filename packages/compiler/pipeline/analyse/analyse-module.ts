@@ -34,6 +34,8 @@ import { isFunctionLike } from './ast/utils';
 import { recordFunctionJsx } from './lower-function';
 import { InvalidModuleError, UnsupportedError } from '../errors';
 import type { Node } from 'oxc-parser';
+import { recordBindingResults } from './results';
+import { recordTypeContracts } from './type-results';
 
 export interface AnalyseOptions {
   transpileTs?: boolean;
@@ -111,17 +113,31 @@ export async function analyseModule(
       const foreignPlan = emptyPlan(input.path, input.code);
       const surfaceBindings = createBindingGraph(authoredProgram);
       foreignPlan.bindings = surfaceBindings.bindings;
-      scanModuleSurface(authoredProgram, null, foreignPlan, surfaceBindings);
+      const foreignCore = scanModuleSurface(authoredProgram, null, foreignPlan, surfaceBindings);
+      recordTypeContracts(foreignPlan, authoredProgram, input.code, surfaceBindings);
+      recordBindingResults(
+        createLowerContext(foreignPlan, input.path, options.scope, surfaceBindings, foreignCore)
+      );
       foreignPlan.kind = ModuleKind.Foreign;
       return foreignPlan;
     }
     plan.kind = ModuleKind.Foreign;
     plan.source.normalizationMap = null;
+    recordTypeContracts(plan, parsed.program, input.code, bindings);
+    recordBindingResults(
+      createLowerContext(plan, input.path, options.scope, bindings, coreBindings, jsx)
+    );
     return plan;
   }
 
   plan.kind = ModuleKind.Qwik;
   plan.source.code = normalized.code;
+  recordTypeContracts(
+    plan,
+    authoredProgram ?? parsed.program,
+    input.code,
+    authoredProgram === null ? bindings : undefined
+  );
   plan.lifetimes.push({
     id: 0,
     parent: null,
@@ -259,6 +275,7 @@ export async function analyseModule(
     }
     plan.assembly.push({ a: AssemblyKind.Splice, qrl: qrlIndex });
   }
+  recordBindingResults(lowerContext);
   return finish();
 }
 

@@ -17,9 +17,9 @@ export const enum PlanFormat {
   LinkedPlan = 'qwik/linked-plan',
 }
 
-// Keep pre-release contracts at 1 until the first compatibility boundary.
-export const MODULE_PLAN_VERSION = 1;
-export const LINKED_PLAN_VERSION = 1;
+// Library artifacts require the complete dependency and invocation facts.
+export const MODULE_PLAN_VERSION = 3;
+export const LINKED_PLAN_VERSION = 3;
 
 export const enum Environment {
   Server = 'server',
@@ -147,6 +147,10 @@ export interface JsonSourceMap {
 }
 
 export interface ModuleSource {
+  /** Authored type contracts survive normalization and library relocation. */
+  types?: { code: string; bindings: { binding: LocalId; start: number }[] };
+  /** Stable symbol seed survives relocation of neutral library plans. */
+  symbolNamespace?: string;
   /**
    * AUTHORED source for `ModuleKind.Foreign` (transpiled at generate); NORMALIZED executable source
    * otherwise.

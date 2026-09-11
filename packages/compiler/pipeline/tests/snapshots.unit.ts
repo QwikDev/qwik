@@ -105,9 +105,9 @@ export default App;
 import { register, load } from './consumer';
 export default function App() {
   const count = useSignal(0);
-  register(value => Promise.resolve(<b>{value}</b>));
-  register(value => load(value).then(label => <i>{label}</i>));
-  register(async value => { const label = await load(value); return <b>{label}</b>; });
+  register((value: string) => Promise.resolve(<b>{value}</b>));
+  register((value: string) => load(value).then((label: string) => <i>{label}</i>));
+  register(async (value: string) => { const label: string = await load(value); return <b>{label}</b>; });
   const result = useComputed$(async () => {
     const create = async (_await) => {
       await load(_await);
@@ -128,10 +128,10 @@ export default function App() {
 import { consume } from './consumer';
 export default function App() {
   const count = useSignal(0);
-  const factory = $((value) => <b>{value}</b>);
+  const factory = $((value: number) => <b>{value}</b>);
   const computed = useComputed$(() => <i>computed</i>);
   useTask$(() => consume(<span>task</span>));
-  consume((value) => { const label = value; return <strong>{label}</strong>; });
+  consume((value: string) => { const label = value; return <strong>{label}</strong>; });
   return <button onClick$={() => {
     const native = (value) => <small>{value}</small>;
     consume(native(count.value), factory, computed.value, <b>event</b>);
@@ -149,9 +149,9 @@ export default function App() {
   const count = useSignal(0);
   const options = useSignal({ title: 'title' });
   return <main>
-    <Display render={(value) => <button onClick$={() => count.value += value}>{value}</button>} />
-    <Display {...options.value} onResolved={({ label }) => { const text = label; return <b>{text}</b>; }} />
-    <Display>{(value) => <i>{value}</i>}</Display>
+    <Display render={(value: number) => <button onClick$={() => count.value += value}>{value}</button>} />
+    <Display {...options.value} onResolved={({ label }: { label: string }) => { const text = label; return <b>{text}</b>; }} />
+    <Display>{(value: string) => <i>{value}</i>}</Display>
   </main>;
 }`,
     });
@@ -178,7 +178,7 @@ export function Rows() {
     const output = await testInput(mode, 'jsx-call', {
       code: `import { component$, useSignal } from '@qwik.dev/core';
 import { wrap, consume } from './wrappers';
-export default component$(({ label }) => {
+export default component$(({ label }: { label: string }) => {
   const count = useSignal(0);
   consume(<span>{label}</span>);
   const content = wrap(<button onClick$={() => count.value++}>{count.value}</button>);
@@ -191,7 +191,7 @@ export default component$(({ label }) => {
   test('preserves native containers with embedded JSX values', async () => {
     const output = await testInput(mode, 'jsx-structures', {
       code: `import { component$, useSignal } from '@qwik.dev/core';
-export default component$(({ label = 'count' }) => {
+export default component$(({ label = 'count' }: { label?: string }) => {
   const count = useSignal(0);
   const views = { header: <h1>{label}</h1>, body: [<button onClick$={() => count.value++}>{count.value}</button>, [null, '<unsafe>']] };
   const content = { ...views, footer: <small>end</small> };
@@ -218,7 +218,7 @@ export default component$(() => {
     const output = await testInput(mode, 'ordinary-component-body', {
       code: `import { $, component$, createContextId, getLocale, useSignal } from '@qwik.dev/core';
 const before = observe('before'), Header = () => <h1>Title</h1>, after = observe('after');
-export default component$((props) => {
+export default component$((props: { title: string; hidden?: boolean; failed?: boolean }) => {
   let count = useSignal(1);
   var suffix = '!';
   const context = createContextId('body');
@@ -267,7 +267,7 @@ export default () => {
 import { calculate, save } from './pricing';
 export default () => {
   const count = useSignal(2);
-  const total = useComputed$(() => calculate(count.value));
+  const total: { value: number } = useComputed$(() => calculate(count.value));
   useTask$(() => save(total.value));
   return <button onClick$={() => save(count.value)}>{total.value}</button>;
 };`,
@@ -368,7 +368,7 @@ export default () => <main><Child label="child" /></main>;
       code: `import { createContextId, useSignal, useContextProvider as provide, useContext as read } from '@qwik.dev/core';
 const Counter = createContextId('counter');
 export const Child = () => {
-  const count = read(Counter);
+  const count: { value: number } = read(Counter);
   return <button onClick$={() => count.value++}>{count.value}</button>;
 };
 export const Nested = () => {
@@ -389,7 +389,7 @@ export default () => {
   test('should compile store setup through a plain hook call', async () => {
     const output = await testInput(mode, 'setup-store', {
       code: `import { useStore as store } from '@qwik.dev/core';
-export default (props) => {
+export default (props: { initial: number }) => {
   const state = store(() => ({ count: props.initial }), { deep: false });
   return <button onClick$={() => state.count++}>{state.count}</button>;
 };
@@ -432,21 +432,26 @@ export default (props) => {
   const read = $(() => count.value);
   useTask$((read));
   custom(read, props.options);
-  const total = useComputed$(read);
+  const total: { value: number } = useComputed$(read);
   return <button onClick$={read}>{total.value}</button>;
 };
 `,
     });
-    expect(output.modules.filter((module) => module.segment)).toHaveLength(1);
+    expect(
+      output.modules.filter((module) => module.segment && module.segment.ctxName !== 'content')
+    ).toHaveLength(1);
+    expect(output.modules.filter((module) => module.segment?.ctxName === 'content')).toHaveLength(
+      0
+    );
   });
 
   test('should compile generic setup hooks by their imported binding', async () => {
     await testInput(mode, 'setup-custom-hook', {
       code: `import { useSignal } from '@qwik.dev/core';
 import { useCustom$ as custom } from './hooks';
-export default (props) => {
+export default (props: { title: string; options: object; args: unknown[] }) => {
   const count = useSignal(1);
-  const { label } = custom(() => count.value, props.options);
+  const { label }: { label: string } = custom(() => count.value, props.options);
   custom(() => props.title, ...props.args);
   return <span>{label}</span>;
 };
@@ -491,18 +496,23 @@ export default () => {
   test('should forward computed options for inline and existing QRLs', async () => {
     const output = await testInput(mode, 'setup-computed-options', {
       code: `import { $, useComputed$ as computed } from '@qwik.dev/core';
-export default (props) => {
+export default (props: { initial: number }) => {
   const initial = props.initial;
   const options = { initial, timeout: 1000 };
   const read = $(async () => 42);
   const first = computed(async () => 42, { ...options, initial: () => initial });
-  const second = computed(read, ...[options]);
+  const second: { value: number } = computed(read, ...[options]);
   return <span>{first.value}:{second.value}</span>;
 };
 `,
     });
     expect(output.diagnostics).toEqual([]);
-    expect(output.modules.filter((module) => module.segment)).toHaveLength(2);
+    expect(
+      output.modules.filter((module) => module.segment && module.segment.ctxName !== 'content')
+    ).toHaveLength(2);
+    expect(output.modules.filter((module) => module.segment?.ctxName === 'content')).toHaveLength(
+      0
+    );
   });
 
   test('should compile a synchronous computed setup signal', async () => {
@@ -676,7 +686,7 @@ export default () => {
 
   test('should render a text hole reading props', async () => {
     await testInput(mode, 'text-hole-props', {
-      code: `export default (props) => {
+      code: `export default (props: { title: string }) => {
   return <p>{props.title}</p>;
 };
 `,
@@ -739,7 +749,7 @@ export default (input) => {
   test('should lower component const setup with hook and event captures', async () => {
     const output = await testInput(mode, 'component-const-setup', {
       code: `import { useSignal } from '@qwik.dev/core';
-export const Card = (props) => {
+export const Card = (props: { title?: string; suffix: string; start: number }) => {
   const { title = 'Untitled', ...rest } = props;
   const label = title.toUpperCase(), suffix = rest.suffix;
   const count = useSignal(props.start), initial = count.value;
@@ -755,7 +765,7 @@ export const Card = (props) => {
 
   test('should render a text hole in an expression-body arrow', async () => {
     await testInput(mode, 'text-hole-expression-body', {
-      code: `export default (props) => <p>{props.name}</p>;
+      code: `export default (props: { name: string }) => <p>{props.name}</p>;
 `,
     });
   });
@@ -822,7 +832,7 @@ export default () => {
 
   test('should render a props text hole with sibling children', async () => {
     await testInput(mode, 'text-hole-siblings-props', {
-      code: `export default (props) => {
+      code: `export default (props: { title: string }) => {
   return <p>a{props.title}b</p>;
 };
 `,
@@ -917,7 +927,7 @@ export default () => {
 
   test('should render a props text hole inside a branch arm', async () => {
     await testInput(mode, 'branch-arm-props-text', {
-      code: `export default (props) => {
+      code: `export default (props: { enabled: boolean; label: string }) => {
   return <div>{props.enabled ? <b>{props.label}</b> : null}</div>;
 };
 `,
@@ -1197,7 +1207,7 @@ export default () => {
 
   test('should render a sibling hole inside a nested element behind a static sibling', async () => {
     await testInput(mode, 'nested-element-hole-path', {
-      code: `export default (props) => {
+      code: `export default (props: { title: string }) => {
   return <div><b>bold</b><span>a{props.title}b</span></div>;
 };
 `,
@@ -1540,7 +1550,7 @@ export default () => {
   ])('should render expression collection sources: %s', async (kind, source, params, text) => {
     const output = await testInput(mode, `collection-source-${kind}`, {
       code: `import { useSignal } from '@qwik.dev/core';
-export default (props) => {
+export default (props: { items: { id: number; title: string; visible: boolean }[] }) => {
   const items = useSignal([{ id: 1, title: 'Title', visible: true }]);
   return <ul>{${source}.map(${params} => <li key={item.id}>{${text}}</li>)}</ul>;
 };`,
@@ -1589,8 +1599,8 @@ export default () => {
           : 'collection-key-conditional-derived',
         {
           code: `import { useSignal } from '@qwik.dev/core';
-export const Done = (props) => <b>{props.title}</b>;
-export default (props) => {
+export const Done = (props: { title: string }) => <b>{props.title}</b>;
+export default (props: { items: { id: string; done: boolean }[]; prefix: string; title: string }) => {
   const items = useSignal([]);
   const selected = useSignal(true);
   return <ul>{${source}.map(({ id, done }, index) => {
@@ -1610,7 +1620,7 @@ export default (props) => {
 
   test('should keep collection keys independent of empty arms', async () => {
     const output = await testInput(mode, 'collection-key-empty-arms', {
-      code: `export default (props) => <ul>{props.items.map(({ id, primary }, index) => {
+      code: `export default (props: { items: { id: string; primary: boolean }[]; visible: boolean; prefix: string }) => <ul>{props.items.map(({ id, primary }, index) => {
   const visible = props.visible;
   const key = props.prefix + id;
   return primary
@@ -1638,7 +1648,7 @@ export default (props) => <ul>{props.items.map(({ id, primary, secondary }, inde
   test('should select collection key setup by binding dependencies', async () => {
     const output = await testInput(mode, 'collection-key-const', {
       code: `import { useSignal } from '@qwik.dev/core';
-export default (props) => {
+export default (props: { title: string }) => {
   const items = useSignal([]);
   const separator = useSignal(':');
   return <ul>{items.value.map(({ id, type }, index) => {

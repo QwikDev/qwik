@@ -2,6 +2,7 @@
 import type { ValueIR } from '../../src/expr-ir';
 import type { BuildConstant, LocalId, PayloadId, PlaceIR, ProgramId, QrlId, Range } from './shared';
 import type { Setup } from './program';
+import type { Result } from './result';
 
 // ---------------------------------------------------------------------------------------------
 // Payloads: source text + references. Executable, and RESTORABLE: awaits live here so EVERY
@@ -18,6 +19,7 @@ export const enum ReadRole {
 }
 
 export interface Payload {
+  result?: Result;
   range: Range;
   /** Text materialized at serialization. */
   text?: string;
@@ -127,9 +129,12 @@ export const enum ResumeKind {
   Inline = 'inline',
 }
 
-export type Value =
-  /** Absent `value` = undefined. */
-  | { v: ValueKind.Static; value?: string | number | boolean | null }
+export type Value = { result?: Result; range?: Range } & (
+  | {
+      v: ValueKind.Static;
+      /** Absent `value` = undefined. */
+      value?: string | number | boolean | null;
+    }
   /** Resumes by subscription. */
   | { v: ValueKind.Read; place: PlaceIR; expr: Expr }
   | {
@@ -142,7 +147,8 @@ export type Value =
       compilerString: boolean;
     }
   | { v: ValueKind.Qrl; use: QrlUse; expr?: Expr }
-  | { v: ValueKind.Render; program: ProgramId };
+  | { v: ValueKind.Render; program: ProgramId }
+);
 
 export const enum ArgPass {
   Binding = 'binding',

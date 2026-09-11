@@ -1,7 +1,7 @@
 ==INPUT==
 
 import { component$, useSignal } from '@qwik.dev/core';
-export default component$(({ label = 'count' }) => {
+export default component$(({ label = 'count' }: { label?: string }) => {
   const count = useSignal(0);
   const views = { header: <h1>{label}</h1>, body: [<button onClick$={() => count.value++}>{count.value}</button>, [null, '<unsafe>']] };
   const content = { ...views, footer: <small>end</small> };
@@ -211,8 +211,8 @@ export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
   "ctxName": "jsx",
   "captures": true,
   "loc": [
-    165,
-    181
+    185,
+    201
   ],
   "paramNames": [],
   "captureNames": [
@@ -239,8 +239,8 @@ export const component_text_segment_1_1fh10tcowimfv = (props) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    170,
-    175
+    190,
+    195
   ],
   "paramNames": [],
   "captureNames": [
@@ -291,8 +291,8 @@ export const component_jsx_segment_2_38vniss1y6gb4 = (ctx) => {
   "ctxName": "jsx",
   "captures": true,
   "loc": [
-    190,
-    251
+    210,
+    271
   ],
   "paramNames": [],
   "captureNames": [
@@ -322,8 +322,8 @@ export const component_q_e_click_segment_3_2xwygfdmkpoqi = () => {
   "ctxName": "onClick$",
   "captures": true,
   "loc": [
-    198,
-    228
+    218,
+    248
   ],
   "paramNames": [],
   "captureNames": [
@@ -350,8 +350,8 @@ export const component_jsx_segment_4_38vnl4ypf6sea = (ctx) => {
   "ctxName": "jsx",
   "captures": false,
   "loc": [
-    314,
-    332
+    334,
+    352
   ],
   "paramNames": []
 }
@@ -378,8 +378,8 @@ export const component_content_segment_5_18525souwghet = (ctx0) => {
   "ctxName": "content",
   "captures": true,
   "loc": [
-    352,
-    366
+    372,
+    386
   ],
   "paramNames": [],
   "captureNames": [
@@ -409,8 +409,8 @@ export const component_content_segment_6_18524mlj5ybd8 = (ctx0) => {
   "ctxName": "content",
   "captures": true,
   "loc": [
-    368,
-    380
+    388,
+    400
   ],
   "paramNames": [],
   "captureNames": [
@@ -440,8 +440,8 @@ export const component_content_segment_7_185250mn2sddr = (ctx0) => {
   "ctxName": "content",
   "captures": true,
   "loc": [
-    382,
-    396
+    402,
+    416
   ],
   "paramNames": [],
   "captureNames": [

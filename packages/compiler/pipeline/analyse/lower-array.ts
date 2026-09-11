@@ -50,6 +50,7 @@ import {
 import { lowerConstBinding, lowerConstDeclaration } from './lower-setup';
 import { LocalKind, type SetupLocals } from './locals';
 import { lowerRenderExpression } from './lower-jsx';
+import { expressionResult, patternResult } from './results';
 
 export const DESTRUCTURED_WRAPPED_PARAM = 'item';
 
@@ -169,6 +170,23 @@ function lowerEach(
     });
   }
 
+  const sourceResult = expressionResult(sourceExpression, ctx);
+  parameters.forEach((parameter, index) => {
+    if (parameter.type === 'TSParameterProperty' || parameter.type === 'RestElement') {
+      return;
+    }
+    const value =
+      index === 1
+        ? { kind: 'number-result' as const }
+        : { kind: 'element-result' as const, source: sourceResult };
+    ctx.plan.bindings[paramBindings[index]].result = { value, writes: [], escapes: [] };
+    for (const binding of ctx.bindings.bindingsOf(parameter)) {
+      const result = patternResult(parameter, binding, value, ctx);
+      if (result !== null) {
+        ctx.plan.bindings[binding].result = { value: result, writes: [], escapes: [] };
+      }
+    }
+  });
   const program = ctx.plan.programs.length;
   ctx.plan.programs.push({
     body: { kind: ProgramBodyKind.Ops, ops: [] },

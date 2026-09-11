@@ -9,6 +9,7 @@ import { Signal } from '../../reactive/signal';
 import { isStore, StorePropSource } from '../../reactive/store';
 import { VisibleTaskSubscription } from '../../runtime/task';
 import { _constants } from './constants';
+import { getPropsProxyState, getPropsSources } from '../../component/props';
 
 /** @internal */
 export const verifySerializable = <T>(value: T, preMessage?: string): T => {
@@ -37,6 +38,30 @@ const _verifySerializable = <T>(
     }
     if (isKnownSerializableValue(value)) {
       return value;
+    }
+    if (typeof value === 'object') {
+      const proxy = getPropsProxyState(value);
+      if (proxy !== undefined && proxy.source !== null) {
+        _verifySerializable(proxy.source, seen, ctx, preMessage);
+        return value;
+      }
+      const sources = getPropsSources(value);
+      if (sources !== undefined) {
+        _verifySerializable(sources, seen, ctx, preMessage);
+        const keys = Object.keys(value);
+        for (let index = 0; index < keys.length; index++) {
+          const key = keys[index];
+          if (!Object.hasOwn(sources, key)) {
+            _verifySerializable(
+              (value as Record<string, unknown>)[key],
+              seen,
+              ctx + '.' + key,
+              preMessage
+            );
+          }
+        }
+        return value;
+      }
     }
     // Framework-internal branded values (e.g. route loaders/actions, validators)
     // are callables or objects that stamp __brand / __brand__ to opt out of the

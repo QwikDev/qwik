@@ -12,7 +12,12 @@ import {
   EntryKind,
   ArgKind,
 } from '../schema';
-import { deepFreeze, serverSpecialization, loadDefaultFunction } from './fixtures';
+import {
+  deepFreeze,
+  serverSpecialization,
+  loadDefaultFunction,
+  readRenderedText,
+} from './fixtures';
 import { UnsupportedError } from '../errors';
 import { ResolutionKind } from '../link/link-plans';
 import { transformModules } from '../compat/transform-modules';
@@ -42,28 +47,32 @@ export default () => {
   const signals: core.Signal<number>[] = [];
   const reads = [0, 0];
   const component = output.modules.find((module) => !module.segment)!;
-  const render = loadDefaultFunction(component, {
-    ...core,
-    get _captures() {
-      return core._captures;
+  const render = loadDefaultFunction(
+    component,
+    {
+      ...core,
+      get _captures() {
+        return core._captures;
+      },
+      useSignal(initial: number) {
+        const signal = core.useSignal(initial);
+        signals.push(signal);
+        return signal;
+      },
+      useComputedQrl: (...args: Parameters<typeof core.useComputedQrl>) => {
+        const index = computeds.length;
+        const original = args[0].resolved!;
+        args[0].s((ctx) => {
+          reads[index]++;
+          return original(ctx);
+        });
+        const computed = core.useComputedQrl(...args);
+        computeds.push(computed);
+        return computed;
+      },
     },
-    useSignal(initial: number) {
-      const signal = core.useSignal(initial);
-      signals.push(signal);
-      return signal;
-    },
-    useComputedQrl: (...args: Parameters<typeof core.useComputedQrl>) => {
-      const index = computeds.length;
-      const original = args[0].resolved!;
-      args[0].s((ctx) => {
-        reads[index]++;
-        return original(ctx);
-      });
-      const computed = core.useComputedQrl(...args);
-      computeds.push(computed);
-      return computed;
-    },
-  });
+    true
+  );
   const owner = core.createOwner(null);
   try {
     core.runWithOwner(owner, render, undefined, { nextId: () => 0, addRoot: () => 0 });
@@ -78,12 +87,16 @@ export default () => {
     core.disposeOwner(owner);
   }
   const result = await renderToString(
-    loadDefaultFunction(component, {
-      ...core,
-      get _captures() {
-        return core._captures;
+    loadDefaultFunction(
+      component,
+      {
+        ...core,
+        get _captures() {
+          return core._captures;
+        },
       },
-    })
+      true
+    )
   );
   expect(result.html).toContain('&lt;value:2&gt;</span>');
 });
@@ -112,23 +125,27 @@ export default () => {
   let count!: core.Signal<number>;
   let doubled!: ComputedQrl<unknown>;
   let runs = 0;
-  const render = loadDefaultFunction(output.modules.find((module) => !module.segment)!, {
-    ...core,
-    get _captures() {
-      return core._captures;
+  const render = loadDefaultFunction(
+    output.modules.find((module) => !module.segment)!,
+    {
+      ...core,
+      get _captures() {
+        return core._captures;
+      },
+      async ready() {
+        runs++;
+      },
+      useSignal(initial: number) {
+        count = core.useSignal(initial);
+        return count;
+      },
+      useComputedQrl(...args: Parameters<typeof core.useComputedQrl>) {
+        doubled = core.useComputedQrl(...args);
+        return doubled;
+      },
     },
-    async ready() {
-      runs++;
-    },
-    useSignal(initial: number) {
-      count = core.useSignal(initial);
-      return count;
-    },
-    useComputedQrl(...args: Parameters<typeof core.useComputedQrl>) {
-      doubled = core.useComputedQrl(...args);
-      return doubled;
-    },
-  });
+    true
+  );
   const owner = core.createOwner(null);
   try {
     core.runWithOwner(owner, render, undefined, {});
@@ -176,17 +193,21 @@ export default () => {
   });
   let runs = 0;
   let finished = false;
-  const render = loadDefaultFunction(output.modules.find((module) => !module.segment)!, {
-    ...core,
-    get _captures() {
-      return core._captures;
+  const render = loadDefaultFunction(
+    output.modules.find((module) => !module.segment)!,
+    {
+      ...core,
+      get _captures() {
+        return core._captures;
+      },
+      loadLabel() {
+        runs++;
+        started();
+        return label;
+      },
     },
-    loadLabel() {
-      runs++;
-      started();
-      return label;
-    },
-  });
+    true
+  );
   const rendering = renderToString(render).then((result) => {
     finished = true;
     return result;
@@ -195,7 +216,8 @@ export default () => {
   expect(finished).toBe(false);
   release('<value&>');
   const result = await rendering;
-  expect(result.html).toContain('&lt;value&amp;&gt;</span>');
+  expect(result.html).toContain('&lt;value&amp;&gt;');
+  expect(readRenderedText(result.html, 'span')).toEqual(['<value&>']);
   expect(runs).toBe(1);
 });
 
@@ -226,24 +248,28 @@ export default (props) => {
       let computed!: ComputedQrl<unknown>;
       let optionReads = 0;
       const options = { initial: 7 };
-      const render = loadDefaultFunction(output.modules.find((module) => !module.segment)!, {
-        ...core,
-        get _captures() {
-          return core._captures;
+      const render = loadDefaultFunction(
+        output.modules.find((module) => !module.segment)!,
+        {
+          ...core,
+          get _captures() {
+            return core._captures;
+          },
+          readOptions(seed: number) {
+            expect(seed).toBe(7);
+            optionReads++;
+            return options;
+          },
+          useComputedQrl(...args: Parameters<typeof core.useComputedQrl>) {
+            if (argument !== '{ initial: () => seed }') {
+              expect(args[1]).toBe(options);
+            }
+            computed = core.useComputedQrl(...args);
+            return computed;
+          },
         },
-        readOptions(seed: number) {
-          expect(seed).toBe(7);
-          optionReads++;
-          return options;
-        },
-        useComputedQrl(...args: Parameters<typeof core.useComputedQrl>) {
-          if (argument !== '{ initial: () => seed }') {
-            expect(args[1]).toBe(options);
-          }
-          computed = core.useComputedQrl(...args);
-          return computed;
-        },
-      });
+        true
+      );
       const owner = core.createOwner(null);
       try {
         core.runWithOwner(owner, render, { initial: 7, options }, {});

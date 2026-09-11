@@ -1,8 +1,8 @@
 ==INPUT==
 
 import { useSignal } from '@qwik.dev/core';
-export const Done = (props) => <b>{props.title}</b>;
-export default (props) => {
+export const Done = (props: { title: string }) => <b>{props.title}</b>;
+export default (props: { items: { id: string; done: boolean }[]; prefix: string; title: string }) => {
   const items = useSignal([]);
   const selected = useSignal(true);
   return <ul>{props.items.map(({ id, done }, index) => {
@@ -227,8 +227,8 @@ export const component_text_segment_0_1fh10fbkzokfc = (props) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    79,
-    90
+    98,
+    109
   ],
   "paramNames": [],
   "captureNames": [
@@ -258,8 +258,8 @@ export const component_collection_source_segment_1_21yfmque5ruw0 = () => {
   "ctxName": "collection:source",
   "captures": true,
   "loc": [
-    206,
-    217
+    300,
+    311
   ],
   "paramNames": [],
   "captureNames": [
@@ -336,8 +336,8 @@ export const component_for_render_segment_2_asyu0c4tc6e5 = (
   "ctxName": "for:render",
   "captures": true,
   "loc": [
-    247,
-    373
+    341,
+    467
   ],
   "paramNames": [
     "{ id, done }",
@@ -374,8 +374,8 @@ export const component_for_key_segment_3_24urt2mcqntyh = (item, index) => {
   "ctxName": "for:key",
   "captures": true,
   "loc": [
-    368,
-    472
+    462,
+    566
   ],
   "paramNames": [
     "{ id, done }",
@@ -409,8 +409,8 @@ export const component_branch_condition_segment_4_2fzrgupr899d5 = () => {
   "ctxName": "branch:condition",
   "captures": true,
   "loc": [
-    368,
-    375
+    462,
+    469
   ],
   "paramNames": [],
   "captureNames": [
@@ -460,8 +460,8 @@ export const component_branch_then_segment_5_24n7d63685l6a = (ctx) => {
   "ctxName": "branch:then",
   "captures": true,
   "loc": [
-    384,
-    424
+    478,
+    518
   ],
   "paramNames": [],
   "captureNames": [
@@ -490,8 +490,8 @@ export const component_title_segment_6_2f0r1pl3sdnnz = (title) => {
   "ctxName": "title",
   "captures": true,
   "loc": [
-    415,
-    420
+    509,
+    514
   ],
   "paramNames": [],
   "captureNames": [
@@ -547,8 +547,8 @@ export const component_branch_else_segment_7_19dvs9iawhlhy = (ctx) => {
   "ctxName": "branch:else",
   "captures": true,
   "loc": [
-    433,
-    472
+    527,
+    566
   ],
   "paramNames": [],
   "captureNames": [
@@ -577,8 +577,8 @@ export const component_text_segment_8_1fh0xb2pp04b4 = (title) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    461,
-    466
+    555,
+    560
   ],
   "paramNames": [],
   "captureNames": [

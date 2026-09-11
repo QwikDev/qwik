@@ -13,7 +13,8 @@ One component implementation covers all its reachable callers.
 
 Passing an object to a known consumer records a dependency on that consumer's mutations and
 escapes. Read-only consumers preserve field proofs; writes to unrelated fields do not invalidate
-them. Unknown consumers remain conservative.
+them, and a consumer's writes contribute their value kinds rather than forcing unknown, so a
+scalar write through a prop keeps a scalar proof. Unknown consumers remain conservative.
 
 Ordinary exports remain resolvable dependencies. An explicit export entry is externally
 callable. The bundler host sets `exposeExports` on its entry modules, including library entry

@@ -189,7 +189,7 @@ export const helper_text_segment_3_2krfxpmh85jlb = (prefix, label) => {
 */
 ============================= src/app.tsx ==
 
-import { _qrlWithChunk, readExpression, _props, createComponent } from '@qwik.dev/core';
+import { _qrlWithChunk, createComponent } from '@qwik.dev/core';
 
 const q_app_jsx_segment_0_3qpc3dhc6i5ki = /*#__PURE__*/ _qrlWithChunk(
   './app.tsx_app_jsx_segment_0_3qpc3dhc6i5ki',
@@ -200,11 +200,6 @@ const q_app_jsx_segment_2_3qpc2lf4cu1jg = /*#__PURE__*/ _qrlWithChunk(
   './app.tsx_app_jsx_segment_2_3qpc2lf4cu1jg',
   () => import('./app.tsx_app_jsx_segment_2_3qpc2lf4cu1jg'),
   'app_jsx_segment_2_3qpc2lf4cu1jg'
-);
-const q_app_values_segment_4_1t5jdl1hbp3vp = /*#__PURE__*/ _qrlWithChunk(
-  './app.tsx_app_values_segment_4_1t5jdl1hbp3vp',
-  () => import('./app.tsx_app_values_segment_4_1t5jdl1hbp3vp'),
-  'app_values_segment_4_1t5jdl1hbp3vp'
 );
 import { makeNode, makeFactory } from './helper';
 import { Display } from './display';
@@ -219,19 +214,7 @@ const sibling = (label) => q_app_jsx_segment_0_3qpc3dhc6i5ki.w([label]),
     function local(label) {
       return q_app_jsx_segment_2_3qpc2lf4cu1jg.w([label]);
     }
-    const propQrl0 = q_app_values_segment_4_1t5jdl1hbp3vp.w([values]);
-    const component0 = createComponent(
-      Display,
-      _props(
-        {
-          get values() {
-            return readExpression(propQrl0);
-          },
-        },
-        { values: propQrl0 }
-      ),
-      ctx
-    );
+    const component0 = createComponent(Display, { values: values }, ctx);
     return component0;
   };
 export default App;
@@ -382,34 +365,6 @@ export const app_text_segment_3_16w11pm3tti25 = (label) => {
   "paramNames": [],
   "captureNames": [
     "label"
-  ]
-}
-*/
-============================= src/app.tsx_app_values_segment_4_1t5jdl1hbp3vp.js (ENTRY POINT)==
-
-export const app_values_segment_4_1t5jdl1hbp3vp = (values) => {
-  return values;
-};
-/*
-{
-  "origin": "app.tsx",
-  "name": "app_values_segment_4_1t5jdl1hbp3vp",
-  "entry": null,
-  "displayName": "app_values_segment_4",
-  "hash": "1t5jdl1hbp3vp",
-  "canonicalFilename": "app.tsx_app_values_segment_4_1t5jdl1hbp3vp",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "values",
-  "captures": true,
-  "loc": [
-    327,
-    333
-  ],
-  "paramNames": [],
-  "captureNames": [
-    "values"
   ]
 }
 */

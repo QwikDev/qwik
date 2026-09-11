@@ -1259,6 +1259,22 @@ export default () => {
     });
   });
 
+  test('should pass local bindings as component props without a QRL', async () => {
+    const output = await testInput(mode, 'component-binding-prop', {
+      code: `import { useSignal } from '@qwik.dev/core';
+export const Child = (props) => <strong>{props.count.value}</strong>;
+export default () => {
+  const show = useSignal(true);
+  const count = useSignal(0);
+  let label = 'a';
+  label = 'b';
+  return <div>{show.value ? <Child count={count} label={label} /> : null}</div>;
+};
+`,
+    });
+    expect(output.modules.map((module) => module.code).join('\n')).not.toContain('readExpression');
+  });
+
   test('should merge component prop spreads in authored order', async () => {
     await testInput(mode, 'component-props-spread', {
       code: `export const Child = (props) => <strong>{props.label}</strong>;

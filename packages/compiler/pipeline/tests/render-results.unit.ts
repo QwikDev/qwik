@@ -332,6 +332,13 @@ describe('linked render results', () => {
     expect(holes(plan)).toEqual([Shape.Unknown]);
   });
 
+  test('keeps scalar writes through a component prop as text', async () => {
+    const plan = await link(`import { useSignal } from '@qwik.dev/core';
+      const Counter = props => { const bump = () => { props.count.value++; }; return <p>{props.count.value}</p>; };
+      export default () => { const count = useSignal(0); return <div><Counter count={count} /><b>{count.value}</b></div>; };`);
+    expect(holes(plan)).toEqual([Shape.Text, Shape.Text]);
+  });
+
   test('leaves external entry props unknown', async () => {
     expect(holes(await link(`export default props => <p>{props.value}</p>;`))).toEqual([
       Shape.Unknown,

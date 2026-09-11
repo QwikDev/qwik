@@ -815,9 +815,32 @@ function lowerPropFactory(expression: Expression, ctx: LowerContext, name: strin
 
 function lowerComponentPropValue(expression: Expression, ctx: LowerContext, name: string) {
   const use = lowerPropFactory(expression, ctx, name);
-  return use === null
-    ? lowerExpressionValue(expression, ctx, name)
-    : { v: ValueKind.Qrl as const, use };
+  if (use !== null) {
+    return { v: ValueKind.Qrl as const, use };
+  }
+  return tryLowerBindingPassValue(expression, ctx) ?? lowerExpressionValue(expression, ctx, name);
+}
+
+/** A local passed as-is is a snapshot either way, so an identity QRL would only add a chunk. */
+function tryLowerBindingPassValue(expression: Expression, ctx: LowerContext) {
+  if (expression.type !== 'Identifier') {
+    return null;
+  }
+  const binding = ctx.bindings.reference(expression);
+  const kind = binding === null ? undefined : ctx.locals.get(binding)?.kind;
+  switch (kind) {
+    case LocalKind.Const:
+    case LocalKind.Mutable:
+    case LocalKind.Signal:
+    case LocalKind.Qrl:
+      return lowerInlineExpressionValue(
+        expression,
+        ctx,
+        collectCaptures(expression, ctx, new Set())
+      );
+    default:
+      return null;
+  }
 }
 
 function lowerAttribute(

@@ -305,64 +305,67 @@ export function linkRenderResults(
     }
   });
 
-  const mayMutate = (
+  /** Kinds a mutation may write into `path`; 0 when the path provably stays untouched. */
+  const mutationKinds = (
     module: number,
     binding: number,
     path: ResultPath,
     seen: Set<string>
-  ): boolean => {
+  ): number => {
     const key = bindingKey(module, binding);
-    if (seen.has(key)) {
-      return true;
-    }
     const facts = modules[module].bindings[binding]?.result;
-    if (facts === undefined) {
-      return true;
+    if (seen.has(key) || facts === undefined) {
+      return Kind.Unknown;
     }
-    const next = new Set(seen).add(key);
     if (
-      facts.writes.some((write) =>
-        write.path.every((part, index) => matchesPath(part, path[index]))
-      ) ||
       facts.escapes.some(
         (escape) =>
           escape.length < path.length &&
           escape.every((part, index) => matchesPath(part, path[index]))
       )
     ) {
-      return true;
+      return Kind.Unknown;
     }
-    return (facts.consumers ?? []).some(
-      (consumer) =>
+    const next = new Set(seen).add(key);
+    let kinds = 0;
+    for (const write of facts.writes) {
+      if (write.path.every((part, index) => matchesPath(part, path[index]))) {
+        kinds |= evaluate(module, write.value, path.slice(write.path.length));
+      }
+    }
+    for (const consumer of facts.consumers ?? []) {
+      if (
         consumer.path.length < path.length &&
-        consumer.path.every((part, index) => matchesPath(part, path[index])) &&
-        consumerMayMutate(module, consumer, path.slice(consumer.path.length), next)
-    );
+        consumer.path.every((part, index) => matchesPath(part, path[index]))
+      ) {
+        kinds |= consumerMutationKinds(module, consumer, path.slice(consumer.path.length), next);
+      }
+    }
+    return kinds;
   };
-  const consumerMayMutate = (
+  const consumerMutationKinds = (
     module: number,
     consumer: BindingConsumer,
     path: ResultPath,
     seen: Set<string>
-  ): boolean => {
+  ): number => {
     if (consumer.target.kind === 'function-result' && consumer.property === undefined) {
       const parameter = consumer.target.params[consumer.argument];
-      return parameter == null || mayMutate(module, parameter, path, seen);
+      return parameter == null ? Kind.Unknown : mutationKinds(module, parameter, path, seen);
     }
     if (consumer.target.kind !== Ir.BindingRead) {
-      return true;
+      return Kind.Unknown;
     }
     const resolved = resolveBinding(module, consumer.target.binding);
     if (!resolved.ok) {
-      return true;
+      return Kind.Unknown;
     }
     const target = resolved.value;
     if (consumer.property !== undefined) {
       const parameter = componentProps.get(declKey(target));
-      return (
-        parameter === undefined ||
-        mayMutate(target.module, parameter, [consumer.property, ...path], seen)
-      );
+      return parameter === undefined
+        ? Kind.Unknown
+        : mutationKinds(target.module, parameter, [consumer.property, ...path], seen);
     }
     const binding =
       target.table === DeclTable.Bindings
@@ -372,13 +375,16 @@ export function linkRenderResults(
           : null;
     const declarations =
       binding == null ? [] : (functions.get(bindingKey(target.module, binding)) ?? []);
-    return (
-      declarations.length === 0 ||
-      declarations.some((fn) => {
-        const parameter = fn.params[consumer.argument];
-        return parameter == null || mayMutate(target.module, parameter, path, seen);
-      })
-    );
+    if (declarations.length === 0) {
+      return Kind.Unknown;
+    }
+    let kinds = 0;
+    for (const fn of declarations) {
+      const parameter = fn.params[consumer.argument];
+      kinds |=
+        parameter == null ? Kind.Unknown : mutationKinds(target.module, parameter, path, seen);
+    }
+    return kinds;
   };
 
   const cache = new Map<string, number>();
@@ -483,9 +489,12 @@ export function linkRenderResults(
         ) {
           continue;
         }
-        if (consumerMayMutate(moduleIndex, consumer, path.slice(consumer.path.length), new Set())) {
-          result |= Kind.Unknown;
-        }
+        result |= consumerMutationKinds(
+          moduleIndex,
+          consumer,
+          path.slice(consumer.path.length),
+          new Set()
+        );
       }
     }
     evaluating.delete(key);

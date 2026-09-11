@@ -379,6 +379,16 @@ code size and runtime cost. The previous implementation is not the accepted defa
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
 
+- 2026-09-11: Component props that pass a setup local as-is (`count={count}`) compile to plain
+  entries instead of an identity prop QRL chunk. The chunk added a lazy import and suspended
+  reads outside retrying contexts, which broke task cleanup writes through props once capture
+  validation stopped evaluating prop getters. Consumer mutations now contribute their written
+  value kinds, so a scalar write through a prop keeps the parent's text effect instead of a
+  content block. Verification: 1015 pipeline tests (16 existing TODOs), new
+  `component-binding-prop` CSR/SSR snapshots, and `task.spec.tsx`/`component.spec.tsx` in CSR
+  and resume. Core spec corpus after a fresh dev build: CSR 8 failed / 136 passed, resume
+  19 failed / 136 passed; the remaining failures predate this change.
+
 - 2026-09-11: Replaced partial TypeScript syntax interpretation with declared-contract queries
   through the TypeScript checker. Named, generic and imported types resolve before generation;
   the default build collects type-only dependencies without emitting their runtime code.

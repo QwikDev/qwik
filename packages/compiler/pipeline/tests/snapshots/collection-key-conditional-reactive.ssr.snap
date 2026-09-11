@@ -28,8 +28,6 @@ import {
   _captures,
   renderSsrCollection,
   renderSsrBranch,
-  readExpression,
-  _props,
   createComponent,
 } from '@qwik.dev/core';
 const component_text_segment_0_1fh10fbkzokfc = (props) => {
@@ -55,7 +53,7 @@ const component_for_render_segment_1_asysu8t2u0ck = (ctx, __rangeId, __rowId, it
     branchId0,
     q_component_branch_condition_segment_3_2fzrh8qv53bdo.w([visible]),
     q_component_branch_then_segment_4_24n7dk4a4zn6t.w([prefix, item, title]),
-    q_component_branch_else_segment_6_19dvsnjetbnih.w([index, item, title])
+    q_component_branch_else_segment_5_19dvrhg32thgw.w([index, item, title])
   );
   return maybeThen(branch0, (branch0) => [
     '<!r=',
@@ -94,27 +92,14 @@ q_component_branch_condition_segment_3_2fzrh8qv53bdo.s(
 );
 const component_branch_then_segment_4_24n7dk4a4zn6t = (ctx) => {
   const [prefix, item, title] = _captures;
-  ctx.addRoot(title);
-  const propQrl0 = q_component_title_segment_5_2f0r23m7p7poi.w([title]);
-  const component0 = createComponent(
-    Done,
-    _props(
-      {
-        get title() {
-          return readExpression(propQrl0);
-        },
-      },
-      { title: propQrl0 }
-    ),
-    ctx
-  );
+  const component0 = createComponent(Done, { title: title }, ctx);
   return component0;
 };
 const q_component_branch_then_segment_4_24n7dk4a4zn6t = /*#__PURE__*/ _noopQrl(
   'component_branch_then_segment_4_24n7dk4a4zn6t'
 );
 q_component_branch_then_segment_4_24n7dk4a4zn6t.s(component_branch_then_segment_4_24n7dk4a4zn6t);
-const component_branch_else_segment_6_19dvsnjetbnih = (ctx) => {
+const component_branch_else_segment_5_19dvrhg32thgw = (ctx) => {
   const [index, item, title] = _captures;
   const id0 = ctx.nextId();
   ctx.addRoot(title);
@@ -122,7 +107,7 @@ const component_branch_else_segment_6_19dvsnjetbnih = (ctx) => {
     id0,
     null,
     [title],
-    q_component_text_segment_7_1fh135jcdiyj1
+    q_component_text_segment_6_1fh12ri8gowii
   );
   return maybeThen(text0, (text0) => [
     '<li q:id="',
@@ -132,24 +117,17 @@ const component_branch_else_segment_6_19dvsnjetbnih = (ctx) => {
     '</li>',
   ]);
 };
-const q_component_branch_else_segment_6_19dvsnjetbnih = /*#__PURE__*/ _noopQrl(
-  'component_branch_else_segment_6_19dvsnjetbnih'
+const q_component_branch_else_segment_5_19dvrhg32thgw = /*#__PURE__*/ _noopQrl(
+  'component_branch_else_segment_5_19dvrhg32thgw'
 );
-q_component_branch_else_segment_6_19dvsnjetbnih.s(component_branch_else_segment_6_19dvsnjetbnih);
-const component_title_segment_5_2f0r23m7p7poi = (title) => {
+q_component_branch_else_segment_5_19dvrhg32thgw.s(component_branch_else_segment_5_19dvrhg32thgw);
+const component_text_segment_6_1fh12ri8gowii = (title) => {
   return title;
 };
-const q_component_title_segment_5_2f0r23m7p7poi = /*#__PURE__*/ _noopQrl(
-  'component_title_segment_5_2f0r23m7p7poi'
+const q_component_text_segment_6_1fh12ri8gowii = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_6_1fh12ri8gowii'
 );
-q_component_title_segment_5_2f0r23m7p7poi.s(component_title_segment_5_2f0r23m7p7poi);
-const component_text_segment_7_1fh135jcdiyj1 = (title) => {
-  return title;
-};
-const q_component_text_segment_7_1fh135jcdiyj1 = /*#__PURE__*/ _noopQrl(
-  'component_text_segment_7_1fh135jcdiyj1'
-);
-q_component_text_segment_7_1fh135jcdiyj1.s(component_text_segment_7_1fh135jcdiyj1);
+q_component_text_segment_6_1fh12ri8gowii.s(component_text_segment_6_1fh12ri8gowii);
 export const Done = (props, ctx) => {
   const id0 = ctx.nextId();
   ctx.addRoot(props);
@@ -226,7 +204,7 @@ export const component_text_segment_0_1fh10fbkzokfc = (props) => {
 import { _noopQrl, _captures, createSsrNodeId, renderSsrBranch, maybeThen } from '@qwik.dev/core';
 import { component_branch_condition_segment_3_2fzrh8qv53bdo } from './component.tsx_component_branch_condition_segment_3_2fzrh8qv53bdo';
 import { component_branch_then_segment_4_24n7dk4a4zn6t } from './component.tsx_component_branch_then_segment_4_24n7dk4a4zn6t';
-import { component_branch_else_segment_6_19dvsnjetbnih } from './component.tsx_component_branch_else_segment_6_19dvsnjetbnih';
+import { component_branch_else_segment_5_19dvrhg32thgw } from './component.tsx_component_branch_else_segment_5_19dvrhg32thgw';
 const q_component_branch_condition_segment_3_2fzrh8qv53bdo = /*#__PURE__*/ _noopQrl(
   'component_branch_condition_segment_3_2fzrh8qv53bdo'
 );
@@ -237,10 +215,10 @@ const q_component_branch_then_segment_4_24n7dk4a4zn6t = /*#__PURE__*/ _noopQrl(
   'component_branch_then_segment_4_24n7dk4a4zn6t'
 );
 q_component_branch_then_segment_4_24n7dk4a4zn6t.s(component_branch_then_segment_4_24n7dk4a4zn6t);
-const q_component_branch_else_segment_6_19dvsnjetbnih = /*#__PURE__*/ _noopQrl(
-  'component_branch_else_segment_6_19dvsnjetbnih'
+const q_component_branch_else_segment_5_19dvrhg32thgw = /*#__PURE__*/ _noopQrl(
+  'component_branch_else_segment_5_19dvrhg32thgw'
 );
-q_component_branch_else_segment_6_19dvsnjetbnih.s(component_branch_else_segment_6_19dvsnjetbnih);
+q_component_branch_else_segment_5_19dvrhg32thgw.s(component_branch_else_segment_5_19dvrhg32thgw);
 
 export const component_for_render_segment_1_asysu8t2u0ck = (
   ctx,
@@ -264,7 +242,7 @@ export const component_for_render_segment_1_asysu8t2u0ck = (
     branchId0,
     q_component_branch_condition_segment_3_2fzrh8qv53bdo.w([visible]),
     q_component_branch_then_segment_4_24n7dk4a4zn6t.w([prefix, item, title]),
-    q_component_branch_else_segment_6_19dvsnjetbnih.w([index, item, title])
+    q_component_branch_else_segment_5_19dvrhg32thgw.w([index, item, title])
   );
   return maybeThen(branch0, (branch0) => [
     '<!r=',
@@ -374,30 +352,12 @@ export const component_branch_condition_segment_3_2fzrh8qv53bdo = () => {
 */
 ============================= src/component.tsx_component_branch_then_segment_4_24n7dk4a4zn6t.js (ENTRY POINT)==
 
-import { _noopQrl, _captures, readExpression, _props, createComponent } from '@qwik.dev/core';
-import { component_title_segment_5_2f0r23m7p7poi } from './component.tsx_component_title_segment_5_2f0r23m7p7poi';
+import { _captures, createComponent } from '@qwik.dev/core';
 import { Done } from './component.tsx';
-const q_component_title_segment_5_2f0r23m7p7poi = /*#__PURE__*/ _noopQrl(
-  'component_title_segment_5_2f0r23m7p7poi'
-);
-q_component_title_segment_5_2f0r23m7p7poi.s(component_title_segment_5_2f0r23m7p7poi);
 
 export const component_branch_then_segment_4_24n7dk4a4zn6t = (ctx) => {
   const [prefix, item, title] = _captures;
-  ctx.addRoot(title);
-  const propQrl0 = q_component_title_segment_5_2f0r23m7p7poi.w([title]);
-  const component0 = createComponent(
-    Done,
-    _props(
-      {
-        get title() {
-          return readExpression(propQrl0);
-        },
-      },
-      { title: propQrl0 }
-    ),
-    ctx
-  );
+  const component0 = createComponent(Done, { title: title }, ctx);
   return component0;
 };
 /*
@@ -425,35 +385,7 @@ export const component_branch_then_segment_4_24n7dk4a4zn6t = (ctx) => {
   ]
 }
 */
-============================= src/component.tsx_component_title_segment_5_2f0r23m7p7poi.js (ENTRY POINT)==
-
-export const component_title_segment_5_2f0r23m7p7poi = (title) => {
-  return title;
-};
-/*
-{
-  "origin": "component.tsx",
-  "name": "component_title_segment_5_2f0r23m7p7poi",
-  "entry": null,
-  "displayName": "component_title_segment_5",
-  "hash": "2f0r23m7p7poi",
-  "canonicalFilename": "component.tsx_component_title_segment_5_2f0r23m7p7poi",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "title",
-  "captures": true,
-  "loc": [
-    509,
-    514
-  ],
-  "paramNames": [],
-  "captureNames": [
-    "title"
-  ]
-}
-*/
-============================= src/component.tsx_component_branch_else_segment_6_19dvsnjetbnih.js (ENTRY POINT)==
+============================= src/component.tsx_component_branch_else_segment_5_19dvrhg32thgw.js (ENTRY POINT)==
 
 import {
   _noopQrl,
@@ -463,13 +395,13 @@ import {
   renderSsrTextExpression,
   maybeThen,
 } from '@qwik.dev/core';
-import { component_text_segment_7_1fh135jcdiyj1 } from './component.tsx_component_text_segment_7_1fh135jcdiyj1';
-const q_component_text_segment_7_1fh135jcdiyj1 = /*#__PURE__*/ _noopQrl(
-  'component_text_segment_7_1fh135jcdiyj1'
+import { component_text_segment_6_1fh12ri8gowii } from './component.tsx_component_text_segment_6_1fh12ri8gowii';
+const q_component_text_segment_6_1fh12ri8gowii = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_6_1fh12ri8gowii'
 );
-q_component_text_segment_7_1fh135jcdiyj1.s(component_text_segment_7_1fh135jcdiyj1);
+q_component_text_segment_6_1fh12ri8gowii.s(component_text_segment_6_1fh12ri8gowii);
 
-export const component_branch_else_segment_6_19dvsnjetbnih = (ctx) => {
+export const component_branch_else_segment_5_19dvrhg32thgw = (ctx) => {
   const [index, item, title] = _captures;
   const id0 = ctx.nextId();
   ctx.addRoot(title);
@@ -477,7 +409,7 @@ export const component_branch_else_segment_6_19dvsnjetbnih = (ctx) => {
     id0,
     null,
     [title],
-    q_component_text_segment_7_1fh135jcdiyj1
+    q_component_text_segment_6_1fh12ri8gowii
   );
   return maybeThen(text0, (text0) => [
     '<li q:id="',
@@ -490,11 +422,11 @@ export const component_branch_else_segment_6_19dvsnjetbnih = (ctx) => {
 /*
 {
   "origin": "component.tsx",
-  "name": "component_branch_else_segment_6_19dvsnjetbnih",
+  "name": "component_branch_else_segment_5_19dvrhg32thgw",
   "entry": null,
-  "displayName": "component_branch_else_segment_6",
-  "hash": "19dvsnjetbnih",
-  "canonicalFilename": "component.tsx_component_branch_else_segment_6_19dvsnjetbnih",
+  "displayName": "component_branch_else_segment_5",
+  "hash": "19dvrhg32thgw",
+  "canonicalFilename": "component.tsx_component_branch_else_segment_5_19dvrhg32thgw",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -512,19 +444,19 @@ export const component_branch_else_segment_6_19dvsnjetbnih = (ctx) => {
   ]
 }
 */
-============================= src/component.tsx_component_text_segment_7_1fh135jcdiyj1.js (ENTRY POINT)==
+============================= src/component.tsx_component_text_segment_6_1fh12ri8gowii.js (ENTRY POINT)==
 
-export const component_text_segment_7_1fh135jcdiyj1 = (title) => {
+export const component_text_segment_6_1fh12ri8gowii = (title) => {
   return title;
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_text_segment_7_1fh135jcdiyj1",
+  "name": "component_text_segment_6_1fh12ri8gowii",
   "entry": null,
-  "displayName": "component_text_segment_7",
-  "hash": "1fh135jcdiyj1",
-  "canonicalFilename": "component.tsx_component_text_segment_7_1fh135jcdiyj1",
+  "displayName": "component_text_segment_6",
+  "hash": "1fh12ri8gowii",
+  "canonicalFilename": "component.tsx_component_text_segment_6_1fh12ri8gowii",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

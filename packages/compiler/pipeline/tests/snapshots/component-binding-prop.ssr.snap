@@ -1,0 +1,190 @@
+==INPUT==
+
+import { useSignal } from '@qwik.dev/core';
+export const Child = (props) => <strong>{props.count.value}</strong>;
+export default () => {
+  const show = useSignal(true);
+  const count = useSignal(0);
+  let label = 'a';
+  label = 'b';
+  return <div>{show.value ? <Child count={count} label={label} /> : null}</div>;
+};
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  createSsrNodeId,
+  escapeHTML,
+  renderSsrTextExpression,
+  maybeThen,
+  _noopQrl,
+  useSignal,
+  _captures,
+  renderSsrBranch,
+  createComponent,
+} from '@qwik.dev/core';
+const component_text_segment_0_1fh10fbkzokfc = (props) => {
+  return props.count.value;
+};
+const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_0_1fh10fbkzokfc'
+);
+q_component_text_segment_0_1fh10fbkzokfc.s(component_text_segment_0_1fh10fbkzokfc);
+const component_branch_condition_segment_1_2fzri0t2yrfeq = () => {
+  const [show] = _captures;
+  return show.value;
+};
+const q_component_branch_condition_segment_1_2fzri0t2yrfeq = /*#__PURE__*/ _noopQrl(
+  'component_branch_condition_segment_1_2fzri0t2yrfeq'
+);
+q_component_branch_condition_segment_1_2fzri0t2yrfeq.s(
+  component_branch_condition_segment_1_2fzri0t2yrfeq
+);
+const component_branch_then_segment_2_24n7b7xmnzb3n = (ctx) => {
+  const [count, label] = _captures;
+  const component0 = createComponent(Child, { count: count, label: label }, ctx);
+  return component0;
+};
+const q_component_branch_then_segment_2_24n7b7xmnzb3n = /*#__PURE__*/ _noopQrl(
+  'component_branch_then_segment_2_24n7b7xmnzb3n'
+);
+q_component_branch_then_segment_2_24n7b7xmnzb3n.s(component_branch_then_segment_2_24n7b7xmnzb3n);
+export const Child = (props, ctx) => {
+  const id0 = ctx.nextId();
+  ctx.addRoot(props);
+  const text0 = renderSsrTextExpression(
+    id0,
+    null,
+    [props],
+    q_component_text_segment_0_1fh10fbkzokfc
+  );
+  return maybeThen(text0, (text0) => [
+    '<strong q:id="',
+    createSsrNodeId(id0),
+    '">',
+    escapeHTML(text0),
+    '</strong>',
+  ]);
+};
+export default (props0, ctx) => {
+  const show = useSignal(true);
+  const count = useSignal(0);
+  let label = 'a';
+  label = 'b';
+  const branchId0 = ctx.nextId();
+  ctx.addRoot(show);
+  ctx.addRoot(count);
+  ctx.addRoot(label);
+  const branch0 = renderSsrBranch(
+    ctx,
+    branchId0,
+    q_component_branch_condition_segment_1_2fzri0t2yrfeq.w([show]),
+    q_component_branch_then_segment_2_24n7b7xmnzb3n.w([count, label]),
+    undefined
+  );
+  return maybeThen(branch0, (branch0) => [
+    '<div><!b=',
+    createSsrNodeId(branchId0),
+    '>',
+    branch0,
+    '<!/b></div>',
+  ]);
+};
+============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
+
+export const component_text_segment_0_1fh10fbkzokfc = (props) => {
+  return props.count.value;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_0_1fh10fbkzokfc",
+  "entry": null,
+  "displayName": "component_text_segment_0",
+  "hash": "1fh10fbkzokfc",
+  "canonicalFilename": "component.tsx_component_text_segment_0_1fh10fbkzokfc",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    85,
+    102
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_branch_condition_segment_1_2fzri0t2yrfeq.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_branch_condition_segment_1_2fzri0t2yrfeq = () => {
+  const [show] = _captures;
+  return show.value;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_branch_condition_segment_1_2fzri0t2yrfeq",
+  "entry": null,
+  "displayName": "component_branch_condition_segment_1",
+  "hash": "2fzri0t2yrfeq",
+  "canonicalFilename": "component.tsx_component_branch_condition_segment_1_2fzri0t2yrfeq",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:condition",
+  "captures": true,
+  "loc": [
+    248,
+    258
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "show"
+  ]
+}
+*/
+============================= src/component.tsx_component_branch_then_segment_2_24n7b7xmnzb3n.js (ENTRY POINT)==
+
+import { _captures, createComponent } from '@qwik.dev/core';
+import { Child } from './component.tsx';
+
+export const component_branch_then_segment_2_24n7b7xmnzb3n = (ctx) => {
+  const [count, label] = _captures;
+  const component0 = createComponent(Child, { count: count, label: label }, ctx);
+  return component0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_branch_then_segment_2_24n7b7xmnzb3n",
+  "entry": null,
+  "displayName": "component_branch_then_segment_2",
+  "hash": "24n7b7xmnzb3n",
+  "canonicalFilename": "component.tsx_component_branch_then_segment_2_24n7b7xmnzb3n",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "branch:then",
+  "captures": true,
+  "loc": [
+    261,
+    298
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count",
+    "label"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

@@ -263,8 +263,6 @@ import {
   renderSsrTextExpression,
   maybeThen,
   _noopQrl,
-  readExpression,
-  _props,
   createComponent,
 } from '@qwik.dev/core';
 
@@ -305,13 +303,6 @@ const app_jsx_segment_2_3qpc2lf4cu1jg = (ctx) => {
 };
 const q_app_jsx_segment_2_3qpc2lf4cu1jg = /*#__PURE__*/ _noopQrl('app_jsx_segment_2_3qpc2lf4cu1jg');
 q_app_jsx_segment_2_3qpc2lf4cu1jg.s(app_jsx_segment_2_3qpc2lf4cu1jg);
-const app_values_segment_4_1t5jdl1hbp3vp = (values) => {
-  return values;
-};
-const q_app_values_segment_4_1t5jdl1hbp3vp = /*#__PURE__*/ _noopQrl(
-  'app_values_segment_4_1t5jdl1hbp3vp'
-);
-q_app_values_segment_4_1t5jdl1hbp3vp.s(app_values_segment_4_1t5jdl1hbp3vp);
 const app_text_segment_3_16w11pm3tti25 = (label) => {
   return label;
 };
@@ -332,20 +323,7 @@ const sibling = (label) => q_app_jsx_segment_0_3qpc3dhc6i5ki.w([label]),
     function local(label) {
       return q_app_jsx_segment_2_3qpc2lf4cu1jg.w([label]);
     }
-    ctx.addRoot(values);
-    const propQrl0 = q_app_values_segment_4_1t5jdl1hbp3vp.w([values]);
-    const component0 = createComponent(
-      Display,
-      _props(
-        {
-          get values() {
-            return readExpression(propQrl0);
-          },
-        },
-        { values: propQrl0 }
-      ),
-      ctx
-    );
+    const component0 = createComponent(Display, { values: values }, ctx);
     return component0;
   };
 export default App;
@@ -506,34 +484,6 @@ export const app_text_segment_3_16w11pm3tti25 = (label) => {
   "paramNames": [],
   "captureNames": [
     "label"
-  ]
-}
-*/
-============================= src/app.tsx_app_values_segment_4_1t5jdl1hbp3vp.js (ENTRY POINT)==
-
-export const app_values_segment_4_1t5jdl1hbp3vp = (values) => {
-  return values;
-};
-/*
-{
-  "origin": "app.tsx",
-  "name": "app_values_segment_4_1t5jdl1hbp3vp",
-  "entry": null,
-  "displayName": "app_values_segment_4",
-  "hash": "1t5jdl1hbp3vp",
-  "canonicalFilename": "app.tsx_app_values_segment_4_1t5jdl1hbp3vp",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "values",
-  "captures": true,
-  "loc": [
-    327,
-    333
-  ],
-  "paramNames": [],
-  "captureNames": [
-    "values"
   ]
 }
 */

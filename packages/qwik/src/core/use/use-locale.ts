@@ -1,7 +1,8 @@
-import { tryGetInvokeContext } from './use-core';
 import { getAsyncLocalStorage } from '@qwik.dev/core/async-local-storage';
 import { isServer } from '@qwik.dev/core/build';
 import type { AsyncLocalStorage } from 'node:async_hooks';
+import { isPromise } from '../shared/utils/promises';
+import { tryGetInvokeContext } from './use-core';
 
 let _locale: string | undefined = undefined;
 
@@ -47,6 +48,9 @@ export function getLocale(defaultLocale?: string): string {
 /**
  * Override the `getLocale` with `lang` within the `fn` execution.
  *
+ * `fn` may be async. The locale stays set until the returned promise settles, even when
+ * AsyncLocalStorage is not available.
+ *
  * @public
  */
 export function withLocale<T>(locale: string, fn: () => T): T {
@@ -55,11 +59,29 @@ export function withLocale<T>(locale: string, fn: () => T): T {
   }
 
   const previousLang = _locale;
-  try {
-    _locale = locale;
-    return fn();
-  } finally {
+  const restore = () => {
     _locale = previousLang;
+  };
+  _locale = locale;
+  try {
+    const result = fn();
+    if (isPromise(result)) {
+      return result.then(
+        (value) => {
+          restore();
+          return value;
+        },
+        (reason) => {
+          restore();
+          throw reason;
+        }
+      ) as T;
+    }
+    restore();
+    return result;
+  } catch (err) {
+    restore();
+    throw err;
   }
 }
 

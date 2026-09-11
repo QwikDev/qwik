@@ -41,6 +41,7 @@ import {
   blocksInitialRender,
   deferRenderAfterTasks,
   emitJsSetup,
+  setupCallsSome,
   signalReadName,
 } from './emit-setup';
 import { sourceFunctionEmission, contentFunctionEmission } from './emit-function';
@@ -155,7 +156,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     );
     const setupCount = statements.length;
     const finish = (value: string): ComponentEmission =>
-      blocksInitialRender(this.module, program.setup)
+      setupCallsSome(this.module, program.setup, blocksInitialRender)
         ? deferRenderAfterTasks(
             this.imports,
             pass.next,

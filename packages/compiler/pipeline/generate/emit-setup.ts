@@ -165,17 +165,26 @@ export interface SetupEmitTarget {
   chunkImports?: string[];
 }
 
-/** Whether any setup hook, including those nested in authored statements, may start a task. */
-export function blocksInitialRender(module: LinkedModule, setup: readonly Setup[]): boolean {
+type SetupCall = Extract<Setup, { s: SetupKind.Call }>;
+
+/** Whether any setup call, including those nested in authored statements, matches. */
+export function setupCallsSome(
+  module: LinkedModule,
+  setup: readonly Setup[],
+  matches: (call: SetupCall) => boolean
+): boolean {
   return setup.some((entry) =>
     entry.s === SetupKind.Call
-      ? entry.blocksInitialRender === true
+      ? matches(entry)
       : entry.s === SetupKind.Js &&
         (module.payloads[entry.payload].setups ?? []).some((nested) =>
-          blocksInitialRender(module, nested.setup)
+          setupCallsSome(module, nested.setup, matches)
         )
   );
 }
+
+export const blocksInitialRender = (call: SetupCall): boolean => call.blocksInitialRender === true;
+export const providesContext = (call: SetupCall): boolean => call.providesContext === true;
 
 /**
  * Defers the render after `setupCount` statements until `pending` settles, keeping the invoke

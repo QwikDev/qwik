@@ -352,6 +352,8 @@ export type Setup =
       visibleTaskEvent?: VisibleTaskEvent;
       /** The call may start a task whose initial run must finish before the render. */
       blocksInitialRender?: true;
+      /** SSR marks the output so descendants resumed later find the provided scope. */
+      providesContext?: true;
       guard?: Predicate;
     }
   /** Compiler intrinsic. */

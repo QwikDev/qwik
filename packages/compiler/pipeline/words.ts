@@ -100,6 +100,7 @@ export const enum QwikGenWord {
   Attribute = 'attr',
   DefaultValue = 'defaultValue',
   InvokeContext = 'invokeCtx',
+  ContextScope = 'contextScope',
 }
 
 /** Authored hook names recognized in component setup. */
@@ -114,6 +115,7 @@ export const enum QwikHook {
   UseTask = 'useTask$',
   UseTaskQrl = 'useTaskQrl',
   UseTaskFunction = 'useTask',
+  UseContextProvider = 'useContextProvider',
 }
 
 /** Authored Qwik JSX directives recognized by the compiler. */

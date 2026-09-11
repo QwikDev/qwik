@@ -31,7 +31,7 @@ import type {
 } from 'oxc-parser';
 import { identifierName, unwrapExpression } from './ast/utils';
 import { UnsupportedError } from '../errors';
-import { QRL_SUFFIX, QwikMarker } from '../words';
+import { QRL_SUFFIX, QwikHook, QwikMarker } from '../words';
 import { coreSetupCalls } from './setup-api';
 import { LocalKind, type SetupLocals } from './locals';
 import { pushPayload, type LowerContext } from './lower-context';
@@ -528,6 +528,7 @@ function lowerSetupCall(
       pattern === null ? null : lowerSetupBinding(pattern, ctx, locals, contract?.result).result,
     ...(isVisibleTask ? { visibleTaskEvent: visibleTaskEvent(call.arguments[1]) } : {}),
     ...(blocksInitialRender ? { blocksInitialRender: true as const } : {}),
+    ...(coreApi === QwikHook.UseContextProvider ? { providesContext: true as const } : {}),
   };
 }
 

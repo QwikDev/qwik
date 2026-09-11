@@ -46,6 +46,8 @@ import {
   blocksInitialRender,
   deferRenderAfterTasks,
   emitJsSetup,
+  providesContext,
+  setupCallsSome,
   signalReadName,
 } from './emit-setup';
 import { sourceFunctionEmission, contentFunctionEmission } from './emit-function';
@@ -238,6 +240,16 @@ class SsrModuleEmitter implements QwikModuleEmitter {
               { idParam: RowIdParam, markerIndex: 0 }
             : null;
     const parts: string[] = [];
+    // Descendants resumed later locate the provided scope through this marker pair.
+    const contextScope = setupCallsSome(this.module, program.setup, providesContext)
+      ? pass.next(QwikGenWord.ContextScope)
+      : null;
+    if (contextScope !== null) {
+      pass.statements.push(`const ${contextScope} = ${names.ctx}.contextScopeRef();`);
+      pushMergedStatic(parts, '<!c=');
+      parts.push(contextScope);
+      pushMergedStatic(parts, '>');
+    }
     if (ownRange !== null) {
       pushMergedStatic(parts, '<!b=');
       parts.push(`${QwikWord.CreateSsrNodeId}(${ownRange})`);
@@ -258,6 +270,9 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     if (ownRange !== null) {
       pushMergedStatic(parts, '<!/b>');
     }
+    if (contextScope !== null) {
+      pushMergedStatic(parts, '<!/c>');
+    }
     let value = parts.length === 0 ? "''" : parts.length === 1 ? parts[0] : `[${parts.join(', ')}]`;
     const lastStep = pass.asyncSteps[pass.asyncSteps.length - 1];
     const stepsToSequence = value === lastStep ? pass.asyncSteps.slice(0, -1) : pass.asyncSteps;
@@ -269,7 +284,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       );
     }
     let statements = pass.statements;
-    if (blocksInitialRender(this.module, program.setup)) {
+    if (setupCallsSome(this.module, program.setup, blocksInitialRender)) {
       ({ statements, value } = deferRenderAfterTasks(
         this.imports,
         pass.next,

@@ -384,6 +384,11 @@ export default () => {
 `,
     });
     expect(output.diagnostics).toEqual([]);
+    // Resumed children find their provider through the serialized scope marker.
+    const code = output.modules.map((module) => module.code).join('\n');
+    const providers = code.match(/contextScopeRef\(\)/g)?.length ?? 0;
+    expect(providers).toBe(mode === 'ssr' ? 2 : 0);
+    expect(code.includes('"<!c="')).toBe(mode === 'ssr');
   });
 
   test('should compile store setup through a plain hook call', async () => {

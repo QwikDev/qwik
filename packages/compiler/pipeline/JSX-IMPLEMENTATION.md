@@ -318,6 +318,9 @@ Do not restore serialization of a children tree merely to reproduce old VNode op
 - [ ] Assign scoped IDs and propagate scoped classes.
 - [ ] Preserve authored style scope across branches, collections, projections and dynamic content.
 - [ ] Multiple scoped styles and deduplication.
+- [x] Serialize the provided context scope in SSR: components calling `useContextProvider` wrap
+      their output in `<!c=…>`/`<!/c>` markers so branches, rows and projections resumed later
+      find the scope. Custom hooks that provide context internally are not yet detected.
 - [ ] Preserve context/owner across every newly supported rendering callback.
 - [x] Register `useVisibleTask$` in SSR as a client wake event (`qvisible`, or `qinit`/`qidle`
       for the document strategies) instead of calling the hook on the server.
@@ -382,6 +385,12 @@ code size and runtime cost. The previous implementation is not the accepted defa
 
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
+
+- 2026-09-11: SSR output of a component that calls `useContextProvider` records
+  `ctx.contextScopeRef()` and wraps its markup in `<!c=…>`/`<!/c>`, the marker pair the resume
+  side already reads through `getContextScopeForNode`. Verification: 1023 pipeline tests
+  (16 existing TODOs), the `setup-context` SSR snapshot, and `context.spec.tsx`/`slot.spec.tsx`
+  in resume. Core spec corpus: resume 9 → 3 failed, CSR unchanged at 4.
 
 - 2026-09-11: Setup calls to `$` hooks follow the Rust optimizer's marker rule: core hooks lower
   to typed core operations that each generator names itself; a named custom `$` import from any

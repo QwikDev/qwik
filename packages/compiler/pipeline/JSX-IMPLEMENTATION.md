@@ -319,6 +319,8 @@ Do not restore serialization of a children tree merely to reproduce old VNode op
 - [ ] Preserve authored style scope across branches, collections, projections and dynamic content.
 - [ ] Multiple scoped styles and deduplication.
 - [ ] Preserve context/owner across every newly supported rendering callback.
+- [x] Register `useVisibleTask$` in SSR as a client wake event (`qvisible`, or `qinit`/`qidle`
+      for the document strategies) instead of calling the hook on the server.
 - [ ] Verify `useId`, `useOn*`, tasks and cleanup for headless components and new root shapes.
 
 Much of the hook runtime already exists; complete compiler output and scope propagation rather
@@ -378,6 +380,13 @@ code size and runtime cost. The previous implementation is not the accepted defa
 
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
+
+- 2026-09-11: SSR output registers `useVisibleTask$` through `useOn`/`useOnDocument` with
+  `createVisibleTaskHandlerQrl`, mapping the `strategy` option to `qvisible`, `qinit` or `qidle`;
+  CSR keeps the authored call. Dynamic strategies are diagnosed. Verification: 1017 pipeline
+  tests (16 existing TODOs), the `setup-visible-task` CSR/SSR snapshots, and `task.spec.tsx` in
+  resume. Core spec corpus: CSR unchanged at 8 failed, resume 19 → 14 failed; the remaining
+  resume task failures involve `await` inside `useTask$`.
 
 - 2026-09-11: Component props that pass a setup local as-is (`count={count}`) compile to plain
   entries instead of an identity prop QRL chunk. The chunk added a lazy import and suspended

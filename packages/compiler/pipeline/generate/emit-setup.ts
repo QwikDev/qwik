@@ -7,6 +7,7 @@ import {
   SetupKind,
   ValueKind,
   DeclarationKind,
+  VisibleTaskEvent,
   type QrlUse,
   type Arg,
   type Expr,
@@ -33,13 +34,22 @@ export function emitJsSetup(
   imports: Set<string>,
   emitQrl: (use: QrlUse) => string,
   render?: (program: number, names?: GeneratedNames) => ComponentEmission,
-  names?: GeneratedNames
+  names?: GeneratedNames,
+  isServer = false
 ): string[] {
   return program.setup.map((entry) => {
     if (entry.s === SetupKind.Js) {
       const payload = module.payloads[entry.payload];
       const edits = (payload.setups ?? []).map(({ range, setup, block }) => {
-        const value = emitJsSetup(module, { setup }, imports, emitQrl, render, names).join('\n');
+        const value = emitJsSetup(
+          module,
+          { setup },
+          imports,
+          emitQrl,
+          render,
+          names,
+          isServer
+        ).join('\n');
         return { range, value: block ? `{\n${value}\n}` : value };
       });
       for (const { range, program, statement } of payload.renders) {
@@ -91,6 +101,16 @@ export function emitJsSetup(
       return `const ${module.bindings[entry.result].name} = ${QwikWord.Untrack}(() => ${prop} === void 0) ? (${initializer}) : void 0;`;
     }
     if (entry.s === SetupKind.Call) {
+      if (isServer && entry.visibleTaskEvent !== undefined) {
+        // The server never runs visible tasks; the client wakes the serialized task on this event.
+        const useOn =
+          entry.visibleTaskEvent === VisibleTaskEvent.Visible
+            ? QwikWord.UseOn
+            : QwikWord.UseOnDocument;
+        imports.add(useOn);
+        imports.add(QwikWord.CreateVisibleTaskHandlerQrl);
+        return `${useOn}(${JSON.stringify(entry.visibleTaskEvent)}, ${QwikWord.CreateVisibleTaskHandlerQrl}(${argJs(module, entry.args[0], emitQrl)}));`;
+      }
       const callee = callTargetJs(module, entry.target, imports);
       const args = entry.args.map((arg) => argJs(module, arg, emitQrl)).join(', ');
       const call = `${callee}(${args})`;

@@ -459,6 +459,29 @@ export default (props: { title: string; options: object; args: unknown[] }) => {
     });
   });
 
+  test('should register visible tasks as resume events in SSR', async () => {
+    const output = await testInput(mode, 'setup-visible-task', {
+      code: `import { useVisibleTask$, useSignal } from '@qwik.dev/core';
+export default () => {
+  const status = useSignal('waiting');
+  useVisibleTask$(() => { status.value = 'visible'; });
+  useVisibleTask$(({ cleanup }) => { cleanup(() => console.log(status.value)); }, { strategy: 'document-ready' });
+  useVisibleTask$(() => console.log(status.value), { strategy: 'document-idle' });
+  return <output>{status.value}</output>;
+};
+`,
+    });
+    const code = output.modules.map((module) => module.code).join('\n');
+    if (mode === 'ssr') {
+      expect(code).toContain('useOn("qvisible", createVisibleTaskHandlerQrl(');
+      expect(code).toContain('useOnDocument("qinit", createVisibleTaskHandlerQrl(');
+      expect(code).toContain('useOnDocument("qidle", createVisibleTaskHandlerQrl(');
+      expect(code).not.toContain('useVisibleTask$(');
+    } else {
+      expect(code).not.toContain('createVisibleTaskHandlerQrl');
+    }
+  });
+
   test('should compile local implicit hooks and task setup', async () => {
     await testInput(mode, 'setup-task-hook', {
       code: `import { implicit$FirstArg, useTaskQrl, useTask$ as task, useSignal } from '@qwik.dev/core';

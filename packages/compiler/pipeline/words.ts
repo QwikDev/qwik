@@ -53,6 +53,9 @@ export const enum QwikWord {
   RenderSsrSlot = 'renderSsrSlot',
   RenderSsrContent = 'renderSsrContent',
   MaybeThen = 'maybeThen',
+  UseOn = 'useOn',
+  UseOnDocument = 'useOnDocument',
+  CreateVisibleTaskHandlerQrl = 'createVisibleTaskHandlerQrl',
   // shared
   CreateComponent = 'createComponent',
   CreatePropsProxy = 'createPropsProxy',
@@ -98,6 +101,7 @@ export const enum QwikHook {
   UseComputed = 'useComputed$',
   UseComputedQrl = 'useComputedQrl',
   UseSignal = 'useSignal',
+  UseVisibleTask = 'useVisibleTask$',
 }
 
 /** Authored Qwik JSX directives recognized by the compiler. */

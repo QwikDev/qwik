@@ -260,6 +260,13 @@ export type Arg =
   | { a: ArgKind.Spread; expr: Expr }
   | QrlArg;
 
+/** Client events that wake a resumed visible task, chosen by its `strategy` option. */
+export const enum VisibleTaskEvent {
+  Visible = 'qvisible',
+  Init = 'qinit',
+  Idle = 'qidle',
+}
+
 export const enum SetupKind {
   PropRest = 'prop-rest',
   PropDefault = 'prop-default',
@@ -321,6 +328,8 @@ export type Setup =
       target: CallTarget;
       args: Arg[];
       result: BindTarget | null;
+      /** SSR registers the task on this client event instead of calling the hook. */
+      visibleTaskEvent?: VisibleTaskEvent;
       guard?: Predicate;
     }
   /** Compiler intrinsic. */

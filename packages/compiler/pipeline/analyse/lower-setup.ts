@@ -3,6 +3,7 @@ import {
   ArgKind,
   BindTargetKind,
   SetupKind,
+  VisibleTaskEvent,
   BoundaryKind,
   ValueKind,
   ProgramBodyKind,
@@ -29,7 +30,7 @@ import type {
 } from 'oxc-parser';
 import { identifierName, unwrapExpression } from './ast/utils';
 import { UnsupportedError } from '../errors';
-import { QwikMarker } from '../words';
+import { QwikHook, QwikMarker } from '../words';
 import { coreSetupCalls } from './setup-api';
 import { LocalKind, type SetupLocals } from './locals';
 import { pushPayload, type LowerContext } from './lower-context';
@@ -487,13 +488,45 @@ function lowerSetupCall(
   const args = /^use.+\$$/.test(callee.name)
     ? lowerQrlHookArgs(call, identifierName(pattern) ?? callee.name, callee.name, ctx)
     : call.arguments.map((argument) => lowerHookArg(argument, ctx));
+  const isVisibleTask = ctx.coreBindings.get(callee.binding) === QwikHook.UseVisibleTask;
   return {
     s: SetupKind.Call,
     target: lowerCallTarget(call.callee, callee.binding, contract?.operation, ctx),
     args,
     result:
       pattern === null ? null : lowerSetupBinding(pattern, ctx, locals, contract?.result).result,
+    ...(isVisibleTask ? { visibleTaskEvent: visibleTaskEvent(call.arguments[1]) } : {}),
   };
+}
+
+function visibleTaskEvent(options: Argument | undefined): VisibleTaskEvent {
+  const object = options === undefined ? null : unwrapExpression(options);
+  if (object === null) {
+    return VisibleTaskEvent.Visible;
+  }
+  if (object.type !== 'ObjectExpression') {
+    throw new UnsupportedError('a dynamic useVisibleTask$ options argument');
+  }
+  const strategy = object.properties.find(
+    (property) =>
+      property.type === 'Property' &&
+      !property.computed &&
+      identifierName(property.key) === 'strategy'
+  );
+  if (strategy === undefined) {
+    return VisibleTaskEvent.Visible;
+  }
+  const value = strategy.type === 'Property' ? unwrapExpression(strategy.value) : null;
+  switch (value?.type === 'Literal' ? value.value : null) {
+    case 'intersection-observer':
+      return VisibleTaskEvent.Visible;
+    case 'document-ready':
+      return VisibleTaskEvent.Init;
+    case 'document-idle':
+      return VisibleTaskEvent.Idle;
+    default:
+      throw new UnsupportedError('a dynamic useVisibleTask$ strategy');
+  }
 }
 
 function lowerCallTarget(

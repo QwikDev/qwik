@@ -210,7 +210,8 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         this.imports,
         (use) => this.useQrl(pass, use, true).ref,
         (nested, localNames = names) => this.renderProgramById(nested, localNames),
-        names
+        names,
+        true
       )
     );
     const ownRange =

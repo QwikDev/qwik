@@ -13,9 +13,9 @@ export function createSsrEventAttr(
   serializationCtx: SerializationContext,
   name: string,
   value: unknown,
-  hasMovedCaptures: boolean
+  needsInvokeContext: boolean
 ): SsrEventAttrChunk {
-  const serialized = serializeSsrEvent(serializationCtx, name, value, hasMovedCaptures);
+  const serialized = serializeSsrEvent(serializationCtx, name, value, needsInvokeContext);
   return createSsrEventAttrChunk(name, createSsrEventValueParts(serialized));
 }
 

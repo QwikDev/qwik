@@ -32,10 +32,26 @@ describe('SSR event attributes', () => {
     const direct = createQRL('./listener.js', 'direct', () => {}, null, null);
     const moved = createQRL('./listener.js', 'moved', () => {}, null, null).m();
 
-    expect(createSsrEventAttr(serializationCtx, 'q-e:click', [direct, moved], true)).toEqual({
+    expect(createSsrEventAttr(serializationCtx, 'q-e:click', [direct, moved], false)).toEqual({
       type: 'event-attr',
       name: 'q-e:click',
       valueParts: ['listener.js#direct|mock-chunk#_run#', { type: 'root-ref', localId: 0 }],
+    });
+  });
+
+  it('wraps capture-less handlers when the container needs an invoke context', () => {
+    const serializationCtx = createSerializationContext(
+      null,
+      () => '',
+      () => {},
+      new WeakMap()
+    );
+    const direct = createQRL('./listener.js', 'direct', () => {}, null, null);
+
+    expect(createSsrEventAttr(serializationCtx, 'q-e:click', direct, true)).toEqual({
+      type: 'event-attr',
+      name: 'q-e:click',
+      valueParts: ['mock-chunk#_run#', { type: 'root-ref', localId: 0 }],
     });
   });
 

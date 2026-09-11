@@ -16,7 +16,8 @@ export function serializeSsrEvent(
   serializationCtx: SerializationContext,
   key: string,
   rawValue: unknown,
-  hasMovedCaptures: boolean
+  /** Wrap even capture-less handlers so they run under a container invoke context. */
+  needsInvokeContext: boolean
 ): string | SsrEventWriteChunk[] | null {
   let value: string | SsrEventWriteChunk[] | null = null;
 
@@ -39,7 +40,7 @@ export function serializeSsrEvent(
     if (
       !isSyncQrl(qrl) &&
       !qrl.$symbol$.startsWith('_') &&
-      (qrl.$captures$?.length || (hasMovedCaptures && qrl.$hasMovedCaptures$))
+      (qrl.$captures$?.length || qrl.$hasMovedCaptures$ || needsInvokeContext)
     ) {
       qrl = createQRL(null, '_run', _run, null, [qrl]);
     }

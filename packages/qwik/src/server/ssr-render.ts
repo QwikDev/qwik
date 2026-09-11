@@ -70,12 +70,12 @@ export interface SsrRenderContext extends ServerDataContext {
   setRef(value: unknown, nodeId: number): void;
   addRoot(value: unknown): number;
   contextScopeRef(): SsrReferenceChunk;
-  eventAttr(name: string, value: unknown, hasMovedCaptures?: boolean): SsrEventAttrChunk;
+  eventAttr(name: string, value: unknown, needsInvokeContext?: boolean): SsrEventAttrChunk;
   /** Flat-output form: ` name="…"` as string/reference parts, [] when there are no handlers. */
   eventAttrParts(
     name: string,
     value: unknown,
-    hasMovedCaptures?: boolean
+    needsInvokeContext?: boolean
   ): (string | SsrReferenceChunk)[];
   /** Registers a compiler-emitted sync handler; returns its table script the first time. */
   syncFn(key: string, source: string): string;
@@ -249,13 +249,19 @@ export const renderToStreamCompiled = async <Props = undefined>(
         }
         return createSsrRootRef(serializationCtx.$addRoot$(scope!));
       },
-      eventAttr(name, value, hasMovedCaptures = false) {
-        return createSsrEventAttr(serializationCtx, name, value, hasMovedCaptures || locale !== '');
+      // `getLocale()` inside a resumed handler reads the container, so localized apps wrap.
+      eventAttr(name, value, needsInvokeContext = false) {
+        return createSsrEventAttr(
+          serializationCtx,
+          name,
+          value,
+          needsInvokeContext || locale !== ''
+        );
       },
-      eventAttrParts(name, value, hasMovedCaptures = false) {
+      eventAttrParts(name, value, needsInvokeContext = false) {
         return createSsrEventAttrParts(
           name,
-          serializeSsrEvent(serializationCtx, name, value, hasMovedCaptures || locale !== '')
+          serializeSsrEvent(serializationCtx, name, value, needsInvokeContext || locale !== '')
         );
       },
       syncFn(key, source) {

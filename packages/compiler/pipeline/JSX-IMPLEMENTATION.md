@@ -386,6 +386,12 @@ code size and runtime cost. The previous implementation is not the accepted defa
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
 
+- 2026-09-11: Runtime: `serializeSsrEvent` now wraps a handler in `_run` whenever the caller
+  needs an invoke context, not only when the QRL moved captures, so capture-less handlers in a
+  localized container can read `getLocale()` after resume. The pipeline exposed this because it
+  imports module bindings instead of capturing them. Verification: `ssr-event-attr.unit.ts` and
+  `use-locale.spec.tsx` in resume. Core spec corpus: resume 3 → 2 failed, CSR unchanged at 4.
+
 - 2026-09-11: SSR output of a component that calls `useContextProvider` records
   `ctx.contextScopeRef()` and wraps its markup in `<!c=…>`/`<!/c>`, the marker pair the resume
   side already reads through `getContextScopeForNode`. Verification: 1023 pipeline tests

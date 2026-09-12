@@ -1,0 +1,232 @@
+==INPUT==
+
+import { useSerializer$, useSignal } from '@qwik.dev/core';
+export default () => {
+  const start = useSignal(5);
+  const count = useSerializer$({
+    deserialize: (value: number) => ({ n: value }),
+    serialize: (value: { n: number }) => value.n,
+    initial: start.value,
+  });
+  const date = useSerializer$(() => ({ deserialize: (value: string) => new Date(value), serialize: (date: Date) => date.toISOString() }));
+  return <span>{count.value.n}{date.value.getFullYear()}</span>;
+};
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useSignal,
+  useSerializerQrl,
+  _captures,
+  renderSsrContent,
+  createSsrNodeId,
+  maybeThen,
+  _noopQrl,
+  renderSsrDynamicContent,
+} from '@qwik.dev/core';
+const component_count_segment_0_1adkz2bcpjjfs = () => {
+  const [start] = _captures;
+  return {
+    deserialize: (value) => ({ n: value }),
+    serialize: (value) => value.n,
+    initial: start.value,
+  };
+};
+const q_component_count_segment_0_1adkz2bcpjjfs = /*#__PURE__*/ _noopQrl(
+  'component_count_segment_0_1adkz2bcpjjfs'
+);
+q_component_count_segment_0_1adkz2bcpjjfs.s(component_count_segment_0_1adkz2bcpjjfs);
+const component_date_segment_1_89fc8zvxt5qk = () => {
+  return {
+    deserialize: (value) => new Date(value),
+    serialize: (date) => date.toISOString(),
+  };
+};
+const q_component_date_segment_1_89fc8zvxt5qk = /*#__PURE__*/ _noopQrl(
+  'component_date_segment_1_89fc8zvxt5qk'
+);
+q_component_date_segment_1_89fc8zvxt5qk.s(component_date_segment_1_89fc8zvxt5qk);
+const component_text_segment_2_1fh117dstcoge = (ctx0) => {
+  const [count] = _captures;
+  return renderSsrDynamicContent(count.value.n, ctx0);
+};
+const q_component_text_segment_2_1fh117dstcoge = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_2_1fh117dstcoge'
+);
+q_component_text_segment_2_1fh117dstcoge.s(component_text_segment_2_1fh117dstcoge);
+const component_text_segment_3_1fh11lewq6qgx = (ctx0) => {
+  const [date] = _captures;
+  return renderSsrDynamicContent(date.value.getFullYear(), ctx0);
+};
+const q_component_text_segment_3_1fh11lewq6qgx = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_3_1fh11lewq6qgx'
+);
+q_component_text_segment_3_1fh11lewq6qgx.s(component_text_segment_3_1fh11lewq6qgx);
+export default (props, ctx) => {
+  const start = useSignal(5);
+  const count = useSerializerQrl(q_component_count_segment_0_1adkz2bcpjjfs.w([start]));
+  const date = useSerializerQrl(q_component_date_segment_1_89fc8zvxt5qk);
+  const id0 = ctx.nextId();
+  ctx.addRoot(count);
+  const content0 = renderSsrContent(
+    ctx,
+    id0,
+    [],
+    q_component_text_segment_2_1fh117dstcoge.w([count]),
+    false,
+    true
+  );
+  const id1 = ctx.nextId();
+  ctx.addRoot(date);
+  const content1 = renderSsrContent(
+    ctx,
+    id1,
+    [],
+    q_component_text_segment_3_1fh11lewq6qgx.w([date]),
+    false,
+    true
+  );
+  return maybeThen(content0, (content0) =>
+    maybeThen(content1, (content1) => [
+      '<span><!d=',
+      createSsrNodeId(id0),
+      '>',
+      content0,
+      '<!/d><!d=',
+      createSsrNodeId(id1),
+      '>',
+      content1,
+      '<!/d></span>',
+    ])
+  );
+};
+============================= src/component.tsx_component_count_segment_0_1adkz2bcpjjfs.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_count_segment_0_1adkz2bcpjjfs = () => {
+  const [start] = _captures;
+  return {
+    deserialize: (value) => ({ n: value }),
+    serialize: (value) => value.n,
+    initial: start.value,
+  };
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_count_segment_0_1adkz2bcpjjfs",
+  "entry": null,
+  "displayName": "component_count_segment_0",
+  "hash": "1adkz2bcpjjfs",
+  "canonicalFilename": "component.tsx_component_count_segment_0_1adkz2bcpjjfs",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "count",
+  "captures": true,
+  "loc": [
+    144,
+    277
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "start"
+  ]
+}
+*/
+============================= src/component.tsx_component_date_segment_1_89fc8zvxt5qk.js (ENTRY POINT)==
+
+export const component_date_segment_1_89fc8zvxt5qk = () => {
+  return {
+    deserialize: (value) => new Date(value),
+    serialize: (date) => date.toISOString(),
+  };
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_date_segment_1_89fc8zvxt5qk",
+  "entry": null,
+  "displayName": "component_date_segment_1",
+  "hash": "89fc8zvxt5qk",
+  "canonicalFilename": "component.tsx_component_date_segment_1_89fc8zvxt5qk",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "useSerializer$",
+  "captures": false,
+  "loc": [
+    295,
+    417
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_text_segment_2_1fh117dstcoge.js (ENTRY POINT)==
+
+import { _captures, renderSsrDynamicContent } from '@qwik.dev/core';
+
+export const component_text_segment_2_1fh117dstcoge = (ctx0) => {
+  const [count] = _captures;
+  return renderSsrDynamicContent(count.value.n, ctx0);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_2_1fh117dstcoge",
+  "entry": null,
+  "displayName": "component_text_segment_2",
+  "hash": "1fh117dstcoge",
+  "canonicalFilename": "component.tsx_component_text_segment_2_1fh117dstcoge",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    435,
+    448
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_text_segment_3_1fh11lewq6qgx.js (ENTRY POINT)==
+
+import { _captures, renderSsrDynamicContent } from '@qwik.dev/core';
+
+export const component_text_segment_3_1fh11lewq6qgx = (ctx0) => {
+  const [date] = _captures;
+  return renderSsrDynamicContent(date.value.getFullYear(), ctx0);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_3_1fh11lewq6qgx",
+  "entry": null,
+  "displayName": "component_text_segment_3",
+  "hash": "1fh11lewq6qgx",
+  "canonicalFilename": "component.tsx_component_text_segment_3_1fh11lewq6qgx",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    450,
+    474
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "date"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

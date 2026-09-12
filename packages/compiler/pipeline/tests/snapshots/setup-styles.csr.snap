@@ -1,0 +1,85 @@
+==INPUT==
+
+import { useStyles$, useStylesScoped$ } from '@qwik.dev/core';
+const STYLE = `.container { color: red; }`;
+export const Child = () => {
+  useStylesScoped$(STYLE);
+  return <div class="container">child</div>;
+};
+export default () => {
+  useStyles$('.global { color: blue; }');
+  const scope = useStylesScoped$(`.local { color: green; }`);
+  return <section class={scope}><Child /></section>;
+};
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useStylesScoped,
+  _createElementTemplate,
+  useStyles,
+  createAttrExpressionEffect,
+  _first,
+  createComponent,
+  _toNodes,
+} from '@qwik.dev/core';
+import { component_class_segment_0_3htuygud1guoj } from './component.tsx_component_class_segment_0_3htuygud1guoj';
+
+const Child_tmpl0 = _createElementTemplate('<div class="container">child</div>');
+const default_tmpl0 = _createElementTemplate('<section><!></section>');
+const STYLE = `.container { color: red; }`;
+export const Child = (props, ctx) => {
+  useStylesScoped(STYLE, 'f5nwzpjzm8yb-0', true);
+  const el0 = Child_tmpl0(ctx.document);
+  return el0;
+};
+export default (props, ctx) => {
+  useStyles('.global { color: blue; }', 'f5nwlog2s6xs-1');
+  const scope = useStylesScoped('.local { color: green; }', 'f5nxrrrtaczd-2', true);
+  const el0 = default_tmpl0(ctx.document);
+  const effect0 = createAttrExpressionEffect(
+    el0,
+    'class',
+    [scope],
+    component_class_segment_0_3htuygud1guoj,
+    ctx.scheduler
+  );
+  ctx.scheduler.notify(effect0);
+  const marker0 = _first(el0);
+  const component0 = createComponent(Child, null, ctx);
+  marker0.replaceWith(..._toNodes(component0));
+  return el0;
+};
+============================= src/component.tsx_component_class_segment_0_3htuygud1guoj.js (ENTRY POINT)==
+
+export const component_class_segment_0_3htuygud1guoj = (scope) => {
+  return scope;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_class_segment_0_3htuygud1guoj",
+  "entry": null,
+  "displayName": "component_class_segment_0",
+  "hash": "3htuygud1guoj",
+  "canonicalFilename": "component.tsx_component_class_segment_0_3htuygud1guoj",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "class",
+  "captures": true,
+  "loc": [
+    363,
+    368
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "scope"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

@@ -116,6 +116,13 @@ export const enum QwikHook {
   UseTaskQrl = 'useTaskQrl',
   UseTaskFunction = 'useTask',
   UseContextProvider = 'useContextProvider',
+  UseStyles = 'useStyles$',
+  UseStylesFunction = 'useStyles',
+  UseStylesScoped = 'useStylesScoped$',
+  UseStylesScopedFunction = 'useStylesScoped',
+  UseSerializer = 'useSerializer$',
+  UseSerializerQrl = 'useSerializerQrl',
+  UseSerializerFunction = 'useSerializer',
 }
 
 /** Authored Qwik JSX directives recognized by the compiler. */

@@ -522,6 +522,56 @@ export default () => {
     expect(code).not.toContain('useLocal$(');
   });
 
+  test('should compile global and scoped styles without QRLs', async () => {
+    const output = await testInput(mode, 'setup-styles', {
+      code: `import { useStyles$, useStylesScoped$ } from '@qwik.dev/core';
+const STYLE = \`.container { color: red; }\`;
+export const Child = () => {
+  useStylesScoped$(STYLE);
+  return <div class="container">child</div>;
+};
+export default () => {
+  useStyles$('.global { color: blue; }');
+  const scope = useStylesScoped$(\`.local { color: green; }\`);
+  return <section class={scope}><Child /></section>;
+};
+`,
+    });
+    const code = output.modules.map((module) => module.code).join('\n');
+    expect(code).toMatch(/useStyles\(".global \{ color: blue; \}", "[a-z0-9]+-\d"\);/);
+    expect(code).toMatch(/useStylesScoped\(STYLE, "[a-z0-9]+-\d", true\);/);
+    expect(code).toMatch(
+      /const scope = useStylesScoped\(".local \{ color: green; \}", "[a-z0-9]+-\d", true\);/
+    );
+    expect(code).not.toContain('useStyles$(');
+    expect(code).not.toContain('_qrlWithChunk');
+  });
+
+  test('should compile serializer arguments as factories', async () => {
+    const output = await testInput(mode, 'setup-serializer', {
+      code: `import { useSerializer$, useSignal } from '@qwik.dev/core';
+export default () => {
+  const start = useSignal(5);
+  const count = useSerializer$({
+    deserialize: (value: number) => ({ n: value }),
+    serialize: (value: { n: number }) => value.n,
+    initial: start.value,
+  });
+  const date = useSerializer$(() => ({ deserialize: (value: string) => new Date(value), serialize: (date: Date) => date.toISOString() }));
+  return <span>{count.value.n}{date.value.getFullYear()}</span>;
+};
+`,
+    });
+    const code = output.modules.map((module) => module.code).join('\n');
+    if (mode === 'ssr') {
+      expect(code.match(/useSerializerQrl\(/g)).toHaveLength(2);
+    } else {
+      expect(code).toContain('useSerializer(_withCaptures(');
+      expect(code.match(/useSerializer\(/g)).toHaveLength(2);
+    }
+    expect(code).not.toContain('useSerializer$(');
+  });
+
   test('should wait for initial tasks before rendering', async () => {
     const output = await testInput(mode, 'setup-task-wait', {
       code: `import { useTask$, useSignal } from '@qwik.dev/core';

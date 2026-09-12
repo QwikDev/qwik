@@ -291,6 +291,7 @@ export const enum CoreOperation {
   CreateComputed = 'create-computed',
   Task = 'task',
   VisibleTask = 'visible-task',
+  Serializer = 'serializer',
 }
 
 export const enum HookTwinKind {
@@ -362,6 +363,7 @@ export type Setup =
   | {
       s: SetupKind.Style;
       ordinal: number;
+      styleId: string;
       scoped: boolean;
       css: string | { dynamic: PayloadId };
       result: BindTarget | null;

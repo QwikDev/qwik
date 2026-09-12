@@ -14,6 +14,7 @@ import {
   type Arg,
   type Expr,
   type LinkedModule,
+  type BindTarget,
   type CallTarget,
   type Setup,
 } from '../schema';
@@ -36,6 +37,10 @@ const coreCallNames: Record<CoreOperation, { qrl: QwikHook; fn: QwikHook }> = {
   [CoreOperation.VisibleTask]: {
     qrl: QwikHook.UseVisibleTaskQrl,
     fn: QwikHook.UseVisibleTaskFunction,
+  },
+  [CoreOperation.Serializer]: {
+    qrl: QwikHook.UseSerializerQrl,
+    fn: QwikHook.UseSerializerFunction,
   },
 };
 
@@ -129,14 +134,18 @@ export function emitJsSetup(
           ? target.staticQrl!(arg.use)
           : argJs(module, arg, emitQrl)
       );
-      const call = `${callee}(${args.join(', ')})`;
-      if (entry.result === null) {
-        return `${call};`;
-      }
-      if (entry.result.bind !== BindTargetKind.Pattern) {
-        throw new UnsupportedError('a call result without a binding pattern');
-      }
-      return `${entry.declarationKind ?? 'const'} ${extractPayloadJs(module, entry.result.pattern)} = ${call};`;
+      return bindCallResult(module, entry, `${callee}(${args.join(', ')})`);
+    }
+    if (entry.s === SetupKind.Style) {
+      const hook = entry.scoped ? QwikHook.UseStylesScopedFunction : QwikHook.UseStylesFunction;
+      imports.add(hook);
+      const css =
+        typeof entry.css === 'string'
+          ? JSON.stringify(entry.css)
+          : extractPayloadJs(module, entry.css.dynamic);
+      // `true` registers the scope on the invoke context for children rendered later.
+      const args = [css, JSON.stringify(entry.styleId), ...(entry.scoped ? ['true'] : [])];
+      return bindCallResult(module, entry, `${hook}(${args.join(', ')})`);
     }
     if (entry.s === SetupKind.Const && entry.result.bind === BindTargetKind.Pattern) {
       if (entry.value === undefined) {
@@ -166,6 +175,20 @@ export interface SetupEmitTarget {
 }
 
 type SetupCall = Extract<Setup, { s: SetupKind.Call }>;
+
+function bindCallResult(
+  module: LinkedModule,
+  entry: { result: BindTarget | null; declarationKind?: string },
+  call: string
+): string {
+  if (entry.result === null) {
+    return `${call};`;
+  }
+  if (entry.result.bind !== BindTargetKind.Pattern) {
+    throw new UnsupportedError('a call result without a binding pattern');
+  }
+  return `${entry.declarationKind ?? 'const'} ${extractPayloadJs(module, entry.result.pattern)} = ${call};`;
+}
 
 /** Whether any setup call, including those nested in authored statements, matches. */
 export function setupCallsSome(

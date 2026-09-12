@@ -4,6 +4,7 @@ import {
   BindTargetKind,
   ExportKind,
   ExportTargetKind,
+  QrlPayloadKind,
   SetupKind,
   VisibleTaskEvent,
   BoundaryKind,
@@ -32,11 +33,14 @@ import type {
 import { identifierName, unwrapExpression } from './ast/utils';
 import { UnsupportedError } from '../errors';
 import { QRL_SUFFIX, QwikHook, QwikMarker } from '../words';
+import { createStyleId } from '../segment-identity';
 import { coreSetupCalls } from './setup-api';
 import { LocalKind, type SetupLocals } from './locals';
 import { pushPayload, type LowerContext } from './lower-context';
 import { collectCaptures, lowerCaptures } from './ast/capture-analysis';
 import {
+  lowerComputedExpressionValue,
+  lowerExpressionPayload,
   lowerInlineExpressionValue,
   recordPayloadJsx,
   recordPayloadReads,
@@ -432,6 +436,10 @@ function lowerSetupCallback(
   const coreApi = binding === null ? undefined : ctx.coreBindings.get(binding);
   const argument = init.arguments[0];
   const fn = argument?.type === 'SpreadElement' ? null : unwrapExpression(argument);
+  if (!init.optional && coreApi === QwikHook.UseSerializer && fn?.type === 'ObjectExpression') {
+    // The runtime accepts an object or a factory, so the object ships as a factory with captures.
+    return lowerComputedExpressionValue(fn, ctx, name, QrlPayloadKind.Function, 'hook').resume.qrl;
+  }
   if (
     init.optional ||
     (coreApi === QwikMarker.Dollar && init.arguments.length !== 1) ||
@@ -503,6 +511,10 @@ function lowerSetupCall(
   if (call.optional) {
     throw new UnsupportedError('an optional setup call');
   }
+  const coreApi = ctx.coreBindings.get(callee.binding);
+  if (coreApi === QwikHook.UseStyles || coreApi === QwikHook.UseStylesScoped) {
+    return lowerStyleCall(call, coreApi === QwikHook.UseStylesScoped, pattern, ctx, locals);
+  }
   const contract = pattern === null ? undefined : callee.contract;
   if (contract?.maxArgs !== undefined && call.arguments.length > contract.maxArgs) {
     throw new UnsupportedError(`${callee.name} with more than ${contract.maxArgs} arguments`);
@@ -510,7 +522,6 @@ function lowerSetupCall(
   const args = callee.name.endsWith(QRL_SUFFIX)
     ? lowerQrlHookArgs(call, identifierName(pattern) ?? callee.name, callee.name, ctx)
     : call.arguments.map((argument) => lowerHookArg(argument, ctx));
-  const coreApi = ctx.coreBindings.get(callee.binding);
   const isVisibleTask = callee.contract?.operation === CoreOperation.VisibleTask;
   const localKind = ctx.locals.get(callee.binding)?.kind;
   // Custom hooks may wrap tasks, so they wait; core hooks wait only when their contract says so.
@@ -529,6 +540,46 @@ function lowerSetupCall(
     ...(isVisibleTask ? { visibleTaskEvent: visibleTaskEvent(call.arguments[1]) } : {}),
     ...(blocksInitialRender ? { blocksInitialRender: true as const } : {}),
     ...(coreApi === QwikHook.UseContextProvider ? { providesContext: true as const } : {}),
+  };
+}
+
+/** Styles never become QRLs: both environments append the css under a compile-time id. */
+function lowerStyleCall(
+  call: CallExpression,
+  scoped: boolean,
+  pattern: BindingPattern | null,
+  ctx: LowerContext,
+  locals: SetupLocals
+): Setup {
+  const argument = call.arguments[0];
+  const expression = argument?.type === 'SpreadElement' ? null : unwrapExpression(argument);
+  if (expression === null || call.arguments.length !== 1) {
+    throw new UnsupportedError('a style hook without exactly one css argument');
+  }
+  const ordinal = ctx.styleCounter.next++;
+  const literal =
+    expression.type === 'Literal' && typeof expression.value === 'string'
+      ? expression.value
+      : expression.type === 'TemplateLiteral' && expression.expressions.length === 0
+        ? expression.quasis[0].value.cooked
+        : null;
+  return {
+    s: SetupKind.Style,
+    ordinal,
+    styleId: createStyleId(ctx.sourceIdentity, ordinal),
+    scoped,
+    css:
+      literal === null || literal === undefined
+        ? {
+            dynamic: lowerExpressionPayload(
+              expression,
+              ctx,
+              collectCaptures(expression, ctx, new Set())
+            ),
+          }
+        : literal,
+    result:
+      pattern === null ? null : lowerSetupBinding(pattern, ctx, locals, LocalKind.Const).result,
   };
 }
 

@@ -222,7 +222,9 @@ transformation:
 - [ ] Custom `foo$`, `factory$` and user hooks outside direct component setup.
 - [ ] Existing function references instead of inline callbacks.
 - [ ] Non-function QRL values: strings, objects and imported values.
-- [ ] `useStyles$('...')`, `useStylesScoped$(css)` and object-form `useSerializer$` arguments.
+- [x] `useStyles$('...')` and `useStylesScoped$(css)` lower to the `Style` op and call
+      `useStyles`/`useStylesScoped` with a compile-time id in both environments; object-form
+      `useSerializer$` arguments ship as factory QRLs with their captures.
 - [ ] Non-event prop boundaries such as `fallback$`, `render$` and `then$`.
 - [ ] Correct captures and imports at every nested boundary.
 - [ ] Preserve the existing `await` transformation in newly supported locations.
@@ -314,8 +316,8 @@ Do not restore serialization of a children tree merely to reproduce old VNode op
 
 ## 12. Styles, context and hooks across new boundaries
 
-- [ ] Connect value QRLs from group 6 to `useStyles$` and `useStylesScoped$`.
-- [ ] Assign scoped IDs and propagate scoped classes.
+- [x] Connect `useStyles$` and `useStylesScoped$` to the `Style` op; styles never become QRLs.
+- [ ] Propagate scoped classes onto the component's elements; ids are assigned and registered.
 - [ ] Preserve authored style scope across branches, collections, projections and dynamic content.
 - [ ] Multiple scoped styles and deduplication.
 - [x] Serialize the provided context scope in SSR: components calling `useContextProvider` wrap
@@ -385,6 +387,14 @@ code size and runtime cost. The previous implementation is not the accepted defa
 
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
+
+- 2026-09-12: `useStyles$`/`useStylesScoped$` lower to `SetupKind.Style` with a module-stable
+  `styleId` and emit `useStyles(css, id)` / `useStylesScoped(css, id, true)` on both targets;
+  literal css inlines, other arguments print as authored. `useSerializer$` is a core operation
+  whose object argument ships as a factory QRL with captures. Verification: 1027 pipeline tests
+  (16 existing TODOs), the `setup-styles` and `setup-serializer` CSR/SSR snapshots, and
+  `use-styles.spec.tsx`/`use-serialized.spec.tsx` green in CSR and resume. `use-styles-scoped`
+  now compiles; its 13 remaining failures need scoped class propagation (group 12).
 
 - 2026-09-11: Runtime: `serializeSsrEvent` now wraps a handler in `_run` whenever the caller
   needs an invoke context, not only when the QRL moved captures, so capture-less handlers in a

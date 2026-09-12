@@ -165,7 +165,7 @@ export function lowerInlineExpressionValue(
 }
 
 /** Embedded JSX shares render lowering with standalone initializers and projections. */
-function lowerExpressionPayload(
+export function lowerExpressionPayload(
   expression: Expression,
   ctx: LowerContext,
   refs: CollectedCaptures

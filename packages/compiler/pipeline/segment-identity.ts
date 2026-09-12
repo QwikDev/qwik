@@ -41,6 +41,11 @@ export function createSegmentSymbolName(
   return `${displayName}_${hash64(`${sourceIdentity}\0${domain}\0${displayName}`)}`;
 }
 
+/** `q:style` ids dedupe across SSR and CSR, so they hash the module identity and ordinal. */
+export function createStyleId(sourceIdentity: string, ordinal: number): string {
+  return `${hash64(`${sourceIdentity}\0style\0${ordinal}`)}-${ordinal}`;
+}
+
 export function getSegmentSymbolHash(symbolName: string): string {
   return symbolName.slice(symbolName.lastIndexOf('_') + 1);
 }

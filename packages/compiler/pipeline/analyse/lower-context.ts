@@ -22,6 +22,7 @@ export interface LowerContext {
   projectionCounter: { next: number };
   slotCounter: { next: number };
   forCounter: { next: number };
+  styleCounter: { next: number };
   /** Param bindings of the inline collection row; null = not inside one. */
   inlineParams: ReadonlySet<LocalId> | null;
   bindings: BindingGraph;
@@ -59,6 +60,7 @@ export function createLowerContext(
     projectionCounter: { next: 0 },
     slotCounter: { next: 0 },
     forCounter: { next: 0 },
+    styleCounter: { next: 0 },
     inlineParams: null,
     bindings,
     jsx,

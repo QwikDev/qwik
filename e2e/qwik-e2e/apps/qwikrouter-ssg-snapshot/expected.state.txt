@@ -32,7 +32,7 @@
             QRL "[omitted]"
             Set [
               EffectSubscriptionNoData [
-                VNode "9AAA"
+                VNode "11AAA"
                 Constant ':'
               ]
               EffectSubscriptionNoData [
@@ -59,7 +59,7 @@
                     RootRef [omitted]
                   ]
                   {number} 3
-                  VNode "11A"
+                  VNode "13A"
                   EffectSubscriptionNoData [
                     RootRef [omitted]
                     Constant '.'
@@ -129,7 +129,7 @@
       Constant STORE_ALL_PROPS
       Set [
         EffectSubscriptionNoData [
-          VNode "1F"
+          VNode "1H"
           Constant ':'
         ]
       ]
@@ -245,7 +245,7 @@
       Constant ':'
     ]
     EffectSubscriptionNoData [
-      VNode "9A"
+      VNode "11A"
       Constant ':'
     ]
   ]
@@ -344,7 +344,7 @@
             RootRef [omitted]
           ]
           {number} 3
-          VNode "6"
+          VNode "8"
           EffectSubscription [
             RootRef [omitted]
             {string} "href"

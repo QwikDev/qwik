@@ -70,6 +70,26 @@ export const preloaderPre = (
     }
     const optsStr = opts.length ? `,{${opts.join(',')}}` : '';
 
+    // Fetch early so the deferred start does not pay a request chain
+    const preloaderLinkAttrs: Record<string, string> = {
+      rel: 'modulepreload',
+      href: preloaderBundle,
+    };
+    if (nonce) {
+      preloaderLinkAttrs['nonce'] = nonce;
+    }
+    container.openElement('link', null, preloaderLinkAttrs, null, null, null);
+    container.closeElement();
+    container.openElement(
+      'link',
+      null,
+      { rel: 'preload', href: bundleGraphPath, as: 'fetch', crossorigin: 'anonymous' },
+      null,
+      null,
+      null
+    );
+    container.closeElement();
+
     const script = afterPagePaint(
       `{let b=fetch("${bundleGraphPath}");` +
         `import("${preloaderBundle}").then(({l})=>` +

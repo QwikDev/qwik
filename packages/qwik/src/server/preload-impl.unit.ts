@@ -156,6 +156,16 @@ describe('preloader', () => {
     preloaderPre(container, { maxIdlePreloads: 1 });
 
     expect(elements).toEqual([
+      { tagName: 'link', attrs: { rel: 'modulepreload', href: '/preloader.js' } },
+      {
+        tagName: 'link',
+        attrs: {
+          rel: 'preload',
+          href: '/assets/bundle-graph.json',
+          as: 'fetch',
+          crossorigin: 'anonymous',
+        },
+      },
       {
         tagName: 'link',
         attrs: {

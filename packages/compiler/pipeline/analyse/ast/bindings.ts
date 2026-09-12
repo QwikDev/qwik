@@ -441,7 +441,7 @@ export function createBindingGraph(program: Program): BindingGraph {
         references.set(value, binding);
       }
       orderedReferences.push({ node: value, binding, role: ReadRole.Read, isWrite: false });
-    } else if (value.type === 'JSXIdentifier' && isJsxTagReference(parent, key)) {
+    } else if (value.type === 'JSXIdentifier' && isJsxTagReference(parent, key, value.name)) {
       const binding = findBinding(activeScope, value.name);
       if (binding !== null) {
         references.set(value, binding);
@@ -619,9 +619,12 @@ export function createBindingGraph(program: Program): BindingGraph {
   };
 }
 
-function isJsxTagReference(parent: Node | null, key: string): boolean {
+/** Lowercase tags are intrinsic elements; only other spellings read a binding. */
+function isJsxTagReference(parent: Node | null, key: string, name: string): boolean {
   return (
-    key === 'name' && (parent?.type === 'JSXOpeningElement' || parent?.type === 'JSXClosingElement')
+    key === 'name' &&
+    !/^[a-z]/.test(name) &&
+    (parent?.type === 'JSXOpeningElement' || parent?.type === 'JSXClosingElement')
   );
 }
 

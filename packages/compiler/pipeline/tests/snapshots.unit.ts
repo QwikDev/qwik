@@ -1815,6 +1815,18 @@ export default (props) => <ul>{props.items.map(({ id, primary, secondary }, inde
     expect(output.diagnostics).toEqual([]);
   });
 
+  test('should read a signal held by a row value', async () => {
+    const output = await testInput(mode, 'collection-row-signal', {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
+  const signals = useSignal([useSignal(1), useSignal(2)]);
+  return <ul>{signals.value.map((signal, index) => <li key={index}>{signal.value}</li>)}</ul>;
+};`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    expect(output.modules.map((module) => module.code).join('\n')).toContain('signal.value');
+  });
+
   test('should select collection key setup by binding dependencies', async () => {
     const output = await testInput(mode, 'collection-key-const', {
       code: `import { useSignal } from '@qwik.dev/core';

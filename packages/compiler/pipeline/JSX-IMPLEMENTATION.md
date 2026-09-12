@@ -392,6 +392,16 @@ code size and runtime cost. The previous implementation is not the accepted defa
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
 
+- 2026-09-12: Two analysis fixes. Lowercase JSX tags are intrinsic elements and no longer resolve
+  to a same-named local, which wrongly refused branch arms such as `button.value ? <button/> :
+<a/>`. A `.value` read on a row value falls back to the ordinary captured expression instead
+  of being rejected. Verification: 1030 pipeline tests (16 existing TODOs), a `bindings.unit.ts`
+  case and the `collection-row-signal` snapshots. `scripts.spec.tsx` and `use-on.spec.tsx` now
+  compile: `scripts` passes in CSR and shows its four `sync$` cases in resume (group 8);
+  `use-on` next stops on a namespaced JSX attribute (group 8). Core spec corpus: CSR 4 failed,
+  resume 7 failed, of which `task` "retries a task that reads a pending async value" is flaky
+  and passes on rerun.
+
 - 2026-09-12: Scoped classes: lowering tracks the component's `⚡️<id>` scopes and rewrites each
   element's static `class` (or adds one) while `styleScopedId` reaches the dynamic class effects
   on both targets. Verification: 1027 pipeline tests (16 existing TODOs), the extended

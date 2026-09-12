@@ -227,6 +227,7 @@ export function trySignalReadValue(
     case LocalKind.Qrl:
     case LocalKind.PropMember:
     case LocalKind.PropRest:
+    case LocalKind.LoopValue:
       return null;
     case LocalKind.Signal:
       return {

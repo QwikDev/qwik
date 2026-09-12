@@ -44,6 +44,18 @@ function identifiers(root: Node, name: string): Node[] {
   return found;
 }
 
+test('lowercase JSX tags are intrinsic elements, never references to a same-named local', () => {
+  const { program } = parseModule(
+    'tag.tsx',
+    `const button = 1; const Button = () => null; const view = <button><Button /></button>;`
+  );
+  const graph = createBindingGraph(deepFreeze(program));
+  const names = graph
+    .freeReferences(program.body[2])
+    .map(({ node }) => (node as { name: string }).name);
+  expect(names).toEqual(['Button']);
+});
+
 describe('createBindingGraph', () => {
   test('indexes assigned values without mixing shadowed bindings or member writes', () => {
     const source = `let content = 'initial'; content = 'assigned'; [content] = ['destructured'];

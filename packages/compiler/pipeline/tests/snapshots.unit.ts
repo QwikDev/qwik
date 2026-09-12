@@ -524,7 +524,7 @@ export default () => {
 
   test('should compile global and scoped styles without QRLs', async () => {
     const output = await testInput(mode, 'setup-styles', {
-      code: `import { useStyles$, useStylesScoped$ } from '@qwik.dev/core';
+      code: `import { useSignal, useStyles$, useStylesScoped$ } from '@qwik.dev/core';
 const STYLE = \`.container { color: red; }\`;
 export const Child = () => {
   useStylesScoped$(STYLE);
@@ -533,18 +533,34 @@ export const Child = () => {
 export default () => {
   useStyles$('.global { color: blue; }');
   const scope = useStylesScoped$(\`.local { color: green; }\`);
-  return <section class={scope}><Child /></section>;
+  const active = useSignal(false);
+  return (
+    <section class={scope}>
+      <span>plain</span>
+      <button class={{ active: active.value }} onClick$={() => (active.value = true)}>go</button>
+      {active.value ? <b class="on">on</b> : null}
+      <Child />
+    </section>
+  );
 };
 `,
     });
     const code = output.modules.map((module) => module.code).join('\n');
+    // Every element of a scoped component carries the scope; dynamic classes get it from the effect.
+    expect(code).toMatch(/<span class=\\?"\u26a1\ufe0f[a-z0-9]+-\d\\?">plain<\/span>/);
+    expect(code).toMatch(/<b class=\\?"\u26a1\ufe0f[a-z0-9]+-\d on\\?">on<\/b>/);
+    expect(code).toMatch(/<div class=\\?"\u26a1\ufe0f[a-z0-9]+-\d container\\?">child<\/div>/);
+    expect(code).toMatch(
+      mode === 'ssr'
+        ? /\], q_component_class_segment_\d+_[a-z0-9]+, undefined, "\u26a1\ufe0f[a-z0-9]+-\d"\)/
+        : /ctx\.scheduler, "\u26a1\ufe0f[a-z0-9]+-\d"\);/
+    );
     expect(code).toMatch(/useStyles\(".global \{ color: blue; \}", "[a-z0-9]+-\d"\);/);
     expect(code).toMatch(/useStylesScoped\(STYLE, "[a-z0-9]+-\d", true\);/);
     expect(code).toMatch(
       /const scope = useStylesScoped\(".local \{ color: green; \}", "[a-z0-9]+-\d", true\);/
     );
     expect(code).not.toContain('useStyles$(');
-    expect(code).not.toContain('_qrlWithChunk');
   });
 
   test('should compile serializer arguments as factories', async () => {

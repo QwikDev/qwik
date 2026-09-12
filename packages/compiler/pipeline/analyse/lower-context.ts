@@ -23,6 +23,8 @@ export interface LowerContext {
   slotCounter: { next: number };
   forCounter: { next: number };
   styleCounter: { next: number };
+  /** `⚡️<id>` per scoped style of the component being lowered. */
+  styleScopes: string[];
   /** Param bindings of the inline collection row; null = not inside one. */
   inlineParams: ReadonlySet<LocalId> | null;
   bindings: BindingGraph;
@@ -61,6 +63,7 @@ export function createLowerContext(
     slotCounter: { next: 0 },
     forCounter: { next: 0 },
     styleCounter: { next: 0 },
+    styleScopes: [],
     inlineParams: null,
     bindings,
     jsx,

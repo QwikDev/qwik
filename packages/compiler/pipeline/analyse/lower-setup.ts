@@ -282,6 +282,8 @@ function lowerLocalComponent(
   const component = discoverComponents(candidates)[0];
   const outerProps = ctx.propsBinding;
   const outerMembers = ctx.propsMembers;
+  const outerScopes = ctx.styleScopes;
+  ctx.styleScopes = [];
   try {
     const parameter = lowerComponentParameter(component, ctx);
     const nestedLocals = new Map([...locals, ...parameter.locals]);
@@ -322,6 +324,7 @@ function lowerLocalComponent(
           : { pattern: pushPayload(ctx, component.param!.range), surface: parameter.surface },
     };
   } finally {
+    ctx.styleScopes = outerScopes;
     ctx.propsBinding = outerProps;
     ctx.propsMembers = outerMembers;
     ctx.locals = locals;
@@ -557,6 +560,10 @@ function lowerStyleCall(
     throw new UnsupportedError('a style hook without exactly one css argument');
   }
   const ordinal = ctx.styleCounter.next++;
+  const styleId = createStyleId(ctx.sourceIdentity, ordinal);
+  if (scoped) {
+    ctx.styleScopes.push(`⚡️${styleId}`);
+  }
   const literal =
     expression.type === 'Literal' && typeof expression.value === 'string'
       ? expression.value
@@ -566,7 +573,7 @@ function lowerStyleCall(
   return {
     s: SetupKind.Style,
     ordinal,
-    styleId: createStyleId(ctx.sourceIdentity, ordinal),
+    styleId,
     scoped,
     css:
       literal === null || literal === undefined

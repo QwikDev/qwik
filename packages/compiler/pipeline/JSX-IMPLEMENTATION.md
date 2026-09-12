@@ -317,9 +317,13 @@ Do not restore serialization of a children tree merely to reproduce old VNode op
 ## 12. Styles, context and hooks across new boundaries
 
 - [x] Connect `useStyles$` and `useStylesScoped$` to the `Style` op; styles never become QRLs.
-- [ ] Propagate scoped classes onto the component's elements; ids are assigned and registered.
-- [ ] Preserve authored style scope across branches, collections, projections and dynamic content.
-- [ ] Multiple scoped styles and deduplication.
+- [x] Propagate scoped classes onto the component's elements: static classes fold at lowering,
+      dynamic classes pass the scope to their attribute effect. Scopes a custom hook registers at
+      runtime are not applied yet (`runtimeScope` stays false).
+- [x] Preserve authored style scope across branches, collections, projections and dynamic content.
+      Elements lowered under the author's component carry its scope wherever they render.
+- [x] Multiple scoped styles and deduplication: scopes join into one class list; the runtime
+      dedupes `q:style` by id.
 - [x] Serialize the provided context scope in SSR: components calling `useContextProvider` wrap
       their output in `<!c=…>`/`<!/c>` markers so branches, rows and projections resumed later
       find the scope. Custom hooks that provide context internally are not yet detected.
@@ -387,6 +391,13 @@ code size and runtime cost. The previous implementation is not the accepted defa
 
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
+
+- 2026-09-12: Scoped classes: lowering tracks the component's `⚡️<id>` scopes and rewrites each
+  element's static `class` (or adds one) while `styleScopedId` reaches the dynamic class effects
+  on both targets. Verification: 1027 pipeline tests (16 existing TODOs), the extended
+  `setup-styles` snapshots, and `use-styles-scoped.spec.tsx` green in CSR and resume. Core spec
+  corpus: CSR 17 → 4 failed, resume 15 → 3 failed; `use-serialized` "used many times" is flaky
+  in resume and passes on rerun.
 
 - 2026-09-12: `useStyles$`/`useStylesScoped$` lower to `SetupKind.Style` with a module-stable
   `styleId` and emit `useStyles(css, id)` / `useStylesScoped(css, id, true)` on both targets;

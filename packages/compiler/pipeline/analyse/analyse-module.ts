@@ -190,6 +190,7 @@ export async function analyseModule(
     let setup;
     try {
       loweredParameter = lowerComponentParameter(component, lowerContext);
+      lowerContext.styleScopes = [];
       setup = lowerSetup(component.setupStatements, lowerContext, loweredParameter.locals);
       lowerContext.locals = setup.locals;
       rootOps =

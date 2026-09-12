@@ -539,7 +539,13 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       pushMergedStatic(parts, ` ${rootMarker}`);
     }
     for (const prop of op.props) {
-      this.prop(pass, prop, parts, idVariable);
+      this.prop(
+        pass,
+        prop,
+        parts,
+        idVariable,
+        prop.k === PropKind.Dynamic && prop.name === 'class' ? op.styleScopedId : null
+      );
     }
     pushMergedStatic(parts, '>');
 
@@ -875,7 +881,14 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     return { qrl, ref, args };
   }
 
-  private prop(pass: RenderPass, prop: Prop, parts: string[], idVariable: string | null): void {
+  private prop(
+    pass: RenderPass,
+    prop: Prop,
+    parts: string[],
+    idVariable: string | null,
+    styleScope: string | null
+  ): void {
+    const scope = styleScope === null ? '' : `, undefined, ${JSON.stringify(styleScope)}`;
     switch (prop.k) {
       case PropKind.Static: {
         const serialized = serializeAttrValue(prop.name, prop.value ?? null);
@@ -898,7 +911,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
               pass,
               step,
               [signal],
-              `${QwikWord.RenderSsrAttr}(${idVariable}, ${JSON.stringify(prop.name)}, ${signal})`
+              `${QwikWord.RenderSsrAttr}(${idVariable}, ${JSON.stringify(prop.name)}, ${signal}${scope})`
             );
             break;
           }
@@ -912,7 +925,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
               pass,
               step,
               rootArgs(qrl, args),
-              `${QwikWord.RenderSsrAttrExpression}(${idVariable}, ${JSON.stringify(prop.name)}, [${args.join(', ')}], ${ref})`
+              `${QwikWord.RenderSsrAttrExpression}(${idVariable}, ${JSON.stringify(prop.name)}, [${args.join(', ')}], ${ref}${scope})`
             );
             break;
           }

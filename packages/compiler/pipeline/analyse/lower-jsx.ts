@@ -96,6 +96,10 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
   const props = attributes
     .map((attribute) => lowerAttribute(attribute, ctx, 'element'))
     .filter((prop) => prop !== null);
+  const styleScopedId = ctx.styleScopes.length === 0 ? null : ctx.styleScopes.join(' ');
+  if (styleScopedId !== null) {
+    scopeStaticClass(props, styleScopedId);
+  }
   const children = lowerJsxChildren(element.children, ctx);
   if (VOID_ELEMENTS.has(tag) && children.length > 0) {
     throw new InvalidModuleError(
@@ -108,7 +112,7 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
     op: OpKind.Element,
     tag,
     void: VOID_ELEMENTS.has(tag),
-    styleScopedId: null,
+    styleScopedId,
     runtimeScope: false,
     props,
     propsEffect: null,
@@ -840,6 +844,24 @@ function tryLowerBindingPassValue(expression: Expression, ctx: LowerContext) {
       );
     default:
       return null;
+  }
+}
+
+/** Prefixes a static `class` with the scope, or adds one; a dynamic class gets it from its effect. */
+function scopeStaticClass(props: Prop[], scope: string): void {
+  const index = props.findIndex(
+    (prop) => (prop.k === PropKind.Static || prop.k === PropKind.Dynamic) && prop.name === 'class'
+  );
+  const klass = props[index];
+  if (klass !== undefined && klass.k !== PropKind.Static) {
+    return;
+  }
+  const authored = typeof klass?.value === 'string' && klass.value !== '' ? ` ${klass.value}` : '';
+  const scoped: Prop = { k: PropKind.Static, name: 'class', value: scope + authored };
+  if (klass === undefined) {
+    props.unshift(scoped);
+  } else {
+    props[index] = scoped;
   }
 }
 

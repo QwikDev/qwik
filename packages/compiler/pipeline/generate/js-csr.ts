@@ -336,7 +336,13 @@ class CsrModuleEmitter implements QwikModuleEmitter {
           break;
         }
         case PropKind.Dynamic: {
-          this.dynamicProp(prop, el, statements, pass);
+          this.dynamicProp(
+            prop,
+            el,
+            statements,
+            pass,
+            prop.name === 'class' ? op.styleScopedId : null
+          );
           break;
         }
         default: {
@@ -802,16 +808,18 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     prop: Extract<Prop, { k: PropKind.Dynamic }>,
     el: string,
     statements: string[],
-    pass: RenderPass
+    pass: RenderPass,
+    styleScope: string | null
   ): void {
     const effect = pass.next(QwikGenWord.Effect);
+    const scope = styleScope === null ? '' : `, ${JSON.stringify(styleScope)}`;
     switch (prop.value.v) {
       case ValueKind.Read: {
         // Signal reads bind directly — no chunk involved.
         const signal = signalReadName(this.module, prop.value.expr);
         this.imports.add(QwikWord.CreateAttrEffect);
         statements.push(
-          `const ${effect} = ${QwikWord.CreateAttrEffect}(${el}, ${JSON.stringify(prop.name)}, ${signal}, ${pass.names.ctx}.scheduler);`
+          `const ${effect} = ${QwikWord.CreateAttrEffect}(${el}, ${JSON.stringify(prop.name)}, ${signal}, ${pass.names.ctx}.scheduler${scope});`
         );
         break;
       }
@@ -823,7 +831,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         const resolved = this.resolveQrlUse(use, pass.names.props);
         this.imports.add(QwikWord.CreateAttrExpressionEffect);
         statements.push(
-          `const ${effect} = ${QwikWord.CreateAttrExpressionEffect}(${el}, ${JSON.stringify(prop.name)}, [${resolved.args.join(', ')}], ${this.chunkSymbol(resolved.qrl)}, ${pass.names.ctx}.scheduler);`
+          `const ${effect} = ${QwikWord.CreateAttrExpressionEffect}(${el}, ${JSON.stringify(prop.name)}, [${resolved.args.join(', ')}], ${this.chunkSymbol(resolved.qrl)}, ${pass.names.ctx}.scheduler${scope});`
         );
         break;
       }

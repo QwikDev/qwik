@@ -125,7 +125,8 @@ export type Op =
       op: OpKind.Component;
       target:
         | { t: ComponentTargetKind.Raw; binding: LocalId }
-        | { t: ComponentTargetKind.Dynamic; place: PlaceIR };
+        /** A member tag such as `<UI.Button />`; the runtime picks element or component. */
+        | { t: ComponentTargetKind.Dynamic; value: ValueIR };
       props:
         | { c: ComponentPropsKind.Entries; props: Prop[] }
         | { c: ComponentPropsKind.Proxy; compute: QrlUse };

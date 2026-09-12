@@ -1,4 +1,12 @@
-import type { Expression, JSXAttributeItem, JSXChild, JSXElement, Node } from 'oxc-parser';
+import type {
+  Expression,
+  JSXAttributeItem,
+  JSXChild,
+  JSXElement,
+  JSXIdentifier,
+  JSXMemberExpression,
+  Node,
+} from 'oxc-parser';
 import {
   ResumeKind,
   BoundaryKind,
@@ -18,6 +26,7 @@ import {
   QrlPayloadKind,
   SeedKind,
   ValueKind,
+  type LocalId,
   type Op,
   type Prop,
   type Qrl,
@@ -45,6 +54,7 @@ import { pushPayload, pushQrl, QrlIdentityKind } from './lower-context';
 import { lowerArray } from './lower-array';
 import { createCapturedContext, collectCaptures, lowerCaptures } from './ast/capture-analysis';
 import { LocalKind } from './locals';
+import { ValueIrKind, type ValueIR } from '../../src/expr-ir';
 import { QwikDirective, SegmentContext } from '../words';
 import { lowerFunctionQrl } from './lower-function';
 
@@ -52,24 +62,45 @@ import { lowerFunctionQrl } from './lower-function';
  * Lowers a JSX render tree to structural ops. Text stays RAW in the plan — each generator folds
  * with its own escaping (SSR streams raw, CSR templates escape). Dynamic arms land per example.
  */
+function requireComponentBinding(node: JSXIdentifier, ctx: LowerContext): LocalId {
+  const binding = ctx.bindings.reference(node);
+  if (binding === null) {
+    throw new InvalidModuleError(
+      'unresolved-component',
+      `The component "${node.name}" is not declared in this scope.`,
+      [node.start, node.end]
+    );
+  }
+  return binding;
+}
+
+/** `<UI.Button />` reads a member chain whose root is a binding. */
+function jsxMemberIr(node: JSXMemberExpression, ctx: LowerContext): ValueIR {
+  const object = node.object;
+  const obj: ValueIR =
+    object.type === 'JSXMemberExpression'
+      ? jsxMemberIr(object, ctx)
+      : { kind: ValueIrKind.BindingRead, binding: requireComponentBinding(object, ctx) };
+  return { kind: ValueIrKind.Member, obj, name: node.property.name };
+}
+
 export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
   const opening = element.openingElement;
   const nameNode = opening.name;
-  if (nameNode.type !== 'JSXIdentifier') {
+  if (nameNode.type !== 'JSXIdentifier' && nameNode.type !== 'JSXMemberExpression') {
     throw new UnsupportedError('a non-native JSX tag');
   }
   const attributes = opening.attributes.filter((attribute) => !isKeyAttribute(attribute));
-  if (/^[A-Z]/.test(nameNode.name)) {
-    const binding = ctx.bindings.reference(nameNode);
-    if (binding === null) {
-      throw new InvalidModuleError(
-        'unresolved-component',
-        `The component "${nameNode.name}" is not declared in this scope.`,
-        [nameNode.start, nameNode.end]
-      );
-    }
-    if (ctx.coreBindings.get(binding) === 'Slot') {
-      return lowerSlotMarker(element, ctx);
+  if (nameNode.type === 'JSXMemberExpression' || /^[A-Z]/.test(nameNode.name)) {
+    let target: Extract<Op, { op: OpKind.Component }>['target'];
+    if (nameNode.type === 'JSXMemberExpression') {
+      target = { t: ComponentTargetKind.Dynamic, value: jsxMemberIr(nameNode, ctx) };
+    } else {
+      const binding = requireComponentBinding(nameNode, ctx);
+      if (ctx.coreBindings.get(binding) === 'Slot') {
+        return lowerSlotMarker(element, ctx);
+      }
+      target = { t: ComponentTargetKind.Raw, binding };
     }
     const children = element.children.filter(isProjectionChild);
     const child = children.length === 1 ? children[0] : null;
@@ -81,7 +112,7 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
         : null;
     return {
       op: OpKind.Component,
-      target: { t: ComponentTargetKind.Raw, binding },
+      target,
       props: lowerComponentProps(attributes, ctx, factoryChild),
       projections: factoryChild === null ? lowerProjections(element.children, ctx) : [],
       id: { kind: SeedKind.Component, ordinal: ctx.componentCounter.next++ },

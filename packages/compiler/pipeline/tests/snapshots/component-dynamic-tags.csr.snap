@@ -1,0 +1,151 @@
+==INPUT==
+
+import { Badge, UI } from './ui';
+export default (props: { as: string; component: any }) => {
+  const Heading = 'h2';
+  const Alias = Badge;
+  const Chosen = props.as;
+  return (
+    <section>
+      <Heading class="title">static</Heading>
+      <Alias />
+      <Chosen>chosen</Chosen>
+      <UI.Button label="x" />
+      <props.component />
+    </section>
+  );
+};
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  _first,
+  createSlotScope,
+  registerProjection,
+  _qrlWithChunk,
+  createDynamicTag,
+  createComponent,
+  _toNodes,
+  _next,
+  _last,
+  _prev,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+
+const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_slot_render_segment_0_3b0tagwys7lui',
+  () => import('./component.tsx_component_slot_render_segment_0_3b0tagwys7lui'),
+  'component_slot_render_segment_0_3b0tagwys7lui'
+);
+const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1',
+  () => import('./component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1'),
+  'component_slot_render_segment_1_3b0tauy2p1nv1'
+);
+const default_tmpl0 = _createElementTemplate('<section><!><!><!><!><!></section>');
+import { Badge, UI } from './ui';
+export default (props, ctx) => {
+  const Heading = 'h2';
+  const Alias = Badge;
+  const Chosen = props.as;
+  const el0 = default_tmpl0(ctx.document);
+  const marker0 = _first(el0);
+  const slotScope0 = createSlotScope();
+  registerProjection(slotScope0, '', q_component_slot_render_segment_0_3b0tagwys7lui);
+  const component0 = createComponent(
+    (props0) => createDynamicTag(Heading, props0, ctx),
+    { class: 'title' },
+    ctx,
+    { slotScope: slotScope0 }
+  );
+  marker0.replaceWith(..._toNodes(component0));
+  const marker1 = _next(_first(el0));
+  const component1 = createComponent(Alias, null, ctx);
+  marker1.replaceWith(..._toNodes(component1));
+  const marker2 = _next(_next(_first(el0)));
+  const slotScope1 = createSlotScope();
+  registerProjection(slotScope1, '', q_component_slot_render_segment_1_3b0tauy2p1nv1);
+  const component2 = createComponent((props1) => createDynamicTag(Chosen, props1, ctx), null, ctx, {
+    slotScope: slotScope1,
+  });
+  marker2.replaceWith(..._toNodes(component2));
+  const marker3 = _prev(_last(el0));
+  const component3 = createComponent(
+    (props2) => createDynamicTag(UI.Button, props2, ctx),
+    { label: 'x' },
+    ctx
+  );
+  marker3.replaceWith(..._toNodes(component3));
+  const marker4 = _last(el0);
+  const component4 = createComponent(
+    (props3) => createDynamicTag(props.component, props3, ctx),
+    null,
+    ctx
+  );
+  marker4.replaceWith(..._toNodes(component4));
+  return el0;
+};
+============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
+
+import { _first, createTemplate } from '@qwik.dev/core';
+const component_slot_render_segment_0_3b0tagwys7lui_tmpl0 = createTemplate('static');
+
+export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
+  const fragment0 = component_slot_render_segment_0_3b0tagwys7lui_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  return el0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_slot_render_segment_0_3b0tagwys7lui",
+  "entry": null,
+  "displayName": "component_slot_render_segment_0",
+  "hash": "3b0tagwys7lui",
+  "canonicalFilename": "component.tsx_component_slot_render_segment_0_3b0tagwys7lui",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot:render",
+  "captures": false,
+  "loc": [
+    222,
+    228
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1.js (ENTRY POINT)==
+
+import { _first, createTemplate } from '@qwik.dev/core';
+const component_slot_render_segment_1_3b0tauy2p1nv1_tmpl0 = createTemplate('chosen');
+
+export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx) => {
+  const fragment0 = component_slot_render_segment_1_3b0tauy2p1nv1_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  return el0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_slot_render_segment_1_3b0tauy2p1nv1",
+  "entry": null,
+  "displayName": "component_slot_render_segment_1",
+  "hash": "3b0tauy2p1nv1",
+  "canonicalFilename": "component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot:render",
+  "captures": false,
+  "loc": [
+    269,
+    275
+  ],
+  "paramNames": []
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

@@ -218,10 +218,9 @@ export function collectQrlDependencies(
         visitValue(entry.value);
         break;
       case OpKind.Component:
-        if (
-          entry.target.t === ComponentTargetKind.Raw ||
-          entry.target.t === ComponentTargetKind.Declaration
-        ) {
+        if (entry.target.t === ComponentTargetKind.Dynamic) {
+          visitExpressionIr(entry.target.value);
+        } else {
           bindings.add(entry.target.binding);
         }
         if (entry.props.c === ComponentPropsKind.Entries) {

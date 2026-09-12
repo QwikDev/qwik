@@ -1,0 +1,155 @@
+==INPUT==
+
+import { Badge, UI } from './ui';
+export default (props: { as: string; component: any }) => {
+  const Heading = 'h2';
+  const Alias = Badge;
+  const Chosen = props.as;
+  return (
+    <section>
+      <Heading class="title">static</Heading>
+      <Alias />
+      <Chosen>chosen</Chosen>
+      <UI.Button label="x" />
+      <props.component />
+    </section>
+  );
+};
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { Badge, UI } from './ui';
+import {
+  createSlotScope,
+  registerProjection,
+  renderSsrDynamicTag,
+  createComponent,
+  maybeThen,
+  createSsrMarkup,
+  createSsrNodeId,
+  _noopQrl,
+} from '@qwik.dev/core';
+
+const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
+  return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), 'static', '<!/s>'];
+};
+const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _noopQrl(
+  'component_slot_render_segment_0_3b0tagwys7lui'
+);
+q_component_slot_render_segment_0_3b0tagwys7lui.s(component_slot_render_segment_0_3b0tagwys7lui);
+const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId) => {
+  return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), 'chosen', '<!/s>'];
+};
+const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _noopQrl(
+  'component_slot_render_segment_1_3b0tauy2p1nv1'
+);
+q_component_slot_render_segment_1_3b0tauy2p1nv1.s(component_slot_render_segment_1_3b0tauy2p1nv1);
+export default (props, ctx) => {
+  const Heading = 'h2';
+  const Alias = Badge;
+  const Chosen = props.as;
+  const slotScope0 = createSlotScope();
+  ctx.addRoot(slotScope0);
+  registerProjection(slotScope0, '', q_component_slot_render_segment_0_3b0tagwys7lui);
+  const component0 = createComponent(
+    (props0) => renderSsrDynamicTag(Heading, props0, ctx),
+    { class: 'title' },
+    ctx,
+    { slotScope: slotScope0 }
+  );
+  const component1 = createComponent(Alias, null, ctx);
+  const slotScope1 = createSlotScope();
+  ctx.addRoot(slotScope1);
+  registerProjection(slotScope1, '', q_component_slot_render_segment_1_3b0tauy2p1nv1);
+  const component2 = createComponent(
+    (props1) => renderSsrDynamicTag(Chosen, props1, ctx),
+    null,
+    ctx,
+    { slotScope: slotScope1 }
+  );
+  const component3 = createComponent(
+    (props2) => renderSsrDynamicTag(UI.Button, props2, ctx),
+    { label: 'x' },
+    ctx
+  );
+  const component4 = createComponent(
+    (props3) => renderSsrDynamicTag(props.component, props3, ctx),
+    null,
+    ctx
+  );
+  return maybeThen(component0, (component0) =>
+    maybeThen(component1, (component1) =>
+      maybeThen(component2, (component2) =>
+        maybeThen(component3, (component3) =>
+          maybeThen(component4, (component4) => [
+            '<section>',
+            component0,
+            component1,
+            component2,
+            component3,
+            component4,
+            '</section>',
+          ])
+        )
+      )
+    )
+  );
+};
+============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
+
+import { createSsrMarkup, createSsrNodeId } from '@qwik.dev/core';
+
+export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
+  return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), 'static', '<!/s>'];
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_slot_render_segment_0_3b0tagwys7lui",
+  "entry": null,
+  "displayName": "component_slot_render_segment_0",
+  "hash": "3b0tagwys7lui",
+  "canonicalFilename": "component.tsx_component_slot_render_segment_0_3b0tagwys7lui",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot:render",
+  "captures": false,
+  "loc": [
+    222,
+    228
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1.js (ENTRY POINT)==
+
+import { createSsrMarkup, createSsrNodeId } from '@qwik.dev/core';
+
+export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId) => {
+  return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), 'chosen', '<!/s>'];
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_slot_render_segment_1_3b0tauy2p1nv1",
+  "entry": null,
+  "displayName": "component_slot_render_segment_1",
+  "hash": "3b0tauy2p1nv1",
+  "canonicalFilename": "component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot:render",
+  "captures": false,
+  "loc": [
+    269,
+    275
+  ],
+  "paramNames": []
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

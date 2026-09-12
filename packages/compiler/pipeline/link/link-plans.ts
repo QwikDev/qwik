@@ -30,7 +30,7 @@ import {
   type Unknown,
 } from '../schema';
 import { collectQrlDependencies } from './qrl-dependencies';
-import { linkRenderResults } from './render-results';
+import { linkRenderResults, localComponentSetups } from './render-results';
 import { linkContent } from './link-content';
 import { linkHookTwins } from './link-hooks';
 import { ValueIrKind } from '../../src/expr-ir';
@@ -329,6 +329,9 @@ export function linkPlans(
     return index;
   });
 
+  const localComponents = plans.map(
+    (plan) => new Set(localComponentSetups(plan).map((setup) => setup.binding))
+  );
   const linkOperation = (module: number, op: Op): LinkedOp => {
     if (op.op === OpKind.Element) {
       return { ...op, children: op.children.map((child) => linkOperation(module, child)) };
@@ -353,6 +356,10 @@ export function linkPlans(
         t: ComponentTargetKind.Declaration,
         binding: target.binding,
         declaration,
+        isValue:
+          declaration.ok &&
+          declaration.value.table === DeclTable.Bindings &&
+          !localComponents[declaration.value.module].has(declaration.value.index),
       },
     };
   };

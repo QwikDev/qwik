@@ -267,10 +267,17 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     pass: RenderPass
   ): string {
     const component = pass.next(QwikGenWord.Component);
-    const call = emitComponentCall(this.module, op, pass, this.imports, (use) => {
-      const { qrl, args } = this.resolveQrlUse(use, pass.names.props);
-      return { qrl, reference: this.lazyQrlReference(qrl), args };
-    });
+    const call = emitComponentCall(
+      this.module,
+      op,
+      pass,
+      this.imports,
+      (use) => {
+        const { qrl, args } = this.resolveQrlUse(use, pass.names.props);
+        return { qrl, reference: this.lazyQrlReference(qrl), args };
+      },
+      QwikWord.CreateDynamicTag
+    );
     statements.push(
       ...call.rootDeclarations,
       ...call.statements,

@@ -621,6 +621,9 @@ export function createBindingGraph(program: Program): BindingGraph {
 
 /** Lowercase tags are intrinsic elements; only other spellings read a binding. */
 function isJsxTagReference(parent: Node | null, key: string, name: string): boolean {
+  if (key === 'object') {
+    return parent?.type === 'JSXMemberExpression';
+  }
   return (
     key === 'name' &&
     !/^[a-z]/.test(name) &&

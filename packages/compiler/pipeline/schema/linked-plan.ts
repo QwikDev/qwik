@@ -95,6 +95,8 @@ export type LinkedOp =
             t: ComponentTargetKind.Declaration;
             binding: LocalId;
             declaration: Maybe<DeclRef>;
+            /** The tag links to a plain value, so the runtime decides between element and component. */
+            isValue: boolean;
           }
         | Extract<ComponentOp['target'], { t: ComponentTargetKind.Dynamic }>;
     });

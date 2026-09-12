@@ -23,6 +23,7 @@ import {
   type LinkedModule,
   type LinkedOp,
   type LinkedPlan,
+  type LocalId,
   type Maybe,
   type Result,
   type Setup,
@@ -67,6 +68,24 @@ const escapesBinding = (result: BindingResult | undefined) =>
 type Input = { module: number; result: Result };
 
 /** Solves component inputs before choosing any rendering strategy. */
+type LocalComponentSetup = Extract<Setup, { s: SetupKind.LocalComponent }> & { binding: LocalId };
+
+/** Every `component$` declared inside a setup body, including those nested in authored statements. */
+export function localComponentSetups(module: {
+  programs: readonly { setup: readonly Setup[] }[];
+  payloads: readonly { setups?: readonly { setup: readonly Setup[] }[] }[];
+}): LocalComponentSetup[] {
+  return [
+    ...module.programs.flatMap((program) => program.setup),
+    ...module.payloads.flatMap(
+      (payload) => payload.setups?.flatMap((replacement) => replacement.setup) ?? []
+    ),
+  ].filter(
+    (setup): setup is LocalComponentSetup =>
+      setup.s === SetupKind.LocalComponent && setup.binding != null
+  );
+}
+
 export function linkRenderResults(
   plan: LinkedPlan,
   reachable: ReadonlySet<string>,
@@ -83,16 +102,7 @@ export function linkRenderResults(
   const componentPrograms = new Map<string, number>();
   const declKey = (decl: DeclRef) => `${decl.module}:${decl.table}:${decl.index}`;
   modules.forEach((module, moduleIndex) => {
-    const declarations = [
-      ...module.programs.flatMap((program) => program.setup),
-      ...module.payloads.flatMap(
-        (payload) => payload.setups?.flatMap((replacement) => replacement.setup) ?? []
-      ),
-    ];
-    for (const setup of declarations) {
-      if (setup.s !== SetupKind.LocalComponent || setup.binding == null) {
-        continue;
-      }
+    for (const setup of localComponentSetups(module)) {
       const key = `${moduleIndex}:${DeclTable.Bindings}:${setup.binding}`;
       componentPrograms.set(key, setup.program);
       const binding = setup.parameter?.surface.binding;

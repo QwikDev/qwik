@@ -18,7 +18,7 @@ import {
 import { UnsupportedError } from '../errors';
 import { QwikGenWord, QwikHook, QwikWord } from '../words';
 import { signalReadName } from './emit-setup';
-import { inlineValueJs, rootArgs } from './emit-chunk';
+import { inlineValueJs, rootArgs, valueIrJs } from './emit-chunk';
 import { allocateGeneratedName } from '../names';
 
 export interface ComponentEmission {
@@ -51,14 +51,13 @@ export function emitComponentCall(
   component: ComponentOp,
   pass: ComponentRenderPass,
   imports: Set<string>,
-  resolveQrl: ResolveComponentQrl
+  resolveQrl: ResolveComponentQrl,
+  /** The target's dynamic-tag helper for tags the plan cannot prove to be components. */
+  dynamicTag: QwikWord
 ) {
-  if (component.target.t !== ComponentTargetKind.Declaration) {
-    throw new UnsupportedError('a dynamic component call');
-  }
   const props = emitComponentProps(module, component, pass, imports, resolveQrl);
   const projections = emitComponentProjections(component, pass, imports, resolveQrl);
-  const target = module.bindings[component.target.binding].name;
+  const target = componentTargetJs(module, component.target, pass, imports, dynamicTag);
   imports.add(QwikWord.CreateComponent);
   return {
     expression: `${QwikWord.CreateComponent}(${target}, ${props.expression}, ${pass.names.ctx}${projections.options})`,
@@ -288,6 +287,29 @@ function emitComponentExpression(
     source: propQrl,
     roots: rootArgs(qrl, args),
   };
+}
+
+/**
+ * A tag proven to be a component declaration is called directly; a plain value or a member tag lets
+ * the runtime decide between an element and a component from the value itself.
+ */
+function componentTargetJs(
+  module: LinkedModule,
+  target: ComponentOp['target'],
+  pass: ComponentRenderPass,
+  imports: Set<string>,
+  dynamicTag: QwikWord
+): string {
+  const tag =
+    target.t === ComponentTargetKind.Dynamic
+      ? valueIrJs(module, target.value)
+      : module.bindings[target.binding].name;
+  if (target.t === ComponentTargetKind.Declaration && !target.isValue) {
+    return tag;
+  }
+  imports.add(dynamicTag);
+  const props = pass.next(QwikGenWord.ComponentProps);
+  return `(${props}) => ${dynamicTag}(${tag}, ${props}, ${pass.names.ctx})`;
 }
 
 /** Generated parameter names dodge every binding the module declares. */

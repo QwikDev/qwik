@@ -196,15 +196,20 @@ snapshot audit and remaining production-build blockers.
 
 ## 4. Component targets and factories
 
-- [ ] Member tags: `<UI.Button />`, `<props.component />`.
-- [ ] String-valued dynamic tags: `const Tag = props.as; <Tag />`.
-- [ ] Function- and QRL-valued dynamic tags.
-- [ ] Reactive target changes with props, projections and cleanup of the previous instance.
-- [ ] Components returned by factories and wrappers.
+- [x] Member tags: `<UI.Button />`, `<props.component />`. The tag lowers to a member `ValueIR`
+      and the runtime dynamic-tag helper decides between element and component.
+- [x] String-valued dynamic tags: `const Tag = props.as; <Tag />`. A tag whose binding links to a
+      plain value calls `createDynamicTag` / `renderSsrDynamicTag`; a tag linked to a component
+      declaration, local or imported, stays a direct `createComponent` call.
+- [x] Function- and QRL-valued dynamic tags, through the same runtime decision.
+- [ ] Reactive target changes with props, projections and cleanup of the previous instance. A tag
+      read from a signal renders once; changing it needs a content region keyed on the signal.
+- [ ] Components returned by factories and wrappers. A `component$` nested in an object literal
+      or returned from a factory is not discovered as a component today.
 - [ ] `component$(existingFunction)` and `componentQrl` where retaining these API paths.
 
-Reuse existing dynamic-tag runtime helpers. A generated `createComponent(Tag, ...)` call does
-not by itself support a string-valued tag.
+Verified by the `component-dynamic-tags` snapshots and `dynamic-tag.spec.tsx` plus the dynamic
+tag cases of `component.spec.tsx` in CSR and resume.
 
 ## 5. Parameters, aliases and destructuring
 
@@ -400,6 +405,13 @@ code size and runtime cost. The previous implementation is not the accepted defa
 
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
+
+- 2026-09-12: Dynamic tags: member tags lower to a `Dynamic` component target carrying a member
+  `ValueIR`, and a tag whose binding links to a plain value is emitted as
+  `createComponent((props) => <dynamicTag>(Tag, props, ctx), …)` using the target's runtime
+  helper; component declarations, including local ones, keep the direct call. Verification: 1052
+  pipeline tests (16 existing TODOs), the `component-dynamic-tags` snapshots and
+  `dynamic-tag.spec.tsx` in CSR and resume. Core spec corpus: CSR 4 → 3, resume 6 → 5 failed.
 
 - 2026-09-12: Literal arrays in render position, including branch arms, rows and nested arrays,
   fold like fragments instead of a content block plus per-element chunks; lone string and number

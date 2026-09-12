@@ -1861,6 +1861,35 @@ export default (props: { label?: string; content?: any }) => {
     }
   });
 
+  test('should defer plain-value and member tags to the runtime dynamic tag', async () => {
+    const output = await testInput(mode, 'component-dynamic-tags', {
+      code: `import { Badge, UI } from './ui';
+export default (props: { as: string; component: any }) => {
+  const Heading = 'h2';
+  const Alias = Badge;
+  const Chosen = props.as;
+  return (
+    <section>
+      <Heading class="title">static</Heading>
+      <Alias />
+      <Chosen>chosen</Chosen>
+      <UI.Button label="x" />
+      <props.component />
+    </section>
+  );
+};`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const code = output.modules.map((module) => module.code).join('\n');
+    const dynamic = mode === 'ssr' ? 'renderSsrDynamicTag' : 'createDynamicTag';
+    expect(code.match(new RegExp(`${dynamic}\\(`, 'g'))).toHaveLength(4);
+    expect(code).toContain(`${dynamic}(Heading, `);
+    expect(code).toContain(`${dynamic}(UI.Button, `);
+    expect(code).toContain(`${dynamic}(props.component, `);
+    // An alias of an imported component stays a direct call under its local name.
+    expect(code).toContain('createComponent(Alias, ');
+  });
+
   test('should render a bare signal child as its tracked value', async () => {
     const output = await testInput(mode, 'text-hole-signal-child', {
       code: `import { useSignal } from '@qwik.dev/core';

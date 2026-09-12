@@ -1,0 +1,24 @@
+==INPUT==
+
+import { useSignal } from '@qwik.dev/core';
+export default () => {
+  const count = useSignal(1);
+  return <span>{count}</span>;
+};
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { useSignal, _first, createTextNodeEffect, _createElementTemplate } from '@qwik.dev/core';
+const default_tmpl0 = _createElementTemplate('<span> </span>');
+export default (props, ctx) => {
+  const count = useSignal(1);
+  const el0 = default_tmpl0(ctx.document);
+  const text0 = _first(el0);
+  const effect0 = createTextNodeEffect(text0, count, ctx.scheduler);
+  ctx.scheduler.notify(effect0);
+  return el0;
+};
+== CSR DIAGNOSTICS ==
+
+[]

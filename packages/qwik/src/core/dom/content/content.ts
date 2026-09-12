@@ -36,6 +36,7 @@ import { EMPTY_NODES } from '../../utils/consts';
 import type { RevealGroup } from './reveal';
 import { toNodes, type MaybeNodeOutput } from '../../utils/nodes';
 import { getFunctionOrResolve } from '../../utils/qrl';
+import { isQrl } from '../../shared/qrl/qrl-utils';
 import type { SsrOutput } from '../../ssr/output';
 import { replaceRange } from '../range/range';
 import { reapplyUseOnContexts } from '../../runtime/use-on';
@@ -72,7 +73,10 @@ export const renderSsrDynamicContent = (
     Array.isArray(v)
       ? promiseAll(Array.from(v, (child) => renderSsrDynamicContent(child, ctx)))
       : typeof v === 'function'
-        ? (v as (ctx?: ContainerContext) => ValueOrPromise<SsrOutput>)(ctx)
+        ? // a callback may hand back another compiled JSX value instead of output
+          maybeThen((v as (ctx?: ContainerContext) => unknown)(ctx), (output) =>
+            isQrl(output) ? renderSsrDynamicContent(output, ctx) : (output as SsrOutput)
+          )
         : v == null || v === true || v === false
           ? ''
           : escapeHTML(String(v))
@@ -90,7 +94,9 @@ export const createDynamicContent = (
           (children) => children.flat()
         )
       : typeof v === 'function'
-        ? maybeThen((v as (ctx: ContainerContext) => ValueOrPromise<MaybeNodeOutput>)(ctx), toNodes)
+        ? maybeThen((v as (ctx: ContainerContext) => unknown)(ctx), (output) =>
+            isQrl(output) ? createDynamicContent(output, ctx) : toNodes(output as MaybeNodeOutput)
+          )
         : v == null || v === true || v === false
           ? EMPTY_NODES
           : [ctx.document.createTextNode(String(v))]

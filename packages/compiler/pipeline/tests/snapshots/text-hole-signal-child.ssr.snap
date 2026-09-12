@@ -1,0 +1,34 @@
+==INPUT==
+
+import { useSignal } from '@qwik.dev/core';
+export default () => {
+  const count = useSignal(1);
+  return <span>{count}</span>;
+};
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useSignal,
+  createSsrNodeId,
+  escapeHTML,
+  renderSsrTextNode,
+  maybeThen,
+} from '@qwik.dev/core';
+export default (props, ctx) => {
+  const count = useSignal(1);
+  const id0 = ctx.nextId();
+  ctx.addRoot(count);
+  const text0 = renderSsrTextNode(id0, null, count);
+  return maybeThen(text0, (text0) => [
+    '<span q:id="',
+    createSsrNodeId(id0),
+    '">',
+    escapeHTML(text0),
+    '</span>',
+  ]);
+};
+== SSR DIAGNOSTICS ==
+
+[]

@@ -1815,6 +1815,20 @@ export default (props) => <ul>{props.items.map(({ id, primary, secondary }, inde
     expect(output.diagnostics).toEqual([]);
   });
 
+  test('should render a bare signal child as its tracked value', async () => {
+    const output = await testInput(mode, 'text-hole-signal-child', {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
+  const count = useSignal(1);
+  return <span>{count}</span>;
+};`,
+    });
+    const code = output.modules.map((module) => module.code).join('\n');
+    expect(code).toContain(mode === 'ssr' ? 'renderSsrTextNode(' : 'createTextNodeEffect(');
+    expect(code).not.toContain('createContentBlock');
+    expect(code).not.toContain('renderSsrContent');
+  });
+
   test('should read a signal held by a row value', async () => {
     const output = await testInput(mode, 'collection-row-signal', {
       code: `import { useSignal } from '@qwik.dev/core';

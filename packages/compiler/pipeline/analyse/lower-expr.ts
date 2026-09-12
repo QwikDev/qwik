@@ -205,20 +205,28 @@ export function trySignalReadValue(
   expression: Expression,
   ctx: LowerContext
 ): ReactiveValue | null {
-  if (expression.type !== 'MemberExpression' || expression.computed) {
+  // `{count}` renders a signal's value reactively, like `{count.value}`.
+  const object =
+    expression.type === 'Identifier'
+      ? expression
+      : expression.type === 'MemberExpression' &&
+          !expression.computed &&
+          identifierName(expression.property) === 'value'
+        ? expression.object
+        : null;
+  const name = object === null ? null : identifierName(object);
+  if (object === null || name === null) {
     return null;
   }
-  const property = expression.computed ? null : identifierName(expression.property);
-  const name = identifierName(expression.object);
-  if (property !== 'value' || name === null) {
-    return null;
-  }
-  const binding = ctx.bindings.reference(expression.object);
+  const binding = ctx.bindings.reference(object);
   if (binding === null) {
     return null;
   }
   const local = ctx.locals.get(binding);
-  if (local === undefined) {
+  if (
+    local === undefined ||
+    (expression.type === 'Identifier' && local.kind !== LocalKind.Signal)
+  ) {
     return null;
   }
   switch (local.kind) {
@@ -233,7 +241,11 @@ export function trySignalReadValue(
       return {
         v: ValueKind.Read,
         range: [expression.start, expression.end],
-        result: expressionResult(expression, ctx),
+        // The bare form reads the same value as `.value`, so it classifies the same way.
+        result:
+          expression.type === 'Identifier'
+            ? { kind: ValueIrKind.Member, obj: expressionResult(expression, ctx), name: 'value' }
+            : expressionResult(expression, ctx),
         place: { at: PlaceKind.Slot, index: local.slot },
         expr: { kind: ExprKind.Ir, ir: { kind: ValueIrKind.SignalRead, binding: local.binding } },
       };

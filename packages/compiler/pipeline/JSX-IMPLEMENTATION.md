@@ -168,14 +168,21 @@ including keyed instance reuse and captured events after reordering. Existing sn
 
 - [x] Distinguish text from renderable JSX values instead of routing every unknown expression
       through a text hole.
-- [ ] Render nested child arrays, mixed text/elements and empty values.
-- [ ] Support transitions between text, elements, arrays and empty output.
-- [ ] Render JSX results supplied by functions, promises, signals and stores.
-- [ ] Support direct signal children if retaining that API contract from `main`.
+- [x] Render nested child arrays, mixed text/elements and empty values.
+- [x] Support transitions between text, elements, arrays and empty output.
+- [x] Render JSX results supplied by functions, promises, signals and stores. A callback may
+      return another compiled JSX value; the dynamic-content helpers render that result too.
+- [x] Support direct signal children: `{count}` lowers to the same tracked text read as
+      `{count.value}`, and rendering a value as a JSX child no longer counts as an escape.
 - [x] Render dynamic text as the complete component result in SSR without the
       `a root text hole outside a range` rejection.
-- [ ] Handle `||`, `??` and sequence expressions containing JSX while preserving short-circuit
-      behavior and single evaluation.
+- [x] Handle `||`, `??` and sequence expressions containing JSX while preserving short-circuit
+      behavior and single evaluation. They render through one content QRL, so the JS semantics
+      hold; the linker still classifies them as content rather than proven text.
+
+Verified by `dynamic-content.spec.tsx` and `linked-content.spec.tsx` in CSR and resume, plus the
+`text-hole-signal-child` snapshots. Open runtime robustness item: an error thrown while a content
+block commits stops the sibling subscribers of that owner silently; `flush()` resolves anyway.
 
 Reuse `ContentBlock` and dynamic-content helpers in `packages/qwik/src/core/dom/content/`;
 complete their contract rather than introducing a parallel renderer.
@@ -391,6 +398,14 @@ code size and runtime cost. The previous implementation is not the accepted defa
 
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
+
+- 2026-09-12: Group 3 verified end to end. New `dynamic-content.spec.tsx` covers nested arrays,
+  text/element/array/empty transitions, function/promise/signal/store results and `||`/`??`
+  with single evaluation, all green in CSR and resume. Fixes on the way: `createDynamicContent`
+  and `renderSsrDynamicContent` render a QRL returned by a callback; a bare signal child lowers
+  as a tracked text read; rendering a child no longer records an escape, so the linker keeps
+  such holes as text. Verification: 1032 pipeline tests (16 existing TODOs). Core spec corpus:
+  CSR 4 failed, resume 6 failed, unchanged apart from flaky task/serializer cases.
 
 - 2026-09-12: Two analysis fixes. Lowercase JSX tags are intrinsic elements and no longer resolve
   to a same-named local, which wrongly refused branch arms such as `button.value ? <button/> :

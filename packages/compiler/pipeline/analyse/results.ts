@@ -297,13 +297,14 @@ export function recordBindingResults(ctx: LowerContext): void {
           });
           continue;
         }
-        // Escaped objects can mutate descendants; primitive values remain immutable.
+        // Escaped objects can mutate descendants; primitive values remain immutable. Rendering a
+        // value as a JSX child only reads it, so only attribute containers escape.
         if (
           (parent?.type === 'CallExpression' && parent.callee !== node) ||
           parent?.type === 'AssignmentExpression' ||
           parent?.type === 'ReturnStatement' ||
           parent?.type === 'Property' ||
-          parent?.type === 'JSXExpressionContainer' ||
+          (parent?.type === 'JSXExpressionContainer' && attribute?.type === 'JSXAttribute') ||
           parent?.type === 'MemberExpression'
         ) {
           facts.escapes.push(path);

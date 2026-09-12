@@ -1882,12 +1882,16 @@ export default (props: { as: string; component: any }) => {
     expect(output.diagnostics).toEqual([]);
     const code = output.modules.map((module) => module.code).join('\n');
     const dynamic = mode === 'ssr' ? 'renderSsrDynamicTag' : 'createDynamicTag';
-    expect(code.match(new RegExp(`${dynamic}\\(`, 'g'))).toHaveLength(4);
-    expect(code).toContain(`${dynamic}(Heading, `);
-    expect(code).toContain(`${dynamic}(UI.Button, `);
-    expect(code).toContain(`${dynamic}(props.component, `);
+    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    expect(main.match(new RegExp(`${dynamic}\\(`, 'g'))).toHaveLength(mode === 'ssr' ? 4 : 3);
+    expect(main).toContain(`${dynamic}(Heading, `);
+    expect(main).toContain('const tag0 = UI.Button;');
     // An alias of an imported component stays a direct call under its local name.
-    expect(code).toContain('createComponent(Alias, ');
+    expect(main).toContain('createComponent(Alias, ');
+    // Only the tag read through props re-renders inside a content range, from its own chunk.
+    const content = mode === 'ssr' ? 'renderSsrContent' : 'createContentBlock';
+    expect(main.match(new RegExp(`${content}\\(`, 'g'))).toHaveLength(1);
+    expect(code).toContain('const tag0 = props.component;');
   });
 
   test('should render a bare signal child as its tracked value', async () => {

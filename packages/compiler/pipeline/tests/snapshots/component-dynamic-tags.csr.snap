@@ -30,6 +30,7 @@ import {
   _next,
   _last,
   _prev,
+  createContentBlock,
   _createElementTemplate,
 } from '@qwik.dev/core';
 
@@ -43,7 +44,12 @@ const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _qrlWithCh
   () => import('./component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1'),
   'component_slot_render_segment_1_3b0tauy2p1nv1'
 );
-const default_tmpl0 = _createElementTemplate('<section><!><!><!><!><!></section>');
+const q_component_tag_dynamic_segment_2_331xdhxtzk3df = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_tag_dynamic_segment_2_331xdhxtzk3df',
+  () => import('./component.tsx_component_tag_dynamic_segment_2_331xdhxtzk3df'),
+  'component_tag_dynamic_segment_2_331xdhxtzk3df'
+);
+const default_tmpl0 = _createElementTemplate('<section><!><!><!><!><!><!></section>');
 import { Badge, UI } from './ui';
 export default (props, ctx) => {
   const Heading = 'h2';
@@ -70,20 +76,26 @@ export default (props, ctx) => {
     slotScope: slotScope1,
   });
   marker2.replaceWith(..._toNodes(component2));
-  const marker3 = _prev(_last(el0));
+  const marker3 = _prev(_prev(_last(el0)));
+  const tag0 = UI.Button;
   const component3 = createComponent(
-    (props2) => createDynamicTag(UI.Button, props2, ctx),
+    (props2) => createDynamicTag(tag0, props2, ctx),
     { label: 'x' },
     ctx
   );
   marker3.replaceWith(..._toNodes(component3));
-  const marker4 = _last(el0);
-  const component4 = createComponent(
-    (props3) => createDynamicTag(props.component, props3, ctx),
-    null,
-    ctx
+  const start0 = _prev(_last(el0));
+  const end0 = _next(start0);
+  const content0 = createContentBlock(
+    ctx,
+    start0,
+    end0,
+    [],
+    q_component_tag_dynamic_segment_2_331xdhxtzk3df.w([props]),
+    false,
+    true
   );
-  marker4.replaceWith(..._toNodes(component4));
+  ctx.scheduler.notify(content0);
   return el0;
 };
 ============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
@@ -144,6 +156,39 @@ export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx) => {
     275
   ],
   "paramNames": []
+}
+*/
+============================= src/component.tsx_component_tag_dynamic_segment_2_331xdhxtzk3df.js (ENTRY POINT)==
+
+import { _captures, createDynamicTag, createComponent } from '@qwik.dev/core';
+
+export const component_tag_dynamic_segment_2_331xdhxtzk3df = (ctx) => {
+  const [props] = _captures;
+  const tag0 = props.component;
+  const component0 = createComponent((props0) => createDynamicTag(tag0, props0, ctx), null, ctx);
+  return component0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_tag_dynamic_segment_2_331xdhxtzk3df",
+  "entry": null,
+  "displayName": "component_tag_dynamic_segment_2",
+  "hash": "331xdhxtzk3df",
+  "canonicalFilename": "component.tsx_component_tag_dynamic_segment_2_331xdhxtzk3df",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "tag:dynamic",
+  "captures": true,
+  "loc": [
+    321,
+    340
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
 }
 */
 == CSR DIAGNOSTICS ==

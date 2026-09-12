@@ -312,7 +312,11 @@ export function programKind(qrl: LinkedQrl): ProgramKind {
     if (qrl.boundary.role === 'slot-fallback') {
       return ProgramKind.SlotFallback;
     }
-    if (qrl.boundary.role === 'dynamic-slot' || qrl.boundary.role === 'jsx-value') {
+    if (
+      [SegmentContext.DynamicSlot, SegmentContext.DynamicTag, 'jsx-value'].includes(
+        qrl.boundary.role
+      )
+    ) {
       return ProgramKind.Content;
     }
   }

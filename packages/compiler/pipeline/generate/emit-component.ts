@@ -60,10 +60,10 @@ export function emitComponentCall(
   const target = componentTargetJs(module, component.target, pass, imports, dynamicTag);
   imports.add(QwikWord.CreateComponent);
   return {
-    expression: `${QwikWord.CreateComponent}(${target}, ${props.expression}, ${pass.names.ctx}${projections.options})`,
+    expression: `${QwikWord.CreateComponent}(${target.expression}, ${props.expression}, ${pass.names.ctx}${projections.options})`,
     roots: [...props.roots, ...projections.roots],
     rootDeclarations: projections.declarations,
-    statements: [...props.statements, ...projections.statements],
+    statements: [...target.statements, ...props.statements, ...projections.statements],
   };
 }
 
@@ -291,7 +291,8 @@ function emitComponentExpression(
 
 /**
  * A tag proven to be a component declaration is called directly; a plain value or a member tag lets
- * the runtime decide between an element and a component from the value itself.
+ * the runtime decide between an element and a component from the value itself. A member tag is read
+ * before the call so a surrounding content range tracks it.
  */
 function componentTargetJs(
   module: LinkedModule,
@@ -299,17 +300,18 @@ function componentTargetJs(
   pass: ComponentRenderPass,
   imports: Set<string>,
   dynamicTag: QwikWord
-): string {
-  const tag =
-    target.t === ComponentTargetKind.Dynamic
-      ? valueIrJs(module, target.value)
-      : module.bindings[target.binding].name;
+): { expression: string; statements: string[] } {
   if (target.t === ComponentTargetKind.Declaration && !target.isValue) {
-    return tag;
+    return { expression: module.bindings[target.binding].name, statements: [] };
   }
+  const isDynamic = target.t === ComponentTargetKind.Dynamic;
+  const tag = isDynamic ? pass.next(QwikGenWord.Tag) : module.bindings[target.binding].name;
   imports.add(dynamicTag);
   const props = pass.next(QwikGenWord.ComponentProps);
-  return `(${props}) => ${dynamicTag}(${tag}, ${props}, ${pass.names.ctx})`;
+  return {
+    expression: `(${props}) => ${dynamicTag}(${tag}, ${props}, ${pass.names.ctx})`,
+    statements: isDynamic ? [`const ${tag} = ${valueIrJs(module, target.value)};`] : [],
+  };
 }
 
 /** Generated parameter names dodge every binding the module declares. */

@@ -90,6 +90,7 @@ export const enum QwikGenWord {
   CollectionSource = 'collectionSource',
   Component = 'component',
   Content = 'content',
+  Tag = 'tag',
   Slot = 'slot',
   SlotName = 'slotName',
   SlotScope = 'slotScope',
@@ -150,4 +151,5 @@ export const enum SegmentContext {
   CollectionSource = 'collection:source',
   Projection = 'slot:render',
   DynamicSlot = 'slot:dynamic',
+  DynamicTag = 'tag:dynamic',
 }

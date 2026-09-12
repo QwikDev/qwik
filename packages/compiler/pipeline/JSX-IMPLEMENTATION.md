@@ -202,14 +202,22 @@ snapshot audit and remaining production-build blockers.
       plain value calls `createDynamicTag` / `renderSsrDynamicTag`; a tag linked to a component
       declaration, local or imported, stays a direct `createComponent` call.
 - [x] Function- and QRL-valued dynamic tags, through the same runtime decision.
-- [ ] Reactive target changes with props, projections and cleanup of the previous instance. A tag
-      read from a signal renders once; changing it needs a content region keyed on the signal.
+- [x] Reactive target changes with props, projections and cleanup of the previous instance. A
+      member tag rooted in props or a setup local (`<props.component />`, `<ui.Tag />`) renders
+      inside its own content range, which re-renders with new props and projections and disposes
+      the previous instance when the tracked read changes. A tag rooted in a module binding
+      (`<UI.Button />`) stays a direct call. A setup snapshot such as `const Tag = props.as` is
+      ordinary JavaScript and does not re-render; whether such aliases stay reactive is group 5.
 - [ ] Components returned by factories and wrappers. A `component$` nested in an object literal
-      or returned from a factory is not discovered as a component today.
-- [ ] `component$(existingFunction)` and `componentQrl` where retaining these API paths.
+      or returned from a factory is not discovered as a component today. This is the
+      location-independent `$` extraction of group 6; solve it there rather than as a
+      `component$`-only discovery path.
+- [ ] `component$(existingFunction)` and `componentQrl` where retaining these API paths. Same
+      mechanism as the function-reference item of group 6.
 
 Verified by the `component-dynamic-tags` snapshots and `dynamic-tag.spec.tsx` plus the dynamic
-tag cases of `component.spec.tsx` in CSR and resume.
+tag cases of `component.spec.tsx` in CSR and resume. A reactive tag whose value is a compiled
+component function cannot be serialized for resume; string tags and module components can.
 
 ## 5. Parameters, aliases and destructuring
 
@@ -405,6 +413,14 @@ code size and runtime cost. The previous implementation is not the accepted defa
 
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
+
+- 2026-09-12: Reactive tags: a member tag rooted in props or a setup local lowers through the
+  same content-range helper as a dynamic slot name, so the tag read happens inside a tracked
+  render and a change re-creates the element or component. Emission reads the tag into a local
+  before `createComponent`, since the component factory runs untracked. Verification: 1052
+  pipeline tests (16 existing TODOs), the updated `component-dynamic-tags` snapshots, and the
+  new `dynamic-tag.spec.tsx` case in CSR and resume. Core spec corpus unchanged: CSR 3, resume 5
+  failed.
 
 - 2026-09-12: Dynamic tags: member tags lower to a `Dynamic` component target carrying a member
   `ValueIR`, and a tag whose binding links to a plain value is emitted as

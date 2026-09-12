@@ -25,9 +25,11 @@ import {
   registerProjection,
   renderSsrDynamicTag,
   createComponent,
+  _captures,
+  renderSsrContent,
+  createSsrNodeId,
   maybeThen,
   createSsrMarkup,
-  createSsrNodeId,
   _noopQrl,
 } from '@qwik.dev/core';
 
@@ -45,6 +47,16 @@ const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_1_3b0tauy2p1nv1'
 );
 q_component_slot_render_segment_1_3b0tauy2p1nv1.s(component_slot_render_segment_1_3b0tauy2p1nv1);
+const component_tag_dynamic_segment_2_331xdhxtzk3df = (ctx) => {
+  const [props] = _captures;
+  const tag0 = props.component;
+  const component0 = createComponent((props0) => renderSsrDynamicTag(tag0, props0, ctx), null, ctx);
+  return component0;
+};
+const q_component_tag_dynamic_segment_2_331xdhxtzk3df = /*#__PURE__*/ _noopQrl(
+  'component_tag_dynamic_segment_2_331xdhxtzk3df'
+);
+q_component_tag_dynamic_segment_2_331xdhxtzk3df.s(component_tag_dynamic_segment_2_331xdhxtzk3df);
 export default (props, ctx) => {
   const Heading = 'h2';
   const Alias = Badge;
@@ -68,28 +80,37 @@ export default (props, ctx) => {
     ctx,
     { slotScope: slotScope1 }
   );
+  const tag0 = UI.Button;
   const component3 = createComponent(
-    (props2) => renderSsrDynamicTag(UI.Button, props2, ctx),
+    (props2) => renderSsrDynamicTag(tag0, props2, ctx),
     { label: 'x' },
     ctx
   );
-  const component4 = createComponent(
-    (props3) => renderSsrDynamicTag(props.component, props3, ctx),
-    null,
-    ctx
+  const id0 = ctx.nextId();
+  ctx.addRoot(props);
+  const content0 = renderSsrContent(
+    ctx,
+    id0,
+    [],
+    q_component_tag_dynamic_segment_2_331xdhxtzk3df.w([props]),
+    false,
+    true
   );
   return maybeThen(component0, (component0) =>
     maybeThen(component1, (component1) =>
       maybeThen(component2, (component2) =>
         maybeThen(component3, (component3) =>
-          maybeThen(component4, (component4) => [
+          maybeThen(content0, (content0) => [
             '<section>',
             component0,
             component1,
             component2,
             component3,
-            component4,
-            '</section>',
+            '<!d=',
+            createSsrNodeId(id0),
+            '>',
+            content0,
+            '<!/d></section>',
           ])
         )
       )
@@ -148,6 +169,39 @@ export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId) =>
     275
   ],
   "paramNames": []
+}
+*/
+============================= src/component.tsx_component_tag_dynamic_segment_2_331xdhxtzk3df.js (ENTRY POINT)==
+
+import { _captures, renderSsrDynamicTag, createComponent } from '@qwik.dev/core';
+
+export const component_tag_dynamic_segment_2_331xdhxtzk3df = (ctx) => {
+  const [props] = _captures;
+  const tag0 = props.component;
+  const component0 = createComponent((props0) => renderSsrDynamicTag(tag0, props0, ctx), null, ctx);
+  return component0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_tag_dynamic_segment_2_331xdhxtzk3df",
+  "entry": null,
+  "displayName": "component_tag_dynamic_segment_2",
+  "hash": "331xdhxtzk3df",
+  "canonicalFilename": "component.tsx_component_tag_dynamic_segment_2_331xdhxtzk3df",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "tag:dynamic",
+  "captures": true,
+  "loc": [
+    321,
+    340
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
 }
 */
 == SSR DIAGNOSTICS ==

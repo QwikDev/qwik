@@ -1,4 +1,4 @@
-import { component$, Slot, type Component } from '@qwik.dev/core';
+import { component$, Slot, useStore, type Component } from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
 import { testRenderer } from '../test-utils';
 
@@ -47,6 +47,27 @@ describe(`${name}: dynamic tags`, () => {
     const { container, cleanup } = await render(App);
     try {
       expect(container.querySelector('button')?.textContent).toBe('press');
+    } finally {
+      cleanup();
+    }
+  });
+
+  it('re-renders a member tag when the value it reads changes', async () => {
+    const App = component$(() => {
+      const ui = useStore({ Tag: 'em' });
+      return (
+        <>
+          <button onClick$={() => (ui.Tag = 'i')} />
+          <ui.Tag>tag</ui.Tag>
+        </>
+      );
+    });
+    const { container, cleanup, qwikLoader } = await render(App);
+    try {
+      expect(container.querySelector('em')?.textContent).toBe('tag');
+      await qwikLoader?.dispatch(container.querySelector('button')!, 'click');
+      expect(container.querySelector('em')).toBeFalsy();
+      expect(container.querySelector('i')?.textContent).toBe('tag');
     } finally {
       cleanup();
     }

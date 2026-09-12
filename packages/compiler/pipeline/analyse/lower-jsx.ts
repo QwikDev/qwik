@@ -30,6 +30,7 @@ import {
   type Op,
   type Prop,
   type Qrl,
+  type Seed,
   type QrlUse,
 } from '../schema';
 import { normalizeJsxText } from './ast/jsx-text';
@@ -52,7 +53,12 @@ import {
 import type { LowerContext } from './lower-context';
 import { pushPayload, pushQrl, QrlIdentityKind } from './lower-context';
 import { lowerArray } from './lower-array';
-import { createCapturedContext, collectCaptures, lowerCaptures } from './ast/capture-analysis';
+import {
+  createCapturedContext,
+  collectCaptures,
+  lowerCaptures,
+  type LoweredCaptures,
+} from './ast/capture-analysis';
 import { LocalKind } from './locals';
 import { ValueIrKind, type ValueIR } from '../../src/expr-ir';
 import { QwikDirective, SegmentContext } from '../words';
@@ -84,6 +90,10 @@ function jsxMemberIr(node: JSXMemberExpression, ctx: LowerContext): ValueIR {
   return { kind: ValueIrKind.Member, obj, name: node.property.name };
 }
 
+function jsxMemberRoot(node: JSXMemberExpression): JSXIdentifier {
+  return node.object.type === 'JSXMemberExpression' ? jsxMemberRoot(node.object) : node.object;
+}
+
 export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
   const opening = element.openingElement;
   const nameNode = opening.name;
@@ -91,34 +101,32 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
     throw new UnsupportedError('a non-native JSX tag');
   }
   const attributes = opening.attributes.filter((attribute) => !isKeyAttribute(attribute));
-  if (nameNode.type === 'JSXMemberExpression' || /^[A-Z]/.test(nameNode.name)) {
-    let target: Extract<Op, { op: OpKind.Component }>['target'];
-    if (nameNode.type === 'JSXMemberExpression') {
-      target = { t: ComponentTargetKind.Dynamic, value: jsxMemberIr(nameNode, ctx) };
-    } else {
-      const binding = requireComponentBinding(nameNode, ctx);
-      if (ctx.coreBindings.get(binding) === 'Slot') {
-        return lowerSlotMarker(element, ctx);
-      }
-      target = { t: ComponentTargetKind.Raw, binding };
+  if (nameNode.type === 'JSXMemberExpression') {
+    const root = requireComponentBinding(jsxMemberRoot(nameNode), ctx);
+    const target = { t: ComponentTargetKind.Dynamic, value: jsxMemberIr(nameNode, ctx) } as const;
+    const lower = () => lowerComponentOp(element, attributes, target, ctx);
+    // A tag read from props or a setup local can change; a module object is fixed.
+    if (!ctx.locals.has(root) && root !== ctx.propsBinding) {
+      return lower();
     }
-    const children = element.children.filter(isProjectionChild);
-    const child = children.length === 1 ? children[0] : null;
-    const factoryChild =
-      child?.type === 'JSXExpressionContainer' &&
-      child.expression.type !== 'JSXEmptyExpression' &&
-      ctx.jsx.factory(child.expression) !== null
-        ? child.expression
-        : null;
-    return {
-      op: OpKind.Component,
-      target,
-      props: lowerComponentProps(attributes, ctx, factoryChild),
-      projections: factoryChild === null ? lowerProjections(element.children, ctx) : [],
-      id: { kind: SeedKind.Component, ordinal: ctx.componentCounter.next++ },
-      lifetime: 0,
-      blockingSuspense: false,
-    };
+    return lowerContentRange(
+      element,
+      [element],
+      ctx,
+      'a dynamic tag',
+      SegmentContext.DynamicTag,
+      LifetimeOwner.DynamicValue,
+      () => ({
+        ops: [lower()],
+        id: { kind: SeedKind.Content, ordinal: ctx.contentCounter.next++ },
+      })
+    );
+  }
+  if (/^[A-Z]/.test(nameNode.name)) {
+    const binding = requireComponentBinding(nameNode, ctx);
+    return ctx.coreBindings.get(binding) === 'Slot'
+      ? lowerSlotMarker(element, ctx)
+      : lowerComponentOp(element, attributes, { t: ComponentTargetKind.Raw, binding }, ctx);
   }
   if (!/^[a-z]/.test(nameNode.name)) {
     throw new UnsupportedError('a non-native JSX tag');
@@ -453,6 +461,31 @@ function createBranchArm(expression: Expression, value: JsxValue): BranchArm {
   };
 }
 
+function lowerComponentOp(
+  element: JSXElement,
+  attributes: readonly JSXAttributeItem[],
+  target: Extract<Op, { op: OpKind.Component }>['target'],
+  ctx: LowerContext
+): Op {
+  const children = element.children.filter(isProjectionChild);
+  const child = children.length === 1 ? children[0] : null;
+  const factoryChild =
+    child?.type === 'JSXExpressionContainer' &&
+    child.expression.type !== 'JSXEmptyExpression' &&
+    ctx.jsx.factory(child.expression) !== null
+      ? child.expression
+      : null;
+  return {
+    op: OpKind.Component,
+    target,
+    props: lowerComponentProps(attributes, ctx, factoryChild),
+    projections: factoryChild === null ? lowerProjections(element.children, ctx) : [],
+    id: { kind: SeedKind.Component, ordinal: ctx.componentCounter.next++ },
+    lifetime: 0,
+    blockingSuspense: false,
+  };
+}
+
 function lowerSlotMarker(element: JSXElement, ctx: LowerContext): Op {
   const attributes = element.openingElement.attributes;
   const nameAttribute = attributes.find((attribute) => jsxAttributeName(attribute) === 'name');
@@ -470,14 +503,35 @@ function lowerSlotMarker(element: JSXElement, ctx: LowerContext): Op {
 
 /** A changing slot name owns one reactive render range. */
 function lowerDynamicSlot(element: JSXElement, name: Expression, ctx: LowerContext): Op {
-  const captures = lowerCaptures([name, ...element.children], ctx, 'a dynamic slot');
+  return lowerContentRange(
+    element,
+    [name, ...element.children],
+    ctx,
+    'a dynamic slot',
+    SegmentContext.DynamicSlot,
+    LifetimeOwner.Slot,
+    (captures) => {
+      const slot = createSlotOp(ctx, '', lowerSlotFallback(element.children, ctx), {
+        nameValue: lowerInlineExpressionValue(name, ctx, captures.refs),
+      });
+      return { ops: [slot], id: slot.id };
+    }
+  );
+}
+
+/** One render range re-rendered whenever a value its ops track changes. */
+function lowerContentRange(
+  element: JSXElement,
+  captured: Node[],
+  ctx: LowerContext,
+  subject: string,
+  nameCtx: SegmentContext,
+  owner: LifetimeOwner,
+  lowerOps: (captures: LoweredCaptures) => { ops: Op[]; id: Seed }
+): Op {
+  const captures = lowerCaptures(captured, ctx, subject);
   const lifetime = ctx.plan.lifetimes.length;
-  ctx.plan.lifetimes.push({
-    id: lifetime,
-    parent: 0,
-    owner: LifetimeOwner.Slot,
-    commit: LifetimeCommit.AtomicRange,
-  });
+  ctx.plan.lifetimes.push({ id: lifetime, parent: 0, owner, commit: LifetimeCommit.AtomicRange });
   const program = ctx.plan.programs.length;
   ctx.plan.programs.push({
     body: { kind: ProgramBodyKind.Ops, ops: [] },
@@ -491,9 +545,9 @@ function lowerDynamicSlot(element: JSXElement, name: Expression, ctx: LowerConte
   const { use } = pushQrl(
     ctx,
     {
-      identity: { kind: QrlIdentityKind.Segment, nameCtx: SegmentContext.DynamicSlot },
-      ctxName: SegmentContext.DynamicSlot,
-      boundary: { kind: BoundaryKind.Implicit, role: 'dynamic-slot' },
+      identity: { kind: QrlIdentityKind.Segment, nameCtx },
+      ctxName: nameCtx,
+      boundary: { kind: BoundaryKind.Implicit, role: nameCtx },
       payloadKind: QrlPayloadKind.Function,
       authoredAsync: false,
       body: { b: QrlBodyKind.Program, program },
@@ -511,11 +565,9 @@ function lowerDynamicSlot(element: JSXElement, name: Expression, ctx: LowerConte
     },
     captures.args
   );
-  const slot = createSlotOp(ctx, '', lowerSlotFallback(element.children, ctx), {
-    nameValue: lowerInlineExpressionValue(name, ctx, captures.refs),
-  });
-  ctx.plan.programs[program].body = { kind: ProgramBodyKind.Ops, ops: [slot] };
-  return { op: OpKind.Content, render: use, id: slot.id, lifetime };
+  const { ops, id } = lowerOps(captures);
+  ctx.plan.programs[program].body = { kind: ProgramBodyKind.Ops, ops };
+  return { op: OpKind.Content, render: use, id, lifetime };
 }
 
 function lowerSlotFallback(children: readonly JSXChild[], ctx: LowerContext): QrlUse | null {

@@ -1,0 +1,19 @@
+==INPUT==
+
+import { useSignal, useStore } from '@qwik.dev/core';
+export default (props: { label?: string; content?: any }) => {
+  const count = useSignal(1);
+  return <div>{[1, [<b>a</b>, 'text'], null]}</div>;
+};
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { useSignal } from '@qwik.dev/core';
+export default (props, ctx) => {
+  const count = useSignal(1);
+  return '<div>1<b>a</b>text</div>';
+};
+== SSR DIAGNOSTICS ==
+
+[]

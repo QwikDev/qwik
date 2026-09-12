@@ -16,11 +16,13 @@ interface StringConcat {
 
 export function lowerText(expression: Expression, ctx: LowerContext): Op[] {
   const node = unwrapExpression(expression);
-  let concat: StringConcat | null = null;
-  if (node?.type === 'BinaryExpression' && node.operator === '+') {
-    concat = tryStringConcat(node, ctx);
-  }
-  if (concat === null || !concat.guaranteedString) {
+  // A lone literal renders as-is; a `+` chain folds only when every operand is proven string.
+  const isLiteral = node?.type === 'Literal';
+  const concat =
+    isLiteral || (node?.type === 'BinaryExpression' && node.operator === '+')
+      ? tryStringConcat(node, ctx)
+      : null;
+  if (concat === null || (!isLiteral && !concat.guaranteedString)) {
     return [createTextHole(expression, ctx, false)];
   }
 

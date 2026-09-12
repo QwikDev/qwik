@@ -168,7 +168,9 @@ including keyed instance reuse and captured events after reordering. Existing sn
 
 - [x] Distinguish text from renderable JSX values instead of routing every unknown expression
       through a text hole.
-- [x] Render nested child arrays, mixed text/elements and empty values.
+- [x] Render nested child arrays, mixed text/elements and empty values. A literal array in render
+      position folds like a fragment: elements become static markup, text or effects in place,
+      and lone literals render as static text; only spreads or non-literal arrays use content.
 - [x] Support transitions between text, elements, arrays and empty output.
 - [x] Render JSX results supplied by functions, promises, signals and stores. A callback may
       return another compiled JSX value; the dynamic-content helpers render that result too.
@@ -398,6 +400,12 @@ code size and runtime cost. The previous implementation is not the accepted defa
 
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
+
+- 2026-09-12: Literal arrays in render position, including branch arms, rows and nested arrays,
+  fold like fragments instead of a content block plus per-element chunks; lone string and number
+  literals render as static text, and boolean literals render nothing. Verification: 1050
+  pipeline tests (16 existing TODOs), the `dynamic-child-*` snapshots per table row, and
+  `dynamic-content.spec.tsx` in CSR and resume. Core spec corpus unchanged: CSR 4, resume 6 failed.
 
 - 2026-09-12: Group 3 verified end to end. New `dynamic-content.spec.tsx` covers nested arrays,
   text/element/array/empty transitions, function/promise/signal/store results and `||`/`??`

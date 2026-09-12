@@ -203,7 +203,8 @@ export function createJsxAnalysis(
       case 'JSXEmptyExpression':
         return { kind: JsxValueKind.Empty, node, hasJsxValue: false };
       case 'Literal':
-        if (node.value === null) {
+        // `null` and booleans render nothing.
+        if (node.value === null || typeof node.value === 'boolean') {
           return { kind: JsxValueKind.Empty, node, hasJsxValue: false };
         }
         break;

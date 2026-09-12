@@ -361,6 +361,15 @@ export function lowerRenderExpression(expression: Expression, ctx: LowerContext)
     case JsxValueKind.Collection:
       return [lowerArray(value.node, ctx)];
   }
+  // A literal array in render position is a fragment spelled differently.
+  if (
+    expression.type === 'ArrayExpression' &&
+    expression.elements.every((element) => element !== null && element.type !== 'SpreadElement')
+  ) {
+    return expression.elements.flatMap((element) =>
+      lowerRenderExpression(element as Expression, ctx)
+    );
+  }
   if (value.hasJsxValue) {
     const computed = lowerComputedExpressionValue(
       expression,

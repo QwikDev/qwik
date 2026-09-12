@@ -1,0 +1,21 @@
+==INPUT==
+
+import { useSignal, useStore } from '@qwik.dev/core';
+export default (props: { label?: string; content?: any }) => {
+  const count = useSignal(1);
+  return <div>{[1, [<b>a</b>, 'text'], null]}</div>;
+};
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { useSignal, _createElementTemplate } from '@qwik.dev/core';
+const default_tmpl0 = _createElementTemplate('<div>1<b>a</b>text</div>');
+export default (props, ctx) => {
+  const count = useSignal(1);
+  const el0 = default_tmpl0(ctx.document);
+  return el0;
+};
+== CSR DIAGNOSTICS ==
+
+[]

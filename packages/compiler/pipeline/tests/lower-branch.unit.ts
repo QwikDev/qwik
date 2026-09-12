@@ -57,9 +57,10 @@ describe('lowerBranch / arm captures', () => {
     if (arm?.body.b !== QrlBodyKind.Program) {
       throw new Error('expected an else arm program');
     }
+    // A literal arm is static text; no effect or chunk is needed to render it.
     expect(ctx.plan.programs[arm.body.program].body).toMatchObject({
       kind: ProgramBodyKind.Ops,
-      ops: [{ op: OpKind.Hole }],
+      ops: [{ op: OpKind.Static, html: 'off' }],
     });
   });
 

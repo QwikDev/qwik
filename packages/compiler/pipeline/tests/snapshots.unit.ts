@@ -1815,6 +1815,52 @@ export default (props) => <ul>{props.items.map(({ id, primary, secondary }, inde
     expect(output.diagnostics).toEqual([]);
   });
 
+  test.each([
+    ['logical-or', 'return <div>{props.label || <b>none</b>}</div>;', 'content'],
+    ['nullish', 'return <div>{props.content ?? <i>empty</i>}</div>;', 'content'],
+    ['sequence', 'return <div>{props.label || (count.value, (<b>x</b>))}</div>;', 'content'],
+    ['promise', 'return <div>{Promise.resolve(<b>late</b>)}</div>;', 'content'],
+    ['function', 'return <div>{() => <b>fn</b>}</div>;', 'content'],
+    ['nested-array', "return <div>{[1, [<b>a</b>, 'text'], null]}</div>;", 'static'],
+    ['child-array', 'return <div>{[<b>a</b>, count.value]}</div>;', 'static'],
+    ['store-member', 'const store = useStore({ v: 1 }); return <div>{store.v}</div>;', 'text'],
+    [
+      'conditional-array',
+      "return <div>{count.value > 1 ? 'text' : [<b>a</b>, <i>b</i>]}</div>;",
+      'branch',
+    ],
+  ] as const)('should classify the dynamic child %s as %s', async (name, body, kind) => {
+    const output = await testInput(mode, `dynamic-child-${name}`, {
+      code: `import { useSignal, useStore } from '@qwik.dev/core';
+export default (props: { label?: string; content?: any }) => {
+  const count = useSignal(1);
+  ${body}
+};`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const code = output.modules.map((module) => module.code).join('\n');
+    const helpers = {
+      content: ['createContentBlock', 'renderSsrContent'],
+      text: ['createTextExpressionEffect', 'renderSsrTextExpression'],
+      branch: ['createBranch', 'renderSsrBranch'],
+      static: [],
+    }[kind];
+    if (helpers.length > 0) {
+      expect(code).toContain(helpers[mode === 'ssr' ? 1 : 0]);
+    }
+    // A literal array in render position folds like a fragment instead of a content block.
+    if (kind !== 'content') {
+      expect(code).not.toContain('createContentBlock');
+      expect(code).not.toContain('renderSsrContent');
+    }
+    if (name === 'nested-array') {
+      expect(code).toContain('1<b>a</b>text');
+    }
+    if (name === 'conditional-array') {
+      expect(code).toContain('<b>a</b><i>b</i>');
+    }
+  });
+
   test('should render a bare signal child as its tracked value', async () => {
     const output = await testInput(mode, 'text-hole-signal-child', {
       code: `import { useSignal } from '@qwik.dev/core';

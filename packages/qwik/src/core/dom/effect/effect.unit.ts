@@ -358,6 +358,25 @@ describe('DOM effects', () => {
     expect(attrs.has('style')).toBe(false);
     expect(attrs.get('id')).toBe('next');
     expect(element.innerHTML).toBe('');
+  });
+
+  it('diffs the first run of a props effect against server-rendered attributes', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const props = useSignal<Record<string, unknown>>({ title: 'next' });
+    const { element, attrs } = createPropsTarget();
+    attrs.set('data-a', '1');
+    attrs.set('q:id', '7');
+    attrs.set('q-e:click', 'hook.js#h');
+    const effect = createOwned(() => createPropsEffect(element, [], () => props.value, scheduler));
+
+    scheduler.notify(effect);
+    await scheduler.flushInteraction();
+
+    // Vanished authored keys go; runtime markers and hook events stay.
+    expect(attrs.has('data-a')).toBe(false);
+    expect(attrs.get('title')).toBe('next');
+    expect(attrs.get('q:id')).toBe('7');
+    expect(attrs.get('q-e:click')).toBe('hook.js#h');
 
     props.value = { className: { active: false } };
     await scheduler.flushInteraction();
@@ -846,6 +865,9 @@ function createPropsTarget(): {
     },
     removeAttribute(name: string) {
       attrs.delete(name);
+    },
+    getAttributeNames() {
+      return [...attrs.keys()];
     },
   } as unknown as Element & {
     innerHTML: string;

@@ -6,7 +6,7 @@ import type { Source } from '../../reactive/source';
 import { runWithCollector0 } from '../../reactive/tracking';
 import type { Owner } from '../../runtime/owner';
 import type { ForBlock } from '../for/for';
-import { applyDomProps, patchAttrValue } from './dom-props';
+import { applyDomProps, ownedDomProps, patchAttrValue } from './dom-props';
 import { DomEffect, registerDomEffect } from './dom-effect';
 import { readTrackedSourceValue } from './text-effect';
 import { removeEvent, setEvent } from '../event/event';
@@ -74,6 +74,8 @@ export class PropsEffect<TArgs extends unknown[] = unknown[]> extends DomEffect 
   }
 
   execute(): void {
+    // A resumed element already carries the server's attributes; the first run diffs against them.
+    this.prevProps ??= ownedDomProps(this.element);
     this.prevProps = applyDomProps(
       this.element,
       this.fn(...this.args),

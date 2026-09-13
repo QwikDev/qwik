@@ -304,10 +304,10 @@ Component spreads already exist. Complete element spreads and DOM semantics:
       client and `renderSsrProps` into the open-tag record on the server.
 - [x] Override order and single evaluation. The chunk builds one object literal in authored
       order, so a later key wins and each expression evaluates once per run.
-- [ ] Addition/removal of keys in reactive spreads. The client effect diffs against its previous
-      run and removes vanished keys; after resume the first run has no previous object, so keys
-      rendered by the server are not removed (`attributes.spec.tsx` "removes keys that disappear
-      from a reactive spread" fails in resume). Runtime work, not compiler work.
+- [x] Addition/removal of keys in reactive spreads. The client effect diffs against its previous
+      run and removes vanished keys; a resumed effect seeds its first diff from the element's
+      own attributes, minus runtime `q:*` markers and event attributes (`attributes.spec.tsx`
+      "removes keys that disappear from a reactive spread", CSR and resume).
 - [x] Events, refs, bindings and HTML supplied through spreads. The runtime reads them from the
       props object; a `ref` binds the element id on the server, `innerHTML` replaces the authored
       children. Proven by `ref.spec.tsx` (forwarded opaque props) and `attributes.spec.tsx`
@@ -489,7 +489,9 @@ their checkboxes; do not silently reinterpret the original completion estimate a
   1086 pipeline tests (16 existing TODOs), the `element-literal-spread` and
   `element-spread-props` snapshots, and the core corpus where `attributes.spec.tsx` and
   `ref.spec.tsx` now compile: 10 more tests pass; the remaining failures there are `bind:*`,
-  explicit refs and innerHTML normalization (groups 8 and 9) plus the resume key-removal gap.
+  explicit refs and innerHTML normalization (groups 8 and 9). The runtime props effect now
+  seeds its first run from the element's attributes, so a resumed effect removes keys that
+  vanish without serializing anything extra.
   The router build now fails later, on a branch arm capturing a component in
   `router-outlet-component.tsx`.
 

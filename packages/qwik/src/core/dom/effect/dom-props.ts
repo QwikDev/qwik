@@ -155,6 +155,21 @@ function collectDomProps(
   return normalized;
 }
 
+/**
+ * The attributes a props object owns on a server-rendered element: everything but the runtime's
+ * `q:*` markers and event attributes, which `useOn*` may have spliced into the same tag.
+ */
+export function ownedDomProps(element: Element): Record<string, unknown> {
+  const owned: Record<string, unknown> = {};
+  const names = element.getAttributeNames();
+  for (let i = 0; i < names.length; i++) {
+    if (!names[i].startsWith('q:') && !isHtmlAttributeAnEventName(names[i])) {
+      owned[names[i]] = undefined;
+    }
+  }
+  return owned;
+}
+
 export function applyDomProps(
   element: Element,
   props: DomProps,

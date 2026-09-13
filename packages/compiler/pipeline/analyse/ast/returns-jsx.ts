@@ -1,5 +1,6 @@
 import type {
   ArrowFunctionExpression,
+  CallExpression,
   Function as FunctionNode,
   JSXElement,
   JSXFragment,
@@ -32,50 +33,68 @@ export function findComponentCandidates(
   bindings: BindingGraph,
   coreBindings: ReadonlyMap<LocalId, string>
 ): ComponentCandidate[] {
-  const functions: ComponentCandidate[] = [];
-  const addCandidate = (value: Node, name: string | null, statement: Statement): void => {
-    let fn = unwrapExpression(value);
-    let isMarked = false;
-    if (fn?.type === 'CallExpression') {
-      const binding = bindings.reference(fn.callee);
-      if (binding === null || coreBindings.get(binding) !== QwikMarker.Component) {
-        return;
-      }
-      const argument = fn.arguments[0];
-      if (fn.arguments.length !== 1 || argument.type === 'SpreadElement') {
-        throw new UnsupportedError('component$ without exactly one inline function');
-      }
-      fn = unwrapExpression(argument);
-      if (fn === null || !isFunctionLike(fn)) {
-        throw new UnsupportedError('component$ without an inline function');
-      }
-      isMarked = true;
+  const markerCall = (value: Node): CallExpression | null => {
+    if (value.type !== 'CallExpression') {
+      return null;
     }
+    const binding = bindings.reference(value.callee);
+    return binding !== null && coreBindings.get(binding) === QwikMarker.Component ? value : null;
+  };
+  const declared: {
+    value: Node;
+    call: CallExpression | null;
+    name: string | null;
+    statement: Statement;
+  }[] = [];
+  const declare = (value: Node, name: string | null, statement: Statement) =>
+    declared.push({ value, call: markerCall(unwrapExpression(value) ?? value), name, statement });
+  forEachModuleDeclaration(program, (declaration, statement) => {
+    if (declaration.type !== 'VariableDeclaration') {
+      declare(
+        declaration,
+        isFunctionLike(declaration) ? identifierName(declaration.id) : null,
+        statement
+      );
+      return;
+    }
+    for (const declarator of declaration.declarations) {
+      if (declarator.init !== null) {
+        declare(declarator.init, identifierName(declarator.id), statement);
+      }
+    }
+  });
+  // `component$(Body)` marks the module-level `Body`; the runtime call itself is an identity.
+  const marked = new Set<string>();
+  for (const { call } of declared) {
+    if (call === null) {
+      continue;
+    }
+    const argument = call.arguments[0];
+    if (
+      argument === undefined ||
+      call.arguments.length !== 1 ||
+      argument.type === 'SpreadElement'
+    ) {
+      throw new UnsupportedError('component$ without exactly one argument');
+    }
+    const reference = unwrapExpression(argument);
+    if (reference?.type === 'Identifier') {
+      marked.add(reference.name);
+    }
+  }
+  const candidates: ComponentCandidate[] = [];
+  for (const { value, call, name, statement } of declared) {
+    const fn = unwrapExpression(call === null ? value : call.arguments[0]);
+    const isMarked = call !== null || (name !== null && marked.has(name));
     if (
       fn !== null &&
       isFunctionLike(fn) &&
       (isMarked || (hasComponentName(name) && returnPositionContainsJsx(fn, jsx)))
     ) {
-      functions.push({ statement, fn, name });
+      candidates.push({ statement, fn, name });
     }
-  };
-  const fromDeclaration = (declaration: Node, statement: Statement): void => {
-    if (declaration.type === 'VariableDeclaration') {
-      for (const declarator of declaration.declarations) {
-        if (declarator.init !== null) {
-          addCandidate(declarator.init, identifierName(declarator.id), statement);
-        }
-      }
-      return;
-    }
-    addCandidate(
-      declaration,
-      isFunctionLike(declaration) ? identifierName(declaration.id) : null,
-      statement
-    );
-  };
-  forEachModuleDeclaration(program, fromDeclaration);
-  return functions;
+  }
+  return candidates;
 }
 
 /** Visits each top-level declaration, looking through `export`. */

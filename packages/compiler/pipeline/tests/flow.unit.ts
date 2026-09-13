@@ -27,12 +27,7 @@ describe('pipeline flow', () => {
     expect(plan.qrls.some((qrl) => qrl.ctxName === 'text')).toBe(true);
   });
 
-  test.each([
-    'component$()',
-    'component$(...callbacks)',
-    'component$(() => <p />, options)',
-    'component$(callback)',
-  ])(
+  test.each(['component$()', 'component$(...callbacks)', 'component$(() => <p />, options)'])(
     'rejects unsupported marker calls without discarding authored execution: %s',
     async (expression) => {
       await expect(

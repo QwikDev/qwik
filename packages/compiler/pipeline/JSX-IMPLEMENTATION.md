@@ -212,8 +212,10 @@ snapshot audit and remaining production-build blockers.
       or returned from a factory is not discovered as a component today. This is the
       location-independent `$` extraction of group 6; solve it there rather than as a
       `component$`-only discovery path.
-- [ ] `component$(existingFunction)` and `componentQrl` where retaining these API paths. Same
-      mechanism as the function-reference item of group 6.
+- [x] `component$(existingFunction)` and `componentQrl`. `component$(Body)` marks the
+      module-level `Body` as a component, whatever its name or shape, and the call stays
+      authored: the runtime `component$` is an identity that tags its argument.
+      `componentQrl(qrl(...))` is an authored QRL component and stays as written too.
 
 Verified by the `component-dynamic-tags` snapshots and `dynamic-tag.spec.tsx` plus the dynamic
 tag cases of `component.spec.tsx` in CSR and resume. A reactive tag whose value is a compiled
@@ -466,6 +468,12 @@ code size and runtime cost. The previous implementation is not the accepted defa
 
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
+
+- 2026-09-13: Component references: discovery collects the names passed to `component$` and
+  treats the module-level functions they name as marked components; the call itself stays
+  authored because the runtime marker is an identity. Verification: 1082 pipeline tests (16
+  existing TODOs), the `component-reference` snapshots, and the core corpus in CSR and resume
+  with only the known group 7/10/13 failures.
 
 - 2026-09-13: `$` component props: `lowerComponentPropValue` routes a `$`-suffixed prop through
   `lowerQrlArgument`, sharing the prop boundary descriptor with JSX factory props; the proxied

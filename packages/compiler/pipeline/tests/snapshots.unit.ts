@@ -1523,6 +1523,34 @@ export default component$(() => {
     expect(code).toContain('return { a: count.value }');
   });
 
+  test('should alias component$ of a component reference', async () => {
+    const output = await testInput(mode, 'component-reference', {
+      code: `import { component$, componentQrl, qrl } from '@qwik.dev/core';
+import { Imported } from './imported';
+function Body(props: { x: string }) {
+  return <p>{props.x}</p>;
+}
+const plain = (props: { x: string }) => <i>{props.x}</i>;
+export const App = component$(Body);
+export const Marked = component$(plain);
+export const Wrapped = component$(Imported);
+export const Lazy = componentQrl(qrl(() => import('./body'), 'Body'));
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    // The referenced functions compile as components; the runtime marker call is an identity.
+    expect(main).toContain('function Body(props, ctx) {');
+    expect(main).toContain('const plain = (props, ctx) =>');
+    expect(main).toContain('export const App = component$(Body);');
+    expect(main).toContain('export const Marked = component$(plain);');
+    expect(main).toContain('export const Wrapped = component$(Imported);');
+    // An authored QRL component stays as written.
+    expect(main).toMatch(
+      /export const Lazy = componentQrl\(qrl\(\(\) => import\(["']\.\/body["']\), ["']Body["']\)\);/
+    );
+  });
+
   test('should lower custom hook bodies and link their event facts', async () => {
     const output = await testInputs(mode, 'custom-hook-bodies', [
       {

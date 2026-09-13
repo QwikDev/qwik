@@ -24,6 +24,8 @@ import { allocateGeneratedName } from '../names';
 export interface ComponentEmission {
   statements: string[];
   value: string;
+  /** Generated parameters after props and ctx, e.g. prop defaults. */
+  params?: string[];
 }
 
 export interface GeneratedNames {
@@ -332,7 +334,7 @@ export function emitComponentFunction(
   if (declaration === undefined) {
     throw new Error(`pipeline: emitting a declaration for the undeclared qrl "${qrl.id}"`);
   }
-  const params = `${names.props}, ${names.ctx}`;
+  const params = [names.props, names.ctx, ...(emission.params ?? [])].join(', ');
   const exportPrefix = declaration.isExported ? 'export ' : '';
   const body = [...emission.statements, `return ${emission.value};`]
     .map((statement) => `  ${statement}`)

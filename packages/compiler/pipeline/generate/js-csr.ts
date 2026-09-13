@@ -46,6 +46,7 @@ import {
   emitJsSetup,
   emitHookBody,
   mayBe,
+  parameterDefaults,
   signalReadName,
   withMarkerEmitter,
 } from './emit-setup';
@@ -174,24 +175,26 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     }
     const pass: RenderPass = { names, next: createNameAllocator(this.module) };
     const staticQrl = (use: QrlUse) => this.capturedChunkReference(use, names.props);
+    const emitQrl = withMarkerEmitter(
+      this.module,
+      (use) => this.lazyRenderReference(use, names.props),
+      this.chunkImports,
+      staticQrl
+    );
     const statements = emitJsSetup(
       this.module,
       program,
       this.imports,
-      withMarkerEmitter(
-        this.module,
-        (use) => this.lazyRenderReference(use, names.props),
-        this.chunkImports,
-        staticQrl
-      ),
+      emitQrl,
       (nested, localNames = names) =>
         this.renderProgram(nested, `${ownerName}_${nested}`, localNames),
       names,
       { staticQrl, chunkImports: this.chunkImports }
     );
     const setupCount = statements.length;
-    const finish = (value: string): ComponentEmission =>
-      mayBe(program.facts.waitForTasks)
+    const params = parameterDefaults(this.module, program, this.imports, emitQrl);
+    const finish = (value: string): ComponentEmission => ({
+      ...(mayBe(program.facts.waitForTasks)
         ? deferRenderAfterTasks(
             this.imports,
             pass.next,
@@ -200,7 +203,9 @@ class CsrModuleEmitter implements QwikModuleEmitter {
             setupCount,
             value
           )
-        : { statements, value };
+        : { statements, value }),
+      params,
+    });
     const ops = program.body.ops;
     if (ops.length === 0) {
       return finish('[]');

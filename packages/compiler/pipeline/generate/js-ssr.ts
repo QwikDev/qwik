@@ -50,6 +50,7 @@ import {
   emitJsSetup,
   emitHookBody,
   mayBe,
+  parameterDefaults,
   signalReadName,
   withMarkerEmitter,
 } from './emit-setup';
@@ -234,16 +235,17 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       usedCtx: false,
       rooted: new Set(),
     };
+    const emitQrl = withMarkerEmitter(
+      this.module,
+      (use) => this.useQrl(pass, use, true).ref,
+      this.chunkImports
+    );
     pass.statements.push(
       ...emitJsSetup(
         this.module,
         program,
         this.imports,
-        withMarkerEmitter(
-          this.module,
-          (use) => this.useQrl(pass, use, true).ref,
-          this.chunkImports
-        ),
+        emitQrl,
         (nested, localNames = names) => this.renderProgramById(nested, localNames),
         names,
         { isServer: true, chunkImports: this.chunkImports }
@@ -332,6 +334,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     return {
       statements,
       value,
+      params: parameterDefaults(this.module, program, this.imports, emitQrl),
       rangeIdParam: ownRange === null ? (rootRange?.idParam ?? null) : null,
       needsContext: pass.usedCtx || pass.statements.length > 0,
     };

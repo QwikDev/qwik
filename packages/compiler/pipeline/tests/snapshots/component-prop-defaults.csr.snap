@@ -23,9 +23,12 @@ import { component_text_segment_2_1fh117dstcoge } from './component.tsx_componen
 
 const default_tmpl0 = _createElementTemplate('<button> </button>');
 import { createTitle, createHandler } from './defaults';
-export default (props, ctx) => {
-  const defaultValue = untrack(() => props.title === void 0) ? createTitle() : void 0;
-  const defaultValue0 = untrack(() => props.onSave$ === void 0) ? createHandler() : void 0;
+export default (
+  props,
+  ctx,
+  defaultValue = untrack(() => props.title === void 0) ? createTitle() : void 0,
+  defaultValue0 = untrack(() => props.onSave$ === void 0) ? createHandler() : void 0
+) => {
   const initial = props.title === void 0 ? defaultValue : props.title;
   const el0 = default_tmpl0(ctx.document);
   const effect0 = createAttrExpressionEffect(

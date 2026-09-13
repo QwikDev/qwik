@@ -248,23 +248,26 @@ test.each([
 });
 
 test.each(['', 'import { createTitle } from "./defaults";'])(
-  'rejects defaults whose references would be shadowed in the body: %s',
+  'evaluates defaults in the parameter scope, out of reach of body shadowing: %s',
   async (prefix) => {
-    await expect(
-      transformModules({
-        input: [
-          {
-            path: 'component.tsx',
-            code: `${prefix}
+    const output = await transformModules({
+      input: [
+        {
+          path: 'component.tsx',
+          code: `${prefix}
 export default ({ title = createTitle() }) => {
   const createTitle = () => 'local';
   return <b>{title}</b>;
 };`,
-          },
-        ],
-        isServer: true,
-      })
-    ).rejects.toThrow('a prop default shadowed by component setup');
+        },
+      ],
+      isServer: true,
+    });
+    const component = output.modules.find((module) => !module.segment)!.code;
+    expect(component).toMatch(
+      /\(props, ctx, defaultValue = untrack\(\(\) => props\.title === void 0\) \? \(createTitle\(\)\) : void 0\) => \{/
+    );
+    expect(component).toContain(`const createTitle = () => 'local';`);
   }
 );
 

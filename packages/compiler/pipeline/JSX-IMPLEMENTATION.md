@@ -225,9 +225,14 @@ Simple props, aliases, rest and some defaults are already implemented. Complete:
 
 - [ ] Nested parameter patterns.
 - [ ] Computed keys.
-- [ ] Defaults referencing earlier parameters, such as `{ a, b = a }`.
-- [ ] Default-expression name collisions with setup declarations.
-- [ ] Correct read/default/side-effect evaluation order.
+- [x] Defaults referencing earlier parameters, such as `{ a, b = a }`. Prop defaults are
+      generated parameters after `props, ctx`; a default reads earlier members through their
+      resolved prop reads. Self and forward references stay diagnosed, as they would throw in
+      JavaScript.
+- [x] Default-expression name collisions with setup declarations. Parameter defaults evaluate in
+      the parameter scope, so a body-local `const fallback` cannot shadow the default's binding.
+- [x] Correct read/default/side-effect evaluation order. Generated parameters evaluate left to
+      right before the body, each only when its prop is `undefined`, and the check is untracked.
 - [ ] Distinction between ordinary JavaScript snapshots and aliases that remain reactive under
       the framework contract.
 - [ ] Destructured store aliases after source replacement; the current resume test fails here.
@@ -440,6 +445,13 @@ code size and runtime cost. The previous implementation is not the accepted defa
 
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
+
+- 2026-09-13: Prop defaults as generated parameters: `parameterDefaults` prints each
+  `PropDefault` as `defaultValue = untrack(() => props.x === void 0) ? (init) : void 0` in the
+  component signature, so JavaScript's own parameter-scope semantics give earlier-member
+  references and shadowing immunity for free. Verification: 1073 pipeline tests (16 existing
+  TODOs), the `component-prop-default-scope` snapshots, updated `prop-defaults`/`prop-rest`
+  unit tests, and the `component`, `props` and `component-body` specs in CSR and resume.
 
 - 2026-09-13: `sync$`: the marker scan recognizes `sync$` and lowers its callback as a `Sync`
   boundary; event handlers written as `$()`/`sync$()` calls become the QRL directly instead of a

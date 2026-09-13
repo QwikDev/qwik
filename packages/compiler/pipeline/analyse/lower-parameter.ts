@@ -59,7 +59,7 @@ export function lowerComponentParameter(component: DiscoveredComponent, ctx: Low
       }
     }
   }
-  for (const { node, name, defaultValue } of members) {
+  for (const [index, { node, name, defaultValue }] of members.entries()) {
     if (name === 'children') {
       if (defaultValue !== null) {
         throw new UnsupportedError('a children parameter default');
@@ -77,15 +77,16 @@ export function lowerComponentParameter(component: DiscoveredComponent, ctx: Low
     if (defaultValue === null) {
       continue;
     }
+    // Defaults evaluate left to right in the parameter scope: only earlier members are bound.
+    const later = new Set(
+      members.slice(index).map((member) => ctx.bindings.declaration(member.node))
+    );
     if (
       ctx.bindings
         .freeReferences(defaultValue)
-        .some(({ binding }) => ctx.propsMembers.has(binding) || binding === restBinding)
+        .some(({ binding }) => later.has(binding) || binding === restBinding)
     ) {
-      throw new UnsupportedError('a prop default referencing another parameter binding');
-    }
-    if (ctx.bindings.hasShadowedReferences(defaultValue, component.fn.body!)) {
-      throw new UnsupportedError('a prop default shadowed by component setup');
+      throw new UnsupportedError('a prop default referencing a later parameter binding');
     }
     const initializer = lowerPropDefault(defaultValue, local, ctx);
     if (initializer !== null) {

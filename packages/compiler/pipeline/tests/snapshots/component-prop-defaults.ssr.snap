@@ -11,12 +11,12 @@ export default ({ title: heading = createTitle(), suffix = '!', onSave$: save = 
 
 import { createTitle, createHandler } from './defaults';
 import {
-  untrack,
   createSsrNodeId,
   renderSsrAttrExpression,
   escapeHTML,
   renderSsrTextExpression,
   maybeThen,
+  untrack,
   _noopQrl,
 } from '@qwik.dev/core';
 
@@ -40,9 +40,12 @@ const q_component_text_segment_2_1fh117dstcoge = /*#__PURE__*/ _noopQrl(
   'component_text_segment_2_1fh117dstcoge'
 );
 q_component_text_segment_2_1fh117dstcoge.s(component_text_segment_2_1fh117dstcoge);
-export default (props, ctx) => {
-  const defaultValue = untrack(() => props.title === void 0) ? createTitle() : void 0;
-  const defaultValue0 = untrack(() => props.onSave$ === void 0) ? createHandler() : void 0;
+export default (
+  props,
+  ctx,
+  defaultValue = untrack(() => props.title === void 0) ? createTitle() : void 0,
+  defaultValue0 = untrack(() => props.onSave$ === void 0) ? createHandler() : void 0
+) => {
   const initial = props.title === void 0 ? defaultValue : props.title;
   const id0 = ctx.nextId();
   ctx.addRoot(props);

@@ -127,7 +127,7 @@ test('rejects a default referencing the rest binding', async () => {
         },
       ],
     })
-  ).rejects.toThrow('a prop default referencing another parameter binding');
+  ).rejects.toThrow('a prop default referencing a later parameter binding');
 });
 
 test.each([true, false])(

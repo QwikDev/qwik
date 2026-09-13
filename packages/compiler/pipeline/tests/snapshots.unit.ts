@@ -307,6 +307,24 @@ export default ({ title: heading = createTitle(), suffix = '!', onSave$: save = 
     expect(output.diagnostics).toEqual([]);
   });
 
+  test('should evaluate prop defaults in parameter scope and in order', async () => {
+    const output = await testInput(mode, 'component-prop-default-scope', {
+      code: `const fallback = 'outer';
+function side(value) { console.log(value); return value; }
+export default ({ a = side('a'), b = a, label = fallback }) => {
+  const fallback = 'inner';
+  return <p title={fallback}>{a}{b}{label}</p>;
+};`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    // Defaults are generated parameters: JS evaluates them left to right in the parameter scope,
+    // so \`b = a\` sees the resolved prop and a body-local \`fallback\` cannot shadow the default.
+    expect(main).toMatch(
+      /\(props, ctx, defaultValue = untrack\(\(\) => props\.a === void 0\) \? \(side\("a"\)\) : void 0, defaultValue0 = untrack\(\(\) => props\.b === void 0\) \? \(\(props\.a === void 0 \? defaultValue : props\.a\)\) : void 0, defaultValue1 = untrack\(\(\) => props\.label === void 0\) \? \(fallback\) : void 0\) => \{/
+    );
+  });
+
   test('should preserve reactive prop aliases and aliased children', async () => {
     const output = await testInput(mode, 'component-prop-aliases', {
       code: `export const Card = ({ title: heading, 'data-label': label, onSave$: save, children: content }) => (

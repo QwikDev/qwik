@@ -54,6 +54,29 @@ const coreCallNames: Record<CoreOperation, { qrl: QwikHook; fn: QwikHook }> = {
   },
 };
 
+/**
+ * Prop defaults are generated parameters: JavaScript evaluates them left to right in the parameter
+ * scope, so a default may read an earlier prop and body locals cannot shadow it.
+ */
+export function parameterDefaults(
+  module: LinkedModule,
+  program: { setup: LinkedModule['programs'][number]['setup'] },
+  imports: Set<string>,
+  emitQrl: EmitQrl
+): string[] {
+  return program.setup.flatMap((entry) => {
+    if (entry.s !== SetupKind.PropDefault) {
+      return [];
+    }
+    imports.add(QwikWord.Untrack);
+    const prop = memberJs(module.bindings[entry.props].name, entry.name);
+    const initializer = expressionJs(module, entry.initializer, emitQrl);
+    return [
+      `${module.bindings[entry.result].name} = ${QwikWord.Untrack}(() => ${prop} === void 0) ? (${initializer}) : void 0`,
+    ];
+  });
+}
+
 /** Setup declarations shared by CSR and SSR render programs. */
 export function emitJsSetup(
   module: LinkedModule,
@@ -64,7 +87,10 @@ export function emitJsSetup(
   names?: GeneratedNames,
   target: SetupEmitTarget = {}
 ): string[] {
-  return program.setup.map((entry) => {
+  return program.setup.flatMap((entry) => {
+    if (entry.s === SetupKind.PropDefault) {
+      return [];
+    }
     if (entry.s === SetupKind.Js) {
       const payload = module.payloads[entry.payload];
       const edits = (payload.setups ?? []).map(({ range, setup, block }) => {
@@ -106,7 +132,7 @@ export function emitJsSetup(
       };
       const emission = render(entry.program, localNames);
       const body = `${emission.statements.join('\n')}\nreturn ${emission.value};`;
-      const params = `${localNames.props}, ${localNames.ctx}`;
+      const params = [localNames.props, localNames.ctx, ...(emission.params ?? [])].join(', ');
       return entry.declarationKind === DeclarationKind.Const
         ? `const ${entry.name} = (${params}) => {\n${body}\n};`
         : `function ${entry.name}(${params}) {\n${body}\n}`;
@@ -114,12 +140,6 @@ export function emitJsSetup(
     if (entry.s === SetupKind.PropRest) {
       imports.add(QwikWord.CreatePropsProxy);
       return `const ${module.bindings[entry.result].name} = ${QwikWord.CreatePropsProxy}(${module.bindings[entry.props].name}, ${JSON.stringify(entry.excluded)});`;
-    }
-    if (entry.s === SetupKind.PropDefault) {
-      imports.add(QwikWord.Untrack);
-      const prop = memberJs(module.bindings[entry.props].name, entry.name);
-      const initializer = expressionJs(module, entry.initializer, emitQrl);
-      return `const ${module.bindings[entry.result].name} = ${QwikWord.Untrack}(() => ${prop} === void 0) ? (${initializer}) : void 0;`;
     }
     if (entry.s === SetupKind.Call) {
       if (target.isServer && entry.visibleTaskEvent !== undefined) {

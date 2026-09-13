@@ -158,8 +158,15 @@ export function recordPayloadQrls(ctx: LowerContext, payload: PayloadId, node: N
     if (call !== null && current.type === 'CallExpression') {
       const use = lowerMarkerQrl(current, call, scope);
       extractedCalls.add(current);
+      // The callee and callback are replaced, so their reads belong to no payload of this module.
+      const target = ctx.plan.payloads[payload];
+      target.reads = target.reads.filter(
+        ({ range }) =>
+          !(range[0] >= current.callee.start && range[1] <= current.callee.end) &&
+          !(range[0] >= call.fn.start && range[1] <= call.fn.end)
+      );
       // `$(fn)` is the QRL; `foo$(fn, …)` keeps its call under the twin callee.
-      ctx.plan.payloads[payload].qrls.push(
+      target.qrls.push(
         call.marker === undefined
           ? { range: [current.start, current.end], use }
           : {

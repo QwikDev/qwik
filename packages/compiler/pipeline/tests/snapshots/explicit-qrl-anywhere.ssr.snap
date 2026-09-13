@@ -225,7 +225,7 @@ export const component_qrl_segment_3_2fpowgii4khuv = () => {
 */
 ============================= src/component.tsx_component_q_e_click_segment_4_2xwyeh830jenv.js (ENTRY POINT)==
 
-import { _noopQrl, _captures, $ } from '@qwik.dev/core';
+import { _noopQrl, _captures } from '@qwik.dev/core';
 import { component_qrl_segment_3_2fpowgii4khuv } from './component.tsx_component_qrl_segment_3_2fpowgii4khuv';
 const q_component_qrl_segment_3_2fpowgii4khuv = /*#__PURE__*/ _noopQrl(
   'component_qrl_segment_3_2fpowgii4khuv'

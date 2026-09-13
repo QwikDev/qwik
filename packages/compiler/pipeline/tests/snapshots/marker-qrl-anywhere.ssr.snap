@@ -184,7 +184,6 @@ export const component_useCustomqrl_segment_2_heiedc4h1woo = () => {
 import { _noopQrl, _captures } from '@qwik.dev/core';
 import { useCustomQrl } from './hooks';
 import { component_useCustomqrl_segment_2_heiedc4h1woo } from './component.tsx_component_useCustomqrl_segment_2_heiedc4h1woo';
-import { useCustom$ } from './hooks';
 const q_component_useCustomqrl_segment_2_heiedc4h1woo = /*#__PURE__*/ _noopQrl(
   'component_useCustomqrl_segment_2_heiedc4h1woo'
 );

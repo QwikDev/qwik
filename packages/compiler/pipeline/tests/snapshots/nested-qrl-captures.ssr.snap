@@ -28,7 +28,6 @@ import {
   useSignal,
   useTaskQrl,
   _captures,
-  $,
   _noopQrl,
   renderSsrContent,
   createSsrNodeId,
@@ -134,9 +133,8 @@ export const component_qrl_segment_0_2fpowujm1ejve = () => {
 */
 ============================= src/component.tsx_component_useTaskqrl_segment_1_1og80wrqqnv5v.js (ENTRY POINT)==
 
-import { _noopQrl, _captures, $ } from '@qwik.dev/core';
+import { _noopQrl, _captures } from '@qwik.dev/core';
 import { component_qrl_segment_0_2fpowujm1ejve } from './component.tsx_component_qrl_segment_0_2fpowujm1ejve';
-import { log } from './log';
 const q_component_qrl_segment_0_2fpowujm1ejve = /*#__PURE__*/ _noopQrl(
   'component_qrl_segment_0_2fpowujm1ejve'
 );
@@ -208,9 +206,8 @@ export const component_qrl_segment_2_2fpow2he7qfuc = () => {
 */
 ============================= src/component.tsx_component_q_e_click_segment_3_2xwygfdmkpoqi.js (ENTRY POINT)==
 
-import { _noopQrl, _captures, $ } from '@qwik.dev/core';
+import { _noopQrl, _captures } from '@qwik.dev/core';
 import { component_qrl_segment_2_2fpow2he7qfuc } from './component.tsx_component_qrl_segment_2_2fpow2he7qfuc';
-import { log } from './log';
 const q_component_qrl_segment_2_2fpow2he7qfuc = /*#__PURE__*/ _noopQrl(
   'component_qrl_segment_2_2fpow2he7qfuc'
 );

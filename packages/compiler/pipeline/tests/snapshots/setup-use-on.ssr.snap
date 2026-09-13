@@ -30,7 +30,6 @@ import {
   renderSsrTextNode,
   maybeThen,
   _noopQrl,
-  $,
 } from '@qwik.dev/core';
 const component_qrl_segment_0_2fpowujm1ejve = () => {
   const [count] = _captures;
@@ -125,7 +124,7 @@ export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
 */
 ============================= src/headless.tsx ==
 
-import { useOnDocument, _noopQrl, $ } from '@qwik.dev/core';
+import { useOnDocument, _noopQrl } from '@qwik.dev/core';
 const headless_qrl_segment_0_1g1rt7jroxou2 = () => {
   return 1;
 };

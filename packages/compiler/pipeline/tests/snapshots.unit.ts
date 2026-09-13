@@ -356,6 +356,8 @@ export default component$(() => {
     // A nested QRL captures the enclosing callback's locals and parameters.
     expect(code).toContain('.w([v, step])');
     expect(code).toContain('.w([n])');
+    // A replaced marker callee is no longer a read, so no chunk imports `$`.
+    expect(code).not.toMatch(/import \{[^}]*\s\$[,\s][^}]*\} from "@qwik.dev\/core"/);
   });
 
   test('should keep setup aliases of props, stores and signals live', async () => {

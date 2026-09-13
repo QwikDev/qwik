@@ -96,7 +96,6 @@ export const hooks_useTaskqrl_segment_0_19kov19646us6 = () => {
 import {
   _qrlWithChunk,
   _createElementTemplate,
-  $,
   createEventEffect,
   _first,
   _next,

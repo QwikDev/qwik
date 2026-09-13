@@ -28,7 +28,6 @@ import {
   _first,
   createTextNodeEffect,
   _createElementTemplate,
-  $,
 } from '@qwik.dev/core';
 import { component_q_e_click_segment_1_2xwyfnber1kpg } from './component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg';
 
@@ -112,7 +111,7 @@ export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
 */
 ============================= src/headless.tsx ==
 
-import { useOnDocument, _qrlWithChunk, _first, createTemplate, $ } from '@qwik.dev/core';
+import { useOnDocument, _qrlWithChunk, _first, createTemplate } from '@qwik.dev/core';
 const q_headless_qrl_segment_0_1g1rt7jroxou2 = /*#__PURE__*/ _qrlWithChunk(
   './headless.tsx_headless_qrl_segment_0_1g1rt7jroxou2',
   () => import('./headless.tsx_headless_qrl_segment_0_1g1rt7jroxou2'),

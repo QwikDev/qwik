@@ -111,8 +111,7 @@ export const component_qrl_segment_0_2fpowujm1ejve = () => {
 */
 ============================= src/component.tsx_component_useTaskqrl_segment_1_1og80wrqqnv5v.js (ENTRY POINT)==
 
-import { _captures, _qrlWithChunk, $ } from '@qwik.dev/core';
-import { log } from './log';
+import { _captures, _qrlWithChunk } from '@qwik.dev/core';
 const q_component_qrl_segment_0_2fpowujm1ejve = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_qrl_segment_0_2fpowujm1ejve',
   () => import('./component.tsx_component_qrl_segment_0_2fpowujm1ejve'),
@@ -185,8 +184,7 @@ export const component_qrl_segment_2_2fpow2he7qfuc = () => {
 */
 ============================= src/component.tsx_component_q_e_click_segment_3_2xwygfdmkpoqi.js (ENTRY POINT)==
 
-import { _captures, _qrlWithChunk, $ } from '@qwik.dev/core';
-import { log } from './log';
+import { _captures, _qrlWithChunk } from '@qwik.dev/core';
 const q_component_qrl_segment_2_2fpow2he7qfuc = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_qrl_segment_2_2fpow2he7qfuc',
   () => import('./component.tsx_component_qrl_segment_2_2fpow2he7qfuc'),

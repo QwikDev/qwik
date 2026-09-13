@@ -462,7 +462,9 @@ their checkboxes; do not silently reinterpret the original completion estimate a
 - 2026-09-13: Nested boundary captures: `lowerFunctionQrl` scans the callback node itself, so
   its parameters and locals are in scope for markers inside it; a marker call counts as
   extracted only after its lowering succeeds, so a refused hook body no longer hides its markers
-  from the module-helper scan. Verification: 1079 pipeline tests (16 existing TODOs), the new
+  from the module-helper scan. Reads inside a replaced marker callee or callback are dropped from
+  the enclosing payload, so chunks no longer import `$`, a custom marker's authored name or
+  bindings only the nested QRL uses. Verification: 1079 pipeline tests (16 existing TODOs), the new
   `nested-qrl-captures` snapshots, and the core corpus in CSR and resume with only the known
   group 7/10/13 failures.
 

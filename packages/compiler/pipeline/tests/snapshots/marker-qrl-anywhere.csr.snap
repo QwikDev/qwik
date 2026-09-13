@@ -155,7 +155,6 @@ export const component_useCustomqrl_segment_2_heiedc4h1woo = () => {
 
 import { _captures, _qrlWithChunk } from '@qwik.dev/core';
 import { useCustomQrl } from './hooks';
-import { useCustom$ } from './hooks';
 const q_component_useCustomqrl_segment_2_heiedc4h1woo = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_useCustomqrl_segment_2_heiedc4h1woo',
   () => import('./component.tsx_component_useCustomqrl_segment_2_heiedc4h1woo'),

@@ -78,12 +78,15 @@ export function linkHookTwins(module: LinkedModule, diagnostics: LinkDiagnostic[
     ...program,
     setup: linkSetup(program.setup),
   }));
-  module.payloads = module.payloads.map((payload) =>
-    payload.setups === undefined
-      ? payload
-      : {
-          ...payload,
-          setups: payload.setups.map((nested) => ({ ...nested, setup: linkSetup(nested.setup) })),
-        }
-  );
+  module.payloads = module.payloads.map((payload) => ({
+    ...payload,
+    qrls: payload.qrls.map((entry) => {
+      const marker = entry.marker;
+      const twins = marker === undefined ? undefined : linkTarget(marker.target);
+      return marker === undefined || twins === undefined
+        ? entry
+        : { ...entry, marker: { ...marker, target: { ...marker.target, twins } } };
+    }),
+    setups: payload.setups?.map((nested) => ({ ...nested, setup: linkSetup(nested.setup) })),
+  }));
 }

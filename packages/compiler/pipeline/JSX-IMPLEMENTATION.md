@@ -242,9 +242,11 @@ transformation:
 - [x] Module-level `$()` and boundaries inside ordinary functions, for the explicit `$` marker:
       every payload is scanned once, so `$(fn)` in a call argument, a callback, a QRL body, a
       module helper or a module-level initializer becomes an explicit QRL replacing the call.
-      Custom `foo$(...)` outside setup statements is still a runtime call (next item).
 - [x] Nested `$()` inside other QRLs, through the same payload scan.
-- [ ] Custom `foo$`, `factory$` and user hooks outside direct component setup.
+- [x] Custom `foo$`, `factory$` and user hooks outside direct component setup. The payload scan
+      that extracts `$()` also recognizes custom markers with twins and records the callee: setup
+      statements and module helpers call the function twin with the static callback on the client
+      and the `Qrl` twin on the server; chunk bodies use the `Qrl` twin on both.
 - [ ] Existing function references instead of inline callbacks.
 - [ ] Non-function QRL values: strings, objects and imported values.
 - [x] `useStyles$('...')` and `useStylesScoped$(css)` lower to the `Style` op and call
@@ -433,6 +435,13 @@ code size and runtime cost. The previous implementation is not the accepted defa
 
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
+
+- 2026-09-13: Custom markers anywhere: a payload QRL entry may carry a `marker` with the callee
+  range and target; the linker resolves its twins like setup calls, and `withMarkerEmitter`
+  gives each generator's payload emitter the twin callee plus the callback in the same form the
+  setup path uses. Verification: 1063 pipeline tests (16 existing TODOs) and the
+  `marker-qrl-anywhere` CSR/SSR snapshots. Core spec corpus unchanged: CSR 6, resume 6 failed
+  files.
 
 - 2026-09-13: Explicit `$()` anywhere: `recordPayloadQrls` walks every payload (setup
   statements, expression values, QRL bodies, module helpers and module-level `$()` roots) and

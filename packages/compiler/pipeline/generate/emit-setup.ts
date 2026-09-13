@@ -20,7 +20,14 @@ import {
 } from '../schema';
 import { ValueIrKind } from '../../src/expr-ir';
 import { UnsupportedError } from '../errors';
-import { expressionJs, extractPayloadJs, inlineValueJs, memberJs, valueIrJs } from './emit-chunk';
+import {
+  expressionJs,
+  extractPayloadJs,
+  inlineValueJs,
+  memberJs,
+  valueIrJs,
+  type EmitQrl,
+} from './emit-chunk';
 import { namedSpecifier, requestBindingImport } from './emit-import';
 import { QwikGenWord, QwikHook, QwikWord } from '../words';
 import { allocateGeneratedName } from '../names';
@@ -49,7 +56,7 @@ export function emitJsSetup(
   module: LinkedModule,
   program: { setup: LinkedModule['programs'][number]['setup'] },
   imports: Set<string>,
-  emitQrl: (use: QrlUse) => string,
+  emitQrl: EmitQrl,
   render?: (program: number, names?: GeneratedNames) => ComponentEmission,
   names?: GeneratedNames,
   target: SetupEmitTarget = {}
@@ -254,13 +261,36 @@ function hookCalleeJs(
     }
     case CallTargetKind.Value:
       return `(0, ${valueIrJs(module, target.value)})`;
-    case CallTargetKind.Marker: {
-      if (target.twins === undefined) {
-        throw new UnsupportedError(`${target.stem}$ without its ${form} twin`);
-      }
-      return hookTwinJs(module, target.twins[form], emitter.chunkImports);
-    }
+    case CallTargetKind.Marker:
+      return markerTwinJs(module, target, form, emitter.chunkImports);
   }
+}
+
+function markerTwinJs(
+  module: LinkedModule,
+  target: Extract<CallTarget, { kind: CallTargetKind.Marker }>,
+  form: 'qrl' | 'fn',
+  chunkImports: string[] | undefined
+): string {
+  if (target.twins === undefined) {
+    throw new UnsupportedError(`${target.stem}$ without its ${form} twin`);
+  }
+  return hookTwinJs(module, target.twins[form], chunkImports);
+}
+
+/** Lets a payload emitter print custom `$` hook calls: static callbacks take the function twin. */
+export function withMarkerEmitter(
+  module: LinkedModule,
+  emitQrl: EmitQrl,
+  chunkImports: string[] | undefined,
+  staticQrl?: (use: QrlUse) => string
+): EmitQrl {
+  return Object.assign(emitQrl, {
+    marker: (target: Extract<CallTarget, { kind: CallTargetKind.Marker }>, use: QrlUse) => ({
+      callee: markerTwinJs(module, target, staticQrl === undefined ? 'qrl' : 'fn', chunkImports),
+      argument: (staticQrl ?? emitQrl)(use),
+    }),
+  });
 }
 
 function hookTwinJs(
@@ -281,7 +311,7 @@ function hookTwinJs(
   return twin.local;
 }
 
-function argJs(module: LinkedModule, arg: Arg, emitQrl: (use: QrlUse) => string): string {
+function argJs(module: LinkedModule, arg: Arg, emitQrl: EmitQrl): string {
   switch (arg.a) {
     case ArgKind.Qrl:
       return emitQrl(arg.use);

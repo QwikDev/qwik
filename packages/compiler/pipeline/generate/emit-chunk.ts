@@ -1,4 +1,6 @@
 import {
+  CallTargetKind,
+  type CallTarget,
   ArgPass,
   BoundaryKind,
   CaptureAccess,
@@ -323,6 +325,13 @@ export function programKind(qrl: LinkedQrl): ProgramKind {
   throw new UnsupportedError(`a program qrl with the boundary "${qrl.boundary.kind}"`);
 }
 
+type MarkerTarget = Extract<CallTarget, { kind: CallTargetKind.Marker }>;
+
+/** Prints a QRL use; `marker` also prints a custom `$` hook call as its twin plus callback. */
+export type EmitQrl = ((use: QrlUse) => string) & {
+  marker?: (target: MarkerTarget, use: QrlUse) => { callee: string; argument: string };
+};
+
 /** Materializes payload edits together so nested source ranges remain valid. */
 export function extractPayloadJs(
   module: LinkedModule,
@@ -330,7 +339,7 @@ export function extractPayloadJs(
   range: Range = module.payloads[payload].range,
   awaitName: string = QwikWord.Await,
   edits: { range: Range; value: string }[] = [],
-  emitQrl?: (use: QrlUse) => string
+  emitQrl?: EmitQrl
 ): string {
   const { reads, awaits } = module.payloads[payload];
   const [start, end] = range;
@@ -346,7 +355,18 @@ export function extractPayloadJs(
     if (emitQrl === undefined) {
       throw new UnsupportedError('an embedded QRL without an emitter');
     }
-    replacements.push({ range: entry.range, value: emitQrl(entry.use) });
+    if (entry.marker === undefined) {
+      replacements.push({ range: entry.range, value: emitQrl(entry.use) });
+      continue;
+    }
+    if (emitQrl.marker === undefined) {
+      throw new UnsupportedError(`${entry.marker.target.stem}$ inside this payload`);
+    }
+    const { callee, argument } = emitQrl.marker(entry.marker.target, entry.use);
+    replacements.push(
+      { range: entry.marker.calleeRange, value: callee },
+      { range: entry.range, value: argument }
+    );
   }
   const materialized = reads.filter(
     (read) =>
@@ -379,22 +399,14 @@ export function extractPayloadJs(
 }
 
 /** Only an `inline`-resumed value may execute at its authored use site. */
-export function inlineValueJs(
-  module: LinkedModule,
-  value: Value,
-  emitQrl?: (use: QrlUse) => string
-): string {
+export function inlineValueJs(module: LinkedModule, value: Value, emitQrl?: EmitQrl): string {
   if (value.v !== ValueKind.Computed || value.resume.r !== ResumeKind.Inline) {
     throw new UnsupportedError('a non-inline source value');
   }
   return expressionJs(module, value.expr, emitQrl);
 }
 
-export function expressionJs(
-  module: LinkedModule,
-  expr: Expr,
-  emitQrl?: (use: QrlUse) => string
-): string {
+export function expressionJs(module: LinkedModule, expr: Expr, emitQrl?: EmitQrl): string {
   switch (expr.kind) {
     case ExprKind.Ir:
       return valueIrJs(module, expr.ir);

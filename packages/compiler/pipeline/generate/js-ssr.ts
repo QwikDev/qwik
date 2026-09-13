@@ -49,6 +49,7 @@ import {
   providesContext,
   setupCallsSome,
   signalReadName,
+  withMarkerEmitter,
 } from './emit-setup';
 import { sourceFunctionEmission, contentFunctionEmission } from './emit-function';
 import { requestBindingImport } from './emit-import';
@@ -167,7 +168,11 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       undefined,
       undefined,
       [],
-      (use) => this.useQrl({ names }, use, true).ref
+      withMarkerEmitter(
+        this.module,
+        (use) => this.useQrl({ names }, use, true).ref,
+        this.chunkImports
+      )
     );
     this.flushQrlHoists();
     return source;
@@ -215,7 +220,11 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         this.module,
         program,
         this.imports,
-        (use) => this.useQrl(pass, use, true).ref,
+        withMarkerEmitter(
+          this.module,
+          (use) => this.useQrl(pass, use, true).ref,
+          this.chunkImports
+        ),
         (nested, localNames = names) => this.renderProgramById(nested, localNames),
         names,
         { isServer: true, chunkImports: this.chunkImports }

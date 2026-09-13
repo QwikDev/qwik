@@ -6,10 +6,12 @@ import type {
 } from 'oxc-parser';
 import {
   BoundaryKind,
+  CallTargetKind,
   CaptureAccess,
   FnBodyKind,
   QrlBodyKind,
   QrlPayloadKind,
+  type CallTarget,
   type PayloadId,
   type Qrl,
 } from '../schema';
@@ -21,6 +23,7 @@ import { LocalKind } from './locals';
 import { isFunctionLike, unwrapExpression } from './ast/utils';
 import { isNode, type WalkableNode } from './ast/ast-types';
 import { QwikMarker } from '../words';
+import { resolveSetupCall } from './lower-setup';
 
 /** Explicit and implicit boundaries share callback extraction and capture semantics. */
 export function lowerFunctionQrl(
@@ -157,21 +160,37 @@ export function recordPayloadQrls(ctx: LowerContext, payload: PayloadId, node: N
     if (!isNode(current) || extractedCalls.has(current)) {
       return;
     }
-    const fn = current.type === 'CallExpression' ? explicitQrlCallback(current, scope) : null;
-    if (fn !== null && current.type === 'CallExpression') {
+    const call = current.type === 'CallExpression' ? markerQrlCall(current, scope) : null;
+    if (call !== null && current.type === 'CallExpression') {
       extractedCalls.add(current);
-      const use = lowerFunctionQrl(fn, scope, {
-        nameCtx: 'qrl',
+      const use = lowerFunctionQrl(call.fn, scope, {
+        nameCtx: call.name,
         subject: 'a QRL callback',
-        ctxName: QwikMarker.Dollar,
-        boundary: { kind: BoundaryKind.Explicit },
+        ctxName: call.marker === undefined ? QwikMarker.Dollar : call.name,
+        boundary:
+          call.marker === undefined
+            ? { kind: BoundaryKind.Explicit }
+            : { kind: BoundaryKind.Implicit, role: 'hook' },
         origin: {
           range: [current.start, current.end],
           calleeRange: [current.callee.start, current.callee.end],
-          argumentRanges: [[fn.start, fn.end]],
+          argumentRanges: current.arguments.map((arg) => [arg.start, arg.end]),
         },
       });
-      ctx.plan.payloads[payload].qrls.push({ range: [current.start, current.end], use });
+      // `$(fn)` is the QRL; `foo$(fn, …)` keeps its call under the twin callee.
+      ctx.plan.payloads[payload].qrls.push(
+        call.marker === undefined
+          ? { range: [current.start, current.end], use }
+          : {
+              range: [call.fn.start, call.fn.end],
+              use,
+              marker: {
+                calleeRange: [current.callee.start, current.callee.end],
+                target: call.marker,
+              },
+            }
+      );
+      visit(current.arguments.slice(1), scope);
       return;
     }
     const inner = isFunctionLike(current) ? functionScope(scope, current) : scope;
@@ -197,7 +216,7 @@ export function explicitQrlRoots(nodes: readonly Node[], ctx: MarkerScope): Node
         (Array.isArray(current) ? current : []).forEach(visit);
         return;
       }
-      if (current.type === 'CallExpression' && explicitQrlCallback(current, ctx) !== null) {
+      if (current.type === 'CallExpression' && markerQrlCall(current, ctx) !== null) {
         found = true;
         return;
       }
@@ -218,7 +237,7 @@ export function explicitQrlRoots(nodes: readonly Node[], ctx: MarkerScope): Node
     }
     if (
       isFunctionLike(node) ||
-      (node.type === 'CallExpression' && explicitQrlCallback(node, ctx))
+      (node.type === 'CallExpression' && markerQrlCall(node, ctx) !== null)
     ) {
       if (containsQrlCall(node)) {
         roots.push(node);
@@ -231,20 +250,34 @@ export function explicitQrlRoots(nodes: readonly Node[], ctx: MarkerScope): Node
   return roots;
 }
 
-type MarkerScope = Pick<LowerContext, 'bindings' | 'coreBindings'>;
+type MarkerScope = LowerContext;
 
-function explicitQrlCallback(
-  node: CallExpression,
-  ctx: MarkerScope
-): (ArrowFunctionExpression | FunctionNode) | null {
-  if (node.arguments.length !== 1) {
+interface MarkerQrlCall {
+  fn: ArrowFunctionExpression | FunctionNode;
+  name: string;
+  /** Absent for the explicit `$` marker. */
+  marker?: Extract<CallTarget, { kind: CallTargetKind.Marker }>;
+}
+
+/** `$(fn)` or a custom `foo$(fn, …)` whose twins resolve; null for every other call. */
+function markerQrlCall(node: CallExpression, ctx: MarkerScope): MarkerQrlCall | null {
+  const argument = node.arguments[0];
+  const fn =
+    argument === undefined || argument.type === 'SpreadElement' ? null : unwrapExpression(argument);
+  if (fn === null || !isFunctionLike(fn) || node.optional) {
     return null;
   }
   const binding = ctx.bindings.reference(node.callee);
-  if (binding === null || ctx.coreBindings.get(binding) !== QwikMarker.Dollar) {
+  if (binding !== null && ctx.coreBindings.get(binding) === QwikMarker.Dollar) {
+    return node.arguments.length === 1 ? { fn, name: 'qrl' } : null;
+  }
+  const callee = resolveSetupCall(node, ctx);
+  if (callee === null || callee.stem === null) {
     return null;
   }
-  const argument = node.arguments[0];
-  const fn = argument.type === 'SpreadElement' ? null : unwrapExpression(argument);
-  return fn !== null && isFunctionLike(fn) ? fn : null;
+  return {
+    fn,
+    name: callee.name,
+    marker: { kind: CallTargetKind.Marker, binding: callee.binding, stem: callee.stem },
+  };
 }

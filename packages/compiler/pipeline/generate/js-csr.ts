@@ -43,6 +43,7 @@ import {
   emitJsSetup,
   setupCallsSome,
   signalReadName,
+  withMarkerEmitter,
 } from './emit-setup';
 import { sourceFunctionEmission, contentFunctionEmission } from './emit-function';
 import { emitCollectionSource } from './emit-collection';
@@ -118,8 +119,18 @@ class CsrModuleEmitter implements QwikModuleEmitter {
   }
 
   emitPayload(payload: number, names: GeneratedNames): string {
-    return extractPayloadJs(this.module, payload, undefined, undefined, [], (use) =>
-      this.lazyRenderReference(use, names.props)
+    return extractPayloadJs(
+      this.module,
+      payload,
+      undefined,
+      undefined,
+      [],
+      withMarkerEmitter(
+        this.module,
+        (use) => this.lazyRenderReference(use, names.props),
+        this.chunkImports,
+        (use) => this.capturedChunkReference(use, names.props)
+      )
     );
   }
 
@@ -141,18 +152,21 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       throw new Error('pipeline.generateJsCsr: js-bodied programs not implemented yet');
     }
     const pass: RenderPass = { names, next: createNameAllocator(this.module) };
+    const staticQrl = (use: QrlUse) => this.capturedChunkReference(use, names.props);
     const statements = emitJsSetup(
       this.module,
       program,
       this.imports,
-      (use) => this.lazyRenderReference(use, names.props),
+      withMarkerEmitter(
+        this.module,
+        (use) => this.lazyRenderReference(use, names.props),
+        this.chunkImports,
+        staticQrl
+      ),
       (nested, localNames = names) =>
         this.renderProgram(nested, `${ownerName}_${nested}`, localNames),
       names,
-      {
-        staticQrl: (use) => this.capturedChunkReference(use, names.props),
-        chunkImports: this.chunkImports,
-      }
+      { staticQrl, chunkImports: this.chunkImports }
     );
     const setupCount = statements.length;
     const finish = (value: string): ComponentEmission =>

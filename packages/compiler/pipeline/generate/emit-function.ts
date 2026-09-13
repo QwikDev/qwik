@@ -21,8 +21,9 @@ import {
   type QrlResolver,
   expressionJs,
   type FunctionEmission,
+  type EmitQrl,
 } from './emit-chunk';
-import { emitJsSetup } from './emit-setup';
+import { emitJsSetup, withMarkerEmitter } from './emit-setup';
 import { createNameAllocator } from './names';
 
 /** QRL functions share capture restoration across authored and lowered bodies. */
@@ -37,8 +38,12 @@ export function sourceFunctionEmission(
     emission.imports.add(QwikWord.Captures);
   }
   emission.statements.push(...capturePrelude(module, qrl));
-  const emitQrl = (use: QrlUse) =>
-    emitFunctionQrl(use, qrlPropsName(module, qrl, 'props'), emission, resolveQrlUse, true);
+  const emitQrl = withMarkerEmitter(
+    module,
+    (use: QrlUse) =>
+      emitFunctionQrl(use, qrlPropsName(module, qrl, 'props'), emission, resolveQrlUse, true),
+    emission.chunkImports
+  );
   const body = qrl.body;
   let awaitName: string = QwikWord.Await;
   if (body.b === QrlBodyKind.Js && module.payloads[body.payload].awaits.length > 0) {
@@ -107,7 +112,7 @@ function propsPartJs(
   part: LinkedQrl['propsParts'][number],
   emission: FunctionEmission,
   resolveQrlUse: QrlResolver,
-  emitQrl: (use: QrlUse) => string
+  emitQrl: EmitQrl
 ): string {
   switch (part.kind) {
     case PropsPartKind.Static:

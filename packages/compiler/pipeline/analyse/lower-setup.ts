@@ -15,6 +15,7 @@ import {
   type CallTarget,
   CoreOperation,
   type Arg,
+  type LocalId,
   type QrlArg,
   type Setup,
   type Value,
@@ -34,7 +35,7 @@ import { identifierName, unwrapExpression } from './ast/utils';
 import { UnsupportedError } from '../errors';
 import { QRL_SUFFIX, QwikHook, QwikMarker } from '../words';
 import { createStyleId } from '../segment-identity';
-import { coreSetupCalls } from './setup-api';
+import { coreSetupCalls, type SetupCallContract } from './setup-api';
 import { LocalKind, type SetupLocals } from './locals';
 import { pushPayload, type LowerContext } from './lower-context';
 import { collectCaptures, lowerCaptures } from './ast/capture-analysis';
@@ -466,7 +467,18 @@ function lowerSetupCallback(
   });
 }
 
-function resolveSetupCall(call: CallExpression, ctx: LowerContext) {
+export interface ResolvedSetupCall {
+  binding: LocalId;
+  name: string;
+  contract: SetupCallContract | undefined;
+  /** The marker name without `$` when the callee has `Qrl` and function twins. */
+  stem: string | null;
+}
+
+export function resolveSetupCall(
+  call: CallExpression,
+  ctx: LowerContext
+): ResolvedSetupCall | null {
   const binding = ctx.bindings.reference(call.callee);
   if (binding === null) {
     return null;

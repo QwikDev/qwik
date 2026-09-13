@@ -2,7 +2,7 @@ import { QwikHook } from '../words';
 import { CoreOperation } from '../schema';
 import { LocalKind } from './locals';
 
-interface SetupCallContract {
+export interface SetupCallContract {
   operation: CoreOperation;
   result?: LocalKind.Const | LocalKind.Qrl | LocalKind.Signal;
   maxArgs?: number;

@@ -1343,6 +1343,34 @@ export default () => {
     expect(code).toMatch(/const wrapped = \[1\]\.map\(\(step\) => q_\w+\.w\(\[count, step\]\)\)/);
   });
 
+  test('should call custom $ hooks through their twins wherever they appear', async () => {
+    const output = await testInput(mode, 'marker-qrl-anywhere', {
+      code: `import { useSignal } from '@qwik.dev/core';
+import { useCustom$ } from './hooks';
+export function make(count) {
+  return useCustom$(() => count.value);
+}
+export default () => {
+  const count = useSignal(0);
+  const handles = [useCustom$(() => count.value + 1)];
+  return (
+    <button onClick$={() => { useCustom$(() => count.value); }} data-n={handles.length}>
+      {count.value}
+    </button>
+  );
+};
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const code = output.modules.map((module) => module.code).join('\n');
+    expect(code).not.toContain('useCustom$(');
+    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    // Setup and module helpers take the client fast path; a chunk body keeps the qrl twin.
+    const twin = mode === 'ssr' ? 'useCustomQrl(q_' : 'useCustom(_withCaptures(';
+    expect(main.match(new RegExp(twin.replace(/[$()]/g, '\\$&'), 'g'))).toHaveLength(2);
+    expect(code).toMatch(/useCustomQrl\(q_\w+\.w\(\[count\]\)\);/);
+  });
+
   test('should scope window and document events and keep event modifiers', async () => {
     const output = await testInput(mode, 'event-scopes-modifiers', {
       code: `import { useSignal } from '@qwik.dev/core';

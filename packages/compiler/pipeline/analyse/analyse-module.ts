@@ -91,10 +91,18 @@ export async function analyseModule(
         )
       : [];
   });
+  const lowerContext = createLowerContext(
+    plan,
+    input.path,
+    options.scope,
+    bindings,
+    coreBindings,
+    jsx
+  );
   const jsxRoots = jsx.scopedRoots(authoredStatements);
   const helperRoots = [
     ...jsxRoots,
-    ...explicitQrlRoots(authoredStatements, { bindings, coreBindings }).filter(
+    ...explicitQrlRoots(authoredStatements, lowerContext).filter(
       (root) => !(jsxRoots as readonly Node[]).includes(root)
     ),
   ];
@@ -167,14 +175,6 @@ export async function analyseModule(
       });
     }
   }
-  const lowerContext = createLowerContext(
-    plan,
-    input.path,
-    options.scope,
-    bindings,
-    coreBindings,
-    jsx
-  );
   try {
     for (const root of helperRoots) {
       const payload = pushPayload(lowerContext, [root.start, root.end]);

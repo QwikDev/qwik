@@ -1,0 +1,222 @@
+==INPUT==
+
+import { useSignal } from '@qwik.dev/core';
+import { useCustom$ } from './hooks';
+export function make(count) {
+  return useCustom$(() => count.value);
+}
+export default () => {
+  const count = useSignal(0);
+  const handles = [useCustom$(() => count.value + 1)];
+  return (
+    <button onClick$={() => { useCustom$(() => count.value); }} data-n={handles.length}>
+      {count.value}
+    </button>
+  );
+};
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+const default_tmpl0 = _createElementTemplate('<button> </button>');
+import {
+  _withCaptures,
+  useSignal,
+  setEvent,
+  createAttrExpressionEffect,
+  _first,
+  createTextNodeEffect,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { useCustom } from './hooks';
+import { component_useCustomqrl_segment_0_heif5ecaq0pq } from './component.tsx_component_useCustomqrl_segment_0_heif5ecaq0pq';
+import { component_useCustomqrl_segment_1_heifjfg7k2q9 } from './component.tsx_component_useCustomqrl_segment_1_heifjfg7k2q9';
+import { component_q_e_click_segment_3_2xwygfdmkpoqi } from './component.tsx_component_q_e_click_segment_3_2xwygfdmkpoqi';
+import { component_data_n_segment_4_brpn0aqdy9ay } from './component.tsx_component_data_n_segment_4_brpn0aqdy9ay';
+import { useCustom$ } from './hooks';
+export function make(count) {
+  return useCustom(_withCaptures(component_useCustomqrl_segment_0_heif5ecaq0pq, [count]));
+}
+export default (props, ctx) => {
+  const count = useSignal(0);
+  const handles = [
+    useCustom(_withCaptures(component_useCustomqrl_segment_1_heifjfg7k2q9, [count])),
+  ];
+  const el0 = default_tmpl0(ctx.document);
+  setEvent(el0, 'q-e:click', component_q_e_click_segment_3_2xwygfdmkpoqi, [count]);
+  const effect0 = createAttrExpressionEffect(
+    el0,
+    'data-n',
+    [handles],
+    component_data_n_segment_4_brpn0aqdy9ay,
+    ctx.scheduler
+  );
+  ctx.scheduler.notify(effect0);
+  const text0 = _first(el0);
+  const effect1 = createTextNodeEffect(text0, count, ctx.scheduler);
+  ctx.scheduler.notify(effect1);
+  return el0;
+};
+============================= src/component.tsx_component_useCustomqrl_segment_0_heif5ecaq0pq.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_useCustomqrl_segment_0_heif5ecaq0pq = () => {
+  const [count] = _captures;
+  return count.value;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_useCustomqrl_segment_0_heif5ecaq0pq",
+  "entry": null,
+  "displayName": "component_useCustomqrl_segment_0",
+  "hash": "heif5ecaq0pq",
+  "canonicalFilename": "component.tsx_component_useCustomqrl_segment_0_heif5ecaq0pq",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "useCustom$",
+  "captures": true,
+  "loc": [
+    121,
+    150
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_useCustomqrl_segment_1_heifjfg7k2q9.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_useCustomqrl_segment_1_heifjfg7k2q9 = () => {
+  const [count] = _captures;
+  return count.value + 1;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_useCustomqrl_segment_1_heifjfg7k2q9",
+  "entry": null,
+  "displayName": "component_useCustomqrl_segment_1",
+  "hash": "heifjfg7k2q9",
+  "canonicalFilename": "component.tsx_component_useCustomqrl_segment_1_heifjfg7k2q9",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "useCustom$",
+  "captures": true,
+  "loc": [
+    226,
+    259
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_useCustomqrl_segment_2_heiedc4h1woo.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_useCustomqrl_segment_2_heiedc4h1woo = () => {
+  const [count] = _captures;
+  return count.value;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_useCustomqrl_segment_2_heiedc4h1woo",
+  "entry": null,
+  "displayName": "component_useCustomqrl_segment_2",
+  "hash": "heiedc4h1woo",
+  "canonicalFilename": "component.tsx_component_useCustomqrl_segment_2_heiedc4h1woo",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "useCustom$",
+  "captures": true,
+  "loc": [
+    303,
+    332
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_q_e_click_segment_3_2xwygfdmkpoqi.js (ENTRY POINT)==
+
+import { _captures, _qrlWithChunk } from '@qwik.dev/core';
+import { useCustomQrl } from './hooks';
+import { useCustom$ } from './hooks';
+const q_component_useCustomqrl_segment_2_heiedc4h1woo = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_useCustomqrl_segment_2_heiedc4h1woo',
+  () => import('./component.tsx_component_useCustomqrl_segment_2_heiedc4h1woo'),
+  'component_useCustomqrl_segment_2_heiedc4h1woo'
+);
+
+export const component_q_e_click_segment_3_2xwygfdmkpoqi = () => {
+  const [count] = _captures;
+  useCustomQrl(q_component_useCustomqrl_segment_2_heiedc4h1woo.w([count]));
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_3_2xwygfdmkpoqi",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_3",
+  "hash": "2xwygfdmkpoqi",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_3_2xwygfdmkpoqi",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    285,
+    304
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_data_n_segment_4_brpn0aqdy9ay.js (ENTRY POINT)==
+
+export const component_data_n_segment_4_brpn0aqdy9ay = (handles) => {
+  return handles.length;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_data_n_segment_4_brpn0aqdy9ay",
+  "entry": null,
+  "displayName": "component_data_n_segment_4",
+  "hash": "brpn0aqdy9ay",
+  "canonicalFilename": "component.tsx_component_data_n_segment_4_brpn0aqdy9ay",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "data-n",
+  "captures": true,
+  "loc": [
+    345,
+    359
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "handles"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

@@ -1,7 +1,7 @@
 /** Payloads, ESM edges, expressions, tasks, and the five-arm `Value` union (DESIGN.md "Model"). */
 import type { ValueIR } from '../../src/expr-ir';
 import type { BuildConstant, LocalId, PayloadId, PlaceIR, ProgramId, QrlId, Range } from './shared';
-import type { Setup } from './program';
+import type { CallTarget, CallTargetKind, Setup } from './program';
 import type { Result } from './result';
 
 // ---------------------------------------------------------------------------------------------
@@ -24,7 +24,12 @@ export interface Payload {
   /** Text materialized at serialization. */
   text?: string;
   constants: { range: Range; name: BuildConstant }[];
-  qrls: { range: Range; use: QrlUse }[];
+  qrls: {
+    range: Range;
+    use: QrlUse;
+    /** A custom `$` hook call in expression position: its callee prints as the resolved twin. */
+    marker?: { calleeRange: Range; target: Extract<CallTarget, { kind: CallTargetKind.Marker }> };
+  }[];
   reads: {
     range: Range;
     binding: LocalId;

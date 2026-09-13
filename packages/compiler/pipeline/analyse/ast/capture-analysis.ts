@@ -41,10 +41,11 @@ export function collectCaptures(
   let other: string | null = null;
   let capturedWrite: CollectedCaptures['capturedWrite'] = null;
   for (const { node: current, binding, role, isWrite } of ctx.bindings.freeReferences(node)) {
-    // A component tag cannot be captured; a member tag's root is an ordinary value read.
+    // A component tag cannot be captured; a member tag's root and an alias tag are value reads.
     const isComponentTag =
       current.type === 'JSXIdentifier' &&
-      ctx.bindings.parentOf(current)?.type !== 'JSXMemberExpression';
+      ctx.bindings.parentOf(current)?.type !== 'JSXMemberExpression' &&
+      ctx.locals.get(binding)?.kind !== LocalKind.PropMember;
     if (isComponentTag && ctx.locals.has(binding) && !localBindings.has(binding)) {
       other ??= current.name;
       continue;

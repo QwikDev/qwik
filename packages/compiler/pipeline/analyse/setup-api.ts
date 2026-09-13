@@ -4,7 +4,7 @@ import { LocalKind } from './locals';
 
 export interface SetupCallContract {
   operation: CoreOperation;
-  result?: LocalKind.Const | LocalKind.Qrl | LocalKind.Signal;
+  result?: LocalKind.Const | LocalKind.Qrl | LocalKind.Signal | LocalKind.Store;
   maxArgs?: number;
   /** The initial run must finish before the render reads its writes. */
   blocksRender?: true;
@@ -16,6 +16,7 @@ export const coreSetupCalls: ReadonlyMap<string, SetupCallContract> = new Map([
     QwikHook.UseSignal,
     { operation: CoreOperation.CreateSignal, result: LocalKind.Signal, maxArgs: 1 },
   ],
+  [QwikHook.UseStore, { operation: CoreOperation.CreateStore, result: LocalKind.Store }],
   [QwikHook.UseComputed, { operation: CoreOperation.CreateComputed, result: LocalKind.Signal }],
   [QwikHook.UseTask, { operation: CoreOperation.Task, blocksRender: true }],
   [QwikHook.UseVisibleTask, { operation: CoreOperation.VisibleTask }],

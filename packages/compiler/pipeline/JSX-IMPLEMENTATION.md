@@ -206,8 +206,8 @@ snapshot audit and remaining production-build blockers.
       member tag rooted in props or a setup local (`<props.component />`, `<ui.Tag />`) renders
       inside its own content range, which re-renders with new props and projections and disposes
       the previous instance when the tracked read changes. A tag rooted in a module binding
-      (`<UI.Button />`) stays a direct call. A setup snapshot such as `const Tag = props.as` is
-      ordinary JavaScript and does not re-render; whether such aliases stay reactive is group 5.
+      (`<UI.Button />`) stays a direct call. A setup alias such as `const Tag = props.as` is a
+      live prop member (group 5), so `<Tag />` renders like `<props.as />` and re-renders too.
 - [ ] Components returned by factories and wrappers. A `component$` nested in an object literal
       or returned from a factory is not discovered as a component today. This is the
       location-independent `$` extraction of group 6; solve it there rather than as a
@@ -236,9 +236,15 @@ Simple props, aliases, rest and some defaults are already implemented. Complete:
       the parameter scope, so a body-local `const fallback` cannot shadow the default's binding.
 - [x] Correct read/default/side-effect evaluation order. Generated parameters evaluate left to
       right before the body, each only when its prop is `undefined`, and the check is untracked.
-- [ ] Distinction between ordinary JavaScript snapshots and aliases that remain reactive under
-      the framework contract.
-- [ ] Destructured store aliases after source replacement; the current resume test fails here.
+- [x] Distinction between ordinary JavaScript snapshots and aliases that remain reactive under
+      the framework contract. A `const` whose initializer is a prop read, a `useStore` result, a
+      member chain rooted in one of them, or a signal `.value` read is a live alias: it registers
+      prop-member locals (identifier or object pattern with literal defaults) and emits no
+      constant, so every read, in render or a handler, goes to the source. A `let` alias, a call
+      result or any other expression stays an ordinary snapshot.
+- [x] Destructured store aliases after source replacement. `const { item } = store` reads
+      `store.item` live, so replacing the slot updates the text; `store.spec.tsx` passes in CSR
+      and resume.
 
 Share binding facts across component parameters, callbacks and collection rows.
 
@@ -448,6 +454,16 @@ code size and runtime cost. The previous implementation is not the accepted defa
 
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
+
+- 2026-09-13: Live setup aliases: `aliasSource` classifies a `const` initializer as a prop read,
+  a `useStore` result (new `LocalKind.Store` / `CoreOperation.CreateStore`), a member chain
+  rooted in one, or a signal `.value` read; `lowerAliasDeclaration` registers the pattern's
+  members as `PropMember` locals with the source read and emits no setup entry. Alias tags reuse
+  the member-tag content range. Store locals pass through component props as-is like other
+  locals. Verification: 1077 pipeline tests (16 existing TODOs), the `setup-live-aliases`
+  snapshots, reseeded const-setup/dynamic-tags/prop-defaults/store snapshots, and the core corpus
+  in CSR and resume where `store.spec.tsx` and `dynamic-tag.spec.tsx` pass; the remaining
+  corpus failures are the known group 7/10/13 items.
 
 - 2026-09-13: Nested and computed parameter patterns: `readObjectParameter` collects every leaf
   with its prop path; a non-direct leaf carries a full read IR on its `PropMember` local, which

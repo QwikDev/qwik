@@ -7,6 +7,8 @@ export const enum LocalKind {
   Mutable = 'mutable',
   Qrl = 'qrl',
   Signal = 'signal',
+  /** A `useStore` result: member reads through it stay live. */
+  Store = 'store',
   /** A collection row parameter — captured as LoopValue, delivered per row. */
   LoopValue = 'loop-value',
   /** A collection index parameter — a per-row signal box updated by the reconciler. */
@@ -27,7 +29,7 @@ export type SetupLocal =
     }
   | {
       kind: LocalKind.PropMember;
-      access: CaptureAccess.LoopValue | CaptureAccess.ComponentProp;
+      access: CaptureAccess.LoopValue | CaptureAccess.ComponentProp | CaptureAccess.Direct;
       slot: -1;
       binding: number;
       /** How the member reads from its owner, e.g. `props.user.tags[0]`. */

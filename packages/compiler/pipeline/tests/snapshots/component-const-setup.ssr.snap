@@ -25,8 +25,8 @@ import {
 const q_component_q_e_click_segment_0_2xwyg1cinvmpz = /*#__PURE__*/ _noopQrl(
   'component_q_e_click_segment_0_2xwyg1cinvmpz'
 );
-const component_text_segment_1_1fh10tcowimfv = (label, suffix, initial) => {
-  return label + suffix + initial;
+const component_text_segment_1_1fh10tcowimfv = (label, suffix, count) => {
+  return label + suffix + count.value;
 };
 const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _noopQrl(
   'component_text_segment_1_1fh10tcowimfv'
@@ -37,18 +37,16 @@ export const Card = (props, ctx) => {
   const label = title.toUpperCase();
   const suffix = rest.suffix;
   const count = useSignal(props.start);
-  const initial = count.value;
   const id0 = ctx.nextId();
   ctx.addRoot(label);
   ctx.addRoot(suffix);
-  ctx.addRoot(initial);
+  ctx.addRoot(count);
   const text0 = renderSsrTextExpression(
     id0,
     0,
-    [label, suffix, initial],
+    [label, suffix, count],
     q_component_text_segment_1_1fh10tcowimfv
   );
-  ctx.addRoot(count);
   const text1 = renderSsrTextNode(id0, 1, count);
   return maybeThen(text0, (text0) =>
     maybeThen(text1, (text1) => [
@@ -101,8 +99,8 @@ export const component_q_e_click_segment_0_2xwyg1cinvmpz = () => {
 */
 ============================= src/component.tsx_component_text_segment_1_1fh10tcowimfv.js (ENTRY POINT)==
 
-export const component_text_segment_1_1fh10tcowimfv = (label, suffix, initial) => {
-  return label + suffix + initial;
+export const component_text_segment_1_1fh10tcowimfv = (label, suffix, count) => {
+  return label + suffix + count.value;
 };
 /*
 {
@@ -125,7 +123,7 @@ export const component_text_segment_1_1fh10tcowimfv = (label, suffix, initial) =
   "captureNames": [
     "label",
     "suffix",
-    "initial"
+    "count"
   ]
 }
 */

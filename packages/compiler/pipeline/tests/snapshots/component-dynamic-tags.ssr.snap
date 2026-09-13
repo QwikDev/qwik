@@ -40,27 +40,44 @@ const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_0_3b0tagwys7lui'
 );
 q_component_slot_render_segment_0_3b0tagwys7lui.s(component_slot_render_segment_0_3b0tagwys7lui);
-const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId) => {
-  return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), 'chosen', '<!/s>'];
+const component_tag_dynamic_segment_1_331xdvyxwe5dy = (ctx) => {
+  const [props] = _captures;
+  const slotScope0 = createSlotScope();
+  ctx.addRoot(slotScope0);
+  const tag0 = props.as;
+  registerProjection(slotScope0, '', q_component_slot_render_segment_2_3b0t9ouqyjhtg);
+  const component0 = createComponent(
+    (props0) => renderSsrDynamicTag(tag0, props0, ctx),
+    null,
+    ctx,
+    { slotScope: slotScope0 }
+  );
+  return component0;
 };
-const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _noopQrl(
-  'component_slot_render_segment_1_3b0tauy2p1nv1'
+const q_component_tag_dynamic_segment_1_331xdvyxwe5dy = /*#__PURE__*/ _noopQrl(
+  'component_tag_dynamic_segment_1_331xdvyxwe5dy'
 );
-q_component_slot_render_segment_1_3b0tauy2p1nv1.s(component_slot_render_segment_1_3b0tauy2p1nv1);
-const component_tag_dynamic_segment_2_331xdhxtzk3df = (ctx) => {
+q_component_tag_dynamic_segment_1_331xdvyxwe5dy.s(component_tag_dynamic_segment_1_331xdvyxwe5dy);
+const component_tag_dynamic_segment_3_331xd3wq2q1cw = (ctx) => {
   const [props] = _captures;
   const tag0 = props.component;
   const component0 = createComponent((props0) => renderSsrDynamicTag(tag0, props0, ctx), null, ctx);
   return component0;
 };
-const q_component_tag_dynamic_segment_2_331xdhxtzk3df = /*#__PURE__*/ _noopQrl(
-  'component_tag_dynamic_segment_2_331xdhxtzk3df'
+const q_component_tag_dynamic_segment_3_331xd3wq2q1cw = /*#__PURE__*/ _noopQrl(
+  'component_tag_dynamic_segment_3_331xd3wq2q1cw'
 );
-q_component_tag_dynamic_segment_2_331xdhxtzk3df.s(component_tag_dynamic_segment_2_331xdhxtzk3df);
+q_component_tag_dynamic_segment_3_331xd3wq2q1cw.s(component_tag_dynamic_segment_3_331xd3wq2q1cw);
+const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId) => {
+  return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), 'chosen', '<!/s>'];
+};
+const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ _noopQrl(
+  'component_slot_render_segment_2_3b0t9ouqyjhtg'
+);
+q_component_slot_render_segment_2_3b0t9ouqyjhtg.s(component_slot_render_segment_2_3b0t9ouqyjhtg);
 export default (props, ctx) => {
   const Heading = 'h2';
   const Alias = Badge;
-  const Chosen = props.as;
   const slotScope0 = createSlotScope();
   ctx.addRoot(slotScope0);
   registerProjection(slotScope0, '', q_component_slot_render_segment_0_3b0tagwys7lui);
@@ -71,45 +88,49 @@ export default (props, ctx) => {
     { slotScope: slotScope0 }
   );
   const component1 = createComponent(Alias, null, ctx);
-  const slotScope1 = createSlotScope();
-  ctx.addRoot(slotScope1);
-  registerProjection(slotScope1, '', q_component_slot_render_segment_1_3b0tauy2p1nv1);
-  const component2 = createComponent(
-    (props1) => renderSsrDynamicTag(Chosen, props1, ctx),
-    null,
-    ctx,
-    { slotScope: slotScope1 }
-  );
-  const tag0 = UI.Button;
-  const component3 = createComponent(
-    (props2) => renderSsrDynamicTag(tag0, props2, ctx),
-    { label: 'x' },
-    ctx
-  );
   const id0 = ctx.nextId();
   ctx.addRoot(props);
   const content0 = renderSsrContent(
     ctx,
     id0,
     [],
-    q_component_tag_dynamic_segment_2_331xdhxtzk3df.w([props]),
+    q_component_tag_dynamic_segment_1_331xdvyxwe5dy.w([props]),
+    false,
+    true
+  );
+  const tag0 = UI.Button;
+  const component2 = createComponent(
+    (props1) => renderSsrDynamicTag(tag0, props1, ctx),
+    { label: 'x' },
+    ctx
+  );
+  const id1 = ctx.nextId();
+  const content1 = renderSsrContent(
+    ctx,
+    id1,
+    [],
+    q_component_tag_dynamic_segment_3_331xd3wq2q1cw.w([props]),
     false,
     true
   );
   return maybeThen(component0, (component0) =>
     maybeThen(component1, (component1) =>
-      maybeThen(component2, (component2) =>
-        maybeThen(component3, (component3) =>
-          maybeThen(content0, (content0) => [
+      maybeThen(content0, (content0) =>
+        maybeThen(component2, (component2) =>
+          maybeThen(content1, (content1) => [
             '<section>',
             component0,
             component1,
-            component2,
-            component3,
             '<!d=',
             createSsrNodeId(id0),
             '>',
             content0,
+            '<!/d>',
+            component2,
+            '<!d=',
+            createSsrNodeId(id1),
+            '>',
+            content1,
             '<!/d></section>',
           ])
         )
@@ -144,21 +165,74 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) =>
   "paramNames": []
 }
 */
-============================= src/component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1.js (ENTRY POINT)==
+============================= src/component.tsx_component_tag_dynamic_segment_1_331xdvyxwe5dy.js (ENTRY POINT)==
+
+import {
+  _noopQrl,
+  _captures,
+  createSlotScope,
+  registerProjection,
+  renderSsrDynamicTag,
+  createComponent,
+} from '@qwik.dev/core';
+import { component_slot_render_segment_2_3b0t9ouqyjhtg } from './component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg';
+const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ _noopQrl(
+  'component_slot_render_segment_2_3b0t9ouqyjhtg'
+);
+q_component_slot_render_segment_2_3b0t9ouqyjhtg.s(component_slot_render_segment_2_3b0t9ouqyjhtg);
+
+export const component_tag_dynamic_segment_1_331xdvyxwe5dy = (ctx) => {
+  const [props] = _captures;
+  const slotScope0 = createSlotScope();
+  ctx.addRoot(slotScope0);
+  const tag0 = props.as;
+  registerProjection(slotScope0, '', q_component_slot_render_segment_2_3b0t9ouqyjhtg);
+  const component0 = createComponent(
+    (props0) => renderSsrDynamicTag(tag0, props0, ctx),
+    null,
+    ctx,
+    { slotScope: slotScope0 }
+  );
+  return component0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_tag_dynamic_segment_1_331xdvyxwe5dy",
+  "entry": null,
+  "displayName": "component_tag_dynamic_segment_1",
+  "hash": "331xdvyxwe5dy",
+  "canonicalFilename": "component.tsx_component_tag_dynamic_segment_1_331xdvyxwe5dy",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "tag:dynamic",
+  "captures": true,
+  "loc": [
+    261,
+    284
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg.js (ENTRY POINT)==
 
 import { createSsrMarkup, createSsrNodeId } from '@qwik.dev/core';
 
-export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId) => {
+export const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId) => {
   return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), 'chosen', '<!/s>'];
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_slot_render_segment_1_3b0tauy2p1nv1",
+  "name": "component_slot_render_segment_2_3b0t9ouqyjhtg",
   "entry": null,
-  "displayName": "component_slot_render_segment_1",
-  "hash": "3b0tauy2p1nv1",
-  "canonicalFilename": "component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1",
+  "displayName": "component_slot_render_segment_2",
+  "hash": "3b0t9ouqyjhtg",
+  "canonicalFilename": "component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -171,11 +245,11 @@ export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId) =>
   "paramNames": []
 }
 */
-============================= src/component.tsx_component_tag_dynamic_segment_2_331xdhxtzk3df.js (ENTRY POINT)==
+============================= src/component.tsx_component_tag_dynamic_segment_3_331xd3wq2q1cw.js (ENTRY POINT)==
 
 import { _captures, renderSsrDynamicTag, createComponent } from '@qwik.dev/core';
 
-export const component_tag_dynamic_segment_2_331xdhxtzk3df = (ctx) => {
+export const component_tag_dynamic_segment_3_331xd3wq2q1cw = (ctx) => {
   const [props] = _captures;
   const tag0 = props.component;
   const component0 = createComponent((props0) => renderSsrDynamicTag(tag0, props0, ctx), null, ctx);
@@ -184,11 +258,11 @@ export const component_tag_dynamic_segment_2_331xdhxtzk3df = (ctx) => {
 /*
 {
   "origin": "component.tsx",
-  "name": "component_tag_dynamic_segment_2_331xdhxtzk3df",
+  "name": "component_tag_dynamic_segment_3_331xd3wq2q1cw",
   "entry": null,
-  "displayName": "component_tag_dynamic_segment_2",
-  "hash": "331xdhxtzk3df",
-  "canonicalFilename": "component.tsx_component_tag_dynamic_segment_2_331xdhxtzk3df",
+  "displayName": "component_tag_dynamic_segment_3",
+  "hash": "331xd3wq2q1cw",
+  "canonicalFilename": "component.tsx_component_tag_dynamic_segment_3_331xd3wq2q1cw",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

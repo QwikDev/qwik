@@ -325,6 +325,55 @@ export default ({ a = side('a'), b = a, label = fallback }) => {
     );
   });
 
+  test('should keep setup aliases of props, stores and signals live', async () => {
+    const output = await testInput(mode, 'setup-live-aliases', {
+      code: `import { useSignal, useStore } from '@qwik.dev/core';
+import { Child } from './child';
+export default (props: { label: string; title: string; as: string }) => {
+  const label = props.label;
+  const { title } = props;
+  const count = useSignal(0);
+  const n = count.value;
+  const store = useStore({ item: { label: 'first' }, nested: { flip: false } });
+  const { item } = store;
+  const { flip = false } = store.nested;
+  const Tag = props.as;
+  return (
+    <Tag onClick$={() => (store.item = { label: n + label })}>
+      {label}{title}{n}{item.label}{flip ? 'y' : 'n'}
+      <Child state={store} />
+    </Tag>
+  );
+};
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const code = output.modules.map((module) => module.code).join('\n');
+    // No snapshot constants: every alias reads its source, in render and inside the handler.
+    for (const snapshot of [
+      'const label',
+      'const { title }',
+      'const n =',
+      'const { item }',
+      'const { flip',
+      'const Tag',
+    ]) {
+      expect(code).not.toContain(snapshot);
+    }
+    for (const read of [
+      'props.label',
+      'props.title',
+      'count.value',
+      'store.item.label',
+      'store.nested.flip',
+    ]) {
+      expect(code).toContain(read);
+    }
+    expect(code).toContain('count.value + props.label');
+    // A store passed as-is is not wrapped in a prop QRL.
+    expect(code).toContain('"state": store }');
+  });
+
   test('should read nested and computed parameter patterns as prop paths', async () => {
     const output = await testInput(mode, 'component-nested-params', {
       code: `const KEY = 'dyn';
@@ -2151,14 +2200,16 @@ export default (props: { as: string; component: any }) => {
     const code = output.modules.map((module) => module.code).join('\n');
     const dynamic = mode === 'ssr' ? 'renderSsrDynamicTag' : 'createDynamicTag';
     const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
-    expect(main.match(new RegExp(`${dynamic}\\(`, 'g'))).toHaveLength(mode === 'ssr' ? 4 : 3);
+    expect(main.match(new RegExp(`${dynamic}\\(`, 'g'))).toHaveLength(mode === 'ssr' ? 4 : 2);
     expect(main).toContain(`${dynamic}(Heading, `);
     expect(main).toContain('const tag0 = UI.Button;');
     // An alias of an imported component stays a direct call under its local name.
     expect(main).toContain('createComponent(Alias, ');
-    // Only the tag read through props re-renders inside a content range, from its own chunk.
+    // Tags read through props (directly or via a live alias) re-render inside content ranges.
     const content = mode === 'ssr' ? 'renderSsrContent' : 'createContentBlock';
-    expect(main.match(new RegExp(`${content}\\(`, 'g'))).toHaveLength(1);
+    expect(main.match(new RegExp(`${content}\\(`, 'g'))).toHaveLength(2);
+    expect(main).not.toContain('const Chosen');
+    expect(code).toContain('const tag0 = props.as;');
     expect(code).toContain('const tag0 = props.component;');
   });
 

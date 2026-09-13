@@ -37,15 +37,14 @@ const q_component_first_segment_1_bivl4x5fgl56 = /*#__PURE__*/ _noopQrl(
 );
 q_component_first_segment_1_bivl4x5fgl56.s(component_first_segment_1_bivl4x5fgl56);
 export default (props, ctx) => {
-  const initial = props.initial;
   const options = {
-    initial,
+    initial: props.initial,
     timeout: 1e3,
   };
   const read = q_component_read_segment_0_1zbzildyw5vrf;
   const first = useComputedQrl(q_component_first_segment_1_bivl4x5fgl56, {
     ...options,
-    initial: () => initial,
+    initial: () => props.initial,
   });
   const second = useComputedQrl(read, ...[options]);
   const id0 = ctx.nextId();

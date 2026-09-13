@@ -38,6 +38,7 @@ import type { ComponentEmission, GeneratedNames } from './emit-component';
 /** Runtime names per core operation: the `Qrl` form and the client function fast path. */
 const coreCallNames: Record<CoreOperation, { qrl: QwikHook; fn: QwikHook }> = {
   [CoreOperation.CreateSignal]: { qrl: QwikHook.UseSignal, fn: QwikHook.UseSignal },
+  [CoreOperation.CreateStore]: { qrl: QwikHook.UseStore, fn: QwikHook.UseStore },
   [CoreOperation.CreateComputed]: {
     qrl: QwikHook.UseComputedQrl,
     fn: QwikHook.UseComputedFunction,

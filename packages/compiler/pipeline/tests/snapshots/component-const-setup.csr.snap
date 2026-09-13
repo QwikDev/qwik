@@ -31,7 +31,6 @@ export const Card = (props, ctx) => {
   const label = title.toUpperCase();
   const suffix = rest.suffix;
   const count = useSignal(props.start);
-  const initial = count.value;
   const el0 = Card_tmpl0(ctx.document);
   setEvent(el0, 'q-e:click', component_q_e_click_segment_0_2xwyg1cinvmpz, [count, label]);
   const marker0 = _first(el0);
@@ -39,7 +38,7 @@ export const Card = (props, ctx) => {
   marker0.replaceWith(text0);
   const effect0 = createTextExpressionEffect(
     text0,
-    [label, suffix, initial],
+    [label, suffix, count],
     component_text_segment_1_1fh10tcowimfv,
     ctx.scheduler
   );
@@ -85,8 +84,8 @@ export const component_q_e_click_segment_0_2xwyg1cinvmpz = () => {
 */
 ============================= src/component.tsx_component_text_segment_1_1fh10tcowimfv.js (ENTRY POINT)==
 
-export const component_text_segment_1_1fh10tcowimfv = (label, suffix, initial) => {
-  return label + suffix + initial;
+export const component_text_segment_1_1fh10tcowimfv = (label, suffix, count) => {
+  return label + suffix + count.value;
 };
 /*
 {
@@ -109,7 +108,7 @@ export const component_text_segment_1_1fh10tcowimfv = (label, suffix, initial) =
   "captureNames": [
     "label",
     "suffix",
-    "initial"
+    "count"
   ]
 }
 */

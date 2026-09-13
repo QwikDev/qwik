@@ -46,7 +46,6 @@ export default (
   defaultValue = untrack(() => props.title === void 0) ? createTitle() : void 0,
   defaultValue0 = untrack(() => props.onSave$ === void 0) ? createHandler() : void 0
 ) => {
-  const initial = props.title === void 0 ? defaultValue : props.title;
   const id0 = ctx.nextId();
   ctx.addRoot(props);
   ctx.addRoot(defaultValue);
@@ -70,12 +69,7 @@ export default (
       attr0 === null ? '' : ' title' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
       ctx.eventAttrParts(
         'q-e:click',
-        q_component_q_e_click_segment_1_2xwyfnber1kpg.w([
-          props,
-          defaultValue0,
-          defaultValue,
-          initial,
-        ])
+        q_component_q_e_click_segment_1_2xwyfnber1kpg.w([props, defaultValue0, defaultValue])
       ),
       '>',
       escapeHTML(text0),
@@ -117,10 +111,10 @@ export const component_title_segment_0_2f0r0xivypjmx = (props, defaultValue) => 
 import { _captures } from '@qwik.dev/core';
 
 export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
-  const [props, defaultValue0, defaultValue, initial] = _captures;
+  const [props, defaultValue0, defaultValue] = _captures;
   return (0, props.onSave$ === void 0 ? defaultValue0 : props.onSave$)({
     heading: props.title === void 0 ? defaultValue : props.title,
-    initial,
+    initial: props.title === void 0 ? defaultValue : props.title,
   });
 };
 /*
@@ -144,8 +138,7 @@ export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
   "captureNames": [
     "props",
     "defaultValue0",
-    "defaultValue",
-    "initial"
+    "defaultValue"
   ]
 }
 */

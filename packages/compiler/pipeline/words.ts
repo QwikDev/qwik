@@ -120,6 +120,7 @@ export const enum QwikHook {
   UseComputedQrl = 'useComputedQrl',
   UseComputedFunction = 'useComputed',
   UseSignal = 'useSignal',
+  UseStore = 'useStore',
   UseVisibleTask = 'useVisibleTask$',
   UseVisibleTaskQrl = 'useVisibleTaskQrl',
   UseVisibleTaskFunction = 'useVisibleTask',

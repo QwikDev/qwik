@@ -32,15 +32,14 @@ const q_component_read_segment_0_1zbzildyw5vrf = /*#__PURE__*/ _qrlWithChunk(
 );
 const default_tmpl0 = _createElementTemplate('<span><!>:<!></span>');
 export default (props, ctx) => {
-  const initial = props.initial;
   const options = {
-    initial,
+    initial: props.initial,
     timeout: 1e3,
   };
   const read = q_component_read_segment_0_1zbzildyw5vrf;
   const first = useComputed(component_first_segment_1_bivl4x5fgl56, {
     ...options,
-    initial: () => initial,
+    initial: () => props.initial,
   });
   const second = useComputedQrl(read, ...[options]);
   const el0 = default_tmpl0(ctx.document);

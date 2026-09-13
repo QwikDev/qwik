@@ -32,7 +32,10 @@ export default (props) => {
         args[2] = Array.from(args[2]);
         return core.renderSsrTextExpression(...args);
       },
-      store(initialState: { count: number } | (() => { count: number }), received: typeof options) {
+      useStore(
+        initialState: { count: number } | (() => { count: number }),
+        received: typeof options
+      ) {
         expect(received).toBe(options);
         expect(typeof initialState).toBe(initial.startsWith('()') ? 'function' : 'object');
         initializations++;

@@ -116,7 +116,7 @@ describe('lowerSetup / useSignal', () => {
   });
 });
 
-test('component const setup preserves order, patterns, calls and signal snapshots', () => {
+test('component const setup preserves order, patterns, calls and signal aliases', () => {
   const { setup, ctx, locals, count } = lower(`
 const count = props.read('initial');
 const { [props.read('field')]: { label = props.read('fallback') }, ...rest } = props.read('record');
@@ -140,6 +140,8 @@ const signal = useSignal(count), snapshot = signal.value;
   const imports = new Set<string>();
   const statements = emitJsSetup(linked.plan.modules[0], { setup }, imports, (use) => use.qrl);
   expect([...imports]).toEqual(['useSignal']);
+  // `snapshot = signal.value` is a live alias: no constant, every read goes to the signal.
+  expect(statements.join('\n')).not.toContain('snapshot');
   const reads: string[] = [];
   const values: Record<string, unknown> = {
     initial: 3,
@@ -151,7 +153,7 @@ const signal = useSignal(count), snapshot = signal.value;
   const result = runInNewContext(
     `(() => {
     ${statements.join('\n')}
-    return { title, suffix, first, tail, signal, snapshot };
+    return { title, suffix, first, tail, signal };
   })()`,
     {
       props: {
@@ -172,10 +174,7 @@ const signal = useSignal(count), snapshot = signal.value;
     first: 1,
     tail: [3, 4],
     signal: { value: 3 },
-    snapshot: 3,
   });
-  result.signal.value = 4;
-  expect(result.snapshot).toBe(3);
 });
 
 test('component setup restores the surrounding local scope on success and failure', () => {
@@ -221,7 +220,8 @@ export default (props) => {
     },
     {}
   );
-  expect(plan.programs[0].setup[1]).toMatchObject({
+  // `offset` is a live alias of `props.offset`, so the signal call is the first setup entry.
+  expect(plan.programs[0].setup[0]).toMatchObject({
     s: SetupKind.Call,
     target: { kind: CallTargetKind.Core, operation: CoreOperation.CreateSignal },
   });

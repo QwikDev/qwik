@@ -90,6 +90,40 @@ function jsxMemberIr(node: JSXMemberExpression, ctx: LowerContext): ValueIR {
   return { kind: ValueIrKind.Member, obj, name: node.property.name };
 }
 
+/** A tag bound to a live alias (`const Tag = props.as`) reads like a member tag. */
+function aliasTagTarget(tag: JSXIdentifier, ctx: LowerContext) {
+  const binding = ctx.bindings.reference(tag);
+  const local = binding === null ? undefined : ctx.locals.get(binding);
+  return local?.kind === LocalKind.PropMember ? { value: local.read, root: local.binding } : null;
+}
+
+/** A tag read from props or a setup local can change; a module object is fixed. */
+function lowerDynamicTag(
+  element: JSXElement,
+  attributes: readonly JSXAttributeItem[],
+  value: ValueIR,
+  root: LocalId,
+  ctx: LowerContext
+): Op {
+  const target = { t: ComponentTargetKind.Dynamic, value } as const;
+  const lower = () => lowerComponentOp(element, attributes, target, ctx);
+  if (!ctx.locals.has(root) && root !== ctx.propsBinding) {
+    return lower();
+  }
+  return lowerContentRange(
+    element,
+    [element],
+    ctx,
+    'a dynamic tag',
+    SegmentContext.DynamicTag,
+    LifetimeOwner.DynamicValue,
+    () => ({
+      ops: [lower()],
+      id: { kind: SeedKind.Content, ordinal: ctx.contentCounter.next++ },
+    })
+  );
+}
+
 function jsxMemberRoot(node: JSXMemberExpression): JSXIdentifier {
   return node.object.type === 'JSXMemberExpression' ? jsxMemberRoot(node.object) : node.object;
 }
@@ -103,24 +137,11 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
   const attributes = opening.attributes.filter((attribute) => !isKeyAttribute(attribute));
   if (nameNode.type === 'JSXMemberExpression') {
     const root = requireComponentBinding(jsxMemberRoot(nameNode), ctx);
-    const target = { t: ComponentTargetKind.Dynamic, value: jsxMemberIr(nameNode, ctx) } as const;
-    const lower = () => lowerComponentOp(element, attributes, target, ctx);
-    // A tag read from props or a setup local can change; a module object is fixed.
-    if (!ctx.locals.has(root) && root !== ctx.propsBinding) {
-      return lower();
-    }
-    return lowerContentRange(
-      element,
-      [element],
-      ctx,
-      'a dynamic tag',
-      SegmentContext.DynamicTag,
-      LifetimeOwner.DynamicValue,
-      () => ({
-        ops: [lower()],
-        id: { kind: SeedKind.Content, ordinal: ctx.contentCounter.next++ },
-      })
-    );
+    return lowerDynamicTag(element, attributes, jsxMemberIr(nameNode, ctx), root, ctx);
+  }
+  const alias = aliasTagTarget(nameNode, ctx);
+  if (alias !== null) {
+    return lowerDynamicTag(element, attributes, alias.value, alias.root, ctx);
   }
   if (/^[A-Z]/.test(nameNode.name)) {
     const binding = requireComponentBinding(nameNode, ctx);
@@ -914,6 +935,7 @@ function tryLowerBindingPassValue(expression: Expression, ctx: LowerContext) {
     case LocalKind.Const:
     case LocalKind.Mutable:
     case LocalKind.Signal:
+    case LocalKind.Store:
     case LocalKind.Qrl:
       return lowerInlineExpressionValue(
         expression,

@@ -72,7 +72,7 @@ export function lowerComponentParameter(component: DiscoveredComponent, ctx: Low
       kind: LocalKind.PropMember,
       access: CaptureAccess.ComponentProp,
       binding: ctx.propsBinding!,
-      read: propPathIr(ctx.propsBinding!, path, ctx),
+      read: pathReadIr({ kind: ValueIrKind.BindingRead, binding: ctx.propsBinding! }, path, ctx),
       slot: -1,
     };
     locals.set(ctx.bindings.declaration(node)!, local);
@@ -109,9 +109,9 @@ export function lowerComponentParameter(component: DiscoveredComponent, ctx: Low
   return { surface, setup, locals };
 }
 
-/** `{ user: { tags: [first] }, [KEY]: v }` reads as `props.user.tags[0]` and `props[KEY]`. */
-function propPathIr(props: number, path: PropPathStep[], ctx: LowerContext): ValueIR {
-  let read: ValueIR = { kind: ValueIrKind.BindingRead, binding: props };
+/** `{ user: { tags: [first] }, [KEY]: v }` reads as `root.user.tags[0]` and `root[KEY]`. */
+export function pathReadIr(root: ValueIR, path: PropPathStep[], ctx: LowerContext): ValueIR {
+  let read = root;
   for (const step of path) {
     read =
       step.kind === 'member'

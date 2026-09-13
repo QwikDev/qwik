@@ -29,6 +29,7 @@ import type {
   Statement,
   VariableDeclarator,
   VariableDeclaration,
+  Expression,
   Node,
 } from 'oxc-parser';
 import { identifierName, unwrapExpression } from './ast/utils';
@@ -36,7 +37,7 @@ import { UnsupportedError } from '../errors';
 import { QRL_SUFFIX, QwikHook, QwikMarker } from '../words';
 import { createStyleId } from '../segment-identity';
 import { coreSetupCalls, type SetupCallContract } from './setup-api';
-import { LocalKind, type SetupLocals } from './locals';
+import { localReadIr, LocalKind, type SetupLocals } from './locals';
 import { pushPayload, type LowerContext } from './lower-context';
 import { collectCaptures, lowerCaptures } from './ast/capture-analysis';
 import {
@@ -55,7 +56,9 @@ import { isFunctionLike } from './ast/utils';
 import { lowerRenderExpression } from './lower-jsx';
 import { findComponentCandidates } from './ast/returns-jsx';
 import { discoverComponents } from './discover';
-import { lowerComponentParameter } from './lower-parameter';
+import { lowerComponentParameter, pathReadIr } from './lower-parameter';
+import { readObjectParameter } from './ast/parameter-members';
+import { ValueIrKind, type ValueIR } from '../../src/expr-ir';
 
 export function lowerConstDeclaration(
   declarator: VariableDeclarator,
@@ -93,7 +96,7 @@ function lowerSetupBinding(
   pattern: BindingPattern,
   ctx: LowerContext,
   locals: SetupLocals,
-  kind: LocalKind.Const | LocalKind.Qrl | LocalKind.Signal = LocalKind.Const
+  kind: LocalKind.Const | LocalKind.Qrl | LocalKind.Signal | LocalKind.Store = LocalKind.Const
 ): Pick<Extract<Setup, { s: SetupKind.Const }>, 'result' | 'defaultValue'> {
   if (findRuntimeJsx(pattern) !== null) {
     throw new UnsupportedError('JSX inside a binding pattern');
@@ -175,10 +178,15 @@ export function lowerSetup(
         continue;
       }
       for (const declarator of statement.declarations) {
-        setup.push(
+        // A live alias registers locals and emits nothing.
+        const entry =
           lowerLocalComponent({ ...statement, declarations: [declarator] }, ctx, locals) ??
-            lowerSetupDeclaration(declarator, ctx, locals)
-        );
+          (lowerAliasDeclaration(declarator, ctx, locals)
+            ? null
+            : lowerSetupDeclaration(declarator, ctx, locals));
+        if (entry !== null) {
+          setup.push(entry);
+        }
       }
     }
   } finally {
@@ -264,6 +272,101 @@ function lowerSetupDeclaration(
     return lowerSetupCall(init, callee, declarator.id, ctx, locals);
   }
   return lowerConstDeclaration(declarator, ctx, locals);
+}
+
+interface AliasSource {
+  read: ValueIR;
+  /** The captured root: the props object, a store or a signal. */
+  root: LocalId;
+  access: CaptureAccess.ComponentProp | CaptureAccess.Direct;
+}
+
+/**
+ * `props.x`, `store.x.y`, `count.value` and members of another alias stay live: a read of the alias
+ * is a read of the source, so no snapshot is taken.
+ */
+function aliasSource(expression: Expression, ctx: LowerContext): AliasSource | null {
+  if (expression.type === 'Identifier') {
+    const binding = ctx.bindings.reference(expression);
+    if (binding === null) {
+      return null;
+    }
+    const local = ctx.locals.get(binding);
+    if (local?.kind === LocalKind.PropMember && local.access !== CaptureAccess.LoopValue) {
+      // The alias inherits the member's default too.
+      return { read: localReadIr(local)!, root: local.binding, access: local.access };
+    }
+    const access =
+      binding === ctx.propsBinding
+        ? CaptureAccess.ComponentProp
+        : local?.kind === LocalKind.Store
+          ? CaptureAccess.Direct
+          : null;
+    return access === null
+      ? null
+      : { read: { kind: ValueIrKind.BindingRead, binding }, root: binding, access };
+  }
+  if (expression.type !== 'MemberExpression' || expression.computed || expression.optional) {
+    return null;
+  }
+  const name = identifierName(expression.property);
+  if (name === null) {
+    return null;
+  }
+  const object = unwrapExpression(expression.object);
+  const signal = object.type === 'Identifier' ? ctx.bindings.reference(object) : null;
+  if (signal !== null && name === 'value' && ctx.locals.get(signal)?.kind === LocalKind.Signal) {
+    return {
+      read: { kind: ValueIrKind.SignalRead, binding: signal },
+      root: signal,
+      access: CaptureAccess.Direct,
+    };
+  }
+  const source = aliasSource(object, ctx);
+  return source === null
+    ? null
+    : { ...source, read: { kind: ValueIrKind.Member, obj: source.read, name } };
+}
+
+/** `const x = props.y` and `const { a, b: c } = store` register live aliases; true when handled. */
+function lowerAliasDeclaration(
+  declarator: VariableDeclarator,
+  ctx: LowerContext,
+  locals: SetupLocals
+): boolean {
+  const init = declarator.init === null ? null : unwrapExpression(declarator.init);
+  const source = init === null ? null : aliasSource(init, ctx);
+  if (source === null) {
+    return false;
+  }
+  const register = (node: Node, read: ValueIR, defaultValue?: ValueIR) =>
+    locals.set(ctx.bindings.declaration(node)!, {
+      kind: LocalKind.PropMember,
+      access: source.access,
+      slot: -1,
+      binding: source.root,
+      read,
+      defaultValue,
+    });
+  if (declarator.id.type === 'Identifier') {
+    register(declarator.id, source.read);
+    return true;
+  }
+  const object = readObjectParameter(declarator.id);
+  if (object === null || object.rest !== null) {
+    return false;
+  }
+  const defaults = object.members.map((member) =>
+    member.defaultValue === null ? undefined : tryLowerExprIr(member.defaultValue, ctx)
+  );
+  // A default the IR cannot carry keeps the whole pattern a native snapshot.
+  if (defaults.some((value) => value === null)) {
+    return false;
+  }
+  object.members.forEach((member, index) =>
+    register(member.node, pathReadIr(source.read, member.path, ctx), defaults[index] ?? undefined)
+  );
+  return true;
 }
 
 function lowerLocalComponent(

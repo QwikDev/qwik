@@ -40,7 +40,7 @@ import { eventModifierName, eventScopeName, passiveEventNames, PASSIVE_PREFIX } 
 import { lowerEventAttribute, qrlAttributeExpression } from './lower-event';
 import { lowerText } from './lower-hole';
 import { lowerBranch, type BranchArm } from './lower-branch';
-import { identifierName, jsxAttributeName, unwrapExpression } from './ast/utils';
+import { identifierName, isFunctionLike, jsxAttributeName, unwrapExpression } from './ast/utils';
 import { JsxValueKind, type JsxValue } from './ast/jsx-analysis';
 import {
   lowerComputedExpressionValue,
@@ -153,10 +153,18 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
     throw new UnsupportedError('a non-native JSX tag');
   }
   const tag = nameNode.name;
-  const passiveEvents = passiveEventNames(attributes);
-  const props = attributes
-    .map((attribute) => lowerAttribute(attribute, ctx, 'element', passiveEvents))
-    .filter((prop) => prop !== null);
+  const expanded = attributes.flatMap(expandLiteralSpread);
+  const passiveEvents = passiveEventNames(expanded);
+  // Any remaining spread makes the whole attribute list one runtime props object.
+  const propsEffect = expanded.some((attribute) => attribute.type === 'JSXSpreadAttribute')
+    ? lowerPropsChunk(expanded, ctx, null, QrlPayloadKind.Value)
+    : null;
+  const props =
+    propsEffect === null
+      ? expanded
+          .map((attribute) => lowerAttribute(attribute, ctx, 'element', passiveEvents))
+          .filter((prop) => prop !== null)
+      : [];
   const styleScopedId = ctx.styleScopes.length === 0 ? null : ctx.styleScopes.join(' ');
   if (styleScopedId !== null) {
     scopeStaticClass(props, styleScopedId);
@@ -176,9 +184,57 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
     styleScopedId,
     runtimeScope: false,
     props,
-    propsEffect: null,
+    propsEffect,
     children,
   };
+}
+
+/** An inline handler array needs each element extracted, so it stays on the event path. */
+function isHandlerList(expression: Expression): boolean {
+  return (
+    expression.type === 'ArrayExpression' &&
+    expression.elements.some((element) => element !== null && isFunctionLike(element))
+  );
+}
+
+/** `{...{ a: x, b }}` is the attributes `a={x} b={b}`; any other spread stays a spread. */
+function expandLiteralSpread(attribute: JSXAttributeItem): JSXAttributeItem[] {
+  const object =
+    attribute.type === 'JSXSpreadAttribute' ? unwrapExpression(attribute.argument) : null;
+  if (object?.type !== 'ObjectExpression') {
+    return [attribute];
+  }
+  const properties = object.properties.map((property): JSXAttributeItem | null => {
+    if (property.type !== 'Property' || property.computed || property.method) {
+      return null;
+    }
+    const key = property.key;
+    const name =
+      key.type === 'Literal' && typeof key.value === 'string'
+        ? key.value
+        : key.type === 'Identifier'
+          ? key.name
+          : null;
+    if (name === null) {
+      return null;
+    }
+    return {
+      type: 'JSXAttribute',
+      name: { type: 'JSXIdentifier', name, start: key.start, end: key.end },
+      value:
+        property.value.type === 'Literal'
+          ? property.value
+          : {
+              type: 'JSXExpressionContainer',
+              expression: property.value,
+              start: property.value.start,
+              end: property.value.end,
+            },
+      start: property.start,
+      end: property.end,
+    } as JSXAttributeItem;
+  });
+  return properties.every((property) => property !== null) ? properties : [attribute];
 }
 
 function lowerComponentProps(
@@ -238,6 +294,17 @@ function lowerComponentPropsProxy(
   ctx: LowerContext,
   factoryChild: Expression | null
 ) {
+  const compute = lowerPropsChunk(attributes, ctx, factoryChild, QrlPayloadKind.Function);
+  return { c: ComponentPropsKind.Proxy as const, compute };
+}
+
+/** One chunk building the props object in authored order: spreads, values and QRL entries. */
+function lowerPropsChunk(
+  attributes: readonly JSXAttributeItem[],
+  ctx: LowerContext,
+  factoryChild: Expression | null,
+  payloadKind: QrlPayloadKind
+): QrlUse {
   const parts: Qrl['propsParts'] = [];
   const expressions: Expression[] = [];
   const payloads: number[] = [];
@@ -271,6 +338,12 @@ function lowerComponentPropsProxy(
     }
     const scope = eventScopeName(name);
     if (scope !== null) {
+      const authored = qrlAttributeExpression(attribute);
+      // A composed handler value (`cond ? [a, $(...)] : b`) is a plain entry; its markers extract.
+      if (authored !== null && !isFunctionLike(authored) && !isHandlerList(authored)) {
+        addExpression(authored, { kind: PropsPartKind.Expression, name });
+        continue;
+      }
       const lowered = lowerEventAttribute(attribute, ctx, name, scope);
       if (lowered === null) {
         continue;
@@ -330,7 +403,7 @@ function lowerComponentPropsProxy(
       identity: { kind: QrlIdentityKind.Segment, nameCtx: 'props' },
       ctxName: 'props',
       boundary: { kind: BoundaryKind.Implicit, role: 'expression' },
-      payloadKind: QrlPayloadKind.Function,
+      payloadKind,
       authoredAsync: false,
       body: {
         b: QrlBodyKind.Expr,
@@ -352,7 +425,7 @@ function lowerComponentPropsProxy(
     },
     args
   );
-  return { c: ComponentPropsKind.Proxy as const, compute: use };
+  return use;
 }
 
 /** Lowers a JSX child list — the shared path for fragment-rooted trees. */

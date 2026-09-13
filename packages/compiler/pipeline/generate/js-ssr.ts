@@ -572,14 +572,20 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     hookEvents = false
   ): void {
     const holes = op.children.filter((child) => child.op === OpKind.Hole && !isInlineHole(child));
-    const hasDynamicProps = op.props.some(
-      (prop) => (prop.k === PropKind.Dynamic && !isInlineValue(prop.value)) || isDynamicEvent(prop)
-    );
+    const hasDynamicProps =
+      op.propsEffect !== null ||
+      op.props.some(
+        (prop) =>
+          (prop.k === PropKind.Dynamic && !isInlineValue(prop.value)) || isDynamicEvent(prop)
+      );
     const idVariable = holes.length > 0 || hasDynamicProps ? pass.next(QwikGenWord.Id) : null;
     if (idVariable !== null) {
       pass.statements.push(`const ${idVariable} = ${pass.names.ctx}.nextId();`);
     }
-    const openTag: string[] = hookEvents ? [] : parts;
+    // A runtime props object splices its attributes into the open-tag record, like hook events.
+    const propsStep = op.propsEffect === null ? null : this.propsEffect(pass, op, idVariable!);
+    const record = hookEvents || propsStep !== null;
+    const openTag: string[] = record ? [] : parts;
     pushMergedStatic(openTag, `<${op.tag}`);
     if (idVariable !== null) {
       this.imports.add(QwikWord.CreateSsrNodeId);
@@ -597,10 +603,17 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         openTag,
         idVariable,
         prop.k === PropKind.Dynamic && prop.name === 'class' ? op.styleScopedId : null,
-        hookEvents
+        record
       );
     }
-    if (hookEvents) {
+    if (propsStep !== null) {
+      openTag.push(`...${propsStep}.attrs`);
+      // A `ref` in the object binds the element id; the part itself renders nothing.
+      parts.push(
+        `(${propsStep}.ref === undefined || ${pass.names.ctx}.setRef(${propsStep}.ref, ${idVariable}), '')`
+      );
+    }
+    if (record) {
       // The runtime splices hook events before the record's last part, so `>` stays separate.
       openTag.push(JSON.stringify('>'));
       this.imports.add(QwikWord.CreateSsrOpenTag);
@@ -608,17 +621,19 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     } else {
       pushMergedStatic(openTag, '>');
     }
+    // The props object may carry innerHTML, which replaces the authored children.
+    const children: string[] = propsStep === null ? parts : [];
 
     let textRangeCount = 0;
     for (const child of op.children) {
       switch (child.op) {
         case OpKind.Static: {
-          pushMergedStatic(parts, foldStaticOp(child, false));
+          pushMergedStatic(children, foldStaticOp(child, false));
           break;
         }
         case OpKind.Hole: {
           if (isInlineHole(child)) {
-            this.inlineText(child, parts);
+            this.inlineText(child, children);
             break;
           }
           this.textHole(
@@ -631,49 +646,72 @@ class SsrModuleEmitter implements QwikModuleEmitter {
                   markerIndex: textRangeCount++,
                 }
               : { kind: 'element', id: idVariable! },
-            parts
+            children
           );
           break;
         }
         case OpKind.Element: {
           if (isFullyStaticSubtree(child)) {
-            pushMergedStatic(parts, foldStaticOp(child, false));
+            pushMergedStatic(children, foldStaticOp(child, false));
           } else {
-            this.element(pass, child, parts);
+            this.element(pass, child, children);
           }
           break;
         }
         case OpKind.Branch: {
-          this.branch(pass, child, parts);
+          this.branch(pass, child, children);
           break;
         }
         case OpKind.Each: {
-          this.each(pass, child, parts);
+          this.each(pass, child, children);
           break;
         }
         case OpKind.Component: {
-          this.component(pass, child, parts);
+          this.component(pass, child, children);
           break;
         }
         case OpKind.Slot: {
-          this.slot(pass, child, parts);
+          this.slot(pass, child, children);
           break;
         }
         case OpKind.Content: {
-          this.content(pass, child, parts);
+          this.content(pass, child, children);
           break;
         }
         default: {
           if (!isFullyStaticSubtree(child)) {
             throw new UnsupportedError('a dynamic child inside an element record');
           }
-          pushMergedStatic(parts, foldStaticOp(child, false));
+          pushMergedStatic(children, foldStaticOp(child, false));
         }
       }
+    }
+    if (propsStep !== null && children.length > 0) {
+      parts.push(`${propsStep}.innerHTML ?? [${children.join(', ')}]`);
     }
     if (!op.void) {
       pushMergedStatic(parts, `</${op.tag}>`);
     }
+  }
+
+  /** Renders the element's runtime props object; the step resolves before the parts assemble. */
+  private propsEffect(
+    pass: RenderPass,
+    op: Extract<LinkedOp, { op: OpKind.Element }>,
+    idVariable: string
+  ): string {
+    const { qrl, ref, args } = this.useQrl(pass, op.propsEffect!, true);
+    const step = pass.next(QwikGenWord.DomProps);
+    const scope =
+      op.styleScopedId === null ? '' : `, undefined, ${JSON.stringify(op.styleScopedId)}`;
+    this.imports.add(QwikWord.RenderSsrProps);
+    this.pushStep(
+      pass,
+      step,
+      rootArgs(qrl, args),
+      `${QwikWord.RenderSsrProps}(${idVariable}, [${args.join(', ')}], ${ref}, ${pass.names.ctx}.eventAttr${scope})`
+    );
+    return step;
   }
 
   private slot(

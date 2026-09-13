@@ -145,7 +145,7 @@ export default (props) => {
     // A dynamic child now lowers to a hole op; only the static FOLD refuses it.
     expect(() => fold('<p>{value}</p>')).toThrow('folding the op "hole"');
     expect(() => fold('<p title={value}></p>')).toThrow('folding the non-static prop "dynamic"');
-    expect(() => fold('<p {...rest}></p>')).toThrow('a JSX spread attribute');
+    expect(() => fold('<p {...rest}></p>')).toThrow('folding an element with runtime props');
     expect(() => fold('<Foo></Foo>')).toThrow('The component "Foo" is not declared in this scope.');
     expect(() => fold('<br>x</br>')).toThrow('The void element <br> cannot have children.');
   });

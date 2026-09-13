@@ -70,6 +70,22 @@ describe(`${name}: attributes`, () => {
     cleanup();
   });
 
+  it('removes keys that disappear from a reactive spread', async () => {
+    const App = component$(() => {
+      const attrs = useSignal<Record<string, string>>({ 'data-a': '1', title: 'first' });
+      return <div {...attrs.value} onClick$={() => (attrs.value = { title: 'second' })} />;
+    });
+    const { container, cleanup, qwikLoader } = await render(App);
+    const div = container.querySelector('div')!;
+    expect(div.getAttribute('data-a')).toBe('1');
+
+    await qwikLoader?.dispatch(div, 'click');
+
+    expect(div.hasAttribute('data-a')).toBe(false);
+    expect(div.getAttribute('title')).toBe('second');
+    cleanup();
+  });
+
   it('binds checked and value through native properties', async () => {
     const App = component$(() => {
       const checked = useSignal(false);

@@ -297,10 +297,21 @@ Leaving `$()` or `routeLoader$()` untouched is not successful QRL extraction.
 
 Component spreads already exist. Complete element spreads and DOM semantics:
 
-- [ ] `<div {...props}>`, multiple spreads and interleaving with explicit attributes.
-- [ ] Override order and single evaluation.
-- [ ] Addition/removal of keys in reactive spreads.
-- [ ] Events, refs, bindings and HTML supplied through spreads.
+- [x] `<div {...props}>`, multiple spreads and interleaving with explicit attributes. A spread
+      of an object literal expands into ordinary attributes at analysis time, so it keeps the
+      flat paths. Any other spread turns the element's whole attribute list into one props
+      chunk, the same chunk proxied component props use, applied by `createPropsEffect` on the
+      client and `renderSsrProps` into the open-tag record on the server.
+- [x] Override order and single evaluation. The chunk builds one object literal in authored
+      order, so a later key wins and each expression evaluates once per run.
+- [ ] Addition/removal of keys in reactive spreads. The client effect diffs against its previous
+      run and removes vanished keys; after resume the first run has no previous object, so keys
+      rendered by the server are not removed (`attributes.spec.tsx` "removes keys that disappear
+      from a reactive spread" fails in resume). Runtime work, not compiler work.
+- [x] Events, refs, bindings and HTML supplied through spreads. The runtime reads them from the
+      props object; a `ref` binds the element id on the server, `innerHTML` replaces the authored
+      children. Proven by `ref.spec.tsx` (forwarded opaque props) and `attributes.spec.tsx`
+      (last-write-wins) in CSR and resume; `bind:*` and innerHTML ride the same runtime path.
 - [ ] Static/dynamic parity for boolean/enumerated attributes, `aria-*` and `data-*`.
 - [ ] Native DOM properties where required, especially `value`, `checked` and `selected`.
 - [ ] `<textarea>` and `<select>` semantics.
@@ -468,6 +479,19 @@ code size and runtime cost. The previous implementation is not the accepted defa
 
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
+
+- 2026-09-13: Element spreads: `expandLiteralSpread` turns `{...{ a: x }}` into attributes;
+  `lowerPropsChunk` is shared by proxied component props and the element `propsEffect` slot the
+  schema already carried. CSR wires `createPropsEffect`, SSR renders `renderSsrProps` as an
+  async step into the open-tag record with `innerHTML ?? children` and the ref bound to the id.
+  A composed event value beside a spread (`cond ? [...handlers, $(...)] : x`) is a plain chunk
+  entry whose markers extract, which is what the router's form component needs. Verification:
+  1086 pipeline tests (16 existing TODOs), the `element-literal-spread` and
+  `element-spread-props` snapshots, and the core corpus where `attributes.spec.tsx` and
+  `ref.spec.tsx` now compile: 10 more tests pass; the remaining failures there are `bind:*`,
+  explicit refs and innerHTML normalization (groups 8 and 9) plus the resume key-removal gap.
+  The router build now fails later, on a branch arm capturing a component in
+  `router-outlet-component.tsx`.
 
 - 2026-09-13: Component references: discovery collects the names passed to `component$` and
   treats the module-level functions they name as marked components; the call itself stays

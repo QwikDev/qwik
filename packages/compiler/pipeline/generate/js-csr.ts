@@ -373,6 +373,17 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     statements: string[],
     pass: RenderPass
   ): void {
+    if (op.propsEffect !== null) {
+      // One effect applies the whole props object, so spreads keep their authored override order.
+      const { qrl, args } = this.resolveQrlUse(op.propsEffect, pass.names.props);
+      const effect = pass.next(QwikGenWord.Effect);
+      const scope = op.styleScopedId === null ? '' : `, ${JSON.stringify(op.styleScopedId)}`;
+      this.imports.add(QwikWord.CreatePropsEffect);
+      statements.push(
+        `const ${effect} = ${QwikWord.CreatePropsEffect}(${el}, [${args.join(', ')}], ${this.chunkSymbol(qrl)}, ${pass.names.ctx}.scheduler${scope});`,
+        `${pass.names.ctx}.scheduler.waitFor(${effect}.run());`
+      );
+    }
     for (const prop of op.props) {
       switch (prop.k) {
         case PropKind.Static: {
@@ -421,7 +432,10 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         case OpKind.Element: {
           if (!isFullyStaticSubtree(child)) {
             const path = childPathExpression(elementExpr, nodeIndex, nodeCount, this.imports);
-            if (child.props.some((prop) => prop.k !== PropKind.Static)) {
+            if (
+              child.propsEffect !== null ||
+              child.props.some((prop) => prop.k !== PropKind.Static)
+            ) {
               const el = pass.next(QwikGenWord.Element);
               statements.push(`const ${el} = ${path};`);
               this.elementProps(child, el, statements, pass);
@@ -1110,6 +1124,7 @@ function templateOp(op: Extract<LinkedOp, { op: OpKind.Element }>): LinkedOp {
   return {
     ...op,
     props: op.props.filter((prop) => prop.k === PropKind.Static),
+    propsEffect: null,
     children: templateChildren(op.children),
   };
 }

@@ -11,6 +11,9 @@ export function foldStaticOp(op: Op | LinkedOp, escapeTextContent: boolean): str
     case OpKind.Static:
       return escapeTextContent ? escapeText(op.html) : op.html;
     case OpKind.Element: {
+      if (op.propsEffect !== null) {
+        throw new UnsupportedError('folding an element with runtime props');
+      }
       let html = `<${op.tag}`;
       for (const prop of op.props) {
         if (prop.k !== PropKind.Static) {
@@ -45,6 +48,8 @@ export function isFullyStaticSubtree(op: Op | LinkedOp): boolean {
     return false;
   }
   return (
-    op.props.every((prop) => prop.k === PropKind.Static) && op.children.every(isFullyStaticSubtree)
+    op.propsEffect === null &&
+    op.props.every((prop) => prop.k === PropKind.Static) &&
+    op.children.every(isFullyStaticSubtree)
   );
 }

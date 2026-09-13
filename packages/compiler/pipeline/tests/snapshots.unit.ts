@@ -1872,6 +1872,62 @@ export default () => {
     expect(output.modules.map((module) => module.code).join('\n')).not.toContain('readExpression');
   });
 
+  test('should expand object-literal element spreads into attributes', async () => {
+    const output = await testInput(mode, 'element-literal-spread', {
+      code: `import { component$, useSignal } from '@qwik.dev/core';
+export default component$(() => {
+  const clicks = useSignal(0);
+  const id = 'main';
+  return (
+    <div {...{ 'data-clicks': String(clicks.value), title: 'fixed', id }} class="box" onClick$={() => clicks.value++}>
+      x
+    </div>
+  );
+});
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    // A literal spread is ordinary attributes: no props effect, static parts stay flat.
+    expect(main).not.toMatch(/createPropsEffect|renderSsrProps/);
+    expect(main).toMatch(/title=\\?"fixed\\?"/);
+    expect(main).toMatch(/class=\\?"box\\?"/);
+    expect(main).toContain('"data-clicks"');
+    expect(main).toContain('"id"');
+  });
+
+  test('should apply element spreads through one props effect', async () => {
+    const output = await testInput(mode, 'element-spread-props', {
+      code: `import { component$, useSignal } from '@qwik.dev/core';
+export default component$((props: { title: string }) => {
+  const attrs = useSignal<Record<string, unknown>>({ class: 'last' });
+  const box = useSignal<Element>();
+  return (
+    <div {...props} class="middle" {...attrs.value} ref={box} onClick$={() => (attrs.value = {})}>
+      child
+    </div>
+  );
+});
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const code = output.modules.map((module) => module.code).join('\n');
+    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    // The whole attribute list is one props object in authored order, so a later key wins.
+    expect(code).toMatch(
+      /\.\.\.props, "?class"?: "middle", \.\.\.attrs\.value, "?ref"?: box, "?onClick\$"?: q_/
+    );
+    if (mode === 'csr') {
+      expect(main).toContain('createPropsEffect(el0, [attrs, box, props], ');
+    } else {
+      expect(main).toContain('renderSsrProps(id0, [attrs, box, props], ');
+      expect(main).toContain('createSsrOpenTag(');
+      expect(main).toContain('.attrs, ');
+      expect(main).toContain('ctx.setRef(');
+      expect(main).toContain('.innerHTML ?? ');
+    }
+  });
+
   test('should merge component prop spreads in authored order', async () => {
     await testInput(mode, 'component-props-spread', {
       code: `export const Child = (props) => <strong>{props.label}</strong>;

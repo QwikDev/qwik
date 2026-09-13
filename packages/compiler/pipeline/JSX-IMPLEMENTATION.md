@@ -275,12 +275,20 @@ Share prop classification; deliver the following in small increments.
 
 ### Events
 
-- [ ] `document:on*$` and `window:on*$`.
-- [ ] `preventdefault:*`, `stoppropagation:*`, `passive:*` and `capture:*`.
+- [x] `document:on*$` and `window:on*$`. `eventScopeName` mirrors the runtime scope table
+      (`q-w:`, `q-d:` and the passive variants); emission is unchanged because both runtimes key
+      the carrier by the scope prefix, and SSR `useOn*` handlers merge into the same attribute.
+- [x] `preventdefault:*`, `stoppropagation:*`, `passive:*` and `capture:*`. The first three are
+      static bare attributes with the normalized event name, read by qwikloader at dispatch;
+      `passive:x` selects the passive scope of the element's matching handlers and is dropped.
 - [ ] Inline handler arrays: extraction, captures, ordering and ignored empty entries.
 - [ ] Handler arrays forwarded through components and spreads.
 - [ ] `sync$` emission and synchronous-handler registration.
 - [ ] Merge JSX listeners with `useOn*` without losing modifiers or duplicating registration.
+
+Verified by `events.unit.ts`, the `event-scopes-modifiers` snapshots and `use-on.spec.tsx` in
+CSR. Its resume run still fails on `useOn('click', $(() => …))`: an explicit `$()` as a call
+argument is not extracted yet, which is the module-wide `$()` item of group 6.
 
 ### Bindings and refs
 
@@ -416,6 +424,14 @@ code size and runtime cost. The previous implementation is not the accepted defa
 
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
+
+- 2026-09-13: Event scopes and modifiers: namespaced JSX attributes lower through the shared
+  attribute-name reader; `window:on*$`/`document:on*$` map to their runtime scope keys with
+  passive variants driven by `passive:x`, and `preventdefault:`/`stoppropagation:`/`capture:`
+  stay bare attributes. Verification: 1059 pipeline tests (16 existing TODOs), the
+  `event-scopes-modifiers` CSR/SSR snapshots, and `use-on.spec.tsx` 21/21 in CSR. In resume the
+  file now compiles and fails only on explicit `$()` call arguments (group 6). Core spec corpus:
+  CSR 7 → 6 failed files, resume 6 unchanged.
 
 - 2026-09-13: Inline-row attributes: the dynamic-attribute emitters gained the `Inline` resume
   branch that text holes and events already had, so a literal-array row's `id={'row-' + item}`

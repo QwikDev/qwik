@@ -1,0 +1,131 @@
+==INPUT==
+
+import { useSignal } from '@qwik.dev/core';
+export default () => {
+  const count = useSignal(0);
+  return (
+    <div window:onDblClick$={() => count.value++} document:onScroll$={() => count.value++} passive:scroll>
+      <a href="/x" preventdefault:click stoppropagation:click capture:click onClick$={() => count.value++}>
+        go
+      </a>
+    </div>
+  );
+};
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { useSignal, setEvent, _first, _createElementTemplate } from '@qwik.dev/core';
+import { component_q_w_dblclick_segment_0_tisevbdmqsib } from './component.tsx_component_q_w_dblclick_segment_0_tisevbdmqsib';
+import { component_q_dp_scroll_segment_1_owxjdujcmr14 } from './component.tsx_component_q_dp_scroll_segment_1_owxjdujcmr14';
+import { component_q_e_click_segment_2_2xwygteqhjqr1 } from './component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1';
+
+const default_tmpl0 = _createElementTemplate(
+  '<div><a href="/x" preventdefault:click stoppropagation:click capture:click>go</a></div>'
+);
+export default (props, ctx) => {
+  const count = useSignal(0);
+  const el0 = default_tmpl0(ctx.document);
+  setEvent(el0, 'q-w:dblclick', component_q_w_dblclick_segment_0_tisevbdmqsib, [count]);
+  setEvent(el0, 'q-dp:scroll', component_q_dp_scroll_segment_1_owxjdujcmr14, [count]);
+  const el1 = _first(el0);
+  setEvent(el1, 'q-e:click', component_q_e_click_segment_2_2xwygteqhjqr1, [count]);
+  return el0;
+};
+============================= src/component.tsx_component_q_w_dblclick_segment_0_tisevbdmqsib.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_q_w_dblclick_segment_0_tisevbdmqsib = () => {
+  const [count] = _captures;
+  return count.value++;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_w_dblclick_segment_0_tisevbdmqsib",
+  "entry": null,
+  "displayName": "component_q_w_dblclick_segment_0",
+  "hash": "tisevbdmqsib",
+  "canonicalFilename": "component.tsx_component_q_w_dblclick_segment_0_tisevbdmqsib",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "window:onDblClick$",
+  "captures": true,
+  "loc": [
+    117,
+    157
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_q_dp_scroll_segment_1_owxjdujcmr14.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_q_dp_scroll_segment_1_owxjdujcmr14 = () => {
+  const [count] = _captures;
+  return count.value++;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_dp_scroll_segment_1_owxjdujcmr14",
+  "entry": null,
+  "displayName": "component_q_dp_scroll_segment_1",
+  "hash": "owxjdujcmr14",
+  "canonicalFilename": "component.tsx_component_q_dp_scroll_segment_1_owxjdujcmr14",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "document:onScroll$",
+  "captures": true,
+  "loc": [
+    158,
+    198
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
+  const [count] = _captures;
+  return count.value++;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_2_2xwygteqhjqr1",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_2",
+  "hash": "2xwygteqhjqr1",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    291,
+    321
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

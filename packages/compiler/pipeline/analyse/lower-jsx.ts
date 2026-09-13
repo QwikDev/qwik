@@ -36,11 +36,11 @@ import {
 import { normalizeJsxText } from './ast/jsx-text';
 import { normalizeAttributeName, VOID_ELEMENTS } from '../html';
 import { InvalidModuleError, UnsupportedError } from '../errors';
-import { eventScopeName } from './events';
+import { eventModifierName, eventScopeName, passiveEventNames, PASSIVE_PREFIX } from './events';
 import { lowerEventAttribute } from './lower-event';
 import { lowerText } from './lower-hole';
 import { lowerBranch, type BranchArm } from './lower-branch';
-import { identifierName, unwrapExpression } from './ast/utils';
+import { identifierName, jsxAttributeName, unwrapExpression } from './ast/utils';
 import { JsxValueKind, type JsxValue } from './ast/jsx-analysis';
 import {
   lowerComputedExpressionValue,
@@ -132,8 +132,9 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
     throw new UnsupportedError('a non-native JSX tag');
   }
   const tag = nameNode.name;
+  const passiveEvents = passiveEventNames(attributes);
   const props = attributes
-    .map((attribute) => lowerAttribute(attribute, ctx, 'element'))
+    .map((attribute) => lowerAttribute(attribute, ctx, 'element', passiveEvents))
     .filter((prop) => prop !== null);
   const styleScopedId = ctx.styleScopes.length === 0 ? null : ctx.styleScopes.join(' ');
   if (styleScopedId !== null) {
@@ -243,13 +244,10 @@ function lowerComponentPropsProxy(
       addExpression(attribute.argument, { kind: PropsPartKind.Spread });
       continue;
     }
-    if (jsxAttributeName(attribute) === QwikDirective.Slot) {
+    const name = jsxAttributeName(attribute)!;
+    if (name === QwikDirective.Slot) {
       continue;
     }
-    if (attribute.name.type !== 'JSXIdentifier') {
-      throw new UnsupportedError('a namespaced JSX attribute');
-    }
-    const name = attribute.name.name;
     const scope = eventScopeName(name);
     if (scope !== null) {
       const lowered = lowerEventAttribute(attribute, ctx, name, scope);
@@ -871,18 +869,6 @@ function readSlotName(attribute: JSXAttributeItem): string | Expression {
   throw new UnsupportedError('a dynamic slot name');
 }
 
-function jsxAttributeName(attribute: JSXAttributeItem): string | null {
-  if (attribute.type !== 'JSXAttribute') {
-    return null;
-  }
-  const name = attribute.name;
-  if (name.type === 'JSXIdentifier') {
-    return name.name;
-  }
-  return name.type === 'JSXNamespacedName' ? `${name.namespace.name}:${name.name.name}` : null;
-}
-
-/** `key` is framework-reserved — it feeds collection keying, never the rendered element. */
 function isKeyAttribute(attribute: JSXAttributeItem): boolean {
   return (
     attribute.type === 'JSXAttribute' &&
@@ -960,7 +946,8 @@ function scopeStaticClass(props: Prop[], scope: string): void {
 function lowerAttribute(
   attribute: JSXAttributeItem,
   ctx: LowerContext,
-  target: 'component' | 'element'
+  target: 'component' | 'element',
+  passiveEvents: ReadonlySet<string> = new Set()
 ): Prop | null {
   if (attribute.type === 'JSXSpreadAttribute') {
     if (target !== 'component') {
@@ -972,14 +959,11 @@ function lowerAttribute(
       effect: null,
     };
   }
-  if (jsxAttributeName(attribute) === QwikDirective.Slot) {
+  const authored = jsxAttributeName(attribute)!;
+  if (authored === QwikDirective.Slot || authored.startsWith(PASSIVE_PREFIX)) {
     return null;
   }
-  if (attribute.name.type !== 'JSXIdentifier') {
-    throw new UnsupportedError('a namespaced JSX attribute');
-  }
-  const authored = attribute.name.name;
-  const scope = eventScopeName(authored);
+  const scope = eventScopeName(authored, passiveEvents);
   if (scope !== null) {
     const lowered = lowerEventAttribute(attribute, ctx, authored, scope);
     if (lowered === null) {
@@ -988,7 +972,10 @@ function lowerAttribute(
     const event = lowered.event;
     return target === 'component' ? { ...event, name: authored } : event;
   }
-  const name = target === 'component' ? authored : normalizeAttributeName(authored);
+  const name =
+    target === 'component'
+      ? authored
+      : (eventModifierName(authored) ?? normalizeAttributeName(authored));
   const value = attribute.value;
   if (value === null) {
     // Absent authored value = bare attribute (`<main hidden>`).

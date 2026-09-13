@@ -1316,6 +1316,30 @@ export default () => {
     });
   });
 
+  test('should scope window and document events and keep event modifiers', async () => {
+    const output = await testInput(mode, 'event-scopes-modifiers', {
+      code: `import { useSignal } from '@qwik.dev/core';
+export default () => {
+  const count = useSignal(0);
+  return (
+    <div window:onDblClick$={() => count.value++} document:onScroll$={() => count.value++} passive:scroll>
+      <a href="/x" preventdefault:click stoppropagation:click capture:click onClick$={() => count.value++}>
+        go
+      </a>
+    </div>
+  );
+};
+`,
+    });
+    const code = output.modules.map((module) => module.code).join('\n');
+    expect(code).toContain('"q-w:dblclick"');
+    expect(code).toContain('"q-dp:scroll"');
+    for (const modifier of ['preventdefault:click', 'stoppropagation:click', 'capture:click']) {
+      expect(code).toContain(modifier);
+    }
+    expect(code).not.toContain('passive:');
+  });
+
   test('should set attributes read from an inline array row once', async () => {
     const output = await testInput(mode, 'collection-inline-row-attr', {
       code: `export default () => {

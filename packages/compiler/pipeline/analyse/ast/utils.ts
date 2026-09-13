@@ -2,6 +2,7 @@ import type {
   ArrowFunctionExpression,
   Expression,
   Function as FunctionNode,
+  JSXAttributeItem,
   Node,
   VariableDeclaration,
 } from 'oxc-parser';
@@ -49,4 +50,26 @@ export function readReturnedBody(body: ArrowFunctionExpression['body']): {
     return null;
   }
   return { expression: unwrapExpression(statement.argument), statements };
+}
+
+export function jsxAttributeName(attribute: JSXAttributeItem): string | null {
+  if (attribute.type !== 'JSXAttribute') {
+    return null;
+  }
+  const name = attribute.name;
+  if (name.type === 'JSXIdentifier') {
+    return name.name;
+  }
+  return name.type === 'JSXNamespacedName' ? `${name.namespace.name}:${name.name.name}` : null;
+}
+
+/** `key` is framework-reserved — it feeds collection keying, never the rendered element. */
+
+export function isFalseLiteral(attribute: JSXAttributeItem): boolean {
+  const value = attribute.type === 'JSXAttribute' ? attribute.value : null;
+  return (
+    value?.type === 'JSXExpressionContainer' &&
+    value.expression.type === 'Literal' &&
+    value.expression.value === false
+  );
 }

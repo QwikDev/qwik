@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { eventScopeName } from '../analyse/events';
+import { eventModifierName, eventScopeName } from '../analyse/events';
 import { transformModules } from '../compat/transform-modules';
 import { analyseModule, generateJsSsr, linkPlans } from '../index';
 import { EntryKind, LinkResultKind } from '../schema';
@@ -612,5 +612,28 @@ describe('eventScopeName', () => {
     expect(eventScopeName('onClick')).toBe(null);
     expect(eventScopeName('online$')).toBe(null);
     expect(eventScopeName('title')).toBe(null);
+    expect(eventScopeName('window:online$')).toBe(null);
+  });
+
+  test('window and document events map to their scope keys', () => {
+    expect(eventScopeName('window:onDblClick$')).toBe('q-w:dblclick');
+    expect(eventScopeName('document:onScroll$')).toBe('q-d:scroll');
+  });
+
+  test('passive events select the passive scope key', () => {
+    const passive = new Set(['scroll']);
+    expect(eventScopeName('onScroll$', passive)).toBe('q-ep:scroll');
+    expect(eventScopeName('window:onScroll$', passive)).toBe('q-wp:scroll');
+    expect(eventScopeName('document:onScroll$', passive)).toBe('q-dp:scroll');
+    expect(eventScopeName('onClick$', passive)).toBe('q-e:click');
+  });
+});
+
+describe('eventModifierName', () => {
+  test('modifiers normalize their event name', () => {
+    expect(eventModifierName('preventdefault:dblClick')).toBe('preventdefault:dblclick');
+    expect(eventModifierName('stoppropagation:click')).toBe('stoppropagation:click');
+    expect(eventModifierName('capture:click')).toBe('capture:click');
+    expect(eventModifierName('title')).toBe(null);
   });
 });

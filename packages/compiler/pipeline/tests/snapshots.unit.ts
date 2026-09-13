@@ -1466,6 +1466,30 @@ export default () => {
     expect(code).toMatch(/useCustomQrl\(q_\w+\.w\(\[count\]\)\);/);
   });
 
+  test('should extract every function of an event handler array', async () => {
+    const output = await testInput(mode, 'event-handler-arrays', {
+      code: `import { $, useSignal } from '@qwik.dev/core';
+export default () => {
+  const count = useSignal(0);
+  const log = $(() => console.log(count.value));
+  return (
+    <button onClick$={[() => count.value++, [undefined, () => (count.value += 2)], null, log]}>
+      {count.value}
+    </button>
+  );
+};
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    // Nested arrays flatten, empty entries drop, each function is its own event QRL.
+    expect(main).toMatch(
+      mode === 'ssr'
+        ? /eventAttrParts\("q-e:click", \[q_\w+\.w\(\[count\]\), q_\w+\.w\(\[count\]\), log\]\)/
+        : /setEvent\(el0, "q-e:click", \[createCapturedEvent\(\w+, \[count\]\), createCapturedEvent\(\w+, \[count\]\), log\]\)/
+    );
+  });
+
   test('should scope window and document events and keep event modifiers', async () => {
     const output = await testInput(mode, 'event-scopes-modifiers', {
       code: `import { useSignal } from '@qwik.dev/core';

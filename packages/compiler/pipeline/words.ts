@@ -22,6 +22,7 @@ export const enum QwikWord {
   NextSibling = '_next',
   PreviousSibling = '_prev',
   SetEvent = 'setEvent',
+  CreateCapturedEvent = 'createCapturedEvent',
   BranchRange = 'BranchRange',
   CreateBranch = 'createBranch',
   WithCaptures = '_withCaptures',

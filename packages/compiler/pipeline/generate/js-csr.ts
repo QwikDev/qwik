@@ -1036,20 +1036,33 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     }
     const uses = handlers.map((handler) => {
       const value = handler.h === HandlerKind.Value ? handler.value : null;
-      if (value === null || value.v !== ValueKind.Qrl) {
+      if (value === null) {
         throw new UnsupportedError('a non-QRL event handler');
       }
-      return this.resolveQrlUse(value.use, pass.names.props);
+      return value.v === ValueKind.Qrl
+        ? this.resolveQrlUse(value.use, pass.names.props)
+        : { symbol: inlineValueJs(this.module, value), args: [] };
     });
-    if (uses.length > 1 && uses.some((use) => use.args.length > 0)) {
-      throw new UnsupportedError('captures across multiple handlers of one event');
-    }
-    const symbols = uses.map((use) => this.chunkSymbol(use.qrl));
-    const args = uses[0].args;
-    const value = symbols.length === 1 ? symbols[0] : `[${symbols.join(', ')}]`;
+    const symbolOf = (use: (typeof uses)[number]) =>
+      'symbol' in use ? use.symbol : this.chunkSymbol(use.qrl);
     this.imports.add(QwikWord.SetEvent);
+    if (uses.length === 1) {
+      const args = uses[0].args;
+      statements.push(
+        `${QwikWord.SetEvent}(${el}, ${JSON.stringify(scopeName)}, ${symbolOf(uses[0])}${args.length === 0 ? '' : `, [${args.join(', ')}]`});`
+      );
+      return;
+    }
+    // Each handler carries its own captures; the runtime dispatches the list in order.
+    const entries = uses.map((use) => {
+      if (use.args.length === 0) {
+        return symbolOf(use);
+      }
+      this.imports.add(QwikWord.CreateCapturedEvent);
+      return `${QwikWord.CreateCapturedEvent}(${symbolOf(use)}, [${use.args.join(', ')}])`;
+    });
     statements.push(
-      `${QwikWord.SetEvent}(${el}, ${JSON.stringify(scopeName)}, ${value}${args.length === 0 ? '' : `, [${args.join(', ')}]`});`
+      `${QwikWord.SetEvent}(${el}, ${JSON.stringify(scopeName)}, [${entries.join(', ')}]);`
     );
   }
 

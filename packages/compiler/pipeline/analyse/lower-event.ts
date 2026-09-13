@@ -1,11 +1,11 @@
 import { BoundaryKind, HandlerKind, PropKind, ValueKind, type Prop, type Value } from '../schema';
-import type { Expression, JSXAttribute } from 'oxc-parser';
+import type { ArrayExpression, Expression, JSXAttribute } from 'oxc-parser';
 import { lowerCaptures } from './ast/capture-analysis';
 import { UnsupportedError } from '../errors';
 import type { LowerContext } from './lower-context';
 import { lowerExpressionValue, lowerInlineExpressionValue, resolveQrlBinding } from './lower-expr';
 import { lowerFunctionQrl } from './lower-function';
-import { unwrapExpression } from './ast/utils';
+import { isFunctionLike, unwrapExpression } from './ast/utils';
 
 /** `on…$` attribute → an event prop with an authored handler value. */
 export function lowerEventAttribute(
@@ -18,21 +18,17 @@ export function lowerEventAttribute(
   if (expression === null) {
     return null;
   }
-  let value: Value;
-  if (expression.type !== 'ArrowFunctionExpression' && expression.type !== 'FunctionExpression') {
-    value =
-      resolveQrlBinding(expression, ctx) !== null
+  const lowerHandler = (handler: Expression): Value => {
+    if (handler.type !== 'ArrowFunctionExpression' && handler.type !== 'FunctionExpression') {
+      return resolveQrlBinding(handler, ctx) !== null
         ? lowerInlineExpressionValue(
-            expression,
+            handler,
             ctx,
-            lowerCaptures(expression, ctx, 'an event handler').refs
+            lowerCaptures(handler, ctx, 'an event handler').refs
           )
-        : lowerExpressionValue(expression, ctx, authored);
-  } else {
-    if (expression.body === null) {
-      return null;
+        : lowerExpressionValue(handler, ctx, authored);
     }
-    const use = lowerFunctionQrl(expression, ctx, {
+    const use = lowerFunctionQrl(handler, ctx, {
       nameCtx: scope,
       subject: 'an event handler',
       ctxName: authored,
@@ -43,17 +39,39 @@ export function lowerEventAttribute(
         argumentRanges: [],
       },
     });
-    value = { v: ValueKind.Qrl, use };
+    return { v: ValueKind.Qrl, use };
+  };
+  // A handler array flattens; empty entries are ignored, as the runtime ignores them.
+  const handlers = (
+    expression.type === 'ArrayExpression' ? flattenHandlers(expression) : [expression]
+  )
+    .filter((handler) => !(isFunctionLike(handler) && handler.body === null))
+    .map((handler) => ({ h: HandlerKind.Value as const, value: lowerHandler(handler) }));
+  if (handlers.length === 0) {
+    return null;
   }
   return {
     expression,
-    event: {
-      k: PropKind.Event,
-      name: scope,
-      passive: false,
-      handlers: [{ h: HandlerKind.Value, value }],
-    },
+    event: { k: PropKind.Event, name: scope, passive: false, handlers },
   };
+}
+
+function flattenHandlers(array: ArrayExpression): Expression[] {
+  return array.elements.flatMap((element) => {
+    const entry =
+      element === null || element.type === 'SpreadElement' ? null : unwrapExpression(element);
+    if (entry === null || isEmptyLiteral(entry)) {
+      return [];
+    }
+    return entry.type === 'ArrayExpression' ? flattenHandlers(entry) : [entry];
+  });
+}
+
+function isEmptyLiteral(expression: Expression): boolean {
+  return (
+    (expression.type === 'Literal' && expression.value === null) ||
+    (expression.type === 'Identifier' && expression.name === 'undefined')
+  );
 }
 
 function eventHandlerExpression(attribute: JSXAttribute): Expression | null {

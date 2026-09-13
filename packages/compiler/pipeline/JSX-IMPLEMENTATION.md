@@ -293,7 +293,10 @@ Share prop classification; deliver the following in small increments.
 - [x] `preventdefault:*`, `stoppropagation:*`, `passive:*` and `capture:*`. The first three are
       static bare attributes with the normalized event name, read by qwikloader at dispatch;
       `passive:x` selects the passive scope of the element's matching handlers and is dropped.
-- [ ] Inline handler arrays: extraction, captures, ordering and ignored empty entries.
+- [x] Inline handler arrays: extraction, captures, ordering and ignored empty entries. Nested
+      arrays flatten, `null`/`undefined` entries drop, each function is its own event QRL; SSR
+      joins the references with `|`, CSR registers the list with `createCapturedEvent` per
+      handler that captures.
 - [ ] Handler arrays forwarded through components and spreads.
 - [ ] `sync$` emission and synchronous-handler registration.
 - [x] Merge JSX listeners with `useOn*` without losing modifiers or duplicating registration.
@@ -433,6 +436,12 @@ code size and runtime cost. The previous implementation is not the accepted defa
 
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
+
+- 2026-09-13: Event handler arrays: `lowerEventAttribute` lowers each element of a handler
+  array through the same per-handler path, so the existing multi-handler emission joins them;
+  CSR wraps handlers that capture with `createCapturedEvent` instead of refusing shared captures.
+  Verification: 1069 pipeline tests (16 existing TODOs), the `event-handler-arrays` snapshots,
+  and `scripts.spec.tsx` "inline event handler arrays" green in resume.
 
 - 2026-09-13: Custom hook bodies: module-level `use*` functions lower into `plan.hooks` with the
   component setup lowering, are emitted from that setup through a `Hook` assembly intent in both

@@ -1,5 +1,6 @@
 /** `generateJsSsr(serverLinkedPlan, options)` — the baseline generator over the server LinkedPlan. */
 import {
+  BoundaryKind,
   Environment,
   HandlerKind,
   QrlBodyKind,
@@ -41,6 +42,7 @@ import {
   qrlPropsName,
   createQrlResolver,
   type QrlResolver,
+  syncQrlHoists,
   type FunctionEmission,
 } from './emit-chunk';
 import {
@@ -465,6 +467,9 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     emission.imports = new Set([QwikWord.NoopQrl, ...emission.imports]);
     for (const usage of emission.uses) {
       const nested = usage.qrl;
+      if (this.hoistSyncQrl(nested, emission)) {
+        continue;
+      }
       emission.hoists.push(
         `const q_${nested.name} = /*#__PURE__*/ ${QwikWord.NoopQrl}(${JSON.stringify(nested.name)});`
       );
@@ -1064,9 +1069,22 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     return `q_${qrl.name}`;
   }
 
+  /** A `sync$` QRL is its inline function; nothing to load. */
+  private hoistSyncQrl(qrl: LinkedQrl, target: Pick<FunctionEmission, 'imports' | 'hoists'>) {
+    if (qrl.boundary.kind !== BoundaryKind.Sync) {
+      return false;
+    }
+    target.imports.add(QwikWord.QrlSync);
+    target.hoists.push(...syncQrlHoists(qrl, functionText(this.qrlFunction(qrl))));
+    return true;
+  }
+
   private flushQrlHoists(): void {
     for (const usage of this.usedQrls.values()) {
       const { qrl } = usage;
+      if (this.hoistSyncQrl(qrl, this)) {
+        continue;
+      }
       if (usage.invoked) {
         // The server invokes render expressions in-module: mirror fn + `.s()` registration.
         const emission = this.qrlFunction(qrl);

@@ -1,5 +1,6 @@
 /** `generateJsCsr(browserLinkedPlan, options)` — browser modules from the browser LinkedPlan. */
 import {
+  BoundaryKind,
   Environment,
   HandlerKind,
   ModuleKind,
@@ -36,6 +37,8 @@ import {
   qrlPropsName,
   createQrlResolver,
   type QrlResolver,
+  functionText,
+  syncQrlHoists,
   type FunctionEmission,
 } from './emit-chunk';
 import {
@@ -835,6 +838,18 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     qrl: LinkedQrl,
     target: Pick<FunctionEmission, 'imports' | 'hoists'>
   ): void {
+    if (qrl.boundary.kind === BoundaryKind.Sync) {
+      target.imports.add(QwikWord.QrlSync);
+      const [fn, reference] = syncQrlHoists(qrl, functionText(this.qrlFunction(qrl)));
+      // The module hoists the function once, shared with static event registration.
+      if (target === this) {
+        this.chunkSymbol(qrl);
+      } else {
+        target.hoists.push(fn);
+      }
+      target.hoists.push(reference);
+      return;
+    }
     const path = `./${chunkCanonicalFilename(this.module, qrl)}`;
     target.imports.add(QwikWord.QrlWithChunk);
     target.hoists.push(
@@ -1069,9 +1084,13 @@ class CsrModuleEmitter implements QwikModuleEmitter {
   private chunkSymbol(qrl: LinkedQrl): string {
     if (!this.importedChunks.has(qrl.id)) {
       this.importedChunks.add(qrl.id);
-      this.chunkImports.push(
-        `import { ${qrl.name} } from ${JSON.stringify(`./${chunkCanonicalFilename(this.module, qrl)}`)};`
-      );
+      if (qrl.boundary.kind === BoundaryKind.Sync) {
+        this.hoists.push(syncQrlHoists(qrl, functionText(this.qrlFunction(qrl)))[0]);
+      } else {
+        this.chunkImports.push(
+          `import { ${qrl.name} } from ${JSON.stringify(`./${chunkCanonicalFilename(this.module, qrl)}`)};`
+        );
+      }
     }
     return qrl.name;
   }

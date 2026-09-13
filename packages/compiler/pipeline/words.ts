@@ -7,6 +7,7 @@ export const QRL_TWIN_SUFFIX = 'Qrl';
 
 export const enum QwikMarker {
   Dollar = '$',
+  Sync = 'sync$',
   Component = 'component$',
 }
 
@@ -26,6 +27,7 @@ export const enum QwikWord {
   BranchRange = 'BranchRange',
   CreateBranch = 'createBranch',
   WithCaptures = '_withCaptures',
+  QrlSync = '_qrlSync',
   QrlWithChunk = '_qrlWithChunk',
   ToNodes = '_toNodes',
   CreateTextExpressionEffect = 'createTextExpressionEffect',

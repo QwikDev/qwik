@@ -1,0 +1,40 @@
+==INPUT==
+
+import { sync$ } from '@qwik.dev/core';
+export const stop = sync$((event: Event) => event.preventDefault());
+export default () => (
+  <a href="/x" onClick$={sync$((_event: Event, element: Element) => element.setAttribute('data-sync', 'ran'))}>
+    go
+  </a>
+);
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+const component_sync_segment_0_ka0ivw29msk8 = (event) => {
+  return event.preventDefault();
+};
+const q_component_sync_segment_0_ka0ivw29msk8 = /*#__PURE__*/ _qrlSync(
+  component_sync_segment_0_ka0ivw29msk8,
+  'component_sync_segment_0_ka0ivw29msk8'
+);
+const component_sync_segment_1_ka0j9x66gukr = (_event, element) => {
+  return element.setAttribute('data-sync', 'ran');
+};
+const q_component_sync_segment_1_ka0j9x66gukr = /*#__PURE__*/ _qrlSync(
+  component_sync_segment_1_ka0j9x66gukr,
+  'component_sync_segment_1_ka0j9x66gukr'
+);
+import { sync$, _qrlSync } from '@qwik.dev/core';
+export const stop = q_component_sync_segment_0_ka0ivw29msk8;
+export default (props, ctx) => {
+  return [
+    '<a href="/x"',
+    ctx.eventAttrParts('q-e:click', q_component_sync_segment_1_ka0j9x66gukr),
+    '>go</a>',
+  ];
+};
+== SSR DIAGNOSTICS ==
+
+[]

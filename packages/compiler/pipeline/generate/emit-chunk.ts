@@ -71,7 +71,7 @@ export function emitQrlChunks(
         );
   // Declared QRLs (components) splice over their authored range — no chunk file (yet).
   return module.qrls
-    .filter((qrl) => qrl.declaration === undefined)
+    .filter((qrl) => qrl.declaration === undefined && qrl.boundary.kind !== BoundaryKind.Sync)
     .map((qrl) => {
       const path = `${module.path}_${qrl.name}.js`;
       const assembled = assembleGeneratedModule(
@@ -112,6 +112,14 @@ export function emitQrlChunks(
         },
       };
     });
+}
+
+/** A `sync$` handler ships inline under its symbol: the runtime keys the container table by it. */
+export function syncQrlHoists(qrl: LinkedQrl, functionSource: string): string[] {
+  return [
+    `const ${qrl.name} = ${functionSource};`,
+    `const q_${qrl.name} = /*#__PURE__*/ ${QwikWord.QrlSync}(${qrl.name}, ${JSON.stringify(qrl.name)});`,
+  ];
 }
 
 /** Capture names double as the chunk fn's parameters for value-payload QRLs. */

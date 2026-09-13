@@ -298,7 +298,11 @@ Share prop classification; deliver the following in small increments.
       joins the references with `|`, CSR registers the list with `createCapturedEvent` per
       handler that captures.
 - [ ] Handler arrays forwarded through components and spreads.
-- [ ] `sync$` emission and synchronous-handler registration.
+- [x] `sync$` emission and synchronous-handler registration. `sync$(fn)` anywhere becomes a
+      `Sync` boundary QRL hoisted as `_qrlSync(fn, symbol)` with no chunk; a client event takes
+      the plain function. The runtime serializes the key and writes the `qFuncs` table ahead of
+      the batch, which also covers handlers imported from other modules. A capture or an outer
+      read inside `sync$` is the `sync-capture` diagnostic.
 - [x] Merge JSX listeners with `useOn*` without losing modifiers or duplicating registration.
       The linker's `registersEvents` fact follows `useOn*`, visible tasks and linked custom hook
       bodies; unknown only for hooks outside the link set. For true or unknown, SSR emits the
@@ -436,6 +440,12 @@ code size and runtime cost. The previous implementation is not the accepted defa
 
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
+
+- 2026-09-13: `sync$`: the marker scan recognizes `sync$` and lowers its callback as a `Sync`
+  boundary; event handlers written as `$()`/`sync$()` calls become the QRL directly instead of a
+  value chunk; both generators hoist `_qrlSync(fn, symbol)` and chunk emission skips sync QRLs.
+  Verification: 1071 pipeline tests (16 existing TODOs), the `sync-handlers` snapshots, and
+  `scripts.spec.tsx` fully green in resume (was 3 failed).
 
 - 2026-09-13: Event handler arrays: `lowerEventAttribute` lowers each element of a handler
   array through the same per-handler path, so the existing multi-handler emission joins them;

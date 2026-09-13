@@ -1,0 +1,35 @@
+==INPUT==
+
+import { sync$ } from '@qwik.dev/core';
+export const stop = sync$((event: Event) => event.preventDefault());
+export default () => (
+  <a href="/x" onClick$={sync$((_event: Event, element: Element) => element.setAttribute('data-sync', 'ran'))}>
+    go
+  </a>
+);
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+const component_sync_segment_0_ka0ivw29msk8 = (event) => {
+  return event.preventDefault();
+};
+const q_component_sync_segment_0_ka0ivw29msk8 = /*#__PURE__*/ _qrlSync(
+  component_sync_segment_0_ka0ivw29msk8,
+  'component_sync_segment_0_ka0ivw29msk8'
+);
+const component_sync_segment_1_ka0j9x66gukr = (_event, element) => {
+  return element.setAttribute('data-sync', 'ran');
+};
+const default_tmpl0 = _createElementTemplate('<a href="/x">go</a>');
+import { sync$, _qrlSync, setEvent, _createElementTemplate } from '@qwik.dev/core';
+export const stop = q_component_sync_segment_0_ka0ivw29msk8;
+export default (props, ctx) => {
+  const el0 = default_tmpl0(ctx.document);
+  setEvent(el0, 'q-e:click', component_sync_segment_1_ka0j9x66gukr);
+  return el0;
+};
+== CSR DIAGNOSTICS ==
+
+[]

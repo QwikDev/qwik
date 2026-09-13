@@ -4,7 +4,7 @@ import { lowerCaptures } from './ast/capture-analysis';
 import { UnsupportedError } from '../errors';
 import type { LowerContext } from './lower-context';
 import { lowerExpressionValue, lowerInlineExpressionValue, resolveQrlBinding } from './lower-expr';
-import { lowerFunctionQrl } from './lower-function';
+import { lowerFunctionQrl, lowerMarkerQrl, markerQrlCall } from './lower-function';
 import { isFunctionLike, unwrapExpression } from './ast/utils';
 
 /** `on…$` attribute → an event prop with an authored handler value. */
@@ -19,6 +19,12 @@ export function lowerEventAttribute(
     return null;
   }
   const lowerHandler = (handler: Expression): Value => {
+    if (handler.type === 'CallExpression') {
+      const marker = markerQrlCall(handler, ctx);
+      if (marker !== null && marker.marker === undefined) {
+        return { v: ValueKind.Qrl, use: lowerMarkerQrl(handler, marker, ctx) };
+      }
+    }
     if (handler.type !== 'ArrowFunctionExpression' && handler.type !== 'FunctionExpression') {
       return resolveQrlBinding(handler, ctx) !== null
         ? lowerInlineExpressionValue(

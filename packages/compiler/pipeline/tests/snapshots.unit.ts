@@ -1466,6 +1466,26 @@ export default () => {
     expect(code).toMatch(/useCustomQrl\(q_\w+\.w\(\[count\]\)\);/);
   });
 
+  test('should inline sync$ handlers under a stable key', async () => {
+    const output = await testInput(mode, 'sync-handlers', {
+      code: `import { sync$ } from '@qwik.dev/core';
+export const stop = sync$((event: Event) => event.preventDefault());
+export default () => (
+  <a href="/x" onClick$={sync$((_event: Event, element: Element) => element.setAttribute('data-sync', 'ran'))}>
+    go
+  </a>
+);
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    // The function stays inline under its symbol; no chunk is produced for it. A client event
+    // takes the plain function; only a value needs the QRL.
+    expect(main.match(/_qrlSync\(\w+, "\w+"\)/g)).toHaveLength(mode === 'ssr' ? 2 : 1);
+    expect(main).not.toContain('sync$(');
+    expect(output.modules.filter((module) => module.path.includes('sync'))).toHaveLength(0);
+  });
+
   test('should extract every function of an event handler array', async () => {
     const output = await testInput(mode, 'event-handler-arrays', {
       code: `import { $, useSignal } from '@qwik.dev/core';

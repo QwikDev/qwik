@@ -14,6 +14,7 @@ import {
   type CallTarget,
   type PayloadId,
   type Qrl,
+  type QrlUse,
 } from '../schema';
 import { InvalidModuleError, UnsupportedError } from '../errors';
 import { createCapturedContext, lowerCaptures } from './ast/capture-analysis';
@@ -155,20 +156,7 @@ export function recordPayloadQrls(ctx: LowerContext, payload: PayloadId, node: N
     const call = current.type === 'CallExpression' ? markerQrlCall(current, scope) : null;
     if (call !== null && current.type === 'CallExpression') {
       extractedCalls.add(current);
-      const use = lowerFunctionQrl(call.fn, scope, {
-        nameCtx: call.name,
-        subject: 'a QRL callback',
-        ctxName: call.marker === undefined ? QwikMarker.Dollar : call.name,
-        boundary:
-          call.marker === undefined
-            ? { kind: BoundaryKind.Explicit }
-            : { kind: BoundaryKind.Implicit, role: 'hook' },
-        origin: {
-          range: [current.start, current.end],
-          calleeRange: [current.callee.start, current.callee.end],
-          argumentRanges: current.arguments.map((arg) => [arg.start, arg.end]),
-        },
-      });
+      const use = lowerMarkerQrl(current, call, scope);
       // `$(fn)` is the QRL; `foo$(fn, …)` keeps its call under the twin callee.
       ctx.plan.payloads[payload].qrls.push(
         call.marker === undefined
@@ -244,15 +232,17 @@ export function explicitQrlRoots(nodes: readonly Node[], ctx: MarkerScope): Node
 
 type MarkerScope = LowerContext;
 
-interface MarkerQrlCall {
+export interface MarkerQrlCall {
   fn: ArrowFunctionExpression | FunctionNode;
   name: string;
-  /** Absent for the explicit `$` marker. */
+  ctxName: string;
+  boundary: Qrl['boundary'];
+  /** Set for a custom `foo$` whose call stays under its twin callee. */
   marker?: Extract<CallTarget, { kind: CallTargetKind.Marker }>;
 }
 
-/** `$(fn)` or a custom `foo$(fn, …)` whose twins resolve; null for every other call. */
-function markerQrlCall(node: CallExpression, ctx: MarkerScope): MarkerQrlCall | null {
+/** `$(fn)`, `sync$(fn)` or a custom `foo$(fn, …)` whose twins resolve; null otherwise. */
+export function markerQrlCall(node: CallExpression, ctx: MarkerScope): MarkerQrlCall | null {
   const argument = node.arguments[0];
   const fn =
     argument === undefined || argument.type === 'SpreadElement' ? null : unwrapExpression(argument);
@@ -260,8 +250,14 @@ function markerQrlCall(node: CallExpression, ctx: MarkerScope): MarkerQrlCall | 
     return null;
   }
   const binding = ctx.bindings.reference(node.callee);
-  if (binding !== null && ctx.coreBindings.get(binding) === QwikMarker.Dollar) {
-    return node.arguments.length === 1 ? { fn, name: 'qrl' } : null;
+  const core = binding === null ? undefined : ctx.coreBindings.get(binding);
+  if (core === QwikMarker.Dollar || core === QwikMarker.Sync) {
+    if (node.arguments.length !== 1) {
+      return null;
+    }
+    return core === QwikMarker.Dollar
+      ? { fn, name: 'qrl', ctxName: core, boundary: { kind: BoundaryKind.Explicit } }
+      : { fn, name: 'sync', ctxName: core, boundary: { kind: BoundaryKind.Sync } };
   }
   const callee = resolveSetupCall(node, ctx);
   if (callee === null || callee.stem === null) {
@@ -270,6 +266,37 @@ function markerQrlCall(node: CallExpression, ctx: MarkerScope): MarkerQrlCall | 
   return {
     fn,
     name: callee.name,
+    ctxName: callee.name,
+    boundary: { kind: BoundaryKind.Implicit, role: 'hook' },
     marker: { kind: CallTargetKind.Marker, binding: callee.binding, stem: callee.stem },
   };
+}
+
+/** Extracts a marker call's callback; a `sync$` callback must stand alone, with no captures. */
+export function lowerMarkerQrl(
+  call: CallExpression,
+  { fn, name, ctxName, boundary }: MarkerQrlCall,
+  ctx: LowerContext
+): QrlUse {
+  const use = lowerFunctionQrl(fn, ctx, {
+    nameCtx: name,
+    subject: 'a QRL callback',
+    ctxName,
+    boundary,
+    origin: {
+      range: [call.start, call.end],
+      calleeRange: [call.callee.start, call.callee.end],
+      argumentRanges: call.arguments.map((arg) => [arg.start, arg.end]),
+    },
+  });
+  const qrl = ctx.plan.qrls.find((entry) => entry.id === use.qrl)!;
+  const reads = qrl.body.b === QrlBodyKind.Js ? ctx.plan.payloads[qrl.body.payload].reads : [];
+  if (boundary.kind === BoundaryKind.Sync && (qrl.captures.length > 0 || reads.length > 0)) {
+    throw new InvalidModuleError(
+      'sync-capture',
+      'A sync$ handler cannot use variables from its scope.',
+      [fn.start, fn.end]
+    );
+  }
+  return use;
 }

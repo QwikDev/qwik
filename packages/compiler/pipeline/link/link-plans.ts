@@ -32,7 +32,7 @@ import {
 import { collectQrlDependencies } from './qrl-dependencies';
 import { linkRenderResults, localComponentSetups } from './render-results';
 import { linkContent } from './link-content';
-import { linkHookTwins } from './link-hooks';
+import { linkHookTwins, setupRegistersEvents } from './link-hooks';
 import { ValueIrKind } from '../../src/expr-ir';
 
 export const enum ResolutionKind {
@@ -364,6 +364,7 @@ export function linkPlans(
     };
   };
 
+  const registersEvents = setupRegistersEvents(plans, resolveLocalBinding);
   const linkedModules: LinkedModule[] = plans.map((plan, module) =>
     materializeModule(
       plan,
@@ -384,6 +385,7 @@ export function linkPlans(
             waitForTasks: { ok: true, value: false },
             providesContextEffective: { ok: true, value: false },
             runtimeScope: { ok: true, value: false },
+            registersEvents: registersEvents(module, program.setup),
           },
         })
       )

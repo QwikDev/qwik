@@ -270,9 +270,13 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       parts.push(`${QwikWord.CreateSsrNodeId}(${RowIdParam})`);
       pushMergedStatic(parts, '>');
     }
-    for (const op of body.ops) {
-      this.op(pass, op, parts, rootRange, options.rootMarker ?? null);
-    }
+    // The runtime splices `useOn*` registrations into the first open-tag record after the render.
+    const { registersEvents } = program.facts;
+    const hookEvents =
+      body.ops[0]?.op === OpKind.Element && (!registersEvents.ok || registersEvents.value);
+    body.ops.forEach((op, index) =>
+      this.op(pass, op, parts, rootRange, options.rootMarker ?? null, index === 0 && hookEvents)
+    );
     if (options.rowFence) {
       pushMergedStatic(parts, '<!/r>');
     }
@@ -460,7 +464,8 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     op: LinkedOp,
     parts: string[],
     rootRange: SsrRootRange | null,
-    rootMarker: string | null = null
+    rootMarker: string | null = null,
+    hookEvents = false
   ): void {
     switch (op.op) {
       case OpKind.Static:
@@ -469,11 +474,11 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         return;
       case OpKind.Element:
         // A marked root always renders through element() so the marker lands in its open tag.
-        if (rootMarker === null && isFullyStaticSubtree(op)) {
+        if (rootMarker === null && !hookEvents && isFullyStaticSubtree(op)) {
           pushMergedStatic(parts, foldStaticOp(op, false));
           return;
         }
-        this.element(pass, op, parts, rootMarker);
+        this.element(pass, op, parts, rootMarker, hookEvents);
         return;
       case OpKind.Hole:
         if (rootRange === null) {
@@ -534,7 +539,9 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     op: Extract<LinkedOp, { op: OpKind.Element }>,
     parts: string[],
     /** Stamped into this element's open tag — a row root's `q:row`. */
-    rootMarker: string | null = null
+    rootMarker: string | null = null,
+    /** The open tag ships as a record so the runtime can splice `useOn*` events into it. */
+    hookEvents = false
   ): void {
     const holes = op.children.filter((child) => child.op === OpKind.Hole && !isInlineHole(child));
     const hasDynamicProps = op.props.some(
@@ -544,26 +551,45 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     if (idVariable !== null) {
       pass.statements.push(`const ${idVariable} = ${pass.names.ctx}.nextId();`);
     }
-    pushMergedStatic(parts, `<${op.tag}`);
+    const openTag: string[] = hookEvents ? [] : parts;
+    pushMergedStatic(openTag, `<${op.tag}`);
     if (idVariable !== null) {
       this.imports.add(QwikWord.CreateSsrNodeId);
-      pushMergedStatic(parts, ` ${QwikAttr.Id}="`);
-      parts.push(`${QwikWord.CreateSsrNodeId}(${idVariable})`);
-      pushMergedStatic(parts, `"`);
+      pushMergedStatic(openTag, ` ${QwikAttr.Id}="`);
+      openTag.push(`${QwikWord.CreateSsrNodeId}(${idVariable})`);
+      pushMergedStatic(openTag, `"`);
     }
     if (rootMarker !== null) {
-      pushMergedStatic(parts, ` ${rootMarker}`);
+      pushMergedStatic(openTag, ` ${rootMarker}`);
     }
     for (const prop of op.props) {
+      if (hookEvents && prop.k === PropKind.Event) {
+        // An event-attr chunk lets the runtime join hook handlers for the same event.
+        if (isDynamicEvent(prop)) {
+          throw new UnsupportedError('a dynamic event on the root of a component with hooks');
+        }
+        pass.usedCtx = true;
+        openTag.push(
+          `${pass.names.ctx}.eventAttr(${JSON.stringify(prop.name)}, ${this.staticEventValue(pass, prop)})`
+        );
+        continue;
+      }
       this.prop(
         pass,
         prop,
-        parts,
+        openTag,
         idVariable,
         prop.k === PropKind.Dynamic && prop.name === 'class' ? op.styleScopedId : null
       );
     }
-    pushMergedStatic(parts, '>');
+    if (hookEvents) {
+      // The runtime splices hook events before the record's last part, so `>` stays separate.
+      openTag.push("'>'");
+      this.imports.add(QwikWord.CreateSsrOpenTag);
+      parts.push(`${QwikWord.CreateSsrOpenTag}(${openTag.join(', ')})`);
+    } else {
+      pushMergedStatic(openTag, '>');
+    }
 
     let textRangeCount = 0;
     for (const child of op.children) {
@@ -897,6 +923,19 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     return { qrl, ref, args };
   }
 
+  /** The handler or handler list of a static event prop, as one expression. */
+  private staticEventValue(pass: RenderPass, prop: Extract<Prop, { k: PropKind.Event }>): string {
+    const values = prop.handlers.map((handler) => {
+      if (handler.h !== HandlerKind.Value) {
+        throw new UnsupportedError('a non-QRL event handler');
+      }
+      return handler.value.v === ValueKind.Qrl
+        ? this.useQrl(pass, handler.value.use, false).ref
+        : inlineValueJs(this.module, handler.value);
+    });
+    return values.length === 1 ? values[0] : `[${values.join(', ')}]`;
+  }
+
   private prop(
     pass: RenderPass,
     prop: Prop,
@@ -991,17 +1030,10 @@ class SsrModuleEmitter implements QwikModuleEmitter {
           parts.push(`${QwikWord.CreateSsrMarkup}(${step})`);
           return;
         }
-        const values = prop.handlers.map((handler) => {
-          if (handler.h !== HandlerKind.Value) {
-            throw new UnsupportedError('a non-QRL event handler');
-          }
-          return handler.value.v === ValueKind.Qrl
-            ? this.useQrl(pass, handler.value.use, false).ref
-            : inlineValueJs(this.module, handler.value);
-        });
-        const eventValue = values.length === 1 ? values[0] : `[${values.join(', ')}]`;
         pass.usedCtx = true;
-        parts.push(`${pass.names.ctx}.eventAttrParts(${JSON.stringify(prop.name)}, ${eventValue})`);
+        parts.push(
+          `${pass.names.ctx}.eventAttrParts(${JSON.stringify(prop.name)}, ${this.staticEventValue(pass, prop)})`
+        );
         return;
       }
       default:

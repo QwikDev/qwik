@@ -11,7 +11,7 @@ const UI = { Button };
 describe(`${name}: dynamic tags`, () => {
   it('renders a string tag from props with attributes and projected children', async () => {
     const Card = component$((props: { as: string }) => {
-      const Tag = props.as;
+      const Tag = props.as as 'section';
       return (
         <Tag class="card">
           <Slot />

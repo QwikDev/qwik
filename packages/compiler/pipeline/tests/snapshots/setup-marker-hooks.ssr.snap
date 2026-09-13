@@ -26,6 +26,7 @@ import {
   useTaskQrl,
   useComputedQrl,
   createSsrNodeId,
+  createSsrOpenTag,
   escapeHTML,
   renderSsrTextNode,
   maybeThen,
@@ -86,9 +87,7 @@ export default (props, ctx) => {
       ctx.addRoot(total);
       const text0 = renderSsrTextNode(id0, null, total);
       return maybeThen(text0, (text0) => [
-        '<span q:id="',
-        createSsrNodeId(id0),
-        '">',
+        createSsrOpenTag('<span q:id="', createSsrNodeId(id0), '"', '>'),
         escapeHTML(text0),
         '</span>',
       ]);

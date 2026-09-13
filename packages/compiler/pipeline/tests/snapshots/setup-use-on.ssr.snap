@@ -1,0 +1,167 @@
+==INPUT==
+
+// src/component.tsx
+import { useOn, useSignal, $ } from '@qwik.dev/core';
+import { useClick } from './hooks';
+export default () => {
+  const count = useSignal(0);
+  useOn('click', $(() => count.value++), { capture: true });
+  return <button onClick$={() => count.value--}>{count.value}</button>;
+};
+
+// src/headless.tsx
+import { useOnDocument, $ } from '@qwik.dev/core';
+export default () => {
+  useOnDocument('scroll', $(() => 1));
+  return <>headless</>;
+};
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useSignal,
+  useOn,
+  _captures,
+  createSsrNodeId,
+  createSsrOpenTag,
+  escapeHTML,
+  renderSsrTextNode,
+  maybeThen,
+  _noopQrl,
+  $,
+} from '@qwik.dev/core';
+const component_qrl_segment_0_2fpowujm1ejve = () => {
+  const [count] = _captures;
+  return count.value++;
+};
+const q_component_qrl_segment_0_2fpowujm1ejve = /*#__PURE__*/ _noopQrl(
+  'component_qrl_segment_0_2fpowujm1ejve'
+);
+q_component_qrl_segment_0_2fpowujm1ejve.s(component_qrl_segment_0_2fpowujm1ejve);
+const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ _noopQrl(
+  'component_q_e_click_segment_1_2xwyfnber1kpg'
+);
+export default (props, ctx) => {
+  const count = useSignal(0);
+  useOn('click', q_component_qrl_segment_0_2fpowujm1ejve.w([count]), { capture: true });
+  const id0 = ctx.nextId();
+  ctx.addRoot(count);
+  const text0 = renderSsrTextNode(id0, null, count);
+  return maybeThen(text0, (text0) => [
+    createSsrOpenTag(
+      '<button q:id="',
+      createSsrNodeId(id0),
+      '"',
+      ctx.eventAttr('q-e:click', q_component_q_e_click_segment_1_2xwyfnber1kpg.w([count])),
+      '>'
+    ),
+    escapeHTML(text0),
+    '</button>',
+  ]);
+};
+============================= src/component.tsx_component_qrl_segment_0_2fpowujm1ejve.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_qrl_segment_0_2fpowujm1ejve = () => {
+  const [count] = _captures;
+  return count.value++;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_qrl_segment_0_2fpowujm1ejve",
+  "entry": null,
+  "displayName": "component_qrl_segment_0",
+  "hash": "2fpowujm1ejve",
+  "canonicalFilename": "component.tsx_component_qrl_segment_0_2fpowujm1ejve",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": true,
+  "loc": [
+    160,
+    182
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
+  const [count] = _captures;
+  return count.value--;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_1_2xwyfnber1kpg",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_1",
+  "hash": "2xwyfnber1kpg",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    221,
+    251
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/headless.tsx ==
+
+import { useOnDocument, _noopQrl, $ } from '@qwik.dev/core';
+const headless_qrl_segment_0_1g1rt7jroxou2 = () => {
+  return 1;
+};
+const q_headless_qrl_segment_0_1g1rt7jroxou2 = /*#__PURE__*/ _noopQrl(
+  'headless_qrl_segment_0_1g1rt7jroxou2'
+);
+q_headless_qrl_segment_0_1g1rt7jroxou2.s(headless_qrl_segment_0_1g1rt7jroxou2);
+export default (props, ctx) => {
+  useOnDocument('scroll', q_headless_qrl_segment_0_1g1rt7jroxou2);
+  return 'headless';
+};
+============================= src/headless.tsx_headless_qrl_segment_0_1g1rt7jroxou2.js (ENTRY POINT)==
+
+export const headless_qrl_segment_0_1g1rt7jroxou2 = () => {
+  return 1;
+};
+/*
+{
+  "origin": "headless.tsx",
+  "name": "headless_qrl_segment_0_1g1rt7jroxou2",
+  "entry": null,
+  "displayName": "headless_qrl_segment_0",
+  "hash": "1g1rt7jroxou2",
+  "canonicalFilename": "headless.tsx_headless_qrl_segment_0_1g1rt7jroxou2",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "$",
+  "captures": false,
+  "loc": [
+    100,
+    110
+  ],
+  "paramNames": []
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

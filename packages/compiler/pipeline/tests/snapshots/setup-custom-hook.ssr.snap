@@ -17,6 +17,7 @@ import {
   useSignal,
   _captures,
   createSsrNodeId,
+  createSsrOpenTag,
   escapeHTML,
   renderSsrTextExpression,
   maybeThen,
@@ -68,9 +69,7 @@ export default (props, ctx) => {
         q_component_text_segment_2_1fh117dstcoge
       );
       return maybeThen(text0, (text0) => [
-        '<span q:id="',
-        createSsrNodeId(id0),
-        '">',
+        createSsrOpenTag('<span q:id="', createSsrNodeId(id0), '"', '>'),
         escapeHTML(text0),
         '</span>',
       ]);

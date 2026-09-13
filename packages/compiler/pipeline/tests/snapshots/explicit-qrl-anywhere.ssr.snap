@@ -62,6 +62,7 @@ import {
   createSsrNodeId,
   renderSsrAttrExpression,
   escapeHTML,
+  createSsrOpenTag,
   renderSsrTextNode,
   maybeThen,
 } from '@qwik.dev/core';
@@ -84,12 +85,14 @@ export default (props, ctx) => {
   const text0 = renderSsrTextNode(id0, null, count);
   return maybeThen(attr0, (attr0) =>
     maybeThen(text0, (text0) => [
-      '<button q:id="',
-      createSsrNodeId(id0),
-      '"',
-      ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_4_2xwyeh830jenv.w([count])),
-      attr0 === null ? '' : ' data-n' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
-      '>',
+      createSsrOpenTag(
+        '<button q:id="',
+        createSsrNodeId(id0),
+        '"',
+        ctx.eventAttr('q-e:click', q_component_q_e_click_segment_4_2xwyeh830jenv.w([count])),
+        attr0 === null ? '' : ' data-n' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
+        '>'
+      ),
       escapeHTML(text0),
       '</button>',
     ])

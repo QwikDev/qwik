@@ -1343,6 +1343,44 @@ export default () => {
     expect(code).toMatch(/const wrapped = \[1\]\.map\(\(step\) => q_\w+\.w\(\[count, step\]\)\)/);
   });
 
+  test('should merge setup useOn events into the root element on the server', async () => {
+    const output = await testInputs(mode, 'setup-use-on', [
+      {
+        code: `import { useOn, useSignal, $ } from '@qwik.dev/core';
+import { useClick } from './hooks';
+export default () => {
+  const count = useSignal(0);
+  useOn('click', $(() => count.value++), { capture: true });
+  return <button onClick$={() => count.value--}>{count.value}</button>;
+};
+`,
+      },
+      {
+        path: 'src/headless.tsx',
+        code: `import { useOnDocument, $ } from '@qwik.dev/core';
+export default () => {
+  useOnDocument('scroll', $(() => 1));
+  return <>headless</>;
+};
+`,
+      },
+    ]);
+    expect(output.diagnostics).toEqual([]);
+    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    const headless = output.modules.find((module) => module.path === 'src/headless.tsx')!.code;
+    if (mode === 'ssr') {
+      // The open tag is a record so the runtime joins the hook's registrations with the JSX handler.
+      expect(main).toMatch(
+        /createSsrOpenTag\(.*ctx\.eventAttr\("q-e:click", q_\w+\.w\(\[count\]\)\)/s
+      );
+      expect(main).not.toContain('eventAttrParts(');
+    } else {
+      expect(main).not.toContain('createSsrOpenTag');
+    }
+    // An element-less root keeps the runtime's script carrier.
+    expect(headless).not.toContain('createSsrOpenTag');
+  });
+
   test('should call custom $ hooks through their twins wherever they appear', async () => {
     const output = await testInput(mode, 'marker-qrl-anywhere', {
       code: `import { useSignal } from '@qwik.dev/core';

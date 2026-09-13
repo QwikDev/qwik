@@ -289,24 +289,13 @@ Share prop classification; deliver the following in small increments.
 - [ ] Inline handler arrays: extraction, captures, ordering and ignored empty entries.
 - [ ] Handler arrays forwarded through components and spreads.
 - [ ] `sync$` emission and synchronous-handler registration.
-- [ ] Merge JSX listeners with `useOn*` without losing modifiers or duplicating registration.
-
-Verified by `events.unit.ts`, the `event-scopes-modifiers` snapshots and `use-on.spec.tsx` in
-CSR. Its resume run still fails on `useOn('click', $(() => …))`: an explicit `$()` as a call
-argument is not extracted yet, which is the module-wide `$()` item of group 6.
-
-`use-on.spec.tsx` in resume now compiles its `$()` arguments; its remaining failures are the
-element-scoped `useOn('click', …)` cases: the runtime attaches those to the first element only
-when the output is an SSR record chunk with an open tag, and the pipeline emits flat strings, so
-the events fall to the headless carrier and are dropped. That needs a `useOn` attribute slot in
-the first element's open tag when the component's setup may register events (group 12).
-
-### Bindings and refs
-
-- [ ] `bind:value` and `bind:checked`, including forwarding through props and spreads.
-- [ ] Merge generated binding listeners with authored handlers.
-- [ ] Signal, callback, forwarded and conditional refs.
-- [ ] SSR references, resume and ref/task ordering.
+- [x] Merge JSX listeners with `useOn*` without losing modifiers or duplicating registration.
+      The linker computes a `registersEvents` program fact: true for `useOn*`, a visible task or a
+      linked hook body that registers; false for core state hooks and plain calls; unknown when a
+      hook's body is not linked (custom hooks today, since hook bodies are not analysed yet). For
+      true or unknown, SSR emits the first root element's open tag as a `createSsrOpenTag` record
+      with `ctx.eventAttr` chunks, the shape the runtime already splices `useOn*` registrations
+      into. Known-false roots stay flat; element-less roots keep the runtime script carrier.
 
 ## 9. HTML, namespaces and template correctness
 
@@ -435,6 +424,14 @@ code size and runtime cost. The previous implementation is not the accepted defa
 
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
+
+- 2026-09-13: `useOn*` on the server: the linker's `registersEvents` fact decides per program
+  whether events may be registered, following hook declarations when they are linked; SSR emits
+  such a root element as an open-tag record with event-attr chunks, the shape the runtime already
+  splices `useOn*` registrations into. No runtime change. Verification: 1065 pipeline tests (16
+  existing TODOs), the `setup-use-on` snapshots, six setup snapshots gaining the record, and
+  `use-on.spec.tsx` 21/21 in resume (was 10 failed). Core spec corpus: resume 6 → 5 failed
+  files, CSR 6 unchanged.
 
 - 2026-09-13: Custom markers anywhere: a payload QRL entry may carry a `marker` with the callee
   range and target; the linker resolves its twins like setup calls, and `withMarkerEmitter`

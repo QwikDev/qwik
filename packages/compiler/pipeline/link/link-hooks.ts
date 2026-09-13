@@ -1,15 +1,21 @@
 import {
   CallTargetKind,
+  DeclTable,
   ExportKind,
   ExportTargetKind,
+  HookBodyKind,
   HookTwinKind,
   SetupKind,
+  UnknownWhy,
   type CallTarget,
+  type DeclRef,
   type HookTwin,
   type LinkedModule,
+  type Maybe,
+  type ModulePlan,
   type Setup,
 } from '../schema';
-import { QRL_TWIN_SUFFIX } from '../words';
+import { QRL_TWIN_SUFFIX, QWIK_CORE_IMPORT, QwikWord } from '../words';
 import type { LinkDiagnostic } from './link-plans';
 
 type MarkerTarget = Extract<CallTarget, { kind: CallTargetKind.Marker }>;
@@ -89,4 +95,96 @@ export function linkHookTwins(module: LinkedModule, diagnostics: LinkDiagnostic[
     }),
     setups: payload.setups?.map((nested) => ({ ...nested, setup: linkSetup(nested.setup) })),
   }));
+}
+
+const useOnHooks: readonly string[] = [
+  QwikWord.UseOn,
+  QwikWord.UseOnDocument,
+  QwikWord.UseOnWindow,
+];
+
+/**
+ * Whether a setup registers `useOn*` events, following custom hooks into their linked bodies. A
+ * callee the link cannot see leaves the answer unknown, so the emitter keeps the splice slot.
+ */
+export function setupRegistersEvents(
+  plans: readonly ModulePlan[],
+  resolveBinding: (module: number, binding: number) => Maybe<DeclRef>
+): (module: number, setup: readonly Setup[]) => Maybe<boolean> {
+  const isCoreBinding = (module: number, binding: number): boolean =>
+    plans[module].imports.some(
+      (entry) =>
+        entry.binding === binding && plans[module].edges[entry.edge].specifier === QWIK_CORE_IMPORT
+    );
+  const visiting = new Set<string>();
+  const registers = (module: number, setup: readonly Setup[]): Maybe<boolean> => {
+    let known = true;
+    for (const entry of flatSetup(plans[module], setup)) {
+      if (entry.s !== SetupKind.Call) {
+        continue;
+      }
+      if (entry.visibleTaskEvent !== undefined) {
+        return { ok: true, value: true };
+      }
+      const target = entry.target;
+      if (target.kind === CallTargetKind.Core) {
+        continue;
+      }
+      if (target.kind === CallTargetKind.Value) {
+        known = false;
+        continue;
+      }
+      if (target.kind === CallTargetKind.Binding) {
+        const name = plans[module].bindings[target.binding].name;
+        if (isCoreBinding(module, target.binding)) {
+          if (useOnHooks.includes(name)) {
+            return { ok: true, value: true };
+          }
+          continue;
+        }
+        // Only hooks by convention may register events; a plain call cannot.
+        if (!/^use/.test(name)) {
+          continue;
+        }
+      }
+      const declaration = resolveBinding(module, target.binding);
+      if (!declaration.ok || declaration.value.table !== DeclTable.Hooks) {
+        known = false;
+        continue;
+      }
+      const { module: hookModule, index } = declaration.value;
+      const hook = plans[hookModule].hooks[index];
+      const key = `${hookModule}:${index}`;
+      if (hook.body.kind !== HookBodyKind.Setup || visiting.has(key)) {
+        known = false;
+        continue;
+      }
+      visiting.add(key);
+      const nested = registers(hookModule, hook.body.setup);
+      visiting.delete(key);
+      if (nested.ok && nested.value) {
+        return nested;
+      }
+      known &&= nested.ok;
+    }
+    return known ? { ok: true, value: false } : unknownFact;
+  };
+  return registers;
+}
+
+const unknownFact: Maybe<boolean> = {
+  ok: false,
+  reason: { why: UnknownWhy.Opaque, code: 'unlinked-hook-body' },
+};
+
+/** Setup entries including those nested in authored statements. */
+function flatSetup(plan: ModulePlan, setup: readonly Setup[]): Setup[] {
+  return setup.flatMap((entry) => [
+    entry,
+    ...(entry.s === SetupKind.Js
+      ? (plan.payloads[entry.payload].setups ?? []).flatMap((nested) =>
+          flatSetup(plan, nested.setup)
+        )
+      : []),
+  ]);
 }

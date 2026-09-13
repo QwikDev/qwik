@@ -111,6 +111,8 @@ export interface LinkedProgram extends Omit<Program, 'body'> {
     waitForTasks: Maybe<boolean>;
     providesContextEffective: Maybe<boolean>;
     runtimeScope: Maybe<boolean>;
+    /** Whether the setup registers `useOn*` events; unknown when a callee's body is not linked. */
+    registersEvents: Maybe<boolean>;
   };
 }
 

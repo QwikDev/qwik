@@ -21,6 +21,7 @@ import {
   useTaskQrl,
   useComputedQrl,
   createSsrNodeId,
+  createSsrOpenTag,
   escapeHTML,
   renderSsrTextNode,
   maybeThen,
@@ -51,11 +52,13 @@ export default (props, ctx) => {
       ctx.addRoot(total);
       const text0 = renderSsrTextNode(id0, null, total);
       return maybeThen(text0, (text0) => [
-        '<button q:id="',
-        createSsrNodeId(id0),
-        '"',
-        ctx.eventAttrParts('q-e:click', read),
-        '>',
+        createSsrOpenTag(
+          '<button q:id="',
+          createSsrNodeId(id0),
+          '"',
+          ctx.eventAttr('q-e:click', read),
+          '>'
+        ),
         escapeHTML(text0),
         '</button>',
       ]);

@@ -45,6 +45,7 @@ export const enum QwikWord {
   // ssr
   CreateSsrNodeId = 'createSsrNodeId',
   CreateSsrMarkup = 'createSsrMarkup',
+  CreateSsrOpenTag = 'createSsrOpenTag',
   RenderSsrAttr = 'renderSsrAttr',
   RenderSsrAttrExpression = 'renderSsrAttrExpression',
   SerializeAttrExpressionValue = 'serializeAttrExpressionValue',
@@ -60,6 +61,7 @@ export const enum QwikWord {
   MaybeThen = 'maybeThen',
   UseOn = 'useOn',
   UseOnDocument = 'useOnDocument',
+  UseOnWindow = 'useOnWindow',
   CreateVisibleTaskHandlerQrl = 'createVisibleTaskHandlerQrl',
   // shared
   CreateComponent = 'createComponent',

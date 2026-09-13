@@ -278,7 +278,10 @@ transformation:
 - [x] `useStyles$('...')` and `useStylesScoped$(css)` lower to the `Style` op and call
       `useStyles`/`useStylesScoped` with a compile-time id in both environments; object-form
       `useSerializer$` arguments ship as factory QRLs with their captures.
-- [ ] Non-event prop boundaries such as `fallback$`, `render$` and `then$`.
+- [x] Non-event prop boundaries such as `fallback$`, `render$` and `then$`. Any `$` prop of a
+      component lowers like a `$` argument and is passed as a QRL under its authored key, on the
+      direct and the proxied props path alike; a non-event `$` attribute on an element is
+      diagnosed, since no runtime consumer exists.
 - [x] Correct captures and imports at every nested boundary. A QRL nested in another callback
       captures that callback's parameters and locals (`const v = track(...); $(() => v)`), in
       components and in custom hook bodies alike; module bindings keep importing.
@@ -463,6 +466,12 @@ code size and runtime cost. The previous implementation is not the accepted defa
 
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
+
+- 2026-09-13: `$` component props: `lowerComponentPropValue` routes a `$`-suffixed prop through
+  `lowerQrlArgument`, sharing the prop boundary descriptor with JSX factory props; the proxied
+  props path does the same per part. Verification: 1081 pipeline tests (16 existing TODOs), the
+  new `component-qrl-props` snapshots, an element refusal unit test, and the core corpus in CSR
+  and resume with only the known group 7/10/13 failures.
 
 - 2026-09-13: Value QRL arguments: `lowerQrlArgument` is the single entry for a `$` argument,
   used by markers anywhere and by setup hook calls; a non-function argument becomes the same

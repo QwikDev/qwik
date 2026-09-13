@@ -37,7 +37,7 @@ import { normalizeJsxText } from './ast/jsx-text';
 import { normalizeAttributeName, VOID_ELEMENTS } from '../html';
 import { InvalidModuleError, UnsupportedError } from '../errors';
 import { eventModifierName, eventScopeName, passiveEventNames, PASSIVE_PREFIX } from './events';
-import { lowerEventAttribute } from './lower-event';
+import { lowerEventAttribute, qrlAttributeExpression } from './lower-event';
 import { lowerText } from './lower-hole';
 import { lowerBranch, type BranchArm } from './lower-branch';
 import { identifierName, jsxAttributeName, unwrapExpression } from './ast/utils';
@@ -61,8 +61,8 @@ import {
 } from './ast/capture-analysis';
 import { LocalKind } from './locals';
 import { ValueIrKind, type ValueIR } from '../../src/expr-ir';
-import { QwikDirective, SegmentContext } from '../words';
-import { lowerFunctionQrl } from './lower-function';
+import { QRL_SUFFIX, QwikDirective, SegmentContext } from '../words';
+import { lowerFunctionQrl, lowerQrlArgument, type QrlArgumentBoundary } from './lower-function';
 
 /**
  * Lowers a JSX render tree to structural ops. Text stays RAW in the plan — each generator folds
@@ -290,6 +290,15 @@ function lowerComponentPropsProxy(
       }
       expressions.push(expression);
       parts.push({ kind: PropsPartKind.Event, name, use: handler.value.use });
+      continue;
+    }
+    if (name.endsWith(QRL_SUFFIX)) {
+      const expression = qrlAttributeExpression(attribute);
+      if (expression === null) {
+        continue;
+      }
+      expressions.push(expression);
+      parts.push({ kind: PropsPartKind.Event, name, use: lowerQrlProp(expression, ctx, name) });
       continue;
     }
     const value = attribute.value;
@@ -898,26 +907,45 @@ function isKeyAttribute(attribute: JSXAttributeItem): boolean {
   );
 }
 
-function lowerPropFactory(expression: Expression, ctx: LowerContext, name: string) {
-  const factory = ctx.jsx.factory(expression);
-  if (factory === null) {
-    return null;
-  }
-  return lowerFunctionQrl(factory.fn, ctx, {
+function propQrlBoundary(
+  expression: Expression,
+  name: string,
+  subject: string,
+  role: string
+): QrlArgumentBoundary {
+  return {
     nameCtx: name,
-    subject: 'a JSX prop factory',
+    subject,
     ctxName: name,
-    boundary: { kind: BoundaryKind.Implicit, role: 'jsx-factory' },
+    boundary: { kind: BoundaryKind.Implicit, role },
     origin: {
       range: [expression.start, expression.end],
       calleeRange: null,
       argumentRanges: [],
     },
-  });
+  };
+}
+
+function lowerPropFactory(expression: Expression, ctx: LowerContext, name: string) {
+  const factory = ctx.jsx.factory(expression);
+  return factory === null
+    ? null
+    : lowerFunctionQrl(
+        factory.fn,
+        ctx,
+        propQrlBoundary(expression, name, 'a JSX prop factory', 'jsx-factory')
+      );
+}
+
+/** Any `$` prop of a component is a QRL boundary under its authored key. */
+function lowerQrlProp(expression: Expression, ctx: LowerContext, name: string) {
+  return lowerQrlArgument(expression, ctx, propQrlBoundary(expression, name, 'a QRL prop', 'prop'));
 }
 
 function lowerComponentPropValue(expression: Expression, ctx: LowerContext, name: string) {
-  const use = lowerPropFactory(expression, ctx, name);
+  const use = name.endsWith(QRL_SUFFIX)
+    ? lowerQrlProp(expression, ctx, name)
+    : lowerPropFactory(expression, ctx, name);
   if (use !== null) {
     return { v: ValueKind.Qrl as const, use };
   }
@@ -993,6 +1021,9 @@ function lowerAttribute(
     }
     const event = lowered.event;
     return target === 'component' ? { ...event, name: authored } : event;
+  }
+  if (target !== 'component' && authored.endsWith(QRL_SUFFIX)) {
+    throw new UnsupportedError('a non-event $ attribute on an element');
   }
   const name =
     target === 'component'

@@ -1492,6 +1492,37 @@ export default component$(() => {
     expect(code).not.toMatch(/import \{[^}]*\s\$[,\s][^}]*\} from "@qwik.dev\/core"/);
   });
 
+  test('should ship $-suffixed component props as QRLs', async () => {
+    const output = await testInput(mode, 'component-qrl-props', {
+      code: `import { component$, useSignal } from '@qwik.dev/core';
+import { Child } from './child';
+const Fallback = () => <p>loading</p>;
+export default component$(() => {
+  const count = useSignal(1);
+  const pick = (v) => v.x;
+  return (
+    <Child
+      then$={pick}
+      fallback$={Fallback}
+      render$={(v) => <b>{v + count.value}</b>}
+      data$={{ a: count.value }}
+    />
+  );
+});
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const code = output.modules.map((module) => module.code).join('\n');
+    // Every `$` prop is a QRL under its authored key, never a computed prop.
+    expect(code).not.toContain('readExpression(');
+    for (const name of ['then$', 'fallback$', 'render$', 'data$']) {
+      expect(code).toMatch(new RegExp(`"${name.replace('$', '\\$')}": q_`));
+    }
+    expect(code).toContain('return pick');
+    expect(code).toContain('return Fallback');
+    expect(code).toContain('return { a: count.value }');
+  });
+
   test('should lower custom hook bodies and link their event facts', async () => {
     const output = await testInputs(mode, 'custom-hook-bodies', [
       {

@@ -1,0 +1,334 @@
+==INPUT==
+
+import { component$, useSignal } from '@qwik.dev/core';
+import { Child } from './child';
+const Fallback = () => <p>loading</p>;
+export default component$(() => {
+  const count = useSignal(1);
+  const pick = (v) => v.x;
+  return (
+    <Child
+      then$={pick}
+      fallback$={Fallback}
+      render$={(v) => <b>{v + count.value}</b>}
+      data$={{ a: count.value }}
+    />
+  );
+});
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useSignal,
+  createComponent,
+  _captures,
+  _noopQrl,
+  createSsrNodeId,
+  escapeHTML,
+  renderSsrTextExpression,
+  maybeThen,
+} from '@qwik.dev/core';
+import { Child } from './child';
+const component_thenqrl_segment_0_3jr994h4j8ef7 = () => {
+  const [pick] = _captures;
+  return pick;
+};
+const q_component_thenqrl_segment_0_3jr994h4j8ef7 = /*#__PURE__*/ _noopQrl(
+  'component_thenqrl_segment_0_3jr994h4j8ef7'
+);
+q_component_thenqrl_segment_0_3jr994h4j8ef7.s(component_thenqrl_segment_0_3jr994h4j8ef7);
+const component_fallbackqrl_segment_1_3grqawftcqexb = () => {
+  return Fallback;
+};
+const q_component_fallbackqrl_segment_1_3grqawftcqexb = /*#__PURE__*/ _noopQrl(
+  'component_fallbackqrl_segment_1_3grqawftcqexb'
+);
+q_component_fallbackqrl_segment_1_3grqawftcqexb.s(component_fallbackqrl_segment_1_3grqawftcqexb);
+const component_renderqrl_segment_4_5bp3q9cb45d6 = (v) => {
+  const [count] = _captures;
+  return q_component_jsx_segment_2_38vniss1y6gb4.w([v, count]);
+};
+const q_component_renderqrl_segment_4_5bp3q9cb45d6 = /*#__PURE__*/ _noopQrl(
+  'component_renderqrl_segment_4_5bp3q9cb45d6'
+);
+q_component_renderqrl_segment_4_5bp3q9cb45d6.s(component_renderqrl_segment_4_5bp3q9cb45d6);
+const component_dataqrl_segment_5_2mjc43lmu203l = () => {
+  const [count] = _captures;
+  return { a: count.value };
+};
+const q_component_dataqrl_segment_5_2mjc43lmu203l = /*#__PURE__*/ _noopQrl(
+  'component_dataqrl_segment_5_2mjc43lmu203l'
+);
+q_component_dataqrl_segment_5_2mjc43lmu203l.s(component_dataqrl_segment_5_2mjc43lmu203l);
+const component_jsx_segment_2_38vniss1y6gb4 = (ctx) => {
+  const [v, count] = _captures;
+  const id0 = ctx.nextId();
+  ctx.addRoot(v);
+  ctx.addRoot(count);
+  const text0 = renderSsrTextExpression(
+    id0,
+    null,
+    [v, count],
+    q_component_text_segment_3_1fh11lewq6qgx
+  );
+  return maybeThen(text0, (text0) => [
+    '<b q:id="',
+    createSsrNodeId(id0),
+    '">',
+    escapeHTML(text0),
+    '</b>',
+  ]);
+};
+const q_component_jsx_segment_2_38vniss1y6gb4 = /*#__PURE__*/ _noopQrl(
+  'component_jsx_segment_2_38vniss1y6gb4'
+);
+q_component_jsx_segment_2_38vniss1y6gb4.s(component_jsx_segment_2_38vniss1y6gb4);
+const component_text_segment_3_1fh11lewq6qgx = (v, count) => {
+  return v + count.value;
+};
+const q_component_text_segment_3_1fh11lewq6qgx = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_3_1fh11lewq6qgx'
+);
+q_component_text_segment_3_1fh11lewq6qgx.s(component_text_segment_3_1fh11lewq6qgx);
+const Fallback = (props, ctx) => {
+  return '<p>loading</p>';
+};
+export default (props, ctx) => {
+  const count = useSignal(1);
+  const pick = (v) => v.x;
+  ctx.addRoot(pick);
+  ctx.addRoot(count);
+  const component0 = createComponent(
+    Child,
+    {
+      then$: q_component_thenqrl_segment_0_3jr994h4j8ef7.w([pick]),
+      fallback$: q_component_fallbackqrl_segment_1_3grqawftcqexb,
+      render$: q_component_renderqrl_segment_4_5bp3q9cb45d6.w([count]),
+      data$: q_component_dataqrl_segment_5_2mjc43lmu203l.w([count]),
+    },
+    ctx
+  );
+  return component0;
+};
+
+export { Fallback as __qwik_Fallback };
+============================= src/component.tsx_component_thenqrl_segment_0_3jr994h4j8ef7.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_thenqrl_segment_0_3jr994h4j8ef7 = () => {
+  const [pick] = _captures;
+  return pick;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_thenqrl_segment_0_3jr994h4j8ef7",
+  "entry": null,
+  "displayName": "component_thenqrl_segment_0",
+  "hash": "3jr994h4j8ef7",
+  "canonicalFilename": "component.tsx_component_thenqrl_segment_0_3jr994h4j8ef7",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "then$",
+  "captures": true,
+  "loc": [
+    254,
+    258
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "pick"
+  ]
+}
+*/
+============================= src/component.tsx_component_fallbackqrl_segment_1_3grqawftcqexb.js (ENTRY POINT)==
+
+import { __qwik_Fallback as Fallback } from './component.tsx';
+
+export const component_fallbackqrl_segment_1_3grqawftcqexb = () => {
+  return Fallback;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_fallbackqrl_segment_1_3grqawftcqexb",
+  "entry": null,
+  "displayName": "component_fallbackqrl_segment_1",
+  "hash": "3grqawftcqexb",
+  "canonicalFilename": "component.tsx_component_fallbackqrl_segment_1_3grqawftcqexb",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "fallback$",
+  "captures": false,
+  "loc": [
+    277,
+    285
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_jsx_segment_2_38vniss1y6gb4.js (ENTRY POINT)==
+
+import {
+  _noopQrl,
+  _captures,
+  createSsrNodeId,
+  escapeHTML,
+  renderSsrTextExpression,
+  maybeThen,
+} from '@qwik.dev/core';
+import { component_text_segment_3_1fh11lewq6qgx } from './component.tsx_component_text_segment_3_1fh11lewq6qgx';
+const q_component_text_segment_3_1fh11lewq6qgx = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_3_1fh11lewq6qgx'
+);
+q_component_text_segment_3_1fh11lewq6qgx.s(component_text_segment_3_1fh11lewq6qgx);
+
+export const component_jsx_segment_2_38vniss1y6gb4 = (ctx) => {
+  const [v, count] = _captures;
+  const id0 = ctx.nextId();
+  ctx.addRoot(v);
+  ctx.addRoot(count);
+  const text0 = renderSsrTextExpression(
+    id0,
+    null,
+    [v, count],
+    q_component_text_segment_3_1fh11lewq6qgx
+  );
+  return maybeThen(text0, (text0) => [
+    '<b q:id="',
+    createSsrNodeId(id0),
+    '">',
+    escapeHTML(text0),
+    '</b>',
+  ]);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_jsx_segment_2_38vniss1y6gb4",
+  "entry": null,
+  "displayName": "component_jsx_segment_2",
+  "hash": "38vniss1y6gb4",
+  "canonicalFilename": "component.tsx_component_jsx_segment_2_38vniss1y6gb4",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "jsx",
+  "captures": true,
+  "loc": [
+    309,
+    333
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "v",
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_text_segment_3_1fh11lewq6qgx.js (ENTRY POINT)==
+
+export const component_text_segment_3_1fh11lewq6qgx = (v, count) => {
+  return v + count.value;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_3_1fh11lewq6qgx",
+  "entry": null,
+  "displayName": "component_text_segment_3",
+  "hash": "1fh11lewq6qgx",
+  "canonicalFilename": "component.tsx_component_text_segment_3_1fh11lewq6qgx",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    313,
+    328
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "v",
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_renderqrl_segment_4_5bp3q9cb45d6.js (ENTRY POINT)==
+
+import { _noopQrl, _captures } from '@qwik.dev/core';
+import { component_jsx_segment_2_38vniss1y6gb4 } from './component.tsx_component_jsx_segment_2_38vniss1y6gb4';
+const q_component_jsx_segment_2_38vniss1y6gb4 = /*#__PURE__*/ _noopQrl(
+  'component_jsx_segment_2_38vniss1y6gb4'
+);
+q_component_jsx_segment_2_38vniss1y6gb4.s(component_jsx_segment_2_38vniss1y6gb4);
+
+export const component_renderqrl_segment_4_5bp3q9cb45d6 = (v) => {
+  const [count] = _captures;
+  return q_component_jsx_segment_2_38vniss1y6gb4.w([v, count]);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_renderqrl_segment_4_5bp3q9cb45d6",
+  "entry": null,
+  "displayName": "component_renderqrl_segment_4",
+  "hash": "5bp3q9cb45d6",
+  "canonicalFilename": "component.tsx_component_renderqrl_segment_4_5bp3q9cb45d6",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "render$",
+  "captures": true,
+  "loc": [
+    293,
+    333
+  ],
+  "paramNames": [
+    "v"
+  ],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_dataqrl_segment_5_2mjc43lmu203l.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_dataqrl_segment_5_2mjc43lmu203l = () => {
+  const [count] = _captures;
+  return { a: count.value };
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_dataqrl_segment_5_2mjc43lmu203l",
+  "entry": null,
+  "displayName": "component_dataqrl_segment_5",
+  "hash": "2mjc43lmu203l",
+  "canonicalFilename": "component.tsx_component_dataqrl_segment_5_2mjc43lmu203l",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "data$",
+  "captures": true,
+  "loc": [
+    348,
+    366
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

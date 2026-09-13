@@ -114,6 +114,18 @@ export default () => { const onSave = ${initializer}; return <button onClick$={o
   }
 );
 
+test('a non-event $ attribute on an element fails closed', async () => {
+  await expect(
+    analyseModule(
+      {
+        path: 'component.tsx',
+        code: `export default () => <div then$={() => 1} />;`,
+      },
+      {}
+    )
+  ).rejects.toThrow(UnsupportedError);
+});
+
 test('a shadowed marker remains an ordinary local call', async () => {
   const plan = await analyseModule(
     {

@@ -14,7 +14,7 @@ export function lowerEventAttribute(
   authored: string,
   scope: string
 ): { event: Extract<Prop, { k: PropKind.Event }>; expression: Expression } | null {
-  const expression = eventHandlerExpression(attribute);
+  const expression = qrlAttributeExpression(attribute);
   if (expression === null) {
     return null;
   }
@@ -80,13 +80,14 @@ function isEmptyLiteral(expression: Expression): boolean {
   );
 }
 
-function eventHandlerExpression(attribute: JSXAttribute): Expression | null {
+/** The expression of a `$` attribute; null when it has no value. */
+export function qrlAttributeExpression(attribute: JSXAttribute): Expression | null {
   const value = attribute.value;
   if (value === null) {
     return null;
   }
   if (value.type !== 'JSXExpressionContainer') {
-    throw new UnsupportedError('an event attribute without a handler expression');
+    throw new UnsupportedError('a $ attribute without an expression');
   }
   const expression = value.expression;
   if (expression.type === 'JSXEmptyExpression') {

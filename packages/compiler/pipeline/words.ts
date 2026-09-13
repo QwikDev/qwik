@@ -65,6 +65,7 @@ export const enum QwikWord {
   CreateVisibleTaskHandlerQrl = 'createVisibleTaskHandlerQrl',
   // shared
   CreateComponent = 'createComponent',
+  ImplicitFirstArg = 'implicit$FirstArg',
   CreateDynamicTag = 'createDynamicTag',
   RenderSsrDynamicTag = 'renderSsrDynamicTag',
   CreatePropsProxy = 'createPropsProxy',

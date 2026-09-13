@@ -155,6 +155,11 @@ export const enum HookBodyKind {
 export interface HookDecl {
   binding: LocalId;
   name: string;
+  /** The authored body, replaced by the compiled setup at assembly. */
+  range: Range;
+  /** A `function` declaration is hoisted, so its QRL constants must precede the module body. */
+  declarationKind: DeclarationKind;
+  bodyKind: FnBodyKind;
   parameters: { binding: LocalId; pattern: PayloadId | null; hasDefault: boolean }[];
   async: boolean;
   body:
@@ -269,6 +274,8 @@ export interface ModulePlan {
 export const enum AssemblyKind {
   /** Splice a declared QRL's emission over its authored declaration range. */
   Splice = 'splice',
+  /** Replace a custom hook's body with its compiled setup. */
+  Hook = 'hook',
   Payload = 'payload',
   QrlBoundary = 'qrl-boundary',
   DeclarationStrip = 'declaration-strip',
@@ -299,6 +306,7 @@ export const enum StrippedExportForm {
 
 export type AssemblyIntent =
   | { a: AssemblyKind.Payload; payload: PayloadId }
+  | { a: AssemblyKind.Hook; hook: number }
   | {
       a: AssemblyKind.Splice;
       qrl: number;

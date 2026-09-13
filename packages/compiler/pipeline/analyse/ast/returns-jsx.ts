@@ -1,4 +1,12 @@
-import type { JSXElement, JSXFragment, Node, Program, Statement } from 'oxc-parser';
+import type {
+  ArrowFunctionExpression,
+  Function as FunctionNode,
+  JSXElement,
+  JSXFragment,
+  Node,
+  Program,
+  Statement,
+} from 'oxc-parser';
 import { isNode, type WalkableNode } from './ast-types';
 import { identifierName, isFunctionLike, unwrapExpression } from './utils';
 import type { JsxAnalysis } from './jsx-analysis';
@@ -66,18 +74,63 @@ export function findComponentCandidates(
       statement
     );
   };
+  forEachModuleDeclaration(program, fromDeclaration);
+  return functions;
+}
+
+/** Visits each top-level declaration, looking through `export`. */
+export function forEachModuleDeclaration(
+  program: Pick<Program, 'body'>,
+  visit: (declaration: Node, statement: Statement) => void
+): void {
   for (const statement of program.body) {
     if (
       (statement.type === 'ExportNamedDeclaration' ||
         statement.type === 'ExportDefaultDeclaration') &&
       isNode(statement.declaration)
     ) {
-      fromDeclaration(statement.declaration, statement);
+      visit(statement.declaration, statement);
     } else {
-      fromDeclaration(statement, statement);
+      visit(statement, statement);
     }
   }
-  return functions;
+}
+
+export interface HookCandidate {
+  fn: ArrowFunctionExpression | FunctionNode;
+  name: string;
+  binding: LocalId;
+}
+
+/** Module-level `use*` functions: custom hooks by convention. */
+export function findHookCandidates(
+  program: Pick<Program, 'body'>,
+  bindings: BindingGraph
+): HookCandidate[] {
+  const hooks: HookCandidate[] = [];
+  const add = (fn: Node | null, id: Node | null): void => {
+    const name = id === null ? null : identifierName(id);
+    const binding = id === null ? null : bindings.declaration(id);
+    if (
+      fn !== null &&
+      isFunctionLike(fn) &&
+      name !== null &&
+      binding !== null &&
+      /^use[A-Z]/.test(name)
+    ) {
+      hooks.push({ fn, name, binding });
+    }
+  };
+  forEachModuleDeclaration(program, (declaration) => {
+    if (declaration.type === 'VariableDeclaration') {
+      for (const declarator of declaration.declarations) {
+        add(declarator.init === null ? null : unwrapExpression(declarator.init), declarator.id);
+      }
+    } else if (declaration.type === 'FunctionDeclaration') {
+      add(declaration, declaration.id);
+    }
+  });
+  return hooks;
 }
 
 /**

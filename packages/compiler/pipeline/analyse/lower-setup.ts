@@ -377,7 +377,7 @@ function lowerJsStatement(
       recordFunctionJsx(ctx, payload, node);
       return;
     }
-    if (node.type === 'ReturnStatement') {
+    if (node.type === 'ReturnStatement' && ctx.returnsRender) {
       const ops =
         node.argument === null ? [] : lowerRenderExpression(unwrapExpression(node.argument), ctx);
       const program =

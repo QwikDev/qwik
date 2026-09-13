@@ -46,6 +46,10 @@ export interface DeclRef {
   index: number;
 }
 
+export interface LinkedHook extends HookDecl {
+  dependencies: LinkedQrl['dependencies'];
+}
+
 export interface LinkedModule {
   path: string;
   kind: ModuleKind;
@@ -57,7 +61,7 @@ export interface LinkedModule {
   payloads: Payload[];
   programs: LinkedProgram[];
   qrls: LinkedQrl[];
-  hooks: HookDecl[];
+  hooks: LinkedHook[];
   callables: ModulePlan['callables'];
   values: ModulePlan['values'];
   /** `id` is the CANONICAL runtime context id — the lookup key. */

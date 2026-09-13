@@ -16,7 +16,10 @@ import {
   type LinkedModule,
   type BindTarget,
   type CallTarget,
-  type Setup,
+  type HookDecl,
+  FnBodyKind,
+  HookBodyKind,
+  type Maybe,
 } from '../schema';
 import { ValueIrKind } from '../../src/expr-ir';
 import { UnsupportedError } from '../errors';
@@ -181,8 +184,6 @@ export interface SetupEmitTarget {
   chunkImports?: string[];
 }
 
-type SetupCall = Extract<Setup, { s: SetupKind.Call }>;
-
 function bindCallResult(
   module: LinkedModule,
   entry: { result: BindTarget | null; declarationKind?: string },
@@ -197,24 +198,8 @@ function bindCallResult(
   return `${entry.declarationKind ?? 'const'} ${extractPayloadJs(module, entry.result.pattern)} = ${call};`;
 }
 
-/** Whether any setup call, including those nested in authored statements, matches. */
-export function setupCallsSome(
-  module: LinkedModule,
-  setup: readonly Setup[],
-  matches: (call: SetupCall) => boolean
-): boolean {
-  return setup.some((entry) =>
-    entry.s === SetupKind.Call
-      ? matches(entry)
-      : entry.s === SetupKind.Js &&
-        (module.payloads[entry.payload].setups ?? []).some((nested) =>
-          setupCallsSome(module, nested.setup, matches)
-        )
-  );
-}
-
-export const blocksInitialRender = (call: SetupCall): boolean => call.blocksInitialRender === true;
-export const providesContext = (call: SetupCall): boolean => call.providesContext === true;
+/** A linked fact the emitter must honour unless it is known false. */
+export const mayBe = (fact: Maybe<boolean>): boolean => !fact.ok || fact.value;
 
 /**
  * Defers the render after `setupCount` statements until `pending` settles, keeping the invoke
@@ -334,4 +319,32 @@ export function signalReadName(module: LinkedModule, expr: Expr): string {
     throw new UnsupportedError('a read hole without signal-read IR');
   }
   return module.bindings[expr.ir.binding].name;
+}
+
+/** A custom hook's compiled body: its setup statements and the authored result. */
+export function emitHookBody(
+  module: LinkedModule,
+  hook: HookDecl,
+  imports: Set<string>,
+  emitQrl: EmitQrl,
+  names: GeneratedNames,
+  target: SetupEmitTarget
+): string {
+  const body = hook.body;
+  if (body.kind !== HookBodyKind.Setup) {
+    throw new Error(`pipeline: emitting the authored hook "${hook.name}"`);
+  }
+  const statements = emitJsSetup(module, body, imports, emitQrl, undefined, names, target);
+  const value =
+    body.returns === null
+      ? null
+      : body.returns.v === ValueKind.Qrl
+        ? emitQrl(body.returns.use)
+        : inlineValueJs(module, body.returns, emitQrl);
+  // An expression body with nothing to set up keeps its authored shape.
+  if (hook.bodyKind === FnBodyKind.Expression && statements.length === 0 && value !== null) {
+    return value;
+  }
+  const returns = value === null ? [] : [`return ${value};`];
+  return `{\n${[...statements, ...returns].join('\n')}\n}`;
 }

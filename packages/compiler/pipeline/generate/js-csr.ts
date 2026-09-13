@@ -16,6 +16,7 @@ import {
   type LinkedQrl,
   type LinkedOp,
   type Prop,
+  type HookDecl,
   type QrlUse,
 } from '../schema';
 import { QwikWord, QwikGenWord } from '../words';
@@ -38,10 +39,10 @@ import {
   type FunctionEmission,
 } from './emit-chunk';
 import {
-  blocksInitialRender,
   deferRenderAfterTasks,
   emitJsSetup,
-  setupCallsSome,
+  emitHookBody,
+  mayBe,
   signalReadName,
   withMarkerEmitter,
 } from './emit-setup';
@@ -134,6 +135,23 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     );
   }
 
+  emitHook(hook: HookDecl, names: GeneratedNames): string {
+    const staticQrl = (use: QrlUse) => this.capturedChunkReference(use, names.props);
+    return emitHookBody(
+      this.module,
+      hook,
+      this.imports,
+      withMarkerEmitter(
+        this.module,
+        (use) => this.lazyRenderReference(use, names.props),
+        this.chunkImports,
+        staticQrl
+      ),
+      names,
+      { staticQrl, chunkImports: this.chunkImports }
+    );
+  }
+
   emitProgram(qrl: LinkedQrl, names: GeneratedNames): ComponentEmission {
     if (qrl.body.b !== QrlBodyKind.Program) {
       throw new Error(`pipeline.generateJsCsr: splicing the non-program qrl "${qrl.id}"`);
@@ -170,7 +188,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     );
     const setupCount = statements.length;
     const finish = (value: string): ComponentEmission =>
-      setupCallsSome(this.module, program.setup, blocksInitialRender)
+      mayBe(program.facts.waitForTasks)
         ? deferRenderAfterTasks(
             this.imports,
             pass.next,

@@ -20,7 +20,7 @@ import { createCapturedContext, lowerCaptures } from './ast/capture-analysis';
 import { pushPayload, pushQrl, QrlIdentityKind, type LowerContext } from './lower-context';
 import { recordPayloadJsx, recordPayloadReads } from './lower-expr';
 import { LocalKind } from './locals';
-import { isFunctionLike, unwrapExpression } from './ast/utils';
+import { isFunctionLike, parameterPattern, unwrapExpression } from './ast/utils';
 import { isNode, type WalkableNode } from './ast/ast-types';
 import { QwikMarker } from '../words';
 import { resolveSetupCall } from './lower-setup';
@@ -125,15 +125,7 @@ function functionScope(
     return ctx;
   }
   const locals = new Map(ctx.locals);
-  const parameters = fn.params.flatMap((param) =>
-    ctx.bindings.bindingsOf(
-      param.type === 'RestElement'
-        ? param.argument
-        : param.type === 'TSParameterProperty'
-          ? param.parameter
-          : param
-    )
-  );
+  const parameters = fn.params.flatMap((param) => ctx.bindings.bindingsOf(parameterPattern(param)));
   const declarations = ctx.bindings.declaredWithin(
     body.type === 'BlockStatement' ? body.body : [body]
   );

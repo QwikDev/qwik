@@ -1343,6 +1343,63 @@ export default () => {
     expect(code).toMatch(/const wrapped = \[1\]\.map\(\(step\) => q_\w+\.w\(\[count, step\]\)\)/);
   });
 
+  test('should lower custom hook bodies and link their event facts', async () => {
+    const output = await testInputs(mode, 'custom-hook-bodies', [
+      {
+        path: 'src/hooks.ts',
+        code: `import { useOn, useSignal, useTask$ } from '@qwik.dev/core';
+export const useClick = (handler) => {
+  useOn('click', handler);
+};
+export function useCounter(start) {
+  const count = useSignal(start);
+  useTask$(() => {
+    count.value;
+  });
+  return { count, bump: () => count.value++ };
+}
+export function useMaybeClick(flag, handler) {
+  if (!flag) {
+    return null;
+  }
+  useOn('click', handler);
+  return flag;
+}
+`,
+      },
+      {
+        code: `import { $, component$ } from '@qwik.dev/core';
+import { useClick, useCounter, useMaybeClick } from './hooks';
+export const Clicker = component$(() => {
+  useClick($(() => console.log('click')));
+  return <button>click</button>;
+});
+export const Counter = component$(() => {
+  const { count, bump } = useCounter(1);
+  return <button onClick$={bump}>{count.value}</button>;
+});
+export const Maybe = component$((props: { flag: boolean }) => {
+  useMaybeClick(props.flag, $(() => 1));
+  return <div>maybe</div>;
+});
+`,
+      },
+    ]);
+    expect(output.diagnostics).toEqual([]);
+    const hooks = output.modules.find((module) => module.path === 'src/hooks.ts')!.code;
+    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    // Hook bodies compile like component setup: their $ calls become QRLs or static callbacks.
+    expect(hooks).toContain(mode === 'ssr' ? 'useTaskQrl(q_' : 'useTask(_withCaptures(');
+    expect(hooks).not.toContain('useTask$(');
+    // An early return stays ordinary JavaScript inside the compiled body.
+    expect(hooks).toMatch(/if \(!flag\) \{\s*return null;\s*\}/);
+    if (mode === 'ssr') {
+      // Only the roots whose linked hooks register events ship as open-tag records.
+      expect(main.match(/createSsrOpenTag\(/g)).toHaveLength(2);
+      expect(main).toMatch(/createSsrOpenTag\("<button", ">"\)/);
+    }
+  });
+
   test('should merge setup useOn events into the root element on the server', async () => {
     const output = await testInputs(mode, 'setup-use-on', [
       {

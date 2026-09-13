@@ -17,6 +17,7 @@ import {
   type LinkedQrl,
   type LinkedOp,
   type Prop,
+  type HookDecl,
   type QrlUse,
   type Value,
 } from '../schema';
@@ -43,11 +44,10 @@ import {
   type FunctionEmission,
 } from './emit-chunk';
 import {
-  blocksInitialRender,
   deferRenderAfterTasks,
   emitJsSetup,
-  providesContext,
-  setupCallsSome,
+  emitHookBody,
+  mayBe,
   signalReadName,
   withMarkerEmitter,
 } from './emit-setup';
@@ -161,6 +161,23 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     this.resolveQrlUse = createQrlResolver(module);
   }
 
+  emitHook(hook: HookDecl, names: GeneratedNames): string {
+    const source = emitHookBody(
+      this.module,
+      hook,
+      this.imports,
+      withMarkerEmitter(
+        this.module,
+        (use) => this.useQrl({ names }, use, true).ref,
+        this.chunkImports
+      ),
+      names,
+      { isServer: true, chunkImports: this.chunkImports }
+    );
+    this.flushQrlHoists();
+    return source;
+  }
+
   emitPayload(payload: number, names: GeneratedNames): string {
     const source = extractPayloadJs(
       this.module,
@@ -250,9 +267,12 @@ class SsrModuleEmitter implements QwikModuleEmitter {
             : null;
     const parts: string[] = [];
     // Descendants resumed later locate the provided scope through this marker pair.
-    const contextScope = setupCallsSome(this.module, program.setup, providesContext)
-      ? pass.next(QwikGenWord.ContextScope)
-      : null;
+    // Only a known provider is marked: an unknown hook body does not imply a provided context.
+    const { providesContextEffective } = program.facts;
+    const contextScope =
+      providesContextEffective.ok && providesContextEffective.value
+        ? pass.next(QwikGenWord.ContextScope)
+        : null;
     if (contextScope !== null) {
       pass.statements.push(`const ${contextScope} = ${names.ctx}.contextScopeRef();`);
       pushMergedStatic(parts, '<!c=');
@@ -297,7 +317,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       );
     }
     let statements = pass.statements;
-    if (setupCallsSome(this.module, program.setup, blocksInitialRender)) {
+    if (mayBe(program.facts.waitForTasks)) {
       ({ statements, value } = deferRenderAfterTasks(
         this.imports,
         pass.next,
@@ -563,28 +583,18 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       pushMergedStatic(openTag, ` ${rootMarker}`);
     }
     for (const prop of op.props) {
-      if (hookEvents && prop.k === PropKind.Event) {
-        // An event-attr chunk lets the runtime join hook handlers for the same event.
-        if (isDynamicEvent(prop)) {
-          throw new UnsupportedError('a dynamic event on the root of a component with hooks');
-        }
-        pass.usedCtx = true;
-        openTag.push(
-          `${pass.names.ctx}.eventAttr(${JSON.stringify(prop.name)}, ${this.staticEventValue(pass, prop)})`
-        );
-        continue;
-      }
       this.prop(
         pass,
         prop,
         openTag,
         idVariable,
-        prop.k === PropKind.Dynamic && prop.name === 'class' ? op.styleScopedId : null
+        prop.k === PropKind.Dynamic && prop.name === 'class' ? op.styleScopedId : null,
+        hookEvents
       );
     }
     if (hookEvents) {
       // The runtime splices hook events before the record's last part, so `>` stays separate.
-      openTag.push("'>'");
+      openTag.push(JSON.stringify('>'));
       this.imports.add(QwikWord.CreateSsrOpenTag);
       parts.push(`${QwikWord.CreateSsrOpenTag}(${openTag.join(', ')})`);
     } else {
@@ -941,7 +951,9 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     prop: Prop,
     parts: string[],
     idVariable: string | null,
-    styleScope: string | null
+    styleScope: string | null,
+    /** Events print as event-attr chunks so the runtime can join hook handlers by name. */
+    record = false
   ): void {
     const scope = styleScope === null ? '' : `, undefined, ${JSON.stringify(styleScope)}`;
     switch (prop.k) {
@@ -1027,12 +1039,13 @@ class SsrModuleEmitter implements QwikModuleEmitter {
             rootArgs(qrl, args),
             `${QwikWord.RenderSsrEvent}(${idVariable}, ${JSON.stringify(prop.name)}, [${args.join(', ')}], ${ref}, ${pass.names.ctx}.eventAttr)`
           );
-          parts.push(`${QwikWord.CreateSsrMarkup}(${step})`);
+          parts.push(record ? step : `${QwikWord.CreateSsrMarkup}(${step})`);
           return;
         }
         pass.usedCtx = true;
+        const eventAttr = record ? 'eventAttr' : 'eventAttrParts';
         parts.push(
-          `${pass.names.ctx}.eventAttrParts(${JSON.stringify(prop.name)}, ${this.staticEventValue(pass, prop)})`
+          `${pass.names.ctx}.${eventAttr}(${JSON.stringify(prop.name)}, ${this.staticEventValue(pass, prop)})`
         );
         return;
       }

@@ -27,6 +27,8 @@ import {
   type ModulePlan,
   type Op,
   type Prop,
+  type HookDecl,
+  HookBodyKind,
   type Qrl,
   type QrlId,
   type QrlUse,
@@ -36,10 +38,7 @@ import {
 import { ValueIrKind, collectIrBindingIds, type ValueIR } from '../../src/expr-ir';
 
 /** Dependencies follow executable edges, never enclosing authored source ranges. */
-export function collectQrlDependencies(
-  module: ModulePlan | LinkedModule,
-  qrl: Qrl
-): LinkedQrl['dependencies'] {
+function createDependencyCollector(module: ModulePlan | LinkedModule) {
   const bindings = new Set<LocalId>();
   const qrls = new Set<QrlId>();
   const programs = new Set<number>();
@@ -287,6 +286,23 @@ export function collectQrlDependencies(
     }
   }
 
+  return {
+    visitSetup,
+    visitValue,
+    visitProgram,
+    visitPayload,
+    visitExpression,
+    visitQrlUse,
+    dependencies: (): LinkedQrl['dependencies'] => ({ bindings: [...bindings], qrls: [...qrls] }),
+  };
+}
+
+export function collectQrlDependencies(
+  module: ModulePlan | LinkedModule,
+  qrl: Qrl
+): LinkedQrl['dependencies'] {
+  const { visitPayload, visitExpression, visitProgram, visitQrlUse, dependencies } =
+    createDependencyCollector(module);
   switch (qrl.body.b) {
     case QrlBodyKind.Js:
       visitPayload(qrl.body.payload);
@@ -309,8 +325,22 @@ export function collectQrlDependencies(
       visitPayload(part.value);
     }
   }
-  return {
-    bindings: [...bindings],
-    qrls: [...qrls],
-  };
+  return dependencies();
+}
+
+/** A compiled hook body's imports: its setup calls, payload reads and returned value. */
+export function collectHookDependencies(
+  module: ModulePlan | LinkedModule,
+  hook: HookDecl
+): LinkedQrl['dependencies'] {
+  const { visitSetup, visitValue, visitPayload, dependencies } = createDependencyCollector(module);
+  if (hook.body.kind === HookBodyKind.Setup) {
+    hook.body.setup.forEach(visitSetup);
+    if (hook.body.returns !== null) {
+      visitValue(hook.body.returns);
+    }
+  } else {
+    visitPayload(hook.body.payload);
+  }
+  return dependencies();
 }

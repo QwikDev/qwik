@@ -246,7 +246,14 @@ transformation:
 - [x] Custom `foo$`, `factory$` and user hooks outside direct component setup. The payload scan
       that extracts `$()` also recognizes custom markers with twins and records the callee: setup
       statements and module helpers call the function twin with the static callback on the client
-      and the `Qrl` twin on the server; chunk bodies use the `Qrl` twin on both.
+      and the `Qrl` twin on the server; chunk bodies use the `Qrl` twin on both. Module-level
+      `use*` functions are hooks: their bodies lower with the component setup lowering into
+      `plan.hooks`, are emitted from that setup (twins, `$` extraction, static callbacks), and
+      feed the linker's per-program facts; a hook's `return` stays ordinary JavaScript, early
+      returns included. A body the setup lowering refuses, such as one with a loop, stays
+      authored. A marker wrapping a core hook directly
+      (`const useX$ = implicit$FirstArg(useTaskQrl)`) is a hook whose only setup call is that
+      core operation, so its facts are known without touching its authored form.
 - [ ] Existing function references instead of inline callbacks.
 - [ ] Non-function QRL values: strings, objects and imported values.
 - [x] `useStyles$('...')` and `useStylesScoped$(css)` lower to the `Style` op and call
@@ -290,12 +297,11 @@ Share prop classification; deliver the following in small increments.
 - [ ] Handler arrays forwarded through components and spreads.
 - [ ] `sync$` emission and synchronous-handler registration.
 - [x] Merge JSX listeners with `useOn*` without losing modifiers or duplicating registration.
-      The linker computes a `registersEvents` program fact: true for `useOn*`, a visible task or a
-      linked hook body that registers; false for core state hooks and plain calls; unknown when a
-      hook's body is not linked (custom hooks today, since hook bodies are not analysed yet). For
-      true or unknown, SSR emits the first root element's open tag as a `createSsrOpenTag` record
-      with `ctx.eventAttr` chunks, the shape the runtime already splices `useOn*` registrations
-      into. Known-false roots stay flat; element-less roots keep the runtime script carrier.
+      The linker's `registersEvents` fact follows `useOn*`, visible tasks and linked custom hook
+      bodies; unknown only for hooks outside the link set. For true or unknown, SSR emits the
+      first root element's open tag as a `createSsrOpenTag` record with `ctx.eventAttr` chunks,
+      the shape the runtime already splices `useOn*` registrations into. Known-false roots stay
+      flat; element-less roots keep the runtime script carrier.
 
 ## 9. HTML, namespaces and template correctness
 
@@ -359,12 +365,15 @@ Do not restore serialization of a children tree merely to reproduce old VNode op
       dedupes `q:style` by id.
 - [x] Serialize the provided context scope in SSR: components calling `useContextProvider` wrap
       their output in `<!c=…>`/`<!/c>` markers so branches, rows and projections resumed later
-      find the scope. Custom hooks that provide context internally are not yet detected.
+      find the scope. The linker's `providesContextEffective` fact follows linked custom hook
+      bodies; only a known provider is marked, since an unknown hook body does not imply one.
 - [ ] Preserve context/owner across every newly supported rendering callback.
 - [x] Register `useVisibleTask$` in SSR as a client wake event (`qvisible`, or `qinit`/`qidle`
       for the document strategies) instead of calling the hook on the server.
 - [x] Defer a component's render until its initial tasks settle: SSR awaits the lane, CSR awaits
-      the invoke context's initial task chain, and custom hooks count as possible task starters.
+      the invoke context's initial task chain. The linker's `waitForTasks` fact follows linked
+      custom hook bodies, so a hook that starts no task no longer forces the wait; a hook outside
+      the link set leaves it unknown and keeps the wait.
 - [ ] Verify `useId`, `useOn*`, tasks and cleanup for headless components and new root shapes.
 
 Much of the hook runtime already exists; complete compiler output and scope propagation rather
@@ -424,6 +433,15 @@ code size and runtime cost. The previous implementation is not the accepted defa
 
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
+
+- 2026-09-13: Custom hook bodies: module-level `use*` functions lower into `plan.hooks` with the
+  component setup lowering, are emitted from that setup through a `Hook` assembly intent in both
+  generators, and carry linked dependencies for their imports. The linker's setup facts
+  (`registersEvents`, `waitForTasks`, `providesContextEffective`) follow hook declarations across
+  modules through the twin names and answer unknown only for bodies outside the link set; the
+  emitters read the facts instead of per-call heuristics. Verification: 1067 pipeline tests (16
+  existing TODOs), the `custom-hook-bodies` two-module snapshots, and `use-on`, `task`, `context`,
+  `store` and `use-server-data` specs in CSR and resume. Core spec corpus unchanged.
 
 - 2026-09-13: `useOn*` on the server: the linker's `registersEvents` fact decides per program
   whether events may be registered, following hook declarations when they are linked; SSR emits

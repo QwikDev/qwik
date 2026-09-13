@@ -37,6 +37,8 @@ export interface LowerContext {
   propsMembers: ReadonlyMap<LocalId, string>;
   /** The current component's reactive locals (binding → kind/slot/binding). */
   locals: ReadonlyMap<LocalId, SetupLocal>;
+  /** A component's `return` renders; a hook's `return` is ordinary JavaScript. */
+  returnsRender: boolean;
 }
 
 export function createLowerContext(
@@ -69,6 +71,7 @@ export function createLowerContext(
     jsx,
     coreBindings,
     propsBinding: null,
+    returnsRender: true,
     propsMembers: new Map(),
     locals: new Map(),
   };

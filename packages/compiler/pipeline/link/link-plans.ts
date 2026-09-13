@@ -29,10 +29,10 @@ import {
   type Specialization,
   type Unknown,
 } from '../schema';
-import { collectQrlDependencies } from './qrl-dependencies';
+import { collectHookDependencies, collectQrlDependencies } from './qrl-dependencies';
 import { linkRenderResults, localComponentSetups } from './render-results';
 import { linkContent } from './link-content';
-import { linkHookTwins, setupRegistersEvents } from './link-hooks';
+import { createSetupFacts, linkHookTwins } from './link-hooks';
 import { ValueIrKind } from '../../src/expr-ir';
 
 export const enum ResolutionKind {
@@ -364,7 +364,7 @@ export function linkPlans(
     };
   };
 
-  const registersEvents = setupRegistersEvents(plans, resolveLocalBinding);
+  const setupFacts = createSetupFacts(plans, resolveLocalBinding);
   const linkedModules: LinkedModule[] = plans.map((plan, module) =>
     materializeModule(
       plan,
@@ -382,10 +382,8 @@ export function linkPlans(
               : program.body,
           facts: {
             needsId: { ok: true, value: program.needsId },
-            waitForTasks: { ok: true, value: false },
-            providesContextEffective: { ok: true, value: false },
+            ...setupFacts(module, program.setup),
             runtimeScope: { ok: true, value: false },
-            registersEvents: registersEvents(module, program.setup),
           },
         })
       )
@@ -653,7 +651,10 @@ function materializeModule(
       dependencies: collectQrlDependencies(plan, qrl),
       delivery: { d: DeliveryKind.Chunk, chunkBase: `${plan.path}_${qrl.name}`, resolved: true },
     })),
-    hooks: plan.hooks,
+    hooks: plan.hooks.map((hook) => ({
+      ...hook,
+      dependencies: collectHookDependencies(plan, hook),
+    })),
     callables: plan.callables,
     values: plan.values,
     contexts: [],

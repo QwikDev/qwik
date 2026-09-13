@@ -18,7 +18,8 @@ import {
 } from '../schema';
 import { createBindingGraph } from './ast/bindings';
 import { createJsxAnalysis } from './ast/jsx-analysis';
-import { findComponentCandidates } from './ast/returns-jsx';
+import { findComponentCandidates, findHookCandidates } from './ast/returns-jsx';
+import { lowerCoreHookAliases, lowerHooks } from './lower-hook';
 import { parseModule } from './ast/parse';
 import { scanModuleSurface } from './module-surface';
 import { discoverComponents } from './discover';
@@ -99,11 +100,24 @@ export async function analyseModule(
     coreBindings,
     jsx
   );
-  const jsxRoots = jsx.scopedRoots(authoredStatements);
+  let loweredHooks: Set<Node>;
+  try {
+    loweredHooks = lowerHooks(
+      findHookCandidates(parsed.program, bindings).filter(
+        (hook) => !candidates.some((candidate) => candidate.fn === hook.fn)
+      ),
+      lowerContext
+    );
+    lowerCoreHookAliases(parsed.program, lowerContext);
+  } catch (error) {
+    recordModuleError(plan, error);
+    return finish();
+  }
+  const jsxRoots = jsx.scopedRoots(authoredStatements).filter((root) => !loweredHooks.has(root));
   const helperRoots = [
     ...jsxRoots,
     ...explicitQrlRoots(authoredStatements, lowerContext).filter(
-      (root) => !(jsxRoots as readonly Node[]).includes(root)
+      (root) => !(jsxRoots as readonly Node[]).includes(root) && !loweredHooks.has(root)
     ),
   ];
   const leftoverJsx = jsxRoots.find((root) => !isFunctionLike(root));
@@ -121,7 +135,7 @@ export async function analyseModule(
     }
     throw new UnsupportedError('JSX outside the discovered components');
   }
-  if (candidates.length === 0 && helperRoots.length === 0) {
+  if (candidates.length === 0 && helperRoots.length === 0 && plan.hooks.length === 0) {
     // Non-Qwik module: authored source kept, transpiled at generate.
     if (authoredProgram !== null) {
       const foreignPlan = emptyPlan(input.path, input.code);
@@ -158,12 +172,19 @@ export async function analyseModule(
     owner: LifetimeOwner.Component,
     commit: LifetimeCommit.Immediate,
   });
+  // A compiled hook body is emitted from its setup, so its references retain nothing.
+  const hookBodies = plan.assembly.flatMap((intent) =>
+    intent.a === AssemblyKind.Hook ? [plan.hooks[intent.hook].range] : []
+  );
   const retainedBindings = new Set(
     bindings
       .freeReferences([
         ...authoredStatements,
         ...components.flatMap(({ param }) => (param === null ? [] : [param.node])),
       ])
+      .filter(
+        ({ node }) => !hookBodies.some(([start, end]) => node.start >= start && node.end <= end)
+      )
       .map((reference) => reference.binding)
   );
   for (const imported of plan.imports) {

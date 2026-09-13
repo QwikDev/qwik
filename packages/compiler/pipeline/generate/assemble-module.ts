@@ -1,6 +1,7 @@
 import {
   AssemblyKind,
   DeclarationKind,
+  type HookDecl,
   type LinkedModule,
   type LinkedQrl,
   type QrlDeclaration,
@@ -24,6 +25,8 @@ export interface QwikModuleEmitter {
   chunkImports: string[];
   hoists: string[];
   emitPayload(payload: number, names: GeneratedNames): string;
+  /** A custom hook's compiled body, replacing the authored one. */
+  emitHook(hook: HookDecl, names: GeneratedNames): string;
   emitProgram(qrl: LinkedQrl, names: GeneratedNames): ComponentEmission;
   /** Every QRL's function as one context-neutral emission — every placement prints it. */
   qrlFunction(qrl: LinkedQrl): FunctionEmission;
@@ -81,6 +84,15 @@ export function assembleQwikModule(
           text: parts.emitPayload(intent.payload, names),
         });
         break;
+      case AssemblyKind.Hook: {
+        const hook = module.hooks[intent.hook];
+        needsModulePrelude ||= hook.declarationKind === DeclarationKind.Function;
+        edits.push({ range: hook.range, text: parts.emitHook(hook, names) });
+        for (const binding of hook.dependencies.bindings) {
+          requestBindingImport(module, binding, parts.imports);
+        }
+        break;
+      }
       case AssemblyKind.Import:
         if (intent.binding !== null) {
           requestBindingImport(module, intent.binding, parts.imports);

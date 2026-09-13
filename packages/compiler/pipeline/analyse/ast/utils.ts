@@ -1,6 +1,7 @@
 import type {
   ArrowFunctionExpression,
   Expression,
+  BindingPattern,
   Function as FunctionNode,
   JSXAttributeItem,
   Node,
@@ -72,4 +73,13 @@ export function isFalseLiteral(attribute: JSXAttributeItem): boolean {
     value.expression.type === 'Literal' &&
     value.expression.value === false
   );
+}
+
+/** The binding pattern a parameter declares, through rest and TS parameter properties. */
+export function parameterPattern(param: FunctionNode['params'][number]): BindingPattern {
+  return param.type === 'RestElement'
+    ? param.argument
+    : param.type === 'TSParameterProperty'
+      ? param.parameter
+      : param;
 }

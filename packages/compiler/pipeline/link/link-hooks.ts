@@ -84,6 +84,11 @@ export function linkHookTwins(module: LinkedModule, diagnostics: LinkDiagnostic[
     ...program,
     setup: linkSetup(program.setup),
   }));
+  module.hooks = module.hooks.map((hook) =>
+    hook.body.kind === HookBodyKind.Setup
+      ? { ...hook, body: { ...hook.body, setup: linkSetup(hook.body.setup) } }
+      : hook
+  );
   module.payloads = module.payloads.map((payload) => ({
     ...payload,
     qrls: payload.qrls.map((entry) => {
@@ -103,73 +108,97 @@ const useOnHooks: readonly string[] = [
   QwikWord.UseOnWindow,
 ];
 
+type SetupCall = Extract<Setup, { s: SetupKind.Call }>;
+
+export interface SetupFacts {
+  registersEvents: Maybe<boolean>;
+  waitForTasks: Maybe<boolean>;
+  providesContextEffective: Maybe<boolean>;
+}
+
 /**
- * Whether a setup registers `useOn*` events, following custom hooks into their linked bodies. A
- * callee the link cannot see leaves the answer unknown, so the emitter keeps the splice slot.
+ * Cross-module setup facts: a core call answers directly, a custom hook answers from its linked
+ * body, and a callee the link cannot see leaves the fact unknown so the emitter stays safe.
  */
-export function setupRegistersEvents(
+export function createSetupFacts(
   plans: readonly ModulePlan[],
   resolveBinding: (module: number, binding: number) => Maybe<DeclRef>
-): (module: number, setup: readonly Setup[]) => Maybe<boolean> {
+): (module: number, setup: readonly Setup[]) => SetupFacts {
   const isCoreBinding = (module: number, binding: number): boolean =>
     plans[module].imports.some(
       (entry) =>
         entry.binding === binding && plans[module].edges[entry.edge].specifier === QWIK_CORE_IMPORT
     );
-  const visiting = new Set<string>();
-  const registers = (module: number, setup: readonly Setup[]): Maybe<boolean> => {
-    let known = true;
-    for (const entry of flatSetup(plans[module], setup)) {
-      if (entry.s !== SetupKind.Call) {
-        continue;
-      }
-      if (entry.visibleTaskEvent !== undefined) {
-        return { ok: true, value: true };
-      }
-      const target = entry.target;
-      if (target.kind === CallTargetKind.Core) {
-        continue;
-      }
-      if (target.kind === CallTargetKind.Value) {
-        known = false;
-        continue;
-      }
-      if (target.kind === CallTargetKind.Binding) {
-        const name = plans[module].bindings[target.binding].name;
-        if (isCoreBinding(module, target.binding)) {
-          if (useOnHooks.includes(name)) {
-            return { ok: true, value: true };
-          }
+  const fact = (direct: (module: number, call: SetupCall) => boolean) => {
+    const visiting = new Set<string>();
+    const walk = (module: number, setup: readonly Setup[]): Maybe<boolean> => {
+      let known = true;
+      for (const entry of flatSetup(plans[module], setup)) {
+        if (entry.s !== SetupKind.Call) {
           continue;
         }
-        // Only hooks by convention may register events; a plain call cannot.
-        if (!/^use/.test(name)) {
+        if (direct(module, entry)) {
+          return { ok: true, value: true };
+        }
+        const target = entry.target;
+        // Core APIs answered above; lowering flags custom hook calls (a prop alias is not one).
+        if (target.kind === CallTargetKind.Core || entry.blocksInitialRender !== true) {
           continue;
         }
+        if (target.kind === CallTargetKind.Value) {
+          known = false;
+          continue;
+        }
+        const declaration = resolveBinding(module, target.binding);
+        if (!declaration.ok) {
+          known = false;
+          continue;
+        }
+        const hookModule = declaration.value.module;
+        const hooks = plans[hookModule].hooks;
+        // A marker's own binding is its `$` wrapper; its body lives in a twin of the same module.
+        const index =
+          declaration.value.table === DeclTable.Hooks
+            ? declaration.value.index
+            : target.kind === CallTargetKind.Marker
+              ? hooks.findIndex(
+                  (hook) => hook.name === target.stem + QRL_TWIN_SUFFIX || hook.name === target.stem
+                )
+              : -1;
+        const hook = hooks[index];
+        const key = `${hookModule}:${index}`;
+        if (hook === undefined || hook.body.kind !== HookBodyKind.Setup || visiting.has(key)) {
+          known = false;
+          continue;
+        }
+        visiting.add(key);
+        const nested = walk(hookModule, hook.body.setup);
+        visiting.delete(key);
+        if (nested.ok && nested.value) {
+          return nested;
+        }
+        known &&= nested.ok;
       }
-      const declaration = resolveBinding(module, target.binding);
-      if (!declaration.ok || declaration.value.table !== DeclTable.Hooks) {
-        known = false;
-        continue;
-      }
-      const { module: hookModule, index } = declaration.value;
-      const hook = plans[hookModule].hooks[index];
-      const key = `${hookModule}:${index}`;
-      if (hook.body.kind !== HookBodyKind.Setup || visiting.has(key)) {
-        known = false;
-        continue;
-      }
-      visiting.add(key);
-      const nested = registers(hookModule, hook.body.setup);
-      visiting.delete(key);
-      if (nested.ok && nested.value) {
-        return nested;
-      }
-      known &&= nested.ok;
-    }
-    return known ? { ok: true, value: false } : unknownFact;
+      return known ? { ok: true, value: false } : unknownFact;
+    };
+    return walk;
   };
-  return registers;
+  const registersEvents = fact(
+    (module, call) =>
+      call.visibleTaskEvent !== undefined ||
+      (call.target.kind === CallTargetKind.Binding &&
+        isCoreBinding(module, call.target.binding) &&
+        useOnHooks.includes(plans[module].bindings[call.target.binding].name))
+  );
+  const waitForTasks = fact(
+    (_module, call) => call.target.kind === CallTargetKind.Core && call.blocksInitialRender === true
+  );
+  const providesContext = fact((_module, call) => call.providesContext === true);
+  return (module, setup) => ({
+    registersEvents: registersEvents(module, setup),
+    waitForTasks: waitForTasks(module, setup),
+    providesContextEffective: providesContext(module, setup),
+  });
 }
 
 const unknownFact: Maybe<boolean> = {

@@ -1,0 +1,47 @@
+==INPUT==
+
+export default () => {
+  return <ul>{['a', 'b'].map((item) => <li id={'row-' + item} class={item}>x</li>)}</ul>;
+};
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  _first,
+  _next,
+  createCollection,
+  patchAttrValue,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+
+const semantic_collectionRender_51_103_2j5bcudf6s40y_tmpl0 = _createElementTemplate('<li>x</li>');
+const default_tmpl0 = _createElementTemplate('<ul><!><!></ul>');
+export default (props, ctx) => {
+  const el0 = default_tmpl0(ctx.document);
+  const start0 = _first(el0);
+  const end0 = _next(start0);
+  function semantic_collectionRender_51_103_2j5bcudf6s40y(ctx, item) {
+    const el0 = semantic_collectionRender_51_103_2j5bcudf6s40y_tmpl0(ctx.document);
+    patchAttrValue(el0, 'id', 'row-' + item);
+    patchAttrValue(el0, 'class', item);
+    return el0;
+  }
+  createCollection(
+    ctx,
+    start0,
+    end0,
+    ['a', 'b'],
+    null,
+    semantic_collectionRender_51_103_2j5bcudf6s40y,
+    0,
+    '',
+    0,
+    true
+  );
+  return el0;
+};
+== CSR DIAGNOSTICS ==
+
+[]

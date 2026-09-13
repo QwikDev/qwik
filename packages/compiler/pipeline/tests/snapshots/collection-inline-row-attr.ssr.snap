@@ -1,0 +1,44 @@
+==INPUT==
+
+export default () => {
+  return <ul>{['a', 'b'].map((item) => <li id={'row-' + item} class={item}>x</li>)}</ul>;
+};
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  serializeAttrExpressionValue,
+  escapeHTML,
+  renderSsrCollection,
+  maybeThen,
+} from '@qwik.dev/core';
+
+export default (props, ctx) => {
+  function semantic_collectionRender_51_103_2j5bcudf6s40y(ctx, __rangeId, __rowId, item) {
+    const attr0 = serializeAttrExpressionValue('id', 'row-' + item);
+    const attr1 = serializeAttrExpressionValue('class', item);
+    return [
+      '<li',
+      attr0 === null ? '' : ' id' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
+      attr1 === null ? '' : ' class' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
+      '>x</li>',
+    ];
+  }
+  const collection0 = renderSsrCollection(
+    ctx,
+    undefined,
+    ['a', 'b'],
+    undefined,
+    semantic_collectionRender_51_103_2j5bcudf6s40y,
+    0,
+    '',
+    false,
+    0
+  );
+  return maybeThen(collection0, (collection0) => ['<ul>', collection0, '</ul>']);
+};
+== SSR DIAGNOSTICS ==
+
+[]

@@ -1316,6 +1316,23 @@ export default () => {
     });
   });
 
+  test('should set attributes read from an inline array row once', async () => {
+    const output = await testInput(mode, 'collection-inline-row-attr', {
+      code: `export default () => {
+  return <ul>{['a', 'b'].map((item) => <li id={'row-' + item} class={item}>x</li>)}</ul>;
+};
+`,
+    });
+    const code = output.modules.map((module) => module.code).join('\n');
+    const patch = mode === 'ssr' ? 'serializeAttrExpressionValue' : 'patchAttrValue';
+    expect(code.match(new RegExp(`${patch}\\(`, 'g'))).toHaveLength(2);
+    // A row constant never changes, so no effect and no chunk is emitted for it.
+    expect(code).not.toContain(
+      mode === 'ssr' ? 'renderSsrAttrExpression' : 'createAttrExpressionEffect'
+    );
+    expect(code).not.toContain('import(');
+  });
+
   test('should splice a module const inside an inline array row', async () => {
     await testInput(mode, 'collection-inline-module-const', {
       code: `const prefix = 'p-';

@@ -529,7 +529,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
   ): void {
     const holes = op.children.filter((child) => child.op === OpKind.Hole && !isInlineHole(child));
     const hasDynamicProps = op.props.some(
-      (prop) => prop.k === PropKind.Dynamic || isDynamicEvent(prop)
+      (prop) => (prop.k === PropKind.Dynamic && !isInlineValue(prop.value)) || isDynamicEvent(prop)
     );
     const idVariable = holes.length > 0 || hasDynamicProps ? pass.next(QwikGenWord.Id) : null;
     if (idVariable !== null) {
@@ -923,6 +923,15 @@ class SsrModuleEmitter implements QwikModuleEmitter {
             break;
           }
           case ValueKind.Computed: {
+            if (isInlineValue(prop.value)) {
+              // A row constant never changes: serialize it once, no subscription.
+              this.imports.add(QwikWord.SerializeAttrExpressionValue);
+              const rowScope = styleScope === null ? '' : `, ${JSON.stringify(styleScope)}`;
+              pass.statements.push(
+                `const ${step} = ${QwikWord.SerializeAttrExpressionValue}(${JSON.stringify(prop.name)}, ${inlineValueJs(this.module, prop.value)}${rowScope});`
+              );
+              break;
+            }
             if (prop.value.resume.r !== ResumeKind.Qrl) {
               throw new UnsupportedError('a non-QRL computed prop');
             }
@@ -1048,8 +1057,12 @@ function pushMergedStatic(parts: string[], text: string): void {
   }
 }
 
+function isInlineValue(value: Value): boolean {
+  return value.v === ValueKind.Computed && value.resume.r === ResumeKind.Inline;
+}
+
 function isInlineHole(op: Extract<LinkedOp, { op: OpKind.Hole }>): boolean {
-  return op.value.v === ValueKind.Computed && op.value.resume.r === ResumeKind.Inline;
+  return isInlineValue(op.value);
 }
 
 function isDynamicEvent(prop: Prop): boolean {
@@ -1059,7 +1072,7 @@ function isDynamicEvent(prop: Prop): boolean {
       (handler) =>
         handler.h === HandlerKind.Value &&
         handler.value.v === ValueKind.Computed &&
-        handler.value.resume.r !== ResumeKind.Inline
+        !isInlineValue(handler.value)
     )
   );
 }

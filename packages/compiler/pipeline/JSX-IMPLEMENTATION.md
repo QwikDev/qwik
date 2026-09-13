@@ -312,7 +312,10 @@ delimiters. Compilation snapshots alone cannot prove browser parser behavior.
 - [ ] Function-expression and referenced callbacks, not only inline arrows.
 - [ ] Richer callback bodies using the shared mechanism from group 1.
 - [ ] Async rows and dynamically shaped results.
-- [ ] Inline-row attribute/prop emission; current tests hit `a non-QRL computed prop`.
+- [x] Inline-row attribute/prop emission. An attribute reading only row constants of a literal
+      array row applies once through `patchAttrValue` (CSR) or `serializeAttrExpressionValue`
+      (SSR), with no effect, chunk or element id. Verified by the `collection-inline-row-attr`
+      snapshots and `loops.spec.tsx` in CSR and resume.
 - [ ] Row-shape changes and mixed keyed/unkeyed cases required by ported tests.
 - [ ] Adapt `<Each>` and `<Show>` to existing collection/branch operations if retaining their
       APIs from `main`.
@@ -413,6 +416,13 @@ code size and runtime cost. The previous implementation is not the accepted defa
 
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
+
+- 2026-09-13: Inline-row attributes: the dynamic-attribute emitters gained the `Inline` resume
+  branch that text holes and events already had, so a literal-array row's `id={'row-' + item}`
+  is applied once via the existing runtime attribute helpers; SSR no longer stamps `q:id` on an
+  element whose only dynamic attributes are row constants. Verification: 1054 pipeline tests
+  (16 existing TODOs), the `collection-inline-row-attr` CSR/SSR snapshots, and `loops.spec.tsx`
+  6/6 in CSR and resume, which previously failed to compile.
 
 - 2026-09-12: Reactive tags: a member tag rooted in props or a setup local lowers through the
   same content-range helper as a dynamic slot name, so the tag read happens inside a tracked

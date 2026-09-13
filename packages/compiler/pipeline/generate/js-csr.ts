@@ -831,6 +831,14 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         break;
       }
       case ValueKind.Computed: {
+        if (prop.value.resume.r === ResumeKind.Inline) {
+          // A row constant never changes: apply it once, no effect.
+          this.imports.add(QwikWord.PatchAttrValue);
+          statements.push(
+            `${QwikWord.PatchAttrValue}(${el}, ${JSON.stringify(prop.name)}, ${inlineValueJs(this.module, prop.value)}${scope});`
+          );
+          return;
+        }
         if (prop.value.resume.r !== ResumeKind.Qrl) {
           throw new UnsupportedError('a non-QRL computed prop');
         }

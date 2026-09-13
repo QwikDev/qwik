@@ -325,6 +325,39 @@ export default ({ a = side('a'), b = a, label = fallback }) => {
     );
   });
 
+  test('should capture enclosing callback locals in nested QRLs', async () => {
+    const output = await testInput(mode, 'nested-qrl-captures', {
+      code: `import { component$, $, useSignal, useTask$ } from '@qwik.dev/core';
+import { log } from './log';
+export const useCounter = (step) => {
+  const c = useSignal(0);
+  useTask$(({ track }) => {
+    const v = track(() => c.value);
+    const report = $(() => log(v + step));
+    return report();
+  });
+  return c;
+};
+export default component$(() => {
+  const c = useCounter(2);
+  return (
+    <button onClick$={() => { const n = c.value; const later = $(() => log(n)); later(); }}>
+      {c.value}
+    </button>
+  );
+});
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const code = output.modules.map((module) => module.code).join('\n');
+    // The hook body and every nested marker are extracted; nothing stays authored.
+    expect(code).not.toContain('useTask$(');
+    expect(code).not.toContain('$(()');
+    // A nested QRL captures the enclosing callback's locals and parameters.
+    expect(code).toContain('.w([v, step])');
+    expect(code).toContain('.w([n])');
+  });
+
   test('should keep setup aliases of props, stores and signals live', async () => {
     const output = await testInput(mode, 'setup-live-aliases', {
       code: `import { useSignal, useStore } from '@qwik.dev/core';

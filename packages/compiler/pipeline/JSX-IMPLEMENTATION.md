@@ -274,8 +274,12 @@ transformation:
       `useStyles`/`useStylesScoped` with a compile-time id in both environments; object-form
       `useSerializer$` arguments ship as factory QRLs with their captures.
 - [ ] Non-event prop boundaries such as `fallback$`, `render$` and `then$`.
-- [ ] Correct captures and imports at every nested boundary.
-- [ ] Preserve the existing `await` transformation in newly supported locations.
+- [x] Correct captures and imports at every nested boundary. A QRL nested in another callback
+      captures that callback's parameters and locals (`const v = track(...); $(() => v)`), in
+      components and in custom hook bodies alike; module bindings keep importing.
+- [x] Preserve the existing `await` transformation in newly supported locations. Every
+      extracted callback records its `await`s, so `$()` in module helpers, event handlers and
+      nested QRLs already rewrite them; `nested-qrl-captures` and the `$` snapshots cover it.
 
 Leaving `$()` or `routeLoader$()` untouched is not successful QRL extraction.
 
@@ -454,6 +458,13 @@ code size and runtime cost. The previous implementation is not the accepted defa
 
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
+
+- 2026-09-13: Nested boundary captures: `lowerFunctionQrl` scans the callback node itself, so
+  its parameters and locals are in scope for markers inside it; a marker call counts as
+  extracted only after its lowering succeeds, so a refused hook body no longer hides its markers
+  from the module-helper scan. Verification: 1079 pipeline tests (16 existing TODOs), the new
+  `nested-qrl-captures` snapshots, and the core corpus in CSR and resume with only the known
+  group 7/10/13 failures.
 
 - 2026-09-13: Live setup aliases: `aliasSource` classifies a `const` initializer as a prop read,
   a `useStore` result (new `LocalKind.Store` / `CoreOperation.CreateStore`), a member chain

@@ -57,7 +57,8 @@ export function lowerFunctionQrl(
     refs.locals.some(({ reads }) => reads.some(({ range }) => range[0] < body.start));
   const payload = pushPayload(ctx, [fn.start, fn.end]);
   recordPayloadReads(ctx, payload, refs);
-  recordPayloadQrls(ctx, payload, body);
+  // Scanning the function itself puts its parameters and locals in scope for nested markers.
+  recordPayloadQrls(ctx, payload, fn);
   recordFunctionJsx(ctx, payload, fn, true);
   return pushQrl(
     ctx,
@@ -155,8 +156,8 @@ export function recordPayloadQrls(ctx: LowerContext, payload: PayloadId, node: N
     }
     const call = current.type === 'CallExpression' ? markerQrlCall(current, scope) : null;
     if (call !== null && current.type === 'CallExpression') {
-      extractedCalls.add(current);
       const use = lowerMarkerQrl(current, call, scope);
+      extractedCalls.add(current);
       // `$(fn)` is the QRL; `foo$(fn, …)` keeps its call under the twin callee.
       ctx.plan.payloads[payload].qrls.push(
         call.marker === undefined

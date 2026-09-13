@@ -239,8 +239,11 @@ Share binding facts across component parameters, callbacks and collection rows.
 Direct setup hooks and individual callbacks already work. Complete location-independent boundary
 transformation:
 
-- [ ] Module-level `$()` and boundaries inside ordinary functions.
-- [ ] Nested `$()` inside other QRLs.
+- [x] Module-level `$()` and boundaries inside ordinary functions, for the explicit `$` marker:
+      every payload is scanned once, so `$(fn)` in a call argument, a callback, a QRL body, a
+      module helper or a module-level initializer becomes an explicit QRL replacing the call.
+      Custom `foo$(...)` outside setup statements is still a runtime call (next item).
+- [x] Nested `$()` inside other QRLs, through the same payload scan.
 - [ ] Custom `foo$`, `factory$` and user hooks outside direct component setup.
 - [ ] Existing function references instead of inline callbacks.
 - [ ] Non-function QRL values: strings, objects and imported values.
@@ -289,6 +292,12 @@ Share prop classification; deliver the following in small increments.
 Verified by `events.unit.ts`, the `event-scopes-modifiers` snapshots and `use-on.spec.tsx` in
 CSR. Its resume run still fails on `useOn('click', $(() => …))`: an explicit `$()` as a call
 argument is not extracted yet, which is the module-wide `$()` item of group 6.
+
+`use-on.spec.tsx` in resume now compiles its `$()` arguments; its remaining failures are the
+element-scoped `useOn('click', …)` cases: the runtime attaches those to the first element only
+when the output is an SSR record chunk with an open tag, and the pipeline emits flat strings, so
+the events fall to the headless carrier and are dropped. That needs a `useOn` attribute slot in
+the first element's open tag when the component's setup may register events (group 12).
 
 ### Bindings and refs
 
@@ -424,6 +433,14 @@ code size and runtime cost. The previous implementation is not the accepted defa
 
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
+
+- 2026-09-13: Explicit `$()` anywhere: `recordPayloadQrls` walks every payload (setup
+  statements, expression values, QRL bodies, module helpers and module-level `$()` roots) and
+  replaces each `$(fn)` with an explicit QRL through `lowerFunctionQrl`; native function scopes
+  reuse the callback-scope builder JSX callbacks already had. Verification: 1061 pipeline tests
+  (16 existing TODOs), the `explicit-qrl-anywhere` CSR/SSR snapshots, and `use-on.spec.tsx` in
+  resume 17 → 10 failed (window and document `useOn*` cases pass; element-scoped `useOn` waits on
+  the SSR open-tag slot above). Core spec corpus: CSR 6, resume 6 failed files, unchanged.
 
 - 2026-09-13: Event scopes and modifiers: namespaced JSX attributes lower through the shared
   attribute-name reader; `window:on*$`/`document:on*$` map to their runtime scope keys with

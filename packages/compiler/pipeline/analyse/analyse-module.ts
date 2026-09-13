@@ -31,7 +31,7 @@ import { emptyPlan } from './plan';
 import { createOriginalRangeMapper } from '../../src/normalization';
 
 import { isFunctionLike } from './ast/utils';
-import { recordFunctionJsx } from './lower-function';
+import { explicitQrlRoots, recordFunctionJsx, recordPayloadQrls } from './lower-function';
 import { InvalidModuleError, UnsupportedError } from '../errors';
 import type { Node } from 'oxc-parser';
 import { recordBindingResults } from './results';
@@ -91,8 +91,14 @@ export async function analyseModule(
         )
       : [];
   });
-  const helperRoots = jsx.scopedRoots(authoredStatements);
-  const leftoverJsx = helperRoots.find((root) => !isFunctionLike(root));
+  const jsxRoots = jsx.scopedRoots(authoredStatements);
+  const helperRoots = [
+    ...jsxRoots,
+    ...explicitQrlRoots(authoredStatements, { bindings, coreBindings }).filter(
+      (root) => !(jsxRoots as readonly Node[]).includes(root)
+    ),
+  ];
+  const leftoverJsx = jsxRoots.find((root) => !isFunctionLike(root));
   if (leftoverJsx !== undefined) {
     if (candidates.length === 0) {
       // Fail closed — the foreign fallback would compile this JSX against react/jsx-runtime.
@@ -170,12 +176,12 @@ export async function analyseModule(
     jsx
   );
   try {
-    for (const fn of helperRoots) {
-      if (!isFunctionLike(fn)) {
-        continue;
+    for (const root of helperRoots) {
+      const payload = pushPayload(lowerContext, [root.start, root.end]);
+      recordPayloadQrls(lowerContext, payload, root);
+      if (isFunctionLike(root)) {
+        recordFunctionJsx(lowerContext, payload, root);
       }
-      const payload = pushPayload(lowerContext, [fn.start, fn.end]);
-      recordFunctionJsx(lowerContext, payload, fn);
       plan.assembly.push({ a: AssemblyKind.Payload, payload });
     }
   } catch (error) {

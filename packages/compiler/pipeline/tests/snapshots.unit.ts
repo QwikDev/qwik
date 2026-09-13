@@ -1316,6 +1316,33 @@ export default () => {
     });
   });
 
+  test('should extract explicit $ calls wherever they appear', async () => {
+    const output = await testInput(mode, 'explicit-qrl-anywhere', {
+      code: `import { useOn, useSignal, $ } from '@qwik.dev/core';
+export function later(run: () => void) {
+  return $(() => run());
+}
+export default () => {
+  const count = useSignal(0);
+  useOn('click', $(() => { count.value++; }));
+  const wrapped = [1].map((step) => $(() => (count.value += step)));
+  return (
+    <button onClick$={() => { const bump = $(() => count.value++); bump(); }} data-n={wrapped.length}>
+      {count.value}
+    </button>
+  );
+};
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const code = output.modules.map((module) => module.code).join('\n');
+    // Every `$(fn)` became a QRL reference; none survives as a runtime call.
+    expect(code).not.toMatch(/\$\(/);
+    expect(code).toContain('useOn("click", q_');
+    expect(code).toMatch(/const bump = q_\w+\.w\(\[count\]\)/);
+    expect(code).toMatch(/const wrapped = \[1\]\.map\(\(step\) => q_\w+\.w\(\[count, step\]\)\)/);
+  });
+
   test('should scope window and document events and keep event modifiers', async () => {
     const output = await testInput(mode, 'event-scopes-modifiers', {
       code: `import { useSignal } from '@qwik.dev/core';

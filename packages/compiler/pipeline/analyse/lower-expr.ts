@@ -24,7 +24,7 @@ import { UnsupportedError } from '../errors';
 import { pushPayload, pushQrl, QrlIdentityKind, type LowerContext } from './lower-context';
 import { LocalKind, localReadIr } from './locals';
 import type { Expression, Node } from 'oxc-parser';
-import { recordFunctionJsx } from './lower-function';
+import { recordFunctionJsx, recordPayloadQrls } from './lower-function';
 import { expressionResult } from './results';
 
 export type ReactiveValue = Extract<Value, { v: ValueKind.Read } | { v: ValueKind.Computed }>;
@@ -183,7 +183,13 @@ export function recordPayloadJsx(
   preserveAsyncContext = false
 ): void {
   ctx.plan.payloads[payload].result = expressionResult(expression, ctx);
+  recordPayloadQrls(ctx, payload, expression);
+  const extracted = ctx.plan.payloads[payload].qrls;
   for (const root of ctx.jsx.expressionRoots(expression)) {
+    // A root inside an extracted `$()` belongs to that QRL's own payload.
+    if (extracted.some(({ range }) => range[0] <= root.start && root.end <= range[1])) {
+      continue;
+    }
     if (isFunctionLike(root)) {
       recordFunctionJsx(ctx, payload, root, preserveAsyncContext);
       continue;

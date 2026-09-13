@@ -98,7 +98,7 @@ export default (props) => {
   }
 );
 
-test.each(['$()', '$(handler)', '$(...handlers)', '$(() => {}, 1)', '$?.(() => {})'])(
+test.each(['$()', '$(...handlers)', '$(() => {}, 1)', '$?.(() => {})'])(
   'unsupported marker arguments fail closed: %s',
   async (initializer) => {
     await expect(

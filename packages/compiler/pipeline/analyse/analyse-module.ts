@@ -172,30 +172,6 @@ export async function analyseModule(
     owner: LifetimeOwner.Component,
     commit: LifetimeCommit.Immediate,
   });
-  // A compiled hook body is emitted from its setup, so its references retain nothing.
-  const hookBodies = plan.assembly.flatMap((intent) =>
-    intent.a === AssemblyKind.Hook ? [plan.hooks[intent.hook].range] : []
-  );
-  const retainedBindings = new Set(
-    bindings
-      .freeReferences([
-        ...authoredStatements,
-        ...components.flatMap(({ param }) => (param === null ? [] : [param.node])),
-      ])
-      .filter(
-        ({ node }) => !hookBodies.some(([start, end]) => node.start >= start && node.end <= end)
-      )
-      .map((reference) => reference.binding)
-  );
-  for (const imported of plan.imports) {
-    if (coreBindings.has(imported.binding) && retainedBindings.has(imported.binding)) {
-      plan.assembly.push({
-        a: AssemblyKind.Import,
-        edge: imported.edge,
-        binding: imported.binding,
-      });
-    }
-  }
   try {
     for (const root of helperRoots) {
       const payload = pushPayload(lowerContext, [root.start, root.end]);
@@ -208,6 +184,36 @@ export async function analyseModule(
   } catch (error) {
     recordModuleError(plan, error);
     return finish();
+  }
+  // Compiled hook bodies are emitted from their setup and extracted markers are replaced, so
+  // references inside them retain no authored import.
+  const replacedRanges = [
+    ...plan.assembly.flatMap((intent) =>
+      intent.a === AssemblyKind.Hook ? [plan.hooks[intent.hook].range] : []
+    ),
+    ...plan.payloads.flatMap((payload) =>
+      payload.qrls.map((entry) => entry.marker?.calleeRange ?? entry.range)
+    ),
+  ];
+  const retainedBindings = new Set(
+    bindings
+      .freeReferences([
+        ...authoredStatements,
+        ...components.flatMap(({ param }) => (param === null ? [] : [param.node])),
+      ])
+      .filter(
+        ({ node }) => !replacedRanges.some(([start, end]) => node.start >= start && node.end <= end)
+      )
+      .map((reference) => reference.binding)
+  );
+  for (const imported of plan.imports) {
+    if (coreBindings.has(imported.binding) && retainedBindings.has(imported.binding)) {
+      plan.assembly.push({
+        a: AssemblyKind.Import,
+        edge: imported.edge,
+        binding: imported.binding,
+      });
+    }
   }
   for (const component of components) {
     const componentBinding =

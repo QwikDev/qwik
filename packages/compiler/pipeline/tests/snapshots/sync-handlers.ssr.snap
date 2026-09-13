@@ -26,7 +26,7 @@ const q_component_sync_segment_1_ka0j9x66gukr = /*#__PURE__*/ _qrlSync(
   component_sync_segment_1_ka0j9x66gukr,
   'component_sync_segment_1_ka0j9x66gukr'
 );
-import { sync$, _qrlSync } from '@qwik.dev/core';
+import { _qrlSync } from '@qwik.dev/core';
 export const stop = q_component_sync_segment_0_ka0ivw29msk8;
 export default (props, ctx) => {
   return [

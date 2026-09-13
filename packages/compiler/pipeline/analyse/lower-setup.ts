@@ -4,7 +4,6 @@ import {
   BindTargetKind,
   ExportKind,
   ExportTargetKind,
-  QrlPayloadKind,
   SetupKind,
   VisibleTaskEvent,
   BoundaryKind,
@@ -41,7 +40,6 @@ import { localReadIr, LocalKind, type SetupLocals } from './locals';
 import { pushPayload, type LowerContext } from './lower-context';
 import { collectCaptures, lowerCaptures } from './ast/capture-analysis';
 import {
-  lowerComputedExpressionValue,
   lowerExpressionPayload,
   lowerInlineExpressionValue,
   recordPayloadJsx,
@@ -50,7 +48,7 @@ import {
   tryLowerExprIr,
 } from './lower-expr';
 import { findRuntimeJsx } from './ast/returns-jsx';
-import { lowerFunctionQrl, recordFunctionJsx } from './lower-function';
+import { lowerQrlArgument, recordFunctionJsx } from './lower-function';
 import { isNode, type WalkableNode } from './ast/ast-types';
 import { isFunctionLike } from './ast/utils';
 import { lowerRenderExpression } from './lower-jsx';
@@ -541,20 +539,16 @@ function lowerSetupCallback(
 ) {
   const binding = ctx.bindings.reference(init.callee);
   const coreApi = binding === null ? undefined : ctx.coreBindings.get(binding);
-  const argument = init.arguments[0];
-  const fn = argument?.type === 'SpreadElement' ? null : unwrapExpression(argument);
-  if (!init.optional && coreApi === QwikHook.UseSerializer && fn?.type === 'ObjectExpression') {
-    // The runtime accepts an object or a factory, so the object ships as a factory with captures.
-    return lowerComputedExpressionValue(fn, ctx, name, QrlPayloadKind.Function, 'hook').resume.qrl;
-  }
+  const first = init.arguments[0];
+  const argument = first?.type === 'SpreadElement' ? null : unwrapExpression(first);
   if (
     init.optional ||
-    (coreApi === QwikMarker.Dollar && init.arguments.length !== 1) ||
-    (fn?.type !== 'ArrowFunctionExpression' && fn?.type !== 'FunctionExpression')
+    argument === null ||
+    (coreApi === QwikMarker.Dollar && init.arguments.length !== 1)
   ) {
-    throw new UnsupportedError(`${calleeName}() without an inline first callback`);
+    throw new UnsupportedError(`${calleeName}() without a first argument`);
   }
-  return lowerFunctionQrl(fn, ctx, {
+  return lowerQrlArgument(argument, ctx, {
     nameCtx: name,
     subject: 'a QRL callback',
     ctxName: calleeName,

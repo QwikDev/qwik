@@ -1,0 +1,264 @@
+==INPUT==
+
+import { component$, $, useTask$, useSignal } from '@qwik.dev/core';
+import { config } from './config';
+function tick() { console.log('tick'); }
+export const greeting = $('hello');
+export const settings = $(config);
+export default component$(() => {
+  const count = useSignal(1);
+  useTask$(tick);
+  const later = $(tick);
+  const snapshot = $(count);
+  return <button onClick$={later}>{count.value}</button>;
+});
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+const q_component_qrl_segment_0_2fpowujm1ejve = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_qrl_segment_0_2fpowujm1ejve',
+  () => import('./component.tsx_component_qrl_segment_0_2fpowujm1ejve'),
+  'component_qrl_segment_0_2fpowujm1ejve'
+);
+const q_component_qrl_segment_1_2fpox8kpy8lvx = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_qrl_segment_1_2fpox8kpy8lvx',
+  () => import('./component.tsx_component_qrl_segment_1_2fpox8kpy8lvx'),
+  'component_qrl_segment_1_2fpox8kpy8lvx'
+);
+const q_component_later_segment_3_3i4odul1ji17c = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_later_segment_3_3i4odul1ji17c',
+  () => import('./component.tsx_component_later_segment_3_3i4odul1ji17c'),
+  'component_later_segment_3_3i4odul1ji17c'
+);
+const q_component_snapshot_segment_4_98oramdy0zcr = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_snapshot_segment_4_98oramdy0zcr',
+  () => import('./component.tsx_component_snapshot_segment_4_98oramdy0zcr'),
+  'component_snapshot_segment_4_98oramdy0zcr'
+);
+const q_linked_content_0_3641q2pvcvlmq = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_linked_content_0_3641q2pvcvlmq',
+  () => import('./component.tsx_linked_content_0_3641q2pvcvlmq'),
+  'linked_content_0_3641q2pvcvlmq'
+);
+const default_tmpl0 = _createElementTemplate('<button><!><!></button>');
+import {
+  _qrlWithChunk,
+  useSignal,
+  useTask,
+  setEvent,
+  _first,
+  _next,
+  createContentBlock,
+  _createElementTemplate,
+  getActiveInvokeContextOrNull,
+  maybeThen,
+  invoke,
+} from '@qwik.dev/core';
+import { component_useTaskqrl_segment_2_1og81asunhx6e } from './component.tsx_component_useTaskqrl_segment_2_1og81asunhx6e';
+import { config } from './config';
+function tick() {
+  console.log('tick');
+}
+export const greeting = q_component_qrl_segment_0_2fpowujm1ejve;
+export const settings = q_component_qrl_segment_1_2fpox8kpy8lvx;
+export default (props, ctx) => {
+  const invokeCtx0 = getActiveInvokeContextOrNull();
+  const count = useSignal(1);
+  useTask(component_useTaskqrl_segment_2_1og81asunhx6e);
+  const later = q_component_later_segment_3_3i4odul1ji17c;
+  const snapshot = q_component_snapshot_segment_4_98oramdy0zcr.w([count]);
+  return maybeThen(invokeCtx0.pendingSetup, () =>
+    invoke(invokeCtx0, () => {
+      const el0 = default_tmpl0(ctx.document);
+      setEvent(el0, 'q-e:click', later);
+      const start0 = _first(el0);
+      const end0 = _next(start0);
+      const content0 = createContentBlock(
+        ctx,
+        start0,
+        end0,
+        [],
+        q_linked_content_0_3641q2pvcvlmq.w([count]),
+        false,
+        true
+      );
+      ctx.scheduler.notify(content0);
+      return el0;
+    })
+  );
+};
+
+export { tick as __qwik_tick };
+============================= src/component.tsx_component_qrl_segment_0_2fpowujm1ejve.js (ENTRY POINT)==
+
+export const component_qrl_segment_0_2fpowujm1ejve = () => {
+  return 'hello';
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_qrl_segment_0_2fpowujm1ejve",
+  "entry": null,
+  "displayName": "component_qrl_segment_0",
+  "hash": "2fpowujm1ejve",
+  "canonicalFilename": "component.tsx_component_qrl_segment_0_2fpowujm1ejve",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "qrl",
+  "captures": false,
+  "loc": [
+    171,
+    178
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_qrl_segment_1_2fpox8kpy8lvx.js (ENTRY POINT)==
+
+import { config } from './config';
+
+export const component_qrl_segment_1_2fpox8kpy8lvx = () => {
+  return config;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_qrl_segment_1_2fpox8kpy8lvx",
+  "entry": null,
+  "displayName": "component_qrl_segment_1",
+  "hash": "2fpox8kpy8lvx",
+  "canonicalFilename": "component.tsx_component_qrl_segment_1_2fpox8kpy8lvx",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "qrl",
+  "captures": false,
+  "loc": [
+    207,
+    213
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_useTaskqrl_segment_2_1og81asunhx6e.js (ENTRY POINT)==
+
+import { __qwik_tick as tick } from './component.tsx';
+
+export const component_useTaskqrl_segment_2_1og81asunhx6e = () => {
+  return tick;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_useTaskqrl_segment_2_1og81asunhx6e",
+  "entry": null,
+  "displayName": "component_useTaskqrl_segment_2",
+  "hash": "1og81asunhx6e",
+  "canonicalFilename": "component.tsx_component_useTaskqrl_segment_2_1og81asunhx6e",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "useTask$",
+  "captures": false,
+  "loc": [
+    291,
+    295
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_later_segment_3_3i4odul1ji17c.js (ENTRY POINT)==
+
+import { __qwik_tick as tick } from './component.tsx';
+
+export const component_later_segment_3_3i4odul1ji17c = () => {
+  return tick;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_later_segment_3_3i4odul1ji17c",
+  "entry": null,
+  "displayName": "component_later_segment_3",
+  "hash": "3i4odul1ji17c",
+  "canonicalFilename": "component.tsx_component_later_segment_3_3i4odul1ji17c",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "later",
+  "captures": false,
+  "loc": [
+    316,
+    320
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_snapshot_segment_4_98oramdy0zcr.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_snapshot_segment_4_98oramdy0zcr = () => {
+  const [count] = _captures;
+  return count;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_snapshot_segment_4_98oramdy0zcr",
+  "entry": null,
+  "displayName": "component_snapshot_segment_4",
+  "hash": "98oramdy0zcr",
+  "canonicalFilename": "component.tsx_component_snapshot_segment_4_98oramdy0zcr",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "snapshot",
+  "captures": true,
+  "loc": [
+    344,
+    349
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_linked_content_0_3641q2pvcvlmq.js (ENTRY POINT)==
+
+import { _captures, createDynamicContent } from '@qwik.dev/core';
+
+export const linked_content_0_3641q2pvcvlmq = (ctx0) => {
+  const [count] = _captures;
+  return createDynamicContent(count.value, ctx0);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "linked_content_0_3641q2pvcvlmq",
+  "entry": null,
+  "displayName": "linked_content_0",
+  "hash": "3641q2pvcvlmq",
+  "canonicalFilename": "component.tsx_linked_content_0_3641q2pvcvlmq",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "content",
+  "captures": true,
+  "loc": [
+    387,
+    398
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

@@ -333,7 +333,7 @@ export default () => {
   expect(plan).toEqual(restored);
 });
 
-test.each(['useComputed$()', 'useComputed$(callback)', 'useComputed$(...callbacks)'])(
+test.each(['useComputed$()', 'useComputed$(...callbacks)'])(
   'deferred computed forms remain unsupported: %s',
   async (initializer) => {
     await expect(

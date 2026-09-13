@@ -268,8 +268,13 @@ transformation:
       authored. A marker wrapping a core hook directly
       (`const useX$ = implicit$FirstArg(useTaskQrl)`) is a hook whose only setup call is that
       core operation, so its facts are known without touching its authored form.
-- [ ] Existing function references instead of inline callbacks.
-- [ ] Non-function QRL values: strings, objects and imported values.
+- [x] Existing function references instead of inline callbacks. `$(tick)`, `useTask$(tick)`,
+      `useCustom$(callback)` and `onClick$={tick}` share one rule: a `$` argument that is not
+      an inline function ships as a factory chunk returning it, module bindings imported and
+      per-render locals captured. An existing QRL local still passes through as itself.
+- [x] Non-function QRL values: strings, objects and imported values. `$('hello')`, `$(config)`
+      and `$(signal)` are the same factory chunks; the `useSerializer$` object form is no longer a
+      special case. `sync$` still requires an inline capture-free function.
 - [x] `useStyles$('...')` and `useStylesScoped$(css)` lower to the `Style` op and call
       `useStyles`/`useStylesScoped` with a compile-time id in both environments; object-form
       `useSerializer$` arguments ship as factory QRLs with their captures.
@@ -458,6 +463,14 @@ code size and runtime cost. The previous implementation is not the accepted defa
 
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
+
+- 2026-09-13: Value QRL arguments: `lowerQrlArgument` is the single entry for a `$` argument,
+  used by markers anywhere and by setup hook calls; a non-function argument becomes the same
+  factory chunk `useSerializer$` objects already used. Retained authored core imports are now
+  computed after helper extraction and skip replaced marker callees, so `$` and `sync$` no longer
+  linger in main-module imports. Verification: 1078 pipeline tests (16 existing TODOs), the new
+  `qrl-value-arguments` snapshots, updated hook/computed/qrl setup unit tests, and the core corpus
+  in CSR and resume with only the known group 7/10/13 failures.
 
 - 2026-09-13: Nested boundary captures: `lowerFunctionQrl` scans the callback node itself, so
   its parameters and locals are in scope for markers inside it; a marker call counts as

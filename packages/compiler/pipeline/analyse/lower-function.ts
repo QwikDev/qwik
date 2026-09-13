@@ -1,6 +1,7 @@
 import type {
   ArrowFunctionExpression,
   CallExpression,
+  Expression,
   Function as FunctionNode,
   Node,
 } from 'oxc-parser';
@@ -19,7 +20,7 @@ import {
 import { InvalidModuleError, UnsupportedError } from '../errors';
 import { createCapturedContext, lowerCaptures } from './ast/capture-analysis';
 import { pushPayload, pushQrl, QrlIdentityKind, type LowerContext } from './lower-context';
-import { recordPayloadJsx, recordPayloadReads } from './lower-expr';
+import { lowerComputedExpressionValue, recordPayloadJsx, recordPayloadReads } from './lower-expr';
 import { LocalKind } from './locals';
 import { isFunctionLike, parameterPattern, unwrapExpression } from './ast/utils';
 import { isNode, type WalkableNode } from './ast/ast-types';
@@ -27,14 +28,28 @@ import { QwikMarker } from '../words';
 import { resolveSetupCall } from './lower-setup';
 
 /** Explicit and implicit boundaries share callback extraction and capture semantics. */
+export type QrlArgumentBoundary = Pick<Qrl, 'ctxName' | 'boundary'> & {
+  nameCtx: string;
+  subject: string;
+  origin: Pick<Qrl['origin'], 'range' | 'calleeRange' | 'argumentRanges'>;
+};
+
+/** An inline function is the QRL body; any other `$` argument ships as a factory returning it. */
+export function lowerQrlArgument(
+  argument: Expression,
+  ctx: LowerContext,
+  boundary: QrlArgumentBoundary
+): QrlUse {
+  return isFunctionLike(argument)
+    ? lowerFunctionQrl(argument, ctx, boundary)
+    : lowerComputedExpressionValue(argument, ctx, boundary.nameCtx, QrlPayloadKind.Function).resume
+        .qrl;
+}
+
 export function lowerFunctionQrl(
   fn: ArrowFunctionExpression | FunctionNode,
   ctx: LowerContext,
-  boundary: Pick<Qrl, 'ctxName' | 'boundary'> & {
-    nameCtx: string;
-    subject: string;
-    origin: Pick<Qrl['origin'], 'range' | 'calleeRange' | 'argumentRanges'>;
-  }
+  boundary: QrlArgumentBoundary
 ) {
   const body = fn.body;
   if (body === null) {
@@ -163,14 +178,14 @@ export function recordPayloadQrls(ctx: LowerContext, payload: PayloadId, node: N
       target.reads = target.reads.filter(
         ({ range }) =>
           !(range[0] >= current.callee.start && range[1] <= current.callee.end) &&
-          !(range[0] >= call.fn.start && range[1] <= call.fn.end)
+          !(range[0] >= call.argument.start && range[1] <= call.argument.end)
       );
       // `$(fn)` is the QRL; `foo$(fn, …)` keeps its call under the twin callee.
       target.qrls.push(
         call.marker === undefined
           ? { range: [current.start, current.end], use }
           : {
-              range: [call.fn.start, call.fn.end],
+              range: [call.argument.start, call.argument.end],
               use,
               marker: {
                 calleeRange: [current.callee.start, current.callee.end],
@@ -241,7 +256,7 @@ export function explicitQrlRoots(nodes: readonly Node[], ctx: MarkerScope): Node
 type MarkerScope = LowerContext;
 
 export interface MarkerQrlCall {
-  fn: ArrowFunctionExpression | FunctionNode;
+  argument: Expression;
   name: string;
   ctxName: string;
   boundary: Qrl['boundary'];
@@ -249,12 +264,12 @@ export interface MarkerQrlCall {
   marker?: Extract<CallTarget, { kind: CallTargetKind.Marker }>;
 }
 
-/** `$(fn)`, `sync$(fn)` or a custom `foo$(fn, …)` whose twins resolve; null otherwise. */
+/** `$(value)`, `sync$(fn)` or a custom `foo$(value, …)` whose twins resolve; null otherwise. */
 export function markerQrlCall(node: CallExpression, ctx: MarkerScope): MarkerQrlCall | null {
-  const argument = node.arguments[0];
-  const fn =
-    argument === undefined || argument.type === 'SpreadElement' ? null : unwrapExpression(argument);
-  if (fn === null || !isFunctionLike(fn) || node.optional) {
+  const first = node.arguments[0];
+  const argument =
+    first === undefined || first.type === 'SpreadElement' ? null : unwrapExpression(first);
+  if (argument === null || node.optional) {
     return null;
   }
   const binding = ctx.bindings.reference(node.callee);
@@ -264,15 +279,15 @@ export function markerQrlCall(node: CallExpression, ctx: MarkerScope): MarkerQrl
       return null;
     }
     return core === QwikMarker.Dollar
-      ? { fn, name: 'qrl', ctxName: core, boundary: { kind: BoundaryKind.Explicit } }
-      : { fn, name: 'sync', ctxName: core, boundary: { kind: BoundaryKind.Sync } };
+      ? { argument, name: 'qrl', ctxName: core, boundary: { kind: BoundaryKind.Explicit } }
+      : { argument, name: 'sync', ctxName: core, boundary: { kind: BoundaryKind.Sync } };
   }
   const callee = resolveSetupCall(node, ctx);
   if (callee === null || callee.stem === null) {
     return null;
   }
   return {
-    fn,
+    argument,
     name: callee.name,
     ctxName: callee.name,
     boundary: { kind: BoundaryKind.Implicit, role: 'hook' },
@@ -280,13 +295,13 @@ export function markerQrlCall(node: CallExpression, ctx: MarkerScope): MarkerQrl
   };
 }
 
-/** Extracts a marker call's callback; a `sync$` callback must stand alone, with no captures. */
+/** Extracts a marker call's argument; a `sync$` callback must stand alone, with no captures. */
 export function lowerMarkerQrl(
   call: CallExpression,
-  { fn, name, ctxName, boundary }: MarkerQrlCall,
+  { argument, name, ctxName, boundary }: MarkerQrlCall,
   ctx: LowerContext
 ): QrlUse {
-  const use = lowerFunctionQrl(fn, ctx, {
+  const use = lowerQrlArgument(argument, ctx, {
     nameCtx: name,
     subject: 'a QRL callback',
     ctxName,
@@ -299,11 +314,14 @@ export function lowerMarkerQrl(
   });
   const qrl = ctx.plan.qrls.find((entry) => entry.id === use.qrl)!;
   const reads = qrl.body.b === QrlBodyKind.Js ? ctx.plan.payloads[qrl.body.payload].reads : [];
-  if (boundary.kind === BoundaryKind.Sync && (qrl.captures.length > 0 || reads.length > 0)) {
+  if (
+    boundary.kind === BoundaryKind.Sync &&
+    (!isFunctionLike(argument) || qrl.captures.length > 0 || reads.length > 0)
+  ) {
     throw new InvalidModuleError(
       'sync-capture',
       'A sync$ handler cannot use variables from its scope.',
-      [fn.start, fn.end]
+      [argument.start, argument.end]
     );
   }
   return use;

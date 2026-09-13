@@ -6,7 +6,9 @@ import {
   CallTargetKind,
   EntryKind,
   LinkResultKind,
+  QrlBodyKind,
   SetupKind,
+  type Arg,
 } from '../schema';
 import { ResolutionKind } from '../link/link-plans';
 import { transformModules } from '../compat/transform-modules';
@@ -106,24 +108,22 @@ export default () => { ${callee}(() => 1); return <span />; };`,
   });
 });
 
-test.each([
-  'useCustom$()',
-  'useCustom$(callback)',
-  'useCustom$(...callbacks)',
-  'useCustom$?.(() => 1)',
-])('rejects deferred hook callback forms: %s', async (call) => {
-  await expect(
-    analyseModule(
-      {
-        path: 'component.tsx',
-        code: `
+test.each(['useCustom$()', 'useCustom$(...callbacks)', 'useCustom$?.(() => 1)'])(
+  'rejects deferred hook callback forms: %s',
+  async (call) => {
+    await expect(
+      analyseModule(
+        {
+          path: 'component.tsx',
+          code: `
 import { useCustom$ } from './hooks';
 export default () => { ${call}; return <span />; };`,
-      },
-      {}
-    )
-  ).rejects.toThrow(UnsupportedError);
-});
+        },
+        {}
+      )
+    ).rejects.toThrow(UnsupportedError);
+  }
+);
 
 test('generic hooks link the authored import and retain callback captures', async () => {
   const plan = await analyseModule(
@@ -394,13 +394,12 @@ export default () => {
 });
 
 test.each(['useTask$', 'useComputed$', 'useCustom$'])(
-  'does not treat ordinary function bindings as QRLs in %s',
+  'ships an ordinary function binding to %s as a factory QRL returning it',
   async (hook) => {
-    await expect(
-      analyseModule(
-        {
-          path: 'component.tsx',
-          code: `
+    const plan = await analyseModule(
+      {
+        path: 'component.tsx',
+        code: `
 import { useTask$, useComputed$ } from '@qwik.dev/core';
 import { useCustom$ } from './hooks';
 export default () => {
@@ -408,10 +407,15 @@ export default () => {
   const result = ${hook}(callback);
   return <span />;
 };`,
-        },
-        {}
-      )
-    ).rejects.toThrow(UnsupportedError);
+      },
+      {}
+    );
+    const call = plan.programs[0].setup.find((entry) => entry.s === SetupKind.Call)!;
+    expect(call).toMatchObject({ args: [{ a: ArgKind.Qrl }] });
+    const use = (call.args[0] as Extract<Arg, { a: ArgKind.Qrl }>).use;
+    const qrl = plan.qrls.find((entry) => entry.id === use.qrl)!;
+    expect(qrl.body.b).toBe(QrlBodyKind.Expr);
+    expect(qrl.captures).toHaveLength(1);
   }
 );
 

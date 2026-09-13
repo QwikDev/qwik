@@ -1460,6 +1460,38 @@ export default () => {
     expect(code).toMatch(/const wrapped = \[1\]\.map\(\(step\) => q_\w+\.w\(\[count, step\]\)\)/);
   });
 
+  test('should ship function references and plain values as QRL factories', async () => {
+    const output = await testInput(mode, 'qrl-value-arguments', {
+      code: `import { component$, $, useTask$, useSignal } from '@qwik.dev/core';
+import { config } from './config';
+function tick() { console.log('tick'); }
+export const greeting = $('hello');
+export const settings = $(config);
+export default component$(() => {
+  const count = useSignal(1);
+  useTask$(tick);
+  const later = $(tick);
+  const snapshot = $(count);
+  return <button onClick$={later}>{count.value}</button>;
+});
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const code = output.modules.map((module) => module.code).join('\n');
+    // Every marker is extracted; a non-function argument ships as a factory returning it.
+    expect(code).not.toContain('$(');
+    expect(code).not.toContain('useTask$');
+    expect(code).toMatch(/return ["']hello["']/);
+    for (const returned of ['return config', 'return tick', 'return count']) {
+      expect(code).toContain(returned);
+    }
+    // The setup local is captured, the module function is imported.
+    expect(code).toContain('const [count] = _captures;');
+    expect(code).toMatch(/import \{ (?:__qwik_)?tick(?: as tick)? \} from "\.\/component\.tsx"/);
+    // Replaced marker callees retain no authored core import.
+    expect(code).not.toMatch(/import \{[^}]*\s\$[,\s][^}]*\} from "@qwik.dev\/core"/);
+  });
+
   test('should lower custom hook bodies and link their event facts', async () => {
     const output = await testInputs(mode, 'custom-hook-bodies', [
       {

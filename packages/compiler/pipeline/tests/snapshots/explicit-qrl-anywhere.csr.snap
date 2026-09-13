@@ -36,7 +36,6 @@ const q_component_qrl_segment_2_2fpow2he7qfuc = /*#__PURE__*/ _qrlWithChunk(
 );
 const default_tmpl0 = _createElementTemplate('<button> </button>');
 import {
-  $,
   _qrlWithChunk,
   useSignal,
   useOn,

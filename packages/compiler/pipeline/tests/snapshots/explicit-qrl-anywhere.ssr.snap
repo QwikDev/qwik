@@ -54,7 +54,6 @@ const q_component_data_n_segment_5_brpnebuasbbh = /*#__PURE__*/ _noopQrl(
 );
 q_component_data_n_segment_5_brpnebuasbbh.s(component_data_n_segment_5_brpnebuasbbh);
 import {
-  $,
   _captures,
   _noopQrl,
   useSignal,

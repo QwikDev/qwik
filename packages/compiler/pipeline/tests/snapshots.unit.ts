@@ -325,6 +325,21 @@ export default ({ a = side('a'), b = a, label = fallback }) => {
     );
   });
 
+  test('should read nested and computed parameter patterns as prop paths', async () => {
+    const output = await testInput(mode, 'component-nested-params', {
+      code: `const KEY = 'dyn';
+export default ({ user: { name, tags: [first] }, [KEY]: keyed, meta: { count = 0 } }) => (
+  <p title={keyed} onClick$={() => console.log(name, first)}>{name}{first}{count}</p>
+);`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const code = output.modules.map((module) => module.code).join('\n');
+    for (const read of ['props.user.name', 'props.user.tags[0]', 'props[KEY]']) {
+      expect(code).toContain(read);
+    }
+    expect(code).toContain('(props.meta.count === void 0 ? 0 : props.meta.count)');
+  });
+
   test('should preserve reactive prop aliases and aliased children', async () => {
     const output = await testInput(mode, 'component-prop-aliases', {
       code: `export const Card = ({ title: heading, 'data-label': label, onSave$: save, children: content }) => (

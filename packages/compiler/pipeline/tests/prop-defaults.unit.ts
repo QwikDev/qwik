@@ -22,7 +22,11 @@ test('prop default setup describes initialization rather than tracking control f
       s: SetupKind.PropDefault,
       result: expect.any(Number),
       props: expect.any(Number),
-      name: 'title',
+      read: {
+        kind: 'member',
+        obj: { kind: 'binding-read', binding: expect.any(Number) },
+        name: 'title',
+      },
       initializer: { kind: ExprKind.Js, payload: expect.any(Number) },
     },
   ]);

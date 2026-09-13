@@ -202,12 +202,18 @@ export function valueIrJs(module: LinkedModule, ir: ExpressionIR): string {
       return JSON.stringify(ir.value);
     case ValueIrKind.Cond:
       return `(${valueIrJs(module, ir.test)} ? ${valueIrJs(module, ir.then)} : ${valueIrJs(module, ir.else)})`;
+    case ValueIrKind.Bin:
+      return `${valueIrJs(module, ir.left)} ${ir.op} ${valueIrJs(module, ir.right)}`;
+    case ValueIrKind.Undef:
+      return 'void 0';
     case ValueIrKind.SignalRead:
       return `${module.bindings[ir.binding].name}.value`;
     case ValueIrKind.BindingRead:
       return module.bindings[ir.binding].name;
     case ValueIrKind.Member:
       return memberJs(valueIrJs(module, ir.obj), ir.name);
+    case ValueIrKind.Index:
+      return `${valueIrJs(module, ir.obj)}[${valueIrJs(module, ir.key)}]`;
     case ValueIrKind.PropRead: {
       const prop = memberJs(module.bindings[ir.binding].name, ir.name);
       return `(${prop} === void 0 ? ${valueIrJs(module, ir.fallback)} : ${prop})`;

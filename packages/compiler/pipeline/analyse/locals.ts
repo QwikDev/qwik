@@ -30,7 +30,8 @@ export type SetupLocal =
       access: CaptureAccess.LoopValue | CaptureAccess.ComponentProp;
       slot: -1;
       binding: number;
-      member: string;
+      /** How the member reads from its owner, e.g. `props.user.tags[0]`. */
+      read: ValueIR;
       defaultValue?: ValueIR;
     };
 
@@ -44,17 +45,28 @@ export function localReadIr(local: SetupLocal): ValueIR | null {
   if (local.kind !== LocalKind.PropMember) {
     return null;
   }
-  if (local.defaultValue !== undefined) {
+  const { read, defaultValue } = local;
+  if (defaultValue === undefined) {
+    return read;
+  }
+  // A direct member keeps the linker's default-aware read; a deeper path spells the check out.
+  if (read.kind === ValueIrKind.Member && read.obj.kind === ValueIrKind.BindingRead) {
     return {
       kind: ValueIrKind.PropRead,
-      binding: local.binding,
-      name: local.member,
-      fallback: local.defaultValue,
+      binding: read.obj.binding,
+      name: read.name,
+      fallback: defaultValue,
     };
   }
   return {
-    kind: ValueIrKind.Member,
-    obj: { kind: ValueIrKind.BindingRead, binding: local.binding },
-    name: local.member,
+    kind: ValueIrKind.Cond,
+    test: { kind: ValueIrKind.Bin, op: '===', left: read, right: { kind: ValueIrKind.Undef } },
+    then: defaultValue,
+    else: read,
   };
+}
+
+/** A direct member read, `owner.name`. */
+export function memberReadIr(owner: number, name: string): ValueIR {
+  return { kind: ValueIrKind.Member, obj: { kind: ValueIrKind.BindingRead, binding: owner }, name };
 }

@@ -217,16 +217,26 @@ test('aliased children remain a slot without reading the props object', async ()
   );
 });
 
-test.each(['[key]: heading', 'nested: { title }'])(
-  'keeps unsupported prop patterns explicit: %s',
-  async (pattern) => {
-    await expect(
-      transformModules({
-        input: [
-          { path: 'src/component.tsx', code: `export default ({ ${pattern} }) => <span />;` },
-        ],
-        isServer: true,
-      })
-    ).rejects.toThrow('a destructured component parameter');
-  }
-);
+test('keeps a computed key outside the module explicit', async () => {
+  await expect(
+    transformModules({
+      input: [
+        { path: 'src/component.tsx', code: `export default ({ [key]: heading }) => <span />;` },
+      ],
+      isServer: true,
+    })
+  ).rejects.toThrow('a computed parameter key that is not a module value');
+});
+
+test('reads a nested parameter pattern through its prop path', async () => {
+  const output = await transformModules({
+    input: [
+      {
+        path: 'src/component.tsx',
+        code: `export default ({ nested: { title } }) => <span>{title}</span>;`,
+      },
+    ],
+    isServer: true,
+  });
+  expect(output.modules.map((module) => module.code).join('\n')).toContain('props.nested.title');
+});

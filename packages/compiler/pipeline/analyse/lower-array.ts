@@ -48,7 +48,7 @@ import {
   trySignalReadValue,
 } from './lower-expr';
 import { lowerConstBinding, lowerConstDeclaration } from './lower-setup';
-import { LocalKind, type SetupLocals } from './locals';
+import { memberReadIr, LocalKind, type SetupLocals } from './locals';
 import { lowerRenderExpression } from './lower-jsx';
 import { expressionResult, patternResult } from './results';
 
@@ -340,7 +340,10 @@ function readParameterAliases(
   if (
     object === null ||
     object.rest !== null ||
-    object.members.some((member) => member.defaultValue !== null)
+    object.members.some(
+      (member) =>
+        member.defaultValue !== null || member.path.length > 1 || member.path[0].kind !== 'member'
+    )
   ) {
     return null;
   }
@@ -464,7 +467,7 @@ function lowerRowProgram(
       access: CaptureAccess.LoopValue,
       slot: -1,
       binding: base,
-      member,
+      read: memberReadIr(base, member),
     });
   }
 

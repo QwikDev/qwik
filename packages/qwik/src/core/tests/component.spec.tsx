@@ -1,5 +1,5 @@
 import { component$, createContextId, type QRL } from '@qwik.dev/core';
-import { useContext, useContextProvider, useSignal, type Signal } from '@qwik.dev/core';
+import { useContext, useContextProvider, useSignal, useStore, type Signal } from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
 import { testRenderer } from '../test-utils';
 
@@ -168,6 +168,41 @@ describe(`${name}: component`, () => {
     await qwikLoader?.dispatch(button!, 'click');
 
     expect(button?.textContent).toBe('1');
+
+    cleanup();
+  });
+
+  it('should read nested and computed destructured props reactively', async () => {
+    const KEY = 'dyn';
+    const Child = component$(
+      ({
+        user: {
+          name,
+          tags: [first],
+        },
+        [KEY]: keyed,
+        meta: { count = 0 },
+      }: any) => (
+        <p>
+          {name}-{first}-{keyed}-{count}
+        </p>
+      )
+    );
+    const Parent = component$(() => {
+      const state = useStore({ user: { name: 'ann', tags: ['t1'] } });
+      return (
+        <button onClick$={() => (state.user.name = 'bob')}>
+          <Child user={state.user} dyn="k" meta={{}} />
+        </button>
+      );
+    });
+
+    const { container, cleanup, qwikLoader } = await render(Parent, { debug });
+    const paragraph = container.querySelector('p');
+
+    expect(paragraph?.textContent).toBe('ann-t1-k-0');
+    await qwikLoader?.dispatch(container.querySelector('button')!, 'click');
+    expect(paragraph?.textContent).toBe('bob-t1-k-0');
 
     cleanup();
   });

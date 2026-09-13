@@ -1,42 +1,76 @@
 import type { BindingIdentifier, BindingPattern, Expression } from 'oxc-parser';
 
-/** Simple fields can remain live reads instead of eager destructuring. */
+/** One step from the props object to a destructured leaf. */
+export type PropPathStep =
+  | { kind: 'member'; name: string }
+  | { kind: 'index'; index: number }
+  | { kind: 'computed'; key: Expression };
+
+export interface ParameterMember {
+  node: BindingIdentifier;
+  /** The top-level prop the leaf hangs off, or '' behind a computed key. */
+  name: string;
+  path: PropPathStep[];
+  defaultValue: Expression | null;
+}
+
+/** Leaves of a parameter pattern as prop paths; null for shapes that stay native destructuring. */
 export function readObjectParameter(pattern: BindingPattern) {
   if (pattern.type !== 'ObjectPattern') {
     return null;
   }
-  const members: { node: BindingIdentifier; name: string; defaultValue: Expression | null }[] = [];
+  const members: ParameterMember[] = [];
   let rest: BindingIdentifier | null = null;
-  for (const property of pattern.properties) {
-    if (property.type === 'RestElement') {
-      if (property.argument.type !== 'Identifier') {
-        return null;
-      }
-      rest = property.argument;
-      continue;
+  const collect = (leaf: BindingPattern, path: PropPathStep[]): boolean => {
+    const top = path[0];
+    const name = top?.kind === 'member' ? top.name : '';
+    switch (leaf.type) {
+      case 'Identifier':
+        members.push({ node: leaf, name, path, defaultValue: null });
+        return true;
+      case 'AssignmentPattern':
+        if (leaf.left.type !== 'Identifier') {
+          return false;
+        }
+        members.push({ node: leaf.left, name, path, defaultValue: leaf.right });
+        return true;
+      case 'ArrayPattern':
+        return leaf.elements.every(
+          (element, index) =>
+            element === null ||
+            (element.type !== 'RestElement' &&
+              collect(element, [...path, { kind: 'index', index }]))
+        );
+      case 'ObjectPattern':
+        return leaf.properties.every((property) => {
+          if (property.type === 'RestElement') {
+            if (path.length > 0 || property.argument.type !== 'Identifier') {
+              return false;
+            }
+            rest = property.argument;
+            return true;
+          }
+          const key = property.key;
+          const step: PropPathStep | null =
+            key.type === 'Literal' && typeof key.value === 'string'
+              ? { kind: 'member', name: key.value }
+              : !property.computed && key.type === 'Identifier'
+                ? { kind: 'member', name: key.name }
+                : property.computed && key.type !== 'PrivateIdentifier'
+                  ? { kind: 'computed', key }
+                  : null;
+          return step !== null && collect(property.value, [...path, step]);
+        });
+      default:
+        return false;
     }
-    if (property.type !== 'Property' || property.computed) {
-      return null;
-    }
-    const pattern = property.value;
-    const binding = pattern.type === 'AssignmentPattern' ? pattern.left : pattern;
-    if (binding.type !== 'Identifier') {
-      return null;
-    }
-    const name =
-      property.key.type === 'Identifier'
-        ? property.key.name
-        : property.key.type === 'Literal' && typeof property.key.value === 'string'
-          ? property.key.value
-          : null;
-    if (name === null) {
-      return null;
-    }
-    members.push({
-      node: binding,
-      name,
-      defaultValue: pattern.type === 'AssignmentPattern' ? pattern.right : null,
-    });
+  };
+  if (!collect(pattern, [])) {
+    return null;
+  }
+  // A rest cannot exclude a key it cannot name.
+  if (rest !== null && members.some((member) => member.path[0]?.kind === 'computed')) {
+    return null;
   }
   return { members, rest };
 }

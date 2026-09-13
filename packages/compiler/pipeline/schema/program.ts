@@ -330,7 +330,8 @@ export type Setup =
       s: SetupKind.PropDefault;
       result: LocalId;
       props: LocalId;
-      name: string;
+      /** The member's read, whose `undefined` selects the initializer. */
+      read: ValueIR;
       initializer: Expr;
       guard?: Predicate;
     }

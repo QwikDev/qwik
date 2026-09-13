@@ -10,12 +10,14 @@ import type { DiscoveredComponent } from './discover';
 import type { LowerContext } from './lower-context';
 import { collectCaptures } from './ast/capture-analysis';
 import { lowerInlineExpressionValue, tryLowerExprIr } from './lower-expr';
+import { unwrapExpression } from './ast/utils';
 import { LocalKind, type SetupLocal, type SetupLocals } from './locals';
 import { allocateGeneratedName } from '../names';
 import { QwikGenWord } from '../words';
-import { ValueIrKind } from '../../src/expr-ir';
+import { ValueIrKind, type ValueIR } from '../../src/expr-ir';
 import { UnsupportedError } from '../errors';
 import type { Expression } from 'oxc-parser';
+import type { PropPathStep } from './ast/parameter-members';
 import { patternResult } from './results';
 
 export function lowerComponentParameter(component: DiscoveredComponent, ctx: LowerContext) {
@@ -59,7 +61,7 @@ export function lowerComponentParameter(component: DiscoveredComponent, ctx: Low
       }
     }
   }
-  for (const [index, { node, name, defaultValue }] of members.entries()) {
+  for (const [index, { node, name, path, defaultValue }] of members.entries()) {
     if (name === 'children') {
       if (defaultValue !== null) {
         throw new UnsupportedError('a children parameter default');
@@ -70,7 +72,7 @@ export function lowerComponentParameter(component: DiscoveredComponent, ctx: Low
       kind: LocalKind.PropMember,
       access: CaptureAccess.ComponentProp,
       binding: ctx.propsBinding!,
-      member: name,
+      read: propPathIr(ctx.propsBinding!, path, ctx),
       slot: -1,
     };
     locals.set(ctx.bindings.declaration(node)!, local);
@@ -107,6 +109,34 @@ export function lowerComponentParameter(component: DiscoveredComponent, ctx: Low
   return { surface, setup, locals };
 }
 
+/** `{ user: { tags: [first] }, [KEY]: v }` reads as `props.user.tags[0]` and `props[KEY]`. */
+function propPathIr(props: number, path: PropPathStep[], ctx: LowerContext): ValueIR {
+  let read: ValueIR = { kind: ValueIrKind.BindingRead, binding: props };
+  for (const step of path) {
+    read =
+      step.kind === 'member'
+        ? { kind: ValueIrKind.Member, obj: read, name: step.name }
+        : { kind: ValueIrKind.Index, obj: read, key: propKeyIr(step, ctx) };
+  }
+  return read;
+}
+
+/** A computed key must be a literal or a module-level binding: both survive every boundary. */
+function propKeyIr(step: Exclude<PropPathStep, { kind: 'member' }>, ctx: LowerContext): ValueIR {
+  if (step.kind === 'index') {
+    return { kind: ValueIrKind.Lit, value: step.index };
+  }
+  const key = unwrapExpression(step.key);
+  if (key.type === 'Literal' && (typeof key.value === 'string' || typeof key.value === 'number')) {
+    return { kind: ValueIrKind.Lit, value: key.value };
+  }
+  const binding = key.type === 'Identifier' ? ctx.bindings.reference(key) : null;
+  if (binding === null || ctx.locals.has(binding) || binding === ctx.propsBinding) {
+    throw new UnsupportedError('a computed parameter key that is not a module value');
+  }
+  return { kind: ValueIrKind.BindingRead, binding };
+}
+
 function lowerPropDefault(
   expression: Expression,
   local: Extract<SetupLocal, { kind: LocalKind.PropMember }>,
@@ -128,7 +158,7 @@ function lowerPropDefault(
     s: SetupKind.PropDefault,
     result: binding,
     props: local.binding,
-    name: local.member,
+    read: local.read,
     initializer: initial.expr,
   };
 }

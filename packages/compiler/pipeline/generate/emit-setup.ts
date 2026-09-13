@@ -27,7 +27,6 @@ import {
   expressionJs,
   extractPayloadJs,
   inlineValueJs,
-  memberJs,
   valueIrJs,
   type EmitQrl,
 } from './emit-chunk';
@@ -69,7 +68,7 @@ export function parameterDefaults(
       return [];
     }
     imports.add(QwikWord.Untrack);
-    const prop = memberJs(module.bindings[entry.props].name, entry.name);
+    const prop = valueIrJs(module, entry.read);
     const initializer = expressionJs(module, entry.initializer, emitQrl);
     return [
       `${module.bindings[entry.result].name} = ${QwikWord.Untrack}(() => ${prop} === void 0) ? (${initializer}) : void 0`,

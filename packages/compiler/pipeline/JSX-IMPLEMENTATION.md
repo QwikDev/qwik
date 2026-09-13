@@ -223,8 +223,11 @@ component function cannot be serialized for resume; string tags and module compo
 
 Simple props, aliases, rest and some defaults are already implemented. Complete:
 
-- [ ] Nested parameter patterns.
-- [ ] Computed keys.
+- [x] Nested parameter patterns. A leaf of `{ user: { name, tags: [first] } }` is a prop member
+      whose read is the full path, `props.user.tags[0]`, live everywhere a direct member is; a
+      nested default reads `(path === void 0 ? default : path)`. Rest stays top-level only.
+- [x] Computed keys. `{ [KEY]: v }` reads `props[KEY]` when the key is a literal or a module
+      binding, which survive every boundary; any other key is diagnosed.
 - [x] Defaults referencing earlier parameters, such as `{ a, b = a }`. Prop defaults are
       generated parameters after `props, ctx`; a default reads earlier members through their
       resolved prop reads. Self and forward references stay diagnosed, as they would throw in
@@ -445,6 +448,14 @@ code size and runtime cost. The previous implementation is not the accepted defa
 
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
+
+- 2026-09-13: Nested and computed parameter patterns: `readObjectParameter` collects every leaf
+  with its prop path; a non-direct leaf carries a full read IR on its `PropMember` local, which
+  `localReadIr`, prop defaults and the IR printer (`Index`, `Bin`, `Undef` cases) honour.
+  Collection rows keep their direct-member fast path. Verification: 1075 pipeline tests (16
+  existing TODOs), the `component-nested-params` snapshots, updated `prop-aliases` unit tests,
+  and a new `component.spec.tsx` case reading nested, indexed and computed props reactively in
+  CSR and resume.
 
 - 2026-09-13: Prop defaults as generated parameters: `parameterDefaults` prints each
   `PropDefault` as `defaultValue = untrack(() => props.x === void 0) ? (init) : void 0` in the

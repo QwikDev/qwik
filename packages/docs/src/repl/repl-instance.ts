@@ -362,7 +362,7 @@ export class ReplInstance {
       // Start from /repl so repl-sw can intercept the requests
       const ssrWorker = new Worker(`/repl${ssrWorkerUrl}`, { type: 'module' });
       let resolveWorker: (worker: Worker) => void;
-      let rejectWorker: () => void;
+      let rejectWorker: (error: Error) => void;
       this._ssrWorkerP = new Promise((res, rej) => {
         resolveWorker = res;
         rejectWorker = rej;
@@ -390,7 +390,7 @@ export class ReplInstance {
               });
             } else if (type === 'ssr-error') {
               request.resolve({
-                html: errorHtml(e.data.error, 'SSR'),
+                html: errorHtml(e.data.stack || e.data.error, 'SSR'),
               });
             } else {
               request.resolve({
@@ -401,10 +401,12 @@ export class ReplInstance {
         }
       };
 
-      ssrWorker.onerror = () => {
-        // Unfortunately onerror doesn't provide error details
-        rejectWorker();
-        this.resolvePendingSsrRequests(errorHtml('SSR worker failed', 'SSR'));
+      ssrWorker.onerror = (event) => {
+        const location = event.filename ? `\n${event.filename}:${event.lineno}:${event.colno}` : '';
+        const error = new Error((event.message || 'SSR worker failed to load') + location);
+        console.error('SSR worker failed', event.error || error);
+        rejectWorker(error);
+        this.resolvePendingSsrRequests(errorHtml(event.error?.stack || error.message, 'SSR'));
         ssrWorker.terminate();
         this._ssrWorkerP = null;
       };
@@ -417,7 +419,7 @@ export class ReplInstance {
   ): Promise<{ html: string; events?: any[] }> {
     const entryModule = result.ssrModules.find((m) => m.path.includes('entry.server'));
     if (!entryModule || typeof entryModule.code !== 'string') {
-      return { html: errorHtml('No SSR entry module found', 'SSR') };
+      return { html: result.html || errorHtml('No SSR entry module found', 'SSR') };
     }
     try {
       const ssrWorker = await this.getSsrWorker(result);

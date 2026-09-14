@@ -1,16 +1,15 @@
-import * as qwikRouterConfig from '@qwik-router-config';
 import {
   createComputed$,
   implicit$FirstArg,
   isDev,
   isServer,
+  useServerData,
   type ComputedSignal,
   type NoSerialize,
   type QRL,
 } from '@qwik.dev/core';
 import {
   _deserialize,
-  _getContextEvent,
   _injectAsyncSignalValue,
   _markSignalAsExternallyOwned,
   _resolveContextWithoutSequentialScope,
@@ -34,6 +33,7 @@ import {
 } from '../../middleware/request-handler/server-error';
 import { ensureSlash } from '../../utils/pathname';
 import { DEFAULT_LOADERS_SERIALIZATION_STRATEGY } from './constants';
+import { basePathname } from './qwik-router-config';
 import { RouteLoaderCtxContext, RouteStateContext } from './contexts';
 import type {
   DataValidator,
@@ -41,6 +41,7 @@ import type {
   LoaderConstructorQRL,
   LoaderInternal,
   LoaderOptions,
+  QwikRouterEnvData,
   RequestEvent,
   RequestEventLoader,
   RouteNavigate,
@@ -142,11 +143,12 @@ class ServerRouteLoaderCapture {
     readonly hash: string,
     readonly qrl: QRL<(event: RequestEventLoader) => unknown>,
     readonly validators: DataValidator[] | undefined,
-    readonly blockSSR: boolean
+    readonly blockSSR: boolean,
+    readonly requestEv?: RequestEvent
   ) {}
 
   load() {
-    const requestEv = getRequestEvent();
+    const requestEv = this.requestEv;
     if (!requestEv) {
       throw new Error('Unable to determine the current RequestEvent.');
     }
@@ -279,13 +281,20 @@ export const fetchRouteLoaderData = async (
 const createRouteLoaderSignal = (
   loader: LoaderInternal,
   routeLoaderCtx: RouteLoaderCtx,
-  state: RouteLoaderState
+  state: RouteLoaderState,
+  requestEv?: RequestEvent
 ) => {
   const id = loader.__id;
   const stateValues = state as Record<string, unknown>;
   const resumeValueKey = getRouteLoaderValueStateKey(id);
   const capture = isServer
-    ? new ServerRouteLoaderCapture(id, loader.__qrl, loader.__validators, loader.__blockSSR)
+    ? new ServerRouteLoaderCapture(
+        id,
+        loader.__qrl,
+        loader.__validators,
+        loader.__blockSSR,
+        requestEv ?? useServerData<QwikRouterEnvData>('qwikrouter')?.ev
+      )
     : id;
   const searchFilter = loader.__search;
   // Raw text of the last successful fetch, to skip deserialization and keep object
@@ -321,7 +330,7 @@ const createRouteLoaderSignal = (
       const pageSearch = trackedPageSearch || location.search;
       const pageUrl = new URL(pagePathname + pageSearch, location.href);
       const mHash = routeLoaderCtx.manifestHash || 'dev';
-      const basePath = (qwikRouterConfig as any).basePathname ?? '/';
+      const basePath = basePathname;
       const needsResumeFetch = stateValues[resumeValueKey] === _UNINITIALIZED;
       const fetchRoutePath = routePath || (needsResumeFetch ? pageUrl.pathname : undefined);
       // A loader that's never been on any route we've visited has no fetch path yet —
@@ -417,9 +426,11 @@ export const filterSearchParams = (params: URLSearchParams, allowed: string[]): 
   return filtered.toString() ? `?${filtered.toString()}` : '';
 };
 
-const getLoaderOptions = (rest: (LoaderOptions | DataValidator)[]) => {
+// Hoisted function: called from `routeLoaderQrl` during the config cycle,
+// before this module's own consts are initialized.
+function getLoaderOptions(rest: (LoaderOptions | DataValidator)[]) {
   let id: string | undefined;
-  let serializationStrategy: SerializationStrategy = DEFAULT_LOADERS_SERIALIZATION_STRATEGY;
+  let serializationStrategy: SerializationStrategy = DEFAULT_LOADERS_SERIALIZATION_STRATEGY();
   let cacheControl: LoaderOptions['cacheControl'] | undefined;
   let eTag: LoaderOptions['eTag'] | undefined;
   let cacheKey: LoaderOptions['cacheKey'] | undefined;
@@ -480,7 +491,7 @@ const getLoaderOptions = (rest: (LoaderOptions | DataValidator)[]) => {
     search,
     blockSSR,
   };
-};
+}
 
 /**
  * Returns the current RequestEvent if possible. Only usable on the server, and only during request
@@ -492,7 +503,7 @@ export const getRequestEvent = (thisArg?: unknown): RequestEvent | undefined => 
   if (!isServer) {
     throw new Error('getRequestEvent() can only be used on the server.');
   }
-  return _asyncRequestStore?.getStore() || [thisArg, _getContextEvent()].find(isRequestEvent);
+  return _asyncRequestStore?.getStore() ?? (isRequestEvent(thisArg) ? thisArg : undefined);
 };
 
 const REQUEST_ROUTE_LOADER_VALUES = '@routeLoaderValues';
@@ -643,7 +654,8 @@ export const applyClientRouteLoaderPath = (loaderId: string, ctx: RouteLoaderCtx
 export const ensureRouteLoaderSignal = (
   loader: LoaderInternal,
   state: RouteLoaderState,
-  routeLoaderCtx: RouteLoaderCtx
+  routeLoaderCtx: RouteLoaderCtx,
+  requestEv?: RequestEvent
 ) => {
   if (!isServer && routeLoaderCtx.pagePathname) {
     applyClientRouteLoaderPath(loader.__id, routeLoaderCtx);
@@ -654,17 +666,18 @@ export const ensureRouteLoaderSignal = (
   if (isServer && loader.__serializationStrategy === 'never') {
     (state as Record<string, unknown>)[getRouteLoaderValueStateKey(loader.__id)] = _UNINITIALIZED;
   }
-  return (state[loader.__id] ||= createRouteLoaderSignal(loader, routeLoaderCtx, state));
+  return (state[loader.__id] ||= createRouteLoaderSignal(loader, routeLoaderCtx, state, requestEv));
 };
 
 export const ensureRouteLoaderSignals = (
   mods: readonly (RouteModule | undefined)[],
   state: RouteLoaderState,
-  routeLoaderCtx: RouteLoaderCtx
+  routeLoaderCtx: RouteLoaderCtx,
+  requestEv?: RequestEvent
 ) => {
   const loaders = getModuleRouteLoaders(mods);
   for (let i = 0; i < loaders.length; i++) {
-    ensureRouteLoaderSignal(loaders[i], state, routeLoaderCtx);
+    ensureRouteLoaderSignal(loaders[i], state, routeLoaderCtx, requestEv);
   }
   return loaders;
 };
@@ -896,11 +909,17 @@ export const getRouteLoaderResponse = async (
   }
 };
 
-/** @internal */
-export const routeLoaderQrl = ((
+/**
+ * A hoisted function declaration on purpose: this module imports `@qwik-router-config`, whose route
+ * modules call `routeLoaderQrl` back at their own eval — in a bundle that cycle executes the routes
+ * first, and a `const` binding would throw a TDZ ReferenceError.
+ *
+ * @internal
+ */
+export function routeLoaderQrl(
   loaderQrl: QRL<(event: RequestEventLoader) => unknown>,
   ...rest: (LoaderOptions | DataValidator)[]
-): LoaderInternal => {
+): LoaderInternal {
   const { id, validators, serializationStrategy, cacheControl, eTag, cacheKey, search, blockSSR } =
     getLoaderOptions(rest);
 
@@ -924,7 +943,7 @@ export const routeLoaderQrl = ((
   loader.__blockSSR = blockSSR;
   Object.freeze(loader);
   return loader;
-}) as LoaderConstructorQRL;
+}
 
 /**
  * Define a route loader that fetches data before the route renders.
@@ -953,7 +972,9 @@ export const routeLoaderQrl = ((
  *
  * @public
  */
-export const routeLoader$: LoaderConstructor = /*#__PURE__*/ implicit$FirstArg(routeLoaderQrl);
+export const routeLoader$: LoaderConstructor = /*#__PURE__*/ implicit$FirstArg(
+  routeLoaderQrl as LoaderConstructorQRL
+);
 
 async function runValidators(
   requestEv: RequestEvent,

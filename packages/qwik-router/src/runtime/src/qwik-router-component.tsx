@@ -30,7 +30,6 @@
  * update without navigation, the head is resolved in a separate Task that tracks the relevant
  * signals.
  */
-import * as qwikRouterConfig from '@qwik-router-config';
 import { ensureSlash } from '../../utils/pathname';
 import {
   $,
@@ -226,7 +225,12 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
   // Then set .value from middleware-computed loader values (inert, non-reactive data).
   const loaderState = {} as Record<string, ComputedSignal<unknown>>;
   const contentModulesForInit = env.loadedRoute.$mods$ as ContentModule[];
-  const loaders = ensureRouteLoaderSignals(contentModulesForInit, loaderState, routeLoaderCtx);
+  const loaders = ensureRouteLoaderSignals(
+    contentModulesForInit,
+    loaderState,
+    routeLoaderCtx,
+    env.ev
+  );
   for (const loader of loaders) {
     if (loader.__id in env.loaderValues) {
       const value = env.loaderValues[loader.__id];
@@ -551,6 +555,10 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
         } else if (!globalThis.__NO_TRAILING_SLASH__) {
           trackUrl.pathname = ensureSlash(trackUrl.pathname);
         }
+        // Dynamic import on purpose: a static config import runs the app's
+        // route/serverPlugin modules during this package's own evaluation
+        // (they import this package back), which TDZs in bundled output.
+        const qwikRouterConfig = await import('@qwik-router-config');
         const loadRoutePromise = loadRoute(
           qwikRouterConfig.routes,
           qwikRouterConfig.cacheModules,
@@ -613,7 +621,12 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
       if (!isServer) {
         invalidateNavRouteLoaders(loaderState);
       }
-      const routeLoaders = ensureRouteLoaderSignals(contentModules, loaderState, routeLoaderCtx);
+      const routeLoaders = ensureRouteLoaderSignals(
+        contentModules,
+        loaderState,
+        routeLoaderCtx,
+        isServer ? env.ev : undefined
+      );
       if (shouldInvalidateActionLoaders) {
         // Actions force revalidation (fetch cache: 'reload') for their loaders
         if (actionLoaderHashes !== undefined) {

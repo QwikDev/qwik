@@ -15,6 +15,7 @@ vi.mock('@qwik-router-config', () => ({
   },
   serverPlugins: undefined,
   cacheModules: false,
+  importEagerModules: undefined,
   basePathname: '/',
   fallthrough: false,
 }));

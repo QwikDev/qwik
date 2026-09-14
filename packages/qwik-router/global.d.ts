@@ -22,6 +22,9 @@ declare var __DEFAULT_LOADERS_SERIALIZATION_STRATEGY__: SerializationStrategy;
 /** Should routes not have a trailing slash? */
 declare var __NO_TRAILING_SLASH__: boolean;
 
+/** The app's base pathname, define-replaced at app build time. */
+declare var __QWIK_ROUTER_BASE_PATHNAME__: string | undefined;
+
 /** Maximum number of SSR-rendered pages to keep in the in-memory cache. */
 declare var __SSR_CACHE_SIZE__: number;
 

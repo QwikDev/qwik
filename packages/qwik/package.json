@@ -1,17 +1,25 @@
 {
   "name": "@qwik.dev/core",
   "description": "An open source framework for building instant loading web apps at any scale, without the extra effort.",
-  "version": "2.0.0-beta.42",
+  "version": "2.0.0-beta.43",
   "author": "Qwik Team",
   "bin": {
     "qwik": "./qwik-cli.mjs"
   },
   "bugs": "https://github.com/QwikDev/qwik/issues",
   "dependencies": {
+    "@emnapi/core": "1.11.3",
+    "@emnapi/runtime": "1.11.3",
     "@qwik.dev/optimizer": "workspace:*",
     "csstype": "^3.2.3",
     "launch-editor": "^2.14.1",
-    "magic-string": "0.30.21"
+    "magic-regexp": "^0.11.0",
+    "magic-string": "^0.30.21",
+    "oxc-parser": "^0.144.0",
+    "oxc-transform": "^0.144.0",
+    "oxc-walker": "^1.1.1",
+    "pathe": "^2.0.3",
+    "siphash": "^1.2.0"
   },
   "devDependencies": {
     "@croct/json5-parser": "0.2.2",
@@ -23,7 +31,7 @@
     "kleur": "4.1.5",
     "prettier": "3.7.4",
     "rolldown": "1.2.4",
-    "vitest": "4.1.10"
+    "vitest": "5.0.0"
   },
   "engines": {
     "node": "^20.3.0 || >=21.0.0"
@@ -76,6 +84,12 @@
         "production": "./dist/build/index.prod.mjs",
         "default": "./dist/build/index.mjs"
       }
+    },
+    "./async-local-storage": {
+      "types": "./dist/async-local-storage.d.ts",
+      "edge-light": "./dist/async-local-storage.node.mjs",
+      "node": "./dist/async-local-storage.node.mjs",
+      "default": "./dist/async-local-storage.mjs"
     },
     "./loader": {
       "types": "./dist/loader/index.d.ts",
@@ -165,10 +179,10 @@
     "vitest": ">=2 <5"
   },
   "peerDependenciesMeta": {
-    "vitest": {
+    "prettier": {
       "optional": true
     },
-    "prettier": {
+    "vitest": {
       "optional": true
     }
   },

@@ -86,6 +86,27 @@ describe(`${name}: attributes`, () => {
     cleanup();
   });
 
+  it('sets value and checked through native properties', async () => {
+    const App = component$(() => {
+      const text = useSignal('one');
+      const on = useSignal(false);
+      return (
+        <form>
+          <input value={text.value} checked={on.value} type="checkbox" />
+          <button onClick$={() => ((text.value = 'two'), (on.value = true))} />
+        </form>
+      );
+    });
+    const { container, qwikLoader, cleanup } = await render(App);
+    const input = container.querySelector('input')!;
+    expect([input.value, input.checked]).toEqual(['one', false]);
+
+    await qwikLoader?.dispatch(container.querySelector('button')!, 'click');
+
+    expect([input.value, input.checked]).toEqual(['two', true]);
+    cleanup();
+  });
+
   it('binds checked and value through native properties', async () => {
     const App = component$(() => {
       const checked = useSignal(false);

@@ -46,6 +46,7 @@ import { JsxValueKind, type JsxValue } from './ast/jsx-analysis';
 import {
   lowerComputedExpressionValue,
   lowerExpressionValue,
+  tryLowerExprIr,
   lowerInlineExpressionValue,
   recordPayloadJsx,
   recordPayloadReads,
@@ -1147,6 +1148,11 @@ function lowerAttribute(
           name,
           value: null,
         };
+      }
+      // `{false}`, `{-1}`, `{'x'}` are static: they serialize exactly as the runtime would.
+      const literal = tryLowerExprIr(value.expression, ctx);
+      if (literal?.kind === ValueIrKind.Lit) {
+        return { k: PropKind.Static, name, value: literal.value };
       }
       return {
         k: PropKind.Dynamic,

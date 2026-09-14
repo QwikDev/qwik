@@ -1954,6 +1954,56 @@ export default component$(() => {
     expect(main).toContain('"dangerouslySetInnerHTML", markup');
   });
 
+  test('should serialize static and dynamic attributes alike', async () => {
+    const output = await testInput(mode, 'attribute-parity', {
+      code: `import { component$, useSignal } from '@qwik.dev/core';
+export default component$(() => {
+  const on = useSignal(false);
+  return (
+    <section>
+      <input required={false} aria-hidden={false} draggable={false} spellcheck={false} tabIndex={-1} data-n={2} hidden={true} />
+      <input required={on.value} aria-hidden={on.value} draggable={on.value} spellcheck={on.value} tabIndex={-1} data-n={2} />
+    </section>
+  );
+});
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    // Static literals fold to the bytes the runtime would serialize for the same values.
+    expect(main).toMatch(
+      /<input aria-hidden=\\?"false\\?" draggable=\\?"false\\?" spellcheck=\\?"false\\?" tabIndex=\\?"-1\\?" data-n=\\?"2\\?" hidden>/
+    );
+    expect(main).not.toMatch(/<input required/);
+    // The dynamic twins bind under the same attribute names.
+    for (const name of ['required', 'aria-hidden', 'draggable', 'spellcheck']) {
+      expect(main).toContain(`"${name}", on`);
+    }
+  });
+
+  test('should apply class and style combinations through the attribute helpers', async () => {
+    const output = await testInput(mode, 'attribute-class-style', {
+      code: `import { component$, useSignal, useStylesScoped$ } from '@qwik.dev/core';
+export default component$(() => {
+  useStylesScoped$('.base { color: red }');
+  const active = useSignal(true);
+  return (
+    <button
+      class={['base', { active: active.value, disabled: !active.value }]}
+      style={{ opacity: active.value ? 1 : 0.5 }}
+      onClick$={() => (active.value = !active.value)}
+    />
+  );
+});
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const code = output.modules.map((module) => module.code).join('\n');
+    // Arrays and objects serialize in the runtime helpers; the scoped style id rides along.
+    expect(code).toMatch(/"class", \[active\], [^,]+, [^,]+, "⚡️/);
+    expect(code).toContain('"style", [active]');
+  });
+
   test('should merge component prop spreads in authored order', async () => {
     await testInput(mode, 'component-props-spread', {
       code: `export const Child = (props) => <strong>{props.label}</strong>;

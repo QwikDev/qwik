@@ -16,19 +16,11 @@ import {
   _first,
   createTextNodeEffect,
   _createElementTemplate,
-  _qrlWithChunk,
-  readExpression,
-  _props,
   createComponent,
 } from '@qwik.dev/core';
 import { component_q_e_click_segment_0_2xwyg1cinvmpz } from './component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz';
 
 const Counter_tmpl0 = _createElementTemplate('<button> </button>');
-const q_component_initial_segment_1_3ga3gdzder3zg = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_initial_segment_1_3ga3gdzder3zg',
-  () => import('./component.tsx_component_initial_segment_1_3ga3gdzder3zg'),
-  'component_initial_segment_1_3ga3gdzder3zg'
-);
 export const Counter = (props, ctx) => {
   const count = useSignal(props.initial === void 0 ? 0 : props.initial);
   const el0 = Counter_tmpl0(ctx.document);
@@ -39,19 +31,7 @@ export const Counter = (props, ctx) => {
   return el0;
 };
 export default (props0, ctx) => {
-  const propQrl0 = q_component_initial_segment_1_3ga3gdzder3zg;
-  const component0 = createComponent(
-    Counter,
-    _props(
-      {
-        get initial() {
-          return readExpression(propQrl0);
-        },
-      },
-      { initial: propQrl0 }
-    ),
-    ctx
-  );
+  const component0 = createComponent(Counter, { initial: 1 }, ctx);
   return component0;
 };
 ============================= src/component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz.js (ENTRY POINT)==
@@ -83,31 +63,6 @@ export const component_q_e_click_segment_0_2xwyg1cinvmpz = () => {
   "captureNames": [
     "count"
   ]
-}
-*/
-============================= src/component.tsx_component_initial_segment_1_3ga3gdzder3zg.js (ENTRY POINT)==
-
-export const component_initial_segment_1_3ga3gdzder3zg = () => {
-  return 1;
-};
-/*
-{
-  "origin": "component.tsx",
-  "name": "component_initial_segment_1_3ga3gdzder3zg",
-  "entry": null,
-  "displayName": "component_initial_segment_1",
-  "hash": "3ga3gdzder3zg",
-  "canonicalFilename": "component.tsx_component_initial_segment_1_3ga3gdzder3zg",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "initial",
-  "captures": false,
-  "loc": [
-    286,
-    287
-  ],
-  "paramNames": []
 }
 */
 == CSR DIAGNOSTICS ==

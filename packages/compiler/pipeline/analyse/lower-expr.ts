@@ -276,6 +276,13 @@ export function tryLowerExprIr(node: Expression, ctx: LowerContext): ValueIR | n
         ? { kind: ValueIrKind.Lit, value }
         : null;
     }
+    case 'UnaryExpression': {
+      // `-1` is a literal to authors; keep it one for static folding.
+      const operand = node.operator === '-' ? tryLowerExprIr(node.argument, ctx) : null;
+      return operand?.kind === ValueIrKind.Lit && typeof operand.value === 'number'
+        ? { kind: ValueIrKind.Lit, value: -operand.value }
+        : null;
+    }
     case 'Identifier': {
       const name = identifierName(node);
       const binding = ctx.bindings.reference(node);

@@ -1,0 +1,151 @@
+==INPUT==
+
+import { component$, useSignal, useStylesScoped$ } from '@qwik.dev/core';
+export default component$(() => {
+  useStylesScoped$('.base { color: red }');
+  const active = useSignal(true);
+  return (
+    <button
+      class={['base', { active: active.value, disabled: !active.value }]}
+      style={{ opacity: active.value ? 1 : 0.5 }}
+      onClick$={() => (active.value = !active.value)}
+    />
+  );
+});
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useStylesScoped,
+  useSignal,
+  createAttrExpressionEffect,
+  setEvent,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_class_segment_0_3htuygud1guoj } from './component.tsx_component_class_segment_0_3htuygud1guoj';
+import { component_style_segment_1_cgm3c4qw0vql } from './component.tsx_component_style_segment_1_cgm3c4qw0vql';
+import { component_q_e_click_segment_2_2xwygteqhjqr1 } from './component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1';
+
+const default_tmpl0 = _createElementTemplate('<button></button>');
+export default (props, ctx) => {
+  useStylesScoped('.base { color: red }', 'f5nwzpjzm8yb-0', true);
+  const active = useSignal(true);
+  const el0 = default_tmpl0(ctx.document);
+  const effect0 = createAttrExpressionEffect(
+    el0,
+    'class',
+    [active],
+    component_class_segment_0_3htuygud1guoj,
+    ctx.scheduler,
+    '⚡️f5nwzpjzm8yb-0'
+  );
+  ctx.scheduler.notify(effect0);
+  const effect1 = createAttrExpressionEffect(
+    el0,
+    'style',
+    [active],
+    component_style_segment_1_cgm3c4qw0vql,
+    ctx.scheduler
+  );
+  ctx.scheduler.notify(effect1);
+  setEvent(el0, 'q-e:click', component_q_e_click_segment_2_2xwygteqhjqr1, [active]);
+  return el0;
+};
+============================= src/component.tsx_component_class_segment_0_3htuygud1guoj.js (ENTRY POINT)==
+
+export const component_class_segment_0_3htuygud1guoj = (active) => {
+  return [
+    'base',
+    {
+      active: active.value,
+      disabled: !active.value,
+    },
+  ];
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_class_segment_0_3htuygud1guoj",
+  "entry": null,
+  "displayName": "component_class_segment_0",
+  "hash": "3htuygud1guoj",
+  "canonicalFilename": "component.tsx_component_class_segment_0_3htuygud1guoj",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "class",
+  "captures": true,
+  "loc": [
+    222,
+    281
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "active"
+  ]
+}
+*/
+============================= src/component.tsx_component_style_segment_1_cgm3c4qw0vql.js (ENTRY POINT)==
+
+export const component_style_segment_1_cgm3c4qw0vql = (active) => {
+  return { opacity: active.value ? 1 : 0.5 };
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_style_segment_1_cgm3c4qw0vql",
+  "entry": null,
+  "displayName": "component_style_segment_1",
+  "hash": "cgm3c4qw0vql",
+  "canonicalFilename": "component.tsx_component_style_segment_1_cgm3c4qw0vql",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "style",
+  "captures": true,
+  "loc": [
+    296,
+    331
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "active"
+  ]
+}
+*/
+============================= src/component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
+  const [active] = _captures;
+  return (active.value = !active.value);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_2_2xwygteqhjqr1",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_2",
+  "hash": "2xwygteqhjqr1",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    339,
+    385
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "active"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

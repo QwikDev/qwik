@@ -1,0 +1,178 @@
+==INPUT==
+
+import { component$, useSignal, useStylesScoped$ } from '@qwik.dev/core';
+export default component$(() => {
+  useStylesScoped$('.base { color: red }');
+  const active = useSignal(true);
+  return (
+    <button
+      class={['base', { active: active.value, disabled: !active.value }]}
+      style={{ opacity: active.value ? 1 : 0.5 }}
+      onClick$={() => (active.value = !active.value)}
+    />
+  );
+});
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useStylesScoped,
+  useSignal,
+  createSsrNodeId,
+  renderSsrAttrExpression,
+  escapeHTML,
+  maybeThen,
+  _noopQrl,
+} from '@qwik.dev/core';
+const component_class_segment_0_3htuygud1guoj = (active) => {
+  return [
+    'base',
+    {
+      active: active.value,
+      disabled: !active.value,
+    },
+  ];
+};
+const q_component_class_segment_0_3htuygud1guoj = /*#__PURE__*/ _noopQrl(
+  'component_class_segment_0_3htuygud1guoj'
+);
+q_component_class_segment_0_3htuygud1guoj.s(component_class_segment_0_3htuygud1guoj);
+const component_style_segment_1_cgm3c4qw0vql = (active) => {
+  return { opacity: active.value ? 1 : 0.5 };
+};
+const q_component_style_segment_1_cgm3c4qw0vql = /*#__PURE__*/ _noopQrl(
+  'component_style_segment_1_cgm3c4qw0vql'
+);
+q_component_style_segment_1_cgm3c4qw0vql.s(component_style_segment_1_cgm3c4qw0vql);
+const q_component_q_e_click_segment_2_2xwygteqhjqr1 = /*#__PURE__*/ _noopQrl(
+  'component_q_e_click_segment_2_2xwygteqhjqr1'
+);
+export default (props, ctx) => {
+  useStylesScoped('.base { color: red }', 'f5nwzpjzm8yb-0', true);
+  const active = useSignal(true);
+  const id0 = ctx.nextId();
+  ctx.addRoot(active);
+  const attr0 = renderSsrAttrExpression(
+    id0,
+    'class',
+    [active],
+    q_component_class_segment_0_3htuygud1guoj,
+    undefined,
+    '⚡️f5nwzpjzm8yb-0'
+  );
+  const attr1 = renderSsrAttrExpression(
+    id0,
+    'style',
+    [active],
+    q_component_style_segment_1_cgm3c4qw0vql
+  );
+  return maybeThen(attr0, (attr0) =>
+    maybeThen(attr1, (attr1) => [
+      '<button q:id="',
+      createSsrNodeId(id0),
+      '"',
+      attr0 === null ? '' : ' class' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
+      attr1 === null ? '' : ' style' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
+      ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_2_2xwygteqhjqr1.w([active])),
+      '></button>',
+    ])
+  );
+};
+============================= src/component.tsx_component_class_segment_0_3htuygud1guoj.js (ENTRY POINT)==
+
+export const component_class_segment_0_3htuygud1guoj = (active) => {
+  return [
+    'base',
+    {
+      active: active.value,
+      disabled: !active.value,
+    },
+  ];
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_class_segment_0_3htuygud1guoj",
+  "entry": null,
+  "displayName": "component_class_segment_0",
+  "hash": "3htuygud1guoj",
+  "canonicalFilename": "component.tsx_component_class_segment_0_3htuygud1guoj",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "class",
+  "captures": true,
+  "loc": [
+    222,
+    281
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "active"
+  ]
+}
+*/
+============================= src/component.tsx_component_style_segment_1_cgm3c4qw0vql.js (ENTRY POINT)==
+
+export const component_style_segment_1_cgm3c4qw0vql = (active) => {
+  return { opacity: active.value ? 1 : 0.5 };
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_style_segment_1_cgm3c4qw0vql",
+  "entry": null,
+  "displayName": "component_style_segment_1",
+  "hash": "cgm3c4qw0vql",
+  "canonicalFilename": "component.tsx_component_style_segment_1_cgm3c4qw0vql",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "style",
+  "captures": true,
+  "loc": [
+    296,
+    331
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "active"
+  ]
+}
+*/
+============================= src/component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
+  const [active] = _captures;
+  return (active.value = !active.value);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_2_2xwygteqhjqr1",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_2",
+  "hash": "2xwygteqhjqr1",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    339,
+    385
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "active"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

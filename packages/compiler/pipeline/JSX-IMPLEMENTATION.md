@@ -312,10 +312,21 @@ Component spreads already exist. Complete element spreads and DOM semantics:
       props object; a `ref` binds the element id on the server, `innerHTML` replaces the authored
       children. Proven by `ref.spec.tsx` (forwarded opaque props) and `attributes.spec.tsx`
       (last-write-wins) in CSR and resume; `bind:*` and innerHTML ride the same runtime path.
-- [ ] Static/dynamic parity for boolean/enumerated attributes, `aria-*` and `data-*`.
-- [ ] Native DOM properties where required, especially `value`, `checked` and `selected`.
-- [ ] `<textarea>` and `<select>` semantics.
-- [ ] Class/style combinations: arrays, objects, signals, removal and overrides.
+- [x] Static/dynamic parity for boolean/enumerated attributes, `aria-*` and `data-*`. A literal
+      expression attribute (`{false}`, `{-1}`, `{'x'}`) is a static prop, so it folds to the
+      bytes the runtime serializes for the same value; live values bind under the same names
+      (`attribute-parity` snapshots, `attributes.spec.tsx` "serializes boolean, enumerated and
+      numeric attributes consistently").
+- [x] Native DOM properties where required, especially `value` and `checked`: the attribute
+      helpers set them as properties (`attributes.spec.tsx` "sets value and checked through
+      native properties", CSR and resume). `selected` rides `<select>` below.
+- [ ] `<textarea>` and `<select>` semantics. `value` on either is rendered as an attribute on the
+      server, which browsers ignore: a textarea needs it as content, a select needs `selected`
+      on the matching option. The legacy compiler had no handling either; decide compiler-side
+      lowering or a runtime helper. The test DOM lacks `select.value`, so a spec needs a browser.
+- [x] Class/style combinations: arrays, objects, signals, removal and overrides. Serialized by
+      the runtime helpers with the scoped style id (`attribute-class-style` snapshots,
+      `attributes.spec.tsx` "updates class arrays and objects without losing static classes").
 
 Reuse the rules in `packages/qwik/src/core/dom/effect/dom-props.ts` for both spread and
 non-spread paths.
@@ -483,6 +494,12 @@ code size and runtime cost. The previous implementation is not the accepted defa
 
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
+
+- 2026-09-14: Attribute parity: a literal expression attribute lowers to a static prop
+  (`tryLowerExprIr` now folds `-1`), so `{false}`/`{true}`/`{-1}` fold into markup instead of a
+  chunk per attribute; the `component-marker` snapshots shrank by 93 lines. Verification: 1092
+  pipeline tests (16 existing TODOs), the `attribute-parity` and `attribute-class-style`
+  snapshots, and the new native-property spec passing in CSR and resume.
 
 - 2026-09-14: innerHTML: `lowerInnerHtml` turns `dangerouslySetInnerHTML` into the `InnerHtml`
   prop the schema already had; `inlineStringValue` lets the static fold, the CSR template and the

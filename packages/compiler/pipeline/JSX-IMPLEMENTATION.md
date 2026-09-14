@@ -350,7 +350,12 @@ Share prop classification; deliver the following in small increments.
       arrays flatten, `null`/`undefined` entries drop, each function is its own event QRL; SSR
       joins the references with `|`, CSR registers the list with `createCapturedEvent` per
       handler that captures.
-- [ ] Handler arrays forwarded through components and spreads.
+- [x] Handler arrays forwarded through components and spreads. A component event prop with
+      several handlers is passed as an array of their QRLs, which the child's element resolves in
+      order through the runtime list handling; spreads already hand the array through the props
+      object. The proxied component props path still takes one handler per event
+      (`component-handler-array` snapshots, `component.spec.tsx` "should pass event handler
+      arrays to native child elements" in CSR and resume).
 - [x] `sync$` emission and synchronous-handler registration. `sync$(fn)` anywhere becomes a
       `Sync` boundary QRL hoisted as `_qrlSync(fn, symbol)` with no chunk; a client event takes
       the plain function. The runtime serializes the key and writes the `qFuncs` table ahead of
@@ -514,6 +519,11 @@ code size and runtime cost. The previous implementation is not the accepted defa
 
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
+
+- 2026-09-14: Handler arrays: the component prop emitter maps every handler of an event prop to
+  its QRL and prints a list when there is more than one. Verification: 1100 pipeline tests (16
+  existing TODOs), the `component-handler-array` snapshots, and the new spec passing in CSR and
+  resume. Group 8 is complete.
 
 - 2026-09-14: Bindings: `lowerBinding` desugars `bind:*` into the dynamic attribute plus a
   `HandlerKind.Bind` event handler naming its signal; `bindHandlerJs` prints the runtime QRL for

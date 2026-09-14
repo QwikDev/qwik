@@ -236,6 +236,29 @@ describe(`${name}: component`, () => {
     cleanup();
   });
 
+  it('should pass event handler arrays to native child elements', async () => {
+    const Button = component$((props: { onClick$: QRL<() => any> | QRL<() => any>[] }) => {
+      return <button onClick$={props.onClick$}>Click</button>;
+    });
+
+    const Parent = component$(() => {
+      const count = useSignal(0);
+      const clicks = useSignal(0);
+      return (
+        <section>
+          <Button onClick$={[() => (count.value += 2), () => clicks.value++]} />
+          <span>{count.value + ':' + clicks.value}</span>
+        </section>
+      );
+    });
+
+    const { container, cleanup, qwikLoader } = await render(Parent, { debug });
+    await qwikLoader?.dispatch(container.querySelector('button')!, 'click');
+
+    expect(container.querySelector('span')?.textContent).toBe('2:1');
+    cleanup();
+  });
+
   it('should provide parent context to a child component', async () => {
     const Child = component$(() => {
       const Context = createContextId<Signal<string>>('child-component-context');

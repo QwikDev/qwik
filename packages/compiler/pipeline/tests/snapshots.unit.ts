@@ -2094,6 +2094,22 @@ export default component$(() => {
     expect(main).not.toContain('bind:');
   });
 
+  test('should pass handler arrays to components as QRL lists', async () => {
+    const output = await testInput(mode, 'component-handler-array', {
+      code: `import { component$, useSignal } from '@qwik.dev/core';
+import { Button } from './button';
+export default component$(() => {
+  const count = useSignal(0);
+  return <Button onClick$={[() => count.value++, () => console.log('clicked')]} />;
+});
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    // Each handler is its own QRL; the child element resolves the list in order.
+    expect(main).toMatch(/"onClick\$": \[q_\w+\.w\(\[count\]\), q_\w+\]/);
+  });
+
   test('should merge component prop spreads in authored order', async () => {
     await testInput(mode, 'component-props-spread', {
       code: `export const Child = (props) => <strong>{props.label}</strong>;

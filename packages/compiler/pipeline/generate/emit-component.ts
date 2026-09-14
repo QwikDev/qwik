@@ -199,30 +199,30 @@ function emitComponentProps(
         break;
       }
       case PropKind.Event: {
-        if (prop.handlers.length !== 1) {
-          throw new UnsupportedError('multiple component event handlers');
-        }
-        const handler = prop.handlers[0];
-        if (
-          handler.h === HandlerKind.Value &&
-          handler.value.v === ValueKind.Computed &&
-          handler.value.resume.r === ResumeKind.Inline
-        ) {
-          const reference = inlineValueJs(module, handler.value);
-          entries.push(`${JSON.stringify(prop.name)}: ${reference}`);
-          roots.push(reference);
-          break;
-        }
-        if (handler.h !== HandlerKind.Value || handler.value.v !== ValueKind.Qrl) {
-          throw new UnsupportedError('a non-QRL component event handler');
-        }
-        const { qrl, reference, args } = resolveQrl(handler.value.use, false);
-        if (qrl.payloadKind !== QrlPayloadKind.Function) {
-          throw new UnsupportedError('a non-function component event QRL');
-        }
-        const eventQrl = args.length === 0 ? reference : `${reference}.w([${args.join(', ')}])`;
-        entries.push(`${JSON.stringify(prop.name)}: ${eventQrl}`);
-        roots.push(...rootArgs(qrl, args));
+        // Each handler is one QRL; a list reaches the child's element as an array.
+        const handlers = prop.handlers.map((handler) => {
+          if (
+            handler.h === HandlerKind.Value &&
+            handler.value.v === ValueKind.Computed &&
+            handler.value.resume.r === ResumeKind.Inline
+          ) {
+            const reference = inlineValueJs(module, handler.value);
+            roots.push(reference);
+            return reference;
+          }
+          if (handler.h !== HandlerKind.Value || handler.value.v !== ValueKind.Qrl) {
+            throw new UnsupportedError('a non-QRL component event handler');
+          }
+          const { qrl, reference, args } = resolveQrl(handler.value.use, false);
+          if (qrl.payloadKind !== QrlPayloadKind.Function) {
+            throw new UnsupportedError('a non-function component event QRL');
+          }
+          roots.push(...rootArgs(qrl, args));
+          return args.length === 0 ? reference : `${reference}.w([${args.join(', ')}])`;
+        });
+        entries.push(
+          `${JSON.stringify(prop.name)}: ${handlers.length === 1 ? handlers[0] : `[${handlers.join(', ')}]`}`
+        );
         break;
       }
       case PropKind.Spread: {

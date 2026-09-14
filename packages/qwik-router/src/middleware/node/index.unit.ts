@@ -1,5 +1,11 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { Writable } from 'node:stream';
+import { finished } from 'node:stream/promises';
 import type { QwikRouterNodeRequestOptions } from '.';
+import { isStaticPath, staticPaths } from '../request-handler/static-paths';
 
 const { mockRequestHandler, mockFromNodeHttp, mockComputeOrigin, mockGetUrl } = vi.hoisted(() => ({
   mockRequestHandler: vi.fn(),
@@ -16,8 +22,8 @@ vi.mock('@qwik.dev/core/server', () => ({
   setServerPlatform: vi.fn(),
 }));
 
-vi.mock('@qwik.dev/router/middleware/request-handler', () => ({
-  isStaticPath: vi.fn(() => false),
+vi.mock('@qwik.dev/router/middleware/request-handler', async () => ({
+  isStaticPath: (await import('../request-handler/static-paths')).isStaticPath,
   requestHandler: mockRequestHandler,
 }));
 
@@ -103,5 +109,82 @@ describe('createQwikRouter().router', () => {
       undefined,
       1024
     );
+  });
+});
+
+describe('createQwikRouter().staticFile', () => {
+  let staticRoot: string;
+  let originalStaticPaths: Set<string>;
+
+  beforeEach(async () => {
+    originalStaticPaths = new Set(staticPaths);
+    staticRoot = await mkdtemp(join(tmpdir(), 'qwik-static-base-'));
+    await writeFile(join(staticRoot, 'hello.txt'), 'static file content');
+    await writeFile(join(staticRoot, 'index.html'), 'root page');
+    await mkdir(join(staticRoot, 'guide'));
+    await writeFile(join(staticRoot, 'guide', 'index.html'), 'guide page');
+  });
+
+  afterEach(async () => {
+    for (const pathname of staticPaths) {
+      if (!originalStaticPaths.has(pathname)) {
+        staticPaths.delete(pathname);
+      }
+    }
+    vi.unstubAllGlobals();
+    await rm(staticRoot, { recursive: true, force: true });
+  });
+
+  it.each([
+    ['/', '/hello.txt', '/hello.txt', false, 'static file content'],
+    ['/docs/', '/docs/hello.txt', '/docs/hello.txt', false, 'static file content'],
+    ['/docs/v2/', '/docs/v2/hello.txt?cache=1', '/docs/v2/hello.txt', false, 'static file content'],
+    ['/docs/', '/docs/guide/', '/docs/guide/', false, 'guide page'],
+    ['/docs/', '/docs/guide', '/docs/guide', true, 'guide page'],
+    ['/docs/', '/docs/', '/docs/', false, 'root page'],
+    ['/docs/', '/docs', '/docs/', true, 'root page'],
+  ] as const)(
+    'serves static request %s %s',
+    async (basePathname, pathname, staticPath, noTrailingSlash, expectedBody) => {
+      vi.stubGlobal('__QWIK_ROUTER_BASE_PATHNAME__', basePathname);
+      vi.stubGlobal('__NO_TRAILING_SLASH__', noTrailingSlash);
+      staticPaths.add(staticPath);
+      expect(isStaticPath('GET', new URL(pathname, 'http://localhost:3301'))).toBe(true);
+
+      const chunks: Buffer[] = [];
+      const response = Object.assign(
+        new Writable({
+          write(chunk, _encoding, callback) {
+            chunks.push(Buffer.from(chunk));
+            callback();
+          },
+        }),
+        { setHeader: vi.fn() }
+      );
+      const completion = finished(response);
+      const middleware = createQwikRouter({ ...createNodeOptions(), static: { root: staticRoot } });
+
+      await middleware.staticFile(
+        { method: 'GET', url: pathname, headers: {} } as any,
+        response as any,
+        (error) => response.destroy(error ?? new Error('Static request was not handled'))
+      );
+      await expect(completion).resolves.toBeUndefined();
+      expect(Buffer.concat(chunks).toString()).toBe(expectedBody);
+    }
+  );
+
+  it('declines paths outside the configured base before opening a file', async () => {
+    vi.stubGlobal('__QWIK_ROUTER_BASE_PATHNAME__', '/docs/');
+    staticPaths.add('/docstore/hello.txt');
+    const middleware = createQwikRouter({ ...createNodeOptions(), static: { root: staticRoot } });
+    const next = vi.fn();
+
+    await middleware.staticFile(
+      { method: 'GET', url: '/docstore/hello.txt', headers: {} } as any,
+      {} as any,
+      next
+    );
+    expect(next).toHaveBeenCalledExactlyOnceWith();
   });
 });

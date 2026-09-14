@@ -44,6 +44,8 @@ To give an example, suppose we have two event handlers, one an `onClick` handler
 
 During execution, new segments of code are imported and they each impact the probability of the segments to be loaded.
 
+Only `$()` segments are part of this graph. A regular dynamic `import()` in your code or in a library is never preloaded by Qwik; you (or the library) are responsible for its timing, for example with `<link rel="modulepreload">` or by calling `import()` early. Once the imported code runs, its own `$()` segments join the preloading as usual.
+
 ### Implementation
 
 The prefetching is done by adding `<link rel="modulepreload">` elements to the document. SSR will determine the most likely bundles and add some `<link>` elements to the HTML.

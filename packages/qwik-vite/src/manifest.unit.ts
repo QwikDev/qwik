@@ -29,6 +29,7 @@ describe('generateManifestFromBundles', () => {
       { rootDir: '/', outDir: '/' } as any,
       () => {},
       (p) => p,
+      () => null,
       qwikLoaderFileName,
       preloaderFileName,
       handlersFileName
@@ -102,6 +103,30 @@ describe('generateManifestFromBundles', () => {
     );
 
     expect(manifest.qwikLoader).toBe('q-loader.js');
+  });
+
+  test('records only segment dynamic imports as qrlImports', () => {
+    const page = { ...chunk('page', 'page.js'), modules: { '/app/page.tsx': {} } };
+    page.dynamicImports = ['seg.js', 'lib.js'];
+    const manifest = generateManifestFromBundles(
+      path as any,
+      [],
+      [],
+      {
+        'page.js': page,
+        'seg.js': { ...chunk('seg', 'seg.js'), modules: { '/app/page.tsx_seg.js': {} } },
+        'lib.js': { ...chunk('lib', 'lib.js'), modules: { '/app/lib.ts': {} } },
+      } as any,
+      { rootDir: '/', outDir: '/' } as any,
+      () => {},
+      (p) => p,
+      (id) =>
+        id === '/app/page.tsx'
+          ? ({ dynamicallyImportedIds: ['/app/page.tsx_seg.js', '/app/lib.ts'], meta: {} } as any)
+          : ({ dynamicallyImportedIds: [], meta: { segment: id.includes('_seg') } } as any)
+    );
+    expect(manifest.bundles['page.js'].dynamicImports).toEqual(['lib.js', 'seg.js']);
+    expect(manifest.bundles['page.js'].qrlImports).toEqual(['seg.js']);
   });
 
   test('leaves core handler symbols unmapped when no qwik-core chunk exists', () => {

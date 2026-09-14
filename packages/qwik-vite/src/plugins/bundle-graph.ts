@@ -55,7 +55,7 @@ export function convertManifestToBundleGraph(
        * We use dynamic imports so that we will get probabilities for the bundle when preloading the
        * symbol. We still confirm load at 100% probability with the bundle name.
        */
-      graph[hash] = { dynamicImports: [bundleName] } as QwikBundle;
+      graph[hash] = { qrlImports: [bundleName] } as QwikBundle;
     }
   }
   // Routes etc
@@ -64,26 +64,19 @@ export function convertManifestToBundleGraph(
     for (const adder of bundleGraphAdders) {
       const result = adder(combined);
       if (result) {
-        Object.assign(graph, result);
+        // Adder edges are followed like qrl edges
+        for (const [name, node] of Object.entries(result)) {
+          graph[name] = { ...node, qrlImports: node.dynamicImports } as QwikBundle;
+        }
       }
     }
   }
 
-  // Filter out external and non-segment dynamic imports
+  // A user import() is a cut point: only qrl edges are followed
   for (const bundleName of Object.keys(graph)) {
     const bundle = graph[bundleName];
     const imports = bundle.imports?.filter((dep) => graph[dep]) || [];
-    const dynamicImports =
-      bundle.dynamicImports?.filter(
-        // we only want to include dynamic imports that belong to the app
-        // e.g. not all languages supported by shiki
-        (dep) =>
-          graph[dep] &&
-          // either there are qrls
-          (graph[dep].symbols ||
-            // or it's a dynamic import from the app source
-            graph[dep].origins?.some((o) => !o.includes('node_modules')))
-      ) || [];
+    const dynamicImports = bundle.qrlImports?.filter((dep) => graph[dep]) || [];
 
     /**
      * Overwrite so we don't mutate the given objects. Be sure to copy all properties we use during

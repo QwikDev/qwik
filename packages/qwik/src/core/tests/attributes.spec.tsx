@@ -107,6 +107,44 @@ describe(`${name}: attributes`, () => {
     cleanup();
   });
 
+  it('renders textarea and select values as content and selection', async () => {
+    const App = component$(() => {
+      const text = useSignal('one');
+      return (
+        <form>
+          <textarea value={text.value} />
+          <textarea value="fixed" />
+          <select value={text.value}>
+            <option value="one">one</option>
+            <option value="two">two</option>
+          </select>
+          <select value="two">
+            <option value="one">one</option>
+            <option value="two">two</option>
+          </select>
+          <button onClick$={() => (text.value = 'two')} />
+        </form>
+      );
+    });
+    const { container, qwikLoader, cleanup } = await render(App);
+    const [live, fixed] = Array.from(container.querySelectorAll('textarea'));
+    const [liveSelect, fixedSelect] = Array.from(container.querySelectorAll('select'));
+    const selected = (select: HTMLSelectElement) =>
+      Array.from(select.querySelectorAll('option')).map((option) =>
+        option.hasAttribute('selected')
+      );
+    expect([live.value, fixed.value]).toEqual(['one', 'fixed']);
+    expect([selected(liveSelect), selected(fixedSelect)]).toEqual([
+      [true, false],
+      [false, true],
+    ]);
+
+    await qwikLoader?.dispatch(container.querySelector('button')!, 'click');
+
+    expect(live.value).toBe('two');
+    cleanup();
+  });
+
   it('binds checked and value through native properties', async () => {
     const App = component$(() => {
       const checked = useSignal(false);

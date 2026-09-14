@@ -10,6 +10,7 @@ import type {
 } from 'oxc-parser';
 import {
   ResumeKind,
+  Shape,
   BoundaryKind,
   ComponentPropsKind,
   ComponentTargetKind,
@@ -171,7 +172,13 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
   if (styleScopedId !== null) {
     scopeStaticClass(props, styleScopedId);
   }
-  const children = lowerJsxChildren(element.children, ctx);
+  const children = lowerFormValue(
+    tag,
+    props,
+    expanded,
+    lowerJsxChildren(element.children, ctx),
+    ctx
+  );
   if (VOID_ELEMENTS.has(tag) && children.length > 0) {
     throw new InvalidModuleError(
       'invalid-void-children',
@@ -189,6 +196,88 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
     propsEffect,
     children,
   };
+}
+
+/**
+ * Browsers ignore `value` markup on textarea and select. The prop stays for the client property
+ * binding; the server gets the value as textarea content or as `selected` on the matching option,
+ * rendered once from an inline value.
+ */
+function lowerFormValue(
+  tag: string,
+  props: Prop[],
+  attributes: readonly JSXAttributeItem[],
+  children: Op[],
+  ctx: LowerContext
+): Op[] {
+  const prop = props.find(
+    (prop): prop is Extract<Prop, { k: PropKind.Static | PropKind.Dynamic }> =>
+      (prop.k === PropKind.Static || prop.k === PropKind.Dynamic) && prop.name === 'value'
+  );
+  if (prop === undefined || (tag !== 'textarea' && tag !== 'select')) {
+    return children;
+  }
+  // A literal value folds into markup; nothing is left for the client to bind.
+  if (prop.k === PropKind.Static) {
+    props.splice(props.indexOf(prop), 1);
+  }
+  const attribute = attributes.find(
+    (attribute) => attribute.type === 'JSXAttribute' && jsxAttributeName(attribute) === 'value'
+  ) as JSXAttribute;
+  const expression = prop.k === PropKind.Dynamic ? qrlAttributeExpression(attribute) : null;
+  if (tag === 'textarea') {
+    if (expression === null) {
+      return [{ op: OpKind.Static, html: String(prop.k === PropKind.Static ? prop.value : '') }];
+    }
+    const value = lowerInlineExpressionValue(
+      expression,
+      ctx,
+      collectCaptures(expression, ctx, new Set())
+    );
+    return [{ op: OpKind.Hole, value, shape: Shape.Text, effect: null, stringify: false }];
+  }
+  const read = expression === null ? null : trySignalReadValue(expression, ctx);
+  const selected =
+    read?.expr.kind === ExprKind.Ir && read.expr.ir.kind === ValueIrKind.SignalRead
+      ? read.expr.ir
+      : expression === null
+        ? null
+        : tryLowerExprIr(expression, ctx);
+  for (const option of children) {
+    if (option.op !== OpKind.Element || option.tag !== 'option') {
+      continue;
+    }
+    const optionValue = option.props.find(
+      (prop) => prop.k === PropKind.Static && prop.name === 'value'
+    );
+    if (optionValue?.k !== PropKind.Static || typeof optionValue.value !== 'string') {
+      continue;
+    }
+    if (prop.k === PropKind.Static) {
+      if (prop.value === optionValue.value) {
+        option.props.push({ k: PropKind.Static, name: 'selected', value: true });
+      }
+    } else if (selected !== null) {
+      const ir: ValueIR = {
+        kind: ValueIrKind.Bin,
+        op: '===',
+        left: selected,
+        right: { kind: ValueIrKind.Lit, value: optionValue.value },
+      };
+      option.props.push({
+        k: PropKind.Dynamic,
+        name: 'selected',
+        value: {
+          v: ValueKind.Computed,
+          expr: { kind: ExprKind.Ir, ir },
+          resume: { r: ResumeKind.Inline },
+          compilerString: false,
+        },
+        effect: null,
+      });
+    }
+  }
+  return children;
 }
 
 /** `dangerouslySetInnerHTML` is element content: a literal folds, anything else patches innerHTML. */

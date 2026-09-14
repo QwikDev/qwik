@@ -2004,6 +2004,38 @@ export default component$(() => {
     expect(code).toContain('"style", [active]');
   });
 
+  test('should render textarea and select values as content and selection', async () => {
+    const output = await testInput(mode, 'form-values', {
+      code: `import { component$, useSignal } from '@qwik.dev/core';
+export default component$(() => {
+  const text = useSignal('one');
+  return (
+    <form>
+      <textarea value={text.value} />
+      <textarea value="fixed" />
+      <select value={text.value}>
+        <option value="one">one</option>
+        <option value="two">two</option>
+      </select>
+      <select value="two">
+        <option value="one">one</option>
+        <option value="two">two</option>
+      </select>
+    </form>
+  );
+});
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    // Literal values fold: textarea content and the matching option's `selected`.
+    expect(main).toContain('<textarea>fixed</textarea>');
+    expect(main).toMatch(/<option value=\\?"two\\?" selected>two<\/option>/);
+    // Live values render once as content/selection and keep the `value` property binding.
+    expect(main).toMatch(/text\.value === ["']one["']/);
+    expect(main).toContain('"value", text');
+  });
+
   test('should merge component prop spreads in authored order', async () => {
     await testInput(mode, 'component-props-spread', {
       code: `export const Child = (props) => <strong>{props.label}</strong>;

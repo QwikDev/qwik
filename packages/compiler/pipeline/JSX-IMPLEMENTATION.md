@@ -320,10 +320,13 @@ Component spreads already exist. Complete element spreads and DOM semantics:
 - [x] Native DOM properties where required, especially `value` and `checked`: the attribute
       helpers set them as properties (`attributes.spec.tsx` "sets value and checked through
       native properties", CSR and resume). `selected` rides `<select>` below.
-- [ ] `<textarea>` and `<select>` semantics. `value` on either is rendered as an attribute on the
-      server, which browsers ignore: a textarea needs it as content, a select needs `selected`
-      on the matching option. The legacy compiler had no handling either; decide compiler-side
-      lowering or a runtime helper. The test DOM lacks `select.value`, so a spec needs a browser.
+- [x] `<textarea>` and `<select>` semantics. Browsers ignore `value` markup on both, so the
+      analyser renders it once as textarea content, or as `selected` on the option whose static
+      `value` matches, from an inline value; a literal folds and drops the prop, a live value
+      keeps the `value` property binding for later changes. Options rendered by `<Each>` or with
+      a computed `value` get no server-side `selected`; the property binding still selects them
+      on the client (`form-values` snapshots, `attributes.spec.tsx` "renders textarea and select
+      values as content and selection" in CSR and resume).
 - [x] Class/style combinations: arrays, objects, signals, removal and overrides. Serialized by
       the runtime helpers with the scoped style id (`attribute-class-style` snapshots,
       `attributes.spec.tsx` "updates class arrays and objects without losing static classes").
@@ -494,6 +497,12 @@ code size and runtime cost. The previous implementation is not the accepted defa
 
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
+
+- 2026-09-14: Form values: `lowerFormValue` gives `<textarea value>` its content and static
+  `<option>`s their `selected` from the select's value, both as initial-only inline values, so the
+  server needs no extra subscription and the client applies them once at mount. Verification:
+  1094 pipeline tests (16 existing TODOs), the `form-values` snapshots, and the new spec passing
+  in CSR and resume.
 
 - 2026-09-14: Attribute parity: a literal expression attribute lowers to a static prop
   (`tryLowerExprIr` now folds `-1`), so `{false}`/`{true}`/`{-1}` fold into markup instead of a

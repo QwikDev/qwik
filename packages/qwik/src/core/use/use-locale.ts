@@ -1,7 +1,7 @@
 import { getAsyncLocalStorage } from '@qwik.dev/core/async-local-storage';
 import { isServer } from '@qwik.dev/core/build';
 import type { AsyncLocalStorage } from 'node:async_hooks';
-import { isPromise } from '../shared/utils/promises';
+import { safeCall } from '../shared/utils/promises';
 import { tryGetInvokeContext } from './use-core';
 
 let _locale: string | undefined = undefined;
@@ -63,26 +63,18 @@ export function withLocale<T>(locale: string, fn: () => T): T {
     _locale = previousLang;
   };
   _locale = locale;
-  try {
-    const result = fn();
-    if (isPromise(result)) {
-      return result.then(
-        (value) => {
-          restore();
-          return value;
-        },
-        (reason) => {
-          restore();
-          throw reason;
-        }
-      ) as T;
+
+  return safeCall(
+    fn,
+    (value) => {
+      restore();
+      return value;
+    },
+    (error) => {
+      restore();
+      throw error;
     }
-    restore();
-    return result;
-  } catch (err) {
-    restore();
-    throw err;
-  }
+  ) as T;
 }
 
 /**

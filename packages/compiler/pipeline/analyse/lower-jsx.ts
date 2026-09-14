@@ -164,9 +164,14 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
     : null;
   const props =
     propsEffect === null
-      ? expanded
-          .map((attribute) => lowerAttribute(attribute, ctx, 'element', passiveEvents))
-          .filter((prop) => prop !== null)
+      ? expanded.flatMap((attribute) => {
+          const name = attribute.type === 'JSXAttribute' ? jsxAttributeName(attribute) : null;
+          if (name === QwikDirective.BindValue || name === QwikDirective.BindChecked) {
+            return lowerBinding(attribute as JSXAttribute, ctx);
+          }
+          const prop = lowerAttribute(attribute, ctx, 'element', passiveEvents);
+          return prop === null ? [] : [prop];
+        })
       : [];
   const styleScopedId = ctx.styleScopes.length === 0 ? null : ctx.styleScopes.join(' ');
   if (styleScopedId !== null) {
@@ -221,10 +226,19 @@ function lowerFormValue(
   if (prop.k === PropKind.Static) {
     props.splice(props.indexOf(prop), 1);
   }
-  const attribute = attributes.find(
-    (attribute) => attribute.type === 'JSXAttribute' && jsxAttributeName(attribute) === 'value'
-  ) as JSXAttribute;
+  const attribute = attributes.find((attribute) => {
+    const name = attribute.type === 'JSXAttribute' ? jsxAttributeName(attribute) : null;
+    return name === QwikDirective.Value || name === QwikDirective.BindValue;
+  }) as JSXAttribute;
   const expression = prop.k === PropKind.Dynamic ? qrlAttributeExpression(attribute) : null;
+  // A signal read keeps its IR so the once-only value stays a plain `sig.value`.
+  const read = expression === null ? null : trySignalReadValue(expression, ctx);
+  const ir =
+    read?.expr.kind === ExprKind.Ir && read.expr.ir.kind === ValueIrKind.SignalRead
+      ? read.expr.ir
+      : expression === null
+        ? null
+        : tryLowerExprIr(expression, ctx);
   if (tag === 'textarea') {
     if (expression === null) {
       return [{ op: OpKind.Static, html: String(prop.k === PropKind.Static ? prop.value : '') }];
@@ -234,15 +248,17 @@ function lowerFormValue(
       ctx,
       collectCaptures(expression, ctx, new Set())
     );
-    return [{ op: OpKind.Hole, value, shape: Shape.Text, effect: null, stringify: false }];
+    return [
+      {
+        op: OpKind.Hole,
+        value: ir === null ? value : { ...value, expr: { kind: ExprKind.Ir, ir } },
+        shape: Shape.Text,
+        effect: null,
+        // A textarea's content is text whatever the value's inferred kind.
+        stringify: true,
+      },
+    ];
   }
-  const read = expression === null ? null : trySignalReadValue(expression, ctx);
-  const selected =
-    read?.expr.kind === ExprKind.Ir && read.expr.ir.kind === ValueIrKind.SignalRead
-      ? read.expr.ir
-      : expression === null
-        ? null
-        : tryLowerExprIr(expression, ctx);
   for (const option of children) {
     if (option.op !== OpKind.Element || option.tag !== 'option') {
       continue;
@@ -257,11 +273,11 @@ function lowerFormValue(
       if (prop.value === optionValue.value) {
         option.props.push({ k: PropKind.Static, name: 'selected', value: true });
       }
-    } else if (selected !== null) {
-      const ir: ValueIR = {
+    } else if (ir !== null) {
+      const selected: ValueIR = {
         kind: ValueIrKind.Bin,
         op: '===',
-        left: selected,
+        left: ir,
         right: { kind: ValueIrKind.Lit, value: optionValue.value },
       };
       option.props.push({
@@ -269,7 +285,7 @@ function lowerFormValue(
         name: 'selected',
         value: {
           v: ValueKind.Computed,
-          expr: { kind: ExprKind.Ir, ir },
+          expr: { kind: ExprKind.Ir, ir: selected },
           resume: { r: ResumeKind.Inline },
           compilerString: false,
         },
@@ -278,6 +294,26 @@ function lowerFormValue(
     }
   }
   return children;
+}
+
+/** `bind:value={sig}` is `value={sig.value}` plus an input handler writing back through the runtime. */
+function lowerBinding(attribute: JSXAttribute, ctx: LowerContext): Prop[] {
+  const expression = qrlAttributeExpression(attribute);
+  const signal = expression?.type === 'Identifier' ? ctx.bindings.reference(expression) : null;
+  const value = expression === null ? null : trySignalReadValue(expression, ctx);
+  if (signal === null || value === null || ctx.locals.get(signal)?.kind !== LocalKind.Signal) {
+    throw new UnsupportedError('a two-way binding to a non-signal');
+  }
+  const checked = jsxAttributeName(attribute) === QwikDirective.BindChecked;
+  return [
+    { k: PropKind.Dynamic, name: checked ? 'checked' : 'value', value, effect: null },
+    {
+      k: PropKind.Event,
+      name: eventScopeName('onInput$')!,
+      passive: false,
+      handlers: [{ h: HandlerKind.Bind, signal, checked }],
+    },
+  ];
 }
 
 /** `ref={x}` applies once when the element exists: a function is called, a signal receives it. */

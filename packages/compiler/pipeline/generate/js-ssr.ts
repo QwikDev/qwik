@@ -30,6 +30,7 @@ import {
   extractPayloadJs,
   captureNames,
   capturePrelude,
+  bindHandlerJs,
   inlineStringValue,
   inlineValueJs,
   rootArgs,
@@ -1049,8 +1050,8 @@ class SsrModuleEmitter implements QwikModuleEmitter {
   /** The handler or handler list of a static event prop, as one expression. */
   private staticEventValue(pass: RenderPass, prop: Extract<Prop, { k: PropKind.Event }>): string {
     const values = prop.handlers.map((handler) => {
-      if (handler.h !== HandlerKind.Value) {
-        throw new UnsupportedError('a non-QRL event handler');
+      if (handler.h === HandlerKind.Bind) {
+        return bindHandlerJs(this.module, handler, this.imports);
       }
       return handler.value.v === ValueKind.Qrl
         ? this.useQrl(pass, handler.value.use, false).ref

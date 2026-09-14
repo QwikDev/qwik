@@ -37,6 +37,9 @@ export const enum QwikWord {
   CreateAttrExpressionEffect = 'createAttrExpressionEffect',
   PatchAttrValue = 'patchAttrValue',
   SetRef = 'setRef',
+  InlinedQrl = 'inlinedQrl',
+  BindValueHandler = '_val',
+  BindCheckedHandler = '_chk',
   CreateEventEffect = 'createEventEffect',
   ReadTrackedSourceValue = 'readTrackedSourceValue',
   ReadExpression = 'readExpression',
@@ -146,6 +149,9 @@ export const enum QwikDirective {
   Slot = 'q:slot',
   InnerHtml = 'dangerouslySetInnerHTML',
   Ref = 'ref',
+  Value = 'value',
+  BindValue = 'bind:value',
+  BindChecked = 'bind:checked',
 }
 
 /** Compiler-invented segment contexts — the exact legacy strings; authored names stay plain. */

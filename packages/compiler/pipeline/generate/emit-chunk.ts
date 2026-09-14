@@ -420,6 +420,18 @@ export function inlineValueJs(module: LinkedModule, value: Value, emitQrl?: Emit
   return expressionJs(module, value.expr, emitQrl);
 }
 
+/** The runtime write-back handler of a two-way binding, capturing its signal. */
+export function bindHandlerJs(
+  module: LinkedModule,
+  handler: { signal: LocalId; checked: boolean },
+  imports: Set<string>
+): string {
+  const symbol = handler.checked ? QwikWord.BindCheckedHandler : QwikWord.BindValueHandler;
+  imports.add(QwikWord.InlinedQrl);
+  imports.add(symbol);
+  return `${QwikWord.InlinedQrl}(${symbol}, '${symbol}', [${module.bindings[handler.signal].name}])`;
+}
+
 /** The string an inline value always evaluates to, when it is a plain literal. */
 export function inlineStringValue(value: Value): string | null {
   const ir =

@@ -2069,6 +2069,31 @@ export default component$(() => {
     }
   });
 
+  test('should bind inputs both ways through the runtime bind handlers', async () => {
+    const output = await testInput(mode, 'element-bind', {
+      code: `import { component$, useSignal } from '@qwik.dev/core';
+export default component$(() => {
+  const checked = useSignal(false);
+  const text = useSignal('one');
+  return (
+    <form>
+      <input type="checkbox" bind:checked={checked} />
+      <textarea bind:value={text} />
+    </form>
+  );
+});
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    // The signal drives the property; the runtime handler writes the input back into it.
+    expect(main).toContain('"checked", checked');
+    expect(main).toContain('"value", text');
+    expect(main).toContain("inlinedQrl(_chk, '_chk', [checked])");
+    expect(main).toContain("inlinedQrl(_val, '_val', [text])");
+    expect(main).not.toContain('bind:');
+  });
+
   test('should merge component prop spreads in authored order', async () => {
     await testInput(mode, 'component-props-spread', {
       code: `export const Child = (props) => <strong>{props.label}</strong>;

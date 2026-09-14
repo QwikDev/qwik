@@ -3,7 +3,6 @@ import type {
   LifetimeId,
   LocalId,
   PayloadId,
-  PlaceIR,
   Predicate,
   ProgramId,
   Seed,
@@ -194,11 +193,6 @@ export const enum HandlerKind {
   Bind = 'bind',
 }
 
-export const enum BindName {
-  Value = 'value',
-  Checked = 'checked',
-}
-
 export type Prop =
   | { k: PropKind.Static; name: string; value?: string | number | boolean | null }
   | {
@@ -213,14 +207,11 @@ export type Prop =
       k: PropKind.Event;
       name: string;
       passive: boolean;
-      handlers: ({ h: HandlerKind.Value; value: Value } | { h: HandlerKind.Bind; bind: number })[];
-    }
-  | {
-      k: PropKind.Bind;
-      name: BindName;
-      signal: PlaceIR;
-      controlsValue: boolean;
-      effect: number | null;
+      handlers: (
+        | { h: HandlerKind.Value; value: Value }
+        /** `bind:value`/`bind:checked` write-back: the runtime handler captures the signal. */
+        | { h: HandlerKind.Bind; signal: LocalId; checked: boolean }
+      )[];
     }
   /** Refs RUN in SSR. */
   | { k: PropKind.Ref; value: Value }

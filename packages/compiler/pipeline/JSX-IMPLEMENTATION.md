@@ -373,10 +373,12 @@ Share prop classification; deliver the following in small increments.
 
 ### Bindings
 
-- [ ] `bind:value` and `bind:checked`: a `value`/`checked` attribute reading the signal plus an
-      `input` handler that writes it back through the runtime `_val`/`_chk` QRLs, the pair the
-      props-object path already builds at runtime (`attributes.spec.tsx` "binds checked and value
-      through native properties" is red in CSR and resume).
+- [x] `bind:value` and `bind:checked` on elements. The analyser desugars each into a
+      `value`/`checked` attribute reading the signal plus an `input` handler of the `Bind` kind,
+      which both generators print as the runtime `_val`/`_chk` QRL capturing the signal, the pair
+      the props-object path already builds at runtime. Only a signal local binds; anything else is
+      diagnosed (`element-bind` snapshots, `attributes.spec.tsx` "binds checked and value through
+      native properties" in CSR and resume).
 
 ## 9. HTML, namespaces and template correctness
 
@@ -512,6 +514,13 @@ code size and runtime cost. The previous implementation is not the accepted defa
 
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
+
+- 2026-09-14: Bindings: `lowerBinding` desugars `bind:*` into the dynamic attribute plus a
+  `HandlerKind.Bind` event handler naming its signal; `bindHandlerJs` prints the runtime QRL for
+  both generators. The unused `PropKind.Bind` variant left the schema. A bound textarea keeps
+  its content through the form-value lowering, whose hole is now marked text. Verification:
+  1098 pipeline tests (16 existing TODOs), the `element-bind` snapshots, and `attributes.spec.tsx`
+  fully green in CSR and resume.
 
 - 2026-09-14: Refs: `lowerRef` turns `ref={x}` into the `Ref` prop the schema already had, with
   an inline value and the mode from the expression shape; CSR emits `setRef` after locating the

@@ -200,6 +200,8 @@ function createDependencyCollector(module: ModulePlan | LinkedModule) {
         entry.handlers.forEach((handler) => {
           if (handler.h === HandlerKind.Value) {
             visitValue(handler.value);
+          } else {
+            bindings.add(handler.signal);
           }
         });
         break;

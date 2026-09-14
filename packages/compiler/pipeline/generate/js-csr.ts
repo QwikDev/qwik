@@ -28,6 +28,7 @@ import {
   captureNames,
   capturePrelude,
   emptyFunctionEmission,
+  bindHandlerJs,
   inlineStringValue,
   inlineValueJs,
   programKind,
@@ -1089,13 +1090,12 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       return;
     }
     const uses = handlers.map((handler) => {
-      const value = handler.h === HandlerKind.Value ? handler.value : null;
-      if (value === null) {
-        throw new UnsupportedError('a non-QRL event handler');
+      if (handler.h === HandlerKind.Bind) {
+        return { symbol: bindHandlerJs(this.module, handler, this.imports), args: [] };
       }
-      return value.v === ValueKind.Qrl
-        ? this.resolveQrlUse(value.use, pass.names.props)
-        : { symbol: inlineValueJs(this.module, value), args: [] };
+      return handler.value.v === ValueKind.Qrl
+        ? this.resolveQrlUse(handler.value.use, pass.names.props)
+        : { symbol: inlineValueJs(this.module, handler.value), args: [] };
     });
     const symbolOf = (use: (typeof uses)[number]) =>
       'symbol' in use ? use.symbol : this.chunkSymbol(use.qrl);

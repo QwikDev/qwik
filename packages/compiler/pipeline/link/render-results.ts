@@ -816,7 +816,7 @@ function propsResult(
           return { name: null, value: valueResult(module, prop.value) };
         default:
           return {
-            name: prop.k === PropKind.Event || prop.k === PropKind.Bind ? prop.name : '',
+            name: prop.k === PropKind.Event ? prop.name : '',
             value: unknown,
           };
       }

@@ -20,6 +20,7 @@ import {
   ELEMENT_PROPS,
   ELEMENT_SEQ_IDX,
   OnRenderProp,
+  QVisibleAttr,
   USE_ON_LOCAL,
   USE_ON_LOCAL_SEQ_IDX,
   USE_ON_PLACEHOLDER_KEY,
@@ -166,7 +167,6 @@ function addUseOnEvents(
 ): ValueOrPromise<JSXNodeInternal<string> | null | JSXOutput> {
   const jsxElement = findFirstElementNode(jsx);
   let jsxResult = jsx;
-  const qVisibleEvent = 'q-e:qvisible';
   return maybeThen(jsxElement, (jsxElement) => {
     // headless components are components that don't render a real DOM element
     const isHeadless = !jsxElement;
@@ -180,7 +180,7 @@ function addUseOnEvents(
         if (isHeadless) {
           // if the component is headless, we need to add the event to the placeholder element
           if (
-            key === qVisibleEvent ||
+            key === QVisibleAttr ||
             key.startsWith(EventNameHtmlScope.document) ||
             key.startsWith(EventNameHtmlScope.window)
           ) {
@@ -213,7 +213,7 @@ function addUseOnEvents(
           }
         }
         if (targetElement) {
-          if (targetElement.type === 'script' && key === qVisibleEvent) {
+          if (targetElement.type === 'script' && key === QVisibleAttr) {
             eventKey = 'q-d:qinit';
             if (isDev) {
               const sourceLocation = getUseOnSourceLocation(useOnEvents[key].qrls);

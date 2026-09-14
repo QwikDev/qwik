@@ -15,7 +15,7 @@ import { isSignal } from '../reactive-primitives/utils';
 import { SERIALIZABLE_STATE, type OnRenderFn } from '../shared/component.public';
 import { isCursor, type Cursor } from '../shared/cursor/cursor';
 import { abandonCursor } from '../shared/cursor/cursor-queue';
-import { getCursorData } from '../shared/cursor/cursor-props';
+import { getCursorData, queueQwikLoaderEvent } from '../shared/cursor/cursor-props';
 import { assertDefined, assertFalse, assertTrue } from '../shared/error/assert';
 import { QError, qError } from '../shared/error/error';
 import { JSXNodeImpl, isJSXNode } from '../shared/jsx/jsx-node';
@@ -31,7 +31,7 @@ import type { JSXNodeInternal } from '../shared/jsx/types/jsx-node';
 import type { EventHandler, JSXChildren } from '../shared/jsx/types/jsx-qwik-attributes';
 import { SSRComment, SSRRaw, SkipRender } from '../shared/jsx/utils.public';
 import type { QRLInternal } from '../shared/qrl/qrl-class';
-import type { QElement, qWindow } from '../shared/types';
+import type { QElement } from '../shared/types';
 import { DEBUG_TYPE, QContainerValue, VirtualType } from '../shared/types';
 import { directSetAttribute } from '../shared/utils/attribute';
 import { escapeHTML } from '../shared/utils/character-escaping';
@@ -51,6 +51,7 @@ import {
   QCursorBoundary,
   QSlot,
   QTemplate,
+  QwikLoaderScanEvent,
   dangerouslySetInnerHTML,
   debugStyleScopeIdPrefixAttr,
 } from '../shared/utils/markers';
@@ -74,6 +75,7 @@ import { VNodeFlags, type ClientContainer } from './types';
 import { mapApp_findIndx, mapArray_set } from './util-mapArray';
 import { getNewElementNamespaceData } from './vnode-namespace';
 import {
+  registerQwikLoaderEvent,
   vnode_ensureElementInflated,
   vnode_getDomParentVNode,
   vnode_getElementName,
@@ -1101,12 +1103,22 @@ function registerEventHandlers(
     );
   }
 
-  // window and document events need attrs so qwik loader can find them
+  const isQVisible = scopedKebabName === QwikLoaderScanEvent.qvisible;
+  // window, document and qvisible events need attrs so qwik loader can find them
   // TODO only do these when not already present
-  if (key.charAt(2) !== 'e') {
+  if (key.charAt(2) !== 'e' || isQVisible) {
     vnode_setAttr(diffContext.$journal$, vnode, key, '');
   }
-  registerQwikLoaderEvent(diffContext, scopedKebabName);
+  if (
+    isQVisible ||
+    scopedKebabName === QwikLoaderScanEvent.qinit ||
+    scopedKebabName === QwikLoaderScanEvent.qidle
+  ) {
+    // the loader scans the DOM for these, so notify it only after the flush
+    queueQwikLoaderEvent(getCursorData(diffContext.$cursor$)!, scopedKebabName);
+  } else {
+    registerQwikLoaderEvent(diffContext.$container$, scopedKebabName);
+  }
 }
 
 function createElementWithNamespace(diffContext: DiffContext, elementName: string): Element {
@@ -1295,15 +1307,6 @@ const patchProperty = (
     originalValue
   );
 };
-
-function registerQwikLoaderEvent(diffContext: DiffContext, eventName: string) {
-  const qWindow = qTest
-    ? (diffContext.$container$.document.defaultView as qWindow | null)
-    : (window as unknown as qWindow);
-  if (qWindow) {
-    (qWindow._qwikEv ||= [] as any).push(eventName);
-  }
-}
 
 function retrieveChildWithKey(
   diffContext: DiffContext,

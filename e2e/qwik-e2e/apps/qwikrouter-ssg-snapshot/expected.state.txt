@@ -238,7 +238,7 @@
     EffectSubscriptionNoData [
       Task [
         QRL "[omitted]"
-        {number} 10
+        {number} 74
         {number} 21
         RootRef [omitted]
       ]
@@ -254,7 +254,7 @@
     EffectSubscriptionNoData [
       Task [
         QRL "[omitted]"
-        {number} 2
+        {number} 66
         {number} 22
         RootRef [omitted]
       ]
@@ -283,7 +283,7 @@
   {number} 1
   Task [
     QRL "[omitted]"
-    {number} 10
+    {number} 74
     {number} 20
     RootRef [omitted]
   ]

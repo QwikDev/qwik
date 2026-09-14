@@ -9,6 +9,7 @@ import { basename, extname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { MIME_TYPES } from '../request-handler/mime-types';
 import { devPreloadedRouteLoaders } from '../request-handler/dev-preloaded-route-loader';
+import { getStaticFilePathname } from '../shared/static-path';
 import { computeOrigin, fromNodeHttp, getUrl } from './http';
 
 // @qwik.dev/router/middleware/node
@@ -112,7 +113,10 @@ export function createQwikRouter(
       const origin = computeOrigin(req, opts);
       const url = getUrl(req, origin);
       if (isStaticPath(req.method || 'GET', url)) {
-        const pathname = url.pathname;
+        const pathname = getStaticFilePathname(url.pathname);
+        if (pathname === undefined) {
+          return next();
+        }
         let filePath: string;
         if (basename(pathname).includes('.')) {
           filePath = join(staticFolder, pathname);

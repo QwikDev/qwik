@@ -1,4 +1,5 @@
 import type {
+  JSXAttribute,
   Expression,
   JSXAttributeItem,
   JSXChild,
@@ -186,6 +187,28 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
     props,
     propsEffect,
     children,
+  };
+}
+
+/** `dangerouslySetInnerHTML` is element content: a literal folds, anything else patches innerHTML. */
+function lowerInnerHtml(attribute: JSXAttribute, ctx: LowerContext): Prop | null {
+  const value = attribute.value;
+  const expression =
+    value?.type === 'JSXExpressionContainer'
+      ? value.expression.type === 'JSXEmptyExpression'
+        ? null
+        : value.expression
+      : (value ?? null);
+  if (expression === null) {
+    return null;
+  }
+  return {
+    k: PropKind.InnerHtml,
+    value:
+      expression.type === 'Literal'
+        ? lowerInlineExpressionValue(expression, ctx, collectCaptures(expression, ctx, new Set()))
+        : lowerExpressionValue(expression, ctx, QwikDirective.InnerHtml),
+    effect: null,
   };
 }
 
@@ -1097,6 +1120,9 @@ function lowerAttribute(
   }
   if (target !== 'component' && authored.endsWith(QRL_SUFFIX)) {
     throw new UnsupportedError('a non-event $ attribute on an element');
+  }
+  if (target === 'element' && authored === QwikDirective.InnerHtml) {
+    return lowerInnerHtml(attribute, ctx);
   }
   const name =
     target === 'component'

@@ -143,6 +143,7 @@ export const enum QwikHook {
 /** Authored Qwik JSX directives recognized by the compiler. */
 export const enum QwikDirective {
   Slot = 'q:slot',
+  InnerHtml = 'dangerouslySetInnerHTML',
 }
 
 /** Compiler-invented segment contexts — the exact legacy strings; authored names stay plain. */

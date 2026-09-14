@@ -20,7 +20,7 @@ import {
   type HookDecl,
   type QrlUse,
 } from '../schema';
-import { QwikWord, QwikGenWord } from '../words';
+import { QwikDirective, QwikWord, QwikGenWord } from '../words';
 import { UnsupportedError } from '../errors';
 import { generateQwikModule, type QwikModuleEmitter } from './assemble-module';
 import {
@@ -28,6 +28,7 @@ import {
   captureNames,
   capturePrelude,
   emptyFunctionEmission,
+  inlineStringValue,
   inlineValueJs,
   programKind,
   usedParamPrefix,
@@ -356,7 +357,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
   ): string {
     const mounted = this.mountElementTemplate(ownerName, statements, pass);
     this.elementProps(op, mounted.el, statements, pass);
-    this.walkChildren(op.children, mounted.el, statements, pass);
+    this.walkChildren(elementChildren(op), mounted.el, statements, pass);
     // Template markup excludes event props; templateOp pre-escapes text for innerHTML parsing.
     this.hoistTemplate(
       mounted.template,
@@ -403,6 +404,20 @@ class CsrModuleEmitter implements QwikModuleEmitter {
           );
           break;
         }
+        case PropKind.InnerHtml: {
+          // A literal is already in the template; anything else patches innerHTML like an attribute.
+          if (inlineStringValue(prop.value) === null) {
+            const { value, effect } = prop;
+            this.dynamicProp(
+              { k: PropKind.Dynamic, name: QwikDirective.InnerHtml, value, effect },
+              el,
+              statements,
+              pass,
+              null
+            );
+          }
+          break;
+        }
         default: {
           throw new UnsupportedError(`the prop "${prop.k}" in a csr element`);
         }
@@ -439,9 +454,9 @@ class CsrModuleEmitter implements QwikModuleEmitter {
               const el = pass.next(QwikGenWord.Element);
               statements.push(`const ${el} = ${path};`);
               this.elementProps(child, el, statements, pass);
-              this.walkChildren(child.children, el, statements, pass);
+              this.walkChildren(elementChildren(child), el, statements, pass);
             } else {
-              this.walkChildren(child.children, path, statements, pass);
+              this.walkChildren(elementChildren(child), path, statements, pass);
             }
           }
           nodeIndex++;
@@ -1123,10 +1138,20 @@ class CsrModuleEmitter implements QwikModuleEmitter {
 function templateOp(op: Extract<LinkedOp, { op: OpKind.Element }>): LinkedOp {
   return {
     ...op,
-    props: op.props.filter((prop) => prop.k === PropKind.Static),
+    // Literal innerHTML stays: the static fold prints it as the template's raw content.
+    props: op.props.filter(
+      (prop) =>
+        prop.k === PropKind.Static ||
+        (prop.k === PropKind.InnerHtml && inlineStringValue(prop.value) !== null)
+    ),
     propsEffect: null,
-    children: templateChildren(op.children),
+    children: templateChildren(elementChildren(op)),
   };
+}
+
+/** Authored children are dropped when innerHTML owns the element's content. */
+function elementChildren(op: Extract<LinkedOp, { op: OpKind.Element }>): readonly LinkedOp[] {
+  return op.props.some((prop) => prop.k === PropKind.InnerHtml) ? [] : op.children;
 }
 
 /** Template form of a child list — holes and boundaries become locator placeholders. */

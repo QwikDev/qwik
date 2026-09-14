@@ -22,7 +22,7 @@ import {
   type QrlUse,
   type Value,
 } from '../schema';
-import { QwikAttr, QwikGenWord, QwikWord } from '../words';
+import { QwikAttr, QwikDirective, QwikGenWord, QwikWord } from '../words';
 import { escapeAttr, serializeAttrValue } from '../html';
 import { UnsupportedError } from '../errors';
 import { generateQwikModule, type QwikModuleEmitter } from './assemble-module';
@@ -30,6 +30,7 @@ import {
   extractPayloadJs,
   captureNames,
   capturePrelude,
+  inlineStringValue,
   inlineValueJs,
   rootArgs,
   usedParamPrefix,
@@ -572,11 +573,14 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     hookEvents = false
   ): void {
     const holes = op.children.filter((child) => child.op === OpKind.Hole && !isInlineHole(child));
+    const innerHtml = op.props.find((prop) => prop.k === PropKind.InnerHtml) ?? null;
     const hasDynamicProps =
       op.propsEffect !== null ||
       op.props.some(
         (prop) =>
-          (prop.k === PropKind.Dynamic && !isInlineValue(prop.value)) || isDynamicEvent(prop)
+          ((prop.k === PropKind.Dynamic || prop.k === PropKind.InnerHtml) &&
+            !isInlineValue(prop.value)) ||
+          isDynamicEvent(prop)
       );
     const idVariable = holes.length > 0 || hasDynamicProps ? pass.next(QwikGenWord.Id) : null;
     if (idVariable !== null) {
@@ -597,14 +601,16 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       pushMergedStatic(openTag, ` ${rootMarker}`);
     }
     for (const prop of op.props) {
-      this.prop(
-        pass,
-        prop,
-        openTag,
-        idVariable,
-        prop.k === PropKind.Dynamic && prop.name === 'class' ? op.styleScopedId : null,
-        record
-      );
+      if (prop !== innerHtml) {
+        this.prop(
+          pass,
+          prop,
+          openTag,
+          idVariable,
+          prop.k === PropKind.Dynamic && prop.name === 'class' ? op.styleScopedId : null,
+          record
+        );
+      }
     }
     if (propsStep !== null) {
       openTag.push(`...${propsStep}.attrs`);
@@ -623,9 +629,18 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     }
     // The props object may carry innerHTML, which replaces the authored children.
     const children: string[] = propsStep === null ? parts : [];
+    if (innerHtml !== null) {
+      // innerHTML is the element's content; a literal folds, a live value is a serialized step.
+      const literal = inlineStringValue(innerHtml.value);
+      if (literal !== null) {
+        pushMergedStatic(children, literal);
+      } else {
+        children.push(`${this.attrStep(pass, innerHtml, idVariable!, null)} ?? ''`);
+      }
+    }
 
     let textRangeCount = 0;
-    for (const child of op.children) {
+    for (const child of innerHtml === null ? op.children : []) {
       switch (child.op) {
         case OpKind.Static: {
           pushMergedStatic(children, foldStaticOp(child, false));
@@ -711,6 +726,57 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       rootArgs(qrl, args),
       `${QwikWord.RenderSsrProps}(${idVariable}, [${args.join(', ')}], ${ref}, ${pass.names.ctx}.eventAttr${scope})`
     );
+    return step;
+  }
+
+  /** Serializes one attribute value into a step; the name decides how the runtime applies it. */
+  private attrStep(
+    pass: RenderPass,
+    prop: Extract<Prop, { k: PropKind.Dynamic | PropKind.InnerHtml }>,
+    idVariable: string | null,
+    styleScope: string | null
+  ): string {
+    const name = prop.k === PropKind.Dynamic ? prop.name : QwikDirective.InnerHtml;
+    const scope = styleScope === null ? '' : `, undefined, ${JSON.stringify(styleScope)}`;
+    const step = pass.next(QwikGenWord.Attribute);
+    switch (prop.value.v) {
+      case ValueKind.Read: {
+        const signal = signalReadName(this.module, prop.value.expr);
+        this.imports.add(QwikWord.RenderSsrAttr);
+        this.pushStep(
+          pass,
+          step,
+          [signal],
+          `${QwikWord.RenderSsrAttr}(${idVariable}, ${JSON.stringify(name)}, ${signal}${scope})`
+        );
+        break;
+      }
+      case ValueKind.Computed: {
+        if (isInlineValue(prop.value)) {
+          // A row constant never changes: serialize it once, no subscription.
+          this.imports.add(QwikWord.SerializeAttrExpressionValue);
+          const rowScope = styleScope === null ? '' : `, ${JSON.stringify(styleScope)}`;
+          pass.statements.push(
+            `const ${step} = ${QwikWord.SerializeAttrExpressionValue}(${JSON.stringify(name)}, ${inlineValueJs(this.module, prop.value)}${rowScope});`
+          );
+          break;
+        }
+        if (prop.value.resume.r !== ResumeKind.Qrl) {
+          throw new UnsupportedError('a non-QRL computed prop');
+        }
+        const { qrl, ref, args } = this.useQrl(pass, prop.value.resume.qrl, true);
+        this.imports.add(QwikWord.RenderSsrAttrExpression);
+        this.pushStep(
+          pass,
+          step,
+          rootArgs(qrl, args),
+          `${QwikWord.RenderSsrAttrExpression}(${idVariable}, ${JSON.stringify(name)}, [${args.join(', ')}], ${ref}${scope})`
+        );
+        break;
+      }
+      default:
+        throw new UnsupportedError(`the dynamic prop value "${prop.value.v}"`);
+    }
     return step;
   }
 
@@ -1001,7 +1067,6 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     /** Events print as event-attr chunks so the runtime can join hook handlers by name. */
     record = false
   ): void {
-    const scope = styleScope === null ? '' : `, undefined, ${JSON.stringify(styleScope)}`;
     switch (prop.k) {
       case PropKind.Static: {
         const serialized = serializeAttrValue(prop.name, prop.value ?? null);
@@ -1015,45 +1080,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         return;
       }
       case PropKind.Dynamic: {
-        const step = pass.next(QwikGenWord.Attribute);
-        switch (prop.value.v) {
-          case ValueKind.Read: {
-            const signal = signalReadName(this.module, prop.value.expr);
-            this.imports.add(QwikWord.RenderSsrAttr);
-            this.pushStep(
-              pass,
-              step,
-              [signal],
-              `${QwikWord.RenderSsrAttr}(${idVariable}, ${JSON.stringify(prop.name)}, ${signal}${scope})`
-            );
-            break;
-          }
-          case ValueKind.Computed: {
-            if (isInlineValue(prop.value)) {
-              // A row constant never changes: serialize it once, no subscription.
-              this.imports.add(QwikWord.SerializeAttrExpressionValue);
-              const rowScope = styleScope === null ? '' : `, ${JSON.stringify(styleScope)}`;
-              pass.statements.push(
-                `const ${step} = ${QwikWord.SerializeAttrExpressionValue}(${JSON.stringify(prop.name)}, ${inlineValueJs(this.module, prop.value)}${rowScope});`
-              );
-              break;
-            }
-            if (prop.value.resume.r !== ResumeKind.Qrl) {
-              throw new UnsupportedError('a non-QRL computed prop');
-            }
-            const { qrl, ref, args } = this.useQrl(pass, prop.value.resume.qrl, true);
-            this.imports.add(QwikWord.RenderSsrAttrExpression);
-            this.pushStep(
-              pass,
-              step,
-              rootArgs(qrl, args),
-              `${QwikWord.RenderSsrAttrExpression}(${idVariable}, ${JSON.stringify(prop.name)}, [${args.join(', ')}], ${ref}${scope})`
-            );
-            break;
-          }
-          default:
-            throw new UnsupportedError(`the dynamic prop value "${prop.value.v}"`);
-        }
+        const step = this.attrStep(pass, prop, idVariable, styleScope);
         // the open-tag part — attr semantics: null = absent, '' = bare, else quoted+escaped
         this.imports.add(QwikWord.EscapeHTML);
         parts.push(

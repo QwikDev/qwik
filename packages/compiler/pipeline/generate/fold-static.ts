@@ -1,6 +1,7 @@
 import { OpKind, PropKind, type LinkedOp, type Op } from '../schema';
 import { escapeAttr, escapeText, serializeAttrValue } from '../html';
 import { UnsupportedError } from '../errors';
+import { inlineStringValue } from './emit-chunk';
 
 /**
  * Folds a fully static op tree to markup. Attribute bytes are identical everywhere; TEXT differs
@@ -15,7 +16,15 @@ export function foldStaticOp(op: Op | LinkedOp, escapeTextContent: boolean): str
         throw new UnsupportedError('folding an element with runtime props');
       }
       let html = `<${op.tag}`;
+      let innerHtml: string | null = null;
       for (const prop of op.props) {
+        if (prop.k === PropKind.InnerHtml) {
+          innerHtml = inlineStringValue(prop.value);
+          if (innerHtml === null) {
+            throw new UnsupportedError('folding a live innerHTML');
+          }
+          continue;
+        }
         if (prop.k !== PropKind.Static) {
           throw new UnsupportedError(`folding the non-static prop "${prop.k}"`);
         }
@@ -28,6 +37,10 @@ export function foldStaticOp(op: Op | LinkedOp, escapeTextContent: boolean): str
       html += '>';
       if (op.void) {
         return html;
+      }
+      // Literal innerHTML is the content as written, never escaped like text.
+      if (innerHtml !== null) {
+        return `${html}${innerHtml}</${op.tag}>`;
       }
       for (const child of op.children) {
         html += foldStaticOp(child, escapeTextContent);
@@ -47,9 +60,12 @@ export function isFullyStaticSubtree(op: Op | LinkedOp): boolean {
   if (op.op !== OpKind.Element) {
     return false;
   }
+  const innerHtml = op.props.find((prop) => prop.k === PropKind.InnerHtml);
   return (
     op.propsEffect === null &&
-    op.props.every((prop) => prop.k === PropKind.Static) &&
-    op.children.every(isFullyStaticSubtree)
+    op.props.every((prop) => prop.k === PropKind.Static || prop === innerHtml) &&
+    (innerHtml !== undefined
+      ? inlineStringValue(innerHtml.value) !== null
+      : op.children.every(isFullyStaticSubtree))
   );
 }

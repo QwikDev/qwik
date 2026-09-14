@@ -351,8 +351,12 @@ Share prop classification; deliver the following in small increments.
 
 ## 9. HTML, namespaces and template correctness
 
-- [ ] Emit `dangerouslySetInnerHTML` as element content, not an attribute.
-- [ ] Preserve its subtree when unrelated props change.
+- [x] Emit `dangerouslySetInnerHTML` as element content, not an attribute. A literal folds into
+      the static markup and the CSR template as written; a live value is an attribute step whose
+      name the runtime already routes to `innerHTML`, rendered as the element's content on the
+      server and patched on the client. Authored children yield to it.
+- [x] Preserve its subtree when unrelated props change. Nothing re-renders the content: only its
+      own effect touches `innerHTML` (`attributes.spec.tsx` in CSR and resume).
 - [ ] Correct text treatment in `script`, `style`, `textarea` and `title`.
 - [ ] SVG/MathML namespaces and `foreignObject` transitions.
 - [ ] `xlink:href` and `xml:lang`.
@@ -479,6 +483,13 @@ code size and runtime cost. The previous implementation is not the accepted defa
 
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
+
+- 2026-09-14: innerHTML: `lowerInnerHtml` turns `dangerouslySetInnerHTML` into the `InnerHtml`
+  prop the schema already had; `inlineStringValue` lets the static fold, the CSR template and the
+  SSR parts print a literal as raw content, while a live value reuses the attribute step
+  (`attrStep`, shared with dynamic attributes) and the client attribute effect. Verification:
+  1088 pipeline tests (16 existing TODOs), the `element-inner-html` snapshots, and the core corpus
+  where both `attributes.spec.tsx` innerHTML cases pass in CSR and resume.
 
 - 2026-09-13: Element spreads: `expandLiteralSpread` turns `{...{ a: x }}` into attributes;
   `lowerPropsChunk` is shared by proxied component props and the element `propsEffect` slot the

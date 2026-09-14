@@ -1928,6 +1928,32 @@ export default component$((props: { title: string }) => {
     }
   });
 
+  test('should emit dangerouslySetInnerHTML as element content', async () => {
+    const output = await testInput(mode, 'element-inner-html', {
+      code: `import { component$, useSignal } from '@qwik.dev/core';
+export default component$(() => {
+  const markup = useSignal('<i>live</i>');
+  return (
+    <section>
+      <div dangerouslySetInnerHTML="<span>raw</span>" />
+      <p dangerouslySetInnerHTML={markup.value} onClick$={() => (markup.value = '<b>next</b>')}>
+        ignored
+      </p>
+    </section>
+  );
+});
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    // Static markup is element content, never an attribute and never escaped.
+    expect(main).toContain('<div><span>raw</span></div>');
+    expect(main).not.toMatch(/dangerouslySetInnerHTML=/i);
+    expect(main).not.toContain('ignored');
+    // A live value binds the innerHTML through the attribute helpers under its authored name.
+    expect(main).toContain('"dangerouslySetInnerHTML", markup');
+  });
+
   test('should merge component prop spreads in authored order', async () => {
     await testInput(mode, 'component-props-spread', {
       code: `export const Child = (props) => <strong>{props.label}</strong>;

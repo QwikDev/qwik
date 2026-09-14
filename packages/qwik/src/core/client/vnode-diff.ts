@@ -1854,6 +1854,12 @@ function handleChangedProps(
       }
       const newValue = src[key];
       const oldValue = dst?.[key];
+      // Every parent render creates an equivalent wrapper, but only the old one has subscribers.
+      // handleProps() swaps the props owner, so keep the subscribed instance or they are orphaned.
+      if (dst && newValue !== oldValue && areDiffValuesEqual(newValue, oldValue)) {
+        src[key] = oldValue;
+        continue;
+      }
       if (
         !dst ||
         !(areDiffValuesEqual(newValue, oldValue) || areSignalValuesEqual(newValue, oldValue))

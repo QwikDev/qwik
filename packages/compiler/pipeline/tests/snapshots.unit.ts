@@ -2036,6 +2036,39 @@ export default component$(() => {
     expect(main).toContain('"value", text');
   });
 
+  test('should bind refs to their elements', async () => {
+    const output = await testInput(mode, 'element-refs', {
+      code: `import { component$, useSignal } from '@qwik.dev/core';
+export default component$(() => {
+  const input = useSignal<Element>();
+  const show = useSignal(false);
+  const calls: string[] = [];
+  return (
+    <section>
+      <input ref={input} />
+      <div ref={() => calls.push('ref')}>target</div>
+      {show.value && <i ref={(el) => calls.push(el.tagName)}>late</i>}
+    </section>
+  );
+});
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const code = output.modules.map((module) => module.code).join('\n');
+    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    // A ref is applied once when its element exists, never as an attribute or an effect.
+    expect(main).not.toMatch(/ ref=|"ref": |'ref', /);
+    if (mode === 'csr') {
+      expect(main).toContain('setRef(input, el');
+      expect(main).toMatch(/setRef\(\(\) => calls\.push\(['"]ref['"]\), el/);
+      expect(code).toContain('setRef((el) => calls.push(el.tagName), el');
+    } else {
+      expect(main).toContain('ctx.setRef(input, id');
+      expect(main).toMatch(/ctx\.setRef\(\(\) => calls\.push\(['"]ref['"]\), id/);
+      expect(code).toContain('setRef((el) => calls.push(el.tagName), id');
+    }
+  });
+
   test('should merge component prop spreads in authored order', async () => {
     await testInput(mode, 'component-props-spread', {
       code: `export const Child = (props) => <strong>{props.label}</strong>;

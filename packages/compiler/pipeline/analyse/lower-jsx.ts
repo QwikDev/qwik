@@ -280,6 +280,18 @@ function lowerFormValue(
   return children;
 }
 
+/** `ref={x}` applies once when the element exists: a function is called, a signal receives it. */
+function lowerRef(attribute: JSXAttribute, ctx: LowerContext): Prop | null {
+  const expression = qrlAttributeExpression(attribute);
+  if (expression === null) {
+    return null;
+  }
+  return {
+    k: PropKind.Ref,
+    value: lowerInlineExpressionValue(expression, ctx, collectCaptures(expression, ctx, new Set())),
+  };
+}
+
 /** `dangerouslySetInnerHTML` is element content: a literal folds, anything else patches innerHTML. */
 function lowerInnerHtml(attribute: JSXAttribute, ctx: LowerContext): Prop | null {
   const value = attribute.value;
@@ -1213,6 +1225,9 @@ function lowerAttribute(
   }
   if (target === 'element' && authored === QwikDirective.InnerHtml) {
     return lowerInnerHtml(attribute, ctx);
+  }
+  if (target === 'element' && authored === QwikDirective.Ref) {
+    return lowerRef(attribute, ctx);
   }
   const name =
     target === 'component'

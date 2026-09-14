@@ -580,6 +580,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         (prop) =>
           ((prop.k === PropKind.Dynamic || prop.k === PropKind.InnerHtml) &&
             !isInlineValue(prop.value)) ||
+          prop.k === PropKind.Ref ||
           isDynamicEvent(prop)
       );
     const idVariable = holes.length > 0 || hasDynamicProps ? pass.next(QwikGenWord.Id) : null;
@@ -1076,6 +1077,13 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         pushMergedStatic(
           parts,
           serialized === '' ? ` ${prop.name}` : ` ${prop.name}="${escapeAttr(serialized)}"`
+        );
+        return;
+      }
+      case PropKind.Ref: {
+        // The element id stands in for the node; the runtime resolves it on resume.
+        pass.statements.push(
+          `${pass.names.ctx}.setRef(${inlineValueJs(this.module, prop.value)}, ${idVariable});`
         );
         return;
       }

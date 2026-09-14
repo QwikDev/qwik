@@ -363,6 +363,21 @@ Share prop classification; deliver the following in small increments.
       the shape the runtime already splices `useOn*` registrations into. Known-false roots stay
       flat; element-less roots keep the runtime script carrier.
 
+### Refs
+
+- [x] `ref={signal}` and `ref={fn}` on elements, including inside branches and rows. The ref is
+      an inline value applied once when the element exists: CSR calls `setRef(value, el)`, SSR
+      gives the element an id and calls `ctx.setRef(value, id)`, so a function ref runs on the
+      server with the DOM-ref token and a signal ref resumes as the element (`element-refs`
+      snapshots, `ref.spec.tsx` green in CSR and resume).
+
+### Bindings
+
+- [ ] `bind:value` and `bind:checked`: a `value`/`checked` attribute reading the signal plus an
+      `input` handler that writes it back through the runtime `_val`/`_chk` QRLs, the pair the
+      props-object path already builds at runtime (`attributes.spec.tsx` "binds checked and value
+      through native properties" is red in CSR and resume).
+
 ## 9. HTML, namespaces and template correctness
 
 - [x] Emit `dangerouslySetInnerHTML` as element content, not an attribute. A literal folds into
@@ -497,6 +512,12 @@ code size and runtime cost. The previous implementation is not the accepted defa
 
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
+
+- 2026-09-14: Refs: `lowerRef` turns `ref={x}` into the `Ref` prop the schema already had, with
+  an inline value and the mode from the expression shape; CSR emits `setRef` after locating the
+  element, SSR emits `ctx.setRef` against the element id as a plain statement. Verification:
+  1096 pipeline tests (16 existing TODOs), the `element-refs` snapshots, and `ref.spec.tsx`
+  fully green in CSR and resume.
 
 - 2026-09-14: Form values: `lowerFormValue` gives `<textarea value>` its content and static
   `<option>`s their `selected` from the select's value, both as initial-only inline values, so the

@@ -199,12 +199,6 @@ export const enum BindName {
   Checked = 'checked',
 }
 
-export const enum RefMode {
-  Signal = 'signal',
-  Function = 'function',
-  Unknown = 'unknown',
-}
-
 export type Prop =
   | { k: PropKind.Static; name: string; value?: string | number | boolean | null }
   | {
@@ -229,7 +223,7 @@ export type Prop =
       effect: number | null;
     }
   /** Refs RUN in SSR. */
-  | { k: PropKind.Ref; value: Value; mode: RefMode }
+  | { k: PropKind.Ref; value: Value }
   | { k: PropKind.InnerHtml; value: Value; effect: number | null };
 
 // ---------------------------------------------------------------------------------------------

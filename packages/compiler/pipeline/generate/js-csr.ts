@@ -404,6 +404,11 @@ class CsrModuleEmitter implements QwikModuleEmitter {
           );
           break;
         }
+        case PropKind.Ref: {
+          this.imports.add(QwikWord.SetRef);
+          statements.push(`${QwikWord.SetRef}(${inlineValueJs(this.module, prop.value)}, ${el});`);
+          break;
+        }
         case PropKind.InnerHtml: {
           // A literal is already in the template; anything else patches innerHTML like an attribute.
           if (inlineStringValue(prop.value) === null) {

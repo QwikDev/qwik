@@ -44,8 +44,6 @@ export function convertManifestToBundleGraph(
   }
   // All known chunks and symbols
   const graph = { ...manifest.bundles };
-  // Symbol and adder nodes carry their own edges; only chunk edges get the qrl rule
-  const trustedNodes = new Set<string>();
   for (const [symbol, bundleName] of Object.entries(manifest.mapping)) {
     if (symbol.startsWith('_') && symbol.length < 10) {
       // internal QRLs are not included in the bundle graph
@@ -57,8 +55,7 @@ export function convertManifestToBundleGraph(
        * We use dynamic imports so that we will get probabilities for the bundle when preloading the
        * symbol. We still confirm load at 100% probability with the bundle name.
        */
-      graph[hash] = { dynamicImports: [bundleName] } as QwikBundle;
-      trustedNodes.add(hash);
+      graph[hash] = { qrlImports: [bundleName] } as QwikBundle;
     }
   }
   // Routes etc
@@ -67,22 +64,19 @@ export function convertManifestToBundleGraph(
     for (const adder of bundleGraphAdders) {
       const result = adder(combined);
       if (result) {
-        Object.assign(graph, result);
-        for (const name of Object.keys(result)) {
-          trustedNodes.add(name);
+        // Adder edges are followed like qrl edges
+        for (const [name, node] of Object.entries(result)) {
+          graph[name] = { ...node, qrlImports: node.dynamicImports } as QwikBundle;
         }
       }
     }
   }
 
-  // A user import() is a cut point: chunks only follow their qrl edges
+  // A user import() is a cut point: only qrl edges are followed
   for (const bundleName of Object.keys(graph)) {
     const bundle = graph[bundleName];
     const imports = bundle.imports?.filter((dep) => graph[dep]) || [];
-    const followedImports = trustedNodes.has(bundleName)
-      ? bundle.dynamicImports
-      : bundle.qrlImports;
-    const dynamicImports = followedImports?.filter((dep) => graph[dep]) || [];
+    const dynamicImports = bundle.qrlImports?.filter((dep) => graph[dep]) || [];
 
     /**
      * Overwrite so we don't mutate the given objects. Be sure to copy all properties we use during

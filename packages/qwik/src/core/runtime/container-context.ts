@@ -32,6 +32,8 @@ export interface ContainerState {
   subscriberRoots?: Map<number, number[]>;
   /** In-flight root inflations, so dependent restores can order after them. */
   inflatingRoots?: WeakMap<object, Promise<unknown>>;
+  /** The client `useId` counter, distinct from the server's by prefix. */
+  nextUseId?: number;
 }
 
 export interface ContainerContext extends ServerDataContext {

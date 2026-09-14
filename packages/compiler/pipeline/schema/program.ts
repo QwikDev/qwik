@@ -275,6 +275,7 @@ export const enum CallTargetKind {
 export const enum CoreOperation {
   CreateSignal = 'create-signal',
   CreateStore = 'create-store',
+  UseId = 'use-id',
   CreateComputed = 'create-computed',
   Task = 'task',
   VisibleTask = 'visible-task',

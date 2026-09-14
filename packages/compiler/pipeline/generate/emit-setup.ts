@@ -39,6 +39,7 @@ import type { ComponentEmission, GeneratedNames } from './emit-component';
 const coreCallNames: Record<CoreOperation, { qrl: QwikHook; fn: QwikHook }> = {
   [CoreOperation.CreateSignal]: { qrl: QwikHook.UseSignal, fn: QwikHook.UseSignal },
   [CoreOperation.CreateStore]: { qrl: QwikHook.UseStore, fn: QwikHook.UseStore },
+  [CoreOperation.UseId]: { qrl: QwikHook.UseId, fn: QwikHook.UseId },
   [CoreOperation.CreateComputed]: {
     qrl: QwikHook.UseComputedQrl,
     fn: QwikHook.UseComputedFunction,

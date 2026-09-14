@@ -464,6 +464,14 @@ Do not restore serialization of a children tree merely to reproduce old VNode op
       custom hook bodies, so a hook that starts no task no longer forces the wait; a hook outside
       the link set leaves it unknown and keeps the wait.
 - [ ] Verify `useId`, `useOn*`, tasks and cleanup for headless components and new root shapes.
+- [x] `useId()`. A runtime counter, not the legacy seed parameter: the server counts per request
+      on the root invoke context (`s…` ids), the client per container (`c…` ids), so ids never
+      collide after resume, in rows, branches or later instances. The compiler treats `useId` as
+      an ordinary core setup call that never blocks rendering, and rows keep the authored call.
+      This breaks the rule that legacy compiler-only features stay compiler-only, deliberately:
+      the seed scheme costs a parameter per component, a wrapper per child call and a captured
+      seed per chunk, and still cannot make same-site instances unique (`use-id` snapshots, all
+      five `use-id.spec.tsx` cases in CSR and resume).
 
 Much of the hook runtime already exists; complete compiler output and scope propagation rather
 than reimplementing each hook.
@@ -522,6 +530,13 @@ code size and runtime cost. The previous implementation is not the accepted defa
 
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
+
+- 2026-09-14: `useId`: the runtime `useId` counts on the server root invoke context or the
+  client container with an environment prefix; the compiler registers `useId` as a core setup
+  call (`CoreOperation.UseId`). A seed-parameter version was built and discarded as heavier in
+  output and compiler alike. Verification: 1104 pipeline tests (16 existing TODOs), the `use-id`
+  snapshots, runtime unit tests, and `use-id.spec.tsx` fully green in CSR and resume; the
+  resume corpus has no failures left.
 
 - 2026-09-14: Keyless collections: the analyser no longer refuses a derived source without a
   row key; the runtime's index keys apply. Verification: 1102 pipeline tests (16 existing

@@ -2134,6 +2134,30 @@ export default component$(() => {
     expect(main).toMatch(/"onClick\$": \[q_\w+\.w\(\[count\]\), q_\w+\]/);
   });
 
+  test('should keep useId as a runtime call in setup and rows', async () => {
+    const output = await testInput(mode, 'use-id', {
+      code: `import { component$, useId } from '@qwik.dev/core';
+export default component$((props: { items: string[] }) => {
+  const id = useId();
+  return (
+    <ul id={id}>
+      {props.items.map((item) => {
+        const rowId = useId();
+        return <li id={rowId}>{item}</li>;
+      })}
+    </ul>
+  );
+});
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const code = output.modules.map((module) => module.code).join('\n');
+    // The runtime counts ids per render; the compiler only keeps the calls and their import.
+    expect(code).toContain('const id = useId();');
+    expect(code).toContain('const rowId = useId();');
+    expect(code).not.toContain('pendingSetup');
+  });
+
   test('should merge component prop spreads in authored order', async () => {
     await testInput(mode, 'component-props-spread', {
       code: `export const Child = (props) => <strong>{props.label}</strong>;

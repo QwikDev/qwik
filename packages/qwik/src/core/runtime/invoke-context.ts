@@ -18,12 +18,15 @@ export interface RuntimeInvokeContext {
   styleScopes?: string[];
   /** Work that hooks chain here, which a compiled render waits on before it commits. */
   pendingSetup?: Promise<void>;
+  /** The server render's `useId` counter; a client render counts on its container instead. */
+  ids?: { next: number };
 }
 
 export interface NewInvokeContextOptions {
   owner?: Owner | null;
   ownerHost?: Owner | null;
   container?: ContainerContext;
+  ids?: { next: number };
   contextScope?: ContextScope | null;
   localContextScope?: ContextScope | null;
   slotScope?: SlotScope | null;
@@ -67,6 +70,7 @@ export function newInvokeContext(options?: NewInvokeContextOptions): RuntimeInvo
     contextScope: options?.contextScope ?? null,
     localContextScope: options?.localContextScope ?? null,
     slotScope: options?.slotScope ?? null,
+    ids: options?.ids,
   };
 }
 
@@ -78,6 +82,7 @@ export function newChildInvokeContext(
     owner: null,
     ownerHost: options?.ownerHost ?? base?.owner ?? null,
     container: options?.container ?? base?.container,
+    ids: base?.ids,
     contextScope: options?.contextScope ?? base?.contextScope ?? null,
     localContextScope: null,
     // a projection renders under the scope it was registered in, so an explicit null means none:

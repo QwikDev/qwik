@@ -126,7 +126,7 @@ export const renderToStreamCompiled = async <Props = undefined>(
   const resolvedManifest = resolveManifest(opts.manifest);
   const platform = createPlatform(opts, resolvedManifest);
   setPlatform(platform);
-  const rootInvokeContext = newInvokeContext();
+  const rootInvokeContext = newInvokeContext({ ids: { next: 0 } });
 
   try {
     const containerTagName = opts.containerTagName ?? 'html';

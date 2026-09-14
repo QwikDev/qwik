@@ -237,7 +237,8 @@ describe(`${name}: component`, () => {
   });
 
   it('should pass event handler arrays to native child elements', async () => {
-    const Button = component$((props: { onClick$: QRL<() => any> | QRL<() => any>[] }) => {
+    // The types only lift a single `$` prop function; a list is what the compiler receives.
+    const Button = component$((props: { onClick$: QRL<() => void>[] }) => {
       return <button onClick$={props.onClick$}>Click</button>;
     });
 
@@ -246,7 +247,18 @@ describe(`${name}: component`, () => {
       const clicks = useSignal(0);
       return (
         <section>
-          <Button onClick$={[() => (count.value += 2), () => clicks.value++]} />
+          <Button
+            onClick$={
+              [
+                () => {
+                  count.value += 2;
+                },
+                () => {
+                  clicks.value++;
+                },
+              ] as unknown as QRL<() => void>[]
+            }
+          />
           <span>{count.value + ':' + clicks.value}</span>
         </section>
       );

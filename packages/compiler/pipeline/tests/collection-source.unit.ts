@@ -10,7 +10,7 @@ import { analyseModule } from '../analyse/analyse-module';
 import { transformModules } from '../compat/transform-modules';
 import { ModuleKind } from '../schema';
 
-test('a derived source without a key produces a spanned diagnostic', async () => {
+test('a derived source without a key is keyed by position', async () => {
   const plan = await analyseModule(
     {
       path: 'src/component.tsx',
@@ -18,13 +18,8 @@ test('a derived source without a key produces a spanned diagnostic', async () =>
     },
     {}
   );
-  expect(plan.kind).toBe(ModuleKind.Failed);
-  expect(plan.diagnostics).toHaveLength(1);
-  expect(plan.diagnostics[0]).toMatchObject({
-    code: 'for-key',
-    message: 'A derived collection requires a row key',
-  });
-  expect(plan.diagnostics[0].span).not.toBeNull();
+  expect(plan.kind).not.toBe(ModuleKind.Failed);
+  expect(plan.diagnostics).toEqual([]);
 });
 
 test.each([false, true])(

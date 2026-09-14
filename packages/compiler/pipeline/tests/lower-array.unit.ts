@@ -225,10 +225,11 @@ describe('lowerArray / reactive rows', () => {
     expect(source.origin.paramRanges).toEqual([]);
   });
 
-  test('derived sources require a row key', () => {
-    expect(() =>
-      lower('<ul>{items.value.filter((item) => item.visible).map((item) => <li />)}</ul>')
-    ).toThrow('A derived collection requires a row key');
+  test('derived sources without a row key are keyed by position', () => {
+    const { op } = lower(
+      '<ul>{items.value.filter((item) => item.visible).map((item) => <li />)}</ul>'
+    );
+    expect(op).toMatchObject({ children: [{ op: OpKind.Each, key: null }] });
   });
 
   test.each([

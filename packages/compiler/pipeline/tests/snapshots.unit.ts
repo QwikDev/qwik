@@ -1227,6 +1227,30 @@ export default () => {
     });
   });
 
+  test('should key a derived collection by position when no key is authored', async () => {
+    const output = await testInput(mode, 'collection-keyless-derived', {
+      code: `import { component$, useSignal } from '@qwik.dev/core';
+export default component$((props: { items: string[] }) => {
+  const filter = useSignal('');
+  return (
+    <ul>
+      {props.items.filter((item) => item.includes(filter.value)).map((item) => <li>{item}</li>)}
+    </ul>
+  );
+});
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    // No key chunk: the runtime keys rows by index.
+    expect(main).toMatch(
+      mode === 'csr' ? /createCollection\([^;]*, null, / : /renderSsrCollection\([^;]*, undefined, /
+    );
+    expect(output.modules.some((module) => module.segment?.ctxName === 'collection:key')).toBe(
+      false
+    );
+  });
+
   test('should render a keyed collection with a static item', async () => {
     await testInput(mode, 'collection-static-item', {
       code: `import { useSignal } from '@qwik.dev/core';

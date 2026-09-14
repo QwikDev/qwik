@@ -408,7 +408,10 @@ delimiters. Compilation snapshots alone cannot prove browser parser behavior.
 
 `.map`, keys, captures, destructuring and conditional rows already have substantial coverage.
 
-- [ ] Derived collections without a key, currently rejected in existing e2e sources.
+- [x] Derived collections without a key. A derived source without an authored key is emitted
+      with no key chunk and the runtime keys its rows by position, on render and on resume alike,
+      as literal and reactive sources already did (`collection-keyless-derived` snapshots;
+      `use-id.spec.tsx` now compiles, its cases wait on the `useId()` rewrite of group 12).
 - [ ] Function-expression and referenced callbacks, not only inline arrows.
 - [ ] Richer callback bodies using the shared mechanism from group 1.
 - [ ] Async rows and dynamically shaped results.
@@ -519,6 +522,13 @@ code size and runtime cost. The previous implementation is not the accepted defa
 
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
+
+- 2026-09-14: Keyless collections: the analyser no longer refuses a derived source without a
+  row key; the runtime's index keys apply. Verification: 1102 pipeline tests (16 existing
+  TODOs), the `collection-keyless-derived` snapshots and updated collection unit tests.
+  `use-id.spec.tsx` compiles now; every case then fails on the runtime's "useId() must be
+  transformed by the Qwik compiler", so the `useId()` rewrite (schema `SetupKind.UseId`, payload
+  `useIds`) is the next red item, under group 12.
 
 - 2026-09-14: Handler arrays: the component prop emitter maps every handler of an event prop to
   its QRL and prints a list when there is more than one. Verification: 1100 pipeline tests (16

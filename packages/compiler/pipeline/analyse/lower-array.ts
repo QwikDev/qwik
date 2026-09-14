@@ -36,7 +36,7 @@ import {
 } from '../schema';
 import { SegmentContext } from '../words';
 import { ValueIrKind } from '../../src/expr-ir';
-import { InvalidModuleError, UnsupportedError } from '../errors';
+import { UnsupportedError } from '../errors';
 import { collectCaptures, lowerCaptures, type CollectedCaptures } from './ast/capture-analysis';
 import { unwrapExpression } from './ast/utils';
 import { JsxValueKind, type JsxValue } from './ast/jsx-analysis';
@@ -272,12 +272,6 @@ function lowerEach(
     paramBindings,
     paramPatterns
   );
-  if (source.s === EachSourceKind.Derived && key === null) {
-    throw new InvalidModuleError('for-key', 'A derived collection requires a row key', [
-      body.start,
-      body.end,
-    ]);
-  }
   const setupReads = lowerRowProgram(
     body,
     statements,

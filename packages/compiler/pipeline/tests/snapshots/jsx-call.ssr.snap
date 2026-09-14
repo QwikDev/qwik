@@ -191,7 +191,7 @@ export default (props, ctx) => {
     0,
     '',
     false,
-    2
+    3
   );
   return maybeThen(content0, (content0) =>
     maybeThen(content1, (content1) =>

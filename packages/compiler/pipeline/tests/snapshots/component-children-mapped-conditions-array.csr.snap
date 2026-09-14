@@ -110,7 +110,7 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
     semantic_collectionRender_312_447_3uti95l1qinm7,
     0,
     '',
-    2,
+    3,
     true
   );
   return [...fragment0.childNodes];
@@ -265,7 +265,7 @@ export const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx) => {
     semantic_collectionRender_312_447_3uti95l1qinm7,
     0,
     '',
-    2,
+    3,
     true
   );
   return [...fragment0.childNodes];

@@ -368,7 +368,8 @@ function deriveRowShape(program: number, ctx: LowerContext): Shape {
     case OpKind.Hole:
       return Shape.Text;
     default:
-      return Shape.Many;
+      // A component or range row yields whatever its output is; the runtime normalizes it.
+      return Shape.Unknown;
   }
 }
 

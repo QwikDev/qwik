@@ -419,6 +419,9 @@ delimiters. Compilation snapshots alone cannot prove browser parser behavior.
       array row applies once through `patchAttrValue` (CSR) or `serializeAttrExpressionValue`
       (SSR), with no effect, chunk or element id. Verified by the `collection-inline-row-attr`
       snapshots and `loops.spec.tsx` in CSR and resume.
+- [x] Component rows report their output shape as unknown, so the runtime normalizes whatever
+      the component returns; declaring them as node lists appended nothing on the client
+      (`component.spec.tsx` "should update expression props on mapped children" in CSR).
 - [ ] Row-shape changes and mixed keyed/unkeyed cases required by ported tests.
 - [ ] Adapt `<Each>` and `<Show>` to existing collection/branch operations if retaining their
       APIs from `main`.
@@ -530,6 +533,11 @@ code size and runtime cost. The previous implementation is not the accepted defa
 
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
+
+- 2026-09-14: Component rows: `deriveRowShape` returns `Unknown` for a component or range row
+  instead of `Many`, which the runtime read as an array of nodes. Verification: 1104 pipeline
+  tests (16 existing TODOs), 18 reseeded snapshots carrying the new shape code, and the CSR
+  corpus down to the task fallback case.
 
 - 2026-09-14: `useId`: the runtime `useId` counts on the server root invoke context or the
   client container with an environment prefix; the compiler registers `useId` as a core setup

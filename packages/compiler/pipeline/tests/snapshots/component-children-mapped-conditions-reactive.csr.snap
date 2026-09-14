@@ -81,7 +81,7 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
       component_for_render_segment_1_asysu8t2u0ck,
       1,
       '',
-      2
+      3
     )
   );
   return [...fragment0.childNodes];
@@ -337,7 +337,7 @@ export const component_slot_render_segment_6_3b0t84qbb79rc = (ctx) => {
       component_for_render_segment_7_asys26l95wbi,
       1,
       '',
-      2
+      3
     )
   );
   return [...fragment0.childNodes];

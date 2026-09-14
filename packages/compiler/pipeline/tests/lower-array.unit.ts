@@ -490,7 +490,7 @@ describe('lowerArray / reactive rows', () => {
     if (each?.op !== OpKind.Each || each.row.r !== RowKind.Chunk) {
       throw new Error('expected a chunk row');
     }
-    expect(each.shape).toBe(Shape.Many);
+    expect(each.shape).toBe(Shape.Unknown);
     expect(each.key).toBeNull();
     const use = each.row.use;
     const rowQrl = ctx.plan.qrls.find((qrl) => qrl.id === use.qrl);

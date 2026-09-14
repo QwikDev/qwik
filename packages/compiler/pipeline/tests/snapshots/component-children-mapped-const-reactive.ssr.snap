@@ -47,7 +47,7 @@ const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
     1,
     '',
     true,
-    2
+    3
   );
   return [
     createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'),
@@ -215,7 +215,7 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) =>
     1,
     '',
     true,
-    2
+    3
   );
   return [
     createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'),

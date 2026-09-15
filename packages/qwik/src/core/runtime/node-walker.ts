@@ -36,9 +36,18 @@ export function findQwikElement(element: Element, elementId: string | number): E
   return element.querySelector(`[${ELEMENT_ID_SELECTOR}="${stringId}"]`) ?? null;
 }
 
-export function findElementText(parentNode: Node): Text | null {
-  const text = fastFirstChild(parentNode);
-  return text !== null && text.nodeType === NodeType.Text ? (text as Text) : null;
+export function findElementText(parentNode: Node): Text {
+  return ensureTextNode(parentNode, fastFirstChild(parentNode));
+}
+
+/** An empty value writes no text on the server, so resume creates the node the effect fills. */
+function ensureTextNode(parentNode: Node, candidate: Node | null): Text {
+  if (candidate !== null && candidate.nodeType === NodeType.Text) {
+    return candidate as Text;
+  }
+  const text = parentNode.ownerDocument!.createTextNode('');
+  parentNode.insertBefore(text, candidate);
+  return text;
 }
 
 export function findTextNode(parentNode: Node, markerIndex: number): Text | null {
@@ -50,8 +59,7 @@ export function findTextNode(parentNode: Node, markerIndex: number): Text | null
       (currentNode as Comment).data === RANGE_TEXT_MARKER
     ) {
       if (index === markerIndex) {
-        const text = fastNextSibling(currentNode);
-        return text !== null && text.nodeType === NodeType.Text ? (text as Text) : null;
+        return ensureTextNode(parentNode, fastNextSibling(currentNode));
       }
       index++;
     }
@@ -70,10 +78,7 @@ export function findBranchTextNode(range: BranchMarkerRange, markerIndex: number
       (currentNode as Comment).data === RANGE_TEXT_MARKER
     ) {
       if (index === markerIndex) {
-        const text = fastNextSibling(currentNode);
-        return text !== null && text !== end && text.nodeType === NodeType.Text
-          ? (text as Text)
-          : null;
+        return ensureTextNode(currentNode.parentNode!, fastNextSibling(currentNode));
       }
       index++;
     }

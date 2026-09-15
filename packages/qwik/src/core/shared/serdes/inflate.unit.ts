@@ -420,13 +420,15 @@ describe('inflate(TypeIds.EffectSubscription) text targets', () => {
     expect(subscription.text.data).toBe('1');
   });
 
-  it('throws when a range marker is not followed by a text node', async () => {
+  it('creates the text node an empty server value left out', async () => {
     const context = createContext('<p q:id="12"><!t><!/t></p>');
     const count = useSignal(1);
+    const subscription = await inflateTextSubscription(context, count, 12, 0);
 
-    await expect(inflateTextSubscription(context, count, 12, 0)).rejects.toThrow(
-      'Missing range text target 12:0.'
-    );
+    expect(subscription.text.data).toBe('');
+    count.value = 2;
+    await context.scheduler.flushInteraction();
+    expect(context.element.querySelector('p')!.textContent).toBe('2');
   });
 });
 

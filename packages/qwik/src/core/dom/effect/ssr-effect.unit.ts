@@ -39,15 +39,15 @@ describe('SSR DOM effect helpers', () => {
     expect(effect).not.toHaveProperty('target');
   });
 
-  it('serializes empty SSR text nodes as a text anchor', () => {
+  it('serializes empty SSR text nodes as nothing', () => {
     const text = useSignal('');
-    expect(createOwned(() => renderSsrTextNode(0, null, text))).toBe(' ');
+    expect(createOwned(() => renderSsrTextNode(0, null, text))).toBe('');
   });
 
   it('a stringify SSR text node renders booleans like a JS concat operand', () => {
     const flag = useSignal(true);
     expect(createOwned(() => renderSsrTextNode(0, null, flag, undefined, true))).toBe('true');
-    expect(createOwned(() => renderSsrTextNode(0, null, flag))).toBe(' ');
+    expect(createOwned(() => renderSsrTextNode(0, null, flag))).toBe('');
   });
 
   it('creates a text expression subscriber and collects dynamic reads from the QRL', () => {
@@ -71,10 +71,10 @@ describe('SSR DOM effect helpers', () => {
     expect(effect).not.toHaveProperty('target');
   });
 
-  it('serializes empty SSR text expressions as a text anchor', () => {
+  it('serializes empty SSR text expressions as nothing', () => {
     const qrl = createQRL<TextExpressionFn<[]>>('./empty.text.js', 'empty', () => '', null, null);
 
-    expect(createOwned(() => renderSsrTextExpression(2, 0, [], qrl))).toBe(' ');
+    expect(createOwned(() => renderSsrTextExpression(2, 0, [], qrl))).toBe('');
   });
 
   it('awaits returned Promises from SSR text expressions', async () => {

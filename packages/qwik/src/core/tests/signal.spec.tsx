@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ssrRender, testRenderer } from '../test-utils';
+import { testRenderer } from '../test-utils';
 import { useSignal } from '@qwik.dev/core';
 
 const debug = false;
@@ -85,7 +85,7 @@ describe(`${name}: signals`, () => {
 
     const { container, cleanup, qwikLoader } = await render(MyComp, { debug });
     const button = container.querySelector('button');
-    expect(button?.textContent).toBe(render === ssrRender ? ' ' : '');
+    expect(button?.textContent).toBe('');
 
     expect(qwikLoader).toBeDefined();
     await qwikLoader?.dispatch(button!, 'click');

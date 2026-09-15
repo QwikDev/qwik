@@ -325,7 +325,7 @@ export function renderSsrTextNode(
   return retryOnPromise(() =>
     maybeThen(
       runWithCollector(subscriber, readTrackedSourceValue, source) as ValueOrPromise<unknown>,
-      (value) => serializeSsrTextValue(value, stringify)
+      (value) => (stringify ? String(value) : _textValue(value))
     )
   );
 }
@@ -351,14 +351,9 @@ export function renderSsrTextExpression<TArgs extends unknown[]>(
 
     return maybeThen(
       runWithCollector(subscriber, withCaptures(fn, args), ...args) as ValueOrPromise<unknown>,
-      serializeSsrTextValue
+      _textValue
     );
   });
-}
-
-function serializeSsrTextValue(value: unknown, stringify = false): string {
-  const text = stringify ? String(value) : _textValue(value);
-  return text === '' ? ' ' : text;
 }
 
 export function renderSsrAttr(

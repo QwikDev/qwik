@@ -431,8 +431,10 @@ Share prop classification; deliver the following in small increments.
       over the parts, since the parser reads a comment marker there as text; an element child is
       diagnosed. `head` joins the nesting table, as the parser moves other
       elements into the body (`text-only-content` snapshots, `text-only-content.spec.tsx` in
-      CSR and resume). Open: `template` content, the dropped leading newline of `pre` and
-      `textarea`, and an empty hole value leaving no text node.
+      CSR and resume). An empty hole value writes nothing on the server, and resume creates
+      the missing text node where the marker or element says it belongs, instead of the former
+      one-space placeholder that showed inline (`empty-text-hole.spec.tsx`, `inflate.unit.ts`).
+      Open: `template` content and the dropped leading newline of `pre` and `textarea`.
 - [ ] `q:shadowRoot` and container boundaries exercised by e2e.
 
 Verify the escaping boundary between text/attributes and explicit raw HTML, including script
@@ -567,6 +569,11 @@ code size and runtime cost. The previous implementation is not the accepted defa
 
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
+
+- 2026-09-15: Empty text holes: `ensureTextNode` in `runtime/node-walker.ts` backs the three
+  text finders, so `serializeSsrTextValue` and its space placeholder are gone; the unit tests
+  that codified the space now expect nothing. Verification: runtime unit suites, the new spec
+  and `signal.spec.tsx` in CSR and resume, both corpora unchanged.
 
 - 2026-09-15: Text-only content: `lowerContentChildren` folds the parts of a `title` or
   `textarea` into one `Template` IR hole through `lowerTemplateValue`, which shares the

@@ -1048,9 +1048,7 @@ function resolveTextTarget(
     if (element == null) {
       return null;
     }
-    const text = findElementText(element);
-    isDev && assertDefined(text, `Missing text target ${elementId}.`);
-    return text!;
+    return findElementText(element);
   }
   if (targetKind === EffectTargetKind.RangeText) {
     isDev && assertNumber(markerIndex, `Missing range text marker index for element ${elementId}.`);

@@ -86,6 +86,13 @@ function createDependencyCollector(module: ModulePlan | LinkedModule) {
       case ValueIrKind.PropRead:
         visitExpressionIr(value.fallback);
         break;
+      case ValueIrKind.Template:
+        for (const part of value.parts) {
+          if (typeof part !== 'string') {
+            visitExpressionIr(part);
+          }
+        }
+        break;
     }
   }
 

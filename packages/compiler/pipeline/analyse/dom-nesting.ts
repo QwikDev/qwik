@@ -28,6 +28,7 @@ const REQUIRED_PARENT: Record<string, readonly string[]> = {
 
 /** Parents whose other children the parser drops outright. */
 const ALLOWED_CHILDREN: Record<string, readonly string[]> = {
+  head: ['title', 'meta', 'link', 'style', 'script', 'noscript', 'base', 'template'],
   select: ['option', 'optgroup', 'hr', 'script', 'template'],
   optgroup: ['option', 'script', 'template'],
 };

@@ -2180,26 +2180,35 @@ export default component$(() => (
     expect(main).toContain('<textarea>x &lt; y</textarea>');
   });
 
-  test('should stream script and style content raw on the server', async () => {
+  test('should keep script and style content a literal written as-is', async () => {
     const output = await testInput(mode, 'raw-text-elements', {
       code: `import { component$ } from '@qwik.dev/core';
-export default component$((props: { css: string; init: string; heading: string }) => (
+export default component$((props: { heading: string }) => (
   <div>
-    <style>{props.css}</style>
-    <script>{props.init}</script>
+    <style>{'.a > b { color: red }'}</style>
+    <script>{'if (a < b) { s = "</script>"; }'}</script>
     <title>{props.heading}</title>
   </div>
 ));
 `,
     });
     expect(output.diagnostics).toEqual([]);
-    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    const code = output.modules.map((module) => module.code).join('\n');
+    // Raw text never decodes entities, so only a premature closer is guarded.
+    expect(code).toContain('.a > b { color: red }');
+    expect(code).toContain('if (a < b)');
+    expect(code).toContain('<\\\\/script>');
     if (mode === 'ssr') {
-      // Raw text elements never decode entities: the value streams as written, minus a closer.
-      expect(main.match(/\.replace\(\/<\\\/\/g, ['"]<\\\\\/['"]\)/g)).toHaveLength(2);
       // A title decodes entities, so it keeps the usual escaping.
-      expect(main.match(/escapeHTML\(text\d\)/g)).toHaveLength(1);
+      expect(code.match(/escapeHTML\(text\d\)/g)).toHaveLength(1);
     }
+  });
+
+  test('should refuse a live value inside script and style', async () => {
+    const output = await testInput(mode, 'raw-text-live-value', {
+      code: `export default (props: { init: string }) => <script>{props.init}</script>;`,
+    });
+    expect(output.diagnostics).toMatchObject([{ code: 'raw-text-content' }]);
   });
 
   test('should build svg and math chunk templates in their namespace', async () => {
@@ -2682,6 +2691,22 @@ export default (props: { label?: string; content?: any }) => {
     if (name === 'conditional-array') {
       expect(code).toContain('<b>a</b><i>b</i>');
     }
+  });
+
+  test('should fold several parts of text-only content into one hole', async () => {
+    const output = await testInput(mode, 'text-only-content', {
+      code: `export default (props: { page: string; line: string; count: number }) => (
+  <div>
+    <title>{props.page} - Site</title>
+    <textarea>{props.line}{props.line}</textarea>
+  </div>
+);`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const code = output.modules.map((module) => module.code).join('\n');
+    // Comment markers would render as text inside RCDATA elements.
+    expect(code).not.toContain('<!t>');
+    expect(code).toContain('`${props.page} - Site`');
   });
 
   test('should create a dynamic tag inside svg in its namespace', async () => {

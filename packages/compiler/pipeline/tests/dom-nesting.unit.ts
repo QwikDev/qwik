@@ -17,6 +17,10 @@ test.each([
   '<form><form /></form>',
   '<table>{props.rows.map((row) => <tr key={row}><td /></tr>)}</table>',
   '<table>{props.ok && <tr />}</table>',
+  '<title><b /></title>',
+  '<textarea><span /></textarea>',
+  '<head><div /></head>',
+  '<title>{props.a}<b /></title>',
 ])('diagnoses nesting the parser would restructure: %s', async (jsx) => {
   const plan = await compile(jsx);
   expect(plan.kind).toBe(ModuleKind.Failed);
@@ -30,6 +34,7 @@ test.each([
   '<dl><dt /><dd /></dl>',
   '<p><span>text</span></p>',
   '<select><option /><optgroup><option /></optgroup></select>',
+  '<head><title>t</title><meta charset="utf-8" /></head>',
 ])('accepts valid nesting: %s', async (jsx) => {
   const plan = await compile(jsx);
   expect(plan.diagnostics).toEqual([]);

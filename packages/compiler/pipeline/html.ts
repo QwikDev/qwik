@@ -18,8 +18,11 @@ export const VOID_ELEMENTS: ReadonlySet<string> = new Set([
   'wbr',
 ]);
 
-/** Elements whose content the parser never decodes; only a premature closer needs guarding. */
+/** Elements whose content the parser never decodes: a literal, guarded against a premature closer. */
 export const RAW_TEXT_ELEMENTS: ReadonlySet<string> = new Set(['script', 'style']);
+
+/** Elements whose content is one text node: the parser reads a comment marker there as text. */
+export const RCDATA_ELEMENTS: ReadonlySet<string> = new Set(['title', 'textarea']);
 
 export function normalizeAttributeName(name: string): string {
   return name === 'className' ? 'class' : name === 'htmlFor' ? 'for' : name;

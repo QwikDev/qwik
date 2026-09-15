@@ -7,7 +7,10 @@ import {
   QrlPayloadKind,
   ResumeKind,
   ValueKind,
+  type Expr,
   type PayloadId,
+  type Range,
+  type Result,
   type Value,
 } from '../schema';
 import { ValueIrKind, type ValueIR } from '../../src/expr-ir';
@@ -19,6 +22,7 @@ import {
   collectCaptures,
   lowerCaptures,
   type CollectedCaptures,
+  type LoweredCaptures,
 } from './ast/capture-analysis';
 import { UnsupportedError } from '../errors';
 import { pushPayload, pushQrl, QrlIdentityKind, type LowerContext } from './lower-context';
@@ -63,13 +67,55 @@ export function lowerComputedExpressionValue(
   role = 'expression'
 ) {
   const result = expressionResult(expression, ctx);
-  const { captures, args, refs } = lowerCaptures(expression, ctx, 'an expression');
-  ctx = createCapturedContext(ctx, captures);
-  const range: [number, number] = [expression.start, expression.end];
-  const payload = lowerExpressionPayload(expression, ctx, refs);
+  const lowered = lowerCaptures(expression, ctx, 'an expression');
+  ctx = createCapturedContext(ctx, lowered.captures);
+  const range: Range = [expression.start, expression.end];
+  const payload = lowerExpressionPayload(expression, ctx, lowered.refs);
   const ir = tryLowerExprIr(expression, ctx);
-  const expr =
-    ir === null ? ({ kind: ExprKind.Js, payload } as const) : ({ kind: ExprKind.Ir, ir } as const);
+  const expr: Expr = ir === null ? { kind: ExprKind.Js, payload } : { kind: ExprKind.Ir, ir };
+  return computedQrlValue(expr, result, ctx, lowered, range, nameCtx, payloadKind, role);
+}
+
+/** Several text parts render as one string: the value is a template over the parts. */
+export function lowerTemplateValue(
+  parts: readonly (string | Expression)[],
+  ctx: LowerContext,
+  range: Range
+) {
+  const expressions = parts.filter((part): part is Expression => typeof part !== 'string');
+  const lowered = lowerCaptures(expressions, ctx, 'text content');
+  ctx = createCapturedContext(ctx, lowered.captures);
+  const ir = {
+    kind: ValueIrKind.Template as const,
+    parts: parts.map((part) =>
+      typeof part === 'string'
+        ? part
+        : (tryLowerExprIr(part, ctx) ?? {
+            kind: ExprKind.Js as const,
+            payload: lowerExpressionPayload(part, ctx, lowered.refs),
+          })
+    ),
+  };
+  return computedQrlValue(
+    { kind: ExprKind.Ir, ir },
+    { kind: 'string-result' },
+    ctx,
+    lowered,
+    range,
+    SegmentContext.Text
+  );
+}
+
+function computedQrlValue(
+  expr: Expr,
+  result: Result,
+  ctx: LowerContext,
+  lowered: LoweredCaptures,
+  range: Range,
+  nameCtx: string,
+  payloadKind = QrlPayloadKind.Value,
+  role = 'expression'
+) {
   const { use } = pushQrl(
     ctx,
     {
@@ -79,7 +125,7 @@ export function lowerComputedExpressionValue(
       payloadKind,
       authoredAsync: false,
       body: { b: QrlBodyKind.Expr, expr, initialOnly: false },
-      captures,
+      captures: lowered.captures,
       params: { authored: 0, used: [], sources: [] },
       origin: {
         range,
@@ -91,7 +137,7 @@ export function lowerComputedExpressionValue(
         bodyKind: FnBodyKind.Expression,
       },
     },
-    args
+    lowered.args
   );
   return {
     v: ValueKind.Computed as const,

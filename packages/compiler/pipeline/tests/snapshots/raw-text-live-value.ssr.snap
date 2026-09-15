@@ -1,0 +1,30 @@
+==INPUT==
+
+export default (props: { init: string }) => <script>{props.init}</script>;
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+
+== SSR DIAGNOSTICS ==
+
+[
+  {
+    "scope": "compiler",
+    "category": "error",
+    "code": "raw-text-content",
+    "file": "src/component.tsx",
+    "message": "<script> takes a string literal; set dynamic content with dangerouslySetInnerHTML.",
+    "highlights": [
+      {
+        "lo": 53,
+        "hi": 63,
+        "startLine": 1,
+        "startCol": 54,
+        "endLine": 1,
+        "endCol": 63
+      }
+    ],
+    "suggestions": null
+  }
+]

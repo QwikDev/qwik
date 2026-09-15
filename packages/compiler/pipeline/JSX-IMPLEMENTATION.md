@@ -398,9 +398,11 @@ Share prop classification; deliver the following in small increments.
       escapes a second time, so `<p>a &lt; b</p>` reads the same in both environments
       (`static-text-escaping` snapshots).
 - [x] Correct text treatment in `script`, `style`, `textarea` and `title`. Title and textarea are
-      RCDATA, so their text escapes as usual; `script` and `style` are raw text, so the server
-      streams their holes verbatim with only a `</` guard, and the client sets text nodes that
-      never pass through the parser (`raw-text-elements` snapshots).
+      RCDATA, so their text escapes as usual. `script` and `style` are raw text and take a
+      string literal only, written as-is with a `</` guard; a live value there is diagnosed and
+      belongs to `dangerouslySetInnerHTML`, since a script never re-runs on a text change and
+      v2 never patched a style's text either (`raw-text-elements`, `raw-text-live-value`
+      snapshots).
 - [x] SVG/MathML namespaces and `foreignObject` transitions. The analyser tracks the namespace
       while lowering (`svg` and `math` open one, `foreignObject` returns to HTML) and stamps it on
       every element op inside it; a subtree in one template parses correctly on its own.
@@ -424,7 +426,13 @@ Share prop classification; deliver the following in small increments.
       (content that closes a `<p>`, table and list structure, `select` children, elements that
       cannot nest in themselves) plus dynamic rows directly under a `<table>`, which must sit in
       an authored body (`dom-nesting.unit.ts`, `table.spec.tsx` in CSR and resume).
-- [ ] Correct locators after browser HTML normalization.
+- [ ] Correct locators after browser HTML normalization. Done so far: RCDATA elements
+      (`title`, `textarea`) fold several content parts into one hole whose value is a template
+      over the parts, since the parser reads a comment marker there as text; an element child is
+      diagnosed. `head` joins the nesting table, as the parser moves other
+      elements into the body (`text-only-content` snapshots, `text-only-content.spec.tsx` in
+      CSR and resume). Open: `template` content, the dropped leading newline of `pre` and
+      `textarea`, and an empty hole value leaving no text node.
 - [ ] `q:shadowRoot` and container boundaries exercised by e2e.
 
 Verify the escaping boundary between text/attributes and explicit raw HTML, including script
@@ -559,6 +567,15 @@ code size and runtime cost. The previous implementation is not the accepted defa
 
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
+
+- 2026-09-15: Text-only content: `lowerContentChildren` folds the parts of a `title` or
+  `textarea` into one `Template` IR hole through `lowerTemplateValue`, which shares the
+  computed-QRL construction with `lowerComputedExpressionValue`; the chunk printer and the
+  dependency walker learn the `Template` node. `script` and `style` content is a literal
+  guarded at the analyser, so the SSR emitter's raw-text branches are gone. A folded part keeps JS string
+  coercion, so `null` prints as `null`, the same as an authored template literal. The JSX types
+  already limit these elements to one string child. Verification: 1137 pipeline tests, the
+  nesting unit cases, the new spec in CSR and resume, both corpora unchanged.
 
 - 2026-09-15: `idBase` removed. Since `useId` counts at runtime, the seed threaded through
   branches, collections, `for` blocks, projections, dynamic tags, the serializer and the inflater

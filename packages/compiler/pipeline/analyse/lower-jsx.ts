@@ -36,7 +36,13 @@ import {
   type QrlUse,
 } from '../schema';
 import { normalizeJsxText } from './ast/jsx-text';
-import { escapeText, normalizeAttributeName, VOID_ELEMENTS } from '../html';
+import {
+  escapeText,
+  normalizeAttributeName,
+  RAW_TEXT_ELEMENTS,
+  RCDATA_ELEMENTS,
+  VOID_ELEMENTS,
+} from '../html';
 import { InvalidModuleError, UnsupportedError } from '../errors';
 import { eventModifierName, eventScopeName, passiveEventNames, PASSIVE_PREFIX } from './events';
 import { lowerEventAttribute, qrlAttributeExpression } from './lower-event';
@@ -50,6 +56,7 @@ import {
   lowerExpressionValue,
   tryLowerExprIr,
   lowerInlineExpressionValue,
+  lowerTemplateValue,
   recordPayloadJsx,
   recordPayloadReads,
   trySignalReadValue,
@@ -198,7 +205,7 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
     tag,
     props,
     expanded,
-    lowerJsxChildren(element.children, ctx),
+    lowerContentChildren(tag, element.children, ctx),
     ctx
   );
   ctx.elementStack.pop();
@@ -612,6 +619,67 @@ function lowerPropsChunk(
     args
   );
   return use;
+}
+
+/**
+ * Content the parser reads as one text node. Raw text is a literal, since a live value belongs to
+ * `dangerouslySetInnerHTML`; RCDATA with several parts is one hole, as a marker would show as
+ * text.
+ */
+function lowerContentChildren(tag: string, children: readonly JSXChild[], ctx: LowerContext): Op[] {
+  const isRawText = RAW_TEXT_ELEMENTS.has(tag);
+  if (!isRawText && !RCDATA_ELEMENTS.has(tag)) {
+    return lowerJsxChildren(children, ctx);
+  }
+  const parts: (string | Expression)[] = [];
+  for (const child of flattenJsxChildren(children, ctx)) {
+    if (child.type === 'JSXText') {
+      const text = normalizeJsxText(child.value);
+      if (text !== '') {
+        parts.push(text);
+      }
+    } else if (child.type !== 'JSXExpressionContainer') {
+      throw new InvalidModuleError(
+        'dom-nesting',
+        `<${tag}> takes text only: the HTML parser would not build an element there.`,
+        [child.start, child.end]
+      );
+    } else if (child.expression.type !== 'JSXEmptyExpression') {
+      parts.push(child.expression);
+    }
+  }
+  if (isRawText) {
+    const text = parts.map((part) => (typeof part === 'string' ? part : rawTextLiteral(tag, part)));
+    // Only `</` could end the element early; nothing else is decoded here.
+    return text.length === 0
+      ? []
+      : [{ op: OpKind.Static, html: text.join('').replace(/<\//g, '<\\/') }];
+  }
+  if (parts.length < 2) {
+    return lowerJsxChildren(children, ctx);
+  }
+  const range: [number, number] = [children[0].start, children[children.length - 1].end];
+  return [
+    {
+      op: OpKind.Hole,
+      value: lowerTemplateValue(parts, ctx, range),
+      shape: Shape.Text,
+      effect: null,
+      stringify: true,
+    },
+  ];
+}
+
+function rawTextLiteral(tag: string, expression: Expression): string {
+  const node = unwrapExpression(expression);
+  if (node?.type === 'Literal' && typeof node.value === 'string') {
+    return node.value;
+  }
+  throw new InvalidModuleError(
+    'raw-text-content',
+    `<${tag}> takes a string literal; set dynamic content with dangerouslySetInnerHTML.`,
+    [expression.start, expression.end]
+  );
 }
 
 /** Lowers a JSX child list — the shared path for fragment-rooted trees. */

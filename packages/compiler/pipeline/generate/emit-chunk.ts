@@ -206,6 +206,14 @@ export function valueIrJs(module: LinkedModule, ir: ExpressionIR): string {
       return `${valueIrJs(module, ir.left)} ${ir.op} ${valueIrJs(module, ir.right)}`;
     case ValueIrKind.Undef:
       return 'void 0';
+    case ValueIrKind.Template:
+      return `\`${ir.parts
+        .map((part) =>
+          typeof part === 'string'
+            ? part.replace(/[\\`]|\$\{/g, '\\$&')
+            : `\${${valueIrJs(module, part)}}`
+        )
+        .join('')}\``;
     case ValueIrKind.SignalRead:
       return `${module.bindings[ir.binding].name}.value`;
     case ValueIrKind.BindingRead:

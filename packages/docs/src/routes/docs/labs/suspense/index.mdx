@@ -127,7 +127,7 @@ export default component$(() => {
 
 When `UserCard` reads `user.value` before the request finishes, Qwik shows the nearest `<Suspense>` fallback.
 
-Inline `.pending` and `.error` checks are still useful when loading, error, and success states need different markup. Suspense works well when one fallback can cover the whole section.
+If the computation fails, reading `user.value` re-throws the error. Wrap the section in [`<ErrorBoundary>`](/docs/labs/error-boundary/index.mdx) to render a fallback instead.
 
 ## What Can Trigger Suspense
 
@@ -540,4 +540,4 @@ For errors thrown by descendants, reach for [`<ErrorBoundary>`](/api/qwik/#error
 | `useTask$()` | Running setup or update code that writes to existing state or performs a side effect |
 | `routeLoader$()` | Loading route data before the route renders |
 
-For async work inside a component, `useComputed$()` with an async function is usually the starting point. Add `<Suspense>` when one fallback can cover the loading state for a section. Keep inline `.pending` and `.error` checks when each state needs different markup.
+For async work inside a component, `useComputed$()` with an async function is usually the starting point. Add `<Suspense>` when one fallback can cover the loading state for a section. Add `<ErrorBoundary>` to render a fallback when the async work fails.

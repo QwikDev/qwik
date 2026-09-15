@@ -46,9 +46,8 @@ export const useComputedQrl = <T>(
  *
  * Every synchronous signal or store read is tracked automatically. Reads after an `await` are not:
  * the tracking context is lost, so track them explicitly with the `track()` provided on the context
- * argument. When the function is async, the returned signal exposes the async API: reading an
- * unresolved `.value` throws the computation promise, and `.pending` and `.error` expose the
- * computation state.
+ * argument. When the function is async, reading an unresolved `.value` throws the computation
+ * promise, and reading a failed `.value` throws the error.
  *
  * The function must not have any side effects.
  *

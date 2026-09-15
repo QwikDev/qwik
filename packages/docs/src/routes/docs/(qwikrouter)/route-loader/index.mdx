@@ -37,7 +37,7 @@ export const useProductDetails = routeLoader$(async ({ params }) => {
 });
 
 export default component$(() => {
-  // ComputedSignal<Product> — read .value, watch .pending, check .error
+  // ComputedSignal<Product> — read .value
   const product = useProductDetails();
   return <p>Product name: {product.value.name}</p>;
 });
@@ -53,7 +53,7 @@ A few properties of route loaders:
 
 - **Server-only.** The loader function only runs on the server; the browser never sees the closure body.
 - **Keyed by route, not by call site.** Two visits to the same URL share one logical "result" per "route + url params + search params" set, not one per `useProductDetails()` call.
-- **Result is a `ComputedSignal`.** Components read `.value`, watch `.pending`, and check `.error`. Reading `.value` while the signal is in error state re-throws the error.
+- **Result is a `ComputedSignal`.** Components read `.value`. While the data is loading, reading `.value` suspends; if the loader threw, it re-throws the error.
 - **Each loader has its own JSON endpoint.** The client fetches `q-loader-{id}.{hash}.json` for navigation, polling, and post-action invalidation. The browser HTTP cache, ETags, and the `cacheControl` option all apply.
 - **Blocks SSR by default.** The server awaits the loader before rendering the page, so a `throw redirect()` or `throw error()` controls the response. Opt out with `blockSSR: false` to run it in the background — see [Background loaders](#background-loaders-blockssr).
 
@@ -61,10 +61,10 @@ This means a `routeLoader$()` should be a **pure function of the URL**: same `pa
 
 ## Reading the result in a component
 
-Hooks return a `ComputedSignal<T>`. Branch on `.pending` and `.error` before reading `.value`:
+Hooks return a `ComputedSignal<T>`. Read `.value` to get the data. Wrap the component that reads it in [`<Suspense>`](/docs/labs/suspense/index.mdx) to show a placeholder while it loads, and in [`<ErrorBoundary>`](/docs/labs/error-boundary/index.mdx) to render a fallback if the loader throws:
 
-```tsx /product.pending/ /product.error/ /product.value/#a title="src/routes/product/[productId]/index.tsx"
-import { component$ } from '@qwik.dev/core';
+```tsx /Suspense/ /ErrorBoundary/ /product.value/#a title="src/routes/product/[productId]/index.tsx"
+import { $, component$, ErrorBoundary, Suspense } from '@qwik.dev/core';
 import { routeLoader$ } from '@qwik.dev/router';
 
 export const useProductDetails = routeLoader$(async ({ params, fail }) => {
@@ -75,27 +75,31 @@ export const useProductDetails = routeLoader$(async ({ params, fail }) => {
   return product;
 });
 
-export default component$(() => {
+const ProductDetails = component$(() => {
   const product = useProductDetails();
-
-  if (product.pending) {
-    return <div>Loading…</div>;
-  }
-  if (product.error) {
-    // ServerError — read .status and .data
-    return <div>{product.error.status}: {product.error.data.message}</div>;
-  }
-  return <div>Product name: {product.value.name}</div>;
+  return product.value.failed ? (
+    <div>{product.value.message}</div>
+  ) : (
+    <div>Product name: {product.value.name}</div>
+  );
 });
+
+export default component$(() => (
+  <ErrorBoundary fallback$={$((error) => <div>Error: {error.message}</div>)}>
+    <Suspense fallback={<div>Loading…</div>}>
+      <ProductDetails />
+    </Suspense>
+  </ErrorBoundary>
+));
 ```
 
-<Note>Don't read `signal.value` before checking `signal.error`. While the signal is in error state, accessing `.value` re-throws the error.</Note>
+<Note>While the signal is in error state, accessing `.value` re-throws the error.</Note>
 
 ### Signaling failure from a loader
 
 Loaders signal failure two ways:
 
-- **`throw requestEvent.error(status, data)`** — throw a `ServerError` directly. `signal.error` is `ServerError {status, data}`. Reading `signal.value` re-throws the error, so you should branch on `signal.error` first. This is the recommended way to signal failure from a loader.
+- **`throw requestEvent.error(status, data)`** — throw a `ServerError` directly. Reading `signal.value` re-throws the `ServerError {status, data}`, so wrap the reader in an `<ErrorBoundary>`. This is the recommended way to signal failure from a loader.
 - **`return requestEvent.fail(status, data)`** — returns an inline failure. `signal.value.failed` is `true` and `signal.value` contains the rest of the data.
 
 In both cases the result is not cacheable. For a blocking loader (the default) the HTTP response status is also set to `status`; a `blockSSR: false` loader is isolated from the page response — see [Background loaders](#background-loaders-blockssr).
@@ -266,7 +270,7 @@ export default () => ({
 });
 ```
 
-When using lazy-loaded data, branch on `.pending` to show a placeholder until it arrives — see [Reading the result in a component](#reading-the-result-in-a-component).
+When using lazy-loaded data, wrap the reader in `<Suspense>` to show a placeholder until it arrives — see [Reading the result in a component](#reading-the-result-in-a-component).
 
 ## Background loaders (`blockSSR`)
 

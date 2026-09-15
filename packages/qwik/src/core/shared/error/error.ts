@@ -43,7 +43,7 @@ export const codeToText = (code: number, ...parts: any[]): string => {
       'Attribute value is unsafe for SSR {{0}}', // 32
       'SerializerSymbol function returned rejected promise', // 33
       'Serialization Error: Cannot serialize function: {{0}}', // 34
-      'Cannot read .value of a clientOnly async signal during SSR. Use .loading to check state, or provide an initial value.', // 35
+      'Cannot read .value of a clientOnly async signal during SSR. Provide an initial value.', // 35
       'Invalid element name for SSR {{0}}', // 36
       'Invalid serialized Promise dependency', // 37
       'Invalid serialized Uint8Array payload', // 38

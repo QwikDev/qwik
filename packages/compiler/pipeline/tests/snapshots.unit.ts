@@ -2693,6 +2693,32 @@ export default (props: { label?: string; content?: any }) => {
     }
   });
 
+  test('should lower ordinary statements before a row return', async () => {
+    const output = await testInput(mode, 'collection-row-statements', {
+      code: `import { component$, useSignal } from '@qwik.dev/core';
+export default component$(() => {
+  const rows = useSignal([1]);
+  return (
+    <ul>
+      {rows.value.map((row) => {
+        let label = String(row);
+        if (row > 1) { label += '!'; }
+        function wrap(value: string) { return '[' + value + ']'; }
+        label = wrap(label);
+        return <li key={row}>{label}</li>;
+      })}
+      {[1, 2].map((n) => { let doubled = n * 2; doubled += 1; return <li>{doubled}</li>; })}
+    </ul>
+  );
+});`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const code = output.modules.map((module) => module.code).join('\n');
+    // The transpiler may requote the authored statement; its shape must survive as written.
+    expect(code).toMatch(/label \+= ['"]!['"]/);
+    expect(code).toContain('doubled += 1');
+  });
+
   test('should lower referenced and function-expression row callbacks as collections', async () => {
     const output = await testInput(mode, 'collection-callback-shapes', {
       code: `import { component$, useSignal } from '@qwik.dev/core';

@@ -304,6 +304,12 @@ Component spreads already exist. Complete element spreads and DOM semantics:
       client and `renderSsrProps` into the open-tag record on the server.
 - [x] Override order and single evaluation. The chunk builds one object literal in authored
       order, so a later key wins and each expression evaluates once per run.
+- [ ] TODO: capture a single props member as its own source. Every live read of one member
+      (`{props.title}`, an alias, a forwarded child prop) captures the whole `props`, so the
+      whole props record serializes for it; core's `getPropSource(props, key)` is the
+      per-member source the legacy compiler emitted, and the pipeline never uses it. Landing it
+      in the shared capture lowering shrinks serialization for components and rows alike (48
+      CSR snapshots capture `props` today).
 - [x] Addition/removal of keys in reactive spreads. The client effect diffs against its previous
       run and removes vanished keys; a resumed effect seeds its first diff from the element's
       own attributes, minus runtime `q:*` markers and event attributes (`attributes.spec.tsx`
@@ -461,7 +467,14 @@ delimiters. Compilation snapshots alone cannot prove browser parser behavior.
       content block that captured the function and failed to serialize it on resume
       (`collection-callback-shapes` snapshots, `collection-callbacks.spec.tsx` in CSR and resume,
       which also asserts the rows keep their nodes across an update).
-- [ ] Richer callback bodies using the shared mechanism from group 1.
+- [~] Richer callback bodies using the shared mechanism from group 1. Statements before the
+  row's `return` now lower through `lowerSetup`, the component-body path: `let`/`var`,
+  mutations, calls, local functions and blocks, with `const` aliases of props reading live
+  as they do in a component. A hook other than `useId` inside a row is diagnosed
+  (`row-hook`), since a row has no component owner; an early return stays refused until the
+  row shape and key rules for it are decided (`collection-row-statements` snapshots,
+  `collection-row-statements.spec.tsx` in CSR and resume). A local function captured by a
+  hole is not serializable, the same limit as in component setup (group 6).
 - [ ] Async rows and dynamically shaped results.
 - [x] Inline-row attribute/prop emission. An attribute reading only row constants of a literal
       array row applies once through `patchAttrValue` (CSR) or `serializeAttrExpressionValue`
@@ -585,6 +598,13 @@ code size and runtime cost. The previous implementation is not the accepted defa
 
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
+
+- 2026-09-15: Row statements: `readReturnedBody` keeps only the final-`return` rule,
+  `lowerRowProgram` hands the statements to `lowerSetup` with `hooksAllowed` cleared on the
+  context, and `lowerKey` still replays only `const` declarators. Ten `collection-key-*`
+  snapshots change because a row's `const title = props.title` is now a live alias, so the
+  hole captures `props` instead of a snapshot; `use-id.ssr.snap` only reorders an import.
+  Verification: 1149 pipeline tests, the new spec in CSR and resume, both corpora unchanged.
 
 - 2026-09-15: Unkeyed rows: ported main's two specs as DOM assertions; the `jsx()` factory call
   in the first becomes plain JSX in each ternary arm. No code change; both green.

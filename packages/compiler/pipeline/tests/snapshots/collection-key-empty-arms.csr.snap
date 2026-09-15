@@ -109,7 +109,6 @@ const component_for_render_segment_1_asysu8t2u0ck_tmpl0 = createTemplate('<!><!>
 
 export const component_for_render_segment_1_asysu8t2u0ck = (ctx, item, index) => {
   const [props] = _captures;
-  const visible = props.visible;
   const key = props.prefix + item.id;
   const fragment0 = component_for_render_segment_1_asysu8t2u0ck_tmpl0(ctx.document);
   const start0 = _first(fragment0);
@@ -118,8 +117,8 @@ export const component_for_render_segment_1_asysu8t2u0ck = (ctx, item, index) =>
     ctx,
     new BranchRange(ctx.document, start0, end0),
     _withCaptures(component_branch_condition_segment_3_2fzrh8qv53bdo, [item]),
-    q_component_branch_then_segment_4_24n7dk4a4zn6t.w([visible, key, item]),
-    q_component_branch_else_segment_8_19dvwjuhxo7nr.w([visible, index, item])
+    q_component_branch_then_segment_4_24n7dk4a4zn6t.w([props, key, item]),
+    q_component_branch_else_segment_8_19dvwjuhxo7nr.w([props, index, item])
   );
   ctx.scheduler.notify(branch0);
   return [...fragment0.childNodes];
@@ -238,14 +237,14 @@ const q_component_branch_then_segment_6_24n7cs22bbj5r = /*#__PURE__*/ _qrlWithCh
 );
 
 export const component_branch_then_segment_4_24n7dk4a4zn6t = (ctx) => {
-  const [visible, key, item] = _captures;
+  const [props, key, item] = _captures;
   const fragment0 = component_branch_then_segment_4_24n7dk4a4zn6t_tmpl0(ctx.document);
   const start0 = _first(fragment0);
   const end0 = _next(start0);
   const branch0 = createBranch(
     ctx,
     new BranchRange(ctx.document, start0, end0),
-    _withCaptures(component_branch_condition_segment_5_2fzrggonbf7cm, [visible]),
+    _withCaptures(component_branch_condition_segment_5_2fzrggonbf7cm, [props]),
     q_component_branch_then_segment_6_24n7cs22bbj5r.w([key, item]),
     undefined
   );
@@ -271,7 +270,7 @@ export const component_branch_then_segment_4_24n7dk4a4zn6t = (ctx) => {
   ],
   "paramNames": [],
   "captureNames": [
-    "visible",
+    "props",
     "key",
     "item"
   ]
@@ -282,8 +281,8 @@ export const component_branch_then_segment_4_24n7dk4a4zn6t = (ctx) => {
 import { _captures } from '@qwik.dev/core';
 
 export const component_branch_condition_segment_5_2fzrggonbf7cm = () => {
-  const [visible] = _captures;
-  return visible;
+  const [props] = _captures;
+  return props.visible;
 };
 /*
 {
@@ -304,7 +303,7 @@ export const component_branch_condition_segment_5_2fzrggonbf7cm = () => {
   ],
   "paramNames": [],
   "captureNames": [
-    "visible"
+    "props"
   ]
 }
 */
@@ -405,14 +404,14 @@ const q_component_branch_then_segment_10_1yfeetw8az0ma = /*#__PURE__*/ _qrlWithC
 );
 
 export const component_branch_else_segment_8_19dvwjuhxo7nr = (ctx) => {
-  const [visible, index, item] = _captures;
+  const [props, index, item] = _captures;
   const fragment0 = component_branch_else_segment_8_19dvwjuhxo7nr_tmpl0(ctx.document);
   const start0 = _first(fragment0);
   const end0 = _next(start0);
   const branch0 = createBranch(
     ctx,
     new BranchRange(ctx.document, start0, end0),
-    _withCaptures(component_branch_condition_segment_9_2fzrl51y9fviy, [visible]),
+    _withCaptures(component_branch_condition_segment_9_2fzrl51y9fviy, [props]),
     q_component_branch_then_segment_10_1yfeetw8az0ma.w([index, item]),
     undefined
   );
@@ -438,7 +437,7 @@ export const component_branch_else_segment_8_19dvwjuhxo7nr = (ctx) => {
   ],
   "paramNames": [],
   "captureNames": [
-    "visible",
+    "props",
     "index",
     "item"
   ]
@@ -449,8 +448,8 @@ export const component_branch_else_segment_8_19dvwjuhxo7nr = (ctx) => {
 import { _captures } from '@qwik.dev/core';
 
 export const component_branch_condition_segment_9_2fzrl51y9fviy = () => {
-  const [visible] = _captures;
-  return visible;
+  const [props] = _captures;
+  return props.visible;
 };
 /*
 {
@@ -471,7 +470,7 @@ export const component_branch_condition_segment_9_2fzrl51y9fviy = () => {
   ],
   "paramNames": [],
   "captureNames": [
-    "visible"
+    "props"
   ]
 }
 */

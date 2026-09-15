@@ -185,12 +185,12 @@ export const component_collection_source_segment_1_21yfmque5ruw0 = () => {
 
 import {
   _noopQrl,
+  useId,
   createSsrNodeId,
   renderSsrAttrExpression,
   escapeHTML,
   renderSsrTextExpression,
   maybeThen,
-  useId,
 } from '@qwik.dev/core';
 import { component_id_segment_3_2jskqgyssrjh3 } from './component.tsx_component_id_segment_3_2jskqgyssrjh3';
 import { component_text_segment_4_1fh11zg0n0shg } from './component.tsx_component_text_segment_4_1fh11zg0n0shg';

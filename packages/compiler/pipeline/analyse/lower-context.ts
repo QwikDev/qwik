@@ -29,6 +29,8 @@ export interface LowerContext {
   namespace: 'svg' | 'math' | null;
   /** Enclosing native tags, innermost last, for nesting checks. */
   elementStack: string[];
+  /** False inside a collection row, which has no component owner for a hook. */
+  hooksAllowed: boolean;
   /** Param bindings of the inline collection row; null = not inside one. */
   inlineParams: ReadonlySet<LocalId> | null;
   bindings: BindingGraph;
@@ -78,6 +80,7 @@ export function createLowerContext(
     returnsRender: true,
     namespace: null,
     elementStack: [],
+    hooksAllowed: true,
     propsMembers: new Map(),
     locals: new Map(),
   };

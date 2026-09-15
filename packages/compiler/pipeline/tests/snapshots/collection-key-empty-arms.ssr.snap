@@ -35,19 +35,18 @@ q_component_collection_source_segment_0_21yfn4vi2lwwj.s(
 );
 const component_for_render_segment_1_asysu8t2u0ck = (ctx, __rangeId, __rowId, item, index) => {
   const [props] = _captures;
-  const visible = props.visible;
   const key = props.prefix + item.id;
   const branchId0 = ctx.nextId();
   ctx.addRoot(item);
-  ctx.addRoot(visible);
+  ctx.addRoot(props);
   ctx.addRoot(key);
   ctx.addRoot(index);
   const branch0 = renderSsrBranch(
     ctx,
     branchId0,
     q_component_branch_condition_segment_3_2fzrh8qv53bdo.w([item]),
-    q_component_branch_then_segment_4_24n7dk4a4zn6t.w([visible, key, item]),
-    q_component_branch_else_segment_8_19dvwjuhxo7nr.w([visible, index, item])
+    q_component_branch_then_segment_4_24n7dk4a4zn6t.w([props, key, item]),
+    q_component_branch_else_segment_8_19dvwjuhxo7nr.w([props, index, item])
   );
   return maybeThen(branch0, (branch0) => [
     '<!r=',
@@ -84,15 +83,15 @@ q_component_branch_condition_segment_3_2fzrh8qv53bdo.s(
   component_branch_condition_segment_3_2fzrh8qv53bdo
 );
 const component_branch_then_segment_4_24n7dk4a4zn6t = (ctx) => {
-  const [visible, key, item] = _captures;
+  const [props, key, item] = _captures;
   const branchId0 = ctx.nextId();
-  ctx.addRoot(visible);
+  ctx.addRoot(props);
   ctx.addRoot(key);
   ctx.addRoot(item);
   const branch0 = renderSsrBranch(
     ctx,
     branchId0,
-    q_component_branch_condition_segment_5_2fzrggonbf7cm.w([visible]),
+    q_component_branch_condition_segment_5_2fzrggonbf7cm.w([props]),
     q_component_branch_then_segment_6_24n7cs22bbj5r.w([key, item]),
     undefined
   );
@@ -109,15 +108,15 @@ const q_component_branch_then_segment_4_24n7dk4a4zn6t = /*#__PURE__*/ _noopQrl(
 );
 q_component_branch_then_segment_4_24n7dk4a4zn6t.s(component_branch_then_segment_4_24n7dk4a4zn6t);
 const component_branch_else_segment_8_19dvwjuhxo7nr = (ctx) => {
-  const [visible, index, item] = _captures;
+  const [props, index, item] = _captures;
   const branchId0 = ctx.nextId();
-  ctx.addRoot(visible);
+  ctx.addRoot(props);
   ctx.addRoot(index);
   ctx.addRoot(item);
   const branch0 = renderSsrBranch(
     ctx,
     branchId0,
-    q_component_branch_condition_segment_9_2fzrl51y9fviy.w([visible]),
+    q_component_branch_condition_segment_9_2fzrl51y9fviy.w([props]),
     q_component_branch_then_segment_10_1yfeetw8az0ma.w([index, item]),
     undefined
   );
@@ -134,8 +133,8 @@ const q_component_branch_else_segment_8_19dvwjuhxo7nr = /*#__PURE__*/ _noopQrl(
 );
 q_component_branch_else_segment_8_19dvwjuhxo7nr.s(component_branch_else_segment_8_19dvwjuhxo7nr);
 const component_branch_condition_segment_5_2fzrggonbf7cm = () => {
-  const [visible] = _captures;
-  return visible;
+  const [props] = _captures;
+  return props.visible;
 };
 const q_component_branch_condition_segment_5_2fzrggonbf7cm = /*#__PURE__*/ _noopQrl(
   'component_branch_condition_segment_5_2fzrggonbf7cm'
@@ -166,8 +165,8 @@ const q_component_branch_then_segment_6_24n7cs22bbj5r = /*#__PURE__*/ _noopQrl(
 );
 q_component_branch_then_segment_6_24n7cs22bbj5r.s(component_branch_then_segment_6_24n7cs22bbj5r);
 const component_branch_condition_segment_9_2fzrl51y9fviy = () => {
-  const [visible] = _captures;
-  return visible;
+  const [props] = _captures;
+  return props.visible;
 };
 const q_component_branch_condition_segment_9_2fzrl51y9fviy = /*#__PURE__*/ _noopQrl(
   'component_branch_condition_segment_9_2fzrl51y9fviy'
@@ -297,19 +296,18 @@ export const component_for_render_segment_1_asysu8t2u0ck = (
   index
 ) => {
   const [props] = _captures;
-  const visible = props.visible;
   const key = props.prefix + item.id;
   const branchId0 = ctx.nextId();
   ctx.addRoot(item);
-  ctx.addRoot(visible);
+  ctx.addRoot(props);
   ctx.addRoot(key);
   ctx.addRoot(index);
   const branch0 = renderSsrBranch(
     ctx,
     branchId0,
     q_component_branch_condition_segment_3_2fzrh8qv53bdo.w([item]),
-    q_component_branch_then_segment_4_24n7dk4a4zn6t.w([visible, key, item]),
-    q_component_branch_else_segment_8_19dvwjuhxo7nr.w([visible, index, item])
+    q_component_branch_then_segment_4_24n7dk4a4zn6t.w([props, key, item]),
+    q_component_branch_else_segment_8_19dvwjuhxo7nr.w([props, index, item])
   );
   return maybeThen(branch0, (branch0) => [
     '<!r=',
@@ -431,15 +429,15 @@ const q_component_branch_then_segment_6_24n7cs22bbj5r = /*#__PURE__*/ _noopQrl(
 q_component_branch_then_segment_6_24n7cs22bbj5r.s(component_branch_then_segment_6_24n7cs22bbj5r);
 
 export const component_branch_then_segment_4_24n7dk4a4zn6t = (ctx) => {
-  const [visible, key, item] = _captures;
+  const [props, key, item] = _captures;
   const branchId0 = ctx.nextId();
-  ctx.addRoot(visible);
+  ctx.addRoot(props);
   ctx.addRoot(key);
   ctx.addRoot(item);
   const branch0 = renderSsrBranch(
     ctx,
     branchId0,
-    q_component_branch_condition_segment_5_2fzrggonbf7cm.w([visible]),
+    q_component_branch_condition_segment_5_2fzrggonbf7cm.w([props]),
     q_component_branch_then_segment_6_24n7cs22bbj5r.w([key, item]),
     undefined
   );
@@ -470,7 +468,7 @@ export const component_branch_then_segment_4_24n7dk4a4zn6t = (ctx) => {
   ],
   "paramNames": [],
   "captureNames": [
-    "visible",
+    "props",
     "key",
     "item"
   ]
@@ -481,8 +479,8 @@ export const component_branch_then_segment_4_24n7dk4a4zn6t = (ctx) => {
 import { _captures } from '@qwik.dev/core';
 
 export const component_branch_condition_segment_5_2fzrggonbf7cm = () => {
-  const [visible] = _captures;
-  return visible;
+  const [props] = _captures;
+  return props.visible;
 };
 /*
 {
@@ -503,7 +501,7 @@ export const component_branch_condition_segment_5_2fzrggonbf7cm = () => {
   ],
   "paramNames": [],
   "captureNames": [
-    "visible"
+    "props"
   ]
 }
 */
@@ -610,15 +608,15 @@ const q_component_branch_then_segment_10_1yfeetw8az0ma = /*#__PURE__*/ _noopQrl(
 q_component_branch_then_segment_10_1yfeetw8az0ma.s(component_branch_then_segment_10_1yfeetw8az0ma);
 
 export const component_branch_else_segment_8_19dvwjuhxo7nr = (ctx) => {
-  const [visible, index, item] = _captures;
+  const [props, index, item] = _captures;
   const branchId0 = ctx.nextId();
-  ctx.addRoot(visible);
+  ctx.addRoot(props);
   ctx.addRoot(index);
   ctx.addRoot(item);
   const branch0 = renderSsrBranch(
     ctx,
     branchId0,
-    q_component_branch_condition_segment_9_2fzrl51y9fviy.w([visible]),
+    q_component_branch_condition_segment_9_2fzrl51y9fviy.w([props]),
     q_component_branch_then_segment_10_1yfeetw8az0ma.w([index, item]),
     undefined
   );
@@ -649,7 +647,7 @@ export const component_branch_else_segment_8_19dvwjuhxo7nr = (ctx) => {
   ],
   "paramNames": [],
   "captureNames": [
-    "visible",
+    "props",
     "index",
     "item"
   ]
@@ -660,8 +658,8 @@ export const component_branch_else_segment_8_19dvwjuhxo7nr = (ctx) => {
 import { _captures } from '@qwik.dev/core';
 
 export const component_branch_condition_segment_9_2fzrl51y9fviy = () => {
-  const [visible] = _captures;
-  return visible;
+  const [props] = _captures;
+  return props.visible;
 };
 /*
 {
@@ -682,7 +680,7 @@ export const component_branch_condition_segment_9_2fzrl51y9fviy = () => {
   ],
   "paramNames": [],
   "captureNames": [
-    "visible"
+    "props"
   ]
 }
 */

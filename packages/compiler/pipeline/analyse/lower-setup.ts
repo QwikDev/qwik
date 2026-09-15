@@ -32,7 +32,7 @@ import type {
   Node,
 } from 'oxc-parser';
 import { identifierName, unwrapExpression } from './ast/utils';
-import { UnsupportedError } from '../errors';
+import { InvalidModuleError, UnsupportedError } from '../errors';
 import { QRL_SUFFIX, QwikHook, QwikMarker } from '../words';
 import { createStyleId } from '../segment-identity';
 import { coreSetupCalls, type SetupCallContract } from './setup-api';
@@ -620,6 +620,14 @@ function lowerSetupCall(
   ctx: LowerContext,
   locals: SetupLocals
 ): Setup {
+  // `useId` is a plain counter read; every other hook needs the component owner a row lacks.
+  if (!ctx.hooksAllowed && callee.name !== 'useId' && /^use.+/.test(callee.name)) {
+    throw new InvalidModuleError(
+      'row-hook',
+      `${callee.name}() cannot run inside a collection row; hooks belong to a component.`,
+      [call.start, call.end]
+    );
+  }
   if (call.optional) {
     throw new UnsupportedError('an optional setup call');
   }

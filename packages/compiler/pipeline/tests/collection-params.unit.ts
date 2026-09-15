@@ -331,9 +331,13 @@ export default (props) => {
     expect(getKey({}, 0)).toBe('#fallback0!');
     captures.fallback.value = 'next';
     expect(getKey({}, 1)).toBe('#next1!');
-    const row = output.modules.find((module) => module.segment?.ctxName === 'for:render')!;
-    expect(row.code).toContain('props.renderOnly');
-    expect(row.code).toContain('props.title');
+    // The row-only alias reads live from the row's hole, never from the key.
+    const outsideKey = output.modules
+      .filter((module) => module !== key)
+      .map((module) => module.code)
+      .join('\n');
+    expect(outsideKey).toContain('props.renderOnly');
+    expect(outsideKey).toContain('props.title');
   }
 );
 

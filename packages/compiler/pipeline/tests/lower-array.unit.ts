@@ -272,15 +272,7 @@ describe('lowerArray / reactive rows', () => {
   });
 
   test.each([
-    [
-      '{ let label = item.label; return <li>{label}</li>; }',
-      'the collection row body "BlockStatement"',
-    ],
-    [
-      '{ if (item.enabled) return <li />; return null; }',
-      'the collection row body "BlockStatement"',
-    ],
-    ['{ log(item); return <li />; }', 'the collection row body "BlockStatement"'],
+    ['{ if (item.enabled) return <li />; return null; }', 'an early return in a collection row'],
     ['{ return; }', 'the collection row body "BlockStatement"'],
     [
       '{ const { label = <b /> } = item; return <li>{label}</li>; }',

@@ -1,10 +1,11 @@
 import { readObjectParameter } from './ast/parameter-members';
 import type {
   BindingPattern,
+  Directive,
   Expression,
   JSXElement,
   Node,
-  VariableDeclaration,
+  Statement,
   VariableDeclarator,
 } from 'oxc-parser';
 import {
@@ -46,7 +47,7 @@ import {
   lowerInlineExpressionValue,
   trySignalReadValue,
 } from './lower-expr';
-import { lowerConstBinding, lowerConstDeclaration } from './lower-setup';
+import { lowerConstBinding, lowerConstDeclaration, lowerSetup } from './lower-setup';
 import { memberReadIr, LocalKind, type SetupLocals } from './locals';
 import { lowerRenderExpression } from './lower-jsx';
 import { expressionResult, patternResult } from './results';
@@ -73,6 +74,9 @@ export function lowerArray(
   if (callback.async) {
     throw new UnsupportedError('an async collection row');
   }
+  if (ctx.bindings.returnsOf(callback).length > 1) {
+    throw new UnsupportedError('an early return in a collection row');
+  }
   if (body === null) {
     throw new UnsupportedError(`the collection row body "${callback.body?.type}"`);
   }
@@ -86,7 +90,7 @@ function lowerEach(
     callback,
   }: Extract<JsxValue, { kind: JsxValueKind.Collection }>,
   body: Expression,
-  statements: VariableDeclaration[],
+  statements: (Directive | Statement)[],
   ctx: LowerContext,
   lowerBody: RowLowering
 ): Op {
@@ -432,7 +436,7 @@ function deriveIndexMode(
 /** Lowers row setup and rendering within the callback's lexical scope. */
 function lowerRowProgram(
   body: Expression,
-  statements: VariableDeclaration[],
+  statements: (Directive | Statement)[],
   paramBindings: LocalId[],
   paramAliases: Map<LocalId, { base: LocalId; member: string }>,
   paramPatterns: Map<LocalId, BindingPattern>,
@@ -468,20 +472,18 @@ function lowerRowProgram(
   ctx.locals = rowLocals;
   const outerInlineParams = ctx.inlineParams;
   ctx.inlineParams = lexical ? localBindings : null;
+  ctx.hooksAllowed = false;
   try {
     const setupReads = collectCaptures([...paramPatterns.values(), ...statements], ctx, new Set());
     const parameterSetup = lowerParameterPatterns(paramPatterns, paramBindings, ctx, rowLocals);
     ctx.plan.programs[program].setup = [
       ...parameterSetup,
-      ...statements.flatMap((statement) =>
-        statement.declarations.map((declarator) =>
-          lowerConstDeclaration(declarator, ctx, rowLocals)
-        )
-      ),
+      ...lowerSetup(statements, ctx, rowLocals).setup,
     ];
     ctx.plan.programs[program].body = { kind: ProgramBodyKind.Ops, ops: lowerBody(body, ctx) };
     return setupReads;
   } finally {
+    ctx.hooksAllowed = true;
     ctx.inlineParams = outerInlineParams;
     ctx.locals = outerLocals;
   }
@@ -525,7 +527,7 @@ function lowerParameterPatterns(
 function lowerKey(
   row: Expression,
   callback: RowCallback,
-  statements: VariableDeclaration[],
+  statements: (Directive | Statement)[],
   ctx: LowerContext,
   localBindings: ReadonlySet<LocalId>,
   paramBindings: LocalId[],
@@ -538,9 +540,14 @@ function lowerKey(
     return null;
   }
   const expressions = [...sources.values()];
+  // A key may lean on the row's constants; anything else in the body stays out of the key.
   const declarations = ctx.bindings.dependenciesOf(
     expressions,
-    statements.flatMap((statement) => statement.declarations)
+    statements.flatMap((statement) =>
+      statement.type === 'VariableDeclaration' && statement.kind === 'const'
+        ? statement.declarations
+        : []
+    )
   );
   const keyPatterns = new Map(paramPatterns);
   if (declarations.length > 0) {

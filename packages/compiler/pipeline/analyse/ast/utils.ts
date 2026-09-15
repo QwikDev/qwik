@@ -1,11 +1,12 @@
 import type {
+  Directive,
+  Statement,
   ArrowFunctionExpression,
   Expression,
   BindingPattern,
   Function as FunctionNode,
   JSXAttributeItem,
   Node,
-  VariableDeclaration,
 } from 'oxc-parser';
 import { isNode } from './ast-types';
 
@@ -31,26 +32,19 @@ export function identifierName(node: unknown): string | null {
   return isNode(node) && node.type === 'Identifier' ? node.name : null;
 }
 
+/** A body that ends in `return <expression>`; the statements before it lower as setup. */
 export function readReturnedBody(body: ArrowFunctionExpression['body']): {
   expression: Expression;
-  statements: VariableDeclaration[];
+  statements: (Directive | Statement)[];
 } | null {
   if (body.type !== 'BlockStatement') {
     return { expression: unwrapExpression(body), statements: [] };
   }
   const statement = body.body.at(-1);
-  const statements = body.body.slice(0, -1);
-  if (
-    statement?.type !== 'ReturnStatement' ||
-    statement.argument === null ||
-    !statements.every(
-      (statement): statement is VariableDeclaration =>
-        statement.type === 'VariableDeclaration' && statement.kind === 'const'
-    )
-  ) {
+  if (statement?.type !== 'ReturnStatement' || statement.argument === null) {
     return null;
   }
-  return { expression: unwrapExpression(statement.argument), statements };
+  return { expression: unwrapExpression(statement.argument), statements: body.body.slice(0, -1) };
 }
 
 export function jsxAttributeName(attribute: JSXAttributeItem): string | null {

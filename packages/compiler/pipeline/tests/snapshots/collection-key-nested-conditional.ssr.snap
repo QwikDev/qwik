@@ -35,8 +35,7 @@ q_component_collection_source_segment_0_21yfn4vi2lwwj.s(
 );
 const component_for_render_segment_1_asysu8t2u0ck = (ctx, __rangeId, __rowId, item, index) => {
   const [props] = _captures;
-  const prefix = props.prefix;
-  const key = prefix + item.id;
+  const key = props.prefix + item.id;
   const branchId0 = ctx.nextId();
   ctx.addRoot(item);
   ctx.addRoot(key);
@@ -231,8 +230,7 @@ export const component_for_render_segment_1_asysu8t2u0ck = (
   index
 ) => {
   const [props] = _captures;
-  const prefix = props.prefix;
-  const key = prefix + item.id;
+  const key = props.prefix + item.id;
   const branchId0 = ctx.nextId();
   ctx.addRoot(item);
   ctx.addRoot(key);

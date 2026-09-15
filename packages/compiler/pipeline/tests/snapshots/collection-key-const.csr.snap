@@ -60,13 +60,12 @@ const component_for_render_segment_0_asyt89wzo2d3_tmpl0 = _createElementTemplate
 export const component_for_render_segment_0_asyt89wzo2d3 = (ctx, item, index) => {
   const [separator, props] = _captures;
   const prefix = item.type + separator.value;
-  const title = props.title;
   const key = prefix + item.id + index.value;
   const el0 = component_for_render_segment_0_asyt89wzo2d3_tmpl0(ctx.document);
   const text0 = _first(el0);
   const effect0 = createTextExpressionEffect(
     text0,
-    [title],
+    [props],
     component_text_segment_2_1fh117dstcoge,
     ctx.scheduler
   );
@@ -139,8 +138,8 @@ export const component_for_key_segment_1_24ursak4wzpxf = (item, index) => {
 */
 ============================= src/component.tsx_component_text_segment_2_1fh117dstcoge.js (ENTRY POINT)==
 
-export const component_text_segment_2_1fh117dstcoge = (title) => {
-  return title;
+export const component_text_segment_2_1fh117dstcoge = (props) => {
+  return props.title;
 };
 /*
 {
@@ -161,7 +160,7 @@ export const component_text_segment_2_1fh117dstcoge = (title) => {
   ],
   "paramNames": [],
   "captureNames": [
-    "title"
+    "props"
   ]
 }
 */

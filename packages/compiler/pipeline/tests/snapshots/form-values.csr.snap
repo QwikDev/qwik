@@ -26,10 +26,10 @@ export default component$(() => {
 import {
   useSignal,
   _first,
-  createAttrEffect,
-  _textValue,
   _last,
   _prev,
+  createAttrEffect,
+  _textValue,
   patchAttrValue,
   _createElementTemplate,
 } from '@qwik.dev/core';

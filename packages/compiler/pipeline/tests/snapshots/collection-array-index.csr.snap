@@ -12,8 +12,8 @@ import {
   _first,
   _next,
   createCollection,
-  _textValue,
   _last,
+  _textValue,
   _createElementTemplate,
 } from '@qwik.dev/core';
 

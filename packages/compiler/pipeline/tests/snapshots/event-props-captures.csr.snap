@@ -16,8 +16,8 @@ import {
   createEventEffect,
   _createElementTemplate,
   _first,
-  setEvent,
   _last,
+  setEvent,
   _qrlWithChunk,
   createComponent,
   _toNodes,
@@ -49,13 +49,12 @@ export default (input, ctx) => {
   const el0 = default_tmpl0(ctx.document);
   const el1 = _first(el0);
   setEvent(el1, 'q-e:click', component_q_e_click_segment_1_2xwyfnber1kpg, [suffix, input]);
-  const marker0 = _last(el0);
   const component0 = createComponent(
     Button,
     { onSave$: q_component_q_e_save_segment_2_3krcacnjwdae8.w([input]) },
     ctx
   );
-  marker0.replaceWith(..._toNodes(component0));
+  _last(el0).replaceWith(..._toNodes(component0));
   return el0;
 };
 ============================= src/component.tsx_component_onClickqrl_segment_0_3rzjkie0i362z.js (ENTRY POINT)==

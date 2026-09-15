@@ -32,12 +32,12 @@ import {
   createAttrExpressionEffect,
   _first,
   _next,
+  _last,
   setEvent,
   BranchRange,
   createBranch,
   _withCaptures,
   _qrlWithChunk,
-  _last,
   createComponent,
   _toNodes,
 } from '@qwik.dev/core';
@@ -96,9 +96,8 @@ export default (props, ctx) => {
     undefined
   );
   ctx.scheduler.notify(branch0);
-  const marker0 = _last(el0);
   const component0 = createComponent(Child, null, ctx);
-  marker0.replaceWith(..._toNodes(component0));
+  _last(el0).replaceWith(..._toNodes(component0));
   return el0;
 };
 ============================= src/component.tsx_component_class_segment_0_3htuygud1guoj.js (ENTRY POINT)==

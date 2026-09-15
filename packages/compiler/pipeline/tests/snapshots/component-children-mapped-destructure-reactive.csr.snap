@@ -117,10 +117,10 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
 import {
   setEvent,
   _first,
-  createTextExpressionEffect,
   _next,
   _last,
   _prev,
+  createTextExpressionEffect,
   _createElementTemplate,
   _captures,
 } from '@qwik.dev/core';

@@ -674,7 +674,7 @@ index ecc90a871340ca1e332c432d5486a24226f2f6a8..44d2c818ffbb23724e18e029a98091e4
    outerHTML: {
      get: function() {
 diff --git a/lib/Node.js b/lib/Node.js
-index 66bd6dd53bf6285cc3fc46064584bb087cbe9ae6..4ae8f24b0863528459ce3af29b1b6955656bc693 100644
+index 66bd6dd53bf6285cc3fc46064584bb087cbe9ae6..bb98430ce285a3963b4637b58317f155fd133ecc 100644
 --- a/lib/Node.js
 +++ b/lib/Node.js
 @@ -57,6 +57,23 @@ Node.prototype = Object.create(EventTarget.prototype, {
@@ -701,6 +701,24 @@ index 66bd6dd53bf6285cc3fc46064584bb087cbe9ae6..4ae8f24b0863528459ce3af29b1b6955
    previousSibling: { get: function() {
      var parent = this.parentNode;
      if (!parent) return null;
+@@ -524,6 +541,8 @@ Node.prototype = Object.create(EventTarget.prototype, {
+     var bothRooted = child.rooted && parent.rooted;
+     if (child.nodeType === DOCUMENT_FRAGMENT_NODE) {
+       var spliceArgs = [0, isReplace ? 1 : 0], next;
++      // Replacing the first child with an empty fragment must promote its next sibling.
++      var firstAfterRemove = isReplace && before._nextSibling !== before ? before._nextSibling : null;
+       for (var kid = child.firstChild; kid !== null; kid = next) {
+         next = kid.nextSibling;
+         spliceArgs.push(kid);
+@@ -547,7 +566,7 @@ Node.prototype = Object.create(EventTarget.prototype, {
+         if (len > 2) {
+           parent._firstChild = spliceArgs[2];
+         } else if (isReplace) {
+-          parent._firstChild = null;
++          parent._firstChild = firstAfterRemove;
+         }
+       }
+       // Remove all nodes from the document fragment
 diff --git a/lib/Window.js b/lib/Window.js
 index de5fcc669e055956da8cb35a076b6f6cad729715..146db3e2e27c1793669d0fe755cd44af7ff5dd18 100644
 --- a/lib/Window.js

@@ -10,11 +10,11 @@ export default () => <Card title="Title" data-label="Label"><p>Projected</p></Ca
 
 import {
   _first,
+  _next,
+  _last,
   propSource,
   createTextNodeEffect,
-  _next,
   setEvent,
-  _last,
   maybeThen,
   createSlot,
   _createElementTemplate,

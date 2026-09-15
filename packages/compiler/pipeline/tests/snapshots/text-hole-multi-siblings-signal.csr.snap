@@ -14,9 +14,9 @@ export default () => {
 import {
   useSignal,
   _first,
-  createTextNodeEffect,
   _last,
   _prev,
+  createTextNodeEffect,
   _createElementTemplate,
 } from '@qwik.dev/core';
 const default_tmpl0 = _createElementTemplate('<p><!> count: <!>!</p>');

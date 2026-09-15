@@ -21,14 +21,14 @@ import {
   useSignal,
   _first,
   _next,
+  _last,
+  _prev,
   BranchRange,
   createBranch,
   _withCaptures,
   _qrlWithChunk,
   propSource,
   createCollection,
-  _last,
-  _prev,
   _createElementTemplate,
 } from '@qwik.dev/core';
 import { component_branch_condition_segment_0_2fzrieu6vlhf9 } from './component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9';

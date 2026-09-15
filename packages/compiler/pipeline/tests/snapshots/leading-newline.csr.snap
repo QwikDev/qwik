@@ -13,9 +13,9 @@ export default (props: { code: string }) => (
 
 import {
   _first,
+  _last,
   propSource,
   createTextNodeEffect,
-  _last,
   createAttrEffect,
   _textValue,
   _createElementTemplate,

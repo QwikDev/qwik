@@ -222,16 +222,16 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     if (ops.every((op): op is TextOp => op.op === OpKind.Static || op.op === OpKind.Hole)) {
       return finish(`[${this.textRoots(ops, ownerName, statements, pass).join(', ')}]`);
     }
-    const template = `${ownerName}_${pass.next(QwikGenWord.Template)}`;
-    return finish(this.fragmentRoot(ops, template, statements, pass));
+    return finish(this.fragmentRoot(ops, ownerName, statements, pass));
   }
 
   private fragmentRoot(
     ops: LinkedOp[],
-    template: string,
+    ownerName: string,
     statements: string[],
     pass: RenderPass
   ): string {
+    const template = `${ownerName}_${pass.next(QwikGenWord.Template)}`;
     const fragment = pass.next(QwikGenWord.Fragment);
     statements.push(`const ${fragment} = ${template}(${pass.names.ctx}.document);`);
     this.walkChildren(ops, fragment, statements, pass);
@@ -297,7 +297,8 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       case OpKind.Component:
         return this.createComponent(op, statements, pass);
       case OpKind.Slot:
-        return this.createSlot(op, statements, pass);
+        // A slot resolves asynchronously; the marker keeps the program output synchronous.
+        return this.fragmentRoot([op], ownerName, statements, pass);
       case OpKind.Branch:
       case OpKind.Each:
       case OpKind.Content:
@@ -444,57 +445,61 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     pass: RenderPass
   ): void {
     const nodeCount = children.reduce((count, child) => count + templateNodeCount(child), 0);
+    const dynamicChildren: { child: LinkedOp; path: string }[] = [];
     let nodeIndex = 0;
     for (const child of children) {
+      const isStatic =
+        child.op === OpKind.Static || (child.op === OpKind.Element && isFullyStaticSubtree(child));
+      if (!isStatic) {
+        dynamicChildren.push({
+          child,
+          path: childPathExpression(elementExpr, nodeIndex, nodeCount, this.imports),
+        });
+      }
+      nodeIndex += templateNodeCount(child);
+    }
+    // A mounted component or slot replaces its marker, shifting every later sibling path.
+    const firstReplacingMount = dynamicChildren.findIndex(
+      ({ child }) => child.op === OpKind.Component || child.op === OpKind.Slot
+    );
+    if (firstReplacingMount !== -1) {
+      for (const located of dynamicChildren.slice(firstReplacingMount + 1)) {
+        const word = located.child.op === OpKind.Element ? QwikGenWord.Element : QwikGenWord.Marker;
+        located.path = this.bindNode(located.path, word, statements, pass);
+      }
+    }
+    for (const { child, path } of dynamicChildren) {
       switch (child.op) {
-        case OpKind.Static: {
-          nodeIndex++;
-          break;
-        }
         case OpKind.Hole: {
-          this.textHole(child, elementExpr, statements, pass, nodeCount, nodeIndex++);
+          this.textHole(child, path, statements, pass, nodeCount);
           break;
         }
         case OpKind.Element: {
-          if (!isFullyStaticSubtree(child)) {
-            const path = childPathExpression(elementExpr, nodeIndex, nodeCount, this.imports);
-            if (
-              child.propsEffect !== null ||
-              child.props.some((prop) => prop.k !== PropKind.Static)
-            ) {
-              const el = pass.next(QwikGenWord.Element);
-              statements.push(`const ${el} = ${path};`);
-              this.elementProps(child, el, statements, pass);
-              this.walkChildren(elementChildren(child), el, statements, pass);
-            } else {
-              this.walkChildren(elementChildren(child), path, statements, pass);
-            }
+          if (
+            child.propsEffect !== null ||
+            child.props.some((prop) => prop.k !== PropKind.Static)
+          ) {
+            const el = this.bindNode(path, QwikGenWord.Element, statements, pass);
+            this.elementProps(child, el, statements, pass);
+            this.walkChildren(elementChildren(child), el, statements, pass);
+          } else {
+            this.walkChildren(elementChildren(child), path, statements, pass);
           }
-          nodeIndex++;
           break;
         }
         case OpKind.Branch:
         case OpKind.Each:
         case OpKind.Content: {
-          const { start, end } = this.locateRange(
-            elementExpr,
-            nodeIndex,
-            nodeCount,
-            statements,
-            pass
-          );
+          const { start, end } = this.locateRange(path, statements, pass);
           this.mountRange(child, start, end, statements, pass);
-          nodeIndex += 2;
           break;
         }
         case OpKind.Slot: {
-          this.mountSlot(child, elementExpr, nodeIndex, nodeCount, statements, pass);
-          nodeIndex++;
+          this.mountSlot(child, path, statements, pass);
           break;
         }
         case OpKind.Component: {
-          this.mountComponent(child, elementExpr, nodeIndex, nodeCount, statements, pass);
-          nodeIndex++;
+          this.mountComponent(child, path, statements, pass);
           break;
         }
         default: {
@@ -504,36 +509,40 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     }
   }
 
+  /** Names a located node once; a hoisted locator is already a name. */
+  private bindNode(
+    path: string,
+    word: QwikGenWord,
+    statements: string[],
+    pass: RenderPass
+  ): string {
+    if (/^\w+$/.test(path)) {
+      return path;
+    }
+    const name = pass.next(word);
+    statements.push(`const ${name} = ${path};`);
+    return name;
+  }
+
   private mountComponent(
     op: Extract<LinkedOp, { op: OpKind.Component }>,
-    elementExpr: string,
-    nodeIndex: number,
-    nodeCount: number,
+    path: string,
     statements: string[],
     pass: RenderPass
   ): void {
-    const marker = pass.next(QwikGenWord.Marker);
-    statements.push(
-      `const ${marker} = ${childPathExpression(elementExpr, nodeIndex, nodeCount, this.imports)};`
-    );
     const component = this.createComponent(op, statements, pass);
     this.imports.add(QwikWord.ToNodes);
-    statements.push(`${marker}.replaceWith(...${QwikWord.ToNodes}(${component}));`);
+    statements.push(`${path}.replaceWith(...${QwikWord.ToNodes}(${component}));`);
   }
 
   private mountSlot(
     op: Extract<LinkedOp, { op: OpKind.Slot }>,
-    elementExpr: string,
-    nodeIndex: number,
-    nodeCount: number,
+    path: string,
     statements: string[],
     pass: RenderPass
   ): void {
-    const marker = pass.next(QwikGenWord.Marker);
+    const marker = this.bindNode(path, QwikGenWord.Marker, statements, pass);
     const slot = pass.next(QwikGenWord.Slot);
-    statements.push(
-      `const ${marker} = ${childPathExpression(elementExpr, nodeIndex, nodeCount, this.imports)};`
-    );
     this.imports.add(QwikWord.MaybeThen);
     statements.push(
       `${pass.names.ctx}.scheduler.waitFor(${QwikWord.MaybeThen}(${this.createSlot(op, statements, pass)}, (${slot}) => ${marker}.replaceWith(...${slot})));`
@@ -698,16 +707,11 @@ class CsrModuleEmitter implements QwikModuleEmitter {
   }
 
   private locateRange(
-    elementExpr: string,
-    nodeIndex: number,
-    nodeCount: number,
+    path: string,
     statements: string[],
     pass: RenderPass
   ): { start: string; end: string } {
-    const start = pass.next(QwikGenWord.Start);
-    statements.push(
-      `const ${start} = ${childPathExpression(elementExpr, nodeIndex, nodeCount, this.imports)};`
-    );
+    const start = this.bindNode(path, QwikGenWord.Start, statements, pass);
     const end = pass.next(QwikGenWord.End);
     this.imports.add(QwikWord.NextSibling);
     statements.push(`const ${end} = ${QwikWord.NextSibling}(${start});`);
@@ -828,8 +832,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       value = emitter.elementRoot(root, qrl.name, statements, pass);
     } else {
       // Rootless rows mount a fragment template; the runtime brackets the nodes in `<!r>`.
-      const template = `${qrl.name}_${pass.next(QwikGenWord.Template)}`;
-      value = emitter.fragmentRoot(body.ops, template, statements, pass);
+      value = emitter.fragmentRoot(body.ops, qrl.name, statements, pass);
     }
     const loopParams = usedParamPrefix(this.module, qrl);
     emission.params = statements.length === 0 ? [] : [pass.names.ctx, ...loopParams];
@@ -950,13 +953,11 @@ class CsrModuleEmitter implements QwikModuleEmitter {
   /** The effect re-runs the expression chunk against the resolved target text node. */
   private textHole(
     op: Extract<LinkedOp, { op: OpKind.Hole }>,
-    text: string,
+    path: string,
     statements: string[],
     pass: RenderPass,
-    nodeCount: number,
-    nodeIndex: number
+    nodeCount: number
   ): void {
-    const path = childPathExpression(text, nodeIndex, nodeCount, this.imports);
     if (op.value.v === ValueKind.Computed && op.value.resume.r === ResumeKind.Inline) {
       // Lexical inline value: the text is fixed for the row's lifetime — no effect.
       this.imports.add(QwikWord.TextValue);
@@ -964,22 +965,20 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       if (nodeCount === 1) {
         statements.push(`${path}.data = ${value};`);
       } else {
-        const marker = pass.next(QwikGenWord.Marker);
-        statements.push(`const ${marker} = ${path};`);
+        const marker = this.bindNode(path, QwikGenWord.Marker, statements, pass);
         statements.push(
           `${marker}.replaceWith(${pass.names.ctx}.document.createTextNode(${value}));`
         );
       }
       return;
     }
-    const target = pass.next(QwikGenWord.Text);
-
+    let target: string;
     if (nodeCount === 1) {
-      statements.push(`const ${target} = ${path};`);
-    } else if (nodeCount > 1) {
+      target = this.bindNode(path, QwikGenWord.Text, statements, pass);
+    } else {
       // The comment placeholder cannot carry text — swap in an empty text node.
-      const marker = pass.next(QwikGenWord.Marker);
-      statements.push(`const ${marker} = ${path};`);
+      const marker = this.bindNode(path, QwikGenWord.Marker, statements, pass);
+      target = pass.next(QwikGenWord.Text);
       statements.push(`const ${target} = ${pass.names.ctx}.document.createTextNode('');`);
       statements.push(`${marker}.replaceWith(${target});`);
     }

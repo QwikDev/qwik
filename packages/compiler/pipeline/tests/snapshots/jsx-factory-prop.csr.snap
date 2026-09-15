@@ -34,13 +34,13 @@ const default_tmpl0 = _createElementTemplate('<main><!><!><!></main>');
 import {
   useSignal,
   _first,
+  _next,
+  _last,
   _qrlWithChunk,
   createComponent,
   _toNodes,
-  _next,
   createPropsProxy,
   useComputedQrl,
-  _last,
   _createElementTemplate,
 } from '@qwik.dev/core';
 import { Display } from './display';
@@ -48,27 +48,26 @@ export default function App(props, ctx) {
   const count = useSignal(0);
   const options = useSignal({ title: 'title' });
   const el0 = default_tmpl0(ctx.document);
-  const marker0 = _first(el0);
+  const marker0 = _next(_first(el0));
+  const marker1 = _last(el0);
   const component0 = createComponent(
     Display,
     { render: q_component_render_segment_3_1kxav1tcxzeqy.w([count]) },
     ctx
   );
-  marker0.replaceWith(..._toNodes(component0));
-  const marker1 = _next(_first(el0));
+  _first(el0).replaceWith(..._toNodes(component0));
   const component1 = createComponent(
     Display,
     createPropsProxy(useComputedQrl(q_component_props_segment_7_208nyg8uks240.w([options]))),
     ctx
   );
-  marker1.replaceWith(..._toNodes(component1));
-  const marker2 = _last(el0);
+  marker0.replaceWith(..._toNodes(component1));
   const component2 = createComponent(
     Display,
     { children: q_component_children_segment_10_24gaz6g6wdnk5 },
     ctx
   );
-  marker2.replaceWith(..._toNodes(component2));
+  marker1.replaceWith(..._toNodes(component2));
   return el0;
 }
 ============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==

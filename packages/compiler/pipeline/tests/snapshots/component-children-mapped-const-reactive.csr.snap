@@ -209,8 +209,8 @@ import {
   createAttrExpressionEffect,
   setEvent,
   _first,
-  createTextExpressionEffect,
   _last,
+  createTextExpressionEffect,
   _createElementTemplate,
 } from '@qwik.dev/core';
 import { component_title_segment_4_2f0r2hnbm1rp1 } from './component.tsx_component_title_segment_4_2f0r2hnbm1rp1';

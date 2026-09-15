@@ -14,12 +14,12 @@ import {
   createEventEffect,
   _createElementTemplate,
   _first,
-  setEvent,
   _next,
+  _last,
+  setEvent,
   _qrlWithChunk,
   createComponent,
   _toNodes,
-  _last,
 } from '@qwik.dev/core';
 import { component_onClickqrl_segment_0_3rzjkie0i362z } from './component.tsx_component_onClickqrl_segment_0_3rzjkie0i362z';
 import { component_q_e_click_segment_1_2xwyfnber1kpg } from './component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg';
@@ -48,17 +48,16 @@ export const Button = (props, ctx) => {
 };
 export default (props, ctx) => {
   const el0 = default_tmpl0(ctx.document);
-  const el1 = _first(el0);
-  setEvent(el1, 'q-e:click', component_q_e_click_segment_1_2xwyfnber1kpg);
-  const marker0 = _next(_first(el0));
+  const el1 = _last(el0);
+  const el2 = _first(el0);
+  setEvent(el2, 'q-e:click', component_q_e_click_segment_1_2xwyfnber1kpg);
   const component0 = createComponent(
     Button,
     { onSave$: q_component_q_e_save_segment_2_3krcacnjwdae8.w([props]) },
     ctx
   );
-  marker0.replaceWith(..._toNodes(component0));
-  const el2 = _last(el0);
-  setEvent(el2, 'q-e:click', component_q_e_click_segment_3_2xwygfdmkpoqi, [props]);
+  _next(_first(el0)).replaceWith(..._toNodes(component0));
+  setEvent(el1, 'q-e:click', component_q_e_click_segment_3_2xwygfdmkpoqi, [props]);
   return el0;
 };
 ============================= src/component.tsx_component_onClickqrl_segment_0_3rzjkie0i362z.js (ENTRY POINT)==

@@ -13,9 +13,9 @@ export default () => {
 
 import {
   _first,
+  _last,
   maybeThen,
   createSlot,
-  _last,
   _createElementTemplate,
   useSignal,
   createSlotScope,

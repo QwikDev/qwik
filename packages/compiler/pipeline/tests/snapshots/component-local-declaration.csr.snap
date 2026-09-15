@@ -32,9 +32,8 @@ const Child = (props, ctx) => {
 };
 export default (props0, ctx) => {
   const el0 = default_tmpl0(ctx.document);
-  const marker0 = _first(el0);
   const component0 = createComponent(Child, { label: 'child' }, ctx);
-  marker0.replaceWith(..._toNodes(component0));
+  _first(el0).replaceWith(..._toNodes(component0));
   return el0;
 };
 == CSR DIAGNOSTICS ==

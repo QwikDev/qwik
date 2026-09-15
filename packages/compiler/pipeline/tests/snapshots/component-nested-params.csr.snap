@@ -13,10 +13,10 @@ import {
   setEvent,
   _first,
   _next,
-  _qrlWithChunk,
-  createContentBlock,
   _last,
   _prev,
+  _qrlWithChunk,
+  createContentBlock,
   _createElementTemplate,
 } from '@qwik.dev/core';
 import { component_title_segment_0_2f0r0xivypjmx } from './component.tsx_component_title_segment_0_2f0r0xivypjmx';

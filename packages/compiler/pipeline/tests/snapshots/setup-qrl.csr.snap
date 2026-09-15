@@ -18,8 +18,8 @@ import {
   useSignal,
   _qrlWithChunk,
   _first,
-  setEvent,
   _last,
+  setEvent,
   _createElementTemplate,
 } from '@qwik.dev/core';
 const q_component_onSave_segment_0_2tdav5vx5sjh3 = /*#__PURE__*/ _qrlWithChunk(

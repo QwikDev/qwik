@@ -50,9 +50,9 @@ export default (props, ctx) => {
 
 import {
   _first,
+  _last,
   createAttrExpressionEffect,
   setEvent,
-  _last,
   _createElementTemplate,
 } from '@qwik.dev/core';
 import { component_title_segment_2_2f0r05go51flv } from './component.tsx_component_title_segment_2_2f0r05go51flv';

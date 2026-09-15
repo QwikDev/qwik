@@ -14,10 +14,10 @@ export default function App() {
 import {
   _qrlWithChunk,
   _first,
-  _next,
-  createContentBlock,
   _last,
   _prev,
+  _next,
+  createContentBlock,
   _createElementTemplate,
 } from '@qwik.dev/core';
 

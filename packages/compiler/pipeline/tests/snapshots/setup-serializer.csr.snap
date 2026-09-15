@@ -21,11 +21,11 @@ import {
   useSerializer,
   _withCaptures,
   _first,
+  _last,
+  _prev,
   _next,
   _qrlWithChunk,
   createContentBlock,
-  _last,
-  _prev,
   _createElementTemplate,
 } from '@qwik.dev/core';
 import { component_count_segment_0_1adkz2bcpjjfs } from './component.tsx_component_count_segment_0_1adkz2bcpjjfs';

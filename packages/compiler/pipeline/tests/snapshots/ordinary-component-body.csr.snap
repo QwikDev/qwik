@@ -45,11 +45,11 @@ import {
   _qrlWithChunk,
   _first,
   createTextExpressionEffect,
-  createComponent,
-  _toNodes,
   _next,
   _last,
   _prev,
+  createComponent,
+  _toNodes,
   setEvent,
   createTextNodeEffect,
   createContextId,
@@ -93,15 +93,14 @@ export default (props, ctx) => {
     if (props.failed) throw new Error('failed');
     return (() => {
       const el0 = default_3_tmpl0(ctx.document);
-      const marker0 = _first(el0);
-      const component0 = createComponent(Header, null, ctx);
-      marker0.replaceWith(..._toNodes(component0));
-      const marker1 = _next(_first(el0));
-      const component1 = createComponent(Child, null, ctx);
-      marker1.replaceWith(..._toNodes(component1));
+      const marker0 = _next(_first(el0));
       const el1 = _prev(_last(el0));
-      setEvent(el1, 'q-e:click', increment);
       const el2 = _last(el0);
+      const component0 = createComponent(Header, null, ctx);
+      _first(el0).replaceWith(..._toNodes(component0));
+      const component1 = createComponent(Child, null, ctx);
+      marker0.replaceWith(..._toNodes(component1));
+      setEvent(el1, 'q-e:click', increment);
       setEvent(el2, 'q-e:click', component_q_e_click_segment_2_2xwygteqhjqr1, [
         label,
         count,

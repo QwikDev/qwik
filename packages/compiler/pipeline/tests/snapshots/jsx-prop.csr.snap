@@ -79,13 +79,12 @@ export function Rows(props, ctx) {
   const end0 = _next(start0);
   function semantic_collectionRender_334_399_1rvvd24vhg1k1(ctx, row) {
     const el0 = semantic_collectionRender_334_399_1rvvd24vhg1k1_tmpl0(ctx.document);
-    const marker0 = _first(el0);
     const component0 = createComponent(
       Display,
       { fallback: q_component_jsx_segment_4_38vnl4ypf6sea.w([row]) },
       ctx
     );
-    marker0.replaceWith(..._toNodes(component0));
+    _first(el0).replaceWith(..._toNodes(component0));
     return el0;
   }
   createCollection(

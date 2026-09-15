@@ -23,10 +23,10 @@ export default component$(() => {
 import {
   useSignal,
   _first,
-  _next,
-  createCollection,
   _last,
   _prev,
+  _next,
+  createCollection,
   createTextExpressionEffect,
   _createElementTemplate,
 } from '@qwik.dev/core';

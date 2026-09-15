@@ -35,7 +35,8 @@ export const renderCompiled = <Props = undefined>(
   const context = createContainerContext(target, scheduler, opts.serverData);
 
   const invokeContext = newInvokeContext({ container: context });
-  let mountedRange: Range | null = null;
+  // Mounted nodes may be swapped in place later (an async slot), so track the boundary, not them.
+  let mountedAfter: Node | null | undefined;
   let cleaned = false;
   const cleanup = (): void => {
     if (cleaned) {
@@ -46,8 +47,12 @@ export const renderCompiled = <Props = undefined>(
       disposeOwner(invokeContext.owner);
       invokeContext.owner = null;
     }
-    mountedRange?.deleteContents();
-    mountedRange = null;
+    if (mountedAfter !== undefined) {
+      while (target.lastChild !== mountedAfter) {
+        target.lastChild!.remove();
+      }
+      mountedAfter = undefined;
+    }
   };
 
   let rendering: ValueOrPromise<void>;
@@ -61,12 +66,10 @@ export const renderCompiled = <Props = undefined>(
         }
         const nodes = toNodes(output);
         if (nodes.length > 0) {
+          mountedAfter = target.lastChild;
           for (let i = 0; i < nodes.length; i++) {
             target.appendChild(nodes[i]);
           }
-          mountedRange = context.document.createRange();
-          mountedRange.setStartBefore(nodes[0]);
-          mountedRange.setEndAfter(nodes[nodes.length - 1]);
         }
       }
     );

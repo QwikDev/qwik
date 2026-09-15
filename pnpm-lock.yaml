@@ -14,7 +14,7 @@ patchedDependencies:
     hash: 69aaf4eca107f315672d9346910ffffc755c7836f40794e9233441514a7fb84d
     path: patches/density-clustering@1.3.0.patch
   domino@2.1.6:
-    hash: cfc92e4c7200dc9749feafd71636da4534f892821d01a38afe3025620807877d
+    hash: 4f67ee1ed36bda41b6a5d794bc5c30ba8b07b85da8464f3e722783989813f75e
     path: patches/domino@2.1.6.patch
 
 importers:
@@ -335,7 +335,7 @@ importers:
         version: 0.120.0(@emnapi/core@2.0.0-alpha.3)(@emnapi/runtime@2.0.0-alpha.3)
       oxc-transform:
         specifier: 0.115.0
-        version: 0.115.0(@emnapi/core@1.9.2)(@emnapi/runtime@2.0.0-alpha.3)
+        version: 0.115.0(@emnapi/core@2.0.0-alpha.3)(@emnapi/runtime@2.0.0-alpha.3)
       typescript:
         specifier: 5.9.3
         version: 5.9.3
@@ -813,7 +813,7 @@ importers:
         version: link:../qwik-dom
       domino:
         specifier: 2.1.6
-        version: 2.1.6(patch_hash=cfc92e4c7200dc9749feafd71636da4534f892821d01a38afe3025620807877d)
+        version: 2.1.6(patch_hash=4f67ee1ed36bda41b6a5d794bc5c30ba8b07b85da8464f3e722783989813f75e)
       ignore:
         specifier: 5.3.1
         version: 5.3.1
@@ -14565,6 +14565,14 @@ snapshots:
       - '@emnapi/runtime'
     optional: true
 
+  '@oxc-transform/binding-wasm32-wasi@0.115.0(@emnapi/core@2.0.0-alpha.3)(@emnapi/runtime@2.0.0-alpha.3)':
+    dependencies:
+      '@napi-rs/wasm-runtime': 1.2.3(@emnapi/core@2.0.0-alpha.3)(@emnapi/runtime@2.0.0-alpha.3)
+    transitivePeerDependencies:
+      - '@emnapi/core'
+      - '@emnapi/runtime'
+    optional: true
+
   '@oxc-transform/binding-win32-arm64-msvc@0.115.0':
     optional: true
 
@@ -17066,7 +17074,7 @@ snapshots:
     dependencies:
       domelementtype: 2.3.0
 
-  domino@2.1.6(patch_hash=cfc92e4c7200dc9749feafd71636da4534f892821d01a38afe3025620807877d): {}
+  domino@2.1.6(patch_hash=4f67ee1ed36bda41b6a5d794bc5c30ba8b07b85da8464f3e722783989813f75e): {}
 
   dompurify@3.1.7: {}
 
@@ -20905,6 +20913,32 @@ snapshots:
       '@oxc-transform/binding-linux-x64-musl': 0.115.0
       '@oxc-transform/binding-openharmony-arm64': 0.115.0
       '@oxc-transform/binding-wasm32-wasi': 0.115.0(@emnapi/core@1.9.2)(@emnapi/runtime@2.0.0-alpha.3)
+      '@oxc-transform/binding-win32-arm64-msvc': 0.115.0
+      '@oxc-transform/binding-win32-ia32-msvc': 0.115.0
+      '@oxc-transform/binding-win32-x64-msvc': 0.115.0
+    transitivePeerDependencies:
+      - '@emnapi/core'
+      - '@emnapi/runtime'
+
+  oxc-transform@0.115.0(@emnapi/core@2.0.0-alpha.3)(@emnapi/runtime@2.0.0-alpha.3):
+    optionalDependencies:
+      '@oxc-transform/binding-android-arm-eabi': 0.115.0
+      '@oxc-transform/binding-android-arm64': 0.115.0
+      '@oxc-transform/binding-darwin-arm64': 0.115.0
+      '@oxc-transform/binding-darwin-x64': 0.115.0
+      '@oxc-transform/binding-freebsd-x64': 0.115.0
+      '@oxc-transform/binding-linux-arm-gnueabihf': 0.115.0
+      '@oxc-transform/binding-linux-arm-musleabihf': 0.115.0
+      '@oxc-transform/binding-linux-arm64-gnu': 0.115.0
+      '@oxc-transform/binding-linux-arm64-musl': 0.115.0
+      '@oxc-transform/binding-linux-ppc64-gnu': 0.115.0
+      '@oxc-transform/binding-linux-riscv64-gnu': 0.115.0
+      '@oxc-transform/binding-linux-riscv64-musl': 0.115.0
+      '@oxc-transform/binding-linux-s390x-gnu': 0.115.0
+      '@oxc-transform/binding-linux-x64-gnu': 0.115.0
+      '@oxc-transform/binding-linux-x64-musl': 0.115.0
+      '@oxc-transform/binding-openharmony-arm64': 0.115.0
+      '@oxc-transform/binding-wasm32-wasi': 0.115.0(@emnapi/core@2.0.0-alpha.3)(@emnapi/runtime@2.0.0-alpha.3)
       '@oxc-transform/binding-win32-arm64-msvc': 0.115.0
       '@oxc-transform/binding-win32-ia32-msvc': 0.115.0
       '@oxc-transform/binding-win32-x64-msvc': 0.115.0

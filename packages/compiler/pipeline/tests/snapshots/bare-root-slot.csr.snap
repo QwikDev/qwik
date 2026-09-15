@@ -1,0 +1,50 @@
+==INPUT==
+
+import { component$, Slot } from '@qwik.dev/core';
+export const Wrapper = component$(() => <Slot />);
+export const Shell = component$((props: { id: string }) => (
+  <div id={props.id}><Slot name="start" /><Slot /><b>{props.id}</b></div>
+));
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  _first,
+  maybeThen,
+  createSlot,
+  createTemplate,
+  propSource,
+  createAttrEffect,
+  _next,
+  _last,
+  createTextNodeEffect,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+const Wrapper_tmpl0 = createTemplate('<!>');
+const Shell_tmpl0 = _createElementTemplate('<div><!><!><b> </b></div>');
+export const Wrapper = (props0, ctx) => {
+  const fragment0 = Wrapper_tmpl0(ctx.document);
+  const marker0 = _first(fragment0);
+  ctx.scheduler.waitFor(maybeThen(createSlot(), (slot0) => marker0.replaceWith(...slot0)));
+  return [...fragment0.childNodes];
+};
+export const Shell = (props, ctx) => {
+  const el0 = Shell_tmpl0(ctx.document);
+  const prop0 = propSource(props, 'id');
+  const effect0 = createAttrEffect(el0, 'id', prop0, ctx.scheduler);
+  ctx.scheduler.notify(effect0);
+  const marker0 = _next(_first(el0));
+  const el1 = _last(el0);
+  const marker1 = _first(el0);
+  ctx.scheduler.waitFor(maybeThen(createSlot('start'), (slot0) => marker1.replaceWith(...slot0)));
+  ctx.scheduler.waitFor(maybeThen(createSlot(), (slot1) => marker0.replaceWith(...slot1)));
+  const text0 = _first(el1);
+  const effect1 = createTextNodeEffect(text0, prop0, ctx.scheduler);
+  ctx.scheduler.notify(effect1);
+  return el0;
+};
+== CSR DIAGNOSTICS ==
+
+[]

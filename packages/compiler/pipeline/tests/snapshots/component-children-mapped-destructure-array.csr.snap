@@ -65,9 +65,9 @@ import {
   createTemplate,
   createCollection,
   setEvent,
-  createTextExpressionEffect,
   _last,
   _prev,
+  createTextExpressionEffect,
   _createElementTemplate,
 } from '@qwik.dev/core';
 import { component_q_e_click_segment_1_2xwyfnber1kpg } from './component.tsx_component_q_e_click_segment_1_2xwyfnber1kpg';

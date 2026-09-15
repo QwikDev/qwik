@@ -14,9 +14,9 @@ export default () => {
 
 import {
   _first,
+  _last,
   propSource,
   createTextNodeEffect,
-  _last,
   _createElementTemplate,
   useSignal,
   _qrlWithChunk,

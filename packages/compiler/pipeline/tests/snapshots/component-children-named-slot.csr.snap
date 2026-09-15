@@ -10,9 +10,9 @@ export default () => <Card><h1 q:slot="header">Title</h1><p>Content</p></Card>;
 
 import {
   _first,
+  _last,
   maybeThen,
   createSlot,
-  _last,
   _createElementTemplate,
   createSlotScope,
   registerProjection,

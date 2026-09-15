@@ -13,10 +13,10 @@ export default () => {
 
 import {
   _first,
-  maybeThen,
-  createSlot,
   _next,
   _last,
+  maybeThen,
+  createSlot,
   _createElementTemplate,
   useSignal,
   createSlotScope,
@@ -42,12 +42,12 @@ const q_component_slot_render_segment_5_3b0t9atn1pfsx = /*#__PURE__*/ _qrlWithCh
 );
 export const Panel = (props, ctx) => {
   const el0 = Panel_tmpl0(ctx.document);
-  const marker0 = _first(el0);
-  ctx.scheduler.waitFor(maybeThen(createSlot('header'), (slot0) => marker0.replaceWith(...slot0)));
-  const marker1 = _next(_first(el0));
-  ctx.scheduler.waitFor(maybeThen(createSlot('footer'), (slot1) => marker1.replaceWith(...slot1)));
-  const marker2 = _last(el0);
-  ctx.scheduler.waitFor(maybeThen(createSlot(), (slot2) => marker2.replaceWith(...slot2)));
+  const marker0 = _next(_first(el0));
+  const marker1 = _last(el0);
+  const marker2 = _first(el0);
+  ctx.scheduler.waitFor(maybeThen(createSlot('header'), (slot0) => marker2.replaceWith(...slot0)));
+  ctx.scheduler.waitFor(maybeThen(createSlot('footer'), (slot1) => marker0.replaceWith(...slot1)));
+  ctx.scheduler.waitFor(maybeThen(createSlot(), (slot2) => marker1.replaceWith(...slot2)));
   return el0;
 };
 export default (props, ctx) => {

@@ -21,16 +21,16 @@ export default (props: { as: string; component: any }) => {
 
 import {
   _first,
+  _next,
+  _last,
+  _prev,
   createSlotScope,
   registerProjection,
   _qrlWithChunk,
   createDynamicTag,
   createComponent,
   _toNodes,
-  _next,
   createContentBlock,
-  _last,
-  _prev,
   _createElementTemplate,
 } from '@qwik.dev/core';
 
@@ -55,7 +55,10 @@ export default (props, ctx) => {
   const Heading = 'h2';
   const Alias = Badge;
   const el0 = default_tmpl0(ctx.document);
-  const marker0 = _first(el0);
+  const marker0 = _next(_first(el0));
+  const marker1 = _next(_next(_first(el0)));
+  const marker2 = _prev(_prev(_last(el0)));
+  const marker3 = _prev(_last(el0));
   const slotScope0 = createSlotScope();
   registerProjection(slotScope0, '', q_component_slot_render_segment_0_3b0tagwys7lui);
   const component0 = createComponent(
@@ -64,15 +67,13 @@ export default (props, ctx) => {
     ctx,
     { slotScope: slotScope0 }
   );
-  marker0.replaceWith(..._toNodes(component0));
-  const marker1 = _next(_first(el0));
+  _first(el0).replaceWith(..._toNodes(component0));
   const component1 = createComponent(Alias, null, ctx);
-  marker1.replaceWith(..._toNodes(component1));
-  const start0 = _next(_next(_first(el0)));
-  const end0 = _next(start0);
+  marker0.replaceWith(..._toNodes(component1));
+  const end0 = _next(marker1);
   const content0 = createContentBlock(
     ctx,
-    start0,
+    marker1,
     end0,
     [],
     q_component_tag_dynamic_segment_1_331xdvyxwe5dy.w([props]),
@@ -80,7 +81,6 @@ export default (props, ctx) => {
     true
   );
   ctx.scheduler.notify(content0);
-  const marker2 = _prev(_prev(_last(el0)));
   const tag0 = UI.Button;
   const component2 = createComponent(
     (props1) => createDynamicTag(tag0, props1, ctx),
@@ -88,11 +88,10 @@ export default (props, ctx) => {
     ctx
   );
   marker2.replaceWith(..._toNodes(component2));
-  const start1 = _prev(_last(el0));
-  const end1 = _next(start1);
+  const end1 = _next(marker3);
   const content1 = createContentBlock(
     ctx,
-    start1,
+    marker3,
     end1,
     [],
     q_component_tag_dynamic_segment_3_331xd3wq2q1cw.w([props]),

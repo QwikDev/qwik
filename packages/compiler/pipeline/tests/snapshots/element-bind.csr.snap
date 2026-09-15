@@ -19,11 +19,11 @@ export default component$(() => {
 import {
   useSignal,
   _first,
+  _last,
   createAttrEffect,
   inlinedQrl,
   _chk,
   setEvent,
-  _last,
   _val,
   _textValue,
   _createElementTemplate,

@@ -25,13 +25,13 @@ import {
   propSource,
   createAttrEffect,
   _first,
-  createTextNodeEffect,
   _next,
+  _last,
+  createTextNodeEffect,
   readTrackedValue,
   _props,
   createComponent,
   _toNodes,
-  _last,
   createTextExpressionEffect,
   _createElementTemplate,
   useSignal,
@@ -54,10 +54,10 @@ export const Card = (props, ctx) => {
   const prop0 = propSource(props, 'title');
   const effect0 = createAttrEffect(el0, 'class', prop0, ctx.scheduler);
   ctx.scheduler.notify(effect0);
+  const el1 = _last(el0);
   const text0 = _first(_first(el0));
   const effect1 = createTextNodeEffect(text0, prop0, ctx.scheduler);
   ctx.scheduler.notify(effect1);
-  const marker0 = _next(_first(el0));
   const component0 = createComponent(
     Badge,
     _props(
@@ -70,8 +70,8 @@ export const Card = (props, ctx) => {
     ),
     ctx
   );
-  marker0.replaceWith(..._toNodes(component0));
-  const text1 = _first(_last(el0));
+  _next(_first(el0)).replaceWith(..._toNodes(component0));
+  const text1 = _first(el1);
   const effect2 = createTextExpressionEffect(
     text1,
     [props],

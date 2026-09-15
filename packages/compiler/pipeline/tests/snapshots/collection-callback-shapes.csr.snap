@@ -37,8 +37,8 @@ import {
   useSignal,
   _first,
   _next,
-  createCollection,
   _last,
+  createCollection,
   _createElementTemplate,
 } from '@qwik.dev/core';
 import { component_for_render_segment_4_asyro5hcbuaz } from './component.tsx_component_for_render_segment_4_asyro5hcbuaz';

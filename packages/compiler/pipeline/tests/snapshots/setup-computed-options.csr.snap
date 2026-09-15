@@ -19,8 +19,8 @@ import {
   useComputed,
   useComputedQrl,
   _first,
-  createTextNodeEffect,
   _last,
+  createTextNodeEffect,
   _createElementTemplate,
 } from '@qwik.dev/core';
 import { component_first_segment_1_bivl4x5fgl56 } from './component.tsx_component_first_segment_1_bivl4x5fgl56';

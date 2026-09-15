@@ -16,9 +16,9 @@ import {
   _qrlWithChunk,
   _first,
   _next,
-  createContentBlock,
   _last,
   _prev,
+  createContentBlock,
   _createElementTemplate,
 } from '@qwik.dev/core';
 const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ _qrlWithChunk(

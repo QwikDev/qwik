@@ -14,9 +14,9 @@ import {
   createSlot,
   _qrlWithChunk,
   _createElementTemplate,
+  _last,
   createComponent,
   _toNodes,
-  _last,
   createSlotScope,
   registerProjection,
 } from '@qwik.dev/core';
@@ -44,14 +44,13 @@ export const Card = (props, ctx) => {
 };
 export default (props, ctx) => {
   const el0 = default_tmpl0(ctx.document);
-  const marker0 = _first(el0);
+  const marker0 = _last(el0);
   const component0 = createComponent(Card, null, ctx);
-  marker0.replaceWith(..._toNodes(component0));
-  const marker1 = _last(el0);
+  _first(el0).replaceWith(..._toNodes(component0));
   const slotScope0 = createSlotScope();
   registerProjection(slotScope0, '', q_component_slot_render_segment_1_3b0tauy2p1nv1);
   const component1 = createComponent(Card, null, ctx, { slotScope: slotScope0 });
-  marker1.replaceWith(..._toNodes(component1));
+  marker0.replaceWith(..._toNodes(component1));
   return el0;
 };
 ============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==

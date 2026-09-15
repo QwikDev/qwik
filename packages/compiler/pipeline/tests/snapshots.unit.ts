@@ -3018,6 +3018,22 @@ export default () => <main><RenamedChild /></main>;
   });
 });
 
+test('csr mounts a bare-root slot through a marker so the component output stays sync', async () => {
+  const output = await testInput('csr', 'bare-root-slot', {
+    code: `import { component$, Slot } from '@qwik.dev/core';
+export const Wrapper = component$(() => <Slot />);
+export const Shell = component$((props: { id: string }) => (
+  <div id={props.id}><Slot name="start" /><Slot /><b>{props.id}</b></div>
+));
+`,
+  });
+  const code = output.modules.map((module) => module.code).join('\n');
+  // The slot resolves asynchronously; a component must never return that promise as its nodes.
+  expect(code).not.toContain('return createSlot();');
+  // Later sibling locators resolve before the first slot replaces its marker.
+  expect(code).toMatch(/const el1 = _last\(el0\);\n(.*\n)*.*createSlot\("start"\)/);
+});
+
 test('csr replaces an embedded component marker in place', async () => {
   await testInput('csr', 'component-call-siblings', {
     code: `export const Child = () => <strong>child</strong>;

@@ -10,9 +10,9 @@ export default (props) => <Panel>{props.show ? <><h1 q:slot="header">Title</h1>{
 
 import {
   _first,
+  _last,
   maybeThen,
   createSlot,
-  _last,
   _createElementTemplate,
   createSlotScope,
   registerProjection,
@@ -32,10 +32,10 @@ const q_component_slot_render_segment_3_3b0ta2vuvdjtz = /*#__PURE__*/ _qrlWithCh
 );
 export const Panel = (props0, ctx) => {
   const el0 = Panel_tmpl0(ctx.document);
-  const marker0 = _first(el0);
-  ctx.scheduler.waitFor(maybeThen(createSlot('header'), (slot0) => marker0.replaceWith(...slot0)));
-  const marker1 = _last(el0);
-  ctx.scheduler.waitFor(maybeThen(createSlot(), (slot1) => marker1.replaceWith(...slot1)));
+  const marker0 = _last(el0);
+  const marker1 = _first(el0);
+  ctx.scheduler.waitFor(maybeThen(createSlot('header'), (slot0) => marker1.replaceWith(...slot0)));
+  ctx.scheduler.waitFor(maybeThen(createSlot(), (slot1) => marker0.replaceWith(...slot1)));
   return el0;
 };
 export default (props, ctx) => {

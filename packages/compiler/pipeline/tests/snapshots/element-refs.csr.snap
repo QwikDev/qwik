@@ -21,10 +21,10 @@ export default component$(() => {
 import {
   useSignal,
   _first,
-  setRef,
   _next,
   _last,
   _prev,
+  setRef,
   BranchRange,
   createBranch,
   _withCaptures,

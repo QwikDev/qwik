@@ -17,8 +17,8 @@ import {
   useSignal,
   setEvent,
   _first,
-  createTextExpressionEffect,
   _last,
+  createTextExpressionEffect,
   createTextNodeEffect,
   _createElementTemplate,
 } from '@qwik.dev/core';

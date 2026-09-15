@@ -75,12 +75,16 @@ export default (props, ctx) => {
 };
 ============================= src/component.tsx_component_slot_dynamic_segment_0_2ikf7n1jp8rfp.js (ENTRY POINT)==
 
-import { _captures, createSlot } from '@qwik.dev/core';
+import { _captures, _first, maybeThen, createSlot, createTemplate } from '@qwik.dev/core';
+const component_slot_dynamic_segment_0_2ikf7n1jp8rfp_tmpl0 = createTemplate('<!>');
 
 export const component_slot_dynamic_segment_0_2ikf7n1jp8rfp = (ctx) => {
   const [props] = _captures;
+  const fragment0 = component_slot_dynamic_segment_0_2ikf7n1jp8rfp_tmpl0(ctx.document);
+  const marker0 = _first(fragment0);
   const slotName0 = props.name;
-  return createSlot(slotName0);
+  ctx.scheduler.waitFor(maybeThen(createSlot(slotName0), (slot0) => marker0.replaceWith(...slot0)));
+  return [...fragment0.childNodes];
 };
 /*
 {

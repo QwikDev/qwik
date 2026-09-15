@@ -28,7 +28,6 @@ export default (props, ctx) => {
       null,
       component_for_render_segment_0_asyt89wzo2d3,
       0,
-      '',
       0
     )
   );

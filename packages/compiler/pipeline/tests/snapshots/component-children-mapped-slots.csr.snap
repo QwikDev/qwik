@@ -89,7 +89,6 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
       component_for_key_segment_2_24ursol8ttrxy,
       component_for_render_segment_1_asysu8t2u0ck,
       0,
-      '',
       0
     )
   );
@@ -243,7 +242,6 @@ export const component_slot_render_segment_4_3b0t8wsj4vdse = (ctx) => {
     null,
     semantic_collectionRender_335_376_xjtfiyce5o4d,
     0,
-    '',
     0,
     true
   );
@@ -290,7 +288,6 @@ export const component_slot_render_segment_5_3b0t9atn1pfsx = (ctx) => {
       component_for_key_segment_7_24urumqse020l,
       component_for_render_segment_6_asysg7p5zyc1,
       0,
-      '',
       0
     )
   );

@@ -50,7 +50,6 @@ export default (props, ctx) => {
     undefined,
     semantic_collectionRender_56_95_2r1gv5hhclhth,
     0,
-    '',
     false,
     0
   );

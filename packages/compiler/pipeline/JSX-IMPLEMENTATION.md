@@ -560,6 +560,13 @@ code size and runtime cost. The previous implementation is not the accepted defa
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
 
+- 2026-09-15: `idBase` removed. Since `useId` counts at runtime, the seed threaded through
+  branches, collections, `for` blocks, projections, dynamic tags, the serializer and the inflater
+  was dead; the compiler stops emitting its `''` placeholder in collection calls (98 snapshots
+  lose that argument), `invokeWithCollector4` is deleted in favour of `runWithCollector` with `invoke`, and the branch and
+  for-block resume tuples drop the slot. Verification: runtime unit suites, both corpora
+  unchanged.
+
 - 2026-09-15: Dynamic tags in foreign namespaces: the `Raw`, `Dynamic` and linked `Declaration`
   component targets carry an optional `namespace`; `createDynamicTag` takes it in place of the
   unused `idBase` parameter. Verification: 1130 pipeline tests (16 existing TODOs), the namespace

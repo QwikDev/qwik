@@ -37,7 +37,6 @@ export default (props, ctx) => {
       _withCaptures(component_for_key_segment_1_24ursak4wzpxf, [fallback]),
       _withCaptures(component_for_render_segment_0_asyt89wzo2d3, [fallback]),
       0,
-      '',
       0
     )
   );

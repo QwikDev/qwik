@@ -48,7 +48,6 @@ export default (props, ctx) => {
       null,
       component_for_render_segment_1_asysu8t2u0ck,
       0,
-      '',
       0
     )
   );

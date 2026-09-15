@@ -186,12 +186,11 @@ describe('structured SSR boundaries', () => {
         undefined,
         renderQrl,
         IndexMode.None,
-        '',
         false
       )
     );
     const reactive = invokeWithScope(ctx, null, () =>
-      renderSsrForBlock(ctx, 7, items, keyQrl, renderQrl, IndexMode.None, '', false)
+      renderSsrForBlock(ctx, 7, items, keyQrl, renderQrl, IndexMode.None, false)
     );
 
     expect(await direct).toBe('firstsecond');
@@ -209,7 +208,6 @@ describe('structured SSR boundaries', () => {
         undefined,
         (_ctx, _rangeId, _rowId, item) => `<li>${item}</li>`,
         IndexMode.None,
-        '',
         false,
         RowOutputShape.Element
       )

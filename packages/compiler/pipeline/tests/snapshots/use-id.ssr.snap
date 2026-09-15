@@ -105,7 +105,6 @@ export default (props, ctx) => {
     undefined,
     q_component_for_render_segment_2_asyu0c4tc6e5,
     0,
-    '',
     false,
     0
   );

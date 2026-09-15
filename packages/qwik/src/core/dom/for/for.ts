@@ -1,11 +1,10 @@
 import { isDev } from '@qwik.dev/core/build';
 import type { QRL } from '../../shared/qrl/qrl.public';
-import { hashCode } from '../../shared/utils/hash_code';
 import { isPromise, maybeThen, retryOnPromise } from '../../shared/utils/promises';
 import type { ValueOrPromise } from '../../shared/utils/types';
 import { Signal } from '../../reactive/signal';
 import { readSourceValue, type Source } from '../../reactive/source';
-import { invokeWithCollector4, runWithCollector, track } from '../../reactive/tracking';
+import { runWithCollector, track } from '../../reactive/tracking';
 import type { ContainerContext } from '../../runtime/container-context';
 import { fastNextSibling } from '../../runtime/fast-getters';
 import {
@@ -54,19 +53,13 @@ export const enum RowOutputShape {
 type ForKeyFn<T> = (item: T, index: number) => ForKey;
 type ForRenderIndex = number | Signal<number> | undefined;
 type SsrForContext = ContainerContext & { nextId(): number };
-type ForRenderFn<T> = (
-  ctx: ContainerContext,
-  item: T,
-  index: ForRenderIndex,
-  id?: string
-) => MaybeNodeOutput;
+type ForRenderFn<T> = (ctx: ContainerContext, item: T, index: ForRenderIndex) => MaybeNodeOutput;
 type SsrForRenderFn<T> = (
   ctx: SsrForContext,
   rangeId: number,
   rowId: number,
   item: T,
-  index: ForRenderIndex,
-  id?: string
+  index: ForRenderIndex
 ) => ValueOrPromise<SsrOutput>;
 
 const ROW_OPEN = 'r';
@@ -116,7 +109,6 @@ export class ForBlock<T = unknown> {
     readonly listOwner: Owner,
     readonly invokeContext: RuntimeInvokeContext | null,
     readonly container: ContainerContext,
-    readonly idBase = '',
     readonly rowShape: RowOutputShape = RowOutputShape.Unknown
   ) {
     this.indexSignals = indexMode !== IndexMode.None ? [] : null;
@@ -559,14 +551,14 @@ export class ForBlock<T = unknown> {
     let nodes: MaybeNodeOutput;
 
     try {
-      nodes = invokeWithCollector4(
+      nodes = runWithCollector(
         null,
+        invoke,
         this.rowInvokeContext,
         renderFn,
         this.container,
         item,
-        indexSignal ?? index,
-        createRowId(this.idBase, key)
+        indexSignal ?? index
       );
     } catch (error) {
       disposeInvokeOwner(this.rowInvokeContext);
@@ -609,7 +601,6 @@ export function createForBlock<T>(
   keyFn: ForKeyFn<T> | QRL<ForKeyFn<T>> | null | undefined,
   renderFn: ForRenderFn<T> | QRL<ForRenderFn<T>>,
   indexMode: IndexMode = IndexMode.None,
-  idBase = '',
   rowShape: RowOutputShape = RowOutputShape.Unknown
 ): ForBlockSubscriber {
   const listOwner = createOwner();
@@ -622,7 +613,6 @@ export function createForBlock<T>(
     listOwner,
     getActiveInvokeContextOrNull(),
     ctx,
-    idBase,
     rowShape
   );
   return registerSubscriberToOwner(new ForBlockSubscription(block, ctx.scheduler));
@@ -866,7 +856,6 @@ export class SSRForBlock<T = unknown> {
     readonly indexMode: IndexMode,
     readonly invokeContext: RuntimeInvokeContext | null,
     readonly container: SsrForContext,
-    readonly idBase = '',
     readonly usesRowId = true,
     readonly rowShape: RowOutputShape = RowOutputShape.Unknown
   ) {
@@ -937,8 +926,7 @@ export class SSRForBlock<T = unknown> {
             this.rangeId,
             rowId,
             item,
-            indexSignal ?? i,
-            createRowId(this.idBase, key)
+            indexSignal ?? i
           );
         } catch (error) {
           disposeInvokeOwner(invokeContext);
@@ -969,10 +957,6 @@ export class SSRForBlock<T = unknown> {
   }
 }
 
-function createRowId(idBase: string, key: ForKey): string {
-  return idBase === '' ? '' : `${idBase}${hashCode(String(key))}-`;
-}
-
 export function finalizeSsrRows(output: SsrOutput[]): SsrOutput {
   if (output.every((row) => typeof row === 'string')) {
     return (output as string[]).join('');
@@ -987,7 +971,6 @@ export function renderSsrForBlock<T>(
   keyQrl: QRL<ForKeyFn<T>> | null | undefined,
   renderQrl: QRL<SsrForRenderFn<T>>,
   indexMode: IndexMode = IndexMode.None,
-  idBase = '',
   usesRowId = true,
   rowShape: RowOutputShape = RowOutputShape.Unknown
 ): ValueOrPromise<SsrOutput> {
@@ -999,7 +982,6 @@ export function renderSsrForBlock<T>(
     indexMode,
     getActiveInvokeContextOrNull(),
     ctx,
-    idBase,
     usesRowId,
     rowShape
   );

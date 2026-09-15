@@ -28,7 +28,6 @@ export default (props, ctx) => {
     null,
     semantic_collectionRender_60_79_1yelvkf618fjk,
     0,
-    '',
     0,
     true
   );

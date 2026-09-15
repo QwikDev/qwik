@@ -33,12 +33,8 @@ import { reapplyUseOnContexts } from '../../runtime/use-on';
 import { isSubscriberDisposed } from '../../runtime/subscriber';
 
 type BranchConditionFn = () => ValueOrPromise<boolean>;
-type BranchHandlerFn = (ctx: ContainerContext, id?: string) => ValueOrPromise<MaybeNodeOutput>;
-type SSRBranchHandlerFn = (
-  ctx: ContainerContext,
-  rangeId: number,
-  id?: string
-) => ValueOrPromise<SsrOutput>;
+type BranchHandlerFn = (ctx: ContainerContext) => ValueOrPromise<MaybeNodeOutput>;
+type SSRBranchHandlerFn = (ctx: ContainerContext, rangeId: number) => ValueOrPromise<SsrOutput>;
 
 /** BranchRange represents a range of nodes in the DOM that can be replaced with new nodes */
 export class BranchRange {
@@ -69,7 +65,6 @@ export class Branch {
     public currentBranch: BranchState | null,
     readonly invokeContext: RuntimeInvokeContext | null,
     readonly container?: ContainerContext,
-    readonly idBase = '',
     readonly useOnRoot = false
   ) {
     this.currentOwner = null;
@@ -159,9 +154,7 @@ export class BranchSubscription implements BranchSubscriber {
             () =>
               retryOnPromise(() =>
                 runWithCollector(null, () =>
-                  invoke(invokeContext, () =>
-                    renderer(invokeContext.container!, this.branch.idBase)
-                  )
+                  invoke(invokeContext, () => renderer(invokeContext.container!))
                 )
               ),
             (nodes) => {
@@ -194,7 +187,6 @@ export function createBranch(
   condition: BranchConditionFn | QRL<BranchConditionFn>,
   then: BranchHandlerFn | QRL<BranchHandlerFn>,
   elseFn?: BranchHandlerFn | QRL<BranchHandlerFn>,
-  idBase = '',
   useOnRoot = false
 ): BranchSubscriber {
   const branch = new Branch(
@@ -205,7 +197,6 @@ export function createBranch(
     null,
     getActiveInvokeContextOrNull(),
     ctx,
-    idBase,
     useOnRoot
   );
   return registerSubscriberToOwner(new BranchSubscription(branch, ctx.scheduler));
@@ -224,7 +215,6 @@ export class SSRBranch {
     public currentBranch: BranchState | null,
     readonly invokeContext: RuntimeInvokeContext | null,
     readonly container?: ContainerContext,
-    readonly idBase = '',
     readonly useOnRoot = false
   ) {}
 
@@ -251,9 +241,7 @@ export class SSRBranch {
             return safeCall(
               () =>
                 runWithCollector(null, () =>
-                  invoke(invokeContext, () =>
-                    renderer(invokeContext.container!, this.rangeId, this.idBase)
-                  )
+                  invoke(invokeContext, () => renderer(invokeContext.container!, this.rangeId))
                 ),
               (output) => {
                 subscription.branch.currentBranch = nextBranch;
@@ -295,7 +283,6 @@ export function renderSsrBranch(
   conditionQrl: QRL<BranchConditionFn>,
   thenQrl: QRL<SSRBranchHandlerFn>,
   elseQrl: QRL<SSRBranchHandlerFn> | undefined,
-  idBase = '',
   useOnRoot = false
 ): ValueOrPromise<SsrOutput> {
   const branch = new SSRBranch(
@@ -306,7 +293,6 @@ export function renderSsrBranch(
     null,
     getActiveInvokeContextOrNull(),
     ctx,
-    idBase,
     useOnRoot
   );
   return branch.run();

@@ -863,7 +863,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
           pass,
           step,
           [source, ...render.args, ...(key?.args ?? [])],
-          `${QwikWord.RenderSsrCollection}(${pass.names.ctx}, ${idVariable}, ${source}, ${key?.ref ?? 'undefined'}, ${render.ref}, ${op.index}, '', ${usesRowId}, ${rowShapeCode(op.shape)})`
+          `${QwikWord.RenderSsrCollection}(${pass.names.ctx}, ${idVariable}, ${source}, ${key?.ref ?? 'undefined'}, ${render.ref}, ${op.index}, ${usesRowId}, ${rowShapeCode(op.shape)})`
         );
         pushMergedStatic(parts, '<!f=');
         this.imports.add(QwikWord.CreateSsrNodeId);
@@ -885,7 +885,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
           pass,
           step,
           [],
-          `${QwikWord.RenderSsrCollection}(${pass.names.ctx}, undefined, ${source}, undefined, ${rowFn}, ${op.index}, '', false, ${rowShapeCode(op.shape)})`
+          `${QwikWord.RenderSsrCollection}(${pass.names.ctx}, undefined, ${source}, undefined, ${rowFn}, ${op.index}, false, ${rowShapeCode(op.shape)})`
         );
         parts.push(step);
         break;

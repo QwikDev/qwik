@@ -95,7 +95,6 @@ export function Rows(props, ctx) {
     null,
     semantic_collectionRender_345_398_361kt97lb44vi,
     0,
-    '',
     0,
     true
   );

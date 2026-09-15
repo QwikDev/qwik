@@ -27,15 +27,8 @@ import {
 } from '../../ssr/output';
 import { applyDomProps, renderDomPropsToString } from '../effect/dom-props';
 
-type SlotRenderFn = (
-  ctx: ContainerContext,
-  id?: string
-) => MaybeNodeOutput | Promise<MaybeNodeOutput>;
-type SsrSlotRenderFn = (
-  ctx: SsrSlotContext,
-  rangeId: number,
-  id?: string
-) => ValueOrPromise<SsrOutput>;
+type SlotRenderFn = (ctx: ContainerContext) => MaybeNodeOutput | Promise<MaybeNodeOutput>;
+type SsrSlotRenderFn = (ctx: SsrSlotContext, rangeId: number) => ValueOrPromise<SsrOutput>;
 export type SlotName = string;
 
 export interface Projection {
@@ -43,7 +36,6 @@ export interface Projection {
   owner: Owner | null;
   nodes: readonly Node[] | null;
   slotScope: SlotScope | null;
-  idBase: string;
 }
 
 export interface SlotScope {
@@ -74,14 +66,12 @@ class ProjectionState implements Projection {
   owner: Owner | null;
   nodes: readonly Node[] | null;
   slotScope: SlotScope | null;
-  idBase: string;
 
-  constructor(renderQrl: unknown, slotScope: SlotScope | null, idBase: string) {
+  constructor(renderQrl: unknown, slotScope: SlotScope | null) {
     this.renderQrl = renderQrl;
     this.owner = null;
     this.nodes = null;
     this.slotScope = slotScope;
-    this.idBase = idBase;
   }
 }
 
@@ -94,7 +84,7 @@ export function isSlotScope(value: unknown): value is SlotScope {
 }
 
 export function createProjection(): Projection {
-  return new ProjectionState(null, null, EMPTY_STRING);
+  return new ProjectionState(null, null);
 }
 
 export function isProjection(value: unknown): value is Projection {
@@ -105,14 +95,12 @@ export function registerProjection(
   scope: SlotScope,
   name: string,
   renderQrl: unknown,
-  slotScope?: SlotScope | null,
-  idBase = EMPTY_STRING
+  slotScope?: SlotScope | null
 ): Projection {
   const normalized = name || EMPTY_STRING;
   const registered = new ProjectionState(
     renderQrl,
-    slotScope ?? getActiveInvokeContextOrNull()?.slotScope ?? null,
-    idBase
+    slotScope ?? getActiveInvokeContextOrNull()?.slotScope ?? null
   );
   const slots = scope.slots;
   const projections = slots.get(normalized);
@@ -138,8 +126,7 @@ export function forwardSlot(
     return;
   }
   const forwarded = source.map(
-    (projection) =>
-      new ProjectionState(projection.renderQrl, projection.slotScope, projection.idBase)
+    (projection) => new ProjectionState(projection.renderQrl, projection.slotScope)
   );
   const normalized = targetName || EMPTY_STRING;
   const projections = scope.slots.get(normalized);
@@ -159,15 +146,14 @@ export function resolveSlot(
 
 export function createSlot(
   name: string = EMPTY_STRING,
-  fallback?: SlotRenderFn,
-  idBase = EMPTY_STRING
+  fallback?: SlotRenderFn
 ): ValueOrPromise<readonly Node[]> {
   const context = getActiveInvokeContext();
   const projections = resolveSlot(context.slotScope, name);
   if (projections.length === 0) {
     return fallback === undefined
       ? EMPTY_NODES
-      : maybeThen(runWithCollector(null, fallback, context.container!, idBase), toNodes);
+      : maybeThen(runWithCollector(null, fallback, context.container!), toNodes);
   }
   if (projections.length === 1) {
     return project(projections[0], context.container!, context);
@@ -214,11 +200,7 @@ export interface SsrDynamicTagContext extends SsrSlotContext {
   eventAttr(name: string, value: unknown): SsrEventAttrChunk;
 }
 
-type SsrTagRender = (
-  props: unknown,
-  ctx: SsrDynamicTagContext,
-  idBase?: string
-) => ValueOrPromise<SsrOutput>;
+type SsrTagRender = (props: unknown, ctx: SsrDynamicTagContext) => ValueOrPromise<SsrOutput>;
 
 /**
  * A capitalized tag whose binding is a plain value — `const Tag = props.tag ?? 'h1'`. Only the
@@ -230,11 +212,10 @@ type SsrTagRender = (
 export function renderSsrDynamicTag(
   tag: unknown,
   props: Record<string, unknown>,
-  ctx: SsrDynamicTagContext,
-  idBase?: string
+  ctx: SsrDynamicTagContext
 ): ValueOrPromise<SsrOutput> {
   if (typeof tag !== 'string') {
-    return (tag as SsrTagRender)(props, ctx, idBase);
+    return (tag as SsrTagRender)(props, ctx);
   }
   const { attrs, innerHTML, ref } = renderDomPropsToString(props, ctx.eventAttr);
   const open: SsrRecordPart[] = [`<${tag}`];
@@ -286,25 +267,18 @@ export function renderSsrSlot(
   ctx: SsrSlotContext,
   name: string = EMPTY_STRING,
   fallback?: QRL<SsrSlotRenderFn>,
-  invokeContext: RuntimeInvokeContext | null = getActiveInvokeContext(),
-  idBase = EMPTY_STRING
+  invokeContext: RuntimeInvokeContext | null = getActiveInvokeContext()
 ): ValueOrPromise<SsrOutput> {
   const context = invokeContext ?? getActiveInvokeContext();
   const projections = resolveSlot(context.slotScope, name);
   if (projections.length === 0) {
     return fallback === undefined
       ? EMPTY_STRING
-      : renderSsrProjection(ctx, fallback, null, context, idBase);
+      : renderSsrProjection(ctx, fallback, null, context);
   }
   if (projections.length === 1) {
     const projection = projections[0];
-    return renderSsrProjection(
-      ctx,
-      projection.renderQrl,
-      projection.slotScope,
-      context,
-      projection.idBase
-    );
+    return renderSsrProjection(ctx, projection.renderQrl, projection.slotScope, context);
   }
 
   const output: SsrOutput[] = [];
@@ -313,8 +287,7 @@ export function renderSsrSlot(
       ctx,
       projections[i].renderQrl,
       projections[i].slotScope,
-      context,
-      projections[i].idBase
+      context
     );
     if (isPromise(projected)) {
       return projected.then((resolved) => {
@@ -353,8 +326,7 @@ function project(
     });
     return safeCall(
       // projected content owns its own subscriptions: the consumer's collector must not take them
-      () =>
-        runWithCollector(null, () => invoke(invokeContext, render, container, projection.idBase)),
+      () => runWithCollector(null, () => invoke(invokeContext, render, container)),
       (output) => {
         const nodes = toNodes(output);
         // The cache is dropped only when this owner is disposed, so it must never stay unmaterialized.
@@ -377,8 +349,7 @@ function renderSsrProjection(
   ctx: SsrSlotContext,
   renderQrl: unknown,
   slotScope: SlotScope | null,
-  base: RuntimeInvokeContext,
-  idBase: string
+  base: RuntimeInvokeContext
 ): ValueOrPromise<SsrOutput> {
   const rangeId = ctx.nextId();
   const render = getFunctionOrResolve(
@@ -391,7 +362,7 @@ function renderSsrProjection(
       slotScope,
     });
     return safeCall(
-      () => runWithCollector(null, invoke, invokeContext, render, ctx, rangeId, idBase),
+      () => runWithCollector(null, invoke, invokeContext, render, ctx, rangeId),
       (output) => output,
       (error) => {
         if (invokeContext.owner !== null) {
@@ -436,8 +407,7 @@ function renderRemainingSsrProjections(
       ctx,
       projections[i].renderQrl,
       projections[i].slotScope,
-      invokeContext,
-      projections[i].idBase
+      invokeContext
     );
     if (isPromise(projected)) {
       return projected.then((resolved) => {

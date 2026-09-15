@@ -226,7 +226,6 @@ export default (props, ctx) => {
     q_component_for_key_segment_2_24ursol8ttrxy.w([props]),
     q_component_for_render_segment_1_asysu8t2u0ck.w([props]),
     1,
-    '',
     true,
     3
   );

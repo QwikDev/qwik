@@ -41,7 +41,6 @@ const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
     undefined,
     semantic_collectionRender_286_392_1dya5dm9rmx0a,
     0,
-    '',
     false,
     2
   );
@@ -67,7 +66,6 @@ const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId) => {
     undefined,
     semantic_collectionRender_286_392_1dya5dm9rmx0a,
     0,
-    '',
     false,
     0
   );
@@ -124,7 +122,6 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) =>
     undefined,
     semantic_collectionRender_286_392_1dya5dm9rmx0a,
     0,
-    '',
     false,
     2
   );
@@ -176,7 +173,6 @@ export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId) =>
     undefined,
     semantic_collectionRender_286_392_1dya5dm9rmx0a,
     0,
-    '',
     false,
     0
   );

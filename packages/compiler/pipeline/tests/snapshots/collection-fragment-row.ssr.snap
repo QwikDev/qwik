@@ -57,7 +57,6 @@ export default (props, ctx) => {
     undefined,
     q_component_for_render_segment_0_asyt89wzo2d3,
     0,
-    '',
     true,
     2
   );

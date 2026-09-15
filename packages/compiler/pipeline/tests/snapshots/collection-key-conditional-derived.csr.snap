@@ -71,7 +71,6 @@ export default (props, ctx) => {
       _withCaptures(component_for_key_segment_3_24urt2mcqntyh, [selected, props]),
       _withCaptures(component_for_render_segment_2_asyu0c4tc6e5, [selected, props]),
       1,
-      '',
       3
     )
   );

@@ -174,7 +174,6 @@ export default (props, ctx) => {
     q_component_for_key_segment_3_24urt2mcqntyh.w([selected, props]),
     q_component_for_render_segment_2_asyu0c4tc6e5.w([selected, props]),
     1,
-    '',
     true,
     3
   );

@@ -187,7 +187,6 @@ describe('collection', () => {
         null,
         () => row(element.list.ownerDocument, 'element'),
         IndexMode.None,
-        '',
         RowOutputShape.Element
       )
     );
@@ -203,7 +202,6 @@ describe('collection', () => {
         null,
         () => node.list.ownerDocument.createTextNode('text'),
         IndexMode.None,
-        '',
         RowOutputShape.Node
       )
     );
@@ -219,7 +217,6 @@ describe('collection', () => {
         null,
         () => [row(many.list.ownerDocument, 'first'), row(many.list.ownerDocument, 'second')],
         IndexMode.None,
-        '',
         RowOutputShape.Many
       )
     );
@@ -238,7 +235,6 @@ describe('collection', () => {
         null,
         () => row(list.ownerDocument, 'row'),
         IndexMode.None,
-        '',
         RowOutputShape.Element,
         true
       )

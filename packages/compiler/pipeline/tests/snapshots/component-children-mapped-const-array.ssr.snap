@@ -65,7 +65,6 @@ const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
     undefined,
     semantic_collectionRender_258_522_2ueukuqu5011w,
     0,
-    '',
     false,
     3
   );
@@ -221,7 +220,6 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) =>
     undefined,
     semantic_collectionRender_258_522_2ueukuqu5011w,
     0,
-    '',
     false,
     3
   );

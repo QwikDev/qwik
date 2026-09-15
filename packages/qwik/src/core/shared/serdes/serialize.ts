@@ -1074,7 +1074,6 @@ function serializeBranchSubscription(subscription: SsrBranchSubscription): unkno
     getSsrOwnerItems(subscription.effect.currentOwner),
     effect.invokeContext?.slotScope ?? null,
     effect.useOnRoot ? serializeUseOnScopes(effect.invokeContext) : null,
-    effect.idBase,
   ];
 }
 
@@ -1126,7 +1125,6 @@ function serializeForBlockSubscription(subscription: SsrForBlockSubscription): u
     effect.rowOwners,
     // Effects-mode indices re-derive from row position at resume — only escaped ones serialize.
     effect.indexMode === IndexMode.Escapes ? effect.indexSignals : null,
-    effect.idBase,
     effect.rowShape,
   ];
 }
@@ -1151,7 +1149,7 @@ function serializeSlotScope(scope: SlotScope): unknown[] {
 }
 
 function serializeProjection(projection: Projection): unknown[] {
-  return [projection.renderQrl, projection.slotScope, projection.idBase];
+  return [projection.renderQrl, projection.slotScope];
 }
 
 function serializeDomSubscription(subscription: SsrDomEffectBase | SsrDomSubscription): unknown[] {

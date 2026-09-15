@@ -428,7 +428,6 @@ const inflateResolved = (
       projection.owner = null;
       projection.nodes = null;
       projection.slotScope = (d[1] as SlotScope | null) ?? null;
-      projection.idBase = (d[2] as string | null | undefined) ?? '';
       break;
     }
     case TypeIds.Promise: {
@@ -559,7 +558,6 @@ async function restoreBranchSubscription(
   const ownedItems = parts[7] as SerializedOwnerItems | undefined;
   const slotScope = (parts[8] as SlotScope | null | undefined) ?? null;
   const useOnScopes = parts[9] as UseOnMap[] | null | undefined;
-  const idBase = (parts[10] as string | null | undefined) ?? '';
   const markerRange = findBranchRange(container.element, rangeId);
   isDev && assertDefined(markerRange, `Missing branch range ${rangeId}.`);
   if (markerRange === null) {
@@ -577,7 +575,6 @@ async function restoreBranchSubscription(
     mountedBranch ?? null,
     invokeContext,
     container,
-    idBase,
     useOnScopes != null
   );
   restoreDependencies(subscription, deps);
@@ -605,8 +602,7 @@ async function restoreForBlockSubscription(
   const rowOwners = (parts[7] as Array<Owner | null> | null | undefined) ?? null;
   const indexSignals =
     (parts[8] as Array<ReactiveSignal<number> | null> | null | undefined) ?? null;
-  const idBase = (parts[9] as string | null | undefined) ?? '';
-  const rowShape = (parts[10] as 0 | 1 | 2 | 3 | null | undefined) ?? 3;
+  const rowShape = (parts[9] as 0 | 1 | 2 | 3 | null | undefined) ?? 3;
   const markerRange = findForRange(container.element, rangeId);
   isDev && assertDefined(markerRange, `Missing for range ${rangeId}.`);
   if (markerRange === null) {
@@ -635,7 +631,6 @@ async function restoreForBlockSubscription(
     listOwner,
     invokeContext,
     container,
-    idBase,
     rowShape
   );
   block.resumeItems = readSourceValue(deps[0] as Source<readonly unknown[]>) ?? [];

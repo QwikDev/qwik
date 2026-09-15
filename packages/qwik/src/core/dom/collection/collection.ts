@@ -29,8 +29,7 @@ type CollectionIndex = number | Signal<number> | undefined;
 type CollectionRenderFn<T> = (
   ctx: ContainerContext,
   item: T,
-  index: CollectionIndex,
-  id?: string
+  index: CollectionIndex
 ) => ValueOrPromise<MaybeNodeOutput>;
 type SsrCollectionContext = ContainerContext & { nextId(): number };
 type SsrCollectionRenderFn<T> = (
@@ -38,8 +37,7 @@ type SsrCollectionRenderFn<T> = (
   rangeId: number,
   rowId: number,
   item: T,
-  index: CollectionIndex,
-  id?: string
+  index: CollectionIndex
 ) => ValueOrPromise<SsrOutput>;
 
 export function createCollection<T>(
@@ -50,7 +48,6 @@ export function createCollection<T>(
   keyFn: CollectionKeyFn<T> | QRL<CollectionKeyFn<T>> | null,
   renderFn: CollectionRenderFn<T> | QRL<CollectionRenderFn<T>>,
   indexMode: IndexMode = IndexMode.None,
-  idBase = '',
   rowShape: RowOutputShape = RowOutputShape.Unknown,
   transient = false
 ): ValueOrPromise<void> {
@@ -62,7 +59,6 @@ export function createCollection<T>(
       keyFn,
       renderFn as never,
       indexMode,
-      idBase,
       rowShape
     ).run();
   }
@@ -71,7 +67,7 @@ export function createCollection<T>(
   const owner = createOwner();
   return rollbackOwnerOnError(owner, () =>
     maybeThen(getFunctionOrResolve(renderFn, ctx), (render) =>
-      renderArray(ctx, start, end, collection, render, base, owner, idBase, rowShape, transient)
+      renderArray(ctx, start, end, collection, render, base, owner, rowShape, transient)
     )
   );
 }
@@ -84,7 +80,6 @@ function renderArray<T>(
   render: CollectionRenderFn<T>,
   base: ReturnType<typeof getActiveInvokeContextOrNull>,
   owner: Owner,
-  idBase: string,
   rowShape: RowOutputShape,
   transient: boolean
 ): ValueOrPromise<void> {
@@ -94,14 +89,7 @@ function renderArray<T>(
   const next = (index: number): ValueOrPromise<void> => {
     for (let i = index; i < items.length; i++) {
       const context = newChildInvokeContext(base, { ownerHost: owner, container: ctx });
-      const output = invoke(
-        context,
-        render,
-        ctx,
-        items[i],
-        i,
-        idBase === '' ? '' : `${idBase}${i}-`
-      );
+      const output = invoke(context, render, ctx, items[i], i);
       if (isPromise(output)) {
         return output.then((output) => {
           append(output);
@@ -128,7 +116,6 @@ export function renderSsrCollection<T>(
   keyQrl: QRL<CollectionKeyFn<T>> | undefined,
   renderQrl: SsrCollectionRenderFn<T> | QRL<SsrCollectionRenderFn<T>>,
   indexMode: IndexMode = IndexMode.None,
-  idBase = '',
   usesRowId = true,
   rowShape: RowOutputShape = RowOutputShape.Unknown
 ): ValueOrPromise<SsrOutput> {
@@ -140,7 +127,6 @@ export function renderSsrCollection<T>(
       keyQrl ?? null,
       renderQrl as QRL<SsrCollectionRenderFn<T>>,
       indexMode,
-      idBase,
       usesRowId,
       rowShape
     );
@@ -155,16 +141,7 @@ export function renderSsrCollection<T>(
         for (let i = start; i < collection.length; i++) {
           const rowId = usesRowId ? ctx.nextId() : 0;
           const context = newChildInvokeContext(base, { ownerHost: owner, container: ctx });
-          const row = invoke(
-            context,
-            render,
-            ctx,
-            rangeId!,
-            rowId,
-            collection[i],
-            i,
-            idBase === '' ? '' : `${idBase}${i}-`
-          );
+          const row = invoke(context, render, ctx, rangeId!, rowId, collection[i], i);
           if (isPromise(row)) {
             return row.then((row) => {
               output.push(row);

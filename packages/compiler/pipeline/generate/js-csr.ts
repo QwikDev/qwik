@@ -673,7 +673,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         const key =
           op.key === null ? 'null' : this.capturedChunkReference(op.key.use, pass.names.props);
         statements.push(
-          `${pass.names.ctx}.scheduler.waitFor(${QwikWord.CreateCollection}(${pass.names.ctx}, ${start}, ${end}, ${source}, ${key}, ${render}, ${op.index}, '', ${rowShapeCode(op.shape)}));`
+          `${pass.names.ctx}.scheduler.waitFor(${QwikWord.CreateCollection}(${pass.names.ctx}, ${start}, ${end}, ${source}, ${key}, ${render}, ${op.index}, ${rowShapeCode(op.shape)}));`
         );
         break;
       }
@@ -684,7 +684,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         // One-shot render: local row function, transient collection, nothing awaited.
         const rowFn = this.inlineRowFunction(op.row, statements);
         statements.push(
-          `${QwikWord.CreateCollection}(${pass.names.ctx}, ${start}, ${end}, ${source}, null, ${rowFn}, ${op.index}, '', ${rowShapeCode(op.shape)}, true);`
+          `${QwikWord.CreateCollection}(${pass.names.ctx}, ${start}, ${end}, ${source}, null, ${rowFn}, ${op.index}, ${rowShapeCode(op.shape)}, true);`
         );
         break;
       }

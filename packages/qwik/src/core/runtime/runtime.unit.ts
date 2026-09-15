@@ -13,12 +13,7 @@ import {
 import { disposeSubscriber } from '../reactive/cleanup';
 import { OwnerFlags, SubscriberFlags } from '../reactive/flags';
 import { useSignal, useComputed } from '../reactive/public-api';
-import {
-  _await,
-  getActiveCollector,
-  invokeWithCollector4,
-  runWithCollector,
-} from '../reactive/tracking';
+import { _await, getActiveCollector, runWithCollector } from '../reactive/tracking';
 import { createTextNodeEffect, type TextExpressionEffect } from '../dom/effect/text-effect';
 import {
   createOwner,
@@ -701,44 +696,6 @@ describe('runtime scheduler and owner lifecycle', () => {
 
     expect(getActiveOwner()).toBeNull();
     expect(getActiveCollector()).toBeNull();
-  });
-
-  it('invokes four arguments with collector and context restoration', () => {
-    const scheduler = new Scheduler(noopSchedule);
-    const collector = runWithTestContainer(scheduler, () => useTask(() => {}));
-    const outerContext = newInvokeContext({});
-    const rowContext = newInvokeContext({});
-    const seen: unknown[] = [];
-
-    invoke(outerContext, () => {
-      const result = invokeWithCollector4(
-        collector,
-        rowContext,
-        (first, second, third, fourth) => {
-          seen.push(
-            getActiveCollector(),
-            getActiveInvokeContextOrNull(),
-            first,
-            second,
-            third,
-            fourth
-          );
-          return 'result';
-        },
-        1,
-        2,
-        3,
-        4
-      );
-
-      expect(result).toBe('result');
-      expect(getActiveCollector()).toBeNull();
-      expect(getActiveInvokeContextOrNull()).toBe(outerContext);
-    });
-
-    expect(seen).toEqual([collector, rowContext, 1, 2, 3, 4]);
-    expect(getActiveCollector()).toBeNull();
-    expect(getActiveInvokeContextOrNull()).toBeNull();
   });
 
   it('useTask tracks dependencies and reruns after signal mutation', async () => {

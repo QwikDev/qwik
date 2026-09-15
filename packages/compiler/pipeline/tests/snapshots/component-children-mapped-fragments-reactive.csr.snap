@@ -79,7 +79,6 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
       null,
       component_for_render_segment_1_asysu8t2u0ck,
       0,
-      '',
       2
     )
   );
@@ -196,7 +195,6 @@ export const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx) => {
       null,
       component_for_render_segment_4_asyro5hcbuaz,
       0,
-      '',
       0
     )
   );

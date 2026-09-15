@@ -21,7 +21,6 @@ export default (props, ctx) => {
     undefined,
     semantic_collectionRender_60_100_el39n3e3jhrb,
     0,
-    '',
     false,
     0
   );

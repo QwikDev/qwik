@@ -60,7 +60,6 @@ const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
     undefined,
     semantic_collectionRender_312_447_3uti95l1qinm7,
     0,
-    '',
     false,
     3
   );
@@ -109,7 +108,6 @@ const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx, __rangeId) => {
     undefined,
     semantic_collectionRender_312_447_3uti95l1qinm7,
     0,
-    '',
     false,
     3
   );
@@ -274,7 +272,6 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) =>
     undefined,
     semantic_collectionRender_312_447_3uti95l1qinm7,
     0,
-    '',
     false,
     3
   );
@@ -432,7 +429,6 @@ export const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx, __rangeId) =>
     undefined,
     semantic_collectionRender_312_447_3uti95l1qinm7,
     0,
-    '',
     false,
     3
   );

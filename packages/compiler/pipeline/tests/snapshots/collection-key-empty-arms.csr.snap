@@ -46,7 +46,6 @@ export default (props, ctx) => {
       _withCaptures(component_for_key_segment_2_24ursol8ttrxy, [props]),
       _withCaptures(component_for_render_segment_1_asysu8t2u0ck, [props]),
       1,
-      '',
       3
     )
   );

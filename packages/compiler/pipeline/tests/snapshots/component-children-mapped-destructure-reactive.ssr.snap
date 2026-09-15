@@ -43,7 +43,6 @@ const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
     undefined,
     q_component_for_render_segment_1_asysu8t2u0ck.w([suffix]),
     1,
-    '',
     false,
     0
   );
@@ -196,7 +195,6 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) =>
     undefined,
     q_component_for_render_segment_1_asysu8t2u0ck.w([suffix]),
     1,
-    '',
     false,
     0
   );

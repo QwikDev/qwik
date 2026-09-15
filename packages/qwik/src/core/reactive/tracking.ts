@@ -1,10 +1,6 @@
 import { appendSourceSubscriber, type Source } from './source';
 import type { CollectorSubscriber } from '../runtime/subscriber';
-import {
-  getActiveInvokeContextOrNull,
-  setActiveInvokeContext,
-  type RuntimeInvokeContext,
-} from '../runtime/invoke-context';
+import { getActiveInvokeContextOrNull, setActiveInvokeContext } from '../runtime/invoke-context';
 import { isSubscriberDisposed } from '../runtime/subscriber';
 
 let activeCollector: CollectorSubscriber | null = null;
@@ -85,28 +81,6 @@ export function runWithCollector1<T, TArg>(
     return run(arg);
   } finally {
     activeCollector = previous;
-  }
-}
-
-export function invokeWithCollector4<T, TFirst, TSecond, TThird, TFourth>(
-  collector: CollectorSubscriber | null,
-  context: RuntimeInvokeContext | null,
-  run: (first: TFirst, second: TSecond, third: TThird, fourth: TFourth) => T,
-  first: TFirst,
-  second: TSecond,
-  third: TThird,
-  fourth: TFourth
-): T {
-  const previousCollector = activeCollector;
-  const previousContext = getActiveInvokeContextOrNull();
-  activeCollector = collector;
-  setActiveInvokeContext(context);
-
-  try {
-    return run(first, second, third, fourth);
-  } finally {
-    setActiveInvokeContext(previousContext);
-    activeCollector = previousCollector;
   }
 }
 

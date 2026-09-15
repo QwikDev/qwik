@@ -189,7 +189,6 @@ export default (props, ctx) => {
     undefined,
     semantic_collectionRender_353_380_2jei9u6jwoe3w,
     0,
-    '',
     false,
     3
   );

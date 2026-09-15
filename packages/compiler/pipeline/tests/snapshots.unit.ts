@@ -2693,6 +2693,25 @@ export default (props: { label?: string; content?: any }) => {
     }
   });
 
+  test('should keep a leading newline the parser would drop in pre and textarea', async () => {
+    const output = await testInput(mode, 'leading-newline', {
+      code: `export default (props: { code: string }) => (
+  <div>
+    <pre>{props.code}</pre>
+    <pre>{'\\nfixed'}</pre>
+    <textarea value={props.code} />
+  </div>
+);`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const code = output.modules.map((module) => module.code).join('\n');
+    // The static literal doubles at the analyser; a live value doubles when the server writes it.
+    expect(code).toContain(String.raw`\n\nfixed`);
+    if (mode === 'ssr') {
+      expect(code.match(/\.replace\(\/\^\\n\/, '\\n\\n'\)/g)).toHaveLength(2);
+    }
+  });
+
   test('should fold several parts of text-only content into one hole', async () => {
     const output = await testInput(mode, 'text-only-content', {
       code: `export default (props: { page: string; line: string; count: number }) => (

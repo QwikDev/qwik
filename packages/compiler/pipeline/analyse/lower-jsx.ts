@@ -38,6 +38,7 @@ import {
 import { normalizeJsxText } from './ast/jsx-text';
 import {
   escapeText,
+  NEWLINE_EATING_ELEMENTS,
   normalizeAttributeName,
   RAW_TEXT_ELEMENTS,
   RCDATA_ELEMENTS,
@@ -217,6 +218,11 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
       `The void element <${tag}> cannot have children.`,
       [element.start, element.end]
     );
+  }
+  // Doubling the newline the parser eats keeps the authored one in the server and template markup.
+  const first = children[0];
+  if (NEWLINE_EATING_ELEMENTS.has(tag) && first?.op === OpKind.Static && first.html[0] === '\n') {
+    first.html = '\n' + first.html;
   }
   // A declarative shadow root moves the content into the host; any other template keeps it inert.
   const isInertTemplate =

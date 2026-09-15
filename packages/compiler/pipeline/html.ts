@@ -21,6 +21,9 @@ export const VOID_ELEMENTS: ReadonlySet<string> = new Set([
 /** Elements whose content the parser never decodes: a literal, guarded against a premature closer. */
 export const RAW_TEXT_ELEMENTS: ReadonlySet<string> = new Set(['script', 'style']);
 
+/** Elements whose first newline the parser drops right after the open tag. */
+export const NEWLINE_EATING_ELEMENTS: ReadonlySet<string> = new Set(['pre', 'textarea']);
+
 /** Elements whose content is one text node: the parser reads a comment marker there as text. */
 export const RCDATA_ELEMENTS: ReadonlySet<string> = new Set(['title', 'textarea']);
 

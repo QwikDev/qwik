@@ -1,9 +1,10 @@
 ==INPUT==
 
-export default (props: { page: string; line: string; count: number }) => (
+export default (props: { code: string }) => (
   <div>
-    <title>{props.page} - Site</title>
-    <textarea>{props.line}{props.line}</textarea>
+    <pre>{props.code}</pre>
+    <pre>{'\nfixed'}</pre>
+    <textarea value={props.code} />
   </div>
 );
 == SSR OUTPUT ==
@@ -14,24 +15,26 @@ import {
   createSsrNodeId,
   escapeHTML,
   renderSsrTextExpression,
+  renderSsrAttrExpression,
+  _textValue,
   maybeThen,
   _noopQrl,
 } from '@qwik.dev/core';
 
 const component_text_segment_0_1fh10fbkzokfc = (props) => {
-  return `${props.page} - Site`;
+  return props.code;
 };
 const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _noopQrl(
   'component_text_segment_0_1fh10fbkzokfc'
 );
 q_component_text_segment_0_1fh10fbkzokfc.s(component_text_segment_0_1fh10fbkzokfc);
-const component_text_segment_1_1fh10tcowimfv = (props) => {
-  return `${props.line}${props.line}`;
+const component_value_segment_1_3bryz6rcumkah = (props) => {
+  return props.code;
 };
-const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _noopQrl(
-  'component_text_segment_1_1fh10tcowimfv'
+const q_component_value_segment_1_3bryz6rcumkah = /*#__PURE__*/ _noopQrl(
+  'component_value_segment_1_3bryz6rcumkah'
 );
-q_component_text_segment_1_1fh10tcowimfv.s(component_text_segment_1_1fh10tcowimfv);
+q_component_value_segment_1_3bryz6rcumkah.s(component_value_segment_1_3bryz6rcumkah);
 export default (props, ctx) => {
   const id0 = ctx.nextId();
   ctx.addRoot(props);
@@ -42,22 +45,24 @@ export default (props, ctx) => {
     q_component_text_segment_0_1fh10fbkzokfc
   );
   const id1 = ctx.nextId();
-  const text1 = renderSsrTextExpression(
+  const attr0 = renderSsrAttrExpression(
     id1,
-    null,
+    'value',
     [props],
-    q_component_text_segment_1_1fh10tcowimfv
+    q_component_value_segment_1_3bryz6rcumkah
   );
   return maybeThen(text0, (text0) =>
-    maybeThen(text1, (text1) => [
-      '<div><title q:id="',
+    maybeThen(attr0, (attr0) => [
+      '<div><pre q:id="',
       createSsrNodeId(id0),
       '">',
-      escapeHTML(text0),
-      '</title><textarea q:id="',
+      escapeHTML(text0.replace(/^\n/, '\n\n')),
+      '</pre><pre>\n\nfixed</pre><textarea q:id="',
       createSsrNodeId(id1),
-      '">',
-      escapeHTML(text1.replace(/^\n/, '\n\n')),
+      '"',
+      attr0 === null ? '' : ' value' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
+      '>',
+      escapeHTML(_textValue(props.code).replace(/^\n/, '\n\n')),
       '</textarea></div>',
     ])
   );
@@ -65,7 +70,7 @@ export default (props, ctx) => {
 ============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
 
 export const component_text_segment_0_1fh10fbkzokfc = (props) => {
-  return `${props.page} - Site`;
+  return props.code;
 };
 /*
 {
@@ -81,8 +86,8 @@ export const component_text_segment_0_1fh10fbkzokfc = (props) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    88,
-    113
+    64,
+    74
   ],
   "paramNames": [],
   "captureNames": [
@@ -90,27 +95,27 @@ export const component_text_segment_0_1fh10fbkzokfc = (props) => {
   ]
 }
 */
-============================= src/component.tsx_component_text_segment_1_1fh10tcowimfv.js (ENTRY POINT)==
+============================= src/component.tsx_component_value_segment_1_3bryz6rcumkah.js (ENTRY POINT)==
 
-export const component_text_segment_1_1fh10tcowimfv = (props) => {
-  return `${props.line}${props.line}`;
+export const component_value_segment_1_3bryz6rcumkah = (props) => {
+  return props.code;
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_text_segment_1_1fh10tcowimfv",
+  "name": "component_value_segment_1_3bryz6rcumkah",
   "entry": null,
-  "displayName": "component_text_segment_1",
-  "hash": "1fh10tcowimfv",
-  "canonicalFilename": "component.tsx_component_text_segment_1_1fh10tcowimfv",
+  "displayName": "component_value_segment_1",
+  "hash": "3bryz6rcumkah",
+  "canonicalFilename": "component.tsx_component_value_segment_1_3bryz6rcumkah",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
-  "ctxName": "text",
+  "ctxName": "value",
   "captures": true,
   "loc": [
-    127,
-    160
+    130,
+    140
   ],
   "paramNames": [],
   "captureNames": [

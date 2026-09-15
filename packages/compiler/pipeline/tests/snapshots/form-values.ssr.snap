@@ -48,7 +48,7 @@ export default (props, ctx) => {
       '"',
       attr0 === null ? '' : ' value' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
       '>',
-      escapeHTML(_textValue(text.value)),
+      escapeHTML(_textValue(text.value).replace(/^\n/, '\n\n')),
       '</textarea><textarea>fixed</textarea><select q:id="',
       createSsrNodeId(id1),
       '"',

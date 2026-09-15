@@ -436,8 +436,10 @@ Share prop classification; deliver the following in small increments.
       one-space placeholder that showed inline (`empty-text-hole.spec.tsx`, `inflate.unit.ts`).
       A `template` without a declarative shadow root keeps its content in an inert fragment
       that no locator reaches, so live content there is diagnosed; a `shadowRootMode` template
-      is left to the shadow-root walker work (`dom-nesting.unit.ts`). Open: the dropped leading
-      newline of `pre` and `textarea`.
+      is left to the shadow-root walker work (`dom-nesting.unit.ts`). The newline the parser
+      drops after `<pre>` and `<textarea>` is doubled: at the analyser for a static first child,
+      by the server text writer for a live first hole, so the parsed text equals what the client
+      sets (`leading-newline` snapshots, `leading-newline.spec.tsx` in CSR and resume).
 - [ ] `q:shadowRoot` and container boundaries exercised by e2e.
 
 Verify the escaping boundary between text/attributes and explicit raw HTML, including script
@@ -572,6 +574,11 @@ code size and runtime cost. The previous implementation is not the accepted defa
 
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
+
+- 2026-09-15: Leading newlines: `NEWLINE_EATING_ELEMENTS` in `html.ts` drives a one-line
+  doubling in `lowerJsx` and an `escapedText` wrapper in the SSR emitter for the first hole of
+  such an element. Verification: 1146 pipeline tests, the new spec in CSR and resume, both
+  corpora unchanged.
 
 - 2026-09-15: Inert templates: `isFullyStaticSubtree` and `inlineStringValue` move to the
   phase-neutral `static-subtree.ts` so the analyser can refuse live content under a `template`

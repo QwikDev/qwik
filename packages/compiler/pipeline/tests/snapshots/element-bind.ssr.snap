@@ -49,7 +49,7 @@ export default (props, ctx) => {
       attr1 === null ? '' : ' value' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
       ctx.eventAttrParts('q-e:input', inlinedQrl(_val, '_val', [text])),
       '>',
-      escapeHTML(_textValue(text.value)),
+      escapeHTML(_textValue(text.value).replace(/^\n/, '\n\n')),
       '</textarea></form>',
     ])
   );

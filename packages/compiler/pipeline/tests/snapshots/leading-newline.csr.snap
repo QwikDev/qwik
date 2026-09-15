@@ -1,0 +1,108 @@
+==INPUT==
+
+export default (props: { code: string }) => (
+  <div>
+    <pre>{props.code}</pre>
+    <pre>{'\nfixed'}</pre>
+    <textarea value={props.code} />
+  </div>
+);
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  _first,
+  createTextExpressionEffect,
+  _last,
+  createAttrExpressionEffect,
+  _textValue,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+import { component_text_segment_0_1fh10fbkzokfc } from './component.tsx_component_text_segment_0_1fh10fbkzokfc';
+import { component_value_segment_1_3bryz6rcumkah } from './component.tsx_component_value_segment_1_3bryz6rcumkah';
+
+const default_tmpl0 = _createElementTemplate(
+  '<div><pre> </pre><pre>\n\nfixed</pre><textarea> </textarea></div>'
+);
+export default (props, ctx) => {
+  const el0 = default_tmpl0(ctx.document);
+  const text0 = _first(_first(el0));
+  const effect0 = createTextExpressionEffect(
+    text0,
+    [props],
+    component_text_segment_0_1fh10fbkzokfc,
+    ctx.scheduler
+  );
+  ctx.scheduler.notify(effect0);
+  const el1 = _last(el0);
+  const effect1 = createAttrExpressionEffect(
+    el1,
+    'value',
+    [props],
+    component_value_segment_1_3bryz6rcumkah,
+    ctx.scheduler
+  );
+  ctx.scheduler.notify(effect1);
+  _first(el1).data = _textValue(props.code);
+  return el0;
+};
+============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
+
+export const component_text_segment_0_1fh10fbkzokfc = (props) => {
+  return props.code;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_0_1fh10fbkzokfc",
+  "entry": null,
+  "displayName": "component_text_segment_0",
+  "hash": "1fh10fbkzokfc",
+  "canonicalFilename": "component.tsx_component_text_segment_0_1fh10fbkzokfc",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    64,
+    74
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_value_segment_1_3bryz6rcumkah.js (ENTRY POINT)==
+
+export const component_value_segment_1_3bryz6rcumkah = (props) => {
+  return props.code;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_value_segment_1_3bryz6rcumkah",
+  "entry": null,
+  "displayName": "component_value_segment_1",
+  "hash": "3bryz6rcumkah",
+  "canonicalFilename": "component.tsx_component_value_segment_1_3bryz6rcumkah",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "value",
+  "captures": true,
+  "loc": [
+    130,
+    140
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

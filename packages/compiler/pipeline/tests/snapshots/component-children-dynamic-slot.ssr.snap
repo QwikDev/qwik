@@ -15,7 +15,9 @@ import {
   maybeThen,
   renderSsrSlot,
   _noopQrl,
-  readExpression,
+  propSource,
+  isSource,
+  readTrackedValue,
   _props,
   createSlotScope,
   registerProjection,
@@ -32,27 +34,20 @@ const q_component_slot_dynamic_segment_0_2ikf7n1jp8rfp = /*#__PURE__*/ _noopQrl(
   'component_slot_dynamic_segment_0_2ikf7n1jp8rfp'
 );
 q_component_slot_dynamic_segment_0_2ikf7n1jp8rfp.s(component_slot_dynamic_segment_0_2ikf7n1jp8rfp);
-const component_name_segment_1_80s3opa72ppn = (props) => {
-  return props.pick;
-};
-const q_component_name_segment_1_80s3opa72ppn = /*#__PURE__*/ _noopQrl(
-  'component_name_segment_1_80s3opa72ppn'
-);
-q_component_name_segment_1_80s3opa72ppn.s(component_name_segment_1_80s3opa72ppn);
-const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId) => {
+const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId) => {
   return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), '<i>Alpha</i>', '<!/s>'];
+};
+const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _noopQrl(
+  'component_slot_render_segment_1_3b0tauy2p1nv1'
+);
+q_component_slot_render_segment_1_3b0tauy2p1nv1.s(component_slot_render_segment_1_3b0tauy2p1nv1);
+const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId) => {
+  return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), '<b>Bravo</b>', '<!/s>'];
 };
 const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_2_3b0t9ouqyjhtg'
 );
 q_component_slot_render_segment_2_3b0t9ouqyjhtg.s(component_slot_render_segment_2_3b0t9ouqyjhtg);
-const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx, __rangeId) => {
-  return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), '<b>Bravo</b>', '<!/s>'];
-};
-const q_component_slot_render_segment_3_3b0ta2vuvdjtz = /*#__PURE__*/ _noopQrl(
-  'component_slot_render_segment_3_3b0ta2vuvdjtz'
-);
-q_component_slot_render_segment_3_3b0ta2vuvdjtz.s(component_slot_render_segment_3_3b0ta2vuvdjtz);
 export const Switch = (props, ctx) => {
   const id0 = ctx.nextId();
   ctx.addRoot(props);
@@ -68,20 +63,20 @@ export const Switch = (props, ctx) => {
 };
 export default (props, ctx) => {
   const slotScope0 = createSlotScope();
-  ctx.addRoot(props);
+  const prop0 = propSource(props, 'pick');
+  isSource(prop0) && ctx.addRoot(prop0);
+  registerProjection(slotScope0, 'a', q_component_slot_render_segment_1_3b0tauy2p1nv1);
+  registerProjection(slotScope0, 'b', q_component_slot_render_segment_2_3b0t9ouqyjhtg);
   ctx.addRoot(slotScope0);
-  const propQrl0 = q_component_name_segment_1_80s3opa72ppn.w([props]);
-  registerProjection(slotScope0, 'a', q_component_slot_render_segment_2_3b0t9ouqyjhtg);
-  registerProjection(slotScope0, 'b', q_component_slot_render_segment_3_3b0ta2vuvdjtz);
   const component0 = createComponent(
     Switch,
     _props(
       {
         get name() {
-          return readExpression(propQrl0);
+          return readTrackedValue(prop0);
         },
       },
-      { name: propQrl0 }
+      { name: prop0 }
     ),
     ctx,
     { slotScope: slotScope0 }
@@ -121,49 +116,21 @@ export const component_slot_dynamic_segment_0_2ikf7n1jp8rfp = (ctx) => {
   ]
 }
 */
-============================= src/component.tsx_component_name_segment_1_80s3opa72ppn.js (ENTRY POINT)==
-
-export const component_name_segment_1_80s3opa72ppn = (props) => {
-  return props.pick;
-};
-/*
-{
-  "origin": "component.tsx",
-  "name": "component_name_segment_1_80s3opa72ppn",
-  "entry": null,
-  "displayName": "component_name_segment_1",
-  "hash": "80s3opa72ppn",
-  "canonicalFilename": "component.tsx_component_name_segment_1_80s3opa72ppn",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "name",
-  "captures": true,
-  "loc": [
-    140,
-    150
-  ],
-  "paramNames": [],
-  "captureNames": [
-    "props"
-  ]
-}
-*/
-============================= src/component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg.js (ENTRY POINT)==
+============================= src/component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1.js (ENTRY POINT)==
 
 import { createSsrMarkup, createSsrNodeId } from '@qwik.dev/core';
 
-export const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId) => {
+export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId) => {
   return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), '<i>Alpha</i>', '<!/s>'];
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_slot_render_segment_2_3b0t9ouqyjhtg",
+  "name": "component_slot_render_segment_1_3b0tauy2p1nv1",
   "entry": null,
-  "displayName": "component_slot_render_segment_2",
-  "hash": "3b0t9ouqyjhtg",
-  "canonicalFilename": "component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg",
+  "displayName": "component_slot_render_segment_1",
+  "hash": "3b0tauy2p1nv1",
+  "canonicalFilename": "component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -176,21 +143,21 @@ export const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId) =>
   "paramNames": []
 }
 */
-============================= src/component.tsx_component_slot_render_segment_3_3b0ta2vuvdjtz.js (ENTRY POINT)==
+============================= src/component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg.js (ENTRY POINT)==
 
 import { createSsrMarkup, createSsrNodeId } from '@qwik.dev/core';
 
-export const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx, __rangeId) => {
+export const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId) => {
   return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), '<b>Bravo</b>', '<!/s>'];
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_slot_render_segment_3_3b0ta2vuvdjtz",
+  "name": "component_slot_render_segment_2_3b0t9ouqyjhtg",
   "entry": null,
-  "displayName": "component_slot_render_segment_3",
-  "hash": "3b0ta2vuvdjtz",
-  "canonicalFilename": "component.tsx_component_slot_render_segment_3_3b0ta2vuvdjtz",
+  "displayName": "component_slot_render_segment_2",
+  "hash": "3b0t9ouqyjhtg",
+  "canonicalFilename": "component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

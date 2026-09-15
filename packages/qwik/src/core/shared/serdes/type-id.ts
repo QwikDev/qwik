@@ -49,4 +49,5 @@ export const enum TypeIds {
   BigArray,
   StoreProp,
   Owner,
+  PropSource,
 }

@@ -94,7 +94,7 @@ import { PromiseRoot, unwrapPromiseRoot } from './promise-root';
 import { EMPTY_OBJECT_PAYLOAD, TypeIds } from './constants';
 import { needsInflation } from './constants';
 import type { SerializedOwnerItems } from './serialize';
-import { _props, restorePropsProxyState } from '../../component/props';
+import { _props, restorePropsProxyState, type PropSource } from '../../component/props';
 
 export { allocate, needsInflation };
 
@@ -154,6 +154,7 @@ export const inflate = (
     typeId !== TypeIds.Signal &&
     typeId !== TypeIds.Store &&
     typeId !== TypeIds.StoreProp &&
+    typeId !== TypeIds.PropSource &&
     typeId !== TypeIds.ComputedSignal &&
     typeId !== TypeIds.AsyncSignal &&
     typeId !== TypeIds.SerializerSignal &&
@@ -360,6 +361,18 @@ const inflateResolved = (
         maybeThen(container.getRoot(rootId as number | string), (target) =>
           maybeThen(deserializeData(container, d[2] as TypeIds, d[3]), (prop) => {
             bindStoreSource(source, target as object, prop as PropertyKey);
+          })
+        )
+      );
+    }
+    case TypeIds.PropSource: {
+      const source = target as PropSource;
+      const d = data as unknown[];
+      return maybeThen(deserializeData(container, d[0] as TypeIds, d[1]), (rootId) =>
+        maybeThen(container.getRoot(rootId as number | string), (props) =>
+          maybeThen(deserializeData(container, d[2] as TypeIds, d[3]), (key) => {
+            source.props = props as object;
+            source.key = key as string;
           })
         )
       );

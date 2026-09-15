@@ -1,0 +1,202 @@
+==INPUT==
+
+import { component$, useSignal } from '@qwik.dev/core';
+import { Badge } from './badge';
+export const Card = component$((props: { title: string; count: number }) => {
+  const heading = props.title;
+  return (
+    <section class={props.title}>
+      <h2>{heading}</h2>
+      <Badge label={props.title} />
+      <b>{props.count + 1}</b>
+    </section>
+  );
+});
+export const Defaulted = component$(({ title = 'Untitled' }: { title?: string }) => <h3>{title}</h3>);
+export default component$(() => {
+  const count = useSignal(1);
+  return <Card title={'n=' + count.value} count={count.value} />;
+});
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  propSource,
+  createAttrEffect,
+  _first,
+  createTextNodeEffect,
+  _next,
+  readTrackedValue,
+  _props,
+  createComponent,
+  _toNodes,
+  _last,
+  createTextExpressionEffect,
+  _createElementTemplate,
+  useSignal,
+  _qrlWithChunk,
+  readExpression,
+} from '@qwik.dev/core';
+import { component_text_segment_0_1fh10fbkzokfc } from './component.tsx_component_text_segment_0_1fh10fbkzokfc';
+import { component_text_segment_1_1fh10tcowimfv } from './component.tsx_component_text_segment_1_1fh10tcowimfv';
+
+const Card_tmpl0 = _createElementTemplate('<section><h2> </h2><!><b> </b></section>');
+const Defaulted_tmpl0 = _createElementTemplate('<h3> </h3>');
+const q_component_title_segment_2_2f0r05go51flv = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_title_segment_2_2f0r05go51flv',
+  () => import('./component.tsx_component_title_segment_2_2f0r05go51flv'),
+  'component_title_segment_2_2f0r05go51flv'
+);
+import { Badge } from './badge';
+export const Card = (props, ctx) => {
+  const el0 = Card_tmpl0(ctx.document);
+  const prop0 = propSource(props, 'title');
+  const effect0 = createAttrEffect(el0, 'class', prop0, ctx.scheduler);
+  ctx.scheduler.notify(effect0);
+  const text0 = _first(_first(el0));
+  const effect1 = createTextNodeEffect(text0, prop0, ctx.scheduler);
+  ctx.scheduler.notify(effect1);
+  const marker0 = _next(_first(el0));
+  const component0 = createComponent(
+    Badge,
+    _props(
+      {
+        get label() {
+          return readTrackedValue(prop0);
+        },
+      },
+      { label: prop0 }
+    ),
+    ctx
+  );
+  marker0.replaceWith(..._toNodes(component0));
+  const text1 = _first(_last(el0));
+  const effect2 = createTextExpressionEffect(
+    text1,
+    [props],
+    component_text_segment_0_1fh10fbkzokfc,
+    ctx.scheduler
+  );
+  ctx.scheduler.notify(effect2);
+  return el0;
+};
+export const Defaulted = (props0, ctx) => {
+  const el0 = Defaulted_tmpl0(ctx.document);
+  const text0 = _first(el0);
+  const effect0 = createTextExpressionEffect(
+    text0,
+    [props0],
+    component_text_segment_1_1fh10tcowimfv,
+    ctx.scheduler
+  );
+  ctx.scheduler.notify(effect0);
+  return el0;
+};
+export default (props1, ctx) => {
+  const count = useSignal(1);
+  const propQrl0 = q_component_title_segment_2_2f0r05go51flv.w([count]);
+  const component0 = createComponent(
+    Card,
+    _props(
+      {
+        get title() {
+          return readExpression(propQrl0);
+        },
+        get count() {
+          return readTrackedValue(count);
+        },
+      },
+      { title: propQrl0, count: count }
+    ),
+    ctx
+  );
+  return component0;
+};
+============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
+
+export const component_text_segment_0_1fh10fbkzokfc = (props) => {
+  return props.count + 1;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_0_1fh10fbkzokfc",
+  "entry": null,
+  "displayName": "component_text_segment_0",
+  "hash": "1fh10fbkzokfc",
+  "canonicalFilename": "component.tsx_component_text_segment_0_1fh10fbkzokfc",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    314,
+    329
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_text_segment_1_1fh10tcowimfv.js (ENTRY POINT)==
+
+export const component_text_segment_1_1fh10tcowimfv = (props0) => {
+  return props0.title === void 0 ? 'Untitled' : props0.title;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_1_1fh10tcowimfv",
+  "entry": null,
+  "displayName": "component_text_segment_1",
+  "hash": "1fh10tcowimfv",
+  "canonicalFilename": "component.tsx_component_text_segment_1_1fh10tcowimfv",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    448,
+    453
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props0"
+  ]
+}
+*/
+============================= src/component.tsx_component_title_segment_2_2f0r05go51flv.js (ENTRY POINT)==
+
+export const component_title_segment_2_2f0r05go51flv = (count) => {
+  return 'n=' + count.value;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_title_segment_2_2f0r05go51flv",
+  "entry": null,
+  "displayName": "component_title_segment_2",
+  "hash": "2f0r05go51flv",
+  "canonicalFilename": "component.tsx_component_title_segment_2_2f0r05go51flv",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "title",
+  "captures": true,
+  "loc": [
+    548,
+    566
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

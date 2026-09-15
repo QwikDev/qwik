@@ -11,41 +11,37 @@ export default (props) => (
 
 import {
   _first,
-  createTextExpressionEffect,
+  propSource,
+  createTextNodeEffect,
   _createElementTemplate,
   _qrlWithChunk,
   readExpression,
   mergeProps,
   createComponent,
 } from '@qwik.dev/core';
-import { component_text_segment_0_1fh10fbkzokfc } from './component.tsx_component_text_segment_0_1fh10fbkzokfc';
 
 const Child_tmpl0 = _createElementTemplate('<strong> </strong>');
+const q_component_props_segment_0_208o16glymg7p = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_props_segment_0_208o16glymg7p',
+  () => import('./component.tsx_component_props_segment_0_208o16glymg7p'),
+  'component_props_segment_0_208o16glymg7p'
+);
 const q_component_props_segment_1_208o0sfi1se76 = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_props_segment_1_208o0sfi1se76',
   () => import('./component.tsx_component_props_segment_1_208o0sfi1se76'),
   'component_props_segment_1_208o0sfi1se76'
 );
-const q_component_props_segment_2_208o0eee4yc6n = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_props_segment_2_208o0eee4yc6n',
-  () => import('./component.tsx_component_props_segment_2_208o0eee4yc6n'),
-  'component_props_segment_2_208o0eee4yc6n'
-);
 export const Child = (props, ctx) => {
   const el0 = Child_tmpl0(ctx.document);
   const text0 = _first(el0);
-  const effect0 = createTextExpressionEffect(
-    text0,
-    [props],
-    component_text_segment_0_1fh10fbkzokfc,
-    ctx.scheduler
-  );
+  const prop0 = propSource(props, 'label');
+  const effect0 = createTextNodeEffect(text0, prop0, ctx.scheduler);
   ctx.scheduler.notify(effect0);
   return el0;
 };
 export default (props, ctx) => {
-  const propQrl0 = q_component_props_segment_1_208o0sfi1se76.w([props]);
-  const propQrl1 = q_component_props_segment_2_208o0eee4yc6n.w([props]);
+  const propQrl0 = q_component_props_segment_0_208o16glymg7p.w([props]);
+  const propQrl1 = q_component_props_segment_1_208o0sfi1se76.w([props]);
   const component0 = createComponent(
     Child,
     mergeProps(
@@ -59,47 +55,19 @@ export default (props, ctx) => {
   );
   return component0;
 };
-============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
+============================= src/component.tsx_component_props_segment_0_208o16glymg7p.js (ENTRY POINT)==
 
-export const component_text_segment_0_1fh10fbkzokfc = (props) => {
-  return props.label;
-};
-/*
-{
-  "origin": "component.tsx",
-  "name": "component_text_segment_0_1fh10fbkzokfc",
-  "entry": null,
-  "displayName": "component_text_segment_0",
-  "hash": "1fh10fbkzokfc",
-  "canonicalFilename": "component.tsx_component_text_segment_0_1fh10fbkzokfc",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "text",
-  "captures": true,
-  "loc": [
-    41,
-    52
-  ],
-  "paramNames": [],
-  "captureNames": [
-    "props"
-  ]
-}
-*/
-============================= src/component.tsx_component_props_segment_1_208o0sfi1se76.js (ENTRY POINT)==
-
-export const component_props_segment_1_208o0sfi1se76 = (props) => {
+export const component_props_segment_0_208o16glymg7p = (props) => {
   return props.base;
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_props_segment_1_208o0sfi1se76",
+  "name": "component_props_segment_0_208o16glymg7p",
   "entry": null,
-  "displayName": "component_props_segment_1",
-  "hash": "208o0sfi1se76",
-  "canonicalFilename": "component.tsx_component_props_segment_1_208o0sfi1se76",
+  "displayName": "component_props_segment_0",
+  "hash": "208o16glymg7p",
+  "canonicalFilename": "component.tsx_component_props_segment_0_208o16glymg7p",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -115,19 +83,19 @@ export const component_props_segment_1_208o0sfi1se76 = (props) => {
   ]
 }
 */
-============================= src/component.tsx_component_props_segment_2_208o0eee4yc6n.js (ENTRY POINT)==
+============================= src/component.tsx_component_props_segment_1_208o0sfi1se76.js (ENTRY POINT)==
 
-export const component_props_segment_2_208o0eee4yc6n = (props) => {
+export const component_props_segment_1_208o0sfi1se76 = (props) => {
   return props.overrides;
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_props_segment_2_208o0eee4yc6n",
+  "name": "component_props_segment_1_208o0sfi1se76",
   "entry": null,
-  "displayName": "component_props_segment_2",
-  "hash": "208o0eee4yc6n",
-  "canonicalFilename": "component.tsx_component_props_segment_2_208o0eee4yc6n",
+  "displayName": "component_props_segment_1",
+  "hash": "208o0sfi1se76",
+  "canonicalFilename": "component.tsx_component_props_segment_1_208o0sfi1se76",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

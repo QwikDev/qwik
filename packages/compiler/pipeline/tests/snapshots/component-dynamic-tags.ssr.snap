@@ -43,9 +43,9 @@ q_component_slot_render_segment_0_3b0tagwys7lui.s(component_slot_render_segment_
 const component_tag_dynamic_segment_1_331xdvyxwe5dy = (ctx) => {
   const [props] = _captures;
   const slotScope0 = createSlotScope();
-  ctx.addRoot(slotScope0);
   const tag0 = props.as;
   registerProjection(slotScope0, '', q_component_slot_render_segment_2_3b0t9ouqyjhtg);
+  ctx.addRoot(slotScope0);
   const component0 = createComponent(
     (props0) => renderSsrDynamicTag(tag0, props0, ctx),
     null,
@@ -79,8 +79,8 @@ export default (props, ctx) => {
   const Heading = 'h2';
   const Alias = Badge;
   const slotScope0 = createSlotScope();
-  ctx.addRoot(slotScope0);
   registerProjection(slotScope0, '', q_component_slot_render_segment_0_3b0tagwys7lui);
+  ctx.addRoot(slotScope0);
   const component0 = createComponent(
     (props0) => renderSsrDynamicTag(Heading, props0, ctx),
     { class: 'title' },
@@ -184,9 +184,9 @@ q_component_slot_render_segment_2_3b0t9ouqyjhtg.s(component_slot_render_segment_
 export const component_tag_dynamic_segment_1_331xdvyxwe5dy = (ctx) => {
   const [props] = _captures;
   const slotScope0 = createSlotScope();
-  ctx.addRoot(slotScope0);
   const tag0 = props.as;
   registerProjection(slotScope0, '', q_component_slot_render_segment_2_3b0t9ouqyjhtg);
+  ctx.addRoot(slotScope0);
   const component0 = createComponent(
     (props0) => renderSsrDynamicTag(tag0, props0, ctx),
     null,

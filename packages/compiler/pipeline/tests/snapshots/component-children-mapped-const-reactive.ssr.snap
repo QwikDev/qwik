@@ -175,12 +175,12 @@ export default (props, ctx) => {
   const suffix = useSignal('!');
   const items = useSignal([{ title: 'Title' }]);
   const slotScope0 = createSlotScope();
-  ctx.addRoot(slotScope0);
   registerProjection(
     slotScope0,
     'header',
     q_component_slot_render_segment_0_3b0tagwys7lui.w([items, suffix])
   );
+  ctx.addRoot(slotScope0);
   const component0 = createComponent(Panel, null, ctx, { slotScope: slotScope0 });
   return component0;
 };

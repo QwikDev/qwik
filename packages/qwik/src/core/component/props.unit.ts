@@ -8,8 +8,11 @@ import {
   getMemberSource,
   getPropSource,
   getPropsSources,
+  PropSource,
+  propSource,
 } from './props';
 import { getStoreSource, useStore } from '../reactive/store';
+import { createQRL } from '../shared/qrl/qrl-class';
 
 describe('component props', () => {
   it('views remaining own props without copying values or reading excluded keys', () => {
@@ -125,5 +128,40 @@ describe('component props', () => {
     const props = allocatePropsProxy() as Record<string, unknown>;
 
     expect(() => props.value).toThrow('Code(Q39): Uninitialized props proxy');
+  });
+
+  it('resolves a prop to the source behind it', () => {
+    const owner = createOwner();
+    runWithOwner(owner, () => {
+      const title = useSignal('Hello');
+      const passed = _props(
+        {
+          get title() {
+            return title.value;
+          },
+          get computed() {
+            return 'later';
+          },
+          count: 1,
+        },
+        { title, computed: createQRL('./later.js', 'later', () => 'later', null, null) }
+      );
+
+      // The parent's signal is the source itself.
+      expect(propSource(passed, 'title')).toBe(title);
+      // A computed prop reads through its getter, so the record is what resumes it.
+      const computed = propSource(passed, 'computed') as PropSource;
+      expect(computed).toBeInstanceOf(PropSource);
+      expect(computed.v).toBe('later');
+      // A static prop is its value: nothing can change it, so nothing subscribes.
+      expect(propSource(passed, 'count')).toBe(1);
+      expect(getPropsSources(_props({ a: 1 }, { a: 1 }))).toEqual({});
+      // Spread props read through the proxy, so a replaced record reaches the member.
+      const record = useSignal<Record<string, unknown>>({ label: 'a' });
+      const proxied = propSource(createPropsProxy(record), 'label') as PropSource;
+      expect(proxied).toBeInstanceOf(PropSource);
+      record.value = { label: 'b' };
+      expect(proxied.v).toBe('b');
+    });
   });
 });

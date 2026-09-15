@@ -74,12 +74,12 @@ describe('lowerText', () => {
     expect(ctx.plan.qrls).toEqual([]);
   });
 
-  test('a props member becomes a Computed hole with member IR and a Value-payload qrl', () => {
+  test('a props member becomes a Read hole with member IR and no qrl', () => {
     const { op, ctx } = holeFor('props.title', withProps);
     const props = ctx.propsBinding!;
     const value = holeValue(op);
-    if (value.v !== ValueKind.Computed) {
-      throw new Error('expected a computed hole');
+    if (value.v !== ValueKind.Read) {
+      throw new Error('expected a read hole');
     }
     expect(value.expr).toEqual({
       kind: ExprKind.Ir,
@@ -89,11 +89,7 @@ describe('lowerText', () => {
         name: 'title',
       },
     });
-    expect(ctx.plan.qrls).toHaveLength(1);
-    expect(ctx.plan.qrls[0].payloadKind).toBe(QrlPayloadKind.Value);
-    expect(ctx.plan.qrls[0].captures).toEqual([
-      { binding: props, access: CaptureAccess.ComponentProp },
-    ]);
+    expect(ctx.plan.qrls).toHaveLength(0);
   });
 
   test('an IR-uncoverable expression keeps a Js payload', () => {

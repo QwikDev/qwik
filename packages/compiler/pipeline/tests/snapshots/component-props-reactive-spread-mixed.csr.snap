@@ -14,7 +14,8 @@ export default () => {
 
 import {
   _first,
-  createTextExpressionEffect,
+  propSource,
+  createTextNodeEffect,
   _last,
   _createElementTemplate,
   useSignal,
@@ -23,36 +24,25 @@ import {
   useComputedQrl,
   createComponent,
 } from '@qwik.dev/core';
-import { component_text_segment_0_1fh10fbkzokfc } from './component.tsx_component_text_segment_0_1fh10fbkzokfc';
-import { component_text_segment_1_1fh10tcowimfv } from './component.tsx_component_text_segment_1_1fh10tcowimfv';
-
 const Child_tmpl0 = _createElementTemplate('<strong><!>: <!></strong>');
-const q_component_props_segment_2_208o0eee4yc6n = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_props_segment_2_208o0eee4yc6n',
-  () => import('./component.tsx_component_props_segment_2_208o0eee4yc6n'),
-  'component_props_segment_2_208o0eee4yc6n'
+const q_component_props_segment_0_208o16glymg7p = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_props_segment_0_208o16glymg7p',
+  () => import('./component.tsx_component_props_segment_0_208o16glymg7p'),
+  'component_props_segment_0_208o16glymg7p'
 );
 export const Child = (props, ctx) => {
   const el0 = Child_tmpl0(ctx.document);
   const marker0 = _first(el0);
   const text0 = ctx.document.createTextNode('');
   marker0.replaceWith(text0);
-  const effect0 = createTextExpressionEffect(
-    text0,
-    [props],
-    component_text_segment_0_1fh10fbkzokfc,
-    ctx.scheduler
-  );
+  const prop0 = propSource(props, 'title');
+  const effect0 = createTextNodeEffect(text0, prop0, ctx.scheduler);
   ctx.scheduler.notify(effect0);
   const marker1 = _last(el0);
   const text1 = ctx.document.createTextNode('');
   marker1.replaceWith(text1);
-  const effect1 = createTextExpressionEffect(
-    text1,
-    [props],
-    component_text_segment_1_1fh10tcowimfv,
-    ctx.scheduler
-  );
+  const prop1 = propSource(props, 'count');
+  const effect1 = createTextNodeEffect(text1, prop1, ctx.scheduler);
   ctx.scheduler.notify(effect1);
   return el0;
 };
@@ -62,84 +52,28 @@ export default (props0, ctx) => {
   const component0 = createComponent(
     Child,
     createPropsProxy(
-      useComputedQrl(q_component_props_segment_2_208o0eee4yc6n.w([attributes, count]))
+      useComputedQrl(q_component_props_segment_0_208o16glymg7p.w([attributes, count]))
     ),
     ctx
   );
   return component0;
 };
-============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
-
-export const component_text_segment_0_1fh10fbkzokfc = (props) => {
-  return props.title;
-};
-/*
-{
-  "origin": "component.tsx",
-  "name": "component_text_segment_0_1fh10fbkzokfc",
-  "entry": null,
-  "displayName": "component_text_segment_0",
-  "hash": "1fh10fbkzokfc",
-  "canonicalFilename": "component.tsx_component_text_segment_0_1fh10fbkzokfc",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "text",
-  "captures": true,
-  "loc": [
-    85,
-    96
-  ],
-  "paramNames": [],
-  "captureNames": [
-    "props"
-  ]
-}
-*/
-============================= src/component.tsx_component_text_segment_1_1fh10tcowimfv.js (ENTRY POINT)==
-
-export const component_text_segment_1_1fh10tcowimfv = (props) => {
-  return props.count;
-};
-/*
-{
-  "origin": "component.tsx",
-  "name": "component_text_segment_1_1fh10tcowimfv",
-  "entry": null,
-  "displayName": "component_text_segment_1",
-  "hash": "1fh10tcowimfv",
-  "canonicalFilename": "component.tsx_component_text_segment_1_1fh10tcowimfv",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "text",
-  "captures": true,
-  "loc": [
-    100,
-    111
-  ],
-  "paramNames": [],
-  "captureNames": [
-    "props"
-  ]
-}
-*/
-============================= src/component.tsx_component_props_segment_2_208o0eee4yc6n.js (ENTRY POINT)==
+============================= src/component.tsx_component_props_segment_0_208o16glymg7p.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';
 
-export const component_props_segment_2_208o0eee4yc6n = () => {
+export const component_props_segment_0_208o16glymg7p = () => {
   const [attributes, count] = _captures;
   return { title: 'before', ...attributes.value, count: count.value, title: 'after' };
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_props_segment_2_208o0eee4yc6n",
+  "name": "component_props_segment_0_208o16glymg7p",
   "entry": null,
-  "displayName": "component_props_segment_2",
-  "hash": "208o0eee4yc6n",
-  "canonicalFilename": "component.tsx_component_props_segment_2_208o0eee4yc6n",
+  "displayName": "component_props_segment_0",
+  "hash": "208o16glymg7p",
+  "canonicalFilename": "component.tsx_component_props_segment_0_208o16glymg7p",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

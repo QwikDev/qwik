@@ -13,39 +13,29 @@ export default () => {
 
 import {
   _first,
-  createTextExpressionEffect,
+  propSource,
+  createTextNodeEffect,
   _last,
   _createElementTemplate,
   useSignal,
-  readTrackedSourceValue,
+  readTrackedValue,
   _props,
   createComponent,
 } from '@qwik.dev/core';
-import { component_text_segment_0_1fh10fbkzokfc } from './component.tsx_component_text_segment_0_1fh10fbkzokfc';
-import { component_text_segment_1_1fh10tcowimfv } from './component.tsx_component_text_segment_1_1fh10tcowimfv';
-
 const Child_tmpl0 = _createElementTemplate('<strong><!>: <!></strong>');
 export const Child = (props, ctx) => {
   const el0 = Child_tmpl0(ctx.document);
   const marker0 = _first(el0);
   const text0 = ctx.document.createTextNode('');
   marker0.replaceWith(text0);
-  const effect0 = createTextExpressionEffect(
-    text0,
-    [props],
-    component_text_segment_0_1fh10fbkzokfc,
-    ctx.scheduler
-  );
+  const prop0 = propSource(props, 'className');
+  const effect0 = createTextNodeEffect(text0, prop0, ctx.scheduler);
   ctx.scheduler.notify(effect0);
   const marker1 = _last(el0);
   const text1 = ctx.document.createTextNode('');
   marker1.replaceWith(text1);
-  const effect1 = createTextExpressionEffect(
-    text1,
-    [props],
-    component_text_segment_1_1fh10tcowimfv,
-    ctx.scheduler
-  );
+  const prop1 = propSource(props, 'count');
+  const effect1 = createTextNodeEffect(text1, prop1, ctx.scheduler);
   ctx.scheduler.notify(effect1);
   return el0;
 };
@@ -57,7 +47,7 @@ export default (props0, ctx) => {
       {
         className: 'total',
         get count() {
-          return readTrackedSourceValue(count);
+          return readTrackedValue(count);
         },
       },
       { count: count }
@@ -66,62 +56,6 @@ export default (props0, ctx) => {
   );
   return component0;
 };
-============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
-
-export const component_text_segment_0_1fh10fbkzokfc = (props) => {
-  return props.className;
-};
-/*
-{
-  "origin": "component.tsx",
-  "name": "component_text_segment_0_1fh10fbkzokfc",
-  "entry": null,
-  "displayName": "component_text_segment_0",
-  "hash": "1fh10fbkzokfc",
-  "canonicalFilename": "component.tsx_component_text_segment_0_1fh10fbkzokfc",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "text",
-  "captures": true,
-  "loc": [
-    85,
-    100
-  ],
-  "paramNames": [],
-  "captureNames": [
-    "props"
-  ]
-}
-*/
-============================= src/component.tsx_component_text_segment_1_1fh10tcowimfv.js (ENTRY POINT)==
-
-export const component_text_segment_1_1fh10tcowimfv = (props) => {
-  return props.count;
-};
-/*
-{
-  "origin": "component.tsx",
-  "name": "component_text_segment_1_1fh10tcowimfv",
-  "entry": null,
-  "displayName": "component_text_segment_1",
-  "hash": "1fh10tcowimfv",
-  "canonicalFilename": "component.tsx_component_text_segment_1_1fh10tcowimfv",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "text",
-  "captures": true,
-  "loc": [
-    104,
-    115
-  ],
-  "paramNames": [],
-  "captureNames": [
-    "props"
-  ]
-}
-*/
 == CSR DIAGNOSTICS ==
 
 []

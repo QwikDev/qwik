@@ -195,7 +195,6 @@ export default (props, ctx) => {
     },
   ]);
   const slotScope0 = createSlotScope();
-  ctx.addRoot(slotScope0);
   registerProjection(
     slotScope0,
     'header',
@@ -203,6 +202,7 @@ export default (props, ctx) => {
   );
   registerProjection(slotScope0, 'footer', q_component_slot_render_segment_4_3b0t8wsj4vdse);
   registerProjection(slotScope0, '', q_component_slot_render_segment_5_3b0t9atn1pfsx.w([items]));
+  ctx.addRoot(slotScope0);
   const component0 = createComponent(Panel, null, ctx, { slotScope: slotScope0 });
   return component0;
 };

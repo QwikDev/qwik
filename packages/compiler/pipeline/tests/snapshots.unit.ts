@@ -396,8 +396,8 @@ export default (props: { label: string; title: string; as: string }) => {
       expect(code).not.toContain(snapshot);
     }
     for (const read of [
-      'props.label',
-      'props.title',
+      'propSource(props, "label")',
+      'propSource(props, "title")',
       'count.value',
       'store.item.label',
       'store.nested.flip',
@@ -2691,6 +2691,36 @@ export default (props: { label?: string; content?: any }) => {
     if (name === 'conditional-array') {
       expect(code).toContain('<b>a</b><i>b</i>');
     }
+  });
+
+  test('should bind a prop member as its own source', async () => {
+    const output = await testInput(mode, 'prop-sources', {
+      code: `import { component$, useSignal } from '@qwik.dev/core';
+import { Badge } from './badge';
+export const Card = component$((props: { title: string; count: number }) => {
+  const heading = props.title;
+  return (
+    <section class={props.title}>
+      <h2>{heading}</h2>
+      <Badge label={props.title} />
+      <b>{props.count + 1}</b>
+    </section>
+  );
+});
+export const Defaulted = component$(({ title = 'Untitled' }: { title?: string }) => <h3>{title}</h3>);
+export default component$(() => {
+  const count = useSignal(1);
+  return <Card title={'n=' + count.value} count={count.value} />;
+});`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const code = output.modules.map((module) => module.code).join('\n');
+    // One source per member and render function, shared by the attribute, hole and forward.
+    expect(code.match(/propSource\(props, "title"\)/g)).toHaveLength(1);
+    expect(code).toContain('"label": prop0');
+    // An expression over a member keeps its chunk; a defaulted read keeps its fallback.
+    expect(code).toContain('props.count + 1');
+    expect(code).toContain('Untitled');
   });
 
   test('should lower ordinary statements before a row return', async () => {

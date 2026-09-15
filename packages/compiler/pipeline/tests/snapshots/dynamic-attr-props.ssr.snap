@@ -10,28 +10,18 @@ export default (props) => {
 
 import {
   createSsrNodeId,
-  renderSsrAttrExpression,
+  propSource,
+  isSource,
+  renderSsrAttr,
   escapeHTML,
   maybeThen,
-  _noopQrl,
 } from '@qwik.dev/core';
 
-const component_title_segment_0_2f0r0xivypjmx = (props) => {
-  return props.title;
-};
-const q_component_title_segment_0_2f0r0xivypjmx = /*#__PURE__*/ _noopQrl(
-  'component_title_segment_0_2f0r0xivypjmx'
-);
-q_component_title_segment_0_2f0r0xivypjmx.s(component_title_segment_0_2f0r0xivypjmx);
 export default (props, ctx) => {
   const id0 = ctx.nextId();
-  ctx.addRoot(props);
-  const attr0 = renderSsrAttrExpression(
-    id0,
-    'title',
-    [props],
-    q_component_title_segment_0_2f0r0xivypjmx
-  );
+  const prop0 = propSource(props, 'title');
+  isSource(prop0) && ctx.addRoot(prop0);
+  const attr0 = renderSsrAttr(id0, 'title', prop0);
   return maybeThen(attr0, (attr0) => [
     '<p q:id="',
     createSsrNodeId(id0),
@@ -40,34 +30,6 @@ export default (props, ctx) => {
     '>x</p>',
   ]);
 };
-============================= src/component.tsx_component_title_segment_0_2f0r0xivypjmx.js (ENTRY POINT)==
-
-export const component_title_segment_0_2f0r0xivypjmx = (props) => {
-  return props.title;
-};
-/*
-{
-  "origin": "component.tsx",
-  "name": "component_title_segment_0_2f0r0xivypjmx",
-  "entry": null,
-  "displayName": "component_title_segment_0",
-  "hash": "2f0r0xivypjmx",
-  "canonicalFilename": "component.tsx_component_title_segment_0_2f0r0xivypjmx",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "title",
-  "captures": true,
-  "loc": [
-    47,
-    58
-  ],
-  "paramNames": [],
-  "captureNames": [
-    "props"
-  ]
-}
-*/
 == SSR DIAGNOSTICS ==
 
 []

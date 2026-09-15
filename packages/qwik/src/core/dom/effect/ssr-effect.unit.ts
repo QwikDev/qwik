@@ -39,6 +39,16 @@ describe('SSR DOM effect helpers', () => {
     expect(effect).not.toHaveProperty('target');
   });
 
+  it('writes a constant text or attribute without a subscription', () => {
+    const owner = createOwner(null);
+    const text = runWithOwner(owner, () => renderSsrTextNode(0, null, 'Hello'));
+    const attr = runWithOwner(owner, () => renderSsrAttr(0, 'title', 'Hi'));
+
+    expect(text).toBe('Hello');
+    expect(attr).toBe('Hi');
+    expect(owner.items).toBeNull();
+  });
+
   it('serializes empty SSR text nodes as nothing', () => {
     const text = useSignal('');
     expect(createOwned(() => renderSsrTextNode(0, null, text))).toBe('');

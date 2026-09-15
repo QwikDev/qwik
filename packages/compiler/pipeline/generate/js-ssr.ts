@@ -52,7 +52,7 @@ import {
   emitHookBody,
   mayBe,
   parameterDefaults,
-  signalReadName,
+  readSource,
   withMarkerEmitter,
 } from './emit-setup';
 import { sourceFunctionEmission, contentFunctionEmission } from './emit-function';
@@ -138,6 +138,7 @@ interface RenderPass {
   usedCtx: boolean;
   /** Names already rooted in this pass — repeat effects skip the addRoot call. */
   rooted: Set<string>;
+  propSources: Map<string, string>;
 }
 
 /** Per-kind needs the emission wrappers state explicitly — the core never inspects the QRL. */
@@ -236,6 +237,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       next: createNameAllocator(this.module),
       usedCtx: false,
       rooted: new Set(),
+      propSources: new Map(),
     };
     const emitQrl = withMarkerEmitter(
       this.module,
@@ -745,7 +747,14 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     const step = pass.next(QwikGenWord.Attribute);
     switch (prop.value.v) {
       case ValueKind.Read: {
-        const signal = signalReadName(this.module, prop.value.expr);
+        const signal = readSource(
+          this.module,
+          prop.value.expr,
+          pass,
+          pass.statements,
+          this.imports,
+          pass.names.ctx
+        );
         this.imports.add(QwikWord.RenderSsrAttr);
         this.pushStep(
           pass,
@@ -847,7 +856,8 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       op,
       pass,
       this.imports,
-      (use) => this.useQrl(pass, use, true).ref
+      (use) => this.useQrl(pass, use, true).ref,
+      pass.names.ctx
     );
     switch (op.row.r) {
       case RowKind.Chunk: {
@@ -990,8 +1000,15 @@ class SsrModuleEmitter implements QwikModuleEmitter {
 
     switch (op.value.v) {
       case ValueKind.Read: {
-        // Signal reads subscribe directly — no QRL involved.
-        const signal = signalReadName(this.module, op.value.expr);
+        // Signal and prop reads subscribe directly — no QRL involved.
+        const signal = readSource(
+          this.module,
+          op.value.expr,
+          pass,
+          pass.statements,
+          this.imports,
+          pass.names.ctx
+        );
         this.imports.add(QwikWord.RenderSsrTextNode);
         this.pushStep(
           pass,
@@ -1035,6 +1052,8 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     callExpr: string,
     statements: readonly string[] = []
   ): void {
+    // A root may be declared by the step's own statements, so those come first.
+    pass.statements.push(...statements);
     for (const root of roots) {
       // One addRoot per name and pass — the runtime dedupes too, this keeps the output clean.
       if (!pass.rooted.has(root)) {
@@ -1042,7 +1061,6 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         pass.statements.push(`${pass.names.ctx}.addRoot(${root});`);
       }
     }
-    pass.statements.push(...statements);
     pass.statements.push(`const ${step} = ${callExpr};`);
     pass.asyncSteps.push(step);
   }

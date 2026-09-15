@@ -1,7 +1,8 @@
 import { Computed } from '../reactive/computed';
 import { Signal } from '../reactive/signal';
-import { getStoreSource, isStore } from '../reactive/store';
-import { readSourceValue, type Source } from '../reactive/source';
+import { getStoreSource, isStore, StorePropSource } from '../reactive/store';
+import { readSourceValue, type Source, type SourceSubs } from '../reactive/source';
+import { isQrl } from '../shared/qrl/qrl-utils';
 import { track } from '../reactive/tracking';
 import { qError, QError } from '../shared/error/error';
 
@@ -19,8 +20,8 @@ const propsSources = new WeakMap<object, Record<string, unknown>>();
 
 export function _props<T extends object>(props: T, sources: Record<string, unknown>): T {
   for (const key in sources) {
-    if (sources[key] === undefined) {
-      // an undefined source means the caller passed a static value: snapshot path
+    // A plain value means the caller passed a static prop: it stays a snapshot.
+    if (!isSource(sources[key]) && !isQrl(sources[key])) {
       delete sources[key];
     }
   }
@@ -35,6 +36,39 @@ export function getPropsSources(props: object): Record<string, unknown> | undefi
 /** The source a caller registered for a prop key, for forwarding it further down. */
 export function getPropSource(props: object, key: string): unknown {
   return propsSources.get(props)?.[key];
+}
+
+/** A prop read through its record: the member can change with a computed key or a spread. */
+export class PropSource<T = unknown> implements Source<T> {
+  subs: SourceSubs = null;
+
+  constructor(
+    public props: object = {},
+    public key: string = ''
+  ) {}
+
+  get v(): T {
+    return (this.props as Record<string, T>)[this.key];
+  }
+}
+
+/** Sources are nominal, so a plain value in a source's place means a constant. */
+export function isSource(value: unknown): value is Source {
+  return value instanceof Signal || value instanceof StorePropSource || value instanceof PropSource;
+}
+
+/**
+ * What backs one prop: a source an effect can capture instead of the record, or the plain value of
+ * a static prop, which nothing can change for the component's life.
+ */
+export function propSource<T>(props: object, key: string): Source<T> | T {
+  const registered = propsSources.get(props)?.[key];
+  if (registered !== undefined && !isQrl(registered)) {
+    return registered as Source<T>;
+  }
+  return registered !== undefined || propsProxyStates.has(props)
+    ? new PropSource<T>(props, key)
+    : (props as Record<string, T>)[key];
 }
 
 /**

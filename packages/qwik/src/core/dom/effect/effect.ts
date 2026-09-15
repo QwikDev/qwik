@@ -8,7 +8,7 @@ import type { Owner } from '../../runtime/owner';
 import type { ForBlock } from '../for/for';
 import { applyDomProps, ownedDomProps, patchAttrValue } from './dom-props';
 import { DomEffect, registerDomEffect } from './dom-effect';
-import { readTrackedSourceValue } from './text-effect';
+import { readTrackedValue } from './text-effect';
 import { removeEvent, setEvent } from '../event/event';
 import type { CapturedEventHandler, QDispatchHandler } from '../../shared/types';
 import { EMPTY_ARRAY } from '../../utils/consts';
@@ -26,7 +26,7 @@ export class AttrEffect extends DomEffect {
   constructor(
     readonly element: Element,
     readonly name: string,
-    readonly source: Source,
+    readonly source: unknown,
     scheduler?: Scheduler,
     readonly styleScopedId?: string
   ) {
@@ -37,7 +37,7 @@ export class AttrEffect extends DomEffect {
     return patchAttrValue(
       this.element,
       this.name,
-      readTrackedSourceValue(this.source),
+      readTrackedValue(this.source),
       this.styleScopedId
     );
   }
@@ -140,7 +140,7 @@ export class DomBatchEffect extends DomEffect {
 export function createAttrEffect(
   element: Element,
   name: string,
-  source: Source,
+  source: unknown,
   scheduler?: Scheduler,
   styleScopedId?: string
 ): AttrEffect {

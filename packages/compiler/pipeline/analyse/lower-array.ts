@@ -45,6 +45,7 @@ import { createSegmentSymbolName, sanitizeSegmentName } from '../segment-identit
 import {
   lowerComputedExpressionValue,
   lowerInlineExpressionValue,
+  tryPropMemberRead,
   trySignalReadValue,
 } from './lower-expr';
 import { lowerConstBinding, lowerConstDeclaration, lowerSetup } from './lower-setup';
@@ -391,7 +392,7 @@ function lowerSource(node: Expression, ctx: LowerContext): { s: EachSourceKind; 
       },
     };
   }
-  const value = trySignalReadValue(unwrapped, ctx);
+  const value = trySignalReadValue(unwrapped, ctx) ?? tryPropMemberRead(unwrapped, ctx);
   if (value !== null) {
     return { s: EachSourceKind.Reactive, value };
   }

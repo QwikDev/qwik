@@ -31,7 +31,7 @@ import { isContextScope } from '../../runtime/context-scope';
 import { TaskSubscription, VisibleTaskSubscription } from '../../runtime/task';
 import { Phase } from '../../runtime/scheduler';
 import { isProjection, isSlotScope, type Projection, type SlotScope } from '../../dom/slot/slot';
-import { getPropsProxyState, getPropsSources } from '../../component/props';
+import { getPropsProxyState, getPropsSources, PropSource } from '../../component/props';
 import { Owner } from '../../runtime/owner';
 import type { Subscriber } from '../../runtime/subscriber';
 import type { RuntimeInvokeContext } from '../../runtime/invoke-context';
@@ -540,6 +540,11 @@ export class Serializer {
       this.output(TypeIds.Store, this.serializeStore(value));
     } else if (value instanceof StorePropSource) {
       this.output(TypeIds.StoreProp, this.serializeStoreProp(value));
+    } else if (value instanceof PropSource) {
+      this.output(TypeIds.PropSource, [
+        this.$serializationContext$.$addRoot$(value.props),
+        value.key,
+      ]);
     } else if (
       value instanceof SsrDomEffectBase ||
       value instanceof SsrDomSubscription ||

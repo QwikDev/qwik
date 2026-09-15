@@ -17,7 +17,7 @@ import {
 } from '../schema';
 import { UnsupportedError } from '../errors';
 import { QwikGenWord, QwikHook, QwikWord } from '../words';
-import { signalReadName } from './emit-setup';
+import { readSource } from './emit-setup';
 import { inlineValueJs, rootArgs, valueIrJs } from './emit-chunk';
 import { allocateGeneratedName } from '../names';
 
@@ -37,6 +37,8 @@ type ComponentOp = Extract<LinkedOp, { op: OpKind.Component }>;
 interface ComponentRenderPass {
   names: GeneratedNames;
   next: (prefix: string) => string;
+  propSources: Map<string, string>;
+  rooted?: Set<string>;
 }
 type ResolveComponentQrl = (
   use: QrlUse,
@@ -57,7 +59,9 @@ export function emitComponentCall(
   /** The target's dynamic-tag helper for tags the plan cannot prove to be components. */
   dynamicTag: QwikWord
 ) {
-  const props = emitComponentProps(module, component, pass, imports, resolveQrl);
+  // Only the server roots what it serializes; the tag helper tells the targets apart.
+  const ssrCtx = dynamicTag === QwikWord.RenderSsrDynamicTag ? pass.names.ctx : null;
+  const props = emitComponentProps(module, component, pass, imports, resolveQrl, ssrCtx);
   const projections = emitComponentProjections(component, pass, imports, resolveQrl);
   const target = componentTargetJs(module, component.target, pass, imports, dynamicTag);
   imports.add(QwikWord.CreateComponent);
@@ -124,7 +128,8 @@ function emitComponentProps(
   component: ComponentOp,
   pass: ComponentRenderPass,
   imports: Set<string>,
-  resolveQrl: ResolveComponentQrl
+  resolveQrl: ResolveComponentQrl,
+  ssrCtx: string | null
 ): { expression: string; roots: string[]; statements: string[] } {
   if (component.props.c === ComponentPropsKind.Proxy) {
     const { qrl, reference, args } = resolveQrl(component.props.compute, true);
@@ -179,13 +184,14 @@ function emitComponentProps(
           roots: string[];
         };
         if (prop.value.v === ValueKind.Read) {
-          const signal = signalReadName(module, prop.value.expr);
-          imports.add(QwikWord.ReadTrackedSourceValue);
+          const hoisted: string[] = [];
+          const source = readSource(module, prop.value.expr, pass, hoisted, imports, ssrCtx);
+          imports.add(QwikWord.ReadTrackedValue);
           value = {
-            statements: [],
-            expression: `${QwikWord.ReadTrackedSourceValue}(${signal})`,
-            source: signal,
-            roots: [signal],
+            statements: hoisted,
+            expression: `${QwikWord.ReadTrackedValue}(${source})`,
+            source,
+            roots: [source],
           };
         } else if (prop.value.v === ValueKind.Computed) {
           value = emitComponentExpression(prop.value, pass, imports, resolveQrl);

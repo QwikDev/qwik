@@ -22,19 +22,13 @@ import {
   createAttrExpressionEffect,
   _first,
   _next,
-  _qrlWithChunk,
-  _wrapArray,
+  propSource,
   createCollection,
   _createElementTemplate,
 } from '@qwik.dev/core';
 import { component_id_segment_0_2jskquzwpllhm } from './component.tsx_component_id_segment_0_2jskquzwpllhm';
-import { component_for_render_segment_2_asyu0c4tc6e5 } from './component.tsx_component_for_render_segment_2_asyu0c4tc6e5';
+import { component_for_render_segment_1_asysu8t2u0ck } from './component.tsx_component_for_render_segment_1_asysu8t2u0ck';
 
-const q_component_collection_source_segment_1_21yfmque5ruw0 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_collection_source_segment_1_21yfmque5ruw0',
-  () => import('./component.tsx_component_collection_source_segment_1_21yfmque5ruw0'),
-  'component_collection_source_segment_1_21yfmque5ruw0'
-);
 const default_tmpl0 = _createElementTemplate('<ul><!><!></ul>');
 export default (props, ctx) => {
   const id = useId();
@@ -49,17 +43,15 @@ export default (props, ctx) => {
   ctx.scheduler.notify(effect0);
   const start0 = _first(el0);
   const end0 = _next(start0);
-  const collectionSource0 = _wrapArray(
-    q_component_collection_source_segment_1_21yfmque5ruw0.w([props])
-  );
+  const prop0 = propSource(props, 'items');
   ctx.scheduler.waitFor(
     createCollection(
       ctx,
       start0,
       end0,
-      collectionSource0,
+      prop0,
       null,
-      component_for_render_segment_2_asyu0c4tc6e5,
+      component_for_render_segment_1_asysu8t2u0ck,
       0,
       0
     )
@@ -94,38 +86,7 @@ export const component_id_segment_0_2jskquzwpllhm = (id) => {
   ]
 }
 */
-============================= src/component.tsx_component_collection_source_segment_1_21yfmque5ruw0.js (ENTRY POINT)==
-
-import { _captures } from '@qwik.dev/core';
-
-export const component_collection_source_segment_1_21yfmque5ruw0 = () => {
-  const [props] = _captures;
-  return props.items;
-};
-/*
-{
-  "origin": "component.tsx",
-  "name": "component_collection_source_segment_1_21yfmque5ruw0",
-  "entry": null,
-  "displayName": "component_collection_source_segment_1",
-  "hash": "21yfmque5ruw0",
-  "canonicalFilename": "component.tsx_component_collection_source_segment_1_21yfmque5ruw0",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "collection:source",
-  "captures": true,
-  "loc": [
-    169,
-    180
-  ],
-  "paramNames": [],
-  "captureNames": [
-    "props"
-  ]
-}
-*/
-============================= src/component.tsx_component_for_render_segment_2_asyu0c4tc6e5.js (ENTRY POINT)==
+============================= src/component.tsx_component_for_render_segment_1_asysu8t2u0ck.js (ENTRY POINT)==
 
 import {
   createAttrExpressionEffect,
@@ -134,18 +95,18 @@ import {
   _createElementTemplate,
   useId,
 } from '@qwik.dev/core';
-import { component_id_segment_3_2jskqgyssrjh3 } from './component.tsx_component_id_segment_3_2jskqgyssrjh3';
-import { component_text_segment_4_1fh11zg0n0shg } from './component.tsx_component_text_segment_4_1fh11zg0n0shg';
-const component_for_render_segment_2_asyu0c4tc6e5_tmpl0 = _createElementTemplate('<li> </li>');
+import { component_id_segment_2_2jskq2xovxhgk } from './component.tsx_component_id_segment_2_2jskq2xovxhgk';
+import { component_text_segment_3_1fh11lewq6qgx } from './component.tsx_component_text_segment_3_1fh11lewq6qgx';
+const component_for_render_segment_1_asysu8t2u0ck_tmpl0 = _createElementTemplate('<li> </li>');
 
-export const component_for_render_segment_2_asyu0c4tc6e5 = (ctx, item) => {
+export const component_for_render_segment_1_asysu8t2u0ck = (ctx, item) => {
   const rowId = useId();
-  const el0 = component_for_render_segment_2_asyu0c4tc6e5_tmpl0(ctx.document);
+  const el0 = component_for_render_segment_1_asysu8t2u0ck_tmpl0(ctx.document);
   const effect0 = createAttrExpressionEffect(
     el0,
     'id',
     [rowId],
-    component_id_segment_3_2jskqgyssrjh3,
+    component_id_segment_2_2jskq2xovxhgk,
     ctx.scheduler
   );
   ctx.scheduler.notify(effect0);
@@ -153,7 +114,7 @@ export const component_for_render_segment_2_asyu0c4tc6e5 = (ctx, item) => {
   const effect1 = createTextExpressionEffect(
     text0,
     [item],
-    component_text_segment_4_1fh11zg0n0shg,
+    component_text_segment_3_1fh11lewq6qgx,
     ctx.scheduler
   );
   ctx.scheduler.notify(effect1);
@@ -162,11 +123,11 @@ export const component_for_render_segment_2_asyu0c4tc6e5 = (ctx, item) => {
 /*
 {
   "origin": "component.tsx",
-  "name": "component_for_render_segment_2_asyu0c4tc6e5",
+  "name": "component_for_render_segment_1_asysu8t2u0ck",
   "entry": null,
-  "displayName": "component_for_render_segment_2",
-  "hash": "asyu0c4tc6e5",
-  "canonicalFilename": "component.tsx_component_for_render_segment_2_asyu0c4tc6e5",
+  "displayName": "component_for_render_segment_1",
+  "hash": "asysu8t2u0ck",
+  "canonicalFilename": "component.tsx_component_for_render_segment_1_asysu8t2u0ck",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -181,19 +142,19 @@ export const component_for_render_segment_2_asyu0c4tc6e5 = (ctx, item) => {
   ]
 }
 */
-============================= src/component.tsx_component_id_segment_3_2jskqgyssrjh3.js (ENTRY POINT)==
+============================= src/component.tsx_component_id_segment_2_2jskq2xovxhgk.js (ENTRY POINT)==
 
-export const component_id_segment_3_2jskqgyssrjh3 = (rowId) => {
+export const component_id_segment_2_2jskq2xovxhgk = (rowId) => {
   return rowId;
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_id_segment_3_2jskqgyssrjh3",
+  "name": "component_id_segment_2_2jskq2xovxhgk",
   "entry": null,
-  "displayName": "component_id_segment_3",
-  "hash": "2jskqgyssrjh3",
-  "canonicalFilename": "component.tsx_component_id_segment_3_2jskqgyssrjh3",
+  "displayName": "component_id_segment_2",
+  "hash": "2jskq2xovxhgk",
+  "canonicalFilename": "component.tsx_component_id_segment_2_2jskq2xovxhgk",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -209,19 +170,19 @@ export const component_id_segment_3_2jskqgyssrjh3 = (rowId) => {
   ]
 }
 */
-============================= src/component.tsx_component_text_segment_4_1fh11zg0n0shg.js (ENTRY POINT)==
+============================= src/component.tsx_component_text_segment_3_1fh11lewq6qgx.js (ENTRY POINT)==
 
-export const component_text_segment_4_1fh11zg0n0shg = (item) => {
+export const component_text_segment_3_1fh11lewq6qgx = (item) => {
   return item;
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_text_segment_4_1fh11zg0n0shg",
+  "name": "component_text_segment_3_1fh11lewq6qgx",
   "entry": null,
-  "displayName": "component_text_segment_4",
-  "hash": "1fh11zg0n0shg",
-  "canonicalFilename": "component.tsx_component_text_segment_4_1fh11zg0n0shg",
+  "displayName": "component_text_segment_3",
+  "hash": "1fh11lewq6qgx",
+  "canonicalFilename": "component.tsx_component_text_segment_3_1fh11lewq6qgx",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",

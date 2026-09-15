@@ -9,7 +9,7 @@ import { Signal } from '../../reactive/signal';
 import { isStore, StorePropSource } from '../../reactive/store';
 import { VisibleTaskSubscription } from '../../runtime/task';
 import { _constants } from './constants';
-import { getPropsProxyState, getPropsSources } from '../../component/props';
+import { getPropsProxyState, getPropsSources, PropSource } from '../../component/props';
 
 /** @internal */
 export const verifySerializable = <T>(value: T, preMessage?: string): T => {
@@ -131,7 +131,8 @@ const isReactiveSource = (value: unknown): boolean => {
     value instanceof Signal ||
     value instanceof Computed ||
     isStore(value) ||
-    value instanceof StorePropSource
+    value instanceof StorePropSource ||
+    value instanceof PropSource
   );
 };
 

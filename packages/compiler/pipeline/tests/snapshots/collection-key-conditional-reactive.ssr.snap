@@ -21,25 +21,20 @@ export default (props: { items: { id: string; done: boolean }[]; prefix: string;
 import {
   createSsrNodeId,
   escapeHTML,
-  renderSsrTextExpression,
+  propSource,
+  isSource,
+  renderSsrTextNode,
   maybeThen,
-  _noopQrl,
   useSignal,
   _captures,
   renderSsrCollection,
   renderSsrBranch,
-  readExpression,
+  _noopQrl,
+  readTrackedValue,
   _props,
   createComponent,
 } from '@qwik.dev/core';
-const component_text_segment_0_1fh10fbkzokfc = (props) => {
-  return props.title;
-};
-const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _noopQrl(
-  'component_text_segment_0_1fh10fbkzokfc'
-);
-q_component_text_segment_0_1fh10fbkzokfc.s(component_text_segment_0_1fh10fbkzokfc);
-const component_for_render_segment_1_asysu8t2u0ck = (ctx, __rangeId, __rowId, item, index) => {
+const component_for_render_segment_0_asyt89wzo2d3 = (ctx, __rangeId, __rowId, item, index) => {
   const [selected, props] = _captures;
   const visible = item.done && selected.value;
   const branchId0 = ctx.nextId();
@@ -50,9 +45,9 @@ const component_for_render_segment_1_asysu8t2u0ck = (ctx, __rangeId, __rowId, it
   const branch0 = renderSsrBranch(
     ctx,
     branchId0,
-    q_component_branch_condition_segment_3_2fzrh8qv53bdo.w([visible]),
-    q_component_branch_then_segment_4_24n7dk4a4zn6t.w([props, item]),
-    q_component_branch_else_segment_6_19dvsnjetbnih.w([index, item, props])
+    q_component_branch_condition_segment_2_2fzrhmrz1xde7.w([visible]),
+    q_component_branch_then_segment_3_24n7atwir5934.w([props, item]),
+    q_component_branch_else_segment_4_19dvrvh6znjhf.w([index, item, props])
   );
   return maybeThen(branch0, (branch0) => [
     '<!r=',
@@ -64,63 +59,59 @@ const component_for_render_segment_1_asysu8t2u0ck = (ctx, __rangeId, __rowId, it
     '<!/b><!/r>',
   ]);
 };
-const q_component_for_render_segment_1_asysu8t2u0ck = /*#__PURE__*/ _noopQrl(
-  'component_for_render_segment_1_asysu8t2u0ck'
+const q_component_for_render_segment_0_asyt89wzo2d3 = /*#__PURE__*/ _noopQrl(
+  'component_for_render_segment_0_asyt89wzo2d3'
 );
-q_component_for_render_segment_1_asysu8t2u0ck.s(component_for_render_segment_1_asysu8t2u0ck);
-const component_for_key_segment_2_24ursol8ttrxy = (item, index) => {
+q_component_for_render_segment_0_asyt89wzo2d3.s(component_for_render_segment_0_asyt89wzo2d3);
+const component_for_key_segment_1_24ursak4wzpxf = (item, index) => {
   const [selected, props] = _captures;
   const { id, done } = item;
   const visible = done && selected.value;
   const prefix = props.prefix;
   return visible ? prefix + id : index + ':' + id;
 };
-const q_component_for_key_segment_2_24ursol8ttrxy = /*#__PURE__*/ _noopQrl(
-  'component_for_key_segment_2_24ursol8ttrxy'
+const q_component_for_key_segment_1_24ursak4wzpxf = /*#__PURE__*/ _noopQrl(
+  'component_for_key_segment_1_24ursak4wzpxf'
 );
-q_component_for_key_segment_2_24ursol8ttrxy.s(component_for_key_segment_2_24ursol8ttrxy);
-const component_branch_condition_segment_3_2fzrh8qv53bdo = () => {
+q_component_for_key_segment_1_24ursak4wzpxf.s(component_for_key_segment_1_24ursak4wzpxf);
+const component_branch_condition_segment_2_2fzrhmrz1xde7 = () => {
   const [visible] = _captures;
   return visible;
 };
-const q_component_branch_condition_segment_3_2fzrh8qv53bdo = /*#__PURE__*/ _noopQrl(
-  'component_branch_condition_segment_3_2fzrh8qv53bdo'
+const q_component_branch_condition_segment_2_2fzrhmrz1xde7 = /*#__PURE__*/ _noopQrl(
+  'component_branch_condition_segment_2_2fzrhmrz1xde7'
 );
-q_component_branch_condition_segment_3_2fzrh8qv53bdo.s(
-  component_branch_condition_segment_3_2fzrh8qv53bdo
+q_component_branch_condition_segment_2_2fzrhmrz1xde7.s(
+  component_branch_condition_segment_2_2fzrhmrz1xde7
 );
-const component_branch_then_segment_4_24n7dk4a4zn6t = (ctx) => {
+const component_branch_then_segment_3_24n7atwir5934 = (ctx) => {
   const [props, item] = _captures;
-  ctx.addRoot(props);
-  const propQrl0 = q_component_title_segment_5_2f0r23m7p7poi.w([props]);
+  const prop0 = propSource(props, 'title');
+  isSource(prop0) && ctx.addRoot(prop0);
   const component0 = createComponent(
     Done,
     _props(
       {
         get title() {
-          return readExpression(propQrl0);
+          return readTrackedValue(prop0);
         },
       },
-      { title: propQrl0 }
+      { title: prop0 }
     ),
     ctx
   );
   return component0;
 };
-const q_component_branch_then_segment_4_24n7dk4a4zn6t = /*#__PURE__*/ _noopQrl(
-  'component_branch_then_segment_4_24n7dk4a4zn6t'
+const q_component_branch_then_segment_3_24n7atwir5934 = /*#__PURE__*/ _noopQrl(
+  'component_branch_then_segment_3_24n7atwir5934'
 );
-q_component_branch_then_segment_4_24n7dk4a4zn6t.s(component_branch_then_segment_4_24n7dk4a4zn6t);
-const component_branch_else_segment_6_19dvsnjetbnih = (ctx) => {
+q_component_branch_then_segment_3_24n7atwir5934.s(component_branch_then_segment_3_24n7atwir5934);
+const component_branch_else_segment_4_19dvrvh6znjhf = (ctx) => {
   const [index, item, props] = _captures;
   const id0 = ctx.nextId();
-  ctx.addRoot(props);
-  const text0 = renderSsrTextExpression(
-    id0,
-    null,
-    [props],
-    q_component_text_segment_7_1fh135jcdiyj1
-  );
+  const prop0 = propSource(props, 'title');
+  isSource(prop0) && ctx.addRoot(prop0);
+  const text0 = renderSsrTextNode(id0, null, prop0);
   return maybeThen(text0, (text0) => [
     '<li q:id="',
     createSsrNodeId(id0),
@@ -129,33 +120,15 @@ const component_branch_else_segment_6_19dvsnjetbnih = (ctx) => {
     '</li>',
   ]);
 };
-const q_component_branch_else_segment_6_19dvsnjetbnih = /*#__PURE__*/ _noopQrl(
-  'component_branch_else_segment_6_19dvsnjetbnih'
+const q_component_branch_else_segment_4_19dvrvh6znjhf = /*#__PURE__*/ _noopQrl(
+  'component_branch_else_segment_4_19dvrvh6znjhf'
 );
-q_component_branch_else_segment_6_19dvsnjetbnih.s(component_branch_else_segment_6_19dvsnjetbnih);
-const component_title_segment_5_2f0r23m7p7poi = (props) => {
-  return props.title;
-};
-const q_component_title_segment_5_2f0r23m7p7poi = /*#__PURE__*/ _noopQrl(
-  'component_title_segment_5_2f0r23m7p7poi'
-);
-q_component_title_segment_5_2f0r23m7p7poi.s(component_title_segment_5_2f0r23m7p7poi);
-const component_text_segment_7_1fh135jcdiyj1 = (props) => {
-  return props.title;
-};
-const q_component_text_segment_7_1fh135jcdiyj1 = /*#__PURE__*/ _noopQrl(
-  'component_text_segment_7_1fh135jcdiyj1'
-);
-q_component_text_segment_7_1fh135jcdiyj1.s(component_text_segment_7_1fh135jcdiyj1);
+q_component_branch_else_segment_4_19dvrvh6znjhf.s(component_branch_else_segment_4_19dvrvh6znjhf);
 export const Done = (props, ctx) => {
   const id0 = ctx.nextId();
-  ctx.addRoot(props);
-  const text0 = renderSsrTextExpression(
-    id0,
-    null,
-    [props],
-    q_component_text_segment_0_1fh10fbkzokfc
-  );
+  const prop0 = propSource(props, 'title');
+  isSource(prop0) && ctx.addRoot(prop0);
+  const text0 = renderSsrTextNode(id0, null, prop0);
   return maybeThen(text0, (text0) => [
     '<b q:id="',
     createSsrNodeId(id0),
@@ -175,8 +148,8 @@ export default (props, ctx) => {
     ctx,
     collectionId0,
     items,
-    q_component_for_key_segment_2_24ursol8ttrxy.w([selected, props]),
-    q_component_for_render_segment_1_asysu8t2u0ck.w([selected, props]),
+    q_component_for_key_segment_1_24ursak4wzpxf.w([selected, props]),
+    q_component_for_render_segment_0_asyt89wzo2d3.w([selected, props]),
     1,
     true,
     3
@@ -189,56 +162,28 @@ export default (props, ctx) => {
     '<!/f></ul>',
   ]);
 };
-============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
-
-export const component_text_segment_0_1fh10fbkzokfc = (props) => {
-  return props.title;
-};
-/*
-{
-  "origin": "component.tsx",
-  "name": "component_text_segment_0_1fh10fbkzokfc",
-  "entry": null,
-  "displayName": "component_text_segment_0",
-  "hash": "1fh10fbkzokfc",
-  "canonicalFilename": "component.tsx_component_text_segment_0_1fh10fbkzokfc",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "text",
-  "captures": true,
-  "loc": [
-    98,
-    109
-  ],
-  "paramNames": [],
-  "captureNames": [
-    "props"
-  ]
-}
-*/
-============================= src/component.tsx_component_for_render_segment_1_asysu8t2u0ck.js (ENTRY POINT)==
+============================= src/component.tsx_component_for_render_segment_0_asyt89wzo2d3.js (ENTRY POINT)==
 
 import { _noopQrl, _captures, createSsrNodeId, renderSsrBranch, maybeThen } from '@qwik.dev/core';
-import { component_branch_condition_segment_3_2fzrh8qv53bdo } from './component.tsx_component_branch_condition_segment_3_2fzrh8qv53bdo';
-import { component_branch_then_segment_4_24n7dk4a4zn6t } from './component.tsx_component_branch_then_segment_4_24n7dk4a4zn6t';
-import { component_branch_else_segment_6_19dvsnjetbnih } from './component.tsx_component_branch_else_segment_6_19dvsnjetbnih';
-const q_component_branch_condition_segment_3_2fzrh8qv53bdo = /*#__PURE__*/ _noopQrl(
-  'component_branch_condition_segment_3_2fzrh8qv53bdo'
+import { component_branch_condition_segment_2_2fzrhmrz1xde7 } from './component.tsx_component_branch_condition_segment_2_2fzrhmrz1xde7';
+import { component_branch_then_segment_3_24n7atwir5934 } from './component.tsx_component_branch_then_segment_3_24n7atwir5934';
+import { component_branch_else_segment_4_19dvrvh6znjhf } from './component.tsx_component_branch_else_segment_4_19dvrvh6znjhf';
+const q_component_branch_condition_segment_2_2fzrhmrz1xde7 = /*#__PURE__*/ _noopQrl(
+  'component_branch_condition_segment_2_2fzrhmrz1xde7'
 );
-q_component_branch_condition_segment_3_2fzrh8qv53bdo.s(
-  component_branch_condition_segment_3_2fzrh8qv53bdo
+q_component_branch_condition_segment_2_2fzrhmrz1xde7.s(
+  component_branch_condition_segment_2_2fzrhmrz1xde7
 );
-const q_component_branch_then_segment_4_24n7dk4a4zn6t = /*#__PURE__*/ _noopQrl(
-  'component_branch_then_segment_4_24n7dk4a4zn6t'
+const q_component_branch_then_segment_3_24n7atwir5934 = /*#__PURE__*/ _noopQrl(
+  'component_branch_then_segment_3_24n7atwir5934'
 );
-q_component_branch_then_segment_4_24n7dk4a4zn6t.s(component_branch_then_segment_4_24n7dk4a4zn6t);
-const q_component_branch_else_segment_6_19dvsnjetbnih = /*#__PURE__*/ _noopQrl(
-  'component_branch_else_segment_6_19dvsnjetbnih'
+q_component_branch_then_segment_3_24n7atwir5934.s(component_branch_then_segment_3_24n7atwir5934);
+const q_component_branch_else_segment_4_19dvrvh6znjhf = /*#__PURE__*/ _noopQrl(
+  'component_branch_else_segment_4_19dvrvh6znjhf'
 );
-q_component_branch_else_segment_6_19dvsnjetbnih.s(component_branch_else_segment_6_19dvsnjetbnih);
+q_component_branch_else_segment_4_19dvrvh6znjhf.s(component_branch_else_segment_4_19dvrvh6znjhf);
 
-export const component_for_render_segment_1_asysu8t2u0ck = (
+export const component_for_render_segment_0_asyt89wzo2d3 = (
   ctx,
   __rangeId,
   __rowId,
@@ -255,9 +200,9 @@ export const component_for_render_segment_1_asysu8t2u0ck = (
   const branch0 = renderSsrBranch(
     ctx,
     branchId0,
-    q_component_branch_condition_segment_3_2fzrh8qv53bdo.w([visible]),
-    q_component_branch_then_segment_4_24n7dk4a4zn6t.w([props, item]),
-    q_component_branch_else_segment_6_19dvsnjetbnih.w([index, item, props])
+    q_component_branch_condition_segment_2_2fzrhmrz1xde7.w([visible]),
+    q_component_branch_then_segment_3_24n7atwir5934.w([props, item]),
+    q_component_branch_else_segment_4_19dvrvh6znjhf.w([index, item, props])
   );
   return maybeThen(branch0, (branch0) => [
     '<!r=',
@@ -272,11 +217,11 @@ export const component_for_render_segment_1_asysu8t2u0ck = (
 /*
 {
   "origin": "component.tsx",
-  "name": "component_for_render_segment_1_asysu8t2u0ck",
+  "name": "component_for_render_segment_0_asyt89wzo2d3",
   "entry": null,
-  "displayName": "component_for_render_segment_1",
-  "hash": "asysu8t2u0ck",
-  "canonicalFilename": "component.tsx_component_for_render_segment_1_asysu8t2u0ck",
+  "displayName": "component_for_render_segment_0",
+  "hash": "asyt89wzo2d3",
+  "canonicalFilename": "component.tsx_component_for_render_segment_0_asyt89wzo2d3",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -296,11 +241,11 @@ export const component_for_render_segment_1_asysu8t2u0ck = (
   ]
 }
 */
-============================= src/component.tsx_component_for_key_segment_2_24ursol8ttrxy.js (ENTRY POINT)==
+============================= src/component.tsx_component_for_key_segment_1_24ursak4wzpxf.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';
 
-export const component_for_key_segment_2_24ursol8ttrxy = (item, index) => {
+export const component_for_key_segment_1_24ursak4wzpxf = (item, index) => {
   const [selected, props] = _captures;
   const { id, done } = item;
   const visible = done && selected.value;
@@ -310,11 +255,11 @@ export const component_for_key_segment_2_24ursol8ttrxy = (item, index) => {
 /*
 {
   "origin": "component.tsx",
-  "name": "component_for_key_segment_2_24ursol8ttrxy",
+  "name": "component_for_key_segment_1_24ursak4wzpxf",
   "entry": null,
-  "displayName": "component_for_key_segment_2",
-  "hash": "24ursol8ttrxy",
-  "canonicalFilename": "component.tsx_component_for_key_segment_2_24ursol8ttrxy",
+  "displayName": "component_for_key_segment_1",
+  "hash": "24ursak4wzpxf",
+  "canonicalFilename": "component.tsx_component_for_key_segment_1_24ursak4wzpxf",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -334,22 +279,22 @@ export const component_for_key_segment_2_24ursol8ttrxy = (item, index) => {
   ]
 }
 */
-============================= src/component.tsx_component_branch_condition_segment_3_2fzrh8qv53bdo.js (ENTRY POINT)==
+============================= src/component.tsx_component_branch_condition_segment_2_2fzrhmrz1xde7.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';
 
-export const component_branch_condition_segment_3_2fzrh8qv53bdo = () => {
+export const component_branch_condition_segment_2_2fzrhmrz1xde7 = () => {
   const [visible] = _captures;
   return visible;
 };
 /*
 {
   "origin": "component.tsx",
-  "name": "component_branch_condition_segment_3_2fzrh8qv53bdo",
+  "name": "component_branch_condition_segment_2_2fzrhmrz1xde7",
   "entry": null,
-  "displayName": "component_branch_condition_segment_3",
-  "hash": "2fzrh8qv53bdo",
-  "canonicalFilename": "component.tsx_component_branch_condition_segment_3_2fzrh8qv53bdo",
+  "displayName": "component_branch_condition_segment_2",
+  "hash": "2fzrhmrz1xde7",
+  "canonicalFilename": "component.tsx_component_branch_condition_segment_2_2fzrhmrz1xde7",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -365,29 +310,31 @@ export const component_branch_condition_segment_3_2fzrh8qv53bdo = () => {
   ]
 }
 */
-============================= src/component.tsx_component_branch_then_segment_4_24n7dk4a4zn6t.js (ENTRY POINT)==
+============================= src/component.tsx_component_branch_then_segment_3_24n7atwir5934.js (ENTRY POINT)==
 
-import { _noopQrl, _captures, readExpression, _props, createComponent } from '@qwik.dev/core';
-import { component_title_segment_5_2f0r23m7p7poi } from './component.tsx_component_title_segment_5_2f0r23m7p7poi';
+import {
+  _captures,
+  propSource,
+  isSource,
+  readTrackedValue,
+  _props,
+  createComponent,
+} from '@qwik.dev/core';
 import { Done } from './component.tsx';
-const q_component_title_segment_5_2f0r23m7p7poi = /*#__PURE__*/ _noopQrl(
-  'component_title_segment_5_2f0r23m7p7poi'
-);
-q_component_title_segment_5_2f0r23m7p7poi.s(component_title_segment_5_2f0r23m7p7poi);
 
-export const component_branch_then_segment_4_24n7dk4a4zn6t = (ctx) => {
+export const component_branch_then_segment_3_24n7atwir5934 = (ctx) => {
   const [props, item] = _captures;
-  ctx.addRoot(props);
-  const propQrl0 = q_component_title_segment_5_2f0r23m7p7poi.w([props]);
+  const prop0 = propSource(props, 'title');
+  isSource(prop0) && ctx.addRoot(prop0);
   const component0 = createComponent(
     Done,
     _props(
       {
         get title() {
-          return readExpression(propQrl0);
+          return readTrackedValue(prop0);
         },
       },
-      { title: propQrl0 }
+      { title: prop0 }
     ),
     ctx
   );
@@ -396,11 +343,11 @@ export const component_branch_then_segment_4_24n7dk4a4zn6t = (ctx) => {
 /*
 {
   "origin": "component.tsx",
-  "name": "component_branch_then_segment_4_24n7dk4a4zn6t",
+  "name": "component_branch_then_segment_3_24n7atwir5934",
   "entry": null,
-  "displayName": "component_branch_then_segment_4",
-  "hash": "24n7dk4a4zn6t",
-  "canonicalFilename": "component.tsx_component_branch_then_segment_4_24n7dk4a4zn6t",
+  "displayName": "component_branch_then_segment_3",
+  "hash": "24n7atwir5934",
+  "canonicalFilename": "component.tsx_component_branch_then_segment_3_24n7atwir5934",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -417,60 +364,24 @@ export const component_branch_then_segment_4_24n7dk4a4zn6t = (ctx) => {
   ]
 }
 */
-============================= src/component.tsx_component_title_segment_5_2f0r23m7p7poi.js (ENTRY POINT)==
-
-export const component_title_segment_5_2f0r23m7p7poi = (props) => {
-  return props.title;
-};
-/*
-{
-  "origin": "component.tsx",
-  "name": "component_title_segment_5_2f0r23m7p7poi",
-  "entry": null,
-  "displayName": "component_title_segment_5",
-  "hash": "2f0r23m7p7poi",
-  "canonicalFilename": "component.tsx_component_title_segment_5_2f0r23m7p7poi",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "title",
-  "captures": true,
-  "loc": [
-    509,
-    514
-  ],
-  "paramNames": [],
-  "captureNames": [
-    "props"
-  ]
-}
-*/
-============================= src/component.tsx_component_branch_else_segment_6_19dvsnjetbnih.js (ENTRY POINT)==
+============================= src/component.tsx_component_branch_else_segment_4_19dvrvh6znjhf.js (ENTRY POINT)==
 
 import {
-  _noopQrl,
   _captures,
   createSsrNodeId,
   escapeHTML,
-  renderSsrTextExpression,
+  propSource,
+  isSource,
+  renderSsrTextNode,
   maybeThen,
 } from '@qwik.dev/core';
-import { component_text_segment_7_1fh135jcdiyj1 } from './component.tsx_component_text_segment_7_1fh135jcdiyj1';
-const q_component_text_segment_7_1fh135jcdiyj1 = /*#__PURE__*/ _noopQrl(
-  'component_text_segment_7_1fh135jcdiyj1'
-);
-q_component_text_segment_7_1fh135jcdiyj1.s(component_text_segment_7_1fh135jcdiyj1);
 
-export const component_branch_else_segment_6_19dvsnjetbnih = (ctx) => {
+export const component_branch_else_segment_4_19dvrvh6znjhf = (ctx) => {
   const [index, item, props] = _captures;
   const id0 = ctx.nextId();
-  ctx.addRoot(props);
-  const text0 = renderSsrTextExpression(
-    id0,
-    null,
-    [props],
-    q_component_text_segment_7_1fh135jcdiyj1
-  );
+  const prop0 = propSource(props, 'title');
+  isSource(prop0) && ctx.addRoot(prop0);
+  const text0 = renderSsrTextNode(id0, null, prop0);
   return maybeThen(text0, (text0) => [
     '<li q:id="',
     createSsrNodeId(id0),
@@ -482,11 +393,11 @@ export const component_branch_else_segment_6_19dvsnjetbnih = (ctx) => {
 /*
 {
   "origin": "component.tsx",
-  "name": "component_branch_else_segment_6_19dvsnjetbnih",
+  "name": "component_branch_else_segment_4_19dvrvh6znjhf",
   "entry": null,
-  "displayName": "component_branch_else_segment_6",
-  "hash": "19dvsnjetbnih",
-  "canonicalFilename": "component.tsx_component_branch_else_segment_6_19dvsnjetbnih",
+  "displayName": "component_branch_else_segment_4",
+  "hash": "19dvrvh6znjhf",
+  "canonicalFilename": "component.tsx_component_branch_else_segment_4_19dvrvh6znjhf",
   "extension": "js",
   "parent": null,
   "ctxKind": "function",
@@ -500,34 +411,6 @@ export const component_branch_else_segment_6_19dvsnjetbnih = (ctx) => {
   "captureNames": [
     "index",
     "item",
-    "props"
-  ]
-}
-*/
-============================= src/component.tsx_component_text_segment_7_1fh135jcdiyj1.js (ENTRY POINT)==
-
-export const component_text_segment_7_1fh135jcdiyj1 = (props) => {
-  return props.title;
-};
-/*
-{
-  "origin": "component.tsx",
-  "name": "component_text_segment_7_1fh135jcdiyj1",
-  "entry": null,
-  "displayName": "component_text_segment_7",
-  "hash": "1fh135jcdiyj1",
-  "canonicalFilename": "component.tsx_component_text_segment_7_1fh135jcdiyj1",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "text",
-  "captures": true,
-  "loc": [
-    555,
-    560
-  ],
-  "paramNames": [],
-  "captureNames": [
     "props"
   ]
 }

@@ -103,6 +103,23 @@ describe('DOM effects', () => {
     expect(text.data).toBe('8');
   });
 
+  it('applies a constant text and attribute once, tracking nothing', async () => {
+    const scheduler = new Scheduler(noopSchedule);
+    const text = createText();
+    const { element, attrs } = createAttrTarget();
+    const textEffect = createOwned(() => createTextNodeEffect(text, 'Hello', scheduler));
+    const attrEffect = createOwned(() => createAttrEffect(element, 'title', 'Hi', scheduler));
+
+    scheduler.notify(textEffect);
+    scheduler.notify(attrEffect);
+    await scheduler.flushInteraction();
+
+    expect(text.data).toBe('Hello');
+    expect(attrs.get('title')).toBe('Hi');
+    expect(textEffect.deps).toBeNull();
+    expect(attrEffect.deps).toBeNull();
+  });
+
   it('a stringify text node renders booleans like a JS concat operand', async () => {
     const scheduler = new Scheduler(noopSchedule);
     const flag = useSignal<boolean | null>(true);

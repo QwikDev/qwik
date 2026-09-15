@@ -27,10 +27,10 @@ test.each([
     ],
   });
   expect(output.diagnostics).toEqual([]);
-  const text = output.modules.find((module) => module.segment?.ctxName === 'text')!;
   const event = output.modules.find((module) => module.segment?.ctxName === 'onClick$')!;
-  expect(text.segment!.captureNames).toHaveLength(1);
-  expect(event.segment!.captureNames).toEqual(text.segment!.captureNames);
+  // The text binds the member's source directly; only the handler needs a chunk over the record.
+  expect(output.modules.some((module) => module.segment?.ctxName === 'text')).toBe(false);
+  expect(event.segment!.captureNames).toHaveLength(1);
   const value = core.useSignal('first');
   let reads = 0;
   let receiver: unknown = 'not called';

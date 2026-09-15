@@ -1,4 +1,5 @@
 import { _textValue } from '../../shared/utils/character-escaping';
+import { isSource } from '../../component/props';
 import { EffectKind } from './effect-kind.enum';
 import { defaultScheduler, type TaskScheduler } from '../../runtime/scheduler';
 import { resolveEventHandlers, type AttrExpressionFn, type EventExpressionFn } from './effect';
@@ -314,10 +315,14 @@ export function createSsrDomBatchEffect(): SsrDomSubscriber {
 export function renderSsrTextNode(
   targetId: number,
   markerIndex: number | null,
-  source: Source,
+  source: unknown,
   batch?: SsrDomSubscriber,
   stringify = false
 ): ValueOrPromise<string> {
+  // A constant writes once and leaves no subscription behind.
+  if (!isSource(source)) {
+    return ssrText(source, stringify);
+  }
   const subscriber = createSsrDomEffect(
     new SsrTextNodeEffect(targetId, markerIndex, batch ? source : undefined, stringify),
     batch
@@ -325,7 +330,7 @@ export function renderSsrTextNode(
   return retryOnPromise(() =>
     maybeThen(
       runWithCollector(subscriber, readTrackedSourceValue, source) as ValueOrPromise<unknown>,
-      (value) => (stringify ? String(value) : _textValue(value))
+      (value) => ssrText(value, stringify)
     )
   );
 }
@@ -356,13 +361,20 @@ export function renderSsrTextExpression<TArgs extends unknown[]>(
   });
 }
 
+function ssrText(value: unknown, stringify: boolean): string {
+  return stringify ? String(value) : _textValue(value);
+}
+
 export function renderSsrAttr(
   targetId: number,
   name: string,
-  source: Source,
+  source: unknown,
   batch?: SsrDomSubscriber,
   styleScopedId?: string
 ): ValueOrPromise<string | null> {
+  if (!isSource(source)) {
+    return serializeAttrExpressionValue(name, source, styleScopedId);
+  }
   const subscriber = createSsrDomEffect(
     new SsrAttrEffect(targetId, name, source, styleScopedId),
     batch

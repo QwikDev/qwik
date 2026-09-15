@@ -1362,7 +1362,7 @@ function lowerAttribute(
     }
     return {
       k: PropKind.Spread,
-      value: lowerExpressionValue(attribute.argument, ctx, 'props'),
+      value: lowerExpressionValue(attribute.argument, ctx, 'props', false),
       effect: null,
     };
   }

@@ -26,7 +26,7 @@ import {
 } from './ast/capture-analysis';
 import { UnsupportedError } from '../errors';
 import { pushPayload, pushQrl, QrlIdentityKind, type LowerContext } from './lower-context';
-import { LocalKind, localReadIr } from './locals';
+import { LocalKind, localReadIr, memberReadIr } from './locals';
 import type { Expression, Node } from 'oxc-parser';
 import { recordFunctionJsx, recordPayloadQrls } from './lower-function';
 import { expressionResult } from './results';
@@ -43,7 +43,9 @@ export function lowerExpressionValue(
   expression: Expression,
   ctx: LowerContext,
   /** Segment identity context: 'text' for holes, the attribute name for props. */
-  nameCtx: string
+  nameCtx: string,
+  /** Event handlers need a QRL, so a prop member read stays computed there. */
+  propMembers = true
 ): ReactiveValue {
   if (ctx.inlineParams !== null) {
     const inline = tryLowerInlineValue(expression, ctx);
@@ -52,11 +54,49 @@ export function lowerExpressionValue(
     }
     // Reactive reads fall through to the capturing hole path; loop params capture by name.
   }
-  const read = trySignalReadValue(expression, ctx);
+  const read =
+    trySignalReadValue(expression, ctx) ??
+    (propMembers ? tryPropMemberRead(expression, ctx) : null);
   if (read !== null) {
     return read;
   }
   return lowerComputedExpressionValue(expression, ctx, nameCtx);
+}
+
+/** `props.title`, or a live alias of it: one member the runtime backs with its own source. */
+export function tryPropMemberRead(expression: Expression, ctx: LowerContext): ReactiveValue | null {
+  const props = ctx.propsBinding;
+  const name = props === null ? null : propMemberName(expression, ctx, props);
+  if (name === null) {
+    return null;
+  }
+  return {
+    v: ValueKind.Read,
+    range: [expression.start, expression.end],
+    result: expressionResult(expression, ctx),
+    place: { at: PlaceKind.Prop, name },
+    expr: { kind: ExprKind.Ir, ir: memberReadIr(props!, name) },
+  };
+}
+
+/** Exactly one member of the props binding: not a deeper path, a default, or a store member. */
+function propMemberName(expression: Expression, ctx: LowerContext, props: number): string | null {
+  if (expression.type === 'MemberExpression') {
+    return !expression.computed &&
+      !expression.optional &&
+      ctx.bindings.reference(expression.object) === props
+      ? identifierName(expression.property)
+      : null;
+  }
+  const binding = expression.type === 'Identifier' ? ctx.bindings.reference(expression) : null;
+  const local = binding === null ? undefined : ctx.locals.get(binding);
+  const read =
+    local?.kind === LocalKind.PropMember && local.defaultValue === undefined ? local.read : null;
+  return read?.kind === ValueIrKind.Member &&
+    read.obj.kind === ValueIrKind.BindingRead &&
+    read.obj.binding === props
+    ? read.name
+    : null;
 }
 
 export function lowerComputedExpressionValue(

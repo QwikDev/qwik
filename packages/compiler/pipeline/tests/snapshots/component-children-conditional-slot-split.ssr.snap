@@ -117,9 +117,9 @@ export const Panel = (props, ctx) => {
 export default (props, ctx) => {
   const flip = useSignal(false);
   const slotScope0 = createSlotScope();
-  ctx.addRoot(slotScope0);
   registerProjection(slotScope0, 'x', q_component_slot_render_segment_0_3b0tagwys7lui.w([flip]));
   registerProjection(slotScope0, 'y', q_component_slot_render_segment_3_3b0ta2vuvdjtz.w([flip]));
+  ctx.addRoot(slotScope0);
   const component0 = createComponent(Panel, null, ctx, { slotScope: slotScope0 });
   return component0;
 };

@@ -32,7 +32,7 @@ import { _constants, TypeIds, type Constants } from './constants';
 import { SYNC_QRL } from '../qrl/qrl-utils';
 import { createQRLWithBackChannel } from './qrl-to-string';
 import { findQwikElement } from '../../runtime/node-walker';
-import { allocatePropsProxy } from '../../component/props';
+import { allocatePropsProxy, PropSource } from '../../component/props';
 import { PromiseRoot } from './promise-root';
 
 export const resolvers = new WeakMap<Promise<any>, [Function, Function]>();
@@ -163,6 +163,8 @@ export const allocate = (
     }
     case TypeIds.StoreProp:
       return new StorePropSource();
+    case TypeIds.PropSource:
+      return new PropSource();
     case TypeIds.URLSearchParams:
       return new URLSearchParams(value as string);
     case TypeIds.FormData:

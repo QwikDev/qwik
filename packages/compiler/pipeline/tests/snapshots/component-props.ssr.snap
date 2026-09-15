@@ -14,33 +14,23 @@ export default () => {
 import {
   createSsrNodeId,
   escapeHTML,
-  renderSsrTextExpression,
+  propSource,
+  isSource,
+  renderSsrTextNode,
   maybeThen,
-  _noopQrl,
   useSignal,
-  readTrackedSourceValue,
+  readTrackedValue,
   _props,
   createComponent,
 } from '@qwik.dev/core';
-const component_text_segment_0_1fh10fbkzokfc = (props) => {
-  return props.className;
-};
-const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _noopQrl(
-  'component_text_segment_0_1fh10fbkzokfc'
-);
-q_component_text_segment_0_1fh10fbkzokfc.s(component_text_segment_0_1fh10fbkzokfc);
-const component_text_segment_1_1fh10tcowimfv = (props) => {
-  return props.count;
-};
-const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _noopQrl(
-  'component_text_segment_1_1fh10tcowimfv'
-);
-q_component_text_segment_1_1fh10tcowimfv.s(component_text_segment_1_1fh10tcowimfv);
 export const Child = (props, ctx) => {
   const id0 = ctx.nextId();
-  ctx.addRoot(props);
-  const text0 = renderSsrTextExpression(id0, 0, [props], q_component_text_segment_0_1fh10fbkzokfc);
-  const text1 = renderSsrTextExpression(id0, 1, [props], q_component_text_segment_1_1fh10tcowimfv);
+  const prop0 = propSource(props, 'className');
+  isSource(prop0) && ctx.addRoot(prop0);
+  const text0 = renderSsrTextNode(id0, 0, prop0);
+  const prop1 = propSource(props, 'count');
+  isSource(prop1) && ctx.addRoot(prop1);
+  const text1 = renderSsrTextNode(id0, 1, prop1);
   return maybeThen(text0, (text0) =>
     maybeThen(text1, (text1) => [
       '<strong q:id="',
@@ -62,7 +52,7 @@ export default (props0, ctx) => {
       {
         className: 'total',
         get count() {
-          return readTrackedSourceValue(count);
+          return readTrackedValue(count);
         },
       },
       { count: count }
@@ -71,62 +61,6 @@ export default (props0, ctx) => {
   );
   return component0;
 };
-============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
-
-export const component_text_segment_0_1fh10fbkzokfc = (props) => {
-  return props.className;
-};
-/*
-{
-  "origin": "component.tsx",
-  "name": "component_text_segment_0_1fh10fbkzokfc",
-  "entry": null,
-  "displayName": "component_text_segment_0",
-  "hash": "1fh10fbkzokfc",
-  "canonicalFilename": "component.tsx_component_text_segment_0_1fh10fbkzokfc",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "text",
-  "captures": true,
-  "loc": [
-    85,
-    100
-  ],
-  "paramNames": [],
-  "captureNames": [
-    "props"
-  ]
-}
-*/
-============================= src/component.tsx_component_text_segment_1_1fh10tcowimfv.js (ENTRY POINT)==
-
-export const component_text_segment_1_1fh10tcowimfv = (props) => {
-  return props.count;
-};
-/*
-{
-  "origin": "component.tsx",
-  "name": "component_text_segment_1_1fh10tcowimfv",
-  "entry": null,
-  "displayName": "component_text_segment_1",
-  "hash": "1fh10tcowimfv",
-  "canonicalFilename": "component.tsx_component_text_segment_1_1fh10tcowimfv",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "text",
-  "captures": true,
-  "loc": [
-    104,
-    115
-  ],
-  "paramNames": [],
-  "captureNames": [
-    "props"
-  ]
-}
-*/
 == SSR DIAGNOSTICS ==
 
 []

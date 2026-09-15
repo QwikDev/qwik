@@ -14,6 +14,8 @@ import {
   SeedKind,
   Shape,
   ValueKind,
+  type LocalId,
+  type Value,
   ExprKind,
   type LinkedModule,
   type LinkedOp,
@@ -59,25 +61,19 @@ export function linkContent(module: LinkedModule): void {
         boundary: { kind: BoundaryKind.Implicit, role: 'content' },
       };
     } else if (
-      (value.v === ValueKind.Read &&
-        value.expr.kind === ExprKind.Ir &&
-        value.expr.ir.kind === ValueIrKind.SignalRead) ||
+      readBinding(value) !== null ||
       (value.v === ValueKind.Computed && op.contentCaptures !== undefined)
     ) {
-      const binding =
-        value.v === ValueKind.Read &&
-        value.expr.kind === ExprKind.Ir &&
-        value.expr.ir.kind === ValueIrKind.SignalRead
-          ? value.expr.ir.binding
-          : null;
+      const binding = readBinding(value);
       const captures = op.contentCaptures?.captures ?? [
         { binding: binding!, access: CaptureAccess.Direct },
       ];
       const args = op.contentCaptures?.args ?? [{ pass: ArgPass.Binding, binding: binding! }];
+      const expr = value.v === ValueKind.Read || value.v === ValueKind.Computed ? value.expr : null;
       const range =
         value.range ??
-        (value.expr.kind === ExprKind.Js
-          ? module.payloads[value.expr.payload].range
+        (expr?.kind === ExprKind.Js
+          ? module.payloads[expr.payload].range
           : module.bindings[binding!].declarationRange!);
       const id = `linked_content_${ordinal}`;
       const name = createSegmentSymbolName(
@@ -94,7 +90,7 @@ export function linkContent(module: LinkedModule): void {
         markerAttributes: [],
         payloadKind: QrlPayloadKind.Function,
         authoredAsync: false,
-        body: { b: QrlBodyKind.Expr, expr: value.expr, initialOnly: false },
+        body: { b: QrlBodyKind.Expr, expr: expr!, initialOnly: false },
         captures,
         params: { authored: 0, used: [], sources: [] },
         origin: {
@@ -139,4 +135,22 @@ export function linkContent(module: LinkedModule): void {
     ...qrl,
     dependencies: collectQrlDependencies(module, qrl),
   }));
+}
+
+/** The one binding a read value depends on: a signal, or the props record behind a member. */
+function readBinding(value: Value): LocalId | null {
+  if (value.v !== ValueKind.Read) {
+    return null;
+  }
+  const expr = value.expr;
+  if (expr.kind !== ExprKind.Ir) {
+    return null;
+  }
+  const ir = expr.ir;
+  if (ir.kind === ValueIrKind.SignalRead) {
+    return ir.binding;
+  }
+  return ir.kind === ValueIrKind.Member && ir.obj.kind === ValueIrKind.BindingRead
+    ? ir.obj.binding
+    : null;
 }

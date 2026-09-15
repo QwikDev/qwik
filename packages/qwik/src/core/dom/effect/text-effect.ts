@@ -5,6 +5,7 @@ import type { Scheduler } from '../../runtime/scheduler';
 import { isPromise } from '../../shared/utils/promises';
 import type { ValueOrPromise } from '../../shared/utils/types';
 import { commitDomPromise, DomEffect, registerDomEffect } from './dom-effect';
+import { isSource } from '../../component/props';
 
 export type TextExpressionValue = string | number | boolean | bigint | null | undefined;
 export type TextExpressionFn<TArgs extends unknown[] = unknown[]> = (
@@ -29,7 +30,7 @@ export class TextExpressionEffect<TArgs extends unknown[] = unknown[]> extends D
 export class TextNodeEffect extends DomEffect {
   constructor(
     readonly text: Text,
-    readonly source: Source<ValueOrPromise<TextExpressionValue>>,
+    readonly source: Source<ValueOrPromise<TextExpressionValue>> | TextExpressionValue,
     scheduler?: Scheduler,
     /** Concat operands keep JS `String()` coercion; JSX positions suppress nullish/booleans. */
     readonly stringify: boolean = false
@@ -38,7 +39,7 @@ export class TextNodeEffect extends DomEffect {
   }
 
   execute(): ValueOrPromise<void> {
-    return patchTextValue(this.text, readTrackedSourceValue(this.source), this.stringify);
+    return patchTextValue(this.text, readTrackedValue(this.source), this.stringify);
   }
 }
 
@@ -53,7 +54,7 @@ export function createTextExpressionEffect<TArgs extends unknown[]>(
 
 export function createTextNodeEffect(
   text: Text,
-  source: Source<ValueOrPromise<TextExpressionValue>>,
+  source: Source<ValueOrPromise<TextExpressionValue>> | TextExpressionValue,
   scheduler?: Scheduler,
   stringify?: boolean
 ): TextNodeEffect {
@@ -81,4 +82,9 @@ function setTextData(text: Text, value: TextExpressionValue, stringify: boolean)
 export function readTrackedSourceValue<T>(source: Source<T>): T {
   track(source);
   return readSourceValue(source);
+}
+
+/** A constant in a source's place reads as itself and subscribes to nothing. */
+export function readTrackedValue<T>(source: Source<T> | T): T {
+  return isSource(source) ? readTrackedSourceValue(source as Source<T>) : (source as T);
 }

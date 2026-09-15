@@ -32,7 +32,7 @@ export function lowerEventAttribute(
             ctx,
             lowerCaptures(handler, ctx, 'an event handler').refs
           )
-        : lowerExpressionValue(handler, ctx, authored);
+        : lowerExpressionValue(handler, ctx, authored, false);
     }
     const use = lowerFunctionQrl(handler, ctx, {
       nameCtx: scope,

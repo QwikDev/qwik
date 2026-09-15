@@ -309,7 +309,9 @@ export {
   createPropsProxy,
   getMemberSource,
   getPropSource,
+  isSource,
   mergeProps,
+  propSource,
 } from './component/props';
 export { readExpression } from './utils/qrl';
 
@@ -377,6 +379,7 @@ export {
   createTextNodeEffect,
   patchTextValue,
   readTrackedSourceValue,
+  readTrackedValue,
   type TextExpressionFn,
   type TextExpressionValue,
 } from './dom/effect/text-effect';

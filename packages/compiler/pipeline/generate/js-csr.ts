@@ -48,7 +48,7 @@ import {
   emitHookBody,
   mayBe,
   parameterDefaults,
-  signalReadName,
+  readSource,
   withMarkerEmitter,
 } from './emit-setup';
 import { sourceFunctionEmission, contentFunctionEmission } from './emit-function';
@@ -109,6 +109,7 @@ async function generateModule(
 interface RenderPass {
   names: GeneratedNames;
   next: (prefix: string) => string;
+  propSources: Map<string, string>;
 }
 
 class CsrModuleEmitter implements QwikModuleEmitter {
@@ -174,7 +175,11 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     if (program.body.kind !== ProgramBodyKind.Ops) {
       throw new Error('pipeline.generateJsCsr: js-bodied programs not implemented yet');
     }
-    const pass: RenderPass = { names, next: createNameAllocator(this.module) };
+    const pass: RenderPass = {
+      names,
+      next: createNameAllocator(this.module),
+      propSources: new Map(),
+    };
     const staticQrl = (use: QrlUse) => this.capturedChunkReference(use, names.props);
     const emitQrl = withMarkerEmitter(
       this.module,
@@ -658,9 +663,10 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     const source = emitCollectionSource(
       this.module,
       op,
-      { statements, next: pass.next },
+      { statements, next: pass.next, propSources: pass.propSources },
       this.imports,
-      (use) => this.lazyRenderReference(use, pass.names.props)
+      (use) => this.lazyRenderReference(use, pass.names.props),
+      null
     );
     this.imports.add(QwikWord.CreateCollection);
     switch (op.row.r) {
@@ -812,6 +818,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         ctx: allocateGeneratedNames(this.module).ctx,
       },
       next: createNameAllocator(this.module),
+      propSources: new Map(),
     };
     const emission = emptyFunctionEmission();
     const statements: string[] = [];
@@ -899,8 +906,15 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     const scope = styleScope === null ? '' : `, ${JSON.stringify(styleScope)}`;
     switch (prop.value.v) {
       case ValueKind.Read: {
-        // Signal reads bind directly — no chunk involved.
-        const signal = signalReadName(this.module, prop.value.expr);
+        // Signal and prop reads bind directly — no chunk involved.
+        const signal = readSource(
+          this.module,
+          prop.value.expr,
+          pass,
+          statements,
+          this.imports,
+          null
+        );
         this.imports.add(QwikWord.CreateAttrEffect);
         statements.push(
           `const ${effect} = ${QwikWord.CreateAttrEffect}(${el}, ${JSON.stringify(prop.name)}, ${signal}, ${pass.names.ctx}.scheduler${scope});`
@@ -981,8 +995,8 @@ class CsrModuleEmitter implements QwikModuleEmitter {
   ): void {
     switch (op.value.v) {
       case ValueKind.Read: {
-        // Signal reads bind the placeholder text node directly — no chunk involved.
-        const signal = signalReadName(this.module, op.value.expr);
+        // Signal and prop reads bind the placeholder text node directly — no chunk involved.
+        const signal = readSource(this.module, op.value.expr, pass, statements, this.imports, null);
         const effect = pass.next(QwikGenWord.Effect);
         this.imports.add(QwikWord.CreateTextNodeEffect);
         statements.push(

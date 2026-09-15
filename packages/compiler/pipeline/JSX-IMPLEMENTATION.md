@@ -304,12 +304,20 @@ Component spreads already exist. Complete element spreads and DOM semantics:
       client and `renderSsrProps` into the open-tag record on the server.
 - [x] Override order and single evaluation. The chunk builds one object literal in authored
       order, so a later key wins and each expression evaluates once per run.
-- [ ] TODO: capture a single props member as its own source. Every live read of one member
-      (`{props.title}`, an alias, a forwarded child prop) captures the whole `props`, so the
-      whole props record serializes for it; core's `getPropSource(props, key)` is the
-      per-member source the legacy compiler emitted, and the pipeline never uses it. Landing it
-      in the shared capture lowering shrinks serialization for components and rows alike (48
-      CSR snapshots capture `props` today).
+- [x] A single props member is its own source. A live read of one member (`{props.title}`, a
+      live alias, a forwarded child prop, an attribute, a collection source) lowers to a `Read`
+      whose printer hoists one `propSource(props, 'title')` per member and render function. The
+      runtime resolves it to the parent's source, a `PropSource` reading through the record for a
+      computed or spread prop, or the plain value of a static prop, which every consumer applies
+      once with no effect and nothing serialized. The server roots a prop source at the hoist
+      behind an `isSource` guard. Reads with a default, a deeper path, a spread argument or an
+      event handler keep their QRL (`prop-sources` snapshots, `prop-sources.spec.tsx` in CSR and
+      resume, which also asserts an unread prop never serializes).
+- [ ] TODO: a computed prop as a real source. The parent still registers the bare expression QRL,
+      so a child read resolves through `PropSource` and roots the child's record. `useComputedQrl`
+      cannot wrap it as is: it calls its QRL with a compute context while prop expression QRLs
+      take their captures positionally, and a cached JSX or component value must not serialize.
+      Needs an expression-backed computed with its own type id.
 - [x] Addition/removal of keys in reactive spreads. The client effect diffs against its previous
       run and removes vanished keys; a resumed effect seeds its first diff from the element's
       own attributes, minus runtime `q:*` markers and event attributes (`attributes.spec.tsx`
@@ -598,6 +606,23 @@ code size and runtime cost. The previous implementation is not the accepted defa
 
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
+
+- 2026-09-15: Prop sources, compiler half: `tryPropMemberRead` in `lower-expr.ts` produces the
+  `Read`, `readSource` in `emit-setup.ts` replaces `signalReadName` for both targets and the
+  component emitter, the content linker accepts a member read, and SSR steps now push their own
+  statements before roots so a hoisted name is declared before it is rooted. 89 snapshots lose
+  a text, attribute or collection-source chunk. A first attempt to register computed props as
+  `useComputedQrl` was reverted for the reason in the group 7 TODO. Verification: 1151 pipeline
+  tests, the new spec in CSR and resume, both corpora unchanged.
+
+- 2026-09-15: Prop sources, runtime half: `propSource(props, key)` in `component/props.ts`
+  returns the parent's registered source, a `PropSource` reading through the record for a
+  computed or spread prop, or the plain value of a static prop. A constant in a source's place
+  means "apply once": the text and attribute effects track nothing, the SSR writers register no
+  subscription and root nothing, and `_props` keeps only sources and QRLs in its map. `isSource`
+  is the nominal check; `PropSource` serializes as `[props, key]` beside `StorePropSource`. The
+  compiler switch to it is the next increment. Verification: props, effect and serdes unit
+  suites, both corpora unchanged.
 
 - 2026-09-15: Row statements: `readReturnedBody` keeps only the final-`return` rule,
   `lowerRowProgram` hands the statements to `lowerSetup` with `hooksAllowed` cleared on the

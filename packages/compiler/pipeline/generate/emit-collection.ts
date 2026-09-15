@@ -11,15 +11,16 @@ import {
 import { UnsupportedError } from '../errors';
 import { QwikGenWord, QwikWord } from '../words';
 import { inlineValueJs } from './emit-chunk';
-import { signalReadName } from './emit-setup';
+import { readSource, type SourcePass } from './emit-setup';
 
 /** Materialize derived sources once, shared by rendering and SSR rooting. */
 export function emitCollectionSource(
   module: LinkedModule,
   op: Extract<LinkedOp, { op: OpKind.Each }>,
-  pass: { statements: string[]; next: (prefix: string) => string },
+  pass: SourcePass & { statements: string[] },
   imports: Set<string>,
-  resolveQrl: (use: QrlUse) => string
+  resolveQrl: (use: QrlUse) => string,
+  ssrCtx: string | null
 ): string {
   const { s, value } = op.source;
   switch (s) {
@@ -29,7 +30,7 @@ export function emitCollectionSource(
       if (value.v !== ValueKind.Read) {
         throw new UnsupportedError('a non-signal collection source');
       }
-      return signalReadName(module, value.expr);
+      return readSource(module, value.expr, pass, pass.statements, imports, ssrCtx);
     case EachSourceKind.Derived: {
       if (value.v !== ValueKind.Computed || value.resume.r !== ResumeKind.Qrl) {
         throw new UnsupportedError('a derived collection source without a QRL');

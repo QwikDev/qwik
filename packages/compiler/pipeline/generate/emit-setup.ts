@@ -335,11 +335,49 @@ function argJs(module: LinkedModule, arg: Arg, emitQrl: EmitQrl): string {
 }
 
 /** The signal local a `Read` hole subscribes — resolved from its SignalRead IR. */
-export function signalReadName(module: LinkedModule, expr: Expr): string {
-  if (expr.kind !== ExprKind.Ir || expr.ir.kind !== ValueIrKind.SignalRead) {
-    throw new UnsupportedError('a read hole without signal-read IR');
+export interface SourcePass {
+  next: (prefix: string) => string;
+  /** One hoisted `propSource` per props member and render function, keyed `binding.name`. */
+  propSources: Map<string, string>;
+  /** Names the server already rooted in this pass. */
+  rooted?: Set<string>;
+}
+
+/**
+ * The source a read value binds to: a signal by name, or a props member hoisted once per render
+ * function. The server roots a prop source at the hoist, guarded since a static prop is a value.
+ */
+export function readSource(
+  module: LinkedModule,
+  expr: Expr,
+  pass: SourcePass,
+  statements: string[],
+  imports: Set<string>,
+  ssrCtx: string | null
+): string {
+  const ir = expr.kind === ExprKind.Ir ? expr.ir : null;
+  if (ir?.kind === ValueIrKind.SignalRead) {
+    return module.bindings[ir.binding].name;
   }
-  return module.bindings[expr.ir.binding].name;
+  if (ir?.kind !== ValueIrKind.Member || ir.obj.kind !== ValueIrKind.BindingRead) {
+    throw new UnsupportedError('a read hole without a source');
+  }
+  const key = `${ir.obj.binding}.${ir.name}`;
+  let name = pass.propSources.get(key);
+  if (name === undefined) {
+    name = pass.next(QwikGenWord.PropSource);
+    pass.propSources.set(key, name);
+    imports.add(QwikWord.PropSource);
+    statements.push(
+      `const ${name} = ${QwikWord.PropSource}(${module.bindings[ir.obj.binding].name}, ${JSON.stringify(ir.name)});`
+    );
+    if (ssrCtx !== null) {
+      imports.add(QwikWord.IsSource);
+      statements.push(`${QwikWord.IsSource}(${name}) && ${ssrCtx}.addRoot(${name});`);
+      pass.rooted?.add(name);
+    }
+  }
+  return name;
 }
 
 /** A custom hook's compiled body: its setup statements and the authored result. */

@@ -25,6 +25,8 @@ export interface LowerContext {
   styleCounter: { next: number };
   /** `⚡️<id>` per scoped style of the component being lowered. */
   styleScopes: string[];
+  /** The foreign namespace the elements being lowered belong to. */
+  namespace: 'svg' | 'math' | null;
   /** Param bindings of the inline collection row; null = not inside one. */
   inlineParams: ReadonlySet<LocalId> | null;
   bindings: BindingGraph;
@@ -72,6 +74,7 @@ export function createLowerContext(
     coreBindings,
     propsBinding: null,
     returnsRender: true,
+    namespace: null,
     propsMembers: new Map(),
     locals: new Map(),
   };

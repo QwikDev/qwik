@@ -401,9 +401,16 @@ Share prop classification; deliver the following in small increments.
       RCDATA, so their text escapes as usual; `script` and `style` are raw text, so the server
       streams their holes verbatim with only a `</` guard, and the client sets text nodes that
       never pass through the parser (`raw-text-elements` snapshots).
-- [ ] SVG/MathML namespaces and `foreignObject` transitions.
+- [x] SVG/MathML namespaces and `foreignObject` transitions. The analyser tracks the namespace
+      while lowering (`svg` and `math` open one, `foreignObject` returns to HTML) and stamps it on
+      every element op inside it; a subtree in one template parses correctly on its own.
 - [ ] `xlink:href` and `xml:lang`.
-- [ ] Separately created SVG nodes in branches, collections, slots and dynamic tags.
+- [x] Separately created SVG nodes in branches, collections and slots. A chunk whose root carries
+      a namespace builds its CSR template inside `<svg>`/`<math>` and unwraps the clone with
+      `_first`, so the node lands in the right namespace (`namespace-chunks` snapshots,
+      `namespace.spec.tsx` "creates branch and row nodes inside svg" in CSR and resume).
+- [ ] Dynamic tags inside svg or math. The runtime creates them with `createElement`; passing the
+      namespace through needs a runtime parameter.
 - [ ] HTML parser context for `table`, `tbody`, `tr`, `td`, `select` and `option`.
 - [ ] Correct locators after browser HTML normalization.
 - [ ] `q:shadowRoot` and container boundaries exercised by e2e.
@@ -540,6 +547,12 @@ code size and runtime cost. The previous implementation is not the accepted defa
 
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
+
+- 2026-09-15: Namespace chunks: `LowerContext.namespace` and `Element.namespace` record the
+  foreign namespace; `elementRoot` wraps a namespaced root's template and unwraps it after
+  cloning, and row roots now mount through the same `elementRoot` instead of a copy of it.
+  Verification: 1110 pipeline tests (16 existing TODOs), the `namespace-chunks` snapshots, and the
+  new namespace spec in CSR and resume.
 
 - 2026-09-15: Raw text elements: the SSR text emitters take a raw-text flag from the enclosing
   tag and print `value.replace(/<\//g, '<\\/')` instead of `escapeHTML(value)` inside `script`

@@ -104,6 +104,8 @@ export type Op =
       op: OpKind.Element;
       tag: string;
       void: boolean;
+      /** The foreign namespace this element is parsed in; a chunk root needs it for its template. */
+      namespace?: 'svg' | 'math';
       styleScopedId: string | null;
       runtimeScope: boolean;
       props: Prop[];

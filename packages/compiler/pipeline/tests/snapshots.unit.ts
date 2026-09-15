@@ -2202,6 +2202,34 @@ export default component$((props: { css: string; init: string; heading: string }
     }
   });
 
+  test('should build svg and math chunk templates in their namespace', async () => {
+    const output = await testInput(mode, 'namespace-chunks', {
+      code: `import { component$, useSignal } from '@qwik.dev/core';
+export default component$((props: { points: number[] }) => {
+  const show = useSignal(false);
+  return (
+    <svg>
+      {show.value && <circle r="1" />}
+      {props.points.map((point) => <rect key={point} width={point} />)}
+      <foreignObject>{show.value && <div>html</div>}</foreignObject>
+      <foreignObject><math>{show.value && <mi>x</mi>}</math></foreignObject>
+    </svg>
+  );
+});
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const code = output.modules.map((module) => module.code).join('\n');
+    if (mode === 'csr') {
+      // A chunk rooted inside svg or math parses inside a wrapper of that namespace.
+      expect(code).toMatch(/_createElementTemplate\("<svg><circle r=\\"1\\"><\/circle><\/svg>"\)/);
+      expect(code).toMatch(/_createElementTemplate\("<svg><rect><\/rect><\/svg>"\)/);
+      expect(code).toMatch(/_createElementTemplate\("<math><mi>x<\/mi><\/math>"\)/);
+      // foreignObject content is HTML again.
+      expect(code).toMatch(/_createElementTemplate\("<div>html<\/div>"\)/);
+    }
+  });
+
   test('should merge component prop spreads in authored order', async () => {
     await testInput(mode, 'component-props-spread', {
       code: `export const Child = (props) => <strong>{props.label}</strong>;

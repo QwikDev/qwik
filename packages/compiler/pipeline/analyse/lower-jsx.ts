@@ -177,6 +177,10 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
   if (styleScopedId !== null) {
     scopeStaticClass(props, styleScopedId);
   }
+  const namespace = ctx.namespace;
+  // `svg` and `math` open a namespace; `foreignObject` returns to HTML for its subtree.
+  ctx.namespace =
+    tag === 'svg' || tag === 'math' ? tag : tag === 'foreignObject' ? null : namespace;
   const children = lowerFormValue(
     tag,
     props,
@@ -184,6 +188,7 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
     lowerJsxChildren(element.children, ctx),
     ctx
   );
+  ctx.namespace = namespace;
   if (VOID_ELEMENTS.has(tag) && children.length > 0) {
     throw new InvalidModuleError(
       'invalid-void-children',
@@ -195,6 +200,7 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
     op: OpKind.Element,
     tag,
     void: VOID_ELEMENTS.has(tag),
+    ...(namespace === null ? {} : { namespace }),
     styleScopedId,
     runtimeScope: false,
     props,

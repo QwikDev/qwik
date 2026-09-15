@@ -355,13 +355,14 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     statements: string[],
     pass: RenderPass
   ): string {
-    const mounted = this.mountElementTemplate(ownerName, statements, pass);
+    const mounted = this.mountElementTemplate(ownerName, statements, pass, op.namespace);
     this.elementProps(op, mounted.el, statements, pass);
     this.walkChildren(elementChildren(op), mounted.el, statements, pass);
-    // Template markup excludes event props; templateOp pre-escapes text for innerHTML parsing.
+    // A foreign root parses inside its namespace element and is unwrapped after cloning.
+    const html = foldStaticOp(templateOp(op));
     this.hoistTemplate(
       mounted.template,
-      foldStaticOp(templateOp(op)),
+      op.namespace === undefined ? html : `<${op.namespace}>${html}</${op.namespace}>`,
       QwikWord.CreateElementTemplate
     );
     return mounted.el;
@@ -813,24 +814,14 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       next: createNameAllocator(this.module),
     };
     const emission = emptyFunctionEmission();
-    const template = `${qrl.name}_${pass.next(QwikGenWord.Template)}`;
-    let statements: string[];
+    const statements: string[] = [];
     let value: string;
     if (elementRoot && root.op === OpKind.Element) {
-      const el = pass.next(QwikGenWord.Element);
-      statements = [`const ${el} = ${template}(${pass.names.ctx}.document);`];
-      emitter.elementProps(root, el, statements, pass);
-      emitter.walkChildren(root.children, el, statements, pass);
       // Row roots mount through an element template — the root element IS the return value.
-      emitter.hoistTemplate(
-        template,
-        foldStaticOp(templateOp(root)),
-        QwikWord.CreateElementTemplate
-      );
-      value = el;
+      value = emitter.elementRoot(root, qrl.name, statements, pass);
     } else {
       // Rootless rows mount a fragment template; the runtime brackets the nodes in `<!r>`.
-      statements = [];
+      const template = `${qrl.name}_${pass.next(QwikGenWord.Template)}`;
       value = emitter.fragmentRoot(body.ops, template, statements, pass);
     }
     const loopParams = usedParamPrefix(this.module, qrl);
@@ -1024,11 +1015,18 @@ class CsrModuleEmitter implements QwikModuleEmitter {
   private mountElementTemplate(
     ownerName: string,
     statements: string[],
-    pass: RenderPass
+    pass: RenderPass,
+    namespace?: 'svg' | 'math'
   ): { el: string; template: string } {
     const el = pass.next(QwikGenWord.Element);
     const template = `${ownerName}_${pass.next(QwikGenWord.Template)}`;
-    statements.push(`const ${el} = ${template}(${pass.names.ctx}.document);`);
+    const clone = `${template}(${pass.names.ctx}.document)`;
+    if (namespace !== undefined) {
+      this.imports.add(QwikWord.FirstChild);
+    }
+    statements.push(
+      `const ${el} = ${namespace === undefined ? clone : `${QwikWord.FirstChild}(${clone})`};`
+    );
     return { el, template };
   }
 

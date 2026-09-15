@@ -33,7 +33,7 @@ import {
 } from '@qwik.dev/core';
 const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
   const [suffix] = _captures;
-  function semantic_collectionRender_394_709_2fsjjvc7u9ud6(ctx, __rangeId, __rowId, item, index) {
+  function semantic_collectionRender_301_710_2q9lnxoxqq41u(ctx, __rangeId, __rowId, item, index) {
     const {
       title: label = item.fallback,
       copy = label,
@@ -100,7 +100,7 @@ const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
       },
     ],
     undefined,
-    semantic_collectionRender_394_709_2fsjjvc7u9ud6,
+    semantic_collectionRender_301_710_2q9lnxoxqq41u,
     0,
     false,
     0
@@ -202,7 +202,7 @@ q_component_text_segment_5_1fh12dh4juuhz.s(component_text_segment_5_1fh12dh4juuh
 
 export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
   const [suffix] = _captures;
-  function semantic_collectionRender_394_709_2fsjjvc7u9ud6(ctx, __rangeId, __rowId, item, index) {
+  function semantic_collectionRender_301_710_2q9lnxoxqq41u(ctx, __rangeId, __rowId, item, index) {
     const {
       title: label = item.fallback,
       copy = label,
@@ -269,7 +269,7 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) =>
       },
     ],
     undefined,
-    semantic_collectionRender_394_709_2fsjjvc7u9ud6,
+    semantic_collectionRender_301_710_2q9lnxoxqq41u,
     0,
     false,
     0

@@ -163,7 +163,7 @@ export default (props, ctx) => {
     false,
     true
   );
-  function semantic_collectionRender_353_380_2jei9u6jwoe3w(ctx, __rangeId, __rowId, row) {
+  function semantic_collectionRender_342_381_3pmr3rjnp9sp9(ctx, __rangeId, __rowId, row) {
     const id0 = ctx.nextId();
     ctx.addRoot(row);
     const content0 = renderSsrContent(
@@ -187,7 +187,7 @@ export default (props, ctx) => {
     undefined,
     [1, 2],
     undefined,
-    semantic_collectionRender_353_380_2jei9u6jwoe3w,
+    semantic_collectionRender_342_381_3pmr3rjnp9sp9,
     0,
     false,
     3

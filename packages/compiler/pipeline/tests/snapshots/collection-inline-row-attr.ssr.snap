@@ -16,7 +16,7 @@ import {
 } from '@qwik.dev/core';
 
 export default (props, ctx) => {
-  function semantic_collectionRender_51_103_2j5bcudf6s40y(ctx, __rangeId, __rowId, item) {
+  function semantic_collectionRender_36_104_jq7n7qm8g6oc(ctx, __rangeId, __rowId, item) {
     const attr0 = serializeAttrExpressionValue('id', 'row-' + item);
     const attr1 = serializeAttrExpressionValue('class', item);
     return [
@@ -31,7 +31,7 @@ export default (props, ctx) => {
     undefined,
     ['a', 'b'],
     undefined,
-    semantic_collectionRender_51_103_2j5bcudf6s40y,
+    semantic_collectionRender_36_104_jq7n7qm8g6oc,
     0,
     false,
     0

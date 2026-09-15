@@ -26,7 +26,7 @@ import {
   _noopQrl,
 } from '@qwik.dev/core';
 const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
-  function semantic_collectionRender_286_392_1dya5dm9rmx0a(ctx, __rangeId, __rowId, item) {
+  function semantic_collectionRender_235_393_3n6jd0m4ieo7n(ctx, __rangeId, __rowId, item) {
     return ['<h2>', escapeHTML(_textValue(item.title)), '</h2><b>!</b>'];
   }
   const collection0 = renderSsrCollection(
@@ -39,7 +39,7 @@ const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
       },
     ],
     undefined,
-    semantic_collectionRender_286_392_1dya5dm9rmx0a,
+    semantic_collectionRender_235_393_3n6jd0m4ieo7n,
     0,
     false,
     2
@@ -51,7 +51,7 @@ const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _noopQrl(
 );
 q_component_slot_render_segment_0_3b0tagwys7lui.s(component_slot_render_segment_0_3b0tagwys7lui);
 const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId) => {
-  function semantic_collectionRender_286_392_1dya5dm9rmx0a(ctx, __rangeId, __rowId, item) {
+  function semantic_collectionRender_235_393_3n6jd0m4ieo7n(ctx, __rangeId, __rowId, item) {
     return ['<p>', escapeHTML(_textValue(item.description)), '</p>'];
   }
   const collection0 = renderSsrCollection(
@@ -64,7 +64,7 @@ const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId) => {
       },
     ],
     undefined,
-    semantic_collectionRender_286_392_1dya5dm9rmx0a,
+    semantic_collectionRender_235_393_3n6jd0m4ieo7n,
     0,
     false,
     0
@@ -107,7 +107,7 @@ import {
 } from '@qwik.dev/core';
 
 export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
-  function semantic_collectionRender_286_392_1dya5dm9rmx0a(ctx, __rangeId, __rowId, item) {
+  function semantic_collectionRender_235_393_3n6jd0m4ieo7n(ctx, __rangeId, __rowId, item) {
     return ['<h2>', escapeHTML(_textValue(item.title)), '</h2><b>!</b>'];
   }
   const collection0 = renderSsrCollection(
@@ -120,7 +120,7 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) =>
       },
     ],
     undefined,
-    semantic_collectionRender_286_392_1dya5dm9rmx0a,
+    semantic_collectionRender_235_393_3n6jd0m4ieo7n,
     0,
     false,
     2
@@ -158,7 +158,7 @@ import {
 } from '@qwik.dev/core';
 
 export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId) => {
-  function semantic_collectionRender_286_392_1dya5dm9rmx0a(ctx, __rangeId, __rowId, item) {
+  function semantic_collectionRender_235_393_3n6jd0m4ieo7n(ctx, __rangeId, __rowId, item) {
     return ['<p>', escapeHTML(_textValue(item.description)), '</p>'];
   }
   const collection0 = renderSsrCollection(
@@ -171,7 +171,7 @@ export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId) =>
       },
     ],
     undefined,
-    semantic_collectionRender_286_392_1dya5dm9rmx0a,
+    semantic_collectionRender_235_393_3n6jd0m4ieo7n,
     0,
     false,
     0

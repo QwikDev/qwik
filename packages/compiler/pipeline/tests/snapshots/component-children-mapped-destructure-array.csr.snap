@@ -76,7 +76,7 @@ import { component_text_segment_3_1fh11lewq6qgx } from './component.tsx_componen
 import { component_text_segment_4_1fh11zg0n0shg } from './component.tsx_component_text_segment_4_1fh11zg0n0shg';
 import { component_text_segment_5_1fh12dh4juuhz } from './component.tsx_component_text_segment_5_1fh12dh4juuhz';
 const component_slot_render_segment_0_3b0tagwys7lui_tmpl0 = createTemplate('<!><!>');
-const semantic_collectionRender_394_709_2fsjjvc7u9ud6_tmpl0 = _createElementTemplate(
+const semantic_collectionRender_301_710_2q9lnxoxqq41u_tmpl0 = _createElementTemplate(
   '<h2><!>:<!>:<!>:<!></h2>'
 );
 
@@ -85,7 +85,7 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
   const fragment0 = component_slot_render_segment_0_3b0tagwys7lui_tmpl0(ctx.document);
   const start0 = _first(fragment0);
   const end0 = _next(start0);
-  function semantic_collectionRender_394_709_2fsjjvc7u9ud6(ctx, item, index) {
+  function semantic_collectionRender_301_710_2q9lnxoxqq41u(ctx, item, index) {
     const {
       title: label = item.fallback,
       copy = label,
@@ -93,7 +93,7 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
       ...rest
     } = item.details;
     const [first = copy, , ...tail] = rest.parts;
-    const el0 = semantic_collectionRender_394_709_2fsjjvc7u9ud6_tmpl0(ctx.document);
+    const el0 = semantic_collectionRender_301_710_2q9lnxoxqq41u_tmpl0(ctx.document);
     setEvent(el0, 'q-e:click', component_q_e_click_segment_1_2xwyfnber1kpg, [label, first, tail]);
     const marker0 = _first(el0);
     const text0 = ctx.document.createTextNode('');
@@ -148,7 +148,7 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
       },
     ],
     null,
-    semantic_collectionRender_394_709_2fsjjvc7u9ud6,
+    semantic_collectionRender_301_710_2q9lnxoxqq41u,
     0,
     0,
     true

@@ -28,7 +28,7 @@ const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _noopQrl(
 q_component_text_segment_0_1fh10fbkzokfc.s(component_text_segment_0_1fh10fbkzokfc);
 export default (props, ctx) => {
   const count = useSignal(0);
-  function semantic_collectionRender_124_163_1zx7id7316g3h(ctx, __rangeId, __rowId, item) {
+  function semantic_collectionRender_109_164_1vj5zgtfkxhpd(ctx, __rangeId, __rowId, item) {
     const id0 = ctx.nextId();
     ctx.addRoot(item);
     ctx.addRoot(count);
@@ -51,7 +51,7 @@ export default (props, ctx) => {
     undefined,
     ['a', 'b'],
     undefined,
-    semantic_collectionRender_124_163_1zx7id7316g3h,
+    semantic_collectionRender_109_164_1vj5zgtfkxhpd,
     0,
     false,
     0

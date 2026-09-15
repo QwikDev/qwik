@@ -44,7 +44,7 @@ const q_component_content_segment_7_185250mn2sddr = /*#__PURE__*/ _qrlWithChunk(
   () => import('./component.tsx_component_content_segment_7_185250mn2sddr'),
   'component_content_segment_7_185250mn2sddr'
 );
-const semantic_collectionRender_353_380_2jei9u6jwoe3w_tmpl0 = createTemplate('<!><!>');
+const semantic_collectionRender_342_381_3pmr3rjnp9sp9_tmpl0 = createTemplate('<!><!>');
 const q_component_content_segment_9_18527ctajspgx = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_content_segment_9_18527ctajspgx',
   () => import('./component.tsx_component_content_segment_9_18527ctajspgx'),
@@ -83,8 +83,8 @@ export default (props, ctx) => {
   ctx.scheduler.notify(content1);
   const start2 = _prev(_last(el0));
   const end2 = _next(start2);
-  function semantic_collectionRender_353_380_2jei9u6jwoe3w(ctx, row) {
-    const fragment0 = semantic_collectionRender_353_380_2jei9u6jwoe3w_tmpl0(ctx.document);
+  function semantic_collectionRender_342_381_3pmr3rjnp9sp9(ctx, row) {
+    const fragment0 = semantic_collectionRender_342_381_3pmr3rjnp9sp9_tmpl0(ctx.document);
     const start0 = _first(fragment0);
     const end0 = _next(start0);
     const content0 = createContentBlock(
@@ -105,7 +105,7 @@ export default (props, ctx) => {
     end2,
     [1, 2],
     null,
-    semantic_collectionRender_353_380_2jei9u6jwoe3w,
+    semantic_collectionRender_342_381_3pmr3rjnp9sp9,
     0,
     3,
     true

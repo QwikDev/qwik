@@ -26,7 +26,7 @@ import {
   _noopQrl,
 } from '@qwik.dev/core';
 const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
-  function semantic_collectionRender_226_298_29cxw7r8rdu69(ctx, __rangeId, __rowId, item) {
+  function semantic_collectionRender_201_299_3kt26f8qsibm9(ctx, __rangeId, __rowId, item) {
     return ['<h2>', escapeHTML(_textValue(item.title)), '</h2>'];
   }
   const collection0 = renderSsrCollection(
@@ -34,7 +34,7 @@ const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
     undefined,
     [{ title: 'Title' }],
     undefined,
-    semantic_collectionRender_226_298_29cxw7r8rdu69,
+    semantic_collectionRender_201_299_3kt26f8qsibm9,
     0,
     false,
     0
@@ -68,7 +68,7 @@ import {
 } from '@qwik.dev/core';
 
 export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
-  function semantic_collectionRender_226_298_29cxw7r8rdu69(ctx, __rangeId, __rowId, item) {
+  function semantic_collectionRender_201_299_3kt26f8qsibm9(ctx, __rangeId, __rowId, item) {
     return ['<h2>', escapeHTML(_textValue(item.title)), '</h2>'];
   }
   const collection0 = renderSsrCollection(
@@ -76,7 +76,7 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) =>
     undefined,
     [{ title: 'Title' }],
     undefined,
-    semantic_collectionRender_226_298_29cxw7r8rdu69,
+    semantic_collectionRender_201_299_3kt26f8qsibm9,
     0,
     false,
     0

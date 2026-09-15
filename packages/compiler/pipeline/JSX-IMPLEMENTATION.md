@@ -453,7 +453,14 @@ delimiters. Compilation snapshots alone cannot prove browser parser behavior.
       with no key chunk and the runtime keys its rows by position, on render and on resume alike,
       as literal and reactive sources already did (`collection-keyless-derived` snapshots;
       `use-id.spec.tsx` now compiles, its cases wait on the `useId()` rewrite of group 12).
-- [ ] Function-expression and referenced callbacks, not only inline arrows.
+- [x] Function-expression and referenced callbacks, not only inline arrows. The JSX analysis
+      resolves the `map` argument to its function: an inline arrow or function expression, or an
+      identifier whose binding is given exactly one function (a setup-local arrow, a module-level
+      declaration). The row lowers through the same program as an inline arrow; an import or a
+      reassigned binding stays a dynamic value. Before this, a referenced callback rendered as a
+      content block that captured the function and failed to serialize it on resume
+      (`collection-callback-shapes` snapshots, `collection-callbacks.spec.tsx` in CSR and resume,
+      which also asserts the rows keep their nodes across an update).
 - [ ] Richer callback bodies using the shared mechanism from group 1.
 - [ ] Async rows and dynamically shaped results.
 - [x] Inline-row attribute/prop emission. An attribute reading only row constants of a literal
@@ -574,6 +581,12 @@ code size and runtime cost. The previous implementation is not the accepted defa
 
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
+
+- 2026-09-15: Row callbacks: `rowCallback` in `ast/jsx-analysis.ts` widens `Collection.callback`
+  to `RowCallback`; the collection lowering takes the whole collection value and names inline
+  row functions after the call site rather than the callback, so two static-array maps over one
+  referenced function cannot collide (28 snapshots rename accordingly). Verification: 1148
+  pipeline tests, the new spec in CSR and resume, both corpora unchanged.
 
 - 2026-09-15: Leading newlines: `NEWLINE_EATING_ELEMENTS` in `html.ts` drives a one-line
   doubling in `lowerJsx` and an `escapedText` wrapper in the SSR emitter for the first hole of

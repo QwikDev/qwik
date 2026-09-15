@@ -1,6 +1,5 @@
 import { readObjectParameter } from './ast/parameter-members';
 import type {
-  ArrowFunctionExpression,
   BindingPattern,
   Expression,
   JSXElement,
@@ -39,7 +38,7 @@ import { ValueIrKind } from '../../src/expr-ir';
 import { UnsupportedError } from '../errors';
 import { collectCaptures, lowerCaptures, type CollectedCaptures } from './ast/capture-analysis';
 import { unwrapExpression } from './ast/utils';
-import { JsxValueKind, type JsxValue } from './ast/jsx-analysis';
+import { JsxValueKind, type JsxValue, type RowCallback } from './ast/jsx-analysis';
 import { pushPayload, pushQrl, QrlIdentityKind, type LowerContext } from './lower-context';
 import { createSegmentSymbolName, sanitizeSegmentName } from '../segment-identity';
 import {
@@ -66,7 +65,7 @@ export function lowerArray(
   if (collection.kind !== JsxValueKind.Collection) {
     throw new UnsupportedError(
       expression.type === 'CallExpression'
-        ? 'a collection without an inline arrow row'
+        ? 'a collection without a function row'
         : `the collection call "${expression.type}"`
     );
   }
@@ -75,14 +74,17 @@ export function lowerArray(
     throw new UnsupportedError('an async collection row');
   }
   if (body === null) {
-    throw new UnsupportedError(`the collection row body "${callback.body.type}"`);
+    throw new UnsupportedError(`the collection row body "${callback.body?.type}"`);
   }
-  return lowerEach(collection.source, callback, body.expression, body.statements, ctx, lowerBody);
+  return lowerEach(collection, body.expression, body.statements, ctx, lowerBody);
 }
 
 function lowerEach(
-  sourceExpression: Expression,
-  callback: ArrowFunctionExpression,
+  {
+    node,
+    source: sourceExpression,
+    callback,
+  }: Extract<JsxValue, { kind: JsxValueKind.Collection }>,
   body: Expression,
   statements: VariableDeclaration[],
   ctx: LowerContext,
@@ -220,7 +222,7 @@ function lowerEach(
         program,
         renderId: createSegmentSymbolName(
           ctx.sourceIdentity,
-          sanitizeSegmentName(`semantic_collectionRender_${callback.start}_${callback.end}`),
+          sanitizeSegmentName(`semantic_collectionRender_${node.start}_${node.end}`),
           'synthetic'
         ),
       },
@@ -232,7 +234,7 @@ function lowerEach(
   }
 
   // The row's segment comes first (legacy order: for_render before for_key), children after.
-  const originBody = statements.length === 0 ? body : callback.body;
+  const originBody = statements.length === 0 ? body : callback.body!;
   const rowCaptures = lowerCaptures(
     [...paramPatterns.values(), originBody],
     ctx,
@@ -318,10 +320,7 @@ function lowerEach(
 }
 
 /** The runtime always supplies the index, making its default unreachable. */
-function readCollectionParameter(
-  param: ArrowFunctionExpression['params'][number],
-  position: number
-) {
+function readCollectionParameter(param: RowCallback['params'][number], position: number) {
   return position === 1 && param.type === 'AssignmentPattern' ? param.left : param;
 }
 
@@ -525,7 +524,7 @@ function lowerParameterPatterns(
 /** The row's `key` attribute — a Function-payload QRL the runtime calls per row with the item. */
 function lowerKey(
   row: Expression,
-  callback: ArrowFunctionExpression,
+  callback: RowCallback,
   statements: VariableDeclaration[],
   ctx: LowerContext,
   localBindings: ReadonlySet<LocalId>,

@@ -58,7 +58,7 @@ const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _noopQrl(
 );
 q_component_slot_render_segment_0_3b0tagwys7lui.s(component_slot_render_segment_0_3b0tagwys7lui);
 const component_slot_render_segment_4_3b0t8wsj4vdse = (ctx, __rangeId) => {
-  function semantic_collectionRender_335_376_xjtfiyce5o4d(ctx, __rangeId, __rowId, label) {
+  function semantic_collectionRender_323_377_3uyuznkedsah(ctx, __rangeId, __rowId, label) {
     return ['<p>', escapeHTML(_textValue(label)), '</p>'];
   }
   const collection0 = renderSsrCollection(
@@ -66,7 +66,7 @@ const component_slot_render_segment_4_3b0t8wsj4vdse = (ctx, __rangeId) => {
     undefined,
     ['End'],
     undefined,
-    semantic_collectionRender_335_376_xjtfiyce5o4d,
+    semantic_collectionRender_323_377_3uyuznkedsah,
     0,
     false,
     0
@@ -396,7 +396,7 @@ import {
 } from '@qwik.dev/core';
 
 export const component_slot_render_segment_4_3b0t8wsj4vdse = (ctx, __rangeId) => {
-  function semantic_collectionRender_335_376_xjtfiyce5o4d(ctx, __rangeId, __rowId, label) {
+  function semantic_collectionRender_323_377_3uyuznkedsah(ctx, __rangeId, __rowId, label) {
     return ['<p>', escapeHTML(_textValue(label)), '</p>'];
   }
   const collection0 = renderSsrCollection(
@@ -404,7 +404,7 @@ export const component_slot_render_segment_4_3b0t8wsj4vdse = (ctx, __rangeId) =>
     undefined,
     ['End'],
     undefined,
-    semantic_collectionRender_335_376_xjtfiyce5o4d,
+    semantic_collectionRender_323_377_3uyuznkedsah,
     0,
     false,
     0

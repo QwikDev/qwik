@@ -93,7 +93,7 @@ export function Spread(props, ctx) {
   return component0;
 }
 export function Rows(props, ctx) {
-  function semantic_collectionRender_345_398_361kt97lb44vi(ctx, __rangeId, __rowId, row) {
+  function semantic_collectionRender_334_399_1rvvd24vhg1k1(ctx, __rangeId, __rowId, row) {
     ctx.addRoot(row);
     const component0 = createComponent(
       Display,
@@ -107,7 +107,7 @@ export function Rows(props, ctx) {
     undefined,
     [1, 2],
     undefined,
-    semantic_collectionRender_345_398_361kt97lb44vi,
+    semantic_collectionRender_334_399_1rvvd24vhg1k1,
     0,
     false,
     0

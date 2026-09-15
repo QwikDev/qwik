@@ -29,7 +29,7 @@ const q_component_jsx_segment_4_38vnl4ypf6sea = /*#__PURE__*/ _qrlWithChunk(
   () => import('./component.tsx_component_jsx_segment_4_38vnl4ypf6sea'),
   'component_jsx_segment_4_38vnl4ypf6sea'
 );
-const semantic_collectionRender_345_398_361kt97lb44vi_tmpl0 =
+const semantic_collectionRender_334_399_1rvvd24vhg1k1_tmpl0 =
   _createElementTemplate('<li><!></li>');
 const Rows_tmpl0 = _createElementTemplate('<ul><!><!></ul>');
 import {
@@ -76,8 +76,8 @@ export function Rows(props, ctx) {
   const el0 = Rows_tmpl0(ctx.document);
   const start0 = _first(el0);
   const end0 = _next(start0);
-  function semantic_collectionRender_345_398_361kt97lb44vi(ctx, row) {
-    const el0 = semantic_collectionRender_345_398_361kt97lb44vi_tmpl0(ctx.document);
+  function semantic_collectionRender_334_399_1rvvd24vhg1k1(ctx, row) {
+    const el0 = semantic_collectionRender_334_399_1rvvd24vhg1k1_tmpl0(ctx.document);
     const marker0 = _first(el0);
     const component0 = createComponent(
       Display,
@@ -93,7 +93,7 @@ export function Rows(props, ctx) {
     end0,
     [1, 2],
     null,
-    semantic_collectionRender_345_398_361kt97lb44vi,
+    semantic_collectionRender_334_399_1rvvd24vhg1k1,
     0,
     0,
     true

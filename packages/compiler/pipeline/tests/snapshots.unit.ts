@@ -2693,6 +2693,31 @@ export default (props: { label?: string; content?: any }) => {
     }
   });
 
+  test('should lower referenced and function-expression row callbacks as collections', async () => {
+    const output = await testInput(mode, 'collection-callback-shapes', {
+      code: `import { component$, useSignal } from '@qwik.dev/core';
+function renderDeclared(row: number) {
+  return <li key={row}>{row}</li>;
+}
+export default component$(() => {
+  const rows = useSignal([1]);
+  const renderLocal = (row: number) => <li key={row}>{row}</li>;
+  return (
+    <div>
+      <ul>{rows.value.map(renderLocal)}</ul>
+      <ul>{rows.value.map(renderDeclared)}</ul>
+      <ul>{rows.value.map(function (row) { return <li key={row}>{row}</li>; })}</ul>
+    </div>
+  );
+});`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const code = output.modules.map((module) => module.code).join('\n');
+    const collection = mode === 'ssr' ? 'renderSsrCollection' : 'createCollection';
+    expect(code.match(new RegExp(`${collection}\\(`, 'g'))).toHaveLength(3);
+    expect(code).not.toContain(mode === 'ssr' ? 'renderSsrContent(' : 'createContentBlock(');
+  });
+
   test('should keep a leading newline the parser would drop in pre and textarea', async () => {
     const output = await testInput(mode, 'leading-newline', {
       code: `export default (props: { code: string }) => (

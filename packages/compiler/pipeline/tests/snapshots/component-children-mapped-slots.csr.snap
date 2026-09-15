@@ -223,14 +223,14 @@ import {
   _createElementTemplate,
 } from '@qwik.dev/core';
 const component_slot_render_segment_4_3b0t8wsj4vdse_tmpl0 = createTemplate('<!><!>');
-const semantic_collectionRender_335_376_xjtfiyce5o4d_tmpl0 = _createElementTemplate('<p> </p>');
+const semantic_collectionRender_323_377_3uyuznkedsah_tmpl0 = _createElementTemplate('<p> </p>');
 
 export const component_slot_render_segment_4_3b0t8wsj4vdse = (ctx) => {
   const fragment0 = component_slot_render_segment_4_3b0t8wsj4vdse_tmpl0(ctx.document);
   const start0 = _first(fragment0);
   const end0 = _next(start0);
-  function semantic_collectionRender_335_376_xjtfiyce5o4d(ctx, label) {
-    const el0 = semantic_collectionRender_335_376_xjtfiyce5o4d_tmpl0(ctx.document);
+  function semantic_collectionRender_323_377_3uyuznkedsah(ctx, label) {
+    const el0 = semantic_collectionRender_323_377_3uyuznkedsah_tmpl0(ctx.document);
     _first(el0).data = _textValue(label);
     return el0;
   }
@@ -240,7 +240,7 @@ export const component_slot_render_segment_4_3b0t8wsj4vdse = (ctx) => {
     end0,
     ['End'],
     null,
-    semantic_collectionRender_335_376_xjtfiyce5o4d,
+    semantic_collectionRender_323_377_3uyuznkedsah,
     0,
     0,
     true

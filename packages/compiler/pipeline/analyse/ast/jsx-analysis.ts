@@ -48,7 +48,7 @@ export type JsxValue = Readonly<
     | {
         kind: JsxValueKind.Collection;
         node: CallExpression;
-        callback: ArrowFunctionExpression;
+        callback: RowCallback;
         source: Expression;
         body: ReturnType<typeof readReturnedBody>;
         row: JsxValue | null;
@@ -64,6 +64,8 @@ export interface JsxAnalysis {
   factory(node: Node): JsxFactory | null;
   scopedRoots(nodes: readonly Node[]): JsxExpressionRoot[];
 }
+
+export type RowCallback = ArrowFunctionExpression | FunctionNode;
 
 /** Share JSX value structure and callback scopes across lowering consumers. */
 export function createJsxAnalysis(
@@ -143,15 +145,15 @@ export function createJsxAnalysis(
       }
       case 'CallExpression':
       case 'NewExpression': {
-        const callback = node.arguments[0];
+        const callback = node.type === 'CallExpression' ? rowCallback(node.arguments[0]) : null;
         if (
           node.type === 'CallExpression' &&
+          callback !== null &&
           node.callee.type === 'MemberExpression' &&
           identifierName(node.callee.property) === 'map' &&
-          node.arguments.length === 1 &&
-          callback.type === 'ArrowFunctionExpression'
+          node.arguments.length === 1
         ) {
-          const body = readReturnedBody(callback.body);
+          const body = callback.body === null ? null : readReturnedBody(callback.body);
           return {
             kind: JsxValueKind.Collection,
             node,
@@ -222,6 +224,31 @@ export function createJsxAnalysis(
       }
     }
     return { kind: JsxValueKind.Value, node, hasJsxValue: false };
+  }
+
+  /** The row function: written inline, or the one function a binding is ever given. */
+  function rowCallback(
+    argument: CallExpression['arguments'][number] | undefined
+  ): RowCallback | null {
+    if (argument === undefined || argument.type === 'SpreadElement') {
+      return null;
+    }
+    const node = unwrapExpression(argument);
+    if (node?.type === 'ArrowFunctionExpression' || node?.type === 'FunctionExpression') {
+      return node;
+    }
+    const binding = node?.type === 'Identifier' ? bindings?.reference(node) : null;
+    if (binding == null) {
+      return null;
+    }
+    const values = [
+      ...bindings!
+        .declarationsOf(binding)
+        .filter((declaration) => declaration.type === 'FunctionDeclaration'),
+      ...bindings!.assignedValuesOf(binding),
+    ];
+    const fn = values.length === 1 ? values[0] : null;
+    return fn !== null && isFunctionLike(fn) && !fn.generator ? fn : null;
   }
 
   function factory(source: Node): JsxFactory | null {

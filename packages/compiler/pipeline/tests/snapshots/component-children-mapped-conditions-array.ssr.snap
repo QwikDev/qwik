@@ -28,7 +28,7 @@ import {
   _textValue,
 } from '@qwik.dev/core';
 const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
-  function semantic_collectionRender_312_447_3uti95l1qinm7(ctx, __rangeId, __rowId, item, index) {
+  function semantic_collectionRender_248_448_x8ucqnr6r572(ctx, __rangeId, __rowId, item, index) {
     const branchId0 = ctx.nextId();
     ctx.addRoot(item);
     ctx.addRoot(index);
@@ -58,7 +58,7 @@ const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
       },
     ],
     undefined,
-    semantic_collectionRender_312_447_3uti95l1qinm7,
+    semantic_collectionRender_248_448_x8ucqnr6r572,
     0,
     false,
     3
@@ -70,13 +70,7 @@ const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _noopQrl(
 );
 q_component_slot_render_segment_0_3b0tagwys7lui.s(component_slot_render_segment_0_3b0tagwys7lui);
 const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx, __rangeId) => {
-  function semantic_collectionRender_312_447_3uti95l1qinm7(
-    ctx,
-    __rangeId,
-    __rowId,
-    item_10,
-    index
-  ) {
+  function semantic_collectionRender_248_448_x8ucqnr6r572(ctx, __rangeId, __rowId, item_10, index) {
     const branchId0 = ctx.nextId();
     ctx.addRoot(item_10);
     ctx.addRoot(index);
@@ -106,7 +100,7 @@ const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx, __rangeId) => {
       },
     ],
     undefined,
-    semantic_collectionRender_312_447_3uti95l1qinm7,
+    semantic_collectionRender_248_448_x8ucqnr6r572,
     0,
     false,
     3
@@ -240,7 +234,7 @@ const q_component_branch_then_segment_2_24n7b7xmnzb3n = /*#__PURE__*/ _noopQrl(
 q_component_branch_then_segment_2_24n7b7xmnzb3n.s(component_branch_then_segment_2_24n7b7xmnzb3n);
 
 export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
-  function semantic_collectionRender_312_447_3uti95l1qinm7(ctx, __rangeId, __rowId, item, index) {
+  function semantic_collectionRender_248_448_x8ucqnr6r572(ctx, __rangeId, __rowId, item, index) {
     const branchId0 = ctx.nextId();
     ctx.addRoot(item);
     ctx.addRoot(index);
@@ -270,7 +264,7 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) =>
       },
     ],
     undefined,
-    semantic_collectionRender_312_447_3uti95l1qinm7,
+    semantic_collectionRender_248_448_x8ucqnr6r572,
     0,
     false,
     3
@@ -391,13 +385,7 @@ const q_component_branch_else_segment_6_19dvsnjetbnih = /*#__PURE__*/ _noopQrl(
 q_component_branch_else_segment_6_19dvsnjetbnih.s(component_branch_else_segment_6_19dvsnjetbnih);
 
 export const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx, __rangeId) => {
-  function semantic_collectionRender_312_447_3uti95l1qinm7(
-    ctx,
-    __rangeId,
-    __rowId,
-    item_10,
-    index
-  ) {
+  function semantic_collectionRender_248_448_x8ucqnr6r572(ctx, __rangeId, __rowId, item_10, index) {
     const branchId0 = ctx.nextId();
     ctx.addRoot(item_10);
     ctx.addRoot(index);
@@ -427,7 +415,7 @@ export const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx, __rangeId) =>
       },
     ],
     undefined,
-    semantic_collectionRender_312_447_3uti95l1qinm7,
+    semantic_collectionRender_248_448_x8ucqnr6r572,
     0,
     false,
     3

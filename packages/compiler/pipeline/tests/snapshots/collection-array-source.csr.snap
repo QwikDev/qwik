@@ -10,14 +10,14 @@ export default () => {
 
 import { _first, _next, createCollection, _createElementTemplate } from '@qwik.dev/core';
 
-const semantic_collectionRender_60_79_1yelvkf618fjk_tmpl0 = _createElementTemplate('<li>Item</li>');
+const semantic_collectionRender_36_80_37i7juaxs2aht_tmpl0 = _createElementTemplate('<li>Item</li>');
 const default_tmpl0 = _createElementTemplate('<ul><!><!></ul>');
 export default (props, ctx) => {
   const el0 = default_tmpl0(ctx.document);
   const start0 = _first(el0);
   const end0 = _next(start0);
-  function semantic_collectionRender_60_79_1yelvkf618fjk(ctx) {
-    const el0 = semantic_collectionRender_60_79_1yelvkf618fjk_tmpl0(ctx.document);
+  function semantic_collectionRender_36_80_37i7juaxs2aht(ctx) {
+    const el0 = semantic_collectionRender_36_80_37i7juaxs2aht_tmpl0(ctx.document);
     return el0;
   }
   createCollection(
@@ -26,7 +26,7 @@ export default (props, ctx) => {
     end0,
     ['first', 'second'],
     null,
-    semantic_collectionRender_60_79_1yelvkf618fjk,
+    semantic_collectionRender_36_80_37i7juaxs2aht,
     0,
     0,
     true

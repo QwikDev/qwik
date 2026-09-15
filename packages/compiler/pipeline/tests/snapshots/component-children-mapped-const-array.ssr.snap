@@ -35,7 +35,7 @@ import {
 } from '@qwik.dev/core';
 const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
   const [suffix] = _captures;
-  function semantic_collectionRender_258_522_2ueukuqu5011w(ctx, __rangeId, __rowId, item, index) {
+  function semantic_collectionRender_233_523_ndy4cqkboyx4(ctx, __rangeId, __rowId, item, index) {
     const label = item.title.toUpperCase() + suffix.value;
     const numbered = index + ':' + label;
     const visible = label.length > 0;
@@ -63,7 +63,7 @@ const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
     undefined,
     [{ title: 'Title' }],
     undefined,
-    semantic_collectionRender_258_522_2ueukuqu5011w,
+    semantic_collectionRender_233_523_ndy4cqkboyx4,
     0,
     false,
     3
@@ -190,7 +190,7 @@ q_component_branch_then_segment_2_24n7b7xmnzb3n.s(component_branch_then_segment_
 
 export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
   const [suffix] = _captures;
-  function semantic_collectionRender_258_522_2ueukuqu5011w(ctx, __rangeId, __rowId, item, index) {
+  function semantic_collectionRender_233_523_ndy4cqkboyx4(ctx, __rangeId, __rowId, item, index) {
     const label = item.title.toUpperCase() + suffix.value;
     const numbered = index + ':' + label;
     const visible = label.length > 0;
@@ -218,7 +218,7 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) =>
     undefined,
     [{ title: 'Title' }],
     undefined,
-    semantic_collectionRender_258_522_2ueukuqu5011w,
+    semantic_collectionRender_233_523_ndy4cqkboyx4,
     0,
     false,
     3

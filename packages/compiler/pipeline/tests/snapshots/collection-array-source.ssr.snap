@@ -11,7 +11,7 @@ export default () => {
 import { renderSsrCollection, maybeThen } from '@qwik.dev/core';
 
 export default (props, ctx) => {
-  function semantic_collectionRender_60_79_1yelvkf618fjk(ctx, __rangeId, __rowId) {
+  function semantic_collectionRender_36_80_37i7juaxs2aht(ctx, __rangeId, __rowId) {
     return '<li>Item</li>';
   }
   const collection0 = renderSsrCollection(
@@ -19,7 +19,7 @@ export default (props, ctx) => {
     undefined,
     ['first', 'second'],
     undefined,
-    semantic_collectionRender_60_79_1yelvkf618fjk,
+    semantic_collectionRender_36_80_37i7juaxs2aht,
     0,
     false,
     0

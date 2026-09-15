@@ -2239,6 +2239,40 @@ export default component$((props: { points: number[] }) => {
     }
   });
 
+  test('should infer the namespace of svg-only content outside an svg element', async () => {
+    const output = await testInput(mode, 'namespace-inference', {
+      code: `import { component$, useSignal, Slot } from '@qwik.dev/core';
+export const Host = component$(() => <svg><Slot /></svg>);
+export default component$(() => {
+  const show = useSignal(false);
+  return (
+    <>
+      <Host>
+        {show.value && <path d="a" />}
+        {show.value && <><circle r="1" /><mi>x</mi></>}
+        {show.value && <title>t</title>}
+      </Host>
+      <svg>{show.value && <><rect /><circle /></>}</svg>
+    </>
+  );
+});
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const code = output.modules.map((module) => module.code).join('\n');
+    if (mode === 'csr') {
+      // An svg-only root parses inside an svg wrapper wherever it is authored.
+      expect(code).toMatch(/_createElementTemplate\("<svg><path d=\\"a\\"><\/path><\/svg>"\)/);
+      // A fragment takes the namespace of its first element; a math tag after it follows suit.
+      expect(code).toMatch(
+        /createTemplate\("<svg><circle r=\\"1\\"><\/circle><mi>x<\/mi><\/svg>"\)/
+      );
+      expect(code).toMatch(/createTemplate\("<svg><rect><\/rect><circle><\/circle><\/svg>"\)/);
+      // A name HTML also owns stays HTML.
+      expect(code).toMatch(/_createElementTemplate\("<title>t<\/title>"\)/);
+    }
+  });
+
   test('should keep namespaced attribute names for the runtime', async () => {
     const output = await testInput(mode, 'namespaced-attributes', {
       code: `import { component$, useSignal } from '@qwik.dev/core';

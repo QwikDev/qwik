@@ -231,15 +231,22 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     statements: string[],
     pass: RenderPass
   ): string {
-    const template = `${ownerName}_${pass.next(QwikGenWord.Template)}`;
-    const fragment = pass.next(QwikGenWord.Fragment);
-    statements.push(`const ${fragment} = ${template}(${pass.names.ctx}.document);`);
+    // A foreign fragment parses inside its namespace element, which then stands in for the fragment.
+    const namespace = ops.find(
+      (op): op is Extract<LinkedOp, { op: OpKind.Element }> => op.op === OpKind.Element
+    )?.namespace;
+    const { el: fragment, template } = this.mountElementTemplate(
+      ownerName,
+      statements,
+      pass,
+      namespace,
+      QwikGenWord.Fragment
+    );
     this.walkChildren(ops, fragment, statements, pass);
-    this.imports.add(QwikWord.CreateTemplate);
     const html = templateChildren(ops)
       .map((child) => foldStaticOp(child))
       .join('');
-    this.hoists.push(`const ${template} = ${QwikWord.CreateTemplate}(${JSON.stringify(html)});`);
+    this.hoistTemplate(template, html, QwikWord.CreateTemplate, namespace);
     const singleNode =
       ops.length === 1 && (ops[0].op === OpKind.Static || ops[0].op === OpKind.Hole);
     return singleNode
@@ -364,12 +371,11 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     const mounted = this.mountElementTemplate(ownerName, statements, pass, op.namespace);
     this.elementProps(op, mounted.el, statements, pass);
     this.walkChildren(elementChildren(op), mounted.el, statements, pass);
-    // A foreign root parses inside its namespace element and is unwrapped after cloning.
-    const html = foldStaticOp(templateOp(op));
     this.hoistTemplate(
       mounted.template,
-      op.namespace === undefined ? html : `<${op.namespace}>${html}</${op.namespace}>`,
-      QwikWord.CreateElementTemplate
+      foldStaticOp(templateOp(op)),
+      QwikWord.CreateElementTemplate,
+      op.namespace
     );
     return mounted.el;
   }
@@ -1029,9 +1035,10 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     ownerName: string,
     statements: string[],
     pass: RenderPass,
-    namespace?: 'svg' | 'math'
+    namespace?: 'svg' | 'math',
+    word: QwikGenWord = QwikGenWord.Element
   ): { el: string; template: string } {
-    const el = pass.next(QwikGenWord.Element);
+    const el = pass.next(word);
     const template = `${ownerName}_${pass.next(QwikGenWord.Template)}`;
     const clone = `${template}(${pass.names.ctx}.document)`;
     if (namespace !== undefined) {
@@ -1058,13 +1065,16 @@ class CsrModuleEmitter implements QwikModuleEmitter {
   }
 
   /** After the dynamic wiring, so the template import keeps the request order. */
+  /** A foreign root parses inside its namespace element and is unwrapped after cloning. */
   private hoistTemplate(
     template: string,
     html: string,
-    factory: QwikWord.CreateTemplate | QwikWord.CreateElementTemplate = QwikWord.CreateTemplate
+    factory: QwikWord.CreateTemplate | QwikWord.CreateElementTemplate = QwikWord.CreateTemplate,
+    namespace?: 'svg' | 'math'
   ): void {
     this.imports.add(factory);
-    this.hoists.push(`const ${template} = ${factory}(${JSON.stringify(html)});`);
+    const wrapped = namespace === undefined ? html : `<${namespace}>${html}</${namespace}>`;
+    this.hoists.push(`const ${template} = ${factory}(${JSON.stringify(wrapped)});`);
   }
 
   /** Events wire the imported chunk fn onto the live element — they never enter the template. */

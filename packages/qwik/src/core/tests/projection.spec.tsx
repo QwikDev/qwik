@@ -905,6 +905,101 @@ describe(`${name}: projection`, () => {
   });
 
   describe('svg', () => {
+    it('toggles svg children projected into an svg slot', async () => {
+      const QwikSvgWithSlot = component$(() => (
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <Slot />
+        </svg>
+      ));
+      const Parent = component$(() => {
+        const show = useSignal(true);
+        return (
+          <>
+            <button onClick$={() => (show.value = !show.value)}></button>
+            <QwikSvgWithSlot>{show.value && <path d="M1 1" />}</QwikSvgWithSlot>
+          </>
+        );
+      });
+      const { container, cleanup, qwikLoader } = await render(Parent);
+      const click = () => qwikLoader?.dispatch(container.querySelector('button')!, 'click');
+      expect(container.querySelector('svg')?.namespaceURI).toBe(SVG_NS);
+      expect(container.querySelector('path')?.namespaceURI).toBe(SVG_NS);
+      await click();
+      expect(container.querySelector('path')).toBeFalsy();
+      await click();
+      expect(container.querySelector('path')?.namespaceURI).toBe(SVG_NS);
+      cleanup();
+    });
+    it('toggles nested svg children projected into an svg slot', async () => {
+      const QwikSvgWithSlot = component$(() => (
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <Slot />
+        </svg>
+      ));
+      const Parent = component$(() => {
+        const show = useSignal(true);
+        return (
+          <>
+            <button onClick$={() => (show.value = !show.value)}></button>
+            <QwikSvgWithSlot>
+              {show.value && (
+                <filter id="blurMe">
+                  <feGaussianBlur in="SourceGraphic" class="test" />
+                </filter>
+              )}
+            </QwikSvgWithSlot>
+          </>
+        );
+      });
+      const { container, cleanup, qwikLoader } = await render(Parent);
+      const click = () => qwikLoader?.dispatch(container.querySelector('button')!, 'click');
+      expect(container.querySelector('filter')?.namespaceURI).toBe(SVG_NS);
+      expect(container.querySelector('feGaussianBlur')?.namespaceURI).toBe(SVG_NS);
+      await click();
+      await click();
+      expect(container.querySelector('filter')?.namespaceURI).toBe(SVG_NS);
+      expect(container.querySelector('feGaussianBlur')?.namespaceURI).toBe(SVG_NS);
+      cleanup();
+    });
+    it('toggles a slot inside svg and renders nested children with the right namespace', async () => {
+      const Parent = component$(() => {
+        const show = useSignal(false);
+        return (
+          <>
+            <button onClick$={() => (show.value = !show.value)}></button>
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              {show.value && <Slot />}
+            </svg>
+          </>
+        );
+      });
+      const App = component$(() => (
+        <Parent>
+          <filter id="blurMe">
+            <feGaussianBlur in="SourceGraphic" class="test" />
+            <foreignObject>
+              <div id="inner-div">
+                test
+                <svg id="inner-svg" xmlns="http://www.w3.org/2000/svg">
+                  <path></path>
+                </svg>
+              </div>
+            </foreignObject>
+          </filter>
+        </Parent>
+      ));
+      const { container, cleanup, qwikLoader } = await render(App);
+      expect(container.querySelector('filter')).toBeFalsy();
+      await qwikLoader?.dispatch(container.querySelector('button')!, 'click');
+      expect(container.querySelector('filter')?.namespaceURI).toBe(SVG_NS);
+      expect(container.querySelector('feGaussianBlur')?.namespaceURI).toBe(SVG_NS);
+      expect(container.querySelector('foreignObject')?.namespaceURI).toBe(SVG_NS);
+      expect(container.querySelector('#inner-div')?.namespaceURI).toBe(HTML_NS);
+      expect(container.querySelector('#inner-svg')?.namespaceURI).toBe(SVG_NS);
+      expect(container.querySelector('path')?.namespaceURI).toBe(SVG_NS);
+      cleanup();
+    });
+
     it('toggles html projected into a foreignObject slot', async () => {
       const QwikSvgWithSlot = component$(() => (
         <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

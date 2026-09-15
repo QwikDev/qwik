@@ -520,8 +520,10 @@ and dynamic `Slot name`.
       changes and independent cleanup.
   - [x] Ported to `projection.spec.tsx` (41 specs, csr and resume): resolved and unclaimed
         projections, detached subtrees and the numbered regressions.
-  - [ ] Open cases: svg namespace for content projected into an svg slot; a projection capturing
-        a local function (`#7000`) or a local component reference (`#3727`).
+  - [x] Svg-only and MathML-only tags authored outside a namespace element infer it, so
+        projected svg content and foreign fragments parse in the right namespace.
+  - [ ] Open cases: a projection capturing a local function (`#7000`) or a local component
+        reference (`#3727`).
 - [ ] Combine slots with dynamic content, namespaces, async and error boundaries.
 - [ ] External projections needed by React integration, including runtime/integration work.
 

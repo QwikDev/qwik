@@ -43,6 +43,7 @@ import {
   RAW_TEXT_ELEMENTS,
   RCDATA_ELEMENTS,
   VOID_ELEMENTS,
+  inferredNamespace,
 } from '../html';
 import { InvalidModuleError, UnsupportedError } from '../errors';
 import { isFullyStaticSubtree } from '../static-subtree';
@@ -111,8 +112,8 @@ function aliasTagTarget(tag: JSXIdentifier, ctx: LowerContext) {
 }
 
 /** The enclosing foreign namespace, omitted from the op when there is none. */
-function tagNamespace(ctx: LowerContext): { namespace?: 'svg' | 'math' } {
-  return ctx.namespace === null ? {} : { namespace: ctx.namespace };
+function tagNamespace(namespace: 'svg' | 'math' | null): { namespace?: 'svg' | 'math' } {
+  return namespace === null ? {} : { namespace };
 }
 
 /** A tag read from props or a setup local can change; a module object is fixed. */
@@ -123,7 +124,7 @@ function lowerDynamicTag(
   root: LocalId,
   ctx: LowerContext
 ): Op {
-  const target = { t: ComponentTargetKind.Dynamic, value, ...tagNamespace(ctx) } as const;
+  const target = { t: ComponentTargetKind.Dynamic, value, ...tagNamespace(ctx.namespace) } as const;
   const lower = () => lowerComponentOp(element, attributes, target, ctx);
   if (!ctx.locals.has(root) && root !== ctx.propsBinding) {
     return lower();
@@ -168,7 +169,7 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
       : lowerComponentOp(
           element,
           attributes,
-          { t: ComponentTargetKind.Raw, binding, ...tagNamespace(ctx) },
+          { t: ComponentTargetKind.Raw, binding, ...tagNamespace(ctx.namespace) },
           ctx
         );
   }
@@ -199,9 +200,11 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
   }
   checkDomNesting(tag, ctx.elementStack, [element.start, element.end]);
   const namespace = ctx.namespace;
+  // Projected content is authored outside its host: an svg-only tag implies the svg namespace.
+  const elementNamespace = namespace ?? inferredNamespace(tag);
   // `svg` and `math` open a namespace; `foreignObject` returns to HTML for its subtree.
   ctx.namespace =
-    tag === 'svg' || tag === 'math' ? tag : tag === 'foreignObject' ? null : namespace;
+    tag === 'svg' || tag === 'math' ? tag : tag === 'foreignObject' ? null : elementNamespace;
   ctx.elementStack.push(tag);
   const children = lowerFormValue(
     tag,
@@ -241,7 +244,7 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
     op: OpKind.Element,
     tag,
     void: VOID_ELEMENTS.has(tag),
-    ...tagNamespace(ctx),
+    ...tagNamespace(elementNamespace),
     styleScopedId,
     runtimeScope: false,
     props,

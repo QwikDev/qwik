@@ -500,8 +500,9 @@ delimiters. Compilation snapshots alone cannot prove browser parser behavior.
       branch arms without a key", "correctly rerender array without keys") and pass in CSR and
       resume with no compiler change: branch arms remount, and a keyless derived source keys by
       position. A conditional row keyed in only some arms stays a loud refusal.
-- [ ] Adapt `<Each>` and `<Show>` to existing collection/branch operations if retaining their
-      APIs from `main`.
+- [x] `<Each>` and `<Show>` are dropped in v3. `.map` with keys and conditional expressions
+      already lower to the collection and branch ops; nothing in the corpus or the e2e apps uses
+      the components, and the dead `each`/`show` experimental flags are removed from the plugin.
 
 Verify reorder, replacement, event captures and cleanup after resume, not only output snapshots.
 

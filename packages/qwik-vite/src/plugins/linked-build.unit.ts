@@ -188,7 +188,7 @@ test('the default client build maps linked text and event QRLs into its manifest
   await writeFile(
     entry,
     `import { component$, useSignal } from '@qwik.dev/core';
-    const Label = component$(props => <p>{props.value}</p>);
+    const Label = component$(props => <p>{props.value + '!'}</p>);
     export default () => { const count = useSignal(0); return <button onClick$={() => count.value++}>
       <Label value={count.value} /></button>; };`
   );

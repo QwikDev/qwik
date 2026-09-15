@@ -84,10 +84,6 @@ type QwikResolveIdOptions = Partial<ViteResolveIdOptions> & {
  * @public
  */
 export enum ExperimentalFeatures {
-  /** Enable the Each keyed-list primitive */
-  each = 'each',
-  /** Enable the Show conditional primitive */
-  show = 'show',
   /** Enable the Suspense fallback primitive */
   suspense = 'suspense',
   /** Enable the Valibot form validation */

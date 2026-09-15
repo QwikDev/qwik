@@ -45,7 +45,9 @@ export function lowerExpressionValue(
   /** Segment identity context: 'text' for holes, the attribute name for props. */
   nameCtx: string,
   /** Event handlers need a QRL, so a prop member read stays computed there. */
-  propMembers = true
+  propMembers = true,
+  /** Component props wrap the expression in a computed, which calls a Function payload. */
+  payloadKind = QrlPayloadKind.Value
 ): ReactiveValue {
   if (ctx.inlineParams !== null) {
     const inline = tryLowerInlineValue(expression, ctx);
@@ -60,7 +62,7 @@ export function lowerExpressionValue(
   if (read !== null) {
     return read;
   }
-  return lowerComputedExpressionValue(expression, ctx, nameCtx);
+  return lowerComputedExpressionValue(expression, ctx, nameCtx, payloadKind);
 }
 
 /** `props.title`, or a live alias of it: one member the runtime backs with its own source. */

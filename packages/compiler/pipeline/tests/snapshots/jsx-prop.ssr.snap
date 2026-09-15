@@ -52,7 +52,8 @@ const q_component_jsx_segment_4_38vnl4ypf6sea = /*#__PURE__*/ _noopQrl(
 );
 q_component_jsx_segment_4_38vnl4ypf6sea.s(component_jsx_segment_4_38vnl4ypf6sea);
 import {
-  readExpression,
+  computedProp,
+  readTrackedValue,
   _props,
   createComponent,
   _noopQrl,
@@ -67,16 +68,17 @@ import {
 } from '@qwik.dev/core';
 import { Display } from './display';
 export function Direct(props, ctx) {
-  const propQrl0 = q_component_fallback_segment_1_5cu25viqhgwy;
+  const prop0 = computedProp(q_component_fallback_segment_1_5cu25viqhgwy);
+  ctx.addRoot(prop0);
   const component0 = createComponent(
     Display,
     _props(
       {
         get fallback() {
-          return readExpression(propQrl0);
+          return readTrackedValue(prop0);
         },
       },
-      { fallback: propQrl0 }
+      { fallback: prop0 }
     ),
     ctx
   );

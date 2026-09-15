@@ -34,7 +34,8 @@ const semantic_collectionRender_334_399_1rvvd24vhg1k1_tmpl0 =
 const Rows_tmpl0 = _createElementTemplate('<ul><!><!></ul>');
 import {
   _qrlWithChunk,
-  readExpression,
+  computedProp,
+  readTrackedValue,
   _props,
   createComponent,
   useSignal,
@@ -48,16 +49,16 @@ import {
 } from '@qwik.dev/core';
 import { Display } from './display';
 export function Direct(props, ctx) {
-  const propQrl0 = q_component_fallback_segment_1_5cu25viqhgwy;
+  const prop0 = computedProp(q_component_fallback_segment_1_5cu25viqhgwy);
   const component0 = createComponent(
     Display,
     _props(
       {
         get fallback() {
-          return readExpression(propQrl0);
+          return readTrackedValue(prop0);
         },
       },
-      { fallback: propQrl0 }
+      { fallback: prop0 }
     ),
     ctx
   );

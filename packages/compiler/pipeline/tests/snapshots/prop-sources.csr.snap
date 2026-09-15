@@ -36,7 +36,7 @@ import {
   _createElementTemplate,
   useSignal,
   _qrlWithChunk,
-  readExpression,
+  computedProp,
 } from '@qwik.dev/core';
 import { component_text_segment_0_1fh10fbkzokfc } from './component.tsx_component_text_segment_0_1fh10fbkzokfc';
 import { component_text_segment_1_1fh10tcowimfv } from './component.tsx_component_text_segment_1_1fh10tcowimfv';
@@ -95,19 +95,19 @@ export const Defaulted = (props0, ctx) => {
 };
 export default (props1, ctx) => {
   const count = useSignal(1);
-  const propQrl0 = q_component_title_segment_2_2f0r05go51flv.w([count]);
+  const prop0 = computedProp(q_component_title_segment_2_2f0r05go51flv.w([count]));
   const component0 = createComponent(
     Card,
     _props(
       {
         get title() {
-          return readExpression(propQrl0);
+          return readTrackedValue(prop0);
         },
         get count() {
           return readTrackedValue(count);
         },
       },
-      { title: propQrl0, count: count }
+      { title: prop0, count: count }
     ),
     ctx
   );
@@ -171,7 +171,10 @@ export const component_text_segment_1_1fh10tcowimfv = (props0) => {
 */
 ============================= src/component.tsx_component_title_segment_2_2f0r05go51flv.js (ENTRY POINT)==
 
-export const component_title_segment_2_2f0r05go51flv = (count) => {
+import { _captures } from '@qwik.dev/core';
+
+export const component_title_segment_2_2f0r05go51flv = () => {
+  const [count] = _captures;
   return 'n=' + count.value;
 };
 /*

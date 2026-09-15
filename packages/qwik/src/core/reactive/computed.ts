@@ -312,7 +312,8 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
     this.flags &= ~(ComputedFlags.Dirty | ComputedFlags.Computing);
     if (job.canWrite && this.current === job) {
       this.errorValue = undefined;
-      this.publishValue(result);
+      // A synchronous pull only ever follows a dirty mark that already told the subscribers.
+      this.publishValue(result, false);
     }
     this.finishJob(job);
   }
@@ -376,12 +377,12 @@ export class Computed<T> extends Signal<T> implements ComputedSubscriber<T>, Com
     return retryOnPromise(() => runWithCollector(this, () => run.call(this, job)));
   }
 
-  private publishValue(value: T): void {
+  private publishValue(value: T, notify = true): void {
     // First materialization is not a change: no subscriber saw an older value.
     const changed = !!(this.flags & ComputedFlags.HasValue) && !Object.is(this.v, value);
     this.v = value;
     this.flags |= ComputedFlags.HasValue;
-    if (changed) {
+    if (changed && notify) {
       this.notify();
     }
   }

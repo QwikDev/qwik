@@ -69,6 +69,11 @@ export function _wrapArray<T>(
   return computed;
 }
 
+/** A computed component prop: one evaluation for every reader, never serialized as a value. */
+export function computedProp<T>(qrl: ComputedQrlRef<T>): ComputedQrl<T> {
+  return useComputedQrl(qrl, { serializationStrategy: 'never' });
+}
+
 export function useComputedQrl<T>(
   computeQrl: ComputedQrlRef<T>,
   options?: ComputedOptions<T>,

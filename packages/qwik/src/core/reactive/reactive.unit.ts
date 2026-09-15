@@ -11,7 +11,15 @@ import {
 import { cleanupDeps, disposeSubscriber } from './cleanup';
 import { Computed } from './computed';
 import { ComputedQrl } from './computed-qrl';
-import { _wrapArray, useComputedQrl, useComputed, useConstant, useSignal } from './public-api';
+import type { Signal } from './signal';
+import {
+  _wrapArray,
+  computedProp,
+  useComputedQrl,
+  useComputed,
+  useConstant,
+  useSignal,
+} from './public-api';
 import { getStoreSources, useStore } from './store';
 import { readSourceValue, type Source } from './source';
 import { _await, runWithCollector } from './tracking';
@@ -395,6 +403,19 @@ describe('reactive primitives', () => {
     });
 
     expect(() => circular.value).toThrow('Circular computed dependency');
+  });
+
+  it('a computed prop reads its captures, tracks them, and never serializes its value', () => {
+    const count = createOwned(() => useSignal(1));
+    const chunk = () => (_captures![0] as Signal<number>).value + 1;
+    const computed = createOwned(() =>
+      computedProp(createQRL('chunk', 'symbol', chunk, null, [count]))
+    );
+
+    expect(computed.value).toBe(2);
+    count.value = 5;
+    expect(computed.value).toBe(6);
+    expect(computed.options?.serializationStrategy).toBe('never');
   });
 
   it('runs resolved computed QRLs synchronously', () => {

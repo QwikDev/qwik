@@ -45,7 +45,11 @@ function notifySubscriber(subscriber: Subscriber): void {
 }
 
 export function markComputedDirty(computed: ComputedSubscriber): void {
-  if (isSubscriberDisposed(computed) || computed.flags & ComputedFlags.Dirty) {
+  // A dirty computed already told its subscribers, unless it resumed without a value.
+  if (
+    isSubscriberDisposed(computed) ||
+    (computed.flags & ComputedFlags.Dirty && computed.flags & ComputedFlags.HasValue)
+  ) {
     return;
   }
 

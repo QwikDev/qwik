@@ -282,18 +282,20 @@ function emitComponentExpression(
     throw new UnsupportedError('a non-QRL computed component value');
   }
   const { qrl, reference, args } = resolveQrl(value.resume.qrl, true);
-  if (qrl.payloadKind !== QrlPayloadKind.Value) {
-    throw new UnsupportedError('a non-value component QRL');
+  if (qrl.payloadKind !== QrlPayloadKind.Function) {
+    throw new UnsupportedError('a non-function component QRL');
   }
-  const propQrl = pass.next(QwikGenWord.PropQrl);
-  imports.add(QwikWord.ReadExpression);
+  // A computed prop is a source of its own: memoized for every reader and serialized by its QRL.
+  const prop = pass.next(QwikGenWord.PropSource);
+  imports.add(QwikWord.ComputedProp);
+  imports.add(QwikWord.ReadTrackedValue);
   return {
     statements: [
-      `const ${propQrl} = ${args.length === 0 ? reference : `${reference}.w([${args.join(', ')}])`};`,
+      `const ${prop} = ${QwikWord.ComputedProp}(${args.length === 0 ? reference : `${reference}.w([${args.join(', ')}])`});`,
     ],
-    expression: `${QwikWord.ReadExpression}(${propQrl})`,
-    source: propQrl,
-    roots: rootArgs(qrl, args),
+    expression: `${QwikWord.ReadTrackedValue}(${prop})`,
+    source: prop,
+    roots: [prop],
   };
 }
 

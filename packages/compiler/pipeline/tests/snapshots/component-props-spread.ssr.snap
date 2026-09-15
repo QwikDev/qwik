@@ -16,20 +16,24 @@ import {
   isSource,
   renderSsrTextNode,
   maybeThen,
-  readExpression,
+  computedProp,
+  readTrackedValue,
   mergeProps,
   createComponent,
+  _captures,
   _noopQrl,
 } from '@qwik.dev/core';
 
-const component_props_segment_0_208o16glymg7p = (props) => {
+const component_props_segment_0_208o16glymg7p = () => {
+  const [props] = _captures;
   return props.base;
 };
 const q_component_props_segment_0_208o16glymg7p = /*#__PURE__*/ _noopQrl(
   'component_props_segment_0_208o16glymg7p'
 );
 q_component_props_segment_0_208o16glymg7p.s(component_props_segment_0_208o16glymg7p);
-const component_props_segment_1_208o0sfi1se76 = (props) => {
+const component_props_segment_1_208o0sfi1se76 = () => {
+  const [props] = _captures;
   return props.overrides;
 };
 const q_component_props_segment_1_208o0sfi1se76 = /*#__PURE__*/ _noopQrl(
@@ -50,16 +54,17 @@ export const Child = (props, ctx) => {
   ]);
 };
 export default (props, ctx) => {
-  const propQrl0 = q_component_props_segment_0_208o16glymg7p.w([props]);
-  const propQrl1 = q_component_props_segment_1_208o0sfi1se76.w([props]);
-  ctx.addRoot(props);
+  const prop0 = computedProp(q_component_props_segment_0_208o16glymg7p.w([props]));
+  const prop1 = computedProp(q_component_props_segment_1_208o0sfi1se76.w([props]));
+  ctx.addRoot(prop0);
+  ctx.addRoot(prop1);
   const component0 = createComponent(
     Child,
     mergeProps(
       { label: 'before' },
-      readExpression(propQrl0),
+      readTrackedValue(prop0),
       { middle: 'middle' },
-      readExpression(propQrl1),
+      readTrackedValue(prop1),
       { label: 'after' }
     ),
     ctx
@@ -68,7 +73,10 @@ export default (props, ctx) => {
 };
 ============================= src/component.tsx_component_props_segment_0_208o16glymg7p.js (ENTRY POINT)==
 
-export const component_props_segment_0_208o16glymg7p = (props) => {
+import { _captures } from '@qwik.dev/core';
+
+export const component_props_segment_0_208o16glymg7p = () => {
+  const [props] = _captures;
   return props.base;
 };
 /*
@@ -96,7 +104,10 @@ export const component_props_segment_0_208o16glymg7p = (props) => {
 */
 ============================= src/component.tsx_component_props_segment_1_208o0sfi1se76.js (ENTRY POINT)==
 
-export const component_props_segment_1_208o0sfi1se76 = (props) => {
+import { _captures } from '@qwik.dev/core';
+
+export const component_props_segment_1_208o0sfi1se76 = () => {
+  const [props] = _captures;
   return props.overrides;
 };
 /*

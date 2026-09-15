@@ -35,7 +35,8 @@ import {
   maybeThen,
   _noopQrl,
   useSignal,
-  readExpression,
+  computedProp,
+  _captures,
 } from '@qwik.dev/core';
 import { Badge } from './badge';
 const component_text_segment_0_1fh10fbkzokfc = (props) => {
@@ -52,7 +53,8 @@ const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _noopQrl(
   'component_text_segment_1_1fh10tcowimfv'
 );
 q_component_text_segment_1_1fh10tcowimfv.s(component_text_segment_1_1fh10tcowimfv);
-const component_title_segment_2_2f0r05go51flv = (count) => {
+const component_title_segment_2_2f0r05go51flv = () => {
+  const [count] = _captures;
   return 'n=' + count.value;
 };
 const q_component_title_segment_2_2f0r05go51flv = /*#__PURE__*/ _noopQrl(
@@ -129,20 +131,21 @@ export const Defaulted = (props0, ctx) => {
 };
 export default (props1, ctx) => {
   const count = useSignal(1);
-  const propQrl0 = q_component_title_segment_2_2f0r05go51flv.w([count]);
+  const prop0 = computedProp(q_component_title_segment_2_2f0r05go51flv.w([count]));
+  ctx.addRoot(prop0);
   ctx.addRoot(count);
   const component0 = createComponent(
     Card,
     _props(
       {
         get title() {
-          return readExpression(propQrl0);
+          return readTrackedValue(prop0);
         },
         get count() {
           return readTrackedValue(count);
         },
       },
-      { title: propQrl0, count: count }
+      { title: prop0, count: count }
     ),
     ctx
   );
@@ -206,7 +209,10 @@ export const component_text_segment_1_1fh10tcowimfv = (props0) => {
 */
 ============================= src/component.tsx_component_title_segment_2_2f0r05go51flv.js (ENTRY POINT)==
 
-export const component_title_segment_2_2f0r05go51flv = (count) => {
+import { _captures } from '@qwik.dev/core';
+
+export const component_title_segment_2_2f0r05go51flv = () => {
+  const [count] = _captures;
   return 'n=' + count.value;
 };
 /*

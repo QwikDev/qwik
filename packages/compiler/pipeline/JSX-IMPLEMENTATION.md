@@ -313,11 +313,12 @@ Component spreads already exist. Complete element spreads and DOM semantics:
       behind an `isSource` guard. Reads with a default, a deeper path, a spread argument or an
       event handler keep their QRL (`prop-sources` snapshots, `prop-sources.spec.tsx` in CSR and
       resume, which also asserts an unread prop never serializes).
-- [ ] TODO: a computed prop as a real source. The parent still registers the bare expression QRL,
-      so a child read resolves through `PropSource` and roots the child's record. `useComputedQrl`
-      cannot wrap it as is: it calls its QRL with a compute context while prop expression QRLs
-      take their captures positionally, and a cached JSX or component value must not serialize.
-      Needs an expression-backed computed with its own type id.
+- [x] A computed prop is a real source. An expression passed as a component prop becomes a
+      `useComputedQrl` in the parent: the chunk is emitted in the `useComputed$` shape, reading
+      its captures from `_captures`, and `computedProp(qrl)` is that hook with the value never
+      serialized, since a computed prop may hold JSX or a component. A child read then resolves
+      to the computed itself, so the `PropSource` branch is left to spread props (`prop-sources`
+      snapshots, `prop-sources.spec.tsx` proves a recompute after resume).
 - [x] Addition/removal of keys in reactive spreads. The client effect diffs against its previous
       run and removes vanished keys; a resumed effect seeds its first diff from the element's
       own attributes, minus runtime `q:*` markers and event attributes (`attributes.spec.tsx`
@@ -606,6 +607,16 @@ code size and runtime cost. The previous implementation is not the accepted defa
 
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
+
+- 2026-09-15: Computed props: component prop expressions lower as Function-payload QRLs, so
+  `useComputedQrl` can run them; `computedProp` is a one-line never-serialized alias. A first
+  cut added an expression-backed computed class with its own type id and was removed once the
+  chunk shape turned out to be the whole difference. Two propagation fixes in core surfaced
+  through the corpus: `markComputedDirty` skipped a dirty computed even when it had
+  resumed without a value and never told its subscribers, and a synchronous recompute pulled
+  after a dirty mark notified subscribers a second time, which made a slot content block re-run
+  and dispose the projection it had just reused. Verification: reactive, effect and serdes
+  units, `prop-sources.spec.tsx` and `slot.spec.tsx` in CSR and resume, both corpora unchanged.
 
 - 2026-09-15: Prop sources, compiler half: `tryPropMemberRead` in `lower-expr.ts` produces the
   `Read`, `readSource` in `emit-setup.ts` replaces `signalReadName` for both targets and the

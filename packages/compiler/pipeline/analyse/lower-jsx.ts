@@ -1306,7 +1306,10 @@ function lowerComponentPropValue(expression: Expression, ctx: LowerContext, name
   if (use !== null) {
     return { v: ValueKind.Qrl as const, use };
   }
-  return tryLowerBindingPassValue(expression, ctx) ?? lowerExpressionValue(expression, ctx, name);
+  return (
+    tryLowerBindingPassValue(expression, ctx) ??
+    lowerExpressionValue(expression, ctx, name, true, QrlPayloadKind.Function)
+  );
 }
 
 /** A local passed as-is is a snapshot either way, so an identity QRL would only add a chunk. */
@@ -1362,7 +1365,7 @@ function lowerAttribute(
     }
     return {
       k: PropKind.Spread,
-      value: lowerExpressionValue(attribute.argument, ctx, 'props', false),
+      value: lowerExpressionValue(attribute.argument, ctx, 'props', false, QrlPayloadKind.Function),
       effect: null,
     };
   }

@@ -18,7 +18,8 @@ import {
   _createElementTemplate,
   useSignal,
   _qrlWithChunk,
-  readExpression,
+  computedProp,
+  readTrackedValue,
   _props,
   createComponent,
 } from '@qwik.dev/core';
@@ -38,16 +39,16 @@ export const Child = (props, ctx) => {
 };
 export default (props0, ctx) => {
   const count = useSignal(2);
-  const propQrl0 = q_component_total_segment_0_33cbacdkct5tt.w([count]);
+  const prop0 = computedProp(q_component_total_segment_0_33cbacdkct5tt.w([count]));
   const component0 = createComponent(
     Child,
     _props(
       {
         get total() {
-          return readExpression(propQrl0);
+          return readTrackedValue(prop0);
         },
       },
-      { total: propQrl0 }
+      { total: prop0 }
     ),
     ctx
   );
@@ -55,7 +56,10 @@ export default (props0, ctx) => {
 };
 ============================= src/component.tsx_component_total_segment_0_33cbacdkct5tt.js (ENTRY POINT)==
 
-export const component_total_segment_0_33cbacdkct5tt = (count) => {
+import { _captures } from '@qwik.dev/core';
+
+export const component_total_segment_0_33cbacdkct5tt = () => {
+  const [count] = _captures;
   return count.value * 2;
 };
 /*

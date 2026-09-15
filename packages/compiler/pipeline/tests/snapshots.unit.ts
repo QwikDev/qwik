@@ -2721,6 +2721,8 @@ export default component$(() => {
     // An expression over a member keeps its chunk; a defaulted read keeps its fallback.
     expect(code).toContain('props.count + 1');
     expect(code).toContain('Untitled');
+    // The parent registers a computed for a computed prop, not a bare QRL.
+    expect(code).toContain('computedProp(');
   });
 
   test('should lower ordinary statements before a row return', async () => {

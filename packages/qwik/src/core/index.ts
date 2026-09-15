@@ -151,6 +151,7 @@ export {
   _wrapArray,
   useComputed,
   useComputedQrl,
+  computedProp,
   useComputed$,
   useAsync,
   useAsyncQrl,

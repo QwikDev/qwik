@@ -101,6 +101,11 @@ function aliasTagTarget(tag: JSXIdentifier, ctx: LowerContext) {
   return local?.kind === LocalKind.PropMember ? { value: local.read, root: local.binding } : null;
 }
 
+/** The enclosing foreign namespace, omitted from the op when there is none. */
+function tagNamespace(ctx: LowerContext): { namespace?: 'svg' | 'math' } {
+  return ctx.namespace === null ? {} : { namespace: ctx.namespace };
+}
+
 /** A tag read from props or a setup local can change; a module object is fixed. */
 function lowerDynamicTag(
   element: JSXElement,
@@ -109,7 +114,7 @@ function lowerDynamicTag(
   root: LocalId,
   ctx: LowerContext
 ): Op {
-  const target = { t: ComponentTargetKind.Dynamic, value } as const;
+  const target = { t: ComponentTargetKind.Dynamic, value, ...tagNamespace(ctx) } as const;
   const lower = () => lowerComponentOp(element, attributes, target, ctx);
   if (!ctx.locals.has(root) && root !== ctx.propsBinding) {
     return lower();
@@ -151,7 +156,12 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
     const binding = requireComponentBinding(nameNode, ctx);
     return ctx.coreBindings.get(binding) === 'Slot'
       ? lowerSlotMarker(element, ctx)
-      : lowerComponentOp(element, attributes, { t: ComponentTargetKind.Raw, binding }, ctx);
+      : lowerComponentOp(
+          element,
+          attributes,
+          { t: ComponentTargetKind.Raw, binding, ...tagNamespace(ctx) },
+          ctx
+        );
   }
   if (!/^[a-z]/.test(nameNode.name)) {
     throw new UnsupportedError('a non-native JSX tag');
@@ -204,7 +214,7 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
     op: OpKind.Element,
     tag,
     void: VOID_ELEMENTS.has(tag),
-    ...(namespace === null ? {} : { namespace }),
+    ...tagNamespace(ctx),
     styleScopedId,
     runtimeScope: false,
     props,

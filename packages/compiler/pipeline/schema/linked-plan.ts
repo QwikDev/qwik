@@ -101,6 +101,7 @@ export type LinkedOp =
             declaration: Maybe<DeclRef>;
             /** The tag links to a plain value, so the runtime decides between element and component. */
             isValue: boolean;
+            namespace?: 'svg' | 'math';
           }
         | Extract<ComponentOp['target'], { t: ComponentTargetKind.Dynamic }>;
     });

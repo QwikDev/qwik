@@ -1,0 +1,81 @@
+==INPUT==
+
+export default (props: { shape: string }) => (
+  <svg viewBox="0 0 10 10">
+    <props.shape r="1" />
+  </svg>
+);
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  _first,
+  _next,
+  _qrlWithChunk,
+  createContentBlock,
+  _createElementTemplate,
+} from '@qwik.dev/core';
+
+const q_component_tag_dynamic_segment_0_331xea01t87eh = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_tag_dynamic_segment_0_331xea01t87eh',
+  () => import('./component.tsx_component_tag_dynamic_segment_0_331xea01t87eh'),
+  'component_tag_dynamic_segment_0_331xea01t87eh'
+);
+const default_tmpl0 = _createElementTemplate('<svg viewBox="0 0 10 10"><!><!></svg>');
+export default (props, ctx) => {
+  const el0 = default_tmpl0(ctx.document);
+  const start0 = _first(el0);
+  const end0 = _next(start0);
+  const content0 = createContentBlock(
+    ctx,
+    start0,
+    end0,
+    [],
+    q_component_tag_dynamic_segment_0_331xea01t87eh.w([props]),
+    false,
+    true
+  );
+  ctx.scheduler.notify(content0);
+  return el0;
+};
+============================= src/component.tsx_component_tag_dynamic_segment_0_331xea01t87eh.js (ENTRY POINT)==
+
+import { _captures, createDynamicTag, createComponent } from '@qwik.dev/core';
+
+export const component_tag_dynamic_segment_0_331xea01t87eh = (ctx) => {
+  const [props] = _captures;
+  const tag0 = props.shape;
+  const component0 = createComponent(
+    (props0) => createDynamicTag(tag0, props0, ctx, 'svg'),
+    { r: '1' },
+    ctx
+  );
+  return component0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_tag_dynamic_segment_0_331xea01t87eh",
+  "entry": null,
+  "displayName": "component_tag_dynamic_segment_0",
+  "hash": "331xea01t87eh",
+  "canonicalFilename": "component.tsx_component_tag_dynamic_segment_0_331xea01t87eh",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "tag:dynamic",
+  "captures": true,
+  "loc": [
+    79,
+    100
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

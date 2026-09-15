@@ -412,8 +412,11 @@ Share prop classification; deliver the following in small increments.
       a namespace builds its CSR template inside `<svg>`/`<math>` and unwraps the clone with
       `_first`, so the node lands in the right namespace (`namespace-chunks` snapshots,
       `namespace.spec.tsx` "creates branch and row nodes inside svg" in CSR and resume).
-- [ ] Dynamic tags inside svg or math. The runtime creates them with `createElement`; passing the
-      namespace through needs a runtime parameter.
+- [x] Dynamic tags inside svg or math. The analyser stamps the enclosing namespace on the
+      component target of a runtime-decided tag, and only the client emitter passes it on, so
+      `createDynamicTag` creates the node with `createElementNS`; the server string parses in its
+      namespace by itself (`dynamic-tag-namespace` snapshots, `namespace.spec.tsx` "creates a
+      dynamic tag inside svg" in CSR and resume).
 - [x] HTML parser context for `table`, `tbody`, `tr`, `td`, `select` and `option`. Invalid nesting
       is diagnosed at the analyser instead of silently restructured: the parser rewrites it the
       same way on the server and in the client template, and every range marker at that
@@ -556,6 +559,11 @@ code size and runtime cost. The previous implementation is not the accepted defa
 
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
+
+- 2026-09-15: Dynamic tags in foreign namespaces: the `Raw`, `Dynamic` and linked `Declaration`
+  component targets carry an optional `namespace`; `createDynamicTag` takes it in place of the
+  unused `idBase` parameter. Verification: 1130 pipeline tests (16 existing TODOs), the namespace
+  spec in CSR and resume, both corpora unchanged.
 
 - 2026-09-15: DOM nesting: `checkDomNesting` in `analyse/dom-nesting.ts` runs from the element
   lowering with a tag stack on the lower context, and the child lowering refuses ranges directly

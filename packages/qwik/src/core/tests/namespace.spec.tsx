@@ -49,6 +49,21 @@ describe(`${name}: namespaces`, () => {
     cleanup();
   });
 
+  it('creates a dynamic tag inside svg in the SVG namespace', async () => {
+    const App = component$(() => {
+      const Shape = 'circle';
+      return (
+        <svg viewBox="0 0 10 10">
+          <Shape r="1" />
+        </svg>
+      );
+    });
+    const { container, cleanup } = await render(App);
+
+    expect(container.querySelector('circle')?.namespaceURI).toBe(SVG_NS);
+    cleanup();
+  });
+
   it('switches namespaces through foreignObject and nested math', async () => {
     const App = component$(() => (
       <svg>

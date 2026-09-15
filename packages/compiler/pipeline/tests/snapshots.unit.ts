@@ -2684,6 +2684,24 @@ export default (props: { label?: string; content?: any }) => {
     }
   });
 
+  test('should create a dynamic tag inside svg in its namespace', async () => {
+    const output = await testInput(mode, 'dynamic-tag-namespace', {
+      code: `export default (props: { shape: string }) => (
+  <svg viewBox="0 0 10 10">
+    <props.shape r="1" />
+  </svg>
+);`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const code = output.modules.map((module) => module.code).join('\n');
+    // Only the client creates the node, so only it needs the namespace.
+    expect(code).toContain(
+      mode === 'ssr'
+        ? 'renderSsrDynamicTag(tag0, props0, ctx)'
+        : "createDynamicTag(tag0, props0, ctx, 'svg')"
+    );
+  });
+
   test('should defer plain-value and member tags to the runtime dynamic tag', async () => {
     const output = await testInput(mode, 'component-dynamic-tags', {
       code: `import { Badge, UI } from './ui';

@@ -1,0 +1,94 @@
+==INPUT==
+
+export default (props: { shape: string }) => (
+  <svg viewBox="0 0 10 10">
+    <props.shape r="1" />
+  </svg>
+);
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  _captures,
+  renderSsrContent,
+  createSsrNodeId,
+  maybeThen,
+  renderSsrDynamicTag,
+  createComponent,
+  _noopQrl,
+} from '@qwik.dev/core';
+
+const component_tag_dynamic_segment_0_331xea01t87eh = (ctx) => {
+  const [props] = _captures;
+  const tag0 = props.shape;
+  const component0 = createComponent(
+    (props0) => renderSsrDynamicTag(tag0, props0, ctx),
+    { r: '1' },
+    ctx
+  );
+  return component0;
+};
+const q_component_tag_dynamic_segment_0_331xea01t87eh = /*#__PURE__*/ _noopQrl(
+  'component_tag_dynamic_segment_0_331xea01t87eh'
+);
+q_component_tag_dynamic_segment_0_331xea01t87eh.s(component_tag_dynamic_segment_0_331xea01t87eh);
+export default (props, ctx) => {
+  const id0 = ctx.nextId();
+  ctx.addRoot(props);
+  const content0 = renderSsrContent(
+    ctx,
+    id0,
+    [],
+    q_component_tag_dynamic_segment_0_331xea01t87eh.w([props]),
+    false,
+    true
+  );
+  return maybeThen(content0, (content0) => [
+    '<svg viewBox="0 0 10 10"><!d=',
+    createSsrNodeId(id0),
+    '>',
+    content0,
+    '<!/d></svg>',
+  ]);
+};
+============================= src/component.tsx_component_tag_dynamic_segment_0_331xea01t87eh.js (ENTRY POINT)==
+
+import { _captures, renderSsrDynamicTag, createComponent } from '@qwik.dev/core';
+
+export const component_tag_dynamic_segment_0_331xea01t87eh = (ctx) => {
+  const [props] = _captures;
+  const tag0 = props.shape;
+  const component0 = createComponent(
+    (props0) => renderSsrDynamicTag(tag0, props0, ctx),
+    { r: '1' },
+    ctx
+  );
+  return component0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_tag_dynamic_segment_0_331xea01t87eh",
+  "entry": null,
+  "displayName": "component_tag_dynamic_segment_0",
+  "hash": "331xea01t87eh",
+  "canonicalFilename": "component.tsx_component_tag_dynamic_segment_0_331xea01t87eh",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "tag:dynamic",
+  "captures": true,
+  "loc": [
+    79,
+    100
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

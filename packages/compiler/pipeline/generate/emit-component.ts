@@ -310,8 +310,13 @@ function componentTargetJs(
   const tag = isDynamic ? pass.next(QwikGenWord.Tag) : module.bindings[target.binding].name;
   imports.add(dynamicTag);
   const props = pass.next(QwikGenWord.ComponentProps);
+  // Only the client creates the node; the server's string parses in its namespace by itself.
+  const namespace =
+    dynamicTag === QwikWord.CreateDynamicTag && target.namespace !== undefined
+      ? `, '${target.namespace}'`
+      : '';
   return {
-    expression: `(${props}) => ${dynamicTag}(${tag}, ${props}, ${pass.names.ctx})`,
+    expression: `(${props}) => ${dynamicTag}(${tag}, ${props}, ${pass.names.ctx}${namespace})`,
     statements: isDynamic ? [`const ${tag} = ${valueIrJs(module, target.value)};`] : [],
   };
 }

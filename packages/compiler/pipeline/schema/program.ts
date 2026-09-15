@@ -125,9 +125,9 @@ export type Op =
   | {
       op: OpKind.Component;
       target:
-        | { t: ComponentTargetKind.Raw; binding: LocalId }
+        | { t: ComponentTargetKind.Raw; binding: LocalId; namespace?: 'svg' | 'math' }
         /** A member tag such as `<UI.Button />`; the runtime picks element or component. */
-        | { t: ComponentTargetKind.Dynamic; value: ValueIR };
+        | { t: ComponentTargetKind.Dynamic; value: ValueIR; namespace?: 'svg' | 'math' };
       props:
         | { c: ComponentPropsKind.Entries; props: Prop[] }
         | { c: ComponentPropsKind.Proxy; compute: QrlUse };

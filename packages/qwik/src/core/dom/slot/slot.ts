@@ -15,6 +15,7 @@ import {
 } from '../../runtime/invoke-context';
 import { disposeOwner, getOrCreateContextOwner, type Owner } from '../../runtime/owner';
 import { DangerousInnerHTMLAttr, EMPTY_ARRAY, EMPTY_NODES, EMPTY_STRING } from '../../utils/consts';
+import { MATH_NS, SVG_NS } from '../../shared/utils/markers';
 import { toNodes, type MaybeNodeOutput } from '../../utils/nodes';
 import { getFunctionOrResolve } from '../../utils/qrl';
 import {
@@ -252,23 +253,22 @@ export function renderSsrDynamicTag(
   return maybeThen(children, (children) => [element, children, `</${tag}>`]);
 }
 
-type CsrTagRender = (
-  props: unknown,
-  ctx: ContainerContext,
-  idBase?: string
-) => ValueOrPromise<MaybeNodeOutput>;
+type CsrTagRender = (props: unknown, ctx: ContainerContext) => ValueOrPromise<MaybeNodeOutput>;
 
 /** The client peer of {@link renderSsrDynamicTag}: the same branch, building nodes instead of bytes. */
 export function createDynamicTag(
   tag: unknown,
   props: Record<string, unknown>,
   ctx: ContainerContext,
-  idBase?: string
+  namespace?: 'svg' | 'math'
 ): ValueOrPromise<MaybeNodeOutput> {
   if (typeof tag !== 'string') {
-    return (tag as CsrTagRender)(props, ctx, idBase);
+    return (tag as CsrTagRender)(props, ctx);
   }
-  const element = ctx.document.createElement(tag);
+  const element =
+    namespace === undefined
+      ? ctx.document.createElement(tag)
+      : ctx.document.createElementNS(namespace === 'svg' ? SVG_NS : MATH_NS, tag);
   applyDomProps(element, props);
   // applyDomProps already wrote dangerouslySetInnerHTML, so projecting on top would duplicate it
   if (VOID_TAGS.has(tag) || props[DangerousInnerHTMLAttr] !== undefined) {

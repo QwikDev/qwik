@@ -356,6 +356,7 @@ export function linkPlans(
         t: ComponentTargetKind.Declaration,
         binding: target.binding,
         declaration,
+        ...(target.namespace === undefined ? {} : { namespace: target.namespace }),
         isValue:
           declaration.ok &&
           declaration.value.table === DeclTable.Bindings &&

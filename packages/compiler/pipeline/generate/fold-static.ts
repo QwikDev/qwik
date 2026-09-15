@@ -1,7 +1,7 @@
 import { OpKind, PropKind, type LinkedOp, type Op } from '../schema';
 import { escapeAttr, serializeAttrValue } from '../html';
 import { UnsupportedError } from '../errors';
-import { inlineStringValue } from './emit-chunk';
+import { inlineStringValue } from '../static-subtree';
 
 /** Folds a fully static op tree to markup; static text is already HTML, so both targets share it. */
 export function foldStaticOp(op: Op | LinkedOp): string {
@@ -47,22 +47,4 @@ export function foldStaticOp(op: Op | LinkedOp): string {
     default:
       throw new UnsupportedError(`folding the op "${op.op}"`);
   }
-}
-
-/** True when the whole subtree folds to markup — no dynamic props, holes, or effects. */
-export function isFullyStaticSubtree(op: Op | LinkedOp): boolean {
-  if (op.op === OpKind.Static) {
-    return true;
-  }
-  if (op.op !== OpKind.Element) {
-    return false;
-  }
-  const innerHtml = op.props.find((prop) => prop.k === PropKind.InnerHtml);
-  return (
-    op.propsEffect === null &&
-    op.props.every((prop) => prop.k === PropKind.Static || prop === innerHtml) &&
-    (innerHtml !== undefined
-      ? inlineStringValue(innerHtml.value) !== null
-      : op.children.every(isFullyStaticSubtree))
-  );
 }

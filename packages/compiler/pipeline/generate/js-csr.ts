@@ -29,7 +29,6 @@ import {
   capturePrelude,
   emptyFunctionEmission,
   bindHandlerJs,
-  inlineStringValue,
   inlineValueJs,
   programKind,
   usedParamPrefix,
@@ -54,7 +53,8 @@ import {
 } from './emit-setup';
 import { sourceFunctionEmission, contentFunctionEmission } from './emit-function';
 import { emitCollectionSource } from './emit-collection';
-import { foldStaticOp, isFullyStaticSubtree } from './fold-static';
+import { foldStaticOp } from './fold-static';
+import { inlineStringValue, isFullyStaticSubtree } from '../static-subtree';
 import {
   allocateGeneratedNames,
   emitComponentCall,

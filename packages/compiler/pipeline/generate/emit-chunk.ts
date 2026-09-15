@@ -440,17 +440,6 @@ export function bindHandlerJs(
   return `${QwikWord.InlinedQrl}(${symbol}, '${symbol}', [${module.bindings[handler.signal].name}])`;
 }
 
-/** The string an inline value always evaluates to, when it is a plain literal. */
-export function inlineStringValue(value: Value): string | null {
-  const ir =
-    value.v === ValueKind.Computed &&
-    value.resume.r === ResumeKind.Inline &&
-    value.expr.kind === ExprKind.Ir
-      ? value.expr.ir
-      : null;
-  return ir?.kind === ValueIrKind.Lit && typeof ir.value === 'string' ? ir.value : null;
-}
-
 export function expressionJs(module: LinkedModule, expr: Expr, emitQrl?: EmitQrl): string {
   switch (expr.kind) {
     case ExprKind.Ir:

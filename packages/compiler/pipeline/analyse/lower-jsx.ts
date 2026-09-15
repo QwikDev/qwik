@@ -44,6 +44,7 @@ import {
   VOID_ELEMENTS,
 } from '../html';
 import { InvalidModuleError, UnsupportedError } from '../errors';
+import { isFullyStaticSubtree } from '../static-subtree';
 import { eventModifierName, eventScopeName, passiveEventNames, PASSIVE_PREFIX } from './events';
 import { lowerEventAttribute, qrlAttributeExpression } from './lower-event';
 import { lowerText } from './lower-hole';
@@ -214,6 +215,19 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
     throw new InvalidModuleError(
       'invalid-void-children',
       `The void element <${tag}> cannot have children.`,
+      [element.start, element.end]
+    );
+  }
+  // A declarative shadow root moves the content into the host; any other template keeps it inert.
+  const isInertTemplate =
+    tag === 'template' &&
+    !props.some(
+      (prop) => prop.k === PropKind.Static && prop.name.toLowerCase() === 'shadowrootmode'
+    );
+  if (isInertTemplate && !children.every(isFullyStaticSubtree)) {
+    throw new InvalidModuleError(
+      'template-content',
+      '<template> content must be static: the parser stores it in a fragment resume never reaches.',
       [element.start, element.end]
     );
   }

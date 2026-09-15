@@ -39,3 +39,21 @@ test.each([
   const plan = await compile(jsx);
   expect(plan.diagnostics).toEqual([]);
 });
+
+test.each([
+  '<template><span>{props.a}</span></template>',
+  '<template>{props.ok && <b />}</template>',
+  '<template><button onClick$={() => 1} /></template>',
+])('diagnoses live content the parser would store in an inert template: %s', async (jsx) => {
+  const plan = await compile(jsx);
+  expect(plan.kind).toBe(ModuleKind.Failed);
+  expect(plan.diagnostics).toMatchObject([{ code: 'template-content' }]);
+});
+
+test.each([
+  '<template><b>static</b><i dangerouslySetInnerHTML="<u>x</u>" /></template>',
+  '<div q:shadowRoot><template shadowRootMode="open"><span>{props.a}</span></template></div>',
+])('accepts template content: %s', async (jsx) => {
+  const plan = await compile(jsx);
+  expect(plan.diagnostics).toEqual([]);
+});

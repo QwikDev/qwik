@@ -1,5 +1,12 @@
 import { component$, createContextId, type QRL } from '@qwik.dev/core';
-import { useContext, useContextProvider, useSignal, useStore, type Signal } from '@qwik.dev/core';
+import {
+  useContext,
+  useContextProvider,
+  useSignal,
+  useStore,
+  useTask$,
+  type Signal,
+} from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
 import { testRenderer } from '../test-utils';
 
@@ -368,6 +375,52 @@ describe(`${name}: component`, () => {
 
     expect(container.querySelector('#child-1')?.textContent).toBe('inactive');
     expect(container.querySelector('#child-2')?.textContent).toBe('active');
+    cleanup();
+  });
+
+  it('should reexecute a component swapped between branch arms without a key', async () => {
+    const Child = component$((props: { text: string }) => {
+      const text = useSignal('');
+      useTask$(() => {
+        text.value = props.text;
+      });
+      return <div>{text.value}</div>;
+    });
+    const Cmp = component$(() => {
+      const toggle = useSignal(true);
+      return (
+        <section>
+          <button onClick$={() => (toggle.value = !toggle.value)}></button>
+          {toggle.value ? <Child text="Hello" /> : <Child text="World" />}
+        </section>
+      );
+    });
+
+    const { container, cleanup, qwikLoader } = await render(Cmp, { debug });
+    expect(container.querySelector('div')?.textContent).toBe('Hello');
+    await qwikLoader?.dispatch(container.querySelector('button')!, 'click');
+    expect(container.querySelector('div')?.textContent).toBe('World');
+    cleanup();
+  });
+
+  it('should correctly rerender array without keys', async () => {
+    const Cmp = component$(() => {
+      const arrData = useSignal<number[]>([1, 2, 3, 4, 5]);
+      return (
+        <div>
+          {arrData.value.map((item) => (
+            <div class="item">Item: {item}</div>
+          ))}
+          <button onClick$={() => (arrData.value = [3, 4, 5])}></button>
+        </div>
+      );
+    });
+
+    const { container, cleanup, qwikLoader } = await render(Cmp, { debug });
+    const items = () => Array.from(container.querySelectorAll('.item'), (div) => div.textContent);
+    expect(items()).toEqual(['Item: 1', 'Item: 2', 'Item: 3', 'Item: 4', 'Item: 5']);
+    await qwikLoader?.dispatch(container.querySelector('button')!, 'click');
+    expect(items()).toEqual(['Item: 3', 'Item: 4', 'Item: 5']);
     cleanup();
   });
 

@@ -470,7 +470,11 @@ delimiters. Compilation snapshots alone cannot prove browser parser behavior.
 - [x] Component rows report their output shape as unknown, so the runtime normalizes whatever
       the component returns; declaring them as node lists appended nothing on the client
       (`component.spec.tsx` "should update expression props on mapped children" in CSR).
-- [ ] Row-shape changes and mixed keyed/unkeyed cases required by ported tests.
+- [x] Row-shape changes and mixed keyed/unkeyed cases required by ported tests. Main's two
+      unkeyed cases are ported to `component.spec.tsx` ("reexecute a component swapped between
+      branch arms without a key", "correctly rerender array without keys") and pass in CSR and
+      resume with no compiler change: branch arms remount, and a keyless derived source keys by
+      position. A conditional row keyed in only some arms stays a loud refusal.
 - [ ] Adapt `<Each>` and `<Show>` to existing collection/branch operations if retaining their
       APIs from `main`.
 
@@ -581,6 +585,9 @@ code size and runtime cost. The previous implementation is not the accepted defa
 
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
+
+- 2026-09-15: Unkeyed rows: ported main's two specs as DOM assertions; the `jsx()` factory call
+  in the first becomes plain JSX in each ternary arm. No code change; both green.
 
 - 2026-09-15: Row callbacks: `rowCallback` in `ast/jsx-analysis.ts` widens `Collection.callback`
   to `RowCallback`; the collection lowering takes the whole collection value and names inline

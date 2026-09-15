@@ -250,7 +250,7 @@ export default defineConfig(({ mode }) => {
       qwikVite({
         debug: false,
         tsOptimizer: true,
-        experimental: ['each', 'show', 'suspense', 'insights'],
+        experimental: ['each', 'show', 'suspense', 'errorBoundary', 'insights'],
         devTools: { hmr: false },
       }),
       partytownVite({

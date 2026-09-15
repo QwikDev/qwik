@@ -544,7 +544,7 @@
         }
       ],
       "kind": "TypeAlias",
-      "content": "```typescript\nexport type LoaderSignal<TYPE> = (TYPE extends () => ValueOrPromise<infer VALIDATOR> ? Signal<ValueOrPromise<VALIDATOR>> : Signal<TYPE>) & Pick<ComputedSignal<any>, 'promise' | 'pending' | 'error' | 'loading'>;\n```",
+      "content": "```typescript\nexport type LoaderSignal<TYPE> = (TYPE extends () => ValueOrPromise<infer VALIDATOR> ? Signal<ValueOrPromise<VALIDATOR>> : Signal<TYPE>) & Pick<ComputedSignal<any>, 'promise'>;\n```",
       "editUrl": "https://github.com/QwikDev/qwik/tree/main/packages/qwik-router/src/runtime/src/types.ts",
       "mdFile": "router.loadersignal.md"
     },

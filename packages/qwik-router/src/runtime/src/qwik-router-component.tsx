@@ -53,6 +53,7 @@ import {
   _hasStoreEffects,
   _waitUntilRendered,
   forceStoreEffects,
+  type _ComputedSignalInternal,
   type ComputedSignal,
   type ClientContainer,
   type NoSerialize,
@@ -651,7 +652,7 @@ export const useQwikRouter = (props?: QwikRouterProps) => {
           const loader = routeLoaders[i];
           if (!isImmutableLoader(loader.__id)) {
             // trigger load
-            loaderState[loader.__id].untrackedPending;
+            (loaderState[loader.__id] as _ComputedSignalInternal<unknown>).untrackedPending;
           }
         }
       }

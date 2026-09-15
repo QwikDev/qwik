@@ -518,9 +518,10 @@ and dynamic `Slot name`.
       `props.children.length`.
 - [ ] Port behavioral regressions: initially absent slots, repeated hide/restore, author-side
       changes and independent cleanup.
-  - [x] First batch ported to `projection.spec.tsx` (19 specs, csr and resume).
-  - [ ] Remaining batches: unclaimed projections (`q:template`), text inflation, svg in slots and
-        the numbered regressions.
+  - [x] Ported to `projection.spec.tsx` (41 specs, csr and resume): resolved and unclaimed
+        projections, detached subtrees and the numbered regressions.
+  - [ ] Open cases: svg namespace for content projected into an svg slot; a projection capturing
+        a local function (`#7000`) or a local component reference (`#3727`).
 - [ ] Combine slots with dynamic content, namespaces, async and error boundaries.
 - [ ] External projections needed by React integration, including runtime/integration work.
 

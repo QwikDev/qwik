@@ -372,9 +372,25 @@ export function patchAttrValue(
     return;
   }
   const serialized = serializeAttrExpressionValue(name, value, styleScopedId);
+  const namespace = attributeNamespace(name);
   if (serialized === null) {
-    element.removeAttribute?.(name);
-  } else {
+    if (namespace === null) {
+      element.removeAttribute?.(name);
+    } else {
+      element.removeAttributeNS(namespace, name.slice(name.indexOf(':') + 1));
+    }
+  } else if (namespace === null) {
     element.setAttribute(name, serialized);
+  } else {
+    element.setAttributeNS(namespace, name, serialized);
   }
+}
+
+/** `xlink:` and `xml:` attributes only take effect in their namespace, which browsers won't infer. */
+function attributeNamespace(name: string): string | null {
+  return name.startsWith('xlink:')
+    ? 'http://www.w3.org/1999/xlink'
+    : name.startsWith('xml:')
+      ? 'http://www.w3.org/XML/1998/namespace'
+      : null;
 }

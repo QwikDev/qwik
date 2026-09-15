@@ -404,7 +404,10 @@ Share prop classification; deliver the following in small increments.
 - [x] SVG/MathML namespaces and `foreignObject` transitions. The analyser tracks the namespace
       while lowering (`svg` and `math` open one, `foreignObject` returns to HTML) and stamps it on
       every element op inside it; a subtree in one template parses correctly on its own.
-- [ ] `xlink:href` and `xml:lang`.
+- [x] `xlink:href` and `xml:lang`. The compiler keeps the qualified name; static values parse
+      into their namespace, and the runtime attribute patcher writes and removes `xlink:` and
+      `xml:` attributes through `setAttributeNS`, which Firefox requires for `<use>`
+      (`namespaced-attributes` snapshots, `effect.unit.ts`).
 - [x] Separately created SVG nodes in branches, collections and slots. A chunk whose root carries
       a namespace builds its CSR template inside `<svg>`/`<math>` and unwraps the clone with
       `_first`, so the node lands in the right namespace (`namespace-chunks` snapshots,
@@ -547,6 +550,11 @@ code size and runtime cost. The previous implementation is not the accepted defa
 
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
+
+- 2026-09-15: Namespaced attributes: `patchAttrValue` picks the XLink or XML namespace from the
+  attribute prefix; the compiler already passed the qualified name through. Verification: 1112
+  pipeline tests (16 existing TODOs), the `namespaced-attributes` snapshots, the runtime unit
+  test, and both corpora unchanged.
 
 - 2026-09-15: Namespace chunks: `LowerContext.namespace` and `Element.namespace` record the
   foreign namespace; `elementRoot` wraps a namespaced root's template and unwraps it after

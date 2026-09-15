@@ -2230,6 +2230,28 @@ export default component$((props: { points: number[] }) => {
     }
   });
 
+  test('should keep namespaced attribute names for the runtime', async () => {
+    const output = await testInput(mode, 'namespaced-attributes', {
+      code: `import { component$, useSignal } from '@qwik.dev/core';
+export default component$(() => {
+  const icon = useSignal('#a');
+  return (
+    <svg xml:lang="en">
+      <use xlink:href={icon.value} />
+      <use xlink:href="#static" />
+    </svg>
+  );
+});
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    // The qualified name reaches the attribute helpers, which pick the namespace from it.
+    expect(main).toContain('"xlink:href", icon');
+    expect(main).toMatch(/xml:lang=\\?"en\\?"/);
+    expect(main).toMatch(/xlink:href=\\?"#static\\?"/);
+  });
+
   test('should merge component prop spreads in authored order', async () => {
     await testInput(mode, 'component-props-spread', {
       code: `export const Child = (props) => <strong>{props.label}</strong>;

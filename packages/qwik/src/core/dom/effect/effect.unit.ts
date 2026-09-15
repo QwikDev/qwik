@@ -147,6 +147,27 @@ describe('DOM effects', () => {
     expect(attrs.get('title')).toBe('world');
   });
 
+  it('patches namespaced attributes through their namespace', () => {
+    const { element } = createPropsTarget();
+    const written: unknown[][] = [];
+    const removed: unknown[][] = [];
+    Object.assign(element, {
+      setAttributeNS: (...args: unknown[]) => written.push(args),
+      removeAttributeNS: (...args: unknown[]) => removed.push(args),
+    });
+
+    patchAttrValue(element, 'xlink:href', '#icon');
+    patchAttrValue(element, 'xml:lang', 'en');
+    patchAttrValue(element, 'xlink:href', null);
+
+    // Firefox ignores a plain `setAttribute('xlink:href')`, so the prefix selects a namespace.
+    expect(written).toEqual([
+      ['http://www.w3.org/1999/xlink', 'xlink:href', '#icon'],
+      ['http://www.w3.org/XML/1998/namespace', 'xml:lang', 'en'],
+    ]);
+    expect(removed).toEqual([['http://www.w3.org/1999/xlink', 'href']]);
+  });
+
   it('patches attributes from expressions', async () => {
     const scheduler = new Scheduler(noopSchedule);
     const count = useSignal(0);

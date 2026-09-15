@@ -21,7 +21,7 @@ import {
   type QrlUse,
 } from '../schema';
 
-function fold(jsx: string, escapeTextContent = false): string {
+function fold(jsx: string): string {
   const source = `const a = ${jsx};`;
   const parsed = parseModule('t.tsx', source);
   expect(parsed.errors).toEqual([]);
@@ -34,7 +34,7 @@ function fold(jsx: string, escapeTextContent = false): string {
     throw new Error('expected a JSX element');
   }
   const { ctx } = createTestLowerContext(parsed.program, source);
-  return foldStaticOp(lowerJsx(element, ctx), escapeTextContent);
+  return foldStaticOp(lowerJsx(element, ctx));
 }
 
 describe('JSX lowering + static folding', () => {
@@ -86,8 +86,8 @@ export default (props) => {
     expect(fold('<p title="A&B">A&B</p>')).toBe('<p title="A&amp;B">A&B</p>');
   });
 
-  test('csr fold escapes text for template markup', () => {
-    expect(fold('<p title="A&B">A&B</p>', true)).toBe('<p title="A&amp;B">A&amp;B</p>');
+  test('authored text folds as HTML for every target', () => {
+    expect(fold('<p title="A&B">A &lt; B</p>')).toBe('<p title="A&amp;B">A &lt; B</p>');
   });
 
   test('string, bare-boolean, and JSX-alias attributes', () => {

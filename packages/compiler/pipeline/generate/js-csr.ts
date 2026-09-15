@@ -54,7 +54,6 @@ import {
 } from './emit-setup';
 import { sourceFunctionEmission, contentFunctionEmission } from './emit-function';
 import { emitCollectionSource } from './emit-collection';
-import { escapeText } from '../html';
 import { foldStaticOp, isFullyStaticSubtree } from './fold-static';
 import {
   allocateGeneratedNames,
@@ -233,7 +232,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     this.walkChildren(ops, fragment, statements, pass);
     this.imports.add(QwikWord.CreateTemplate);
     const html = templateChildren(ops)
-      .map((child) => foldStaticOp(child, false))
+      .map((child) => foldStaticOp(child))
       .join('');
     this.hoists.push(`const ${template} = ${QwikWord.CreateTemplate}(${JSON.stringify(html)});`);
     const singleNode =
@@ -276,7 +275,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
 
     this.hoistTemplate(
       template,
-      ops.map((op) => (op.op === OpKind.Static ? escapeText(op.html) : '<!>')).join('')
+      ops.map((op) => (op.op === OpKind.Static ? op.html : '<!>')).join('')
     );
     return roots;
   }
@@ -346,7 +345,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     pass: RenderPass
   ): string {
     const mounted = this.mountFragmentTemplate(ownerName, statements, pass);
-    this.hoistTemplate(mounted.template, foldStaticOp(op, true));
+    this.hoistTemplate(mounted.template, foldStaticOp(op));
     return mounted.el;
   }
 
@@ -362,7 +361,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     // Template markup excludes event props; templateOp pre-escapes text for innerHTML parsing.
     this.hoistTemplate(
       mounted.template,
-      foldStaticOp(templateOp(op), false),
+      foldStaticOp(templateOp(op)),
       QwikWord.CreateElementTemplate
     );
     return mounted.el;
@@ -825,7 +824,7 @@ class CsrModuleEmitter implements QwikModuleEmitter {
       // Row roots mount through an element template — the root element IS the return value.
       emitter.hoistTemplate(
         template,
-        foldStaticOp(templateOp(root), false),
+        foldStaticOp(templateOp(root)),
         QwikWord.CreateElementTemplate
       );
       value = el;
@@ -1169,7 +1168,7 @@ function templateChildren(children: readonly LinkedOp[]): LinkedOp[] {
       case OpKind.Element:
         return templateOp(child);
       case OpKind.Static:
-        return { ...child, html: escapeText(child.html) };
+        return child;
       case OpKind.Branch:
       case OpKind.Each:
       case OpKind.Content:

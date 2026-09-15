@@ -1,16 +1,13 @@
 import { OpKind, PropKind, type LinkedOp, type Op } from '../schema';
-import { escapeAttr, escapeText, serializeAttrValue } from '../html';
+import { escapeAttr, serializeAttrValue } from '../html';
 import { UnsupportedError } from '../errors';
 import { inlineStringValue } from './emit-chunk';
 
-/**
- * Folds a fully static op tree to markup. Attribute bytes are identical everywhere; TEXT differs
- * per target: SSR streams it raw, CSR template markup escapes it.
- */
-export function foldStaticOp(op: Op | LinkedOp, escapeTextContent: boolean): string {
+/** Folds a fully static op tree to markup; static text is already HTML, so both targets share it. */
+export function foldStaticOp(op: Op | LinkedOp): string {
   switch (op.op) {
     case OpKind.Static:
-      return escapeTextContent ? escapeText(op.html) : op.html;
+      return op.html;
     case OpKind.Element: {
       if (op.propsEffect !== null) {
         throw new UnsupportedError('folding an element with runtime props');
@@ -43,7 +40,7 @@ export function foldStaticOp(op: Op | LinkedOp, escapeTextContent: boolean): str
         return `${html}${innerHtml}</${op.tag}>`;
       }
       for (const child of op.children) {
-        html += foldStaticOp(child, escapeTextContent);
+        html += foldStaticOp(child);
       }
       return `${html}</${op.tag}>`;
     }

@@ -1,17 +1,21 @@
 ==INPUT==
 
-export default () => {
-  return <section><h1 title="hi">A&B</h1><br/><p>x</p></section>;
-};
+import { component$ } from '@qwik.dev/core';
+export default component$(() => (
+  <div>
+    <p>a &lt; b &amp;&amp; c</p>
+    <span>{'tick: ' + 1}</span>
+    <textarea value="x < y" />
+  </div>
+));
 
 == CSR OUTPUT ==
 
 ============================= src/component.tsx ==
 
 import { _createElementTemplate } from '@qwik.dev/core';
-
 const default_tmpl0 = _createElementTemplate(
-  '<section><h1 title="hi">A&B</h1><br><p>x</p></section>'
+  '<div><p>a &lt; b &amp;&amp; c</p><span>tick: 1</span><textarea>x &lt; y</textarea></div>'
 );
 export default (props, ctx) => {
   const el0 = default_tmpl0(ctx.document);

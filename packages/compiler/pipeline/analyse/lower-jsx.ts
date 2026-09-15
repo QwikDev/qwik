@@ -36,7 +36,7 @@ import {
   type QrlUse,
 } from '../schema';
 import { normalizeJsxText } from './ast/jsx-text';
-import { normalizeAttributeName, VOID_ELEMENTS } from '../html';
+import { escapeText, normalizeAttributeName, VOID_ELEMENTS } from '../html';
 import { InvalidModuleError, UnsupportedError } from '../errors';
 import { eventModifierName, eventScopeName, passiveEventNames, PASSIVE_PREFIX } from './events';
 import { lowerEventAttribute, qrlAttributeExpression } from './lower-event';
@@ -241,7 +241,12 @@ function lowerFormValue(
         : tryLowerExprIr(expression, ctx);
   if (tag === 'textarea') {
     if (expression === null) {
-      return [{ op: OpKind.Static, html: String(prop.k === PropKind.Static ? prop.value : '') }];
+      return [
+        {
+          op: OpKind.Static,
+          html: escapeText(String(prop.k === PropKind.Static ? prop.value : '')),
+        },
+      ];
     }
     const value = lowerInlineExpressionValue(
       expression,

@@ -500,12 +500,12 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     switch (op.op) {
       case OpKind.Static:
         // SSR streams raw text; adjacent static runs merge into one string part.
-        pushMergedStatic(parts, foldStaticOp(op, false));
+        pushMergedStatic(parts, foldStaticOp(op));
         return;
       case OpKind.Element:
         // A marked root always renders through element() so the marker lands in its open tag.
         if (rootMarker === null && !hookEvents && isFullyStaticSubtree(op)) {
-          pushMergedStatic(parts, foldStaticOp(op, false));
+          pushMergedStatic(parts, foldStaticOp(op));
           return;
         }
         this.element(pass, op, parts, rootMarker, hookEvents);
@@ -645,7 +645,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     for (const child of innerHtml === null ? op.children : []) {
       switch (child.op) {
         case OpKind.Static: {
-          pushMergedStatic(children, foldStaticOp(child, false));
+          pushMergedStatic(children, foldStaticOp(child));
           break;
         }
         case OpKind.Hole: {
@@ -669,7 +669,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         }
         case OpKind.Element: {
           if (isFullyStaticSubtree(child)) {
-            pushMergedStatic(children, foldStaticOp(child, false));
+            pushMergedStatic(children, foldStaticOp(child));
           } else {
             this.element(pass, child, children);
           }
@@ -699,7 +699,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
           if (!isFullyStaticSubtree(child)) {
             throw new UnsupportedError('a dynamic child inside an element record');
           }
-          pushMergedStatic(children, foldStaticOp(child, false));
+          pushMergedStatic(children, foldStaticOp(child));
         }
       }
     }

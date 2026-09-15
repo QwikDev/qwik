@@ -2158,6 +2158,28 @@ export default component$((props: { items: string[] }) => {
     expect(code).not.toContain('pendingSetup');
   });
 
+  test('should keep static text markup-safe once, in both environments', async () => {
+    const output = await testInput(mode, 'static-text-escaping', {
+      code: `import { component$ } from '@qwik.dev/core';
+export default component$(() => (
+  <div>
+    <p>a &lt; b &amp;&amp; c</p>
+    <span>{'tick: ' + 1}</span>
+    <textarea value="x < y" />
+  </div>
+));
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    // JSX text is authored HTML: entities pass through untouched, never escaped a second time.
+    expect(main).toContain('<p>a &lt; b &amp;&amp; c</p>');
+    expect(main).not.toContain('&amp;lt;');
+    expect(main).toContain('<span>tick: 1</span>');
+    // A literal attribute string is decoded text, so it is escaped as content.
+    expect(main).toContain('<textarea>x &lt; y</textarea>');
+  });
+
   test('should merge component prop spreads in authored order', async () => {
     await testInput(mode, 'component-props-spread', {
       code: `export const Child = (props) => <strong>{props.label}</strong>;

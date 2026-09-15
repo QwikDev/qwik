@@ -1,0 +1,22 @@
+==INPUT==
+
+import { component$ } from '@qwik.dev/core';
+export default component$(() => (
+  <div>
+    <p>a &lt; b &amp;&amp; c</p>
+    <span>{'tick: ' + 1}</span>
+    <textarea value="x < y" />
+  </div>
+));
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import { component$ } from '@qwik.dev/core';
+export default (props, ctx) => {
+  return '<div><p>a &lt; b &amp;&amp; c</p><span>tick: 1</span><textarea>x &lt; y</textarea></div>';
+};
+== SSR DIAGNOSTICS ==
+
+[]

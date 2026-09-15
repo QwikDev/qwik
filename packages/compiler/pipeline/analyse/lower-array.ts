@@ -36,7 +36,7 @@ import {
 } from '../schema';
 import { SegmentContext } from '../words';
 import { ValueIrKind } from '../../src/expr-ir';
-import { UnsupportedError } from '../errors';
+import { InvalidModuleError, UnsupportedError } from '../errors';
 import { collectCaptures, lowerCaptures, type CollectedCaptures } from './ast/capture-analysis';
 import { unwrapExpression } from './ast/utils';
 import { JsxValueKind, type JsxValue, type RowCallback } from './ast/jsx-analysis';
@@ -73,7 +73,11 @@ export function lowerArray(
   }
   const { callback, body } = collection;
   if (callback.async) {
-    throw new UnsupportedError('an async collection row');
+    throw new InvalidModuleError(
+      'async-row',
+      'A collection row cannot be async yet; load the data in a task and render the result.',
+      [callback.start, callback.end]
+    );
   }
   if (ctx.bindings.returnsOf(callback).length > 1) {
     throw new UnsupportedError('an early return in a collection row');

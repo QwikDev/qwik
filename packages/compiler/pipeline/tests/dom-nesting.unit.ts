@@ -70,3 +70,16 @@ export default (props) => <ul>{props.rows.map((row) => { const open = useSignal(
   expect(plan.kind).toBe(ModuleKind.Failed);
   expect(plan.diagnostics).toMatchObject([{ code: 'row-hook' }]);
 });
+
+test('diagnoses an async collection row', async () => {
+  const plan = await analyseModule(
+    {
+      path: 'component.tsx',
+      code: `export default (props) => <ul>{props.rows.map(async (row) => <li key={row}>{await row}</li>)}</ul>;`,
+    },
+    {}
+  );
+  expect(plan.kind).toBe(ModuleKind.Failed);
+  expect(plan.diagnostics).toMatchObject([{ code: 'async-row' }]);
+  expect(plan.diagnostics[0].span).not.toBeNull();
+});

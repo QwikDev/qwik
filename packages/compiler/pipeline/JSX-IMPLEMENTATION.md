@@ -484,7 +484,10 @@ delimiters. Compilation snapshots alone cannot prove browser parser behavior.
   row shape and key rules for it are decided (`collection-row-statements` snapshots,
   `collection-row-statements.spec.tsx` in CSR and resume). A local function captured by a
   hole is not serializable, the same limit as in component setup (group 6).
-- [ ] Async rows and dynamically shaped results.
+- [ ] Async rows and dynamically shaped results. An `async` row callback is diagnosed
+      (`async-row`) with a pointer to tasks; support rides with the async
+      program emission and pending-row behaviour of group 13, since the keyed reconciler uses
+      a row's nodes synchronously.
 - [x] Inline-row attribute/prop emission. An attribute reading only row constants of a literal
       array row applies once through `patchAttrValue` (CSR) or `serializeAttrExpressionValue`
       (SSR), with no effect, chunk or element id. Verified by the `collection-inline-row-attr`

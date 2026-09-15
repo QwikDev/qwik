@@ -287,7 +287,7 @@ describe('lowerArray / reactive rows', () => {
       lower(
         '<ul>{items.value.map(async (item) => { const label = await item.label; return <li>{label}</li>; })}</ul>'
       )
-    ).toThrow('an async collection row');
+    ).toThrow('A collection row cannot be async yet');
   });
 
   test.each(['items.value', '[{}]'])(

@@ -414,7 +414,13 @@ Share prop classification; deliver the following in small increments.
       `namespace.spec.tsx` "creates branch and row nodes inside svg" in CSR and resume).
 - [ ] Dynamic tags inside svg or math. The runtime creates them with `createElement`; passing the
       namespace through needs a runtime parameter.
-- [ ] HTML parser context for `table`, `tbody`, `tr`, `td`, `select` and `option`.
+- [x] HTML parser context for `table`, `tbody`, `tr`, `td`, `select` and `option`. Invalid nesting
+      is diagnosed at the analyser instead of silently restructured: the parser rewrites it the
+      same way on the server and in the client template, and every range marker at that
+      boundary lands in the wrong place. The rule table follows React's DOM-nesting checks
+      (content that closes a `<p>`, table and list structure, `select` children, elements that
+      cannot nest in themselves) plus dynamic rows directly under a `<table>`, which must sit in
+      an authored body (`dom-nesting.unit.ts`, `table.spec.tsx` in CSR and resume).
 - [ ] Correct locators after browser HTML normalization.
 - [ ] `q:shadowRoot` and container boundaries exercised by e2e.
 
@@ -550,6 +556,13 @@ code size and runtime cost. The previous implementation is not the accepted defa
 
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
+
+- 2026-09-15: DOM nesting: `checkDomNesting` in `analyse/dom-nesting.ts` runs from the element
+  lowering with a tag stack on the lower context, and the child lowering refuses ranges directly
+  under a `<table>`; a synthetic
+  `tbody` was tried and discarded in favour of failing loudly, since only the table case has a
+  node the parser would insert. Verification: 1128 pipeline tests (16 existing TODOs), the
+  nesting unit tests, the new table spec, and both corpora unchanged.
 
 - 2026-09-15: Namespaced attributes: `patchAttrValue` picks the XLink or XML namespace from the
   attribute prefix; the compiler already passed the qualified name through. Verification: 1112

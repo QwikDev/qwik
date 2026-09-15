@@ -27,6 +27,8 @@ export interface LowerContext {
   styleScopes: string[];
   /** The foreign namespace the elements being lowered belong to. */
   namespace: 'svg' | 'math' | null;
+  /** Enclosing native tags, innermost last, for nesting checks. */
+  elementStack: string[];
   /** Param bindings of the inline collection row; null = not inside one. */
   inlineParams: ReadonlySet<LocalId> | null;
   bindings: BindingGraph;
@@ -75,6 +77,7 @@ export function createLowerContext(
     propsBinding: null,
     returnsRender: true,
     namespace: null,
+    elementStack: [],
     propsMembers: new Map(),
     locals: new Map(),
   };

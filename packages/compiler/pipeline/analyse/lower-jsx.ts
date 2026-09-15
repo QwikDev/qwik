@@ -41,6 +41,7 @@ import { InvalidModuleError, UnsupportedError } from '../errors';
 import { eventModifierName, eventScopeName, passiveEventNames, PASSIVE_PREFIX } from './events';
 import { lowerEventAttribute, qrlAttributeExpression } from './lower-event';
 import { lowerText } from './lower-hole';
+import { checkDomNesting } from './dom-nesting';
 import { lowerBranch, type BranchArm } from './lower-branch';
 import { identifierName, isFunctionLike, jsxAttributeName, unwrapExpression } from './ast/utils';
 import { JsxValueKind, type JsxValue } from './ast/jsx-analysis';
@@ -177,10 +178,12 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
   if (styleScopedId !== null) {
     scopeStaticClass(props, styleScopedId);
   }
+  checkDomNesting(tag, ctx.elementStack, [element.start, element.end]);
   const namespace = ctx.namespace;
   // `svg` and `math` open a namespace; `foreignObject` returns to HTML for its subtree.
   ctx.namespace =
     tag === 'svg' || tag === 'math' ? tag : tag === 'foreignObject' ? null : namespace;
+  ctx.elementStack.push(tag);
   const children = lowerFormValue(
     tag,
     props,
@@ -188,6 +191,7 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
     lowerJsxChildren(element.children, ctx),
     ctx
   );
+  ctx.elementStack.pop();
   ctx.namespace = namespace;
   if (VOID_ELEMENTS.has(tag) && children.length > 0) {
     throw new InvalidModuleError(
@@ -637,10 +641,20 @@ function lowerChild(child: JSXChild, ctx: LowerContext): Op[] {
     }
     case 'JSXElement':
       return [lowerJsx(child, ctx)];
-    case 'JSXExpressionContainer':
-      return child.expression.type === 'JSXEmptyExpression'
-        ? []
-        : lowerRenderExpression(child.expression, ctx);
+    case 'JSXExpressionContainer': {
+      if (child.expression.type === 'JSXEmptyExpression') {
+        return [];
+      }
+      // The parser would wrap dynamic rows in a `tbody` past the range markers.
+      if (ctx.elementStack.at(-1) === 'table') {
+        throw new InvalidModuleError(
+          'dom-nesting',
+          'Dynamic rows must sit inside <tbody>, <thead> or <tfoot>: the HTML parser would insert a body around them.',
+          [child.start, child.end]
+        );
+      }
+      return lowerRenderExpression(child.expression, ctx);
+    }
     default:
       throw new UnsupportedError(`JSX child ${child.type}`);
   }

@@ -397,9 +397,10 @@ Share prop classification; deliver the following in small increments.
       folded literal is escaped where it turns into content, and the CSR template no longer
       escapes a second time, so `<p>a &lt; b</p>` reads the same in both environments
       (`static-text-escaping` snapshots).
-- [ ] Correct text treatment in `script`, `style`, `textarea` and `title`. Title and textarea are
-      RCDATA and already right; `script` and `style` content still streams escaped on the server
-      and must stream raw with a `</script`/`</style` guard.
+- [x] Correct text treatment in `script`, `style`, `textarea` and `title`. Title and textarea are
+      RCDATA, so their text escapes as usual; `script` and `style` are raw text, so the server
+      streams their holes verbatim with only a `</` guard, and the client sets text nodes that
+      never pass through the parser (`raw-text-elements` snapshots).
 - [ ] SVG/MathML namespaces and `foreignObject` transitions.
 - [ ] `xlink:href` and `xml:lang`.
 - [ ] Separately created SVG nodes in branches, collections, slots and dynamic tags.
@@ -539,6 +540,11 @@ code size and runtime cost. The previous implementation is not the accepted defa
 
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
+
+- 2026-09-15: Raw text elements: the SSR text emitters take a raw-text flag from the enclosing
+  tag and print `value.replace(/<\//g, '<\\/')` instead of `escapeHTML(value)` inside `script`
+  and `style`. Verification: 1108 pipeline tests (16 existing TODOs), the `raw-text-elements`
+  snapshots, and both corpora unchanged.
 
 - 2026-09-15: Static text: `foldStaticOp` lost its escape flag and the CSR template builders their
   `escapeText` calls; the textarea literal, the one static source that is decoded text, escapes

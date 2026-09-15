@@ -23,7 +23,7 @@ import {
   type Value,
 } from '../schema';
 import { QwikAttr, QwikDirective, QwikGenWord, QwikWord } from '../words';
-import { escapeAttr, serializeAttrValue } from '../html';
+import { escapeAttr, RAW_TEXT_ELEMENTS, serializeAttrValue } from '../html';
 import { UnsupportedError } from '../errors';
 import { generateQwikModule, type QwikModuleEmitter } from './assemble-module';
 import {
@@ -650,7 +650,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         }
         case OpKind.Hole: {
           if (isInlineHole(child)) {
-            this.inlineText(child, children);
+            this.inlineText(child, children, RAW_TEXT_ELEMENTS.has(op.tag));
             break;
           }
           this.textHole(
@@ -663,7 +663,8 @@ class SsrModuleEmitter implements QwikModuleEmitter {
                   markerIndex: textRangeCount++,
                 }
               : { kind: 'element', id: idVariable! },
-            children
+            children,
+            RAW_TEXT_ELEMENTS.has(op.tag)
           );
           break;
         }
@@ -950,22 +951,40 @@ class SsrModuleEmitter implements QwikModuleEmitter {
   }
 
   /** Lexical inline value: coerce + escape in place — nothing ever targets this text. */
-  private inlineText(op: Extract<LinkedOp, { op: OpKind.Hole }>, parts: string[]): void {
-    this.imports.add(QwikWord.EscapeHTML);
+  private inlineText(
+    op: Extract<LinkedOp, { op: OpKind.Hole }>,
+    parts: string[],
+    rawText: boolean
+  ): void {
+    if (!rawText) {
+      this.imports.add(QwikWord.EscapeHTML);
+    }
     this.imports.add(QwikWord.TextValue);
     parts.push(
-      `${QwikWord.EscapeHTML}(${QwikWord.TextValue}(${inlineValueJs(this.module, op.value)}))`
+      this.textPart(`${QwikWord.TextValue}(${inlineValueJs(this.module, op.value)})`, rawText)
     );
+  }
+
+  /** Text escapes for the parser, except inside `script`/`style` where only `</` would end it. */
+  private textPart(value: string, rawText: boolean): string {
+    if (rawText) {
+      return `${value}.replace(/<\\//g, '<\\\\/')`;
+    }
+    this.imports.add(QwikWord.EscapeHTML);
+    return `${QwikWord.EscapeHTML}(${value})`;
   }
 
   private textHole(
     pass: RenderPass,
     op: Extract<LinkedOp, { op: OpKind.Hole }>,
     target: SsrTextTarget,
-    parts: string[]
+    parts: string[],
+    rawText = false
   ): void {
     const targetArgs = `${target.id}, ${target.kind === 'range' ? target.markerIndex : 'null'}`;
-    this.imports.add(QwikWord.EscapeHTML);
+    if (!rawText) {
+      this.imports.add(QwikWord.EscapeHTML);
+    }
     const step = pass.next(QwikGenWord.Text);
 
     if (target.kind === 'range') {
@@ -983,7 +1002,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
           [signal],
           `${QwikWord.RenderSsrTextNode}(${targetArgs}, ${signal}${op.stringify ? ', undefined, true' : ''})`
         );
-        parts.push(`${QwikWord.EscapeHTML}(${step})`);
+        parts.push(this.textPart(step, rawText));
         break;
       }
       case ValueKind.Computed: {
@@ -998,7 +1017,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
           rootArgs(qrl, args),
           `${QwikWord.RenderSsrTextExpression}(${targetArgs}, [${args.join(', ')}], ${ref})`
         );
-        parts.push(`${QwikWord.EscapeHTML}(${step})`);
+        parts.push(this.textPart(step, rawText));
         break;
       }
       default: {

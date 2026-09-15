@@ -18,6 +18,9 @@ export const VOID_ELEMENTS: ReadonlySet<string> = new Set([
   'wbr',
 ]);
 
+/** Elements whose content the parser never decodes; only a premature closer needs guarding. */
+export const RAW_TEXT_ELEMENTS: ReadonlySet<string> = new Set(['script', 'style']);
+
 export function normalizeAttributeName(name: string): string {
   return name === 'className' ? 'class' : name === 'htmlFor' ? 'for' : name;
 }

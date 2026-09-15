@@ -1,0 +1,173 @@
+==INPUT==
+
+import { component$ } from '@qwik.dev/core';
+export default component$((props: { css: string; init: string; heading: string }) => (
+  <div>
+    <style>{props.css}</style>
+    <script>{props.init}</script>
+    <title>{props.heading}</title>
+  </div>
+));
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  createSsrNodeId,
+  renderSsrTextExpression,
+  escapeHTML,
+  maybeThen,
+  _noopQrl,
+} from '@qwik.dev/core';
+const component_text_segment_0_1fh10fbkzokfc = (props) => {
+  return props.css;
+};
+const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_0_1fh10fbkzokfc'
+);
+q_component_text_segment_0_1fh10fbkzokfc.s(component_text_segment_0_1fh10fbkzokfc);
+const component_text_segment_1_1fh10tcowimfv = (props) => {
+  return props.init;
+};
+const q_component_text_segment_1_1fh10tcowimfv = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_1_1fh10tcowimfv'
+);
+q_component_text_segment_1_1fh10tcowimfv.s(component_text_segment_1_1fh10tcowimfv);
+const component_text_segment_2_1fh117dstcoge = (props) => {
+  return props.heading;
+};
+const q_component_text_segment_2_1fh117dstcoge = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_2_1fh117dstcoge'
+);
+q_component_text_segment_2_1fh117dstcoge.s(component_text_segment_2_1fh117dstcoge);
+export default (props, ctx) => {
+  const id0 = ctx.nextId();
+  ctx.addRoot(props);
+  const text0 = renderSsrTextExpression(
+    id0,
+    null,
+    [props],
+    q_component_text_segment_0_1fh10fbkzokfc
+  );
+  const id1 = ctx.nextId();
+  const text1 = renderSsrTextExpression(
+    id1,
+    null,
+    [props],
+    q_component_text_segment_1_1fh10tcowimfv
+  );
+  const id2 = ctx.nextId();
+  const text2 = renderSsrTextExpression(
+    id2,
+    null,
+    [props],
+    q_component_text_segment_2_1fh117dstcoge
+  );
+  return maybeThen(text0, (text0) =>
+    maybeThen(text1, (text1) =>
+      maybeThen(text2, (text2) => [
+        '<div><style q:id="',
+        createSsrNodeId(id0),
+        '">',
+        text0.replace(/<\//g, '<\\/'),
+        '</style><script q:id="',
+        createSsrNodeId(id1),
+        '">',
+        text1.replace(/<\//g, '<\\/'),
+        '</script><title q:id="',
+        createSsrNodeId(id2),
+        '">',
+        escapeHTML(text2),
+        '</title></div>',
+      ])
+    )
+  );
+};
+============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
+
+export const component_text_segment_0_1fh10fbkzokfc = (props) => {
+  return props.css;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_0_1fh10fbkzokfc",
+  "entry": null,
+  "displayName": "component_text_segment_0",
+  "hash": "1fh10fbkzokfc",
+  "canonicalFilename": "component.tsx_component_text_segment_0_1fh10fbkzokfc",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    152,
+    161
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_text_segment_1_1fh10tcowimfv.js (ENTRY POINT)==
+
+export const component_text_segment_1_1fh10tcowimfv = (props) => {
+  return props.init;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_1_1fh10tcowimfv",
+  "entry": null,
+  "displayName": "component_text_segment_1",
+  "hash": "1fh10tcowimfv",
+  "canonicalFilename": "component.tsx_component_text_segment_1_1fh10tcowimfv",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    184,
+    194
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_text_segment_2_1fh117dstcoge.js (ENTRY POINT)==
+
+export const component_text_segment_2_1fh117dstcoge = (props) => {
+  return props.heading;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_2_1fh117dstcoge",
+  "entry": null,
+  "displayName": "component_text_segment_2",
+  "hash": "1fh117dstcoge",
+  "canonicalFilename": "component.tsx_component_text_segment_2_1fh117dstcoge",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    217,
+    230
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

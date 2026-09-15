@@ -2180,6 +2180,28 @@ export default component$(() => (
     expect(main).toContain('<textarea>x &lt; y</textarea>');
   });
 
+  test('should stream script and style content raw on the server', async () => {
+    const output = await testInput(mode, 'raw-text-elements', {
+      code: `import { component$ } from '@qwik.dev/core';
+export default component$((props: { css: string; init: string; heading: string }) => (
+  <div>
+    <style>{props.css}</style>
+    <script>{props.init}</script>
+    <title>{props.heading}</title>
+  </div>
+));
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    if (mode === 'ssr') {
+      // Raw text elements never decode entities: the value streams as written, minus a closer.
+      expect(main.match(/\.replace\(\/<\\\/\/g, ['"]<\\\\\/['"]\)/g)).toHaveLength(2);
+      // A title decodes entities, so it keeps the usual escaping.
+      expect(main.match(/escapeHTML\(text\d\)/g)).toHaveLength(1);
+    }
+  });
+
   test('should merge component prop spreads in authored order', async () => {
     await testInput(mode, 'component-props-spread', {
       code: `export const Child = (props) => <strong>{props.label}</strong>;

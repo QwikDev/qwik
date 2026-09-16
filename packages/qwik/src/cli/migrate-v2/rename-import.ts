@@ -1,4 +1,5 @@
 import { Node, Project, type SourceFile, ts } from 'ts-morph';
+import { isReference } from './codemods/utils';
 import { visitNotIgnoredFiles } from './tools/visit-not-ignored-files';
 import { log } from '@clack/prompts';
 
@@ -75,24 +76,4 @@ export function renameImports(
     changed = true;
   }
   return changed;
-}
-
-/** Excludes identifiers that are property names, e.g. `a.oldName` or `{ oldName: 1 }`. */
-function isReference(identifier: Node) {
-  const parent = identifier.getParent();
-  if (
-    Node.isPropertyAccessExpression(parent) ||
-    Node.isPropertyAssignment(parent) ||
-    Node.isPropertySignature(parent) ||
-    Node.isPropertyDeclaration(parent) ||
-    Node.isMethodDeclaration(parent) ||
-    Node.isMethodSignature(parent) ||
-    Node.isJsxAttribute(parent)
-  ) {
-    return (parent as any).getNameNode() !== identifier;
-  }
-  if (Node.isQualifiedName(parent)) {
-    return parent.getLeft() === identifier;
-  }
-  return !Node.isImportSpecifier(parent);
 }

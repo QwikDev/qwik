@@ -29,6 +29,8 @@ export async function runV2Migration(app: AppCommand) {
 
   try {
     const installedTsMorph = await installTsMorph();
+    const { codemods, runCodemods } = await import('./codemods');
+    runCodemods(codemods);
     const { replaceImportInFiles } = await import('./rename-import');
     replaceImportInFiles(
       [

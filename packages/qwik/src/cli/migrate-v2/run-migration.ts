@@ -16,8 +16,11 @@ export async function runV2Migration(app: AppCommand) {
     `✨  ${bgMagenta(' This command will migrate your Qwik application from v1 to v2')}\n` +
       `This includes the following: \n` +
       `  - "@builder.io/qwik", "@builder.io/qwik-city" and "@builder.io/qwik-react" packages will be rescoped to "@qwik.dev/core", "@qwik.dev/router" and "@qwik.dev/react" respectively \n` +
-      `  - related dependencies will be updated \n\n` +
-      `${bold(bgRed('Warning: migration tool is experimental and will migrate your application to the "alpha" release of Qwik V2'))}`
+      `  - renamed and removed APIs will be updated in your code \n` +
+      `  - options will be added to keep the v1 behavior where v2 changed it (e.g. \`strictLoaders: false\`) \n` +
+      `  - "tsconfig.json", "package.json" and the related dependencies (e.g. Vite 8) will be updated \n` +
+      `  - changes that need your attention will be listed at the end \n\n` +
+      `${bold(bgRed('Warning: migration tool is experimental, commit your changes before running it'))}`
   );
   const proceed = await confirm({
     message: 'Do you want to proceed?',

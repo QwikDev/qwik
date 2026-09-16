@@ -206,7 +206,6 @@ function serializeBuildTrie(
   let notFoundExpr: string | undefined;
   let menuExpr: string | undefined;
   let bundleRoute: BuiltRoute | undefined;
-  let pageFile: RouteSourceFile | undefined;
   let pageLayouts: BuiltRoute['layouts'] | undefined;
 
   for (const file of node._files) {
@@ -246,10 +245,8 @@ function serializeBuildTrie(
       errorExpr = expr;
     } else {
       indexExpr = expr;
-      pageFile = file;
       const { layoutName, layoutStop } = parseRouteIndexName(file.extlessName);
       pageLayouts = layoutStop || layoutName ? (route?.layouts ?? []) : undefined;
-      // Find the BuiltRoute for bundle names
       bundleRoute = route;
     }
   }
@@ -273,23 +270,21 @@ function serializeBuildTrie(
   }
 
   // Layout and plugin loaders are inherited; page loaders are not.
-  for (const field of ['_R', '_D'] as const) {
-    const routeFiles: string[] = [];
-    for (const file of node._files) {
-      const isLayout = file.type === 'layout' && !file.extlessName.startsWith('layout-');
-      const isPage = file === pageFile;
-      if ((field === '_R' && isLayout) || (field === '_D' && isPage)) {
-        routeFiles.push(file.filePath);
-      }
-    }
-    if (field === '_D' && pageLayouts) {
-      routeFiles.push(...pageLayouts.map((layout) => layout.filePath));
-    }
-    if ((field === '_R' && node === ctx.routeTrie) || (field === '_D' && pageLayouts)) {
-      for (const plugin of ctx.serverPlugins) {
-        routeFiles.push(plugin.filePath);
-      }
-    }
+  const pluginFiles = ctx.serverPlugins.map((plugin) => plugin.filePath);
+  const layoutFiles = node._files
+    .filter((file) => file.type === 'layout' && !file.extlessName.startsWith('layout-'))
+    .map((file) => file.filePath);
+  if (node === ctx.routeTrie) {
+    layoutFiles.push(...pluginFiles);
+  }
+  const pageFiles = bundleRoute ? [bundleRoute.filePath] : [];
+  if (pageLayouts) {
+    pageFiles.push(...pageLayouts.map((layout) => layout.filePath), ...pluginFiles);
+  }
+  for (const [field, routeFiles] of [
+    ['_R', layoutFiles],
+    ['_D', pageFiles],
+  ] as const) {
     const routeLoaderFiles = [
       ...new Set(
         routeFiles.flatMap((path) => [path, ...(routeLoaderSourceFiles?.get(path) ?? [])])

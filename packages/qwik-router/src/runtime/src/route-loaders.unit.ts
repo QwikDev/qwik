@@ -114,9 +114,9 @@ describe('route loader execution', () => {
     expect(sharedInvalidate).toHaveBeenCalledOnce();
     expect(state.parent).toBe(parentSignal);
     expect(state.shared).toBe(sharedSignal);
-    expect(commitRouteLoaders(state, ctx, 0)).toBe(false);
+    commitRouteLoaders(state, ctx, 0);
     expect(state.parent).toBe(parentSignal);
-    expect(commitRouteLoaders(state, ctx, 1)).toBe(true);
+    commitRouteLoaders(state, ctx, 1);
     const client = getClientRouteLoaders(ctx);
     expect([...client.current.requests.keys()]).toEqual([sharedSignal, state.child]);
     expect(client.committed).toBe(client.current);

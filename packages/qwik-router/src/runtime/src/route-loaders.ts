@@ -683,10 +683,7 @@ export function abortRouteLoaderNavigation(ctx: RouteLoaderCtx) {
 }
 
 /** Search-filtered loaders ignore changes to unlisted params. */
-function isSameLoaderPageUrl(previous: URL, next: URL, search: string[] | undefined) {
-  if (previous.href === next.href) {
-    return true;
-  }
+function hasSameListedSearch(previous: URL, next: URL, search: string[] | undefined) {
   return (
     !!search &&
     previous.pathname === next.pathname &&
@@ -747,13 +744,13 @@ export function prepareRouteLoaders(
       signal.abort();
       continue;
     }
-    const isSameRequest =
+    const keepRequest =
       old?.active &&
       !old.isAborted &&
       old.routePath === routePath &&
-      isSameLoaderPageUrl(new URL(old.pageUrl), pageUrl, loader?.__search);
-    const isUnlistedUrlChange = isSameRequest && old.pageUrl !== pageUrl.href;
-    const keepRequest = isSameRequest && (isUnlistedUrlChange || isImmutableLoader(id));
+      (old.pageUrl === pageUrl.href
+        ? isImmutableLoader(id)
+        : hasSameListedSearch(new URL(old.pageUrl), pageUrl, loader?.__search));
     current.requests.set(
       signal,
       keepRequest ? old : { routePath, pageUrl: pageUrl.href, active: true, hash }
@@ -793,11 +790,10 @@ function pruneRouteLoaders(state: RouteLoaderState, ctx: RouteLoaderCtx) {
 export function commitRouteLoaders(state: RouteLoaderState, ctx: RouteLoaderCtx, navCount: number) {
   const client = clientRouteLoaders.get(ctx);
   if (!client || client.navCount !== navCount) {
-    return false;
+    return;
   }
   pruneRouteLoaders(state, ctx);
   client.committed = client.current;
-  return true;
 }
 
 export function restoreRouteLoaders(

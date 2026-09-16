@@ -1,4 +1,5 @@
 import { removeQwikCityPlan, renameQwikCityPlatform, replaceNotFound } from './entries';
+import { migrateQwikLabs } from './labs';
 import { removeSetupServiceWorker } from './router';
 import {
   keepV1StreamingDefaults,
@@ -30,4 +31,5 @@ export const codemods: Codemod[] = [
   keepBaseOutDir,
   keepAssetsDir,
   warnManualChunks,
+  migrateQwikLabs,
 ];

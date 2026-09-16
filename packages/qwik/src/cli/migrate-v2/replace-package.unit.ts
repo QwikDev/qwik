@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test, vi } from 'vitest';
-import { replacePackage } from './replace-package';
+import { removePackage, replacePackage } from './replace-package';
 import { createTmpProject } from './tools/tmp-project';
 
 vi.mock('@clack/prompts', () => ({ log: { info: vi.fn(), warn: vi.fn() } }));
@@ -100,5 +100,27 @@ describe('replacePackage', () => {
     });
     replacePackage('@qwik-city-plan', '@qwik-router-config', true);
     expect(project.read('src/entry.ts')).toBe(`import plan from '@qwik-router-config';`);
+  });
+});
+
+describe('removePackage', () => {
+  let project: ReturnType<typeof createTmpProject>;
+  afterEach(() => project.cleanup());
+
+  test('removes the package from all dependency lists', () => {
+    const untouched = '{"name":"b"}';
+    project = createTmpProject({
+      'package.json': JSON.stringify({
+        dependencies: { '@builder.io/qwik-labs': '0.1.0', a: '1' },
+        devDependencies: { '@builder.io/qwik-labs': '0.1.0' },
+      }),
+      'packages/b/package.json': untouched,
+    });
+    removePackage('@builder.io/qwik-labs');
+    expect(JSON.parse(project.read('package.json'))).toEqual({
+      dependencies: { a: '1' },
+      devDependencies: {},
+    });
+    expect(project.read('packages/b/package.json')).toBe(untouched);
   });
 });

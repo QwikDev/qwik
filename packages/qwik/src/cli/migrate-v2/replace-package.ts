@@ -21,6 +21,31 @@ export function replacePackage(
   replaceMentions(oldPackageName, newPackageName);
 }
 
+/** Removes a package from the dependencies of every package.json. */
+export function removePackage(packageName: string) {
+  visitNotIgnoredFiles('.', (path) => {
+    if (basename(path) !== 'package.json') {
+      return;
+    }
+    const packageJson = JSON.parse(readFileSync(path, 'utf-8'));
+    let changed = false;
+    for (const deps of [
+      packageJson.dependencies ?? {},
+      packageJson.devDependencies ?? {},
+      packageJson.peerDependencies ?? {},
+      packageJson.optionalDependencies ?? {},
+    ]) {
+      if (packageName in deps) {
+        delete deps[packageName];
+        changed = true;
+      }
+    }
+    if (changed) {
+      updateFileContent(path, JSON.stringify(packageJson, null, 2));
+    }
+  });
+}
+
 function replacePackageInDependencies(oldPackageName: string, newPackageName: string) {
   visitNotIgnoredFiles('.', (path) => {
     if (basename(path) !== 'package.json') {

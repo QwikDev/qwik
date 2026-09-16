@@ -2,7 +2,7 @@ import { confirm, intro, isCancel, log } from '@clack/prompts';
 import type { AppCommand } from '../utils/app-command';
 import { bgMagenta, bgRed, bold, green } from 'kleur/colors';
 import { bye } from '../utils/utils';
-import { replacePackage } from './replace-package';
+import { removePackage, replacePackage } from './replace-package';
 import { takeWarnings, warnMentions } from './report';
 import { updateConfigurations } from './update-configurations';
 import {
@@ -32,6 +32,7 @@ export async function runV2Migration(app: AppCommand) {
     const installedTsMorph = await installTsMorph();
     const { codemods, runCodemods } = await import('./codemods');
     runCodemods(codemods);
+    removePackage('@builder.io/qwik-labs');
     const { replaceImportInFiles } = await import('./rename-import');
     replaceImportInFiles(
       [

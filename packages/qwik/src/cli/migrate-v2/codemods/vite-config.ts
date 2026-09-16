@@ -183,3 +183,40 @@ export const warnManualChunks = (file: SourceFile) => {
   }
   return false;
 };
+
+/** Adds a flag to `qwikVite({ experimental })` in the file, if it calls `qwikVite`. */
+export const addExperimentalFeature = (file: SourceFile, feature: string) => {
+  const calls = qwikViteCalls(file);
+  if (calls.length !== 1) {
+    warn(
+      file.getFilePath(),
+      `enable \`qwikVite({ experimental: ['${feature}'] })\` in your Vite config.`
+    );
+    return;
+  }
+  const options = calls[0].getArguments()[0];
+  if (!options) {
+    calls[0].addArgument(`{ experimental: ['${feature}'] }`);
+    return;
+  }
+  if (!Node.isObjectLiteralExpression(options)) {
+    warn(
+      file.getFilePath(),
+      `enable \`qwikVite({ experimental: ['${feature}'] })\` in your Vite config.`
+    );
+    return;
+  }
+  const prop = options.getProperty('experimental');
+  const value = Node.isPropertyAssignment(prop) ? prop.getInitializer() : undefined;
+  if (!prop) {
+    appendProperty(options, `experimental: ['${feature}']`);
+  } else if (Node.isArrayLiteralExpression(value)) {
+    if (
+      !value.getElements().some((e) => Node.isStringLiteral(e) && e.getLiteralValue() === feature)
+    ) {
+      value.addElement(`'${feature}'`);
+    }
+  } else {
+    warn(file.getFilePath(), `add '${feature}' to \`qwikVite({ experimental })\`.`);
+  }
+};

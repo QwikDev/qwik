@@ -44,6 +44,9 @@ export const keepV1ViewTransitions = (file: SourceFile) => {
     return false;
   }
   const element = elements[0];
+  const fn = element.getFirstAncestor(
+    (n) => Node.isArrowFunction(n) || Node.isFunctionExpression(n)
+  );
   const attr = element
     .getAttributes()
     .find((a) => Node.isJsxAttribute(a) && a.getNameNode().getText() === 'viewTransition');
@@ -56,11 +59,6 @@ export const keepV1ViewTransitions = (file: SourceFile) => {
       expression.replaceWithText(`${expression.getText()} !== false`);
     }
   }
-  const fn = file
-    .getDescendantsOfKind(SyntaxKind.JsxOpeningElement)
-    .concat(file.getDescendantsOfKind(SyntaxKind.JsxSelfClosingElement) as any)
-    .find((e) => providers.includes(e.getTagNameNode().getText()))!
-    .getFirstAncestor((n) => Node.isArrowFunction(n) || Node.isFunctionExpression(n));
   if (Node.isArrowFunction(fn) || Node.isFunctionExpression(fn)) {
     const body = fn.getBody();
     if (Node.isBlock(body)) {

@@ -1,7 +1,8 @@
 import { Project } from 'ts-morph';
-import { describe, expect, test } from 'vitest';
+import { afterEach, describe, expect, test } from 'vitest';
+import { takeWarnings } from '../report';
 import type { Codemod } from './run-codemods';
-import { removeDevInput, removeStableExperimentalFeatures } from './vite-config';
+import { keepBaseOutDir, removeDevInput, removeStableExperimentalFeatures } from './vite-config';
 
 const run = (codemod: Codemod, code: string) => {
   const file = new Project({ useInMemoryFileSystem: true }).createSourceFile(
@@ -55,5 +56,63 @@ describe('removeStableExperimentalFeatures', () => {
   test('keeps other flags', () => {
     const code = `${IMPORT}qwikVite({ experimental: ['noSPA'] });`;
     expect(run(removeStableExperimentalFeatures, code)).toEqual({ changed: false, text: code });
+  });
+});
+
+describe('keepBaseOutDir', () => {
+  afterEach(() => takeWarnings());
+
+  test('adds the client outDir under the base', () => {
+    expect(
+      run(keepBaseOutDir, `${IMPORT}export default { base: '/app/', plugins: [qwikVite()] };`).text
+    ).toBe(
+      `${IMPORT}export default { base: '/app/', plugins: [qwikVite({ client: { outDir: 'dist/app' } })] };`
+    );
+  });
+
+  test('merges into existing options', () => {
+    expect(
+      run(
+        keepBaseOutDir,
+        [
+          IMPORT + `export default defineConfig(() => {`,
+          `  return {`,
+          `    base: '/a/b/',`,
+          `    plugins: [`,
+          `      qwikVite({`,
+          `        debug: true,`,
+          `      }),`,
+          `    ],`,
+          `  };`,
+          `});`,
+        ].join('\n')
+      ).text
+    ).toContain(`        debug: true,\n        client: { outDir: 'dist/a/b' },\n      }),`);
+    expect(
+      run(keepBaseOutDir, `${IMPORT}({ base: '/a/', p: qwikVite({ client: { input: 'x' } }) });`)
+        .text
+    ).toBe(
+      `${IMPORT}({ base: '/a/', p: qwikVite({ client: { input: 'x', outDir: 'dist/a' } }) });`
+    );
+    expect(
+      run(
+        keepBaseOutDir,
+        `${IMPORT}({ base: '/a/', p: qwikVite({ client: { outDir: 'out/' } }) });`
+      ).text
+    ).toBe(`${IMPORT}({ base: '/a/', p: qwikVite({ client: { outDir: 'out/a' } }) });`);
+  });
+
+  test('does nothing for the root base or without base', () => {
+    for (const code of [
+      `${IMPORT}({ base: '/', p: qwikVite() });`,
+      `${IMPORT}({ p: qwikVite() });`,
+    ]) {
+      expect(run(keepBaseOutDir, code)).toEqual({ changed: false, text: code });
+    }
+  });
+
+  test('warns when the base is not a literal', () => {
+    run(keepBaseOutDir, `${IMPORT}({ base: process.env.BASE, p: qwikVite() });`);
+    expect(takeWarnings()).toHaveLength(1);
   });
 });

@@ -1,8 +1,12 @@
-import { Node, type ObjectLiteralExpression, type SourceFile } from 'ts-morph';
-import { findCalls, findNamedImports } from './utils';
+import { Node, SyntaxKind, type ObjectLiteralExpression, type SourceFile } from 'ts-morph';
+import { warn } from '../report';
+import { appendProperty, findCalls, findNamedImports } from './utils';
+
+const qwikViteCalls = (file: SourceFile) =>
+  findCalls(file, findNamedImports(file, '@builder.io/qwik/optimizer', 'qwikVite'));
 
 const qwikViteOptions = (file: SourceFile) =>
-  findCalls(file, findNamedImports(file, '@builder.io/qwik/optimizer', 'qwikVite'))
+  qwikViteCalls(file)
     .map((call) => call.getArguments()[0])
     .filter((arg): arg is ObjectLiteralExpression => Node.isObjectLiteralExpression(arg));
 
@@ -51,4 +55,58 @@ export const removeStableExperimentalFeatures = (file: SourceFile) => {
     changed = true;
   }
   return changed;
+};
+
+/**
+ * V1 placed the client build under Vite's `base` (`dist/<base>`), v2 always uses `dist`. Setting
+ * `client.outDir` keeps the v1 output layout.
+ */
+export const keepBaseOutDir = (file: SourceFile) => {
+  const calls = qwikViteCalls(file);
+  if (calls.length !== 1) {
+    return false;
+  }
+  const bases = file
+    .getDescendantsOfKind(SyntaxKind.PropertyAssignment)
+    .filter((p) => p.getName() === 'base');
+  if (bases.length === 0) {
+    return false;
+  }
+  const value = bases.length === 1 ? bases[0].getInitializer() : undefined;
+  if (!Node.isStringLiteral(value) && !Node.isNoSubstitutionTemplateLiteral(value)) {
+    warn(
+      file.getFilePath(),
+      "v2 no longer puts the client build under Vite's `base`, set `qwikVite({ client: { outDir } })` to keep the output directory."
+    );
+    return false;
+  }
+  const base = value.getLiteralValue().replace(/^\/+|\/+$/g, '');
+  if (!base) {
+    return false;
+  }
+  const call = calls[0];
+  const options = call.getArguments()[0];
+  if (!options) {
+    call.addArgument(`{ client: { outDir: 'dist/${base}' } }`);
+    return true;
+  }
+  if (!Node.isObjectLiteralExpression(options)) {
+    return false;
+  }
+  const client = objectProperty(options, 'client');
+  if (!client) {
+    appendProperty(options, `client: { outDir: 'dist/${base}' }`);
+    return true;
+  }
+  const outDir = client.getProperty('outDir');
+  const outDirValue = Node.isPropertyAssignment(outDir) ? outDir.getInitializer() : undefined;
+  if (!outDir) {
+    appendProperty(client, `outDir: 'dist/${base}'`);
+    return true;
+  }
+  if (Node.isStringLiteral(outDirValue)) {
+    outDirValue.setLiteralValue(`${outDirValue.getLiteralValue().replace(/\/+$/, '')}/${base}`);
+    return true;
+  }
+  return false;
 };

@@ -6,7 +6,7 @@ import {
   renameMaximunStreamingOptions,
 } from './server';
 import type { Codemod } from './run-codemods';
-import { removeDevInput, removeStableExperimentalFeatures } from './vite-config';
+import { keepBaseOutDir, removeDevInput, removeStableExperimentalFeatures } from './vite-config';
 
 export { runCodemods } from './run-codemods';
 
@@ -21,4 +21,5 @@ export const codemods: Codemod[] = [
   keepV1StreamingDefaults,
   removeDevInput,
   removeStableExperimentalFeatures,
+  keepBaseOutDir,
 ];

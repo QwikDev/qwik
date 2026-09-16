@@ -108,3 +108,50 @@ export const addNavigationProbeLoaders = (project: Project) => {
     'v2 only requests route loaders on SPA navigation, `useV1NavigationProbe` loaders were added so the middleware still runs. Middleware redirects now happen after the new page is shown.'
   );
 };
+
+const V1_ERRORS_PLUGIN = `import type { RequestHandler } from '@builder.io/qwik-city';
+import { getErrorHtml, ServerError } from '@builder.io/qwik-city/middleware/request-handler';
+
+/**
+ * Added by \`qwik migrate-v2\`. v1 answered errors thrown with \`throw ev.error(status, data)\` with a
+ * minimal error page, v2 renders the error page of the app instead. Remove this plugin to use the v2
+ * behavior.
+ */
+export const onRequest: RequestHandler = async (ev) => {
+  try {
+    await ev.next();
+  } catch (e) {
+    const accept = ev.request.headers.get('Accept');
+    if (
+      e instanceof ServerError &&
+      !ev.headersSent &&
+      !ev.internalRequest &&
+      (!accept || accept.includes('text/html'))
+    ) {
+      ev.html(e.status as Parameters<typeof ev.html>[0], getErrorHtml(e.status, e.data));
+      return;
+    }
+    throw e;
+  }
+};
+`;
+
+/** Keeps the v1 responses for server errors by adding a plugin that runs before the others. */
+export const addV1ErrorResponsePlugin = (project: Project) => {
+  const routeFile = project.getSourceFiles().find((f) => /\/routes\//.test(f.getFilePath()));
+  if (!routeFile) {
+    return;
+  }
+  const routesDir = routeFile.getFilePath().replace(/(\/routes)\/.*$/, '$1');
+  const name = 'plugin@000-v1-errors.ts';
+  if (
+    project.getSourceFile(`${routesDir}/plugin.ts`) ||
+    project.getSourceFile(`${routesDir}/plugin.js`)
+  ) {
+    warn(
+      `${routesDir}/${name}`,
+      'errors thrown in `plugin.ts` are rendered by the v2 error page, move its code to a `plugin@name.ts` file to keep the v1 error responses.'
+    );
+  }
+  project.createSourceFile(`${routesDir}/${name}`, V1_ERRORS_PLUGIN, { overwrite: true });
+};

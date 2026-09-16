@@ -87,3 +87,39 @@ describe('addNavigationProbeLoaders', () => {
     expect(project.exists('src/routes/layout.ts')).toBe(false);
   });
 });
+
+describe('addV1ErrorResponsePlugin', () => {
+  let project: ReturnType<typeof createTmpProject>;
+  afterEach(() => {
+    project.cleanup();
+    takeWarnings();
+  });
+
+  test('adds a plugin that answers server errors like v1', () => {
+    project = createTmpProject({ 'src/routes/index.tsx': `export default () => <div />;` });
+    runCodemods([], projectCodemods);
+    const plugin = project.read('src/routes/plugin@000-v1-errors.ts');
+    expect(plugin).toContain(
+      `import { getErrorHtml, ServerError } from '@builder.io/qwik-city/middleware/request-handler';`
+    );
+    expect(plugin).toContain(
+      'ev.html(e.status as Parameters<typeof ev.html>[0], getErrorHtml(e.status, e.data));'
+    );
+    expect(takeWarnings()).toEqual([]);
+  });
+
+  test('warns when plugin.ts runs before it', () => {
+    project = createTmpProject({
+      'src/routes/index.tsx': `export default () => <div />;`,
+      'src/routes/plugin.ts': `export const onRequest = () => {};`,
+    });
+    runCodemods([], projectCodemods);
+    expect(takeWarnings().some((w) => w.includes('`plugin.ts`'))).toBe(true);
+  });
+
+  test('does nothing without routes', () => {
+    project = createTmpProject({ 'src/index.ts': `export const a = 1;` });
+    runCodemods([], projectCodemods);
+    expect(project.exists('src/routes/plugin@000-v1-errors.ts')).toBe(false);
+  });
+});

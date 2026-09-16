@@ -3,7 +3,7 @@ import { takeWarnings } from './report';
 import { createTmpProject } from './tools/tmp-project';
 import { updateConfigurations } from './update-configurations';
 
-vi.mock('@clack/prompts', () => ({ log: { error: vi.fn() } }));
+vi.mock('@clack/prompts', () => ({ log: { error: vi.fn(), info: vi.fn(), warn: vi.fn() } }));
 
 describe('updateConfigurations', () => {
   let project: ReturnType<typeof createTmpProject> | undefined;
@@ -72,6 +72,21 @@ describe('updateConfigurations', () => {
     project = createTmpProject({ 'package.json': `{\n  "name": "app"\n}\n` });
     updateConfigurations();
     expect(JSON.parse(project.read('package.json'))).toEqual({ name: 'app', type: 'module' });
+  });
+
+  test('renames vite.config.mts and its references', () => {
+    project = createTmpProject({
+      'package.json': `{"type":"module","scripts":{"build":"vite build -c vite.config.mts"}}`,
+      'vite.config.mts': `export default {};`,
+      'adapters/node/vite.config.ts': `import baseConfig from '../../vite.config.mts';`,
+    });
+    updateConfigurations();
+    expect(project.exists('vite.config.mts')).toBe(false);
+    expect(project.read('vite.config.ts')).toBe(`export default {};`);
+    expect(project.read('package.json')).toContain('vite build -c vite.config.ts');
+    expect(project.read('adapters/node/vite.config.ts')).toBe(
+      `import baseConfig from '../../vite.config.ts';`
+    );
   });
 
   test('does not throw without a tsconfig.json', () => {

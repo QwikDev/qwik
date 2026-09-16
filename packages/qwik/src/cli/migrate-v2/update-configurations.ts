@@ -1,6 +1,7 @@
 import { JsonObjectNode, JsonParser } from '@croct/json5-parser';
-import { existsSync, readFileSync, writeFileSync } from 'fs';
+import { existsSync, readFileSync, renameSync, writeFileSync } from 'fs';
 import { log } from '@clack/prompts';
+import { replacePackage } from './replace-package';
 import { warn } from './report';
 import { visitNotIgnoredFiles } from './tools/visit-not-ignored-files';
 
@@ -10,6 +11,7 @@ export function updateConfigurations() {
   } catch (error) {
     log.error('Failed to update tsconfig.json configuration.');
   }
+  renameViteConfigMts();
   try {
     setTypeModule();
   } catch (error) {
@@ -74,4 +76,12 @@ function updateTsconfig() {
     options.set('module', 'ESNext');
   }
   writeFileSync(tsConfigPath, tsConfig.toString());
+}
+
+/** `qwik add` in v2 only updates `vite.config.ts`, the app is an ES module so `.mts` isn't needed. */
+function renameViteConfigMts() {
+  if (existsSync('vite.config.mts') && !existsSync('vite.config.ts')) {
+    renameSync('vite.config.mts', 'vite.config.ts');
+    replacePackage('vite.config.mts', 'vite.config.ts', true);
+  }
 }

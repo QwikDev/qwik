@@ -26,6 +26,7 @@ export function warnMentions(text: string, message: string) {
 /** V2 behavior changes that the migration can't undo, printed after every migration. */
 export const V2_BEHAVIOR_CHANGES = [
   'SPA navigation fetches every route loader with its own request (the middleware runs for each) and renders the new page before they resolve, so loader redirects and errors happen after the page is shown.',
+  "Route loader data is not serialized into the HTML (`defaultLoadersSerializationStrategy: 'never'`), the browser fetches it when a loader is read after resuming.",
   'After an action, the route loaders are re-fetched with separate requests and loaders can no longer read the action result with `resolveValue(action)`.',
   'Unknown routes render the nearest `404.tsx` inside its layouts, route files named with other status codes (e.g. `500.tsx`) are ignored.',
   'SPA navigation pushes the history entry on click, scroll positions of history entries created before the upgrade are not restored.',

@@ -17,7 +17,7 @@ import {
   renameMaximunStreamingOptions,
 } from './server';
 import type { Codemod, ProjectCodemod } from './run-codemods';
-import { renameV2ErrorBoundaryFiles } from './route-files';
+import { addNavigationProbeLoaders, renameV2ErrorBoundaryFiles } from './route-files';
 import { keepV1TaskCleanupTiming, removeTaskEagerness } from './tasks';
 import {
   keepAssetsDir,
@@ -62,4 +62,7 @@ export const codemods: Codemod[] = [
 ];
 
 /** Codemods run on the whole project before the file codemods. */
-export const projectCodemods: ProjectCodemod[] = [renameV2ErrorBoundaryFiles];
+export const projectCodemods: ProjectCodemod[] = [
+  renameV2ErrorBoundaryFiles,
+  addNavigationProbeLoaders,
+];

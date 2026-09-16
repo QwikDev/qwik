@@ -1,11 +1,10 @@
-import { Project } from 'ts-morph';
 import { afterEach, describe, expect, test } from 'vitest';
 import { takeWarnings } from '../report';
 import { removeQwikCityPlan, renameQwikCityPlatform, replaceNotFound } from './entries';
-import type { Codemod } from './run-codemods';
+import { createProject, type Codemod } from './run-codemods';
 
 const run = (codemod: Codemod, code: string) => {
-  const file = new Project({ useInMemoryFileSystem: true }).createSourceFile('entry.tsx', code);
+  const file = createProject({ useInMemoryFileSystem: true }).createSourceFile('entry.tsx', code);
   const changed = codemod(file);
   return { changed, text: file.getFullText() };
 };

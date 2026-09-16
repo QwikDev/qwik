@@ -1,10 +1,10 @@
-import { Project } from 'ts-morph';
+import { createProject } from './run-codemods';
 import { afterEach, describe, expect, test } from 'vitest';
 import { takeWarnings } from '../report';
 import { migrateQwikLabs } from './labs';
 
 const run = (code: string, path = 'src/root.tsx') => {
-  const file = new Project({ useInMemoryFileSystem: true }).createSourceFile(path, code);
+  const file = createProject({ useInMemoryFileSystem: true }).createSourceFile(path, code);
   const changed = migrateQwikLabs(file);
   return { changed, text: file.getFullText() };
 };

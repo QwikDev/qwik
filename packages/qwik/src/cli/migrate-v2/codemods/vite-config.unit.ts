@@ -1,7 +1,6 @@
-import { Project } from 'ts-morph';
 import { afterEach, describe, expect, test } from 'vitest';
 import { takeWarnings } from '../report';
-import type { Codemod } from './run-codemods';
+import { createProject, type Codemod } from './run-codemods';
 import {
   keepAssetsDir,
   keepBaseOutDir,
@@ -11,7 +10,7 @@ import {
 } from './vite-config';
 
 const run = (codemod: Codemod, code: string) => {
-  const file = new Project({ useInMemoryFileSystem: true }).createSourceFile(
+  const file = createProject({ useInMemoryFileSystem: true }).createSourceFile(
     'vite.config.ts',
     code
   );

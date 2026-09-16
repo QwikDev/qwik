@@ -1,10 +1,10 @@
-import { Project } from 'ts-morph';
+import { createProject } from './run-codemods';
 import { afterEach, describe, expect, test } from 'vitest';
 import { takeWarnings } from '../report';
 import { keepV1EventNames, v1JsxEvent, v2JsxEvent } from './events';
 
 const run = (code: string) => {
-  const file = new Project({ useInMemoryFileSystem: true }).createSourceFile('a.tsx', code);
+  const file = createProject({ useInMemoryFileSystem: true }).createSourceFile('a.tsx', code);
   const changed = keepV1EventNames(file);
   return { changed, text: file.getFullText() };
 };

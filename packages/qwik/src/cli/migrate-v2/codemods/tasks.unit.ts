@@ -1,11 +1,10 @@
-import { Project } from 'ts-morph';
 import { afterEach, describe, expect, test } from 'vitest';
 import { takeWarnings } from '../report';
-import type { Codemod } from './run-codemods';
+import { createProject, type Codemod } from './run-codemods';
 import { keepV1TaskCleanupTiming, removeTaskEagerness } from './tasks';
 
 const run = (codemod: Codemod, code: string) => {
-  const file = new Project({ useInMemoryFileSystem: true }).createSourceFile('a.tsx', code);
+  const file = createProject({ useInMemoryFileSystem: true }).createSourceFile('a.tsx', code);
   const changed = codemod(file);
   return { changed, text: file.getFullText() };
 };

@@ -1,10 +1,10 @@
-import { Project } from 'ts-morph';
+import { createProject } from './run-codemods';
 import { afterEach, describe, expect, test } from 'vitest';
 import { takeWarnings } from '../report';
 import { warnRemovedApis } from './removed-apis';
 
 const run = (code: string) =>
-  warnRemovedApis(new Project({ useInMemoryFileSystem: true }).createSourceFile('a.tsx', code));
+  warnRemovedApis(createProject({ useInMemoryFileSystem: true }).createSourceFile('a.tsx', code));
 
 describe('warnRemovedApis', () => {
   afterEach(() => takeWarnings());

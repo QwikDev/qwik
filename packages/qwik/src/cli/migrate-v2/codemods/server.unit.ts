@@ -1,7 +1,6 @@
-import { Project } from 'ts-morph';
 import { afterEach, describe, expect, test } from 'vitest';
 import { takeWarnings } from '../report';
-import type { Codemod } from './run-codemods';
+import { createProject, type Codemod } from './run-codemods';
 import {
   keepV1StreamingDefaults,
   removeRemovedRenderOptions,
@@ -9,7 +8,10 @@ import {
 } from './server';
 
 const run = (codemod: Codemod, code: string) => {
-  const file = new Project({ useInMemoryFileSystem: true }).createSourceFile('entry.ssr.tsx', code);
+  const file = createProject({ useInMemoryFileSystem: true }).createSourceFile(
+    'entry.ssr.tsx',
+    code
+  );
   const changed = codemod(file);
   return { changed, text: file.getFullText() };
 };

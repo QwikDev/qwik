@@ -1,4 +1,5 @@
-import { Node, Project, type SourceFile, ts } from 'ts-morph';
+import { Node, type SourceFile, ts } from 'ts-morph';
+import { createProject } from './codemods/run-codemods';
 import { isReference } from './codemods/utils';
 import { visitNotIgnoredFiles } from './tools/visit-not-ignored-files';
 import { log } from '@clack/prompts';
@@ -7,7 +8,7 @@ export function replaceImportInFiles(
   changes: [oldImport: string, newImport: string][],
   library: string
 ) {
-  const project = new Project();
+  const project = createProject();
 
   visitNotIgnoredFiles('.', (path) => {
     if (!path.endsWith('.ts') && !path.endsWith('.tsx')) {

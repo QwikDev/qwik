@@ -40,9 +40,12 @@ describe('runV2Migration', () => {
     });
     expect(project.read('src/root.tsx')).toBe(
       [
-        `import { component$ } from '@qwik.dev/core';`,
+        `import { component$, useStyles$ } from '@qwik.dev/core';`,
         `import { QwikRouterProvider, RouterOutlet } from '@qwik.dev/router';`,
-        `export default component$(() => <QwikRouterProvider><RouterOutlet /></QwikRouterProvider>);`,
+        `export default component$(() => {`,
+        '  useStyles$(`:root{view-transition-name:none}`);',
+        `  return <QwikRouterProvider viewTransition={true}><RouterOutlet /></QwikRouterProvider>;`,
+        `});`,
       ].join('\n')
     );
   });

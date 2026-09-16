@@ -1,10 +1,9 @@
-import { Project } from 'ts-morph';
 import { describe, expect, test } from 'vitest';
 import { removeSlotChildren, renameHtmlFor } from './jsx';
-import type { Codemod } from './run-codemods';
+import { createProject, type Codemod } from './run-codemods';
 
 const run = (codemod: Codemod, code: string) => {
-  const file = new Project({ useInMemoryFileSystem: true }).createSourceFile('a.tsx', code);
+  const file = createProject({ useInMemoryFileSystem: true }).createSourceFile('a.tsx', code);
   const changed = codemod(file);
   return { changed, text: file.getFullText() };
 };

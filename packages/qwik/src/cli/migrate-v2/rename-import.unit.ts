@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test, vi } from 'vitest';
-import { Project } from 'ts-morph';
+import { createProject } from './codemods/run-codemods';
 import { renameImports, replaceImportInFiles } from './rename-import';
 import { createTmpProject } from './tools/tmp-project';
 
@@ -58,7 +58,7 @@ describe('replaceImportInFiles', () => {
 
 describe('renameImports', () => {
   const run = (code: string, changes: [string, string][], library = '@builder.io/qwik-city') => {
-    const file = new Project({ useInMemoryFileSystem: true }).createSourceFile('a.tsx', code);
+    const file = createProject({ useInMemoryFileSystem: true }).createSourceFile('a.tsx', code);
     const changed = renameImports(file, changes, library);
     return { changed, text: file.getFullText() };
   };

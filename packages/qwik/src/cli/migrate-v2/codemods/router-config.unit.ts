@@ -1,10 +1,9 @@
-import { Project } from 'ts-morph';
 import { describe, expect, test } from 'vitest';
 import { keepV1LoaderInvalidation, keepV1RequestBodyLimit } from './router-config';
-import type { Codemod } from './run-codemods';
+import { createProject, type Codemod } from './run-codemods';
 
 const run = (codemod: Codemod, code: string) => {
-  const file = new Project({ useInMemoryFileSystem: true }).createSourceFile('a.ts', code);
+  const file = createProject({ useInMemoryFileSystem: true }).createSourceFile('a.ts', code);
   const changed = codemod(file);
   return { changed, text: file.getFullText() };
 };

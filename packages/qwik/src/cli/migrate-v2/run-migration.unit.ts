@@ -127,6 +127,17 @@ describe('runV2Migration', () => {
     );
   });
 
+  test('renames the rollup plugin to rolldown', async () => {
+    project = createTmpProject({
+      'package.json': '{}',
+      'rollup.config.ts': `import { qwikRollup, type QwikRollupPluginOptions } from '@builder.io/qwik/optimizer';\nconst opts: QwikRollupPluginOptions = {};\nexport default { plugins: [qwikRollup(opts)] };`,
+    });
+    await migrate();
+    expect(project.read('rollup.config.ts')).toBe(
+      `import { qwikRolldown, type QwikRolldownPluginOptions } from '@qwik.dev/core/optimizer';\nconst opts: QwikRolldownPluginOptions = {};\nexport default { plugins: [qwikRolldown(opts)] };`
+    );
+  });
+
   test('renames the vercel edge function directory', async () => {
     project = createTmpProject({
       'package.json': '{}',

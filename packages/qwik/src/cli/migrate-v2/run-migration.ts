@@ -62,6 +62,13 @@ export async function runV2Migration(app: AppCommand) {
       '@builder.io/qwik-city'
     );
     replaceImportInFiles(
+      [
+        ['qwikRollup', 'qwikRolldown'],
+        ['QwikRollupPluginOptions', 'QwikRolldownPluginOptions'],
+      ],
+      '@builder.io/qwik/optimizer'
+    );
+    replaceImportInFiles(
       [['qwikCityPlan', 'qwikRouterConfig']],
       '@qwik-city-plan' // using old name, package name will be updated in the next step
     );

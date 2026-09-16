@@ -127,6 +127,17 @@ describe('runV2Migration', () => {
     );
   });
 
+  test('renames the vercel edge function directory', async () => {
+    project = createTmpProject({
+      'package.json': '{}',
+      'adapters/vercel-edge/vite.config.ts': `export default { build: { outDir: '.vercel/output/functions/_qwik-city.func' } };`,
+    });
+    await migrate();
+    expect(project.read('adapters/vercel-edge/vite.config.ts')).toBe(
+      `export default { build: { outDir: '.vercel/output/functions/_qwik-router.func' } };`
+    );
+  });
+
   test('keeps the jsx-runtime subpath and jsxs', async () => {
     project = createTmpProject({
       'package.json': '{}',

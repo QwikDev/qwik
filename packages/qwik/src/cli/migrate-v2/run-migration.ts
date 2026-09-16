@@ -70,6 +70,8 @@ export async function runV2Migration(app: AppCommand) {
       '@qwik-city-not-found-paths',
       '"@qwik-city-not-found-paths" does not exist in v2, the router renders 404 pages itself.'
     );
+    // the vercel-edge adapter writes its routes config for this function name
+    replacePackage('_qwik-city.func', '_qwik-router.func', true);
     replacePackage('@qwik-city-plan', '@qwik-router-config', true);
     replacePackage('@qwik-city-entries', '@qwik-router-entries', true);
     replacePackage('@qwik-city-sw-register', '@qwik-router-sw-register', true);

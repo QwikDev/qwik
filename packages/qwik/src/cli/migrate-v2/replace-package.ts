@@ -68,11 +68,12 @@ function replaceMentions(oldPackageName: string, newPackageName: string) {
     try {
       const contents = readFileSync(path, 'utf-8');
 
-      if (!contents.includes(oldPackageName)) {
+      const newContents = contents.replace(packageNameRegExp(oldPackageName), newPackageName);
+      if (newContents === contents) {
         return;
       }
 
-      updateFileContent(path, contents.replace(new RegExp(oldPackageName, 'g'), newPackageName));
+      updateFileContent(path, newContents);
     } catch {
       // Its **probably** ok, contents can be null if the file is too large or
       // there was an access exception.
@@ -81,4 +82,12 @@ function replaceMentions(oldPackageName: string, newPackageName: string) {
       );
     }
   });
+}
+
+/**
+ * Matches the package name (and its subpaths) but not other packages that share its prefix, e.g.
+ * `@builder.io/qwik` must not match `@builder.io/qwik-labs`.
+ */
+function packageNameRegExp(packageName: string) {
+  return new RegExp(packageName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?![\\w-])', 'g');
 }

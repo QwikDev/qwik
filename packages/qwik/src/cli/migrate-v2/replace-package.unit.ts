@@ -60,6 +60,32 @@ describe('replacePackage', () => {
     }
   });
 
+  test('does not replace packages that share the prefix', () => {
+    project = createTmpProject({
+      'src/a.ts': [
+        `import '@builder.io/qwik';`,
+        `import '@builder.io/qwik/server';`,
+        `import '@builder.io/qwik-labs';`,
+        `import '@builder.io/qwik-auth';`,
+      ].join('\n'),
+    });
+    replacePackage('@builder.io/qwik', '@qwik.dev/core');
+    expect(project.read('src/a.ts')).toBe(
+      [
+        `import '@qwik.dev/core';`,
+        `import '@qwik.dev/core/server';`,
+        `import '@builder.io/qwik-labs';`,
+        `import '@builder.io/qwik-auth';`,
+      ].join('\n')
+    );
+  });
+
+  test('treats the package name literally, not as a regular expression', () => {
+    project = createTmpProject({ 'src/a.ts': `import '@builderXio/qwik';` });
+    replacePackage('@builder.io/qwik', '@qwik.dev/core');
+    expect(project.read('src/a.ts')).toBe(`import '@builderXio/qwik';`);
+  });
+
   test('skipDependencies only replaces mentions', () => {
     project = createTmpProject({
       'package.json': JSON.stringify({ dependencies: { '@qwik-city-plan': '1.0.0' } }),

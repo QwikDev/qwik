@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, test, vi } from 'vitest';
+import { takeWarnings } from './report';
 import { createTmpProject } from './tools/tmp-project';
 import { updateConfigurations } from './update-configurations';
 
@@ -52,6 +53,25 @@ describe('updateConfigurations', () => {
     project = createTmpProject({ 'tsconfig.json': content });
     updateConfigurations();
     expect(project!.read('tsconfig.json')).toBe(content.replace('"node"', '"Bundler"'));
+  });
+
+  test('makes the app an ES module and warns about CommonJS files', () => {
+    project = createTmpProject({
+      'package.json': `{\n  "name": "app",\n  "type": "commonjs"\n}\n`,
+      'postcss.config.js': `module.exports = { plugins: {} };`,
+      'src/a.js': `export const a = 1;`,
+    });
+    updateConfigurations();
+    expect(project.read('package.json')).toBe(`{\n  "name": "app",\n  "type": "module"\n}\n`);
+    expect(takeWarnings()).toEqual([
+      'postcss.config.js: the app is now an ES module, rename this CommonJS file to `.cjs`.',
+    ]);
+  });
+
+  test('adds the type to package.json', () => {
+    project = createTmpProject({ 'package.json': `{\n  "name": "app"\n}\n` });
+    updateConfigurations();
+    expect(JSON.parse(project.read('package.json'))).toEqual({ name: 'app', type: 'module' });
   });
 
   test('does not throw without a tsconfig.json', () => {

@@ -203,3 +203,15 @@ export const moveInternalImports = (file: SourceFile) => {
   }
   return changed;
 };
+
+/**
+ * `ReadonlySignal<T>` was `Readonly<Signal<T>>` in v1. In v2 it is a deprecated interface with only
+ * `value`, which is no longer assignable to `Signal`.
+ */
+export const replaceReadonlySignal = (file: SourceFile) =>
+  replaceTypes(file, {
+    ReadonlySignal: {
+      text: (args) => `Readonly<Signal${args.length ? `<${args.join(', ')}>` : ''}>`,
+      imports: ['Signal'],
+    },
+  });

@@ -1,5 +1,10 @@
 import { describe, expect, test } from 'vitest';
-import { moveInternalImports, replaceEventTypes, replaceRemovedJsxTypes } from './core-types';
+import {
+  moveInternalImports,
+  replaceEventTypes,
+  replaceReadonlySignal,
+  replaceRemovedJsxTypes,
+} from './core-types';
 import { createProject, type Codemod } from './run-codemods';
 
 const run = (codemod: Codemod, code: string) => {
@@ -117,5 +122,24 @@ describe('moveInternalImports', () => {
   test('keeps public APIs', () => {
     const code = `import { component$, useTask$ } from '@builder.io/qwik';`;
     expect(run(moveInternalImports, code)).toEqual({ changed: false, text: code });
+  });
+});
+
+describe('replaceReadonlySignal', () => {
+  test('replaces ReadonlySignal with its v1 definition', () => {
+    expect(
+      run(
+        replaceReadonlySignal,
+        [
+          `import { useComputed$, type ReadonlySignal } from '@builder.io/qwik';`,
+          `const a: ReadonlySignal<string> = useComputed$(() => '');`,
+        ].join('\n')
+      ).text
+    ).toBe(
+      [
+        `import { useComputed$, type Signal } from '@builder.io/qwik';`,
+        `const a: Readonly<Signal<string>> = useComputed$(() => '');`,
+      ].join('\n')
+    );
   });
 });

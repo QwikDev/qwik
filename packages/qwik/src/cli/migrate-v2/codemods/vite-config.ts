@@ -110,3 +110,56 @@ export const keepBaseOutDir = (file: SourceFile) => {
   }
   return false;
 };
+
+/**
+ * V2 ignores `build.assetsDir`. Assets keep their v1 location through `output.assetFileNames`, but
+ * JS chunks are always emitted to `build/`.
+ */
+export const keepAssetsDir = (file: SourceFile) => {
+  for (const assetsDir of file.getDescendantsOfKind(SyntaxKind.PropertyAssignment)) {
+    const value = assetsDir.getInitializer();
+    const build = assetsDir.getParent();
+    const buildProp = build.getParent();
+    if (
+      assetsDir.getName() !== 'assetsDir' ||
+      !Node.isStringLiteral(value) ||
+      !Node.isPropertyAssignment(buildProp) ||
+      buildProp.getName() !== 'build' ||
+      !Node.isObjectLiteralExpression(build)
+    ) {
+      continue;
+    }
+    const dir = value.getLiteralValue().replace(/\/+$/, '');
+    if (!dir || dir === 'assets') {
+      continue;
+    }
+    warn(
+      file.getFilePath(),
+      `v2 ignores \`build.assetsDir\`: assets are kept in "${dir}/assets" but JS chunks are now emitted to "build/".`
+    );
+    const assetFileNames = `assetFileNames: '${dir}/assets/[hash]-[name].[ext]'`;
+    const optionsName = build.getProperty('rolldownOptions') ? 'rolldownOptions' : 'rollupOptions';
+    const options = objectProperty(build, optionsName);
+    if (!options) {
+      if (build.getProperty(optionsName)) {
+        return false;
+      }
+      appendProperty(build, `rolldownOptions: { output: { ${assetFileNames} } }`);
+      return true;
+    }
+    const output = objectProperty(options, 'output');
+    if (!output) {
+      if (options.getProperty('output')) {
+        return false;
+      }
+      appendProperty(options, `output: { ${assetFileNames} }`);
+      return true;
+    }
+    if (output.getProperty('assetFileNames')) {
+      return false;
+    }
+    appendProperty(output, assetFileNames);
+    return true;
+  }
+  return false;
+};

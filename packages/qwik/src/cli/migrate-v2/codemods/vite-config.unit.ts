@@ -2,7 +2,12 @@ import { Project } from 'ts-morph';
 import { afterEach, describe, expect, test } from 'vitest';
 import { takeWarnings } from '../report';
 import type { Codemod } from './run-codemods';
-import { keepBaseOutDir, removeDevInput, removeStableExperimentalFeatures } from './vite-config';
+import {
+  keepAssetsDir,
+  keepBaseOutDir,
+  removeDevInput,
+  removeStableExperimentalFeatures,
+} from './vite-config';
 
 const run = (codemod: Codemod, code: string) => {
   const file = new Project({ useInMemoryFileSystem: true }).createSourceFile(
@@ -114,5 +119,47 @@ describe('keepBaseOutDir', () => {
   test('warns when the base is not a literal', () => {
     run(keepBaseOutDir, `${IMPORT}({ base: process.env.BASE, p: qwikVite() });`);
     expect(takeWarnings()).toHaveLength(1);
+  });
+});
+
+describe('keepAssetsDir', () => {
+  afterEach(() => takeWarnings());
+
+  test('moves the asset location to output.assetFileNames', () => {
+    expect(run(keepAssetsDir, `export default { build: { assetsDir: 'static' } };`).text).toBe(
+      `export default { build: { assetsDir: 'static', rolldownOptions: { output: { assetFileNames: 'static/assets/[hash]-[name].[ext]' } } } };`
+    );
+    expect(takeWarnings()).toEqual([
+      '/vite.config.ts: v2 ignores `build.assetsDir`: assets are kept in "static/assets" but JS chunks are now emitted to "build/".',
+    ]);
+  });
+
+  test('merges into existing rollupOptions output', () => {
+    expect(
+      run(
+        keepAssetsDir,
+        `export default { build: { assetsDir: 'static/', rollupOptions: { output: { preserveModules: true } } } };`
+      ).text
+    ).toBe(
+      `export default { build: { assetsDir: 'static/', rollupOptions: { output: { preserveModules: true, assetFileNames: 'static/assets/[hash]-[name].[ext]' } } } };`
+    );
+    expect(
+      run(
+        keepAssetsDir,
+        `export default { build: { assetsDir: 'a', rollupOptions: { input: 'x' } } };`
+      ).text
+    ).toBe(
+      `export default { build: { assetsDir: 'a', rollupOptions: { input: 'x', output: { assetFileNames: 'a/assets/[hash]-[name].[ext]' } } } };`
+    );
+  });
+
+  test('keeps an explicit assetFileNames and the default assetsDir', () => {
+    for (const code of [
+      `export default { build: { assetsDir: 'a', rollupOptions: { output: { assetFileNames: 'x' } } } };`,
+      `export default { build: { assetsDir: 'assets' } };`,
+      `export default { other: { assetsDir: 'a' } };`,
+    ]) {
+      expect(run(keepAssetsDir, code)).toEqual({ changed: false, text: code });
+    }
   });
 });

@@ -163,3 +163,43 @@ const EVENT_TYPES: Record<string, Replacement> = {
 
 /** The deprecated `QwikXxxEvent`/`NativeXxxEvent` aliases and `PropFunction` are not public in v2. */
 export const replaceEventTypes = (file: SourceFile) => replaceTypes(file, EVENT_TYPES);
+
+/** V1 public exports that v2 only exposes from `@qwik.dev/core/internal`. */
+const INTERNAL = new Set([
+  ...['componentQrl', 'createComputedQrl', 'eventQrl', 'qrl', 'useComputedQrl', 'useResourceQrl'],
+  ...['useStylesQrl', 'useStylesScopedQrl', 'useTaskQrl', 'useVisibleTaskQrl', '_qrlSync'],
+  ...['h', 'createElement', 'setPlatform', 'unwrapStore', 'useLexicalScope'],
+  ...['SSRComment', 'SSRHintProps', 'SSRRaw', 'SSRStream', 'SSRStreamBlock', 'SSRStreamProps'],
+  ...['ComponentBaseProps', 'ComputedFn', 'CorePlatform', 'CorrectedToggleEvent', 'DOMAttributes'],
+  ...['DevJSX', 'JSXTagName', 'KnownEventNames', 'OnRenderFn', 'PublicProps', 'QwikAttributes'],
+  ...['QwikDOMAttributes', 'QwikIdleEvent', 'QwikInitEvent', 'QwikSymbolEvent', 'RenderResult'],
+  ...['RenderSSROptions', 'ResourceCtx', 'ResourceFn', 'ResourceOptions', 'ResourcePending'],
+  ...['ResourceProps', 'ResourceRejected', 'ResourceResolved', 'SnapshotListener', 'SnapshotMeta'],
+  ...['SnapshotMetaValue', 'SnapshotResult', 'SnapshotState', 'StreamWriter', 'SyncQRL', 'TaskFn'],
+  ...['Tracker', 'UseSignal', 'UseStoreOptions', 'UseStylesScoped', 'VisibleTaskStrategy'],
+]);
+
+/** Moves imports of APIs that are no longer public to `@qwik.dev/core/internal`. */
+export const moveInternalImports = (file: SourceFile) => {
+  let changed = false;
+  for (const decl of file.getImportDeclarations()) {
+    if (decl.getModuleSpecifierValue() !== CORE) {
+      continue;
+    }
+    const internal = decl.getNamedImports().filter((n) => INTERNAL.has(n.getName()));
+    if (internal.length === 0) {
+      continue;
+    }
+    const names = internal.map((n) => n.getText());
+    const typeOnly = decl.isTypeOnly() ? 'type ' : '';
+    internal.forEach((n) => n.remove());
+    const newImport = `import ${typeOnly}{ ${names.join(', ')} } from '${CORE}/internal';`;
+    if (decl.getNamedImports().length === 0 && !decl.getDefaultImport()) {
+      decl.replaceWithText(newImport);
+    } else {
+      file.insertStatements(decl.getChildIndex() + 1, newImport);
+    }
+    changed = true;
+  }
+  return changed;
+};

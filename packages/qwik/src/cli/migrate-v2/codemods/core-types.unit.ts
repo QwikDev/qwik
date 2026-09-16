@@ -1,6 +1,6 @@
 import { Project } from 'ts-morph';
 import { describe, expect, test } from 'vitest';
-import { replaceEventTypes, replaceRemovedJsxTypes } from './core-types';
+import { moveInternalImports, replaceEventTypes, replaceRemovedJsxTypes } from './core-types';
 import type { Codemod } from './run-codemods';
 
 const run = (codemod: Codemod, code: string) => {
@@ -93,5 +93,30 @@ describe('replaceEventTypes', () => {
         `export const C = component$((props: { onClick$: QRL<() => void> }) => null);`,
       ].join('\n')
     );
+  });
+});
+
+describe('moveInternalImports', () => {
+  test('moves non public APIs to the internal entry point', () => {
+    expect(
+      run(
+        moveInternalImports,
+        [
+          `import { component$, componentQrl, type Tracker as T, h } from '@builder.io/qwik';`,
+          `import type { SSRStreamProps } from '@builder.io/qwik';`,
+        ].join('\n')
+      ).text
+    ).toBe(
+      [
+        `import { component$ } from '@builder.io/qwik';`,
+        `import { componentQrl, type Tracker as T, h } from '@builder.io/qwik/internal';`,
+        `import type { SSRStreamProps } from '@builder.io/qwik/internal';`,
+      ].join('\n')
+    );
+  });
+
+  test('keeps public APIs', () => {
+    const code = `import { component$, useTask$ } from '@builder.io/qwik';`;
+    expect(run(moveInternalImports, code)).toEqual({ changed: false, text: code });
   });
 });

@@ -1,4 +1,4 @@
-import { replaceEventTypes, replaceRemovedJsxTypes } from './core-types';
+import { moveInternalImports, replaceEventTypes, replaceRemovedJsxTypes } from './core-types';
 import { removeQwikCityPlan, renameQwikCityPlatform, replaceNotFound } from './entries';
 import { migrateQwikLabs } from './labs';
 import { removeSetupServiceWorker } from './router';
@@ -35,4 +35,5 @@ export const codemods: Codemod[] = [
   migrateQwikLabs,
   replaceRemovedJsxTypes,
   replaceEventTypes,
+  moveInternalImports,
 ];

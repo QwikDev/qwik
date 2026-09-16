@@ -15,66 +15,33 @@ const jsxProp = (tag: string, prop: string): Replacement => ({
 });
 const text = (value: string): Replacement => ({ text: () => value });
 
-/** Tags of the v1 `XxxHTMLAttributes` types, from the v1 jsx-generated types. */
-const HTML_ATTRIBUTES: Record<string, string> = {
+/** The v1 `XxxHTMLAttributes` types, from the v1 jsx-generated types. */
+const HTML_ATTRIBUTES = [
+  ...['Anchor', 'Area', 'Audio', 'Base', 'Blockquote', 'Button', 'Canvas', 'Col', 'Colgroup'],
+  ...['Data', 'Del', 'Details', 'Dialog', 'Embed', 'Fieldset', 'Form', 'Html', 'Iframe', 'Img'],
+  ...['Hr', 'Input', 'Ins', 'Keygen', 'Label', 'Li', 'Link', 'Map', 'Menu', 'Meta', 'Meter'],
+  ...['Object', 'Ol', 'Optgroup', 'Option', 'Output', 'Param', 'Progress', 'Quote', 'Slot'],
+  ...['Script', 'Select', 'Source', 'Style', 'Table', 'Td', 'Textarea', 'Th', 'Time', 'Title'],
+  ...['Track', 'Video', 'Media', ''],
+];
+
+/** Types whose tag isn't their lower case name, as in v1. */
+const HTML_ATTRIBUTES_TAGS: Record<string, string> = {
   Anchor: 'a',
-  Area: 'area',
-  Audio: 'audio',
-  Base: 'base',
-  Blockquote: 'blockquote',
-  Button: 'button',
-  Canvas: 'canvas',
-  Col: 'col',
-  Colgroup: 'colgroup',
-  Data: 'data',
-  Del: 'del',
-  Details: 'details',
-  Dialog: 'dialog',
-  Embed: 'embed',
-  Fieldset: 'fieldset',
-  Form: 'form',
-  Html: 'html',
-  Iframe: 'iframe',
-  Img: 'img',
-  Hr: 'hr',
-  Input: 'input',
-  Ins: 'ins',
   Keygen: 'base',
-  Label: 'label',
-  Li: 'li',
-  Link: 'link',
-  Map: 'map',
-  Menu: 'menu',
-  Meta: 'meta',
-  Meter: 'meter',
-  Object: 'object',
-  Ol: 'ol',
-  Optgroup: 'optgroup',
-  Option: 'option',
-  Output: 'output',
   Param: 'base',
-  Progress: 'progress',
   Quote: 'q',
-  Slot: 'slot',
-  Script: 'script',
-  Select: 'select',
-  Source: 'source',
-  Style: 'style',
-  Table: 'table',
-  Td: 'td',
-  Textarea: 'textarea',
   Th: 'tr',
-  Time: 'time',
-  Title: 'title',
-  Track: 'track',
-  Video: 'video',
   Media: 'audio',
   '': 'div',
 };
 
 const JSX_TYPES: Record<string, Replacement> = {
   ...Object.fromEntries(
-    Object.entries(HTML_ATTRIBUTES).map(([name, tag]) => [`${name}HTMLAttributes`, jsxTag(tag)])
+    HTML_ATTRIBUTES.map((name) => [
+      `${name}HTMLAttributes`,
+      jsxTag(HTML_ATTRIBUTES_TAGS[name] ?? name.toLowerCase()),
+    ])
   ),
   Booleanish: text('(boolean | `${boolean}`)'),
   Numberish: text('(number | `${number}`)'),

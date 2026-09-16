@@ -1,4 +1,12 @@
-import { jsx, component$, Slot, $, type QRLEventHandlerMulti, type QwikJSX } from '@qwik.dev/core';
+import {
+  jsx,
+  component$,
+  Slot,
+  $,
+  isDev,
+  type QRLEventHandlerMulti,
+  type QwikJSX,
+} from '@qwik.dev/core';
 import type { ActionStore } from './types';
 import { useNavigate } from './use-functions';
 
@@ -9,13 +17,7 @@ export interface FormSubmitCompletedDetail<T> {
 }
 
 /** @public */
-export interface FormProps<O, I> extends Omit<
-  QwikJSX.IntrinsicElements['form'],
-  'action' | 'method'
-> {
-  /** Reference to the action returned by `action()`. */
-  action?: ActionStore<O, I, true | false>;
-
+export type FormProps<O, I> = Omit<QwikJSX.IntrinsicElements['form'], 'action' | 'method'> & {
   /**
    * When `true` the form submission will cause a full page reload, even if SPA mode is enabled and
    * JS is available.
@@ -36,13 +38,36 @@ export interface FormProps<O, I> extends Omit<
     | undefined;
 
   key?: string | number | null;
-}
+} & (
+    | {
+        /** Reference to the action returned by `action()`. */
+        action: ActionStore<O, I, true | false>;
+        method?: never;
+      }
+    | {
+        action?: never;
+        /** Submit the form as a GET navigation. */
+        method: 'get';
+      }
+  );
 
 /** @public */
-export const Form = <O, I>(
-  { action, spaReset, reloadDocument, onSubmit$, ...rest }: FormProps<O, I>,
-  key: string | null
-) => {
+export const Form = <O, I>(props: FormProps<O, I>, key: string | null) => {
+  const { action, method, spaReset, reloadDocument, onSubmit$, ...rest } = props;
+
+  if (isDev) {
+    if (action && method === 'get') {
+      throw new Error(
+        'Form cannot use both an action and method="get". Choose one, or use a native <form> when handling submission manually.'
+      );
+    }
+    if (!action && method !== 'get') {
+      throw new Error(
+        'Form requires either an action or method="get". Use a native <form> when handling submission manually.'
+      );
+    }
+  }
+
   if (action) {
     const isArrayApi = Array.isArray(onSubmit$);
     // if you pass an array you can choose where you want action.submit in it
@@ -87,25 +112,26 @@ export const Form = <O, I>(
       },
       key
     );
-  } else {
-    return (
-      <GetForm
-        key={key}
-        spaReset={spaReset}
-        reloadDocument={reloadDocument}
-        onSubmit$={onSubmit$}
-        {...(rest as any)}
-      />
-    );
   }
+
+  return (
+    <GetForm
+      key={key}
+      method="get"
+      spaReset={spaReset}
+      reloadDocument={reloadDocument}
+      onSubmit$={onSubmit$}
+      {...(rest as any)}
+    />
+  );
 };
 
 export const GetForm = component$<FormProps<undefined, undefined>>(
-  ({ action: _0, spaReset, reloadDocument, onSubmit$, ...rest }) => {
+  ({ action: _0, method: _1, spaReset, reloadDocument, onSubmit$, ...rest }) => {
     const nav = useNavigate();
     return (
       <form
-        action="get"
+        method="get"
         preventdefault:submit={!reloadDocument}
         data-spa-reset={spaReset ? 'true' : undefined}
         {...rest}

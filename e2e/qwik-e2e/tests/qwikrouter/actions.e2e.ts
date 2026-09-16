@@ -11,7 +11,7 @@ test.describe('actions', () => {
     MPA_and_SPA_tests();
 
     test.describe('issue4679', () => {
-      test('should serialize Form without action', async ({ page }) => {
+      test('should serialize Form with an explicit GET method', async ({ page }) => {
         await page.goto('/qwikrouter-test/issue4679/');
         const button = page.locator('#issue-4679-button');
         await expect(button).toHaveText('Toggle False');

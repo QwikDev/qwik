@@ -1444,5 +1444,54 @@ describe(`${name}: projection`, () => {
       expect(container.querySelector('i')!.textContent).toBe('h2');
       cleanup();
     });
+
+    it('moves projected content between slots when its q:slot name changes', async () => {
+      const Card = component$(() => {
+        const clicks = useSignal(0);
+        return (
+          <article>
+            <button id="card" onClick$={() => clicks.value++}>
+              {clicks.value}
+            </button>
+            <aside>
+              <Slot name="left" />
+            </aside>
+            <main>
+              <Slot name="right" />
+            </main>
+          </article>
+        );
+      });
+      const App = component$(() => {
+        const side = useSignal('left');
+        return (
+          <>
+            <button
+              id="swap"
+              onClick$={() => (side.value = side.value === 'left' ? 'right' : 'left')}
+            ></button>
+            <Card>
+              <i q:slot={side.value}>content</i>
+            </Card>
+          </>
+        );
+      });
+      const { container, cleanup, qwikLoader } = await render(App);
+      const click = (id: string) => qwikLoader?.dispatch(container.querySelector(id)!, 'click');
+      const text = (tag: string) => container.querySelector(tag)!.textContent;
+      expect(text('aside')).toBe('content');
+      expect(text('main')).toBe('');
+      await click('#card');
+      await click('#swap');
+      expect(text('aside')).toBe('');
+      expect(text('main')).toBe('content');
+      // The consumer kept its state: the swap moved content, it did not re-mount Card.
+      expect(text('#card')).toBe('1');
+      await click('#swap');
+      expect(text('aside')).toBe('content');
+      expect(text('main')).toBe('');
+      expect(text('#card')).toBe('1');
+      cleanup();
+    });
   });
 });

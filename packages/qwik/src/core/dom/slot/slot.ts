@@ -17,7 +17,14 @@ import { disposeOwner, getOrCreateContextOwner, type Owner } from '../../runtime
 import { DangerousInnerHTMLAttr, EMPTY_ARRAY, EMPTY_NODES, EMPTY_STRING } from '../../utils/consts';
 import { MATH_NS, SVG_NS } from '../../shared/utils/markers';
 import { toNodes, type MaybeNodeOutput } from '../../utils/nodes';
-import { getFunctionOrResolve } from '../../utils/qrl';
+import { getFunctionOrResolve, readExpression } from '../../utils/qrl';
+import { isQrl } from '../../shared/qrl/qrl-utils';
+import {
+  createContentBlock,
+  renderSsrContent,
+  type ContentFn,
+  type SsrContentFn,
+} from '../content/content';
 import {
   createSsrOpenTag,
   createSsrNodeId,
@@ -30,17 +37,25 @@ import { applyDomProps, renderDomPropsToString } from '../effect/dom-props';
 type SlotRenderFn = (ctx: ContainerContext) => MaybeNodeOutput | Promise<MaybeNodeOutput>;
 type SsrSlotRenderFn = (ctx: SsrSlotContext, rangeId: number) => ValueOrPromise<SsrOutput>;
 export type SlotName = string;
+/** A `q:slot` name: a string, or for `q:slot={expr}` a function the live slot reads tracked. */
+type SlotNameSource = string | (() => string) | QRL<() => string>;
 
 export interface Projection {
   renderQrl: unknown;
   owner: Owner | null;
   nodes: readonly Node[] | null;
   slotScope: SlotScope | null;
+  name: SlotNameSource;
 }
 
 export interface SlotScope {
-  slots: Map<SlotName, Projection[]>;
+  projections: Projection[];
+  /** Set by a parent with a dynamic name: every slot of the scope becomes a content range. */
+  slotContentQrl: QRL<SlotContentFn> | null;
 }
+
+/** The live-slot segment: the client tail on the client, the server tail on the server. */
+type SlotContentFn = ContentFn<[SlotScope, string, SlotRenderFn | null]>;
 
 export interface SsrSlotContext {
   nextId(): number;
@@ -58,25 +73,23 @@ export const Slot: FunctionComponent<{
 }> = () => null;
 
 class SlotScopeState implements SlotScope {
-  slots = new Map<string, Projection[]>();
+  projections: Projection[] = [];
+  constructor(public slotContentQrl: QRL<SlotContentFn> | null) {}
 }
 
 class ProjectionState implements Projection {
-  renderQrl: unknown;
-  owner: Owner | null;
-  nodes: readonly Node[] | null;
-  slotScope: SlotScope | null;
+  owner: Owner | null = null;
+  nodes: readonly Node[] | null = null;
 
-  constructor(renderQrl: unknown, slotScope: SlotScope | null) {
-    this.renderQrl = renderQrl;
-    this.owner = null;
-    this.nodes = null;
-    this.slotScope = slotScope;
-  }
+  constructor(
+    public renderQrl: unknown,
+    public slotScope: SlotScope | null,
+    public name: SlotNameSource
+  ) {}
 }
 
-export function createSlotScope(): SlotScope {
-  return new SlotScopeState();
+export function createSlotScope(slotContentQrl: QRL<SlotContentFn> | null = null): SlotScope {
+  return new SlotScopeState(slotContentQrl);
 }
 
 export function isSlotScope(value: unknown): value is SlotScope {
@@ -84,31 +97,25 @@ export function isSlotScope(value: unknown): value is SlotScope {
 }
 
 export function createProjection(): Projection {
-  return new ProjectionState(null, null);
+  return new ProjectionState(null, null, EMPTY_STRING);
 }
 
-export function isProjection(value: unknown): value is Projection {
+export function isProjection(value: unknown): value is ProjectionState {
   return value instanceof ProjectionState;
 }
 
 export function registerProjection(
   scope: SlotScope,
-  name: string,
+  name: SlotNameSource,
   renderQrl: unknown,
   slotScope?: SlotScope | null
 ): Projection {
-  const normalized = name || EMPTY_STRING;
   const registered = new ProjectionState(
     renderQrl,
-    slotScope ?? getActiveInvokeContextOrNull()?.slotScope ?? null
+    slotScope ?? getActiveInvokeContextOrNull()?.slotScope ?? null,
+    name
   );
-  const slots = scope.slots;
-  const projections = slots.get(normalized);
-  if (projections === undefined) {
-    slots.set(normalized, [registered]);
-  } else {
-    projections.push(registered);
-  }
+  scope.projections.push(registered);
   return registered;
 }
 
@@ -125,23 +132,58 @@ export function forwardSlot(
     }
     return;
   }
-  const forwarded = source.map(
-    (projection) => new ProjectionState(projection.renderQrl, projection.slotScope)
-  );
-  const normalized = targetName || EMPTY_STRING;
-  const projections = scope.slots.get(normalized);
-  if (projections === undefined) {
-    scope.slots.set(normalized, forwarded);
-  } else {
-    projections.push(...forwarded);
+  for (let i = 0; i < source.length; i++) {
+    scope.projections.push(
+      new ProjectionState(source[i].renderQrl, source[i].slotScope, targetName)
+    );
   }
 }
 
+/** A dynamic name is read here, under whatever collector the live slot runs with. */
 export function resolveSlot(
   scope: SlotScope | null,
-  name: string = EMPTY_STRING
+  name: string = EMPTY_STRING,
+  container?: ContainerContext
 ): readonly Projection[] {
-  return scope?.slots.get(name || EMPTY_STRING) ?? EMPTY_ARRAY;
+  const slotName = name || EMPTY_STRING;
+  return (
+    scope?.projections.filter(({ name }) => {
+      const read =
+        typeof name === 'string'
+          ? name
+          : isQrl(name)
+            ? readExpression(name as QRL<(...captures: unknown[]) => string>, container)
+            : name();
+      return (read || EMPTY_STRING) === slotName;
+    }) ?? EMPTY_ARRAY
+  );
+}
+
+/** The client tail of a live slot: projected content hangs off the host, so a swap keeps it. */
+export function renderSlotContent(
+  container: ContainerContext,
+  scope: SlotScope,
+  name: string,
+  fallback: SlotRenderFn | null
+): ValueOrPromise<readonly Node[]> {
+  const context = getActiveInvokeContext();
+  const host = { ...context, owner: context.ownerHost };
+  return renderProjections(resolveSlot(scope, name, container), fallback ?? undefined, host);
+}
+
+/** The server tail of a live slot. */
+export function renderSsrSlotContent(
+  ctx: ContainerContext & SsrSlotContext,
+  scope: SlotScope,
+  name: string,
+  fallback: QRL<SsrSlotRenderFn> | null
+): ValueOrPromise<SsrOutput> {
+  return renderSsrProjections(
+    ctx,
+    resolveSlot(scope, name, ctx),
+    fallback ?? undefined,
+    getActiveInvokeContext()
+  );
 }
 
 export function createSlot(
@@ -149,7 +191,32 @@ export function createSlot(
   fallback?: SlotRenderFn
 ): ValueOrPromise<readonly Node[]> {
   const context = getActiveInvokeContext();
-  const projections = resolveSlot(context.slotScope, name);
+  const scope = context.slotScope;
+  if (scope?.slotContentQrl) {
+    const container = context.container!;
+    const start = container.document.createComment(EMPTY_STRING);
+    const end = container.document.createComment(EMPTY_STRING);
+    container.scheduler.notify(
+      createContentBlock<[SlotScope, string, SlotRenderFn | null]>(
+        container,
+        start,
+        end,
+        [scope, name, fallback ?? null],
+        scope.slotContentQrl,
+        false,
+        true
+      )
+    );
+    return [start, end];
+  }
+  return renderProjections(resolveSlot(scope, name), fallback, context);
+}
+
+function renderProjections(
+  projections: readonly Projection[],
+  fallback: SlotRenderFn | undefined,
+  context: RuntimeInvokeContext
+): ValueOrPromise<readonly Node[]> {
   if (projections.length === 0) {
     return fallback === undefined
       ? EMPTY_NODES
@@ -270,7 +337,29 @@ export function renderSsrSlot(
   invokeContext: RuntimeInvokeContext | null = getActiveInvokeContext()
 ): ValueOrPromise<SsrOutput> {
   const context = invokeContext ?? getActiveInvokeContext();
-  const projections = resolveSlot(context.slotScope, name);
+  const scope = context.slotScope;
+  if (scope?.slotContentQrl) {
+    const container = ctx as ContainerContext & SsrSlotContext;
+    const id = ctx.nextId();
+    const content = renderSsrContent(
+      container,
+      id,
+      [scope, name, fallback ?? null],
+      scope.slotContentQrl as QRL<SsrContentFn<unknown[]>>,
+      false,
+      true
+    );
+    return maybeThen(content, (output) => ['<!d=', createSsrNodeId(id), '>', output, '<!/d>']);
+  }
+  return renderSsrProjections(ctx, resolveSlot(scope, name), fallback, context);
+}
+
+function renderSsrProjections(
+  ctx: SsrSlotContext,
+  projections: readonly Projection[],
+  fallback: QRL<SsrSlotRenderFn> | undefined,
+  context: RuntimeInvokeContext
+): ValueOrPromise<SsrOutput> {
   if (projections.length === 0) {
     return fallback === undefined
       ? EMPTY_STRING

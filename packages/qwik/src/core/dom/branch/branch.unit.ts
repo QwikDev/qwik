@@ -112,7 +112,8 @@ describe('branches', () => {
       values: new Map(),
     };
     const slotScope: SlotScope = {
-      slots: new Map(),
+      projections: [],
+      slotContentQrl: null,
     };
     const branchContext = newInvokeContext({
       owner: rootOwner,

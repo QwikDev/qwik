@@ -57,12 +57,14 @@ export function emitComponentCall(
   imports: Set<string>,
   resolveQrl: ResolveComponentQrl,
   /** The target's dynamic-tag helper for tags the plan cannot prove to be components. */
-  dynamicTag: QwikWord
+  dynamicTag: QwikWord,
+  /** The client reads a dynamic slot name through a static function; the server serializes a QRL. */
+  staticQrl: ((use: QrlUse) => string) | null = null
 ) {
   // Only the server roots what it serializes; the tag helper tells the targets apart.
   const ssrCtx = dynamicTag === QwikWord.RenderSsrDynamicTag ? pass.names.ctx : null;
   const props = emitComponentProps(module, component, pass, imports, resolveQrl, ssrCtx);
-  const projections = emitComponentProjections(component, pass, imports, resolveQrl);
+  const projections = emitComponentProjections(component, pass, imports, resolveQrl, staticQrl);
   const target = componentTargetJs(module, component.target, pass, imports, dynamicTag);
   imports.add(QwikWord.CreateComponent);
   return {
@@ -77,7 +79,8 @@ function emitComponentProjections(
   component: ComponentOp,
   pass: ComponentRenderPass,
   imports: Set<string>,
-  resolveQrl: ResolveComponentQrl
+  resolveQrl: ResolveComponentQrl,
+  staticQrl: ((use: QrlUse) => string) | null
 ): { options: string; roots: string[]; declarations: string[]; statements: string[] } {
   if (component.projections.length === 0) {
     return { options: '', roots: [], declarations: [], statements: [] };
@@ -103,23 +106,35 @@ function emitComponentProjections(
     }
     imports.add(QwikWord.RegisterProjection);
     const render = emitProjectionQrl(projection.use, resolveQrl);
-    statements.push(
-      `${QwikWord.RegisterProjection}(${scope}, ${JSON.stringify(projection.name)}, ${render});`
-    );
+    const name =
+      projection.nameUse === undefined
+        ? JSON.stringify(projection.name)
+        : staticQrl === null
+          ? qrlReferenceJs(resolveQrl(projection.nameUse, true))
+          : staticQrl(projection.nameUse);
+    statements.push(`${QwikWord.RegisterProjection}(${scope}, ${name}, ${render});`);
   }
   return {
     options: `, { slotScope: ${scope} }`,
     roots: [scope],
-    declarations: [`const ${scope} = ${QwikWord.CreateSlotScope}();`],
+    declarations: [
+      `const ${scope} = ${QwikWord.CreateSlotScope}(${
+        component.dynamicSlot === undefined ? '' : resolveQrl(component.dynamicSlot, true).reference
+      });`,
+    ],
     statements,
   };
 }
 
 function emitProjectionQrl(use: QrlUse, resolveQrl: ResolveComponentQrl): string {
-  const { qrl, reference, args } = resolveQrl(use, true);
-  if (qrl.payloadKind !== QrlPayloadKind.Function) {
+  const resolved = resolveQrl(use, true);
+  if (resolved.qrl.payloadKind !== QrlPayloadKind.Function) {
     throw new UnsupportedError('a non-function component projection QRL');
   }
+  return qrlReferenceJs(resolved);
+}
+
+function qrlReferenceJs({ reference, args }: ReturnType<ResolveComponentQrl>): string {
   return args.length === 0 ? reference : `${reference}.w([${args.join(', ')}])`;
 }
 

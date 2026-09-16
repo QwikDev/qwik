@@ -1150,15 +1150,11 @@ function serializeUseOnScopes(context: RuntimeInvokeContext | null): unknown {
 }
 
 function serializeSlotScope(scope: SlotScope): unknown[] {
-  const out: unknown[] = [];
-  for (const [name, projections] of scope.slots) {
-    out.push(name, projections);
-  }
-  return out;
+  return [scope.projections, scope.slotContentQrl];
 }
 
 function serializeProjection(projection: Projection): unknown[] {
-  return [projection.renderQrl, projection.slotScope];
+  return [projection.renderQrl, projection.slotScope, projection.name];
 }
 
 function serializeDomSubscription(subscription: SsrDomEffectBase | SsrDomSubscription): unknown[] {

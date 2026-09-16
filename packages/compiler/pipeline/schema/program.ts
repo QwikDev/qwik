@@ -69,7 +69,14 @@ export const enum ProjectionKind {
 }
 
 export type ComponentProjection =
-  | { kind: ProjectionKind.Render; name: string; use: QrlUse; id: Seed }
+  | {
+      kind: ProjectionKind.Render;
+      name: string;
+      /** A `q:slot={expr}` name: read under the dynamic slot's collector; a value QRL on the server. */
+      nameUse?: QrlUse;
+      use: QrlUse;
+      id: Seed;
+    }
   | {
       kind: ProjectionKind.Forward;
       name: string;
@@ -136,6 +143,8 @@ export type Op =
         | { c: ComponentPropsKind.Entries; props: Prop[] }
         | { c: ComponentPropsKind.Proxy; compute: QrlUse };
       projections: ComponentProjection[];
+      /** Present when a projection has a dynamic name: the consumer's slots re-resolve through it. */
+      dynamicSlot?: QrlUse;
       id: Seed;
       lifetime: LifetimeId;
       blockingSuspense: boolean;

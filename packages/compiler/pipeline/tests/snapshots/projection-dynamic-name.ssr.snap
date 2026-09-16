@@ -1,0 +1,194 @@
+==INPUT==
+
+import { component$, useSignal } from '@qwik.dev/core';
+import { Card } from './card';
+export default component$(() => {
+  const side = useSignal('left');
+  return (
+    <Card>
+      <div q:slot={side.value}>content</div>
+      <b q:slot="right">fixed</b>
+    </Card>
+  );
+});
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  useSignal,
+  createSlotScope,
+  registerProjection,
+  createComponent,
+  _captures,
+  createSsrMarkup,
+  createSsrNodeId,
+  _noopQrl,
+  renderSsrSlotContent,
+  _markComponent,
+} from '@qwik.dev/core';
+import { Card } from './card';
+const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
+  const [side] = _captures;
+  return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), '<div>content</div>', '<!/s>'];
+};
+const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _noopQrl(
+  'component_slot_render_segment_0_3b0tagwys7lui'
+);
+q_component_slot_render_segment_0_3b0tagwys7lui.s(component_slot_render_segment_0_3b0tagwys7lui);
+const component_slot_name_segment_1_6cnnr2dqnix6 = (side) => {
+  return side.value;
+};
+const q_component_slot_name_segment_1_6cnnr2dqnix6 = /*#__PURE__*/ _noopQrl(
+  'component_slot_name_segment_1_6cnnr2dqnix6'
+);
+q_component_slot_name_segment_1_6cnnr2dqnix6.s(component_slot_name_segment_1_6cnnr2dqnix6);
+const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId) => {
+  return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), '<b>fixed</b>', '<!/s>'];
+};
+const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ _noopQrl(
+  'component_slot_render_segment_2_3b0t9ouqyjhtg'
+);
+q_component_slot_render_segment_2_3b0t9ouqyjhtg.s(component_slot_render_segment_2_3b0t9ouqyjhtg);
+const component_slot_content_segment_3_25e5vjljuig5s = (ctx, scope, name, fallback) => {
+  return renderSsrSlotContent(ctx, scope, name, fallback);
+};
+const q_component_slot_content_segment_3_25e5vjljuig5s = /*#__PURE__*/ _noopQrl(
+  'component_slot_content_segment_3_25e5vjljuig5s'
+);
+q_component_slot_content_segment_3_25e5vjljuig5s.s(component_slot_content_segment_3_25e5vjljuig5s);
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    const side = useSignal('left');
+    const slotScope0 = createSlotScope(q_component_slot_content_segment_3_25e5vjljuig5s);
+    registerProjection(
+      slotScope0,
+      q_component_slot_name_segment_1_6cnnr2dqnix6.w([side]),
+      q_component_slot_render_segment_0_3b0tagwys7lui.w([side])
+    );
+    registerProjection(slotScope0, 'right', q_component_slot_render_segment_2_3b0t9ouqyjhtg);
+    ctx.addRoot(slotScope0);
+    const component0 = createComponent(Card, null, ctx, { slotScope: slotScope0 });
+    return component0;
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
+============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
+
+import { _captures, createSsrMarkup, createSsrNodeId } from '@qwik.dev/core';
+
+export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
+  const [side] = _captures;
+  return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), '<div>content</div>', '<!/s>'];
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_slot_render_segment_0_3b0tagwys7lui",
+  "entry": null,
+  "displayName": "component_slot_render_segment_0",
+  "hash": "3b0tagwys7lui",
+  "canonicalFilename": "component.tsx_component_slot_render_segment_0_3b0tagwys7lui",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot:render",
+  "captures": true,
+  "loc": [
+    183,
+    221
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "side"
+  ]
+}
+*/
+============================= src/component.tsx_component_slot_name_segment_1_6cnnr2dqnix6.js (ENTRY POINT)==
+
+export const component_slot_name_segment_1_6cnnr2dqnix6 = (side) => {
+  return side.value;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_slot_name_segment_1_6cnnr2dqnix6",
+  "entry": null,
+  "displayName": "component_slot_name_segment_1",
+  "hash": "6cnnr2dqnix6",
+  "canonicalFilename": "component.tsx_component_slot_name_segment_1_6cnnr2dqnix6",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot-name",
+  "captures": true,
+  "loc": [
+    196,
+    206
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "side"
+  ]
+}
+*/
+============================= src/component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg.js (ENTRY POINT)==
+
+import { createSsrMarkup, createSsrNodeId } from '@qwik.dev/core';
+
+export const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId) => {
+  return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), '<b>fixed</b>', '<!/s>'];
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_slot_render_segment_2_3b0t9ouqyjhtg",
+  "entry": null,
+  "displayName": "component_slot_render_segment_2",
+  "hash": "3b0t9ouqyjhtg",
+  "canonicalFilename": "component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot:render",
+  "captures": false,
+  "loc": [
+    228,
+    255
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_slot_content_segment_3_25e5vjljuig5s.js (ENTRY POINT)==
+
+import { renderSsrSlotContent } from '@qwik.dev/core';
+
+export const component_slot_content_segment_3_25e5vjljuig5s = (ctx, scope, name, fallback) => {
+  return renderSsrSlotContent(ctx, scope, name, fallback);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_slot_content_segment_3_25e5vjljuig5s",
+  "entry": null,
+  "displayName": "component_slot_content_segment_3",
+  "hash": "25e5vjljuig5s",
+  "canonicalFilename": "component.tsx_component_slot_content_segment_3_25e5vjljuig5s",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot:content",
+  "captures": false,
+  "loc": [
+    170,
+    267
+  ],
+  "paramNames": []
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

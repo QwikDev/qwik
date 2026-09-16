@@ -863,15 +863,51 @@ function lowerComponentOp(
     ctx.jsx.factory(child.expression) !== null
       ? child.expression
       : null;
+  // Props lower before projections: segment ordinals follow the authored order.
+  const props = lowerComponentProps(attributes, ctx, factoryChild);
+  const projections = factoryChild === null ? lowerProjections(element.children, ctx) : [];
   return {
     op: OpKind.Component,
     target,
-    props: lowerComponentProps(attributes, ctx, factoryChild),
-    projections: factoryChild === null ? lowerProjections(element.children, ctx) : [],
+    props,
+    projections,
+    ...(projections.some(
+      (projection) => projection.kind === ProjectionKind.Render && projection.nameUse !== undefined
+    )
+      ? { dynamicSlot: lowerDynamicSlotSegment(element, ctx) }
+      : {}),
     id: { kind: SeedKind.Component, ordinal: ctx.componentCounter.next++ },
     lifetime: 0,
     blockingSuspense: false,
   };
+}
+
+/** The body is fixed runtime code, so the segment needs no source: the emitters print it. */
+function lowerDynamicSlotSegment(element: JSXElement, ctx: LowerContext): QrlUse {
+  const range: [number, number] = [element.start, element.end];
+  return pushQrl(ctx, {
+    identity: { kind: QrlIdentityKind.Segment, nameCtx: SegmentContext.SlotContent },
+    ctxName: SegmentContext.SlotContent,
+    boundary: { kind: BoundaryKind.Implicit, role: 'slot' },
+    payloadKind: QrlPayloadKind.Function,
+    authoredAsync: false,
+    body: {
+      b: QrlBodyKind.Expr,
+      expr: { kind: ExprKind.Ir, ir: { kind: ValueIrKind.Undef } },
+      initialOnly: false,
+    },
+    captures: [],
+    params: { authored: 4, used: [], sources: [] },
+    origin: {
+      range,
+      functionRange: range,
+      calleeRange: null,
+      argumentRanges: [],
+      paramRanges: [],
+      bodyRange: range,
+      bodyKind: FnBodyKind.Expression,
+    },
+  }).use;
 }
 
 function lowerSlotMarker(element: JSXElement, ctx: LowerContext): Op {
@@ -1021,14 +1057,16 @@ function lowerProjections(
     });
 }
 
+type ProjectionName = string | Expression;
+
 function lowerProjection(
   child: JSXChild,
-  name: string,
+  name: ProjectionName,
   ctx: LowerContext
 ): Extract<Op, { op: OpKind.Component }>['projections'][number] {
   const id = { kind: SeedKind.Projection, ordinal: ctx.projectionCounter.next++ } as const;
-  const forwardedSlot = readForwardedSlot(child, ctx);
-  if (forwardedSlot !== null) {
+  const forwardedSlot = typeof name === 'string' ? readForwardedSlot(child, ctx) : null;
+  if (forwardedSlot !== null && typeof name === 'string') {
     return {
       kind: ProjectionKind.Forward,
       name,
@@ -1045,17 +1083,17 @@ function lowerProjection(
     'projection',
     (renderContext) => lowerProjectedChildren([child], name, renderContext)
   );
-  return {
-    kind: ProjectionKind.Render,
-    name,
-    use,
-    id,
-  };
+  if (typeof name === 'string') {
+    return { kind: ProjectionKind.Render, name, use, id };
+  }
+  // The name is read where the consumer's slot resolves, so it ships as a value QRL.
+  const nameUse = lowerComputedExpressionValue(name, ctx, SegmentContext.SlotName).resume.qrl;
+  return { kind: ProjectionKind.Render, name: '', nameUse, use, id };
 }
 
 function lowerProjectedChildren(
   children: readonly JSXChild[],
-  name: string,
+  name: ProjectionName,
   ctx: LowerContext
 ): Op[] {
   return mergeStaticText(
@@ -1074,7 +1112,11 @@ function lowerProjectedChildren(
   );
 }
 
-function lowerProjectedExpression(expression: Expression, name: string, ctx: LowerContext): Op[] {
+function lowerProjectedExpression(
+  expression: Expression,
+  name: ProjectionName,
+  ctx: LowerContext
+): Op[] {
   expression = unwrapExpression(expression);
   const value = ctx.jsx.read(expression);
   if (value.kind === JsxValueKind.Fragment) {
@@ -1098,7 +1140,7 @@ function lowerProjectedExpression(expression: Expression, name: string, ctx: Low
   return lowerRenderExpression(expression, ctx);
 }
 
-function selectProjectionArm(arm: BranchArm, name: string, ctx: LowerContext): BranchArm {
+function selectProjectionArm(arm: BranchArm, name: ProjectionName, ctx: LowerContext): BranchArm {
   if (
     arm.expression === null ||
     collectProjectionNames(ctx.jsx.read(arm.expression)).includes(name)
@@ -1108,7 +1150,7 @@ function selectProjectionArm(arm: BranchArm, name: string, ctx: LowerContext): B
   return { ...arm, expression: null };
 }
 
-function collectProjectionNames(value: JsxValue): string[] {
+function collectProjectionNames(value: JsxValue): ProjectionName[] {
   switch (value.kind) {
     case JsxValueKind.Element:
       return [readProjectionName(value.node)];
@@ -1221,14 +1263,14 @@ function isProjectionChild(child: JSXChild): boolean {
   );
 }
 
-function readProjectionName(child: JSXChild): string {
+function readProjectionName(child: JSXChild): ProjectionName {
   if (child.type !== 'JSXElement') {
     return '';
   }
   const attribute = child.openingElement.attributes.find(
     (attribute) => jsxAttributeName(attribute) === QwikDirective.Slot
   );
-  return attribute === undefined ? '' : readStaticSlotName(attribute);
+  return attribute === undefined ? '' : readSlotName(attribute);
 }
 
 function readStaticSlotName(attribute: JSXAttributeItem): string {

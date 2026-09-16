@@ -288,6 +288,15 @@ export function emptyFunctionEmission(): FunctionEmission {
   };
 }
 
+/** A dynamic slot's content range re-resolves the slot through the target's runtime helper. */
+export function dynamicSlotEmission(helper: QwikWord): FunctionEmission {
+  const emission = emptyFunctionEmission();
+  emission.imports.add(helper);
+  emission.params = ['ctx', 'scope', 'name', 'fallback'];
+  emission.value = `${helper}(ctx, scope, name, fallback)`;
+  return emission;
+}
+
 /** Chunks and SSR mirrors share the same function syntax. */
 export function functionText(emission: FunctionEmission): string {
   const body = [

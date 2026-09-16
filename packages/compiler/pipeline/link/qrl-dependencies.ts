@@ -236,11 +236,15 @@ function createDependencyCollector(module: ModulePlan | LinkedModule) {
         } else {
           visitQrlUse(entry.props.compute);
         }
-        entry.projections.forEach((projection) =>
-          visitQrlUse(
-            projection.kind === ProjectionKind.Render ? projection.use : projection.fallback
-          )
-        );
+        entry.projections.forEach((projection) => {
+          if (projection.kind === ProjectionKind.Render) {
+            visitQrlUse(projection.use);
+            visitQrlUse(projection.nameUse ?? null);
+          } else {
+            visitQrlUse(projection.fallback);
+          }
+        });
+        visitQrlUse(entry.dynamicSlot ?? null);
         break;
       case OpKind.Branch:
         visitValue(entry.condition);

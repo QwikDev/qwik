@@ -2917,6 +2917,36 @@ export default component$(() => {
     expect(code).toMatch(/export const component_load_segment_\w+ = async \(key\)/);
   });
 
+  test('should register a projection under a dynamic slot name', async () => {
+    const output = await testInput(mode, 'projection-dynamic-name', {
+      code: `import { component$, useSignal } from '@qwik.dev/core';
+import { Card } from './card';
+export default component$(() => {
+  const side = useSignal('left');
+  return (
+    <Card>
+      <div q:slot={side.value}>content</div>
+      <b q:slot="right">fixed</b>
+    </Card>
+  );
+});
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    // The client reads the name through a bound static function; the server serializes a QRL.
+    expect(main).toMatch(
+      mode === 'ssr'
+        ? /registerProjection\(slotScope0, q_component_slot_name_segment_\w+\.w\(\[side\]\), /
+        : /registerProjection\(slotScope0, \(\) => component_slot_name_segment_\w+\(side\), /
+    );
+    expect(main).toMatch(/registerProjection\(slotScope0, "right", /);
+    // The scope carries the segment its consumer's live slots run.
+    expect(main).toMatch(/createSlotScope\(q_component_slot_content_segment_\w+\)/);
+    const nameChunk = output.modules.find((module) => module.path.includes('slot_name'))!;
+    expect(nameChunk.code).toContain('return side.value;');
+  });
+
   test('should mark every component with the symbol it serializes as', async () => {
     const output = await testInput(mode, 'component-serialization-marker', {
       code: `import { component$, useSignal } from '@qwik.dev/core';

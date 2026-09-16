@@ -511,7 +511,11 @@ Verify reorder, replacement, event captures and cleanup after resume, not only o
 Already implemented: default/named slots, fallback, forwarding, fragments, conditional projections
 and dynamic `Slot name`.
 
-- [ ] Dynamic projection assignment: `q:slot={expression}`, distinct from a dynamic consumer.
+- [x] Dynamic projection assignment: `q:slot={expression}` registers the projection under a name
+      function (a value QRL on the server) and gives the slot scope a live-slot segment; every slot
+      of that consumer then runs as a content range that re-resolves its projections under
+      tracking, so content moves between slots and the consumer keeps its state. Static scopes keep
+      the single replaced marker.
 - [ ] JSX/children supplied as values and through props spreads.
 - [ ] Defaults for destructured `children`.
 - [ ] An explicit user-code `children` contract instead of emitting invalid reads such as

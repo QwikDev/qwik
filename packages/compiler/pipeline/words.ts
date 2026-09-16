@@ -50,6 +50,8 @@ export const enum QwikWord {
   ReadExpression = 'readExpression',
   CreateSlot = 'createSlot',
   CreateSlotScope = 'createSlotScope',
+  RenderSlotContent = 'renderSlotContent',
+  RenderSsrSlotContent = 'renderSsrSlotContent',
   ForwardSlot = 'forwardSlot',
   RegisterProjection = 'registerProjection',
   CreateContentBlock = 'createContentBlock',
@@ -179,4 +181,8 @@ export const enum SegmentContext {
   Projection = 'slot:render',
   DynamicSlot = 'slot:dynamic',
   DynamicTag = 'tag:dynamic',
+  /** A `q:slot={expr}` name, read by the dynamic slot. */
+  SlotName = 'slot-name',
+  /** The segment a dynamic slot's content range runs: resolve the slot again, tracked. */
+  SlotContent = 'slot:content',
 }

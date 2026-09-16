@@ -20,7 +20,7 @@ import {
   type HookDecl,
   type QrlUse,
 } from '../schema';
-import { QwikDirective, QwikWord, QwikGenWord } from '../words';
+import { QwikDirective, QwikWord, QwikGenWord, SegmentContext } from '../words';
 import { UnsupportedError } from '../errors';
 import { generateQwikModule, type QwikModuleEmitter } from './assemble-module';
 import {
@@ -29,6 +29,7 @@ import {
   boundReference,
   capturePrelude,
   functionPrelude,
+  dynamicSlotEmission,
   emptyFunctionEmission,
   bindHandlerJs,
   inlineValueJs,
@@ -333,7 +334,8 @@ class CsrModuleEmitter implements QwikModuleEmitter {
         const { qrl, args } = this.resolveQrlUse(use, pass.names.props);
         return { qrl, reference: this.lazyQrlReference(qrl), args };
       },
-      QwikWord.CreateDynamicTag
+      QwikWord.CreateDynamicTag,
+      (use) => this.valueChunkReference(use, pass.names.props)
     );
     statements.push(
       ...call.rootDeclarations,
@@ -754,6 +756,13 @@ class CsrModuleEmitter implements QwikModuleEmitter {
     return resolved.args.length === 0 ? ref : `${ref}.w([${resolved.args.join(', ')}])`;
   }
 
+  /** A value segment takes its captures positionally, so its static form is a thunk. */
+  private valueChunkReference(use: QrlUse, propsName: string): string {
+    const resolved = this.resolveQrlUse(use, propsName);
+    const ref = this.chunkSymbol(resolved.qrl);
+    return resolved.args.length === 0 ? ref : `() => ${ref}(${resolved.args.join(', ')})`;
+  }
+
   capturedChunkReference(use: QrlUse, propsName: string): string {
     const resolved = this.resolveQrlUse(use, propsName);
     return boundReference(this.chunkSymbol(resolved.qrl), resolved.args, this.imports);
@@ -761,6 +770,9 @@ class CsrModuleEmitter implements QwikModuleEmitter {
 
   /** An arm's function is a normal render program; source-bodied QRLs replay authored code. */
   qrlFunction(qrl: LinkedQrl): FunctionEmission {
+    if (qrl.ctxName === SegmentContext.SlotContent) {
+      return dynamicSlotEmission(QwikWord.RenderSlotContent);
+    }
     switch (qrl.body.b) {
       case QrlBodyKind.Js:
       case QrlBodyKind.Expr:

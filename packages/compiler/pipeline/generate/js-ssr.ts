@@ -22,7 +22,7 @@ import {
   type QrlUse,
   type Value,
 } from '../schema';
-import { QwikAttr, QwikDirective, QwikGenWord, QwikWord } from '../words';
+import { QwikAttr, QwikDirective, QwikGenWord, QwikWord, SegmentContext } from '../words';
 import { escapeAttr, NEWLINE_EATING_ELEMENTS, serializeAttrValue } from '../html';
 import { UnsupportedError } from '../errors';
 import { generateQwikModule, type QwikModuleEmitter } from './assemble-module';
@@ -32,6 +32,7 @@ import {
   boundReference,
   capturePrelude,
   functionPrelude,
+  dynamicSlotEmission,
   bindHandlerJs,
   inlineValueJs,
   rootArgs,
@@ -357,6 +358,9 @@ class SsrModuleEmitter implements QwikModuleEmitter {
 
   /** One context-neutral producer per QRL — its `uses` are satisfied by the placement. */
   qrlFunction(qrl: LinkedQrl): FunctionEmission {
+    if (qrl.ctxName === SegmentContext.SlotContent) {
+      return dynamicSlotEmission(QwikWord.RenderSsrSlotContent);
+    }
     switch (qrl.body.b) {
       case QrlBodyKind.Js:
       case QrlBodyKind.Expr:

@@ -44,10 +44,10 @@ import type { BranchRange } from '../branch/branch';
 import { isSubscriberDisposed } from '../../runtime/subscriber';
 
 export type ContentOutput = MaybeNodeOutput | string | number | bigint | boolean;
-type ContentFn<TArgs extends unknown[] = unknown[]> = (
+export type ContentFn<TArgs extends unknown[] = unknown[]> = (
   ...args: TArgs
 ) => ValueOrPromise<ContentOutput>;
-type SsrContentFn<TArgs extends unknown[] = unknown[]> = (
+export type SsrContentFn<TArgs extends unknown[] = unknown[]> = (
   ...args: TArgs
 ) => ValueOrPromise<SsrOutput>;
 type SuspenseContentFn = (ctx: ContainerContext) => ValueOrPromise<MaybeNodeOutput>;

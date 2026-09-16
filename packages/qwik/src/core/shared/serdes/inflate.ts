@@ -425,9 +425,8 @@ const inflateResolved = (
     case TypeIds.SlotScope: {
       const scope = target as SlotScope;
       const d = data as unknown[];
-      for (let i = 0; i < d.length; i += 2) {
-        scope.slots.set(d[i] as string, d[i + 1] as Projection[]);
-      }
+      scope.projections = d[0] as Projection[];
+      scope.slotContentQrl = (d[1] as SlotScope['slotContentQrl']) ?? null;
       break;
     }
     case TypeIds.Owner: {
@@ -441,6 +440,7 @@ const inflateResolved = (
       projection.owner = null;
       projection.nodes = null;
       projection.slotScope = (d[1] as SlotScope | null) ?? null;
+      projection.name = d[2] as Projection['name'];
       break;
     }
     case TypeIds.Promise: {

@@ -116,7 +116,7 @@ describe('components and invoke contexts', () => {
 
   it('passes render context without an adapter callback', () => {
     const renderContext = { prefix: 'Hello' };
-    const slotScope: SlotScope = { slots: new Map() };
+    const slotScope: SlotScope = { projections: [], slotContentQrl: null };
     let activeContext!: RuntimeInvokeContext;
 
     const html = createComponent(
@@ -188,7 +188,8 @@ describe('components and invoke contexts', () => {
     const parentOwner = createOwner();
     const container = {} as ContainerContext;
     const slotScope: SlotScope = {
-      slots: new Map(),
+      projections: [],
+      slotContentQrl: null,
     };
     const parentContext = newInvokeContext({
       owner: parentOwner,
@@ -226,7 +227,8 @@ describe('components and invoke contexts', () => {
       values: new Map(),
     };
     const slotScope: SlotScope = {
-      slots: new Map(),
+      projections: [],
+      slotContentQrl: null,
     };
     const container = {} as ContainerContext;
     const parentContext = newInvokeContext({

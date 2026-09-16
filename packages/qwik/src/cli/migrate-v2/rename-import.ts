@@ -1,29 +1,6 @@
 import { Node, type SourceFile, ts } from 'ts-morph';
-import { createProject } from './codemods/run-codemods';
+import type { Codemod } from './codemods/run-codemods';
 import { isReference } from './codemods/utils';
-import { visitNotIgnoredFiles } from './tools/visit-not-ignored-files';
-import { log } from '@clack/prompts';
-
-export function replaceImportInFiles(
-  changes: [oldImport: string, newImport: string][],
-  library: string
-) {
-  const project = createProject();
-
-  visitNotIgnoredFiles('.', (path) => {
-    if (!path.endsWith('.ts') && !path.endsWith('.tsx')) {
-      return;
-    }
-    project.addSourceFileAtPath(path);
-  });
-
-  project.getSourceFiles().forEach((sourceFile) => {
-    if (renameImports(sourceFile, changes, library)) {
-      sourceFile.saveSync();
-      log.info(`Updated imports in ${sourceFile.getFilePath()}`);
-    }
-  });
-}
 
 /**
  * Renames the imports of `library` (and its subpaths) in a file. Usages are only renamed when the
@@ -78,3 +55,48 @@ export function renameImports(
   }
   return changed;
 }
+
+/** Renames of the exports that v2 renamed, run after the codemods that match the v1 names. */
+export const importRenames: Codemod[] = [
+  (file) =>
+    renameImports(
+      file,
+      [
+        ['QwikCityProvider', 'QwikRouterProvider'],
+        ['qwikCity', 'qwikRouter'],
+        ['QwikCityVitePluginOptions', 'QwikRouterVitePluginOptions'],
+        ['QwikCityPlugin', 'QwikRouterPlugin'],
+        ['createQwikCity', 'createQwikRouter'],
+        ['QwikCityNodeRequestOptions', 'QwikRouterNodeRequestOptions'],
+        ['QwikCityAwsLambdaOptions', 'QwikRouterAwsLambdaOptions'],
+        ['QwikCityAzureOptions', 'QwikRouterAzureOptions'],
+        ['QwikCityBunOptions', 'QwikRouterBunOptions'],
+        ['QwikCityCloudflarePagesOptions', 'QwikRouterCloudflarePagesOptions'],
+        ['QwikCityDenoOptions', 'QwikRouterDenoOptions'],
+        ['QwikCityFirebaseOptions', 'QwikRouterFirebaseOptions'],
+        ['QwikCityNetlifyOptions', 'QwikRouterNetlifyOptions'],
+        ['QwikCityVercelEdgeOptions', 'QwikRouterVercelEdgeOptions'],
+        ['QwikCityProps', 'QwikRouterProps'],
+        ['QwikCityPlan', 'QwikRouterConfig'],
+        ['QwikCityMockProvider', 'QwikRouterMockProvider'],
+        ['QwikCityMockProps', 'QwikRouterMockProps'],
+        ['QwikCityMockActionProp', 'QwikRouterMockActionProp'],
+        ['QwikCityMockLoaderProp', 'QwikRouterMockLoaderProp'],
+        ['staticAdapter', 'ssgAdapter'],
+        ['StaticGenerateAdapterOptions', 'SsgAdapterOptions'],
+        ['StaticGenerateRenderOptions', 'SsgRenderOptions'],
+        ['StaticGenerateOptions', 'SsgOptions'],
+      ],
+      '@builder.io/qwik-city'
+    ),
+  (file) =>
+    renameImports(
+      file,
+      [
+        ['qwikRollup', 'qwikRolldown'],
+        ['QwikRollupPluginOptions', 'QwikRolldownPluginOptions'],
+      ],
+      '@builder.io/qwik/optimizer'
+    ),
+  (file) => renameImports(file, [['qwikCityPlan', 'qwikRouterConfig']], '@qwik-city-plan'),
+];

@@ -4,6 +4,7 @@ import {
   replaceReadonlySignal,
   replaceRemovedJsxTypes,
 } from './core-types';
+import { importRenames } from '../rename-import';
 import { keepV1EventNames } from './events';
 import { removeQwikCityPlan, renameQwikCityPlatform, replaceNotFound } from './entries';
 import { removeSlotChildren, renameHtmlFor } from './jsx';
@@ -74,6 +75,7 @@ export const codemods: Codemod[] = [
   keepV1LinkPrefetch,
   keepLoaderRequestsUncached,
   replaceClientManifestImport,
+  ...importRenames,
 ];
 
 /** Codemods run on the whole project before the file codemods. */

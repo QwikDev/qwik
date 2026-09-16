@@ -36,48 +36,6 @@ export async function runV2Migration(app: AppCommand) {
     const { codemods, projectCodemods, runCodemods } = await import('./codemods');
     runCodemods(codemods, projectCodemods);
     removePackage('@builder.io/qwik-labs');
-    const { replaceImportInFiles } = await import('./rename-import');
-    replaceImportInFiles(
-      [
-        ['QwikCityProvider', 'QwikRouterProvider'],
-        ['qwikCity', 'qwikRouter'],
-        ['QwikCityVitePluginOptions', 'QwikRouterVitePluginOptions'],
-        ['QwikCityPlugin', 'QwikRouterPlugin'],
-        ['createQwikCity', 'createQwikRouter'],
-        ['QwikCityNodeRequestOptions', 'QwikRouterNodeRequestOptions'],
-        ['QwikCityAwsLambdaOptions', 'QwikRouterAwsLambdaOptions'],
-        ['QwikCityAzureOptions', 'QwikRouterAzureOptions'],
-        ['QwikCityBunOptions', 'QwikRouterBunOptions'],
-        ['QwikCityCloudflarePagesOptions', 'QwikRouterCloudflarePagesOptions'],
-        ['QwikCityDenoOptions', 'QwikRouterDenoOptions'],
-        ['QwikCityFirebaseOptions', 'QwikRouterFirebaseOptions'],
-        ['QwikCityNetlifyOptions', 'QwikRouterNetlifyOptions'],
-        ['QwikCityVercelEdgeOptions', 'QwikRouterVercelEdgeOptions'],
-        ['QwikCityProps', 'QwikRouterProps'],
-        ['QwikCityPlan', 'QwikRouterConfig'],
-        ['QwikCityMockProvider', 'QwikRouterMockProvider'],
-        ['QwikCityMockProps', 'QwikRouterMockProps'],
-        ['QwikCityMockActionProp', 'QwikRouterMockActionProp'],
-        ['QwikCityMockLoaderProp', 'QwikRouterMockLoaderProp'],
-        ['staticAdapter', 'ssgAdapter'],
-        ['StaticGenerateAdapterOptions', 'SsgAdapterOptions'],
-        ['StaticGenerateRenderOptions', 'SsgRenderOptions'],
-        ['StaticGenerateOptions', 'SsgOptions'],
-      ],
-      '@builder.io/qwik-city'
-    );
-    replaceImportInFiles(
-      [
-        ['qwikRollup', 'qwikRolldown'],
-        ['QwikRollupPluginOptions', 'QwikRolldownPluginOptions'],
-      ],
-      '@builder.io/qwik/optimizer'
-    );
-    replaceImportInFiles(
-      [['qwikCityPlan', 'qwikRouterConfig']],
-      '@qwik-city-plan' // using old name, package name will be updated in the next step
-    );
-
     warnMentions('⭐️', 'scoped style classes use the `⚡️` prefix instead of `⭐️` in v2.');
     warnMentions('q-data.json', 'v2 fetches route data from `q-loader-*.json` files instead.');
     warnMentions(

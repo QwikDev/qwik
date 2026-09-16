@@ -1,60 +1,6 @@
-import { afterEach, describe, expect, test, vi } from 'vitest';
+import { describe, expect, test } from 'vitest';
 import { createProject } from './codemods/run-codemods';
-import { renameImports, replaceImportInFiles } from './rename-import';
-import { createTmpProject } from './tools/tmp-project';
-
-vi.mock('@clack/prompts', () => ({ log: { info: vi.fn(), warn: vi.fn() } }));
-
-describe('replaceImportInFiles', () => {
-  let project: ReturnType<typeof createTmpProject>;
-  afterEach(() => project.cleanup());
-
-  test('renames named imports from the library and their usages', () => {
-    project = createTmpProject({
-      'src/root.tsx': [
-        `import { QwikCityProvider, RouterOutlet } from '@builder.io/qwik-city';`,
-        `export default () => <QwikCityProvider><RouterOutlet /></QwikCityProvider>;`,
-      ].join('\n'),
-    });
-    replaceImportInFiles([['QwikCityProvider', 'QwikRouterProvider']], '@builder.io/qwik-city');
-    expect(project.read('src/root.tsx')).toBe(
-      [
-        `import { QwikRouterProvider, RouterOutlet } from '@builder.io/qwik-city';`,
-        `export default () => <QwikRouterProvider><RouterOutlet /></QwikRouterProvider>;`,
-      ].join('\n')
-    );
-  });
-
-  test('matches nested module specifiers of the library', () => {
-    project = createTmpProject({
-      'src/entry.preview.tsx': [
-        `import { createQwikCity } from '@builder.io/qwik-city/middleware/node';`,
-        `export default createQwikCity({});`,
-      ].join('\n'),
-    });
-    replaceImportInFiles([['createQwikCity', 'createQwikRouter']], '@builder.io/qwik-city');
-    expect(project.read('src/entry.preview.tsx')).toBe(
-      [
-        `import { createQwikRouter } from '@builder.io/qwik-city/middleware/node';`,
-        `export default createQwikRouter({});`,
-      ].join('\n')
-    );
-  });
-
-  test('does not rename identifiers in files that do not import the name', () => {
-    const content = `const qwikCity = 1;\nexport const jsxs = qwikCity;`;
-    project = createTmpProject({ 'src/a.ts': content });
-    replaceImportInFiles([['qwikCity', 'qwikRouter']], '@builder.io/qwik-city');
-    expect(project.read('src/a.ts')).toBe(content);
-  });
-
-  test('only processes .ts and .tsx files', () => {
-    const content = `import { qwikCity } from '@builder.io/qwik-city/vite';\nqwikCity();`;
-    project = createTmpProject({ 'vite.config.mjs': content });
-    replaceImportInFiles([['qwikCity', 'qwikRouter']], '@builder.io/qwik-city');
-    expect(project.read('vite.config.mjs')).toBe(content);
-  });
-});
+import { renameImports } from './rename-import';
 
 describe('renameImports', () => {
   const run = (code: string, changes: [string, string][], library = '@builder.io/qwik-city') => {
@@ -68,6 +14,34 @@ describe('renameImports', () => {
       changed: false,
       text: `import { a } from 'x';`,
     });
+  });
+
+  test('renames named imports of the library and its subpaths and their usages', () => {
+    expect(
+      run(
+        [
+          `import { QwikCityProvider } from '@builder.io/qwik-city';`,
+          `import { createQwikCity } from '@builder.io/qwik-city/middleware/node';`,
+          `export default () => <QwikCityProvider>{createQwikCity({})}</QwikCityProvider>;`,
+        ].join('\n'),
+        [
+          ['QwikCityProvider', 'QwikRouterProvider'],
+          ['createQwikCity', 'createQwikRouter'],
+        ]
+      )
+    ).toEqual({
+      changed: true,
+      text: [
+        `import { QwikRouterProvider } from '@builder.io/qwik-city';`,
+        `import { createQwikRouter } from '@builder.io/qwik-city/middleware/node';`,
+        `export default () => <QwikRouterProvider>{createQwikRouter({})}</QwikRouterProvider>;`,
+      ].join('\n'),
+    });
+  });
+
+  test('does not rename identifiers in files that do not import the name', () => {
+    const code = `const qwikCity = 1;\nexport const jsxs = qwikCity;`;
+    expect(run(code, [['qwikCity', 'qwikRouter']])).toEqual({ changed: false, text: code });
   });
 
   test('keeps the alias and its usages for aliased imports', () => {

@@ -1,6 +1,5 @@
 ---
 source: packages/optimizer/core/src/test.rs
-assertion_line: 1195
 expression: output
 ---
 ==INPUT==
@@ -156,11 +155,15 @@ export const Foo_component_1_DvU6FitWglY = ()=>{
     const handler = q_Foo_component_handler_H10xZtD0e7w;
     return /*#__PURE__*/ _jsxSorted("div", null, {
         "q-e:click": q_Foo_component_div_q_e_click_YEa2A5ADUOg,
-        "q-e:documentscroll": q_Foo_component_div_q_e_documentscroll_0FSbGzUROso,
-        "q-e:documentscroll": q_Foo_component_div_q_e_documentscroll_1_d0Zn04qNgs0,
+        "q-e:documentscroll": [
+            q_Foo_component_div_q_e_documentscroll_0FSbGzUROso,
+            q_Foo_component_div_q_e_documentscroll_1_d0Zn04qNgs0
+        ],
         "q-e:c-lick": q_Foo_component_div_q_e_c_lick_kX5SiYdz650,
-        "q-e:document--scroll": q_Foo_component_div_q_e_document_scroll_6qyBttefepU,
-        "q-e:document--scroll": q_Foo_component_div_q_e_document_scroll_1_wphyTkeintI,
+        "q-e:document--scroll": [
+            q_Foo_component_div_q_e_document_scroll_6qyBttefepU,
+            q_Foo_component_div_q_e_document_scroll_1_wphyTkeintI
+        ],
         "host:onClick$": q_Foo_component_div_host_onClick_cPEH970JbEY,
         "host:onDocumentScroll$": q_Foo_component_div_host_onDocumentScroll_Zip7mifsjRY,
         "host:onDocumentScroll$": q_Foo_component_div_host_onDocumentScroll_1_Em1LspK7JVg,
@@ -172,7 +175,7 @@ export const Foo_component_1_DvU6FitWglY = ()=>{
 };
 
 
-Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;;;;;;2CAKU;IACR,MAAM;IACN,qBACC,WAAC;QACA,WAAQ;QACR,oBAAiB;QACjB,oBAAiB;QAEjB,YAAS;QACT,sBAAkB;QAClB,sBAAkB;QAPnB,eAkBE;QAlBF,wBAkBE;QAlBF,wBAkBE;QALD,aAAU;QAbX,sBAcoB;QAdpB,oBAekB;QAEjB,OAAO;;AAGV\"}")
+Some("{\"version\":3,\"sources\":[\"/user/qwik/src/test.tsx\"],\"names\":[],\"mappings\":\";;;;;;;;;;;;;;;2CAKU;IACR,MAAM;IACN,qBACC,WAAC;QACA,WAAQ;;;;;QAIR,YAAS;;;;;QALV,eAkBE;QAlBF,wBAkBE;QAlBF,wBAkBE;QALD,aAAU;QAbX,sBAcoB;QAdpB,oBAekB;QAEjB,OAAO;;AAGV\"}")
 /*
 {
   "origin": "test.tsx",

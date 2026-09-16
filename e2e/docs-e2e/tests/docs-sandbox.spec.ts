@@ -7,6 +7,51 @@ test.describe('Sandbox smoke tests', () => {
   });
 
   test.describe('REPL interactive', () => {
+    test('bundler failures appear in the preview', async ({ page }) => {
+      await page.addInitScript(() => {
+        const NativeWorker = window.Worker;
+        window.Worker = class extends NativeWorker {
+          constructor(url: string | URL, options?: WorkerOptions) {
+            if (String(url).includes('repl-bundler-worker')) {
+              url = URL.createObjectURL(
+                new Blob(
+                  [
+                    'self.postMessage({type: "ready"}); self.onmessage = ({data}) => { if (data.type === "bundle") throw new Error("Bundler <failure>"); };',
+                  ],
+                  { type: 'text/javascript' }
+                )
+              );
+            }
+            super(url, options);
+          }
+        };
+      });
+      await page.goto('/playground/');
+      await expect(page.frameLocator('iframe').locator('body')).toContainText('Bundler <failure>');
+    });
+
+    test('SSR worker startup errors appear in the preview', async ({ page }) => {
+      await page.addInitScript(() => {
+        const NativeWorker = window.Worker;
+        window.Worker = class extends NativeWorker {
+          constructor(url: string | URL, options?: WorkerOptions) {
+            if (String(url).includes('repl-ssr-worker')) {
+              url = URL.createObjectURL(
+                new Blob(['throw new Error("SSR startup <failure>");'], {
+                  type: 'text/javascript',
+                })
+              );
+            }
+            super(url, options);
+          }
+        };
+      });
+      await page.goto('/playground/');
+      await expect(page.frameLocator('iframe').locator('body')).toContainText(
+        'SSR startup <failure>'
+      );
+    });
+
     test('counter click works in REPL', async ({ page }) => {
       await page.goto('/examples/reactivity/counter/');
 

@@ -30,8 +30,11 @@ class Bundler {
     this.worker = new Worker(`/repl${bundlerWorkerUrl}`, { type: 'module' });
     this.worker.addEventListener('message', this.messageHandler);
     this.worker.addEventListener('error', (e: ErrorEvent) => {
-      console.error(`Bundler worker for ${this.version} failed`, e.message);
-      this.terminateWorker();
+      const error = new Error(
+        `Bundler worker for ${this.version} failed: ${e.message || 'Unable to load worker'}`
+      );
+      console.error(error);
+      this.terminateWorker(error);
     });
   }
 
@@ -89,12 +92,12 @@ class Bundler {
     });
   }
 
-  terminateWorker(): void {
+  terminateWorker(error = new Error('Worker terminated')): void {
     if (this.worker) {
       this.worker.removeEventListener('message', this.messageHandler);
       this.worker.terminate();
       this.worker = null;
-      this.buildPromises.forEach((p) => p.reject(new Error('Worker terminated')));
+      this.buildPromises.forEach((p) => p.reject(error));
       this.buildPromises.clear();
       console.debug(`Bundler worker for ${this.version} terminated`);
     }

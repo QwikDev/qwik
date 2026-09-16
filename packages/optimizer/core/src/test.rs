@@ -138,7 +138,7 @@ export const App = () => {
 		);
 	});
 	return Header;
-});
+};
 "#
 		.to_string(),
 		..TestInput::default()
@@ -2276,7 +2276,7 @@ export const App = component$((props) => {
 			>
 				<p>Hello Qwik</p>
 			</Div>
-			[].map(() => (
+			{[].map(() => (
 				<Model
 					class={state}
 					remove$={remove}
@@ -2287,7 +2287,7 @@ export const App = component$((props) => {
 					mutable2={(() => console.log(state.count))()}
 					mutable3={[1, 2, state, null, {}]}
 				/>
-			));
+			))}
 		</>
 	);
 });
@@ -3485,6 +3485,9 @@ export const Local = component$(() => {
 	)
 });
 "#;
+	let snapshot_inputs = format!(
+		"==INPUT ../../node_modules/dep/dist/lib.mjs==\n\n{dep}\n==INPUT components/main.tsx==\n\n{code}"
+	);
 	let res = transform_modules(TransformModulesOptions {
 		src_dir: "/path/to/app/src/thing".into(),
 		root_dir: Some("/path/to/app/".into()),
@@ -3517,7 +3520,7 @@ export const Local = component$(() => {
 		reg_ctx_name: None,
 		is_server: None,
 	});
-	snapshot_res!(&res, "".into());
+	snapshot_res!(&res, snapshot_inputs);
 }
 #[test]
 fn consistent_hashes() {
@@ -7314,6 +7317,38 @@ export function qwikifyQrl(reactCmp$, opts) {
 			name, captures_str, combined_code
 		);
 	}
+}
+
+#[test]
+fn inlined_qrl_in_capture_is_extracted() {
+	let output = test_input!(TestInput {
+		code: r#"
+import { inlinedQrl } from '@qwik.dev/core';
+
+const context = {};
+export const handler = inlinedQrl(() => {}, "outer_abc", [
+	inlinedQrl(() => {}, "inner_def", [context]),
+]);
+"#
+		.to_string(),
+		entry_strategy: EntryStrategy::Segment,
+		mode: EmitMode::Prod,
+		is_server: Some(true),
+		snapshot: false,
+		..TestInput::default()
+	})
+	.unwrap();
+
+	let segments: Vec<_> = output
+		.modules
+		.iter()
+		.filter_map(|module| module.segment.as_ref())
+		.map(|segment| segment.name.as_ref())
+		.collect();
+	assert!(
+		segments.contains(&"s_def"),
+		"nested QRL captured by another QRL must be emitted as a segment, got {segments:?}"
+	);
 }
 
 #[test]

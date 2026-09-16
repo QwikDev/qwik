@@ -1,5 +1,11 @@
 # @qwik.dev/optimizer
 
+## 2.1.0-beta.8
+
+### Patch Changes
+
+- 🐞🩹 track props initialized with function call defaults (by [@Varixo](https://github.com/Varixo) in [#8871](https://github.com/QwikDev/qwik/pull/8871))
+
 ## 2.1.0-beta.7
 
 ### Patch Changes

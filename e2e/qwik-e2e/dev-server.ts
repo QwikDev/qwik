@@ -244,6 +244,10 @@ export { router }
         emitAssets: true,
         minify: false,
         ssr: enableRouterServer ? qwikRouterVirtualEntry : resolve(appSrcDir, entrySsrFileName),
+        // Split the SSR build: single-file output inlines dynamic imports and
+        // evaluates them eagerly at top level, which defeats the config's lazy
+        // route/server$ imports and reintroduces module-order TDZs.
+        rollupOptions: { output: { inlineDynamicImports: false } },
       },
       plugins: [
         ...plugins,

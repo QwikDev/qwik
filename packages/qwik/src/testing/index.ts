@@ -20,13 +20,9 @@ export type {
   StreamingOptions,
 } from '../server/types';
 
-// TODO get api-extractor to export this too
-interface CustomMatchers<R = unknown> {
-  toMatchVDOM(expectedJSX: JSXOutput, isCsr?: boolean): R;
-  toMatchDOM(expectedDOM: JSXOutput): Promise<R>;
-}
-
 declare module 'vitest' {
-  interface Assertion<T = any> extends CustomMatchers<T> {}
-  interface AsymmetricMatchersContaining extends CustomMatchers {}
+  interface Matchers<R, T> {
+    toMatchVDOM(expectedJSX: JSXOutput, isCsr?: boolean): R;
+    toMatchDOM(expectedDOM: JSXOutput): Promise<void>;
+  }
 }

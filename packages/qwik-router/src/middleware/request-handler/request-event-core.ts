@@ -419,7 +419,9 @@ const parseRequest = async (
 };
 
 const isDangerousKey = (k: string) => k === '__proto__' || k === 'constructor' || k === 'prototype';
-const isArrayIndexKey = (k: string) => /^(0|[1-9]\d*)$/.test(k);
+const MAX_FORM_ARRAY_LENGTH = 10_000;
+const isArrayIndexKey = (k: string) =>
+  /^(0|[1-9]\d*)$/.test(k) && Number(k) < MAX_FORM_ARRAY_LENGTH;
 
 interface FormPathNode {
   children: Map<string, FormPathNode>;

@@ -1,3 +1,4 @@
+import { isServer } from '@qwik.dev/core/build';
 import type { ContextId } from '../use/use-context';
 import { trackSignalAndAssignHost } from '../use/use-core';
 import { version } from '../version';
@@ -62,14 +63,17 @@ export abstract class _SharedContainer implements Container {
     symbolToChunkResolver: SymbolToChunkResolver,
     writer?: StreamWriter
   ): SerializationContext {
-    return createSerializationContext(
-      NodeConstructor,
-      DomRefConstructor,
-      symbolToChunkResolver,
-      this.setHostProp.bind(this),
-      this.$storeProxyMap$,
-      writer as SSRInternalStreamWriter | undefined
-    );
+    if (isServer) {
+      return createSerializationContext(
+        NodeConstructor,
+        DomRefConstructor,
+        symbolToChunkResolver,
+        this.setHostProp.bind(this),
+        this.$storeProxyMap$,
+        writer as SSRInternalStreamWriter | undefined
+      );
+    }
+    throw new Error('Serialization context is only available on the server');
   }
 
   $checkPendingCount$(): void {

@@ -49,7 +49,8 @@ the cursor system, and the Rust optimizer.
 | `@qwik.dev/utils` | `packages/qwik-utils` | Less-common helpers (`usePoll`, `zod$`), may use qwik internals |
 | `@qwik.dev/dom` | `packages/qwik-dom` | Server-side DOM implementation |
 | `@qwik.dev/qwik-vite` | `packages/qwik-vite` | `vite-plugin-qwik`, private, bundled into `@qwik.dev/core/optimizer` |
-| `@qwik.dev/optimizer` | `packages/optimizer` | Rust optimizer, WASM, NAPI bindings |
+| `@qwik.dev/ts-optimizer` | `packages/ts-optimizer` | TypeScript optimizer, private, bundled into `@qwik.dev/core/optimizer` |
+| `@qwik.dev/optimizer` | `packages/optimizer` | Rust optimizer, WASM, NAPI bindings; kept for parity comparison |
 | `eslint-plugin-qwik` | `packages/eslint-plugin-qwik` | ESLint rules |
 | `create-qwik` | `packages/create-qwik` | Project scaffolding CLI |
 | `qwik-docs` | `packages/docs` | Docs site, private package |

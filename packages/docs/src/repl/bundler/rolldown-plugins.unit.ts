@@ -1,6 +1,33 @@
 import { describe, expect, test } from 'vitest';
 import type { QwikManifest } from '@qwik.dev/core/optimizer';
-import { replWorkerQrlChunks } from './rolldown-plugins';
+import { replResolver, replWorkerQrlChunks } from './rolldown-plugins';
+
+test.each(['client', 'ssr'] as const)(
+  'resolves async local storage to the browser module for REPL %s',
+  (target) => {
+    const plugin = replResolver(
+      {
+        '@builder.io/qwik': {
+          version: 'bundled',
+          '/dist/async-local-storage.mjs': '/assets/async-local-storage.mjs',
+        },
+      },
+      { srcInputs: [], buildMode: 'development', replId: 'test' },
+      target
+    );
+    if (typeof plugin.resolveId !== 'function') {
+      throw new Error('Expected resolveId hook');
+    }
+    expect(
+      plugin.resolveId.call(
+        {} as any,
+        '@qwik.dev/core/async-local-storage',
+        '/qwik/dist/core.mjs',
+        {} as any
+      )
+    ).toEqual({ id: '/qwik/dist/async-local-storage.mjs', sideEffects: false });
+  }
+);
 
 describe('repl worker qrl chunk rewrites', () => {
   test('rewrites worker qrl placeholders to repl client bundle paths', () => {

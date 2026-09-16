@@ -1,4 +1,5 @@
 import { moveInternalImports, replaceEventTypes, replaceRemovedJsxTypes } from './core-types';
+import { keepV1EventNames } from './events';
 import { removeQwikCityPlan, renameQwikCityPlatform, replaceNotFound } from './entries';
 import { migrateQwikLabs } from './labs';
 import { warnRemovedApis } from './removed-apis';
@@ -42,4 +43,5 @@ export const codemods: Codemod[] = [
   moveInternalImports,
   removeTaskEagerness,
   keepV1TaskCleanupTiming,
+  keepV1EventNames,
 ];

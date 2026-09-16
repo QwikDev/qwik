@@ -1,7 +1,7 @@
 import { moveInternalImports, replaceEventTypes, replaceRemovedJsxTypes } from './core-types';
 import { keepV1EventNames } from './events';
 import { removeQwikCityPlan, renameQwikCityPlatform, replaceNotFound } from './entries';
-import { renameHtmlFor } from './jsx';
+import { removeSlotChildren, renameHtmlFor } from './jsx';
 import { migrateQwikLabs } from './labs';
 import { warnRemovedApis } from './removed-apis';
 import { removeSetupServiceWorker } from './router';
@@ -46,4 +46,5 @@ export const codemods: Codemod[] = [
   keepV1TaskCleanupTiming,
   keepV1EventNames,
   renameHtmlFor,
+  removeSlotChildren,
 ];

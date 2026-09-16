@@ -187,23 +187,16 @@ export const warnManualChunks = (file: SourceFile) => {
 /** Adds a flag to `qwikVite({ experimental })` in the file, if it calls `qwikVite`. */
 export const addExperimentalFeature = (file: SourceFile, feature: string) => {
   const calls = qwikViteCalls(file);
-  if (calls.length !== 1) {
+  const options = calls[0]?.getArguments()[0];
+  if (calls.length !== 1 || (options && !Node.isObjectLiteralExpression(options))) {
     warn(
       file.getFilePath(),
       `enable \`qwikVite({ experimental: ['${feature}'] })\` in your Vite config.`
     );
     return;
   }
-  const options = calls[0].getArguments()[0];
   if (!options) {
     calls[0].addArgument(`{ experimental: ['${feature}'] }`);
-    return;
-  }
-  if (!Node.isObjectLiteralExpression(options)) {
-    warn(
-      file.getFilePath(),
-      `enable \`qwikVite({ experimental: ['${feature}'] })\` in your Vite config.`
-    );
     return;
   }
   const prop = options.getProperty('experimental');

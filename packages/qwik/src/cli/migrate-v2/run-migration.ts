@@ -64,6 +64,12 @@ export async function runV2Migration(app: AppCommand) {
     );
 
     replacePackage('@qwik-city-plan', '@qwik-router-config', true);
+    replacePackage(
+      '@builder.io/qwik-city/adapters/static/vite',
+      '@qwik.dev/router/adapters/ssg/vite',
+      true
+    );
+    replacePackage('@builder.io/qwik-city/static', '@qwik.dev/router/ssg', true);
     replacePackage('@builder.io/qwik-city', '@qwik.dev/router');
     replacePackage('@builder.io/qwik-react', '@qwik.dev/react');
     // "@builder.io/qwik" should be the last one because it's name is a substring of the package names above

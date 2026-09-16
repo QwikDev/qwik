@@ -97,8 +97,8 @@ describe('runV2Migration', () => {
         `import { QwikRouterMockProvider, type QwikRouterMockProps, type QwikRouterMockActionProp, type QwikRouterMockLoaderProp, type QwikRouterConfig, type QwikRouterProps } from '@qwik.dev/router';`,
         `import type { QwikRouterBunOptions } from '@qwik.dev/router/middleware/bun';`,
         `import type { QwikRouterVercelEdgeOptions } from '@qwik.dev/router/middleware/vercel-edge';`,
-        `import { ssgAdapter, type SsgRenderOptions } from '@qwik.dev/router/adapters/static/vite';`,
-        `import type { SsgOptions } from '@qwik.dev/router/static';`,
+        `import { ssgAdapter, type SsgRenderOptions } from '@qwik.dev/router/adapters/ssg/vite';`,
+        `import type { SsgOptions } from '@qwik.dev/router/ssg';`,
       ].join('\n')
     );
   });

@@ -1,0 +1,71 @@
+import { afterEach, describe, expect, test, vi } from 'vitest';
+import { replacePackage } from './replace-package';
+import { createTmpProject } from './tools/tmp-project';
+
+vi.mock('@clack/prompts', () => ({ log: { info: vi.fn(), warn: vi.fn() } }));
+
+describe('replacePackage', () => {
+  let project: ReturnType<typeof createTmpProject>;
+  afterEach(() => project.cleanup());
+
+  test('renames the dependency key in every package.json and keeps the version', () => {
+    project = createTmpProject({
+      'package.json': JSON.stringify({
+        dependencies: { '@builder.io/qwik-city': '^1.5.0' },
+        devDependencies: { other: '1.0.0' },
+      }),
+      'packages/lib/package.json': JSON.stringify({
+        peerDependencies: { '@builder.io/qwik-city': '>=1' },
+      }),
+    });
+    replacePackage('@builder.io/qwik-city', '@qwik.dev/router');
+    expect(JSON.parse(project.read('package.json')).dependencies).toEqual({
+      '@qwik.dev/router': '^1.5.0',
+    });
+    expect(JSON.parse(project.read('packages/lib/package.json')).peerDependencies).toEqual({
+      '@qwik.dev/router': '>=1',
+    });
+  });
+
+  test('replaces mentions in text files', () => {
+    project = createTmpProject({
+      'src/root.tsx': `import { QwikRouterProvider } from '@builder.io/qwik-city';\nimport '@builder.io/qwik-city/middleware/node';`,
+      'README.md': 'Uses @builder.io/qwik-city',
+    });
+    replacePackage('@builder.io/qwik-city', '@qwik.dev/router');
+    expect(project.read('src/root.tsx')).toBe(
+      `import { QwikRouterProvider } from '@qwik.dev/router';\nimport '@qwik.dev/router/middleware/node';`
+    );
+    expect(project.read('README.md')).toBe('Uses @qwik.dev/router');
+  });
+
+  test('does not touch lockfiles, changelogs and binary files', () => {
+    const content = '@builder.io/qwik-city';
+    project = createTmpProject({
+      'pnpm-lock.yaml': content,
+      'package-lock.json': content,
+      'yarn.lock': content,
+      'CHANGELOG.md': content,
+      'public/image.png': content,
+    });
+    replacePackage('@builder.io/qwik-city', '@qwik.dev/router');
+    for (const file of [
+      'pnpm-lock.yaml',
+      'package-lock.json',
+      'yarn.lock',
+      'CHANGELOG.md',
+      'public/image.png',
+    ]) {
+      expect(project.read(file)).toBe(content);
+    }
+  });
+
+  test('skipDependencies only replaces mentions', () => {
+    project = createTmpProject({
+      'package.json': JSON.stringify({ dependencies: { '@qwik-city-plan': '1.0.0' } }),
+      'src/entry.ts': `import plan from '@qwik-city-plan';`,
+    });
+    replacePackage('@qwik-city-plan', '@qwik-router-config', true);
+    expect(project.read('src/entry.ts')).toBe(`import plan from '@qwik-router-config';`);
+  });
+});

@@ -1,6 +1,6 @@
 import { Node, SyntaxKind, type ObjectLiteralExpression, type SourceFile } from 'ts-morph';
 import { warn } from '../report';
-import { findCalls, findNamedImports } from './utils';
+import { appendProperty, findCalls, findNamedImports } from './utils';
 
 const SERVER = '@builder.io/qwik/server';
 
@@ -78,4 +78,26 @@ export const removeRemovedRenderOptions = (file: SourceFile) => {
     }
   }
   return changed;
+};
+
+const V1_IN_ORDER = `{ strategy: 'auto', maximumInitialChunk: 50000, maximumChunk: 30000 }`;
+
+/** V2 flushes in smaller chunks by default, keep the v1 chunk sizes. */
+export const keepV1StreamingDefaults = (file: SourceFile) => {
+  // appending forgets the nodes, so handle one call at a time
+  for (const options of renderOptions(file, ['renderToStream']).reverse()) {
+    const streaming = options.getProperty('streaming');
+    if (!streaming) {
+      const spread = options.getProperties().filter(Node.isSpreadAssignment).pop();
+      const base = spread ? `...${spread.getExpression().getText()}.streaming, ` : '';
+      appendProperty(options, `streaming: { ${base}inOrder: ${V1_IN_ORDER} }`);
+      return true;
+    }
+    const value = Node.isPropertyAssignment(streaming) ? streaming.getInitializer() : undefined;
+    if (Node.isObjectLiteralExpression(value) && !value.getProperty('inOrder')) {
+      appendProperty(value, `inOrder: ${V1_IN_ORDER}`);
+      return true;
+    }
+  }
+  return false;
 };

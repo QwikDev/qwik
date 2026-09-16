@@ -2,7 +2,11 @@ import { Project } from 'ts-morph';
 import { afterEach, describe, expect, test } from 'vitest';
 import { takeWarnings } from '../report';
 import type { Codemod } from './run-codemods';
-import { removeRemovedRenderOptions, renameMaximunStreamingOptions } from './server';
+import {
+  keepV1StreamingDefaults,
+  removeRemovedRenderOptions,
+  renameMaximunStreamingOptions,
+} from './server';
 
 const run = (codemod: Codemod, code: string) => {
   const file = new Project({ useInMemoryFileSystem: true }).createSourceFile('entry.ssr.tsx', code);
@@ -76,5 +80,78 @@ describe('removeRemovedRenderOptions', () => {
     expect(takeWarnings()).toEqual([
       '/entry.ssr.tsx: `prefetchStrategy.symbolsToPrefetch` was removed in v2, preloading is based on the bundle graph.',
     ]);
+  });
+});
+
+describe('keepV1StreamingDefaults', () => {
+  test('adds the v1 in-order defaults to the v1 starter entry', () => {
+    expect(
+      run(
+        keepV1StreamingDefaults,
+        [
+          `import { renderToStream, type RenderToStreamOptions } from '@builder.io/qwik/server';`,
+          `import Root from './root';`,
+          ``,
+          `export default function (opts: RenderToStreamOptions) {`,
+          `  return renderToStream(<Root />, {`,
+          `    ...opts,`,
+          `    containerAttributes: {`,
+          `      lang: 'en-us',`,
+          `      ...opts.containerAttributes,`,
+          `    },`,
+          `  });`,
+          `}`,
+        ].join('\n')
+      ).text
+    ).toBe(
+      [
+        `import { renderToStream, type RenderToStreamOptions } from '@builder.io/qwik/server';`,
+        `import Root from './root';`,
+        ``,
+        `export default function (opts: RenderToStreamOptions) {`,
+        `  return renderToStream(<Root />, {`,
+        `    ...opts,`,
+        `    containerAttributes: {`,
+        `      lang: 'en-us',`,
+        `      ...opts.containerAttributes,`,
+        `    },`,
+        `    streaming: { ...opts.streaming, inOrder: { strategy: 'auto', maximumInitialChunk: 50000, maximumChunk: 30000 } },`,
+        `  });`,
+        `}`,
+      ].join('\n')
+    );
+  });
+
+  test('adds inOrder to existing streaming options', () => {
+    expect(
+      run(
+        keepV1StreamingDefaults,
+        [
+          IMPORT + `renderToStream(<Root />, {`,
+          `  streaming: {`,
+          `    timeout: 1,`,
+          `  },`,
+          `});`,
+        ].join('\n')
+      ).text
+    ).toBe(
+      [
+        IMPORT + `renderToStream(<Root />, {`,
+        `  streaming: {`,
+        `    timeout: 1,`,
+        `    inOrder: { strategy: 'auto', maximumInitialChunk: 50000, maximumChunk: 30000 },`,
+        `  },`,
+        `});`,
+      ].join('\n')
+    );
+  });
+
+  test('keeps an explicit inOrder and ignores renderToString', () => {
+    for (const code of [
+      `${IMPORT}renderToStream(<Root />, { streaming: { inOrder: { strategy: 'direct' } } });`,
+      `${IMPORT}renderToString(<Root />, {});`,
+    ]) {
+      expect(run(keepV1StreamingDefaults, code)).toEqual({ changed: false, text: code });
+    }
   });
 });

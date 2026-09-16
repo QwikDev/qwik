@@ -1,6 +1,10 @@
 import { removeQwikCityPlan, renameQwikCityPlatform, replaceNotFound } from './entries';
 import { removeSetupServiceWorker } from './router';
-import { removeRemovedRenderOptions, renameMaximunStreamingOptions } from './server';
+import {
+  keepV1StreamingDefaults,
+  removeRemovedRenderOptions,
+  renameMaximunStreamingOptions,
+} from './server';
 import type { Codemod } from './run-codemods';
 
 export { runCodemods } from './run-codemods';
@@ -13,4 +17,5 @@ export const codemods: Codemod[] = [
   removeSetupServiceWorker,
   renameMaximunStreamingOptions,
   removeRemovedRenderOptions,
+  keepV1StreamingDefaults,
 ];

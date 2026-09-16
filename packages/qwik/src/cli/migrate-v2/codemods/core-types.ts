@@ -1,4 +1,4 @@
-import { SyntaxKind, type SourceFile, type TypeReferenceNode } from 'ts-morph';
+import { SyntaxKind, type SourceFile } from 'ts-morph';
 import { ensureNamedImport } from './utils';
 
 const CORE = '@builder.io/qwik';
@@ -70,7 +70,7 @@ function replaceTypes(file: SourceFile, replacements: Record<string, Replacement
         .getDescendantsOfKind(SyntaxKind.TypeReference)
         .filter((ref) => ref.getTypeName().getText() === local);
       for (const ref of refs.reverse()) {
-        replaceTypeReference(ref, replacement);
+        ref.replaceWithText(replacement.text(ref.getTypeArguments().map((t) => t.getText())));
       }
       replacement.imports?.forEach((name) => ensureNamedImport(file, CORE, name, true));
       named.remove();
@@ -86,10 +86,6 @@ function replaceTypes(file: SourceFile, replacements: Record<string, Replacement
     }
   }
   return changed;
-}
-
-function replaceTypeReference(ref: TypeReferenceNode, replacement: Replacement) {
-  ref.replaceWithText(replacement.text(ref.getTypeArguments().map((t) => t.getText())));
 }
 
 /** V2 removed the `XxxHTMLAttributes` and related helper types, the JSX element types replace them. */

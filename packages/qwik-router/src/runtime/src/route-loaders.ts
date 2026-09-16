@@ -132,6 +132,8 @@ type LoaderRequest = {
   pageUrl: string;
   active: boolean;
   hash?: string;
+  /** An interrupting navigation aborted this request's fetch before it settled. */
+  isAborted?: boolean;
 };
 
 type LoaderNavigation = {
@@ -672,7 +674,10 @@ const immutableLoaderIds = new Set<string>();
 export const isImmutableLoader = (loaderId: string) => immutableLoaderIds.has(loaderId);
 
 export function abortRouteLoaderNavigation(ctx: RouteLoaderCtx) {
-  for (const signal of clientRouteLoaders.get(ctx)?.current.requests.keys() ?? []) {
+  for (const [signal, request] of clientRouteLoaders.get(ctx)?.current.requests ?? []) {
+    if (signal.untrackedPending) {
+      request.isAborted = true;
+    }
     signal.abort();
   }
 }
@@ -744,6 +749,7 @@ export function prepareRouteLoaders(
     }
     const isSameRequest =
       old?.active &&
+      !old.isAborted &&
       old.routePath === routePath &&
       isSameLoaderPageUrl(new URL(old.pageUrl), pageUrl, loader?.__search);
     const isUnlistedUrlChange = isSameRequest && old.pageUrl !== pageUrl.href;

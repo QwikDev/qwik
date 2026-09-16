@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { _UNINITIALIZED, type SerializationStrategy } from '@qwik.dev/core/internal';
 import {
+  abortRouteLoaderNavigation,
   prepareRouteLoaders,
   commitRouteLoaders,
   restoreRouteLoaders,
@@ -208,6 +209,33 @@ describe('route loader execution', () => {
 
     const other = new URL('http://test/b/?keep=two&noise=second');
     prepareRouteLoaders(mods, state, ctx, { filtered: '/b/' }, other, keep, 4);
+    expect(invalidate).toHaveBeenCalledOnce();
+  });
+
+  it('refetches a kept loader whose pending fetch was aborted by an interrupting navigation', () => {
+    const state: RouteLoaderState = {};
+    const ctx: RouteLoaderCtx = { loaderPaths: { filtered: '/a/' } };
+    const filtered = routeLoaderQrl(createQrl('filtered'), { search: ['keep'] });
+    ensureRouteLoaderSignal(filtered, state, ctx);
+    const signal = state.filtered;
+    const invalidate = vi.spyOn(signal, 'invalidate').mockImplementation(() => {});
+    vi.spyOn(signal, 'abort').mockImplementation(() => {});
+    let isPending = false;
+    Object.defineProperty(signal, 'untrackedPending', { get: () => isPending });
+    const mods = [{ filtered } as unknown as RouteModule];
+    const first = new URL('http://test/a/?keep=one&noise=first');
+    prepareRouteLoaders(mods, state, ctx, { filtered: '/a/' }, first, first, 1);
+    invalidate.mockClear();
+
+    abortRouteLoaderNavigation(ctx);
+    const settled = new URL('http://test/a/?keep=one&noise=second');
+    prepareRouteLoaders(mods, state, ctx, { filtered: '/a/' }, settled, first, 2);
+    expect(invalidate).not.toHaveBeenCalled();
+
+    isPending = true;
+    abortRouteLoaderNavigation(ctx);
+    const interrupted = new URL('http://test/a/?keep=one&noise=third');
+    prepareRouteLoaders(mods, state, ctx, { filtered: '/a/' }, interrupted, settled, 3);
     expect(invalidate).toHaveBeenCalledOnce();
   });
 

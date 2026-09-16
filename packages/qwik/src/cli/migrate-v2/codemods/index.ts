@@ -1,6 +1,7 @@
 import { moveInternalImports, replaceEventTypes, replaceRemovedJsxTypes } from './core-types';
 import { removeQwikCityPlan, renameQwikCityPlatform, replaceNotFound } from './entries';
 import { migrateQwikLabs } from './labs';
+import { warnRemovedApis } from './removed-apis';
 import { removeSetupServiceWorker } from './router';
 import {
   keepV1StreamingDefaults,
@@ -20,6 +21,8 @@ export { runCodemods } from './run-codemods';
 
 /** Codemods run on the v1 sources, before the packages are renamed. */
 export const codemods: Codemod[] = [
+  // warn before other codemods rewrite the imports
+  warnRemovedApis,
   removeQwikCityPlan,
   replaceNotFound,
   renameQwikCityPlatform,

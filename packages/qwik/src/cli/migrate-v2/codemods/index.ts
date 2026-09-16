@@ -9,6 +9,7 @@ import {
   renameMaximunStreamingOptions,
 } from './server';
 import type { Codemod } from './run-codemods';
+import { removeTaskEagerness } from './tasks';
 import {
   keepAssetsDir,
   keepBaseOutDir,
@@ -39,4 +40,5 @@ export const codemods: Codemod[] = [
   replaceRemovedJsxTypes,
   replaceEventTypes,
   moveInternalImports,
+  removeTaskEagerness,
 ];

@@ -70,6 +70,35 @@ describe('update-dependencies', () => {
       expect(project.read('libs/c/package.json')).toBe(unrelated);
     });
 
+    test('bumps vite to 8 and vitest to 4', async () => {
+      execSync.mockReturnValue('latest: 2.0.0\n');
+      project = createTmpProject({
+        'package.json': JSON.stringify({
+          devDependencies: {
+            vite: '^7.1.0',
+            vitest: '^0.34.6',
+            '@vitest/ui': '^0.34.6',
+            'vite-tsconfig-paths': '^4.2.1',
+          },
+        }),
+        'apps/a/package.json': JSON.stringify({
+          devDependencies: { vite: '8.1.0', vitest: '^4.1.0', other: 'latest' },
+        }),
+      });
+      await updateDependencies();
+      expect(pkg().devDependencies).toEqual({
+        vite: '^8.0.0',
+        vitest: '^4.0.0',
+        '@vitest/ui': '^4.0.0',
+        'vite-tsconfig-paths': '^4.2.1',
+      });
+      expect(JSON.parse(project.read('apps/a/package.json')).devDependencies).toEqual({
+        vite: '8.1.0',
+        vitest: '^4.1.0',
+        other: 'latest',
+      });
+    });
+
     test('prefers the "latest" tag once it points to v2', async () => {
       execSync.mockReturnValue('alpha: 2.0.0-alpha.9\nlatest: 2.1.0\nbeta: 2.0.0-beta.5\n');
       project = createTmpProject({

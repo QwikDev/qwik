@@ -5,7 +5,7 @@ import { visitNotIgnoredFiles } from './tools/visit-not-ignored-files';
 import { installDeps } from '../utils/install-deps';
 import { getPackageManager, readPackageJson, writePackageJson } from './../utils/utils';
 import { packageNames, versionTagPriority } from './versions';
-import { major } from 'semver';
+import { major, minVersion, validRange } from 'semver';
 import { log, spinner } from '@clack/prompts';
 
 export async function updateDependencies() {
@@ -25,11 +25,15 @@ export async function updateDependencies() {
     }
     const packageJson = JSON.parse(readFileSync(path, 'utf-8'));
     let changed = false;
-    for (const name of packageNames) {
-      for (const propName of dependencyNames) {
-        const prop = packageJson[propName];
-        if (prop && prop[name]) {
-          prop[name] = version;
+    for (const propName of dependencyNames) {
+      const prop = packageJson[propName];
+      if (!prop) {
+        continue;
+      }
+      for (const name of Object.keys(prop)) {
+        const newVersion = packageNames.includes(name) ? version : toolingVersion(name, prop[name]);
+        if (newVersion && prop[name] !== newVersion) {
+          prop[name] = newVersion;
           changed = true;
         }
       }
@@ -43,6 +47,20 @@ export async function updateDependencies() {
   loading.start(`Updating dependencies...`);
   await runInstall();
   loading.stop('Dependencies have been updated');
+}
+
+/** V2 requires Vite 8 (Rolldown), Vitest supports Vite 8 since v4. */
+function toolingVersion(name: string, range: string) {
+  const current = validRange(range) && minVersion(range);
+  if (!current) {
+    return;
+  }
+  if (name === 'vite' && major(current) < 8) {
+    return '^8.0.0';
+  }
+  if ((name === 'vitest' || name.startsWith('@vitest/')) && major(current) < 4) {
+    return '^4.0.0';
+  }
 }
 
 /**

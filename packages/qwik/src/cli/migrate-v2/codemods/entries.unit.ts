@@ -1,7 +1,7 @@
 import { Project } from 'ts-morph';
 import { afterEach, describe, expect, test } from 'vitest';
 import { takeWarnings } from '../report';
-import { removeQwikCityPlan, replaceNotFound } from './entries';
+import { removeQwikCityPlan, renameQwikCityPlatform, replaceNotFound } from './entries';
 import type { Codemod } from './run-codemods';
 
 const run = (codemod: Codemod, code: string) => {
@@ -166,5 +166,18 @@ describe('replaceNotFound', () => {
     expect(takeWarnings()).toEqual([
       '/entry.tsx: `notFound` was removed in v2, the router renders 404 pages.',
     ]);
+  });
+});
+
+describe('renameQwikCityPlatform', () => {
+  test('renames the global type', () => {
+    const { changed, text } = run(
+      renameQwikCityPlatform,
+      `declare global {\n  type QwikCityPlatform = PlatformNode;\n}\nlet p: QwikCityPlatform;`
+    );
+    expect(changed).toBe(true);
+    expect(text).toBe(
+      `declare global {\n  type QwikRouterPlatform = PlatformNode;\n}\nlet p: QwikRouterPlatform;`
+    );
   });
 });

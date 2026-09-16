@@ -106,3 +106,15 @@ export const replaceNotFound = (file: SourceFile) => {
   }
   return changed;
 };
+
+/** `QwikCityPlatform` global type was renamed to `QwikRouterPlatform`. */
+export const renameQwikCityPlatform = (file: SourceFile) => {
+  let changed = false;
+  for (const id of file.getDescendantsOfKind(SyntaxKind.Identifier)) {
+    if (!id.wasForgotten() && id.getText() === 'QwikCityPlatform') {
+      id.replaceWithText('QwikRouterPlatform');
+      changed = true;
+    }
+  }
+  return changed;
+};

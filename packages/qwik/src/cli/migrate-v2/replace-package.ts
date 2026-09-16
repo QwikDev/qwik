@@ -23,56 +23,49 @@ export function replacePackage(
 
 /** Removes a package from the dependencies of every package.json. */
 export function removePackage(packageName: string) {
-  visitNotIgnoredFiles('.', (path) => {
-    if (basename(path) !== 'package.json') {
-      return;
-    }
-    const packageJson = JSON.parse(readFileSync(path, 'utf-8'));
-    let changed = false;
-    for (const deps of [
-      packageJson.dependencies ?? {},
-      packageJson.devDependencies ?? {},
-      packageJson.peerDependencies ?? {},
-      packageJson.optionalDependencies ?? {},
-    ]) {
-      if (packageName in deps) {
-        delete deps[packageName];
-        changed = true;
-      }
-    }
-    if (changed) {
-      updateFileContent(path, JSON.stringify(packageJson, null, 2));
-    }
-  });
+  updatePackageJsons((deps) => packageName in deps && delete deps[packageName]);
 }
 
 function replacePackageInDependencies(oldPackageName: string, newPackageName: string) {
+  updatePackageJsons((deps) => {
+    if (!(oldPackageName in deps)) {
+      return false;
+    }
+    // We keep the old version intentionally. It will be updated later within another step of the migration.
+    deps[newPackageName] = deps[oldPackageName];
+    return delete deps[oldPackageName];
+  });
+}
+
+const DEPENDENCY_FIELDS = [
+  'dependencies',
+  'devDependencies',
+  'peerDependencies',
+  'optionalDependencies',
+];
+
+/**
+ * Calls `update` with every dependency list of every package.json and writes the files where it
+ * returned `true`.
+ */
+export function updatePackageJsons(update: (deps: Record<string, string>) => boolean) {
   visitNotIgnoredFiles('.', (path) => {
     if (basename(path) !== 'package.json') {
       return;
     }
-
     try {
       const packageJson = JSON.parse(readFileSync(path, 'utf-8'));
       let changed = false;
-      for (const deps of [
-        packageJson.dependencies ?? {},
-        packageJson.devDependencies ?? {},
-        packageJson.peerDependencies ?? {},
-        packageJson.optionalDependencies ?? {},
-      ]) {
-        if (oldPackageName in deps) {
-          // We keep the old version intentionally. It will be updated later within another step of the migration.
-          deps[newPackageName] = deps[oldPackageName];
-          delete deps[oldPackageName];
-          changed = true;
+      for (const field of DEPENDENCY_FIELDS) {
+        if (packageJson[field]) {
+          changed = update(packageJson[field]) || changed;
         }
       }
       if (changed) {
-        updateFileContent(path, JSON.stringify(packageJson, null, 2));
+        updateFileContent(path, JSON.stringify(packageJson, null, 2) + '\n');
       }
-    } catch (e) {
-      console.warn(`Could not replace ${oldPackageName} with ${newPackageName} in ${path}.`);
+    } catch {
+      log.warn(`Could not update the dependencies in ${path}.`);
     }
   });
 }

@@ -108,7 +108,7 @@ describe('removePackage', () => {
   afterEach(() => project.cleanup());
 
   test('removes the package from all dependency lists', () => {
-    const untouched = '{"name":"b"}';
+    const untouched = '{"name":"b",  "dependencies": {"a": "1"}}';
     project = createTmpProject({
       'package.json': JSON.stringify({
         dependencies: { '@builder.io/qwik-labs': '0.1.0', a: '1' },

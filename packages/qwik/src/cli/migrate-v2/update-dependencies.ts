@@ -1,7 +1,5 @@
 import { execSync } from 'node:child_process';
-import { readFileSync, writeFileSync } from 'node:fs';
-import { basename } from 'node:path';
-import { visitNotIgnoredFiles } from './tools/visit-not-ignored-files';
+import { updatePackageJsons } from './replace-package';
 import { installDeps } from '../utils/install-deps';
 import { getPackageManager, readPackageJson, writePackageJson } from './../utils/utils';
 import { packageNames, versionTagPriority } from './versions';
@@ -11,36 +9,17 @@ import { log, spinner } from '@clack/prompts';
 export async function updateDependencies() {
   const version = getPackageTag();
 
-  const dependencyNames = [
-    'dependencies',
-    'devDependencies',
-    'peerDependencies',
-    'optionalDependencies',
-  ] as const;
-
   // workspace packages too, not only the root package.json
-  visitNotIgnoredFiles('.', (path) => {
-    if (basename(path) !== 'package.json') {
-      return;
-    }
-    const packageJson = JSON.parse(readFileSync(path, 'utf-8'));
+  updatePackageJsons((deps) => {
     let changed = false;
-    for (const propName of dependencyNames) {
-      const prop = packageJson[propName];
-      if (!prop) {
-        continue;
-      }
-      for (const name of Object.keys(prop)) {
-        const newVersion = packageNames.includes(name) ? version : toolingVersion(name, prop[name]);
-        if (newVersion && prop[name] !== newVersion) {
-          prop[name] = newVersion;
-          changed = true;
-        }
+    for (const name of Object.keys(deps)) {
+      const newVersion = packageNames.includes(name) ? version : toolingVersion(name, deps[name]);
+      if (newVersion && deps[name] !== newVersion) {
+        deps[name] = newVersion;
+        changed = true;
       }
     }
-    if (changed) {
-      writeFileSync(path, JSON.stringify(packageJson, null, 2) + '\n');
-    }
+    return changed;
   });
 
   const loading = spinner();

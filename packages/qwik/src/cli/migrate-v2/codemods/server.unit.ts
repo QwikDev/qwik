@@ -1,7 +1,8 @@
 import { Project } from 'ts-morph';
-import { describe, expect, test } from 'vitest';
+import { afterEach, describe, expect, test } from 'vitest';
+import { takeWarnings } from '../report';
 import type { Codemod } from './run-codemods';
-import { renameMaximunStreamingOptions } from './server';
+import { removeRemovedRenderOptions, renameMaximunStreamingOptions } from './server';
 
 const run = (codemod: Codemod, code: string) => {
   const file = new Project({ useInMemoryFileSystem: true }).createSourceFile('entry.ssr.tsx', code);
@@ -26,5 +27,54 @@ describe('renameMaximunStreamingOptions', () => {
   test('ignores calls not imported from the server package', () => {
     const code = `renderToStream(<Root />, { streaming: { inOrder: { maximunChunk: 2 } } });`;
     expect(run(renameMaximunStreamingOptions, code)).toEqual({ changed: false, text: code });
+  });
+});
+
+describe('removeRemovedRenderOptions', () => {
+  afterEach(() => takeWarnings());
+
+  test('prefetchStrategy: null disables the preloader', () => {
+    expect(
+      run(
+        removeRemovedRenderOptions,
+        `${IMPORT}renderToString(<Root />, { prefetchStrategy: null });`
+      ).text
+    ).toBe(`${IMPORT}renderToString(<Root />, { preloader: false });`);
+  });
+
+  test('prefetchStrategy: null keeps a multi-line format', () => {
+    expect(
+      run(
+        removeRemovedRenderOptions,
+        [
+          IMPORT + `renderToStream(<Root />, {`,
+          `  ...opts,`,
+          `  prefetchStrategy: null,`,
+          `});`,
+        ].join('\n')
+      ).text
+    ).toBe(
+      [IMPORT + `renderToStream(<Root />, {`, `  ...opts,`, `  preloader: false,`, `});`].join('\n')
+    );
+  });
+
+  test('removes deprecated prefetch and preloader options', () => {
+    expect(
+      run(
+        removeRemovedRenderOptions,
+        `${IMPORT}renderToStream(<Root />, { ...opts, prefetchStrategy: { implementation: {} }, qwikPrefetchServiceWorker: {}, preloader: { ssrPreloads: 3, debug: true, preloadProbability: 0.5, ssrPreloadProbability: 0.5 } });`
+      ).text
+    ).toBe(`${IMPORT}renderToStream(<Root />, { ...opts, preloader: { ssrPreloads: 3 } });`);
+    expect(takeWarnings()).toEqual([]);
+  });
+
+  test('warns about symbolsToPrefetch', () => {
+    run(
+      removeRemovedRenderOptions,
+      `${IMPORT}renderToStream(<Root />, { prefetchStrategy: { symbolsToPrefetch: () => [] } });`
+    );
+    expect(takeWarnings()).toEqual([
+      '/entry.ssr.tsx: `prefetchStrategy.symbolsToPrefetch` was removed in v2, preloading is based on the bundle graph.',
+    ]);
   });
 });

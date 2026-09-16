@@ -535,7 +535,9 @@ and dynamic `Slot name`.
   - [x] A body function a boundary calls lifts to a segment its callers import statically; the
         caller captures the function's captures and rebinds it, so calls stay sync and only
         loading is lazy (`#7000`). Unreferenced body functions keep their statement.
-- [ ] Combine slots with dynamic content, namespaces, async and error boundaries.
+- [x] Combine slots with dynamic content, namespaces and async: covered by the projection corpus
+      (branches, rows, holes, content blocks, promise children, svg and foreignObject slots, the
+      live-slot swap). Error boundaries move to group 13 with Suspense.
 - [ ] External projections needed by React integration, including runtime/integration work.
 
 Do not restore serialization of a children tree merely to reproduce old VNode operations.
@@ -581,6 +583,9 @@ than reimplementing each hook.
 - [ ] Thrown-promise retry without duplicate initialization or projection.
 - [ ] Lower `<Suspense>` and `<Reveal>` markers to existing runtime mechanisms.
 - [ ] Fallback QRLs, delay, nested boundaries and preservation of previous content.
+- [ ] `ErrorBoundary` with `fallback$` and `useErrorBoundary`: a throw or a rejected promise in a
+      projected or nested render selects the nearest boundary's fallback (main has 14 specs, 9 of
+      them about projections); without a boundary the render keeps rejecting as it does now.
 - [ ] Reveal ordering and cancellation of stale results.
 - [ ] Out-of-order streaming and state shared across segments.
 - [ ] Resume segments whose content arrives after the shell.

@@ -1,6 +1,6 @@
 import { existsSync, renameSync } from 'fs';
 import { basename, dirname, join, resolve } from 'path';
-import { Node, type Project, type SourceFile } from 'ts-morph';
+import { Node, SyntaxKind, type Project, type SourceFile } from 'ts-morph';
 import { warn } from '../report';
 import { visitNotIgnoredFiles } from '../tools/visit-not-ignored-files';
 
@@ -154,4 +154,35 @@ export const addV1ErrorResponsePlugin = (project: Project) => {
     );
   }
   project.createSourceFile(`${routesDir}/${name}`, V1_ERRORS_PLUGIN, { overwrite: true });
+};
+
+/** In v2 `resolveValue(action)` returns `undefined` inside route loaders. */
+export const warnLoadersReadingActions = (project: Project) => {
+  const calls = project
+    .getSourceFiles()
+    .flatMap((f) => f.getDescendantsOfKind(SyntaxKind.CallExpression));
+  const actions = new Set(
+    calls
+      .filter((c) => /^(routeAction|globalAction)(\$|Qrl)$/.test(c.getExpression().getText()))
+      .map((c) => c.getParentIfKind(SyntaxKind.VariableDeclaration)?.getName())
+      .filter(Boolean)
+  );
+  for (const loader of calls) {
+    if (!/^routeLoader(\$|Qrl)$/.test(loader.getExpression().getText())) {
+      continue;
+    }
+    const readsAction = loader
+      .getDescendantsOfKind(SyntaxKind.CallExpression)
+      .some(
+        (c) =>
+          /(^|\.)resolveValue$/.test(c.getExpression().getText()) &&
+          actions.has(c.getArguments()[0]?.getText())
+      );
+    if (readsAction) {
+      warn(
+        loader.getSourceFile().getFilePath(),
+        'route loaders can no longer read action results with `resolveValue(action)` in v2, it returns `undefined`.'
+      );
+    }
+  }
 };

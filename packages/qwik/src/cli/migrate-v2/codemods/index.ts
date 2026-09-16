@@ -22,6 +22,7 @@ import {
   addNavigationProbeLoaders,
   addV1ErrorResponsePlugin,
   renameV2ErrorBoundaryFiles,
+  warnLoadersReadingActions,
 } from './route-files';
 import { keepV1TaskCleanupTiming, removeTaskEagerness } from './tasks';
 import {
@@ -72,4 +73,5 @@ export const projectCodemods: ProjectCodemod[] = [
   renameV2ErrorBoundaryFiles,
   addNavigationProbeLoaders,
   addV1ErrorResponsePlugin,
+  warnLoadersReadingActions,
 ];

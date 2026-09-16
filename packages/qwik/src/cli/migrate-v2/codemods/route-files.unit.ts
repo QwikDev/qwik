@@ -123,3 +123,21 @@ describe('addV1ErrorResponsePlugin', () => {
     expect(project.exists('src/routes/plugin@000-v1-errors.ts')).toBe(false);
   });
 });
+
+describe('warnLoadersReadingActions', () => {
+  let project: ReturnType<typeof createTmpProject>;
+  afterEach(() => project.cleanup());
+
+  test('warns about loaders reading actions', () => {
+    project = createTmpProject({
+      'src/routes/actions.ts': `export const useAdd = routeAction$(() => 1);`,
+      'src/routes/index.tsx': [
+        `import { useAdd } from './actions';`,
+        `export const useA = routeLoader$(async ({ resolveValue }) => (await resolveValue(useAdd)) ?? 0);`,
+        `export const useB = routeLoader$(async (ev) => ev.resolveValue(useA));`,
+      ].join('\n'),
+    });
+    runCodemods([], projectCodemods);
+    expect(takeWarnings().filter((w) => w.includes('resolveValue(action)'))).toHaveLength(1);
+  });
+});

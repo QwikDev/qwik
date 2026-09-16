@@ -23,21 +23,27 @@ export const createProject = (options: ProjectOptions = {}) =>
 
 const SOURCE_FILE = /\.(ts|tsx|mts|cts|js|jsx|mjs|cjs)$/;
 
-export function runCodemods(codemods: Codemod[]) {
+/** Transforms the whole project, e.g. moves files. */
+export type ProjectCodemod = (project: Project) => void;
+
+export function runCodemods(codemods: Codemod[], projectCodemods: ProjectCodemod[] = []) {
   const project = createProject();
   visitNotIgnoredFiles('.', (path) => {
     if (SOURCE_FILE.test(path) && !path.endsWith('.d.ts')) {
       project.addSourceFileAtPath(path);
     }
   });
+  for (const codemod of projectCodemods) {
+    codemod(project);
+  }
   for (const file of project.getSourceFiles()) {
     let changed = false;
     for (const codemod of codemods) {
       changed = codemod(file) || changed;
     }
     if (changed) {
-      file.saveSync();
       log.info(`Updated ${file.getFilePath()}`);
     }
   }
+  project.saveSync();
 }

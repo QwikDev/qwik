@@ -30,8 +30,8 @@ export async function runV2Migration(app: AppCommand) {
 
   try {
     const installedTsMorph = await installTsMorph();
-    const { codemods, runCodemods } = await import('./codemods');
-    runCodemods(codemods);
+    const { codemods, projectCodemods, runCodemods } = await import('./codemods');
+    runCodemods(codemods, projectCodemods);
     removePackage('@builder.io/qwik-labs');
     const { replaceImportInFiles } = await import('./rename-import');
     replaceImportInFiles(

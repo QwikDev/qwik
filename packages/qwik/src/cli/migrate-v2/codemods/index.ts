@@ -16,7 +16,8 @@ import {
   removeRemovedRenderOptions,
   renameMaximunStreamingOptions,
 } from './server';
-import type { Codemod } from './run-codemods';
+import type { Codemod, ProjectCodemod } from './run-codemods';
+import { renameV2ErrorBoundaryFiles } from './route-files';
 import { keepV1TaskCleanupTiming, removeTaskEagerness } from './tasks';
 import {
   keepAssetsDir,
@@ -59,3 +60,6 @@ export const codemods: Codemod[] = [
   keepV1HeadOrder,
   keepV1LinkPrefetch,
 ];
+
+/** Codemods run on the whole project before the file codemods. */
+export const projectCodemods: ProjectCodemod[] = [renameV2ErrorBoundaryFiles];

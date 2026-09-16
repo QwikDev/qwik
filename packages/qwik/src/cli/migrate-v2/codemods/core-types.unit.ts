@@ -1,6 +1,6 @@
 import { Project } from 'ts-morph';
 import { describe, expect, test } from 'vitest';
-import { replaceRemovedJsxTypes } from './core-types';
+import { replaceEventTypes, replaceRemovedJsxTypes } from './core-types';
 import type { Codemod } from './run-codemods';
 
 const run = (codemod: Codemod, code: string) => {
@@ -53,5 +53,45 @@ describe('replaceRemovedJsxTypes', () => {
   test('ignores types from other modules', () => {
     const code = `import type { InputHTMLAttributes } from 'react';\nlet a: InputHTMLAttributes<HTMLInputElement>;`;
     expect(run(replaceRemovedJsxTypes, code)).toEqual({ changed: false, text: code });
+  });
+});
+
+describe('replaceEventTypes', () => {
+  test('replaces the deprecated event aliases with DOM events', () => {
+    expect(
+      run(
+        replaceEventTypes,
+        [
+          `import { $, type QwikMouseEvent, type QwikKeyboardEvent, type NativeWheelEvent, type QwikChangeEvent } from '@builder.io/qwik';`,
+          `const a = $((e: QwikMouseEvent<HTMLButtonElement>) => {});`,
+          `const b = $((e: QwikMouseEvent<HTMLElement, PointerEvent>) => {});`,
+          `const c = $((e: QwikKeyboardEvent<HTMLInputElement>, w: NativeWheelEvent, ch: QwikChangeEvent) => {});`,
+        ].join('\n')
+      ).text
+    ).toBe(
+      [
+        `import { $ } from '@builder.io/qwik';`,
+        `const a = $((e: MouseEvent) => {});`,
+        `const b = $((e: PointerEvent) => {});`,
+        `const c = $((e: KeyboardEvent, w: WheelEvent, ch: Event) => {});`,
+      ].join('\n')
+    );
+  });
+
+  test('replaces PropFunction with QRL', () => {
+    expect(
+      run(
+        replaceEventTypes,
+        [
+          `import { component$, type PropFunction } from '@builder.io/qwik';`,
+          `export const C = component$((props: { onClick$: PropFunction<() => void> }) => null);`,
+        ].join('\n')
+      ).text
+    ).toBe(
+      [
+        `import { component$, type QRL } from '@builder.io/qwik';`,
+        `export const C = component$((props: { onClick$: QRL<() => void> }) => null);`,
+      ].join('\n')
+    );
   });
 });

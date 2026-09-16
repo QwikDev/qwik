@@ -127,3 +127,39 @@ function replaceTypeReference(ref: TypeReferenceNode, replacement: Replacement) 
 
 /** V2 removed the `XxxHTMLAttributes` and related helper types, the JSX element types replace them. */
 export const replaceRemovedJsxTypes = (file: SourceFile) => replaceTypes(file, JSX_TYPES);
+
+const DOM_EVENTS: Record<string, string> = {
+  Animation: 'AnimationEvent',
+  Clipboard: 'ClipboardEvent',
+  Composition: 'CompositionEvent',
+  Drag: 'DragEvent',
+  Pointer: 'PointerEvent',
+  Focus: 'FocusEvent',
+  Keyboard: 'KeyboardEvent',
+  Mouse: 'MouseEvent',
+  Touch: 'TouchEvent',
+  UI: 'UIEvent',
+  Wheel: 'WheelEvent',
+  Transition: 'TransitionEvent',
+};
+
+const EVENT_TYPES: Record<string, Replacement> = {
+  ...Object.fromEntries(
+    Object.entries(DOM_EVENTS).flatMap(([name, dom]) => [
+      [`Native${name}Event`, text(dom)],
+      [`Qwik${name}Event`, text(dom)],
+    ])
+  ),
+  // QwikMouseEvent<T, E> is E
+  QwikMouseEvent: { text: (args) => args[1] ?? 'MouseEvent' },
+  QwikSubmitEvent: text('SubmitEvent'),
+  QwikInvalidEvent: text('Event'),
+  QwikChangeEvent: text('Event'),
+  PropFunction: {
+    text: (args) => (args.length ? `QRL<${args.join(', ')}>` : 'QRL'),
+    imports: ['QRL'],
+  },
+};
+
+/** The deprecated `QwikXxxEvent`/`NativeXxxEvent` aliases and `PropFunction` are not public in v2. */
+export const replaceEventTypes = (file: SourceFile) => replaceTypes(file, EVENT_TYPES);

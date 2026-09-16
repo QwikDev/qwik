@@ -1,4 +1,10 @@
-import { Node, SyntaxKind, type Identifier, type SourceFile } from 'ts-morph';
+import {
+  Node,
+  SyntaxKind,
+  type Identifier,
+  type ObjectLiteralExpression,
+  type SourceFile,
+} from 'ts-morph';
 
 /**
  * Local identifiers bound to the named import `name` from a module whose specifier starts with
@@ -61,4 +67,33 @@ export function isReference(identifier: Node) {
     return parent.getLeft() === identifier;
   }
   return !Node.isImportSpecifier(parent);
+}
+
+/**
+ * Appends `name: value` to an object literal, following its formatting (single or multi line,
+ * indentation and trailing comma). Nodes of the file are forgotten afterwards.
+ */
+export function appendProperty(obj: ObjectLiteralExpression, text: string) {
+  const file = obj.getSourceFile();
+  const props = obj.getProperties();
+  const last = props[props.length - 1];
+  if (!last) {
+    obj.replaceWithText(`{ ${text} }`);
+    return;
+  }
+  const afterLast = file.getFullText().slice(last.getEnd(), obj.getEnd());
+  const hasTrailingComma = afterLast.trimStart().startsWith(',');
+  if (!obj.getText().includes('\n')) {
+    file.insertText(last.getEnd(), `, ${text}`);
+    return;
+  }
+  const indent = ' '.repeat(
+    last.getStartLinePos() === last.getStart() ? 0 : last.getStart() - last.getStartLinePos()
+  );
+  if (hasTrailingComma) {
+    const commaPos = last.getEnd() + afterLast.indexOf(',') + 1;
+    file.insertText(commaPos, `\n${indent}${text},`);
+  } else {
+    file.insertText(last.getEnd(), `,\n${indent}${text}`);
+  }
 }

@@ -69,7 +69,7 @@ describe('runV2Migration', () => {
       [
         `import { qwikRouter } from '@qwik.dev/router/vite';`,
         `import { qwikReact } from '@qwik.dev/react/vite';`,
-        `export default { plugins: [qwikRouter(), qwikReact()] };`,
+        `export default { plugins: [qwikRouter({ strictLoaders: false }), qwikReact()] };`,
       ].join('\n')
     );
     expect(project.read('src/entry.preview.tsx')).toBe(

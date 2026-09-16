@@ -1,6 +1,8 @@
+import { warn } from '../report';
 import {
   Node,
   SyntaxKind,
+  type CallExpression,
   type Identifier,
   type ObjectLiteralExpression,
   type SourceFile,
@@ -123,4 +125,28 @@ export function ensureNamedImport(
     namedImports: [name],
     isTypeOnly,
   });
+}
+
+/**
+ * Adds the `name: value` option to the first argument of a call, unless it is already set. Returns
+ * whether the file changed. Nodes of the file may be forgotten afterwards.
+ */
+export function ensureCallOption(call: CallExpression, name: string, value: string) {
+  const options = call.getArguments()[0];
+  if (!options) {
+    call.addArgument(`{ ${name}: ${value} }`);
+    return true;
+  }
+  if (!Node.isObjectLiteralExpression(options)) {
+    warn(
+      call.getSourceFile().getFilePath(),
+      `add \`${name}: ${value}\` to \`${call.getExpression().getText()}()\` to keep the v1 behavior.`
+    );
+    return false;
+  }
+  if (options.getProperty(name)) {
+    return false;
+  }
+  appendProperty(options, `${name}: ${value}`);
+  return true;
 }

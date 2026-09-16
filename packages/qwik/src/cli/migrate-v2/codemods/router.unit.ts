@@ -1,5 +1,10 @@
 import { describe, expect, test } from 'vitest';
-import { keepV1HeadOrder, keepV1ViewTransitions, removeSetupServiceWorker } from './router';
+import {
+  keepV1HeadOrder,
+  keepV1LinkPrefetch,
+  keepV1ViewTransitions,
+  removeSetupServiceWorker,
+} from './router';
 import { createProject, type Codemod } from './run-codemods';
 
 const run = (codemod: Codemod, code: string, path = 'src/a.tsx') => {
@@ -126,6 +131,30 @@ describe('keepV1HeadOrder', () => {
       [`export const head = { title: 'x' };`, 'src/components/a.tsx'],
     ]) {
       expect(run(keepV1HeadOrder, code, path)).toEqual({ changed: false, text: code });
+    }
+  });
+});
+
+describe('keepV1LinkPrefetch', () => {
+  const IMPORT = `import { Link } from '@builder.io/qwik-city';\n`;
+
+  test('maps the v1 prefetch behavior to the v2 props', () => {
+    expect(
+      run(
+        keepV1LinkPrefetch,
+        `${IMPORT}<><Link href="/a" /><Link href="/b" prefetch /><Link href="/c" prefetch={false}>c</Link><Link href="/d" prefetch="js" /></>;`
+      ).text
+    ).toBe(
+      `${IMPORT}<><Link href="/a" prefetchData="visible" /><Link href="/b" prefetchData="visible" /><Link href="/c" prefetchBundles="off" prefetchData="off">c</Link><Link href="/d" prefetchData="off" /></>;`
+    );
+  });
+
+  test('keeps dynamic values and ignores other Link components', () => {
+    for (const code of [
+      `${IMPORT}<Link href="/a" prefetch={enabled} />;`,
+      `import { Link } from './link';\n<Link href="/a" />;`,
+    ]) {
+      expect(run(keepV1LinkPrefetch, code)).toEqual({ changed: false, text: code });
     }
   });
 });

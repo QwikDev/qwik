@@ -1,4 +1,5 @@
 import { Node, SyntaxKind, type SourceFile } from 'ts-morph';
+import { warn } from '../report';
 import { ensureNamedImport, findCalls, findNamedImports } from './utils';
 
 /**
@@ -104,6 +105,63 @@ export const keepV1HeadOrder = (file: SourceFile) => {
     }
     initializer.replaceWithText(`() => (${initializer.getText()})`);
     changed = true;
+  }
+  return changed;
+};
+
+/**
+ * V1 `<Link>` prefetched data when visible by default, v2 only on intent. The deprecated `prefetch`
+ * prop is replaced with the v2 props that keep the v1 behavior.
+ */
+export const keepV1LinkPrefetch = (file: SourceFile) => {
+  const links = findNamedImports(file, '@builder.io/qwik-city', 'Link').map((id) => id.getText());
+  let changed = false;
+  const elements = [
+    ...file.getDescendantsOfKind(SyntaxKind.JsxOpeningElement),
+    ...file.getDescendantsOfKind(SyntaxKind.JsxSelfClosingElement),
+  ].filter((e) => links.includes(e.getTagNameNode().getText()));
+  for (const element of elements.reverse()) {
+    const attrs = element.getAttributes();
+    if (attrs.some((a) => Node.isJsxSpreadAttribute(a))) {
+      warn(
+        file.getFilePath(),
+        '`<Link>` prefetches data on intent in v2, set `prefetchData="visible"` to prefetch when visible like v1.'
+      );
+      continue;
+    }
+    const prefetch = attrs.find(
+      (a) => Node.isJsxAttribute(a) && a.getNameNode().getText() === 'prefetch'
+    );
+    if (
+      attrs.some(
+        (a) =>
+          Node.isJsxAttribute(a) &&
+          a.getNameNode().getText().startsWith('prefetch') &&
+          a !== prefetch
+      )
+    ) {
+      continue;
+    }
+    if (!prefetch) {
+      element.addAttribute({ name: 'prefetchData', initializer: '"visible"' });
+      changed = true;
+      continue;
+    }
+    const initializer = Node.isJsxAttribute(prefetch) ? prefetch.getInitializer() : undefined;
+    const value = !initializer
+      ? 'true'
+      : Node.isJsxExpression(initializer)
+        ? initializer.getExpression()?.getText()
+        : initializer.getText().slice(1, -1);
+    const replacement = {
+      true: 'prefetchData="visible"',
+      false: 'prefetchBundles="off" prefetchData="off"',
+      js: 'prefetchData="off"',
+    }[value as string];
+    if (replacement) {
+      prefetch.replaceWithText(replacement);
+      changed = true;
+    }
   }
   return changed;
 };

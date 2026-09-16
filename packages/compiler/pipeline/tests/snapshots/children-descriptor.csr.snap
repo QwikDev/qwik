@@ -1,16 +1,17 @@
 ==INPUT==
 
-import { component$, Slot, useSignal } from '@qwik.dev/core';
+import { component$, Slot, useChildrenInfo, useSignal } from '@qwik.dev/core';
 import { Card } from './card';
-export const Counter = component$((props: { children?: { type: unknown }[] }) => (
-  <p>{props.children?.length}<Slot /></p>
-));
+export const Counter = component$(() => {
+  const children = useChildrenInfo();
+  return <p>{children.length}<Slot /></p>;
+});
 export const Plain = component$(() => <p><Slot /></p>);
 export default component$(() => {
   const count = useSignal(1);
   return (
     <>
-      <Counter><b>x</b>text<Card />{count.value}</Counter>
+      <Counter><b q:type="bold">x</b>text<Card q:type="card" />{count.value}</Counter>
       <Plain><b>x</b></Plain>
       <Card><b>x</b></Card>
     </>
@@ -22,24 +23,29 @@ export default component$(() => {
 ============================= src/component.tsx ==
 
 import {
+  useChildrenInfo,
   _first,
   _last,
-  createTextExpressionEffect,
+  _next,
+  _qrlWithChunk,
+  createContentBlock,
   maybeThen,
   createSlot,
   _createElementTemplate,
   useSignal,
-  _next,
   createSlotScope,
-  _qrlWithChunk,
+  _EMPTY_OBJ,
   registerProjection,
   createComponent,
   _toNodes,
   createTemplate,
 } from '@qwik.dev/core';
-import { component_text_segment_0_1fh10fbkzokfc } from './component.tsx_component_text_segment_0_1fh10fbkzokfc';
-
-const Counter_tmpl0 = _createElementTemplate('<p><!><!></p>');
+const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_text_segment_0_1fh10fbkzokfc',
+  () => import('./component.tsx_component_text_segment_0_1fh10fbkzokfc'),
+  'component_text_segment_0_1fh10fbkzokfc'
+);
+const Counter_tmpl0 = _createElementTemplate('<p><!><!><!></p>');
 const Plain_tmpl0 = _createElementTemplate('<p><!></p>');
 const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1',
@@ -74,37 +80,40 @@ const q_component_slot_render_segment_6_3b0t84qbb79rc = /*#__PURE__*/ _qrlWithCh
 const default_tmpl0 = createTemplate('<!><!><!>');
 import { Card } from './card';
 export const Counter = (props, ctx) => {
+  const children = useChildrenInfo();
   const el0 = Counter_tmpl0(ctx.document);
-  const marker0 = _first(el0);
-  const text0 = ctx.document.createTextNode('');
-  marker0.replaceWith(text0);
-  const effect0 = createTextExpressionEffect(
-    text0,
-    [props],
-    component_text_segment_0_1fh10fbkzokfc,
-    ctx.scheduler
+  const start0 = _first(el0);
+  const end0 = _next(start0);
+  const content0 = createContentBlock(
+    ctx,
+    start0,
+    end0,
+    [],
+    q_component_text_segment_0_1fh10fbkzokfc.w([children]),
+    false,
+    true
   );
-  ctx.scheduler.notify(effect0);
-  const marker1 = _last(el0);
-  ctx.scheduler.waitFor(maybeThen(createSlot(), (slot0) => marker1.replaceWith(...slot0)));
+  ctx.scheduler.notify(content0);
+  const marker0 = _last(el0);
+  ctx.scheduler.waitFor(maybeThen(createSlot(), (slot0) => marker0.replaceWith(...slot0)));
   return el0;
 };
-export const Plain = (props0, ctx) => {
+export const Plain = (props, ctx) => {
   const el0 = Plain_tmpl0(ctx.document);
   const marker0 = _first(el0);
   ctx.scheduler.waitFor(maybeThen(createSlot(), (slot0) => marker0.replaceWith(...slot0)));
   return el0;
 };
-export const default_component_3rg6kq1so9aio = (props0, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const count = useSignal(1);
   const fragment0 = default_tmpl0(ctx.document);
   const marker0 = _next(_first(fragment0));
   const marker1 = _last(fragment0);
   const slotScope0 = createSlotScope(null, [
-    { type: 'b' },
-    { type: 'text' },
-    { type: Card },
-    { type: 'dynamic' },
+    { type: 'bold' },
+    _EMPTY_OBJ,
+    { type: 'card' },
+    _EMPTY_OBJ,
   ]);
   registerProjection(slotScope0, '', q_component_slot_render_segment_1_3b0tauy2p1nv1);
   registerProjection(slotScope0, '', q_component_slot_render_segment_2_3b0t9ouqyjhtg);
@@ -116,7 +125,7 @@ export const default_component_3rg6kq1so9aio = (props0, ctx) => {
   registerProjection(slotScope1, '', q_component_slot_render_segment_5_3b0t9atn1pfsx);
   const component1 = createComponent(Plain, null, ctx, { slotScope: slotScope1 });
   marker0.replaceWith(..._toNodes(component1));
-  const slotScope2 = createSlotScope(null, [{ type: 'b' }]);
+  const slotScope2 = createSlotScope(null, [_EMPTY_OBJ]);
   registerProjection(slotScope2, '', q_component_slot_render_segment_6_3b0t84qbb79rc);
   const component2 = createComponent(Card, null, ctx, { slotScope: slotScope2 });
   marker1.replaceWith(..._toNodes(component2));
@@ -127,8 +136,11 @@ export default default_component_3rg6kq1so9aio;
 export { Counter as Counter_component_3h2q15ekklxzt, Plain as Plain_component_25y3k1m6p49gx };
 ============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
 
-export const component_text_segment_0_1fh10fbkzokfc = (props) => {
-  return props.children?.length;
+import { _captures, createDynamicContent } from '@qwik.dev/core';
+
+export const component_text_segment_0_1fh10fbkzokfc = (ctx0) => {
+  const [children] = _captures;
+  return createDynamicContent(children.length, ctx0);
 };
 /*
 {
@@ -144,12 +156,12 @@ export const component_text_segment_0_1fh10fbkzokfc = (props) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    182,
-    204
+    203,
+    218
   ],
   "paramNames": [],
   "captureNames": [
-    "props"
+    "children"
   ]
 }
 */
@@ -176,8 +188,8 @@ export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx) => {
   "ctxName": "slot:render",
   "captures": false,
   "loc": [
-    375,
-    383
+    390,
+    412
   ],
   "paramNames": []
 }
@@ -206,8 +218,8 @@ export const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx) => {
   "ctxName": "slot:render",
   "captures": false,
   "loc": [
-    383,
-    387
+    412,
+    416
   ],
   "paramNames": []
 }
@@ -235,8 +247,8 @@ export const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx) => {
   "ctxName": "slot:render",
   "captures": false,
   "loc": [
-    387,
-    395
+    416,
+    438
   ],
   "paramNames": []
 }
@@ -266,8 +278,8 @@ export const component_slot_render_segment_4_3b0t8wsj4vdse = (ctx) => {
   "ctxName": "slot:render",
   "captures": true,
   "loc": [
-    388,
-    408
+    424,
+    451
   ],
   "paramNames": [],
   "captureNames": [
@@ -298,8 +310,8 @@ export const component_slot_render_segment_5_3b0t9atn1pfsx = (ctx) => {
   "ctxName": "slot:render",
   "captures": false,
   "loc": [
-    432,
-    440
+    475,
+    483
   ],
   "paramNames": []
 }
@@ -327,8 +339,8 @@ export const component_slot_render_segment_6_3b0t84qbb79rc = (ctx) => {
   "ctxName": "slot:render",
   "captures": false,
   "loc": [
-    461,
-    469
+    504,
+    512
   ],
   "paramNames": []
 }

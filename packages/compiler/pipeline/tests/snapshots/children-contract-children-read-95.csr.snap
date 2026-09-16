@@ -5,20 +5,20 @@ import { Card } from './card';
 export const Wrapper = (props) => <Card>{props.children}</Card>;
 export default () => <Wrapper><p>Projected</p></Wrapper>;
 
-== SSR OUTPUT ==
+== CSR OUTPUT ==
 
 ============================= src/component.tsx ==
 
 
-== SSR DIAGNOSTICS ==
+== CSR DIAGNOSTICS ==
 
 [
   {
     "scope": "compiler",
     "category": "error",
-    "code": "children-render",
+    "code": "children-read",
     "file": "src/component.tsx",
-    "message": "Render projected children with <Slot />; props.children only describes them.",
+    "message": "Read child info with useChildrenInfo(), or render them with <Slot />.",
     "highlights": [
       {
         "lo": 111,

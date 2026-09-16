@@ -34,7 +34,6 @@ export interface Program {
   /** Intra-module fact; cross-module joins land on `LinkedProgram.facts`. */
   needsId: boolean;
   /** The component reads `props.children`, so a parent must describe what it projects. */
-  readsChildren?: true;
   /** Authored syntax; scheduling derives from setup at link. */
   async: boolean;
 }
@@ -77,6 +76,8 @@ export type ComponentProjection =
       /** A `q:slot={expr}` name: read under the dynamic slot's collector; a value QRL on the server. */
       nameUse?: QrlUse;
       use: QrlUse;
+      /** The child's `q:type`, the only thing `props.children` reports about it. */
+      childType?: string;
       id: Seed;
     }
   | {
@@ -295,6 +296,7 @@ export const enum CoreOperation {
   CreateSignal = 'create-signal',
   CreateStore = 'create-store',
   UseId = 'use-id',
+  ChildrenInfo = 'children-info',
   CreateComputed = 'create-computed',
   Task = 'task',
   VisibleTask = 'visible-task',

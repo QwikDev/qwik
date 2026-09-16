@@ -120,6 +120,8 @@ export interface LinkedProgram extends Omit<Program, 'body'> {
     runtimeScope: Maybe<boolean>;
     /** Whether the setup registers `useOn*` events; unknown when a callee's body is not linked. */
     registersEvents: Maybe<boolean>;
+    /** Whether the setup calls `useChildrenInfo()`, so the parent must describe its children. */
+    readsChildrenInfo: Maybe<boolean>;
   };
 }
 

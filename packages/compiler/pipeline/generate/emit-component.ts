@@ -14,8 +14,6 @@ import {
   type LinkedQrl,
   type QrlUse,
   type Value,
-  ProgramBodyKind,
-  QrlBodyKind,
 } from '../schema';
 import { UnsupportedError } from '../errors';
 import { QwikGenWord, QwikHook, QwikWord } from '../words';
@@ -100,7 +98,7 @@ function emitComponentProjections(
   const statements: string[] = [];
   const dynamicSlot =
     component.dynamicSlot === undefined ? null : resolveQrl(component.dynamicSlot, true).reference;
-  const children = childrenDescriptorJs(module, component, resolveQrl);
+  const children = childrenDescriptorJs(component, imports);
   const scopeArgs = children === null ? [dynamicSlot ?? ''] : [dynamicSlot ?? 'null', children];
   for (const projection of component.projections) {
     if (projection.kind === ProjectionKind.Forward) {
@@ -137,14 +135,10 @@ function emitComponentProjections(
 }
 
 /**
- * A consumer that reads `props.children` gets one `{ type }` per authored default child: a tag, a
- * component reference, `"text"` or `"dynamic"`. A linked consumer that never reads them gets none.
+ * A consumer that reads `props.children` gets one entry per authored default child, carrying only
+ * the child's `q:type`. A linked consumer that never reads them gets none.
  */
-function childrenDescriptorJs(
-  module: LinkedModule,
-  component: ComponentOp,
-  resolveQrl: ResolveComponentQrl
-): string | null {
+function childrenDescriptorJs(component: ComponentOp, imports: Set<string>): string | null {
   const target = component.target;
   if (
     target.t === ComponentTargetKind.Declaration &&
@@ -153,37 +147,21 @@ function childrenDescriptorJs(
   ) {
     return null;
   }
-  // Each authored child is its own default projection, in authored order.
-  const ops = component.projections.flatMap((projection) => {
-    if (
-      projection.kind !== ProjectionKind.Render ||
-      projection.name !== '' ||
-      projection.nameUse !== undefined
-    ) {
-      return [];
-    }
-    const body = resolveQrl(projection.use, false).qrl.body;
-    const program = body.b === QrlBodyKind.Program ? module.programs[body.program].body : null;
-    return program?.kind === ProgramBodyKind.Ops ? program.ops : [];
-  });
-  if (ops.length === 0) {
-    return null;
+  const entries = component.projections.flatMap((projection) =>
+    projection.kind !== ProjectionKind.Render ||
+    projection.name !== '' ||
+    projection.nameUse !== undefined
+      ? []
+      : [
+          projection.childType === undefined
+            ? QwikWord.EmptyObject
+            : `{ "type": ${JSON.stringify(projection.childType)} }`,
+        ]
+  );
+  if (entries.includes(QwikWord.EmptyObject)) {
+    imports.add(QwikWord.EmptyObject);
   }
-  const entries = ops.map((op) => {
-    switch (op.op) {
-      case OpKind.Element:
-        return `{ "type": ${JSON.stringify(op.tag)} }`;
-      case OpKind.Static:
-        return '{ "type": "text" }';
-      case OpKind.Component:
-        return op.target.t === ComponentTargetKind.Dynamic
-          ? '{ "type": "dynamic" }'
-          : `{ "type": ${module.bindings[op.target.binding].name} }`;
-      default:
-        return '{ "type": "dynamic" }';
-    }
-  });
-  return `[${entries.join(', ')}]`;
+  return entries.length === 0 ? null : `[${entries.join(', ')}]`;
 }
 
 function emitProjectionQrl(use: QrlUse, resolveQrl: ResolveComponentQrl): string {

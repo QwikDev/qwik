@@ -1,16 +1,17 @@
 ==INPUT==
 
-import { component$, Slot, useSignal } from '@qwik.dev/core';
+import { component$, Slot, useChildrenInfo, useSignal } from '@qwik.dev/core';
 import { Card } from './card';
-export const Counter = component$((props: { children?: { type: unknown }[] }) => (
-  <p>{props.children?.length}<Slot /></p>
-));
+export const Counter = component$(() => {
+  const children = useChildrenInfo();
+  return <p>{children.length}<Slot /></p>;
+});
 export const Plain = component$(() => <p><Slot /></p>);
 export default component$(() => {
   const count = useSignal(1);
   return (
     <>
-      <Counter><b>x</b>text<Card />{count.value}</Counter>
+      <Counter><b q:type="bold">x</b>text<Card q:type="card" />{count.value}</Counter>
       <Plain><b>x</b></Plain>
       <Card><b>x</b></Card>
     </>
@@ -22,23 +23,27 @@ export default component$(() => {
 ============================= src/component.tsx ==
 
 import {
+  useChildrenInfo,
+  _captures,
+  renderSsrContent,
   createSsrNodeId,
-  escapeHTML,
-  renderSsrTextExpression,
   renderSsrSlot,
   maybeThen,
+  renderSsrDynamicContent,
   _noopQrl,
   _markComponent,
   useSignal,
   createSlotScope,
+  _EMPTY_OBJ,
   registerProjection,
   createComponent,
-  _captures,
+  escapeHTML,
   renderSsrTextNode,
 } from '@qwik.dev/core';
 import { Card } from './card';
-const component_text_segment_0_1fh10fbkzokfc = (props) => {
-  return props.children?.length;
+const component_text_segment_0_1fh10fbkzokfc = (ctx0) => {
+  const [children] = _captures;
+  return renderSsrDynamicContent(children.length, ctx0);
 };
 const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _noopQrl(
   'component_text_segment_0_1fh10fbkzokfc'
@@ -107,22 +112,25 @@ const q_component_slot_render_segment_6_3b0t84qbb79rc = /*#__PURE__*/ _noopQrl(
 q_component_slot_render_segment_6_3b0t84qbb79rc.s(component_slot_render_segment_6_3b0t84qbb79rc);
 export const Counter = _markComponent(
   (props, ctx) => {
+    const children = useChildrenInfo();
     const id0 = ctx.nextId();
-    ctx.addRoot(props);
-    const text0 = renderSsrTextExpression(
+    ctx.addRoot(children);
+    const content0 = renderSsrContent(
+      ctx,
       id0,
-      0,
-      [props],
-      q_component_text_segment_0_1fh10fbkzokfc
+      [],
+      q_component_text_segment_0_1fh10fbkzokfc.w([children]),
+      false,
+      true
     );
     const slot0 = renderSsrSlot(ctx);
-    return maybeThen(text0, (text0) =>
+    return maybeThen(content0, (content0) =>
       maybeThen(slot0, (slot0) => [
-        '<p q:id="',
+        '<p><!d=',
         createSsrNodeId(id0),
-        '"><!t>',
-        escapeHTML(text0),
-        '<!/t>',
+        '>',
+        content0,
+        '<!/d>',
         slot0,
         '</p>',
       ])
@@ -132,7 +140,7 @@ export const Counter = _markComponent(
   './component.tsx'
 );
 export const Plain = _markComponent(
-  (props0, ctx) => {
+  (props, ctx) => {
     const slot0 = renderSsrSlot(ctx);
     return maybeThen(slot0, (slot0) => ['<p>', slot0, '</p>']);
   },
@@ -140,13 +148,13 @@ export const Plain = _markComponent(
   './component.tsx'
 );
 export const default_component_3rg6kq1so9aio = _markComponent(
-  (props0, ctx) => {
+  (props, ctx) => {
     const count = useSignal(1);
     const slotScope0 = createSlotScope(null, [
-      { type: 'b' },
-      { type: 'text' },
-      { type: Card },
-      { type: 'dynamic' },
+      { type: 'bold' },
+      _EMPTY_OBJ,
+      { type: 'card' },
+      _EMPTY_OBJ,
     ]);
     registerProjection(slotScope0, '', q_component_slot_render_segment_1_3b0tauy2p1nv1);
     registerProjection(slotScope0, '', q_component_slot_render_segment_2_3b0t9ouqyjhtg);
@@ -158,7 +166,7 @@ export const default_component_3rg6kq1so9aio = _markComponent(
     registerProjection(slotScope1, '', q_component_slot_render_segment_5_3b0t9atn1pfsx);
     ctx.addRoot(slotScope1);
     const component1 = createComponent(Plain, null, ctx, { slotScope: slotScope1 });
-    const slotScope2 = createSlotScope(null, [{ type: 'b' }]);
+    const slotScope2 = createSlotScope(null, [_EMPTY_OBJ]);
     registerProjection(slotScope2, '', q_component_slot_render_segment_6_3b0t84qbb79rc);
     ctx.addRoot(slotScope2);
     const component2 = createComponent(Card, null, ctx, { slotScope: slotScope2 });
@@ -176,8 +184,11 @@ export default default_component_3rg6kq1so9aio;
 export { Counter as Counter_component_3h2q15ekklxzt, Plain as Plain_component_25y3k1m6p49gx };
 ============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
 
-export const component_text_segment_0_1fh10fbkzokfc = (props) => {
-  return props.children?.length;
+import { _captures, renderSsrDynamicContent } from '@qwik.dev/core';
+
+export const component_text_segment_0_1fh10fbkzokfc = (ctx0) => {
+  const [children] = _captures;
+  return renderSsrDynamicContent(children.length, ctx0);
 };
 /*
 {
@@ -193,12 +204,12 @@ export const component_text_segment_0_1fh10fbkzokfc = (props) => {
   "ctxName": "text",
   "captures": true,
   "loc": [
-    182,
-    204
+    203,
+    218
   ],
   "paramNames": [],
   "captureNames": [
-    "props"
+    "children"
   ]
 }
 */
@@ -223,8 +234,8 @@ export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId) =>
   "ctxName": "slot:render",
   "captures": false,
   "loc": [
-    375,
-    383
+    390,
+    412
   ],
   "paramNames": []
 }
@@ -250,8 +261,8 @@ export const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId) =>
   "ctxName": "slot:render",
   "captures": false,
   "loc": [
-    383,
-    387
+    412,
+    416
   ],
   "paramNames": []
 }
@@ -285,8 +296,8 @@ export const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx, __rangeId) =>
   "ctxName": "slot:render",
   "captures": false,
   "loc": [
-    387,
-    395
+    416,
+    438
   ],
   "paramNames": []
 }
@@ -330,8 +341,8 @@ export const component_slot_render_segment_4_3b0t8wsj4vdse = (ctx, __rangeId) =>
   "ctxName": "slot:render",
   "captures": true,
   "loc": [
-    388,
-    408
+    424,
+    451
   ],
   "paramNames": [],
   "captureNames": [
@@ -360,8 +371,8 @@ export const component_slot_render_segment_5_3b0t9atn1pfsx = (ctx, __rangeId) =>
   "ctxName": "slot:render",
   "captures": false,
   "loc": [
-    432,
-    440
+    475,
+    483
   ],
   "paramNames": []
 }
@@ -387,8 +398,8 @@ export const component_slot_render_segment_6_3b0t84qbb79rc = (ctx, __rangeId) =>
   "ctxName": "slot:render",
   "captures": false,
   "loc": [
-    461,
-    469
+    504,
+    512
   ],
   "paramNames": []
 }

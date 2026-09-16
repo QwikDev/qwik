@@ -1,7 +1,7 @@
 ==INPUT==
 
 import { Slot } from '@qwik.dev/core';
-export const Wrapper = ({ children }) => <section>{children}</section>;
+export const Wrapper = (props) => <p>{props.children?.length}<Slot /></p>;
 export default () => <Wrapper><p>Projected</p></Wrapper>;
 
 == CSR OUTPUT ==
@@ -15,17 +15,17 @@ export default () => <Wrapper><p>Projected</p></Wrapper>;
   {
     "scope": "compiler",
     "category": "error",
-    "code": "children-render",
+    "code": "children-read",
     "file": "src/component.tsx",
-    "message": "Render projected children with <Slot />; props.children only describes them.",
+    "message": "Read child info with useChildrenInfo(), or render them with <Slot />.",
     "highlights": [
       {
-        "lo": 90,
-        "hi": 98,
+        "lo": 77,
+        "hi": 91,
         "startLine": 2,
-        "startCol": 52,
+        "startCol": 39,
         "endLine": 2,
-        "endCol": 59
+        "endCol": 52
       }
     ],
     "suggestions": null

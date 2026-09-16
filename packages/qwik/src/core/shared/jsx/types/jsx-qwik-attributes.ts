@@ -231,6 +231,8 @@ export type JSXTagName = keyof HTMLElementTagNameMap | Omit<string, keyof HTMLEl
 export interface ComponentBaseProps {
   key?: string | number | null | undefined;
   'q:slot'?: string;
+  /** Reported to a parent that reads `props.children`; never rendered. */
+  'q:type'?: string;
 }
 
 /** @public */
@@ -253,6 +255,8 @@ export interface QwikIntrinsicAttributes {
 
   /** Corresponding slot name used to project the element into. */
   'q:slot'?: string;
+  /** Reported to a parent that reads `props.children`; never rendered. */
+  'q:type'?: string;
   'q:shadowRoot'?: boolean;
   fetchPriority?: 'auto' | 'high' | 'low';
 }

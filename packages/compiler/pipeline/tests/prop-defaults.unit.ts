@@ -260,7 +260,7 @@ test('a children default is a diagnostic pointing at the slot fallback', async (
     ],
     isServer: true,
   });
-  expect(output.diagnostics).toMatchObject([{ code: 'children-default' }]);
+  expect(output.diagnostics).toMatchObject([{ code: 'children-read' }]);
 });
 
 test.each(['', 'import { createTitle } from "./defaults";'])(

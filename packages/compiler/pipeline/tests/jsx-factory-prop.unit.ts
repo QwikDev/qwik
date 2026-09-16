@@ -11,7 +11,6 @@ import {
 test.each([
   ['render prop', '<Display render={(value) => <b>{value}</b>} />'],
   ['resolved callback', '<Display onResolved={(value) => <b>{value}</b>} />'],
-  ['function children', '<Display>{(value) => <b>{value}</b>}</Display>'],
   ['block body', '<Display render={(value) => { const label = value; return <b>{label}</b>; }} />'],
   [
     'destructured default',
@@ -19,7 +18,6 @@ test.each([
   ],
   ['captured local', '<Display render={(value) => <b>{prefix + value}</b>} />'],
   ['reactive spread', '<Display {...options.value} render={(value) => <b>{value}</b>} />'],
-  ['children with spread', '<Display {...options.value}>{(value) => <b>{value}</b>}</Display>'],
   ['function expression', '<Display render={function (value) { return <b>{value}</b>; }} />'],
   [
     'early return',

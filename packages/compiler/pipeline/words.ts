@@ -31,6 +31,7 @@ export const enum QwikWord {
   QrlWithChunk = '_qrlWithChunk',
   MarkComponent = '_markComponent',
   ToNodes = '_toNodes',
+  EmptyObject = '_EMPTY_OBJ',
   CreateTextExpressionEffect = 'createTextExpressionEffect',
   CreateTextNodeEffect = 'createTextNodeEffect',
   CreateAttrEffect = 'createAttrEffect',
@@ -136,6 +137,7 @@ export const enum QwikHook {
   UseSignal = 'useSignal',
   UseStore = 'useStore',
   UseId = 'useId',
+  UseChildrenInfo = 'useChildrenInfo',
   UseVisibleTask = 'useVisibleTask$',
   UseVisibleTaskQrl = 'useVisibleTaskQrl',
   UseVisibleTaskFunction = 'useVisibleTask',
@@ -155,6 +157,8 @@ export const enum QwikHook {
 /** Authored Qwik JSX directives recognized by the compiler. */
 export const enum QwikDirective {
   Slot = 'q:slot',
+  /** The author's label for a projected child, reported through `props.children`. */
+  Type = 'q:type',
   InnerHtml = 'dangerouslySetInnerHTML',
   Ref = 'ref',
   Value = 'value',

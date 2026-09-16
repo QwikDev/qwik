@@ -67,6 +67,7 @@ import {
   _captures,
   _qrlWithChunk,
   createSlotScope,
+  _EMPTY_OBJ,
   registerProjection,
   createDynamicTag,
   createComponent,
@@ -110,12 +111,12 @@ const q_component_slot_render_segment_10_3m3ztgqtay7c7 = /*#__PURE__*/ _qrlWithC
 export const component_tag_dynamic_segment_0_331xea01t87eh = (ctx) => {
   const [props, store, count] = _captures;
   const slotScope0 = createSlotScope(null, [
-    { type: 'dynamic' },
-    { type: 'dynamic' },
-    { type: 'dynamic' },
-    { type: 'dynamic' },
-    { type: 'dynamic' },
-    { type: Child },
+    _EMPTY_OBJ,
+    _EMPTY_OBJ,
+    _EMPTY_OBJ,
+    _EMPTY_OBJ,
+    _EMPTY_OBJ,
+    _EMPTY_OBJ,
   ]);
   const tag0 = props.as;
   registerProjection(slotScope0, '', q_component_slot_render_segment_2_3b0t9ouqyjhtg.w([props]));

@@ -256,6 +256,7 @@ export {
   createProjection,
   createSlot,
   type ChildInfo,
+  useChildrenInfo,
   renderSlotContent,
   createDynamicTag,
   createSlotScope,
@@ -413,6 +414,7 @@ export {
   type TemplateFactory,
 } from './dom/template/template';
 export { toNodes as _toNodes } from './utils/nodes';
+export { EMPTY_OBJ as _EMPTY_OBJ } from './shared/utils/flyweight';
 export {
   EffectTargetKind,
   SsrAttrEffect,

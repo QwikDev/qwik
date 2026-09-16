@@ -27,6 +27,7 @@ import {
   createSsrNodeId,
   maybeThen,
   createSlotScope,
+  _EMPTY_OBJ,
   registerProjection,
   renderSsrDynamicTag,
   createComponent,
@@ -37,7 +38,7 @@ import {
 import { A, B, choose } from './parts';
 const component_tag_dynamic_segment_0_331xea01t87eh = (ctx) => {
   const [content, show, Picked] = _captures;
-  const slotScope0 = createSlotScope(null, [{ type: 'dynamic' }, { type: Picked }]);
+  const slotScope0 = createSlotScope(null, [_EMPTY_OBJ, _EMPTY_OBJ]);
   const tag0 = content.value[0];
   registerProjection(
     slotScope0,
@@ -176,6 +177,7 @@ import {
   _noopQrl,
   _captures,
   createSlotScope,
+  _EMPTY_OBJ,
   registerProjection,
   renderSsrDynamicTag,
   createComponent,
@@ -193,7 +195,7 @@ q_component_slot_render_segment_5_3b0t9atn1pfsx.s(component_slot_render_segment_
 
 export const component_tag_dynamic_segment_0_331xea01t87eh = (ctx) => {
   const [content, show, Picked] = _captures;
-  const slotScope0 = createSlotScope(null, [{ type: 'dynamic' }, { type: Picked }]);
+  const slotScope0 = createSlotScope(null, [_EMPTY_OBJ, _EMPTY_OBJ]);
   const tag0 = content.value[0];
   registerProjection(
     slotScope0,

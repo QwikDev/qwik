@@ -31,6 +31,7 @@ import {
   createSsrNodeId,
   maybeThen,
   createSlotScope,
+  _EMPTY_OBJ,
   registerProjection,
   renderSsrDynamicTag,
   createComponent,
@@ -47,12 +48,12 @@ import { Child } from './child';
 const component_tag_dynamic_segment_0_331xea01t87eh = (ctx) => {
   const [props, store, count] = _captures;
   const slotScope0 = createSlotScope(null, [
-    { type: 'dynamic' },
-    { type: 'dynamic' },
-    { type: 'dynamic' },
-    { type: 'dynamic' },
-    { type: 'dynamic' },
-    { type: Child },
+    _EMPTY_OBJ,
+    _EMPTY_OBJ,
+    _EMPTY_OBJ,
+    _EMPTY_OBJ,
+    _EMPTY_OBJ,
+    _EMPTY_OBJ,
   ]);
   const tag0 = props.as;
   registerProjection(slotScope0, '', q_component_slot_render_segment_2_3b0t9ouqyjhtg.w([props]));
@@ -268,6 +269,7 @@ import {
   _noopQrl,
   _captures,
   createSlotScope,
+  _EMPTY_OBJ,
   registerProjection,
   renderSsrDynamicTag,
   createComponent,
@@ -309,12 +311,12 @@ q_component_slot_render_segment_10_3m3ztgqtay7c7.s(component_slot_render_segment
 export const component_tag_dynamic_segment_0_331xea01t87eh = (ctx) => {
   const [props, store, count] = _captures;
   const slotScope0 = createSlotScope(null, [
-    { type: 'dynamic' },
-    { type: 'dynamic' },
-    { type: 'dynamic' },
-    { type: 'dynamic' },
-    { type: 'dynamic' },
-    { type: Child },
+    _EMPTY_OBJ,
+    _EMPTY_OBJ,
+    _EMPTY_OBJ,
+    _EMPTY_OBJ,
+    _EMPTY_OBJ,
+    _EMPTY_OBJ,
   ]);
   const tag0 = props.as;
   registerProjection(slotScope0, '', q_component_slot_render_segment_2_3b0t9ouqyjhtg.w([props]));

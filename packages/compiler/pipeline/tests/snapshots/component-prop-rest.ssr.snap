@@ -58,7 +58,7 @@ export const Child = _markComponent(
 );
 export const default_component_3rg6kq1so9aio = _markComponent(
   (props0, ctx) => {
-    const rest = createPropsProxy(props0, ['children', 'title']);
+    const rest = createPropsProxy(props0, ['title']);
     const slotScope0 = createSlotScope();
     forwardSlot(slotScope0);
     ctx.addRoot(rest);

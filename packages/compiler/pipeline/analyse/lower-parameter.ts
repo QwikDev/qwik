@@ -20,6 +20,15 @@ import type { Expression } from 'oxc-parser';
 import type { PropPathStep } from './ast/parameter-members';
 import { patternResult } from './results';
 
+/** Children is projected content: `useChildrenInfo()` describes it, `<Slot />` renders it. */
+export function childrenReadError(range: [number, number]): InvalidModuleError {
+  return new InvalidModuleError(
+    'children-read',
+    'Read child info with useChildrenInfo(), or render them with <Slot />.',
+    range
+  );
+}
+
 export function lowerComponentParameter(component: DiscoveredComponent, ctx: LowerContext) {
   const parameter = component.param;
   const locals: SetupLocals = new Map();
@@ -44,7 +53,7 @@ export function lowerComponentParameter(component: DiscoveredComponent, ctx: Low
   }));
   ctx.propsMembers = new Map(fields.map(({ binding, name }) => [binding, name]));
   ctx.propsBinding =
-    rest !== null || members.some((member) => member.name !== 'children')
+    rest !== null || members.length > 0
       ? generatedBinding(QwikGenWord.ComponentProps, BindingScope.Param, ctx)
       : null;
   surface = { kind: SurfaceKind.Object, binding: ctx.propsBinding, bindings: fields };
@@ -63,14 +72,7 @@ export function lowerComponentParameter(component: DiscoveredComponent, ctx: Low
   }
   for (const [index, { node, name, path, defaultValue }] of members.entries()) {
     if (name === 'children') {
-      if (defaultValue !== null) {
-        throw new InvalidModuleError(
-          'children-default',
-          'Give the slot its fallback instead: <Slot>fallback</Slot>.',
-          [defaultValue.start, defaultValue.end]
-        );
-      }
-      continue;
+      throw childrenReadError([node.start, node.end]);
     }
     const local: Extract<SetupLocal, { kind: LocalKind.PropMember }> = {
       kind: LocalKind.PropMember,
@@ -101,7 +103,7 @@ export function lowerComponentParameter(component: DiscoveredComponent, ctx: Low
   }
   if (rest !== null) {
     const binding = restBinding!;
-    const excluded = [...new Set(['children', ...members.map((member) => member.name)])];
+    const excluded = [...new Set(members.map((member) => member.name))];
     setup.push({ s: SetupKind.PropRest, result: binding, props: ctx.propsBinding!, excluded });
     locals.set(binding, {
       kind: LocalKind.PropRest,

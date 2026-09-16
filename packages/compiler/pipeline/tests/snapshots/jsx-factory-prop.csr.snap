@@ -8,7 +8,6 @@ export default function App() {
   return <main>
     <Display render={(value: number) => <button onClick$={() => count.value += value}>{value}</button>} />
     <Display {...options.value} onResolved={({ label }: { label: string }) => { const text = label; return <b>{text}</b>; }} />
-    <Display>{(value: string) => <i>{value}</i>}</Display>
   </main>;
 }
 == CSR OUTPUT ==
@@ -25,16 +24,10 @@ const q_component_props_segment_7_208nyg8uks240 = /*#__PURE__*/ _qrlWithChunk(
   () => import('./component.tsx_component_props_segment_7_208nyg8uks240'),
   'component_props_segment_7_208nyg8uks240'
 );
-const q_component_children_segment_10_24gaz6g6wdnk5 = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_children_segment_10_24gaz6g6wdnk5',
-  () => import('./component.tsx_component_children_segment_10_24gaz6g6wdnk5'),
-  'component_children_segment_10_24gaz6g6wdnk5'
-);
-const default_tmpl0 = _createElementTemplate('<main><!><!><!></main>');
+const default_tmpl0 = _createElementTemplate('<main><!><!></main>');
 import {
   useSignal,
   _first,
-  _next,
   _last,
   _qrlWithChunk,
   createComponent,
@@ -48,8 +41,7 @@ export default function App(props, ctx) {
   const count = useSignal(0);
   const options = useSignal({ title: 'title' });
   const el0 = default_tmpl0(ctx.document);
-  const marker0 = _next(_first(el0));
-  const marker1 = _last(el0);
+  const marker0 = _last(el0);
   const component0 = createComponent(
     Display,
     { render: q_component_render_segment_3_1kxav1tcxzeqy.w([count]) },
@@ -62,12 +54,6 @@ export default function App(props, ctx) {
     ctx
   );
   marker0.replaceWith(..._toNodes(component1));
-  const component2 = createComponent(
-    Display,
-    { children: q_component_children_segment_10_24gaz6g6wdnk5 },
-    ctx
-  );
-  marker1.replaceWith(..._toNodes(component2));
   return el0;
 }
 
@@ -364,115 +350,6 @@ export const component_props_segment_7_208nyg8uks240 = () => {
   "paramNames": [],
   "captureNames": [
     "options"
-  ]
-}
-*/
-============================= src/component.tsx_component_jsx_segment_8_38vnmp352j0ge.js (ENTRY POINT)==
-
-import {
-  _captures,
-  _first,
-  createTextExpressionEffect,
-  _createElementTemplate,
-} from '@qwik.dev/core';
-import { component_text_segment_9_1fh0xp3tlu6bn } from './component.tsx_component_text_segment_9_1fh0xp3tlu6bn';
-const component_jsx_segment_8_38vnmp352j0ge_tmpl0 = _createElementTemplate('<i> </i>');
-
-export const component_jsx_segment_8_38vnmp352j0ge = (ctx) => {
-  const [value] = _captures;
-  const el0 = component_jsx_segment_8_38vnmp352j0ge_tmpl0(ctx.document);
-  const text0 = _first(el0);
-  const effect0 = createTextExpressionEffect(
-    text0,
-    [value],
-    component_text_segment_9_1fh0xp3tlu6bn,
-    ctx.scheduler
-  );
-  ctx.scheduler.notify(effect0);
-  return el0;
-};
-/*
-{
-  "origin": "component.tsx",
-  "name": "component_jsx_segment_8_38vnmp352j0ge",
-  "entry": null,
-  "displayName": "component_jsx_segment_8",
-  "hash": "38vnmp352j0ge",
-  "canonicalFilename": "component.tsx_component_jsx_segment_8_38vnmp352j0ge",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "jsx",
-  "captures": true,
-  "loc": [
-    476,
-    490
-  ],
-  "paramNames": [],
-  "captureNames": [
-    "value"
-  ]
-}
-*/
-============================= src/component.tsx_component_text_segment_9_1fh0xp3tlu6bn.js (ENTRY POINT)==
-
-export const component_text_segment_9_1fh0xp3tlu6bn = (value) => {
-  return value;
-};
-/*
-{
-  "origin": "component.tsx",
-  "name": "component_text_segment_9_1fh0xp3tlu6bn",
-  "entry": null,
-  "displayName": "component_text_segment_9",
-  "hash": "1fh0xp3tlu6bn",
-  "canonicalFilename": "component.tsx_component_text_segment_9_1fh0xp3tlu6bn",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "text",
-  "captures": true,
-  "loc": [
-    480,
-    485
-  ],
-  "paramNames": [],
-  "captureNames": [
-    "value"
-  ]
-}
-*/
-============================= src/component.tsx_component_children_segment_10_24gaz6g6wdnk5.js (ENTRY POINT)==
-
-import { _qrlWithChunk } from '@qwik.dev/core';
-const q_component_jsx_segment_8_38vnmp352j0ge = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_jsx_segment_8_38vnmp352j0ge',
-  () => import('./component.tsx_component_jsx_segment_8_38vnmp352j0ge'),
-  'component_jsx_segment_8_38vnmp352j0ge'
-);
-
-export const component_children_segment_10_24gaz6g6wdnk5 = (value) => {
-  return q_component_jsx_segment_8_38vnmp352j0ge.w([value]);
-};
-/*
-{
-  "origin": "component.tsx",
-  "name": "component_children_segment_10_24gaz6g6wdnk5",
-  "entry": null,
-  "displayName": "component_children_segment_10",
-  "hash": "24gaz6g6wdnk5",
-  "canonicalFilename": "component.tsx_component_children_segment_10_24gaz6g6wdnk5",
-  "extension": "js",
-  "parent": null,
-  "ctxKind": "function",
-  "ctxName": "children",
-  "captures": false,
-  "loc": [
-    448,
-    490
-  ],
-  "paramNames": [
-    "value"
   ]
 }
 */

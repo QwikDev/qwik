@@ -23,7 +23,7 @@ import { lowerCoreHookAliases, lowerHooks } from './lower-hook';
 import { parseModule } from './ast/parse';
 import { scanModuleSurface } from './module-surface';
 import { discoverComponents } from './discover';
-import { lowerComponentParameter } from './lower-parameter';
+import { childrenReadError, lowerComponentParameter } from './lower-parameter';
 import { finalizeLocalFunctions, lowerSetup } from './lower-setup';
 import {
   createLowerContext,
@@ -230,6 +230,7 @@ export async function analyseModule(
     let setup;
     try {
       loweredParameter = lowerComponentParameter(component, lowerContext);
+      diagnoseChildrenReads(lowerContext);
       lowerContext.styleScopes = [];
       setup = lowerSetup(component.setupStatements, lowerContext, loweredParameter.locals);
       lowerContext.locals = setup.locals;
@@ -247,7 +248,6 @@ export async function analyseModule(
       params: [],
       lifetime: 0,
       needsId: false,
-      ...(readsChildren(lowerContext) ? { readsChildren: true } : {}),
       async: false,
     });
     if (component.param !== null) {
@@ -331,24 +331,22 @@ export async function analyseModule(
   return finish();
 }
 
-/** A destructured `children` or any `props.children` member read makes the shape observable. */
-function readsChildren(ctx: LowerContext): boolean {
-  if (Array.from(ctx.propsMembers.values()).includes('children')) {
-    return true;
+function diagnoseChildrenReads(ctx: LowerContext): void {
+  if (ctx.propsBinding === null) {
+    return;
   }
-  return (
-    ctx.propsBinding !== null &&
-    ctx.bindings.referencesOf(ctx.propsBinding).some(({ node }) => {
-      const parent = ctx.bindings.parentOf(node);
-      return (
-        parent?.type === 'MemberExpression' &&
-        !parent.computed &&
-        parent.object === node &&
-        parent.property.type === 'Identifier' &&
-        parent.property.name === 'children'
-      );
-    })
-  );
+  for (const { node } of ctx.bindings.referencesOf(ctx.propsBinding)) {
+    const parent = ctx.bindings.parentOf(node);
+    if (
+      parent?.type === 'MemberExpression' &&
+      !parent.computed &&
+      parent.object === node &&
+      parent.property.type === 'Identifier' &&
+      parent.property.name === 'children'
+    ) {
+      throw childrenReadError([parent.start, parent.end]);
+    }
+  }
 }
 
 function recordModuleError(plan: ModulePlan, error: unknown): void {

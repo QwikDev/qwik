@@ -1,4 +1,4 @@
-import { $, component$ } from '@qwik.dev/core';
+import { $, component$, Slot, useTask$, useVisibleTask$ } from '@qwik.dev/core';
 import { useOn, useOnDocument, useOnWindow } from '@qwik.dev/core';
 import { useSignal } from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
@@ -593,5 +593,218 @@ describe(`${name}: useOn`, () => {
 
     cleanup();
     delete (globalThis as any).__useOnGlobal;
+  });
+  // Dynamic roots have no useOn carrier yet: the emitters never set `useOnRoot` (group 12, item 9).
+  it.skip('attaches to the element a promise resolves to', async () => {
+    const App = component$(() => {
+      const label = useSignal('empty');
+      useOn(
+        'click',
+        $(() => {
+          label.value = 'run';
+        })
+      );
+      return <>{Promise.resolve(<div>{label.value}</div>)}</>;
+    });
+
+    const { container, cleanup, qwikLoader } = await render(App, { debug });
+    const div = container.querySelector('div')!;
+    await qwikLoader?.dispatch(div, 'click');
+    expect(div.textContent).toBe('run');
+
+    cleanup();
+  });
+
+  it.skip('attaches to the element a signal holds', async () => {
+    const App = component$(() => {
+      const label = useSignal('empty');
+      const content = useSignal(<div>{label.value}</div>);
+      useOn(
+        'click',
+        $(() => {
+          label.value = 'run';
+        })
+      );
+      return <>{content.value}</>;
+    });
+
+    const { container, cleanup, qwikLoader } = await render(App, { debug });
+    const div = container.querySelector('div')!;
+    await qwikLoader?.dispatch(div, 'click');
+    expect(div.textContent).toBe('run');
+
+    cleanup();
+  });
+
+  it.skip('adds the event once across task-driven rerenders', async () => {
+    const App = component$(() => {
+      const count = useSignal(0);
+      useOn(
+        'click',
+        $(() => {
+          count.value++;
+        })
+      );
+      useTask$(async () => {
+        count.value;
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      return <>{Promise.resolve(<div>{count.value}</div>)}</>;
+    });
+
+    const { container, cleanup, qwikLoader } = await render(App, { debug });
+    await qwikLoader?.dispatch(container.querySelector('div')!, 'click');
+    expect(container.querySelector('div')?.textContent).toBe('1');
+
+    cleanup();
+  });
+
+  it('attaches document events through a component root', async () => {
+    const Label = (props: { count: number }) => <>Count: {props.count}!</>;
+    const App = component$(() => {
+      const count = useSignal(123);
+      useOnDocument(
+        'click',
+        $(() => count.value++)
+      );
+      return <Label count={count.value} />;
+    });
+
+    const { container, document, cleanup, qwikLoader } = await render(App, { debug });
+    const script = (name === 'ssrRender' ? document : container).querySelector('script[hidden]')!;
+    expect(container.textContent).toContain('Count: 123!');
+    await qwikLoader?.dispatch(script, 'click');
+    expect(container.textContent).toContain('Count: 124!');
+
+    cleanup();
+  });
+
+  it('#7230 runs document, window and visible events of a component that only projects', async () => {
+    const Layout = component$(() => {
+      useOnDocument(
+        'click',
+        $(() => {
+          (globalThis as any).__useOnHeadless++;
+        })
+      );
+      useOnWindow(
+        'resize',
+        $(() => {
+          (globalThis as any).__useOnHeadless++;
+        })
+      );
+      useVisibleTask$(() => {
+        (globalThis as any).__useOnHeadless++;
+      });
+      return <Slot />;
+    });
+    const App = component$(() => (
+      <Layout>
+        <div>test</div>
+      </Layout>
+    ));
+
+    (globalThis as any).__useOnHeadless = 0;
+    const { container, document, cleanup, qwikLoader } = await render(App, { debug });
+    const script = (name === 'ssrRender' ? document : container).querySelector('script[hidden]')!;
+    expect(script).not.toBeNull();
+    await qwikLoader?.dispatch(script, 'qinit');
+    await qwikLoader?.dispatch(script, 'click');
+    await qwikLoader?.dispatch(script, 'w:resize');
+    expect((globalThis as any).__useOnHeadless).toBe(3);
+
+    cleanup();
+    delete (globalThis as any).__useOnHeadless;
+  });
+
+  // Fired from a task mid-render, before the old carrier detaches (group 12, item 9).
+  it.skip('does not run a document event of a component removed in the same render', async () => {
+    (globalThis as any).__dispatchChild = () => {};
+    (globalThis as any).__receivedChild = [];
+    const Dispatch = component$(() => {
+      useTask$(() => {
+        (globalThis as any).__dispatchChild();
+      });
+      return <></>;
+    });
+    const Receive = component$(() => {
+      const toggle = useSignal(true);
+      useOnDocument(
+        'child',
+        $(() => {
+          toggle.value = false;
+          (globalThis as any).__receivedChild.push('child event');
+        })
+      );
+      return <></>;
+    });
+    const App = component$(() => {
+      const toggle = useSignal(true);
+      return (
+        <>
+          <button onClick$={() => (toggle.value = !toggle.value)}></button>
+          {toggle.value ? (
+            <>
+              <Dispatch key={1} />
+              <Receive key={2} />
+            </>
+          ) : (
+            <>
+              <Dispatch key={3} />
+              <Receive key={3} />
+            </>
+          )}
+        </>
+      );
+    });
+
+    const { container, document, cleanup, qwikLoader } = await render(App, { debug });
+    (globalThis as any).__dispatchChild = () => {
+      // fire without awaiting: the removed carrier must not answer
+      void qwikLoader?.dispatch(document.body, 'child');
+    };
+    await qwikLoader?.dispatch(container.querySelector('button')!, 'click');
+    expect((globalThis as any).__receivedChild).toEqual([]);
+
+    cleanup();
+    delete (globalThis as any).__dispatchChild;
+    delete (globalThis as any).__receivedChild;
+  });
+
+  describe('qvisible', () => {
+    it('marks the element so the loader observes a JSX qvisible listener', async () => {
+      const App = component$(() => {
+        const text = useSignal('pending');
+        return <button onQVisible$={() => (text.value = 'seen')}>{text.value}</button>;
+      });
+
+      const { container, cleanup, qwikLoader } = await render(App, { debug });
+      const button = container.querySelector('button')!;
+      expect(button.hasAttribute('q-e:qvisible')).toBe(true);
+      await qwikLoader?.dispatch(button, 'qvisible');
+      expect(button.textContent).toBe('seen');
+
+      cleanup();
+    });
+
+    it('marks the element so the loader observes a useOn qvisible listener', async () => {
+      const App = component$(() => {
+        const text = useSignal('pending');
+        useOn(
+          'qvisible',
+          $(() => (text.value = 'seen'))
+        );
+        return <button>{text.value}</button>;
+      });
+
+      const { container, cleanup, qwikLoader } = await render(App, { debug });
+      const button = container.querySelector('button')!;
+      expect(button.hasAttribute('q-e:qvisible')).toBe(true);
+      await qwikLoader?.dispatch(button, 'qvisible');
+      expect(button.textContent).toBe('seen');
+
+      cleanup();
+    });
   });
 });

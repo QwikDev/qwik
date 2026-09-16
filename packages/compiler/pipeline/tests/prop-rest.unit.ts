@@ -77,7 +77,7 @@ export default ({ title: heading, ...rest }) => <Child {...rest} title={heading}
   }
 );
 
-test.each(['...rest', 'title: heading, children: content, ...rest'])(
+test.each(['...rest', 'title: heading, ...rest'])(
   'captures component rest in a computed callback: %s',
   async (pattern) => {
     const output = await transformModules({

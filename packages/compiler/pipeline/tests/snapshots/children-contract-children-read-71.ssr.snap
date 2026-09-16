@@ -1,7 +1,7 @@
 ==INPUT==
 
 import { Slot } from '@qwik.dev/core';
-export const Wrapper = ({ children = <p>none</p> }) => <section><Slot /></section>;
+export const Wrapper = ({ children }) => <section>{children}</section>;
 export default () => <Wrapper><p>Projected</p></Wrapper>;
 
 == SSR OUTPUT ==
@@ -15,17 +15,17 @@ export default () => <Wrapper><p>Projected</p></Wrapper>;
   {
     "scope": "compiler",
     "category": "error",
-    "code": "children-default",
+    "code": "children-read",
     "file": "src/component.tsx",
-    "message": "Give the slot its fallback instead: <Slot>fallback</Slot>.",
+    "message": "Read child info with useChildrenInfo(), or render them with <Slot />.",
     "highlights": [
       {
-        "lo": 76,
-        "hi": 87,
+        "lo": 65,
+        "hi": 73,
         "startLine": 2,
-        "startCol": 38,
+        "startCol": 27,
         "endLine": 2,
-        "endCol": 48
+        "endCol": 34
       }
     ],
     "suggestions": null

@@ -1,15 +1,16 @@
 import {
   $,
   component$,
+  Fragment,
   Slot,
   createContextId,
   useContext,
+  useChildrenInfo,
   useContextProvider,
   useSignal,
   useStore,
   useTask$,
   useVisibleTask$,
-  type ChildInfo,
   type Signal,
 } from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
@@ -1495,17 +1496,13 @@ describe(`${name}: projection`, () => {
       cleanup();
     });
 
-    it('describes the projected children to a component that reads props.children', async () => {
+    it('describes the projected children to a component that calls useChildrenInfo', async () => {
       const Item = component$(() => <li>item</li>);
-      const List = component$((props: { children?: unknown }) => {
-        const info = props.children as ChildInfo[] | undefined;
+      const List = component$(() => {
+        const info = useChildrenInfo();
         return (
           <section>
-            <output>
-              {info
-                ?.map((child) => (typeof child.type === 'string' ? child.type : 'component'))
-                .join(',')}
-            </output>
+            <output>{info.map((child) => child.type ?? '-').join(',')}</output>
             <ul>
               <Slot />
             </ul>
@@ -1516,15 +1513,19 @@ describe(`${name}: projection`, () => {
         const label = useSignal('dyn');
         return (
           <List>
-            <li>static</li>
+            <li q:type="row">static</li>
             {label.value}
-            <Item />
+            <Item q:type="item" />
+            <Fragment q:type="group">
+              grouped<li>g</li>
+            </Fragment>
           </List>
         );
       });
       const { container, cleanup } = await render(App);
-      expect(container.querySelector('output')!.textContent).toBe('li,dynamic,component');
-      expect(container.querySelectorAll('li')).toHaveLength(2);
+      expect(container.querySelector('output')!.textContent).toBe('row,-,item,group');
+      expect(container.querySelectorAll('li')).toHaveLength(3);
+      expect(container.querySelector('ul')!.textContent).toContain('grouped');
       cleanup();
     });
   });

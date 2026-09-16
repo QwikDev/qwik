@@ -52,7 +52,7 @@ import { lowerEventAttribute, qrlAttributeExpression } from './lower-event';
 import { lowerText } from './lower-hole';
 import { checkDomNesting } from './dom-nesting';
 import { lowerBranch, type BranchArm } from './lower-branch';
-import { identifierName, isFunctionLike, jsxAttributeName, unwrapExpression } from './ast/utils';
+import { isFunctionLike, jsxAttributeName, unwrapExpression } from './ast/utils';
 import { JsxValueKind, type JsxValue } from './ast/jsx-analysis';
 import {
   lowerComputedExpressionValue,
@@ -181,7 +181,7 @@ export function lowerJsx(element: JSXElement, ctx: LowerContext): Op {
   const passiveEvents = passiveEventNames(expanded);
   // Any remaining spread makes the whole attribute list one runtime props object.
   const propsEffect = expanded.some((attribute) => attribute.type === 'JSXSpreadAttribute')
-    ? lowerPropsChunk(expanded, ctx, null, QrlPayloadKind.Value)
+    ? lowerPropsChunk(expanded, ctx, QrlPayloadKind.Value)
     : null;
   const props =
     propsEffect === null
@@ -453,13 +453,9 @@ function expandLiteralSpread(attribute: JSXAttributeItem): JSXAttributeItem[] {
   return properties.every((property) => property !== null) ? properties : [attribute];
 }
 
-function lowerComponentProps(
-  attributes: readonly JSXAttributeItem[],
-  ctx: LowerContext,
-  factoryChild: Expression | null
-) {
+function lowerComponentProps(attributes: readonly JSXAttributeItem[], ctx: LowerContext) {
   const onlyAttribute = attributes.length === 1 ? attributes[0] : null;
-  if (factoryChild === null && onlyAttribute?.type === 'JSXSpreadAttribute') {
+  if (onlyAttribute?.type === 'JSXSpreadAttribute') {
     const expression = unwrapExpression(onlyAttribute.argument);
     const binding = ctx.bindings.reference(expression);
     if (binding !== null && ctx.locals.get(binding)?.kind === LocalKind.PropRest) {
@@ -489,28 +485,16 @@ function lowerComponentProps(
             .some(({ binding }) => ctx.locals.get(binding)?.kind === LocalKind.PropRest))
     )
   ) {
-    return lowerComponentPropsProxy(attributes, ctx, factoryChild);
+    return lowerComponentPropsProxy(attributes, ctx);
   }
   const props = attributes
     .map((attribute) => lowerAttribute(attribute, ctx, 'component'))
     .filter((prop) => prop !== null);
-  if (factoryChild !== null) {
-    props.push({
-      k: PropKind.Dynamic,
-      name: 'children',
-      value: lowerComponentPropValue(factoryChild, ctx, 'children'),
-      effect: null,
-    });
-  }
   return { c: ComponentPropsKind.Entries as const, props };
 }
 
-function lowerComponentPropsProxy(
-  attributes: readonly JSXAttributeItem[],
-  ctx: LowerContext,
-  factoryChild: Expression | null
-) {
-  const compute = lowerPropsChunk(attributes, ctx, factoryChild, QrlPayloadKind.Function);
+function lowerComponentPropsProxy(attributes: readonly JSXAttributeItem[], ctx: LowerContext) {
+  const compute = lowerPropsChunk(attributes, ctx, QrlPayloadKind.Function);
   return { c: ComponentPropsKind.Proxy as const, compute };
 }
 
@@ -518,7 +502,6 @@ function lowerComponentPropsProxy(
 function lowerPropsChunk(
   attributes: readonly JSXAttributeItem[],
   ctx: LowerContext,
-  factoryChild: Expression | null,
   payloadKind: QrlPayloadKind
 ): QrlUse {
   const parts: Qrl['propsParts'] = [];
@@ -549,7 +532,7 @@ function lowerPropsChunk(
       continue;
     }
     const name = jsxAttributeName(attribute)!;
-    if (name === QwikDirective.Slot) {
+    if (name === QwikDirective.Slot || name === QwikDirective.Type) {
       continue;
     }
     const scope = eventScopeName(name);
@@ -604,9 +587,6 @@ function lowerPropsChunk(
     } else {
       throw new UnsupportedError('a dynamic JSX attribute value');
     }
-  }
-  if (factoryChild !== null) {
-    addExpression(factoryChild, { kind: PropsPartKind.Expression, name: 'children' });
   }
   const { captures, args, refs } = lowerCaptures(expressions, ctx, 'component props');
   for (const payload of payloads) {
@@ -725,11 +705,17 @@ function mergeStaticText(ops: Op[]): Op[] {
   return merged;
 }
 
-function flattenJsxChildren(children: readonly JSXChild[], ctx: LowerContext): JSXChild[] {
+function flattenJsxChildren(
+  children: readonly JSXChild[],
+  ctx: LowerContext,
+  /** A `q:type` fragment stays one child: it projects, and is described, as a unit. */
+  keepTyped = false
+): JSXChild[] {
   return children.flatMap((child) => {
     const value = ctx.jsx.read(child);
-    return value.kind === JsxValueKind.Fragment
-      ? flattenJsxChildren(value.node.children, ctx)
+    return value.kind === JsxValueKind.Fragment &&
+      !(keepTyped && findDirective(child, QwikDirective.Type) !== undefined)
+      ? flattenJsxChildren(value.node.children, ctx, keepTyped)
       : [child];
   });
 }
@@ -763,9 +749,6 @@ function lowerChild(child: JSXChild, ctx: LowerContext): Op[] {
 
 export function lowerRenderExpression(expression: Expression, ctx: LowerContext): Op[] {
   expression = unwrapExpression(expression);
-  if (isPropsChildren(expression, ctx)) {
-    throw childrenRenderError(expression);
-  }
   const value = ctx.jsx.read(expression);
   const branch = readRenderBranch(value);
   if (branch !== null) {
@@ -867,15 +850,20 @@ function lowerComponentOp(
   }
   const children = element.children.filter(isProjectionChild);
   const child = children.length === 1 ? children[0] : null;
-  const factoryChild =
+  if (
     child?.type === 'JSXExpressionContainer' &&
     child.expression.type !== 'JSXEmptyExpression' &&
     ctx.jsx.factory(child.expression) !== null
-      ? child.expression
-      : null;
+  ) {
+    throw new InvalidModuleError(
+      'children-function',
+      'Pass a render function through a named prop; children are projected content.',
+      [child.start, child.end]
+    );
+  }
   // Props lower before projections: segment ordinals follow the authored order.
-  const props = lowerComponentProps(attributes, ctx, factoryChild);
-  const projections = factoryChild === null ? lowerProjections(element.children, ctx) : [];
+  const props = lowerComponentProps(attributes, ctx);
+  const projections = lowerProjections(element.children, ctx);
   return {
     op: OpKind.Component,
     target,
@@ -1034,41 +1022,11 @@ function createSlotOp(
   };
 }
 
-/** Children is projected content: a consumer renders it with `<Slot />` and reads only its shape. */
-function childrenRenderError(node: Node): InvalidModuleError {
-  return new InvalidModuleError(
-    'children-render',
-    'Render projected children with <Slot />; props.children only describes them.',
-    [node.start, node.end]
-  );
-}
-
-function isPropsChildren(node: Node, ctx: LowerContext): boolean {
-  const expression = unwrapExpression(node);
-  if (expression?.type === 'Identifier') {
-    const binding = ctx.bindings.reference(expression);
-    return binding !== null && ctx.propsMembers.get(binding) === 'children';
-  }
-  if (
-    expression?.type !== 'MemberExpression' ||
-    expression.computed ||
-    identifierName(expression.property) !== 'children'
-  ) {
-    return false;
-  }
-  const object = unwrapExpression(expression.object);
-  return (
-    object?.type === 'Identifier' &&
-    ctx.propsBinding !== null &&
-    ctx.bindings.reference(object) === ctx.propsBinding
-  );
-}
-
 function lowerProjections(
   children: readonly JSXChild[],
   ctx: LowerContext
 ): Extract<Op, { op: OpKind.Component }>['projections'] {
-  return flattenJsxChildren(children, ctx)
+  return flattenJsxChildren(children, ctx, true)
     .filter(isProjectionChild)
     .flatMap((child) => {
       const names = [...new Set(collectProjectionNames(ctx.jsx.read(child)))];
@@ -1102,12 +1060,13 @@ function lowerProjection(
     'projection',
     (renderContext) => lowerProjectedChildren([child], name, renderContext)
   );
+  const childType = readChildType(child);
   if (typeof name === 'string') {
-    return { kind: ProjectionKind.Render, name, use, id };
+    return { kind: ProjectionKind.Render, name, use, childType, id };
   }
   // The name is read where the consumer's slot resolves, so it ships as a value QRL.
   const nameUse = lowerComputedExpressionValue(name, ctx, SegmentContext.SlotName).resume.qrl;
-  return { kind: ProjectionKind.Render, name: '', nameUse, use, id };
+  return { kind: ProjectionKind.Render, name: '', nameUse, use, childType, id };
 }
 
 function lowerProjectedChildren(
@@ -1198,9 +1157,6 @@ function readForwardedSlot(
   child: JSXChild,
   ctx: LowerContext
 ): { sourceName: string; children: readonly JSXChild[] } | null {
-  if (child.type === 'JSXExpressionContainer' && isPropsChildren(child.expression, ctx)) {
-    throw childrenRenderError(child.expression);
-  }
   if (child.type !== 'JSXElement' || child.openingElement.name.type !== 'JSXIdentifier') {
     return null;
   }
@@ -1282,14 +1238,27 @@ function isProjectionChild(child: JSXChild): boolean {
   );
 }
 
+function findDirective(child: JSXChild, name: QwikDirective): JSXAttributeItem | undefined {
+  return child.type === 'JSXElement'
+    ? child.openingElement.attributes.find((attribute) => jsxAttributeName(attribute) === name)
+    : undefined;
+}
+
 function readProjectionName(child: JSXChild): ProjectionName {
-  if (child.type !== 'JSXElement') {
-    return '';
-  }
-  const attribute = child.openingElement.attributes.find(
-    (attribute) => jsxAttributeName(attribute) === QwikDirective.Slot
-  );
+  const attribute = findDirective(child, QwikDirective.Slot);
   return attribute === undefined ? '' : readSlotName(attribute);
+}
+
+function readChildType(child: JSXChild): string | undefined {
+  const attribute = findDirective(child, QwikDirective.Type);
+  if (attribute === undefined) {
+    return undefined;
+  }
+  const value = attribute.type === 'JSXAttribute' ? attribute.value : null;
+  if (value?.type === 'Literal' && typeof value.value === 'string') {
+    return value.value;
+  }
+  throw new UnsupportedError('a dynamic child type');
 }
 
 function readStaticSlotName(attribute: JSXAttributeItem): string {
@@ -1435,7 +1404,11 @@ function lowerAttribute(
     };
   }
   const authored = jsxAttributeName(attribute)!;
-  if (authored === QwikDirective.Slot || authored.startsWith(PASSIVE_PREFIX)) {
+  if (
+    authored === QwikDirective.Slot ||
+    authored === QwikDirective.Type ||
+    authored.startsWith(PASSIVE_PREFIX)
+  ) {
     return null;
   }
   const scope = eventScopeName(authored, passiveEvents);

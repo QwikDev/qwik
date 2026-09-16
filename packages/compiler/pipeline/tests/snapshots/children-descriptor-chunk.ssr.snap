@@ -1,0 +1,286 @@
+==INPUT==
+
+import { component$, useSignal } from '@qwik.dev/core';
+export const Child = component$(() => <i>child</i>);
+export default component$(() => {
+  const tag = useSignal('section');
+  const Tag = tag.value;
+  return (
+    <Tag>
+      <button onClick$={() => (tag.value = 'article')} />
+      <Child />
+    </Tag>
+  );
+});
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  _markComponent,
+  useSignal,
+  _captures,
+  renderSsrContent,
+  createSsrNodeId,
+  maybeThen,
+  createSlotScope,
+  _EMPTY_OBJ,
+  registerProjection,
+  renderSsrDynamicTag,
+  createComponent,
+  _noopQrl,
+} from '@qwik.dev/core';
+const component_tag_dynamic_segment_0_331xea01t87eh = (ctx) => {
+  const [tag] = _captures;
+  const slotScope0 = createSlotScope(null, [_EMPTY_OBJ, _EMPTY_OBJ]);
+  const tag0 = tag.value;
+  registerProjection(slotScope0, '', q_component_slot_render_segment_1_3b0tauy2p1nv1.w([tag]));
+  registerProjection(slotScope0, '', q_component_slot_render_segment_3_3b0ta2vuvdjtz);
+  ctx.addRoot(slotScope0);
+  const component0 = createComponent(
+    (props0) => renderSsrDynamicTag(tag0, props0, ctx),
+    null,
+    ctx,
+    { slotScope: slotScope0 }
+  );
+  return component0;
+};
+const q_component_tag_dynamic_segment_0_331xea01t87eh = /*#__PURE__*/ _noopQrl(
+  'component_tag_dynamic_segment_0_331xea01t87eh'
+);
+q_component_tag_dynamic_segment_0_331xea01t87eh.s(component_tag_dynamic_segment_0_331xea01t87eh);
+const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId) => {
+  const [tag] = _captures;
+  return [
+    '<!s=',
+    createSsrNodeId(__rangeId),
+    '><button',
+    ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_2_2xwygteqhjqr1.w([tag])),
+    '></button><!/s>',
+  ];
+};
+const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _noopQrl(
+  'component_slot_render_segment_1_3b0tauy2p1nv1'
+);
+q_component_slot_render_segment_1_3b0tauy2p1nv1.s(component_slot_render_segment_1_3b0tauy2p1nv1);
+const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx, __rangeId) => {
+  const component0 = createComponent(Child, null, ctx);
+  return maybeThen(component0, (component0) => [
+    '<!s=',
+    createSsrNodeId(__rangeId),
+    '>',
+    component0,
+    '<!/s>',
+  ]);
+};
+const q_component_slot_render_segment_3_3b0ta2vuvdjtz = /*#__PURE__*/ _noopQrl(
+  'component_slot_render_segment_3_3b0ta2vuvdjtz'
+);
+q_component_slot_render_segment_3_3b0ta2vuvdjtz.s(component_slot_render_segment_3_3b0ta2vuvdjtz);
+const q_component_q_e_click_segment_2_2xwygteqhjqr1 = /*#__PURE__*/ _noopQrl(
+  'component_q_e_click_segment_2_2xwygteqhjqr1'
+);
+export const Child = _markComponent(
+  (props, ctx) => {
+    return '<i>child</i>';
+  },
+  'Child_component_syc3erfxihm7',
+  './component.tsx'
+);
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    const tag = useSignal('section');
+    const id0 = ctx.nextId();
+    ctx.addRoot(tag);
+    const content0 = renderSsrContent(
+      ctx,
+      id0,
+      [],
+      q_component_tag_dynamic_segment_0_331xea01t87eh.w([tag]),
+      false,
+      true
+    );
+    return maybeThen(content0, (content0) => [
+      '<!d=',
+      createSsrNodeId(id0),
+      '>',
+      content0,
+      '<!/d>',
+    ]);
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
+
+export { Child as Child_component_syc3erfxihm7 };
+============================= src/component.tsx_component_tag_dynamic_segment_0_331xea01t87eh.js (ENTRY POINT)==
+
+import {
+  _noopQrl,
+  _captures,
+  createSlotScope,
+  _EMPTY_OBJ,
+  registerProjection,
+  renderSsrDynamicTag,
+  createComponent,
+} from '@qwik.dev/core';
+import { component_slot_render_segment_1_3b0tauy2p1nv1 } from './component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1';
+import { component_slot_render_segment_3_3b0ta2vuvdjtz } from './component.tsx_component_slot_render_segment_3_3b0ta2vuvdjtz';
+const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _noopQrl(
+  'component_slot_render_segment_1_3b0tauy2p1nv1'
+);
+q_component_slot_render_segment_1_3b0tauy2p1nv1.s(component_slot_render_segment_1_3b0tauy2p1nv1);
+const q_component_slot_render_segment_3_3b0ta2vuvdjtz = /*#__PURE__*/ _noopQrl(
+  'component_slot_render_segment_3_3b0ta2vuvdjtz'
+);
+q_component_slot_render_segment_3_3b0ta2vuvdjtz.s(component_slot_render_segment_3_3b0ta2vuvdjtz);
+
+export const component_tag_dynamic_segment_0_331xea01t87eh = (ctx) => {
+  const [tag] = _captures;
+  const slotScope0 = createSlotScope(null, [_EMPTY_OBJ, _EMPTY_OBJ]);
+  const tag0 = tag.value;
+  registerProjection(slotScope0, '', q_component_slot_render_segment_1_3b0tauy2p1nv1.w([tag]));
+  registerProjection(slotScope0, '', q_component_slot_render_segment_3_3b0ta2vuvdjtz);
+  ctx.addRoot(slotScope0);
+  const component0 = createComponent(
+    (props0) => renderSsrDynamicTag(tag0, props0, ctx),
+    null,
+    ctx,
+    { slotScope: slotScope0 }
+  );
+  return component0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_tag_dynamic_segment_0_331xea01t87eh",
+  "entry": null,
+  "displayName": "component_tag_dynamic_segment_0",
+  "hash": "331xea01t87eh",
+  "canonicalFilename": "component.tsx_component_tag_dynamic_segment_0_331xea01t87eh",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "tag:dynamic",
+  "captures": true,
+  "loc": [
+    219,
+    309
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "tag"
+  ]
+}
+*/
+============================= src/component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1.js (ENTRY POINT)==
+
+import { _noopQrl, _captures, createSsrNodeId } from '@qwik.dev/core';
+const q_component_q_e_click_segment_2_2xwygteqhjqr1 = /*#__PURE__*/ _noopQrl(
+  'component_q_e_click_segment_2_2xwygteqhjqr1'
+);
+
+export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId) => {
+  const [tag] = _captures;
+  return [
+    '<!s=',
+    createSsrNodeId(__rangeId),
+    '><button',
+    ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_2_2xwygteqhjqr1.w([tag])),
+    '></button><!/s>',
+  ];
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_slot_render_segment_1_3b0tauy2p1nv1",
+  "entry": null,
+  "displayName": "component_slot_render_segment_1",
+  "hash": "3b0tauy2p1nv1",
+  "canonicalFilename": "component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot:render",
+  "captures": true,
+  "loc": [
+    231,
+    282
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "tag"
+  ]
+}
+*/
+============================= src/component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
+  const [tag] = _captures;
+  return (tag.value = 'article');
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_2_2xwygteqhjqr1",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_2",
+  "hash": "2xwygteqhjqr1",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    239,
+    278
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "tag"
+  ]
+}
+*/
+============================= src/component.tsx_component_slot_render_segment_3_3b0ta2vuvdjtz.js (ENTRY POINT)==
+
+import { createSsrNodeId, createComponent, maybeThen } from '@qwik.dev/core';
+import { Child } from './component.tsx';
+
+export const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx, __rangeId) => {
+  const component0 = createComponent(Child, null, ctx);
+  return maybeThen(component0, (component0) => [
+    '<!s=',
+    createSsrNodeId(__rangeId),
+    '>',
+    component0,
+    '<!/s>',
+  ]);
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_slot_render_segment_3_3b0ta2vuvdjtz",
+  "entry": null,
+  "displayName": "component_slot_render_segment_3",
+  "hash": "3b0ta2vuvdjtz",
+  "canonicalFilename": "component.tsx_component_slot_render_segment_3_3b0ta2vuvdjtz",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot:render",
+  "captures": false,
+  "loc": [
+    289,
+    298
+  ],
+  "paramNames": []
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

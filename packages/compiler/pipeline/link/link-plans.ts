@@ -366,6 +366,7 @@ export function linkPlans(
       },
     };
   };
+  const setupFacts = createSetupFacts(plans, resolveLocalBinding);
   /** Known only for a linked component; a plain value or an opaque import stays unknown. */
   const componentReadsChildren = (declaration: Maybe<DeclRef>): Maybe<boolean> => {
     if (!declaration.ok || declaration.value.table !== DeclTable.Qrls) {
@@ -373,13 +374,11 @@ export function linkPlans(
     }
     const owner = plans[declaration.value.module];
     const body = owner.qrls[declaration.value.index].body;
-    return {
-      ok: true,
-      value: body.b === QrlBodyKind.Program && owner.programs[body.program].readsChildren === true,
-    };
+    return body.b === QrlBodyKind.Program
+      ? setupFacts(declaration.value.module, owner.programs[body.program].setup).readsChildrenInfo
+      : { ok: true, value: false };
   };
 
-  const setupFacts = createSetupFacts(plans, resolveLocalBinding);
   const linkedModules: LinkedModule[] = plans.map((plan, module) =>
     materializeModule(
       plan,

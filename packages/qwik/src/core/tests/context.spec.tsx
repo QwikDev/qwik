@@ -491,3 +491,88 @@ describe(`${name}: context through projections`, () => {
     cleanup();
   });
 });
+
+describe(`${name}: context across rendering callbacks`, () => {
+  const contextId = createContextId<{ label: string }>('callbacks');
+  const Consumer = component$(() => {
+    const value = useContext(contextId);
+    return <i>{value.label}</i>;
+  });
+
+  it('resolves a context for a consumer in a live slot after a swap', async () => {
+    const Switch = component$((props: { pick: string }) => <Slot name={props.pick} />);
+    const Provider = component$(() => {
+      useContextProvider(contextId, { label: 'provided' });
+      const flip = useSignal(false);
+      return (
+        <>
+          <button onClick$={() => (flip.value = true)} />
+          <Switch pick={flip.value ? 'b' : 'a'}>
+            <span q:slot="a">a</span>
+            <Consumer q:slot="b" />
+          </Switch>
+        </>
+      );
+    });
+    const { container, cleanup, qwikLoader } = await render(Provider);
+    expect(container.querySelector('i')).toBeFalsy();
+    await qwikLoader?.dispatch(container.querySelector('button')!, 'click');
+    expect(container.querySelector('i')?.textContent).toBe('provided');
+    cleanup();
+  });
+
+  it('resolves a context for a consumer inside a dynamic tag', async () => {
+    const Provider = component$(() => {
+      useContextProvider(contextId, { label: 'provided' });
+      const tag = useSignal('section');
+      const Tag = tag.value;
+      return (
+        <Tag>
+          <button onClick$={() => (tag.value = 'article')} />
+          <Consumer />
+        </Tag>
+      );
+    });
+    const { container, cleanup, qwikLoader } = await render(Provider);
+    expect(container.querySelector('section > i')?.textContent).toBe('provided');
+    await qwikLoader?.dispatch(container.querySelector('button')!, 'click');
+    expect(container.querySelector('article > i')?.textContent).toBe('provided');
+    cleanup();
+  });
+
+  it('resolves a context for a consumer rendered from a promise after a client change', async () => {
+    const Provider = component$(() => {
+      useContextProvider(contextId, { label: 'provided' });
+      const show = useSignal(false);
+      return (
+        <div>
+          <button onClick$={() => (show.value = true)} />
+          {show.value && Promise.resolve(1).then(() => <Consumer />)}
+        </div>
+      );
+    });
+    const { container, cleanup, qwikLoader } = await render(Provider);
+    expect(container.querySelector('i')).toBeFalsy();
+    await qwikLoader?.dispatch(container.querySelector('button')!, 'click');
+    expect(container.querySelector('i')?.textContent).toBe('provided');
+    cleanup();
+  });
+
+  it('resolves a context for a consumer held in a signal', async () => {
+    const Provider = component$(() => {
+      useContextProvider(contextId, { label: 'provided' });
+      const content = useSignal<unknown>(null);
+      return (
+        <div>
+          <button onClick$={() => (content.value = <Consumer />)} />
+          {content.value}
+        </div>
+      );
+    });
+    const { container, cleanup, qwikLoader } = await render(Provider);
+    expect(container.querySelector('i')).toBeFalsy();
+    await qwikLoader?.dispatch(container.querySelector('button')!, 'click');
+    expect(container.querySelector('i')?.textContent).toBe('provided');
+    cleanup();
+  });
+});

@@ -39,7 +39,7 @@ export const Child = (props, ctx) => {
   return el0;
 };
 export const default_component_3rg6kq1so9aio = (props0, ctx) => {
-  const rest = createPropsProxy(props0, ['children', 'title']);
+  const rest = createPropsProxy(props0, ['title']);
   const slotScope0 = createSlotScope();
   forwardSlot(slotScope0);
   const component0 = createComponent(

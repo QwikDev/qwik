@@ -27,8 +27,9 @@ import {
   useSignal,
   _withCaptures,
   createSlotScope,
-  _qrlWithChunk,
+  _EMPTY_OBJ,
   registerProjection,
+  _qrlWithChunk,
   createComponent,
 } from '@qwik.dev/core';
 import { component_suffix_segment_0_37l3bw02arx82 } from './component.tsx_component_suffix_segment_0_37l3bw02arx82';
@@ -68,12 +69,7 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
     return component_load_segment_9_3myl24trdze9k.apply(this, arguments);
   }
   const direct = label('d');
-  const slotScope0 = createSlotScope(null, [
-    { type: 'b' },
-    { type: 'dynamic' },
-    { type: 'dynamic' },
-    { type: 'dynamic' },
-  ]);
+  const slotScope0 = createSlotScope(null, [_EMPTY_OBJ, _EMPTY_OBJ, _EMPTY_OBJ, _EMPTY_OBJ]);
   registerProjection(slotScope0, '', q_component_slot_render_segment_2_3b0t9ouqyjhtg.w([count]));
   registerProjection(slotScope0, '', q_component_slot_render_segment_5_3b0t9atn1pfsx.w([show]));
   registerProjection(slotScope0, '', q_component_slot_render_segment_10_3m3ztgqtay7c7);

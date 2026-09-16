@@ -52,15 +52,29 @@ export interface SlotScope {
   projections: Projection[];
   /** Set by a parent with a dynamic name: every slot of the scope becomes a content range. */
   slotContentQrl: QRL<SlotContentFn> | null;
-  /** What the parent projected into the default slot, for a consumer that reads `props.children`. */
+  /** What the parent projected into the default slot, read through `useChildrenInfo()`. */
   children: readonly ChildInfo[] | null;
 }
 
 /** @public */
 export interface ChildInfo {
-  /** A tag name, a component, `"text"` or `"dynamic"`. */
-  type: unknown;
+  /** The `q:type` the parent wrote on that child, when it wrote one. */
+  type?: string;
 }
+
+/**
+ * Describes the children the parent projected into this component's default slot: one entry per
+ * child, carrying the `q:type` the parent wrote on it. Render them with `<Slot />`.
+ *
+ * @public
+ */
+export const useChildrenInfo = (): readonly ChildInfo[] => {
+  const context = getActiveInvokeContextOrNull();
+  if (context === null) {
+    throw new Error('useChildrenInfo() must be called while a component renders.');
+  }
+  return context.slotScope?.children ?? EMPTY_ARRAY;
+};
 
 /** The live-slot segment: the client tail on the client, the server tail on the server. */
 type SlotContentFn = ContentFn<[SlotScope, string, SlotRenderFn | null]>;

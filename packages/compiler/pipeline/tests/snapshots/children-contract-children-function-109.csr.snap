@@ -1,0 +1,34 @@
+==INPUT==
+
+import { Slot } from '@qwik.dev/core';
+import { Card } from './card';
+export const Wrapper = () => <Card>{(value: number) => <b>{value}</b>}</Card>;
+export default () => <Wrapper><p>Projected</p></Wrapper>;
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+
+== CSR DIAGNOSTICS ==
+
+[
+  {
+    "scope": "compiler",
+    "category": "error",
+    "code": "children-function",
+    "file": "src/component.tsx",
+    "message": "Pass a render function through a named prop; children are projected content.",
+    "highlights": [
+      {
+        "lo": 100,
+        "hi": 140,
+        "startLine": 3,
+        "startCol": 31,
+        "endLine": 3,
+        "endCol": 70
+      }
+    ],
+    "suggestions": null
+  }
+]

@@ -1,0 +1,214 @@
+==INPUT==
+
+import { component$, useSignal } from '@qwik.dev/core';
+export const Child = component$(() => <i>child</i>);
+export default component$(() => {
+  const tag = useSignal('section');
+  const Tag = tag.value;
+  return (
+    <Tag>
+      <button onClick$={() => (tag.value = 'article')} />
+      <Child />
+    </Tag>
+  );
+});
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  _createElementTemplate,
+  useSignal,
+  _first,
+  _next,
+  createTemplate,
+  _qrlWithChunk,
+  createContentBlock,
+} from '@qwik.dev/core';
+const Child_tmpl0 = _createElementTemplate('<i>child</i>');
+const default_tmpl0 = createTemplate('<!><!>');
+const q_component_tag_dynamic_segment_0_331xea01t87eh = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_tag_dynamic_segment_0_331xea01t87eh',
+  () => import('./component.tsx_component_tag_dynamic_segment_0_331xea01t87eh'),
+  'component_tag_dynamic_segment_0_331xea01t87eh'
+);
+export const Child = (props, ctx) => {
+  const el0 = Child_tmpl0(ctx.document);
+  return el0;
+};
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
+  const tag = useSignal('section');
+  const fragment0 = default_tmpl0(ctx.document);
+  const start0 = _first(fragment0);
+  const end0 = _next(start0);
+  const content0 = createContentBlock(
+    ctx,
+    start0,
+    end0,
+    [],
+    q_component_tag_dynamic_segment_0_331xea01t87eh.w([tag]),
+    false,
+    true
+  );
+  ctx.scheduler.notify(content0);
+  return [start0, end0];
+};
+export default default_component_3rg6kq1so9aio;
+
+export { Child as Child_component_syc3erfxihm7 };
+============================= src/component.tsx_component_tag_dynamic_segment_0_331xea01t87eh.js (ENTRY POINT)==
+
+import {
+  _captures,
+  createSlotScope,
+  _EMPTY_OBJ,
+  registerProjection,
+  _qrlWithChunk,
+  createDynamicTag,
+  createComponent,
+} from '@qwik.dev/core';
+const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1',
+  () => import('./component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1'),
+  'component_slot_render_segment_1_3b0tauy2p1nv1'
+);
+const q_component_slot_render_segment_3_3b0ta2vuvdjtz = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_slot_render_segment_3_3b0ta2vuvdjtz',
+  () => import('./component.tsx_component_slot_render_segment_3_3b0ta2vuvdjtz'),
+  'component_slot_render_segment_3_3b0ta2vuvdjtz'
+);
+
+export const component_tag_dynamic_segment_0_331xea01t87eh = (ctx) => {
+  const [tag] = _captures;
+  const slotScope0 = createSlotScope(null, [_EMPTY_OBJ, _EMPTY_OBJ]);
+  const tag0 = tag.value;
+  registerProjection(slotScope0, '', q_component_slot_render_segment_1_3b0tauy2p1nv1.w([tag]));
+  registerProjection(slotScope0, '', q_component_slot_render_segment_3_3b0ta2vuvdjtz);
+  const component0 = createComponent((props0) => createDynamicTag(tag0, props0, ctx), null, ctx, {
+    slotScope: slotScope0,
+  });
+  return component0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_tag_dynamic_segment_0_331xea01t87eh",
+  "entry": null,
+  "displayName": "component_tag_dynamic_segment_0",
+  "hash": "331xea01t87eh",
+  "canonicalFilename": "component.tsx_component_tag_dynamic_segment_0_331xea01t87eh",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "tag:dynamic",
+  "captures": true,
+  "loc": [
+    219,
+    309
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "tag"
+  ]
+}
+*/
+============================= src/component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1.js (ENTRY POINT)==
+
+import { _captures, setEvent, _createElementTemplate } from '@qwik.dev/core';
+import { component_q_e_click_segment_2_2xwygteqhjqr1 } from './component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1';
+const component_slot_render_segment_1_3b0tauy2p1nv1_tmpl0 =
+  _createElementTemplate('<button></button>');
+
+export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx) => {
+  const [tag] = _captures;
+  const el0 = component_slot_render_segment_1_3b0tauy2p1nv1_tmpl0(ctx.document);
+  setEvent(el0, 'q-e:click', component_q_e_click_segment_2_2xwygteqhjqr1, [tag]);
+  return el0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_slot_render_segment_1_3b0tauy2p1nv1",
+  "entry": null,
+  "displayName": "component_slot_render_segment_1",
+  "hash": "3b0tauy2p1nv1",
+  "canonicalFilename": "component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot:render",
+  "captures": true,
+  "loc": [
+    231,
+    282
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "tag"
+  ]
+}
+*/
+============================= src/component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1.js (ENTRY POINT)==
+
+import { _captures } from '@qwik.dev/core';
+
+export const component_q_e_click_segment_2_2xwygteqhjqr1 = () => {
+  const [tag] = _captures;
+  return (tag.value = 'article');
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_q_e_click_segment_2_2xwygteqhjqr1",
+  "entry": null,
+  "displayName": "component_q_e_click_segment_2",
+  "hash": "2xwygteqhjqr1",
+  "canonicalFilename": "component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "eventHandler",
+  "ctxName": "onClick$",
+  "captures": true,
+  "loc": [
+    239,
+    278
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "tag"
+  ]
+}
+*/
+============================= src/component.tsx_component_slot_render_segment_3_3b0ta2vuvdjtz.js (ENTRY POINT)==
+
+import { createComponent } from '@qwik.dev/core';
+import { Child } from './component.tsx';
+
+export const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx) => {
+  const component0 = createComponent(Child, null, ctx);
+  return component0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_slot_render_segment_3_3b0ta2vuvdjtz",
+  "entry": null,
+  "displayName": "component_slot_render_segment_3",
+  "hash": "3b0ta2vuvdjtz",
+  "canonicalFilename": "component.tsx_component_slot_render_segment_3_3b0ta2vuvdjtz",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot:render",
+  "captures": false,
+  "loc": [
+    289,
+    298
+  ],
+  "paramNames": []
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

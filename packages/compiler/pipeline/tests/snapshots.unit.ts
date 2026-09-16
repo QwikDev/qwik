@@ -141,7 +141,7 @@ export default function App() {
     expect(output.diagnostics).toEqual([]);
   });
 
-  test('passes JSX factories as props and callable children', async () => {
+  test('passes JSX factories as props', async () => {
     const output = await testInput(mode, 'jsx-factory-prop', {
       code: `import { useSignal } from '@qwik.dev/core';
 import { Display } from './display';
@@ -151,7 +151,6 @@ export default function App() {
   return <main>
     <Display render={(value: number) => <button onClick$={() => count.value += value}>{value}</button>} />
     <Display {...options.value} onResolved={({ label }: { label: string }) => { const text = label; return <b>{text}</b>; }} />
-    <Display>{(value: string) => <i>{value}</i>}</Display>
   </main>;
 }`,
     });
@@ -2394,10 +2393,11 @@ export default () => {
   });
 
   test.each([
-    ['children-render', `export const Wrapper = (props) => <section>{props.children}</section>;`],
-    ['children-render', `export const Wrapper = ({ children }) => <section>{children}</section>;`],
+    ['children-read', `export const Wrapper = (props) => <section>{props.children}</section>;`],
+    ['children-read', `export const Wrapper = ({ children }) => <section>{children}</section>;`],
+    ['children-read', `export const Wrapper = (props) => <p>{props.children?.length}<Slot /></p>;`],
     [
-      'children-render',
+      'children-read',
       `import { Card } from './card';
 export const Wrapper = (props) => <Card>{props.children}</Card>;`,
     ],
@@ -2407,15 +2407,63 @@ export const Wrapper = (props) => <Card>{props.children}</Card>;`,
 export const Wrapper = () => <Card children={<b>x</b>} />;`,
     ],
     [
-      'children-default',
+      'children-read',
       `export const Wrapper = ({ children = <p>none</p> }) => <section><Slot /></section>;`,
+    ],
+    [
+      'children-function',
+      `import { Card } from './card';
+export const Wrapper = () => <Card>{(value: number) => <b>{value}</b>}</Card>;`,
     ],
   ])('should diagnose children used as content: %s', async (code, source) => {
     const output = await testInput(mode, `children-contract-${code}-${source.length}`, {
       code: `import { Slot } from '@qwik.dev/core';\n${source}\nexport default () => <Wrapper><p>Projected</p></Wrapper>;\n`,
     });
-    // Children is projected content: only <Slot /> renders it, props.children describes it.
+    // Children is projected content: only <Slot /> renders it, useChildrenInfo() describes it.
     expect(output.diagnostics).toMatchObject([{ code }]);
+  });
+
+  test('should describe a q:type fragment as one child', async () => {
+    const output = await testInput(mode, 'children-descriptor-fragment', {
+      code: `import { component$, Fragment, Slot, useChildrenInfo } from '@qwik.dev/core';
+export const List = component$(() => {
+  const children = useChildrenInfo();
+  return <ul>{children.length}<Slot /></ul>;
+});
+export default component$(() => (
+  <List>
+    <Fragment q:type="group">text<b>b</b></Fragment>
+    <li q:type="row">y</li>
+  </List>
+));
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    // Text alone cannot carry q:type, so a typed fragment groups its content as one entry.
+    expect(main).toContain('createSlotScope(null, [{ "type": "group" }, { "type": "row" }])');
+    expect(main.match(/registerProjection\(/g)).toHaveLength(2);
+  });
+
+  test('should describe children as data a chunk can carry without imports', async () => {
+    const output = await testInput(mode, 'children-descriptor-chunk', {
+      code: `import { component$, useSignal } from '@qwik.dev/core';
+export const Child = component$(() => <i>child</i>);
+export default component$(() => {
+  const tag = useSignal('section');
+  const Tag = tag.value;
+  return (
+    <Tag>
+      <button onClick$={() => (tag.value = 'article')} />
+      <Child />
+    </Tag>
+  );
+});
+`,
+    });
+    // The descriptor is plain data: the dynamic tag chunk never references the child component.
+    const chunk = output.modules.find((module) => module.path.includes('tag_dynamic'))!;
+    expect(chunk.code).not.toContain('Child');
   });
 
   test.each([
@@ -2434,19 +2482,20 @@ ${source}
     expect(output.diagnostics).toMatchObject([{ code: 'expression-hook' }]);
   });
 
-  test('should describe projected children to a component that reads props.children', async () => {
+  test('should describe projected children to a component that calls useChildrenInfo', async () => {
     const output = await testInput(mode, 'children-descriptor', {
-      code: `import { component$, Slot, useSignal } from '@qwik.dev/core';
+      code: `import { component$, Slot, useChildrenInfo, useSignal } from '@qwik.dev/core';
 import { Card } from './card';
-export const Counter = component$((props: { children?: { type: unknown }[] }) => (
-  <p>{props.children?.length}<Slot /></p>
-));
+export const Counter = component$(() => {
+  const children = useChildrenInfo();
+  return <p>{children.length}<Slot /></p>;
+});
 export const Plain = component$(() => <p><Slot /></p>);
 export default component$(() => {
   const count = useSignal(1);
   return (
     <>
-      <Counter><b>x</b>text<Card />{count.value}</Counter>
+      <Counter><b q:type="bold">x</b>text<Card q:type="card" />{count.value}</Counter>
       <Plain><b>x</b></Plain>
       <Card><b>x</b></Card>
     </>
@@ -2456,13 +2505,14 @@ export default component$(() => {
     });
     expect(output.diagnostics).toEqual([]);
     const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
-    // The parent describes the default projection only to a consumer that reads props.children.
+    // The parent describes the default projection only to a consumer that calls useChildrenInfo().
     expect(main).toContain(
-      'createSlotScope(null, [{ "type": "b" }, { "type": "text" }, { "type": Card }, { "type": "dynamic" }])'
+      'createSlotScope(null, [{ "type": "bold" }, _EMPTY_OBJ, { "type": "card" }, _EMPTY_OBJ])'
     );
+    expect(main).not.toContain('q:type');
     // A known consumer that never reads them gets a bare scope; an external one gets a description.
     expect(main.match(/createSlotScope\(\)/g)).toHaveLength(1);
-    expect(main).toContain('createSlotScope(null, [{ "type": "b" }])');
+    expect(main).toContain('createSlotScope(null, [_EMPTY_OBJ])');
   });
 
   test('should project component children through the Slot marker', async () => {

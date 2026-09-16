@@ -67,14 +67,6 @@ export function createComponent(
   renderContext?: unknown,
   options?: ComponentOptions
 ): ValueOrPromise<ComponentOutput | void> {
-  const children = options?.slotScope?.children;
-  if (children) {
-    // Children is projected content: props only describe it, never carry it.
-    if (qDev && props != null && 'children' in (props as object)) {
-      throw new Error('children must be JSX children, not a prop');
-    }
-    props = Object.assign((props ?? {}) as object, { children });
-  }
   return createComponentAttempt(props ?? EMPTY_OBJ, render, renderContext, options, 0);
 }
 

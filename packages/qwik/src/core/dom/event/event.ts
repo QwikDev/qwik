@@ -74,8 +74,8 @@ export function setEvent(
     ? createCapturedEvent(handler as EventHandler, captures)
     : wrapDispatch(handler);
 
-  // Window and document events need attrs so qwikloader can find the carrier element.
-  if (key.charAt(2) !== 'e') {
+  // Window, document and qvisible events need attrs so qwikloader can find the element.
+  if (needsLoaderAttribute(key)) {
     element.setAttribute(key, '');
   }
   registerQwikLoaderEvent(element, scopedKebabName);
@@ -88,10 +88,12 @@ export function removeEvent(element: Element, key: string): void {
   if (target._qDispatch) {
     delete target._qDispatch[scopedKebabName];
   }
-  if (key.charAt(2) !== 'e') {
+  if (needsLoaderAttribute(key)) {
     element.removeAttribute?.(key);
   }
 }
+
+const needsLoaderAttribute = (key: string) => key.charAt(2) !== 'e' || key === 'q-e:qvisible';
 
 function registerQwikLoaderEvent(element: Element, eventName: string) {
   const qWindow = (qTest ? element.ownerDocument.defaultView : window) as unknown as qWindow;

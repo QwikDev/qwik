@@ -1,5 +1,6 @@
 import {
   CallTargetKind,
+  CoreOperation,
   DeclTable,
   ExportKind,
   ExportTargetKind,
@@ -114,6 +115,7 @@ export interface SetupFacts {
   registersEvents: Maybe<boolean>;
   waitForTasks: Maybe<boolean>;
   providesContextEffective: Maybe<boolean>;
+  readsChildrenInfo: Maybe<boolean>;
 }
 
 /**
@@ -194,10 +196,16 @@ export function createSetupFacts(
     (_module, call) => call.target.kind === CallTargetKind.Core && call.blocksInitialRender === true
   );
   const providesContext = fact((_module, call) => call.providesContext === true);
+  const readsChildrenInfo = fact(
+    (_module, call) =>
+      call.target.kind === CallTargetKind.Core &&
+      call.target.operation === CoreOperation.ChildrenInfo
+  );
   return (module, setup) => ({
     registersEvents: registersEvents(module, setup),
     waitForTasks: waitForTasks(module, setup),
     providesContextEffective: providesContext(module, setup),
+    readsChildrenInfo: readsChildrenInfo(module, setup),
   });
 }
 

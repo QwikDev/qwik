@@ -6,14 +6,13 @@ const { name, render } = testRenderer;
 type Factory = (value: number) => JSXOutput | Promise<JSXOutput>;
 
 describe(`${name}: JSX factory props`, () => {
-  it('invokes serialized prop and children factories with their captures', async () => {
-    const Probe = component$((props: { factory?: Factory; children?: Factory }) => {
+  it('invokes serialized prop factories with their captures', async () => {
+    const Probe = component$((props: { factory: Factory }) => {
       const resultType = useSignal('idle');
       return (
         <button
           onClick$={async () => {
-            const factory = props.factory ?? props.children!;
-            resultType.value = typeof (await factory(2));
+            resultType.value = typeof (await props.factory(2));
           }}
         >
           {resultType.value}
@@ -31,12 +30,12 @@ describe(`${name}: JSX factory props`, () => {
               return <b>{value}</b>;
             }}
           />
-          <Probe>
-            {(value: number) => {
+          <Probe
+            factory={(value) => {
               total.value += value * 10;
               return <i>{value}</i>;
             }}
-          </Probe>
+          />
         </main>
       );
     });

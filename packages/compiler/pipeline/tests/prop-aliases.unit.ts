@@ -198,7 +198,7 @@ test('an aliased children binding rendered as content is a diagnostic', async ()
       },
     ],
   });
-  expect(output.diagnostics).toMatchObject([{ code: 'children-render' }]);
+  expect(output.diagnostics).toMatchObject([{ code: 'children-read' }]);
 });
 
 test('keeps a computed key outside the module explicit', async () => {

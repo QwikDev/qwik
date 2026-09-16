@@ -12,7 +12,13 @@ import type {
 } from 'oxc-parser';
 import type { BindingGraph } from './bindings';
 import type { LocalId } from '../../schema';
-import { identifierName, isFunctionLike, readReturnedBody, unwrapExpression } from './utils';
+import {
+  identifierName,
+  isFunctionLike,
+  jsxAttributeName,
+  readReturnedBody,
+  unwrapExpression,
+} from './utils';
 import { UnsupportedError } from '../../errors';
 import { isNode, type WalkableNode } from './ast-types';
 
@@ -104,13 +110,12 @@ export function createJsxAnalysis(
           ) {
             return { kind: JsxValueKind.Element, node, hasJsxValue: true };
           }
+          // `q:type` groups the fragment's content as one described child.
           if (
-            node.openingElement.attributes.some(
-              (attribute) =>
-                attribute.type !== 'JSXAttribute' ||
-                attribute.name.type !== 'JSXIdentifier' ||
-                attribute.name.name !== 'key'
-            )
+            node.openingElement.attributes.some((attribute) => {
+              const name = jsxAttributeName(attribute);
+              return name !== 'key' && name !== 'q:type';
+            })
           ) {
             throw new UnsupportedError('Fragment attributes other than key');
           }

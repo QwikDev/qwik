@@ -128,10 +128,10 @@ JSX-valued props compile to render values, including alongside reactive spreads 
 collection rows. Verified by `jsx-prop.unit.ts` and new CSR/SSR snapshots. Classification of values
 read by the receiving component belongs to group 3 below.
 
-Inline JSX factories in component props and function children preserve their parameters, local
-statements and per-call captures. Function children are passed as the callable `children` prop.
-Verified by `jsx-factory-prop.unit.ts`, new CSR/SSR snapshots and `jsx-factory-prop.spec.tsx` in CSR
-and resume. Existing prop readers and ordinary projections retain their output. Module and local
+Inline JSX factories in component props preserve their parameters, local statements and per-call
+captures. A function child is diagnosed (`children-function`): children are projected content, a
+render function travels through a named prop. Verified by `jsx-factory-prop.unit.ts`, new CSR/SSR
+snapshots and `jsx-factory-prop.spec.tsx` in CSR and resume. Existing prop readers and ordinary projections retain their output. Module and local
 helper factories share the same lowering described below.
 
 JSX inside `$`, event handlers, hooks and ordinary callbacks shares scoped expression lowering.
@@ -561,7 +561,9 @@ Do not restore serialization of a children tree merely to reproduce old VNode op
       their output in `<!c=…>`/`<!/c>` markers so branches, rows and projections resumed later
       find the scope. The linker's `providesContextEffective` fact follows linked custom hook
       bodies; only a known provider is marked, since an unknown hook body does not imply one.
-- [ ] Preserve context/owner across every newly supported rendering callback.
+- [x] Preserve context/owner across every newly supported rendering callback: projections, nested
+      slots, promise children, live slot swaps, dynamic tags, promise-rendered and signal-held
+      consumers all resolve their context after resume (`context.spec.tsx`).
 - [x] Register `useVisibleTask$` in SSR as a client wake event (`qvisible`, or `qinit`/`qidle`
       for the document strategies) instead of calling the hook on the server.
 - [x] Defer a component's render until its initial tasks settle: SSR awaits the lane, CSR awaits
@@ -569,6 +571,18 @@ Do not restore serialization of a children tree merely to reproduce old VNode op
       custom hook bodies, so a hook that starts no task no longer forces the wait; a hook outside
       the link set leaves it unknown and keeps the wait.
 - [ ] Verify `useId`, `useOn*`, tasks and cleanup for headless components and new root shapes.
+      Done so far: headless `useOnDocument`/`useOnWindow`/`useVisibleTask$` on a projecting
+      component, document events through a component root, `qvisible` marked on CSR elements.
+      Open, with skipped specs in `use-on.spec.tsx`:
+  - `useOn` on a dynamic root (promise root, signal-held root, one event across task rerenders):
+    the runtime has a `useOnRoot` slot on content blocks and branches, but both emitters pass
+    `false`, the CSR block only reapplies after a second commit, and the SSR content runtime
+    ignores the flag; the content segment's first element must also keep its open-tag record.
+  - A document event fired from a task during the render that removes its component: v2 skipped
+    it through scheduler ordering; v3's loader skips disconnected carriers at dispatch and after
+    the QRL resolves, so decide whether the mid-render window matters.
+  - The structural `useOn` root replaced by a branch (`moves the carrier` spec).
+  - main's `use-visible-task` (27 specs) and `use-task` (20 specs) corpora are not ported yet.
 - [x] `useId()`. A runtime counter, not the legacy seed parameter: the server counts per request
       on the root invoke context (`s…` ids), the client per container (`c…` ids), so ids never
       collide after resume, in rows, branches or later instances. The compiler treats `useId` as
@@ -639,6 +653,22 @@ code size and runtime cost. The previous implementation is not the accepted defa
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
 
+- 2026-09-16: Callbacks and headless events, batch 2 of group 12: four context specs cover live
+  slot swaps, dynamic tags, promise-rendered and signal-held consumers; eight `use-on` specs port
+  main's headless, component-root and `qvisible` cases. Two fixes: a dynamic tag with a component
+  child rendered nothing on CSR and never re-rendered after resume because the children
+  descriptor referenced the component inside a chunk that did not import it, and CSR never set
+  `q-e:qvisible`, so the loader could not observe client-rendered `qvisible` listeners. The
+  children contract changed with the fix: `useChildrenInfo()` returns one entry per default child
+  carrying only the author's `q:type` (`{ type: 'row' }`, or the shared `_EMPTY_OBJ` without one),
+  never the JSX type, so it is plain data and serializes; `q:type` is stripped from the rendered
+  props, and a `<Fragment q:type>` stays one projection so text can be described too. Every
+  `props.children` read is `children-read` (replacing `children-render` and `children-default`),
+  a function child is `children-function` (render functions travel through a named prop), and
+  the linker's `readsChildrenInfo` fact follows custom hooks so a consumer that never calls the
+  hook gets no descriptor. Four `use-on` specs stay skipped under item 9. Verification: 1182
+  pipeline tests, 637 corpus specs in CSR and resume
+  with only the known Suspense red.
 - 2026-09-16: Context through projections, batch 1 of group 12: main's nine `use-context` specs
   now live in `context.spec.tsx` as behavior assertions (provider shown after a client change,
   slot inside slot for rows and for a component, falsy values, an unclaimed projection, #4038,

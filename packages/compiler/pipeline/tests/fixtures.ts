@@ -54,7 +54,7 @@ export function loadDefaultFunction(
   // Every component carries its serialization marker; stubs only when the globals lack the words.
   const sandbox = globals;
   if (!('_markComponent' in sandbox)) {
-    Object.assign(sandbox, { _markComponent: (fn: unknown) => fn });
+    Object.assign(sandbox, { _markComponent: (fn: unknown) => fn, _EMPTY_OBJ: {} });
   }
   // A block scopes the hoisted declarations, so a reused sandbox can evaluate more than once.
   return useCurrentRealm

@@ -1,7 +1,7 @@
 import { Project } from 'ts-morph';
 import { describe, expect, test } from 'vitest';
 import type { Codemod } from './run-codemods';
-import { removeDevInput } from './vite-config';
+import { removeDevInput, removeStableExperimentalFeatures } from './vite-config';
 
 const run = (codemod: Codemod, code: string) => {
   const file = new Project({ useInMemoryFileSystem: true }).createSourceFile(
@@ -30,5 +30,30 @@ describe('removeDevInput', () => {
   test('ignores other plugins', () => {
     const code = `import { qwikVite } from 'other';\nqwikVite({ client: { devInput: 'a' } });`;
     expect(run(removeDevInput, code)).toEqual({ changed: false, text: code });
+  });
+});
+
+describe('removeStableExperimentalFeatures', () => {
+  test('removes the flags that are always enabled in v2', () => {
+    expect(
+      run(
+        removeStableExperimentalFeatures,
+        `${IMPORT}qwikVite({ experimental: ['preventNavigate', 'valibot', 'enableRequestRewrite'] });`
+      ).text
+    ).toBe(`${IMPORT}qwikVite({ experimental: ['valibot'] });`);
+  });
+
+  test('removes the option when no flag is left', () => {
+    expect(
+      run(
+        removeStableExperimentalFeatures,
+        `${IMPORT}qwikVite({ debug: true, experimental: ['preventNavigate'] });`
+      ).text
+    ).toBe(`${IMPORT}qwikVite({ debug: true });`);
+  });
+
+  test('keeps other flags', () => {
+    const code = `${IMPORT}qwikVite({ experimental: ['noSPA'] });`;
+    expect(run(removeStableExperimentalFeatures, code)).toEqual({ changed: false, text: code });
   });
 });

@@ -60,8 +60,8 @@ export default default_component_3rg6kq1so9aio;
 import {
   _captures,
   createSlotScope,
-  registerProjection,
   _qrlWithChunk,
+  registerProjection,
   createDynamicTag,
   createComponent,
 } from '@qwik.dev/core';
@@ -78,7 +78,7 @@ const q_component_slot_render_segment_5_3b0t9atn1pfsx = /*#__PURE__*/ _qrlWithCh
 
 export const component_tag_dynamic_segment_0_331xea01t87eh = (ctx) => {
   const [content, show, Picked] = _captures;
-  const slotScope0 = createSlotScope();
+  const slotScope0 = createSlotScope(null, [{ type: 'dynamic' }, { type: Picked }]);
   const tag0 = content.value[0];
   registerProjection(
     slotScope0,

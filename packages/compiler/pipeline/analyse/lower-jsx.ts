@@ -764,7 +764,7 @@ function lowerChild(child: JSXChild, ctx: LowerContext): Op[] {
 export function lowerRenderExpression(expression: Expression, ctx: LowerContext): Op[] {
   expression = unwrapExpression(expression);
   if (isPropsChildren(expression, ctx)) {
-    return [createSlotOp(ctx)];
+    throw childrenRenderError(expression);
   }
   const value = ctx.jsx.read(expression);
   const branch = readRenderBranch(value);
@@ -855,6 +855,16 @@ function lowerComponentOp(
   target: Extract<Op, { op: OpKind.Component }>['target'],
   ctx: LowerContext
 ): Op {
+  const childrenAttribute = attributes.find(
+    (attribute) => jsxAttributeName(attribute) === 'children'
+  );
+  if (childrenAttribute !== undefined) {
+    throw new InvalidModuleError(
+      'children-attribute',
+      'Pass children as JSX children; a children attribute is not projected.',
+      [childrenAttribute.start, childrenAttribute.end]
+    );
+  }
   const children = element.children.filter(isProjectionChild);
   const child = children.length === 1 ? children[0] : null;
   const factoryChild =
@@ -1024,6 +1034,15 @@ function createSlotOp(
   };
 }
 
+/** Children is projected content: a consumer renders it with `<Slot />` and reads only its shape. */
+function childrenRenderError(node: Node): InvalidModuleError {
+  return new InvalidModuleError(
+    'children-render',
+    'Render projected children with <Slot />; props.children only describes them.',
+    [node.start, node.end]
+  );
+}
+
 function isPropsChildren(node: Node, ctx: LowerContext): boolean {
   const expression = unwrapExpression(node);
   if (expression?.type === 'Identifier') {
@@ -1180,7 +1199,7 @@ function readForwardedSlot(
   ctx: LowerContext
 ): { sourceName: string; children: readonly JSXChild[] } | null {
   if (child.type === 'JSXExpressionContainer' && isPropsChildren(child.expression, ctx)) {
-    return { sourceName: '', children: [] };
+    throw childrenRenderError(child.expression);
   }
   if (child.type !== 'JSXElement' || child.openingElement.name.type !== 'JSXIdentifier') {
     return null;

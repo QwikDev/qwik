@@ -289,9 +289,10 @@ export default component(() => <Counter initial={1} />);`,
 
   test('should forward reactive component rest props and project children', async () => {
     const output = await testInput(mode, 'component-prop-rest', {
-      code: `export const Child = ({ label, children }) => <section title={label}>{children}</section>;
-export default ({ title: heading = 'heading', children: content, ...rest }) => (
-  <Child {...rest} title={heading}>{content}</Child>
+      code: `import { Slot } from '@qwik.dev/core';
+export const Child = ({ label }) => <section title={label}><Slot /></section>;
+export default ({ title: heading = 'heading', ...rest }) => (
+  <Child {...rest} title={heading}><Slot /></Child>
 );`,
     });
     expect(output.diagnostics).toEqual([]);
@@ -426,8 +427,9 @@ export default ({ user: { name, tags: [first] }, [KEY]: keyed, meta: { count = 0
 
   test('should preserve reactive prop aliases and aliased children', async () => {
     const output = await testInput(mode, 'component-prop-aliases', {
-      code: `export const Card = ({ title: heading, 'data-label': label, onSave$: save, children: content }) => (
-  <section><h2>{heading}</h2><button onClick$={() => save({ label })}>{label}</button>{content}</section>
+      code: `import { Slot } from '@qwik.dev/core';
+export const Card = ({ title: heading, 'data-label': label, onSave$: save }) => (
+  <section><h2>{heading}</h2><button onClick$={() => save({ label })}>{label}</button><Slot /></section>
 );
 export default () => <Card title="Title" data-label="Label"><p>Projected</p></Card>;`,
     });
@@ -2391,20 +2393,60 @@ export default () => {
     });
   });
 
-  test('should project component children through props.children', async () => {
-    await testInput(mode, 'component-children-props', {
-      code: `export const Wrapper = (props) => <section>{props.children}</section>;
-export default () => <Wrapper><p>Projected</p></Wrapper>;
-`,
+  test.each([
+    ['children-render', `export const Wrapper = (props) => <section>{props.children}</section>;`],
+    ['children-render', `export const Wrapper = ({ children }) => <section>{children}</section>;`],
+    [
+      'children-render',
+      `import { Card } from './card';
+export const Wrapper = (props) => <Card>{props.children}</Card>;`,
+    ],
+    [
+      'children-attribute',
+      `import { Card } from './card';
+export const Wrapper = () => <Card children={<b>x</b>} />;`,
+    ],
+    [
+      'children-default',
+      `export const Wrapper = ({ children = <p>none</p> }) => <section><Slot /></section>;`,
+    ],
+  ])('should diagnose children used as content: %s', async (code, source) => {
+    const output = await testInput(mode, `children-contract-${code}-${source.length}`, {
+      code: `import { Slot } from '@qwik.dev/core';\n${source}\nexport default () => <Wrapper><p>Projected</p></Wrapper>;\n`,
     });
+    // Children is projected content: only <Slot /> renders it, props.children describes it.
+    expect(output.diagnostics).toMatchObject([{ code }]);
   });
 
-  test('should project component children through a destructured prop', async () => {
-    await testInput(mode, 'component-children-destructured', {
-      code: `export const Wrapper = ({ children }) => <section>{children}</section>;
-export default () => <Wrapper><p>Projected</p></Wrapper>;
+  test('should describe projected children to a component that reads props.children', async () => {
+    const output = await testInput(mode, 'children-descriptor', {
+      code: `import { component$, Slot, useSignal } from '@qwik.dev/core';
+import { Card } from './card';
+export const Counter = component$((props: { children?: { type: unknown }[] }) => (
+  <p>{props.children?.length}<Slot /></p>
+));
+export const Plain = component$(() => <p><Slot /></p>);
+export default component$(() => {
+  const count = useSignal(1);
+  return (
+    <>
+      <Counter><b>x</b>text<Card />{count.value}</Counter>
+      <Plain><b>x</b></Plain>
+      <Card><b>x</b></Card>
+    </>
+  );
+});
 `,
     });
+    expect(output.diagnostics).toEqual([]);
+    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    // The parent describes the default projection only to a consumer that reads props.children.
+    expect(main).toContain(
+      'createSlotScope(null, [{ "type": "b" }, { "type": "text" }, { "type": Card }, { "type": "dynamic" }])'
+    );
+    // A known consumer that never reads them gets a bare scope; an external one gets a description.
+    expect(main.match(/createSlotScope\(\)/g)).toHaveLength(1);
+    expect(main).toContain('createSlotScope(null, [{ "type": "b" }])');
   });
 
   test('should project component children through the Slot marker', async () => {
@@ -2418,8 +2460,8 @@ export default () => <Wrapper><p>Projected</p></Wrapper>;
 
   test('should capture signals used by projected component children', async () => {
     await testInput(mode, 'component-children-signal', {
-      code: `import { useSignal } from '@qwik.dev/core';
-export const Wrapper = (props) => <section>{props.children}</section>;
+      code: `import { Slot, useSignal } from '@qwik.dev/core';
+export const Wrapper = () => <section><Slot /></section>;
 export default () => {
   const count = useSignal(1);
   return <Wrapper><p>{count.value}</p></Wrapper>;

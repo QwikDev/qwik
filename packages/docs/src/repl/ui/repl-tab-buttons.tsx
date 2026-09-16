@@ -1,7 +1,10 @@
-export const ReplTabButtons = (props: ReplTabButtonsProps) => {
+import { Slot } from '@qwik.dev/core';
+export const ReplTabButtons = (_props: ReplTabButtonsProps) => {
   return (
     <div class="repl-tab-buttons" translate="no">
-      <div class="repl-tab-buttons-inner">{props.children}</div>
+      <div class="repl-tab-buttons-inner">
+        <Slot />
+      </div>
     </div>
   );
 };

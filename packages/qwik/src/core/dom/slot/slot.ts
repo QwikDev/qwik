@@ -52,6 +52,14 @@ export interface SlotScope {
   projections: Projection[];
   /** Set by a parent with a dynamic name: every slot of the scope becomes a content range. */
   slotContentQrl: QRL<SlotContentFn> | null;
+  /** What the parent projected into the default slot, for a consumer that reads `props.children`. */
+  children: readonly ChildInfo[] | null;
+}
+
+/** @public */
+export interface ChildInfo {
+  /** A tag name, a component, `"text"` or `"dynamic"`. */
+  type: unknown;
 }
 
 /** The live-slot segment: the client tail on the client, the server tail on the server. */
@@ -74,7 +82,10 @@ export const Slot: FunctionComponent<{
 
 class SlotScopeState implements SlotScope {
   projections: Projection[] = [];
-  constructor(public slotContentQrl: QRL<SlotContentFn> | null) {}
+  constructor(
+    public slotContentQrl: QRL<SlotContentFn> | null,
+    public children: readonly ChildInfo[] | null
+  ) {}
 }
 
 class ProjectionState implements Projection {
@@ -88,8 +99,11 @@ class ProjectionState implements Projection {
   ) {}
 }
 
-export function createSlotScope(slotContentQrl: QRL<SlotContentFn> | null = null): SlotScope {
-  return new SlotScopeState(slotContentQrl);
+export function createSlotScope(
+  slotContentQrl: QRL<SlotContentFn> | null = null,
+  children: readonly ChildInfo[] | null = null
+): SlotScope {
+  return new SlotScopeState(slotContentQrl, children);
 }
 
 export function isSlotScope(value: unknown): value is SlotScope {

@@ -9,6 +9,7 @@ import {
   useStore,
   useTask$,
   useVisibleTask$,
+  type ChildInfo,
   type Signal,
 } from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
@@ -1491,6 +1492,39 @@ describe(`${name}: projection`, () => {
       expect(text('aside')).toBe('content');
       expect(text('main')).toBe('');
       expect(text('#card')).toBe('1');
+      cleanup();
+    });
+
+    it('describes the projected children to a component that reads props.children', async () => {
+      const Item = component$(() => <li>item</li>);
+      const List = component$((props: { children?: unknown }) => {
+        const info = props.children as ChildInfo[] | undefined;
+        return (
+          <section>
+            <output>
+              {info
+                ?.map((child) => (typeof child.type === 'string' ? child.type : 'component'))
+                .join(',')}
+            </output>
+            <ul>
+              <Slot />
+            </ul>
+          </section>
+        );
+      });
+      const App = component$(() => {
+        const label = useSignal('dyn');
+        return (
+          <List>
+            <li>static</li>
+            {label.value}
+            <Item />
+          </List>
+        );
+      });
+      const { container, cleanup } = await render(App);
+      expect(container.querySelector('output')!.textContent).toBe('li,dynamic,component');
+      expect(container.querySelectorAll('li')).toHaveLength(2);
       cleanup();
     });
   });

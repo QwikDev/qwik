@@ -28,6 +28,7 @@ import {
   type Op,
   type Specialization,
   type Unknown,
+  QrlBodyKind,
 } from '../schema';
 import { collectHookDependencies, collectQrlDependencies } from './qrl-dependencies';
 import { linkRenderResults, localComponentSetups } from './render-results';
@@ -361,7 +362,20 @@ export function linkPlans(
           declaration.ok &&
           declaration.value.table === DeclTable.Bindings &&
           !localComponents[declaration.value.module].has(declaration.value.index),
+        readsChildren: componentReadsChildren(declaration),
       },
+    };
+  };
+  /** Known only for a linked component; a plain value or an opaque import stays unknown. */
+  const componentReadsChildren = (declaration: Maybe<DeclRef>): Maybe<boolean> => {
+    if (!declaration.ok || declaration.value.table !== DeclTable.Qrls) {
+      return unknown<boolean>(UnknownWhy.Opaque, 'children-reads');
+    }
+    const owner = plans[declaration.value.module];
+    const body = owner.qrls[declaration.value.index].body;
+    return {
+      ok: true,
+      value: body.b === QrlBodyKind.Program && owner.programs[body.program].readsChildren === true,
     };
   };
 

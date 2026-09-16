@@ -19,12 +19,17 @@ export default component$(() => {
 import {
   useSignal,
   createSlotScope,
-  registerProjection,
   _qrlWithChunk,
+  registerProjection,
   createComponent,
 } from '@qwik.dev/core';
 import { component_slot_name_segment_1_6cnnr2dqnix6 } from './component.tsx_component_slot_name_segment_1_6cnnr2dqnix6';
 
+const q_component_slot_content_segment_3_25e5vjljuig5s = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_slot_content_segment_3_25e5vjljuig5s',
+  () => import('./component.tsx_component_slot_content_segment_3_25e5vjljuig5s'),
+  'component_slot_content_segment_3_25e5vjljuig5s'
+);
 const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _qrlWithChunk(
   './component.tsx_component_slot_render_segment_0_3b0tagwys7lui',
   () => import('./component.tsx_component_slot_render_segment_0_3b0tagwys7lui'),
@@ -34,11 +39,6 @@ const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ _qrlWithCh
   './component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg',
   () => import('./component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg'),
   'component_slot_render_segment_2_3b0t9ouqyjhtg'
-);
-const q_component_slot_content_segment_3_25e5vjljuig5s = /*#__PURE__*/ _qrlWithChunk(
-  './component.tsx_component_slot_content_segment_3_25e5vjljuig5s',
-  () => import('./component.tsx_component_slot_content_segment_3_25e5vjljuig5s'),
-  'component_slot_content_segment_3_25e5vjljuig5s'
 );
 import { Card } from './card';
 export const default_component_3rg6kq1so9aio = (props, ctx) => {

@@ -25,8 +25,8 @@ import {
   _last,
   _prev,
   createSlotScope,
-  registerProjection,
   _qrlWithChunk,
+  registerProjection,
   createDynamicTag,
   createComponent,
   _toNodes,
@@ -59,7 +59,7 @@ export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const marker1 = _next(_next(_first(el0)));
   const marker2 = _prev(_prev(_last(el0)));
   const marker3 = _prev(_last(el0));
-  const slotScope0 = createSlotScope();
+  const slotScope0 = createSlotScope(null, [{ type: 'text' }]);
   registerProjection(slotScope0, '', q_component_slot_render_segment_0_3b0tagwys7lui);
   const component0 = createComponent(
     (props0) => createDynamicTag(Heading, props0, ctx),
@@ -137,8 +137,8 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx) => {
 import {
   _captures,
   createSlotScope,
-  registerProjection,
   _qrlWithChunk,
+  registerProjection,
   createDynamicTag,
   createComponent,
 } from '@qwik.dev/core';
@@ -150,7 +150,7 @@ const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ _qrlWithCh
 
 export const component_tag_dynamic_segment_1_331xdvyxwe5dy = (ctx) => {
   const [props] = _captures;
-  const slotScope0 = createSlotScope();
+  const slotScope0 = createSlotScope(null, [{ type: 'text' }]);
   const tag0 = props.as;
   registerProjection(slotScope0, '', q_component_slot_render_segment_2_3b0t9ouqyjhtg);
   const component0 = createComponent((props0) => createDynamicTag(tag0, props0, ctx), null, ctx, {

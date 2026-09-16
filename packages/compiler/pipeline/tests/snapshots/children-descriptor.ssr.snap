@@ -1,0 +1,392 @@
+==INPUT==
+
+import { component$, Slot, useSignal } from '@qwik.dev/core';
+import { Card } from './card';
+export const Counter = component$((props: { children?: { type: unknown }[] }) => (
+  <p>{props.children?.length}<Slot /></p>
+));
+export const Plain = component$(() => <p><Slot /></p>);
+export default component$(() => {
+  const count = useSignal(1);
+  return (
+    <>
+      <Counter><b>x</b>text<Card />{count.value}</Counter>
+      <Plain><b>x</b></Plain>
+      <Card><b>x</b></Card>
+    </>
+  );
+});
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  createSsrNodeId,
+  escapeHTML,
+  renderSsrTextExpression,
+  renderSsrSlot,
+  maybeThen,
+  _noopQrl,
+  _markComponent,
+  useSignal,
+  createSlotScope,
+  registerProjection,
+  createComponent,
+  createSsrMarkup,
+  _captures,
+  renderSsrTextNode,
+} from '@qwik.dev/core';
+import { Card } from './card';
+const component_text_segment_0_1fh10fbkzokfc = (props) => {
+  return props.children?.length;
+};
+const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_0_1fh10fbkzokfc'
+);
+q_component_text_segment_0_1fh10fbkzokfc.s(component_text_segment_0_1fh10fbkzokfc);
+const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId) => {
+  return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), '<b>x</b>', '<!/s>'];
+};
+const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _noopQrl(
+  'component_slot_render_segment_1_3b0tauy2p1nv1'
+);
+q_component_slot_render_segment_1_3b0tauy2p1nv1.s(component_slot_render_segment_1_3b0tauy2p1nv1);
+const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId) => {
+  return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), 'text', '<!/s>'];
+};
+const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ _noopQrl(
+  'component_slot_render_segment_2_3b0t9ouqyjhtg'
+);
+q_component_slot_render_segment_2_3b0t9ouqyjhtg.s(component_slot_render_segment_2_3b0t9ouqyjhtg);
+const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx, __rangeId) => {
+  const component0 = createComponent(Card, null, ctx);
+  return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), component0, '<!/s>'];
+};
+const q_component_slot_render_segment_3_3b0ta2vuvdjtz = /*#__PURE__*/ _noopQrl(
+  'component_slot_render_segment_3_3b0ta2vuvdjtz'
+);
+q_component_slot_render_segment_3_3b0ta2vuvdjtz.s(component_slot_render_segment_3_3b0ta2vuvdjtz);
+const component_slot_render_segment_4_3b0t8wsj4vdse = (ctx, __rangeId) => {
+  const [count] = _captures;
+  const rangeId0 = ctx.nextId();
+  ctx.addRoot(count);
+  const text0 = renderSsrTextNode(rangeId0, 0, count);
+  return [
+    createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'),
+    maybeThen(text0, (text0) => [
+      '<!b=',
+      createSsrNodeId(rangeId0),
+      '><!t>',
+      escapeHTML(text0),
+      '<!/t><!/b>',
+    ]),
+    '<!/s>',
+  ];
+};
+const q_component_slot_render_segment_4_3b0t8wsj4vdse = /*#__PURE__*/ _noopQrl(
+  'component_slot_render_segment_4_3b0t8wsj4vdse'
+);
+q_component_slot_render_segment_4_3b0t8wsj4vdse.s(component_slot_render_segment_4_3b0t8wsj4vdse);
+const component_slot_render_segment_5_3b0t9atn1pfsx = (ctx, __rangeId) => {
+  return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), '<b>x</b>', '<!/s>'];
+};
+const q_component_slot_render_segment_5_3b0t9atn1pfsx = /*#__PURE__*/ _noopQrl(
+  'component_slot_render_segment_5_3b0t9atn1pfsx'
+);
+q_component_slot_render_segment_5_3b0t9atn1pfsx.s(component_slot_render_segment_5_3b0t9atn1pfsx);
+const component_slot_render_segment_6_3b0t84qbb79rc = (ctx, __rangeId) => {
+  return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), '<b>x</b>', '<!/s>'];
+};
+const q_component_slot_render_segment_6_3b0t84qbb79rc = /*#__PURE__*/ _noopQrl(
+  'component_slot_render_segment_6_3b0t84qbb79rc'
+);
+q_component_slot_render_segment_6_3b0t84qbb79rc.s(component_slot_render_segment_6_3b0t84qbb79rc);
+export const Counter = _markComponent(
+  (props, ctx) => {
+    const id0 = ctx.nextId();
+    ctx.addRoot(props);
+    const text0 = renderSsrTextExpression(
+      id0,
+      0,
+      [props],
+      q_component_text_segment_0_1fh10fbkzokfc
+    );
+    const slot0 = renderSsrSlot(ctx);
+    return maybeThen(text0, (text0) =>
+      maybeThen(slot0, (slot0) => [
+        '<p q:id="',
+        createSsrNodeId(id0),
+        '"><!t>',
+        escapeHTML(text0),
+        '<!/t>',
+        slot0,
+        '</p>',
+      ])
+    );
+  },
+  'Counter_component_3h2q15ekklxzt',
+  './component.tsx'
+);
+export const Plain = _markComponent(
+  (props0, ctx) => {
+    const slot0 = renderSsrSlot(ctx);
+    return maybeThen(slot0, (slot0) => ['<p>', slot0, '</p>']);
+  },
+  'Plain_component_25y3k1m6p49gx',
+  './component.tsx'
+);
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props0, ctx) => {
+    const count = useSignal(1);
+    const slotScope0 = createSlotScope(null, [
+      { type: 'b' },
+      { type: 'text' },
+      { type: Card },
+      { type: 'dynamic' },
+    ]);
+    registerProjection(slotScope0, '', q_component_slot_render_segment_1_3b0tauy2p1nv1);
+    registerProjection(slotScope0, '', q_component_slot_render_segment_2_3b0t9ouqyjhtg);
+    registerProjection(slotScope0, '', q_component_slot_render_segment_3_3b0ta2vuvdjtz);
+    registerProjection(slotScope0, '', q_component_slot_render_segment_4_3b0t8wsj4vdse.w([count]));
+    ctx.addRoot(slotScope0);
+    const component0 = createComponent(Counter, null, ctx, { slotScope: slotScope0 });
+    const slotScope1 = createSlotScope();
+    registerProjection(slotScope1, '', q_component_slot_render_segment_5_3b0t9atn1pfsx);
+    ctx.addRoot(slotScope1);
+    const component1 = createComponent(Plain, null, ctx, { slotScope: slotScope1 });
+    const slotScope2 = createSlotScope(null, [{ type: 'b' }]);
+    registerProjection(slotScope2, '', q_component_slot_render_segment_6_3b0t84qbb79rc);
+    ctx.addRoot(slotScope2);
+    const component2 = createComponent(Card, null, ctx, { slotScope: slotScope2 });
+    return maybeThen(component0, (component0) =>
+      maybeThen(component1, (component1) =>
+        maybeThen(component2, (component2) => [component0, component1, component2])
+      )
+    );
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
+
+export { Counter as Counter_component_3h2q15ekklxzt, Plain as Plain_component_25y3k1m6p49gx };
+============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
+
+export const component_text_segment_0_1fh10fbkzokfc = (props) => {
+  return props.children?.length;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_0_1fh10fbkzokfc",
+  "entry": null,
+  "displayName": "component_text_segment_0",
+  "hash": "1fh10fbkzokfc",
+  "canonicalFilename": "component.tsx_component_text_segment_0_1fh10fbkzokfc",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    182,
+    204
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1.js (ENTRY POINT)==
+
+import { createSsrMarkup, createSsrNodeId } from '@qwik.dev/core';
+
+export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId) => {
+  return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), '<b>x</b>', '<!/s>'];
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_slot_render_segment_1_3b0tauy2p1nv1",
+  "entry": null,
+  "displayName": "component_slot_render_segment_1",
+  "hash": "3b0tauy2p1nv1",
+  "canonicalFilename": "component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot:render",
+  "captures": false,
+  "loc": [
+    375,
+    383
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg.js (ENTRY POINT)==
+
+import { createSsrMarkup, createSsrNodeId } from '@qwik.dev/core';
+
+export const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId) => {
+  return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), 'text', '<!/s>'];
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_slot_render_segment_2_3b0t9ouqyjhtg",
+  "entry": null,
+  "displayName": "component_slot_render_segment_2",
+  "hash": "3b0t9ouqyjhtg",
+  "canonicalFilename": "component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot:render",
+  "captures": false,
+  "loc": [
+    383,
+    387
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_slot_render_segment_3_3b0ta2vuvdjtz.js (ENTRY POINT)==
+
+import { createComponent, createSsrMarkup, createSsrNodeId } from '@qwik.dev/core';
+import { Card } from './card';
+
+export const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx, __rangeId) => {
+  const component0 = createComponent(Card, null, ctx);
+  return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), component0, '<!/s>'];
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_slot_render_segment_3_3b0ta2vuvdjtz",
+  "entry": null,
+  "displayName": "component_slot_render_segment_3",
+  "hash": "3b0ta2vuvdjtz",
+  "canonicalFilename": "component.tsx_component_slot_render_segment_3_3b0ta2vuvdjtz",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot:render",
+  "captures": false,
+  "loc": [
+    387,
+    395
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_slot_render_segment_4_3b0t8wsj4vdse.js (ENTRY POINT)==
+
+import {
+  _captures,
+  createSsrNodeId,
+  escapeHTML,
+  renderSsrTextNode,
+  maybeThen,
+  createSsrMarkup,
+} from '@qwik.dev/core';
+
+export const component_slot_render_segment_4_3b0t8wsj4vdse = (ctx, __rangeId) => {
+  const [count] = _captures;
+  const rangeId0 = ctx.nextId();
+  ctx.addRoot(count);
+  const text0 = renderSsrTextNode(rangeId0, 0, count);
+  return [
+    createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'),
+    maybeThen(text0, (text0) => [
+      '<!b=',
+      createSsrNodeId(rangeId0),
+      '><!t>',
+      escapeHTML(text0),
+      '<!/t><!/b>',
+    ]),
+    '<!/s>',
+  ];
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_slot_render_segment_4_3b0t8wsj4vdse",
+  "entry": null,
+  "displayName": "component_slot_render_segment_4",
+  "hash": "3b0t8wsj4vdse",
+  "canonicalFilename": "component.tsx_component_slot_render_segment_4_3b0t8wsj4vdse",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot:render",
+  "captures": true,
+  "loc": [
+    388,
+    408
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_slot_render_segment_5_3b0t9atn1pfsx.js (ENTRY POINT)==
+
+import { createSsrMarkup, createSsrNodeId } from '@qwik.dev/core';
+
+export const component_slot_render_segment_5_3b0t9atn1pfsx = (ctx, __rangeId) => {
+  return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), '<b>x</b>', '<!/s>'];
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_slot_render_segment_5_3b0t9atn1pfsx",
+  "entry": null,
+  "displayName": "component_slot_render_segment_5",
+  "hash": "3b0t9atn1pfsx",
+  "canonicalFilename": "component.tsx_component_slot_render_segment_5_3b0t9atn1pfsx",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot:render",
+  "captures": false,
+  "loc": [
+    432,
+    440
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_slot_render_segment_6_3b0t84qbb79rc.js (ENTRY POINT)==
+
+import { createSsrMarkup, createSsrNodeId } from '@qwik.dev/core';
+
+export const component_slot_render_segment_6_3b0t84qbb79rc = (ctx, __rangeId) => {
+  return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), '<b>x</b>', '<!/s>'];
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_slot_render_segment_6_3b0t84qbb79rc",
+  "entry": null,
+  "displayName": "component_slot_render_segment_6",
+  "hash": "3b0t84qbb79rc",
+  "canonicalFilename": "component.tsx_component_slot_render_segment_6_3b0t84qbb79rc",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot:render",
+  "captures": false,
+  "loc": [
+    461,
+    469
+  ],
+  "paramNames": []
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

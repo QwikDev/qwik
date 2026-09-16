@@ -14,6 +14,8 @@ import {
   type LinkedQrl,
   type QrlUse,
   type Value,
+  ProgramBodyKind,
+  QrlBodyKind,
 } from '../schema';
 import { UnsupportedError } from '../errors';
 import { QwikGenWord, QwikHook, QwikWord } from '../words';
@@ -64,7 +66,14 @@ export function emitComponentCall(
   // Only the server roots what it serializes; the tag helper tells the targets apart.
   const ssrCtx = dynamicTag === QwikWord.RenderSsrDynamicTag ? pass.names.ctx : null;
   const props = emitComponentProps(module, component, pass, imports, resolveQrl, ssrCtx);
-  const projections = emitComponentProjections(component, pass, imports, resolveQrl, staticQrl);
+  const projections = emitComponentProjections(
+    module,
+    component,
+    pass,
+    imports,
+    resolveQrl,
+    staticQrl
+  );
   const target = componentTargetJs(module, component.target, pass, imports, dynamicTag);
   imports.add(QwikWord.CreateComponent);
   return {
@@ -76,6 +85,7 @@ export function emitComponentCall(
 }
 
 function emitComponentProjections(
+  module: LinkedModule,
   component: ComponentOp,
   pass: ComponentRenderPass,
   imports: Set<string>,
@@ -88,6 +98,10 @@ function emitComponentProjections(
   imports.add(QwikWord.CreateSlotScope);
   const scope = pass.next(QwikGenWord.SlotScope);
   const statements: string[] = [];
+  const dynamicSlot =
+    component.dynamicSlot === undefined ? null : resolveQrl(component.dynamicSlot, true).reference;
+  const children = childrenDescriptorJs(module, component, resolveQrl);
+  const scopeArgs = children === null ? [dynamicSlot ?? ''] : [dynamicSlot ?? 'null', children];
   for (const projection of component.projections) {
     if (projection.kind === ProjectionKind.Forward) {
       imports.add(QwikWord.ForwardSlot);
@@ -117,13 +131,59 @@ function emitComponentProjections(
   return {
     options: `, { slotScope: ${scope} }`,
     roots: [scope],
-    declarations: [
-      `const ${scope} = ${QwikWord.CreateSlotScope}(${
-        component.dynamicSlot === undefined ? '' : resolveQrl(component.dynamicSlot, true).reference
-      });`,
-    ],
+    declarations: [`const ${scope} = ${QwikWord.CreateSlotScope}(${scopeArgs.join(', ')});`],
     statements,
   };
+}
+
+/**
+ * A consumer that reads `props.children` gets one `{ type }` per authored default child: a tag, a
+ * component reference, `"text"` or `"dynamic"`. A linked consumer that never reads them gets none.
+ */
+function childrenDescriptorJs(
+  module: LinkedModule,
+  component: ComponentOp,
+  resolveQrl: ResolveComponentQrl
+): string | null {
+  const target = component.target;
+  if (
+    target.t === ComponentTargetKind.Declaration &&
+    target.readsChildren.ok &&
+    !target.readsChildren.value
+  ) {
+    return null;
+  }
+  // Each authored child is its own default projection, in authored order.
+  const ops = component.projections.flatMap((projection) => {
+    if (
+      projection.kind !== ProjectionKind.Render ||
+      projection.name !== '' ||
+      projection.nameUse !== undefined
+    ) {
+      return [];
+    }
+    const body = resolveQrl(projection.use, false).qrl.body;
+    const program = body.b === QrlBodyKind.Program ? module.programs[body.program].body : null;
+    return program?.kind === ProgramBodyKind.Ops ? program.ops : [];
+  });
+  if (ops.length === 0) {
+    return null;
+  }
+  const entries = ops.map((op) => {
+    switch (op.op) {
+      case OpKind.Element:
+        return `{ "type": ${JSON.stringify(op.tag)} }`;
+      case OpKind.Static:
+        return '{ "type": "text" }';
+      case OpKind.Component:
+        return op.target.t === ComponentTargetKind.Dynamic
+          ? '{ "type": "dynamic" }'
+          : `{ "type": ${module.bindings[op.target.binding].name} }`;
+      default:
+        return '{ "type": "dynamic" }';
+    }
+  });
+  return `[${entries.join(', ')}]`;
 }
 
 function emitProjectionQrl(use: QrlUse, resolveQrl: ResolveComponentQrl): string {

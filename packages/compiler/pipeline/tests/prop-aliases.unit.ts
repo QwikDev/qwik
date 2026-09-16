@@ -187,7 +187,7 @@ test('a signal passed through a prop alias remains reactive', async () => {
   }
 });
 
-test('aliased children remain a slot without reading the props object', async () => {
+test('an aliased children binding rendered as content is a diagnostic', async () => {
   const output = await transformModules({
     srcDir: 'src',
     isServer: true,
@@ -198,23 +198,7 @@ test('aliased children remain a slot without reading the props object', async ()
       },
     ],
   });
-  expect(output.diagnostics).toEqual([]);
-  const render = loadDefaultFunction(
-    output.modules[0],
-    {
-      ...core,
-      renderSsrSlot: () => '<b>projected</b>',
-    },
-    true
-  );
-  const props = {
-    get children() {
-      throw new Error('children must not be read');
-    },
-  };
-  expect((await render(props, setupOnlyContext)).flat(Infinity).join('')).toBe(
-    '<section><b>projected</b></section>'
-  );
+  expect(output.diagnostics).toMatchObject([{ code: 'children-render' }]);
 });
 
 test('keeps a computed key outside the module explicit', async () => {

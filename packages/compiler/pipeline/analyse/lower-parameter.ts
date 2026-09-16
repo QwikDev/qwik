@@ -15,7 +15,7 @@ import { LocalKind, type SetupLocal, type SetupLocals } from './locals';
 import { allocateGeneratedName } from '../names';
 import { QwikGenWord } from '../words';
 import { ValueIrKind, type ValueIR } from '../../src/expr-ir';
-import { UnsupportedError } from '../errors';
+import { InvalidModuleError, UnsupportedError } from '../errors';
 import type { Expression } from 'oxc-parser';
 import type { PropPathStep } from './ast/parameter-members';
 import { patternResult } from './results';
@@ -64,7 +64,11 @@ export function lowerComponentParameter(component: DiscoveredComponent, ctx: Low
   for (const [index, { node, name, path, defaultValue }] of members.entries()) {
     if (name === 'children') {
       if (defaultValue !== null) {
-        throw new UnsupportedError('a children parameter default');
+        throw new InvalidModuleError(
+          'children-default',
+          'Give the slot its fallback instead: <Slot>fallback</Slot>.',
+          [defaultValue.start, defaultValue.end]
+        );
       }
       continue;
     }

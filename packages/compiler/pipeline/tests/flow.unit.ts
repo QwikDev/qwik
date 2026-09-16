@@ -45,14 +45,14 @@ describe('pipeline flow', () => {
   test.each([true, false])(
     'component$ and plain components emit identical code (SSR: %s)',
     async (isServer) => {
-      const fn = `({ title = 'default', children, ...rest }) => <section title={title}>{children}</section>`;
+      const fn = `({ title = 'default', ...rest }) => <section title={title}><Slot /></section>`;
       for (const declaration of ['export const App =', 'export default']) {
         const compile = (expression: string) =>
           transformModules({
             input: [
               {
                 path: 'src/app.tsx',
-                code: `import { component$ } from '@qwik.dev/core';\n${declaration} ${expression};`,
+                code: `import { component$, Slot } from '@qwik.dev/core';\n${declaration} ${expression};`,
               },
             ],
             isServer,

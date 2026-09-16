@@ -21,14 +21,21 @@ import {
   createSlotScope,
   registerProjection,
   createComponent,
+  renderSsrSlotContent,
+  _noopQrl,
   _captures,
   createSsrMarkup,
   createSsrNodeId,
-  _noopQrl,
-  renderSsrSlotContent,
   _markComponent,
 } from '@qwik.dev/core';
 import { Card } from './card';
+const component_slot_content_segment_3_25e5vjljuig5s = (ctx, scope, name, fallback) => {
+  return renderSsrSlotContent(ctx, scope, name, fallback);
+};
+const q_component_slot_content_segment_3_25e5vjljuig5s = /*#__PURE__*/ _noopQrl(
+  'component_slot_content_segment_3_25e5vjljuig5s'
+);
+q_component_slot_content_segment_3_25e5vjljuig5s.s(component_slot_content_segment_3_25e5vjljuig5s);
 const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
   const [side] = _captures;
   return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), '<div>content</div>', '<!/s>'];
@@ -51,13 +58,6 @@ const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_2_3b0t9ouqyjhtg'
 );
 q_component_slot_render_segment_2_3b0t9ouqyjhtg.s(component_slot_render_segment_2_3b0t9ouqyjhtg);
-const component_slot_content_segment_3_25e5vjljuig5s = (ctx, scope, name, fallback) => {
-  return renderSsrSlotContent(ctx, scope, name, fallback);
-};
-const q_component_slot_content_segment_3_25e5vjljuig5s = /*#__PURE__*/ _noopQrl(
-  'component_slot_content_segment_3_25e5vjljuig5s'
-);
-q_component_slot_content_segment_3_25e5vjljuig5s.s(component_slot_content_segment_3_25e5vjljuig5s);
 export const default_component_3rg6kq1so9aio = _markComponent(
   (props, ctx) => {
     const side = useSignal('left');

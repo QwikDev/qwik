@@ -427,6 +427,7 @@ const inflateResolved = (
       const d = data as unknown[];
       scope.projections = d[0] as Projection[];
       scope.slotContentQrl = (d[1] as SlotScope['slotContentQrl']) ?? null;
+      scope.children = (d[2] as SlotScope['children']) ?? null;
       break;
     }
     case TypeIds.Owner: {

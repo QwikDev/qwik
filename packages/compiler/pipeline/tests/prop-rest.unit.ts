@@ -15,8 +15,9 @@ test.each([true, false])(
       input: [
         {
           path: 'src/component.tsx',
-          code: `import { Child } from './child';
-export default ({ title: heading, children, ...rest }) => <Child {...rest} title={heading}>{children}</Child>;`,
+          code: `import { Slot } from '@qwik.dev/core';
+import { Child } from './child';
+export default ({ title: heading, ...rest }) => <Child {...rest} title={heading}><Slot /></Child>;`,
         },
       ],
     });

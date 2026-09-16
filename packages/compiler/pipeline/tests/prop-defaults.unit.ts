@@ -241,7 +241,6 @@ test.each([
   'title = other, other',
   'title = createTitle(other), other',
   'title = () => other, other',
-  'children = createTitle()',
 ])('rejects deferred parameter defaults: %s', async (pattern) => {
   await expect(
     transformModules({
@@ -249,6 +248,19 @@ test.each([
       isServer: true,
     })
   ).rejects.toThrow('pipeline does not support');
+});
+
+test('a children default is a diagnostic pointing at the slot fallback', async () => {
+  const output = await transformModules({
+    input: [
+      {
+        path: 'component.tsx',
+        code: `export default ({ children = createTitle() }) => <span />;`,
+      },
+    ],
+    isServer: true,
+  });
+  expect(output.diagnostics).toMatchObject([{ code: 'children-default' }]);
 });
 
 test.each(['', 'import { createTitle } from "./defaults";'])(

@@ -114,6 +114,7 @@ describe('branches', () => {
     const slotScope: SlotScope = {
       projections: [],
       slotContentQrl: null,
+      children: null,
     };
     const branchContext = newInvokeContext({
       owner: rootOwner,

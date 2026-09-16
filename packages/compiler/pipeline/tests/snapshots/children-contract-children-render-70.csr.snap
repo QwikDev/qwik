@@ -1,0 +1,33 @@
+==INPUT==
+
+import { Slot } from '@qwik.dev/core';
+export const Wrapper = (props) => <section>{props.children}</section>;
+export default () => <Wrapper><p>Projected</p></Wrapper>;
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+
+== CSR DIAGNOSTICS ==
+
+[
+  {
+    "scope": "compiler",
+    "category": "error",
+    "code": "children-render",
+    "file": "src/component.tsx",
+    "message": "Render projected children with <Slot />; props.children only describes them.",
+    "highlights": [
+      {
+        "lo": 83,
+        "hi": 97,
+        "startLine": 2,
+        "startCol": 45,
+        "endLine": 2,
+        "endCol": 58
+      }
+    ],
+    "suggestions": null
+  }
+]

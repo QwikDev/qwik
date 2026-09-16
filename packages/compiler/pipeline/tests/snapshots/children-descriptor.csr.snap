@@ -1,0 +1,338 @@
+==INPUT==
+
+import { component$, Slot, useSignal } from '@qwik.dev/core';
+import { Card } from './card';
+export const Counter = component$((props: { children?: { type: unknown }[] }) => (
+  <p>{props.children?.length}<Slot /></p>
+));
+export const Plain = component$(() => <p><Slot /></p>);
+export default component$(() => {
+  const count = useSignal(1);
+  return (
+    <>
+      <Counter><b>x</b>text<Card />{count.value}</Counter>
+      <Plain><b>x</b></Plain>
+      <Card><b>x</b></Card>
+    </>
+  );
+});
+
+== CSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+import {
+  _first,
+  _last,
+  createTextExpressionEffect,
+  maybeThen,
+  createSlot,
+  _createElementTemplate,
+  useSignal,
+  _next,
+  createSlotScope,
+  _qrlWithChunk,
+  registerProjection,
+  createComponent,
+  _toNodes,
+  createTemplate,
+} from '@qwik.dev/core';
+import { component_text_segment_0_1fh10fbkzokfc } from './component.tsx_component_text_segment_0_1fh10fbkzokfc';
+
+const Counter_tmpl0 = _createElementTemplate('<p><!><!></p>');
+const Plain_tmpl0 = _createElementTemplate('<p><!></p>');
+const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1',
+  () => import('./component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1'),
+  'component_slot_render_segment_1_3b0tauy2p1nv1'
+);
+const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg',
+  () => import('./component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg'),
+  'component_slot_render_segment_2_3b0t9ouqyjhtg'
+);
+const q_component_slot_render_segment_3_3b0ta2vuvdjtz = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_slot_render_segment_3_3b0ta2vuvdjtz',
+  () => import('./component.tsx_component_slot_render_segment_3_3b0ta2vuvdjtz'),
+  'component_slot_render_segment_3_3b0ta2vuvdjtz'
+);
+const q_component_slot_render_segment_4_3b0t8wsj4vdse = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_slot_render_segment_4_3b0t8wsj4vdse',
+  () => import('./component.tsx_component_slot_render_segment_4_3b0t8wsj4vdse'),
+  'component_slot_render_segment_4_3b0t8wsj4vdse'
+);
+const q_component_slot_render_segment_5_3b0t9atn1pfsx = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_slot_render_segment_5_3b0t9atn1pfsx',
+  () => import('./component.tsx_component_slot_render_segment_5_3b0t9atn1pfsx'),
+  'component_slot_render_segment_5_3b0t9atn1pfsx'
+);
+const q_component_slot_render_segment_6_3b0t84qbb79rc = /*#__PURE__*/ _qrlWithChunk(
+  './component.tsx_component_slot_render_segment_6_3b0t84qbb79rc',
+  () => import('./component.tsx_component_slot_render_segment_6_3b0t84qbb79rc'),
+  'component_slot_render_segment_6_3b0t84qbb79rc'
+);
+const default_tmpl0 = createTemplate('<!><!><!>');
+import { Card } from './card';
+export const Counter = (props, ctx) => {
+  const el0 = Counter_tmpl0(ctx.document);
+  const marker0 = _first(el0);
+  const text0 = ctx.document.createTextNode('');
+  marker0.replaceWith(text0);
+  const effect0 = createTextExpressionEffect(
+    text0,
+    [props],
+    component_text_segment_0_1fh10fbkzokfc,
+    ctx.scheduler
+  );
+  ctx.scheduler.notify(effect0);
+  const marker1 = _last(el0);
+  ctx.scheduler.waitFor(maybeThen(createSlot(), (slot0) => marker1.replaceWith(...slot0)));
+  return el0;
+};
+export const Plain = (props0, ctx) => {
+  const el0 = Plain_tmpl0(ctx.document);
+  const marker0 = _first(el0);
+  ctx.scheduler.waitFor(maybeThen(createSlot(), (slot0) => marker0.replaceWith(...slot0)));
+  return el0;
+};
+export const default_component_3rg6kq1so9aio = (props0, ctx) => {
+  const count = useSignal(1);
+  const fragment0 = default_tmpl0(ctx.document);
+  const marker0 = _next(_first(fragment0));
+  const marker1 = _last(fragment0);
+  const slotScope0 = createSlotScope(null, [
+    { type: 'b' },
+    { type: 'text' },
+    { type: Card },
+    { type: 'dynamic' },
+  ]);
+  registerProjection(slotScope0, '', q_component_slot_render_segment_1_3b0tauy2p1nv1);
+  registerProjection(slotScope0, '', q_component_slot_render_segment_2_3b0t9ouqyjhtg);
+  registerProjection(slotScope0, '', q_component_slot_render_segment_3_3b0ta2vuvdjtz);
+  registerProjection(slotScope0, '', q_component_slot_render_segment_4_3b0t8wsj4vdse.w([count]));
+  const component0 = createComponent(Counter, null, ctx, { slotScope: slotScope0 });
+  _first(fragment0).replaceWith(..._toNodes(component0));
+  const slotScope1 = createSlotScope();
+  registerProjection(slotScope1, '', q_component_slot_render_segment_5_3b0t9atn1pfsx);
+  const component1 = createComponent(Plain, null, ctx, { slotScope: slotScope1 });
+  marker0.replaceWith(..._toNodes(component1));
+  const slotScope2 = createSlotScope(null, [{ type: 'b' }]);
+  registerProjection(slotScope2, '', q_component_slot_render_segment_6_3b0t84qbb79rc);
+  const component2 = createComponent(Card, null, ctx, { slotScope: slotScope2 });
+  marker1.replaceWith(..._toNodes(component2));
+  return [...fragment0.childNodes];
+};
+export default default_component_3rg6kq1so9aio;
+
+export { Counter as Counter_component_3h2q15ekklxzt, Plain as Plain_component_25y3k1m6p49gx };
+============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
+
+export const component_text_segment_0_1fh10fbkzokfc = (props) => {
+  return props.children?.length;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_0_1fh10fbkzokfc",
+  "entry": null,
+  "displayName": "component_text_segment_0",
+  "hash": "1fh10fbkzokfc",
+  "canonicalFilename": "component.tsx_component_text_segment_0_1fh10fbkzokfc",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    182,
+    204
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "props"
+  ]
+}
+*/
+============================= src/component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1.js (ENTRY POINT)==
+
+import { _createElementTemplate } from '@qwik.dev/core';
+const component_slot_render_segment_1_3b0tauy2p1nv1_tmpl0 = _createElementTemplate('<b>x</b>');
+
+export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx) => {
+  const el0 = component_slot_render_segment_1_3b0tauy2p1nv1_tmpl0(ctx.document);
+  return el0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_slot_render_segment_1_3b0tauy2p1nv1",
+  "entry": null,
+  "displayName": "component_slot_render_segment_1",
+  "hash": "3b0tauy2p1nv1",
+  "canonicalFilename": "component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot:render",
+  "captures": false,
+  "loc": [
+    375,
+    383
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg.js (ENTRY POINT)==
+
+import { _first, createTemplate } from '@qwik.dev/core';
+const component_slot_render_segment_2_3b0t9ouqyjhtg_tmpl0 = createTemplate('text');
+
+export const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx) => {
+  const fragment0 = component_slot_render_segment_2_3b0t9ouqyjhtg_tmpl0(ctx.document);
+  const el0 = _first(fragment0);
+  return el0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_slot_render_segment_2_3b0t9ouqyjhtg",
+  "entry": null,
+  "displayName": "component_slot_render_segment_2",
+  "hash": "3b0t9ouqyjhtg",
+  "canonicalFilename": "component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot:render",
+  "captures": false,
+  "loc": [
+    383,
+    387
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_slot_render_segment_3_3b0ta2vuvdjtz.js (ENTRY POINT)==
+
+import { createComponent } from '@qwik.dev/core';
+import { Card } from './card';
+
+export const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx) => {
+  const component0 = createComponent(Card, null, ctx);
+  return component0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_slot_render_segment_3_3b0ta2vuvdjtz",
+  "entry": null,
+  "displayName": "component_slot_render_segment_3",
+  "hash": "3b0ta2vuvdjtz",
+  "canonicalFilename": "component.tsx_component_slot_render_segment_3_3b0ta2vuvdjtz",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot:render",
+  "captures": false,
+  "loc": [
+    387,
+    395
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_slot_render_segment_4_3b0t8wsj4vdse.js (ENTRY POINT)==
+
+import { _captures, createTextNodeEffect } from '@qwik.dev/core';
+
+export const component_slot_render_segment_4_3b0t8wsj4vdse = (ctx) => {
+  const [count] = _captures;
+  const text0 = ctx.document.createTextNode('');
+  const effect0 = createTextNodeEffect(text0, count, ctx.scheduler);
+  ctx.scheduler.notify(effect0);
+  return text0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_slot_render_segment_4_3b0t8wsj4vdse",
+  "entry": null,
+  "displayName": "component_slot_render_segment_4",
+  "hash": "3b0t8wsj4vdse",
+  "canonicalFilename": "component.tsx_component_slot_render_segment_4_3b0t8wsj4vdse",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot:render",
+  "captures": true,
+  "loc": [
+    388,
+    408
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "count"
+  ]
+}
+*/
+============================= src/component.tsx_component_slot_render_segment_5_3b0t9atn1pfsx.js (ENTRY POINT)==
+
+import { _createElementTemplate } from '@qwik.dev/core';
+const component_slot_render_segment_5_3b0t9atn1pfsx_tmpl0 = _createElementTemplate('<b>x</b>');
+
+export const component_slot_render_segment_5_3b0t9atn1pfsx = (ctx) => {
+  const el0 = component_slot_render_segment_5_3b0t9atn1pfsx_tmpl0(ctx.document);
+  return el0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_slot_render_segment_5_3b0t9atn1pfsx",
+  "entry": null,
+  "displayName": "component_slot_render_segment_5",
+  "hash": "3b0t9atn1pfsx",
+  "canonicalFilename": "component.tsx_component_slot_render_segment_5_3b0t9atn1pfsx",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot:render",
+  "captures": false,
+  "loc": [
+    432,
+    440
+  ],
+  "paramNames": []
+}
+*/
+============================= src/component.tsx_component_slot_render_segment_6_3b0t84qbb79rc.js (ENTRY POINT)==
+
+import { _createElementTemplate } from '@qwik.dev/core';
+const component_slot_render_segment_6_3b0t84qbb79rc_tmpl0 = _createElementTemplate('<b>x</b>');
+
+export const component_slot_render_segment_6_3b0t84qbb79rc = (ctx) => {
+  const el0 = component_slot_render_segment_6_3b0t84qbb79rc_tmpl0(ctx.document);
+  return el0;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_slot_render_segment_6_3b0t84qbb79rc",
+  "entry": null,
+  "displayName": "component_slot_render_segment_6",
+  "hash": "3b0t84qbb79rc",
+  "canonicalFilename": "component.tsx_component_slot_render_segment_6_3b0t84qbb79rc",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "slot:render",
+  "captures": false,
+  "loc": [
+    461,
+    469
+  ],
+  "paramNames": []
+}
+*/
+== CSR DIAGNOSTICS ==
+
+[]

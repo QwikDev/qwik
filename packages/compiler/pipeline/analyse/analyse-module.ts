@@ -25,7 +25,13 @@ import { scanModuleSurface } from './module-surface';
 import { discoverComponents } from './discover';
 import { lowerComponentParameter } from './lower-parameter';
 import { finalizeLocalFunctions, lowerSetup } from './lower-setup';
-import { createLowerContext, pushPayload, pushQrl, QrlIdentityKind } from './lower-context';
+import {
+  createLowerContext,
+  pushPayload,
+  pushQrl,
+  QrlIdentityKind,
+  type LowerContext,
+} from './lower-context';
 import { lowerRenderExpression } from './lower-jsx';
 import { normalizeSource } from './normalize';
 import { emptyPlan } from './plan';
@@ -241,6 +247,7 @@ export async function analyseModule(
       params: [],
       lifetime: 0,
       needsId: false,
+      ...(readsChildren(lowerContext) ? { readsChildren: true } : {}),
       async: false,
     });
     if (component.param !== null) {
@@ -322,6 +329,26 @@ export async function analyseModule(
   finalizeLocalFunctions(lowerContext);
   recordBindingResults(lowerContext);
   return finish();
+}
+
+/** A destructured `children` or any `props.children` member read makes the shape observable. */
+function readsChildren(ctx: LowerContext): boolean {
+  if (Array.from(ctx.propsMembers.values()).includes('children')) {
+    return true;
+  }
+  return (
+    ctx.propsBinding !== null &&
+    ctx.bindings.referencesOf(ctx.propsBinding).some(({ node }) => {
+      const parent = ctx.bindings.parentOf(node);
+      return (
+        parent?.type === 'MemberExpression' &&
+        !parent.computed &&
+        parent.object === node &&
+        parent.property.type === 'Identifier' &&
+        parent.property.name === 'children'
+      );
+    })
+  );
 }
 
 function recordModuleError(plan: ModulePlan, error: unknown): void {

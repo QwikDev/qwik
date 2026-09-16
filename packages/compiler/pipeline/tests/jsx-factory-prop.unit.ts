@@ -12,7 +12,6 @@ test.each([
   ['render prop', '<Display render={(value) => <b>{value}</b>} />'],
   ['resolved callback', '<Display onResolved={(value) => <b>{value}</b>} />'],
   ['function children', '<Display>{(value) => <b>{value}</b>}</Display>'],
-  ['children prop', '<Display children={(value) => <b>{value}</b>} />'],
   ['block body', '<Display render={(value) => { const label = value; return <b>{label}</b>; }} />'],
   [
     'destructured default',

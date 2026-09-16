@@ -255,6 +255,7 @@ export {
   Slot,
   createProjection,
   createSlot,
+  type ChildInfo,
   renderSlotContent,
   createDynamicTag,
   createSlotScope,

@@ -33,6 +33,8 @@ export interface Program {
   argumentPosition?: true;
   /** Intra-module fact; cross-module joins land on `LinkedProgram.facts`. */
   needsId: boolean;
+  /** The component reads `props.children`, so a parent must describe what it projects. */
+  readsChildren?: true;
   /** Authored syntax; scheduling derives from setup at link. */
   async: boolean;
 }

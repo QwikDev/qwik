@@ -1150,7 +1150,7 @@ function serializeUseOnScopes(context: RuntimeInvokeContext | null): unknown {
 }
 
 function serializeSlotScope(scope: SlotScope): unknown[] {
-  return [scope.projections, scope.slotContentQrl];
+  return [scope.projections, scope.slotContentQrl, scope.children];
 }
 
 function serializeProjection(projection: Projection): unknown[] {

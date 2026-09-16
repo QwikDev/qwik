@@ -1,7 +1,7 @@
 ==INPUT==
 
-import { useSignal } from '@qwik.dev/core';
-export const Wrapper = (props) => <section>{props.children}</section>;
+import { Slot, useSignal } from '@qwik.dev/core';
+export const Wrapper = () => <section><Slot /></section>;
 export default () => {
   const count = useSignal(1);
   return <Wrapper><p>{count.value}</p></Wrapper>;
@@ -56,7 +56,7 @@ export const Wrapper = _markComponent(
   './component.tsx'
 );
 export const default_component_3rg6kq1so9aio = _markComponent(
-  (props0, ctx) => {
+  (props, ctx) => {
     const count = useSignal(1);
     const slotScope0 = createSlotScope();
     registerProjection(slotScope0, '', q_component_slot_render_segment_0_3b0tagwys7lui.w([count]));
@@ -112,8 +112,8 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) =>
   "ctxName": "slot:render",
   "captures": true,
   "loc": [
-    186,
-    206
+    179,
+    199
   ],
   "paramNames": [],
   "captureNames": [

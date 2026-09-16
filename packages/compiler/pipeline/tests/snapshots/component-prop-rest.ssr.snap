@@ -1,8 +1,9 @@
 ==INPUT==
 
-export const Child = ({ label, children }) => <section title={label}>{children}</section>;
-export default ({ title: heading = 'heading', children: content, ...rest }) => (
-  <Child {...rest} title={heading}>{content}</Child>
+import { Slot } from '@qwik.dev/core';
+export const Child = ({ label }) => <section title={label}><Slot /></section>;
+export default ({ title: heading = 'heading', ...rest }) => (
+  <Child {...rest} title={heading}><Slot /></Child>
 );
 == SSR OUTPUT ==
 
@@ -25,7 +26,6 @@ import {
   _captures,
   _noopQrl,
 } from '@qwik.dev/core';
-
 const component_props_segment_0_208o16glymg7p = () => {
   const [rest, props0] = _captures;
   return { ...rest, title: props0.title === void 0 ? 'heading' : props0.title };
@@ -100,8 +100,8 @@ export const component_props_segment_0_208o16glymg7p = () => {
   "ctxName": "props",
   "captures": true,
   "loc": [
-    175,
-    206
+    183,
+    214
   ],
   "paramNames": [],
   "captureNames": [

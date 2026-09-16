@@ -14,7 +14,7 @@ import { untrack } from '../reactive/tracking';
 import type { NodeOutput } from '../utils/nodes';
 import { EMPTY_NODES } from '../utils/consts';
 import { applyUseOnToCsrOutput } from '../runtime/use-on';
-import { qTest } from '../shared/utils/qdev';
+import { qDev, qTest } from '../shared/utils/qdev';
 import { isServerPlatform } from '../shared/platform/platform';
 import { applyUseOnToSsrOutput } from '../ssr/use-on';
 import type { SsrEventAttrChunk, SsrOutput } from '../ssr/output';
@@ -67,6 +67,14 @@ export function createComponent(
   renderContext?: unknown,
   options?: ComponentOptions
 ): ValueOrPromise<ComponentOutput | void> {
+  const children = options?.slotScope?.children;
+  if (children) {
+    // Children is projected content: props only describe it, never carry it.
+    if (qDev && props != null && 'children' in (props as object)) {
+      throw new Error('children must be JSX children, not a prop');
+    }
+    props = Object.assign((props ?? {}) as object, { children });
+  }
   return createComponentAttempt(props ?? EMPTY_OBJ, render, renderContext, options, 0);
 }
 

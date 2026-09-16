@@ -1,0 +1,33 @@
+==INPUT==
+
+import { Slot } from '@qwik.dev/core';
+export const Wrapper = ({ children = <p>none</p> }) => <section><Slot /></section>;
+export default () => <Wrapper><p>Projected</p></Wrapper>;
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+
+== SSR DIAGNOSTICS ==
+
+[
+  {
+    "scope": "compiler",
+    "category": "error",
+    "code": "children-default",
+    "file": "src/component.tsx",
+    "message": "Give the slot its fallback instead: <Slot>fallback</Slot>.",
+    "highlights": [
+      {
+        "lo": 76,
+        "hi": 87,
+        "startLine": 2,
+        "startCol": 38,
+        "endLine": 2,
+        "endCol": 48
+      }
+    ],
+    "suggestions": null
+  }
+]

@@ -516,10 +516,12 @@ and dynamic `Slot name`.
       of that consumer then runs as a content range that re-resolves its projections under
       tracking, so content moves between slots and the consumer keeps its state. Static scopes keep
       the single replaced marker.
-- [ ] JSX/children supplied as values and through props spreads.
-- [ ] Defaults for destructured `children`.
-- [ ] An explicit user-code `children` contract instead of emitting invalid reads such as
-      `props.children.length`.
+- [x] Children contract: projected content renders only through `<Slot />`. Rendering
+      `props.children` (or a destructured alias) in JSX, forwarding it, a `children` attribute and a
+      `children` parameter default are diagnostics; a function child stays a `children` prop.
+      `props.children` reads describe the default projection: one `{ type }` per authored child
+      (tag, component reference, `"text"` or `"dynamic"`), emitted only when the linked consumer
+      reads it or is external, carried on the slot scope and injected into props at creation.
 - [ ] Port behavioral regressions: initially absent slots, repeated hide/restore, author-side
       changes and independent cleanup.
   - [x] Ported to `projection.spec.tsx` (41 specs, csr and resume): resolved and unclaimed

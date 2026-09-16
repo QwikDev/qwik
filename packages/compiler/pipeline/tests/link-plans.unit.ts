@@ -286,7 +286,8 @@ export default () => <Child />;`
     async (complete) => {
       const plan = await analyse(
         'src/app.tsx',
-        `export const Wrapper = (props) => <section>{props.children}</section>;
+        `import { Slot } from '@qwik.dev/core';
+export const Wrapper = () => <section><Slot /></section>;
 export default () => <Wrapper><p>Projected</p></Wrapper>;
 `
       );

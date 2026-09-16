@@ -230,7 +230,12 @@ export const default_component_3rg6kq1so9aio = _markComponent(
       return component_load_segment_9_3myl24trdze9k.apply(this, arguments);
     }
     const direct = label('d');
-    const slotScope0 = createSlotScope();
+    const slotScope0 = createSlotScope(null, [
+      { type: 'b' },
+      { type: 'dynamic' },
+      { type: 'dynamic' },
+      { type: 'dynamic' },
+    ]);
     registerProjection(slotScope0, '', q_component_slot_render_segment_2_3b0t9ouqyjhtg.w([count]));
     registerProjection(slotScope0, '', q_component_slot_render_segment_5_3b0t9atn1pfsx.w([show]));
     registerProjection(slotScope0, '', q_component_slot_render_segment_10_3m3ztgqtay7c7);

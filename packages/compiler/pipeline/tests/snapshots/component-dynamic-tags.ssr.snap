@@ -43,7 +43,7 @@ const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _noopQrl(
 q_component_slot_render_segment_0_3b0tagwys7lui.s(component_slot_render_segment_0_3b0tagwys7lui);
 const component_tag_dynamic_segment_1_331xdvyxwe5dy = (ctx) => {
   const [props] = _captures;
-  const slotScope0 = createSlotScope();
+  const slotScope0 = createSlotScope(null, [{ type: 'text' }]);
   const tag0 = props.as;
   registerProjection(slotScope0, '', q_component_slot_render_segment_2_3b0t9ouqyjhtg);
   ctx.addRoot(slotScope0);
@@ -80,7 +80,7 @@ export const default_component_3rg6kq1so9aio = _markComponent(
   (props, ctx) => {
     const Heading = 'h2';
     const Alias = Badge;
-    const slotScope0 = createSlotScope();
+    const slotScope0 = createSlotScope(null, [{ type: 'text' }]);
     registerProjection(slotScope0, '', q_component_slot_render_segment_0_3b0tagwys7lui);
     ctx.addRoot(slotScope0);
     const component0 = createComponent(
@@ -189,7 +189,7 @@ q_component_slot_render_segment_2_3b0t9ouqyjhtg.s(component_slot_render_segment_
 
 export const component_tag_dynamic_segment_1_331xdvyxwe5dy = (ctx) => {
   const [props] = _captures;
-  const slotScope0 = createSlotScope();
+  const slotScope0 = createSlotScope(null, [{ type: 'text' }]);
   const tag0 = props.as;
   registerProjection(slotScope0, '', q_component_slot_render_segment_2_3b0t9ouqyjhtg);
   ctx.addRoot(slotScope0);

@@ -27,6 +27,13 @@ describe('replacePackage', () => {
     });
   });
 
+  test('does not rewrite package.json files without the dependency', () => {
+    const content = '{"name":"a",   "dependencies": {"b": "1"}}';
+    project = createTmpProject({ 'package.json': content });
+    replacePackage('@builder.io/qwik-city', '@qwik.dev/router');
+    expect(project.read('package.json')).toBe(content);
+  });
+
   test('replaces mentions in text files', () => {
     project = createTmpProject({
       'src/root.tsx': `import { QwikRouterProvider } from '@builder.io/qwik-city';\nimport '@builder.io/qwik-city/middleware/node';`,

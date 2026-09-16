@@ -29,6 +29,7 @@ function replacePackageInDependencies(oldPackageName: string, newPackageName: st
 
     try {
       const packageJson = JSON.parse(readFileSync(path, 'utf-8'));
+      let changed = false;
       for (const deps of [
         packageJson.dependencies ?? {},
         packageJson.devDependencies ?? {},
@@ -39,9 +40,12 @@ function replacePackageInDependencies(oldPackageName: string, newPackageName: st
           // We keep the old version intentionally. It will be updated later within another step of the migration.
           deps[newPackageName] = deps[oldPackageName];
           delete deps[oldPackageName];
+          changed = true;
         }
       }
-      updateFileContent(path, JSON.stringify(packageJson, null, 2));
+      if (changed) {
+        updateFileContent(path, JSON.stringify(packageJson, null, 2));
+      }
     } catch (e) {
       console.warn(`Could not replace ${oldPackageName} with ${newPackageName} in ${path}.`);
     }

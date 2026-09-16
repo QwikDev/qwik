@@ -528,9 +528,7 @@ describe.each([
 
     const { vNode, document } = await render(<ReplOutputPanel />, { debug });
 
-    if (render === ssrRenderToDom) {
-      await trigger(document.body, 'div', 'qvisible');
-    }
+    await trigger(document.body, 'div', 'qvisible');
 
     expect(vNode).toMatchVDOM(
       <Component>

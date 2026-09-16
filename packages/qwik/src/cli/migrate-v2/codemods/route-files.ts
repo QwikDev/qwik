@@ -3,6 +3,7 @@ import { basename, dirname, join, resolve } from 'path';
 import { Node, SyntaxKind, type Project, type SourceFile } from 'ts-morph';
 import { warn } from '../report';
 import { visitNotIgnoredFiles } from '../tools/visit-not-ignored-files';
+import { ensureNamedImport } from './utils';
 
 const ROUTE_FILE = /\.(tsx|ts|jsx|js|mdx|md)$/;
 
@@ -54,17 +55,7 @@ const exportsLoader = (file: SourceFile) =>
 
 const addProbe = (file: SourceFile) => {
   file.addStatements(PROBE);
-  const decl = file
-    .getImportDeclarations()
-    .find((d) => d.getModuleSpecifierValue() === '@builder.io/qwik-city' && !d.isTypeOnly());
-  if (!decl) {
-    file.insertImportDeclaration(0, {
-      moduleSpecifier: '@builder.io/qwik-city',
-      namedImports: ['routeLoader$'],
-    });
-  } else if (!decl.getNamedImports().some((n) => n.getName() === 'routeLoader$')) {
-    decl.addNamedImport('routeLoader$');
-  }
+  ensureNamedImport(file, '@builder.io/qwik-city', 'routeLoader$');
 };
 
 /**

@@ -55,10 +55,10 @@ describe('addNavigationProbeLoaders', () => {
     });
     runCodemods([], projectCodemods);
     expect(project.read('src/routes/layout.tsx')).toBe(
-      `import { routeLoader$ } from '@builder.io/qwik-city';\nimport { component$, Slot } from '@builder.io/qwik';\nexport default component$(() => <Slot />);\nexport const useV1NavigationProbe = routeLoader$(() => null);`
+      `import { component$, Slot } from '@builder.io/qwik';\nimport { routeLoader$ } from '@builder.io/qwik-city';\n\nexport default component$(() => <Slot />);\nexport const useV1NavigationProbe = routeLoader$(() => null);`
     );
     expect(project.read('src/routes/admin/index.tsx')).toBe(
-      `import { routeLoader$ } from '@builder.io/qwik-city';\nimport { component$ } from '@builder.io/qwik';\nimport type { RequestHandler } from '@builder.io/qwik-city';\nexport const onGet: RequestHandler = () => {};\nexport default component$(() => <div />);\nexport const useV1NavigationProbe = routeLoader$(() => null);`
+      `import { component$ } from '@builder.io/qwik';\nimport type { RequestHandler } from '@builder.io/qwik-city';\nimport { routeLoader$ } from '@builder.io/qwik-city';\n\nexport const onGet: RequestHandler = () => {};\nexport default component$(() => <div />);\nexport const useV1NavigationProbe = routeLoader$(() => null);`
     );
     expect(project.read('src/routes/about/index.tsx')).toBe(`export default () => <div />;`);
     expect(takeWarnings()).toHaveLength(1);

@@ -131,9 +131,13 @@ export const componentQrl = <PROPS extends Record<any, any>>(
 /** @internal */
 export const SERIALIZABLE_STATE = Symbol('serializable-data');
 
-/** @internal Tag a compiled component function with its lifted QRL so it serializes as one. */
-export const _markComponent = <T extends { (...args: any[]): any }>(fn: T, qrl: unknown): T => {
-  (fn as any)[SERIALIZABLE_STATE] = [qrl];
+/** @internal The server marks a compiled component with the export it serializes as. */
+export const _markComponent = <T extends { (...args: any[]): any }>(
+  fn: T,
+  symbol: string,
+  chunk: string
+): T => {
+  (fn as any)[SERIALIZABLE_STATE] = [symbol, chunk];
   return fn;
 };
 
@@ -196,7 +200,7 @@ export const isQwikComponent = <T extends Component<any>>(component: unknown): c
  */
 // </docs>
 export const component$ = <PROPS = unknown>(onMount: OnRenderFn<PROPS>): Component<PROPS> => {
-  (onMount as any)[SERIALIZABLE_STATE] = [onMount];
+  // The compiler marks every component with the QRL of its export; here nothing is known.
   return onMount as Component<PROPS>;
 };
 

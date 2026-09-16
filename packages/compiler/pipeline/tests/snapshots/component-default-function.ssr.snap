@@ -5,9 +5,18 @@ export default function () { return <span>child</span>; }
 
 ============================= src/component.tsx ==
 
-export default function (props, ctx) {
+import { _markComponent } from '@qwik.dev/core';
+
+export default function default_component_3rg6kq1so9aio(props, ctx) {
   return '<span>child</span>';
 }
+_markComponent(
+  default_component_3rg6kq1so9aio,
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+
+export { default_component_3rg6kq1so9aio };
 == SSR DIAGNOSTICS ==
 
 []

@@ -57,7 +57,7 @@ const Frame = (props, ctx) => {
   ctx.scheduler.waitFor(maybeThen(createSlot(), (slot1) => marker0.replaceWith(...slot1)));
   return el0;
 };
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const rows = useSignal([{ id: 'one' }, { id: 'two' }]);
   const stored = q_component_jsx_segment_0_38vnjku9rukc6;
   const fragment0 = default_tmpl0(ctx.document);
@@ -83,6 +83,9 @@ export default (props, ctx) => {
   );
   return [...fragment0.childNodes];
 };
+export default default_component_3rg6kq1so9aio;
+
+export { Frame as Frame_component_3fvtje3o9mga4 };
 ============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
 
 import { _createElementTemplate } from '@qwik.dev/core';

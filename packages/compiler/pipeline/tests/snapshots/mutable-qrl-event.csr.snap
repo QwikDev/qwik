@@ -28,7 +28,7 @@ const q_component_action_segment_0_2k64kau1v2n45 = /*#__PURE__*/ _qrlWithChunk(
   'component_action_segment_0_2k64kau1v2n45'
 );
 const default_tmpl0 = _createElementTemplate('<button> </button>');
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const count = useSignal(0);
   let action = q_component_action_segment_0_2k64kau1v2n45.w([count]);
   if (props.disabled) {
@@ -48,6 +48,7 @@ export default (props, ctx) => {
   ctx.scheduler.notify(effect1);
   return el0;
 };
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_action_segment_0_2k64kau1v2n45.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';

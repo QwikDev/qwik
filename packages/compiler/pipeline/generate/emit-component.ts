@@ -338,11 +338,24 @@ export function allocateGeneratedNames(module: LinkedModule): GeneratedNames {
   };
 }
 
+/** The hashed export a component serializes as; the chunk is set only where serialization runs. */
+export interface ComponentMarker {
+  symbol: string;
+  chunk: string | null;
+}
+
+export interface ComponentDeclarationEmission {
+  text: string;
+  /** `name as symbol`, exported at the module end so a sibling declarator stays intact. */
+  alias: string | null;
+}
+
 export function emitComponentFunction(
   qrl: LinkedQrl,
   emission: ComponentEmission,
-  names: GeneratedNames
-): string {
+  names: GeneratedNames,
+  marker: ComponentMarker | null = null
+): ComponentDeclarationEmission {
   const declaration = qrl.declaration;
   if (declaration === undefined) {
     throw new Error(`pipeline: emitting a declaration for the undeclared qrl "${qrl.id}"`);
@@ -352,17 +365,43 @@ export function emitComponentFunction(
   const body = [...emission.statements, `return ${emission.value};`]
     .map((statement) => `  ${statement}`)
     .join('\n');
+  const arrow = `(${params}) => {\n${body}\n}`;
+  const symbol = declaration.expressionOnly ? null : (marker?.symbol ?? null);
+  const mark = (value: string) =>
+    marker === null || marker.chunk === null || symbol === null
+      ? value
+      : `${QwikWord.MarkComponent}(${value}, ${JSON.stringify(symbol)}, ${JSON.stringify(marker.chunk)})`;
+  const alias = (name: string) => (symbol === null ? null : `${name} as ${symbol}`);
+  // A function declaration keeps its hoisting; the marker follows it as a statement.
+  const markAfter = (name: string) => (mark(name) === name ? '' : `\n${mark(name)};`);
   if (declaration.expressionOnly) {
-    return `(${params}) => {\n${body}\n}`;
+    return { text: arrow, alias: null };
   }
   switch (declaration.declarationKind) {
     case DeclarationKind.Const:
-      return `${exportPrefix}const ${declaration.name} = (${params}) => {\n${body}\n};`;
+      return {
+        text: `${exportPrefix}const ${declaration.name} = ${mark(arrow)};`,
+        alias: alias(declaration.name),
+      };
     case DeclarationKind.DefaultArrow:
-      return `export default (${params}) => {\n${body}\n};`;
-    case DeclarationKind.DefaultFunction:
-      return `export default function${declaration.localName ? ` ${declaration.localName}` : ''}(${params}) {\n${body}\n}`;
-    case DeclarationKind.Function:
-      return `${exportPrefix}function ${declaration.name}(${params}) {\n${body}\n}`;
+      // An anonymous default takes its symbol as the name it is also exported under.
+      return symbol === null
+        ? { text: `export default ${arrow};`, alias: null }
+        : {
+            text: `export const ${symbol} = ${mark(arrow)};\nexport default ${symbol};`,
+            alias: null,
+          };
+    case DeclarationKind.DefaultFunction: {
+      const name = declaration.localName ?? symbol;
+      return {
+        text: `export default function${name ? ` ${name}` : ''}(${params}) {\n${body}\n}${name ? markAfter(name) : ''}`,
+        alias: name === null ? null : name === symbol ? symbol : alias(name),
+      };
+    }
+    default:
+      return {
+        text: `${exportPrefix}function ${declaration.name}(${params}) {\n${body}\n}${markAfter(declaration.name)}`,
+        alias: alias(declaration.name),
+      };
   }
 }

@@ -16,7 +16,7 @@ export default () => {
 
 ============================= src/component.tsx ==
 
-import { useSignal, _noopQrl } from '@qwik.dev/core';
+import { useSignal, _noopQrl, _markComponent } from '@qwik.dev/core';
 const q_component_q_w_dblclick_segment_0_tisevbdmqsib = /*#__PURE__*/ _noopQrl(
   'component_q_w_dblclick_segment_0_tisevbdmqsib'
 );
@@ -26,17 +26,25 @@ const q_component_q_dp_scroll_segment_1_owxjdujcmr14 = /*#__PURE__*/ _noopQrl(
 const q_component_q_e_click_segment_2_2xwygteqhjqr1 = /*#__PURE__*/ _noopQrl(
   'component_q_e_click_segment_2_2xwygteqhjqr1'
 );
-export default (props, ctx) => {
-  const count = useSignal(0);
-  return [
-    '<div',
-    ctx.eventAttrParts('q-w:dblclick', q_component_q_w_dblclick_segment_0_tisevbdmqsib.w([count])),
-    ctx.eventAttrParts('q-dp:scroll', q_component_q_dp_scroll_segment_1_owxjdujcmr14.w([count])),
-    '><a href="/x" preventdefault:click stoppropagation:click capture:click',
-    ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_2_2xwygteqhjqr1.w([count])),
-    '>go</a></div>',
-  ];
-};
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    const count = useSignal(0);
+    return [
+      '<div',
+      ctx.eventAttrParts(
+        'q-w:dblclick',
+        q_component_q_w_dblclick_segment_0_tisevbdmqsib.w([count])
+      ),
+      ctx.eventAttrParts('q-dp:scroll', q_component_q_dp_scroll_segment_1_owxjdujcmr14.w([count])),
+      '><a href="/x" preventdefault:click stoppropagation:click capture:click',
+      ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_2_2xwygteqhjqr1.w([count])),
+      '>go</a></div>',
+    ];
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_q_w_dblclick_segment_0_tisevbdmqsib.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';

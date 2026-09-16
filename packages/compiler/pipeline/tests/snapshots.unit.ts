@@ -476,7 +476,11 @@ export default () => <main><Child label="child" /></main>;
 `,
     });
     expect(output.diagnostics).toEqual([]);
-    expect(output.modules[0].code).toContain('const Child = (props, ctx) =>');
+    expect(output.modules[0].code).toContain(
+      mode === 'ssr'
+        ? 'const Child = _markComponent((props, ctx) =>'
+        : 'const Child = (props, ctx) =>'
+    );
     expect(output.modules[0].code).not.toContain('export const Child');
   });
 
@@ -1565,7 +1569,11 @@ export const Lazy = componentQrl(qrl(() => import('./body'), 'Body'));
     const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
     // The referenced functions compile as components; the runtime marker call is an identity.
     expect(main).toContain('function Body(props, ctx) {');
-    expect(main).toContain('const plain = (props, ctx) =>');
+    expect(main).toContain(
+      mode === 'ssr'
+        ? 'const plain = _markComponent((props, ctx) =>'
+        : 'const plain = (props, ctx) =>'
+    );
     expect(main).toContain('export const App = component$(Body);');
     expect(main).toContain('export const Marked = component$(plain);');
     expect(main).toContain('export const Wrapped = component$(Imported);');
@@ -1780,7 +1788,7 @@ export default () => {
     expect(code).not.toContain(
       mode === 'ssr' ? 'renderSsrAttrExpression' : 'createAttrExpressionEffect'
     );
-    expect(code).not.toContain('import(');
+    expect(code).not.toMatch(/import\("\.\/component\.tsx_/);
   });
 
   test('should splice a module const inside an inline array row', async () => {
@@ -2861,6 +2869,68 @@ export default component$(() => {
         ? 'renderSsrDynamicTag(tag0, props0, ctx)'
         : "createDynamicTag(tag0, props0, ctx, 'svg')"
     );
+  });
+
+  test('should mark every component with the symbol it serializes as', async () => {
+    const output = await testInput(mode, 'component-serialization-marker', {
+      code: `import { component$, useSignal } from '@qwik.dev/core';
+function Body(props: { x: string }) {
+  return <p>{props.x}</p>;
+}
+export const App = component$(Body);
+const Hidden = component$(() => <i>hidden</i>);
+export const Picker = component$(() => {
+  const chosen = useSignal([Hidden]);
+  return <b>{chosen.value.length}</b>;
+});
+export default component$(() => <Picker />);
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const main = output.modules.find((module) => module.path === 'src/component.tsx')!.code;
+    // Every component, private or not, is exported under its hashed symbol for resume to import.
+    expect(main).toMatch(
+      /export \{ Body as Body_component_\w+, Hidden as Hidden_component_\w+, Picker as Picker_component_\w+ \};/
+    );
+    expect(main).toMatch(/export const default_component_\w+ = /);
+    expect(main).toMatch(/export default default_component_\w+;/);
+    expect(main).toContain('export const App = component$(Body);');
+    if (mode === 'ssr') {
+      // Only the server serializes: it marks the function with symbol and chunk.
+      expect(main).toMatch(/const Hidden = _markComponent\(\(props0, ctx\) => \{/);
+      expect(main).toMatch(/_markComponent\(Body, "Body_component_\w+", "\.\/component\.tsx"\);/);
+    } else {
+      expect(main).not.toContain('_markComponent');
+    }
+  });
+
+  test('should capture a local component alias used as a tag inside a boundary', async () => {
+    const output = await testInput(mode, 'local-component-tag', {
+      code: `import { component$, useSignal } from '@qwik.dev/core';
+import { A, B, choose } from './parts';
+export default component$(() => {
+  const content = useSignal<any[]>([A, B]);
+  const show = useSignal(true);
+  const Outer = content.value[0];
+  const Inner = content.value[1];
+  const Picked = choose(content.value);
+  return (
+    <Outer>
+      {show.value && <Inner />}
+      <Picked />
+    </Outer>
+  );
+});
+`,
+    });
+    expect(output.diagnostics).toEqual([]);
+    const code = output.modules.map((module) => module.code).join('\n');
+    const dynamic = mode === 'ssr' ? 'renderSsrDynamicTag' : 'createDynamicTag';
+    // A literal-index alias stays live: the chunk captures the signal and re-reads the tag.
+    expect(code).toContain('const tag0 = content.value[1];');
+    // A plain const alias rides the captures like any setup local.
+    expect(code).toContain('const [Picked] = _captures;');
+    expect(code).toContain(`${dynamic}(Picked, `);
   });
 
   test('should defer plain-value and member tags to the runtime dynamic tag', async () => {

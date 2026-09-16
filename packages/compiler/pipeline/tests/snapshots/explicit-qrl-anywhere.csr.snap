@@ -50,7 +50,7 @@ import { component_data_n_segment_5_brpnebuasbbh } from './component.tsx_compone
 export function later(run) {
   return q_component_qrl_segment_0_2fpowujm1ejve.w([run]);
 }
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const count = useSignal(0);
   useOn('click', q_component_qrl_segment_1_2fpox8kpy8lvx.w([count]));
   const wrapped = [1].map((step) => q_component_qrl_segment_2_2fpow2he7qfuc.w([count, step]));
@@ -69,6 +69,7 @@ export default (props, ctx) => {
   ctx.scheduler.notify(effect1);
   return el0;
 };
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_qrl_segment_0_2fpowujm1ejve.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';

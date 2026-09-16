@@ -18,26 +18,38 @@ import {
   isSource,
   renderSsrTextNode,
   maybeThen,
+  _markComponent,
   createComponent,
 } from '@qwik.dev/core';
 
-const Child = (props, ctx) => {
-  const id0 = ctx.nextId();
-  const prop0 = propSource(props, 'label');
-  isSource(prop0) && ctx.addRoot(prop0);
-  const text0 = renderSsrTextNode(id0, null, prop0);
-  return maybeThen(text0, (text0) => [
-    '<strong q:id="',
-    createSsrNodeId(id0),
-    '">',
-    escapeHTML(text0),
-    '</strong>',
-  ]);
-};
-export default (props0, ctx) => {
-  const component0 = createComponent(Child, { label: 'child' }, ctx);
-  return maybeThen(component0, (component0) => ['<main>', component0, '</main>']);
-};
+const Child = _markComponent(
+  (props, ctx) => {
+    const id0 = ctx.nextId();
+    const prop0 = propSource(props, 'label');
+    isSource(prop0) && ctx.addRoot(prop0);
+    const text0 = renderSsrTextNode(id0, null, prop0);
+    return maybeThen(text0, (text0) => [
+      '<strong q:id="',
+      createSsrNodeId(id0),
+      '">',
+      escapeHTML(text0),
+      '</strong>',
+    ]);
+  },
+  'Child_component_syc3erfxihm7',
+  './component.tsx'
+);
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props0, ctx) => {
+    const component0 = createComponent(Child, { label: 'child' }, ctx);
+    return maybeThen(component0, (component0) => ['<main>', component0, '</main>']);
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
+
+export { Child as Child_component_syc3erfxihm7 };
 == SSR DIAGNOSTICS ==
 
 []

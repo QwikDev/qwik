@@ -36,7 +36,7 @@ import {
 const default_tmpl0 = _createElementTemplate(
   '<form><textarea> </textarea><textarea>fixed</textarea><select><option value="one">one</option><option value="two">two</option></select><select><option value="one">one</option><option value="two" selected>two</option></select></form>'
 );
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const text = useSignal('one');
   const el0 = default_tmpl0(ctx.document);
   const el1 = _first(el0);
@@ -52,6 +52,7 @@ export default (props, ctx) => {
   patchAttrValue(el4, 'selected', text.value === 'two');
   return el0;
 };
+export default default_component_3rg6kq1so9aio;
 == CSR DIAGNOSTICS ==
 
 []

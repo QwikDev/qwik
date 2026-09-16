@@ -11,12 +11,25 @@ export default () => {
 
 ============================= src/component.tsx ==
 
-export const Header = (props, ctx) => {
-  return '<h1>Hi</h1>';
-};
-export default (props, ctx) => {
-  return '<p>Hello Qwik</p>';
-};
+import { _markComponent } from '@qwik.dev/core';
+
+export const Header = _markComponent(
+  (props, ctx) => {
+    return '<h1>Hi</h1>';
+  },
+  'Header_component_1us3atxk5xjhy',
+  './component.tsx'
+);
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    return '<p>Hello Qwik</p>';
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
+
+export { Header as Header_component_1us3atxk5xjhy };
 == SSR DIAGNOSTICS ==
 
 []

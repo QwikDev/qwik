@@ -22,6 +22,7 @@ import {
   _noopQrl,
   renderSsrTextNode,
   renderSsrDynamicContent,
+  _markComponent,
 } from '@qwik.dev/core';
 const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
   const [props] = _captures;
@@ -105,64 +106,69 @@ q_component_text_segment_1_1fh10tcowimfv.s(component_text_segment_1_1fh10tcowimf
 const q_component_q_e_click_segment_3_2xwygfdmkpoqi = /*#__PURE__*/ _noopQrl(
   'component_q_e_click_segment_3_2xwygfdmkpoqi'
 );
-export default (props, ctx) => {
-  const count = useSignal(0);
-  const views = {
-    header: q_component_jsx_segment_0_38vnjku9rukc6.w([props]),
-    body: [q_component_jsx_segment_2_38vniss1y6gb4.w([count]), [null, '<unsafe>']],
-  };
-  const content = {
-    ...views,
-    footer: q_component_jsx_segment_4_38vnl4ypf6sea,
-  };
-  const id0 = ctx.nextId();
-  ctx.addRoot(content);
-  const content0 = renderSsrContent(
-    ctx,
-    id0,
-    [],
-    q_component_content_segment_5_18525souwghet.w([content]),
-    false,
-    true
-  );
-  const id1 = ctx.nextId();
-  const content1 = renderSsrContent(
-    ctx,
-    id1,
-    [],
-    q_component_content_segment_6_18524mlj5ybd8.w([content]),
-    false,
-    true
-  );
-  const id2 = ctx.nextId();
-  const content2 = renderSsrContent(
-    ctx,
-    id2,
-    [],
-    q_component_content_segment_7_185250mn2sddr.w([content]),
-    false,
-    true
-  );
-  return maybeThen(content0, (content0) =>
-    maybeThen(content1, (content1) =>
-      maybeThen(content2, (content2) => [
-        '<main><!d=',
-        createSsrNodeId(id0),
-        '>',
-        content0,
-        '<!/d><!d=',
-        createSsrNodeId(id1),
-        '>',
-        content1,
-        '<!/d><!d=',
-        createSsrNodeId(id2),
-        '>',
-        content2,
-        '<!/d></main>',
-      ])
-    )
-  );
-};
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    const count = useSignal(0);
+    const views = {
+      header: q_component_jsx_segment_0_38vnjku9rukc6.w([props]),
+      body: [q_component_jsx_segment_2_38vniss1y6gb4.w([count]), [null, '<unsafe>']],
+    };
+    const content = {
+      ...views,
+      footer: q_component_jsx_segment_4_38vnl4ypf6sea,
+    };
+    const id0 = ctx.nextId();
+    ctx.addRoot(content);
+    const content0 = renderSsrContent(
+      ctx,
+      id0,
+      [],
+      q_component_content_segment_5_18525souwghet.w([content]),
+      false,
+      true
+    );
+    const id1 = ctx.nextId();
+    const content1 = renderSsrContent(
+      ctx,
+      id1,
+      [],
+      q_component_content_segment_6_18524mlj5ybd8.w([content]),
+      false,
+      true
+    );
+    const id2 = ctx.nextId();
+    const content2 = renderSsrContent(
+      ctx,
+      id2,
+      [],
+      q_component_content_segment_7_185250mn2sddr.w([content]),
+      false,
+      true
+    );
+    return maybeThen(content0, (content0) =>
+      maybeThen(content1, (content1) =>
+        maybeThen(content2, (content2) => [
+          '<main><!d=',
+          createSsrNodeId(id0),
+          '>',
+          content0,
+          '<!/d><!d=',
+          createSsrNodeId(id1),
+          '>',
+          content1,
+          '<!/d><!d=',
+          createSsrNodeId(id2),
+          '>',
+          content2,
+          '<!/d></main>',
+        ])
+      )
+    );
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
 
 import {

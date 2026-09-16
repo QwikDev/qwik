@@ -26,34 +26,40 @@ import {
   _val,
   _textValue,
   maybeThen,
+  _markComponent,
 } from '@qwik.dev/core';
-export default (props, ctx) => {
-  const checked = useSignal(false);
-  const text = useSignal('one');
-  const id0 = ctx.nextId();
-  ctx.addRoot(checked);
-  const attr0 = renderSsrAttr(id0, 'checked', checked);
-  const id1 = ctx.nextId();
-  ctx.addRoot(text);
-  const attr1 = renderSsrAttr(id1, 'value', text);
-  return maybeThen(attr0, (attr0) =>
-    maybeThen(attr1, (attr1) => [
-      '<form><input q:id="',
-      createSsrNodeId(id0),
-      '" type="checkbox"',
-      attr0 === null ? '' : ' checked' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
-      ctx.eventAttrParts('q-e:input', inlinedQrl(_chk, '_chk', [checked])),
-      '><textarea q:id="',
-      createSsrNodeId(id1),
-      '"',
-      attr1 === null ? '' : ' value' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
-      ctx.eventAttrParts('q-e:input', inlinedQrl(_val, '_val', [text])),
-      '>',
-      escapeHTML(_textValue(text.value).replace(/^\n/, '\n\n')),
-      '</textarea></form>',
-    ])
-  );
-};
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    const checked = useSignal(false);
+    const text = useSignal('one');
+    const id0 = ctx.nextId();
+    ctx.addRoot(checked);
+    const attr0 = renderSsrAttr(id0, 'checked', checked);
+    const id1 = ctx.nextId();
+    ctx.addRoot(text);
+    const attr1 = renderSsrAttr(id1, 'value', text);
+    return maybeThen(attr0, (attr0) =>
+      maybeThen(attr1, (attr1) => [
+        '<form><input q:id="',
+        createSsrNodeId(id0),
+        '" type="checkbox"',
+        attr0 === null ? '' : ' checked' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
+        ctx.eventAttrParts('q-e:input', inlinedQrl(_chk, '_chk', [checked])),
+        '><textarea q:id="',
+        createSsrNodeId(id1),
+        '"',
+        attr1 === null ? '' : ' value' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
+        ctx.eventAttrParts('q-e:input', inlinedQrl(_val, '_val', [text])),
+        '>',
+        escapeHTML(_textValue(text.value).replace(/^\n/, '\n\n')),
+        '</textarea></form>',
+      ])
+    );
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
 == SSR DIAGNOSTICS ==
 
 []

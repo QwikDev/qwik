@@ -31,7 +31,7 @@ const q_component_read_segment_0_1zbzildyw5vrf = /*#__PURE__*/ _qrlWithChunk(
   'component_read_segment_0_1zbzildyw5vrf'
 );
 const default_tmpl0 = _createElementTemplate('<span><!>:<!></span>');
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const options = {
     initial: props.initial,
     timeout: 1e3,
@@ -55,6 +55,7 @@ export default (props, ctx) => {
   ctx.scheduler.notify(effect1);
   return el0;
 };
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_read_segment_0_1zbzildyw5vrf.js (ENTRY POINT)==
 
 export const component_read_segment_0_1zbzildyw5vrf = async () => {

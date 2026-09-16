@@ -8,9 +8,16 @@ export default (props) => {
 
 ============================= src/component.tsx ==
 
-export default (props, ctx) => {
-  return '<p>Hello Qwik</p>';
-};
+import { _markComponent } from '@qwik.dev/core';
+
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    return '<p>Hello Qwik</p>';
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
 == SSR DIAGNOSTICS ==
 
 []

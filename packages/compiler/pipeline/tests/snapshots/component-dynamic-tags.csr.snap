@@ -51,7 +51,7 @@ const q_component_tag_dynamic_segment_3_331xd3wq2q1cw = /*#__PURE__*/ _qrlWithCh
 );
 const default_tmpl0 = _createElementTemplate('<section><!><!><!><!><!><!><!></section>');
 import { Badge, UI } from './ui';
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const Heading = 'h2';
   const Alias = Badge;
   const el0 = default_tmpl0(ctx.document);
@@ -101,6 +101,7 @@ export default (props, ctx) => {
   ctx.scheduler.notify(content1);
   return el0;
 };
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
 
 import { _first, createTemplate } from '@qwik.dev/core';

@@ -134,6 +134,8 @@ export interface QrlDeclaration {
   isExported: boolean;
   varKind?: VarKind;
   localName: string | null;
+  /** The hashed export the component serializes as; an inline expression has none. */
+  symbol?: string;
 }
 
 // ---------------------------------------------------------------------------------------------

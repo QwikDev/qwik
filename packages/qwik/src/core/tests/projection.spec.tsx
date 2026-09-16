@@ -2,6 +2,9 @@ import {
   $,
   component$,
   Slot,
+  createContextId,
+  useContext,
+  useContextProvider,
   useSignal,
   useStore,
   useTask$,
@@ -1193,6 +1196,76 @@ describe(`${name}: projection`, () => {
       await click('#flip');
       await click('#counter');
       expect(container.querySelector('div')!.textContent).toBe('Bravo 1');
+      cleanup();
+    });
+
+    it('#3727 swaps a projected component pair through context', async () => {
+      const CTX = createContextId<any>('content-Issue3727');
+      const ParentB = component$(() => (
+        <main id="parentB">
+          <Slot />
+        </main>
+      ));
+      const ChildB = component$(() => {
+        const copyList = useSignal<string[]>([]);
+        useContext(CTX);
+        return (
+          <article>
+            <h1>Second</h1>
+            <button
+              id="add"
+              onClick$={() =>
+                (copyList.value = [...copyList.value, `item ${copyList.value.length}`])
+              }
+            >
+              Add item
+            </button>
+            <ul>
+              {copyList.value.map((item) => (
+                <li>{item}</li>
+              ))}
+            </ul>
+          </article>
+        );
+      });
+      const ParentA = component$(() => (
+        <main id="parentA">
+          <Slot />
+        </main>
+      ));
+      const ChildA = component$(() => {
+        const content = useContext(CTX);
+        return (
+          <article>
+            <h1>First</h1>
+            <button id="navigate" onClick$={() => (content.value = [ParentB, ChildB])}>
+              Navigate
+            </button>
+          </article>
+        );
+      });
+      const Issue3727 = component$(() => {
+        const content = useSignal<any[]>([ParentA, ChildA]);
+        useContextProvider(CTX, content);
+        const Outer = content.value[0];
+        const Inner = content.value[1];
+        return (
+          <Outer>
+            <Inner />
+          </Outer>
+        );
+      });
+      const { container, cleanup, qwikLoader } = await render(Issue3727);
+      const click = (id: string) => qwikLoader?.dispatch(container.querySelector(id)!, 'click');
+      expect(container.querySelector('main')!.id).toBe('parentA');
+      await click('#navigate');
+      expect(container.querySelector('main')!.id).toBe('parentB');
+      await click('#add');
+      await click('#add');
+      expect(Array.from(container.querySelectorAll('li'), (li) => li.textContent)).toEqual([
+        'item 0',
+        'item 1',
+      ]);
       cleanup();
     });
 

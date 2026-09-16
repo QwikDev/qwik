@@ -12,6 +12,7 @@ export default () => <main><Wrapper><h1 q:slot="heading">Provided</h1></Wrapper>
 import {
   renderSsrSlot,
   maybeThen,
+  _markComponent,
   createSlotScope,
   forwardSlot,
   createComponent,
@@ -34,27 +35,42 @@ const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_1_3b0tauy2p1nv1'
 );
 q_component_slot_render_segment_1_3b0tauy2p1nv1.s(component_slot_render_segment_1_3b0tauy2p1nv1);
-export const Inner = (props, ctx) => {
-  const slot0 = renderSsrSlot(ctx, 'title');
-  return maybeThen(slot0, (slot0) => ['<article>', slot0, '</article>']);
-};
-export const Wrapper = (props, ctx) => {
-  const slotScope0 = createSlotScope();
-  forwardSlot(slotScope0, 'title', 'heading', q_component_slot_render_segment_0_3b0tagwys7lui);
-  ctx.addRoot(slotScope0);
-  const component0 = createComponent(Inner, null, ctx, { slotScope: slotScope0 });
-  return component0;
-};
-export default (props, ctx) => {
-  const slotScope0 = createSlotScope();
-  registerProjection(slotScope0, 'heading', q_component_slot_render_segment_1_3b0tauy2p1nv1);
-  ctx.addRoot(slotScope0);
-  const component0 = createComponent(Wrapper, null, ctx, { slotScope: slotScope0 });
-  const component1 = createComponent(Wrapper, null, ctx);
-  return maybeThen(component0, (component0) =>
-    maybeThen(component1, (component1) => ['<main>', component0, component1, '</main>'])
-  );
-};
+export const Inner = _markComponent(
+  (props, ctx) => {
+    const slot0 = renderSsrSlot(ctx, 'title');
+    return maybeThen(slot0, (slot0) => ['<article>', slot0, '</article>']);
+  },
+  'Inner_component_4pzhs2ajjr75',
+  './component.tsx'
+);
+export const Wrapper = _markComponent(
+  (props, ctx) => {
+    const slotScope0 = createSlotScope();
+    forwardSlot(slotScope0, 'title', 'heading', q_component_slot_render_segment_0_3b0tagwys7lui);
+    ctx.addRoot(slotScope0);
+    const component0 = createComponent(Inner, null, ctx, { slotScope: slotScope0 });
+    return component0;
+  },
+  'Wrapper_component_1yrb0pezcavja',
+  './component.tsx'
+);
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    const slotScope0 = createSlotScope();
+    registerProjection(slotScope0, 'heading', q_component_slot_render_segment_1_3b0tauy2p1nv1);
+    ctx.addRoot(slotScope0);
+    const component0 = createComponent(Wrapper, null, ctx, { slotScope: slotScope0 });
+    const component1 = createComponent(Wrapper, null, ctx);
+    return maybeThen(component0, (component0) =>
+      maybeThen(component1, (component1) => ['<main>', component0, component1, '</main>'])
+    );
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
+
+export { Inner as Inner_component_4pzhs2ajjr75, Wrapper as Wrapper_component_1yrb0pezcavja };
 ============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
 
 import { createSsrMarkup, createSsrNodeId } from '@qwik.dev/core';

@@ -18,7 +18,7 @@ import {
 } from '@qwik.dev/core';
 
 const default_tmpl0 = _createElementTemplate('<div><b>bold</b><span>a<!>b</span></div>');
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const el0 = default_tmpl0(ctx.document);
   const marker0 = _next(_first(_last(el0)));
   const text0 = ctx.document.createTextNode('');
@@ -28,6 +28,7 @@ export default (props, ctx) => {
   ctx.scheduler.notify(effect0);
   return el0;
 };
+export default default_component_3rg6kq1so9aio;
 == CSR DIAGNOSTICS ==
 
 []

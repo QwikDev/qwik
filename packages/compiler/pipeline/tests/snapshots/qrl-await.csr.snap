@@ -44,7 +44,7 @@ const q_component_run_segment_0_3puv0fmsn52m6 = /*#__PURE__*/ _qrlWithChunk(
   'component_run_segment_0_3puv0fmsn52m6'
 );
 const default_tmpl0 = _createElementTemplate('<button>run</button>');
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const invokeCtx0 = getActiveInvokeContextOrNull();
   const count = useSignal(1);
   const run = q_component_run_segment_0_3puv0fmsn52m6.w([count, props]);
@@ -57,6 +57,7 @@ export default (props, ctx) => {
     })
   );
 };
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_run_segment_0_3puv0fmsn52m6.js (ENTRY POINT)==
 
 import { _captures, _await } from '@qwik.dev/core';

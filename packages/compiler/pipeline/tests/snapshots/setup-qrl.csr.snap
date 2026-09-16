@@ -30,7 +30,7 @@ const q_component_onSave_segment_0_2tdav5vx5sjh3 = /*#__PURE__*/ _qrlWithChunk(
 const default_tmpl0 = _createElementTemplate(
   '<main><button>save</button><button>again</button></main>'
 );
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const count = useSignal(0);
   const onSave = q_component_onSave_segment_0_2tdav5vx5sjh3.w([count, props]);
   const el0 = default_tmpl0(ctx.document);
@@ -40,6 +40,7 @@ export default (props, ctx) => {
   setEvent(el2, 'q-e:click', onSave);
   return el0;
 };
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_onSave_segment_0_2tdav5vx5sjh3.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';

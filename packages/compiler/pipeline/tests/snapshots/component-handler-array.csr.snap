@@ -23,7 +23,7 @@ const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ _qrlWithChun
   'component_q_e_click_segment_1_2xwyfnber1kpg'
 );
 import { Button } from './button';
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const count = useSignal(0);
   const component0 = createComponent(
     Button,
@@ -37,6 +37,7 @@ export default (props, ctx) => {
   );
   return component0;
 };
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';

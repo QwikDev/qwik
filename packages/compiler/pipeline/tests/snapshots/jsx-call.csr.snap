@@ -52,7 +52,7 @@ const q_component_content_segment_7_185250mn2sddr = /*#__PURE__*/ _qrlWithChunk(
 );
 const default_tmpl0 = _createElementTemplate('<main><!><!><!><!><!><!></main>');
 import { wrap, consume } from './wrappers';
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const count = useSignal(0);
   consume(q_component_jsx_segment_0_38vnjku9rukc6.w([props]));
   const content = wrap(q_component_jsx_segment_1_38vnjyvdoomcp.w([count]));
@@ -112,6 +112,7 @@ export default (props, ctx) => {
   );
   return el0;
 };
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
 
 import {

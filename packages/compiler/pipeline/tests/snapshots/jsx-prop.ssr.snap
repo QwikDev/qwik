@@ -57,6 +57,7 @@ import {
   _props,
   createComponent,
   _noopQrl,
+  _markComponent,
   useSignal,
   createPropsProxy,
   useComputedQrl,
@@ -84,6 +85,7 @@ export function Direct(props, ctx) {
   );
   return component0;
 }
+_markComponent(Direct, 'Direct_component_2ps3ihhdyldo6', './component.tsx');
 export function Spread(props, ctx) {
   const options = useSignal({ title: 'title' });
   ctx.addRoot(options);
@@ -94,6 +96,7 @@ export function Spread(props, ctx) {
   );
   return component0;
 }
+_markComponent(Spread, 'Spread_component_2bstbt3vj7y3s', './component.tsx');
 export function Rows(props, ctx) {
   function semantic_collectionRender_334_399_1rvvd24vhg1k1(ctx, __rangeId, __rowId, row) {
     ctx.addRoot(row);
@@ -116,6 +119,13 @@ export function Rows(props, ctx) {
   );
   return maybeThen(collection0, (collection0) => ['<ul>', collection0, '</ul>']);
 }
+_markComponent(Rows, 'Rows_component_1vadfxnxfhuga', './component.tsx');
+
+export {
+  Direct as Direct_component_2ps3ihhdyldo6,
+  Spread as Spread_component_2bstbt3vj7y3s,
+  Rows as Rows_component_1vadfxnxfhuga,
+};
 ============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
 
 export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {

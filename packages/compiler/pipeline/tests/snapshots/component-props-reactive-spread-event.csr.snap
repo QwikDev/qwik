@@ -48,7 +48,7 @@ export const Child = (props, ctx) => {
   ctx.scheduler.notify(effect1);
   return el0;
 };
-export default (props0, ctx) => {
+export const default_component_3rg6kq1so9aio = (props0, ctx) => {
   const count = useSignal(0);
   const attributes = useSignal({ title: 'save' });
   const component0 = createComponent(
@@ -60,6 +60,9 @@ export default (props0, ctx) => {
   );
   return component0;
 };
+export default default_component_3rg6kq1so9aio;
+
+export { Child as Child_component_syc3erfxihm7 };
 ============================= src/component.tsx_component_onClickqrl_segment_0_3rzjkie0i362z.js (ENTRY POINT)==
 
 export const component_onClickqrl_segment_0_3rzjkie0i362z = (props) => {

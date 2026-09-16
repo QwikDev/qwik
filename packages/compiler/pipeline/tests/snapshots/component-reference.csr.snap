@@ -47,6 +47,8 @@ export const App = component$(Body);
 export const Marked = component$(plain);
 export const Wrapped = component$(Imported);
 export const Lazy = componentQrl(qrl(() => import('./body'), 'Body'));
+
+export { Body as Body_component_3fvssuocvtjmf, plain as plain_component_3f8zmel10yhqp };
 == CSR DIAGNOSTICS ==
 
 []

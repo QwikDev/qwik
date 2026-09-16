@@ -18,49 +18,61 @@ import {
   isSource,
   renderSsrTextNode,
   maybeThen,
+  _markComponent,
   useSignal,
   readTrackedValue,
   _props,
   createComponent,
 } from '@qwik.dev/core';
-export const Child = (props, ctx) => {
-  const id0 = ctx.nextId();
-  const prop0 = propSource(props, 'className');
-  isSource(prop0) && ctx.addRoot(prop0);
-  const text0 = renderSsrTextNode(id0, 0, prop0);
-  const prop1 = propSource(props, 'count');
-  isSource(prop1) && ctx.addRoot(prop1);
-  const text1 = renderSsrTextNode(id0, 1, prop1);
-  return maybeThen(text0, (text0) =>
-    maybeThen(text1, (text1) => [
-      '<strong q:id="',
-      createSsrNodeId(id0),
-      '"><!t>',
-      escapeHTML(text0),
-      '<!/t>: <!t>',
-      escapeHTML(text1),
-      '<!/t></strong>',
-    ])
-  );
-};
-export default (props0, ctx) => {
-  const count = useSignal(1);
-  ctx.addRoot(count);
-  const component0 = createComponent(
-    Child,
-    _props(
-      {
-        className: 'total',
-        get count() {
-          return readTrackedValue(count);
+export const Child = _markComponent(
+  (props, ctx) => {
+    const id0 = ctx.nextId();
+    const prop0 = propSource(props, 'className');
+    isSource(prop0) && ctx.addRoot(prop0);
+    const text0 = renderSsrTextNode(id0, 0, prop0);
+    const prop1 = propSource(props, 'count');
+    isSource(prop1) && ctx.addRoot(prop1);
+    const text1 = renderSsrTextNode(id0, 1, prop1);
+    return maybeThen(text0, (text0) =>
+      maybeThen(text1, (text1) => [
+        '<strong q:id="',
+        createSsrNodeId(id0),
+        '"><!t>',
+        escapeHTML(text0),
+        '<!/t>: <!t>',
+        escapeHTML(text1),
+        '<!/t></strong>',
+      ])
+    );
+  },
+  'Child_component_syc3erfxihm7',
+  './component.tsx'
+);
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props0, ctx) => {
+    const count = useSignal(1);
+    ctx.addRoot(count);
+    const component0 = createComponent(
+      Child,
+      _props(
+        {
+          className: 'total',
+          get count() {
+            return readTrackedValue(count);
+          },
         },
-      },
-      { count: count }
-    ),
-    ctx
-  );
-  return component0;
-};
+        { count: count }
+      ),
+      ctx
+    );
+    return component0;
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
+
+export { Child as Child_component_syc3erfxihm7 };
 == SSR DIAGNOSTICS ==
 
 []

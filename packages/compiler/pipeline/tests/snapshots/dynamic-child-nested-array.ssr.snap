@@ -9,11 +9,16 @@ export default (props: { label?: string; content?: any }) => {
 
 ============================= src/component.tsx ==
 
-import { useSignal } from '@qwik.dev/core';
-export default (props, ctx) => {
-  const count = useSignal(1);
-  return '<div>1<b>a</b>text</div>';
-};
+import { useSignal, _markComponent } from '@qwik.dev/core';
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    const count = useSignal(1);
+    return '<div>1<b>a</b>text</div>';
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
 == SSR DIAGNOSTICS ==
 
 []

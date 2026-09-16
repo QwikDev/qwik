@@ -8,18 +8,23 @@ export default () => {
 
 ============================= src/component.tsx ==
 
-import { _noopQrl } from '@qwik.dev/core';
+import { _noopQrl, _markComponent } from '@qwik.dev/core';
 
 const q_component_q_e_dblclick_segment_0_3cy9sja0qxi3h = /*#__PURE__*/ _noopQrl(
   'component_q_e_dblclick_segment_0_3cy9sja0qxi3h'
 );
-export default (props, ctx) => {
-  return [
-    '<button',
-    ctx.eventAttrParts('q-e:dblclick', q_component_q_e_dblclick_segment_0_3cy9sja0qxi3h),
-    '>go</button>',
-  ];
-};
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    return [
+      '<button',
+      ctx.eventAttrParts('q-e:dblclick', q_component_q_e_dblclick_segment_0_3cy9sja0qxi3h),
+      '>go</button>',
+    ];
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_q_e_dblclick_segment_0_3cy9sja0qxi3h.js (ENTRY POINT)==
 
 export const component_q_e_dblclick_segment_0_3cy9sja0qxi3h = (ev) => {

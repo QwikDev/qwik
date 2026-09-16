@@ -61,7 +61,7 @@ export const Child = (props, ctx) => {
   const el0 = Child_tmpl0(ctx.document);
   return el0;
 };
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   useStyles('.global { color: blue; }', 'f5nwlog2s6xs-1');
   const scope = useStylesScoped('.local { color: green; }', 'f5nxrrrtaczd-2', true);
   const active = useSignal(false);
@@ -100,6 +100,9 @@ export default (props, ctx) => {
   _last(el0).replaceWith(..._toNodes(component0));
   return el0;
 };
+export default default_component_3rg6kq1so9aio;
+
+export { Child as Child_component_syc3erfxihm7 };
 ============================= src/component.tsx_component_class_segment_0_3htuygud1guoj.js (ENTRY POINT)==
 
 export const component_class_segment_0_3htuygud1guoj = (scope) => {

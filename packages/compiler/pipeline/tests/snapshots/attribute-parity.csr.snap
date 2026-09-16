@@ -19,7 +19,7 @@ import { useSignal, _last, createAttrEffect, _createElementTemplate } from '@qwi
 const default_tmpl0 = _createElementTemplate(
   '<section><input aria-hidden="false" draggable="false" spellcheck="false" tabIndex="-1" data-n="2" hidden><input tabIndex="-1" data-n="2"></section>'
 );
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const on = useSignal(false);
   const el0 = default_tmpl0(ctx.document);
   const el1 = _last(el0);
@@ -33,6 +33,7 @@ export default (props, ctx) => {
   ctx.scheduler.notify(effect3);
   return el0;
 };
+export default default_component_3rg6kq1so9aio;
 == CSR DIAGNOSTICS ==
 
 []

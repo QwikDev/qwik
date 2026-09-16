@@ -33,6 +33,7 @@ import { createOriginalRangeMapper } from '../../src/normalization';
 
 import { isFunctionLike } from './ast/utils';
 import { explicitQrlRoots, recordFunctionJsx, recordPayloadQrls } from './lower-function';
+import { createSegmentSymbolName, sanitizeSegmentName } from '../segment-identity';
 import { InvalidModuleError, UnsupportedError } from '../errors';
 import type { Node } from 'oxc-parser';
 import { recordBindingResults } from './results';
@@ -294,6 +295,15 @@ export async function analyseModule(
           component.statement.type === 'ExportNamedDeclaration' ||
           component.statement.type === 'ExportDefaultDeclaration',
         localName: componentBinding === null ? null : plan.bindings[componentBinding].name,
+        ...(component.expressionOnly
+          ? {}
+          : {
+              symbol: createSegmentSymbolName(
+                lowerContext.sourceIdentity,
+                `${sanitizeSegmentName(component.name)}_component`,
+                'component'
+              ),
+            }),
       },
     });
     if (componentBinding === null) {

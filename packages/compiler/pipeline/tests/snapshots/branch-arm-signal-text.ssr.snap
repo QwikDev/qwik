@@ -20,6 +20,7 @@ import {
   _noopQrl,
   escapeHTML,
   renderSsrTextNode,
+  _markComponent,
 } from '@qwik.dev/core';
 const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
   const [show] = _captures;
@@ -48,27 +49,32 @@ const q_component_branch_then_segment_1_24n7blyqktd46 = /*#__PURE__*/ _noopQrl(
   'component_branch_then_segment_1_24n7blyqktd46'
 );
 q_component_branch_then_segment_1_24n7blyqktd46.s(component_branch_then_segment_1_24n7blyqktd46);
-export default (props, ctx) => {
-  const show = useSignal(false);
-  const count = useSignal(0);
-  const branchId0 = ctx.nextId();
-  ctx.addRoot(show);
-  ctx.addRoot(count);
-  const branch0 = renderSsrBranch(
-    ctx,
-    branchId0,
-    q_component_branch_condition_segment_0_2fzrieu6vlhf9.w([show]),
-    q_component_branch_then_segment_1_24n7blyqktd46.w([count]),
-    undefined
-  );
-  return maybeThen(branch0, (branch0) => [
-    '<div><!b=',
-    createSsrNodeId(branchId0),
-    '>',
-    branch0,
-    '<!/b></div>',
-  ]);
-};
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    const show = useSignal(false);
+    const count = useSignal(0);
+    const branchId0 = ctx.nextId();
+    ctx.addRoot(show);
+    ctx.addRoot(count);
+    const branch0 = renderSsrBranch(
+      ctx,
+      branchId0,
+      q_component_branch_condition_segment_0_2fzrieu6vlhf9.w([show]),
+      q_component_branch_then_segment_1_24n7blyqktd46.w([count]),
+      undefined
+    );
+    return maybeThen(branch0, (branch0) => [
+      '<div><!b=',
+      createSsrNodeId(branchId0),
+      '>',
+      branch0,
+      '<!/b></div>',
+    ]);
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';

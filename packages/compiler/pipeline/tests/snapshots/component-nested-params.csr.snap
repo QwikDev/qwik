@@ -39,7 +39,7 @@ const q_component_text_segment_4_1fh11zg0n0shg = /*#__PURE__*/ _qrlWithChunk(
 );
 const default_tmpl0 = _createElementTemplate('<p><!><!><!><!><!><!></p>');
 const KEY = 'dyn';
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const el0 = default_tmpl0(ctx.document);
   const effect0 = createAttrExpressionEffect(
     el0,
@@ -88,6 +88,7 @@ export default (props, ctx) => {
   ctx.scheduler.notify(content2);
   return el0;
 };
+export default default_component_3rg6kq1so9aio;
 
 export { KEY as __qwik_KEY };
 ============================= src/component.tsx_component_title_segment_0_2f0r0xivypjmx.js (ENTRY POINT)==

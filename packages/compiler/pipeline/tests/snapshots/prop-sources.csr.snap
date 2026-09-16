@@ -93,7 +93,7 @@ export const Defaulted = (props0, ctx) => {
   ctx.scheduler.notify(effect0);
   return el0;
 };
-export default (props1, ctx) => {
+export const default_component_3rg6kq1so9aio = (props1, ctx) => {
   const count = useSignal(1);
   const prop0 = computedProp(q_component_title_segment_2_2f0r05go51flv.w([count]));
   const component0 = createComponent(
@@ -113,6 +113,9 @@ export default (props1, ctx) => {
   );
   return component0;
 };
+export default default_component_3rg6kq1so9aio;
+
+export { Card as Card_component_1j4wd08arm0n5, Defaulted as Defaulted_component_1i8py0zeuc5v5 };
 ============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
 
 export const component_text_segment_0_1fh10fbkzokfc = (props) => {

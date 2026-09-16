@@ -14,7 +14,7 @@ export default (props) => {
 
 ============================= src/component.tsx ==
 
-import { useSignal, _captures, _noopQrl } from '@qwik.dev/core';
+import { useSignal, _captures, _noopQrl, _markComponent } from '@qwik.dev/core';
 const component_onSave_segment_0_2tdav5vx5sjh3 = (event) => {
   const [count, props] = _captures;
   count.value++;
@@ -24,17 +24,22 @@ const q_component_onSave_segment_0_2tdav5vx5sjh3 = /*#__PURE__*/ _noopQrl(
   'component_onSave_segment_0_2tdav5vx5sjh3'
 );
 q_component_onSave_segment_0_2tdav5vx5sjh3.s(component_onSave_segment_0_2tdav5vx5sjh3);
-export default (props, ctx) => {
-  const count = useSignal(0);
-  const onSave = q_component_onSave_segment_0_2tdav5vx5sjh3.w([count, props]);
-  return [
-    '<main><button',
-    ctx.eventAttrParts('q-e:click', onSave),
-    '>save</button><button',
-    ctx.eventAttrParts('q-e:click', onSave),
-    '>again</button></main>',
-  ];
-};
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    const count = useSignal(0);
+    const onSave = q_component_onSave_segment_0_2tdav5vx5sjh3.w([count, props]);
+    return [
+      '<main><button',
+      ctx.eventAttrParts('q-e:click', onSave),
+      '>save</button><button',
+      ctx.eventAttrParts('q-e:click', onSave),
+      '>again</button></main>',
+    ];
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_onSave_segment_0_2tdav5vx5sjh3.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';

@@ -39,7 +39,7 @@ export const Child = (props, ctx) => {
   ctx.scheduler.notify(effect1);
   return el0;
 };
-export default (props0, ctx) => {
+export const default_component_3rg6kq1so9aio = (props0, ctx) => {
   const count = useSignal(1);
   const component0 = createComponent(
     Child,
@@ -56,6 +56,9 @@ export default (props0, ctx) => {
   );
   return component0;
 };
+export default default_component_3rg6kq1so9aio;
+
+export { Child as Child_component_syc3erfxihm7 };
 == CSR DIAGNOSTICS ==
 
 []

@@ -40,7 +40,7 @@ const q_component_useCustomqrl_segment_0_heif5ecaq0pq = /*#__PURE__*/ _qrlWithCh
 );
 const default_tmpl0 = _createElementTemplate('<span> </span>');
 const useCustom$ = implicit$FirstArg(useTaskQrl);
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const invokeCtx0 = getActiveInvokeContextOrNull();
   const count = useSignal(1);
   useCustom$(q_component_useCustomqrl_segment_0_heif5ecaq0pq.w([count]));
@@ -57,6 +57,7 @@ export default (props, ctx) => {
     })
   );
 };
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_useCustomqrl_segment_0_heif5ecaq0pq.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';

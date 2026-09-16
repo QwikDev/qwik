@@ -68,7 +68,7 @@ export const Host = (props, ctx) => {
   ctx.scheduler.waitFor(maybeThen(createSlot(), (slot0) => marker0.replaceWith(...slot0)));
   return el0;
 };
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const show = useSignal(false);
   const fragment0 = default_tmpl0(ctx.document);
   const el0 = _last(fragment0);
@@ -90,6 +90,9 @@ export default (props, ctx) => {
   ctx.scheduler.notify(branch0);
   return [...fragment0.childNodes];
 };
+export default default_component_3rg6kq1so9aio;
+
+export { Host as Host_component_omsd8g3aigfl };
 ============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
 
 import {

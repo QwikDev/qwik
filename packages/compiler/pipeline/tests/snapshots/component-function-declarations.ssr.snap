@@ -17,6 +17,7 @@ const q_component_q_e_click_segment_0_2xwyg1cinvmpz = /*#__PURE__*/ _noopQrl(
 );
 import {
   createComponent,
+  _markComponent,
   useSignal,
   createSsrNodeId,
   escapeHTML,
@@ -28,10 +29,12 @@ export function Wrapper(props, ctx) {
   const component0 = createComponent(App, null, ctx);
   return component0;
 }
+_markComponent(Wrapper, 'Wrapper_component_1yrb0pezcavja', './component.tsx');
 export default function App(props, ctx) {
   const component0 = createComponent(Child, null, ctx);
   return component0;
 }
+_markComponent(App, 'default_component_3rg6kq1so9aio', './component.tsx');
 function Child(props, ctx) {
   const count = useSignal(1);
   const id0 = ctx.nextId();
@@ -47,6 +50,13 @@ function Child(props, ctx) {
     '</button>',
   ]);
 }
+_markComponent(Child, 'Child_component_syc3erfxihm7', './component.tsx');
+
+export {
+  Wrapper as Wrapper_component_1yrb0pezcavja,
+  App as default_component_3rg6kq1so9aio,
+  Child as Child_component_syc3erfxihm7,
+};
 ============================= src/component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';

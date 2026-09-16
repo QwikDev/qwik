@@ -57,6 +57,7 @@ import {
   createComponent,
   renderSsrTextNode,
   _noopQrl,
+  _markComponent,
   createContextId,
   getLocale,
 } from '@qwik.dev/core';
@@ -65,75 +66,80 @@ const before = observe('before'),
     return '<h1>Title</h1>';
   },
   after = observe('after');
-export default (props, ctx) => {
-  let count = useSignal(1);
-  var suffix = '!';
-  const context = createContextId('body');
-  const locale = getLocale();
-  const label = useSignal('ready');
-  const increment = q_component_increment_segment_0_sk08s17xutli.w([count]);
-  count.value = 4;
-  function format(value) {
-    return String(value);
-  }
-  label.value = format(count.value);
-  suffix += '!';
-  function Child(props0, ctx) {
-    const id0 = ctx.nextId();
-    ctx.addRoot(props);
-    const text0 = renderSsrTextExpression(
-      id0,
-      null,
-      [props],
-      q_component_text_segment_1_1fh10tcowimfv
-    );
-    return maybeThen(text0, (text0) => [
-      '<p q:id="',
-      createSsrNodeId(id0),
-      '">',
-      escapeHTML(text0),
-      '</p>',
-    ]);
-  }
-  if (props.hidden) return '';
-  try {
-    if (props.failed) throw new Error('failed');
-    return (() => {
-      const component0 = createComponent(Header, null, ctx);
-      const component1 = createComponent(Child, null, ctx);
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    let count = useSignal(1);
+    var suffix = '!';
+    const context = createContextId('body');
+    const locale = getLocale();
+    const label = useSignal('ready');
+    const increment = q_component_increment_segment_0_sk08s17xutli.w([count]);
+    count.value = 4;
+    function format(value) {
+      return String(value);
+    }
+    label.value = format(count.value);
+    suffix += '!';
+    function Child(props0, ctx) {
       const id0 = ctx.nextId();
-      ctx.addRoot(label);
-      const text0 = renderSsrTextNode(id0, null, label);
-      return maybeThen(component0, (component0) =>
-        maybeThen(component1, (component1) =>
-          maybeThen(text0, (text0) => [
-            '<section>',
-            component0,
-            component1,
-            '<button',
-            ctx.eventAttrParts('q-e:click', increment),
-            '>increment</button><button q:id="',
-            createSsrNodeId(id0),
-            '"',
-            ctx.eventAttrParts(
-              'q-e:click',
-              q_component_q_e_click_segment_2_2xwygteqhjqr1.w([label, count, suffix])
-            ),
-            '>',
-            escapeHTML(text0),
-            '</button></section>',
-          ])
-        )
+      ctx.addRoot(props);
+      const text0 = renderSsrTextExpression(
+        id0,
+        null,
+        [props],
+        q_component_text_segment_1_1fh10tcowimfv
       );
-    })();
-  } catch (error) {
-    observe(error);
+      return maybeThen(text0, (text0) => [
+        '<p q:id="',
+        createSsrNodeId(id0),
+        '">',
+        escapeHTML(text0),
+        '</p>',
+      ]);
+    }
+    if (props.hidden) return '';
+    try {
+      if (props.failed) throw new Error('failed');
+      return (() => {
+        const component0 = createComponent(Header, null, ctx);
+        const component1 = createComponent(Child, null, ctx);
+        const id0 = ctx.nextId();
+        ctx.addRoot(label);
+        const text0 = renderSsrTextNode(id0, null, label);
+        return maybeThen(component0, (component0) =>
+          maybeThen(component1, (component1) =>
+            maybeThen(text0, (text0) => [
+              '<section>',
+              component0,
+              component1,
+              '<button',
+              ctx.eventAttrParts('q-e:click', increment),
+              '>increment</button><button q:id="',
+              createSsrNodeId(id0),
+              '"',
+              ctx.eventAttrParts(
+                'q-e:click',
+                q_component_q_e_click_segment_2_2xwygteqhjqr1.w([label, count, suffix])
+              ),
+              '>',
+              escapeHTML(text0),
+              '</button></section>',
+            ])
+          )
+        );
+      })();
+    } catch (error) {
+      observe(error);
+      return '';
+    } finally {
+      observe(context, locale);
+    }
     return '';
-  } finally {
-    observe(context, locale);
-  }
-  return '';
-};
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_increment_segment_0_sk08s17xutli.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';

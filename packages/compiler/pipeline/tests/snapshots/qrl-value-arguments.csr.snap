@@ -63,7 +63,7 @@ function tick() {
 }
 export const greeting = q_component_qrl_segment_0_2fpowujm1ejve;
 export const settings = q_component_qrl_segment_1_2fpox8kpy8lvx;
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const invokeCtx0 = getActiveInvokeContextOrNull();
   const count = useSignal(1);
   useTask(component_useTaskqrl_segment_2_1og81asunhx6e);
@@ -89,6 +89,7 @@ export default (props, ctx) => {
     })
   );
 };
+export default default_component_3rg6kq1so9aio;
 
 export { tick as __qwik_tick };
 ============================= src/component.tsx_component_qrl_segment_0_2fpowujm1ejve.js (ENTRY POINT)==

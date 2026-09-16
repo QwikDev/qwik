@@ -18,6 +18,7 @@ import {
   maybeThen,
   untrack,
   _noopQrl,
+  _markComponent,
 } from '@qwik.dev/core';
 
 const component_title_segment_0_2f0r0xivypjmx = (props, defaultValue) => {
@@ -40,43 +41,48 @@ const q_component_text_segment_2_1fh117dstcoge = /*#__PURE__*/ _noopQrl(
   'component_text_segment_2_1fh117dstcoge'
 );
 q_component_text_segment_2_1fh117dstcoge.s(component_text_segment_2_1fh117dstcoge);
-export default (
-  props,
-  ctx,
-  defaultValue = untrack(() => props.title === void 0) ? createTitle() : void 0,
-  defaultValue0 = untrack(() => props.onSave$ === void 0) ? createHandler() : void 0
-) => {
-  const id0 = ctx.nextId();
-  ctx.addRoot(props);
-  ctx.addRoot(defaultValue);
-  const attr0 = renderSsrAttrExpression(
-    id0,
-    'title',
-    [props, defaultValue],
-    q_component_title_segment_0_2f0r0xivypjmx
-  );
-  const text0 = renderSsrTextExpression(
-    id0,
-    null,
-    [props, defaultValue],
-    q_component_text_segment_2_1fh117dstcoge
-  );
-  return maybeThen(attr0, (attr0) =>
-    maybeThen(text0, (text0) => [
-      '<button q:id="',
-      createSsrNodeId(id0),
-      '"',
-      attr0 === null ? '' : ' title' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
-      ctx.eventAttrParts(
-        'q-e:click',
-        q_component_q_e_click_segment_1_2xwyfnber1kpg.w([props, defaultValue0, defaultValue])
-      ),
-      '>',
-      escapeHTML(text0),
-      '</button>',
-    ])
-  );
-};
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (
+    props,
+    ctx,
+    defaultValue = untrack(() => props.title === void 0) ? createTitle() : void 0,
+    defaultValue0 = untrack(() => props.onSave$ === void 0) ? createHandler() : void 0
+  ) => {
+    const id0 = ctx.nextId();
+    ctx.addRoot(props);
+    ctx.addRoot(defaultValue);
+    const attr0 = renderSsrAttrExpression(
+      id0,
+      'title',
+      [props, defaultValue],
+      q_component_title_segment_0_2f0r0xivypjmx
+    );
+    const text0 = renderSsrTextExpression(
+      id0,
+      null,
+      [props, defaultValue],
+      q_component_text_segment_2_1fh117dstcoge
+    );
+    return maybeThen(attr0, (attr0) =>
+      maybeThen(text0, (text0) => [
+        '<button q:id="',
+        createSsrNodeId(id0),
+        '"',
+        attr0 === null ? '' : ' title' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
+        ctx.eventAttrParts(
+          'q-e:click',
+          q_component_q_e_click_segment_1_2xwyfnber1kpg.w([props, defaultValue0, defaultValue])
+        ),
+        '>',
+        escapeHTML(text0),
+        '</button>',
+      ])
+    );
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_title_segment_0_2f0r0xivypjmx.js (ENTRY POINT)==
 
 export const component_title_segment_0_2f0r0xivypjmx = (props, defaultValue) => {

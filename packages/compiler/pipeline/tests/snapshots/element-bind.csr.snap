@@ -31,7 +31,7 @@ import {
 const default_tmpl0 = _createElementTemplate(
   '<form><input type="checkbox"><textarea> </textarea></form>'
 );
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const checked = useSignal(false);
   const text = useSignal('one');
   const el0 = default_tmpl0(ctx.document);
@@ -46,6 +46,7 @@ export default (props, ctx) => {
   _first(el2).data = _textValue(text.value);
   return el0;
 };
+export default default_component_3rg6kq1so9aio;
 == CSR DIAGNOSTICS ==
 
 []

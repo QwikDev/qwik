@@ -25,6 +25,7 @@ import {
   isSource,
   renderSsrTextNode,
   maybeThen,
+  _markComponent,
   useSignal,
   _captures,
   renderSsrCollection,
@@ -124,45 +125,56 @@ const q_component_branch_else_segment_4_19dvrvh6znjhf = /*#__PURE__*/ _noopQrl(
   'component_branch_else_segment_4_19dvrvh6znjhf'
 );
 q_component_branch_else_segment_4_19dvrvh6znjhf.s(component_branch_else_segment_4_19dvrvh6znjhf);
-export const Done = (props, ctx) => {
-  const id0 = ctx.nextId();
-  const prop0 = propSource(props, 'title');
-  isSource(prop0) && ctx.addRoot(prop0);
-  const text0 = renderSsrTextNode(id0, null, prop0);
-  return maybeThen(text0, (text0) => [
-    '<b q:id="',
-    createSsrNodeId(id0),
-    '">',
-    escapeHTML(text0),
-    '</b>',
-  ]);
-};
-export default (props, ctx) => {
-  const items = useSignal([]);
-  const selected = useSignal(true);
-  const prop0 = propSource(props, 'items');
-  isSource(prop0) && ctx.addRoot(prop0);
-  const collectionId0 = ctx.nextId();
-  ctx.addRoot(selected);
-  ctx.addRoot(props);
-  const collection0 = renderSsrCollection(
-    ctx,
-    collectionId0,
-    prop0,
-    q_component_for_key_segment_1_24ursak4wzpxf.w([selected, props]),
-    q_component_for_render_segment_0_asyt89wzo2d3.w([selected, props]),
-    1,
-    true,
-    3
-  );
-  return maybeThen(collection0, (collection0) => [
-    '<ul><!f=',
-    createSsrNodeId(collectionId0),
-    '>',
-    collection0,
-    '<!/f></ul>',
-  ]);
-};
+export const Done = _markComponent(
+  (props, ctx) => {
+    const id0 = ctx.nextId();
+    const prop0 = propSource(props, 'title');
+    isSource(prop0) && ctx.addRoot(prop0);
+    const text0 = renderSsrTextNode(id0, null, prop0);
+    return maybeThen(text0, (text0) => [
+      '<b q:id="',
+      createSsrNodeId(id0),
+      '">',
+      escapeHTML(text0),
+      '</b>',
+    ]);
+  },
+  'Done_component_4ncehzxsp7d7',
+  './component.tsx'
+);
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    const items = useSignal([]);
+    const selected = useSignal(true);
+    const prop0 = propSource(props, 'items');
+    isSource(prop0) && ctx.addRoot(prop0);
+    const collectionId0 = ctx.nextId();
+    ctx.addRoot(selected);
+    ctx.addRoot(props);
+    const collection0 = renderSsrCollection(
+      ctx,
+      collectionId0,
+      prop0,
+      q_component_for_key_segment_1_24ursak4wzpxf.w([selected, props]),
+      q_component_for_render_segment_0_asyt89wzo2d3.w([selected, props]),
+      1,
+      true,
+      3
+    );
+    return maybeThen(collection0, (collection0) => [
+      '<ul><!f=',
+      createSsrNodeId(collectionId0),
+      '>',
+      collection0,
+      '<!/f></ul>',
+    ]);
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
+
+export { Done as Done_component_4ncehzxsp7d7 };
 ============================= src/component.tsx_component_for_render_segment_0_asyt89wzo2d3.js (ENTRY POINT)==
 
 import { _noopQrl, _captures, createSsrNodeId, renderSsrBranch, maybeThen } from '@qwik.dev/core';

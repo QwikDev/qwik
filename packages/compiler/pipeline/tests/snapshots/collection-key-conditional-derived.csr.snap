@@ -41,7 +41,7 @@ export const Done = (props, ctx) => {
   ctx.scheduler.notify(effect0);
   return el0;
 };
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const items = useSignal([]);
   const selected = useSignal(true);
   const el0 = default_tmpl0(ctx.document);
@@ -62,6 +62,9 @@ export default (props, ctx) => {
   );
   return el0;
 };
+export default default_component_3rg6kq1so9aio;
+
+export { Done as Done_component_4ncehzxsp7d7 };
 ============================= src/component.tsx_component_for_render_segment_0_asyt89wzo2d3.js (ENTRY POINT)==
 
 import {

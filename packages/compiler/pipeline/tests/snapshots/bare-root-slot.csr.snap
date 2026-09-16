@@ -45,6 +45,8 @@ export const Shell = (props, ctx) => {
   ctx.scheduler.notify(effect1);
   return el0;
 };
+
+export { Wrapper as Wrapper_component_1yrb0pezcavja, Shell as Shell_component_kl94bsx1hn6b };
 == CSR DIAGNOSTICS ==
 
 []

@@ -22,6 +22,7 @@ import {
   renderSsrTextNode,
   maybeThen,
   _noopQrl,
+  _markComponent,
   useSignal,
   createPropsProxy,
   useComputedQrl,
@@ -46,45 +47,56 @@ q_component_props_segment_2_208o0eee4yc6n.s(component_props_segment_2_208o0eee4y
 const q_component_q_e_save_segment_1_3krcbiqvmvgft = /*#__PURE__*/ _noopQrl(
   'component_q_e_save_segment_1_3krcbiqvmvgft'
 );
-export const Child = (props, ctx) => {
-  const id0 = ctx.nextId();
-  ctx.addRoot(props);
-  const effect0 = renderSsrEvent(
-    id0,
-    'q-e:click',
-    [props],
-    q_component_onClickqrl_segment_0_3rzjkie0i362z,
-    ctx.eventAttr
-  );
-  const prop0 = propSource(props, 'title');
-  isSource(prop0) && ctx.addRoot(prop0);
-  const text0 = renderSsrTextNode(id0, null, prop0);
-  return maybeThen(effect0, (effect0) =>
-    maybeThen(text0, (text0) => [
-      '<button q:id="',
-      createSsrNodeId(id0),
-      '"',
-      createSsrMarkup(effect0),
-      '>',
-      escapeHTML(text0),
-      '</button>',
-    ])
-  );
-};
-export default (props0, ctx) => {
-  const count = useSignal(0);
-  const attributes = useSignal({ title: 'save' });
-  ctx.addRoot(attributes);
-  ctx.addRoot(count);
-  const component0 = createComponent(
-    Child,
-    createPropsProxy(
-      useComputedQrl(q_component_props_segment_2_208o0eee4yc6n.w([attributes, count]))
-    ),
-    ctx
-  );
-  return component0;
-};
+export const Child = _markComponent(
+  (props, ctx) => {
+    const id0 = ctx.nextId();
+    ctx.addRoot(props);
+    const effect0 = renderSsrEvent(
+      id0,
+      'q-e:click',
+      [props],
+      q_component_onClickqrl_segment_0_3rzjkie0i362z,
+      ctx.eventAttr
+    );
+    const prop0 = propSource(props, 'title');
+    isSource(prop0) && ctx.addRoot(prop0);
+    const text0 = renderSsrTextNode(id0, null, prop0);
+    return maybeThen(effect0, (effect0) =>
+      maybeThen(text0, (text0) => [
+        '<button q:id="',
+        createSsrNodeId(id0),
+        '"',
+        createSsrMarkup(effect0),
+        '>',
+        escapeHTML(text0),
+        '</button>',
+      ])
+    );
+  },
+  'Child_component_syc3erfxihm7',
+  './component.tsx'
+);
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props0, ctx) => {
+    const count = useSignal(0);
+    const attributes = useSignal({ title: 'save' });
+    ctx.addRoot(attributes);
+    ctx.addRoot(count);
+    const component0 = createComponent(
+      Child,
+      createPropsProxy(
+        useComputedQrl(q_component_props_segment_2_208o0eee4yc6n.w([attributes, count]))
+      ),
+      ctx
+    );
+    return component0;
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
+
+export { Child as Child_component_syc3erfxihm7 };
 ============================= src/component.tsx_component_onClickqrl_segment_0_3rzjkie0i362z.js (ENTRY POINT)==
 
 export const component_onClickqrl_segment_0_3rzjkie0i362z = (props) => {

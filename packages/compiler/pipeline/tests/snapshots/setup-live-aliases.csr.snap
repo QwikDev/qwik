@@ -39,7 +39,7 @@ const q_component_tag_dynamic_segment_0_331xea01t87eh = /*#__PURE__*/ _qrlWithCh
   'component_tag_dynamic_segment_0_331xea01t87eh'
 );
 import { Child } from './child';
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const count = useSignal(0);
   const store = useStore({
     item: { label: 'first' },
@@ -60,6 +60,7 @@ export default (props, ctx) => {
   ctx.scheduler.notify(content0);
   return [start0, end0];
 };
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_tag_dynamic_segment_0_331xea01t87eh.js (ENTRY POINT)==
 
 import {

@@ -12,13 +12,14 @@ export default () => {
 
 import { useSignal, createAttrEffect, _createElementTemplate } from '@qwik.dev/core';
 const default_tmpl0 = _createElementTemplate('<div>x</div>');
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const count = useSignal(0);
   const el0 = default_tmpl0(ctx.document);
   const effect0 = createAttrEffect(el0, 'class', count, ctx.scheduler);
   ctx.scheduler.notify(effect0);
   return el0;
 };
+export default default_component_3rg6kq1so9aio;
 == CSR DIAGNOSTICS ==
 
 []

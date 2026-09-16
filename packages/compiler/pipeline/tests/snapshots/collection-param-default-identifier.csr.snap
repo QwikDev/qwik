@@ -22,7 +22,7 @@ import { component_for_render_segment_0_asyt89wzo2d3 } from './component.tsx_com
 import { component_for_key_segment_1_24ursak4wzpxf } from './component.tsx_component_for_key_segment_1_24ursak4wzpxf';
 
 const default_tmpl0 = _createElementTemplate('<ul><!><!></ul>');
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const items = useSignal([]);
   const fallback = useSignal(null);
   const el0 = default_tmpl0(ctx.document);
@@ -42,6 +42,7 @@ export default (props, ctx) => {
   );
   return el0;
 };
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_for_render_segment_0_asyt89wzo2d3.js (ENTRY POINT)==
 
 import {

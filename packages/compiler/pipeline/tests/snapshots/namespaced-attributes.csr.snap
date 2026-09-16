@@ -19,7 +19,7 @@ import { useSignal, _first, createAttrEffect, _createElementTemplate } from '@qw
 const default_tmpl0 = _createElementTemplate(
   '<svg xml:lang="en"><use></use><use xlink:href="#static"></use></svg>'
 );
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const icon = useSignal('#a');
   const el0 = default_tmpl0(ctx.document);
   const el1 = _first(el0);
@@ -27,6 +27,7 @@ export default (props, ctx) => {
   ctx.scheduler.notify(effect0);
   return el0;
 };
+export default default_component_3rg6kq1so9aio;
 == CSR DIAGNOSTICS ==
 
 []

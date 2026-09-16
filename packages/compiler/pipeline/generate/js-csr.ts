@@ -113,6 +113,7 @@ interface RenderPass {
 }
 
 class CsrModuleEmitter implements QwikModuleEmitter {
+  readonly isServer = false;
   readonly imports = new Set<string>();
   readonly chunkImports: string[] = [];
   readonly hoists: string[] = [];

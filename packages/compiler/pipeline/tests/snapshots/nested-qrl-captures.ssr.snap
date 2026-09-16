@@ -35,6 +35,7 @@ import {
   getActiveInvokeContextOrNull,
   invoke,
   renderSsrDynamicContent,
+  _markComponent,
 } from '@qwik.dev/core';
 import { log } from './log';
 export const useCounter = (step) => {
@@ -71,33 +72,38 @@ const q_component_text_segment_4_1fh11zg0n0shg = /*#__PURE__*/ _noopQrl(
   'component_text_segment_4_1fh11zg0n0shg'
 );
 q_component_text_segment_4_1fh11zg0n0shg.s(component_text_segment_4_1fh11zg0n0shg);
-export default (props, ctx) => {
-  const invokeCtx0 = getActiveInvokeContextOrNull();
-  const c = useCounter(2);
-  return maybeThen(ctx.scheduler.flush(), () =>
-    invoke(invokeCtx0, () => {
-      const id0 = ctx.nextId();
-      ctx.addRoot(c);
-      const content0 = renderSsrContent(
-        ctx,
-        id0,
-        [],
-        q_component_text_segment_4_1fh11zg0n0shg.w([c]),
-        false,
-        true
-      );
-      return maybeThen(content0, (content0) => [
-        '<button',
-        ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_3_2xwygfdmkpoqi.w([c])),
-        '><!d=',
-        createSsrNodeId(id0),
-        '>',
-        content0,
-        '<!/d></button>',
-      ]);
-    })
-  );
-};
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    const invokeCtx0 = getActiveInvokeContextOrNull();
+    const c = useCounter(2);
+    return maybeThen(ctx.scheduler.flush(), () =>
+      invoke(invokeCtx0, () => {
+        const id0 = ctx.nextId();
+        ctx.addRoot(c);
+        const content0 = renderSsrContent(
+          ctx,
+          id0,
+          [],
+          q_component_text_segment_4_1fh11zg0n0shg.w([c]),
+          false,
+          true
+        );
+        return maybeThen(content0, (content0) => [
+          '<button',
+          ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_3_2xwygfdmkpoqi.w([c])),
+          '><!d=',
+          createSsrNodeId(id0),
+          '>',
+          content0,
+          '<!/d></button>',
+        ]);
+      })
+    );
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_qrl_segment_0_2fpowujm1ejve.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';

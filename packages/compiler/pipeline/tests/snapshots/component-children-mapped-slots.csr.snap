@@ -50,7 +50,7 @@ export const Panel = (props, ctx) => {
   ctx.scheduler.waitFor(maybeThen(createSlot(), (slot2) => marker1.replaceWith(...slot2)));
   return el0;
 };
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const items = useSignal([
     {
       id: 1,
@@ -68,6 +68,9 @@ export default (props, ctx) => {
   const component0 = createComponent(Panel, null, ctx, { slotScope: slotScope0 });
   return component0;
 };
+export default default_component_3rg6kq1so9aio;
+
+export { Panel as Panel_component_5q1hs6sb6j5z };
 ============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
 
 import { _captures, _first, _next, createTemplate, createCollection } from '@qwik.dev/core';

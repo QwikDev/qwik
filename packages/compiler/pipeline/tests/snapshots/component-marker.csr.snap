@@ -30,10 +30,13 @@ export const Counter = (props, ctx) => {
   ctx.scheduler.notify(effect0);
   return el0;
 };
-export default (props0, ctx) => {
+export const default_component_3rg6kq1so9aio = (props0, ctx) => {
   const component0 = createComponent(Counter, { initial: 1 }, ctx);
   return component0;
 };
+export default default_component_3rg6kq1so9aio;
+
+export { Counter as Counter_component_3h2q15ekklxzt };
 ============================= src/component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';

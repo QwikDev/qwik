@@ -16,6 +16,7 @@ import {
   escapeHTML,
   renderSsrSlot,
   maybeThen,
+  _markComponent,
   createPropsProxy,
   useComputedQrl,
   createSlotScope,
@@ -33,39 +34,50 @@ const q_component_props_segment_0_208o16glymg7p = /*#__PURE__*/ _noopQrl(
   'component_props_segment_0_208o16glymg7p'
 );
 q_component_props_segment_0_208o16glymg7p.s(component_props_segment_0_208o16glymg7p);
-export const Child = (props, ctx) => {
-  const id0 = ctx.nextId();
-  const prop0 = propSource(props, 'label');
-  isSource(prop0) && ctx.addRoot(prop0);
-  const attr0 = renderSsrAttr(id0, 'title', prop0);
-  const slot0 = renderSsrSlot(ctx);
-  return maybeThen(attr0, (attr0) =>
-    maybeThen(slot0, (slot0) => [
-      '<section q:id="',
-      createSsrNodeId(id0),
-      '"',
-      attr0 === null ? '' : ' title' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
-      '>',
-      slot0,
-      '</section>',
-    ])
-  );
-};
-export default (props0, ctx) => {
-  const rest = createPropsProxy(props0, ['children', 'title']);
-  const slotScope0 = createSlotScope();
-  forwardSlot(slotScope0);
-  ctx.addRoot(rest);
-  ctx.addRoot(props0);
-  ctx.addRoot(slotScope0);
-  const component0 = createComponent(
-    Child,
-    createPropsProxy(useComputedQrl(q_component_props_segment_0_208o16glymg7p.w([rest, props0]))),
-    ctx,
-    { slotScope: slotScope0 }
-  );
-  return component0;
-};
+export const Child = _markComponent(
+  (props, ctx) => {
+    const id0 = ctx.nextId();
+    const prop0 = propSource(props, 'label');
+    isSource(prop0) && ctx.addRoot(prop0);
+    const attr0 = renderSsrAttr(id0, 'title', prop0);
+    const slot0 = renderSsrSlot(ctx);
+    return maybeThen(attr0, (attr0) =>
+      maybeThen(slot0, (slot0) => [
+        '<section q:id="',
+        createSsrNodeId(id0),
+        '"',
+        attr0 === null ? '' : ' title' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
+        '>',
+        slot0,
+        '</section>',
+      ])
+    );
+  },
+  'Child_component_syc3erfxihm7',
+  './component.tsx'
+);
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props0, ctx) => {
+    const rest = createPropsProxy(props0, ['children', 'title']);
+    const slotScope0 = createSlotScope();
+    forwardSlot(slotScope0);
+    ctx.addRoot(rest);
+    ctx.addRoot(props0);
+    ctx.addRoot(slotScope0);
+    const component0 = createComponent(
+      Child,
+      createPropsProxy(useComputedQrl(q_component_props_segment_0_208o16glymg7p.w([rest, props0]))),
+      ctx,
+      { slotScope: slotScope0 }
+    );
+    return component0;
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
+
+export { Child as Child_component_syc3erfxihm7 };
 ============================= src/component.tsx_component_props_segment_0_208o16glymg7p.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';

@@ -44,7 +44,7 @@ function side(value) {
   console.log(value);
   return value;
 }
-export default (
+export const default_component_3rg6kq1so9aio = (
   props,
   ctx,
   defaultValue = untrack(() => props.a === void 0) ? side('a') : void 0,
@@ -103,6 +103,7 @@ export default (
   ctx.scheduler.notify(content2);
   return el0;
 };
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_title_segment_0_2f0r0xivypjmx.js (ENTRY POINT)==
 
 export const component_title_segment_0_2f0r0xivypjmx = (fallback) => {

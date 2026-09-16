@@ -37,7 +37,7 @@ const q_component_content_segment_3_18523gi7fg5bn = /*#__PURE__*/ _qrlWithChunk(
   'component_content_segment_3_18523gi7fg5bn'
 );
 const default_tmpl0 = _createElementTemplate('<main><!><!><!><!></main>');
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const count = useSignal(0);
   const content = q_component_jsx_segment_0_38vnjku9rukc6.w([count]);
   const alias = content;
@@ -68,6 +68,7 @@ export default (props, ctx) => {
   ctx.scheduler.notify(content1);
   return el0;
 };
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
 
 import { _captures, _first, setEvent, createTextNodeEffect, createTemplate } from '@qwik.dev/core';

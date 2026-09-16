@@ -337,7 +337,8 @@ export function computeTotals(graph: QwikManifest['bundles']): void {
  * Compiler segment symbol grammar: `<display>_segment_<n>_<hash>`, plus the semantic-lowered
  * `semantic_<kind>_<lo>_<hi>_<hash>` collection/expression segments.
  */
-const LIBRARY_SEGMENT_SYMBOL = /(_segment_\d+|^semantic_[a-zA-Z]+_\d+_\d+)_[a-z0-9]{8,}$/;
+const LIBRARY_SEGMENT_SYMBOL =
+  /(_segment_\d+|_component|^semantic_[a-zA-Z]+_\d+_\d+)_[a-z0-9]{8,}$/;
 
 /**
  * Generates the Qwik build manifest from the Rollup output bundles. It also figures out the bundle

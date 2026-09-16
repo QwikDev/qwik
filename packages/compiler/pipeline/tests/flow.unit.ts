@@ -297,7 +297,7 @@ export default function App() {
         isServer: true,
       });
       expect(output.diagnostics).toEqual([]);
-      expect(output.modules[0].code).toContain('const Child = (props, ctx) =>');
+      expect(output.modules[0].code).toContain('const Child = _markComponent((props, ctx) =>');
       expect(output.modules[0].code).not.toContain('export const Child');
       if (exports !== '') {
         expect(output.modules[0].code).toContain(exports);

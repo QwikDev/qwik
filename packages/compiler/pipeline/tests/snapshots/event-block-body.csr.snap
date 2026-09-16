@@ -41,7 +41,7 @@ export const Button = (props, ctx) => {
   ctx.scheduler.waitFor(effect0.run());
   return el0;
 };
-export default (props0, ctx) => {
+export const default_component_3rg6kq1so9aio = (props0, ctx) => {
   const count = useSignal(0);
   const component0 = createComponent(
     Button,
@@ -50,6 +50,9 @@ export default (props0, ctx) => {
   );
   return component0;
 };
+export default default_component_3rg6kq1so9aio;
+
+export { Button as Button_component_12fjhbonwyrlb };
 ============================= src/component.tsx_component_onClickqrl_segment_0_3rzjkie0i362z.js (ENTRY POINT)==
 
 export const component_onClickqrl_segment_0_3rzjkie0i362z = (props) => {

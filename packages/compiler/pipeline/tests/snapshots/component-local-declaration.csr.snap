@@ -30,12 +30,15 @@ const Child = (props, ctx) => {
   ctx.scheduler.notify(effect0);
   return el0;
 };
-export default (props0, ctx) => {
+export const default_component_3rg6kq1so9aio = (props0, ctx) => {
   const el0 = default_tmpl0(ctx.document);
   const component0 = createComponent(Child, { label: 'child' }, ctx);
   _first(el0).replaceWith(..._toNodes(component0));
   return el0;
 };
+export default default_component_3rg6kq1so9aio;
+
+export { Child as Child_component_syc3erfxihm7 };
 == CSR DIAGNOSTICS ==
 
 []

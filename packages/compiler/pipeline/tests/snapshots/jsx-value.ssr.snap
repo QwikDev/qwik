@@ -21,6 +21,7 @@ import {
   renderSsrTextNode,
   _noopQrl,
   renderSsrDynamicContent,
+  _markComponent,
 } from '@qwik.dev/core';
 const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
   const [count] = _captures;
@@ -60,44 +61,49 @@ q_component_content_segment_3_18523gi7fg5bn.s(component_content_segment_3_18523g
 const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ _noopQrl(
   'component_q_e_click_segment_1_2xwyfnber1kpg'
 );
-export default (props, ctx) => {
-  const count = useSignal(0);
-  const content = q_component_jsx_segment_0_38vnjku9rukc6.w([count]);
-  const alias = content;
-  const id0 = ctx.nextId();
-  ctx.addRoot(alias);
-  const content0 = renderSsrContent(
-    ctx,
-    id0,
-    [],
-    q_component_content_segment_2_185232h3im3b4.w([alias]),
-    false,
-    true
-  );
-  const id1 = ctx.nextId();
-  ctx.addRoot(content);
-  const content1 = renderSsrContent(
-    ctx,
-    id1,
-    [],
-    q_component_content_segment_3_18523gi7fg5bn.w([content]),
-    false,
-    true
-  );
-  return maybeThen(content0, (content0) =>
-    maybeThen(content1, (content1) => [
-      '<main><!d=',
-      createSsrNodeId(id0),
-      '>',
-      content0,
-      '<!/d><!d=',
-      createSsrNodeId(id1),
-      '>',
-      content1,
-      '<!/d></main>',
-    ])
-  );
-};
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    const count = useSignal(0);
+    const content = q_component_jsx_segment_0_38vnjku9rukc6.w([count]);
+    const alias = content;
+    const id0 = ctx.nextId();
+    ctx.addRoot(alias);
+    const content0 = renderSsrContent(
+      ctx,
+      id0,
+      [],
+      q_component_content_segment_2_185232h3im3b4.w([alias]),
+      false,
+      true
+    );
+    const id1 = ctx.nextId();
+    ctx.addRoot(content);
+    const content1 = renderSsrContent(
+      ctx,
+      id1,
+      [],
+      q_component_content_segment_3_18523gi7fg5bn.w([content]),
+      false,
+      true
+    );
+    return maybeThen(content0, (content0) =>
+      maybeThen(content1, (content1) => [
+        '<main><!d=',
+        createSsrNodeId(id0),
+        '>',
+        content0,
+        '<!/d><!d=',
+        createSsrNodeId(id1),
+        '>',
+        content1,
+        '<!/d></main>',
+      ])
+    );
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
 
 import {

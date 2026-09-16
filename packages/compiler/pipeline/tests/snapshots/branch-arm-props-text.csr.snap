@@ -25,7 +25,7 @@ const q_component_branch_then_segment_1_24n7blyqktd46 = /*#__PURE__*/ _qrlWithCh
   'component_branch_then_segment_1_24n7blyqktd46'
 );
 const default_tmpl0 = _createElementTemplate('<div><!><!></div>');
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const el0 = default_tmpl0(ctx.document);
   const start0 = _first(el0);
   const end0 = _next(start0);
@@ -39,6 +39,7 @@ export default (props, ctx) => {
   ctx.scheduler.notify(branch0);
   return el0;
 };
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';

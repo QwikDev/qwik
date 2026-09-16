@@ -25,6 +25,7 @@ import {
   isSource,
   renderSsrTextNode,
   maybeThen,
+  _markComponent,
 } from '@qwik.dev/core';
 import { Imported } from './imported';
 function Body(props, ctx) {
@@ -40,23 +41,30 @@ function Body(props, ctx) {
     '</p>',
   ]);
 }
-const plain = (props, ctx) => {
-  const id0 = ctx.nextId();
-  const prop0 = propSource(props, 'x');
-  isSource(prop0) && ctx.addRoot(prop0);
-  const text0 = renderSsrTextNode(id0, null, prop0);
-  return maybeThen(text0, (text0) => [
-    '<i q:id="',
-    createSsrNodeId(id0),
-    '">',
-    escapeHTML(text0),
-    '</i>',
-  ]);
-};
+_markComponent(Body, 'Body_component_3fvssuocvtjmf', './component.tsx');
+const plain = _markComponent(
+  (props, ctx) => {
+    const id0 = ctx.nextId();
+    const prop0 = propSource(props, 'x');
+    isSource(prop0) && ctx.addRoot(prop0);
+    const text0 = renderSsrTextNode(id0, null, prop0);
+    return maybeThen(text0, (text0) => [
+      '<i q:id="',
+      createSsrNodeId(id0),
+      '">',
+      escapeHTML(text0),
+      '</i>',
+    ]);
+  },
+  'plain_component_3f8zmel10yhqp',
+  './component.tsx'
+);
 export const App = component$(Body);
 export const Marked = component$(plain);
 export const Wrapped = component$(Imported);
 export const Lazy = componentQrl(qrl(() => import('./body'), 'Body'));
+
+export { Body as Body_component_3fvssuocvtjmf, plain as plain_component_3f8zmel10yhqp };
 == SSR DIAGNOSTICS ==
 
 []

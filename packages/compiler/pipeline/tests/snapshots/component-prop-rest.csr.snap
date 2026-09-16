@@ -38,7 +38,7 @@ export const Child = (props, ctx) => {
   ctx.scheduler.waitFor(maybeThen(createSlot(), (slot0) => marker0.replaceWith(...slot0)));
   return el0;
 };
-export default (props0, ctx) => {
+export const default_component_3rg6kq1so9aio = (props0, ctx) => {
   const rest = createPropsProxy(props0, ['children', 'title']);
   const slotScope0 = createSlotScope();
   forwardSlot(slotScope0);
@@ -50,6 +50,9 @@ export default (props0, ctx) => {
   );
   return component0;
 };
+export default default_component_3rg6kq1so9aio;
+
+export { Child as Child_component_syc3erfxihm7 };
 ============================= src/component.tsx_component_props_segment_0_208o16glymg7p.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';

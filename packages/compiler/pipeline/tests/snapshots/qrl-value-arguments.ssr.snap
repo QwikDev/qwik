@@ -70,6 +70,7 @@ import {
   getActiveInvokeContextOrNull,
   invoke,
   renderSsrDynamicContent,
+  _markComponent,
 } from '@qwik.dev/core';
 import { config } from './config';
 function tick() {
@@ -77,36 +78,41 @@ function tick() {
 }
 export const greeting = q_component_qrl_segment_0_2fpowujm1ejve;
 export const settings = q_component_qrl_segment_1_2fpox8kpy8lvx;
-export default (props, ctx) => {
-  const invokeCtx0 = getActiveInvokeContextOrNull();
-  const count = useSignal(1);
-  useTaskQrl(q_component_useTaskqrl_segment_2_1og81asunhx6e);
-  const later = q_component_later_segment_3_3i4odul1ji17c;
-  const snapshot = q_component_snapshot_segment_4_98oramdy0zcr.w([count]);
-  return maybeThen(ctx.scheduler.flush(), () =>
-    invoke(invokeCtx0, () => {
-      const id0 = ctx.nextId();
-      ctx.addRoot(count);
-      const content0 = renderSsrContent(
-        ctx,
-        id0,
-        [],
-        q_linked_content_0_3641q2pvcvlmq.w([count]),
-        false,
-        true
-      );
-      return maybeThen(content0, (content0) => [
-        '<button',
-        ctx.eventAttrParts('q-e:click', later),
-        '><!d=',
-        createSsrNodeId(id0),
-        '>',
-        content0,
-        '<!/d></button>',
-      ]);
-    })
-  );
-};
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    const invokeCtx0 = getActiveInvokeContextOrNull();
+    const count = useSignal(1);
+    useTaskQrl(q_component_useTaskqrl_segment_2_1og81asunhx6e);
+    const later = q_component_later_segment_3_3i4odul1ji17c;
+    const snapshot = q_component_snapshot_segment_4_98oramdy0zcr.w([count]);
+    return maybeThen(ctx.scheduler.flush(), () =>
+      invoke(invokeCtx0, () => {
+        const id0 = ctx.nextId();
+        ctx.addRoot(count);
+        const content0 = renderSsrContent(
+          ctx,
+          id0,
+          [],
+          q_linked_content_0_3641q2pvcvlmq.w([count]),
+          false,
+          true
+        );
+        return maybeThen(content0, (content0) => [
+          '<button',
+          ctx.eventAttrParts('q-e:click', later),
+          '><!d=',
+          createSsrNodeId(id0),
+          '>',
+          content0,
+          '<!/d></button>',
+        ]);
+      })
+    );
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
 
 export { tick as __qwik_tick };
 ============================= src/component.tsx_component_qrl_segment_0_2fpowujm1ejve.js (ENTRY POINT)==

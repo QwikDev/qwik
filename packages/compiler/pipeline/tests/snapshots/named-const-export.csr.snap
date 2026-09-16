@@ -15,6 +15,8 @@ export const App = (props, ctx) => {
   const el0 = App_tmpl0(ctx.document);
   return el0;
 };
+
+export { App as App_component_d9hqa5uju2ca };
 == CSR DIAGNOSTICS ==
 
 []

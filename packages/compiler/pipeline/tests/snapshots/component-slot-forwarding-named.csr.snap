@@ -38,12 +38,15 @@ export const Wrapper = (props, ctx) => {
   const component0 = createComponent(Inner, null, ctx, { slotScope: slotScope0 });
   return component0;
 };
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const slotScope0 = createSlotScope();
   registerProjection(slotScope0, 'heading', q_component_slot_render_segment_0_3b0tagwys7lui);
   const component0 = createComponent(Wrapper, null, ctx, { slotScope: slotScope0 });
   return component0;
 };
+export default default_component_3rg6kq1so9aio;
+
+export { Inner as Inner_component_4pzhs2ajjr75, Wrapper as Wrapper_component_1yrb0pezcavja };
 ============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
 
 import { _createElementTemplate } from '@qwik.dev/core';

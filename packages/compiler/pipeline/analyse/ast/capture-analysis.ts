@@ -41,16 +41,19 @@ export function collectCaptures(
   let other: string | null = null;
   let capturedWrite: CollectedCaptures['capturedWrite'] = null;
   for (const { node: current, binding, role, isWrite } of ctx.bindings.freeReferences(node)) {
-    // A component tag cannot be captured; a member tag's root and an alias tag are value reads.
-    const isComponentTag =
+    // A module component tag is a reference and a local value alias is captured, but a function
+    // declared in the body has no QRL to serialize as.
+    const isTag =
       current.type === 'JSXIdentifier' &&
-      ctx.bindings.parentOf(current)?.type !== 'JSXMemberExpression' &&
-      ctx.locals.get(binding)?.kind !== LocalKind.PropMember;
-    if (isComponentTag && ctx.locals.has(binding) && !localBindings.has(binding)) {
+      ctx.bindings.parentOf(current)?.type !== 'JSXMemberExpression';
+    if (isTag && !ctx.locals.has(binding)) {
+      continue;
+    }
+    if (isTag && !localBindings.has(binding) && declaresFunction(ctx, binding)) {
       other ??= current.name;
       continue;
     }
-    if (isComponentTag || localBindings.has(binding)) {
+    if (localBindings.has(binding)) {
       continue;
     }
     const name = current.type === 'ThisExpression' ? 'this' : current.name;
@@ -89,6 +92,17 @@ export function collectCaptures(
     }
   }
   return { propsReads, locals, moduleReads, other, capturedWrite };
+}
+
+function declaresFunction(ctx: LowerContext, binding: LocalId): boolean {
+  return ctx.bindings.declarationsOf(binding).some((node) => {
+    const value = node.type === 'VariableDeclarator' ? node.init : node;
+    return (
+      value?.type === 'FunctionDeclaration' ||
+      value?.type === 'ArrowFunctionExpression' ||
+      value?.type === 'FunctionExpression'
+    );
+  });
 }
 
 export interface LoweredCaptures {

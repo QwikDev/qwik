@@ -22,6 +22,7 @@ import {
   createSsrOpenTag,
   maybeThen,
   _noopQrl,
+  _markComponent,
 } from '@qwik.dev/core';
 const component_props_segment_1_208o0sfi1se76 = (attrs, box, props) => {
   return {
@@ -39,26 +40,31 @@ q_component_props_segment_1_208o0sfi1se76.s(component_props_segment_1_208o0sfi1s
 const q_component_q_e_click_segment_0_2xwyg1cinvmpz = /*#__PURE__*/ _noopQrl(
   'component_q_e_click_segment_0_2xwyg1cinvmpz'
 );
-export default (props, ctx) => {
-  const attrs = useSignal({ class: 'last' });
-  const box = useSignal();
-  const id0 = ctx.nextId();
-  ctx.addRoot(attrs);
-  ctx.addRoot(box);
-  ctx.addRoot(props);
-  const domProps0 = renderSsrProps(
-    id0,
-    [attrs, box, props],
-    q_component_props_segment_1_208o0sfi1se76,
-    ctx.eventAttr
-  );
-  return maybeThen(domProps0, (domProps0) => [
-    (domProps0.ref === undefined || ctx.setRef(domProps0.ref, id0), ''),
-    createSsrOpenTag('<div q:id="', createSsrNodeId(id0), '"', ...domProps0.attrs, '>'),
-    domProps0.innerHTML ?? ['child'],
-    '</div>',
-  ]);
-};
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    const attrs = useSignal({ class: 'last' });
+    const box = useSignal();
+    const id0 = ctx.nextId();
+    ctx.addRoot(attrs);
+    ctx.addRoot(box);
+    ctx.addRoot(props);
+    const domProps0 = renderSsrProps(
+      id0,
+      [attrs, box, props],
+      q_component_props_segment_1_208o0sfi1se76,
+      ctx.eventAttr
+    );
+    return maybeThen(domProps0, (domProps0) => [
+      (domProps0.ref === undefined || ctx.setRef(domProps0.ref, id0), ''),
+      createSsrOpenTag('<div q:id="', createSsrNodeId(id0), '"', ...domProps0.attrs, '>'),
+      domProps0.innerHTML ?? ['child'],
+      '</div>',
+    ]);
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';

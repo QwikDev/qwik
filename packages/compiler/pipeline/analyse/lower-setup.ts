@@ -304,11 +304,17 @@ function aliasSource(expression: Expression, ctx: LowerContext): AliasSource | n
       ? null
       : { read: { kind: ValueIrKind.BindingRead, binding }, root: binding, access };
   }
-  if (expression.type !== 'MemberExpression' || expression.computed || expression.optional) {
+  if (expression.type !== 'MemberExpression' || expression.optional) {
     return null;
   }
-  const name = identifierName(expression.property);
-  if (name === null) {
+  // A literal index (`list.value[0]`) is as live as a named member.
+  const key = expression.computed ? unwrapExpression(expression.property) : null;
+  const index =
+    key?.type === 'Literal' && (typeof key.value === 'string' || typeof key.value === 'number')
+      ? key.value
+      : null;
+  const name = expression.computed ? null : identifierName(expression.property);
+  if (name === null && index === null) {
     return null;
   }
   const object = unwrapExpression(expression.object);
@@ -321,9 +327,14 @@ function aliasSource(expression: Expression, ctx: LowerContext): AliasSource | n
     };
   }
   const source = aliasSource(object, ctx);
-  return source === null
-    ? null
-    : { ...source, read: { kind: ValueIrKind.Member, obj: source.read, name } };
+  if (source === null) {
+    return null;
+  }
+  const read: ValueIR =
+    name === null
+      ? { kind: ValueIrKind.Index, obj: source.read, key: { kind: ValueIrKind.Lit, value: index! } }
+      : { kind: ValueIrKind.Member, obj: source.read, name };
+  return { ...source, read };
 }
 
 /** `const x = props.y` and `const { a, b: c } = store` register live aliases; true when handled. */

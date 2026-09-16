@@ -165,6 +165,12 @@ export const Maybe = (props, ctx) => {
   const el0 = Maybe_tmpl0(ctx.document);
   return el0;
 };
+
+export {
+  Clicker as Clicker_component_11xdpjgo2tylm,
+  Counter as Counter_component_3h2q15ekklxzt,
+  Maybe as Maybe_component_azuodhr1u2pp,
+};
 ============================= src/component.tsx_component_qrl_segment_0_2fpowujm1ejve.js (ENTRY POINT)==
 
 export const component_qrl_segment_0_2fpowujm1ejve = () => {

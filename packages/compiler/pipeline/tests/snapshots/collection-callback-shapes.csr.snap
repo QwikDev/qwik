@@ -50,7 +50,7 @@ import { component_for_key_segment_11_2jg8lq0d77hfa } from './component.tsx_comp
 function renderDeclared(row) {
   return q_component_jsx_segment_0_38vnjku9rukc6.w([row]);
 }
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const rows = useSignal([1]);
   const renderLocal = (row) => q_component_jsx_segment_2_38vniss1y6gb4.w([row]);
   const el0 = default_tmpl0(ctx.document);
@@ -98,6 +98,7 @@ export default (props, ctx) => {
   );
   return el0;
 };
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
 
 import {

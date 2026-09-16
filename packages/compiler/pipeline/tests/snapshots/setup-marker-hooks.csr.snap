@@ -48,7 +48,7 @@ import { useCustom$ } from './hooks';
 export const useLocalQrl = (qrl) => qrl;
 export const useLocal = (fn) => fn;
 export const useLocal$ = implicit$FirstArg(useLocalQrl);
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const invokeCtx0 = getActiveInvokeContextOrNull();
   const count = useSignal(1);
   const read = q_component_read_segment_0_1zbzildyw5vrf.w([count]);
@@ -68,6 +68,7 @@ export default (props, ctx) => {
     })
   );
 };
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_read_segment_0_1zbzildyw5vrf.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';

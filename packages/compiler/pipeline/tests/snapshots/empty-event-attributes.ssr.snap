@@ -18,6 +18,7 @@ import {
   isSource,
   renderSsrTextNode,
   maybeThen,
+  _markComponent,
   useSignal,
   createPropsProxy,
   useComputedQrl,
@@ -33,29 +34,40 @@ const q_component_props_segment_0_208o16glymg7p = /*#__PURE__*/ _noopQrl(
   'component_props_segment_0_208o16glymg7p'
 );
 q_component_props_segment_0_208o16glymg7p.s(component_props_segment_0_208o16glymg7p);
-export const Child = (props, ctx) => {
-  const id0 = ctx.nextId();
-  const prop0 = propSource(props, 'title');
-  isSource(prop0) && ctx.addRoot(prop0);
-  const text0 = renderSsrTextNode(id0, null, prop0);
-  return maybeThen(text0, (text0) => [
-    '<button q:id="',
-    createSsrNodeId(id0),
-    '">',
-    escapeHTML(text0),
-    '</button>',
-  ]);
-};
-export default (props0, ctx) => {
-  const attributes = useSignal({ title: 'save' });
-  ctx.addRoot(attributes);
-  const component0 = createComponent(
-    Child,
-    createPropsProxy(useComputedQrl(q_component_props_segment_0_208o16glymg7p.w([attributes]))),
-    ctx
-  );
-  return component0;
-};
+export const Child = _markComponent(
+  (props, ctx) => {
+    const id0 = ctx.nextId();
+    const prop0 = propSource(props, 'title');
+    isSource(prop0) && ctx.addRoot(prop0);
+    const text0 = renderSsrTextNode(id0, null, prop0);
+    return maybeThen(text0, (text0) => [
+      '<button q:id="',
+      createSsrNodeId(id0),
+      '">',
+      escapeHTML(text0),
+      '</button>',
+    ]);
+  },
+  'Child_component_syc3erfxihm7',
+  './component.tsx'
+);
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props0, ctx) => {
+    const attributes = useSignal({ title: 'save' });
+    ctx.addRoot(attributes);
+    const component0 = createComponent(
+      Child,
+      createPropsProxy(useComputedQrl(q_component_props_segment_0_208o16glymg7p.w([attributes]))),
+      ctx
+    );
+    return component0;
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
+
+export { Child as Child_component_syc3erfxihm7 };
 ============================= src/component.tsx_component_props_segment_0_208o16glymg7p.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';

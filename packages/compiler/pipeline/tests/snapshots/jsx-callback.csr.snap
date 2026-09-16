@@ -65,6 +65,8 @@ export default function App(props, ctx) {
     })
   );
 }
+
+export { App as default_component_3rg6kq1so9aio };
 ============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
 
 import {

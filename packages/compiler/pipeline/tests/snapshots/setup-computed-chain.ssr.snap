@@ -25,6 +25,7 @@ import {
   renderSsrTextNode,
   maybeThen,
   _noopQrl,
+  _markComponent,
 } from '@qwik.dev/core';
 const component_doubled_segment_0_2yvob8vshk72o = () => {
   const [count] = _captures;
@@ -46,27 +47,32 @@ q_component_label_segment_1_871sx3hwa26q.s(component_label_segment_1_871sx3hwa26
 const q_component_q_e_click_segment_2_2xwygteqhjqr1 = /*#__PURE__*/ _noopQrl(
   'component_q_e_click_segment_2_2xwygteqhjqr1'
 );
-export default (props, ctx) => {
-  const count = useSignal(1);
-  const doubled = useComputedQrl(q_component_doubled_segment_0_2yvob8vshk72o.w([count]));
-  const label = useComputedQrl(q_component_label_segment_1_871sx3hwa26q.w([doubled, props]));
-  const id0 = ctx.nextId();
-  ctx.addRoot(label);
-  const attr0 = renderSsrAttr(id0, 'title', label);
-  const text0 = renderSsrTextNode(id0, null, label);
-  return maybeThen(attr0, (attr0) =>
-    maybeThen(text0, (text0) => [
-      '<button q:id="',
-      createSsrNodeId(id0),
-      '"',
-      attr0 === null ? '' : ' title' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
-      ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_2_2xwygteqhjqr1.w([count])),
-      '>',
-      escapeHTML(text0),
-      '</button>',
-    ])
-  );
-};
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    const count = useSignal(1);
+    const doubled = useComputedQrl(q_component_doubled_segment_0_2yvob8vshk72o.w([count]));
+    const label = useComputedQrl(q_component_label_segment_1_871sx3hwa26q.w([doubled, props]));
+    const id0 = ctx.nextId();
+    ctx.addRoot(label);
+    const attr0 = renderSsrAttr(id0, 'title', label);
+    const text0 = renderSsrTextNode(id0, null, label);
+    return maybeThen(attr0, (attr0) =>
+      maybeThen(text0, (text0) => [
+        '<button q:id="',
+        createSsrNodeId(id0),
+        '"',
+        attr0 === null ? '' : ' title' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
+        ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_2_2xwygteqhjqr1.w([count])),
+        '>',
+        escapeHTML(text0),
+        '</button>',
+      ])
+    );
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_doubled_segment_0_2yvob8vshk72o.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';

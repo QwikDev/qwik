@@ -25,6 +25,7 @@ import {
   maybeThen,
   _noopQrl,
   renderSsrDynamicContent,
+  _markComponent,
 } from '@qwik.dev/core';
 const component_count_segment_0_1adkz2bcpjjfs = () => {
   const [start] = _captures;
@@ -64,44 +65,49 @@ const q_component_text_segment_3_1fh11lewq6qgx = /*#__PURE__*/ _noopQrl(
   'component_text_segment_3_1fh11lewq6qgx'
 );
 q_component_text_segment_3_1fh11lewq6qgx.s(component_text_segment_3_1fh11lewq6qgx);
-export default (props, ctx) => {
-  const start = useSignal(5);
-  const count = useSerializerQrl(q_component_count_segment_0_1adkz2bcpjjfs.w([start]));
-  const date = useSerializerQrl(q_component_date_segment_1_89fc8zvxt5qk);
-  const id0 = ctx.nextId();
-  ctx.addRoot(count);
-  const content0 = renderSsrContent(
-    ctx,
-    id0,
-    [],
-    q_component_text_segment_2_1fh117dstcoge.w([count]),
-    false,
-    true
-  );
-  const id1 = ctx.nextId();
-  ctx.addRoot(date);
-  const content1 = renderSsrContent(
-    ctx,
-    id1,
-    [],
-    q_component_text_segment_3_1fh11lewq6qgx.w([date]),
-    false,
-    true
-  );
-  return maybeThen(content0, (content0) =>
-    maybeThen(content1, (content1) => [
-      '<span><!d=',
-      createSsrNodeId(id0),
-      '>',
-      content0,
-      '<!/d><!d=',
-      createSsrNodeId(id1),
-      '>',
-      content1,
-      '<!/d></span>',
-    ])
-  );
-};
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    const start = useSignal(5);
+    const count = useSerializerQrl(q_component_count_segment_0_1adkz2bcpjjfs.w([start]));
+    const date = useSerializerQrl(q_component_date_segment_1_89fc8zvxt5qk);
+    const id0 = ctx.nextId();
+    ctx.addRoot(count);
+    const content0 = renderSsrContent(
+      ctx,
+      id0,
+      [],
+      q_component_text_segment_2_1fh117dstcoge.w([count]),
+      false,
+      true
+    );
+    const id1 = ctx.nextId();
+    ctx.addRoot(date);
+    const content1 = renderSsrContent(
+      ctx,
+      id1,
+      [],
+      q_component_text_segment_3_1fh11lewq6qgx.w([date]),
+      false,
+      true
+    );
+    return maybeThen(content0, (content0) =>
+      maybeThen(content1, (content1) => [
+        '<span><!d=',
+        createSsrNodeId(id0),
+        '>',
+        content0,
+        '<!/d><!d=',
+        createSsrNodeId(id1),
+        '>',
+        content1,
+        '<!/d></span>',
+      ])
+    );
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_count_segment_0_1adkz2bcpjjfs.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';

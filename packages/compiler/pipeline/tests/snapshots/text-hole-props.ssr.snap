@@ -15,21 +15,27 @@ import {
   isSource,
   renderSsrTextNode,
   maybeThen,
+  _markComponent,
 } from '@qwik.dev/core';
 
-export default (props, ctx) => {
-  const id0 = ctx.nextId();
-  const prop0 = propSource(props, 'title');
-  isSource(prop0) && ctx.addRoot(prop0);
-  const text0 = renderSsrTextNode(id0, null, prop0);
-  return maybeThen(text0, (text0) => [
-    '<p q:id="',
-    createSsrNodeId(id0),
-    '">',
-    escapeHTML(text0),
-    '</p>',
-  ]);
-};
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    const id0 = ctx.nextId();
+    const prop0 = propSource(props, 'title');
+    isSource(prop0) && ctx.addRoot(prop0);
+    const text0 = renderSsrTextNode(id0, null, prop0);
+    return maybeThen(text0, (text0) => [
+      '<p q:id="',
+      createSsrNodeId(id0),
+      '">',
+      escapeHTML(text0),
+      '</p>',
+    ]);
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
 == SSR DIAGNOSTICS ==
 
 []

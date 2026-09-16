@@ -16,6 +16,7 @@ import {
   createSsrNodeId,
   maybeThen,
   _noopQrl,
+  _markComponent,
 } from '@qwik.dev/core';
 const component_for_render_segment_0_asyt89wzo2d3 = () => {
   return '<li q:row>Item</li>';
@@ -31,28 +32,33 @@ const q_component_for_key_segment_1_24ursak4wzpxf = /*#__PURE__*/ _noopQrl(
   'component_for_key_segment_1_24ursak4wzpxf'
 );
 q_component_for_key_segment_1_24ursak4wzpxf.s(component_for_key_segment_1_24ursak4wzpxf);
-export default (props, ctx) => {
-  const items = useSignal([{ id: 'a' }]);
-  const collectionId0 = ctx.nextId();
-  ctx.addRoot(items);
-  const collection0 = renderSsrCollection(
-    ctx,
-    collectionId0,
-    items,
-    q_component_for_key_segment_1_24ursak4wzpxf,
-    q_component_for_render_segment_0_asyt89wzo2d3,
-    0,
-    false,
-    0
-  );
-  return maybeThen(collection0, (collection0) => [
-    '<ul><!f=',
-    createSsrNodeId(collectionId0),
-    '>',
-    collection0,
-    '<!/f></ul>',
-  ]);
-};
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    const items = useSignal([{ id: 'a' }]);
+    const collectionId0 = ctx.nextId();
+    ctx.addRoot(items);
+    const collection0 = renderSsrCollection(
+      ctx,
+      collectionId0,
+      items,
+      q_component_for_key_segment_1_24ursak4wzpxf,
+      q_component_for_render_segment_0_asyt89wzo2d3,
+      0,
+      false,
+      0
+    );
+    return maybeThen(collection0, (collection0) => [
+      '<ul><!f=',
+      createSsrNodeId(collectionId0),
+      '>',
+      collection0,
+      '<!/f></ul>',
+    ]);
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_for_render_segment_0_asyt89wzo2d3.js (ENTRY POINT)==
 
 export const component_for_render_segment_0_asyt89wzo2d3 = () => {

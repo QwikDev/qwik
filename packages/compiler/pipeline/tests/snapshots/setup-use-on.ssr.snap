@@ -30,6 +30,7 @@ import {
   renderSsrTextNode,
   maybeThen,
   _noopQrl,
+  _markComponent,
 } from '@qwik.dev/core';
 const component_qrl_segment_0_2fpowujm1ejve = () => {
   const [count] = _captures;
@@ -42,24 +43,29 @@ q_component_qrl_segment_0_2fpowujm1ejve.s(component_qrl_segment_0_2fpowujm1ejve)
 const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ _noopQrl(
   'component_q_e_click_segment_1_2xwyfnber1kpg'
 );
-export default (props, ctx) => {
-  const count = useSignal(0);
-  useOn('click', q_component_qrl_segment_0_2fpowujm1ejve.w([count]), { capture: true });
-  const id0 = ctx.nextId();
-  ctx.addRoot(count);
-  const text0 = renderSsrTextNode(id0, null, count);
-  return maybeThen(text0, (text0) => [
-    createSsrOpenTag(
-      '<button q:id="',
-      createSsrNodeId(id0),
-      '"',
-      ctx.eventAttr('q-e:click', q_component_q_e_click_segment_1_2xwyfnber1kpg.w([count])),
-      '>'
-    ),
-    escapeHTML(text0),
-    '</button>',
-  ]);
-};
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    const count = useSignal(0);
+    useOn('click', q_component_qrl_segment_0_2fpowujm1ejve.w([count]), { capture: true });
+    const id0 = ctx.nextId();
+    ctx.addRoot(count);
+    const text0 = renderSsrTextNode(id0, null, count);
+    return maybeThen(text0, (text0) => [
+      createSsrOpenTag(
+        '<button q:id="',
+        createSsrNodeId(id0),
+        '"',
+        ctx.eventAttr('q-e:click', q_component_q_e_click_segment_1_2xwyfnber1kpg.w([count])),
+        '>'
+      ),
+      escapeHTML(text0),
+      '</button>',
+    ]);
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_qrl_segment_0_2fpowujm1ejve.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';
@@ -124,7 +130,7 @@ export const component_q_e_click_segment_1_2xwyfnber1kpg = () => {
 */
 ============================= src/headless.tsx ==
 
-import { useOnDocument, _noopQrl } from '@qwik.dev/core';
+import { useOnDocument, _noopQrl, _markComponent } from '@qwik.dev/core';
 const headless_qrl_segment_0_1g1rt7jroxou2 = () => {
   return 1;
 };
@@ -132,10 +138,15 @@ const q_headless_qrl_segment_0_1g1rt7jroxou2 = /*#__PURE__*/ _noopQrl(
   'headless_qrl_segment_0_1g1rt7jroxou2'
 );
 q_headless_qrl_segment_0_1g1rt7jroxou2.s(headless_qrl_segment_0_1g1rt7jroxou2);
-export default (props, ctx) => {
-  useOnDocument('scroll', q_headless_qrl_segment_0_1g1rt7jroxou2);
-  return 'headless';
-};
+export const default_component_35p4jjiq8gazo = _markComponent(
+  (props, ctx) => {
+    useOnDocument('scroll', q_headless_qrl_segment_0_1g1rt7jroxou2);
+    return 'headless';
+  },
+  'default_component_35p4jjiq8gazo',
+  './headless.tsx'
+);
+export default default_component_35p4jjiq8gazo;
 ============================= src/headless.tsx_headless_qrl_segment_0_1g1rt7jroxou2.js (ENTRY POINT)==
 
 export const headless_qrl_segment_0_1g1rt7jroxou2 = () => {

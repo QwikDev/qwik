@@ -43,15 +43,23 @@ export function loadDefaultFunction(
         }
         return `${useCurrentRealm ? 'return ' : ''}(${module.code.slice(statement.declaration.start, statement.declaration.end)})`;
       }
-      if (statement.type === 'ExportNamedDeclaration' && statement.declaration !== null) {
-        return module.code.slice(statement.declaration.start, statement.declaration.end);
+      if (statement.type === 'ExportNamedDeclaration') {
+        return statement.declaration === null
+          ? ''
+          : module.code.slice(statement.declaration.start, statement.declaration.end);
       }
       return module.code.slice(statement.start, statement.end);
     })
     .join('\n');
+  // Every component carries its serialization marker; stubs only when the globals lack the words.
+  const sandbox = globals;
+  if (!('_markComponent' in sandbox)) {
+    Object.assign(sandbox, { _markComponent: (fn: unknown) => fn });
+  }
+  // A block scopes the hoisted declarations, so a reused sandbox can evaluate more than once.
   return useCurrentRealm
-    ? compileFunction(script, [], { contextExtensions: [globals] })()
-    : runInNewContext(script, globals);
+    ? compileFunction(`{\n${script}\n}`, [], { contextExtensions: [sandbox] })()
+    : runInNewContext(`{\n${script}\n}`, sandbox);
 }
 
 export function loadChunkFunction(

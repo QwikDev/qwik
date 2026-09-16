@@ -170,6 +170,7 @@ import {
   maybeThen,
   _noopQrl,
   _await as _await0,
+  _markComponent,
 } from '@qwik.dev/core';
 import { register, load } from './consumer';
 export default function App(props, ctx) {
@@ -199,6 +200,9 @@ export default function App(props, ctx) {
     '</output>',
   ]);
 }
+_markComponent(App, 'default_component_3rg6kq1so9aio', './component.tsx');
+
+export { App as default_component_3rg6kq1so9aio };
 ============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
 
 import {

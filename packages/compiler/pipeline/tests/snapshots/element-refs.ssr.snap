@@ -25,6 +25,7 @@ import {
   renderSsrBranch,
   maybeThen,
   _noopQrl,
+  _markComponent,
 } from '@qwik.dev/core';
 const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
   const [show] = _captures;
@@ -46,36 +47,41 @@ const q_component_branch_then_segment_1_24n7blyqktd46 = /*#__PURE__*/ _noopQrl(
   'component_branch_then_segment_1_24n7blyqktd46'
 );
 q_component_branch_then_segment_1_24n7blyqktd46.s(component_branch_then_segment_1_24n7blyqktd46);
-export default (props, ctx) => {
-  const input = useSignal();
-  const show = useSignal(false);
-  const calls = [];
-  const id0 = ctx.nextId();
-  ctx.setRef(input, id0);
-  const id1 = ctx.nextId();
-  ctx.setRef(() => calls.push('ref'), id1);
-  const branchId0 = ctx.nextId();
-  ctx.addRoot(show);
-  ctx.addRoot(calls);
-  const branch0 = renderSsrBranch(
-    ctx,
-    branchId0,
-    q_component_branch_condition_segment_0_2fzrieu6vlhf9.w([show]),
-    q_component_branch_then_segment_1_24n7blyqktd46.w([calls]),
-    undefined
-  );
-  return maybeThen(branch0, (branch0) => [
-    '<section><input q:id="',
-    createSsrNodeId(id0),
-    '"><div q:id="',
-    createSsrNodeId(id1),
-    '">target</div><!b=',
-    createSsrNodeId(branchId0),
-    '>',
-    branch0,
-    '<!/b></section>',
-  ]);
-};
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    const input = useSignal();
+    const show = useSignal(false);
+    const calls = [];
+    const id0 = ctx.nextId();
+    ctx.setRef(input, id0);
+    const id1 = ctx.nextId();
+    ctx.setRef(() => calls.push('ref'), id1);
+    const branchId0 = ctx.nextId();
+    ctx.addRoot(show);
+    ctx.addRoot(calls);
+    const branch0 = renderSsrBranch(
+      ctx,
+      branchId0,
+      q_component_branch_condition_segment_0_2fzrieu6vlhf9.w([show]),
+      q_component_branch_then_segment_1_24n7blyqktd46.w([calls]),
+      undefined
+    );
+    return maybeThen(branch0, (branch0) => [
+      '<section><input q:id="',
+      createSsrNodeId(id0),
+      '"><div q:id="',
+      createSsrNodeId(id1),
+      '">target</div><!b=',
+      createSsrNodeId(branchId0),
+      '>',
+      branch0,
+      '<!/b></section>',
+    ]);
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';

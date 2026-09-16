@@ -31,6 +31,7 @@ import {
   maybeThen,
   createSsrMarkup,
   _noopQrl,
+  _markComponent,
 } from '@qwik.dev/core';
 
 const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
@@ -75,69 +76,74 @@ const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_2_3b0t9ouqyjhtg'
 );
 q_component_slot_render_segment_2_3b0t9ouqyjhtg.s(component_slot_render_segment_2_3b0t9ouqyjhtg);
-export default (props, ctx) => {
-  const Heading = 'h2';
-  const Alias = Badge;
-  const slotScope0 = createSlotScope();
-  registerProjection(slotScope0, '', q_component_slot_render_segment_0_3b0tagwys7lui);
-  ctx.addRoot(slotScope0);
-  const component0 = createComponent(
-    (props0) => renderSsrDynamicTag(Heading, props0, ctx),
-    { class: 'title' },
-    ctx,
-    { slotScope: slotScope0 }
-  );
-  const component1 = createComponent(Alias, null, ctx);
-  const id0 = ctx.nextId();
-  ctx.addRoot(props);
-  const content0 = renderSsrContent(
-    ctx,
-    id0,
-    [],
-    q_component_tag_dynamic_segment_1_331xdvyxwe5dy.w([props]),
-    false,
-    true
-  );
-  const tag0 = UI.Button;
-  const component2 = createComponent(
-    (props1) => renderSsrDynamicTag(tag0, props1, ctx),
-    { label: 'x' },
-    ctx
-  );
-  const id1 = ctx.nextId();
-  const content1 = renderSsrContent(
-    ctx,
-    id1,
-    [],
-    q_component_tag_dynamic_segment_3_331xd3wq2q1cw.w([props]),
-    false,
-    true
-  );
-  return maybeThen(component0, (component0) =>
-    maybeThen(component1, (component1) =>
-      maybeThen(content0, (content0) =>
-        maybeThen(component2, (component2) =>
-          maybeThen(content1, (content1) => [
-            '<section>',
-            component0,
-            component1,
-            '<!d=',
-            createSsrNodeId(id0),
-            '>',
-            content0,
-            '<!/d>',
-            component2,
-            '<!d=',
-            createSsrNodeId(id1),
-            '>',
-            content1,
-            '<!/d></section>',
-          ])
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    const Heading = 'h2';
+    const Alias = Badge;
+    const slotScope0 = createSlotScope();
+    registerProjection(slotScope0, '', q_component_slot_render_segment_0_3b0tagwys7lui);
+    ctx.addRoot(slotScope0);
+    const component0 = createComponent(
+      (props0) => renderSsrDynamicTag(Heading, props0, ctx),
+      { class: 'title' },
+      ctx,
+      { slotScope: slotScope0 }
+    );
+    const component1 = createComponent(Alias, null, ctx);
+    const id0 = ctx.nextId();
+    ctx.addRoot(props);
+    const content0 = renderSsrContent(
+      ctx,
+      id0,
+      [],
+      q_component_tag_dynamic_segment_1_331xdvyxwe5dy.w([props]),
+      false,
+      true
+    );
+    const tag0 = UI.Button;
+    const component2 = createComponent(
+      (props1) => renderSsrDynamicTag(tag0, props1, ctx),
+      { label: 'x' },
+      ctx
+    );
+    const id1 = ctx.nextId();
+    const content1 = renderSsrContent(
+      ctx,
+      id1,
+      [],
+      q_component_tag_dynamic_segment_3_331xd3wq2q1cw.w([props]),
+      false,
+      true
+    );
+    return maybeThen(component0, (component0) =>
+      maybeThen(component1, (component1) =>
+        maybeThen(content0, (content0) =>
+          maybeThen(component2, (component2) =>
+            maybeThen(content1, (content1) => [
+              '<section>',
+              component0,
+              component1,
+              '<!d=',
+              createSsrNodeId(id0),
+              '>',
+              content0,
+              '<!/d>',
+              component2,
+              '<!d=',
+              createSsrNodeId(id1),
+              '>',
+              content1,
+              '<!/d></section>',
+            ])
+          )
         )
       )
-    )
-  );
-};
+    );
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
 
 import { createSsrMarkup, createSsrNodeId } from '@qwik.dev/core';

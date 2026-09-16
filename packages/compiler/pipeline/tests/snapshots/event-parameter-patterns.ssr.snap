@@ -18,6 +18,7 @@ import {
   createSsrMarkup,
   maybeThen,
   _noopQrl,
+  _markComponent,
   createComponent,
 } from '@qwik.dev/core';
 
@@ -34,37 +35,48 @@ const q_component_q_e_save_segment_1_3krcbiqvmvgft = /*#__PURE__*/ _noopQrl(
 const q_component_q_e_reset_segment_2_3clnjugf9bxli = /*#__PURE__*/ _noopQrl(
   'component_q_e_reset_segment_2_3clnjugf9bxli'
 );
-export const Button = (props, ctx) => {
-  const id0 = ctx.nextId();
-  ctx.addRoot(props);
-  const effect0 = renderSsrEvent(
-    id0,
-    'q-e:click',
-    [props],
-    q_component_onClickqrl_segment_0_3rzjkie0i362z,
-    ctx.eventAttr
-  );
-  return maybeThen(effect0, (effect0) => [
-    '<button q:id="',
-    createSsrNodeId(id0),
-    '"',
-    createSsrMarkup(effect0),
-    '>save</button>',
-  ]);
-};
-export default (props0, ctx) => {
-  const fallback = 'click';
-  ctx.addRoot(fallback);
-  const component0 = createComponent(
-    Button,
-    {
-      onSave$: q_component_q_e_save_segment_1_3krcbiqvmvgft.w([fallback]),
-      onReset$: q_component_q_e_reset_segment_2_3clnjugf9bxli,
-    },
-    ctx
-  );
-  return component0;
-};
+export const Button = _markComponent(
+  (props, ctx) => {
+    const id0 = ctx.nextId();
+    ctx.addRoot(props);
+    const effect0 = renderSsrEvent(
+      id0,
+      'q-e:click',
+      [props],
+      q_component_onClickqrl_segment_0_3rzjkie0i362z,
+      ctx.eventAttr
+    );
+    return maybeThen(effect0, (effect0) => [
+      '<button q:id="',
+      createSsrNodeId(id0),
+      '"',
+      createSsrMarkup(effect0),
+      '>save</button>',
+    ]);
+  },
+  'Button_component_12fjhbonwyrlb',
+  './component.tsx'
+);
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props0, ctx) => {
+    const fallback = 'click';
+    ctx.addRoot(fallback);
+    const component0 = createComponent(
+      Button,
+      {
+        onSave$: q_component_q_e_save_segment_1_3krcbiqvmvgft.w([fallback]),
+        onReset$: q_component_q_e_reset_segment_2_3clnjugf9bxli,
+      },
+      ctx
+    );
+    return component0;
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
+
+export { Button as Button_component_12fjhbonwyrlb };
 ============================= src/component.tsx_component_onClickqrl_segment_0_3rzjkie0i362z.js (ENTRY POINT)==
 
 export const component_onClickqrl_segment_0_3rzjkie0i362z = (props) => {

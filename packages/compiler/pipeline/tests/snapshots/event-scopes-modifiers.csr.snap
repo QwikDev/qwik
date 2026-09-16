@@ -24,7 +24,7 @@ import { component_q_e_click_segment_2_2xwygteqhjqr1 } from './component.tsx_com
 const default_tmpl0 = _createElementTemplate(
   '<div><a href="/x" preventdefault:click stoppropagation:click capture:click>go</a></div>'
 );
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const count = useSignal(0);
   const el0 = default_tmpl0(ctx.document);
   setEvent(el0, 'q-w:dblclick', component_q_w_dblclick_segment_0_tisevbdmqsib, [count]);
@@ -33,6 +33,7 @@ export default (props, ctx) => {
   setEvent(el1, 'q-e:click', component_q_e_click_segment_2_2xwygteqhjqr1, [count]);
   return el0;
 };
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_q_w_dblclick_segment_0_tisevbdmqsib.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';

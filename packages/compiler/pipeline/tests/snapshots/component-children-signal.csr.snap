@@ -34,13 +34,16 @@ export const Wrapper = (props, ctx) => {
   ctx.scheduler.waitFor(maybeThen(createSlot(), (slot0) => marker0.replaceWith(...slot0)));
   return el0;
 };
-export default (props0, ctx) => {
+export const default_component_3rg6kq1so9aio = (props0, ctx) => {
   const count = useSignal(1);
   const slotScope0 = createSlotScope();
   registerProjection(slotScope0, '', q_component_slot_render_segment_0_3b0tagwys7lui.w([count]));
   const component0 = createComponent(Wrapper, null, ctx, { slotScope: slotScope0 });
   return component0;
 };
+export default default_component_3rg6kq1so9aio;
+
+export { Wrapper as Wrapper_component_1yrb0pezcavja };
 ============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
 
 import { _captures, _first, createTextNodeEffect, _createElementTemplate } from '@qwik.dev/core';

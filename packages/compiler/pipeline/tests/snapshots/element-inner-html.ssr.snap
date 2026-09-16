@@ -17,25 +17,37 @@ export default component$(() => {
 
 ============================= src/component.tsx ==
 
-import { useSignal, createSsrNodeId, renderSsrAttr, maybeThen, _noopQrl } from '@qwik.dev/core';
+import {
+  useSignal,
+  createSsrNodeId,
+  renderSsrAttr,
+  maybeThen,
+  _noopQrl,
+  _markComponent,
+} from '@qwik.dev/core';
 const q_component_q_e_click_segment_0_2xwyg1cinvmpz = /*#__PURE__*/ _noopQrl(
   'component_q_e_click_segment_0_2xwyg1cinvmpz'
 );
-export default (props, ctx) => {
-  const markup = useSignal('<i>live</i>');
-  const id0 = ctx.nextId();
-  ctx.addRoot(markup);
-  const attr0 = renderSsrAttr(id0, 'dangerouslySetInnerHTML', markup);
-  return maybeThen(attr0, (attr0) => [
-    '<section><div><span>raw</span></div><p q:id="',
-    createSsrNodeId(id0),
-    '"',
-    ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_0_2xwyg1cinvmpz.w([markup])),
-    '>',
-    attr0 ?? '',
-    '</p></section>',
-  ]);
-};
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    const markup = useSignal('<i>live</i>');
+    const id0 = ctx.nextId();
+    ctx.addRoot(markup);
+    const attr0 = renderSsrAttr(id0, 'dangerouslySetInnerHTML', markup);
+    return maybeThen(attr0, (attr0) => [
+      '<section><div><span>raw</span></div><p q:id="',
+      createSsrNodeId(id0),
+      '"',
+      ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_0_2xwyg1cinvmpz.w([markup])),
+      '>',
+      attr0 ?? '',
+      '</p></section>',
+    ]);
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';

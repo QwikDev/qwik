@@ -25,6 +25,7 @@ import {
   escapeHTML,
   maybeThen,
   _noopQrl,
+  _markComponent,
 } from '@qwik.dev/core';
 const component_class_segment_0_3htuygud1guoj = (active) => {
   return [
@@ -49,37 +50,42 @@ q_component_style_segment_1_cgm3c4qw0vql.s(component_style_segment_1_cgm3c4qw0vq
 const q_component_q_e_click_segment_2_2xwygteqhjqr1 = /*#__PURE__*/ _noopQrl(
   'component_q_e_click_segment_2_2xwygteqhjqr1'
 );
-export default (props, ctx) => {
-  useStylesScoped('.base { color: red }', 'f5nwzpjzm8yb-0', true);
-  const active = useSignal(true);
-  const id0 = ctx.nextId();
-  ctx.addRoot(active);
-  const attr0 = renderSsrAttrExpression(
-    id0,
-    'class',
-    [active],
-    q_component_class_segment_0_3htuygud1guoj,
-    undefined,
-    '⚡️f5nwzpjzm8yb-0'
-  );
-  const attr1 = renderSsrAttrExpression(
-    id0,
-    'style',
-    [active],
-    q_component_style_segment_1_cgm3c4qw0vql
-  );
-  return maybeThen(attr0, (attr0) =>
-    maybeThen(attr1, (attr1) => [
-      '<button q:id="',
-      createSsrNodeId(id0),
-      '"',
-      attr0 === null ? '' : ' class' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
-      attr1 === null ? '' : ' style' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
-      ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_2_2xwygteqhjqr1.w([active])),
-      '></button>',
-    ])
-  );
-};
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    useStylesScoped('.base { color: red }', 'f5nwzpjzm8yb-0', true);
+    const active = useSignal(true);
+    const id0 = ctx.nextId();
+    ctx.addRoot(active);
+    const attr0 = renderSsrAttrExpression(
+      id0,
+      'class',
+      [active],
+      q_component_class_segment_0_3htuygud1guoj,
+      undefined,
+      '⚡️f5nwzpjzm8yb-0'
+    );
+    const attr1 = renderSsrAttrExpression(
+      id0,
+      'style',
+      [active],
+      q_component_style_segment_1_cgm3c4qw0vql
+    );
+    return maybeThen(attr0, (attr0) =>
+      maybeThen(attr1, (attr1) => [
+        '<button q:id="',
+        createSsrNodeId(id0),
+        '"',
+        attr0 === null ? '' : ' class' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
+        attr1 === null ? '' : ' style' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
+        ctx.eventAttrParts('q-e:click', q_component_q_e_click_segment_2_2xwygteqhjqr1.w([active])),
+        '></button>',
+      ])
+    );
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_class_segment_0_3htuygud1guoj.js (ENTRY POINT)==
 
 export const component_class_segment_0_3htuygud1guoj = (active) => {

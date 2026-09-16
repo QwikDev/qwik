@@ -37,7 +37,7 @@ export const Child = (props, ctx) => {
   const el0 = Child_tmpl0(ctx.document);
   return el0;
 };
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const invokeCtx0 = getActiveInvokeContextOrNull();
   const ready = useSignal('pending');
   useTask(_withCaptures(component_useTaskqrl_segment_0_1og80iqmttt5c, [ready]));
@@ -53,6 +53,9 @@ export default (props, ctx) => {
     })
   );
 };
+export default default_component_3rg6kq1so9aio;
+
+export { Child as Child_component_syc3erfxihm7 };
 ============================= src/component.tsx_component_useTaskqrl_segment_0_1og80iqmttt5c.js (ENTRY POINT)==
 
 import { _captures, _await } from '@qwik.dev/core';

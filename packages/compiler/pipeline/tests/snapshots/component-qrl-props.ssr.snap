@@ -21,6 +21,7 @@ export default component$(() => {
 ============================= src/component.tsx ==
 
 import {
+  _markComponent,
   useSignal,
   createComponent,
   _captures,
@@ -92,28 +93,39 @@ const q_component_text_segment_3_1fh11lewq6qgx = /*#__PURE__*/ _noopQrl(
   'component_text_segment_3_1fh11lewq6qgx'
 );
 q_component_text_segment_3_1fh11lewq6qgx.s(component_text_segment_3_1fh11lewq6qgx);
-const Fallback = (props, ctx) => {
-  return '<p>loading</p>';
-};
-export default (props, ctx) => {
-  const count = useSignal(1);
-  const pick = (v) => v.x;
-  ctx.addRoot(pick);
-  ctx.addRoot(count);
-  const component0 = createComponent(
-    Child,
-    {
-      then$: q_component_thenqrl_segment_0_3jr994h4j8ef7.w([pick]),
-      fallback$: q_component_fallbackqrl_segment_1_3grqawftcqexb,
-      render$: q_component_renderqrl_segment_4_5bp3q9cb45d6.w([count]),
-      data$: q_component_dataqrl_segment_5_2mjc43lmu203l.w([count]),
-    },
-    ctx
-  );
-  return component0;
-};
+const Fallback = _markComponent(
+  (props, ctx) => {
+    return '<p>loading</p>';
+  },
+  'Fallback_component_meb6nrkqtu05',
+  './component.tsx'
+);
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    const count = useSignal(1);
+    const pick = (v) => v.x;
+    ctx.addRoot(pick);
+    ctx.addRoot(count);
+    const component0 = createComponent(
+      Child,
+      {
+        then$: q_component_thenqrl_segment_0_3jr994h4j8ef7.w([pick]),
+        fallback$: q_component_fallbackqrl_segment_1_3grqawftcqexb,
+        render$: q_component_renderqrl_segment_4_5bp3q9cb45d6.w([count]),
+        data$: q_component_dataqrl_segment_5_2mjc43lmu203l.w([count]),
+      },
+      ctx
+    );
+    return component0;
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
 
 export { Fallback as __qwik_Fallback };
+
+export { Fallback as Fallback_component_meb6nrkqtu05 };
 ============================= src/component.tsx_component_thenqrl_segment_0_3jr994h4j8ef7.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';

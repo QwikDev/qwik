@@ -32,7 +32,7 @@ const q_component_branch_else_segment_2_19dvu7nugnvkl = /*#__PURE__*/ _qrlWithCh
   'component_branch_else_segment_2_19dvu7nugnvkl'
 );
 const default_tmpl0 = _createElementTemplate('<div><!><!></div>');
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const count = useSignal(1);
   const el0 = default_tmpl0(ctx.document);
   const start0 = _first(el0);
@@ -47,6 +47,7 @@ export default (props, ctx) => {
   ctx.scheduler.notify(branch0);
   return el0;
 };
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';

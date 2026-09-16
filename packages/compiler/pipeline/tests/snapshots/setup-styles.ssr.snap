@@ -26,6 +26,7 @@ export default () => {
 
 import {
   useStylesScoped,
+  _markComponent,
   useStyles,
   useSignal,
   createSsrNodeId,
@@ -72,71 +73,82 @@ const q_component_branch_then_segment_4_24n7dk4a4zn6t = /*#__PURE__*/ _noopQrl(
   'component_branch_then_segment_4_24n7dk4a4zn6t'
 );
 q_component_branch_then_segment_4_24n7dk4a4zn6t.s(component_branch_then_segment_4_24n7dk4a4zn6t);
-export const Child = (props, ctx) => {
-  useStylesScoped(STYLE, 'f5nwzpjzm8yb-0', true);
-  return '<div class="⚡️f5nwzpjzm8yb-0 container">child</div>';
-};
-export default (props, ctx) => {
-  useStyles('.global { color: blue; }', 'f5nwlog2s6xs-1');
-  const scope = useStylesScoped('.local { color: green; }', 'f5nxrrrtaczd-2', true);
-  const active = useSignal(false);
-  const id0 = ctx.nextId();
-  ctx.addRoot(scope);
-  const attr0 = renderSsrAttrExpression(
-    id0,
-    'class',
-    [scope],
-    q_component_class_segment_0_3htuygud1guoj,
-    undefined,
-    '⚡️f5nxrrrtaczd-2'
-  );
-  const id1 = ctx.nextId();
-  ctx.addRoot(active);
-  const attr1 = renderSsrAttrExpression(
-    id1,
-    'class',
-    [active],
-    q_component_class_segment_1_3htuy2t94mso0,
-    undefined,
-    '⚡️f5nxrrrtaczd-2'
-  );
-  const branchId0 = ctx.nextId();
-  const branch0 = renderSsrBranch(
-    ctx,
-    branchId0,
-    q_component_branch_condition_segment_3_2fzrh8qv53bdo.w([active]),
-    q_component_branch_then_segment_4_24n7dk4a4zn6t,
-    undefined
-  );
-  const component0 = createComponent(Child, null, ctx);
-  return maybeThen(attr0, (attr0) =>
-    maybeThen(attr1, (attr1) =>
-      maybeThen(branch0, (branch0) =>
-        maybeThen(component0, (component0) => [
-          '<section q:id="',
-          createSsrNodeId(id0),
-          '"',
-          attr0 === null ? '' : ' class' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
-          '><span class="⚡️f5nxrrrtaczd-2">plain</span><button q:id="',
-          createSsrNodeId(id1),
-          '"',
-          attr1 === null ? '' : ' class' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
-          ctx.eventAttrParts(
-            'q-e:click',
-            q_component_q_e_click_segment_2_2xwygteqhjqr1.w([active])
-          ),
-          '>go</button><!b=',
-          createSsrNodeId(branchId0),
-          '>',
-          branch0,
-          '<!/b>',
-          component0,
-          '</section>',
-        ])
+export const Child = _markComponent(
+  (props, ctx) => {
+    useStylesScoped(STYLE, 'f5nwzpjzm8yb-0', true);
+    return '<div class="⚡️f5nwzpjzm8yb-0 container">child</div>';
+  },
+  'Child_component_syc3erfxihm7',
+  './component.tsx'
+);
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    useStyles('.global { color: blue; }', 'f5nwlog2s6xs-1');
+    const scope = useStylesScoped('.local { color: green; }', 'f5nxrrrtaczd-2', true);
+    const active = useSignal(false);
+    const id0 = ctx.nextId();
+    ctx.addRoot(scope);
+    const attr0 = renderSsrAttrExpression(
+      id0,
+      'class',
+      [scope],
+      q_component_class_segment_0_3htuygud1guoj,
+      undefined,
+      '⚡️f5nxrrrtaczd-2'
+    );
+    const id1 = ctx.nextId();
+    ctx.addRoot(active);
+    const attr1 = renderSsrAttrExpression(
+      id1,
+      'class',
+      [active],
+      q_component_class_segment_1_3htuy2t94mso0,
+      undefined,
+      '⚡️f5nxrrrtaczd-2'
+    );
+    const branchId0 = ctx.nextId();
+    const branch0 = renderSsrBranch(
+      ctx,
+      branchId0,
+      q_component_branch_condition_segment_3_2fzrh8qv53bdo.w([active]),
+      q_component_branch_then_segment_4_24n7dk4a4zn6t,
+      undefined
+    );
+    const component0 = createComponent(Child, null, ctx);
+    return maybeThen(attr0, (attr0) =>
+      maybeThen(attr1, (attr1) =>
+        maybeThen(branch0, (branch0) =>
+          maybeThen(component0, (component0) => [
+            '<section q:id="',
+            createSsrNodeId(id0),
+            '"',
+            attr0 === null ? '' : ' class' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
+            '><span class="⚡️f5nxrrrtaczd-2">plain</span><button q:id="',
+            createSsrNodeId(id1),
+            '"',
+            attr1 === null ? '' : ' class' + (attr1 === '' ? '' : '="' + escapeHTML(attr1) + '"'),
+            ctx.eventAttrParts(
+              'q-e:click',
+              q_component_q_e_click_segment_2_2xwygteqhjqr1.w([active])
+            ),
+            '>go</button><!b=',
+            createSsrNodeId(branchId0),
+            '>',
+            branch0,
+            '<!/b>',
+            component0,
+            '</section>',
+          ])
+        )
       )
-    )
-  );
-};
+    );
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
+
+export { Child as Child_component_syc3erfxihm7 };
 ============================= src/component.tsx_component_class_segment_0_3htuygud1guoj.js (ENTRY POINT)==
 
 export const component_class_segment_0_3htuygud1guoj = (scope) => {

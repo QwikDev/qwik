@@ -46,7 +46,7 @@ export const Wrapper = (props, ctx) => {
   const component0 = createComponent(Inner, null, ctx, { slotScope: slotScope0 });
   return component0;
 };
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const el0 = default_tmpl0(ctx.document);
   const marker0 = _last(el0);
   const slotScope0 = createSlotScope();
@@ -57,6 +57,9 @@ export default (props, ctx) => {
   marker0.replaceWith(..._toNodes(component1));
   return el0;
 };
+export default default_component_3rg6kq1so9aio;
+
+export { Inner as Inner_component_4pzhs2ajjr75, Wrapper as Wrapper_component_1yrb0pezcavja };
 ============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
 
 import { _createElementTemplate } from '@qwik.dev/core';

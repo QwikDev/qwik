@@ -30,7 +30,7 @@ import { component_label_segment_1_871sx3hwa26q } from './component.tsx_componen
 import { component_q_e_click_segment_2_2xwygteqhjqr1 } from './component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1';
 
 const default_tmpl0 = _createElementTemplate('<button> </button>');
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const count = useSignal(1);
   const doubled = useComputed(_withCaptures(component_doubled_segment_0_2yvob8vshk72o, [count]));
   const label = useComputed(
@@ -45,6 +45,7 @@ export default (props, ctx) => {
   ctx.scheduler.notify(effect1);
   return el0;
 };
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_doubled_segment_0_2yvob8vshk72o.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';

@@ -14,12 +14,15 @@ const Child = (props0, ctx) => {
   const fragment0 = Child_tmpl0(ctx.document);
   return [...fragment0.childNodes];
 };
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const fragment0 = default_tmpl0(ctx.document);
   const component0 = createComponent(Child, null, ctx);
   _first(fragment0).replaceWith(..._toNodes(component0));
   return [...fragment0.childNodes];
 };
+export default default_component_3rg6kq1so9aio;
+
+export { Child as Child_component_syc3erfxihm7 };
 == CSR DIAGNOSTICS ==
 
 []

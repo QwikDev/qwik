@@ -29,6 +29,7 @@ import {
   _noopQrl,
   renderSsrAttrExpression,
   escapeHTML,
+  _markComponent,
 } from '@qwik.dev/core';
 const component_branch_condition_segment_0_2fzrieu6vlhf9 = () => {
   const [show] = _captures;
@@ -116,72 +117,77 @@ const q_component_width_segment_4_zbb7nnmt5i2b = /*#__PURE__*/ _noopQrl(
   'component_width_segment_4_zbb7nnmt5i2b'
 );
 q_component_width_segment_4_zbb7nnmt5i2b.s(component_width_segment_4_zbb7nnmt5i2b);
-export default (props, ctx) => {
-  const show = useSignal(false);
-  const branchId0 = ctx.nextId();
-  ctx.addRoot(show);
-  const branch0 = renderSsrBranch(
-    ctx,
-    branchId0,
-    q_component_branch_condition_segment_0_2fzrieu6vlhf9.w([show]),
-    q_component_branch_then_segment_1_24n7blyqktd46,
-    undefined
-  );
-  const prop0 = propSource(props, 'points');
-  isSource(prop0) && ctx.addRoot(prop0);
-  const collectionId0 = ctx.nextId();
-  const collection0 = renderSsrCollection(
-    ctx,
-    collectionId0,
-    prop0,
-    q_component_for_key_segment_3_24urt2mcqntyh,
-    q_component_for_render_segment_2_asyu0c4tc6e5,
-    0,
-    false,
-    0
-  );
-  const branchId1 = ctx.nextId();
-  const branch1 = renderSsrBranch(
-    ctx,
-    branchId1,
-    q_component_branch_condition_segment_5_2fzrggonbf7cm.w([show]),
-    q_component_branch_then_segment_6_24n7cs22bbj5r,
-    undefined
-  );
-  const branchId2 = ctx.nextId();
-  const branch2 = renderSsrBranch(
-    ctx,
-    branchId2,
-    q_component_branch_condition_segment_7_2fzrfomfhr3bk.w([show]),
-    q_component_branch_then_segment_8_24n7f48psbv8x,
-    undefined
-  );
-  return maybeThen(branch0, (branch0) =>
-    maybeThen(collection0, (collection0) =>
-      maybeThen(branch1, (branch1) =>
-        maybeThen(branch2, (branch2) => [
-          '<svg><!b=',
-          createSsrNodeId(branchId0),
-          '>',
-          branch0,
-          '<!/b><!f=',
-          createSsrNodeId(collectionId0),
-          '>',
-          collection0,
-          '<!/f><foreignObject><!b=',
-          createSsrNodeId(branchId1),
-          '>',
-          branch1,
-          '<!/b></foreignObject><foreignObject><math><!b=',
-          createSsrNodeId(branchId2),
-          '>',
-          branch2,
-          '<!/b></math></foreignObject></svg>',
-        ])
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    const show = useSignal(false);
+    const branchId0 = ctx.nextId();
+    ctx.addRoot(show);
+    const branch0 = renderSsrBranch(
+      ctx,
+      branchId0,
+      q_component_branch_condition_segment_0_2fzrieu6vlhf9.w([show]),
+      q_component_branch_then_segment_1_24n7blyqktd46,
+      undefined
+    );
+    const prop0 = propSource(props, 'points');
+    isSource(prop0) && ctx.addRoot(prop0);
+    const collectionId0 = ctx.nextId();
+    const collection0 = renderSsrCollection(
+      ctx,
+      collectionId0,
+      prop0,
+      q_component_for_key_segment_3_24urt2mcqntyh,
+      q_component_for_render_segment_2_asyu0c4tc6e5,
+      0,
+      false,
+      0
+    );
+    const branchId1 = ctx.nextId();
+    const branch1 = renderSsrBranch(
+      ctx,
+      branchId1,
+      q_component_branch_condition_segment_5_2fzrggonbf7cm.w([show]),
+      q_component_branch_then_segment_6_24n7cs22bbj5r,
+      undefined
+    );
+    const branchId2 = ctx.nextId();
+    const branch2 = renderSsrBranch(
+      ctx,
+      branchId2,
+      q_component_branch_condition_segment_7_2fzrfomfhr3bk.w([show]),
+      q_component_branch_then_segment_8_24n7f48psbv8x,
+      undefined
+    );
+    return maybeThen(branch0, (branch0) =>
+      maybeThen(collection0, (collection0) =>
+        maybeThen(branch1, (branch1) =>
+          maybeThen(branch2, (branch2) => [
+            '<svg><!b=',
+            createSsrNodeId(branchId0),
+            '>',
+            branch0,
+            '<!/b><!f=',
+            createSsrNodeId(collectionId0),
+            '>',
+            collection0,
+            '<!/f><foreignObject><!b=',
+            createSsrNodeId(branchId1),
+            '>',
+            branch1,
+            '<!/b></foreignObject><foreignObject><math><!b=',
+            createSsrNodeId(branchId2),
+            '>',
+            branch2,
+            '<!/b></math></foreignObject></svg>',
+          ])
+        )
       )
-    )
-  );
-};
+    );
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_branch_condition_segment_0_2fzrieu6vlhf9.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';

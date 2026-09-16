@@ -11,7 +11,7 @@ export default () => {
 
 import { useSignal, _first, createTextNodeEffect, _createElementTemplate } from '@qwik.dev/core';
 const default_tmpl0 = _createElementTemplate('<span> </span>');
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const count = useSignal(1);
   const el0 = default_tmpl0(ctx.document);
   const text0 = _first(el0);
@@ -19,6 +19,7 @@ export default (props, ctx) => {
   ctx.scheduler.notify(effect0);
   return el0;
 };
+export default default_component_3rg6kq1so9aio;
 == CSR DIAGNOSTICS ==
 
 []

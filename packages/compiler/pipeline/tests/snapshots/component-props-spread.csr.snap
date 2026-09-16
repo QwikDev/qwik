@@ -40,7 +40,7 @@ export const Child = (props, ctx) => {
   ctx.scheduler.notify(effect0);
   return el0;
 };
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const prop0 = computedProp(q_component_props_segment_0_208o16glymg7p.w([props]));
   const prop1 = computedProp(q_component_props_segment_1_208o0sfi1se76.w([props]));
   const component0 = createComponent(
@@ -56,6 +56,9 @@ export default (props, ctx) => {
   );
   return component0;
 };
+export default default_component_3rg6kq1so9aio;
+
+export { Child as Child_component_syc3erfxihm7 };
 ============================= src/component.tsx_component_props_segment_0_208o16glymg7p.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';

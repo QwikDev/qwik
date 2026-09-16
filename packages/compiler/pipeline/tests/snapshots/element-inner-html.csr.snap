@@ -29,7 +29,7 @@ import { component_q_e_click_segment_0_2xwyg1cinvmpz } from './component.tsx_com
 const default_tmpl0 = _createElementTemplate(
   '<section><div><span>raw</span></div><p></p></section>'
 );
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const markup = useSignal('<i>live</i>');
   const el0 = default_tmpl0(ctx.document);
   const el1 = _last(el0);
@@ -38,6 +38,7 @@ export default (props, ctx) => {
   setEvent(el1, 'q-e:click', component_q_e_click_segment_0_2xwyg1cinvmpz, [markup]);
   return el0;
 };
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';

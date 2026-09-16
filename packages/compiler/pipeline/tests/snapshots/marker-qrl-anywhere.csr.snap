@@ -38,7 +38,7 @@ import { useCustom$ } from './hooks';
 export function make(count) {
   return useCustom(_withCaptures(component_useCustomqrl_segment_0_heif5ecaq0pq, [count]));
 }
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const count = useSignal(0);
   const handles = [
     useCustom(_withCaptures(component_useCustomqrl_segment_1_heifjfg7k2q9, [count])),
@@ -58,6 +58,7 @@ export default (props, ctx) => {
   ctx.scheduler.notify(effect1);
   return el0;
 };
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_useCustomqrl_segment_0_heif5ecaq0pq.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';

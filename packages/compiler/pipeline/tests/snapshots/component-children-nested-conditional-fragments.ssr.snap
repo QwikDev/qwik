@@ -11,6 +11,7 @@ export default (props) => <Panel>{props.show ? <><h1 q:slot="header">Title</h1>{
 import {
   renderSsrSlot,
   maybeThen,
+  _markComponent,
   createSlotScope,
   registerProjection,
   createComponent,
@@ -130,25 +131,36 @@ const q_component_branch_then_segment_7_24n7ce0yehh58 = /*#__PURE__*/ _noopQrl(
   'component_branch_then_segment_7_24n7ce0yehh58'
 );
 q_component_branch_then_segment_7_24n7ce0yehh58.s(component_branch_then_segment_7_24n7ce0yehh58);
-export const Panel = (props0, ctx) => {
-  const slot0 = renderSsrSlot(ctx, 'header');
-  const slot1 = renderSsrSlot(ctx);
-  return maybeThen(slot0, (slot0) =>
-    maybeThen(slot1, (slot1) => ['<main>', slot0, slot1, '</main>'])
-  );
-};
-export default (props, ctx) => {
-  const slotScope0 = createSlotScope();
-  registerProjection(
-    slotScope0,
-    'header',
-    q_component_slot_render_segment_0_3b0tagwys7lui.w([props])
-  );
-  registerProjection(slotScope0, '', q_component_slot_render_segment_3_3b0ta2vuvdjtz.w([props]));
-  ctx.addRoot(slotScope0);
-  const component0 = createComponent(Panel, null, ctx, { slotScope: slotScope0 });
-  return component0;
-};
+export const Panel = _markComponent(
+  (props0, ctx) => {
+    const slot0 = renderSsrSlot(ctx, 'header');
+    const slot1 = renderSsrSlot(ctx);
+    return maybeThen(slot0, (slot0) =>
+      maybeThen(slot1, (slot1) => ['<main>', slot0, slot1, '</main>'])
+    );
+  },
+  'Panel_component_5q1hs6sb6j5z',
+  './component.tsx'
+);
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    const slotScope0 = createSlotScope();
+    registerProjection(
+      slotScope0,
+      'header',
+      q_component_slot_render_segment_0_3b0tagwys7lui.w([props])
+    );
+    registerProjection(slotScope0, '', q_component_slot_render_segment_3_3b0ta2vuvdjtz.w([props]));
+    ctx.addRoot(slotScope0);
+    const component0 = createComponent(Panel, null, ctx, { slotScope: slotScope0 });
+    return component0;
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
+
+export { Panel as Panel_component_5q1hs6sb6j5z };
 ============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
 
 import {

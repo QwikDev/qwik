@@ -23,6 +23,7 @@ import {
   renderSsrTextNode,
   maybeThen,
   _noopQrl,
+  _markComponent,
 } from '@qwik.dev/core';
 const component_log_segment_0_1xh0hjvaztaud = () => {
   const [count] = _captures;
@@ -38,26 +39,31 @@ const q_component_q_e_click_segment_1_2xwyfnber1kpg = /*#__PURE__*/ _noopQrl(
 const q_component_q_e_click_segment_2_2xwygteqhjqr1 = /*#__PURE__*/ _noopQrl(
   'component_q_e_click_segment_2_2xwygteqhjqr1'
 );
-export default (props, ctx) => {
-  const count = useSignal(0);
-  const log = q_component_log_segment_0_1xh0hjvaztaud.w([count]);
-  const id0 = ctx.nextId();
-  ctx.addRoot(count);
-  const text0 = renderSsrTextNode(id0, null, count);
-  return maybeThen(text0, (text0) => [
-    '<button q:id="',
-    createSsrNodeId(id0),
-    '"',
-    ctx.eventAttrParts('q-e:click', [
-      q_component_q_e_click_segment_1_2xwyfnber1kpg.w([count]),
-      q_component_q_e_click_segment_2_2xwygteqhjqr1.w([count]),
-      log,
-    ]),
-    '>',
-    escapeHTML(text0),
-    '</button>',
-  ]);
-};
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    const count = useSignal(0);
+    const log = q_component_log_segment_0_1xh0hjvaztaud.w([count]);
+    const id0 = ctx.nextId();
+    ctx.addRoot(count);
+    const text0 = renderSsrTextNode(id0, null, count);
+    return maybeThen(text0, (text0) => [
+      '<button q:id="',
+      createSsrNodeId(id0),
+      '"',
+      ctx.eventAttrParts('q-e:click', [
+        q_component_q_e_click_segment_1_2xwyfnber1kpg.w([count]),
+        q_component_q_e_click_segment_2_2xwygteqhjqr1.w([count]),
+        log,
+      ]),
+      '>',
+      escapeHTML(text0),
+      '</button>',
+    ]);
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_log_segment_0_1xh0hjvaztaud.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';

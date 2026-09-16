@@ -33,7 +33,7 @@ const q_component_log_segment_0_1xh0hjvaztaud = /*#__PURE__*/ _qrlWithChunk(
   'component_log_segment_0_1xh0hjvaztaud'
 );
 const default_tmpl0 = _createElementTemplate('<button> </button>');
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const count = useSignal(0);
   const log = q_component_log_segment_0_1xh0hjvaztaud.w([count]);
   const el0 = default_tmpl0(ctx.document);
@@ -47,6 +47,7 @@ export default (props, ctx) => {
   ctx.scheduler.notify(effect0);
   return el0;
 };
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_log_segment_0_1xh0hjvaztaud.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';

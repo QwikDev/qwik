@@ -8,9 +8,17 @@ export const App = () => {
 
 ============================= src/component.tsx ==
 
-export const App = (props, ctx) => {
-  return '<p>Hello Qwik</p>';
-};
+import { _markComponent } from '@qwik.dev/core';
+
+export const App = _markComponent(
+  (props, ctx) => {
+    return '<p>Hello Qwik</p>';
+  },
+  'App_component_d9hqa5uju2ca',
+  './component.tsx'
+);
+
+export { App as App_component_d9hqa5uju2ca };
 == SSR DIAGNOSTICS ==
 
 []

@@ -37,7 +37,7 @@ const settings = { suffix: '!' };
 function format(value) {
   return prefix + ': ' + value;
 }
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const invokeCtx0 = getActiveInvokeContextOrNull();
   const count = useSignal(2);
   const title = useComputed(_withCaptures(component_title_segment_0_2f0r0xivypjmx, [count]));
@@ -53,6 +53,7 @@ export default (props, ctx) => {
     })
   );
 };
+export default default_component_3rg6kq1so9aio;
 
 export { format as __qwik_format, settings as __qwik_settings };
 ============================= src/component.tsx_component_title_segment_0_2f0r0xivypjmx.js (ENTRY POINT)==

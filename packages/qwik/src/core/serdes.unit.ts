@@ -195,10 +195,10 @@ describe('serdes emit-only', () => {
     ).rejects.toThrow('Invalid PropsProxy source');
   });
 
-  it('serializes a component-tagged function as its attached QRL', async () => {
+  it('serializes a marked component as the QRL of its export', async () => {
     const makeQrl = () => createQRL('./chunk', 'Filter_lifted', null, null, null);
     const tagged = Object.assign(function Filter() {}, {
-      [SERIALIZABLE_STATE]: [makeQrl()],
+      [SERIALIZABLE_STATE]: ['Filter_lifted', './chunk'],
     });
     expect(await serialize(tagged)).toEqual(await serialize(makeQrl()));
     // sharing dedups on the function identity, like any other repeated value

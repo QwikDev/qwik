@@ -6,21 +6,24 @@ import {
   type LinkedQrl,
   type QrlDeclaration,
 } from '../schema';
-import { QWIK_CORE_IMPORT } from '../words';
+import { QWIK_CORE_IMPORT, QwikWord } from '../words';
 import { assembleModule, type AssembledModule } from '../../src/module-assembly';
 import type { SourceMap } from 'oxc-transform';
 import { emitQrlChunks, type FunctionEmission } from './emit-chunk';
 import { planModuleBindingExports, replacedCoreImports, requestBindingImport } from './emit-import';
-import type { GenerateOutput, PresentationOptions } from './output';
+import { moduleBasename, type GenerateOutput, type PresentationOptions } from './output';
 import {
   allocateGeneratedNames,
   emitComponentFunction,
   type ComponentEmission,
+  type ComponentMarker,
   type GeneratedNames,
 } from './emit-component';
 
 /** Insertion order IS the emitted import order. */
 export interface QwikModuleEmitter {
+  /** Only the server serializes, so only it marks components with their symbol. */
+  isServer: boolean;
   imports: Set<string>;
   chunkImports: string[];
   hoists: string[];
@@ -75,6 +78,7 @@ export function assembleQwikModule(
   const edits: { range: [number, number]; text: string }[] = [];
   let firstComponentEdit: { range: [number, number]; text: string } | null = null;
   let needsModulePrelude = false;
+  const componentAliases: string[] = [];
   for (const intent of module.assembly) {
     switch (intent.a) {
       case AssemblyKind.Payload:
@@ -115,10 +119,16 @@ export function assembleQwikModule(
           ...names,
           props: componentPropsName(module, declaration) ?? names.props,
         };
-        const edit = {
-          range: declaration.replacementRange,
-          text: emitComponentFunction(qrl, parts.emitProgram(qrl, componentNames), componentNames),
-        };
+        const { text, alias } = emitComponentFunction(
+          qrl,
+          parts.emitProgram(qrl, componentNames),
+          componentNames,
+          componentMarker(module, qrl, parts)
+        );
+        if (alias !== null) {
+          componentAliases.push(alias);
+        }
+        const edit = { range: declaration.replacementRange, text };
         for (const binding of qrl.dependencies.bindings) {
           requestBindingImport(module, binding, parts.imports);
         }
@@ -181,6 +191,9 @@ export function assembleQwikModule(
   if (prefix !== '') {
     edits.push({ range: [0, 0], text: prefix });
   }
+  if (componentAliases.length > 0) {
+    bindingExports += `\nexport { ${componentAliases.join(', ')} };\n`;
+  }
   if (bindingExports !== '') {
     const end = module.source.code.length;
     edits.push({ range: [end, end], text: bindingExports });
@@ -193,6 +206,22 @@ export function assembleQwikModule(
     options.outputSourceMaps === true,
     module.source.normalizationMap as SourceMap | null
   );
+}
+
+/** The server serializes a component as its hashed symbol inside this module's chunk. */
+function componentMarker(
+  module: LinkedModule,
+  qrl: LinkedQrl,
+  parts: QwikModuleEmitter
+): ComponentMarker | null {
+  const symbol = qrl.declaration!.symbol;
+  if (symbol === undefined) {
+    return null;
+  }
+  if (parts.isServer) {
+    parts.imports.add(QwikWord.MarkComponent);
+  }
+  return { symbol, chunk: parts.isServer ? `./${moduleBasename(module)}` : null };
 }
 
 function componentPropsName(module: LinkedModule, declaration: QrlDeclaration): string | null {

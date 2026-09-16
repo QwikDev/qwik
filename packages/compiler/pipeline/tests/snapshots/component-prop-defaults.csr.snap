@@ -23,7 +23,7 @@ import { component_text_segment_2_1fh117dstcoge } from './component.tsx_componen
 
 const default_tmpl0 = _createElementTemplate('<button> </button>');
 import { createTitle, createHandler } from './defaults';
-export default (
+export const default_component_3rg6kq1so9aio = (
   props,
   ctx,
   defaultValue = untrack(() => props.title === void 0) ? createTitle() : void 0,
@@ -53,6 +53,7 @@ export default (
   ctx.scheduler.notify(effect1);
   return el0;
 };
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_title_segment_0_2f0r0xivypjmx.js (ENTRY POINT)==
 
 export const component_title_segment_0_2f0r0xivypjmx = (props, defaultValue) => {

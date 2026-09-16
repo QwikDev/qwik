@@ -14,6 +14,7 @@ export default () => {
 import {
   renderSsrSlot,
   maybeThen,
+  _markComponent,
   useSignal,
   createSlotScope,
   registerProjection,
@@ -62,25 +63,36 @@ const q_component_branch_then_segment_2_24n7b7xmnzb3n = /*#__PURE__*/ _noopQrl(
   'component_branch_then_segment_2_24n7b7xmnzb3n'
 );
 q_component_branch_then_segment_2_24n7b7xmnzb3n.s(component_branch_then_segment_2_24n7b7xmnzb3n);
-export const Panel = (props, ctx) => {
-  const slot0 = renderSsrSlot(ctx, 'start');
-  const slot1 = renderSsrSlot(ctx);
-  return maybeThen(slot0, (slot0) =>
-    maybeThen(slot1, (slot1) => ['<main>', slot0, slot1, '</main>'])
-  );
-};
-export default (props, ctx) => {
-  const show = useSignal(true);
-  const slotScope0 = createSlotScope();
-  registerProjection(
-    slotScope0,
-    'start',
-    q_component_slot_render_segment_0_3b0tagwys7lui.w([show])
-  );
-  ctx.addRoot(slotScope0);
-  const component0 = createComponent(Panel, null, ctx, { slotScope: slotScope0 });
-  return component0;
-};
+export const Panel = _markComponent(
+  (props, ctx) => {
+    const slot0 = renderSsrSlot(ctx, 'start');
+    const slot1 = renderSsrSlot(ctx);
+    return maybeThen(slot0, (slot0) =>
+      maybeThen(slot1, (slot1) => ['<main>', slot0, slot1, '</main>'])
+    );
+  },
+  'Panel_component_5q1hs6sb6j5z',
+  './component.tsx'
+);
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    const show = useSignal(true);
+    const slotScope0 = createSlotScope();
+    registerProjection(
+      slotScope0,
+      'start',
+      q_component_slot_render_segment_0_3b0tagwys7lui.w([show])
+    );
+    ctx.addRoot(slotScope0);
+    const component0 = createComponent(Panel, null, ctx, { slotScope: slotScope0 });
+    return component0;
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
+
+export { Panel as Panel_component_5q1hs6sb6j5z };
 ============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
 
 import {

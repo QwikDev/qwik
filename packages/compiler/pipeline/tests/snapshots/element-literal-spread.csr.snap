@@ -26,7 +26,7 @@ import { component_id_segment_1_2jskr910mfni5 } from './component.tsx_component_
 import { component_q_e_click_segment_2_2xwygteqhjqr1 } from './component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1';
 
 const default_tmpl0 = _createElementTemplate('<div title="fixed" class="box">x</div>');
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const clicks = useSignal(0);
   const id = 'main';
   const el0 = default_tmpl0(ctx.document);
@@ -49,6 +49,7 @@ export default (props, ctx) => {
   setEvent(el0, 'q-e:click', component_q_e_click_segment_2_2xwygteqhjqr1, [clicks]);
   return el0;
 };
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_data_clicks_segment_0_203c7budwklj.js (ENTRY POINT)==
 
 export const component_data_clicks_segment_0_203c7budwklj = (clicks) => {

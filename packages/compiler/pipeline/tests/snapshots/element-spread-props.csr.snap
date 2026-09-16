@@ -19,7 +19,7 @@ import { useSignal, createPropsEffect, _createElementTemplate } from '@qwik.dev/
 import { component_props_segment_1_208o0sfi1se76 } from './component.tsx_component_props_segment_1_208o0sfi1se76';
 
 const default_tmpl0 = _createElementTemplate('<div>child</div>');
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const attrs = useSignal({ class: 'last' });
   const box = useSignal();
   const el0 = default_tmpl0(ctx.document);
@@ -32,6 +32,7 @@ export default (props, ctx) => {
   ctx.scheduler.waitFor(effect0.run());
   return el0;
 };
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';

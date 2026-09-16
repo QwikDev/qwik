@@ -47,7 +47,7 @@ export const Card = (props, ctx) => {
   ctx.scheduler.waitFor(maybeThen(createSlot(), (slot0) => marker0.replaceWith(...slot0)));
   return el0;
 };
-export default (props0, ctx) => {
+export const default_component_3rg6kq1so9aio = (props0, ctx) => {
   const slotScope0 = createSlotScope();
   registerProjection(slotScope0, '', q_component_slot_render_segment_1_3b0tauy2p1nv1);
   const component0 = createComponent(Card, { title: 'Title', 'data-label': 'Label' }, ctx, {
@@ -55,6 +55,9 @@ export default (props0, ctx) => {
   });
   return component0;
 };
+export default default_component_3rg6kq1so9aio;
+
+export { Card as Card_component_1j4wd08arm0n5 };
 ============================= src/component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';

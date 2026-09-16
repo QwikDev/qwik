@@ -15,7 +15,7 @@ import { component_text_segment_0_1fh10fbkzokfc } from './component.tsx_componen
 import { component_text_segment_1_1fh10tcowimfv } from './component.tsx_component_text_segment_1_1fh10tcowimfv';
 
 const default_tmpl0 = _createElementTemplate('<div><title> </title><textarea> </textarea></div>');
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const el0 = default_tmpl0(ctx.document);
   const text0 = _first(_first(el0));
   const effect0 = createTextExpressionEffect(
@@ -35,6 +35,7 @@ export default (props, ctx) => {
   ctx.scheduler.notify(effect1);
   return el0;
 };
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
 
 export const component_text_segment_0_1fh10fbkzokfc = (props) => {

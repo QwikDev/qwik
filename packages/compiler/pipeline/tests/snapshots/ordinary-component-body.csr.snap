@@ -63,7 +63,7 @@ const before = observe('before'),
     return el0;
   },
   after = observe('after');
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   let count = useSignal(1);
   var suffix = '!';
   const context = createContextId('body');
@@ -119,6 +119,7 @@ export default (props, ctx) => {
   }
   return [];
 };
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_increment_segment_0_sk08s17xutli.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';

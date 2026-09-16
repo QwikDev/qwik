@@ -1,0 +1,129 @@
+==INPUT==
+
+import { component$, useSignal } from '@qwik.dev/core';
+function Body(props: { x: string }) {
+  return <p>{props.x}</p>;
+}
+export const App = component$(Body);
+const Hidden = component$(() => <i>hidden</i>);
+export const Picker = component$(() => {
+  const chosen = useSignal([Hidden]);
+  return <b>{chosen.value.length}</b>;
+});
+export default component$(() => <Picker />);
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+const component_text_segment_0_1fh10fbkzokfc = (chosen) => {
+  return chosen.value.length;
+};
+const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _noopQrl(
+  'component_text_segment_0_1fh10fbkzokfc'
+);
+q_component_text_segment_0_1fh10fbkzokfc.s(component_text_segment_0_1fh10fbkzokfc);
+import {
+  component$,
+  createSsrNodeId,
+  escapeHTML,
+  propSource,
+  isSource,
+  renderSsrTextNode,
+  maybeThen,
+  _markComponent,
+  useSignal,
+  renderSsrTextExpression,
+  _noopQrl,
+  createComponent,
+} from '@qwik.dev/core';
+function Body(props, ctx) {
+  const id0 = ctx.nextId();
+  const prop0 = propSource(props, 'x');
+  isSource(prop0) && ctx.addRoot(prop0);
+  const text0 = renderSsrTextNode(id0, null, prop0);
+  return maybeThen(text0, (text0) => [
+    '<p q:id="',
+    createSsrNodeId(id0),
+    '">',
+    escapeHTML(text0),
+    '</p>',
+  ]);
+}
+_markComponent(Body, 'Body_component_3fvssuocvtjmf', './component.tsx');
+export const App = component$(Body);
+const Hidden = _markComponent(
+  (props0, ctx) => {
+    return '<i>hidden</i>';
+  },
+  'Hidden_component_3u75huwji431r',
+  './component.tsx'
+);
+export const Picker = _markComponent(
+  (props0, ctx) => {
+    const chosen = useSignal([Hidden]);
+    const id0 = ctx.nextId();
+    ctx.addRoot(chosen);
+    const text0 = renderSsrTextExpression(
+      id0,
+      null,
+      [chosen],
+      q_component_text_segment_0_1fh10fbkzokfc
+    );
+    return maybeThen(text0, (text0) => [
+      '<b q:id="',
+      createSsrNodeId(id0),
+      '">',
+      escapeHTML(text0),
+      '</b>',
+    ]);
+  },
+  'Picker_component_ryjmp663wqq5',
+  './component.tsx'
+);
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props0, ctx) => {
+    const component0 = createComponent(Picker, null, ctx);
+    return component0;
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
+
+export {
+  Body as Body_component_3fvssuocvtjmf,
+  Hidden as Hidden_component_3u75huwji431r,
+  Picker as Picker_component_ryjmp663wqq5,
+};
+============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
+
+export const component_text_segment_0_1fh10fbkzokfc = (chosen) => {
+  return chosen.value.length;
+};
+/*
+{
+  "origin": "component.tsx",
+  "name": "component_text_segment_0_1fh10fbkzokfc",
+  "entry": null,
+  "displayName": "component_text_segment_0",
+  "hash": "1fh10fbkzokfc",
+  "canonicalFilename": "component.tsx_component_text_segment_0_1fh10fbkzokfc",
+  "extension": "js",
+  "parent": null,
+  "ctxKind": "function",
+  "ctxName": "text",
+  "captures": true,
+  "loc": [
+    300,
+    319
+  ],
+  "paramNames": [],
+  "captureNames": [
+    "chosen"
+  ]
+}
+*/
+== SSR DIAGNOSTICS ==
+
+[]

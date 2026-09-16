@@ -36,7 +36,7 @@ import { component_text_segment_3_1fh11lewq6qgx } from './component.tsx_componen
 
 const semantic_collectionRender_361_452_1ilm85gvuesnv_tmpl0 = _createElementTemplate('<li> </li>');
 const default_tmpl0 = _createElementTemplate('<ul><!><!><!><!></ul>');
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const rows = useSignal([1]);
   const el0 = default_tmpl0(ctx.document);
   const start0 = _first(el0);
@@ -82,6 +82,7 @@ export default (props, ctx) => {
   );
   return el0;
 };
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_for_render_segment_0_asyt89wzo2d3.js (ENTRY POINT)==
 
 import { _first, createTextExpressionEffect, _createElementTemplate } from '@qwik.dev/core';

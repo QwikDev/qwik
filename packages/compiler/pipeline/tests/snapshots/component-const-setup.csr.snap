@@ -50,6 +50,8 @@ export const Card = (props, ctx) => {
   ctx.scheduler.notify(effect1);
   return el0;
 };
+
+export { Card as Card_component_1j4wd08arm0n5 };
 ============================= src/component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';

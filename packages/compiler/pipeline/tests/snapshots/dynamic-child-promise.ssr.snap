@@ -16,6 +16,7 @@ import {
   maybeThen,
   renderSsrDynamicContent,
   _noopQrl,
+  _markComponent,
 } from '@qwik.dev/core';
 const component_content_segment_1_185248kf949cp = (ctx0) => {
   return renderSsrDynamicContent(Promise.resolve(q_component_jsx_segment_0_38vnjku9rukc6), ctx0);
@@ -31,25 +32,30 @@ const q_component_jsx_segment_0_38vnjku9rukc6 = /*#__PURE__*/ _noopQrl(
   'component_jsx_segment_0_38vnjku9rukc6'
 );
 q_component_jsx_segment_0_38vnjku9rukc6.s(component_jsx_segment_0_38vnjku9rukc6);
-export default (props, ctx) => {
-  const count = useSignal(1);
-  const id0 = ctx.nextId();
-  const content0 = renderSsrContent(
-    ctx,
-    id0,
-    [],
-    q_component_content_segment_1_185248kf949cp,
-    false,
-    true
-  );
-  return maybeThen(content0, (content0) => [
-    '<div><!d=',
-    createSsrNodeId(id0),
-    '>',
-    content0,
-    '<!/d></div>',
-  ]);
-};
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    const count = useSignal(1);
+    const id0 = ctx.nextId();
+    const content0 = renderSsrContent(
+      ctx,
+      id0,
+      [],
+      q_component_content_segment_1_185248kf949cp,
+      false,
+      true
+    );
+    return maybeThen(content0, (content0) => [
+      '<div><!d=',
+      createSsrNodeId(id0),
+      '>',
+      content0,
+      '<!/d></div>',
+    ]);
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
 
 export const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {

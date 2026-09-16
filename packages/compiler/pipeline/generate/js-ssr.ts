@@ -156,6 +156,7 @@ interface SsrRenderOptions {
 }
 
 class SsrModuleEmitter implements QwikModuleEmitter {
+  readonly isServer = true;
   readonly imports = new Set<string>();
   readonly chunkImports: string[] = [];
   readonly hoists: string[] = [];

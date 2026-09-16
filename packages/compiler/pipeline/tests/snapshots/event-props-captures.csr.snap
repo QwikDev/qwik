@@ -44,7 +44,7 @@ export const Button = (props, ctx) => {
   ctx.scheduler.waitFor(effect0.run());
   return el0;
 };
-export default (input, ctx) => {
+export const default_component_3rg6kq1so9aio = (input, ctx) => {
   const suffix = '!';
   const el0 = default_tmpl0(ctx.document);
   const el1 = _first(el0);
@@ -57,6 +57,9 @@ export default (input, ctx) => {
   _last(el0).replaceWith(..._toNodes(component0));
   return el0;
 };
+export default default_component_3rg6kq1so9aio;
+
+export { Button as Button_component_12fjhbonwyrlb };
 ============================= src/component.tsx_component_onClickqrl_segment_0_3rzjkie0i362z.js (ENTRY POINT)==
 
 export const component_onClickqrl_segment_0_3rzjkie0i362z = (props) => {

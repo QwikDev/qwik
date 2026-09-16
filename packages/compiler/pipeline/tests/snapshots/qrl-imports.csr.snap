@@ -31,7 +31,7 @@ import { component_q_e_click_segment_2_2xwygteqhjqr1 } from './component.tsx_com
 
 const default_tmpl0 = _createElementTemplate('<button> </button>');
 import { calculate, save } from './pricing';
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const invokeCtx0 = getActiveInvokeContextOrNull();
   const count = useSignal(2);
   const total = useComputed(_withCaptures(component_total_segment_0_33cbacdkct5tt, [count]));
@@ -47,6 +47,7 @@ export default (props, ctx) => {
     })
   );
 };
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_total_segment_0_33cbacdkct5tt.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';

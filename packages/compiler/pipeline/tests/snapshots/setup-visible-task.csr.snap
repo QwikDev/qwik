@@ -26,7 +26,7 @@ import { component_useVisibleTaskqrl_segment_1_rykjhw4hc03r } from './component.
 import { component_useVisibleTaskqrl_segment_2_rykjvx8e624a } from './component.tsx_component_useVisibleTaskqrl_segment_2_rykjvx8e624a';
 
 const default_tmpl0 = _createElementTemplate('<output> </output>');
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const status = useSignal('waiting');
   useVisibleTask(_withCaptures(component_useVisibleTaskqrl_segment_0_rykj3v0khy38, [status]));
   useVisibleTask(_withCaptures(component_useVisibleTaskqrl_segment_1_rykjhw4hc03r, [status]), {
@@ -41,6 +41,7 @@ export default (props, ctx) => {
   ctx.scheduler.notify(effect0);
   return el0;
 };
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_useVisibleTaskqrl_segment_0_rykj3v0khy38.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';

@@ -26,15 +26,20 @@ const q_component_sync_segment_1_ka0j9x66gukr = /*#__PURE__*/ _qrlSync(
   component_sync_segment_1_ka0j9x66gukr,
   'component_sync_segment_1_ka0j9x66gukr'
 );
-import { _qrlSync } from '@qwik.dev/core';
+import { _qrlSync, _markComponent } from '@qwik.dev/core';
 export const stop = q_component_sync_segment_0_ka0ivw29msk8;
-export default (props, ctx) => {
-  return [
-    '<a href="/x"',
-    ctx.eventAttrParts('q-e:click', q_component_sync_segment_1_ka0j9x66gukr),
-    '>go</a>',
-  ];
-};
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    return [
+      '<a href="/x"',
+      ctx.eventAttrParts('q-e:click', q_component_sync_segment_1_ka0j9x66gukr),
+      '>go</a>',
+    ];
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
 == SSR DIAGNOSTICS ==
 
 []

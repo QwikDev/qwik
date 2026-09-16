@@ -11,6 +11,7 @@ export default () => <Card><h1 q:slot="header">Title</h1><p>Content</p></Card>;
 import {
   renderSsrSlot,
   maybeThen,
+  _markComponent,
   createSlotScope,
   registerProjection,
   createComponent,
@@ -32,21 +33,32 @@ const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_1_3b0tauy2p1nv1'
 );
 q_component_slot_render_segment_1_3b0tauy2p1nv1.s(component_slot_render_segment_1_3b0tauy2p1nv1);
-export const Card = (props, ctx) => {
-  const slot0 = renderSsrSlot(ctx, 'header');
-  const slot1 = renderSsrSlot(ctx);
-  return maybeThen(slot0, (slot0) =>
-    maybeThen(slot1, (slot1) => ['<article><header>', slot0, '</header>', slot1, '</article>'])
-  );
-};
-export default (props, ctx) => {
-  const slotScope0 = createSlotScope();
-  registerProjection(slotScope0, 'header', q_component_slot_render_segment_0_3b0tagwys7lui);
-  registerProjection(slotScope0, '', q_component_slot_render_segment_1_3b0tauy2p1nv1);
-  ctx.addRoot(slotScope0);
-  const component0 = createComponent(Card, null, ctx, { slotScope: slotScope0 });
-  return component0;
-};
+export const Card = _markComponent(
+  (props, ctx) => {
+    const slot0 = renderSsrSlot(ctx, 'header');
+    const slot1 = renderSsrSlot(ctx);
+    return maybeThen(slot0, (slot0) =>
+      maybeThen(slot1, (slot1) => ['<article><header>', slot0, '</header>', slot1, '</article>'])
+    );
+  },
+  'Card_component_1j4wd08arm0n5',
+  './component.tsx'
+);
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    const slotScope0 = createSlotScope();
+    registerProjection(slotScope0, 'header', q_component_slot_render_segment_0_3b0tagwys7lui);
+    registerProjection(slotScope0, '', q_component_slot_render_segment_1_3b0tauy2p1nv1);
+    ctx.addRoot(slotScope0);
+    const component0 = createComponent(Card, null, ctx, { slotScope: slotScope0 });
+    return component0;
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
+
+export { Card as Card_component_1j4wd08arm0n5 };
 ============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
 
 import { createSsrMarkup, createSsrNodeId } from '@qwik.dev/core';

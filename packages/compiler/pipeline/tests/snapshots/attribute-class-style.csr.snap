@@ -29,7 +29,7 @@ import { component_style_segment_1_cgm3c4qw0vql } from './component.tsx_componen
 import { component_q_e_click_segment_2_2xwygteqhjqr1 } from './component.tsx_component_q_e_click_segment_2_2xwygteqhjqr1';
 
 const default_tmpl0 = _createElementTemplate('<button></button>');
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   useStylesScoped('.base { color: red }', 'f5nwzpjzm8yb-0', true);
   const active = useSignal(true);
   const el0 = default_tmpl0(ctx.document);
@@ -53,6 +53,7 @@ export default (props, ctx) => {
   setEvent(el0, 'q-e:click', component_q_e_click_segment_2_2xwygteqhjqr1, [active]);
   return el0;
 };
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_class_segment_0_3htuygud1guoj.js (ENTRY POINT)==
 
 export const component_class_segment_0_3htuygud1guoj = (active) => {

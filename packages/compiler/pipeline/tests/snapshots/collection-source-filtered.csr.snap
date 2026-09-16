@@ -27,7 +27,7 @@ const q_component_collection_source_segment_0_21yfn4vi2lwwj = /*#__PURE__*/ _qrl
   'component_collection_source_segment_0_21yfn4vi2lwwj'
 );
 const default_tmpl0 = _createElementTemplate('<ul><!><!></ul>');
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const items = useSignal([
     {
       id: 1,
@@ -56,6 +56,7 @@ export default (props, ctx) => {
   );
   return el0;
 };
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_collection_source_segment_0_21yfn4vi2lwwj.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';

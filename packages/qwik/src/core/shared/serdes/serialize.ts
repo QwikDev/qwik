@@ -40,6 +40,7 @@ import { qError, QError } from '../error/error';
 import type { QRLInternal } from '../qrl/qrl-class';
 import { isQrl } from '../qrl/qrl-utils';
 import { SERIALIZABLE_STATE } from '../component.public';
+import { createQRL } from '../qrl/qrl-class';
 import {
   BRACKET_CLOSE,
   BRACKET_OPEN,
@@ -446,11 +447,14 @@ export class Serializer {
           }
           break;
         case 'function': {
-          // a component-tagged function (lifted local component) serializes as its QRL
+          // a marked component serializes as the QRL of its own export
+          const marker = (value as { [SERIALIZABLE_STATE]?: [string, string] })[SERIALIZABLE_STATE];
           const qrlValue = isQrl(value)
             ? value
-            : ((value as { [SERIALIZABLE_STATE]?: [unknown] })[SERIALIZABLE_STATE]?.[0] ?? null);
-          if (qrlValue !== null && isQrl(qrlValue)) {
+            : marker === undefined
+              ? null
+              : createQRL(marker[1], marker[0], null, null, null);
+          if (qrlValue !== null) {
             if (this.getSeenRefOrOutput(value, index)) {
               const [chunk, symbol, captureDeltasFromZero] = qrlToString(
                 this.$serializationContext$,

@@ -29,7 +29,7 @@ export const Primary = (props0, ctx) => {
   const el0 = Primary_tmpl0(ctx.document);
   return el0;
 };
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const el0 = default_tmpl0(ctx.document);
   const start0 = _first(el0);
   const end0 = _next(start0);
@@ -48,6 +48,9 @@ export default (props, ctx) => {
   );
   return el0;
 };
+export default default_component_3rg6kq1so9aio;
+
+export { Primary as Primary_component_3sl9ajjkdr62n };
 ============================= src/component.tsx_component_for_render_segment_0_asyt89wzo2d3.js (ENTRY POINT)==
 
 import {

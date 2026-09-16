@@ -103,6 +103,7 @@ export const hooks_useTaskqrl_segment_0_19kov19646us6 = () => {
 import {
   createSsrOpenTag,
   _noopQrl,
+  _markComponent,
   createSsrNodeId,
   renderSsrEvent,
   createSsrMarkup,
@@ -143,53 +144,71 @@ const q_component_qrl_segment_3_2fpowgii4khuv = /*#__PURE__*/ _noopQrl(
   'component_qrl_segment_3_2fpowgii4khuv'
 );
 q_component_qrl_segment_3_2fpowgii4khuv.s(component_qrl_segment_3_2fpowgii4khuv);
-export const Clicker = (props0, ctx) => {
-  useClick(q_component_qrl_segment_0_2fpowujm1ejve);
-  return [createSsrOpenTag('<button', '>'), 'click</button>'];
-};
-export const Counter = (props0, ctx) => {
-  const invokeCtx0 = getActiveInvokeContextOrNull();
-  const { count, bump } = useCounter(1);
-  return maybeThen(ctx.scheduler.flush(), () =>
-    invoke(invokeCtx0, () => {
-      const id0 = ctx.nextId();
-      ctx.addRoot(bump);
-      const effect0 = renderSsrEvent(
-        id0,
-        'q-e:click',
-        [bump],
-        q_component_onClickqrl_segment_1_3rzjk4cwl942g,
-        ctx.eventAttr
-      );
-      const id1 = ctx.nextId();
-      ctx.addRoot(count);
-      const content0 = renderSsrContent(
-        ctx,
-        id1,
-        [],
-        q_component_text_segment_2_1fh117dstcoge.w([count]),
-        false,
-        true
-      );
-      return maybeThen(effect0, (effect0) =>
-        maybeThen(content0, (content0) => [
-          '<button q:id="',
-          createSsrNodeId(id0),
-          '"',
-          createSsrMarkup(effect0),
-          '><!d=',
-          createSsrNodeId(id1),
-          '>',
-          content0,
-          '<!/d></button>',
-        ])
-      );
-    })
-  );
-};
-export const Maybe = (props, ctx) => {
-  useMaybeClick(props.flag, q_component_qrl_segment_3_2fpowgii4khuv);
-  return [createSsrOpenTag('<div', '>'), 'maybe</div>'];
+export const Clicker = _markComponent(
+  (props0, ctx) => {
+    useClick(q_component_qrl_segment_0_2fpowujm1ejve);
+    return [createSsrOpenTag('<button', '>'), 'click</button>'];
+  },
+  'Clicker_component_11xdpjgo2tylm',
+  './component.tsx'
+);
+export const Counter = _markComponent(
+  (props0, ctx) => {
+    const invokeCtx0 = getActiveInvokeContextOrNull();
+    const { count, bump } = useCounter(1);
+    return maybeThen(ctx.scheduler.flush(), () =>
+      invoke(invokeCtx0, () => {
+        const id0 = ctx.nextId();
+        ctx.addRoot(bump);
+        const effect0 = renderSsrEvent(
+          id0,
+          'q-e:click',
+          [bump],
+          q_component_onClickqrl_segment_1_3rzjk4cwl942g,
+          ctx.eventAttr
+        );
+        const id1 = ctx.nextId();
+        ctx.addRoot(count);
+        const content0 = renderSsrContent(
+          ctx,
+          id1,
+          [],
+          q_component_text_segment_2_1fh117dstcoge.w([count]),
+          false,
+          true
+        );
+        return maybeThen(effect0, (effect0) =>
+          maybeThen(content0, (content0) => [
+            '<button q:id="',
+            createSsrNodeId(id0),
+            '"',
+            createSsrMarkup(effect0),
+            '><!d=',
+            createSsrNodeId(id1),
+            '>',
+            content0,
+            '<!/d></button>',
+          ])
+        );
+      })
+    );
+  },
+  'Counter_component_3h2q15ekklxzt',
+  './component.tsx'
+);
+export const Maybe = _markComponent(
+  (props, ctx) => {
+    useMaybeClick(props.flag, q_component_qrl_segment_3_2fpowgii4khuv);
+    return [createSsrOpenTag('<div', '>'), 'maybe</div>'];
+  },
+  'Maybe_component_azuodhr1u2pp',
+  './component.tsx'
+);
+
+export {
+  Clicker as Clicker_component_11xdpjgo2tylm,
+  Counter as Counter_component_3h2q15ekklxzt,
+  Maybe as Maybe_component_azuodhr1u2pp,
 };
 ============================= src/component.tsx_component_qrl_segment_0_2fpowujm1ejve.js (ENTRY POINT)==
 

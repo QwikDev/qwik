@@ -42,6 +42,7 @@ import {
   createSsrMarkup,
   renderSsrTextExpression,
   renderSsrDynamicContent,
+  _markComponent,
 } from '@qwik.dev/core';
 import { Child } from './child';
 const component_tag_dynamic_segment_0_331xea01t87eh = (ctx) => {
@@ -222,26 +223,37 @@ const q_component_text_segment_9_1fh0xp3tlu6bn = /*#__PURE__*/ _noopQrl(
   'component_text_segment_9_1fh0xp3tlu6bn'
 );
 q_component_text_segment_9_1fh0xp3tlu6bn.s(component_text_segment_9_1fh0xp3tlu6bn);
-export default (props, ctx) => {
-  const count = useSignal(0);
-  const store = useStore({
-    item: { label: 'first' },
-    nested: { flip: false },
-  });
-  const id0 = ctx.nextId();
-  ctx.addRoot(props);
-  ctx.addRoot(store);
-  ctx.addRoot(count);
-  const content0 = renderSsrContent(
-    ctx,
-    id0,
-    [],
-    q_component_tag_dynamic_segment_0_331xea01t87eh.w([props, store, count]),
-    false,
-    true
-  );
-  return maybeThen(content0, (content0) => ['<!d=', createSsrNodeId(id0), '>', content0, '<!/d>']);
-};
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    const count = useSignal(0);
+    const store = useStore({
+      item: { label: 'first' },
+      nested: { flip: false },
+    });
+    const id0 = ctx.nextId();
+    ctx.addRoot(props);
+    ctx.addRoot(store);
+    ctx.addRoot(count);
+    const content0 = renderSsrContent(
+      ctx,
+      id0,
+      [],
+      q_component_tag_dynamic_segment_0_331xea01t87eh.w([props, store, count]),
+      false,
+      true
+    );
+    return maybeThen(content0, (content0) => [
+      '<!d=',
+      createSsrNodeId(id0),
+      '>',
+      content0,
+      '<!/d>',
+    ]);
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_tag_dynamic_segment_0_331xea01t87eh.js (ENTRY POINT)==
 
 import {

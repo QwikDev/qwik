@@ -47,7 +47,7 @@ export const Child = (props, ctx) => {
   ctx.scheduler.notify(effect0);
   return el0;
 };
-export default (props0, ctx) => {
+export const default_component_3rg6kq1so9aio = (props0, ctx) => {
   const show = useSignal(true);
   const count = useSignal(0);
   let label = 'a';
@@ -65,6 +65,9 @@ export default (props0, ctx) => {
   ctx.scheduler.notify(branch0);
   return el0;
 };
+export default default_component_3rg6kq1so9aio;
+
+export { Child as Child_component_syc3erfxihm7 };
 ============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
 
 export const component_text_segment_0_1fh10fbkzokfc = (props) => {

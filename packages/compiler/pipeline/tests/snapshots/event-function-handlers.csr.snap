@@ -46,7 +46,7 @@ export const Button = (props, ctx) => {
   ctx.scheduler.waitFor(effect0.run());
   return el0;
 };
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const el0 = default_tmpl0(ctx.document);
   const el1 = _last(el0);
   const el2 = _first(el0);
@@ -60,6 +60,9 @@ export default (props, ctx) => {
   setEvent(el1, 'q-e:click', component_q_e_click_segment_3_2xwygfdmkpoqi, [props]);
   return el0;
 };
+export default default_component_3rg6kq1so9aio;
+
+export { Button as Button_component_12fjhbonwyrlb };
 ============================= src/component.tsx_component_onClickqrl_segment_0_3rzjkie0i362z.js (ENTRY POINT)==
 
 export const component_onClickqrl_segment_0_3rzjkie0i362z = (props) => {

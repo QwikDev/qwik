@@ -26,6 +26,7 @@ import {
   _noopQrl,
   renderSsrDynamicContent,
   _textValue,
+  _markComponent,
 } from '@qwik.dev/core';
 import { wrap, consume } from './wrappers';
 const component_jsx_segment_0_38vnjku9rukc6 = (ctx) => {
@@ -118,77 +119,82 @@ const q_component_jsx_segment_6_38vnkcwhliod8 = /*#__PURE__*/ _noopQrl(
   'component_jsx_segment_6_38vnkcwhliod8'
 );
 q_component_jsx_segment_6_38vnkcwhliod8.s(component_jsx_segment_6_38vnkcwhliod8);
-export default (props, ctx) => {
-  const count = useSignal(0);
-  consume(q_component_jsx_segment_0_38vnjku9rukc6.w([props]));
-  const content = wrap(q_component_jsx_segment_1_38vnjyvdoomcp.w([count]));
-  const id0 = ctx.nextId();
-  ctx.addRoot(content);
-  const content0 = renderSsrContent(
-    ctx,
-    id0,
-    [],
-    q_component_content_segment_3_18523gi7fg5bn.w([content]),
-    false,
-    true
-  );
-  const id1 = ctx.nextId();
-  ctx.addRoot(props);
-  const content1 = renderSsrContent(
-    ctx,
-    id1,
-    [],
-    q_component_content_segment_5_18525souwghet.w([props]),
-    false,
-    true
-  );
-  function semantic_collectionRender_342_381_3pmr3rjnp9sp9(ctx, __rangeId, __rowId, row) {
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    const count = useSignal(0);
+    consume(q_component_jsx_segment_0_38vnjku9rukc6.w([props]));
+    const content = wrap(q_component_jsx_segment_1_38vnjyvdoomcp.w([count]));
     const id0 = ctx.nextId();
-    ctx.addRoot(row);
+    ctx.addRoot(content);
     const content0 = renderSsrContent(
       ctx,
       id0,
       [],
-      q_component_content_segment_7_185250mn2sddr.w([row]),
+      q_component_content_segment_3_18523gi7fg5bn.w([content]),
       false,
       true
     );
-    return maybeThen(content0, (content0) => [
-      '<!d=',
-      createSsrNodeId(id0),
-      '>',
-      content0,
-      '<!/d>',
-    ]);
-  }
-  const collection0 = renderSsrCollection(
-    ctx,
-    undefined,
-    [1, 2],
-    undefined,
-    semantic_collectionRender_342_381_3pmr3rjnp9sp9,
-    0,
-    false,
-    3
-  );
-  return maybeThen(content0, (content0) =>
-    maybeThen(content1, (content1) =>
-      maybeThen(collection0, (collection0) => [
-        '<main><!d=',
+    const id1 = ctx.nextId();
+    ctx.addRoot(props);
+    const content1 = renderSsrContent(
+      ctx,
+      id1,
+      [],
+      q_component_content_segment_5_18525souwghet.w([props]),
+      false,
+      true
+    );
+    function semantic_collectionRender_342_381_3pmr3rjnp9sp9(ctx, __rangeId, __rowId, row) {
+      const id0 = ctx.nextId();
+      ctx.addRoot(row);
+      const content0 = renderSsrContent(
+        ctx,
+        id0,
+        [],
+        q_component_content_segment_7_185250mn2sddr.w([row]),
+        false,
+        true
+      );
+      return maybeThen(content0, (content0) => [
+        '<!d=',
         createSsrNodeId(id0),
         '>',
         content0,
-        '<!/d><!d=',
-        createSsrNodeId(id1),
-        '>',
-        content1,
         '<!/d>',
-        collection0,
-        '</main>',
-      ])
-    )
-  );
-};
+      ]);
+    }
+    const collection0 = renderSsrCollection(
+      ctx,
+      undefined,
+      [1, 2],
+      undefined,
+      semantic_collectionRender_342_381_3pmr3rjnp9sp9,
+      0,
+      false,
+      3
+    );
+    return maybeThen(content0, (content0) =>
+      maybeThen(content1, (content1) =>
+        maybeThen(collection0, (collection0) => [
+          '<main><!d=',
+          createSsrNodeId(id0),
+          '>',
+          content0,
+          '<!/d><!d=',
+          createSsrNodeId(id1),
+          '>',
+          content1,
+          '<!/d>',
+          collection0,
+          '</main>',
+        ])
+      )
+    );
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
 
 import {

@@ -42,7 +42,7 @@ export const Card = (props, ctx) => {
   );
   return el0;
 };
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const el0 = default_tmpl0(ctx.document);
   const marker0 = _last(el0);
   const component0 = createComponent(Card, null, ctx);
@@ -53,6 +53,9 @@ export default (props, ctx) => {
   marker0.replaceWith(..._toNodes(component1));
   return el0;
 };
+export default default_component_3rg6kq1so9aio;
+
+export { Card as Card_component_1j4wd08arm0n5 };
 ============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
 
 import { _createElementTemplate } from '@qwik.dev/core';

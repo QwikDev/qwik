@@ -53,7 +53,7 @@ export const Switch = (props, ctx) => {
   ctx.scheduler.notify(content0);
   return [start0, end0];
 };
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const slotScope0 = createSlotScope();
   const prop0 = propSource(props, 'pick');
   registerProjection(slotScope0, 'a', q_component_slot_render_segment_1_3b0tauy2p1nv1);
@@ -73,6 +73,9 @@ export default (props, ctx) => {
   );
   return component0;
 };
+export default default_component_3rg6kq1so9aio;
+
+export { Switch as Switch_component_1uyn3u3j9umgv };
 ============================= src/component.tsx_component_slot_dynamic_segment_0_2ikf7n1jp8rfp.js (ENTRY POINT)==
 
 import { _captures, _first, maybeThen, createSlot, createTemplate } from '@qwik.dev/core';

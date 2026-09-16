@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import { SERIALIZABLE_STATE } from '../shared/component.public';
 import { _captures, createQRL } from '../shared/qrl/qrl-class';
 import {
   createCaptureContainer,
@@ -52,11 +51,11 @@ describe('reactive primitives', () => {
     expect(useConstant('constant')).toBe('constant');
   });
 
-  it('keeps Qwik component functions as constant values', () => {
+  it('calls every function once, a component included', () => {
     const component = () => 'component';
-    (component as any)[SERIALIZABLE_STATE] = [];
 
-    expect(useConstant(component)).toBe(component);
+    expect(useConstant(component)).toBe('component');
+    expect(useConstant(() => component)).toBe(component);
   });
 
   it('notifies signal subscribers and skips Object.is-equal writes', async () => {

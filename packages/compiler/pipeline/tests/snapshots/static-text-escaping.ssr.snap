@@ -13,10 +13,15 @@ export default component$(() => (
 
 ============================= src/component.tsx ==
 
-import { component$ } from '@qwik.dev/core';
-export default (props, ctx) => {
-  return '<div><p>a &lt; b &amp;&amp; c</p><span>tick: 1</span><textarea>x &lt; y</textarea></div>';
-};
+import { _markComponent } from '@qwik.dev/core';
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    return '<div><p>a &lt; b &amp;&amp; c</p><span>tick: 1</span><textarea>x &lt; y</textarea></div>';
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
 == SSR DIAGNOSTICS ==
 
 []

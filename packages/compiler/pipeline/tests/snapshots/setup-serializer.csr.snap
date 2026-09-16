@@ -42,7 +42,7 @@ const q_component_text_segment_3_1fh11lewq6qgx = /*#__PURE__*/ _qrlWithChunk(
   'component_text_segment_3_1fh11lewq6qgx'
 );
 const default_tmpl0 = _createElementTemplate('<span><!><!><!><!></span>');
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const start = useSignal(5);
   const count = useSerializer(_withCaptures(component_count_segment_0_1adkz2bcpjjfs, [start]));
   const date = useSerializer(component_date_segment_1_89fc8zvxt5qk);
@@ -73,6 +73,7 @@ export default (props, ctx) => {
   ctx.scheduler.notify(content1);
   return el0;
 };
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_count_segment_0_1adkz2bcpjjfs.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';

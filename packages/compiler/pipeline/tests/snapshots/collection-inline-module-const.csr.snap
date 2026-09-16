@@ -20,7 +20,7 @@ import {
 const semantic_collectionRender_57_107_1hgwyeb4bdu2g_tmpl0 = _createElementTemplate('<li> </li>');
 const default_tmpl0 = _createElementTemplate('<ul><!><!></ul>');
 const prefix = 'p-';
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const el0 = default_tmpl0(ctx.document);
   const start0 = _first(el0);
   const end0 = _next(start0);
@@ -42,6 +42,7 @@ export default (props, ctx) => {
   );
   return el0;
 };
+export default default_component_3rg6kq1so9aio;
 == CSR DIAGNOSTICS ==
 
 []

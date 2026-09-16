@@ -39,6 +39,12 @@ function Child(props, ctx) {
   ctx.scheduler.notify(effect0);
   return el0;
 }
+
+export {
+  Wrapper as Wrapper_component_1yrb0pezcavja,
+  App as default_component_3rg6kq1so9aio,
+  Child as Child_component_syc3erfxihm7,
+};
 ============================= src/component.tsx_component_q_e_click_segment_0_2xwyg1cinvmpz.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';

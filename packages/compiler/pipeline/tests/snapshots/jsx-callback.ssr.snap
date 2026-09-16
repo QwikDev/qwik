@@ -125,6 +125,7 @@ import {
   createSsrNodeId,
   escapeHTML,
   renderSsrTextExpression,
+  _markComponent,
 } from '@qwik.dev/core';
 import { consume } from './consumer';
 export default function App(props, ctx) {
@@ -150,6 +151,9 @@ export default function App(props, ctx) {
     })
   );
 }
+_markComponent(App, 'default_component_3rg6kq1so9aio', './component.tsx');
+
+export { App as default_component_3rg6kq1so9aio };
 ============================= src/component.tsx_component_jsx_segment_0_38vnjku9rukc6.js (ENTRY POINT)==
 
 import {

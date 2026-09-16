@@ -20,31 +20,37 @@ import {
   renderSsrAttr,
   _textValue,
   maybeThen,
+  _markComponent,
 } from '@qwik.dev/core';
 
-export default (props, ctx) => {
-  const id0 = ctx.nextId();
-  const prop0 = propSource(props, 'code');
-  isSource(prop0) && ctx.addRoot(prop0);
-  const text0 = renderSsrTextNode(id0, null, prop0);
-  const id1 = ctx.nextId();
-  const attr0 = renderSsrAttr(id1, 'value', prop0);
-  return maybeThen(text0, (text0) =>
-    maybeThen(attr0, (attr0) => [
-      '<div><pre q:id="',
-      createSsrNodeId(id0),
-      '">',
-      escapeHTML(text0.replace(/^\n/, '\n\n')),
-      '</pre><pre>\n\nfixed</pre><textarea q:id="',
-      createSsrNodeId(id1),
-      '"',
-      attr0 === null ? '' : ' value' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
-      '>',
-      escapeHTML(_textValue(props.code).replace(/^\n/, '\n\n')),
-      '</textarea></div>',
-    ])
-  );
-};
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    const id0 = ctx.nextId();
+    const prop0 = propSource(props, 'code');
+    isSource(prop0) && ctx.addRoot(prop0);
+    const text0 = renderSsrTextNode(id0, null, prop0);
+    const id1 = ctx.nextId();
+    const attr0 = renderSsrAttr(id1, 'value', prop0);
+    return maybeThen(text0, (text0) =>
+      maybeThen(attr0, (attr0) => [
+        '<div><pre q:id="',
+        createSsrNodeId(id0),
+        '">',
+        escapeHTML(text0.replace(/^\n/, '\n\n')),
+        '</pre><pre>\n\nfixed</pre><textarea q:id="',
+        createSsrNodeId(id1),
+        '"',
+        attr0 === null ? '' : ' value' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
+        '>',
+        escapeHTML(_textValue(props.code).replace(/^\n/, '\n\n')),
+        '</textarea></div>',
+      ])
+    );
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
 == SSR DIAGNOSTICS ==
 
 []

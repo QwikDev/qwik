@@ -30,7 +30,7 @@ import { component_id_segment_0_2jskquzwpllhm } from './component.tsx_component_
 import { component_for_render_segment_1_asysu8t2u0ck } from './component.tsx_component_for_render_segment_1_asysu8t2u0ck';
 
 const default_tmpl0 = _createElementTemplate('<ul><!><!></ul>');
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const id = useId();
   const el0 = default_tmpl0(ctx.document);
   const effect0 = createAttrExpressionEffect(
@@ -58,6 +58,7 @@ export default (props, ctx) => {
   );
   return el0;
 };
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_id_segment_0_2jskquzwpllhm.js (ENTRY POINT)==
 
 export const component_id_segment_0_2jskquzwpllhm = (id) => {

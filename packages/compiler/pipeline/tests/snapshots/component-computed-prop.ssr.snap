@@ -18,6 +18,7 @@ import {
   isSource,
   renderSsrTextNode,
   maybeThen,
+  _markComponent,
   useSignal,
   computedProp,
   readTrackedValue,
@@ -34,37 +35,48 @@ const q_component_total_segment_0_33cbacdkct5tt = /*#__PURE__*/ _noopQrl(
   'component_total_segment_0_33cbacdkct5tt'
 );
 q_component_total_segment_0_33cbacdkct5tt.s(component_total_segment_0_33cbacdkct5tt);
-export const Child = (props, ctx) => {
-  const id0 = ctx.nextId();
-  const prop0 = propSource(props, 'total');
-  isSource(prop0) && ctx.addRoot(prop0);
-  const text0 = renderSsrTextNode(id0, null, prop0);
-  return maybeThen(text0, (text0) => [
-    '<strong q:id="',
-    createSsrNodeId(id0),
-    '">',
-    escapeHTML(text0),
-    '</strong>',
-  ]);
-};
-export default (props0, ctx) => {
-  const count = useSignal(2);
-  const prop0 = computedProp(q_component_total_segment_0_33cbacdkct5tt.w([count]));
-  ctx.addRoot(prop0);
-  const component0 = createComponent(
-    Child,
-    _props(
-      {
-        get total() {
-          return readTrackedValue(prop0);
+export const Child = _markComponent(
+  (props, ctx) => {
+    const id0 = ctx.nextId();
+    const prop0 = propSource(props, 'total');
+    isSource(prop0) && ctx.addRoot(prop0);
+    const text0 = renderSsrTextNode(id0, null, prop0);
+    return maybeThen(text0, (text0) => [
+      '<strong q:id="',
+      createSsrNodeId(id0),
+      '">',
+      escapeHTML(text0),
+      '</strong>',
+    ]);
+  },
+  'Child_component_syc3erfxihm7',
+  './component.tsx'
+);
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props0, ctx) => {
+    const count = useSignal(2);
+    const prop0 = computedProp(q_component_total_segment_0_33cbacdkct5tt.w([count]));
+    ctx.addRoot(prop0);
+    const component0 = createComponent(
+      Child,
+      _props(
+        {
+          get total() {
+            return readTrackedValue(prop0);
+          },
         },
-      },
-      { total: prop0 }
-    ),
-    ctx
-  );
-  return component0;
-};
+        { total: prop0 }
+      ),
+      ctx
+    );
+    return component0;
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
+
+export { Child as Child_component_syc3erfxihm7 };
 ============================= src/component.tsx_component_total_segment_0_33cbacdkct5tt.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';

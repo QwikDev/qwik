@@ -15,12 +15,13 @@ import { _first, createComponent, _toNodes, _createElementTemplate } from '@qwik
 
 const default_tmpl0 = _createElementTemplate('<main><!></main>');
 import { Child as RenamedChild } from './child';
-export default (props, ctx) => {
+export const default_component_31wgqjs4jy6fg = (props, ctx) => {
   const el0 = default_tmpl0(ctx.document);
   const component0 = createComponent(RenamedChild, null, ctx);
   _first(el0).replaceWith(..._toNodes(component0));
   return el0;
 };
+export default default_component_31wgqjs4jy6fg;
 ============================= src/child.tsx ==
 
 import { _createElementTemplate } from '@qwik.dev/core';
@@ -30,6 +31,8 @@ export const Child = (props, ctx) => {
   const el0 = Child_tmpl0(ctx.document);
   return el0;
 };
+
+export { Child as Child_component_21vinhoq90ufu };
 == CSR DIAGNOSTICS ==
 
 []

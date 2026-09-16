@@ -37,7 +37,7 @@ export const Child = (props, ctx) => {
   ctx.scheduler.notify(effect0);
   return el0;
 };
-export default (props0, ctx) => {
+export const default_component_3rg6kq1so9aio = (props0, ctx) => {
   const count = useSignal(2);
   const prop0 = computedProp(q_component_total_segment_0_33cbacdkct5tt.w([count]));
   const component0 = createComponent(
@@ -54,6 +54,9 @@ export default (props0, ctx) => {
   );
   return component0;
 };
+export default default_component_3rg6kq1so9aio;
+
+export { Child as Child_component_syc3erfxihm7 };
 ============================= src/component.tsx_component_total_segment_0_33cbacdkct5tt.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';

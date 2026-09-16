@@ -9,7 +9,7 @@ export default (props: { name: string }) => <p>{props.name}</p>;
 import { _first, propSource, createTextNodeEffect, _createElementTemplate } from '@qwik.dev/core';
 
 const default_tmpl0 = _createElementTemplate('<p> </p>');
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const el0 = default_tmpl0(ctx.document);
   const text0 = _first(el0);
   const prop0 = propSource(props, 'name');
@@ -17,6 +17,7 @@ export default (props, ctx) => {
   ctx.scheduler.notify(effect0);
   return el0;
 };
+export default default_component_3rg6kq1so9aio;
 == CSR DIAGNOSTICS ==
 
 []

@@ -53,7 +53,7 @@ export const useCounter = (step) => {
   useTask(_withCaptures(component_useTaskqrl_segment_1_1og80wrqqnv5v, [c, step]));
   return c;
 };
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const invokeCtx0 = getActiveInvokeContextOrNull();
   const c = useCounter(2);
   return maybeThen(invokeCtx0.pendingSetup, () =>
@@ -76,6 +76,7 @@ export default (props, ctx) => {
     })
   );
 };
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_qrl_segment_0_2fpowujm1ejve.js (ENTRY POINT)==
 
 import { _captures } from '@qwik.dev/core';

@@ -15,6 +15,7 @@ import {
   maybeThen,
   renderSsrCollection,
   _noopQrl,
+  _markComponent,
 } from '@qwik.dev/core';
 
 const component_text_segment_0_1fh10fbkzokfc = (item, props) => {
@@ -24,37 +25,42 @@ const q_component_text_segment_0_1fh10fbkzokfc = /*#__PURE__*/ _noopQrl(
   'component_text_segment_0_1fh10fbkzokfc'
 );
 q_component_text_segment_0_1fh10fbkzokfc.s(component_text_segment_0_1fh10fbkzokfc);
-export default (props, ctx) => {
-  function semantic_collectionRender_41_96_30m4qejpwt1c8(ctx, __rangeId, __rowId, item) {
-    const id0 = ctx.nextId();
-    ctx.addRoot(item);
-    ctx.addRoot(props);
-    const text0 = renderSsrTextExpression(
-      id0,
-      null,
-      [item, props],
-      q_component_text_segment_0_1fh10fbkzokfc
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    function semantic_collectionRender_41_96_30m4qejpwt1c8(ctx, __rangeId, __rowId, item) {
+      const id0 = ctx.nextId();
+      ctx.addRoot(item);
+      ctx.addRoot(props);
+      const text0 = renderSsrTextExpression(
+        id0,
+        null,
+        [item, props],
+        q_component_text_segment_0_1fh10fbkzokfc
+      );
+      return maybeThen(text0, (text0) => [
+        '<li q:id="',
+        createSsrNodeId(id0),
+        '">',
+        escapeHTML(text0),
+        '</li>',
+      ]);
+    }
+    const collection0 = renderSsrCollection(
+      ctx,
+      undefined,
+      ['a', 'b'],
+      undefined,
+      semantic_collectionRender_41_96_30m4qejpwt1c8,
+      0,
+      false,
+      0
     );
-    return maybeThen(text0, (text0) => [
-      '<li q:id="',
-      createSsrNodeId(id0),
-      '">',
-      escapeHTML(text0),
-      '</li>',
-    ]);
-  }
-  const collection0 = renderSsrCollection(
-    ctx,
-    undefined,
-    ['a', 'b'],
-    undefined,
-    semantic_collectionRender_41_96_30m4qejpwt1c8,
-    0,
-    false,
-    0
-  );
-  return maybeThen(collection0, (collection0) => ['<ul>', collection0, '</ul>']);
-};
+    return maybeThen(collection0, (collection0) => ['<ul>', collection0, '</ul>']);
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_text_segment_0_1fh10fbkzokfc.js (ENTRY POINT)==
 
 export const component_text_segment_0_1fh10fbkzokfc = (item, props) => {

@@ -28,6 +28,7 @@ import {
   maybeThen,
   _noopQrl,
   renderSsrTextExpression,
+  _markComponent,
 } from '@qwik.dev/core';
 const component_id_segment_0_2jskquzwpllhm = (id) => {
   return id;
@@ -78,38 +79,43 @@ const q_component_text_segment_3_1fh11lewq6qgx = /*#__PURE__*/ _noopQrl(
   'component_text_segment_3_1fh11lewq6qgx'
 );
 q_component_text_segment_3_1fh11lewq6qgx.s(component_text_segment_3_1fh11lewq6qgx);
-export default (props, ctx) => {
-  const id = useId();
-  const id0 = ctx.nextId();
-  ctx.addRoot(id);
-  const attr0 = renderSsrAttrExpression(id0, 'id', [id], q_component_id_segment_0_2jskquzwpllhm);
-  const prop0 = propSource(props, 'items');
-  isSource(prop0) && ctx.addRoot(prop0);
-  const collectionId0 = ctx.nextId();
-  const collection0 = renderSsrCollection(
-    ctx,
-    collectionId0,
-    prop0,
-    undefined,
-    q_component_for_render_segment_1_asysu8t2u0ck,
-    0,
-    false,
-    0
-  );
-  return maybeThen(attr0, (attr0) =>
-    maybeThen(collection0, (collection0) => [
-      '<ul q:id="',
-      createSsrNodeId(id0),
-      '"',
-      attr0 === null ? '' : ' id' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
-      '><!f=',
-      createSsrNodeId(collectionId0),
-      '>',
-      collection0,
-      '<!/f></ul>',
-    ])
-  );
-};
+export const default_component_3rg6kq1so9aio = _markComponent(
+  (props, ctx) => {
+    const id = useId();
+    const id0 = ctx.nextId();
+    ctx.addRoot(id);
+    const attr0 = renderSsrAttrExpression(id0, 'id', [id], q_component_id_segment_0_2jskquzwpllhm);
+    const prop0 = propSource(props, 'items');
+    isSource(prop0) && ctx.addRoot(prop0);
+    const collectionId0 = ctx.nextId();
+    const collection0 = renderSsrCollection(
+      ctx,
+      collectionId0,
+      prop0,
+      undefined,
+      q_component_for_render_segment_1_asysu8t2u0ck,
+      0,
+      false,
+      0
+    );
+    return maybeThen(attr0, (attr0) =>
+      maybeThen(collection0, (collection0) => [
+        '<ul q:id="',
+        createSsrNodeId(id0),
+        '"',
+        attr0 === null ? '' : ' id' + (attr0 === '' ? '' : '="' + escapeHTML(attr0) + '"'),
+        '><!f=',
+        createSsrNodeId(collectionId0),
+        '>',
+        collection0,
+        '<!/f></ul>',
+      ])
+    );
+  },
+  'default_component_3rg6kq1so9aio',
+  './component.tsx'
+);
+export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_id_segment_0_2jskquzwpllhm.js (ENTRY POINT)==
 
 export const component_id_segment_0_2jskquzwpllhm = (id) => {

@@ -29,6 +29,7 @@ export const enum QwikWord {
   WithCaptures = '_withCaptures',
   QrlSync = '_qrlSync',
   QrlWithChunk = '_qrlWithChunk',
+  MarkComponent = '_markComponent',
   ToNodes = '_toNodes',
   CreateTextExpressionEffect = 'createTextExpressionEffect',
   CreateTextNodeEffect = 'createTextNodeEffect',

@@ -24,7 +24,7 @@ import {
 const default_tmpl0 = _createElementTemplate(
   '<div><pre> </pre><pre>\n\nfixed</pre><textarea> </textarea></div>'
 );
-export default (props, ctx) => {
+export const default_component_3rg6kq1so9aio = (props, ctx) => {
   const el0 = default_tmpl0(ctx.document);
   const text0 = _first(_first(el0));
   const prop0 = propSource(props, 'code');
@@ -36,6 +36,7 @@ export default (props, ctx) => {
   _first(el1).data = _textValue(props.code);
   return el0;
 };
+export default default_component_3rg6kq1so9aio;
 == CSR DIAGNOSTICS ==
 
 []

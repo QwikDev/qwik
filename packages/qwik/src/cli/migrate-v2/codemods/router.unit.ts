@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import {
+  keepLoaderRequestsUncached,
   keepV1HeadOrder,
   keepV1LinkPrefetch,
   keepV1ViewTransitions,
@@ -155,6 +156,53 @@ describe('keepV1LinkPrefetch', () => {
       `import { Link } from './link';\n<Link href="/a" />;`,
     ]) {
       expect(run(keepV1LinkPrefetch, code)).toEqual({ changed: false, text: code });
+    }
+  });
+});
+
+describe('keepLoaderRequestsUncached', () => {
+  test('only sets Cache-Control for page requests', () => {
+    expect(
+      run(
+        keepLoaderRequestsUncached,
+        [
+          `export const onGet: RequestHandler = async ({ cacheControl }) => {`,
+          `  cacheControl({`,
+          `    staleWhileRevalidate: 60 * 60 * 24 * 7,`,
+          `    maxAge: 5,`,
+          `  });`,
+          `};`,
+          `export const onRequest: RequestHandler = (ev) => {`,
+          `  ev.cacheControl('no-cache');`,
+          `};`,
+        ].join('\n'),
+        'src/routes/layout.tsx'
+      ).text
+    ).toBe(
+      [
+        `export const onGet: RequestHandler = async ({ cacheControl, internalRequest }) => {`,
+        `  if (internalRequest !== 'loader') {`,
+        `    cacheControl({`,
+        `      staleWhileRevalidate: 60 * 60 * 24 * 7,`,
+        `      maxAge: 5,`,
+        `    });`,
+        `  }`,
+        `};`,
+        `export const onRequest: RequestHandler = (ev) => {`,
+        `  if (ev.internalRequest !== 'loader') {`,
+        `    ev.cacheControl('no-cache');`,
+        `  }`,
+        `};`,
+      ].join('\n')
+    );
+  });
+
+  test('ignores handlers without cacheControl and files outside routes', () => {
+    for (const [code, path] of [
+      [`export const onGet = ({ json }) => { json(200, {}); };`, 'src/routes/index.ts'],
+      [`export const onGet = (ev) => { ev.cacheControl(1); };`, 'src/utils.ts'],
+    ]) {
+      expect(run(keepLoaderRequestsUncached, code, path)).toEqual({ changed: false, text: code });
     }
   });
 });

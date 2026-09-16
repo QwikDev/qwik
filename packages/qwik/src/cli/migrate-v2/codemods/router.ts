@@ -165,3 +165,67 @@ export const keepV1LinkPrefetch = (file: SourceFile) => {
   }
   return changed;
 };
+
+const HANDLER_EXPORT = /^on(Request|Get|Post|Put|Patch|Delete|Head|Options)$/;
+
+/**
+ * V1 fetched route data on SPA navigation bypassing the browser cache. v2 fetches each route loader
+ * as a normal request, so `Cache-Control` set by middleware would serve stale loader data. The
+ * middleware keeps setting it for page requests only.
+ */
+export const keepLoaderRequestsUncached = (file: SourceFile) => {
+  if (!/\/routes\//.test(file.getFilePath())) {
+    return false;
+  }
+  let changed = false;
+  for (const decl of file.getVariableDeclarations()) {
+    const handler = decl.getInitializer();
+    if (
+      !HANDLER_EXPORT.test(decl.getName()) ||
+      !decl.isExported() ||
+      !(Node.isArrowFunction(handler) || Node.isFunctionExpression(handler))
+    ) {
+      continue;
+    }
+    const param = handler.getParameters()[0]?.getNameNode();
+    let condition: string | undefined;
+    let isCacheControl: (callee: string) => boolean;
+    if (Node.isIdentifier(param)) {
+      condition = `${param.getText()}.internalRequest !== 'loader'`;
+      isCacheControl = (callee) => callee === `${param.getText()}.cacheControl`;
+    } else if (Node.isObjectBindingPattern(param)) {
+      const element = param
+        .getElements()
+        .find((e) => (e.getPropertyNameNode() ?? e.getNameNode()).getText() === 'cacheControl');
+      if (!element) {
+        continue;
+      }
+      const local = element.getNameNode().getText();
+      isCacheControl = (callee) => callee === local;
+      condition = `internalRequest !== 'loader'`;
+    } else {
+      continue;
+    }
+    const statements = handler
+      .getDescendantsOfKind(SyntaxKind.CallExpression)
+      .filter((call) => isCacheControl(call.getExpression().getText()))
+      .map((call) => call.getParent())
+      .filter(Node.isExpressionStatement);
+    if (statements.length === 0) {
+      continue;
+    }
+    for (const statement of statements.reverse()) {
+      statement.replaceWithText(`if (${condition}) {\n  ${statement.getText()}\n}`);
+    }
+    if (
+      Node.isObjectBindingPattern(param) &&
+      !param.getElements().some((e) => e.getName() === 'internalRequest')
+    ) {
+      param.replaceWithText(
+        `{ ${[...param.getElements().map((e) => e.getText()), 'internalRequest'].join(', ')} }`
+      );
+    }
+    changed = true;
+  }
+  return changed;
+};

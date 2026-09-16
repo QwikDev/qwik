@@ -5,6 +5,7 @@ import { removeSlotChildren, renameHtmlFor } from './jsx';
 import { migrateQwikLabs } from './labs';
 import { warnRemovedApis } from './removed-apis';
 import {
+  keepLoaderRequestsUncached,
   keepV1HeadOrder,
   keepV1LinkPrefetch,
   keepV1ViewTransitions,
@@ -59,6 +60,7 @@ export const codemods: Codemod[] = [
   keepV1ViewTransitions,
   keepV1HeadOrder,
   keepV1LinkPrefetch,
+  keepLoaderRequestsUncached,
 ];
 
 /** Codemods run on the whole project before the file codemods. */

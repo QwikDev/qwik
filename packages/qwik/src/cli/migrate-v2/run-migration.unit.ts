@@ -80,6 +80,29 @@ describe('runV2Migration', () => {
     );
   });
 
+  test('renames deprecated qwik-city exports', async () => {
+    project = createTmpProject({
+      'package.json': '{}',
+      'src/a.tsx': [
+        `import { QwikCityMockProvider, type QwikCityMockProps, type QwikCityMockActionProp, type QwikCityMockLoaderProp, type QwikCityPlan, type QwikCityProps } from '@builder.io/qwik-city';`,
+        `import type { QwikCityBunOptions } from '@builder.io/qwik-city/middleware/bun';`,
+        `import type { QwikCityVercelEdgeOptions } from '@builder.io/qwik-city/middleware/vercel-edge';`,
+        `import { staticAdapter, type StaticGenerateRenderOptions } from '@builder.io/qwik-city/adapters/static/vite';`,
+        `import type { StaticGenerateOptions } from '@builder.io/qwik-city/static';`,
+      ].join('\n'),
+    });
+    await migrate();
+    expect(project.read('src/a.tsx')).toBe(
+      [
+        `import { QwikRouterMockProvider, type QwikRouterMockProps, type QwikRouterMockActionProp, type QwikRouterMockLoaderProp, type QwikRouterConfig, type QwikRouterProps } from '@qwik.dev/router';`,
+        `import type { QwikRouterBunOptions } from '@qwik.dev/router/middleware/bun';`,
+        `import type { QwikRouterVercelEdgeOptions } from '@qwik.dev/router/middleware/vercel-edge';`,
+        `import { ssgAdapter, type SsgRenderOptions } from '@qwik.dev/router/adapters/static/vite';`,
+        `import type { SsgOptions } from '@qwik.dev/router/static';`,
+      ].join('\n')
+    );
+  });
+
   test('keeps the jsx-runtime subpath and jsxs', async () => {
     project = createTmpProject({
       'package.json': '{}',

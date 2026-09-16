@@ -152,6 +152,25 @@ describe('runV2Migration', () => {
     );
   });
 
+  test('reports mentions of v1 internals and the v2 behavior changes', async () => {
+    project = createTmpProject({
+      'package.json': '{}',
+      'src/app.css': `.⭐️abc { color: red }`,
+      'netlify.toml': `[[headers]]\n  for = "/*/q-data.json"`,
+      'tests/e2e.spec.ts': `page.locator('[on:click]');`,
+    });
+    vi.mocked(log.warn).mockClear();
+    vi.mocked(log.info).mockClear();
+    await migrate();
+    const warnings = vi.mocked(log.warn).mock.calls[0][0];
+    expect(warnings).toContain('src/app.css: scoped style classes use the `⚡️` prefix');
+    expect(warnings).toContain('netlify.toml: v2 fetches route data from `q-loader-*.json`');
+    expect(warnings).toContain('tests/e2e.spec.ts: v2 renders listeners as `q-e:`');
+    expect(vi.mocked(log.info)).toHaveBeenCalledWith(
+      expect.stringContaining('Behavior changes of v2 that could not be migrated:')
+    );
+  });
+
   test('keeps the jsx-runtime subpath and jsxs', async () => {
     project = createTmpProject({
       'package.json': '{}',

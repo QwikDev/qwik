@@ -3,7 +3,7 @@ import type { AppCommand } from '../utils/app-command';
 import { bgMagenta, bgRed, bold, green } from 'kleur/colors';
 import { bye } from '../utils/utils';
 import { removePackage, replacePackage } from './replace-package';
-import { takeWarnings, warnMentions } from './report';
+import { takeWarnings, V2_BEHAVIOR_CHANGES, warnMentions } from './report';
 import { updateConfigurations } from './update-configurations';
 import {
   installTsMorph,
@@ -75,6 +75,19 @@ export async function runV2Migration(app: AppCommand) {
       '@qwik-city-plan' // using old name, package name will be updated in the next step
     );
 
+    warnMentions('⭐️', 'scoped style classes use the `⚡️` prefix instead of `⭐️` in v2.');
+    warnMentions('q-data.json', 'v2 fetches route data from `q-loader-*.json` files instead.');
+    warnMentions(
+      'qwik/json',
+      'v2 serializes the state into `qwik/state` and `qwik/vnode` scripts.'
+    );
+    for (const attr of ['[on:', 'on-window:', 'on-document:']) {
+      warnMentions(attr, 'v2 renders listeners as `q-e:`, `q-w:` and `q-d:` attributes.');
+    }
+    warnMentions(
+      '@builder.io/qwik-auth',
+      '"@builder.io/qwik-auth" has no v2 version, use "@auth/qwik" (see https://qwik.dev/docs/integrations/authjs/).'
+    );
     warnMentions(
       '@qwik-city-not-found-paths',
       '"@qwik-city-not-found-paths" does not exist in v2, the router renders 404 pages itself.'
@@ -104,6 +117,9 @@ export async function runV2Migration(app: AppCommand) {
 
     await updateDependencies();
     const warnings = takeWarnings();
+    log.info(
+      `${bold('Behavior changes of v2 that could not be migrated:')}\n${V2_BEHAVIOR_CHANGES.map((c) => `  - ${c}`).join('\n')}`
+    );
     if (warnings.length) {
       log.warn(
         `${bold('Some changes need your attention:')}\n${warnings.map((w) => `  - ${w}`).join('\n')}`

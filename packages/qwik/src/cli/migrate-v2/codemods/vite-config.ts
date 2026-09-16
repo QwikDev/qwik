@@ -163,3 +163,23 @@ export const keepAssetsDir = (file: SourceFile) => {
   }
   return false;
 };
+
+/** Rolldown chunking ignores `manualChunks`, v2 needs `output.codeSplitting.groups` instead. */
+export const warnManualChunks = (file: SourceFile) => {
+  const found = file
+    .getDescendants()
+    .some(
+      (node) =>
+        (Node.isPropertyAssignment(node) ||
+          Node.isShorthandPropertyAssignment(node) ||
+          Node.isMethodDeclaration(node)) &&
+        (node.getName() === 'manualChunks' || node.getName() === 'advancedChunks')
+    );
+  if (found) {
+    warn(
+      file.getFilePath(),
+      '`manualChunks`/`advancedChunks` are ignored by the v2 client build, move them to `output.codeSplitting.groups`.'
+    );
+  }
+  return false;
+};

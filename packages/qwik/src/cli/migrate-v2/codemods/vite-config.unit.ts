@@ -7,6 +7,7 @@ import {
   keepBaseOutDir,
   removeDevInput,
   removeStableExperimentalFeatures,
+  warnManualChunks,
 } from './vite-config';
 
 const run = (codemod: Codemod, code: string) => {
@@ -161,5 +162,25 @@ describe('keepAssetsDir', () => {
     ]) {
       expect(run(keepAssetsDir, code)).toEqual({ changed: false, text: code });
     }
+  });
+});
+
+describe('warnManualChunks', () => {
+  afterEach(() => takeWarnings());
+
+  test('warns about manualChunks in any form', () => {
+    for (const code of [
+      `export default { build: { rollupOptions: { output: { manualChunks: { a: ['b'] } } } } };`,
+      `export default { build: { rollupOptions: { output: { manualChunks(id) {} } } } };`,
+      `const manualChunks = () => {};\nexport default { output: { manualChunks } };`,
+    ]) {
+      expect(run(warnManualChunks, code)).toEqual({ changed: false, text: code });
+      expect(takeWarnings()).toHaveLength(1);
+    }
+  });
+
+  test('does not warn without manualChunks', () => {
+    run(warnManualChunks, `export default { build: {} };`);
+    expect(takeWarnings()).toEqual([]);
   });
 });

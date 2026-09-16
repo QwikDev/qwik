@@ -11,6 +11,7 @@ import {
   keepBaseOutDir,
   removeDevInput,
   removeStableExperimentalFeatures,
+  warnManualChunks,
 } from './vite-config';
 
 export { runCodemods } from './run-codemods';
@@ -28,4 +29,5 @@ export const codemods: Codemod[] = [
   removeStableExperimentalFeatures,
   keepBaseOutDir,
   keepAssetsDir,
+  warnManualChunks,
 ];

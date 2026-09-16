@@ -2,7 +2,7 @@ import { Project } from 'ts-morph';
 import { afterEach, describe, expect, test } from 'vitest';
 import { takeWarnings } from '../report';
 import type { Codemod } from './run-codemods';
-import { removeTaskEagerness } from './tasks';
+import { keepV1TaskCleanupTiming, removeTaskEagerness } from './tasks';
 
 const run = (codemod: Codemod, code: string) => {
   const file = new Project({ useInMemoryFileSystem: true }).createSourceFile('a.tsx', code);
@@ -31,5 +31,66 @@ describe('removeTaskEagerness', () => {
   test('keeps other options', () => {
     const code = `${IMPORT}useVisibleTask$(() => {}, { strategy: 'document-ready' });`;
     expect(run(removeTaskEagerness, code)).toEqual({ changed: false, text: code });
+  });
+});
+
+describe('keepV1TaskCleanupTiming', () => {
+  test('wraps cleanups that may return a promise', () => {
+    expect(
+      run(
+        keepV1TaskCleanupTiming,
+        [
+          IMPORT + `useTask$(({ track, cleanup }) => {`,
+          `  cleanup(async () => await close());`,
+          `  cleanup(() => { clearInterval(id); });`,
+          `});`,
+        ].join('\n')
+      ).text
+    ).toBe(
+      [
+        IMPORT + `useTask$(({ track, cleanup }) => {`,
+        `  cleanup(() => {`,
+        `    void (async () => await close())();`,
+        `  });`,
+        `  cleanup(() => { clearInterval(id); });`,
+        `});`,
+      ].join('\n')
+    );
+  });
+
+  test('wraps returned cleanups and ctx.cleanup calls', () => {
+    expect(
+      run(
+        keepV1TaskCleanupTiming,
+        [
+          IMPORT + `useVisibleTask$((ctx) => {`,
+          `  ctx.cleanup(() => stop());`,
+          `  const inner = () => { return 1; };`,
+          `  return () => close();`,
+          `});`,
+        ].join('\n')
+      ).text
+    ).toBe(
+      [
+        IMPORT + `useVisibleTask$((ctx) => {`,
+        `  ctx.cleanup(() => {`,
+        `    void (() => stop())();`,
+        `  });`,
+        `  const inner = () => { return 1; };`,
+        `  return () => {`,
+        `    void (() => close())();`,
+        `  };`,
+        `});`,
+      ].join('\n')
+    );
+  });
+
+  test('keeps sync cleanups and tasks from other modules', () => {
+    for (const code of [
+      `${IMPORT}useTask$(({ cleanup }) => { cleanup(() => { stop(); }); });`,
+      `import { useTask$ } from 'x';\nuseTask$(({ cleanup }) => { cleanup(async () => {}); });`,
+    ]) {
+      expect(run(keepV1TaskCleanupTiming, code)).toEqual({ changed: false, text: code });
+    }
   });
 });

@@ -5,10 +5,7 @@ import { findCalls, findNamedImports, findReferences } from './utils';
 const MIDDLEWARE = '@builder.io/qwik-city/middleware/';
 
 const createRouterCalls = (file: SourceFile) =>
-  findCalls(file, [
-    ...findNamedImports(file, MIDDLEWARE, 'createQwikCity'),
-    ...findNamedImports(file, MIDDLEWARE, 'createQwikRouter'),
-  ]);
+  findCalls(file, findNamedImports(file, MIDDLEWARE, 'createQwikCity'));
 
 /**
  * `createQwikCity({ render, qwikCityPlan })` -> `createQwikCity({ render })`. v2 loads the router

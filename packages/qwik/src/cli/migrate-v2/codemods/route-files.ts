@@ -3,7 +3,7 @@ import { basename, dirname, join, resolve } from 'path';
 import { Node, SyntaxKind, type Project, type SourceFile } from 'ts-morph';
 import { warn } from '../report';
 import { visitNotIgnoredFiles } from '../tools/visit-not-ignored-files';
-import { ensureNamedImport } from './utils';
+import { ensureNamedImport, HANDLER_EXPORT } from './utils';
 
 const ROUTE_FILE = /\.(tsx|ts|jsx|js|mdx|md)$/;
 
@@ -37,11 +37,10 @@ export const renameV2ErrorBoundaryFiles = (project: Project) => {
   });
 };
 
-const HANDLER = /^on(Request|Get|Post|Put|Patch|Delete|Head|Options)$/;
 const PROBE = 'export const useV1NavigationProbe = routeLoader$(() => null);';
 
 const exportsHandlers = (file: SourceFile) =>
-  [...file.getExportedDeclarations().keys()].some((name) => HANDLER.test(name));
+  [...file.getExportedDeclarations().keys()].some((name) => HANDLER_EXPORT.test(name));
 
 const exportsLoader = (file: SourceFile) =>
   file

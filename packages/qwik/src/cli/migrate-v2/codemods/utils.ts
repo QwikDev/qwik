@@ -8,6 +8,9 @@ import {
   type SourceFile,
 } from 'ts-morph';
 
+/** Names of the request handlers a route module can export. */
+export const HANDLER_EXPORT = /^on(Request|Get|Post|Put|Patch|Delete|Head|Options)$/;
+
 /**
  * Local identifiers bound to the named import `name` from a module whose specifier starts with
  * `modulePrefix`.

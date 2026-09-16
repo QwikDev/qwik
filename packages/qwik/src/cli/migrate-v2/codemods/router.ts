@@ -1,6 +1,6 @@
 import { Node, SyntaxKind, type SourceFile } from 'ts-morph';
 import { warn } from '../report';
-import { ensureNamedImport, findCalls, findNamedImports } from './utils';
+import { ensureNamedImport, findCalls, findNamedImports, HANDLER_EXPORT } from './utils';
 
 /**
  * `@builder.io/qwik-city/service-worker` was removed in v2. Its only export, `setupServiceWorker`,
@@ -163,8 +163,6 @@ export const keepV1LinkPrefetch = (file: SourceFile) => {
   }
   return changed;
 };
-
-const HANDLER_EXPORT = /^on(Request|Get|Post|Put|Patch|Delete|Head|Options)$/;
 
 /**
  * V1 fetched route data on SPA navigation bypassing the browser cache. v2 fetches each route loader

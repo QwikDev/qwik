@@ -1,4 +1,7 @@
 import { execSync } from 'node:child_process';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { basename } from 'node:path';
+import { visitNotIgnoredFiles } from './tools/visit-not-ignored-files';
 import { installDeps } from '../utils/install-deps';
 import { getPackageManager, readPackageJson, writePackageJson } from './../utils/utils';
 import { packageNames, versionTagPriority } from './versions';
@@ -6,9 +9,6 @@ import { major } from 'semver';
 import { log, spinner } from '@clack/prompts';
 
 export async function updateDependencies() {
-  // TODO(migrate-v2): rely on workspaceRoot instead?
-  const packageJson = await readPackageJson(process.cwd());
-
   const version = getPackageTag();
 
   const dependencyNames = [
@@ -18,16 +18,27 @@ export async function updateDependencies() {
     'optionalDependencies',
   ] as const;
 
-  for (const name of packageNames) {
-    for (const propName of dependencyNames) {
-      const prop = packageJson[propName];
-      if (prop && prop[name]) {
-        prop[name] = version;
+  // workspace packages too, not only the root package.json
+  visitNotIgnoredFiles('.', (path) => {
+    if (basename(path) !== 'package.json') {
+      return;
+    }
+    const packageJson = JSON.parse(readFileSync(path, 'utf-8'));
+    let changed = false;
+    for (const name of packageNames) {
+      for (const propName of dependencyNames) {
+        const prop = packageJson[propName];
+        if (prop && prop[name]) {
+          prop[name] = version;
+          changed = true;
+        }
       }
     }
-  }
+    if (changed) {
+      writeFileSync(path, JSON.stringify(packageJson, null, 2) + '\n');
+    }
+  });
 
-  await writePackageJson(process.cwd(), packageJson);
   const loading = spinner();
   loading.start(`Updating dependencies...`);
   await runInstall();

@@ -55,6 +55,21 @@ describe('update-dependencies', () => {
       expect(installDeps).toHaveBeenCalledOnce();
     });
 
+    test('updates workspace package.json files too', async () => {
+      execSync.mockReturnValue('latest: 2.0.0\n');
+      const unrelated = '{"name":"c",  "dependencies": {}}';
+      project = createTmpProject({
+        'package.json': JSON.stringify({ devDependencies: { '@qwik.dev/core': '1' } }),
+        'apps/web/package.json': JSON.stringify({ dependencies: { '@qwik.dev/router': '1' } }),
+        'libs/c/package.json': unrelated,
+      });
+      await updateDependencies();
+      expect(JSON.parse(project.read('apps/web/package.json')).dependencies).toEqual({
+        '@qwik.dev/router': '2.0.0',
+      });
+      expect(project.read('libs/c/package.json')).toBe(unrelated);
+    });
+
     test('prefers the "latest" tag once it points to v2', async () => {
       execSync.mockReturnValue('alpha: 2.0.0-alpha.9\nlatest: 2.1.0\nbeta: 2.0.0-beta.5\n');
       project = createTmpProject({

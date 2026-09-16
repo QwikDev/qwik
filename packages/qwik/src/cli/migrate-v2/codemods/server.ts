@@ -1,6 +1,6 @@
 import { Node, SyntaxKind, type ObjectLiteralExpression, type SourceFile } from 'ts-morph';
 import { warn } from '../report';
-import { appendProperty, findCalls, findNamedImports } from './utils';
+import { appendProperty, ensureNamedImport, findCalls, findNamedImports } from './utils';
 
 const SERVER = '@builder.io/qwik/server';
 
@@ -100,4 +100,32 @@ export const keepV1StreamingDefaults = (file: SourceFile) => {
     }
   }
   return false;
+};
+
+/**
+ * Importing `@qwik-client-manifest` is deprecated in v2 and logs an error, the module now exports
+ * `getClientManifest()`.
+ */
+export const replaceClientManifestImport = (file: SourceFile) => {
+  const decl = file
+    .getImportDeclarations()
+    .find((d) => d.getModuleSpecifierValue() === '@qwik-client-manifest');
+  const named = decl?.getNamedImports() ?? [];
+  if (
+    !decl ||
+    decl.getDefaultImport() ||
+    decl.getNamespaceImport() ||
+    named.some((n) => n.getName() !== 'manifest')
+  ) {
+    return false;
+  }
+  const locals = named.map((n) => (n.getAliasNode() ?? n.getNameNode()).getText());
+  decl.remove();
+  ensureNamedImport(file, '@builder.io/qwik', 'getClientManifest');
+  const imports = file.getImportDeclarations();
+  file.insertStatements(
+    imports[imports.length - 1].getChildIndex() + 1,
+    locals.map((local) => `const ${local} = getClientManifest();`)
+  );
+  return true;
 };

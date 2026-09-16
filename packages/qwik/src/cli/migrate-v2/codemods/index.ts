@@ -16,6 +16,7 @@ import {
   keepV1StreamingDefaults,
   removeRemovedRenderOptions,
   renameMaximunStreamingOptions,
+  replaceClientManifestImport,
 } from './server';
 import type { Codemod, ProjectCodemod } from './run-codemods';
 import {
@@ -66,6 +67,7 @@ export const codemods: Codemod[] = [
   keepV1HeadOrder,
   keepV1LinkPrefetch,
   keepLoaderRequestsUncached,
+  replaceClientManifestImport,
 ];
 
 /** Codemods run on the whole project before the file codemods. */

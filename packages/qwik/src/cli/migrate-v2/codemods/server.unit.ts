@@ -5,6 +5,7 @@ import {
   keepV1StreamingDefaults,
   removeRemovedRenderOptions,
   renameMaximunStreamingOptions,
+  replaceClientManifestImport,
 } from './server';
 
 const run = (codemod: Codemod, code: string) => {
@@ -155,5 +156,35 @@ describe('keepV1StreamingDefaults', () => {
     ]) {
       expect(run(keepV1StreamingDefaults, code)).toEqual({ changed: false, text: code });
     }
+  });
+});
+
+describe('replaceClientManifestImport', () => {
+  test('replaces the deprecated module with getClientManifest()', () => {
+    expect(
+      run(
+        replaceClientManifestImport,
+        [
+          `import { renderToStream } from '@builder.io/qwik/server';`,
+          `import { manifest } from '@qwik-client-manifest';`,
+          `import Root from './root';`,
+          `export default (opts) => renderToStream(<Root />, { manifest, ...opts });`,
+        ].join('\n')
+      ).text
+    ).toBe(
+      [
+        `import { renderToStream } from '@builder.io/qwik/server';`,
+        `import Root from './root';`,
+        `import { getClientManifest } from '@builder.io/qwik';`,
+        `const manifest = getClientManifest();`,
+        ``,
+        `export default (opts) => renderToStream(<Root />, { manifest, ...opts });`,
+      ].join('\n')
+    );
+  });
+
+  test('does nothing without the import', () => {
+    const code = `import { manifest } from './manifest';`;
+    expect(run(replaceClientManifestImport, code)).toEqual({ changed: false, text: code });
   });
 });

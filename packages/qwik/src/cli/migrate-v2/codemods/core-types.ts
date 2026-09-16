@@ -95,26 +95,16 @@ function replaceTypeReference(ref: TypeReferenceNode, replacement: Replacement) 
 /** V2 removed the `XxxHTMLAttributes` and related helper types, the JSX element types replace them. */
 export const replaceRemovedJsxTypes = (file: SourceFile) => replaceTypes(file, JSX_TYPES);
 
-const DOM_EVENTS: Record<string, string> = {
-  Animation: 'AnimationEvent',
-  Clipboard: 'ClipboardEvent',
-  Composition: 'CompositionEvent',
-  Drag: 'DragEvent',
-  Pointer: 'PointerEvent',
-  Focus: 'FocusEvent',
-  Keyboard: 'KeyboardEvent',
-  Mouse: 'MouseEvent',
-  Touch: 'TouchEvent',
-  UI: 'UIEvent',
-  Wheel: 'WheelEvent',
-  Transition: 'TransitionEvent',
-};
+const DOM_EVENTS = [
+  ...['Animation', 'Clipboard', 'Composition', 'Drag', 'Pointer', 'Focus', 'Keyboard', 'Mouse'],
+  ...['Touch', 'UI', 'Wheel', 'Transition'],
+];
 
 const EVENT_TYPES: Record<string, Replacement> = {
   ...Object.fromEntries(
-    Object.entries(DOM_EVENTS).flatMap(([name, dom]) => [
-      [`Native${name}Event`, text(dom)],
-      [`Qwik${name}Event`, text(dom)],
+    DOM_EVENTS.flatMap((name) => [
+      [`Native${name}Event`, text(`${name}Event`)],
+      [`Qwik${name}Event`, text(`${name}Event`)],
     ])
   ),
   // QwikMouseEvent<T, E> is E

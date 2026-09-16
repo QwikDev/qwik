@@ -17,12 +17,11 @@ import {
   forwardSlot,
   createComponent,
   registerProjection,
-  createSsrMarkup,
   createSsrNodeId,
   _noopQrl,
 } from '@qwik.dev/core';
 const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
-  return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), '<p>Forwarded</p>', '<!/s>'];
+  return ['<!s=', createSsrNodeId(__rangeId), '><p>Forwarded</p><!/s>'];
 };
 const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_0_3b0tagwys7lui'
@@ -63,10 +62,10 @@ export default default_component_3rg6kq1so9aio;
 export { Inner as Inner_component_4pzhs2ajjr75, Wrapper as Wrapper_component_1yrb0pezcavja };
 ============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
 
-import { createSsrMarkup, createSsrNodeId } from '@qwik.dev/core';
+import { createSsrNodeId } from '@qwik.dev/core';
 
 export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
-  return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), '<p>Forwarded</p>', '<!/s>'];
+  return ['<!s=', createSsrNodeId(__rangeId), '><p>Forwarded</p><!/s>'];
 };
 /*
 {

@@ -4,13 +4,15 @@ import {
   ArgPass,
   CaptureAccess,
   BindingScope,
+  ReadRole,
   type LocalId,
   type Qrl,
   type QrlUse,
   type Range,
   type Payload,
 } from '../../schema';
-import { UnsupportedError } from '../../errors';
+import { InvalidModuleError, UnsupportedError } from '../../errors';
+import { QRL_SUFFIX } from '../../words';
 import type { LowerContext } from '../lower-context';
 import { LocalKind, type SetupLocal } from '../locals';
 import { collectIrBindingIds } from '../../../src/expr-ir';
@@ -157,6 +159,28 @@ export function lowerCaptures(
   lift = true
 ): LoweredCaptures {
   const refs = collectCaptures(node, ctx, localBindings, lift);
+  // A lifted body runs outside setup, where a hook has no component owner. `useId` is a plain
+  // counter read and a `$` hook is a marker call the compiler rewrites wherever it appears.
+  const hookCall = lift
+    ? ctx.bindings
+        .freeReferences(node)
+        .find(
+          ({ node, role }) =>
+            role === ReadRole.Call &&
+            node.type === 'Identifier' &&
+            /^use[A-Z]/.test(node.name) &&
+            node.name !== 'useId' &&
+            !node.name.endsWith(QRL_SUFFIX)
+        )
+    : undefined;
+  if (hookCall !== undefined) {
+    const { name, start, end } = hookCall.node as Extract<typeof hookCall.node, { name: string }>;
+    throw new InvalidModuleError(
+      'expression-hook',
+      `${name}() cannot run inside ${subject}; hooks belong to the component body.`,
+      [start, end]
+    );
+  }
   if (refs.other !== null) {
     throw new UnsupportedError(`${subject} capturing "${refs.other}"`);
   }

@@ -67,15 +67,20 @@ export const Suspense: FunctionComponent<SuspenseProps & { children?: JSXOutput 
  */
 export const renderSsrDynamicContent = (
   value: unknown,
-  ctx?: ContainerContext
+  ctx?: ContainerContext,
+  invokeContext = getActiveInvokeContextOrNull()
 ): ValueOrPromise<SsrOutput> =>
   maybeThen(value, (v) =>
     Array.isArray(v)
-      ? promiseAll(Array.from(v, (child) => renderSsrDynamicContent(child, ctx)))
+      ? promiseAll(Array.from(v, (child) => renderSsrDynamicContent(child, ctx, invokeContext)))
       : typeof v === 'function'
         ? // a callback may hand back another compiled JSX value instead of output
-          maybeThen((v as (ctx?: ContainerContext) => unknown)(ctx), (output) =>
-            isQrl(output) ? renderSsrDynamicContent(output, ctx) : (output as SsrOutput)
+          maybeThen(
+            invoke(invokeContext, v as (ctx?: ContainerContext) => unknown, ctx),
+            (output) =>
+              isQrl(output)
+                ? renderSsrDynamicContent(output, ctx, invokeContext)
+                : (output as SsrOutput)
           )
         : v == null || v === true || v === false
           ? ''
@@ -85,17 +90,22 @@ export const renderSsrDynamicContent = (
 /** The client peer of {@link renderSsrDynamicContent}: nodes instead of bytes. */
 export const createDynamicContent = (
   value: unknown,
-  ctx: ContainerContext
+  ctx: ContainerContext,
+  invokeContext = getActiveInvokeContextOrNull()
 ): ValueOrPromise<readonly Node[]> =>
   maybeThen(value, (v) =>
     Array.isArray(v)
       ? maybeThen(
-          promiseAll(Array.from(v, (child) => createDynamicContent(child, ctx))),
+          promiseAll(Array.from(v, (child) => createDynamicContent(child, ctx, invokeContext))),
           (children) => children.flat()
         )
       : typeof v === 'function'
-        ? maybeThen((v as (ctx: ContainerContext) => unknown)(ctx), (output) =>
-            isQrl(output) ? createDynamicContent(output, ctx) : toNodes(output as MaybeNodeOutput)
+        ? maybeThen(
+            invoke(invokeContext, v as (ctx: ContainerContext) => unknown, ctx),
+            (output) =>
+              isQrl(output)
+                ? createDynamicContent(output, ctx, invokeContext)
+                : toNodes(output as MaybeNodeOutput)
           )
         : v == null || v === true || v === false
           ? EMPTY_NODES

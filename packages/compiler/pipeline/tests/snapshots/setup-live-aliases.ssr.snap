@@ -39,7 +39,6 @@ import {
   propSource,
   isSource,
   renderSsrTextNode,
-  createSsrMarkup,
   renderSsrTextExpression,
   renderSsrDynamicContent,
   _markComponent,
@@ -87,17 +86,15 @@ const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId) => {
   const prop0 = propSource(props, 'label');
   isSource(prop0) && ctx.addRoot(prop0);
   const text0 = renderSsrTextNode(rangeId0, 0, prop0);
-  return [
-    createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'),
-    maybeThen(text0, (text0) => [
-      '<!b=',
-      createSsrNodeId(rangeId0),
-      '><!t>',
-      escapeHTML(text0),
-      '<!/t><!/b>',
-    ]),
-    '<!/s>',
-  ];
+  return maybeThen(text0, (text0) => [
+    '<!b=',
+    createSsrNodeId(rangeId0),
+    '><!s=',
+    createSsrNodeId(__rangeId),
+    '><!t>',
+    escapeHTML(text0),
+    '<!/t><!/s><!/b>',
+  ]);
 };
 const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_2_3b0t9ouqyjhtg'
@@ -109,17 +106,15 @@ const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx, __rangeId) => {
   const prop0 = propSource(props, 'title');
   isSource(prop0) && ctx.addRoot(prop0);
   const text0 = renderSsrTextNode(rangeId0, 0, prop0);
-  return [
-    createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'),
-    maybeThen(text0, (text0) => [
-      '<!b=',
-      createSsrNodeId(rangeId0),
-      '><!t>',
-      escapeHTML(text0),
-      '<!/t><!/b>',
-    ]),
-    '<!/s>',
-  ];
+  return maybeThen(text0, (text0) => [
+    '<!b=',
+    createSsrNodeId(rangeId0),
+    '><!s=',
+    createSsrNodeId(__rangeId),
+    '><!t>',
+    escapeHTML(text0),
+    '<!/t><!/s><!/b>',
+  ]);
 };
 const q_component_slot_render_segment_3_3b0ta2vuvdjtz = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_3_3b0ta2vuvdjtz'
@@ -135,17 +130,15 @@ const component_slot_render_segment_4_3b0t8wsj4vdse = (ctx, __rangeId) => {
     [count],
     q_component_text_segment_5_1fh12dh4juuhz
   );
-  return [
-    createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'),
-    maybeThen(text0, (text0) => [
-      '<!b=',
-      createSsrNodeId(rangeId0),
-      '><!t>',
-      escapeHTML(text0),
-      '<!/t><!/b>',
-    ]),
-    '<!/s>',
-  ];
+  return maybeThen(text0, (text0) => [
+    '<!b=',
+    createSsrNodeId(rangeId0),
+    '><!s=',
+    createSsrNodeId(__rangeId),
+    '><!t>',
+    escapeHTML(text0),
+    '<!/t><!/s><!/b>',
+  ]);
 };
 const q_component_slot_render_segment_4_3b0t8wsj4vdse = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_4_3b0t8wsj4vdse'
@@ -163,11 +156,15 @@ const component_slot_render_segment_6_3b0t84qbb79rc = (ctx, __rangeId) => {
     false,
     true
   );
-  return [
-    createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'),
-    maybeThen(content0, (content0) => ['<!d=', createSsrNodeId(id0), '>', content0, '<!/d>']),
-    '<!/s>',
-  ];
+  return maybeThen(content0, (content0) => [
+    '<!s=',
+    createSsrNodeId(__rangeId),
+    '><!d=',
+    createSsrNodeId(id0),
+    '>',
+    content0,
+    '<!/d><!/s>',
+  ]);
 };
 const q_component_slot_render_segment_6_3b0t84qbb79rc = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_6_3b0t84qbb79rc'
@@ -183,17 +180,15 @@ const component_slot_render_segment_8_3b0t7co3hj5qa = (ctx, __rangeId) => {
     [store],
     q_component_text_segment_9_1fh0xp3tlu6bn
   );
-  return [
-    createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'),
-    maybeThen(text0, (text0) => [
-      '<!b=',
-      createSsrNodeId(rangeId0),
-      '><!t>',
-      escapeHTML(text0),
-      '<!/t><!/b>',
-    ]),
-    '<!/s>',
-  ];
+  return maybeThen(text0, (text0) => [
+    '<!b=',
+    createSsrNodeId(rangeId0),
+    '><!s=',
+    createSsrNodeId(__rangeId),
+    '><!t>',
+    escapeHTML(text0),
+    '<!/t><!/s><!/b>',
+  ]);
 };
 const q_component_slot_render_segment_8_3b0t7co3hj5qa = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_8_3b0t7co3hj5qa'
@@ -202,7 +197,13 @@ q_component_slot_render_segment_8_3b0t7co3hj5qa.s(component_slot_render_segment_
 const component_slot_render_segment_10_3m3ztgqtay7c7 = (ctx, __rangeId) => {
   const [store] = _captures;
   const component0 = createComponent(Child, { state: store }, ctx);
-  return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), component0, '<!/s>'];
+  return maybeThen(component0, (component0) => [
+    '<!s=',
+    createSsrNodeId(__rangeId),
+    '>',
+    component0,
+    '<!/s>',
+  ]);
 };
 const q_component_slot_render_segment_10_3m3ztgqtay7c7 = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_10_3m3ztgqtay7c7'
@@ -402,7 +403,6 @@ import {
   isSource,
   renderSsrTextNode,
   maybeThen,
-  createSsrMarkup,
 } from '@qwik.dev/core';
 
 export const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId) => {
@@ -411,17 +411,15 @@ export const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId) =>
   const prop0 = propSource(props, 'label');
   isSource(prop0) && ctx.addRoot(prop0);
   const text0 = renderSsrTextNode(rangeId0, 0, prop0);
-  return [
-    createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'),
-    maybeThen(text0, (text0) => [
-      '<!b=',
-      createSsrNodeId(rangeId0),
-      '><!t>',
-      escapeHTML(text0),
-      '<!/t><!/b>',
-    ]),
-    '<!/s>',
-  ];
+  return maybeThen(text0, (text0) => [
+    '<!b=',
+    createSsrNodeId(rangeId0),
+    '><!s=',
+    createSsrNodeId(__rangeId),
+    '><!t>',
+    escapeHTML(text0),
+    '<!/t><!/s><!/b>',
+  ]);
 };
 /*
 {
@@ -456,7 +454,6 @@ import {
   isSource,
   renderSsrTextNode,
   maybeThen,
-  createSsrMarkup,
 } from '@qwik.dev/core';
 
 export const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx, __rangeId) => {
@@ -465,17 +462,15 @@ export const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx, __rangeId) =>
   const prop0 = propSource(props, 'title');
   isSource(prop0) && ctx.addRoot(prop0);
   const text0 = renderSsrTextNode(rangeId0, 0, prop0);
-  return [
-    createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'),
-    maybeThen(text0, (text0) => [
-      '<!b=',
-      createSsrNodeId(rangeId0),
-      '><!t>',
-      escapeHTML(text0),
-      '<!/t><!/b>',
-    ]),
-    '<!/s>',
-  ];
+  return maybeThen(text0, (text0) => [
+    '<!b=',
+    createSsrNodeId(rangeId0),
+    '><!s=',
+    createSsrNodeId(__rangeId),
+    '><!t>',
+    escapeHTML(text0),
+    '<!/t><!/s><!/b>',
+  ]);
 };
 /*
 {
@@ -509,7 +504,6 @@ import {
   escapeHTML,
   renderSsrTextExpression,
   maybeThen,
-  createSsrMarkup,
 } from '@qwik.dev/core';
 import { component_text_segment_5_1fh12dh4juuhz } from './component.tsx_component_text_segment_5_1fh12dh4juuhz';
 const q_component_text_segment_5_1fh12dh4juuhz = /*#__PURE__*/ _noopQrl(
@@ -527,17 +521,15 @@ export const component_slot_render_segment_4_3b0t8wsj4vdse = (ctx, __rangeId) =>
     [count],
     q_component_text_segment_5_1fh12dh4juuhz
   );
-  return [
-    createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'),
-    maybeThen(text0, (text0) => [
-      '<!b=',
-      createSsrNodeId(rangeId0),
-      '><!t>',
-      escapeHTML(text0),
-      '<!/t><!/b>',
-    ]),
-    '<!/s>',
-  ];
+  return maybeThen(text0, (text0) => [
+    '<!b=',
+    createSsrNodeId(rangeId0),
+    '><!s=',
+    createSsrNodeId(__rangeId),
+    '><!t>',
+    escapeHTML(text0),
+    '<!/t><!/s><!/b>',
+  ]);
 };
 /*
 {
@@ -592,14 +584,7 @@ export const component_text_segment_5_1fh12dh4juuhz = (count) => {
 */
 ============================= src/component.tsx_component_slot_render_segment_6_3b0t84qbb79rc.js (ENTRY POINT)==
 
-import {
-  _noopQrl,
-  _captures,
-  renderSsrContent,
-  createSsrNodeId,
-  maybeThen,
-  createSsrMarkup,
-} from '@qwik.dev/core';
+import { _noopQrl, _captures, createSsrNodeId, renderSsrContent, maybeThen } from '@qwik.dev/core';
 import { component_text_segment_7_1fh135jcdiyj1 } from './component.tsx_component_text_segment_7_1fh135jcdiyj1';
 const q_component_text_segment_7_1fh135jcdiyj1 = /*#__PURE__*/ _noopQrl(
   'component_text_segment_7_1fh135jcdiyj1'
@@ -618,11 +603,15 @@ export const component_slot_render_segment_6_3b0t84qbb79rc = (ctx, __rangeId) =>
     false,
     true
   );
-  return [
-    createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'),
-    maybeThen(content0, (content0) => ['<!d=', createSsrNodeId(id0), '>', content0, '<!/d>']),
-    '<!/s>',
-  ];
+  return maybeThen(content0, (content0) => [
+    '<!s=',
+    createSsrNodeId(__rangeId),
+    '><!d=',
+    createSsrNodeId(id0),
+    '>',
+    content0,
+    '<!/d><!/s>',
+  ]);
 };
 /*
 {
@@ -687,7 +676,6 @@ import {
   escapeHTML,
   renderSsrTextExpression,
   maybeThen,
-  createSsrMarkup,
 } from '@qwik.dev/core';
 import { component_text_segment_9_1fh0xp3tlu6bn } from './component.tsx_component_text_segment_9_1fh0xp3tlu6bn';
 const q_component_text_segment_9_1fh0xp3tlu6bn = /*#__PURE__*/ _noopQrl(
@@ -705,17 +693,15 @@ export const component_slot_render_segment_8_3b0t7co3hj5qa = (ctx, __rangeId) =>
     [store],
     q_component_text_segment_9_1fh0xp3tlu6bn
   );
-  return [
-    createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'),
-    maybeThen(text0, (text0) => [
-      '<!b=',
-      createSsrNodeId(rangeId0),
-      '><!t>',
-      escapeHTML(text0),
-      '<!/t><!/b>',
-    ]),
-    '<!/s>',
-  ];
+  return maybeThen(text0, (text0) => [
+    '<!b=',
+    createSsrNodeId(rangeId0),
+    '><!s=',
+    createSsrNodeId(__rangeId),
+    '><!t>',
+    escapeHTML(text0),
+    '<!/t><!/s><!/b>',
+  ]);
 };
 /*
 {
@@ -770,13 +756,19 @@ export const component_text_segment_9_1fh0xp3tlu6bn = (store) => {
 */
 ============================= src/component.tsx_component_slot_render_segment_10_3m3ztgqtay7c7.js (ENTRY POINT)==
 
-import { _captures, createComponent, createSsrMarkup, createSsrNodeId } from '@qwik.dev/core';
+import { _captures, createSsrNodeId, createComponent, maybeThen } from '@qwik.dev/core';
 import { Child } from './child';
 
 export const component_slot_render_segment_10_3m3ztgqtay7c7 = (ctx, __rangeId) => {
   const [store] = _captures;
   const component0 = createComponent(Child, { state: store }, ctx);
-  return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), component0, '<!/s>'];
+  return maybeThen(component0, (component0) => [
+    '<!s=',
+    createSsrNodeId(__rangeId),
+    '>',
+    component0,
+    '<!/s>',
+  ]);
 };
 /*
 {

@@ -31,7 +31,6 @@ import {
   _captures,
   renderSsrBranch,
   createSsrNodeId,
-  createSsrMarkup,
   _noopQrl,
 } from '@qwik.dev/core';
 const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
@@ -45,11 +44,15 @@ const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
     q_component_branch_then_segment_2_24n7b7xmnzb3n,
     undefined
   );
-  return [
-    createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'),
-    maybeThen(branch0, (branch0) => ['<!b=', createSsrNodeId(branchId0), '>', branch0, '<!/b>']),
-    '<!/s>',
-  ];
+  return maybeThen(branch0, (branch0) => [
+    '<!s=',
+    createSsrNodeId(__rangeId),
+    '><!b=',
+    createSsrNodeId(branchId0),
+    '>',
+    branch0,
+    '<!/b><!/s>',
+  ]);
 };
 const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_0_3b0tagwys7lui'
@@ -66,11 +69,15 @@ const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx, __rangeId) => {
     q_component_branch_then_segment_5_24n7d63685l6a,
     undefined
   );
-  return [
-    createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'),
-    maybeThen(branch0, (branch0) => ['<!b=', createSsrNodeId(branchId0), '>', branch0, '<!/b>']),
-    '<!/s>',
-  ];
+  return maybeThen(branch0, (branch0) => [
+    '<!s=',
+    createSsrNodeId(__rangeId),
+    '><!b=',
+    createSsrNodeId(branchId0),
+    '>',
+    branch0,
+    '<!/b><!/s>',
+  ]);
 };
 const q_component_slot_render_segment_3_3b0ta2vuvdjtz = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_3_3b0ta2vuvdjtz'
@@ -87,11 +94,15 @@ const component_slot_render_segment_6_3b0t84qbb79rc = (ctx, __rangeId) => {
     q_component_branch_then_segment_8_24n7f48psbv8x,
     undefined
   );
-  return [
-    createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'),
-    maybeThen(branch0, (branch0) => ['<!b=', createSsrNodeId(branchId0), '>', branch0, '<!/b>']),
-    '<!/s>',
-  ];
+  return maybeThen(branch0, (branch0) => [
+    '<!s=',
+    createSsrNodeId(__rangeId),
+    '><!b=',
+    createSsrNodeId(branchId0),
+    '>',
+    branch0,
+    '<!/b><!/s>',
+  ]);
 };
 const q_component_slot_render_segment_6_3b0t84qbb79rc = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_6_3b0t84qbb79rc'
@@ -210,14 +221,7 @@ export default default_component_3rg6kq1so9aio;
 export { Host as Host_component_omsd8g3aigfl };
 ============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
 
-import {
-  _noopQrl,
-  _captures,
-  renderSsrBranch,
-  createSsrNodeId,
-  maybeThen,
-  createSsrMarkup,
-} from '@qwik.dev/core';
+import { _noopQrl, _captures, createSsrNodeId, renderSsrBranch, maybeThen } from '@qwik.dev/core';
 import { component_branch_condition_segment_1_2fzri0t2yrfeq } from './component.tsx_component_branch_condition_segment_1_2fzri0t2yrfeq';
 import { component_branch_then_segment_2_24n7b7xmnzb3n } from './component.tsx_component_branch_then_segment_2_24n7b7xmnzb3n';
 const q_component_branch_condition_segment_1_2fzri0t2yrfeq = /*#__PURE__*/ _noopQrl(
@@ -242,11 +246,15 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) =>
     q_component_branch_then_segment_2_24n7b7xmnzb3n,
     undefined
   );
-  return [
-    createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'),
-    maybeThen(branch0, (branch0) => ['<!b=', createSsrNodeId(branchId0), '>', branch0, '<!/b>']),
-    '<!/s>',
-  ];
+  return maybeThen(branch0, (branch0) => [
+    '<!s=',
+    createSsrNodeId(__rangeId),
+    '><!b=',
+    createSsrNodeId(branchId0),
+    '>',
+    branch0,
+    '<!/b><!/s>',
+  ]);
 };
 /*
 {
@@ -329,14 +337,7 @@ export const component_branch_then_segment_2_24n7b7xmnzb3n = () => {
 */
 ============================= src/component.tsx_component_slot_render_segment_3_3b0ta2vuvdjtz.js (ENTRY POINT)==
 
-import {
-  _noopQrl,
-  _captures,
-  renderSsrBranch,
-  createSsrNodeId,
-  maybeThen,
-  createSsrMarkup,
-} from '@qwik.dev/core';
+import { _noopQrl, _captures, createSsrNodeId, renderSsrBranch, maybeThen } from '@qwik.dev/core';
 import { component_branch_condition_segment_4_2fzrgupr899d5 } from './component.tsx_component_branch_condition_segment_4_2fzrgupr899d5';
 import { component_branch_then_segment_5_24n7d63685l6a } from './component.tsx_component_branch_then_segment_5_24n7d63685l6a';
 const q_component_branch_condition_segment_4_2fzrgupr899d5 = /*#__PURE__*/ _noopQrl(
@@ -361,11 +362,15 @@ export const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx, __rangeId) =>
     q_component_branch_then_segment_5_24n7d63685l6a,
     undefined
   );
-  return [
-    createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'),
-    maybeThen(branch0, (branch0) => ['<!b=', createSsrNodeId(branchId0), '>', branch0, '<!/b>']),
-    '<!/s>',
-  ];
+  return maybeThen(branch0, (branch0) => [
+    '<!s=',
+    createSsrNodeId(__rangeId),
+    '><!b=',
+    createSsrNodeId(branchId0),
+    '>',
+    branch0,
+    '<!/b><!/s>',
+  ]);
 };
 /*
 {
@@ -448,14 +453,7 @@ export const component_branch_then_segment_5_24n7d63685l6a = () => {
 */
 ============================= src/component.tsx_component_slot_render_segment_6_3b0t84qbb79rc.js (ENTRY POINT)==
 
-import {
-  _noopQrl,
-  _captures,
-  renderSsrBranch,
-  createSsrNodeId,
-  maybeThen,
-  createSsrMarkup,
-} from '@qwik.dev/core';
+import { _noopQrl, _captures, createSsrNodeId, renderSsrBranch, maybeThen } from '@qwik.dev/core';
 import { component_branch_condition_segment_7_2fzrfomfhr3bk } from './component.tsx_component_branch_condition_segment_7_2fzrfomfhr3bk';
 import { component_branch_then_segment_8_24n7f48psbv8x } from './component.tsx_component_branch_then_segment_8_24n7f48psbv8x';
 const q_component_branch_condition_segment_7_2fzrfomfhr3bk = /*#__PURE__*/ _noopQrl(
@@ -480,11 +478,15 @@ export const component_slot_render_segment_6_3b0t84qbb79rc = (ctx, __rangeId) =>
     q_component_branch_then_segment_8_24n7f48psbv8x,
     undefined
   );
-  return [
-    createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'),
-    maybeThen(branch0, (branch0) => ['<!b=', createSsrNodeId(branchId0), '>', branch0, '<!/b>']),
-    '<!/s>',
-  ];
+  return maybeThen(branch0, (branch0) => [
+    '<!s=',
+    createSsrNodeId(__rangeId),
+    '><!b=',
+    createSsrNodeId(branchId0),
+    '>',
+    branch0,
+    '<!/b><!/s>',
+  ]);
 };
 /*
 {

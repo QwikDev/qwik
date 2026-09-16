@@ -478,7 +478,6 @@ function lowerRowProgram(
   ctx.locals = rowLocals;
   const outerInlineParams = ctx.inlineParams;
   ctx.inlineParams = lexical ? localBindings : null;
-  ctx.hooksAllowed = false;
   try {
     const setupReads = collectCaptures([...paramPatterns.values(), ...statements], ctx, new Set());
     const parameterSetup = lowerParameterPatterns(paramPatterns, paramBindings, ctx, rowLocals);
@@ -489,7 +488,6 @@ function lowerRowProgram(
     ctx.plan.programs[program].body = { kind: ProgramBodyKind.Ops, ops: lowerBody(body, ctx) };
     return setupReads;
   } finally {
-    ctx.hooksAllowed = true;
     ctx.inlineParams = outerInlineParams;
     ctx.locals = outerLocals;
   }

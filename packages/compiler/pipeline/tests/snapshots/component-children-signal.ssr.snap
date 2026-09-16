@@ -23,7 +23,6 @@ import {
   createSsrNodeId,
   escapeHTML,
   renderSsrTextNode,
-  createSsrMarkup,
   _noopQrl,
 } from '@qwik.dev/core';
 const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
@@ -31,17 +30,15 @@ const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
   const id0 = ctx.nextId();
   ctx.addRoot(count);
   const text0 = renderSsrTextNode(id0, null, count);
-  return [
-    createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'),
-    maybeThen(text0, (text0) => [
-      '<p q:id="',
-      createSsrNodeId(id0),
-      '">',
-      escapeHTML(text0),
-      '</p>',
-    ]),
-    '<!/s>',
-  ];
+  return maybeThen(text0, (text0) => [
+    '<!s=',
+    createSsrNodeId(__rangeId),
+    '><p q:id="',
+    createSsrNodeId(id0),
+    '">',
+    escapeHTML(text0),
+    '</p><!/s>',
+  ]);
 };
 const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_0_3b0tagwys7lui'
@@ -78,7 +75,6 @@ import {
   escapeHTML,
   renderSsrTextNode,
   maybeThen,
-  createSsrMarkup,
 } from '@qwik.dev/core';
 
 export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
@@ -86,17 +82,15 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) =>
   const id0 = ctx.nextId();
   ctx.addRoot(count);
   const text0 = renderSsrTextNode(id0, null, count);
-  return [
-    createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'),
-    maybeThen(text0, (text0) => [
-      '<p q:id="',
-      createSsrNodeId(id0),
-      '">',
-      escapeHTML(text0),
-      '</p>',
-    ]),
-    '<!/s>',
-  ];
+  return maybeThen(text0, (text0) => [
+    '<!s=',
+    createSsrNodeId(__rangeId),
+    '><p q:id="',
+    createSsrNodeId(id0),
+    '">',
+    escapeHTML(text0),
+    '</p><!/s>',
+  ]);
 };
 /*
 {

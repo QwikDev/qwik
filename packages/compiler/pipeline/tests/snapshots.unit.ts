@@ -2418,6 +2418,22 @@ export const Wrapper = () => <Card children={<b>x</b>} />;`,
     expect(output.diagnostics).toMatchObject([{ code }]);
   });
 
+  test.each([
+    ['text', `export const Cmp = component$(() => <i>{String(useContext(ctx).on)}</i>);`],
+    ['attribute', `export const Cmp = component$(() => <i title={useContext(ctx).on} />);`],
+    ['branch', `export const Cmp = component$(() => <i>{flag ? useContext(ctx).on : null}</i>);`],
+  ])('should diagnose a hook called inside a JSX expression: %s', async (shape, source) => {
+    const output = await testInput(mode, `expression-hook-${shape}`, {
+      code: `import { component$, createContextId, useContext } from '@qwik.dev/core';
+const ctx = createContextId('ctx');
+const flag = true;
+${source}
+`,
+    });
+    // A JSX expression re-runs from the scheduler; only the component body runs hooks.
+    expect(output.diagnostics).toMatchObject([{ code: 'expression-hook' }]);
+  });
+
   test('should describe projected children to a component that reads props.children', async () => {
     const output = await testInput(mode, 'children-descriptor', {
       code: `import { component$, Slot, useSignal } from '@qwik.dev/core';

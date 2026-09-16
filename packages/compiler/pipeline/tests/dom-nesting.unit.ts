@@ -68,7 +68,7 @@ export default (props) => <ul>{props.rows.map((row) => { const open = useSignal(
     {}
   );
   expect(plan.kind).toBe(ModuleKind.Failed);
-  expect(plan.diagnostics).toMatchObject([{ code: 'row-hook' }]);
+  expect(plan.diagnostics).toMatchObject([{ code: 'expression-hook' }]);
 });
 
 test('diagnoses an async collection row', async () => {

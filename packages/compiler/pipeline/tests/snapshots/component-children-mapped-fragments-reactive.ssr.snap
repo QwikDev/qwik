@@ -20,9 +20,8 @@ import {
   registerProjection,
   createComponent,
   _captures,
-  renderSsrCollection,
   createSsrNodeId,
-  createSsrMarkup,
+  renderSsrCollection,
   _noopQrl,
   escapeHTML,
   renderSsrTextExpression,
@@ -41,17 +40,15 @@ const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
     true,
     2
   );
-  return [
-    createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'),
-    maybeThen(collection0, (collection0) => [
-      '<!f=',
-      createSsrNodeId(collectionId0),
-      '>',
-      collection0,
-      '<!/f>',
-    ]),
-    '<!/s>',
-  ];
+  return maybeThen(collection0, (collection0) => [
+    '<!s=',
+    createSsrNodeId(__rangeId),
+    '><!f=',
+    createSsrNodeId(collectionId0),
+    '>',
+    collection0,
+    '<!/f><!/s>',
+  ]);
 };
 const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_0_3b0tagwys7lui'
@@ -71,17 +68,15 @@ const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx, __rangeId) => {
     false,
     0
   );
-  return [
-    createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'),
-    maybeThen(collection0, (collection0) => [
-      '<!f=',
-      createSsrNodeId(collectionId0),
-      '>',
-      collection0,
-      '<!/f>',
-    ]),
-    '<!/s>',
-  ];
+  return maybeThen(collection0, (collection0) => [
+    '<!s=',
+    createSsrNodeId(__rangeId),
+    '><!f=',
+    createSsrNodeId(collectionId0),
+    '>',
+    collection0,
+    '<!/f><!/s>',
+  ]);
 };
 const q_component_slot_render_segment_3_3b0ta2vuvdjtz = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_3_3b0ta2vuvdjtz'
@@ -186,10 +181,9 @@ export { Panel as Panel_component_5q1hs6sb6j5z };
 import {
   _noopQrl,
   _captures,
-  renderSsrCollection,
   createSsrNodeId,
+  renderSsrCollection,
   maybeThen,
-  createSsrMarkup,
 } from '@qwik.dev/core';
 import { component_for_render_segment_1_asysu8t2u0ck } from './component.tsx_component_for_render_segment_1_asysu8t2u0ck';
 const q_component_for_render_segment_1_asysu8t2u0ck = /*#__PURE__*/ _noopQrl(
@@ -211,17 +205,15 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) =>
     true,
     2
   );
-  return [
-    createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'),
-    maybeThen(collection0, (collection0) => [
-      '<!f=',
-      createSsrNodeId(collectionId0),
-      '>',
-      collection0,
-      '<!/f>',
-    ]),
-    '<!/s>',
-  ];
+  return maybeThen(collection0, (collection0) => [
+    '<!s=',
+    createSsrNodeId(__rangeId),
+    '><!f=',
+    createSsrNodeId(collectionId0),
+    '>',
+    collection0,
+    '<!/f><!/s>',
+  ]);
 };
 /*
 {
@@ -335,10 +327,9 @@ export const component_text_segment_2_1fh117dstcoge = (item) => {
 import {
   _noopQrl,
   _captures,
-  renderSsrCollection,
   createSsrNodeId,
+  renderSsrCollection,
   maybeThen,
-  createSsrMarkup,
 } from '@qwik.dev/core';
 import { component_for_render_segment_4_asyro5hcbuaz } from './component.tsx_component_for_render_segment_4_asyro5hcbuaz';
 const q_component_for_render_segment_4_asyro5hcbuaz = /*#__PURE__*/ _noopQrl(
@@ -360,17 +351,15 @@ export const component_slot_render_segment_3_3b0ta2vuvdjtz = (ctx, __rangeId) =>
     false,
     0
   );
-  return [
-    createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'),
-    maybeThen(collection0, (collection0) => [
-      '<!f=',
-      createSsrNodeId(collectionId0),
-      '>',
-      collection0,
-      '<!/f>',
-    ]),
-    '<!/s>',
-  ];
+  return maybeThen(collection0, (collection0) => [
+    '<!s=',
+    createSsrNodeId(__rangeId),
+    '><!f=',
+    createSsrNodeId(collectionId0),
+    '>',
+    collection0,
+    '<!/f><!/s>',
+  ]);
 };
 /*
 {

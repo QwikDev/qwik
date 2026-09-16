@@ -29,7 +29,6 @@ import {
   escapeHTML,
   renderSsrTextExpression,
   renderSsrCollection,
-  createSsrMarkup,
   _noopQrl,
 } from '@qwik.dev/core';
 const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
@@ -106,7 +105,13 @@ const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
     false,
     0
   );
-  return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), collection0, '<!/s>'];
+  return maybeThen(collection0, (collection0) => [
+    '<!s=',
+    createSsrNodeId(__rangeId),
+    '>',
+    collection0,
+    '<!/s>',
+  ]);
 };
 const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_0_3b0tagwys7lui'
@@ -186,7 +191,6 @@ import {
   renderSsrTextExpression,
   maybeThen,
   renderSsrCollection,
-  createSsrMarkup,
 } from '@qwik.dev/core';
 import { component_text_segment_2_1fh117dstcoge } from './component.tsx_component_text_segment_2_1fh117dstcoge';
 import { component_text_segment_3_1fh11lewq6qgx } from './component.tsx_component_text_segment_3_1fh11lewq6qgx';
@@ -286,7 +290,13 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) =>
     false,
     0
   );
-  return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), collection0, '<!/s>'];
+  return maybeThen(collection0, (collection0) => [
+    '<!s=',
+    createSsrNodeId(__rangeId),
+    '>',
+    collection0,
+    '<!/s>',
+  ]);
 };
 /*
 {

@@ -19,11 +19,10 @@ import {
   createSlotScope,
   registerProjection,
   createComponent,
+  createSsrNodeId,
   escapeHTML,
   _textValue,
   renderSsrCollection,
-  createSsrMarkup,
-  createSsrNodeId,
   _noopQrl,
 } from '@qwik.dev/core';
 const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
@@ -40,7 +39,13 @@ const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
     false,
     0
   );
-  return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), collection0, '<!/s>'];
+  return maybeThen(collection0, (collection0) => [
+    '<!s=',
+    createSsrNodeId(__rangeId),
+    '>',
+    collection0,
+    '<!/s>',
+  ]);
 };
 const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_0_3b0tagwys7lui'
@@ -72,11 +77,11 @@ export { Panel as Panel_component_5q1hs6sb6j5z };
 ============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
 
 import {
+  createSsrNodeId,
   escapeHTML,
   _textValue,
   renderSsrCollection,
-  createSsrMarkup,
-  createSsrNodeId,
+  maybeThen,
 } from '@qwik.dev/core';
 
 export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
@@ -93,7 +98,13 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) =>
     false,
     0
   );
-  return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), collection0, '<!/s>'];
+  return maybeThen(collection0, (collection0) => [
+    '<!s=',
+    createSsrNodeId(__rangeId),
+    '>',
+    collection0,
+    '<!/s>',
+  ]);
 };
 /*
 {

@@ -480,10 +480,11 @@ delimiters. Compilation snapshots alone cannot prove browser parser behavior.
   row's `return` now lower through `lowerSetup`, the component-body path: `let`/`var`,
   mutations, calls, local functions and blocks, with `const` aliases of props reading live
   as they do in a component. A hook other than `useId` inside a row is diagnosed
-  (`row-hook`), since a row has no component owner; an early return stays refused until the
-  row shape and key rules for it are decided (`collection-row-statements` snapshots,
-  `collection-row-statements.spec.tsx` in CSR and resume). A local function captured by a
-  hole is not serializable, the same limit as in component setup (group 6).
+  (`expression-hook`, shared with every lifted body), since a row has no component owner; an
+  early return stays refused until the row shape and key rules for it are decided
+  (`collection-row-statements` snapshots, `collection-row-statements.spec.tsx` in CSR and
+  resume). A local function captured by a hole is not serializable, the same limit as in
+  component setup (group 6).
 - [ ] Async rows and dynamically shaped results. An `async` row callback is diagnosed
       (`async-row`) with a pointer to tasks; support rides with the async
       program emission and pending-row behaviour of group 13, since the keyed reconciler uses
@@ -538,7 +539,11 @@ and dynamic `Slot name`.
 - [x] Combine slots with dynamic content, namespaces and async: covered by the projection corpus
       (branches, rows, holes, content blocks, promise children, svg and foreignObject slots, the
       live-slot swap). Error boundaries move to group 13 with Suspense.
-- [ ] External projections needed by React integration, including runtime/integration work.
+- [ ] External projections needed by React integration (deferred, its own pair of increments): a
+      client mount handle (`createComponent` into a foreign element with signal-backed props, owner
+      under the qwikify host, dispose on unmount) replacing `_addProjection`/`_setProjectionTarget`/
+      `_updateProjectionProps`/`_removeProjection`, then SSR islands through a raw-output entry
+      replacing `SSRStream`/`SSRRaw`/`SSRComment`; proven by `e2e/qwik-react-e2e`.
 
 Do not restore serialization of a children tree merely to reproduce old VNode operations.
 
@@ -634,6 +639,19 @@ code size and runtime cost. The previous implementation is not the accepted defa
 Keep the dated baseline above as historical evidence. Add verified increments here and update
 their checkboxes; do not silently reinterpret the original completion estimate as a live metric.
 
+- 2026-09-16: Context through projections, batch 1 of group 12: main's nine `use-context` specs
+  now live in `context.spec.tsx` as behavior assertions (provider shown after a client change,
+  slot inside slot for rows and for a component, falsy values, an unclaimed projection, #4038,
+  #5270, a client-written provider value). Three fixes fell out. The SSR slot content segment
+  wrapped its `<!s=` fence around the sequenced value, so a projected component that returned a
+  promise printed `undefined`; `slotContentEmission` now uses the shared `fence` option of
+  `renderProgram` (33 snapshots flatten). `renderSsrDynamicContent` and `createDynamicContent`
+  called the resolved JSX closure after the promise boundary with no invoke context, so a promise
+  child inside a projection lost its owner; both capture the context first. A hook called inside
+  a JSX expression compiled into the segment and ran from the scheduler without a component; the
+  lifted-body guard in `lowerCaptures` diagnoses it (`expression-hook`, replacing the row-only
+  `row-hook` and `hooksAllowed`; `useId` and `$` hooks stay allowed). Verification: 1176 pipeline
+  tests, 621 corpus specs in CSR and resume with only the known Suspense red.
 - 2026-09-15: Computed props: component prop expressions lower as Function-payload QRLs, so
   `useComputedQrl` can run them; `computedProp` is a one-line never-serialized alias. A first
   cut added an expression-backed computed class with its own type id and was removed once the
@@ -662,10 +680,11 @@ their checkboxes; do not silently reinterpret the original completion estimate a
   suites, both corpora unchanged.
 
 - 2026-09-15: Row statements: `readReturnedBody` keeps only the final-`return` rule,
-  `lowerRowProgram` hands the statements to `lowerSetup` with `hooksAllowed` cleared on the
-  context, and `lowerKey` still replays only `const` declarators. Ten `collection-key-*`
-  snapshots change because a row's `const title = props.title` is now a live alias, so the
-  hole captures `props` instead of a snapshot; `use-id.ssr.snap` only reorders an import.
+  `lowerRowProgram` hands the statements to `lowerSetup` (hooks are refused by the lifted-body
+  guard in `lowerCaptures`), and `lowerKey` still replays only `const` declarators. Ten
+  `collection-key-*` snapshots change because a row's `const title = props.title` is now a
+  live alias, so the hole captures `props` instead of a snapshot; `use-id.ssr.snap` only
+  reorders an import.
   Verification: 1149 pipeline tests, the new spec in CSR and resume, both corpora unchanged.
 
 - 2026-09-15: Unkeyed rows: ported main's two specs as DOM assertions; the `jsx()` factory call

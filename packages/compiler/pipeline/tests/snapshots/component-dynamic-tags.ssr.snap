@@ -29,13 +29,12 @@ import {
   renderSsrContent,
   createSsrNodeId,
   maybeThen,
-  createSsrMarkup,
   _noopQrl,
   _markComponent,
 } from '@qwik.dev/core';
 
 const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
-  return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), 'static', '<!/s>'];
+  return ['<!s=', createSsrNodeId(__rangeId), '>static<!/s>'];
 };
 const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_0_3b0tagwys7lui'
@@ -70,7 +69,7 @@ const q_component_tag_dynamic_segment_3_331xd3wq2q1cw = /*#__PURE__*/ _noopQrl(
 );
 q_component_tag_dynamic_segment_3_331xd3wq2q1cw.s(component_tag_dynamic_segment_3_331xd3wq2q1cw);
 const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId) => {
-  return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), 'chosen', '<!/s>'];
+  return ['<!s=', createSsrNodeId(__rangeId), '>chosen<!/s>'];
 };
 const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_2_3b0t9ouqyjhtg'
@@ -146,10 +145,10 @@ export const default_component_3rg6kq1so9aio = _markComponent(
 export default default_component_3rg6kq1so9aio;
 ============================= src/component.tsx_component_slot_render_segment_0_3b0tagwys7lui.js (ENTRY POINT)==
 
-import { createSsrMarkup, createSsrNodeId } from '@qwik.dev/core';
+import { createSsrNodeId } from '@qwik.dev/core';
 
 export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
-  return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), 'static', '<!/s>'];
+  return ['<!s=', createSsrNodeId(__rangeId), '>static<!/s>'];
 };
 /*
 {
@@ -226,10 +225,10 @@ export const component_tag_dynamic_segment_1_331xdvyxwe5dy = (ctx) => {
 */
 ============================= src/component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg.js (ENTRY POINT)==
 
-import { createSsrMarkup, createSsrNodeId } from '@qwik.dev/core';
+import { createSsrNodeId } from '@qwik.dev/core';
 
 export const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId) => {
-  return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), 'chosen', '<!/s>'];
+  return ['<!s=', createSsrNodeId(__rangeId), '>chosen<!/s>'];
 };
 /*
 {

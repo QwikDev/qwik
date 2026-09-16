@@ -25,9 +25,8 @@ import {
   registerProjection,
   createComponent,
   _captures,
-  renderSsrCollection,
   createSsrNodeId,
-  createSsrMarkup,
+  renderSsrCollection,
   _noopQrl,
   renderSsrBranch,
   renderSsrAttrExpression,
@@ -49,17 +48,15 @@ const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) => {
     true,
     3
   );
-  return [
-    createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'),
-    maybeThen(collection0, (collection0) => [
-      '<!f=',
-      createSsrNodeId(collectionId0),
-      '>',
-      collection0,
-      '<!/f>',
-    ]),
-    '<!/s>',
-  ];
+  return maybeThen(collection0, (collection0) => [
+    '<!s=',
+    createSsrNodeId(__rangeId),
+    '><!f=',
+    createSsrNodeId(collectionId0),
+    '>',
+    collection0,
+    '<!/f><!/s>',
+  ]);
 };
 const q_component_slot_render_segment_0_3b0tagwys7lui = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_0_3b0tagwys7lui'
@@ -201,10 +198,9 @@ export { Panel as Panel_component_5q1hs6sb6j5z };
 import {
   _noopQrl,
   _captures,
-  renderSsrCollection,
   createSsrNodeId,
+  renderSsrCollection,
   maybeThen,
-  createSsrMarkup,
 } from '@qwik.dev/core';
 import { component_for_render_segment_1_asysu8t2u0ck } from './component.tsx_component_for_render_segment_1_asysu8t2u0ck';
 const q_component_for_render_segment_1_asysu8t2u0ck = /*#__PURE__*/ _noopQrl(
@@ -227,17 +223,15 @@ export const component_slot_render_segment_0_3b0tagwys7lui = (ctx, __rangeId) =>
     true,
     3
   );
-  return [
-    createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'),
-    maybeThen(collection0, (collection0) => [
-      '<!f=',
-      createSsrNodeId(collectionId0),
-      '>',
-      collection0,
-      '<!/f>',
-    ]),
-    '<!/s>',
-  ];
+  return maybeThen(collection0, (collection0) => [
+    '<!s=',
+    createSsrNodeId(__rangeId),
+    '><!f=',
+    createSsrNodeId(collectionId0),
+    '>',
+    collection0,
+    '<!/f><!/s>',
+  ]);
 };
 /*
 {

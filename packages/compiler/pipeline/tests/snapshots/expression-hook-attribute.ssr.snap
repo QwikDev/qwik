@@ -1,0 +1,34 @@
+==INPUT==
+
+import { component$, createContextId, useContext } from '@qwik.dev/core';
+const ctx = createContextId('ctx');
+const flag = true;
+export const Cmp = component$(() => <i title={useContext(ctx).on} />);
+
+== SSR OUTPUT ==
+
+============================= src/component.tsx ==
+
+
+== SSR DIAGNOSTICS ==
+
+[
+  {
+    "scope": "compiler",
+    "category": "error",
+    "code": "expression-hook",
+    "file": "src/component.tsx",
+    "message": "useContext() cannot run inside an expression; hooks belong to the component body.",
+    "highlights": [
+      {
+        "lo": 175,
+        "hi": 185,
+        "startLine": 4,
+        "startCol": 47,
+        "endLine": 4,
+        "endCol": 56
+      }
+    ],
+    "suggestions": null
+  }
+]

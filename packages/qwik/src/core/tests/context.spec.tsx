@@ -1,5 +1,16 @@
-import { createContextId } from '@qwik.dev/core';
-import { useContext, useContextProvider, useSignal, useStore, type Signal } from '@qwik.dev/core';
+import {
+  $,
+  component$,
+  createContextId,
+  noSerialize,
+  Slot,
+  useContext,
+  useContextProvider,
+  useSignal,
+  useStore,
+  type NoSerialize,
+  type Signal,
+} from '@qwik.dev/core';
 import { describe, expect, it } from 'vitest';
 import { testRenderer } from '../test-utils';
 
@@ -221,6 +232,262 @@ describe(`${name}: context`, () => {
     expect(container.querySelectorAll('.row').length).toBe(2);
     expect(container.querySelector('.row')?.textContent).toBe('provided');
 
+    cleanup();
+  });
+});
+
+/** A custom hook reading a context, at module scope so nothing captures it. */
+const fooContext = createContextId<{ value: number }>('mytitle');
+const useFooFn = () => {
+  const state = useContext(fooContext);
+  return $((val: number) => (state.value + val).toString());
+};
+
+describe(`${name}: context through projections`, () => {
+  it('retrieves a context in a consumer shown after a client change', async () => {
+    const contextId = createContextId<{ value: string }>('myTest');
+    const Consumer = component$(() => {
+      const context = useContext(contextId);
+      return <span>{context.value}</span>;
+    });
+    const Provider = component$(() => {
+      useContextProvider(contextId, { value: 'CONTEXT_VALUE' });
+      const show = useSignal(false);
+      return <>{show.value ? <Consumer /> : <button onClick$={() => (show.value = true)} />}</>;
+    });
+    const { container, cleanup, qwikLoader } = await render(Provider);
+    await qwikLoader?.dispatch(container.querySelector('button')!, 'click');
+    expect(container.querySelector('span')?.textContent).toBe('CONTEXT_VALUE');
+    cleanup();
+  });
+
+  it('finds the context for rows projected through a slot inside a slot', async () => {
+    const contextId = createContextId<{ disabled: boolean }>('contextId');
+    const ContextProducer = component$(() => {
+      useContextProvider(contextId, { disabled: false });
+      return <Slot />;
+    });
+    const ProducerParent = component$(() => (
+      <ContextProducer>
+        <Slot />
+      </ContextProducer>
+    ));
+    const ContextConsumer = component$(() => {
+      const value = useContext(contextId);
+      return <i>{String(value.disabled)}</i>;
+    });
+    const Parent = component$(() => {
+      const array = useSignal<string[]>([]);
+      return (
+        <>
+          <ProducerParent>
+            {array.value.map((_, index) => (
+              <ContextConsumer key={index} />
+            ))}
+          </ProducerParent>
+          <button onClick$={() => (array.value = ['test'])}></button>
+        </>
+      );
+    });
+    const { container, cleanup, qwikLoader } = await render(Parent);
+    expect(container.querySelector('i')).toBeFalsy();
+    await qwikLoader?.dispatch(container.querySelector('button')!, 'click');
+    expect(container.querySelector('i')?.textContent).toBe('false');
+    cleanup();
+  });
+
+  it('finds the context for a component projected through a slot inside a slot', async () => {
+    const contextId = createContextId<{ disabled: boolean }>('contextId');
+    const ContextProducer = component$(() => {
+      useContextProvider(contextId, { disabled: true });
+      return <Slot />;
+    });
+    const ProducerParent = component$(() => (
+      <ContextProducer>
+        <Slot />
+      </ContextProducer>
+    ));
+    const ContextConsumer = component$(() => {
+      const value = useContext(contextId);
+      return <i>{String(value.disabled)}</i>;
+    });
+    const Parent = component$(() => (
+      <ProducerParent>
+        <ContextConsumer />
+      </ProducerParent>
+    ));
+    const { container, cleanup } = await render(Parent);
+    expect(container.querySelector('i')?.textContent).toBe('true');
+    cleanup();
+  });
+
+  it('finds a context with a falsy value', async () => {
+    const ctxIf = createContextId<any>('if');
+    const ctxIf2 = createContextId<any>('if2');
+    const ctxIf3 = createContextId<any>('if3');
+    const Child = component$(() => {
+      const value = useContext(ctxIf);
+      const value2 = useContext(ctxIf2);
+      const value3 = useContext(ctxIf3);
+      return (
+        <i>
+          {JSON.stringify(value)}
+          {JSON.stringify(value2)}
+          {JSON.stringify(value3)}
+        </i>
+      );
+    });
+    const Cmp = component$(() => {
+      useContextProvider(ctxIf, '');
+      useContextProvider(ctxIf2, false);
+      useContextProvider(ctxIf3, null);
+      return (
+        <div>
+          <Child />
+        </div>
+      );
+    });
+    const { container, cleanup } = await render(Cmp);
+    expect(container.querySelector('i')?.textContent).toBe('""falsenull');
+    cleanup();
+  });
+
+  it('keeps an unclaimed projection out of the render without a context error', async () => {
+    const ContextBProvider = component$(() => <div>ContextBProvider</div>);
+    const ContextCId = createContextId<Signal<string | undefined>>('contextC');
+    const ContextCProvider = component$(() => {
+      const signal = useSignal<string | undefined>();
+      useContextProvider(ContextCId, signal);
+      return <div>ContextCProvider</div>;
+    });
+    const Child = component$(() => {
+      useContext(ContextCId);
+      return <div>page path-1</div>;
+    });
+    const Layout = component$(() => (
+      <ContextBProvider>
+        <ContextCProvider>
+          <Slot />
+        </ContextCProvider>
+      </ContextBProvider>
+    ));
+    const Cmp = component$(() => (
+      <Layout>
+        <Child />
+      </Layout>
+    ));
+    const { container, cleanup } = await render(Cmp);
+    const rendered = container.querySelectorAll('div');
+    expect(rendered).toHaveLength(1);
+    expect(rendered[0].textContent).toBe('ContextBProvider');
+    cleanup();
+  });
+
+  it('#4038 resolves a context through a custom hook inside a promise child', async () => {
+    const MyComponent = component$((props: { val: string }) => {
+      const count = useSignal(0);
+      const c = useFooFn();
+      return (
+        <>
+          <p id="val">{props.val}</p>
+          <p id="sum">{c(count.value)}</p>
+          <button onClick$={() => count.value++}>Increment</button>
+        </>
+      );
+    });
+    const Parent = component$(() => {
+      const c = useFooFn();
+      return (
+        <div>
+          {c(1).then((val) => (
+            <MyComponent val={val} />
+          ))}
+        </div>
+      );
+    });
+    const Layout = component$(() => {
+      useContextProvider(fooContext, { value: 0 });
+      return <Slot />;
+    });
+    const App = component$(() => (
+      <Layout>
+        <Parent />
+      </Layout>
+    ));
+    const { container, cleanup, qwikLoader } = await render(App);
+    expect(container.querySelector('#val')?.textContent).toBe('1');
+    expect(container.querySelector('#sum')?.textContent).toBe('0');
+    await qwikLoader?.dispatch(container.querySelector('button')!, 'click');
+    await qwikLoader?.dispatch(container.querySelector('button')!, 'click');
+    expect(container.querySelector('#sum')?.textContent).toBe('2');
+    cleanup();
+  });
+
+  it('#5270 resolves the context of the component whose slot claims the projection', async () => {
+    const ctx = createContextId<{ hi: string }>('5270');
+    const ProviderParent = component$(() => {
+      useContextProvider(ctx, { hi: 'hello' });
+      const projectSlot = useSignal(false);
+      return (
+        <div>
+          <button onClick$={() => (projectSlot.value = !projectSlot.value)}>toggle</button>
+          {projectSlot.value && <Slot />}
+        </div>
+      );
+    });
+    const ContextChild = component$(() => {
+      const value = useContext(ctx);
+      return <i>Ctx: {value.hi}</i>;
+    });
+    const Issue5270 = component$(() => {
+      useContextProvider(ctx, { hi: 'wrong' });
+      return (
+        <ProviderParent>
+          <ContextChild />
+        </ProviderParent>
+      );
+    });
+    const { container, cleanup, qwikLoader } = await render(Issue5270);
+    expect(container.querySelector('i')).toBeFalsy();
+    await qwikLoader?.dispatch(container.querySelector('button')!, 'click');
+    expect(container.querySelector('i')?.textContent).toBe('Ctx: hello');
+    cleanup();
+  });
+
+  it('provides a value written on the client through a projected consumer', async () => {
+    const contextId = createContextId<Signal<NoSerialize<{ value: string }> | undefined>>('myTest');
+    const Consumer = component$(() => {
+      const data = useContext(contextId);
+      return <span>{data.value?.value}</span>;
+    });
+    const Test = component$(() => {
+      const data = useContext(contextId);
+      const show = useSignal(false);
+      return (
+        <>
+          <button
+            onClick$={() => {
+              data.value = noSerialize({ value: 'CONTEXT_VALUE' });
+              show.value = true;
+            }}
+          ></button>
+          {show.value && <Consumer />}
+        </>
+      );
+    });
+    const Provider = component$(() => {
+      const data = useSignal<NoSerialize<{ value: string }>>();
+      useContextProvider(contextId, data);
+      return <Slot />;
+    });
+    const App = component$(() => (
+      <Provider>
+        <Test />
+      </Provider>
+    ));
+    const { container, cleanup, qwikLoader } = await render(App);
+    await qwikLoader?.dispatch(container.querySelector('button')!, 'click');
+    expect(container.querySelector('span')?.textContent).toBe('CONTEXT_VALUE');
     cleanup();
   });
 });

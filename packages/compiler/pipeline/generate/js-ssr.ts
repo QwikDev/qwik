@@ -154,8 +154,11 @@ interface SsrRenderOptions {
   rootMarker?: string;
   /** Root holes render into a caller-supplied range id parameter (branch arms). */
   rootRange?: boolean;
-  /** Brackets the output in `<!r=id>...<!/r>` — rows with no single element root. */
-  rowFence?: boolean;
+  /**
+   * Brackets the output in `<!r=id>` (rows with no single element root) or `<!s=id>` (slot
+   * content).
+   */
+  fence?: 'r' | 's';
 }
 
 class SsrModuleEmitter implements QwikModuleEmitter {
@@ -269,7 +272,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     );
     const setupCount = pass.statements.length;
     const ownRange =
-      !options.rootRange && !options.rowFence && body.ops.some((op) => op.op === OpKind.Hole)
+      !options.rootRange && options.fence !== 'r' && body.ops.some((op) => op.op === OpKind.Hole)
         ? pass.next(QwikGenWord.RangeId)
         : null;
     if (ownRange !== null) {
@@ -281,7 +284,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
         ? { idParam: ownRange, markerIndex: 0 }
         : options.rootRange
           ? { idParam: null, markerIndex: 0 }
-          : options.rowFence
+          : options.fence === 'r'
             ? // Root holes in a fenced row target the row's own marker range.
               { idParam: RowIdParam, markerIndex: 0 }
             : null;
@@ -304,10 +307,12 @@ class SsrModuleEmitter implements QwikModuleEmitter {
       parts.push(`${QwikWord.CreateSsrNodeId}(${ownRange})`);
       pushMergedStatic(parts, '>');
     }
-    if (options.rowFence) {
+    if (options.fence !== undefined) {
       this.imports.add(QwikWord.CreateSsrNodeId);
-      pushMergedStatic(parts, '<!r=');
-      parts.push(`${QwikWord.CreateSsrNodeId}(${RowIdParam})`);
+      pushMergedStatic(parts, `<!${options.fence}=`);
+      parts.push(
+        `${QwikWord.CreateSsrNodeId}(${options.fence === 'r' ? RowIdParam : RangeIdParam})`
+      );
       pushMergedStatic(parts, '>');
     }
     // The runtime splices `useOn*` registrations into the first open-tag record after the render.
@@ -317,8 +322,8 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     body.ops.forEach((op, index) =>
       this.op(pass, op, parts, rootRange, options.rootMarker ?? null, index === 0 && hookEvents)
     );
-    if (options.rowFence) {
-      pushMergedStatic(parts, '<!/r>');
+    if (options.fence !== undefined) {
+      pushMergedStatic(parts, `<!/${options.fence}>`);
     }
     if (ownRange !== null) {
       pushMergedStatic(parts, '<!/b>');
@@ -415,7 +420,7 @@ class SsrModuleEmitter implements QwikModuleEmitter {
     const elementRoot = ops.length === 1 && ops[0].op === OpKind.Element;
     const { emission, core, names } = this.renderEmission(
       qrl,
-      elementRoot ? { rootMarker: QwikAttr.Row } : { rowFence: true }
+      elementRoot ? { rootMarker: QwikAttr.Row } : { fence: 'r' }
     );
     const loopParams = usedParamPrefix(this.module, qrl);
     if (!elementRoot || loopParams.length > 0) {
@@ -429,11 +434,8 @@ class SsrModuleEmitter implements QwikModuleEmitter {
 
   /** Slot content chunks own their resume-time marker range. */
   private slotContentEmission(qrl: LinkedQrl): FunctionEmission {
-    const { emission, core, names } = this.renderEmission(qrl, {});
-    emission.imports.add(QwikWord.CreateSsrMarkup);
-    emission.imports.add(QwikWord.CreateSsrNodeId);
+    const { emission, names } = this.renderEmission(qrl, { fence: 's' });
     emission.params = [names.ctx, RangeIdParam];
-    emission.value = `[${QwikWord.CreateSsrMarkup}('<!s=', ${QwikWord.CreateSsrNodeId}(${RangeIdParam}), '>'), ${core.value}, '<!/s>']`;
     return emission;
   }
 

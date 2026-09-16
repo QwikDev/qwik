@@ -23,7 +23,6 @@ import {
   createSlotScope,
   registerProjection,
   createComponent,
-  createSsrMarkup,
 } from '@qwik.dev/core';
 const component_slot_dynamic_segment_0_2ikf7n1jp8rfp = (ctx) => {
   const [props] = _captures;
@@ -36,14 +35,14 @@ const q_component_slot_dynamic_segment_0_2ikf7n1jp8rfp = /*#__PURE__*/ _noopQrl(
 );
 q_component_slot_dynamic_segment_0_2ikf7n1jp8rfp.s(component_slot_dynamic_segment_0_2ikf7n1jp8rfp);
 const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId) => {
-  return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), '<i>Alpha</i>', '<!/s>'];
+  return ['<!s=', createSsrNodeId(__rangeId), '><i>Alpha</i><!/s>'];
 };
 const q_component_slot_render_segment_1_3b0tauy2p1nv1 = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_1_3b0tauy2p1nv1'
 );
 q_component_slot_render_segment_1_3b0tauy2p1nv1.s(component_slot_render_segment_1_3b0tauy2p1nv1);
 const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId) => {
-  return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), '<b>Bravo</b>', '<!/s>'];
+  return ['<!s=', createSsrNodeId(__rangeId), '><b>Bravo</b><!/s>'];
 };
 const q_component_slot_render_segment_2_3b0t9ouqyjhtg = /*#__PURE__*/ _noopQrl(
   'component_slot_render_segment_2_3b0t9ouqyjhtg'
@@ -136,10 +135,10 @@ export const component_slot_dynamic_segment_0_2ikf7n1jp8rfp = (ctx) => {
 */
 ============================= src/component.tsx_component_slot_render_segment_1_3b0tauy2p1nv1.js (ENTRY POINT)==
 
-import { createSsrMarkup, createSsrNodeId } from '@qwik.dev/core';
+import { createSsrNodeId } from '@qwik.dev/core';
 
 export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId) => {
-  return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), '<i>Alpha</i>', '<!/s>'];
+  return ['<!s=', createSsrNodeId(__rangeId), '><i>Alpha</i><!/s>'];
 };
 /*
 {
@@ -163,10 +162,10 @@ export const component_slot_render_segment_1_3b0tauy2p1nv1 = (ctx, __rangeId) =>
 */
 ============================= src/component.tsx_component_slot_render_segment_2_3b0t9ouqyjhtg.js (ENTRY POINT)==
 
-import { createSsrMarkup, createSsrNodeId } from '@qwik.dev/core';
+import { createSsrNodeId } from '@qwik.dev/core';
 
 export const component_slot_render_segment_2_3b0t9ouqyjhtg = (ctx, __rangeId) => {
-  return [createSsrMarkup('<!s=', createSsrNodeId(__rangeId), '>'), '<b>Bravo</b>', '<!/s>'];
+  return ['<!s=', createSsrNodeId(__rangeId), '><b>Bravo</b><!/s>'];
 };
 /*
 {

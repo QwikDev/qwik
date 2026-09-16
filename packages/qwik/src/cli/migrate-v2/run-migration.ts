@@ -3,6 +3,7 @@ import type { AppCommand } from '../utils/app-command';
 import { bgMagenta, bgRed, bold, green } from 'kleur/colors';
 import { bye } from '../utils/utils';
 import { replacePackage } from './replace-package';
+import { takeWarnings, warnMentions } from './report';
 import {
   installTsMorph,
   removeTsMorphFromPackageJson,
@@ -63,7 +64,14 @@ export async function runV2Migration(app: AppCommand) {
       '@qwik-city-plan' // using old name, package name will be updated in the next step
     );
 
+    warnMentions(
+      '@qwik-city-not-found-paths',
+      '"@qwik-city-not-found-paths" does not exist in v2, the router renders 404 pages itself.'
+    );
     replacePackage('@qwik-city-plan', '@qwik-router-config', true);
+    replacePackage('@qwik-city-entries', '@qwik-router-entries', true);
+    replacePackage('@qwik-city-sw-register', '@qwik-router-sw-register', true);
+    replacePackage('@qwik-city-static-paths', '@qwik.dev/router/middleware/request-handler', true);
     replacePackage(
       '@builder.io/qwik-city/adapters/static/vite',
       '@qwik.dev/router/adapters/ssg/vite',
@@ -83,6 +91,12 @@ export async function runV2Migration(app: AppCommand) {
     // updateConfigurations();
 
     await updateDependencies();
+    const warnings = takeWarnings();
+    if (warnings.length) {
+      log.warn(
+        `${bold('Some changes need your attention:')}\n${warnings.map((w) => `  - ${w}`).join('\n')}`
+      );
+    }
     log.success(`${green(`Your application has been successfully migrated to v2!`)}`);
   } catch (error) {
     console.error(error);

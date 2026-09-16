@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import type { AppCommand } from '../utils/app-command';
+import { log } from '@clack/prompts';
 import { runV2Migration } from './run-migration';
 import { createTmpProject } from './tools/tmp-project';
 
@@ -100,6 +101,30 @@ describe('runV2Migration', () => {
         `import { ssgAdapter, type SsgRenderOptions } from '@qwik.dev/router/adapters/ssg/vite';`,
         `import type { SsgOptions } from '@qwik.dev/router/ssg';`,
       ].join('\n')
+    );
+  });
+
+  test('renames qwik-city virtual modules', async () => {
+    project = createTmpProject({
+      'package.json': '{}',
+      'src/entry.ts': [
+        `import { isStaticPath } from '@qwik-city-static-paths';`,
+        `import entries from '@qwik-city-entries';`,
+        `import swRegister from '@qwik-city-sw-register';`,
+        `import { getNotFound } from '@qwik-city-not-found-paths';`,
+      ].join('\n'),
+    });
+    await migrate();
+    expect(project.read('src/entry.ts')).toBe(
+      [
+        `import { isStaticPath } from '@qwik.dev/router/middleware/request-handler';`,
+        `import entries from '@qwik-router-entries';`,
+        `import swRegister from '@qwik-router-sw-register';`,
+        `import { getNotFound } from '@qwik-city-not-found-paths';`,
+      ].join('\n')
+    );
+    expect(vi.mocked(log.warn)).toHaveBeenCalledWith(
+      expect.stringContaining('src/entry.ts: "@qwik-city-not-found-paths" does not exist in v2')
     );
   });
 

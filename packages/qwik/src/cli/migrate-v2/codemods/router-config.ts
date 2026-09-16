@@ -13,3 +13,14 @@ export const keepV1LoaderInvalidation = (file: SourceFile) => {
   const [call] = findCalls(file, plugins);
   return call ? ensureCallOption(call, 'strictLoaders', 'false') : false;
 };
+
+/** The node and deno middlewares of v2 limit request bodies to 10 MiB, v1 had no limit. */
+export const keepV1RequestBodyLimit = (file: SourceFile) => {
+  const creates = ['node', 'deno'].flatMap((m) =>
+    ['createQwikCity', 'createQwikRouter'].flatMap((name) =>
+      findNamedImports(file, `@builder.io/qwik-city/middleware/${m}`, name)
+    )
+  );
+  const [call] = findCalls(file, creates);
+  return call ? ensureCallOption(call, 'requestBodyLimit', 'Number.MAX_SAFE_INTEGER') : false;
+};

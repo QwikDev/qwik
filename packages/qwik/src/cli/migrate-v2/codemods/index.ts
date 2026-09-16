@@ -5,7 +5,7 @@ import { removeSlotChildren, renameHtmlFor } from './jsx';
 import { migrateQwikLabs } from './labs';
 import { warnRemovedApis } from './removed-apis';
 import { removeSetupServiceWorker } from './router';
-import { keepV1LoaderInvalidation } from './router-config';
+import { keepV1LoaderInvalidation, keepV1RequestBodyLimit } from './router-config';
 import {
   keepV1StreamingDefaults,
   removeRemovedRenderOptions,
@@ -49,4 +49,5 @@ export const codemods: Codemod[] = [
   renameHtmlFor,
   removeSlotChildren,
   keepV1LoaderInvalidation,
+  keepV1RequestBodyLimit,
 ];

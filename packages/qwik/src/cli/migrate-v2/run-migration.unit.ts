@@ -75,7 +75,7 @@ describe('runV2Migration', () => {
     expect(project.read('src/entry.preview.tsx')).toBe(
       [
         `import { createQwikRouter } from '@qwik.dev/router/middleware/node';`,
-        `export default createQwikRouter({ render });`,
+        `export default createQwikRouter({ render, requestBodyLimit: Number.MAX_SAFE_INTEGER });`,
       ].join('\n')
     );
   });

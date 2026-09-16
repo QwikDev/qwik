@@ -169,6 +169,9 @@ describe('runV2Migration', () => {
     expect(vi.mocked(log.info)).toHaveBeenCalledWith(
       expect.stringContaining('Behavior changes of v2 that could not be migrated:')
     );
+    expect(vi.mocked(log.info)).toHaveBeenCalledWith(
+      expect.stringContaining('Next steps to use the v2 defaults and recommended settings:')
+    );
   });
 
   test('keeps the jsx-runtime subpath and jsxs', async () => {

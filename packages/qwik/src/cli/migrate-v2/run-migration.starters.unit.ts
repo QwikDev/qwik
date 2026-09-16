@@ -2,6 +2,7 @@ import { cpSync, readdirSync, readFileSync, renameSync, statSync, writeFileSync 
 import { join, relative } from 'path';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import type { AppCommand } from '../utils/app-command';
+import { nextSteps } from './report';
 import { runV2Migration } from './run-migration';
 import { createTmpProject } from './tools/tmp-project';
 
@@ -67,5 +68,17 @@ describe('runV2Migration on the v1 starters', () => {
     );
     expect(project.read('vite.config.ts')).toContain('qwikRouter({ strictLoaders: false })');
     expect(project.exists('src/routes/plugin@000-v1-errors.ts')).toBe(true);
+    expect(nextSteps().map((step) => step.split(' ').slice(0, 3).join(' '))).toEqual([
+      'Remove `strictLoaders: false`',
+      'Remove `viewTransition={true}` and',
+      'Remove the `streaming.inOrder`',
+      'Remove `requestBodyLimit: Number.MAX_SAFE_INTEGER`',
+      'Delete `src/routes/plugin@000-v1-errors.ts` and',
+      'Use `createRenderer()` from',
+      'Replace `<QwikRouterProvider>` with',
+      'Delete `src/entry.dev.tsx`, v2',
+      'Render `<DocumentHeadTags />`',
+      'Run your type',
+    ]);
   });
 });

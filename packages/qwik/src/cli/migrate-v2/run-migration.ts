@@ -3,7 +3,7 @@ import type { AppCommand } from '../utils/app-command';
 import { bgMagenta, bgRed, bold, green } from 'kleur/colors';
 import { bye } from '../utils/utils';
 import { removePackage, replacePackage } from './replace-package';
-import { takeWarnings, V2_BEHAVIOR_CHANGES, warnMentions } from './report';
+import { nextSteps, takeWarnings, V2_BEHAVIOR_CHANGES, warnMentions } from './report';
 import { updateConfigurations } from './update-configurations';
 import {
   installTsMorph,
@@ -129,6 +129,11 @@ export async function runV2Migration(app: AppCommand) {
       );
     }
     log.success(`${green(`Your application has been successfully migrated to v2!`)}`);
+    log.info(
+      `${bold('Next steps to use the v2 defaults and recommended settings:')}\n${nextSteps()
+        .map((step, i) => `  ${i + 1}. ${step}`)
+        .join('\n')}`
+    );
   } catch (error) {
     console.error(error);
     throw error;
